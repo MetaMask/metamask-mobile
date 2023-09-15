@@ -8,7 +8,6 @@ import React, {
 import { CommonActions, NavigationContainer } from '@react-navigation/native';
 import { Animated, Linking } from 'react-native';
 import { createStackNavigator } from '@react-navigation/stack';
-import AsyncStorage from '@react-native-async-storage/async-storage';
 import Login from '../../Views/Login';
 import QRScanner from '../../Views/QRScanner';
 import Onboarding from '../../Views/Onboarding';
@@ -47,6 +46,7 @@ import {
 } from '../../../actions/navigation';
 import { findRouteNameFromNavigatorState } from '../../../util/general';
 import { Authentication } from '../../../core/';
+import { isBlockaidFeatureEnabled } from '../../../util/blockaid';
 import { useTheme } from '../../../util/theme';
 import Device from '../../../util/device';
 import SDKConnect from '../../../core/SDKConnect/SDKConnect';
@@ -86,6 +86,10 @@ import EditAccountName from '../../Views/EditAccountName/EditAccountName';
 import WC2Manager, {
   isWC2Enabled,
 } from '../../../../app/core/WalletConnect/WalletConnectV2';
+import { PPOMView } from '../../../lib/ppom/PPOMView';
+import NavigationService from '../../../core/NavigationService';
+import LockScreen from '../../Views/LockScreen';
+import AsyncStorage from '../../../store/async-storage-wrapper';
 
 const clearStackNavigatorOptions = {
   headerShown: false,
@@ -240,7 +244,7 @@ const App = ({ userLoggedIn }) => {
       const existingUser = await AsyncStorage.getItem(EXISTING_USER);
       try {
         if (existingUser && selectedAddress) {
-          await Authentication.appTriggeredAuth(selectedAddress);
+          await Authentication.appTriggeredAuth({ selectedAddress });
           // we need to reset the navigator here so that the user cannot go back to the login screen
           navigator.reset({ routes: [{ name: Routes.ONBOARDING.HOME_NAV }] });
         }
@@ -343,17 +347,16 @@ const App = ({ userLoggedIn }) => {
     initAnalytics();
   }, []);
 
+  const sdkInit = useRef(false);
   useEffect(() => {
-    if (navigator) {
+    if (navigator && !sdkInit.current) {
+      sdkInit.current = true;
       SDKConnect.getInstance()
         .init({ navigation: navigator })
         .catch((err) => {
           console.error(`Cannot initialize SDKConnect`, err);
         });
     }
-    return () => {
-      SDKConnect.getInstance().unmount();
-    };
   }, [navigator]);
 
   useEffect(() => {
@@ -410,6 +413,7 @@ const App = ({ userLoggedIn }) => {
   const setNavigatorRef = (ref) => {
     if (!prevNavigator.current) {
       setNavigator(ref);
+      NavigationService.setNavigationRef(ref);
     }
   };
 
@@ -578,6 +582,7 @@ const App = ({ userLoggedIn }) => {
     // do not render unless a route is defined
     (route && (
       <>
+        {isBlockaidFeatureEnabled() && <PPOMView />}
         <NavigationContainer
           // Prevents artifacts when navigating between screens
           theme={{
@@ -645,6 +650,11 @@ const App = ({ userLoggedIn }) => {
               name={Routes.ADD_NETWORK}
               component={AddNetworkFlow}
               options={{ animationEnabled: true }}
+            />
+            <Stack.Screen
+              name={Routes.LOCK_SCREEN}
+              component={LockScreen}
+              options={{ gestureEnabled: false }}
             />
           </Stack.Navigator>
         </NavigationContainer>

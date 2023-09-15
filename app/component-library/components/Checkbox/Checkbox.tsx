@@ -23,15 +23,16 @@ const Checkbox = ({
   isChecked = false,
   isIndeterminate = false,
   isDisabled = false,
-  isReadonly = false,
+  isReadOnly = false,
   ...props
 }: CheckboxProps) => {
+  const { hitSlop, ...iconProps } = props;
   const { styles } = useStyles(styleSheet, {
     style,
     isChecked,
     isIndeterminate,
     isDisabled,
-    isReadonly,
+    isReadOnly,
   });
 
   let iconName;
@@ -42,14 +43,18 @@ const Checkbox = ({
   }
 
   return (
-    <TouchableOpacity style={styles.base} {...props} disabled={isDisabled}>
+    <TouchableOpacity
+      style={styles.base}
+      {...props}
+      disabled={isDisabled || isReadOnly}
+    >
       {iconName && (
         <Icon
           testID={CHECKBOX_ICON_TESTID}
           name={iconName}
           size={DEFAULT_CHECKBOX_ICONSIZE}
           color={styles.icon.color}
-          {...props}
+          {...iconProps}
         />
       )}
     </TouchableOpacity>

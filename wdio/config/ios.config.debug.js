@@ -19,7 +19,7 @@ config.capabilities = [
   },
 ];
 
-config.cucumberOpts.tagExpression = '@iosApp'; // pass tag to run tests specific to ios
+config.cucumberOpts.tagExpression = '@performance and @iosApp'; // pass tag to run tests specific to ios
 
 const _config = config;
 // eslint-disable-next-line import/prefer-default-export

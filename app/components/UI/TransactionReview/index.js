@@ -35,6 +35,7 @@ import {
 } from '../../../util/number';
 import { safeToChecksumAddress } from '../../../util/address';
 import Device from '../../../util/device';
+import { isBlockaidFeatureEnabled } from '../../../util/blockaid';
 import TransactionReviewInformation from './TransactionReviewInformation';
 import TransactionReviewSummary from './TransactionReviewSummary';
 import TransactionReviewData from './TransactionReviewData';
@@ -62,6 +63,7 @@ import { selectContractExchangeRates } from '../../../selectors/tokenRatesContro
 import { selectAccounts } from '../../../selectors/accountTrackerController';
 import ApproveTransactionHeader from '../ApproveTransactionHeader';
 import AppConstants from '../../../core/AppConstants';
+import BlockaidBanner from '../BlockaidBanner/BlockaidBanner';
 
 const POLLING_INTERVAL_ESTIMATED_L1_FEE = 30000;
 
@@ -268,7 +270,9 @@ class TransactionReview extends PureComponent {
       return;
     }
     try {
-      const eth = new Eth(Engine.context.NetworkController.provider);
+      const eth = new Eth(
+        Engine.context.NetworkController.getProviderAndBlockTracker().provider,
+      );
       const result = await fetchEstimatedMultiLayerL1Fee(eth, {
         txParams: transaction.transaction,
         chainId,
@@ -496,6 +500,11 @@ class TransactionReview extends PureComponent {
               url={url}
               from={from}
               asset={transaction?.selectedAsset}
+            />
+          )}
+          {isBlockaidFeatureEnabled() && (
+            <BlockaidBanner
+              securityAlertResponse={transaction?.securityAlertResponse}
             />
           )}
           <TransactionReviewSummary

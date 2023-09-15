@@ -17,6 +17,7 @@
   "TokensController": {
     "tokens": [],
     "ignoredTokens": [],
+    "suggestedAssets": [],
     "detectedTokens": [],
     "allTokens": {},
     "allIgnoredTokens": {},
@@ -29,6 +30,17 @@
   },
   "TokenDetectionController": {},
   "NftDetectionController": {},
+  "PPOMController": {
+    "chainStatus": {
+      "0x1": {
+        "chainId": "0x1",
+        "dataFetched": false
+      }
+    },
+    "storageMetadata": [],
+    "versionInfo": []
+  },
+
   "CurrencyRateController": {
     "conversionDate": 0,
     "conversionRate": 0,
@@ -41,6 +53,7 @@
   "NetworkController": {
     "network": "loading",
     "isCustomNetwork": false,
+    "networkConfigurations": {},
     "providerConfig": {
       "type": "mainnet",
       "chainId": "1"
@@ -65,7 +78,6 @@
   },
   "PreferencesController": {
     "featureFlags": {},
-    "frequentRpcList": [],
     "identities": {},
     "ipfsGateway": "https://cloudflare-ipfs.com/ipfs/",
     "lostIdentities": {},
@@ -73,6 +85,7 @@
     "useTokenDetection": true,
     "useNftDetection": false,
     "openSeaEnabled": false,
+    "securityAlertsEnabled": false,
     "isMultiAccountBalancesEnabled": true,
     "disabledRpcMethodPreferences": {
       "eth_sign": false
@@ -86,6 +99,7 @@
     "contractExchangeRates": {}
   },
   "TransactionController": {
+    "lastFetchedBlockNumbers": {},
     "methodData": {},
     "transactions": []
   },

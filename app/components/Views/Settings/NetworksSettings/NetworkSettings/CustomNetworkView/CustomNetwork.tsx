@@ -12,7 +12,7 @@ import { useTheme } from '../../../../../../util/theme';
 import PopularList from '../../../../../../util/networks/customNetworks';
 import createStyles from '../styles';
 import { CustomNetworkProps, Network } from './CustomNetwork.types';
-import { selectFrequentRpcList } from '../../../../../../selectors/preferencesController';
+import { selectNetworkConfigurations } from '../../../../../../selectors/networkController';
 
 const CustomNetwork = ({
   isNetworkModalVisible,
@@ -23,25 +23,30 @@ const CustomNetwork = ({
   switchTab,
   shouldNetworkSwitchPopToWallet,
 }: CustomNetworkProps) => {
-  const savedNetworkList = useSelector(selectFrequentRpcList);
+  const networkConfigurations = useSelector(selectNetworkConfigurations);
 
-  const supportedNetworkList = PopularList.map((network: Network) => {
-    const isAdded = savedNetworkList.some(
-      (savedNetwork: any) => savedNetwork.chainId === network.chainId,
-    );
-    return {
-      ...network,
-      isAdded,
-    };
-  });
+  const supportedNetworkList = PopularList.map(
+    (networkConfiguration: Network) => {
+      const isAdded = Object.values(networkConfigurations).some(
+        (savedNetwork: any) =>
+          savedNetwork.chainId === networkConfiguration.chainId,
+      );
+      return {
+        ...networkConfiguration,
+        isAdded,
+      };
+    },
+  );
 
   const navigation = useNavigation();
   const { colors } = useTheme();
-  const styles = createStyles(colors);
+  const styles = createStyles();
   const filteredPopularList = supportedNetworkList.filter((n) => !n.isAdded);
 
   if (filteredPopularList.length === 0) {
-    return <EmptyPopularList goToCustomNetwork={() => switchTab.goToPage(1)} />;
+    return (
+      <EmptyPopularList goToCustomNetwork={() => switchTab?.goToPage?.(1)} />
+    );
   }
 
   return (
@@ -50,26 +55,26 @@ const CustomNetwork = ({
         <NetworkModals
           isVisible={isNetworkModalVisible}
           onClose={closeNetworkModal}
-          network={selectedNetwork}
+          networkConfiguration={selectedNetwork}
           navigation={navigation}
           shouldNetworkSwitchPopToWallet={shouldNetworkSwitchPopToWallet}
         />
       )}
-      {filteredPopularList.map((item, index) => (
+      {filteredPopularList.map((networkConfiguration, index) => (
         <TouchableOpacity
           key={index}
           style={styles.popularNetwork}
-          onPress={() => showNetworkModal(item)}
+          onPress={() => showNetworkModal(networkConfiguration)}
         >
           <View style={styles.popularWrapper}>
             <ImageIcons
-              image={item.rpcPrefs.imageUrl}
+              image={networkConfiguration.rpcPrefs.imageUrl}
               style={styles.popularNetworkImage}
             />
-            <CustomText bold>{item.nickname}</CustomText>
+            <CustomText bold>{networkConfiguration.nickname}</CustomText>
           </View>
           <View style={styles.popularWrapper}>
-            {item.warning ? (
+            {networkConfiguration.warning ? (
               <WarningIcon
                 name="warning"
                 size={14}

@@ -17,6 +17,8 @@ import { PersonalSignProps } from './types';
 import { useNavigation } from '@react-navigation/native';
 import createStyles from './styles';
 import AppConstants from '../../../core/AppConstants';
+import { selectChainId } from '../../../selectors/networkController';
+import { store } from '../../../store';
 
 /**
  * Component that supports personal_sign
@@ -38,7 +40,6 @@ const PersonalSign = ({
   interface AnalyticsParams {
     account_type?: string;
     dapp_host_name?: string;
-    dapp_url?: string;
     chain_id?: string;
     sign_type?: string;
     [key: string]: string | undefined;
@@ -46,14 +47,12 @@ const PersonalSign = ({
 
   const getAnalyticsParams = useCallback((): AnalyticsParams => {
     try {
-      const { NetworkController }: any = Engine.context;
-      const { chainId } = NetworkController?.state?.providerConfig || {};
+      const chainId = selectChainId(store.getState());
       const url = new URL(currentPageInformation?.url);
 
       return {
         account_type: getAddressAccountType(messageParams.from),
         dapp_host_name: url?.host,
-        dapp_url: currentPageInformation?.url,
         chain_id: chainId,
         sign_type: 'personal',
         ...currentPageInformation?.analytics,
@@ -71,7 +70,7 @@ const PersonalSign = ({
   }, [getAnalyticsParams]);
 
   useEffect(() => {
-    const onSignatureError = ({ error }) => {
+    const onSignatureError = ({ error }: { error: Error }) => {
       if (error?.message.startsWith(KEYSTONE_TX_CANCELED)) {
         AnalyticsV2.trackEvent(
           MetaMetricsEvents.QR_HARDWARE_TRANSACTION_CANCELED,
@@ -138,7 +137,7 @@ const PersonalSign = ({
   const renderMessageText = () => {
     const textChild = sanitizeString(hexToText(messageParams.data))
       .split('\n')
-      .map((line, i) => (
+      .map((line: string, i: number) => (
         <Text
           key={`txt_${i}`}
           style={[
@@ -191,6 +190,7 @@ const PersonalSign = ({
       truncateMessage={truncateMessage}
       type="personalSign"
       fromAddress={messageParams.from}
+      securityAlertResponse={messageParams.securityAlertResponse}
       testID={'personal-signature-request'}
     >
       <View style={styles.messageWrapper}>{renderMessageText()}</View>

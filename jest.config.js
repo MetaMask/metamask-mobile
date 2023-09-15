@@ -1,4 +1,5 @@
 process.env.TZ = 'America/Toronto';
+process.env.MM_BLOCKAID_UI_ENABLED = 'true';
 
 const config = {
   preset: 'react-native',
@@ -15,7 +16,12 @@ const config = {
   snapshotSerializers: ['enzyme-to-json/serializer'],
   // This is an environment variable that can be used to execute logic only in development
   collectCoverage: process.env.NODE_ENV !== 'production',
-  coveragePathIgnorePatterns: ['/node_modules/', '__mocks__', '<rootDir>/e2e/'],
+  collectCoverageFrom: ['<rootDir>/app/**/*.{js,ts,tsx,jsx}'],
+  coveragePathIgnorePatterns: [
+    '__mocks__/',
+    '<rootDir>/app/util/test/',
+    '<rootDir>/app/util/testUtils/',
+  ],
   coverageReporters: ['text-summary', 'lcov'],
   coverageDirectory: '<rootDir>/tests/coverage',
   maxWorkers: process.env.NODE_ENV === 'production' ? '50%' : '20%',
