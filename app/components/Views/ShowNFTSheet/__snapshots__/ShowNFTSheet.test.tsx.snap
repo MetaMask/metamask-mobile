@@ -486,7 +486,7 @@ exports[`ShowNftSheet should render correctly 1`] = `
                           }
                         >
                           <TouchableOpacity
-                            activeOpacity={0.5}
+                            activeOpacity={1}
                             onPress={[Function]}
                             onPressIn={[Function]}
                             onPressOut={[Function]}
@@ -524,7 +524,7 @@ exports[`ShowNftSheet should render correctly 1`] = `
                             </Text>
                           </TouchableOpacity>
                           <TouchableOpacity
-                            activeOpacity={0.5}
+                            activeOpacity={1}
                             onPress={[Function]}
                             onPressIn={[Function]}
                             onPressOut={[Function]}

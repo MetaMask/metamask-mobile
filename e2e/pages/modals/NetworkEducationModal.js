@@ -23,10 +23,10 @@ export default class NetworkEducationModal {
     await TestHelpers.tapByText(manuallyAddTokenText);
   }
 
-  static async isNetworkNameCorrect(network) {
+  static async isNetworkNameCorrect(networkName) {
     await TestHelpers.checkIfElementHasString(
       NETWORK_EDUCATION_MODAL_NETWORK_NAME_ID,
-      network,
+      networkName,
     );
   }
 

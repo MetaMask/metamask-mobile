@@ -45,6 +45,7 @@ describe('Engine', () => {
     backgroundState.PhishingController.listState.allowlist = [];
     backgroundState.PhishingController.listState.blocklist = [];
     backgroundState.PhishingController.listState.fuzzylist = [];
+    delete backgroundState.PPOMController.chainStatus['0x1'].lastVisited;
 
     expect(engine.datamodel.state).toStrictEqual(initialState);
   });

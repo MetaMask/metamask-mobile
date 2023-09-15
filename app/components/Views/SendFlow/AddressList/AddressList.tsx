@@ -45,7 +45,7 @@ const AddressList: React.FC<AddressListProps> = ({
   const styles = styleSheet(colors);
   const [contactElements, setContactElements] = useState<Contact[]>([]);
   const [fuse, setFuse] = useState<any>(undefined);
-  const network = useSelector(selectNetwork);
+  const networkId = useSelector(selectNetwork);
   const identities = useSelector(selectIdentities);
   const addressBook = useSelector(
     (state: any) =>
@@ -53,8 +53,8 @@ const AddressList: React.FC<AddressListProps> = ({
   );
 
   const networkAddressBook: { [address: string]: AddressBookEntry } = useMemo(
-    () => addressBook[network] || {},
-    [addressBook, network],
+    () => addressBook[networkId] || {},
+    [addressBook, networkId],
   );
 
   const parseAddressBook = useCallback(
@@ -145,7 +145,7 @@ const AddressList: React.FC<AddressListProps> = ({
   }, [
     inputSearch,
     addressBook,
-    network,
+    networkId,
     reloadAddressList,
     getNetworkAddressBookList,
     parseAddressBook,

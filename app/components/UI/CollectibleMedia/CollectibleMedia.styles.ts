@@ -65,8 +65,7 @@ const createStyles = (colors: any) =>
       color: 'black',
     },
     imageFallBackShowText: {
-      textAlign: 'center',
-      width: '100%',
+      alignSelf: 'center',
     },
   });
 
