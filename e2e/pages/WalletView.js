@@ -29,7 +29,7 @@ export default class WalletView {
   }
 
   static async tapOnToken(token) {
-    await TestHelpers.waitAndTapText(token);
+    await TestHelpers.waitAndTapText(token || 'Ethereum');
   }
 
   static async tapIdenticon() {
