@@ -3,7 +3,7 @@
 exports[`SendFlowAddressTo should render correctly 1`] = `
 <View
   style={
-    Object {
+    {
       "flexDirection": "row",
       "marginHorizontal": 8,
       "minHeight": 52,
@@ -12,7 +12,7 @@ exports[`SendFlowAddressTo should render correctly 1`] = `
 >
   <View
     style={
-      Object {
+      {
         "alignItems": "center",
         "flexDirection": "row",
         "width": "15%",
@@ -21,8 +21,8 @@ exports[`SendFlowAddressTo should render correctly 1`] = `
   >
     <Text
       style={
-        Array [
-          Object {
+        [
+          {
             "color": "#24272A",
             "fontFamily": "EuclidCircularB-Regular",
             "fontSize": 30,
@@ -52,7 +52,7 @@ exports[`SendFlowAddressTo should render correctly 1`] = `
           undefined,
           undefined,
           undefined,
-          Object {
+          {
             "color": "#24272A",
             "fontFamily": "EuclidCircularB-Regular",
             "fontSize": 16,
@@ -66,8 +66,8 @@ exports[`SendFlowAddressTo should render correctly 1`] = `
   </View>
   <View
     style={
-      Array [
-        Object {
+      [
+        {
           "borderRadius": 8,
           "borderWidth": 1,
           "flex": 1,
@@ -77,7 +77,7 @@ exports[`SendFlowAddressTo should render correctly 1`] = `
           "minHeight": 52,
           "paddingHorizontal": 10,
         },
-        Object {
+        {
           "borderColor": "#BBC0C5",
         },
       ]
@@ -85,7 +85,7 @@ exports[`SendFlowAddressTo should render correctly 1`] = `
   >
     <View
       style={
-        Object {
+        {
           "alignItems": "center",
           "flex": 1,
           "flexDirection": "row",
@@ -105,8 +105,8 @@ exports[`SendFlowAddressTo should render correctly 1`] = `
         placeholderTextColor="#BBC0C5"
         spellCheck={false}
         style={
-          Array [
-            Object {
+          [
+            {
               "color": "#24272A",
               "flex": 1,
               "fontFamily": "EuclidCircularB-Regular",
@@ -123,7 +123,7 @@ exports[`SendFlowAddressTo should render correctly 1`] = `
     <TouchableOpacity
       onPress={[Function]}
       style={
-        Object {
+        {
           "alignItems": "center",
           "flexDirection": "row",
         }
@@ -132,26 +132,26 @@ exports[`SendFlowAddressTo should render correctly 1`] = `
       <Text
         allowFontScaling={false}
         style={
-          Array [
-            Object {
+          [
+            {
               "color": undefined,
               "fontSize": 20,
             },
-            Array [
-              Object {
+            [
+              {
                 "alignItems": "center",
                 "flexDirection": "column",
               },
-              Object {
+              {
                 "color": "#24272A",
               },
             ],
-            Object {
+            {
               "fontFamily": "anticon",
               "fontStyle": "normal",
               "fontWeight": "normal",
             },
-            Object {},
+            {},
           ]
         }
       >

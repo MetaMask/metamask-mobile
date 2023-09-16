@@ -3,7 +3,7 @@
 exports[`Text should render Text 1`] = `
 <Text
   style={
-    Object {
+    {
       "color": "#24272A",
       "fontFamily": "Euclid Circular B",
       "fontSize": 16,

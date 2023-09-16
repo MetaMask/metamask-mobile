@@ -3,7 +3,7 @@
 exports[`BiometryButton should render correctly 1`] = `
 <TouchableOpacity
   hitSlop={
-    Object {
+    {
       "bottom": 10,
       "left": 10,
       "right": 10,
@@ -14,14 +14,14 @@ exports[`BiometryButton should render correctly 1`] = `
 >
   <Image
     source={
-      Object {
-        "default": Object {
+      {
+        "default": {
           "uri": "MockImage",
         },
       }
     }
     style={
-      Object {
+      {
         "height": 24,
         "tintColor": "#24272A",
         "width": 24,

@@ -3,14 +3,14 @@
 exports[`TransactionReviewEIP1559 should render correctly 1`] = `
 <View
   style={
-    Array [
-      Object {
+    [
+      {
         "borderColor": "#D6D9DC",
         "borderRadius": 8,
         "borderWidth": 1,
         "padding": 16,
       },
-      Object {
+      {
         "marginHorizontal": 24,
         "paddingBottom": 10,
         "paddingTop": 10,
@@ -20,8 +20,8 @@ exports[`TransactionReviewEIP1559 should render correctly 1`] = `
 >
   <View
     style={
-      Array [
-        Object {
+      [
+        {
           "flexDirection": "row",
           "justifyContent": "space-between",
           "marginVertical": 3,
@@ -34,7 +34,7 @@ exports[`TransactionReviewEIP1559 should render correctly 1`] = `
   >
     <View
       style={
-        Object {
+        {
           "alignItems": "center",
           "flex": 1,
           "flexDirection": "row",
@@ -44,7 +44,7 @@ exports[`TransactionReviewEIP1559 should render correctly 1`] = `
     >
       <View
         style={
-          Object {
+          {
             "alignItems": "center",
             "flex": 1,
             "flexDirection": "row",
@@ -54,8 +54,8 @@ exports[`TransactionReviewEIP1559 should render correctly 1`] = `
       >
         <Text
           style={
-            Array [
-              Object {
+            [
+              {
                 "color": "#24272A",
                 "fontFamily": "EuclidCircularB-Regular",
                 "fontSize": 30,
@@ -64,7 +64,7 @@ exports[`TransactionReviewEIP1559 should render correctly 1`] = `
               },
               undefined,
               undefined,
-              Object {
+              {
                 "fontFamily": "EuclidCircularB-Bold",
                 "fontWeight": "600",
               },
@@ -75,7 +75,7 @@ exports[`TransactionReviewEIP1559 should render correctly 1`] = `
               undefined,
               false,
               undefined,
-              Object {
+              {
                 "color": "#24272A",
               },
               undefined,
@@ -89,7 +89,7 @@ exports[`TransactionReviewEIP1559 should render correctly 1`] = `
               undefined,
               undefined,
               undefined,
-              Object {
+              {
                 "marginVertical": 0,
               },
               undefined,
@@ -99,7 +99,7 @@ exports[`TransactionReviewEIP1559 should render correctly 1`] = `
           Estimated gas fee
           <TouchableOpacity
             hitSlop={
-              Object {
+              {
                 "bottom": 10,
                 "left": 10,
                 "right": 10,
@@ -108,7 +108,7 @@ exports[`TransactionReviewEIP1559 should render correctly 1`] = `
             }
             onPress={[Function]}
             style={
-              Object {
+              {
                 "paddingLeft": 2,
               }
             }
@@ -116,20 +116,20 @@ exports[`TransactionReviewEIP1559 should render correctly 1`] = `
             <Text
               allowFontScaling={false}
               style={
-                Array [
-                  Object {
+                [
+                  {
                     "color": undefined,
                     "fontSize": 13,
                   },
-                  Object {
+                  {
                     "color": "#BBC0C5",
                   },
-                  Object {
+                  {
                     "fontFamily": "Material Design Icons",
                     "fontStyle": "normal",
                     "fontWeight": "normal",
                   },
-                  Object {},
+                  {},
                 ]
               }
             >
@@ -140,8 +140,8 @@ exports[`TransactionReviewEIP1559 should render correctly 1`] = `
       </View>
       <View
         style={
-          Array [
-            Object {
+          [
+            {
               "flex": 1,
               "flexDirection": "row",
               "justifyContent": "flex-end",
@@ -154,20 +154,20 @@ exports[`TransactionReviewEIP1559 should render correctly 1`] = `
         >
           <View
             style={
-              Object {
+              {
                 "position": "relative",
               }
             }
           >
             <View
               style={
-                Array [
-                  Object {
+                [
+                  {
                     "borderRadius": 4,
                     "height": 10,
                     "width": 80,
                   },
-                  Object {
+                  {
                     "backgroundColor": "#E1E9EE",
                     "overflow": "hidden",
                   },
@@ -181,8 +181,8 @@ exports[`TransactionReviewEIP1559 should render correctly 1`] = `
   </View>
   <View
     style={
-      Array [
-        Object {
+      [
+        {
           "flexDirection": "row",
           "justifyContent": "space-between",
           "marginVertical": 3,
@@ -195,7 +195,7 @@ exports[`TransactionReviewEIP1559 should render correctly 1`] = `
   >
     <View
       style={
-        Object {
+        {
           "alignItems": "center",
           "flex": 1,
           "flexDirection": "row",
@@ -205,7 +205,7 @@ exports[`TransactionReviewEIP1559 should render correctly 1`] = `
     >
       <View
         style={
-          Array [
+          [
             false,
           ]
         }
@@ -215,20 +215,20 @@ exports[`TransactionReviewEIP1559 should render correctly 1`] = `
         >
           <View
             style={
-              Object {
+              {
                 "position": "relative",
               }
             }
           >
             <View
               style={
-                Array [
-                  Object {
+                [
+                  {
                     "borderRadius": 4,
                     "height": 10,
                     "width": 120,
                   },
-                  Object {
+                  {
                     "backgroundColor": "#E1E9EE",
                     "overflow": "hidden",
                   },
@@ -240,8 +240,8 @@ exports[`TransactionReviewEIP1559 should render correctly 1`] = `
       </View>
       <View
         style={
-          Array [
-            Object {
+          [
+            {
               "flex": 1,
               "flexDirection": "row",
               "justifyContent": "flex-end",
@@ -254,20 +254,20 @@ exports[`TransactionReviewEIP1559 should render correctly 1`] = `
         >
           <View
             style={
-              Object {
+              {
                 "position": "relative",
               }
             }
           >
             <View
               style={
-                Array [
-                  Object {
+                [
+                  {
                     "borderRadius": 4,
                     "height": 10,
                     "width": 120,
                   },
-                  Object {
+                  {
                     "backgroundColor": "#E1E9EE",
                     "overflow": "hidden",
                   },
@@ -282,8 +282,8 @@ exports[`TransactionReviewEIP1559 should render correctly 1`] = `
   <View>
     <View
       style={
-        Array [
-          Object {
+        [
+          {
             "borderBottomColor": "#D6D9DC",
             "borderBottomWidth": 1,
             "marginVertical": 6,
@@ -294,15 +294,15 @@ exports[`TransactionReviewEIP1559 should render correctly 1`] = `
     />
     <View
       style={
-        Object {
+        {
           "marginTop": 4,
         }
       }
     >
       <View
         style={
-          Array [
-            Object {
+          [
+            {
               "flexDirection": "row",
               "justifyContent": "space-between",
               "marginVertical": 3,
@@ -315,8 +315,8 @@ exports[`TransactionReviewEIP1559 should render correctly 1`] = `
       >
         <Text
           style={
-            Array [
-              Object {
+            [
+              {
                 "color": "#24272A",
                 "fontFamily": "EuclidCircularB-Regular",
                 "fontSize": 30,
@@ -325,7 +325,7 @@ exports[`TransactionReviewEIP1559 should render correctly 1`] = `
               },
               undefined,
               undefined,
-              Object {
+              {
                 "fontFamily": "EuclidCircularB-Bold",
                 "fontWeight": "600",
               },
@@ -336,7 +336,7 @@ exports[`TransactionReviewEIP1559 should render correctly 1`] = `
               undefined,
               undefined,
               undefined,
-              Object {
+              {
                 "color": "#24272A",
               },
               undefined,
@@ -350,7 +350,7 @@ exports[`TransactionReviewEIP1559 should render correctly 1`] = `
               undefined,
               undefined,
               undefined,
-              Object {
+              {
                 "marginVertical": 0,
               },
               undefined,
@@ -361,8 +361,8 @@ exports[`TransactionReviewEIP1559 should render correctly 1`] = `
         </Text>
         <View
           style={
-            Array [
-              Object {
+            [
+              {
                 "flex": 1,
                 "flexDirection": "row",
                 "justifyContent": "flex-end",
@@ -375,20 +375,20 @@ exports[`TransactionReviewEIP1559 should render correctly 1`] = `
           >
             <View
               style={
-                Object {
+                {
                   "position": "relative",
                 }
               }
             >
               <View
                 style={
-                  Array [
-                    Object {
+                  [
+                    {
                       "borderRadius": 4,
                       "height": 10,
                       "width": 80,
                     },
-                    Object {
+                    {
                       "backgroundColor": "#E1E9EE",
                       "overflow": "hidden",
                     },
@@ -402,8 +402,8 @@ exports[`TransactionReviewEIP1559 should render correctly 1`] = `
     </View>
     <View
       style={
-        Array [
-          Object {
+        [
+          {
             "flexDirection": "row",
             "justifyContent": "space-between",
             "marginVertical": 3,
@@ -416,8 +416,8 @@ exports[`TransactionReviewEIP1559 should render correctly 1`] = `
     >
       <View
         style={
-          Array [
-            Object {
+          [
+            {
               "flex": 1,
               "flexDirection": "row",
               "justifyContent": "flex-end",
@@ -430,20 +430,20 @@ exports[`TransactionReviewEIP1559 should render correctly 1`] = `
         >
           <View
             style={
-              Object {
+              {
                 "position": "relative",
               }
             }
           >
             <View
               style={
-                Array [
-                  Object {
+                [
+                  {
                     "borderRadius": 4,
                     "height": 10,
                     "width": 120,
                   },
-                  Object {
+                  {
                     "backgroundColor": "#E1E9EE",
                     "overflow": "hidden",
                   },
@@ -474,7 +474,7 @@ exports[`TransactionReviewEIP1559 should render correctly 1`] = `
     scrollTo={null}
     statusBarTranslucent={false}
     supportedOrientations={
-      Array [
+      [
         "portrait",
         "landscape",
       ]
@@ -503,7 +503,7 @@ exports[`TransactionReviewEIP1559 should render correctly 1`] = `
     scrollTo={null}
     statusBarTranslucent={false}
     supportedOrientations={
-      Array [
+      [
         "portrait",
         "landscape",
       ]
@@ -532,7 +532,7 @@ exports[`TransactionReviewEIP1559 should render correctly 1`] = `
     scrollTo={null}
     statusBarTranslucent={false}
     supportedOrientations={
-      Array [
+      [
         "portrait",
         "landscape",
       ]

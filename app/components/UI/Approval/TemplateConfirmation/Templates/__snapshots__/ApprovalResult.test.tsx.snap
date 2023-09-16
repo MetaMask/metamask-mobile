@@ -5,7 +5,7 @@ exports[`ApprovalResult renders approval result with error type 1`] = `
   collapsable={false}
   forwardedRef={[Function]}
   style={
-    Object {
+    {
       "backgroundColor": "#FFFFFF",
       "borderTopLeftRadius": 20,
       "borderTopRightRadius": 20,
@@ -17,14 +17,14 @@ exports[`ApprovalResult renders approval result with error type 1`] = `
 >
   <View
     style={
-      Object {
+      {
         "paddingHorizontal": 24,
       }
     }
   >
     <Text
       style={
-        Object {
+        {
           "color": "#24272A",
           "fontFamily": "Euclid Circular B",
           "fontSize": 14,
@@ -36,7 +36,7 @@ exports[`ApprovalResult renders approval result with error type 1`] = `
     />
     <View
       style={
-        Object {
+        {
           "alignItems": "center",
           "justifyContent": "center",
         }
@@ -44,7 +44,7 @@ exports[`ApprovalResult renders approval result with error type 1`] = `
     >
       <View
         style={
-          Object {
+          {
             "alignItems": "center",
             "backgroundColor": "#D7384719",
             "borderRadius": 24,
@@ -59,7 +59,7 @@ exports[`ApprovalResult renders approval result with error type 1`] = `
           height={24}
           name="Warning"
           style={
-            Object {
+            {
               "height": 24,
               "width": 24,
             }
@@ -72,7 +72,7 @@ exports[`ApprovalResult renders approval result with error type 1`] = `
     </View>
     <View
       style={
-        Object {
+        {
           "alignItems": "center",
           "backgroundColor": "#FFFFFF",
           "flexDirection": "row",
@@ -84,14 +84,14 @@ exports[`ApprovalResult renders approval result with error type 1`] = `
     >
       <View
         style={
-          Object {
+          {
             "flex": 1,
           }
         }
       />
       <Text
         style={
-          Object {
+          {
             "color": "#24272A",
             "fontFamily": "Euclid Circular B",
             "fontSize": 18,
@@ -105,7 +105,7 @@ exports[`ApprovalResult renders approval result with error type 1`] = `
       </Text>
       <View
         style={
-          Object {
+          {
             "alignItems": "flex-end",
             "flex": 1,
           }
@@ -114,7 +114,7 @@ exports[`ApprovalResult renders approval result with error type 1`] = `
     </View>
     <Text
       style={
-        Object {
+        {
           "color": "#24272A",
           "fontFamily": "Euclid Circular B",
           "fontSize": 14,
@@ -128,7 +128,7 @@ exports[`ApprovalResult renders approval result with error type 1`] = `
     >
       <Text
         style={
-          Object {
+          {
             "color": "#24272A",
             "fontFamily": "Euclid Circular B",
             "fontSize": 14,
@@ -146,7 +146,7 @@ exports[`ApprovalResult renders approval result with error type 1`] = `
     collapsable={false}
     forwardedRef={[Function]}
     style={
-      Object {
+      {
         "flex": 0,
         "justifyContent": "center",
         "paddingVertical": 16,
@@ -155,7 +155,7 @@ exports[`ApprovalResult renders approval result with error type 1`] = `
   >
     <View
       style={
-        Object {
+        {
           "backgroundColor": "#FFFFFF",
           "flexDirection": "row",
           "paddingHorizontal": 8,
@@ -170,7 +170,7 @@ exports[`ApprovalResult renders approval result with error type 1`] = `
         onPressIn={[Function]}
         onPressOut={[Function]}
         style={
-          Object {
+          {
             "alignItems": "center",
             "alignSelf": "flex-start",
             "backgroundColor": "#0376C9",
@@ -187,7 +187,7 @@ exports[`ApprovalResult renders approval result with error type 1`] = `
       >
         <Text
           style={
-            Object {
+            {
               "color": "#FCFCFC",
               "fontFamily": "Euclid Circular B",
               "fontSize": 14,
@@ -210,7 +210,7 @@ exports[`ApprovalResult renders approval result with success type 1`] = `
   collapsable={false}
   forwardedRef={[Function]}
   style={
-    Object {
+    {
       "backgroundColor": "#FFFFFF",
       "borderTopLeftRadius": 20,
       "borderTopRightRadius": 20,
@@ -222,14 +222,14 @@ exports[`ApprovalResult renders approval result with success type 1`] = `
 >
   <View
     style={
-      Object {
+      {
         "paddingHorizontal": 24,
       }
     }
   >
     <Text
       style={
-        Object {
+        {
           "color": "#24272A",
           "fontFamily": "Euclid Circular B",
           "fontSize": 14,
@@ -241,7 +241,7 @@ exports[`ApprovalResult renders approval result with success type 1`] = `
     />
     <View
       style={
-        Object {
+        {
           "alignItems": "center",
           "justifyContent": "center",
         }
@@ -249,7 +249,7 @@ exports[`ApprovalResult renders approval result with success type 1`] = `
     >
       <View
         style={
-          Object {
+          {
             "alignItems": "center",
             "backgroundColor": "#28A74519",
             "borderRadius": 24,
@@ -264,7 +264,7 @@ exports[`ApprovalResult renders approval result with success type 1`] = `
           height={24}
           name="Confirmation"
           style={
-            Object {
+            {
               "height": 24,
               "width": 24,
             }
@@ -277,7 +277,7 @@ exports[`ApprovalResult renders approval result with success type 1`] = `
     </View>
     <View
       style={
-        Object {
+        {
           "alignItems": "center",
           "backgroundColor": "#FFFFFF",
           "flexDirection": "row",
@@ -289,14 +289,14 @@ exports[`ApprovalResult renders approval result with success type 1`] = `
     >
       <View
         style={
-          Object {
+          {
             "flex": 1,
           }
         }
       />
       <Text
         style={
-          Object {
+          {
             "color": "#24272A",
             "fontFamily": "Euclid Circular B",
             "fontSize": 18,
@@ -310,7 +310,7 @@ exports[`ApprovalResult renders approval result with success type 1`] = `
       </Text>
       <View
         style={
-          Object {
+          {
             "alignItems": "flex-end",
             "flex": 1,
           }
@@ -319,7 +319,7 @@ exports[`ApprovalResult renders approval result with success type 1`] = `
     </View>
     <Text
       style={
-        Object {
+        {
           "color": "#24272A",
           "fontFamily": "Euclid Circular B",
           "fontSize": 14,
@@ -333,7 +333,7 @@ exports[`ApprovalResult renders approval result with success type 1`] = `
     >
       <Text
         style={
-          Object {
+          {
             "color": "#24272A",
             "fontFamily": "Euclid Circular B",
             "fontSize": 14,
@@ -351,7 +351,7 @@ exports[`ApprovalResult renders approval result with success type 1`] = `
     collapsable={false}
     forwardedRef={[Function]}
     style={
-      Object {
+      {
         "flex": 0,
         "justifyContent": "center",
         "paddingVertical": 16,
@@ -360,7 +360,7 @@ exports[`ApprovalResult renders approval result with success type 1`] = `
   >
     <View
       style={
-        Object {
+        {
           "backgroundColor": "#FFFFFF",
           "flexDirection": "row",
           "paddingHorizontal": 8,
@@ -375,7 +375,7 @@ exports[`ApprovalResult renders approval result with success type 1`] = `
         onPressIn={[Function]}
         onPressOut={[Function]}
         style={
-          Object {
+          {
             "alignItems": "center",
             "alignSelf": "flex-start",
             "backgroundColor": "#0376C9",
@@ -392,7 +392,7 @@ exports[`ApprovalResult renders approval result with success type 1`] = `
       >
         <Text
           style={
-            Object {
+            {
               "color": "#FCFCFC",
               "fontFamily": "Euclid Circular B",
               "fontSize": 14,

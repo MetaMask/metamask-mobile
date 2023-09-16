@@ -3,7 +3,7 @@
 exports[`AddCustomNetwork should render correctly 1`] = `
 <View
   style={
-    Object {
+    {
       "backgroundColor": "#FFFFFF",
       "borderTopLeftRadius": 20,
       "borderTopRightRadius": 20,
@@ -21,7 +21,7 @@ exports[`AddCustomNetwork should render correctly 1`] = `
       noMargin={true}
       primary={true}
       style={
-        Object {
+        {
           "fontSize": 24,
           "marginBottom": 16,
           "marginLeft": 24,
@@ -37,7 +37,7 @@ exports[`AddCustomNetwork should render correctly 1`] = `
       noMargin={true}
       primary={true}
       style={
-        Object {
+        {
           "fontSize": 13,
           "paddingBottom": 12,
           "paddingHorizontal": 24,
@@ -52,7 +52,7 @@ exports[`AddCustomNetwork should render correctly 1`] = `
       noMargin={true}
       primary={true}
       style={
-        Object {
+        {
           "fontSize": 13,
           "lineHeight": 20,
           "paddingHorizontal": 24,
@@ -82,7 +82,7 @@ exports[`AddCustomNetwork should render correctly 1`] = `
     </Text>
     <View
       style={
-        Object {
+        {
           "borderColor": "#BBC0C5",
           "borderRadius": 10,
           "borderWidth": 1,
@@ -93,7 +93,7 @@ exports[`AddCustomNetwork should render correctly 1`] = `
     >
       <View
         style={
-          Object {
+          {
             "flexDirection": "row",
             "paddingBottom": 7,
           }
@@ -104,7 +104,7 @@ exports[`AddCustomNetwork should render correctly 1`] = `
           primary={true}
           small={true}
           style={
-            Object {
+            {
               "paddingRight": 10,
             }
           }
@@ -117,7 +117,7 @@ exports[`AddCustomNetwork should render correctly 1`] = `
           primary={true}
           right={true}
           style={
-            Object {
+            {
               "flex": 1,
               "fontSize": 13,
             }
@@ -126,7 +126,7 @@ exports[`AddCustomNetwork should render correctly 1`] = `
       </View>
       <View
         style={
-          Object {
+          {
             "flexDirection": "row",
             "paddingBottom": 7,
           }
@@ -137,7 +137,7 @@ exports[`AddCustomNetwork should render correctly 1`] = `
           primary={true}
           small={true}
           style={
-            Object {
+            {
               "paddingRight": 10,
             }
           }
@@ -150,7 +150,7 @@ exports[`AddCustomNetwork should render correctly 1`] = `
           primary={true}
           right={true}
           style={
-            Object {
+            {
               "flex": 1,
               "fontSize": 13,
             }
@@ -159,7 +159,7 @@ exports[`AddCustomNetwork should render correctly 1`] = `
       </View>
       <View
         style={
-          Object {
+          {
             "flexDirection": "row",
           }
         }
@@ -169,7 +169,7 @@ exports[`AddCustomNetwork should render correctly 1`] = `
           primary={true}
           small={true}
           style={
-            Object {
+            {
               "paddingRight": 10,
             }
           }
@@ -182,7 +182,7 @@ exports[`AddCustomNetwork should render correctly 1`] = `
           primary={true}
           right={true}
           style={
-            Object {
+            {
               "flex": 1,
               "fontSize": 13,
             }
@@ -193,7 +193,7 @@ exports[`AddCustomNetwork should render correctly 1`] = `
     <TouchableOpacity
       onPress={[Function]}
       style={
-        Object {
+        {
           "alignItems": "center",
           "flexDirection": "column",
         }
@@ -206,7 +206,7 @@ exports[`AddCustomNetwork should render correctly 1`] = `
           link={true}
           noMargin={true}
           style={
-            Object {
+            {
               "fontSize": 12,
               "lineHeight": 16,
             }
@@ -218,7 +218,7 @@ exports[`AddCustomNetwork should render correctly 1`] = `
     </TouchableOpacity>
     <View
       style={
-        Object {
+        {
           "flex": 0,
           "flexDirection": "row",
           "padding": 24,
@@ -227,23 +227,23 @@ exports[`AddCustomNetwork should render correctly 1`] = `
     >
       <StyledButton
         containerStyle={
-          Array [
-            Object {
+          [
+            {
               "flex": 1,
             },
-            Object {
+            {
               "marginRight": 8,
             },
           ]
         }
         disabledContainerStyle={
-          Object {
+          {
             "opacity": 0.6,
           }
         }
         onPress={[Function]}
         styleDisabled={
-          Object {
+          {
             "opacity": 0.6,
           }
         }
@@ -254,23 +254,23 @@ exports[`AddCustomNetwork should render correctly 1`] = `
       </StyledButton>
       <StyledButton
         containerStyle={
-          Array [
-            Object {
+          [
+            {
               "flex": 1,
             },
-            Object {
+            {
               "marginLeft": 8,
             },
           ]
         }
         disabledContainerStyle={
-          Object {
+          {
             "opacity": 0.6,
           }
         }
         onPress={[Function]}
         styleDisabled={
-          Object {
+          {
             "opacity": 0.6,
           }
         }

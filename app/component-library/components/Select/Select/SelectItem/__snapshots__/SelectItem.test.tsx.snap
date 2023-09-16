@@ -4,7 +4,7 @@ exports[`SelectItem should render snapshot correctly 1`] = `
 <TouchableOpacity
   disabled={false}
   style={
-    Object {
+    {
       "opacity": 1,
       "position": "relative",
     }
@@ -14,7 +14,7 @@ exports[`SelectItem should render snapshot correctly 1`] = `
     accessibilityRole="none"
     accessible={true}
     style={
-      Object {
+      {
         "alignItems": "flex-start",
         "backgroundColor": "#FFFFFF",
         "borderRadius": 4,

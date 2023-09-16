@@ -3,7 +3,7 @@
 exports[`AddBookmark should render correctly 1`] = `
 <RCTSafeAreaView
   style={
-    Object {
+    {
       "backgroundColor": "#FFFFFF",
       "flex": 1,
     }
@@ -25,14 +25,14 @@ exports[`AddBookmark should render correctly 1`] = `
     <View>
       <View
         style={
-          Object {
+          {
             "padding": 20,
           }
         }
       >
         <Text
           style={
-            Object {
+            {
               "color": "#24272A",
               "fontFamily": "EuclidCircularB-Regular",
               "fontWeight": "400",
@@ -49,7 +49,7 @@ exports[`AddBookmark should render correctly 1`] = `
           placeholderTextColor="#BBC0C5"
           returnKeyType="next"
           style={
-            Object {
+            {
               "borderColor": "#BBC0C5",
               "borderRadius": 4,
               "borderWidth": 1,
@@ -64,7 +64,7 @@ exports[`AddBookmark should render correctly 1`] = `
         />
         <Text
           style={
-            Object {
+            {
               "color": "#D73847",
               "fontFamily": "EuclidCircularB-Regular",
               "fontWeight": "400",
@@ -74,14 +74,14 @@ exports[`AddBookmark should render correctly 1`] = `
       </View>
       <View
         style={
-          Object {
+          {
             "padding": 20,
           }
         }
       >
         <Text
           style={
-            Object {
+            {
               "color": "#24272A",
               "fontFamily": "EuclidCircularB-Regular",
               "fontWeight": "400",
@@ -97,7 +97,7 @@ exports[`AddBookmark should render correctly 1`] = `
           placeholderTextColor="#BBC0C5"
           returnKeyType="done"
           style={
-            Object {
+            {
               "borderColor": "#BBC0C5",
               "borderRadius": 4,
               "borderWidth": 1,
@@ -112,7 +112,7 @@ exports[`AddBookmark should render correctly 1`] = `
         />
         <Text
           style={
-            Object {
+            {
               "color": "#D73847",
               "fontFamily": "EuclidCircularB-Regular",
               "fontWeight": "400",

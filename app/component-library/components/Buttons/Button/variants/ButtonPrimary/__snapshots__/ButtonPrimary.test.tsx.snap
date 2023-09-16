@@ -17,7 +17,7 @@ exports[`ButtonPrimary should render correctly 1`] = `
   size="40"
   startIconName="Bank"
   style={
-    Object {
+    {
       "backgroundColor": "#0376C9",
     }
   }

@@ -4,7 +4,7 @@ exports[`Checkbox should render correctly 1`] = `
 <TouchableOpacity
   disabled={false}
   style={
-    Object {
+    {
       "alignItems": "center",
       "backgroundColor": "#FFFFFF",
       "borderColor": "#BBC0C5",

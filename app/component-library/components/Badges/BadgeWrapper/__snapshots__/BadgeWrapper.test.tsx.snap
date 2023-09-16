@@ -4,7 +4,7 @@ exports[`BadgeWrapper should render BadgeWrapper correctly 1`] = `
 <View
   onLayout={[Function]}
   style={
-    Object {
+    {
       "alignSelf": "flex-start",
       "position": "relative",
     }
@@ -14,7 +14,7 @@ exports[`BadgeWrapper should render BadgeWrapper correctly 1`] = `
   <View>
     <View
       style={
-        Object {
+        {
           "alignItems": "center",
           "backgroundColor": "#FFFFFF",
           "borderRadius": 12,
@@ -33,7 +33,7 @@ exports[`BadgeWrapper should render BadgeWrapper correctly 1`] = `
   </View>
   <View
     style={
-      Object {
+      {
         "alignItems": "center",
         "aspectRatio": 1,
         "height": 0,
@@ -41,11 +41,11 @@ exports[`BadgeWrapper should render BadgeWrapper correctly 1`] = `
         "position": "absolute",
         "right": 0,
         "top": 0,
-        "transform": Array [
-          Object {
+        "transform": [
+          {
             "translateX": 0,
           },
-          Object {
+          {
             "translateY": -0,
           },
         ],
@@ -54,7 +54,7 @@ exports[`BadgeWrapper should render BadgeWrapper correctly 1`] = `
   >
     <Badge
       imageSource={
-        Object {
+        {
           "uri": "https://assets.coingecko.com/coins/images/279/small/ethereum.png?1595348880",
         }
       }

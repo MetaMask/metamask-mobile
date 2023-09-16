@@ -3,8 +3,8 @@
 exports[`Approval should render correctly 1`] = `
 <ContextProvider
   value={
-    Object {
-      "store": Object {
+    {
+      "store": {
         "clearActions": [Function],
         "dispatch": [Function],
         "getActions": [Function],
@@ -14,12 +14,12 @@ exports[`Approval should render correctly 1`] = `
       },
       "subscription": Subscription {
         "handleChangeWrapper": [Function],
-        "listeners": Object {
+        "listeners": {
           "notify": [Function],
         },
         "onStateChange": [Function],
         "parentSub": undefined,
-        "store": Object {
+        "store": {
           "clearActions": [Function],
           "dispatch": [Function],
           "getActions": [Function],
@@ -34,10 +34,10 @@ exports[`Approval should render correctly 1`] = `
 >
   <Component
     navigation={
-      Object {
+      {
         "setParams": [Function],
-        "state": Object {
-          "params": Object {
+        "state": {
+          "params": {
             "address": "0x1",
           },
         },

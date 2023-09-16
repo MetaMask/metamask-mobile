@@ -3,7 +3,7 @@
 exports[`BannerAlert should render default settings correctly 1`] = `
 <BannerBase
   actionButtonProps={
-    Object {
+    {
       "label": "Sample Action Button Label",
       "onPress": [Function],
       "variant": "Link",
@@ -19,7 +19,7 @@ exports[`BannerAlert should render default settings correctly 1`] = `
     />
   }
   style={
-    Object {
+    {
       "backgroundColor": "#0376C919",
       "borderColor": "#0376C9",
       "borderLeftWidth": 4,

@@ -3,7 +3,7 @@
 exports[`Root should render correctly 1`] = `
 <Provider
   store={
-    Object {
+    {
       "@@observable": [Function],
       "dispatch": [Function],
       "getState": [Function],

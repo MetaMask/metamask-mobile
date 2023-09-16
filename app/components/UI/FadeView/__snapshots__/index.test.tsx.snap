@@ -3,8 +3,8 @@
 exports[`FadeView should render correctly 1`] = `
 <ForwardRef(AnimatedComponentWrapper)
   style={
-    Array [
-      Object {
+    [
+      {
         "opacity": 1,
       },
       undefined,

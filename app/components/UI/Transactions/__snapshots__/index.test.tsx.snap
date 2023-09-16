@@ -3,8 +3,8 @@
 exports[`Transactions should render correctly 1`] = `
 <ContextProvider
   value={
-    Object {
-      "store": Object {
+    {
+      "store": {
         "clearActions": [Function],
         "dispatch": [Function],
         "getActions": [Function],
@@ -14,12 +14,12 @@ exports[`Transactions should render correctly 1`] = `
       },
       "subscription": Subscription {
         "handleChangeWrapper": [Function],
-        "listeners": Object {
+        "listeners": {
           "notify": [Function],
         },
         "onStateChange": [Function],
         "parentSub": undefined,
-        "store": Object {
+        "store": {
           "clearActions": [Function],
           "dispatch": [Function],
           "getActions": [Function],
@@ -35,14 +35,14 @@ exports[`Transactions should render correctly 1`] = `
   <Component
     loading={false}
     transactions={
-      Array [
-        Object {
+      [
+        {
           "blockNumber": "5108051",
           "id": "95305900-3b10-11e9-af59-6f4c0e36ce5f",
           "networkID": "3",
           "status": "confirmed",
           "time": 1551327802000,
-          "transaction": Object {
+          "transaction": {
             "data": "0x",
             "from": "0xb2d191b6fe03c5b8a1ab249cfe88c37553357a23",
             "gas": "0x5208",

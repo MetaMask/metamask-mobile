@@ -6,7 +6,7 @@ exports[`Icon renders correctly 1`] = `
   height={20}
   name="Add"
   style={
-    Object {
+    {
       "height": 20,
       "width": 20,
     }

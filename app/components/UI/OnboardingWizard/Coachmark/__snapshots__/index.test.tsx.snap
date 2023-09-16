@@ -3,9 +3,9 @@
 exports[`Coachmark should render correctly 1`] = `
 <ForwardRef(AnimatedComponentWrapper)
   style={
-    Array [
-      Object {},
-      Object {
+    [
+      {},
+      {
         "opacity": 0,
       },
     ]
@@ -13,7 +13,7 @@ exports[`Coachmark should render correctly 1`] = `
 >
   <View
     style={
-      Object {
+      {
         "alignItems": "flex-start",
         "bottom": -2,
         "marginBottom": 10,
@@ -23,7 +23,7 @@ exports[`Coachmark should render correctly 1`] = `
   >
     <View
       style={
-        Object {
+        {
           "backgroundColor": "transparent",
           "borderBottomColor": "#0376C9",
           "borderBottomWidth": 12,
@@ -41,19 +41,19 @@ exports[`Coachmark should render correctly 1`] = `
   </View>
   <View
     style={
-      Array [
-        Object {
+      [
+        {
           "backgroundColor": "#0376C9",
           "borderRadius": 8,
           "padding": 20,
         },
-        Object {},
+        {},
       ]
     }
   >
     <View
       style={
-        Object {
+        {
           "alignItems": "center",
           "flexDirection": "row",
           "justifyContent": "space-between",
@@ -69,7 +69,7 @@ exports[`Coachmark should render correctly 1`] = `
       />
       <Text
         style={
-          Object {
+          {
             "alignSelf": "center",
             "color": "#FCFCFC",
             "fontFamily": "EuclidCircularB-Bold",
@@ -89,7 +89,7 @@ exports[`Coachmark should render correctly 1`] = `
     content
     <View
       style={
-        Object {
+        {
           "flexDirection": "row",
           "justifyContent": "space-between",
         }
@@ -97,7 +97,7 @@ exports[`Coachmark should render correctly 1`] = `
     >
       <View
         style={
-          Object {
+          {
             "alignSelf": "center",
             "flexDirection": "row",
           }
@@ -105,7 +105,7 @@ exports[`Coachmark should render correctly 1`] = `
       >
         <Text
           style={
-            Object {
+            {
               "color": "#FCFCFC",
             }
           }
@@ -116,25 +116,25 @@ exports[`Coachmark should render correctly 1`] = `
       </View>
       <StyledButton
         containerStyle={
-          Array [
-            Object {
+          [
+            {
               "height": 45,
               "padding": 5,
               "width": 75,
             },
-            Object {
+            {
               "right": 0,
             },
           ]
         }
         disabledContainerStyle={
-          Object {
+          {
             "opacity": 0.6,
           }
         }
         onPress={[Function]}
         styleDisabled={
-          Object {
+          {
             "opacity": 0.6,
           }
         }

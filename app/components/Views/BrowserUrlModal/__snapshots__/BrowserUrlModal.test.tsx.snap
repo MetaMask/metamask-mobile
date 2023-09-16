@@ -3,7 +3,7 @@
 exports[`BrowserUrlModal should render correctly 1`] = `
 <ForwardRef
   style={
-    Object {
+    {
       "backgroundColor": "#FFFFFF",
       "flex": 1,
     }
@@ -11,7 +11,7 @@ exports[`BrowserUrlModal should render correctly 1`] = `
 >
   <View
     style={
-      Object {
+      {
         "backgroundColor": "#FFFFFF",
         "flexDirection": "row",
         "height": 87,
@@ -23,7 +23,7 @@ exports[`BrowserUrlModal should render correctly 1`] = `
   >
     <View
       style={
-        Object {
+        {
           "backgroundColor": "#F2F4F6",
           "borderRadius": 30,
           "flex": 1,
@@ -45,7 +45,7 @@ exports[`BrowserUrlModal should render correctly 1`] = `
         returnKeyType="go"
         selectTextOnFocus={true}
         style={
-          Object {
+          {
             "color": "#24272A",
             "flex": 1,
             "fontFamily": "EuclidCircularB-Regular",
@@ -60,7 +60,7 @@ exports[`BrowserUrlModal should render correctly 1`] = `
     <TouchableOpacity
       onPress={[Function]}
       style={
-        Object {
+        {
           "justifyContent": "center",
           "marginLeft": 10,
           "marginTop": -6,
@@ -70,7 +70,7 @@ exports[`BrowserUrlModal should render correctly 1`] = `
     >
       <Text
         style={
-          Object {
+          {
             "color": "#0376C9",
             "fontFamily": "EuclidCircularB-Regular",
             "fontSize": 14,

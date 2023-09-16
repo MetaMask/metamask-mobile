@@ -4,7 +4,7 @@ exports[`PickerNetwork should render correctly 1`] = `
 <TouchableOpacity
   onPress={[Function]}
   style={
-    Object {
+    {
       "alignItems": "center",
       "alignSelf": "center",
       "backgroundColor": "#F2F4F6",
@@ -17,7 +17,7 @@ exports[`PickerNetwork should render correctly 1`] = `
 >
   <Avatar
     imageSource={
-      Object {
+      {
         "uri": "https://assets.coingecko.com/coins/images/279/small/ethereum.png?1595348880",
       }
     }
@@ -28,7 +28,7 @@ exports[`PickerNetwork should render correctly 1`] = `
   <Text
     numberOfLines={1}
     style={
-      Object {
+      {
         "flexShrink": 1,
         "marginHorizontal": 8,
       }

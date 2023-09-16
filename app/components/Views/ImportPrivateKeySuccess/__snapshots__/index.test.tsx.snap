@@ -3,7 +3,7 @@
 exports[`ImportPrivateKeySuccess should render correctly 1`] = `
 <View
   style={
-    Object {
+    {
       "backgroundColor": "#FFFFFF",
       "flex": 1,
     }
@@ -11,12 +11,12 @@ exports[`ImportPrivateKeySuccess should render correctly 1`] = `
 >
   <ScrollView
     contentContainerStyle={
-      Object {
+      {
         "flex": 1,
       }
     }
     style={
-      Object {
+      {
         "backgroundColor": "#FFFFFF",
         "flex": 1,
       }
@@ -25,7 +25,7 @@ exports[`ImportPrivateKeySuccess should render correctly 1`] = `
   >
     <View
       style={
-        Object {
+        {
           "alignItems": "flex-start",
         }
       }
@@ -34,7 +34,7 @@ exports[`ImportPrivateKeySuccess should render correctly 1`] = `
       <TouchableOpacity
         onPress={[Function]}
         style={
-          Object {
+          {
             "alignSelf": "flex-end",
             "marginTop": 40,
             "paddingBottom": 10,
@@ -49,7 +49,7 @@ exports[`ImportPrivateKeySuccess should render correctly 1`] = `
           name="close"
           size={15}
           style={
-            Object {
+            {
               "color": "#24272A",
               "fontSize": 28,
             }
@@ -58,7 +58,7 @@ exports[`ImportPrivateKeySuccess should render correctly 1`] = `
       </TouchableOpacity>
       <View
         style={
-          Object {
+          {
             "padding": 30,
             "paddingTop": 0,
           }
@@ -70,7 +70,7 @@ exports[`ImportPrivateKeySuccess should render correctly 1`] = `
           name="ios-checkmark-circle-outline"
           size={12}
           style={
-            Object {
+            {
               "fontSize": 90,
               "marginLeft": 0,
               "marginTop": 0,
@@ -80,7 +80,7 @@ exports[`ImportPrivateKeySuccess should render correctly 1`] = `
         />
         <Text
           style={
-            Object {
+            {
               "color": "#24272A",
               "fontFamily": "EuclidCircularB-Regular",
               "fontSize": 32,
@@ -96,14 +96,14 @@ exports[`ImportPrivateKeySuccess should render correctly 1`] = `
         </Text>
         <View
           style={
-            Object {
+            {
               "marginBottom": 10,
             }
           }
         >
           <Text
             style={
-              Object {
+              {
                 "color": "#24272A",
                 "fontFamily": "EuclidCircularB-Regular",
                 "fontSize": 16,

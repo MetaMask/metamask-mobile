@@ -3,8 +3,8 @@
 exports[`AccountOverview should render correctly 1`] = `
 <ContextProvider
   value={
-    Object {
-      "store": Object {
+    {
+      "store": {
         "clearActions": [Function],
         "dispatch": [Function],
         "getActions": [Function],
@@ -14,12 +14,12 @@ exports[`AccountOverview should render correctly 1`] = `
       },
       "subscription": Subscription {
         "handleChangeWrapper": [Function],
-        "listeners": Object {
+        "listeners": {
           "notify": [Function],
         },
         "onStateChange": [Function],
         "parentSub": undefined,
-        "store": Object {
+        "store": {
           "clearActions": [Function],
           "dispatch": [Function],
           "getActions": [Function],
@@ -34,7 +34,7 @@ exports[`AccountOverview should render correctly 1`] = `
 >
   <Component
     account={
-      Object {
+      {
         "address": "0xe7E125654064EEa56229f273dA586F10DF96B0a1",
         "balanceFiat": 1604.2,
         "label": "Account 1",

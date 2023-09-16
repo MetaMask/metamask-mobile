@@ -3,7 +3,7 @@
 exports[`TextEstimated - Snapshot should render default settings correctly 1`] = `
 <TextWithPrefixIcon
   iconProps={
-    Object {
+    {
       "name": "Tilde",
       "size": "12",
     }

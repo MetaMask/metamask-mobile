@@ -3,11 +3,11 @@
 exports[`FadeOutOverlay should render correctly 1`] = `
 <ForwardRef(AnimatedComponentWrapper)
   style={
-    Array [
-      Object {
+    [
+      {
         "opacity": 1,
       },
-      Object {
+      {
         "backgroundColor": "#FFFFFF",
         "bottom": 0,
         "left": 0,

@@ -5,18 +5,18 @@ exports[`AssetIcon should render correctly 1`] = `
   fadeIn={true}
   key="https://s3.amazonaws.com/airswap-token-images/WBTC.png"
   placeholderStyle={
-    Object {
+    {
       "backgroundColor": "#F2F4F6",
     }
   }
   source={
-    Object {
+    {
       "uri": "https://s3.amazonaws.com/airswap-token-images/WBTC.png",
     }
   }
   style={
-    Array [
-      Object {
+    [
+      {
         "borderRadius": 25,
         "height": 50,
         "overflow": "hidden",

@@ -4,8 +4,8 @@ exports[`SlippageSlider should render correctly 1`] = `
 <View
   onLayout={[Function]}
   style={
-    Array [
-      Object {
+    [
+      {
         "height": 76,
         "justifyContent": "center",
         "position": "relative",
@@ -17,13 +17,13 @@ exports[`SlippageSlider should render correctly 1`] = `
   <View
     onLayout={[Function]}
     style={
-      Array [
-        Object {
+      [
+        {
           "bottom": 10.5,
           "paddingHorizontal": 11,
           "position": "absolute",
         },
-        Object {
+        {
           "width": 0,
         },
       ]
@@ -31,7 +31,7 @@ exports[`SlippageSlider should render correctly 1`] = `
   >
     <View
       style={
-        Object {
+        {
           "alignItems": "center",
           "backgroundColor": "#0376C919",
           "borderColor": "#0376C919",
@@ -46,7 +46,7 @@ exports[`SlippageSlider should render correctly 1`] = `
       <View
         key="0"
         style={
-          Object {
+          {
             "backgroundColor": "#0376C9",
             "borderRadius": 5,
             "height": 5,
@@ -58,7 +58,7 @@ exports[`SlippageSlider should render correctly 1`] = `
       <View
         key="1"
         style={
-          Object {
+          {
             "backgroundColor": "#0376C9",
             "borderRadius": 5,
             "height": 5,
@@ -70,7 +70,7 @@ exports[`SlippageSlider should render correctly 1`] = `
       <View
         key="2"
         style={
-          Object {
+          {
             "backgroundColor": "#0376C9",
             "borderRadius": 5,
             "height": 5,
@@ -82,7 +82,7 @@ exports[`SlippageSlider should render correctly 1`] = `
       <View
         key="3"
         style={
-          Object {
+          {
             "backgroundColor": "#0376C9",
             "borderRadius": 5,
             "height": 5,
@@ -94,7 +94,7 @@ exports[`SlippageSlider should render correctly 1`] = `
       <View
         key="4"
         style={
-          Object {
+          {
             "backgroundColor": "#0376C9",
             "borderRadius": 5,
             "height": 5,
@@ -107,8 +107,8 @@ exports[`SlippageSlider should render correctly 1`] = `
   </View>
   <ForwardRef(AnimatedComponentWrapper)
     style={
-      Array [
-        Object {
+      [
+        {
           "borderRadius": 9,
           "bottom": 10.5,
           "height": 9,
@@ -116,7 +116,7 @@ exports[`SlippageSlider should render correctly 1`] = `
           "overflow": "hidden",
           "position": "absolute",
         },
-        Object {
+        {
           "width": 15,
         },
       ]
@@ -125,14 +125,14 @@ exports[`SlippageSlider should render correctly 1`] = `
     <Image
       resizeMode="stretch"
       source={
-        Object {
-          "default": Object {
+        {
+          "default": {
             "uri": "MockImage",
           },
         }
       }
       style={
-        Object {
+        {
           "width": 0,
         }
       }
@@ -140,8 +140,8 @@ exports[`SlippageSlider should render correctly 1`] = `
   </ForwardRef(AnimatedComponentWrapper)>
   <ForwardRef(AnimatedComponentWrapper)
     style={
-      Array [
-        Object {
+      [
+        {
           "alignItems": "center",
           "justifyContent": "center",
           "minHeight": 36,
@@ -149,7 +149,7 @@ exports[`SlippageSlider should render correctly 1`] = `
           "position": "absolute",
           "top": 4,
         },
-        Object {
+        {
           "left": -5,
         },
       ]
@@ -168,7 +168,7 @@ exports[`SlippageSlider should render correctly 1`] = `
     </Svg>
     <Text
       style={
-        Object {
+        {
           "bottom": 0,
           "color": "#FCFCFC",
           "fontFamily": "EuclidCircularB-Regular",
@@ -200,8 +200,8 @@ exports[`SlippageSlider should render correctly 1`] = `
     onStartShouldSetResponder={[Function]}
     onStartShouldSetResponderCapture={[Function]}
     style={
-      Array [
-        Object {
+      [
+        {
           "borderColor": "#FFFFFF",
           "borderRadius": 30,
           "borderWidth": 1,
@@ -209,7 +209,7 @@ exports[`SlippageSlider should render correctly 1`] = `
           "height": 30,
           "position": "absolute",
           "shadowColor": "#0000001A",
-          "shadowOffset": Object {
+          "shadowOffset": {
             "height": 2,
             "width": 0,
           },
@@ -217,7 +217,7 @@ exports[`SlippageSlider should render correctly 1`] = `
           "shadowRadius": 16,
           "width": 30,
         },
-        Object {
+        {
           "backgroundColor": "rgba(3, 118, 201, 1)",
           "left": 0,
         },

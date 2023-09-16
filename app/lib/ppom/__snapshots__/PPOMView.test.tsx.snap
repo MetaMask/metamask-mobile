@@ -3,7 +3,7 @@
 exports[`PPOMView should render correctly deeply 1`] = `
 <View
   style={
-    Object {
+    {
       "height": 0,
       "position": "absolute",
       "width": 0,
@@ -12,8 +12,8 @@ exports[`PPOMView should render correctly deeply 1`] = `
 >
   <View
     style={
-      Array [
-        Object {
+      [
+        {
           "flex": 1,
           "overflow": "hidden",
         },
@@ -36,17 +36,17 @@ exports[`PPOMView should render correctly deeply 1`] = `
       onMessage={[Function]}
       onShouldStartLoadWithRequest={[Function]}
       source={
-        Object {
+        {
           "uri": undefined,
         }
       }
       style={
-        Array [
-          Object {
+        [
+          {
             "flex": 1,
             "overflow": "hidden",
           },
-          Object {
+          {
             "backgroundColor": "#ffffff",
           },
           undefined,

@@ -3,7 +3,7 @@
 exports[`Tag should render correctly 1`] = `
 <View
   style={
-    Object {
+    {
       "backgroundColor": "#FFFFFF",
       "borderColor": "#BBC0C5",
       "borderRadius": 10,
@@ -16,7 +16,7 @@ exports[`Tag should render correctly 1`] = `
 >
   <Text
     style={
-      Object {
+      {
         "bottom": 2,
       }
     }

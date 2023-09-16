@@ -32,12 +32,12 @@ exports[`CustomAlert should render correctly 1`] = `
   scrollTo={null}
   statusBarTranslucent={false}
   style={
-    Object {
+    {
       "padding": 20,
     }
   }
   supportedOrientations={
-    Array [
+    [
       "portrait",
       "landscape",
     ]
@@ -47,7 +47,7 @@ exports[`CustomAlert should render correctly 1`] = `
 >
   <View
     style={
-      Object {
+      {
         "backgroundColor": "#FFFFFF",
         "borderRadius": 16,
       }
@@ -55,8 +55,8 @@ exports[`CustomAlert should render correctly 1`] = `
   >
     <View
       style={
-        Array [
-          Object {
+        [
+          {
             "alignItems": "center",
             "borderTopEndRadius": 16,
             "borderTopLeftRadius": 16,
@@ -69,7 +69,7 @@ exports[`CustomAlert should render correctly 1`] = `
     />
     <View
       style={
-        Object {
+        {
           "paddingHorizontal": 35,
           "paddingVertical": 20,
         }
@@ -77,7 +77,7 @@ exports[`CustomAlert should render correctly 1`] = `
     >
       <Text
         style={
-          Object {
+          {
             "fontFamily": "EuclidCircularB-Bold",
             "fontSize": 16,
             "fontWeight": "600",
@@ -89,7 +89,7 @@ exports[`CustomAlert should render correctly 1`] = `
     </View>
     <View
       style={
-        Object {
+        {
           "padding": 20,
           "paddingTop": 10,
         }
@@ -97,12 +97,12 @@ exports[`CustomAlert should render correctly 1`] = `
     >
       <StyledButton
         disabledContainerStyle={
-          Object {
+          {
             "opacity": 0.6,
           }
         }
         styleDisabled={
-          Object {
+          {
             "opacity": 0.6,
           }
         }

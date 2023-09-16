@@ -3,13 +3,13 @@
 exports[`PersonalSign should render correctly 1`] = `
 <PersonalSign
   currentPageInformation={
-    Object {
+    {
       "title": "title",
       "url": "url",
     }
   }
   messageParams={
-    Object {
+    {
       "data": "message",
       "from": "0x0",
       "metamaskId": "id",

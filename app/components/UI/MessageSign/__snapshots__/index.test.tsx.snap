@@ -3,13 +3,13 @@
 exports[`MessageSign should render correctly 1`] = `
 <MessageSign
   currentPageInformation={
-    Object {
+    {
       "title": "title",
       "url": "url",
     }
   }
   messageParams={
-    Object {
+    {
       "data": "message",
       "from": "0x0",
       "metamaskId": "TestMessageId",
@@ -17,7 +17,7 @@ exports[`MessageSign should render correctly 1`] = `
     }
   }
   navigation={
-    Object {
+    {
       "navigate": [MockFunction],
     }
   }

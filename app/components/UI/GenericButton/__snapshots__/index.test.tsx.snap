@@ -3,7 +3,7 @@
 exports[`GenericButton should render correctly on android 1`] = `
 <TouchableNativeFeedback
   background={
-    Object {
+    {
       "attribute": "selectableItemBackground",
       "rippleRadius": undefined,
       "type": "ThemeAttrAndroid",

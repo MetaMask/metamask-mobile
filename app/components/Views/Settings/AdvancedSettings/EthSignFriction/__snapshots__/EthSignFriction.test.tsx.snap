@@ -4,7 +4,7 @@ exports[`Eth_sign friction bottom sheet should render initial friction step corr
 <ForwardRef>
   <View
     style={
-      Object {
+      {
         "alignItems": "center",
         "alignSelf": "center",
         "justifyContent": "center",
@@ -20,7 +20,7 @@ exports[`Eth_sign friction bottom sheet should render initial friction step corr
     />
     <Text
       style={
-        Object {
+        {
           "color": "#24272A",
           "fontFamily": "Euclid Circular B",
           "fontSize": 18,
@@ -34,7 +34,7 @@ exports[`Eth_sign friction bottom sheet should render initial friction step corr
     </Text>
     <Text
       style={
-        Object {
+        {
           "color": "#24272A",
           "fontFamily": "Euclid Circular B",
           "fontSize": 14,
@@ -61,7 +61,7 @@ exports[`Eth_sign friction bottom sheet should render initial friction step corr
     </Text>
     <View
       style={
-        Object {
+        {
           "backgroundColor": "#D7384719",
           "borderLeftColor": "#D73847",
           "borderLeftWidth": 4,
@@ -81,7 +81,7 @@ exports[`Eth_sign friction bottom sheet should render initial friction step corr
       />
       <Text
         style={
-          Object {
+          {
             "color": "#24272A",
             "flex": 1,
             "fontFamily": "Euclid Circular B",
@@ -96,7 +96,7 @@ exports[`Eth_sign friction bottom sheet should render initial friction step corr
         If you've been asked to turn this setting on,
         <Text
           style={
-            Object {
+            {
               "fontFamily": "Euclid Circular B",
               "fontSize": 14,
               "fontWeight": "700",
@@ -111,7 +111,7 @@ exports[`Eth_sign friction bottom sheet should render initial friction step corr
     </View>
     <View
       style={
-        Object {
+        {
           "flexDirection": "row",
           "justifyContent": "flex-start",
           "margin": 16,
@@ -130,7 +130,7 @@ exports[`Eth_sign friction bottom sheet should render initial friction step corr
         accessible={true}
         onPress={[Function]}
         style={
-          Object {
+          {
             "color": "#24272A",
             "fontFamily": "Euclid Circular B",
             "fontSize": 14,
@@ -146,7 +146,7 @@ exports[`Eth_sign friction bottom sheet should render initial friction step corr
     </View>
     <View
       style={
-        Object {
+        {
           "flexDirection": "row",
           "justifyContent": "space-evenly",
         }
@@ -159,7 +159,7 @@ exports[`Eth_sign friction bottom sheet should render initial friction step corr
         onPress={[Function]}
         size="48"
         style={
-          Object {
+          {
             "flex": 1,
           }
         }
@@ -169,7 +169,7 @@ exports[`Eth_sign friction bottom sheet should render initial friction step corr
       <Button
         accessibilityRole="button"
         accessibilityState={
-          Object {
+          {
             "disabled": true,
           }
         }
@@ -180,7 +180,7 @@ exports[`Eth_sign friction bottom sheet should render initial friction step corr
         onPress={[Function]}
         size="48"
         style={
-          Object {
+          {
             "flex": 1,
             "marginStart": 16,
           }

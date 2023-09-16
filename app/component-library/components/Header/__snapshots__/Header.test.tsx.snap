@@ -3,7 +3,7 @@
 exports[`Header should render snapshot correctly 1`] = `
 <View
   style={
-    Object {
+    {
       "alignItems": "center",
       "backgroundColor": "#FFFFFF",
       "flexDirection": "row",
@@ -14,7 +14,7 @@ exports[`Header should render snapshot correctly 1`] = `
 >
   <View
     style={
-      Object {
+      {
         "width": undefined,
       }
     }
@@ -25,7 +25,7 @@ exports[`Header should render snapshot correctly 1`] = `
   </View>
   <View
     style={
-      Object {
+      {
         "alignItems": "center",
         "flex": 1,
         "marginHorizontal": 16,
@@ -34,7 +34,7 @@ exports[`Header should render snapshot correctly 1`] = `
   >
     <Text
       style={
-        Object {
+        {
           "textAlign": "center",
         }
       }
@@ -46,7 +46,7 @@ exports[`Header should render snapshot correctly 1`] = `
   </View>
   <View
     style={
-      Object {
+      {
         "width": undefined,
       }
     }

@@ -3,7 +3,7 @@
 exports[`AvatarGroup should render correctly 1`] = `
 <View
   style={
-    Object {
+    {
       "alignItems": "center",
       "flexDirection": "row",
       "height": 18,
@@ -12,7 +12,7 @@ exports[`AvatarGroup should render correctly 1`] = `
 >
   <View
     style={
-      Object {
+      {
         "flexDirection": "row",
         "height": 18,
         "width": 42,
@@ -22,14 +22,14 @@ exports[`AvatarGroup should render correctly 1`] = `
     <View
       key="Ethereum-0"
       style={
-        Array [
-          Object {
+        [
+          {
             "borderColor": "#FFFFFF",
             "borderRadius": 50,
             "borderWidth": 1,
             "position": "absolute",
           },
-          Object {
+          {
             "left": 0,
           },
         ]
@@ -37,7 +37,7 @@ exports[`AvatarGroup should render correctly 1`] = `
     >
       <AvatarToken
         imageSource={
-          Object {
+          {
             "uri": "https://cryptologos.cc/logos/avalanche-avax-logo.png",
           }
         }
@@ -48,14 +48,14 @@ exports[`AvatarGroup should render correctly 1`] = `
     <View
       key="Ethereum-1"
       style={
-        Array [
-          Object {
+        [
+          {
             "borderColor": "#FFFFFF",
             "borderRadius": 50,
             "borderWidth": 1,
             "position": "absolute",
           },
-          Object {
+          {
             "left": 8,
           },
         ]
@@ -63,7 +63,7 @@ exports[`AvatarGroup should render correctly 1`] = `
     >
       <AvatarToken
         imageSource={
-          Object {
+          {
             "uri": "https://cryptologos.cc/logos/avalanche-avax-logo.png",
           }
         }
@@ -74,14 +74,14 @@ exports[`AvatarGroup should render correctly 1`] = `
     <View
       key="Ethereum-2"
       style={
-        Array [
-          Object {
+        [
+          {
             "borderColor": "#FFFFFF",
             "borderRadius": 50,
             "borderWidth": 1,
             "position": "absolute",
           },
-          Object {
+          {
             "left": 16,
           },
         ]
@@ -89,7 +89,7 @@ exports[`AvatarGroup should render correctly 1`] = `
     >
       <AvatarToken
         imageSource={
-          Object {
+          {
             "uri": "https://cryptologos.cc/logos/avalanche-avax-logo.png",
           }
         }
@@ -100,14 +100,14 @@ exports[`AvatarGroup should render correctly 1`] = `
     <View
       key="Ethereum-3"
       style={
-        Array [
-          Object {
+        [
+          {
             "borderColor": "#FFFFFF",
             "borderRadius": 50,
             "borderWidth": 1,
             "position": "absolute",
           },
-          Object {
+          {
             "left": 24,
           },
         ]
@@ -115,7 +115,7 @@ exports[`AvatarGroup should render correctly 1`] = `
     >
       <AvatarToken
         imageSource={
-          Object {
+          {
             "uri": "https://cryptologos.cc/logos/avalanche-avax-logo.png",
           }
         }
@@ -126,14 +126,14 @@ exports[`AvatarGroup should render correctly 1`] = `
   </View>
   <View
     style={
-      Object {
+      {
         "justifyContent": "center",
       }
     }
   >
     <Text
       style={
-        Object {
+        {
           "bottom": 2,
           "color": "#535A61",
           "marginLeft": 2,
