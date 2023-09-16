@@ -62,6 +62,6 @@ describe(Smoke('Request Token Flow'), () => {
     // Close view
     await SendLinkView.tapCloseSendLinkButton();
     // Ensure protect your wallet modal is visible
-    await ProtectYourWalletModal.isVisible(); 
+    await ProtectYourWalletModal.isVisible();
   });
 });
