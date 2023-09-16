@@ -151,9 +151,6 @@ export const isLineaMainnetByChainId = (chainId) =>
 export const isMultiLayerFeeNetwork = (chainId) =>
   chainId === NETWORKS_CHAIN_ID.OPTIMISM;
 
-export const getNetworkName = (id) =>
-  NetworkListKeys.find((key) => NetworkList[key].networkId === Number(id));
-
 /**
  * Gets the test network image icon.
  *
@@ -231,13 +228,6 @@ export function getDefaultNetworkByChainId(chainId) {
 
 export function hasBlockExplorer(key) {
   return key.toLowerCase() !== RPC;
-}
-
-export function isKnownNetwork(id) {
-  const knownNetworks = NetworkListKeys.map(
-    (key) => NetworkList[key].networkId,
-  ).filter((id) => id !== undefined);
-  return knownNetworks.includes(parseInt(id, 10));
 }
 
 export function isprivateConnection(hostname) {

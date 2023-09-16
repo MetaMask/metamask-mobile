@@ -163,9 +163,9 @@ class Approve extends PureComponent {
      */
     showCustomNonce: PropTypes.bool,
     /**
-     * Set network
+     * Object that represents the navigator
      */
-    navigation: PropTypes.string,
+    navigation: PropTypes.object,
   };
 
   state = {
@@ -313,6 +313,7 @@ class Approve extends PureComponent {
   };
 
   componentWillUnmount = async () => {
+    const { TransactionController } = Engine.context;
     const { approved } = this.state;
     const { transaction } = this.props;
 
@@ -323,15 +324,16 @@ class Approve extends PureComponent {
     ]);
 
     this.appStateListener?.remove();
-
     if (!isLedgerAccount) {
-      Engine.context.TransactionController.hub.removeAllListeners(
-        `${transaction.id}:finished`,
-      );
+      TransactionController.hub.removeAllListeners(`${transaction.id}:finished`);
       if (!approved)
-        Engine.context.ApprovalController.reject(
+        Engine.rejectPendingApproval(
           transaction.id,
           ethErrors.provider.userRejectedRequest(),
+          {
+            ignoreMissing: true,
+            logErrors: false,
+          },
         );
     }
   };
@@ -339,12 +341,15 @@ class Approve extends PureComponent {
   handleAppStateChange = (appState) => {
     if (appState !== 'active') {
       const { transaction } = this.props;
-      transaction &&
-        transaction.id &&
-        Engine.context.ApprovalController.reject(
-          transaction.id,
-          ethErrors.provider.userRejectedRequest(),
-        );
+      Engine.rejectPendingApproval(
+        transaction?.id,
+        ethErrors.provider.userRejectedRequest(),
+        {
+          ignoreMissing: true,
+          logErrors: false,
+        },
+      );
+
       this.props.hideModal();
     }
   };

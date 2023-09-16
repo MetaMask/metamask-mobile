@@ -2,7 +2,6 @@ import { NetworksChainId, NetworkType } from '@metamask/controller-utils';
 import {
   isMainNet,
   isTestNet,
-  getNetworkName,
   getAllNetworks,
   getNetworkTypeById,
   findBlockExplorerForRpc,
@@ -82,59 +81,21 @@ describe('NetworkUtils::isTestNet', () => {
   });
 });
 
-describe('NetworkUtils::getNetworkName', () => {
-  it(`should get network name for ${MAINNET} id`, () => {
-    const main = getNetworkName(String(1));
-    expect(main).toEqual(MAINNET);
-  });
-
-  it(`should get network name for ${GOERLI} id`, () => {
-    const main = getNetworkName(String(5));
-    expect(main).toEqual(GOERLI);
-  });
-
-  it(`should get network name for ${SEPOLIA} id`, () => {
-    const main = getNetworkName(String(11155111));
-    expect(main).toEqual(SEPOLIA);
-  });
-
-  it(`should get network name for ${LINEA_GOERLI} id`, () => {
-    const main = getNetworkName(String(59140));
-    expect(main).toEqual(LINEA_GOERLI);
-  });
-
-  it(`should get network name for ${LINEA_MAINNET} id`, () => {
-    const main = getNetworkName(String(59144));
-    expect(main).toEqual(LINEA_MAINNET);
-  });
-
-  it(`should return undefined for unknown network id`, () => {
-    const main = getNetworkName(String(99));
-    expect(main).toEqual(undefined);
-  });
-});
-
 describe('NetworkUtils::getNetworkTypeById', () => {
   it('should get network type by Id', () => {
     const type = getNetworkTypeById(11155111);
     expect(type).toEqual(SEPOLIA);
   });
   it('should fail if network Id is missing', () => {
-    try {
-      getNetworkTypeById();
-    } catch (error) {
-      expect(error.message).toEqual(NetworkSwitchErrorType.missingNetworkId);
-    }
+    expect(() => getNetworkTypeById()).toThrow(
+      NetworkSwitchErrorType.missingNetworkId,
+    );
   });
   it('should fail if network Id is unknown', () => {
     const id = 9999;
-    try {
-      getNetworkTypeById(id);
-    } catch (error) {
-      expect(error.message).toEqual(
-        `${NetworkSwitchErrorType.unknownNetworkId} ${id}`,
-      );
-    }
+    expect(() => getNetworkTypeById(id)).toThrow(
+      `${NetworkSwitchErrorType.unknownNetworkId} ${id}`,
+    );
   });
 });
 

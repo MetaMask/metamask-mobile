@@ -138,7 +138,7 @@ class Approval extends PureComponent {
     try {
       const { transactionHandled } = this.state;
       const { transaction, selectedAddress } = this.props;
-      const { KeyringController, ApprovalController } = Engine.context;
+      const { KeyringController } = Engine.context;
       if (!transactionHandled) {
         if (isQRHardwareAccount(selectedAddress)) {
           KeyringController.cancelQRSignRequest();
@@ -149,9 +149,13 @@ class Approval extends PureComponent {
 
           // We hand over execution to the ledger flow it'll take care of cancelling
           if (!isLedgerAccount) {
-            ApprovalController.reject(
+            Engine.rejectPendingApproval(
               transaction?.id,
               ethErrors.provider.userRejectedRequest(),
+              {
+                ignoreMissing: true,
+                logErrors: false,
+              },
             );
           }
         }
@@ -193,19 +197,18 @@ class Approval extends PureComponent {
     try {
       if (appState !== 'active') {
         const { transaction, transactions } = this.props;
-        const { ApprovalController } = Engine.context;
         const currentTransaction = transactions.find(
           (tx) => tx.id === transaction.id,
         );
 
-        if (
-          transaction?.id &&
-          ApprovalController.has({ id: transaction?.id }) &&
-          this.isTxStatusCancellable(currentTransaction)
-        ) {
-          ApprovalController.reject(
+        if (transaction?.id && this.isTxStatusCancellable(currentTransaction)) {
+          Engine.rejectPendingApproval(
             transaction.id,
             ethErrors.provider.userRejectedRequest(),
+            {
+              ignoreMissing: true,
+              logErrors: false,
+            },
           );
         }
         this.props.hideModal();

@@ -1,3 +1,5 @@
+import { SecurityAlertResponse } from '../BlockaidBanner/BlockaidBanner.types';
+
 export interface MessageInfo {
   origin: string;
   type: string;
@@ -20,4 +22,5 @@ export interface MessageParams {
   meta?: PageMeta;
   origin: string;
   version?: string;
+  securityAlertResponse?: SecurityAlertResponse;
 }

@@ -13,12 +13,14 @@ import AccountInfoCard from '../AccountInfoCard';
 import WarningMessage from '../../Views/SendFlow/WarningMessage';
 import Device from '../../../util/device';
 import { isHardwareAccount } from '../../../util/address';
+import { isBlockaidFeatureEnabled } from '../../../util/blockaid';
 import Analytics from '../../../core/Analytics/Analytics';
 import { MetaMetricsEvents } from '../../../core/Analytics';
 import { ThemeContext, mockTheme } from '../../../util/theme';
 import withQRHardwareAwareness from '../QRHardware/withQRHardwareAwareness';
 import QRSigningDetails from '../QRHardware/QRSigningDetails';
 import { selectProviderType } from '../../../selectors/networkController';
+import BlockaidBanner from '../BlockaidBanner/BlockaidBanner';
 
 const createStyles = (colors) =>
   StyleSheet.create({
@@ -104,6 +106,10 @@ const createStyles = (colors) =>
     arrowIcon: {
       color: colors.icon.muted,
     },
+    blockaidBanner: {
+      marginHorizontal: 20,
+      marginBottom: 20,
+    },
   });
 
 /**
@@ -162,6 +168,7 @@ class SignatureRequest extends PureComponent {
      */
     selectedAddress: PropTypes.string,
     testID: PropTypes.string,
+    securityAlertResponse: PropTypes.object,
   };
 
   /**
@@ -287,7 +294,7 @@ class SignatureRequest extends PureComponent {
   };
 
   renderSignatureRequest() {
-    const { showWarning, type, selectedAddress } = this.props;
+    const { securityAlertResponse, showWarning, type, selectedAddress } = this.props;
     let expandedHeight;
     const styles = this.getStyles();
 
@@ -333,6 +340,12 @@ class SignatureRequest extends PureComponent {
                 </TouchableOpacity>
               ) : null}
             </View>
+            {isBlockaidFeatureEnabled() && (
+              <BlockaidBanner
+                securityAlertResponse={securityAlertResponse}
+                style={styles.blockaidBanner}
+              />
+            )}
             {this.renderActionViewChildren()}
           </View>
         </ActionView>

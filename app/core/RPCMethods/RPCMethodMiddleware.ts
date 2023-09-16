@@ -19,6 +19,7 @@ import Networks, {
   blockTagParamIndex,
   getAllNetworks,
 } from '../../util/networks';
+import { isBlockaidFeatureEnabled } from '../../util/blockaid';
 import { polyfillGasPrice } from './utils';
 import ImportedEngine from '../Engine';
 import { strings } from '../../../locales/i18n';
@@ -31,6 +32,7 @@ import { getPermittedAccounts } from '../Permissions';
 import AppConstants from '../AppConstants';
 import { isSmartContractAddress } from '../../util/transactions';
 import { TOKEN_NOT_SUPPORTED_FOR_NETWORK } from '../../constants/error';
+import PPOMUtil from '../../lib/ppom/ppom-util';
 import {
   selectChainId,
   selectProviderConfig,
@@ -195,6 +197,7 @@ const generateRawSignature = async ({
       from: req.params[0],
       ...pageMeta,
       origin: hostname,
+      securityAlertResponse: req.securityAlertResponse,
     },
     req,
     version,
@@ -528,11 +531,15 @@ export const getRpcMethodMiddleware = ({
             address: req.params[0].from,
             checkSelectedAddress: isMMSDK || isWalletConnect,
           });
+          if (isBlockaidFeatureEnabled()) {
+            req.securityAlertResponse = await PPOMUtil.validateRequest(req);
+          }
           const rawSig = await SignatureController.newUnsignedMessage({
             data: req.params[1],
             from: req.params[0],
             ...pageMeta,
             origin: hostname,
+            securityAlertResponse: req.securityAlertResponse,
           });
 
           res.result = rawSig;
@@ -575,10 +582,15 @@ export const getRpcMethodMiddleware = ({
           checkSelectedAddress: isMMSDK || isWalletConnect,
         });
 
+        if (isBlockaidFeatureEnabled()) {
+          req.securityAlertResponse = await PPOMUtil.validateRequest(req);
+        }
+
         const rawSig = await SignatureController.newUnsignedPersonalMessage({
           ...params,
           ...pageMeta,
           origin: hostname,
+          securityAlertResponse: req.securityAlertResponse,
         });
 
         res.result = rawSig;
@@ -620,12 +632,17 @@ export const getRpcMethodMiddleware = ({
           checkSelectedAddress: isMMSDK || isWalletConnect,
         });
 
+        if (isBlockaidFeatureEnabled()) {
+          req.securityAlertResponse = await PPOMUtil.validateRequest(req);
+        }
+
         const rawSig = await SignatureController.newUnsignedTypedMessage(
           {
             data: req.params[0],
             from: req.params[1],
             ...pageMeta,
             origin: hostname,
+            securityAlertResponse: req.securityAlertResponse,
           },
           req,
           'V1',
@@ -640,6 +657,9 @@ export const getRpcMethodMiddleware = ({
             ? JSON.parse(req.params[1])
             : req.params[1];
         const chainId = data.domain.chainId;
+        if (isBlockaidFeatureEnabled()) {
+          req.securityAlertResponse = await PPOMUtil.validateRequest(req);
+        }
         res.result = await generateRawSignature({
           version: 'V3',
           req,
@@ -659,6 +679,9 @@ export const getRpcMethodMiddleware = ({
       eth_signTypedData_v4: async () => {
         const data = JSON.parse(req.params[1]);
         const chainId = data.domain.chainId;
+        if (isBlockaidFeatureEnabled()) {
+          req.securityAlertResponse = await PPOMUtil.validateRequest(req);
+        }
         res.result = await generateRawSignature({
           version: 'V4',
           req,
