@@ -8,7 +8,6 @@ import {
   defaultGanacheOptions,
 } from '../../fixtures/fixture-helper';
 import TabBarComponent from '../../pages/TabBarComponent';
-import { TEST_DAPP_URL, TestDApp } from '../../pages/TestDApp';
 import { SMART_CONTRACTS } from '../../../app/util/test/smart-contracts';
 import root from '../../../locales/languages/en.json';
 
