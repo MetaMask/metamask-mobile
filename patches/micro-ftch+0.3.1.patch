@@ -1,8 +1,8 @@
 diff --git a/node_modules/micro-ftch/index.js b/node_modules/micro-ftch/index.js
-index 7f00c3d..3762bf0 100644
+index 7f00c3d..a4a6f79 100644
 --- a/node_modules/micro-ftch/index.js
 +++ b/node_modules/micro-ftch/index.js
-@@ -49,123 +49,123 @@ function detectType(b, type) {
+@@ -49,123 +49,133 @@ function detectType(b, type) {
      return b;
  }
  let agents = {};
@@ -123,6 +123,16 @@ index 7f00c3d..3762bf0 100644
 -        req.end();
 -    });
 -}
++
++/**
++ * ============================== PATCH INFORMATION ==============================
++ * This patch addresses an incompatibility issue with the zlib node library that
++ * causes the React Native (RN) app to crash. The zlib library isn't compatible
++ * with RN. The patch mitigates this problem by commenting out a section of code
++ * that is specific to Node.js and not applicable to RN.
++ * ===============================================================================
++ */
++
 +// function fetchNode(url, _options) {
 +//     let options = { ...DEFAULT_OPT, ..._options };
 +//     const http = require('http');
