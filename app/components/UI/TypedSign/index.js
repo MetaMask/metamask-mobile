@@ -18,6 +18,7 @@ import {
   handleSignatureAction,
   removeSignatureErrorListener,
   showWalletConnectNotification,
+  typedSign,
 } from '../../../util/confirmation/signatureUtils';
 import { isExternalHardwareAccount } from '../../../util/address';
 import createExternalSignModelNav from '../../../util/hardwareWallet/signatureUtils';
@@ -91,7 +92,7 @@ class TypedSign extends PureComponent {
       messageParams: { metamaskId },
     } = this.props;
     AnalyticsV2.trackEvent(
-      MetaMetricsEvents.SIGN_REQUEST_STARTED,
+      MetaMetricsEvents.SIGNATURE_REQUESTED,
       getAnalyticsParams(),
     );
     addSignatureErrorListener(metamaskId, this.onSignatureError);
@@ -116,20 +117,30 @@ class TypedSign extends PureComponent {
 
   rejectSignature = async () => {
     const { messageParams, onReject } = this.props;
-    await handleSignatureAction(onReject, messageParams, 'typed', false);
+    await handleSignatureAction(
+      onReject,
+      messageParams,
+      typedSign[messageParams.version],
+      false,
+    );
   };
 
   confirmSignature = async () => {
     const { messageParams, onConfirm, onReject, navigation } = this.props;
     if (!isExternalHardwareAccount(messageParams.from)) {
-      await handleSignatureAction(onConfirm, messageParams, 'typed', true);
+      await handleSignatureAction(
+        onConfirm,
+        messageParams,
+        typedSign[messageParams.version],
+        true,
+      );
     } else {
       navigation.navigate(
         ...(await createExternalSignModelNav(
           onReject,
           onConfirm,
           messageParams,
-          'typed',
+          typedSign[messageParams.version],
         )),
       );
     }
