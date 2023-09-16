@@ -6,6 +6,7 @@ import Browser from './Drawer/Browser';
 import root from '../../locales/languages/en.json';
 
 export const TEST_DAPP_URL = 'https://metamask.github.io/test-dapp/';
+export const TEST_DAPP_LOCAL_URL = 'http://localhost:8080';
 
 const BUTTON_RELATIVE_PONT = { x: 200, y: 5 };
 const CONFIRM_BUTTON_TEXT = root.confirmation_modal.confirm_cta;
