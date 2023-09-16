@@ -22,7 +22,8 @@ const SAI_CONTRACT_ADDRESS = '0x89d24a6b4ccb1b6faa2625fe562bdd9a23260359';
 
 describe(Smoke('Request Token Flow'), () => {
   beforeAll(async () => {
-    const fixture = new FixtureBuilder().withUnProtectedWallet().build();
+    const fixture = new FixtureBuilder().build();
+    fixture.state.user.seedphraseBackedUp = false;
     await startFixtureServer();
     await loadFixture({ fixture });
     await device.launchApp({ delete: true });
