@@ -79,15 +79,15 @@ export class TestDApp {
   }
 
   static async tapButtonWithContract({ buttonId, contractAddress }) {
+    await this.scrollToButtonWithParameter(
+      buttonId,
+      'contract',
+      contractAddress,
+    );
     if (device.getPlatform() === 'android') {
       await TestHelpers.waitForWebElementToBeVisibleById(buttonId, 5000);
       await TestHelpers.tapWebviewElement(buttonId);
     } else {
-      await this.scrollToButtonWithParameter(
-        buttonId,
-        'contract',
-        contractAddress,
-      );
       await TestHelpers.delay(5000);
       await TestHelpers.tapAtPoint(BROWSER_WEBVIEW_ID, BUTTON_RELATIVE_PONT);
     }

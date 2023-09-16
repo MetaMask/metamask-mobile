@@ -45,11 +45,6 @@ describe(Regression('ERC20 tokens'), () => {
         // Navigate to the browser screen
         await TabBarComponent.tapBrowser();
 
-        await TestDApp.navigateToTestDappWithContract(
-          TEST_DAPP_URL,
-          hstAddress,
-        );
-
         // Transfer ERC20 tokens
         await TestDApp.tapButtonWithContract({
           buttonId: WEBVIEW_TEST_DAPP_TRANSFER_TOKENS_BUTTON_ID,
