@@ -13,7 +13,6 @@ import RequestPaymentModal from '../pages/modals/RequestPaymentModal';
 import { loginToApp } from '../viewHelper';
 import { withFixtures } from '../fixtures/fixture-helper';
 import FixtureBuilder from '../fixtures/fixture-builder';
-import { async } from 'regenerator-runtime';
 
 const SAI_CONTRACT_ADDRESS = '0x89d24a6b4ccb1b6faa2625fe562bdd9a23260359';
 
