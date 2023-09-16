@@ -41,6 +41,7 @@ import { BIOMETRY_CHOICE } from '../../../constants/storage';
 import { MetaMetricsEvents } from '../../../core/Analytics';
 import AnalyticsV2 from '../../../util/analyticsV2';
 import { uint8ArrayToMnemonic } from '../../../util/mnemonic';
+import { passwordRequirementsMet } from '../../../util/password';
 import { Authentication } from '../../../core/';
 
 import Device from '../../../util/device';
@@ -531,7 +532,7 @@ const RevealPrivateCredential = ({
         onCancelPress={unlocked ? done : cancelReveal}
         onConfirmPress={() => tryUnlock()}
         showConfirmButton={!unlocked}
-        confirmDisabled={password.length < 8}
+        confirmDisabled={!passwordRequirementsMet(password)}
         cancelTestID={SECRET_RECOVERY_PHRASE_CANCEL_BUTTON_ID}
         confirmTestID={SECRET_RECOVERY_PHRASE_NEXT_BUTTON_ID}
       >
