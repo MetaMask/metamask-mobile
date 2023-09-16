@@ -27,7 +27,6 @@ describe(Smoke('Request Token Flow'), () => {
     await startFixtureServer();
     await loadFixture({ fixture });
     await device.launchApp({ delete: true });
-    await loginToApp();
   });
 
   beforeEach(() => {
@@ -39,6 +38,7 @@ describe(Smoke('Request Token Flow'), () => {
   });
 
   it('should request DAI', async () => {
+    await loginToApp();
     await TabBarComponent.tapActions();
     await WalletActionsModal.tapReceiveButton();
 
