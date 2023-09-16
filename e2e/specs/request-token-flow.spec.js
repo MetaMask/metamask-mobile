@@ -23,34 +23,40 @@ describe(Smoke('Request Token Flow'), () => {
 
   it('should request DAI', async () => {
     const fixture = new FixtureBuilder().build();
-    await withFixtures({ fixture, restartDevice: true }, async () => {
-      await loginToApp();
+    fixture.state.user.seedphraseBackedUp = false;
+    await withFixtures(
+      {
+        fixture,
+        restartDevice: true,
+      },
+      async () => {
+        await loginToApp();
+        await TabBarComponent.tapActions();
+        await WalletActionsModal.tapReceiveButton();
 
-      await TabBarComponent.tapActions();
-      await WalletActionsModal.tapReceiveButton();
+        await RequestPaymentModal.tapRequestPaymentButton();
+        await RequestPaymentView.isVisible();
 
-      await RequestPaymentModal.tapRequestPaymentButton();
-      await RequestPaymentView.isVisible();
+        // Search by SAI contract address
+        await RequestPaymentView.searchForToken(SAI_CONTRACT_ADDRESS);
+        await RequestPaymentView.isTokenVisibleInSearchResults('SAI');
 
-      // Search by SAI contract address
-      await RequestPaymentView.searchForToken(SAI_CONTRACT_ADDRESS);
-      await RequestPaymentView.isTokenVisibleInSearchResults('SAI');
+        await RequestPaymentView.searchForToken('DAI');
+        await RequestPaymentView.tapOnToken('DAI');
+        await RequestPaymentView.typeInTokenAmount(5.5);
 
-      await RequestPaymentView.searchForToken('DAI');
-      await RequestPaymentView.tapOnToken('DAI');
-      await RequestPaymentView.typeInTokenAmount(5.5);
-
-      await SendLinkView.isVisible();
-      // Tap on QR Code Button
-      await SendLinkView.tapQRCodeButton();
-      // Check that the QR code is visible
-      await SendLinkView.isQRModalVisible();
-      // Close QR Code
-      await SendLinkView.tapQRCodeCloseButton();
-      // Close view
-      await SendLinkView.tapCloseSendLinkButton();
-      // Ensure protect your wallet modal is visible
-      await ProtectYourWalletModal.isVisible();
-    });
+        await SendLinkView.isVisible();
+        // Tap on QR Code Button
+        await SendLinkView.tapQRCodeButton();
+        // Check that the QR code is visible
+        await SendLinkView.isQRModalVisible();
+        // Close QR Code
+        await SendLinkView.tapQRCodeCloseButton();
+        // Close view
+        await SendLinkView.tapCloseSendLinkButton();
+        // Ensure protect your wallet modal is visible
+        await ProtectYourWalletModal.isVisible();
+      },
+    );
   });
 });
