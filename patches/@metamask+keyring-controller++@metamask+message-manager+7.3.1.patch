@@ -1,12 +1,34 @@
 diff --git a/node_modules/@metamask/keyring-controller/node_modules/@metamask/message-manager/dist/PersonalMessageManager.d.ts b/node_modules/@metamask/keyring-controller/node_modules/@metamask/message-manager/dist/PersonalMessageManager.d.ts
-index 5bf0005..f372485 100644
+index 5bf0005..2d3a3c3 100644
 --- a/node_modules/@metamask/keyring-controller/node_modules/@metamask/message-manager/dist/PersonalMessageManager.d.ts
 +++ b/node_modules/@metamask/keyring-controller/node_modules/@metamask/message-manager/dist/PersonalMessageManager.d.ts
-@@ -25,7 +25,10 @@ export interface PersonalMessage extends AbstractMessage {
+@@ -25,7 +25,32 @@ export interface PersonalMessage extends AbstractMessage {
   */
  export interface PersonalMessageParams extends AbstractMessageParams {
      data: string;
 -    siwe?: SIWEMessage;
++    /**
++     * ============================== PATCH INFORMATION ==============================
++     * This patch addresses an error type introduced in patch 
++     * @metamask+message-manager+7.0.1.patch. The error type is thrown when a message
++     * is received that is not a valid SIWE message. the patch changes the data type
++     * in the following way.
++     * 
++     * Previous data type:
++     * ```ts
++     * siwe?: SIWEMessage;
++     * ```
++     * 
++     * Current data type introduced in @metamask+message-manager+7.0.1.patch:
++     * ```ts
++     * siwe?: {
++     *   isSIWEMessage: boolean;
++     *   parsedMessage: null;
++     * };
++     * ```
++     * 
++     * ===============================================================================
++     */
 +    siwe?: {
 +        isSIWEMessage: boolean;
 +        parsedMessage: null;
