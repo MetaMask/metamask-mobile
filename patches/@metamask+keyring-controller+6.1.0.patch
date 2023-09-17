@@ -6,6 +6,13 @@ index c905cc0..f670fd3 100644
      }
      forgetQRDevice() {
          return __awaiter(this, void 0, void 0, function* () {
++            /**
++             * ============================== PATCH INFORMATION ==============================
++             * This patch addresses an issue regarding the forget device functionality. It
++             * improves the logic  to correctly remove the QR accounts and update the 
++             * identities as needed.
++             * ===============================================================================
++             */
              const keyring = yield this.getOrAddQRKeyring();
 +            const allAccounts = (yield __classPrivateFieldGet(this, _KeyringController_keyring, "f").getAccounts());
              keyring.forgetDevice();
