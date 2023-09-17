@@ -55,7 +55,7 @@
     "test:e2e:ios:debug": "IS_TEST='true' detox build -c ios.sim.debug && detox test -c ios.sim.debug",
     "test:e2e:ios:debug:single": "detox test -c ios.sim.debug",
     "test:e2e:android:debug": "detox build -c android.emu.debug && detox test -c android.emu.debug",
-    "test:e2e:android:bitrise:debug": "IS_TEST='true' detox build -c android.emu.bitrise.debug && detox test -c android.emu.bitrise.debug",
+    "test:e2e:android:bitrise:debug": "IS_TEST='true' detox build -c android.emu.bitrise.debug && detox test -c android.emu.bitrise.debug --headless",
     "test:e2e:android:debug:single": "detox test -c android.emu.debug",
     "test:e2e:android": "detox build -c android.emu.release && detox test -c android.emu.release --record-videos failing",
     "test:e2e:android:qa": "detox build -c android.emu.release.qa && detox test -c android.emu.release.qa --record-videos failing",
@@ -78,7 +78,8 @@
     "create-release": "./scripts/set-versions.sh && yarn update-changelog",
     "add-release-label-to-pr-and-linked-issues": "ts-node ./.github/scripts/add-release-label-to-pr-and-linked-issues.ts",
     "check-pr-has-required-labels": "ts-node ./.github/scripts/check-pr-has-required-labels.ts",
-    "close-release-bug-report-issue": "ts-node ./.github/scripts/close-release-bug-report-issue.ts"
+    "close-release-bug-report-issue": "ts-node ./.github/scripts/close-release-bug-report-issue.ts",
+    "patch:tx": "./scripts/patch-transaction-controller.sh"
   },
   "husky": {
     "hooks": {
@@ -453,6 +454,7 @@
     "react-test-renderer": "18.2.0",
     "regenerator-runtime": "0.13.9",
     "rn-nodeify": "10.3.0",
+    "serve-handler": "^6.1.5",
     "stack-beautifier": "1.0.2",
     "ts-node": "^10.5.0",
     "typescript": "~4.8.4",
@@ -516,7 +518,7 @@
       "@eth-optimism/contracts>@ethersproject/hardware-wallets>@ledgerhq/hw-transport-node-hid>usb": false,
       "@ethereumjs/tx>ethereumjs-util>ethereum-cryptography>keccak": true,
       "@ethereumjs/tx>ethereumjs-util>ethereum-cryptography>secp256k1": true,
-      "@sentry/react-native>@sentry/cli": false,
+      "@sentry/react-native>@sentry/cli": true,
       "@storybook/addon-actions>core-js": false,
       "@storybook/addon-knobs>@storybook/addons>core-js": false,
       "@storybook/addon-knobs>@storybook/api>core-js": false,
