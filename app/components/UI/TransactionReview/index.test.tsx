@@ -134,6 +134,33 @@ describe('TransactionReview', () => {
     expect(container).toMatchSnapshot();
   });
 
+  it('should display blockaid banner', async () => {
+    const { queryByText } = renderWithProvider(
+      <TransactionReview
+        EIP1559GasData={{}}
+        generateTransform={generateTransform}
+      />,
+      {
+        state: {
+          ...mockState,
+          transaction: {
+            ...mockState.transaction,
+            securityAlertResponse: {
+              resultType: 'Malicious',
+              reason: 'blur_farming',
+            },
+          },
+        },
+      },
+    );
+    expect(await queryByText('See details')).toBeDefined();
+    expect(
+      await queryByText(
+        'If you approve this request, someone can steal your assets listed on Blur.',
+      ),
+    ).toBeDefined();
+  });
+
   it('should have enabled confirm button if from account has balance', async () => {
     jest
       .spyOn(TransactionUtils, 'getTransactionReviewActionKey')

@@ -14,7 +14,7 @@ import { useSelector } from 'react-redux';
 import { useTheme } from '../../../../util/theme';
 import Text from '../../../../component-library/components/Texts/Text/Text';
 import { TextVariant } from '../../../../component-library/components/Texts/Text';
-import { selectNetwork } from '../../../../selectors/networkController';
+import { selectChainId } from '../../../../selectors/networkController';
 import { doENSReverseLookup } from '../../../../util/ENSUtils';
 import { strings } from '../../../../../locales/i18n';
 
@@ -33,14 +33,14 @@ const AddressElement: React.FC<AddressElementProps> = ({
   const { colors } = useTheme();
   const styles = styleSheet(colors);
 
-  const networkId = useSelector(selectNetwork);
+  const chainId = useSelector(selectChainId);
 
   const fetchENSName = useCallback(async () => {
     if (!displayName) {
-      const ensName = await doENSReverseLookup(address, networkId);
+      const ensName = await doENSReverseLookup(address, chainId);
       setDisplayName(ensName);
     }
-  }, [displayName, address, networkId]);
+  }, [displayName, address, chainId]);
 
   useEffect(() => {
     fetchENSName();

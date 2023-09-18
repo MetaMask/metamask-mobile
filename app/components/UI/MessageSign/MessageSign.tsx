@@ -84,7 +84,7 @@ class MessageSign extends PureComponent<MessageSignProps, MessageSignState> {
       messageParams: { metamaskId },
     } = this.props;
     AnalyticsV2.trackEvent(
-      MetaMetricsEvents.SIGN_REQUEST_STARTED,
+      MetaMetricsEvents.SIGNATURE_REQUESTED,
       getAnalyticsParams(),
     );
     addSignatureErrorListener(metamaskId, this.onSignatureError);
@@ -108,13 +108,13 @@ class MessageSign extends PureComponent<MessageSignProps, MessageSignState> {
 
   rejectSignature = async () => {
     const { messageParams, onReject } = this.props;
-    await handleSignatureAction(onReject, messageParams, 'eth', false);
+    await handleSignatureAction(onReject, messageParams, 'eth_sign', false);
   };
 
   confirmSignature = async () => {
     const { messageParams, onConfirm, onReject, navigation } = this.props;
     if (!isExternalHardwareAccount(messageParams.from)) {
-      await handleSignatureAction(onConfirm, messageParams, 'eth', true);
+      await handleSignatureAction(onConfirm, messageParams, 'eth_sign', true);
     } else {
       navigation.navigate(
         ...(await createExternalSignModelNav(
@@ -177,7 +177,7 @@ class MessageSign extends PureComponent<MessageSignProps, MessageSignState> {
       navigation,
       showExpandedMessage,
       toggleExpandedMessage,
-      messageParams: { from },
+      messageParams: { from, securityAlertResponse },
     } = this.props;
     const styles = this.getStyles();
 
@@ -199,6 +199,7 @@ class MessageSign extends PureComponent<MessageSignProps, MessageSignState> {
         type="ethSign"
         showWarning
         fromAddress={from}
+        securityAlertResponse={securityAlertResponse}
         testID={'eth-signature-request'}
       >
         <View style={styles.messageWrapper}>{this.renderMessageText()}</View>

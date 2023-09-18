@@ -46,7 +46,7 @@ const PersonalSign = ({
     account_type?: string;
     dapp_host_name?: string;
     chain_id?: string;
-    sign_type?: string;
+    signature_type?: string;
     [key: string]: string | undefined;
   }
 
@@ -59,7 +59,7 @@ const PersonalSign = ({
         account_type: getAddressAccountType(messageParams.from),
         dapp_host_name: url?.host,
         chain_id: chainId,
-        sign_type: 'personal',
+        signature_type: 'personal_sign',
         ...currentPageInformation?.analytics,
       };
     } catch (error) {
@@ -69,7 +69,7 @@ const PersonalSign = ({
 
   useEffect(() => {
     AnalyticsV2.trackEvent(
-      MetaMetricsEvents.SIGN_REQUEST_STARTED,
+      MetaMetricsEvents.SIGNATURE_REQUESTED,
       getAnalyticsParams(),
     );
   }, [getAnalyticsParams]);
@@ -117,7 +117,7 @@ const PersonalSign = ({
     await onReject();
     showWalletConnectNotification(false);
     AnalyticsV2.trackEvent(
-      MetaMetricsEvents.SIGN_REQUEST_CANCELLED,
+      MetaMetricsEvents.SIGNATURE_REJECTED,
       getAnalyticsParams(),
     );
   };
@@ -127,7 +127,7 @@ const PersonalSign = ({
       await onConfirm();
       showWalletConnectNotification(true);
       AnalyticsV2.trackEvent(
-        MetaMetricsEvents.SIGN_REQUEST_COMPLETED,
+        MetaMetricsEvents.SIGNATURE_APPROVED,
         getAnalyticsParams(),
       );
     } else {
@@ -136,7 +136,7 @@ const PersonalSign = ({
           onReject,
           onConfirm,
           messageParams,
-          'personal',
+          'personal_sign',
         )),
       );
     }
@@ -206,6 +206,7 @@ const PersonalSign = ({
       truncateMessage={truncateMessage}
       type="personalSign"
       fromAddress={messageParams.from}
+      securityAlertResponse={messageParams.securityAlertResponse}
       testID={'personal-signature-request'}
     >
       <View style={styles.messageWrapper}>{renderMessageText()}</View>
