@@ -700,7 +700,7 @@ class Send extends PureComponent {
       transaction: { selectedAsset, assetType, securityAlertResponse },
     } = this.props;
 
-    let blockaidParams;
+    let blockaidParams = {};
     if (isBlockaidFeatureEnabled()) {
       blockaidParams = getBlockaidMetricsParams(securityAlertResponse);
     }

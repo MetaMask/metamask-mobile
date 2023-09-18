@@ -19,8 +19,6 @@ import withQRHardwareAwareness from '../QRHardware/withQRHardwareAwareness';
 import QRSigningDetails from '../QRHardware/QRSigningDetails';
 import { selectProviderType } from '../../../selectors/networkController';
 import BlockaidBanner from '../BlockaidBanner/BlockaidBanner';
-import { getAnalyticsParams } from '../../../util/confirmation/signatureUtils';
-import AnalyticsV2 from '../../../util/analyticsV2';
 
 const createStyles = (colors) =>
   StyleSheet.create({
@@ -165,20 +163,6 @@ class SignatureRequest extends PureComponent {
     QRState: PropTypes.object,
     testID: PropTypes.string,
     securityAlertResponse: PropTypes.object,
-  };
-
-  componentDidMount = () => {
-    const { fromAddress, securityAlertResponse } = this.props;
-    AnalyticsV2.trackEvent(
-      MetaMetricsEvents.SIGN_REQUEST_STARTED,
-      getAnalyticsParams(
-        {
-          from: fromAddress,
-          securityAlertResponse,
-        },
-        'signature_request',
-      ),
-    );
   };
 
   /**
