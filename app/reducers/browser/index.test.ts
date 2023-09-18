@@ -1,8 +1,8 @@
 import browserReducer from './index';
 import AppConstants from '../../core/AppConstants';
 
-describe('browserReducer', () => {
-  it('should handle STORE_FAVICON_URL', () => {
+describe('browserReducer STORE_FAVICON_URL', () => {
+  it('adds favicon in the state', () => {
     const initialState = {
       history: [],
       whitelist: [],
@@ -30,7 +30,7 @@ describe('browserReducer', () => {
     expect(newState).toEqual(expectedState);
   });
 
-  it('should limit the number of favicons stored', () => {
+  it('limits the number of stored favicons in state to FAVICON_CACHE_MAX_SIZE', () => {
     const initialState = {
       history: [],
       whitelist: [],
