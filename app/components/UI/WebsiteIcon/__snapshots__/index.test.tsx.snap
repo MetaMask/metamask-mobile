@@ -1,9 +1,51 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
 exports[`WebsiteIcon should render correctly 1`] = `
-<WebsiteIcon
-  faviconSource=""
-  title="title"
-  url="url.com"
-/>
+<View>
+  <View
+    placeholderStyle={
+      Object {
+        "backgroundColor": "#F2F4F6",
+      }
+    }
+    useNativeDriver={true}
+  >
+    <Image
+      onError={[Function]}
+      onLoadEnd={[Function]}
+      source={
+        Object {
+          "uri": "mockedFaviconSource.png",
+        }
+      }
+    />
+    <View
+      collapsable={false}
+      style={
+        Object {
+          "bottom": 0,
+          "left": 0,
+          "opacity": 1,
+          "position": "absolute",
+          "right": 0,
+          "top": 0,
+        }
+      }
+    >
+      <View
+        style={
+          Array [
+            Object {},
+            Object {
+              "backgroundColor": "#eee",
+            },
+            Object {
+              "backgroundColor": "#F2F4F6",
+            },
+          ]
+        }
+      />
+    </View>
+  </View>
+</View>
 `;
