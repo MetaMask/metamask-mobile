@@ -26,7 +26,6 @@ import WebviewProgressBar from '../../UI/WebviewProgressBar';
 import { baseStyles, fontStyles } from '../../../styles/common';
 import Logger from '../../../util/Logger';
 import onUrlSubmit, {
-  getHost,
   prefixUrlWithProtocol,
   isTLD,
   protocolAllowList,
@@ -1152,11 +1151,8 @@ export const BrowserTab = (props) => {
               title: name || getMaskedUrl(url),
               contentDescription: `Launch ${name || url} on MetaMask`,
               keywords: [name.split(' '), url, 'dapp'],
-              //TODO this is for the bookmark favicon
               thumbnail: {
-                uri:
-                  icon.current ||
-                  `https://api.faviconkit.com/${getHost(url)}/256`,
+                uri: icon.current || favicon,
               },
             };
             try {
