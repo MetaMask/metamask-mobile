@@ -30,7 +30,8 @@ describe(
       const fixture = new FixtureBuilder().build();
       await startFixtureServer();
       await loadFixture({ fixture });
-      await device.launchApp({ newInstance: true });
+      await device.launchApp({ delete: true });
+      await loginToApp();
     });
 
     beforeEach(() => {
@@ -42,7 +43,6 @@ describe(
     });
 
     it('should navigate to browser', async () => {
-      await loginToApp();
       await TabBarComponent.tapBrowser();
       // Check that we are on the browser screen
       await Browser.isVisible();

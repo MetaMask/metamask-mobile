@@ -28,7 +28,8 @@ describe(Smoke('Addressbook Tests'), () => {
     const fixture = new FixtureBuilder().build();
     await startFixtureServer();
     await loadFixture({ fixture });
-    await device.launchApp({ newInstance: true });
+    await device.launchApp({ delete: true });
+    await loginToApp();
   });
 
   beforeEach(() => {
@@ -40,7 +41,6 @@ describe(Smoke('Addressbook Tests'), () => {
   });
 
   it('should go to send view', async () => {
-    await loginToApp();
     await TabBarComponent.tapActions();
     await WalletActionsModal.tapSendButton();
     // Make sure view with my accounts visible

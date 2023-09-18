@@ -22,7 +22,8 @@ describe(Smoke('Browser Tests'), () => {
     const fixture = new FixtureBuilder().build();
     await startFixtureServer();
     await loadFixture({ fixture });
-    await device.launchApp({ newInstance: true });
+    await device.launchApp({ delete: true });
+    await loginToApp();
   });
 
   afterAll(async () => {
@@ -34,7 +35,6 @@ describe(Smoke('Browser Tests'), () => {
   });
 
   it('should navigate to browser', async () => {
-    await loginToApp();
     await TabBarComponent.tapBrowser();
     // Check that we are on the browser screen
     await Browser.isVisible();
