@@ -38,7 +38,7 @@ import { MetaMetricsEvents } from '../../../core/Analytics';
 import Analytics from '../../../core/Analytics/Analytics';
 import AppConstants from '../../../core/AppConstants';
 import Engine from '../../../core/Engine';
-import { selectNetwork } from '../../../selectors/networkController';
+import { selectChainId } from '../../../selectors/networkController';
 import { selectCurrentCurrency } from '../../../selectors/currencyRateController';
 import {
   selectIdentities,
@@ -196,9 +196,9 @@ class AccountOverview extends PureComponent {
      */
     toggleReceiveModal: PropTypes.func,
     /**
-     * ID of the current network
+     * The chain ID for the current selected network
      */
-    networkId: PropTypes.string,
+    chainId: PropTypes.string,
     /**
      * Current opens tabs in browser
      */
@@ -245,7 +245,7 @@ class AccountOverview extends PureComponent {
   componentDidUpdate(prevProps) {
     if (
       prevProps.account.address !== this.props.account.address ||
-      prevProps.networkId !== this.props.networkId
+      prevProps.chainId !== this.props.chainId
     ) {
       requestAnimationFrame(() => {
         this.doENSLookup();
@@ -304,9 +304,9 @@ class AccountOverview extends PureComponent {
   };
 
   doENSLookup = async () => {
-    const { networkId, account } = this.props;
+    const { chainId, account } = this.props;
     try {
-      const ens = await doENSReverseLookup(account.address, networkId);
+      const ens = await doENSReverseLookup(account.address, chainId);
       this.setState({ ens });
       // eslint-disable-next-line no-empty
     } catch {}
@@ -458,7 +458,7 @@ const mapStateToProps = (state) => ({
   selectedAddress: selectSelectedAddress(state),
   identities: selectIdentities(state),
   currentCurrency: selectCurrentCurrency(state),
-  networkId: String(selectNetwork(state)),
+  chainId: selectChainId(state),
   browserTabs: state.browser.tabs,
 });
 
