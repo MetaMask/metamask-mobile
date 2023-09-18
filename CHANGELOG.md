@@ -2,7 +2,7 @@
 
 ## Current Main Branch
 
-## 7.6.0 - Aug 31, 2023
+## 7.7.0 - Sep 18, 2023
 ### Added
 - [#7090](https://github.com/MetaMask/metamask-mobile/pull/7090): feat: add translations for new contextual sheet display nft media
 - [#6727](https://github.com/MetaMask/metamask-mobile/pull/6727): style: Update Button's pressed and disabled states
