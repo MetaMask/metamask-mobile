@@ -399,7 +399,7 @@ exports[`Root should match snapshot 1`] = `
                         onLoadEnd={[Function]}
                         source={
                           Object {
-                            "uri": "https://api.faviconkit.com/metamask.github.io/50",
+                            "uri": "",
                           }
                         }
                         style={
