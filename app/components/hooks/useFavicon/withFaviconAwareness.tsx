@@ -1,5 +1,6 @@
 import React, { ComponentClass } from 'react';
 import useFavicon from './useFavicon';
+import { ImageURISource } from 'react-native';
 
 const withFaviconAwareness =
   (
@@ -11,9 +12,13 @@ const withFaviconAwareness =
     const { url } = props;
     const favicon = useFavicon(url);
 
-    let faviconSource = favicon;
-    if (typeof favicon === 'object' && favicon !== null) {
-      faviconSource = favicon?.uri;
+    let faviconSource = '';
+    if (
+      typeof favicon === 'object' &&
+      favicon !== null &&
+      !Array.isArray(favicon)
+    ) {
+      faviconSource = (favicon as ImageURISource).uri || '';
     }
 
     return <Children {...props} faviconSource={faviconSource} />;

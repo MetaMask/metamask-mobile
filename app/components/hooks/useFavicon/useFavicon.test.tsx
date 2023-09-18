@@ -1,7 +1,6 @@
 import { renderHook, waitFor } from '@testing-library/react-native';
 import useFavicon from './useFavicon';
-// eslint-disable-next-line import/no-namespace
-import * as faviconUtils from '../../../util/favicon';
+import { getFaviconURLFromHtml } from '../../../util/favicon';
 
 jest.mock('../../../util/favicon');
 
@@ -10,39 +9,15 @@ describe('useFavicon', () => {
     jest.resetAllMocks();
   });
 
-  it('should return favicon', async () => {
-    (faviconUtils.getFaviconFromCache as jest.Mock).mockReturnValue(null);
-    (faviconUtils.getFaviconURLFromHtml as jest.Mock).mockReturnValue('test');
+  it('returns favicon URL', async () => {
+    const origin = 'https://metamask.github.io/test-dapp/';
+    const expectedURL = 'https://metamask.github.io/test-dapp/favicon.svg';
+    (getFaviconURLFromHtml as jest.Mock).mockReturnValue(expectedURL);
 
-    const spyWriteCache = jest.spyOn(faviconUtils, 'cacheFavicon');
-    const spyReadCache = jest.spyOn(faviconUtils, 'getFaviconFromCache');
-
-    const { result } = renderHook(() =>
-      useFavicon('https://metamask.github.io/test-dapp/'),
-    );
+    const { result } = renderHook(() => useFavicon(origin));
 
     await waitFor(() => {
-      expect(result.current).toEqual({ uri: 'test' });
-      expect(spyWriteCache).toHaveBeenCalledTimes(1);
-      expect(spyReadCache).toHaveBeenCalledTimes(1);
-    });
-  });
-
-  it('should return cached favicon', async () => {
-    (faviconUtils.getFaviconFromCache as jest.Mock).mockReturnValue(
-      'cached-url',
-    );
-    (faviconUtils.getFaviconURLFromHtml as jest.Mock).mockReturnValue('test');
-
-    const spyReadCache = jest.spyOn(faviconUtils, 'getFaviconFromCache');
-
-    const { result } = renderHook(() =>
-      useFavicon('https://metamask.github.io/test-dapp/'),
-    );
-
-    await waitFor(() => {
-      expect(result.current).toEqual({ uri: 'cached-url' });
-      expect(spyReadCache).toHaveBeenCalledTimes(1);
+      expect(result.current).toEqual({ uri: expectedURL });
     });
   });
 });
