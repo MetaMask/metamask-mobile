@@ -1,8 +1,8 @@
 import { createSelector } from 'reselect';
 import { CurrencyRateState } from '@metamask/assets-controllers';
-import { EngineState } from './types';
+import { RootState } from '../reducers';
 
-const selectCurrencyRateControllerState = (state: EngineState) =>
+const selectCurrencyRateControllerState = (state: RootState) =>
   state?.engine?.backgroundState?.CurrencyRateController;
 
 export const selectConversionRate = createSelector(

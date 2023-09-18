@@ -2,62 +2,71 @@
 
 import { Regression } from '../../tags';
 import TestHelpers from '../../helpers';
-import {
-  importWalletWithRecoveryPhrase,
-  addLocalhostNetwork,
-} from '../../viewHelper';
+import { loginToApp } from '../../viewHelper';
 import TabBarComponent from '../../pages/TabBarComponent';
-import Accounts from '../../../wdio/helpers/Accounts';
-import Ganache from '../../../app/util/test/ganache';
-import { TEST_DAPP_URL, TestDApp } from '../../pages/TestDApp';
+import { TEST_DAPP_LOCAL_URL, TestDApp } from '../../pages/TestDApp';
+import FixtureBuilder from '../../fixtures/fixture-builder';
+import {
+  withFixtures,
+  defaultGanacheOptions,
+} from '../../fixtures/fixture-helper';
 import root from '../../../locales/languages/en.json';
+import { SMART_CONTRACTS } from '../../../app/util/test/smart-contracts';
 
-const SENT_COLLECTIBLE_MESSAGE_TEXT = root.transactions.sent_collectible;
-const validAccount = Accounts.getValidAccount();
-const ERC721_ADDRESS = '0x26D6C3e7aEFCE970fe3BE5d589DbAbFD30026924';
+describe(Regression('ERC721 tokens'), () => {
+  const NFT_CONTRACT = SMART_CONTRACTS.NFTS;
+  const SENT_COLLECTIBLE_MESSAGE_TEXT = root.transactions.sent_collectible;
 
-describe(Regression('sendERC721 tokens test'), () => {
-  let ganacheServer;
   beforeAll(async () => {
     jest.setTimeout(150000);
     if (device.getPlatform() === 'android') {
       await device.reverseTcpPort('8081'); // because on android we need to expose the localhost ports to run ganache
-      await device.reverseTcpPort('8545');
+      await device.reverseTcpPort('8545'); // ganache
+      await device.reverseTcpPort('8080'); // test-dapp
     }
-    ganacheServer = new Ganache();
-    await ganacheServer.start({ mnemonic: validAccount.seedPhrase });
   });
 
-  afterAll(async () => {
-    await ganacheServer.quit();
-  });
+  it('send an ERC721 token from a dapp', async () => {
+    await withFixtures(
+      {
+        dapp: true,
+        fixture: new FixtureBuilder()
+          .withGanacheNetwork()
+          .withPermissionControllerConnectedToTestDapp()
+          .build(),
+        restartDevice: true,
+        ganacheOptions: defaultGanacheOptions,
+        smartContract: NFT_CONTRACT,
+      },
+      async ({ contractRegistry }) => {
+        const nftsAddress = await contractRegistry.getContractAddress(
+          NFT_CONTRACT,
+        );
+        await loginToApp();
 
-  it('Send an ERC721 token', async () => {
-    // Setup
-    await importWalletWithRecoveryPhrase();
-    await addLocalhostNetwork();
+        // Navigate to the browser screen
+        await TabBarComponent.tapBrowser();
 
-    // Navigate to the browser screen
-    await TabBarComponent.tapBrowser();
+        // Navigate to the ERC721 url
+        await TestDApp.navigateToTestDappWithContract(
+          TEST_DAPP_LOCAL_URL,
+          nftsAddress,
+        );
 
-    // Navigate to the ERC721 url
-    await TestDApp.navigateToErc721Contract(TEST_DAPP_URL, ERC721_ADDRESS);
+        // Transfer NFT
+        await TestDApp.tapTransferFromButton(nftsAddress);
+        await TestHelpers.delay(3000);
 
-    // Connect account
-    await TestDApp.connect();
+        await TestDApp.tapConfirmButton();
 
-    // Transfer NFT
-    await TestDApp.tapTransferFromButton(ERC721_ADDRESS);
-    await TestHelpers.delay(3000);
+        // Navigate to the activity screen
+        await TabBarComponent.tapActivity();
 
-    await TestDApp.tapConfirmButton();
-
-    // Navigate to the activity screen
-    await TabBarComponent.tapActivity();
-
-    // Assert collectible is sent
-    await TestHelpers.checkIfElementByTextIsVisible(
-      SENT_COLLECTIBLE_MESSAGE_TEXT,
+        // Assert collectible is sent
+        await TestHelpers.checkIfElementByTextIsVisible(
+          SENT_COLLECTIBLE_MESSAGE_TEXT,
+        );
+      },
     );
   });
 });

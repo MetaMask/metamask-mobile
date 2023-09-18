@@ -1,4 +1,4 @@
-import { applyMiddleware, createStore } from 'redux';
+import { applyMiddleware, createStore, Store } from 'redux';
 import {
   persistStore,
   persistReducer,
@@ -11,7 +11,7 @@ import { rootSaga } from './sagas';
 import AsyncStorage from './async-storage-wrapper';
 import FilesystemStorage from 'redux-persist-filesystem-storage';
 import autoMergeLevel2 from 'redux-persist/lib/stateReconciler/autoMergeLevel2';
-import rootReducer from '../reducers';
+import rootReducer, { RootState } from '../reducers';
 import { migrations, version } from './migrations';
 import Logger from '../util/Logger';
 import EngineService from '../core/EngineService';
@@ -24,7 +24,7 @@ import { isTest } from '../util/test/utils';
 const TIMEOUT = 40000;
 
 const MigratedStorage = {
-  async getItem(key) {
+  async getItem(key: string) {
     try {
       const res = await FilesystemStorage.getItem(key);
       if (res) {
@@ -43,22 +43,22 @@ const MigratedStorage = {
         return res;
       }
     } catch (error) {
-      Logger.error(error, { message: 'Failed to run migration' });
+      Logger.error(error as Error, { message: 'Failed to run migration' });
       throw new Error('Failed async storage storage fetch.');
     }
   },
-  async setItem(key, value) {
+  async setItem(key: string, value: string) {
     try {
       return await FilesystemStorage.setItem(key, value, Device.isIos());
     } catch (error) {
-      Logger.error(error, { message: 'Failed to set item' });
+      Logger.error(error as Error, { message: 'Failed to set item' });
     }
   },
-  async removeItem(key) {
+  async removeItem(key: string) {
     try {
       return await FilesystemStorage.removeItem(key);
     } catch (error) {
-      Logger.error(error, { message: 'Failed to remove item' });
+      Logger.error(error as Error, { message: 'Failed to remove item' });
     }
   },
 };
@@ -67,13 +67,15 @@ const MigratedStorage = {
  * Transform middleware that blacklists fields from redux persist that we deem too large for persisted storage
  */
 const persistTransform = createTransform(
-  (inboundState) => {
+  (inboundState: RootState['engine']) => {
     const {
       TokenListController,
       SwapsController,
       PhishingController,
       ...controllers
     } = inboundState.backgroundState || {};
+    // TODO: Fix this type error
+    // @ts-expect-error Fix this typo, should be `tokensChainsCache`
     const { tokenList, tokensChainCache, ...persistedTokenListController } =
       TokenListController;
     const {
@@ -86,6 +88,8 @@ const persistTransform = createTransform(
       topAssetsLastFetched,
       ...persistedSwapsController
     } = SwapsController;
+    // TODO: Fix this type error
+    // @ts-expect-error There is no `phishing` property in the phishing controller state
     const { phishing, whitelist, ...persistedPhishingController } =
       PhishingController;
 
@@ -105,7 +109,8 @@ const persistTransform = createTransform(
 );
 
 const persistUserTransform = createTransform(
-  (inboundState) => {
+  // TODO: Add types for the 'user' slice
+  (inboundState: any) => {
     const { initialScreen, isAuthChecked, ...state } = inboundState;
     // Reconstruct data to persist
     return state;
@@ -123,14 +128,17 @@ const persistConfig = {
   stateReconciler: autoMergeLevel2, // see "Merge Process" section for details.
   migrate: createMigrate(migrations, { debug: false }),
   timeout: TIMEOUT,
-  writeFailHandler: (error) =>
+  writeFailHandler: (error: Error) =>
     Logger.error(error, { message: 'Error persisting data' }), // Log error if saving state fails
 };
 
-const pReducer = persistReducer(persistConfig, rootReducer);
+// TODO: Improve type safety by using real Action types instead of `any`
+const pReducer = persistReducer<RootState, any>(persistConfig, rootReducer);
 
+// TODO: Fix the Action type. It's set to `any` now because some of the
+// TypeScript reducers have invalid actions
 // eslint-disable-next-line import/no-mutable-exports
-let store, persistor;
+let store: Store<RootState, any>, persistor;
 const createStoreAndPersistor = async () => {
   // Obtain the initial state from ReadOnlyNetworkStore for E2E tests.
   const initialState = isTest

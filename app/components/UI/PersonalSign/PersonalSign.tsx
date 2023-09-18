@@ -17,6 +17,8 @@ import { PersonalSignProps } from './types';
 import { useNavigation } from '@react-navigation/native';
 import createStyles from './styles';
 import AppConstants from '../../../core/AppConstants';
+import { selectChainId } from '../../../selectors/networkController';
+import { store } from '../../../store';
 
 /**
  * Component that supports personal_sign
@@ -39,21 +41,20 @@ const PersonalSign = ({
     account_type?: string;
     dapp_host_name?: string;
     chain_id?: string;
-    sign_type?: string;
+    signature_type?: string;
     [key: string]: string | undefined;
   }
 
   const getAnalyticsParams = useCallback((): AnalyticsParams => {
     try {
-      const { NetworkController }: any = Engine.context;
-      const { chainId } = NetworkController?.state?.providerConfig || {};
+      const chainId = selectChainId(store.getState());
       const url = new URL(currentPageInformation?.url);
 
       return {
         account_type: getAddressAccountType(messageParams.from),
         dapp_host_name: url?.host,
         chain_id: chainId,
-        sign_type: 'personal',
+        signature_type: 'personal_sign',
         ...currentPageInformation?.analytics,
       };
     } catch (error) {
@@ -63,7 +64,7 @@ const PersonalSign = ({
 
   useEffect(() => {
     AnalyticsV2.trackEvent(
-      MetaMetricsEvents.SIGN_REQUEST_STARTED,
+      MetaMetricsEvents.SIGNATURE_REQUESTED,
       getAnalyticsParams(),
     );
   }, [getAnalyticsParams]);
@@ -111,7 +112,7 @@ const PersonalSign = ({
     await onReject();
     showWalletConnectNotification(false);
     AnalyticsV2.trackEvent(
-      MetaMetricsEvents.SIGN_REQUEST_CANCELLED,
+      MetaMetricsEvents.SIGNATURE_REJECTED,
       getAnalyticsParams(),
     );
   };
@@ -120,7 +121,7 @@ const PersonalSign = ({
     await onConfirm();
     showWalletConnectNotification(true);
     AnalyticsV2.trackEvent(
-      MetaMetricsEvents.SIGN_REQUEST_COMPLETED,
+      MetaMetricsEvents.SIGNATURE_APPROVED,
       getAnalyticsParams(),
     );
   };
@@ -189,6 +190,7 @@ const PersonalSign = ({
       truncateMessage={truncateMessage}
       type="personalSign"
       fromAddress={messageParams.from}
+      securityAlertResponse={messageParams.securityAlertResponse}
       testID={'personal-signature-request'}
     >
       <View style={styles.messageWrapper}>{renderMessageText()}</View>

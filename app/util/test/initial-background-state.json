@@ -30,6 +30,17 @@
   },
   "TokenDetectionController": {},
   "NftDetectionController": {},
+  "PPOMController": {
+    "chainStatus": {
+      "0x1": {
+        "chainId": "0x1",
+        "dataFetched": false
+      }
+    },
+    "storageMetadata": [],
+    "versionInfo": []
+  },
+
   "CurrencyRateController": {
     "conversionDate": 0,
     "conversionRate": 0,
@@ -74,6 +85,7 @@
     "useTokenDetection": true,
     "useNftDetection": false,
     "openSeaEnabled": false,
+    "securityAlertsEnabled": false,
     "isMultiAccountBalancesEnabled": true,
     "disabledRpcMethodPreferences": {
       "eth_sign": false
