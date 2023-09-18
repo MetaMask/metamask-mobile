@@ -435,7 +435,6 @@ class Engine {
         // @ts-expect-error This is added in a patch, but types weren't updated
         getSelectedAddress: () => preferencesController.state.selectedAddress,
         getMultiAccountBalancesEnabled: () =>
-          // @ts-expect-error This is added in a patch, but types weren't updated
           preferencesController.state.isMultiAccountBalancesEnabled,
       }),
       new AddressBookController(),
