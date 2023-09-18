@@ -75,10 +75,10 @@ if (IGNORE_BOXLOGS_DEVELOPMENT === 'true') {
 }
 
 /* Uncomment and comment regular registration below */
-// import Storybook from './storybook';
-// AppRegistry.registerComponent(name, () => Storybook);
+import Storybook from './.storybook';
+AppRegistry.registerComponent(name, () => Storybook);
 
 /**
  * Application entry point responsible for registering root component
  */
-AppRegistry.registerComponent(name, () => Sentry.wrap(Root));
+// AppRegistry.registerComponent(name, () => Sentry.wrap(Root));
