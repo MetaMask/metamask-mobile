@@ -34,16 +34,6 @@ import {
 } from '@metamask/sdk-communication-layer';
 import { ethErrors } from 'eth-rpc-errors';
 import { EventEmitter2 } from 'eventemitter2';
-import {
-  MediaStream,
-  MediaStreamTrack,
-  RTCIceCandidate,
-  RTCPeerConnection,
-  RTCSessionDescription,
-  RTCView,
-  mediaDevices,
-  registerGlobals,
-} from 'react-native-webrtc';
 import Routes from '../../../app/constants/navigation/Routes';
 import generateOTP from './utils/generateOTP.util';
 import {
@@ -62,17 +52,6 @@ export const MIN_IN_MS = 1000 * 60;
 export const HOUR_IN_MS = MIN_IN_MS * 60;
 export const DAY_IN_MS = HOUR_IN_MS * 24;
 export const DEFAULT_SESSION_TIMEOUT_MS = 7 * DAY_IN_MS;
-
-const webrtc = {
-  RTCPeerConnection,
-  RTCIceCandidate,
-  RTCSessionDescription,
-  RTCView,
-  MediaStream,
-  MediaStreamTrack,
-  mediaDevices,
-  registerGlobals,
-};
 
 export interface ConnectionProps {
   id: string;
@@ -239,7 +218,6 @@ export class Connection extends EventEmitter2 {
       communicationServerUrl: AppConstants.MM_SDK.SERVER_URL,
       communicationLayerPreference: CommunicationLayerPreference.SOCKET,
       otherPublicKey,
-      webRTCLib: webrtc,
       reconnect,
       walletInfo: {
         type: 'MetaMask Mobile',
