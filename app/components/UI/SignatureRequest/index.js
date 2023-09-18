@@ -294,7 +294,8 @@ class SignatureRequest extends PureComponent {
   };
 
   renderSignatureRequest() {
-    const { securityAlertResponse, showWarning, type, selectedAddress } = this.props;
+    const { securityAlertResponse, showWarning, type, selectedAddress } =
+      this.props;
     let expandedHeight;
     const styles = this.getStyles();
 
