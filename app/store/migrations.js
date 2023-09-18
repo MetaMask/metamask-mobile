@@ -671,13 +671,10 @@ export const migrations = {
           (chainId) => localChainIds.has(chainId),
         );
 
-        if (recognizedChainIdCandidates.length > 1) {
-          for (const chainId of recognizedChainIdCandidates) {
+        for (const chainId of recognizedChainIdCandidates) {
+          if (recognizedChainIdCandidates.length > 1) {
             ambiguousAddressEntries[chainId] = Object.keys(addressEntries);
           }
-        }
-
-        for (const chainId of recognizedChainIdCandidates) {
           migratedAddressBook[chainId] = mapValues(addressEntries, (entry) => ({
             ...entry,
             chainId,
