@@ -121,7 +121,7 @@ class MessageSign extends PureComponent<MessageSignProps, MessageSignState> {
           onReject,
           onConfirm,
           messageParams,
-          'eth',
+          'eth_sign',
         )),
       );
     }
