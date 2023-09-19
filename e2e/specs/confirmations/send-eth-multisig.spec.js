@@ -38,7 +38,7 @@ describe(Smoke('Send ETH to Multisig'), () => {
         ganacheOptions: defaultGanacheOptions,
         smartContract: MULTISIG_CONTRACT,
       },
-      async ({ contractRegistry }) => {
+      async ({ contractRegistry, ganacheServer }) => {
         const multisigAddress = await contractRegistry.getContractAddress(
           MULTISIG_CONTRACT,
         );
@@ -59,6 +59,8 @@ describe(Smoke('Send ETH to Multisig'), () => {
         await TestHelpers.checkIfElementByTextIsVisible(
           `${AMOUNT_TO_SEND} ${TOKEN_NAME}`,
         );
+
+        await ganacheServer.quit();
       },
     );
   });

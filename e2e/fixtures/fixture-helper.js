@@ -147,18 +147,18 @@ export async function withFixtures(options, testSuite) {
       await device.launchApp({ delete: true });
     }
 
-    await testSuite({ contractRegistry });
+    await testSuite({ contractRegistry, ganacheServer });
   } catch (error) {
     console.error(error);
     throw error;
   } finally {
-    if (ganacheOptions) {
+    /* if (ganacheOptions) {
       try {
         await ganacheServer.quit();
       } catch (error) {
         console.log(error);
       }
-    }
+    } */
     if (dapp) {
       for (let i = 0; i < numberOfDapps; i++) {
         if (dappServer[i] && dappServer[i].listening) {

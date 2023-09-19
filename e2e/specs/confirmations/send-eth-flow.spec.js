@@ -32,7 +32,7 @@ describe(Smoke('Send ETH Tests'), () => {
         restartDevice: true,
         ganacheOptions: defaultGanacheOptions,
       },
-      async () => {
+      async ({ ganacheServer }) => {
         await loginToApp();
 
         await TabBarComponent.tapActions();
@@ -86,6 +86,7 @@ describe(Smoke('Send ETH Tests'), () => {
         await TransactionConfirmationView.tapConfirmButton();
         // Check that we are on the wallet screen
         //await WalletView.isVisible();
+        await ganacheServer.quit();
       },
     );
   });

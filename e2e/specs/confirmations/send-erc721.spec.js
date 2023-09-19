@@ -38,7 +38,7 @@ describe(Smoke('ERC721 tokens'), () => {
         ganacheOptions: defaultGanacheOptions,
         smartContract: NFT_CONTRACT,
       },
-      async ({ contractRegistry }) => {
+      async ({ contractRegistry, ganacheServer }) => {
         const nftsAddress = await contractRegistry.getContractAddress(
           NFT_CONTRACT,
         );
@@ -66,6 +66,8 @@ describe(Smoke('ERC721 tokens'), () => {
         await TestHelpers.checkIfElementByTextIsVisible(
           SENT_COLLECTIBLE_MESSAGE_TEXT,
         );
+
+        await ganacheServer.quit();
       },
     );
   });
