@@ -237,7 +237,7 @@ class TypedSign extends PureComponent {
         domain={domain}
         currentPageInformation={currentPageInformation}
         truncateMessage={truncateMessage}
-        type="typedSign"
+        type={typedSign[messageParams.version]}
         fromAddress={from}
         securityAlertResponse={securityAlertResponse}
         testID={'typed-signature-request'}

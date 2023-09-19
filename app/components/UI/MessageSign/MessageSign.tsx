@@ -183,7 +183,7 @@ class MessageSign extends PureComponent<MessageSignProps, MessageSignState> {
         truncateMessage={this.state.truncateMessage}
         showExpandedMessage={showExpandedMessage}
         toggleExpandedMessage={toggleExpandedMessage}
-        type="ethSign"
+        type="eth_sign"
         showWarning
         fromAddress={from}
         securityAlertResponse={securityAlertResponse}
