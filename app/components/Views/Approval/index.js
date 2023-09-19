@@ -135,7 +135,6 @@ class Approval extends PureComponent {
   };
 
   componentWillUnmount = () => {
-    const { ApprovalController } = Engine.context;
     try {
       const { transactionHandled } = this.state;
       const { transaction, selectedAddress } = this.props;
