@@ -892,7 +892,8 @@ export class SDKConnect extends EventEmitter2 {
     connection.remote.on(EventType.CLIENTS_DISCONNECTED, () => {
       const host = AppConstants.MM_SDK.SDK_REMOTE_ORIGIN + connection.channelId;
       // Prevent disabled connection ( if user chose do not remember session )
-      if (this.disabledHosts[host] !== undefined) {
+      const isDisabled = this.disabledHosts[host]; // should be 0 when disabled.
+      if (isDisabled !== undefined) {
         this.updateSDKLoadingState({
           channelId: connection.channelId,
           loading: false,
@@ -902,6 +903,8 @@ export class SDKConnect extends EventEmitter2 {
             `SDKConnect::watchConnection can't update SDK loading state`,
           );
         });
+        // Force terminate connection since it was disabled (do not remember)
+        this.removeChannel(connection.channelId, true);
       }
     });
 
@@ -1158,7 +1161,7 @@ export class SDKConnect extends EventEmitter2 {
 
   /**
    * Invalidate a channel/session by preventing future connection to be established.
-   * Instead of removing the channel, it creates sets the session to timeout on next
+   * Instead of removing the channel, it sets the session to timeout on next
    * connection which will remove it while conitnuing current session.
    *
    * @param channelId
