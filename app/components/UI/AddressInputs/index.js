@@ -178,7 +178,7 @@ const createStyles = (colors, layout = 'horizontal') => {
 const AddressName = ({
   toAddressName,
   confusableCollection = [],
-  children,
+  accountLabel,
 }) => {
   const { colors } = useTheme();
   const styles = createStyles(colors);
@@ -211,7 +211,9 @@ const AddressName = ({
       <Text style={styles.textAddress} numberOfLines={1}>
         {toAddressName}
       </Text>
-      {children}
+      {accountLabel && (
+        <AccountTypeLabel>{strings(accountLabel)}</AccountTypeLabel>
+      )}
     </View>
   );
 };
@@ -219,10 +221,7 @@ const AddressName = ({
 AddressName.propTypes = {
   toAddressName: PropTypes.string,
   confusableCollection: PropTypes.array,
-  children: PropTypes.oneOfType([
-    PropTypes.arrayOf(PropTypes.node),
-    PropTypes.node,
-  ]),
+  accountLabel: PropTypes.string,
 };
 
 export const AddressTo = (props) => {
@@ -285,13 +284,8 @@ export const AddressTo = (props) => {
                     <AddressName
                       toAddressName={toAddressName}
                       confusableCollection={confusableCollection}
-                    >
-                      {accountLabel && (
-                        <AccountTypeLabel>
-                          {strings(accountLabel)}
-                        </AccountTypeLabel>
-                      )}
-                    </AddressName>
+                      accountLabel={accountLabel}
+                    />
                   )}
                   <View style={styles.addressWrapper}>
                     <Text
@@ -412,13 +406,8 @@ export const AddressTo = (props) => {
                     <AddressName
                       toAddressName={toAddressName}
                       confusableCollection={confusableCollection}
-                    >
-                      {accountLabel && (
-                        <AccountTypeLabel>
-                          {strings(accountLabel)}
-                        </AccountTypeLabel>
-                      )}
-                    </AddressName>
+                      accountLabel={accountLabel}
+                    />
 
                     <View style={styles.addressWrapper}>
                       <Text
