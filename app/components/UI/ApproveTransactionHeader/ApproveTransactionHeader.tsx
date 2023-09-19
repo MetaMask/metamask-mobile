@@ -139,7 +139,7 @@ const ApproveTransactionHeader = ({
         accountTokenBalance={addressBalance}
         accountName={accountName}
         accountBalanceLabel={strings('transaction.balance')}
-        accountTypeLabel={accountTypeLabel}
+        accountTypeLabel={strings(accountTypeLabel)}
         accountNetwork={networkName}
         badgeProps={{
           variant: BadgeVariant.Network,

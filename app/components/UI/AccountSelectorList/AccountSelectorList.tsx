@@ -12,7 +12,11 @@ import Cell, {
 import { useStyles } from '../../../component-library/hooks';
 import Text from '../../../component-library/components/Texts/Text';
 import AvatarGroup from '../../../component-library/components/Avatars/AvatarGroup';
-import { formatAddress, safeToChecksumAddress } from '../../../util/address';
+import {
+  formatAddress,
+  safeToChecksumAddress,
+  getLabelTextByAddressType,
+} from '../../../util/address';
 import { AvatarAccountType } from '../../../component-library/components/Avatars/Avatar/variants/AvatarAccount';
 import { isDefaultAccountName } from '../../../util/ENSUtils';
 import { strings } from '../../../../locales/i18n';
@@ -52,21 +56,6 @@ const AccountSelectorList = ({
   );
 
   const getKeyExtractor = ({ address }: Account) => address;
-
-  const getTagLabel = (type: KeyringTypes) => {
-    let label = '';
-    switch (type) {
-      case KeyringTypes.qr:
-        label = strings('transaction.hardware');
-        break;
-      case KeyringTypes.simple:
-        label = strings('accounts.imported');
-        break;
-      case KeyringTypes.ledger:
-        label = strings('accounts.ledger');
-    }
-    return label;
-  };
 
   const renderAccountBalances = useCallback(
     ({ fiatBalance, tokens }: Assets, address: string) => (
@@ -154,7 +143,7 @@ const AccountSelectorList = ({
       index,
     }) => {
       const shortAddress = formatAddress(address, 'short');
-      const tagLabel = getTagLabel(type);
+      const tagLabel = getLabelTextByAddressType(type);
       const ensName = ensByAccountAddress[address];
       const accountName =
         isDefaultAccountName(name) && ensName ? ensName : name;
@@ -192,7 +181,7 @@ const AccountSelectorList = ({
             type: accountAvatarType,
             accountAddress: address,
           }}
-          tagLabel={tagLabel}
+          tagLabel={tagLabel ? strings(tagLabel) : ''}
           disabled={isDisabled}
           style={cellStyle}
         >

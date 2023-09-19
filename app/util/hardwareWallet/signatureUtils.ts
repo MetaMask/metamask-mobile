@@ -1,5 +1,5 @@
 import { handleSignatureAction } from '../confirmation/signatureUtils';
-import { getAddressAccountType } from '../address';
+import { getAddressKeyringType } from '../address';
 import { signModalNavDetail } from './hardwareWallets/ledger';
 import { KeyringTypes } from '@metamask/keyring-controller';
 
@@ -12,7 +12,7 @@ export default async (
   messageParams: any,
   signType: string,
 ) => {
-  const addressType = getAddressAccountType(messageParams.from);
+  const addressType = getAddressKeyringType(messageParams.from);
 
   const onConfirmationComplete = async (confirmed: boolean) => {
     if (!confirmed) {

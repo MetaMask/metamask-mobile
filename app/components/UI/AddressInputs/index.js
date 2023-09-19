@@ -24,6 +24,8 @@ import { useTheme } from '../../../util/theme';
 import generateTestId from '../../../../wdio/utils/generateTestId';
 import { SEND_ADDRESS_INPUT_FIELD } from '../../../../wdio/screen-objects/testIDs/Screens/SendScreen.testIds';
 import AddToAddressBookWrapper from '../AddToAddressBookWrapper/AddToAddressBookWrapper';
+import AccountTypeLabel from '../../../component-library/components-temp/Accounts/AccountTypeLabel';
+
 const createStyles = (colors, layout = 'horizontal') => {
   const isVerticalLayout = layout === 'vertical';
   return StyleSheet.create({
@@ -94,16 +96,6 @@ const createStyles = (colors, layout = 'horizontal') => {
       flexDirection: 'row',
       alignItems: 'center',
       justifyContent: 'center',
-    },
-    accountNameLabelText: {
-      marginLeft: 4,
-      paddingHorizontal: 8,
-      ...fontStyles.bold,
-      color: colors.text.alternative,
-      borderWidth: 1,
-      borderRadius: 8,
-      borderColor: colors.border.default,
-      fontSize: 10,
     },
     textBalance: {
       ...fontStyles.normal,
@@ -186,7 +178,7 @@ const createStyles = (colors, layout = 'horizontal') => {
 const AddressName = ({
   toAddressName,
   confusableCollection = [],
-  accountLabel,
+  children,
 }) => {
   const { colors } = useTheme();
   const styles = createStyles(colors);
@@ -219,9 +211,7 @@ const AddressName = ({
       <Text style={styles.textAddress} numberOfLines={1}>
         {toAddressName}
       </Text>
-      {accountLabel && (
-        <Text style={styles.accountNameLabelText}>{strings(accountLabel)}</Text>
-      )}
+      {children}
     </View>
   );
 };
@@ -229,7 +219,10 @@ const AddressName = ({
 AddressName.propTypes = {
   toAddressName: PropTypes.string,
   confusableCollection: PropTypes.array,
-  accountLabel: PropTypes.string,
+  children: PropTypes.oneOfType([
+    PropTypes.arrayOf(PropTypes.node),
+    PropTypes.node,
+  ]),
 };
 
 export const AddressTo = (props) => {
@@ -292,8 +285,13 @@ export const AddressTo = (props) => {
                     <AddressName
                       toAddressName={toAddressName}
                       confusableCollection={confusableCollection}
-                      accountLabel={accountLabel}
-                    />
+                    >
+                      {accountLabel && (
+                        <AccountTypeLabel>
+                          {strings(accountLabel)}
+                        </AccountTypeLabel>
+                      )}
+                    </AddressName>
                   )}
                   <View style={styles.addressWrapper}>
                     <Text
@@ -414,8 +412,13 @@ export const AddressTo = (props) => {
                     <AddressName
                       toAddressName={toAddressName}
                       confusableCollection={confusableCollection}
-                      accountLabel={accountLabel}
-                    />
+                    >
+                      {accountLabel && (
+                        <AccountTypeLabel>
+                          {strings(accountLabel)}
+                        </AccountTypeLabel>
+                      )}
+                    </AddressName>
 
                     <View style={styles.addressWrapper}>
                       <Text
@@ -602,9 +605,7 @@ export const AddressFrom = (props) => {
           <View style={styles.accountNameLabel}>
             <Text style={styles.textAddress}>{fromAccountName}</Text>
             {accountLabel && (
-              <Text style={styles.accountNameLabelText}>
-                {strings(accountLabel)}
-              </Text>
+              <AccountTypeLabel>{strings(accountLabel)}</AccountTypeLabel>
             )}
           </View>
           <Text style={styles.textBalance}>{`${strings(

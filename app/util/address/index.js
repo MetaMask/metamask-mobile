@@ -233,14 +233,48 @@ export function isImportedAccount(address) {
  */
 export function getLabelTextByAddress(address) {
   if (!address) return null;
-  if (isHardwareAccount(address, [KeyringTypes.ledger]))
-    return 'accounts.ledger';
-  if (isHardwareAccount(address, [KeyringTypes.qr]))
-    return 'transaction.hardware';
-  if (isImportedAccount(address)) return 'accounts.imported';
+  return getLabelTextByAddressType(getAddressKeyringType(address));
+}
 
+/**
+ * gets i18n account label tag text based on type
+ *
+ * @param {String} type - String corresponding to an type
+ * @returns {String} - Returns address type's i18n label text
+ */
+export function getLabelTextByAddressType(type) {
+  switch (type) {
+    case KeyringTypes.qr:
+      return 'transaction.hardware';
+    case KeyringTypes.simple:
+      return 'accounts.imported';
+    case KeyringTypes.ledger:
+      return 'accounts.ledger';
+    default:
+      return '';
+  }
+}
+
+/**
+ * judge address's account keyring
+ *
+ * @param {String} address - String corresponding to an address
+ * @returns {String} - Returns KeyringTypes
+ */
+export function getAddressKeyringType(address) {
+  const { KeyringController } = Engine.context;
+  const { keyrings } = KeyringController.state;
+  const targetKeyring = keyrings.find((keyring) =>
+    keyring.accounts
+      .map((account) => account.toLowerCase())
+      .includes(address.toLowerCase()),
+  );
+  if (targetKeyring) {
+    return targetKeyring.type;
+  }
   return null;
 }
+
 /**
  * judge address's account type for tracking
  *

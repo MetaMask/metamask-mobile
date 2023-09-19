@@ -17,6 +17,7 @@ import { PickerAccountProps } from './PickerAccount.types';
 import styleSheet from './PickerAccount.styles';
 import generateTestId from '../../../../../wdio/utils/generateTestId';
 import { WALLET_ACCOUNT_NAME_LABEL_TEXT } from '../../../../../wdio/screen-objects/testIDs/Screens/WalletView.testIds';
+import AccountTypeLabel from '../../../components-temp/Accounts/AccountTypeLabel/AccountTypeLabel';
 
 const PickerAccount: React.ForwardRefRenderFunction<
   TouchableOpacity,
@@ -57,9 +58,7 @@ const PickerAccount: React.ForwardRefRenderFunction<
           {accountName}
         </Text>
         {accountTypeLabel && (
-          <Text style={styles.accountNameLabelText}>
-            {strings(accountTypeLabel)}
-          </Text>
+          <AccountTypeLabel>{strings(accountTypeLabel)}</AccountTypeLabel>
         )}
         {showAddress && (
           <Text variant={TextVariant.BodyMD} style={styles.accountAddressLabel}>

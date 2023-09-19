@@ -2,7 +2,6 @@
 import React, { useCallback } from 'react';
 import { View, Platform } from 'react-native';
 import { useSelector } from 'react-redux';
-import { KeyringTypes } from '@metamask/keyring-controller';
 
 // External dependencies.
 import SheetActions from '../../../../component-library/components-temp/SheetActions';
@@ -20,7 +19,10 @@ import Button, {
 } from '../../../../component-library/components/Buttons/Button';
 import { AvatarVariants } from '../../../../component-library/components/Avatars/Avatar';
 import { AvatarAccountType } from '../../../../component-library/components/Avatars/Avatar/variants/AvatarAccount';
-import { formatAddress } from '../../../../util/address';
+import {
+  formatAddress,
+  getLabelTextByAddressType,
+} from '../../../../util/address';
 import Icon, {
   IconName,
 } from '../../../../component-library/components/Icons/Icon';
@@ -54,22 +56,6 @@ const AccountConnectSingle = ({
       ? AvatarAccountType.Blockies
       : AvatarAccountType.JazzIcon,
   );
-
-  const getTagLabel = useCallback((type: KeyringTypes) => {
-    let label = '';
-    switch (type) {
-      case KeyringTypes.qr:
-        label = strings('transaction.hardware');
-        break;
-      case KeyringTypes.simple:
-        label = strings('accounts.imported');
-        break;
-      case KeyringTypes.ledger:
-        label = strings('accounts.ledger');
-        break;
-    }
-    return label;
-  }, []);
 
   const renderSheetAction = useCallback(
     () => (
@@ -134,7 +120,7 @@ const AccountConnectSingle = ({
     if (!defaultSelectedAccount) return null;
     const { name, address, type, balanceError } = defaultSelectedAccount;
     const shortAddress = formatAddress(address, 'short');
-    const tagLabel = getTagLabel(type);
+    const tagLabel = getLabelTextByAddressType(type);
 
     return (
       <Cell
@@ -148,7 +134,7 @@ const AccountConnectSingle = ({
           type: accountAvatarType,
           accountAddress: address,
         }}
-        tagLabel={tagLabel}
+        tagLabel={tagLabel ? strings(tagLabel) : ''}
         disabled={isLoading}
         style={isLoading && styles.disabled}
       >
@@ -163,7 +149,6 @@ const AccountConnectSingle = ({
     defaultSelectedAccount,
     isLoading,
     styles,
-    getTagLabel,
   ]);
 
   return (

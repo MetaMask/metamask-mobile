@@ -17,6 +17,7 @@ import { TextVariant } from '../../../../component-library/components/Texts/Text
 import { selectChainId } from '../../../../selectors/networkController';
 import { doENSReverseLookup } from '../../../../util/ENSUtils';
 import { strings } from '../../../../../locales/i18n';
+import AccountTypeLabel from '../../../../component-library/components-temp/Accounts/AccountTypeLabel/AccountTypeLabel';
 
 // Internal dependecies
 import styleSheet from './AddressElement.styles';
@@ -75,9 +76,7 @@ const AddressElement: React.FC<AddressElementProps> = ({
             {primaryLabel}
           </Text>
           {accountTypeLabel && (
-            <Text style={styles.accountNameLabelText}>
-              {strings(accountTypeLabel)}
-            </Text>
+            <AccountTypeLabel>{strings(accountTypeLabel)}</AccountTypeLabel>
           )}
         </View>
         {!!secondaryLabel && (
