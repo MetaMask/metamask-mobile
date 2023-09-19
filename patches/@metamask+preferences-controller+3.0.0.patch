@@ -66,7 +66,7 @@ index ba0da42..4ccf189 100644
              disabledRpcMethodPreferences: {
                  eth_sign: false,
              },
-+            showTestNetworks: true,
++            showTestNetworks: false,
 +            isIpfsGatewayEnabled: true,
 +            securityAlertsEnabled: false,
          };
