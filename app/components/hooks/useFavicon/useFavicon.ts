@@ -10,6 +10,10 @@ import Logger from '../../../util/Logger';
 //Empty value uset to trigger fallback favicon in the UI and prevent use of undefined
 const EMPTY_FAVICON_URI: ImageSourcePropType = {};
 
+/**
+ * Custom hook that returns the favicon URI for the given origin
+ * @param origin (ie: 'metamask.github.io' or full dapp URL 'https://metamask.github.io/test-dapp/')
+ */
 const useFavicon = (origin: string) => {
   const [faviconURI, setFaviconURI] =
     useState<ImageSourcePropType>(EMPTY_FAVICON_URI);
