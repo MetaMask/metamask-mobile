@@ -11,7 +11,7 @@ import { useTheme } from '../../../../util/theme';
 import { getNavigationOptionsTitle } from '../../../UI/Navbar';
 import StyledButton from '../../../UI/StyledButton';
 import SECURITY_ALERTS_TOGGLE_TEST_ID from './constants';
-import { showBlockaidUI } from '../../../../util/blockaid';
+import { isBlockaidFeatureEnabled } from '../../../../util/blockaid';
 
 const createStyles = (colors: any) =>
   StyleSheet.create({
@@ -197,7 +197,7 @@ const ExperimentalSettings = ({ navigation, route }: Props) => {
   return (
     <ScrollView style={styles.wrapper}>
       <WalletConnectSettings />
-      {showBlockaidUI() && <BlockaidSettings />}
+      {isBlockaidFeatureEnabled() && <BlockaidSettings />}
     </ScrollView>
   );
 };

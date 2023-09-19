@@ -4,47 +4,57 @@ import { Regression } from '../../tags';
 import TestHelpers from '../../helpers';
 import { loginToApp } from '../../viewHelper';
 import TabBarComponent from '../../pages/TabBarComponent';
-import { TEST_DAPP_URL, TestDApp } from '../../pages/TestDApp';
+import { TEST_DAPP_LOCAL_URL, TestDApp } from '../../pages/TestDApp';
 import FixtureBuilder from '../../fixtures/fixture-builder';
 import {
   withFixtures,
   defaultGanacheOptions,
 } from '../../fixtures/fixture-helper';
 import root from '../../../locales/languages/en.json';
+import { SMART_CONTRACTS } from '../../../app/util/test/smart-contracts';
 
-const SENT_COLLECTIBLE_MESSAGE_TEXT = root.transactions.sent_collectible;
-const ERC721_ADDRESS = '0x26D6C3e7aEFCE970fe3BE5d589DbAbFD30026924';
+describe(Regression('ERC721 tokens'), () => {
+  const NFT_CONTRACT = SMART_CONTRACTS.NFTS;
+  const SENT_COLLECTIBLE_MESSAGE_TEXT = root.transactions.sent_collectible;
 
-describe(Regression('sendERC721 tokens test'), () => {
   beforeAll(async () => {
     jest.setTimeout(150000);
     if (device.getPlatform() === 'android') {
       await device.reverseTcpPort('8081'); // because on android we need to expose the localhost ports to run ganache
-      await device.reverseTcpPort('8545');
+      await device.reverseTcpPort('8545'); // ganache
+      await device.reverseTcpPort('8080'); // test-dapp
     }
   });
 
-  it('Send an ERC721 token', async () => {
+  it('send an ERC721 token from a dapp', async () => {
     await withFixtures(
       {
-        fixture: new FixtureBuilder().withGanacheNetwork().build(),
+        dapp: true,
+        fixture: new FixtureBuilder()
+          .withGanacheNetwork()
+          .withPermissionControllerConnectedToTestDapp()
+          .build(),
         restartDevice: true,
         ganacheOptions: defaultGanacheOptions,
+        smartContract: NFT_CONTRACT,
       },
-      async () => {
+      async ({ contractRegistry }) => {
+        const nftsAddress = await contractRegistry.getContractAddress(
+          NFT_CONTRACT,
+        );
         await loginToApp();
 
         // Navigate to the browser screen
         await TabBarComponent.tapBrowser();
 
         // Navigate to the ERC721 url
-        await TestDApp.navigateToErc721Contract(TEST_DAPP_URL, ERC721_ADDRESS);
-
-        // Connect account
-        await TestDApp.connect();
+        await TestDApp.navigateToTestDappWithContract(
+          TEST_DAPP_LOCAL_URL,
+          nftsAddress,
+        );
 
         // Transfer NFT
-        await TestDApp.tapTransferFromButton(ERC721_ADDRESS);
+        await TestDApp.tapTransferFromButton(nftsAddress);
         await TestHelpers.delay(3000);
 
         await TestDApp.tapConfirmButton();
