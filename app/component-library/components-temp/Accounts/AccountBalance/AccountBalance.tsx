@@ -15,7 +15,6 @@ const AccountBalance = ({
   accountTypeLabel,
   accountBalanceLabel,
   accountAddress,
-  avatarIconType,
   badgeProps,
   useBlockieIcon,
 }: AccountBalanceProps) => (
@@ -29,7 +28,6 @@ const AccountBalance = ({
       accountTypeLabel={accountTypeLabel}
       accountBalanceLabel={accountBalanceLabel}
       accountAddress={accountAddress}
-      avatarIconType={avatarIconType}
       badgeProps={badgeProps}
       useBlockieIcon={useBlockieIcon}
     />

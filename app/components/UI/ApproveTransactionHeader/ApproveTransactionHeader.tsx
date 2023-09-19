@@ -123,8 +123,6 @@ const ApproveTransactionHeader = ({
     return FAV_ICON_URL(getHost(newUrl));
   }, [origin, isOriginWalletConnect, isOriginMMSDKRemoteConn]);
 
-  const accountTypeLabel = getLabelTextByAddress(activeAddress);
-
   return (
     <View style={styles.transactionHeader}>
       {origin ? (
@@ -139,7 +137,7 @@ const ApproveTransactionHeader = ({
         accountTokenBalance={addressBalance}
         accountName={accountName}
         accountBalanceLabel={strings('transaction.balance')}
-        accountTypeLabel={strings(accountTypeLabel)}
+        accountTypeLabel={getLabelTextByAddress(activeAddress)}
         accountNetwork={networkName}
         badgeProps={{
           variant: BadgeVariant.Network,

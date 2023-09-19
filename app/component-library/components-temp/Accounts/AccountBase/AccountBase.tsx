@@ -11,6 +11,7 @@ import {
   ACCOUNT_BASE_TEST_ID,
 } from './AccountBase.constants';
 import styles from './AccountBase.styles';
+import { strings } from '../../../../../locales/i18n';
 import { AccountBaseProps } from './AccountBase.types';
 import AccountTypeLabel from '../AccountTypeLabel';
 
@@ -50,7 +51,7 @@ const AccountBase = ({
         <View style={styles.accountNameLabel}>
           <Text variant={TextVariant.BodyMDBold}>{accountName}</Text>
           {accountTypeLabel && (
-            <AccountTypeLabel>{accountTypeLabel}</AccountTypeLabel>
+            <AccountTypeLabel>{strings(accountTypeLabel)}</AccountTypeLabel>
           )}
         </View>
       </View>
