@@ -21,7 +21,6 @@ const config = {
     '__mocks__/',
     '<rootDir>/app/util/test/',
     '<rootDir>/app/util/testUtils/',
-    '<rootDir>/app/lib/ppom/ppom.html.js',
   ],
   coverageReporters: ['text-summary', 'lcov'],
   coverageDirectory: '<rootDir>/tests/coverage',
