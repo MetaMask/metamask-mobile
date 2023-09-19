@@ -7,6 +7,7 @@ import Text from '../../../../../../component-library/components/Texts/Text';
 import { useStyles } from '../../../../../../component-library/hooks';
 import ActionModal from '../../../../../UI/ActionModal';
 import { strings } from '../../../../../../../locales/i18n';
+import { CLEAR_PRIVACY_SECTION } from '../../SecuritySettings.constants';
 
 const ClearPrivacy = () => {
   const { styles } = useStyles(styleSheet, {});
@@ -40,7 +41,7 @@ const ClearPrivacy = () => {
   );
 
   return (
-    <View style={[styles.setting]} testID={'clear-privacy-section'}>
+    <View style={[styles.setting]} testID={CLEAR_PRIVACY_SECTION}>
       <Text style={styles.title}>
         {strings('app_settings.clear_privacy_title')}
       </Text>

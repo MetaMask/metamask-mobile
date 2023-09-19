@@ -22,8 +22,11 @@ describe('Redux Persist Migrations', () => {
   it('should apply last migration version and return state', () => {
     // update this state to be compatible with the most recent migration
     const oldState = {
+      user: {
+        nftDetectionDismissed: true,
+      },
       engine: {
-        backgroundState: initialBackgroundState,
+        backgroundState: { PreferencesController: { openSeaEnabled: true } },
       },
     };
 
@@ -364,6 +367,28 @@ describe('Redux Persist Migrations', () => {
       const newState = migration(stateWithoutPreferencesController);
 
       expect(newState).toStrictEqual(stateWithoutPreferencesController);
+    });
+  });
+
+  describe('#22', () => {
+    it('should DisplayNftMedia have the same value as openSeaEnabled and delete openSeaEnabled property and delete nftDetectionDismissed', () => {
+      const oldState = {
+        user: { nftDetectionDismissed: true },
+        engine: {
+          backgroundState: { PreferencesController: { openSeaEnabled: true } },
+        },
+      };
+
+      const migration = migrations[22];
+
+      const newState = migration(oldState);
+
+      expect(newState).toStrictEqual({
+        user: {},
+        engine: {
+          backgroundState: { PreferencesController: { displayNftMedia: true } },
+        },
+      });
     });
   });
 });
