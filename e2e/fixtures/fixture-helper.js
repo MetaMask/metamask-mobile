@@ -153,7 +153,11 @@ export async function withFixtures(options, testSuite) {
     throw error;
   } finally {
     if (ganacheOptions) {
-      await ganacheServer.quit();
+      try {
+        await ganacheServer.quit();
+      } catch (error) {
+        console.log(error);
+      }
     }
     if (dapp) {
       for (let i = 0; i < numberOfDapps; i++) {
