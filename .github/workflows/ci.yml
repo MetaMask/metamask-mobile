@@ -133,7 +133,7 @@ jobs:
       - uses: actions/download-artifact@v3
         with:
           name: coverage
-          path: coverage/
+          path: /tests/coverage/
       - name: Upload coverage reports to Codecov
         if: ${{ always() }}
         uses: codecov/codecov-action@d9f34f8cd5cb3b3eb79b3e4b5dae3a16df499a70
