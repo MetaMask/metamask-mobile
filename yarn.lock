@@ -4122,21 +4122,7 @@
     ethereumjs-wallet "^1.0.1"
     immer "^9.0.6"
 
-"@metamask/message-manager@^7.0.0":
-  version "7.0.1"
-  resolved "https://registry.yarnpkg.com/@metamask/message-manager/-/message-manager-7.0.1.tgz#27c3ed83cdb4752ef478436218280f97500539c7"
-  integrity sha512-M4GAkLW2phgPOk03yqrvOv+trJEoCUIdGc95Tlbs9mkT7ixQVXelLDTyRTeQAsprb8+uANW4dm9Vwp1EGqNB7g==
-  dependencies:
-    "@metamask/base-controller" "^3.0.0"
-    "@metamask/controller-utils" "^4.0.1"
-    "@metamask/utils" "^5.0.2"
-    "@types/uuid" "^8.3.0"
-    eth-sig-util "^3.0.0"
-    ethereumjs-util "^7.0.10"
-    jsonschema "^1.2.4"
-    uuid "^8.3.2"
-
-"@metamask/message-manager@^7.1.0":
+"@metamask/message-manager@^7.0.0", "@metamask/message-manager@^7.1.0":
   version "7.3.1"
   resolved "https://registry.yarnpkg.com/@metamask/message-manager/-/message-manager-7.3.1.tgz#66ae6e751d8c2890eb6aefec8db4a4495526a1c2"
   integrity sha512-VhDxwvqdPILBskBK6sSLPOLtby6jABQyyAUMmBe/r4PoEtKhW+AMkswVGbxbYkRKpo2A0H5qBetqeEMZaxS1Ew==
