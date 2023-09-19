@@ -533,9 +533,9 @@ class Engine {
           networkController.getProviderAndBlockTracker().provider,
         getSelectedAddress: () => preferencesController.state.selectedAddress,
         incomingTransactions: {
-          apiKey: process.env.MM_ETHERSCAN_KEY,
           isEnabled: () =>
             Boolean(store.getState()?.privacy?.thirdPartyApiMode),
+          queryEntireHistory: true,
           updateTransactions: true,
         },
         messenger: this.controllerMessenger.getRestricted({
