@@ -46,6 +46,7 @@ import {
 } from '../../../actions/navigation';
 import { findRouteNameFromNavigatorState } from '../../../util/general';
 import { Authentication } from '../../../core/';
+import { isBlockaidFeatureEnabled } from '../../../util/blockaid';
 import { useTheme } from '../../../util/theme';
 import Device from '../../../util/device';
 import SDKConnect from '../../../core/SDKConnect/SDKConnect';
@@ -85,6 +86,7 @@ import EditAccountName from '../../Views/EditAccountName/EditAccountName';
 import WC2Manager, {
   isWC2Enabled,
 } from '../../../../app/core/WalletConnect/WalletConnectV2';
+import { PPOMView } from '../../../lib/ppom/PPOMView';
 import NavigationService from '../../../core/NavigationService';
 import LockScreen from '../../Views/LockScreen';
 import AsyncStorage from '../../../store/async-storage-wrapper';
@@ -590,6 +592,7 @@ const App = ({ userLoggedIn }) => {
     // do not render unless a route is defined
     (route && (
       <>
+        {isBlockaidFeatureEnabled() && <PPOMView />}
         <NavigationContainer
           // Prevents artifacts when navigating between screens
           theme={{

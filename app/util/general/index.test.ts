@@ -18,7 +18,9 @@ describe('capitalize', () => {
 });
 
 describe('tlc', () => {
-  const o = {};
+  const o = {
+    p: undefined,
+  };
   it('should coerce a string toLowerCase', () => {
     expect(tlc('aBCDefH')).toEqual('abcdefh');
     expect(tlc(NaN)).toEqual(undefined);
@@ -27,7 +29,9 @@ describe('tlc', () => {
 });
 
 describe('toLowerCaseEquals', () => {
-  const o = {};
+  const o = {
+    p: undefined,
+  };
   it('compares two things', () => {
     expect(toLowerCaseEquals('A', 'A')).toEqual(true);
     expect(toLowerCaseEquals('aBCDefH', 'abcdefh')).toEqual(true);

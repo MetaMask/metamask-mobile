@@ -437,7 +437,13 @@ export const migrations = {
    * Migrate network configuration from Preferences controller to Network controller.
    * See this changelog for details: https://github.com/MetaMask/core/releases/tag/v44.0.0
    *
-   * @param {object} state - Redux state.
+   * Note: the type is wrong here because it conflicts with `redux-persist`
+   * types, due to a bug in that package.
+   * See: https://github.com/rt2zz/redux-persist/issues/1065
+   * TODO: Use `unknown` as the state type, and silence or work around the
+   * redux-persist bug somehow.
+   *
+   * @param {any} state - Redux state.
    * @returns Migrated Redux state.
    */
   20: (state) => {

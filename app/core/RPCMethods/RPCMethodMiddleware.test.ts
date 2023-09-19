@@ -16,6 +16,7 @@ import { RPC } from '../../constants/network';
 import { getRpcMethodMiddleware } from './RPCMethodMiddleware';
 import AppConstants from '../AppConstants';
 import { PermissionConstraint } from '@metamask/permission-controller';
+import PPOMUtil from '../../lib/ppom/ppom-util';
 
 jest.mock('../Engine', () => ({
   context: {
@@ -53,6 +54,7 @@ jest.mock('../../store', () => ({
     getState: jest.fn(),
   },
 }));
+
 const mockStore = store as { getState: jest.Mock };
 
 jest.mock('../Permissions', () => ({
@@ -210,13 +212,21 @@ function setupGlobalState({
   providerConfig?: ProviderConfig;
   selectedAddress?: string;
 }) {
-  if (activeTab) {
-    mockStore.getState.mockImplementation(() => ({
-      browser: {
-        activeTab,
+  mockStore.getState.mockImplementation(() => ({
+    browser: activeTab
+      ? {
+          activeTab,
+        }
+      : {},
+    engine: {
+      backgroundState: {
+        NetworkController: {
+          providerConfig: providerConfig || {},
+        },
+        PreferencesController: selectedAddress ? { selectedAddress } : {},
       },
-    }));
-  }
+    },
+  }));
   if (addTransactionResult) {
     MockEngine.context.TransactionController.addTransaction.mockImplementation(
       async () => ({ result: addTransactionResult }),
@@ -226,9 +236,6 @@ function setupGlobalState({
     mockGetPermittedAccounts.mockImplementation(
       (hostname) => permittedAccounts[hostname] || [],
     );
-  }
-  if (providerConfig) {
-    MockEngine.context.NetworkController.state.providerConfig = providerConfig;
   }
   if (selectedAddress) {
     MockEngine.context.PreferencesController.state.selectedAddress =
@@ -1121,6 +1128,12 @@ describe('getRpcMethodMiddleware', () => {
 
       expect(response.error).toBeUndefined();
       expect(response.result).toBe(signatureMock);
+    });
+
+    it('should invoke validateRequest method', async () => {
+      const spy = jest.spyOn(PPOMUtil, 'validateRequest');
+      await sendRequest();
+      expect(spy).toBeCalledTimes(1);
     });
   });
 });

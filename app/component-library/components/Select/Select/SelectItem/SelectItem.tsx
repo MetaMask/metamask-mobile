@@ -26,7 +26,6 @@ const SelectItem: React.FC<SelectItemProps> = ({
   ...props
 }) => {
   const { styles } = useStyles(styleSheet, { style, isDisabled });
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const { hitSlop, ...listItemProps } = props;
 
   return (

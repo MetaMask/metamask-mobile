@@ -1,11 +1,11 @@
+import { NetworksChainId, NetworkType } from '@metamask/controller-utils';
 import {
   isMainNet,
-  getNetworkName,
+  isTestNet,
   getAllNetworks,
   getNetworkTypeById,
   findBlockExplorerForRpc,
   compareRpcUrls,
-  handleNetworkSwitch,
   getBlockExplorerAddressUrl,
   getBlockExplorerTxUrl,
 } from '.';
@@ -18,7 +18,6 @@ import {
   LINEA_MAINNET,
 } from '../../../app/constants/network';
 import { NetworkSwitchErrorType } from '../../../app/constants/error';
-import Engine from './../../core/Engine';
 
 jest.mock('./../../core/Engine', () => ({
   context: {
@@ -64,35 +63,21 @@ describe('NetworkUtils::isMainNet', () => {
   });
 });
 
-describe('NetworkUtils::getNetworkName', () => {
-  it(`should get network name for ${MAINNET} id`, () => {
-    const main = getNetworkName(String(1));
-    expect(main).toEqual(MAINNET);
-  });
+describe('NetworkUtils::isTestNet', () => {
+  const testnets = [
+    NetworkType.goerli,
+    NetworkType.sepolia,
+    NetworkType['linea-goerli'],
+  ];
 
-  it(`should get network name for ${GOERLI} id`, () => {
-    const main = getNetworkName(String(5));
-    expect(main).toEqual(GOERLI);
-  });
+  for (const networkType of testnets) {
+    it(`should return true if the given chain ID is for '${networkType}'`, () => {
+      expect(isTestNet(NetworksChainId[networkType])).toEqual(true);
+    });
+  }
 
-  it(`should get network name for ${SEPOLIA} id`, () => {
-    const main = getNetworkName(String(11155111));
-    expect(main).toEqual(SEPOLIA);
-  });
-
-  it(`should get network name for ${LINEA_GOERLI} id`, () => {
-    const main = getNetworkName(String(59140));
-    expect(main).toEqual(LINEA_GOERLI);
-  });
-
-  it(`should get network name for ${LINEA_MAINNET} id`, () => {
-    const main = getNetworkName(String(59144));
-    expect(main).toEqual(LINEA_MAINNET);
-  });
-
-  it(`should return undefined for unknown network id`, () => {
-    const main = getNetworkName(String(99));
-    expect(main).toEqual(undefined);
+  it(`should return false if the given chain ID is not a known testnet`, () => {
+    expect(isTestNet('42')).toEqual(false);
   });
 });
 
@@ -102,21 +87,15 @@ describe('NetworkUtils::getNetworkTypeById', () => {
     expect(type).toEqual(SEPOLIA);
   });
   it('should fail if network Id is missing', () => {
-    try {
-      getNetworkTypeById();
-    } catch (error) {
-      expect(error.message).toEqual(NetworkSwitchErrorType.missingNetworkId);
-    }
+    expect(() => getNetworkTypeById()).toThrow(
+      NetworkSwitchErrorType.missingNetworkId,
+    );
   });
   it('should fail if network Id is unknown', () => {
     const id = 9999;
-    try {
-      getNetworkTypeById(id);
-    } catch (error) {
-      expect(error.message).toEqual(
-        `${NetworkSwitchErrorType.unknownNetworkId} ${id}`,
-      );
-    }
+    expect(() => getNetworkTypeById(id)).toThrow(
+      `${NetworkSwitchErrorType.unknownNetworkId} ${id}`,
+    );
   });
 });
 
@@ -179,49 +158,6 @@ describe('NetworkUtils::compareRpcUrls', () => {
     const mockRpcOne = 'https://bsc-dataseed.binance.org/';
     const mockRpcTwo = 'https://mainnet.optimism.io/d03910331458';
     expect(compareRpcUrls(mockRpcOne, mockRpcTwo)).toBe(false);
-  });
-});
-
-describe('NetworkUtils::handleNetworkSwitch', () => {
-  const mockNeworkConfigurations = {
-    networkId1: {
-      rpcUrl: 'mainnet-rpc-url',
-      chainId: '1',
-      ticker: 'ETH',
-      nickname: 'Mainnet',
-    },
-    networkId2: {
-      rpcUrl: 'polygon-rpc-url',
-      chainId: '2',
-      ticker: 'MATIC',
-      nickname: 'Polygon',
-    },
-    networkId3: {
-      rpcUrl: 'avalanche-rpc-url',
-      chainId: '3',
-      ticker: 'AVAX',
-      nickname: 'Avalanche',
-    },
-  };
-
-  const { CurrencyRateController } = Engine.context as any;
-
-  it('should change networks to the provided one', () => {
-    const network = mockNeworkConfigurations.networkId1;
-    const newNetwork = handleNetworkSwitch(network.chainId, {
-      networkController: {
-        setActiveNetwork: () => jest.fn(),
-        setProviderType: () => jest.fn(),
-        state: {
-          providerConfig: {
-            chainId: '3',
-          },
-          networkConfigurations: mockNeworkConfigurations,
-        },
-      },
-      currencyRateController: CurrencyRateController,
-    });
-    expect(newNetwork).toBe(network.nickname);
   });
 });
 

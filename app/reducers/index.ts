@@ -17,12 +17,56 @@ import collectiblesReducer from './collectibles';
 import navigationReducer from './navigation';
 import networkOnboardReducer from './networkSelector';
 import securityReducer from './security';
-import { combineReducers } from 'redux';
+import { combineReducers, Reducer } from 'redux';
 import experimentalSettingsReducer from './experimentalSettings';
+import { EngineState } from '../core/Engine';
 
-const rootReducer = combineReducers({
+/**
+ * Infer state from a reducer
+ *
+ * @template reducer A reducer function
+ */
+export type StateFromReducer<reducer> = reducer extends Reducer<
+  infer State,
+  any
+>
+  ? State
+  : never;
+
+// TODO: Convert all reducers to valid TypeScript Redux reducers, and add them
+// to this type. Once that is complete, we can automatically generate this type
+// using the `StateFromReducersMapObject` type from redux.
+export interface RootState {
+  collectibles: any;
+  engine: { backgroundState: EngineState | Record<string, never> };
+  privacy: any;
+  bookmarks: any;
+  browser: any;
+  modals: any;
+  settings: any;
+  alert: any;
+  transaction: any;
+  user: any;
+  wizard: any;
+  onboarding: any;
+  notification: any;
+  swaps: any;
+  fiatOrders: StateFromReducer<typeof fiatOrders>;
+  infuraAvailability: any;
+  // The navigation reducer is TypeScript but not yet a valid reducer
+  navigation: any;
+  // The networkOnboarded reducer is TypeScript but not yet a valid reducer
+  networkOnboarded: any;
+  security: StateFromReducer<typeof securityReducer>;
+  // The experimentalSettings reducer is TypeScript but not yet a valid reducer
+  experimentalSettings: any;
+}
+
+// TODO: Fix the Action type. It's set to `any` now because some of the
+// TypeScript reducers have invalid actions
+const rootReducer = combineReducers<RootState, any>({
   collectibles: collectiblesReducer,
-  engine: engineReducer,
+  engine: engineReducer as any,
   privacy: privacyReducer,
   bookmarks: bookmarksReducer,
   browser: browserReducer,

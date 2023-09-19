@@ -111,7 +111,7 @@ index 332c87d..b634fde 100644
       * Enumerate assets assigned to an owner.
       *
 diff --git a/node_modules/@metamask/assets-controllers/dist/NftController.js b/node_modules/@metamask/assets-controllers/dist/NftController.js
-index 6a14075..e395976 100644
+index 6a14075..c2662fb 100644
 --- a/node_modules/@metamask/assets-controllers/dist/NftController.js
 +++ b/node_modules/@metamask/assets-controllers/dist/NftController.js
 @@ -55,8 +55,9 @@ class NftController extends base_controller_1.BaseController {
@@ -125,7 +125,7 @@ index 6a14075..e395976 100644
          };
          this.defaultState = {
              allNftContracts: {},
-@@ -71,8 +72,8 @@ class NftController extends base_controller_1.BaseController {
+@@ -71,23 +72,19 @@ class NftController extends base_controller_1.BaseController {
          this.getERC1155BalanceOf = getERC1155BalanceOf;
          this.getERC1155TokenURI = getERC1155TokenURI;
          this.onNftAdded = onNftAdded;
@@ -136,7 +136,26 @@ index 6a14075..e395976 100644
          });
          onNetworkStateChange(({ providerConfig }) => {
              const { chainId } = providerConfig;
-@@ -119,6 +120,7 @@ class NftController extends base_controller_1.BaseController {
+             this.configure({ chainId });
+         });
+     }
+-    getNftApi({ contractAddress, tokenId, useProxy, }) {
+-        return useProxy
+-            ? `${controller_utils_1.OPENSEA_PROXY_URL}/asset/${contractAddress}/${tokenId}`
+-            : `${controller_utils_1.OPENSEA_API_URL}/asset/${contractAddress}/${tokenId}`;
++    getNftApi({ contractAddress, tokenId }) {
++        return `${controller_utils_1.OPENSEA_PROXY_URL}/asset/${contractAddress}/${tokenId}`;
+     }
+-    getNftContractInformationApi({ contractAddress, useProxy, }) {
+-        return useProxy
+-            ? `${controller_utils_1.OPENSEA_PROXY_URL}/asset_contract/${contractAddress}`
+-            : `${controller_utils_1.OPENSEA_API_URL}/asset_contract/${contractAddress}`;
++    getNftContractInformationApi({ contractAddress }) {
++        return  `${controller_utils_1.OPENSEA_PROXY_URL}/asset_contract/${contractAddress}`;
+     }
+     /**
+      * Helper method to update nested state for allNfts and allNftContracts.
+@@ -119,29 +116,15 @@ class NftController extends base_controller_1.BaseController {
       */
      getNftInformationFromApi(contractAddress, tokenId) {
          return __awaiter(this, void 0, void 0, function* () {
@@ -144,8 +163,9 @@ index 6a14075..e395976 100644
              // Attempt to fetch the data with the proxy
              let nftInformation = yield (0, controller_utils_1.fetchWithErrorHandling)({
                  url: this.getNftApi({
-@@ -127,21 +129,7 @@ class NftController extends base_controller_1.BaseController {
-                     useProxy: true,
+                     contractAddress,
+                     tokenId,
+-                    useProxy: true,
                  }),
              });
 -            // if an openSeaApiKey is set we should attempt to refetch calling directly to OpenSea
@@ -167,7 +187,7 @@ index 6a14075..e395976 100644
              // if we were still unable to fetch the data we return out the default/null of `NftMetadata`
              if (!nftInformation) {
                  return {
-@@ -159,6 +147,15 @@ class NftController extends base_controller_1.BaseController {
+@@ -159,6 +142,15 @@ class NftController extends base_controller_1.BaseController {
                  animationOriginal: animation_original_url,
              }, external_link && { externalLink: external_link }, last_sale && { lastSale: last_sale }, schema_name && { standard: schema_name });
              return nftMetadata;
@@ -183,7 +203,7 @@ index 6a14075..e395976 100644
          });
      }
      /**
-@@ -170,13 +167,49 @@ class NftController extends base_controller_1.BaseController {
+@@ -170,13 +162,49 @@ class NftController extends base_controller_1.BaseController {
       */
      getNftInformationFromTokenURI(contractAddress, tokenId) {
          return __awaiter(this, void 0, void 0, function* () {
@@ -236,7 +256,7 @@ index 6a14075..e395976 100644
              try {
                  const object = yield (0, controller_utils_1.handleFetch)(tokenURI);
                  // TODO: Check image_url existence. This is not part of EIP721 nor EIP1155
-@@ -189,6 +222,7 @@ class NftController extends base_controller_1.BaseController {
+@@ -189,6 +217,7 @@ class NftController extends base_controller_1.BaseController {
                      description: object.description,
                      standard,
                      favorite: false,
@@ -244,7 +264,7 @@ index 6a14075..e395976 100644
                  };
              }
              catch (_a) {
-@@ -198,6 +232,8 @@ class NftController extends base_controller_1.BaseController {
+@@ -198,6 +227,8 @@ class NftController extends base_controller_1.BaseController {
                      description: null,
                      standard: standard || null,
                      favorite: false,
@@ -253,7 +273,7 @@ index 6a14075..e395976 100644
                  };
              }
          });
-@@ -255,12 +291,25 @@ class NftController extends base_controller_1.BaseController {
+@@ -255,12 +286,25 @@ class NftController extends base_controller_1.BaseController {
                  return yield this.getNftInformationFromTokenURI(contractAddress, tokenId);
              }));
              let openSeaMetadata;
@@ -281,7 +301,43 @@ index 6a14075..e395976 100644
          });
      }
      /**
-@@ -347,7 +396,7 @@ class NftController extends base_controller_1.BaseController {
+@@ -272,34 +316,15 @@ class NftController extends base_controller_1.BaseController {
+     getNftContractInformationFromApi(contractAddress) {
+         return __awaiter(this, void 0, void 0, function* () {
+             /* istanbul ignore if */
+-            let apiNftContractObject = yield (0, controller_utils_1.fetchWithErrorHandling)({
++            const apiNftContractObject = yield (0, controller_utils_1.fetchWithErrorHandling)({
+                 url: this.getNftContractInformationApi({
+                     contractAddress,
+-                    useProxy: true,
+                 }),
+             });
+             // if we successfully fetched return the fetched data immediately
+             if (apiNftContractObject) {
+                 return apiNftContractObject;
+             }
+-            // if we were unsuccessful in fetching from the API and an OpenSea API key is present
+-            // attempt to refetch directly against the OpenSea API and if successful return the data immediately
+-            if (this.openSeaApiKey) {
+-                apiNftContractObject = yield (0, controller_utils_1.fetchWithErrorHandling)({
+-                    url: this.getNftContractInformationApi({
+-                        contractAddress,
+-                        useProxy: false,
+-                    }),
+-                    options: {
+-                        headers: { 'X-API-KEY': this.openSeaApiKey },
+-                    },
+-                    // catch 403 errors (in case API key is down we don't want to blow up)
+-                    errorCodesToCatch: [403],
+-                });
+-                if (apiNftContractObject) {
+-                    return apiNftContractObject;
+-                }
+-            }
+             // If we've reached this point we were unable to fetch data from either the proxy or opensea so we return
+             // the default/null of ApiNftContract
+             return {
+@@ -347,7 +372,7 @@ class NftController extends base_controller_1.BaseController {
                  return yield this.getNftContractInformationFromContract(contractAddress);
              }));
              let openSeaContractData;
@@ -290,7 +346,7 @@ index 6a14075..e395976 100644
                  openSeaContractData = yield (0, controller_utils_1.safelyExecute)(() => __awaiter(this, void 0, void 0, function* () {
                      return yield this.getNftContractInformationFromApi(contractAddress);
                  }));
-@@ -428,6 +477,7 @@ class NftController extends base_controller_1.BaseController {
+@@ -428,6 +453,7 @@ class NftController extends base_controller_1.BaseController {
                          tokenId: tokenId.toString(),
                          standard: nftMetadata.standard,
                          source: detection ? 'detected' : 'custom',

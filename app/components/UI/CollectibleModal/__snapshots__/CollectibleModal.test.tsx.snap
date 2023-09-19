@@ -192,22 +192,20 @@ exports[`CollectibleModal should render correctly 1`] = `
             }
           >
             <TouchableOpacity
-              activeOpacity={0.5}
+              activeOpacity={1}
               onPress={[Function]}
               onPressIn={[Function]}
               onPressOut={[Function]}
               style={
                 Object {
                   "alignItems": "center",
-                  "alignSelf": "flex-start",
+                  "alignSelf": "center",
                   "backgroundColor": "transparent",
-                  "borderRadius": 20,
+                  "borderRadius": 24,
                   "flexDirection": "row",
-                  "height": 40,
+                  "height": 48,
                   "justifyContent": "center",
                   "paddingHorizontal": 16,
-                  "textAlign": "center",
-                  "width": "100%",
                 }
               }
               variant="Link"

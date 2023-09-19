@@ -5,7 +5,7 @@ import React from 'react';
 import { TouchableOpacity } from 'react-native';
 
 // External dependencies.
-import Text, { TextVariant } from '../../../../Texts/Text';
+import Text from '../../../../Texts/Text';
 import Icon from '../../../../Icons/Icon';
 import { useStyles } from '../../../../../hooks';
 
@@ -13,19 +13,21 @@ import { useStyles } from '../../../../../hooks';
 import { ButtonBaseProps } from './ButtonBase.types';
 import styleSheet from './ButtonBase.styles';
 import {
+  DEFAULT_BUTTONBASE_LABEL_COLOR,
   DEFAULT_BUTTONBASE_SIZE,
   DEFAULT_BUTTONBASE_WIDTH,
   DEFAULT_BUTTONBASE_ICON_SIZE,
+  DEFAULT_BUTTONBASE_LABEL_TEXTVARIANT,
 } from './ButtonBase.constants';
 
 const ButtonBase = ({
   label,
+  labelColor = DEFAULT_BUTTONBASE_LABEL_COLOR,
   startIconName,
   endIconName,
   size = DEFAULT_BUTTONBASE_SIZE,
   onPress,
   style,
-  labelColor,
   width = DEFAULT_BUTTONBASE_WIDTH,
   isDisabled,
   ...props
@@ -33,32 +35,39 @@ const ButtonBase = ({
   const { styles } = useStyles(styleSheet, {
     style,
     size,
-    labelColor,
     width,
     isDisabled,
   });
+
   return (
     <TouchableOpacity
       disabled={isDisabled}
-      activeOpacity={0.5}
+      activeOpacity={1}
       onPress={onPress}
       style={styles.base}
       {...props}
     >
       {startIconName && (
         <Icon
-          color={styles.label.color.toString()}
+          color={labelColor.toString()}
           name={startIconName}
           size={DEFAULT_BUTTONBASE_ICON_SIZE}
           style={styles.startIcon}
         />
       )}
-      <Text variant={TextVariant.BodyMD} style={styles.label}>
-        {label}
-      </Text>
+      {typeof label === 'string' ? (
+        <Text
+          variant={DEFAULT_BUTTONBASE_LABEL_TEXTVARIANT}
+          style={styles.label}
+        >
+          {label}
+        </Text>
+      ) : (
+        label
+      )}
       {endIconName && (
         <Icon
-          color={styles.label.color.toString()}
+          color={labelColor.toString()}
           name={endIconName}
           size={DEFAULT_BUTTONBASE_ICON_SIZE}
           style={styles.endIcon}
