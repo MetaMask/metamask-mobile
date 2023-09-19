@@ -16,6 +16,11 @@ import {
   TEST_REMOTE_IMAGE_SOURCE,
 } from './AvatarToken.constants';
 
+jest.mock('react-redux', () => ({
+  ...jest.requireActual('react-redux'),
+  useSelector: jest.fn(),
+}));
+
 describe('AvatarToken', () => {
   /* eslint-disable-next-line */
 
