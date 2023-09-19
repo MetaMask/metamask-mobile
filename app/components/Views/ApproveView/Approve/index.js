@@ -325,7 +325,9 @@ class Approve extends PureComponent {
 
     this.appStateListener?.remove();
     if (!isLedgerAccount) {
-      TransactionController.hub.removeAllListeners(`${transaction.id}:finished`);
+      TransactionController.hub.removeAllListeners(
+        `${transaction.id}:finished`,
+      );
       if (!approved)
         Engine.rejectPendingApproval(
           transaction.id,
