@@ -1,6 +1,6 @@
 'use strict';
 
-import { Regression } from '../../tags';
+import { Smoke } from '../../tags';
 import TestHelpers from '../../helpers';
 import AmountView from '../../pages/AmountView';
 import SendView from '../../pages/SendView';
@@ -16,7 +16,7 @@ import WalletActionsModal from '../../pages/modals/WalletActionsModal';
 
 const MYTH_ADDRESS = '0x1FDb169Ef12954F20A15852980e1F0C122BfC1D6';
 
-describe(Regression('Send ETH Tests'), () => {
+describe(Smoke('Send ETH Tests'), () => {
   beforeAll(async () => {
     jest.setTimeout(150000);
     if (device.getPlatform() === 'android') {
