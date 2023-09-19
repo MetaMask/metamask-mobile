@@ -1,14 +1,14 @@
 import UntypedEngine from '../Engine';
 import AppConstants from '../AppConstants';
 import { getVaultFromBackup } from '../BackupVault';
+import { isBlockaidFeatureEnabled } from '../../util/blockaid';
 import { store as importedStore } from '../../store';
 import {
   NO_VAULT_IN_BACKUP_ERROR,
   VAULT_CREATION_ERROR,
 } from '../../constants/error';
-import { isBlockaidFeatureEnabled } from '../../util/blockaid';
 
-import { actions } from '../reduxLayer/slices/engine';
+import { actions } from '../redux/slices/engine';
 
 interface InitializeEngineResult {
   success: boolean;
