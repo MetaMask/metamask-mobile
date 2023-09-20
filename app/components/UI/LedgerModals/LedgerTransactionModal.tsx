@@ -65,7 +65,7 @@ const LedgerTransactionModal = () => {
       });
     }
 
-    onConfirmationComplete(true);
+    await onConfirmationComplete(true);
     dismissModal();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [onConfirmationComplete, dismissModal]);

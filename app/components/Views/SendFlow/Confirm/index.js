@@ -665,6 +665,49 @@ class Confirm extends PureComponent {
     });
   };
 
+  onLedgerConfirmation = async (
+    approve,
+    result,
+    transactionMeta,
+    assetType,
+    gaParams,
+  ) => {
+    const { TransactionController } = Engine.context;
+    const { navigation } = this.props;
+    //manual cancel from UI / rejected from ledger
+    try {
+      if (!approve) {
+        TransactionController.hub.removeAllListeners(
+          `${transactionMeta.id}:finished`,
+        );
+        TransactionController.cancelTransaction(transactionMeta.id);
+      } else {
+        await new Promise((resolve) => resolve(result));
+
+        if (transactionMeta.error) {
+          throw transactionMeta.error;
+        }
+
+        InteractionManager.runAfterInteractions(() => {
+          NotificationManager.watchSubmittedTransaction({
+            ...transactionMeta,
+            assetType,
+          });
+          this.checkRemoveCollectible();
+          AnalyticsV2.trackEvent(
+            MetaMetricsEvents.SEND_TRANSACTION_COMPLETED,
+            gaParams,
+          );
+          stopGasPolling();
+          resetTransaction();
+        });
+      }
+    } finally {
+      //Let ledger modal handle the error
+      navigation && navigation.dangerouslyGetParent()?.pop();
+    }
+  };
+
   onNext = async () => {
     const { TransactionController, KeyringController, ApprovalController } =
       Engine.context;
@@ -712,71 +755,53 @@ class Confirm extends PureComponent {
         KeyringTypes.ledger,
       ]);
 
-      const finalizeConfirmation = async (confirmed) => {
-        const rejectTransaction = () => {
-          if (isLedgerAccount) {
-            TransactionController.cancelTransaction(transactionMeta.id);
-            TransactionController.hub.removeAllListeners(
-              `${transactionMeta.id}:finished`,
-            );
-          }
-          this.setState({ transactionConfirmed: false });
-          navigation && navigation.dangerouslyGetParent()?.popToTop();
-        };
-
-        if (confirmed === false) {
-          // Transaction was rejected by the user
-          return rejectTransaction();
-        }
-
-        try {
-          await new Promise((resolve) => resolve(result));
-        } catch (error) {
-          // This is the LedgerCode for device rejection
-          if (error.message.includes('0x6985')) {
-            return rejectTransaction();
-          }
-        }
-
-        if (transactionMeta.error) {
-          throw transactionMeta.error;
-        }
-
-        InteractionManager.runAfterInteractions(() => {
-          NotificationManager.watchSubmittedTransaction({
-            ...transactionMeta,
-            assetType,
-          });
-          this.checkRemoveCollectible();
-          AnalyticsV2.trackEvent(
-            MetaMetricsEvents.SEND_TRANSACTION_COMPLETED,
-            this.getAnalyticsParams(),
-          );
-          stopGasPolling();
-          resetTransaction();
-          navigation && navigation.dangerouslyGetParent()?.pop();
-        });
-      };
-
       if (isLedgerAccount) {
         const ledgerKeyring = await KeyringController.getLedgerKeyring();
+        this.setState({ transactionConfirmed: false });
         // Approve transaction for ledger is called in the Confirmation Flow (modals) after user prompt
-
         this.props.navigation.navigate(
           ...createLedgerTransactionModalNavDetails({
             transactionId: transactionMeta.id,
             deviceId: ledgerKeyring.deviceId,
-            onConfirmationComplete: finalizeConfirmation,
+            onConfirmationComplete: async (approve) =>
+              await this.onLedgerConfirmation(
+                approve,
+                result,
+                transactionMeta,
+                assetType,
+                this.getAnalyticsParams(),
+              ),
             type: 'signTransaction',
           }),
         );
-      } else {
-        await KeyringController.resetQRKeyringState();
-        await ApprovalController.accept(transactionMeta.id, undefined, {
-          waitForResult: true,
-        });
-        await finalizeConfirmation(true);
+        return;
       }
+
+      await KeyringController.resetQRKeyringState();
+      await ApprovalController.accept(transactionMeta.id, undefined, {
+        waitForResult: true,
+      });
+
+      await new Promise((resolve) => resolve(result));
+
+      if (transactionMeta.error) {
+        throw transactionMeta.error;
+      }
+
+      InteractionManager.runAfterInteractions(() => {
+        NotificationManager.watchSubmittedTransaction({
+          ...transactionMeta,
+          assetType,
+        });
+        this.checkRemoveCollectible();
+        AnalyticsV2.trackEvent(
+          MetaMetricsEvents.SEND_TRANSACTION_COMPLETED,
+          this.getAnalyticsParams(),
+        );
+        stopGasPolling();
+        resetTransaction();
+        navigation && navigation.dangerouslyGetParent()?.pop();
+      });
     } catch (error) {
       if (!error?.message.startsWith(KEYSTONE_TX_CANCELED)) {
         Alert.alert(

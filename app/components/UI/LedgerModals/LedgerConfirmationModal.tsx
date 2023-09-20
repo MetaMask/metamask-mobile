@@ -68,9 +68,9 @@ const LedgerConfirmationModal = ({
     hasBluetoothPermissions,
   );
 
-  const connectLedger = () => {
+  const connectLedger = async () => {
     try {
-      ledgerLogicToRun(async () => {
+      await ledgerLogicToRun(async () => {
         await KeyringController.unlockLedgerDefaultAccount();
         await onConfirmation();
       });
@@ -91,7 +91,7 @@ const LedgerConfirmationModal = ({
     }
 
     if (hasBluetoothPermissions && bluetoothOn) {
-      connectLedger();
+      await connectLedger();
     }
   };
 
