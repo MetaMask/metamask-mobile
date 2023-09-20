@@ -613,6 +613,14 @@ class FixtureBuilder {
     return this;
   }
 
+  withPreferencesController(data) {
+    merge(
+      this.fixture.state.engine.backgroundState.PreferencesController,
+      data,
+    );
+    return this;
+  }
+
   /**
    * Build and return the fixture object.
    * @returns {Object} - The built fixture object.

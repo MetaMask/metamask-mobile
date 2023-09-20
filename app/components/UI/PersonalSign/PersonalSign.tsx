@@ -19,6 +19,11 @@ import createStyles from './styles';
 import AppConstants from '../../../core/AppConstants';
 import { selectChainId } from '../../../selectors/networkController';
 import { store } from '../../../store';
+import {
+  getBlockaidMetricsParams,
+  isBlockaidFeatureEnabled,
+} from '../../../util/blockaid';
+import { SecurityAlertResponse } from '../BlockaidBanner/BlockaidBanner.types';
 
 /**
  * Component that supports personal_sign
@@ -50,12 +55,20 @@ const PersonalSign = ({
       const chainId = selectChainId(store.getState());
       const url = new URL(currentPageInformation?.url);
 
+      let blockaidParams = {};
+      if (isBlockaidFeatureEnabled()) {
+        blockaidParams = getBlockaidMetricsParams(
+          messageParams.securityAlertResponse as SecurityAlertResponse,
+        );
+      }
+
       return {
         account_type: getAddressAccountType(messageParams.from),
         dapp_host_name: url?.host,
         chain_id: chainId,
         signature_type: 'personal_sign',
         ...currentPageInformation?.analytics,
+        ...blockaidParams,
       };
     } catch (error) {
       return {};
@@ -67,7 +80,7 @@ const PersonalSign = ({
       MetaMetricsEvents.SIGNATURE_REQUESTED,
       getAnalyticsParams(),
     );
-  }, [getAnalyticsParams]);
+  }, [getAnalyticsParams, messageParams.securityAlertResponse]);
 
   useEffect(() => {
     const onSignatureError = ({ error }: { error: Error }) => {
