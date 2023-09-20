@@ -32,7 +32,8 @@ const wallet_addEthereumChain = async ({
   startApprovalFlow,
   endApprovalFlow,
 }) => {
-  const { CurrencyRateController, NetworkController, ApprovalController } = Engine.context;
+  const { CurrencyRateController, NetworkController, ApprovalController } =
+    Engine.context;
 
   if (!req.params?.[0] || typeof req.params[0] !== 'object') {
     throw ethErrors.rpc.invalidParams({
@@ -273,9 +274,7 @@ const wallet_addEthereumChain = async ({
   );
 
   // Remove all existing approvals, including other add network requests.
-  ApprovalController.clear(
-    ethErrors.provider.userRejectedRequest(),
-  );
+  ApprovalController.clear(ethErrors.provider.userRejectedRequest());
 
   // If existing approval request was an add network request, wait for
   // it to be rejected and for the corresponding approval flow to be ended.
