@@ -31,7 +31,7 @@ describe(Smoke('Advanced Gas Fees and Priority Tests'), () => {
         restartDevice: true,
         ganacheOptions: defaultGanacheOptions,
       },
-      async ({ ganacheServer }) => {
+      async () => {
         await loginToApp();
 
         // Check that we are on the wallet screen
@@ -70,8 +70,6 @@ describe(Smoke('Advanced Gas Fees and Priority Tests'), () => {
 
         // Check that we are on the wallet screen
         await WalletView.isVisible();
-
-        await ganacheServer.quit();
       },
     );
   });
