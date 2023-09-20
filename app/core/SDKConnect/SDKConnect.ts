@@ -226,8 +226,8 @@ export class Connection extends EventEmitter2 {
       context: AppConstants.MM_SDK.PLATFORM,
       analytics: true,
       logging: {
-        eciesLayer: false,
-        keyExchangeLayer: false,
+        eciesLayer: true,
+        keyExchangeLayer: true,
         remoteLayer: false,
         serviceLayer: false,
         // plaintext: true doesn't do anything unless using custom socket server.
@@ -827,6 +827,8 @@ export class SDKConnect extends EventEmitter2 {
       await this.reconnect({
         channelId: id,
         initialConnection: false,
+        otherPublicKey:
+          this.connected[id].remote.getKeyInfo()?.ecies.otherPubKey ?? '',
         context: 'connectToChannel',
       });
       return;
@@ -990,10 +992,12 @@ export class SDKConnect extends EventEmitter2 {
 
   async reconnect({
     channelId,
+    otherPublicKey,
     initialConnection,
     context,
   }: {
     channelId: string;
+    otherPublicKey: string;
     context?: string;
     initialConnection: boolean;
   }) {
@@ -1007,6 +1011,7 @@ export class SDKConnect extends EventEmitter2 {
       } connecting=${connecting} socketConnected=${socketConnected} existingConnection=${
         existingConnection !== undefined
       }`,
+      otherPublicKey,
     );
 
     let interruptReason = '';
@@ -1045,6 +1050,7 @@ export class SDKConnect extends EventEmitter2 {
     this.connecting[channelId] = true;
     this.connected[channelId] = new Connection({
       ...connection,
+      otherPublicKey,
       reconnect: true,
       initialConnection,
       rpcQueueManager: this.rpcqueueManager,
@@ -1063,7 +1069,9 @@ export class SDKConnect extends EventEmitter2 {
       withKeyExchange: true,
     });
     this.watchConnection(this.connected[channelId]);
-    this.connecting[channelId] = false;
+    const afterConnected =
+      this.connected[channelId].remote.isConnected() ?? false;
+    this.connecting[channelId] = !afterConnected; // If not connected, it means it's connecting.
     this.emit('refresh');
   }
 
@@ -1077,6 +1085,7 @@ export class SDKConnect extends EventEmitter2 {
       if (channelId) {
         this.reconnect({
           channelId,
+          otherPublicKey: this.connections[channelId].otherPublicKey,
           initialConnection: false,
           context: 'reconnectAll',
         }).catch((err) => {
