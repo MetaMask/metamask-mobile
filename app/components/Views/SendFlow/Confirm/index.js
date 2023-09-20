@@ -704,7 +704,8 @@ class Confirm extends PureComponent {
       }
     } finally {
       //Let ledger modal handle the error
-      navigation && navigation.dangerouslyGetParent()?.pop();
+      //TODO: Ledger modal retry may lead to navigation "GO_BACK" not found
+      navigation && navigation.dangerouslyGetParent()?.popToTop();
     }
   };
 

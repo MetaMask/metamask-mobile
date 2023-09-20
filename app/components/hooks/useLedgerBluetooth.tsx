@@ -243,7 +243,7 @@ function useLedgerBluetooth(deviceId?: string): UseLedgerBluetoothHook {
         func(transportRef.current as BluetoothInterface),
       );
       //  Start off workflow
-      await processLedgerWorkflow();
+      processLedgerWorkflow();
     },
     error: ledgerError,
     cleanupBluetoothConnection: resetConnectionState,

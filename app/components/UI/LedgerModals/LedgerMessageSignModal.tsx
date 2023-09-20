@@ -67,7 +67,7 @@ const LedgerMessageSignModal = () => {
   }, [signingEvent.eventStage, dismissModal]);
 
   const executeOnLedger = useCallback(async () => {
-    await onConfirmationComplete(true);
+    onConfirmationComplete(true);
   }, [onConfirmationComplete]);
 
   const onRejection = useCallback(() => {
