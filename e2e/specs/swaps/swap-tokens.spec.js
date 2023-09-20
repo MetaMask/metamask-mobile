@@ -88,7 +88,7 @@ describe(Smoke('Swap Tests'), () => {
       );
       await DetailsModal.isTitleVisible(sourceTokenSymbol, destTokenSymbol);
       await DetailsModal.isStatusCorrect('Confirmed');
-      await TabBarComponent.tapWallet();
+      await DetailsModal.tapOnCloseIcon();
     },
   );
 

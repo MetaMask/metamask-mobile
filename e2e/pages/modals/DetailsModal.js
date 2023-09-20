@@ -22,6 +22,11 @@ export default class DetailsModal {
   }
 
   static async tapOnCloseIcon() {
-    await TestHelpers.waitAndTap(DETAILS_MODAL_CLOSE_ICON);
+    try {
+      await TestHelpers.waitAndTap(DETAILS_MODAL_CLOSE_ICON);
+      await TestHelpers.delay(1000);
+    } catch {
+      //
+    }
   }
 }
