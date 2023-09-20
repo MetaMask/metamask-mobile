@@ -78,14 +78,13 @@ class MessageSign extends PureComponent<MessageSignProps, MessageSignState> {
   };
 
   componentDidMount = () => {
-    const {
-      messageParams: { metamaskId },
-    } = this.props;
+    const { messageParams } = this.props;
+
     AnalyticsV2.trackEvent(
-      MetaMetricsEvents.SIGN_REQUEST_STARTED,
-      getAnalyticsParams(),
+      MetaMetricsEvents.SIGNATURE_REQUESTED,
+      getAnalyticsParams(messageParams, 'message_sign'),
     );
-    addSignatureErrorListener(metamaskId, this.onSignatureError);
+    addSignatureErrorListener(messageParams.metamaskId, this.onSignatureError);
   };
 
   componentWillUnmount = () => {
@@ -96,22 +95,23 @@ class MessageSign extends PureComponent<MessageSignProps, MessageSignState> {
   };
 
   onSignatureError = ({ error }: any) => {
+    const { messageParams } = this.props;
     if (error?.message.startsWith(KEYSTONE_TX_CANCELED)) {
       AnalyticsV2.trackEvent(
         MetaMetricsEvents.QR_HARDWARE_TRANSACTION_CANCELED,
-        getAnalyticsParams(),
+        getAnalyticsParams(messageParams, 'message_sign'),
       );
     }
   };
 
   rejectSignature = async () => {
     const { messageParams, onReject } = this.props;
-    await handleSignatureAction(onReject, messageParams, 'eth', false);
+    await handleSignatureAction(onReject, messageParams, 'eth_sign', false);
   };
 
   confirmSignature = async () => {
     const { messageParams, onConfirm } = this.props;
-    await handleSignatureAction(onConfirm, messageParams, 'eth', true);
+    await handleSignatureAction(onConfirm, messageParams, 'eth_sign', true);
   };
 
   getStyles = () => {
@@ -164,7 +164,7 @@ class MessageSign extends PureComponent<MessageSignProps, MessageSignState> {
       navigation,
       showExpandedMessage,
       toggleExpandedMessage,
-      messageParams: { from },
+      messageParams: { from, securityAlertResponse },
     } = this.props;
     const styles = this.getStyles();
 
@@ -186,6 +186,7 @@ class MessageSign extends PureComponent<MessageSignProps, MessageSignState> {
         type="ethSign"
         showWarning
         fromAddress={from}
+        securityAlertResponse={securityAlertResponse}
         testID={'eth-signature-request'}
       >
         <View style={styles.messageWrapper}>{this.renderMessageText()}</View>

@@ -71,6 +71,7 @@ import {
   PermissionControllerState,
 } from '@metamask/permission-controller';
 import SwapsController, { swapsUtils } from '@metamask/swaps-controller';
+import { PPOMController } from '@metamask/ppom-validator';
 import { MetaMaskKeyring as QRHardwareKeyring } from '@keystonehq/metamask-airgapped-keyring';
 import Encryptor from './Encryptor';
 import {
@@ -85,12 +86,14 @@ import {
   balanceToFiatNumber,
   weiToFiatNumber,
   toHexadecimal,
+  addHexPrefix,
 } from '../util/number';
 import NotificationManager from './NotificationManager';
 import Logger from '../util/Logger';
 import { isZero } from '../util/lodash';
 import { MetaMetricsEvents } from './Analytics';
 import AnalyticsV2 from '../util/analytics/analyticsV2';
+import { isBlockaidFeatureEnabled } from '../util/blockaid';
 import {
   getCaveatSpecifications,
   getPermissionSpecifications,
@@ -105,6 +108,10 @@ import {
 import { hasProperty, Json } from '@metamask/controller-utils';
 // TODO: Export this type from the package directly
 import { SwapsState } from '@metamask/swaps-controller/dist/SwapsController';
+import { ethErrors } from 'eth-rpc-errors';
+
+import { PPOM, ppomInit } from '../lib/ppom/PPOMView';
+import RNFSStorageBackend from '../lib/ppom/rnfs-storage-backend';
 
 const NON_EMPTY = 'NON_EMPTY';
 
@@ -128,7 +135,8 @@ type GlobalEvents =
   | PermissionControllerEvents
   | SignatureControllerEvents;
 
-type Permissions = ReturnType<typeof getPermissionSpecifications>;
+type PermissionsByRpcMethod = ReturnType<typeof getPermissionSpecifications>;
+type Permissions = PermissionsByRpcMethod[keyof PermissionsByRpcMethod];
 
 export interface EngineState {
   AccountTrackerController: AccountTrackerState;
@@ -165,30 +173,33 @@ class Engine {
   /**
    * A collection of all controller instances
    */
-  context: {
-    AccountTrackerController: AccountTrackerController;
-    AddressBookController: AddressBookController;
-    ApprovalController: ApprovalController;
-    AssetsContractController: AssetsContractController;
-    CurrencyRateController: CurrencyRateController;
-    GasFeeController: GasFeeController;
-    KeyringController: KeyringController;
-    NetworkController: NetworkController;
-    NftController: NftController;
-    NftDetectionController: NftDetectionController;
-    // TODO: Fix permission types
-    PermissionController: PermissionController<any, any>;
-    PhishingController: PhishingController;
-    PreferencesController: PreferencesController;
-    TokenBalancesController: TokenBalancesController;
-    TokenListController: TokenListController;
-    TokenDetectionController: TokenDetectionController;
-    TokenRatesController: TokenRatesController;
-    TokensController: TokensController;
-    TransactionController: TransactionController;
-    SignatureController: SignatureController;
-    SwapsController: SwapsController;
-  };
+  context:
+    | {
+        AccountTrackerController: AccountTrackerController;
+        AddressBookController: AddressBookController;
+        ApprovalController: ApprovalController;
+        AssetsContractController: AssetsContractController;
+        CurrencyRateController: CurrencyRateController;
+        GasFeeController: GasFeeController;
+        KeyringController: KeyringController;
+        NetworkController: NetworkController;
+        NftController: NftController;
+        NftDetectionController: NftDetectionController;
+        // TODO: Fix permission types
+        PermissionController: PermissionController<any, any>;
+        PhishingController: PhishingController;
+        PreferencesController: PreferencesController;
+        PPOMController?: PPOMController;
+        TokenBalancesController: TokenBalancesController;
+        TokenListController: TokenListController;
+        TokenDetectionController: TokenDetectionController;
+        TokenRatesController: TokenRatesController;
+        TokensController: TokensController;
+        TransactionController: TransactionController;
+        SignatureController: SignatureController;
+        SwapsController: SwapsController;
+      }
+    | any;
   /**
    * The global controller messenger.
    */
@@ -196,7 +207,7 @@ class Engine {
   /**
    * ComposableController reference containing all child controllers
    */
-  datamodel: ComposableController;
+  datamodel: any;
 
   /**
    * Object containing the info for the latest incoming tx block
@@ -238,7 +249,7 @@ class Engine {
           initialState?.PreferencesController?.useTokenDetection ?? true,
         // TODO: Use previous value when preferences UI is available
         useNftDetection: false,
-        openSeaEnabled: false,
+        displayNftMedia: true,
       },
     );
 
@@ -424,7 +435,6 @@ class Engine {
         // @ts-expect-error This is added in a patch, but types weren't updated
         getSelectedAddress: () => preferencesController.state.selectedAddress,
         getMultiAccountBalancesEnabled: () =>
-          // @ts-expect-error This is added in a patch, but types weren't updated
           preferencesController.state.isMultiAccountBalancesEnabled,
       }),
       new AddressBookController(),
@@ -615,6 +625,38 @@ class Engine {
       }),
     ];
 
+    if (isBlockaidFeatureEnabled()) {
+      try {
+        const ppomController = new PPOMController({
+          chainId: addHexPrefix(networkController.state.providerConfig.chainId),
+          blockaidPublicKey: process.env.BLOCKAID_PUBLIC_KEY as string,
+          cdnBaseUrl: process.env.BLOCKAID_FILE_CDN as string,
+          // @ts-expect-error Error might be caused by base controller version mismatch
+          messenger: this.controllerMessenger.getRestricted({
+            name: 'PPOMController',
+          }),
+          onNetworkChange: (listener) =>
+            this.controllerMessenger.subscribe(
+              AppConstants.NETWORK_STATE_CHANGE_EVENT,
+              listener,
+            ),
+          onPreferencesChange: () => undefined,
+          provider: () =>
+            networkController.getProviderAndBlockTracker().provider,
+          ppomProvider: {
+            PPOM,
+            ppomInit,
+          },
+          storageBackend: new RNFSStorageBackend('PPOMDB'),
+          securityAlertsEnabled: true,
+        });
+        controllers.push(ppomController as any);
+      } catch (e) {
+        Logger.log(`Error initializing PPOMController: ${e}`);
+        return;
+      }
+    }
+
     // set initial state
     // TODO: Pass initial state into each controller constructor instead
     // This is being set post-construction for now to ensure it's functionally equivalent with
@@ -687,7 +729,7 @@ class Engine {
 
   handleVaultBackup() {
     const { KeyringController } = this.context;
-    KeyringController.subscribe((state) =>
+    KeyringController.subscribe((state: any) =>
       backupVault(state)
         .then((result) => {
           if (result.success) {
@@ -830,7 +872,7 @@ class Engine {
         }
       });
 
-      const fiatBalance = this.getTotalFiatAccountBalance();
+      const fiatBalance = this.getTotalFiatAccountBalance() || 0;
 
       return fiatBalance > 0 || tokenFound || nfts.length > 0;
     } catch (e) {
@@ -893,26 +935,49 @@ class Engine {
     Engine.instance = null;
   }
 
-  rejectPendingApproval(id: string, reason: Error) {
+  rejectPendingApproval(
+    id: string,
+    reason: Error = ethErrors.provider.userRejectedRequest(),
+    opts: { ignoreMissing?: boolean; logErrors?: boolean } = {},
+  ) {
     const { ApprovalController } = this.context;
+
+    if (opts.ignoreMissing && !ApprovalController.has({ id })) {
+      return;
+    }
 
     try {
       ApprovalController.reject(id, reason);
     } catch (error: any) {
-      Logger.error(error, 'Reject while rejecting pending connection request');
+      if (opts.logErrors !== false) {
+        Logger.error(
+          error,
+          'Reject while rejecting pending connection request',
+        );
+      }
     }
   }
 
-  acceptPendingApproval(
+  async acceptPendingApproval(
     id: string,
     requestData?: Record<string, Json>,
-    opts: AcceptOptions = { waitForResult: false },
+    opts: AcceptOptions & { handleErrors?: boolean } = {
+      waitForResult: false,
+      deleteAfterResult: false,
+      handleErrors: true,
+    },
   ) {
     const { ApprovalController } = this.context;
+
     try {
-      ApprovalController.accept(id, requestData, opts);
+      return await ApprovalController.accept(id, requestData, {
+        waitForResult: opts.waitForResult,
+        deleteAfterResult: opts.deleteAfterResult,
+      });
     } catch (err) {
-      // Ignore err if request already approved or doesn't exists.
+      if (opts.handleErrors === false) {
+        throw err;
+      }
     }
   }
 }
@@ -954,6 +1019,7 @@ export default {
       NetworkController,
       PreferencesController,
       PhishingController,
+      PPOMController,
       TokenBalancesController,
       TokenRatesController,
       TransactionController,
@@ -986,6 +1052,7 @@ export default {
       KeyringController,
       NetworkController,
       PhishingController,
+      PPOMController,
       PreferencesController,
       TokenBalancesController,
       TokenRatesController,
@@ -1024,11 +1091,17 @@ export default {
     Object.freeze(instance);
     return instance;
   },
-  acceptPendingApproval: (
+  acceptPendingApproval: async (
     id: string,
     requestData?: Record<string, Json>,
-    opts?: AcceptOptions,
+    opts?: AcceptOptions & { handleErrors?: boolean },
   ) => instance?.acceptPendingApproval(id, requestData, opts),
-  rejectPendingApproval: (id: string, reason: Error) =>
-    instance?.rejectPendingApproval(id, reason),
+  rejectPendingApproval: (
+    id: string,
+    reason: Error,
+    opts: {
+      ignoreMissing?: boolean;
+      logErrors?: boolean;
+    } = {},
+  ) => instance?.rejectPendingApproval(id, reason, opts),
 };

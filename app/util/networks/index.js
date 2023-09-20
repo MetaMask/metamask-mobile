@@ -15,7 +15,11 @@ import {
   LINEA_MAINNET,
 } from '../../../app/constants/network';
 import { NetworkSwitchErrorType } from '../../../app/constants/error';
-import { query } from '@metamask/controller-utils';
+import {
+  NetworksChainId,
+  NetworkType,
+  query,
+} from '@metamask/controller-utils';
 import Engine from '../../core/Engine';
 import { toLowerCaseEquals } from '../general';
 import { fastSplit } from '../number';
@@ -147,9 +151,6 @@ export const isLineaMainnetByChainId = (chainId) =>
 export const isMultiLayerFeeNetwork = (chainId) =>
   chainId === NETWORKS_CHAIN_ID.OPTIMISM;
 
-export const getNetworkName = (id) =>
-  NetworkListKeys.find((key) => NetworkList[key].networkId === Number(id));
-
 /**
  * Gets the test network image icon.
  *
@@ -178,15 +179,22 @@ export const getTestNetImageByChainId = (chainId) => {
   }
 };
 
-export const isTestNet = (networkId) => {
-  const networkName = getNetworkName(networkId);
+/**
+ * A list of chain IDs for known testnets
+ */
+const TESTNET_CHAIN_IDS = [
+  NetworksChainId[NetworkType.goerli],
+  NetworksChainId[NetworkType.sepolia],
+  NetworksChainId[NetworkType['linea-goerli']],
+];
 
-  return (
-    networkName === GOERLI ||
-    networkName === SEPOLIA ||
-    networkName === LINEA_GOERLI
-  );
-};
+/**
+ * Determine whether the given chain ID is for a known testnet.
+ *
+ * @param {string} chainId - The chain ID of the network to check
+ * @returns {boolean} `true` if the given chain ID is for a known testnet, `false` otherwise
+ */
+export const isTestNet = (chainId) => TESTNET_CHAIN_IDS.includes(chainId);
 
 export function getNetworkTypeById(id) {
   if (!id) {
@@ -220,13 +228,6 @@ export function getDefaultNetworkByChainId(chainId) {
 
 export function hasBlockExplorer(key) {
   return key.toLowerCase() !== RPC;
-}
-
-export function isKnownNetwork(id) {
-  const knownNetworks = NetworkListKeys.map(
-    (key) => NetworkList[key].networkId,
-  ).filter((id) => id !== undefined);
-  return knownNetworks.includes(parseInt(id, 10));
 }
 
 export function isprivateConnection(hostname) {

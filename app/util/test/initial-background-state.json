@@ -30,6 +30,17 @@
   },
   "TokenDetectionController": {},
   "NftDetectionController": {},
+  "PPOMController": {
+    "chainStatus": {
+      "0x1": {
+        "chainId": "0x1",
+        "dataFetched": false
+      }
+    },
+    "storageMetadata": [],
+    "versionInfo": []
+  },
+
   "CurrencyRateController": {
     "conversionDate": 0,
     "conversionRate": 0,
@@ -73,12 +84,14 @@
     "selectedAddress": "",
     "useTokenDetection": true,
     "useNftDetection": false,
-    "openSeaEnabled": false,
+    "displayNftMedia": true,
+    "securityAlertsEnabled": false,
     "isMultiAccountBalancesEnabled": true,
     "disabledRpcMethodPreferences": {
       "eth_sign": false
     },
-    "showTestNetworks": false
+    "showTestNetworks": false,
+    "isIpfsGatewayEnabled": true
   },
   "TokenBalancesController": {
     "contractBalances": {}

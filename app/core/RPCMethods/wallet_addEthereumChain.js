@@ -11,6 +11,11 @@ import {
 import URL from 'url-parse';
 import { MetaMetricsEvents } from '../../core/Analytics';
 import AnalyticsV2 from '../../util/analytics/analyticsV2';
+import {
+  selectChainId,
+  selectNetworkConfigurations,
+} from '../../selectors/networkController';
+import { store } from '../../store';
 
 const waitForInteraction = async () =>
   new Promise((resolve) => {
@@ -114,7 +119,7 @@ const wallet_addEthereumChain = async ({
     );
   }
 
-  const networkConfigurations = NetworkController.state.networkConfigurations;
+  const networkConfigurations = selectNetworkConfigurations(store.getState());
   const existingEntry = Object.entries(networkConfigurations).find(
     ([, networkConfiguration]) =>
       networkConfiguration.chainId === chainIdDecimal,
@@ -122,7 +127,7 @@ const wallet_addEthereumChain = async ({
 
   if (existingEntry) {
     const [networkConfigurationId, networkConfiguration] = existingEntry;
-    const currentChainId = NetworkController.state.providerConfig.chainId;
+    const currentChainId = selectChainId(store.getState());
     if (currentChainId === chainIdDecimal) {
       res.result = null;
       return;

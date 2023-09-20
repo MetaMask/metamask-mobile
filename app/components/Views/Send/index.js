@@ -47,6 +47,7 @@ import AnalyticsV2 from '../../../util/analytics/analyticsV2';
 import { KEYSTONE_TX_CANCELED } from '../../../constants/error';
 import { ThemeContext, mockTheme } from '../../../util/theme';
 import {
+  selectChainId,
   selectNetwork,
   selectProviderType,
 } from '../../../selectors/networkController';
@@ -59,6 +60,10 @@ import {
   selectSelectedAddress,
 } from '../../../selectors/preferencesController';
 import { ethErrors } from 'eth-rpc-errors';
+import {
+  getBlockaidMetricsParams,
+  isBlockaidFeatureEnabled,
+} from '../../../util/blockaid';
 
 const REVIEW = 'review';
 const EDIT = 'edit';
@@ -119,6 +124,10 @@ class Send extends PureComponent {
      * Network id
      */
     networkId: PropTypes.string,
+    /**
+     * The chain ID of the current selected network
+     */
+    chainId: PropTypes.string,
     /**
      * List of accounts from the PreferencesController
      */
@@ -280,7 +289,7 @@ class Send extends PureComponent {
    * Handle deeplink txMeta recipient
    */
   handleNewTxMetaRecipient = async (recipient) => {
-    const to = await getAddress(recipient, this.props.networkId);
+    const to = await getAddress(recipient, this.props.chainId);
 
     if (!to) {
       NotificationManager.showSimpleNotification({
@@ -688,8 +697,14 @@ class Send extends PureComponent {
   getTrackingParams = () => {
     const {
       networkType,
-      transaction: { selectedAsset, assetType },
+      transaction: { selectedAsset, assetType, securityAlertResponse },
     } = this.props;
+
+    let blockaidParams = {};
+    if (isBlockaidFeatureEnabled()) {
+      blockaidParams = getBlockaidMetricsParams(securityAlertResponse);
+    }
+
     return {
       view: SEND,
       network: networkType,
@@ -698,6 +713,7 @@ class Send extends PureComponent {
           (selectedAsset.symbol || selectedAsset.contractName)) ||
         'ETH',
       assetType,
+      ...blockaidParams,
     };
   };
 
@@ -770,6 +786,7 @@ const mapStateToProps = (state) => ({
   networkType: selectProviderType(state),
   tokens: selectTokens(state),
   networkId: selectNetwork(state),
+  chainId: selectChainId(state),
   identities: selectIdentities(state),
   selectedAddress: selectSelectedAddress(state),
   dappTransactionModalVisible: state.modals.dappTransactionModalVisible,

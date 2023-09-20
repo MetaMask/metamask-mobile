@@ -248,16 +248,16 @@ class SendFlow extends PureComponent {
   handleNetworkSwitch = (chainId) => {
     try {
       const { showAlert } = this.props;
-      const networkTypeOrRpcUrl = handleNetworkSwitch(chainId);
+      const networkName = handleNetworkSwitch(chainId);
 
-      if (!networkTypeOrRpcUrl) return;
+      if (!networkName) return;
 
       showAlert({
         isVisible: true,
         autodismiss: 5000,
         content: 'clipboard-alert',
         data: {
-          msg: strings('send.warn_network_change') + networkTypeOrRpcUrl,
+          msg: strings('send.warn_network_change') + networkName,
         },
       });
     } catch (e) {

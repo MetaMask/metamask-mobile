@@ -287,6 +287,7 @@ const RootRPCMethodsUI = (props) => {
             selectedAsset: asset,
             id: transactionMeta.id,
             origin: transactionMeta.origin,
+            securityAlertResponse: transactionMeta.securityAlertResponse,
             ...transactionMeta.transaction,
           });
         } else {
@@ -298,6 +299,7 @@ const RootRPCMethodsUI = (props) => {
           setEtherTransaction({
             id: transactionMeta.id,
             origin: transactionMeta.origin,
+            securityAlertResponse: transactionMeta.securityAlertResponse,
             ...transactionMeta.transaction,
           });
         }

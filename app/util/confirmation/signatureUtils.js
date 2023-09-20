@@ -7,20 +7,34 @@ import { WALLET_CONNECT_ORIGIN } from '../walletconnect';
 import AppConstants from '../../core/AppConstants';
 import { InteractionManager } from 'react-native';
 import { strings } from '../../../locales/i18n';
+import { selectChainId } from '../../selectors/networkController';
+import { store } from '../../store';
+import { getBlockaidMetricsParams } from '../blockaid';
+
+export const typedSign = {
+  V1: 'eth_signTypedData',
+  V3: 'eth_signTypedData_v3',
+  V4: 'eth_signTypedData_v4',
+};
 
 export const getAnalyticsParams = (messageParams, signType) => {
   try {
     const { currentPageInformation } = messageParams;
-    const { NetworkController } = Engine.context;
-    const { chainId } = NetworkController?.state?.providerConfig || {};
+    const chainId = selectChainId(store.getState());
     const url = new URL(currentPageInformation?.url);
+
+    const blockaidParams = getBlockaidMetricsParams(
+      messageParams.securityAlertResponse,
+    );
+
     return {
       account_type: getAddressAccountType(messageParams.from),
       dapp_host_name: url?.host,
       chain_id: chainId,
-      sign_type: signType,
+      signature_type: signType,
       version: messageParams?.version,
       ...currentPageInformation?.analytics,
+      ...blockaidParams,
     };
   } catch (error) {
     return {};
@@ -72,8 +86,8 @@ export const handleSignatureAction = async (
   showWalletConnectNotification(messageParams, confirmation);
   AnalyticsV2.trackEvent(
     confirmation
-      ? MetaMetricsEvents.SIGN_REQUEST_COMPLETED
-      : MetaMetricsEvents.SIGN_REQUEST_CANCELLED,
+      ? MetaMetricsEvents.SIGNATURE_APPROVED
+      : MetaMetricsEvents.SIGNATURE_REJECTED,
     getAnalyticsParams(messageParams, signType),
   );
 };
