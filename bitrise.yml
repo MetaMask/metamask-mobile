@@ -702,7 +702,7 @@ workflows:
     before_run:
       - code_setup_dev
     after_run:
-      - _upload_apk_to_browserstack
+      - _upload_ipa_to_browserstack
       - _notify_failure_on_slack
     steps:
       - certificate-and-profile-installer@1: {}
@@ -740,7 +740,7 @@ workflows:
             - pipeline_intermediate_files: sourcemaps/ios/index.js.map:BITRISE_APP_STORE_SOURCEMAP_PATH
             - deploy_path: sourcemaps/ios/index.js.map
           title: Deploy Source Map
-  _upload_apk_to_browserstack:
+  _upload_ipa_to_browserstack:
     steps:
       - script@1:
           title: Upload IPA to Browserstack
