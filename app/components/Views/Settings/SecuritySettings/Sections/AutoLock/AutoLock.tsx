@@ -1,7 +1,7 @@
 import React from 'react';
 import { View } from 'react-native';
 import { useDispatch, useSelector } from 'react-redux';
-import AUTO_LOCK_OPTIONS from './constants';
+import AUTO_LOCK_OPTIONS, { AUTO_LOCK_SECTION } from './constants';
 import { setLockTime } from '../../../../../../actions/settings';
 import { useStyles } from '../../../../../../component-library/hooks';
 import SelectComponent from '../../../../../UI/SelectComponent';
@@ -20,7 +20,7 @@ const AutoLock = () => {
   };
 
   return (
-    <View style={styles.setting} testID={'auto-lock-section'}>
+    <View style={styles.setting} testID={AUTO_LOCK_SECTION}>
       <Text style={styles.title}>{strings('app_settings.auto_lock')}</Text>
       <Text style={styles.desc}>{strings('app_settings.auto_lock_desc')}</Text>
       <View style={styles.picker}>
