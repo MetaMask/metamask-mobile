@@ -226,8 +226,8 @@ export class Connection extends EventEmitter2 {
       context: AppConstants.MM_SDK.PLATFORM,
       analytics: true,
       logging: {
-        eciesLayer: true,
-        keyExchangeLayer: true,
+        eciesLayer: false,
+        keyExchangeLayer: false,
         remoteLayer: false,
         serviceLayer: false,
         // plaintext: true doesn't do anything unless using custom socket server.
