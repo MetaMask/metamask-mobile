@@ -51,6 +51,7 @@ describe(Regression('Swap Tests'), () => {
   `(
     "should Swap $quantity '$sourceTokenSymbol' to '$destTokenSymbol'",
     async ({ quantity, sourceTokenSymbol, destTokenSymbol }) => {
+      await TabBarComponent.tapWallet();
       await TabBarComponent.tapActions();
       await WalletActionsModal.tapSwapButton();
 
@@ -88,7 +89,6 @@ describe(Regression('Swap Tests'), () => {
       await DetailsModal.isTitleVisible(sourceTokenSymbol, destTokenSymbol);
       await DetailsModal.isStatusCorrect('Confirmed');
       await DetailsModal.tapOnCloseIcon();
-      await TabBarComponent.tapWallet();
     },
   );
 

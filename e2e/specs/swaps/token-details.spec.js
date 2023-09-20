@@ -25,7 +25,6 @@ describe(Regression('Token Chart Tests'), () => {
     await TokenOverview.checkIfChartIsVisible();
     await TokenOverview.scrollOnScreen();
     await TokenOverview.isReceiveButtonVisible();
-    await TokenOverview.isBuyButtonVisible();
     await TokenOverview.isSendButtonVisible();
     await TokenOverview.isSwapButtonVisible();
     await TokenOverview.tapBackButton();

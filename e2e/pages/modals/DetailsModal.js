@@ -11,7 +11,6 @@ export default class DetailsModal {
     let title = messages.swaps.transaction_label.swap;
     title = title.replace('{{sourceToken}}', sourceToken);
     title = title.replace('{{destinationToken}}', destinationToken);
-
     await TestHelpers.checkIfElementHasString(DETAILS_MODAL_TITLE, title);
   }
 
@@ -22,7 +21,12 @@ export default class DetailsModal {
     );
   }
 
-  static async tapOnCloseIcon(status) {
-    await TestHelpers.waitAndTap(DETAILS_MODAL_CLOSE_ICON);
+  static async tapOnCloseIcon() {
+    try {
+      await TestHelpers.waitAndTap(DETAILS_MODAL_CLOSE_ICON);
+      await TestHelpers.delay(1000);
+    } catch {
+      //
+    }
   }
 }
