@@ -142,11 +142,7 @@ class Approval extends PureComponent {
       if (!transactionHandled) {
         if (isQRHardwareAccount(selectedAddress)) {
           KeyringController.cancelQRSignRequest();
-        } else if (
-          !isHardwareAccount(transaction.from, [KeyringTypes.ledger])
-        ) {
-          // We hand over execution to the ledger flow it'll take care of cancelling
-
+        } else {
           Engine.rejectPendingApproval(
             transaction?.id,
             ethErrors.provider.userRejectedRequest(),
@@ -180,14 +176,6 @@ class Approval extends PureComponent {
       return false;
     }
     return true;
-  };
-
-  cancelTransactionAndRemoveListeners = (transactionId) => {
-    Engine.context.TransactionController.cancelTransaction(transactionId);
-
-    Engine.context.TransactionController.hub.removeAllListeners(
-      `${transactionId}:finished`,
-    );
   };
 
   handleAppStateChange = (appState) => {
@@ -343,6 +331,36 @@ class Approval extends PureComponent {
     );
   };
 
+  onLedgerConfirmation = (approve, transactionId, gaParams) => {
+    const { TransactionController } = Engine.context;
+    try {
+      //manual cancel from UI when transaction is awaiting from ledger confirmation
+      if (!approve) {
+        //cancelTransaction will change transaction status to reject and throw error from event listener
+        //component is being unmounted, error will be unhandled, hence remove listener before cancel
+        TransactionController.hub.removeAllListeners(
+          `${transactionId}:finished`,
+        );
+
+        TransactionController.cancelTransaction(transactionId);
+
+        this.showWalletConnectNotification();
+
+        AnalyticsV2.trackEvent(
+          MetaMetricsEvents.DAPP_TRANSACTION_CANCELLED,
+          gaParams,
+        );
+      } else {
+        this.showWalletConnectNotification(true);
+      }
+    } finally {
+      AnalyticsV2.trackEvent(
+        MetaMetricsEvents.DAPP_TRANSACTION_COMPLETED,
+        gaParams,
+      );
+    }
+  };
+
   /**
    * Callback on confirm transaction
    */
@@ -370,31 +388,7 @@ class Approval extends PureComponent {
       KeyringTypes.ledger,
     ]);
 
-    //REBASE_CHECK -> removed in ledger
-    if (!isLedgerAccount) {
-      this.setState({ transactionConfirmed: true });
-    }
-
-    const finalizeConfirmation = (confirmed) => {
-      if (!confirmed) {
-        this.setState({ transactionConfirmed: false });
-
-        // If a rejection happened on the ledger UI we need to cancel the transaction
-        // In any other case, componentWillUnmount will take care of it
-        if (isLedgerAccount) {
-          this.cancelTransactionAndRemoveListeners(transaction.id);
-        }
-
-        return;
-      }
-
-      this.showWalletConnectNotification(true);
-      AnalyticsV2.trackEvent(
-        MetaMetricsEvents.DAPP_TRANSACTION_COMPLETED,
-        this.getAnalyticsParams({ gasEstimateType, gasSelected }),
-      );
-      this.setState({ transactionConfirmed: true });
-    };
+    this.setState({ transactionConfirmed: true });
 
     try {
       if (assetType === 'ETH') {
@@ -439,23 +433,28 @@ class Approval extends PureComponent {
       if (isLedgerAccount) {
         const ledgerKeyring = await KeyringController.getLedgerKeyring();
         this.setState({ transactionHandled: true });
+        this.setState({ transactionConfirmed: false });
 
         this.props.navigation.navigate(
           ...createLedgerTransactionModalNavDetails({
             transactionId: transaction.id,
             deviceId: ledgerKeyring.deviceId,
-            onConfirmationComplete: finalizeConfirmation,
+            onConfirmationComplete: (approve) =>
+              this.onLedgerConfirmation(
+                approve,
+                transaction.id,
+                this.getAnalyticsParams({ gasEstimateType, gasSelected }),
+              ),
             type: 'signTransaction',
           }),
         );
-
         this.props.hideModal();
-      } else {
-        await ApprovalController.accept(transaction.id, undefined, {
-          waitForResult: true,
-        });
-        this.showWalletConnectNotification(true);
+        return;
       }
+      await ApprovalController.accept(transaction.id, undefined, {
+        waitForResult: true,
+      });
+      this.showWalletConnectNotification(true);
     } catch (error) {
       if (!error?.message.startsWith(KEYSTONE_TX_CANCELED)) {
         Alert.alert(

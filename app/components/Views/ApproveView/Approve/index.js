@@ -481,6 +481,33 @@ class Approve extends PureComponent {
     }
   };
 
+  onLedgerConfirmation = (approve, transactionId, gaParams) => {
+    const { TransactionController } = Engine.context;
+    try {
+      //manual cancel from UI when transaction is awaiting from ledger confirmation
+      if (!approve) {
+        //cancelTransaction will change transaction status to reject and throw error from event listener
+        //component is being unmounted, error will be unhandled, hence remove listener before cancel
+        TransactionController.hub.removeAllListeners(
+          `${transactionId}:finished`,
+        );
+
+        TransactionController.cancelTransaction(transactionId);
+
+        AnalyticsV2.trackEvent(MetaMetricsEvents.APPROVAL_CANCELLED, gaParams);
+
+        NotificationManager.showSimpleNotification({
+          status: `simple_notification_rejected`,
+          duration: 5000,
+          title: strings('notifications.approved_tx_rejected_title'),
+          description: strings('notifications.wc_description'),
+        });
+      }
+    } finally {
+      AnalyticsV2.trackEvent(MetaMetricsEvents.APPROVAL_COMPLETED, gaParams);
+    }
+  };
+
   onConfirm = async () => {
     const { TransactionController, KeyringController, ApprovalController } =
       Engine.context;
@@ -496,7 +523,6 @@ class Approve extends PureComponent {
     } else if (this.validateGas(legacyGasTransaction.totalHex)) return;
     if (transactionConfirmed) return;
 
-    //REBASE_CHECK
     this.setState({ transactionConfirmed: true });
 
     try {
@@ -523,31 +549,6 @@ class Approve extends PureComponent {
         },
       );
 
-      const finalizeConfirmation = (confirmed) => {
-        if (!confirmed) {
-          this.setState({ transactionHandled: false });
-
-          // If a rejection happened on the ledger UI we need to cancel the transaction
-          // In any othercase component will unmount takes care of it
-          if (isLedgerAccount) {
-            Engine.context.TransactionController.cancelTransaction(
-              transaction.id,
-            );
-
-            Engine.context.TransactionController.hub.removeAllListeners(
-              `${transaction.id}:finished`,
-            );
-          }
-        }
-
-        AnalyticsV2.trackEvent(
-          MetaMetricsEvents.APPROVAL_COMPLETED,
-          this.getAnalyticsParams(),
-        );
-
-        this.setState({ transactionConfirmed: true });
-      };
-
       const fullTx = transactions.find(({ id }) => id === transaction.id);
       const updatedTx = { ...fullTx, transaction };
       await TransactionController.updateTransaction(updatedTx);
@@ -557,22 +558,28 @@ class Approve extends PureComponent {
       if (isLedgerAccount) {
         const ledgerKeyring = await KeyringController.getLedgerKeyring();
         this.setState({ transactionHandled: true });
+        this.setState({ transactionConfirmed: false });
 
         this.props.navigation.navigate(
           ...createLedgerTransactionModalNavDetails({
             transactionId: transaction.id,
             deviceId: ledgerKeyring.deviceId,
-            onConfirmationComplete: finalizeConfirmation,
+            onConfirmationComplete: (approve) =>
+              this.onLedgerConfirmation(
+                approve,
+                transaction.id,
+                this.getAnalyticsParams(),
+              ),
             type: 'signTransaction',
           }),
         );
-
         this.props.hideModal();
-      } else {
-        await ApprovalController.accept(transaction.id, undefined, {
-          waitForResult: true,
-        });
+        return;
       }
+      await ApprovalController.accept(transaction.id, undefined, {
+        waitForResult: true,
+      });
+
       AnalyticsV2.trackEvent(
         MetaMetricsEvents.APPROVAL_COMPLETED,
         this.getAnalyticsParams(),
