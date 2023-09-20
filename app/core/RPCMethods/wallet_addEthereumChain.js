@@ -318,7 +318,7 @@ const wallet_addEthereumChain = async ({
     AnalyticsV2.trackEvent(MetaMetricsEvents.NETWORK_ADDED, analyticsParamsAdd);
 
     await waitForInteraction();
-    
+
     await requestUserApproval({
       type: 'SWITCH_ETHEREUM_CHAIN',
       requestData: { ...requestData, type: 'new' },
