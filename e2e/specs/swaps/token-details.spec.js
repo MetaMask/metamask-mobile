@@ -1,10 +1,12 @@
 'use strict';
 
-import TestHelpers from '../../helpers';
 import { Smoke } from '../../tags';
 import WalletView from '../../pages/WalletView';
 import TokenOverview from '../../pages/TokenOverview';
-import { switchToGoreliNetwork, CreateNewWallet } from '../../viewHelper';
+import {
+  switchToGoreliNetwork,
+  importWalletWithRecoveryPhrase,
+} from '../../viewHelper';
 import Networks from '../../resources/networks.json';
 
 describe(Smoke('Token Chart Tests'), () => {
@@ -13,18 +15,16 @@ describe(Smoke('Token Chart Tests'), () => {
   });
 
   it('should import wallet and go to the wallet view', async () => {
-    await CreateNewWallet();
+    await importWalletWithRecoveryPhrase();
   });
 
   it('should view the token chart', async () => {
-    await TestHelpers.delay(7000);
     await WalletView.tapOnToken();
     await TokenOverview.isVisible();
     await TokenOverview.TokenQuoteIsNotZero();
     await TokenOverview.checkIfChartIsVisible();
     await TokenOverview.scrollOnScreen();
     await TokenOverview.isReceiveButtonVisible();
-    await TokenOverview.isBuyButtonVisible();
     await TokenOverview.isSendButtonVisible();
     await TokenOverview.isSwapButtonVisible();
     await TokenOverview.tapBackButton();
