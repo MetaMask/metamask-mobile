@@ -272,6 +272,15 @@ const wallet_addEthereumChain = async ({
     analyticsParamsAdd,
   );
 
+  // Remove all existing approvals, including other add network requests.
+  Engine.context.ApprovalController.clear(
+    ethErrors.provider.userRejectedRequest(),
+  );
+
+  // If existing approval request was an add network request, wait for
+  // it to be rejected and for the corresponding approval flow to be ended.
+  await waitForInteraction();
+
   const { id: approvalFlowId } = startApprovalFlow();
 
   try {
@@ -309,7 +318,7 @@ const wallet_addEthereumChain = async ({
     AnalyticsV2.trackEvent(MetaMetricsEvents.NETWORK_ADDED, analyticsParamsAdd);
 
     await waitForInteraction();
-
+    
     await requestUserApproval({
       type: 'SWITCH_ETHEREUM_CHAIN',
       requestData: { ...requestData, type: 'new' },
