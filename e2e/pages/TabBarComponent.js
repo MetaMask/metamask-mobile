@@ -16,6 +16,7 @@ export default class TabBarComponent {
 
   static async tapWallet() {
     await TestHelpers.waitAndTap(TAB_BAR_WALLET_BUTTON);
+    await TestHelpers.delay(1000);
   }
 
   static async tapActions() {
