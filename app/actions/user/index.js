@@ -99,12 +99,6 @@ export function setGasEducationCarouselSeen() {
   };
 }
 
-export function setNftDetectionDismissed() {
-  return {
-    type: 'SET_NFT_DETECTION_DISMISSED',
-  };
-}
-
 export function logIn() {
   return {
     type: LOGIN,

@@ -13,18 +13,17 @@ import {
   SafeAreaView,
   TouchableWithoutFeedback,
 } from 'react-native';
-
+import RemoteImage from '../../Base/RemoteImage';
 import PropTypes from 'prop-types';
-import { connect } from 'react-redux';
+import { connect, useSelector } from 'react-redux';
 import { baseStyles } from '../../../styles/common';
 import { strings } from '../../../../locales/i18n';
 import Text from '../../Base/Text';
-import RemoteImage from '../../Base/RemoteImage';
 import StyledButton from '../../UI/StyledButton';
 import EvilIcons from 'react-native-vector-icons/EvilIcons';
 import AntIcons from 'react-native-vector-icons/AntDesign';
 import Device from '../../../util/device';
-import { renderShortText } from '../../../util/general';
+import { isIPFSUri, renderShortText } from '../../../util/general';
 import { toLocaleDate } from '../../../util/date';
 import { renderFromWei } from '../../../util/number';
 import { renderShortAddress } from '../../../util/address';
@@ -45,13 +44,19 @@ import {
 import AppConstants from '../../../core/AppConstants';
 import { useTheme } from '../../../util/theme';
 import { selectChainId } from '../../../selectors/networkController';
-import { selectSelectedAddress } from '../../../selectors/preferencesController';
+import {
+  selectDisplayNftMedia,
+  selectIsIpfsGatewayEnabled,
+  selectSelectedAddress,
+} from '../../../selectors/preferencesController';
 
 const ANIMATION_VELOCITY = 250;
 const HAS_NOTCH = Device.hasNotch();
 const ANIMATION_OFFSET = HAS_NOTCH ? 30 : 50;
 const IS_SMALL_DEVICE = Device.isSmallDevice();
 const VERTICAL_ALIGNMENT = IS_SMALL_DEVICE ? 12 : 16;
+
+const THRESHOLD = 50;
 
 const createStyles = (colors) =>
   StyleSheet.create({
@@ -77,6 +82,7 @@ const createStyles = (colors) =>
     userContainer: {
       flexDirection: 'row',
       paddingBottom: 16,
+      alignItems: 'center',
     },
     userImage: {
       width: 38,
@@ -113,6 +119,7 @@ const createStyles = (colors) =>
     },
     userInfoContainer: {
       justifyContent: 'center',
+      marginLeft: 8,
     },
     titleWrapper: {
       width: '100%',
@@ -154,12 +161,16 @@ const CollectibleOverview = ({
   onTranslation,
 }) => {
   const [headerHeight, setHeaderHeight] = useState(0);
+  const [prevWrapperHeight, setPrevWrapperHeight] = useState(0);
   const [wrapperHeight, setWrapperHeight] = useState(0);
   const [position, setPosition] = useState(0);
   const positionAnimated = useRef(new Animated.Value(0)).current;
   const scrollViewRef = useRef(null);
   const { colors } = useTheme();
   const styles = createStyles(colors);
+
+  const isIpfsGatewayEnabled = useSelector(selectIsIpfsGatewayEnabled);
+  const displayNftMedia = useSelector(selectDisplayNftMedia);
 
   const translationHeight = useMemo(
     () => wrapperHeight - headerHeight - ANIMATION_OFFSET,
@@ -285,8 +296,8 @@ const CollectibleOverview = ({
       nativeEvent: {
         layout: { height },
       },
-    }) => headerHeight === 0 && setHeaderHeight(height),
-    [headerHeight],
+    }) => setHeaderHeight(height),
+    [],
   );
 
   const onWrapperLayout = useCallback(
@@ -294,8 +305,14 @@ const CollectibleOverview = ({
       nativeEvent: {
         layout: { height },
       },
-    }) => wrapperHeight === 0 && setWrapperHeight(height),
-    [wrapperHeight],
+    }) => {
+      //This condition is needed to prevent bouncing when the component is rendered
+      if (Math.abs(height - prevWrapperHeight) > THRESHOLD) {
+        setWrapperHeight(height);
+        setPrevWrapperHeight(height);
+      }
+    },
+    [prevWrapperHeight],
   );
 
   const animateViewPosition = useCallback(
@@ -347,6 +364,11 @@ const CollectibleOverview = ({
     }
   }, [headerHeight, wrapperHeight, translationHeight, animateViewPosition]);
 
+  const isCollectionIconRenderable = Boolean(
+    displayNftMedia ||
+      (!displayNftMedia && isIpfsGatewayEnabled && isIPFSUri(collectible.logo)),
+  );
+
   return gestureHandlerWrapper(
     <Animated.View
       onLayout={onWrapperLayout}
@@ -364,14 +386,16 @@ const CollectibleOverview = ({
           <View style={styles.generalContainer}>
             {collectible?.creator && (
               <View style={styles.userContainer}>
-                <RemoteImage
-                  fadeIn
-                  placeholderStyle={{
-                    backgroundColor: colors.background.alternative,
-                  }}
-                  source={{ uri: collectible.creator.profile_img_url }}
-                  style={styles.userImage}
-                />
+                {isCollectionIconRenderable && (
+                  <RemoteImage
+                    fadeIn
+                    placeholderStyle={{
+                      backgroundColor: colors.background.alternative,
+                    }}
+                    source={{ uri: collectible.logo }}
+                    style={styles.userImage}
+                  />
+                )}
                 <View numberOfLines={1} style={styles.userInfoContainer}>
                   {collectible.creator.user?.username && (
                     <Text black bold noMargin big={!IS_SMALL_DEVICE}>

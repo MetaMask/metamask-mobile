@@ -5,6 +5,8 @@ import registryAbi from './contracts/registry';
 import resolverAbi from './contracts/resolver';
 import contentHash from 'content-hash';
 import multihash from 'multihashes';
+import Engine from '../../core/Engine';
+import { IPFS_GATEWAY_DISABLED_ERROR } from '../../components/Views/BrowserTab/constants';
 
 export default async function resolveEnsToIpfsContentId({ provider, name }) {
   const eth = new Eth(provider);
@@ -33,6 +35,9 @@ export default async function resolveEnsToIpfsContentId({ provider, name }) {
     const rawContentHash = contentLookupResult[0];
     const decodedContentHash = contentHash.decode(rawContentHash);
     const type = contentHash.getCodec(rawContentHash);
+    if (!Engine.context.PreferencesController.state.isIpfsGatewayEnabled) {
+      throw new Error(IPFS_GATEWAY_DISABLED_ERROR);
+    }
     return { type, hash: decodedContentHash };
   }
   if (isLegacyResolver[0]) {
@@ -51,7 +56,9 @@ export default async function resolveEnsToIpfsContentId({ provider, name }) {
     const contentId = multihash.toB58String(
       multihash.encode(buffer, 'sha2-256'),
     );
-
+    if (!Engine.context.PreferencesController.state.isIpfsGatewayEnabled) {
+      throw new Error(IPFS_GATEWAY_DISABLED_ERROR);
+    }
     return { type: 'ipfs-ns', hash: contentId };
   }
 
