@@ -1,5 +1,5 @@
 diff --git a/node_modules/@metamask/preferences-controller/dist/PreferencesController.d.ts b/node_modules/@metamask/preferences-controller/dist/PreferencesController.d.ts
-index 6a6be4f..ec2d81e 100644
+index 6a6be4f..dfaa33e 100644
 --- a/node_modules/@metamask/preferences-controller/dist/PreferencesController.d.ts
 +++ b/node_modules/@metamask/preferences-controller/dist/PreferencesController.d.ts
 @@ -34,10 +34,14 @@ export interface PreferencesState extends BaseState {
@@ -13,7 +13,7 @@ index 6a6be4f..ec2d81e 100644
          [methodName: string]: boolean;
      };
 +    showTestNetworks: boolean;
-+    isIpfsGatewayEnabled: boolean;
++    isIpfsGatewayEnabled:boolean;
 +    securityAlertsEnabled: boolean;
  }
  /**
@@ -26,14 +26,14 @@ index 6a6be4f..ec2d81e 100644
 +     * Toggle the display nft media enabled setting.
       *
 -     * @param openSeaEnabled - Boolean indicating user preference on using OpenSea's API.
-+     * @param setDisplayNftMedia - Boolean indicating user preference on using web2 third parties.
++     * @param displayNftMedia - Boolean indicating user preference on using web2 third parties.
       */
 -    setOpenSeaEnabled(openSeaEnabled: boolean): void;
 +    setDisplayNftMedia(displayNftMedia: boolean): void;
      /**
       * A setter for the user preferences to enable/disable rpc methods.
       *
-@@ -132,5 +136,18 @@ export declare class PreferencesController extends BaseController<BaseConfig, Pr
+@@ -132,5 +136,19 @@ export declare class PreferencesController extends BaseController<BaseConfig, Pr
       * @param isEnabled - true to enable the rpc method, false to disable it.
       */
      setDisabledRpcMethodPreference(methodName: string, isEnabled: boolean): void;
@@ -50,10 +50,11 @@ index 6a6be4f..ec2d81e 100644
 +     * @param isIpfsGatewayEnabled - true to enable ipfs source
 +     */
 +    setIsIpfsGatewayEnabled(isIpfsGatewayEnabled: boolean): void;
++
  }
  export default PreferencesController;
 diff --git a/node_modules/@metamask/preferences-controller/dist/PreferencesController.js b/node_modules/@metamask/preferences-controller/dist/PreferencesController.js
-index ba0da42..4ccf189 100644
+index ba0da42..7cde2b0 100644
 --- a/node_modules/@metamask/preferences-controller/dist/PreferencesController.js
 +++ b/node_modules/@metamask/preferences-controller/dist/PreferencesController.js
 @@ -27,10 +27,14 @@ class PreferencesController extends base_controller_1.BaseController {
@@ -84,7 +85,8 @@ index ba0da42..4ccf189 100644
          this.update({ useNftDetection });
      }
      /**
-      * Toggle the opensea enabled setting.
+-     * Toggle the opensea enabled setting.
++     * Toggle the display nft media enabled setting.
       *
 -     * @param openSeaEnabled - Boolean indicating user preference on using OpenSea's API.
 +     * @param displayNftMedia - Boolean indicating user preference on using web2 third parties.
@@ -98,10 +100,11 @@ index ba0da42..4ccf189 100644
              this.update({ useNftDetection: false });
          }
      }
-@@ -208,6 +212,34 @@ class PreferencesController extends base_controller_1.BaseController {
+@@ -208,6 +212,35 @@ class PreferencesController extends base_controller_1.BaseController {
          const newDisabledRpcMethods = Object.assign(Object.assign({}, disabledRpcMethodPreferences), { [methodName]: isEnabled });
          this.update({ disabledRpcMethodPreferences: newDisabledRpcMethods });
      }
++
 +    /**
 +     * A setter for the user preferences to enable/disable fetch of multiple accounts balance.
 +     *
@@ -110,16 +113,16 @@ index ba0da42..4ccf189 100644
 +    setIsMultiAccountBalancesEnabled(isMultiAccountBalancesEnabled) {
 +        this.update({ isMultiAccountBalancesEnabled });
 +    }
-+                
++            
 +    setShowTestNetworks(showTestNetworks) {
 +        this.update({showTestNetworks});
 +    }
 +    /**
-+     * A setter for the user enable the IPFS gateway
-+     *
-+     * @param isIpfsGatewayEnabled - true to enable ipfs source
-+     */
-+     setIsIpfsGatewayEnabled(isIpfsGatewayEnabled) {
++    * A setter for the user enable the IPFS gateway
++    *
++    * @param isIpfsGatewayEnabled - true to enable ipfs source
++    */
++    setIsIpfsGatewayEnabled(isIpfsGatewayEnabled) {
 +        this.update({ isIpfsGatewayEnabled });
 +    }
 +    /**
