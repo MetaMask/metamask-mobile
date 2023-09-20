@@ -40,7 +40,7 @@ const BannerBase: React.FC<BannerBaseProps> = ({
     typeof title === 'string' ? (
       <Text variant={DEFAULT_BANNERBASE_TITLE_TEXTVARIANT}>{title}</Text>
     ) : (
-      { title }
+      title
     );
   const renderDescription = () =>
     typeof description === 'string' ? (
@@ -48,7 +48,7 @@ const BannerBase: React.FC<BannerBaseProps> = ({
         {description}
       </Text>
     ) : (
-      { description }
+      description
     );
 
   return (
