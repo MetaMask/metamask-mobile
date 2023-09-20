@@ -6,9 +6,9 @@ import { setAllowLoginWithRememberMe } from '../../../../../actions/security';
 import { useNavigation } from '@react-navigation/native';
 import { createTurnOffRememberMeModalNavDetails } from '../../../..//UI/TurnOffRememberMeModal/TurnOffRememberMeModal';
 
-import { SECURITY_PRIVACY_REMEMBER_ME_TOGGLE } from '../../../../../../wdio/screen-objects/testIDs/Screens/SecurityPrivacy.testIds';
 import { Authentication } from '../../../../../core';
 import AUTHENTICATION_TYPE from '../../../../../constants/userProperties';
+import { TURN_ON_REMEMBER_ME } from '../SecuritySettings.constants';
 
 const RememberMeOptionSection = () => {
   const { navigate } = useNavigation();
@@ -51,7 +51,7 @@ const RememberMeOptionSection = () => {
       description={strings(`remember_me.enable_remember_me_description`)}
       value={allowLoginWithRememberMe}
       onOptionUpdated={(value) => onValueChanged(value)}
-      testId={SECURITY_PRIVACY_REMEMBER_ME_TOGGLE}
+      testId={TURN_ON_REMEMBER_ME}
     />
   );
 };

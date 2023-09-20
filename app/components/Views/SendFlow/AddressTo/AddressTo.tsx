@@ -1,6 +1,6 @@
 import React from 'react';
 import { Alert } from 'react-native';
-import { useDispatch, useSelector } from 'react-redux';
+import { useDispatch } from 'react-redux';
 
 import { useNavigation } from '@react-navigation/native';
 
@@ -8,7 +8,6 @@ import { strings } from '../../../../../locales/i18n';
 import { showAlert } from '../../../../actions/alert';
 import { NetworkSwitchErrorType } from '../../../../constants/error';
 import Routes from '../../../../constants/navigation/Routes';
-import { selectNetwork } from '../../../../selectors/networkController';
 import { handleNetworkSwitch } from '../../../../util/networks';
 import { AddressTo } from '../../../UI/AddressInputs';
 import { createQRScannerNavDetails } from '../../QRScanner';
@@ -30,8 +29,6 @@ const SendFlowAddressTo = ({
   const navigation = useNavigation();
   const dispatch = useDispatch();
 
-  const networkId = useSelector(selectNetwork);
-
   const showAlertAction = (config: any) => dispatch(showAlert(config));
 
   const onHandleNetworkSwitch = (chain_id: string) => {
@@ -44,7 +41,7 @@ const SendFlowAddressTo = ({
         isVisible: true,
         autodismiss: 5000,
         content: 'clipboard-alert',
-        data: { msg: strings('send.warn_network_change') + networkId },
+        data: { msg: strings('send.warn_network_change') + networkName },
       });
     } catch (e: any) {
       let alertMessage;
