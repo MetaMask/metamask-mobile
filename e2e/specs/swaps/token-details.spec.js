@@ -6,7 +6,7 @@ import WalletView from '../../pages/WalletView';
 import TokenOverview from '../../pages/TokenOverview';
 import {
   switchToGoreliNetwork,
-  importWalletWithRecoveryPhrase,
+  CreateNewWallet,
 } from '../../viewHelper';
 import Networks from '../../resources/networks.json';
 
@@ -16,7 +16,7 @@ describe(Smoke('Token Chart Tests'), () => {
   });
 
   it('should import wallet and go to the wallet view', async () => {
-    await importWalletWithRecoveryPhrase();
+    await CreateNewWallet();
   });
 
   it('should view the token chart', async () => {
