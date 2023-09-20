@@ -1,0 +1,894 @@
+/* eslint-disable react/prop-types */
+import React, { useCallback, useEffect, useRef, useState } from 'react';
+import {
+  Alert,
+  Switch,
+  Text,
+  ScrollView,
+  View,
+  ActivityIndicator,
+  Keyboard,
+  InteractionManager,
+  Platform,
+} from 'react-native';
+import AsyncStorage from '../../../../store/async-storage-wrapper';
+import { useDispatch, useSelector } from 'react-redux';
+import { MAINNET } from '../../../../constants/network';
+import ActionModal from '../../../UI/ActionModal';
+import StyledButton from '../../../UI/StyledButton';
+import { clearHistory } from '../../../../actions/browser';
+import { colors as importedColors } from '../../../../styles/common';
+import Logger from '../../../../util/Logger';
+import { getNavigationOptionsTitle } from '../../../UI/Navbar';
+import { setLockTime } from '../../../../actions/settings';
+import { strings } from '../../../../../locales/i18n';
+import Analytics from '../../../../core/Analytics/Analytics';
+import { passwordSet } from '../../../../actions/user';
+import Engine from '../../../../core/Engine';
+import AppConstants from '../../../../core/AppConstants';
+import {
+  EXISTING_USER,
+  TRUE,
+  PASSCODE_DISABLED,
+  BIOMETRY_CHOICE_DISABLED,
+  SEED_PHRASE_HINTS,
+} from '../../../../constants/storage';
+import HintModal from '../../../UI/HintModal';
+import { MetaMetricsEvents } from '../../../../core/Analytics';
+import AnalyticsV2, {
+  trackErrorAsAnalytics,
+} from '../../../../util/analyticsV2';
+import { Authentication } from '../../../../core';
+import AUTHENTICATION_TYPE from '../../../../constants/userProperties';
+import { useTheme } from '../../../../util/theme';
+import {
+  ClearCookiesSection,
+  DeleteMetaMetricsData,
+  DeleteWalletData,
+  RememberMeOptionSection,
+  AutomaticSecurityChecks,
+  ProtectYourWallet,
+  LoginOptionsSettings,
+  RevealPrivateKey,
+  ChangePassword,
+  AutoLock,
+  ClearPrivacy,
+} from './Sections';
+import {
+  selectProviderType,
+  selectNetworkConfigurations,
+} from '../../../../selectors/networkController';
+import {
+  selectIpfsGateway,
+  selectIsIpfsGatewayEnabled,
+  selectIsMultiAccountBalancesEnabled,
+  selectDisplayNftMedia,
+  selectUseNftDetection,
+  selectShowIncomingTransactionNetworks,
+  selectShowTestNetworks,
+} from '../../../../selectors/preferencesController';
+import {
+  SECURITY_PRIVACY_MULTI_ACCOUNT_BALANCES_TOGGLE_ID,
+  SECURITY_PRIVACY_VIEW_ID,
+} from '../../../../../wdio/screen-objects/testIDs/Screens/SecurityPrivacy.testIds';
+import generateTestId from '../../../../../wdio/utils/generateTestId';
+import ipfsGateways from '../../../../util/ipfs-gateways.json';
+import SelectComponent from '../../../UI/SelectComponent';
+import { timeoutFetch } from '../../../../util/general';
+import createStyles from './SecuritySettings.styles';
+import {
+  EtherscanNetworksType,
+  Gateway,
+  HeadingProps,
+  NetworksI,
+  SecuritySettingsParams,
+} from './SecuritySettings.types';
+import { useFocusEffect, useNavigation } from '@react-navigation/native';
+import { useParams } from '../../../../util/navigation/navUtils';
+import {
+  BATCH_BALANCE_REQUESTS_SECTION,
+  BIOMETRY_CHOICE_STRING,
+  CLEAR_BROWSER_HISTORY_SECTION,
+  HASH_STRING,
+  HASH_TO_TEST,
+  IPFS_GATEWAY_SECTION,
+  META_METRICS_SECTION,
+  NFT_AUTO_DETECT_MODE_SECTION,
+  NFT_DISPLAY_MEDIA_MODE_SECTION,
+  PASSCODE_CHOICE_STRING,
+  SDK_SECTION,
+} from './SecuritySettings.constants';
+import Cell from '../../../..//component-library/components/Cells/Cell/Cell';
+import { CellVariants } from '../../../../component-library/components/Cells/Cell';
+import { AvatarVariants } from '../../../../component-library/components/Avatars/Avatar/Avatar.types';
+import Networks, {
+  getAllNetworks,
+  getNetworkImageSource,
+} from '../../../../util/networks';
+import images from 'images/image-icons';
+import { toHexadecimal } from '../../../../util/number';
+import { ETHERSCAN_SUPPORTED_NETWORKS } from '@metamask/transaction-controller/dist/constants';
+
+const Heading: React.FC<HeadingProps> = ({ children, first }) => {
+  const { colors } = useTheme();
+  const styles = createStyles(colors);
+  return (
+    <View style={[styles.setting, first && styles.firstSetting]}>
+      <Text style={[styles.title, styles.heading]}>{children}</Text>
+    </View>
+  );
+};
+
+const Settings: React.FC = () => {
+  const { colors } = useTheme();
+  const styles = createStyles(colors);
+  const navigation = useNavigation();
+  const params = useParams<SecuritySettingsParams>();
+  const dispatch = useDispatch();
+  const [loading, setLoading] = useState(false);
+  const [browserHistoryModalVisible, setBrowserHistoryModalVisible] =
+    useState(false);
+  const [analyticsEnabled, setAnalyticsEnabled] = useState(false);
+  const [showHint, setShowHint] = useState(false);
+  const [hintText, setHintText] = useState('');
+  const [onlineIpfsGateways, setOnlineIpfsGateways] = useState<Gateway[]>([]);
+  const [gotAvailableGateways, setGotAvailableGateways] = useState(false);
+
+  const scrollViewRef = useRef<ScrollView>(null);
+  const detectNftComponentRef = useRef<View>(null);
+
+  const browserHistory = useSelector((state: any) => state.browser.history);
+
+  const lockTime = useSelector((state: any) => state.settings.lockTime);
+  const showTestNetworks = useSelector(selectShowTestNetworks);
+  const showIncomingTransactionsNetworks = useSelector(
+    selectShowIncomingTransactionNetworks,
+  );
+  const networkConfigurations = useSelector(selectNetworkConfigurations);
+  const displayNftMedia = useSelector(selectDisplayNftMedia);
+  const useNftDetection = useSelector(selectUseNftDetection);
+
+  const seedphraseBackedUp = useSelector(
+    (state: any) => state.user.seedphraseBackedUp,
+  );
+  const type = useSelector(selectProviderType);
+  const isMultiAccountBalancesEnabled = useSelector(
+    selectIsMultiAccountBalancesEnabled,
+  );
+  const ipfsGateway = useSelector(selectIpfsGateway);
+  const isIpfsGatewayEnabled = useSelector(selectIsIpfsGatewayEnabled);
+  const myNetworks = ETHERSCAN_SUPPORTED_NETWORKS as EtherscanNetworksType;
+
+  const isMainnet = type === MAINNET;
+
+  const updateNavBar = useCallback(() => {
+    navigation.setOptions(
+      getNavigationOptionsTitle(
+        strings('app_settings.security_title'),
+        navigation,
+        false,
+        colors,
+        null,
+      ),
+    );
+  }, [colors, navigation]);
+
+  const handleAvailableIpfsGateways = useCallback(async () => {
+    if (!isIpfsGatewayEnabled) return;
+    const ipfsGatewaysPromises = ipfsGateways.map(async (gateway: Gateway) => {
+      const testUrl =
+        gateway.value + HASH_TO_TEST + '#x-ipfs-companion-no-redirect';
+      try {
+        const res = await timeoutFetch(testUrl, 1200);
+        const text = await res.text();
+        const available = text.trim() === HASH_STRING.trim();
+        return { ...gateway, available };
+      } catch (e) {
+        const available = false;
+        return { ...gateway, available };
+      }
+    });
+    const ipfsGatewaysAvailability = await Promise.all(ipfsGatewaysPromises);
+    const onlineGateways = ipfsGatewaysAvailability.filter(
+      (gateway) => gateway.available,
+    );
+
+    const sortedOnlineIpfsGateways = [...onlineGateways].sort(
+      (a, b) => a.key - b.key,
+    );
+
+    setGotAvailableGateways(true);
+    setOnlineIpfsGateways(sortedOnlineIpfsGateways);
+  }, [isIpfsGatewayEnabled]);
+
+  const handleHintText = useCallback(async () => {
+    const currentSeedphraseHints = await AsyncStorage.getItem(
+      SEED_PHRASE_HINTS,
+    );
+    const parsedHints =
+      currentSeedphraseHints && JSON.parse(currentSeedphraseHints);
+    const manualBackup = parsedHints?.manualBackup;
+
+    setHintText(manualBackup);
+  }, []);
+
+  useEffect(() => {
+    updateNavBar();
+    handleHintText();
+    AnalyticsV2.trackEvent(MetaMetricsEvents.VIEW_SECURITY_SETTINGS, {});
+    const isAnalyticsEnabled = Analytics.checkEnabled();
+    setAnalyticsEnabled(isAnalyticsEnabled);
+  }, [handleHintText, updateNavBar]);
+
+  const scrollToDetectNFTs = useCallback(() => {
+    if (detectNftComponentRef.current) {
+      detectNftComponentRef.current?.measureLayout(
+        scrollViewRef.current as any,
+        (_, y) => {
+          scrollViewRef.current?.scrollTo({
+            y,
+            animated: true,
+          });
+        },
+        () => null,
+      );
+    }
+  }, []);
+
+  const waitForRenderDetectNftComponentRef = useCallback(async () => {
+    if (params?.scrollToDetectNFTs) {
+      // Add a delay to ensure the component is fully rendered
+      await new Promise((resolve) => setTimeout(resolve, 0));
+
+      // Scroll to the desired position
+      scrollToDetectNFTs();
+    }
+  }, [scrollToDetectNFTs, params?.scrollToDetectNFTs]);
+
+  useFocusEffect(
+    useCallback(() => {
+      waitForRenderDetectNftComponentRef();
+    }, [waitForRenderDetectNftComponentRef]),
+  );
+
+  useEffect(() => {
+    handleAvailableIpfsGateways();
+  }, [handleAvailableIpfsGateways]);
+
+  const toggleHint = () => {
+    setShowHint(!showHint);
+  };
+
+  const saveHint = async () => {
+    if (!hintText) return;
+    toggleHint();
+    const currentSeedphraseHints = await AsyncStorage.getItem(
+      SEED_PHRASE_HINTS,
+    );
+    if (currentSeedphraseHints) {
+      const parsedHints = JSON.parse(currentSeedphraseHints);
+      await AsyncStorage.setItem(
+        SEED_PHRASE_HINTS,
+        JSON.stringify({ ...parsedHints, manualBackup: hintText }),
+      );
+    }
+  };
+
+  const storeCredentials = async (
+    password: string,
+    enabled: boolean,
+    authChoice: string,
+  ) => {
+    try {
+      await Authentication.resetPassword();
+
+      await Engine.context.KeyringController.exportSeedPhrase(password);
+
+      await AsyncStorage.setItem(EXISTING_USER, TRUE);
+
+      if (!enabled) {
+        setLoading(false);
+        if (authChoice === PASSCODE_CHOICE_STRING) {
+          await AsyncStorage.setItem(PASSCODE_DISABLED, TRUE);
+        } else if (authChoice === BIOMETRY_CHOICE_STRING) {
+          await AsyncStorage.setItem(BIOMETRY_CHOICE_DISABLED, TRUE);
+          await AsyncStorage.setItem(PASSCODE_DISABLED, TRUE);
+        }
+
+        return;
+      }
+
+      try {
+        let authType;
+        if (authChoice === BIOMETRY_CHOICE_STRING) {
+          authType = AUTHENTICATION_TYPE.BIOMETRIC;
+        } else if (authChoice === PASSCODE_CHOICE_STRING) {
+          authType = AUTHENTICATION_TYPE.PASSCODE;
+        } else {
+          authType = AUTHENTICATION_TYPE.PASSWORD;
+        }
+        await Authentication.storePassword(password, authType);
+      } catch (error) {
+        Logger.error(error as string, {});
+      }
+
+      dispatch(passwordSet());
+
+      if (lockTime === -1) {
+        dispatch(setLockTime(AppConstants.DEFAULT_LOCK_TIMEOUT));
+      }
+      setLoading(false);
+    } catch (e) {
+      const errorWithMessage = e as { message: string };
+      if (errorWithMessage.message === 'Invalid password') {
+        Alert.alert(
+          strings('app_settings.invalid_password'),
+          strings('app_settings.invalid_password_message'),
+        );
+        trackErrorAsAnalytics(
+          'SecuritySettings: Invalid password',
+          errorWithMessage?.message,
+          '',
+        );
+      } else {
+        Logger.error(e as string, 'SecuritySettings:biometrics');
+      }
+      setLoading(false);
+    }
+  };
+
+  const setPassword = async (enabled: boolean, passwordType: string) => {
+    setLoading(true);
+    let credentials;
+    try {
+      credentials = await Authentication.getPassword();
+    } catch (error) {
+      Logger.error(error as string, {});
+    }
+
+    if (credentials && credentials.password !== '') {
+      storeCredentials(credentials.password, enabled, passwordType);
+    } else {
+      navigation.navigate('EnterPasswordSimple', {
+        onPasswordSet: (password: string) => {
+          storeCredentials(password, enabled, passwordType);
+        },
+      });
+    }
+  };
+
+  const onSignInWithPasscode = async (enabled: boolean) => {
+    await setPassword(enabled, PASSCODE_CHOICE_STRING);
+  };
+
+  const onSingInWithBiometrics = async (enabled: boolean) => {
+    await setPassword(enabled, BIOMETRY_CHOICE_STRING);
+  };
+
+  const goToSDKSessionManager = () => {
+    navigation.navigate('SDKSessionsManager');
+  };
+
+  const renderSDKSettings = () => (
+    <View style={[styles.setting, styles.firstSetting]} testID={SDK_SECTION}>
+      <Text style={styles.title}>
+        {strings('app_settings.manage_sdk_connections_title')}
+      </Text>
+      <Text style={styles.desc}>
+        {strings('app_settings.manage_sdk_connections_text')}
+      </Text>
+      <StyledButton
+        type="normal"
+        containerStyle={styles.confirm}
+        onPress={goToSDKSessionManager}
+      >
+        {strings('app_settings.manage_sdk_connections_title')}
+      </StyledButton>
+    </View>
+  );
+
+  const toggleClearBrowserHistoryModal = () => {
+    setBrowserHistoryModalVisible(!browserHistoryModalVisible);
+  };
+
+  const renderClearBrowserHistorySection = () => (
+    <View style={styles.setting} testID={CLEAR_BROWSER_HISTORY_SECTION}>
+      <Text style={styles.title}>
+        {strings('app_settings.clear_browser_history_desc')}
+      </Text>
+      <Text style={styles.desc}>
+        {strings('app_settings.clear_history_desc')}
+      </Text>
+      <StyledButton
+        type="normal"
+        onPress={toggleClearBrowserHistoryModal}
+        disabled={browserHistory.length === 0}
+        containerStyle={styles.confirm}
+      >
+        {strings('app_settings.clear_browser_history_desc')}
+      </StyledButton>
+    </View>
+  );
+
+  /**
+   * Track the event of opt in or opt out.
+   * @param AnalyticsOptionSelected - User selected option regarding the tracking of events
+   */
+  const trackOptInEvent = (AnalyticsOptionSelected: string) => {
+    InteractionManager.runAfterInteractions(async () => {
+      AnalyticsV2.trackEvent(MetaMetricsEvents.ANALYTICS_PREFERENCE_SELECTED, {
+        analytics_option_selected: AnalyticsOptionSelected,
+        updated_after_onboarding: true,
+      });
+    });
+  };
+
+  const toggleMetricsOptIn = (value: boolean) => {
+    if (value) {
+      Analytics.enable();
+
+      setAnalyticsEnabled(true);
+      trackOptInEvent('Metrics Opt In');
+    } else {
+      trackOptInEvent('Metrics Opt Out');
+      Analytics.disable();
+      setAnalyticsEnabled(false);
+      Alert.alert(
+        strings('app_settings.metametrics_opt_out'),
+        strings('app_settings.metametrics_restart_required'),
+      );
+    }
+  };
+
+  const renderMetaMetricsSection = () => (
+    <View style={styles.setting} testID={META_METRICS_SECTION}>
+      <Text style={styles.title}>
+        {strings('app_settings.metametrics_title')}
+      </Text>
+      <Text style={styles.desc}>
+        {strings('app_settings.metametrics_description')}
+      </Text>
+      <View style={styles.switchElement}>
+        <Switch
+          value={analyticsEnabled}
+          onValueChange={toggleMetricsOptIn}
+          trackColor={{
+            true: colors.primary.default,
+            false: colors.border.muted,
+          }}
+          thumbColor={importedColors.white}
+          style={styles.switch}
+          ios_backgroundColor={colors.border.muted}
+          testID={'metametrics-switch'}
+        />
+      </View>
+    </View>
+  );
+
+  const toggleIsMultiAccountBalancesEnabled = (
+    multiAccountBalancesEnabled: boolean,
+  ) => {
+    const { PreferencesController } = Engine.context;
+    PreferencesController.setIsMultiAccountBalancesEnabled(
+      multiAccountBalancesEnabled,
+    );
+  };
+
+  const renderMultiAccountBalancesSection = () => (
+    <View style={styles.setting} testID={BATCH_BALANCE_REQUESTS_SECTION}>
+      <Text style={styles.title}>
+        {strings('app_settings.batch_balance_requests_title')}
+      </Text>
+      <Text style={styles.desc}>
+        {strings('app_settings.batch_balance_requests_description')}
+      </Text>
+      <View style={styles.switchElement}>
+        <Switch
+          value={isMultiAccountBalancesEnabled}
+          onValueChange={toggleIsMultiAccountBalancesEnabled}
+          trackColor={{
+            true: colors.primary.default,
+            false: colors.border.muted,
+          }}
+          thumbColor={importedColors.white}
+          style={styles.switch}
+          ios_backgroundColor={colors.border.muted}
+          {...generateTestId(
+            Platform,
+            SECURITY_PRIVACY_MULTI_ACCOUNT_BALANCES_TOGGLE_ID,
+          )}
+        />
+      </View>
+    </View>
+  );
+  const toggleEnableIncomingTransactions = (
+    hexChainId: string,
+    value: boolean,
+  ) => {
+    const { PreferencesController } = Engine.context;
+    PreferencesController.setEnableNetworkIncomingTransactions(
+      hexChainId,
+      value,
+    );
+  };
+
+  const clearBrowserHistory = () => {
+    dispatch(clearHistory());
+    toggleClearBrowserHistoryModal();
+  };
+
+  const renderHistoryModal = () => (
+    <ActionModal
+      modalVisible={browserHistoryModalVisible}
+      confirmText={strings('app_settings.clear')}
+      cancelText={strings('app_settings.reset_account_cancel_button')}
+      onCancelPress={toggleClearBrowserHistoryModal}
+      onRequestClose={toggleClearBrowserHistoryModal}
+      onConfirmPress={clearBrowserHistory}
+    >
+      <View style={styles.modalView}>
+        <Text style={styles.modalTitle}>
+          {strings('app_settings.clear_browser_history_modal_title')}
+        </Text>
+        <Text style={styles.modalText}>
+          {strings('app_settings.clear_browser_history_modal_message')}
+        </Text>
+      </View>
+    </ActionModal>
+  );
+
+  const toggleDisplayNftMedia = (value: boolean) => {
+    const { PreferencesController } = Engine.context;
+    PreferencesController?.setDisplayNftMedia(value);
+    if (!value) PreferencesController?.setUseNftDetection(value);
+  };
+
+  const toggleNftAutodetect = (value: boolean) => {
+    const { PreferencesController } = Engine.context;
+    if (value) {
+      PreferencesController.setDisplayNftMedia(value);
+    }
+    PreferencesController.setUseNftDetection(value);
+  };
+
+  const renderDisplayNftMedia = useCallback(
+    () => (
+      <View style={styles.setting} testID={NFT_DISPLAY_MEDIA_MODE_SECTION}>
+        <Text style={styles.title}>
+          {strings('app_settings.display_nft_media')}
+        </Text>
+        <Text style={styles.desc}>
+          {strings('app_settings.display_nft_media_desc')}
+        </Text>
+        <View style={styles.switchElement}>
+          <Switch
+            value={displayNftMedia}
+            onValueChange={toggleDisplayNftMedia}
+            trackColor={{
+              true: colors.primary.default,
+              false: colors.border.muted,
+            }}
+            thumbColor={importedColors.white}
+            style={styles.switch}
+            ios_backgroundColor={colors.border.muted}
+            testID="display-nft-toggle"
+          />
+        </View>
+      </View>
+    ),
+    [colors, styles, displayNftMedia],
+  );
+
+  const renderAutoDetectNft = useCallback(
+    () => (
+      <View
+        style={styles.setting}
+        testID={NFT_AUTO_DETECT_MODE_SECTION}
+        ref={detectNftComponentRef}
+      >
+        <Text style={styles.title}>
+          {strings('app_settings.nft_autodetect_mode')}
+        </Text>
+        <Text style={styles.desc}>
+          {strings('app_settings.autodetect_nft_desc')}
+        </Text>
+        <View style={styles.switchElement}>
+          <Switch
+            value={useNftDetection}
+            onValueChange={toggleNftAutodetect}
+            trackColor={{
+              true: colors.primary.default,
+              false: colors.border.muted,
+            }}
+            thumbColor={importedColors.white}
+            style={styles.switch}
+            ios_backgroundColor={colors.border.muted}
+          />
+        </View>
+      </View>
+    ),
+    [colors, styles, useNftDetection],
+  );
+
+  const setIpfsGateway = (gateway: string) => {
+    const { PreferencesController } = Engine.context;
+    PreferencesController.setIpfsGateway(gateway);
+  };
+
+  const setIsIpfsGatewayEnabled = (isIpfsGatewatEnabled: boolean) => {
+    const { PreferencesController } = Engine.context;
+    PreferencesController.setIsIpfsGatewayEnabled(isIpfsGatewatEnabled);
+  };
+
+  const renderIpfsGateway = () => (
+    <View style={styles.setting} testID={IPFS_GATEWAY_SECTION}>
+      <Text style={styles.title}>{strings('app_settings.ipfs_gateway')}</Text>
+      <Text style={styles.desc}>
+        {strings('app_settings.ipfs_gateway_content')}
+      </Text>
+      <View style={styles.marginTop}>
+        <Switch
+          value={isIpfsGatewayEnabled}
+          onValueChange={setIsIpfsGatewayEnabled}
+          trackColor={{
+            true: colors.primary.default,
+            false: colors.border.muted,
+          }}
+          thumbColor={importedColors.white}
+          style={styles.switch}
+          ios_backgroundColor={colors.border.muted}
+        />
+      </View>
+      {isIpfsGatewayEnabled && (
+        <>
+          <Text style={styles.desc}>
+            {strings('app_settings.ipfs_gateway_desc')}
+          </Text>
+          <View style={styles.picker}>
+            {gotAvailableGateways ? (
+              <SelectComponent
+                selectedValue={ipfsGateway}
+                defaultValue={strings('app_settings.ipfs_gateway_down')}
+                onValueChange={setIpfsGateway}
+                label={strings('app_settings.ipfs_gateway')}
+                options={onlineIpfsGateways}
+              />
+            ) : (
+              <View>
+                <ActivityIndicator size="small" />
+              </View>
+            )}
+          </View>
+        </>
+      )}
+    </View>
+  );
+
+  const handleChangeText = (text: string) => setHintText(text);
+
+  const renderHint = () => (
+    <HintModal
+      onConfirm={saveHint}
+      onCancel={toggleHint}
+      modalVisible={showHint}
+      onRequestClose={Keyboard.dismiss}
+      value={hintText}
+      onChangeText={handleChangeText}
+    />
+  );
+
+  const renderShowIncomingTransactions = () => {
+    const renderMainnet = () => {
+      const { name: mainnetName, hexChainId } = Networks.mainnet;
+      return (
+        <Cell
+          variant={CellVariants.Display}
+          title={mainnetName}
+          avatarProps={{
+            variant: AvatarVariants.Network,
+            name: mainnetName,
+            imageSource: images.ETHEREUM,
+          }}
+          secondaryText="etherscan.io"
+          style={styles.cellBorder}
+        >
+          <Switch
+            value={showIncomingTransactionsNetworks[hexChainId]}
+            onValueChange={(value) =>
+              toggleEnableIncomingTransactions(hexChainId, value)
+            }
+            trackColor={{
+              true: colors.primary.default,
+              false: colors.border.muted,
+            }}
+            thumbColor={importedColors.white}
+            style={styles.switch}
+            ios_backgroundColor={colors.border.muted}
+          />
+        </Cell>
+      );
+    };
+
+    const renderLineaMainnet = () => {
+      const { name: lineaMainnetName, hexChainId } = Networks['linea-mainnet'];
+
+      return (
+        <Cell
+          variant={CellVariants.Display}
+          title={lineaMainnetName}
+          avatarProps={{
+            variant: AvatarVariants.Network,
+            name: lineaMainnetName,
+            imageSource: images['LINEA-MAINNET'],
+          }}
+          secondaryText="lineascan.build"
+          style={styles.cellBorder}
+        >
+          <Switch
+            value={showIncomingTransactionsNetworks[hexChainId]}
+            onValueChange={(value) =>
+              toggleEnableIncomingTransactions(hexChainId, value)
+            }
+            trackColor={{
+              true: colors.primary.default,
+              false: colors.border.muted,
+            }}
+            thumbColor={importedColors.white}
+            style={styles.switch}
+            ios_backgroundColor={colors.border.muted}
+          />
+        </Cell>
+      );
+    };
+
+    const renderRpcNetworks = () =>
+      Object.values(networkConfigurations).map(
+        ({ nickname, rpcUrl, chainId }) => {
+          if (!chainId) return null;
+
+          const hexChainId = `0x${toHexadecimal(chainId)}`;
+
+          if (!Object.keys(myNetworks).includes(hexChainId)) return null;
+
+          const { name } = { name: nickname || rpcUrl };
+          //@ts-expect-error - The utils/network file is still JS and this function expects a networkType, and should be optional
+          const image = getNetworkImageSource({ chainId: chainId?.toString() });
+
+          return (
+            <Cell
+              key={chainId}
+              variant={CellVariants.Display}
+              title={name}
+              secondaryText={myNetworks[hexChainId].domain}
+              avatarProps={{
+                variant: AvatarVariants.Network,
+                name,
+                imageSource: image,
+              }}
+              style={styles.cellBorder}
+            >
+              <Switch
+                value={showIncomingTransactionsNetworks[hexChainId]}
+                onValueChange={(value) =>
+                  toggleEnableIncomingTransactions(hexChainId, value)
+                }
+                trackColor={{
+                  true: colors.primary.default,
+                  false: colors.border.muted,
+                }}
+                thumbColor={importedColors.white}
+                style={styles.switch}
+                ios_backgroundColor={colors.border.muted}
+              />
+            </Cell>
+          );
+        },
+      );
+
+    const renderOtherNetworks = () => {
+      const NetworksTyped = Networks as NetworksI;
+      const getOtherNetworks = () => getAllNetworks().slice(2);
+      return getOtherNetworks().map((networkType) => {
+        const { name, imageSource, chainId, hexChainId } =
+          NetworksTyped[networkType];
+        if (!hexChainId) return null;
+        return (
+          <Cell
+            key={chainId}
+            variant={CellVariants.Display}
+            title={name}
+            secondaryText={myNetworks[hexChainId].domain}
+            avatarProps={{
+              variant: AvatarVariants.Network,
+              name,
+              imageSource,
+            }}
+            style={styles.cellBorder}
+          >
+            <Switch
+              value={showIncomingTransactionsNetworks[hexChainId]}
+              onValueChange={(value) => {
+                hexChainId &&
+                  toggleEnableIncomingTransactions(hexChainId, value);
+              }}
+              trackColor={{
+                true: colors.primary.default,
+                false: colors.border.muted,
+              }}
+              thumbColor={importedColors.white}
+              style={styles.switch}
+              ios_backgroundColor={colors.border.muted}
+            />
+          </Cell>
+        );
+      });
+    };
+
+    return (
+      <View style={styles.setting} testID={'third-party-section'}>
+        <Text style={styles.title}>
+          {strings('app_settings.incoming_transactions_title')}
+        </Text>
+        <Text style={styles.desc}>
+          {strings('app_settings.incoming_transactions_content')}
+        </Text>
+
+        {renderMainnet()}
+        {renderLineaMainnet()}
+        {renderRpcNetworks()}
+        {showTestNetworks && renderOtherNetworks()}
+      </View>
+    );
+  };
+
+  if (loading) {
+    return (
+      <View style={styles.loader}>
+        <ActivityIndicator size="large" />
+      </View>
+    );
+  }
+
+  return (
+    <ScrollView
+      style={styles.wrapper}
+      testID={SECURITY_PRIVACY_VIEW_ID}
+      ref={scrollViewRef}
+    >
+      <View style={styles.inner}>
+        <Heading first>{strings('app_settings.security_heading')}</Heading>
+        <ProtectYourWallet
+          srpBackedup={seedphraseBackedUp}
+          hintText={hintText}
+          toggleHint={toggleHint}
+        />
+        <ChangePassword />
+        <AutoLock />
+        <LoginOptionsSettings
+          onSignWithBiometricsOptionUpdated={onSingInWithBiometrics}
+          onSignWithPasscodeOptionUpdated={onSignInWithPasscode}
+        />
+        <RememberMeOptionSection />
+        <RevealPrivateKey />
+        <Heading>{strings('app_settings.privacy_heading')}</Heading>
+        {renderSDKSettings()}
+        <ClearPrivacy />
+        {renderClearBrowserHistorySection()}
+        <ClearCookiesSection />
+        {renderMetaMetricsSection()}
+        <DeleteMetaMetricsData />
+        <DeleteWalletData />
+        {renderMultiAccountBalancesSection()}
+        {renderShowIncomingTransactions()}
+        {renderHistoryModal()}
+        {renderDisplayNftMedia()}
+        {isMainnet && renderAutoDetectNft()}
+        {renderIpfsGateway()}
+        <AutomaticSecurityChecks />
+        {renderHint()}
+      </View>
+    </ScrollView>
+  );
+};
+
+export default Settings;

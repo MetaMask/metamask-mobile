@@ -1,18 +1,40 @@
 diff --git a/node_modules/@metamask/preferences-controller/dist/PreferencesController.d.ts b/node_modules/@metamask/preferences-controller/dist/PreferencesController.d.ts
-index 6a6be4f..27d85b8 100644
+index 6a6be4f..5be7bae 100644
 --- a/node_modules/@metamask/preferences-controller/dist/PreferencesController.d.ts
 +++ b/node_modules/@metamask/preferences-controller/dist/PreferencesController.d.ts
-@@ -38,6 +38,9 @@ export interface PreferencesState extends BaseState {
+@@ -34,10 +34,15 @@ export interface PreferencesState extends BaseState {
+     selectedAddress: string;
+     useTokenDetection: boolean;
+     useNftDetection: boolean;
+-    openSeaEnabled: boolean;
++    displayNftMedia: boolean;
++    isMultiAccountBalancesEnabled: boolean;
      disabledRpcMethodPreferences: {
          [methodName: string]: boolean;
      };
 +    showTestNetworks: boolean;
++    isIpfsGatewayEnabled:boolean;
 +    securityAlertsEnabled: boolean;
-+    showIncomingTransactions: {[hexChainId: string]: boolean}
++    showIncomingTransactions: {[hexChainId: string]: boolean};
  }
  /**
   * Controller that stores shared settings and exposes convenience methods
-@@ -132,5 +135,16 @@ export declare class PreferencesController extends BaseController<BaseConfig, Pr
+@@ -120,11 +125,11 @@ export declare class PreferencesController extends BaseController<BaseConfig, Pr
+      */
+     setUseNftDetection(useNftDetection: boolean): void;
+     /**
+-     * Toggle the opensea enabled setting.
++     * Toggle the display nft media enabled setting.
+      *
+-     * @param openSeaEnabled - Boolean indicating user preference on using OpenSea's API.
++     * @param displayNftMedia - Boolean indicating user preference on using web2 third parties.
+      */
+-    setOpenSeaEnabled(openSeaEnabled: boolean): void;
++    setDisplayNftMedia(displayNftMedia: boolean): void;
+     /**
+      * A setter for the user preferences to enable/disable rpc methods.
+      *
+@@ -132,5 +137,23 @@ export declare class PreferencesController extends BaseController<BaseConfig, Pr
       * @param isEnabled - true to enable the rpc method, false to disable it.
       */
      setDisabledRpcMethodPreference(methodName: string, isEnabled: boolean): void;
@@ -27,50 +49,61 @@ index 6a6be4f..27d85b8 100644
 +     * @param setSecurityAlertsEnabled - Boolean indicating user preference on using security alerts.
 +     */
 +    setSecurityAlertsEnabled(setSecurityAlertsEnabled: boolean): void;
++     /**
++     * A setter for the user enable the IPFS gateway
++     *
++     * @param isIpfsGatewayEnabled - true to enable ipfs source
++     */
++    setIsIpfsGatewayEnabled(isIpfsGatewayEnabled: boolean): void;
++
  }
  export default PreferencesController;
 diff --git a/node_modules/@metamask/preferences-controller/dist/PreferencesController.js b/node_modules/@metamask/preferences-controller/dist/PreferencesController.js
-index ba0da42..86bf336 100644
+index ba0da42..7e43389 100644
 --- a/node_modules/@metamask/preferences-controller/dist/PreferencesController.js
 +++ b/node_modules/@metamask/preferences-controller/dist/PreferencesController.js
-@@ -3,6 +3,28 @@ Object.defineProperty(exports, "__esModule", { value: true });
+@@ -3,6 +3,29 @@ Object.defineProperty(exports, "__esModule", { value: true });
  exports.PreferencesController = void 0;
  const base_controller_1 = require("@metamask/base-controller");
  const controller_utils_1 = require("@metamask/controller-utils");
 +
 +const ETHERSCAN_SUPPORTED_CHAIN_IDS = {
-+        MAINNET: '0x1',
-+        GOERLI: '0x5',
-+        BSC: '0x38',
-+        BSC_TESTNET: '0x61',
-+        OPTIMISM: '0xa',
-+        OPTIMISM_TESTNET: '0x1a4',
-+        POLYGON: '0x89',
-+        POLYGON_TESTNET: '0x13881',
-+        AVALANCHE: '0xa86a',
-+        AVALANCHE_TESTNET: '0xa869',
-+        FANTOM: '0xfa',
-+        FANTOM_TESTNET: '0xfa2',
-+        SEPOLIA: '0xaa36a7',
-+        LINEA_GOERLI: '0xe704',
-+        LINEA_MAINNET: '0xe708',
-+        MOONBEAM: '0x504',
-+        MOONBEAM_TESTNET: '0x507',
-+        MOONRIVER: '0x505',
-+        GNOSIS: '0x64',
-+      };
++            MAINNET: '0x1',
++            GOERLI: '0x5',
++            BSC: '0x38',
++            BSC_TESTNET: '0x61',
++            OPTIMISM: '0xa',
++            OPTIMISM_TESTNET: '0x1a4',
++            POLYGON: '0x89',
++            POLYGON_TESTNET: '0x13881',
++            AVALANCHE: '0xa86a',
++            AVALANCHE_TESTNET: '0xa869',
++            FANTOM: '0xfa',
++            FANTOM_TESTNET: '0xfa2',
++            SEPOLIA: '0xaa36a7',
++            LINEA_GOERLI: '0xe704',
++            LINEA_MAINNET: '0xe708',
++            MOONBEAM: '0x504',
++            MOONBEAM_TESTNET: '0x507',
++            MOONRIVER: '0x505',
++            GNOSIS: '0x64',
++          };
++
  /**
   * Controller that stores shared settings and exposes convenience methods
   */
-@@ -28,9 +50,33 @@ class PreferencesController extends base_controller_1.BaseController {
+@@ -27,10 +50,35 @@ class PreferencesController extends base_controller_1.BaseController {
+             selectedAddress: '',
              useTokenDetection: true,
              useNftDetection: false,
-             openSeaEnabled: false,
+-            openSeaEnabled: false,
++            displayNftMedia: true,
 +            isMultiAccountBalancesEnabled: true,
              disabledRpcMethodPreferences: {
                  eth_sign: false,
              },
 +            showTestNetworks: false,
++            isIpfsGatewayEnabled: true,
 +            securityAlertsEnabled: false,
 +            showIncomingTransactions: {
 +                [ETHERSCAN_SUPPORTED_CHAIN_IDS.MAINNET]: true,
@@ -96,7 +129,33 @@ index ba0da42..86bf336 100644
          };
          this.initialize();
      }
-@@ -208,6 +254,48 @@ class PreferencesController extends base_controller_1.BaseController {
+@@ -181,19 +229,19 @@ class PreferencesController extends base_controller_1.BaseController {
+      * @param useNftDetection - Boolean indicating user preference on NFT detection.
+      */
+     setUseNftDetection(useNftDetection) {
+-        if (useNftDetection && !this.state.openSeaEnabled) {
++        if (useNftDetection && !this.state.displayNftMedia) {
+             throw new Error('useNftDetection cannot be enabled if openSeaEnabled is false');
+         }
+         this.update({ useNftDetection });
+     }
+     /**
+-     * Toggle the opensea enabled setting.
++     * Toggle the display nft media enabled setting.
+      *
+-     * @param openSeaEnabled - Boolean indicating user preference on using OpenSea's API.
++     * @param displayNftMedia - Boolean indicating user preference on using web2 third parties.
+      */
+-    setOpenSeaEnabled(openSeaEnabled) {
+-        this.update({ openSeaEnabled });
+-        if (!openSeaEnabled) {
++    setDisplayNftMedia(displayNftMedia) {
++        this.update({ displayNftMedia });
++        if (!displayNftMedia) {
+             this.update({ useNftDetection: false });
+         }
+     }
+@@ -208,6 +256,52 @@ class PreferencesController extends base_controller_1.BaseController {
          const newDisabledRpcMethods = Object.assign(Object.assign({}, disabledRpcMethodPreferences), { [methodName]: isEnabled });
          this.update({ disabledRpcMethodPreferences: newDisabledRpcMethods });
      }
@@ -108,20 +167,24 @@ index ba0da42..86bf336 100644
 +    setIsMultiAccountBalancesEnabled(isMultiAccountBalancesEnabled) {
 +        this.update({ isMultiAccountBalancesEnabled });
 +    }
-+    /**
-+    * A setter for the user have the test networks visible/hidden.
-+    *
-+    * @param showTestNetworks - true to show test networks, false to hidden.
-+    */ 
++                
 +    setShowTestNetworks(showTestNetworks) {
 +        this.update({showTestNetworks});
 +    }
 +    /**
-+    * A setter for the user allow to be fetched IPFS content
-+    *
-+    * @param chainId - On hexadecimal format to enable the incoming transaction network
-+    * @param isIncomingTransactionNetworkEnable - true to enable incoming transactions
-+    */
++     * A setter for the user enable the IPFS gateway
++     *
++     * @param isIpfsGatewayEnabled - true to enable ipfs source
++     */
++    setIsIpfsGatewayEnabled(isIpfsGatewayEnabled) {
++        this.update({ isIpfsGatewayEnabled });
++    }
++    /**
++     * A setter for the user allow to be fetched IPFS content
++     *
++     * @param chainId - On hexadecimal format to enable the incoming transaction network
++     * @param isIncomingTransactionNetworkEnable - true to enable incoming transactions
++     */
 +    setEnableNetworkIncomingTransactions(
 +        chainId,
 +        isIncomingTransactionNetworkEnable,
@@ -133,15 +196,15 @@ index ba0da42..86bf336 100644
 +          },
 +        });
 +    }
-+    
++        
 +    /**
-+    * Toggle the security alert setting.
-+    *
-+    * @param setSecurityAlertsEnabled - Boolean indicating user preference on using security alerts.
-+    */
++     * Toggle the security alert setting.
++     *
++     * @param setSecurityAlertsEnabled - Boolean indicating user preference on using security alerts.
++     */
 +    setSecurityAlertsEnabled(securityAlertsEnabled) {
-+     this.update({ securityAlertsEnabled });
-+    }
++        this.update({ securityAlertsEnabled });
++    } 
  }
  exports.PreferencesController = PreferencesController;
  exports.default = PreferencesController;
