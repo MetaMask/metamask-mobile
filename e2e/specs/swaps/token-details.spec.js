@@ -1,5 +1,6 @@
 'use strict';
 
+import TestHelpers from '../../helpers';
 import { Smoke } from '../../tags';
 import WalletView from '../../pages/WalletView';
 import TokenOverview from '../../pages/TokenOverview';
@@ -19,6 +20,7 @@ describe(Smoke('Token Chart Tests'), () => {
   });
 
   it('should view the token chart', async () => {
+    await TestHelpers.delay(7000);
     await WalletView.tapOnToken();
     await TokenOverview.isVisible();
     await TokenOverview.TokenQuoteIsNotZero();
