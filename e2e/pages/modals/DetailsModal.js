@@ -23,6 +23,8 @@ export default class DetailsModal {
   }
 
   static async tapOnCloseIcon(status) {
-    await TestHelpers.waitAndTap(DETAILS_MODAL_CLOSE_ICON);
+    if (device.getPlatform() === 'android') {
+      await TestHelpers.waitAndTap(DETAILS_MODAL_CLOSE_ICON);
+    }
   }
 }
