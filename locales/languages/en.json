@@ -2556,7 +2556,9 @@
     "not_supported_error": "Only version 4 of typed data signing is supported.",
     "error_during_connection": "An unknown error occured",
     "error_during_connection_message": "There's been a slight problem connecting your Ledger Nano X, tap 'Retry' below to give this another go. Sometimes this occurs due to the ETH app on your Ledger Nano X being open at the start of the pairing process with MetaMask Mobile.",
-    "how_to_install_eth_webview_title": "How to install the Ethereum App"
+    "how_to_install_eth_webview_title": "How to install the Ethereum App",
+    "nonce_too_low": "Nonce too low",
+    "nonce_too_low_nonce": "The set nonce  is too low"
   },
   "account_actions": {
     "edit_name": "Edit account name",

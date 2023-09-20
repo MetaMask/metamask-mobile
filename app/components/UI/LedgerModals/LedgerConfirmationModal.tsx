@@ -148,6 +148,12 @@ const LedgerConfirmationModal = ({
             subtitle: strings('ledger.unknown_error_message'),
           });
           break;
+        case LedgerCommunicationErrors.NonceTooLow:
+          setErrorDetails({
+            title: strings('ledger.nonce_too_low'),
+            subtitle: strings('ledger.nonce_too_low_nonce'),
+          });
+          break;
         case LedgerCommunicationErrors.LedgerDisconnected:
         default:
           setErrorDetails({
