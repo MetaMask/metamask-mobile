@@ -4,10 +4,7 @@ import TestHelpers from '../../helpers';
 import { Smoke } from '../../tags';
 import WalletView from '../../pages/WalletView';
 import TokenOverview from '../../pages/TokenOverview';
-import {
-  switchToGoreliNetwork,
-  CreateNewWallet,
-} from '../../viewHelper';
+import { switchToGoreliNetwork, CreateNewWallet } from '../../viewHelper';
 import Networks from '../../resources/networks.json';
 
 describe(Smoke('Token Chart Tests'), () => {

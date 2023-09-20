@@ -17,9 +17,9 @@ export default class SwapView {
 
   static async swipeToSwap() {
     const percentage = device.getPlatform() === 'ios' ? 0.72 : 0.85;
-    await TestHelpers.swipe(SWIPE_TO_SWAP_BUTTON, 'right', 'fast', percentage);
+    await TestHelpers.swipe(SWIPE_TO_SWAP_BUTTON, 'right', 'slow', percentage);
     await TestHelpers.delay(500);
-    await TestHelpers.swipe(SWIPE_TO_SWAP_BUTTON, 'right', 'fast', percentage);
+    await TestHelpers.swipe(SWIPE_TO_SWAP_BUTTON, 'right', 'slow', percentage);
   }
 
   static async waitForSwapToComplete(sourceTokenSymbol, destTokenSymbol) {
