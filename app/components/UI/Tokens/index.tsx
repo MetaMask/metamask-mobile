@@ -416,7 +416,7 @@ const Tokens: React.FC<TokensI> = ({ tokens }) => {
 
     const onOpenPortfolio = () => {
       const existingPortfolioTab = browserTabs.find((tab: BrowserTab) =>
-        tab.url.match(regex.portfolio_url),
+        tab.url.match(regex.portfolioUrl),
       );
       let existingTabId;
       let newTabUrl;

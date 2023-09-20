@@ -147,7 +147,7 @@ describe('AccountSelectorList', () => {
         within(personalAccountItem).getByText(regex.usd[6400]),
       ).toBeDefined();
 
-      const accounts = getAllByTestId(regex.account_balance);
+      const accounts = getAllByTestId(regex.accountBalance);
       expect(accounts.length).toBe(2);
 
       expect(toJSON()).toMatchSnapshot();
@@ -169,7 +169,7 @@ describe('AccountSelectorList', () => {
     });
 
     await waitFor(async () => {
-      const accounts = getAllByTestId(regex.account_balance);
+      const accounts = getAllByTestId(regex.accountBalance);
       expect(accounts.length).toBe(1);
 
       const businessAccountItem = await queryByTestId(

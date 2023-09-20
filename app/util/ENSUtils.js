@@ -111,5 +111,5 @@ export async function doENSLookup(ensName, chainId) {
 }
 
 export function isDefaultAccountName(name) {
-  return regex.default_account.test(name);
+  return regex.defaultAccount.test(name);
 }

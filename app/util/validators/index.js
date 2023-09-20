@@ -37,7 +37,7 @@ export const parseVaultValue = async (password, vault) => {
 };
 
 export const parseSeedPhrase = (seedPhrase) =>
-  (seedPhrase || '').trim().toLowerCase().match(regex.seed_phrase)?.join(' ') ||
+  (seedPhrase || '').trim().toLowerCase().match(regex.seedPhrase)?.join(' ') ||
   '';
 
 export const { isValidMnemonic } = ethers.utils;

@@ -239,7 +239,7 @@ export function isKnownNetwork(id) {
 }
 
 export function isprivateConnection(hostname) {
-  return hostname === 'localhost' || regex.local_network.test(hostname);
+  return hostname === 'localhost' || regex.localNetwork.test(hostname);
 }
 
 /**
@@ -324,7 +324,7 @@ export function isPrefixedFormattedHexString(value) {
   if (typeof value !== 'string') {
     return false;
   }
-  return regex.prefixed_formatted_hex_string.test(value);
+  return regex.prefixedFormattedHexString.test(value);
 }
 
 export const getNetworkNonce = async ({ from }) => {

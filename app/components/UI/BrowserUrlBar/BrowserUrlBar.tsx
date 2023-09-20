@@ -31,9 +31,9 @@ const BrowserUrlBar = ({ url, route, onPress }: BrowserUrlBarProps) => {
       url.search(`${AppConstants.IPFS_OVERRIDE_PARAM}=false`) === -1 &&
       Boolean(ensUrl)
     ) {
-      return ensUrl.toLowerCase().replace(regex.start_url, '');
+      return ensUrl.toLowerCase().replace(regex.startUrl, '');
     }
-    return urlObj.host.toLowerCase().replace(regex.start_url, '');
+    return urlObj.host.toLowerCase().replace(regex.startUrl, '');
   };
 
   const contentProtocol = getURLProtocol(url);

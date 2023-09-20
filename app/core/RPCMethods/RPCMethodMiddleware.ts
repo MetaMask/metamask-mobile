@@ -711,7 +711,7 @@ export const getRpcMethodMiddleware = ({
             onScanSuccess: (data: any) => {
               if (!regex.exec(req.params[0], data)) {
                 reject({ message: 'NO_REGEX_MATCH', data });
-              } else if (regex.wallet_address.exec(data.target_address)) {
+              } else if (regex.walletAddress.exec(data.target_address)) {
                 reject({
                   message: 'INVALID_ETHEREUM_ADDRESS',
                   data: data.target_address,

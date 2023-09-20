@@ -107,7 +107,7 @@ function rewriteReport(report) {
 
 function sanitizeUrlsFromErrorMessages(report) {
   rewriteErrorMessages(report, (errorMessage) => {
-    const urlsInMessage = errorMessage.match(regex.sanitize_url);
+    const urlsInMessage = errorMessage.match(regex.sanitizeUrl);
 
     urlsInMessage?.forEach((url) => {
       if (!ERROR_URL_ALLOWLIST.some((allowedUrl) => url.match(allowedUrl))) {
@@ -121,7 +121,7 @@ function sanitizeUrlsFromErrorMessages(report) {
 function sanitizeAddressesFromErrorMessages(report) {
   rewriteErrorMessages(report, (errorMessage) => {
     const newErrorMessage = errorMessage.replace(
-      regex.replace_network_error_sentry,
+      regex.replaceNetworkErrorSentry,
       '**',
     );
     return newErrorMessage;

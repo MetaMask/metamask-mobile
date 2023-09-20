@@ -669,7 +669,7 @@ class ApproveTransactionReview extends PureComponent {
   handleCustomSpendOnInputChange = (value) => {
     if (isNumber(value)) {
       this.setState({
-        tokenSpendValue: value.replace(regex.non_number, ''),
+        tokenSpendValue: value.replace(regex.nonNumber, ''),
       });
     }
   };

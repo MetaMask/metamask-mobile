@@ -48,7 +48,7 @@ function AddActivationKey() {
   }, [colors, navigation]);
 
   const handleSubmit = useCallback(() => {
-    if (!regex.activation_key.test(newKey)) {
+    if (!regex.activationKey.test(newKey)) {
       return;
     }
     onSubmit(newKey);
@@ -93,7 +93,7 @@ function AddActivationKey() {
             <StyledButton
               key="confirm-button"
               type="confirm"
-              disabled={!regex.activation_key.test(newKey)}
+              disabled={!regex.activationKey.test(newKey)}
               containerStyle={style.button}
               onPress={handleSubmit}
             >

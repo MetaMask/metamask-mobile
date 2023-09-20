@@ -26,7 +26,7 @@ export default function createKeypadRule({
         if (currentAmount === '0') {
           return currentAmount;
         }
-        if (regex.has_one_digit.test(currentAmount)) {
+        if (regex.hasOneDigit.test(currentAmount)) {
           return '0';
         }
 

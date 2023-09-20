@@ -655,12 +655,12 @@ class NetworkSettings extends PureComponent {
 
     // Check if it's a valid chainId format
     if (chainId.startsWith('0x')) {
-      if (!regex.valid_chain_id_hex.test(chainId)) {
+      if (!regex.validChainId_hex.test(chainId)) {
         errorMessage = strings('app_settings.invalid_hex_number');
       } else if (!isPrefixedFormattedHexString(chainId)) {
         errorMessage = strings('app_settings.invalid_hex_number_leading_zeros');
       }
-    } else if (!regex.valid_chain_id.test(chainId)) {
+    } else if (!regex.validChainId.test(chainId)) {
       errorMessage = strings('app_settings.invalid_number');
     } else if (chainId.startsWith('0')) {
       errorMessage = strings('app_settings.invalid_number_leading_zeros');

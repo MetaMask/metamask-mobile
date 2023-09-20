@@ -34,7 +34,7 @@ const main = async () => {
     const filePath = path.join(__dirname, `../${ASSETS_FOLDER}/${fileName}`);
     const fileContent = fs.readFileSync(filePath, { encoding: 'utf-8' });
     const formattedFileContent = fileContent.replace(
-      regex.color_black,
+      regex.colorBlack,
       'currentColor',
     );
     fs.writeFileSync(filePath, formattedFileContent);

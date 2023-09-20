@@ -891,7 +891,7 @@ class Amount extends PureComponent {
       hasExchangeRate,
       comma;
     // Remove spaces from input
-    inputValue = inputValue && inputValue.replace(regex.white_spaces, '');
+    inputValue = inputValue && inputValue.replace(regex.whiteSpaces, '');
     // Handle semicolon for other languages
     if (inputValue && inputValue.includes(',')) {
       comma = true;

@@ -82,7 +82,7 @@ const AddressList: React.FC<AddressListProps> = ({
 
         updatedContacts.forEach((contact: Contact) => {
           const contactNameInitial = contact?.name?.[0];
-          const nameInitial = regex.name_initial.exec(contactNameInitial);
+          const nameInitial = regex.nameInitial.exec(contactNameInitial);
           const initial = nameInitial
             ? nameInitial[0].toLowerCase()
             : strings('address_book.others');

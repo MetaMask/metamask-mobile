@@ -68,7 +68,7 @@ const ManualBackupStep1 = ({ route, navigation, appTheme }) => {
       password,
     ).toString();
     return JSON.stringify(mnemonic)
-      .replace(regex.private_credentials, '')
+      .replace(regex.privateCredentials, '')
       .split(' ');
   };
 

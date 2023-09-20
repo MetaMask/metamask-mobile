@@ -65,11 +65,11 @@ const baseChange = {
  * @returns {string} The prefixed string.
  */
 export const addHexPrefix = (str) => {
-  if (typeof str !== 'string' || str.match(regex.hex_prefix)) {
+  if (typeof str !== 'string' || str.match(regex.hexPrefix)) {
     return str;
   }
 
-  if (str.match(regex.hex_prefix)) {
+  if (str.match(regex.hexPrefix)) {
     return str.replace('0X', '0x');
   }
 
@@ -491,12 +491,12 @@ export function addCurrencySymbol(
       const decimalString = amount.toString().split('.')[1];
       if (decimalString && decimalString.length > 1) {
         const firstNonZeroDecimal = decimalString.indexOf(
-          decimalString.match(regex.decimal_string)[0],
+          decimalString.match(regex.decimalString)[0],
         );
         if (firstNonZeroDecimal > 0) {
           amount = parseFloat(amount).toFixed(firstNonZeroDecimal + 3);
           // remove trailing zeros
-          amount = amount.replace(regex.trailing_zero, '');
+          amount = amount.replace(regex.trailingZero, '');
         }
       }
     }
@@ -712,7 +712,7 @@ export function isPrefixedFormattedHexString(value) {
   if (typeof value !== 'string') {
     return false;
   }
-  return regex.prefixed_formatted_hex_string.test(value);
+  return regex.prefixedFormattedHexString.test(value);
 }
 
 const converter = ({

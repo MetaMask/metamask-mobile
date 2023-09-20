@@ -789,7 +789,7 @@ export const BrowserTab = (props) => {
 
     // Stops normal loading when it's ens, instead call go to be properly set up
     if (isENSUrl(url)) {
-      go(url.replace(regex.url_http_to_https, 'https://'));
+      go(url.replace(regex.urlHttpToHttps, 'https://'));
       return false;
     }
 

@@ -210,7 +210,7 @@ export function isENS(name) {
   // Checks that the domain consists of at least one valid domain pieces separated by periods, followed by a tld
   // Each piece of domain name has only the characters a-z, 0-9, and a hyphen (but not at the start or end of chunk)
   // A chunk has minimum length of 1, but minimum tld is set to 2 for now (no 1-character tlds exist yet)
-  const match = punycode.toASCII(name).toLowerCase().match(regex.ens_name);
+  const match = punycode.toASCII(name).toLowerCase().match(regex.ensName);
 
   const OFFSET = 1;
   const index = name && name.lastIndexOf('.');

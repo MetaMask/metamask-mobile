@@ -316,7 +316,7 @@ class AccountOverview extends PureComponent {
   onOpenPortfolio = () => {
     const { navigation, browserTabs } = this.props;
     const existingPortfolioTab = browserTabs.find((tab) =>
-      tab.url.match(regex.portfolio_url),
+      tab.url.match(regex.portfolioUrl),
     );
     let existingTabId;
     let newTabUrl;

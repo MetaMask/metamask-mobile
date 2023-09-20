@@ -128,7 +128,7 @@ const RevealPrivateCredential = ({
           pswd,
         ).toString();
         privateCredential = JSON.stringify(mnemonic).replace(
-          regex.private_credentials,
+          regex.privateCredentials,
           '',
         );
       } else {
