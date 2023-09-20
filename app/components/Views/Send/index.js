@@ -60,6 +60,10 @@ import {
   selectSelectedAddress,
 } from '../../../selectors/preferencesController';
 import { ethErrors } from 'eth-rpc-errors';
+import {
+  getBlockaidMetricsParams,
+  isBlockaidFeatureEnabled,
+} from '../../../util/blockaid';
 
 const REVIEW = 'review';
 const EDIT = 'edit';
@@ -693,8 +697,14 @@ class Send extends PureComponent {
   getTrackingParams = () => {
     const {
       networkType,
-      transaction: { selectedAsset, assetType },
+      transaction: { selectedAsset, assetType, securityAlertResponse },
     } = this.props;
+
+    let blockaidParams = {};
+    if (isBlockaidFeatureEnabled()) {
+      blockaidParams = getBlockaidMetricsParams(securityAlertResponse);
+    }
+
     return {
       view: SEND,
       network: networkType,
@@ -703,6 +713,7 @@ class Send extends PureComponent {
           (selectedAsset.symbol || selectedAsset.contractName)) ||
         'ETH',
       assetType,
+      ...blockaidParams,
     };
   };
 

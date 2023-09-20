@@ -35,7 +35,10 @@ import {
 } from '../../../util/number';
 import { safeToChecksumAddress } from '../../../util/address';
 import Device from '../../../util/device';
-import { isBlockaidFeatureEnabled } from '../../../util/blockaid';
+import {
+  isBlockaidFeatureEnabled,
+  getBlockaidMetricsParams,
+} from '../../../util/blockaid';
 import TransactionReviewInformation from './TransactionReviewInformation';
 import TransactionReviewSummary from './TransactionReviewSummary';
 import TransactionReviewData from './TransactionReviewData';
@@ -298,7 +301,7 @@ class TransactionReview extends PureComponent {
       accounts,
       validate,
       transaction,
-      transaction: { data, to, value, from },
+      transaction: { data, to, value, from, securityAlertResponse },
       tokens,
       chainId,
       tokenList,
@@ -327,6 +330,13 @@ class TransactionReview extends PureComponent {
     }
     const senderBalance = accounts[safeToChecksumAddress(from)]?.balance;
     const senderBalanceIsZero = hexToBN(senderBalance).isZero();
+
+    let additionalParams = {};
+
+    if (isBlockaidFeatureEnabled()) {
+      additionalParams = getBlockaidMetricsParams(securityAlertResponse);
+    }
+
     this.setState({
       error,
       actionKey,
@@ -338,7 +348,10 @@ class TransactionReview extends PureComponent {
       senderBalanceIsZero,
     });
     InteractionManager.runAfterInteractions(() => {
-      Analytics.trackEvent(MetaMetricsEvents.TRANSACTIONS_CONFIRM_STARTED);
+      Analytics.trackEvent(
+        MetaMetricsEvents.TRANSACTIONS_CONFIRM_STARTED,
+        additionalParams,
+      );
     });
     if (isMultiLayerFeeNetwork(chainId)) {
       this.fetchEstimatedL1Fee();
