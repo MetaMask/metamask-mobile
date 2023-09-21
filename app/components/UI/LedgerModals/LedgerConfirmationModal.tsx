@@ -151,7 +151,7 @@ const LedgerConfirmationModal = ({
         case LedgerCommunicationErrors.NonceTooLow:
           setErrorDetails({
             title: strings('ledger.nonce_too_low'),
-            subtitle: strings('ledger.nonce_too_low_nonce'),
+            subtitle: strings('ledger.nonce_too_low_error'),
           });
           break;
         case LedgerCommunicationErrors.LedgerDisconnected:
@@ -210,7 +210,11 @@ const LedgerConfirmationModal = ({
             showViewSettings={
               !!bluetoothConnectionError || !!bluetoothPermissionError
             }
-            isRetry={ledgerError !== LedgerCommunicationErrors.NonceTooLow}
+            isRetryHide={
+              ledgerError === LedgerCommunicationErrors.UnknownError ||
+              ledgerError === LedgerCommunicationErrors.NonceTooLow ||
+              ledgerError === LedgerCommunicationErrors.NotSupported
+            }
           />
         </View>
       </SafeAreaView>
