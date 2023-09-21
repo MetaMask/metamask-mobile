@@ -220,7 +220,7 @@
     "json-rpc-middleware-stream": "4.2.2",
     "lodash": "^4.17.21",
     "lottie-react-native": "git+https://github.com/MetaMask/lottie-react-native.git#7ce6a78ac4ac7b9891bc513cb3f12f8b9c9d9106",
-    "metro-config": "^0.71.1",
+    "metro-config": "^0.79.1",
     "multihashes": "0.4.14",
     "number-to-bn": "1.7.0",
     "obj-multiplex": "1.0.0",
