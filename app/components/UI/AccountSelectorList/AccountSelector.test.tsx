@@ -137,14 +137,14 @@ describe('AccountSelectorList', () => {
         `${ACCOUNT_BALANCE_BY_ADDRESS_TEST_ID}-${PERSONAL_ACCOUNT}`,
       );
 
-      expect(within(businessAccountItem).getByText(regex.eth[1])).toBeDefined();
+      expect(within(businessAccountItem).getByText(regex.eth(1))).toBeDefined();
       expect(
-        within(businessAccountItem).getByText(regex.usd[3200]),
+        within(businessAccountItem).getByText(regex.usd(3200)),
       ).toBeDefined();
 
-      expect(within(personalAccountItem).getByText(regex.eth[2])).toBeDefined();
+      expect(within(personalAccountItem).getByText(regex.eth(2))).toBeDefined();
       expect(
-        within(personalAccountItem).getByText(regex.usd[6400]),
+        within(personalAccountItem).getByText(regex.usd(6400)),
       ).toBeDefined();
 
       const accounts = getAllByTestId(regex.accountBalance);
