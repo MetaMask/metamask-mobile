@@ -21,6 +21,7 @@ export function getTxData(txMeta = {}) {
     value,
     maxFeePerGas,
     maxPriorityFeePerGas,
+    securityAlertResponse,
   } = txMeta; // eslint-disable-line no-unused-vars
   const txData = {
     data,
@@ -31,6 +32,7 @@ export function getTxData(txMeta = {}) {
     value,
     maxFeePerGas,
     maxPriorityFeePerGas,
+    securityAlertResponse,
   };
   return getDefinedProperties(txData);
 }
