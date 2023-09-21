@@ -173,7 +173,7 @@ export async function withFixtures(options, testSuite) {
       for (let i = 1; i <= MAX_ATTEMPTS; i++) {
         try {
           await ganacheServer.quit();
-          await TestHelpers.delay(3500);
+          await TestHelpers.delay(7000);
         } catch (error) {
           console.log(error);
         }
