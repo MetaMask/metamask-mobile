@@ -45,3 +45,11 @@ export const SAMPLE_BANNERALERT_PROPS: BannerAlertProps = {
   },
   onClose: () => console.log('closeButton clicked!'),
 };
+
+// Storybook settings
+export const STORYBOOK_BANNERALERT_ARGTYPES = {
+  severity: {
+    options: BannerAlertSeverity,
+    control: { type: 'select' },
+  },
+};

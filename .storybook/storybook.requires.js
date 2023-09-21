@@ -11,12 +11,22 @@ import {
 global.STORIES = [
   {
     titlePrefix: "",
-    directory: "./.storybook/stories",
+    directory: "./app/component-library/components/Cards/Card",
     files: "**/*.stories.?(ts|tsx|js|jsx)",
     importPathMatcher:
-      "^\\.[\\\\/](?:\\.storybook\\/stories(?:\\/(?!\\.)(?:(?:(?!(?:^|\\/)\\.).)*?)\\/|\\/|$)(?!\\.)(?=.)[^/]*?\\.stories\\.(?:ts|tsx|js|jsx)?)$",
+      "^\\.[\\\\/](?:app\\/component-library\\/components\\/Cards\\/Card(?:\\/(?!\\.)(?:(?:(?!(?:^|\\/)\\.).)*?)\\/|\\/|$)(?!\\.)(?=.)[^/]*?\\.stories\\.(?:ts|tsx|js|jsx)?)$",
+  },
+  {
+    titlePrefix: "",
+    directory:
+      "./app/component-library/components/Banners/Banner/variants/BannerAlert",
+    files: "**/*.stories.?(ts|tsx|js|jsx)",
+    importPathMatcher:
+      "^\\.[\\\\/](?:app\\/component-library\\/components\\/Banners\\/Banner\\/variants\\/BannerAlert(?:\\/(?!\\.)(?:(?:(?!(?:^|\\/)\\.).)*?)\\/|\\/|$)(?!\\.)(?=.)[^/]*?\\.stories\\.(?:ts|tsx|js|jsx)?)$",
   },
 ];
+
+import "@storybook/addon-ondevice-controls/register";
 
 import { decorators, parameters } from "./preview";
 
@@ -38,7 +48,8 @@ if (parameters) {
 
 const getStories = () => {
   return {
-    "./.storybook/stories/Button/Button.stories.js": require("./stories/Button/Button.stories.js"),
+    "./app/component-library/components/Cards/Card/Card.stories.tsx": require("../app/component-library/components/Cards/Card/Card.stories.tsx"),
+    "./app/component-library/components/Banners/Banner/variants/BannerAlert/BannerAlert.stories.tsx": require("../app/component-library/components/Banners/Banner/variants/BannerAlert/BannerAlert.stories.tsx"),
   };
 };
 
