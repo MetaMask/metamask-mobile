@@ -1,6 +1,6 @@
 import { merge } from 'lodash';
 
-const DAPP_URL = 'metamask.github.io';
+const DAPP_URL = 'localhost';
 
 /**
  * FixtureBuilder class provides a fluent interface for building fixture data.
@@ -156,7 +156,14 @@ class FixtureBuilder {
             },
             PreferencesController: {
               featureFlags: {},
-              frequentRpcList: [],
+              frequentRpcList: [
+                {
+                  rpcUrl: 'http://localhost:8545',
+                  chainId: '1337',
+                  ticker: 'ETH',
+                  nickname: 'Localhost',
+                },
+              ],
               identities: {
                 '0x76cf1CdD1fcC252442b50D6e97207228aA4aefC3': {
                   address: '0x76cf1CdD1fcC252442b50D6e97207228aA4aefC3',
@@ -169,7 +176,7 @@ class FixtureBuilder {
               selectedAddress: '0x76cf1CdD1fcC252442b50D6e97207228aA4aefC3',
               useTokenDetection: true,
               useNftDetection: false,
-              openSeaEnabled: false,
+              displayNftMedia: true,
               isMultiAccountBalancesEnabled: true,
               disabledRpcMethodPreferences: {
                 eth_sign: false,
@@ -192,7 +199,7 @@ class FixtureBuilder {
                 selectedAddress: '0x76cf1CdD1fcC252442b50D6e97207228aA4aefC3',
                 useTokenDetection: true,
                 useNftDetection: false,
-                openSeaEnabled: false,
+                displayNftMedia: true,
                 isMultiAccountBalancesEnabled: true,
                 disabledRpcMethodPreferences: {
                   eth_sign: false,
@@ -339,7 +346,6 @@ class FixtureBuilder {
           backUpSeedphraseVisible: false,
           protectWalletModalVisible: false,
           gasEducationCarouselSeen: false,
-          nftDetectionDismissed: false,
           userLoggedIn: true,
           isAuthChecked: false,
           initialScreen: '',
@@ -463,6 +469,19 @@ class FixtureBuilder {
               shortName: 'Palm',
               nativeTokenSupported: false,
             },
+            {
+              active: true,
+              chainId: 1337,
+              chainName: 'Localhost',
+              shortName: 'Localhost',
+              nativeTokenSupported: true,
+            },
+            {
+              chainId: 1,
+              chainName: 'Tenderly',
+              shortName: 'Tenderly',
+              nativeTokenSupported: true,
+            },
           ],
           selectedRegionAgg: null,
           selectedPaymentMethodAgg: null,
@@ -521,6 +540,20 @@ class FixtureBuilder {
   }
 
   /**
+   * Merges provided data into the background state of the NetworkController.
+   * @param {object} data - Data to merge into the NetworkController's state.
+   * @returns {FixtureBuilder} - The FixtureBuilder instance for method chaining.
+   */
+  withNetworkController(data) {
+    merge(this.fixture.state.engine.backgroundState.NetworkController, data);
+
+    if (data.providerConfig.ticker !== 'ETH')
+      this.fixture.state.engine.backgroundState.CurrencyRateController.pendingNativeCurrency =
+        data.providerConfig.ticker;
+    return this;
+  }
+
+  /**
    * Connects the PermissionController to a test dapp with specific permissions and origins.
    * @returns {FixtureBuilder} - The FixtureBuilder instance for method chaining.
    */
@@ -561,6 +594,30 @@ class FixtureBuilder {
     this.fixture = {
       asyncState: {},
     };
+    return this;
+  }
+
+  withGanacheNetwork() {
+    const fixtures = this.fixture.state.engine.backgroundState;
+
+    fixtures.NetworkController = {
+      isCustomNetwork: true,
+      providerConfig: {
+        type: 'rpc',
+        chainId: '1337',
+        rpcTarget: 'http://localhost:8545',
+        nickname: 'Localhost',
+        ticker: 'ETH',
+      },
+    };
+    return this;
+  }
+
+  withPreferencesController(data) {
+    merge(
+      this.fixture.state.engine.backgroundState.PreferencesController,
+      data,
+    );
     return this;
   }
 

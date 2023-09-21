@@ -127,9 +127,9 @@ const actionKeys = {
  * @param {Object} opts - Optional asset parameters
  * @returns {String} - String containing the generated transfer data
  */
-export function generateTransferData(type, opts) {
+export function generateTransferData(type = undefined, opts = {}) {
   if (!type) {
-    throw new Error('[transactions] type must be defined');
+    throw new TypeError('[transactions] type must be defined');
   }
   switch (type) {
     case 'transfer':
@@ -206,7 +206,7 @@ const BASE = 4 * 16;
  *
  * @param {String} type - Method to use to generate data
  * @param {String} data - Data to decode
- * @returns {Object} - Object containing the decoded transfer data
+ * @returns {Array} - Object containing the decoded transfer data
  */
 export function decodeTransferData(type, data) {
   switch (type) {
@@ -245,10 +245,15 @@ export function decodeTransferData(type, data) {
 }
 
 /**
+ * @typedef {Object} MethodData
+ * @property {string} name - The method name
+ */
+
+/**
  * Returns method data object for a transaction dat
  *
  * @param {string} data - Transaction data
- * @returns {object} - Method data object containing the name if is valid
+ * @returns {MethodData} - Method data object containing the name if is valid
  */
 export async function getMethodData(data) {
   if (data.length < 10) return {};
@@ -454,7 +459,7 @@ export function getEther(ticker) {
  *
  * @param {object} config
  * @param {object} config.addressBook - Object of address book entries
- * @param {string} config.network - network id
+ * @param {string} config.networkId - network id
  * @param {string} config.toAddress - hex address of tx recipient
  * @param {object} config.identities - object of identities
  * @param {string} config.ensRecipient - name of ens recipient
@@ -462,7 +467,7 @@ export function getEther(ticker) {
  */
 export function getTransactionToName({
   addressBook,
-  network,
+  networkId,
   toAddress,
   identities,
   ensRecipient,
@@ -471,7 +476,7 @@ export function getTransactionToName({
     return ensRecipient;
   }
 
-  const networkAddressBook = addressBook[network];
+  const networkAddressBook = addressBook[networkId];
   const checksummedToAddress = toChecksumAddress(toAddress);
 
   const transactionToName =

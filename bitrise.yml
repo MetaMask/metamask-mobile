@@ -303,6 +303,7 @@ workflows:
           inputs:
             - api_level: '30'
             - create_command_flags: '--sdcard 8192M'
+            - start_command_flags: '-read-only'
             - profile: pixel_5
       - wait-for-android-emulator@1: {}
       - save-gradle-cache@1: {}
@@ -328,7 +329,7 @@ workflows:
           title: Deploy test report files
       - script@1:
           is_always_run: true
-          is_skippable: true
+          run_if: .IsBuildFailed
           title: Copy screenshot files
           inputs:
             - content: |-
@@ -337,7 +338,7 @@ workflows:
                 cp -r "$BITRISE_SOURCE_DIR/artifacts/screenshots"  "$BITRISE_DEPLOY_DIR"
       - deploy-to-bitrise-io@2.3:
           is_always_run: true
-          is_skippable: true
+          run_if: .IsBuildFailed
           title: Deploy test screenshots
           inputs:
             - deploy_path: $BITRISE_DEPLOY_DIR
@@ -392,7 +393,7 @@ workflows:
           title: Deploy test report files
       - script@1:
           is_always_run: true
-          is_skippable: true
+          run_if: .IsBuildFailed
           title: Copy screenshot files
           inputs:
             - content: |-
@@ -401,7 +402,7 @@ workflows:
                 cp -r "$BITRISE_SOURCE_DIR/artifacts/screenshots"  "$BITRISE_DEPLOY_DIR"
       - deploy-to-bitrise-io@2.3:
           is_always_run: true
-          is_skippable: true
+          run_if: .IsBuildFailed
           title: Deploy test screenshots
           inputs:
             - deploy_path: $BITRISE_DEPLOY_DIR
@@ -799,10 +800,10 @@ app:
       PROJECT_LOCATION_IOS: ios
     - opts:
         is_expand: false
-      VERSION_NAME: 7.5.0
+      VERSION_NAME: 7.7.0
     - opts:
         is_expand: false
-      VERSION_NUMBER: 1167
+      VERSION_NUMBER: 1171
     - opts:
         is_expand: false
       ANDROID_APK_LINK: ''

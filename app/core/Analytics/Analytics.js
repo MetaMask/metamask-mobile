@@ -7,7 +7,7 @@ import DefaultPreference from 'react-native-default-preference';
 import Logger from '../../util/Logger';
 import { MetaMetricsEvents } from '../../core/Analytics';
 import { store } from '../../store';
-import { MIXPANEL_ENDPOINT_BASE_URL } from '../../constants/urls';
+import { MIXPANEL_PROXY_ENDPOINT_BASE_URL } from '../../constants/urls';
 import {
   METRICS_OPT_IN,
   AGREED,
@@ -99,7 +99,7 @@ class Analytics {
 
     RCTAnalytics.setUserProfileProperty(
       USER_PROFILE_PROPERTY.ENABLE_OPENSEA_API,
-      preferencesController?.openSeaEnabled
+      preferencesController?.displayNftMedia
         ? USER_PROFILE_PROPERTY.ON
         : USER_PROFILE_PROPERTY.OFF,
     );
@@ -197,15 +197,13 @@ class Analytics {
     const distinctId = await this.getDistinctId();
     const action = 'data-deletions';
     const token = process.env.MM_MIXPANEL_TOKEN;
-    const GDPRToken = process.env.MM_MIXPANEL_GDPR_API_TOKEN;
-    const url = `${MIXPANEL_ENDPOINT_BASE_URL}/${action}/v3.0/?token=${token}`;
+    const url = `${MIXPANEL_PROXY_ENDPOINT_BASE_URL}/${action}/v3.0/?token=${token}`;
     try {
       const response = await axios({
         url,
         method: 'post',
         headers: {
           Accept: 'application/json',
-          Authorization: `Bearer ${GDPRToken}`,
         },
         data: JSON.stringify({
           distinct_ids: [distinctId],
@@ -282,14 +280,12 @@ class Analytics {
 
     const action = 'data-deletions';
     const token = process.env.MM_MIXPANEL_TOKEN;
-    const GDPRToken = process.env.MM_MIXPANEL_GDPR_API_TOKEN;
-    const url = `${MIXPANEL_ENDPOINT_BASE_URL}/${action}/v3.0/${this.dataDeletionTaskId}?token=${token}`;
+    const url = `${MIXPANEL_PROXY_ENDPOINT_BASE_URL}/${action}/v3.0/${this.dataDeletionTaskId}?token=${token}`;
     const response = await axios({
       url,
       method: 'get',
       headers: {
         Accept: 'application/json',
-        Authorization: `Bearer ${GDPRToken}`,
       },
     });
 

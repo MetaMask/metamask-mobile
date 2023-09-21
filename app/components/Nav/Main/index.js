@@ -155,6 +155,8 @@ const Main = (props) => {
   const handleAppStateChange = useCallback(
     (appState) => {
       const newModeIsBackground = appState === 'background';
+      const { TransactionController } = Engine.context;
+
       // If it was in background and it's not anymore
       // we need to stop the Background timer
       if (backgroundMode.current && !newModeIsBackground) {
@@ -167,6 +169,10 @@ const Main = (props) => {
       // the background timer, which is less intense
       if (backgroundMode.current) {
         removeNotVisibleNotifications();
+
+        BackgroundTimer.runBackgroundTimer(async () => {
+          await TransactionController.updateIncomingTransactions();
+        }, AppConstants.TX_CHECK_BACKGROUND_FREQUENCY);
       }
     },
     [backgroundMode, removeNotVisibleNotifications],
@@ -330,8 +336,8 @@ const Main = (props) => {
     termsOfUse();
   }, [termsOfUse]);
 
-  const renderLineaMainnetAlert = (network) => {
-    if (network === LINEA_MAINNET && showLineaMainnetAlert) {
+  const renderLineaMainnetAlert = (networkType) => {
+    if (networkType === LINEA_MAINNET && showLineaMainnetAlert) {
       return (
         <WarningAlert
           text={strings('networks.linea_mainnet_not_released_alert')}

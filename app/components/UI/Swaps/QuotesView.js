@@ -90,6 +90,10 @@ import { selectAccounts } from '../../../selectors/accountTrackerController';
 import { selectContractBalances } from '../../../selectors/tokenBalancesController';
 import { selectSelectedAddress } from '../../../selectors/preferencesController';
 import { resetTransaction, setRecipient } from '../../../actions/transaction';
+import {
+  SWAP_QUOTE_SUMMARY,
+  SWAP_GAS_FEE,
+} from '../../../../wdio/screen-objects/testIDs/Screens/SwapView.js';
 
 const POLLING_INTERVAL = 30000;
 const SLIPPAGE_BUCKETS = {
@@ -921,8 +925,10 @@ function SwapsQuotesView({
             ),
             gas: new BigNumber(gasLimit).toString(16),
           },
-          process.env.MM_FOX_CODE,
-          WalletDevice.MM_MOBILE,
+          {
+            deviceConfirmedOn: WalletDevice.MM_MOBILE,
+            origin: process.env.MM_FOX_CODE,
+          },
         );
         updateSwapsTransactions(
           transactionMeta,
@@ -967,8 +973,10 @@ function SwapsQuotesView({
               gasEstimates,
             ),
           },
-          process.env.MM_FOX_CODE,
-          WalletDevice.MM_MOBILE,
+          {
+            deviceConfirmedOn: WalletDevice.MM_MOBILE,
+            origin: process.env.MM_FOX_CODE,
+          },
         );
 
         setRecipient(selectedAddress);
@@ -1944,13 +1952,14 @@ function SwapsQuotesView({
               )}
             </QuotesSummary.Header>
             <QuotesSummary.Body>
-              <View style={styles.quotesRow}>
+              <View style={styles.quotesRow} testID={SWAP_QUOTE_SUMMARY}>
                 <View style={styles.quotesDescription}>
                   <View style={styles.quotesLegend}>
                     <Text primary bold>
                       {strings('swaps.estimated_gas_fee')}
                     </Text>
                     <TouchableOpacity
+                      testID={SWAP_GAS_FEE}
                       style={styles.gasInfoContainer}
                       onPress={showGasTooltip}
                       hitSlop={styles.hitSlop}
@@ -2093,14 +2102,14 @@ function SwapsQuotesView({
                         {primaryCurrency === 'ETH'
                           ? ` ${renderFromWei(
                               toWei(selectedQuoteValue?.maxEthFee || '0x0'),
-                            )} ${getTicker(ticker)}` // eslint-disable-line
+                          )} ${getTicker(ticker)}` // eslint-disable-line
                           : ` ${
                               weiToFiat(
                                 toWei(selectedQuoteValue?.maxEthFee),
                                 conversionRate,
                                 currentCurrency,
                               ) || '' // eslint-disable-next-line
-                            }`}
+                          }`}
                       </Text>
                     </FadeAnimationView>
                   </>

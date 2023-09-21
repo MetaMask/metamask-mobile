@@ -4,6 +4,7 @@ import {
   toLowerCaseEquals,
   renderShortText,
   getURLProtocol,
+  isIPFSUri,
 } from '.';
 
 describe('capitalize', () => {
@@ -17,7 +18,9 @@ describe('capitalize', () => {
 });
 
 describe('tlc', () => {
-  const o = {};
+  const o = {
+    p: undefined,
+  };
   it('should coerce a string toLowerCase', () => {
     expect(tlc('aBCDefH')).toEqual('abcdefh');
     expect(tlc(NaN)).toEqual(undefined);
@@ -26,7 +29,9 @@ describe('tlc', () => {
 });
 
 describe('toLowerCaseEquals', () => {
-  const o = {};
+  const o = {
+    p: undefined,
+  };
   it('compares two things', () => {
     expect(toLowerCaseEquals('A', 'A')).toEqual(true);
     expect(toLowerCaseEquals('aBCDefH', 'abcdefh')).toEqual(true);
@@ -72,5 +77,46 @@ describe('isValidUrl', () => {
   });
   it('should return an empty string for an empty string', () => {
     expect(getURLProtocol('')).toBe('');
+  });
+});
+
+describe('isIPFSUri', () => {
+  it('should return true for valid IPFS URIs', () => {
+    // Test valid IPFS URIs
+    expect(
+      isIPFSUri('/ipfs/QmRbcHJcY9t2B2bbE7EcPp17FmkygJ7uk5b8wLhtT96fbR'),
+    ).toBe(true);
+    expect(
+      isIPFSUri('ipfs://QmRbcHJcY9t2B2bbE7EcPp17FmkygJ7uk5b8wLhtT96fbR/'),
+    ).toBe(true);
+    expect(
+      isIPFSUri(
+        '/ipfs/bafybeigllpyr3xmfqjnj7pywsdzct4jrbo2xt3ie3dwyfif7h4pnks5ar4',
+      ),
+    ).toBe(true);
+    expect(
+      isIPFSUri(
+        'ipfs://QmT76MYkBGwPosYqjrP7S42kQvm5eU2buSS9NvTzZ61FLT/image.gif',
+      ),
+    ).toBe(true);
+    expect(isIPFSUri('ipfs://')).toBe(true);
+  });
+
+  it('should return false for invalid IPFS URIs', () => {
+    // Test invalid IPFS URIs and other non-IPFS URIs
+    expect(
+      isIPFSUri(
+        '/ipfsmalformed/QmRbcHJcY9t2B2bbE7EcPp17FmkygJ7uk5b8wLhtT96fbR',
+      ),
+    ).toBe(false);
+    expect(isIPFSUri('https://example.com')).toBe(false);
+    expect(isIPFSUri('ftp://example.com')).toBe(false);
+    expect(isIPFSUri('/ipfs')).toBe(false);
+  });
+
+  it('should return false for undefined or null', () => {
+    // Test undefined and null values
+    expect(isIPFSUri(undefined)).toBe(false);
+    expect(isIPFSUri(null)).toBe(false);
   });
 });

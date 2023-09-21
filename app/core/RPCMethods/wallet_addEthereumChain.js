@@ -11,6 +11,11 @@ import {
 import URL from 'url-parse';
 import { MetaMetricsEvents } from '../../core/Analytics';
 import AnalyticsV2 from '../../util/analyticsV2';
+import {
+  selectChainId,
+  selectNetworkConfigurations,
+} from '../../selectors/networkController';
+import { store } from '../../store';
 
 const waitForInteraction = async () =>
   new Promise((resolve) => {
@@ -27,7 +32,8 @@ const wallet_addEthereumChain = async ({
   startApprovalFlow,
   endApprovalFlow,
 }) => {
-  const { CurrencyRateController, NetworkController } = Engine.context;
+  const { CurrencyRateController, NetworkController, ApprovalController } =
+    Engine.context;
 
   if (!req.params?.[0] || typeof req.params[0] !== 'object') {
     throw ethErrors.rpc.invalidParams({
@@ -114,7 +120,7 @@ const wallet_addEthereumChain = async ({
     );
   }
 
-  const networkConfigurations = NetworkController.state.networkConfigurations;
+  const networkConfigurations = selectNetworkConfigurations(store.getState());
   const existingEntry = Object.entries(networkConfigurations).find(
     ([, networkConfiguration]) =>
       networkConfiguration.chainId === chainIdDecimal,
@@ -122,7 +128,7 @@ const wallet_addEthereumChain = async ({
 
   if (existingEntry) {
     const [networkConfigurationId, networkConfiguration] = existingEntry;
-    const currentChainId = NetworkController.state.providerConfig.chainId;
+    const currentChainId = selectChainId(store.getState());
     if (currentChainId === chainIdDecimal) {
       res.result = null;
       return;
@@ -266,6 +272,13 @@ const wallet_addEthereumChain = async ({
     MetaMetricsEvents.NETWORK_REQUESTED,
     analyticsParamsAdd,
   );
+
+  // Remove all existing approvals, including other add network requests.
+  ApprovalController.clear(ethErrors.provider.userRejectedRequest());
+
+  // If existing approval request was an add network request, wait for
+  // it to be rejected and for the corresponding approval flow to be ended.
+  await waitForInteraction();
 
   const { id: approvalFlowId } = startApprovalFlow();
 

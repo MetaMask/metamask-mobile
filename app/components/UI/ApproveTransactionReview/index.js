@@ -4,6 +4,7 @@ import {
   TouchableOpacity,
   InteractionManager,
   Linking,
+  ScrollView,
 } from 'react-native';
 import Eth from 'ethjs-query';
 import ActionView from '../../UI/ActionView';
@@ -52,6 +53,11 @@ import TransactionReviewDetailsCard from '../../UI/TransactionReview/Transaction
 import AppConstants from '../../../core/AppConstants';
 import { UINT256_HEX_MAX_VALUE } from '../../../constants/transaction';
 import { WALLET_CONNECT_ORIGIN } from '../../../util/walletconnect';
+import {
+  isBlockaidFeatureEnabled,
+  getBlockaidMetricsParams,
+  showBlockaidUI,
+} from '../../../util/blockaid';
 import { withNavigation } from '@react-navigation/compat';
 import {
   isTestNet,
@@ -91,6 +97,7 @@ import { isNetworkBuyNativeTokenSupported } from '../Ramp/utils';
 import { getRampNetworks } from '../../../reducers/fiatOrders';
 import SkeletonText from '../Ramp/components/SkeletonText';
 import InfoModal from '../../../components/UI/Swaps/components/InfoModal';
+import BlockaidBanner from '../BlockaidBanner/BlockaidBanner';
 
 const { ORIGIN_DEEPLINK, ORIGIN_QR_CODE } = AppConstants.DEEPLINKS;
 const POLLING_INTERVAL_ESTIMATED_L1_FEE = 30000;
@@ -161,10 +168,6 @@ class ApproveTransactionReview extends PureComponent {
      * Object that represents the navigator
      */
     navigation: PropTypes.object,
-    /**
-     * Network id
-     */
-    network: PropTypes.string,
     /**
      * True if transaction is over the available funds
      */
@@ -519,7 +522,7 @@ class ApproveTransactionReview extends PureComponent {
         transaction?.origin,
       );
       const unlimited = encodedHexAmount === UINT256_HEX_MAX_VALUE;
-      const params = {
+      let params = {
         account_type: getAddressAccountType(transaction?.from),
         dapp_host_name: transaction?.origin,
         chain_id: chainId,
@@ -536,6 +539,17 @@ class ApproveTransactionReview extends PureComponent {
           ? AppConstants.REQUEST_SOURCES.WC
           : AppConstants.REQUEST_SOURCES.IN_APP_BROWSER,
       };
+
+      if (showBlockaidUI()) {
+        const blockaidParams = getBlockaidMetricsParams(
+          transaction.securityAlertResponse,
+        );
+
+        params = {
+          ...params,
+          ...blockaidParams,
+        };
+      }
       // Send analytics params to parent component so it's available when cancelling and confirming
       onSetAnalyticsParams && onSetAnalyticsParams(params);
 
@@ -698,8 +712,8 @@ class ApproveTransactionReview extends PureComponent {
       primaryCurrency,
       gasError,
       activeTabUrl,
-      transaction: { origin, from, to },
-      network,
+      transaction: { origin, from, to, securityAlertResponse },
+      chainId,
       over,
       gasEstimateType,
       onUpdatingValuesStart,
@@ -721,7 +735,7 @@ class ApproveTransactionReview extends PureComponent {
       isGasEstimateStatusIn,
     } = this.props;
     const styles = this.getStyles();
-    const isTestNetwork = isTestNet(network);
+    const isTestNetwork = isTestNet(chainId);
 
     const originIsDeeplink =
       origin === ORIGIN_DEEPLINK || origin === ORIGIN_QR_CODE;
@@ -765,6 +779,19 @@ class ApproveTransactionReview extends PureComponent {
     return (
       <>
         <View style={styles.section} testID={'approve-modal-test-id'}>
+          {from && (
+            <ApproveTransactionHeader
+              origin={origin}
+              url={activeTabUrl}
+              from={from}
+              asset={{
+                address: to,
+                symbol: tokenSymbol,
+                decimals: tokenDecimals,
+                standard: tokenStandard,
+              }}
+            />
+          )}
           <View style={styles.actionViewWrapper}>
             <ActionView
               confirmButtonMode="confirm"
@@ -774,191 +801,203 @@ class ApproveTransactionReview extends PureComponent {
               onConfirmPress={this.onConfirmPress}
               confirmDisabled={shouldDisableConfirmButton}
             >
-              <View>
-                {from && (
-                  <ApproveTransactionHeader
-                    origin={origin}
-                    url={activeTabUrl}
-                    from={from}
-                    asset={{
-                      address: to,
-                      symbol: tokenSymbol,
-                      decimals: tokenDecimals,
-                      standard: tokenStandard,
-                    }}
-                  />
-                )}
-                <Text
-                  variant={TextVariant.HeadingMD}
-                  style={styles.title}
-                  testID={'allow-access'}
-                >
-                  {strings(
-                    `spend_limit_edition.${
-                      originIsDeeplink
-                        ? 'allow_to_address_access'
-                        : tokenStandard === ERC721 || tokenStandard === ERC1155
-                        ? 'allow_to_access'
-                        : 'spend_cap'
-                    }`,
-                  )}
-                </Text>
-                <View style={styles.tokenContainer}>
-                  {!fetchingUpdateDone && (
+              <View style={styles.actionViewChildren}>
+                <ScrollView nestedScrollEnabled>
+                  <View
+                    style={styles.accountApprovalWrapper}
+                    onStartShouldSetResponder={() => true}
+                  >
+                    {isBlockaidFeatureEnabled() && (
+                      <BlockaidBanner
+                        securityAlertResponse={securityAlertResponse}
+                        style={styles.blockaidWarning}
+                      />
+                    )}
                     <Text
                       variant={TextVariant.HeadingMD}
-                      style={styles.alignText}
+                      style={styles.title}
+                      testID={'allow-access'}
                     >
-                      {strings('spend_limit_edition.token')}
-                    </Text>
-                  )}
-                  {isERC2OToken && (
-                    <>
-                      {tokenImage ? (
-                        <Avatar
-                          variant={AvatarVariants.Token}
-                          size={AvatarSize.Md}
-                          imageSource={{ uri: tokenImage }}
-                        />
-                      ) : (
-                        <Identicon address={to} diameter={25} />
+                      {strings(
+                        `spend_limit_edition.${
+                          originIsDeeplink
+                            ? 'allow_to_address_access'
+                            : tokenStandard === ERC721 ||
+                              tokenStandard === ERC1155
+                            ? 'allow_to_access'
+                            : 'spend_cap'
+                        }`,
                       )}
-                      <Text
-                        variant={TextVariant.HeadingMD}
-                        style={styles.symbol}
-                      >
-                        {tokenSymbol}
-                      </Text>
-                    </>
-                  )}
-                  {tokenStandard === ERC721 || tokenStandard === ERC1155 ? (
-                    hasBlockExplorer ? (
-                      <ButtonLink
-                        onPress={showBlockExplorer}
-                        label={
+                    </Text>
+                    <View style={styles.tokenContainer}>
+                      {!fetchingUpdateDone && (
+                        <Text
+                          variant={TextVariant.HeadingMD}
+                          style={styles.alignText}
+                        >
+                          {strings('spend_limit_edition.token')}
+                        </Text>
+                      )}
+                      {isERC2OToken && (
+                        <>
+                          {tokenImage ? (
+                            <Avatar
+                              variant={AvatarVariants.Token}
+                              size={AvatarSize.Md}
+                              imageSource={{ uri: tokenImage }}
+                            />
+                          ) : (
+                            <Identicon address={to} diameter={25} />
+                          )}
                           <Text
                             variant={TextVariant.HeadingMD}
                             style={styles.buttonColor}
                           >
+                            {tokenSymbol}
+                          </Text>
+                        </>
+                      )}
+                      {tokenStandard === ERC721 || tokenStandard === ERC1155 ? (
+                        hasBlockExplorer ? (
+                          <ButtonLink
+                            onPress={showBlockExplorer}
+                            label={
+                              <Text
+                                variant={TextVariant.HeadingMD}
+                                style={styles.symbol}
+                              >
+                                {tokenLabel}
+                              </Text>
+                            }
+                          />
+                        ) : (
+                          <Text variant={TextVariant.HeadingMD}>
                             {tokenLabel}
                           </Text>
-                        }
-                      />
-                    ) : (
-                      <Text variant={TextVariant.HeadingMD}>{tokenLabel}</Text>
-                    )
-                  ) : null}
-                </View>
-                {(tokenStandard === ERC721 || tokenStandard === ERC1155) && (
-                  <Text reset style={styles.explanation}>
-                    {`${strings(
-                      `spend_limit_edition.${
-                        originIsDeeplink
-                          ? 'you_trust_this_address'
-                          : 'you_trust_this_site'
-                      }`,
-                    )}`}
-                  </Text>
-                )}
-                <ButtonLink
-                  variant={TextVariant.BodyMD}
-                  onPress={showVerifyContractDetails}
-                  style={styles.verifyContractLink}
-                  label={strings(
-                    'contract_allowance.token_allowance.verify_third_party_details',
-                  )}
-                />
-                <View style={styles.paddingHorizontal}>
-                  <View style={styles.section}>
-                    {!tokenStandard ? (
-                      <SkeletonText style={styles.skeletalView} />
-                    ) : (
-                      isERC2OToken && (
-                        <CustomSpendCap
-                          ticker={tokenSymbol}
-                          dappProposedValue={originalApproveAmount}
-                          tokenSpendValue={tokenSpendValue}
-                          accountBalance={tokenBalance}
-                          tokenDecimal={tokenDecimals}
-                          toggleLearnMoreWebPage={this.toggleLearnMoreWebPage}
-                          isEditDisabled={Boolean(isReadyToApprove)}
-                          editValue={this.goToSpendCap}
-                          onInputChanged={this.handleCustomSpendOnInputChange}
-                          isInputValid={this.handleSetIsCustomSpendInputValid}
-                        />
-                      )
-                    )}
-                    {((isERC2OToken && isReadyToApprove) ||
-                      tokenStandard === ERC721 ||
+                        )
+                      ) : null}
+                    </View>
+                    {(tokenStandard === ERC721 ||
                       tokenStandard === ERC1155) && (
-                      <View style={styles.transactionWrapper}>
-                        <TransactionReview
-                          gasSelected={gasSelected}
-                          primaryCurrency={primaryCurrency}
-                          hideTotal
-                          noMargin
-                          onEdit={this.edit}
-                          chainId={this.props.chainId}
-                          onUpdatingValuesStart={onUpdatingValuesStart}
-                          onUpdatingValuesEnd={onUpdatingValuesEnd}
-                          animateOnChange={animateOnChange}
-                          isAnimating={isAnimating}
-                          gasEstimationReady={gasEstimationReady}
-                          legacy={!showFeeMarket}
-                          gasObject={
-                            !showFeeMarket ? legacyGasObject : eip1559GasObject
-                          }
-                          updateTransactionState={updateTransactionState}
-                          onlyGas
-                          multiLayerL1FeeTotal={multiLayerL1FeeTotal}
-                        />
-                      </View>
+                      <Text reset style={styles.explanation}>
+                        {`${strings(
+                          `spend_limit_edition.${
+                            originIsDeeplink
+                              ? 'you_trust_this_address'
+                              : 'you_trust_this_site'
+                          }`,
+                        )}`}
+                      </Text>
                     )}
-                    {gasError && (
-                      <View style={styles.errorWrapper}>
-                        {isTestNetwork || isNativeTokenBuySupported ? (
-                          <TouchableOpacity onPress={errorPress}>
-                            <Text reset style={styles.error}>
-                              {gasError}
-                            </Text>
+                    <ButtonLink
+                      variant={TextVariant.BodyMD}
+                      onPress={showVerifyContractDetails}
+                      style={styles.verifyContractLink}
+                      label={strings(
+                        'contract_allowance.token_allowance.verify_third_party_details',
+                      )}
+                    />
+                    <View style={styles.paddingHorizontal}>
+                      <View style={styles.section}>
+                        {!tokenStandard ? (
+                          <SkeletonText style={styles.skeletalView} />
+                        ) : (
+                          isERC2OToken && (
+                            <CustomSpendCap
+                              ticker={tokenSymbol}
+                              dappProposedValue={originalApproveAmount}
+                              tokenSpendValue={tokenSpendValue}
+                              accountBalance={tokenBalance}
+                              tokenDecimal={tokenDecimals}
+                              toggleLearnMoreWebPage={
+                                this.toggleLearnMoreWebPage
+                              }
+                              isEditDisabled={Boolean(isReadyToApprove)}
+                              editValue={this.goToSpendCap}
+                              onInputChanged={
+                                this.handleCustomSpendOnInputChange
+                              }
+                              isInputValid={
+                                this.handleSetIsCustomSpendInputValid
+                              }
+                            />
+                          )
+                        )}
+                        {((isERC2OToken && isReadyToApprove) ||
+                          tokenStandard === ERC721 ||
+                          tokenStandard === ERC1155) && (
+                          <View style={styles.transactionWrapper}>
+                            <TransactionReview
+                              gasSelected={gasSelected}
+                              primaryCurrency={primaryCurrency}
+                              hideTotal
+                              noMargin
+                              onEdit={this.edit}
+                              chainId={this.props.chainId}
+                              onUpdatingValuesStart={onUpdatingValuesStart}
+                              onUpdatingValuesEnd={onUpdatingValuesEnd}
+                              animateOnChange={animateOnChange}
+                              isAnimating={isAnimating}
+                              gasEstimationReady={gasEstimationReady}
+                              legacy={!showFeeMarket}
+                              gasObject={
+                                !showFeeMarket
+                                  ? legacyGasObject
+                                  : eip1559GasObject
+                              }
+                              updateTransactionState={updateTransactionState}
+                              onlyGas
+                              multiLayerL1FeeTotal={multiLayerL1FeeTotal}
+                            />
+                          </View>
+                        )}
+                        {gasError && (
+                          <View style={styles.errorWrapper}>
+                            {isTestNetwork || isNativeTokenBuySupported ? (
+                              <TouchableOpacity onPress={errorPress}>
+                                <Text reset style={styles.error}>
+                                  {gasError}
+                                </Text>
 
-                            {over && (
-                              <Text
-                                reset
-                                style={[styles.error, styles.underline]}
-                              >
-                                {errorLinkText}
+                                {over && (
+                                  <Text
+                                    reset
+                                    style={[styles.error, styles.underline]}
+                                  >
+                                    {errorLinkText}
+                                  </Text>
+                                )}
+                              </TouchableOpacity>
+                            ) : (
+                              <Text reset style={styles.error}>
+                                {gasError}
                               </Text>
                             )}
+                          </View>
+                        )}
+                        {!gasError && (
+                          <TouchableOpacity
+                            style={styles.actionTouchable}
+                            onPress={this.toggleViewDetails}
+                          >
+                            <View style={styles.iconContainer}>
+                              <Text reset style={styles.viewDetailsText}>
+                                {strings(
+                                  'spend_limit_edition.view_transaction_details',
+                                )}
+                              </Text>
+                              <IonicIcon
+                                name="ios-arrow-down"
+                                size={16}
+                                style={styles.iconDropdown}
+                              />
+                            </View>
                           </TouchableOpacity>
-                        ) : (
-                          <Text reset style={styles.error}>
-                            {gasError}
-                          </Text>
                         )}
                       </View>
-                    )}
-                    {!gasError && (
-                      <TouchableOpacity
-                        style={styles.actionTouchable}
-                        onPress={this.toggleViewDetails}
-                      >
-                        <View style={styles.iconContainer}>
-                          <Text reset style={styles.viewDetailsText}>
-                            {strings(
-                              'spend_limit_edition.view_transaction_details',
-                            )}
-                          </Text>
-                          <IonicIcon
-                            name="ios-arrow-down"
-                            size={16}
-                            style={styles.iconDropdown}
-                          />
-                        </View>
-                      </TouchableOpacity>
-                    )}
+                    </View>
                   </View>
-                </View>
+                </ScrollView>
               </View>
             </ActionView>
           </View>
@@ -1186,7 +1225,7 @@ const mapStateToProps = (state) => ({
   providerRpcTarget: selectRpcTarget(state),
   primaryCurrency: state.settings.primaryCurrency,
   activeTabUrl: getActiveTabUrl(state),
-  network: selectNetwork(state),
+  networkId: selectNetwork(state),
   chainId: selectChainId(state),
   tokenList: selectTokenList(state),
   isNativeTokenBuySupported: isNetworkBuyNativeTokenSupported(
