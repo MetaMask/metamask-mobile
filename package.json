@@ -371,7 +371,9 @@
     "@storybook/addon-ondevice-controls": "^6.5.6",
     "@storybook/addon-ondevice-knobs": "^5.3.25",
     "@storybook/addons": "^7.4.2",
+    "@storybook/builder-webpack5": "^7.4.3",
     "@storybook/core-common": "^7.4.2",
+    "@storybook/manager-webpack5": "^6.5.16",
     "@storybook/react-native": "^6.5.6",
     "@testing-library/react": "14.0.0",
     "@testing-library/react-hooks": "^8.0.1",
@@ -580,7 +582,13 @@
       "@storybook/react-native>@storybook/core-client>@storybook/ui>core-js": false,
       "@storybook/react-native>@storybook/core-client>core-js": false,
       "@storybook/react-native>@storybook/core-events>core-js": false,
-      "@storybook/react-native>@storybook/preview-web>core-js": false
+      "@storybook/react-native>@storybook/preview-web>core-js": false,
+      "@storybook/manager-webpack5>@storybook/core-common>webpack>watchpack>watchpack-chokidar2>chokidar>fsevents": false,
+      "@storybook/manager-webpack5>@storybook/theming>core-js": false,
+      "@storybook/manager-webpack5>@storybook/ui>@storybook/semver>core-js": false,
+      "@storybook/manager-webpack5>@storybook/ui>core-js": false,
+      "@storybook/manager-webpack5>core-js": false,
+      "ts-node>@swc/core": false
     }
   }
 }
