@@ -33,7 +33,7 @@ export default function onUrlSubmit(
   defaultProtocol = 'https://',
 ) {
   //Check if it's a url or a keyword
-  if (!isUrl(input) && !regex.url.test(input)) {
+  if (!isUrl(input) && !input.match(regex.url)) {
     // Add exception for localhost
     if (
       !input.startsWith('http://localhost') &&

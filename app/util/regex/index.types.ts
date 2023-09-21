@@ -21,6 +21,7 @@ export interface RegexTypes {
   portfolioUrl: RegExp;
   prefixedFormattedHexString: RegExp;
   privateCredentials: RegExp;
+  protocol: RegExp;
   replaceNetworkErrorSentry: RegExp;
   sanitizeUrl: RegExp;
   seedPhrase: RegExp;
