@@ -476,7 +476,7 @@ workflows:
             - deploy_path: $BITRISE_DEPLOY_DIR
             - is_compress: true
             - zip_name: "E2E_IOS_Failure_Screenshots"
-  android_e2e_test:
+  android_confirmations_e2e_test:
     before_run:
       - code_setup_dev
       - e2e_setup
