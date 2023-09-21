@@ -87,21 +87,15 @@ describe('NetworkUtils::getNetworkTypeById', () => {
     expect(type).toEqual(SEPOLIA);
   });
   it('should fail if network Id is missing', () => {
-    try {
-      getNetworkTypeById();
-    } catch (error) {
-      expect(error.message).toEqual(NetworkSwitchErrorType.missingNetworkId);
-    }
+    expect(() => getNetworkTypeById()).toThrow(
+      NetworkSwitchErrorType.missingNetworkId,
+    );
   });
   it('should fail if network Id is unknown', () => {
     const id = 9999;
-    try {
-      getNetworkTypeById(id);
-    } catch (error) {
-      expect(error.message).toEqual(
-        `${NetworkSwitchErrorType.unknownNetworkId} ${id}`,
-      );
-    }
+    expect(() => getNetworkTypeById(id)).toThrow(
+      `${NetworkSwitchErrorType.unknownNetworkId} ${id}`,
+    );
   });
 });
 
