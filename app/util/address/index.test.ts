@@ -58,12 +58,17 @@ jest.mock('../../core/Engine', () => ({
 }));
 
 describe('renderFullName', () => {
-  it('should return the address when the address is empty', () => {
+  it('should return error string when the address is empty', () => {
     const expectedResult = strings('transactions.tx_details_not_available');
     expect(renderFullAddress('')).toBe(expectedResult);
   });
 
-  it('should return the address when ', () => {
+  it('should return error string when the address is null', () => {
+    const expectedResult = strings('transactions.tx_details_not_available');
+    expect(renderFullAddress(null)).toBe(expectedResult);
+  });
+
+  it('should return the address when the address is valid', () => {
     const input = '0xC4955C0d639D99699Bfd7Ec54d9FaFEe40e4D272';
     const expectedResult = toChecksumAddress(input);
     expect(renderFullAddress(input)).toBe(expectedResult);
@@ -83,7 +88,7 @@ describe('renderShortAddress', () => {
     expect(renderShortAddress(input, 6)).toBe(expected);
   });
 
-  it('should return the input address if it is null', () => {
+  it('should return null if it is null', () => {
     expect(renderShortAddress(null)).toBe(null);
   });
 });
@@ -119,28 +124,11 @@ describe('renderAccountName', () => {
 });
 
 describe('importAccountFromPrivateKey', () => {
-  it('should import an account from a private key', async () => {
-    const private_key =
-      '0x0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef';
-    const expectedAddress = '0x123456789abcdef0123456789abcdef01234567';
-    const setSelectedAddressMock = jest.fn();
-    const importAccountWithStrategyMock = jest
-      .fn()
-      .mockResolvedValue({ importedAccountAddress: expectedAddress });
-    Engine.context.KeyringController.importAccountWithStrategy =
-      importAccountWithStrategyMock;
-    Engine.context.PreferencesController.setSelectedAddress =
-      setSelectedAddressMock;
-    await importAccountFromPrivateKey(private_key);
-    expect(importAccountWithStrategyMock).toHaveBeenCalledWith('privateKey', [
-      '0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef',
-    ]);
-    expect(setSelectedAddressMock).toHaveBeenCalledWith(
-      '0x123456789AbCdef0123456789abCDEF01234567',
-    );
+  afterEach(() => {
+    jest.clearAllMocks();
   });
 
-  it('should handle private keys with 0x prefix', async () => {
+  it('should import an account from a private key with 66 characters and prefix 0x', async () => {
     const private_key =
       '0x0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef';
     const expectedAddress = '0x123456789abcdef0123456789abcdef01234567';
@@ -150,10 +138,8 @@ describe('importAccountFromPrivateKey', () => {
       .mockResolvedValue({ importedAccountAddress: expectedAddress });
     Engine.context.KeyringController.importAccountWithStrategy =
       importAccountWithStrategyMock;
-
     Engine.context.PreferencesController.setSelectedAddress =
       setSelectedAddressMock;
-
     await importAccountFromPrivateKey(private_key);
     expect(importAccountWithStrategyMock).toHaveBeenCalledWith('privateKey', [
       private_key.substr(2),
@@ -162,68 +148,126 @@ describe('importAccountFromPrivateKey', () => {
       '0x123456789AbCdef0123456789abCDEF01234567',
     );
   });
+
+  it('should handle private keys with 66 characters and without 0x prefix', async () => {
+    const private_key =
+      '650123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef';
+    const expectedAddress = '0x123456789abcdef0123456789abcdef01234567';
+    const setSelectedAddressMock = jest.fn();
+    const importAccountWithStrategyMock = jest
+      .fn()
+      .mockResolvedValue({ importedAccountAddress: expectedAddress });
+    Engine.context.KeyringController.importAccountWithStrategy =
+      importAccountWithStrategyMock;
+
+    Engine.context.PreferencesController.setSelectedAddress =
+      setSelectedAddressMock;
+
+    await importAccountFromPrivateKey(private_key);
+    expect(importAccountWithStrategyMock).toHaveBeenCalledWith('privateKey', [
+      private_key,
+    ]);
+    expect(setSelectedAddressMock).toHaveBeenCalledWith(
+      '0x123456789AbCdef0123456789abCDEF01234567',
+    );
+  });
+
+  it('should handle private keys with less than 66 characters', async () => {
+    const private_key =
+      '0x0123456789abcdef0123456789abcdef0123456789abcdef0123456789abc';
+    const expectedAddress = '0x123456789abcdef0123456789abcdef01234567';
+    const setSelectedAddressMock = jest.fn();
+    const importAccountWithStrategyMock = jest
+      .fn()
+      .mockResolvedValue({ importedAccountAddress: expectedAddress });
+    Engine.context.KeyringController.importAccountWithStrategy =
+      importAccountWithStrategyMock;
+
+    Engine.context.PreferencesController.setSelectedAddress =
+      setSelectedAddressMock;
+
+    await importAccountFromPrivateKey(private_key);
+    expect(importAccountWithStrategyMock).toHaveBeenCalledWith('privateKey', [
+      private_key,
+    ]);
+    expect(setSelectedAddressMock).toHaveBeenCalledWith(
+      '0x123456789AbCdef0123456789abCDEF01234567',
+    );
+  });
 });
 
 describe('getTokenDetails', () => {
+  afterEach(() => {
+    jest.clearAllMocks();
+  });
+
   const tokenAddress = '0x1234567890123456789012345678901234567890';
   const userAddress = '0x0987654321098765432109876543210987654321';
   const tokenId = '123';
 
   it('should return token details for ERC20 tokens', async () => {
-    const tokenData = {
+    const returnData = {
       standard: 'ERC20',
-      symbol: 'ETH',
+      name: 'MyToken',
+      symbol: 'MT',
+      decimals: 18,
+    };
+
+    const expectedData = {
+      standard: 'ERC20',
+      symbol: 'MT',
       decimals: 18,
     };
     Engine.context.AssetsContractController.getTokenStandardAndDetails.mockResolvedValueOnce(
-      tokenData,
+      returnData,
     );
 
     const result = await getTokenDetails(tokenAddress, userAddress, tokenId);
 
-    expect(result).toEqual({
-      symbol: 'ETH',
-      decimals: 18,
-      standard: 'ERC20',
-    });
+    expect(result).toEqual(expectedData);
   });
 
   it('should return token details for ERC721 tokens', async () => {
-    const tokenData = {
+    const returnData = {
       standard: 'ERC721',
-      name: 'CryptoKitties',
-      symbol: 'CK',
+      name: 'MyToken',
+      symbol: 'MT',
+      decimals: 18,
+    };
+    const expectedData = {
+      standard: 'ERC721',
+      name: 'MyToken',
+      symbol: 'MT',
     };
     Engine.context.AssetsContractController.getTokenStandardAndDetails.mockResolvedValueOnce(
-      tokenData,
+      returnData,
     );
 
     const result = await getTokenDetails(tokenAddress, userAddress, tokenId);
 
-    expect(result).toEqual({
-      name: 'CryptoKitties',
-      symbol: 'CK',
-      standard: 'ERC721',
-    });
+    expect(result).toEqual(expectedData);
   });
 
   it('should return token details for ERC1155 tokens', async () => {
-    const tokenData = {
+    const returnData = {
+      standard: 'ERC1155',
+      name: 'MyToken',
+      symbol: 'MT',
+      decimals: 18,
+    };
+
+    const expectedData = {
       standard: 'ERC1155',
       name: 'MyToken',
       symbol: 'MT',
     };
     Engine.context.AssetsContractController.getTokenStandardAndDetails.mockResolvedValueOnce(
-      tokenData,
+      returnData,
     );
 
     const result = await getTokenDetails(tokenAddress, userAddress, tokenId);
 
-    expect(result).toEqual({
-      name: 'MyToken',
-      symbol: 'MT',
-      standard: 'ERC1155',
-    });
+    expect(result).toEqual(expectedData);
   });
 });
 

@@ -8,14 +8,21 @@ import {
 
 describe('action, rpcEvents', () => {
   describe('setEventStage', () => {
-    it('should create an action to set the event stage', () => {
-      const expectedAction = {
-        type: ActionType.SET_EVENT_STAGE,
-        rpcName: 'eth_sign',
-        eventStage: RPCStageTypes.REQUEST_SEND,
-      };
+    const createExpectedAction = (eventStage: RPCStageTypes) => ({
+      type: ActionType.SET_EVENT_STAGE,
+      rpcName: 'eth_sign',
+      eventStage,
+    });
+
+    it('should create an action to set event stage to REQUEST_SENT', () => {
       expect(setEventStage('eth_sign', RPCStageTypes.REQUEST_SEND)).toEqual(
-        expectedAction,
+        createExpectedAction(RPCStageTypes.REQUEST_SEND),
+      );
+    });
+
+    it('should create an action to set event stage to COMPLETE', () => {
+      expect(setEventStage('eth_sign', RPCStageTypes.COMPLETE)).toEqual(
+        createExpectedAction(RPCStageTypes.COMPLETE),
       );
     });
   });
