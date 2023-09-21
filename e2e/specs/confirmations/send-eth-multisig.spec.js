@@ -21,6 +21,7 @@ describe(Smoke('Send ETH to Multisig'), () => {
   const MULTISIG_CONTRACT = SMART_CONTRACTS.MULTISIG;
   const AMOUNT_TO_SEND = '0.12345';
   const TOKEN_NAME = root.unit.eth;
+  let ganache;
 
   beforeAll(async () => {
     jest.setTimeout(2500000);
@@ -38,10 +39,11 @@ describe(Smoke('Send ETH to Multisig'), () => {
         ganacheOptions: defaultGanacheOptions,
         smartContract: MULTISIG_CONTRACT,
       },
-      async ({ contractRegistry }) => {
+      async ({ contractRegistry, ganacheServer }) => {
         const multisigAddress = await contractRegistry.getContractAddress(
           MULTISIG_CONTRACT,
         );
+        ganache = ganacheServer;
         await loginToApp();
 
         await TabBarComponent.tapActions();
@@ -61,5 +63,10 @@ describe(Smoke('Send ETH to Multisig'), () => {
         );
       },
     );
+  });
+
+  afterEach(async () => {
+    await ganache.quit();
+    await TestHelpers.delay(3000);
   });
 });

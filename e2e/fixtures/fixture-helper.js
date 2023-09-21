@@ -6,12 +6,10 @@ import GanacheSeeder from '../../app/util/test/ganache-seeder';
 import axios from 'axios';
 import path from 'path';
 import createStaticServer from '../create-static-server';
-import TestHelpers from '../helpers';
 
 const fixtureServer = new FixtureServer();
 
 const FIXTURE_SERVER_URL = 'http://localhost:12345/state.json';
-const MAX_ATTEMPTS = 5;
 
 // checks if server has already been started
 const isFixtureServerStarted = async () => {
@@ -149,7 +147,7 @@ export async function withFixtures(options, testSuite) {
       await device.launchApp({ delete: true });
     }
 
-    await testSuite({ contractRegistry });
+    await testSuite({ contractRegistry, ganacheServer });
   } catch (error) {
     console.error(error);
     throw error;
@@ -169,16 +167,6 @@ export async function withFixtures(options, testSuite) {
       }
     }
     await stopFixtureServer();
-    if (ganacheOptions) {
-      for (let i = 1; i <= MAX_ATTEMPTS; i++) {
-        try {
-          await ganacheServer.quit();
-          await TestHelpers.delay(7000);
-        } catch (error) {
-          console.log(error);
-        }
-      }
-    }
   }
 }
 

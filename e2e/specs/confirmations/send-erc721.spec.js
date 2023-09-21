@@ -16,6 +16,7 @@ import { SMART_CONTRACTS } from '../../../app/util/test/smart-contracts';
 describe(Smoke('ERC721 tokens'), () => {
   const NFT_CONTRACT = SMART_CONTRACTS.NFTS;
   const SENT_COLLECTIBLE_MESSAGE_TEXT = root.transactions.sent_collectible;
+  let ganache;
 
   beforeAll(async () => {
     jest.setTimeout(150000);
@@ -38,7 +39,8 @@ describe(Smoke('ERC721 tokens'), () => {
         ganacheOptions: defaultGanacheOptions,
         smartContract: NFT_CONTRACT,
       },
-      async ({ contractRegistry }) => {
+      async ({ contractRegistry, ganacheServer }) => {
+        ganache = ganacheServer;
         const nftsAddress = await contractRegistry.getContractAddress(
           NFT_CONTRACT,
         );
@@ -68,5 +70,10 @@ describe(Smoke('ERC721 tokens'), () => {
         );
       },
     );
+  });
+
+  afterEach(async () => {
+    await ganache.quit();
+    await TestHelpers.delay(3000);
   });
 });
