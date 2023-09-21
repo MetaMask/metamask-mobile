@@ -16,13 +16,19 @@ import WalletActionsModal from '../../pages/modals/WalletActionsModal';
 
 const MYTH_ADDRESS = '0x1FDb169Ef12954F20A15852980e1F0C122BfC1D6';
 
+
 describe(Smoke('Send ETH Tests'), () => {
+  let ganache;
   beforeAll(async () => {
     jest.setTimeout(2500000);
     if (device.getPlatform() === 'android') {
-      await device.reverseTcpPort('8081'); // because on android we need to expose the localhost ports to run ganache
-      await device.reverseTcpPort('8545');
+      await device.reverseTcpPort('8545'); // ganache
     }
+  });
+
+  afterEach(async () => {
+    await ganache.quit();
+    await TestHelpers.delay(3000);
   });
 
   it('should send ETH to an EOA', async () => {
@@ -32,7 +38,8 @@ describe(Smoke('Send ETH Tests'), () => {
         restartDevice: true,
         ganacheOptions: defaultGanacheOptions,
       },
-      async () => {
+      async ({ ganacheServer }) => {
+        ganache = ganacheServer;
         await loginToApp();
 
         await TabBarComponent.tapActions();
