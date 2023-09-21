@@ -90,6 +90,8 @@ import { PPOMView } from '../../../lib/ppom/PPOMView';
 import NavigationService from '../../../core/NavigationService';
 import LockScreen from '../../Views/LockScreen';
 import AsyncStorage from '../../../store/async-storage-wrapper';
+import ShowNftSheet from '../../Views/ShowNFTSheet/ShowNFTSheet';
+import ShowDisplayNftMediaSheet from '../../Views/ShowDisplayMediaNFTSheet/ShowDisplayNFTMediaSheet';
 
 const clearStackNavigatorOptions = {
   headerShown: false,
@@ -525,6 +527,11 @@ const App = ({ userLoggedIn }) => {
       <Stack.Screen
         name={Routes.SHEET.ETH_SIGN_FRICTION}
         component={EthSignFriction}
+      />
+      <Stack.Screen name={Routes.SHEET.SHOW_NFT} component={ShowNftSheet} />
+      <Stack.Screen
+        name={Routes.SHEET.SHOW_NFT_DISPLAY_MEDIA}
+        component={ShowDisplayNftMediaSheet}
       />
     </Stack.Navigator>
   );

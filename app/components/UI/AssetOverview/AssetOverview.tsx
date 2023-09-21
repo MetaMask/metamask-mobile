@@ -10,6 +10,7 @@ import { strings } from '../../../../locales/i18n';
 import {
   TOKEN_ASSET_OVERVIEW,
   TOKEN_OVERVIEW_SEND_BUTTON,
+  TOKEN_OVERVIEW_RECEIVE_BUTTON,
 } from '../../../../wdio/screen-objects/testIDs/Screens/TokenOverviewScreen.testIds';
 import generateTestId from '../../../../wdio/utils/generateTestId';
 import { toggleReceiveModal } from '../../../actions/modals';
@@ -239,6 +240,7 @@ const AssetOverview: React.FC<AssetOverviewProps> = ({
                 size={ButtonSize.Lg}
                 label={strings('asset_overview.receive_button')}
                 onPress={onReceive}
+                testID={TOKEN_OVERVIEW_RECEIVE_BUTTON}
               />
               <Button
                 style={{ ...styles.footerButton, ...styles.sendButton }}
