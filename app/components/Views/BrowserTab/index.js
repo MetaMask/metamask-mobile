@@ -235,9 +235,13 @@ const createStyles = (colors, shadows) =>
     fullScreenModal: {
       flex: 1,
     },
-    ipfsBanner: {
-      marginHorizontal: 16,
-      marginBottom: 16,
+    bannerContainer: {
+      backgroundColor: colors.background.default,
+      position: 'absolute',
+      bottom: 16,
+      left: 16,
+      right: 16,
+      borderRadius: 4,
     },
   });
 
@@ -1407,37 +1411,38 @@ export const BrowserTab = (props) => {
   );
 
   const renderIpfsBanner = () => (
-    <Banner
-      title={strings('ipfs_gateway_banner.ipfs_gateway_banner_title')}
-      description={
-        <CLText>
-          {strings('ipfs_gateway_banner.ipfs_gateway_banner_content1')}{' '}
-          <CLText variant={TextVariant.BodyMDBold}>
-            {strings('ipfs_gateway_banner.ipfs_gateway_banner_content2')}
-          </CLText>{' '}
-          {strings('ipfs_gateway_banner.ipfs_gateway_banner_content3')}{' '}
-          <CLText variant={TextVariant.BodyMDBold}>
-            {strings('ipfs_gateway_banner.ipfs_gateway_banner_content4')}
+    <View style={styles.bannerContainer}>
+      <Banner
+        title={strings('ipfs_gateway_banner.ipfs_gateway_banner_title')}
+        description={
+          <CLText>
+            {strings('ipfs_gateway_banner.ipfs_gateway_banner_content1')}{' '}
+            <CLText variant={TextVariant.BodyMDBold}>
+              {strings('ipfs_gateway_banner.ipfs_gateway_banner_content2')}
+            </CLText>{' '}
+            {strings('ipfs_gateway_banner.ipfs_gateway_banner_content3')}{' '}
+            <CLText variant={TextVariant.BodyMDBold}>
+              {strings('ipfs_gateway_banner.ipfs_gateway_banner_content4')}
+            </CLText>
           </CLText>
-        </CLText>
-      }
-      actionButtonProps={{
-        variant: ButtonVariants.Link,
-        onPress: () =>
-          props.navigation.navigate(Routes.MODAL.ROOT_MODAL_FLOW, {
-            screen: Routes.SHEET.SHOW_IPFS,
-            params: {
-              setIpfsBannerVisible: () => setIpfsBannerVisible(false),
-            },
-          }),
-        textVariant: TextVariant.BodyMD,
-        label: 'Turn on IPFS gateway',
-      }}
-      variant={BannerVariant.Alert}
-      severity={BannerAlertSeverity.Info}
-      onClose={() => setIpfsBannerVisible(false)}
-      style={styles.ipfsBanner}
-    />
+        }
+        actionButtonProps={{
+          variant: ButtonVariants.Link,
+          onPress: () =>
+            props.navigation.navigate(Routes.MODAL.ROOT_MODAL_FLOW, {
+              screen: Routes.SHEET.SHOW_IPFS,
+              params: {
+                setIpfsBannerVisible: () => setIpfsBannerVisible(false),
+              },
+            }),
+          textVariant: TextVariant.BodyMD,
+          label: 'Turn on IPFS gateway',
+        }}
+        variant={BannerVariant.Alert}
+        severity={BannerAlertSeverity.Info}
+        onClose={() => setIpfsBannerVisible(false)}
+      />
+    </View>
   );
 
   /**
@@ -1451,38 +1456,41 @@ export const BrowserTab = (props) => {
       >
         <View style={styles.webview}>
           {!!entryScriptWeb3 && firstUrlLoaded && (
-            <WebView
-              originWhitelist={['*']}
-              decelerationRate={'normal'}
-              ref={webviewRef}
-              renderError={() => (
-                <WebviewError error={error} returnHome={returnHome} />
-              )}
-              source={{ uri: initialUrl }}
-              injectedJavaScriptBeforeContentLoaded={entryScriptWeb3}
-              style={styles.webview}
-              onLoadStart={onLoadStart}
-              onLoad={onLoad}
-              onLoadEnd={onLoadEnd}
-              onLoadProgress={onLoadProgress}
-              onMessage={onMessage}
-              onError={onError}
-              onShouldStartLoadWithRequest={onShouldStartLoadWithRequest}
-              sendCookies
-              javascriptEnabled
-              allowsInlineMediaPlayback
-              useWebkit
-              testID={'browser-webview'}
-              applicationNameForUserAgent={'WebView MetaMaskMobile'}
-              onFileDownload={handleOnFileDownload}
-            />
+            <>
+              <WebView
+                originWhitelist={['*']}
+                decelerationRate={'normal'}
+                ref={webviewRef}
+                renderError={() => (
+                  <WebviewError error={error} returnHome={returnHome} />
+                )}
+                source={{ uri: initialUrl }}
+                injectedJavaScriptBeforeContentLoaded={entryScriptWeb3}
+                style={styles.webview}
+                onLoadStart={onLoadStart}
+                onLoad={onLoad}
+                onLoadEnd={onLoadEnd}
+                onLoadProgress={onLoadProgress}
+                onMessage={onMessage}
+                onError={onError}
+                onShouldStartLoadWithRequest={onShouldStartLoadWithRequest}
+                sendCookies
+                javascriptEnabled
+                allowsInlineMediaPlayback
+                useWebkit
+                testID={'browser-webview'}
+                applicationNameForUserAgent={'WebView MetaMaskMobile'}
+                onFileDownload={handleOnFileDownload}
+              />
+              {ipfsBannerVisible && renderIpfsBanner()}
+            </>
           )}
         </View>
         {updateAllowList()}
         {renderProgressBar()}
-        {ipfsBannerVisible && renderIpfsBanner()}
         {isTabActive && renderPhishingModal()}
         {isTabActive && renderOptions()}
+
         {isTabActive && renderBottomBar()}
         {isTabActive && renderOnboardingWizard()}
       </View>
