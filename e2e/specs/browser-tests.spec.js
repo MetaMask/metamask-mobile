@@ -5,19 +5,33 @@ import Browser from '../pages/Drawer/Browser';
 import { BROWSER_SCREEN_ID } from '../../wdio/screen-objects/testIDs/BrowserScreen/BrowserScreen.testIds';
 import TabBarComponent from '../pages/TabBarComponent';
 
-import { CreateNewWallet } from '../viewHelper';
+import { loginToApp } from '../viewHelper';
+import FixtureBuilder from '../fixtures/fixture-builder';
+import {
+  loadFixture,
+  startFixtureServer,
+  stopFixtureServer,
+} from '../fixtures/fixture-helper';
 
 const PHISHING_SITE = 'http://www.empowr.com/FanFeed/Home.aspx';
 const INVALID_URL = 'https://quackquakc.easq';
 const TEST_DAPP = 'https://metamask.github.io/test-dapp/';
 const METAMASK_TEST_DAPP_SHORTEN_URL_TEXT = 'metamask.github.io';
 describe(Smoke('Browser Tests'), () => {
-  beforeEach(() => {
-    jest.setTimeout(150000);
+  beforeAll(async () => {
+    const fixture = new FixtureBuilder().build();
+    await startFixtureServer();
+    await loadFixture({ fixture });
+    await device.launchApp({ delete: true });
+    await loginToApp();
   });
 
-  it('should create new wallet', async () => {
-    await CreateNewWallet();
+  afterAll(async () => {
+    await stopFixtureServer();
+  });
+
+  beforeEach(() => {
+    jest.setTimeout(150000);
   });
 
   it('should navigate to browser', async () => {
