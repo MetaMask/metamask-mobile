@@ -345,7 +345,7 @@ PODS:
     - React-Core
   - react-native-randombytes (3.6.1):
     - React-Core
-  - react-native-safe-area-context (3.4.1):
+  - react-native-safe-area-context (3.2.0):
     - React-Core
   - react-native-slider (4.4.3):
     - React-Core
