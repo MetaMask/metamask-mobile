@@ -1,0 +1,37 @@
+export interface RegexTypes {
+  eth: (num: number) => RegExp;
+  usd: (num: number) => RegExp;
+  accountBalance: RegExp;
+  activationKey: RegExp;
+  addressWithSpaces: RegExp;
+  colorBlack: RegExp;
+  decimalStringMigrations: RegExp;
+  decimalString: RegExp;
+  defaultAccount: RegExp;
+  ensName: RegExp;
+  exec: (exp: string, input: string) => RegExpExecArray | null;
+  fractions: RegExp;
+  hasOneDigit: RegExp;
+  hexPrefix: RegExp;
+  integer: RegExp;
+  localNetwork: RegExp;
+  nameInitial: RegExp;
+  nonNumber: RegExp;
+  number: RegExp;
+  portfolioUrl: RegExp;
+  prefixedFormattedHexString: RegExp;
+  privateCredentials: RegExp;
+  replaceNetworkErrorSentry: RegExp;
+  sanitizeUrl: RegExp;
+  seedPhrase: RegExp;
+  startUrl: RegExp;
+  trailingSlash: RegExp;
+  trailingZero: RegExp;
+  transactionNonce: RegExp;
+  urlHttpToHttps: RegExp;
+  url: RegExp;
+  validChainIdHex: RegExp;
+  validChainId: RegExp;
+  walletAddress: RegExp;
+  whiteSpaces: RegExp;
+}

@@ -1,4 +1,5 @@
 import AppConstants from '../../core/AppConstants';
+import { RegexTypes } from './index.types';
 import { ACCOUNT_BALANCE_BY_ADDRESS_TEST_ID } from '../../../wdio/screen-objects/testIDs/Components/AccountListComponent.testIds';
 
 export function hasDecimals(separator: string, decimalPlaces: string) {
@@ -9,45 +10,7 @@ export function hasProtocol(url: string) {
   return /^[a-z]*:\/\//.test(url);
 }
 
-export interface RegexTypes {
-  eth: (num: number) => RegExp;
-  usd: (num: number) => RegExp;
-  accountBalance: RegExp;
-  activationKey: RegExp;
-  addressWithSpaces: RegExp;
-  colorBlack: RegExp;
-  decimalStringMigrations: RegExp;
-  decimalString: RegExp;
-  defaultAccount: RegExp;
-  ensName: RegExp;
-  exec: (exp: string, input: string) => RegExpExecArray | null;
-  fractions: RegExp;
-  hasOneDigit: RegExp;
-  hexPrefix: RegExp;
-  integer: RegExp;
-  localNetwork: RegExp;
-  nameInitial: RegExp;
-  nonNumber: RegExp;
-  number: RegExp;
-  portfolioUrl: RegExp;
-  prefixedFormattedHexString: RegExp;
-  privateCredentials: RegExp;
-  replaceNetworkErrorSentry: RegExp;
-  sanitizeUrl: RegExp;
-  seedPhrase: RegExp;
-  startUrl: RegExp;
-  trailingSlash: RegExp;
-  trailingZero: RegExp;
-  transactionNonce: RegExp;
-  urlHttpToHttps: RegExp;
-  url: RegExp;
-  validChainIdHex: RegExp;
-  validChainId: RegExp;
-  walletAddress: RegExp;
-  whiteSpaces: RegExp;
-}
-
-export const regex = {
+export const regex: RegexTypes = {
   eth: (num: number) => new RegExp(`${num} ETH`),
   usd: (num: number) => new RegExp(`${num}`),
   accountBalance: new RegExp(`${ACCOUNT_BALANCE_BY_ADDRESS_TEST_ID}`),
@@ -71,8 +34,6 @@ export const regex = {
   localNetwork:
     /(^127\.)|(^10\.)|(^172\.1[6-9]\.)|(^172\.2[0-9]\.)|(^172\.3[0-1]\.)|(^192\.168\.)/,
   nameInitial: /[a-z]/i,
-  // metro, metro-core, metro-source-map, metro-etc.
-  node_files: new RegExp(['/metro(?:-[^/]*)?/'].join('|')),
   nonNumber: /[^0-9.]/g,
   number: /^(\d+(\.\d+)?)$/,
   portfolioUrl: new RegExp(`${AppConstants.PORTFOLIO_URL}/(?![a-z])`),
