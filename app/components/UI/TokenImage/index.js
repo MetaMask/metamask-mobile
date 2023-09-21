@@ -4,8 +4,10 @@ import { StyleSheet, View } from 'react-native';
 import AssetIcon from '../AssetIcon';
 import Identicon from '../Identicon';
 import isUrl from 'is-url';
-import { connect } from 'react-redux';
+import { connect, useSelector } from 'react-redux';
 import { selectTokenList } from '../../../selectors/tokenListController';
+import { selectIsIpfsGatewayEnabled } from '../../../selectors/preferencesController';
+import { isIPFSUri } from '../../../util/general';
 
 const styles = StyleSheet.create({
   itemLogoWrapper: {
@@ -19,6 +21,8 @@ const styles = StyleSheet.create({
 });
 
 const TokenImage = ({ asset, containerStyle, iconStyle, tokenList }) => {
+  const isIpfsGatewayEnabled = useSelector(selectIsIpfsGatewayEnabled);
+
   const assetImage = isUrl(asset?.image) ? asset.image : null;
   const iconUrl =
     assetImage ||
@@ -26,9 +30,12 @@ const TokenImage = ({ asset, containerStyle, iconStyle, tokenList }) => {
     tokenList[asset?.address?.toLowerCase()]?.iconUrl ||
     '';
 
+  const isIpfsDisabledAndUriIsIpfs =
+    !isIpfsGatewayEnabled && isIPFSUri(iconUrl);
+
   return (
     <View style={[styles.itemLogoWrapper, containerStyle, styles.roundImage]}>
-      {iconUrl ? (
+      {iconUrl || !isIpfsDisabledAndUriIsIpfs ? (
         <AssetIcon
           address={asset?.address}
           logo={iconUrl}

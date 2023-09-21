@@ -53,7 +53,11 @@ import TransactionReviewDetailsCard from '../../UI/TransactionReview/Transaction
 import AppConstants from '../../../core/AppConstants';
 import { UINT256_HEX_MAX_VALUE } from '../../../constants/transaction';
 import { WALLET_CONNECT_ORIGIN } from '../../../util/walletconnect';
-import { isBlockaidFeatureEnabled } from '../../../util/blockaid';
+import {
+  isBlockaidFeatureEnabled,
+  getBlockaidMetricsParams,
+  showBlockaidUI,
+} from '../../../util/blockaid';
 import { withNavigation } from '@react-navigation/compat';
 import {
   isTestNet,
@@ -519,7 +523,7 @@ class ApproveTransactionReview extends PureComponent {
         transaction?.origin,
       );
       const unlimited = encodedHexAmount === UINT256_HEX_MAX_VALUE;
-      const params = {
+      let params = {
         account_type: getAddressAccountType(transaction?.from),
         dapp_host_name: transaction?.origin,
         chain_id: chainId,
@@ -536,6 +540,17 @@ class ApproveTransactionReview extends PureComponent {
           ? AppConstants.REQUEST_SOURCES.WC
           : AppConstants.REQUEST_SOURCES.IN_APP_BROWSER,
       };
+
+      if (showBlockaidUI()) {
+        const blockaidParams = getBlockaidMetricsParams(
+          transaction.securityAlertResponse,
+        );
+
+        params = {
+          ...params,
+          ...blockaidParams,
+        };
+      }
       // Send analytics params to parent component so it's available when cancelling and confirming
       onSetAnalyticsParams && onSetAnalyticsParams(params);
 

@@ -4,7 +4,7 @@ import { useNavigation } from '@react-navigation/native';
 import SettingsButtonSection from '../../../../UI/SettingsButtonSection';
 import { strings } from '../../../../../../locales/i18n';
 import Routes from '../../../../../constants/navigation/Routes';
-import { SECURITY_PRIVACY_DELETE_WALLET_BUTTON } from '../../../../../../wdio/screen-objects/testIDs/Screens/SecurityPrivacy.testIds';
+import { SECURITY_SETTINGS_DELETE_WALLET_BUTTON } from '../SecuritySettings.constants';
 
 const DeleteWalletData = () => {
   const navigation = useNavigation();
@@ -23,7 +23,7 @@ const DeleteWalletData = () => {
       descriptionText={
         <Text>{strings('app_settings.delete_wallet_data_description')}</Text>
       }
-      testID={SECURITY_PRIVACY_DELETE_WALLET_BUTTON}
+      testID={SECURITY_SETTINGS_DELETE_WALLET_BUTTON}
       onPress={showDeleteWalletModal}
     />
   );

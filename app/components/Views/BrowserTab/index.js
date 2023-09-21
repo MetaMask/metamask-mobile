@@ -88,6 +88,7 @@ import {
   selectIpfsGateway,
   selectSelectedAddress,
 } from '../../../selectors/preferencesController';
+import { IPFS_GATEWAY_DISABLED_ERROR } from './constants';
 import { regex } from '../../../../app/util/regex';
 
 const { HOMEPAGE_URL, NOTIFICATION_NAMES } = AppConstants;
@@ -492,7 +493,17 @@ export const BrowserTab = (props) => {
           Logger.error(err, 'Failed to resolve ENS name');
         }
 
-        Alert.alert(strings('browser.failed_to_resolve_ens_name'), err.message);
+        if (err?.message?.startsWith(IPFS_GATEWAY_DISABLED_ERROR)) {
+          Alert.alert(
+            strings('browser.ipfs_gateway_off_title'),
+            strings('browser.ipfs_gateway_off_content'),
+          );
+        } else {
+          Alert.alert(
+            strings('browser.failed_to_resolve_ens_name'),
+            err.message,
+          );
+        }
         goBack();
       }
     },

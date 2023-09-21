@@ -3,6 +3,7 @@ import {
   NETWORK_SCROLL_ID,
   NETWORK_TEST_SWITCH_ID,
   OTHER_NETWORK_LIST_ID,
+  ADD_NETWORK_BUTTON,
 } from '../../../wdio/screen-objects/testIDs/Components/NetworkListModal.TestIds';
 
 import messages from '../../../locales/languages/en.json';
@@ -39,6 +40,10 @@ export default class NetworkListModal {
 
   static async tapTestNetworkSwitch() {
     await TestHelpers.waitAndTap(NETWORK_TEST_SWITCH_ID);
+  }
+
+  static async tapAddNetworkButton() {
+    await TestHelpers.waitAndTap(ADD_NETWORK_BUTTON);
   }
 
   static async isTestNetworkToggleOn() {
