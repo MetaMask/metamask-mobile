@@ -38,7 +38,7 @@ import HintModal from '../../../UI/HintModal';
 import { MetaMetricsEvents } from '../../../../core/Analytics';
 import AnalyticsV2, {
   trackErrorAsAnalytics,
-} from '../../../../util/analytics/analyticsV2';
+} from '../../../../core/Analytics/analyticsV2';
 import { Authentication } from '../../../../core';
 import AUTHENTICATION_TYPE from '../../../../constants/userProperties';
 import { useTheme } from '../../../../util/theme';

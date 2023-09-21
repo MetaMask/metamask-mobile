@@ -4,7 +4,7 @@ import { strings } from '../../../../../../locales/i18n';
 import { useSelector, useDispatch } from 'react-redux';
 import { setAutomaticSecurityChecks } from '../../../../../actions/security';
 import { MetaMetricsEvents } from '../../../../../core/Analytics';
-import AnalyticsV2 from '../../../../../util/analytics/analyticsV2';
+import AnalyticsV2 from '../../../../../core/Analytics/analyticsV2';
 
 import { Platform } from 'react-native';
 

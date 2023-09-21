@@ -18,7 +18,7 @@ import MaterialIcon from 'react-native-vector-icons/MaterialCommunityIcons';
 import { getOnboardingNavbarOptions } from '../../UI/Navbar';
 import { shuffle, compareSRPs } from '../../../util/SRP';
 import { MetaMetricsEvents } from '../../../core/Analytics';
-import AnalyticsV2 from '../../../util/analytics/analyticsV2';
+import AnalyticsV2 from '../../../core/Analytics/analyticsV2';
 import { useTheme } from '../../../util/theme';
 import createStyles from './styles';
 import {

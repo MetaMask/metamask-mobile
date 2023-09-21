@@ -13,7 +13,7 @@ import { connect } from 'react-redux';
 import LottieView from 'lottie-react-native';
 import { baseStyles } from '../../../styles/common';
 import Logger from '../../../util/Logger';
-import { trackErrorAsAnalytics } from '../../../util/analytics/analyticsV2';
+import { trackErrorAsAnalytics } from '../../../core/Analytics/analyticsV2';
 import { Authentication } from '../../../core';
 import {
   getAssetFromTheme,

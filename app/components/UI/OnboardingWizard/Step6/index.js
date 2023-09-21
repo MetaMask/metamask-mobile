@@ -11,7 +11,7 @@ import {
   MetaMetricsEvents,
   ONBOARDING_WIZARD_STEP_DESCRIPTION,
 } from '../../../../core/Analytics';
-import AnalyticsV2 from '../../../../util/analytics/analyticsV2';
+import AnalyticsV2 from '../../../../core/Analytics/analyticsV2';
 import { useTheme } from '../../../../util/theme';
 import Routes from '../../../../constants/navigation/Routes';
 import generateTestId from '../../../../../wdio/utils/generateTestId';

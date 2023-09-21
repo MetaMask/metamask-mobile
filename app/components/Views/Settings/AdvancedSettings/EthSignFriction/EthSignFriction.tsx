@@ -25,7 +25,7 @@ import Button, {
   ButtonWidthTypes,
 } from '../../../../../component-library/components/Buttons/Button';
 import AppConstants from '../../../../../core/AppConstants';
-import { trackEventV2 as trackEvent } from '../../../../../util/analytics/analyticsV2';
+import { trackEventV2 as trackEvent } from '../../../../../core/Analytics/analyticsV2';
 import { MetaMetricsEvents } from '../../../../../core/Analytics';
 
 // Internal dependencies

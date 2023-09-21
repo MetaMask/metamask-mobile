@@ -35,7 +35,7 @@ import {
 } from '../../../util/password';
 import importAdditionalAccounts from '../../../util/importAdditionalAccounts';
 import { MetaMetricsEvents } from '../../../core/Analytics';
-import AnalyticsV2 from '../../../util/analytics/analyticsV2';
+import AnalyticsV2 from '../../../core/Analytics/analyticsV2';
 
 import { useTheme } from '../../../util/theme';
 import { passwordSet, seedphraseBackedUp } from '../../../actions/user';

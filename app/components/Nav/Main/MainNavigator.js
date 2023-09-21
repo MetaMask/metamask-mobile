@@ -59,7 +59,7 @@ import OrderDetails from '../../UI/Ramp/Views/OrderDetails';
 import TabBar from '../../../component-library/components/Navigation/TabBar';
 import BrowserUrlModal from '../../Views/BrowserUrlModal';
 import Routes from '../../../constants/navigation/Routes';
-import AnalyticsV2 from '../../../util/analytics/analyticsV2';
+import AnalyticsV2 from '../../../core/Analytics/analyticsV2';
 import { MetaMetricsEvents } from '../../../core/Analytics';
 import { getActiveTabUrl } from '../../../util/transactions';
 import { getPermittedAccountsByHostname } from '../../../core/Permissions';

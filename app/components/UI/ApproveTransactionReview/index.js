@@ -47,7 +47,7 @@ import TransactionTypes from '../../../core/TransactionTypes';
 import { showAlert } from '../../../actions/alert';
 import Analytics from '../../../core/Analytics/Analytics';
 import { MetaMetricsEvents } from '../../../core/Analytics';
-import AnalyticsV2 from '../../../util/analytics/analyticsV2';
+import AnalyticsV2 from '../../../core/Analytics/analyticsV2';
 import TransactionHeader from '../../UI/TransactionHeader';
 import TransactionReviewDetailsCard from '../../UI/TransactionReview/TransactionReviewDetailsCard';
 import AppConstants from '../../../core/AppConstants';

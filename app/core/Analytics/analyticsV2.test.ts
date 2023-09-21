@@ -3,12 +3,12 @@ import { InteractionManager } from 'react-native';
 import { AGREED, DENIED } from '../../constants/storage';
 
 import analyticsV2 from './analyticsV2';
-import MetaMetricsProviderSegmentImpl from '../../core/Analytics/MetaMetricsProvider.segment.impl';
-import MetaMetricsProviderLegacyImpl from '../../core/Analytics/MetaMetricsProvider.legacy.impl';
+import MetaMetricsProviderSegmentImpl from './MetaMetricsProvider.segment.impl';
+import MetaMetricsProviderLegacyImpl from './MetaMetricsProvider.legacy.impl';
 
 jest.mock('react-native-default-preference');
-jest.mock('../../core/Analytics/Analytics');
-jest.mock('../Logger');
+jest.mock('./Analytics');
+jest.mock('../../util/Logger');
 jest
   .spyOn(InteractionManager, 'runAfterInteractions')
   .mockImplementation((callback) => callback());

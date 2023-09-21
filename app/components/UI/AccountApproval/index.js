@@ -16,7 +16,7 @@ import { strings } from '../../../../locales/i18n';
 import Device from '../../../util/device';
 import NotificationManager from '../../../core/NotificationManager';
 import { MetaMetricsEvents } from '../../../core/Analytics';
-import AnalyticsV2 from '../../../util/analytics/analyticsV2';
+import AnalyticsV2 from '../../../core/Analytics/analyticsV2';
 
 import URL from 'url-parse';
 import { getAddressAccountType } from '../../../util/address';

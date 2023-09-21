@@ -92,7 +92,7 @@ import NotificationManager from './NotificationManager';
 import Logger from '../util/Logger';
 import { isZero } from '../util/lodash';
 import { MetaMetricsEvents } from './Analytics';
-import AnalyticsV2 from '../util/analytics/analyticsV2';
+import AnalyticsV2 from './Analytics/analyticsV2';
 import { isBlockaidFeatureEnabled } from '../util/blockaid';
 import {
   getCaveatSpecifications,

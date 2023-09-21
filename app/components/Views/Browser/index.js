@@ -18,7 +18,7 @@ import BrowserTab from '../BrowserTab';
 import AppConstants from '../../../core/AppConstants';
 import { baseStyles } from '../../../styles/common';
 import { useTheme } from '../../../util/theme';
-import AnalyticsV2 from '../../../util/analytics/analyticsV2';
+import AnalyticsV2 from '../../../core/Analytics/analyticsV2';
 import { MetaMetricsEvents } from '../../../core/Analytics';
 import {
   getPermittedAccounts,

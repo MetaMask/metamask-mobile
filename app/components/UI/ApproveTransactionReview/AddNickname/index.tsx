@@ -4,7 +4,7 @@ import AntDesignIcon from 'react-native-vector-icons/AntDesign';
 import EthereumAddress from '../../EthereumAddress';
 import Engine from '../../../../core/Engine';
 import { MetaMetricsEvents } from '../../../../core/Analytics';
-import AnalyticsV2 from '../../../../util/analytics/analyticsV2';
+import AnalyticsV2 from '../../../../core/Analytics/analyticsV2';
 
 import { toChecksumAddress } from 'ethereumjs-util';
 import { connect } from 'react-redux';

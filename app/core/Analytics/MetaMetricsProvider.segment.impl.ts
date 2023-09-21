@@ -5,7 +5,7 @@ import {
 } from './MetaMetricsProvider.type';
 import { createClient, SegmentClient } from '@segment/analytics-react-native';
 import Logger from '../../util/Logger';
-import {METAMETRICS_ANONYMOUS_ID} from "./MetaMetrics.constants";
+import { METAMETRICS_ANONYMOUS_ID } from './MetaMetrics.constants';
 
 const DEFAULT_ANONYMOUS_PARAM = true;
 
@@ -27,15 +27,11 @@ export default class MetaMetricsProviderSegmentImpl
         ? process.env.SEGMENT_DEV_KEY
         : process.env.SEGMENT_PROD_KEY) as string,
       debug: __DEV__,
-      // proxy: (__DEV__
-      //   ? process.env.SEGMENT_DEV_PROXY_KEY
-      //   : process.env.SEGMENT_PROD_PROXY_KEY) as string,
+      proxy: (__DEV__
+        ? process.env.SEGMENT_DEV_PROXY_KEY
+        : process.env.SEGMENT_PROD_PROXY_KEY) as string,
     });
 
-    // DEBUG
-    console.debug('SegmentClient created');
-    console.debug(this.#segmentClient.getConfig());
-    console.debug('SegmentClient dev:', __DEV__, process.env.SEGMENT_DEV_PROXY_KEY);
     // this.#segmentClient.identify(METAMETRICS_ANONYMOUS_ID);
     this.#segmentClient.flush();
   }
@@ -64,18 +60,13 @@ export default class MetaMetricsProviderSegmentImpl
     eventName: string,
     anonymously: boolean = DEFAULT_ANONYMOUS_PARAM,
   ): void => {
-
     // TODO add anonymous tracking logic
-    // DEBUG
-    console.debug(`Segment impl trackEvent ${JSON.stringify(eventName)} ${anonymously}`);
     this.#segmentClient
-      .track(eventName, {}, METAMETRICS_ANONYMOUS_ID, METAMETRICS_ANONYMOUS_ID )
+      .track(eventName, {}, METAMETRICS_ANONYMOUS_ID, METAMETRICS_ANONYMOUS_ID)
       .then(() => {
-        console.log('Segment impl trackEvent success');
         this.#segmentClient.flush();
       })
       .catch((error) => {
-        console.log(`Segment impl trackEvent error ${error}`);
         this.#segmentClient.flush();
       });
   };

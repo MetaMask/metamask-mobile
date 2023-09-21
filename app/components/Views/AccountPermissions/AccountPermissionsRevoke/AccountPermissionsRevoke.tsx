@@ -25,7 +25,7 @@ import { ToastOptions } from '../../../../component-library/components/Toast/Toa
 import { AccountPermissionsScreens } from '../AccountPermissions.types';
 import getAccountNameWithENS from '../../../../util/accounts';
 import { MetaMetricsEvents } from '../../../../core/Analytics';
-import AnalyticsV2 from '../../../../util/analytics/analyticsV2';
+import AnalyticsV2 from '../../../../core/Analytics/analyticsV2';
 import { selectAccountsLength } from '../../../../selectors/accountTrackerController';
 
 // Internal dependencies.

@@ -59,7 +59,7 @@ import {
   fetchEstimatedMultiLayerL1Fee,
 } from '../../../../util/networks';
 import Text from '../../../Base/Text';
-import AnalyticsV2 from '../../../../util/analytics/analyticsV2';
+import AnalyticsV2 from '../../../../core/Analytics/analyticsV2';
 import { addHexPrefix } from 'ethereumjs-util';
 import { removeFavoriteCollectible } from '../../../../actions/collectibles';
 import { SafeAreaView } from 'react-native-safe-area-context';

@@ -46,7 +46,7 @@ import Icon, {
   IconName,
   IconSize,
 } from '../../../../component-library/components/Icons/Icon';
-import { trackEventV2 as trackEvent } from '../../../../util/analytics/analyticsV2';
+import { trackEventV2 as trackEvent } from '../../../../core/Analytics/analyticsV2';
 import { MetaMetricsEvents } from '../../../../core/Analytics';
 import {
   ADVANCED_SETTINGS_CONTAINER_ID,

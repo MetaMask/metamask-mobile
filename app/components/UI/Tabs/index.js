@@ -16,7 +16,7 @@ import TabThumbnail from './TabThumbnail';
 import { colors as importedColors, fontStyles } from '../../../styles/common';
 import Device from '../../../util/device';
 import { MetaMetricsEvents } from '../../../core/Analytics';
-import AnalyticsV2 from '../../../util/analytics/analyticsV2';
+import AnalyticsV2 from '../../../core/Analytics/analyticsV2';
 
 import { ThemeContext, mockTheme } from '../../../util/theme';
 import generateTestId from '../../../../wdio/utils/generateTestId';

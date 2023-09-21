@@ -12,7 +12,7 @@ import {
   TRUE,
 } from '../constants/storage';
 import Device from '../util/device';
-import AnalyticsV2 from '../util/analytics/analyticsV2';
+import AnalyticsV2 from './Analytics/analyticsV2';
 
 const privates = new WeakMap();
 const encryptor = new Encryptor();

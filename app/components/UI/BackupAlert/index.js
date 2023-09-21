@@ -17,7 +17,7 @@ import { connect } from 'react-redux';
 import { backUpSeedphraseAlertNotVisible } from '../../../actions/user';
 import { findRouteNameFromNavigatorState } from '../../../util/general';
 import { MetaMetricsEvents } from '../../../core/Analytics';
-import AnalyticsV2 from '../../../util/analytics/analyticsV2';
+import AnalyticsV2 from '../../../core/Analytics/analyticsV2';
 import generateTestId from '../../../../wdio/utils/generateTestId';
 import {
   NOTIFICATION_REMIND_ME_LATER_BUTTON_ID,

@@ -10,7 +10,7 @@ import Icon, {
 } from '../../../../component-library/components/Icons/Icon';
 import { useStyles } from '../../../hooks/useStyles';
 import { strings } from '../../../../../locales/i18n';
-import AnalyticsV2 from '../../../../util/analytics/analyticsV2';
+import AnalyticsV2 from '../../../../core/Analytics/analyticsV2';
 import { MetaMetricsEvents } from '../../../../core/Analytics';
 import Routes from '../../../../constants/navigation/Routes';
 import { SRP_GUIDE_URL } from '../../../../constants/urls';

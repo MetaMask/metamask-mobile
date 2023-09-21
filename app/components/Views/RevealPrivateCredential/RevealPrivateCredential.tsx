@@ -38,7 +38,7 @@ import { useTheme } from '../../../util/theme';
 import Engine from '../../../core/Engine';
 import { BIOMETRY_CHOICE } from '../../../constants/storage';
 import { MetaMetricsEvents } from '../../../core/Analytics';
-import AnalyticsV2 from '../../../util/analytics/analyticsV2';
+import AnalyticsV2 from '../../../core/Analytics/analyticsV2';
 import { Authentication } from '../../../core/';
 
 import Device from '../../../util/device';

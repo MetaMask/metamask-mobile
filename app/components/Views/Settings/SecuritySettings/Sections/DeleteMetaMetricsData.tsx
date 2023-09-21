@@ -12,7 +12,7 @@ import { strings } from '../../../../../../locales/i18n';
 import { fontStyles } from '../../../../../styles/common';
 import { CONSENSYS_PRIVACY_POLICY } from '../../../../../constants/urls';
 import Logger from '../../../../../util/Logger';
-import AnalyticsV2 from '../../../../../util/analytics/analyticsV2';
+import AnalyticsV2 from '../../../../../core/Analytics/analyticsV2';
 import { getBrand, getDeviceId } from 'react-native-device-info';
 
 const createStyles = (colors: any) =>

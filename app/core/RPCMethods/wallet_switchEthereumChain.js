@@ -6,7 +6,7 @@ import {
   isSafeChainId,
 } from '../../util/networks';
 import { MetaMetricsEvents } from '../../core/Analytics';
-import AnalyticsV2 from '../../util/analytics/analyticsV2';
+import AnalyticsV2 from '../Analytics/analyticsV2';
 import {
   selectChainId,
   selectNetworkConfigurations,

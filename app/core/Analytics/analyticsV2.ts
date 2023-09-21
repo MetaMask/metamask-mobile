@@ -1,12 +1,9 @@
 import { InteractionManager } from 'react-native';
 import DefaultPreference from 'react-native-default-preference';
-import Logger from '../Logger';
+import Logger from '../../util/Logger';
 import { DENIED, METRICS_OPT_IN } from '../../constants/storage';
-import {
-  MetaMetricsProvider,
-  Params,
-} from '../../core/Analytics/MetaMetricsProvider.type';
-import MetaMetricsProviderLegacyImpl from '../../core/Analytics/MetaMetricsProvider.legacy.impl';
+import { MetaMetricsProvider, Params } from './MetaMetricsProvider.type';
+import MetaMetricsProviderLegacyImpl from './MetaMetricsProvider.legacy.impl';
 
 interface ErrorParams {
   error: boolean;
@@ -30,7 +27,6 @@ export const trackEventV2 = async (
   params?: Params | MetaMetricsProvider,
   provider?: MetaMetricsProvider,
 ) => {
-
   const metricsOptIn = await DefaultPreference.get(METRICS_OPT_IN);
   if (metricsOptIn === DENIED) return;
 
@@ -39,24 +35,22 @@ export const trackEventV2 = async (
   // if provider is undefined, we need to use the legacy provider
   // If params has methods unique to MetaMetricsProvider, use it as provider
 
-  const isParamAMetricsProvider = params
-      && 'trackEventWithParameters' in params
-      && 'trackEventWithParameters' in params;
- let metametricsProvider: MetaMetricsProvider;
- let parameters: Params | undefined;
+  const isParamAMetricsProvider =
+    params &&
+    'trackEventWithParameters' in params &&
+    'trackEventWithParameters' in params;
+  let metametricsProvider: MetaMetricsProvider;
+  let parameters: Params | undefined;
   if (isParamAMetricsProvider && !provider) {
     // use params as provider
     metametricsProvider = params as MetaMetricsProvider;
-  }else if (!provider) {
+  } else if (!provider) {
     metametricsProvider = MetaMetricsProviderLegacyImpl.getInstance();
     parameters = params as Params;
-  }else {
+  } else {
     metametricsProvider = provider;
     parameters = params as Params;
   }
-
-  // DEBUG
-  console.debug('trackEventV2', eventName, params, metametricsProvider);
 
   InteractionManager.runAfterInteractions(() => {
     let anonymousEvent = false;
@@ -94,7 +88,11 @@ export const trackEventV2 = async (
       }
 
       if (anonymousEvent && Object.keys(anonymousParams).length) {
-        metametricsProvider.trackEventWithParameters(eventName, anonymousParams, true);
+        metametricsProvider.trackEventWithParameters(
+          eventName,
+          anonymousParams,
+          true,
+        );
       }
     } catch (error: any) {
       Logger.error(error, 'Error logging analytics');

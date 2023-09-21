@@ -21,7 +21,7 @@ import OnboardingScreenWithBg from '../../UI/OnboardingScreenWithBg';
 import Device from '../../../util/device';
 import { saveOnboardingEvent } from '../../../actions/onboarding';
 import { connect } from 'react-redux';
-import AnalyticsV2 from '../../../util/analytics/analyticsV2';
+import AnalyticsV2 from '../../../core/Analytics/analyticsV2';
 import DefaultPreference from 'react-native-default-preference';
 import { METRICS_OPT_IN } from '../../../constants/storage';
 import { ThemeContext, mockTheme } from '../../../util/theme';
@@ -31,7 +31,7 @@ import {
   WELCOME_SCREEN_CAROUSEL_CONTAINER_ID,
 } from '../../../../wdio/screen-objects/testIDs/Screens/WelcomeScreen.testIds';
 import generateTestId from '../../../../wdio/utils/generateTestId';
-import MetaMetricsProviderSegmentImpl from "../../../core/Analytics/MetaMetricsProvider.segment.impl";
+import MetaMetricsProviderSegmentImpl from '../../../core/Analytics/MetaMetricsProvider.segment.impl';
 const IMAGE_3_RATIO = 215 / 315;
 const IMAGE_2_RATIO = 222 / 239;
 const IMAGE_1_RATIO = 285 / 203;
@@ -151,14 +151,11 @@ class OnboardingCarousel extends PureComponent {
   trackEvent = (eventArgs) => {
     InteractionManager.runAfterInteractions(async () => {
       const metricsOptIn = await DefaultPreference.get(METRICS_OPT_IN);
-
-      //DEBUG
-        console.debug("OnboardingCarousel trackEvent metricsOptIn: " + metricsOptIn);
-
       if (metricsOptIn) {
-        //DEBUG
-        console.debug("OnboardingCarousel trackEvent eventArgs: ", eventArgs);
-        AnalyticsV2.trackEvent(eventArgs, MetaMetricsProviderSegmentImpl.getInstance());
+        AnalyticsV2.trackEvent(
+          eventArgs,
+          MetaMetricsProviderSegmentImpl.getInstance(),
+        );
       } else {
         this.props.saveOnboardingEvent(eventArgs);
       }
