@@ -588,7 +588,8 @@
       "@storybook/manager-webpack5>@storybook/ui>core-js": false,
       "@storybook/manager-webpack5>core-js": false,
       "ts-node>@swc/core": false,
-      "@storybook/addon-controls>@storybook/core-common>esbuild": false
+      "@storybook/addon-controls>@storybook/core-common>esbuild": false,
+      "appium>appium-base-driver>webdriverio>@types/puppeteer-core>@types/puppeteer>puppeteer": false
     }
   }
 }
