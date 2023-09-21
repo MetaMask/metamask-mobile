@@ -1,6 +1,6 @@
 'use strict';
 
-import { Smoke } from '../../tags';
+import { Regression } from '../../tags';
 import TestHelpers from '../../helpers';
 
 import AmountView from '../../pages/AmountView';
@@ -17,7 +17,7 @@ import {
 } from '../../fixtures/fixture-helper';
 import { SMART_CONTRACTS } from '../../../app/util/test/smart-contracts';
 
-describe(Smoke('Send ETH to Multisig'), () => {
+describe(Regression('Send ETH to Multisig'), () => {
   const MULTISIG_CONTRACT = SMART_CONTRACTS.MULTISIG;
   const AMOUNT_TO_SEND = '0.12345';
   const TOKEN_NAME = root.unit.eth;
