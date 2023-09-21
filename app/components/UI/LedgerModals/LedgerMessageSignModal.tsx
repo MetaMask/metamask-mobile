@@ -18,7 +18,10 @@ import { resetEventStage } from '../../../actions/rpcEvents';
 
 export interface LedgerMessageSignModalParams {
   messageParams: any;
-  onConfirmationComplete: (confirmed: boolean, rawSignature?: any) => void;
+  onConfirmationComplete: (
+    confirmed: boolean,
+    rawSignature?: any,
+  ) => Promise<void>;
   version: any;
   type: any;
   deviceId: any;
