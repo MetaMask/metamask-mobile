@@ -454,7 +454,7 @@ PODS:
     - React
   - rn-fetch-blob (0.12.0):
     - React-Core
-  - RNCAsyncStorage (1.19.3):
+  - RNCAsyncStorage (1.17.10):
     - React-Core
   - RNCCheckbox (0.5.12):
     - React-Core
@@ -904,7 +904,7 @@ SPEC CHECKSUMS:
   ReactCommon: e1067159764444e5db7c14e294d5cd79fb159c59
   ReactNativePayments: a4e3ac915256a4e759c8a04338b558494a63a0f5
   rn-fetch-blob: f065bb7ab7fb48dd002629f8bdcb0336602d3cba
-  RNCAsyncStorage: c913ede1fa163a71cea118ed4670bbaaa4b511bb
+  RNCAsyncStorage: 0c357f3156fcb16c8589ede67cc036330b6698ca
   RNCCheckbox: ed1b4ca295475b41e7251ebae046360a703b6eb5
   RNCClipboard: ddd4d291537f1667209c9c405aaa4307297e252e
   RNCMaskedView: c298b644a10c0c142055b3ae24d83879ecb13ccd
