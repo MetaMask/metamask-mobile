@@ -83,6 +83,11 @@ import { selectAccounts } from '../../../selectors/accountTrackerController';
 import { selectContractBalances } from '../../../selectors/tokenBalancesController';
 import { selectSelectedAddress } from '../../../selectors/preferencesController';
 import AccountSelector from '../Ramp/components/AccountSelector';
+import {
+  SWAP_SOURCE_TOKEN,
+  SWAP_DEST_TOKEN,
+  SWAP_MAX_SLIPPAGE,
+} from '../../../../wdio/screen-objects/testIDs/Screens/QuoteView.js';
 
 const createStyles = (colors) =>
   StyleSheet.create({
@@ -668,6 +673,7 @@ function SwapsAmountView({
         <View
           style={[styles.tokenButtonContainer, disabledView && styles.disabled]}
           pointerEvents={disabledView ? 'none' : 'auto'}
+          testID={SWAP_SOURCE_TOKEN}
         >
           {isInitialLoadingTokens ? (
             <ActivityIndicator size="small" />
@@ -748,7 +754,7 @@ function SwapsAmountView({
           </TouchableOpacity>
           <View style={styles.horizontalRule} />
         </View>
-        <View style={styles.tokenButtonContainer}>
+        <View style={styles.tokenButtonContainer} testID={SWAP_DEST_TOKEN}>
           {isInitialLoadingTokens ? (
             <ActivityIndicator size="small" />
           ) : (
@@ -888,7 +894,7 @@ function SwapsAmountView({
               hitSlop={{ top: 10, right: 10, bottom: 10, left: 10 }}
               disabled={isDirectWrapping}
             >
-              <Text bold link={!isDirectWrapping}>
+              <Text bold link={!isDirectWrapping} testID={SWAP_MAX_SLIPPAGE}>
                 {strings('swaps.max_slippage_amount', {
                   slippage: `${slippage}%`,
                 })}
