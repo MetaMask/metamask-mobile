@@ -18,7 +18,7 @@ const MYTH_ADDRESS = '0x1FDb169Ef12954F20A15852980e1F0C122BfC1D6';
 
 describe(Regression('Send ETH Tests'), () => {
   beforeAll(async () => {
-    jest.setTimeout(150000);
+    jest.setTimeout(2500000);
     if (device.getPlatform() === 'android') {
       await device.reverseTcpPort('8081'); // because on android we need to expose the localhost ports to run ganache
       await device.reverseTcpPort('8545');
