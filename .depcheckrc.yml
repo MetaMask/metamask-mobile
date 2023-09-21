@@ -1,6 +1,10 @@
 # List things here that *are - 'used, that depcheck is wrong about'
 ignores:
 
+  ## Used dependencies
+
+  - 'jsc-android'
+
   # Note: Everything below this line should be removed after investigation
   # TODO: Investigate each dependency to see whether it's used
 
