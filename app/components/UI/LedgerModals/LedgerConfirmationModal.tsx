@@ -210,6 +210,7 @@ const LedgerConfirmationModal = ({
             showViewSettings={
               !!bluetoothConnectionError || !!bluetoothPermissionError
             }
+            isRetry={ledgerError !== LedgerCommunicationErrors.NonceTooLow}
           />
         </View>
       </SafeAreaView>
