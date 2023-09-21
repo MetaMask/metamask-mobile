@@ -7,7 +7,6 @@ import ExpandedMessage from '../SignatureRequest/ExpandedMessage';
 import Device from '../../../util/device';
 import { MetaMetricsEvents } from '../../../core/Analytics';
 import AnalyticsV2 from '../../../util/analyticsV2';
-
 import { KEYSTONE_TX_CANCELED } from '../../../constants/error';
 import { ThemeContext, mockTheme } from '../../../util/theme';
 import sanitizeString from '../../../util/string';
@@ -18,6 +17,7 @@ import {
   handleSignatureAction,
   removeSignatureErrorListener,
   showWalletConnectNotification,
+  typedSign,
 } from '../../../util/confirmation/signatureUtils';
 
 const createStyles = (colors) =>
@@ -87,10 +87,12 @@ class TypedSign extends PureComponent {
   componentDidMount = () => {
     const {
       messageParams: { metamaskId },
+      messageParams,
     } = this.props;
+
     AnalyticsV2.trackEvent(
-      MetaMetricsEvents.SIGN_REQUEST_STARTED,
-      getAnalyticsParams(),
+      MetaMetricsEvents.SIGNATURE_REQUESTED,
+      getAnalyticsParams(messageParams, 'typed_sign'),
     );
     addSignatureErrorListener(metamaskId, this.onSignatureError);
   };
@@ -114,12 +116,22 @@ class TypedSign extends PureComponent {
 
   rejectSignature = async () => {
     const { messageParams, onReject } = this.props;
-    await handleSignatureAction(onReject, messageParams, 'typed', false);
+    await handleSignatureAction(
+      onReject,
+      messageParams,
+      typedSign[messageParams.version],
+      false,
+    );
   };
 
   confirmSignature = async () => {
     const { messageParams, onConfirm } = this.props;
-    await handleSignatureAction(onConfirm, messageParams, 'typed', true);
+    await handleSignatureAction(
+      onConfirm,
+      messageParams,
+      typedSign[messageParams.version],
+      true,
+    );
   };
 
   shouldTruncateMessage = (e) => {

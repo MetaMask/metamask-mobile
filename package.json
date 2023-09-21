@@ -1,6 +1,6 @@
 {
   "name": "metamask",
-  "version": "7.6.0",
+  "version": "7.7.0",
   "private": true,
   "scripts": {
     "audit:ci": "./scripts/yarn-audit.sh",
@@ -55,7 +55,7 @@
     "test:e2e:ios:debug": "IS_TEST='true' detox build -c ios.sim.debug && detox test -c ios.sim.debug",
     "test:e2e:ios:debug:single": "detox test -c ios.sim.debug",
     "test:e2e:android:debug": "detox build -c android.emu.debug && detox test -c android.emu.debug",
-    "test:e2e:android:bitrise:debug": "IS_TEST='true' detox build -c android.emu.bitrise.debug && detox test -c android.emu.bitrise.debug",
+    "test:e2e:android:bitrise:debug": "IS_TEST='true' detox build -c android.emu.bitrise.debug && detox test -c android.emu.bitrise.debug --headless",
     "test:e2e:android:debug:single": "detox test -c android.emu.debug",
     "test:e2e:android": "detox build -c android.emu.release && detox test -c android.emu.release --record-videos failing",
     "test:e2e:android:qa": "detox build -c android.emu.release.qa && detox test -c android.emu.release.qa --record-videos failing",
@@ -67,7 +67,7 @@
     "test:depcheck": "yarn depcheck",
     "test:tgz-check": "./scripts/tgz-check.sh",
     "test:attribution-check": "./scripts/attributions-check.sh",
-    "test:merge-coverage": "nyc merge ./tests/coverage ./tests/merged-coverage/coverage.json",
+    "test:merge-coverage": "nyc report --temp-dir ./tests/coverage --report-dir ./tests/merged-coverage/ --reporter json --reporter text --reporter lcovonly",
     "test:validate-coverage": "nyc check-coverage --nycrc-path ./coverage-thresholds.json -t ./tests/merged-coverage/",
     "sourcemaps:android": "node_modules/.bin/react-native bundle --platform android --entry-file index.js --dev false --reset-cache --bundle-output /tmp/bundle.android.js --assets-dest /tmp/ --sourcemap-output sourcemaps/android/index.js.map",
     "sourcemaps:ios": "node_modules/.bin/react-native bundle --platform ios --entry-file index.js --dev false --reset-cache --bundle-output /tmp/bundle.ios.js --assets-dest /tmp/ --sourcemap-output sourcemaps/ios/index.js.map",
@@ -78,7 +78,8 @@
     "create-release": "./scripts/set-versions.sh && yarn update-changelog",
     "add-release-label-to-pr-and-linked-issues": "ts-node ./.github/scripts/add-release-label-to-pr-and-linked-issues.ts",
     "check-pr-has-required-labels": "ts-node ./.github/scripts/check-pr-has-required-labels.ts",
-    "close-release-bug-report-issue": "ts-node ./.github/scripts/close-release-bug-report-issue.ts"
+    "close-release-bug-report-issue": "ts-node ./.github/scripts/close-release-bug-report-issue.ts",
+    "patch:tx": "./scripts/patch-transaction-controller.sh"
   },
   "husky": {
     "hooks": {
@@ -172,7 +173,7 @@
     "@metamask/network-controller": "^7.0.0",
     "@metamask/permission-controller": "^4.0.1",
     "@metamask/phishing-controller": "^3.0.0",
-    "@metamask/ppom-validator": "^0.3.0",
+    "@metamask/ppom-validator": "^0.5.0",
     "@metamask/preferences-controller": "^3.0.0",
     "@metamask/sdk-communication-layer": "^0.5.0",
     "@metamask/signature-controller": "4.0.1",
@@ -452,6 +453,7 @@
     "react-test-renderer": "18.2.0",
     "regenerator-runtime": "0.13.9",
     "rn-nodeify": "10.3.0",
+    "serve-handler": "^6.1.5",
     "stack-beautifier": "1.0.2",
     "ts-node": "^10.5.0",
     "typescript": "~4.8.4",
@@ -515,7 +517,7 @@
       "@eth-optimism/contracts>@ethersproject/hardware-wallets>@ledgerhq/hw-transport-node-hid>usb": false,
       "@ethereumjs/tx>ethereumjs-util>ethereum-cryptography>keccak": true,
       "@ethereumjs/tx>ethereumjs-util>ethereum-cryptography>secp256k1": true,
-      "@sentry/react-native>@sentry/cli": false,
+      "@sentry/react-native>@sentry/cli": true,
       "@storybook/addon-actions>core-js": false,
       "@storybook/addon-knobs>@storybook/addons>core-js": false,
       "@storybook/addon-knobs>@storybook/api>core-js": false,

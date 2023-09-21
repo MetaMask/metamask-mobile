@@ -15,6 +15,9 @@ export enum Reason {
   transferFarming = 'transfer_farming',
   transferFromFarming = 'transfer_from_farming',
   unfairTrade = 'unfair_trade',
+
+  // MetaMask defined reasons
+  notApplicable = 'not_applicable',
 }
 
 export enum ResultType {

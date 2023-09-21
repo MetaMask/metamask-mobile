@@ -5,7 +5,7 @@ import { BROWSER_WEBVIEW_ID } from '../../app/constants/test-ids';
 import Browser from './Drawer/Browser';
 import root from '../../locales/languages/en.json';
 
-export const TEST_DAPP_URL = 'https://metamask.github.io/test-dapp/';
+export const TEST_DAPP_LOCAL_URL = 'http://localhost:8080';
 
 const BUTTON_RELATIVE_PONT = { x: 200, y: 5 };
 const WEBVIEW_TEST_DAPP_TRANSFER_FROM_BUTTON_ID = 'transferFromButton';
@@ -57,7 +57,7 @@ export class TestDApp {
   static async scrollToButton(buttonId) {
     await Browser.tapUrlInputBox();
     await Browser.navigateToURL(
-      `${TEST_DAPP_URL}?scrollTo=${buttonId}&time=${Date.now()}`,
+      `${TEST_DAPP_LOCAL_URL}?scrollTo=${buttonId}&time=${Date.now()}`,
     );
     await TestHelpers.delay(3000);
   }
@@ -69,14 +69,16 @@ export class TestDApp {
   ) {
     await Browser.tapUrlInputBox();
     await Browser.navigateToURL(
-      `${TEST_DAPP_URL}?scrollTo=${buttonId}&time=${Date.now()}&${parameterName}=${parameterValue}`,
+      `${TEST_DAPP_LOCAL_URL}?scrollTo=${buttonId}&time=${Date.now()}&${parameterName}=${parameterValue}`,
     );
     await TestHelpers.delay(3000);
   }
 
-  static async navigateToTestDappWithContract(testDappUrl, contractAddress) {
+  static async navigateToTestDappWithContract(contractAddress) {
     await Browser.tapUrlInputBox();
-    await Browser.navigateToURL(`${testDappUrl}?contract=${contractAddress}`);
+    await Browser.navigateToURL(
+      `${TEST_DAPP_LOCAL_URL}?contract=${contractAddress}`,
+    );
   }
 
   static async tapTransferFromButton(contractAddress) {

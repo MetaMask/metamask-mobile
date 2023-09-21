@@ -21,7 +21,6 @@ import Networks, {
   getNetworkImageSource,
   isDefaultMainnet,
   isLineaMainnet,
-  shouldShowLineaMainnetNetwork,
 } from '../../../../util/networks';
 import StyledButton from '../../../UI/StyledButton';
 import Engine from '../../../../core/Engine';
@@ -145,7 +144,6 @@ class NetworksSettings extends PureComponent {
   state = {
     searchString: '',
     filteredNetworks: [],
-    lineaMainnetReleased: false,
   };
 
   updateNavBar = () => {
@@ -162,9 +160,6 @@ class NetworksSettings extends PureComponent {
   };
 
   componentDidMount = () => {
-    const shouldShowLineaMainnet = shouldShowLineaMainnetNetwork();
-
-    this.setState({ lineaMainnetReleased: shouldShowLineaMainnet });
     this.updateNavBar();
   };
 
@@ -498,7 +493,7 @@ class NetworksSettings extends PureComponent {
                 {strings('app_settings.mainnet')}
               </Text>
               {this.renderMainnet()}
-              {this.state.lineaMainnetReleased && this.renderLineaMainnet()}
+              {this.renderLineaMainnet()}
               {this.renderRpcNetworksView()}
               <Text style={styles.sectionLabel}>
                 {strings('app_settings.test_network_name')}

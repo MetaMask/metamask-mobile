@@ -66,10 +66,6 @@ import {
   selectProviderConfig,
   selectProviderType,
 } from '../../../selectors/networkController';
-import WarningAlert from '../../../components/UI/WarningAlert/WarningAlert';
-import { LINEA_MAINNET } from '../../../constants/network';
-import jsonRpcRequest from '../../../util/jsonRpcRequest';
-import { LINEA_MAINNET_RPC_URL } from '../../../constants/urls';
 
 const Stack = createStackNavigator();
 
@@ -91,7 +87,6 @@ const Main = (props) => {
   const [forceReload, setForceReload] = useState(false);
   const [showRemindLaterModal, setShowRemindLaterModal] = useState(false);
   const [skipCheckbox, setSkipCheckbox] = useState(false);
-  const [showLineaMainnetAlert, setShowLineaMainnetAlert] = useState(false);
   const { colors } = useTheme();
   const styles = createStyles(colors);
 
@@ -155,6 +150,8 @@ const Main = (props) => {
   const handleAppStateChange = useCallback(
     (appState) => {
       const newModeIsBackground = appState === 'background';
+      const { TransactionController } = Engine.context;
+
       // If it was in background and it's not anymore
       // we need to stop the Background timer
       if (backgroundMode.current && !newModeIsBackground) {
@@ -167,6 +164,10 @@ const Main = (props) => {
       // the background timer, which is less intense
       if (backgroundMode.current) {
         removeNotVisibleNotifications();
+
+        BackgroundTimer.runBackgroundTimer(async () => {
+          await TransactionController.updateIncomingTransactions();
+        }, AppConstants.TX_CHECK_BACKGROUND_FREQUENCY);
       }
     },
     [backgroundMode, removeNotVisibleNotifications],
@@ -306,20 +307,6 @@ const Main = (props) => {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  const checkLineaMainnetAvailability = useCallback(async () => {
-    if (props.providerType === LINEA_MAINNET) {
-      try {
-        await jsonRpcRequest(LINEA_MAINNET_RPC_URL, 'eth_blockNumber', []);
-      } catch (e) {
-        setShowLineaMainnetAlert(true);
-      }
-    }
-  }, [props.providerType]);
-
-  useEffect(() => {
-    checkLineaMainnetAvailability();
-  }, [checkLineaMainnetAvailability]);
-
   const termsOfUse = useCallback(async () => {
     if (props.navigation) {
       await navigateTermsOfUse(props.navigation.navigate);
@@ -329,17 +316,6 @@ const Main = (props) => {
   useEffect(() => {
     termsOfUse();
   }, [termsOfUse]);
-
-  const renderLineaMainnetAlert = (networkType) => {
-    if (networkType === LINEA_MAINNET && showLineaMainnetAlert) {
-      return (
-        <WarningAlert
-          text={strings('networks.linea_mainnet_not_released_alert')}
-          dismissAlert={() => setShowLineaMainnetAlert(false)}
-        />
-      );
-    }
-  };
 
   return (
     <React.Fragment>
@@ -358,8 +334,6 @@ const Main = (props) => {
           onDismiss={toggleRemindLater}
           navigation={props.navigation}
         />
-        {renderLineaMainnetAlert(props.providerType)}
-
         <SkipAccountSecurityModal
           modalVisible={showRemindLaterModal}
           onCancel={skipAccountModalSecureNow}

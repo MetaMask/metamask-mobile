@@ -108,6 +108,7 @@ import {
 import { hasProperty, Json } from '@metamask/controller-utils';
 // TODO: Export this type from the package directly
 import { SwapsState } from '@metamask/swaps-controller/dist/SwapsController';
+import { ethErrors } from 'eth-rpc-errors';
 
 import { PPOM, ppomInit } from '../lib/ppom/PPOMView';
 import RNFSStorageBackend from '../lib/ppom/rnfs-storage-backend';
@@ -248,7 +249,7 @@ class Engine {
           initialState?.PreferencesController?.useTokenDetection ?? true,
         // TODO: Use previous value when preferences UI is available
         useNftDetection: false,
-        openSeaEnabled: false,
+        displayNftMedia: true,
       },
     );
 
@@ -434,7 +435,6 @@ class Engine {
         // @ts-expect-error This is added in a patch, but types weren't updated
         getSelectedAddress: () => preferencesController.state.selectedAddress,
         getMultiAccountBalancesEnabled: () =>
-          // @ts-expect-error This is added in a patch, but types weren't updated
           preferencesController.state.isMultiAccountBalancesEnabled,
       }),
       new AddressBookController(),
@@ -935,13 +935,26 @@ class Engine {
     Engine.instance = null;
   }
 
-  rejectPendingApproval(id: string, reason: Error) {
+  rejectPendingApproval(
+    id: string,
+    reason: Error = ethErrors.provider.userRejectedRequest(),
+    opts: { ignoreMissing?: boolean; logErrors?: boolean } = {},
+  ) {
     const { ApprovalController } = this.context;
+
+    if (opts.ignoreMissing && !ApprovalController.has({ id })) {
+      return;
+    }
 
     try {
       ApprovalController.reject(id, reason);
     } catch (error: any) {
-      Logger.error(error, 'Reject while rejecting pending connection request');
+      if (opts.logErrors !== false) {
+        Logger.error(
+          error,
+          'Reject while rejecting pending connection request',
+        );
+      }
     }
   }
 
@@ -1083,6 +1096,12 @@ export default {
     requestData?: Record<string, Json>,
     opts?: AcceptOptions & { handleErrors?: boolean },
   ) => instance?.acceptPendingApproval(id, requestData, opts),
-  rejectPendingApproval: (id: string, reason: Error) =>
-    instance?.rejectPendingApproval(id, reason),
+  rejectPendingApproval: (
+    id: string,
+    reason: Error,
+    opts: {
+      ignoreMissing?: boolean;
+      logErrors?: boolean;
+    } = {},
+  ) => instance?.rejectPendingApproval(id, reason, opts),
 };
