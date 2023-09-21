@@ -48,6 +48,11 @@ pipelines:
     stages:
       - run_smoke_e2e_ios_android_stage: {}
       - notify: {}
+  #PR_e2e_confirmations_verfication (build ios & android), run iOS (smoke), emulator Android
+  pr_confirmations_e2e_pipeline:
+    stages:
+      - run_confirmations_e2e_ios_android_stage: {}
+      - notify: {}
 
 #Stages refrence workflows. Those workflows cannot but utility "_this-is-a-utility"
 stages:
@@ -88,6 +93,10 @@ stages:
     workflows:
       - ios_e2e_test: {}
       - android_e2e_test: {}
+  run_confirmations_e2e_ios_android_stage:
+    workflows:
+      - ios_confirmations_e2e_test: {}
+      - android_confirmations_e2e_test: {}
   run_e2e_ios_android_stage:
     workflows:
       - ios_e2e_test: {}
@@ -408,6 +417,134 @@ workflows:
             - deploy_path: $BITRISE_DEPLOY_DIR
             - is_compress: true
             - zip_name: "E2E_IOS_Failure_Screenshots"
+  ios_confirmations_e2e_test:
+    before_run:
+      - code_setup_dev
+      - e2e_setup
+    after_run:
+      - _notify_failure_on_slack
+    steps:
+      - certificate-and-profile-installer@1: {}
+      - set-xcode-build-number@1:
+          inputs:
+            - build_short_version_string: $VERSION_NAME
+            - plist_path: $PROJECT_LOCATION_IOS/MetaMask/Info.plist
+      - script:
+          inputs:
+            - content: |-
+                # Add cache directory to environment variable
+                envman add --key BREW_APPLESIMUTILS --value "$(brew --cellar)/applesimutils"
+                envman add --key BREW_OPT_APPLESIMUTILS --value "/usr/local/opt/applesimutils"
+                brew tap wix/brew
+          title: Set Env Path for caching deps
+      - cocoapods-install@2:
+          is_always_run: false
+      - script@1:
+          inputs:
+            - content: |-
+                #!/usr/bin/env bash
+                node -v
+                IGNORE_BOXLOGS_DEVELOPMENT="true" FORCE_BUNDLING=true yarn test:e2e:ios:debug --testNamePattern='Confirmations'
+          title: Detox Build & Test
+          is_always_run: false
+      - custom-test-results-export@1:
+          is_always_run: true
+          is_skippable: false
+          title: Export test results
+          inputs:
+            - base_path: $BITRISE_SOURCE_DIR/e2e/reports/
+            - test_name: Confirmations E2E Tests
+            - search_pattern: $BITRISE_SOURCE_DIR/e2e/reports/junit.xml
+      - deploy-to-bitrise-io@2.2.3:
+          is_always_run: true
+          is_skippable: true
+          title: Deploy test report files
+      - script@1:
+          is_always_run: true
+          run_if: .IsBuildFailed
+          title: Copy screenshot files
+          inputs:
+            - content: |-
+                #!/usr/bin/env bash
+                set -ex
+                cp -r "$BITRISE_SOURCE_DIR/artifacts/screenshots"  "$BITRISE_DEPLOY_DIR"
+      - deploy-to-bitrise-io@2.3:
+          is_always_run: true
+          run_if: .IsBuildFailed
+          title: Deploy test screenshots
+          inputs:
+            - deploy_path: $BITRISE_DEPLOY_DIR
+            - is_compress: true
+            - zip_name: "E2E_IOS_Failure_Screenshots"
+  android_e2e_test:
+    before_run:
+      - code_setup_dev
+      - e2e_setup
+    after_run:
+      - _notify_failure_on_slack
+    steps:
+      - restore-gradle-cache@1: {}
+      - install-missing-android-tools@3:
+          inputs:
+            - ndk_version: $NDK_VERSION
+            - gradlew_path: $PROJECT_LOCATION/gradlew
+      - script@1:
+          inputs:
+            - content: |-
+                #!/usr/bin/env bash
+                "${ANDROID_HOME}/tools/bin/sdkmanager" "cmake;3.22.1"
+          title: Download cmake 3.22.1 with sdkmanager
+          is_always_run: false
+      - avd-manager@1:
+          inputs:
+            - api_level: '30'
+            - create_command_flags: '--sdcard 8192M'
+            - start_command_flags: '-read-only'
+            - profile: pixel_5
+      - wait-for-android-emulator@1: {}
+      - save-gradle-cache@1: {}
+      - script@1:
+          inputs:
+            - content: |-
+                #!/usr/bin/env bash
+                node -v
+                IGNORE_BOXLOGS_DEVELOPMENT="true" FORCE_BUNDLING=true yarn test:e2e:android:bitrise:debug --testNamePattern='Confirmations'
+          title: Detox Build & Test
+          is_always_run: false
+      - custom-test-results-export@1:
+          is_always_run: true
+          is_skippable: true
+          title: Export test results
+          inputs:
+            - base_path: $BITRISE_SOURCE_DIR/e2e/reports/
+            - test_name: Confirmations E2E Tests
+            - search_pattern: $BITRISE_SOURCE_DIR/e2e/reports/junit.xml
+      - deploy-to-bitrise-io@2.2.3:
+          is_always_run: true
+          is_skippable: true
+          title: Deploy test report files
+      - script@1:
+          is_always_run: true
+          run_if: .IsBuildFailed
+          title: Copy screenshot files
+          inputs:
+            - content: |-
+                #!/usr/bin/env bash
+                set -ex
+                cp -r "$BITRISE_SOURCE_DIR/artifacts/screenshots"  "$BITRISE_DEPLOY_DIR"
+      - deploy-to-bitrise-io@2.3:
+          is_always_run: true
+          run_if: .IsBuildFailed
+          title: Deploy test screenshots
+          inputs:
+            - deploy_path: $BITRISE_DEPLOY_DIR
+            - is_compress: true
+            - zip_name: "E2E_Android_Failure_Screenshots"
+
+    meta:
+      bitrise.io:
+        stack: linux-docker-android-20.04
+        machine_type_id: elite-xl
   start_e2e_tests:
     steps:
       - build-router-start@0:

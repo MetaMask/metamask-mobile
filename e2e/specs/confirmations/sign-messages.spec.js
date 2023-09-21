@@ -9,12 +9,12 @@ import {
   withFixtures,
   defaultGanacheOptions,
 } from '../../fixtures/fixture-helper';
-import { Regression } from '../../tags';
+import { Confirmations } from '../../tags';
 import TestHelpers from '../../helpers';
 
 const MAX_ATTEMPTS = 3;
 
-describe(Regression('Sign Messages'), () => {
+describe(Confirmations('Sign Messages'), () => {
   beforeAll(async () => {
     jest.setTimeout(150000);
     await device.reverseTcpPort('8545'); // ganache
