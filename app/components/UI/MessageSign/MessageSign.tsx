@@ -78,14 +78,13 @@ class MessageSign extends PureComponent<MessageSignProps, MessageSignState> {
   };
 
   componentDidMount = () => {
-    const {
-      messageParams: { metamaskId },
-    } = this.props;
+    const { messageParams } = this.props;
+
     AnalyticsV2.trackEvent(
       MetaMetricsEvents.SIGNATURE_REQUESTED,
-      getAnalyticsParams(),
+      getAnalyticsParams(messageParams, 'message_sign'),
     );
-    addSignatureErrorListener(metamaskId, this.onSignatureError);
+    addSignatureErrorListener(messageParams.metamaskId, this.onSignatureError);
   };
 
   componentWillUnmount = () => {
@@ -96,10 +95,11 @@ class MessageSign extends PureComponent<MessageSignProps, MessageSignState> {
   };
 
   onSignatureError = ({ error }: any) => {
+    const { messageParams } = this.props;
     if (error?.message.startsWith(KEYSTONE_TX_CANCELED)) {
       AnalyticsV2.trackEvent(
         MetaMetricsEvents.QR_HARDWARE_TRANSACTION_CANCELED,
-        getAnalyticsParams(),
+        getAnalyticsParams(messageParams, 'message_sign'),
       );
     }
   };
