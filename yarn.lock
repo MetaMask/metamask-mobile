@@ -6079,15 +6079,6 @@
     "@storybook/preview-api" "7.4.3"
     "@storybook/types" "7.4.3"
 
-"@storybook/addons@^7.4.2":
-  version "7.4.2"
-  resolved "https://registry.yarnpkg.com/@storybook/addons/-/addons-7.4.2.tgz#d87da2b4a247a2945527d764cb729594cc5b7543"
-  integrity sha512-3snQVlTIKgzk6apNZc9sHr+0n4riiQkKGUkoHS8B1G90qj/9OyRnkDq55A7mJ9CxskqIjei5Q+hlko87g0jDsA==
-  dependencies:
-    "@storybook/manager-api" "7.4.2"
-    "@storybook/preview-api" "7.4.2"
-    "@storybook/types" "7.4.2"
-
 "@storybook/api@5.3.21":
   version "5.3.21"
   resolved "https://registry.yarnpkg.com/@storybook/api/-/api-5.3.21.tgz#8f1772de53b65e1a65d2f0257463d621a8617c58"
@@ -6532,7 +6523,7 @@
     util-deprecate "^1.0.2"
     webpack "4"
 
-"@storybook/core-common@7.4.2", "@storybook/core-common@^7.4.2":
+"@storybook/core-common@7.4.2":
   version "7.4.2"
   resolved "https://registry.yarnpkg.com/@storybook/core-common/-/core-common-7.4.2.tgz#6f2873cb49e893967764839cb240c18df737372b"
   integrity sha512-Qj9S97TYO+jSNdC2+LrMFtZRvTnELeFnRtn/MDWhkM6mpZgRglxlZuXi5enJjqTh0dISAUxPpTtXNAJDfX99JA==
