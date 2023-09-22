@@ -113,6 +113,12 @@ workflows:
           inputs:
             - content: |-
                 #!/usr/bin/env bash
+
+                if [ "$GITHUB_PR_IS_DRAFT" = true ] ; then
+                echo "Found e2e in commit message. Now triggering e2e tests"
+                exit 1
+                fi
+
                 if [[ $BITRISE_GIT_MESSAGE =~ "e2e" ]]; then
                   echo "Found e2e in commit message. Now triggering e2e tests"
                 else
