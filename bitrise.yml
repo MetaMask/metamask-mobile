@@ -104,18 +104,19 @@ stages:
       - release_announcing_stores: {}
   draft_pr_check:
     workflows:
-      - check_pr_draft_mode: {}
+      - check_e2e_trigger: {}
 workflows:
   # Check if the PR is in draft mode
-  check_pr_draft_mode:
+  check_e2e_trigger:
     steps:
       - script@1:
           inputs:
             - content: |-
                 #!/usr/bin/env bash
                 if [[ $BITRISE_GIT_MESSAGE =~ "e2e" ]]; then
-                  echo "Found e2e in commit message triggering e2e tests"
+                  echo "Found e2e in commit message. Now triggering e2e tests"
                 else
+                  echo "No e2e string in commit message."
                   exit 1
                 fi
           title: Run if "e2e" is contained in commit message
