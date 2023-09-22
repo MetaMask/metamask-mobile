@@ -46,10 +46,11 @@ pipelines:
   #PR_e2e_verfication (build ios & android), run iOS (smoke), emulator Android
   pr_smoke_e2e_pipeline:
     stages:
+      - draft_pr_check: {}
       - run_smoke_e2e_ios_android_stage: {}
       - notify: {}
 
-#Stages refrence workflows. Those workflows cannot but utility "_this-is-a-utility"
+#Stages reference workflows. Those workflows cannot but utility "_this-is-a-utility"
 stages:
   create_build_release:
     workflows:
@@ -85,7 +86,7 @@ stages:
     workflows:
       - ios_e2e_test: {}
   run_smoke_e2e_ios_android_stage:
-    workflows:
+    workflows: 
       - ios_e2e_test: {}
       - android_e2e_test: {}
   run_e2e_ios_android_stage:
@@ -101,7 +102,27 @@ stages:
   release_notify:
     workflows:
       - release_announcing_stores: {}
+  draft_pr_check:
+    workflows:
+      - check_pr_draft_mode: {}
 workflows:
+  # Check if the PR is in draft mode
+  check_pr_draft_mode:
+    steps:
+      - script@1:
+          inputs:
+            - content: |-
+                #!/usr/bin/env bash
+                # fail if any commands fails
+                set -e
+                # debug log
+                set -x
+                if [[ -z "${GITHUB_PR_IS_DRAFT}" ]]; then
+                    echo 'Not a draft PR'
+                else
+                    exit 1
+                fi
+          title: Run only if PR is out of draft
   # Code Setups
   setup:
     steps:
@@ -826,3 +847,6 @@ trigger_map:
     pipeline: create_qa_builds_pipeline
   - tag: 'dev-e2e-*'
     pipeline: pr_smoke_e2e_pipeline
+  - push_branch: ci/bitrise-e2e-on-PR
+    pipeline: pr_smoke_e2e_pipeline
+
