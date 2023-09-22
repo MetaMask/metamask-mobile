@@ -350,6 +350,7 @@ export class Connection extends EventEmitter2 {
             // Always need to re-approve connection first.
             await this.checkPermissions();
             this.sendAuthorized(true);
+            this.lastAuthorized = Date.now();
           }
         } else if (
           !this.initialConnection &&
