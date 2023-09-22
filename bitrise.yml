@@ -46,10 +46,14 @@ pipelines:
   #PR_e2e_verfication (build ios & android), run iOS (smoke), emulator Android
   pr_smoke_e2e_pipeline:
     stages:
+      - run_smoke_e2e_ios_android_stage: {}
+      - notify: {}
+  #PR_e2e_verfication (build ios & android), run iOS (smoke), emulator Android
+  pr_smoke_e2e_pipeline_pr_check:
+    stages:
       - draft_pr_check: {}
       - run_smoke_e2e_ios_android_stage: {}
       - notify: {}
-
 #Stages reference workflows. Those workflows cannot but utility "_this-is-a-utility"
 stages:
   create_build_release:
@@ -115,7 +119,7 @@ workflows:
                 #!/usr/bin/env bash
 
                 if [ "$GITHUB_PR_IS_DRAFT" = true ] ; then
-                echo "Found e2e in commit message. Now triggering e2e tests"
+                echo "TEST THIS MESSAGE"
                 exit 1
                 fi
 
@@ -854,6 +858,7 @@ trigger_map:
     pipeline: create_qa_builds_pipeline
   - tag: 'dev-e2e-*'
     pipeline: pr_smoke_e2e_pipeline
-  - push_branch: ci/bitrise-e2e-on-PR
-    pipeline: pr_smoke_e2e_pipeline
+  - pull_request_target_branch: "*"
+    pull_request_source_branch: "main"
+    pipeline: pr_smoke_e2e_pipeline_pr_check
 
