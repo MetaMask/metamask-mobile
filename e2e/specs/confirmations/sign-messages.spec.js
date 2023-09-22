@@ -15,10 +15,17 @@ import TestHelpers from '../../helpers';
 const MAX_ATTEMPTS = 3;
 
 describe(Confirmations('Sign Messages'), () => {
+  let ganache;
+
   beforeAll(async () => {
     jest.setTimeout(150000);
     await device.reverseTcpPort('8545'); // ganache
     await device.reverseTcpPort('8080'); // test-dapp
+  });
+
+  afterEach(async () => {
+    await ganache.quit();
+    await TestHelpers.delay(3000);
   });
 
   it('should sign personal message', async () => {
@@ -32,7 +39,8 @@ describe(Confirmations('Sign Messages'), () => {
         restartDevice: true,
         ganacheOptions: defaultGanacheOptions,
       },
-      async () => {
+      async ({ ganacheServer }) => {
+        ganache = ganacheServer;
         await loginToApp();
 
         await TabBarComponent.tapBrowser();
@@ -59,7 +67,8 @@ describe(Confirmations('Sign Messages'), () => {
         restartDevice: true,
         ganacheOptions: defaultGanacheOptions,
       },
-      async () => {
+      async ({ ganacheServer }) => {
+        ganache = ganacheServer;
         await loginToApp();
 
         await TabBarComponent.tapBrowser();
@@ -86,7 +95,8 @@ describe(Confirmations('Sign Messages'), () => {
         restartDevice: true,
         ganacheOptions: defaultGanacheOptions,
       },
-      async () => {
+      async ({ ganacheServer }) => {
+        ganache = ganacheServer;
         await loginToApp();
 
         await TabBarComponent.tapBrowser();
@@ -113,7 +123,8 @@ describe(Confirmations('Sign Messages'), () => {
         restartDevice: true,
         ganacheOptions: defaultGanacheOptions,
       },
-      async () => {
+      async ({ ganacheServer }) => {
+        ganache = ganacheServer;
         await loginToApp();
 
         await TabBarComponent.tapBrowser();
@@ -140,7 +151,8 @@ describe(Confirmations('Sign Messages'), () => {
         restartDevice: true,
         ganacheOptions: defaultGanacheOptions,
       },
-      async () => {
+      async ({ ganacheServer }) => {
+        ganache = ganacheServer;
         await loginToApp();
 
         await TabBarComponent.tapBrowser();
@@ -167,7 +179,8 @@ describe(Confirmations('Sign Messages'), () => {
         restartDevice: true,
         ganacheOptions: defaultGanacheOptions,
       },
-      async () => {
+      async ({ ganacheServer }) => {
+        ganache = ganacheServer;
         await loginToApp();
 
         await TabBarComponent.tapBrowser();
@@ -194,7 +207,8 @@ describe(Confirmations('Sign Messages'), () => {
         restartDevice: true,
         ganacheOptions: defaultGanacheOptions,
       },
-      async () => {
+      async ({ ganacheServer }) => {
+        ganache = ganacheServer;
         await loginToApp();
 
         await TabBarComponent.tapBrowser();
@@ -221,7 +235,8 @@ describe(Confirmations('Sign Messages'), () => {
         restartDevice: true,
         ganacheOptions: defaultGanacheOptions,
       },
-      async () => {
+      async ({ ganacheServer }) => {
+        ganache = ganacheServer;
         await loginToApp();
 
         await TabBarComponent.tapBrowser();
@@ -253,7 +268,8 @@ describe(Confirmations('Sign Messages'), () => {
         restartDevice: true,
         ganacheOptions: defaultGanacheOptions,
       },
-      async () => {
+      async ({ ganacheServer }) => {
+        ganache = ganacheServer;
         await loginToApp();
 
         await TabBarComponent.tapBrowser();
@@ -285,7 +301,8 @@ describe(Confirmations('Sign Messages'), () => {
         restartDevice: true,
         ganacheOptions: defaultGanacheOptions,
       },
-      async () => {
+      async ({ ganacheServer }) => {
+        ganache = ganacheServer;
         await loginToApp();
 
         await TabBarComponent.tapBrowser();

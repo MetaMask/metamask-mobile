@@ -10,7 +10,13 @@ import TabBarComponent from '../pages/TabBarComponent';
 import WalletActionsModal from '../pages/modals/WalletActionsModal';
 import AddAddressModal from '../pages/modals/AddAddressModal';
 
-import { CreateNewWallet } from '../viewHelper';
+import { loginToApp } from '../viewHelper';
+import FixtureBuilder from '../fixtures/fixture-builder';
+import {
+  loadFixture,
+  startFixtureServer,
+  stopFixtureServer,
+} from '../fixtures/fixture-helper';
 
 const INVALID_ADDRESS = '0xB8B4EE5B1b693971eB60bDa15211570df2dB221L';
 const TETHER_ADDRESS = '0xdac17f958d2ee523a2206206994597c13d831ec7';
@@ -18,12 +24,20 @@ const MYTH_ADDRESS = '0x1FDb169Ef12954F20A15852980e1F0C122BfC1D6';
 const MEMO = 'Test adding ENS';
 
 describe(Smoke('Addressbook Tests'), () => {
+  beforeAll(async () => {
+    const fixture = new FixtureBuilder().build();
+    await startFixtureServer();
+    await loadFixture({ fixture });
+    await device.launchApp({ delete: true });
+    await loginToApp();
+  });
+
   beforeEach(() => {
     jest.setTimeout(150000);
   });
 
-  it('should create new wallet', async () => {
-    await CreateNewWallet();
+  afterAll(async () => {
+    await stopFixtureServer();
   });
 
   it('should go to send view', async () => {

@@ -16,6 +16,7 @@ import { SMART_CONTRACTS } from '../../../app/util/test/smart-contracts';
 describe(Confirmations('ERC721 tokens'), () => {
   const NFT_CONTRACT = SMART_CONTRACTS.NFTS;
   const SENT_COLLECTIBLE_MESSAGE_TEXT = root.transactions.sent_collectible;
+  let ganache;
 
   beforeAll(async () => {
     jest.setTimeout(150000);
@@ -23,6 +24,11 @@ describe(Confirmations('ERC721 tokens'), () => {
       await device.reverseTcpPort('8545'); // ganache
       await device.reverseTcpPort('8080'); // test-dapp
     }
+  });
+
+  afterEach(async () => {
+    await ganache.quit();
+    await TestHelpers.delay(3000);
   });
 
   it('send an ERC721 token from a dapp', async () => {
@@ -37,7 +43,8 @@ describe(Confirmations('ERC721 tokens'), () => {
         ganacheOptions: defaultGanacheOptions,
         smartContract: NFT_CONTRACT,
       },
-      async ({ contractRegistry }) => {
+      async ({ contractRegistry, ganacheServer }) => {
+        ganache = ganacheServer;
         const nftsAddress = await contractRegistry.getContractAddress(
           NFT_CONTRACT,
         );

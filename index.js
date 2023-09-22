@@ -75,7 +75,7 @@ if (IGNORE_BOXLOGS_DEVELOPMENT === 'true') {
 }
 
 /* Uncomment and comment regular registration below */
-// import Storybook from './storybook';
+// import Storybook from './.storybook';
 // AppRegistry.registerComponent(name, () => Storybook);
 
 /**
