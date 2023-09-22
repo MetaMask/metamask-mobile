@@ -2,6 +2,9 @@
   "KeyringController": {
     "keyrings": []
   },
+  "LoggingController": {
+    "logs": {}
+  },
   "AccountTrackerController": {
     "accounts": {}
   },
