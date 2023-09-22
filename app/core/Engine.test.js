@@ -22,6 +22,7 @@ describe('Engine', () => {
     expect(engine.context).toHaveProperty('TokenBalancesController');
     expect(engine.context).toHaveProperty('TokenRatesController');
     expect(engine.context).toHaveProperty('TokensController');
+    expect(engine.context).toHaveProperty('LoggingController');
   });
 
   it('calling Engine.init twice returns the same instance', () => {
