@@ -681,6 +681,7 @@ class TransactionEditor extends PureComponent {
   };
 
   saveGasEditionLegacy = (legacyGasTransaction, legacyGasObject) => {
+    const totalGasValue = fromWei(legacyGasTransaction?.totalHex);
     const { setTransactionObject } = this.props;
     legacyGasTransaction.error = this.validateTotal(
       legacyGasTransaction.totalHex,
@@ -694,6 +695,19 @@ class TransactionEditor extends PureComponent {
       stopUpdateGas: false,
       legacyGasTransaction,
       legacyGasObject,
+      EIP1559GasData: {
+        ...this.state.EIP1559GasData,
+        suggestedGasLimit: legacyGasTransaction.suggestedGasLimit,
+        renderableGasFeeMaxNative: legacyGasTransaction.transactionFee,
+        renderableGasFeeMinConversion: legacyGasTransaction.transactionFeeFiat,
+        renderableGasFeeMinNative: legacyGasTransaction.transactionFee,
+        gasFeeMaxNative: totalGasValue,
+        gasFeeMinNative: totalGasValue,
+        maxPriorityFeeNative: totalGasValue,
+        renderableMaxPriorityFeeNative: legacyGasTransaction.transactionFee,
+        renderableMaxFeePerGasNative: legacyGasTransaction.transactionFee,
+        gasLimitHex: legacyGasTransaction?.suggestedGasLimitHex,
+      },
     });
     this.review();
   };
