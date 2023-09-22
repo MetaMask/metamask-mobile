@@ -858,7 +858,6 @@ trigger_map:
     pipeline: create_qa_builds_pipeline
   - tag: 'dev-e2e-*'
     pipeline: pr_smoke_e2e_pipeline
-  - pull_request_target_branch: "*"
-    pull_request_source_branch: "main"
+  - push_branch: ci/bitrise-e2e-on-PR
     pipeline: pr_smoke_e2e_pipeline_pr_check
 
