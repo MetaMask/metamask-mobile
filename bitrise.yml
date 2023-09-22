@@ -109,9 +109,6 @@ workflows:
   # Check if the PR is in draft mode
   check_pr_draft_mode:
     steps:
-      - activate-ssh-key@4:
-          run_if: '{{getenv "SSH_RSA_PRIVATE_KEY" | ne ""}}'
-      - git-clone@6: {}
       - script@1:
           inputs:
             - content: |-
@@ -119,6 +116,7 @@ workflows:
                 # fail if any commands fails
                 set -e
                 # debug log
+                echo ${GITHUB_PR_IS_DRAFT}
                 set -x
                 if [[ -z "${GITHUB_PR_IS_DRAFT}" ]]; then
                     echo 'PR is out of draft'
