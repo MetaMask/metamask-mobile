@@ -1,6 +1,6 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
-exports[`LedgerConnect should render correctly 1`] = `
+exports[`LedgerMessageSignModal should render correctly 1`] = `
 <ContextProvider
   value={
     Object {

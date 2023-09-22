@@ -10,6 +10,16 @@ const store = mockStore({});
 
 jest.mock('@ledgerhq/react-native-hw-transport-ble', () => null);
 
+jest.mock('../../../core/Engine', () => ({
+  context: {
+    KeyringController: {
+      state: {
+        keyrings: [],
+      },
+    },
+  },
+}));
+
 jest.mock('react-native-permissions', () => ({
   check: jest.fn().mockRejectedValue('granted'),
   checkMultiple: jest.fn().mockRejectedValue({

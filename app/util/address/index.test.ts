@@ -12,27 +12,264 @@ import {
   isQRHardwareAccount,
   getAddressAccountType,
   resemblesAddress,
+  renderFullAddress,
+  renderShortAddress,
+  renderAccountName,
+  getTokenDetails,
+  importAccountFromPrivateKey,
 } from '.';
+import { strings } from '../../../locales/i18n';
+import { toChecksumAddress } from 'ethereumjs-util';
 
-jest.mock('../../core/Engine');
-const ENGINE_MOCK = Engine as jest.MockedClass<any>;
-
-ENGINE_MOCK.context = {
-  KeyringController: {
-    state: {
-      keyrings: [
-        {
-          type: 'Ledger',
-          accounts: ['0xC4955C0d639D99699Bfd7Ec54d9FaFEe40e4D272'],
-        },
-        {
-          type: 'QR Hardware Wallet Device',
-          accounts: ['0xB4955C0d639D99699Bfd7Ec54d9FaFEe40e4D275'],
-        },
-      ],
+jest.mock('../../core/Engine', () => ({
+  acceptPendingApproval: jest.fn(),
+  rejectPendingApproval: jest.fn(),
+  context: {
+    KeyringController: {
+      importAccountWithStrategy: jest.fn(),
+      state: {
+        keyrings: [
+          {
+            type: 'Ledger',
+            accounts: ['0xC4955C0d639D99699Bfd7Ec54d9FaFEe40e4D272'],
+          },
+          {
+            type: 'QR Hardware Wallet Device',
+            accounts: ['0xB374Ca013934e498e5baD3409147F34E6c462389'],
+          },
+          {
+            type: 'Simple Key Pair',
+            accounts: ['0xd018538C87232FF95acbCe4870629b75640a78E7'],
+          },
+          {
+            type: 'Metamask',
+            accounts: ['0x71C7656EC7ab88b098defB751B7401B5f6d8976F'],
+          },
+        ],
+      },
+    },
+    AssetsContractController: {
+      getTokenStandardAndDetails: jest.fn(),
+    },
+    PreferencesController: {
+      setSelectedAddress: jest.fn(),
     },
   },
-};
+}));
+
+describe('renderFullName', () => {
+  it('should return error string when the address is empty', () => {
+    const expectedResult = strings('transactions.tx_details_not_available');
+    expect(renderFullAddress('')).toBe(expectedResult);
+  });
+
+  it('should return error string when the address is null', () => {
+    const expectedResult = strings('transactions.tx_details_not_available');
+    expect(renderFullAddress(null)).toBe(expectedResult);
+  });
+
+  it('should return the address when the address is valid', () => {
+    const input = '0xC4955C0d639D99699Bfd7Ec54d9FaFEe40e4D272';
+    const expectedResult = toChecksumAddress(input);
+    expect(renderFullAddress(input)).toBe(expectedResult);
+  });
+});
+
+describe('renderShortAddress', () => {
+  const input = '0xC4955C0d639D99699Bfd7Ec54d9FaFEe40e4D272';
+
+  it('should return short address format with default 4 characters', () => {
+    const expected = '0xC495...D272';
+    expect(renderShortAddress(input)).toBe(expected);
+  });
+
+  it('should return short address format with specified number of characters', () => {
+    const expected = '0xC4955C...e4D272';
+    expect(renderShortAddress(input, 6)).toBe(expected);
+  });
+
+  it('should return null if it is null', () => {
+    expect(renderShortAddress(null)).toBe(null);
+  });
+});
+
+describe('renderAccountName', () => {
+  it('should return account name if it exists in identities', () => {
+    const identities = {
+      '0x1234567890123456789012345678901234567890': {
+        name: 'My Account',
+      },
+    };
+    expect(
+      renderAccountName(
+        '0x1234567890123456789012345678901234567890',
+        identities,
+      ),
+    ).toBe('My Account');
+  });
+
+  it('should return short address format if account name does not exist in identities', () => {
+    const identities = {
+      '0x1234567890123456789012345678901234567890': {
+        name: 'My Account',
+      },
+    };
+    expect(
+      renderAccountName(
+        '0x0987654321098765432109876543210987654321',
+        identities,
+      ),
+    ).toBe('0x0987...4321');
+  });
+});
+
+describe('importAccountFromPrivateKey', () => {
+  afterEach(() => {
+    jest.clearAllMocks();
+  });
+
+  it('should import an account from a private key with 66 characters and prefix 0x', async () => {
+    const private_key =
+      '0x0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef';
+    const expectedAddress = '0x123456789abcdef0123456789abcdef01234567';
+    const setSelectedAddressMock = jest.fn();
+    const importAccountWithStrategyMock = jest
+      .fn()
+      .mockResolvedValue({ importedAccountAddress: expectedAddress });
+    Engine.context.KeyringController.importAccountWithStrategy =
+      importAccountWithStrategyMock;
+    Engine.context.PreferencesController.setSelectedAddress =
+      setSelectedAddressMock;
+    await importAccountFromPrivateKey(private_key);
+    expect(importAccountWithStrategyMock).toHaveBeenCalledWith('privateKey', [
+      private_key.substr(2),
+    ]);
+    expect(setSelectedAddressMock).toHaveBeenCalledWith(
+      '0x123456789AbCdef0123456789abCDEF01234567',
+    );
+  });
+
+  it('should handle private keys with 66 characters and without 0x prefix', async () => {
+    const private_key =
+      '650123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef';
+    const expectedAddress = '0x123456789abcdef0123456789abcdef01234567';
+    const setSelectedAddressMock = jest.fn();
+    const importAccountWithStrategyMock = jest
+      .fn()
+      .mockResolvedValue({ importedAccountAddress: expectedAddress });
+    Engine.context.KeyringController.importAccountWithStrategy =
+      importAccountWithStrategyMock;
+
+    Engine.context.PreferencesController.setSelectedAddress =
+      setSelectedAddressMock;
+
+    await importAccountFromPrivateKey(private_key);
+    expect(importAccountWithStrategyMock).toHaveBeenCalledWith('privateKey', [
+      private_key,
+    ]);
+    expect(setSelectedAddressMock).toHaveBeenCalledWith(
+      '0x123456789AbCdef0123456789abCDEF01234567',
+    );
+  });
+
+  it('should handle private keys with less than 66 characters', async () => {
+    const private_key =
+      '0x0123456789abcdef0123456789abcdef0123456789abcdef0123456789abc';
+    const expectedAddress = '0x123456789abcdef0123456789abcdef01234567';
+    const setSelectedAddressMock = jest.fn();
+    const importAccountWithStrategyMock = jest
+      .fn()
+      .mockResolvedValue({ importedAccountAddress: expectedAddress });
+    Engine.context.KeyringController.importAccountWithStrategy =
+      importAccountWithStrategyMock;
+
+    Engine.context.PreferencesController.setSelectedAddress =
+      setSelectedAddressMock;
+
+    await importAccountFromPrivateKey(private_key);
+    expect(importAccountWithStrategyMock).toHaveBeenCalledWith('privateKey', [
+      private_key,
+    ]);
+    expect(setSelectedAddressMock).toHaveBeenCalledWith(
+      '0x123456789AbCdef0123456789abCDEF01234567',
+    );
+  });
+});
+
+describe('getTokenDetails', () => {
+  afterEach(() => {
+    jest.clearAllMocks();
+  });
+
+  const tokenAddress = '0x1234567890123456789012345678901234567890';
+  const userAddress = '0x0987654321098765432109876543210987654321';
+  const tokenId = '123';
+
+  it('should return token details for ERC20 tokens', async () => {
+    const returnData = {
+      standard: 'ERC20',
+      name: 'MyToken',
+      symbol: 'MT',
+      decimals: 18,
+    };
+
+    const expectedData = {
+      standard: 'ERC20',
+      symbol: 'MT',
+      decimals: 18,
+    };
+    Engine.context.AssetsContractController.getTokenStandardAndDetails.mockResolvedValueOnce(
+      returnData,
+    );
+
+    const result = await getTokenDetails(tokenAddress, userAddress, tokenId);
+
+    expect(result).toEqual(expectedData);
+  });
+
+  it('should return token details for ERC721 tokens', async () => {
+    const returnData = {
+      standard: 'ERC721',
+      name: 'MyToken',
+      symbol: 'MT',
+      decimals: 18,
+    };
+    const expectedData = {
+      standard: 'ERC721',
+      name: 'MyToken',
+      symbol: 'MT',
+    };
+    Engine.context.AssetsContractController.getTokenStandardAndDetails.mockResolvedValueOnce(
+      returnData,
+    );
+
+    const result = await getTokenDetails(tokenAddress, userAddress, tokenId);
+
+    expect(result).toEqual(expectedData);
+  });
+
+  it('should return token details for ERC1155 tokens', async () => {
+    const returnData = {
+      standard: 'ERC1155',
+      name: 'MyToken',
+      symbol: 'MT',
+      decimals: 18,
+    };
+
+    const expectedData = {
+      standard: 'ERC1155',
+      name: 'MyToken',
+      symbol: 'MT',
+    };
+    Engine.context.AssetsContractController.getTokenStandardAndDetails.mockResolvedValueOnce(
+      returnData,
+    );
+
+    const result = await getTokenDetails(tokenAddress, userAddress, tokenId);
+
+    expect(result).toEqual(expectedData);
+  });
+});
 
 describe('isENS', () => {
   it('should return false by default', () => {
@@ -82,6 +319,10 @@ describe('formatAddress', () => {
   it('should return address formatted for mid type', () => {
     const expectedValue = '0xC4955C0d639D99699Bfd7E...D272';
     expect(formatAddress(mockAddress, 'mid')).toBe(expectedValue);
+  });
+  it('should return address formatted for full type', () => {
+    const expectedValue = '0xC4955C0d639D99699Bfd7Ec54d9FaFEe40e4D272';
+    expect(formatAddress(mockAddress, '')).toBe(expectedValue);
   });
 });
 
@@ -285,6 +526,7 @@ describe('isQRHardwareAccount', () => {
     ).toBeTruthy();
   });
 });
+
 describe('getAddressAccountType', () => {
   it('should throw an error if argument address is undefined', () => {
     expect(() => getAddressAccountType(undefined as any)).toThrow(
@@ -306,7 +548,21 @@ describe('getAddressAccountType', () => {
       getAddressAccountType('0x71C7656EC7ab88b098defB751B7401B5f6d8976F'),
     ).toBe('MetaMask');
   });
+
+  it('should return "Ledger" for a Ledger hardware account', () => {
+    const address = '0xC4955C0d639D99699Bfd7Ec54d9FaFEe40e4D272';
+    const accountType = getAddressAccountType(address);
+    expect(accountType).toEqual('Ledger');
+  });
+
+  it('should throw an error for an address that is not imported', () => {
+    const address = '0x1234567890123456789012345678901234567894';
+    expect(() => getAddressAccountType(address)).toThrowError(
+      'The address: 0x1234567890123456789012345678901234567894 is not imported',
+    );
+  });
 });
+
 describe('resemblesAddress', () => {
   it('should return false if argument address is undefined', () => {
     expect(resemblesAddress(undefined as any)).toBeFalsy();
