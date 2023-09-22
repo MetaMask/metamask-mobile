@@ -24,6 +24,20 @@ jest.mock('@react-navigation/native', () => ({
   createNavigatorFactory: () => ({}),
 }));
 
+jest.mock('../../../../core/Engine', () => ({
+  context: {
+    KeyringController: {
+      state: {
+        keyrings: [
+          {
+            accounts: ['0x0'],
+          },
+        ],
+      },
+    },
+  },
+}));
+
 const mockInitialState = {
   settings: {},
   transaction: {
@@ -50,6 +64,11 @@ const mockInitialState = {
             address: '0x0',
             name: 'Account 1',
           },
+        },
+      },
+      KeyringController: {
+        state: {
+          keyrings: [],
         },
       },
     },

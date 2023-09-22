@@ -747,51 +747,61 @@ exports[`AddressInputs AddressTo should match default snapshot 1`] = `
               ]
             }
           >
-            <Text
-              numberOfLines={1}
+            <View
               style={
-                Array [
-                  Object {
-                    "color": "#24272A",
-                    "fontFamily": "EuclidCircularB-Regular",
-                    "fontSize": 30,
-                    "fontWeight": "400",
-                    "marginVertical": 2,
-                  },
-                  undefined,
-                  undefined,
-                  undefined,
-                  undefined,
-                  undefined,
-                  undefined,
-                  undefined,
-                  undefined,
-                  undefined,
-                  undefined,
-                  undefined,
-                  undefined,
-                  undefined,
-                  undefined,
-                  undefined,
-                  undefined,
-                  undefined,
-                  undefined,
-                  undefined,
-                  undefined,
-                  undefined,
-                  undefined,
-                  undefined,
-                  Object {
-                    "color": "#24272A",
-                    "fontFamily": "EuclidCircularB-Regular",
-                    "fontSize": 14,
-                    "fontWeight": "400",
-                  },
-                ]
+                Object {
+                  "alignItems": "center",
+                  "flexDirection": "row",
+                  "justifyContent": "center",
+                }
               }
             >
-              DUMMY_ACCOUNT
-            </Text>
+              <Text
+                numberOfLines={1}
+                style={
+                  Array [
+                    Object {
+                      "color": "#24272A",
+                      "fontFamily": "EuclidCircularB-Regular",
+                      "fontSize": 30,
+                      "fontWeight": "400",
+                      "marginVertical": 2,
+                    },
+                    undefined,
+                    undefined,
+                    undefined,
+                    undefined,
+                    undefined,
+                    undefined,
+                    undefined,
+                    undefined,
+                    undefined,
+                    undefined,
+                    undefined,
+                    undefined,
+                    undefined,
+                    undefined,
+                    undefined,
+                    undefined,
+                    undefined,
+                    undefined,
+                    undefined,
+                    undefined,
+                    undefined,
+                    undefined,
+                    undefined,
+                    Object {
+                      "color": "#24272A",
+                      "fontFamily": "EuclidCircularB-Regular",
+                      "fontSize": 14,
+                      "fontWeight": "400",
+                    },
+                  ]
+                }
+              >
+                DUMMY_ACCOUNT
+              </Text>
+            </View>
             <View
               style={
                 Object {
@@ -1095,51 +1105,61 @@ exports[`AddressInputs AddressTo should match snapshot when layout is vertical 1
               ]
             }
           >
-            <Text
-              numberOfLines={1}
+            <View
               style={
-                Array [
-                  Object {
-                    "color": "#24272A",
-                    "fontFamily": "EuclidCircularB-Regular",
-                    "fontSize": 30,
-                    "fontWeight": "400",
-                    "marginVertical": 2,
-                  },
-                  undefined,
-                  undefined,
-                  undefined,
-                  undefined,
-                  undefined,
-                  undefined,
-                  undefined,
-                  undefined,
-                  undefined,
-                  undefined,
-                  undefined,
-                  undefined,
-                  undefined,
-                  undefined,
-                  undefined,
-                  undefined,
-                  undefined,
-                  undefined,
-                  undefined,
-                  undefined,
-                  undefined,
-                  undefined,
-                  undefined,
-                  Object {
-                    "color": "#24272A",
-                    "fontFamily": "EuclidCircularB-Regular",
-                    "fontSize": 14,
-                    "fontWeight": "400",
-                  },
-                ]
+                Object {
+                  "alignItems": "center",
+                  "flexDirection": "row",
+                  "justifyContent": "center",
+                }
               }
             >
-              DUMMY_ACCOUNT
-            </Text>
+              <Text
+                numberOfLines={1}
+                style={
+                  Array [
+                    Object {
+                      "color": "#24272A",
+                      "fontFamily": "EuclidCircularB-Regular",
+                      "fontSize": 30,
+                      "fontWeight": "400",
+                      "marginVertical": 2,
+                    },
+                    undefined,
+                    undefined,
+                    undefined,
+                    undefined,
+                    undefined,
+                    undefined,
+                    undefined,
+                    undefined,
+                    undefined,
+                    undefined,
+                    undefined,
+                    undefined,
+                    undefined,
+                    undefined,
+                    undefined,
+                    undefined,
+                    undefined,
+                    undefined,
+                    undefined,
+                    undefined,
+                    undefined,
+                    undefined,
+                    undefined,
+                    Object {
+                      "color": "#24272A",
+                      "fontFamily": "EuclidCircularB-Regular",
+                      "fontSize": 14,
+                      "fontWeight": "400",
+                    },
+                  ]
+                }
+              >
+                DUMMY_ACCOUNT
+              </Text>
+            </View>
             <View
               style={
                 Object {
