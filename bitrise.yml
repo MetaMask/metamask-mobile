@@ -117,10 +117,10 @@ workflows:
           inputs:
             - content: |-
                 #!/usr/bin/env bash
-                if [[ $BITRISE_GIT_MESSAGE =~ "e2e" ]]; then
-                  echo "Found e2e in commit message. Now triggering e2e tests"
+                if [[ $BITRISE_GIT_MESSAGE =~ "feat:" ]]; then
+                  echo "Found feat: in PR title. Now triggering e2e tests"
                 else
-                  echo "No e2e string in commit message."
+                  echo "No feat: in PR title."
                   exit 1
                 fi
           title: Run if "e2e" is contained in commit message
