@@ -48,6 +48,7 @@ export default function ActionView({
   showConfirmButton,
   confirmed,
   confirmDisabled,
+  loading = false,
   keyboardShouldPersistTaps = 'never',
   style = undefined,
 }) {
@@ -91,12 +92,12 @@ export default function ActionView({
               type={confirmButtonMode}
               onPress={onConfirmPress}
               containerStyle={[styles.button, styles.confirm]}
-              disabled={confirmed || confirmDisabled}
+              disabled={confirmed || confirmDisabled || loading}
             >
-              {confirmed ? (
+              {confirmed || loading ? (
                 <ActivityIndicator
                   size="small"
-                  color={colors.primary.inverse}
+                  color={colors.primary.default}
                 />
               ) : (
                 confirmText
@@ -174,6 +175,10 @@ ActionView.propTypes = {
    * Whether confirm button is shown
    */
   showConfirmButton: PropTypes.bool,
+  /**
+   * Loading after confirm
+   */
+  loading: PropTypes.bool,
   /**
    * Determines if the keyboard should stay visible after a tap
    */

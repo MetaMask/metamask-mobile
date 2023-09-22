@@ -125,6 +125,7 @@ const DeleteMetaMetricsData = () => {
 
   return (
     <SettingsButtonSection
+      testID="delete-metrics-button"
       needsModal
       sectionTitle={strings('app_settings.delete_metrics_title')}
       sectionButtonText={strings('app_settings.delete_metrics_button')}
