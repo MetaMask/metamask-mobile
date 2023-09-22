@@ -495,7 +495,7 @@ export const migrations = {
   },
   22: (state) => {
     const transactions =
-      state.engine.backgroundState.TransactionController.transaction;
+      state.engine.backgroundState?.TransactionController?.transactions;
 
     // Check if transactions is an array
     if (Array.isArray(transactions)) {

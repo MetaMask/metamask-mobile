@@ -373,7 +373,7 @@ describe('Redux Persist Migrations', () => {
         engine: {
           backgroundState: {
             TransactionController: {
-              transaction: [
+              transactions: [
                 {
                   rawTransaction: '0x123',
                   otherProperty: 'otherValue',
@@ -396,7 +396,7 @@ describe('Redux Persist Migrations', () => {
         engine: {
           backgroundState: {
             TransactionController: {
-              transaction: [
+              transactions: [
                 {
                   rawTx: '0x123',
                   otherProperty: 'otherValue',
@@ -419,7 +419,7 @@ describe('Redux Persist Migrations', () => {
         engine: {
           backgroundState: {
             TransactionController: {
-              transaction: [
+              transactions: [
                 {
                   rawTx: '0x456',
                 },
@@ -429,11 +429,25 @@ describe('Redux Persist Migrations', () => {
         },
       };
 
-      const migration = migrations[20];
+      const migration = migrations[22];
 
       const newState = migration(cloneDeep(oldState));
 
       expect(newState).toStrictEqual(oldState);
+    });
+
+    it('should return the same state if there is no transaction controller state', () => {
+      const stateWithoutTransactionController = {
+        engine: {
+          backgroundState: {},
+        },
+      };
+
+      const migration = migrations[22];
+
+      const newState = migration(cloneDeep(stateWithoutTransactionController));
+
+      expect(newState).toStrictEqual(stateWithoutTransactionController);
     });
   });
 });
