@@ -117,7 +117,7 @@ workflows:
                 set -e
                 # debug log
                 set -x
-                if [[ -z "${BITRISE_GIT_MESSAGE}" == *"e2e"* ]]; then
+                if [[ -z "${BITRISE_GIT_MESSAGE}" == *'e2e'* ]]; then
                     echo 'PR is out of draft'
                     exit 1
                 else
