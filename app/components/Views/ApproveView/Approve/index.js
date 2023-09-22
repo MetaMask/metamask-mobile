@@ -354,31 +354,15 @@ class Approve extends PureComponent {
   cancelGasEdition = () => {
     this.setState({
       stopUpdateGas: false,
-      gasSelectedTemp: this.state.gasSelected,
     });
     this.review();
   };
 
-  cancelGasEditionUpdate = () => {
-    this.setState({
-      stopUpdateGas: false,
-      gasSelectedTemp: this.state.gasSelected,
-    });
-    this.review();
-  };
-
-  saveGasEditionLegacy = (
-    legacyGasTransaction,
-    legacyGasObject,
-    gasSelected,
-  ) => {
+  saveGasEditionLegacy = (legacyGasTransaction, legacyGasObject) => {
     legacyGasTransaction.error = this.validateGas(
       legacyGasTransaction.totalHex,
     );
     this.setState({
-      gasSelected,
-      gasSelectedTemp: gasSelected,
-      advancedGasInserted: !gasSelected,
       stopUpdateGas: false,
       legacyGasTransaction,
       legacyGasObject,
@@ -589,13 +573,6 @@ class Approve extends PureComponent {
     });
   };
 
-  calculateTempGasFeeLegacy = (selected) => {
-    this.setState({
-      stopUpdateGas: !selected,
-      gasSelectedTemp: selected,
-    });
-  };
-
   onUpdatingValuesStart = () => {
     this.setState({ isAnimating: true });
   };
@@ -644,6 +621,7 @@ class Approve extends PureComponent {
       shouldAddNickname,
       tokenAllowanceState,
       isGasEstimateStatusIn,
+      legacyGasTransaction,
     } = this.state;
 
     const {
@@ -806,12 +784,6 @@ class Approve extends PureComponent {
                 />
               ) : (
                 <EditGasFeeLegacy
-                  selected={gasSelected}
-                  gasEstimateType={gasEstimateType}
-                  gasOptions={gasFeeEstimates}
-                  onChange={this.calculateTempGasFeeLegacy}
-                  primaryCurrency={primaryCurrency}
-                  chainId={chainId}
                   onCancel={this.cancelGasEdition}
                   onSave={this.saveGasEditionLegacy}
                   animateOnChange={animateOnChange}
@@ -820,6 +792,9 @@ class Approve extends PureComponent {
                   analyticsParams={this.getGasAnalyticsParams()}
                   onlyGas
                   selectedGasObject={selectedLegacyGasObject}
+                  error={legacyGasTransaction.error}
+                  onUpdatingValuesStart={this.onUpdatingValuesStart}
+                  onUpdatingValuesEnd={this.onUpdatingValuesEnd}
                 />
               ))}
           </KeyboardAwareScrollView>

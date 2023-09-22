@@ -36,6 +36,7 @@ const TransactionReviewEIP1559Update = ({
   legacy,
   gasSelected,
   gasObject,
+  gasObjectLegacy,
   onlyGas,
   updateTransactionState,
   multiLayerL1FeeTotal,
@@ -59,6 +60,7 @@ const TransactionReviewEIP1559Update = ({
     gasSelected,
     legacy: !!legacy,
     gasObject,
+    gasObjectLegacy,
     multiLayerL1FeeTotal,
   });
 

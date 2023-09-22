@@ -581,7 +581,7 @@ class TransactionReviewInformation extends PureComponent {
     );
   };
 
-  renderTransactionReviewFeeCard = () => {
+  renderTransactionReviewLegacy = () => {
     const {
       primaryCurrency,
       ready,
@@ -659,7 +659,7 @@ class TransactionReviewInformation extends PureComponent {
         {nonceModalVisible && this.renderCustomNonceModal()}
         {showFeeMarket
           ? this.renderTransactionReviewEIP1559()
-          : this.renderTransactionReviewFeeCard()}
+          : this.renderTransactionReviewLegacy()}
         {gasSelected === AppConstants.GAS_OPTIONS.LOW && (
           <WarningMessage
             style={styles.actionsWrapper}

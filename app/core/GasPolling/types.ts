@@ -108,11 +108,13 @@ export interface GasFeeOptions {
   };
 }
 
-export interface UseGasTransactionProps extends GasTransactionProps {
+export interface UseGasTransactionProps {
   /**
-   * The selected gas value (low, medium, high). Gas value can be null when the advanced option is modified.
+   * The gasSelected property is optional, as it is only relevant for 1559 transactions and not for legacy transactions.
+   * When it is present, it can take values of ['low', 'medium', 'high', null].
+   * If the value is null, it indicates that the advanced option is enabled.
    */
-  gasSelected: string | null;
+  gasSelected?: string | null;
   onlyGas?: boolean;
 
   /**
@@ -120,18 +122,17 @@ export interface UseGasTransactionProps extends GasTransactionProps {
    */
   legacy?: boolean;
   /**
-   * the gas transaction props
-   */
-  gasData: GasTransactionProps;
-  /**
    * gas object for calculating the gas transaction cost
    */
-  gasObject: {
-    legacyGasLimit: string;
-    suggestedGasPrice: any;
-    suggestedGasLimit?: string;
+  gasObject?: {
+    suggestedGasLimit: string;
     suggestedMaxFeePerGas: string;
     suggestedMaxPriorityFeePerGas: string;
+  };
+  gasObjectLegacy?: {
+    legacyGasLimit?: string;
+    suggestedGasPrice?: string;
+    suggestedMaxFeePerGas?: string;
   };
 
   multiLayerL1FeeTotal?: string;
@@ -212,8 +213,10 @@ export interface LegacyProps {
   currentCurrency: string;
   transactionState: any;
   ticker: string;
-  suggestedGasPrice: any;
-  suggestedGasLimit: string;
   onlyGas?: boolean;
   multiLayerL1FeeTotal?: string;
+  gas: {
+    suggestedGasLimit: string;
+    suggestedGasPrice?: string;
+  };
 }

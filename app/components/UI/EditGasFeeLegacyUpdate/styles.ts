@@ -1,4 +1,5 @@
 import { StyleSheet } from 'react-native';
+
 import Device from '../../../util/device';
 
 const createStyles = (colors: any) =>
@@ -28,9 +29,6 @@ const createStyles = (colors: any) =>
     },
     headerText: {
       fontSize: 48,
-    },
-    headerTitle: {
-      flexDirection: 'row',
     },
     headerTitleSide: {
       flex: 1,
@@ -67,14 +65,16 @@ const createStyles = (colors: any) =>
       paddingTop: 1,
       marginLeft: 5,
     },
-    warningTextContainer: {
-      paddingLeft: 4,
+    textContainer: {
       lineHeight: 20,
       textAlign: 'center',
     },
-    warningText: {
+    text: {
       lineHeight: 20,
-      color: colors.text.default,
+      marginHorizontal: 4,
+    },
+    dappEditGasContainer: {
+      marginVertical: 20,
     },
   });
 

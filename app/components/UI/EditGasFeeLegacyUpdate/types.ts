@@ -1,18 +1,4 @@
-import { GasFeeOptions } from '../../../core/GasPolling/types';
-
 export interface EditGasFeeLegacyUpdateProps {
-  /**
-   * Gas option selected (low, medium, high)
-   */
-  selected: string;
-  /**
-   * Gas fee options to select from
-   */
-  gasOptions: GasFeeOptions;
-  /**
-   * Function called when user selected or changed the gas
-   */
-  onChange: any;
   /**
    * Function called when user cancels
    */
@@ -20,20 +6,7 @@ export interface EditGasFeeLegacyUpdateProps {
   /**
    * Function called when user saves the new gas
    */
-  onSave: any;
-  /**
-   * Primary currency, either ETH or Fiat
-   */
-  primaryCurrency: string;
-  /**
-   * A string representing the network chainId
-   */
-  chainId: string;
-  /**
-   * Estimate type returned by the gas fee controller, can be market-fee, legacy or eth_gasPrice
-   */
-  gasEstimateType: string;
-
+  onSave: (gasTxn: any, newGasObject: any) => void;
   /**
    * Error message to show
    */
@@ -43,21 +16,9 @@ export interface EditGasFeeLegacyUpdateProps {
    */
   warning?: any;
   /**
-   * Ignore option array
-   */
-  ignoreOptions: string[] | undefined;
-  /**
    * Extend options object. Object has option keys and properties will be spread
    */
   extendOptions?: any;
-  /**
-   * Recommended object with type and render function
-   */
-  recommended?: any;
-  /**
-   * Estimate option to compare with for too low warning
-   */
-  warningMinimumEstimateOption: string;
   /**
    * Function to call when update animation starts
    */
@@ -81,4 +42,12 @@ export interface EditGasFeeLegacyUpdateProps {
   view: string;
   onlyGas?: boolean;
   selectedGasObject: any;
+  hasDappSuggestedGas?: boolean;
+}
+
+export interface EditLegacyGasTransaction {
+  suggestedGasLimit: string;
+  suggestedGasPrice: string;
+  transactionFee: string;
+  transactionFeeFiat: string;
 }

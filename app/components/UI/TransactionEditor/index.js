@@ -27,7 +27,7 @@ import collectiblesTransferInformation from '../../../util/collectibles-transfer
 import { safeToChecksumAddress } from '../../../util/address';
 import { shallowEqual } from '../../../util/general';
 import EditGasFee1559 from '../EditGasFee1559';
-import EditGasFeeLegacy from '../EditGasFeeLegacy';
+import EditGasFeeLegacy from '../EditGasFeeLegacyUpdate';
 import { GAS_ESTIMATE_TYPES } from '@metamask/gas-fee-controller';
 import AppConstants from '../../../core/AppConstants';
 import {
@@ -146,6 +146,9 @@ class TransactionEditor extends PureComponent {
     EIP1559GasDataTemp: {},
     LegacyGasData: {},
     LegacyGasDataTemp: {},
+    legacyGasObject: {},
+    legacyGasTransaction: {},
+    suggestedMaxFeePerGas: undefined,
   };
 
   computeGasEstimates = (gasEstimateTypeChanged) => {
@@ -222,6 +225,7 @@ class TransactionEditor extends PureComponent {
           gasSelected: dappSuggestedGas ? null : gasSelected,
           gasSelectedTemp,
           animateOnChange: true,
+          suggestedMaxFeePerGas: initialGas.suggestedMaxFeePerGas,
         },
         () => {
           this.setState({ animateOnChange: false });
@@ -649,18 +653,6 @@ class TransactionEditor extends PureComponent {
     });
   };
 
-  calculateTempGasFeeLegacy = (gas, selected) => {
-    const { transaction } = this.props;
-    if (selected && gas) {
-      gas.suggestedGasLimit = fromWei(transaction.gas, 'wei');
-    }
-    this.setState({
-      LegacyGasDataTemp: this.parseTransactionDataLegacy(gas),
-      stopUpdateGas: !selected,
-      gasSelectedTemp: selected,
-    });
-  };
-
   saveGasEdition = (gasSelected) => {
     const { gasEstimateType, setTransactionObject } = this.props;
     const { LegacyGasDataTemp } = this.state;
@@ -688,6 +680,24 @@ class TransactionEditor extends PureComponent {
     );
   };
 
+  saveGasEditionLegacy = (legacyGasTransaction, legacyGasObject) => {
+    const { setTransactionObject } = this.props;
+    legacyGasTransaction.error = this.validateTotal(
+      legacyGasTransaction.totalHex,
+    );
+    handleGasFeeSelection(
+      hexToBN(legacyGasTransaction.suggestedGasLimitHex),
+      hexToBN(legacyGasTransaction.suggestedGasPriceHex),
+      setTransactionObject,
+    );
+    this.setState({
+      stopUpdateGas: false,
+      legacyGasTransaction,
+      legacyGasObject,
+    });
+    this.review();
+  };
+
   cancelGasEdition = () => {
     this.setState({
       LegacyGasDataTemp: { ...this.state.LegacyGasData },
@@ -696,6 +706,13 @@ class TransactionEditor extends PureComponent {
       gasSelectedTemp: this.state.gasSelected,
     });
     this.props.onModeChange?.('review');
+  };
+
+  cancelGasEditionLegacy = () => {
+    this.setState({
+      stopUpdateGas: false,
+    });
+    this.review();
   };
 
   renderWarning = () => {
@@ -741,13 +758,25 @@ class TransactionEditor extends PureComponent {
       over,
       EIP1559GasData,
       EIP1559GasDataTemp,
-      LegacyGasDataTemp,
       gasSelected,
       dappSuggestedGasPrice,
       dappSuggestedEIP1559Gas,
       animateOnChange,
       isAnimating,
+      legacyGasObject,
+      suggestedMaxFeePerGas,
+      legacyGasTransaction,
     } = this.state;
+
+    const selectedLegacyGasObject = {
+      legacyGasLimit: legacyGasObject?.legacyGasLimit,
+      suggestedGasPrice: legacyGasObject?.suggestedGasPrice,
+      suggestedMaxFeePerGas,
+    };
+
+    const showLegacyGasEditModal =
+      transaction?.type === '0x0' ||
+      gasEstimateType !== GAS_ESTIMATE_TYPES.FEE_MARKET;
 
     return (
       <React.Fragment>
@@ -790,7 +819,29 @@ class TransactionEditor extends PureComponent {
         )}
 
         {mode !== 'review' &&
-          (gasEstimateType === GAS_ESTIMATE_TYPES.FEE_MARKET ? (
+          (showLegacyGasEditModal ? (
+            <EditGasFeeLegacy
+              animateOnChange={animateOnChange}
+              view={'Transaction'}
+              analyticsParams={getGasAnalyticsParams(
+                transaction,
+                '',
+                gasEstimateType,
+              )}
+              isAnimating={isAnimating}
+              onCancel={this.cancelGasEditionLegacy}
+              onSave={this.saveGasEditionLegacy}
+              selectedGasObject={selectedLegacyGasObject}
+              warning={this.renderWarning()}
+              hasDappSuggestedGas={
+                Boolean(dappSuggestedGasPrice) ||
+                Boolean(dappSuggestedEIP1559Gas)
+              }
+              error={legacyGasTransaction.error}
+              onUpdatingValuesStart={this.onUpdatingValuesStart}
+              onUpdatingValuesEnd={this.onUpdatingValuesEnd}
+            />
+          ) : (
             <EditGasFee1559
               selected={gasSelected}
               gasFee={EIP1559GasDataTemp}
@@ -829,33 +880,6 @@ class TransactionEditor extends PureComponent {
               }
               warning={this.renderWarning()}
               error={EIP1559GasDataTemp.error}
-              over={over}
-              onUpdatingValuesStart={this.onUpdatingValuesStart}
-              onUpdatingValuesEnd={this.onUpdatingValuesEnd}
-              animateOnChange={animateOnChange}
-              isAnimating={isAnimating}
-              view={'Transaction'}
-              analyticsParams={getGasAnalyticsParams(
-                transaction,
-                '',
-                gasEstimateType,
-              )}
-            />
-          ) : (
-            <EditGasFeeLegacy
-              selected={gasSelected}
-              gasFee={LegacyGasDataTemp}
-              gasEstimateType={gasEstimateType}
-              gasOptions={gasFeeEstimates}
-              onChange={this.calculateTempGasFeeLegacy}
-              gasFeeNative={LegacyGasDataTemp.transactionFee}
-              gasFeeConversion={LegacyGasDataTemp.transactionFeeFiat}
-              gasPriceConversion={LegacyGasDataTemp.transactionFeeFiat}
-              primaryCurrency={primaryCurrency}
-              chainId={chainId}
-              onCancel={this.cancelGasEdition}
-              onSave={this.saveGasEdition}
-              error={LegacyGasDataTemp.error}
               over={over}
               onUpdatingValuesStart={this.onUpdatingValuesStart}
               onUpdatingValuesEnd={this.onUpdatingValuesEnd}
