@@ -9,12 +9,12 @@ import {
   withFixtures,
   defaultGanacheOptions,
 } from '../../fixtures/fixture-helper';
-import { Regression } from '../../tags';
+import { Smoke } from '../../tags';
 import TestHelpers from '../../helpers';
 
 const MAX_ATTEMPTS = 3;
 
-describe(Regression('Sign Messages'), () => {
+describe(Smoke('Sign Messages'), () => {
   let ganache;
   beforeAll(async () => {
     jest.setTimeout(150000);
