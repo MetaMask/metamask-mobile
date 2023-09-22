@@ -2,7 +2,7 @@
 import TestHelpers from '../helpers';
 
 import Browser from '../pages/Drawer/Browser';
-import { Smoke } from '../tags';
+import { Regression } from '../tags';
 
 import AccountListView from '../pages/AccountListView';
 import TabBarComponent from '../pages/TabBarComponent';
@@ -22,7 +22,7 @@ import {
 const SUSHI_SWAP = 'https://app.sushi.com/swap';
 const SUSHI_SWAP_SHORT_HAND_URL = 'app.sushi.com';
 describe(
-  Smoke(
+  Regression(
     'Connecting to multiple dapps and revoking permission on one but staying connected to the other',
   ),
   () => {

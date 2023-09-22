@@ -1,5 +1,5 @@
 'use strict';
-import { Smoke } from '../tags';
+import { Regression } from '../tags';
 
 import SendLinkView from '../pages/SendLinkView';
 import RequestPaymentView from '../pages/RequestPaymentView';
@@ -16,7 +16,7 @@ import FixtureBuilder from '../fixtures/fixture-builder';
 
 const SAI_CONTRACT_ADDRESS = '0x89d24a6b4ccb1b6faa2625fe562bdd9a23260359';
 
-describe(Smoke('Request Token Flow'), () => {
+describe(Regression('Request Token Flow'), () => {
   beforeEach(() => {
     jest.setTimeout(150000);
   });
