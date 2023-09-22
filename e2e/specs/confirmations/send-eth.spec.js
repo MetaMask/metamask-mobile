@@ -17,10 +17,9 @@ import {
 } from '../../fixtures/fixture-helper';
 import { SMART_CONTRACTS } from '../../../app/util/test/smart-contracts';
 
-describe(Regression('Send ETH to Multisig'), () => {
-  const MULTISIG_CONTRACT = SMART_CONTRACTS.MULTISIG;
-  const AMOUNT_TO_SEND = '0.12345';
+describe(Regression('Send ETH'), () => {
   const TOKEN_NAME = root.unit.eth;
+  const AMOUNT = '0.12345';
   let ganache;
 
   beforeAll(async () => {
@@ -35,7 +34,40 @@ describe(Regression('Send ETH to Multisig'), () => {
     await TestHelpers.delay(3000);
   });
 
-  it('Send ETH to a Multisig address from inside MetaMask wallet', async () => {
+  it('should send ETH to an EOA from inside the wallet', async () => {
+    const RECIPIENT = '0x1FDb169Ef12954F20A15852980e1F0C122BfC1D6';
+    await withFixtures(
+      {
+        fixture: new FixtureBuilder().withGanacheNetwork().build(),
+        restartDevice: true,
+        ganacheOptions: defaultGanacheOptions,
+      },
+      async ({ ganacheServer }) => {
+        ganache = ganacheServer;
+        await loginToApp();
+
+        await TabBarComponent.tapActions();
+        await WalletActionsModal.tapSendButton();
+
+        await SendView.inputAddress(RECIPIENT);
+        await SendView.tapNextButton();
+
+        await AmountView.typeInTransactionAmount(AMOUNT);
+        await AmountView.tapNextButton();
+
+        await TransactionConfirmationView.tapConfirmButton();
+        await TabBarComponent.tapActivity();
+
+        await TestHelpers.checkIfElementByTextIsVisible(
+          `${AMOUNT} ${TOKEN_NAME}`,
+        );
+      },
+    );
+  });
+
+  it('should send ETH to a Multisig from inside the wallet', async () => {
+    const MULTISIG_CONTRACT = SMART_CONTRACTS.MULTISIG;
+
     await withFixtures(
       {
         fixture: new FixtureBuilder().withGanacheNetwork().build(),
@@ -56,14 +88,14 @@ describe(Regression('Send ETH to Multisig'), () => {
         await SendView.inputAddress(multisigAddress);
         await SendView.tapNextButton();
 
-        await AmountView.typeInTransactionAmount(AMOUNT_TO_SEND);
+        await AmountView.typeInTransactionAmount(AMOUNT);
         await AmountView.tapNextButton();
 
         await TransactionConfirmationView.tapConfirmButton();
         await TabBarComponent.tapActivity();
 
         await TestHelpers.checkIfElementByTextIsVisible(
-          `${AMOUNT_TO_SEND} ${TOKEN_NAME}`,
+          `${AMOUNT} ${TOKEN_NAME}`,
         );
       },
     );
