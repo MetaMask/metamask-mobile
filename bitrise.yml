@@ -116,8 +116,8 @@ workflows:
                 # fail if any commands fails
                 set -e
                 # debug log
-                echo 'Test message $BITRISE_GIT_MESSAGE'
-                echo 'Test result $GITHUB_PR_IS_DRAFT'
+                echo 'Test message' + "${BITRISE_GIT_MESSAGE}"
+                echo 'Test result' + "${GITHUB_PR_IS_DRAFT}"
                 set -x
                 if [[ -z "${GITHUB_PR_IS_DRAFT}" ]]; then
                     echo 'PR is out of draft'
