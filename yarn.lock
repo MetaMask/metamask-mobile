@@ -4589,10 +4589,10 @@
   resolved "https://registry.yarnpkg.com/@metamask/safe-event-emitter/-/safe-event-emitter-3.0.0.tgz#8c2b9073fe0722d48693143b0dc8448840daa3bd"
   integrity sha512-j6Z47VOmVyGMlnKXZmL0fyvWfEYtKWCA9yGZkU3FCsGZUT5lHGmvaV9JA5F2Y+010y7+ROtR3WMXIkvl/nVzqQ==
 
-"@metamask/sdk-communication-layer@^0.5.0":
-  version "0.5.2"
-  resolved "https://registry.yarnpkg.com/@metamask/sdk-communication-layer/-/sdk-communication-layer-0.5.2.tgz#fd94d457569b7ee984ad40b1c965d509d569269b"
-  integrity sha512-k4v2L3E+4nROROT1/3RROSiDLUAKNkJeHsi3nN8l2ao4P0c3JuaREFwfc/u3FtXA3gALKRRGnitn2drG4Xw6rA==
+"@metamask/sdk-communication-layer@^0.7.0":
+  version "0.7.0"
+  resolved "https://registry.yarnpkg.com/@metamask/sdk-communication-layer/-/sdk-communication-layer-0.7.0.tgz#b97a341d620bc3a75862b5932c9b62e98d093946"
+  integrity sha512-jIv/9ujLdqZPfRyAc4Qi865TWk0EhORCDeaa36+r5ED4R84BiUIh1qgyZAW5+Kp4IMlWRjrclGfvrx1exiN3Gw==
   dependencies:
     cross-fetch "^3.1.5"
     date-fns "^2.29.3"

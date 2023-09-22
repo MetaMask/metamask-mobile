@@ -34,16 +34,6 @@ import {
 } from '@metamask/sdk-communication-layer';
 import { ethErrors } from 'eth-rpc-errors';
 import { EventEmitter2 } from 'eventemitter2';
-import {
-  MediaStream,
-  MediaStreamTrack,
-  RTCIceCandidate,
-  RTCPeerConnection,
-  RTCSessionDescription,
-  RTCView,
-  mediaDevices,
-  registerGlobals,
-} from 'react-native-webrtc';
 import Routes from '../../../app/constants/navigation/Routes';
 import generateOTP from './utils/generateOTP.util';
 import {
@@ -62,17 +52,6 @@ export const MIN_IN_MS = 1000 * 60;
 export const HOUR_IN_MS = MIN_IN_MS * 60;
 export const DAY_IN_MS = HOUR_IN_MS * 24;
 export const DEFAULT_SESSION_TIMEOUT_MS = 7 * DAY_IN_MS;
-
-const webrtc = {
-  RTCPeerConnection,
-  RTCIceCandidate,
-  RTCSessionDescription,
-  RTCView,
-  MediaStream,
-  MediaStreamTrack,
-  mediaDevices,
-  registerGlobals,
-};
 
 export interface ConnectionProps {
   id: string;
@@ -239,7 +218,6 @@ export class Connection extends EventEmitter2 {
       communicationServerUrl: AppConstants.MM_SDK.SERVER_URL,
       communicationLayerPreference: CommunicationLayerPreference.SOCKET,
       otherPublicKey,
-      webRTCLib: webrtc,
       reconnect,
       walletInfo: {
         type: 'MetaMask Mobile',
@@ -849,6 +827,8 @@ export class SDKConnect extends EventEmitter2 {
       await this.reconnect({
         channelId: id,
         initialConnection: false,
+        otherPublicKey:
+          this.connected[id].remote.getKeyInfo()?.ecies.otherPubKey ?? '',
         context: 'connectToChannel',
       });
       return;
@@ -914,7 +894,8 @@ export class SDKConnect extends EventEmitter2 {
     connection.remote.on(EventType.CLIENTS_DISCONNECTED, () => {
       const host = AppConstants.MM_SDK.SDK_REMOTE_ORIGIN + connection.channelId;
       // Prevent disabled connection ( if user chose do not remember session )
-      if (this.disabledHosts[host] !== undefined) {
+      const isDisabled = this.disabledHosts[host]; // should be 0 when disabled.
+      if (isDisabled !== undefined) {
         this.updateSDKLoadingState({
           channelId: connection.channelId,
           loading: false,
@@ -924,6 +905,8 @@ export class SDKConnect extends EventEmitter2 {
             `SDKConnect::watchConnection can't update SDK loading state`,
           );
         });
+        // Force terminate connection since it was disabled (do not remember)
+        this.removeChannel(connection.channelId, true);
       }
     });
 
@@ -1009,10 +992,12 @@ export class SDKConnect extends EventEmitter2 {
 
   async reconnect({
     channelId,
+    otherPublicKey,
     initialConnection,
     context,
   }: {
     channelId: string;
+    otherPublicKey: string;
     context?: string;
     initialConnection: boolean;
   }) {
@@ -1026,6 +1011,7 @@ export class SDKConnect extends EventEmitter2 {
       } connecting=${connecting} socketConnected=${socketConnected} existingConnection=${
         existingConnection !== undefined
       }`,
+      otherPublicKey,
     );
 
     let interruptReason = '';
@@ -1064,6 +1050,7 @@ export class SDKConnect extends EventEmitter2 {
     this.connecting[channelId] = true;
     this.connected[channelId] = new Connection({
       ...connection,
+      otherPublicKey,
       reconnect: true,
       initialConnection,
       rpcQueueManager: this.rpcqueueManager,
@@ -1082,7 +1069,9 @@ export class SDKConnect extends EventEmitter2 {
       withKeyExchange: true,
     });
     this.watchConnection(this.connected[channelId]);
-    this.connecting[channelId] = false;
+    const afterConnected =
+      this.connected[channelId].remote.isConnected() ?? false;
+    this.connecting[channelId] = !afterConnected; // If not connected, it means it's connecting.
     this.emit('refresh');
   }
 
@@ -1096,6 +1085,7 @@ export class SDKConnect extends EventEmitter2 {
       if (channelId) {
         this.reconnect({
           channelId,
+          otherPublicKey: this.connections[channelId].otherPublicKey,
           initialConnection: false,
           context: 'reconnectAll',
         }).catch((err) => {
@@ -1180,7 +1170,7 @@ export class SDKConnect extends EventEmitter2 {
 
   /**
    * Invalidate a channel/session by preventing future connection to be established.
-   * Instead of removing the channel, it creates sets the session to timeout on next
+   * Instead of removing the channel, it sets the session to timeout on next
    * connection which will remove it while conitnuing current session.
    *
    * @param channelId
