@@ -118,9 +118,11 @@ workflows:
                 # debug log
                 set -x
                 if [[ $BITRISE_GIT_MESSAGE =~ "e2e" ]]; then
-                  echo "It's there!"
+                  echo "Found e2e in commit message triggering e2e tests"
+                else
+                  exit 1
                 fi
-          title: Run only if PR is out of draft
+          title: Run if "e2e" is contained in commit message
     meta:
       bitrise.io:
         stack: linux-docker-android-20.04
