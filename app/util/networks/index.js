@@ -230,13 +230,6 @@ export function hasBlockExplorer(key) {
   return key.toLowerCase() !== RPC;
 }
 
-export function isKnownNetwork(id) {
-  const knownNetworks = NetworkListKeys.map(
-    (key) => NetworkList[key].networkId,
-  ).filter((id) => id !== undefined);
-  return knownNetworks.includes(parseInt(id, 10));
-}
-
 export function isprivateConnection(hostname) {
   return (
     hostname === 'localhost' ||
@@ -498,6 +491,3 @@ export const getBlockExplorerTxUrl = (
  */
 export const getIsNetworkOnboarded = (chainId, networkOnboardedState) =>
   networkOnboardedState[chainId];
-
-export const shouldShowLineaMainnetNetwork = () =>
-  new Date().getTime() > Date.UTC(2023, 6, 11, 18);

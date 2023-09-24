@@ -1331,8 +1331,7 @@
     "you_can": "或者您可以",
     "add_network": "手动添加更多网络。",
     "select_network": "选择网络",
-    "show_test_networks": "显示测试网络",
-    "linea_mainnet_not_released_alert": "感谢您对 Linea 主网感兴趣，它即将发布！"
+    "show_test_networks": "显示测试网络"
   },
   "select": {
     "cancel": "取消",

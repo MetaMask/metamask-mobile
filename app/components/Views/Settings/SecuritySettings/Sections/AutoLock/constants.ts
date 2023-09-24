@@ -44,3 +44,5 @@ const AUTO_LOCK_OPTIONS = [
 ];
 
 export default AUTO_LOCK_OPTIONS;
+
+export const AUTO_LOCK_SECTION = 'auto-lock-section';
