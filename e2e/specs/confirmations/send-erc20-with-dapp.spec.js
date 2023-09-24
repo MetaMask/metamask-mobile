@@ -20,8 +20,8 @@ describe(Regression('ERC20 tokens'), () => {
   beforeAll(async () => {
     jest.setTimeout(170000);
     if (device.getPlatform() === 'android') {
-      await device.reverseTcpPort('8081'); // because on android we need to expose the localhost ports to run ganache
-      await device.reverseTcpPort('8545');
+      await device.reverseTcpPort('8545'); // ganache
+      await device.reverseTcpPort('8080'); // test-dapp
     }
   });
 
