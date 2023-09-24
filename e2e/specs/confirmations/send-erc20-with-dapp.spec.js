@@ -28,6 +28,7 @@ describe(Regression('ERC20 tokens'), () => {
   it('send an ERC20 token from a dapp', async () => {
     await withFixtures(
       {
+        dapp: true,
         fixture: new FixtureBuilder()
           .withGanacheNetwork()
           .withPermissionControllerConnectedToTestDapp()
