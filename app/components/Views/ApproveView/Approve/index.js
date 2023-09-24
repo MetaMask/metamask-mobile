@@ -499,7 +499,7 @@ class Approve extends PureComponent {
         NotificationManager.showSimpleNotification({
           status: `simple_notification_rejected`,
           duration: 5000,
-          title: strings('notifications.approved_tx_rejected_title'),
+          title: strings('notifications.wc_sent_tx_rejected_title'),
           description: strings('notifications.wc_description'),
         });
       }
