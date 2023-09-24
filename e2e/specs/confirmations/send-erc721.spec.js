@@ -2,71 +2,67 @@
 
 import { Regression } from '../../tags';
 import TestHelpers from '../../helpers';
-import { loginToApp } from '../../viewHelper';
-import TabBarComponent from '../../pages/TabBarComponent';
-import { TestDApp } from '../../pages/TestDApp';
-import FixtureBuilder from '../../fixtures/fixture-builder';
 import {
-  withFixtures,
-  defaultGanacheOptions,
-} from '../../fixtures/fixture-helper';
+  importWalletWithRecoveryPhrase,
+  addLocalhostNetwork,
+} from '../../viewHelper';
+import TabBarComponent from '../../pages/TabBarComponent';
+import Accounts from '../../../wdio/helpers/Accounts';
+import Ganache from '../../../app/util/test/ganache';
+import Browser from '../../pages/Drawer/Browser';
+import ConnectModal from '../../pages/modals/ConnectModal';
+import { TEST_DAPP_URL, TestDApp } from '../../pages/TestDApp';
 import root from '../../../locales/languages/en.json';
-import { SMART_CONTRACTS } from '../../../app/util/test/smart-contracts';
 
-describe(Regression('ERC721 tokens'), () => {
-  const NFT_CONTRACT = SMART_CONTRACTS.NFTS;
-  const SENT_COLLECTIBLE_MESSAGE_TEXT = root.transactions.sent_collectible;
-  const WEBVIEW_TEST_DAPP_TRANSFER_FROM_BUTTON_ID = 'transferFromButton';
+const SENT_COLLECTIBLE_MESSAGE_TEXT = root.transactions.sent_collectible;
 
+const validAccount = Accounts.getValidAccount();
+const ERC721_ADDRESS = '0x26D6C3e7aEFCE970fe3BE5d589DbAbFD30026924';
+
+describe(Regression('sendERC721 tokens test'), () => {
+  let ganacheServer;
   beforeAll(async () => {
     jest.setTimeout(150000);
     if (device.getPlatform() === 'android') {
-      await device.reverseTcpPort('8545'); // ganache
-      await device.reverseTcpPort('8080'); // test-dapp
+      await device.reverseTcpPort('8081'); // because on android we need to expose the localhost ports to run ganache
+      await device.reverseTcpPort('8545');
     }
+    ganacheServer = new Ganache();
+    await ganacheServer.start({ mnemonic: validAccount.seedPhrase });
   });
 
-  it('send an ERC721 token from a dapp', async () => {
-    await withFixtures(
-      {
-        dapp: true,
-        fixture: new FixtureBuilder()
-          .withGanacheNetwork()
-          .withPermissionControllerConnectedToTestDapp()
-          .build(),
-        restartDevice: true,
-        ganacheOptions: defaultGanacheOptions,
-        smartContract: NFT_CONTRACT,
-      },
-      async ({ contractRegistry }) => {
-        const nftsAddress = await contractRegistry.getContractAddress(
-          NFT_CONTRACT,
-        );
-        await loginToApp();
+  afterAll(async () => {
+    await ganacheServer.quit();
+  });
 
-        // Navigate to the browser screen
-        await TabBarComponent.tapBrowser();
+  it('Send an ERC721 token', async () => {
+    // Setup
+    await importWalletWithRecoveryPhrase();
+    await addLocalhostNetwork();
 
-        // Navigate to the ERC721 url
-        await TestDApp.navigateToTestDappWithContract(nftsAddress);
+    // Navigate to the browser screen
+    await TabBarComponent.tapBrowser();
 
-        // Transfer NFT
-        await TestDApp.tapButtonWithContract({
-          buttonId: WEBVIEW_TEST_DAPP_TRANSFER_FROM_BUTTON_ID,
-          contractAddress: nftsAddress,
-        });
-        await TestHelpers.delay(3000);
+    // Navigate to the ERC721 url
+    await TestDApp.navigateToErc721Contract(TEST_DAPP_URL, ERC721_ADDRESS);
 
-        await TestDApp.tapConfirmButton();
+    // Connect account
+    await TestDApp.connect();
+    //await Browser.tapConnectButton();
+    //await ConnectModal.tapConnectButton();
 
-        // Navigate to the activity screen
-        await TabBarComponent.tapActivity();
+    // Transfer NFT
+    await TestDApp.tapTransferFromButton(ERC721_ADDRESS);
+    await TestHelpers.delay(3000);
 
-        // Assert collectible is sent
-        await TestHelpers.checkIfElementByTextIsVisible(
-          SENT_COLLECTIBLE_MESSAGE_TEXT,
-        );
-      },
+    await TestDApp.tapConfirmButton();
+
+    // Navigate to the activity screen
+    await TabBarComponent.tapActivity();
+
+    // Assert collectible is sent
+    await TestHelpers.checkIfElementByTextIsVisible(
+      SENT_COLLECTIBLE_MESSAGE_TEXT,
     );
   });
 });

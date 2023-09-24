@@ -68,7 +68,7 @@ export class TestDApp {
   ) {
     await Browser.tapUrlInputBox();
     await Browser.navigateToURL(
-      `${TEST_DAPP_URL}?scrollTo=${buttonId}&${parameterName}=${parameterValue}`,
+      `${TEST_DAPP_LOCAL_URL}?scrollTo=${buttonId}&${parameterName}=${parameterValue}`,
     );
     await TestHelpers.delay(3000);
   }
@@ -86,6 +86,7 @@ export class TestDApp {
       'contract',
       contractAddress,
     );
+
     if (device.getPlatform() === 'android') {
       await TestHelpers.waitForWebElementToBeVisibleById(buttonId, 5000);
       await TestHelpers.tapWebviewElement(buttonId);
