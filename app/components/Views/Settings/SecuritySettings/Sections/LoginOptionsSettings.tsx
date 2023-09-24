@@ -12,6 +12,7 @@ import {
   TRUE,
 } from '../../../../../constants/storage';
 import { View } from 'react-native';
+import { LOGIN_OPTIONS } from '../SecuritySettings.constants';
 
 interface BiometricOptionSectionProps {
   onSignWithBiometricsOptionUpdated: (enabled: boolean) => Promise<void>;
@@ -76,7 +77,7 @@ const LoginOptionsSettings = ({
   );
 
   return (
-    <View>
+    <View testID={LOGIN_OPTIONS}>
       {biometryType ? (
         <SecurityOptionToggle
           title={strings(`biometrics.enable_${biometryType.toLowerCase()}`)}

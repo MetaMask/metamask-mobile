@@ -33,7 +33,6 @@ const USER_PROFILE_PROPERTY = {
   AUTHENTICATION_TYPE: 'Authentication Type',
   TOKEN_DETECTION: 'token_detection_enable',
   MULTI_ACCOUNT_BALANCE: 'Batch account balance requests',
-  SECURITY_PROVIDERS: 'security_providers',
 };
 
 /**
@@ -100,7 +99,7 @@ class Analytics {
 
     RCTAnalytics.setUserProfileProperty(
       USER_PROFILE_PROPERTY.ENABLE_OPENSEA_API,
-      preferencesController?.openSeaEnabled
+      preferencesController?.displayNftMedia
         ? USER_PROFILE_PROPERTY.ON
         : USER_PROFILE_PROPERTY.OFF,
     );
@@ -127,15 +126,6 @@ class Analytics {
       preferencesController.isMultiAccountBalancesEnabled
         ? USER_PROFILE_PROPERTY.ON
         : USER_PROFILE_PROPERTY.OFF,
-    );
-
-    // Track security providers toggle
-    const { securityAlertsEnabled } = reduxState?.experimentalSettings;
-    const securityProviders = securityAlertsEnabled ? ['blockaid'] : [];
-
-    RCTAnalytics.setUserProfileProperty(
-      USER_PROFILE_PROPERTY.SECURITY_PROVIDERS,
-      [...securityProviders],
     );
   };
 
