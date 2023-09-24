@@ -73,6 +73,11 @@ import {
 import SwapsController, { swapsUtils } from '@metamask/swaps-controller';
 import { PPOMController } from '@metamask/ppom-validator';
 import { MetaMaskKeyring as QRHardwareKeyring } from '@keystonehq/metamask-airgapped-keyring';
+import {
+  LoggingController,
+  LoggingControllerState,
+  LoggingControllerActions,
+} from '@metamask/logging-controller';
 import Encryptor from './Encryptor';
 import {
   isMainnetByChainId,
@@ -125,7 +130,8 @@ type GlobalActions =
   | GetTokenListState
   | NetworkControllerActions
   | PermissionControllerActions
-  | SignatureControllerActions;
+  | SignatureControllerActions
+  | LoggingControllerActions;
 type GlobalEvents =
   | ApprovalControllerEvents
   | CurrencyRateStateChange
@@ -159,6 +165,7 @@ export interface EngineState {
   NftDetectionController: BaseState;
   PermissionController: PermissionControllerState<Permissions>;
   ApprovalController: ApprovalControllerState;
+  LoggingController: LoggingControllerState;
 }
 
 /**
@@ -182,6 +189,7 @@ class Engine {
         CurrencyRateController: CurrencyRateController;
         GasFeeController: GasFeeController;
         KeyringController: KeyringController;
+        LoggingController: LoggingController;
         NetworkController: NetworkController;
         NftController: NftController;
         NftDetectionController: NftDetectionController;
@@ -623,6 +631,13 @@ class Engine {
             ),
         },
       }),
+      new LoggingController({
+        // @ts-expect-error Error might be caused by base controller version mismatch
+        messenger: this.controllerMessenger.getRestricted({
+          name: 'LoggingController',
+        }),
+        state: initialState.LoggingController,
+      }),
     ];
 
     if (isBlockaidFeatureEnabled()) {
@@ -891,6 +906,7 @@ class Engine {
       TokenBalancesController,
       TokenRatesController,
       PermissionController,
+      LoggingController,
     } = this.context;
 
     // Remove all permissions.
@@ -923,6 +939,8 @@ class Engine {
       transactions: [],
       lastFetchedBlockNumbers: {},
     });
+
+    LoggingController.clear();
   };
 
   removeAllListeners() {
@@ -1030,6 +1048,7 @@ export default {
       NftDetectionController,
       PermissionController,
       ApprovalController,
+      LoggingController,
     } = instance.datamodel.state;
 
     // normalize `null` currencyRate to `0`
@@ -1064,6 +1083,7 @@ export default {
       NftDetectionController,
       PermissionController,
       ApprovalController,
+      LoggingController,
     };
   },
   get datamodel() {

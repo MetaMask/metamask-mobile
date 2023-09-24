@@ -1331,8 +1331,7 @@
     "you_can": "또는 다음을 확인하세요:",
     "add_network": "네트워크를 직접 추가할 수도 있습니다.",
     "select_network": "네트워크 선택",
-    "show_test_networks": "테스트 네트워크 보기",
-    "linea_mainnet_not_released_alert": "Linea Mainnet에 관심을 보여 주셔서 감사합니다. 곧 출시할 예정입니다!"
+    "show_test_networks": "테스트 네트워크 보기"
   },
   "select": {
     "cancel": "취소",
