@@ -120,6 +120,7 @@ exports[`AccountSelectorList should render all accounts but only the balance for
               }
             >
               <Text
+                accessibilityRole="text"
                 numberOfLines={1}
                 style={
                   Object {
@@ -136,6 +137,7 @@ exports[`AccountSelectorList should render all accounts but only the balance for
                 Business Account
               </Text>
               <Text
+                accessibilityRole="text"
                 numberOfLines={1}
                 style={
                   Object {
@@ -168,6 +170,7 @@ exports[`AccountSelectorList should render all accounts but only the balance for
                 testID="account-balance-by-address-0x1"
               >
                 <Text
+                  accessibilityRole="text"
                   style={
                     Object {
                       "color": "#24272A",
@@ -287,6 +290,7 @@ exports[`AccountSelectorList should render all accounts but only the balance for
               }
             >
               <Text
+                accessibilityRole="text"
                 numberOfLines={1}
                 style={
                   Object {
@@ -303,6 +307,7 @@ exports[`AccountSelectorList should render all accounts but only the balance for
                 Personal Account
               </Text>
               <Text
+                accessibilityRole="text"
                 numberOfLines={1}
                 style={
                   Object {
@@ -544,6 +549,7 @@ exports[`AccountSelectorList should render all accounts with balances 1`] = `
               }
             >
               <Text
+                accessibilityRole="text"
                 numberOfLines={1}
                 style={
                   Object {
@@ -560,6 +566,7 @@ exports[`AccountSelectorList should render all accounts with balances 1`] = `
                 Business Account
               </Text>
               <Text
+                accessibilityRole="text"
                 numberOfLines={1}
                 style={
                   Object {
@@ -592,6 +599,7 @@ exports[`AccountSelectorList should render all accounts with balances 1`] = `
                 testID="account-balance-by-address-0x1"
               >
                 <Text
+                  accessibilityRole="text"
                   style={
                     Object {
                       "color": "#24272A",
@@ -805,6 +813,7 @@ exports[`AccountSelectorList should render all accounts with balances 1`] = `
               }
             >
               <Text
+                accessibilityRole="text"
                 numberOfLines={1}
                 style={
                   Object {
@@ -821,6 +830,7 @@ exports[`AccountSelectorList should render all accounts with balances 1`] = `
                 Personal Account
               </Text>
               <Text
+                accessibilityRole="text"
                 numberOfLines={1}
                 style={
                   Object {
@@ -853,6 +863,7 @@ exports[`AccountSelectorList should render all accounts with balances 1`] = `
                 testID="account-balance-by-address-0x2"
               >
                 <Text
+                  accessibilityRole="text"
                   style={
                     Object {
                       "color": "#24272A",
@@ -1095,6 +1106,7 @@ exports[`AccountSelectorList should render all accounts with right acessory 1`] 
               }
             >
               <Text
+                accessibilityRole="text"
                 numberOfLines={1}
                 style={
                   Object {
@@ -1111,6 +1123,7 @@ exports[`AccountSelectorList should render all accounts with right acessory 1`] 
                 Business Account
               </Text>
               <Text
+                accessibilityRole="text"
                 numberOfLines={1}
                 style={
                   Object {
@@ -1309,6 +1322,7 @@ exports[`AccountSelectorList should render all accounts with right acessory 1`] 
               }
             >
               <Text
+                accessibilityRole="text"
                 numberOfLines={1}
                 style={
                   Object {
@@ -1325,6 +1339,7 @@ exports[`AccountSelectorList should render all accounts with right acessory 1`] 
                 Personal Account
               </Text>
               <Text
+                accessibilityRole="text"
                 numberOfLines={1}
                 style={
                   Object {
