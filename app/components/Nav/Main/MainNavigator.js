@@ -1,5 +1,6 @@
 import React, { useRef, useState, useEffect } from 'react';
 import { Image, StyleSheet, Keyboard, Platform } from 'react-native';
+import PropTypes from 'prop-types';
 import { createStackNavigator } from '@react-navigation/stack';
 import { useSelector } from 'react-redux';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
@@ -548,7 +549,7 @@ const Ramps = ({ rampType }) => (
 );
 
 Ramps.propTypes = {
-  rampType: RampType,
+  rampType: PropTypes.string,
 };
 
 const Swaps = () => (
