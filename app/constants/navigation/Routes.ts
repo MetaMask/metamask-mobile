@@ -23,12 +23,6 @@ const Routes = {
     },
     SELL: {
       ID: 'RampSell',
-      GET_STARTED: 'RampSellGetStarted',
-      NETWORK_SWITCHER: 'SellNetworkSwitcher',
-      REGION: 'SellRegion',
-      REGION_HAS_STARTED: 'SellRegionHasStarted',
-      PAYMENT_METHOD: 'SellPaymentMethod',
-      PAYMENT_METHOD_HAS_STARTED: 'SellPaymentMethodHasStarted',
     },
   },
   QR_SCANNER: 'QRScanner',
