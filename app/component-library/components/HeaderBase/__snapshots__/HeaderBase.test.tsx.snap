@@ -1,13 +1,12 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
-exports[`Header should render snapshot correctly 1`] = `
+exports[`HeaderBase should render snapshot correctly 1`] = `
 <View
   style={
     Object {
       "alignItems": "center",
       "backgroundColor": "#FFFFFF",
       "flexDirection": "row",
-      "padding": 16,
     }
   }
   testID="header"
@@ -41,7 +40,7 @@ exports[`Header should render snapshot correctly 1`] = `
       testID="header-title"
       variant="sHeadingSM"
     >
-      Sample Header Title
+      Sample HeaderBase Title
     </Text>
   </View>
   <View

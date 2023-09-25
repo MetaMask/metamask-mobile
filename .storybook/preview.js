@@ -11,4 +11,9 @@ export const decorators = [
 
 export const parameters = {
   controls: {},
+  docs: {
+    source: {
+      type: 'code',
+    },
+  },
 };

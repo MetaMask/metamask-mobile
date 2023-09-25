@@ -2,11 +2,11 @@
 import { ViewProps } from 'react-native';
 
 /**
- * Header component props.
+ * HeaderBase component props.
  */
-export interface HeaderProps extends ViewProps {
+export interface HeaderBaseProps extends ViewProps {
   /**
-   * Title of the Header.
+   * Title of the HeaderBase.
    */
   children: React.ReactNode;
   /**
@@ -22,7 +22,7 @@ export interface HeaderProps extends ViewProps {
 /**
  * Style sheet input parameters.
  */
-export type HeaderStyleSheetVars = Pick<HeaderProps, 'style'> & {
+export type HeaderBaseStyleSheetVars = Pick<HeaderBaseProps, 'style'> & {
   startAccessorySize: { width: number; height: number } | null;
   endAccessorySize: { width: number; height: number } | null;
 };
