@@ -15,7 +15,7 @@ import AddressElement from '../AddressElement';
 import { useTheme } from '../../../../util/theme';
 import Text from '../../../../component-library/components/Texts/Text/Text';
 import { TextVariant } from '../../../../component-library/components/Texts/Text';
-import { selectNetwork } from '../../../../selectors/networkController';
+import { selectChainId } from '../../../../selectors/networkController';
 import { selectIdentities } from '../../../../selectors/preferencesController';
 
 // Internal dependencies
@@ -45,7 +45,7 @@ const AddressList: React.FC<AddressListProps> = ({
   const styles = styleSheet(colors);
   const [contactElements, setContactElements] = useState<Contact[]>([]);
   const [fuse, setFuse] = useState<any>(undefined);
-  const networkId = useSelector(selectNetwork);
+  const chainId = useSelector(selectChainId);
   const identities = useSelector(selectIdentities);
   const addressBook = useSelector(
     (state: any) =>
@@ -53,8 +53,8 @@ const AddressList: React.FC<AddressListProps> = ({
   );
 
   const networkAddressBook: { [address: string]: AddressBookEntry } = useMemo(
-    () => addressBook[networkId] || {},
-    [addressBook, networkId],
+    () => addressBook[chainId] || {},
+    [addressBook, chainId],
   );
 
   const parseAddressBook = useCallback(
@@ -145,7 +145,7 @@ const AddressList: React.FC<AddressListProps> = ({
   }, [
     inputSearch,
     addressBook,
-    networkId,
+    chainId,
     reloadAddressList,
     getNetworkAddressBookList,
     parseAddressBook,

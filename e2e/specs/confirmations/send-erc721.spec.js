@@ -26,6 +26,11 @@ describe(Regression('ERC721 tokens'), () => {
     }
   });
 
+  afterEach(async () => {
+    await ganache.quit();
+    await TestHelpers.delay(3000);
+  });
+
   it('send an ERC721 token from a dapp', async () => {
     await withFixtures(
       {
@@ -38,7 +43,8 @@ describe(Regression('ERC721 tokens'), () => {
         ganacheOptions: defaultGanacheOptions,
         smartContract: NFT_CONTRACT,
       },
-      async ({ contractRegistry }) => {
+      async ({ contractRegistry, ganacheServer }) => {
+        ganache = ganacheServer;
         const nftsAddress = await contractRegistry.getContractAddress(
           NFT_CONTRACT,
         );

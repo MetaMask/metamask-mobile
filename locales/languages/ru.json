@@ -1331,8 +1331,7 @@
     "you_can": "Или вы можете",
     "add_network": "добавить другие сети вручную.",
     "select_network": "Выбрать сеть",
-    "show_test_networks": "Показать тестовые сети",
-    "linea_mainnet_not_released_alert": "Спасибо за Ваш интерес к сети Linea Mainnet. Она скоро станет доступна!"
+    "show_test_networks": "Показать тестовые сети"
   },
   "select": {
     "cancel": "Отмена",

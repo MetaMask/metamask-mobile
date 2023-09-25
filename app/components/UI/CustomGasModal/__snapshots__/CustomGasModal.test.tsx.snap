@@ -206,49 +206,17 @@ exports[`CustomGasModal should render correctly 1`] = `
                     </TouchableOpacity>
                     <Text
                       style={
-                        Array [
-                          Object {
-                            "color": "#24272A",
-                            "fontFamily": "EuclidCircularB-Regular",
-                            "fontSize": 30,
-                            "fontWeight": "400",
-                            "marginVertical": 2,
-                          },
-                          undefined,
-                          undefined,
-                          Object {
-                            "fontFamily": "EuclidCircularB-Bold",
-                            "fontWeight": "600",
-                          },
-                          undefined,
-                          Object {
-                            "color": "#24272A",
-                          },
-                          undefined,
-                          undefined,
-                          undefined,
-                          undefined,
-                          Object {
-                            "color": "#24272A",
-                          },
-                          undefined,
-                          undefined,
-                          undefined,
-                          undefined,
-                          undefined,
-                          undefined,
-                          undefined,
-                          undefined,
-                          undefined,
-                          undefined,
-                          undefined,
-                          undefined,
-                          undefined,
-                          undefined,
-                        ]
+                        Object {
+                          "color": "#24272A",
+                          "fontFamily": "Euclid Circular B",
+                          "fontSize": 16,
+                          "fontWeight": "700",
+                          "letterSpacing": 0,
+                          "lineHeight": 24,
+                        }
                       }
                     >
-                      Edit gas fee
+                      Edit priority
                     </Text>
                     <Text
                       allowFontScaling={false}
@@ -273,127 +241,43 @@ exports[`CustomGasModal should render correctly 1`] = `
                   </View>
                 </View>
                 <View
-                  collapsable={false}
-                  pointerEvents={null}
                   style={
                     Object {
-                      "opacity": 1,
+                      "marginVertical": 20,
                     }
                   }
                 >
                   <View
+                    collapsable={false}
+                    pointerEvents={null}
                     style={
                       Object {
-                        "alignItems": "center",
-                        "marginBottom": 22,
+                        "opacity": 1,
                       }
                     }
                   >
                     <View
                       style={
                         Object {
-                          "flexDirection": "row",
+                          "alignItems": "center",
+                          "marginBottom": 22,
                         }
                       }
                     >
-                      <View
+                      <Text
                         style={
                           Object {
-                            "flex": 1,
+                            "color": "#24272A",
+                            "fontFamily": "Euclid Circular B",
+                            "fontSize": 32,
+                            "fontWeight": "700",
+                            "letterSpacing": 0,
+                            "lineHeight": 40,
                           }
                         }
                       >
-                        <Text
-                          style={
-                            Array [
-                              Object {
-                                "color": "#24272A",
-                                "fontFamily": "EuclidCircularB-Regular",
-                                "fontSize": 30,
-                                "fontWeight": "400",
-                                "marginVertical": 2,
-                              },
-                              undefined,
-                              Object {
-                                "textAlign": "right",
-                              },
-                              undefined,
-                              undefined,
-                              Object {
-                                "color": "#24272A",
-                              },
-                              undefined,
-                              undefined,
-                              undefined,
-                              undefined,
-                              Object {
-                                "color": "#24272A",
-                              },
-                              undefined,
-                              undefined,
-                              undefined,
-                              undefined,
-                              undefined,
-                              undefined,
-                              undefined,
-                              undefined,
-                              undefined,
-                              undefined,
-                              undefined,
-                              undefined,
-                              undefined,
-                              Object {
-                                "fontSize": 48,
-                              },
-                            ]
-                          }
-                        >
-                          ~
-                        </Text>
-                      </View>
-                      <Text
-                        style={
-                          Array [
-                            Object {
-                              "color": "#24272A",
-                              "fontFamily": "EuclidCircularB-Regular",
-                              "fontSize": 30,
-                              "fontWeight": "400",
-                              "marginVertical": 2,
-                            },
-                            undefined,
-                            undefined,
-                            undefined,
-                            undefined,
-                            Object {
-                              "color": "#24272A",
-                            },
-                            undefined,
-                            undefined,
-                            undefined,
-                            undefined,
-                            Object {
-                              "color": "#24272A",
-                            },
-                            undefined,
-                            undefined,
-                            undefined,
-                            undefined,
-                            undefined,
-                            undefined,
-                            undefined,
-                            undefined,
-                            undefined,
-                            undefined,
-                            undefined,
-                            undefined,
-                            undefined,
-                            Object {
-                              "fontSize": 48,
-                            },
-                          ]
-                        }
-                      />
+                        ~ 
+                      </Text>
                       <View
                         style={
                           Object {
@@ -401,458 +285,207 @@ exports[`CustomGasModal should render correctly 1`] = `
                           }
                         }
                       />
-                    </View>
-                    <Text
-                      style={
-                        Array [
-                          Object {
-                            "color": "#24272A",
-                            "fontFamily": "EuclidCircularB-Regular",
-                            "fontSize": 30,
-                            "fontWeight": "400",
-                            "marginVertical": 2,
-                          },
-                          undefined,
-                          undefined,
-                          undefined,
-                          undefined,
-                          Object {
-                            "color": "#24272A",
-                          },
-                          undefined,
-                          undefined,
-                          undefined,
-                          undefined,
-                          Object {
-                            "color": "#24272A",
-                          },
-                          undefined,
-                          undefined,
-                          undefined,
-                          undefined,
-                          Object {
-                            "fontSize": 16,
-                          },
-                          undefined,
-                          undefined,
-                          undefined,
-                          undefined,
-                          undefined,
-                          undefined,
-                          undefined,
-                          undefined,
-                          undefined,
-                        ]
-                      }
-                    >
                       <Text
                         style={
-                          Array [
-                            Object {
-                              "color": "#24272A",
-                              "fontFamily": "EuclidCircularB-Regular",
-                              "fontSize": 30,
-                              "fontWeight": "400",
-                              "marginVertical": 2,
-                            },
-                            undefined,
-                            undefined,
-                            Object {
-                              "fontFamily": "EuclidCircularB-Bold",
-                              "fontWeight": "600",
-                            },
-                            undefined,
-                            Object {
-                              "color": "#24272A",
-                            },
-                            undefined,
-                            undefined,
-                            undefined,
-                            undefined,
-                            Object {
-                              "color": "#24272A",
-                            },
-                            undefined,
-                            undefined,
-                            undefined,
-                            undefined,
-                            undefined,
-                            undefined,
-                            undefined,
-                            undefined,
-                            undefined,
-                            undefined,
-                            undefined,
-                            undefined,
-                            undefined,
-                            undefined,
-                          ]
+                          Object {
+                            "color": "#535A61",
+                            "fontFamily": "Euclid Circular B",
+                            "fontSize": 16,
+                            "fontWeight": "500",
+                            "letterSpacing": 0,
+                            "lineHeight": 24,
+                          }
                         }
                       >
                         0 ETH
                       </Text>
-                    </Text>
-                  </View>
-                  <View
-                    style={
-                      Object {
-                        "marginBottom": 30,
-                        "marginTop": 25,
-                      }
-                    }
-                  >
+                    </View>
                     <View
                       style={
                         Object {
-                          "marginTop": 14,
+                          "marginBottom": 20,
                         }
                       }
                     >
-                      <View
-                        style={
-                          Object {
-                            "marginBottom": 20,
+                      <View>
+                        <View
+                          style={
+                            Object {
+                              "alignItems": "center",
+                              "flexDirection": "row",
+                              "flexWrap": "wrap",
+                              "justifyContent": "space-between",
+                              "marginBottom": 14,
+                            }
                           }
-                        }
-                      >
-                        <View>
+                        >
                           <View
                             style={
                               Object {
                                 "alignItems": "center",
                                 "flexDirection": "row",
-                                "flexWrap": "wrap",
-                                "justifyContent": "space-between",
-                                "marginBottom": 14,
-                              }
-                            }
-                          >
-                            <View
-                              style={
-                                Object {
-                                  "alignItems": "center",
-                                  "flexDirection": "row",
-                                }
-                              }
-                            >
-                              <Text
-                                style={
-                                  Array [
-                                    Object {
-                                      "color": "#24272A",
-                                      "fontFamily": "EuclidCircularB-Regular",
-                                      "fontSize": 30,
-                                      "fontWeight": "400",
-                                      "marginVertical": 2,
-                                    },
-                                    undefined,
-                                    undefined,
-                                    Object {
-                                      "fontFamily": "EuclidCircularB-Bold",
-                                      "fontWeight": "600",
-                                    },
-                                    undefined,
-                                    Object {
-                                      "color": "#24272A",
-                                    },
-                                    undefined,
-                                    undefined,
-                                    undefined,
-                                    undefined,
-                                    Object {
-                                      "color": "#24272A",
-                                    },
-                                    undefined,
-                                    undefined,
-                                    undefined,
-                                    undefined,
-                                    undefined,
-                                    undefined,
-                                    undefined,
-                                    undefined,
-                                    undefined,
-                                    undefined,
-                                    undefined,
-                                    undefined,
-                                    Object {
-                                      "marginVertical": 0,
-                                    },
-                                    undefined,
-                                  ]
-                                }
-                              >
-                                Gas limit
-                                 
-                              </Text>
-                              <TouchableOpacity
-                                hitSlop={
-                                  Object {
-                                    "bottom": 10,
-                                    "left": 10,
-                                    "right": 10,
-                                    "top": 10,
-                                  }
-                                }
-                                onPress={[Function]}
-                              >
-                                <Text
-                                  allowFontScaling={false}
-                                  style={
-                                    Array [
-                                      Object {
-                                        "color": undefined,
-                                        "fontSize": 14,
-                                      },
-                                      Object {
-                                        "color": "#BBC0C5",
-                                      },
-                                      Object {
-                                        "fontFamily": "Material Design Icons",
-                                        "fontStyle": "normal",
-                                        "fontWeight": "normal",
-                                      },
-                                      Object {},
-                                    ]
-                                  }
-                                >
-                                  
-                                </Text>
-                              </TouchableOpacity>
-                            </View>
-                          </View>
-                          <View
-                            style={
-                              Object {
-                                "alignItems": "center",
-                                "borderColor": "#BBC0C5",
-                                "borderRadius": 6,
-                                "borderWidth": 1,
-                                "flexDirection": "row",
-                                "height": 42,
-                                "justifyContent": "space-between",
-                              }
-                            }
-                          >
-                            <View
-                              style={
-                                Object {
-                                  "flex": 1,
-                                  "marginLeft": 17,
-                                }
-                              }
-                            >
-                              <TouchableOpacity
-                                hitSlop={
-                                  Object {
-                                    "bottom": 10,
-                                    "left": 10,
-                                    "right": 10,
-                                    "top": 10,
-                                  }
-                                }
-                                onPress={[Function]}
-                                style={
-                                  Object {
-                                    "alignItems": "center",
-                                    "borderColor": "#0376C9",
-                                    "borderRadius": 100,
-                                    "borderWidth": 2,
-                                    "height": 20,
-                                    "justifyContent": "center",
-                                    "width": 20,
-                                  }
-                                }
-                              >
-                                <Text
-                                  allowFontScaling={false}
-                                  style={
-                                    Array [
-                                      Object {
-                                        "color": undefined,
-                                        "fontSize": 10,
-                                      },
-                                      Object {
-                                        "color": "#0376C9",
-                                        "paddingLeft": 0.5,
-                                        "paddingTop": 1,
-                                      },
-                                      Object {
-                                        "fontFamily": "FontAwesome",
-                                        "fontStyle": "normal",
-                                        "fontWeight": "normal",
-                                      },
-                                      Object {},
-                                    ]
-                                  }
-                                >
-                                  
-                                </Text>
-                              </TouchableOpacity>
-                            </View>
-                            <View
-                              style={
-                                Object {
-                                  "alignItems": "center",
-                                  "flexDirection": "row",
-                                  "justifyContent": "center",
-                                }
-                              }
-                            >
-                              <TextInput
-                                keyboardAppearance="light"
-                                keyboardType="numeric"
-                                onBlur={[Function]}
-                                onChangeText={[Function]}
-                                style={
-                                  Object {
-                                    "color": "#24272A",
-                                    "height": 38,
-                                    "minWidth": 10,
-                                    "paddingRight": 6,
-                                  }
-                                }
-                                value="21000"
-                              />
-                            </View>
-                            <View
-                              style={
-                                Object {
-                                  "alignItems": "center",
-                                  "flex": 1,
-                                  "flexDirection": "row",
-                                  "justifyContent": "flex-end",
-                                  "marginRight": 17,
-                                }
-                              }
-                            >
-                              <Text
-                                adjustsFontSizeToFit={true}
-                                numberOfLines={2}
-                                style={
-                                  Array [
-                                    Object {
-                                      "color": "#24272A",
-                                      "fontFamily": "EuclidCircularB-Regular",
-                                      "fontSize": 30,
-                                      "fontWeight": "400",
-                                      "marginVertical": 2,
-                                    },
-                                    undefined,
-                                    undefined,
-                                    undefined,
-                                    undefined,
-                                    undefined,
-                                    undefined,
-                                    undefined,
-                                    undefined,
-                                    undefined,
-                                    undefined,
-                                    undefined,
-                                    undefined,
-                                    undefined,
-                                    undefined,
-                                    undefined,
-                                    undefined,
-                                    undefined,
-                                    undefined,
-                                    undefined,
-                                    undefined,
-                                    undefined,
-                                    undefined,
-                                    undefined,
-                                    Object {
-                                      "flex": 1,
-                                      "fontSize": 11,
-                                      "marginRight": 14,
-                                      "paddingLeft": 2,
-                                      "textAlign": "center",
-                                    },
-                                  ]
-                                }
-                              />
-                              <TouchableOpacity
-                                hitSlop={
-                                  Object {
-                                    "bottom": 10,
-                                    "left": 10,
-                                    "right": 10,
-                                    "top": 10,
-                                  }
-                                }
-                                onPress={[Function]}
-                                style={
-                                  Object {
-                                    "alignItems": "center",
-                                    "borderColor": "#0376C9",
-                                    "borderRadius": 100,
-                                    "borderWidth": 2,
-                                    "height": 20,
-                                    "justifyContent": "center",
-                                    "width": 20,
-                                  }
-                                }
-                              >
-                                <Text
-                                  allowFontScaling={false}
-                                  style={
-                                    Array [
-                                      Object {
-                                        "color": undefined,
-                                        "fontSize": 10,
-                                      },
-                                      Object {
-                                        "color": "#0376C9",
-                                        "paddingLeft": 0.5,
-                                        "paddingTop": 1,
-                                      },
-                                      Object {
-                                        "fontFamily": "FontAwesome",
-                                        "fontStyle": "normal",
-                                        "fontWeight": "normal",
-                                      },
-                                      Object {},
-                                    ]
-                                  }
-                                >
-                                  
-                                </Text>
-                              </TouchableOpacity>
-                            </View>
-                          </View>
-                          <View
-                            style={
-                              Object {
-                                "alignItems": "center",
-                                "color": "#D73847",
-                                "flexDirection": "row",
-                                "marginTop": 8,
                               }
                             }
                           >
                             <Text
-                              allowFontScaling={false}
                               style={
-                                Array [
-                                  Object {
-                                    "color": undefined,
-                                    "fontSize": 14,
-                                  },
-                                  Object {
-                                    "color": "#D73847",
-                                    "paddingRight": 4,
-                                  },
-                                  Object {
-                                    "fontFamily": "FontAwesome",
-                                    "fontStyle": "normal",
-                                    "fontWeight": "normal",
-                                  },
-                                  Object {},
-                                ]
+                                Object {
+                                  "color": "#24272A",
+                                  "fontFamily": "Euclid Circular B",
+                                  "fontSize": 14,
+                                  "fontWeight": "700",
+                                  "letterSpacing": 0,
+                                  "lineHeight": 22,
+                                }
                               }
                             >
-                              
+                              Gas limit
+                               
                             </Text>
+                            <TouchableOpacity
+                              hitSlop={
+                                Object {
+                                  "bottom": 10,
+                                  "left": 10,
+                                  "right": 10,
+                                  "top": 10,
+                                }
+                              }
+                              onPress={[Function]}
+                            >
+                              <Text
+                                allowFontScaling={false}
+                                style={
+                                  Array [
+                                    Object {
+                                      "color": undefined,
+                                      "fontSize": 14,
+                                    },
+                                    Object {
+                                      "color": "#BBC0C5",
+                                    },
+                                    Object {
+                                      "fontFamily": "Material Design Icons",
+                                      "fontStyle": "normal",
+                                      "fontWeight": "normal",
+                                    },
+                                    Object {},
+                                  ]
+                                }
+                              >
+                                
+                              </Text>
+                            </TouchableOpacity>
+                          </View>
+                        </View>
+                        <View
+                          style={
+                            Object {
+                              "alignItems": "center",
+                              "borderColor": "#BBC0C5",
+                              "borderRadius": 6,
+                              "borderWidth": 1,
+                              "flexDirection": "row",
+                              "height": 42,
+                              "justifyContent": "space-between",
+                            }
+                          }
+                        >
+                          <View
+                            style={
+                              Object {
+                                "flex": 1,
+                                "marginLeft": 17,
+                              }
+                            }
+                          >
+                            <TouchableOpacity
+                              hitSlop={
+                                Object {
+                                  "bottom": 10,
+                                  "left": 10,
+                                  "right": 10,
+                                  "top": 10,
+                                }
+                              }
+                              onPress={[Function]}
+                              style={
+                                Object {
+                                  "alignItems": "center",
+                                  "borderColor": "#0376C9",
+                                  "borderRadius": 100,
+                                  "borderWidth": 2,
+                                  "height": 20,
+                                  "justifyContent": "center",
+                                  "width": 20,
+                                }
+                              }
+                            >
+                              <Text
+                                allowFontScaling={false}
+                                style={
+                                  Array [
+                                    Object {
+                                      "color": undefined,
+                                      "fontSize": 10,
+                                    },
+                                    Object {
+                                      "color": "#0376C9",
+                                      "paddingLeft": 0.5,
+                                      "paddingTop": 1,
+                                    },
+                                    Object {
+                                      "fontFamily": "FontAwesome",
+                                      "fontStyle": "normal",
+                                      "fontWeight": "normal",
+                                    },
+                                    Object {},
+                                  ]
+                                }
+                              >
+                                
+                              </Text>
+                            </TouchableOpacity>
+                          </View>
+                          <View
+                            style={
+                              Object {
+                                "alignItems": "center",
+                                "flexDirection": "row",
+                                "justifyContent": "center",
+                              }
+                            }
+                          >
+                            <TextInput
+                              keyboardAppearance="light"
+                              keyboardType="numeric"
+                              onBlur={[Function]}
+                              onChangeText={[Function]}
+                              style={
+                                Object {
+                                  "color": "#24272A",
+                                  "height": 38,
+                                  "minWidth": 10,
+                                  "paddingRight": 6,
+                                }
+                              }
+                              value="21000"
+                            />
+                          </View>
+                          <View
+                            style={
+                              Object {
+                                "alignItems": "center",
+                                "flex": 1,
+                                "flexDirection": "row",
+                                "justifyContent": "flex-end",
+                                "marginRight": 17,
+                              }
+                            }
+                          >
                             <Text
+                              adjustsFontSizeToFit={true}
+                              numberOfLines={2}
                               style={
                                 Array [
                                   Object {
@@ -869,17 +502,14 @@ exports[`CustomGasModal should render correctly 1`] = `
                                   undefined,
                                   undefined,
                                   undefined,
-                                  Object {
-                                    "color": "#D73847",
-                                  },
                                   undefined,
                                   undefined,
                                   undefined,
                                   undefined,
                                   undefined,
-                                  Object {
-                                    "fontSize": 12,
-                                  },
+                                  undefined,
+                                  undefined,
+                                  undefined,
                                   undefined,
                                   undefined,
                                   undefined,
@@ -889,422 +519,458 @@ exports[`CustomGasModal should render correctly 1`] = `
                                   undefined,
                                   undefined,
                                   Object {
-                                    "marginVertical": 0,
-                                  },
-                                  Object {
-                                    "color": "#24272A",
+                                    "flex": 1,
+                                    "fontSize": 11,
+                                    "marginRight": 14,
+                                    "paddingLeft": 2,
+                                    "textAlign": "center",
                                   },
                                 ]
                               }
+                            />
+                            <TouchableOpacity
+                              hitSlop={
+                                Object {
+                                  "bottom": 10,
+                                  "left": 10,
+                                  "right": 10,
+                                  "top": 10,
+                                }
+                              }
+                              onPress={[Function]}
+                              style={
+                                Object {
+                                  "alignItems": "center",
+                                  "borderColor": "#0376C9",
+                                  "borderRadius": 100,
+                                  "borderWidth": 2,
+                                  "height": 20,
+                                  "justifyContent": "center",
+                                  "width": 20,
+                                }
+                              }
                             >
-                              Gas limit must be at least 21000
-                            </Text>
+                              <Text
+                                allowFontScaling={false}
+                                style={
+                                  Array [
+                                    Object {
+                                      "color": undefined,
+                                      "fontSize": 10,
+                                    },
+                                    Object {
+                                      "color": "#0376C9",
+                                      "paddingLeft": 0.5,
+                                      "paddingTop": 1,
+                                    },
+                                    Object {
+                                      "fontFamily": "FontAwesome",
+                                      "fontStyle": "normal",
+                                      "fontWeight": "normal",
+                                    },
+                                    Object {},
+                                  ]
+                                }
+                              >
+                                
+                              </Text>
+                            </TouchableOpacity>
                           </View>
                         </View>
-                      </View>
-                      <View
-                        style={
-                          Object {
-                            "marginBottom": 20,
+                        <View
+                          style={
+                            Object {
+                              "alignItems": "center",
+                              "color": "#D73847",
+                              "flexDirection": "row",
+                              "marginTop": 8,
+                            }
                           }
+                        >
+                          <Text
+                            allowFontScaling={false}
+                            style={
+                              Array [
+                                Object {
+                                  "color": undefined,
+                                  "fontSize": 14,
+                                },
+                                Object {
+                                  "color": "#D73847",
+                                  "paddingRight": 4,
+                                },
+                                Object {
+                                  "fontFamily": "FontAwesome",
+                                  "fontStyle": "normal",
+                                  "fontWeight": "normal",
+                                },
+                                Object {},
+                              ]
+                            }
+                          >
+                            
+                          </Text>
+                          <Text
+                            style={
+                              Array [
+                                Object {
+                                  "color": "#24272A",
+                                  "fontFamily": "EuclidCircularB-Regular",
+                                  "fontSize": 30,
+                                  "fontWeight": "400",
+                                  "marginVertical": 2,
+                                },
+                                undefined,
+                                undefined,
+                                undefined,
+                                undefined,
+                                undefined,
+                                undefined,
+                                undefined,
+                                Object {
+                                  "color": "#D73847",
+                                },
+                                undefined,
+                                undefined,
+                                undefined,
+                                undefined,
+                                undefined,
+                                Object {
+                                  "fontSize": 12,
+                                },
+                                undefined,
+                                undefined,
+                                undefined,
+                                undefined,
+                                undefined,
+                                undefined,
+                                undefined,
+                                undefined,
+                                Object {
+                                  "marginVertical": 0,
+                                },
+                                Object {
+                                  "color": "#24272A",
+                                },
+                              ]
+                            }
+                          >
+                            Gas limit must be at least 21000
+                          </Text>
+                        </View>
+                      </View>
+                    </View>
+                    <View
+                      style={
+                        Object {
+                          "marginBottom": 20,
                         }
-                      >
-                        <View>
+                      }
+                    >
+                      <View>
+                        <View
+                          style={
+                            Object {
+                              "alignItems": "center",
+                              "flexDirection": "row",
+                              "flexWrap": "wrap",
+                              "justifyContent": "space-between",
+                              "marginBottom": 14,
+                            }
+                          }
+                        >
                           <View
                             style={
                               Object {
                                 "alignItems": "center",
                                 "flexDirection": "row",
-                                "flexWrap": "wrap",
-                                "justifyContent": "space-between",
-                                "marginBottom": 14,
                               }
                             }
                           >
-                            <View
+                            <Text
+                              style={
+                                Object {
+                                  "color": "#24272A",
+                                  "fontFamily": "Euclid Circular B",
+                                  "fontSize": 14,
+                                  "fontWeight": "700",
+                                  "letterSpacing": 0,
+                                  "lineHeight": 22,
+                                }
+                              }
+                            >
+                              Gas price
+                               
+                            </Text>
+                            <Text
+                              style={
+                                Object {
+                                  "color": "#535A61",
+                                  "fontFamily": "Euclid Circular B",
+                                  "fontSize": 14,
+                                  "fontWeight": "400",
+                                  "letterSpacing": 0,
+                                  "lineHeight": 22,
+                                }
+                              }
+                            >
+                              (GWEI) 
+                            </Text>
+                            <TouchableOpacity
+                              hitSlop={
+                                Object {
+                                  "bottom": 10,
+                                  "left": 10,
+                                  "right": 10,
+                                  "top": 10,
+                                }
+                              }
+                              onPress={[Function]}
+                            >
+                              <Text
+                                allowFontScaling={false}
+                                style={
+                                  Array [
+                                    Object {
+                                      "color": undefined,
+                                      "fontSize": 14,
+                                    },
+                                    Object {
+                                      "color": "#BBC0C5",
+                                    },
+                                    Object {
+                                      "fontFamily": "Material Design Icons",
+                                      "fontStyle": "normal",
+                                      "fontWeight": "normal",
+                                    },
+                                    Object {},
+                                  ]
+                                }
+                              >
+                                
+                              </Text>
+                            </TouchableOpacity>
+                          </View>
+                        </View>
+                        <View
+                          style={
+                            Object {
+                              "alignItems": "center",
+                              "borderColor": "#BBC0C5",
+                              "borderRadius": 6,
+                              "borderWidth": 1,
+                              "flexDirection": "row",
+                              "height": 42,
+                              "justifyContent": "space-between",
+                            }
+                          }
+                        >
+                          <View
+                            style={
+                              Object {
+                                "flex": 1,
+                                "marginLeft": 17,
+                              }
+                            }
+                          >
+                            <TouchableOpacity
+                              hitSlop={
+                                Object {
+                                  "bottom": 10,
+                                  "left": 10,
+                                  "right": 10,
+                                  "top": 10,
+                                }
+                              }
+                              onPress={[Function]}
                               style={
                                 Object {
                                   "alignItems": "center",
-                                  "flexDirection": "row",
+                                  "borderColor": "#0376C9",
+                                  "borderRadius": 100,
+                                  "borderWidth": 2,
+                                  "height": 20,
+                                  "justifyContent": "center",
+                                  "width": 20,
                                 }
                               }
                             >
                               <Text
+                                allowFontScaling={false}
                                 style={
                                   Array [
                                     Object {
-                                      "color": "#24272A",
-                                      "fontFamily": "EuclidCircularB-Regular",
-                                      "fontSize": 30,
-                                      "fontWeight": "400",
-                                      "marginVertical": 2,
+                                      "color": undefined,
+                                      "fontSize": 10,
                                     },
-                                    undefined,
-                                    undefined,
                                     Object {
-                                      "fontFamily": "EuclidCircularB-Bold",
-                                      "fontWeight": "600",
+                                      "color": "#0376C9",
+                                      "paddingLeft": 0.5,
+                                      "paddingTop": 1,
                                     },
-                                    undefined,
                                     Object {
-                                      "color": "#24272A",
+                                      "fontFamily": "FontAwesome",
+                                      "fontStyle": "normal",
+                                      "fontWeight": "normal",
                                     },
-                                    undefined,
-                                    undefined,
-                                    undefined,
-                                    undefined,
-                                    Object {
-                                      "color": "#24272A",
-                                    },
-                                    undefined,
-                                    undefined,
-                                    undefined,
-                                    undefined,
-                                    undefined,
-                                    undefined,
-                                    undefined,
-                                    undefined,
-                                    undefined,
-                                    undefined,
-                                    undefined,
-                                    undefined,
-                                    Object {
-                                      "marginVertical": 0,
-                                    },
-                                    undefined,
+                                    Object {},
                                   ]
                                 }
                               >
-                                Gas price
-                                 
+                                
                               </Text>
-                              <TouchableOpacity
-                                hitSlop={
-                                  Object {
-                                    "bottom": 10,
-                                    "left": 10,
-                                    "right": 10,
-                                    "top": 10,
-                                  }
-                                }
-                                onPress={[Function]}
-                              >
-                                <Text
-                                  allowFontScaling={false}
-                                  style={
-                                    Array [
-                                      Object {
-                                        "color": undefined,
-                                        "fontSize": 14,
-                                      },
-                                      Object {
-                                        "color": "#BBC0C5",
-                                      },
-                                      Object {
-                                        "fontFamily": "Material Design Icons",
-                                        "fontStyle": "normal",
-                                        "fontWeight": "normal",
-                                      },
-                                      Object {},
-                                    ]
-                                  }
-                                >
-                                  
-                                </Text>
-                              </TouchableOpacity>
-                            </View>
+                            </TouchableOpacity>
                           </View>
                           <View
                             style={
                               Object {
                                 "alignItems": "center",
-                                "borderColor": "#BBC0C5",
-                                "borderRadius": 6,
-                                "borderWidth": 1,
                                 "flexDirection": "row",
-                                "height": 42,
-                                "justifyContent": "space-between",
+                                "justifyContent": "center",
                               }
                             }
                           >
-                            <View
+                            <TextInput
+                              keyboardAppearance="light"
+                              keyboardType="numeric"
+                              onBlur={[Function]}
+                              onChangeText={[Function]}
                               style={
                                 Object {
-                                  "flex": 1,
-                                  "marginLeft": 17,
+                                  "color": "#24272A",
+                                  "height": 38,
+                                  "minWidth": 10,
+                                  "paddingRight": 6,
                                 }
                               }
-                            >
-                              <TouchableOpacity
-                                hitSlop={
-                                  Object {
-                                    "bottom": 10,
-                                    "left": 10,
-                                    "right": 10,
-                                    "top": 10,
-                                  }
-                                }
-                                onPress={[Function]}
-                                style={
-                                  Object {
-                                    "alignItems": "center",
-                                    "borderColor": "#0376C9",
-                                    "borderRadius": 100,
-                                    "borderWidth": 2,
-                                    "height": 20,
-                                    "justifyContent": "center",
-                                    "width": 20,
-                                  }
-                                }
-                              >
-                                <Text
-                                  allowFontScaling={false}
-                                  style={
-                                    Array [
-                                      Object {
-                                        "color": undefined,
-                                        "fontSize": 10,
-                                      },
-                                      Object {
-                                        "color": "#0376C9",
-                                        "paddingLeft": 0.5,
-                                        "paddingTop": 1,
-                                      },
-                                      Object {
-                                        "fontFamily": "FontAwesome",
-                                        "fontStyle": "normal",
-                                        "fontWeight": "normal",
-                                      },
-                                      Object {},
-                                    ]
-                                  }
-                                >
-                                  
-                                </Text>
-                              </TouchableOpacity>
-                            </View>
-                            <View
+                            />
+                          </View>
+                          <View
+                            style={
+                              Object {
+                                "alignItems": "center",
+                                "flex": 1,
+                                "flexDirection": "row",
+                                "justifyContent": "flex-end",
+                                "marginRight": 17,
+                              }
+                            }
+                          >
+                            <Text
+                              adjustsFontSizeToFit={true}
+                              numberOfLines={2}
                               style={
-                                Object {
-                                  "alignItems": "center",
-                                  "flexDirection": "row",
-                                  "justifyContent": "center",
-                                }
-                              }
-                            >
-                              <TextInput
-                                keyboardAppearance="light"
-                                keyboardType="numeric"
-                                onBlur={[Function]}
-                                onChangeText={[Function]}
-                                style={
+                                Array [
                                   Object {
                                     "color": "#24272A",
-                                    "height": 38,
-                                    "minWidth": 10,
-                                    "paddingRight": 6,
-                                  }
+                                    "fontFamily": "EuclidCircularB-Regular",
+                                    "fontSize": 30,
+                                    "fontWeight": "400",
+                                    "marginVertical": 2,
+                                  },
+                                  undefined,
+                                  undefined,
+                                  undefined,
+                                  undefined,
+                                  undefined,
+                                  undefined,
+                                  undefined,
+                                  undefined,
+                                  undefined,
+                                  undefined,
+                                  undefined,
+                                  undefined,
+                                  undefined,
+                                  undefined,
+                                  undefined,
+                                  undefined,
+                                  undefined,
+                                  undefined,
+                                  undefined,
+                                  undefined,
+                                  undefined,
+                                  undefined,
+                                  undefined,
+                                  Object {
+                                    "flex": 1,
+                                    "fontSize": 11,
+                                    "marginRight": 14,
+                                    "paddingLeft": 2,
+                                    "textAlign": "center",
+                                  },
+                                ]
+                              }
+                            />
+                            <TouchableOpacity
+                              hitSlop={
+                                Object {
+                                  "bottom": 10,
+                                  "left": 10,
+                                  "right": 10,
+                                  "top": 10,
                                 }
-                              />
-                              <Text
-                                onPress={[Function]}
-                                style={
-                                  Array [
-                                    Object {
-                                      "color": "#24272A",
-                                      "fontFamily": "EuclidCircularB-Regular",
-                                      "fontSize": 30,
-                                      "fontWeight": "400",
-                                      "marginVertical": 2,
-                                    },
-                                    undefined,
-                                    undefined,
-                                    undefined,
-                                    undefined,
-                                    Object {
-                                      "color": "#24272A",
-                                    },
-                                    undefined,
-                                    undefined,
-                                    false,
-                                    undefined,
-                                    Object {
-                                      "color": "#24272A",
-                                    },
-                                    undefined,
-                                    undefined,
-                                    undefined,
-                                    undefined,
-                                    undefined,
-                                    undefined,
-                                    undefined,
-                                    undefined,
-                                    undefined,
-                                    undefined,
-                                    undefined,
-                                    undefined,
-                                    undefined,
-                                    undefined,
-                                  ]
-                                }
-                              >
-                                GWEI
-                              </Text>
-                            </View>
-                            <View
+                              }
+                              onPress={[Function]}
                               style={
                                 Object {
                                   "alignItems": "center",
-                                  "flex": 1,
-                                  "flexDirection": "row",
-                                  "justifyContent": "flex-end",
-                                  "marginRight": 17,
+                                  "borderColor": "#0376C9",
+                                  "borderRadius": 100,
+                                  "borderWidth": 2,
+                                  "height": 20,
+                                  "justifyContent": "center",
+                                  "width": 20,
                                 }
                               }
                             >
                               <Text
-                                adjustsFontSizeToFit={true}
-                                numberOfLines={2}
+                                allowFontScaling={false}
                                 style={
                                   Array [
                                     Object {
-                                      "color": "#24272A",
-                                      "fontFamily": "EuclidCircularB-Regular",
-                                      "fontSize": 30,
-                                      "fontWeight": "400",
-                                      "marginVertical": 2,
+                                      "color": undefined,
+                                      "fontSize": 10,
                                     },
-                                    undefined,
-                                    undefined,
-                                    undefined,
-                                    undefined,
-                                    undefined,
-                                    undefined,
-                                    undefined,
-                                    undefined,
-                                    undefined,
-                                    undefined,
-                                    undefined,
-                                    undefined,
-                                    undefined,
-                                    undefined,
-                                    undefined,
-                                    undefined,
-                                    undefined,
-                                    undefined,
-                                    undefined,
-                                    undefined,
-                                    undefined,
-                                    undefined,
-                                    undefined,
                                     Object {
-                                      "flex": 1,
-                                      "fontSize": 11,
-                                      "marginRight": 14,
-                                      "paddingLeft": 2,
-                                      "textAlign": "center",
+                                      "color": "#0376C9",
+                                      "paddingLeft": 0.5,
+                                      "paddingTop": 1,
                                     },
+                                    Object {
+                                      "fontFamily": "FontAwesome",
+                                      "fontStyle": "normal",
+                                      "fontWeight": "normal",
+                                    },
+                                    Object {},
                                   ]
                                 }
-                              />
-                              <TouchableOpacity
-                                hitSlop={
-                                  Object {
-                                    "bottom": 10,
-                                    "left": 10,
-                                    "right": 10,
-                                    "top": 10,
-                                  }
-                                }
-                                onPress={[Function]}
-                                style={
-                                  Object {
-                                    "alignItems": "center",
-                                    "borderColor": "#0376C9",
-                                    "borderRadius": 100,
-                                    "borderWidth": 2,
-                                    "height": 20,
-                                    "justifyContent": "center",
-                                    "width": 20,
-                                  }
-                                }
                               >
-                                <Text
-                                  allowFontScaling={false}
-                                  style={
-                                    Array [
-                                      Object {
-                                        "color": undefined,
-                                        "fontSize": 10,
-                                      },
-                                      Object {
-                                        "color": "#0376C9",
-                                        "paddingLeft": 0.5,
-                                        "paddingTop": 1,
-                                      },
-                                      Object {
-                                        "fontFamily": "FontAwesome",
-                                        "fontStyle": "normal",
-                                        "fontWeight": "normal",
-                                      },
-                                      Object {},
-                                    ]
-                                  }
-                                >
-                                  
-                                </Text>
-                              </TouchableOpacity>
-                            </View>
+                                
+                              </Text>
+                            </TouchableOpacity>
                           </View>
                         </View>
                       </View>
                     </View>
                   </View>
-                </View>
-                <View>
-                  <TouchableOpacity
-                    accessibilityRole="button"
-                    accessible={true}
-                    activeOpacity={0.2}
-                    disabled={false}
-                    onPress={[Function]}
-                    style={
-                      Array [
-                        Array [
-                          Object {
-                            "borderRadius": 100,
-                            "justifyContent": "center",
-                            "padding": 15,
-                          },
-                          Object {
-                            "backgroundColor": "#0376C9",
-                            "minHeight": 50,
-                          },
-                          undefined,
-                        ],
-                        null,
-                      ]
-                    }
-                  >
-                    <Text
+                  <View>
+                    <TouchableOpacity
+                      accessibilityRole="button"
+                      accessible={true}
+                      activeOpacity={0.2}
+                      disabled={false}
+                      onPress={[Function]}
                       style={
                         Array [
-                          Object {
-                            "color": "#007aff",
-                            "fontSize": 17,
-                            "fontWeight": "500",
-                            "textAlign": "center",
-                          },
-                          null,
                           Array [
                             Object {
-                              "fontFamily": "EuclidCircularB-Bold",
-                              "fontSize": 14,
-                              "fontWeight": "600",
-                              "textAlign": "center",
+                              "borderRadius": 100,
+                              "justifyContent": "center",
+                              "padding": 15,
                             },
                             Object {
-                              "color": "#FCFCFC",
+                              "backgroundColor": "#0376C9",
+                              "minHeight": 50,
                             },
                             undefined,
                           ],
@@ -1312,9 +978,36 @@ exports[`CustomGasModal should render correctly 1`] = `
                         ]
                       }
                     >
-                      Save
-                    </Text>
-                  </TouchableOpacity>
+                      <Text
+                        style={
+                          Array [
+                            Object {
+                              "color": "#007aff",
+                              "fontSize": 17,
+                              "fontWeight": "500",
+                              "textAlign": "center",
+                            },
+                            null,
+                            Array [
+                              Object {
+                                "fontFamily": "EuclidCircularB-Bold",
+                                "fontSize": 14,
+                                "fontWeight": "600",
+                                "textAlign": "center",
+                              },
+                              Object {
+                                "color": "#FCFCFC",
+                              },
+                              undefined,
+                            ],
+                            null,
+                          ]
+                        }
+                      >
+                        Save
+                      </Text>
+                    </TouchableOpacity>
+                  </View>
                 </View>
                 <Modal
                   animationType="none"

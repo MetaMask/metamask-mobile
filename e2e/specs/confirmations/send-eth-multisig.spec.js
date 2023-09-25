@@ -21,13 +21,18 @@ describe(Regression('Send ETH to Multisig'), () => {
   const MULTISIG_CONTRACT = SMART_CONTRACTS.MULTISIG;
   const AMOUNT_TO_SEND = '0.12345';
   const TOKEN_NAME = root.unit.eth;
+  let ganache;
 
   beforeAll(async () => {
     jest.setTimeout(2500000);
     if (device.getPlatform() === 'android') {
-      await device.reverseTcpPort('8081'); // because on android we need to expose the localhost ports to run ganache
-      await device.reverseTcpPort('8545');
+      await device.reverseTcpPort('8545'); // ganache
     }
+  });
+
+  afterEach(async () => {
+    await ganache.quit();
+    await TestHelpers.delay(3000);
   });
 
   it('Send ETH to a Multisig address from inside MetaMask wallet', async () => {
@@ -38,7 +43,8 @@ describe(Regression('Send ETH to Multisig'), () => {
         ganacheOptions: defaultGanacheOptions,
         smartContract: MULTISIG_CONTRACT,
       },
-      async ({ contractRegistry }) => {
+      async ({ contractRegistry, ganacheServer }) => {
+        ganache = ganacheServer;
         const multisigAddress = await contractRegistry.getContractAddress(
           MULTISIG_CONTRACT,
         );
