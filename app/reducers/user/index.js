@@ -8,7 +8,6 @@ const initialState = {
   backUpSeedphraseVisible: false,
   protectWalletModalVisible: false,
   gasEducationCarouselSeen: false,
-  nftDetectionDismissed: false,
   userLoggedIn: false,
   isAuthChecked: false,
   initialScreen: '',
@@ -87,11 +86,6 @@ const userReducer = (state = initialState, action) => {
       return {
         ...state,
         gasEducationCarouselSeen: true,
-      };
-    case 'SET_NFT_DETECTION_DISMISSED':
-      return {
-        ...state,
-        nftDetectionDismissed: true,
       };
     case 'SET_APP_THEME':
       return {

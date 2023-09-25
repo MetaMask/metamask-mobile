@@ -99,7 +99,7 @@ class Analytics {
 
     RCTAnalytics.setUserProfileProperty(
       USER_PROFILE_PROPERTY.ENABLE_OPENSEA_API,
-      preferencesController?.openSeaEnabled
+      preferencesController?.displayNftMedia
         ? USER_PROFILE_PROPERTY.ON
         : USER_PROFILE_PROPERTY.OFF,
     );

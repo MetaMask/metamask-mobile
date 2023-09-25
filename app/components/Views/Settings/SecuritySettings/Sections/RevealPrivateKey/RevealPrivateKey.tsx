@@ -17,9 +17,10 @@ import {
   selectIdentities,
   selectSelectedAddress,
 } from '../../../../../../selectors/preferencesController';
+import { REVEAL_PRIVATE_KEY_SECTION } from '../../SecuritySettings.constants';
 
 const testIds = {
-  section: 'reveal-private-key-section',
+  section: REVEAL_PRIVATE_KEY_SECTION,
 };
 
 const RevealPrivateKey = () => {
