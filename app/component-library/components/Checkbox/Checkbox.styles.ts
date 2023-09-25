@@ -17,39 +17,59 @@ import { CheckboxStyleSheetVars } from './Checkbox.types';
  */
 const styleSheet = (params: { theme: Theme; vars: CheckboxStyleSheetVars }) => {
   const { vars, theme } = params;
-  const { style, isChecked, isIndeterminate, isDisabled, isReadOnly } = vars;
+  const {
+    style,
+    isChecked,
+    isIndeterminate,
+    isDisabled,
+    isReadOnly,
+    isDanger,
+  } = vars;
+
   const backgroundColor = isReadOnly
+    ? theme.colors.background.default
+    : isDanger
     ? isChecked || isIndeterminate
-      ? theme.colors.icon.alternative
+      ? theme.colors.error.default
       : theme.colors.background.default
     : isChecked || isIndeterminate
     ? theme.colors.primary.default
     : theme.colors.background.default;
+
   const borderColor = isReadOnly
-    ? isChecked || isIndeterminate
-      ? theme.colors.icon.alternative
-      : theme.colors.border.default
+    ? theme.colors.background.default
+    : isDanger
+    ? theme.colors.error.default
     : isChecked || isIndeterminate
     ? theme.colors.primary.default
-    : theme.colors.border.default;
+    : theme.colors.icon.default;
 
   return StyleSheet.create({
     base: Object.assign(
       {
-        width: 20,
-        height: 20,
-        justifyContent: 'center',
+        flexDirection: 'row',
         alignItems: 'center',
-        borderRadius: 4,
-        borderWidth: 2,
         opacity: isDisabled ? 0.5 : 1,
-        backgroundColor,
-        borderColor,
       } as ViewStyle,
       style,
     ) as ViewStyle,
+    checkbox: {
+      width: 20,
+      height: 20,
+      justifyContent: 'center',
+      alignItems: 'center',
+      borderRadius: 4,
+      borderWidth: 2,
+      backgroundColor,
+      borderColor,
+    },
     icon: {
-      color: theme.colors.primary.inverse,
+      color: isReadOnly
+        ? theme.colors.icon.alternative
+        : theme.colors.primary.inverse,
+    },
+    label: {
+      marginLeft: 12,
     },
   });
 };
