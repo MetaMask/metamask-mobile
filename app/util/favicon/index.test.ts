@@ -67,7 +67,7 @@ describe('favicon utility getFaviconURLFromHtml() function', () => {
       'metamask.github.io/test-dapp/',
     );
     expect(faviconUrl).toEqual(
-      'https://metamask.github.io/test-dapp/metamask-fox.svg',
+      new URL('https://metamask.github.io/test-dapp/metamask-fox.svg'),
     );
   });
 
@@ -86,7 +86,9 @@ describe('favicon utility getFaviconURLFromHtml() function', () => {
     );
 
     const faviconUrl = await getFaviconURLFromHtml('metamask.github.io');
-    expect(faviconUrl).toEqual('https://metamask.github.io/metamask-fox.svg');
+    expect(faviconUrl).toEqual(
+      new URL('https://metamask.github.io/metamask-fox.svg'),
+    );
   });
 
   it('returns favicon URL with non conforming IE html format', async () => {
@@ -101,7 +103,9 @@ describe('favicon utility getFaviconURLFromHtml() function', () => {
     );
 
     const faviconUrl = await getFaviconURLFromHtml('metamask.github.io');
-    expect(faviconUrl).toEqual('https://metamask.github.io/metamask-fox.svg');
+    expect(faviconUrl).toEqual(
+      new URL('https://metamask.github.io/metamask-fox.svg'),
+    );
   });
 
   it('ignores non favicon icons in html', async () => {
@@ -119,7 +123,7 @@ describe('favicon utility getFaviconURLFromHtml() function', () => {
     );
 
     const faviconUrl = await getFaviconURLFromHtml('metamask.github.io');
-    expect(faviconUrl).toEqual('');
+    expect(faviconUrl).toBeUndefined();
   });
 
   /**
@@ -137,7 +141,9 @@ describe('favicon utility getFaviconURLFromHtml() function', () => {
     );
 
     const faviconUrl = await getFaviconURLFromHtml('metamask.github.io');
-    expect(faviconUrl).toEqual('https://metamask.github.io/metamask-fox1.svg');
+    expect(faviconUrl).toEqual(
+      new URL('https://metamask.github.io/metamask-fox1.svg'),
+    );
   });
 
   /**
@@ -151,7 +157,7 @@ describe('favicon utility getFaviconURLFromHtml() function', () => {
     );
 
     const faviconUrl = await getFaviconURLFromHtml('invalid-url');
-    expect(faviconUrl).toEqual('');
+    expect(faviconUrl).toBeUndefined();
   });
 });
 
@@ -171,36 +177,39 @@ describe('favicon utility getFaviconFromCache() function', () => {
     expect(faviconUrl).toEqual(testFaviconUrl);
   });
 
-  it('returns null if the favicon does not exist in the cache', async () => {
+  it('returns undefined if the favicon does not exist in the cache', async () => {
     const faviconUrl = await getFaviconFromCache('nonExistentOrigin');
-    expect(faviconUrl).toBeNull();
+    expect(faviconUrl).toBeUndefined();
   });
 });
 
 describe('cacheFavicon function', () => {
   it('dispatches storeFavicon action if originUrl is valid', async () => {
     const originUrl = 'https://metamask.github.io/test-dapp/';
-    const faviconUrl = 'https://metamask.github.io/metamask-fox.svg';
+    const faviconUrl = new URL('https://metamask.github.io/metamask-fox.svg');
 
     const dispatchMock = jest.spyOn(store, 'dispatch');
 
-    await cacheFavicon(originUrl, faviconUrl);
+    cacheFavicon(originUrl, faviconUrl);
 
     expect(dispatchMock).toHaveBeenCalledWith(
-      storeFavicon({ origin: 'metamask.github.io', url: faviconUrl }),
+      storeFavicon({
+        origin: 'metamask.github.io',
+        url: faviconUrl.toString(),
+      }),
     );
   });
 
   it('dispatches storeFavicon action with fixed origin if originUrl is not valid URL', async () => {
     const originUrl = 'invalid-url';
-    const faviconUrl = 'https://metamask.github.io/metamask-fox.svg';
+    const faviconUrl = new URL('https://metamask.github.io/metamask-fox.svg');
 
     const dispatchMock = jest.spyOn(store, 'dispatch');
 
-    await cacheFavicon(originUrl, faviconUrl);
+    cacheFavicon(originUrl, faviconUrl);
 
     expect(dispatchMock).toHaveBeenCalledWith(
-      storeFavicon({ origin: 'invalid-url', url: faviconUrl }),
+      storeFavicon({ origin: 'invalid-url', url: faviconUrl.toString() }),
     );
   });
 });

@@ -36,7 +36,8 @@ const AvatarFavicon = ({
 
   const onSvgError = useCallback((e: any) => setError(e), [setError]);
 
-  //TODO add the fallback with uppercase letter initial
+  // TODO add the fallback with uppercase letter initial
+  //  requires that the domain is passed in as a prop from the parent
   const renderFallbackFavicon = () => (
     <Icon size={ICON_SIZE_BY_AVATAR_SIZE[size]} name={IconName.Global} />
   );

@@ -31,8 +31,10 @@ const useFavicon = (origin: string) => {
           setFaviconURI({ uri: cachedFaviconUrl });
         } else {
           const fetchedFaviconUrl = await getFaviconURLFromHtml(origin);
-          await cacheFavicon(origin, fetchedFaviconUrl);
-          setFaviconURI({ uri: fetchedFaviconUrl });
+          if (fetchedFaviconUrl) {
+            cacheFavicon(origin, fetchedFaviconUrl);
+            setFaviconURI({ uri: fetchedFaviconUrl?.toString() });
+          }
         }
       } catch (error) {
         await Logger.log('Error fetching or caching favicon: ', error);

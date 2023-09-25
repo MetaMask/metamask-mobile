@@ -92,15 +92,17 @@ class WebsiteIcon extends PureComponent {
     } = this.props;
     const colors = this.context.colors || mockTheme.colors;
     const styles = createStyles(colors);
-    const apiLogoUrl = { uri: icon || faviconSource };
+    const apiLogoUrl = {
+      uri: icon || faviconSource === '' ? undefined : faviconSource,
+    };
 
     let title = this.props.title;
 
     if (title !== undefined) {
       title =
         typeof this.props.title === 'string'
-          ? this.props.title.substr(0, 1)
-          : getHost(url).substr(0, 1);
+          ? this.props.title.substring(0, 1)
+          : getHost(url).substring(0, 1);
     }
 
     if (title && (apiLogoUrl.uri === undefined || renderIconUrlError)) {
