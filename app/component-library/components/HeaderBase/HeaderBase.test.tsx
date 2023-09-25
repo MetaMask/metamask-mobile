@@ -1,9 +1,10 @@
 // Third party dependencies.
 import React from 'react';
-import { shallow } from 'enzyme';
+import { render } from '@testing-library/react-native';
 
 // External dependencies.
 import Text, { TextVariant } from '../Texts/Text';
+import { mockTheme } from '../../../util/theme';
 
 // Internal dependencies.
 import HeaderBase from './HeaderBase';
@@ -15,37 +16,34 @@ import {
 
 describe('HeaderBase', () => {
   it('should render snapshot correctly', () => {
-    const wrapper = shallow(<HeaderBase>Sample HeaderBase Title</HeaderBase>);
+    const wrapper = render(<HeaderBase>Sample HeaderBase Title</HeaderBase>);
     expect(wrapper).toMatchSnapshot();
   });
   it('should render HeaderBase', () => {
-    const wrapper = shallow(<HeaderBase>Sample HeaderBase Title</HeaderBase>);
-    const headerBaseComponent = wrapper.findWhere(
-      (node) => node.prop('testID') === HEADERBASE_TEST_ID,
+    const { queryByTestId } = render(
+      <HeaderBase>Sample HeaderBase Title</HeaderBase>,
     );
-    expect(headerBaseComponent.exists()).toBe(true);
+    expect(queryByTestId(HEADERBASE_TEST_ID)).not.toBe(null);
   });
   it('should render Header with the right text variant if typeof children === string', () => {
-    const wrapper = shallow(<HeaderBase>Sample HeaderBase Title</HeaderBase>);
-    const headerBaseTitleComponent = wrapper.findWhere(
-      (node) => node.prop('testID') === HEADERBASE_TITLE_TEST_ID,
+    const { getByRole } = render(
+      <HeaderBase>Sample HeaderBase Title</HeaderBase>,
     );
-    expect(headerBaseTitleComponent.props().variant).toBe(
-      DEFAULT_HEADERBASE_TITLE_TEXTVARIANT,
+    expect(getByRole('text').props.style.fontFamily).toBe(
+      mockTheme.typography[DEFAULT_HEADERBASE_TITLE_TEXTVARIANT].fontFamily,
     );
   });
   it('should render Header with the custom node if typeof children !== string', () => {
     const testTextVariant = TextVariant.DisplayMD;
-    const wrapper = shallow(
+    const { getByRole } = render(
       <HeaderBase>
         <Text variant={testTextVariant} testID={HEADERBASE_TITLE_TEST_ID}>
           Sample HeaderBase Title
         </Text>
       </HeaderBase>,
     );
-    const headerBaseTitleComponent = wrapper.findWhere(
-      (node) => node.prop('testID') === HEADERBASE_TITLE_TEST_ID,
+    expect(getByRole('text').props.style.fontFamily).toBe(
+      mockTheme.typography[testTextVariant].fontFamily,
     );
-    expect(headerBaseTitleComponent.props().variant).toBe(testTextVariant);
   });
 });
