@@ -60,6 +60,7 @@ exports[`BlockaidBanner should render correctly 1`] = `
     }
   >
     <Text
+      accessibilityRole="text"
       style={
         Object {
           "color": "#24272A",
@@ -74,6 +75,7 @@ exports[`BlockaidBanner should render correctly 1`] = `
       This is a deceptive request
     </Text>
     <Text
+      accessibilityRole="text"
       style={
         Object {
           "color": "#24272A",
@@ -101,6 +103,7 @@ exports[`BlockaidBanner should render correctly 1`] = `
       testID="accordionheader"
     >
       <Text
+        accessibilityRole="text"
         style={
           Object {
             "color": "#0376C9",
@@ -192,6 +195,7 @@ exports[`BlockaidBanner should render correctly 1`] = `
         }
       >
         <Text
+          accessibilityRole="text"
           data-testid="blockaid-banner-attribution-line"
           style={
             Object {
@@ -217,6 +221,7 @@ exports[`BlockaidBanner should render correctly 1`] = `
         }
       >
         <Text
+          accessibilityRole="text"
           onPress={[Function]}
           style={
             Object {
@@ -294,6 +299,7 @@ exports[`BlockaidBanner should render correctly with list attack details 1`] = `
     }
   >
     <Text
+      accessibilityRole="text"
       style={
         Object {
           "color": "#24272A",
@@ -308,6 +314,7 @@ exports[`BlockaidBanner should render correctly with list attack details 1`] = `
       This is a deceptive request
     </Text>
     <Text
+      accessibilityRole="text"
       style={
         Object {
           "color": "#24272A",
@@ -335,6 +342,7 @@ exports[`BlockaidBanner should render correctly with list attack details 1`] = `
       testID="accordionheader"
     >
       <Text
+        accessibilityRole="text"
         style={
           Object {
             "color": "#0376C9",
@@ -426,6 +434,7 @@ exports[`BlockaidBanner should render correctly with list attack details 1`] = `
         }
       >
         <Text
+          accessibilityRole="text"
           data-testid="blockaid-banner-attribution-line"
           style={
             Object {
@@ -451,6 +460,7 @@ exports[`BlockaidBanner should render correctly with list attack details 1`] = `
         }
       >
         <Text
+          accessibilityRole="text"
           onPress={[Function]}
           style={
             Object {
@@ -528,6 +538,7 @@ exports[`BlockaidBanner should render correctly with reason "raw_signature_farmi
     }
   >
     <Text
+      accessibilityRole="text"
       style={
         Object {
           "color": "#24272A",
@@ -542,6 +553,7 @@ exports[`BlockaidBanner should render correctly with reason "raw_signature_farmi
       This is a suspicious request
     </Text>
     <Text
+      accessibilityRole="text"
       style={
         Object {
           "color": "#24272A",
@@ -569,6 +581,7 @@ exports[`BlockaidBanner should render correctly with reason "raw_signature_farmi
       testID="accordionheader"
     >
       <Text
+        accessibilityRole="text"
         style={
           Object {
             "color": "#0376C9",
@@ -660,6 +673,7 @@ exports[`BlockaidBanner should render correctly with reason "raw_signature_farmi
         }
       >
         <Text
+          accessibilityRole="text"
           data-testid="blockaid-banner-attribution-line"
           style={
             Object {
@@ -685,6 +699,7 @@ exports[`BlockaidBanner should render correctly with reason "raw_signature_farmi
         }
       >
         <Text
+          accessibilityRole="text"
           onPress={[Function]}
           style={
             Object {
@@ -749,6 +764,7 @@ exports[`BlockaidBanner should render normal banner alert if resultType is faile
     }
   >
     <Text
+      accessibilityRole="text"
       style={
         Object {
           "color": "#24272A",
@@ -763,6 +779,7 @@ exports[`BlockaidBanner should render normal banner alert if resultType is faile
       This is a suspicious request
     </Text>
     <Text
+      accessibilityRole="text"
       style={
         Object {
           "color": "#24272A",
