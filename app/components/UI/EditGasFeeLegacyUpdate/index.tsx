@@ -59,11 +59,9 @@ const EditGasFeeLegacy = ({
   const [gasObjectLegacy, updateGasObjectLegacy] = useState<{
     legacyGasLimit: string;
     suggestedGasPrice: string;
-    suggestedMaxFeePerGas?: string;
   }>({
     legacyGasLimit: selectedGasObject.legacyGasLimit,
     suggestedGasPrice: selectedGasObject.suggestedGasPrice,
-    suggestedMaxFeePerGas: selectedGasObject?.suggestedMaxFeePerGas,
   });
   const { colors } = useTheme();
   const styles = createStyles(colors);

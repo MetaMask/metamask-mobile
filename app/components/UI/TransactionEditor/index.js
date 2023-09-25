@@ -784,8 +784,8 @@ class TransactionEditor extends PureComponent {
 
     const selectedLegacyGasObject = {
       legacyGasLimit: legacyGasObject?.legacyGasLimit,
-      suggestedGasPrice: legacyGasObject?.suggestedGasPrice,
-      suggestedMaxFeePerGas,
+      suggestedGasPrice:
+        legacyGasObject?.suggestedGasPrice || suggestedMaxFeePerGas,
     };
 
     const showLegacyGasEditModal =

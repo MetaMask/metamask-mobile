@@ -216,10 +216,7 @@ export const useGasTransaction = ({
   let suggestedGasPrice;
 
   if (gasEstimateType === GAS_ESTIMATE_TYPES.FEE_MARKET) {
-    suggestedGasPrice =
-      gasObjectLegacy?.suggestedGasPrice ||
-      gasObjectLegacy?.suggestedGasPrice ||
-      gasObjectLegacy?.suggestedMaxFeePerGas;
+    suggestedGasPrice = gasObjectLegacy?.suggestedGasPrice;
   } else {
     suggestedGasPrice = gasFeeEstimates?.gasPrice || gasFeeEstimates?.low;
   }
@@ -227,14 +224,10 @@ export const useGasTransaction = ({
   if (gasEstimateType !== GAS_ESTIMATE_TYPES.FEE_MARKET) {
     if (isBN(gasPrice)) {
       suggestedGasPrice =
-        gasObjectLegacy?.suggestedGasPrice ||
-        gasObjectLegacy?.suggestedMaxFeePerGas ||
-        toGwei(gasPrice).toString();
+        gasObjectLegacy?.suggestedGasPrice || toGwei(gasPrice).toString();
     } else {
       suggestedGasPrice =
-        gasObjectLegacy?.suggestedGasPrice ||
-        gasObjectLegacy?.suggestedMaxFeePerGas ||
-        gasFeeEstimates?.gasPrice;
+        gasObjectLegacy?.suggestedGasPrice || gasFeeEstimates?.gasPrice;
     }
   }
 
