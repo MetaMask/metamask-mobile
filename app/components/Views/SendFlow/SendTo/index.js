@@ -60,7 +60,6 @@ import {
 import generateTestId from '../../../../../wdio/utils/generateTestId';
 import {
   selectChainId,
-  selectNetwork,
   selectProviderType,
   selectTicker,
 } from '../../../../selectors/networkController';
@@ -89,10 +88,6 @@ class SendFlow extends PureComponent {
      * Network provider chain id
      */
     chainId: PropTypes.string,
-    /**
-     * Network id
-     */
-    networkId: PropTypes.string,
     /**
      * Object that represents the navigator
      */
@@ -181,7 +176,7 @@ class SendFlow extends PureComponent {
     const {
       addressBook,
       ticker,
-      networkId,
+      chainId,
       navigation,
       providerType,
       route,
@@ -190,7 +185,7 @@ class SendFlow extends PureComponent {
     this.updateNavBar();
     // For analytics
     navigation.setParams({ providerType, isPaymentRequest });
-    const networkAddressBook = addressBook[networkId] || {};
+    const networkAddressBook = addressBook[chainId] || {};
     if (!Object.keys(networkAddressBook).length) {
       setTimeout(() => {
         this.addressToInputRef &&
@@ -223,8 +218,8 @@ class SendFlow extends PureComponent {
 
   isAddressSaved = () => {
     const { toAccount } = this.state;
-    const { addressBook, networkId, identities } = this.props;
-    const networkAddressBook = addressBook[networkId] || {};
+    const { addressBook, chainId, identities } = this.props;
+    const networkAddressBook = addressBook[chainId] || {};
     const checksummedAddress = toChecksumAddress(toAccount);
     return !!(
       networkAddressBook[checksummedAddress] || identities[checksummedAddress]
@@ -366,10 +361,10 @@ class SendFlow extends PureComponent {
   };
 
   getAddressNameFromBookOrIdentities = (toAccount) => {
-    const { addressBook, identities, networkId } = this.props;
+    const { addressBook, identities, chainId } = this.props;
     if (!toAccount) return;
 
-    const networkAddressBook = addressBook[networkId] || {};
+    const networkAddressBook = addressBook[chainId] || {};
 
     const checksummedAddress = toChecksumAddress(toAccount);
 
@@ -381,7 +376,7 @@ class SendFlow extends PureComponent {
   };
 
   validateAddressOrENSFromInput = async (toAccount) => {
-    const { addressBook, identities, chainId, networkId } = this.props;
+    const { addressBook, identities, chainId } = this.props;
     const {
       addressError,
       toEnsName,
@@ -394,7 +389,6 @@ class SendFlow extends PureComponent {
       confusableCollection,
     } = await validateAddressOrENS({
       toAccount,
-      networkId,
       addressBook,
       identities,
       chainId,
@@ -441,7 +435,7 @@ class SendFlow extends PureComponent {
   };
 
   render = () => {
-    const { ticker, addressBook, networkId } = this.props;
+    const { ticker, addressBook, chainId } = this.props;
     const {
       toAccount,
       toSelectedAddressReady,
@@ -464,8 +458,8 @@ class SendFlow extends PureComponent {
     );
     const existingContact =
       checksummedAddress &&
-      addressBook[networkId] &&
-      addressBook[networkId][checksummedAddress];
+      addressBook[chainId] &&
+      addressBook[chainId][checksummedAddress];
     const displayConfusableWarning =
       !existingContact && confusableCollection && !!confusableCollection.length;
     const displayAsWarning =
@@ -636,7 +630,6 @@ const mapStateToProps = (state) => ({
   selectedAsset: state.transaction.selectedAsset,
   identities: selectIdentities(state),
   ticker: selectTicker(state),
-  networkId: selectNetwork(state),
   providerType: selectProviderType(state),
   isPaymentRequest: state.transaction.paymentRequest,
   isNativeTokenBuySupported: isNetworkBuyNativeTokenSupported(

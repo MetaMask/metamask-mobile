@@ -8,7 +8,6 @@ import root from '../../locales/languages/en.json';
 export const TEST_DAPP_LOCAL_URL = 'http://localhost:8080';
 
 const BUTTON_RELATIVE_PONT = { x: 200, y: 5 };
-const WEBVIEW_TEST_DAPP_TRANSFER_FROM_BUTTON_ID = 'transferFromButton';
 const CONFIRM_BUTTON_TEXT = root.confirmation_modal.confirm_cta;
 
 export class TestDApp {
@@ -69,7 +68,7 @@ export class TestDApp {
   ) {
     await Browser.tapUrlInputBox();
     await Browser.navigateToURL(
-      `${TEST_DAPP_LOCAL_URL}?scrollTo=${buttonId}&time=${Date.now()}&${parameterName}=${parameterValue}`,
+      `${TEST_DAPP_LOCAL_URL}?scrollTo=${buttonId}&${parameterName}=${parameterValue}`,
     );
     await TestHelpers.delay(3000);
   }
@@ -81,21 +80,18 @@ export class TestDApp {
     );
   }
 
-  static async tapTransferFromButton(contractAddress) {
+  static async tapButtonWithContract({ buttonId, contractAddress }) {
+    await this.scrollToButtonWithParameter(
+      buttonId,
+      'contract',
+      contractAddress,
+    );
+
     if (device.getPlatform() === 'android') {
-      await TestHelpers.waitForWebElementToBeVisibleById(
-        WEBVIEW_TEST_DAPP_TRANSFER_FROM_BUTTON_ID,
-        5000,
-      );
-      await TestHelpers.tapWebviewElement(
-        WEBVIEW_TEST_DAPP_TRANSFER_FROM_BUTTON_ID,
-      );
+      await TestHelpers.waitForWebElementToBeVisibleById(buttonId, 5000);
+      await TestHelpers.tapWebviewElement(buttonId);
     } else {
-      await this.scrollToButtonWithParameter(
-        'transferFromButton',
-        'contract',
-        contractAddress,
-      );
+      await TestHelpers.delay(5000);
       await TestHelpers.tapAtPoint(BROWSER_WEBVIEW_ID, BUTTON_RELATIVE_PONT);
     }
   }
