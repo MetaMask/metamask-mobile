@@ -176,8 +176,10 @@ describe('AccountSelectorList', () => {
         `${ACCOUNT_BALANCE_BY_ADDRESS_TEST_ID}-${BUSINESS_ACCOUNT}`,
       );
 
-      expect(within(businessAccountItem).getByText(/1 ETH/)).toBeDefined();
-      expect(within(businessAccountItem).getByText(/\$3200/)).toBeDefined();
+      expect(within(businessAccountItem).getByText(regex.eth(1))).toBeDefined();
+      expect(
+        within(businessAccountItem).getByText(regex.usd(3200)),
+      ).toBeDefined();
 
       expect(toJSON()).toMatchSnapshot();
     });

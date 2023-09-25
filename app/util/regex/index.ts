@@ -15,7 +15,6 @@ export const regex: RegexTypes = {
   usd: (num: number) => new RegExp(`${num}`),
   accountBalance: new RegExp(`${ACCOUNT_BALANCE_BY_ADDRESS_TEST_ID}`),
   activationKey: /^[a-zA-Z0-9\\-]{1,32}$/,
-
   addressWithSpaces: /\s/g,
   colorBlack: /black/g,
   decimalString: /[1-9]/,
