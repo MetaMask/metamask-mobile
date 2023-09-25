@@ -3,6 +3,8 @@ import { DOMParser } from '@xmldom/xmldom';
 import { store } from '../../store';
 import { storeFavicon } from '../../actions/browser';
 import isUrl from 'is-url';
+import { isNumber } from 'lodash';
+import { ImageSourcePropType } from 'react-native';
 
 /**
  * Fetches the HTML source of the origin
@@ -138,5 +140,21 @@ export const getFaviconURLFromHtml = async (origin: string) => {
     const htmlDoc = await parseHtmlSource(htmlSource);
     const links = htmlDoc?.getElementsByTagName('link');
     return getFaviconUrlFromLinks(links, url);
+  }
+};
+
+/**
+ * Returns the favicon URL from the image source if it is an SVG image
+ * @param imageSource the image source
+ */
+export const isFaviconSVG = (imageSource: ImageSourcePropType) => {
+  if (
+    imageSource &&
+    !isNumber(imageSource) &&
+    'uri' in imageSource &&
+    (imageSource.uri?.endsWith('.svg') ||
+      imageSource.uri?.startsWith('data:image/svg+xml'))
+  ) {
+    return imageSource.uri;
   }
 };

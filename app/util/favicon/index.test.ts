@@ -1,4 +1,9 @@
-import { getFaviconFromCache, getFaviconURLFromHtml, cacheFavicon } from '.';
+import {
+  getFaviconFromCache,
+  getFaviconURLFromHtml,
+  cacheFavicon,
+  isFaviconSVG,
+} from '.';
 import { storeFavicon } from '../../actions/browser';
 
 jest.mock('../../store', () => {
@@ -211,5 +216,20 @@ describe('cacheFavicon function', () => {
     expect(dispatchMock).toHaveBeenCalledWith(
       storeFavicon({ origin: 'invalid-url', url: faviconUrl.toString() }),
     );
+  });
+});
+
+describe('isFaviconSVG function', () => {
+  it('returns the SVG URL if SVG type passed', async () => {
+    const expectedUrl = 'https://metamask.github.io/metamask-fox.svg';
+    const faviconUri = { uri: expectedUrl };
+
+    expect(isFaviconSVG(faviconUri)).toEqual(expectedUrl);
+  });
+  it('returns undefined if source is not SVG', async () => {
+    const expectedUrl = 'https://metamask.github.io/metamask-fox.png';
+    const faviconUri = { uri: expectedUrl };
+
+    expect(isFaviconSVG(faviconUri)).toBeUndefined();
   });
 });

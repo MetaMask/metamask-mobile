@@ -19,6 +19,7 @@ import {
 } from './AvatarFavicon.constants';
 import stylesheet from './AvatarFavicon.styles';
 import { isNumber } from 'lodash';
+import { isFaviconSVG } from '../../../../../../util/favicon';
 
 const AvatarFavicon = ({
   imageSource,
@@ -44,12 +45,7 @@ const AvatarFavicon = ({
 
   const svgSource = useMemo(() => {
     if (imageSource && !isNumber(imageSource) && 'uri' in imageSource) {
-      if (
-        imageSource.uri?.endsWith('.svg') ||
-        imageSource.uri?.startsWith('data:image/svg+xml')
-      ) {
-        return imageSource.uri;
-      }
+      return isFaviconSVG(imageSource);
     }
   }, [imageSource]);
 

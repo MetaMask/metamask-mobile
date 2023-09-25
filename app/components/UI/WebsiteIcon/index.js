@@ -6,6 +6,9 @@ import { fontStyles } from '../../../styles/common';
 import { getHost } from '../../../util/browser';
 import { ThemeContext, mockTheme } from '../../../util/theme';
 import withFaviconAwareness from '../../hooks/useFavicon/withFaviconAwareness';
+import { isNumber } from 'lodash';
+import { isFaviconSVG } from '../../../util/favicon';
+import { SvgUri } from 'react-native-svg/src/xml';
 
 const createStyles = (colors) =>
   StyleSheet.create({
@@ -115,25 +118,35 @@ class WebsiteIcon extends PureComponent {
       );
     }
 
+    let imageSVG;
+
+    if (apiLogoUrl && !isNumber(apiLogoUrl) && 'uri' in apiLogoUrl) {
+      imageSVG = isFaviconSVG(apiLogoUrl);
+    }
+
     return (
       <View style={viewStyle}>
-        <FadeIn
-          placeholderStyle={{
-            backgroundColor: transparent
-              ? colors.transparent
-              : colors.background.alternative,
-          }}
-        >
-          {/*
-           * TODO: Image component is not handling the case where the image is SVG
-           *  this currently falls back to the error display
-           */}
-          <Image
-            source={apiLogoUrl}
+        {imageSVG ? (
+          <SvgUri
+            uri={imageSVG}
             style={style}
             onError={this.onRenderIconUrlError}
           />
-        </FadeIn>
+        ) : (
+          <FadeIn
+            placeholderStyle={{
+              backgroundColor: transparent
+                ? colors.transparent
+                : colors.background.alternative,
+            }}
+          >
+            <Image
+              source={apiLogoUrl}
+              style={style}
+              onError={this.onRenderIconUrlError}
+            />
+          </FadeIn>
+        )}
       </View>
     );
   };
