@@ -2,7 +2,6 @@
 
 import PushNotification from 'react-native-push-notification';
 import Engine from './Engine';
-import Networks, { isKnownNetwork } from '../util/networks';
 import { hexToBN, renderFromWei } from '../util/number';
 import Device from '../util/device';
 import { strings } from '../../locales/i18n';
@@ -13,10 +12,9 @@ import {
   PUSH_NOTIFICATIONS_PROMPT_COUNT,
   PUSH_NOTIFICATIONS_PROMPT_TIME,
 } from '../constants/storage';
-import { RPC } from '../constants/network';
 import { safeToChecksumAddress } from '../util/address';
 import ReviewManager from './ReviewManager';
-import { selectProviderType } from '../selectors/networkController';
+import { selectChainId } from '../selectors/networkController';
 import { store } from '../store';
 
 const constructTitleAndMessage = (data) => {
@@ -405,11 +403,10 @@ class NotificationManager {
       PreferencesController,
     } = Engine.context;
     const { selectedAddress } = PreferencesController.state;
-    const networkType = selectProviderType(store.getState());
+    const chainId = selectChainId(store.getState());
 
     /// Find the incoming TX
     const { transactions } = TransactionController.state;
-    const { networkId } = Networks[networkType];
 
     // If a TX has been confirmed more than 10 min ago, it's considered old
     const oldestTimeAllowed = Date.now() - 1000 * 60 * 10;
@@ -421,8 +418,7 @@ class NotificationManager {
           (tx) =>
             safeToChecksumAddress(tx.transaction?.to) === selectedAddress &&
             safeToChecksumAddress(tx.transaction?.from) !== selectedAddress &&
-            ((networkId && networkId.toString() === tx.networkID) ||
-              (networkType === RPC && !isKnownNetwork(tx.networkID))) &&
+            tx.chainId === chainId &&
             tx.status === 'confirmed' &&
             lastBlock <= parseInt(tx.blockNumber, 10) &&
             tx.time > oldestTimeAllowed,

@@ -134,9 +134,10 @@ describe('Number utils :: fromTokenMinimalUnit', () => {
 
 describe('Number utils :: fromTokenMinimalUnitString', () => {
   it('fromTokenMinimalUnit using number', () => {
-    expect(() => fromTokenMinimalUnitString(1337, 6)).toThrow();
-    expect(() => fromTokenMinimalUnitString(1337, 0)).toThrow();
-    expect(() => fromTokenMinimalUnitString(1337, 18)).toThrow();
+    const wrongTypeInput = 1337 as any;
+    expect(() => fromTokenMinimalUnitString(wrongTypeInput, 6)).toThrow();
+    expect(() => fromTokenMinimalUnitString(wrongTypeInput, 0)).toThrow();
+    expect(() => fromTokenMinimalUnitString(wrongTypeInput, 18)).toThrow();
   });
 
   it('fromTokenMinimalUnitString using string', () => {
@@ -377,7 +378,8 @@ describe('Number utils :: hexToBN', () => {
 
 describe('Number utils :: isBN', () => {
   it('isBN', () => {
-    expect(isBN('0x539')).toEqual(false);
+    const notABN = '0x539';
+    expect(isBN(notABN)).toEqual(false);
     expect(isBN(new BN(1337))).toEqual(true);
   });
 });
@@ -765,10 +767,18 @@ describe('Number utils :: isNumberScientificNotationWhenString', () => {
   });
 
   it('isNumberScientificNotationWhenString should be false when non number is passed', () => {
-    expect(isNumberScientificNotationWhenString('1.337e-6')).toEqual(false);
-    expect(isNumberScientificNotationWhenString('1.337e-7')).toEqual(false);
-    expect(isNumberScientificNotationWhenString('1.337e20')).toEqual(false);
-    expect(isNumberScientificNotationWhenString('1.337e21')).toEqual(false);
+    expect(isNumberScientificNotationWhenString('1.337e-6' as any)).toEqual(
+      false,
+    );
+    expect(isNumberScientificNotationWhenString('1.337e-7' as any)).toEqual(
+      false,
+    );
+    expect(isNumberScientificNotationWhenString('1.337e20' as any)).toEqual(
+      false,
+    );
+    expect(isNumberScientificNotationWhenString('1.337e21' as any)).toEqual(
+      false,
+    );
   });
 });
 

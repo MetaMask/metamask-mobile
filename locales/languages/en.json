@@ -1057,6 +1057,7 @@
     "speedup_tx_message": "Submitting this attempt does not guarantee your original transaction will be accelerated. If the speed up attempt is successful, you will be charged the transaction fee above.",
     "nevermind": "Nevermind",
     "edit_network_fee": "Edit gas fee",
+    "edit_priority": "Edit priority",
     "gas_cancel_fee": "Gas cancellation Fee",
     "gas_speedup_fee": "Gas speed up fee",
     "use_max": "Use max",
@@ -1363,8 +1364,7 @@
     "you_can": "Or you can",
     "add_network": "add more networks manually.",
     "select_network": "Select a network",
-    "show_test_networks": "Show test networks",
-    "linea_mainnet_not_released_alert": "Thanks for your interest in Linea Mainnet, it will be available soon!"
+    "show_test_networks": "Show test networks"
   },
   "select": {
     "cancel": "Cancel",

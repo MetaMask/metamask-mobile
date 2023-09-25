@@ -33,7 +33,7 @@ export interface CustomGasModalProps {
   updateGasState: (state: {
     gasTxn: any;
     gasObj: any;
-    gasSelect: string;
+    gasSelect?: string;
     txnType: boolean;
   }) => void;
 }

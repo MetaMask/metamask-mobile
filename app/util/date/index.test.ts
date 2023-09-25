@@ -37,7 +37,9 @@ describe('Date util :: msBetweenDates', () => {
     const mockDate = new Date();
     const spy = jest
       .spyOn(global, 'Date')
-      .mockImplementation(function (...args: any[]) {
+      .mockImplementation(function (
+        ...args: ConstructorParameters<typeof DateReal>
+      ) {
         if (args.length) {
           return new DateReal(...args);
         }

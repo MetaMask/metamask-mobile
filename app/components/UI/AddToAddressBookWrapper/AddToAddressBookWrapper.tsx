@@ -13,7 +13,7 @@ import { strings } from '../../../../locales/i18n';
 import Engine from '../../../core/Engine';
 import { ADD_ADDRESS_MODAL_CONTAINER_ID } from '../../../constants/test-ids';
 import { baseStyles } from '../../../styles/common';
-import { selectNetwork } from '../../../selectors/networkController';
+import { selectChainId } from '../../../selectors/networkController';
 import { useTheme } from '../../../util/theme';
 import Text from '../../Base/Text';
 import useExistingAddress from '../../hooks/useExistingAddress';
@@ -36,7 +36,7 @@ export const AddToAddressBookWrapper = ({
   setToAddressName,
   defaultNull = false,
 }: AddToAddressBookWrapperProps) => {
-  const networkId = useSelector(selectNetwork);
+  const chainId = useSelector(selectChainId);
 
   const existingContact = useExistingAddress(address);
   const { colors, themeAppearance } = useTheme();
@@ -53,7 +53,7 @@ export const AddToAddressBookWrapper = ({
 
   const onSaveToAddressBook = () => {
     const { AddressBookController } = Engine.context;
-    AddressBookController.set(address, alias, networkId);
+    AddressBookController.set(address, alias, chainId);
     !!alias && setToAddressName?.(alias);
     setAlias(undefined);
   };
