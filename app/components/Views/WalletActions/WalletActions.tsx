@@ -67,7 +67,7 @@ const WalletActions = () => {
 
   const onBuy = () => {
     sheetRef.current?.hide(() => {
-      navigate(Routes.RAMP.BUY.ID);
+      navigate(Routes.RAMP.BUY);
       Analytics.trackEventWithParameters(MetaMetricsEvents.BUY_BUTTON_CLICKED, {
         text: 'Buy',
         tokenSymbol: '',
@@ -79,7 +79,7 @@ const WalletActions = () => {
 
   const onSell = () => {
     sheetRef.current?.hide(() => {
-      navigate(Routes.RAMP.SELL.ID);
+      navigate(Routes.RAMP.SELL);
       // TODO - add analytics for sell
       // Analytics.trackEventWithParameters(MetaMetricsEvents.BUY_BUTTON_CLICKED, {
       //   text: 'Buy',

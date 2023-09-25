@@ -35,7 +35,7 @@ interface CheckoutParams {
 }
 
 export const createCheckoutNavDetails = createNavigationDetails<CheckoutParams>(
-  Routes.RAMP.BUY.CHECKOUT,
+  Routes.RAMP.CHECKOUT,
 );
 
 const CheckoutWebView = () => {

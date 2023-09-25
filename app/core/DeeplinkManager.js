@@ -181,7 +181,7 @@ class DeeplinkManager {
   }
 
   _handleBuyCrypto() {
-    this.navigation.navigate(Routes.RAMP.BUY.ID);
+    this.navigation.navigate(Routes.RAMP.BUY);
   }
 
   parse(url, { browserCallBack, origin, onHandled }) {

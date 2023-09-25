@@ -34,14 +34,14 @@ export default function useRegions() {
 
   const redirectToRegion = useCallback(() => {
     if (
-      route.name !== Routes.RAMP.BUY.REGION &&
-      route.name !== Routes.RAMP.BUY.REGION_HAS_STARTED
+      route.name !== Routes.RAMP.REGION &&
+      route.name !== Routes.RAMP.REGION_HAS_STARTED
     ) {
       navigation.reset({
         index: 0,
         routes: [
           {
-            name: Routes.RAMP.BUY.REGION_HAS_STARTED,
+            name: Routes.RAMP.REGION_HAS_STARTED,
           },
         ],
       });

@@ -3,7 +3,7 @@ import { fireEvent, screen } from '@testing-library/react-native';
 import { renderScreen } from '../../../../../../util/test/renderWithProvider';
 
 import GetStarted from './GetStarted';
-import { Region } from '../../../common/types';
+import { RampType, Region } from '../../../common/types';
 import { RampSDK } from '../../../common/sdk';
 import useRampNetwork from '../../../common/hooks/useRampNetwork';
 import Routes from '../../../../../../constants/navigation/Routes';
@@ -13,7 +13,7 @@ function render(Component: React.ComponentType) {
   return renderScreen(
     Component,
     {
-      name: Routes.RAMP.BUY.GET_STARTED,
+      name: Routes.RAMP.GET_STARTED,
     },
     {
       state: {
@@ -41,6 +41,7 @@ const mockuseRampSDKInitialValues: Partial<RampSDK> = {
   sdkError: undefined,
   selectedChainId: '1',
   selectedRegion: null,
+  rampType: RampType.BUY,
 };
 
 let mockUseRampSDKValues: Partial<RampSDK> = {
@@ -147,7 +148,7 @@ describe('GetStarted', () => {
     render(GetStarted);
     expect(mockReset).toBeCalledWith({
       index: 0,
-      routes: [{ name: Routes.RAMP.BUY.NETWORK_SWITCHER }],
+      routes: [{ name: Routes.RAMP.NETWORK_SWITCHER }],
     });
   });
 
@@ -161,7 +162,7 @@ describe('GetStarted', () => {
     expect(mockReset).toBeCalledTimes(1);
     expect(mockReset).toBeCalledWith({
       index: 0,
-      routes: [{ name: Routes.RAMP.BUY.REGION_HAS_STARTED }],
+      routes: [{ name: Routes.RAMP.REGION_HAS_STARTED }],
     });
   });
 
@@ -179,7 +180,7 @@ describe('GetStarted', () => {
       index: 0,
       routes: [
         {
-          name: Routes.RAMP.BUY.PAYMENT_METHOD_HAS_STARTED,
+          name: Routes.RAMP.PAYMENT_METHOD_HAS_STARTED,
           params: {
             showBack: false,
           },

@@ -69,7 +69,7 @@ function render(Component: React.ComponentType, chainId?: string) {
   return renderScreen(
     Component,
     {
-      name: Routes.RAMP.BUY.REGION,
+      name: Routes.RAMP.REGION,
     },
     {
       state: {

@@ -6644,6 +6644,10 @@ exports[`Regions View renders regions modal when pressing select button 1`] = `
                                                 "emoji": "🇨🇱",
                                                 "id": "/regions/cl",
                                                 "name": "Chile",
+                                                "support": Object {
+                                                  "buy": true,
+                                                  "sell": true,
+                                                },
                                                 "unsupported": false,
                                               },
                                               Object {
@@ -6653,6 +6657,10 @@ exports[`Regions View renders regions modal when pressing select button 1`] = `
                                                 "emoji": "🇦🇷",
                                                 "id": "/regions/ar",
                                                 "name": "Argentina",
+                                                "support": Object {
+                                                  "buy": true,
+                                                  "sell": true,
+                                                },
                                                 "unsupported": false,
                                               },
                                             ]

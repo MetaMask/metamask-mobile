@@ -34,7 +34,7 @@ interface PaymentMethodsParams {
 }
 
 export const createPaymentMethodsNavDetails =
-  createNavigationDetails<PaymentMethodsParams>(Routes.RAMP.BUY.PAYMENT_METHOD);
+  createNavigationDetails<PaymentMethodsParams>(Routes.RAMP.PAYMENT_METHOD);
 
 const PaymentMethods = () => {
   const navigation = useNavigation();
@@ -93,7 +93,7 @@ const PaymentMethods = () => {
     const needsReset = showBack === false;
     if (needsReset) {
       navigation.reset({
-        routes: [{ name: Routes.RAMP.BUY.REGION }],
+        routes: [{ name: Routes.RAMP.REGION }],
       });
     } else {
       navigation.goBack();

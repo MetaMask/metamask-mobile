@@ -33,7 +33,7 @@ import useRegions from '../../hooks/useRegions';
 const ListItem = BaseListItem as any;
 
 export const createRegionsNavDetails = createNavigationDetails(
-  Routes.RAMP.BUY.REGION,
+  Routes.RAMP.REGION,
 );
 
 const RegionsView = () => {

@@ -308,7 +308,7 @@ class SendFlow extends PureComponent {
   };
 
   goToBuy = () => {
-    this.props.navigation.navigate(Routes.RAMP.BUY.ID);
+    this.props.navigation.navigate(Routes.RAMP.BUY);
     InteractionManager.runAfterInteractions(() => {
       AnalyticsV2.trackEvent(MetaMetricsEvents.BUY_BUTTON_CLICKED, {
         button_location: 'Send Flow warning',

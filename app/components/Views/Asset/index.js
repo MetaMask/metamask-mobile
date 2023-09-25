@@ -475,7 +475,7 @@ class Asset extends PureComponent {
       asset.isETH || asset.address?.toLowerCase() in this.props.swapsTokens;
 
     const onBuy = () => {
-      navigation.navigate(Routes.RAMP.BUY.ID);
+      navigation.navigate(Routes.RAMP.BUY);
       InteractionManager.runAfterInteractions(() => {
         Analytics.trackEventWithParameters(
           MetaMetricsEvents.BUY_BUTTON_CLICKED,

@@ -52,7 +52,7 @@ export interface QuotesParams {
 }
 
 export const createQuotesNavDetails = createNavigationDetails<QuotesParams>(
-  Routes.RAMP.BUY.QUOTES,
+  Routes.RAMP.QUOTES,
 );
 
 function Quotes() {

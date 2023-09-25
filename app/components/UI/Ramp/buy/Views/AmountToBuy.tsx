@@ -68,7 +68,7 @@ interface AmountToBuyParams {
 }
 
 export const createAmountToBuyNavDetails =
-  createNavigationDetails<AmountToBuyParams>(Routes.RAMP.BUY.AMOUNT_TO_BUY);
+  createNavigationDetails<AmountToBuyParams>(Routes.RAMP.AMOUNT_TO_BUY);
 
 const createStyles = (colors: Colors) =>
   StyleSheet.create({

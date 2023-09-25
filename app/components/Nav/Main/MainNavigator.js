@@ -518,34 +518,28 @@ const PaymentRequestView = () => (
 
 const Ramps = ({ rampType }) => (
   <RampSDKProvider rampType={rampType}>
-    <Stack.Navigator initialRouteName={Routes.RAMP.BUY.GET_STARTED}>
-      <Stack.Screen name={Routes.RAMP.BUY.GET_STARTED} component={GetStarted} />
+    <Stack.Navigator initialRouteName={Routes.RAMP.GET_STARTED}>
+      <Stack.Screen name={Routes.RAMP.GET_STARTED} component={GetStarted} />
       <Stack.Screen
-        name={Routes.RAMP.BUY.NETWORK_SWITCHER}
+        name={Routes.RAMP.NETWORK_SWITCHER}
         component={NetworkSwitcher}
         options={{ animationEnabled: false }}
       />
       <Stack.Screen
-        name={Routes.RAMP.BUY.PAYMENT_METHOD}
+        name={Routes.RAMP.PAYMENT_METHOD}
         component={PaymentMethods}
       />
       <Stack.Screen
-        name={Routes.RAMP.BUY.PAYMENT_METHOD_HAS_STARTED}
+        name={Routes.RAMP.PAYMENT_METHOD_HAS_STARTED}
         component={PaymentMethods}
         options={{ animationEnabled: false }}
       />
+      <Stack.Screen name={Routes.RAMP.AMOUNT_TO_BUY} component={AmountToBuy} />
+      <Stack.Screen name={Routes.RAMP.QUOTES} component={Quotes} />
+      <Stack.Screen name={Routes.RAMP.CHECKOUT} component={CheckoutWebView} />
+      <Stack.Screen name={Routes.RAMP.REGION} component={Regions} />
       <Stack.Screen
-        name={Routes.RAMP.BUY.AMOUNT_TO_BUY}
-        component={AmountToBuy}
-      />
-      <Stack.Screen name={Routes.RAMP.BUY.QUOTES} component={Quotes} />
-      <Stack.Screen
-        name={Routes.RAMP.BUY.CHECKOUT}
-        component={CheckoutWebView}
-      />
-      <Stack.Screen name={Routes.RAMP.BUY.REGION} component={Regions} />
-      <Stack.Screen
-        name={Routes.RAMP.BUY.REGION_HAS_STARTED}
+        name={Routes.RAMP.REGION_HAS_STARTED}
         component={Regions}
         options={{ animationEnabled: false }}
       />
@@ -647,10 +641,10 @@ const MainNavigator = () => (
     <Stack.Screen name="OfflineModeView" component={OfflineModeView} />
     <Stack.Screen name={Routes.QR_SCANNER} component={QrScanner} />
     <Stack.Screen name="PaymentRequestView" component={PaymentRequestView} />
-    <Stack.Screen name={Routes.RAMP.BUY.ID}>
+    <Stack.Screen name={Routes.RAMP.BUY}>
       {() => <Ramps rampType={RampType.BUY} />}
     </Stack.Screen>
-    <Stack.Screen name={Routes.RAMP.SELL.ID}>
+    <Stack.Screen name={Routes.RAMP.SELL}>
       {() => <Ramps rampType={RampType.SELL} />}
     </Stack.Screen>
     <Stack.Screen name="Swaps" component={Swaps} />
