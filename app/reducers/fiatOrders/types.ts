@@ -117,3 +117,8 @@ export type Action =
   | ReturnType<typeof updateOnRampNetworks>;
 
 export type Region = Country & State;
+
+export enum RampType {
+  BUY = 'buy',
+  SELL = 'sell',
+}

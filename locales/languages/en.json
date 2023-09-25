@@ -888,6 +888,7 @@
   "asset_overview": {
     "send_button": "Send",
     "buy_button": "Buy",
+    "sell_button": "Sell",
     "receive_button": "Receive",
     "portfolio_button": "Portfolio",
     "add_collectible_button": "Add",
@@ -902,6 +903,7 @@
     "for_help": "for help.",
     "troubleshoot": "Troubleshoot",
     "buy_description": "Buy crypto with cash",
+    "sell_description": "Sell crypto for cash",
     "swap_description": "Exchange between tokens",
     "send_description": "Send crypto to any account",
     "receive_description": "Receive crypto",

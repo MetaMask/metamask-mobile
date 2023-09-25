@@ -2,7 +2,7 @@ import { useNavigation, useRoute } from '@react-navigation/native';
 import { useCallback, useEffect, useMemo } from 'react';
 import Routes from '../../../../../constants/navigation/Routes';
 import { useRampSDK } from '../../common/sdk';
-import { Region } from '../../common/types';
+import { RampType, Region } from '../../common/types';
 import useSDKMethod from '../../common/hooks/useSDKMethod';
 
 export default function useRegions() {
@@ -13,6 +13,7 @@ export default function useRegions() {
     setSelectedRegion,
     unsupportedRegion,
     setUnsupportedRegion,
+    rampType,
   } = useRampSDK();
 
   const [{ data, isFetching, error }, queryGetCountries] =
@@ -31,24 +32,42 @@ export default function useRegions() {
     return allRegions.find((region) => region.id === selectedRegion.id) ?? null;
   }, [data, selectedRegion]);
 
+  const redirectToRegion = useCallback(() => {
+    if (
+      route.name !== Routes.RAMP.BUY.REGION &&
+      route.name !== Routes.RAMP.BUY.REGION_HAS_STARTED
+    ) {
+      navigation.reset({
+        index: 0,
+        routes: [
+          {
+            name: Routes.RAMP.BUY.REGION_HAS_STARTED,
+          },
+        ],
+      });
+    }
+  }, [navigation, route.name]);
+
   useEffect(() => {
     if (updatedRegion?.unsupported) {
       setSelectedRegion(null);
       setUnsupportedRegion(updatedRegion);
 
-      if (
-        route.name !== Routes.RAMP.BUY.REGION &&
-        route.name !== Routes.RAMP.BUY.REGION_HAS_STARTED
-      ) {
-        navigation.reset({
-          index: 0,
-          routes: [
-            {
-              name: Routes.RAMP.BUY.REGION,
-            },
-          ],
-        });
-      }
+      redirectToRegion();
+    } else if (
+      rampType === RampType.BUY &&
+      updatedRegion &&
+      !updatedRegion.support.buy
+    ) {
+      setUnsupportedRegion(updatedRegion);
+      redirectToRegion();
+    } else if (
+      rampType === RampType.SELL &&
+      updatedRegion &&
+      !updatedRegion.support.sell
+    ) {
+      setUnsupportedRegion(updatedRegion);
+      redirectToRegion();
     }
   }, [
     updatedRegion,
@@ -56,6 +75,8 @@ export default function useRegions() {
     navigation,
     route.name,
     setUnsupportedRegion,
+    rampType,
+    redirectToRegion,
   ]);
 
   const clearUnsupportedRegion = useCallback(

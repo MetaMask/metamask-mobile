@@ -45,7 +45,9 @@ import SwapsQuotesView from '../../UI/Swaps/QuotesView';
 import CollectiblesDetails from '../../UI/CollectibleModal';
 import OptinMetrics from '../../UI/OptinMetrics';
 import Drawer from '../../UI/Drawer';
+
 import { RampSDKProvider } from '../../UI/Ramp/common/sdk';
+import { RampType } from '../../UI/Ramp/common/types';
 import GetStarted from '../../UI/Ramp/buy/Views/GetStarted';
 import PaymentMethods from '../../UI/Ramp/buy/Views/PaymentMethods/PaymentMethods';
 import AmountToBuy from '../../UI/Ramp/buy/Views/AmountToBuy';
@@ -514,8 +516,8 @@ const PaymentRequestView = () => (
   </Stack.Navigator>
 );
 
-const Ramps = () => (
-  <RampSDKProvider>
+const Ramps = ({ rampType }) => (
+  <RampSDKProvider rampType={rampType}>
     <Stack.Navigator initialRouteName={Routes.RAMP.BUY.GET_STARTED}>
       <Stack.Screen name={Routes.RAMP.BUY.GET_STARTED} component={GetStarted} />
       <Stack.Screen
@@ -550,6 +552,10 @@ const Ramps = () => (
     </Stack.Navigator>
   </RampSDKProvider>
 );
+
+Ramps.propTypes = {
+  rampType: RampType,
+};
 
 const Swaps = () => (
   <Stack.Navigator>
@@ -641,7 +647,12 @@ const MainNavigator = () => (
     <Stack.Screen name="OfflineModeView" component={OfflineModeView} />
     <Stack.Screen name={Routes.QR_SCANNER} component={QrScanner} />
     <Stack.Screen name="PaymentRequestView" component={PaymentRequestView} />
-    <Stack.Screen name={Routes.RAMP.BUY.ID} component={Ramps} />
+    <Stack.Screen name={Routes.RAMP.BUY.ID}>
+      {() => <Ramps rampType={RampType.BUY} />}
+    </Stack.Screen>
+    <Stack.Screen name={Routes.RAMP.SELL.ID}>
+      {() => <Ramps rampType={RampType.SELL} />}
+    </Stack.Screen>
     <Stack.Screen name="Swaps" component={Swaps} />
     <Stack.Screen
       name="SetPasswordFlow"

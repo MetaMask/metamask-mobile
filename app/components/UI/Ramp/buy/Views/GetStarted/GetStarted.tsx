@@ -13,19 +13,15 @@ import Routes from '../../../../../../constants/navigation/Routes';
 import useAnalytics from '../../../common/hooks/useAnalytics';
 import useRampNetwork from '../../../common/hooks/useRampNetwork';
 import styles from './GetStarted.styles';
+import useRegions from '../../hooks/useRegions';
 
 /* eslint-disable import/no-commonjs, @typescript-eslint/no-var-requires, @typescript-eslint/no-require-imports */
 const getStartedIcon = require('../../../common/components/images/WalletInfo.png');
 
 const GetStarted: React.FC = () => {
   const navigation = useNavigation();
-  const {
-    getStarted,
-    setGetStarted,
-    sdkError,
-    selectedChainId,
-    selectedRegion,
-  } = useRampSDK();
+  const { getStarted, setGetStarted, sdkError, selectedChainId } = useRampSDK();
+  const { selectedRegion } = useRegions();
   const [isNetworkRampSupported] = useRampNetwork();
   const trackEvent = useAnalytics();
 
