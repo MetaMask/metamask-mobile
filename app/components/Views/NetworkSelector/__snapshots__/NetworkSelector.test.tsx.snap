@@ -406,6 +406,7 @@ exports[`Network Selector renders correctly 1`] = `
                             }
                           />
                           <Text
+                            accessibilityRole="text"
                             style={
                               Object {
                                 "color": "#24272A",
@@ -506,6 +507,7 @@ exports[`Network Selector renders correctly 1`] = `
                                     }
                                   >
                                     <Text
+                                      accessibilityRole="text"
                                       numberOfLines={1}
                                       style={
                                         Object {
@@ -621,6 +623,7 @@ exports[`Network Selector renders correctly 1`] = `
                                     }
                                   >
                                     <Text
+                                      accessibilityRole="text"
                                       numberOfLines={1}
                                       style={
                                         Object {
@@ -713,6 +716,7 @@ exports[`Network Selector renders correctly 1`] = `
                                     }
                                   >
                                     <Text
+                                      accessibilityRole="text"
                                       numberOfLines={1}
                                       style={
                                         Object {
@@ -805,6 +809,7 @@ exports[`Network Selector renders correctly 1`] = `
                                     }
                                   >
                                     <Text
+                                      accessibilityRole="text"
                                       numberOfLines={1}
                                       style={
                                         Object {
@@ -897,6 +902,7 @@ exports[`Network Selector renders correctly 1`] = `
                                     }
                                   >
                                     <Text
+                                      accessibilityRole="text"
                                       numberOfLines={1}
                                       style={
                                         Object {
@@ -964,6 +970,7 @@ exports[`Network Selector renders correctly 1`] = `
                                     }
                                   >
                                     <Text
+                                      accessibilityRole="text"
                                       style={
                                         Object {
                                           "color": "#24272A",
@@ -987,6 +994,7 @@ exports[`Network Selector renders correctly 1`] = `
                                     }
                                   >
                                     <Text
+                                      accessibilityRole="text"
                                       numberOfLines={1}
                                       style={
                                         Object {
@@ -1018,6 +1026,7 @@ exports[`Network Selector renders correctly 1`] = `
                               }
                             >
                               <Text
+                                accessibilityRole="text"
                                 style={
                                   Object {
                                     "color": "#535A61",
@@ -1083,6 +1092,7 @@ exports[`Network Selector renders correctly 1`] = `
                           variant="Secondary"
                         >
                           <Text
+                            accessibilityRole="text"
                             style={
                               Object {
                                 "color": "#0376C9",

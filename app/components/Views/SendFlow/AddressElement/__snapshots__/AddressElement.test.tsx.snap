@@ -87,6 +87,7 @@ exports[`AddressElement should render correctly 1`] = `
     }
   >
     <Text
+      accessibilityRole="text"
       numberOfLines={1}
       style={
         Object {
