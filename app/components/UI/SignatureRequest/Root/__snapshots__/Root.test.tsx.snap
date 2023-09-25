@@ -387,62 +387,42 @@ exports[`Root should match snapshot 1`] = `
                 >
                   <View>
                     <View
-                      placeholderStyle={
-                        Object {
-                          "backgroundColor": "#F2F4F6",
-                        }
-                      }
-                      useNativeDriver={true}
-                    >
-                      <Image
-                        onError={[Function]}
-                        onLoadEnd={[Function]}
-                        source={
+                      style={
+                        Array [
                           Object {
-                            "uri": "",
-                          }
-                        }
-                        style={
+                            "alignContent": "center",
+                            "backgroundColor": "#FFFFFF",
+                            "borderRadius": 27,
+                            "height": 54,
+                            "justifyContent": "center",
+                            "width": 54,
+                          },
                           Object {
                             "borderRadius": 20,
                             "height": 40,
                             "marginRight": 8,
                             "width": 40,
-                          }
-                        }
-                      />
-                      <View
-                        collapsable={false}
+                          },
+                        ]
+                      }
+                    >
+                      <Text
                         style={
-                          Object {
-                            "bottom": 0,
-                            "left": 0,
-                            "opacity": 1,
-                            "position": "absolute",
-                            "right": 0,
-                            "top": 0,
-                          }
+                          Array [
+                            Object {
+                              "color": "#24272A",
+                              "fontFamily": "EuclidCircularB-Regular",
+                              "fontSize": 24,
+                              "fontWeight": "400",
+                              "textAlign": "center",
+                              "textTransform": "uppercase",
+                            },
+                            undefined,
+                          ]
                         }
                       >
-                        <View
-                          style={
-                            Array [
-                              Object {
-                                "borderRadius": 20,
-                                "height": 40,
-                                "marginRight": 8,
-                                "width": 40,
-                              },
-                              Object {
-                                "backgroundColor": "#eee",
-                              },
-                              Object {
-                                "backgroundColor": "#F2F4F6",
-                              },
-                            ]
-                          }
-                        />
-                      </View>
+                        m
+                      </Text>
                     </View>
                   </View>
                   <View
