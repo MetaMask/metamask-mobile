@@ -212,39 +212,60 @@ export const RampSDKProvider = ({
     [dispatch],
   );
 
-  const contextValue: RampSDK = {
-    sdk,
-    sdkError,
+  const contextValue: RampSDK = useMemo(
+    () => ({
+      sdk,
+      sdkError,
 
-    rampType,
-    setRampType,
+      rampType,
+      setRampType,
 
-    selectedRegion,
-    setSelectedRegion: setSelectedRegionCallback,
+      selectedRegion,
+      setSelectedRegion: setSelectedRegionCallback,
 
-    unsupportedRegion,
-    setUnsupportedRegion,
+      unsupportedRegion,
+      setUnsupportedRegion,
 
-    selectedPaymentMethodId,
-    setSelectedPaymentMethodId: setSelectedPaymentMethodIdCallback,
+      selectedPaymentMethodId,
+      setSelectedPaymentMethodId: setSelectedPaymentMethodIdCallback,
 
-    selectedAsset,
-    setSelectedAsset: setSelectedAssetCallback,
+      selectedAsset,
+      setSelectedAsset: setSelectedAssetCallback,
 
-    selectedFiatCurrencyId,
-    setSelectedFiatCurrencyId: setSelectedFiatCurrencyIdCallback,
+      selectedFiatCurrencyId,
+      setSelectedFiatCurrencyId: setSelectedFiatCurrencyIdCallback,
 
-    getStarted,
-    setGetStarted: setGetStartedCallback,
+      getStarted,
+      setGetStarted: setGetStartedCallback,
 
-    selectedAddress,
-    selectedChainId,
-    selectedNetworkName,
+      selectedAddress,
+      selectedChainId,
+      selectedNetworkName,
 
-    appConfig,
-    callbackBaseUrl,
-    isInternalBuild: isDevelopmentOrInternalBuild,
-  };
+      appConfig,
+      callbackBaseUrl,
+      isInternalBuild: isDevelopmentOrInternalBuild,
+    }),
+    [
+      getStarted,
+      rampType,
+      sdk,
+      sdkError,
+      selectedAddress,
+      selectedAsset,
+      selectedChainId,
+      selectedFiatCurrencyId,
+      selectedNetworkName,
+      selectedPaymentMethodId,
+      selectedRegion,
+      setGetStartedCallback,
+      setSelectedAssetCallback,
+      setSelectedFiatCurrencyIdCallback,
+      setSelectedPaymentMethodIdCallback,
+      setSelectedRegionCallback,
+      unsupportedRegion,
+    ],
+  );
 
   return <SDKContext.Provider value={value || contextValue} {...props} />;
 };
