@@ -13,6 +13,7 @@ export enum LedgerCommunicationErrors {
   LedgerIsLocked = 'LedgerIsLocked',
   NotSupported = 'NotSupported',
   UnknownError = 'UnknownError',
+  NonceTooLow = 'NonceTooLow',
 }
 class LedgerError extends Error {
   public readonly code: LedgerCommunicationErrors;
@@ -224,6 +225,8 @@ function useLedgerBluetooth(deviceId?: string): UseLedgerBluetoothHook {
         setLedgerError(LedgerCommunicationErrors.NotSupported);
       } else if (e.message.includes('Ledger device: Locked device')) {
         setLedgerError(LedgerCommunicationErrors.LedgerIsLocked);
+      } else if (e.message.includes('nonce too low')) {
+        setLedgerError(LedgerCommunicationErrors.NonceTooLow);
       } else {
         setLedgerError(LedgerCommunicationErrors.UnknownError);
       }

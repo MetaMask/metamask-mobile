@@ -45,6 +45,7 @@ export interface ErrorStepProps {
   title?: string;
   subTitle?: string;
   showViewSettings: boolean;
+  isRetryHide?: boolean;
 }
 
 const ErrorStep = ({
@@ -53,6 +54,7 @@ const ErrorStep = ({
   title,
   subTitle,
   showViewSettings = false,
+  isRetryHide,
 }: ErrorStepProps) => {
   const styles = useMemo(() => createStyles(), []);
   const ledgerErrorImage = useAssetFromTheme(
@@ -87,11 +89,13 @@ const ErrorStep = ({
             </StyledButton>
           </View>
         )}
-        <View style={styles.buttonStyle}>
-          <StyledButton type="normal" onPress={onRetry}>
-            {strings('ledger.try_again')}
-          </StyledButton>
-        </View>
+        {!isRetryHide && (
+          <View style={styles.buttonStyle}>
+            <StyledButton type="normal" onPress={onRetry}>
+              {strings('ledger.try_again')}
+            </StyledButton>
+          </View>
+        )}
         <View style={styles.buttonStyle}>
           <StyledButton type="cancel" onPress={onReject}>
             {strings('transaction.reject')}
