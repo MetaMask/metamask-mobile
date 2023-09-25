@@ -44,7 +44,7 @@ const scale = (
     factor = 1,
     scaleVertical = false,
     scaleUp = false,
-    baseSize,
+    baseSize = undefined,
     baseModel,
   } = {},
 ) => {

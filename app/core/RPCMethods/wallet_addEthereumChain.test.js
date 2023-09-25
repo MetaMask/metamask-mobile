@@ -29,6 +29,9 @@ jest.mock('../Engine', () => ({
     CurrencyRateController: {
       setNativeCurrency: jest.fn(),
     },
+    ApprovalController: {
+      clear: jest.fn(),
+    },
   },
 }));
 
@@ -272,7 +275,7 @@ describe('RPC Method - wallet_addEthereumChain', () => {
       expect(otherOptions.endApprovalFlow).toBeCalledTimes(1);
     });
 
-    it('should end approval flow even the approval process fails', async () => {
+    it('should end approval flow even if the approval process fails', async () => {
       await expect(
         wallet_addEthereumChain({
           req: {
@@ -285,6 +288,19 @@ describe('RPC Method - wallet_addEthereumChain', () => {
 
       expect(otherOptions.startApprovalFlow).toBeCalledTimes(1);
       expect(otherOptions.endApprovalFlow).toBeCalledTimes(1);
+    });
+
+    it('clears existing approval requests', async () => {
+      Engine.context.ApprovalController.clear.mockClear();
+
+      await wallet_addEthereumChain({
+        req: {
+          params: [correctParams],
+        },
+        ...otherOptions,
+      });
+
+      expect(Engine.context.ApprovalController.clear).toBeCalledTimes(1);
     });
   });
 });
