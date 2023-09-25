@@ -205,6 +205,7 @@ exports[`CustomGasModal should render correctly 1`] = `
                       </Text>
                     </TouchableOpacity>
                     <Text
+                      accessibilityRole="text"
                       style={
                         Object {
                           "color": "#24272A",
@@ -265,6 +266,7 @@ exports[`CustomGasModal should render correctly 1`] = `
                       }
                     >
                       <Text
+                        accessibilityRole="text"
                         style={
                           Object {
                             "color": "#24272A",
@@ -286,6 +288,7 @@ exports[`CustomGasModal should render correctly 1`] = `
                         }
                       />
                       <Text
+                        accessibilityRole="text"
                         style={
                           Object {
                             "color": "#535A61",
@@ -328,6 +331,7 @@ exports[`CustomGasModal should render correctly 1`] = `
                             }
                           >
                             <Text
+                              accessibilityRole="text"
                               style={
                                 Object {
                                   "color": "#24272A",
@@ -688,6 +692,7 @@ exports[`CustomGasModal should render correctly 1`] = `
                             }
                           >
                             <Text
+                              accessibilityRole="text"
                               style={
                                 Object {
                                   "color": "#24272A",
@@ -703,6 +708,7 @@ exports[`CustomGasModal should render correctly 1`] = `
                                
                             </Text>
                             <Text
+                              accessibilityRole="text"
                               style={
                                 Object {
                                   "color": "#535A61",
