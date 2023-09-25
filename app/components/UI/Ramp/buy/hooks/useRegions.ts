@@ -52,19 +52,11 @@ export default function useRegions() {
     if (updatedRegion?.unsupported) {
       setSelectedRegion(null);
       setUnsupportedRegion(updatedRegion);
-
       redirectToRegion();
     } else if (
-      rampType === RampType.BUY &&
       updatedRegion &&
-      !updatedRegion.support.buy
-    ) {
-      setUnsupportedRegion(updatedRegion);
-      redirectToRegion();
-    } else if (
-      rampType === RampType.SELL &&
-      updatedRegion &&
-      !updatedRegion.support.sell
+      ((rampType === RampType.BUY && !updatedRegion.support.buy) ||
+        (rampType === RampType.SELL && !updatedRegion.support.sell))
     ) {
       setUnsupportedRegion(updatedRegion);
       redirectToRegion();
