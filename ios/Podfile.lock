@@ -345,7 +345,7 @@ PODS:
     - React-Core
   - react-native-randombytes (3.6.1):
     - React-Core
-  - react-native-safe-area-context (3.2.0):
+  - react-native-safe-area-context (3.4.1):
     - React-Core
   - react-native-slider (4.4.3):
     - React-Core
@@ -529,7 +529,7 @@ PODS:
   - Sentry/HybridSDK (8.3.0):
     - SentryPrivate (= 8.3.0)
   - SentryPrivate (8.3.0)
-  - SocketRocket (0.6.0)
+  - SocketRocket (0.6.1)
   - sovran-react-native (0.4.5):
     - React-Core
   - TcpSockets (4.0.0):
@@ -928,7 +928,7 @@ SPEC CHECKSUMS:
   segment-analytics-react-native: bd1f13ea95bad2313a9c7130da032af0e9a6da60
   Sentry: 757565eb01e2a6ef6b26e897e4e47e8213e12f06
   SentryPrivate: 668d6ce46835769b32e61dc8b5c78ef0b6cdcef8
-  SocketRocket: fccef3f9c5cedea1353a9ef6ada904fde10d6608
+  SocketRocket: f32cd54efbe0f095c4d7594881e52619cfe80b17
   sovran-react-native: fd3dc8f1a4b14acdc4ad25fc6b4ac4f52a2a2a15
   TcpSockets: a8eb6b5867fe643e6cfed5db2e4de62f4d1e8fd0
   Yoga: ba09b6b11e6139e3df8229238aa794205ca6a02a
