@@ -252,6 +252,7 @@ Array [
             </View>
             <View>
               <Text
+                accessibilityRole="text"
                 style={
                   Object {
                     "color": "#24272A",
@@ -266,6 +267,7 @@ Array [
                 Sepolia
               </Text>
               <Text
+                accessibilityRole="text"
                 style={
                   Object {
                     "color": "#24272A",
@@ -281,6 +283,7 @@ Array [
           </View>
           <View>
             <Text
+              accessibilityRole="text"
               style={
                 Object {
                   "color": "#24272A",
@@ -296,6 +299,7 @@ Array [
               Balance
             </Text>
             <Text
+              accessibilityRole="text"
               style={
                 Object {
                   "color": "#24272A",

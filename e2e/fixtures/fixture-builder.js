@@ -476,6 +476,12 @@ class FixtureBuilder {
               shortName: 'Localhost',
               nativeTokenSupported: true,
             },
+            {
+              chainId: 1,
+              chainName: 'Tenderly',
+              shortName: 'Tenderly',
+              nativeTokenSupported: true,
+            },
           ],
           selectedRegionAgg: null,
           selectedPaymentMethodAgg: null,
@@ -530,6 +536,20 @@ class FixtureBuilder {
    */
   withPermissionController(data) {
     merge(this.fixture.state.engine.backgroundState.PermissionController, data);
+    return this;
+  }
+
+  /**
+   * Merges provided data into the background state of the NetworkController.
+   * @param {object} data - Data to merge into the NetworkController's state.
+   * @returns {FixtureBuilder} - The FixtureBuilder instance for method chaining.
+   */
+  withNetworkController(data) {
+    merge(this.fixture.state.engine.backgroundState.NetworkController, data);
+
+    if (data.providerConfig.ticker !== 'ETH')
+      this.fixture.state.engine.backgroundState.CurrencyRateController.pendingNativeCurrency =
+        data.providerConfig.ticker;
     return this;
   }
 

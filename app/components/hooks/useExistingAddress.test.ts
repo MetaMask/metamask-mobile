@@ -17,7 +17,9 @@ const mockInitialState = {
         },
       },
       NetworkController: {
-        network: 1,
+        providerConfig: {
+          chainId: '1',
+        },
       },
       AddressBookController: {
         addressBook: {

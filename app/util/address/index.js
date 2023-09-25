@@ -32,6 +32,7 @@ import { PROTOCOLS } from '../../constants/deeplinks';
 import TransactionTypes from '../../core/TransactionTypes';
 import { selectChainId } from '../../selectors/networkController';
 import { store } from '../../store';
+import { regex } from '../../../app/util/regex';
 
 const {
   ASSET: { ERC721, ERC1155 },
@@ -206,15 +207,10 @@ export function getAddressAccountType(address) {
 export function isENS(name = undefined) {
   if (!name) return false;
 
-  const match = punycode
-    .toASCII(name)
-    .toLowerCase()
-    // Checks that the domain consists of at least one valid domain pieces separated by periods, followed by a tld
-    // Each piece of domain name has only the characters a-z, 0-9, and a hyphen (but not at the start or end of chunk)
-    // A chunk has minimum length of 1, but minimum tld is set to 2 for now (no 1-character tlds exist yet)
-    .match(
-      /^(?:[a-z0-9](?:[-a-z0-9]*[a-z0-9])?\.)+[a-z0-9][-a-z0-9]*[a-z0-9]$/u,
-    );
+  // Checks that the domain consists of at least one valid domain pieces separated by periods, followed by a tld
+  // Each piece of domain name has only the characters a-z, 0-9, and a hyphen (but not at the start or end of chunk)
+  // A chunk has minimum length of 1, but minimum tld is set to 2 for now (no 1-character tlds exist yet)
+  const match = punycode.toASCII(name).toLowerCase().match(regex.ensName);
 
   const OFFSET = 1;
   const index = name && name.lastIndexOf('.');
@@ -290,13 +286,13 @@ export function isValidHexAddress(
  *  address (String) - Represents the address of the account
  *  addressBook (Object) -  Represents all the contacts that we have saved on the address book
  *  identities (Object) - Represents our accounts on the current network of the wallet
- *  networkId (string) - The current network ID
+ *  chainId (string) - The chain ID for the current selected network
  * @returns String | undefined - When it is saved returns a string "contactAlreadySaved" if it's not reutrn undefined
  */
 function checkIfAddressAlreadySaved(params) {
-  const { address, addressBook, networkId, identities } = params;
+  const { address, addressBook, chainId, identities } = params;
   if (address) {
-    const networkAddressBook = addressBook[networkId] || {};
+    const networkAddressBook = addressBook[chainId] || {};
 
     const checksummedResolvedAddress = toChecksumAddress(address);
     if (
@@ -316,7 +312,7 @@ function checkIfAddressAlreadySaved(params) {
  * is present in ContactForm of Contatcs, in order to add a new contact
  * Variables:
  *  toAccount (String) - Represents the account address or ens
- *  networkId (String) - Represents the current network ID
+ *  chainId (String) - Represents the current chain ID
  *  addressBook (Object) - Represents all the contacts that we have saved on the address book
  *  identities (Object) - Represents our accounts on the current network of the wallet
  *  providerType (String) - Represents the network name
@@ -333,7 +329,7 @@ function checkIfAddressAlreadySaved(params) {
  *
  */
 export async function validateAddressOrENS(params) {
-  const { toAccount, networkId, addressBook, identities, chainId } = params;
+  const { toAccount, addressBook, identities, chainId } = params;
   const { AssetsContractController } = Engine.context;
 
   let addressError,
@@ -349,7 +345,7 @@ export async function validateAddressOrENS(params) {
     const contactAlreadySaved = checkIfAddressAlreadySaved({
       address: toAccount,
       addressBook,
-      networkId,
+      chainId,
       identities,
     });
 
@@ -406,7 +402,7 @@ export async function validateAddressOrENS(params) {
     const contactAlreadySaved = checkIfAddressAlreadySaved({
       address: resolvedAddress,
       addressBook,
-      networkId,
+      chainId,
       identities,
     });
 
