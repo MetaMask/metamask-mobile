@@ -12,6 +12,7 @@ const initialState = {
   isAuthChecked: false,
   initialScreen: '',
   appTheme: AppThemeKey.os,
+  ambiguousAddressEntries: {},
 };
 
 const userReducer = (state = initialState, action) => {
