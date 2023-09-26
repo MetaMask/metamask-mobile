@@ -162,7 +162,7 @@ describe('TransactionReview', () => {
     expect(confirmButton.props.disabled).not.toBe(true);
   });
 
-  it('should have confirm button disabled if from account has no balance', async () => {
+  it('should not have confirm button disabled if from account has no balance if there is no error', async () => {
     const mockNewState = {
       ...mockState,
       engine: {
@@ -192,7 +192,7 @@ describe('TransactionReview', () => {
       { state: mockState },
     );
     const confirmButton = getByRole('button', { name: 'Confirm' });
-    expect(confirmButton.props.disabled).toBe(true);
+    expect(confirmButton.props.disabled).toBe(false);
   });
 
   it('should have confirm button disabled if error is defined', async () => {
