@@ -1,3 +1,16 @@
+diff --git a/node_modules/@metamask/transaction-controller/dist/.patch.txt b/node_modules/@metamask/transaction-controller/dist/.patch.txt
+new file mode 100644
+index 0000000..550de56
+--- /dev/null
++++ b/node_modules/@metamask/transaction-controller/dist/.patch.txt
+@@ -0,0 +1,7 @@
++PATCH GENERATED FROM MetaMask/core branch: refactor/transaction-controller-patch-mobile
++This patch backports various transaction controller features from the main branch of MetaMask/core
++Steps to update patch:
++* Create a new core branch from: refactor/transaction-controller-patch-mobile
++* Run "yarn build" in the core monorepo
++* Run "yarn patch:tx <core-directory>" in the mobile repo
++* Once the new patch is merged, add your changes to: refactor/transaction-controller-patch-mobile
 diff --git a/node_modules/@metamask/transaction-controller/dist/EtherscanRemoteTransactionSource.d.ts b/node_modules/@metamask/transaction-controller/dist/EtherscanRemoteTransactionSource.d.ts
 new file mode 100644
 index 0000000..a2d484f
@@ -2609,10 +2622,10 @@ index f038698..0000000
 \ No newline at end of file
 diff --git a/node_modules/@metamask/transaction-controller/dist/types.d.ts b/node_modules/@metamask/transaction-controller/dist/types.d.ts
 new file mode 100644
-index 0000000..251d871
+index 0000000..55b8a6a
 --- /dev/null
 +++ b/node_modules/@metamask/transaction-controller/dist/types.d.ts
-@@ -0,0 +1,137 @@
+@@ -0,0 +1,138 @@
 +/**
 + * @type TransactionMeta
 + *
@@ -2711,6 +2724,7 @@ index 0000000..251d871
 +    maxPriorityFeePerGas?: string;
 +    estimatedBaseFee?: string;
 +    estimateGasError?: string;
++    type?: string;
 +}
 +/**
 + * The configuration required to fetch transaction data from a RemoteTransactionSource.
@@ -2819,7 +2833,7 @@ index e74f382..8748242 100644
  export declare const isFeeMarketEIP1559Values: (gasValues?: GasPriceValue | FeeMarketEIP1559Values | undefined) => gasValues is FeeMarketEIP1559Values;
  export declare const isGasPriceValue: (gasValues?: GasPriceValue | FeeMarketEIP1559Values | undefined) => gasValues is GasPriceValue;
 diff --git a/node_modules/@metamask/transaction-controller/dist/utils.js b/node_modules/@metamask/transaction-controller/dist/utils.js
-index dc4300f..65d6703 100644
+index dc4300f..6d26ffb 100644
 --- a/node_modules/@metamask/transaction-controller/dist/utils.js
 +++ b/node_modules/@metamask/transaction-controller/dist/utils.js
 @@ -1,15 +1,6 @@
@@ -2843,7 +2857,7 @@ index dc4300f..65d6703 100644
      maxFeePerGas: (maxFeePerGas) => (0, ethereumjs_util_1.addHexPrefix)(maxFeePerGas),
      maxPriorityFeePerGas: (maxPriorityFeePerGas) => (0, ethereumjs_util_1.addHexPrefix)(maxPriorityFeePerGas),
      estimatedBaseFee: (maxPriorityFeePerGas) => (0, ethereumjs_util_1.addHexPrefix)(maxPriorityFeePerGas),
-+    type: (type) => type === '0x0' ? '0x0' : undefined,
++    type: (type) => (type === '0x0' ? '0x0' : undefined),
  };
  /**
   * Return a URL that can be used to fetch ETH transactions.

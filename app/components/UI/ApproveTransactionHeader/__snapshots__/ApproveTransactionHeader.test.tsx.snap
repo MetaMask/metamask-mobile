@@ -53,6 +53,7 @@ exports[`ApproveTransactionHeader should render correctly 1`] = `
       />
     </View>
     <Text
+      accessibilityRole="text"
       style={
         Object {
           "color": "#535A61",
@@ -306,6 +307,7 @@ exports[`ApproveTransactionHeader should render correctly 1`] = `
         </View>
         <View>
           <Text
+            accessibilityRole="text"
             style={
               Object {
                 "color": "#24272A",
@@ -320,6 +322,7 @@ exports[`ApproveTransactionHeader should render correctly 1`] = `
             Sepolia
           </Text>
           <Text
+            accessibilityRole="text"
             style={
               Object {
                 "color": "#24272A",
@@ -335,6 +338,7 @@ exports[`ApproveTransactionHeader should render correctly 1`] = `
       </View>
       <View>
         <Text
+          accessibilityRole="text"
           style={
             Object {
               "color": "#24272A",
@@ -350,6 +354,7 @@ exports[`ApproveTransactionHeader should render correctly 1`] = `
           Balance
         </Text>
         <Text
+          accessibilityRole="text"
           style={
             Object {
               "color": "#24272A",
@@ -616,6 +621,7 @@ exports[`ApproveTransactionHeader should return origin to be null when not prese
         </View>
         <View>
           <Text
+            accessibilityRole="text"
             style={
               Object {
                 "color": "#24272A",
@@ -630,6 +636,7 @@ exports[`ApproveTransactionHeader should return origin to be null when not prese
             Sepolia
           </Text>
           <Text
+            accessibilityRole="text"
             style={
               Object {
                 "color": "#24272A",
@@ -645,6 +652,7 @@ exports[`ApproveTransactionHeader should return origin to be null when not prese
       </View>
       <View>
         <Text
+          accessibilityRole="text"
           style={
             Object {
               "color": "#24272A",
@@ -660,6 +668,7 @@ exports[`ApproveTransactionHeader should return origin to be null when not prese
           Balance
         </Text>
         <Text
+          accessibilityRole="text"
           style={
             Object {
               "color": "#24272A",

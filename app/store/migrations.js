@@ -15,6 +15,7 @@ import {
   EXPLORED,
 } from '../constants/storage';
 import { GOERLI, IPFS_DEFAULT_GATEWAY_URL } from '../../app/constants/network';
+import { regex } from '../../app/util/regex';
 
 // Generated using this script: https://gist.github.com/Gudahtt/7a8a9e452bd2efdc5ceecd93610a25d3
 import ambiguousNetworks from './migration-data/amibiguous-networks.json';
@@ -90,7 +91,7 @@ export const migrations = {
     // If provider is rpc, check if the current network has a valid chainId
     const storedChainId =
       typeof provider.chainId === 'string' ? provider.chainId : '';
-    const isDecimalString = /^[1-9]\d*$/u.test(storedChainId);
+    const isDecimalString = regex.decimalStringMigrations.test(storedChainId);
     const hasInvalidChainId =
       !isDecimalString || !isSafeChainId(parseInt(storedChainId, 10));
 

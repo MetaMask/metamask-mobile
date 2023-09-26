@@ -89,6 +89,7 @@ import {
 } from '../../../selectors/preferencesController';
 import useFavicon from '../../hooks/useFavicon/useFavicon';
 import { IPFS_GATEWAY_DISABLED_ERROR } from './constants';
+import { regex } from '../../../../app/util/regex';
 
 const { HOMEPAGE_URL, NOTIFICATION_NAMES } = AppConstants;
 const HOMEPAGE_HOST = new URL(HOMEPAGE_URL)?.hostname;
@@ -800,7 +801,7 @@ export const BrowserTab = (props) => {
 
     // Stops normal loading when it's ens, instead call go to be properly set up
     if (isENSUrl(url)) {
-      go(url.replace(/^http:\/\//, 'https://'));
+      go(url.replace(regex.urlHttpToHttps, 'https://'));
       return false;
     }
 
