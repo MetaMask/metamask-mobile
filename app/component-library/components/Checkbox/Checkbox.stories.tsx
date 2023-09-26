@@ -2,15 +2,28 @@
 
 // Internal dependencies.
 import { default as CheckboxComponent } from './Checkbox';
-import {
-  STORYBOOK_CHECKBOX_ARGTYPES,
-  SAMPLE_CHECKBOX_PROPS,
-} from './Checkbox.constants';
+import { SAMPLE_CHECKBOX_PROPS } from './Checkbox.constants';
 
 const CheckboxMeta = {
   title: 'Component Library / Checkbox',
   component: CheckboxComponent,
-  argTypes: STORYBOOK_CHECKBOX_ARGTYPES,
+  argTypes: {
+    isChecked: {
+      control: { type: 'boolean' },
+    },
+    isIndeterminate: {
+      control: { type: 'boolean' },
+    },
+    isDisabled: {
+      control: { type: 'boolean' },
+    },
+    isReadOnly: {
+      control: { type: 'boolean' },
+    },
+    isDanger: {
+      control: { type: 'boolean' },
+    },
+  },
 };
 export default CheckboxMeta;
 

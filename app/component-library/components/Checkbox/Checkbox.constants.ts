@@ -26,22 +26,3 @@ export const SAMPLE_CHECKBOX_PROPS: CheckboxProps = {
   isReadOnly: false,
   isDanger: false,
 };
-
-// Storybook settings
-export const STORYBOOK_CHECKBOX_ARGTYPES = {
-  isChecked: {
-    control: { type: 'boolean' },
-  },
-  isIndeterminate: {
-    control: { type: 'boolean' },
-  },
-  isDisabled: {
-    control: { type: 'boolean' },
-  },
-  isReadOnly: {
-    control: { type: 'boolean' },
-  },
-  isDanger: {
-    control: { type: 'boolean' },
-  },
-};
