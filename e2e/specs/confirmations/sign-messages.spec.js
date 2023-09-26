@@ -18,17 +18,15 @@ const MAX_ATTEMPTS = 3;
 describe(Smoke('Sign Messages'), () => {
   let ganacheServer;
   beforeAll(async () => {
-    jest.setTimeout(150000);
-    await device.reverseTcpPort('8545'); // ganache
-    await device.reverseTcpPort('8080'); // test-dapp
-  });
-
-  beforeEach(async () => {
+    jest.setTimeout(2500000);
+    if (device.getPlatform() === 'android') {
+      await device.reverseTcpPort('8545'); // ganache
+    }
     ganacheServer = new Ganache();
     await ganacheServer.start(defaultGanacheOptions);
   });
 
-  afterEach(async () => {
+  afterAll(async () => {
     await ganacheServer.quit();
     await TestHelpers.delay(3000);
   });

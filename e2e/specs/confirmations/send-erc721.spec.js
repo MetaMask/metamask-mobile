@@ -27,14 +27,11 @@ describe(Smoke('ERC721 tokens'), () => {
       await device.reverseTcpPort('8545'); // ganache
       await device.reverseTcpPort('8080'); // test-dapp
     }
-  });
-
-  beforeEach(async () => {
     ganacheServer = new Ganache();
     await ganacheServer.start(defaultGanacheOptions);
   });
 
-  afterEach(async () => {
+  afterAll(async () => {
     await ganacheServer.quit();
     await TestHelpers.delay(3000);
   });
