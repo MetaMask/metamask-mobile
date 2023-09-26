@@ -12,7 +12,7 @@ jobs:
       - name: Start pr_smoke_e2e_pipeline workflow in Bitrise
         if: contains(github.event.pull_request.labels.*.name, 'needs-smoke-e2e')
         run: |
-          curl https://app.bitrise.io/app/${{ secrets.BITRISE_APP_ID }}/build/start.json -L --data '{
+          curl https://app.bitrise.io/app/${{ secrets.BITRISE_APP_ID }}/build/start.json --data '{
             "hook_info":{
               "type":"bitrise",
               "build_trigger_token":${{ secrets.BITRISE_BUILD_TRIGGER_TOKEN }}
