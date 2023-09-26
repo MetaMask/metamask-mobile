@@ -1,0 +1,28 @@
+name: Bitrise E2E
+
+on:
+  pull_request:
+    types: [labeled]
+
+jobs:
+  deploy:
+    name: Run e2e smoke test on Bitrise
+    runs-on: ubuntu-latest
+    steps:
+      - name: Start pr_smoke_e2e_pipeline workflow in Bitrise
+        if: contains(github.event.pull_request.labels.*.name, 'needs-smoke-e2e')
+        run: |
+          curl https://app.bitrise.io/app/${{ secrets.BITRISE_APP_ID }}/build/start.json -L --data '{
+            "hook_info":{
+              "type":"bitrise",
+              "build_trigger_token":${{ secrets.BITRISE_BUILD_TRIGGER_TOKEN }}
+            },
+            "build_params":{
+              "branch":"${{ github.head_ref }}",
+              "branch_dest": "${{ github.event.pull_request.base.ref }}",
+              "workflow_id":"deploy-internal",
+              "commit_hash":"${{ github.event.pull_request.head.sha }}",
+              "pull_request_id": ${{ steps.pr_number.outputs.number }}
+            },
+            "triggered_by":"curl"
+          }'
