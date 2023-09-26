@@ -124,7 +124,13 @@ export const getEIP1559TransactionData = ({
         conversionRate,
         currentCurrency,
         nativeCurrency,
-        transactionState,
+        transactionState: {
+          selectedAsset: transactionState.selectedAsset,
+          transaction: {
+            value: transactionState.transaction.value,
+            data: transactionState.transaction.data,
+          },
+        },
         gasFeeEstimates,
         swapsParams: undefined,
         selectedGasFee: {
