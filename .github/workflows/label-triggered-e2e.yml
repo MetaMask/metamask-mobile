@@ -22,7 +22,6 @@ jobs:
               "branch_dest": "${{ github.event.pull_request.base.ref }}",
               "workflow_id": "deploy-internal",
               "commit_hash": "${{ github.event.pull_request.head.sha }}",
-              "pull_request_id": "${{ steps.pr_number.outputs.number }}"
             },
             "triggered_by": "curl"
           }'
