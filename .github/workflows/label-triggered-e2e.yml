@@ -19,7 +19,7 @@ jobs:
             },
             "build_params": {
               "branch": "${{ github.head_ref }}",
-              "pipeline_id": "pr_smoke_e2e_pipeline",
+              "pipeline_id": "pr_smoke_e2e_pipeline"
             },
             "triggered_by": "curl"
           }'
