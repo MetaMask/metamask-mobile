@@ -13,6 +13,7 @@ import BigNumber from 'bignumber.js';
 
 import currencySymbols from '../currency-symbols.json';
 import { isZero } from '../lodash';
+import { regex } from '../regex';
 export { BNToHex };
 
 // Big Number Constants
@@ -64,11 +65,11 @@ const baseChange = {
  * @returns {string} The prefixed string.
  */
 export const addHexPrefix = (str) => {
-  if (typeof str !== 'string' || str.match(/^-?0x/u)) {
+  if (typeof str !== 'string' || str.match(regex.hexPrefix)) {
     return str;
   }
 
-  if (str.match(/^-?0X/u)) {
+  if (str.match(regex.hexPrefix)) {
     return str.replace('0X', '0x');
   }
 
@@ -94,7 +95,7 @@ export function fromWei(value = 0, unit = 'ether') {
  * Converts token minimal unit to readable string value
  *
  * @param {number|string|Object} minimalInput - Token minimal unit to convert
- * @param {string} decimals - Token decimals to convert
+ * @param {number|string} decimals - Token decimals to convert
  * @returns {string} - String containing the new number
  */
 export function fromTokenMinimalUnit(minimalInput, decimals) {
@@ -110,7 +111,7 @@ export function fromTokenMinimalUnit(minimalInput, decimals) {
   while (fraction.length < decimals) {
     fraction = '0' + fraction;
   }
-  fraction = fraction.match(/^([0-9]*[1-9]|0)(0*)/)[1];
+  fraction = fraction.match(regex.fractions)[1];
   const whole = minimal.div(base).toString(10);
   let value = '' + whole + (fraction === '0' ? '' : '.' + fraction);
   if (negative) {
@@ -118,9 +119,6 @@ export function fromTokenMinimalUnit(minimalInput, decimals) {
   }
   return value;
 }
-
-const INTEGER_REGEX = /^-?\d*(\.0+|\.)?$/;
-export const INTEGER_OR_FLOAT_REGEX = /^[+-]?\d+(\.\d+)?$/;
 
 /**
  * Converts token minimal unit to readable string value
@@ -135,7 +133,7 @@ export function fromTokenMinimalUnitString(minimalInput, decimals) {
   }
 
   const tokenFormat = ethersUtils.formatUnits(minimalInput, decimals);
-  const isInteger = Boolean(INTEGER_REGEX.exec(tokenFormat));
+  const isInteger = Boolean(regex.integer.exec(tokenFormat));
 
   const [integerPart, decimalPart] = tokenFormat.split('.');
   if (isInteger) {
@@ -335,7 +333,7 @@ export function calcTokenValueToSend(value, decimals) {
 /**
  * Checks if a value is a BN instance
  *
- * @param {object} value - Value to check
+ * @param {object|string} value - Value to check
  * @returns {boolean} - True if the value is a BN instance
  */
 export function isBN(value) {
@@ -373,7 +371,7 @@ export function toBN(value) {
  * @returns {boolean} - True if the string  is a valid number
  */
 export function isNumber(str) {
-  return /^(\d+(\.\d+)?)$/.test(str);
+  return regex.number.test(str);
 }
 
 export const dotAndCommaDecimalFormatter = (value) => {
@@ -406,7 +404,7 @@ export const isNumberScientificNotationWhenString = (value) => {
  *
  * @param {number|string|BN} value - Value to convert
  * @param {string} unit - Unit to convert from, ether by default
- * @returns {Object} - BN instance containing the new number
+ * @returns {BN} - BN instance containing the new number
  */
 export function toWei(value, unit = 'ether') {
   // check the posibilty to convert to BN
@@ -493,12 +491,12 @@ export function addCurrencySymbol(
       const decimalString = amount.toString().split('.')[1];
       if (decimalString && decimalString.length > 1) {
         const firstNonZeroDecimal = decimalString.indexOf(
-          decimalString.match(/[1-9]/)[0],
+          decimalString.match(regex.decimalString)[0],
         );
         if (firstNonZeroDecimal > 0) {
           amount = parseFloat(amount).toFixed(firstNonZeroDecimal + 3);
           // remove trailing zeros
-          amount = amount.replace(/\.?0+$/, '');
+          amount = amount.replace(regex.trailingZero, '');
         }
       }
     }
@@ -524,7 +522,7 @@ export function addCurrencySymbol(
 /**
  * Converts wei expressed as a BN instance into a human-readable fiat string
  *
- * @param {number|string} wei - BN corresponding to an amount of wei
+ * @param {number|string|BN} wei - BN corresponding to an amount of wei
  * @param {number} conversionRate - ETH to current currency conversion rate
  * @param {Number} decimalsToShow - Decimals to 5
  * @returns {Number} - The converted balance
@@ -714,7 +712,7 @@ export function isPrefixedFormattedHexString(value) {
   if (typeof value !== 'string') {
     return false;
   }
-  return /^0x[1-9a-f]+[0-9a-f]*$/iu.test(value);
+  return regex.prefixedFormattedHexString.test(value);
 }
 
 const converter = ({
