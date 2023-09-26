@@ -16,7 +16,7 @@ import { INPUT_TEST_ID } from './Input.constants';
 const Input: React.FC<InputProps> = ({
   style,
   textVariant = DEFAULT_TEXT_VARIANT,
-  isStateStylesDisabled = false,
+  isStateStylesDisabled,
   isDisabled = false,
   isReadonly = false,
   onBlur,
@@ -25,7 +25,7 @@ const Input: React.FC<InputProps> = ({
   ...props
 }) => {
   const [isFocused, setIsFocused] = useState(autoFocus);
-
+  console.log(isStateStylesDisabled);
   const { styles } = useStyles(styleSheet, {
     style,
     textVariant,

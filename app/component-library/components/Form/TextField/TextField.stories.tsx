@@ -1,37 +1,43 @@
-/* eslint-disable no-console */
-
-// Third party dependencies.
+/* eslint-disable react/display-name */
 import React from 'react';
-import { storiesOf } from '@storybook/react-native';
-import { boolean, select } from '@storybook/addon-knobs';
-
-// External dependencies.
-import { storybookPropsGroupID } from '../../../constants/storybook.constants';
 
 // Internal dependencies.
-import TextField from './TextField';
+import { default as TextFieldComponent } from './TextField';
+import { SAMPLE_TEXTFIELD_PROPS } from './TextField.constants';
 import { TextFieldProps, TextFieldSize } from './TextField.types';
-import { DEFAULT_TEXTFIELD_SIZE } from './TextField.constants';
 
-export const getTextFieldStoryProps = (): TextFieldProps => {
-  const sizeSelector = select(
-    'size',
-    TextFieldSize,
-    DEFAULT_TEXTFIELD_SIZE,
-    storybookPropsGroupID,
-  );
-  const isError = boolean('isError', false, storybookPropsGroupID);
-  const isDisabled = boolean('isDisabled', false, storybookPropsGroupID);
-
-  return {
-    size: sizeSelector,
-    isError,
-    isDisabled,
-  };
+const TextFieldMeta = {
+  title: 'Component Library / Form',
+  component: TextFieldComponent,
+  argTypes: {
+    size: {
+      options: Object.values(TextFieldSize),
+      mapping: Object.values(TextFieldSize),
+      control: {
+        type: 'select',
+        labels: Object.keys(TextFieldSize),
+      },
+    },
+    isError: {
+      control: { type: 'boolean' },
+    },
+    isDisabled: {
+      control: { type: 'boolean' },
+    },
+  },
 };
+export default TextFieldMeta;
 
-const TextFieldStory = () => <TextField {...getTextFieldStoryProps()} />;
-
-storiesOf('Component Library / Form', module).add('TextField', TextFieldStory);
-
-export default TextFieldStory;
+export const TextField = {
+  args: SAMPLE_TEXTFIELD_PROPS,
+  render: (
+    args: JSX.IntrinsicAttributes &
+      TextFieldProps & { children?: React.ReactNode },
+  ) => (
+    <TextFieldComponent
+      {...args}
+      startAccessory={args.startAccessory}
+      endAccessory={args.endAccessory}
+    />
+  ),
+};
