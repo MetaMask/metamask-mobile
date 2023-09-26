@@ -1,41 +1,54 @@
-/* eslint-disable no-console, react-native/no-inline-styles */
-
+/* eslint-disable react-native/no-inline-styles */
+/* eslint-disable react/display-name */
 // Third party dependencies.
 import React from 'react';
 import { View } from 'react-native';
-import { storiesOf } from '@storybook/react-native';
 
 // External dependencies.
 import { mockTheme } from '../../../../util/theme';
 import Text, { TextVariant } from '../../Texts/Text';
-import {
-  getAccordionHeaderStoryProps,
-  AccordionHeaderStory,
-} from './foundation/AccordionHeader/AccordionHeader.stories';
+import { SAMPLE_ACCORDIONHEADER_PROPS } from './foundation/AccordionHeader/AccordionHeader.constants';
+import { AccordionHeaderHorizontalAlignment } from './foundation/AccordionHeader/AccordionHeader.types';
 
 // Internal dependencies.
-import Accordion from './Accordion';
+import { default as AccordionComponent } from './Accordion';
 import { AccordionProps } from './Accordion.types';
 
-export const getAccordionStoryProps = (): AccordionProps => ({
-  ...getAccordionHeaderStoryProps(),
-  children: (
-    <View
-      style={{
-        backgroundColor: mockTheme.colors.background.alternative,
-        alignItems: 'center',
-        justifyContent: 'center',
-      }}
-    >
-      <Text variant={TextVariant.BodySM}>{'Wrapped Content'}</Text>
-    </View>
+const AccordionMeta = {
+  title: 'Component Library / Accordions',
+  component: AccordionComponent,
+  argTypes: {
+    isExpanded: {
+      control: { type: 'boolean' },
+    },
+    horizontalAlignment: {
+      options: Object.values(AccordionHeaderHorizontalAlignment),
+      mapping: Object.values(AccordionHeaderHorizontalAlignment),
+      control: {
+        type: 'select',
+        labels: Object.keys(AccordionHeaderHorizontalAlignment),
+      },
+    },
+  },
+};
+export default AccordionMeta;
+
+export const Accordion = {
+  args: SAMPLE_ACCORDIONHEADER_PROPS,
+  render: (
+    args: JSX.IntrinsicAttributes &
+      AccordionProps & { children?: React.ReactNode },
+  ) => (
+    <AccordionComponent {...args}>
+      <View
+        style={{
+          backgroundColor: mockTheme.colors.background.alternative,
+          alignItems: 'center',
+          justifyContent: 'center',
+        }}
+      >
+        <Text variant={TextVariant.BodySM}>{'Wrapped Content'}</Text>
+      </View>
+    </AccordionComponent>
   ),
-});
-
-const AccordionStory = () => <Accordion {...getAccordionStoryProps()} />;
-
-storiesOf('Component Library / Accordions', module)
-  .add('Accordion', AccordionStory)
-  .add('foundation / AccordionHeader', AccordionHeaderStory);
-
-export default AccordionStory;
+};
