@@ -9,10 +9,6 @@ jobs:
     name: Run e2e smoke test on Bitrise
     runs-on: ubuntu-latest
     steps:
-      - name: Get the pull request number
-        id: pr_number
-        run: |
-          echo ::set-output name=number::$(echo "$GITHUB_REF" | awk -F / '{print $3}')
       - name: Start pr_smoke_e2e_pipeline workflow in Bitrise
         if: contains(github.event.pull_request.labels.*.name, 'needs-smoke-e2e')
         run: |
@@ -23,10 +19,7 @@ jobs:
             },
             "build_params": {
               "branch": "${{ github.head_ref }}",
-              "branch_dest": "${{ github.event.pull_request.base.ref }}",
-              "workflow_id": "pr_smoke_e2e_pipeline",
-              "commit_hash": "${{ github.event.pull_request.head.sha }}",
-              "pull_request_id": ${{ steps.pr_number.outputs.number }}
+              "pipeline_id": "pr_smoke_e2e_pipeline",
             },
             "triggered_by": "curl"
           }'
