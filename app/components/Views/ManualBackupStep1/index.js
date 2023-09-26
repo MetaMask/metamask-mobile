@@ -38,6 +38,7 @@ import { CONFIRM_CHANGE_PASSWORD_INPUT_BOX_ID } from '../../../constants/test-id
 import { MetaMetricsEvents } from '../../../core/Analytics';
 import AnalyticsV2 from '../../../util/analyticsV2';
 import { Authentication } from '../../../core';
+import { regex } from '../../../../app/util/regex';
 
 /**
  * View that's shown during the second step of
