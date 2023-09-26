@@ -45,6 +45,5 @@ exports[`BannerTip should render default settings correctly 1`] = `
   }
   testID="bannertip"
   title="Sample Banner Tip Title"
-  variant="Tip"
 />
 `;

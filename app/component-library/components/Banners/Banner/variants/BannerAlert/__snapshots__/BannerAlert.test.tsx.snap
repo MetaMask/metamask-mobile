@@ -28,6 +28,5 @@ exports[`BannerAlert should render default settings correctly 1`] = `
   }
   testID="banneralert"
   title="Sample Banner Alert Title"
-  variant="Alert"
 />
 `;
