@@ -16,6 +16,9 @@ import useTokenBalance from '../../hooks/useTokenBalance';
 import { useTheme } from '../../../util/theme';
 import NotificationManager from '../../../core/NotificationManager';
 import { selectChainId } from '../../../selectors/networkController';
+import ApproveTransactionHeader from '../ApproveTransactionHeader';
+import { getActiveTabUrl } from '../../../util/transactions';
+import { isEqual } from 'lodash';
 
 const createStyles = (colors) =>
   StyleSheet.create({
@@ -24,7 +27,7 @@ const createStyles = (colors) =>
       borderTopLeftRadius: 10,
       borderTopRightRadius: 10,
       paddingBottom: Device.isIphoneX() ? 20 : 0,
-      minHeight: Device.isIos() ? '50%' : '60%',
+      minHeight: Device.isIos() ? '55%' : '65%',
     },
     title: {
       textAlign: 'center',
@@ -51,6 +54,9 @@ const createStyles = (colors) =>
     tokenInfo: {
       flex: 1,
       flexDirection: 'column',
+    },
+    approveTransactionHeaderWrapper: {
+      paddingTop: 16,
     },
     infoTitleWrapper: {
       alignItems: 'center',
@@ -103,6 +109,8 @@ const WatchAssetRequest = ({
     ? strings('transaction.failed')
     : `${renderFromTokenMinimalUnit(balance, asset.decimals)} ${asset.symbol}`;
 
+  const activeTabUrl = useSelector(getActiveTabUrl, isEqual);
+
   const getAnalyticsParams = () => {
     try {
       const url = new URL(currentPageInformation?.url);
@@ -137,8 +145,23 @@ const WatchAssetRequest = ({
     });
   };
 
+  const { address, symbol, decimals, standard } = asset;
+
   return (
     <View style={styles.root}>
+      <View style={styles.approveTransactionHeaderWrapper}>
+        <ApproveTransactionHeader
+          origin={currentPageInformation?.url}
+          url={activeTabUrl}
+          from={suggestedAssetMeta.interactingAddress}
+          asset={{
+            address,
+            symbol,
+            decimals,
+            standard,
+          }}
+        />
+      </View>
       <View style={styles.titleWrapper}>
         <Text style={styles.title} onPress={this.cancelSignature}>
           {strings('watch_asset_request.title')}
