@@ -18,6 +18,7 @@ import Ganache from '../../../app/util/test/ganache';
 
 describe(Smoke('ERC721 tokens'), () => {
   let ganacheServer;
+  const port = '8547';
 
   const NFT_CONTRACT = SMART_CONTRACTS.NFTS;
   const SENT_COLLECTIBLE_MESSAGE_TEXT = root.transactions.sent_collectible;
@@ -26,29 +27,16 @@ describe(Smoke('ERC721 tokens'), () => {
   beforeAll(async () => {
     jest.setTimeout(150000);
     if (device.getPlatform() === 'android') {
-      await device.reverseTcpPort('8545'); // ganache
+      await device.reverseTcpPort(port); // ganache
       await device.reverseTcpPort('8080'); // test-dapp
     }
     ganacheServer = new Ganache();
-    await ganacheServer.start(defaultGanacheOptions);
+    await ganacheServer.start({ port, ...defaultGanacheOptions });
   });
 
-  beforeEach(async () => {
-    try {
-      ganacheServer = new Ganache();
-      await ganacheServer.start(defaultGanacheOptions);
-    } catch (e) {
-      console.log(e);
-    }
-  });
-
-  afterEach(async () => {
-    try {
-      await ganacheServer.quit();
-      await TestHelpers.delay(3000);
-    } catch (e) {
-      console.log(e);
-    }
+  afterAll(async () => {
+    await ganacheServer.quit();
+    await TestHelpers.delay(3000);
   });
 
   it('send an ERC721 token from a dapp', async () => {
@@ -56,7 +44,7 @@ describe(Smoke('ERC721 tokens'), () => {
       {
         dapp: true,
         fixture: new FixtureBuilder()
-          .withGanacheNetwork()
+          .withGanacheNetwork(port)
           .withPermissionControllerConnectedToTestDapp()
           .build(),
         restartDevice: true,

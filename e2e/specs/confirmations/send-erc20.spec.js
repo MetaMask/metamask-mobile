@@ -21,30 +21,21 @@ const WEBVIEW_TEST_DAPP_TRANSFER_TOKENS_BUTTON_ID = 'transferTokens';
 
 describe(Regression('ERC20 tokens'), () => {
   let ganacheServer;
+  const port = '8546';
+
   beforeAll(async () => {
     jest.setTimeout(170000);
     if (device.getPlatform() === 'android') {
-      await device.reverseTcpPort('8545'); // ganache
+      await device.reverseTcpPort(port); // ganache
       await device.reverseTcpPort('8080'); // test-dapp
     }
+    ganacheServer = new Ganache();
+    await ganacheServer.start({ port, ...defaultGanacheOptions });
   });
 
-  beforeEach(async () => {
-    try {
-      ganacheServer = new Ganache();
-      await ganacheServer.start(defaultGanacheOptions);
-    } catch (e) {
-      console.log(e);
-    }
-  });
-
-  afterEach(async () => {
-    try {
-      await ganacheServer.quit();
-      await TestHelpers.delay(3000);
-    } catch (e) {
-      console.log(e);
-    }
+  afterAll(async () => {
+    await ganacheServer.quit();
+    await TestHelpers.delay(3000);
   });
 
   it('send an ERC20 token from a dapp', async () => {
@@ -52,7 +43,7 @@ describe(Regression('ERC20 tokens'), () => {
       {
         dapp: true,
         fixture: new FixtureBuilder()
-          .withGanacheNetwork()
+          .withGanacheNetwork(port)
           .withPermissionControllerConnectedToTestDapp()
           .build(),
         restartDevice: true,

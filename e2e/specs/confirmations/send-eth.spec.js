@@ -24,37 +24,27 @@ describe(Smoke('Send ETH'), () => {
   const TOKEN_NAME = root.unit.eth;
   const AMOUNT = '0.12345';
   let ganacheServer;
+  const port = '8548';
 
   beforeAll(async () => {
     jest.setTimeout(2500000);
     if (device.getPlatform() === 'android') {
-      await device.reverseTcpPort('8545'); // ganache
+      await device.reverseTcpPort(port); // ganache
     }
+    ganacheServer = new Ganache();
+    await ganacheServer.start({ port, ...defaultGanacheOptions });
   });
 
-  beforeEach(async () => {
-    try {
-      ganacheServer = new Ganache();
-      await ganacheServer.start(defaultGanacheOptions);
-    } catch (e) {
-      console.log(e);
-    }
-  });
-
-  afterEach(async () => {
-    try {
-      await ganacheServer.quit();
-      await TestHelpers.delay(3000);
-    } catch (e) {
-      console.log(e);
-    }
+  afterAll(async () => {
+    await ganacheServer.quit();
+    await TestHelpers.delay(3000);
   });
 
   it('should send ETH to an EOA from inside the wallet', async () => {
     const RECIPIENT = '0x1FDb169Ef12954F20A15852980e1F0C122BfC1D6';
     await withFixtures(
       {
-        fixture: new FixtureBuilder().withGanacheNetwork().build(),
+        fixture: new FixtureBuilder().withGanacheNetwork(port).build(),
         restartDevice: true,
       },
       async () => {

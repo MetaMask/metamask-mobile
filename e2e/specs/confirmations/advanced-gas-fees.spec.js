@@ -21,35 +21,26 @@ const VALID_ADDRESS = '0xebe6CcB6B55e1d094d9c58980Bc10Fed69932cAb';
 
 describe(Smoke('Advanced Gas Fees and Priority Tests'), () => {
   let ganacheServer;
+  const port = '8545';
+
   beforeAll(async () => {
     jest.setTimeout(170000);
     if (device.getPlatform() === 'android') {
-      await device.reverseTcpPort('8545'); // ganache
+      await device.reverseTcpPort(port); // ganache
     }
+    ganacheServer = new Ganache();
+    await ganacheServer.start({ port, ...defaultGanacheOptions });
   });
 
-  beforeEach(async () => {
-    try {
-      ganacheServer = new Ganache();
-      await ganacheServer.start(defaultGanacheOptions);
-    } catch (e) {
-      console.log(e);
-    }
-  });
-
-  afterEach(async () => {
-    try {
-      await ganacheServer.quit();
-      await TestHelpers.delay(3000);
-    } catch (e) {
-      console.log(e);
-    }
+  afterAll(async () => {
+    await ganacheServer.quit();
+    await TestHelpers.delay(3000);
   });
 
   it('should edit priority gas settings and send ETH', async () => {
     await withFixtures(
       {
-        fixture: new FixtureBuilder().withGanacheNetwork().build(),
+        fixture: new FixtureBuilder().withGanacheNetwork(port).build(),
         restartDevice: true,
       },
       async () => {

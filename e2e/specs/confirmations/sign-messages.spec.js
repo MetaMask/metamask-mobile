@@ -18,29 +18,20 @@ const MAX_ATTEMPTS = 3;
 
 describe(Smoke('Sign Messages'), () => {
   let ganacheServer;
+  const port = '8548';
+
   beforeAll(async () => {
     jest.setTimeout(2500000);
     if (device.getPlatform() === 'android') {
-      await device.reverseTcpPort('8545'); // ganache
+      await device.reverseTcpPort(port); // ganache
     }
+    ganacheServer = new Ganache();
+    await ganacheServer.start({ port, ...defaultGanacheOptions });
   });
 
-  beforeEach(async () => {
-    try {
-      ganacheServer = new Ganache();
-      await ganacheServer.start(defaultGanacheOptions);
-    } catch (e) {
-      console.log(e);
-    }
-  });
-
-  afterEach(async () => {
-    try {
-      await ganacheServer.quit();
-      await TestHelpers.delay(3000);
-    } catch (e) {
-      console.log(e);
-    }
+  afterAll(async () => {
+    await ganacheServer.quit();
+    await TestHelpers.delay(3000);
   });
 
   it('should sign personal message', async () => {
@@ -48,7 +39,7 @@ describe(Smoke('Sign Messages'), () => {
       {
         dapp: true,
         fixture: new FixtureBuilder()
-          .withGanacheNetwork()
+          .withGanacheNetwork(port)
           .withPermissionControllerConnectedToTestDapp()
           .build(),
         restartDevice: true,
