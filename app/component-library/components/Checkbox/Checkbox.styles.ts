@@ -27,7 +27,7 @@ const styleSheet = (params: { theme: Theme; vars: CheckboxStyleSheetVars }) => {
   } = vars;
 
   const backgroundColor = isReadOnly
-    ? theme.colors.background.default
+    ? theme.colors.background.alternative
     : isDanger
     ? isChecked || isIndeterminate
       ? theme.colors.error.default
@@ -37,7 +37,7 @@ const styleSheet = (params: { theme: Theme; vars: CheckboxStyleSheetVars }) => {
     : theme.colors.background.default;
 
   const borderColor = isReadOnly
-    ? theme.colors.background.default
+    ? theme.colors.background.alternative
     : isDanger
     ? theme.colors.error.default
     : isChecked || isIndeterminate
