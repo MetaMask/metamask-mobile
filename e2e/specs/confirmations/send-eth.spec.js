@@ -1,3 +1,5 @@
+/* eslint-disable no-console */
+
 'use strict';
 
 import { Smoke } from '../../tags';
@@ -28,13 +30,24 @@ describe(Smoke('Send ETH'), () => {
     if (device.getPlatform() === 'android') {
       await device.reverseTcpPort('8545'); // ganache
     }
-    ganacheServer = new Ganache();
-    await ganacheServer.start(defaultGanacheOptions);
   });
 
-  afterAll(async () => {
-    await ganacheServer.quit();
-    await TestHelpers.delay(3000);
+  beforeEach(async () => {
+    try {
+      ganacheServer = new Ganache();
+      await ganacheServer.start(defaultGanacheOptions);
+    } catch (e) {
+      console.log(e);
+    }
+  });
+
+  afterEach(async () => {
+    try {
+      await ganacheServer.quit();
+      await TestHelpers.delay(3000);
+    } catch (e) {
+      console.log(e);
+    }
   });
 
   it('should send ETH to an EOA from inside the wallet', async () => {

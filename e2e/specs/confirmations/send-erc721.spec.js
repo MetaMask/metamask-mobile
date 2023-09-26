@@ -1,3 +1,5 @@
+/* eslint-disable no-console */
+
 'use strict';
 
 import { Smoke } from '../../tags';
@@ -31,9 +33,22 @@ describe(Smoke('ERC721 tokens'), () => {
     await ganacheServer.start(defaultGanacheOptions);
   });
 
-  afterAll(async () => {
-    await ganacheServer.quit();
-    await TestHelpers.delay(3000);
+  beforeEach(async () => {
+    try {
+      ganacheServer = new Ganache();
+      await ganacheServer.start(defaultGanacheOptions);
+    } catch (e) {
+      console.log(e);
+    }
+  });
+
+  afterEach(async () => {
+    try {
+      await ganacheServer.quit();
+      await TestHelpers.delay(3000);
+    } catch (e) {
+      console.log(e);
+    }
   });
 
   it('send an ERC721 token from a dapp', async () => {

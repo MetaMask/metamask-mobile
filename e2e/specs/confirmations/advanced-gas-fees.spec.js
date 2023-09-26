@@ -1,3 +1,5 @@
+/* eslint-disable no-console */
+
 'use strict';
 import { Smoke } from '../../tags';
 import WalletView from '../../pages/WalletView';
@@ -24,13 +26,24 @@ describe(Smoke('Advanced Gas Fees and Priority Tests'), () => {
     if (device.getPlatform() === 'android') {
       await device.reverseTcpPort('8545'); // ganache
     }
-    ganacheServer = new Ganache();
-    await ganacheServer.start(defaultGanacheOptions);
   });
 
-  afterAll(async () => {
-    await ganacheServer.quit();
-    await TestHelpers.delay(3000);
+  beforeEach(async () => {
+    try {
+      ganacheServer = new Ganache();
+      await ganacheServer.start(defaultGanacheOptions);
+    } catch (e) {
+      console.log(e);
+    }
+  });
+
+  afterEach(async () => {
+    try {
+      await ganacheServer.quit();
+      await TestHelpers.delay(3000);
+    } catch (e) {
+      console.log(e);
+    }
   });
 
   it('should edit priority gas settings and send ETH', async () => {

@@ -1,3 +1,5 @@
+/* eslint-disable no-console */
+
 'use strict';
 import { Regression } from '../../tags';
 import TestHelpers from '../../helpers';
@@ -25,13 +27,24 @@ describe(Regression('ERC20 tokens'), () => {
       await device.reverseTcpPort('8545'); // ganache
       await device.reverseTcpPort('8080'); // test-dapp
     }
-    ganacheServer = new Ganache();
-    await ganacheServer.start(defaultGanacheOptions);
   });
 
-  afterAll(async () => {
-    await ganacheServer.quit();
-    await TestHelpers.delay(3000);
+  beforeEach(async () => {
+    try {
+      ganacheServer = new Ganache();
+      await ganacheServer.start(defaultGanacheOptions);
+    } catch (e) {
+      console.log(e);
+    }
+  });
+
+  afterEach(async () => {
+    try {
+      await ganacheServer.quit();
+      await TestHelpers.delay(3000);
+    } catch (e) {
+      console.log(e);
+    }
   });
 
   it('send an ERC20 token from a dapp', async () => {

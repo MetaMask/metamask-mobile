@@ -1,3 +1,4 @@
+/* eslint-disable no-console */
 'use strict';
 import Browser from '../../pages/Drawer/Browser';
 import TabBarComponent from '../../pages/TabBarComponent';
@@ -22,13 +23,24 @@ describe(Smoke('Sign Messages'), () => {
     if (device.getPlatform() === 'android') {
       await device.reverseTcpPort('8545'); // ganache
     }
-    ganacheServer = new Ganache();
-    await ganacheServer.start(defaultGanacheOptions);
   });
 
-  afterAll(async () => {
-    await ganacheServer.quit();
-    await TestHelpers.delay(3000);
+  beforeEach(async () => {
+    try {
+      ganacheServer = new Ganache();
+      await ganacheServer.start(defaultGanacheOptions);
+    } catch (e) {
+      console.log(e);
+    }
+  });
+
+  afterEach(async () => {
+    try {
+      await ganacheServer.quit();
+      await TestHelpers.delay(3000);
+    } catch (e) {
+      console.log(e);
+    }
   });
 
   it('should sign personal message', async () => {
