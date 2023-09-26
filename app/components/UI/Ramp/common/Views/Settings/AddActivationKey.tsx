@@ -1,12 +1,10 @@
 import React, { useCallback, useEffect, useRef, useState } from 'react';
 import { TextInput } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
-
 import Text from '../../../../../Base/Text';
 import StyledButton from '../../../../StyledButton';
 import Row from '../../components/Row';
 import ScreenLayout from '../../components/ScreenLayout';
-
 import { getNavigationOptionsTitle } from '../../../../Navbar';
 import {
   createNavigationDetails,
@@ -15,10 +13,8 @@ import {
 import { useTheme } from '../../../../../../util/theme';
 import Routes from '../../../../../../constants/navigation/Routes';
 import { strings } from '../../../../../../../locales/i18n';
-
+import { regex } from '../../../../../../../app/util/regex';
 import styles from './Settings.styles';
-
-const activationKeyRegex = /^[a-zA-Z0-9\\-]{1,32}$/;
 
 interface AddActivationKeyParams {
   onSubmit: (key: string) => void;
@@ -50,7 +46,7 @@ function AddActivationKey() {
   }, [colors, navigation]);
 
   const handleSubmit = useCallback(() => {
-    if (!activationKeyRegex.test(newKey)) {
+    if (!regex.activationKey.test(newKey)) {
       return;
     }
     onSubmit(newKey);
@@ -95,7 +91,7 @@ function AddActivationKey() {
             <StyledButton
               key="confirm-button"
               type="confirm"
-              disabled={!activationKeyRegex.test(newKey)}
+              disabled={!regex.activationKey.test(newKey)}
               containerStyle={style.button}
               onPress={handleSubmit}
             >

@@ -23,7 +23,7 @@ import {
   testDappConnectButtonCooridinates,
   testDappSendEIP1559ButtonCoordinates,
 } from '../../viewHelper';
-import { TEST_DAPP_URL } from '../TestDApp';
+import { TEST_DAPP_LOCAL_URL } from '../TestDApp';
 
 const TEST_DAPP = 'https://metamask.github.io/test-dapp/';
 
@@ -231,7 +231,7 @@ export default class Browser {
 
   static async navigateToTestDApp() {
     await Browser.tapUrlInputBox();
-    await Browser.navigateToURL(TEST_DAPP_URL);
+    await Browser.navigateToURL(TEST_DAPP_LOCAL_URL);
     await TestHelpers.delay(3000);
   }
 }

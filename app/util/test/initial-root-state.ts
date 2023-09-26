@@ -17,7 +17,7 @@ const initialRootState: RootState = {
   settings: undefined,
   alert: undefined,
   transaction: undefined,
-  user: undefined,
+  user: {},
   wizard: undefined,
   onboarding: undefined,
   notification: undefined,
