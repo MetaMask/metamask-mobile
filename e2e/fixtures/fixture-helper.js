@@ -1,7 +1,6 @@
 /* eslint-disable no-console, import/no-nodejs-modules */
 import FixtureServer from './fixture-server';
 import FixtureBuilder from './fixture-builder';
-import Ganache from '../../app/util/test/ganache';
 import GanacheSeeder from '../../app/util/test/ganache-seeder';
 import axios from 'axios';
 import path from 'path';
@@ -83,29 +82,25 @@ export async function withFixtures(options, testSuite) {
   const {
     fixture,
     restartDevice = false,
-    ganacheOptions,
     smartContract,
+    ganacheServer,
     dapp,
     dappOptions,
     dappPath = undefined,
     dappPaths,
   } = options;
 
-  const ganacheServer = new Ganache();
   const dappBasePort = 8080;
   let numberOfDapps = dapp ? 1 : 0;
   const dappServer = [];
 
   try {
     let contractRegistry;
-    if (ganacheOptions) {
-      await ganacheServer.start(ganacheOptions);
 
-      if (smartContract) {
-        const ganacheSeeder = new GanacheSeeder(ganacheServer.getProvider());
-        await ganacheSeeder.deploySmartContract(smartContract);
-        contractRegistry = ganacheSeeder.getContractRegistry();
-      }
+    if (smartContract) {
+      const ganacheSeeder = new GanacheSeeder(ganacheServer.getProvider());
+      await ganacheSeeder.deploySmartContract(smartContract);
+      contractRegistry = ganacheSeeder.getContractRegistry();
     }
 
     if (dapp) {

@@ -12,9 +12,10 @@ import {
 } from '../../fixtures/fixture-helper';
 import root from '../../../locales/languages/en.json';
 import { SMART_CONTRACTS } from '../../../app/util/test/smart-contracts';
+import Ganache from '../../../app/util/test/ganache';
 
 describe(Smoke('ERC721 tokens'), () => {
-  let ganache;
+  let ganacheServer;
 
   const NFT_CONTRACT = SMART_CONTRACTS.NFTS;
   const SENT_COLLECTIBLE_MESSAGE_TEXT = root.transactions.sent_collectible;
@@ -28,8 +29,13 @@ describe(Smoke('ERC721 tokens'), () => {
     }
   });
 
+  beforeEach(async () => {
+    ganacheServer = new Ganache();
+    await ganacheServer.start(defaultGanacheOptions);
+  });
+
   afterEach(async () => {
-    await ganache.quit();
+    await ganacheServer.quit();
     await TestHelpers.delay(3000);
   });
 
@@ -42,11 +48,10 @@ describe(Smoke('ERC721 tokens'), () => {
           .withPermissionControllerConnectedToTestDapp()
           .build(),
         restartDevice: true,
-        ganacheOptions: defaultGanacheOptions,
+        ganacheServer,
         smartContract: NFT_CONTRACT,
       },
-      async ({ contractRegistry, ganacheServer }) => {
-        ganache = ganacheServer;
+      async ({ contractRegistry }) => {
         const nftsAddress = await contractRegistry.getContractAddress(
           NFT_CONTRACT,
         );

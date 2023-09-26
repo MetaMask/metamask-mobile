@@ -11,19 +11,25 @@ import {
 } from '../../fixtures/fixture-helper';
 import { Smoke } from '../../tags';
 import TestHelpers from '../../helpers';
+import Ganache from '../../../app/util/test/ganache';
 
 const MAX_ATTEMPTS = 3;
 
 describe(Smoke('Sign Messages'), () => {
-  let ganache;
+  let ganacheServer;
   beforeAll(async () => {
     jest.setTimeout(150000);
     await device.reverseTcpPort('8545'); // ganache
     await device.reverseTcpPort('8080'); // test-dapp
   });
 
+  beforeEach(async () => {
+    ganacheServer = new Ganache();
+    await ganacheServer.start(defaultGanacheOptions);
+  });
+
   afterEach(async () => {
-    await ganache.quit();
+    await ganacheServer.quit();
     await TestHelpers.delay(3000);
   });
 
@@ -36,10 +42,8 @@ describe(Smoke('Sign Messages'), () => {
           .withPermissionControllerConnectedToTestDapp()
           .build(),
         restartDevice: true,
-        ganacheOptions: defaultGanacheOptions,
       },
-      async ({ ganacheServer }) => {
-        ganache = ganacheServer;
+      async () => {
         await loginToApp();
 
         await TabBarComponent.tapBrowser();
@@ -64,10 +68,8 @@ describe(Smoke('Sign Messages'), () => {
           .withPermissionControllerConnectedToTestDapp()
           .build(),
         restartDevice: true,
-        ganacheOptions: defaultGanacheOptions,
       },
-      async ({ ganacheServer }) => {
-        ganache = ganacheServer;
+      async () => {
         await loginToApp();
 
         await TabBarComponent.tapBrowser();
@@ -92,10 +94,8 @@ describe(Smoke('Sign Messages'), () => {
           .withPermissionControllerConnectedToTestDapp()
           .build(),
         restartDevice: true,
-        ganacheOptions: defaultGanacheOptions,
       },
-      async ({ ganacheServer }) => {
-        ganache = ganacheServer;
+      async () => {
         await loginToApp();
 
         await TabBarComponent.tapBrowser();
@@ -120,10 +120,8 @@ describe(Smoke('Sign Messages'), () => {
           .withPermissionControllerConnectedToTestDapp()
           .build(),
         restartDevice: true,
-        ganacheOptions: defaultGanacheOptions,
       },
-      async ({ ganacheServer }) => {
-        ganache = ganacheServer;
+      async () => {
         await loginToApp();
 
         await TabBarComponent.tapBrowser();
@@ -148,10 +146,8 @@ describe(Smoke('Sign Messages'), () => {
           .withPermissionControllerConnectedToTestDapp()
           .build(),
         restartDevice: true,
-        ganacheOptions: defaultGanacheOptions,
       },
-      async ({ ganacheServer }) => {
-        ganache = ganacheServer;
+      async () => {
         await loginToApp();
 
         await TabBarComponent.tapBrowser();
@@ -176,10 +172,8 @@ describe(Smoke('Sign Messages'), () => {
           .withPermissionControllerConnectedToTestDapp()
           .build(),
         restartDevice: true,
-        ganacheOptions: defaultGanacheOptions,
       },
-      async ({ ganacheServer }) => {
-        ganache = ganacheServer;
+      async () => {
         await loginToApp();
 
         await TabBarComponent.tapBrowser();
@@ -204,10 +198,8 @@ describe(Smoke('Sign Messages'), () => {
           .withPermissionControllerConnectedToTestDapp()
           .build(),
         restartDevice: true,
-        ganacheOptions: defaultGanacheOptions,
       },
-      async ({ ganacheServer }) => {
-        ganache = ganacheServer;
+      async () => {
         await loginToApp();
 
         await TabBarComponent.tapBrowser();
@@ -232,10 +224,8 @@ describe(Smoke('Sign Messages'), () => {
           .withPermissionControllerConnectedToTestDapp()
           .build(),
         restartDevice: true,
-        ganacheOptions: defaultGanacheOptions,
       },
-      async ({ ganacheServer }) => {
-        ganache = ganacheServer;
+      async () => {
         await loginToApp();
 
         await TabBarComponent.tapBrowser();
@@ -265,10 +255,8 @@ describe(Smoke('Sign Messages'), () => {
           .withPermissionControllerConnectedToTestDapp()
           .build(),
         restartDevice: true,
-        ganacheOptions: defaultGanacheOptions,
       },
-      async ({ ganacheServer }) => {
-        ganache = ganacheServer;
+      async () => {
         await loginToApp();
 
         await TabBarComponent.tapBrowser();
@@ -298,10 +286,8 @@ describe(Smoke('Sign Messages'), () => {
           .withPermissionControllerConnectedToTestDapp()
           .build(),
         restartDevice: true,
-        ganacheOptions: defaultGanacheOptions,
       },
-      async ({ ganacheServer }) => {
-        ganache = ganacheServer;
+      async () => {
         await loginToApp();
 
         await TabBarComponent.tapBrowser();

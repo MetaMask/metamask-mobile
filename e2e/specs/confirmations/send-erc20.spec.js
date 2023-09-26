@@ -11,18 +11,30 @@ import TabBarComponent from '../../pages/TabBarComponent';
 import { TestDApp } from '../../pages/TestDApp';
 import { SMART_CONTRACTS } from '../../../app/util/test/smart-contracts';
 import root from '../../../locales/languages/en.json';
+import Ganache from '../../../app/util/test/ganache';
 
 const HST_CONTRACT = SMART_CONTRACTS.HST;
 const SENT_TOKENS_MESSAGE_TEXT = root.transactions.sent_tokens;
 const WEBVIEW_TEST_DAPP_TRANSFER_TOKENS_BUTTON_ID = 'transferTokens';
 
 describe(Regression('ERC20 tokens'), () => {
+  let ganacheServer;
   beforeAll(async () => {
     jest.setTimeout(170000);
     if (device.getPlatform() === 'android') {
       await device.reverseTcpPort('8545'); // ganache
       await device.reverseTcpPort('8080'); // test-dapp
     }
+  });
+
+  beforeEach(async () => {
+    const ganacheServer = new Ganache();
+    await ganacheServer.start(defaultGanacheOptions);
+  });
+
+  afterEach(async () => {
+    await ganacheServer.quit();
+    await TestHelpers.delay(3000);
   });
 
   it('send an ERC20 token from a dapp', async () => {
@@ -34,7 +46,7 @@ describe(Regression('ERC20 tokens'), () => {
           .withPermissionControllerConnectedToTestDapp()
           .build(),
         restartDevice: true,
-        ganacheOptions: defaultGanacheOptions,
+        ganacheServer,
         smartContract: HST_CONTRACT,
       },
       async ({ contractRegistry }) => {

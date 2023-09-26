@@ -13,11 +13,12 @@ import {
 import TabBarComponent from '../../pages/TabBarComponent';
 import WalletActionsModal from '../../pages/modals/WalletActionsModal';
 import TestHelpers from '../../helpers';
+import Ganache from '../../../app/util/test/ganache';
 
 const VALID_ADDRESS = '0xebe6CcB6B55e1d094d9c58980Bc10Fed69932cAb';
 
 describe(Smoke('Advanced Gas Fees and Priority Tests'), () => {
-  let ganache;
+  let ganacheServer;
   beforeAll(async () => {
     jest.setTimeout(170000);
     if (device.getPlatform() === 'android') {
@@ -25,8 +26,13 @@ describe(Smoke('Advanced Gas Fees and Priority Tests'), () => {
     }
   });
 
+  beforeEach(async () => {
+    ganacheServer = new Ganache();
+    await ganacheServer.start(defaultGanacheOptions);
+  });
+
   afterEach(async () => {
-    await ganache.quit();
+    await ganacheServer.quit();
     await TestHelpers.delay(3000);
   });
 
@@ -35,10 +41,8 @@ describe(Smoke('Advanced Gas Fees and Priority Tests'), () => {
       {
         fixture: new FixtureBuilder().withGanacheNetwork().build(),
         restartDevice: true,
-        ganacheOptions: defaultGanacheOptions,
       },
-      async ({ ganacheServer }) => {
-        ganache = ganacheServer;
+      async () => {
         await loginToApp();
 
         // Check that we are on the wallet screen

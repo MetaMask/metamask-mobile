@@ -16,11 +16,12 @@ import {
   defaultGanacheOptions,
 } from '../../fixtures/fixture-helper';
 import { SMART_CONTRACTS } from '../../../app/util/test/smart-contracts';
+import Ganache from '../../../app/util/test/ganache';
 
 describe(Smoke('Send ETH'), () => {
   const TOKEN_NAME = root.unit.eth;
   const AMOUNT = '0.12345';
-  let ganache;
+  let ganacheServer;
 
   beforeAll(async () => {
     jest.setTimeout(2500000);
@@ -29,8 +30,13 @@ describe(Smoke('Send ETH'), () => {
     }
   });
 
+  beforeEach(async () => {
+    ganacheServer = new Ganache();
+    await ganacheServer.start(defaultGanacheOptions);
+  });
+
   afterEach(async () => {
-    await ganache.quit();
+    await ganacheServer.quit();
     await TestHelpers.delay(3000);
   });
 
@@ -40,10 +46,8 @@ describe(Smoke('Send ETH'), () => {
       {
         fixture: new FixtureBuilder().withGanacheNetwork().build(),
         restartDevice: true,
-        ganacheOptions: defaultGanacheOptions,
       },
-      async ({ ganacheServer }) => {
-        ganache = ganacheServer;
+      async () => {
         await loginToApp();
 
         await TabBarComponent.tapActions();
@@ -72,11 +76,10 @@ describe(Smoke('Send ETH'), () => {
       {
         fixture: new FixtureBuilder().withGanacheNetwork().build(),
         restartDevice: true,
-        ganacheOptions: defaultGanacheOptions,
+        ganacheServer,
         smartContract: MULTISIG_CONTRACT,
       },
-      async ({ contractRegistry, ganacheServer }) => {
-        ganache = ganacheServer;
+      async ({ contractRegistry }) => {
         const multisigAddress = await contractRegistry.getContractAddress(
           MULTISIG_CONTRACT,
         );
