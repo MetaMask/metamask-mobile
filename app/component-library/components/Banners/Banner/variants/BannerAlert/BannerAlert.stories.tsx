@@ -1,14 +1,21 @@
 // Internal dependencies.
+import { BannerAlertSeverity } from './BannerAlert.types';
 import { default as BannerAlertComponent } from './BannerAlert';
-import {
-  SAMPLE_BANNERALERT_PROPS,
-  STORYBOOK_BANNERALERT_ARGTYPES,
-} from './BannerAlert.constants';
+import { SAMPLE_BANNERALERT_PROPS } from './BannerAlert.constants';
 
 const BannerAlertMeta = {
   title: 'Component Library / Banners',
   component: BannerAlertComponent,
-  argTypes: STORYBOOK_BANNERALERT_ARGTYPES,
+  argTypes: {
+    severity: {
+      options: Object.values(BannerAlertSeverity),
+      mapping: Object.values(BannerAlertSeverity),
+      control: {
+        type: 'select',
+        labels: Object.keys(BannerAlertSeverity),
+      },
+    },
+  },
 };
 export default BannerAlertMeta;
 
