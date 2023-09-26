@@ -86,7 +86,7 @@ function getMockAddTransaction({
     ) => {
       expect(deviceConfirmedOn).toBe('metamask_mobile');
       if (expectedOrigin) {
-        expect(origin).toBe(expectedOrigin);
+        expect(origin).toBe(expectedOrigin.origin);
       }
       if (expectedTransaction) {
         expect(transaction).toBe(expectedTransaction);
