@@ -39,7 +39,12 @@ export default function useCryptoCurrencies() {
       return filteredTokens;
     }
     return null;
-  }, [errorCryptoCurrencies, isFetchingCryptoCurrencies, sdkCryptoCurrencies]);
+  }, [
+    errorCryptoCurrencies,
+    isFetchingCryptoCurrencies,
+    sdkCryptoCurrencies,
+    selectedChainId,
+  ]);
 
   /**
    * Select the native crypto currency of first of the list
