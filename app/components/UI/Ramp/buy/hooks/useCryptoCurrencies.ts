@@ -1,6 +1,6 @@
+import { useEffect, useMemo } from 'react';
 import { useRampSDK } from '../../common/sdk';
 import useSDKMethod from '../../common/hooks/useSDKMethod';
-import { useEffect, useMemo } from 'react';
 import { NATIVE_ADDRESS } from '../../../../../constants/on-ramp';
 
 export default function useCryptoCurrencies() {
