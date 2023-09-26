@@ -5,7 +5,7 @@ import React, {
   useRef,
   useState,
 } from 'react';
-import { StyleSheet, Pressable, View, BackHandler } from 'react-native';
+import { Pressable, View, BackHandler } from 'react-native';
 import Animated, {
   useAnimatedStyle,
   useSharedValue,
@@ -40,73 +40,39 @@ import RegionModal from '../../../common/components/RegionModal';
 import SkeletonText from '../../../common/components/SkeletonText';
 import ErrorView from '../../../common/components/ErrorView';
 import { getFiatOnRampAggNavbar } from '../../../../Navbar';
-import { useTheme } from '../../../../../../util/theme';
 import { strings } from '../../../../../../../locales/i18n';
 import {
   createNavigationDetails,
   useParams,
 } from '../../../../../../util/navigation/navUtils';
 import Routes from '../../../../../../constants/navigation/Routes';
-import { Colors } from '../../../../../../util/theme/models';
 import { formatAmount } from '../../../common/utils';
 import { createQuotesNavDetails } from '../Quotes/Quotes';
 import { Region } from '../../../common/types';
 import useFiatCurrencies from '../../hooks/useFiatCurrencies';
 import useCryptoCurrencies from '../../hooks/useCryptoCurrencies';
 import useLimits from '../../hooks/useLimits';
+import { useStyles } from '../../../../../../component-library/hooks';
+import styleSheet from './BuildQuote.styles';
 
 // TODO: Convert into typescript and correctly type
 const ListItem = BaseListItem as any;
 const SelectorButton = BaseSelectorButton as any;
 
-interface AmountToBuyParams {
+interface BuildQuoteParams {
   showBack?: boolean;
 }
 
-export const createAmountToBuyNavDetails =
-  createNavigationDetails<AmountToBuyParams>(Routes.RAMP.BUY.AMOUNT_TO_BUY);
-
-const createStyles = (colors: Colors) =>
-  StyleSheet.create({
-    viewContainer: {
-      flex: 1,
-    },
-    selectors: {
-      flexDirection: 'row',
-      justifyContent: 'space-between',
-      alignItems: 'center',
-    },
-    spacer: {
-      minWidth: 8,
-    },
-    row: {
-      marginVertical: 5,
-    },
-    keypadContainer: {
-      position: 'absolute',
-      bottom: 0,
-      left: 0,
-      right: 0,
-      paddingBottom: 50,
-      backgroundColor: colors.background.alternative,
-    },
-    cta: {
-      paddingTop: 12,
-    },
-    flexRow: {
-      flexDirection: 'row',
-    },
-    flagText: {
-      marginVertical: 3,
-      marginHorizontal: 0,
-    },
-  });
+export const createBuildQuoteNavDetails =
+  createNavigationDetails<BuildQuoteParams>(Routes.RAMP.BUY.AMOUNT_TO_BUY);
 
 const BuildQuote = () => {
   const navigation = useNavigation();
-  const params = useParams<AmountToBuyParams>();
-  const { colors } = useTheme();
-  const styles = createStyles(colors);
+  const params = useParams<BuildQuoteParams>();
+  const {
+    styles,
+    theme: { colors },
+  } = useStyles(styleSheet, {});
   const trackEvent = useAnalytics();
   const [amountFocused, setAmountFocused] = useState(false);
   const [amount, setAmount] = useState('0');

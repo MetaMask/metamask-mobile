@@ -26,7 +26,7 @@ import {
   useParams,
 } from '../../../../../../util/navigation/navUtils';
 
-import { createAmountToBuyNavDetails } from '../BuildQuote/BuildQuote';
+import { createBuildQuoteNavDetails } from '../BuildQuote/BuildQuote';
 
 interface PaymentMethodsParams {
   showBack?: boolean;
@@ -107,7 +107,7 @@ const PaymentMethods = () => {
       region: selectedRegion?.id as string,
       location: 'Payment Method Screen',
     });
-    navigation.navigate(...createAmountToBuyNavDetails());
+    navigation.navigate(...createBuildQuoteNavDetails());
   }, [
     currentPaymentMethod?.id,
     navigation,
