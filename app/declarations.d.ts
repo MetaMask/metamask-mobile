@@ -31,3 +31,6 @@ declare module '*.png' {
   const content: ImageSourcePropType;
   export default content;
 }
+
+// TODO: eth-json-rpc-errors does not contain types. May want to create our own types.
+declare module 'eth-json-rpc-errors';
