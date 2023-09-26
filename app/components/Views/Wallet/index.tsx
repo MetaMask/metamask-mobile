@@ -88,6 +88,7 @@ const Wallet = ({ navigation }: any) => {
    * Map of accounts to information objects including balances
    */
   const accounts = useSelector(selectAccounts);
+  console.log('SELECT ACCOUNTS:', accounts);
   /**
    * ETH to current currency conversion rate
    */
@@ -104,6 +105,7 @@ const Wallet = ({ navigation }: any) => {
    * An array that represents the user tokens
    */
   const tokens = useSelector(selectTokens);
+  console.log('Redux TOKENS Selector: ========== ', tokens);
   /**
    * Current provider ticker
    */
@@ -177,15 +179,17 @@ const Wallet = ({ navigation }: any) => {
 
   useEffect(
     () => {
+      const { AccountTrackerController } = Engine.context;
+      AccountTrackerController.refresh();
       requestAnimationFrame(async () => {
         const {
           TokenDetectionController,
           NftDetectionController,
-          AccountTrackerController,
+          // AccountTrackerController,
         } = Engine.context as any;
         TokenDetectionController.detectTokens();
         NftDetectionController.detectNfts();
-        AccountTrackerController.refresh();
+        // AccountTrackerController.refresh();
       });
     },
     /* eslint-disable-next-line */
@@ -230,9 +234,11 @@ const Wallet = ({ navigation }: any) => {
     });
   }, []);
 
-  const renderContent = useCallback(() => {
+  const renderContent = () => {
     let balance: any = 0;
     let assets = tokens;
+    const accountValue = accounts[selectedAddress];
+    console.log('Accounts Value:', accountValue);
     if (accounts[selectedAddress]) {
       balance = renderFromWei(accounts[selectedAddress].balance);
 
@@ -255,7 +261,10 @@ const Wallet = ({ navigation }: any) => {
     } else {
       assets = tokens;
     }
-
+    console.log('Wallet Assets (wallet data): ======', assets);
+    console.log('Wallet accounts: ======', accounts);
+    console.log('Wallet selectedAddress: ======', selectedAddress);
+    // @TICKET_NOTES: assets comes empty
     return (
       <View style={styles.wrapper}>
         <WalletAccount style={styles.walletAccount} ref={walletRef} />
@@ -285,19 +294,7 @@ const Wallet = ({ navigation }: any) => {
         </ScrollableTabView>
       </View>
     );
-  }, [
-    renderTabBar,
-    accounts,
-    conversionRate,
-    currentCurrency,
-    navigation,
-    onChangeTab,
-    selectedAddress,
-    ticker,
-    tokens,
-    styles,
-  ]);
-
+  };
   const renderLoader = useCallback(
     () => (
       <View style={styles.loader}>
