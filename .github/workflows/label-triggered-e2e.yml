@@ -12,17 +12,17 @@ jobs:
       - name: Start pr_smoke_e2e_pipeline workflow in Bitrise
         if: contains(github.event.pull_request.labels.*.name, 'needs-smoke-e2e')
         run: |
-          curl https://app.bitrise.io/app/${{ secrets.BITRISE_APP_ID }}/build/start.json --data '{
-            "hook_info":{
-              "type":"bitrise",
-              "build_trigger_token":"${{ secrets.BITRISE_BUILD_TRIGGER_TOKEN }}"
+          curl https://app.bitrise.io/app/${{ secrets.BITRISE_APP_ID }}/build/start.json -L -H 'Content-Type: application/json' --data '{
+            "hook_info": {
+              "type": "bitrise",
+              "build_trigger_token": "${{ secrets.BITRISE_BUILD_TRIGGER_TOKEN }}"
             },
-            "build_params":{
-              "branch":"${{ github.head_ref }}",
+            "build_params": {
+              "branch": "${{ github.head_ref }}",
               "branch_dest": "${{ github.event.pull_request.base.ref }}",
-              "workflow_id":"deploy-internal",
-              "commit_hash":"${{ github.event.pull_request.head.sha }}",
-              "pull_request_id": ${{ steps.pr_number.outputs.number }}
+              "workflow_id": "deploy-internal",
+              "commit_hash": "${{ github.event.pull_request.head.sha }}",
+              "pull_request_id": "${{ steps.pr_number.outputs.number }}"
             },
-            "triggered_by":"curl"
+            "triggered_by": "curl"
           }'
