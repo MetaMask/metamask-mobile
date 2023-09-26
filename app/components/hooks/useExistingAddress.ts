@@ -1,7 +1,7 @@
 import { toChecksumAddress } from 'ethereumjs-util';
 import { useSelector } from 'react-redux';
 
-import { selectNetwork } from '../../selectors/networkController';
+import { selectChainId } from '../../selectors/networkController';
 import { selectIdentities } from '../../selectors/preferencesController';
 
 export interface Address {
@@ -14,7 +14,7 @@ export interface Address {
 }
 
 const useExistingAddress = (address?: string): Address | undefined => {
-  const networkId = useSelector(selectNetwork);
+  const chainId = useSelector(selectChainId);
   const { addressBook, identities } = useSelector((state: any) => ({
     addressBook: state.engine.backgroundState.AddressBookController.addressBook,
     identities: selectIdentities(state),
@@ -22,7 +22,7 @@ const useExistingAddress = (address?: string): Address | undefined => {
 
   if (!address) return;
 
-  const networkAddressBook = addressBook[networkId] || {};
+  const networkAddressBook = addressBook[chainId] || {};
   const checksummedAddress = toChecksumAddress(address);
 
   return (

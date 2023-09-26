@@ -53,6 +53,7 @@ exports[`AddressList should render correctly 1`] = `
         }
       >
         <Text
+          accessibilityRole="text"
           style={
             Object {
               "color": "#535A61",
@@ -154,6 +155,7 @@ exports[`AddressList should render correctly 1`] = `
             }
           >
             <Text
+              accessibilityRole="text"
               numberOfLines={1}
               style={
                 Object {
@@ -170,6 +172,7 @@ exports[`AddressList should render correctly 1`] = `
               Account 1
             </Text>
             <Text
+              accessibilityRole="text"
               numberOfLines={1}
               style={
                 Object {

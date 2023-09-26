@@ -211,6 +211,7 @@ exports[`CollectibleModal should render correctly 1`] = `
               variant="Link"
             >
               <Text
+                accessibilityRole="text"
                 style={
                   Object {
                     "color": "#0376C9",
