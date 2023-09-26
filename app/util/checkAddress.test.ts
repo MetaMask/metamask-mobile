@@ -15,11 +15,11 @@ describe('checkIfAddressIsSaved', () => {
         },
       },
     };
-    const networkId = '1';
+    const chainId = '1';
     const transaction = {};
 
     expect(
-      checkIfAddressIsSaved(addressBook, networkId, transaction),
+      checkIfAddressIsSaved(addressBook, chainId, transaction),
     ).toStrictEqual([]);
   });
 
@@ -27,13 +27,13 @@ describe('checkIfAddressIsSaved', () => {
   it('returns undefined if the address book is empty', () => {
     const mockAddress = '0x0000000000000000000000000000000000000001';
     const addressBook: AddressBookState['addressBook'] = {};
-    const networkId = '1';
+    const chainId = '1';
     const transaction = {
       to: mockAddress,
     };
 
     expect(
-      checkIfAddressIsSaved(addressBook, networkId, transaction),
+      checkIfAddressIsSaved(addressBook, chainId, transaction),
     ).toBeUndefined();
   });
 
@@ -51,13 +51,13 @@ describe('checkIfAddressIsSaved', () => {
         },
       },
     };
-    const networkId = '1';
+    const chainId = '1';
     const transaction = {
       to: mockAddress1,
     };
 
     expect(
-      checkIfAddressIsSaved(addressBook, networkId, transaction),
+      checkIfAddressIsSaved(addressBook, chainId, transaction),
     ).toStrictEqual([]);
   });
 
@@ -74,13 +74,13 @@ describe('checkIfAddressIsSaved', () => {
         },
       },
     };
-    const networkId = '1';
+    const chainId = '1';
     const transaction = {
       to: mockAddress,
     };
 
     expect(
-      checkIfAddressIsSaved(addressBook, networkId, transaction),
+      checkIfAddressIsSaved(addressBook, chainId, transaction),
     ).toStrictEqual([]);
   });
 
@@ -97,13 +97,13 @@ describe('checkIfAddressIsSaved', () => {
         },
       },
     };
-    const networkId = '1';
+    const chainId = '1';
     const transaction = {
       to: mockAddress,
     };
 
     expect(
-      checkIfAddressIsSaved(addressBook, networkId, transaction),
+      checkIfAddressIsSaved(addressBook, chainId, transaction),
     ).toStrictEqual([
       {
         address: mockAddress,
@@ -126,13 +126,13 @@ describe('checkIfAddressIsSaved', () => {
         },
       },
     };
-    const networkId = '1';
+    const chainId = '1';
     const transaction = {
       to: mockAddress,
     };
 
     expect(
-      checkIfAddressIsSaved(addressBook, networkId, transaction),
+      checkIfAddressIsSaved(addressBook, chainId, transaction),
     ).toStrictEqual([
       {
         address: mockAddressChecksummed,
@@ -163,13 +163,13 @@ describe('checkIfAddressIsSaved', () => {
         },
       },
     };
-    const networkId = '1';
+    const chainId = '1';
     const transaction = {
       to: mockAddress,
     };
 
     expect(
-      checkIfAddressIsSaved(addressBook, networkId, transaction),
+      checkIfAddressIsSaved(addressBook, chainId, transaction),
     ).toStrictEqual([
       {
         address: mockAddressChecksummed,
