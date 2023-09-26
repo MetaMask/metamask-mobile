@@ -45,3 +45,11 @@ export const SAMPLE_BANNERTIP_PROPS: BannerTipProps = {
   },
   onClose: () => console.log('closeButton clicked!'),
 };
+
+// Storybook settings
+export const STORYBOOK_BANNERTIP_ARGTYPES = {
+  logoType: {
+    options: BannerTipLogoType,
+    control: { type: 'select' },
+  },
+};

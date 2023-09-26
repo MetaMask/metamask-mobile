@@ -18,11 +18,10 @@ global.STORIES = [
   },
   {
     titlePrefix: "",
-    directory:
-      "./app/component-library/components/Banners/Banner/variants/BannerAlert",
+    directory: "./app/component-library/components/Banners",
     files: "**/*.stories.?(ts|tsx|js|jsx)",
     importPathMatcher:
-      "^\\.[\\\\/](?:app\\/component-library\\/components\\/Banners\\/Banner\\/variants\\/BannerAlert(?:\\/(?!\\.)(?:(?:(?!(?:^|\\/)\\.).)*?)\\/|\\/|$)(?!\\.)(?=.)[^/]*?\\.stories\\.(?:ts|tsx|js|jsx)?)$",
+      "^\\.[\\\\/](?:app\\/component-library\\/components\\/Banners(?:\\/(?!\\.)(?:(?:(?!(?:^|\\/)\\.).)*?)\\/|\\/|$)(?!\\.)(?=.)[^/]*?\\.stories\\.(?:ts|tsx|js|jsx)?)$",
   },
 ];
 
@@ -49,7 +48,9 @@ if (parameters) {
 const getStories = () => {
   return {
     "./app/component-library/components/Cards/Card/Card.stories.tsx": require("../app/component-library/components/Cards/Card/Card.stories.tsx"),
+    "./app/component-library/components/Banners/Banner/Banner.stories.tsx": require("../app/component-library/components/Banners/Banner/Banner.stories.tsx"),
     "./app/component-library/components/Banners/Banner/variants/BannerAlert/BannerAlert.stories.tsx": require("../app/component-library/components/Banners/Banner/variants/BannerAlert/BannerAlert.stories.tsx"),
+    "./app/component-library/components/Banners/Banner/variants/BannerTip/BannerTip.stories.tsx": require("../app/component-library/components/Banners/Banner/variants/BannerTip/BannerTip.stories.tsx"),
   };
 };
 

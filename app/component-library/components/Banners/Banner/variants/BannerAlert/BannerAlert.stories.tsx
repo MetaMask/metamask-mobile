@@ -1,9 +1,3 @@
-/* eslint-disable no-console */
-
-// Third party dependencies.
-
-// External dependencies.
-
 // Internal dependencies.
 import { default as BannerAlertComponent } from './BannerAlert';
 import {
