@@ -210,7 +210,8 @@ android {
 
 	  buildTypes.each {
 		  it.buildConfigField 'String', 'foxCode', "\"$System.env.MM_FOX_CODE\""
-
+      it.buildConfigField 'String', 'IS_RAMP_UAT', "\"$System.env.RAMP_INTERNAL_BUILD\""
+      it.buildConfigField 'String', 'IS_RAMP_DEV', "\"$System.env.RAMP_DEV_BUILD\""
 	  }
     // applicationVariants are e.g. debug, release
     applicationVariants.all { variant ->

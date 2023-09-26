@@ -84,7 +84,7 @@ public class MainApplication extends Application implements ShareApplication, Re
 			e.printStackTrace();
 		}
 
-		if (BuildConfig.DEBUG) {
+		if (BuildConfig.DEBUG || BuildConfig.IS_RAMP_UAT || BuildConfig.IS_RAMP_DEV) {
 			WebView.setWebContentsDebuggingEnabled(true);
 		}
 
