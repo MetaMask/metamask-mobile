@@ -27,7 +27,7 @@ describe(Regression('ERC20 tokens'), () => {
     jest.setTimeout(170000);
     if (device.getPlatform() === 'android') {
       await device.reverseTcpPort(port); // ganache
-      await device.reverseTcpPort('8080'); // test-dapp
+      await device.reverseTcpPort('8081'); // test-dapp
     }
     ganacheServer = new Ganache();
     await ganacheServer.start({ port, ...defaultGanacheOptions });
@@ -42,6 +42,7 @@ describe(Regression('ERC20 tokens'), () => {
     await withFixtures(
       {
         dapp: true,
+        dappPort: '8081',
         fixture: new FixtureBuilder()
           .withGanacheNetwork(port)
           .withPermissionControllerConnectedToTestDapp()

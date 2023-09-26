@@ -85,12 +85,13 @@ export async function withFixtures(options, testSuite) {
     smartContract,
     ganacheServer,
     dapp,
+    dappPort,
     dappOptions,
     dappPath = undefined,
     dappPaths,
   } = options;
 
-  const dappBasePort = 8080;
+  const dappBasePort = dappPort;
   let numberOfDapps = dapp ? 1 : 0;
   const dappServer = [];
 
