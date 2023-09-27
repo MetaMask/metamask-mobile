@@ -64,7 +64,7 @@ describe('Redux Persist Migrations', () => {
       },
     };
 
-    const migration = migrations[25];
+    const migration = migrations[version];
 
     const newState = migration(oldState);
     expect(newState).toStrictEqual({
