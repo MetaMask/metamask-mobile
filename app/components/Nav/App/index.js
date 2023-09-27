@@ -236,6 +236,8 @@ const App = ({ userLoggedIn }) => {
   const { colors } = useTheme();
   const { toastRef } = useContext(ToastContext);
   const dispatch = useDispatch();
+  const sdkInit = useRef(false);
+  const [onboarded, setOnboarded] = useState(false);
   const triggerSetCurrentRoute = (route) => {
     dispatch(setCurrentRoute(route));
     if (route === 'Wallet' || route === 'BrowserView') {
@@ -354,17 +356,18 @@ const App = ({ userLoggedIn }) => {
     initAnalytics();
   }, []);
 
-  const sdkInit = useRef(false);
   useEffect(() => {
-    if (navigator && !sdkInit.current) {
-      sdkInit.current = true;
+    if (navigator?.getCurrentRoute && !sdkInit.current && onboarded) {
       SDKConnect.getInstance()
         .init({ navigation: navigator })
+        .then(() => {
+          sdkInit.current = true;
+        })
         .catch((err) => {
           console.error(`Cannot initialize SDKConnect`, err);
         });
     }
-  }, [navigator]);
+  }, [navigator, onboarded]);
 
   useEffect(() => {
     if (isWC2Enabled) {
@@ -377,6 +380,7 @@ const App = ({ userLoggedIn }) => {
   useEffect(() => {
     async function checkExisting() {
       const existingUser = await AsyncStorage.getItem(EXISTING_USER);
+      setOnboarded(!!existingUser);
       const route = !existingUser
         ? Routes.ONBOARDING.ROOT_NAV
         : Routes.ONBOARDING.LOGIN;
