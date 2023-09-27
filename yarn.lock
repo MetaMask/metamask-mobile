@@ -4587,10 +4587,10 @@
   resolved "https://registry.yarnpkg.com/@metamask/safe-event-emitter/-/safe-event-emitter-3.0.0.tgz#8c2b9073fe0722d48693143b0dc8448840daa3bd"
   integrity sha512-j6Z47VOmVyGMlnKXZmL0fyvWfEYtKWCA9yGZkU3FCsGZUT5lHGmvaV9JA5F2Y+010y7+ROtR3WMXIkvl/nVzqQ==
 
-"@metamask/sdk-communication-layer@^0.5.0":
-  version "0.5.2"
-  resolved "https://registry.yarnpkg.com/@metamask/sdk-communication-layer/-/sdk-communication-layer-0.5.2.tgz#fd94d457569b7ee984ad40b1c965d509d569269b"
-  integrity sha512-k4v2L3E+4nROROT1/3RROSiDLUAKNkJeHsi3nN8l2ao4P0c3JuaREFwfc/u3FtXA3gALKRRGnitn2drG4Xw6rA==
+"@metamask/sdk-communication-layer@^0.7.0":
+  version "0.7.0"
+  resolved "https://registry.yarnpkg.com/@metamask/sdk-communication-layer/-/sdk-communication-layer-0.7.0.tgz#b97a341d620bc3a75862b5932c9b62e98d093946"
+  integrity sha512-jIv/9ujLdqZPfRyAc4Qi865TWk0EhORCDeaa36+r5ED4R84BiUIh1qgyZAW5+Kp4IMlWRjrclGfvrx1exiN3Gw==
   dependencies:
     cross-fetch "^3.1.5"
     date-fns "^2.29.3"
@@ -9767,11 +9767,6 @@ adbkit-apkreader@^3.1.2:
     debug "~4.1.1"
     yauzl "^2.7.0"
 
-adm-zip@0.5.9:
-  version "0.5.9"
-  resolved "https://registry.yarnpkg.com/adm-zip/-/adm-zip-0.5.9.tgz#b33691028333821c0cf95c31374c5462f2905a83"
-  integrity sha512-s+3fXLkeeLjZ2kLjCBwQufpI5fuN+kIGBxu6530nVQZGVol0d7Y/M88/xw9HGGUcJjKf8LutN3VPRUBq6N7Ajg==
-
 aes-js@3.0.0:
   version "3.0.0"
   resolved "https://registry.yarnpkg.com/aes-js/-/aes-js-3.0.0.tgz#e21df10ad6c2053295bcbb8dab40b09dbea87e4d"
@@ -11567,7 +11562,7 @@ base64-js@1.3.1:
   resolved "https://registry.yarnpkg.com/base64-js/-/base64-js-1.3.1.tgz#58ece8cb75dd07e71ed08c736abc5fac4dbf8df1"
   integrity sha512-mLQ4i2QO1ytvGWFWmcngKO//JXAQueZvwEKtjgQFM4jIK0kU+ytMfplL8j+n5mspOfjHwoAg+9yhb7BwAHm36g==
 
-base64-js@1.5.1, base64-js@^1.0.2, base64-js@^1.1.2, base64-js@^1.3.1, base64-js@^1.5.1:
+base64-js@^1.0.2, base64-js@^1.1.2, base64-js@^1.3.1, base64-js@^1.5.1:
   version "1.5.1"
   resolved "https://registry.yarnpkg.com/base64-js/-/base64-js-1.5.1.tgz#1b1b440160a5bf7ad40b650f095963481903930a"
   integrity sha512-AKpaYlHn8t4SVbOHCy+b5+KKgvR4vrsD8vbvrbiQJps7fKDTkjkDry6ji0rUJjC0kzbNePLwzxq8iypo41qeWA==
@@ -16248,11 +16243,6 @@ event-stream@=3.3.4:
     split "0.3"
     stream-combiner "~0.0.4"
     through "~2.3.1"
-
-event-target-shim@6.0.2:
-  version "6.0.2"
-  resolved "https://registry.yarnpkg.com/event-target-shim/-/event-target-shim-6.0.2.tgz#ea5348c3618ee8b62ff1d344f01908ee2b8a2b71"
-  integrity sha512-8q3LsZjRezbFZ2PN+uP+Q7pnHUMmAOziU2vA2OwoFaKIXxlxl38IylhSSgUorWu/rf4er67w0ikBqjBFk/pomA==
 
 event-target-shim@^5.0.0, event-target-shim@^5.0.1:
   version "5.0.1"
@@ -25615,17 +25605,6 @@ react-native-view-shot@^3.1.2:
   resolved "https://registry.yarnpkg.com/react-native-view-shot/-/react-native-view-shot-3.1.2.tgz#8c8e84c67a4bc8b603e697dbbd59dbc9b4f84825"
   integrity sha512-9u9fPtp6a52UMoZ/UCPrCjKZk8tnkI9To0Eh6yYnLKFEGkRZ7Chm6DqwDJbYJHeZrheCCopaD5oEOnRqhF4L2Q==
 
-react-native-webrtc@^106.0.0-beta.7:
-  version "106.0.0-beta.7"
-  resolved "https://registry.yarnpkg.com/react-native-webrtc/-/react-native-webrtc-106.0.0-beta.7.tgz#c333c2a57a5fd2c1ca35f4b401912a95502d850b"
-  integrity sha512-GoIl/99BgVouFCb0gc9BfboPm6tOAQ1skHmpZR6CDtPxCbRxt8pEZXRiRxfvW9LbOm6yTpbSe2DK/kQrffZN3w==
-  dependencies:
-    adm-zip "0.5.9"
-    base64-js "1.5.1"
-    debug "4.3.4"
-    event-target-shim "6.0.2"
-    tar "6.1.11"
-
 react-native-webview-invoke@^0.6.2:
   version "0.6.2"
   resolved "https://registry.yarnpkg.com/react-native-webview-invoke/-/react-native-webview-invoke-0.6.2.tgz#75cc27ef98ea1cbc9386269347d3aafe90d33aa3"
@@ -28365,18 +28344,6 @@ tar-stream@^2.1.0, tar-stream@^2.1.4, tar-stream@^2.2.0:
     fs-constants "^1.0.0"
     inherits "^2.0.3"
     readable-stream "^3.1.1"
-
-tar@6.1.11:
-  version "6.1.11"
-  resolved "https://registry.yarnpkg.com/tar/-/tar-6.1.11.tgz#6760a38f003afa1b2ffd0ffe9e9abbd0eab3d621"
-  integrity sha512-an/KZQzQUkZCkuoAA64hM92X0Urb6VpRhAFllDzz44U2mcD5scmT3zBc4VgVpkugF580+DQn8eAFSyoQt0tznA==
-  dependencies:
-    chownr "^2.0.0"
-    fs-minipass "^2.0.0"
-    minipass "^3.0.0"
-    minizlib "^2.1.1"
-    mkdirp "^1.0.3"
-    yallist "^4.0.0"
 
 tar@^6.1.11:
   version "6.1.15"
