@@ -14,12 +14,8 @@ import {
 } from '../../fixtures/fixture-helper';
 import root from '../../../locales/languages/en.json';
 import { SMART_CONTRACTS } from '../../../app/util/test/smart-contracts';
-import Ganache from '../../../app/util/test/ganache';
 
 describe(Smoke('ERC721 tokens'), () => {
-  let ganacheServer;
-  const port = '8547';
-
   const NFT_CONTRACT = SMART_CONTRACTS.NFTS;
   const SENT_COLLECTIBLE_MESSAGE_TEXT = root.transactions.sent_collectible;
   const WEBVIEW_TEST_DAPP_TRANSFER_FROM_BUTTON_ID = 'transferFromButton';
@@ -27,29 +23,21 @@ describe(Smoke('ERC721 tokens'), () => {
   beforeAll(async () => {
     jest.setTimeout(150000);
     if (device.getPlatform() === 'android') {
-      await device.reverseTcpPort(port); // ganache
+      await device.reverseTcpPort('8545'); // ganache
       await device.reverseTcpPort('8081'); // test-dapp
     }
-    ganacheServer = new Ganache();
-    await ganacheServer.start({ port, ...defaultGanacheOptions });
-  });
-
-  afterAll(async () => {
-    await ganacheServer.quit();
-    await TestHelpers.delay(3000);
   });
 
   it('send an ERC721 token from a dapp', async () => {
     await withFixtures(
       {
         dapp: true,
-        dappPort: '8081',
         fixture: new FixtureBuilder()
-          .withGanacheNetwork(port)
+          .withGanacheNetwork()
           .withPermissionControllerConnectedToTestDapp()
           .build(),
         restartDevice: true,
-        ganacheServer,
+        ganacheOptions: defaultGanacheOptions,
         smartContract: NFT_CONTRACT,
       },
       async ({ contractRegistry }) => {

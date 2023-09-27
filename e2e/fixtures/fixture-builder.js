@@ -597,7 +597,7 @@ class FixtureBuilder {
     return this;
   }
 
-  withGanacheNetwork(port) {
+  withGanacheNetwork() {
     const fixtures = this.fixture.state.engine.backgroundState;
 
     fixtures.NetworkController = {
@@ -605,7 +605,7 @@ class FixtureBuilder {
       providerConfig: {
         type: 'rpc',
         chainId: '1337',
-        rpcTarget: `http://localhost:${port}`,
+        rpcTarget: 'http://localhost:8545',
         nickname: 'Localhost',
         ticker: 'ETH',
       },

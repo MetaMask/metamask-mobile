@@ -18,34 +18,25 @@ import {
   defaultGanacheOptions,
 } from '../../fixtures/fixture-helper';
 import { SMART_CONTRACTS } from '../../../app/util/test/smart-contracts';
-import Ganache from '../../../app/util/test/ganache';
 
 describe(Smoke('Send ETH'), () => {
   const TOKEN_NAME = root.unit.eth;
   const AMOUNT = '0.12345';
-  let ganacheServer;
-  const port = '8548';
 
   beforeAll(async () => {
     jest.setTimeout(2500000);
     if (device.getPlatform() === 'android') {
-      await device.reverseTcpPort(port); // ganache
+      await device.reverseTcpPort('8545'); // ganache
     }
-    ganacheServer = new Ganache();
-    await ganacheServer.start({ port, ...defaultGanacheOptions });
-  });
-
-  afterAll(async () => {
-    await ganacheServer.quit();
-    await TestHelpers.delay(3000);
   });
 
   it('should send ETH to an EOA from inside the wallet', async () => {
     const RECIPIENT = '0x1FDb169Ef12954F20A15852980e1F0C122BfC1D6';
     await withFixtures(
       {
-        fixture: new FixtureBuilder().withGanacheNetwork(port).build(),
+        fixture: new FixtureBuilder().withGanacheNetwork().build(),
         restartDevice: true,
+        ganacheOptions: defaultGanacheOptions,
       },
       async () => {
         await loginToApp();
@@ -76,7 +67,7 @@ describe(Smoke('Send ETH'), () => {
       {
         fixture: new FixtureBuilder().withGanacheNetwork().build(),
         restartDevice: true,
-        ganacheServer,
+        ganacheOptions: defaultGanacheOptions,
         smartContract: MULTISIG_CONTRACT,
       },
       async ({ contractRegistry }) => {

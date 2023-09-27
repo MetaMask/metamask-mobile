@@ -12,26 +12,17 @@ import {
 } from '../../fixtures/fixture-helper';
 import { Smoke } from '../../tags';
 import TestHelpers from '../../helpers';
-import Ganache from '../../../app/util/test/ganache';
 
 const MAX_ATTEMPTS = 3;
 
 describe(Smoke('Sign Messages'), () => {
-  let ganacheServer;
-  const port = '8548';
 
   beforeAll(async () => {
     jest.setTimeout(2500000);
     if (device.getPlatform() === 'android') {
-      await device.reverseTcpPort(port); // ganache
+      await device.reverseTcpPort('8545'); // ganache
+      await device.reverseTcpPort('8081'); // test-dapp
     }
-    ganacheServer = new Ganache();
-    await ganacheServer.start({ port, ...defaultGanacheOptions });
-  });
-
-  afterAll(async () => {
-    await ganacheServer.quit();
-    await TestHelpers.delay(3000);
   });
 
   it('should sign personal message', async () => {
@@ -39,10 +30,11 @@ describe(Smoke('Sign Messages'), () => {
       {
         dapp: true,
         fixture: new FixtureBuilder()
-          .withGanacheNetwork(port)
+          .withGanacheNetwork()
           .withPermissionControllerConnectedToTestDapp()
           .build(),
         restartDevice: true,
+        ganacheOptions: defaultGanacheOptions,
       },
       async () => {
         await loginToApp();
@@ -69,6 +61,7 @@ describe(Smoke('Sign Messages'), () => {
           .withPermissionControllerConnectedToTestDapp()
           .build(),
         restartDevice: true,
+        ganacheOptions: defaultGanacheOptions,
       },
       async () => {
         await loginToApp();
@@ -95,6 +88,7 @@ describe(Smoke('Sign Messages'), () => {
           .withPermissionControllerConnectedToTestDapp()
           .build(),
         restartDevice: true,
+        ganacheOptions: defaultGanacheOptions,
       },
       async () => {
         await loginToApp();
@@ -121,6 +115,7 @@ describe(Smoke('Sign Messages'), () => {
           .withPermissionControllerConnectedToTestDapp()
           .build(),
         restartDevice: true,
+        ganacheOptions: defaultGanacheOptions,
       },
       async () => {
         await loginToApp();
@@ -147,6 +142,7 @@ describe(Smoke('Sign Messages'), () => {
           .withPermissionControllerConnectedToTestDapp()
           .build(),
         restartDevice: true,
+        ganacheOptions: defaultGanacheOptions,
       },
       async () => {
         await loginToApp();
@@ -173,6 +169,7 @@ describe(Smoke('Sign Messages'), () => {
           .withPermissionControllerConnectedToTestDapp()
           .build(),
         restartDevice: true,
+        ganacheOptions: defaultGanacheOptions,
       },
       async () => {
         await loginToApp();
@@ -199,6 +196,7 @@ describe(Smoke('Sign Messages'), () => {
           .withPermissionControllerConnectedToTestDapp()
           .build(),
         restartDevice: true,
+        ganacheOptions: defaultGanacheOptions,
       },
       async () => {
         await loginToApp();
@@ -225,6 +223,7 @@ describe(Smoke('Sign Messages'), () => {
           .withPermissionControllerConnectedToTestDapp()
           .build(),
         restartDevice: true,
+        ganacheOptions: defaultGanacheOptions,
       },
       async () => {
         await loginToApp();
@@ -256,6 +255,7 @@ describe(Smoke('Sign Messages'), () => {
           .withPermissionControllerConnectedToTestDapp()
           .build(),
         restartDevice: true,
+        ganacheOptions: defaultGanacheOptions,
       },
       async () => {
         await loginToApp();
@@ -287,6 +287,7 @@ describe(Smoke('Sign Messages'), () => {
           .withPermissionControllerConnectedToTestDapp()
           .build(),
         restartDevice: true,
+        ganacheOptions: defaultGanacheOptions,
       },
       async () => {
         await loginToApp();
