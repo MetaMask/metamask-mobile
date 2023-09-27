@@ -20,6 +20,7 @@ import { regex } from '../../app/util/regex';
 // Generated using this script: https://gist.github.com/Gudahtt/7a8a9e452bd2efdc5ceecd93610a25d3
 import ambiguousNetworks from './migration-data/amibiguous-networks.json';
 import { NetworkStatus } from '@metamask/network-controller';
+import { ETHERSCAN_SUPPORTED_CHAIN_IDS } from '@metamask/preferences-controller';
 
 export const migrations = {
   // Needed after https://github.com/MetaMask/controllers/pull/152
@@ -744,25 +745,33 @@ export const migrations = {
     return state;
   },
   25: (state) => {
-    const showIncomingTransactions =
-      state.engine.backgroundState.PreferencesController
-        .showIncomingTransactions;
+    try {
+      Object.values(ETHERSCAN_SUPPORTED_CHAIN_IDS).forEach((hexChainId) => {
+        const thirdPartyApiMode = state?.privacy?.thirdPartyApiMode ?? true;
+        if (
+          state?.engine?.backgroundState?.PreferencesController
+            ?.showIncomingTransactions
+        ) {
+          state.engine.backgroundState.PreferencesController.showIncomingTransactions =
+            {
+              ...state.engine.backgroundState.PreferencesController
+                .showIncomingTransactions,
+              [hexChainId]: thirdPartyApiMode,
+            };
+        } else if (state?.engine?.backgroundState?.PreferencesController) {
+          state.engine.backgroundState.PreferencesController.showIncomingTransactions =
+            { [hexChainId]: thirdPartyApiMode };
+        }
+      });
 
-    Object.keys(showIncomingTransactions).forEach((network) => {
-      if (state?.privacy?.thirdPartyApiMode) {
-        state.engine.backgroundState.PreferencesController.showIncomingTransactions[
-          network
-        ] = true;
-      } else {
-        state.engine.backgroundState.PreferencesController.showIncomingTransactions[
-          network
-        ] = false;
+      if (state?.privacy?.thirdPartyApiMode !== undefined) {
+        delete state.privacy.thirdPartyApiMode;
       }
-    });
-    if (state?.privacy?.thirdPartyApiMode !== undefined) {
-      delete state?.privacy?.thirdPartyApiMode;
+
+      return state;
+    } catch (e) {
+      return state;
     }
-    return state;
   },
   // If you are implementing a migration it will break the migration tests,
   // please write a unit for your specific migration version
