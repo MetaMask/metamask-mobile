@@ -18,9 +18,12 @@ import {
   startFixtureServer,
   stopFixtureServer,
 } from '../fixtures/fixture-helper';
+import FixtureServer from '../fixtures/fixture-server';
 
 const SUSHI_SWAP = 'https://app.sushi.com/swap';
 const SUSHI_SWAP_SHORT_HAND_URL = 'app.sushi.com';
+const fixtureServer = FixtureServer();
+
 describe(
   Smoke(
     'Connecting to multiple dapps and revoking permission on one but staying connected to the other',
@@ -28,8 +31,8 @@ describe(
   () => {
     beforeAll(async () => {
       const fixture = new FixtureBuilder().build();
-      await startFixtureServer();
-      await loadFixture({ fixture });
+      await startFixtureServer(fixtureServer);
+      await loadFixture(fixtureServer, { fixture });
       await device.launchApp({ delete: true });
       await loginToApp();
     });
@@ -39,7 +42,7 @@ describe(
     });
 
     afterAll(async () => {
-      await stopFixtureServer();
+      await stopFixtureServer(fixtureServer);
     });
 
     it('should navigate to browser', async () => {

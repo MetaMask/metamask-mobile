@@ -12,22 +12,25 @@ import {
   startFixtureServer,
   stopFixtureServer,
 } from '../fixtures/fixture-helper';
+import FixtureServer from '../fixtures/fixture-server';
 
 const PHISHING_SITE = 'http://www.empowr.com/FanFeed/Home.aspx';
 const INVALID_URL = 'https://quackquakc.easq';
 const TEST_DAPP = 'https://metamask.github.io/test-dapp/';
 const METAMASK_TEST_DAPP_SHORTEN_URL_TEXT = 'metamask.github.io';
+const fixtureServer = FixtureServer();
+
 describe(Smoke('Browser Tests'), () => {
   beforeAll(async () => {
     const fixture = new FixtureBuilder().build();
-    await startFixtureServer();
-    await loadFixture({ fixture });
+    await startFixtureServer(fixtureServer);
+    await loadFixture(fixtureServer, { fixture });
     await device.launchApp({ delete: true });
     await loginToApp();
   });
 
   afterAll(async () => {
-    await stopFixtureServer();
+    await stopFixtureServer(fixtureServer);
   });
 
   beforeEach(() => {

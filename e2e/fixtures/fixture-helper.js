@@ -7,8 +7,6 @@ import axios from 'axios';
 import path from 'path';
 import createStaticServer from '../create-static-server';
 
-const fixtureServer = new FixtureServer();
-
 const FIXTURE_SERVER_URL = 'http://localhost:12345/state.json';
 
 // checks if server has already been started
@@ -24,12 +22,13 @@ const isFixtureServerStarted = async () => {
 /**
  * Loads a fixture into the fixture server.
  *
+ * @param {FixtureServer} fixtureServer - An instance of the FixtureServer class responsible for loading fixtures.
  * @param {Object} options - An object containing the fixture to load.
  * @param {Object} [options.fixture] - The fixture data to load. If not provided, a default fixture is created.
  * @returns {Promise<void>} - A promise that resolves once the fixture is successfully loaded.
  * @throws {Error} - Throws an error if the fixture fails to load or if the fixture server is not properly set up.
  */
-export const loadFixture = async ({ fixture } = {}) => {
+export const loadFixture = async (fixtureServer, { fixture } = {}) => {
   // If no fixture is provided, the `onboarding` option is set to `true` by default, which means
   // the app will be loaded without any fixtures and will start and go through the onboarding process.
   const state = fixture || new FixtureBuilder({ onboarding: true }).build();
@@ -44,7 +43,7 @@ export const loadFixture = async ({ fixture } = {}) => {
 };
 
 // Start the fixture server
-export const startFixtureServer = async () => {
+export const startFixtureServer = async (fixtureServer) => {
   if (await isFixtureServerStarted()) {
     console.log('The fixture server has already been started');
     return;
@@ -59,7 +58,7 @@ export const startFixtureServer = async () => {
 };
 
 // Stop the fixture server
-export const stopFixtureServer = async () => {
+export const stopFixtureServer = async (fixtureServer) => {
   if (!(await isFixtureServerStarted())) {
     console.log('The fixture server has already been stopped');
     return;
@@ -91,6 +90,7 @@ export async function withFixtures(options, testSuite) {
     dappPaths,
   } = options;
 
+  const fixtureServer = new FixtureServer();
   const ganacheServer = new Ganache();
   const dappBasePort = 8080;
   let numberOfDapps = dapp ? 1 : 0;
@@ -136,8 +136,8 @@ export async function withFixtures(options, testSuite) {
       }
     }
     // Start the fixture server
-    await startFixtureServer();
-    await loadFixture({ fixture });
+    await startFixtureServer(fixtureServer);
+    await loadFixture(fixtureServer, { fixture });
     console.log(
       'The fixture server is started, and the initial state is successfully loaded.',
     );
@@ -166,7 +166,7 @@ export async function withFixtures(options, testSuite) {
         }
       }
     }
-    await stopFixtureServer();
+    await stopFixtureServer(fixtureServer);
   }
 }
 
