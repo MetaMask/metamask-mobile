@@ -1,5 +1,3 @@
-/* eslint-disable no-console */
-
 'use strict';
 import { Smoke } from '../../tags';
 import WalletView from '../../pages/WalletView';

@@ -1,5 +1,3 @@
-/* eslint-disable no-console */
-
 'use strict';
 import { Regression } from '../../tags';
 import TestHelpers from '../../helpers';

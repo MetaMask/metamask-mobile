@@ -1,4 +1,3 @@
-/* eslint-disable no-console */
 'use strict';
 import Browser from '../../pages/Drawer/Browser';
 import TabBarComponent from '../../pages/TabBarComponent';
@@ -16,7 +15,6 @@ import TestHelpers from '../../helpers';
 const MAX_ATTEMPTS = 3;
 
 describe(Smoke('Sign Messages'), () => {
-
   beforeAll(async () => {
     jest.setTimeout(2500000);
     if (device.getPlatform() === 'android') {
