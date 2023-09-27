@@ -252,6 +252,7 @@ Array [
             </View>
             <View>
               <Text
+                accessibilityRole="text"
                 style={
                   Object {
                     "color": "#24272A",
@@ -265,32 +266,24 @@ Array [
               >
                 Sepolia
               </Text>
-              <View
+              <Text
+                accessibilityRole="text"
                 style={
                   Object {
-                    "alignItems": "center",
-                    "flexDirection": "row",
-                    "justifyContent": "flex-start",
+                    "color": "#24272A",
+                    "fontFamily": "Euclid Circular B",
+                    "fontSize": 14,
+                    "fontWeight": "700",
+                    "letterSpacing": 0,
+                    "lineHeight": 22,
                   }
                 }
-              >
-                <Text
-                  style={
-                    Object {
-                      "color": "#24272A",
-                      "fontFamily": "Euclid Circular B",
-                      "fontSize": 14,
-                      "fontWeight": "700",
-                      "letterSpacing": 0,
-                      "lineHeight": 22,
-                    }
-                  }
-                />
-              </View>
+              />
             </View>
           </View>
           <View>
             <Text
+              accessibilityRole="text"
               style={
                 Object {
                   "color": "#24272A",
@@ -306,6 +299,7 @@ Array [
               Balance
             </Text>
             <Text
+              accessibilityRole="text"
               style={
                 Object {
                   "color": "#24272A",
@@ -896,61 +890,51 @@ Array [
                                     ]
                                   }
                                 >
-                                  <View
+                                  <Text
+                                    numberOfLines={1}
                                     style={
-                                      Object {
-                                        "alignItems": "center",
-                                        "flexDirection": "row",
-                                        "justifyContent": "center",
-                                      }
+                                      Array [
+                                        Object {
+                                          "color": "#24272A",
+                                          "fontFamily": "EuclidCircularB-Regular",
+                                          "fontSize": 30,
+                                          "fontWeight": "400",
+                                          "marginVertical": 2,
+                                        },
+                                        undefined,
+                                        undefined,
+                                        undefined,
+                                        undefined,
+                                        undefined,
+                                        undefined,
+                                        undefined,
+                                        undefined,
+                                        undefined,
+                                        undefined,
+                                        undefined,
+                                        undefined,
+                                        undefined,
+                                        undefined,
+                                        undefined,
+                                        undefined,
+                                        undefined,
+                                        undefined,
+                                        undefined,
+                                        undefined,
+                                        undefined,
+                                        undefined,
+                                        undefined,
+                                        Object {
+                                          "color": "#24272A",
+                                          "fontFamily": "EuclidCircularB-Regular",
+                                          "fontSize": 14,
+                                          "fontWeight": "400",
+                                        },
+                                      ]
                                     }
                                   >
-                                    <Text
-                                      numberOfLines={1}
-                                      style={
-                                        Array [
-                                          Object {
-                                            "color": "#24272A",
-                                            "fontFamily": "EuclidCircularB-Regular",
-                                            "fontSize": 30,
-                                            "fontWeight": "400",
-                                            "marginVertical": 2,
-                                          },
-                                          undefined,
-                                          undefined,
-                                          undefined,
-                                          undefined,
-                                          undefined,
-                                          undefined,
-                                          undefined,
-                                          undefined,
-                                          undefined,
-                                          undefined,
-                                          undefined,
-                                          undefined,
-                                          undefined,
-                                          undefined,
-                                          undefined,
-                                          undefined,
-                                          undefined,
-                                          undefined,
-                                          undefined,
-                                          undefined,
-                                          undefined,
-                                          undefined,
-                                          undefined,
-                                          Object {
-                                            "color": "#24272A",
-                                            "fontFamily": "EuclidCircularB-Regular",
-                                            "fontSize": 14,
-                                            "fontWeight": "400",
-                                          },
-                                        ]
-                                      }
-                                    >
-                                      Account 2
-                                    </Text>
-                                  </View>
+                                    Account 2
+                                  </Text>
                                   <View
                                     style={
                                       Object {

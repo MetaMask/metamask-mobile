@@ -57,6 +57,7 @@ exports[`ApproveTransactionHeader should render correctly 1`] = `
       />
     </View>
     <Text
+      accessibilityRole="text"
       style={
         Object {
           "color": "#535A61",
@@ -310,6 +311,7 @@ exports[`ApproveTransactionHeader should render correctly 1`] = `
         </View>
         <View>
           <Text
+            accessibilityRole="text"
             style={
               Object {
                 "color": "#24272A",
@@ -323,32 +325,24 @@ exports[`ApproveTransactionHeader should render correctly 1`] = `
           >
             Sepolia
           </Text>
-          <View
+          <Text
+            accessibilityRole="text"
             style={
               Object {
-                "alignItems": "center",
-                "flexDirection": "row",
-                "justifyContent": "flex-start",
+                "color": "#24272A",
+                "fontFamily": "Euclid Circular B",
+                "fontSize": 14,
+                "fontWeight": "700",
+                "letterSpacing": 0,
+                "lineHeight": 22,
               }
             }
-          >
-            <Text
-              style={
-                Object {
-                  "color": "#24272A",
-                  "fontFamily": "Euclid Circular B",
-                  "fontSize": 14,
-                  "fontWeight": "700",
-                  "letterSpacing": 0,
-                  "lineHeight": 22,
-                }
-              }
-            />
-          </View>
+          />
         </View>
       </View>
       <View>
         <Text
+          accessibilityRole="text"
           style={
             Object {
               "color": "#24272A",
@@ -364,6 +358,7 @@ exports[`ApproveTransactionHeader should render correctly 1`] = `
           Balance
         </Text>
         <Text
+          accessibilityRole="text"
           style={
             Object {
               "color": "#24272A",
@@ -630,6 +625,7 @@ exports[`ApproveTransactionHeader should return origin to be null when not prese
         </View>
         <View>
           <Text
+            accessibilityRole="text"
             style={
               Object {
                 "color": "#24272A",
@@ -643,32 +639,24 @@ exports[`ApproveTransactionHeader should return origin to be null when not prese
           >
             Sepolia
           </Text>
-          <View
+          <Text
+            accessibilityRole="text"
             style={
               Object {
-                "alignItems": "center",
-                "flexDirection": "row",
-                "justifyContent": "flex-start",
+                "color": "#24272A",
+                "fontFamily": "Euclid Circular B",
+                "fontSize": 14,
+                "fontWeight": "700",
+                "letterSpacing": 0,
+                "lineHeight": 22,
               }
             }
-          >
-            <Text
-              style={
-                Object {
-                  "color": "#24272A",
-                  "fontFamily": "Euclid Circular B",
-                  "fontSize": 14,
-                  "fontWeight": "700",
-                  "letterSpacing": 0,
-                  "lineHeight": 22,
-                }
-              }
-            />
-          </View>
+          />
         </View>
       </View>
       <View>
         <Text
+          accessibilityRole="text"
           style={
             Object {
               "color": "#24272A",
@@ -684,6 +672,7 @@ exports[`ApproveTransactionHeader should return origin to be null when not prese
           Balance
         </Text>
         <Text
+          accessibilityRole="text"
           style={
             Object {
               "color": "#24272A",

@@ -7,7 +7,6 @@ import ExpandedMessage from '../SignatureRequest/ExpandedMessage';
 import Device from '../../../util/device';
 import { MetaMetricsEvents } from '../../../core/Analytics';
 import AnalyticsV2 from '../../../util/analyticsV2';
-
 import { KEYSTONE_TX_CANCELED } from '../../../constants/error';
 import { ThemeContext, mockTheme } from '../../../util/theme';
 import sanitizeString from '../../../util/string';
@@ -90,10 +89,12 @@ class TypedSign extends PureComponent {
   componentDidMount = () => {
     const {
       messageParams: { metamaskId },
+      messageParams,
     } = this.props;
+
     AnalyticsV2.trackEvent(
       MetaMetricsEvents.SIGNATURE_REQUESTED,
-      getAnalyticsParams(),
+      getAnalyticsParams(messageParams, 'typed_sign'),
     );
     addSignatureErrorListener(metamaskId, this.onSignatureError);
   };
@@ -250,7 +251,7 @@ class TypedSign extends PureComponent {
         domain={domain}
         currentPageInformation={currentPageInformation}
         truncateMessage={truncateMessage}
-        type="typedSign"
+        type={typedSign[messageParams.version]}
         fromAddress={from}
         securityAlertResponse={securityAlertResponse}
         testID={'typed-signature-request'}

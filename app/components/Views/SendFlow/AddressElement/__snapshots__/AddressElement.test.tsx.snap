@@ -86,32 +86,23 @@ exports[`AddressElement should render correctly 1`] = `
       }
     }
   >
-    <View
+    <Text
+      accessibilityRole="text"
+      numberOfLines={1}
       style={
         Object {
-          "alignItems": "center",
-          "flexDirection": "row",
-          "justifyContent": "flex-start",
+          "color": "#24272A",
+          "flex": 1,
+          "fontFamily": "Euclid Circular B",
+          "fontSize": 14,
+          "fontWeight": "400",
+          "letterSpacing": 0,
+          "lineHeight": 22,
         }
       }
     >
-      <Text
-        numberOfLines={1}
-        style={
-          Object {
-            "color": "#24272A",
-            "flex": 1,
-            "fontFamily": "Euclid Circular B",
-            "fontSize": 14,
-            "fontWeight": "400",
-            "letterSpacing": 0,
-            "lineHeight": 22,
-          }
-        }
-      >
-        0x1234...Cdef
-      </Text>
-    </View>
+      0x1234...Cdef
+    </Text>
   </View>
 </TouchableOpacity>
 `;

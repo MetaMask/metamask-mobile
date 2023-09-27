@@ -77,6 +77,10 @@ class EngineService {
         name: 'PermissionController',
         key: `${engine.context.PermissionController.name}:stateChange`,
       },
+      {
+        name: 'LoggingController',
+        key: `${engine.context.LoggingController.name}:stateChange`,
+      },
     ];
 
     if (isBlockaidFeatureEnabled()) {

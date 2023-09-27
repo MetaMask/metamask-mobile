@@ -164,6 +164,7 @@ exports[`WalletAccount renders correctly 1`] = `
         }
       >
         <Text
+          accessibilityRole="text"
           style={
             Object {
               "color": "#24272A",
@@ -225,6 +226,7 @@ exports[`WalletAccount renders correctly 1`] = `
       }
     >
       <Text
+        accessibilityRole="text"
         style={
           Object {
             "color": "#24272A",
@@ -264,6 +266,7 @@ exports[`WalletAccount renders correctly 1`] = `
           }
         >
           <Text
+            accessibilityRole="text"
             style={
               Object {
                 "color": "#0376C9",

@@ -13,9 +13,6 @@ const initialState = {
   engine: {
     backgroundState: initialBackgroundState,
   },
-  user: {
-    nftDetectionDismissed: true,
-  },
 };
 const store = mockStore(initialState);
 
