@@ -13,6 +13,10 @@ import Text from '../../../../component-library/components/Texts/Text/Text';
 import { TextVariant } from '../../../../component-library/components/Texts/Text';
 import { selectChainId } from '../../../../selectors/networkController';
 import { doENSReverseLookup } from '../../../../util/ENSUtils';
+import Icon, {
+  IconName,
+  IconSize,
+} from '../../../../component-library/components/Icons/Icon';
 
 // Internal dependecies
 import styleSheet from './AddressElement.styles';
@@ -23,6 +27,7 @@ const AddressElement: React.FC<AddressElementProps> = ({
   address,
   onAccountPress,
   onAccountLongPress,
+  isAmbiguousAddress,
   ...props
 }) => {
   const [displayName, setDisplayName] = useState(name);
@@ -78,6 +83,18 @@ const AddressElement: React.FC<AddressElementProps> = ({
           </Text>
         )}
       </View>
+      {isAmbiguousAddress && (
+        <TouchableOpacity
+          style={styles.warningIconWrapper}
+          onPress={() => window.alert('Hook up to sheet')}
+        >
+          <Icon
+            name={IconName.Danger}
+            size={IconSize.Lg}
+            color={styles.warningIcon.color}
+          />
+        </TouchableOpacity>
+      )}
     </TouchableOpacity>
   );
 };

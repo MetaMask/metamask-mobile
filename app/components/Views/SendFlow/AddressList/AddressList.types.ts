@@ -11,4 +11,5 @@ export interface Contact {
   name: string;
   chainId: string;
   isSmartContract?: boolean;
+  isAmbiguousAddress?: boolean;
 }

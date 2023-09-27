@@ -15,7 +15,10 @@ import AddressElement from '../AddressElement';
 import { useTheme } from '../../../../util/theme';
 import Text from '../../../../component-library/components/Texts/Text/Text';
 import { TextVariant } from '../../../../component-library/components/Texts/Text';
-import { selectChainId } from '../../../../selectors/networkController';
+import {
+  selectChainId,
+  selectNetworkId,
+} from '../../../../selectors/networkController';
 import { selectIdentities } from '../../../../selectors/preferencesController';
 import { regex } from '../../../../../app/util/regex';
 
@@ -48,22 +51,30 @@ const AddressList: React.FC<AddressListProps> = ({
   const [fuse, setFuse] = useState<any>(undefined);
   const chainId = useSelector(selectChainId);
   const identities = useSelector(selectIdentities);
+  // const networkId = useSelector(selectNetworkId);
   const addressBook = useSelector(
     (state: any) =>
       state.engine.backgroundState.AddressBookController.addressBook,
+  );
+  const ambiguousAddressEntries = useSelector(
+    (state: any) => state.user.ambiguousAddressEntries,
   );
 
   const networkAddressBook: { [address: string]: AddressBookEntry } = useMemo(
     () => addressBook[chainId] || {},
     [addressBook, chainId],
   );
-
   const parseAddressBook = useCallback(
     (networkAddressBookList) => {
-      const contacts = networkAddressBookList.map((contact: Contact) => ({
-        ...contact,
-        isSmartContract: false,
-      }));
+      const contacts = networkAddressBookList.map((contact: Contact) => {
+        const isAmbiguousAddress =
+          chainId && ambiguousAddressEntries[chainId].includes(contact.address);
+        return {
+          ...contact,
+          ...(isAmbiguousAddress && { isAmbiguousAddress }),
+          isSmartContract: false,
+        };
+      });
 
       Promise.all(
         contacts.map((contact: Contact) =>
@@ -192,6 +203,7 @@ const AddressList: React.FC<AddressListProps> = ({
         onAccountPress={onAccountPress}
         onAccountLongPress={onAccountLongPress}
         testID={ADDRESS_BOOK_ACCOUNT}
+        isAmbiguousAddress={addressElement.isAmbiguousAddress}
       />
     );
   };
