@@ -83,7 +83,10 @@ public class MainApplication extends Application implements ShareApplication, Re
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
-
+		// These two lines are here to enable debugging WebView from Chrome DevTools.
+		// The variables are set in the build.gradle file coming the the environment variables
+		// `RAMP_DEV_BUILD` and `RAMP_INTERNAL_BUILD`.
+		// These variables are defined at build time in Bitrise
 		if (BuildConfig.DEBUG || BuildConfig.IS_RAMP_UAT.equals("true") || BuildConfig.IS_RAMP_DEV.equals("true")) {
 			WebView.setWebContentsDebuggingEnabled(true);
 		}
