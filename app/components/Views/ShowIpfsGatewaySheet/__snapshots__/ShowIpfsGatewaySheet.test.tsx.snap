@@ -465,6 +465,7 @@ exports[`ShowIpfsGatewaySheet should render correctly 1`] = `
                           </Text>
                            
                           <Text
+                            accessibilityRole="text"
                             style={
                               Object {
                                 "color": "#24272A",
