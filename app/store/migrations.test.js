@@ -983,4 +983,88 @@ describe('Redux Persist Migrations', () => {
       expect(newState).toStrictEqual(stateWithoutTransactionController);
     });
   });
+
+  describe('#23', () => {
+    it('should rename transactionHash to hash', () => {
+      const oldState = {
+        engine: {
+          backgroundState: {
+            TransactionController: {
+              transactions: [
+                {
+                  transactionHash: '0x123',
+                  otherProperty: 'otherValue',
+                },
+                {
+                  transactionHash: '0x456',
+                  otherProperty: 'otherValue',
+                },
+              ],
+            },
+          },
+        },
+      };
+
+      const migration = migrations[23];
+
+      const newState = migration(cloneDeep(oldState));
+
+      const expectedState = {
+        engine: {
+          backgroundState: {
+            TransactionController: {
+              transactions: [
+                {
+                  hash: '0x123',
+                  otherProperty: 'otherValue',
+                },
+                {
+                  hash: '0x456',
+                  otherProperty: 'otherValue',
+                },
+              ],
+            },
+          },
+        },
+      };
+
+      expect(newState).toStrictEqual(expectedState);
+    });
+
+    it('should not change state if transactionHash is missing', () => {
+      const oldState = {
+        engine: {
+          backgroundState: {
+            TransactionController: {
+              transactions: [
+                {
+                  hash: '0x456',
+                },
+              ],
+            },
+          },
+        },
+      };
+
+      const migration = migrations[23];
+
+      const newState = migration(cloneDeep(oldState));
+
+      expect(newState).toStrictEqual(oldState);
+    });
+
+    it('should return the same state if there is no transaction controller state', () => {
+      const stateWithoutTransactionController = {
+        engine: {
+          backgroundState: {},
+        },
+      };
+
+      const migration = migrations[23];
+
+      const newState = migration(cloneDeep(stateWithoutTransactionController));
+
+      expect(newState).toStrictEqual(stateWithoutTransactionController);
+    });
+  });
 });
