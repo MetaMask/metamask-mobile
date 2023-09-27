@@ -343,7 +343,7 @@ workflows:
           inputs:
             - deploy_path: $BITRISE_DEPLOY_DIR
             - is_compress: true
-            - zip_name: "E2E_Android_Failure_Screenshots"
+            - zip_name: 'E2E_Android_Failure_Screenshots'
 
     meta:
       bitrise.io:
@@ -407,7 +407,7 @@ workflows:
           inputs:
             - deploy_path: $BITRISE_DEPLOY_DIR
             - is_compress: true
-            - zip_name: "E2E_IOS_Failure_Screenshots"
+            - zip_name: 'E2E_IOS_Failure_Screenshots'
   start_e2e_tests:
     steps:
       - build-router-start@0:
@@ -765,7 +765,7 @@ workflows:
           inputs:
             - deploy_path: browserstack_uploaded_apps.json
           title: Bitrise Deploy Browserstack Uploaded Apps
-      
+
 app:
   envs:
     - opts:
@@ -800,10 +800,10 @@ app:
       PROJECT_LOCATION_IOS: ios
     - opts:
         is_expand: false
-      VERSION_NAME: 7.7.0
+      VERSION_NAME: 7.8.0
     - opts:
         is_expand: false
-      VERSION_NUMBER: 1171
+      VERSION_NUMBER: 1173
     - opts:
         is_expand: false
       ANDROID_APK_LINK: ''
