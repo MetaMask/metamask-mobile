@@ -1241,9 +1241,8 @@ const        makeLRUCacheMap=  (keysBudget)=>{
   /**
    * @param {K} key
    */
-  // TODO Change to the following line, once our tools don't choke on `?.`.
-  // See https://github.com/endojs/endo/issues/1514
-  // const get = key => touchCell(key)?.data?.get(key);
+  // UNTIL https://github.com/endojs/endo/issues/1514
+  // Prefer: const get = key => touchCell(key)?.data?.get(key);
   const get=  (key)=>{
     const cell=  touchCell(key);
     return cell&&  cell.data&&  cell.data.get(key);
@@ -2437,7 +2436,7 @@ function TypedArrayPrototype(constructor) {
  }
 
 // Without Math.random
-const SharedMath=  {
+const CommonMath=  {
   E: 'number',
   LN10: 'number',
   LN2: 'number',
@@ -2760,12 +2759,16 @@ const        permitted=  {
 
 
   '%InitialMath%': {
-    ...SharedMath,
-    // random is standard but omitted from SharedMath
+    ...CommonMath,
+    // `%InitialMath%.random()` has the standard unsafe behavior
     random: fn},
 
 
-  '%SharedMath%': SharedMath,
+  '%SharedMath%': {
+    ...CommonMath,
+    // `%SharedMath%.random()` is tamed to always throw
+    random: fn},
+
 
   '%InitialDate%': {
     // Properties of the Date Constructor
@@ -2779,6 +2782,7 @@ const        permitted=  {
   '%SharedDate%': {
     // Properties of the Date Constructor
     '[[Proto]]': '%FunctionPrototype%',
+    // `%SharedDate%.now()` is tamed to always throw
     now: fn,
     parse: fn,
     prototype: '%DatePrototype%',
@@ -4275,26 +4279,38 @@ function                tameDateConstructor(dateTaming=  'safe') {
 
   // Use concise methods to obtain named functions without constructors.
   const tamedMethods=  {
+    /**
+     * `%SharedDate%.now()` throw a `TypeError` starting with "secure mode".
+     * See https://github.com/endojs/endo/issues/910#issuecomment-1581855420
+     */
     now() {
-      return NaN;
+      throw TypeError('secure mode Calling %SharedDate%.now() throws');
      }};
 
 
-  // Tame the Date constructor.
-  // Common behavior
-  //   * new Date(x) coerces x into a number and then returns a Date
-  //     for that number of millis since the epoch
-  //   * new Date(NaN) returns a Date object which stringifies to
-  //     'Invalid Date'
-  //   * new Date(undefined) returns a Date object which stringifies to
-  //     'Invalid Date'
-  // OriginalDate (normal standard) behavior
-  //   * Date(anything) gives a string with the current time
-  //   * new Date() returns the current time, as a Date object
-  // SharedDate behavior
-  //   * Date(anything) returned 'Invalid Date'
-  //   * new Date() returns a Date object which stringifies to
-  //     'Invalid Date'
+  /**
+   * Tame the Date constructor.
+   * See https://github.com/endojs/endo/issues/910#issuecomment-1581855420
+   *
+   * Common behavior
+   *   * `new Date(x)` coerces x into a number and then returns a Date
+   *     for that number of millis since the epoch
+   *   * `new Date(NaN)` returns a Date object which stringifies to
+   *     'Invalid Date'
+   *   * `new Date(undefined)` returns a Date object which stringifies to
+   *     'Invalid Date'
+   *
+   * OriginalDate (normal standard) behavior preserved by
+   * `%InitialDate%`.
+   *   * `Date(anything)` gives a string with the current time
+   *   * `new Date()` returns the current time, as a Date object
+   *
+   * `%SharedDate%` behavior
+   *   * `Date(anything)` throws a TypeError starting with "secure mode"
+   *   * `new Date()` throws a TypeError starting with "secure mode"
+   *
+   * @param {{powers?: string}} [opts]
+   */
   const makeDateConstructor=  ({ powers=  'none'}=   {})=>  {
     let ResultDate;
     if( powers===  'original') {
@@ -4309,10 +4325,14 @@ function                tameDateConstructor(dateTaming=  'safe') {
       // eslint-disable-next-line no-shadow
       ResultDate=  function Date(...rest) {
         if( new.target===  undefined) {
-          return 'Invalid Date';
+          throw TypeError(
+            'secure mode Calling %SharedDate% constructor as a function throws');
+
          }
         if( rest.length===  0) {
-          rest=  [NaN];
+          throw TypeError(
+            'secure mode Calling new %SharedDate%() with no arguments throws');
+
          }
         return construct(OriginalDate, rest, new.target);
        };
@@ -4327,13 +4347,13 @@ function                tameDateConstructor(dateTaming=  'safe') {
         configurable: false},
 
       parse: {
-        value: Date.parse,
+        value: OriginalDate.parse,
         writable: true,
         enumerable: false,
         configurable: true},
 
       UTC: {
-        value: Date.UTC,
+        value: OriginalDate.UTC,
         writable: true,
         enumerable: false,
         configurable: true}});
@@ -4346,7 +4366,7 @@ function                tameDateConstructor(dateTaming=  'safe') {
 
   defineProperties(InitialDate, {
     now: {
-      value: Date.now,
+      value: OriginalDate.now,
       writable: true,
       enumerable: false,
       configurable: true}});
@@ -4391,7 +4411,26 @@ function                tameMathObject(mathTaming=  'safe') {
   const { random: _, ...otherDescriptors}=
     getOwnPropertyDescriptors(originalMath);
 
-  const sharedMath=  create(objectPrototype, otherDescriptors);
+  // Use concise methods to obtain named functions without constructors.
+  const tamedMethods=  {
+    /**
+     * `%SharedMath%.random()` throws a TypeError starting with "secure mode".
+     * See https://github.com/endojs/endo/issues/910#issuecomment-1581855420
+     */
+    random() {
+      throw TypeError('secure mode %SharedMath%.random() throws');
+     }};
+
+
+  const sharedMath=  create(objectPrototype, {
+    ...otherDescriptors,
+    random: {
+      value: tamedMethods.random,
+      writable: true,
+      enumerable: false,
+      configurable: true}});
+
+
 
   return {
     '%InitialMath%': initialMath,
