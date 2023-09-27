@@ -22,7 +22,7 @@ describe(Smoke('ERC721 tokens'), () => {
     jest.setTimeout(150000);
     if (device.getPlatform() === 'android') {
       await device.reverseTcpPort('8545'); // ganache
-      await device.reverseTcpPort('8081'); // test-dapp
+      await device.reverseTcpPort('8080'); // test-dapp
     }
   });
 
