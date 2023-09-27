@@ -2,6 +2,9 @@
   "KeyringController": {
     "keyrings": []
   },
+  "LoggingController": {
+    "logs": {}
+  },
   "AccountTrackerController": {
     "accounts": {}
   },
@@ -51,8 +54,6 @@
     "usdConversionRate": null
   },
   "NetworkController": {
-    "network": "loading",
-    "isCustomNetwork": false,
     "networkConfigurations": {},
     "providerConfig": {
       "type": "mainnet",
@@ -60,7 +61,9 @@
     },
     "networkDetails": {
       "isEIP1559Compatible": false
-    }
+    },
+    "networkId": null,
+    "networkStatus": "unknown"
   },
   "PhishingController": {
     "listState": {

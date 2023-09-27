@@ -20,13 +20,13 @@ DIST_DIR_MOBILE="$PACKAGE_DIR_MOBILE/dist"
 PATCH_FILE="patches/@metamask+transaction-controller+*.patch"
 COMMENT_LINE_COUNT=7
 
-COMMENT='+PATCH GENERATED FROM MetaMask/core branch: refactor/transaction-controller-patch-mobile\
+COMMENT='+PATCH GENERATED FROM MetaMask/core branch: refactor/transaction-controller-patch-mobile-5\
 +This patch backports various transaction controller features from the main branch of MetaMask/core\
 +Steps to update patch:\
-+* Create a new core branch from: refactor/transaction-controller-patch-mobile\
++* Create a new core branch from: refactor/transaction-controller-patch-mobile-5\
 +* Run "yarn build" in the core monorepo\
 +* Run "yarn patch:tx <core-directory>" in the mobile repo\
-+* Once the new patch is merged, add your changes to: refactor/transaction-controller-patch-mobile'
++* Once the new patch is merged, add your changes to: refactor/transaction-controller-patch-mobile-5'
 
 COMMENT_DIFF='diff --git a/node_modules/@metamask/transaction-controller/dist/.patch.txt b/node_modules/@metamask/transaction-controller/dist/.patch.txt\
 new file mode 100644\

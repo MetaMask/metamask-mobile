@@ -1331,8 +1331,7 @@
     "you_can": "Sie können aber auch",
     "add_network": "weitere Netzwerke manuell hinzufügen.",
     "select_network": "Netzwerk wählen",
-    "show_test_networks": "Testnetzwerke anzeigen",
-    "linea_mainnet_not_released_alert": "Vielen Dank für Ihr Interesse an Linea Mainnet. Schon bald erhältlich!"
+    "show_test_networks": "Testnetzwerke anzeigen"
   },
   "select": {
     "cancel": "Abbrechen",

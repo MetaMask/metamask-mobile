@@ -406,6 +406,7 @@ exports[`ShowIpfsGatewaySheet should render correctly 1`] = `
                             }
                           />
                           <Text
+                            accessibilityRole="text"
                             style={
                               Object {
                                 "color": "#24272A",
@@ -429,6 +430,7 @@ exports[`ShowIpfsGatewaySheet should render correctly 1`] = `
                           />
                         </View>
                         <Text
+                          accessibilityRole="text"
                           style={
                             Object {
                               "color": "#24272A",
@@ -447,6 +449,7 @@ exports[`ShowIpfsGatewaySheet should render correctly 1`] = `
                           
 
                           <Text
+                            accessibilityRole="text"
                             style={
                               Object {
                                 "color": "#24272A",
@@ -480,6 +483,7 @@ exports[`ShowIpfsGatewaySheet should render correctly 1`] = `
                           turns on IPFS resolution. You can turn it off in
                            
                           <Text
+                            accessibilityRole="text"
                             style={
                               Object {
                                 "color": "#24272A",
@@ -528,6 +532,7 @@ exports[`ShowIpfsGatewaySheet should render correctly 1`] = `
                             variant="Secondary"
                           >
                             <Text
+                              accessibilityRole="text"
                               style={
                                 Object {
                                   "color": "#0376C9",
@@ -564,6 +569,7 @@ exports[`ShowIpfsGatewaySheet should render correctly 1`] = `
                             variant="Primary"
                           >
                             <Text
+                              accessibilityRole="text"
                               style={
                                 Object {
                                   "color": "#FCFCFC",

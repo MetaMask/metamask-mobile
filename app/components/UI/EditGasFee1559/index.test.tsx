@@ -1,5 +1,6 @@
-import React from 'react';
 import { shallow } from 'enzyme';
+import React from 'react';
+
 import EditGasFee1559 from './';
 
 describe('EditGasFee1559', () => {
@@ -12,6 +13,7 @@ describe('EditGasFee1559', () => {
           suggestedMaxFeePerGas: '50',
           suggestedMaxPriorityFeePerGas: '2',
         }}
+        view={''}
       />,
     );
     expect(wrapper).toMatchSnapshot();
