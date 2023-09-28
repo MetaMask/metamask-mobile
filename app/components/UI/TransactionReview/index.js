@@ -31,7 +31,6 @@ import {
   renderFromWei,
   fromTokenMinimalUnit,
   isZeroValue,
-  hexToBN,
 } from '../../../util/number';
 import { safeToChecksumAddress } from '../../../util/address';
 import Device from '../../../util/device';
