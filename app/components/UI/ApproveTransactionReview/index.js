@@ -78,7 +78,6 @@ import Routes from '../../../constants/navigation/Routes';
 import createStyles from './styles';
 import {
   selectChainId,
-  selectNetwork,
   selectNetworkConfigurations,
   selectProviderType,
   selectTicker,
@@ -1226,7 +1225,6 @@ const mapStateToProps = (state) => ({
   providerRpcTarget: selectRpcTarget(state),
   primaryCurrency: state.settings.primaryCurrency,
   activeTabUrl: getActiveTabUrl(state),
-  networkId: selectNetwork(state),
   chainId: selectChainId(state),
   tokenList: selectTokenList(state),
   isNativeTokenBuySupported: isNetworkRampNativeTokenSupported(
