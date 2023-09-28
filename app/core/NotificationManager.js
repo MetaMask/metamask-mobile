@@ -13,9 +13,11 @@ import {
   PUSH_NOTIFICATIONS_PROMPT_TIME,
 } from '../constants/storage';
 import { safeToChecksumAddress } from '../util/address';
+import EthQuery from 'ethjs-query';
 import ReviewManager from './ReviewManager';
 import { selectChainId } from '../selectors/networkController';
 import { store } from '../store';
+import { query } from '@metamask/controller-utils';
 
 const constructTitleAndMessage = (data) => {
   let title, message;
@@ -171,7 +173,23 @@ class NotificationManager {
       }, 2000);
   };
 
-  _confirmedCallback = (transactionMeta, originalTransaction) => {
+  _confirmedCallback = async (transactionMeta, originalTransaction) => {
+    const { NetworkController } = Engine.context;
+    const { provider } = NetworkController.getProviderAndBlockTracker();
+
+    const ethQuery = new EthQuery(provider);
+
+    const getTransactionReceipt = await query(
+      ethQuery,
+      'getTransactionReceipt',
+      [originalTransaction?.transactionHash],
+    );
+
+    if (getTransactionReceipt?.status === '0x0') {
+      this._finishedCallback(transactionMeta);
+      return;
+    }
+
     // Once it's confirmed we hide the pending tx notification
     this._removeNotificationById(transactionMeta.id);
     this._transactionsWatchTable[transactionMeta.transaction.nonce].length &&
