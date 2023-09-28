@@ -247,6 +247,7 @@ class DeeplinkManager {
                 }
                 SDKConnect.getInstance().reconnect({
                   channelId: params.channelId,
+                  otherPublicKey: params.pubkey,
                   context: 'deeplink (universal)',
                 });
               } else {
@@ -377,6 +378,7 @@ class DeeplinkManager {
               }
               SDKConnect.getInstance().reconnect({
                 channelId: params.channelId,
+                otherPublicKey: params.pubkey,
                 context: 'deeplink (metamask)',
               });
             } else {
