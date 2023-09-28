@@ -30,7 +30,7 @@ import {
 } from '../../../reducers/swaps';
 import {
   selectChainId,
-  selectNetwork,
+  selectNetworkId,
   selectNetworkConfigurations,
   selectRpcTarget,
 } from '../../../selectors/networkController';
@@ -587,7 +587,7 @@ const mapStateToProps = (state) => ({
   identities: selectIdentities(state),
   chainId: selectChainId(state),
   tokens: selectTokens(state),
-  networkId: selectNetwork(state),
+  networkId: selectNetworkId(state),
   transactions: state.engine.backgroundState.TransactionController.transactions,
   rpcTarget: selectRpcTarget(state),
   networkConfigurations: selectNetworkConfigurations(state),

@@ -31,7 +31,6 @@ function setupGetStateMock() {
         engine: {
           backgroundState: {
             NetworkController: {
-              network: 'loading',
               isCustomNetwork: false,
               networkConfigurations: {
                 networkId1: {

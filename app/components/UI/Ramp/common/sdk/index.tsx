@@ -37,8 +37,8 @@ import { selectNickname } from '../../../../../selectors/networkController';
 
 const isDevelopment =
   process.env.NODE_ENV !== 'production' ||
-  process.env.ONRAMP_DEV_BUILD === 'true';
-const isInternalBuild = process.env.ONRAMP_INTERNAL_BUILD === 'true';
+  process.env.RAMP_DEV_BUILD === 'true';
+const isInternalBuild = process.env.RAMP_INTERNAL_BUILD === 'true';
 const isDevelopmentOrInternalBuild = isDevelopment || isInternalBuild;
 
 let environment = Environment.Production;
