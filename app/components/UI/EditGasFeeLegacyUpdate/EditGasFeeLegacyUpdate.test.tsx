@@ -17,7 +17,7 @@ const mockInitialState = (txnType = 'none') => ({
 
 const selectedGasObjectForFeeMarket = {
   legacyGasLimit: undefined,
-  suggestedGasPrice: '10',
+  suggestedMaxFeePerGas: '10',
 };
 
 const selectedGasObjectForLegacy = {
