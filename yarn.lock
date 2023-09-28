@@ -25449,10 +25449,10 @@ react-native-webview-invoke@^0.6.2:
   resolved "https://registry.yarnpkg.com/react-native-webview-invoke/-/react-native-webview-invoke-0.6.2.tgz#75cc27ef98ea1cbc9386269347d3aafe90d33aa3"
   integrity sha512-PCzP7Zl3XwHU10JYS8nR0gwuR8XiOO0MhC8y9ZuPPI+HeISn95GvNYhOXxeLgfbdbUcpNWh1HqxPDySlfCIqxg==
 
-react-native-webview@11.13.0:
-  version "11.13.0"
-  resolved "https://registry.yarnpkg.com/react-native-webview/-/react-native-webview-11.13.0.tgz#a2eca0f87b2ae9bba0dd8144594aeff9947cc5d6"
-  integrity sha512-jjQAKWv8JzRmcn76fMe4lXD84AAeR7kn43kAmUe1GX312BMLaP+RbKlgpYAlNuOBXL0YirItGKDrpaD0bNROOA==
+react-native-webview@13.6.0:
+  version "13.6.0"
+  resolved "https://registry.yarnpkg.com/react-native-webview/-/react-native-webview-13.6.0.tgz#286eeb6b2167b838fe8a44619d14e8e24efc8b67"
+  integrity sha512-KapVfHEj60e+2QplhqoCMdqW4vDzzvLS3YasfjVoMV4qhsZ3padncMEqOHX6AY4FIAdRzAxG0JQs+kXczAPYeQ==
   dependencies:
     escape-string-regexp "2.0.0"
     invariant "2.2.4"
