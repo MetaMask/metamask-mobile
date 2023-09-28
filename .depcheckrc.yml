@@ -41,6 +41,7 @@ ignores:
   - 'regenerator-runtime'
   - 'rn-nodeify'
   - 'browserify-zlib'
+  - 'react-native-webrtc'
 
   ## Unused devDependencies to investigate
   - '@ethersproject/abi'
