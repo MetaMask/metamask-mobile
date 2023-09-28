@@ -84,9 +84,9 @@ public class MainApplication extends Application implements ShareApplication, Re
 			e.printStackTrace();
 		}
 
-		if (BuildConfig.DEBUG) {
-			WebView.setWebContentsDebuggingEnabled(true);
-		}
+		// if (BuildConfig.DEBUG) {
+		WebView.setWebContentsDebuggingEnabled(true);
+		// }
 
 		SoLoader.init(this, /* native exopackage */ false);
     if (BuildConfig.IS_NEW_ARCHITECTURE_ENABLED) {
