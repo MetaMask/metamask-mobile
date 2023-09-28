@@ -86,6 +86,7 @@ import {
 } from '../../../../wdio/screen-objects/testIDs/BrowserScreen/OptionMenu.testIds';
 import {
   selectIpfsGateway,
+  selectIsIpfsGatewayEnabled,
   selectSelectedAddress,
 } from '../../../selectors/preferencesController';
 import { IPFS_GATEWAY_DISABLED_ERROR } from './constants';
@@ -261,6 +262,7 @@ export const BrowserTab = (props) => {
   const [showPhishingModal, setShowPhishingModal] = useState(false);
   const [blockedUrl, setBlockedUrl] = useState(undefined);
   const [ipfsBannerVisible, setIpfsBannerVisible] = useState(false);
+  const [isResolvedIpfsUrl, setIsResolvedIpfsUrl] = useState(false);
   const webviewRef = useRef(null);
   const blockListType = useRef('');
   const allowList = useRef([]);
@@ -531,6 +533,7 @@ export const BrowserTab = (props) => {
    */
   const go = useCallback(
     async (url, initialCall) => {
+      setIsResolvedIpfsUrl(false);
       const prefixedUrl = prefixUrlWithProtocol(url);
       const { hostname, query, pathname } = new URL(prefixedUrl);
       let urlToGo = prefixedUrl;
@@ -548,6 +551,7 @@ export const BrowserTab = (props) => {
           if (reload) return go(ensUrl);
           urlToGo = ensUrl;
           sessionENSNames[urlToGo] = { hostname, hash, type };
+          setIsResolvedIpfsUrl(true);
         } catch (error) {
           return null;
         }
@@ -592,8 +596,12 @@ export const BrowserTab = (props) => {
    */
   const reload = useCallback(() => {
     const { current } = webviewRef;
+    if (!props.isIpfsGatewayEnabled && isResolvedIpfsUrl) {
+      setIpfsBannerVisible(true);
+      return;
+    }
     current && current.reload();
-  }, []);
+  }, [props.isIpfsGatewayEnabled, isResolvedIpfsUrl]);
 
   /**
    * Handle when the drawer (app menu) is opened
@@ -1585,6 +1593,10 @@ BrowserTab.propTypes = {
    * the current version of the app
    */
   app_version: PropTypes.string,
+  /**
+   * Represents ipfs gateway toggle
+   */
+  isIpfsGatewayEnabled: PropTypes.bool,
 };
 
 BrowserTab.defaultProps = {
@@ -1595,6 +1607,7 @@ const mapStateToProps = (state) => ({
   bookmarks: state.bookmarks,
   ipfsGateway: selectIpfsGateway(state),
   selectedAddress: selectSelectedAddress(state)?.toLowerCase(),
+  isIpfsGatewayEnabled: selectIsIpfsGatewayEnabled(state),
   searchEngine: state.settings.searchEngine,
   whitelist: state.browser.whitelist,
   wizardStep: state.wizard.step,
