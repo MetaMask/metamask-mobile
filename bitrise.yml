@@ -803,7 +803,7 @@ app:
       VERSION_NAME: 7.8.0
     - opts:
         is_expand: false
-      VERSION_NUMBER: 1173
+      VERSION_NUMBER: 1174
     - opts:
         is_expand: false
       ANDROID_APK_LINK: ''
