@@ -6,16 +6,6 @@ ButtonLink is a component that we use for accessing external links or navigating
 
 This component extends [ButtonBaseProps](../ButtonBase/ButtonBase.types.ts) component.
 
-## ButtonLink Props
-
-### `textVariant`
-
-Optional props to configure text component variants.
-
-| <span style="color:gray;font-size:14px">TYPE</span> | <span style="color:gray;font-size:14px">REQUIRED</span> |
-| :-------------------------------------------------- | :------------------------------------------------------ |
-| [TextVariant](../../../../Texts/Text/Text.types.ts)                                              | No                                                     |
-
 ## Common Props
 
 ### `label`
@@ -24,7 +14,7 @@ ButtonBase text.
 
 | <span style="color:gray;font-size:14px">TYPE</span> | <span style="color:gray;font-size:14px">REQUIRED</span> |
 | :-------------------------------------------------- | :------------------------------------------------------ |
-| string                                              | Yes                                                     |
+| string or Node                                              | Yes                                                     |
 
 ### `size`
 

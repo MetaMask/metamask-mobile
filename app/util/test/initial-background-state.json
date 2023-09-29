@@ -2,6 +2,9 @@
   "KeyringController": {
     "keyrings": []
   },
+  "LoggingController": {
+    "logs": {}
+  },
   "AccountTrackerController": {
     "accounts": {}
   },
@@ -30,6 +33,17 @@
   },
   "TokenDetectionController": {},
   "NftDetectionController": {},
+  "PPOMController": {
+    "chainStatus": {
+      "0x1": {
+        "chainId": "0x1",
+        "dataFetched": false
+      }
+    },
+    "storageMetadata": [],
+    "versionInfo": []
+  },
+
   "CurrencyRateController": {
     "conversionDate": 0,
     "conversionRate": 0,
@@ -40,8 +54,6 @@
     "usdConversionRate": null
   },
   "NetworkController": {
-    "network": "loading",
-    "isCustomNetwork": false,
     "networkConfigurations": {},
     "providerConfig": {
       "type": "mainnet",
@@ -49,7 +61,9 @@
     },
     "networkDetails": {
       "isEIP1559Compatible": false
-    }
+    },
+    "networkId": null,
+    "networkStatus": "unknown"
   },
   "PhishingController": {
     "listState": {
@@ -73,12 +87,14 @@
     "selectedAddress": "",
     "useTokenDetection": true,
     "useNftDetection": false,
-    "openSeaEnabled": false,
+    "displayNftMedia": true,
+    "securityAlertsEnabled": false,
     "isMultiAccountBalancesEnabled": true,
     "disabledRpcMethodPreferences": {
       "eth_sign": false
     },
-    "showTestNetworks": false
+    "showTestNetworks": false,
+    "isIpfsGatewayEnabled": true
   },
   "TokenBalancesController": {
     "contractBalances": {}

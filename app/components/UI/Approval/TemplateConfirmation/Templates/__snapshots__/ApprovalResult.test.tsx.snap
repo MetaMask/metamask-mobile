@@ -23,6 +23,7 @@ exports[`ApprovalResult renders approval result with error type 1`] = `
     }
   >
     <Text
+      accessibilityRole="text"
       style={
         Object {
           "color": "#24272A",
@@ -90,6 +91,7 @@ exports[`ApprovalResult renders approval result with error type 1`] = `
         }
       />
       <Text
+        accessibilityRole="text"
         style={
           Object {
             "color": "#24272A",
@@ -113,6 +115,7 @@ exports[`ApprovalResult renders approval result with error type 1`] = `
       />
     </View>
     <Text
+      accessibilityRole="text"
       style={
         Object {
           "color": "#24272A",
@@ -127,6 +130,7 @@ exports[`ApprovalResult renders approval result with error type 1`] = `
       }
     >
       <Text
+        accessibilityRole="text"
         style={
           Object {
             "color": "#24272A",
@@ -165,7 +169,7 @@ exports[`ApprovalResult renders approval result with error type 1`] = `
       testID="bottomsheetfooter"
     >
       <TouchableOpacity
-        activeOpacity={0.5}
+        activeOpacity={1}
         onPress={[MockFunction]}
         onPressIn={[Function]}
         onPressOut={[Function]}
@@ -186,6 +190,7 @@ exports[`ApprovalResult renders approval result with error type 1`] = `
         variant="Primary"
       >
         <Text
+          accessibilityRole="text"
           style={
             Object {
               "color": "#FCFCFC",
@@ -228,6 +233,7 @@ exports[`ApprovalResult renders approval result with success type 1`] = `
     }
   >
     <Text
+      accessibilityRole="text"
       style={
         Object {
           "color": "#24272A",
@@ -295,6 +301,7 @@ exports[`ApprovalResult renders approval result with success type 1`] = `
         }
       />
       <Text
+        accessibilityRole="text"
         style={
           Object {
             "color": "#24272A",
@@ -318,6 +325,7 @@ exports[`ApprovalResult renders approval result with success type 1`] = `
       />
     </View>
     <Text
+      accessibilityRole="text"
       style={
         Object {
           "color": "#24272A",
@@ -332,6 +340,7 @@ exports[`ApprovalResult renders approval result with success type 1`] = `
       }
     >
       <Text
+        accessibilityRole="text"
         style={
           Object {
             "color": "#24272A",
@@ -370,7 +379,7 @@ exports[`ApprovalResult renders approval result with success type 1`] = `
       testID="bottomsheetfooter"
     >
       <TouchableOpacity
-        activeOpacity={0.5}
+        activeOpacity={1}
         onPress={[MockFunction]}
         onPressIn={[Function]}
         onPressOut={[Function]}
@@ -391,6 +400,7 @@ exports[`ApprovalResult renders approval result with success type 1`] = `
         variant="Primary"
       >
         <Text
+          accessibilityRole="text"
           style={
             Object {
               "color": "#FCFCFC",

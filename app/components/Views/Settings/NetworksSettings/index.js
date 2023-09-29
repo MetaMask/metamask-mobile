@@ -21,7 +21,6 @@ import Networks, {
   getNetworkImageSource,
   isDefaultMainnet,
   isLineaMainnet,
-  shouldShowLineaMainnetNetwork,
 } from '../../../../util/networks';
 import StyledButton from '../../../UI/StyledButton';
 import Engine from '../../../../core/Engine';
@@ -145,7 +144,6 @@ class NetworksSettings extends PureComponent {
   state = {
     searchString: '',
     filteredNetworks: [],
-    lineaMainnetReleased: false,
   };
 
   updateNavBar = () => {
@@ -162,9 +160,6 @@ class NetworksSettings extends PureComponent {
   };
 
   componentDidMount = () => {
-    const shouldShowLineaMainnet = shouldShowLineaMainnetNetwork();
-
-    this.setState({ lineaMainnetReleased: shouldShowLineaMainnet });
     this.updateNavBar();
   };
 
@@ -174,9 +169,9 @@ class NetworksSettings extends PureComponent {
 
   getOtherNetworks = () => getAllNetworks().slice(2);
 
-  onNetworkPress = (network) => {
+  onNetworkPress = (networkTypeOrRpcUrl) => {
     const { navigation } = this.props;
-    navigation.navigate(Routes.ADD_NETWORK, { network });
+    navigation.navigate(Routes.ADD_NETWORK, { network: networkTypeOrRpcUrl });
   };
 
   onAddNetwork = () => {
@@ -184,8 +179,8 @@ class NetworksSettings extends PureComponent {
     navigation.navigate(Routes.ADD_NETWORK);
   };
 
-  showRemoveMenu = (network) => {
-    this.networkToRemove = network;
+  showRemoveMenu = (networkTypeOrRpcUrl) => {
+    this.networkToRemove = networkTypeOrRpcUrl;
     this.actionSheet.show();
   };
 
@@ -232,22 +227,24 @@ class NetworksSettings extends PureComponent {
 
   onActionSheetPress = (index) => (index === 0 ? this.removeNetwork() : null);
 
-  networkElement(name, image, i, network, isCustomRPC, color) {
+  networkElement(name, image, i, networkTypeOrRpcUrl, isCustomRPC, color) {
     const colors = this.context.colors || mockTheme.colors;
     const styles = createStyles(colors);
     return (
-      <View key={`network-${network}`}>
+      <View key={`network-${networkTypeOrRpcUrl}`}>
         {
           // Do not change. This logic must check for 'mainnet' and is used for rendering the out of the box mainnet when searching.
-          isDefaultMainnet(network) ? (
+          isDefaultMainnet(networkTypeOrRpcUrl) ? (
             this.renderMainnet()
-          ) : isLineaMainnet(network) ? (
+          ) : isLineaMainnet(networkTypeOrRpcUrl) ? (
             this.renderLineaMainnet()
           ) : (
             <TouchableOpacity
               key={`network-${i}`}
-              onPress={() => this.onNetworkPress(network)}
-              onLongPress={() => isCustomRPC && this.showRemoveMenu(network)}
+              onPress={() => this.onNetworkPress(networkTypeOrRpcUrl)}
+              onLongPress={() =>
+                isCustomRPC && this.showRemoveMenu(networkTypeOrRpcUrl)
+              }
               testID={'select-network'}
             >
               <View style={styles.network}>
@@ -263,7 +260,7 @@ class NetworksSettings extends PureComponent {
                 {!isCustomRPC &&
                   (image ? (
                     <ImageIcons
-                      image={network.toUpperCase()}
+                      image={networkTypeOrRpcUrl.toUpperCase()}
                       style={styles.networkIcon}
                     />
                   ) : (
@@ -291,9 +288,16 @@ class NetworksSettings extends PureComponent {
   }
 
   renderOtherNetworks() {
-    return this.getOtherNetworks().map((network, i) => {
-      const { name, imageSource, color } = Networks[network];
-      return this.networkElement(name, imageSource, i, network, false, color);
+    return this.getOtherNetworks().map((networkType, i) => {
+      const { name, imageSource, color } = Networks[networkType];
+      return this.networkElement(
+        name,
+        imageSource,
+        i,
+        networkType,
+        false,
+        color,
+      );
     });
   }
 
@@ -385,19 +389,32 @@ class NetworksSettings extends PureComponent {
 
   handleSearchTextChange = (text) => {
     this.setState({ searchString: text });
-    const defaultNetwork = getAllNetworks().map((network, i) => {
-      const { color, name, chainId } = Networks[network];
-      return { name, color, network, isCustomRPC: false, chainId };
+    const defaultNetwork = getAllNetworks().map((networkType, i) => {
+      const { color, name, chainId } = Networks[networkType];
+      return {
+        name,
+        color,
+        networkTypeOrRpcUrl: networkType,
+        isCustomRPC: false,
+        chainId,
+      };
     });
     const customRPC = Object.values(this.props.networkConfigurations).map(
-      (network, i) => {
+      (networkConfiguration, i) => {
         const { color, name, url, chainId } = {
-          name: network.nickname || network.rpcUrl,
-          url: network.rpcUrl,
+          name: networkConfiguration.nickname || networkConfiguration.rpcUrl,
+          url: networkConfiguration.rpcUrl,
           color: null,
-          chainId: network.chainId,
+          chainId: networkConfiguration.chainId,
         };
-        return { name, color, i, network: url, isCustomRPC: true, chainId };
+        return {
+          name,
+          color,
+          i,
+          networkTypeOrRpcUrl: url,
+          isCustomRPC: true,
+          chainId,
+        };
       },
     );
 
@@ -416,12 +433,18 @@ class NetworksSettings extends PureComponent {
     const styles = createStyles(colors);
     if (this.state.filteredNetworks.length > 0) {
       return this.state.filteredNetworks.map((data, i) => {
-        const { network, chainId, name, color, isCustomRPC } = data;
+        const { networkTypeOrRpcUrl, chainId, name, color, isCustomRPC } = data;
         const image = getNetworkImageSource({ chainId });
         return (
           // TODO: remove this check when linea mainnet is ready
-          network !== LINEA_MAINNET &&
-          this.networkElement(name, image || color, i, network, isCustomRPC)
+          networkTypeOrRpcUrl !== LINEA_MAINNET &&
+          this.networkElement(
+            name,
+            image || color,
+            i,
+            networkTypeOrRpcUrl,
+            isCustomRPC,
+          )
         );
       });
     }
@@ -470,7 +493,7 @@ class NetworksSettings extends PureComponent {
                 {strings('app_settings.mainnet')}
               </Text>
               {this.renderMainnet()}
-              {this.state.lineaMainnetReleased && this.renderLineaMainnet()}
+              {this.renderLineaMainnet()}
               {this.renderRpcNetworksView()}
               <Text style={styles.sectionLabel}>
                 {strings('app_settings.test_network_name')}

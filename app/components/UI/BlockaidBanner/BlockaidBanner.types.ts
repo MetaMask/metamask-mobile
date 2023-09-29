@@ -15,19 +15,26 @@ export enum Reason {
   transferFarming = 'transfer_farming',
   transferFromFarming = 'transfer_from_farming',
   unfairTrade = 'unfair_trade',
+
+  // MetaMask defined reasons
+  notApplicable = 'not_applicable',
 }
 
-export enum FlagType {
+export enum ResultType {
   Benign = 'Benign',
   Malicious = 'Malicious',
   Warning = 'Warning',
   Failed = 'Failed',
 }
 
-type BlockaidBannerAllProps = BannerAlertProps & {
+export interface SecurityAlertResponse {
   reason: Reason;
   features: string[];
-  flagType: FlagType;
+  resultType: ResultType;
+}
+
+type BlockaidBannerAllProps = BannerAlertProps & {
+  securityAlertResponse?: SecurityAlertResponse;
   onToggleShowDetails?: () => void;
 };
 

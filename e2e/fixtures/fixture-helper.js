@@ -1,8 +1,11 @@
-/* eslint-disable no-console */
+/* eslint-disable no-console, import/no-nodejs-modules */
 import FixtureServer from './fixture-server';
 import FixtureBuilder from './fixture-builder';
-
+import Ganache from '../../app/util/test/ganache';
+import GanacheSeeder from '../../app/util/test/ganache-seeder';
 import axios from 'axios';
+import path from 'path';
+import createStaticServer from '../create-static-server';
 
 const fixtureServer = new FixtureServer();
 
@@ -77,8 +80,61 @@ export const stopFixtureServer = async () => {
  * @throws {Error} - Throws an error if an exception occurs during the test suite execution.
  */
 export async function withFixtures(options, testSuite) {
-  const { fixture, restartDevice = false } = options;
+  const {
+    fixture,
+    restartDevice = false,
+    ganacheOptions,
+    smartContract,
+    dapp,
+    dappOptions,
+    dappPath = undefined,
+    dappPaths,
+  } = options;
+
+  const ganacheServer = new Ganache();
+  const dappBasePort = 8080;
+  let numberOfDapps = dapp ? 1 : 0;
+  const dappServer = [];
+
   try {
+    let contractRegistry;
+    if (ganacheOptions) {
+      await ganacheServer.start(ganacheOptions);
+
+      if (smartContract) {
+        const ganacheSeeder = new GanacheSeeder(ganacheServer.getProvider());
+        await ganacheSeeder.deploySmartContract(smartContract);
+        contractRegistry = ganacheSeeder.getContractRegistry();
+      }
+    }
+
+    if (dapp) {
+      if (dappOptions?.numberOfDapps) {
+        numberOfDapps = dappOptions.numberOfDapps;
+      }
+      for (let i = 0; i < numberOfDapps; i++) {
+        let dappDirectory;
+        if (dappPath || (dappPaths && dappPaths[i])) {
+          dappDirectory = path.resolve(__dirname, dappPath || dappPaths[i]);
+        } else {
+          dappDirectory = path.resolve(
+            __dirname,
+            '..',
+            '..',
+            'node_modules',
+            '@metamask',
+            'test-dapp',
+            'dist',
+          );
+        }
+        dappServer.push(createStaticServer(dappDirectory));
+        dappServer[i].listen(`${dappBasePort + i}`);
+        await new Promise((resolve, reject) => {
+          dappServer[i].on('listening', resolve);
+          dappServer[i].on('error', reject);
+        });
+      }
+    }
     // Start the fixture server
     await startFixtureServer();
     await loadFixture({ fixture });
@@ -91,11 +147,35 @@ export async function withFixtures(options, testSuite) {
       await device.launchApp({ delete: true });
     }
 
-    await testSuite();
+    await testSuite({ contractRegistry });
   } catch (error) {
     console.error(error);
     throw error;
   } finally {
+    if (ganacheOptions) {
+      await ganacheServer.quit();
+    }
+    if (dapp) {
+      for (let i = 0; i < numberOfDapps; i++) {
+        if (dappServer[i] && dappServer[i].listening) {
+          await new Promise((resolve, reject) => {
+            dappServer[i].close((error) => {
+              if (error) {
+                return reject(error);
+              }
+              return resolve();
+            });
+          });
+        }
+      }
+    }
     await stopFixtureServer();
   }
 }
+
+// SRP corresponding to the vault set in the default fixtures - it's an empty test account, not secret
+export const defaultGanacheOptions = {
+  hardfork: 'london',
+  mnemonic:
+    'drive manage close raven tape average sausage pledge riot furnace august tip',
+};

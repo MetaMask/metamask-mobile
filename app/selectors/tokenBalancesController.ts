@@ -1,9 +1,9 @@
 /* eslint-disable import/prefer-default-export */
 import { createSelector } from 'reselect';
 import { TokenBalancesState } from '@metamask/assets-controllers';
-import { EngineState } from './types';
+import { RootState } from '../reducers';
 
-const selectTokenBalancesControllerState = (state: EngineState) =>
+const selectTokenBalancesControllerState = (state: RootState) =>
   state.engine.backgroundState.TokenBalancesController;
 
 export const selectContractBalances = createSelector(

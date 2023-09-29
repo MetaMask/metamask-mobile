@@ -1,35 +1,138 @@
+diff --git a/node_modules/@metamask/preferences-controller/dist/PreferencesController.d.ts b/node_modules/@metamask/preferences-controller/dist/PreferencesController.d.ts
+index 6a6be4f..dfaa33e 100644
+--- a/node_modules/@metamask/preferences-controller/dist/PreferencesController.d.ts
++++ b/node_modules/@metamask/preferences-controller/dist/PreferencesController.d.ts
+@@ -34,10 +34,14 @@ export interface PreferencesState extends BaseState {
+     selectedAddress: string;
+     useTokenDetection: boolean;
+     useNftDetection: boolean;
+-    openSeaEnabled: boolean;
++    displayNftMedia: boolean;
++    isMultiAccountBalancesEnabled: boolean;
+     disabledRpcMethodPreferences: {
+         [methodName: string]: boolean;
+     };
++    showTestNetworks: boolean;
++    isIpfsGatewayEnabled:boolean;
++    securityAlertsEnabled: boolean;
+ }
+ /**
+  * Controller that stores shared settings and exposes convenience methods
+@@ -120,11 +124,11 @@ export declare class PreferencesController extends BaseController<BaseConfig, Pr
+      */
+     setUseNftDetection(useNftDetection: boolean): void;
+     /**
+-     * Toggle the opensea enabled setting.
++     * Toggle the display nft media enabled setting.
+      *
+-     * @param openSeaEnabled - Boolean indicating user preference on using OpenSea's API.
++     * @param displayNftMedia - Boolean indicating user preference on using web2 third parties.
+      */
+-    setOpenSeaEnabled(openSeaEnabled: boolean): void;
++    setDisplayNftMedia(displayNftMedia: boolean): void;
+     /**
+      * A setter for the user preferences to enable/disable rpc methods.
+      *
+@@ -132,5 +136,19 @@ export declare class PreferencesController extends BaseController<BaseConfig, Pr
+      * @param isEnabled - true to enable the rpc method, false to disable it.
+      */
+     setDisabledRpcMethodPreference(methodName: string, isEnabled: boolean): void;
++    setShowTestNetworks(showTestNetworks: boolean): void;
++    /**
++     * Toggle the security alert setting.
++     *
++     * @param setSecurityAlertsEnabled - Boolean indicating user preference on using security alerts.
++     */
++    setSecurityAlertsEnabled(setSecurityAlertsEnabled: boolean): void;
++     /**
++     * A setter for the user enable the IPFS gateway
++     *
++     * @param isIpfsGatewayEnabled - true to enable ipfs source
++     */
++    setIsIpfsGatewayEnabled(isIpfsGatewayEnabled: boolean): void;
++
+ }
+ export default PreferencesController;
 diff --git a/node_modules/@metamask/preferences-controller/dist/PreferencesController.js b/node_modules/@metamask/preferences-controller/dist/PreferencesController.js
-index ba0da42..cdd41ab 100644
+index ba0da42..7cde2b0 100644
 --- a/node_modules/@metamask/preferences-controller/dist/PreferencesController.js
 +++ b/node_modules/@metamask/preferences-controller/dist/PreferencesController.js
-@@ -28,9 +28,11 @@ class PreferencesController extends base_controller_1.BaseController {
+@@ -27,10 +27,14 @@ class PreferencesController extends base_controller_1.BaseController {
+             selectedAddress: '',
              useTokenDetection: true,
              useNftDetection: false,
-             openSeaEnabled: false,
+-            openSeaEnabled: false,
++            displayNftMedia: true,
 +            isMultiAccountBalancesEnabled: true,
              disabledRpcMethodPreferences: {
                  eth_sign: false,
              },
 +            showTestNetworks: false,
++            isIpfsGatewayEnabled: true,
++            securityAlertsEnabled: false,
          };
          this.initialize();
      }
-@@ -208,6 +210,18 @@ class PreferencesController extends base_controller_1.BaseController {
+@@ -181,19 +185,19 @@ class PreferencesController extends base_controller_1.BaseController {
+      * @param useNftDetection - Boolean indicating user preference on NFT detection.
+      */
+     setUseNftDetection(useNftDetection) {
+-        if (useNftDetection && !this.state.openSeaEnabled) {
+-            throw new Error('useNftDetection cannot be enabled if openSeaEnabled is false');
++        if (useNftDetection && !this.state.displayNftMedia) {
++            throw new Error('useNftDetection cannot be enabled if displayNftMedia is false');
+         }
+         this.update({ useNftDetection });
+     }
+     /**
+-     * Toggle the opensea enabled setting.
++     * Toggle the display nft media enabled setting.
+      *
+-     * @param openSeaEnabled - Boolean indicating user preference on using OpenSea's API.
++     * @param displayNftMedia - Boolean indicating user preference on using web2 third parties.
+      */
+-    setOpenSeaEnabled(openSeaEnabled) {
+-        this.update({ openSeaEnabled });
+-        if (!openSeaEnabled) {
++    setDisplayNftMedia(displayNftMedia) {
++        this.update({ displayNftMedia });
++        if (!displayNftMedia) {
+             this.update({ useNftDetection: false });
+         }
+     }
+@@ -208,6 +212,35 @@ class PreferencesController extends base_controller_1.BaseController {
          const newDisabledRpcMethods = Object.assign(Object.assign({}, disabledRpcMethodPreferences), { [methodName]: isEnabled });
          this.update({ disabledRpcMethodPreferences: newDisabledRpcMethods });
      }
++
 +    /**
 +     * A setter for the user preferences to enable/disable fetch of multiple accounts balance.
 +     *
-+    * @param isMultiAccountBalancesEnabled - true to enable multiple accounts balance fetch, false to fetch only selectedAddress.
++     * @param isMultiAccountBalancesEnabled - true to enable multiple accounts balance fetch, false to fetch only selectedAddress.
 +     */
 +    setIsMultiAccountBalancesEnabled(isMultiAccountBalancesEnabled) {
 +        this.update({ isMultiAccountBalancesEnabled });
 +    }
-+
++            
 +    setShowTestNetworks(showTestNetworks) {
 +        this.update({showTestNetworks});
 +    }
++    /**
++    * A setter for the user enable the IPFS gateway
++    *
++    * @param isIpfsGatewayEnabled - true to enable ipfs source
++    */
++    setIsIpfsGatewayEnabled(isIpfsGatewayEnabled) {
++        this.update({ isIpfsGatewayEnabled });
++    }
++    /**
++     * Toggle the security alert setting.
++     *
++     * @param setSecurityAlertsEnabled - Boolean indicating user preference on using security alerts.
++     */
++    setSecurityAlertsEnabled(securityAlertsEnabled) {
++        this.update({ securityAlertsEnabled });
++    } 
  }
  exports.PreferencesController = PreferencesController;
  exports.default = PreferencesController;

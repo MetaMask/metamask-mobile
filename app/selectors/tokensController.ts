@@ -1,8 +1,8 @@
 import { createSelector } from 'reselect';
 import { TokensState, Token } from '@metamask/assets-controllers';
-import { EngineState } from './types';
+import { RootState } from '../reducers';
 
-const selectTokensControllerState = (state: EngineState) =>
+const selectTokensControllerState = (state: RootState) =>
   state?.engine?.backgroundState?.TokensController;
 
 export const selectTokens = createSelector(

@@ -85,7 +85,6 @@ import {
 } from '../../../../core/GasPolling/GasPolling';
 import {
   selectChainId,
-  selectNetwork,
   selectProviderType,
   selectTicker,
 } from '../../../../selectors/networkController';
@@ -166,10 +165,6 @@ class Confirm extends PureComponent {
      * Chain Id
      */
     chainId: PropTypes.string,
-    /**
-     * Network id
-     */
-    network: PropTypes.string,
     /**
      * Indicates whether hex data should be shown in transaction editor
      */
@@ -937,7 +932,6 @@ class Confirm extends PureComponent {
       showHexData,
       showCustomNonce,
       primaryCurrency,
-      network,
       chainId,
       gasEstimateType,
       isNativeTokenBuySupported,
@@ -968,7 +962,7 @@ class Confirm extends PureComponent {
       gasEstimateType === GAS_ESTIMATE_TYPES.NONE;
     const isQRHardwareWalletDevice = isQRHardwareAccount(fromSelectedAddress);
 
-    const isTestNetwork = isTestNet(network);
+    const isTestNetwork = isTestNet(chainId);
 
     const errorPress = isTestNetwork ? this.goToFaucet : this.buyEth;
     const errorLinkText = isTestNetwork
@@ -1038,7 +1032,8 @@ class Confirm extends PureComponent {
             isAnimating={isAnimating}
             gasEstimationReady={gasEstimationReady}
             chainId={chainId}
-            gasObject={!showFeeMarket ? legacyGasObject : EIP1559GasObject}
+            gasObject={EIP1559GasObject}
+            gasObjectLegacy={legacyGasObject}
             updateTransactionState={this.updateTransactionState}
             legacy={!showFeeMarket}
             onlyGas={false}
@@ -1144,7 +1139,6 @@ const mapStateToProps = (state) => ({
   contractBalances: selectContractBalances(state),
   conversionRate: selectConversionRate(state),
   currentCurrency: selectCurrentCurrency(state),
-  network: selectNetwork(state),
   providerType: selectProviderType(state),
   showHexData: state.settings.showHexData,
   showCustomNonce: state.settings.showCustomNonce,

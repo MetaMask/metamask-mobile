@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-shadow */
 // Third party dependencies.
 import React from 'react';
 import { ViewProps } from 'react-native';
@@ -8,12 +9,14 @@ import { SvgProps } from 'react-native-svg';
  */
 export enum IconColor {
   Default = 'Default',
+  Inverse = 'Inverse',
   Alternative = 'Alternative',
   Muted = 'Muted',
   Primary = 'Primary',
+  PrimaryAlternative = 'Primary',
   Success = 'Success',
-  // eslint-disable-next-line @typescript-eslint/no-shadow
   Error = 'Error',
+  ErrorAlternative = 'ErrorAlternative',
   Warning = 'Warning',
   Info = 'Info',
 }

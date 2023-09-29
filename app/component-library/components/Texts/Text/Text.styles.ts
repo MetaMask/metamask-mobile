@@ -24,6 +24,9 @@ const styleSheet = (params: { theme: Theme; vars: any }) => {
     case TextColor.Default:
       textColor = theme.colors.text.default;
       break;
+    case TextColor.Inverse:
+      textColor = theme.colors.primary.inverse;
+      break;
     case TextColor.Alternative:
       textColor = theme.colors.text.alternative;
       break;
@@ -33,11 +36,17 @@ const styleSheet = (params: { theme: Theme; vars: any }) => {
     case TextColor.Primary:
       textColor = theme.colors.primary.default;
       break;
+    case TextColor.PrimaryAlternative:
+      textColor = theme.colors.primary.alternative;
+      break;
     case TextColor.Success:
       textColor = theme.colors.success.default;
       break;
     case TextColor.Error:
       textColor = theme.colors.error.default;
+      break;
+    case TextColor.ErrorAlternative:
+      textColor = theme.colors.error.alternative;
       break;
     case TextColor.Warning:
       textColor = theme.colors.warning.default;

@@ -9,7 +9,7 @@ import StyledButton from '../../../UI/StyledButton';
 import Engine from '../../../../core/Engine';
 import ActionSheet from 'react-native-actionsheet';
 import { mockTheme, ThemeContext } from '../../../../util/theme';
-import { selectNetwork } from '../../../../selectors/networkController';
+import { selectChainId } from '../../../../selectors/networkController';
 
 import generateTestId from '../../../../../wdio/utils/generateTestId';
 import {
@@ -47,9 +47,9 @@ class Contacts extends PureComponent {
      */
     navigation: PropTypes.object,
     /**
-     * Network id
+     * The chain ID for the current selected network
      */
-    network: PropTypes.string,
+    chainId: PropTypes.string,
   };
 
   state = {
@@ -78,12 +78,12 @@ class Contacts extends PureComponent {
 
   componentDidUpdate = (prevProps) => {
     this.updateNavBar();
-    const { network } = this.props;
+    const { chainId } = this.props;
     if (
       prevProps.addressBook &&
       this.props.addressBook &&
-      JSON.stringify(prevProps.addressBook[network]) !==
-        JSON.stringify(this.props.addressBook[network])
+      JSON.stringify(prevProps.addressBook[chainId]) !==
+        JSON.stringify(this.props.addressBook[chainId])
     )
       this.updateAddressList();
   };
@@ -102,8 +102,8 @@ class Contacts extends PureComponent {
 
   deleteContact = () => {
     const { AddressBookController } = Engine.context;
-    const { network } = this.props;
-    AddressBookController.delete(network, this.contactAddressToRemove);
+    const { chainId } = this.props;
+    AddressBookController.delete(chainId, this.contactAddressToRemove);
     this.updateAddressList();
   };
 
@@ -171,7 +171,7 @@ Contacts.contextType = ThemeContext;
 
 const mapStateToProps = (state) => ({
   addressBook: state.engine.backgroundState.AddressBookController.addressBook,
-  network: selectNetwork(state),
+  chainId: selectChainId(state),
 });
 
 export default connect(mapStateToProps)(Contacts);

@@ -2,7 +2,6 @@ import React, { memo } from 'react';
 import NetworkModals from '../../../../../UI/NetworkModal';
 import { View, TouchableOpacity } from 'react-native';
 import { useSelector } from 'react-redux';
-import ImageIcons from '../../../../../UI/ImageIcon';
 import WarningIcon from 'react-native-vector-icons/FontAwesome';
 import CustomText from '../../../../../Base/Text';
 import EmptyPopularList from '../emptyList';
@@ -13,6 +12,8 @@ import PopularList from '../../../../../../util/networks/customNetworks';
 import createStyles from '../styles';
 import { CustomNetworkProps, Network } from './CustomNetwork.types';
 import { selectNetworkConfigurations } from '../../../../../../selectors/networkController';
+import AvatarNetwork from '../../../../../../component-library/components/Avatars/Avatar/variants/AvatarNetwork';
+import { AvatarSize } from '../../../../../../component-library/components/Avatars/Avatar';
 
 const CustomNetwork = ({
   isNetworkModalVisible,
@@ -22,23 +23,31 @@ const CustomNetwork = ({
   showNetworkModal,
   switchTab,
   shouldNetworkSwitchPopToWallet,
+  onNetworkSwitch,
+  showAddedNetworks,
+  customNetworksList,
 }: CustomNetworkProps) => {
   const networkConfigurations = useSelector(selectNetworkConfigurations);
 
-  const supportedNetworkList = PopularList.map((network: Network) => {
-    const isAdded = Object.values(networkConfigurations).some(
-      (savedNetwork: any) => savedNetwork.chainId === network.chainId,
-    );
-    return {
-      ...network,
-      isAdded,
-    };
-  });
+  const supportedNetworkList = (customNetworksList ?? PopularList).map(
+    (networkConfiguration: Network) => {
+      const isAdded = Object.values(networkConfigurations).some(
+        (savedNetwork: any) =>
+          savedNetwork.chainId === networkConfiguration.chainId,
+      );
+      return {
+        ...networkConfiguration,
+        isAdded,
+      };
+    },
+  );
 
   const navigation = useNavigation();
   const { colors } = useTheme();
   const styles = createStyles();
-  const filteredPopularList = supportedNetworkList.filter((n) => !n.isAdded);
+  const filteredPopularList = showAddedNetworks
+    ? supportedNetworkList
+    : supportedNetworkList.filter((n) => !n.isAdded);
 
   if (filteredPopularList.length === 0) {
     return (
@@ -52,26 +61,37 @@ const CustomNetwork = ({
         <NetworkModals
           isVisible={isNetworkModalVisible}
           onClose={closeNetworkModal}
-          network={selectedNetwork}
+          networkConfiguration={selectedNetwork}
           navigation={navigation}
           shouldNetworkSwitchPopToWallet={shouldNetworkSwitchPopToWallet}
+          onNetworkSwitch={onNetworkSwitch}
         />
       )}
-      {filteredPopularList.map((item, index) => (
+      {filteredPopularList.map((networkConfiguration, index) => (
         <TouchableOpacity
           key={index}
           style={styles.popularNetwork}
-          onPress={() => showNetworkModal(item)}
+          onPress={() => showNetworkModal(networkConfiguration)}
         >
           <View style={styles.popularWrapper}>
-            <ImageIcons
-              image={item.rpcPrefs.imageUrl}
-              style={styles.popularNetworkImage}
-            />
-            <CustomText bold>{item.nickname}</CustomText>
+            <View style={styles.popularNetworkImage}>
+              <AvatarNetwork
+                name={networkConfiguration.nickname}
+                size={AvatarSize.Sm}
+                imageSource={
+                  networkConfiguration.rpcPrefs.imageSource ||
+                  (networkConfiguration.rpcPrefs.imageUrl
+                    ? {
+                        uri: networkConfiguration.rpcPrefs.imageUrl,
+                      }
+                    : undefined)
+                }
+              />
+            </View>
+            <CustomText bold>{networkConfiguration.nickname}</CustomText>
           </View>
           <View style={styles.popularWrapper}>
-            {item.warning ? (
+            {toggleWarningModal && networkConfiguration.warning ? (
               <WarningIcon
                 name="warning"
                 size={14}
@@ -80,7 +100,11 @@ const CustomNetwork = ({
                 onPress={toggleWarningModal}
               />
             ) : null}
-            <CustomText link>{strings('networks.add')}</CustomText>
+            <CustomText link>
+              {networkConfiguration.isAdded
+                ? strings('networks.switch')
+                : strings('networks.add')}
+            </CustomText>
           </View>
         </TouchableOpacity>
       ))}

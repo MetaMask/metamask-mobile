@@ -33,7 +33,6 @@ import {
 } from '../../../../constants/error';
 import {
   selectChainId,
-  selectNetwork,
   selectNetworkConfigurations,
   selectProviderType,
   selectRpcTarget,
@@ -50,7 +49,6 @@ const AddNickname = (props: AddNicknameProps) => {
     addressNickname,
     providerType,
     providerChainId,
-    providerNetwork,
     providerRpcTarget,
     addressBook,
     identities,
@@ -75,16 +73,16 @@ const AddNickname = (props: AddNicknameProps) => {
   const validateAddressOrENSFromInput = useCallback(async () => {
     const { addressError, errorContinue } = await validateAddressOrENS({
       toAccount: address,
-      providerNetwork,
       addressBook,
       identities,
+      // TODO: This parameters is effectively ignored, it should be named `chainId`
       providerChainId,
     });
 
     setAddressErr(addressError);
     setErrContinue(errorContinue);
     setAddressHasError(addressError);
-  }, [address, providerNetwork, addressBook, identities, providerChainId]);
+  }, [address, addressBook, identities, providerChainId]);
 
   useEffect(() => {
     validateAddressOrENSFromInput();
@@ -122,7 +120,7 @@ const AddNickname = (props: AddNicknameProps) => {
     AddressBookController.set(
       toChecksumAddress(address),
       newNickname,
-      providerNetwork,
+      providerChainId,
     );
     closeModal();
     AnalyticsV2.trackEvent(
@@ -263,7 +261,6 @@ const mapStateToProps = (state: any) => ({
   providerType: selectProviderType(state),
   providerRpcTarget: selectRpcTarget(state),
   providerChainId: selectChainId(state),
-  providerNetwork: selectNetwork(state),
   addressBook: state.engine.backgroundState.AddressBookController.addressBook,
   identities: selectIdentities(state),
   networkConfigurations: selectNetworkConfigurations(state),

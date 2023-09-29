@@ -30,9 +30,6 @@ const styleSheet = (params: {
       } as ViewStyle,
       style,
     ) as ViewStyle,
-    label: {
-      color: colorObj.inverse,
-    },
   });
 };
 

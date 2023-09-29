@@ -43,7 +43,6 @@ import AppConstants from '../../../../core/AppConstants';
 import WarningMessage from '../../../Views/SendFlow/WarningMessage';
 import {
   selectChainId,
-  selectNetwork,
   selectTicker,
 } from '../../../../selectors/networkController';
 import {
@@ -181,9 +180,9 @@ class TransactionReviewInformation extends PureComponent {
      */
     onCancelPress: PropTypes.func,
     /**
-     * Network id
+     * The chain ID for the current selected network
      */
-    network: PropTypes.string,
+    chainId: PropTypes.string,
     /**
      * Indicates whether custom nonce should be shown in transaction editor
      */
@@ -357,8 +356,8 @@ class TransactionReviewInformation extends PureComponent {
   };
 
   isTestNetwork = () => {
-    const { network } = this.props;
-    return isTestNet(network);
+    const { chainId } = this.props;
+    return isTestNet(chainId);
   };
 
   getRenderTotalsEIP1559 = ({
@@ -582,7 +581,7 @@ class TransactionReviewInformation extends PureComponent {
     );
   };
 
-  renderTransactionReviewFeeCard = () => {
+  renderTransactionReviewLegacy = () => {
     const {
       primaryCurrency,
       ready,
@@ -660,7 +659,7 @@ class TransactionReviewInformation extends PureComponent {
         {nonceModalVisible && this.renderCustomNonceModal()}
         {showFeeMarket
           ? this.renderTransactionReviewEIP1559()
-          : this.renderTransactionReviewFeeCard()}
+          : this.renderTransactionReviewLegacy()}
         {gasSelected === AppConstants.GAS_OPTIONS.LOW && (
           <WarningMessage
             style={styles.actionsWrapper}
@@ -721,7 +720,7 @@ class TransactionReviewInformation extends PureComponent {
 }
 
 const mapStateToProps = (state) => ({
-  network: selectNetwork(state),
+  chainId: selectChainId(state),
   conversionRate: selectConversionRate(state),
   currentCurrency: selectCurrentCurrency(state),
   nativeCurrency: selectNativeCurrency(state),

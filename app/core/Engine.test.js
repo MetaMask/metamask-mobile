@@ -22,6 +22,7 @@ describe('Engine', () => {
     expect(engine.context).toHaveProperty('TokenBalancesController');
     expect(engine.context).toHaveProperty('TokenRatesController');
     expect(engine.context).toHaveProperty('TokensController');
+    expect(engine.context).toHaveProperty('LoggingController');
   });
 
   it('calling Engine.init twice returns the same instance', () => {
@@ -45,6 +46,7 @@ describe('Engine', () => {
     backgroundState.PhishingController.listState.allowlist = [];
     backgroundState.PhishingController.listState.blocklist = [];
     backgroundState.PhishingController.listState.fuzzylist = [];
+    delete backgroundState.PPOMController.chainStatus['0x1'].lastVisited;
 
     expect(engine.datamodel.state).toStrictEqual(initialState);
   });

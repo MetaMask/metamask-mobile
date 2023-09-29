@@ -2,8 +2,15 @@
 
 exports[`ButtonPrimary should render correctly 1`] = `
 <ButtonBase
-  label="Click me!"
-  labelColor="#FCFCFC"
+  label={
+    <Text
+      color="Inverse"
+      variant="sBodyMD"
+    >
+      Click me!
+    </Text>
+  }
+  labelColor="Inverse"
   onPress={[Function]}
   onPressIn={[Function]}
   onPressOut={[Function]}

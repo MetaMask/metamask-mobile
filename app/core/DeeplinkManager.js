@@ -47,16 +47,16 @@ class DeeplinkManager {
    * @param switchToChainId - Corresponding chain id for new network
    */
   _handleNetworkSwitch = (switchToChainId) => {
-    const network = handleNetworkSwitch(switchToChainId);
+    const networkName = handleNetworkSwitch(switchToChainId);
 
-    if (!network) return;
+    if (!networkName) return;
 
     this.dispatch(
       showAlert({
         isVisible: true,
         autodismiss: 5000,
         content: 'clipboard-alert',
-        data: { msg: strings('send.warn_network_change') + network },
+        data: { msg: strings('send.warn_network_change') + networkName },
       }),
     );
   };
@@ -245,8 +245,8 @@ class DeeplinkManager {
             if (params.redirect) {
               Minimizer.goBack();
             } else if (params.channelId) {
-              const channelExists =
-                SDKConnect.getInstance().getApprovedHosts()[params.channelId];
+              const connections = SDKConnect.getInstance().getConnections();
+              const channelExists = connections[params.channelId] !== undefined;
 
               if (channelExists) {
                 if (origin === AppConstants.DEEPLINKS.ORIGIN_DEEPLINK) {
@@ -257,6 +257,7 @@ class DeeplinkManager {
                 }
                 SDKConnect.getInstance().reconnect({
                   channelId: params.channelId,
+                  otherPublicKey: params.pubkey,
                   context: 'deeplink (universal)',
                 });
               } else {
@@ -387,6 +388,7 @@ class DeeplinkManager {
               }
               SDKConnect.getInstance().reconnect({
                 channelId: params.channelId,
+                otherPublicKey: params.pubkey,
                 context: 'deeplink (metamask)',
               });
             } else {

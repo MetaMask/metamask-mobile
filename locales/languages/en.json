@@ -1057,6 +1057,7 @@
     "speedup_tx_message": "Submitting this attempt does not guarantee your original transaction will be accelerated. If the speed up attempt is successful, you will be charged the transaction fee above.",
     "nevermind": "Nevermind",
     "edit_network_fee": "Edit gas fee",
+    "edit_priority": "Edit priority",
     "gas_cancel_fee": "Gas cancellation Fee",
     "gas_speedup_fee": "Gas speed up fee",
     "use_max": "Use max",
@@ -1352,6 +1353,7 @@
     "learn_more": "Learn more",
     "learn_more_url": "https://metamask.zendesk.com/hc/en-us/articles/4417500466971",
     "switch_network": "Switch to network",
+    "switch": "Switch",
     "new_network": "New network added",
     "network_name": "{{networkName}} Network",
     "network_added": " is now available in the network selector.",
@@ -1362,8 +1364,7 @@
     "you_can": "Or you can",
     "add_network": "add more networks manually.",
     "select_network": "Select a network",
-    "show_test_networks": "Show test networks",
-    "linea_mainnet_not_released_alert": "Thanks for your interest in Linea Mainnet, it will be available soon!"
+    "show_test_networks": "Show test networks"
   },
   "select": {
     "cancel": "Cancel",
@@ -2566,5 +2567,27 @@
     "show_nft_content_4": "turns on IPFS resolution. You can turn it off in",
     "show_nft_content_5": "Settings > Security and privacy",
     "show_nft_content_6": "at any time."
+  },
+  "show_display_nft_media": {
+    "show_display_nft_media_title": "Display NFT media",
+    "show_display_nft_media_content_1": "To see an NFT, you need turn on",
+    "show_display_nft_media_content_2": "Display NFT media.",
+    "show_display_nft_media_content_3": "Displaying NFT media and data exposes your IP address to OpenSea or other third parties. NFT autodetection relies on this feature, and won't be available when this is turned off.",
+    "show_display_nft_media_content_4": "You can turn off Display NFT media in",
+    "show_display_nft_media_content_5": "Setttings > Security and privacy."
+  },
+  "ipfs_gateway_banner": {
+        "ipfs_gateway_banner_title": "IPFS gateway",
+        "ipfs_gateway_banner_content1": "This is an IPFS website. to see this site, you need to turn on",
+        "ipfs_gateway_banner_content2": "IPFS gateway",
+        "ipfs_gateway_banner_content3": "in",
+        "ipfs_gateway_banner_content4": "Settings."
+  },
+  "ipfs_gateway": {
+    "ipfs_gateway_title": "IPFS gateway",
+    "ipfs_gateway_content1": "We use third-party services to show images of your NFTs stored on IPFS, display information related to ENS addresses entered in your browser's address bar, and fetch icons for different tokens. Your IP address may be exposed to these services when you’re using them.",
+    "ipfs_gateway_content2": "You can turn off IPFS resolution in",
+    "ipfs_gateway_content3": "Settings > Security and privacy",
+    "ipfs_gateway_content4": "at any time"
   }
 }

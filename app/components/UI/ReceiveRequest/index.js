@@ -39,7 +39,6 @@ import { ThemeContext, mockTheme } from '../../../util/theme';
 import Routes from '../../../constants/navigation/Routes';
 import {
   selectChainId,
-  selectNetwork,
   selectTicker,
 } from '../../../selectors/networkController';
 import { isNetworkBuySupported } from '../Ramp/utils';
@@ -359,7 +358,6 @@ ReceiveRequest.contextType = ThemeContext;
 
 const mapStateToProps = (state) => ({
   chainId: selectChainId(state),
-  network: selectNetwork(state),
   ticker: selectTicker(state),
   selectedAddress: selectSelectedAddress(state),
   receiveAsset: state.modals.receiveAsset,

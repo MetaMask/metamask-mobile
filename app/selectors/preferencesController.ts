@@ -1,8 +1,8 @@
 import { createSelector } from 'reselect';
 import { PreferencesState } from '@metamask/preferences-controller';
-import { EngineState } from './types';
+import { RootState } from '../reducers';
 
-const selectPreferencesControllerState = (state: EngineState) =>
+const selectPreferencesControllerState = (state: RootState) =>
   state.engine.backgroundState.PreferencesController;
 
 export const selectIdentities = createSelector(
@@ -35,10 +35,10 @@ export const selectUseTokenDetection = createSelector(
     preferencesControllerState.useTokenDetection,
 );
 
-export const selectOpenSeaEnabled = createSelector(
+export const selectDisplayNftMedia = createSelector(
   selectPreferencesControllerState,
   (preferencesControllerState: PreferencesState) =>
-    preferencesControllerState.openSeaEnabled,
+    preferencesControllerState.displayNftMedia,
 );
 
 export const selectDisabledRpcMethodPreferences = createSelector(
@@ -67,4 +67,14 @@ export const selectShowTestNetworks = createSelector(
         showTestNetworks: boolean;
       }
     ).showTestNetworks,
+);
+
+export const selectIsIpfsGatewayEnabled = createSelector(
+  selectPreferencesControllerState,
+  (preferencesControllerState: PreferencesState) =>
+    (
+      preferencesControllerState as PreferencesState & {
+        isIpfsGatewayEnabled: boolean;
+      }
+    ).isIpfsGatewayEnabled,
 );

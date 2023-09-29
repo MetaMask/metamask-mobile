@@ -60,7 +60,6 @@ import {
 import generateTestId from '../../../../../wdio/utils/generateTestId';
 import {
   selectChainId,
-  selectNetwork,
   selectProviderType,
   selectTicker,
 } from '../../../../selectors/networkController';
@@ -89,10 +88,6 @@ class SendFlow extends PureComponent {
      * Network provider chain id
      */
     chainId: PropTypes.string,
-    /**
-     * Network id
-     */
-    network: PropTypes.string,
     /**
      * Object that represents the navigator
      */
@@ -181,7 +176,7 @@ class SendFlow extends PureComponent {
     const {
       addressBook,
       ticker,
-      network,
+      chainId,
       navigation,
       providerType,
       route,
@@ -190,7 +185,7 @@ class SendFlow extends PureComponent {
     this.updateNavBar();
     // For analytics
     navigation.setParams({ providerType, isPaymentRequest });
-    const networkAddressBook = addressBook[network] || {};
+    const networkAddressBook = addressBook[chainId] || {};
     if (!Object.keys(networkAddressBook).length) {
       setTimeout(() => {
         this.addressToInputRef &&
@@ -223,8 +218,8 @@ class SendFlow extends PureComponent {
 
   isAddressSaved = () => {
     const { toAccount } = this.state;
-    const { addressBook, network, identities } = this.props;
-    const networkAddressBook = addressBook[network] || {};
+    const { addressBook, chainId, identities } = this.props;
+    const networkAddressBook = addressBook[chainId] || {};
     const checksummedAddress = toChecksumAddress(toAccount);
     return !!(
       networkAddressBook[checksummedAddress] || identities[checksummedAddress]
@@ -248,15 +243,17 @@ class SendFlow extends PureComponent {
   handleNetworkSwitch = (chainId) => {
     try {
       const { showAlert } = this.props;
-      const network = handleNetworkSwitch(chainId);
+      const networkName = handleNetworkSwitch(chainId);
 
-      if (!network) return;
+      if (!networkName) return;
 
       showAlert({
         isVisible: true,
         autodismiss: 5000,
         content: 'clipboard-alert',
-        data: { msg: strings('send.warn_network_change') + network },
+        data: {
+          msg: strings('send.warn_network_change') + networkName,
+        },
       });
     } catch (e) {
       let alertMessage;
@@ -364,10 +361,10 @@ class SendFlow extends PureComponent {
   };
 
   getAddressNameFromBookOrIdentities = (toAccount) => {
-    const { addressBook, identities, network } = this.props;
+    const { addressBook, identities, chainId } = this.props;
     if (!toAccount) return;
 
-    const networkAddressBook = addressBook[network] || {};
+    const networkAddressBook = addressBook[chainId] || {};
 
     const checksummedAddress = toChecksumAddress(toAccount);
 
@@ -379,7 +376,7 @@ class SendFlow extends PureComponent {
   };
 
   validateAddressOrENSFromInput = async (toAccount) => {
-    const { addressBook, identities, chainId, network } = this.props;
+    const { addressBook, identities, chainId } = this.props;
     const {
       addressError,
       toEnsName,
@@ -392,7 +389,6 @@ class SendFlow extends PureComponent {
       confusableCollection,
     } = await validateAddressOrENS({
       toAccount,
-      network,
       addressBook,
       identities,
       chainId,
@@ -439,7 +435,7 @@ class SendFlow extends PureComponent {
   };
 
   render = () => {
-    const { ticker, addressBook, network } = this.props;
+    const { ticker, addressBook, chainId } = this.props;
     const {
       toAccount,
       toSelectedAddressReady,
@@ -462,8 +458,8 @@ class SendFlow extends PureComponent {
     );
     const existingContact =
       checksummedAddress &&
-      addressBook[network] &&
-      addressBook[network][checksummedAddress];
+      addressBook[chainId] &&
+      addressBook[chainId][checksummedAddress];
     const displayConfusableWarning =
       !existingContact && confusableCollection && !!confusableCollection.length;
     const displayAsWarning =
@@ -634,7 +630,6 @@ const mapStateToProps = (state) => ({
   selectedAsset: state.transaction.selectedAsset,
   identities: selectIdentities(state),
   ticker: selectTicker(state),
-  network: selectNetwork(state),
   providerType: selectProviderType(state),
   isPaymentRequest: state.transaction.paymentRequest,
   isNativeTokenBuySupported: isNetworkBuyNativeTokenSupported(

@@ -27,7 +27,7 @@ export interface Transaction {
 
 export interface AccountFromToInfoCardProps {
   identities: Identities;
-  network: string;
+  chainId: string;
   onPressFromAddressIcon?: () => void;
   ticker?: string;
   transactionState: Transaction;

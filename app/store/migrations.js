@@ -1,5 +1,8 @@
 import { v1 as random, v4 } from 'uuid';
+import { isObject, hasProperty } from '@metamask/utils';
 import { NetworksChainId } from '@metamask/controller-utils';
+import { captureException } from '@sentry/react-native';
+import { mapValues } from 'lodash';
 import AppConstants from '../core/AppConstants';
 import { getAllNetworks, isSafeChainId } from '../util/networks';
 import { toLowerCaseEquals } from '../util/general';
@@ -12,6 +15,11 @@ import {
   EXPLORED,
 } from '../constants/storage';
 import { GOERLI, IPFS_DEFAULT_GATEWAY_URL } from '../../app/constants/network';
+import { regex } from '../../app/util/regex';
+
+// Generated using this script: https://gist.github.com/Gudahtt/7a8a9e452bd2efdc5ceecd93610a25d3
+import ambiguousNetworks from './migration-data/amibiguous-networks.json';
+import { NetworkStatus } from '@metamask/network-controller';
 
 export const migrations = {
   // Needed after https://github.com/MetaMask/controllers/pull/152
@@ -84,7 +92,7 @@ export const migrations = {
     // If provider is rpc, check if the current network has a valid chainId
     const storedChainId =
       typeof provider.chainId === 'string' ? provider.chainId : '';
-    const isDecimalString = /^[1-9]\d*$/u.test(storedChainId);
+    const isDecimalString = regex.decimalStringMigrations.test(storedChainId);
     const hasInvalidChainId =
       !isDecimalString || !isSafeChainId(parseInt(storedChainId, 10));
 
@@ -437,7 +445,13 @@ export const migrations = {
    * Migrate network configuration from Preferences controller to Network controller.
    * See this changelog for details: https://github.com/MetaMask/core/releases/tag/v44.0.0
    *
-   * @param {object} state - Redux state.
+   * Note: the type is wrong here because it conflicts with `redux-persist`
+   * types, due to a bug in that package.
+   * See: https://github.com/rt2zz/redux-persist/issues/1065
+   * TODO: Use `unknown` as the state type, and silence or work around the
+   * redux-persist bug somehow.
+   *
+   * @param {any} state - Redux state.
    * @returns Migrated Redux state.
    */
   20: (state) => {
@@ -485,6 +499,248 @@ export const migrations = {
       state.engine.backgroundState.PreferencesController.ipfsGateway =
         IPFS_DEFAULT_GATEWAY_URL;
     }
+    return state;
+  },
+
+  22: (state) => {
+    if (state?.engine?.backgroundState?.PreferencesController?.openSeaEnabled) {
+      state.engine.backgroundState.PreferencesController.displayNftMedia =
+        state.engine.backgroundState.PreferencesController.openSeaEnabled ??
+        true;
+
+      delete state.engine.backgroundState.PreferencesController.openSeaEnabled;
+    }
+    if (state?.user?.nftDetectionDismissed) {
+      delete state.user.nftDetectionDismissed;
+    }
+
+    return state;
+  },
+
+  /**
+   * Migrate address book state to be keyed by chain ID rather than network ID.
+   *
+   * When choosing which chain ID to migrate each address book entry to, we
+   * consider only networks that the user has configured locally. Any entries
+   * for chains not configured locally are discarded.
+   *
+   * If there are multiple chain ID candidates for a given network ID (even
+   * after filtering to include just locally configured networks), address
+   * entries are duplicated on all potentially matching chains. These cases are
+   * also stored in the `user.ambiguousAddressEntries` state so that we can
+   * warn the user in the UI about these addresses.
+   *
+   * Note: the type is wrong here because it conflicts with `redux-persist`
+   * types, due to a bug in that package.
+   * See: https://github.com/rt2zz/redux-persist/issues/1065
+   * TODO: Use `unknown` as the state type, and silence or work around the
+   * redux-persist bug somehow.
+   *
+   * @param {any} state - Redux state.
+   * @returns Migrated Redux state.
+   */
+  23: (state) => {
+    const networkControllerState =
+      state.engine.backgroundState.NetworkController;
+    const addressBookControllerState =
+      state.engine.backgroundState.AddressBookController;
+
+    if (!isObject(networkControllerState)) {
+      captureException(
+        new Error(
+          `Migration 23: Invalid network controller state: '${typeof networkControllerState}'`,
+        ),
+      );
+      return state;
+    } else if (
+      !hasProperty(networkControllerState, 'networkConfigurations') ||
+      !isObject(networkControllerState.networkConfigurations)
+    ) {
+      captureException(
+        new Error(
+          `Migration 23: Invalid network configuration state: '${typeof networkControllerState.networkConfigurations}'`,
+        ),
+      );
+      return state;
+    } else if (
+      Object.values(networkControllerState.networkConfigurations).some(
+        (networkConfiguration) => !hasProperty(networkConfiguration, 'chainId'),
+      )
+    ) {
+      const [invalidConfigurationId, invalidConfiguration] = Object.entries(
+        networkControllerState.networkConfigurations,
+      ).find(
+        ([_networkConfigId, networkConfiguration]) =>
+          !hasProperty(networkConfiguration, 'chainId'),
+      );
+      captureException(
+        new Error(
+          `Migration 23: Network configuration missing chain ID, id '${invalidConfigurationId}', keys '${Object.keys(
+            invalidConfiguration,
+          )}'`,
+        ),
+      );
+      return state;
+    } else if (!isObject(addressBookControllerState)) {
+      captureException(
+        new Error(
+          `Migration 23: Invalid address book controller state: '${typeof addressBookControllerState}'`,
+        ),
+      );
+      return state;
+    } else if (
+      !hasProperty(addressBookControllerState, 'addressBook') ||
+      !isObject(addressBookControllerState.addressBook)
+    ) {
+      captureException(
+        new Error(
+          `Migration 23: Invalid address book state: '${typeof addressBookControllerState.addressBook}'`,
+        ),
+      );
+      return state;
+    } else if (
+      Object.values(addressBookControllerState.addressBook).some(
+        (addressEntries) => !isObject(addressEntries),
+      )
+    ) {
+      const [networkId, invalidEntries] = Object.entries(
+        addressBookControllerState.addressBook,
+      ).find(([_networkId, addressEntries]) => !isObject(addressEntries));
+      captureException(
+        new Error(
+          `Migration 23: Address book configuration invalid, network id '${networkId}', type '${typeof invalidEntries}'`,
+        ),
+      );
+      return state;
+    } else if (
+      Object.values(addressBookControllerState.addressBook).some(
+        (addressEntries) =>
+          Object.values(addressEntries).some(
+            (addressEntry) => !hasProperty(addressEntry, 'chainId'),
+          ),
+      )
+    ) {
+      const [networkId, invalidEntries] = Object.entries(
+        addressBookControllerState.addressBook,
+      ).find(([_networkId, addressEntries]) =>
+        Object.values(addressEntries).some(
+          (addressEntry) => !hasProperty(addressEntry, 'chainId'),
+        ),
+      );
+      const invalidEntry = Object.values(invalidEntries).find(
+        (addressEntry) => !hasProperty(addressEntry, 'chainId'),
+      );
+      captureException(
+        new Error(
+          `Migration 23: Address book configuration entry missing chain ID, network id '${networkId}', keys '${Object.keys(
+            invalidEntry,
+          )}'`,
+        ),
+      );
+      return state;
+    } else if (!isObject(state.user)) {
+      captureException(
+        new Error(`Migration 23: Invalid user state: '${typeof state.user}'`),
+      );
+      return state;
+    }
+
+    const localChainIds = Object.values(
+      networkControllerState.networkConfigurations,
+    ).reduce((customChainIds, networkConfiguration) => {
+      customChainIds.add(networkConfiguration.chainId);
+      return customChainIds;
+    }, new Set());
+    const builtInNetworkChainIdsAsOfMigration22 = [
+      '1',
+      '5',
+      '11155111',
+      '59140',
+      '59144',
+    ];
+    for (const builtInChainId of builtInNetworkChainIdsAsOfMigration22) {
+      localChainIds.add(builtInChainId);
+    }
+
+    const migratedAddressBook = {};
+    const ambiguousAddressEntries = {};
+    for (const [networkId, addressEntries] of Object.entries(
+      addressBookControllerState.addressBook,
+    )) {
+      if (ambiguousNetworks[networkId]) {
+        const chainIdCandidates = ambiguousNetworks[networkId].chainIds;
+        const recognizedChainIdCandidates = chainIdCandidates.filter(
+          (chainId) => localChainIds.has(chainId),
+        );
+
+        for (const chainId of recognizedChainIdCandidates) {
+          if (recognizedChainIdCandidates.length > 1) {
+            ambiguousAddressEntries[chainId] = Object.keys(addressEntries);
+          }
+          migratedAddressBook[chainId] = mapValues(addressEntries, (entry) => ({
+            ...entry,
+            chainId,
+          }));
+        }
+      } else {
+        migratedAddressBook[networkId] = addressEntries;
+      }
+    }
+
+    addressBookControllerState.addressBook = migratedAddressBook;
+
+    // Store ambiguous entries so that we can warn about them in the UI
+    if (Object.keys(ambiguousAddressEntries).length > 1) {
+      state.user.ambiguousAddressEntries = ambiguousAddressEntries;
+    }
+
+    return state;
+  },
+  /**
+   * Migrate NetworkController state, splitting old `network` property into
+   * `networkId` and `networkStatus`. This is required to update to v8 of the
+   * NetworkController package.
+   *
+   * @see {@link https://github.com/MetaMask/core/blob/main/packages/network-controller/CHANGELOG.md#800}
+   *
+   * Note: the type is wrong here because it conflicts with `redux-persist`
+   * types, due to a bug in that package.
+   * See: https://github.com/rt2zz/redux-persist/issues/1065
+   * TODO: Use `unknown` as the state type, and silence or work around the
+   * redux-persist bug somehow.
+   *
+   * @param {any} state - Redux state.
+   * @returns Migrated Redux state.
+   */
+  24: (state) => {
+    const networkControllerState =
+      state.engine.backgroundState.NetworkController;
+
+    if (!isObject(networkControllerState)) {
+      captureException(
+        new Error(
+          `Migration 24: Invalid network controller state: '${typeof networkControllerState}'`,
+        ),
+      );
+      return state;
+    } else if (typeof networkControllerState.network !== 'string') {
+      captureException(
+        new Error(
+          `Migration 24: Invalid network state: '${typeof networkControllerState.network}'`,
+        ),
+      );
+      return state;
+    }
+
+    if (networkControllerState.network === 'loading') {
+      networkControllerState.networkId = null;
+      networkControllerState.networkStatus = NetworkStatus.Unknown;
+    } else {
+      networkControllerState.networkId = networkControllerState.network;
+      networkControllerState.networkStatus = NetworkStatus.Available;
+    }
+    delete networkControllerState.network;
+
     return state;
   },
   // If you are implementing a migration it will break the migration tests,

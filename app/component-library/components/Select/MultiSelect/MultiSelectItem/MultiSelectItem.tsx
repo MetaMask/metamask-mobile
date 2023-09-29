@@ -27,7 +27,6 @@ const MultiSelectItem: React.FC<MultiSelectItemProps> = ({
   ...props
 }) => {
   const { styles } = useStyles(styleSheet, { style, gap, isDisabled });
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const { hitSlop, ...listItemProps } = props;
   return (
     <TouchableOpacity style={styles.base} disabled={isDisabled} {...props}>

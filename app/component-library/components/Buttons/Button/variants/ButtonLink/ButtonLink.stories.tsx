@@ -24,7 +24,6 @@ export const getButtonLinkStoryProps = (): ButtonLinkProps => {
 
   return {
     ...getButtonBaseStoryProps(),
-    textVariant: textVariantSelector,
   };
 };
 

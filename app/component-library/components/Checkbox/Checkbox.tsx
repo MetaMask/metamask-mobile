@@ -26,7 +26,6 @@ const Checkbox = ({
   isReadOnly = false,
   ...props
 }: CheckboxProps) => {
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const { hitSlop, ...iconProps } = props;
   const { styles } = useStyles(styleSheet, {
     style,

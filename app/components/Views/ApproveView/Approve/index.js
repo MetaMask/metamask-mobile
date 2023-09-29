@@ -46,7 +46,6 @@ import {
 } from '../../../../core/GasPolling/GasPolling';
 import {
   selectChainId,
-  selectNetwork,
   selectProviderType,
   selectTicker,
   selectRpcTarget,
@@ -139,10 +138,6 @@ class Approve extends PureComponent {
      * An object of all saved addresses
      */
     addressBook: PropTypes.object,
-    /**
-     * The current network of the app
-     */
-    network: PropTypes.string,
     networkConfigurations: PropTypes.object,
     providerRpcTarget: PropTypes.string,
     /**
@@ -304,30 +299,36 @@ class Approve extends PureComponent {
   };
 
   componentWillUnmount = async () => {
+    const { TransactionController } = Engine.context;
     const { approved } = this.state;
     const { transaction } = this.props;
 
     await stopGasPolling(this.state.pollToken);
     this.appStateListener?.remove();
-    Engine.context.TransactionController.hub.removeAllListeners(
-      `${transaction.id}:finished`,
-    );
+    TransactionController.hub.removeAllListeners(`${transaction.id}:finished`);
     if (!approved)
-      Engine.context.ApprovalController.reject(
+      Engine.rejectPendingApproval(
         transaction.id,
         ethErrors.provider.userRejectedRequest(),
+        {
+          ignoreMissing: true,
+          logErrors: false,
+        },
       );
   };
 
   handleAppStateChange = (appState) => {
     if (appState !== 'active') {
       const { transaction } = this.props;
-      transaction &&
-        transaction.id &&
-        Engine.context.ApprovalController.reject(
-          transaction.id,
-          ethErrors.provider.userRejectedRequest(),
-        );
+      Engine.rejectPendingApproval(
+        transaction?.id,
+        ethErrors.provider.userRejectedRequest(),
+        {
+          ignoreMissing: true,
+          logErrors: false,
+        },
+      );
+
       this.props.hideModal();
     }
   };
@@ -348,31 +349,15 @@ class Approve extends PureComponent {
   cancelGasEdition = () => {
     this.setState({
       stopUpdateGas: false,
-      gasSelectedTemp: this.state.gasSelected,
     });
     this.review();
   };
 
-  cancelGasEditionUpdate = () => {
-    this.setState({
-      stopUpdateGas: false,
-      gasSelectedTemp: this.state.gasSelected,
-    });
-    this.review();
-  };
-
-  saveGasEditionLegacy = (
-    legacyGasTransaction,
-    legacyGasObject,
-    gasSelected,
-  ) => {
+  saveGasEditionLegacy = (legacyGasTransaction, legacyGasObject) => {
     legacyGasTransaction.error = this.validateGas(
       legacyGasTransaction.totalHex,
     );
     this.setState({
-      gasSelected,
-      gasSelectedTemp: gasSelected,
-      advancedGasInserted: !gasSelected,
       stopUpdateGas: false,
       legacyGasTransaction,
       legacyGasObject,
@@ -583,13 +568,6 @@ class Approve extends PureComponent {
     });
   };
 
-  calculateTempGasFeeLegacy = (selected) => {
-    this.setState({
-      stopUpdateGas: !selected,
-      gasSelectedTemp: selected,
-    });
-  };
-
   onUpdatingValuesStart = () => {
     this.setState({ isAnimating: true });
   };
@@ -638,12 +616,12 @@ class Approve extends PureComponent {
       shouldAddNickname,
       tokenAllowanceState,
       isGasEstimateStatusIn,
+      legacyGasTransaction,
     } = this.state;
 
     const {
       transaction,
       addressBook,
-      network,
       gasEstimateType,
       gasFeeEstimates,
       primaryCurrency,
@@ -672,7 +650,7 @@ class Approve extends PureComponent {
 
     const savedContactList = checkIfAddressIsSaved(
       addressBook,
-      network,
+      chainId,
       transaction,
     );
 
@@ -800,12 +778,6 @@ class Approve extends PureComponent {
                 />
               ) : (
                 <EditGasFeeLegacy
-                  selected={gasSelected}
-                  gasEstimateType={gasEstimateType}
-                  gasOptions={gasFeeEstimates}
-                  onChange={this.calculateTempGasFeeLegacy}
-                  primaryCurrency={primaryCurrency}
-                  chainId={chainId}
                   onCancel={this.cancelGasEdition}
                   onSave={this.saveGasEditionLegacy}
                   animateOnChange={animateOnChange}
@@ -814,6 +786,9 @@ class Approve extends PureComponent {
                   analyticsParams={this.getGasAnalyticsParams()}
                   onlyGas
                   selectedGasObject={selectedLegacyGasObject}
+                  error={legacyGasTransaction.error}
+                  onUpdatingValuesStart={this.onUpdatingValuesStart}
+                  onUpdatingValuesEnd={this.onUpdatingValuesEnd}
                 />
               ))}
           </KeyboardAwareScrollView>
@@ -842,7 +817,6 @@ const mapStateToProps = (state) => ({
   nativeCurrency: selectNativeCurrency(state),
   showCustomNonce: state.settings.showCustomNonce,
   addressBook: state.engine.backgroundState.AddressBookController.addressBook,
-  network: selectNetwork(state),
   providerType: selectProviderType(state),
   providerRpcTarget: selectRpcTarget(state),
   networkConfigurations: selectNetworkConfigurations(state),

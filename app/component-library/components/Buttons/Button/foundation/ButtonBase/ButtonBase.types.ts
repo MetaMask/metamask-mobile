@@ -12,7 +12,7 @@ export interface ButtonBaseProps extends TouchableOpacityProps {
   /**
    * Button text.
    */
-  label: string;
+  label: string | React.ReactNode;
   /**
    * Optional prop for the color of label. Applies to icon too.
    */

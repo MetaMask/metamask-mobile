@@ -15,8 +15,9 @@ import AddressElement from '../AddressElement';
 import { useTheme } from '../../../../util/theme';
 import Text from '../../../../component-library/components/Texts/Text/Text';
 import { TextVariant } from '../../../../component-library/components/Texts/Text';
-import { selectNetwork } from '../../../../selectors/networkController';
+import { selectChainId } from '../../../../selectors/networkController';
 import { selectIdentities } from '../../../../selectors/preferencesController';
+import { regex } from '../../../../../app/util/regex';
 
 // Internal dependencies
 import { AddressListProps, Contact } from './AddressList.types';
@@ -45,7 +46,7 @@ const AddressList: React.FC<AddressListProps> = ({
   const styles = styleSheet(colors);
   const [contactElements, setContactElements] = useState<Contact[]>([]);
   const [fuse, setFuse] = useState<any>(undefined);
-  const network = useSelector(selectNetwork);
+  const chainId = useSelector(selectChainId);
   const identities = useSelector(selectIdentities);
   const addressBook = useSelector(
     (state: any) =>
@@ -53,8 +54,8 @@ const AddressList: React.FC<AddressListProps> = ({
   );
 
   const networkAddressBook: { [address: string]: AddressBookEntry } = useMemo(
-    () => addressBook[network] || {},
-    [addressBook, network],
+    () => addressBook[chainId] || {},
+    [addressBook, chainId],
   );
 
   const parseAddressBook = useCallback(
@@ -81,7 +82,7 @@ const AddressList: React.FC<AddressListProps> = ({
 
         updatedContacts.forEach((contact: Contact) => {
           const contactNameInitial = contact?.name?.[0];
-          const nameInitial = /[a-z]/i.exec(contactNameInitial);
+          const nameInitial = regex.nameInitial.exec(contactNameInitial);
           const initial = nameInitial
             ? nameInitial[0].toLowerCase()
             : strings('address_book.others');
@@ -145,7 +146,7 @@ const AddressList: React.FC<AddressListProps> = ({
   }, [
     inputSearch,
     addressBook,
-    network,
+    chainId,
     reloadAddressList,
     getNetworkAddressBookList,
     parseAddressBook,

@@ -24,11 +24,14 @@ export enum TextVariant {
  */
 export enum TextColor {
   Default = 'Default',
+  Inverse = 'Inverse',
   Alternative = 'Alternative',
   Muted = 'Muted',
   Primary = 'Primary',
+  PrimaryAlternative = 'Primary',
   Success = 'Success',
   Error = 'Error',
+  ErrorAlternative = 'ErrorAlternative',
   Warning = 'Warning',
   Info = 'Info',
 }

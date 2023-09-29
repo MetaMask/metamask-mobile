@@ -7,6 +7,7 @@ import type {
   WalletDevice,
 } from '@metamask/transaction-controller';
 import eth_sendTransaction from './eth_sendTransaction';
+import PPOMUtil from '../../lib/ppom/ppom-util';
 
 /**
  * Construct a `eth_sendTransaction` JSON-RPC request.
@@ -230,5 +231,27 @@ describe('eth_sendTransaction', () => {
           validateAccountAndChainId: jest.fn(),
         }),
     ).rejects.toThrow('User rejected the transaction');
+  });
+
+  it('should invoke validateRequest method', async () => {
+    const mockAddress = '0x0000000000000000000000000000000000000001';
+    const mockTransactionParameters = { from: mockAddress };
+    const expectedResult = 'fake-hash';
+    const pendingResult = constructPendingJsonRpcResponse();
+    const spy = jest.spyOn(PPOMUtil, 'validateRequest');
+
+    await eth_sendTransaction({
+      hostname: 'example.metamask.io',
+      req: constructSendTransactionRequest([mockTransactionParameters]),
+      res: pendingResult,
+      sendTransaction: getMockAddTransaction({
+        expectedTransaction: mockTransactionParameters,
+        expectedOrigin: 'example.metamask.io',
+        returnValue: expectedResult,
+      }),
+      validateAccountAndChainId: jest.fn(),
+    });
+
+    expect(spy).toBeCalledTimes(1);
   });
 });
