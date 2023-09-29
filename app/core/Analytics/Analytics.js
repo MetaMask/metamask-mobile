@@ -130,7 +130,8 @@ class Analytics {
     );
 
     // Track security providers toggle
-    const { securityAlertsEnabled } = reduxState?.experimentalSettings;
+    const { securityAlertsEnabled } =
+      preferencesController?.securityAlertsEnabled;
     const securityProviders = securityAlertsEnabled ? ['blockaid'] : [];
 
     RCTAnalytics.setUserProfileProperty(
