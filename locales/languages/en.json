@@ -1320,8 +1320,8 @@
     "memo": "Memo"
   },
   "duplicate_address": {
-    "title": "Check before sending",
-    "body": "Your contact list shows this address on more than one chain, including [CHAIN1] and [CHAIN 2]. Be sure to select the correct contact before you send any funds.",
+    "title": "This is a duplicate address",
+    "body": "Your contact list shows this address on more than one chain, including {{chains}}. Be sure to select the correct contact before you send any funds.",
     "button": "Got it"
   },
   "transaction_submitted": {
