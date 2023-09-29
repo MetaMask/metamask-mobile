@@ -688,7 +688,7 @@ class Send extends PureComponent {
   getTrackingParams = () => {
     const {
       networkType,
-      transaction: { selectedAsset, assetType, securityAlertResponse },
+      transaction: { selectedAsset, assetType },
     } = this.props;
 
     return {
