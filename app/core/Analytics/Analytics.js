@@ -130,14 +130,12 @@ class Analytics {
     );
 
     // Track security providers toggle
-    const { securityAlertsEnabled } =
-      preferencesController?.securityAlertsEnabled;
-    const securityProviders = securityAlertsEnabled ? ['blockaid'] : [];
+    // const securityProviders = preferencesController?.securityAlertsEnabled ? ['blockaid'] : [];
 
-    RCTAnalytics.setUserProfileProperty(
-      USER_PROFILE_PROPERTY.SECURITY_PROVIDERS,
-      [...securityProviders],
-    );
+    // RCTAnalytics.setUserProfileProperty(
+    //   USER_PROFILE_PROPERTY.SECURITY_PROVIDERS,
+    //   [...securityProviders],
+    // );
   };
 
   /**
