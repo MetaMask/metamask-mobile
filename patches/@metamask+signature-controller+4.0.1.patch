@@ -1,5 +1,3 @@
-+PATCH GENERATED FROM MetaMask/core branch: patch/mobile-signature-controller
-+This patch backports various signature controller features from the main branch of MetaMask/core
 diff --git a/node_modules/@metamask/signature-controller/.DS_Store b/node_modules/@metamask/signature-controller/.DS_Store
 new file mode 100644
 index 0000000..e69de29
@@ -8,20 +6,88 @@ new file mode 100644
 index 0000000..5008ddf
 Binary files /dev/null and b/node_modules/@metamask/signature-controller/dist/.DS_Store differ
 diff --git a/node_modules/@metamask/signature-controller/dist/SignatureController.d.ts b/node_modules/@metamask/signature-controller/dist/SignatureController.d.ts
-index 818daf6..c310ed9 100644
+index 818daf6..229796e 100644
 --- a/node_modules/@metamask/signature-controller/dist/SignatureController.d.ts
 +++ b/node_modules/@metamask/signature-controller/dist/SignatureController.d.ts
-@@ -18,6 +18,9 @@ declare type SignatureControllerState = {
+@@ -1,10 +1,13 @@
+ /// <reference types="node" />
++import type { AddApprovalRequest } from '@metamask/approval-controller';
++import type { RestrictedControllerMessenger } from '@metamask/base-controller';
++import { BaseControllerV2 } from '@metamask/base-controller';
++import type { KeyringControllerSignMessageAction, KeyringControllerSignPersonalMessageAction, KeyringControllerSignTypedMessageAction } from '@metamask/keyring-controller';
++import type { AddLog } from '@metamask/logging-controller';
++import type { MessageParams, PersonalMessageParams, TypedMessageParams, AbstractMessage, AbstractMessageParams, OriginalRequest, TypedMessage, PersonalMessage, Message } from '@metamask/message-manager';
++import type { Hex, Json } from '@metamask/utils';
+ import EventEmitter from 'events';
+-import type { Hex } from '@metamask/utils';
+-import { MessageParams, PersonalMessageParams, TypedMessageParams, AbstractMessage, AbstractMessageParams, OriginalRequest } from '@metamask/message-manager';
+-import { BaseControllerV2, RestrictedControllerMessenger } from '@metamask/base-controller';
+-import { Patch } from 'immer';
+-import { AddApprovalRequest } from '@metamask/approval-controller';
++import type { Patch } from 'immer';
+ declare const controllerName = "SignatureController";
+ declare type StateMessage = Required<AbstractMessage> & {
+     msgParams: Required<AbstractMessageParams>;
+@@ -17,7 +20,10 @@ declare type SignatureControllerState = {
+     unapprovedPersonalMsgCount: number;
      unapprovedTypedMessagesCount: number;
  };
- declare type AllowedActions = AddApprovalRequest;
+-declare type AllowedActions = AddApprovalRequest;
++declare type AllowedActions = AddApprovalRequest | KeyringControllerSignMessageAction | KeyringControllerSignPersonalMessageAction | KeyringControllerSignTypedMessageAction | AddLog;
 +declare type TypedMessageSigningOptions = {
 +    parseJsonData: boolean;
 +};
  export declare type GetSignatureState = {
      type: `${typeof controllerName}:getState`;
      handler: () => SignatureControllerState;
-@@ -123,9 +126,11 @@ export declare class SignatureController extends BaseControllerV2<typeof control
+@@ -29,16 +35,8 @@ export declare type SignatureStateChange = {
+ export declare type SignatureControllerActions = GetSignatureState;
+ export declare type SignatureControllerEvents = SignatureStateChange;
+ export declare type SignatureControllerMessenger = RestrictedControllerMessenger<typeof controllerName, SignatureControllerActions | AllowedActions, SignatureControllerEvents, AllowedActions['type'], never>;
+-export interface KeyringController {
+-    signMessage: (messsageParams: MessageParams) => Promise<string>;
+-    signPersonalMessage: (messsageParams: PersonalMessageParams) => Promise<string>;
+-    signTypedMessage: (messsageParams: TypedMessageParams, options: {
+-        version: string | undefined;
+-    }) => Promise<string>;
+-}
+ export declare type SignatureControllerOptions = {
+     messenger: SignatureControllerMessenger;
+-    keyringController: KeyringController;
+     isEthSignEnabled: () => boolean;
+     getAllState: () => unknown;
+     securityProviderRequest?: (requestData: any, methodName: string) => Promise<any>;
+@@ -55,13 +53,12 @@ export declare class SignatureController extends BaseControllerV2<typeof control
+      *
+      * @param options - The controller options.
+      * @param options.messenger - The restricted controller messenger for the sign controller.
+-     * @param options.keyringController - An instance of a keyring controller used to perform the signing operations.
+      * @param options.isEthSignEnabled - Callback to return true if eth_sign is enabled.
+      * @param options.getAllState - Callback to retrieve all user state.
+      * @param options.securityProviderRequest - A function for verifying a message, whether it is malicious or not.
+      * @param options.getCurrentChainId - A function for retrieving the current chainId.
+      */
+-    constructor({ messenger, keyringController, isEthSignEnabled, getAllState, securityProviderRequest, getCurrentChainId, }: SignatureControllerOptions);
++    constructor({ messenger, isEthSignEnabled, getAllState, securityProviderRequest, getCurrentChainId, }: SignatureControllerOptions);
+     /**
+      * A getter for the number of 'unapproved' Messages in this.messages.
+      *
+@@ -80,6 +77,14 @@ export declare class SignatureController extends BaseControllerV2<typeof control
+      * @returns The number of 'unapproved' TypedMessages in this.messages
+      */
+     get unapprovedTypedMessagesCount(): number;
++    /**
++     * A getter for returning all messages.
++     *
++     * @returns The object containing all messages.
++     */
++    get messages(): {
++        [id: string]: Message | PersonalMessage | TypedMessage;
++    };
+     /**
+      * Reset the controller state to the initial state.
+      */
+@@ -123,9 +128,31 @@ export declare class SignatureController extends BaseControllerV2<typeof control
       * @param messageParams - The params passed to eth_signTypedData.
       * @param req - The original request, containing the origin.
       * @param version - The version indicating the format of the typed data.
@@ -31,6 +97,26 @@ index 818daf6..c310ed9 100644
       */
 -    newUnsignedTypedMessage(messageParams: TypedMessageParams, req: OriginalRequest, version: string): Promise<string>;
 +    newUnsignedTypedMessage(messageParams: TypedMessageParams, req: OriginalRequest, version: string, signingOpts: TypedMessageSigningOptions): Promise<string>;
++    /**
++     * Called to update the message status as signed.
++     *
++     * @param messageId - The id of the Message to update.
++     * @param signature - The data to update the message with.
++     */
++    setDeferredSignSuccess(messageId: string, signature: any): void;
++    /**
++     * Called when the message metadata needs to be updated.
++     *
++     * @param messageId - The id of the message to update.
++     * @param metadata - The data to update the metadata property in the message.
++     */
++    setMessageMetadata(messageId: string, metadata: Json): void;
++    /**
++     * Called to cancel a signing message.
++     *
++     * @param messageId - The id of the Message to update.
++     */
++    setDeferredSignError(messageId: string): void;
      setTypedMessageInProgress(messageId: string): void;
      setPersonalMessageInProgress(messageId: string): void;
  }
@@ -43,10 +129,104 @@ index 7a9cec5..0000000
 -{"version":3,"file":"SignatureController.d.ts","sourceRoot":"","sources":["../src/SignatureController.ts"],"names":[],"mappings":"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"}
 \ No newline at end of file
 diff --git a/node_modules/@metamask/signature-controller/dist/SignatureController.js b/node_modules/@metamask/signature-controller/dist/SignatureController.js
-index b58b27e..a133850 100644
+index b58b27e..8ac1b21 100644
 --- a/node_modules/@metamask/signature-controller/dist/SignatureController.js
 +++ b/node_modules/@metamask/signature-controller/dist/SignatureController.js
-@@ -197,13 +197,13 @@ class SignatureController extends base_controller_1.BaseControllerV2 {
+@@ -33,16 +33,17 @@ var __rest = (this && this.__rest) || function (s, e) {
+ var __importDefault = (this && this.__importDefault) || function (mod) {
+     return (mod && mod.__esModule) ? mod : { "default": mod };
+ };
+-var _SignatureController_instances, _SignatureController_keyringController, _SignatureController_isEthSignEnabled, _SignatureController_getAllState, _SignatureController_messageManager, _SignatureController_personalMessageManager, _SignatureController_typedMessageManager, _SignatureController_validateUnsignedMessage, _SignatureController_newUnsignedAbstractMessage, _SignatureController_signMessage, _SignatureController_signPersonalMessage, _SignatureController_signTypedMessage, _SignatureController_rejectUnapproved, _SignatureController_clearUnapproved, _SignatureController_signAbstractMessage, _SignatureController_errorMessage, _SignatureController_cancelAbstractMessage, _SignatureController_handleMessageManagerEvents, _SignatureController_subscribeToMessageState, _SignatureController_migrateMessages, _SignatureController_migrateMessage, _SignatureController_normalizeMsgData, _SignatureController_getMessage, _SignatureController_requestApproval, _SignatureController_removeJsonData;
++var _SignatureController_instances, _SignatureController_isEthSignEnabled, _SignatureController_getAllState, _SignatureController_messageManager, _SignatureController_personalMessageManager, _SignatureController_typedMessageManager, _SignatureController_validateUnsignedMessage, _SignatureController_newUnsignedAbstractMessage, _SignatureController_signMessage, _SignatureController_signPersonalMessage, _SignatureController_signTypedMessage, _SignatureController_tryForEachMessageManager, _SignatureController_trySetDeferredSignSuccess, _SignatureController_trySetMessageMetadata, _SignatureController_trySetDeferredSignError, _SignatureController_rejectUnapproved, _SignatureController_clearUnapproved, _SignatureController_signAbstractMessage, _SignatureController_errorMessage, _SignatureController_cancelAbstractMessage, _SignatureController_handleMessageManagerEvents, _SignatureController_subscribeToMessageState, _SignatureController_migrateMessages, _SignatureController_migrateMessage, _SignatureController_normalizeMsgData, _SignatureController_getMessage, _SignatureController_requestApproval, _SignatureController_removeJsonData, _SignatureController_addLog, _SignatureController_getSignTypeForLogger;
+ Object.defineProperty(exports, "__esModule", { value: true });
+ exports.SignatureController = void 0;
+-const events_1 = __importDefault(require("events"));
+-const lodash_1 = require("lodash");
++const base_controller_1 = require("@metamask/base-controller");
++const controller_utils_1 = require("@metamask/controller-utils");
++const logging_controller_1 = require("@metamask/logging-controller");
+ const message_manager_1 = require("@metamask/message-manager");
+ const eth_rpc_errors_1 = require("eth-rpc-errors");
+ const ethereumjs_util_1 = require("ethereumjs-util");
+-const base_controller_1 = require("@metamask/base-controller");
+-const controller_utils_1 = require("@metamask/controller-utils");
++const events_1 = __importDefault(require("events"));
++const lodash_1 = require("lodash");
+ const controllerName = 'SignatureController';
+ const stateMetadata = {
+     unapprovedMsgs: { persist: false, anonymous: false },
+@@ -69,13 +70,12 @@ class SignatureController extends base_controller_1.BaseControllerV2 {
+      *
+      * @param options - The controller options.
+      * @param options.messenger - The restricted controller messenger for the sign controller.
+-     * @param options.keyringController - An instance of a keyring controller used to perform the signing operations.
+      * @param options.isEthSignEnabled - Callback to return true if eth_sign is enabled.
+      * @param options.getAllState - Callback to retrieve all user state.
+      * @param options.securityProviderRequest - A function for verifying a message, whether it is malicious or not.
+      * @param options.getCurrentChainId - A function for retrieving the current chainId.
+      */
+-    constructor({ messenger, keyringController, isEthSignEnabled, getAllState, securityProviderRequest, getCurrentChainId, }) {
++    constructor({ messenger, isEthSignEnabled, getAllState, securityProviderRequest, getCurrentChainId, }) {
+         super({
+             name: controllerName,
+             metadata: stateMetadata,
+@@ -83,13 +83,11 @@ class SignatureController extends base_controller_1.BaseControllerV2 {
+             state: getDefaultState(),
+         });
+         _SignatureController_instances.add(this);
+-        _SignatureController_keyringController.set(this, void 0);
+         _SignatureController_isEthSignEnabled.set(this, void 0);
+         _SignatureController_getAllState.set(this, void 0);
+         _SignatureController_messageManager.set(this, void 0);
+         _SignatureController_personalMessageManager.set(this, void 0);
+         _SignatureController_typedMessageManager.set(this, void 0);
+-        __classPrivateFieldSet(this, _SignatureController_keyringController, keyringController, "f");
+         __classPrivateFieldSet(this, _SignatureController_isEthSignEnabled, isEthSignEnabled, "f");
+         __classPrivateFieldSet(this, _SignatureController_getAllState, getAllState, "f");
+         this.hub = new events_1.default();
+@@ -136,6 +134,23 @@ class SignatureController extends base_controller_1.BaseControllerV2 {
+     get unapprovedTypedMessagesCount() {
+         return __classPrivateFieldGet(this, _SignatureController_typedMessageManager, "f").getUnapprovedMessagesCount();
+     }
++    /**
++     * A getter for returning all messages.
++     *
++     * @returns The object containing all messages.
++     */
++    get messages() {
++        const messages = [
++            ...__classPrivateFieldGet(this, _SignatureController_typedMessageManager, "f").getAllMessages(),
++            ...__classPrivateFieldGet(this, _SignatureController_personalMessageManager, "f").getAllMessages(),
++            ...__classPrivateFieldGet(this, _SignatureController_messageManager, "f").getAllMessages(),
++        ];
++        const messagesObject = messages.reduce((acc, message) => {
++            acc[message.id] = message;
++            return acc;
++        }, {});
++        return messagesObject;
++    }
+     /**
+      * Reset the controller state to the initial state.
+      */
+@@ -172,7 +187,7 @@ class SignatureController extends base_controller_1.BaseControllerV2 {
+      */
+     newUnsignedMessage(messageParams, req) {
+         return __awaiter(this, void 0, void 0, function* () {
+-            return __classPrivateFieldGet(this, _SignatureController_instances, "m", _SignatureController_newUnsignedAbstractMessage).call(this, __classPrivateFieldGet(this, _SignatureController_messageManager, "f"), controller_utils_1.ApprovalType.EthSign, 'Message', __classPrivateFieldGet(this, _SignatureController_instances, "m", _SignatureController_signMessage).bind(this), messageParams, req, __classPrivateFieldGet(this, _SignatureController_instances, "m", _SignatureController_validateUnsignedMessage).bind(this));
++            return __classPrivateFieldGet(this, _SignatureController_instances, "m", _SignatureController_newUnsignedAbstractMessage).call(this, __classPrivateFieldGet(this, _SignatureController_messageManager, "f"), controller_utils_1.ApprovalType.EthSign, logging_controller_1.SigningMethod.EthSign, 'Message', __classPrivateFieldGet(this, _SignatureController_instances, "m", _SignatureController_signMessage).bind(this), messageParams, req, __classPrivateFieldGet(this, _SignatureController_instances, "m", _SignatureController_validateUnsignedMessage).bind(this));
+         });
+     }
+     /**
+@@ -188,7 +203,7 @@ class SignatureController extends base_controller_1.BaseControllerV2 {
+      */
+     newUnsignedPersonalMessage(messageParams, req) {
+         return __awaiter(this, void 0, void 0, function* () {
+-            return __classPrivateFieldGet(this, _SignatureController_instances, "m", _SignatureController_newUnsignedAbstractMessage).call(this, __classPrivateFieldGet(this, _SignatureController_personalMessageManager, "f"), controller_utils_1.ApprovalType.PersonalSign, 'Personal Message', __classPrivateFieldGet(this, _SignatureController_instances, "m", _SignatureController_signPersonalMessage).bind(this), messageParams, req);
++            return __classPrivateFieldGet(this, _SignatureController_instances, "m", _SignatureController_newUnsignedAbstractMessage).call(this, __classPrivateFieldGet(this, _SignatureController_personalMessageManager, "f"), controller_utils_1.ApprovalType.PersonalSign, logging_controller_1.SigningMethod.PersonalSign, 'Personal Message', __classPrivateFieldGet(this, _SignatureController_instances, "m", _SignatureController_signPersonalMessage).bind(this), messageParams, req);
+         });
+     }
+     /**
+@@ -197,15 +212,42 @@ class SignatureController extends base_controller_1.BaseControllerV2 {
       * @param messageParams - The params passed to eth_signTypedData.
       * @param req - The original request, containing the origin.
       * @param version - The version indicating the format of the typed data.
@@ -60,11 +240,55 @@ index b58b27e..a133850 100644
 -            return __classPrivateFieldGet(this, _SignatureController_instances, "m", _SignatureController_newUnsignedAbstractMessage).call(this, __classPrivateFieldGet(this, _SignatureController_typedMessageManager, "f"), controller_utils_1.ApprovalType.EthSignTypedData, 'Typed Message', __classPrivateFieldGet(this, _SignatureController_instances, "m", _SignatureController_signTypedMessage).bind(this), messageParams, req, undefined, version, {
 -                parseJsonData: true,
 -            });
-+            return __classPrivateFieldGet(this, _SignatureController_instances, "m", _SignatureController_newUnsignedAbstractMessage).call(this, __classPrivateFieldGet(this, _SignatureController_typedMessageManager, "f"), controller_utils_1.ApprovalType.EthSignTypedData, 'Typed Message', __classPrivateFieldGet(this, _SignatureController_instances, "m", _SignatureController_signTypedMessage).bind(this), messageParams, req, undefined, version, signingOpts);
++            const signTypeForLogger = __classPrivateFieldGet(this, _SignatureController_instances, "m", _SignatureController_getSignTypeForLogger).call(this, version);
++            return __classPrivateFieldGet(this, _SignatureController_instances, "m", _SignatureController_newUnsignedAbstractMessage).call(this, __classPrivateFieldGet(this, _SignatureController_typedMessageManager, "f"), controller_utils_1.ApprovalType.EthSignTypedData, signTypeForLogger, 'Typed Message', __classPrivateFieldGet(this, _SignatureController_instances, "m", _SignatureController_signTypedMessage).bind(this), messageParams, req, undefined, version, signingOpts);
          });
      }
++    /**
++     * Called to update the message status as signed.
++     *
++     * @param messageId - The id of the Message to update.
++     * @param signature - The data to update the message with.
++     */
++    setDeferredSignSuccess(messageId, signature) {
++        __classPrivateFieldGet(this, _SignatureController_instances, "m", _SignatureController_tryForEachMessageManager).call(this, __classPrivateFieldGet(this, _SignatureController_instances, "m", _SignatureController_trySetDeferredSignSuccess), messageId, signature);
++    }
++    /**
++     * Called when the message metadata needs to be updated.
++     *
++     * @param messageId - The id of the message to update.
++     * @param metadata - The data to update the metadata property in the message.
++     */
++    setMessageMetadata(messageId, metadata) {
++        __classPrivateFieldGet(this, _SignatureController_instances, "m", _SignatureController_tryForEachMessageManager).call(this, __classPrivateFieldGet(this, _SignatureController_instances, "m", _SignatureController_trySetMessageMetadata), messageId, metadata);
++    }
++    /**
++     * Called to cancel a signing message.
++     *
++     * @param messageId - The id of the Message to update.
++     */
++    setDeferredSignError(messageId) {
++        __classPrivateFieldGet(this, _SignatureController_instances, "m", _SignatureController_tryForEachMessageManager).call(this, __classPrivateFieldGet(this, _SignatureController_instances, "m", _SignatureController_trySetDeferredSignError), messageId);
++    }
      setTypedMessageInProgress(messageId) {
-@@ -230,18 +230,29 @@ _SignatureController_keyringController = new WeakMap(), _SignatureController_isE
+         __classPrivateFieldGet(this, _SignatureController_typedMessageManager, "f").setMessageStatusInProgress(messageId);
+     }
+@@ -214,7 +256,7 @@ class SignatureController extends base_controller_1.BaseControllerV2 {
+     }
+ }
+ exports.SignatureController = SignatureController;
+-_SignatureController_keyringController = new WeakMap(), _SignatureController_isEthSignEnabled = new WeakMap(), _SignatureController_getAllState = new WeakMap(), _SignatureController_messageManager = new WeakMap(), _SignatureController_personalMessageManager = new WeakMap(), _SignatureController_typedMessageManager = new WeakMap(), _SignatureController_instances = new WeakSet(), _SignatureController_validateUnsignedMessage = function _SignatureController_validateUnsignedMessage(messageParams) {
++_SignatureController_isEthSignEnabled = new WeakMap(), _SignatureController_getAllState = new WeakMap(), _SignatureController_messageManager = new WeakMap(), _SignatureController_personalMessageManager = new WeakMap(), _SignatureController_typedMessageManager = new WeakMap(), _SignatureController_instances = new WeakSet(), _SignatureController_validateUnsignedMessage = function _SignatureController_validateUnsignedMessage(messageParams) {
+     if (!__classPrivateFieldGet(this, _SignatureController_isEthSignEnabled, "f").call(this)) {
+         throw eth_rpc_errors_1.ethErrors.rpc.methodNotFound('eth_sign has been disabled. You must enable it in the advanced settings');
+     }
+@@ -225,46 +267,101 @@ _SignatureController_keyringController = new WeakMap(), _SignatureController_isE
+     if (data.length !== 66 && data.length !== 67) {
+         throw eth_rpc_errors_1.ethErrors.rpc.invalidParams('eth_sign requires 32 byte message hash');
+     }
+-}, _SignatureController_newUnsignedAbstractMessage = function _SignatureController_newUnsignedAbstractMessage(messageManager, approvalType, messageName, signMessage, messageParams, req, validateMessage, version, signingOpts) {
++}, _SignatureController_newUnsignedAbstractMessage = function _SignatureController_newUnsignedAbstractMessage(messageManager, approvalType, signTypeForLogger, messageName, signMessage, messageParams, req, validateMessage, version, signingOpts) {
+     return __awaiter(this, void 0, void 0, function* () {
          if (validateMessage) {
              validateMessage(messageParams);
          }
@@ -78,15 +302,21 @@ index b58b27e..a133850 100644
 +            const messageParamsWithId = Object.assign(Object.assign(Object.assign({}, messageParams), { metamaskId: messageId }), (version && { version }));
 +            const signaturePromise = messageManager.waitForFinishStatus(messageParamsWithId, messageName);
 +            try {
++                // Signature request is proposed to the user
++                __classPrivateFieldGet(this, _SignatureController_instances, "m", _SignatureController_addLog).call(this, signTypeForLogger, logging_controller_1.SigningStage.Proposed, messageParamsWithId);
 +                const acceptResult = yield __classPrivateFieldGet(this, _SignatureController_instances, "m", _SignatureController_requestApproval).call(this, messageParamsWithId, approvalType);
 +                resultCallbacks = acceptResult.resultCallbacks;
 +            }
 +            catch (_a) {
++                // User rejected the signature request
++                __classPrivateFieldGet(this, _SignatureController_instances, "m", _SignatureController_addLog).call(this, signTypeForLogger, logging_controller_1.SigningStage.Rejected, messageParamsWithId);
 +                __classPrivateFieldGet(this, _SignatureController_instances, "m", _SignatureController_cancelAbstractMessage).call(this, messageManager, messageId);
 +                throw eth_rpc_errors_1.ethErrors.provider.userRejectedRequest('User rejected the request.');
 +            }
 +            yield signMessage(messageParamsWithId, signingOpts);
 +            const signatureResult = yield signaturePromise;
++            // Signature operation is completed
++            __classPrivateFieldGet(this, _SignatureController_instances, "m", _SignatureController_addLog).call(this, signTypeForLogger, logging_controller_1.SigningStage.Signed, messageParamsWithId);
 +            /* istanbul ignore next */
 +            resultCallbacks === null || resultCallbacks === void 0 ? void 0 : resultCallbacks.success(signatureResult);
 +            return signatureResult;
@@ -102,9 +332,17 @@ index b58b27e..a133850 100644
      });
  }, _SignatureController_signMessage = function _SignatureController_signMessage(msgParams) {
      return __awaiter(this, void 0, void 0, function* () {
-@@ -251,13 +262,13 @@ _SignatureController_keyringController = new WeakMap(), _SignatureController_isE
+-        return yield __classPrivateFieldGet(this, _SignatureController_instances, "m", _SignatureController_signAbstractMessage).call(this, __classPrivateFieldGet(this, _SignatureController_messageManager, "f"), controller_utils_1.ApprovalType.EthSign, msgParams, (cleanMsgParams) => __awaiter(this, void 0, void 0, function* () { return yield __classPrivateFieldGet(this, _SignatureController_keyringController, "f").signMessage(cleanMsgParams); }));
++        return yield __classPrivateFieldGet(this, _SignatureController_instances, "m", _SignatureController_signAbstractMessage).call(this, __classPrivateFieldGet(this, _SignatureController_messageManager, "f"), controller_utils_1.ApprovalType.EthSign, msgParams, (cleanMsgParams) => __awaiter(this, void 0, void 0, function* () {
++            return yield this.messagingSystem.call('KeyringController:signMessage', cleanMsgParams);
++        }));
+     });
+ }, _SignatureController_signPersonalMessage = function _SignatureController_signPersonalMessage(msgParams) {
      return __awaiter(this, void 0, void 0, function* () {
-         return yield __classPrivateFieldGet(this, _SignatureController_instances, "m", _SignatureController_signAbstractMessage).call(this, __classPrivateFieldGet(this, _SignatureController_personalMessageManager, "f"), controller_utils_1.ApprovalType.PersonalSign, msgParams, (cleanMsgParams) => __awaiter(this, void 0, void 0, function* () { return yield __classPrivateFieldGet(this, _SignatureController_keyringController, "f").signPersonalMessage(cleanMsgParams); }));
+-        return yield __classPrivateFieldGet(this, _SignatureController_instances, "m", _SignatureController_signAbstractMessage).call(this, __classPrivateFieldGet(this, _SignatureController_personalMessageManager, "f"), controller_utils_1.ApprovalType.PersonalSign, msgParams, (cleanMsgParams) => __awaiter(this, void 0, void 0, function* () { return yield __classPrivateFieldGet(this, _SignatureController_keyringController, "f").signPersonalMessage(cleanMsgParams); }));
++        return yield __classPrivateFieldGet(this, _SignatureController_instances, "m", _SignatureController_signAbstractMessage).call(this, __classPrivateFieldGet(this, _SignatureController_personalMessageManager, "f"), controller_utils_1.ApprovalType.PersonalSign, msgParams, (cleanMsgParams) => __awaiter(this, void 0, void 0, function* () {
++            return yield this.messagingSystem.call('KeyringController:signPersonalMessage', cleanMsgParams);
++        }));
      });
 -}, _SignatureController_signTypedMessage = function _SignatureController_signTypedMessage(msgParams, version, opts) {
 +}, _SignatureController_signTypedMessage = function _SignatureController_signTypedMessage(msgParams, 
@@ -120,8 +358,52 @@ index b58b27e..a133850 100644
 +            const finalMessageParams = opts.parseJsonData
                  ? __classPrivateFieldGet(this, _SignatureController_instances, "m", _SignatureController_removeJsonData).call(this, cleanMsgParams, version)
                  : cleanMsgParams;
-             return yield __classPrivateFieldGet(this, _SignatureController_keyringController, "f").signTypedMessage(finalMessageParams, {
-@@ -280,12 +291,18 @@ _SignatureController_keyringController = new WeakMap(), _SignatureController_isE
+-            return yield __classPrivateFieldGet(this, _SignatureController_keyringController, "f").signTypedMessage(finalMessageParams, {
+-                version,
+-            });
++            return yield this.messagingSystem.call('KeyringController:signTypedMessage', finalMessageParams, version);
+         }));
+     });
++}, _SignatureController_tryForEachMessageManager = function _SignatureController_tryForEachMessageManager(callbackFn, ...args) {
++    const messageManagers = [
++        __classPrivateFieldGet(this, _SignatureController_messageManager, "f"),
++        __classPrivateFieldGet(this, _SignatureController_personalMessageManager, "f"),
++        __classPrivateFieldGet(this, _SignatureController_typedMessageManager, "f"),
++    ];
++    for (const manager of messageManagers) {
++        if (callbackFn(manager, ...args)) {
++            return true;
++        }
++    }
++    throw new Error('Message not found');
++}, _SignatureController_trySetDeferredSignSuccess = function _SignatureController_trySetDeferredSignSuccess(messageManager, messageId, signature) {
++    try {
++        messageManager.setMessageStatusSigned(messageId, signature);
++        return true;
++    }
++    catch (error) {
++        return false;
++    }
++}, _SignatureController_trySetMessageMetadata = function _SignatureController_trySetMessageMetadata(messageManager, messageId, metadata) {
++    try {
++        messageManager.setMetadata(messageId, metadata);
++        return true;
++    }
++    catch (error) {
++        return false;
++    }
++}, _SignatureController_trySetDeferredSignError = function _SignatureController_trySetDeferredSignError(messageManager, messageId) {
++    try {
++        messageManager.rejectMessage(messageId);
++        return true;
++    }
++    catch (error) {
++        return false;
++    }
+ }, _SignatureController_rejectUnapproved = function _SignatureController_rejectUnapproved(messageManager, reason) {
+     Object.keys(messageManager.getUnapprovedMessages()).forEach((messageId) => {
+         __classPrivateFieldGet(this, _SignatureController_instances, "m", _SignatureController_cancelAbstractMessage).call(this, messageManager, messageId, reason);
+@@ -280,12 +377,18 @@ _SignatureController_keyringController = new WeakMap(), _SignatureController_isE
          const messageId = msgParams.metamaskId;
          try {
              const cleanMessageParams = yield messageManager.approveMessage(msgParams);
@@ -145,7 +427,16 @@ index b58b27e..a133850 100644
          }
          catch (error) {
              console.info(`MetaMaskController - ${methodName} failed.`, error);
-@@ -351,12 +368,13 @@ _SignatureController_keyringController = new WeakMap(), _SignatureController_isE
+@@ -336,7 +439,7 @@ _SignatureController_keyringController = new WeakMap(), _SignatureController_isE
+     const stateMessage = Object.assign(Object.assign({}, coreMessageData), { msgParams: messageParams });
+     return stateMessage;
+ }, _SignatureController_normalizeMsgData = function _SignatureController_normalizeMsgData(data) {
+-    if (data.slice(0, 2) === '0x') {
++    if (data.startsWith('0x')) {
+         // data is already hex
+         return data;
+     }
+@@ -351,17 +454,36 @@ _SignatureController_keyringController = new WeakMap(), _SignatureController_isE
          // We are explicitly cloning the message params here to prevent the mutation errors on development mode
          // Because sending it through the messaging system will make the object read only
          const clonedMsgParams = (0, lodash_1.cloneDeep)(msgParams);
@@ -161,6 +452,30 @@ index b58b27e..a133850 100644
      });
  }, _SignatureController_removeJsonData = function _SignatureController_removeJsonData(messageParams, version) {
      if (version === 'V1' || typeof messageParams.data !== 'string') {
+         return messageParams;
+     }
+     return Object.assign(Object.assign({}, messageParams), { data: JSON.parse(messageParams.data) });
++}, _SignatureController_addLog = function _SignatureController_addLog(signingMethod, stage, signingData) {
++    this.messagingSystem.call('LoggingController:add', {
++        type: logging_controller_1.LogType.EthSignLog,
++        data: {
++            signingMethod,
++            stage,
++            signingData,
++        },
++    });
++}, _SignatureController_getSignTypeForLogger = function _SignatureController_getSignTypeForLogger(version) {
++    let signTypeForLogger = logging_controller_1.SigningMethod.EthSignTypedData;
++    if (version === 'V3') {
++        signTypeForLogger = logging_controller_1.SigningMethod.EthSignTypedDataV3;
++    }
++    else if (version === 'V4') {
++        signTypeForLogger = logging_controller_1.SigningMethod.EthSignTypedDataV4;
++    }
++    return signTypeForLogger;
+ };
+ //# sourceMappingURL=SignatureController.js.map
+\ No newline at end of file
 diff --git a/node_modules/@metamask/signature-controller/dist/SignatureController.js.map b/node_modules/@metamask/signature-controller/dist/SignatureController.js.map
 deleted file mode 100644
 index a0773f6..0000000
