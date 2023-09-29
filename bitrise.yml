@@ -117,13 +117,13 @@ workflows:
           inputs:
             - content: |-
                 #!/usr/bin/env bash
-                if [[ $BITRISE_GIT_MESSAGE =~ "feat" ]]; then
-                  echo "Found feat in PR title. Now triggering e2e tests"
+                if [[ $BITRISE_GIT_MESSAGE =~ "Run E2E" ]]; then
+                  echo "Now triggering e2e tests"
                 else
-                  echo "No feat in PR title."
+                  echo "No Run E2E label skipping E2E tests."
                   exit 1
                 fi
-          title: Run if feat is contained in commit message
+          title: Run if <Run E2E> label is added to PR
     meta:
       bitrise.io:
         stack: linux-docker-android-20.04
