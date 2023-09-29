@@ -51,7 +51,7 @@ pipelines:
   #PR_e2e_verfication (build ios & android), run iOS (smoke), emulator Android
   pr_smoke_e2e_pipeline_pr_check:
     stages:
-      - draft_pr_check: {}
+      - label_run_e2e_pr_check: {}
       - run_smoke_e2e_ios_android_stage: {}
       - notify: {}
 #Stages reference workflows. Those workflows cannot but utility "_this-is-a-utility"
@@ -106,7 +106,7 @@ stages:
   release_notify:
     workflows:
       - release_announcing_stores: {}
-  draft_pr_check:
+  label_run_e2e_pr_check:
     workflows:
       - check_e2e_trigger: {}
 workflows:
