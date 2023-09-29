@@ -820,6 +820,8 @@ meta:
 trigger_map:
   - push_branch: release/*
     pipeline: release_e2e_pipeline
+  - push_branch: main
+    pipeline: pr_smoke_e2e_pipeline
   - tag: 'v*.*.*-RC-*'
     pipeline: release_builds_to_store_pipeline
   - tag: 'qa-*'
