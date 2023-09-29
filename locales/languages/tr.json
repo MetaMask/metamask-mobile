@@ -1,4 +1,23 @@
 {
+  "blockaid_banner": {
+    "approval_farming_description": "Bu talebi onaylarsanız dolandırıcılıkla bilinen üçüncü bir taraf tüm varlıklarınızı çalabilir.",
+    "attribution": "Güvenlik önerisi: ",
+    "attribution_link": "https://blockaid.me",
+    "attribution_link_name": "Blockaid",
+    "blur_farming_description": "Bu talebi onaylarsanız birisi Blur üzerinde yer alan varlıklarınızı çalabilir.",
+    "deceptive_request_title": "Bu, aldatıcı bir taleptir",
+    "failed_title": "Talep güvenli olmayabilir",
+    "failed_description": "Bu talep bir hatadan dolayı güvenlik sağlayıcısı tarafından doğrulanmadı. Dikkatli bir şekilde ilerleyin.",
+    "malicious_domain_description": "Kötü niyetli bir alanla etkileşimde bulunuyorsunuz. Bu talebi onaylarsanız varlıklarınızı kaybedebilirsiniz.",
+    "other_description": "Bu talebi onaylarsanız varlıklarınızı kaybedebilirsiniz.",
+    "raw_signature_farming_description": "Bu talebi onaylarsanız varlıklarınızı kaybedebilirsiniz.",
+    "seaport_farming_description": "Bu talebi onaylarsanız birisi OpenSea üzerinde yer alan varlıklarınızı çalabilir.",
+    "see_details": "Ayrıntıları gör",
+    "suspicious_request_title": "Bu, şüheli bir taleptir",
+    "trade_order_farming_description": "Bu talebi onaylarsanız varlıklarınızı kaybedebilirsiniz.",
+    "transfer_farming_description": "Bu talebi onaylarsanız dolandırıcılıkla bilinen üçüncü bir taraf tüm varlıklarınızı çalar.",
+    "unfair_trade_description": "Bu talebi onaylarsanız varlıklarınızı kaybedebilirsiniz."
+  },
   "date": {
     "months": {
       "0": "Oca",
@@ -80,12 +99,12 @@
     },
     "step1": {
       "title": "Yeni cüzdanınıza hoş geldiniz!",
-      "content1": "Blok zincirini kullanmak için bir cüzdana ihtiyacınız var! Bazı eylemlerin maliyeti Ether (ETH) olacaktır.",
+      "content1": "Blokzincirini kullanmak için bir cüzdana ihtiyacınız var! Bazı eylemlerin maliyeti Ether (ETH) olacaktır.",
       "content2": "Nasıl ETH satın alabileceğinizi göstereceğiz veya bir arkadaşınızdan biraz isteyebilirsiniz."
     },
     "step2": {
       "title": "Hesaplarınız",
-      "content1": "Bu sizin ilk hesabınız, toplam değer ve onun eşsiz halka açık adresi (0x...).",
+      "content1": "Bu sizin ilk hesabınız, toplam değer ve onun eşsiz genel adresi (0x...).",
       "content2": "Profil simgesine tıklayarak bu cüzdan dahilinde birden fazla hesap oluşturabilirsiniz."
     },
     "step3": {
@@ -116,15 +135,15 @@
     },
     "step1": {
       "title": "Cüzdanınıza hoş geldiniz!",
-      "content1": "Blok zincirde bir cüzdana ihtiyacınız vardır (ve belki biraz ETH'ye). Öyleyse, MetaMask cüzdanınızı nasıl kullanacağınıza bakalım."
+      "content1": "Blokzincirinde bir cüzdana ihtiyacınız vardır (ve belki biraz ETH'ye). Öyleyse, MetaMask cüzdanınızı nasıl kullanacağınıza bakalım."
     },
     "step2": {
       "title": "Hesaplarınız",
-      "content1": "Bu sizin hesabınız ve eşsiz ortak adresinizdir (0x...). Ok simgesine dokunarak daha fazla hesap oluşturun."
+      "content1": "Bu sizin hesabınız ve eşsiz genel adresinizdir (0x...). Ok simgesine dokunarak daha fazla hesap oluşturun."
     },
     "step3": {
       "title": "Hesabınızın yönetimi",
-      "content1": "Bu simgeye dokunarak Etherscan üzerinde hesap adınızı düzenleyin, işlemleri görüntüleyin, ortak anahtarınızı paylaşın ve özel anahtarınızı görün"
+      "content1": "Bu simgeye dokunarak Etherscan üzerinde hesap adınızı düzenleyin, işlemleri görüntüleyin, genel anahtarınızı paylaşın ve özel anahtarınızı görün"
     },
     "step4": {
       "title": "Cüzdanınızın kullanımı",
@@ -207,12 +226,12 @@
     "must_be_at_least": "En az {{number}} karakter olmalıdır",
     "remember_me": "Beni hatırla",
     "security_alert_title": "Güvenlik Uyarısı",
-    "security_alert_message": "İlerlemek için Parolayı veya cihazınızda desteklenen herhangi bir biyometrik kimlik doğrulama yöntemini (FaceID, TouchID veya Parmak İzi) açmanız gerekir.",
+    "security_alert_message": "İlerlemek için Parolayı veya cihazınızda desteklenen herhangi bir biyometri kimlik doğrulama yöntemini (FaceID, TouchID veya Parmak İzi) açmanız gerekir",
     "i_understand": "MetaMask'ın benim için bu şifreyi kurtaramadığını anlıyorum.",
     "learn_more": "Daha fazlasını öğren.",
     "secure": "Cüzdanı güvenli hale getir",
     "confirm": "Gizli Kurtarma İfadesini onayla",
-    "disable_biometric_error": "Uygulama için biyometrikleri devre dışı bıraktınız. Beni Hatırla ayarlarını güncelleyip tekrar deneyin."
+    "disable_biometric_error": "Uygulama için biyometriyi devre dışı bıraktınız. Beni Hatırla ayarlarını güncelleyip tekrar deneyin."
   },
   "reset_password": {
     "title": "Şifreyi değiştir",
@@ -233,7 +252,7 @@
     "must_be_at_least": "En az {{number}} karakter olmalıdır",
     "remember_me": "Beni hatırla",
     "security_alert_title": "Güvenlik Uyarısı",
-    "security_alert_message": "İlerlemek için Parolayı veya cihazınızda desteklenen herhangi bir biyometrik kimlik doğrulama yöntemini (FaceID, TouchID veya Parmak İzi) açmanız gerekir.",
+    "security_alert_message": "İlerlemek için Parolayı veya cihazınızda desteklenen herhangi bir biyometri kimlik doğrulama yöntemini (FaceID, TouchID veya Parmak İzi) açmanız gerekir",
     "i_understand": "MetaMask'ın benim için bu şifreyi kurtaramadığını anlıyorum.",
     "learn_more": "Daha fazlasını öğren.",
     "secure": "Cüzdanı güvenli hale getir",
@@ -269,9 +288,9 @@
     "transaction_activity": "Faaliyet",
     "request_feature": "Bir Özellik Talep Et",
     "submit_feedback_message": "Gönderilecek geri bildirim türünü seçin.",
-    "submit_bug": "Hata Bildir",
+    "submit_bug": "Hata Raporu",
     "submit_general_feedback": "Genel",
-    "share_address": "Halka Açık Adresimi paylaş",
+    "share_address": "Genel Adresimi paylaş",
     "view_in_etherscan": "Etherscan üzerinde görüntüle",
     "view_in": "Şurada görüntüle:",
     "browser": "Tarayıcı",
@@ -285,7 +304,7 @@
     "lock_cancel": "HAYIR",
     "feedback": "Geri Bildirim",
     "metamask_support": "MetaMask Destek",
-    "public_address": "Halka Açık Adres"
+    "public_address": "Genel Adres"
   },
   "send": {
     "title": "Gönder",
@@ -294,7 +313,7 @@
     "send_to": "Şuraya Gönder",
     "amount": "Tutar",
     "confirm": "Onayla",
-    "sign": "İmza",
+    "sign": "İmzala",
     "network_not_found_title": "Ağ bulunamadı",
     "network_not_found_description": "Zincir kimliği {{chain_id}} olan ağ, cüzdanınızda bulunamadı. Lütfen önce ağı ekleyin.",
     "network_missing_id": "Zincir kimliği eksik."
@@ -359,8 +378,15 @@
     "do_you_want_to_import_this_account": "Bu hesabı içe aktarmak istiyor musunuz?",
     "error": "Hata",
     "logout_to_import_seed": "Bir Gizli Kurtarma İfadesini içe aktarmak için önce oturumu kapatmanız gerekiyor.",
-    "ready_to_explore": "Blok zinciri uygulamalarını keşfetmeye başlamak için hazır mısınız?",
-    "unable_to_load": "Bakiye yüklenmedi"
+    "ready_to_explore": "Blokzinciri uygulamalarını keşfetmeye başlamak için hazır mısınız?",
+    "unable_to_load": "Bakiye yüklenmedi",
+    "display_nft_media_desc": "Bir NFT'yi içe aktarmak için Ayarlar > Güvenlik ve gizlilik kısmında NFT medyasını göster seçeneğini açın.",
+    "display_nft_media_cta": "NFT medyasını göster seçeneğini açın",
+    "display_media_nft_warning": "NFT medyasını ve verilerini göstermek IP adresinizi merkezi sunuculara ifşa edebilir. Sadece mevcut riskleri anlıyorsanız NFT'yi içe aktarın.",
+    "nfts_autodetect_title": "NFT otomatik algılama",
+    "nfts_autodetect_cta": "Ayarlar kısmında NFT'leri Otomatik Algıla seçeneğini açın",
+    "display_nft_media_cta_new_1": "Bir NFT'yi görmek için NFT medyasını göster seçeneğini açın",
+    "display_nft_media_cta_new_2": "Ayarlar > Güvenlik ve Gizlilik."
   },
   "asset_details": {
     "token": "Token",
@@ -606,8 +632,8 @@
     "nft_opensea_desc": "NFT medya ve verilerinin görüntülenmesi IP adresini merkezi olan sunuculara ifşa edebilir. NFT verilerini almak için OpenSea'nin API'sini kullanın. NFT otomatik algılama OpenSea'nin API'sine güvenilir ve kapatıldığında kullanılamaz. NFT otomatik algılamanın etkinleştirilmesi cüzdanınıza herkes tarafından sahte NFT'lerin gönderilmesine maruz bırakabilir ve bir saldırganın sizin Ethereum adresinizden IP adresinizi öğrenmesine izin verebilir.",
     "nft_autodetect_mode": "NFT'leri otomatik algıla",
     "nft_autodetect_desc": "NFT medya ve verilerinin gösterimi IP adresinizi merkezi sunuculara ifşa edebilir. Cüzdanınızdaki NFT'leri algılamak için üçüncü taraf API'ler (OpenSea gibi) kullanılır. Bu da, hesap adresinizi bu hizmetlere maruz bırakır. Uygulamanın bu hizmetlerden veri çekmesini istemiyorsanız bunu devre dışı bırakın.",
-    "show_hex_data": "Hex Verilerini Göster",
-    "show_hex_data_desc": "Gönderim ekranında hex verileri alanını göstermek için bunu seçin.",
+    "show_hex_data": "On Altılı Verileri Göster",
+    "show_hex_data_desc": "Gönderim ekranında on altılı veri alanını göstermek için bunu seçin.",
     "toggleEthSignBannerDescription": "Kimlik avı saldırıları bakımından risk altındasınız. Kendinizi korumak için eth_sign özelliğini kapatın.",
     "enable_eth_sign": "Eth_sign talepleri",
     "enable_eth_sign_desc": "Bu ayarı etkinleştirirseniz okunabilir olmayan imza talepleri alabilirsiniz. Anlamadığınız bir mesajı imzaladığınızda paranızı ve NFT'lerinizi vermeyi kabul ediyor olabilirsiniz.",
@@ -629,9 +655,9 @@
     "show_custom_nonce": "İşlem nonce numarasını kişiselleştir",
     "custom_nonce_desc": "Onay ekranlarında nonce numarasını (işlem numarası) değiştirmek için bunu açın. Bu gelişmiş bir özelliktir, dikkatli kullanın.",
     "accounts_identicon_title": "Hesap Identicon",
-    "accounts_identicon_desc": "Jazzicon ve Blockie, bir hesabı hemen tanımlayabilmenize yardımcı olan iki farklı eşsiz simge stilidir.",
-    "jazzicons": "Jazzicon'lar",
-    "blockies": "Blockie'ler",
+    "accounts_identicon_desc": "Jazzicons ve Blockies, bir hesabı hemen tanımlayabilmenize yardımcı olan iki farklı eşsiz simge stilidir.",
+    "jazzicons": "Jazzicons",
+    "blockies": "Blockies",
     "general_title": "Genel",
     "general_desc": "Para birimi dönüştürme, birincil para birimi, dil ve arama motoru",
     "advanced_title": "Gelişmiş",
@@ -669,16 +695,16 @@
     "experimental_desc": "WalletConnect ve daha fazlası...",
     "legal_title": "Hukuki",
     "conversion_title": "Para birimi dönüştürme",
-    "conversion_desc": "Uygulama genelinde belirli bir para birimini kullanarak itibari para değerlerini göster.",
+    "conversion_desc": "Uygulama genelinde belirli bir para birimini kullanarak fiat para değerlerini göster.",
     "primary_currency_title": "Birincil Para Birimi",
-    "primary_currency_desc": "Zincirin yerli para biriminde değerleri göstermeye öncelik vermek için Yerel seçeneğini seçin (ör. ETH). Kendi seçtiğiniz itibari para biriminde değerleri göstermeye öncelik vermek için İtibari Para seçeneğini seçin.",
+    "primary_currency_desc": "Zincirin yerli para biriminde değerleri göstermeye öncelik vermek için Yerel seçeneğini seçin (ör. ETH). Kendi seçtiğiniz fiat paradaki değerleri göstermeye öncelik vermek için Fiat Para seçeneğini seçin.",
     "primary_currency_text_first": "Yerel",
-    "primary_currency_text_second": "İtibari Para",
+    "primary_currency_text_second": "Fiat Para",
     "language_desc": "Uygulamayı farklı bir desteklenen dile çevir.",
     "engine_desc": "URL çubuğuna arama terimlerini girerken kullanılan varsayılan arama motorunu değiştir.",
     "reset_desc": "Bu eylem işlem faaliyetini temizler. Bu veriler geri alınamaz.",
     "rpc_desc": "Sunulan ağlardan biri yerine URL adresi aracılığıyla kişisel bir RPC özellikli bir ağ kullan.",
-    "hex_desc": "Gönderim ekranında hex verileri alanını göstermek için bunu seçin.",
+    "hex_desc": "Gönderim ekranında on altılı veri alanını göstermek için bunu seçin.",
     "clear_privacy_title": "Gizlilik verilerini temizle",
     "clear_privacy_desc": "Gizlilik verileri temizleyin, böylece tüm web sitelerinin hesap bilgilerinizi tekrar görüntülemek için erişim istemesi gerekir.",
     "clear_history_desc": "Tüm tarayıcı geçmişini temizlemek için bu seçeneği seçin.",
@@ -698,10 +724,10 @@
     "privacy_heading": "Gizlilik",
     "failed_to_fetch_chain_id": "Zincir kimliği alınamadı. RPC URL adresiniz doğru mu?",
     "endpoint_returned_different_chain_id": "Uç nokta farklı bir zincir kimliği getirdi: %{chainIdReturned}",
-    "chain_id_required": "Zincir kimliği gereklidir. Ağ tarafından getirilen zincir kimliği ile uyumlu olmalıdır. Bir ondalık sayı veya '0x' ön ekli bir onaltılık sayı girebilirsiniz.",
-    "invalid_hex_number": "Geçersiz onaltılık sayı.",
-    "invalid_hex_number_leading_zeros": "Geçersiz onaltılık sayı. Lütfen baştaki tüm sıfırları silin.",
-    "invalid_number": "Geçersiz sayı. Ondalık sayısı veya '0x' ön ekli onaltılık bir sayı girin.",
+    "chain_id_required": "Zincir kimliği gereklidir. Ağ tarafından getirilen zincir kimliği ile uyumlu olmalıdır. Bir ondalık sayı veya '0x' ön ekli bir on altılı sayı girebilirsiniz.",
+    "invalid_hex_number": "Geçersiz on altılı sayı.",
+    "invalid_hex_number_leading_zeros": "Geçersiz on altılı sayı. Lütfen baştaki tüm sıfırları silin.",
+    "invalid_number": "Geçersiz sayı. Ondalık sayısı veya '0x' ön ekli on altılı bir sayı girin.",
     "invalid_number_leading_zeros": "Geçersiz sayı. Baştaki tüm sıfırları silin.",
     "invalid_number_range": "Geçersiz sayı. 1 ile %{maxSafeChainId} arasında bir sayı girin.",
     "hide_zero_balance_tokens_title": "Bakiyesi Olmayan Tokenleri Gizle",
@@ -732,7 +758,7 @@
     "delete_metrics_confirm_modal_title": "MetaMetrics verilerini sil?",
     "delete_metrics_confirm_modal_description": "Tüm MetaMetrics verilerini kaldırmak üzeresiniz. Emin misiniz?",
     "delete_wallet_data_title": "Cüzdanı sil",
-    "delete_wallet_data_description": "Bu işlem cüzdanla ilgili tüm verileri cihazınızdan silecek. Hesaplar blok zincirinde bulunur ve MetaMask ile ilgili değildir. Dilediğiniz zaman Gizli Kurtarma İfadenizi kullanarak hesaplarınızı kurtarabilirsiniz.",
+    "delete_wallet_data_description": "Bu işlem cüzdanla ilgili tüm verileri cihazınızdan silecek. Hesaplar blokzincirinde bulunur ve MetaMask ile ilgili değildir. Dilediğiniz zaman Gizli Kurtarma İfadenizi kullanarak hesaplarınızı kurtarabilirsiniz.",
     "delete_wallet_data_button": "Cüzdanı sil",
     "delete_data_status_title": "Silme İşleminin Durumu",
     "delete_data_status_description": "Güncel durum ",
@@ -758,7 +784,12 @@
       "cancel": "İptal"
     },
     "request_feature": "Bir özellik talep et",
-    "contact_support": "Destek ile iletişim kurun"
+    "contact_support": "Destek ile iletişim kurun",
+    "display_nft_media": "NFT Medyasını göster",
+    "display_nft_media_desc": "NFT medyasını ve verilerini göstermek IP adresinizi OpenSea veya diğer üçüncü taraflara ifşa edebilir. NFT otomatik algılama bu özelliğe dayanır ve bu kapatıldığında kullanılamaz.",
+    "autodetect_nft_desc": "MetaMask'in üçüncü taraf hizmetleri (OpenSea) kullanarak size ait olan NFT'leri eklemesine izin verin. NFT'leri otomatik algılama, IP adresinizi ve hesap adresinizi bu hizmetlere ifşa eder. Bu özelliğin etkinleştirilmesi IP adresinizi Ethereum adresinizle ilişkilendirebilir ve dolandırıcılar tarafından airdrop'u gerçekleştirilen sahte NFT'leri gösterebilir. Bu riski önlemek için token'leri elle ekleyebilirsiniz.",
+    "incoming_transactions_title": "Gelen işlemleri göster",
+    "incoming_transactions_content": "Bu, Ethereum adresinizi ve IP adresinizi ifşa edecek olan seçtiğiniz ağa dayalıdır."
   },
   "sdk": {
     "disconnect_title": "Tüm sitelerin bağlantısı kesilsin mi?",
@@ -871,7 +902,7 @@
     "for_help": "makaleye bakın.",
     "troubleshoot": "Sorun Giderme",
     "buy_description": "Nakit ile kripto satın alın",
-    "swap_description": "Tokenler arasında takas yapın",
+    "swap_description": "Tokenler arasında swap gerçekleştirin",
     "send_description": "Dilediğin hesaba kripto gönderin",
     "receive_description": "Kripto alın",
     "chart_time_period": {
@@ -911,7 +942,7 @@
     "share_account": "Paylaş",
     "view_account": "Hesabı Etherscan üzerinde görüntüle",
     "show_private_key": "Özel anahtarı göster",
-    "account_copied_to_clipboard": "Halka açık adres panoya kopyalandı",
+    "account_copied_to_clipboard": "Genel adres panoya kopyalandı",
     "share_public_key": "Halka açık anahtarım paylaşılıyor: "
   },
   "detected_tokens": {
@@ -977,7 +1008,7 @@
     "gas_fee_fast": "HIZLI",
     "gas_fee_average": "ORTA",
     "gas_fee_slow": "YAVAŞ",
-    "hex_data": "Hex Verileri",
+    "hex_data": "On Altılı Veriler",
     "custom_nonce": "Nonce",
     "this_is_an_advanced": "Bu, bekleyen işlemleri iptal etmek veya hızlandırmak için kullanılan gelişmiş bir özelliktir.",
     "current_suggested_nonce": "Geçerli önerilen nonce:",
@@ -990,12 +1021,12 @@
     "data_description": "Bu işlemle ilişkili veriler",
     "review_function_type": "FONKSİYON TÜRÜ",
     "review_function": "Fonksiyon",
-    "review_hex_data": "Hex verileri",
+    "review_hex_data": "On altılı veriler",
     "insufficient": "Para yetersiz",
     "insufficient_amount": "Bu işlemi tamamlamak için {{amount}}{{tokenSymbol}} daha gerekiyor.",
     "buy_more_eth": "Daha fazla ETH satın al",
     "buy_more": "Daha Fazla Satın Al",
-    "go_to_faucet": "Faucet'e git",
+    "go_to_faucet": "Musluğa git",
     "get_ether": "{{networkName}} ağı için Ether al.",
     "insufficient_tokens": "{{token}} yetersiz",
     "invalid_address": "Geçersiz adres",
@@ -1026,6 +1057,7 @@
     "speedup_tx_message": "Bu denemeyi göndermek ilk işlemin hızlandırılmasını garanti etmez. Hızlandırma denemesi başarılı olursa sizden yukarıdaki işlem ücreti alınır.",
     "nevermind": "Fark etmez",
     "edit_network_fee": "Gaz ücretini düzenle",
+    "edit_priority": "Önceliği düzenle",
     "gas_cancel_fee": "Gaz iptal ücreti",
     "gas_speedup_fee": "Gaz hızlandırma ücreti",
     "use_max": "Maksimumu kullan",
@@ -1076,8 +1108,8 @@
     "invalid_qr_code_sign": "Geçersiz QR kodu. Lütfen donanımınızı kontrol edin ve tekrar deneyin.",
     "no_camera_permission_android": "Devam etmek için kameranıza MetaMask erişim izni vermeniz gerekiyor. Ayrıca sistem ayarlarınızı değiştirmeniz gerekebilir.",
     "mismatched_qr_request_id": "Uyumsuz işlem verisi. Lütfen aşağıdaki QR koduyla imzalamak için Kilidinizi kullanın ve 'İmzayı Al' tuşuna tıklayın.",
-    "fiat_conversion_not_available": "İtibari para dönüştürmeleri şu anda kullanılmıyor",
-    "hex_data_copied": "Onaltılık verileri panoya kopyalandı",
+    "fiat_conversion_not_available": "Fiat para dönüştürmeleri şu anda kullanılmıyor",
+    "hex_data_copied": "On altılı veriler panoya kopyalandı",
     "invalid_recipient": "Alıcı geçersiz",
     "invalid_recipient_description": "Adresi kontrol edin ve geçerli olduğundan emin olun"
   },
@@ -1156,7 +1188,7 @@
     "open_in_browser": "Tarayıcıda aç",
     "change_url": "Url adresini değiştir",
     "switch_network": "Ağ değiştir",
-    "dapp_browser": "MERKEZİYETSİZ TARAYICI",
+    "dapp_browser": "MERKEZİYETSİZ UYGULAMA TARAYICISI",
     "dapp_browser_message": "MetaMask, merkeziyetsiz web için cüzdanınız ve tarayıcınızdır. Bir bakın!",
     "featured_dapps": "ÖNE ÇIKAN MERKEZİYETSİZ UYGULAMALAR",
     "my_favorites": "FAVORİLERİM",
@@ -1247,7 +1279,7 @@
     "hash_copied_to_clipboard": "İşlem hash değeri panoya kopyalandı",
     "address_copied_to_clipboard": "Adres panoya kopyalandı",
     "transaction_error": "İşlem hatası",
-    "address_to_placeholder": "Ara, halka açık adres (0x) veya ENS",
+    "address_to_placeholder": "Ara, genel adres (0x) veya ENS",
     "address_from_balance": "Bakiye:",
     "status": "Durum",
     "date": "Tarih",
@@ -1282,7 +1314,7 @@
     "address": "Adres",
     "name": "Adı",
     "nickname": "Adı",
-    "add_input_placeholder": "Halka açık adres (0x) veya ENS",
+    "add_input_placeholder": "Genel adres (0x) veya ENS",
     "between_account": "Hesaplarım arasında transfer",
     "others": "Diğerleri",
     "memo": "Memo"
@@ -1314,7 +1346,7 @@
     "add": "Ekle",
     "cancel": "İptal et",
     "approve": "Onayla",
-    "malicious_network_warning": "Kötü amaçlı bir ağ sağlayıcı blok zincirinin durumu hakkında yalan söyleyebilir ve ağ aktivitenizi kaydedebilir. Sadece güvendiğiniz özel ağları ekleyin.",
+    "malicious_network_warning": "Kötü amaçlı bir ağ sağlayıcı blokzincirinin durumu hakkında yalan söyleyebilir ve ağ aktivitenizi kaydedebilir. Sadece güvendiğiniz özel ağları ekleyin.",
     "security_link": "https://metamask.zendesk.com/hc/en-us/articles/4404424659995",
     "network_warning_title": "Ağ Bilgileri",
     "network_warning_desc": "Bu ağ bağlantısı üçüncü taraflara dayalıdır. Bu bağlantı daha az güvenilir olabilir ya da üçüncü tarafların aktiviteyi takip etmesini sağlayabilir.",
@@ -1331,8 +1363,7 @@
     "you_can": "Veya",
     "add_network": "manuel olarak daha fazla ekleyebilirsiniz.",
     "select_network": "Bir ağ seçin",
-    "show_test_networks": "Test ağlarını göster",
-    "linea_mainnet_not_released_alert": "Linea Ana Ağına gösterdiğiniz ilgi için teşekkürler, çok yakında kullanıma sunulacak!"
+    "show_test_networks": "Test ağlarını göster"
   },
   "select": {
     "cancel": "İptal",
@@ -1380,7 +1411,7 @@
     "enable_touchid": "Touch ID ile kilidi aç?",
     "enable_faceid": "Face ID ile kilidi aç?",
     "enable_fingerprint": "Parmak İzi ile kilidi aç?",
-    "enable_biometrics": "Biyometrikler ile kilidi aç?",
+    "enable_biometrics": "Biyometri ile kilidi aç?",
     "enable_device_passcode_ios": "Cihaz parolası ile kilidi aç?",
     "enable_device_passcode_android": "Cihazın PIN kodu ile kilidi aç?"
   },
@@ -1403,10 +1434,10 @@
     "donot_rememberme": "Bu merkeziyetsiz uygulama bağlantısını unut",
     "disconnect": "Bağlantıyı kes",
     "permission": "Şunu görüntüle:",
-    "address": "halka açık adres",
+    "address": "genel adres",
     "sign_messages": "Kendi adına",
     "on_your_behalf": "mesajları imzala",
-    "warning": "Bağla düğmesine tıklayarak bu merkeziyetsiz uygulamanın halka açık adresinizi görüntülemesine izin verirsiniz. Bu, verilerinizi olası kimlik avı risklerinden korumak için önemli bir güvenlik adımıdır."
+    "warning": "Bağla düğmesine tıklayarak bu merkeziyetsiz uygulamanın genel adresinizi görüntülemesine izin verirsiniz. Bu, verilerinizi olası kimlik avı risklerinden korumak için önemli bir güvenlik adımıdır."
   },
   "import_private_key": {
     "title": "Hesabı İçe Aktar",
@@ -1678,8 +1709,8 @@
     "request_description": "Arkadaşlarınızdan varlık talep edin",
     "buy_title": "Satın Al",
     "buy_description": "Banka kartı veya banka transferi ile kripto satın alın",
-    "public_address": "Halka Açık Adres",
-    "public_address_qr_code": "Halka Açık Adres",
+    "public_address": "Genel Adres",
+    "public_address_qr_code": "Genel Adres",
     "coming_soon": "Çok yakında...",
     "request_payment": "Ödeme İste",
     "copy": "Hata",
@@ -1722,7 +1753,7 @@
   },
   "offline_mode": {
     "title": "Çevrimdışısınız",
-    "text": "Blok zinciri sunucusuna bağlanılamıyor.",
+    "text": "Blokzinciri sunucusuna bağlanılamıyor.",
     "try_again": "Tekrar deneyin",
     "learn_more": "Daha fazlasını öğren"
   },
@@ -1756,7 +1787,7 @@
       "second_line": "yapmak istersiniz?"
     },
     "buy_ticker": "{{ticker}} Satın Al",
-    "buy_ticker_stablecoins": "{{ticker}} ve Stablecoin satın al",
+    "buy_ticker_stablecoins": "{{ticker}} ve Stable kripto para satın al",
     "multiple_payment_methods": "Çoklu Ödeme Yöntemleri",
     "debit_credit_bank_transfers_country": "Ülkeye göre banka/kredi ve banka havaleleri.",
     "debit_credit_bank_transfers_more_country": "Ülkeye göre banka/kredi, banka havaleleri ve daha fazlası.",
@@ -1813,7 +1844,7 @@
     "gas_education_carousel": {
       "step_1": {
         "title": "{{ticker}} satın almadan önce gaz ücretlerini öğrenin",
-        "average_gas_fee": "Güncel ortalama gas ücreti:",
+        "average_gas_fee": "Güncel ortalama gaz ücreti:",
         "subtitle_1": "{{ticker}} öğenizi değiştirmeyi ve aktarmayı planlıyorsanız gaz ücretlerini karşılamak için ekstra satın alın.",
         "subtitle_2": "İşlemlerin gaz ücretleri {{ticker}} satın almanın maliyetinden ayrıdır.",
         "subtitle_3": "MetaMask gaz ücretlerinden kâr elde etmez."
@@ -1839,7 +1870,7 @@
     "onboarding": {
       "what_to_expect": "Bekleyebileceklerin",
       "best_quotes": "Kripto para satın al özelliğimiz, entegre satıcılardan teklifleri toplayarak bekleme süresi olmadan doğrudan cüzdanına kripto para alabilmen için sana bu kaynaklardan en iyi teklifi sunar.",
-      "benefits": "Daha az gas ücreti ödenir ve çeşitli ağ, token ve ödeme yöntemleri desteklenir",
+      "benefits": "Daha az gaz ücreti ödenir ve çeşitli ağ, token ve ödeme yöntemleri desteklenir",
       "get_started": "Başlarken"
     },
     "payment_method": {
@@ -2007,9 +2038,9 @@
     "available_to_swap": "{{asset}} ile swap gerçekleştirilebilir.",
     "use_max": "Maksimumu kullan",
     "not_enough": "Bu swap işlemini gerçekleştirmek için yeterli {{symbol}} yok",
-    "max_slippage": "Maks. Slipaj",
-    "max_slippage_amount": "Maks. slipaj {{slippage}}",
-    "slippage_info": "Emrinizin verildiği zaman ile emrinizin onaylandığı zaman arasında oran değişirse buna “slipaj” denir. Slipaj “maks. slipaj” ayarınızı aştığı takdirde swap işleminiz otomatik olarak iptal edilir.",
+    "max_slippage": "Maks. Kayma",
+    "max_slippage_amount": "Maks. kayma {{slippage}}",
+    "slippage_info": "Emrinizin verildiği zaman ile emrinizin onaylandığı zaman arasında oran değişirse buna “kayma” denir. Kayma “maks. kayma” ayarınızı aştığı takdirde swap işleminiz otomatik olarak iptal edilir.",
     "slippage_warning": "Ne yaptığınızı bildiğinizden emin olun!",
     "allows_up_to_decimals": "{{symbol}}, {{decimals}} ondalık sayıya kadar izin verir",
     "get_quotes": "Teklif al",
@@ -2049,7 +2080,7 @@
     "tap_to_swap": "Swap gerçekleştirmek için dokun",
     "swipe_to_swap": "Swap gerçekleştirmek için kaydır",
     "swipe_to": "Swap gerçekleştirmek için",
-    "swap": "kaydır",
+    "swap": "swap",
     "completed_swap": "Swap gerçekleştir!",
     "metamask_swap_fee": "MetaMask Swap ücreti",
     "fee_text": {
@@ -2072,13 +2103,13 @@
     "overall_value": "Toplam değer",
     "best": "En İyi",
     "rate": "Oran",
-    "quote_details_max_slippage": "Maks. slipaj",
+    "quote_details_max_slippage": "Maks. kayma",
     "source": "Kaynak",
     "estimated_network_fees": "Tahmini gaz ücretleri",
     "guaranteed_amount": "Garantili tutar",
     "quote_source_dex": {
       "1": "Bu teklif doğrudan",
-      "2": "merkeziyetsiz bir borsa",
+      "2": "merkeziyetsiz borsa",
       "3": "protokolünden gelir."
     },
     "quote_source_rfq": {
@@ -2316,15 +2347,15 @@
   },
   "network_information": {
     "things_to_keep_in_mind": "Akılda tutulması gerekenler",
-    "testnet_network": "{{type}} Testnet",
+    "testnet_network": "{{type}} Test Ağı",
     "first_description": "Bu ağdaki yerli token {{ticker}}. Bu, gaz ücretleri için kullanılan token'dır.",
     "second_description": "Varlıkları doğrudan bir ağdan diğerine göndermeye çalışırsan bu, kalıcı varlık kaybına neden olabilir. Bir köprü kullandığından emin ol.",
-    "third_description": "Token'larınız cüzdanınızda otomatik olarak görünmeyebilirler.",
+    "third_description": "Tokenleriniz cüzdanınızda otomatik olarak görünmeyebilir.",
     "private_network": "Bu ağ bilinmiyor ve gaz ücretleri için özel bir token kullanabilir.",
     "unknown_network": "Bilinmeyen ağ",
     "switched_network": "Şuna geçiş yaptın:",
     "learn_more": "Daha fazla bilgi",
-    "add_token": "Token'ları manuel olarak eklemek için buraya tıkla",
+    "add_token": "Tokenleri manuel olarak eklemek için buraya tıklayın",
     "add_token_manually": "Manuel olarak ekleyin.",
     "got_it": "Anladım",
     "error_title": "Hay aksi, bir şeyler ters gitti.",
@@ -2345,8 +2376,8 @@
     "enable_remember_me_description": "Beni Hatırla özelliği açıldığında telefonunuza erişimi olan herkes MetaMask hesabınıza erişim sağlayabilir."
   },
   "turn_off_remember_me": {
-    "title": "Beni Hatırla özelliğini kapatmak için parolanızı girin",
-    "placeholder": "Parola",
+    "title": "Beni Hatırla özelliğini kapatmak için şifrenizi girin",
+    "placeholder": "Şifre",
     "description": "Bu seçeneği kapatırsanız şu andan itibaren MetaMask'in kilidini açmak için şifrenizi girmeniz gerekecektir.",
     "action": "Beni Hatırla özelliğini kapat"
   },
@@ -2362,7 +2393,7 @@
     "description": "Güncellemelerin otomatik kontrolü IP adresini GitHub sunucularında açığa çıkarabilir. Bu durum sadece IP adresinin MetaMask kullandığını gösterir. Başka hiçbir bilgi ya da hesap adresi açığa çıkmaz."
   },
   "terms_of_use_modal": {
-    "title": "Kullanım Koşulları bölümümüz güncellendi",
+    "title": "En yeni Kullanım Şartları bölümümüzü inceleyin",
     "terms_of_use_check_description": "MetaMask ve tüm özelliklerini kullanırken geçerli olan Kullanım Koşulları bölümünü kabul ediyorum",
     "accept_cta": "Kabul Edin",
     "accept_helper_description": "Tüm bölümleri okumak için lütfen kaydırın"
@@ -2426,7 +2457,7 @@
     "new_wallet_needed_title": "Yeni cüzdan gerekli",
     "new_wallet_needed_create_new_wallet_action": "Yeni bir cüzdan oluştur",
     "new_wallet_needed_create_try_again_action": "Cüzdanı kurtarmayı dene",
-    "new_wallet_needed_description_part_one": "Cüzdanınla ilgili bir sorun oluştu ve yeni bir tane oluşturman gerekecek. Hesapların blok zincirinde olduğu için hâlâ güvende. Sadece cihazında kayıtlı olan tercihler, kaydedilen ağlar, hesap adları ve ilgili veriler kayboldu.",
+    "new_wallet_needed_description_part_one": "Cüzdanınızla ilgili bir sorun oluştu ve yeni bir tane oluşturmanız gerekecek. Hesaplarınız blokzincirinde olduğu için hala güvende. Sadece cihazınızda kayıtlı olan tercihler, kaydedilen ağlar, hesap adları ve ilgili veriler kayboldu.",
     "new_wallet_needed_description_part_two": "Hesapları yeni bir cüzdana aktarmak için Gizli Kurtarma İfadene ihtiyacın olacak. Gizli Kurtarma İfaden yoksa hesaplarını içe aktaramayacaksın.",
     "new_wallet_needed_description_part_three": "Bunun tekrar olmasını önlemek için her zaman MetaMask uygulamanı ve işletim sistemini en yeni sürümde güncel tuttuğundan emin ol."
   },
@@ -2526,5 +2557,36 @@
     "add_new_account": "Yeni hesap ekleyin",
     "add_hardware_wallet": "Donanım cüzdanı ekleyin",
     "import_account": "Hesabı içe aktar"
+  },
+  "show_nft": {
+    "show_nft_title": "NFT'yi göster",
+    "show_nft_content_1": "IPFS'de depolanan NFT'lerinizin görüntülerini göstermek, tarayıcınızın adres çubuğuna girilen ENS adresleri ile ilgili bilgileri göstermek ve farklı token'lerin simgelerini almak için üçüncü taraf hizmetleri kullanıyoruz. Siz bunları kullanırken IP adresiniz bu hizmetlerle paylaşılabilir.",
+    "show_nft_content_2": "Seçiliyor",
+    "show_nft_content_3": "Onayla",
+    "show_nft_content_4": "IPFS çözünürlüğünü açar. Dilediğiniz zaman",
+    "show_nft_content_5": "Ayarlar > Güvenlik ve gizlilik",
+    "show_nft_content_6": "kapatabilirsiniz."
+  },
+  "show_display_nft_media": {
+    "show_display_nft_media_title": "NFT medyasını görüntüle",
+    "show_display_nft_media_content_1": "Bir NFT'yi görmek için şunu açmanız gerekir:",
+    "show_display_nft_media_content_2": "NFT medyasını göster.",
+    "show_display_nft_media_content_3": "NFT medyasını ve verilerini göstermek IP adresinizi OpenSea veya diğer üçüncü taraflara ifşa edebilir. NFT otomatik algılama bu özelliğe dayanır ve bu kapatıldığında kullanılamaz.",
+    "show_display_nft_media_content_4": "NFT medyasını Görüntüle seçeneğini şuradan kapatabilirsiniz:",
+    "show_display_nft_media_content_5": "Ayarlar > Güvenlik ve gizlilik."
+  },
+  "ipfs_gateway_banner": {
+    "ipfs_gateway_banner_title": "IPFS ağ geçidi",
+    "ipfs_gateway_banner_content1": "Bu bir IPFS web sitesidir. Bu siteyi görmek için",
+    "ipfs_gateway_banner_content2": "IPFS ağ geçidi",
+    "ipfs_gateway_banner_content3": "seçeneğini",
+    "ipfs_gateway_banner_content4": "Ayarlar kısmında açmanız gerekir."
+  },
+  "ipfs_gateway": {
+    "ipfs_gateway_title": "IPFS ağ geçidi",
+    "ipfs_gateway_content1": "IPFS'de depolanan NFT'lerinizin görüntülerini göstermek, tarayıcınızın adres çubuğuna girilen ENS adresleri ile ilgili bilgileri göstermek ve farklı tokenlerin simgelerini almak için üçüncü taraf hizmetleri kullanırız. Siz bu özellikleri kullanırken IP adresiniz bu hizmetlerle paylaşılabilir.",
+    "ipfs_gateway_content2": "IPFS çözünürlüğünü dilediğiniz zaman",
+    "ipfs_gateway_content3": "Ayarlar > Güvenlik ve gizlilik",
+    "ipfs_gateway_content4": "menüsünden kapatabilirsiniz"
   }
 }
