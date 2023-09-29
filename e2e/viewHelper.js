@@ -23,7 +23,11 @@ import TestHelpers from './helpers';
 import TermsOfUseModal from './pages/modals/TermsOfUseModal';
 import TabBarComponent from './pages/TabBarComponent';
 import LoginView from './pages/LoginView';
-import { getGanachePort } from './dynamical-port-generator';
+import {
+  getFixturesServerPort,
+  getGanachePort,
+  getLocalTestDappPort,
+} from './dynamical-port-generator';
 
 const GOERLI = 'Goerli Test Network';
 
@@ -190,4 +194,12 @@ export const loginToApp = async () => {
   await LoginView.enterPassword(PASSWORD);
 
   await WalletView.isVisible();
+};
+
+export const reverseServerPort = async () => {
+  if (device.getPlatform() === 'android') {
+    await device.reverseTcpPort(getGanachePort());
+    await device.reverseTcpPort(getFixturesServerPort());
+    await device.reverseTcpPort(getLocalTestDappPort());
+  }
 };

@@ -2,7 +2,7 @@
 
 import { Smoke } from '../../tags';
 import TestHelpers from '../../helpers';
-import { loginToApp } from '../../viewHelper';
+import { loginToApp, reverseServerPort } from '../../viewHelper';
 import TabBarComponent from '../../pages/TabBarComponent';
 import { TestDApp } from '../../pages/TestDApp';
 import FixtureBuilder from '../../fixtures/fixture-builder';
@@ -12,7 +12,6 @@ import {
 } from '../../fixtures/fixture-helper';
 import root from '../../../locales/languages/en.json';
 import { SMART_CONTRACTS } from '../../../app/util/test/smart-contracts';
-import { reverseServerPort } from '../../utils';
 
 describe(Smoke('ERC721 tokens'), () => {
   const NFT_CONTRACT = SMART_CONTRACTS.NFTS;
@@ -21,7 +20,7 @@ describe(Smoke('ERC721 tokens'), () => {
 
   beforeAll(async () => {
     jest.setTimeout(150000);
-    await reverseServerPort(device);
+    await reverseServerPort();
   });
 
   it('send an ERC721 token from a dapp', async () => {

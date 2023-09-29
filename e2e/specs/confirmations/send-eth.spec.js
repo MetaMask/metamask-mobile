@@ -6,7 +6,7 @@ import TestHelpers from '../../helpers';
 import AmountView from '../../pages/AmountView';
 import SendView from '../../pages/SendView';
 import TransactionConfirmationView from '../../pages/TransactionConfirmView';
-import { loginToApp } from '../../viewHelper';
+import { loginToApp, reverseServerPort } from '../../viewHelper';
 import TabBarComponent from '../../pages/TabBarComponent';
 import WalletActionsModal from '../../pages/modals/WalletActionsModal';
 import root from '../../../locales/languages/en.json';
@@ -16,7 +16,6 @@ import {
   defaultGanacheOptions,
 } from '../../fixtures/fixture-helper';
 import { SMART_CONTRACTS } from '../../../app/util/test/smart-contracts';
-import { reverseServerPort } from '../../utils';
 
 describe(Smoke('Send ETH'), () => {
   const TOKEN_NAME = root.unit.eth;
@@ -24,7 +23,7 @@ describe(Smoke('Send ETH'), () => {
 
   beforeAll(async () => {
     jest.setTimeout(2500000);
-    await reverseServerPort(device);
+    await reverseServerPort();
   });
 
   it('should send ETH to an EOA from inside the wallet', async () => {

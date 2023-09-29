@@ -1,7 +1,7 @@
 'use strict';
 import Browser from '../../pages/Drawer/Browser';
 import TabBarComponent from '../../pages/TabBarComponent';
-import { loginToApp } from '../../viewHelper';
+import { loginToApp, reverseServerPort } from '../../viewHelper';
 import SigningModal from '../../pages/modals/SigningModal';
 import { TestDApp } from '../../pages/TestDApp';
 import FixtureBuilder from '../../fixtures/fixture-builder';
@@ -11,14 +11,13 @@ import {
 } from '../../fixtures/fixture-helper';
 import { Smoke } from '../../tags';
 import TestHelpers from '../../helpers';
-import { reverseServerPort } from '../../utils';
 
 const MAX_ATTEMPTS = 3;
 
 describe(Smoke('Sign Messages'), () => {
   beforeAll(async () => {
     jest.setTimeout(2500000);
-    await reverseServerPort(device);
+    await reverseServerPort();
   });
 
   it('should sign personal message', async () => {

@@ -10,7 +10,7 @@ import TabBarComponent from '../pages/TabBarComponent';
 import ConnectModal from '../pages/modals/ConnectModal';
 import ConnectedAccountsModal from '../pages/modals/ConnectedAccountsModal';
 
-import { loginToApp } from '../viewHelper';
+import { loginToApp, reverseServerPort } from '../viewHelper';
 import NetworkListModal from '../pages/modals/NetworkListModal';
 import FixtureBuilder from '../fixtures/fixture-builder';
 import {
@@ -18,7 +18,6 @@ import {
   startFixtureServer,
   stopFixtureServer,
 } from '../fixtures/fixture-helper';
-import { reverseServerPort } from '../utils';
 
 const SUSHI_SWAP = 'https://app.sushi.com/swap';
 const SUSHI_SWAP_SHORT_HAND_URL = 'app.sushi.com';
@@ -28,7 +27,7 @@ describe(
   ),
   () => {
     beforeAll(async () => {
-      await reverseServerPort(device);
+      await reverseServerPort();
       const fixture = new FixtureBuilder().build();
       await startFixtureServer();
       await loadFixture({ fixture });

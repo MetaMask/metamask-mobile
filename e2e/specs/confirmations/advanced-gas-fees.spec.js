@@ -4,7 +4,7 @@ import WalletView from '../../pages/WalletView';
 import SendView from '../../pages/SendView';
 import AmountView from '../../pages/AmountView';
 import TransactionConfirmationView from '../../pages/TransactionConfirmView';
-import { loginToApp } from '../../viewHelper';
+import { loginToApp, reverseServerPort } from '../../viewHelper';
 import FixtureBuilder from '../../fixtures/fixture-builder';
 import {
   withFixtures,
@@ -12,14 +12,13 @@ import {
 } from '../../fixtures/fixture-helper';
 import TabBarComponent from '../../pages/TabBarComponent';
 import WalletActionsModal from '../../pages/modals/WalletActionsModal';
-import { reverseServerPort } from '../../utils';
 
 const VALID_ADDRESS = '0xebe6CcB6B55e1d094d9c58980Bc10Fed69932cAb';
 
 describe(Smoke('Advanced Gas Fees and Priority Tests'), () => {
   beforeAll(async () => {
     jest.setTimeout(170000);
-    await reverseServerPort(device);
+    await reverseServerPort();
   });
 
   it('should edit priority gas settings and send ETH', async () => {

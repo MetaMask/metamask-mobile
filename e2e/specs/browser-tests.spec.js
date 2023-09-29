@@ -5,14 +5,13 @@ import Browser from '../pages/Drawer/Browser';
 import { BROWSER_SCREEN_ID } from '../../wdio/screen-objects/testIDs/BrowserScreen/BrowserScreen.testIds';
 import TabBarComponent from '../pages/TabBarComponent';
 
-import { loginToApp } from '../viewHelper';
+import { loginToApp, reverseServerPort } from '../viewHelper';
 import FixtureBuilder from '../fixtures/fixture-builder';
 import {
   loadFixture,
   startFixtureServer,
   stopFixtureServer,
 } from '../fixtures/fixture-helper';
-import { reverseServerPort } from '../utils';
 
 const PHISHING_SITE = 'http://www.empowr.com/FanFeed/Home.aspx';
 const INVALID_URL = 'https://quackquakc.easq';
@@ -21,7 +20,7 @@ const METAMASK_TEST_DAPP_SHORTEN_URL_TEXT = 'metamask.github.io';
 
 describe(Smoke('Browser Tests'), () => {
   beforeAll(async () => {
-    await reverseServerPort(device);
+    await reverseServerPort();
     const fixture = new FixtureBuilder().build();
     await startFixtureServer();
     await loadFixture({ fixture });
