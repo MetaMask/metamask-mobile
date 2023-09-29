@@ -1,7 +1,7 @@
 'use strict';
 import { Smoke } from '../../tags';
 import TestHelpers from '../../helpers';
-import { loginToApp, reverseServerPort } from '../../viewHelper';
+import { loginToApp } from '../../viewHelper';
 import FixtureBuilder from '../../fixtures/fixture-builder';
 import {
   withFixtures,
@@ -19,7 +19,7 @@ const WEBVIEW_TEST_DAPP_TRANSFER_TOKENS_BUTTON_ID = 'transferTokens';
 describe(Smoke('ERC20 tokens'), () => {
   beforeAll(async () => {
     jest.setTimeout(170000);
-    await reverseServerPort();
+    await TestHelpers.reverseServerPort();
   });
 
   it('send an ERC20 token from a dapp', async () => {

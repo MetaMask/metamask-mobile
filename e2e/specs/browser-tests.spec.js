@@ -5,7 +5,7 @@ import Browser from '../pages/Drawer/Browser';
 import { BROWSER_SCREEN_ID } from '../../wdio/screen-objects/testIDs/BrowserScreen/BrowserScreen.testIds';
 import TabBarComponent from '../pages/TabBarComponent';
 
-import { loginToApp, reverseServerPort } from '../viewHelper';
+import { loginToApp } from '../viewHelper';
 import FixtureBuilder from '../fixtures/fixture-builder';
 import {
   loadFixture,
@@ -20,7 +20,7 @@ const METAMASK_TEST_DAPP_SHORTEN_URL_TEXT = 'metamask.github.io';
 
 describe(Smoke('Browser Tests'), () => {
   beforeAll(async () => {
-    await reverseServerPort();
+    await TestHelpers.reverseServerPort();
     const fixture = new FixtureBuilder().build();
     await startFixtureServer();
     await loadFixture({ fixture });

@@ -6,7 +6,7 @@ import TestHelpers from '../../helpers';
 import AmountView from '../../pages/AmountView';
 import SendView from '../../pages/SendView';
 import TransactionConfirmationView from '../../pages/TransactionConfirmView';
-import { loginToApp, reverseServerPort } from '../../viewHelper';
+import { loginToApp } from '../../viewHelper';
 import TabBarComponent from '../../pages/TabBarComponent';
 import WalletActionsModal from '../../pages/modals/WalletActionsModal';
 import root from '../../../locales/languages/en.json';
@@ -23,7 +23,7 @@ describe(Smoke('Send ETH'), () => {
 
   beforeAll(async () => {
     jest.setTimeout(2500000);
-    await reverseServerPort();
+    await TestHelpers.reverseServerPort();
   });
 
   it('should send ETH to an EOA from inside the wallet', async () => {

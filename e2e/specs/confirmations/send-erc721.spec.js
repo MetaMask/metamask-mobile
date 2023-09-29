@@ -2,7 +2,7 @@
 
 import { Smoke } from '../../tags';
 import TestHelpers from '../../helpers';
-import { loginToApp, reverseServerPort } from '../../viewHelper';
+import { loginToApp } from '../../viewHelper';
 import TabBarComponent from '../../pages/TabBarComponent';
 import { TestDApp } from '../../pages/TestDApp';
 import FixtureBuilder from '../../fixtures/fixture-builder';
@@ -20,7 +20,7 @@ describe(Smoke('ERC721 tokens'), () => {
 
   beforeAll(async () => {
     jest.setTimeout(150000);
-    await reverseServerPort();
+    await TestHelpers.reverseServerPort();
   });
 
   it('send an ERC721 token from a dapp', async () => {

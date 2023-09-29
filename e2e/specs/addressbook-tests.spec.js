@@ -10,13 +10,14 @@ import TabBarComponent from '../pages/TabBarComponent';
 import WalletActionsModal from '../pages/modals/WalletActionsModal';
 import AddAddressModal from '../pages/modals/AddAddressModal';
 
-import { loginToApp, reverseServerPort } from '../viewHelper';
+import { loginToApp } from '../viewHelper';
 import FixtureBuilder from '../fixtures/fixture-builder';
 import {
   loadFixture,
   startFixtureServer,
   stopFixtureServer,
 } from '../fixtures/fixture-helper';
+import TestHelpers from '../helpers';
 
 const INVALID_ADDRESS = '0xB8B4EE5B1b693971eB60bDa15211570df2dB221L';
 const TETHER_ADDRESS = '0xdac17f958d2ee523a2206206994597c13d831ec7';
@@ -25,7 +26,7 @@ const MEMO = 'Test adding ENS';
 
 describe(Smoke('Addressbook Tests'), () => {
   beforeAll(async () => {
-    await reverseServerPort();
+    await TestHelpers.reverseServerPort();
     const fixture = new FixtureBuilder().build();
     await startFixtureServer();
     await loadFixture({ fixture });

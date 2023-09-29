@@ -10,7 +10,7 @@ import TabBarComponent from '../pages/TabBarComponent';
 import ConnectModal from '../pages/modals/ConnectModal';
 import ConnectedAccountsModal from '../pages/modals/ConnectedAccountsModal';
 
-import { loginToApp, reverseServerPort } from '../viewHelper';
+import { loginToApp } from '../viewHelper';
 import NetworkListModal from '../pages/modals/NetworkListModal';
 import FixtureBuilder from '../fixtures/fixture-builder';
 import {
@@ -27,7 +27,7 @@ describe(
   ),
   () => {
     beforeAll(async () => {
-      await reverseServerPort();
+      await TestHelpers.reverseServerPort();
       const fixture = new FixtureBuilder().build();
       await startFixtureServer();
       await loadFixture({ fixture });
