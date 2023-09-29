@@ -335,7 +335,7 @@ class TransactionEditor extends PureComponent {
   };
 
   parseTransactionDataEIP1559 = (gasFee, options) => {
-    const { ticker } = this.props;
+    const { ticker, transaction } = this.props;
 
     const parsedTransactionEIP1559 = parseTransactionEIP1559(
       {
@@ -343,7 +343,9 @@ class TransactionEditor extends PureComponent {
         nativeCurrency: ticker,
         selectedGasFee: {
           ...gasFee,
-          estimatedBaseFee: this.props.gasFeeEstimates.estimatedBaseFee,
+          estimatedBaseFee:
+            transaction?.type !== '0x0' &&
+            this.props.gasFeeEstimates.estimatedBaseFee,
         },
       },
       { onlyGas: true },
