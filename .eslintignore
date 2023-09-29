@@ -12,3 +12,5 @@ CHANGELOG.md
 wdio
 /app/util/test/testSetup.js
 /app/lib/ppom/ppom.html.js
+/ppom/webpack.config.html.js
+/ppom/webpack.config.html-js.js
