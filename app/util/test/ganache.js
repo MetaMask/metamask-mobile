@@ -22,7 +22,6 @@ export default class Ganache {
     }
     const options = { ...defaultOptions, ...opts, port: getGanachePort() };
     const { port } = options;
-    console.log('ganache port: ', port);
     this._server = ganache.server(options);
     await this._server.listen(port);
   }

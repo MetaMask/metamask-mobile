@@ -1,5 +1,5 @@
 /* eslint-disable no-console, import/no-nodejs-modules */
-import FixtureServer, { DEFAULT_FIXTURE_SERVER_PORT } from './fixture-server';
+import FixtureServer from './fixture-server';
 import FixtureBuilder from './fixture-builder';
 import Ganache from '../../app/util/test/ganache';
 import GanacheSeeder from '../../app/util/test/ganache-seeder';
@@ -15,9 +15,7 @@ export const DEFAULT_DAPP_SERVER_PORT = 8085;
 
 const fixtureServer = new FixtureServer();
 
-const FIXTURE_SERVER_URL = `http://localhost:${getFixturesServerPort(
-  DEFAULT_FIXTURE_SERVER_PORT,
-)}/state.json`;
+const FIXTURE_SERVER_URL = `http://localhost:${getFixturesServerPort()}/state.json`;
 
 // checks if server has already been started
 const isFixtureServerStarted = async () => {

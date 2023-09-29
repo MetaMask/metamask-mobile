@@ -89,7 +89,7 @@ class FixtureServer {
   async start() {
     const options = {
       host: FIXTURE_SERVER_HOST,
-      port: getFixturesServerPort(DEFAULT_FIXTURE_SERVER_PORT),
+      port: getFixturesServerPort(),
       exclusive: true,
     };
 
