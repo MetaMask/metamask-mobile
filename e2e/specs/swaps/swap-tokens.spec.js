@@ -18,10 +18,12 @@ import {
   stopFixtureServer,
 } from '../../fixtures/fixture-helper';
 import Networks from '../../resources/networks.json';
+import { reverseServerPort } from '../../utils';
 
 describe(Regression('Swap Tests'), () => {
   let swapOnboarded = false;
   beforeAll(async () => {
+    await reverseServerPort(device);
     const fixture = new FixtureBuilder()
       .withNetworkController(Networks.Tenderly)
       .build();

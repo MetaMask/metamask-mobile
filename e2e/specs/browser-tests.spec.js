@@ -12,13 +12,16 @@ import {
   startFixtureServer,
   stopFixtureServer,
 } from '../fixtures/fixture-helper';
+import { reverseServerPort } from '../utils';
 
 const PHISHING_SITE = 'http://www.empowr.com/FanFeed/Home.aspx';
 const INVALID_URL = 'https://quackquakc.easq';
 const TEST_DAPP = 'https://metamask.github.io/test-dapp/';
 const METAMASK_TEST_DAPP_SHORTEN_URL_TEXT = 'metamask.github.io';
+
 describe(Smoke('Browser Tests'), () => {
   beforeAll(async () => {
+    await reverseServerPort(device);
     const fixture = new FixtureBuilder().build();
     await startFixtureServer();
     await loadFixture({ fixture });

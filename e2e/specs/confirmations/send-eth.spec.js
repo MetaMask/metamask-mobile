@@ -1,6 +1,6 @@
 'use strict';
 
-import { Regression } from '../../tags';
+import { Smoke } from '../../tags';
 import TestHelpers from '../../helpers';
 
 import AmountView from '../../pages/AmountView';
@@ -16,16 +16,15 @@ import {
   defaultGanacheOptions,
 } from '../../fixtures/fixture-helper';
 import { SMART_CONTRACTS } from '../../../app/util/test/smart-contracts';
+import { reverseServerPort } from '../../utils';
 
-describe(Regression('Send ETH'), () => {
+describe(Smoke('Send ETH'), () => {
   const TOKEN_NAME = root.unit.eth;
   const AMOUNT = '0.12345';
 
   beforeAll(async () => {
     jest.setTimeout(2500000);
-    if (device.getPlatform() === 'android') {
-      await device.reverseTcpPort('8545'); // ganache
-    }
+    await reverseServerPort(device);
   });
 
   it('should send ETH to an EOA from inside the wallet', async () => {

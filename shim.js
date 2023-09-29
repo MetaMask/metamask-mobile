@@ -1,5 +1,13 @@
 /* eslint-disable import/no-nodejs-modules */
 import { decode, encode } from 'base-64';
+import { NativeModules } from 'react-native';
+import { isTest, testConfig } from './app/util/test/utils.js';
+
+// In a testing environment, assign the jestWorkerId to ensure deterministic port generation for servers like fixtures and test dapps
+if (isTest) {
+  const raw = NativeModules.LaunchArguments.value;
+  testConfig.jestWorkerId = raw ? raw.jestWorkerId : 0;
+}
 
 if (!global.btoa) {
   global.btoa = encode;
@@ -32,7 +40,9 @@ if (typeof Buffer === 'undefined') global.Buffer = require('buffer').Buffer;
 
 // global.location = global.location || { port: 80 }
 const isDev = typeof __DEV__ === 'boolean' && __DEV__;
-Object.assign(process.env, { NODE_ENV: isDev ? 'development' : 'production' });
+Object.assign(process.env, {
+  NODE_ENV: isDev ? 'development' : 'production',
+});
 
 if (typeof localStorage !== 'undefined') {
   // eslint-disable-next-line no-undef

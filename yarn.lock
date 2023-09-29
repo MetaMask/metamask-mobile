@@ -25315,6 +25315,11 @@ react-native-keychain@8.0.0:
   resolved "https://registry.yarnpkg.com/react-native-keychain/-/react-native-keychain-8.0.0.tgz#ff708e4dc2a5440df717179bf9b7cd50f78b61d7"
   integrity sha512-c7Cs+YQN26UaQsRG1dmlXL7VL2ctnXwH/dl0IOMEQ7ZaL2NdN313YSAI8ZEZZjrVhNmPsyWEuvTFqWrdpItqQg==
 
+react-native-launch-arguments@^4.0.1:
+  version "4.0.1"
+  resolved "https://registry.yarnpkg.com/react-native-launch-arguments/-/react-native-launch-arguments-4.0.1.tgz#6d83c05c8de948db5eed8e75fbf76c28431b0c2d"
+  integrity sha512-sP2Vd+IEtApGiSDboyx8Dqnjj6IlPRA/M8KEoip4r5gidOvGcF/JGVJh9kIlgAchXheH7SWXvtmgvP0dJopikg==
+
 react-native-level-fs@3.0.1:
   version "3.0.1"
   resolved "https://registry.yarnpkg.com/react-native-level-fs/-/react-native-level-fs-3.0.1.tgz#f3054614c2bc1a379dcb3d3ee51b6a1b66123283"

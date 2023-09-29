@@ -1,5 +1,5 @@
 'use strict';
-import { Regression } from '../../tags';
+import { Smoke } from '../../tags';
 import TestHelpers from '../../helpers';
 import { loginToApp } from '../../viewHelper';
 import FixtureBuilder from '../../fixtures/fixture-builder';
@@ -11,18 +11,16 @@ import TabBarComponent from '../../pages/TabBarComponent';
 import { TestDApp } from '../../pages/TestDApp';
 import { SMART_CONTRACTS } from '../../../app/util/test/smart-contracts';
 import root from '../../../locales/languages/en.json';
+import { reverseServerPort } from '../../utils';
 
 const HST_CONTRACT = SMART_CONTRACTS.HST;
 const SENT_TOKENS_MESSAGE_TEXT = root.transactions.sent_tokens;
 const WEBVIEW_TEST_DAPP_TRANSFER_TOKENS_BUTTON_ID = 'transferTokens';
 
-describe(Regression('ERC20 tokens'), () => {
+describe(Smoke('ERC20 tokens'), () => {
   beforeAll(async () => {
     jest.setTimeout(170000);
-    if (device.getPlatform() === 'android') {
-      await device.reverseTcpPort('8545'); // ganache
-      await device.reverseTcpPort('8080'); // test-dapp
-    }
+    await reverseServerPort(device);
   });
 
   it('send an ERC20 token from a dapp', async () => {

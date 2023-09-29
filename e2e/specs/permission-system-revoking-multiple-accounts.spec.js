@@ -18,6 +18,7 @@ import {
   startFixtureServer,
   stopFixtureServer,
 } from '../fixtures/fixture-helper';
+import { reverseServerPort } from '../utils';
 
 const SUSHI_SWAP = 'https://app.sushi.com/swap';
 const SUSHI_SWAP_SHORT_HAND_URL = 'app.sushi.com';
@@ -27,6 +28,7 @@ describe(
   ),
   () => {
     beforeAll(async () => {
+      await reverseServerPort(device);
       const fixture = new FixtureBuilder().build();
       await startFixtureServer();
       await loadFixture({ fixture });

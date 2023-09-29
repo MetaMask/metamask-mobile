@@ -23,10 +23,14 @@ import TestHelpers from './helpers';
 import TermsOfUseModal from './pages/modals/TermsOfUseModal';
 import TabBarComponent from './pages/TabBarComponent';
 import LoginView from './pages/LoginView';
+import { getGanachePort } from './dynamical-port-generator';
+import { DEFAULT_GANACHE_PORT } from '../app/util/test/ganache';
 
 const GOERLI = 'Goerli Test Network';
 
-const LOCALHOST_URL = 'http://localhost:8545/';
+const LOCALHOST_URL = `http://localhost:${getGanachePort(
+  8545,
+)}/`;
 
 // detox on ios does not have a clean way of interacting with webview elements. You would need to tap by coordinates
 export const testDappConnectButtonCooridinates = { x: 170, y: 280 };

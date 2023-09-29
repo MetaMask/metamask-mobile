@@ -11,6 +11,7 @@ import WalletActionsModal from '../pages/modals/WalletActionsModal';
 import AddAddressModal from '../pages/modals/AddAddressModal';
 
 import { loginToApp } from '../viewHelper';
+import { reverseServerPort } from '../helpers';
 import FixtureBuilder from '../fixtures/fixture-builder';
 import {
   loadFixture,
@@ -25,6 +26,7 @@ const MEMO = 'Test adding ENS';
 
 describe(Smoke('Addressbook Tests'), () => {
   beforeAll(async () => {
+    await reverseServerPort(device);
     const fixture = new FixtureBuilder().build();
     await startFixtureServer();
     await loadFixture({ fixture });

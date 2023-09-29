@@ -9,18 +9,16 @@ import {
   withFixtures,
   defaultGanacheOptions,
 } from '../../fixtures/fixture-helper';
-import { Regression } from '../../tags';
+import { Smoke } from '../../tags';
 import TestHelpers from '../../helpers';
+import { reverseServerPort } from '../../utils';
 
 const MAX_ATTEMPTS = 3;
 
-describe(Regression('Sign Messages'), () => {
+describe(Smoke('Sign Messages'), () => {
   beforeAll(async () => {
     jest.setTimeout(2500000);
-    if (device.getPlatform() === 'android') {
-      await device.reverseTcpPort('8545'); // ganache
-      await device.reverseTcpPort('8080'); // test-dapp
-    }
+    await reverseServerPort(device);
   });
 
   it('should sign personal message', async () => {

@@ -1,15 +1,23 @@
 /* eslint-disable no-console, import/no-nodejs-modules */
-import FixtureServer from './fixture-server';
+import FixtureServer, { DEFAULT_FIXTURE_SERVER_PORT } from './fixture-server';
 import FixtureBuilder from './fixture-builder';
 import Ganache from '../../app/util/test/ganache';
 import GanacheSeeder from '../../app/util/test/ganache-seeder';
 import axios from 'axios';
 import path from 'path';
 import createStaticServer from '../create-static-server';
+import {
+  getFixturesServerPort,
+  getLocalTestDappPort,
+} from '../../e2e/dynamical-port-generator';
+
+export const DEFAULT_DAPP_SERVER_PORT = 8085;
 
 const fixtureServer = new FixtureServer();
 
-const FIXTURE_SERVER_URL = 'http://localhost:12345/state.json';
+const FIXTURE_SERVER_URL = `http://localhost:${getFixturesServerPort(
+  DEFAULT_FIXTURE_SERVER_PORT,
+)}/state.json`;
 
 // checks if server has already been started
 const isFixtureServerStarted = async () => {
@@ -92,7 +100,7 @@ export async function withFixtures(options, testSuite) {
   } = options;
 
   const ganacheServer = new Ganache();
-  const dappBasePort = 8080;
+  const dappBasePort = getLocalTestDappPort(DEFAULT_DAPP_SERVER_PORT);
   let numberOfDapps = dapp ? 1 : 0;
   const dappServer = [];
 
@@ -144,7 +152,10 @@ export async function withFixtures(options, testSuite) {
     // Due to the fact that the app was already launched on `init.js`, it is necessary to
     // launch into a fresh installation of the app to apply the new fixture loaded perviously.
     if (restartDevice) {
-      await device.launchApp({ delete: true });
+      await device.launchApp({
+        delete: true,
+        launchArgs: { jestWorkerId: `${process.env.JEST_WORKER_ID}` },
+      });
     }
 
     await testSuite({ contractRegistry });

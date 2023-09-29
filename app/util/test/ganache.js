@@ -1,9 +1,15 @@
+import {
+  getGanachePort,
+  getServerPort,
+} from '../../../e2e/dynamical-port-generator';
 import ganache from 'ganache';
+
+export const DEFAULT_GANACHE_PORT = 8545;
 
 const defaultOptions = {
   blockTime: 2,
   network_id: 1337,
-  port: 8545,
+  port: getServerPort(DEFAULT_GANACHE_PORT),
   vmErrorsOnRPCResponse: false,
   hardfork: 'muirGlacier',
   quiet: false,
@@ -14,8 +20,9 @@ export default class Ganache {
     if (!opts.mnemonic) {
       throw new Error('Missing required mnemonic');
     }
-    const options = { ...defaultOptions, ...opts };
+    const options = { ...defaultOptions, ...opts, port: getGanachePort() };
     const { port } = options;
+    console.log('ganache port: ', port);
     this._server = ganache.server(options);
     await this._server.listen(port);
   }
