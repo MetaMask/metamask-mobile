@@ -1,12 +1,12 @@
 /* eslint-disable import/no-nodejs-modules */
 import { decode, encode } from 'base-64';
-import { NativeModules } from 'react-native';
 import { isTest, testConfig } from './app/util/test/utils.js';
+import { LaunchArguments } from 'react-native-launch-arguments';
 
 // In a testing environment, assign the jestWorkerId to ensure deterministic port generation for servers like fixtures and test dapps
 if (isTest) {
-  const raw = NativeModules.LaunchArguments.value;
-  testConfig.jestWorkerId = raw ? raw.jestWorkerId : 0;
+  const raw = LaunchArguments.value();
+  testConfig.jestWorkerId = raw?.jestWorkerId ? raw.jestWorkerId : 1;
 }
 
 if (!global.btoa) {

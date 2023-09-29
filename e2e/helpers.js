@@ -145,6 +145,7 @@ export default class TestHelpers {
       newInstance: true,
       url: inputURL,
       sourceApp: 'io.metamask',
+      launchArgs: { jestWorkerId: `${process.env.JEST_WORKER_ID}` },
     });
   }
 

@@ -31,6 +31,7 @@ describe(Regression('Swap Tests'), () => {
     await device.launchApp({
       delete: true,
       permissions: { notifications: 'YES' },
+      launchArgs: { jestWorkerId: `${process.env.JEST_WORKER_ID}` },
     });
     await loginToApp();
   });

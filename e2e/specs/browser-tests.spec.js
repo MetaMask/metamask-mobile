@@ -24,7 +24,10 @@ describe(Smoke('Browser Tests'), () => {
     const fixture = new FixtureBuilder().build();
     await startFixtureServer();
     await loadFixture({ fixture });
-    await device.launchApp({ delete: true });
+    await device.launchApp({
+      delete: true,
+      launchArgs: { jestWorkerId: `${process.env.JEST_WORKER_ID}` },
+    });
     await loginToApp();
   });
 

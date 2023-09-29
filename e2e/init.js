@@ -1,3 +1,5 @@
 beforeAll(async () => {
-  await device.launchApp();
+  await device.launchApp({
+    launchArgs: { jestWorkerId: `${process.env.JEST_WORKER_ID}` },
+  });
 });
