@@ -32,10 +32,7 @@ import {
 import Routes from '../../../../../constants/navigation/Routes';
 import { createQRScannerNavDetails } from '../../../QRScanner';
 import generateTestId from '../../../../../../wdio/utils/generateTestId';
-import {
-  selectChainId,
-  selectNetwork,
-} from '../../../../../selectors/networkController';
+import { selectChainId } from '../../../../../selectors/networkController';
 import { selectIdentities } from '../../../../../selectors/preferencesController';
 import {
   ADD_CONTACT_ADD_BUTTON,
@@ -132,10 +129,6 @@ class ContactForm extends PureComponent {
      */
     navigation: PropTypes.object,
     /**
-     * Network id
-     */
-    networkId: PropTypes.string,
-    /**
      * An object containing each identity in the format address => account
      */
     identities: PropTypes.object,
@@ -193,8 +186,8 @@ class ContactForm extends PureComponent {
         this.setState({ inputWidth: '100%' });
       }, 100);
     if (mode === EDIT) {
-      const { addressBook, networkId, identities } = this.props;
-      const networkAddressBook = addressBook[networkId] || {};
+      const { addressBook, chainId, identities } = this.props;
+      const networkAddressBook = addressBook[chainId] || {};
       const address = this.props.route.params?.address ?? '';
       const contact = networkAddressBook[address] || identities[address];
       this.setState({
@@ -231,7 +224,7 @@ class ContactForm extends PureComponent {
   };
 
   validateAddressOrENSFromInput = async (address) => {
-    const { networkId, addressBook, identities, chainId } = this.props;
+    const { addressBook, identities, chainId } = this.props;
 
     const {
       addressError,
@@ -241,7 +234,6 @@ class ContactForm extends PureComponent {
       errorContinue,
     } = await validateAddressOrENS({
       toAccount: address,
-      networkId,
       addressBook,
       identities,
       chainId,
@@ -277,13 +269,13 @@ class ContactForm extends PureComponent {
 
   saveContact = () => {
     const { name, address, memo, toEnsAddress } = this.state;
-    const { networkId, navigation } = this.props;
+    const { chainId, navigation } = this.props;
     const { AddressBookController } = Engine.context;
     if (!name || !address) return;
     AddressBookController.set(
       toChecksumAddress(toEnsAddress || address),
       name,
-      networkId,
+      chainId,
       memo,
     );
     navigation.pop();
@@ -291,8 +283,8 @@ class ContactForm extends PureComponent {
 
   deleteContact = () => {
     const { AddressBookController } = Engine.context;
-    const { networkId, navigation, route } = this.props;
-    AddressBookController.delete(networkId, this.contactAddressToRemove);
+    const { chainId, navigation, route } = this.props;
+    AddressBookController.delete(chainId, this.contactAddressToRemove);
     route.params.onDelete();
     navigation.pop();
   };
@@ -516,7 +508,6 @@ ContactForm.contextType = ThemeContext;
 const mapStateToProps = (state) => ({
   addressBook: state.engine.backgroundState.AddressBookController.addressBook,
   identities: selectIdentities(state),
-  networkId: selectNetwork(state),
   chainId: selectChainId(state),
 });
 

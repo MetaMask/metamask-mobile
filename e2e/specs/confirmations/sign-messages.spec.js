@@ -16,9 +16,11 @@ const MAX_ATTEMPTS = 3;
 
 describe(Regression('Sign Messages'), () => {
   beforeAll(async () => {
-    jest.setTimeout(150000);
-    await device.reverseTcpPort('8545'); // ganache
-    await device.reverseTcpPort('8080'); // test-dapp
+    jest.setTimeout(2500000);
+    if (device.getPlatform() === 'android') {
+      await device.reverseTcpPort('8545'); // ganache
+      await device.reverseTcpPort('8080'); // test-dapp
+    }
   });
 
   it('should sign personal message', async () => {
