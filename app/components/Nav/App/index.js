@@ -92,6 +92,7 @@ import LockScreen from '../../Views/LockScreen';
 import AsyncStorage from '../../../store/async-storage-wrapper';
 import ShowNftSheet from '../../Views/ShowNFTSheet/ShowNFTSheet';
 import ShowDisplayNftMediaSheet from '../../Views/ShowDisplayMediaNFTSheet/ShowDisplayNFTMediaSheet';
+import AmbiguousAddressSheet from '../../../../app/components/Views/Settings/Contacts/AmbiguousAddressSheet/AmbiguousAddressSheet';
 
 const clearStackNavigatorOptions = {
   headerShown: false,
@@ -504,6 +505,10 @@ const App = ({ userLoggedIn }) => {
       <Stack.Screen
         name={Routes.SHEET.NETWORK_SELECTOR}
         component={NetworkSelector}
+      />
+      <Stack.Screen
+        name={Routes.SHEET.AMBIGUOUS_ADDRESS}
+        component={AmbiguousAddressSheet}
       />
       <Stack.Screen
         name={Routes.MODAL.TURN_OFF_REMEMBER_ME}

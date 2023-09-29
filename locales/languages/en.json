@@ -1319,6 +1319,11 @@
     "others": "Others",
     "memo": "Memo"
   },
+  "duplicate_address": {
+    "title": "This is a duplicate address",
+    "body": "Your contact list shows this address on more than one chain, including {{chain0}} and {{chain1}}. Be sure to select the correct contact before you send any funds.",
+    "button": "Got it"
+  },
   "transaction_submitted": {
     "title": "Transaction Submitted",
     "your_tx_hash_is": "Your transaction hash is:",
@@ -2576,11 +2581,11 @@
     "show_display_nft_media_content_5": "Setttings > Security and privacy."
   },
   "ipfs_gateway_banner": {
-        "ipfs_gateway_banner_title": "IPFS gateway",
-        "ipfs_gateway_banner_content1": "This is an IPFS website. to see this site, you need to turn on",
-        "ipfs_gateway_banner_content2": "IPFS gateway",
-        "ipfs_gateway_banner_content3": "in",
-        "ipfs_gateway_banner_content4": "Settings."
+    "ipfs_gateway_banner_title": "IPFS gateway",
+    "ipfs_gateway_banner_content1": "This is an IPFS website. to see this site, you need to turn on",
+    "ipfs_gateway_banner_content2": "IPFS gateway",
+    "ipfs_gateway_banner_content3": "in",
+    "ipfs_gateway_banner_content4": "Settings."
   },
   "ipfs_gateway": {
     "ipfs_gateway_title": "IPFS gateway",

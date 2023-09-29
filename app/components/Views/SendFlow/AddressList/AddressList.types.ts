@@ -2,6 +2,7 @@ export interface AddressListProps {
   inputSearch?: string;
   onAccountPress: (address: string) => void;
   onAccountLongPress: (address: string) => void;
+  onIconPress: () => void;
   onlyRenderAddressBook?: boolean;
   reloadAddressList?: boolean;
 }

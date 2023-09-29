@@ -27,6 +27,7 @@ const AddressElement: React.FC<AddressElementProps> = ({
   address,
   onAccountPress,
   onAccountLongPress,
+  onIconPress,
   isAmbiguousAddress,
   ...props
 }) => {
@@ -86,7 +87,7 @@ const AddressElement: React.FC<AddressElementProps> = ({
       {isAmbiguousAddress && (
         <TouchableOpacity
           style={styles.warningIconWrapper}
-          onPress={() => window.alert('Hook up to sheet')}
+          onPress={onIconPress}
         >
           <Icon
             name={IconName.Danger}

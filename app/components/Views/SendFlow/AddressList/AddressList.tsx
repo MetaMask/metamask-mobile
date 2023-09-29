@@ -15,10 +15,7 @@ import AddressElement from '../AddressElement';
 import { useTheme } from '../../../../util/theme';
 import Text from '../../../../component-library/components/Texts/Text/Text';
 import { TextVariant } from '../../../../component-library/components/Texts/Text';
-import {
-  selectChainId,
-  selectNetworkId,
-} from '../../../../selectors/networkController';
+import { selectChainId } from '../../../../selectors/networkController';
 import { selectIdentities } from '../../../../selectors/preferencesController';
 import { regex } from '../../../../../app/util/regex';
 
@@ -42,6 +39,7 @@ const AddressList: React.FC<AddressListProps> = ({
   inputSearch,
   onAccountPress,
   onAccountLongPress,
+  onIconPress,
   onlyRenderAddressBook = false,
   reloadAddressList,
 }) => {
@@ -180,6 +178,7 @@ const AddressList: React.FC<AddressListProps> = ({
             address={address}
             name={identities[address].name}
             onAccountPress={onAccountPress}
+            onIconPress={onIconPress}
             onAccountLongPress={onAccountLongPress}
             testID={MY_ACCOUNT_ELEMENT}
           />
@@ -200,6 +199,7 @@ const AddressList: React.FC<AddressListProps> = ({
         key={key}
         address={addressElement.address}
         name={addressElement.name}
+        onIconPress={onIconPress}
         onAccountPress={onAccountPress}
         onAccountLongPress={onAccountLongPress}
         testID={ADDRESS_BOOK_ACCOUNT}
