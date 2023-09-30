@@ -16,14 +16,26 @@ const defaultOptions = {
 };
 
 export default class Ganache {
+  constructor() {
+    this._serverClosing = false;
+  }
   async start(opts) {
     if (!opts.mnemonic) {
       throw new Error('Missing required mnemonic');
     }
     const options = { ...defaultOptions, ...opts, port: getGanachePort() };
     const { port } = options;
-    this._server = ganache.server(options);
-    await this._server.listen(port);
+    try {
+      this._server = ganache.server(options);
+      await this._server.listen(port);
+    } catch (error) {
+      if (error.code === 'EADDRINUSE') {
+        console.error('Port is already in use:', error.message);
+        return;
+      }
+      console.error(error);
+      throw error;
+    }
   }
 
   getProvider() {
@@ -55,6 +67,19 @@ export default class Ganache {
     if (!this._server) {
       throw new Error('Server not running yet');
     }
-    await this._server.close();
+    if (this._serverClosing) {
+      // eslint-disable-next-line no-console
+      console.log('waiting ganache server to close');
+      await new Promise((resolve) => {
+        setTimeout(resolve, 200);
+      });
+    }
+    try {
+      this._serverClosing = true;
+      await this._server.close();
+      this._serverClosing = false;
+    } catch (error) {
+      console.error('error closing ganache server', error);
+    }
   }
 }

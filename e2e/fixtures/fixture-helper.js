@@ -13,8 +13,6 @@ import {
 
 export const DEFAULT_DAPP_SERVER_PORT = 8085;
 
-const fixtureServer = new FixtureServer();
-
 const FIXTURE_SERVER_URL = `http://localhost:${getFixturesServerPort()}/state.json`;
 
 // checks if server has already been started
@@ -30,12 +28,13 @@ const isFixtureServerStarted = async () => {
 /**
  * Loads a fixture into the fixture server.
  *
+ * @param {FixtureServer} fixtureServer - An instance of the FixtureServer class responsible for loading fixtures.
  * @param {Object} options - An object containing the fixture to load.
  * @param {Object} [options.fixture] - The fixture data to load. If not provided, a default fixture is created.
  * @returns {Promise<void>} - A promise that resolves once the fixture is successfully loaded.
  * @throws {Error} - Throws an error if the fixture fails to load or if the fixture server is not properly set up.
  */
-export const loadFixture = async ({ fixture } = {}) => {
+export const loadFixture = async (fixtureServer, { fixture } = {}) => {
   // If no fixture is provided, the `onboarding` option is set to `true` by default, which means
   // the app will be loaded without any fixtures and will start and go through the onboarding process.
   const state = fixture || new FixtureBuilder({ onboarding: true }).build();
@@ -50,7 +49,7 @@ export const loadFixture = async ({ fixture } = {}) => {
 };
 
 // Start the fixture server
-export const startFixtureServer = async () => {
+export const startFixtureServer = async (fixtureServer) => {
   if (await isFixtureServerStarted()) {
     console.log('The fixture server has already been started');
     return;
@@ -65,7 +64,7 @@ export const startFixtureServer = async () => {
 };
 
 // Stop the fixture server
-export const stopFixtureServer = async () => {
+export const stopFixtureServer = async (fixtureServer) => {
   if (!(await isFixtureServerStarted())) {
     console.log('The fixture server has already been stopped');
     return;
@@ -97,8 +96,9 @@ export async function withFixtures(options, testSuite) {
     dappPaths,
   } = options;
 
+  const fixtureServer = new FixtureServer();
   const ganacheServer = new Ganache();
-  const dappBasePort = getLocalTestDappPort(DEFAULT_DAPP_SERVER_PORT);
+  const dappBasePort = getLocalTestDappPort();
   let numberOfDapps = dapp ? 1 : 0;
   const dappServer = [];
 
@@ -114,36 +114,44 @@ export async function withFixtures(options, testSuite) {
       }
     }
 
-    if (dapp) {
-      if (dappOptions?.numberOfDapps) {
-        numberOfDapps = dappOptions.numberOfDapps;
-      }
-      for (let i = 0; i < numberOfDapps; i++) {
-        let dappDirectory;
-        if (dappPath || (dappPaths && dappPaths[i])) {
-          dappDirectory = path.resolve(__dirname, dappPath || dappPaths[i]);
-        } else {
-          dappDirectory = path.resolve(
-            __dirname,
-            '..',
-            '..',
-            'node_modules',
-            '@metamask',
-            'test-dapp',
-            'dist',
-          );
+    try {
+      if (dapp) {
+        if (dappOptions?.numberOfDapps) {
+          numberOfDapps = dappOptions.numberOfDapps;
         }
-        dappServer.push(createStaticServer(dappDirectory));
-        dappServer[i].listen(`${dappBasePort + i}`);
-        await new Promise((resolve, reject) => {
-          dappServer[i].on('listening', resolve);
-          dappServer[i].on('error', reject);
-        });
+        for (let i = 0; i < numberOfDapps; i++) {
+          let dappDirectory;
+          if (dappPath || (dappPaths && dappPaths[i])) {
+            dappDirectory = path.resolve(__dirname, dappPath || dappPaths[i]);
+          } else {
+            dappDirectory = path.resolve(
+              __dirname,
+              '..',
+              '..',
+              'node_modules',
+              '@metamask',
+              'test-dapp',
+              'dist',
+            );
+          }
+          dappServer.push(createStaticServer(dappDirectory));
+          dappServer[i].listen(`${dappBasePort + i}`);
+          await new Promise((resolve, reject) => {
+            dappServer[i].on('listening', resolve);
+            dappServer[i].on('error', reject);
+          });
+        }
       }
+    } catch (error) {
+      if (error.code === 'EADDRINUSE') {
+        console.error('Port is already in use dapp:', error.message);
+      }
+      throw error;
     }
+
     // Start the fixture server
-    await startFixtureServer();
-    await loadFixture({ fixture });
+    await startFixtureServer(fixtureServer);
+    await loadFixture(fixtureServer, { fixture });
     console.log(
       'The fixture server is started, and the initial state is successfully loaded.',
     );
@@ -158,7 +166,7 @@ export async function withFixtures(options, testSuite) {
 
     await testSuite({ contractRegistry });
   } catch (error) {
-    console.error(error);
+    console.error('withFixtures error:', error);
     throw error;
   } finally {
     if (ganacheOptions) {
@@ -178,7 +186,7 @@ export async function withFixtures(options, testSuite) {
         }
       }
     }
-    await stopFixtureServer();
+    await stopFixtureServer(fixtureServer);
   }
 }
 

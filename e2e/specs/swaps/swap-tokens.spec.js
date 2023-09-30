@@ -19,6 +19,9 @@ import {
 } from '../../fixtures/fixture-helper';
 import Networks from '../../resources/networks.json';
 import TestHelpers from '../../helpers';
+import FixtureServer from '../../fixtures/fixture-server';
+
+const fixtureServer = new FixtureServer();
 
 describe(Regression('Swap Tests'), () => {
   let swapOnboarded = false;
@@ -27,8 +30,8 @@ describe(Regression('Swap Tests'), () => {
     const fixture = new FixtureBuilder()
       .withNetworkController(Networks.Tenderly)
       .build();
-    await startFixtureServer();
-    await loadFixture({ fixture });
+    await startFixtureServer(fixtureServer);
+    await loadFixture(fixtureServer, { fixture });
     await device.launchApp({
       delete: true,
       permissions: { notifications: 'YES' },
@@ -38,7 +41,7 @@ describe(Regression('Swap Tests'), () => {
   });
 
   afterAll(async () => {
-    await stopFixtureServer();
+    await stopFixtureServer(fixtureServer);
   });
 
   beforeEach(async () => {

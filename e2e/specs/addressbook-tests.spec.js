@@ -18,18 +18,20 @@ import {
   stopFixtureServer,
 } from '../fixtures/fixture-helper';
 import TestHelpers from '../helpers';
+import FixtureServer from '../fixtures/fixture-server';
 
 const INVALID_ADDRESS = '0xB8B4EE5B1b693971eB60bDa15211570df2dB221L';
 const TETHER_ADDRESS = '0xdac17f958d2ee523a2206206994597c13d831ec7';
 const MYTH_ADDRESS = '0x1FDb169Ef12954F20A15852980e1F0C122BfC1D6';
 const MEMO = 'Test adding ENS';
+const fixtureServer = new FixtureServer();
 
 describe(Smoke('Addressbook Tests'), () => {
   beforeAll(async () => {
     await TestHelpers.reverseServerPort();
     const fixture = new FixtureBuilder().build();
-    await startFixtureServer();
-    await loadFixture({ fixture });
+    await startFixtureServer(fixtureServer);
+    await loadFixture(fixtureServer, { fixture });
     await device.launchApp({
       delete: true,
       launchArgs: { jestWorkerId: `${process.env.JEST_WORKER_ID}` },
@@ -42,7 +44,7 @@ describe(Smoke('Addressbook Tests'), () => {
   });
 
   afterAll(async () => {
-    await stopFixtureServer();
+    await stopFixtureServer(fixtureServer);
   });
 
   it('should go to send view', async () => {
