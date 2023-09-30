@@ -365,8 +365,179 @@ index 0000000..797b372
 +};
 +//# sourceMappingURL=IncomingTransactionHelper.js.map
 \ No newline at end of file
+diff --git a/node_modules/@metamask/transaction-controller/dist/PendingTransactionTracker.d.ts b/node_modules/@metamask/transaction-controller/dist/PendingTransactionTracker.d.ts
+new file mode 100644
+index 0000000..5f0aec4
+--- /dev/null
++++ b/node_modules/@metamask/transaction-controller/dist/PendingTransactionTracker.d.ts
+@@ -0,0 +1,16 @@
++/// <reference types="node" />
++import EventEmitter from 'events';
++import { PollingBlockTracker as BlockTracker } from 'eth-block-tracker';
++import type { TransactionMeta } from './types';
++export declare class PendingTransactionTracker {
++    #private;
++    hub: EventEmitter;
++    constructor({ blockTracker, failTransaction, getChainId, getEthQuery, getTransactions, }: {
++        blockTracker: BlockTracker;
++        failTransaction: (txMeta: TransactionMeta, error: Error) => void;
++        getChainId: () => string;
++        getEthQuery: () => any;
++        getTransactions: () => TransactionMeta[];
++    });
++    start(): void;
++}
+diff --git a/node_modules/@metamask/transaction-controller/dist/PendingTransactionTracker.js b/node_modules/@metamask/transaction-controller/dist/PendingTransactionTracker.js
+new file mode 100644
+index 0000000..e06b36d
+--- /dev/null
++++ b/node_modules/@metamask/transaction-controller/dist/PendingTransactionTracker.js
+@@ -0,0 +1,142 @@
++"use strict";
++var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, generator) {
++    function adopt(value) { return value instanceof P ? value : new P(function (resolve) { resolve(value); }); }
++    return new (P || (P = Promise))(function (resolve, reject) {
++        function fulfilled(value) { try { step(generator.next(value)); } catch (e) { reject(e); } }
++        function rejected(value) { try { step(generator["throw"](value)); } catch (e) { reject(e); } }
++        function step(result) { result.done ? resolve(result.value) : adopt(result.value).then(fulfilled, rejected); }
++        step((generator = generator.apply(thisArg, _arguments || [])).next());
++    });
++};
++var __classPrivateFieldSet = (this && this.__classPrivateFieldSet) || function (receiver, state, value, kind, f) {
++    if (kind === "m") throw new TypeError("Private method is not writable");
++    if (kind === "a" && !f) throw new TypeError("Private accessor was defined without a setter");
++    if (typeof state === "function" ? receiver !== state || !f : !state.has(receiver)) throw new TypeError("Cannot write private member to an object whose class did not declare it");
++    return (kind === "a" ? f.call(receiver, value) : f ? f.value = value : state.set(receiver, value)), value;
++};
++var __classPrivateFieldGet = (this && this.__classPrivateFieldGet) || function (receiver, state, kind, f) {
++    if (kind === "a" && !f) throw new TypeError("Private accessor was defined without a getter");
++    if (typeof state === "function" ? receiver !== state || !f : !state.has(receiver)) throw new TypeError("Cannot read private member from an object whose class did not declare it");
++    return kind === "m" ? f : kind === "a" ? f.call(receiver) : f ? f.value : state.get(receiver);
++};
++var __importDefault = (this && this.__importDefault) || function (mod) {
++    return (mod && mod.__esModule) ? mod : { "default": mod };
++};
++var _PendingTransactionTracker_instances, _PendingTransactionTracker_blockTracker, _PendingTransactionTracker_failTransaction, _PendingTransactionTracker_getChainId, _PendingTransactionTracker_getEthQuery, _PendingTransactionTracker_getTransactions, _PendingTransactionTracker_onLatestBlock, _PendingTransactionTracker_blockchainTransactionStateReconciler, _PendingTransactionTracker_checkTxReceiptStatusIsFailed;
++Object.defineProperty(exports, "__esModule", { value: true });
++exports.PendingTransactionTracker = void 0;
++const events_1 = __importDefault(require("events"));
++const controller_utils_1 = require("@metamask/controller-utils");
++const logger_1 = require("./logger");
++const types_1 = require("./types");
++class PendingTransactionTracker {
++    constructor({ blockTracker, failTransaction, getChainId, getEthQuery, getTransactions, }) {
++        _PendingTransactionTracker_instances.add(this);
++        _PendingTransactionTracker_blockTracker.set(this, void 0);
++        _PendingTransactionTracker_failTransaction.set(this, void 0);
++        _PendingTransactionTracker_getChainId.set(this, void 0);
++        _PendingTransactionTracker_getEthQuery.set(this, void 0);
++        _PendingTransactionTracker_getTransactions.set(this, void 0);
++        this.hub = new events_1.default();
++        __classPrivateFieldSet(this, _PendingTransactionTracker_blockTracker, blockTracker, "f");
++        __classPrivateFieldSet(this, _PendingTransactionTracker_failTransaction, failTransaction, "f");
++        __classPrivateFieldSet(this, _PendingTransactionTracker_getChainId, getChainId, "f");
++        __classPrivateFieldSet(this, _PendingTransactionTracker_getEthQuery, getEthQuery, "f");
++        __classPrivateFieldSet(this, _PendingTransactionTracker_getTransactions, getTransactions, "f");
++    }
++    start() {
++        // eslint-disable-next-line @typescript-eslint/no-misused-promises
++        __classPrivateFieldGet(this, _PendingTransactionTracker_blockTracker, "f").addListener('latest', () => __awaiter(this, void 0, void 0, function* () {
++            yield (0, controller_utils_1.safelyExecute)(() => __classPrivateFieldGet(this, _PendingTransactionTracker_instances, "m", _PendingTransactionTracker_onLatestBlock).call(this));
++        }));
++    }
++}
++exports.PendingTransactionTracker = PendingTransactionTracker;
++_PendingTransactionTracker_blockTracker = new WeakMap(), _PendingTransactionTracker_failTransaction = new WeakMap(), _PendingTransactionTracker_getChainId = new WeakMap(), _PendingTransactionTracker_getEthQuery = new WeakMap(), _PendingTransactionTracker_getTransactions = new WeakMap(), _PendingTransactionTracker_instances = new WeakSet(), _PendingTransactionTracker_onLatestBlock = function _PendingTransactionTracker_onLatestBlock() {
++    return __awaiter(this, void 0, void 0, function* () {
++        (0, logger_1.pendingTransactionsLogger)('Checking transactions');
++        const transactions = __classPrivateFieldGet(this, _PendingTransactionTracker_getTransactions, "f").call(this);
++        const currentChainId = __classPrivateFieldGet(this, _PendingTransactionTracker_getChainId, "f").call(this);
++        let gotUpdates = false;
++        yield (0, controller_utils_1.safelyExecute)(() => Promise.all(transactions.map((meta, index) => __awaiter(this, void 0, void 0, function* () {
++            if (!meta.verifiedOnBlockchain && meta.chainId === currentChainId) {
++                const [reconciledTx, updateRequired] = yield __classPrivateFieldGet(this, _PendingTransactionTracker_instances, "m", _PendingTransactionTracker_blockchainTransactionStateReconciler).call(this, meta);
++                if (updateRequired) {
++                    transactions[index] = reconciledTx;
++                    gotUpdates = updateRequired;
++                }
++            }
++        }))));
++        /* istanbul ignore else */
++        if (gotUpdates) {
++            this.hub.emit('transactions', transactions);
++        }
++    });
++}, _PendingTransactionTracker_blockchainTransactionStateReconciler = function _PendingTransactionTracker_blockchainTransactionStateReconciler(meta) {
++    return __awaiter(this, void 0, void 0, function* () {
++        const { status, transactionHash, id, chainId, transaction: { to }, } = meta;
++        switch (status) {
++            case types_1.TransactionStatus.confirmed:
++                (0, logger_1.pendingTransactionsLogger)('Checking confirmed transaction', {
++                    id,
++                    chainId,
++                    to,
++                });
++                const txReceipt = yield (0, controller_utils_1.query)(__classPrivateFieldGet(this, _PendingTransactionTracker_getEthQuery, "f").call(this), 'getTransactionReceipt', [transactionHash]);
++                if (!txReceipt) {
++                    return [meta, false];
++                }
++                // Required when adding new transaction metadata properties
++                // const txBlock = await query(this.#getEthQuery(), 'getBlockByHash', [
++                //   txReceipt.blockHash,
++                // ]);
++                meta.verifiedOnBlockchain = true;
++                meta.transaction.gasUsed = txReceipt.gasUsed;
++                // According to the Web3 docs:
++                // TRUE if the transaction was successful, FALSE if the EVM reverted the transaction.
++                if (Number(txReceipt.status) === 0) {
++                    const error = new Error('Transaction failed. The transaction was reversed');
++                    __classPrivateFieldGet(this, _PendingTransactionTracker_failTransaction, "f").call(this, meta, error);
++                    return [meta, false];
++                }
++                return [meta, true];
++            case types_1.TransactionStatus.submitted:
++                (0, logger_1.pendingTransactionsLogger)('Checking submitted transaction', {
++                    id,
++                    chainId,
++                    to,
++                });
++                const txObj = yield (0, controller_utils_1.query)(__classPrivateFieldGet(this, _PendingTransactionTracker_getEthQuery, "f").call(this), 'getTransactionByHash', [
++                    transactionHash,
++                ]);
++                if (!txObj) {
++                    const receiptShowsFailedStatus = yield __classPrivateFieldGet(this, _PendingTransactionTracker_instances, "m", _PendingTransactionTracker_checkTxReceiptStatusIsFailed).call(this, transactionHash);
++                    // Case the txObj is evaluated as false, a second check will
++                    // determine if the tx failed or it is pending or confirmed
++                    if (receiptShowsFailedStatus) {
++                        const error = new Error('Transaction failed. The transaction was dropped or replaced by a new one');
++                        __classPrivateFieldGet(this, _PendingTransactionTracker_failTransaction, "f").call(this, meta, error);
++                    }
++                }
++                /* istanbul ignore next */
++                if (txObj === null || txObj === void 0 ? void 0 : txObj.blockNumber) {
++                    meta.status = types_1.TransactionStatus.confirmed;
++                    this.hub.emit('transaction-confirmed', meta);
++                    return [meta, true];
++                }
++                return [meta, false];
++            default:
++                return [meta, false];
++        }
++    });
++}, _PendingTransactionTracker_checkTxReceiptStatusIsFailed = function _PendingTransactionTracker_checkTxReceiptStatusIsFailed(txHash) {
++    return __awaiter(this, void 0, void 0, function* () {
++        const txReceipt = yield (0, controller_utils_1.query)(__classPrivateFieldGet(this, _PendingTransactionTracker_getEthQuery, "f").call(this), 'getTransactionReceipt', [txHash]);
++        if (!txReceipt) {
++            // Transaction is pending
++            return false;
++        }
++        return Number(txReceipt.status) === 0;
++    });
++};
++//# sourceMappingURL=PendingTransactionTracker.js.map
+\ No newline at end of file
 diff --git a/node_modules/@metamask/transaction-controller/dist/TransactionController.d.ts b/node_modules/@metamask/transaction-controller/dist/TransactionController.d.ts
-index 56005aa..5475a63 100644
+index 56005aa..1a6eb1c 100644
 --- a/node_modules/@metamask/transaction-controller/dist/TransactionController.d.ts
 +++ b/node_modules/@metamask/transaction-controller/dist/TransactionController.d.ts
 @@ -2,8 +2,12 @@
@@ -568,13 +739,14 @@ index 56005aa..5475a63 100644
  /**
   * Multiplier used to determine a transaction's increased gas fee during cancellation
   */
-@@ -221,19 +94,11 @@ export declare class TransactionController extends BaseController<TransactionCon
+@@ -221,19 +94,12 @@ export declare class TransactionController extends BaseController<TransactionCon
      private handle?;
      private mutex;
      private getNetworkState;
 +    private messagingSystem;
-+    private incomingTransactionHelper;
 +    private blockTracker;
++    private incomingTransactionHelper;
++    private pendingTransactionTracker;
      private failTransaction;
      private registryLookup;
 -    /**
@@ -591,7 +763,7 @@ index 56005aa..5475a63 100644
      /**
       * EventEmitter instance used to listen to specific transactional events
       */
-@@ -251,15 +116,29 @@ export declare class TransactionController extends BaseController<TransactionCon
+@@ -251,22 +117,31 @@ export declare class TransactionController extends BaseController<TransactionCon
       *
       * @param options - The controller options.
       * @param options.getNetworkState - Gets the state of the network controller.
@@ -599,6 +771,7 @@ index 56005aa..5475a63 100644
       * @param options.getProvider - Returns a provider for the current network.
 +     * @param options.getSelectedAddress - Gets the address of the currently selected account.
 +     * @param options.incomingTransactions - Configuration options for incoming transaction support.
++     * @param options.incomingTransactions.apiKey - API key to use in Etherscan requests.
 +     * @param options.incomingTransactions.includeTokenTransfers - Whether or not to include ERC20 token transfers.
 +     * @param options.incomingTransactions.isEnabled - Whether or not incoming transaction retrieval is enabled.
 +     * @param options.incomingTransactions.updateTransactions - Whether or not to update local transactions using remote transaction data.
@@ -622,9 +795,16 @@ index 56005aa..5475a63 100644
 +        messenger: TransactionControllerMessenger;
 +        onNetworkStateChange: (listener: (state: NetworkState) => void) => void;
      }, config?: Partial<TransactionConfig>, state?: Partial<TransactionState>);
+-    /**
+-     * Starts a new polling interval.
+-     *
+-     * @param interval - The polling interval used to fetch new transaction statuses.
+-     */
+-    poll(interval?: number): Promise<void>;
      /**
-      * Starts a new polling interval.
-@@ -280,11 +159,20 @@ export declare class TransactionController extends BaseController<TransactionCon
+      * Handle new method data request.
+      *
+@@ -280,11 +155,20 @@ export declare class TransactionController extends BaseController<TransactionCon
       * if not provided. If A `<tx.id>:unapproved` hub event will be emitted once added.
       *
       * @param transaction - The transaction object to add.
@@ -648,7 +828,7 @@ index 56005aa..5475a63 100644
      prepareUnsignedEthTx(txParams: Record<string, unknown>): TypedTransaction;
      /**
       * `@ethereumjs/tx` uses `@ethereumjs/common` as a configuration tool for
-@@ -296,22 +184,6 @@ export declare class TransactionController extends BaseController<TransactionCon
+@@ -296,22 +180,6 @@ export declare class TransactionController extends BaseController<TransactionCon
       * @returns {Common} common configuration object
       */
      getCommonConfiguration(): Common;
@@ -671,7 +851,19 @@ index 56005aa..5475a63 100644
      /**
       * Attempts to cancel a transaction based on its ID by setting its status to "rejected"
       * and emitting a `<tx.id>:finished` hub event.
-@@ -360,16 +232,6 @@ export declare class TransactionController extends BaseController<TransactionCon
+@@ -342,11 +210,6 @@ export declare class TransactionController extends BaseController<TransactionCon
+         gasPrice: any;
+         estimateGasError: string | undefined;
+     }>;
+-    /**
+-     * Check the status of submitted transactions on the network to determine whether they have
+-     * been included in a block. Any that have been included in a block are marked as confirmed.
+-     */
+-    queryTransactionStatuses(): Promise<void>;
+     /**
+      * Updates an existing transaction in state.
+      *
+@@ -360,16 +223,6 @@ export declare class TransactionController extends BaseController<TransactionCon
       * current network. If `true`, all transactions are wiped.
       */
      wipeTransactions(ignoreNetwork?: boolean): void;
@@ -688,14 +880,31 @@ index 56005aa..5475a63 100644
      /**
       * Trim the amount of transactions that are set on the state. Checks
       * if the length of the tx history is longer then desired persistence
-@@ -409,58 +271,35 @@ export declare class TransactionController extends BaseController<TransactionCon
-      * @returns Whether the transaction has failed.
+@@ -392,75 +245,36 @@ export declare class TransactionController extends BaseController<TransactionCon
+      * @returns Whether the transaction is in a final state.
       */
-     private checkTxReceiptStatusIsFailed;
+     private isFinalState;
 +    private processApproval;
 +    private requestApproval;
 +    private getApprovalId;
      /**
+-     * Method to verify the state of a transaction using the Blockchain as a source of truth.
+-     *
+-     * @param meta - The local transaction to verify on the blockchain.
+-     * @returns A tuple containing the updated transaction, and whether or not an update was required.
+-     */
+-    private blockchainTransactionStateReconciler;
+-    /**
+-     * Method to check if a tx has failed according to their receipt
+-     * According to the Web3 docs:
+-     * TRUE if the transaction was successful, FALSE if the EVM reverted the transaction.
+-     * The receipt is not available for pending transactions and returns null.
+-     *
+-     * @param txHash - The transaction hash.
+-     * @returns Whether the transaction has failed.
+-     */
+-    private checkTxReceiptStatusIsFailed;
+-    /**
 -     * Method to verify the state of transactions using Etherscan as a source of truth.
 -     *
 -     * @param remoteTxs - Transactions to reconcile that are from a remote source.
@@ -766,10 +975,11 @@ index 56005aa..5475a63 100644
 +    private isTransactionCompleted;
 +    private onIncomingTransactions;
 +    private onUpdatedLastFetchedBlockNumbers;
++    private onPendingTransactionsUpdate;
  }
  export default TransactionController;
 diff --git a/node_modules/@metamask/transaction-controller/dist/TransactionController.js b/node_modules/@metamask/transaction-controller/dist/TransactionController.js
-index 318d61e..3954379 100644
+index 318d61e..f02df7c 100644
 --- a/node_modules/@metamask/transaction-controller/dist/TransactionController.js
 +++ b/node_modules/@metamask/transaction-controller/dist/TransactionController.js
 @@ -12,7 +12,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
@@ -781,7 +991,7 @@ index 318d61e..3954379 100644
  const events_1 = require("events");
  const ethereumjs_util_1 = require("ethereumjs-util");
  const eth_rpc_errors_1 = require("eth-rpc-errors");
-@@ -24,33 +24,17 @@ const uuid_1 = require("uuid");
+@@ -24,33 +24,19 @@ const uuid_1 = require("uuid");
  const async_mutex_1 = require("async-mutex");
  const base_controller_1 = require("@metamask/base-controller");
  const controller_utils_1 = require("@metamask/controller-utils");
@@ -791,6 +1001,8 @@ index 318d61e..3954379 100644
 +const IncomingTransactionHelper_1 = require("./IncomingTransactionHelper");
 +const EtherscanRemoteTransactionSource_1 = require("./EtherscanRemoteTransactionSource");
 +const types_1 = require("./types");
++const PendingTransactionTracker_1 = require("./PendingTransactionTracker");
++const logger_1 = require("./logger");
  const HARDFORK = 'london';
  /**
 - * The status of the transaction. Each status represents the state of the transaction internally
@@ -822,7 +1034,7 @@ index 318d61e..3954379 100644
  /**
   * Multiplier used to determine a transaction's increased gas fee during cancellation
   */
-@@ -68,42 +52,20 @@ class TransactionController extends base_controller_1.BaseController {
+@@ -68,42 +54,21 @@ class TransactionController extends base_controller_1.BaseController {
       *
       * @param options - The controller options.
       * @param options.getNetworkState - Gets the state of the network controller.
@@ -830,6 +1042,7 @@ index 318d61e..3954379 100644
       * @param options.getProvider - Returns a provider for the current network.
 +     * @param options.getSelectedAddress - Gets the address of the currently selected account.
 +     * @param options.incomingTransactions - Configuration options for incoming transaction support.
++     * @param options.incomingTransactions.apiKey - API key to use in Etherscan requests.
 +     * @param options.incomingTransactions.includeTokenTransfers - Whether or not to include ERC20 token transfers.
 +     * @param options.incomingTransactions.isEnabled - Whether or not incoming transaction retrieval is enabled.
 +     * @param options.incomingTransactions.updateTransactions - Whether or not to update local transactions using remote transaction data.
@@ -873,7 +1086,7 @@ index 318d61e..3954379 100644
          /**
           * EventEmitter instance used to listen to specific transactional events
           */
-@@ -119,21 +81,41 @@ class TransactionController extends base_controller_1.BaseController {
+@@ -119,21 +84,52 @@ class TransactionController extends base_controller_1.BaseController {
          this.defaultState = {
              methodData: {},
              transactions: [],
@@ -902,13 +1115,25 @@ index 318d61e..3954379 100644
 +        });
 +        this.incomingTransactionHelper.hub.on('transactions', this.onIncomingTransactions.bind(this));
 +        this.incomingTransactionHelper.hub.on('updatedLastFetchedBlockNumbers', this.onUpdatedLastFetchedBlockNumbers.bind(this));
++        this.pendingTransactionTracker = new PendingTransactionTracker_1.PendingTransactionTracker({
++            blockTracker: this.blockTracker,
++            failTransaction: this.failTransaction.bind(this),
++            getChainId: () => this.getNetworkState().providerConfig.chainId,
++            getEthQuery: () => this.ethQuery,
++            getTransactions: () => this.state.transactions,
++        });
++        this.pendingTransactionTracker.hub.on('transactions', this.onPendingTransactionsUpdate.bind(this));
++        this.pendingTransactionTracker.hub.on('transaction-confirmed', (transactionMeta) => {
++            this.hub.emit(`${transactionMeta.id}:confirmed`, transactionMeta);
++        });
          onNetworkStateChange(() => {
              const newProvider = getProvider();
              this.ethQuery = new eth_query_1.default(newProvider);
              this.registry = new eth_method_registry_1.default({ provider: newProvider });
 +            this.blockTracker.setTarget(new eth_block_tracker_1.PollingBlockTracker({ provider: newProvider }));
          });
-         this.poll();
+-        this.poll();
++        this.pendingTransactionTracker.start();
      }
      failTransaction(transactionMeta, error) {
 -        const newTransactionMeta = Object.assign(Object.assign({}, transactionMeta), { error, status: TransactionStatus.failed });
@@ -916,7 +1141,7 @@ index 318d61e..3954379 100644
          this.updateTransaction(newTransactionMeta);
          this.hub.emit(`${transactionMeta.id}:finished`, newTransactionMeta);
      }
-@@ -144,43 +126,6 @@ class TransactionController extends base_controller_1.BaseController {
+@@ -144,58 +140,6 @@ class TransactionController extends base_controller_1.BaseController {
              return { registryMethod, parsedRegistryMethod };
          });
      }
@@ -957,10 +1182,25 @@ index 318d61e..3954379 100644
 -        /* istanbul ignore next */
 -        return Object.assign(Object.assign({}, normalizedTransactionBase), { error: new Error('Transaction failed'), status: TransactionStatus.failed });
 -    }
+-    /**
+-     * Starts a new polling interval.
+-     *
+-     * @param interval - The polling interval used to fetch new transaction statuses.
+-     */
+-    poll(interval) {
+-        return __awaiter(this, void 0, void 0, function* () {
+-            interval && this.configure({ interval }, false, false);
+-            this.handle && clearTimeout(this.handle);
+-            yield (0, controller_utils_1.safelyExecute)(() => this.queryTransactionStatuses());
+-            this.handle = setTimeout(() => {
+-                this.poll(this.config.interval);
+-            }, this.config.interval);
+-        });
+-    }
      /**
-      * Starts a new polling interval.
+      * Handle new method data request.
       *
-@@ -228,11 +173,13 @@ class TransactionController extends base_controller_1.BaseController {
+@@ -228,11 +172,13 @@ class TransactionController extends base_controller_1.BaseController {
       * if not provided. If A `<tx.id>:unapproved` hub event will be emitted once added.
       *
       * @param transaction - The transaction object to add.
@@ -977,7 +1217,7 @@ index 318d61e..3954379 100644
          return __awaiter(this, void 0, void 0, function* () {
              const { providerConfig, network } = this.getNetworkState();
              const { transactions } = this.state;
-@@ -243,11 +190,12 @@ class TransactionController extends base_controller_1.BaseController {
+@@ -243,11 +189,12 @@ class TransactionController extends base_controller_1.BaseController {
                  networkID: network,
                  chainId: providerConfig.chainId,
                  origin,
@@ -991,7 +1231,7 @@ index 318d61e..3954379 100644
              };
              try {
                  const { gas, estimateGasError } = yield this.estimateGas(transaction);
-@@ -258,27 +206,24 @@ class TransactionController extends base_controller_1.BaseController {
+@@ -258,27 +205,24 @@ class TransactionController extends base_controller_1.BaseController {
                  this.failTransaction(transactionMeta, error);
                  return Promise.reject(error);
              }
@@ -1034,7 +1274,7 @@ index 318d61e..3954379 100644
          });
      }
      prepareUnsignedEthTx(txParams) {
-@@ -298,7 +243,9 @@ class TransactionController extends base_controller_1.BaseController {
+@@ -298,7 +242,9 @@ class TransactionController extends base_controller_1.BaseController {
       */
      getCommonConfiguration() {
          const { network: networkId, providerConfig: { type: chain, chainId, nickname: name }, } = this.getNetworkState();
@@ -1045,7 +1285,7 @@ index 318d61e..3954379 100644
              return new common_1.default({ chain, hardfork: HARDFORK });
          }
          const customChainParams = {
-@@ -308,91 +255,6 @@ class TransactionController extends base_controller_1.BaseController {
+@@ -308,91 +254,6 @@ class TransactionController extends base_controller_1.BaseController {
          };
          return common_1.default.forCustomChain(controller_utils_1.NetworkType.mainnet, customChainParams, HARDFORK);
      }
@@ -1137,7 +1377,7 @@ index 318d61e..3954379 100644
      /**
       * Attempts to cancel a transaction based on its ID by setting its status to "rejected"
       * and emitting a `<tx.id>:finished` hub event.
-@@ -454,9 +316,9 @@ class TransactionController extends base_controller_1.BaseController {
+@@ -454,9 +315,9 @@ class TransactionController extends base_controller_1.BaseController {
                  };
              const unsignedEthTx = this.prepareUnsignedEthTx(txParams);
              const signedTx = yield this.sign(unsignedEthTx, transactionMeta.transaction.from);
@@ -1150,7 +1390,7 @@ index 318d61e..3954379 100644
              this.hub.emit(`${transactionMeta.id}:finished`, transactionMeta);
          });
      }
-@@ -506,9 +368,9 @@ class TransactionController extends base_controller_1.BaseController {
+@@ -506,9 +367,9 @@ class TransactionController extends base_controller_1.BaseController {
                  ? Object.assign(Object.assign({}, transactionMeta.transaction), { gasLimit: transactionMeta.transaction.gas, maxFeePerGas: newMaxFeePerGas, maxPriorityFeePerGas: newMaxPriorityFeePerGas, type: 2 }) : Object.assign(Object.assign({}, transactionMeta.transaction), { gasLimit: transactionMeta.transaction.gas, gasPrice: newGasPrice });
              const unsignedEthTx = this.prepareUnsignedEthTx(txParams);
              const signedTx = yield this.sign(unsignedEthTx, transactionMeta.transaction.from);
@@ -1162,7 +1402,45 @@ index 318d61e..3954379 100644
              ]);
              const baseTransactionMeta = Object.assign(Object.assign({}, transactionMeta), { id: (0, uuid_1.v1)(), time: Date.now(), transactionHash });
              const newTransactionMeta = newMaxFeePerGas && newMaxPriorityFeePerGas
-@@ -656,69 +518,6 @@ class TransactionController extends base_controller_1.BaseController {
+@@ -588,37 +449,6 @@ class TransactionController extends base_controller_1.BaseController {
+             return { gas: (0, ethereumjs_util_1.addHexPrefix)((0, controller_utils_1.BNToHex)(maxGasBN)), gasPrice };
+         });
+     }
+-    /**
+-     * Check the status of submitted transactions on the network to determine whether they have
+-     * been included in a block. Any that have been included in a block are marked as confirmed.
+-     */
+-    queryTransactionStatuses() {
+-        return __awaiter(this, void 0, void 0, function* () {
+-            const { transactions } = this.state;
+-            const { providerConfig, network: currentNetworkID } = this.getNetworkState();
+-            const { chainId: currentChainId } = providerConfig;
+-            let gotUpdates = false;
+-            yield (0, controller_utils_1.safelyExecute)(() => Promise.all(transactions.map((meta, index) => __awaiter(this, void 0, void 0, function* () {
+-                // Using fallback to networkID only when there is no chainId present.
+-                // Should be removed when networkID is completely removed.
+-                const txBelongsToCurrentChain = meta.chainId === currentChainId ||
+-                    (!meta.chainId && meta.networkID === currentNetworkID);
+-                if (!meta.verifiedOnBlockchain && txBelongsToCurrentChain) {
+-                    const [reconciledTx, updateRequired] = yield this.blockchainTransactionStateReconciler(meta);
+-                    if (updateRequired) {
+-                        transactions[index] = reconciledTx;
+-                        gotUpdates = updateRequired;
+-                    }
+-                }
+-            }))));
+-            /* istanbul ignore else */
+-            if (gotUpdates) {
+-                this.update({
+-                    transactions: this.trimTransactionsForState(transactions),
+-                });
+-            }
+-        });
+-    }
+     /**
+      * Updates an existing transaction in state.
+      *
+@@ -656,69 +486,6 @@ class TransactionController extends base_controller_1.BaseController {
              transactions: this.trimTransactionsForState(newTransactions),
          });
      }
@@ -1232,7 +1510,7 @@ index 318d61e..3954379 100644
      /**
       * Trim the amount of transactions that are set on the state. Checks
       * if the length of the tx history is longer then desired persistence
-@@ -735,7 +534,9 @@ class TransactionController extends base_controller_1.BaseController {
+@@ -735,7 +502,9 @@ class TransactionController extends base_controller_1.BaseController {
       */
      trimTransactionsForState(transactions) {
          const nonceNetworkSet = new Set();
@@ -1243,7 +1521,7 @@ index 318d61e..3954379 100644
              const { chainId, networkID, status, transaction, time } = tx;
              if (transaction) {
                  const key = `${transaction.nonce}-${chainId !== null && chainId !== void 0 ? chainId : networkID}-${new Date(time).toDateString()}`;
-@@ -750,7 +551,7 @@ class TransactionController extends base_controller_1.BaseController {
+@@ -750,7 +519,7 @@ class TransactionController extends base_controller_1.BaseController {
              }
              return false;
          });
@@ -1252,7 +1530,7 @@ index 318d61e..3954379 100644
          return txsToKeep;
      }
      /**
-@@ -760,10 +561,10 @@ class TransactionController extends base_controller_1.BaseController {
+@@ -760,166 +529,205 @@ class TransactionController extends base_controller_1.BaseController {
       * @returns Whether the transaction is in a final state.
       */
      isFinalState(status) {
@@ -1265,54 +1543,23 @@ index 318d61e..3954379 100644
 +            status === types_1.TransactionStatus.failed ||
 +            status === types_1.TransactionStatus.cancelled);
      }
-     /**
-      * Method to verify the state of a transaction using the Blockchain as a source of truth.
-@@ -775,7 +576,7 @@ class TransactionController extends base_controller_1.BaseController {
-         return __awaiter(this, void 0, void 0, function* () {
-             const { status, transactionHash } = meta;
-             switch (status) {
--                case TransactionStatus.confirmed:
-+                case types_1.TransactionStatus.confirmed:
-                     const txReceipt = yield (0, controller_utils_1.query)(this.ethQuery, 'getTransactionReceipt', [
-                         transactionHash,
-                     ]);
-@@ -792,7 +593,7 @@ class TransactionController extends base_controller_1.BaseController {
-                         return [meta, false];
-                     }
-                     return [meta, true];
--                case TransactionStatus.submitted:
-+                case types_1.TransactionStatus.submitted:
-                     const txObj = yield (0, controller_utils_1.query)(this.ethQuery, 'getTransactionByHash', [
-                         transactionHash,
-                     ]);
-@@ -807,7 +608,7 @@ class TransactionController extends base_controller_1.BaseController {
-                     }
-                     /* istanbul ignore next */
-                     if (txObj === null || txObj === void 0 ? void 0 : txObj.blockNumber) {
--                        meta.status = TransactionStatus.confirmed;
-+                        meta.status = types_1.TransactionStatus.confirmed;
-                         this.hub.emit(`${meta.id}:confirmed`, meta);
-                         return [meta, true];
-                     }
-@@ -838,88 +639,196 @@ class TransactionController extends base_controller_1.BaseController {
-             return Number(txReceipt.status) === 0;
-         });
-     }
 -    /**
--     * Method to verify the state of transactions using Etherscan as a source of truth.
+-     * Method to verify the state of a transaction using the Blockchain as a source of truth.
 -     *
--     * @param remoteTxs - Transactions to reconcile that are from a remote source.
--     * @param localTxs - Transactions to reconcile that are local.
--     * @returns A tuple containing a boolean indicating whether or not an update was required, and the updated transaction.
+-     * @param meta - The local transaction to verify on the blockchain.
+-     * @returns A tuple containing the updated transaction, and whether or not an update was required.
 -     */
--    etherscanTransactionStateReconciler(remoteTxs, localTxs) {
--        const updatedTxs = this.getUpdatedTransactions(remoteTxs, localTxs);
--        const newTxs = this.getNewTransactions(remoteTxs, localTxs);
--        const updatedLocalTxs = localTxs.map((tx) => {
--            const txIdx = updatedTxs.findIndex(({ transactionHash }) => transactionHash === tx.transactionHash);
--            return txIdx === -1 ? tx : updatedTxs[txIdx];
+-    blockchainTransactionStateReconciler(meta) {
 +    processApproval(transactionMeta) {
-+        return __awaiter(this, void 0, void 0, function* () {
+         return __awaiter(this, void 0, void 0, function* () {
+-            const { status, transactionHash } = meta;
+-            switch (status) {
+-                case TransactionStatus.confirmed:
+-                    const txReceipt = yield (0, controller_utils_1.query)(this.ethQuery, 'getTransactionReceipt', [
+-                        transactionHash,
+-                    ]);
+-                    if (!txReceipt) {
+-                        return [meta, false];
 +            const transactionId = transactionMeta.id;
 +            let resultCallbacks;
 +            try {
@@ -1329,10 +1576,38 @@ index 318d61e..3954379 100644
 +                    if (error.code === eth_rpc_errors_1.errorCodes.provider.userRejectedRequest) {
 +                        this.cancelTransaction(transactionId);
 +                        throw eth_rpc_errors_1.ethErrors.provider.userRejectedRequest('User rejected the transaction');
-+                    }
+                     }
+-                    meta.verifiedOnBlockchain = true;
+-                    meta.transaction.gasUsed = txReceipt.gasUsed;
+-                    // According to the Web3 docs:
+-                    // TRUE if the transaction was successful, FALSE if the EVM reverted the transaction.
+-                    if (Number(txReceipt.status) === 0) {
+-                        const error = new Error('Transaction failed. The transaction was reversed');
 +                    else {
-+                        this.failTransaction(meta, error);
-+                    }
+                         this.failTransaction(meta, error);
+-                        return [meta, false];
+                     }
+-                    return [meta, true];
+-                case TransactionStatus.submitted:
+-                    const txObj = yield (0, controller_utils_1.query)(this.ethQuery, 'getTransactionByHash', [
+-                        transactionHash,
+-                    ]);
+-                    if (!txObj) {
+-                        const receiptShowsFailedStatus = yield this.checkTxReceiptStatusIsFailed(transactionHash);
+-                        // Case the txObj is evaluated as false, a second check will
+-                        // determine if the tx failed or it is pending or confirmed
+-                        if (receiptShowsFailedStatus) {
+-                            const error = new Error('Transaction failed. The transaction was dropped or replaced by a new one');
+-                            this.failTransaction(meta, error);
+-                        }
+-                    }
+-                    /* istanbul ignore next */
+-                    if (txObj === null || txObj === void 0 ? void 0 : txObj.blockNumber) {
+-                        meta.status = TransactionStatus.confirmed;
+-                        this.hub.emit(`${meta.id}:confirmed`, meta);
+-                        return [meta, true];
+-                    }
+-                    return [meta, false];
 +                }
 +            }
 +            const finalMeta = this.getTransaction(transactionId);
@@ -1347,29 +1622,34 @@ index 318d61e..3954379 100644
 +                case types_1.TransactionStatus.submitted:
 +                    resultCallbacks === null || resultCallbacks === void 0 ? void 0 : resultCallbacks.success();
 +                    return finalMeta.transactionHash;
-+                default:
+                 default:
+-                    return [meta, false];
 +                    const internalError = eth_rpc_errors_1.ethErrors.rpc.internal(`MetaMask Tx Signature: Unknown problem: ${JSON.stringify(finalMeta || transactionId)}`);
 +                    resultCallbacks === null || resultCallbacks === void 0 ? void 0 : resultCallbacks.error(internalError);
 +                    throw internalError;
-+            }
+             }
          });
--        const updateRequired = newTxs.length > 0 || updatedLocalTxs.length > 0;
--        return [updateRequired, [...newTxs, ...updatedLocalTxs]];
      }
 -    /**
--     * Get all transactions that are in the remote transactions array
--     * but not in the local transactions array.
+-     * Method to check if a tx has failed according to their receipt
+-     * According to the Web3 docs:
+-     * TRUE if the transaction was successful, FALSE if the EVM reverted the transaction.
+-     * The receipt is not available for pending transactions and returns null.
 -     *
--     * @param remoteTxs - Array of transactions from remote source.
--     * @param localTxs - Array of transactions stored locally.
--     * @returns The new transactions.
+-     * @param txHash - The transaction hash.
+-     * @returns Whether the transaction has failed.
 -     */
--    getNewTransactions(remoteTxs, localTxs) {
--        return remoteTxs.filter((tx) => {
--            const alreadyInTransactions = localTxs.find(({ transactionHash }) => transactionHash === tx.transactionHash);
--            return !alreadyInTransactions;
+-    checkTxReceiptStatusIsFailed(txHash) {
 +    requestApproval(txMeta) {
-+        return __awaiter(this, void 0, void 0, function* () {
+         return __awaiter(this, void 0, void 0, function* () {
+-            const txReceipt = yield (0, controller_utils_1.query)(this.ethQuery, 'getTransactionReceipt', [
+-                txHash,
+-            ]);
+-            if (!txReceipt) {
+-                // Transaction is pending
+-                return false;
+-            }
+-            return Number(txReceipt.status) === 0;
 +            const id = this.getApprovalId(txMeta);
 +            const { origin } = txMeta;
 +            const type = 'transaction';
@@ -1383,13 +1663,28 @@ index 318d61e..3954379 100644
 +            }, true);
          });
      }
+-    /**
+-     * Method to verify the state of transactions using Etherscan as a source of truth.
+-     *
+-     * @param remoteTxs - Transactions to reconcile that are from a remote source.
+-     * @param localTxs - Transactions to reconcile that are local.
+-     * @returns A tuple containing a boolean indicating whether or not an update was required, and the updated transaction.
+-     */
+-    etherscanTransactionStateReconciler(remoteTxs, localTxs) {
+-        const updatedTxs = this.getUpdatedTransactions(remoteTxs, localTxs);
+-        const newTxs = this.getNewTransactions(remoteTxs, localTxs);
+-        const updatedLocalTxs = localTxs.map((tx) => {
+-            const txIdx = updatedTxs.findIndex(({ transactionHash }) => transactionHash === tx.transactionHash);
+-            return txIdx === -1 ? tx : updatedTxs[txIdx];
+-        });
+-        const updateRequired = newTxs.length > 0 || updatedLocalTxs.length > 0;
+-        return [updateRequired, [...newTxs, ...updatedLocalTxs]];
 +    getApprovalId(txMeta) {
 +        return String(txMeta.id);
-+    }
+     }
      /**
--     * Get all the transactions that are locally outdated with respect
--     * to a remote source (etherscan or blockchain). The returned array
--     * contains the transactions with the updated data.
+-     * Get all transactions that are in the remote transactions array
+-     * but not in the local transactions array.
 +     * Approves a transaction and updates it's status in state. If this is not a
 +     * retry transaction, a nonce will be generated. The transaction is signed
 +     * using the sign configuration property, then published to the blockchain.
@@ -1397,16 +1692,13 @@ index 318d61e..3954379 100644
       *
 -     * @param remoteTxs - Array of transactions from remote source.
 -     * @param localTxs - Array of transactions stored locally.
--     * @returns The updated transactions.
+-     * @returns The new transactions.
 +     * @param transactionID - The ID of the transaction to approve.
       */
--    getUpdatedTransactions(remoteTxs, localTxs) {
--        return remoteTxs.filter((remoteTx) => {
--            const isTxOutdated = localTxs.find((localTx) => {
--                return (remoteTx.transactionHash === localTx.transactionHash &&
--                    this.isTransactionOutdated(remoteTx, localTx));
--            });
--            return isTxOutdated;
+-    getNewTransactions(remoteTxs, localTxs) {
+-        return remoteTxs.filter((tx) => {
+-            const alreadyInTransactions = localTxs.find(({ transactionHash }) => transactionHash === tx.transactionHash);
+-            return !alreadyInTransactions;
 +    approveTransaction(transactionID) {
 +        return __awaiter(this, void 0, void 0, function* () {
 +            const { transactions } = this.state;
@@ -1469,19 +1761,25 @@ index 318d61e..3954379 100644
          });
      }
      /**
--     * Verifies if a local transaction is outdated with respect to the remote transaction.
+-     * Get all the transactions that are locally outdated with respect
+-     * to a remote source (etherscan or blockchain). The returned array
+-     * contains the transactions with the updated data.
 +     * Cancels a transaction based on its ID by setting its status to "rejected"
 +     * and emitting a `<tx.id>:finished` hub event.
       *
--     * @param remoteTx - The remote transaction from Etherscan.
--     * @param localTx - The local transaction.
--     * @returns Whether the transaction is outdated.
+-     * @param remoteTxs - Array of transactions from remote source.
+-     * @param localTxs - Array of transactions stored locally.
+-     * @returns The updated transactions.
 +     * @param transactionID - The ID of the transaction to cancel.
       */
--    isTransactionOutdated(remoteTx, localTx) {
--        const statusOutdated = this.isStatusOutdated(remoteTx.transactionHash, localTx.transactionHash, remoteTx.status, localTx.status);
--        const gasDataOutdated = this.isGasDataOutdated(remoteTx.transaction.gasUsed, localTx.transaction.gasUsed);
--        return statusOutdated || gasDataOutdated;
+-    getUpdatedTransactions(remoteTxs, localTxs) {
+-        return remoteTxs.filter((remoteTx) => {
+-            const isTxOutdated = localTxs.find((localTx) => {
+-                return (remoteTx.transactionHash === localTx.transactionHash &&
+-                    this.isTransactionOutdated(remoteTx, localTx));
+-            });
+-            return isTxOutdated;
+-        });
 +    cancelTransaction(transactionID) {
 +        const transactionMeta = this.state.transactions.find(({ id }) => id === transactionID);
 +        if (!transactionMeta) {
@@ -1493,19 +1791,19 @@ index 318d61e..3954379 100644
 +        this.update({ transactions: this.trimTransactionsForState(transactions) });
      }
      /**
--     * Verifies if the status of a local transaction is outdated with respect to the remote transaction.
+-     * Verifies if a local transaction is outdated with respect to the remote transaction.
 +     * Whether the transaction has at least completed all local processing.
       *
--     * @param remoteTxHash - Remote transaction hash.
--     * @param localTxHash - Local transaction hash.
--     * @param remoteTxStatus - Remote transaction status.
--     * @param localTxStatus - Local transaction status.
--     * @returns Whether the status is outdated.
+-     * @param remoteTx - The remote transaction from Etherscan.
+-     * @param localTx - The local transaction.
+-     * @returns Whether the transaction is outdated.
 +     * @param status - The transaction status.
 +     * @returns Whether the transaction is in a final state.
       */
--    isStatusOutdated(remoteTxHash, localTxHash, remoteTxStatus, localTxStatus) {
--        return remoteTxHash === localTxHash && remoteTxStatus !== localTxStatus;
+-    isTransactionOutdated(remoteTx, localTx) {
+-        const statusOutdated = this.isStatusOutdated(remoteTx.transactionHash, localTx.transactionHash, remoteTx.status, localTx.status);
+-        const gasDataOutdated = this.isGasDataOutdated(remoteTx.transaction.gasUsed, localTx.transaction.gasUsed);
+-        return statusOutdated || gasDataOutdated;
 +    isLocalFinalState(status) {
 +        return [
 +            types_1.TransactionStatus.cancelled,
@@ -1516,6 +1814,21 @@ index 318d61e..3954379 100644
 +        ].includes(status);
      }
 -    /**
+-     * Verifies if the status of a local transaction is outdated with respect to the remote transaction.
+-     *
+-     * @param remoteTxHash - Remote transaction hash.
+-     * @param localTxHash - Local transaction hash.
+-     * @param remoteTxStatus - Remote transaction status.
+-     * @param localTxStatus - Local transaction status.
+-     * @returns Whether the status is outdated.
+-     */
+-    isStatusOutdated(remoteTxHash, localTxHash, remoteTxStatus, localTxStatus) {
+-        return remoteTxHash === localTxHash && remoteTxStatus !== localTxStatus;
++    getTransaction(transactionID) {
++        const { transactions } = this.state;
++        return transactions.find(({ id }) => id === transactionID);
+     }
+-    /**
 -     * Verifies if the gas data of a local transaction is outdated with respect to the remote transaction.
 -     *
 -     * @param remoteGasUsed - Remote gas used in the transaction.
@@ -1524,10 +1837,6 @@ index 318d61e..3954379 100644
 -     */
 -    isGasDataOutdated(remoteGasUsed, localGasUsed) {
 -        return remoteGasUsed !== localGasUsed;
-+    getTransaction(transactionID) {
-+        const { transactions } = this.state;
-+        return transactions.find(({ id }) => id === transactionID);
-+    }
 +    isTransactionCompleted(transactionid) {
 +        const transaction = this.getTransaction(transactionid);
 +        if (!transaction) {
@@ -1553,6 +1862,10 @@ index 318d61e..3954379 100644
 +    onUpdatedLastFetchedBlockNumbers({ lastFetchedBlockNumbers, blockNumber, }) {
 +        this.update({ lastFetchedBlockNumbers });
 +        this.hub.emit('incomingTransactionBlock', blockNumber);
++    }
++    onPendingTransactionsUpdate(transactions) {
++        (0, logger_1.pendingTransactionsLogger)('Updated pending transactions');
++        this.update({ transactions: this.trimTransactionsForState(transactions) });
      }
  }
  exports.TransactionController = TransactionController;
@@ -1890,10 +2203,10 @@ index 0000000..99e055c
 +export declare function fetchEtherscanTokenTransactions({ address, apiKey, chainId, fromBlock, limit, }: EtherscanTransactionRequest): Promise<EtherscanTransactionResponse<EtherscanTokenTransactionMeta>>;
 diff --git a/node_modules/@metamask/transaction-controller/dist/etherscan.js b/node_modules/@metamask/transaction-controller/dist/etherscan.js
 new file mode 100644
-index 0000000..79f6512
+index 0000000..3719837
 --- /dev/null
 +++ b/node_modules/@metamask/transaction-controller/dist/etherscan.js
-@@ -0,0 +1,118 @@
+@@ -0,0 +1,120 @@
 +"use strict";
 +var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, generator) {
 +    function adopt(value) { return value instanceof P ? value : new P(function (resolve) { resolve(value); }); }
@@ -1966,7 +2279,9 @@ index 0000000..79f6512
 + * @param options.limit - Number of transactions to retrieve.
 + * @returns An object containing the request status and an array of transaction data.
 + */
-+function fetchTransactions(action, { address, apiKey, chainId, fromBlock, limit, }) {
++function fetchTransactions(action, { address, apiKey, chainId, 
++// eslint-disable-next-line @typescript-eslint/no-unused-vars
++fromBlock, limit, }) {
 +    return __awaiter(this, void 0, void 0, function* () {
 +        const urlParams = {
 +            module: 'account',
@@ -2039,6 +2354,34 @@ index a4460fa..0000000
 +++ /dev/null
 @@ -1 +0,0 @@
 -{"version":3,"file":"index.js","sourceRoot":"","sources":["../src/index.ts"],"names":[],"mappings":";;;;;;;;;;;;;;;;;AAAA,0DAAwC;AACxC,iCAA+C;AAAtC,6GAAA,oBAAoB,OAAA","sourcesContent":["export * from './TransactionController';\nexport { isEIP1559Transaction } from './utils';\n"]}
+\ No newline at end of file
+diff --git a/node_modules/@metamask/transaction-controller/dist/logger.d.ts b/node_modules/@metamask/transaction-controller/dist/logger.d.ts
+new file mode 100644
+index 0000000..c6fe506
+--- /dev/null
++++ b/node_modules/@metamask/transaction-controller/dist/logger.d.ts
+@@ -0,0 +1,6 @@
++/// <reference types="debug" />
++import { createModuleLogger } from '@metamask/utils';
++export declare const projectLogger: import("debug").Debugger;
++export declare const incomingTransactionsLogger: import("debug").Debugger;
++export declare const pendingTransactionsLogger: import("debug").Debugger;
++export { createModuleLogger };
+diff --git a/node_modules/@metamask/transaction-controller/dist/logger.js b/node_modules/@metamask/transaction-controller/dist/logger.js
+new file mode 100644
+index 0000000..17b9ee9
+--- /dev/null
++++ b/node_modules/@metamask/transaction-controller/dist/logger.js
+@@ -0,0 +1,9 @@
++"use strict";
++Object.defineProperty(exports, "__esModule", { value: true });
++exports.createModuleLogger = exports.pendingTransactionsLogger = exports.incomingTransactionsLogger = exports.projectLogger = void 0;
++const utils_1 = require("@metamask/utils");
++Object.defineProperty(exports, "createModuleLogger", { enumerable: true, get: function () { return utils_1.createModuleLogger; } });
++exports.projectLogger = (0, utils_1.createProjectLogger)('transaction-controller');
++exports.incomingTransactionsLogger = (0, utils_1.createModuleLogger)(exports.projectLogger, 'incoming-transactions');
++exports.pendingTransactionsLogger = (0, utils_1.createModuleLogger)(exports.projectLogger, 'pending-transactions');
++//# sourceMappingURL=logger.js.map
 \ No newline at end of file
 diff --git a/node_modules/@metamask/transaction-controller/dist/mocks/txsMock.d.ts b/node_modules/@metamask/transaction-controller/dist/mocks/txsMock.d.ts
 deleted file mode 100644
