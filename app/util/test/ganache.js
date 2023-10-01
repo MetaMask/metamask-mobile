@@ -39,7 +39,7 @@ export default class Ganache {
   }
 
   getProvider() {
-    return this._server.provider;
+    return this._server?.provider;
   }
 
   async getAccounts() {
@@ -78,6 +78,7 @@ export default class Ganache {
       this._serverClosing = true;
       await this._server.close();
       this._serverClosing = false;
+      this._server = undefined;
     } catch (error) {
       console.error('error closing ganache server', error);
     }

@@ -263,18 +263,16 @@ export default class TestHelpers {
 
   static async reverseServerPort() {
     // eslint-disable-next-line no-console
-    console.log('check platform: ', device.getPlatform());
+    console.log(
+      'Reverse Ports: ',
+      getGanachePort(),
+      getFixturesServerPort(),
+      getLocalTestDappPort(),
+    );
     if (device.getPlatform() === 'android') {
       await device.reverseTcpPort(getGanachePort());
       await device.reverseTcpPort(getFixturesServerPort());
       await device.reverseTcpPort(getLocalTestDappPort());
-      // eslint-disable-next-line no-console
-      console.log(
-        'ports reverted successfully: ',
-        getGanachePort(),
-        getFixturesServerPort(),
-        getLocalTestDappPort(),
-      );
     }
   }
 }

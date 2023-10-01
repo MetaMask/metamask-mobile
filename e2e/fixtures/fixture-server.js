@@ -111,6 +111,7 @@ class FixtureServer {
       this._server.close();
       this._server.once('error', reject);
       this._server.once('close', resolve);
+      this._server = undefined;
     });
   }
   // Load JSON state into the server
