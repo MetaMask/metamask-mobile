@@ -1,7 +1,4 @@
-import {
-  getGanachePort,
-  getServerPort,
-} from '../../../e2e/dynamical-port-generator';
+import { getGanachePort } from '../../../e2e/utils';
 import ganache from 'ganache';
 
 export const DEFAULT_GANACHE_PORT = 8545;
@@ -9,16 +6,13 @@ export const DEFAULT_GANACHE_PORT = 8545;
 const defaultOptions = {
   blockTime: 2,
   network_id: 1337,
-  port: getServerPort(DEFAULT_GANACHE_PORT),
+  port: DEFAULT_GANACHE_PORT,
   vmErrorsOnRPCResponse: false,
   hardfork: 'muirGlacier',
   quiet: false,
 };
 
 export default class Ganache {
-  constructor() {
-    this._serverClosing = false;
-  }
   async start(opts) {
     if (!opts.mnemonic) {
       throw new Error('Missing required mnemonic');
@@ -29,10 +23,6 @@ export default class Ganache {
       this._server = ganache.server(options);
       await this._server.listen(port);
     } catch (error) {
-      if (error.code === 'EADDRINUSE') {
-        console.error('Port is already in use:', error.message);
-        return;
-      }
       console.error(error);
       throw error;
     }
@@ -67,20 +57,7 @@ export default class Ganache {
     if (!this._server) {
       throw new Error('Server not running yet');
     }
-    if (this._serverClosing) {
-      // eslint-disable-next-line no-console
-      console.log('waiting ganache server to close');
-      await new Promise((resolve) => {
-        setTimeout(resolve, 200);
-      });
-    }
-    try {
-      this._serverClosing = true;
-      await this._server.close();
-      this._serverClosing = false;
-      this._server = undefined;
-    } catch (error) {
-      console.error('error closing ganache server', error);
-    }
+    await this._server.close();
+    this._server = undefined;
   }
 }

@@ -6,10 +6,7 @@ import GanacheSeeder from '../../app/util/test/ganache-seeder';
 import axios from 'axios';
 import path from 'path';
 import createStaticServer from '../create-static-server';
-import {
-  getFixturesServerPort,
-  getLocalTestDappPort,
-} from '../../e2e/dynamical-port-generator';
+import { getFixturesServerPort, getLocalTestDappPort } from '../utils';
 
 export const DEFAULT_DAPP_SERVER_PORT = 8085;
 
@@ -114,39 +111,32 @@ export async function withFixtures(options, testSuite) {
       }
     }
 
-    try {
-      if (dapp) {
-        if (dappOptions?.numberOfDapps) {
-          numberOfDapps = dappOptions.numberOfDapps;
-        }
-        for (let i = 0; i < numberOfDapps; i++) {
-          let dappDirectory;
-          if (dappPath || (dappPaths && dappPaths[i])) {
-            dappDirectory = path.resolve(__dirname, dappPath || dappPaths[i]);
-          } else {
-            dappDirectory = path.resolve(
-              __dirname,
-              '..',
-              '..',
-              'node_modules',
-              '@metamask',
-              'test-dapp',
-              'dist',
-            );
-          }
-          dappServer.push(createStaticServer(dappDirectory));
-          dappServer[i].listen(`${dappBasePort + i}`);
-          await new Promise((resolve, reject) => {
-            dappServer[i].on('listening', resolve);
-            dappServer[i].on('error', reject);
-          });
-        }
+    if (dapp) {
+      if (dappOptions?.numberOfDapps) {
+        numberOfDapps = dappOptions.numberOfDapps;
       }
-    } catch (error) {
-      if (error.code === 'EADDRINUSE') {
-        console.error('Port is already in use dapp:', error.message);
+      for (let i = 0; i < numberOfDapps; i++) {
+        let dappDirectory;
+        if (dappPath || (dappPaths && dappPaths[i])) {
+          dappDirectory = path.resolve(__dirname, dappPath || dappPaths[i]);
+        } else {
+          dappDirectory = path.resolve(
+            __dirname,
+            '..',
+            '..',
+            'node_modules',
+            '@metamask',
+            'test-dapp',
+            'dist',
+          );
+        }
+        dappServer.push(createStaticServer(dappDirectory));
+        dappServer[i].listen(`${dappBasePort + i}`);
+        await new Promise((resolve, reject) => {
+          dappServer[i].on('listening', resolve);
+          dappServer[i].on('error', reject);
+        });
       }
-      throw error;
     }
 
     // Start the fixture server
@@ -160,13 +150,13 @@ export async function withFixtures(options, testSuite) {
     if (restartDevice) {
       await device.launchApp({
         delete: true,
-        launchArgs: { jestWorkerId: `${getFixturesServerPort()}` },
+        launchArgs: { fixtureServerPort: `${getFixturesServerPort()}` },
       });
     }
 
     await testSuite({ contractRegistry });
   } catch (error) {
-    console.error('withFixtures error:', error);
+    console.error(error);
     throw error;
   } finally {
     if (ganacheOptions) {

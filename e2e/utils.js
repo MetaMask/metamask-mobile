@@ -2,10 +2,8 @@ import { DEFAULT_GANACHE_PORT } from '../app/util/test/ganache';
 import { DEFAULT_FIXTURE_SERVER_PORT } from './fixtures/fixture-server';
 import { DEFAULT_DAPP_SERVER_PORT } from './fixtures/fixture-helper';
 
-export function getServerPort(defaultPort) {
-  if (process.pid) {
-    // eslint-disable-next-line no-console
-    console.log('>>>>>>>>', process.env.CI);
+function getServerPort(defaultPort) {
+  if (process.env.CI) {
     return defaultPort + (parseInt(process.pid, 10) % 10);
   }
   return defaultPort;

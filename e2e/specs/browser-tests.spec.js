@@ -13,7 +13,7 @@ import {
   stopFixtureServer,
 } from '../fixtures/fixture-helper';
 import FixtureServer from '../fixtures/fixture-server';
-import { getFixturesServerPort } from '../dynamical-port-generator';
+import { getFixturesServerPort } from '../utils';
 
 const PHISHING_SITE = 'http://www.empowr.com/FanFeed/Home.aspx';
 const INVALID_URL = 'https://quackquakc.easq';
@@ -29,7 +29,7 @@ describe(Smoke('Browser Tests'), () => {
     await loadFixture(fixtureServer, { fixture });
     await device.launchApp({
       delete: true,
-      launchArgs: { jestWorkerId: `${getFixturesServerPort()}` },
+      launchArgs: { fixtureServerPort: `${getFixturesServerPort()}` },
     });
     await loginToApp();
   });

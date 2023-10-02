@@ -1,7 +1,7 @@
-import { getFixturesServerPort } from './dynamical-port-generator';
+import { getFixturesServerPort } from './utils';
 
 beforeAll(async () => {
   await device.launchApp({
-    launchArgs: { jestWorkerId: `${getFixturesServerPort()}` },
+    launchArgs: { fixtureServerPort: `${getFixturesServerPort()}` },
   });
 });

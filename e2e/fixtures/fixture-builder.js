@@ -1,4 +1,4 @@
-import { getGanachePort } from '../../e2e/dynamical-port-generator';
+import { getGanachePort } from '../utils';
 import { merge } from 'lodash';
 
 const DAPP_URL = 'localhost';
