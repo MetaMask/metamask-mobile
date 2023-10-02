@@ -38,6 +38,7 @@ import {
   NetworkControllerActions,
   NetworkControllerEvents,
   NetworkState,
+  NetworkStatus,
 } from '@metamask/network-controller';
 import {
   PhishingController,
@@ -535,9 +536,9 @@ class Engine {
         },
       ),
       new TransactionController({
+        blockTracker:
+          networkController.getProviderAndBlockTracker().blockTracker,
         getNetworkState: () => networkController.state,
-        getProvider: () =>
-          networkController.getProviderAndBlockTracker().provider,
         getSelectedAddress: () => preferencesController.state.selectedAddress,
         incomingTransactions: {
           apiKey: process.env.MM_ETHERSCAN_KEY,
@@ -554,6 +555,7 @@ class Engine {
             AppConstants.NETWORK_STATE_CHANGE_EVENT,
             listener,
           ),
+        provider: networkController.getProviderAndBlockTracker().provider,
       }),
       new SwapsController(
         {
@@ -721,9 +723,9 @@ class Engine {
 
     this.controllerMessenger.subscribe(
       AppConstants.NETWORK_STATE_CHANGE_EVENT,
-      (state: { network: string; providerConfig: { chainId: any } }) => {
+      (state: NetworkState) => {
         if (
-          state.network !== 'loading' &&
+          state.networkStatus === NetworkStatus.Available &&
           state.providerConfig.chainId !== currentChainId
         ) {
           // We should add a state or event emitter saying the provider changed

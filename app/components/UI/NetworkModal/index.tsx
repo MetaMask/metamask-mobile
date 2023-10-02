@@ -112,6 +112,7 @@ interface NetworkProps {
   networkConfiguration: any;
   navigation: any;
   shouldNetworkSwitchPopToWallet: boolean;
+  onNetworkSwitch?: () => void;
 }
 
 const NetworkModals = (props: NetworkProps) => {
@@ -128,6 +129,7 @@ const NetworkModals = (props: NetworkProps) => {
       rpcPrefs: { blockExplorerUrl, imageUrl },
     },
     shouldNetworkSwitchPopToWallet,
+    onNetworkSwitch,
   } = props;
 
   const [showDetails, setShowDetails] = React.useState(false);
@@ -211,9 +213,13 @@ const NetworkModals = (props: NetworkProps) => {
     AnalyticsV2.trackEvent(MetaMetricsEvents.NETWORK_ADDED, analyticsParamsAdd);
 
     closeModal();
-    shouldNetworkSwitchPopToWallet
-      ? navigation.navigate('WalletView')
-      : navigation.goBack();
+    if (onNetworkSwitch) {
+      onNetworkSwitch();
+    } else {
+      shouldNetworkSwitchPopToWallet
+        ? navigation.navigate('WalletView')
+        : navigation.goBack();
+    }
     dispatch(networkSwitched({ networkUrl: url.href, networkStatus: true }));
   };
 
