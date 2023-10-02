@@ -20,7 +20,7 @@ describe(Smoke('Typed Sign'), () => {
     await TestHelpers.reverseServerPort();
   });
 
-  it('should sign and cancel typed message', async () => {
+  it('should sign typed message', async () => {
     await withFixtures(
       {
         dapp: true,
@@ -37,15 +37,33 @@ describe(Smoke('Typed Sign'), () => {
         await TabBarComponent.tapBrowser();
         await Browser.navigateToTestDApp();
 
-        // Sign
         await TestHelpers.retry(MAX_ATTEMPTS, async () => {
           await TestDApp.tapTypedSignButton();
           await SigningModal.isTypedRequestVisible();
           await SigningModal.tapSignButton();
           await SigningModal.isNotVisible();
         });
+      },
+    );
+  });
 
-        // Cancel
+  it('should cancel typed message', async () => {
+    await withFixtures(
+      {
+        dapp: true,
+        fixture: new FixtureBuilder()
+          .withGanacheNetwork()
+          .withPermissionControllerConnectedToTestDapp()
+          .build(),
+        restartDevice: true,
+        ganacheOptions: defaultGanacheOptions,
+      },
+      async () => {
+        await loginToApp();
+
+        await TabBarComponent.tapBrowser();
+        await Browser.navigateToTestDApp();
+
         await TestHelpers.retry(MAX_ATTEMPTS, async () => {
           await TestDApp.tapTypedSignButton();
           await SigningModal.isTypedRequestVisible();
@@ -56,7 +74,7 @@ describe(Smoke('Typed Sign'), () => {
     );
   });
 
-  it('should sign and cancel typed V3 message', async () => {
+  it('should sign typed V3 message', async () => {
     await withFixtures(
       {
         dapp: true,
@@ -73,15 +91,6 @@ describe(Smoke('Typed Sign'), () => {
         await TabBarComponent.tapBrowser();
         await Browser.navigateToTestDApp();
 
-        // Sign
-        await TestHelpers.retry(MAX_ATTEMPTS, async () => {
-          await TestDApp.tapTypedV3SignButton();
-          await SigningModal.isTypedRequestVisible();
-          await SigningModal.tapSignButton();
-          await SigningModal.isNotVisible();
-        });
-
-        // Cancel
         await TestHelpers.retry(MAX_ATTEMPTS, async () => {
           await TestDApp.tapTypedV3SignButton();
           await SigningModal.isTypedRequestVisible();
@@ -92,7 +101,7 @@ describe(Smoke('Typed Sign'), () => {
     );
   });
 
-  it('should sign and cancel typed V4 message', async () => {
+  it('should cancel typed V3 message', async () => {
     await withFixtures(
       {
         dapp: true,
@@ -109,15 +118,60 @@ describe(Smoke('Typed Sign'), () => {
         await TabBarComponent.tapBrowser();
         await Browser.navigateToTestDApp();
 
-        // Sign
+        await TestHelpers.retry(MAX_ATTEMPTS, async () => {
+          await TestDApp.tapTypedV3SignButton();
+          await SigningModal.isTypedRequestVisible();
+          await SigningModal.tapSignButton();
+          await SigningModal.isNotVisible();
+        });
+      },
+    );
+  });
+
+  it('should sign typed V4 message', async () => {
+    await withFixtures(
+      {
+        dapp: true,
+        fixture: new FixtureBuilder()
+          .withGanacheNetwork()
+          .withPermissionControllerConnectedToTestDapp()
+          .build(),
+        restartDevice: true,
+        ganacheOptions: defaultGanacheOptions,
+      },
+      async () => {
+        await loginToApp();
+
+        await TabBarComponent.tapBrowser();
+        await Browser.navigateToTestDApp();
+
         await TestHelpers.retry(MAX_ATTEMPTS, async () => {
           await TestDApp.tapTypedV4SignButton();
           await SigningModal.isTypedRequestVisible();
           await SigningModal.tapSignButton();
           await SigningModal.isNotVisible();
         });
+      },
+    );
+  });
 
-        // Cancel
+  it('should cancel typed V4 message', async () => {
+    await withFixtures(
+      {
+        dapp: true,
+        fixture: new FixtureBuilder()
+          .withGanacheNetwork()
+          .withPermissionControllerConnectedToTestDapp()
+          .build(),
+        restartDevice: true,
+        ganacheOptions: defaultGanacheOptions,
+      },
+      async () => {
+        await loginToApp();
+
+        await TabBarComponent.tapBrowser();
+        await Browser.navigateToTestDApp();
+
         await TestHelpers.retry(MAX_ATTEMPTS, async () => {
           await TestDApp.tapTypedV4SignButton();
           await SigningModal.isTypedRequestVisible();

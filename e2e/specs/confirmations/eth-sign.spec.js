@@ -20,7 +20,7 @@ describe(Smoke('Eth Sign'), () => {
     await TestHelpers.reverseServerPort();
   });
 
-  it('should sign and cancel eth_sign message', async () => {
+  it('should sign eth_sign message', async () => {
     await withFixtures(
       {
         dapp: true,
@@ -42,15 +42,38 @@ describe(Smoke('Eth Sign'), () => {
         await TabBarComponent.tapBrowser();
         await Browser.navigateToTestDApp();
 
-        // Sign
         await TestHelpers.retry(MAX_ATTEMPTS, async () => {
           await TestDApp.tapEthSignButton();
           await SigningModal.isEthRequestVisible();
           await SigningModal.tapSignButton();
           await SigningModal.isNotVisible();
         });
+      },
+    );
+  });
 
-        // Cancel
+  it('should cancel eth_sign message', async () => {
+    await withFixtures(
+      {
+        dapp: true,
+        fixture: new FixtureBuilder()
+          .withGanacheNetwork()
+          .withPreferencesController({
+            disabledRpcMethodPreferences: {
+              eth_sign: true,
+            },
+          })
+          .withPermissionControllerConnectedToTestDapp()
+          .build(),
+        restartDevice: true,
+        ganacheOptions: defaultGanacheOptions,
+      },
+      async () => {
+        await loginToApp();
+
+        await TabBarComponent.tapBrowser();
+        await Browser.navigateToTestDApp();
+
         await TestHelpers.retry(MAX_ATTEMPTS, async () => {
           await TestDApp.tapEthSignButton();
           await SigningModal.isEthRequestVisible();

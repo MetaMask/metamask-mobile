@@ -20,7 +20,7 @@ describe(Smoke('Personal Sign'), () => {
     await TestHelpers.reverseServerPort();
   });
 
-  it('should sign and cancel personal message', async () => {
+  it('should sign personal message', async () => {
     await withFixtures(
       {
         dapp: true,
@@ -37,15 +37,33 @@ describe(Smoke('Personal Sign'), () => {
         await TabBarComponent.tapBrowser();
         await Browser.navigateToTestDApp();
 
-        // Sign
         await TestHelpers.retry(MAX_ATTEMPTS, async () => {
           await TestDApp.tapPersonalSignButton();
           await SigningModal.isPersonalRequestVisible();
           await SigningModal.tapSignButton();
           await SigningModal.isNotVisible();
         });
+      },
+    );
+  });
 
-        // Cancel
+  it('should cancel personal message', async () => {
+    await withFixtures(
+      {
+        dapp: true,
+        fixture: new FixtureBuilder()
+          .withGanacheNetwork()
+          .withPermissionControllerConnectedToTestDapp()
+          .build(),
+        restartDevice: true,
+        ganacheOptions: defaultGanacheOptions,
+      },
+      async () => {
+        await loginToApp();
+
+        await TabBarComponent.tapBrowser();
+        await Browser.navigateToTestDApp();
+
         await TestHelpers.retry(MAX_ATTEMPTS, async () => {
           await TestDApp.tapPersonalSignButton();
           await SigningModal.isPersonalRequestVisible();
