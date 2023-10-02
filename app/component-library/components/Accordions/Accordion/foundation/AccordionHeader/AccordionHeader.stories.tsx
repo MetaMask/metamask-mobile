@@ -7,21 +7,21 @@ const AccordionHeaderMeta = {
   title: 'Component Library / Accordions',
   component: AccordionHeaderComponent,
   argTypes: {
+    title: {
+      control: { type: 'text' },
+      defaultValue: SAMPLE_ACCORDIONHEADER_PROPS.title,
+    },
     isExpanded: {
       control: { type: 'boolean' },
     },
     horizontalAlignment: {
-      options: Object.values(AccordionHeaderHorizontalAlignment),
-      mapping: Object.values(AccordionHeaderHorizontalAlignment),
+      options: AccordionHeaderHorizontalAlignment,
       control: {
         type: 'select',
-        labels: Object.keys(AccordionHeaderHorizontalAlignment),
       },
     },
   },
 };
 export default AccordionHeaderMeta;
 
-export const AccordionHeader = {
-  args: SAMPLE_ACCORDIONHEADER_PROPS,
-};
+export const AccordionHeader = {};

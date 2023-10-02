@@ -18,15 +18,17 @@ const AccordionMeta = {
   title: 'Component Library / Accordions',
   component: AccordionComponent,
   argTypes: {
+    title: {
+      control: { type: 'text' },
+      defaultValue: SAMPLE_ACCORDIONHEADER_PROPS.title,
+    },
     isExpanded: {
       control: { type: 'boolean' },
     },
     horizontalAlignment: {
-      options: Object.values(AccordionHeaderHorizontalAlignment),
-      mapping: Object.values(AccordionHeaderHorizontalAlignment),
+      options: AccordionHeaderHorizontalAlignment,
       control: {
         type: 'select',
-        labels: Object.keys(AccordionHeaderHorizontalAlignment),
       },
     },
   },
@@ -34,7 +36,6 @@ const AccordionMeta = {
 export default AccordionMeta;
 
 export const Accordion = {
-  args: SAMPLE_ACCORDIONHEADER_PROPS,
   render: (
     args: JSX.IntrinsicAttributes &
       AccordionProps & { children?: React.ReactNode },
