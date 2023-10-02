@@ -22,7 +22,6 @@ const fetchWithTimeout = (url) =>
   });
 
 const FIXTURE_SERVER_HOST = 'localhost';
-// const FIXTURE_SERVER_PORT = 12345;
 const FIXTURE_SERVER_URL = `http://${FIXTURE_SERVER_HOST}:${getFixturesServerPort()}/state.json`;
 
 class ReadOnlyNetworkStore {
