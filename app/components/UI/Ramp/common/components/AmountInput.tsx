@@ -39,30 +39,32 @@ const AmountInput: React.FC<Props> = ({
   onPress,
   onCurrencyPress,
 }: Props) => (
-  <Box
-    label={label}
-    onPress={onPress}
-    highlighted={highlighted}
-    accessible={false}
-  >
+  <Box label={label} highlighted={highlighted}>
     <ListItem.Content>
       <ListItem.Body>
-        <Text
-          black={!highlightedError}
-          red={highlightedError}
-          bold
-          style={styles.amount}
-          numberOfLines={1}
-          adjustsFontSizeToFit
+        <TouchableOpacity
+          accessible
+          accessibilityRole="button"
+          onPress={onPress}
+          hitSlop={{ top: 20, left: 20, right: 20, bottom: 20 }}
         >
-          {currencySymbol || ''}
-          {amount}
-        </Text>
+          <Text
+            black={!highlightedError}
+            red={highlightedError}
+            bold
+            style={styles.amount}
+            numberOfLines={1}
+            adjustsFontSizeToFit
+          >
+            {currencySymbol || ''}
+            {amount}
+          </Text>
+        </TouchableOpacity>
       </ListItem.Body>
       <ListItem.Amounts style={styles.chevron}>
         <TouchableOpacity
-          accessibilityRole="button"
           accessible
+          accessibilityRole="button"
           disabled={!onCurrencyPress}
           onPress={onCurrencyPress}
           hitSlop={{ top: 20, left: 20, right: 20, bottom: 20 }}

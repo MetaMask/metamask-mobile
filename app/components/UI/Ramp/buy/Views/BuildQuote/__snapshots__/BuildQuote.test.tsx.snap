@@ -1118,10 +1118,8 @@ exports[`BuildQuote View renders correctly 1`] = `
                                   Amount
                                 </Text>
                                 <TouchableOpacity
-                                  accessibilityRole="button"
                                   accessible={false}
-                                  disabled={false}
-                                  onPress={[Function]}
+                                  disabled={true}
                                 >
                                   <View
                                     style={
@@ -1159,55 +1157,69 @@ exports[`BuildQuote View renders correctly 1`] = `
                                           ]
                                         }
                                       >
-                                        <Text
-                                          adjustsFontSizeToFit={true}
-                                          numberOfLines={1}
-                                          style={
-                                            Array [
-                                              Object {
-                                                "color": "#24272A",
-                                                "fontFamily": "EuclidCircularB-Regular",
-                                                "fontSize": 30,
-                                                "fontWeight": "400",
-                                                "marginVertical": 2,
-                                              },
-                                              undefined,
-                                              undefined,
-                                              Object {
-                                                "fontFamily": "EuclidCircularB-Bold",
-                                                "fontWeight": "600",
-                                              },
-                                              undefined,
-                                              false,
-                                              undefined,
-                                              undefined,
-                                              Object {
-                                                "color": "#D73847",
-                                              },
-                                              undefined,
-                                              false,
-                                              undefined,
-                                              undefined,
-                                              undefined,
-                                              undefined,
-                                              undefined,
-                                              undefined,
-                                              undefined,
-                                              undefined,
-                                              undefined,
-                                              undefined,
-                                              undefined,
-                                              undefined,
-                                              undefined,
-                                              Object {
-                                                "fontSize": 24,
-                                              },
-                                            ]
+                                        <TouchableOpacity
+                                          accessibilityRole="button"
+                                          accessible={true}
+                                          hitSlop={
+                                            Object {
+                                              "bottom": 20,
+                                              "left": 20,
+                                              "right": 20,
+                                              "top": 20,
+                                            }
                                           }
+                                          onPress={[Function]}
                                         >
-                                          $
-                                          0
-                                        </Text>
+                                          <Text
+                                            adjustsFontSizeToFit={true}
+                                            numberOfLines={1}
+                                            style={
+                                              Array [
+                                                Object {
+                                                  "color": "#24272A",
+                                                  "fontFamily": "EuclidCircularB-Regular",
+                                                  "fontSize": 30,
+                                                  "fontWeight": "400",
+                                                  "marginVertical": 2,
+                                                },
+                                                undefined,
+                                                undefined,
+                                                Object {
+                                                  "fontFamily": "EuclidCircularB-Bold",
+                                                  "fontWeight": "600",
+                                                },
+                                                undefined,
+                                                false,
+                                                undefined,
+                                                undefined,
+                                                Object {
+                                                  "color": "#D73847",
+                                                },
+                                                undefined,
+                                                false,
+                                                undefined,
+                                                undefined,
+                                                undefined,
+                                                undefined,
+                                                undefined,
+                                                undefined,
+                                                undefined,
+                                                undefined,
+                                                undefined,
+                                                undefined,
+                                                undefined,
+                                                undefined,
+                                                undefined,
+                                                Object {
+                                                  "fontSize": 24,
+                                                },
+                                              ]
+                                            }
+                                          >
+                                            $
+                                            0
+                                          </Text>
+                                        </TouchableOpacity>
                                       </View>
                                       <View
                                         style={
@@ -1357,6 +1369,53 @@ exports[`BuildQuote View renders correctly 1`] = `
                                   </View>
                                 </TouchableOpacity>
                               </View>
+                              <Text
+                                style={
+                                  Array [
+                                    Object {
+                                      "color": "#24272A",
+                                      "fontFamily": "EuclidCircularB-Regular",
+                                      "fontSize": 30,
+                                      "fontWeight": "400",
+                                      "marginVertical": 2,
+                                    },
+                                    undefined,
+                                    undefined,
+                                    undefined,
+                                    undefined,
+                                    undefined,
+                                    undefined,
+                                    undefined,
+                                    Object {
+                                      "color": "#D73847",
+                                    },
+                                    undefined,
+                                    undefined,
+                                    undefined,
+                                    undefined,
+                                    undefined,
+                                    Object {
+                                      "fontSize": 12,
+                                    },
+                                    undefined,
+                                    undefined,
+                                    undefined,
+                                    undefined,
+                                    undefined,
+                                    undefined,
+                                    undefined,
+                                    undefined,
+                                    undefined,
+                                    undefined,
+                                  ]
+                                }
+                                testID="below-min-alert"
+                              >
+                                Minimum deposit is
+                                 
+                                $
+                                2
+                              </Text>
                             </View>
                           </View>
                         </View>
@@ -1629,6 +1688,7 @@ exports[`BuildQuote View renders correctly 1`] = `
                             >
                               <TouchableOpacity
                                 accessibilityRole="button"
+                                accessible={true}
                                 activeOpacity={1}
                                 disabled={true}
                                 style={
@@ -2695,8 +2755,6 @@ exports[`BuildQuote View renders correctly 1`] = `
                               }
                             >
                               <TouchableOpacity
-                                accessibilityRole="button"
-                                accessible={true}
                                 onPress={[Function]}
                                 style={
                                   Array [
@@ -2869,6 +2927,7 @@ exports[`BuildQuote View renders correctly 1`] = `
                                     },
                                   ]
                                 }
+                                testID="keypad-delete-button"
                               >
                                 <Text
                                   allowFontScaling={false}
@@ -2906,6 +2965,7 @@ exports[`BuildQuote View renders correctly 1`] = `
                           >
                             <TouchableOpacity
                               accessibilityRole="button"
+                              accessible={true}
                               activeOpacity={0.2}
                               onPress={[Function]}
                               style={

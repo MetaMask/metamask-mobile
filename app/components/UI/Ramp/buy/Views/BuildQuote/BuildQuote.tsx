@@ -559,14 +559,14 @@ const BuildQuote = () => {
               />
             </View>
             {amountIsBelowMinimum && limits && (
-              <Text red small>
+              <Text red small testID="below-min-alert">
                 {strings('fiat_on_ramp_aggregator.minimum')}{' '}
                 {currentFiatCurrency?.denomSymbol}
                 {formatAmount(limits.minAmount)}
               </Text>
             )}
             {amountIsAboveMaximum && limits && (
-              <Text red small>
+              <Text red small testID="above-max-alert">
                 {strings('fiat_on_ramp_aggregator.maximum')}{' '}
                 {currentFiatCurrency?.denomSymbol}
                 {formatAmount(limits.maxAmount)}
@@ -602,6 +602,8 @@ const BuildQuote = () => {
               <StyledButton
                 type="confirm"
                 onPress={handleGetQuotePress}
+                accessibilityRole="button"
+                accessible
                 disabled={amountNumber <= 0}
               >
                 {strings('fiat_on_ramp_aggregator.get_quotes')}
@@ -631,7 +633,12 @@ const BuildQuote = () => {
           decimals={currentFiatCurrency?.decimals}
         />
         <ScreenLayout.Content>
-          <StyledButton type="confirm" onPress={handleKeypadDone}>
+          <StyledButton
+            type="confirm"
+            onPress={handleKeypadDone}
+            accessibilityRole="button"
+            accessible
+          >
             {strings('fiat_on_ramp_aggregator.done')}
           </StyledButton>
         </ScreenLayout.Content>
