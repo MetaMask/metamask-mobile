@@ -8,17 +8,20 @@ const HelpTextMeta = {
   component: HelpTextComponent,
   argTypes: {
     severity: {
-      options: Object.values(HelpTextSeverity),
-      mapping: Object.values(HelpTextSeverity),
+      options: HelpTextSeverity,
       control: {
         type: 'select',
-        labels: Object.keys(HelpTextSeverity),
       },
+      defaultValue: SAMPLE_HELPTEXT_PROPS.severity,
+    },
+    children: {
+      control: {
+        type: 'text',
+      },
+      defaultValue: SAMPLE_HELPTEXT_PROPS.children,
     },
   },
 };
 export default HelpTextMeta;
 
-export const HelpText = {
-  args: SAMPLE_HELPTEXT_PROPS,
-};
+export const HelpText = {};

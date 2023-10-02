@@ -11,33 +11,41 @@ const TextFieldMeta = {
   component: TextFieldComponent,
   argTypes: {
     size: {
-      options: Object.values(TextFieldSize),
-      mapping: Object.values(TextFieldSize),
+      options: TextFieldSize,
       control: {
         type: 'select',
-        labels: Object.keys(TextFieldSize),
       },
+      defaultValue: SAMPLE_TEXTFIELD_PROPS.size,
     },
     isError: {
       control: { type: 'boolean' },
+      defaultValue: SAMPLE_TEXTFIELD_PROPS.isError,
     },
     isDisabled: {
       control: { type: 'boolean' },
+      defaultValue: SAMPLE_TEXTFIELD_PROPS.isDisabled,
+    },
+    isReadonly: {
+      control: { type: 'boolean' },
+      defaultValue: SAMPLE_TEXTFIELD_PROPS.isReadonly,
+    },
+    placeholder: {
+      control: { type: 'text' },
+      defaultValue: SAMPLE_TEXTFIELD_PROPS.placeholder,
     },
   },
 };
 export default TextFieldMeta;
 
 export const TextField = {
-  args: SAMPLE_TEXTFIELD_PROPS,
   render: (
     args: JSX.IntrinsicAttributes &
       TextFieldProps & { children?: React.ReactNode },
   ) => (
     <TextFieldComponent
       {...args}
-      startAccessory={args.startAccessory}
-      endAccessory={args.endAccessory}
+      startAccessory={SAMPLE_TEXTFIELD_PROPS.startAccessory}
+      endAccessory={SAMPLE_TEXTFIELD_PROPS.endAccessory}
     />
   ),
 };
