@@ -123,7 +123,7 @@
     "**/xml2js": ">=0.5.0",
     "**/optimist/minimist": "^1.2.5",
     "react-native-level-fs/**/bl": "^1.2.3",
-    "react-native-level-fs/**/semver": "^4.3.2",
+    "react-native-level-fs/levelup/semver": "^5.7.2",
     "@metamask/contract-metadata": "^2.1.0",
     "@metamask/controller-utils": "^3.4.0",
     "@metamask/approval-controller": "3.4.0",
@@ -588,7 +588,8 @@
       "@storybook/manager-webpack5>@storybook/ui>core-js": false,
       "@storybook/manager-webpack5>core-js": false,
       "ts-node>@swc/core": false,
-      "@storybook/addon-controls>@storybook/core-common>esbuild": false
+      "@storybook/addon-controls>@storybook/core-common>esbuild": false,
+      "appium>appium-base-driver>webdriverio>@types/puppeteer-core>@types/puppeteer>puppeteer": false
     }
   }
 }
