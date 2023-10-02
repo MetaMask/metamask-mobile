@@ -1,7 +1,7 @@
 {
   "name": "ppom-view",
   "version": "1.0.0",
-  "devDependencies": {
+  "dependencies": {
     "@babel/preset-env": "^7.22.6",
     "@blockaid/ppom_release": "^1.2.8",
     "babel-loader": "^9.1.2",
