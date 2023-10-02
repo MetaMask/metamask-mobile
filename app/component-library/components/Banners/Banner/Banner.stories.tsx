@@ -15,21 +15,17 @@ const BannerMeta = {
   component: BannerComponent,
   argTypes: {
     variant: {
-      options: Object.values(BannerVariant),
-      mapping: Object.values(BannerVariant),
+      options: BannerVariant,
       control: {
         type: 'select',
-        labels: Object.keys(BannerVariant),
       },
+      defaultValue: BannerVariant.Alert,
     },
   },
 };
 export default BannerMeta;
 
 export const Banner = {
-  args: {
-    variant: BannerVariant.Alert,
-  },
   render: (args: { variant: BannerVariant }) =>
     args.variant === BannerVariant.Alert ? (
       <BannerComponent

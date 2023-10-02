@@ -8,17 +8,25 @@ const BannerTipMeta = {
   component: BannerTipComponent,
   argTypes: {
     logoType: {
-      options: Object.values(BannerTipLogoType),
-      mapping: Object.values(BannerTipLogoType),
+      options: BannerTipLogoType,
       control: {
         type: 'select',
-        labels: Object.keys(BannerTipLogoType),
       },
+    },
+    title: {
+      control: { type: 'text' },
+      defaultValue: SAMPLE_BANNERTIP_PROPS.title,
+    },
+    description: {
+      control: { type: 'text' },
+      defaultValue: SAMPLE_BANNERTIP_PROPS.description,
     },
   },
 };
 export default BannerTipMeta;
 
 export const BannerTip = {
-  args: SAMPLE_BANNERTIP_PROPS,
+  args: {
+    actionButtonProps: SAMPLE_BANNERTIP_PROPS.actionButtonProps,
+  },
 };

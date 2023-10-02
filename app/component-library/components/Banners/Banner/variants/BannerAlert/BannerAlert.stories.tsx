@@ -8,17 +8,26 @@ const BannerAlertMeta = {
   component: BannerAlertComponent,
   argTypes: {
     severity: {
-      options: Object.values(BannerAlertSeverity),
-      mapping: Object.values(BannerAlertSeverity),
+      options: BannerAlertSeverity,
       control: {
         type: 'select',
-        labels: Object.keys(BannerAlertSeverity),
       },
+      defaultValue: SAMPLE_BANNERALERT_PROPS.severity,
+    },
+    title: {
+      control: { type: 'text' },
+      defaultValue: SAMPLE_BANNERALERT_PROPS.title,
+    },
+    description: {
+      control: { type: 'text' },
+      defaultValue: SAMPLE_BANNERALERT_PROPS.description,
     },
   },
 };
 export default BannerAlertMeta;
 
 export const BannerAlert = {
-  args: SAMPLE_BANNERALERT_PROPS,
+  args: {
+    actionButtonProps: SAMPLE_BANNERALERT_PROPS.actionButtonProps,
+  },
 };
