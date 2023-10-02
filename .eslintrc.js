@@ -98,7 +98,10 @@ module.exports = {
     'import/no-amd': 2,
     'import/no-commonjs': 2,
     'import/no-duplicates': 2,
-    'import/no-extraneous-dependencies': 2,
+    'import/no-extraneous-dependencies': [
+      'error',
+      { packageDir: ['./ppom', './'] },
+    ],
     'import/no-mutable-exports': 2,
     'import/no-namespace': 2,
     'import/no-nodejs-modules': 2,
