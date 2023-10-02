@@ -15,7 +15,13 @@ export enum CellVariants {
 /**
  * Cell Account component props.
  */
-export type CellProps =
+export type CellProps = (
   | CellDisplayProps
   | CellMultiSelectProps
-  | CellSelectProps;
+  | CellSelectProps
+) & {
+  /**
+   * Variant of Cell
+   */
+  variant?: CellVariants;
+};

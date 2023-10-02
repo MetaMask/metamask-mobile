@@ -14,7 +14,6 @@ exports[`Cell - Snapshot should render CellDisplay given the type Display 1`] = 
   tertiaryText="Updated 1 sec ago"
   testID="celldisplay"
   title="Orangefox.eth"
-  variant="Display"
 />
 `;
 
@@ -32,7 +31,6 @@ exports[`Cell - Snapshot should render CellMultiSelect given the type MultiSelec
   tertiaryText="Updated 1 sec ago"
   testID="cellmultiselect"
   title="Orangefox.eth"
-  variant="MultiSelect"
 />
 `;
 
@@ -50,6 +48,5 @@ exports[`Cell - Snapshot should render CellSelect given the type Select 1`] = `
   tertiaryText="Updated 1 sec ago"
   testID="cellselect"
   title="Orangefox.eth"
-  variant="Select"
 />
 `;

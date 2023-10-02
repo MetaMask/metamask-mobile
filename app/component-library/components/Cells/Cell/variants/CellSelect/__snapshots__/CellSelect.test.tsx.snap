@@ -2,6 +2,7 @@
 
 exports[`CellSelect - Snapshot should render default settings correctly 1`] = `
 <SelectItem
+  isDisabled={false}
   isSelected={false}
   onPress={[Function]}
   style={Object {}}
@@ -25,6 +26,7 @@ exports[`CellSelect - Snapshot should render default settings correctly 1`] = `
 
 exports[`CellSelect - Snapshot should render the proper selected state 1`] = `
 <SelectItem
+  isDisabled={false}
   isSelected={true}
   onPress={[Function]}
   style={Object {}}

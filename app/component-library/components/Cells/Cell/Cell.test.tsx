@@ -9,52 +9,25 @@ import { CELLSELECT_TEST_ID } from './variants/CellSelect/CellSelect.constants';
 
 // Internal dependencies.
 import Cell from './Cell';
-import {
-  SAMPLE_CELL_TITLE,
-  SAMPLE_CELL_SECONDARYTEXT,
-  SAMPLE_CELL_TERTIARY_TEXT,
-  SAMPLE_CELL_TAGLABEL,
-  SAMPLE_CELL_AVATARPROPS,
-} from './Cell.constants';
+import { SAMPLE_CELL_PROPS } from './Cell.constants';
 import { CellVariants } from './Cell.types';
 
 describe('Cell - Snapshot', () => {
   it('should render CellDisplay given the type Display', () => {
     const wrapper = shallow(
-      <Cell
-        variant={CellVariants.Display}
-        title={SAMPLE_CELL_TITLE}
-        secondaryText={SAMPLE_CELL_SECONDARYTEXT}
-        tertiaryText={SAMPLE_CELL_TERTIARY_TEXT}
-        tagLabel={SAMPLE_CELL_TAGLABEL}
-        avatarProps={SAMPLE_CELL_AVATARPROPS}
-      />,
+      <Cell variant={CellVariants.Display} {...SAMPLE_CELL_PROPS} />,
     );
     expect(wrapper).toMatchSnapshot();
   });
   it('should render CellMultiSelect given the type MultiSelect', () => {
     const wrapper = shallow(
-      <Cell
-        variant={CellVariants.MultiSelect}
-        title={SAMPLE_CELL_TITLE}
-        secondaryText={SAMPLE_CELL_SECONDARYTEXT}
-        tertiaryText={SAMPLE_CELL_TERTIARY_TEXT}
-        tagLabel={SAMPLE_CELL_TAGLABEL}
-        avatarProps={SAMPLE_CELL_AVATARPROPS}
-      />,
+      <Cell variant={CellVariants.MultiSelect} {...SAMPLE_CELL_PROPS} />,
     );
     expect(wrapper).toMatchSnapshot();
   });
   it('should render CellSelect given the type Select', () => {
     const wrapper = shallow(
-      <Cell
-        variant={CellVariants.Select}
-        title={SAMPLE_CELL_TITLE}
-        secondaryText={SAMPLE_CELL_SECONDARYTEXT}
-        tertiaryText={SAMPLE_CELL_TERTIARY_TEXT}
-        tagLabel={SAMPLE_CELL_TAGLABEL}
-        avatarProps={SAMPLE_CELL_AVATARPROPS}
-      />,
+      <Cell variant={CellVariants.Select} {...SAMPLE_CELL_PROPS} />,
     );
     expect(wrapper).toMatchSnapshot();
   });
@@ -63,14 +36,7 @@ describe('Cell - Snapshot', () => {
 describe('Cell', () => {
   it('should render CellDisplay given the type Display', () => {
     const wrapper = shallow(
-      <Cell
-        variant={CellVariants.Display}
-        title={SAMPLE_CELL_TITLE}
-        secondaryText={SAMPLE_CELL_SECONDARYTEXT}
-        tertiaryText={SAMPLE_CELL_TERTIARY_TEXT}
-        tagLabel={SAMPLE_CELL_TAGLABEL}
-        avatarProps={SAMPLE_CELL_AVATARPROPS}
-      />,
+      <Cell variant={CellVariants.Display} {...SAMPLE_CELL_PROPS} />,
     );
     const cellDisplayComponent = wrapper.findWhere(
       (node) => node.prop('testID') === CELLDISPLAY_TEST_ID,
@@ -89,14 +55,7 @@ describe('Cell', () => {
   });
   it('should render CellMultiSelect given the type MultiSelect', () => {
     const wrapper = shallow(
-      <Cell
-        variant={CellVariants.MultiSelect}
-        title={SAMPLE_CELL_TITLE}
-        secondaryText={SAMPLE_CELL_SECONDARYTEXT}
-        tertiaryText={SAMPLE_CELL_TERTIARY_TEXT}
-        tagLabel={SAMPLE_CELL_TAGLABEL}
-        avatarProps={SAMPLE_CELL_AVATARPROPS}
-      />,
+      <Cell variant={CellVariants.MultiSelect} {...SAMPLE_CELL_PROPS} />,
     );
     const cellDisplayComponent = wrapper.findWhere(
       (node) => node.prop('testID') === CELLDISPLAY_TEST_ID,
@@ -115,14 +74,7 @@ describe('Cell', () => {
   });
   it('should render CellSelect given the type Select', () => {
     const wrapper = shallow(
-      <Cell
-        variant={CellVariants.Select}
-        title={SAMPLE_CELL_TITLE}
-        secondaryText={SAMPLE_CELL_SECONDARYTEXT}
-        tertiaryText={SAMPLE_CELL_TERTIARY_TEXT}
-        tagLabel={SAMPLE_CELL_TAGLABEL}
-        avatarProps={SAMPLE_CELL_AVATARPROPS}
-      />,
+      <Cell variant={CellVariants.Select} {...SAMPLE_CELL_PROPS} />,
     );
     const cellDisplayComponent = wrapper.findWhere(
       (node) => node.prop('testID') === CELLDISPLAY_TEST_ID,

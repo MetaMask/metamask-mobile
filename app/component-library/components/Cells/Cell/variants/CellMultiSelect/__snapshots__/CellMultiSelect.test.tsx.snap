@@ -2,6 +2,7 @@
 
 exports[`CellMultiSelect - Snapshot should render default settings correctly 1`] = `
 <MultiSelectItem
+  isDisabled={false}
   isSelected={false}
   onPress={[Function]}
   style={Object {}}
@@ -30,6 +31,7 @@ exports[`CellMultiSelect - Snapshot should render default settings correctly 1`]
 
 exports[`CellMultiSelect - Snapshot should render the proper selected state 1`] = `
 <MultiSelectItem
+  isDisabled={false}
   isSelected={true}
   onPress={[Function]}
   style={Object {}}

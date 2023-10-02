@@ -1,19 +1,13 @@
 // External dependencies.
 import { CellBaseProps } from '../../foundation/CellBase/CellBase.types';
-import { CellVariants } from '../../Cell.types';
 import { MultiSelectItemProps } from '../../../../Select/MultiSelect/MultiSelectItem/MultiSelectItem.types';
 
 /**
  * Cell Account MultiSelect  component props.
  */
 export interface CellMultiSelectProps
-  extends Omit<CellBaseProps, 'hitSlop'>,
-    Omit<MultiSelectItemProps, 'children'> {
-  /**
-   * Type of Cell
-   */
-  variant?: CellVariants.MultiSelect;
-}
+  extends CellBaseProps,
+    Omit<MultiSelectItemProps, 'children'> {}
 
 /**
  * Style sheet input parameters.

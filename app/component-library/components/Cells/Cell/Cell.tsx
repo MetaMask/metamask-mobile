@@ -12,16 +12,14 @@ import { CELLSELECT_TEST_ID } from './variants/CellSelect/CellSelect.constants';
 // Internal dependencies.
 import { CellProps, CellVariants } from './Cell.types';
 
-const Cell = (cellProps: CellProps) => {
-  switch (cellProps.variant) {
+const Cell = ({ variant, ...props }: CellProps) => {
+  switch (variant) {
     case CellVariants.Display:
-      return <CellDisplay testID={CELLDISPLAY_TEST_ID} {...cellProps} />;
+      return <CellDisplay testID={CELLDISPLAY_TEST_ID} {...props} />;
     case CellVariants.MultiSelect:
-      return (
-        <CellMultiSelect testID={CELLMULTISELECT_TEST_ID} {...cellProps} />
-      );
+      return <CellMultiSelect testID={CELLMULTISELECT_TEST_ID} {...props} />;
     case CellVariants.Select:
-      return <CellSelect testID={CELLSELECT_TEST_ID} {...cellProps} />;
+      return <CellSelect testID={CELLSELECT_TEST_ID} {...props} />;
     default:
       throw new Error('Invalid Cell Variant');
   }

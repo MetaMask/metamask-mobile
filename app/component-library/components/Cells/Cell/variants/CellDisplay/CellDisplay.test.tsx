@@ -6,39 +6,19 @@ import { shallow } from 'enzyme';
 import CellDisplay from './CellDisplay';
 import {
   CELLDISPLAY_TEST_ID,
-  SAMPLE_CELLDISPLAY_TITLE,
-  SAMPLE_CELLDISPLAY_SECONDARYTEXT,
-  SAMPLE_CELLDISPLAY_TERTIARY_TEXT,
-  SAMPLE_CELLDISPLAY_TAGLABEL,
-  SAMPLE_CELLDISPLAY_AVATARPROPS,
+  SAMPLE_CELLDISPLAY_PROPS,
 } from './CellDisplay.constants';
 
 describe('CellDisplay - Snapshot', () => {
   it('should render default settings correctly', () => {
-    const wrapper = shallow(
-      <CellDisplay
-        avatarProps={SAMPLE_CELLDISPLAY_AVATARPROPS}
-        title={SAMPLE_CELLDISPLAY_TITLE}
-        secondaryText={SAMPLE_CELLDISPLAY_SECONDARYTEXT}
-        tertiaryText={SAMPLE_CELLDISPLAY_TERTIARY_TEXT}
-        tagLabel={SAMPLE_CELLDISPLAY_TAGLABEL}
-      />,
-    );
+    const wrapper = shallow(<CellDisplay {...SAMPLE_CELLDISPLAY_PROPS} />);
     expect(wrapper).toMatchSnapshot();
   });
 });
 
 describe('CellDisplay', () => {
   it('should render CellDisplay', () => {
-    const wrapper = shallow(
-      <CellDisplay
-        avatarProps={SAMPLE_CELLDISPLAY_AVATARPROPS}
-        title={SAMPLE_CELLDISPLAY_TITLE}
-        secondaryText={SAMPLE_CELLDISPLAY_SECONDARYTEXT}
-        tertiaryText={SAMPLE_CELLDISPLAY_TERTIARY_TEXT}
-        tagLabel={SAMPLE_CELLDISPLAY_TAGLABEL}
-      />,
-    );
+    const wrapper = shallow(<CellDisplay {...SAMPLE_CELLDISPLAY_PROPS} />);
     const singleSelectComponent = wrapper.findWhere(
       (node) => node.prop('testID') === CELLDISPLAY_TEST_ID,
     );

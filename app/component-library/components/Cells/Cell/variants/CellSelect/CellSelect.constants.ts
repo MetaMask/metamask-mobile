@@ -2,17 +2,30 @@
 import { AvatarVariants, AvatarAccountType } from '../../../../Avatars/Avatar';
 import { AvatarProps } from '../../../../Avatars/Avatar/Avatar.types';
 
+// Internal dependencies.
+import { CellSelectProps } from './CellSelect.types';
+
 // Test IDs
 export const CELLSELECT_TEST_ID = 'cellselect';
 
 // Sample consts
-export const SAMPLE_CELLSELECT_TITLE = 'Orangefox.eth';
-export const SAMPLE_CELLSELECT_SECONDARYTEXT =
+const SAMPLE_CELLSELECT_TITLE = 'Orangefox.eth';
+const SAMPLE_CELLSELECT_SECONDARYTEXT =
   '0x2990079bcdEe240329a520d2444386FC119da21a';
-export const SAMPLE_CELLSELECT_TERTIARY_TEXT = 'Updated 1 sec ago';
-export const SAMPLE_CELLSELECT_TAGLABEL = 'Imported';
-export const SAMPLE_CELLSELECT_AVATARPROPS: AvatarProps = {
+const SAMPLE_CELLSELECT_TERTIARY_TEXT = 'Updated 1 sec ago';
+const SAMPLE_CELLSELECT_TAGLABEL = 'Imported';
+const SAMPLE_CELLSELECT_AVATARPROPS: AvatarProps = {
   variant: AvatarVariants.Account,
   accountAddress: '0x2990079bcdEe240329a520d2444386FC119da21a',
   type: AvatarAccountType.JazzIcon,
+};
+
+export const SAMPLE_CELLSELECT_PROPS: CellSelectProps = {
+  title: SAMPLE_CELLSELECT_TITLE,
+  secondaryText: SAMPLE_CELLSELECT_SECONDARYTEXT,
+  tertiaryText: SAMPLE_CELLSELECT_TERTIARY_TEXT,
+  tagLabel: SAMPLE_CELLSELECT_TAGLABEL,
+  avatarProps: SAMPLE_CELLSELECT_AVATARPROPS,
+  isSelected: false,
+  isDisabled: false,
 };
