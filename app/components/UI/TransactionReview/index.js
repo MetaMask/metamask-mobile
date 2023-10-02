@@ -516,7 +516,7 @@ class TransactionReview extends PureComponent {
               confirmDisabled={
                 senderBalanceIsZero ||
                 transactionConfirmed ||
-                Boolean(error) ||
+                error !== false ||
                 isAnimating
               }
             >

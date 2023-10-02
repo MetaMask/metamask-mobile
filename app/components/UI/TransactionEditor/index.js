@@ -136,7 +136,7 @@ class TransactionEditor extends PureComponent {
     toFocused: false,
     ensRecipient: undefined,
     ready: false,
-    error: true,
+    error: undefined,
     data: undefined,
     amountError: '',
     toAddressError: '',
@@ -650,7 +650,7 @@ class TransactionEditor extends PureComponent {
     this.setState({
       amountError: totalError || amountError,
       toAddressError,
-      error: totalError || amountError || toAddressError,
+      error: totalError || amountError || toAddressError || false,
     });
     return totalError || amountError || toAddressError;
   };
