@@ -18,10 +18,6 @@ export const DEFAULT_CELLBASE_AVATAR_TERTIARYTEXT_TEXTVARIANT =
 
 // Test IDs
 export const CELLBASE_AVATAR_TEST_ID = 'cellbase-avatar';
-export const CELLBASE_TITLE_TEST_ID = 'cellbase-title';
-export const CELLBASE_SECONDARY_TEXT_TEST_ID = 'cellbase-secondary-text';
-export const CELLBASE_TERTIARY_TEXT_TEST_ID = 'cellbase-tertiary-text';
-export const CELLBASE_TAG_LABEL_TEST_ID = 'cellbase-label';
 
 // Sample consts
 export const SAMPLE_CELLBASE_TITLE = 'Orangefox.eth';

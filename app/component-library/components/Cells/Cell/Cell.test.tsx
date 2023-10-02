@@ -1,6 +1,6 @@
 // Third party dependencies.
 import React from 'react';
-import { shallow } from 'enzyme';
+import { render } from '@testing-library/react-native';
 
 // External dependencies.
 import { CELLDISPLAY_TEST_ID } from './variants/CellDisplay/CellDisplay.constants';
@@ -12,83 +12,32 @@ import Cell from './Cell';
 import { SAMPLE_CELL_PROPS } from './Cell.constants';
 import { CellVariants } from './Cell.types';
 
-describe('Cell - Snapshot', () => {
-  it('should render CellDisplay given the type Display', () => {
-    const wrapper = shallow(
-      <Cell variant={CellVariants.Display} {...SAMPLE_CELL_PROPS} />,
-    );
-    expect(wrapper).toMatchSnapshot();
-  });
-  it('should render CellMultiSelect given the type MultiSelect', () => {
-    const wrapper = shallow(
-      <Cell variant={CellVariants.MultiSelect} {...SAMPLE_CELL_PROPS} />,
-    );
-    expect(wrapper).toMatchSnapshot();
-  });
-  it('should render CellSelect given the type Select', () => {
-    const wrapper = shallow(
-      <Cell variant={CellVariants.Select} {...SAMPLE_CELL_PROPS} />,
-    );
-    expect(wrapper).toMatchSnapshot();
-  });
-});
-
 describe('Cell', () => {
   it('should render CellDisplay given the type Display', () => {
-    const wrapper = shallow(
+    const wrapper = render(
       <Cell variant={CellVariants.Display} {...SAMPLE_CELL_PROPS} />,
     );
-    const cellDisplayComponent = wrapper.findWhere(
-      (node) => node.prop('testID') === CELLDISPLAY_TEST_ID,
-    );
-    expect(cellDisplayComponent.exists()).toBe(true);
-
-    const cellMultiSelectComponent = wrapper.findWhere(
-      (node) => node.prop('testID') === CELLMULTISELECT_TEST_ID,
-    );
-    expect(cellMultiSelectComponent.exists()).toBe(false);
-
-    const cellSelectComponent = wrapper.findWhere(
-      (node) => node.prop('testID') === CELLSELECT_TEST_ID,
-    );
-    expect(cellSelectComponent.exists()).toBe(false);
+    expect(wrapper).toMatchSnapshot();
+    expect(wrapper.queryByTestId(CELLDISPLAY_TEST_ID)).not.toBe(null);
+    expect(wrapper.queryByTestId(CELLMULTISELECT_TEST_ID)).toBe(null);
+    expect(wrapper.queryByTestId(CELLSELECT_TEST_ID)).toBe(null);
   });
   it('should render CellMultiSelect given the type MultiSelect', () => {
-    const wrapper = shallow(
+    const wrapper = render(
       <Cell variant={CellVariants.MultiSelect} {...SAMPLE_CELL_PROPS} />,
     );
-    const cellDisplayComponent = wrapper.findWhere(
-      (node) => node.prop('testID') === CELLDISPLAY_TEST_ID,
-    );
-    expect(cellDisplayComponent.exists()).toBe(false);
-
-    const cellMultiSelectComponent = wrapper.findWhere(
-      (node) => node.prop('testID') === CELLMULTISELECT_TEST_ID,
-    );
-    expect(cellMultiSelectComponent.exists()).toBe(true);
-
-    const cellSelectComponent = wrapper.findWhere(
-      (node) => node.prop('testID') === CELLSELECT_TEST_ID,
-    );
-    expect(cellSelectComponent.exists()).toBe(false);
+    expect(wrapper).toMatchSnapshot();
+    expect(wrapper.queryByTestId(CELLDISPLAY_TEST_ID)).toBe(null);
+    expect(wrapper.queryByTestId(CELLMULTISELECT_TEST_ID)).not.toBe(null);
+    expect(wrapper.queryByTestId(CELLSELECT_TEST_ID)).toBe(null);
   });
   it('should render CellSelect given the type Select', () => {
-    const wrapper = shallow(
+    const wrapper = render(
       <Cell variant={CellVariants.Select} {...SAMPLE_CELL_PROPS} />,
     );
-    const cellDisplayComponent = wrapper.findWhere(
-      (node) => node.prop('testID') === CELLDISPLAY_TEST_ID,
-    );
-    expect(cellDisplayComponent.exists()).toBe(false);
-
-    const cellMultiSelectComponent = wrapper.findWhere(
-      (node) => node.prop('testID') === CELLMULTISELECT_TEST_ID,
-    );
-    expect(cellMultiSelectComponent.exists()).toBe(false);
-
-    const cellSelectComponent = wrapper.findWhere(
-      (node) => node.prop('testID') === CELLSELECT_TEST_ID,
-    );
-    expect(cellSelectComponent.exists()).toBe(true);
+    expect(wrapper).toMatchSnapshot();
+    expect(wrapper.queryByTestId(CELLDISPLAY_TEST_ID)).toBe(null);
+    expect(wrapper.queryByTestId(CELLMULTISELECT_TEST_ID)).toBe(null);
+    expect(wrapper.queryByTestId(CELLSELECT_TEST_ID)).not.toBe(null);
   });
 });

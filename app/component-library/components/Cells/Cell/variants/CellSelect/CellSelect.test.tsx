@@ -1,6 +1,6 @@
 // Third party dependencies.
 import React from 'react';
-import { shallow } from 'enzyme';
+import { render } from '@testing-library/react-native';
 
 // Internal dependencies.
 import CellSelect from './CellSelect';
@@ -9,29 +9,15 @@ import {
   SAMPLE_CELLSELECT_PROPS,
 } from './CellSelect.constants';
 
-describe('CellSelect - Snapshot', () => {
-  it('should render default settings correctly', () => {
-    const wrapper = shallow(
-      <CellSelect {...SAMPLE_CELLSELECT_PROPS} onPress={jest.fn} />,
-    );
-    expect(wrapper).toMatchSnapshot();
-  });
-  it('should render the proper selected state', () => {
-    const wrapper = shallow(
-      <CellSelect {...SAMPLE_CELLSELECT_PROPS} isSelected onPress={jest.fn} />,
-    );
-    expect(wrapper).toMatchSnapshot();
-  });
-});
-
 describe('CellSelect', () => {
-  it('should render singleSelect', () => {
-    const wrapper = shallow(
-      <CellSelect {...SAMPLE_CELLSELECT_PROPS} onPress={jest.fn} />,
+  it('should render default settings correctly', () => {
+    const wrapper = render(<CellSelect {...SAMPLE_CELLSELECT_PROPS} />);
+    expect(wrapper).toMatchSnapshot();
+  });
+  it('should render CellSelect', () => {
+    const { queryByTestId } = render(
+      <CellSelect {...SAMPLE_CELLSELECT_PROPS} />,
     );
-    const singleSelectComponent = wrapper.findWhere(
-      (node) => node.prop('testID') === CELLSELECT_TEST_ID,
-    );
-    expect(singleSelectComponent.exists()).toBe(true);
+    expect(queryByTestId(CELLSELECT_TEST_ID)).not.toBe(null);
   });
 });

@@ -6,7 +6,6 @@ import React from 'react';
 import { Platform } from 'react-native';
 
 // External dependencies.
-import generateTestId from '../../../../../../../wdio/utils/generateTestId';
 import { useStyles } from '../../../../../hooks';
 import SelectItem from '../../../../Select/Select/SelectItem';
 import CellBase from '../../foundation/CellBase';
@@ -33,8 +32,8 @@ const CellSelect = ({
     <SelectItem
       isSelected={isSelected}
       style={styles.base}
+      testID={CELLSELECT_TEST_ID}
       {...props}
-      {...generateTestId(Platform, CELLSELECT_TEST_ID)}
     >
       <CellBase
         avatarProps={avatarProps}

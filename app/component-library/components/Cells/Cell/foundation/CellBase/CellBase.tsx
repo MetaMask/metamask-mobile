@@ -2,7 +2,7 @@
 
 // Third library dependencies.
 import React from 'react';
-import { Platform, View } from 'react-native';
+import { View } from 'react-native';
 
 // External dependencies.
 import { useStyles } from '../../../../../hooks';
@@ -17,14 +17,9 @@ import {
   DEFAULT_CELLBASE_AVATAR_SECONDARYTEXT_TEXTVARIANT,
   DEFAULT_CELLBASE_AVATAR_TERTIARYTEXT_TEXTVARIANT,
   CELLBASE_AVATAR_TEST_ID,
-  CELLBASE_TITLE_TEST_ID,
-  CELLBASE_SECONDARY_TEXT_TEST_ID,
-  CELLBASE_TERTIARY_TEXT_TEST_ID,
-  CELLBASE_TAG_LABEL_TEST_ID,
 } from './CellBase.constants';
 import styleSheet from './CellBase.styles';
 import { CellBaseProps } from './CellBase.types';
-import generateTestId from '../../../../../../../wdio/utils/generateTestId';
 
 const CellBase = ({
   style,
@@ -50,7 +45,6 @@ const CellBase = ({
         <Text
           numberOfLines={1}
           variant={DEFAULT_CELLBASE_AVATAR_TITLE_TEXTVARIANT}
-          {...generateTestId(Platform, CELLBASE_TITLE_TEST_ID)}
         >
           {title}
         </Text>
@@ -59,7 +53,6 @@ const CellBase = ({
             numberOfLines={1}
             variant={DEFAULT_CELLBASE_AVATAR_SECONDARYTEXT_TEXTVARIANT}
             style={styles.secondaryText}
-            testID={CELLBASE_SECONDARY_TEXT_TEST_ID}
           >
             {secondaryText}
           </Text>
@@ -69,18 +62,11 @@ const CellBase = ({
             numberOfLines={1}
             variant={DEFAULT_CELLBASE_AVATAR_TERTIARYTEXT_TEXTVARIANT}
             style={styles.tertiaryText}
-            testID={CELLBASE_TERTIARY_TEXT_TEST_ID}
           >
             {tertiaryText}
           </Text>
         )}
-        {!!tagLabel && (
-          <Tag
-            label={tagLabel}
-            style={styles.tagLabel}
-            testID={CELLBASE_TAG_LABEL_TEST_ID}
-          />
-        )}
+        {!!tagLabel && <Tag label={tagLabel} style={styles.tagLabel} />}
       </View>
       {children && <View style={styles.optionalAccessory}>{children}</View>}
     </View>

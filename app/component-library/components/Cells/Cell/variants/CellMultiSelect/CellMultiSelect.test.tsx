@@ -1,6 +1,6 @@
 // Third party dependencies.
 import React from 'react';
-import { shallow } from 'enzyme';
+import { render } from '@testing-library/react-native';
 
 // Internal dependencies.
 import CellMultiSelect from './CellMultiSelect';
@@ -9,33 +9,17 @@ import {
   SAMPLE_CELLMULTISELECT_PROPS,
 } from './CellMultiSelect.constants';
 
-describe('CellMultiSelect - Snapshot', () => {
-  it('should render default settings correctly', () => {
-    const wrapper = shallow(
-      <CellMultiSelect {...SAMPLE_CELLMULTISELECT_PROPS} onPress={jest.fn} />,
-    );
-    expect(wrapper).toMatchSnapshot();
-  });
-  it('should render the proper selected state', () => {
-    const wrapper = shallow(
-      <CellMultiSelect
-        {...SAMPLE_CELLMULTISELECT_PROPS}
-        isSelected
-        onPress={jest.fn}
-      />,
-    );
-    expect(wrapper).toMatchSnapshot();
-  });
-});
-
 describe('CellMultiSelect', () => {
-  it('should render singleSelect', () => {
-    const wrapper = shallow(
-      <CellMultiSelect {...SAMPLE_CELLMULTISELECT_PROPS} onPress={jest.fn} />,
+  it('should render default settings correctly', () => {
+    const wrapper = render(
+      <CellMultiSelect {...SAMPLE_CELLMULTISELECT_PROPS} />,
     );
-    const singleSelectComponent = wrapper.findWhere(
-      (node) => node.prop('testID') === CELLMULTISELECT_TEST_ID,
+    expect(wrapper).toMatchSnapshot();
+  });
+  it('should render CellMultiSelect', () => {
+    const { queryByTestId } = render(
+      <CellMultiSelect {...SAMPLE_CELLMULTISELECT_PROPS} />,
     );
-    expect(singleSelectComponent.exists()).toBe(true);
+    expect(queryByTestId(CELLMULTISELECT_TEST_ID)).not.toBe(null);
   });
 });

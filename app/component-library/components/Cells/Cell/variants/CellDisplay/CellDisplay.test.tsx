@@ -1,6 +1,6 @@
 // Third party dependencies.
 import React from 'react';
-import { shallow } from 'enzyme';
+import { render } from '@testing-library/react-native';
 
 // Internal dependencies.
 import CellDisplay from './CellDisplay';
@@ -9,19 +9,15 @@ import {
   SAMPLE_CELLDISPLAY_PROPS,
 } from './CellDisplay.constants';
 
-describe('CellDisplay - Snapshot', () => {
+describe('CellDisplay', () => {
   it('should render default settings correctly', () => {
-    const wrapper = shallow(<CellDisplay {...SAMPLE_CELLDISPLAY_PROPS} />);
+    const wrapper = render(<CellDisplay {...SAMPLE_CELLDISPLAY_PROPS} />);
     expect(wrapper).toMatchSnapshot();
   });
-});
-
-describe('CellDisplay', () => {
   it('should render CellDisplay', () => {
-    const wrapper = shallow(<CellDisplay {...SAMPLE_CELLDISPLAY_PROPS} />);
-    const singleSelectComponent = wrapper.findWhere(
-      (node) => node.prop('testID') === CELLDISPLAY_TEST_ID,
+    const { queryByTestId } = render(
+      <CellDisplay {...SAMPLE_CELLDISPLAY_PROPS} />,
     );
-    expect(singleSelectComponent.exists()).toBe(true);
+    expect(queryByTestId(CELLDISPLAY_TEST_ID)).not.toBe(null);
   });
 });
