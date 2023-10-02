@@ -509,6 +509,10 @@ const BuildQuote = () => {
     );
   }
 
+  console.log('_____ LIMITS ', limits);
+  console.log('----- AMOUNT ', amount);
+  console.log('___ ABOCE MAX? ', amountIsAboveMaximum);
+
   return (
     <ScreenLayout>
       <ScreenLayout.Body>
@@ -559,14 +563,14 @@ const BuildQuote = () => {
               />
             </View>
             {amountIsBelowMinimum && limits && (
-              <Text red small>
+              <Text red small testID="below-min-alert">
                 {strings('fiat_on_ramp_aggregator.minimum')}{' '}
                 {currentFiatCurrency?.denomSymbol}
                 {formatAmount(limits.minAmount)}
               </Text>
             )}
             {amountIsAboveMaximum && limits && (
-              <Text red small>
+              <Text red small testID="above-max-alert">
                 {strings('fiat_on_ramp_aggregator.maximum')}{' '}
                 {currentFiatCurrency?.denomSymbol}
                 {formatAmount(limits.maxAmount)}

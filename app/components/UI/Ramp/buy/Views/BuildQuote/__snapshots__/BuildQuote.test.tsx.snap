@@ -1939,8 +1939,6 @@ exports[`BuildQuote View renders correctly 1`] = `
                               }
                             >
                               <TouchableOpacity
-                                accessibilityRole="button"
-                                accessible={true}
                                 onPress={[Function]}
                                 style={
                                   Array [
@@ -2020,8 +2018,6 @@ exports[`BuildQuote View renders correctly 1`] = `
                                 </Text>
                               </TouchableOpacity>
                               <TouchableOpacity
-                                accessibilityRole="button"
-                                accessible={true}
                                 onPress={[Function]}
                                 style={
                                   Array [
@@ -2101,8 +2097,6 @@ exports[`BuildQuote View renders correctly 1`] = `
                                 </Text>
                               </TouchableOpacity>
                               <TouchableOpacity
-                                accessibilityRole="button"
-                                accessible={true}
                                 onPress={[Function]}
                                 style={
                                   Array [
@@ -2191,8 +2185,6 @@ exports[`BuildQuote View renders correctly 1`] = `
                               }
                             >
                               <TouchableOpacity
-                                accessibilityRole="button"
-                                accessible={true}
                                 onPress={[Function]}
                                 style={
                                   Array [
@@ -2272,8 +2264,6 @@ exports[`BuildQuote View renders correctly 1`] = `
                                 </Text>
                               </TouchableOpacity>
                               <TouchableOpacity
-                                accessibilityRole="button"
-                                accessible={true}
                                 onPress={[Function]}
                                 style={
                                   Array [
@@ -2353,8 +2343,6 @@ exports[`BuildQuote View renders correctly 1`] = `
                                 </Text>
                               </TouchableOpacity>
                               <TouchableOpacity
-                                accessibilityRole="button"
-                                accessible={true}
                                 onPress={[Function]}
                                 style={
                                   Array [
@@ -2443,8 +2431,6 @@ exports[`BuildQuote View renders correctly 1`] = `
                               }
                             >
                               <TouchableOpacity
-                                accessibilityRole="button"
-                                accessible={true}
                                 onPress={[Function]}
                                 style={
                                   Array [
@@ -2524,8 +2510,6 @@ exports[`BuildQuote View renders correctly 1`] = `
                                 </Text>
                               </TouchableOpacity>
                               <TouchableOpacity
-                                accessibilityRole="button"
-                                accessible={true}
                                 onPress={[Function]}
                                 style={
                                   Array [
@@ -2605,8 +2589,6 @@ exports[`BuildQuote View renders correctly 1`] = `
                                 </Text>
                               </TouchableOpacity>
                               <TouchableOpacity
-                                accessibilityRole="button"
-                                accessible={true}
                                 onPress={[Function]}
                                 style={
                                   Array [
@@ -2695,8 +2677,6 @@ exports[`BuildQuote View renders correctly 1`] = `
                               }
                             >
                               <TouchableOpacity
-                                accessibilityRole="button"
-                                accessible={true}
                                 onPress={[Function]}
                                 style={
                                   Array [
@@ -2768,8 +2748,6 @@ exports[`BuildQuote View renders correctly 1`] = `
                                 </Text>
                               </TouchableOpacity>
                               <TouchableOpacity
-                                accessibilityRole="button"
-                                accessible={true}
                                 onPress={[Function]}
                                 style={
                                   Array [
