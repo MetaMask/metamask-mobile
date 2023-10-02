@@ -16,7 +16,7 @@ exports[`CellBase - Snapshot should render default settings correctly 1`] = `
         "marginRight": 16,
       }
     }
-    testID="cell-avatar"
+    testID="cellbase-avatar"
     type="JazzIcon"
     variant="Account"
   />
@@ -30,7 +30,7 @@ exports[`CellBase - Snapshot should render default settings correctly 1`] = `
   >
     <Text
       numberOfLines={1}
-      testID="cell-title"
+      testID="cellbase-title"
       variant="sHeadingSMRegular"
     >
       Orangefox.eth
@@ -55,7 +55,7 @@ exports[`CellBase - Snapshot should render label when given 1`] = `
         "marginRight": 16,
       }
     }
-    testID="cell-avatar"
+    testID="cellbase-avatar"
     type="JazzIcon"
     variant="Account"
   />
@@ -69,7 +69,7 @@ exports[`CellBase - Snapshot should render label when given 1`] = `
   >
     <Text
       numberOfLines={1}
-      testID="cell-title"
+      testID="cellbase-title"
       variant="sHeadingSMRegular"
     >
       Orangefox.eth
@@ -81,7 +81,7 @@ exports[`CellBase - Snapshot should render label when given 1`] = `
           "marginTop": 4,
         }
       }
-      testID="cell-label"
+      testID="cellbase-label"
     />
   </View>
 </View>
@@ -103,7 +103,7 @@ exports[`CellBase - Snapshot should render secondaryText when given 1`] = `
         "marginRight": 16,
       }
     }
-    testID="cell-avatar"
+    testID="cellbase-avatar"
     type="JazzIcon"
     variant="Account"
   />
@@ -117,7 +117,7 @@ exports[`CellBase - Snapshot should render secondaryText when given 1`] = `
   >
     <Text
       numberOfLines={1}
-      testID="cell-title"
+      testID="cellbase-title"
       variant="sHeadingSMRegular"
     >
       Orangefox.eth
@@ -129,7 +129,7 @@ exports[`CellBase - Snapshot should render secondaryText when given 1`] = `
           "color": "#535A61",
         }
       }
-      testID="cell-secondary-text"
+      testID="cellbase-secondary-text"
       variant="sBodyMD"
     >
       0x2990079bcdEe240329a520d2444386FC119da21a
@@ -154,7 +154,7 @@ exports[`CellBase - Snapshot should render tertiaryText when given 1`] = `
         "marginRight": 16,
       }
     }
-    testID="cell-avatar"
+    testID="cellbase-avatar"
     type="JazzIcon"
     variant="Account"
   />
@@ -168,7 +168,7 @@ exports[`CellBase - Snapshot should render tertiaryText when given 1`] = `
   >
     <Text
       numberOfLines={1}
-      testID="cell-title"
+      testID="cellbase-title"
       variant="sHeadingSMRegular"
     >
       Orangefox.eth
@@ -180,7 +180,7 @@ exports[`CellBase - Snapshot should render tertiaryText when given 1`] = `
           "color": "#535A61",
         }
       }
-      testID="cell-tertiary-text"
+      testID="cellbase-tertiary-text"
       variant="sBodyMD"
     >
       Updated 1 sec ago

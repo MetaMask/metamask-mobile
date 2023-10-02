@@ -5,8 +5,7 @@ exports[`CellSelect - Snapshot should render default settings correctly 1`] = `
   isSelected={false}
   onPress={[Function]}
   style={Object {}}
-  testID="cell-select"
-  variant="Select"
+  testID="cellselect"
 >
   <CellBase
     avatarProps={
@@ -16,6 +15,9 @@ exports[`CellSelect - Snapshot should render default settings correctly 1`] = `
         "variant": "Account",
       }
     }
+    secondaryText="0x2990079bcdEe240329a520d2444386FC119da21a"
+    tagLabel="Imported"
+    tertiaryText="Updated 1 sec ago"
     title="Orangefox.eth"
   />
 </SelectItem>
@@ -26,8 +28,7 @@ exports[`CellSelect - Snapshot should render the proper selected state 1`] = `
   isSelected={true}
   onPress={[Function]}
   style={Object {}}
-  testID="cell-select"
-  variant="Select"
+  testID="cellselect"
 >
   <CellBase
     avatarProps={
@@ -37,6 +38,9 @@ exports[`CellSelect - Snapshot should render the proper selected state 1`] = `
         "variant": "Account",
       }
     }
+    secondaryText="0x2990079bcdEe240329a520d2444386FC119da21a"
+    tagLabel="Imported"
+    tertiaryText="Updated 1 sec ago"
     title="Orangefox.eth"
   />
 </SelectItem>

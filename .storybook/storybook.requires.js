@@ -24,6 +24,13 @@ global.STORIES = [
     importPathMatcher:
       "^\\.[\\\\/](?:app\\/component-library\\/components\\/Banners\\/Banner\\/variants\\/BannerAlert(?:\\/(?!\\.)(?:(?:(?!(?:^|\\/)\\.).)*?)\\/|\\/|$)(?!\\.)(?=.)[^/]*?\\.stories\\.(?:ts|tsx|js|jsx)?)$",
   },
+  {
+    titlePrefix: "",
+    directory: "./app/component-library/components/Cells",
+    files: "**/*.stories.?(ts|tsx|js|jsx)",
+    importPathMatcher:
+      "^\\.[\\\\/](?:app\\/component-library\\/components\\/Cells(?:\\/(?!\\.)(?:(?:(?!(?:^|\\/)\\.).)*?)\\/|\\/|$)(?!\\.)(?=.)[^/]*?\\.stories\\.(?:ts|tsx|js|jsx)?)$",
+  },
 ];
 
 import "@storybook/addon-ondevice-controls/register";
@@ -50,6 +57,10 @@ const getStories = () => {
   return {
     "./app/component-library/components/Cards/Card/Card.stories.tsx": require("../app/component-library/components/Cards/Card/Card.stories.tsx"),
     "./app/component-library/components/Banners/Banner/variants/BannerAlert/BannerAlert.stories.tsx": require("../app/component-library/components/Banners/Banner/variants/BannerAlert/BannerAlert.stories.tsx"),
+    "./app/component-library/components/Cells/Cell/Cell.stories.tsx": require("../app/component-library/components/Cells/Cell/Cell.stories.tsx"),
+    "./app/component-library/components/Cells/Cell/variants/CellDisplay/CellDisplay.stories.tsx": require("../app/component-library/components/Cells/Cell/variants/CellDisplay/CellDisplay.stories.tsx"),
+    "./app/component-library/components/Cells/Cell/variants/CellMultiSelect/CellMultiSelect.stories.tsx": require("../app/component-library/components/Cells/Cell/variants/CellMultiSelect/CellMultiSelect.stories.tsx"),
+    "./app/component-library/components/Cells/Cell/variants/CellSelect/CellSelect.stories.tsx": require("../app/component-library/components/Cells/Cell/variants/CellSelect/CellSelect.stories.tsx"),
   };
 };
 

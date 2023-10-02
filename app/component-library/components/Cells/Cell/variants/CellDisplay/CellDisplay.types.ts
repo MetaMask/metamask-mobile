@@ -13,7 +13,7 @@ export interface CellDisplayProps
   /**
    * Type of Cell
    */
-  variant: CellVariants.Display;
+  variant?: CellVariants.Display;
   hitSlop?: Insets | undefined;
 }
 

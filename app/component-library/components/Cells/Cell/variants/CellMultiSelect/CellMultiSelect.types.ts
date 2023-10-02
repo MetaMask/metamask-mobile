@@ -12,7 +12,7 @@ export interface CellMultiSelectProps
   /**
    * Type of Cell
    */
-  variant: CellVariants.MultiSelect;
+  variant?: CellVariants.MultiSelect;
 }
 
 /**

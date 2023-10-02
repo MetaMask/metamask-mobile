@@ -2,24 +2,32 @@
 import React from 'react';
 import { shallow } from 'enzyme';
 
+// External dependencies.
+import { CELLDISPLAY_TEST_ID } from './variants/CellDisplay/CellDisplay.constants';
+import { CELLMULTISELECT_TEST_ID } from './variants/CellMultiSelect/CellMultiSelect.constants';
+import { CELLSELECT_TEST_ID } from './variants/CellSelect/CellSelect.constants';
+
 // Internal dependencies.
 import Cell from './Cell';
-import { TEST_AVATAR_PROPS, TEST_CELL_TITLE } from './Cell.constants';
-import { CellVariants } from './Cell.types';
-
 import {
-  CELL_DISPLAY_TEST_ID,
-  CELL_MULTI_SELECT_TEST_ID,
-  CELL_SELECT_TEST_ID,
-} from '../../../../constants/test-ids';
+  SAMPLE_CELL_TITLE,
+  SAMPLE_CELL_SECONDARYTEXT,
+  SAMPLE_CELL_TERTIARY_TEXT,
+  SAMPLE_CELL_TAGLABEL,
+  SAMPLE_CELL_AVATARPROPS,
+} from './Cell.constants';
+import { CellVariants } from './Cell.types';
 
 describe('Cell - Snapshot', () => {
   it('should render CellDisplay given the type Display', () => {
     const wrapper = shallow(
       <Cell
         variant={CellVariants.Display}
-        avatarProps={TEST_AVATAR_PROPS}
-        title={TEST_CELL_TITLE}
+        title={SAMPLE_CELL_TITLE}
+        secondaryText={SAMPLE_CELL_SECONDARYTEXT}
+        tertiaryText={SAMPLE_CELL_TERTIARY_TEXT}
+        tagLabel={SAMPLE_CELL_TAGLABEL}
+        avatarProps={SAMPLE_CELL_AVATARPROPS}
       />,
     );
     expect(wrapper).toMatchSnapshot();
@@ -28,8 +36,11 @@ describe('Cell - Snapshot', () => {
     const wrapper = shallow(
       <Cell
         variant={CellVariants.MultiSelect}
-        avatarProps={TEST_AVATAR_PROPS}
-        title={TEST_CELL_TITLE}
+        title={SAMPLE_CELL_TITLE}
+        secondaryText={SAMPLE_CELL_SECONDARYTEXT}
+        tertiaryText={SAMPLE_CELL_TERTIARY_TEXT}
+        tagLabel={SAMPLE_CELL_TAGLABEL}
+        avatarProps={SAMPLE_CELL_AVATARPROPS}
       />,
     );
     expect(wrapper).toMatchSnapshot();
@@ -38,8 +49,11 @@ describe('Cell - Snapshot', () => {
     const wrapper = shallow(
       <Cell
         variant={CellVariants.Select}
-        avatarProps={TEST_AVATAR_PROPS}
-        title={TEST_CELL_TITLE}
+        title={SAMPLE_CELL_TITLE}
+        secondaryText={SAMPLE_CELL_SECONDARYTEXT}
+        tertiaryText={SAMPLE_CELL_TERTIARY_TEXT}
+        tagLabel={SAMPLE_CELL_TAGLABEL}
+        avatarProps={SAMPLE_CELL_AVATARPROPS}
       />,
     );
     expect(wrapper).toMatchSnapshot();
@@ -51,22 +65,25 @@ describe('Cell', () => {
     const wrapper = shallow(
       <Cell
         variant={CellVariants.Display}
-        avatarProps={TEST_AVATAR_PROPS}
-        title={TEST_CELL_TITLE}
+        title={SAMPLE_CELL_TITLE}
+        secondaryText={SAMPLE_CELL_SECONDARYTEXT}
+        tertiaryText={SAMPLE_CELL_TERTIARY_TEXT}
+        tagLabel={SAMPLE_CELL_TAGLABEL}
+        avatarProps={SAMPLE_CELL_AVATARPROPS}
       />,
     );
     const cellDisplayComponent = wrapper.findWhere(
-      (node) => node.prop('testID') === CELL_DISPLAY_TEST_ID,
+      (node) => node.prop('testID') === CELLDISPLAY_TEST_ID,
     );
     expect(cellDisplayComponent.exists()).toBe(true);
 
     const cellMultiSelectComponent = wrapper.findWhere(
-      (node) => node.prop('testID') === CELL_MULTI_SELECT_TEST_ID,
+      (node) => node.prop('testID') === CELLMULTISELECT_TEST_ID,
     );
     expect(cellMultiSelectComponent.exists()).toBe(false);
 
     const cellSelectComponent = wrapper.findWhere(
-      (node) => node.prop('testID') === CELL_SELECT_TEST_ID,
+      (node) => node.prop('testID') === CELLSELECT_TEST_ID,
     );
     expect(cellSelectComponent.exists()).toBe(false);
   });
@@ -74,22 +91,25 @@ describe('Cell', () => {
     const wrapper = shallow(
       <Cell
         variant={CellVariants.MultiSelect}
-        avatarProps={TEST_AVATAR_PROPS}
-        title={TEST_CELL_TITLE}
+        title={SAMPLE_CELL_TITLE}
+        secondaryText={SAMPLE_CELL_SECONDARYTEXT}
+        tertiaryText={SAMPLE_CELL_TERTIARY_TEXT}
+        tagLabel={SAMPLE_CELL_TAGLABEL}
+        avatarProps={SAMPLE_CELL_AVATARPROPS}
       />,
     );
     const cellDisplayComponent = wrapper.findWhere(
-      (node) => node.prop('testID') === CELL_DISPLAY_TEST_ID,
+      (node) => node.prop('testID') === CELLDISPLAY_TEST_ID,
     );
     expect(cellDisplayComponent.exists()).toBe(false);
 
     const cellMultiSelectComponent = wrapper.findWhere(
-      (node) => node.prop('testID') === CELL_MULTI_SELECT_TEST_ID,
+      (node) => node.prop('testID') === CELLMULTISELECT_TEST_ID,
     );
     expect(cellMultiSelectComponent.exists()).toBe(true);
 
     const cellSelectComponent = wrapper.findWhere(
-      (node) => node.prop('testID') === CELL_SELECT_TEST_ID,
+      (node) => node.prop('testID') === CELLSELECT_TEST_ID,
     );
     expect(cellSelectComponent.exists()).toBe(false);
   });
@@ -97,22 +117,25 @@ describe('Cell', () => {
     const wrapper = shallow(
       <Cell
         variant={CellVariants.Select}
-        avatarProps={TEST_AVATAR_PROPS}
-        title={TEST_CELL_TITLE}
+        title={SAMPLE_CELL_TITLE}
+        secondaryText={SAMPLE_CELL_SECONDARYTEXT}
+        tertiaryText={SAMPLE_CELL_TERTIARY_TEXT}
+        tagLabel={SAMPLE_CELL_TAGLABEL}
+        avatarProps={SAMPLE_CELL_AVATARPROPS}
       />,
     );
     const cellDisplayComponent = wrapper.findWhere(
-      (node) => node.prop('testID') === CELL_DISPLAY_TEST_ID,
+      (node) => node.prop('testID') === CELLDISPLAY_TEST_ID,
     );
     expect(cellDisplayComponent.exists()).toBe(false);
 
     const cellMultiSelectComponent = wrapper.findWhere(
-      (node) => node.prop('testID') === CELL_MULTI_SELECT_TEST_ID,
+      (node) => node.prop('testID') === CELLMULTISELECT_TEST_ID,
     );
     expect(cellMultiSelectComponent.exists()).toBe(false);
 
     const cellSelectComponent = wrapper.findWhere(
-      (node) => node.prop('testID') === CELL_SELECT_TEST_ID,
+      (node) => node.prop('testID') === CELLSELECT_TEST_ID,
     );
     expect(cellSelectComponent.exists()).toBe(true);
   });

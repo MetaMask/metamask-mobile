@@ -9,7 +9,10 @@ exports[`Cell - Snapshot should render CellDisplay given the type Display 1`] = 
       "variant": "Account",
     }
   }
-  testID="cell-display"
+  secondaryText="0x2990079bcdEe240329a520d2444386FC119da21a"
+  tagLabel="Imported"
+  tertiaryText="Updated 1 sec ago"
+  testID="celldisplay"
   title="Orangefox.eth"
   variant="Display"
 />
@@ -24,7 +27,10 @@ exports[`Cell - Snapshot should render CellMultiSelect given the type MultiSelec
       "variant": "Account",
     }
   }
-  testID="cell-multi-select"
+  secondaryText="0x2990079bcdEe240329a520d2444386FC119da21a"
+  tagLabel="Imported"
+  tertiaryText="Updated 1 sec ago"
+  testID="cellmultiselect"
   title="Orangefox.eth"
   variant="MultiSelect"
 />
@@ -39,7 +45,10 @@ exports[`Cell - Snapshot should render CellSelect given the type Select 1`] = `
       "variant": "Account",
     }
   }
-  testID="cell-select"
+  secondaryText="0x2990079bcdEe240329a520d2444386FC119da21a"
+  tagLabel="Imported"
+  tertiaryText="Updated 1 sec ago"
+  testID="cellselect"
   title="Orangefox.eth"
   variant="Select"
 />

@@ -2,9 +2,19 @@
 
 exports[`CellDisplay - Snapshot should render default settings correctly 1`] = `
 <Card
+  avatarProps={
+    Object {
+      "accountAddress": "0x2990079bcdEe240329a520d2444386FC119da21a",
+      "type": "JazzIcon",
+      "variant": "Account",
+    }
+  }
+  secondaryText="0x2990079bcdEe240329a520d2444386FC119da21a"
   style={Object {}}
-  testID="cell-display"
-  variant="Display"
+  tagLabel="Imported"
+  tertiaryText="Updated 1 sec ago"
+  testID="celldisplay"
+  title="Orangefox.eth"
 >
   <CellBase
     avatarProps={
@@ -14,6 +24,9 @@ exports[`CellDisplay - Snapshot should render default settings correctly 1`] = `
         "variant": "Account",
       }
     }
+    secondaryText="0x2990079bcdEe240329a520d2444386FC119da21a"
+    tagLabel="Imported"
+    tertiaryText="Updated 1 sec ago"
     title="Orangefox.eth"
   />
 </Card>

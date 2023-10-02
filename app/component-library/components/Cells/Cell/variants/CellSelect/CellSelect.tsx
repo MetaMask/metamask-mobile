@@ -6,15 +6,15 @@ import React from 'react';
 import { Platform } from 'react-native';
 
 // External dependencies.
+import generateTestId from '../../../../../../../wdio/utils/generateTestId';
 import { useStyles } from '../../../../../hooks';
 import SelectItem from '../../../../Select/Select/SelectItem';
 import CellBase from '../../foundation/CellBase';
 
 // Internal dependencies.
-import { CELL_SELECT_TEST_ID } from '../../../../../../constants/test-ids';
 import styleSheet from './CellSelect.styles';
 import { CellSelectProps } from './CellSelect.types';
-import generateTestId from '../../../../../../../wdio/utils/generateTestId';
+import { CELLSELECT_TEST_ID } from './CellSelect.constants';
 
 const CellSelect = ({
   style,
@@ -34,7 +34,7 @@ const CellSelect = ({
       isSelected={isSelected}
       style={styles.base}
       {...props}
-      {...generateTestId(Platform, CELL_SELECT_TEST_ID)}
+      {...generateTestId(Platform, CELLSELECT_TEST_ID)}
     >
       <CellBase
         avatarProps={avatarProps}

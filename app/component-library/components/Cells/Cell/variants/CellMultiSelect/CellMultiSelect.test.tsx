@@ -2,21 +2,26 @@
 import React from 'react';
 import { shallow } from 'enzyme';
 
-// External dependencies.
-import { TEST_AVATAR_PROPS, TEST_CELL_TITLE } from '../../Cell.constants';
-import { CellVariants } from '../../Cell.types';
-
 // Internal dependencies.
 import CellMultiSelect from './CellMultiSelect';
-import { CELL_MULTI_SELECT_TEST_ID } from '../../../../../../constants/test-ids';
+import {
+  CELLMULTISELECT_TEST_ID,
+  SAMPLE_CELLMULTISELECT_TITLE,
+  SAMPLE_CELLMULTISELECT_SECONDARYTEXT,
+  SAMPLE_CELLMULTISELECT_TERTIARY_TEXT,
+  SAMPLE_CELLMULTISELECT_TAGLABEL,
+  SAMPLE_CELLMULTISELECT_AVATARPROPS,
+} from './CellMultiSelect.constants';
 
 describe('CellMultiSelect - Snapshot', () => {
   it('should render default settings correctly', () => {
     const wrapper = shallow(
       <CellMultiSelect
-        variant={CellVariants.MultiSelect}
-        avatarProps={TEST_AVATAR_PROPS}
-        title={TEST_CELL_TITLE}
+        title={SAMPLE_CELLMULTISELECT_TITLE}
+        secondaryText={SAMPLE_CELLMULTISELECT_SECONDARYTEXT}
+        tertiaryText={SAMPLE_CELLMULTISELECT_TERTIARY_TEXT}
+        tagLabel={SAMPLE_CELLMULTISELECT_TAGLABEL}
+        avatarProps={SAMPLE_CELLMULTISELECT_AVATARPROPS}
         onPress={jest.fn}
       />,
     );
@@ -25,9 +30,11 @@ describe('CellMultiSelect - Snapshot', () => {
   it('should render the proper selected state', () => {
     const wrapper = shallow(
       <CellMultiSelect
-        variant={CellVariants.MultiSelect}
-        avatarProps={TEST_AVATAR_PROPS}
-        title={TEST_CELL_TITLE}
+        title={SAMPLE_CELLMULTISELECT_TITLE}
+        secondaryText={SAMPLE_CELLMULTISELECT_SECONDARYTEXT}
+        tertiaryText={SAMPLE_CELLMULTISELECT_TERTIARY_TEXT}
+        tagLabel={SAMPLE_CELLMULTISELECT_TAGLABEL}
+        avatarProps={SAMPLE_CELLMULTISELECT_AVATARPROPS}
         isSelected
         onPress={jest.fn}
       />,
@@ -40,14 +47,16 @@ describe('CellMultiSelect', () => {
   it('should render singleSelect', () => {
     const wrapper = shallow(
       <CellMultiSelect
-        variant={CellVariants.MultiSelect}
-        avatarProps={TEST_AVATAR_PROPS}
-        title={TEST_CELL_TITLE}
+        title={SAMPLE_CELLMULTISELECT_TITLE}
+        secondaryText={SAMPLE_CELLMULTISELECT_SECONDARYTEXT}
+        tertiaryText={SAMPLE_CELLMULTISELECT_TERTIARY_TEXT}
+        tagLabel={SAMPLE_CELLMULTISELECT_TAGLABEL}
+        avatarProps={SAMPLE_CELLMULTISELECT_AVATARPROPS}
         onPress={jest.fn}
       />,
     );
     const singleSelectComponent = wrapper.findWhere(
-      (node) => node.prop('testID') === CELL_MULTI_SELECT_TEST_ID,
+      (node) => node.prop('testID') === CELLMULTISELECT_TEST_ID,
     );
     expect(singleSelectComponent.exists()).toBe(true);
   });

@@ -6,17 +6,21 @@ import { Platform, View } from 'react-native';
 
 // External dependencies.
 import { useStyles } from '../../../../../hooks';
-import Text, { TextVariant } from '../../../../Texts/Text';
+import Text from '../../../../Texts/Text';
 import Tag from '../../../../Tags/Tag';
-import Avatar, { AvatarSize } from '../../../../Avatars/Avatar';
+import Avatar from '../../../../Avatars/Avatar';
 
 // Internal dependencies.
 import {
-  CELL_AVATAR_TEST_ID,
-  CELL_TITLE_TEST_ID,
-  CELL_SECONDARY_TEXT_TEST_ID,
-  CELL_TERTIARY_TEXT_TEST_ID,
-  CELL_TAG_LABEL_TEST_ID,
+  DEFAULT_CELLBASE_AVATAR_SIZE,
+  DEFAULT_CELLBASE_AVATAR_TITLE_TEXTVARIANT,
+  DEFAULT_CELLBASE_AVATAR_SECONDARYTEXT_TEXTVARIANT,
+  DEFAULT_CELLBASE_AVATAR_TERTIARYTEXT_TEXTVARIANT,
+  CELLBASE_AVATAR_TEST_ID,
+  CELLBASE_TITLE_TEST_ID,
+  CELLBASE_SECONDARY_TEXT_TEST_ID,
+  CELLBASE_TERTIARY_TEXT_TEST_ID,
+  CELLBASE_TAG_LABEL_TEST_ID,
 } from './CellBase.constants';
 import styleSheet from './CellBase.styles';
 import { CellBaseProps } from './CellBase.types';
@@ -38,24 +42,24 @@ const CellBase = ({
       {/* DEV Note: Account Avatar should be replaced with Avatar with Badge whenever available */}
       <Avatar
         style={styles.avatar}
-        testID={CELL_AVATAR_TEST_ID}
+        testID={CELLBASE_AVATAR_TEST_ID}
         {...avatarProps}
-        size={AvatarSize.Md}
+        size={DEFAULT_CELLBASE_AVATAR_SIZE}
       />
       <View style={styles.cellBaseInfo}>
         <Text
           numberOfLines={1}
-          variant={TextVariant.HeadingSMRegular}
-          {...generateTestId(Platform, CELL_TITLE_TEST_ID)}
+          variant={DEFAULT_CELLBASE_AVATAR_TITLE_TEXTVARIANT}
+          {...generateTestId(Platform, CELLBASE_TITLE_TEST_ID)}
         >
           {title}
         </Text>
         {!!secondaryText && (
           <Text
             numberOfLines={1}
-            variant={TextVariant.BodyMD}
+            variant={DEFAULT_CELLBASE_AVATAR_SECONDARYTEXT_TEXTVARIANT}
             style={styles.secondaryText}
-            testID={CELL_SECONDARY_TEXT_TEST_ID}
+            testID={CELLBASE_SECONDARY_TEXT_TEST_ID}
           >
             {secondaryText}
           </Text>
@@ -63,9 +67,9 @@ const CellBase = ({
         {!!tertiaryText && (
           <Text
             numberOfLines={1}
-            variant={TextVariant.BodyMD}
+            variant={DEFAULT_CELLBASE_AVATAR_TERTIARYTEXT_TEXTVARIANT}
             style={styles.tertiaryText}
-            testID={CELL_TERTIARY_TEXT_TEST_ID}
+            testID={CELLBASE_TERTIARY_TEXT_TEST_ID}
           >
             {tertiaryText}
           </Text>
@@ -74,7 +78,7 @@ const CellBase = ({
           <Tag
             label={tagLabel}
             style={styles.tagLabel}
-            testID={CELL_TAG_LABEL_TEST_ID}
+            testID={CELLBASE_TAG_LABEL_TEST_ID}
           />
         )}
       </View>

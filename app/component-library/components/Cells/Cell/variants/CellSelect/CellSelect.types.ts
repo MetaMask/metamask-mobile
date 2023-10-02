@@ -12,7 +12,7 @@ export interface CellSelectProps
   /**
    * Type of Cell
    */
-  variant: CellVariants.Select;
+  variant?: CellVariants.Select;
 }
 
 /**
