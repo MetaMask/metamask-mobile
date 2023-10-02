@@ -9,5 +9,4 @@ export const isTest =
   process.env.IS_TEST === 'true' &&
   process.env.METAMASK_ENVIRONMENT !== 'production';
 
-export const getServerPort = (defaultPort) =>
-  defaultPort + parseInt(testConfig.jestWorkerId, 10);
+export const getServerPort = () => testConfig.jestWorkerId;

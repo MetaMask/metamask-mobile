@@ -160,7 +160,7 @@ export async function withFixtures(options, testSuite) {
     if (restartDevice) {
       await device.launchApp({
         delete: true,
-        launchArgs: { jestWorkerId: `${process.env.JEST_WORKER_ID}` },
+        launchArgs: { jestWorkerId: `${getFixturesServerPort()}` },
       });
     }
 

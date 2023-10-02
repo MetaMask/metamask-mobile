@@ -3,8 +3,10 @@ import { DEFAULT_FIXTURE_SERVER_PORT } from './fixtures/fixture-server';
 import { DEFAULT_DAPP_SERVER_PORT } from './fixtures/fixture-helper';
 
 export function getServerPort(defaultPort) {
-  if (process.env.JEST_WORKER_ID) {
-    return defaultPort + parseInt(process.env.JEST_WORKER_ID, 10);
+  if (process.pid) {
+    // eslint-disable-next-line no-console
+    console.log('>>>>>>>>', process.env.CI);
+    return defaultPort + (parseInt(process.pid, 10) % 10);
   }
   return defaultPort;
 }

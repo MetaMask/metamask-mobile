@@ -19,6 +19,7 @@ import {
   stopFixtureServer,
 } from '../fixtures/fixture-helper';
 import FixtureServer from '../fixtures/fixture-server';
+import { getFixturesServerPort } from '../dynamical-port-generator';
 
 const SUSHI_SWAP = 'https://app.sushi.com/swap';
 const SUSHI_SWAP_SHORT_HAND_URL = 'app.sushi.com';
@@ -36,7 +37,7 @@ describe(
       await loadFixture(fixtureServer, { fixture });
       await device.launchApp({
         delete: true,
-        launchArgs: { jestWorkerId: `${process.env.JEST_WORKER_ID}` },
+        launchArgs: { jestWorkerId: `${getFixturesServerPort()}` },
       });
       await loginToApp();
     });

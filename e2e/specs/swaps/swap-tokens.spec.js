@@ -20,6 +20,7 @@ import {
 import Networks from '../../resources/networks.json';
 import TestHelpers from '../../helpers';
 import FixtureServer from '../../fixtures/fixture-server';
+import { getFixturesServerPort } from '../../dynamical-port-generator';
 
 const fixtureServer = new FixtureServer();
 
@@ -35,7 +36,7 @@ describe(Regression('Swap Tests'), () => {
     await device.launchApp({
       delete: true,
       permissions: { notifications: 'YES' },
-      launchArgs: { jestWorkerId: `${process.env.JEST_WORKER_ID}` },
+      launchArgs: { jestWorkerId: `${getFixturesServerPort()}` },
     });
     await loginToApp();
   });
