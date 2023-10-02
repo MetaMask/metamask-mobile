@@ -656,7 +656,9 @@
       "ethereumjs-abi>ethereumjs-util>ethereum-cryptography>keccak": true,
       "ethereumjs-abi>ethereumjs-util>ethereum-cryptography>secp256k1": true,
       "@metamask/signature-controller>@metamask/message-manager>ethereumjs-util>ethereum-cryptography>keccak": true,
-      "@metamask/signature-controller>@metamask/message-manager>ethereumjs-util>ethereum-cryptography>secp256k1": true
+      "@metamask/signature-controller>@metamask/message-manager>ethereumjs-util>ethereum-cryptography>secp256k1": true,
+      "appium>appium-tizen-driver>jimp>@babel/polyfill>core-js": false,
+      "appium>appium-tizen-driver>jimp>core-js": false
     }
   }
 }
