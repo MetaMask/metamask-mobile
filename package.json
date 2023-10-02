@@ -1,6 +1,6 @@
 {
   "name": "metamask",
-  "version": "7.7.0",
+  "version": "7.8.0",
   "private": true,
   "scripts": {
     "audit:ci": "./scripts/yarn-audit.sh",
@@ -123,7 +123,7 @@
     "**/xml2js": ">=0.5.0",
     "**/optimist/minimist": "^1.2.5",
     "react-native-level-fs/**/bl": "^1.2.3",
-    "react-native-level-fs/**/semver": "^4.3.2",
+    "react-native-level-fs/levelup/semver": "^5.7.2",
     "@metamask/contract-metadata": "^2.1.0",
     "@metamask/controller-utils": "^3.4.0",
     "@metamask/approval-controller": "3.4.0",
@@ -202,7 +202,7 @@
     "@segment/analytics-react-native": "2.13.0",
     "@segment/sovran-react-native": "0.4.5",
     "@sentry/integrations": "6.3.1",
-    "@sentry/react-native": "5.1.1",
+    "@sentry/react-native": "5.8.1",
     "@tradle/react-native-http": "2.0.1",
     "@walletconnect/client": "^1.7.1",
     "@walletconnect/core": "^2.9.0",
@@ -591,7 +591,8 @@
       "@storybook/manager-webpack5>@storybook/ui>core-js": false,
       "@storybook/manager-webpack5>core-js": false,
       "ts-node>@swc/core": false,
-      "@storybook/addon-controls>@storybook/core-common>esbuild": false
+      "@storybook/addon-controls>@storybook/core-common>esbuild": false,
+      "appium>appium-base-driver>webdriverio>@types/puppeteer-core>@types/puppeteer>puppeteer": false
     }
   }
 }
