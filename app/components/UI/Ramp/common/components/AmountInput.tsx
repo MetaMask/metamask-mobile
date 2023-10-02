@@ -61,6 +61,8 @@ const AmountInput: React.FC<Props> = ({
       </ListItem.Body>
       <ListItem.Amounts style={styles.chevron}>
         <TouchableOpacity
+          accessibilityRole="button"
+          accessible
           disabled={!onCurrencyPress}
           onPress={onCurrencyPress}
           hitSlop={{ top: 20, left: 20, right: 20, bottom: 20 }}

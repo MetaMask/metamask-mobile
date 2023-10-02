@@ -521,7 +521,11 @@ const BuildQuote = () => {
             <View style={[styles.selectors, styles.row]}>
               <AccountSelector />
               <View style={styles.spacer} />
-              <SelectorButton onPress={handleChangeRegion}>
+              <SelectorButton
+                accessibilityRole="button"
+                accessible
+                onPress={handleChangeRegion}
+              >
                 <Text reset style={styles.flagText}>
                   {selectedRegion?.emoji}
                 </Text>
