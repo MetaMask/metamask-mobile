@@ -8,7 +8,7 @@ import { SAMPLE_CELLMULTISELECT_PROPS } from './variants/CellMultiSelect/CellMul
 import { SAMPLE_CELLSELECT_PROPS } from './variants/CellSelect/CellSelect.constants';
 
 // Internal dependencies.
-import { CellVariants } from './Cell.types';
+import { CellVariant } from './Cell.types';
 import { default as CellComponent } from './Cell';
 
 const CellMeta = {
@@ -16,37 +16,37 @@ const CellMeta = {
   component: CellComponent,
   argTypes: {
     variant: {
-      options: CellVariants,
+      options: CellVariant,
       control: {
         type: 'select',
       },
-      defaultValue: CellVariants.Display,
+      defaultValue: CellVariant.Display,
     },
   },
 };
 export default CellMeta;
 
 export const Cell = {
-  render: (args: { variant: CellVariants }) => {
+  render: (args: { variant: CellVariant }) => {
     switch (args.variant) {
-      case CellVariants.Display:
+      case CellVariant.Display:
         return (
           <CellComponent
-            variant={CellVariants.Display}
+            variant={CellVariant.Display}
             {...SAMPLE_CELLDISPLAY_PROPS}
           />
         );
-      case CellVariants.MultiSelect:
+      case CellVariant.MultiSelect:
         return (
           <CellComponent
-            variant={CellVariants.MultiSelect}
+            variant={CellVariant.MultiSelect}
             {...SAMPLE_CELLMULTISELECT_PROPS}
           />
         );
-      case CellVariants.Select:
+      case CellVariant.Select:
         return (
           <CellComponent
-            variant={CellVariants.Select}
+            variant={CellVariant.Select}
             {...SAMPLE_CELLSELECT_PROPS}
           />
         );

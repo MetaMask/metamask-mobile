@@ -10,12 +10,12 @@ import { CELLSELECT_TEST_ID } from './variants/CellSelect/CellSelect.constants';
 // Internal dependencies.
 import Cell from './Cell';
 import { SAMPLE_CELL_PROPS } from './Cell.constants';
-import { CellVariants } from './Cell.types';
+import { CellVariant } from './Cell.types';
 
 describe('Cell', () => {
   it('should render CellDisplay given the type Display', () => {
     const wrapper = render(
-      <Cell variant={CellVariants.Display} {...SAMPLE_CELL_PROPS} />,
+      <Cell variant={CellVariant.Display} {...SAMPLE_CELL_PROPS} />,
     );
     expect(wrapper).toMatchSnapshot();
     expect(wrapper.queryByTestId(CELLDISPLAY_TEST_ID)).not.toBe(null);
@@ -24,7 +24,7 @@ describe('Cell', () => {
   });
   it('should render CellMultiSelect given the type MultiSelect', () => {
     const wrapper = render(
-      <Cell variant={CellVariants.MultiSelect} {...SAMPLE_CELL_PROPS} />,
+      <Cell variant={CellVariant.MultiSelect} {...SAMPLE_CELL_PROPS} />,
     );
     expect(wrapper).toMatchSnapshot();
     expect(wrapper.queryByTestId(CELLDISPLAY_TEST_ID)).toBe(null);
@@ -33,7 +33,7 @@ describe('Cell', () => {
   });
   it('should render CellSelect given the type Select', () => {
     const wrapper = render(
-      <Cell variant={CellVariants.Select} {...SAMPLE_CELL_PROPS} />,
+      <Cell variant={CellVariant.Select} {...SAMPLE_CELL_PROPS} />,
     );
     expect(wrapper).toMatchSnapshot();
     expect(wrapper.queryByTestId(CELLDISPLAY_TEST_ID)).toBe(null);

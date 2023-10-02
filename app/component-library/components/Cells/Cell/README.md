@@ -10,7 +10,7 @@ Variant of Cell.
 
 | <span style="color:gray;font-size:14px">TYPE</span> | <span style="color:gray;font-size:14px">REQUIRED</span> |
 | :-------------------------------------------------- | :------------------------------------------------------ |
-| [CellVariants](./Cell.types.ts#L9)                                              | Yes                                                     |
+| [CellVariant](./Cell.types.ts#L9)                                              | Yes                                                     |
 
 ### `avatarProps`
 
@@ -93,7 +93,7 @@ Default: false
 ```javascript
 // Cell Display
 <Cell
-  variant={CellVariants.Display}
+  variant={CellVariant.Display}
   avatarProps={AVATAR_PROPS}
   title={TITLE}
   secondaryText={SECONDARY_TEXT}
@@ -106,7 +106,7 @@ Default: false
 
 // Cell MultiSelect
 <Cell
-  variant={CellVariants.MultiSelect}
+  variant={CellVariant.MultiSelect}
   avatarProps={AVATAR_PROPS}
   title={TITLE}
   secondaryText={SECONDARY_TEXT}
@@ -119,7 +119,7 @@ Default: false
 
 // Cell Select
 <Cell
-  variant={CellVariants.Select}
+  variant={CellVariant.Select}
   avatarProps={AVATAR_PROPS}
   title={TITLE}
   secondaryText={SECONDARY_TEXT}

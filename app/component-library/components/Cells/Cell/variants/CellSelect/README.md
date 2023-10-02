@@ -85,7 +85,7 @@ Default: false
 ```javascript
 // Change import path to relative path.
 import CellSelect from 'app/component-library/components/Cells/variants/CellSelect/CellSelect';
-import { CellVariants } from 'app/component-library/components/Cells/Cell.types';
+import { CellVariant } from 'app/component-library/components/Cells/Cell.types';
 
 <CellSelect
   avatarProps={AVATAR_PROPS}

@@ -10,15 +10,15 @@ import CellSelect from './variants/CellSelect';
 import { CELLSELECT_TEST_ID } from './variants/CellSelect/CellSelect.constants';
 
 // Internal dependencies.
-import { CellProps, CellVariants } from './Cell.types';
+import { CellProps, CellVariant } from './Cell.types';
 
 const Cell = ({ variant, ...props }: CellProps) => {
   switch (variant) {
-    case CellVariants.Display:
+    case CellVariant.Display:
       return <CellDisplay testID={CELLDISPLAY_TEST_ID} {...props} />;
-    case CellVariants.MultiSelect:
+    case CellVariant.MultiSelect:
       return <CellMultiSelect testID={CELLMULTISELECT_TEST_ID} {...props} />;
-    case CellVariants.Select:
+    case CellVariant.Select:
       return <CellSelect testID={CELLSELECT_TEST_ID} {...props} />;
     default:
       throw new Error('Invalid Cell Variant');
