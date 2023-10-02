@@ -15,7 +15,6 @@ PODS:
     - ReactCommon/turbomodule/core (= 0.71.13)
   - fmt (6.2.1)
   - glog (0.3.5)
-  - libevent (2.1.12)
   - lottie-ios (3.4.1)
   - lottie-react-native (5.1.5):
     - lottie-ios (~> 3.4.0)
@@ -463,7 +462,6 @@ PODS:
   - Sentry/HybridSDK (8.9.3):
     - SentryPrivate (= 8.9.3)
   - SentryPrivate (8.9.3)
-  - SocketRocket (0.6.1)
   - sovran-react-native (0.4.5):
     - React-Core
   - TcpSockets (4.0.0):
@@ -559,8 +557,6 @@ SPEC REPOS:
     - Branch
     - CocoaAsyncSocket
     - fmt
-    - libevent
-    - OpenSSL-Universal
     - Sentry
     - SentryPrivate
 
@@ -736,7 +732,6 @@ SPEC CHECKSUMS:
   FBReactNativeSpec: c949e4b726d8cf9e19b73be60ecfa26355deceb3
   fmt: ff9d55029c625d3757ed641535fd4a75fedc7ce9
   glog: 04b94705f318337d7ead9e6d17c019bd9b1f6b1b
-  libevent: 4049cae6c81cdb3654a443be001fb9bdceff7913
   lottie-ios: 016449b5d8be0c3dcbcfa0a9988469999cd04c5d
   lottie-react-native: 3e722c63015fdb9c27638b0a77969fc412067c18
   RCT-Folly: 424b8c9a7a0b9ab2886ffe9c3b041ef628fd4fb1
@@ -810,11 +805,10 @@ SPEC CHECKSUMS:
   segment-analytics-react-native: bd1f13ea95bad2313a9c7130da032af0e9a6da60
   Sentry: 97161cac725da1ecbe77d1445bf8a61c1e5667f1
   SentryPrivate: 9a76def09fb08f9501997b8df946e8097947b94f
-  SocketRocket: f32cd54efbe0f095c4d7594881e52619cfe80b17
   sovran-react-native: fd3dc8f1a4b14acdc4ad25fc6b4ac4f52a2a2a15
   TcpSockets: a8eb6b5867fe643e6cfed5db2e4de62f4d1e8fd0
   Yoga: 135109c9b8c5d1a8af3a58d21cd4c7aa7f3bf555
 
-PODFILE CHECKSUM: 559a01793f9ae806653374ed293dcefb80cdd05a
+PODFILE CHECKSUM: e900e3841155e821fe7b8ead0fb4304927b9aa5c
 
 COCOAPODS: 1.12.1
