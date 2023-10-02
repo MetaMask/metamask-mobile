@@ -14,7 +14,6 @@ import root from '../../../locales/languages/en.json';
 import { SMART_CONTRACTS } from '../../../app/util/test/smart-contracts';
 
 describe(Regression('ERC721 tokens'), () => {
-  let ganache;
   const NFT_CONTRACT = SMART_CONTRACTS.NFTS;
   const SENT_COLLECTIBLE_MESSAGE_TEXT = root.transactions.sent_collectible;
   const WEBVIEW_TEST_DAPP_TRANSFER_FROM_BUTTON_ID = 'transferFromButton';
@@ -25,11 +24,6 @@ describe(Regression('ERC721 tokens'), () => {
       await device.reverseTcpPort('8545'); // ganache
       await device.reverseTcpPort('8080'); // test-dapp
     }
-  });
-
-  afterEach(async () => {
-    await ganache.quit();
-    await TestHelpers.delay(3000);
   });
 
   it('send an ERC721 token from a dapp', async () => {
@@ -44,8 +38,7 @@ describe(Regression('ERC721 tokens'), () => {
         ganacheOptions: defaultGanacheOptions,
         smartContract: NFT_CONTRACT,
       },
-      async ({ contractRegistry, ganacheServer }) => {
-        ganache = ganacheServer;
+      async ({ contractRegistry }) => {
         const nftsAddress = await contractRegistry.getContractAddress(
           NFT_CONTRACT,
         );
