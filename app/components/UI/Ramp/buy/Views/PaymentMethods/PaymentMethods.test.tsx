@@ -5,7 +5,7 @@ import { renderScreen } from '../../../../../../util/test/renderWithProvider';
 
 import PaymentMethods from './PaymentMethods';
 import { mockPaymentMethods } from './PaymentMethods.constants';
-import { createAmountToBuyNavDetails } from '../AmountToBuy';
+import { createBuildQuoteNavDetails } from '../BuildQuote/BuildQuote';
 
 import useRegions from '../../hooks/useRegions';
 import usePaymentMethods from '../../hooks/usePaymentMethods';
@@ -272,7 +272,7 @@ describe('PaymentMethods View', () => {
   it('navigates to amount to buy on continue button press', async () => {
     render(PaymentMethods);
     fireEvent.press(screen.getByRole('button', { name: 'Continue to amount' }));
-    expect(mockNavigate).toHaveBeenCalledWith(...createAmountToBuyNavDetails());
+    expect(mockNavigate).toHaveBeenCalledWith(...createBuildQuoteNavDetails());
     expect(mockTrackEvent).toHaveBeenCalledWith(
       'ONRAMP_CONTINUE_TO_AMOUNT_CLICKED',
       {

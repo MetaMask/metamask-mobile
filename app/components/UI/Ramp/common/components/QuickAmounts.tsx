@@ -41,7 +41,13 @@ const Amount: React.FC<AmountProps> = ({
   }, [onPress, value]);
 
   return (
-    <TouchableOpacity style={styles.amount} onPress={handlePress} {...props}>
+    <TouchableOpacity
+      style={styles.amount}
+      onPress={handlePress}
+      accessibilityRole="button"
+      accessible
+      {...props}
+    >
       <Text grey small centered noMargin>
         {label}
       </Text>
