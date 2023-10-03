@@ -23,8 +23,9 @@ describe(
   () => {
     const PASSWORD = '123123123';
 
-    beforeEach(() => {
+    beforeAll(async () => {
       jest.setTimeout(150000);
+      await TestHelpers.reverseServerPort();
     });
 
     it('should log in into the app, change password then delete wallet flow', async () => {
