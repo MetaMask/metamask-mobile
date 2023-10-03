@@ -18,7 +18,7 @@ import Button, {
   ButtonSize,
   ButtonVariants,
 } from '../../../../component-library/components/Buttons/Button';
-import { AvatarVariants } from '../../../../component-library/components/Avatars/Avatar';
+import { AvatarVariant } from '../../../../component-library/components/Avatars/Avatar';
 import { AvatarAccountType } from '../../../../component-library/components/Avatars/Avatar/variants/AvatarAccount';
 import { formatAddress } from '../../../../util/address';
 import Icon, {
@@ -141,7 +141,7 @@ const AccountConnectSingle = ({
         tertiaryText={balanceError}
         onPress={() => onSetScreen(AccountConnectScreens.SingleConnectSelector)}
         avatarProps={{
-          variant: AvatarVariants.Account,
+          variant: AvatarVariant.Account,
           type: accountAvatarType,
           accountAddress: address,
         }}

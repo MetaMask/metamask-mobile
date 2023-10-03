@@ -6,21 +6,22 @@ import { Image, ImageErrorEventData, NativeSyntheticEvent } from 'react-native';
 
 // External dependencies.
 import AvatarBase from '../../foundation/AvatarBase';
-import { AvatarSize } from '../../Avatar.types';
 import { useStyles } from '../../../../../hooks';
-import Icon, { IconName } from '../../../../Icons/Icon';
+import Icon from '../../../../Icons/Icon';
+import { ICONSIZE_BY_AVATARSIZE } from '../../Avatar.constants';
 
 // Internal dependencies.
 import { AvatarFaviconProps } from './AvatarFavicon.types';
 import {
-  ICON_SIZE_BY_AVATAR_SIZE,
-  FAVICON_AVATAR_IMAGE_ID,
+  DEFAULT_AVATARFAVICON_SIZE,
+  DEFAULT_AVATARFAVICON_ERROR_ICON,
+  AVATARFAVICON_IMAGE_TESTID,
 } from './AvatarFavicon.constants';
 import stylesheet from './AvatarFavicon.styles';
 
 const AvatarFavicon = ({
   imageSource,
-  size = AvatarSize.Md,
+  size = DEFAULT_AVATARFAVICON_SIZE,
   style,
 }: AvatarFaviconProps) => {
   const [error, setError] = useState(undefined);
@@ -33,12 +34,15 @@ const AvatarFavicon = ({
   );
 
   const renderError = () => (
-    <Icon size={ICON_SIZE_BY_AVATAR_SIZE[size]} name={IconName.Global} />
+    <Icon
+      size={ICONSIZE_BY_AVATARSIZE[size]}
+      name={DEFAULT_AVATARFAVICON_ERROR_ICON}
+    />
   );
 
   const renderImage = () => (
     <Image
-      testID={FAVICON_AVATAR_IMAGE_ID}
+      testID={AVATARFAVICON_IMAGE_TESTID}
       source={imageSource}
       style={styles.image}
       resizeMode={'contain'}

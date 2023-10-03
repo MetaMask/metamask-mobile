@@ -1,3 +1,6 @@
+import { AVATARNETWORK_IMAGE_TESTID } from '../component-library/components/Avatars/Avatar/variants/AvatarNetwork/AvatarNetwork.constants';
+import { AVATARFAVICON_IMAGE_TESTID } from '../component-library/components/Avatars/Avatar/variants/AvatarFavicon/AvatarFavicon.constants';
+
 export const DELETE_WALLET_CONTAINER_ID = 'delete-wallet-modal-container';
 export const DELETE_WALLET_INPUT_BOX_ID = 'delete-wallet-inputbox';
 
@@ -67,8 +70,8 @@ export const ADD_ADDRESS_BUTTON_ID = 'add-address-button';
 export const CELL_DISPLAY_TEST_ID = 'cell-display';
 export const CELL_MULTI_SELECT_TEST_ID = 'cell-multi-select';
 export const CELL_SELECT_TEST_ID = 'cell-select';
-export const FAVICON_AVATAR_IMAGE_ID = 'favicon-avatar-image';
-export const NETWORK_AVATAR_IMAGE_ID = 'network-avatar-image';
+export const FAVICON_AVATAR_IMAGE_ID = AVATARFAVICON_IMAGE_TESTID;
+export const NETWORK_AVATAR_IMAGE_ID = AVATARNETWORK_IMAGE_TESTID;
 export const CHECKBOX_ICON_ID = 'checkbox-icon';
 export const SELECTABLE_LIST_ITEM_OVERLAY_ID = 'selectable-list-item-overlay';
 export const CONFIRMATION_MODAL_NORMAL_BUTTON_ID =

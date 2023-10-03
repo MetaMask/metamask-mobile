@@ -2,7 +2,7 @@
 
 exports[`AvatarFavicon should match the snapshot 1`] = `
 <AvatarBase
-  size="48"
+  size="32"
   style={
     Object {
       "borderRadius": 0,

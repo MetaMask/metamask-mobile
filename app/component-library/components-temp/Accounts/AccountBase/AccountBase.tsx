@@ -2,7 +2,7 @@ import React from 'react';
 import { View } from 'react-native';
 
 import Badge from '../../../../component-library/components/Badges/Badge';
-import Avatar, { AvatarVariants } from '../../../components/Avatars/Avatar';
+import Avatar, { AvatarVariant } from '../../../components/Avatars/Avatar';
 import { AvatarAccountType } from '../../../components/Avatars/Avatar/variants/AvatarAccount';
 import BadgeWrapper from '../../../components/Badges/BadgeWrapper';
 import Text, { TextVariant } from '../../../components/Texts/Text';
@@ -32,7 +32,7 @@ const AccountBase = ({
         testID={ACCOUNT_BALANCE_AVATAR_TEST_ID}
       >
         <Avatar
-          variant={AvatarVariants.Account}
+          variant={AvatarVariant.Account}
           type={
             useBlockieIcon
               ? AvatarAccountType.Blockies

@@ -2,33 +2,32 @@
 
 // Third party dependencies.
 import React, { useCallback, useEffect, useState } from 'react';
-import { Image, ImageSourcePropType, Platform } from 'react-native';
+import { Image, ImageSourcePropType } from 'react-native';
 
 // External dependencies.
 import AvatarBase from '../../foundation/AvatarBase';
-import { AvatarSize } from '../../Avatar.types';
-import Text, { TextVariant } from '../../../../Texts/Text';
+import Text from '../../../../Texts/Text';
 import { useStyles } from '../../../../../hooks';
+import { TEXTVARIANT_BY_AVATARSIZE } from '../../Avatar.constants';
 
 // Internal dependencies.
 import { AvatarNetworkProps } from './AvatarNetwork.types';
-import { NETWORK_AVATAR_IMAGE_ID } from './../../../../../../constants/test-ids';
 import stylesheet from './AvatarNetwork.styles';
-import generateTestId from '../../../../../../../wdio/utils/generateTestId';
+import {
+  DEFAULT_AVATARNETWORK_SIZE,
+  DEFAULT_AVATARNETWORK_ERROR_TEXT,
+  AVATARNETWORK_IMAGE_TESTID,
+} from './AvatarNetwork.constants';
 
 const AvatarNetwork = ({
-  size = AvatarSize.Md,
+  size = DEFAULT_AVATARNETWORK_SIZE,
   style,
   name,
   imageSource,
 }: AvatarNetworkProps) => {
   const [showFallback, setShowFallback] = useState(!imageSource);
   const { styles } = useStyles(stylesheet, { style, size, showFallback });
-  const textVariant =
-    size === AvatarSize.Sm || size === AvatarSize.Xs
-      ? TextVariant.BodyMD
-      : TextVariant.HeadingSMRegular;
-  const chainNameFirstLetter = name?.[0] ?? '?';
+  const chainNameFirstLetter = name?.[0] ?? DEFAULT_AVATARNETWORK_ERROR_TEXT;
 
   const onError = useCallback(() => setShowFallback(true), [setShowFallback]);
 
@@ -39,7 +38,7 @@ const AvatarNetwork = ({
   return (
     <AvatarBase size={size} style={styles.base}>
       {showFallback ? (
-        <Text style={styles.label} variant={textVariant}>
+        <Text style={styles.label} variant={TEXTVARIANT_BY_AVATARSIZE[size]}>
           {chainNameFirstLetter}
         </Text>
       ) : (
@@ -47,7 +46,7 @@ const AvatarNetwork = ({
           source={imageSource as ImageSourcePropType}
           style={styles.image}
           onError={onError}
-          {...generateTestId(Platform, NETWORK_AVATAR_IMAGE_ID)}
+          testID={AVATARNETWORK_IMAGE_TESTID}
           resizeMode={'contain'}
         />
       )}

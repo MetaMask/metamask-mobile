@@ -11,7 +11,7 @@ import SheetHeader from '../../../component-library/components/Sheet/SheetHeader
 import Cell, {
   CellVariants,
 } from '../../../component-library/components/Cells/Cell';
-import { AvatarVariants } from '../../../component-library/components/Avatars/Avatar';
+import { AvatarVariant } from '../../../component-library/components/Avatars/Avatar';
 import { strings } from '../../../../locales/i18n';
 import SheetBottom, {
   SheetBottomRef,
@@ -119,7 +119,7 @@ const NetworkSelector = () => {
         variant={CellVariants.Select}
         title={mainnetName}
         avatarProps={{
-          variant: AvatarVariants.Network,
+          variant: AvatarVariant.Network,
           name: mainnetName,
           imageSource: images.ETHEREUM,
         }}
@@ -140,7 +140,7 @@ const NetworkSelector = () => {
         variant={CellVariants.Select}
         title={lineaMainnetName}
         avatarProps={{
-          variant: AvatarVariants.Network,
+          variant: AvatarVariant.Network,
           name: lineaMainnetName,
           imageSource: images['LINEA-MAINNET'],
         }}
@@ -164,7 +164,7 @@ const NetworkSelector = () => {
             variant={CellVariants.Select}
             title={name}
             avatarProps={{
-              variant: AvatarVariants.Network,
+              variant: AvatarVariant.Network,
               name,
               imageSource: image,
             }}
@@ -191,7 +191,7 @@ const NetworkSelector = () => {
           variant={CellVariants.Select}
           title={name}
           avatarProps={{
-            variant: AvatarVariants.Network,
+            variant: AvatarVariant.Network,
             name,
             imageSource,
           }}

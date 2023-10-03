@@ -26,7 +26,7 @@ import Animated, {
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 // External dependencies.
-import Avatar, { AvatarSize, AvatarVariants } from '../Avatars/Avatar';
+import Avatar, { AvatarSize, AvatarVariant } from '../Avatars/Avatar';
 import Text, { TextVariant } from '../Texts/Text';
 import Button, { ButtonVariants } from '../Buttons/Button';
 
@@ -137,7 +137,7 @@ const Toast = forwardRef((_, ref: React.ForwardedRef<ToastRef>) => {
         const { accountAvatarType } = toastOptions;
         return (
           <Avatar
-            variant={AvatarVariants.Account}
+            variant={AvatarVariant.Account}
             accountAddress={accountAddress}
             // TODO PS: respect avatar global configs
             // should receive avatar type as props
@@ -151,7 +151,7 @@ const Toast = forwardRef((_, ref: React.ForwardedRef<ToastRef>) => {
         const { networkImageSource, networkName } = toastOptions;
         return (
           <Avatar
-            variant={AvatarVariants.Network}
+            variant={AvatarVariant.Network}
             name={networkName}
             imageSource={networkImageSource}
             size={AvatarSize.Md}

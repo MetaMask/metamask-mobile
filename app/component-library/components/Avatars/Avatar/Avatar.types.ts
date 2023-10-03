@@ -1,3 +1,7 @@
+// External dependencies.
+import { IconSize } from '../../Icons/Icon';
+import { TextVariant } from '../../Texts/Text';
+
 // Internal dependencies.
 import { AvatarAccountProps } from './variants/AvatarAccount/AvatarAccount.types';
 import { AvatarFaviconProps } from './variants/AvatarFavicon/AvatarFavicon.types';
@@ -19,7 +23,7 @@ export enum AvatarSize {
 /**
  * Avatar variants.
  */
-export enum AvatarVariants {
+export enum AvatarVariant {
   Account = 'Account',
   Favicon = 'Favicon',
   Icon = 'Icon',
@@ -29,9 +33,29 @@ export enum AvatarVariants {
 /**
  * Avatar component props.
  */
-export type AvatarProps =
+export type AvatarProps = (
   | AvatarAccountProps
   | AvatarFaviconProps
   | AvatarIconProps
   | AvatarNetworkProps
-  | AvatarTokenProps;
+  | AvatarTokenProps
+) & {
+  /**
+   * Variant of Avatar
+   */
+  variant: AvatarVariant;
+};
+
+/**
+ * Mapping of IconSize by AvatarSize.
+ */
+export type IconSizeByAvatarSize = {
+  [key in AvatarSize]: IconSize;
+};
+
+/**
+ * Mapping of TextVariant by AvatarSize.
+ */
+export type TextVariantByAvatarSize = {
+  [key in AvatarSize]: TextVariant;
+};
