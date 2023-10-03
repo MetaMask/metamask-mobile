@@ -502,7 +502,7 @@ class TransactionReview extends PureComponent {
               onConfirmPress={this.props.onConfirm}
               confirmed={transactionConfirmed}
               confirmDisabled={
-                transactionConfirmed || Boolean(error) || isAnimating
+                transactionConfirmed || error !== false || isAnimating
               }
             >
               <View style={styles.actionViewChildren}>
