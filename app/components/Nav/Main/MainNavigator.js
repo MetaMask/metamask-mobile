@@ -535,7 +535,7 @@ const Ramps = ({ rampType }) => (
         component={PaymentMethods}
         options={{ animationEnabled: false }}
       />
-      <Stack.Screen name={Routes.RAMP.AMOUNT_TO_BUY} component={BuildQuote} />
+      <Stack.Screen name={Routes.RAMP.BUILD_QUOTE} component={BuildQuote} />
       <Stack.Screen name={Routes.RAMP.QUOTES} component={Quotes} />
       <Stack.Screen name={Routes.RAMP.CHECKOUT} component={CheckoutWebView} />
       <Stack.Screen name={Routes.RAMP.REGION} component={Regions} />

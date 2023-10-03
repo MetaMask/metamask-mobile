@@ -25,7 +25,7 @@ function render(Component: React.ComponentType) {
   return renderScreen(
     Component,
     {
-      name: Routes.RAMP.AMOUNT_TO_BUY,
+      name: Routes.RAMP.BUILD_QUOTE,
     },
     {
       state: {
