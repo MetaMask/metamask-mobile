@@ -134,7 +134,7 @@ class Analytics {
 
     RCTAnalytics.setUserProfileProperty(
       USER_PROFILE_PROPERTY.SECURITY_PROVIDERS,
-      securityProviders.join(','),
+      securityProviders
     );
   };
 
