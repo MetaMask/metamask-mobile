@@ -69,7 +69,7 @@ function render(Component: React.ComponentType, chainId?: string) {
   return renderScreen(
     Component,
     {
-      name: Routes.RAMP.REGION,
+      name: Routes.RAMP.NETWORK_SWITCHER,
     },
     {
       state: {

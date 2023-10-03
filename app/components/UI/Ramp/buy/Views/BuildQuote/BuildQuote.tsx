@@ -5,117 +5,78 @@ import React, {
   useRef,
   useState,
 } from 'react';
-import { StyleSheet, Pressable, View, BackHandler } from 'react-native';
+import { Pressable, View, BackHandler } from 'react-native';
 import Animated, {
   useAnimatedStyle,
   useSharedValue,
   withTiming,
 } from 'react-native-reanimated';
 import { useNavigation } from '@react-navigation/native';
-import { CryptoCurrency } from '@consensys/on-ramp-sdk';
-
-import { useRampSDK } from '../../common/sdk';
-import useSDKMethod from '../../common/hooks/useSDKMethod';
-import usePaymentMethods from '../hooks/usePaymentMethods';
-import useRegions from '../hooks/useRegions';
-import useAnalytics from '../../common/hooks/useAnalytics';
-
-import useModalHandler from '../../../../Base/hooks/useModalHandler';
-import Text from '../../../../Base/Text';
-import BaseListItem from '../../../../Base/ListItem';
-import BaseSelectorButton from '../../../../Base/SelectorButton';
-import StyledButton from '../../../StyledButton';
-
-import ScreenLayout from '../../common/components/ScreenLayout';
-import Box from '../../common/components/Box';
-import AssetSelectorButton from '../../common/components/AssetSelectorButton';
-import PaymentMethodSelector from '../../common/components/PaymentMethodSelector';
-import AmountInput from '../../common/components/AmountInput';
-import Keypad from '../../common/components/Keypad';
-import QuickAmounts from '../../common/components/QuickAmounts';
-import AccountSelector from '../../common/components/AccountSelector';
-import TokenIcon from '../../../Swaps/components/TokenIcon';
-import CustomActionButton from '../../common/containers/CustomActionButton';
-import TokenSelectModal from '../../common/components/TokenSelectModal';
-import PaymentMethodModal from '../../common/components/PaymentMethodModal';
-import PaymentMethodIcon from '../../common/components/PaymentMethodIcon';
-import FiatSelectModal from '../../common/components/modals/FiatSelectModal';
-import ErrorViewWithReporting from '../../common/components/ErrorViewWithReporting';
-import RegionModal from '../../common/components/RegionModal';
-import SkeletonText from '../../common/components/SkeletonText';
-import ErrorView from '../../common/components/ErrorView';
-
-import { getFiatOnRampAggNavbar } from '../../../Navbar';
-import { useTheme } from '../../../../../util/theme';
-import { strings } from '../../../../../../locales/i18n';
+import { useRampSDK } from '../../../common/sdk';
+import usePaymentMethods from '../../hooks/usePaymentMethods';
+import useRegions from '../../hooks/useRegions';
+import useAnalytics from '../../../common/hooks/useAnalytics';
+import useModalHandler from '../../../../../Base/hooks/useModalHandler';
+import Text from '../../../../../Base/Text';
+import BaseListItem from '../../../../../Base/ListItem';
+import BaseSelectorButton from '../../../../../Base/SelectorButton';
+import StyledButton from '../../../../StyledButton';
+import ScreenLayout from '../../../common/components/ScreenLayout';
+import Box from '../../../common/components/Box';
+import AssetSelectorButton from '../../../common/components/AssetSelectorButton';
+import PaymentMethodSelector from '../../../common/components/PaymentMethodSelector';
+import AmountInput from '../../../common/components/AmountInput';
+import Keypad from '../../../common/components/Keypad';
+import QuickAmounts from '../../../common/components/QuickAmounts';
+import AccountSelector from '../../../common/components/AccountSelector';
+import TokenIcon from '../../../../Swaps/components/TokenIcon';
+import CustomActionButton from '../../../common/containers/CustomActionButton';
+import TokenSelectModal from '../../../common/components/TokenSelectModal';
+import PaymentMethodModal from '../../../common/components/PaymentMethodModal';
+import PaymentMethodIcon from '../../../common/components/PaymentMethodIcon';
+import FiatSelectModal from '../../../common/components/modals/FiatSelectModal';
+import ErrorViewWithReporting from '../../../common/components/ErrorViewWithReporting';
+import RegionModal from '../../../common/components/RegionModal';
+import SkeletonText from '../../../common/components/SkeletonText';
+import ErrorView from '../../../common/components/ErrorView';
+import { getFiatOnRampAggNavbar } from '../../../../Navbar';
+import { strings } from '../../../../../../../locales/i18n';
 import {
   createNavigationDetails,
   useParams,
-} from '../../../../../util/navigation/navUtils';
-import Routes from '../../../../../constants/navigation/Routes';
-import { Colors } from '../../../../../util/theme/models';
-import { NATIVE_ADDRESS } from '../../../../../constants/on-ramp';
-import { formatAmount } from '../../common/utils';
-import { createQuotesNavDetails } from './Quotes/Quotes';
-import { Region } from '../../common/types';
+} from '../../../../../../util/navigation/navUtils';
+import Routes from '../../../../../../constants/navigation/Routes';
+import { formatAmount } from '../../../common/utils';
+import { createQuotesNavDetails } from '../Quotes/Quotes';
+import { Region } from '../../../common/types';
+import useFiatCurrencies from '../../hooks/useFiatCurrencies';
+import useCryptoCurrencies from '../../hooks/useCryptoCurrencies';
+import useLimits from '../../hooks/useLimits';
+import { useStyles } from '../../../../../../component-library/hooks';
+import styleSheet from './BuildQuote.styles';
 
 // TODO: Convert into typescript and correctly type
 const ListItem = BaseListItem as any;
 const SelectorButton = BaseSelectorButton as any;
 
-interface AmountToBuyParams {
+interface BuildQuoteParams {
   showBack?: boolean;
 }
 
-export const createAmountToBuyNavDetails =
-  createNavigationDetails<AmountToBuyParams>(Routes.RAMP.AMOUNT_TO_BUY);
+export const createBuildQuoteNavDetails =
+  createNavigationDetails<BuildQuoteParams>(Routes.RAMP.AMOUNT_TO_BUY);
 
-const createStyles = (colors: Colors) =>
-  StyleSheet.create({
-    viewContainer: {
-      flex: 1,
-    },
-    selectors: {
-      flexDirection: 'row',
-      justifyContent: 'space-between',
-      alignItems: 'center',
-    },
-    spacer: {
-      minWidth: 8,
-    },
-    row: {
-      marginVertical: 5,
-    },
-    keypadContainer: {
-      position: 'absolute',
-      bottom: 0,
-      left: 0,
-      right: 0,
-      paddingBottom: 50,
-      backgroundColor: colors.background.alternative,
-    },
-    cta: {
-      paddingTop: 12,
-    },
-    flexRow: {
-      flexDirection: 'row',
-    },
-    flagText: {
-      marginVertical: 3,
-      marginHorizontal: 0,
-    },
-  });
-
-const AmountToBuy = () => {
+const BuildQuote = () => {
   const navigation = useNavigation();
-  const params = useParams<AmountToBuyParams>();
-  const { colors } = useTheme();
-  const styles = createStyles(colors);
+  const params = useParams<BuildQuoteParams>();
+  const {
+    styles,
+    theme: { colors },
+  } = useStyles(styleSheet, {});
   const trackEvent = useAnalytics();
   const [amountFocused, setAmountFocused] = useState(false);
   const [amount, setAmount] = useState('0');
   const [amountNumber, setAmountNumber] = useState(0);
-  const [tokens, setTokens] = useState<CryptoCurrency[] | null>(null);
   const [error, setError] = useState<string | null>(null);
   const keyboardHeight = useRef(1000);
   const keypadOffset = useSharedValue(1000);
@@ -172,182 +133,46 @@ const AmountToBuy = () => {
     currentPaymentMethod,
   } = usePaymentMethods();
 
-  /**
-   * SDK methods are called as the parameters change.
-   * We get
-   * - defaultFiatCurrency -> getDefaultFiatCurrency
-   * - getFiatCurrencies -> currencies
-   * - getCryptoCurrencies -> sdkCryptoCurrencies
-   * - limits -> getLimits
-   */
-  const [
-    {
-      data: defaultFiatCurrency,
-      error: errorDefaultFiatCurrency,
-      isFetching: isFetchingDefaultFiatCurrency,
-    },
+  const {
+    defaultFiatCurrency,
     queryDefaultFiatCurrency,
-  ] = useSDKMethod(
-    'getDefaultFiatCurrency',
-    selectedRegion?.id,
-    selectedPaymentMethodId,
-  );
-
-  const [
-    {
-      data: fiatCurrencies,
-      error: errorFiatCurrencies,
-      isFetching: isFetchingFiatCurrencies,
-    },
-    queryGetFiatCurrencies,
-  ] = useSDKMethod(
-    'getFiatCurrencies',
-    selectedRegion?.id,
-    selectedPaymentMethodId,
-  );
-
-  const [
-    {
-      data: sdkCryptoCurrencies,
-      error: errorSdkCryptoCurrencies,
-      isFetching: isFetchingSdkCryptoCurrencies,
-    },
-    queryGetCryptoCurrencies,
-  ] = useSDKMethod(
-    'getCryptoCurrencies',
-    selectedRegion?.id,
-    selectedPaymentMethodId,
-    selectedFiatCurrencyId,
-  );
-
-  const [{ data: limits }] = useSDKMethod(
-    'getLimits',
-    selectedRegion?.id,
-    selectedPaymentMethodId,
-    selectedAsset?.id,
-    selectedFiatCurrencyId,
-  );
-
-  /**
-   * * Defaults and validation of selected values
-   */
-
-  /**
-   * Temporarily filter crypto currencies to match current chain id
-   * TODO: Remove this filter when we go multi chain. Replace `tokens` with `sdkCryptoCurrencies`
-   */
-  useEffect(() => {
-    if (
-      !isFetchingSdkCryptoCurrencies &&
-      !errorSdkCryptoCurrencies &&
-      sdkCryptoCurrencies
-    ) {
-      const filteredTokens = sdkCryptoCurrencies.filter(
-        (token) => Number(token.network?.chainId) === Number(selectedChainId),
-      );
-      setTokens(filteredTokens);
-    }
-  }, [
-    sdkCryptoCurrencies,
-    errorSdkCryptoCurrencies,
-    isFetchingSdkCryptoCurrencies,
-    selectedChainId,
-  ]);
-
-  /**
-   * Select the default fiat currency as selected if none is selected.
-   */
-  useEffect(() => {
-    if (
-      !isFetchingDefaultFiatCurrency &&
-      defaultFiatCurrency &&
-      !selectedFiatCurrencyId
-    ) {
-      setSelectedFiatCurrencyId(defaultFiatCurrency.id);
-    }
-  }, [
-    defaultFiatCurrency,
-    isFetchingDefaultFiatCurrency,
-    selectedFiatCurrencyId,
-    setSelectedFiatCurrencyId,
-  ]);
-
-  /**
-   * Select the default fiat currency if current selection is not available.
-   */
-  useEffect(() => {
-    if (
-      !isFetchingFiatCurrencies &&
-      !isFetchingDefaultFiatCurrency &&
-      selectedFiatCurrencyId &&
-      fiatCurrencies &&
-      defaultFiatCurrency &&
-      !fiatCurrencies.some((currency) => currency.id === selectedFiatCurrencyId)
-    ) {
-      setSelectedFiatCurrencyId(defaultFiatCurrency.id);
-    }
-  }, [
-    defaultFiatCurrency,
     fiatCurrencies,
-    isFetchingDefaultFiatCurrency,
-    isFetchingFiatCurrencies,
-    selectedFiatCurrencyId,
-    setSelectedFiatCurrencyId,
-  ]);
+    queryGetFiatCurrencies,
+    errorFiatCurrency,
+    isFetchingFiatCurrency,
+    currentFiatCurrency,
+  } = useFiatCurrencies();
 
-  /**
-   * Select the native crytpo currency of first of the list
-   * if current selection is not available.
-   * This is using the already filtered list of tokens.
-   */
-  useEffect(() => {
-    if (tokens) {
-      if (
-        !selectedAsset ||
-        !tokens.find((token) => token.address === selectedAsset.address)
-      ) {
-        setSelectedAsset(
-          tokens.find((a) => a.address === NATIVE_ADDRESS) || tokens?.[0],
-        );
-      }
-    }
-  }, [sdkCryptoCurrencies, selectedAsset, setSelectedAsset, tokens]);
+  const {
+    cryptoCurrencies,
+    errorCryptoCurrencies,
+    isFetchingCryptoCurrencies,
+    queryGetCryptoCurrencies,
+  } = useCryptoCurrencies();
 
-  /**
-   * * Derived values
-   */
-
-  const isFetching =
-    isFetchingSdkCryptoCurrencies ||
-    isFetchingPaymentMethods ||
-    isFetchingFiatCurrencies ||
-    isFetchingDefaultFiatCurrency ||
-    isFetchingRegions;
-
-  /**
-   * Get the fiat currency object by id
-   */
-  const currentFiatCurrency = useMemo(() => {
-    const currency =
-      fiatCurrencies?.find?.((curr) => curr.id === selectedFiatCurrencyId) ||
-      defaultFiatCurrency;
-    return currency;
-  }, [fiatCurrencies, defaultFiatCurrency, selectedFiatCurrencyId]);
+  const { limits, isAmountBelowMinimum, isAmountAboveMaximum, isAmountValid } =
+    useLimits();
 
   const amountIsBelowMinimum = useMemo(
-    () => amountNumber !== 0 && limits && amountNumber < limits.minAmount,
-    [amountNumber, limits],
+    () => isAmountBelowMinimum(amountNumber),
+    [amountNumber, isAmountBelowMinimum],
   );
 
   const amountIsAboveMaximum = useMemo(
-    () => amountNumber !== 0 && limits && amountNumber > limits.maxAmount,
-    [amountNumber, limits],
+    () => isAmountAboveMaximum(amountNumber),
+    [amountNumber, isAmountAboveMaximum],
   );
 
   const amountIsValid = useMemo(
-    () => !amountIsBelowMinimum && !amountIsAboveMaximum,
-    [amountIsBelowMinimum, amountIsAboveMaximum],
+    () => isAmountValid(amountNumber),
+    [amountNumber, isAmountValid],
   );
+
+  const isFetching =
+    isFetchingCryptoCurrencies ||
+    isFetchingPaymentMethods ||
+    isFetchingFiatCurrency ||
+    isFetchingRegions;
 
   const handleCancelPress = useCallback(() => {
     trackEvent('ONRAMP_CANCELED', {
@@ -546,24 +371,22 @@ const AmountToBuy = () => {
       return null;
     }
 
-    if (errorSdkCryptoCurrencies) {
+    if (errorCryptoCurrencies) {
       return queryGetCryptoCurrencies();
     } else if (errorPaymentMethods) {
       return queryGetPaymentMethods();
-    } else if (errorFiatCurrencies) {
+    } else if (errorFiatCurrency) {
+      queryDefaultFiatCurrency();
       return queryGetFiatCurrencies();
-    } else if (errorDefaultFiatCurrency) {
-      return queryDefaultFiatCurrency();
     } else if (errorRegions) {
       return queryGetRegions();
     }
   }, [
     error,
     errorRegions,
-    errorDefaultFiatCurrency,
-    errorFiatCurrencies,
+    errorFiatCurrency,
     errorPaymentMethods,
-    errorSdkCryptoCurrencies,
+    errorCryptoCurrencies,
     queryDefaultFiatCurrency,
     queryGetRegions,
     queryGetCryptoCurrencies,
@@ -573,19 +396,17 @@ const AmountToBuy = () => {
 
   useEffect(() => {
     setError(
-      (errorSdkCryptoCurrencies ||
+      (errorCryptoCurrencies ||
         errorPaymentMethods ||
-        errorFiatCurrencies ||
-        errorDefaultFiatCurrency ||
+        errorFiatCurrency ||
         errorRegions) ??
         null,
     );
   }, [
     errorRegions,
-    errorDefaultFiatCurrency,
-    errorFiatCurrencies,
+    errorFiatCurrency,
     errorPaymentMethods,
-    errorSdkCryptoCurrencies,
+    errorCryptoCurrencies,
   ]);
 
   if (sdkError) {
@@ -652,7 +473,7 @@ const AmountToBuy = () => {
     );
   }
 
-  if (!isFetching && tokens && tokens.length === 0) {
+  if (!isFetching && cryptoCurrencies && cryptoCurrencies.length === 0) {
     return (
       <ScreenLayout>
         <ScreenLayout.Body>
@@ -700,7 +521,11 @@ const AmountToBuy = () => {
             <View style={[styles.selectors, styles.row]}>
               <AccountSelector />
               <View style={styles.spacer} />
-              <SelectorButton onPress={handleChangeRegion}>
+              <SelectorButton
+                accessibilityRole="button"
+                accessible
+                onPress={handleChangeRegion}
+              >
                 <Text reset style={styles.flagText}>
                   {selectedRegion?.emoji}
                 </Text>
@@ -777,6 +602,8 @@ const AmountToBuy = () => {
               <StyledButton
                 type="confirm"
                 onPress={handleGetQuotePress}
+                accessibilityRole="button"
+                accessible
                 disabled={amountNumber <= 0}
               >
                 {strings('fiat_on_ramp_aggregator.get_quotes')}
@@ -806,7 +633,12 @@ const AmountToBuy = () => {
           decimals={currentFiatCurrency?.decimals}
         />
         <ScreenLayout.Content>
-          <StyledButton type="confirm" onPress={handleKeypadDone}>
+          <StyledButton
+            type="confirm"
+            onPress={handleKeypadDone}
+            accessibilityRole="button"
+            accessible
+          >
             {strings('fiat_on_ramp_aggregator.done')}
           </StyledButton>
         </ScreenLayout.Content>
@@ -823,7 +655,7 @@ const AmountToBuy = () => {
               strings('fiat_on_ramp_aggregator.this_network'),
           },
         )}
-        tokens={tokens ?? []}
+        tokens={cryptoCurrencies ?? []}
         onItemPress={handleAssetPress}
       />
       <FiatSelectModal
@@ -857,4 +689,4 @@ const AmountToBuy = () => {
   );
 };
 
-export default AmountToBuy;
+export default BuildQuote;

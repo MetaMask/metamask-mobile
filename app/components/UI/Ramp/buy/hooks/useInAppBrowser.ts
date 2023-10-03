@@ -16,6 +16,7 @@ import {
 import { setLockTime } from '../../../../../actions/settings';
 import Logger from '../../../../../util/Logger';
 import useHandleSuccessfulOrder from './useHandleSuccessfulOrder';
+import Device from '../../../../../util/device';
 
 export default function useInAppBrowser() {
   const {
@@ -53,7 +54,7 @@ export default function useInAppBrowser() {
         dispatch(addFiatCustomIdData(customIdData));
       }
 
-      if (!(await InAppBrowser.isAvailable())) {
+      if (Device.isAndroid() || !(await InAppBrowser.isAvailable())) {
         Linking.openURL(url);
       } else {
         const prevLockTime = lockTime;

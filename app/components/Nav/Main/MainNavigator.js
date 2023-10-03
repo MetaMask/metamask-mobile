@@ -51,7 +51,7 @@ import { RampSDKProvider } from '../../UI/Ramp/common/sdk';
 import { RampType } from '../../UI/Ramp/common/types';
 import GetStarted from '../../UI/Ramp/buy/Views/GetStarted';
 import PaymentMethods from '../../UI/Ramp/buy/Views/PaymentMethods/PaymentMethods';
-import AmountToBuy from '../../UI/Ramp/buy/Views/AmountToBuy';
+import BuildQuote from '../../UI/Ramp/buy/Views/BuildQuote/BuildQuote';
 import Quotes from '../../UI/Ramp/buy/Views/Quotes';
 import CheckoutWebView from '../../UI/Ramp/buy/Views/Checkout';
 import RampSettings from '../../UI/Ramp/common/Views/Settings';
@@ -535,7 +535,7 @@ const Ramps = ({ rampType }) => (
         component={PaymentMethods}
         options={{ animationEnabled: false }}
       />
-      <Stack.Screen name={Routes.RAMP.AMOUNT_TO_BUY} component={AmountToBuy} />
+      <Stack.Screen name={Routes.RAMP.AMOUNT_TO_BUY} component={BuildQuote} />
       <Stack.Screen name={Routes.RAMP.QUOTES} component={Quotes} />
       <Stack.Screen name={Routes.RAMP.CHECKOUT} component={CheckoutWebView} />
       <Stack.Screen name={Routes.RAMP.REGION} component={Regions} />
