@@ -52,6 +52,7 @@ import AmountToBuy from '../../UI/Ramp/buy/Views/AmountToBuy';
 import Quotes from '../../UI/Ramp/buy/Views/Quotes';
 import CheckoutWebView from '../../UI/Ramp/buy/Views/Checkout';
 import RampSettings from '../../UI/Ramp/common/Views/Settings';
+import NetworkSwitcher from '../../UI/Ramp/common/Views/NetworkSwitcher';
 import RampAddActivationKey from '../../UI/Ramp/common/Views/Settings/AddActivationKey';
 import Regions from '../../UI/Ramp/buy/Views/Regions';
 import { colors as importedColors } from '../../../styles/common';
@@ -517,6 +518,11 @@ const Ramps = () => (
   <RampSDKProvider>
     <Stack.Navigator initialRouteName={Routes.RAMP.BUY.GET_STARTED}>
       <Stack.Screen name={Routes.RAMP.BUY.GET_STARTED} component={GetStarted} />
+      <Stack.Screen
+        name={Routes.RAMP.BUY.NETWORK_SWITCHER}
+        component={NetworkSwitcher}
+        options={{ animationEnabled: false }}
+      />
       <Stack.Screen
         name={Routes.RAMP.BUY.PAYMENT_METHOD}
         component={PaymentMethods}

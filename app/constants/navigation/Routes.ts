@@ -19,6 +19,7 @@ const Routes = {
       CHECKOUT: 'Checkout',
       REGION: 'Region',
       REGION_HAS_STARTED: 'RegionHasStarted',
+      NETWORK_SWITCHER: 'BuyNetworkSwitcher',
     },
   },
   QR_SCANNER: 'QRScanner',
