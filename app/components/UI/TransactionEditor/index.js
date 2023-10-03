@@ -651,7 +651,7 @@ class TransactionEditor extends PureComponent {
     this.setState({
       amountError: totalError || amountError,
       toAddressError,
-      error: totalError || amountError || toAddressError || false,
+      error: totalError || amountError || toAddressError,
     });
     return totalError || amountError || toAddressError;
   };

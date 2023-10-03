@@ -155,7 +155,6 @@ describe('TransactionReview', () => {
       <TransactionReview
         EIP1559GasData={{}}
         generateTransform={generateTransform}
-        error={false}
       />,
       { state: mockState },
     );
