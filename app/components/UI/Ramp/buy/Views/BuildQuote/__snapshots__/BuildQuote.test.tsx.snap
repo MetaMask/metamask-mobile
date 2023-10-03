@@ -8741,7 +8741,7 @@ exports[`BuildQuote View renders correctly 1`] = `
                                           ]
                                         }
                                       >
-                                        Instant Bank Transfer
+                                        Super Instant Bank Transfer
                                       </Text>
                                     </View>
                                     <Text
