@@ -49,28 +49,31 @@ export const mockFiatCurrenciesData = [
 
 export const mockPaymentMethods = [
   {
-    id: '/payments/bank-transfer',
-    paymentType: 'bank-transfer',
-    name: 'Super Instant Bank Transfer',
-    score: 5,
+    id: '/payments/credit-debit-card',
+    paymentType: 'credit-debit-card',
+    name: 'Credit or Debit Card',
+    score: 8,
     icons: [
       {
-        type: 'materialCommunityIcons',
-        name: 'bank',
+        type: 'materialIcons',
+        name: 'card',
       },
     ],
     logo: {
       light: [
-        'https://on-ramp.metafi-dev.codefi.network/assets/ACHBankTransfer-regular@3x.png',
+        'https://on-ramp.metafi-dev.codefi.network/assets/Mastercard-regular@3x.png',
+        'https://on-ramp.metafi-dev.codefi.network/assets/Visa-regular@3x.png',
       ],
       dark: [
-        'https://on-ramp.metafi-dev.codefi.network/assets/ACHBankTransfer@3x.png',
+        'https://on-ramp.metafi-dev.codefi.network/assets/Mastercard@3x.png',
+        'https://on-ramp.metafi-dev.codefi.network/assets/Visa@3x.png',
       ],
     },
-    delay: [0, 0],
-    amountTier: [3, 3],
-    supportedCurrency: ['/currencies/fiat/usd'],
-    translation: 'ACH',
+    disclaimer:
+      'Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua',
+    delay: [5, 10],
+    amountTier: [1, 3],
+    translation: 'debit-credit-card',
   },
   {
     id: '/payments/apple-pay',
@@ -100,31 +103,28 @@ export const mockPaymentMethods = [
     translation: 'mobile_wallet',
   },
   {
-    id: '/payments/credit-debit-card',
-    paymentType: 'credit-debit-card',
-    name: 'Credit or Debit Card',
-    score: 8,
+    id: '/payments/bank-transfer',
+    paymentType: 'bank-transfer',
+    name: 'Super Instant Bank Transfer',
+    score: 5,
     icons: [
       {
-        type: 'materialIcons',
-        name: 'card',
+        type: 'materialCommunityIcons',
+        name: 'bank',
       },
     ],
     logo: {
       light: [
-        'https://on-ramp.metafi-dev.codefi.network/assets/Mastercard-regular@3x.png',
-        'https://on-ramp.metafi-dev.codefi.network/assets/Visa-regular@3x.png',
+        'https://on-ramp.metafi-dev.codefi.network/assets/ACHBankTransfer-regular@3x.png',
       ],
       dark: [
-        'https://on-ramp.metafi-dev.codefi.network/assets/Mastercard@3x.png',
-        'https://on-ramp.metafi-dev.codefi.network/assets/Visa@3x.png',
+        'https://on-ramp.metafi-dev.codefi.network/assets/ACHBankTransfer@3x.png',
       ],
     },
-    disclaimer:
-      'Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua',
-    delay: [5, 10],
-    amountTier: [1, 3],
-    translation: 'debit-credit-card',
+    delay: [0, 0],
+    amountTier: [3, 3],
+    supportedCurrency: ['/currencies/fiat/usd'],
+    translation: 'ACH',
   },
 ] as Partial<Payment>[];
 
