@@ -1,3 +1,5 @@
+source ./scripts/build_ppom.sh
+
 #!/bin/bash
 echo "PostInstall script:"
 

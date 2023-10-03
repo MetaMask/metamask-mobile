@@ -1,7 +1,7 @@
 {
   "name": "ppom-view",
   "version": "1.0.0",
-  "dependencies": {
+  "devDependencies": {
     "@babel/preset-env": "^7.22.6",
     "@blockaid/ppom_release": "^1.2.8",
     "babel-loader": "^9.1.2",
@@ -13,9 +13,11 @@
     "react-native-webview-invoke": "^0.6.2",
     "terser-webpack-plugin": "^5.3.9",
     "webpack": "^5.88.1",
-    "webpack-cli": "^5.1.4"
+    "webpack-cli": "^5.1.4",
+    "eslint": "^7.23.0"
   },
   "scripts": {
+    "lint": "eslint '**/*.{js,ts,tsx}'",
     "build-html": "webpack --mode production --config ./webpack.config.html.js",
     "build-html-js": "webpack --mode production --config ./webpack.config.html-js.js",
     "build": "yarn clean && yarn build-html && yarn build-html-js",
