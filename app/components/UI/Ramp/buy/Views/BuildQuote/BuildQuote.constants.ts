@@ -7,24 +7,24 @@ import {
 
 export const mockCryptoCurrenciesData = [
   {
-    id: '1',
-    idv2: '2',
+    id: '2',
+    idv2: '3',
     network: {},
     symbol: 'ETH',
-    logo: 'some_logo_url',
+    logo: 'some_random_logo_url',
     decimals: 8,
-    address: '0x123',
+    address: '0xabc',
     name: 'Ethereum',
     limits: ['0.001', '8'],
   },
   {
-    id: '2',
-    idv2: '3',
+    id: '3',
+    idv2: '4',
     network: {},
     symbol: 'UNI',
-    logo: 'some_logo_url',
+    logo: 'uni_logo_url',
     decimals: 8,
-    address: '0x123',
+    address: '0x1a2b3c',
     name: 'Uniswap',
     limits: ['0.001', '8'],
   },
@@ -32,14 +32,14 @@ export const mockCryptoCurrenciesData = [
 
 export const mockFiatCurrenciesData = [
   {
-    id: '1',
+    id: '2',
     symbol: 'USD',
     name: 'US Dollar',
     decimals: 2,
     denomSymbol: '$',
   },
   {
-    id: '2',
+    id: '3',
     symbol: 'EUR',
     name: 'Euro',
     decimals: 2,
@@ -49,9 +49,9 @@ export const mockFiatCurrenciesData = [
 
 export const mockPaymentMethods = [
   {
-    id: '/payments/instant-bank-transfer',
+    id: '/payments/bank-transfer',
     paymentType: 'bank-transfer',
-    name: 'Instant Bank Transfer',
+    name: 'Super Instant Bank Transfer',
     score: 5,
     icons: [
       {
@@ -93,16 +93,16 @@ export const mockPaymentMethods = [
         'https://on-ramp.metafi-dev.codefi.network/assets/Mastercard@3x.png',
       ],
     },
-    disclaimer: 'Apple Cash is not supported.',
+    disclaimer: 'Apple credit is not supported.',
     delay: [0, 0],
     amountTier: [1, 3],
     isApplePay: true,
     translation: 'mobile_wallet',
   },
   {
-    id: '/payments/debit-credit-card',
-    paymentType: 'debit-credit-card',
-    name: 'Debit or Credit',
+    id: '/payments/credit-debit-card',
+    paymentType: 'credit-debit-card',
+    name: 'Credit or Debit Card',
     score: 8,
     icons: [
       {
@@ -112,16 +112,16 @@ export const mockPaymentMethods = [
     ],
     logo: {
       light: [
-        'https://on-ramp.metafi-dev.codefi.network/assets/Visa-regular@3x.png',
         'https://on-ramp.metafi-dev.codefi.network/assets/Mastercard-regular@3x.png',
+        'https://on-ramp.metafi-dev.codefi.network/assets/Visa-regular@3x.png',
       ],
       dark: [
-        'https://on-ramp.metafi-dev.codefi.network/assets/Visa@3x.png',
         'https://on-ramp.metafi-dev.codefi.network/assets/Mastercard@3x.png',
+        'https://on-ramp.metafi-dev.codefi.network/assets/Visa@3x.png',
       ],
     },
     disclaimer:
-      "Credit card purchases may incur your bank's cash advance fees, subject to your bank's policies.",
+      'Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua',
     delay: [5, 10],
     amountTier: [1, 3],
     translation: 'debit-credit-card',

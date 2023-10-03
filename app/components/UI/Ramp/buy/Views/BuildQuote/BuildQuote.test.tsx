@@ -289,7 +289,7 @@ describe('BuildQuote View', () => {
     });
   });
 
-  describe('Regions data', function () {
+  describe('Regions data', () => {
     it('renders the loading page when regions are loading', async () => {
       mockUseRegionsValues = {
         ...mockUseRegionsInitialValues,
