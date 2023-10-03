@@ -1,0 +1,24 @@
+diff --git a/node_modules/@metamask/network-controller/dist/NetworkController.js b/node_modules/@metamask/network-controller/dist/NetworkController.js
+index 0243801..7334aa5 100644
+--- a/node_modules/@metamask/network-controller/dist/NetworkController.js
++++ b/node_modules/@metamask/network-controller/dist/NetworkController.js
+@@ -276,8 +276,8 @@ class NetworkController extends base_controller_1.BaseControllerV2 {
+     upsertNetworkConfiguration({ rpcUrl, chainId, ticker, nickname, rpcPrefs }, { setActive = false, referrer, source, }) {
+         var _a;
+         return __awaiter(this, void 0, void 0, function* () {
+-            (0, utils_1.assertIsStrictHexString)(chainId);
+-            if (!(0, controller_utils_1.isSafeChainId)(parseInt(chainId, 16))) {
++            // Remove chain ID Hex validation (chain ID is still a decimal string for now)
++            if (!(0, controller_utils_1.isSafeChainId)(parseInt(chainId, 10))) {
+                 throw new Error(`Invalid chain ID "${chainId}": numerical value greater than max safe value.`);
+             }
+             if (!rpcUrl) {
+@@ -365,6 +365,8 @@ _NetworkController_ethQuery = new WeakMap(), _NetworkController_infuraProjectId
+         case controller_utils_1.NetworkType.mainnet:
+         case controller_utils_1.NetworkType.goerli:
+         case controller_utils_1.NetworkType.sepolia:
++        case controller_utils_1.NetworkType["linea-goerli"]:
++        case controller_utils_1.NetworkType["linea-mainnet"]:
+             __classPrivateFieldGet(this, _NetworkController_instances, "m", _NetworkController_setupInfuraProvider).call(this, type);
+             break;
+         case controller_utils_1.NetworkType.localhost:

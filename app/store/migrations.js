@@ -19,6 +19,7 @@ import { regex } from '../../app/util/regex';
 
 // Generated using this script: https://gist.github.com/Gudahtt/7a8a9e452bd2efdc5ceecd93610a25d3
 import ambiguousNetworks from './migration-data/amibiguous-networks.json';
+import { NetworkStatus } from '@metamask/network-controller';
 
 export const migrations = {
   // Needed after https://github.com/MetaMask/controllers/pull/152
@@ -692,6 +693,53 @@ export const migrations = {
     if (Object.keys(ambiguousAddressEntries).length > 1) {
       state.user.ambiguousAddressEntries = ambiguousAddressEntries;
     }
+
+    return state;
+  },
+  /**
+   * Migrate NetworkController state, splitting old `network` property into
+   * `networkId` and `networkStatus`. This is required to update to v8 of the
+   * NetworkController package.
+   *
+   * @see {@link https://github.com/MetaMask/core/blob/main/packages/network-controller/CHANGELOG.md#800}
+   *
+   * Note: the type is wrong here because it conflicts with `redux-persist`
+   * types, due to a bug in that package.
+   * See: https://github.com/rt2zz/redux-persist/issues/1065
+   * TODO: Use `unknown` as the state type, and silence or work around the
+   * redux-persist bug somehow.
+   *
+   * @param {any} state - Redux state.
+   * @returns Migrated Redux state.
+   */
+  24: (state) => {
+    const networkControllerState =
+      state.engine.backgroundState.NetworkController;
+
+    if (!isObject(networkControllerState)) {
+      captureException(
+        new Error(
+          `Migration 24: Invalid network controller state: '${typeof networkControllerState}'`,
+        ),
+      );
+      return state;
+    } else if (typeof networkControllerState.network !== 'string') {
+      captureException(
+        new Error(
+          `Migration 24: Invalid network state: '${typeof networkControllerState.network}'`,
+        ),
+      );
+      return state;
+    }
+
+    if (networkControllerState.network === 'loading') {
+      networkControllerState.networkId = null;
+      networkControllerState.networkStatus = NetworkStatus.Unknown;
+    } else {
+      networkControllerState.networkId = networkControllerState.network;
+      networkControllerState.networkStatus = NetworkStatus.Available;
+    }
+    delete networkControllerState.network;
 
     return state;
   },
