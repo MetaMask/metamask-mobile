@@ -8674,7 +8674,7 @@ exports[`BuildQuote View renders correctly 1`] = `
                                             },
                                             undefined,
                                             Object {
-                                              "fontFamily": "Material Design Icons",
+                                              "fontFamily": "simple-line-icons",
                                               "fontStyle": "normal",
                                               "fontWeight": "normal",
                                             },
@@ -8682,7 +8682,7 @@ exports[`BuildQuote View renders correctly 1`] = `
                                           ]
                                         }
                                       >
-                                        
+                                        
                                       </Text>
                                     </View>
                                     <View
@@ -8741,7 +8741,7 @@ exports[`BuildQuote View renders correctly 1`] = `
                                           ]
                                         }
                                       >
-                                        Super Instant Bank Transfer
+                                        Credit or Debit Card
                                       </Text>
                                     </View>
                                     <Text
