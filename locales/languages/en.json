@@ -1353,6 +1353,7 @@
     "learn_more": "Learn more",
     "learn_more_url": "https://metamask.zendesk.com/hc/en-us/articles/4417500466971",
     "switch_network": "Switch to network",
+    "switch": "Switch",
     "new_network": "New network added",
     "network_name": "{{networkName}} Network",
     "network_added": " is now available in the network selector.",
@@ -1867,6 +1868,13 @@
     }
   },
   "fiat_on_ramp_aggregator": {
+    "buy": "buy",
+    "sell": "sell",
+    "network_switcher": {
+      "title": "Unsupported {{rampType}} Network",
+      "description": "To {{rampType}} crypto, you'll need to switch to a supported network",
+      "no_networks_found": "No supported networks found"
+    },
     "onboarding": {
       "what_to_expect": "What to Expect",
       "best_quotes": "Our buy crypto feature aggregates quotes from integrated vendors, providing you the best quote from those sources for you to get crypto directly into your wallet with no waiting period.",

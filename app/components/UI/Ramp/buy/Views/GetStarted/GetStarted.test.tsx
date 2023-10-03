@@ -5,8 +5,8 @@ import { renderScreen } from '../../../../../../util/test/renderWithProvider';
 import GetStarted from './GetStarted';
 import { Region } from '../../../common/types';
 import { RampSDK } from '../../../common/sdk';
+import useRampNetwork from '../../../common/hooks/useRampNetwork';
 import Routes from '../../../../../../constants/navigation/Routes';
-import { createRegionsNavDetails } from '../Regions/Regions';
 import initialBackgroundState from '../../../../../../util/test/initial-background-state.json';
 
 function render(Component: React.ComponentType) {
@@ -24,6 +24,16 @@ function render(Component: React.ComponentType) {
     },
   );
 }
+
+const mockUseRampNetworkInitialValue: Partial<
+  ReturnType<typeof useRampNetwork>
+> = [true];
+
+let mockUseRampNetworkValue = [...mockUseRampNetworkInitialValue];
+
+jest.mock('../../../common/hooks/useRampNetwork', () =>
+  jest.fn(() => mockUseRampNetworkValue),
+);
 
 const mockuseRampSDKInitialValues: Partial<RampSDK> = {
   getStarted: false,
@@ -77,10 +87,14 @@ describe('GetStarted', () => {
     (mockuseRampSDKInitialValues.setGetStarted as jest.Mock).mockClear();
   });
 
-  it('renders correctly', async () => {
+  beforeEach(() => {
+    mockUseRampNetworkValue = [...mockUseRampNetworkInitialValue];
     mockUseRampSDKValues = {
       ...mockuseRampSDKInitialValues,
     };
+  });
+
+  it('renders correctly', async () => {
     render(GetStarted);
     expect(screen.toJSON()).toMatchSnapshot();
   });
@@ -108,26 +122,32 @@ describe('GetStarted', () => {
     expect(mockSetOptions).toBeCalledTimes(1);
   });
 
-  it('navigates on get started button press', async () => {
-    mockUseRampSDKValues = {
-      ...mockuseRampSDKInitialValues,
-    };
+  it('sets get started on button press', async () => {
     render(GetStarted);
     fireEvent.press(screen.getByRole('button', { name: 'Get started' }));
-    expect(mockNavigate).toHaveBeenCalledWith(...createRegionsNavDetails());
     expect(mockUseRampSDKValues.setGetStarted).toHaveBeenCalledWith(true);
   });
 
   it('navigates and tracks event on cancel button press', async () => {
-    mockUseRampSDKValues = {
-      ...mockuseRampSDKInitialValues,
-    };
     render(GetStarted);
     fireEvent.press(screen.getByRole('button', { name: 'Cancel' }));
     expect(mockPop).toHaveBeenCalled();
     expect(mockTrackEvent).toBeCalledWith('ONRAMP_CANCELED', {
       chain_id_destination: '1',
       location: 'Get Started Screen',
+    });
+  });
+
+  it('navigates to network switcher on unsupported network when getStarted is true', async () => {
+    mockUseRampSDKValues = {
+      ...mockuseRampSDKInitialValues,
+      getStarted: true,
+    };
+    mockUseRampNetworkValue = [false];
+    render(GetStarted);
+    expect(mockReset).toBeCalledWith({
+      index: 0,
+      routes: [{ name: Routes.RAMP.BUY.NETWORK_SWITCHER }],
     });
   });
 
