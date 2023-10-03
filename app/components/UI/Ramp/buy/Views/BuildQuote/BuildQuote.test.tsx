@@ -101,12 +101,13 @@ jest.mock('../../hooks/useCryptoCurrencies', () =>
 );
 
 const mockGetFiatCurrencies = jest.fn();
+const mockGetDefaultFiatCurrencies = jest.fn();
 
 const mockUseFiatCurrenciesInitialValues: Partial<
   ReturnType<typeof useFiatCurrencies>
 > = {
   defaultFiatCurrency: mockFiatCurrenciesData[0],
-  queryDefaultFiatCurrency: mockGetFiatCurrencies,
+  queryDefaultFiatCurrency: mockGetDefaultFiatCurrencies,
   fiatCurrencies: mockFiatCurrenciesData,
   queryGetFiatCurrencies: mockGetFiatCurrencies,
   errorFiatCurrency: null,
@@ -244,97 +245,269 @@ describe('BuildQuote View', () => {
     };
   });
 
+  //
+  // RENDER & SDK TESTS
+  //
   it('renders correctly', async () => {
     render(BuildQuote);
     expect(screen.toJSON()).toMatchSnapshot();
   });
 
-  it('calls setSelectedRegion when selecting a region', async () => {
+  it('renders correctly when sdkError is present', async () => {
+    mockUseRampSDKValues = {
+      ...mockUseRampSDKInitialValues,
+      sdkError: new Error('sdkError'),
+    };
     render(BuildQuote);
-    await act(async () =>
-      fireEvent.press(getByRoleButton(mockRegionsData[0].emoji)),
+    expect(screen.toJSON()).toMatchSnapshot();
+  });
+
+  it('navigates to home when clicking sdKError button', async () => {
+    mockUseRampSDKValues = {
+      ...mockUseRampSDKInitialValues,
+      sdkError: new Error('sdkError'),
+    };
+    render(BuildQuote);
+    fireEvent.press(
+      screen.getByRole('button', { name: 'Return to Home Screen' }),
     );
-    await act(async () =>
-      fireEvent.press(getByRoleButton(mockRegionsData[1].name)),
-    );
-    expect(mockSetSelectedRegion).toHaveBeenCalledWith(mockRegionsData[1]);
+    expect(mockPop).toBeCalledTimes(1);
   });
 
-  it('calls setSelectedAsset when selecting a crypto', async () => {
+  it('calls setOptions when rendering', async () => {
     render(BuildQuote);
-    fireEvent.press(getByRoleButton(mockCryptoCurrenciesData[0].name));
-    fireEvent.press(getByRoleButton(mockCryptoCurrenciesData[1].name));
-    expect(mockSetSelectedAsset).toHaveBeenCalledWith(
-      mockCryptoCurrenciesData[1],
-    );
+    expect(mockSetOptions).toBeCalledTimes(1);
   });
 
-  it('calls setSelectedPaymentMethodId when selecting a payment method', async () => {
+  it('navigates and tracks event on cancel button press', async () => {
     render(BuildQuote);
-    fireEvent.press(getByRoleButton(mockPaymentMethods[0].name));
-    fireEvent.press(getByRoleButton(mockPaymentMethods[1].name));
-    expect(mockSetSelectedPaymentMethodId).toHaveBeenCalledWith(
-      mockPaymentMethods[1]?.id,
-    );
+    fireEvent.press(screen.getByRole('button', { name: 'Cancel' }));
+    expect(mockPop).toHaveBeenCalled();
+    expect(mockTrackEvent).toBeCalledWith('ONRAMP_CANCELED', {
+      chain_id_destination: '1',
+      location: 'Amount to Buy Screen',
+    });
   });
 
-  it('calls setSelectedFiatCurrencyId when selecting a new fiat', async () => {
-    render(BuildQuote);
-    fireEvent.press(getByRoleButton(mockFiatCurrenciesData[0].symbol));
-    fireEvent.press(getByRoleButton(mockFiatCurrenciesData[1].symbol));
-    expect(mockSetSelectedFiatCurrencyId).toHaveBeenCalledWith(
-      mockFiatCurrenciesData[1]?.id,
-    );
+  describe('Regions data', function () {
+    it('renders the loading page when regions are loading', async () => {
+      mockUseRegionsValues = {
+        ...mockUseRegionsInitialValues,
+        isFetching: true,
+      };
+      render(BuildQuote);
+      expect(screen.toJSON()).toMatchSnapshot();
+    });
+
+    it('renders an error page when there is a region error', async () => {
+      mockUseRegionsValues = {
+        ...mockUseRegionsInitialValues,
+        error: 'Test error',
+      };
+      render(BuildQuote);
+      expect(screen.toJSON()).toMatchSnapshot();
+    });
+
+    it('queries region data when error CTA is clicked', async () => {
+      mockUseRegionsValues = {
+        ...mockUseRegionsInitialValues,
+        error: 'Test error',
+      };
+      render(BuildQuote);
+      fireEvent.press(screen.getByRole('button', { name: 'Try again' }));
+      expect(mockQueryGetCountries).toBeCalledTimes(1);
+    });
+
+    it('calls setSelectedRegion when selecting a region', async () => {
+      render(BuildQuote);
+      await act(async () =>
+        fireEvent.press(getByRoleButton(mockRegionsData[0].emoji)),
+      );
+      await act(async () =>
+        fireEvent.press(getByRoleButton(mockRegionsData[1].name)),
+      );
+      expect(mockSetSelectedRegion).toHaveBeenCalledWith(mockRegionsData[1]);
+    });
   });
 
-  it('updates the amount input', async () => {
-    render(BuildQuote);
-    const initialAmount = '0';
-    const validAmount = VALID_AMOUNT.toString();
-    const symbol = mockFiatCurrenciesData[0].denomSymbol;
-    fireEvent.press(getByRoleButton(`${symbol}${initialAmount}`));
-    fireEvent.press(getByRoleButton(validAmount));
-    expect(getByRoleButton(`${symbol}${validAmount}`)).toBeTruthy();
+  describe('Crypto Currency Data', () => {
+    it('renders the loading page when cryptos are loading', async () => {
+      mockUseCryptoCurrenciesValues = {
+        ...mockUseCryptoCurrenciesInitialValues,
+        isFetchingCryptoCurrencies: true,
+      };
+      render(BuildQuote);
+      expect(screen.toJSON()).toMatchSnapshot();
+    });
+
+    it('renders a special error page if crypto currencies are not available', async () => {
+      mockUseCryptoCurrenciesValues = {
+        ...mockUseCryptoCurrenciesInitialValues,
+        cryptoCurrencies: [],
+      };
+      render(BuildQuote);
+      expect(screen.toJSON()).toMatchSnapshot();
+    });
+
+    it('renders an error page when there is a cryptos error', async () => {
+      mockUseCryptoCurrenciesValues = {
+        ...mockUseCryptoCurrenciesInitialValues,
+        errorCryptoCurrencies: 'Test error',
+      };
+      render(BuildQuote);
+      expect(screen.toJSON()).toMatchSnapshot();
+    });
+
+    it('queries crypto data when error CTA is clicked', async () => {
+      mockUseCryptoCurrenciesValues = {
+        ...mockUseCryptoCurrenciesInitialValues,
+        errorCryptoCurrencies: 'Test error',
+      };
+      render(BuildQuote);
+      fireEvent.press(screen.getByRole('button', { name: 'Try again' }));
+      expect(mockGetCryptoCurrencies).toBeCalledTimes(1);
+    });
+
+    it('calls setSelectedAsset when selecting a crypto', async () => {
+      render(BuildQuote);
+      fireEvent.press(getByRoleButton(mockCryptoCurrenciesData[0].name));
+      fireEvent.press(getByRoleButton(mockCryptoCurrenciesData[1].name));
+      expect(mockSetSelectedAsset).toHaveBeenCalledWith(
+        mockCryptoCurrenciesData[1],
+      );
+    });
   });
 
-  // it('updates the fiat denomination symbol', async () => {
-  //   render(BuildQuote);
-  //   const initialAmount = '0';
-  //   const initialFiat = mockFiatCurrenciesData[0];
-  //   const newFiat = mockFiatCurrenciesData[1];
-  //   const fiatButton = getByRoleButton(initialFiat.symbol);
-  //   fireEvent.press(fiatButton);
-  //   const newFiatButton = getByRoleButton(newFiat.symbol);
-  //   fireEvent.press(newFiatButton);
-  //   expect(
-  //     getByRoleButton(`${newFiat.denomSymbol} ${initialAmount}`),
-  //   ).toBeTruthy();
-  // });
+  describe('Payment Method Data', () => {
+    it('renders the loading page when payment methods are loading', async () => {
+      mockUsePaymentMethodsValues = {
+        ...mockUsePaymentMethodsInitialValues,
+        isFetching: true,
+      };
+      render(BuildQuote);
+      expect(screen.toJSON()).toMatchSnapshot();
+    });
 
-  it('validates the max limit', () => {
-    render(BuildQuote);
-    const initialAmount = '0';
-    const invalidMaxAmount = (MAX_LIMIT + 1).toString();
-    const denomSymbol = mockFiatCurrenciesData[0]?.denomSymbol;
-    fireEvent.press(getByRoleButton(`${denomSymbol}${initialAmount}`));
-    fireEvent.press(getByRoleButton(invalidMaxAmount));
-    expect(
-      screen.getByText(`Maximum deposit is ${denomSymbol}${MAX_LIMIT}`),
-    ).toBeTruthy();
+    it('renders an error page when there is a payment method error', async () => {
+      mockUsePaymentMethodsValues = {
+        ...mockUsePaymentMethodsInitialValues,
+        error: 'Test error',
+      };
+      render(BuildQuote);
+      expect(screen.toJSON()).toMatchSnapshot();
+    });
+
+    it('queries for payment methods when error CTA is clicked', async () => {
+      mockUsePaymentMethodsValues = {
+        ...mockUsePaymentMethodsInitialValues,
+        error: 'Test error',
+      };
+      render(BuildQuote);
+      fireEvent.press(screen.getByRole('button', { name: 'Try again' }));
+      expect(mockQueryGetPaymentMethods).toBeCalledTimes(1);
+    });
+
+    it('calls setSelectedPaymentMethodId when selecting a payment method', async () => {
+      render(BuildQuote);
+      fireEvent.press(getByRoleButton(mockPaymentMethods[0].name));
+      fireEvent.press(getByRoleButton(mockPaymentMethods[1].name));
+      expect(mockSetSelectedPaymentMethodId).toHaveBeenCalledWith(
+        mockPaymentMethods[1]?.id,
+      );
+    });
   });
 
-  it('validates the min limit', () => {
-    render(BuildQuote);
-    const initialAmount = '0';
-    const invalidMinAmount = (MIN_LIMIT - 1).toString();
-    const denomSymbol = mockFiatCurrenciesData[0]?.denomSymbol;
-    fireEvent.press(getByRoleButton(`${denomSymbol}${initialAmount}`));
-    fireEvent.press(getByRoleButton(invalidMinAmount));
-    expect(
-      screen.getByText(`Minimum deposit is ${denomSymbol}${MIN_LIMIT}`),
-    ).toBeTruthy();
+  describe('Fiat Currency Data', () => {
+    it('renders the loading page when fiats are loading', async () => {
+      mockUseFiatCurrenciesValues = {
+        ...mockUseFiatCurrenciesInitialValues,
+        isFetchingFiatCurrency: true,
+      };
+      render(BuildQuote);
+      expect(screen.toJSON()).toMatchSnapshot();
+    });
+
+    it('renders an error page when there is a fiat error', async () => {
+      mockUseFiatCurrenciesValues = {
+        ...mockUseFiatCurrenciesInitialValues,
+        errorFiatCurrency: 'Test error',
+      };
+      render(BuildQuote);
+      expect(screen.toJSON()).toMatchSnapshot();
+    });
+
+    it('queries for fiats when error CTA is clicked', async () => {
+      mockUseFiatCurrenciesValues = {
+        ...mockUseFiatCurrenciesInitialValues,
+        errorFiatCurrency: 'Test error',
+      };
+      render(BuildQuote);
+      fireEvent.press(screen.getByRole('button', { name: 'Try again' }));
+      expect(mockGetFiatCurrencies).toBeCalledTimes(1);
+    });
+
+    it('calls setSelectedFiatCurrencyId when selecting a new fiat', async () => {
+      render(BuildQuote);
+      fireEvent.press(getByRoleButton(mockFiatCurrenciesData[0].symbol));
+      fireEvent.press(getByRoleButton(mockFiatCurrenciesData[1].symbol));
+      expect(mockSetSelectedFiatCurrencyId).toHaveBeenCalledWith(
+        mockFiatCurrenciesData[1]?.id,
+      );
+    });
   });
 
+  describe('Amount to buy input', () => {
+    it('updates the amount input', async () => {
+      render(BuildQuote);
+      const initialAmount = '0';
+      const validAmount = VALID_AMOUNT.toString();
+      const symbol = mockFiatCurrenciesData[0].denomSymbol;
+      fireEvent.press(getByRoleButton(`${symbol}${initialAmount}`));
+      fireEvent.press(getByRoleButton(validAmount));
+      expect(getByRoleButton(`${symbol}${validAmount}`)).toBeTruthy();
+    });
+
+    it('updates the amount input with quick amount buttons', async () => {
+      render(BuildQuote);
+      const initialAmount = '0';
+      const quickAmount =
+        mockUseLimitsInitialValues?.limits?.quickAmounts?.[0].toString();
+      const symbol = mockFiatCurrenciesData[0].denomSymbol;
+      fireEvent.press(getByRoleButton(`${symbol}${initialAmount}`));
+      fireEvent.press(getByRoleButton(`${symbol}${quickAmount}`));
+      expect(
+        screen.queryAllByRole('button', { name: `${symbol}${quickAmount}` }),
+      ).toHaveLength(2);
+    });
+
+    it('validates the max limit', () => {
+      render(BuildQuote);
+      const initialAmount = '0';
+      const invalidMaxAmount = (MAX_LIMIT + 1).toString();
+      const denomSymbol = mockFiatCurrenciesData[0]?.denomSymbol;
+      fireEvent.press(getByRoleButton(`${denomSymbol}${initialAmount}`));
+      fireEvent.press(getByRoleButton(invalidMaxAmount));
+      expect(
+        screen.getByText(`Maximum deposit is ${denomSymbol}${MAX_LIMIT}`),
+      ).toBeTruthy();
+    });
+
+    it('validates the min limit', () => {
+      render(BuildQuote);
+      const initialAmount = '0';
+      const invalidMinAmount = (MIN_LIMIT - 1).toString();
+      const denomSymbol = mockFiatCurrenciesData[0]?.denomSymbol;
+      fireEvent.press(getByRoleButton(`${denomSymbol}${initialAmount}`));
+      fireEvent.press(getByRoleButton(invalidMinAmount));
+      expect(
+        screen.getByText(`Minimum deposit is ${denomSymbol}${MIN_LIMIT}`),
+      ).toBeTruthy();
+    });
+  });
+
+  //
+  // SUBMIT BUTTON TEST
+  //
   it('Directs the user to the quotes page with correct parameters', () => {
     render(BuildQuote);
 

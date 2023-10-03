@@ -559,14 +559,14 @@ const BuildQuote = () => {
               />
             </View>
             {amountIsBelowMinimum && limits && (
-              <Text red small testID="below-min-alert">
+              <Text red small>
                 {strings('fiat_on_ramp_aggregator.minimum')}{' '}
                 {currentFiatCurrency?.denomSymbol}
                 {formatAmount(limits.minAmount)}
               </Text>
             )}
             {amountIsAboveMaximum && limits && (
-              <Text red small testID="above-max-alert">
+              <Text red small>
                 {strings('fiat_on_ramp_aggregator.maximum')}{' '}
                 {currentFiatCurrency?.denomSymbol}
                 {formatAmount(limits.maxAmount)}
