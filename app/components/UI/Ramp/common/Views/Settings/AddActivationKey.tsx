@@ -1,6 +1,7 @@
 import React, { useCallback, useEffect, useRef, useState } from 'react';
 import { TextInput } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
+
 import Text from '../../../../../Base/Text';
 import StyledButton from '../../../../StyledButton';
 import Row from '../../components/Row';

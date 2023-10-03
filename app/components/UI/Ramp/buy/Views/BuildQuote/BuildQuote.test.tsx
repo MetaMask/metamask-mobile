@@ -525,7 +525,7 @@ describe('BuildQuote View', () => {
 
     fireEvent.press(submitBtn);
 
-    expect(mockNavigate).toHaveBeenCalledWith('Quotes', {
+    expect(mockNavigate).toHaveBeenCalledWith(Routes.RAMP.BUY.QUOTES, {
       amount: VALID_AMOUNT,
       asset: mockCryptoCurrenciesData[0],
       fiatCurrency: mockFiatCurrenciesData[0],
