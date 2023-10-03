@@ -1,4 +1,9 @@
-import { CryptoCurrency, FiatCurrency } from '@consensys/on-ramp-sdk';
+import {
+  Country,
+  CryptoCurrency,
+  FiatCurrency,
+  Payment,
+} from '@consensys/on-ramp-sdk';
 
 export const mockCryptoCurrenciesData = [
   {
@@ -41,10 +46,6 @@ export const mockFiatCurrenciesData = [
     denomSymbol: '€',
   },
 ] as FiatCurrency[];
-
-/* eslint-disable import/prefer-default-export */
-
-import { Payment } from '@consensys/on-ramp-sdk';
 
 export const mockPaymentMethods = [
   {
@@ -126,8 +127,6 @@ export const mockPaymentMethods = [
     translation: 'debit-credit-card',
   },
 ] as Partial<Payment>[];
-
-import { Country } from '@consensys/on-ramp-sdk';
 
 export const mockRegionsData = [
   {
