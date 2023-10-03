@@ -24,6 +24,7 @@ const AvatarNetwork = ({
   style,
   name,
   imageSource,
+  ...props
 }: AvatarNetworkProps) => {
   const [showFallback, setShowFallback] = useState(!imageSource);
   const { styles } = useStyles(stylesheet, { style, size, showFallback });
@@ -36,7 +37,7 @@ const AvatarNetwork = ({
   }, [imageSource]);
 
   return (
-    <AvatarBase size={size} style={styles.base}>
+    <AvatarBase size={size} style={styles.base} {...props}>
       {showFallback ? (
         <Text style={styles.label} variant={TEXTVARIANT_BY_AVATARSIZE[size]}>
           {chainNameFirstLetter}

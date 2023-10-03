@@ -26,6 +26,8 @@ const AvatarToken = ({
   name,
   imageSource,
   isHaloEnabled,
+  isIpfsGatewayCheckBypassed = false,
+  ...props
 }: AvatarTokenProps) => {
   const [showFallback, setShowFallback] = useState(!imageSource);
 
@@ -35,7 +37,12 @@ const AvatarToken = ({
     isHaloEnabled,
     showFallback,
   });
-  const isIpfsGatewayEnabled = useSelector(selectIsIpfsGatewayEnabled);
+  let isIpfsGatewayEnabled = false;
+
+  if (!isIpfsGatewayCheckBypassed) {
+    // eslint-disable-next-line react-hooks/rules-of-hooks
+    isIpfsGatewayEnabled = useSelector(selectIsIpfsGatewayEnabled);
+  }
 
   const tokenNameFirstLetter = name?.[0] ?? DEFAULT_AVATARTOKEN_ERROR_TEXT;
 
@@ -48,7 +55,7 @@ const AvatarToken = ({
     : false;
 
   const tokenImage = () => (
-    <AvatarBase size={size} style={styles.base}>
+    <AvatarBase size={size} style={styles.base} {...props}>
       {showFallback || isIpfsDisabledAndUriIsIpfs ? (
         <Text style={styles.label} variant={TEXTVARIANT_BY_AVATARSIZE[size]}>
           {tokenNameFirstLetter}

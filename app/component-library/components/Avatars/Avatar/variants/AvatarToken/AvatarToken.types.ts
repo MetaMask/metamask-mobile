@@ -21,6 +21,11 @@ export interface AvatarTokenProps extends AvatarBaseProps {
    * @default false
    */
   isHaloEnabled?: boolean;
+  /**
+   * Optional boolean to bypass IPFS Gateway Check.
+   * @default false
+   */
+  isIpfsGatewayCheckBypassed?: boolean;
 }
 
 export type AvatarTokenStyleSheetVars = Pick<

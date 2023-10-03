@@ -63,7 +63,6 @@ const getStories = () => {
     "./app/component-library/components/Avatars/Avatar/variants/AvatarIcon/AvatarIcon.stories.tsx": require("../app/component-library/components/Avatars/Avatar/variants/AvatarIcon/AvatarIcon.stories.tsx"),
     "./app/component-library/components/Avatars/Avatar/variants/AvatarNetwork/AvatarNetwork.stories.tsx": require("../app/component-library/components/Avatars/Avatar/variants/AvatarNetwork/AvatarNetwork.stories.tsx"),
     "./app/component-library/components/Avatars/Avatar/variants/AvatarToken/AvatarToken.stories.tsx": require("../app/component-library/components/Avatars/Avatar/variants/AvatarToken/AvatarToken.stories.tsx"),
-    "./app/component-library/components/Avatars/AvatarGroup/AvatarGroup.stories.tsx": require("../app/component-library/components/Avatars/AvatarGroup/AvatarGroup.stories.tsx"),
   };
 };
 

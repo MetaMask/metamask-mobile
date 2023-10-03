@@ -23,6 +23,7 @@ const AvatarFavicon = ({
   imageSource,
   size = DEFAULT_AVATARFAVICON_SIZE,
   style,
+  ...props
 }: AvatarFaviconProps) => {
   const [error, setError] = useState(undefined);
   const { styles } = useStyles(stylesheet, { style, error });
@@ -51,7 +52,7 @@ const AvatarFavicon = ({
   );
 
   return (
-    <AvatarBase size={size} style={styles.base}>
+    <AvatarBase size={size} style={styles.base} {...props}>
       {error ? renderError() : renderImage()}
     </AvatarBase>
   );
