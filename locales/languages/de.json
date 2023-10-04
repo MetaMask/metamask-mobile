@@ -1869,7 +1869,6 @@
   "fiat_on_ramp_aggregator": {
     "onboarding": {
       "what_to_expect": "Was Sie erwartet",
-      "best_quotes": "Unsere Krypto-Kauffunktion sammelt Angebote von integrierten Händlern und stellt Ihnen das beste Angebot aus diesen Quellen zur Verfügung, damit Sie Krypto direkt und ohne Wartezeit in Ihre Wallet bekommen.",
       "benefits": "Sie zahlen weniger Gas-Gebühren und es werden zahlreiche Netzwerke, Tokens und Zahlungsmethoden unterstützt.",
       "get_started": "Erste Schritte"
     },

@@ -1869,7 +1869,6 @@
   "fiat_on_ramp_aggregator": {
     "onboarding": {
       "what_to_expect": "Ano ang Aasahan",
-      "best_quotes": "Pinagsasama-sama ng aming feature na bumili ng crypto ang mga quote mula sa mga pinagsama-samang vendor, na nagbibigay sa iyo ng pinakamahusay na quote mula sa mga pinagmulan na iyon para direktang maipasok mo ang crypto sa iyong wallet nang walang panahon ng paghihintay.",
       "benefits": "Mas mababa ang bayad sa gas, at mas maraming network, token at paraan ng pagbabayad na sinusuportahan",
       "get_started": "Magsimula"
     },

@@ -1869,7 +1869,6 @@
   "fiat_on_ramp_aggregator": {
     "onboarding": {
       "what_to_expect": "Mong đợi",
-      "best_quotes": "Tính năng mua tiền điện tử của chúng tôi sẽ tổng hợp các báo giá từ những nhà cung cấp được tích hợp, mang lại báo giá tốt nhất từ các nguồn đó để bạn có thể nhận tiền điện tử trực tiếp vào ví của mình mà không mất thời gian chờ đợi.",
       "benefits": "Trả ít phí gas hơn và hỗ trợ nhiều mạng, token và phương thức thanh toán",
       "get_started": "Bắt đầu"
     },

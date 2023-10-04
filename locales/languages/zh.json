@@ -1869,7 +1869,6 @@
   "fiat_on_ramp_aggregator": {
     "onboarding": {
       "what_to_expect": "将会发生什么",
-      "best_quotes": "我们购买加密货币的功能汇总了来自集成供应商的报价，为您提供这些来源的最佳报价；加密货币将会直接进入您的钱包，无需等待。",
       "benefits": "需要支付的燃料费更少，支持多种网络、代币和支付方式",
       "get_started": "开始使用"
     },

@@ -1869,7 +1869,6 @@
   "fiat_on_ramp_aggregator": {
     "onboarding": {
       "what_to_expect": "À quoi s’attendre",
-      "best_quotes": "Notre fonction d’achat de cryptomonnaies regroupe et analyse tous les prix cotés par les vendeurs intégrés pour un achat immédiat de cryptomonnaies et vous trouve la meilleure offre.",
       "benefits": "Des frais de transaction réduits et prise en charge de nombreux réseaux, jetons et méthodes de paiement",
       "get_started": "Commencer"
     },
