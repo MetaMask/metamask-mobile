@@ -1,5 +1,4 @@
 import { Order, OrderStatusEnum } from '@consensys/on-ramp-sdk';
-import { OrderOrderTypeEnum } from '@consensys/on-ramp-sdk/dist/API';
 import { SDK } from '../sdk';
 import {
   FIAT_ORDER_PROVIDERS,
@@ -9,6 +8,7 @@ import Logger from '../../../../../util/Logger';
 import { FiatOrder } from '../../../../../reducers/fiatOrders';
 import AppConstants from '../../../../../core/AppConstants';
 import { ProcessorOptions } from '../..';
+import { isSellFiatOrder } from '../utils';
 
 export const POLLING_FREQUENCY = AppConstants.FIAT_ORDERS.POLLING_FREQUENCY;
 export const POLLING_FRECUENCY_IN_SECONDS = POLLING_FREQUENCY / 1000;
@@ -95,8 +95,7 @@ export async function processAggregatorOrder(
 
   try {
     const orders = await SDK.orders();
-    const getOrderMethod =
-      order.orderType === OrderOrderTypeEnum.Sell ? 'getSellOrder' : 'getOrder';
+    const getOrderMethod = isSellFiatOrder(order) ? 'getSellOrder' : 'getOrder';
     const updatedOrder = await orders[getOrderMethod](order.id, order.account);
 
     if (!updatedOrder) {
