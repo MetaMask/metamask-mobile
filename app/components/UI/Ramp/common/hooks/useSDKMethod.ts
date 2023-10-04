@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import { RegionsService } from '@consensys/on-ramp-sdk';
+import { RegionsService, ServicesSignatures } from '@consensys/on-ramp-sdk';
 import { useRampSDK, SDK } from '../sdk';
 import Logger from '../../../../../util/Logger';
 
@@ -18,11 +18,9 @@ function validMethodParams<T extends keyof RegionsService>(
   method: T,
   params: PartialParameters<RegionsService[T]> | [],
 ): params is Parameters<RegionsService[T]> {
-  const { parameters } = SDK.getSignature(
-    RegionsService,
-    RegionsService.prototype[method],
-  );
-
+  const parameters: {
+    required: boolean;
+  }[] = ServicesSignatures.RegionsService[method].parameters;
   return parameters.every(({ required }, index) => {
     if (!required) return true;
 
