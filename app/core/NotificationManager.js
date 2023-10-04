@@ -171,7 +171,7 @@ class NotificationManager {
       }, 2000);
   };
 
-  _confirmedCallback = async (transactionMeta, originalTransaction) => {
+  _confirmedCallback = (transactionMeta, originalTransaction) => {
     // Once it's confirmed we hide the pending tx notification
     this._removeNotificationById(transactionMeta.id);
     this._transactionsWatchTable[transactionMeta.transaction.nonce].length &&
