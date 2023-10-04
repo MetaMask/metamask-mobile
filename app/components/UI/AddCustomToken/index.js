@@ -33,6 +33,7 @@ import {
   TOKEN_PRECISION_WARNING_MESSAGE_ID,
 } from '../../../../wdio/screen-objects/testIDs/Screens/AddCustomToken.testIds';
 import { NFT_IDENTIFIER_INPUT_BOX_ID } from '../../../../wdio/screen-objects/testIDs/Screens/NFTImportScreen.testIds';
+import { regex } from '../../../../app/util/regex';
 
 const createStyles = (colors) =>
   StyleSheet.create({
@@ -85,6 +86,10 @@ export default class AddCustomToken extends PureComponent {
 
   static propTypes = {
     /**
+     * The chain ID for the current selected network
+     */
+    chainId: PropTypes.string,
+    /**
     /* navigation object required to push new views
     */
     navigation: PropTypes.object,
@@ -96,8 +101,7 @@ export default class AddCustomToken extends PureComponent {
 
   getAnalyticsParams = () => {
     try {
-      const { NetworkController } = Engine.context;
-      const { chainId } = NetworkController?.state?.providerConfig || {};
+      const { chainId } = this.props;
       const { address, symbol } = this.state;
       return {
         token_address: address,
@@ -114,7 +118,7 @@ export default class AddCustomToken extends PureComponent {
     if (!(await this.validateCustomToken())) return;
     const { TokensController } = Engine.context;
     const { address, symbol, decimals, name } = this.state;
-    await TokensController.addToken(address, symbol, decimals, null, name);
+    await TokensController.addToken(address, symbol, decimals, { name });
 
     AnalyticsV2.trackEvent(
       MetaMetricsEvents.TOKEN_ADDED,
@@ -184,11 +188,10 @@ export default class AddCustomToken extends PureComponent {
     let validated = true;
     const address = this.state.address;
     const isValidTokenAddress = isValidAddress(address);
-    const { NetworkController } = Engine.context;
-    const { chainId } = NetworkController?.state?.providerConfig || {};
+    const { chainId } = this.props;
     const toSmartContract =
       isValidTokenAddress && (await isSmartContractAddress(address, chainId));
-    const addressWithoutSpaces = address.replace(/\s/g, '');
+    const addressWithoutSpaces = address.replace(regex.addressWithSpaces, '');
     if (addressWithoutSpaces.length === 0) {
       this.setState({ warningAddress: strings('token.address_cant_be_empty') });
       validated = false;
@@ -209,7 +212,7 @@ export default class AddCustomToken extends PureComponent {
   validateCustomTokenSymbol = () => {
     let validated = true;
     const symbol = this.state.symbol;
-    const symbolWithoutSpaces = symbol.replace(/\s/g, '');
+    const symbolWithoutSpaces = symbol.replace(regex.addressWithSpaces, '');
     if (symbolWithoutSpaces.length === 0) {
       this.setState({ warningSymbol: strings('token.symbol_cant_be_empty') });
       validated = false;
@@ -222,7 +225,7 @@ export default class AddCustomToken extends PureComponent {
   validateCustomTokenDecimals = () => {
     let validated = true;
     const decimals = this.state.decimals;
-    const decimalsWithoutSpaces = decimals.replace(/\s/g, '');
+    const decimalsWithoutSpaces = decimals.replace(regex.addressWithSpaces, '');
     if (decimalsWithoutSpaces.length === 0) {
       this.setState({
         warningDecimals: strings('token.decimals_cant_be_empty'),

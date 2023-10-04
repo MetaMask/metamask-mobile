@@ -5,6 +5,9 @@ import {
 } from '@metamask/transaction-controller';
 import { ethErrors } from 'eth-json-rpc-errors';
 
+import PPOMUtil from '../../lib/ppom/ppom-util';
+import { isBlockaidFeatureEnabled } from '../../util/blockaid';
+
 /**
  * A JavaScript object that is not `null`, a function, or an array.
  *
@@ -91,9 +94,16 @@ async function eth_sendTransaction({
     from: req.params[0].from,
     chainId: req.params[0].chainId,
   });
-
+  let securityAlertResponse;
+  if (isBlockaidFeatureEnabled()) {
+    securityAlertResponse = await PPOMUtil.validateRequest(req);
+  }
   const hash = await (
-    await sendTransaction(req.params[0], hostname, WalletDevice.MM_MOBILE)
+    await sendTransaction(req.params[0], {
+      deviceConfirmedOn: WalletDevice.MM_MOBILE,
+      origin: hostname,
+      securityAlertResponse,
+    })
   ).result;
 
   res.result = hash;

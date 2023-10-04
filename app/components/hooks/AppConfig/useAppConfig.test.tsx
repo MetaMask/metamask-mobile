@@ -17,7 +17,7 @@ describe('useAppConfig', () => {
     }),
   );
   beforeAll(() => {
-    global.fetch = mockFetch;
+    global.fetch = mockFetch as jest.Mock;
   });
   beforeEach(() => {
     jest.clearAllMocks();

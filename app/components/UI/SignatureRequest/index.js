@@ -11,12 +11,14 @@ import ActionView from '../ActionView';
 import AccountInfoCard from '../AccountInfoCard';
 import WarningMessage from '../../Views/SendFlow/WarningMessage';
 import Device from '../../../util/device';
+import { isBlockaidFeatureEnabled } from '../../../util/blockaid';
 import Analytics from '../../../core/Analytics/Analytics';
 import { MetaMetricsEvents } from '../../../core/Analytics';
 import { ThemeContext, mockTheme } from '../../../util/theme';
 import withQRHardwareAwareness from '../QRHardware/withQRHardwareAwareness';
 import QRSigningDetails from '../QRHardware/QRSigningDetails';
 import { selectProviderType } from '../../../selectors/networkController';
+import BlockaidBanner from '../BlockaidBanner/BlockaidBanner';
 
 const createStyles = (colors) =>
   StyleSheet.create({
@@ -102,6 +104,10 @@ const createStyles = (colors) =>
     arrowIcon: {
       color: colors.icon.muted,
     },
+    blockaidBanner: {
+      marginHorizontal: 20,
+      marginBottom: 20,
+    },
   });
 
 /**
@@ -116,7 +122,7 @@ class SignatureRequest extends PureComponent {
     /**
      * Callback triggered when this message signature is rejected
      */
-    onCancel: PropTypes.func,
+    onReject: PropTypes.func,
     /**
      * Callback triggered when this message signature is approved
      */
@@ -156,13 +162,14 @@ class SignatureRequest extends PureComponent {
     isSigningQRObject: PropTypes.bool,
     QRState: PropTypes.object,
     testID: PropTypes.string,
+    securityAlertResponse: PropTypes.object,
   };
 
   /**
-   * Calls trackCancelSignature and onCancel callback
+   * Calls trackCancelSignature and onReject callback
    */
-  onCancel = () => {
-    this.props.onCancel();
+  onReject = () => {
+    this.props.onReject();
     Analytics.trackEventWithParameters(
       MetaMetricsEvents.TRANSACTIONS_CANCEL_SIGNATURE,
       this.getTrackingParams(),
@@ -194,7 +201,7 @@ class SignatureRequest extends PureComponent {
   };
 
   goToWarning = () => {
-    this.props.onCancel();
+    this.props.onReject();
     this.props.navigation.navigate('Webview', {
       screen: 'SimpleWebview',
       params: {
@@ -281,7 +288,7 @@ class SignatureRequest extends PureComponent {
   };
 
   renderSignatureRequest() {
-    const { showWarning, type } = this.props;
+    const { securityAlertResponse, showWarning, type } = this.props;
     let expandedHeight;
     const styles = this.getStyles();
 
@@ -298,7 +305,7 @@ class SignatureRequest extends PureComponent {
           confirmTestID={'request-signature-confirm-button'}
           cancelText={strings('signature_request.cancel')}
           confirmText={strings('signature_request.sign')}
-          onCancelPress={this.onCancel}
+          onCancelPress={this.onReject}
           onConfirmPress={this.onConfirm}
           confirmButtonMode="sign"
         >
@@ -319,6 +326,12 @@ class SignatureRequest extends PureComponent {
                 </TouchableOpacity>
               ) : null}
             </View>
+            {isBlockaidFeatureEnabled() && (
+              <BlockaidBanner
+                securityAlertResponse={securityAlertResponse}
+                style={styles.blockaidBanner}
+              />
+            )}
             {this.renderActionViewChildren()}
           </View>
         </ActionView>

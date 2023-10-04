@@ -7,10 +7,10 @@ import AccountSelectorList from './AccountSelectorList';
 import { useAccounts } from '../../../components/hooks/useAccounts';
 import { View } from 'react-native';
 import { ACCOUNT_BALANCE_BY_ADDRESS_TEST_ID } from '../../../../wdio/screen-objects/testIDs/Components/AccountListComponent.testIds';
+import initialBackgroundState from '../../../util/test/initial-background-state.json';
+import { regex } from '../../../../app/util/regex';
 
 const mockEngine = Engine;
-
-jest.unmock('react-redux');
 
 const BUSINESS_ACCOUNT = '0x1';
 const PERSONAL_ACCOUNT = '0x2';
@@ -35,6 +35,7 @@ jest.mock('../../../core/Engine', () => ({
 const initialState = {
   engine: {
     backgroundState: {
+      ...initialBackgroundState,
       NetworkController: {
         network: '1',
         providerConfig: {
@@ -136,15 +137,17 @@ describe('AccountSelectorList', () => {
         `${ACCOUNT_BALANCE_BY_ADDRESS_TEST_ID}-${PERSONAL_ACCOUNT}`,
       );
 
-      expect(within(businessAccountItem).getByText(/1 ETH/)).toBeDefined();
-      expect(within(businessAccountItem).getByText(/\$3200/)).toBeDefined();
+      expect(within(businessAccountItem).getByText(regex.eth(1))).toBeDefined();
+      expect(
+        within(businessAccountItem).getByText(regex.usd(3200)),
+      ).toBeDefined();
 
-      expect(within(personalAccountItem).getByText(/2 ETH/)).toBeDefined();
-      expect(within(personalAccountItem).getByText(/\$6400/)).toBeDefined();
+      expect(within(personalAccountItem).getByText(regex.eth(2))).toBeDefined();
+      expect(
+        within(personalAccountItem).getByText(regex.usd(6400)),
+      ).toBeDefined();
 
-      const accounts = getAllByTestId(
-        new RegExp(`${ACCOUNT_BALANCE_BY_ADDRESS_TEST_ID}`),
-      );
+      const accounts = getAllByTestId(regex.accountBalance);
       expect(accounts.length).toBe(2);
 
       expect(toJSON()).toMatchSnapshot();
@@ -166,17 +169,17 @@ describe('AccountSelectorList', () => {
     });
 
     await waitFor(async () => {
-      const accounts = getAllByTestId(
-        new RegExp(`${ACCOUNT_BALANCE_BY_ADDRESS_TEST_ID}`),
-      );
+      const accounts = getAllByTestId(regex.accountBalance);
       expect(accounts.length).toBe(1);
 
       const businessAccountItem = await queryByTestId(
         `${ACCOUNT_BALANCE_BY_ADDRESS_TEST_ID}-${BUSINESS_ACCOUNT}`,
       );
 
-      expect(within(businessAccountItem).getByText(/1 ETH/)).toBeDefined();
-      expect(within(businessAccountItem).getByText(/\$3200/)).toBeDefined();
+      expect(within(businessAccountItem).getByText(regex.eth(1))).toBeDefined();
+      expect(
+        within(businessAccountItem).getByText(regex.usd(3200)),
+      ).toBeDefined();
 
       expect(toJSON()).toMatchSnapshot();
     });

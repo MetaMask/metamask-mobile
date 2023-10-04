@@ -8,35 +8,36 @@ import Selectors from '../../helpers/Selectors';
 
 class MetaMetricsScreen {
   get screenTitle() {
-    return Selectors.getElementByPlatform(OPTIN_METRICS_TITLE_ID);
+    return Selectors.getXpathElementByResourceId(OPTIN_METRICS_TITLE_ID);
   }
 
   get iAgreeButton() {
-    return Selectors.getElementByPlatform(OPTIN_METRICS_I_AGREE_BUTTON_ID);
+    return Selectors.getXpathElementByResourceId(
+      OPTIN_METRICS_I_AGREE_BUTTON_ID,
+    );
   }
 
   get noThanksButton() {
-    return Selectors.getElementByPlatform(OPTIN_METRICS_NO_THANKS_BUTTON_ID);
+    return Selectors.getXpathElementByResourceId(
+      OPTIN_METRICS_NO_THANKS_BUTTON_ID,
+    );
   }
 
   async isScreenTitleVisible() {
     await expect(this.screenTitle).toBeDisplayed();
   }
 
-  async swipeUp() {
-    await Gestures.swipe({ x: 200, y: 1000 }, { x: 200, y: 10 });
-  }
-
   async tapIAgreeButton() {
     const element = await this.iAgreeButton;
     await element.waitForDisplayed();
-    await this.swipeUp();
+    await Gestures.swipeUp(0.5);
+    await Gestures.swipeUp(0.5);
     await element.waitForEnabled();
     await Gestures.waitAndTap(this.iAgreeButton);
   }
 
   async tapNoThanksButton() {
-    await this.swipeUp();
+    await Gestures.swipeUp(0.5);
     const element = await this.iAgreeButton;
     await element.waitForEnabled();
     await Gestures.waitAndTap(this.noThanksButton);

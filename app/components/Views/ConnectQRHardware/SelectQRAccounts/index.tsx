@@ -20,7 +20,10 @@ import Device from '../../../../util/device';
 import { useTheme } from '../../../../util/theme';
 import AccountDetails from '../AccountDetails';
 import StyledButton from '../../../UI/StyledButton';
-import { selectProviderConfig } from '../../../../selectors/networkController';
+import {
+  selectNetworkConfigurations,
+  selectProviderConfig,
+} from '../../../../selectors/networkController';
 
 interface ISelectQRAccountsProps {
   canUnlock: boolean;
@@ -101,10 +104,7 @@ const SelectQRAccounts = (props: ISelectQRAccountsProps) => {
   const styles = createStyle(colors);
   const navigation = useNavigation();
   const providerConfig = useSelector(selectProviderConfig);
-  const frequentRpcList = useSelector(
-    (state: any) =>
-      state.engine.backgroundState.PreferencesController.frequentRpcList,
-  );
+  const networkConfigurations = useSelector(selectNetworkConfigurations);
 
   const toBlockExplorer = useCallback(
     (address: string) => {
@@ -112,7 +112,7 @@ const SelectQRAccounts = (props: ISelectQRAccountsProps) => {
       let accountLink: string;
       if (type === RPC) {
         const blockExplorer =
-          findBlockExplorerForRpc(rpcTarget, frequentRpcList) ||
+          findBlockExplorerForRpc(rpcTarget, networkConfigurations) ||
           NO_RPC_BLOCK_EXPLORER;
         accountLink = `${blockExplorer}/address/${address}`;
       } else {
@@ -125,7 +125,7 @@ const SelectQRAccounts = (props: ISelectQRAccountsProps) => {
         },
       });
     },
-    [frequentRpcList, navigation, providerConfig],
+    [networkConfigurations, navigation, providerConfig],
   );
 
   return (

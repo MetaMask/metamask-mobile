@@ -5,7 +5,7 @@ import { StyleSheet, TextStyle } from 'react-native';
 import { Theme } from '../../../../util/theme/models';
 
 // Internal dependencies.
-import { TextColor } from './Text.types';
+import { TextColor, TextVariant } from './Text.types';
 
 /**
  * Style sheet function for Text component.
@@ -24,6 +24,9 @@ const styleSheet = (params: { theme: Theme; vars: any }) => {
     case TextColor.Default:
       textColor = theme.colors.text.default;
       break;
+    case TextColor.Inverse:
+      textColor = theme.colors.primary.inverse;
+      break;
     case TextColor.Alternative:
       textColor = theme.colors.text.alternative;
       break;
@@ -33,11 +36,17 @@ const styleSheet = (params: { theme: Theme; vars: any }) => {
     case TextColor.Primary:
       textColor = theme.colors.primary.default;
       break;
+    case TextColor.PrimaryAlternative:
+      textColor = theme.colors.primary.alternative;
+      break;
     case TextColor.Success:
       textColor = theme.colors.success.default;
       break;
     case TextColor.Error:
       textColor = theme.colors.error.default;
+      break;
+    case TextColor.ErrorAlternative:
+      textColor = theme.colors.error.alternative;
       break;
     case TextColor.Warning:
       textColor = theme.colors.warning.default;
@@ -52,7 +61,7 @@ const styleSheet = (params: { theme: Theme; vars: any }) => {
   return StyleSheet.create({
     base: Object.assign(
       { color: textColor },
-      theme.typography[variant],
+      theme.typography[variant as TextVariant],
       style,
     ) as TextStyle,
   });

@@ -14,7 +14,7 @@ import {
 } from 'react-native';
 import CheckBox from '@react-native-community/checkbox';
 import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view';
-import AsyncStorage from '@react-native-async-storage/async-storage';
+import AsyncStorage from '../../../store/async-storage-wrapper';
 import { connect } from 'react-redux';
 import {
   passwordSet,
@@ -551,10 +551,7 @@ class ChoosePassword extends PureComponent {
     const { KeyringController } = Engine.context;
     const { password } = this.state;
     const keychainPassword = this.keyringControllerPasswordSet ? password : '';
-    const mnemonic = await KeyringController.exportSeedPhrase(
-      keychainPassword,
-    ).toString();
-    return JSON.stringify(mnemonic).replace(/"/g, '');
+    return await KeyringController.exportSeedPhrase(keychainPassword);
   };
 
   jumpToConfirmPassword = () => {

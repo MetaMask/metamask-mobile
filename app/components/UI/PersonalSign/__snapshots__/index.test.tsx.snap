@@ -16,8 +16,7 @@ exports[`PersonalSign should render correctly 1`] = `
       "origin": "origin",
     }
   }
-  onCancel={[Function]}
-  onConfirm={[Function]}
-  selectedAddress="0x0"
+  onConfirm={[MockFunction]}
+  onReject={[MockFunction]}
 />
 `;

@@ -19,6 +19,8 @@ import {
   selectChainId,
   selectTicker,
 } from '../../../selectors/networkController';
+import { selectAccounts } from '../../../selectors/accountTrackerController';
+import { selectSelectedAddress } from '../../../selectors/preferencesController';
 
 const UpdateEIP1559Tx = ({
   gas,
@@ -249,9 +251,8 @@ const UpdateEIP1559Tx = ({
 };
 
 const mapStateToProps = (state: any) => ({
-  accounts: state.engine.backgroundState.AccountTrackerController.accounts,
-  selectedAddress:
-    state.engine.backgroundState.PreferencesController.selectedAddress,
+  accounts: selectAccounts(state),
+  selectedAddress: selectSelectedAddress(state),
   ticker: selectTicker(state),
   gasFeeEstimates:
     state.engine.backgroundState.GasFeeController.gasFeeEstimates,

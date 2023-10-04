@@ -16,13 +16,13 @@ import Gestures from '../../helpers/Gestures';
 
 class OnboardingWizardModal {
   get container() {
-    return Selectors.getElementByPlatform(
+    return Selectors.getXpathElementByResourceId(
       ONBOARDING_WIZARD_STEP_1_CONTAINER_ID,
     );
   }
 
   get noThanksButton() {
-    return Selectors.getElementByPlatform(
+    return Selectors.getXpathElementByResourceId(
       ONBOARDING_WIZARD_STEP_1_NO_THANKS_ID,
     );
   }

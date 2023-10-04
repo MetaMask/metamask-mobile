@@ -1,6 +1,8 @@
 import { RelayerTypes } from '@walletconnect/types';
 import { parseRelayParams } from '@walletconnect/utils';
 import qs from 'qs';
+import { store } from '../../../app/store';
+import { wait } from '../SDKConnect/utils/wait.util';
 
 export interface WCMultiVersionParams {
   protocol: string;
@@ -52,4 +54,32 @@ export const isValidWCURI = (uri: string): boolean => {
   return false;
 };
 
+const MAX_LOOP_COUNTER = 60;
+export const waitForNetworkModalOnboarding = async ({
+  chainId,
+}: {
+  chainId: string;
+}): Promise<void> => {
+  let waitForNetworkModalOnboarded = true;
+
+  // throw timeout error after 30sec
+  let loopCounter = 0;
+
+  while (waitForNetworkModalOnboarded) {
+    loopCounter += 1;
+    const { networkOnboarded } = store.getState();
+    const { networkOnboardedState } = networkOnboarded;
+
+    if (networkOnboardedState[chainId]) {
+      waitForNetworkModalOnboarded = false;
+      // exit the looop
+    } else {
+      await wait(1000);
+    }
+
+    if (loopCounter >= MAX_LOOP_COUNTER) {
+      throw new Error('Timeout error');
+    }
+  }
+};
 export default parseWalletConnectUri;

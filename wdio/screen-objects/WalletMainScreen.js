@@ -16,6 +16,7 @@ import {
   SHOW_PRIVATE_KEY,
   VIEW_ETHERSCAN,
   WALLET_ACCOUNT_ICON,
+  ACCOUNT_OVERVIEW_ID,
 } from './testIDs/Screens/WalletView.testIds';
 
 import { NOTIFICATION_TITLE } from './testIDs/Components/Notification.testIds';
@@ -50,11 +51,11 @@ class WalletMainScreen {
   }
 
   get networkInNavBar() {
-    return Selectors.getElementByPlatform(NAVBAR_NETWORK_BUTTON);
+    return Selectors.getXpathElementByResourceId(NAVBAR_NETWORK_BUTTON);
   }
 
   get mainWalletView() {
-    return Selectors.getElementByPlatform(MAIN_WALLET_VIEW_VIA_TOKENS_ID);
+    return Selectors.getXpathElementByResourceId(ACCOUNT_OVERVIEW_ID);
   }
 
   get remindMeLaterNotification() {
@@ -72,7 +73,7 @@ class WalletMainScreen {
   }
 
   get accountActionsButton() {
-    return Selectors.getElementByPlatform(MAIN_WALLET_ACCOUNT_ACTIONS);
+    return Selectors.getXpathElementByResourceId(MAIN_WALLET_ACCOUNT_ACTIONS);
   }
 
   get privateKeyActionButton() {
@@ -88,7 +89,7 @@ class WalletMainScreen {
   }
 
   get walletButton() {
-    return Selectors.getElementByPlatform(TAB_BAR_WALLET_BUTTON);
+    return Selectors.getXpathElementByResourceId(TAB_BAR_WALLET_BUTTON);
   }
 
   get goBackSimpleWebViewButton() {
@@ -149,8 +150,7 @@ class WalletMainScreen {
   }
 
   async isVisible() {
-    const element = await this.WalletScreenContainer;
-    await element.waitForDisplayed();
+    expect(this.WalletScreenContainer).toBeDisplayed();
   }
 
   async isNetworkNameCorrect(network) {
@@ -165,7 +165,7 @@ class WalletMainScreen {
   }
 
   async isMainWalletViewVisible() {
-    const element = await this.mainWalletView;
+    const element = await this.walletButton;
     await element.waitForDisplayed({ timeout: 100000 });
   }
 

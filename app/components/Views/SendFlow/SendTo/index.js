@@ -12,7 +12,6 @@ import { connect } from 'react-redux';
 import { toChecksumAddress } from 'ethereumjs-util';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import Icon from 'react-native-vector-icons/FontAwesome';
-import Engine from '../../../../core/Engine';
 import Analytics from '../../../../core/Analytics/Analytics';
 import AddressList from './../AddressList';
 import Text from '../../../Base/Text';
@@ -34,7 +33,6 @@ import {
 } from '../../../../util/confusables';
 import { mockTheme, ThemeContext } from '../../../../util/theme';
 import { showAlert } from '../../../../actions/alert';
-import addRecent from '../../../../actions/recents';
 import {
   newAssetTransaction,
   resetTransaction,
@@ -62,12 +60,15 @@ import {
 import generateTestId from '../../../../../wdio/utils/generateTestId';
 import {
   selectChainId,
-  selectNetwork,
   selectProviderType,
   selectTicker,
 } from '../../../../selectors/networkController';
+import {
+  selectIdentities,
+  selectSelectedAddress,
+} from '../../../../selectors/preferencesController';
 import AddToAddressBookWrapper from '../../../UI/AddToAddressBookWrapper';
-import { isNetworkBuyNativeTokenSupported } from '../../../UI/FiatOnRampAggregator/utils';
+import { isNetworkBuyNativeTokenSupported } from '../../../UI/Ramp/utils';
 import { getRampNetworks } from '../../../../reducers/fiatOrders';
 import SendFlowAddressFrom from '../AddressFrom';
 import SendFlowAddressTo from '../AddressTo';
@@ -87,10 +88,6 @@ class SendFlow extends PureComponent {
      * Network provider chain id
      */
     chainId: PropTypes.string,
-    /**
-     * Network id
-     */
-    network: PropTypes.string,
     /**
      * Object that represents the navigator
      */
@@ -136,14 +133,6 @@ class SendFlow extends PureComponent {
      */
     isPaymentRequest: PropTypes.bool,
     /**
-     * Returns the recent address in a json with the type ADD_RECENT
-     */
-    addRecent: PropTypes.func,
-    /**
-     * Frequent RPC list from PreferencesController
-     */
-    frequentRpcList: PropTypes.array,
-    /**
      * Boolean that indicates if the network supports buy
      */
     isNativeTokenBuySupported: PropTypes.bool,
@@ -187,7 +176,7 @@ class SendFlow extends PureComponent {
     const {
       addressBook,
       ticker,
-      network,
+      chainId,
       navigation,
       providerType,
       route,
@@ -196,7 +185,7 @@ class SendFlow extends PureComponent {
     this.updateNavBar();
     // For analytics
     navigation.setParams({ providerType, isPaymentRequest });
-    const networkAddressBook = addressBook[network] || {};
+    const networkAddressBook = addressBook[chainId] || {};
     if (!Object.keys(networkAddressBook).length) {
       setTimeout(() => {
         this.addressToInputRef &&
@@ -229,8 +218,8 @@ class SendFlow extends PureComponent {
 
   isAddressSaved = () => {
     const { toAccount } = this.state;
-    const { addressBook, network, identities } = this.props;
-    const networkAddressBook = addressBook[network] || {};
+    const { addressBook, chainId, identities } = this.props;
+    const networkAddressBook = addressBook[chainId] || {};
     const checksummedAddress = toChecksumAddress(toAccount);
     return !!(
       networkAddressBook[checksummedAddress] || identities[checksummedAddress]
@@ -253,20 +242,18 @@ class SendFlow extends PureComponent {
 
   handleNetworkSwitch = (chainId) => {
     try {
-      const { NetworkController, CurrencyRateController } = Engine.context;
-      const { showAlert, frequentRpcList } = this.props;
-      const network = handleNetworkSwitch(chainId, frequentRpcList, {
-        networkController: NetworkController,
-        currencyRateController: CurrencyRateController,
-      });
+      const { showAlert } = this.props;
+      const networkName = handleNetworkSwitch(chainId);
 
-      if (!network) return;
+      if (!networkName) return;
 
       showAlert({
         isVisible: true,
         autodismiss: 5000,
         content: 'clipboard-alert',
-        data: { msg: strings('send.warn_network_change') + network },
+        data: {
+          msg: strings('send.warn_network_change') + networkName,
+        },
       });
     } catch (e) {
       let alertMessage;
@@ -284,7 +271,7 @@ class SendFlow extends PureComponent {
   };
 
   onTransactionDirectionSet = async () => {
-    const { setRecipient, navigation, providerType, addRecent } = this.props;
+    const { setRecipient, navigation, providerType } = this.props;
     const {
       fromSelectedAddress,
       toAccount,
@@ -298,7 +285,6 @@ class SendFlow extends PureComponent {
     }
 
     const toAddress = toEnsAddressResolved || toAccount;
-    addRecent(toAddress);
     setRecipient(
       fromSelectedAddress,
       toAddress,
@@ -370,11 +356,15 @@ class SendFlow extends PureComponent {
     this.setState({ balanceIsZero: value });
   };
 
+  setFromAddress = (address) => {
+    this.setState({ fromSelectedAddress: address });
+  };
+
   getAddressNameFromBookOrIdentities = (toAccount) => {
-    const { addressBook, identities, network } = this.props;
+    const { addressBook, identities, chainId } = this.props;
     if (!toAccount) return;
 
-    const networkAddressBook = addressBook[network] || {};
+    const networkAddressBook = addressBook[chainId] || {};
 
     const checksummedAddress = toChecksumAddress(toAccount);
 
@@ -386,7 +376,7 @@ class SendFlow extends PureComponent {
   };
 
   validateAddressOrENSFromInput = async (toAccount) => {
-    const { addressBook, identities, chainId, network } = this.props;
+    const { addressBook, identities, chainId } = this.props;
     const {
       addressError,
       toEnsName,
@@ -399,7 +389,6 @@ class SendFlow extends PureComponent {
       confusableCollection,
     } = await validateAddressOrENS({
       toAccount,
-      network,
       addressBook,
       identities,
       chainId,
@@ -446,7 +435,7 @@ class SendFlow extends PureComponent {
   };
 
   render = () => {
-    const { ticker, addressBook, network } = this.props;
+    const { ticker, addressBook, chainId } = this.props;
     const {
       toAccount,
       toSelectedAddressReady,
@@ -469,8 +458,8 @@ class SendFlow extends PureComponent {
     );
     const existingContact =
       checksummedAddress &&
-      addressBook[network] &&
-      addressBook[network][checksummedAddress];
+      addressBook[chainId] &&
+      addressBook[chainId][checksummedAddress];
     const displayConfusableWarning =
       !existingContact && confusableCollection && !!confusableCollection.length;
     const displayAsWarning =
@@ -490,6 +479,7 @@ class SendFlow extends PureComponent {
         <View style={styles.imputWrapper}>
           <SendFlowAddressFrom
             fromAccountBalanceState={this.fromAccountBalanceState}
+            setFromAddress={this.setFromAddress}
           />
           <SendFlowAddressTo
             inputRef={this.addressToInputRef}
@@ -636,16 +626,12 @@ SendFlow.contextType = ThemeContext;
 const mapStateToProps = (state) => ({
   addressBook: state.engine.backgroundState.AddressBookController.addressBook,
   chainId: selectChainId(state),
-  selectedAddress:
-    state.engine.backgroundState.PreferencesController.selectedAddress,
+  selectedAddress: selectSelectedAddress(state),
   selectedAsset: state.transaction.selectedAsset,
-  identities: state.engine.backgroundState.PreferencesController.identities,
+  identities: selectIdentities(state),
   ticker: selectTicker(state),
-  network: selectNetwork(state),
   providerType: selectProviderType(state),
   isPaymentRequest: state.transaction.paymentRequest,
-  frequentRpcList:
-    state.engine.backgroundState.PreferencesController.frequentRpcList,
   isNativeTokenBuySupported: isNetworkBuyNativeTokenSupported(
     selectChainId(state),
     getRampNetworks(state),
@@ -653,7 +639,6 @@ const mapStateToProps = (state) => ({
 });
 
 const mapDispatchToProps = (dispatch) => ({
-  addRecent: (address) => dispatch(addRecent(address)),
   setRecipient: (
     from,
     to,

@@ -3,18 +3,12 @@ import { shallow } from 'enzyme';
 import NetworkSettings from './';
 import configureMockStore from 'redux-mock-store';
 import { Provider } from 'react-redux';
+import initialBackgroundState from '../../../../../util/test/initial-background-state.json';
 
 const mockStore = configureMockStore();
 const initialState = {
   engine: {
-    backgroundState: {
-      NetworkController: {
-        providerConfig: { type: 'mainnet', rpcTarget: 'http://10.0.2.2:8545' },
-      },
-      PreferencesController: {
-        frequentRpcList: [],
-      },
-    },
+    backgroundState: initialBackgroundState,
   },
   networkOnboarded: {
     networkOnboardedState: { '1': true },

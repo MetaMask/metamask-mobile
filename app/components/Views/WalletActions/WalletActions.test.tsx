@@ -11,6 +11,7 @@ import {
   WALLET_SWAP,
 } from './WalletActions.constants';
 import Engine from '../../../core/Engine';
+import initialBackgroundState from '../../../util/test/initial-background-state.json';
 
 const mockEngine = Engine;
 
@@ -28,7 +29,7 @@ const mockInitialState = {
   },
   engine: {
     backgroundState: {
-      PreferencesController: {},
+      ...initialBackgroundState,
       NetworkController: {
         providerConfig: { type: 'mainnet', chainId: '1', ticker: 'ETH' },
       },
@@ -36,7 +37,6 @@ const mockInitialState = {
   },
 };
 
-jest.unmock('react-redux');
 jest.mock('../../../core/Engine', () => ({
   init: () => mockEngine.init({}),
 }));
@@ -90,7 +90,7 @@ describe('WalletActions', () => {
   });
 
   it('should not show the buy button and swap button if the chain does not allow buying', () => {
-    const state = {
+    const mockState = {
       swaps: { '1': { isLive: false }, hasOnboarded: false, isLive: true },
       fiatOrders: {
         networks: [
@@ -104,7 +104,7 @@ describe('WalletActions', () => {
       },
       engine: {
         backgroundState: {
-          PreferencesController: {},
+          ...initialBackgroundState,
           NetworkController: {
             providerConfig: {
               type: 'mainnet',
@@ -118,11 +118,13 @@ describe('WalletActions', () => {
 
     jest.mock('react-redux', () => ({
       ...jest.requireActual('react-redux'),
-      useSelector: jest.fn().mockImplementation((callback) => callback(state)),
+      useSelector: jest
+        .fn()
+        .mockImplementation((callback) => callback(mockState)),
     }));
 
     const { queryByTestId } = renderWithProvider(<WalletActions />, {
-      state,
+      state: mockState,
     });
 
     expect(queryByTestId(WALLET_BUY)).toBeNull();

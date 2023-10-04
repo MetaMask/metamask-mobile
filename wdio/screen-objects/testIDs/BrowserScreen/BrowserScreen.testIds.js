@@ -1,4 +1,5 @@
 export const BROWSER_SCREEN_ID = 'browser-screen';
+export const ANDROID_BROWSER_WEBVIEW_ID = 'browser-webview';
 
 export const NAVBAR_TITLE_NETWORK = 'browser-url-bar';
 

@@ -11,7 +11,7 @@ interface IAccountDetailsProps {
   index: number;
   address: string;
   balance: string;
-  ticker: string;
+  ticker: string | undefined;
   toBlockExplorer: (address: string) => void;
 }
 

@@ -4,10 +4,12 @@ import { waitFor } from '@testing-library/react-native';
 import Confirm from '.';
 import { renderScreen } from '../../../../util/test/renderWithProvider';
 import Routes from '../../../../constants/navigation/Routes';
+import initialBackgroundState from '../../../../util/test/initial-background-state.json';
 
-const initialState = {
+const mockInitialState = {
   engine: {
     backgroundState: {
+      ...initialBackgroundState,
       NetworkController: {
         network: '1',
         providerConfig: {
@@ -15,24 +17,12 @@ const initialState = {
           type: 'mainnet',
         },
       },
-      AddressBookController: {
-        addressBook: {},
-      },
       AccountTrackerController: {
         accounts: { '0x2': { balance: '0' } },
-      },
-      TransactionController: {
-        transactions: [],
-      },
-      TokenRatesController: {
-        contractExchangeRates: {},
       },
       CurrencyRateController: {
         currentCurrency: 'USD',
         conversionRate: 1,
-      },
-      TokenBalancesController: {
-        contractBalances: {},
       },
       PreferencesController: {
         identities: {
@@ -41,9 +31,6 @@ const initialState = {
       },
       KeyringController: {
         keyrings: [{ accounts: ['0x'], type: 'HD Key Tree' }],
-      },
-      GasFeeController: {
-        gasFeeEstimates: {},
       },
     },
   },
@@ -74,7 +61,7 @@ jest.mock('react-redux', () => ({
   ...jest.requireActual('react-redux'),
   useSelector: jest
     .fn()
-    .mockImplementation((callback) => callback(initialState)),
+    .mockImplementation((callback) => callback(mockInitialState)),
 }));
 jest.mock('../../../../core/GasPolling/GasPolling', () => ({
   ...jest.requireActual('../../../../core/GasPolling/GasPolling'),
@@ -112,7 +99,7 @@ function render(Component: React.ComponentType | ConnectedComponent<any, any>) {
       name: Routes.SEND_FLOW.CONFIRM,
     },
     {
-      state: initialState,
+      state: mockInitialState,
     },
   );
 }

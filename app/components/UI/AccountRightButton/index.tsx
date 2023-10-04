@@ -26,14 +26,13 @@ import Avatar, {
 } from '../../../component-library/components/Avatars/Avatar';
 import {
   getNetworkImageSource,
-  getNetworkNameFromProvider,
+  getNetworkNameFromProviderConfig,
 } from '../../../util/networks';
 import Badge, {
   BadgeVariant,
 } from '../../../component-library/components/Badges/Badge';
 import BadgeWrapper from '../../../component-library/components/Badges/BadgeWrapper';
 import { selectProviderConfig } from '../../../selectors/networkController';
-import { ProviderConfig } from '@metamask/network-controller';
 import Routes from '../../../constants/navigation/Routes';
 import { MetaMetricsEvents } from '../../../core/Analytics';
 import Analytics from '../../../core/Analytics/Analytics';
@@ -76,7 +75,7 @@ const AccountRightButton = ({
   /**
    * Current network
    */
-  const networkProvider: ProviderConfig = useSelector(selectProviderConfig);
+  const providerConfig = useSelector(selectProviderConfig);
 
   const handleKeyboardVisibility = useCallback(
     (visibility: boolean) => () => {
@@ -125,7 +124,7 @@ const AccountRightButton = ({
       Analytics.trackEventWithParameters(
         MetaMetricsEvents.NETWORK_SELECTOR_PRESSED,
         {
-          chain_id: networkProvider.chainId,
+          chain_id: providerConfig.chainId,
         },
       );
     } else {
@@ -137,21 +136,21 @@ const AccountRightButton = ({
     isNetworkVisible,
     onPress,
     navigate,
-    networkProvider.chainId,
+    providerConfig.chainId,
   ]);
 
   const networkName = useMemo(
-    () => getNetworkNameFromProvider(networkProvider),
-    [networkProvider],
+    () => getNetworkNameFromProviderConfig(providerConfig),
+    [providerConfig],
   );
 
   const networkImageSource = useMemo(
     () =>
       getNetworkImageSource({
-        networkType: networkProvider.type,
-        chainId: networkProvider.chainId,
+        networkType: providerConfig.type,
+        chainId: providerConfig.chainId,
       }),
-    [networkProvider],
+    [providerConfig],
   );
 
   const renderAvatarAccount = () => (

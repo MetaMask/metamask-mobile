@@ -10,11 +10,21 @@ const DeletePasswordString = messages.onboarding.your_wallet;
 
 export default class OnboardingView {
   static async tapCreateWallet() {
-    await TestHelpers.waitAndTap(WALLET_SETUP_CREATE_NEW_WALLET_BUTTON_ID);
+    if (device.getPlatform() === 'android') {
+      await TestHelpers.waitAndTapByLabel(
+        WALLET_SETUP_CREATE_NEW_WALLET_BUTTON_ID,
+      );
+    } else {
+      await TestHelpers.waitAndTap(WALLET_SETUP_CREATE_NEW_WALLET_BUTTON_ID);
+    }
   }
 
   static async tapImportWalletFromSeedPhrase() {
-    await TestHelpers.tap(IMPORT_FROM_SEED_BUTTON_ID);
+    if (device.getPlatform() === 'android') {
+      await TestHelpers.waitAndTapByLabel(IMPORT_FROM_SEED_BUTTON_ID);
+    } else {
+      await TestHelpers.tap(IMPORT_FROM_SEED_BUTTON_ID);
+    }
   }
 
   static async isVisible() {

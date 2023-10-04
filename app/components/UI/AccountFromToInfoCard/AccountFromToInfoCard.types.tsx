@@ -1,9 +1,3 @@
-interface Account {
-  balance: number;
-}
-
-type Accounts = Record<string, Account>;
-
 interface Identity {
   address: string;
   name: string;
@@ -32,10 +26,8 @@ export interface Transaction {
 }
 
 export interface AccountFromToInfoCardProps {
-  accounts: Accounts;
-  contractBalances: Record<string, number>;
   identities: Identities;
-  network: string;
+  chainId: string;
   onPressFromAddressIcon?: () => void;
   ticker?: string;
   transactionState: Transaction;

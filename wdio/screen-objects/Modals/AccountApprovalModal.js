@@ -8,7 +8,9 @@ import Gestures from '../../helpers/Gestures';
 
 class AccountApprovalModal {
   get modalContainer() {
-    return Selectors.getElementByPlatform(ACCOUNT_APROVAL_MODAL_CONTAINER_ID);
+    return Selectors.getXpathElementByResourceId(
+      ACCOUNT_APROVAL_MODAL_CONTAINER_ID,
+    );
   }
 
   get connectButton() {

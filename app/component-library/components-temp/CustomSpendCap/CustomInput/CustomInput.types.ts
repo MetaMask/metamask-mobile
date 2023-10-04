@@ -25,4 +25,5 @@ export interface CustomInputProps {
    * Boolean to disable edit
    */
   isEditDisabled: boolean;
+  tokenDecimal?: number;
 }

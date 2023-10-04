@@ -49,7 +49,8 @@ export const createStyles = (colors: any) =>
       marginBottom: 20,
     },
     input: {
-      ...fontStyles.normal,
+      fontFamily: fontStyles.normal.fontFamily,
+      fontWeight: fontStyles.normal.fontWeight,
       fontSize: 16,
       paddingTop: 2,
       color: colors.text.default,

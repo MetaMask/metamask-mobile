@@ -9,21 +9,15 @@ import { createAccountSelectorNavDetails } from '../../../components/Views/Accou
 
 // Internal dependencies
 import WalletAccount from './WalletAccount';
+import initialBackgroundState from '../../../util/test/initial-background-state.json';
 
-const initialState = {
+const mockInitialState = {
   settings: {
     useBlockieIcon: false,
   },
   engine: {
     backgroundState: {
-      NetworkController: {
-        providerConfig: {
-          type: 'mainnet',
-          nickname: 'Ethereum mainnet',
-          ticket: 'eth',
-          chainId: '1',
-        },
-      },
+      ...initialBackgroundState,
       PreferencesController: {
         selectedAddress: '0x',
         identities: { '0x': { name: 'Account 1' } },
@@ -54,27 +48,27 @@ jest.mock('react-redux', () => ({
   ...jest.requireActual('react-redux'),
   useSelector: jest
     .fn()
-    .mockImplementation((callback) => callback(initialState)),
+    .mockImplementation((callback) => callback(mockInitialState)),
 }));
 
 describe('WalletAccount', () => {
   it('renders correctly', () => {
     const { toJSON } = renderWithProvider(<WalletAccount />, {
-      state: initialState,
+      state: mockInitialState,
     });
     expect(toJSON()).toMatchSnapshot();
   });
 
   it('shows the account address', () => {
     const { getByTestId } = renderWithProvider(<WalletAccount />, {
-      state: initialState,
+      state: mockInitialState,
     });
     expect(getByTestId('wallet-account-address')).toBeDefined();
   });
 
   it('copies the account address to the clipboard when the copy button is pressed', async () => {
     const { getByTestId } = renderWithProvider(<WalletAccount />, {
-      state: initialState,
+      state: mockInitialState,
     });
 
     fireEvent.press(getByTestId('wallet-account-copy-button'));
@@ -83,7 +77,7 @@ describe('WalletAccount', () => {
 
   it('should navigate to the account selector screen on account press', () => {
     const { getByTestId } = renderWithProvider(<WalletAccount />, {
-      state: initialState,
+      state: mockInitialState,
     });
 
     fireEvent.press(getByTestId('account-picker'));

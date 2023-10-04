@@ -3,50 +3,12 @@ import Transactions from '.';
 import configureMockStore from 'redux-mock-store';
 import { shallow } from 'enzyme';
 import { Provider } from 'react-redux';
+import initialBackgroundState from '../../../util/test/initial-background-state.json';
 
 const mockStore = configureMockStore();
 const initialState = {
   engine: {
-    backgroundState: {
-      PreferencesController: {
-        selectedAddress: '0x0',
-        identities: {
-          '0xbar': {
-            name: 'Account 1',
-            address: '0x0',
-            importTime: Date.now(),
-          },
-        },
-      },
-      AccountTrackerController: {
-        accounts: {},
-      },
-      TokensController: {
-        tokens: [],
-      },
-      TokenRatesController: {
-        contractExchangeRates: {},
-      },
-      NftController: {
-        allNftContracts: { '0x0': { 1: [] } },
-      },
-      CurrencyRateController: {
-        currentCurrency: 'USD',
-        conversionRate: 1,
-      },
-      NetworkController: {
-        providerConfig: {
-          chainId: '1',
-        },
-      },
-      GasFeeController: {
-        gasFeeEstimates: {
-          high: {},
-          medium: {},
-          low: {},
-        },
-      },
-    },
+    backgroundState: initialBackgroundState,
   },
   privacy: {
     thirdPartyApiMode: true,

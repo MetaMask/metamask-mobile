@@ -7,7 +7,7 @@ import { MultiSelectItemProps } from '../../../../Select/MultiSelect/MultiSelect
  * Cell Account MultiSelect  component props.
  */
 export interface CellMultiSelectProps
-  extends CellBaseProps,
+  extends Omit<CellBaseProps, 'hitSlop'>,
     Omit<MultiSelectItemProps, 'children'> {
   /**
    * Type of Cell

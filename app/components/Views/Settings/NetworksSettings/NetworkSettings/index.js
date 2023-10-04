@@ -70,13 +70,20 @@ import {
   NETWORKS_SYMBOL_INPUT_FIELD,
   BLOCK_EXPLORER_FIELD,
   REMOVE_NETWORK_BUTTON,
+  CUSTOM_NETWORKS_TAB_ID,
+  POPULAR_NETWORKS_TAB_ID,
+  RPC_WARNING_BANNER_ID,
 } from '../../../../../../wdio/screen-objects/testIDs/Screens/NetworksScreen.testids';
 import Button, {
   ButtonVariants,
   ButtonSize,
   ButtonWidthTypes,
 } from '../../../../../component-library/components/Buttons/Button';
-import { selectProviderConfig } from '../../../../../selectors/networkController';
+import {
+  selectNetworkConfigurations,
+  selectProviderConfig,
+} from '../../../../../selectors/networkController';
+import { regex } from '../../../../../../app/util/regex';
 
 const createStyles = (colors) =>
   StyleSheet.create({
@@ -217,9 +224,9 @@ const allNetworksblockExplorerUrl = (networkName) =>
 class NetworkSettings extends PureComponent {
   static propTypes = {
     /**
-     * A list of custom RPCs to provide the user
+     * Network configurations
      */
-    frequentRpcList: PropTypes.array,
+    networkConfigurations: PropTypes.object,
     /**
      * Object that represents the navigator
      */
@@ -299,29 +306,29 @@ class NetworkSettings extends PureComponent {
    * @returns Custom mainnet RPC URL.
    */
   getCustomMainnetRPCURL = () => {
-    const { frequentRpcList } = this.props;
-    const networkInformation = frequentRpcList.find(
+    const { networkConfigurations } = this.props;
+    const networkConfiguration = Object.values(networkConfigurations).find(
       ({ chainId: id }) => String(id) === String(Networks.mainnet.chainId),
     );
-    return networkInformation?.rpcUrl || '';
+    return networkConfiguration?.rpcUrl || '';
   };
 
   componentDidMount = () => {
     this.updateNavBar();
-    const { route, frequentRpcList } = this.props;
+    const { route, networkConfigurations } = this.props;
     const isCustomMainnet = route.params?.isCustomMainnet;
-    const network = route.params?.network;
+    const networkTypeOrRpcUrl = route.params?.network;
     // if network is main, don't show popular network
     let blockExplorerUrl, chainId, nickname, ticker, editable, rpcUrl;
     // If no navigation param, user clicked on add network
-    if (network) {
-      if (allNetworks.find((net) => network === net)) {
-        blockExplorerUrl = getEtherscanBaseUrl(network);
-        const networkInformation = Networks[network];
+    if (networkTypeOrRpcUrl) {
+      if (allNetworks.find((net) => networkTypeOrRpcUrl === net)) {
+        blockExplorerUrl = getEtherscanBaseUrl(networkTypeOrRpcUrl);
+        const networkInformation = Networks[networkTypeOrRpcUrl];
         nickname = networkInformation.name;
         chainId = networkInformation.chainId.toString();
         editable = false;
-        rpcUrl = allNetworksblockExplorerUrl(network);
+        rpcUrl = allNetworksblockExplorerUrl(networkTypeOrRpcUrl);
         ticker =
           networkInformation.chainId.toString() !==
           NETWORKS_CHAIN_ID.LINEA_GOERLI
@@ -333,17 +340,17 @@ class NetworkSettings extends PureComponent {
           rpcUrl = this.getCustomMainnetRPCURL();
         }
       } else {
-        const networkInformation = frequentRpcList.find(
-          ({ rpcUrl }) => rpcUrl === network,
+        const networkConfiguration = Object.values(networkConfigurations).find(
+          ({ rpcUrl }) => rpcUrl === networkTypeOrRpcUrl,
         );
-        nickname = networkInformation.nickname;
-        chainId = networkInformation.chainId;
+        nickname = networkConfiguration.nickname;
+        chainId = networkConfiguration.chainId;
         blockExplorerUrl =
-          networkInformation.rpcPrefs &&
-          networkInformation.rpcPrefs.blockExplorerUrl;
-        ticker = networkInformation.ticker;
+          networkConfiguration.rpcPrefs &&
+          networkConfiguration.rpcPrefs.blockExplorerUrl;
+        ticker = networkConfiguration.ticker;
         editable = true;
-        rpcUrl = network;
+        rpcUrl = networkTypeOrRpcUrl;
       }
       const initialState =
         rpcUrl + blockExplorerUrl + nickname + chainId + ticker + editable;
@@ -456,9 +463,9 @@ class NetworkSettings extends PureComponent {
   };
 
   checkIfNetworkExists = async (rpcUrl) => {
-    const checkCustomNetworks = this.props.frequentRpcList.filter(
-      (item) => item.rpcUrl === rpcUrl,
-    );
+    const checkCustomNetworks = Object.values(
+      this.props.networkConfigurations,
+    ).filter((item) => item.rpcUrl === rpcUrl);
     if (checkCustomNetworks.length > 0) {
       this.setState({ warningRpcUrl: strings('app_settings.network_exists') });
       return checkCustomNetworks;
@@ -474,12 +481,10 @@ class NetworkSettings extends PureComponent {
   };
 
   /**
-   * Add rpc url and parameters to PreferencesController
-   * Setting NetworkController provider to this custom rpc
+   * Add or update network configuration, then switch networks
    */
   addRpcUrl = async () => {
-    const { PreferencesController, NetworkController, CurrencyRateController } =
-      Engine.context;
+    const { NetworkController, CurrencyRateController } = Engine.context;
     const {
       rpcUrl,
       chainId: stateChainId,
@@ -491,7 +496,7 @@ class NetworkSettings extends PureComponent {
     const ticker = this.state.ticker && this.state.ticker.toUpperCase();
     const { navigation, networkOnboardedState, route } = this.props;
     const isCustomMainnet = route.params?.isCustomMainnet;
-    // This must be defined before PreferencesController.addToFrequentRpcList.
+    // This must be defined before NetworkController.upsertNetworkConfiguration.
     const prevRPCURL = isCustomMainnet
       ? this.getCustomMainnetRPCURL()
       : route.params?.network;
@@ -538,29 +543,39 @@ class NetworkSettings extends PureComponent {
       !isprivateConnection(url.hostname) && url.set('protocol', 'https:');
       CurrencyRateController.setNativeCurrency(ticker);
       // Remove trailing slashes
-      const formattedHref = url.href.replace(/\/+$/, '');
-      PreferencesController.addToFrequentRpcList(
-        url.href,
-        decimalChainId,
-        ticker,
-        nickname,
+      NetworkController.upsertNetworkConfiguration(
         {
-          blockExplorerUrl,
+          rpcUrl: url.href,
+          chainId: decimalChainId,
+          ticker,
+          nickname,
+          rpcPrefs: {
+            blockExplorerUrl,
+          },
+        },
+        {
+          setActive: true,
+          // Metrics-related properties required, but the metric event is a no-op
+          // TODO: Use events for controller metric events
+          referrer: 'ignored',
+          source: 'ignored',
         },
       );
-      // TODO: PreferencesController.addToFrequentRpcList only compares RPC urls to determine if a network should be updated or added.
+      // TODO: Use network configuration ID to update existing entries
       // Temporary solution is to manually remove the existing network using the old RPC URL.
       const isRPCDifferent = url.href !== prevRPCURL;
       if ((editable || isCustomMainnet) && isRPCDifferent) {
         // Only remove from frequent list if RPC URL is different.
-        PreferencesController.removeFromFrequentRpcList(prevRPCURL);
+        const [prevNetworkConfigurationId] = Object.entries(
+          this.props.networkConfigurations,
+        ).find(
+          ([, networkConfiguration]) =>
+            networkConfiguration.rpcUrl === prevRPCURL,
+        );
+        NetworkController.removeNetworkConfiguration(
+          prevNetworkConfigurationId,
+        );
       }
-      NetworkController.setRpcTarget(
-        formattedHref,
-        decimalChainId,
-        ticker,
-        nickname,
-      );
 
       const analyticsParamsAdd = {
         chain_id: decimalChainId,
@@ -640,12 +655,12 @@ class NetworkSettings extends PureComponent {
 
     // Check if it's a valid chainId format
     if (chainId.startsWith('0x')) {
-      if (!/^0x[0-9a-f]+$/iu.test(chainId)) {
+      if (!regex.validChainId_hex.test(chainId)) {
         errorMessage = strings('app_settings.invalid_hex_number');
       } else if (!isPrefixedFormattedHexString(chainId)) {
         errorMessage = strings('app_settings.invalid_hex_number_leading_zeros');
       }
-    } else if (!/^[0-9]+$/u.test(chainId)) {
+    } else if (!regex.validChainId.test(chainId)) {
       errorMessage = strings('app_settings.invalid_number');
     } else if (chainId.startsWith('0')) {
       errorMessage = strings('app_settings.invalid_number_leading_zeros');
@@ -765,17 +780,19 @@ class NetworkSettings extends PureComponent {
   };
 
   switchToMainnet = () => {
-    const { NetworkController, CurrencyRateController } = Engine.context;
+    const { NetworkController, CurrencyRateController, TransactionController } =
+      Engine.context;
+
     CurrencyRateController.setNativeCurrency('ETH');
     NetworkController.setProviderType(MAINNET);
-    this.props.thirdPartyApiMode &&
-      setTimeout(() => {
-        Engine.refreshTransactionHistory();
-      }, 1000);
+
+    setTimeout(async () => {
+      await TransactionController.updateIncomingTransactions();
+    }, 1000);
   };
 
   removeRpcUrl = () => {
-    const { navigation, providerConfig } = this.props;
+    const { navigation, networkConfigurations, providerConfig } = this.props;
     const { rpcUrl } = this.state;
     if (
       compareSanitizedUrl(rpcUrl, providerConfig.rpcTarget) &&
@@ -783,12 +800,20 @@ class NetworkSettings extends PureComponent {
     ) {
       this.switchToMainnet();
     }
-    const { PreferencesController } = Engine.context;
-    PreferencesController.removeFromFrequentRpcList(rpcUrl);
+
+    const entry = Object.entries(networkConfigurations).find(
+      ([, networkConfiguration]) => networkConfiguration.rpcUrl === rpcUrl,
+    );
+    if (!entry) {
+      throw new Error(`Unable to find network with RPC URL ${rpcUrl}`);
+    }
+    const [networkConfigurationId] = entry;
+    const { NetworkController } = Engine.context;
+    NetworkController.removeNetworkConfiguration(networkConfigurationId);
     navigation.goBack();
   };
 
-  customNetwork = (network) => {
+  customNetwork = (networkTypeOrRpcUrl) => {
     const {
       rpcUrl,
       blockExplorerUrl,
@@ -835,7 +860,7 @@ class NetworkSettings extends PureComponent {
     return (
       <SafeAreaView style={styles.wrapper} testID={RPC_VIEW_CONTAINER_ID}>
         <KeyboardAwareScrollView style={styles.informationCustomWrapper}>
-          {!network ? (
+          {!networkTypeOrRpcUrl ? (
             <WarningMessage
               style={styles.warningContainer}
               warningMessage={strings('networks.malicious_network_warning')}
@@ -877,7 +902,10 @@ class NetworkSettings extends PureComponent {
               keyboardAppearance={themeAppearance}
             />
             {warningRpcUrl && (
-              <View style={styles.warningContainer} testID={'rpc-url-warning'}>
+              <View
+                style={styles.warningContainer}
+                testID={RPC_WARNING_BANNER_ID}
+              >
                 <Text style={styles.warningText}>{warningRpcUrl}</Text>
               </View>
             )}
@@ -1001,14 +1029,14 @@ class NetworkSettings extends PureComponent {
     );
   };
 
-  showNetworkModal = (network) =>
+  showNetworkModal = (networkConfiguration) =>
     this.setState({
       showPopularNetworkModal: true,
       popularNetwork: {
-        ...network,
-        formattedRpcUrl: network.warning
+        ...networkConfiguration,
+        formattedRpcUrl: networkConfiguration.warning
           ? null
-          : hideKeyFromUrl(network.rpcUrl),
+          : hideKeyFromUrl(networkConfiguration.rpcUrl),
       },
     });
 
@@ -1037,7 +1065,7 @@ class NetworkSettings extends PureComponent {
 
   render() {
     const { route } = this.props;
-    const network = route.params?.network;
+    const networkTypeOrRpcUrl = route.params?.network;
     const shouldNetworkSwitchPopToWallet =
       route.params?.shouldNetworkSwitchPopToWallet ?? true;
     const colors = this.context.colors || mockTheme.colors;
@@ -1046,8 +1074,8 @@ class NetworkSettings extends PureComponent {
     return (
       <SafeAreaView style={styles.wrapper} testID={RPC_VIEW_CONTAINER_ID}>
         <KeyboardAwareScrollView style={styles.informationWrapper}>
-          {network ? (
-            this.customNetwork(network)
+          {networkTypeOrRpcUrl ? (
+            this.customNetwork(networkTypeOrRpcUrl)
           ) : (
             <ScrollableTabView
               tabBarTextStyle={styles.tabLabelStyle}
@@ -1060,6 +1088,7 @@ class NetworkSettings extends PureComponent {
                 tabLabel={strings('app_settings.popular').toUpperCase()}
                 key={AppConstants.ADD_CUSTOM_NETWORK_POPULAR_TAB_ID}
                 style={styles.networksWrapper}
+                testID={POPULAR_NETWORKS_TAB_ID}
               >
                 <CustomNetwork
                   isNetworkModalVisible={this.state.showPopularNetworkModal}
@@ -1078,6 +1107,7 @@ class NetworkSettings extends PureComponent {
                   'app_settings.custom_network_name',
                 ).toUpperCase()}
                 key={AppConstants.ADD_CUSTOM_NETWORK_CUSTOM_TAB_ID}
+                testID={CUSTOM_NETWORKS_TAB_ID}
               >
                 {this.customNetwork()}
               </View>
@@ -1126,8 +1156,7 @@ const mapDispatchToProps = (dispatch) => ({
 
 const mapStateToProps = (state) => ({
   providerConfig: selectProviderConfig(state),
-  frequentRpcList:
-    state.engine.backgroundState.PreferencesController.frequentRpcList,
+  networkConfigurations: selectNetworkConfigurations(state),
   networkOnboardedState: state.networkOnboarded.networkOnboardedState,
   thirdPartyApiMode: state.privacy.thirdPartyApiMode,
 });

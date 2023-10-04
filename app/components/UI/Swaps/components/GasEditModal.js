@@ -23,6 +23,11 @@ import {
   selectChainId,
   selectTicker,
 } from '../../../../selectors/networkController';
+import {
+  selectConversionRate,
+  selectCurrentCurrency,
+  selectNativeCurrency,
+} from '../../../../selectors/currencyRateController';
 
 const GAS_OPTIONS = AppConstants.GAS_OPTIONS;
 
@@ -545,12 +550,9 @@ GasEditModal.propTypes = {
   animateOnChange: PropTypes.bool,
 };
 const mapStateToProps = (state) => ({
-  currentCurrency:
-    state.engine.backgroundState.CurrencyRateController.currentCurrency,
-  conversionRate:
-    state.engine.backgroundState.CurrencyRateController.conversionRate,
-  nativeCurrency:
-    state.engine.backgroundState.CurrencyRateController.nativeCurrency,
+  conversionRate: selectConversionRate(state),
+  currentCurrency: selectCurrentCurrency(state),
+  nativeCurrency: selectNativeCurrency(state),
   ticker: selectTicker(state),
   chainId: selectChainId(state),
   primaryCurrency: state.settings.primaryCurrency,

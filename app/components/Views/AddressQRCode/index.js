@@ -18,6 +18,7 @@ import GlobalAlert from '../../UI/GlobalAlert';
 import { protectWalletModalVisible } from '../../../actions/user';
 import ClipboardManager from '../../../core/ClipboardManager';
 import { ThemeContext, mockTheme } from '../../../util/theme';
+import { selectSelectedAddress } from '../../../selectors/preferencesController';
 
 const WIDTH = Dimensions.get('window').width - 88;
 
@@ -176,8 +177,7 @@ class AddressQRCode extends PureComponent {
 }
 
 const mapStateToProps = (state) => ({
-  selectedAddress:
-    state.engine.backgroundState.PreferencesController.selectedAddress,
+  selectedAddress: selectSelectedAddress(state),
   seedphraseBackedUp: state.user.seedphraseBackedUp,
 });
 

@@ -30,6 +30,7 @@ import onUrlSubmit, {
   prefixUrlWithProtocol,
   isTLD,
   protocolAllowList,
+  trustedProtocolToDeeplink,
   getAlertMessage,
   allowLinkOpen,
   getUrlObj,
@@ -83,6 +84,12 @@ import {
   RELOAD_OPTION,
   SHARE_OPTION,
 } from '../../../../wdio/screen-objects/testIDs/BrowserScreen/OptionMenu.testIds';
+import {
+  selectIpfsGateway,
+  selectSelectedAddress,
+} from '../../../selectors/preferencesController';
+import { IPFS_GATEWAY_DISABLED_ERROR } from './constants';
+import { regex } from '../../../../app/util/regex';
 
 const { HOMEPAGE_URL, NOTIFICATION_NAMES } = AppConstants;
 const HOMEPAGE_HOST = new URL(HOMEPAGE_URL)?.hostname;
@@ -434,7 +441,8 @@ export const BrowserTab = (props) => {
    */
   const handleIpfsContent = useCallback(
     async (fullUrl, { hostname, pathname, query }) => {
-      const { provider } = Engine.context.NetworkController;
+      const { provider } =
+        Engine.context.NetworkController.getProviderAndBlockTracker();
       let gatewayUrl;
       try {
         const { type, hash } = await resolveEnsToIpfsContentId({
@@ -485,7 +493,17 @@ export const BrowserTab = (props) => {
           Logger.error(err, 'Failed to resolve ENS name');
         }
 
-        Alert.alert(strings('browser.failed_to_resolve_ens_name'), err.message);
+        if (err?.message?.startsWith(IPFS_GATEWAY_DISABLED_ERROR)) {
+          Alert.alert(
+            strings('browser.ipfs_gateway_off_title'),
+            strings('browser.ipfs_gateway_off_content'),
+          );
+        } else {
+          Alert.alert(
+            strings('browser.failed_to_resolve_ens_name'),
+            err.message,
+          );
+        }
         goBack();
       }
     },
@@ -782,7 +800,7 @@ export const BrowserTab = (props) => {
 
     // Stops normal loading when it's ens, instead call go to be properly set up
     if (isENSUrl(url)) {
-      go(url.replace(/^http:\/\//, 'https://'));
+      go(url.replace(regex.urlHttpToHttps, 'https://'));
       return false;
     }
 
@@ -795,6 +813,14 @@ export const BrowserTab = (props) => {
     // Continue request loading it the protocol is whitelisted
     const { protocol } = new URL(url);
     if (protocolAllowList.includes(protocol)) return true;
+
+    // If it is a trusted deeplink protocol, do not show the
+    // warning alert. Allow the OS to deeplink the URL
+    // and stop the webview from loading it.
+    if (trustedProtocolToDeeplink.includes(protocol)) {
+      allowLinkOpen(url);
+      return false;
+    }
 
     const alertMsg = getAlertMessage(protocol, strings);
 
@@ -1103,7 +1129,6 @@ export const BrowserTab = (props) => {
   const trackAddToFavoritesEvent = () => {
     AnalyticsV2.trackEvent(MetaMetricsEvents.BROWSER_ADD_FAVORITES, {
       dapp_name: title.current || '',
-      dapp_url: url.current || '',
     });
   };
 
@@ -1509,9 +1534,8 @@ BrowserTab.defaultProps = {
 
 const mapStateToProps = (state) => ({
   bookmarks: state.bookmarks,
-  ipfsGateway: state.engine.backgroundState.PreferencesController.ipfsGateway,
-  selectedAddress:
-    state.engine.backgroundState.PreferencesController.selectedAddress?.toLowerCase(),
+  ipfsGateway: selectIpfsGateway(state),
+  selectedAddress: selectSelectedAddress(state)?.toLowerCase(),
   searchEngine: state.settings.searchEngine,
   whitelist: state.browser.whitelist,
   wizardStep: state.wizard.step,

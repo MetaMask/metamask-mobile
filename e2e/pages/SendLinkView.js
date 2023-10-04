@@ -8,7 +8,11 @@ const CLOSE_SEND_LINK_VIEW_BUTTON_ID = 'send-link-close-button';
 
 export default class SendLinkView {
   static async tapQRCodeButton() {
-    await TestHelpers.tap(QR_CODE_BUTTON_ID);
+    if (device.getPlatform() === 'android') {
+      await TestHelpers.waitAndTapByLabel(QR_CODE_BUTTON_ID);
+    } else {
+      await TestHelpers.tap(QR_CODE_BUTTON_ID);
+    }
   }
 
   static async isVisible() {

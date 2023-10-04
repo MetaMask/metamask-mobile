@@ -17,20 +17,23 @@ const ERROR_MESSAGE_LABEL_ID = 'error-message-warning';
 export default class AddContactView {
   static async tapAddContactButton() {
     if (device.getPlatform() === 'android') {
-      await TestHelpers.waitAndTap(ADD_CONTACT_ADD_BUTTON);
+      await TestHelpers.waitAndTapByLabel(ADD_CONTACT_ADD_BUTTON);
       await TestHelpers.delay(700);
-      await TestHelpers.waitAndTap(ADD_CONTACT_ADD_BUTTON);
     } else {
       await TestHelpers.waitAndTap(ADD_CONTACT_ADD_BUTTON);
     }
   }
 
   static async tapEditButton() {
-    await TestHelpers.waitAndTap(EDIT_BUTTON);
+    if (device.getPlatform() === 'android') {
+      await TestHelpers.waitAndTapByLabel('Edit');
+    } else {
+      await TestHelpers.waitAndTap(EDIT_BUTTON);
+    }
   }
 
   static async tapEditContactCTA() {
-    await TestHelpers.tapByText('Edit contact'); // edit CTA button after you make changes to a contact
+    await TestHelpers.waitAndTapByLabel('Edit contact'); // edit CTA button after you make changes to a contact
   }
 
   static async tapBackButton() {
@@ -38,11 +41,12 @@ export default class AddContactView {
   }
 
   static async tapDeleteContactCTA() {
-    await TestHelpers.waitAndTap(ADD_CONTACT_DELETE_BUTTON);
     if (device.getPlatform() === 'ios') {
+      await TestHelpers.waitAndTap(ADD_CONTACT_DELETE_BUTTON);
       await TestHelpers.tapByText(DELETE_CONTACT_MODAL_DELETE_BUTTON, 1);
     } else {
-      await TestHelpers.tapByText(DELETE_CONTACT_MODAL_DELETE_BUTTON);
+      await TestHelpers.waitAndTapByLabel(ADD_CONTACT_DELETE_BUTTON);
+      await TestHelpers.waitAndTapByLabel(DELETE_CONTACT_MODAL_DELETE_BUTTON);
     }
   }
 

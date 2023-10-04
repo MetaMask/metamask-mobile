@@ -4,6 +4,7 @@ import ChoosePassword from './';
 import configureMockStore from 'redux-mock-store';
 import { ONBOARDING, PROTECT } from '../../../constants/navigation';
 import { Provider } from 'react-redux';
+import initialBackgroundState from '../../../util/test/initial-background-state.json';
 
 const mockStore = configureMockStore();
 const initialState = {
@@ -12,11 +13,7 @@ const initialState = {
     seedphraseBackedUp: false,
   },
   engine: {
-    backgroundState: {
-      PreferencesController: {
-        selectedAddress: '0xe7E125654064EEa56229f273dA586F10DF96B0a1',
-      },
-    },
+    backgroundState: initialBackgroundState,
   },
 };
 const store = mockStore(initialState);

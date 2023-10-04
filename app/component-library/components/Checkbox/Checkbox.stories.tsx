@@ -20,13 +20,13 @@ export const getCheckboxStoryProps = (): CheckboxProps => {
     storybookPropsGroupID,
   );
   const isDisabledToggle = boolean('isDisabled', false, storybookPropsGroupID);
-  const isReadonlyToggle = boolean('isReadonly', false, storybookPropsGroupID);
+  const isReadOnlyToggle = boolean('isReadOnly', false, storybookPropsGroupID);
 
   return {
     isChecked: isCheckedToggle,
     isIndeterminate: isIndeterminateToggle,
     isDisabled: isDisabledToggle,
-    isReadonly: isReadonlyToggle,
+    isReadOnly: isReadOnlyToggle,
     onPress: () => console.log("I'm clicked!"),
   };
 };

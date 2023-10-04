@@ -24,15 +24,17 @@ import {
 import { MetaMetricsEvents } from '../../../core/Analytics';
 import Analytics from '../../../core/Analytics/Analytics';
 import AppConstants from '../../../core/AppConstants';
-import Engine from '../../../core/Engine';
 import {
   swapsLivenessSelector,
   swapsTokensObjectSelector,
 } from '../../../reducers/swaps';
 import {
   selectChainId,
+  selectNetworkId,
+  selectNetworkConfigurations,
   selectRpcTarget,
 } from '../../../selectors/networkController';
+import { selectTokens } from '../../../selectors/tokensController';
 import { sortTransactions } from '../../../util/activity';
 import { safeToChecksumAddress } from '../../../util/address';
 import { toLowerCaseEquals } from '../../../util/general';
@@ -47,9 +49,22 @@ import { getNetworkNavbarOptions } from '../../UI/Navbar';
 import { isSwapsAllowed } from '../../UI/Swaps/utils';
 import Transactions from '../../UI/Transactions';
 import ActivityHeader from './ActivityHeader';
-import { isNetworkBuyNativeTokenSupported } from '../../UI/FiatOnRampAggregator/utils';
+import { isNetworkBuyNativeTokenSupported } from '../../UI/Ramp/utils';
 import { getRampNetworks } from '../../../reducers/fiatOrders';
 import Device from '../../../util/device';
+import {
+  selectConversionRate,
+  selectCurrentCurrency,
+} from '../../../selectors/currencyRateController';
+import {
+  selectIdentities,
+  selectSelectedAddress,
+} from '../../../selectors/preferencesController';
+import Engine from '../../../core/Engine';
+import {
+  TOKEN_OVERVIEW_BUY_BUTTON,
+  TOKEN_OVERVIEW_SWAP_BUTTON,
+} from '../../../../wdio/screen-objects/testIDs/Screens/TokenOverviewScreen.testIds';
 
 const createStyles = (colors) =>
   StyleSheet.create({
@@ -133,7 +148,11 @@ class Asset extends PureComponent {
      */
     selectedAddress: PropTypes.string,
     /**
-     * A string representing the network name
+     * The network ID for the current selected network
+     */
+    networkId: PropTypes.string,
+    /**
+     * The chain ID for the current selected network
      */
     chainId: PropTypes.string,
     /**
@@ -144,10 +163,6 @@ class Asset extends PureComponent {
      * Array of ERC20 assets
      */
     tokens: PropTypes.array,
-    /**
-     * Indicates whether third party API mode is enabled
-     */
-    thirdPartyApiMode: PropTypes.bool,
     swapsIsLive: PropTypes.bool,
     swapsTokens: PropTypes.object,
     swapsTransactions: PropTypes.object,
@@ -156,7 +171,7 @@ class Asset extends PureComponent {
      */
     route: PropTypes.object,
     rpcTarget: PropTypes.string,
-    frequentRpcList: PropTypes.array,
+    networkConfigurations: PropTypes.object,
     /**
      * Boolean that indicates if native token is supported to buy
      */
@@ -181,12 +196,15 @@ class Asset extends PureComponent {
   navAddress = undefined;
 
   updateNavBar = (contentOffset = 0) => {
-    const { navigation, route, chainId, rpcTarget, frequentRpcList } =
+    const { navigation, route, chainId, rpcTarget, networkConfigurations } =
       this.props;
     const colors = this.context.colors || mockTheme.colors;
     const isNativeToken = route.params.isETH;
     const isMainnet = isMainnetByChainId(chainId);
-    const blockExplorer = findBlockExplorerForRpc(rpcTarget, frequentRpcList);
+    const blockExplorer = findBlockExplorerForRpc(
+      rpcTarget,
+      networkConfigurations,
+    );
 
     const shouldShowMoreOptionsInNavBar =
       isMainnet || !isNativeToken || (isNativeToken && blockExplorer);
@@ -257,18 +275,17 @@ class Asset extends PureComponent {
     this.txsPending.length !== newTxsPending.length;
 
   ethFilter = (tx) => {
-    const { selectedAddress, chainId } = this.props;
+    const { selectedAddress, chainId, networkId } = this.props;
     const {
       transaction: { from, to },
       isTransfer,
       transferInformation,
     } = tx;
 
-    const network = Engine.context.NetworkController.state.network;
     if (
       (safeToChecksumAddress(from) === selectedAddress ||
         safeToChecksumAddress(to) === selectedAddress) &&
-      (chainId === tx.chainId || (!tx.chainId && network === tx.networkID)) &&
+      (chainId === tx.chainId || (!tx.chainId && networkId === tx.networkID)) &&
       tx.status !== 'unapproved'
     ) {
       if (isTransfer)
@@ -281,17 +298,17 @@ class Asset extends PureComponent {
   };
 
   noEthFilter = (tx) => {
-    const { chainId, swapsTransactions, selectedAddress } = this.props;
+    const { chainId, networkId, swapsTransactions, selectedAddress } =
+      this.props;
     const {
       transaction: { to, from },
       isTransfer,
       transferInformation,
     } = tx;
-    const network = Engine.context.NetworkController.state.network;
     if (
       (safeToChecksumAddress(from) === selectedAddress ||
         safeToChecksumAddress(to) === selectedAddress) &&
-      (chainId === tx.chainId || (!tx.chainId && network === tx.networkID)) &&
+      (chainId === tx.chainId || (!tx.chainId && networkId === tx.networkID)) &&
       tx.status !== 'unapproved'
     ) {
       if (to?.toLowerCase() === this.navAddress) return true;
@@ -424,8 +441,12 @@ class Asset extends PureComponent {
   };
 
   onRefresh = async () => {
+    const { TransactionController } = Engine.context;
+
     this.setState({ refreshing: true });
-    this.props.thirdPartyApiMode && (await Engine.refreshTransactionHistory());
+
+    await TransactionController.updateIncomingTransactions();
+
     this.setState({ refreshing: false });
   };
 
@@ -526,6 +547,7 @@ class Asset extends PureComponent {
                   ...(!AppConstants.SWAPS.ACTIVE ? styles.singleButton : {}),
                 }}
                 onPress={onBuy}
+                testID={TOKEN_OVERVIEW_BUY_BUTTON}
               />
             )}
             {displaySwapsButton && (
@@ -542,6 +564,7 @@ class Asset extends PureComponent {
                     : {}),
                 }}
                 onPress={goToSwaps}
+                testID={TOKEN_OVERVIEW_SWAP_BUTTON}
               />
             )}
           </View>
@@ -558,20 +581,16 @@ const mapStateToProps = (state) => ({
   swapsTokens: swapsTokensObjectSelector(state),
   swapsTransactions:
     state.engine.backgroundState.TransactionController.swapsTransactions || {},
-  conversionRate:
-    state.engine.backgroundState.CurrencyRateController.conversionRate,
-  currentCurrency:
-    state.engine.backgroundState.CurrencyRateController.currentCurrency,
-  selectedAddress:
-    state.engine.backgroundState.PreferencesController.selectedAddress,
-  identities: state.engine.backgroundState.PreferencesController.identities,
+  conversionRate: selectConversionRate(state),
+  currentCurrency: selectCurrentCurrency(state),
+  selectedAddress: selectSelectedAddress(state),
+  identities: selectIdentities(state),
   chainId: selectChainId(state),
-  tokens: state.engine.backgroundState.TokensController.tokens,
+  tokens: selectTokens(state),
+  networkId: selectNetworkId(state),
   transactions: state.engine.backgroundState.TransactionController.transactions,
-  thirdPartyApiMode: state.privacy.thirdPartyApiMode,
   rpcTarget: selectRpcTarget(state),
-  frequentRpcList:
-    state.engine.backgroundState.PreferencesController.frequentRpcList,
+  networkConfigurations: selectNetworkConfigurations(state),
   isNetworkBuyNativeTokenSupported: isNetworkBuyNativeTokenSupported(
     selectChainId(state),
     getRampNetworks(state),

@@ -14,7 +14,6 @@ import {
   CONTRACT_EXPORT_ADDRESS,
   CONTRACT_ON_PRESS,
   HAS_BLOCK_EXPLORER,
-  TOKEN_SYMBOL,
 } from './ContractBox.constants';
 
 storiesOf('Component Library / Contract Box', module)
@@ -26,7 +25,6 @@ storiesOf('Component Library / Contract Box', module)
       onExportAddress={CONTRACT_EXPORT_ADDRESS}
       onContractPress={CONTRACT_ON_PRESS}
       hasBlockExplorer={HAS_BLOCK_EXPLORER}
-      tokenSymbol={TOKEN_SYMBOL}
     />
   ))
   .add('Saved Address', () => (

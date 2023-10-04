@@ -3,6 +3,7 @@ import CollectibleOverview from './';
 import configureMockStore from 'redux-mock-store';
 import { shallow } from 'enzyme';
 import { Provider } from 'react-redux';
+import initialBackgroundState from '../../../util/test/initial-background-state.json';
 
 const mockStore = configureMockStore();
 const initialState = {
@@ -10,16 +11,7 @@ const initialState = {
     favorites: {},
   },
   engine: {
-    backgroundState: {
-      NetworkController: {
-        providerConfig: {
-          chainId: 1,
-        },
-      },
-      PreferencesController: {
-        selectedAddress: '0x1',
-      },
-    },
+    backgroundState: initialBackgroundState,
   },
 };
 const store = mockStore(initialState);

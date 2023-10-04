@@ -1,5 +1,14 @@
 // eslint-disable-next-line import/prefer-default-export
-export const ACCORDION_EXPAND_TRANSITION_DURATION = 150;
+// External dependencies.
+import { AnimationDuration } from '../../../constants/animation.constants';
+import { SAMPLE_ACCORDIONHEADER_TITLE } from './foundation/AccordionHeader/AccordionHeader.constants';
 
-export const ACCORDION_TEST_ID = 'accordion';
-export const ACCORDION_CONTENT_TEST_ID = 'accordion-content';
+// Test IDs
+export const TESTID_ACCORDION = 'accordion';
+export const TESTID_ACCORDION_CONTENT = 'accordion-content';
+
+// Defaults
+export const DEFAULT_ACCORDION_EXPANDDURATION = AnimationDuration.Promptly;
+
+// Samples
+export const SAMPLE_ACCORDION_TITLE = SAMPLE_ACCORDIONHEADER_TITLE;

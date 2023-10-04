@@ -19,7 +19,11 @@ export default class AddAddressModal {
   }
 
   static async tapSaveButton() {
-    await TestHelpers.waitAndTap(ADDRESS_ALIAS_SAVE_BUTTON_ID);
+    if (device.getPlatform() === 'android') {
+      await TestHelpers.waitAndTapByLabel(ADDRESS_ALIAS_SAVE_BUTTON_ID);
+    } else {
+      await TestHelpers.waitAndTap(ADDRESS_ALIAS_SAVE_BUTTON_ID);
+    }
   }
 
   static async tapTitle() {

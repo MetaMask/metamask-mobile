@@ -1,5 +1,9 @@
 // eslint-disable-next-line import/prefer-default-export
-export const CUSTOM_NETWORKS_TAB = 'rpc-networks';
+export const CUSTOM_NETWORKS_NETWORK_NAME = 'mainnetworks-network-name';
+
+export const CUSTOM_NETWORKS_TAB_ID = 'networks-custom-networks-tab';
+
+export const POPULAR_NETWORKS_TAB_ID = 'networks-popular-networks-tab';
 
 export const INPUT_CHAIN_ID_FIELD = 'input-chain-id';
 
@@ -13,6 +17,8 @@ export const NETWORKS_SYMBOL_INPUT_FIELD = 'input-network-symbol';
 
 export const NEW_NETWORK_ADDED_SWITCH_TO_NETWORK_BUTTON =
   'switch-to-network-button';
+
+export const CUSTOM_NETWORK_NAME_NETWORK_LIST = 'custom-networks-list';
 
 export const NEW_NETWORK_ADDED_CLOSE_BUTTON = 'close-network-button';
 
@@ -35,3 +41,4 @@ export const NAV_ANDROID_BACK_BUTTON = 'nav-android-back';
 export const NETWORK_SCREEN_CLOSE_ICON = 'close-network-icon';
 
 export const NETWORK_SCREEN_ID = 'networks-screen';
+export const RPC_WARNING_BANNER_ID = 'rpc-url-warning';

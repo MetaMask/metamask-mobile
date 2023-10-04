@@ -1,10 +1,17 @@
-import React, { useCallback, useEffect } from 'react';
-import { StyleSheet, Text, ScrollView, View } from 'react-native';
-import StyledButton from '../../../UI/StyledButton';
-import { fontStyles } from '../../../../styles/common';
-import { getNavigationOptionsTitle } from '../../../UI/Navbar';
+import React, { FC, useCallback, useEffect, useState } from 'react';
+import { ScrollView, StyleSheet, Switch, Text, View } from 'react-native';
+
 import { strings } from '../../../../../locales/i18n';
+import Engine from '../../../../core/Engine';
+import {
+  colors as importedColors,
+  fontStyles,
+} from '../../../../styles/common';
 import { useTheme } from '../../../../util/theme';
+import { getNavigationOptionsTitle } from '../../../UI/Navbar';
+import StyledButton from '../../../UI/StyledButton';
+import SECURITY_ALERTS_TOGGLE_TEST_ID from './constants';
+import { isBlockaidFeatureEnabled } from '../../../../util/blockaid';
 
 const createStyles = (colors: any) =>
   StyleSheet.create({
@@ -22,12 +29,26 @@ const createStyles = (colors: any) =>
       paddingTop: 4,
       marginTop: -4,
     },
+    boldTitle: {
+      ...(fontStyles.bold as any),
+      marginTop: 18,
+      marginBottom: 18,
+    },
+    heading: {
+      marginTop: 18,
+      fontSize: 24,
+      lineHeight: 20,
+    },
     desc: {
       ...(fontStyles.normal as any),
       color: colors.text.alternative,
       fontSize: 14,
       lineHeight: 20,
       marginTop: 12,
+    },
+    mutedText: {
+      ...(fontStyles.normal as any),
+      color: colors.text.muted,
     },
     setting: {
       marginVertical: 18,
@@ -36,8 +57,15 @@ const createStyles = (colors: any) =>
       marginTop: 18,
     },
     switchElement: {
-      marginTop: 18,
-      alignItems: 'flex-start',
+      display: 'flex',
+      justifyContent: 'space-between',
+      flexDirection: 'row',
+    },
+    switch: {
+      alignSelf: 'flex-end',
+    },
+    switchLabel: {
+      alignSelf: 'flex-start',
     },
     modalView: {
       alignItems: 'center',
@@ -76,9 +104,18 @@ interface Props {
  * Main view for app Experimental Settings
  */
 const ExperimentalSettings = ({ navigation, route }: Props) => {
+  const { PreferencesController } = Engine.context;
+  const [securityAlertsEnabled, setSecurityAlertsEnabled] = useState(
+    () => PreferencesController.state.securityAlertsEnabled,
+  );
   const isFullScreenModal = route?.params?.isFullScreenModal;
   const { colors } = useTheme();
   const styles = createStyles(colors);
+
+  const toggleSecurityAlertsEnabled = () => {
+    PreferencesController?.setSecurityAlertsEnabled(!securityAlertsEnabled);
+    setSecurityAlertsEnabled(!securityAlertsEnabled);
+  };
 
   useEffect(
     () => {
@@ -100,23 +137,67 @@ const ExperimentalSettings = ({ navigation, route }: Props) => {
     navigation.navigate('WalletConnectSessionsView');
   }, [navigation]);
 
-  return (
-    <ScrollView style={styles.wrapper}>
+  const WalletConnectSettings: FC = () => (
+    <>
+      <Text style={styles.title}>
+        {strings('experimental_settings.wallet_connect_dapps')}
+      </Text>
+      <Text style={styles.desc}>
+        {strings('experimental_settings.wallet_connect_dapps_desc')}
+      </Text>
+      <StyledButton
+        type="normal"
+        onPress={goToWalletConnectSessions}
+        containerStyle={styles.clearHistoryConfirm}
+      >
+        {strings('experimental_settings.wallet_connect_dapps_cta')}
+      </StyledButton>
+    </>
+  );
+
+  const BlockaidSettings: FC = () => (
+    <>
+      <Text style={[styles.title, styles.heading]}>
+        {strings('app_settings.security_heading')}
+      </Text>
       <View style={styles.setting}>
         <Text style={styles.title}>
-          {strings('experimental_settings.wallet_connect_dapps')}
+          {strings('experimental_settings.security_alerts')}
         </Text>
         <Text style={styles.desc}>
-          {strings('experimental_settings.wallet_connect_dapps_desc')}
+          {strings('experimental_settings.security_alerts_desc')}
         </Text>
-        <StyledButton
-          type="normal"
-          onPress={goToWalletConnectSessions}
-          containerStyle={styles.clearHistoryConfirm}
-        >
-          {strings('experimental_settings.wallet_connect_dapps_cta')}
-        </StyledButton>
+        <Text style={[styles.title, styles.boldTitle]}>
+          {strings('experimental_settings.select_providers')}
+        </Text>
       </View>
+      <View style={styles.switchElement}>
+        <Text style={[styles.switchLabel, styles.title]}>
+          {strings('experimental_settings.blockaid')}
+        </Text>
+        <Switch
+          value={securityAlertsEnabled}
+          onValueChange={toggleSecurityAlertsEnabled}
+          trackColor={{
+            true: colors.primary.default,
+            false: colors.border.muted,
+          }}
+          thumbColor={importedColors.white}
+          style={styles.switch}
+          ios_backgroundColor={colors.border.muted}
+          testID={SECURITY_ALERTS_TOGGLE_TEST_ID}
+        />
+      </View>
+      <Text style={[styles.title, styles.mutedText]}>
+        {strings('experimental_settings.moreProviders')}
+      </Text>
+    </>
+  );
+
+  return (
+    <ScrollView style={styles.wrapper}>
+      <WalletConnectSettings />
+      {isBlockaidFeatureEnabled() && <BlockaidSettings />}
     </ScrollView>
   );
 };

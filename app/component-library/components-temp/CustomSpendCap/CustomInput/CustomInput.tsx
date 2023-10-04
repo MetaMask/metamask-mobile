@@ -8,7 +8,11 @@ import { dotAndCommaDecimalFormatter } from '../../../../util/number';
 import Text, { TextVariant } from '../../../components/Texts/Text';
 // External dependencies.
 import { useStyles } from '../../../hooks';
-import CUSTOM_INPUT_TEST_ID from './CustomInput.constants';
+import {
+  CUSTOM_SPEND_CAP_INPUT_INPUT_ID,
+  CUSTOM_SPEND_CAP_INPUT_TEST_ID,
+  CUSTOM_SPEND_CAP_MAX_TEST_ID,
+} from './CustomInput.constants';
 import stylesheet from './CustomInput.styles';
 // Internal dependencies.
 import { CustomInputProps } from './CustomInput.types';
@@ -20,8 +24,15 @@ const CustomInput = ({
   isInputGreaterThanBalance,
   setValue,
   isEditDisabled,
+  tokenDecimal,
 }: CustomInputProps) => {
   const handleUpdate = (text: string) => {
+    const decimalIndex = text.indexOf('.');
+    const fractionalLength = text.substring(decimalIndex + 1).length;
+
+    if (decimalIndex !== -1 && fractionalLength > Number(tokenDecimal)) {
+      return;
+    }
     setValue(dotAndCommaDecimalFormatter(text));
   };
 
@@ -49,11 +60,12 @@ const CustomInput = ({
           backgroundColor: colors.background.alternative,
         },
       ]}
-      testID={CUSTOM_INPUT_TEST_ID}
+      testID={CUSTOM_SPEND_CAP_INPUT_TEST_ID}
     >
       <View style={styles.body}>
         {!isEditDisabled ? (
           <TextInput
+            testID={CUSTOM_SPEND_CAP_INPUT_INPUT_ID}
             multiline
             onChangeText={onChangeValueText}
             value={value}
@@ -74,6 +86,7 @@ const CustomInput = ({
       </View>
       {!isEditDisabled && (
         <Text
+          testID={CUSTOM_SPEND_CAP_MAX_TEST_ID}
           variant={TextVariant.BodySM}
           style={styles.maxValueText}
           onPress={handleMaxPress}

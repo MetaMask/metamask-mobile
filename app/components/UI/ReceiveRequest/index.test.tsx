@@ -3,14 +3,12 @@ import { shallow } from 'enzyme';
 import ReceiveRequest from './';
 import configureMockStore from 'redux-mock-store';
 import { Provider } from 'react-redux';
+import initialBackgroundState from '../../../util/test/initial-background-state.json';
 
 const mockStore = configureMockStore();
 const initialState = {
   engine: {
-    backgroundState: {
-      PreferencesController: { selectedAddress: '0x' },
-      NetworkController: { network: '1', providerConfig: { ticker: 'ETH' } },
-    },
+    backgroundState: initialBackgroundState,
   },
   modals: {
     receiveAsset: {},

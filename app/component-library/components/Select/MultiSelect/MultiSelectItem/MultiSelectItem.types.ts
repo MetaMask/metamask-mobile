@@ -9,7 +9,7 @@ import { ListItemProps } from '../../../List/ListItem/ListItem.types';
  */
 export interface MultiSelectItemProps
   extends TouchableOpacityProps,
-    ListItemProps {
+    Omit<ListItemProps, 'hitSlop'> {
   /**
    * Optional prop to determine if the item is selected.
    */

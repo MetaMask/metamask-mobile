@@ -16,23 +16,39 @@ const correctParams = {
 jest.mock('../Engine', () => ({
   init: () => mockEngine.init({}),
   context: {
-    PreferencesController: {
-      state: {
-        frequentRpcList: [],
-      },
-      addToFrequentRpcList: jest.fn(),
-    },
     NetworkController: {
       state: {
+        networkConfigurations: {},
         providerConfig: {
           chainId: '1',
         },
       },
-      setRpcTarget: jest.fn(),
+      setActiveNetwork: jest.fn(),
+      upsertNetworkConfiguration: jest.fn(),
     },
     CurrencyRateController: {
       setNativeCurrency: jest.fn(),
     },
+    ApprovalController: {
+      clear: jest.fn(),
+    },
+  },
+}));
+
+jest.mock('../../store', () => ({
+  store: {
+    getState: jest.fn(() => ({
+      engine: {
+        backgroundState: {
+          NetworkController: {
+            networkConfigurations: {},
+            providerConfig: {
+              chainId: '1',
+            },
+          },
+        },
+      },
+    })),
   },
 }));
 
@@ -259,7 +275,7 @@ describe('RPC Method - wallet_addEthereumChain', () => {
       expect(otherOptions.endApprovalFlow).toBeCalledTimes(1);
     });
 
-    it('should end approval flow even the approval process fails', async () => {
+    it('should end approval flow even if the approval process fails', async () => {
       await expect(
         wallet_addEthereumChain({
           req: {
@@ -272,6 +288,19 @@ describe('RPC Method - wallet_addEthereumChain', () => {
 
       expect(otherOptions.startApprovalFlow).toBeCalledTimes(1);
       expect(otherOptions.endApprovalFlow).toBeCalledTimes(1);
+    });
+
+    it('clears existing approval requests', async () => {
+      Engine.context.ApprovalController.clear.mockClear();
+
+      await wallet_addEthereumChain({
+        req: {
+          params: [correctParams],
+        },
+        ...otherOptions,
+      });
+
+      expect(Engine.context.ApprovalController.clear).toBeCalledTimes(1);
     });
   });
 });

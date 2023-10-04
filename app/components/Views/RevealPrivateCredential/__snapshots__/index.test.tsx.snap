@@ -35,7 +35,6 @@ exports[`RevealPrivateCredential should render correctly 1`] = `
   <RevealPrivateCredential
     cancel={[Function]}
     credentialName="private_key"
-    navBarDisabled={false}
     navigation={null}
     route={
       Object {

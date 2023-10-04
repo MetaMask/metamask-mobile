@@ -1,13 +1,10 @@
-// Third party dependencies.
-import { ViewProps } from 'react-native';
-
 // External dependencies.
 import { AccordionHeaderProps } from './foundation/AccordionHeader/AccordionHeader.types';
 
 /**
  * Accordion component props.
  */
-export interface AccordionProps extends ViewProps, AccordionHeaderProps {
+export interface AccordionProps extends AccordionHeaderProps {
   /**
    * Content to be displayed/hidden below the accordion header.
    */

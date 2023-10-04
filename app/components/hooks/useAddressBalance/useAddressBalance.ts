@@ -10,6 +10,9 @@ import {
 } from '../../../util/number';
 import { safeToChecksumAddress } from '../../../util/address';
 import { selectTicker } from '../../../selectors/networkController';
+import { selectAccounts } from '../../../selectors/accountTrackerController';
+import { selectContractBalances } from '../../../selectors/tokenBalancesController';
+import { selectSelectedAddress } from '../../../selectors/preferencesController';
 import { Asset } from './useAddressBalance.types';
 
 const useAddressBalance = (asset: Asset, address?: string) => {
@@ -17,11 +20,9 @@ const useAddressBalance = (asset: Asset, address?: string) => {
 
   const { accounts, contractBalances, selectedAddress } = useSelector(
     (state: any) => ({
-      accounts: state.engine.backgroundState.AccountTrackerController.accounts,
-      contractBalances:
-        state.engine.backgroundState.TokenBalancesController.contractBalances,
-      selectedAddress:
-        state.engine.backgroundState.PreferencesController.selectedAddress,
+      accounts: selectAccounts(state),
+      contractBalances: selectContractBalances(state),
+      selectedAddress: selectSelectedAddress(state),
     }),
   );
   const ticker = useSelector(selectTicker);
@@ -41,13 +42,10 @@ const useAddressBalance = (asset: Asset, address?: string) => {
         return;
       }
       if (!contractBalances[contractAddress]) {
-        TokensController.addToken(
-          contractAddress,
-          symbol,
-          decimals,
+        TokensController.addToken(contractAddress, symbol, decimals, {
           image,
           name,
-        );
+        });
       }
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps

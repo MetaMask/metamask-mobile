@@ -36,6 +36,7 @@ const TransactionReviewEIP1559Update = ({
   legacy,
   gasSelected,
   gasObject,
+  gasObjectLegacy,
   onlyGas,
   updateTransactionState,
   multiLayerL1FeeTotal,
@@ -59,6 +60,7 @@ const TransactionReviewEIP1559Update = ({
     gasSelected,
     legacy: !!legacy,
     gasObject,
+    gasObjectLegacy,
     multiLayerL1FeeTotal,
   });
 
@@ -77,6 +79,7 @@ const TransactionReviewEIP1559Update = ({
     transactionFeeFiat,
     transactionTotalAmount,
     transactionTotalAmountFiat,
+    suggestedGasLimit,
   } = gasTransaction;
 
   useEffect(() => {
@@ -84,7 +87,7 @@ const TransactionReviewEIP1559Update = ({
       updateTransactionState(gasTransaction);
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [gasEstimationReady, updateTransactionState]);
+  }, [gasEstimationReady, updateTransactionState, suggestedGasLimit]);
 
   const openLinkAboutGas = useCallback(
     () => Linking.openURL(AppConstants.URLS.WHY_TRANSACTION_TAKE_TIME),

@@ -7,6 +7,7 @@ import type {
   WalletDevice,
 } from '@metamask/transaction-controller';
 import eth_sendTransaction from './eth_sendTransaction';
+import PPOMUtil from '../../lib/ppom/ppom-util';
 
 /**
  * Construct a `eth_sendTransaction` JSON-RPC request.
@@ -72,35 +73,38 @@ function getMockAddTransaction({
     throw new Error('No return value or error provided');
   }
 
-  return jest
-    .fn()
-    .mockImplementation(
-      async (
-        transaction: Transaction,
-        origin: string,
-        deviceConfirmedOn: WalletDevice,
-      ) => {
-        expect(deviceConfirmedOn).toBe('metamask_mobile');
-        if (expectedOrigin) {
-          expect(origin).toBe(expectedOrigin);
-        }
-        if (expectedTransaction) {
-          expect(transaction).toBe(expectedTransaction);
-        }
-
-        if (addTransactionError) {
-          throw addTransactionError;
-        } else if (processTransactionError) {
-          return {
-            result: Promise.reject(processTransactionError),
-          };
-        } else {
-          return {
-            result: Promise.resolve('fake-hash'),
-          };
-        }
+  return jest.fn().mockImplementation(
+    async (
+      transaction: Transaction,
+      {
+        origin,
+        deviceConfirmedOn,
+      }: {
+        origin: string;
+        deviceConfirmedOn: WalletDevice;
       },
-    );
+    ) => {
+      expect(deviceConfirmedOn).toBe('metamask_mobile');
+      if (expectedOrigin) {
+        expect(origin).toBe(expectedOrigin);
+      }
+      if (expectedTransaction) {
+        expect(transaction).toBe(expectedTransaction);
+      }
+
+      if (addTransactionError) {
+        throw addTransactionError;
+      } else if (processTransactionError) {
+        return {
+          result: Promise.reject(processTransactionError),
+        };
+      } else {
+        return {
+          result: Promise.resolve('fake-hash'),
+        };
+      }
+    },
+  );
 }
 
 describe('eth_sendTransaction', () => {
@@ -227,5 +231,27 @@ describe('eth_sendTransaction', () => {
           validateAccountAndChainId: jest.fn(),
         }),
     ).rejects.toThrow('User rejected the transaction');
+  });
+
+  it('should invoke validateRequest method', async () => {
+    const mockAddress = '0x0000000000000000000000000000000000000001';
+    const mockTransactionParameters = { from: mockAddress };
+    const expectedResult = 'fake-hash';
+    const pendingResult = constructPendingJsonRpcResponse();
+    const spy = jest.spyOn(PPOMUtil, 'validateRequest');
+
+    await eth_sendTransaction({
+      hostname: 'example.metamask.io',
+      req: constructSendTransactionRequest([mockTransactionParameters]),
+      res: pendingResult,
+      sendTransaction: getMockAddTransaction({
+        expectedTransaction: mockTransactionParameters,
+        expectedOrigin: 'example.metamask.io',
+        returnValue: expectedResult,
+      }),
+      validateAccountAndChainId: jest.fn(),
+    });
+
+    expect(spy).toBeCalledTimes(1);
   });
 });

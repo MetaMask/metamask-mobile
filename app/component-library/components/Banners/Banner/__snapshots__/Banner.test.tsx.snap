@@ -44,6 +44,7 @@ exports[`Banner should render correctly 1`] = `
     }
   >
     <Text
+      accessibilityRole="text"
       style={
         Object {
           "color": "#24272A",
@@ -58,6 +59,7 @@ exports[`Banner should render correctly 1`] = `
       Hello Error Banner World
     </Text>
     <Text
+      accessibilityRole="text"
       style={
         Object {
           "color": "#24272A",
@@ -119,6 +121,7 @@ exports[`Banner should render correctly with a close button 1`] = `
     }
   >
     <Text
+      accessibilityRole="text"
       style={
         Object {
           "color": "#24272A",
@@ -133,6 +136,7 @@ exports[`Banner should render correctly with a close button 1`] = `
       Hello Error Banner World
     </Text>
     <Text
+      accessibilityRole="text"
       style={
         Object {
           "color": "#24272A",
@@ -147,7 +151,7 @@ exports[`Banner should render correctly with a close button 1`] = `
       This is nothing but a test of the emergency broadcast system.
     </Text>
     <TouchableOpacity
-      activeOpacity={0.5}
+      activeOpacity={1}
       onPress={[Function]}
       onPressIn={[Function]}
       onPressOut={[Function]}
@@ -168,6 +172,7 @@ exports[`Banner should render correctly with a close button 1`] = `
       variant="Secondary"
     >
       <Text
+        accessibilityRole="text"
         style={
           Object {
             "color": "#0376C9",
@@ -192,15 +197,18 @@ exports[`Banner should render correctly with a close button 1`] = `
   >
     <TouchableOpacity
       accessible={true}
-      activeOpacity={0.5}
+      activeOpacity={1}
+      disabled={false}
       onPress={[Function]}
       onPressIn={[Function]}
       onPressOut={[Function]}
       style={
         Object {
           "alignItems": "center",
+          "borderRadius": 8,
           "height": 24,
           "justifyContent": "center",
+          "opacity": 1,
           "width": 24,
         }
       }
@@ -247,6 +255,7 @@ exports[`Banner should render correctly with a start accessory 1`] = `
     }
   >
     <Text
+      accessibilityRole="text"
       style={
         Object {
           "color": "#24272A",
@@ -269,6 +278,7 @@ exports[`Banner should render correctly with a start accessory 1`] = `
     }
   >
     <Text
+      accessibilityRole="text"
       style={
         Object {
           "color": "#24272A",
@@ -283,6 +293,7 @@ exports[`Banner should render correctly with a start accessory 1`] = `
       Hello Error Banner World
     </Text>
     <Text
+      accessibilityRole="text"
       style={
         Object {
           "color": "#24272A",
@@ -344,6 +355,7 @@ exports[`Banner should render correctly with an action button 1`] = `
     }
   >
     <Text
+      accessibilityRole="text"
       style={
         Object {
           "color": "#24272A",
@@ -358,6 +370,7 @@ exports[`Banner should render correctly with an action button 1`] = `
       Hello Error Banner World
     </Text>
     <Text
+      accessibilityRole="text"
       style={
         Object {
           "color": "#24272A",
@@ -372,7 +385,7 @@ exports[`Banner should render correctly with an action button 1`] = `
       This is nothing but a test of the emergency broadcast system.
     </Text>
     <TouchableOpacity
-      activeOpacity={0.5}
+      activeOpacity={1}
       onPress={[Function]}
       onPressIn={[Function]}
       onPressOut={[Function]}
@@ -393,6 +406,7 @@ exports[`Banner should render correctly with an action button 1`] = `
       variant="Secondary"
     >
       <Text
+        accessibilityRole="text"
         style={
           Object {
             "color": "#0376C9",

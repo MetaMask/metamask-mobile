@@ -37,7 +37,7 @@ import {
   WALLET_SEND,
   WALLET_SWAP,
 } from './WalletActions.constants';
-import useOnRampNetwork from '../../UI/FiatOnRampAggregator/hooks/useOnRampNetwork';
+import useOnRampNetwork from '../../UI/Ramp/hooks/useOnRampNetwork';
 
 const WalletActions = () => {
   const { styles } = useStyles(styleSheet, {});

@@ -11,11 +11,19 @@ exports[`MessageSign should render correctly 1`] = `
   messageParams={
     Object {
       "data": "message",
+      "from": "0x0",
       "metamaskId": "TestMessageId",
       "origin": "example.com",
     }
   }
-  onCancel={[Function]}
-  onConfirm={[Function]}
+  navigation={
+    Object {
+      "navigate": [MockFunction],
+    }
+  }
+  onConfirm={[MockFunction]}
+  onReject={[MockFunction]}
+  showExpandedMessage={false}
+  toggleExpandedMessage={[MockFunction]}
 />
 `;

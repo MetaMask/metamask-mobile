@@ -15,6 +15,7 @@ import { removeFavoriteCollectible } from '../../../actions/collectibles';
 import { collectibleContractsSelector } from '../../../reducers/collectibles';
 import { useTheme } from '../../../util/theme';
 import { selectChainId } from '../../../selectors/networkController';
+import { selectSelectedAddress } from '../../../selectors/preferencesController';
 
 const DEVICE_WIDTH = Device.getDeviceWidth();
 const COLLECTIBLE_WIDTH = (DEVICE_WIDTH - 30 - 16) / 3;
@@ -175,6 +176,7 @@ function CollectibleContractElement({
               <CollectibleMedia
                 style={styles.collectibleIcon}
                 collectible={{ ...collectible, name }}
+                onPressColectible={onPress}
               />
             </View>
           </TouchableOpacity>
@@ -237,7 +239,7 @@ function CollectibleContractElement({
           {collectiblesGrid.map((row, i) => (
             <View key={i} style={styles.collectiblesRowContainer}>
               {row.map((collectible, index) =>
-                renderCollectible(collectible, index),
+                renderCollectible({ ...collectible, logo: asset.logo }, index),
               )}
             </View>
           ))}
@@ -296,8 +298,7 @@ CollectibleContractElement.propTypes = {
 const mapStateToProps = (state) => ({
   collectibleContracts: collectibleContractsSelector(state),
   chainId: selectChainId(state),
-  selectedAddress:
-    state.engine.backgroundState.PreferencesController.selectedAddress,
+  selectedAddress: selectSelectedAddress(state),
 });
 
 const mapDispatchToProps = (dispatch) => ({

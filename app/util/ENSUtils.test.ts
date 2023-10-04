@@ -1,4 +1,49 @@
-import { isDefaultAccountName } from './ENSUtils';
+import { isDefaultAccountName, getCachedENSName, ENSCache } from './ENSUtils';
+
+const mockAddress = '0x0000000000000000000000000000000000000001';
+
+// TODO: Stub this in individual tests using `jest.replaceProperty` after the
+// update to Jest v29
+let originalCacheContents: typeof ENSCache.cache;
+
+describe('getCachedENSName', () => {
+  beforeEach(() => {
+    originalCacheContents = ENSCache.cache;
+  });
+
+  afterEach(() => {
+    jest.resetAllMocks();
+    jest.restoreAllMocks();
+    // This prevents
+    ENSCache.cache = originalCacheContents;
+  });
+
+  it('returns undefined for unsupported chain IDs', () => {
+    ENSCache.cache = {};
+
+    expect(getCachedENSName(mockAddress, '12345')).toBeUndefined();
+  });
+
+  it('returns undefined if there is no cached entry', () => {
+    ENSCache.cache = {};
+
+    expect(getCachedENSName(mockAddress, '1')).toBeUndefined();
+  });
+
+  it('returns a cached ENS name', () => {
+    const networkId = '1';
+    ENSCache.cache = {
+      [`${networkId}${mockAddress}`]: {
+        name: 'cachedname.metamask.eth',
+        timestamp: Date.now(),
+      },
+    };
+
+    expect(getCachedENSName(mockAddress, networkId)).toBe(
+      'cachedname.metamask.eth',
+    );
+  });
+});
 
 describe('isDefaultAccountName', () => {
   const accountNameDefaultOne = 'Account 1';

@@ -9,11 +9,19 @@ import {
 
 export default class SigningModal {
   static async tapSignButton() {
-    await TestHelpers.tap(SIGNATURE_MODAL_SIGN_BUTTON_ID);
+    if (device.getPlatform() === 'android') {
+      await TestHelpers.waitAndTapByLabel(SIGNATURE_MODAL_SIGN_BUTTON_ID);
+    } else {
+      await TestHelpers.waitAndTap(SIGNATURE_MODAL_SIGN_BUTTON_ID);
+    }
   }
 
   static async tapCancelButton() {
-    await TestHelpers.tap(SIGNATURE_MODAL_CANCEL_BUTTON_ID);
+    if (device.getPlatform() === 'android') {
+      await TestHelpers.waitAndTapByLabel(SIGNATURE_MODAL_CANCEL_BUTTON_ID);
+    } else {
+      await TestHelpers.waitAndTap(SIGNATURE_MODAL_CANCEL_BUTTON_ID);
+    }
   }
 
   static async isEthRequestVisible() {

@@ -28,6 +28,7 @@ import {
   NFT_IDENTIFIER_INPUT_BOX_ID,
 } from '../../../../wdio/screen-objects/testIDs/Screens/NFTImportScreen.testIds';
 import { selectChainId } from '../../../selectors/networkController';
+import { selectSelectedAddress } from '../../../selectors/preferencesController';
 
 const createStyles = (colors: any) =>
   StyleSheet.create({
@@ -77,14 +78,12 @@ const AddCustomCollectible = ({
   const [inputWidth, setInputWidth] = useState<string | undefined>(
     Device.isAndroid() ? '99%' : undefined,
   );
+  const [loading, setLoading] = useState(false);
   const assetTokenIdInput = React.createRef() as any;
   const { colors, themeAppearance } = useTheme();
   const styles = createStyles(colors);
 
-  const selectedAddress = useSelector(
-    (state: any) =>
-      state.engine.backgroundState.PreferencesController.selectedAddress,
-  );
+  const selectedAddress = useSelector(selectSelectedAddress);
   const chainId = useSelector(selectChainId);
 
   useEffect(() => {
@@ -177,8 +176,15 @@ const AddCustomCollectible = ({
   };
 
   const addNft = async (): Promise<void> => {
-    if (!(await validateCustomCollectible())) return;
-    if (!(await validateCollectibleOwnership())) return;
+    setLoading(true);
+    if (!(await validateCustomCollectible())) {
+      setLoading(false);
+      return;
+    }
+    if (!(await validateCollectibleOwnership())) {
+      setLoading(false);
+      return;
+    }
 
     const { NftController } = Engine.context as any;
     NftController.addNft(address, tokenId);
@@ -187,7 +193,7 @@ const AddCustomCollectible = ({
       MetaMetricsEvents.COLLECTIBLE_ADDED,
       getAnalyticsParams(),
     );
-
+    setLoading(false);
     navigation.goBack();
   };
 
@@ -219,7 +225,8 @@ const AddCustomCollectible = ({
         confirmText={strings('add_asset.collectibles.add_collectible')}
         onCancelPress={cancelAddCollectible}
         onConfirmPress={addNft}
-        confirmDisabled={!address && !tokenId}
+        confirmDisabled={!address || !tokenId}
+        loading={loading}
       >
         <View>
           <View style={styles.rowWrapper}>

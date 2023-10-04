@@ -15,6 +15,9 @@ import {
   NFT_IDENTIFIER_WARNING_MESSAGE_ID,
 } from '../../wdio/screen-objects/testIDs/Screens/NFTImportScreen.testIds';
 
+import messages from '../../locales/languages/en.json';
+
+const TOKEN_SYMBOL_TEXT = messages.token.token_symbol;
 export default class AddCustomTokenView {
   static async tapImportButton() {
     //await TestHelpers.swipe(TOKEN_ADDRESS_SYMBOL_ID, 'up', 'slow', 0.6);
@@ -22,20 +25,21 @@ export default class AddCustomTokenView {
   }
 
   static async tapCustomTokenTab() {
+    await TestHelpers.delay(1500);
     await TestHelpers.waitAndTapText('CUSTOM TOKEN');
   }
 
   static async tapCustomTokenImportButton() {
     await TestHelpers.delay(1500);
-    await TestHelpers.tap(TOKEN_IMPORT_BUTTON_ID);
+    if (device.getPlatform() === 'android') {
+      await TestHelpers.waitAndTapByLabel(TOKEN_IMPORT_BUTTON_ID);
+    } else {
+      await TestHelpers.tap(TOKEN_IMPORT_BUTTON_ID);
+    }
   }
 
   static async tapBackButton() {
-    if (device.getPlatform() === 'android') {
-      await device.pressBack();
-    } else {
-      await TestHelpers.tap(CUSTOM_TOKEN_BACK_BUTTON_ID);
-    }
+    await TestHelpers.tap(CUSTOM_TOKEN_BACK_BUTTON_ID);
   }
 
   static async tapTokenSymbolInputBox() {
@@ -43,7 +47,7 @@ export default class AddCustomTokenView {
   }
 
   static async tapTokenSymbolText() {
-    await TestHelpers.tapByText('Token Symbol');
+    await TestHelpers.tapByText(TOKEN_SYMBOL_TEXT);
   }
 
   static async scrollDownOnImportCustomTokens() {

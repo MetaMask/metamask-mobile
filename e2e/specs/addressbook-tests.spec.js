@@ -1,117 +1,58 @@
 'use strict';
 import { Smoke } from '../tags';
-import OnboardingView from '../pages/Onboarding/OnboardingView';
-import OnboardingCarouselView from '../pages/Onboarding/OnboardingCarouselView';
-import ProtectYourWalletView from '../pages/Onboarding/ProtectYourWalletView';
-import CreatePasswordView from '../pages/Onboarding/CreatePasswordView';
 
 import SendView from '../pages/SendView';
-
-import MetaMetricsOptIn from '../pages/Onboarding/MetaMetricsOptInView';
-import WalletView from '../pages/WalletView';
 
 import SettingsView from '../pages/Drawer/Settings/SettingsView';
 import ContactsView from '../pages/Drawer/Settings/Contacts/ContactsView';
 import AddContactView from '../pages/Drawer/Settings/Contacts/AddContactView';
-
-import AddAddressModal from '../pages/modals/AddAddressModal';
-import SkipAccountSecurityModal from '../pages/modals/SkipAccountSecurityModal';
-import OnboardingWizardModal from '../pages/modals/OnboardingWizardModal';
-import ProtectYourWalletModal from '../pages/modals/ProtectYourWalletModal';
-import WhatsNewModal from '../pages/modals/WhatsNewModal';
-
-import EnableAutomaticSecurityChecksView from '../pages/EnableAutomaticSecurityChecksView';
-
-import TestHelpers from '../helpers';
-import { acceptTermOfUse } from '../viewHelper';
 import TabBarComponent from '../pages/TabBarComponent';
 import WalletActionsModal from '../pages/modals/WalletActionsModal';
+import AddAddressModal from '../pages/modals/AddAddressModal';
+
+import { loginToApp } from '../viewHelper';
+import FixtureBuilder from '../fixtures/fixture-builder';
+import {
+  loadFixture,
+  startFixtureServer,
+  stopFixtureServer,
+} from '../fixtures/fixture-helper';
+import TestHelpers from '../helpers';
+import FixtureServer from '../fixtures/fixture-server';
+import { getFixturesServerPort } from '../utils';
 
 const INVALID_ADDRESS = '0xB8B4EE5B1b693971eB60bDa15211570df2dB221L';
 const TETHER_ADDRESS = '0xdac17f958d2ee523a2206206994597c13d831ec7';
 const MYTH_ADDRESS = '0x1FDb169Ef12954F20A15852980e1F0C122BfC1D6';
 const MEMO = 'Test adding ENS';
-const PASSWORD = '12345678';
+const fixtureServer = new FixtureServer();
 
 describe(Smoke('Addressbook Tests'), () => {
+  beforeAll(async () => {
+    await TestHelpers.reverseServerPort();
+    const fixture = new FixtureBuilder().build();
+    await startFixtureServer(fixtureServer);
+    await loadFixture(fixtureServer, { fixture });
+    await device.launchApp({
+      delete: true,
+      launchArgs: { fixtureServerPort: `${getFixturesServerPort()}` },
+    });
+    await loginToApp();
+  });
+
   beforeEach(() => {
     jest.setTimeout(150000);
   });
 
-  it('should create new wallet', async () => {
-    await OnboardingCarouselView.isVisible();
-    await OnboardingCarouselView.tapOnGetStartedButton();
-
-    await OnboardingView.isVisible();
-    await OnboardingView.tapCreateWallet();
-
-    await MetaMetricsOptIn.isVisible();
-    await MetaMetricsOptIn.tapAgreeButton();
-
-    await acceptTermOfUse();
-
-    await CreatePasswordView.isVisible();
-    await CreatePasswordView.enterPassword(PASSWORD);
-    await CreatePasswordView.reEnterPassword(PASSWORD);
-    await CreatePasswordView.tapIUnderstandCheckBox();
-    await CreatePasswordView.tapCreatePasswordButton();
-  });
-
-  it('Should skip backup check', async () => {
-    // Check that we are on the Secure your wallet screen
-    await ProtectYourWalletView.isVisible();
-    await ProtectYourWalletView.tapOnRemindMeLaterButton();
-
-    await SkipAccountSecurityModal.tapIUnderstandCheckBox();
-    await SkipAccountSecurityModal.tapSkipButton();
-    await WalletView.isVisible();
-  });
-  it('Should dismiss Automatic Security checks screen', async () => {
-    await TestHelpers.delay(3500);
-    await EnableAutomaticSecurityChecksView.isVisible();
-    await EnableAutomaticSecurityChecksView.tapNoThanks();
-  });
-
-  it('should dismiss the onboarding wizard', async () => {
-    // dealing with flakiness on bitrise.
-    await TestHelpers.delay(1000);
-    try {
-      await OnboardingWizardModal.isVisible();
-      await OnboardingWizardModal.tapNoThanksButton();
-      await OnboardingWizardModal.isNotVisible();
-    } catch {
-      //
-    }
-  });
-
-  it('should tap on the close button to dismiss the whats new modal', async () => {
-    // dealing with flakiness on bitrise.
-    await TestHelpers.delay(2500);
-    try {
-      await WhatsNewModal.isVisible();
-      await WhatsNewModal.tapCloseButton();
-    } catch {
-      //
-    }
-  });
-
-  it('should dismiss the protect your wallet modal', async () => {
-    await ProtectYourWalletModal.isCollapsedBackUpYourWalletModalVisible();
-    await TestHelpers.delay(1000);
-
-    await ProtectYourWalletModal.tapRemindMeLaterButton();
-
-    await SkipAccountSecurityModal.tapIUnderstandCheckBox();
-    await SkipAccountSecurityModal.tapSkipButton();
-
-    await WalletView.isVisible();
+  afterAll(async () => {
+    await stopFixtureServer(fixtureServer);
   });
 
   it('should go to send view', async () => {
     await TabBarComponent.tapActions();
     await WalletActionsModal.tapSendButton();
     // Make sure view with my accounts visible
-    await SendView.isTransferBetweenMyAccountsButtonVisible();
+    await SendView.isMyAccountsVisisble();
   });
 
   it('should show invalid address error message', async () => {
@@ -199,7 +140,6 @@ describe(Smoke('Addressbook Tests'), () => {
     await AddContactView.tapBackButton();
     await TabBarComponent.tapWallet();
 
-    await WalletView.isVisible();
     await TabBarComponent.tapActions();
     await WalletActionsModal.tapSendButton();
 

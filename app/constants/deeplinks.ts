@@ -20,6 +20,7 @@ export enum ACTIONS {
   FOCUS = 'focus',
   WC = 'wc',
   CONNECT = 'connect',
+  ANDROID_SDK = 'bind',
   BUY_CRYPTO = 'buy-crypto',
   EMPTY = '',
 }

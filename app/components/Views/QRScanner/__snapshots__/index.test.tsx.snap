@@ -32,17 +32,6 @@ exports[`QrScanner should render correctly 1`] = `
     }
   }
 >
-  <QRScanner
-    navigation={Object {}}
-    route={
-      Object {
-        "params": Object {
-          "onScanError": [Function],
-          "onScanSuccess": [Function],
-          "onStartScan": [Function],
-        },
-      }
-    }
-  />
+  <QRScanner />
 </ContextProvider>
 `;

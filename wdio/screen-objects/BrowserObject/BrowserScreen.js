@@ -17,11 +17,11 @@ import {
 
 class BrowserScreen {
   get container() {
-    return Selectors.getElementByPlatform(BROWSER_SCREEN_ID);
+    return Selectors.getXpathElementByResourceId(BROWSER_SCREEN_ID);
   }
 
   get urlBarTitle() {
-    return Selectors.getElementByPlatform(NAVBAR_TITLE_NETWORK);
+    return Selectors.getXpathElementByResourceId(NAVBAR_TITLE_NETWORK);
   }
 
   get accountIconButton() {

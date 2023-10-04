@@ -1,0 +1,55 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`ApprovalModal renders 1`] = `
+<ReactNativeModal
+  animationIn="slideInUp"
+  animationInTiming={600}
+  animationOut="slideOutDown"
+  animationOutTiming={600}
+  avoidKeyboard={false}
+  backdropColor="#00000099"
+  backdropOpacity={1}
+  backdropTransitionInTiming={300}
+  backdropTransitionOutTiming={300}
+  coverScreen={true}
+  customBackdrop={null}
+  deviceHeight={null}
+  deviceWidth={null}
+  hasBackdrop={true}
+  hideModalContentWhileAnimating={false}
+  isVisible={true}
+  onBackButtonPress={[Function]}
+  onBackdropPress={[Function]}
+  onModalHide={[Function]}
+  onModalShow={[Function]}
+  onModalWillHide={[Function]}
+  onModalWillShow={[Function]}
+  onSwipeComplete={[Function]}
+  panResponderThreshold={4}
+  propagateSwipe={true}
+  scrollHorizontal={false}
+  scrollOffset={0}
+  scrollOffsetMax={0}
+  scrollTo={null}
+  statusBarTranslucent={false}
+  style={
+    Object {
+      "justifyContent": "flex-end",
+      "margin": 0,
+    }
+  }
+  supportedOrientations={
+    Array [
+      "portrait",
+      "landscape",
+    ]
+  }
+  swipeDirection="down"
+  swipeThreshold={100}
+  useNativeDriver={false}
+>
+  <div>
+    test
+  </div>
+</ReactNativeModal>
+`;

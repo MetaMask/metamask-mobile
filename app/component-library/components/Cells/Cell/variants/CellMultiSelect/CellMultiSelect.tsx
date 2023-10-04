@@ -39,6 +39,7 @@ const CellMultiSelect = ({
         secondaryText={secondaryText}
         tertiaryText={tertiaryText}
         tagLabel={tagLabel}
+        style={styles.cell}
       >
         {children}
       </CellBase>

@@ -10,11 +10,6 @@ pipelines:
     stages:
       - create_build_qa: {}
       - notify: {}
-  #Creates MetaMask apps and stores apk/ipa in Bitrise
-  create_release_builds_pipeline:
-    stages:
-      - create_build_release: {}
-      - notify: {}
   #Releases MetaMask apps and stores apk/ipa into Play(Internal Testing)/App(TestFlight) Store
   release_builds_to_store_pipeline:
     stages:
@@ -41,7 +36,7 @@ pipelines:
   #Run E2E test suite for Android only
   run_e2e_android_pipeline:
     stages:
-      - create_build_qa_android: {} #builds app and kicks off separate E2E build
+      - run_e2e_android_stage: {} #runs android detox E2E
       - notify: {}
   #PR_e2e_verfication (build ios & android), run iOS (smoke), emulator Android
   release_e2e_pipeline:
@@ -92,14 +87,14 @@ stages:
   run_smoke_e2e_ios_android_stage:
     workflows:
       - ios_e2e_test: {}
-      - build_android_qa: {}
+      - android_e2e_test: {}
   run_e2e_ios_android_stage:
     workflows:
       - ios_e2e_test: {}
-      - build_android_qa: {}
+      - android_e2e_test: {}
   run_e2e_android_stage:
     workflows:
-      - build_android_qa: {} #Build QA -> Browserstack -> wdio_ (can be a smaller machine)
+      - android_e2e_test: {}
   notify:
     workflows:
       - notify_success_on_slack: {}
@@ -115,7 +110,7 @@ workflows:
       - git-clone@6: {}
       - nvm@1.3.0:
           inputs:
-            - node_version: '16.13.0'
+            - node_version: '16.20.0'
   code_setup:
     before_run:
       - setup
@@ -293,7 +288,7 @@ workflows:
       - _notify_failure_on_slack
     steps:
       - restore-gradle-cache@1: {}
-      - install-missing-android-tools@2:
+      - install-missing-android-tools@3:
           inputs:
             - ndk_version: $NDK_VERSION
             - gradlew_path: $PROJECT_LOCATION/gradlew
@@ -306,21 +301,54 @@ workflows:
           is_always_run: false
       - avd-manager@1:
           inputs:
-            - api_level: '29'
-            - create_command_flags: '--sdcard 4096M'
-            - profile: pixel
+            - api_level: '30'
+            - create_command_flags: '--sdcard 8192M'
+            - start_command_flags: '-read-only'
+            - profile: pixel_5
       - wait-for-android-emulator@1: {}
       - save-gradle-cache@1: {}
-      - file-downloader@1:
+      - script@1:
           inputs:
-            - source: $BITRISEIO_ANDROID_KEYSTORE_URL
-            - destination: android/keystores/release.keystore
-      - yarn@0:
-          inputs:
-            - cache_local_deps: 'yes'
-            - command: test:e2e:android
-          title: E2E Tests on Android
+            - content: |-
+                #!/usr/bin/env bash
+                node -v
+                IGNORE_BOXLOGS_DEVELOPMENT="true" FORCE_BUNDLING=true yarn test:e2e:android:bitrise:debug --testNamePattern='Smoke'
+          title: Detox Build & Test
           is_always_run: false
+      - custom-test-results-export@1:
+          is_always_run: true
+          is_skippable: true
+          title: Export test results
+          inputs:
+            - base_path: $BITRISE_SOURCE_DIR/e2e/reports/
+            - test_name: E2E Tests
+            - search_pattern: $BITRISE_SOURCE_DIR/e2e/reports/junit.xml
+      - deploy-to-bitrise-io@2.2.3:
+          is_always_run: true
+          is_skippable: true
+          title: Deploy test report files
+      - script@1:
+          is_always_run: true
+          run_if: .IsBuildFailed
+          title: Copy screenshot files
+          inputs:
+            - content: |-
+                #!/usr/bin/env bash
+                set -ex
+                cp -r "$BITRISE_SOURCE_DIR/artifacts/screenshots"  "$BITRISE_DEPLOY_DIR"
+      - deploy-to-bitrise-io@2.3:
+          is_always_run: true
+          run_if: .IsBuildFailed
+          title: Deploy test screenshots
+          inputs:
+            - deploy_path: $BITRISE_DEPLOY_DIR
+            - is_compress: true
+            - zip_name: 'E2E_Android_Failure_Screenshots'
+
+    meta:
+      bitrise.io:
+        stack: linux-docker-android-20.04
+        machine_type_id: elite-xl
   ios_e2e_test:
     before_run:
       - code_setup_dev
@@ -361,8 +389,25 @@ workflows:
             - search_pattern: $BITRISE_SOURCE_DIR/e2e/reports/junit.xml
       - deploy-to-bitrise-io@2.2.3:
           is_always_run: true
-          is_skippable: false
+          is_skippable: true
           title: Deploy test report files
+      - script@1:
+          is_always_run: true
+          run_if: .IsBuildFailed
+          title: Copy screenshot files
+          inputs:
+            - content: |-
+                #!/usr/bin/env bash
+                set -ex
+                cp -r "$BITRISE_SOURCE_DIR/artifacts/screenshots"  "$BITRISE_DEPLOY_DIR"
+      - deploy-to-bitrise-io@2.3:
+          is_always_run: true
+          run_if: .IsBuildFailed
+          title: Deploy test screenshots
+          inputs:
+            - deploy_path: $BITRISE_DEPLOY_DIR
+            - is_compress: true
+            - zip_name: 'E2E_IOS_Failure_Screenshots'
   start_e2e_tests:
     steps:
       - build-router-start@0:
@@ -392,7 +437,7 @@ workflows:
             - source: $BITRISEIO_ANDROID_KEYSTORE_URL
             - destination: android/keystores/release.keystore
       - restore-gradle-cache@1: {}
-      - install-missing-android-tools@2:
+      - install-missing-android-tools@3:
           inputs:
             - ndk_version: $NDK_VERSION
             - gradlew_path: $PROJECT_LOCATION/gradlew
@@ -468,7 +513,7 @@ workflows:
             - source: $BITRISEIO_ANDROID_QA_KEYSTORE_URL
             - destination: android/keystores/internalRelease.keystore
       - restore-gradle-cache@1: {}
-      - install-missing-android-tools@2:
+      - install-missing-android-tools@3:
           inputs:
             - ndk_version: $NDK_VERSION
             - gradlew_path: $PROJECT_LOCATION/gradlew
@@ -536,6 +581,9 @@ workflows:
                 CUSTOM_ID="$BITRISE_GIT_BRANCH-$VERSION_NAME-$VERSION_NUMBER"
                 CUSTOM_ID=${CUSTOM_ID////-}
                 curl -u "$BROWSERSTACK_USERNAME:$BROWSERSTACK_ACCESS_KEY" -X POST "https://api-cloud.browserstack.com/app-automate/upload" -F "file=@$APK_PATH" -F 'data={"custom_id": "'$CUSTOM_ID'"}' | jq -j '.app_url' | envman add --key BROWSERSTACK_APP_URL
+                APK_PATH_FOR_APP_LIVE=$PROJECT_LOCATION/app/build/outputs/apk/qa/release/"$CUSTOM_ID".apk
+                mv "$APK_PATH" "$APK_PATH_FOR_APP_LIVE"
+                curl -u "$BROWSERSTACK_USERNAME:$BROWSERSTACK_ACCESS_KEY" -X POST "https://api-cloud.browserstack.com/app-live/upload" -F "file=@$APK_PATH_FOR_APP_LIVE" -F 'data={"custom_id": "'$CUSTOM_ID'"}' 
                 curl -u "$BROWSERSTACK_USERNAME:$BROWSERSTACK_ACCESS_KEY" -X GET https://api-cloud.browserstack.com/app-automate/recent_apps | jq > browserstack_uploaded_apps.json
       - deploy-to-bitrise-io@2.2.3:
           is_always_run: false
@@ -655,6 +703,7 @@ workflows:
     before_run:
       - code_setup_dev
     after_run:
+      - _upload_ipa_to_browserstack
       - _notify_failure_on_slack
     steps:
       - certificate-and-profile-installer@1: {}
@@ -692,6 +741,31 @@ workflows:
             - pipeline_intermediate_files: sourcemaps/ios/index.js.map:BITRISE_APP_STORE_SOURCEMAP_PATH
             - deploy_path: sourcemaps/ios/index.js.map
           title: Deploy Source Map
+  _upload_ipa_to_browserstack:
+    steps:
+      - script@1:
+          title: Upload IPA to Browserstack
+          inputs:
+            - content: |-
+                #!/usr/bin/env bash
+                set -e
+                set -x
+                set -o pipefail
+                CUSTOM_ID="$BITRISE_GIT_BRANCH-$VERSION_NAME-$VERSION_NUMBER"
+                CUSTOM_ID=${CUSTOM_ID////-}
+                IPA_PATH=ios/build/output/MetaMask-QA.ipa
+                IPA_PATH_FOR_APP_LIVE=ios/build/output/"$CUSTOM_ID".ipa
+                curl -u "$BROWSERSTACK_USERNAME:$BROWSERSTACK_ACCESS_KEY" -X POST "https://api-cloud.browserstack.com/app-automate/upload" -F "file=@$IPA_PATH" -F 'data={"custom_id": "'$CUSTOM_ID'"}' | jq -j '.app_url' | envman add --key BROWSERSTACK_APP_URL
+                mv "$IPA_PATH" "$IPA_PATH_FOR_APP_LIVE"
+                curl -u "$BROWSERSTACK_USERNAME:$BROWSERSTACK_ACCESS_KEY" -X POST "https://api-cloud.browserstack.com/app-live/upload" -F "file=@$IPA_PATH_FOR_APP_LIVE" -F 'data={"custom_id": "'$CUSTOM_ID'"}'   
+                curl -u "$BROWSERSTACK_USERNAME:$BROWSERSTACK_ACCESS_KEY" -X GET https://api-cloud.browserstack.com/app-automate/recent_apps | jq > browserstack_uploaded_apps.json
+      - deploy-to-bitrise-io@2.2.3:
+          is_always_run: false
+          is_skippable: true
+          inputs:
+            - deploy_path: browserstack_uploaded_apps.json
+          title: Bitrise Deploy Browserstack Uploaded Apps
+
 app:
   envs:
     - opts:
@@ -726,10 +800,10 @@ app:
       PROJECT_LOCATION_IOS: ios
     - opts:
         is_expand: false
-      VERSION_NAME: 7.1.0
+      VERSION_NAME: 7.8.0
     - opts:
         is_expand: false
-      VERSION_NUMBER: 1136
+      VERSION_NUMBER: 1174
     - opts:
         is_expand: false
       ANDROID_APK_LINK: ''
@@ -746,6 +820,8 @@ meta:
 trigger_map:
   - push_branch: release/*
     pipeline: release_e2e_pipeline
+  - push_branch: main
+    pipeline: pr_smoke_e2e_pipeline
   - tag: 'v*.*.*-RC-*'
     pipeline: release_builds_to_store_pipeline
   - tag: 'qa-*'

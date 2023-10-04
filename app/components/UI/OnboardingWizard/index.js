@@ -21,6 +21,8 @@ import AnalyticsV2 from '../../../util/analyticsV2';
 import { DrawerContext } from '../../../components/Nav/Main/MainNavigator';
 import { useTheme } from '../../../util/theme';
 import Device from '../../../util/device';
+import AsyncStorageWrapper from '../../../store/async-storage-wrapper';
+import { isTest } from '../../../util/test/utils';
 
 const createStyles = ({ colors, typography }) =>
   StyleSheet.create({
@@ -92,6 +94,19 @@ const OnboardingWizard = (props) => {
       AnalyticsV2.trackEvent(MetaMetricsEvents.ONBOARDING_TOUR_COMPLETED);
     });
   };
+
+  // Since react-native-default-preference is not covered by the fixtures,
+  // when isTest is `true`, if the ONBOARDING_WIZARD is marked as 'explored',
+  // it indicates that it was provided by fixtures, triggering the call to closeOnboardingWizard().
+  if (isTest && step === 1) {
+    const inTestCloseOnboardingWizard = async () => {
+      const wizardStep = await AsyncStorageWrapper.getItem(ONBOARDING_WIZARD);
+      if (wizardStep === EXPLORED) {
+        await closeOnboardingWizard();
+      }
+    };
+    inTestCloseOnboardingWizard();
+  }
 
   const onboardingWizardNavigator = (step) => {
     const steps = {

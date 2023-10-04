@@ -12,11 +12,10 @@ import {
   TRANSACTION_AMOUNT_CONVERSION_VALUE,
   TRANSACTION_AMOUNT_INPUT,
 } from '../../../../../wdio/screen-objects/testIDs/Screens/AmountScreen.testIds.js';
+import initialBackgroundState from '../../../../util/test/initial-background-state.json';
 
 const mockEngine = Engine;
 const mockTransactionTypes = TransactionTypes;
-
-jest.unmock('react-redux');
 
 jest.mock('../../../../core/Engine', () => ({
   init: () => mockEngine.init({}),
@@ -73,6 +72,7 @@ const RECEIVER_ACCOUNT = '0x2a';
 const initialState = {
   engine: {
     backgroundState: {
+      ...initialBackgroundState,
       NetworkController: {
         network: '1',
         providerConfig: {
@@ -93,19 +93,9 @@ const initialState = {
           },
         },
       },
-      TokensController: {
-        tokens: [],
-      },
       NftController: {
         allNfts: { [CURRENT_ACCOUNT]: { '1': [] } },
         allNftContracts: { [CURRENT_ACCOUNT]: { '1': [] } },
-      },
-      TokenRatesController: {
-        contractExchangeRates: {},
-      },
-      CurrencyRateController: {},
-      TokenBalancesController: {
-        contractBalances: {},
       },
     },
   },

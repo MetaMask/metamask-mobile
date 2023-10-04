@@ -17,7 +17,8 @@ import {
   REQUEST_SETTINGS,
   SECURITY_SETTINGS,
 } from '../../../../wdio/screen-objects/testIDs/Screens/Settings.testIds';
-jest.unmock('react-redux');
+import initialBackgroundState from '../../../util/test/initial-background-state.json';
+
 const mockStore = configureMockStore();
 const initialState = {
   user: { seedphraseBackedUp: true, passwordSet: true },
@@ -29,15 +30,7 @@ const initialState = {
     useBlockieIcon: true,
   },
   engine: {
-    backgroundState: {
-      CurrencyRateController: { currentCurrency: 'USD' },
-      NetworkController: {
-        providerConfig: {
-          type: 'mainnet',
-        },
-      },
-      PreferencesController: { selectedAddress: '0x0' },
-    },
+    backgroundState: initialBackgroundState,
   },
 };
 

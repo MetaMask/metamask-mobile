@@ -6,6 +6,7 @@ import { Provider } from 'react-redux';
 // eslint-disable-next-line import/no-namespace
 import * as TransactionUtils from '../../../util/transactions';
 import renderWithProvider from '../../../util/test/renderWithProvider';
+import initialBackgroundState from '../../../util/test/initial-background-state.json';
 
 jest.mock('../../../util/transactions', () => ({
   ...jest.requireActual('../../../util/transactions'),
@@ -41,18 +42,13 @@ jest.mock('@react-navigation/compat', () => {
 const mockState = {
   engine: {
     backgroundState: {
+      ...initialBackgroundState,
       AccountTrackerController: {
         accounts: {
           '0x0': {
             balance: '0x2',
           },
         },
-      },
-      TokensController: {
-        tokens: [],
-      },
-      TokenListController: {
-        tokenList: {},
       },
       PreferencesController: {
         selectedAddress: '0x2',
@@ -68,21 +64,6 @@ const mockState = {
           type: 'sepolia',
           nickname: 'Sepolia',
         },
-        provider: {
-          ticker: 'eth',
-        },
-      },
-      CurrencyRateController: {
-        currentCurrency: 'usd',
-      },
-      TokenRatesController: {
-        contractExchangeRates: {
-          '0x': '0.1',
-        },
-      },
-      TokenBalancesController: {},
-      AddressBookController: {
-        addressBook: {},
       },
     },
   },
@@ -137,6 +118,33 @@ describe('TransactionReview', () => {
       { state: mockState },
     );
     expect(container).toMatchSnapshot();
+  });
+
+  it('should display blockaid banner', async () => {
+    const { queryByText } = renderWithProvider(
+      <TransactionReview
+        EIP1559GasData={{}}
+        generateTransform={generateTransform}
+      />,
+      {
+        state: {
+          ...mockState,
+          transaction: {
+            ...mockState.transaction,
+            securityAlertResponse: {
+              resultType: 'Malicious',
+              reason: 'blur_farming',
+            },
+          },
+        },
+      },
+    );
+    expect(await queryByText('See details')).toBeDefined();
+    expect(
+      await queryByText(
+        'If you approve this request, someone can steal your assets listed on Blur.',
+      ),
+    ).toBeDefined();
   });
 
   it('should have enabled confirm button if from account has balance', async () => {

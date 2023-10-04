@@ -15,6 +15,12 @@ import {
   renderFromTokenMinimalUnit,
 } from '../../../../util/number';
 import { useTheme } from '../../../../util/theme';
+import {
+  selectConversionRate,
+  selectCurrentCurrency,
+} from '../../../../selectors/currencyRateController';
+import { selectContractExchangeRates } from '../../../../selectors/tokenRatesController';
+import { selectContractBalances } from '../../../../selectors/tokenBalancesController';
 
 const createStyles = (colors: any) =>
   StyleSheet.create({
@@ -83,26 +89,14 @@ interface Props {
 }
 
 const Token = ({ token, selected, toggleSelected }: Props) => {
-  const { address, symbol, aggregators, decimals } = token;
+  const { address, symbol, aggregators = [], decimals } = token;
   const { colors } = useTheme();
   const styles = createStyles(colors);
   const [expandTokenList, setExpandTokenList] = useState(false);
-  const tokenExchangeRates = useSelector(
-    (state: any) =>
-      state.engine.backgroundState.TokenRatesController.contractExchangeRates,
-  );
-  const tokenBalances = useSelector(
-    (state: any) =>
-      state.engine.backgroundState.TokenBalancesController.contractBalances,
-  );
-  const conversionRate = useSelector(
-    (state: any) =>
-      state.engine.backgroundState.CurrencyRateController.conversionRate,
-  );
-  const currentCurrency = useSelector(
-    (state: any) =>
-      state.engine.backgroundState.CurrencyRateController.currentCurrency,
-  );
+  const tokenExchangeRates = useSelector(selectContractExchangeRates);
+  const tokenBalances = useSelector(selectContractBalances);
+  const conversionRate = useSelector(selectConversionRate);
+  const currentCurrency = useSelector(selectCurrentCurrency);
   const exchangeRate = tokenExchangeRates[address];
   const tokenBalance = renderFromTokenMinimalUnit(
     tokenBalances[address],

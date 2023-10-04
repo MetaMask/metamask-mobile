@@ -1,5 +1,5 @@
 /* eslint-disable import/prefer-default-export */
-import type { Action } from 'redux';
+import type { Action as ReduxAction } from 'redux';
 
 export enum ActionType {
   SET_ALLOW_LOGIN_WITH_REMEMBER_ME = 'SET_ALLOW_LOGIN_WITH_REMEMBER_ME',
@@ -9,22 +9,22 @@ export enum ActionType {
 }
 
 export interface AllowLoginWithRememberMeUpdated
-  extends Action<ActionType.SET_ALLOW_LOGIN_WITH_REMEMBER_ME> {
+  extends ReduxAction<ActionType.SET_ALLOW_LOGIN_WITH_REMEMBER_ME> {
   enabled: boolean;
 }
 
 export interface AutomaticSecurityChecks
-  extends Action<ActionType.SET_AUTOMATIC_SECURITY_CHECKS> {
+  extends ReduxAction<ActionType.SET_AUTOMATIC_SECURITY_CHECKS> {
   enabled: boolean;
 }
 
 export interface UserSelectedAutomaticSecurityChecksOptions
-  extends Action<ActionType.USER_SELECTED_AUTOMATIC_SECURITY_CHECKS_OPTION> {
+  extends ReduxAction<ActionType.USER_SELECTED_AUTOMATIC_SECURITY_CHECKS_OPTION> {
   selected: boolean;
 }
 
 export interface SetAutomaticSecurityChecksModalOpen
-  extends Action<ActionType.SET_AUTOMATIC_SECURITY_CHECKS_MODAL_OPEN> {
+  extends ReduxAction<ActionType.SET_AUTOMATIC_SECURITY_CHECKS_MODAL_OPEN> {
   open: boolean;
 }
 

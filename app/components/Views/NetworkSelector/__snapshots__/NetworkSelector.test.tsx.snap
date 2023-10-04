@@ -406,6 +406,7 @@ exports[`Network Selector renders correctly 1`] = `
                             }
                           />
                           <Text
+                            accessibilityRole="text"
                             style={
                               Object {
                                 "color": "#24272A",
@@ -437,6 +438,7 @@ exports[`Network Selector renders correctly 1`] = `
                           <View>
                             <TouchableOpacity
                               disabled={false}
+                              onPress={[Function]}
                               style={
                                 Object {
                                   "alignItems": "center",
@@ -505,6 +507,7 @@ exports[`Network Selector renders correctly 1`] = `
                                     }
                                   >
                                     <Text
+                                      accessibilityRole="text"
                                       numberOfLines={1}
                                       style={
                                         Object {
@@ -553,6 +556,96 @@ exports[`Network Selector renders correctly 1`] = `
                             </TouchableOpacity>
                             <TouchableOpacity
                               disabled={false}
+                              onPress={[Function]}
+                              style={
+                                Object {
+                                  "opacity": 1,
+                                  "position": "relative",
+                                }
+                              }
+                            >
+                              <View
+                                accessibilityRole="none"
+                                accessible={true}
+                                style={
+                                  Object {
+                                    "alignItems": "flex-start",
+                                    "backgroundColor": "#FFFFFF",
+                                    "borderRadius": 4,
+                                    "flexDirection": "row",
+                                    "padding": 16,
+                                  }
+                                }
+                              >
+                                <View
+                                  style={
+                                    Object {
+                                      "flexDirection": "row",
+                                    }
+                                  }
+                                >
+                                  <View
+                                    style={
+                                      Object {
+                                        "backgroundColor": "#FFFFFF",
+                                        "borderRadius": 16,
+                                        "height": 32,
+                                        "marginRight": 16,
+                                        "overflow": "hidden",
+                                        "width": 32,
+                                      }
+                                    }
+                                  >
+                                    <Image
+                                      onError={[Function]}
+                                      resizeMode="contain"
+                                      source={
+                                        Object {
+                                          "uri": "MockImage",
+                                        }
+                                      }
+                                      style={
+                                        Object {
+                                          "flex": 1,
+                                          "height": undefined,
+                                          "width": undefined,
+                                        }
+                                      }
+                                      testID="network-avatar-image"
+                                    />
+                                  </View>
+                                  <View
+                                    style={
+                                      Object {
+                                        "alignItems": "flex-start",
+                                        "flex": 1,
+                                      }
+                                    }
+                                  >
+                                    <Text
+                                      accessibilityRole="text"
+                                      numberOfLines={1}
+                                      style={
+                                        Object {
+                                          "color": "#24272A",
+                                          "fontFamily": "Euclid Circular B",
+                                          "fontSize": 16,
+                                          "fontWeight": "400",
+                                          "letterSpacing": 0,
+                                          "lineHeight": 24,
+                                        }
+                                      }
+                                      testID="cell-title"
+                                    >
+                                      Linea Main Network
+                                    </Text>
+                                  </View>
+                                </View>
+                              </View>
+                            </TouchableOpacity>
+                            <TouchableOpacity
+                              disabled={false}
+                              onPress={[Function]}
                               style={
                                 Object {
                                   "alignItems": "center",
@@ -623,6 +716,7 @@ exports[`Network Selector renders correctly 1`] = `
                                     }
                                   >
                                     <Text
+                                      accessibilityRole="text"
                                       numberOfLines={1}
                                       style={
                                         Object {
@@ -644,6 +738,7 @@ exports[`Network Selector renders correctly 1`] = `
                             </TouchableOpacity>
                             <TouchableOpacity
                               disabled={false}
+                              onPress={[Function]}
                               style={
                                 Object {
                                   "alignItems": "center",
@@ -714,6 +809,7 @@ exports[`Network Selector renders correctly 1`] = `
                                     }
                                   >
                                     <Text
+                                      accessibilityRole="text"
                                       numberOfLines={1}
                                       style={
                                         Object {
@@ -735,6 +831,7 @@ exports[`Network Selector renders correctly 1`] = `
                             </TouchableOpacity>
                             <TouchableOpacity
                               disabled={false}
+                              onPress={[Function]}
                               style={
                                 Object {
                                   "alignItems": "center",
@@ -805,6 +902,7 @@ exports[`Network Selector renders correctly 1`] = `
                                     }
                                   >
                                     <Text
+                                      accessibilityRole="text"
                                       numberOfLines={1}
                                       style={
                                         Object {
@@ -826,6 +924,7 @@ exports[`Network Selector renders correctly 1`] = `
                             </TouchableOpacity>
                             <TouchableOpacity
                               disabled={false}
+                              onPress={[Function]}
                               style={
                                 Object {
                                   "alignItems": "center",
@@ -871,6 +970,7 @@ exports[`Network Selector renders correctly 1`] = `
                                     }
                                   >
                                     <Text
+                                      accessibilityRole="text"
                                       style={
                                         Object {
                                           "color": "#24272A",
@@ -894,6 +994,7 @@ exports[`Network Selector renders correctly 1`] = `
                                     }
                                   >
                                     <Text
+                                      accessibilityRole="text"
                                       numberOfLines={1}
                                       style={
                                         Object {
@@ -925,6 +1026,7 @@ exports[`Network Selector renders correctly 1`] = `
                               }
                             >
                               <Text
+                                accessibilityRole="text"
                                 style={
                                   Object {
                                     "color": "#535A61",
@@ -966,7 +1068,7 @@ exports[`Network Selector renders correctly 1`] = `
                           </View>
                         </RCTScrollView>
                         <TouchableOpacity
-                          activeOpacity={0.5}
+                          activeOpacity={1}
                           onPress={[Function]}
                           onPressIn={[Function]}
                           onPressOut={[Function]}
@@ -990,6 +1092,7 @@ exports[`Network Selector renders correctly 1`] = `
                           variant="Secondary"
                         >
                           <Text
+                            accessibilityRole="text"
                             style={
                               Object {
                                 "color": "#0376C9",

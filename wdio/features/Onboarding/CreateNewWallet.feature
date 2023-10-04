@@ -3,7 +3,7 @@
 @onboarding
 Feature: Onboarding Create New Wallet
 
-  Scenario: Onboarding New walllet
+  Scenario: Onboarding New wallet
     User opens the app for first time and creates a new wallet.
     Given the Welcome Screen is displayed
     When I tap "Get started"

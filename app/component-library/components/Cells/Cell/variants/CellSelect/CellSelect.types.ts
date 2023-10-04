@@ -7,7 +7,7 @@ import { SelectItemProps } from '../../../../Select/Select/SelectItem/SelectItem
  * Cell Account Select  component props.
  */
 export interface CellSelectProps
-  extends CellBaseProps,
+  extends Omit<CellBaseProps, 'hitSlop'>,
     Omit<SelectItemProps, 'children'> {
   /**
    * Type of Cell

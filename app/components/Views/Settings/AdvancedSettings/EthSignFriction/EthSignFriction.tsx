@@ -191,7 +191,7 @@ const EthSignFriction = () => {
             <TextField
               style={styles.iOnlySignTextInput}
               contextMenuHidden
-              autoCompleteType={'off'}
+              autoComplete={'off'}
               autoCorrect={false}
               returnKeyType={'done'}
               autoCapitalize="none"

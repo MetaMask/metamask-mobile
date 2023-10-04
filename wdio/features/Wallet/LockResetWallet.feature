@@ -1,13 +1,16 @@
 @androidApp
 @smoke
 @wallet
+@fixturesSkipOnboarding
 Feature: Lock and Reset Wallet
 
-  Scenario: Import account
+  Scenario: Skip onboarding
     Given the app displayed the splash animation
-    And I have imported my wallet
-    And I tap No Thanks on the Enable security check screen
-    And I tap No thanks on the onboarding welcome tutorial
+    And the splash animation disappears
+    And I unlock wallet with <password>
+    Examples:
+      | password  |
+      | 123123123 |
 
   Scenario Outline: Lock Wallet
     When I tap on the Settings tab option

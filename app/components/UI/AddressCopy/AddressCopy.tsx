@@ -26,6 +26,10 @@ import generateTestId from '../../../../wdio/utils/generateTestId';
 // Internal dependencies
 import styleSheet from './AddressCopy.styles';
 import { AddressCopyProps } from './AddressCopy.types';
+import {
+  selectIdentities,
+  selectSelectedAddress,
+} from '../../../selectors/preferencesController';
 
 const AddressCopy = ({ formatAddressType = 'full' }: AddressCopyProps) => {
   const { styles } = useStyles(styleSheet, {});
@@ -45,23 +49,18 @@ const AddressCopy = ({ formatAddressType = 'full' }: AddressCopyProps) => {
   /**
    * A string that represents the selected address
    */
-  const selectedAddress = useSelector(
-    (state: any) =>
-      state.engine.backgroundState.PreferencesController.selectedAddress,
-  );
+  const selectedAddress = useSelector(selectSelectedAddress);
 
   /**
    * An object containing each identity in the format address => account
    */
-  const identities = useSelector(
-    (state: any) =>
-      state.engine.backgroundState.PreferencesController.identities,
-  );
+  const identities = useSelector(selectIdentities);
 
   const account = {
-    address: selectedAddress,
     ...identities[selectedAddress],
+    address: selectedAddress,
   };
+
   const copyAccountToClipboard = async () => {
     await ClipboardManager.setString(selectedAddress);
     handleShowAlert({

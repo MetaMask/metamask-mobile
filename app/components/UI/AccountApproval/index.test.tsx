@@ -2,31 +2,13 @@ import React from 'react';
 import AccountApproval from './';
 import { shallow } from 'enzyme';
 import configureMockStore from 'redux-mock-store';
-import { SEPOLIA } from '../../../constants/network';
 import { Provider } from 'react-redux';
+import initialBackgroundState from '../../../util/test/initial-background-state.json';
 
 const mockStore = configureMockStore();
 const initialState = {
   engine: {
-    backgroundState: {
-      AccountTrackerController: {
-        accounts: { '0x2': { balance: '0' } },
-      },
-      NetworkController: {
-        providerConfig: {
-          type: SEPOLIA,
-        },
-      },
-      TokensController: {
-        tokens: [],
-      },
-      PreferencesController: {
-        selectedAddress: '0xe7E125654064EEa56229f273dA586F10DF96B0a1',
-        identities: {
-          '0xe7E125654064EEa56229f273dA586F10DF96B0a1': { name: 'Account 1' },
-        },
-      },
-    },
+    backgroundState: initialBackgroundState,
   },
 };
 const store = mockStore(initialState);

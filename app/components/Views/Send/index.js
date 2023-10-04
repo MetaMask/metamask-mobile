@@ -42,16 +42,27 @@ import TransactionTypes from '../../../core/TransactionTypes';
 import { MAINNET } from '../../../constants/network';
 import BigNumber from 'bignumber.js';
 import { WalletDevice } from '@metamask/transaction-controller';
-import { getTokenList } from '../../../reducers/tokens';
 import AnalyticsV2 from '../../../util/analyticsV2';
 
 import { KEYSTONE_TX_CANCELED } from '../../../constants/error';
 import { ThemeContext, mockTheme } from '../../../util/theme';
 import {
-  selectNetwork,
+  selectChainId,
   selectProviderType,
 } from '../../../selectors/networkController';
+import { selectTokenList } from '../../../selectors/tokenListController';
+import { selectTokens } from '../../../selectors/tokensController';
+import { selectAccounts } from '../../../selectors/accountTrackerController';
+import { selectContractBalances } from '../../../selectors/tokenBalancesController';
+import {
+  selectIdentities,
+  selectSelectedAddress,
+} from '../../../selectors/preferencesController';
 import { ethErrors } from 'eth-rpc-errors';
+import {
+  getBlockaidMetricsParams,
+  isBlockaidFeatureEnabled,
+} from '../../../util/blockaid';
 
 const REVIEW = 'review';
 const EDIT = 'edit';
@@ -109,9 +120,9 @@ class Send extends PureComponent {
      */
     addressBook: PropTypes.object,
     /**
-     * Network id
+     * The chain ID of the current selected network
      */
-    network: PropTypes.string,
+    chainId: PropTypes.string,
     /**
      * List of accounts from the PreferencesController
      */
@@ -177,11 +188,11 @@ class Send extends PureComponent {
   /**
    * Check if view is called with txMeta object for a deeplink
    */
-  checkForDeeplinks() {
+  async checkForDeeplinks() {
     const { route } = this.props;
     const txMeta = route.params?.txMeta;
     if (txMeta) {
-      this.handleNewTxMeta(txMeta);
+      await this.handleNewTxMeta(txMeta);
     } else {
       this.mounted && this.setState({ ready: true });
     }
@@ -218,7 +229,7 @@ class Send extends PureComponent {
     dappTransactionModalVisible && toggleDappTransactionModal();
     this.mounted = true;
     await this.reset();
-    this.checkForDeeplinks();
+    await this.checkForDeeplinks();
   }
 
   /**
@@ -273,7 +284,7 @@ class Send extends PureComponent {
    * Handle deeplink txMeta recipient
    */
   handleNewTxMetaRecipient = async (recipient) => {
-    const to = await getAddress(recipient, this.props.network);
+    const to = await getAddress(recipient, this.props.chainId);
 
     if (!to) {
       NotificationManager.showSimpleNotification({
@@ -297,7 +308,7 @@ class Send extends PureComponent {
     function_name = null, // eslint-disable-line no-unused-vars
     parameters = null,
   }) => {
-    const { addressBook, network, identities, selectedAddress } = this.props;
+    const { addressBook, chainId, identities, selectedAddress } = this.props;
 
     let newTxMeta = {};
     let txRecipient;
@@ -322,7 +333,7 @@ class Send extends PureComponent {
 
         newTxMeta.transactionToName = getTransactionToName({
           addressBook,
-          network,
+          chainId,
           toAddress: newTxMeta.to,
           identities,
           ensRecipient: newTxMeta.ensRecipient,
@@ -362,7 +373,7 @@ class Send extends PureComponent {
         };
         newTxMeta.transactionToName = getTransactionToName({
           addressBook,
-          network,
+          chainId,
           toAddress: to,
           identities,
           ensRecipient,
@@ -378,6 +389,19 @@ class Send extends PureComponent {
       }
       if (gasPrice) {
         newTxMeta.gasPrice = toBN(gas);
+      }
+
+      // if gas and gasPrice is not defined in the deeplink, we should define them
+      if (!gas && !gasPrice) {
+        const { gas, gasPrice } =
+          await Engine.context.TransactionController.estimateGas(
+            this.props.transaction,
+          );
+        newTxMeta = {
+          ...newTxMeta,
+          gas,
+          gasPrice,
+        };
       }
       // TODO: We should add here support for sending tokens
       // or calling smart contract functions
@@ -520,7 +544,7 @@ class Send extends PureComponent {
     this.setState({ transactionConfirmed: true });
     const {
       transaction: { selectedAsset, assetType },
-      network,
+      chainId,
       addressBook,
     } = this.props;
     let { transaction } = this.props;
@@ -531,11 +555,10 @@ class Send extends PureComponent {
         transaction = this.prepareAssetTransaction(transaction, selectedAsset);
       }
       const { result, transactionMeta } =
-        await TransactionController.addTransaction(
-          transaction,
-          TransactionTypes.MMM,
-          WalletDevice.MM_MOBILE,
-        );
+        await TransactionController.addTransaction(transaction, {
+          deviceConfirmedOn: WalletDevice.MM_MOBILE,
+          origin: TransactionTypes.MMM,
+        });
       await KeyringController.resetQRKeyringState();
       await ApprovalController.accept(transactionMeta.id, undefined, {
         waitForResult: true,
@@ -573,9 +596,9 @@ class Send extends PureComponent {
         }
       }
       const existingContact =
-        addressBook[network] && addressBook[network][checksummedAddress];
+        addressBook[chainId] && addressBook[chainId][checksummedAddress];
       if (!existingContact) {
-        AddressBookController.set(checksummedAddress, '', network);
+        AddressBookController.set(checksummedAddress, '', chainId);
       }
       await new Promise((resolve) => {
         resolve(result);
@@ -664,13 +687,19 @@ class Send extends PureComponent {
   /**
    * Returns corresponding tracking params to send
    *
-   * @return {object} - Object containing view, network, activeCurrency and assetType
+   * @return {object} - Object containing view, network type, activeCurrency and assetType
    */
   getTrackingParams = () => {
     const {
       networkType,
-      transaction: { selectedAsset, assetType },
+      transaction: { selectedAsset, assetType, securityAlertResponse },
     } = this.props;
+
+    let blockaidParams = {};
+    if (isBlockaidFeatureEnabled()) {
+      blockaidParams = getBlockaidMetricsParams(securityAlertResponse);
+    }
+
     return {
       view: SEND,
       network: networkType,
@@ -679,6 +708,7 @@ class Send extends PureComponent {
           (selectedAsset.symbol || selectedAsset.contractName)) ||
         'ETH',
       assetType,
+      ...blockaidParams,
     };
   };
 
@@ -745,20 +775,16 @@ class Send extends PureComponent {
 
 const mapStateToProps = (state) => ({
   addressBook: state.engine.backgroundState.AddressBookController.addressBook,
-  accounts: state.engine.backgroundState.AccountTrackerController.accounts,
-  frequentRpcList:
-    state.engine.backgroundState.PreferencesController.frequentRpcList,
-  contractBalances:
-    state.engine.backgroundState.TokenBalancesController.contractBalances,
+  accounts: selectAccounts(state),
+  contractBalances: selectContractBalances(state),
   transaction: state.transaction,
   networkType: selectProviderType(state),
-  tokens: state.engine.backgroundState.TokensController.tokens,
-  network: selectNetwork(state),
-  identities: state.engine.backgroundState.PreferencesController.identities,
-  selectedAddress:
-    state.engine.backgroundState.PreferencesController.selectedAddress,
+  tokens: selectTokens(state),
+  chainId: selectChainId(state),
+  identities: selectIdentities(state),
+  selectedAddress: selectSelectedAddress(state),
   dappTransactionModalVisible: state.modals.dappTransactionModalVisible,
-  tokenList: getTokenList(state),
+  tokenList: selectTokenList(state),
 });
 
 const mapDispatchToProps = (dispatch) => ({

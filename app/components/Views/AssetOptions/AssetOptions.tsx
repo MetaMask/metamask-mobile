@@ -9,7 +9,10 @@ import Icon, {
   IconName,
 } from '../../../component-library/components/Icons/Icon';
 import useBlockExplorer from '../../../components/UI/Swaps/utils/useBlockExplorer';
-import { selectProviderConfig } from '../../../selectors/networkController';
+import {
+  selectNetworkConfigurations,
+  selectProviderConfig,
+} from '../../../selectors/networkController';
 import ReusableModal, { ReusableModalRef } from '../../UI/ReusableModal';
 import styleSheet from './AssetOptions.styles';
 
@@ -35,11 +38,8 @@ const AssetOptions = (props: Props) => {
   const navigation = useNavigation();
   const modalRef = useRef<ReusableModalRef>(null);
   const providerConfig = useSelector(selectProviderConfig);
-  const frequentRpcList = useSelector(
-    (state: any) =>
-      state.engine.backgroundState.PreferencesController.frequentRpcList,
-  );
-  const explorer = useBlockExplorer(providerConfig, frequentRpcList);
+  const networkConfigurations = useSelector(selectNetworkConfigurations);
+  const explorer = useBlockExplorer(providerConfig, networkConfigurations);
 
   const goToBrowserUrl = (url: string, title: string) => {
     modalRef.current?.dismissModal(() => {

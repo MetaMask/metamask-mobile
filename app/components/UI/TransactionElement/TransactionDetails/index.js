@@ -28,9 +28,18 @@ import Engine from '../../../../core/Engine';
 import decodeTransaction from '../../TransactionElement/utils';
 import {
   selectChainId,
+  selectNetworkConfigurations,
   selectProviderConfig,
   selectTicker,
 } from '../../../../selectors/networkController';
+import {
+  selectConversionRate,
+  selectCurrentCurrency,
+} from '../../../../selectors/currencyRateController';
+import { selectTokensByAddress } from '../../../../selectors/tokensController';
+import { selectContractExchangeRates } from '../../../../selectors/tokenRatesController';
+import { selectSelectedAddress } from '../../../../selectors/preferencesController';
+import { regex } from '../../../../../app/util/regex';
 
 const createStyles = (colors) =>
   StyleSheet.create({
@@ -92,9 +101,9 @@ class TransactionDetails extends PureComponent {
      */
     transactionDetails: PropTypes.object,
     /**
-     * Frequent RPC list from PreferencesController
+     * Network configurations
      */
-    frequentRpcList: PropTypes.array,
+    networkConfigurations: PropTypes.object,
     /**
      * Callback to close the view
      */
@@ -193,12 +202,12 @@ class TransactionDetails extends PureComponent {
   componentDidMount = () => {
     const {
       providerConfig: { rpcTarget, type },
-      frequentRpcList,
+      networkConfigurations,
     } = this.props;
     let blockExplorer;
     if (type === RPC) {
       blockExplorer =
-        findBlockExplorerForRpc(rpcTarget, frequentRpcList) ||
+        findBlockExplorerForRpc(rpcTarget, networkConfigurations) ||
         NO_RPC_BLOCK_EXPLORER;
     }
     this.setState({ rpcBlockExplorer: blockExplorer });
@@ -354,7 +363,7 @@ class TransactionDetails extends PureComponent {
             </DetailsModal.SectionTitle>
             {!!transaction?.nonce && (
               <Text small primary>{`#${parseInt(
-                transaction.nonce.replace(/^#/, ''),
+                transaction.nonce.replace(regex.transactionNonce, ''),
                 16,
               )}`}</Text>
             )}
@@ -405,25 +414,14 @@ class TransactionDetails extends PureComponent {
 const mapStateToProps = (state) => ({
   providerConfig: selectProviderConfig(state),
   chainId: selectChainId(state),
-  frequentRpcList:
-    state.engine.backgroundState.PreferencesController.frequentRpcList,
-  selectedAddress:
-    state.engine.backgroundState.PreferencesController.selectedAddress,
+  networkConfigurations: selectNetworkConfigurations(state),
+  selectedAddress: selectSelectedAddress(state),
   transactions: state.engine.backgroundState.TransactionController.transactions,
   ticker: selectTicker(state),
-  tokens: state.engine.backgroundState.TokensController.tokens.reduce(
-    (tokens, token) => {
-      tokens[token.address] = token;
-      return tokens;
-    },
-    {},
-  ),
-  contractExchangeRates:
-    state.engine.backgroundState.TokenRatesController.contractExchangeRates,
-  conversionRate:
-    state.engine.backgroundState.CurrencyRateController.conversionRate,
-  currentCurrency:
-    state.engine.backgroundState.CurrencyRateController.currentCurrency,
+  tokens: selectTokensByAddress(state),
+  contractExchangeRates: selectContractExchangeRates(state),
+  conversionRate: selectConversionRate(state),
+  currentCurrency: selectCurrentCurrency(state),
   primaryCurrency: state.settings.primaryCurrency,
   swapsTransactions:
     state.engine.backgroundState.TransactionController.swapsTransactions || {},

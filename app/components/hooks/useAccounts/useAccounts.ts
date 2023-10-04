@@ -19,9 +19,19 @@ import {
   UseAccountsParams,
 } from './useAccounts.types';
 import {
+  selectChainId,
   selectTicker,
-  selectNetwork,
 } from '../../../selectors/networkController';
+import {
+  selectConversionRate,
+  selectCurrentCurrency,
+} from '../../../selectors/currencyRateController';
+import { selectAccounts } from '../../../selectors/accountTrackerController';
+import {
+  selectIdentities,
+  selectIsMultiAccountBalancesEnabled,
+  selectSelectedAddress,
+} from '../../../selectors/preferencesController';
 
 /**
  * Hook that returns both wallet accounts and ens name information.
@@ -38,34 +48,16 @@ const useAccounts = ({
   const [ensByAccountAddress, setENSByAccountAddress] =
     useState<EnsByAccountAddress>({});
 
-  const identities = useSelector(
-    (state: any) =>
-      state.engine.backgroundState.PreferencesController.identities,
-  );
-  const network = useSelector(selectNetwork);
-  const selectedAddress = useSelector(
-    (state: any) =>
-      state.engine.backgroundState.PreferencesController.selectedAddress,
-  );
-  const accountInfoByAddress = useSelector(
-    (state: any) =>
-      state.engine.backgroundState.AccountTrackerController.accounts,
-    isEqual,
-  );
-  const conversionRate = useSelector(
-    (state: any) =>
-      state.engine.backgroundState.CurrencyRateController.conversionRate,
-  );
-  const currentCurrency = useSelector(
-    (state: any) =>
-      state.engine.backgroundState.CurrencyRateController.currentCurrency,
-  );
+  const identities = useSelector(selectIdentities);
+  const chainId = useSelector(selectChainId);
+  const accountInfoByAddress = useSelector(selectAccounts, isEqual);
+  const selectedAddress = useSelector(selectSelectedAddress);
+  const conversionRate = useSelector(selectConversionRate);
+  const currentCurrency = useSelector(selectCurrentCurrency);
   const ticker = useSelector(selectTicker);
 
   const isMultiAccountBalancesEnabled = useSelector(
-    (state: any) =>
-      state.engine.backgroundState.PreferencesController
-        .isMultiAccountBalancesEnabled,
+    selectIsMultiAccountBalancesEnabled,
   );
 
   const fetchENSNames = useCallback(
@@ -92,7 +84,7 @@ const useAccounts = ({
         try {
           const ens: string | undefined = await doENSReverseLookup(
             address,
-            network,
+            chainId,
           );
           if (ens) {
             latestENSbyAccountAddress = {
@@ -119,7 +111,7 @@ const useAccounts = ({
         setENSByAccountAddress(latestENSbyAccountAddress);
       }
     },
-    [network],
+    [chainId],
   );
 
   const getAccounts = useCallback(() => {
@@ -146,7 +138,7 @@ const useAccounts = ({
         const { name } = identity;
         // TODO - Improve UI to either include loading and/or balance load failures.
         const balanceWeiHex =
-          accountInfoByAddress?.[checksummedAddress]?.balance || 0x0;
+          accountInfoByAddress?.[checksummedAddress]?.balance || '0x0';
         const balanceETH = renderFromWei(balanceWeiHex); // Gives ETH
         const balanceFiat =
           weiToFiat(
@@ -166,7 +158,9 @@ const useAccounts = ({
           isSelected,
           // TODO - Also fetch assets. Reference AccountList component.
           // assets
-          assets: isBalanceAvailable && { fiatBalance: balanceLabel },
+          assets: isBalanceAvailable
+            ? { fiatBalance: balanceLabel }
+            : undefined,
           balanceError,
         };
         result.push(mappedAccount);

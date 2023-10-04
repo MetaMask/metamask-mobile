@@ -1,12 +1,10 @@
 import {
   WELCOME_SCREEN_CAROUSEL_CONTAINER_ID,
   WELCOME_SCREEN_CAROUSEL_TITLE_ID,
-  WELCOME_SCREEN_GET_STARTED_BUTTON_ID,
 } from '../testIDs/Screens/WelcomeScreen.testIds';
 import { SPLASH_SCREEN_METAMASK_ANIMATION_ID } from '../testIDs/Components/MetaMaskAnimation.testIds';
 import Gestures from '../../helpers/Gestures';
 import Selectors from '../../helpers/Selectors';
-import { WALLET_SETUP_SCREEN_TITLE_ID } from '../testIDs/Screens/WalletSetupScreen.testIds';
 
 class WelcomeScreen {
   constructor() {
@@ -14,19 +12,21 @@ class WelcomeScreen {
   }
 
   get splashScreenMetamaskAnimationId() {
-    return Selectors.getElementByPlatform(SPLASH_SCREEN_METAMASK_ANIMATION_ID);
+    return Selectors.getXpathElementByResourceId(
+      SPLASH_SCREEN_METAMASK_ANIMATION_ID,
+    );
   }
 
   get getStartedButton() {
-    return Selectors.getElementByPlatform(WELCOME_SCREEN_GET_STARTED_BUTTON_ID);
-  }
-
-  get title() {
-    return Selectors.getElementByPlatform(WALLET_SETUP_SCREEN_TITLE_ID);
+    return Selectors.getXpathElementByResourceId(
+      'welcome-screen-get-started-button-id',
+    );
   }
 
   get screen() {
-    return Selectors.getElementByPlatform(WELCOME_SCREEN_CAROUSEL_CONTAINER_ID);
+    return Selectors.getXpathElementByResourceId(
+      WELCOME_SCREEN_CAROUSEL_CONTAINER_ID,
+    );
   }
 
   async waitForSplashAnimationToDisplay() {
@@ -40,6 +40,10 @@ class WelcomeScreen {
       );
       await getStartedElem.waitForExist();
     }
+  }
+
+  async isScreenDisplayed() {
+    expect(this.screen).toBeDisplayed();
   }
 
   async waitForSplashAnimationToNotExit() {

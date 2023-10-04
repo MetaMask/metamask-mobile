@@ -4,7 +4,7 @@ export interface PersonalSignProps {
   /**
    * Callback triggered when this message signature is rejected
    */
-  onCancel: () => void;
+  onReject: () => void;
   /**
    * Callback triggered when this message signature is approved
    */

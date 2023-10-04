@@ -21,6 +21,7 @@ import { FORMATTED_NETWORK_NAMES } from '../../../constants/on-ramp';
 import NotificationManager from '../../../core/NotificationManager';
 import { useTheme } from '../../../util/theme';
 import { selectChainId } from '../../../selectors/networkController';
+import { selectUseTokenDetection } from '../../../selectors/preferencesController';
 
 const createStyles = (colors: any) =>
   StyleSheet.create({
@@ -60,10 +61,7 @@ const SearchTokenAutocomplete = ({ navigation }: Props) => {
   const { colors } = useTheme();
   const styles = createStyles(colors);
 
-  const isTokenDetectionEnabled = useSelector(
-    (state: any) =>
-      state.engine.backgroundState.PreferencesController.useTokenDetection,
-  );
+  const isTokenDetectionEnabled = useSelector(selectUseTokenDetection);
   const chainId = useSelector(selectChainId);
 
   const setFocusState = useCallback(
@@ -108,7 +106,10 @@ const SearchTokenAutocomplete = ({ navigation }: Props) => {
 
   const addToken = useCallback(async () => {
     const { TokensController } = Engine.context as any;
-    await TokensController.addToken(address, symbol, decimals, iconUrl, name);
+    await TokensController.addToken(address, symbol, decimals, {
+      image: iconUrl,
+      name,
+    });
 
     AnalyticsV2.trackEvent(MetaMetricsEvents.TOKEN_ADDED, getAnalyticsParams());
 

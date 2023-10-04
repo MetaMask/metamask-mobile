@@ -1,5 +1,5 @@
 import { renderHook } from '@testing-library/react-native';
-import AsyncStorage from '@react-native-async-storage/async-storage';
+import AsyncStorage from '../../../store/async-storage-wrapper';
 import useDeleteWallet from './useDeleteWallet';
 import { Authentication } from '../../../core';
 import AUTHENTICATION_TYPE from '../../../constants/userProperties';

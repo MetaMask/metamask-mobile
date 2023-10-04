@@ -22,7 +22,11 @@ export default class OnboardingWizardModal {
   }
 
   static async tapGotItButton() {
-    await TestHelpers.waitAndTap(ONBOARDING_WIZARD_NEXT_GOT_IT_BUTTON);
+    if (device.getPlatform() === 'ios') {
+      await TestHelpers.waitAndTap(ONBOARDING_WIZARD_NEXT_GOT_IT_BUTTON);
+    } else {
+      await TestHelpers.waitAndTapByLabel(ONBOARDING_WIZARD_NEXT_GOT_IT_BUTTON);
+    }
   }
 
   static async tapBackButton() {

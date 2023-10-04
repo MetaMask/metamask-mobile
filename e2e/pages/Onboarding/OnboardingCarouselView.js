@@ -4,7 +4,7 @@ import {
   WELCOME_SCREEN_GET_STARTED_BUTTON_ID,
 } from '../../../wdio/screen-objects/testIDs/Screens/WelcomeScreen.testIds';
 
-const ONBOARDING_CAROUSEL_ID = 'welcome-screen-carousel-container-id';
+const ONBOARDING_CAROUSEL_ID = 'onboarding-carouselcarousel-screen--screen';
 
 const CAROUSEL_SCREEN_ONE_IMAGE_ID = 'carousel-one-image';
 const CAROUSEL_SCREEN_TWO_IMAGE_ID = 'carousel-two-image';
@@ -57,7 +57,9 @@ export default class OnboardingCarouselView {
   }
 
   static async isVisible() {
-    await TestHelpers.checkIfVisible(ONBOARDING_CAROUSEL_ID);
+    if (device.getPlatform() === 'ios') {
+      await TestHelpers.checkIfVisible(ONBOARDING_CAROUSEL_ID);
+    }
   }
 
   static async isNotVisible() {

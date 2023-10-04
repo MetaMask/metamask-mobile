@@ -1,3 +1,7 @@
+import { getFixturesServerPort } from './utils';
+
 beforeAll(async () => {
-  await device.launchApp();
+  await device.launchApp({
+    launchArgs: { fixtureServerPort: `${getFixturesServerPort()}` },
+  });
 });

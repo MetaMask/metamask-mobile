@@ -21,6 +21,8 @@ import Routes from '../../../constants/navigation/Routes';
 import SheetBottom, {
   SheetBottomRef,
 } from '../../../component-library/components/Sheet/SheetBottom';
+import { selectDetectedTokens } from '../../../selectors/tokensController';
+import { selectChainId } from '../../../selectors/networkController';
 
 const createStyles = (colors: any) =>
   StyleSheet.create({
@@ -65,11 +67,8 @@ interface IgnoredTokensByAddress {
 const DetectedTokens = () => {
   const navigation = useNavigation();
   const sheetRef = useRef<SheetBottomRef>(null);
-  const detectedTokens = useSelector<any, TokenType[]>(
-    (state) =>
-      state.engine.backgroundState.TokensController
-        .detectedTokens as TokenType[],
-  );
+  const detectedTokens = useSelector(selectDetectedTokens);
+  const chainId = useSelector(selectChainId);
   const [ignoredTokens, setIgnoredTokens] = useState<IgnoredTokensByAddress>(
     {},
   );
@@ -117,8 +116,6 @@ const DetectedTokens = () => {
       }
 
       sheetRef.current?.hide(async () => {
-        const { NetworkController } = Engine.context as any;
-
         try {
           tokensToIgnore.length > 0 &&
             (await TokensController.ignoreTokens(tokensToIgnore));
@@ -129,9 +126,7 @@ const DetectedTokens = () => {
                 AnalyticsV2.trackEvent(MetaMetricsEvents.TOKEN_ADDED, {
                   token_address: address,
                   token_symbol: symbol,
-                  chain_id: getDecimalChainId(
-                    NetworkController?.state?.providerConfig?.chainId,
-                  ),
+                  chain_id: getDecimalChainId(chainId),
                   source: 'detected',
                 }),
               ),
@@ -148,12 +143,10 @@ const DetectedTokens = () => {
         }
       });
     },
-    [detectedTokens, ignoredTokens],
+    [chainId, detectedTokens, ignoredTokens],
   );
 
   const triggerIgnoreAllTokens = () => {
-    const { NetworkController } = Engine.context as any;
-
     navigation.navigate('DetectedTokensConfirmation', {
       onConfirm: () => dismissModalAndTriggerAction(true),
       isHidingAll: true,
@@ -164,9 +157,7 @@ const DetectedTokens = () => {
         token_standard: 'ERC20',
         asset_type: 'token',
         tokens: detectedTokensForAnalytics,
-        chain_id: getDecimalChainId(
-          NetworkController?.state?.providerConfig?.chainId,
-        ),
+        chain_id: getDecimalChainId(chainId),
       }),
     );
   };
@@ -255,16 +246,13 @@ const DetectedTokens = () => {
   };
 
   const trackCancelWithoutAction = (hasPendingAction: boolean) => {
-    const { NetworkController } = Engine.context as any;
     if (hasPendingAction) {
       return;
     }
     AnalyticsV2.trackEvent(MetaMetricsEvents.TOKEN_IMPORT_CANCELED, {
       source: 'detected',
       tokens: detectedTokensForAnalytics,
-      chain_id: getDecimalChainId(
-        NetworkController?.state?.providerConfig?.chainId,
-      ),
+      chain_id: getDecimalChainId(chainId),
     });
   };
 

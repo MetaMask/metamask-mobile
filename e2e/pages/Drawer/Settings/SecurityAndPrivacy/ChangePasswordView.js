@@ -11,6 +11,7 @@ import {
 import messages from '../../../../../locales/languages/en.json';
 
 const CHANGE_PASSWORD_TEXT = messages.manual_backup_step_1.confirm_password;
+const CONFIRM_BUTTON_TEXT = messages.account_backup_step_4.confirm;
 
 export default class ChangePasswordView {
   static async typeInConfirmPasswordInputBox(PASSWORD) {
@@ -21,7 +22,7 @@ export default class ChangePasswordView {
   }
 
   static async tapConfirmButton() {
-    await TestHelpers.tapByText('CONFIRM');
+    await TestHelpers.tapByText(CONFIRM_BUTTON_TEXT);
   }
 
   static async enterPassword(PASSWORD) {

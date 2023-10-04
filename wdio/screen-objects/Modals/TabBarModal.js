@@ -15,7 +15,7 @@ class TabBarModal {
   }
 
   get browserButton() {
-    return Selectors.getElementByPlatform(TAB_BAR_BROWSER_BUTTON);
+    return Selectors.getXpathElementByResourceId(TAB_BAR_BROWSER_BUTTON);
   }
 
   get actionButton() {

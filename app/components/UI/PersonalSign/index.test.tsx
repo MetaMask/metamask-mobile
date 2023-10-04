@@ -10,12 +10,16 @@ import NotificationManager from '../../../core/NotificationManager';
 import { InteractionManager } from 'react-native';
 import AppConstants from '../../../core/AppConstants';
 import { strings } from '../../../../locales/i18n';
+import initialBackgroundState from '../../../util/test/initial-background-state.json';
 
 jest.mock('../../../core/Engine', () => ({
+  acceptPendingApproval: jest.fn(),
+  rejectPendingApproval: jest.fn(),
   context: {
     SignatureController: {
-      signPersonalMessage: jest.fn(),
-      cancelPersonalMessage: jest.fn(),
+      hub: {
+        on: jest.fn(),
+      },
     },
   },
 }));
@@ -37,17 +41,17 @@ const mockStore = configureMockStore();
 
 const initialState = {
   engine: {
-    backgroundState: {
-      PreferencesController: {
-        selectedAddress: '0x0',
-      },
-    },
+    backgroundState: initialBackgroundState,
   },
 };
 
 const store = mockStore(initialState);
 
-function createWrapper({ origin = messageParamsMock.origin } = {}) {
+function createWrapper({
+  origin = messageParamsMock.origin,
+  mockConfirm = jest.fn(),
+  mockReject = jest.fn(),
+} = {}) {
   return shallow(
     <Provider store={store}>
       <PersonalSign
@@ -56,9 +60,8 @@ function createWrapper({ origin = messageParamsMock.origin } = {}) {
           ...messageParamsMock,
           origin,
         }}
-        onConfirm={() => ({})}
-        onCancel={() => ({})}
-        selectedAddress="0x0"
+        onConfirm={mockConfirm}
+        onReject={mockReject}
       />
     </Provider>,
   ).find(PersonalSign);
@@ -72,15 +75,11 @@ describe('PersonalSign', () => {
 
   describe('onConfirm', () => {
     it('signs message', async () => {
-      const wrapper = createWrapper().dive();
+      const onConfirmMock = jest.fn();
+      const wrapper = createWrapper({ mockConfirm: onConfirmMock }).dive();
       await (wrapper.find(SignatureRequest).props() as any).onConfirm();
 
-      expect(
-        Engine.context.SignatureController.signPersonalMessage,
-      ).toHaveBeenCalledTimes(1);
-      expect(
-        Engine.context.SignatureController.signPersonalMessage,
-      ).toHaveBeenCalledWith(messageParamsMock);
+      expect(onConfirmMock).toHaveBeenCalledTimes(1);
     });
 
     it.each([
@@ -108,17 +107,13 @@ describe('PersonalSign', () => {
     });
   });
 
-  describe('onCancel', () => {
-    it('cancels message', async () => {
-      const wrapper = createWrapper().dive();
-      await (wrapper.find(SignatureRequest).props() as any).onCancel();
+  describe('onReject', () => {
+    it('rejects message', async () => {
+      const onRejectMock = jest.fn();
+      const wrapper = createWrapper({ mockReject: onRejectMock }).dive();
+      await (wrapper.find(SignatureRequest).props() as any).onReject();
 
-      expect(
-        Engine.context.SignatureController.cancelPersonalMessage,
-      ).toHaveBeenCalledTimes(1);
-      expect(
-        Engine.context.SignatureController.cancelPersonalMessage,
-      ).toHaveBeenCalledWith(messageParamsMock.metamaskId);
+      expect(onRejectMock).toHaveBeenCalledTimes(1);
     });
 
     it.each([
@@ -130,9 +125,10 @@ describe('PersonalSign', () => {
         .mockImplementation((callback: any) => callback());
 
       (NotificationManager.showSimpleNotification as any).mockReset();
+      (Engine.context.SignatureController.hub.on as any).mockReset();
 
       const wrapper = createWrapper({ origin }).dive();
-      await (wrapper.find(SignatureRequest).props() as any).onCancel();
+      await (wrapper.find(SignatureRequest).props() as any).onReject();
 
       expect(NotificationManager.showSimpleNotification).toHaveBeenCalledTimes(
         1,

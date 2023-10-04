@@ -4,6 +4,7 @@ import GeneralSettings from './';
 import configureMockStore from 'redux-mock-store';
 import { Provider } from 'react-redux';
 import { AppThemeKey } from '../../../../util/theme/models';
+import initialBackgroundState from '../../../../util/test/initial-background-state.json';
 
 const mockStore = configureMockStore();
 const initialState = {
@@ -15,15 +16,7 @@ const initialState = {
     useBlockieIcon: true,
   },
   engine: {
-    backgroundState: {
-      CurrencyRateController: { currentCurrency: 'USD' },
-      NetworkController: {
-        providerConfig: {
-          type: 'mainnet',
-        },
-      },
-      PreferencesController: { selectedAddress: '0x0' },
-    },
+    backgroundState: initialBackgroundState,
   },
   user: { appTheme: AppThemeKey.light },
 };

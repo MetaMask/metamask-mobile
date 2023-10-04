@@ -5,8 +5,8 @@ import { fireEvent } from '@testing-library/react-native';
 // Internal dependencies
 import EditAccountName from './EditAccountName';
 import renderWithProvider from '../../../util/test/renderWithProvider';
+import initialBackgroundState from '../../../util/test/initial-background-state.json';
 
-jest.unmock('react-redux');
 const mockSetAccountLabel = jest.fn();
 
 jest.mock('../../../core/Engine', () => ({
@@ -17,7 +17,7 @@ jest.mock('../../../core/Engine', () => ({
   },
 }));
 
-const initialState = {
+const mockInitialState = {
   swaps: { '1': { isLive: true }, hasOnboarded: false, isLive: true },
   wizard: {
     step: 0,
@@ -27,6 +27,7 @@ const initialState = {
   },
   engine: {
     backgroundState: {
+      ...initialBackgroundState,
       PreferencesController: {
         selectedAddress: '0x',
         identities: {
@@ -41,7 +42,7 @@ jest.mock('react-redux', () => ({
   ...jest.requireActual('react-redux'),
   useSelector: jest
     .fn()
-    .mockImplementation((callback) => callback(initialState)),
+    .mockImplementation((callback) => callback(mockInitialState)),
 }));
 
 const mockNavigate = jest.fn();
@@ -70,7 +71,7 @@ describe('EditAccountName', () => {
     mockSetOptions.mockClear();
   });
   it('should render correctly', () => {
-    const { getByText, toJSON } = renderComponent(initialState);
+    const { getByText, toJSON } = renderComponent(mockInitialState);
     expect(getByText('Cancel')).toBeDefined();
     expect(getByText('Save')).toBeDefined();
     expect(getByText('Name')).toBeDefined();
@@ -79,7 +80,7 @@ describe('EditAccountName', () => {
   });
 
   it('should enable the save button when text input changes', () => {
-    const { getByTestId } = renderComponent(initialState);
+    const { getByTestId } = renderComponent(mockInitialState);
     const input = getByTestId('account-name-input');
     const saveButton = getByTestId('save-button');
 
@@ -92,14 +93,14 @@ describe('EditAccountName', () => {
   });
 
   it('should call goBack when cancel button is pressed', () => {
-    const { getByText } = renderComponent(initialState);
+    const { getByText } = renderComponent(mockInitialState);
     const cancelButton = getByText('Cancel');
     fireEvent.press(cancelButton);
     expect(mockGoBack).toHaveBeenCalled();
   });
 
   it('should call navigate when save button is pressed', () => {
-    const { getByTestId } = renderComponent(initialState);
+    const { getByTestId } = renderComponent(mockInitialState);
     const input = getByTestId('account-name-input');
     const saveButton = getByTestId('save-button');
     fireEvent.changeText(input, 'New Name');

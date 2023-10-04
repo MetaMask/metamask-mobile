@@ -19,5 +19,5 @@ export const SAMPLE_CHECKBOX_PROPS: CheckboxProps = {
   isChecked: false,
   isIndeterminate: false,
   isDisabled: false,
-  isReadonly: false,
+  isReadOnly: false,
 };

@@ -3,27 +3,12 @@ import TransactionReviewSummary from './';
 import configureMockStore from 'redux-mock-store';
 import { shallow } from 'enzyme';
 import { Provider } from 'react-redux';
+import initialBackgroundState from '../../../../util/test/initial-background-state.json';
 
 const mockStore = configureMockStore();
 const initialState = {
   engine: {
-    backgroundState: {
-      TokenRatesController: {
-        contractExchangeRates: {},
-      },
-      CurrencyRateController: {
-        currentCurrency: 'usd',
-        conversionRate: 0.1,
-      },
-      TokensController: {
-        tokens: [],
-      },
-      NetworkController: {
-        providerConfig: {
-          ticker: 'ETH',
-        },
-      },
-    },
+    backgroundState: initialBackgroundState,
   },
   settings: {
     showHexData: true,

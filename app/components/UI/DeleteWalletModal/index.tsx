@@ -124,7 +124,6 @@ const DeleteWalletModal = () => {
               </Text>
               <OutlinedTextField
                 style={styles.input}
-                testID={DELETE_WALLET_INPUT_BOX_ID}
                 {...generateTestId(Platform, DELETE_WALLET_INPUT_BOX_ID)}
                 autoFocus
                 returnKeyType={'done'}

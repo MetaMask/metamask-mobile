@@ -26,6 +26,7 @@ import { AccountPermissionsScreens } from '../AccountPermissions.types';
 import getAccountNameWithENS from '../../../../util/accounts';
 import { MetaMetricsEvents } from '../../../../core/Analytics';
 import AnalyticsV2 from '../../../../util/analyticsV2';
+import { selectAccountsLength } from '../../../../selectors/accountTrackerController';
 
 // Internal dependencies.
 import { AccountPermissionsRevokeProps } from './AccountPermissionsRevoke.types';
@@ -39,6 +40,7 @@ import {
 import { IconName } from '../../../../component-library/components/Icons/Icon';
 import Avatar from '../../../../component-library/components/Avatars/Avatar/Avatar';
 import { AvatarVariants } from '../../../../component-library/components/Avatars/Avatar';
+import { selectNetworkConfigurations } from '../../../../selectors/networkController';
 
 const AccountPermissionsRevoke = ({
   ensByAccountAddress,
@@ -57,17 +59,10 @@ const AccountPermissionsRevoke = ({
   const activeAddress = permittedAddresses[0];
   const { toastRef } = useContext(ToastContext);
 
-  const accountsLength = useSelector(
-    (state: any) =>
-      Object.keys(
-        state.engine.backgroundState.AccountTrackerController.accounts || {},
-      ).length,
-  );
+  const accountsLength = useSelector(selectAccountsLength);
 
   const nonTestnetNetworks = useSelector(
-    (state: any) =>
-      state.engine.backgroundState.PreferencesController.frequentRpcList
-        .length + 1,
+    (state: any) => Object.keys(selectNetworkConfigurations(state)).length + 1,
   );
 
   const revokeAllAccounts = useCallback(

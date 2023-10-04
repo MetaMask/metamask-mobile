@@ -24,7 +24,7 @@ export interface CheckboxProps extends TouchableOpacityProps {
   /**
    * Optional prop to configure the readonly state.
    */
-  isReadonly?: boolean;
+  isReadOnly?: boolean;
 }
 
 /**
@@ -34,5 +34,5 @@ export type CheckboxStyleSheetVars = Pick<CheckboxProps, 'style'> & {
   isChecked: boolean;
   isIndeterminate: boolean;
   isDisabled: boolean;
-  isReadonly: boolean;
+  isReadOnly: boolean;
 };
