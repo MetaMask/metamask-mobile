@@ -78,7 +78,6 @@ import Routes from '../../../constants/navigation/Routes';
 import createStyles from './styles';
 import {
   selectChainId,
-  selectNetwork,
   selectNetworkConfigurations,
   selectProviderType,
   selectTicker,
@@ -98,6 +97,7 @@ import { getRampNetworks } from '../../../reducers/fiatOrders';
 import SkeletonText from '../Ramp/components/SkeletonText';
 import InfoModal from '../../../components/UI/Swaps/components/InfoModal';
 import BlockaidBanner from '../BlockaidBanner/BlockaidBanner';
+import { regex } from '../../../../app/util/regex';
 
 const { ORIGIN_DEEPLINK, ORIGIN_QR_CODE } = AppConstants.DEEPLINKS;
 const POLLING_INTERVAL_ESTIMATED_L1_FEE = 30000;
@@ -684,7 +684,7 @@ class ApproveTransactionReview extends PureComponent {
   handleCustomSpendOnInputChange = (value) => {
     if (isNumber(value)) {
       this.setState({
-        tokenSpendValue: value.replace(/[^0-9.]/g, ''),
+        tokenSpendValue: value.replace(regex.nonNumber, ''),
       });
     }
   };
@@ -1226,7 +1226,6 @@ const mapStateToProps = (state) => ({
   providerRpcTarget: selectRpcTarget(state),
   primaryCurrency: state.settings.primaryCurrency,
   activeTabUrl: getActiveTabUrl(state),
-  networkId: selectNetwork(state),
   chainId: selectChainId(state),
   tokenList: selectTokenList(state),
   isNativeTokenBuySupported: isNetworkBuyNativeTokenSupported(
