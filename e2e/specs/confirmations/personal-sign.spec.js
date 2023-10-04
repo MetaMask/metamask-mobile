@@ -9,12 +9,12 @@ import {
   withFixtures,
   defaultGanacheOptions,
 } from '../../fixtures/fixture-helper';
-import { Smoke } from '../../tags';
+import { Regression } from '../../tags';
 import TestHelpers from '../../helpers';
 
 const MAX_ATTEMPTS = 3;
 
-describe(Smoke('Personal Sign'), () => {
+describe(Regression('Personal Sign'), () => {
   beforeAll(async () => {
     jest.setTimeout(2500000);
     await TestHelpers.reverseServerPort();
