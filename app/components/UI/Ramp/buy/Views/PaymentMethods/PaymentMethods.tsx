@@ -12,7 +12,6 @@ import ErrorViewWithReporting from '../../../common/components/ErrorViewWithRepo
 import StyledButton from '../../../../StyledButton';
 
 import { useRampSDK } from '../../../common/sdk';
-import { RampType } from '../../../common/types';
 import { useTheme } from '../../../../../../util/theme';
 import { getFiatOnRampAggNavbar } from '../../../../Navbar';
 import { strings } from '../../../../../../../locales/i18n';
@@ -47,7 +46,6 @@ const PaymentMethods = () => {
     setSelectedPaymentMethodId,
     selectedChainId,
     sdkError,
-    rampType,
   } = useRampSDK();
 
   const { selectedRegion } = useRegions();
@@ -102,22 +100,19 @@ const PaymentMethods = () => {
 
   const handleContinueToAmount = useCallback(() => {
     // TODO: handle navigation to Build Quote page
-    if (rampType === RampType.BUY) {
-      trackEvent('ONRAMP_CONTINUE_TO_AMOUNT_CLICKED', {
-        available_payment_method_ids: paymentMethods?.map(
-          (paymentMethod) => paymentMethod.id,
-        ) as string[],
-        payment_method_id: currentPaymentMethod?.id as string,
-        region: selectedRegion?.id as string,
-        location: 'Payment Method Screen',
-      });
-      navigation.navigate(...createBuildQuoteNavDetails());
-    }
+    trackEvent('ONRAMP_CONTINUE_TO_AMOUNT_CLICKED', {
+      available_payment_method_ids: paymentMethods?.map(
+        (paymentMethod) => paymentMethod.id,
+      ) as string[],
+      payment_method_id: currentPaymentMethod?.id as string,
+      region: selectedRegion?.id as string,
+      location: 'Payment Method Screen',
+    });
+    navigation.navigate(...createBuildQuoteNavDetails());
   }, [
     currentPaymentMethod?.id,
     navigation,
     paymentMethods,
-    rampType,
     selectedRegion?.id,
     trackEvent,
   ]);

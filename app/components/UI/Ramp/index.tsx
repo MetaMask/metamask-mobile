@@ -172,6 +172,7 @@ export const getNotificationDetails = (fiatOrder: FiatOrder) => {
       };
     }
     case FIAT_ORDER_STATES.PENDING:
+    case FIAT_ORDER_STATES.CREATED:
     default: {
       return {
         ...baseNotificationDetails,

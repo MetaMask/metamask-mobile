@@ -1,5 +1,6 @@
 import useSDKMethod from '../../common/hooks/useSDKMethod';
 import { useRampSDK } from '../../common/sdk';
+import { RampType } from '../../common/types';
 
 const useLimits = () => {
   const {
@@ -7,10 +8,11 @@ const useLimits = () => {
     selectedPaymentMethodId,
     selectedAsset,
     selectedFiatCurrencyId,
+    rampType,
   } = useRampSDK();
 
   const [{ data: limits }] = useSDKMethod(
-    'getLimits',
+    rampType === RampType.BUY ? 'getLimits' : 'getSellLimits',
     selectedRegion?.id,
     selectedPaymentMethodId,
     selectedAsset?.id,

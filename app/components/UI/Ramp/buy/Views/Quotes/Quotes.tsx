@@ -6,6 +6,7 @@ import {
   ProviderBuyFeatureBrowserEnum,
   QuoteError,
   QuoteResponse,
+  SellQuoteResponse,
 } from '@consensys/on-ramp-sdk';
 import { Provider } from '@consensys/on-ramp-sdk/dist/API';
 
@@ -44,6 +45,7 @@ import { createCheckoutNavDetails } from '../Checkout';
 import { PROVIDER_LINKS } from '../../../common/types';
 import Logger from '../../../../../../util/Logger';
 import Timer from './Timer';
+import { isBuyQuote, isBuyQuotes, isSellQuotes } from '../../../common/utils';
 
 export interface QuotesParams {
   amount: number;
@@ -65,6 +67,7 @@ function Quotes() {
     appConfig,
     callbackBaseUrl,
     sdkError,
+    rampType,
   } = useRampSDK();
   const renderInAppBrowser = useInAppBrowser();
 
@@ -107,10 +110,18 @@ function Quotes() {
     query: fetchQuotes,
   } = useQuotes(params.amount);
 
-  const filteredQuotes = useMemo(
-    () => quotes?.filter((quote): quote is QuoteResponse => !quote.error) ?? [],
-    [quotes],
-  );
+  const filteredQuotes = useMemo(() => {
+    if (quotes) {
+      if (isBuyQuotes(quotes, rampType)) {
+        return quotes.filter((quote): quote is QuoteResponse => !quote.error);
+      } else if (isSellQuotes(quotes, rampType)) {
+        return quotes.filter(
+          (quote): quote is SellQuoteResponse => !quote.error,
+        );
+      }
+    }
+    return [];
+  }, [quotes, rampType]);
 
   const handleCancelPress = useCallback(() => {
     trackEvent('ONRAMP_CANCELED', {
@@ -144,9 +155,12 @@ function Quotes() {
     trackEvent,
   ]);
 
-  const handleOnQuotePress = useCallback((quote: QuoteResponse) => {
-    setProviderId(quote.provider.id);
-  }, []);
+  const handleOnQuotePress = useCallback(
+    (quote: QuoteResponse | SellQuoteResponse) => {
+      setProviderId(quote.provider.id);
+    },
+    [],
+  );
 
   const handleInfoPress = useCallback(
     (quote) => {
@@ -161,11 +175,8 @@ function Quotes() {
     [trackEvent],
   );
 
-  const handleOnPressBuy = useCallback(
-    async (quote: QuoteResponse, index) => {
-      if (!quote?.buy) {
-        return;
-      }
+  const handleOnPressCTA = useCallback(
+    async (quote: QuoteResponse | SellQuoteResponse, index) => {
       try {
         setIsQuoteLoading(true);
 
@@ -191,7 +202,13 @@ function Quotes() {
             ((quote.amountIn ?? 0) - totalFee) / (quote.amountOut ?? 0),
         });
 
-        const buyAction = await quote.buy();
+        let buyAction;
+        if (isBuyQuote(quote, rampType)) {
+          buyAction = await quote.buy();
+        } else {
+          buyAction = await quote.sell();
+        }
+
         if (
           buyAction.browser === ProviderBuyFeatureBrowserEnum.InAppOsBrowser
         ) {
@@ -232,6 +249,7 @@ function Quotes() {
       navigation,
       params,
       pollingCyclesLeft,
+      rampType,
       renderInAppBrowser,
       selectedChainId,
       selectedPaymentMethodId,
@@ -306,9 +324,10 @@ function Quotes() {
 
   useEffect(() => {
     if (quotes && !isFetchingQuotes && pollingCyclesLeft >= 0) {
-      const quotesWithoutError = quotes.filter(
-        (quote): quote is QuoteResponse => !quote.error,
-      );
+      const quotesWithoutError = filteredQuotes as (
+        | QuoteResponse
+        | SellQuoteResponse
+      )[];
       if (quotesWithoutError.length > 0) {
         const totals = quotesWithoutError.reduce(
           (acc, curr) => {
@@ -362,16 +381,16 @@ function Quotes() {
         });
       }
 
-      quotes
+      (quotes as (QuoteResponse | SellQuoteResponse | QuoteError)[])
         .filter((quote): quote is QuoteError => Boolean(quote.error))
-        .forEach((quote) =>
+        .forEach((quoteError) =>
           trackEvent('ONRAMP_QUOTE_ERROR', {
-            provider_onramp: quote.provider.name,
+            provider_onramp: quoteError.provider.name,
             currency_source: params.fiatCurrency?.symbol,
             currency_destination: params.asset?.symbol,
             payment_method_id: selectedPaymentMethodId as string,
             chain_id_destination: selectedChainId,
-            error_message: quote.message,
+            error_message: quoteError.message,
             amount: params.amount,
           }),
         );
@@ -527,9 +546,10 @@ function Quotes() {
                       isLoading={isQuoteLoading}
                       quote={quote}
                       onPress={() => handleOnQuotePress(quote)}
-                      onPressBuy={() => handleOnPressBuy(quote, index)}
+                      onPressCTA={() => handleOnPressCTA(quote, index)}
                       highlighted={quote.provider.id === providerId}
                       showInfo={() => handleInfoPress(quote)}
+                      rampType={rampType}
                     />
                   </Row>
                 </React.Fragment>

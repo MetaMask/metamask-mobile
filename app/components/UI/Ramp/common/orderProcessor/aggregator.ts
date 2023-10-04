@@ -1,10 +1,11 @@
+import { Order, OrderStatusEnum } from '@consensys/on-ramp-sdk';
+import { OrderOrderTypeEnum } from '@consensys/on-ramp-sdk/dist/API';
 import { SDK } from '../sdk';
 import {
   FIAT_ORDER_PROVIDERS,
   FIAT_ORDER_STATES,
 } from '../../../../../constants/on-ramp';
 import Logger from '../../../../../util/Logger';
-import { Order, OrderStatusEnum } from '@consensys/on-ramp-sdk';
 import { FiatOrder } from '../../../../../reducers/fiatOrders';
 import AppConstants from '../../../../../core/AppConstants';
 import { ProcessorOptions } from '../..';
@@ -29,6 +30,9 @@ const aggregatorOrderStateToFiatOrderState = (
     }
     case OrderStatusEnum.Cancelled: {
       return FIAT_ORDER_STATES.CANCELLED;
+    }
+    case OrderStatusEnum.Created: {
+      return FIAT_ORDER_STATES.CREATED;
     }
     case OrderStatusEnum.Pending:
     case OrderStatusEnum.Unknown:
@@ -91,7 +95,9 @@ export async function processAggregatorOrder(
 
   try {
     const orders = await SDK.orders();
-    const updatedOrder = await orders.getOrder(order.id, order.account);
+    const getOrderMethod =
+      order.orderType === OrderOrderTypeEnum.Sell ? 'getSellOrder' : 'getOrder';
+    const updatedOrder = await orders[getOrderMethod](order.id, order.account);
 
     if (!updatedOrder) {
       throw new Error('Payment Request Failed: empty order response');

@@ -1,6 +1,7 @@
 import { useEffect, useMemo } from 'react';
 import { useRampSDK } from '../../common/sdk';
 import useSDKMethod from '../../common/hooks/useSDKMethod';
+import { RampType } from '../../common/types';
 
 export default function useFiatCurrencies() {
   const {
@@ -8,6 +9,7 @@ export default function useFiatCurrencies() {
     selectedPaymentMethodId,
     selectedFiatCurrencyId,
     setSelectedFiatCurrencyId,
+    rampType,
   } = useRampSDK();
 
   const [
@@ -18,7 +20,9 @@ export default function useFiatCurrencies() {
     },
     queryDefaultFiatCurrency,
   ] = useSDKMethod(
-    'getDefaultFiatCurrency',
+    rampType === RampType.BUY
+      ? 'getDefaultFiatCurrency'
+      : 'getDefaultSellFiatCurrency',
     selectedRegion?.id,
     selectedPaymentMethodId,
   );
@@ -31,7 +35,7 @@ export default function useFiatCurrencies() {
     },
     queryGetFiatCurrencies,
   ] = useSDKMethod(
-    'getFiatCurrencies',
+    rampType === RampType.BUY ? 'getFiatCurrencies' : 'getSellFiatCurrencies',
     selectedRegion?.id,
     selectedPaymentMethodId,
   );

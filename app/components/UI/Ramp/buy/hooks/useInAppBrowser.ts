@@ -3,9 +3,11 @@ import { Linking } from 'react-native';
 import { useDispatch, useSelector } from 'react-redux';
 import InAppBrowser from 'react-native-inappbrowser-reborn';
 import { OrderStatusEnum, Provider } from '@consensys/on-ramp-sdk';
+import { OrderOrderTypeEnum } from '@consensys/on-ramp-sdk/dist/API';
 import BuyAction from '@consensys/on-ramp-sdk/dist/regions/BuyAction';
 import useAnalytics from '../../common/hooks/useAnalytics';
 import { callbackBaseDeeplink, SDK, useRampSDK } from '../../common/sdk';
+import { RampType } from '../../common/types';
 import { createCustomOrderIdData } from '../../common/orderProcessor/customOrderId';
 import { aggregatorOrderToFiatOrder } from '../../common/orderProcessor/aggregator';
 import {
@@ -24,6 +26,7 @@ export default function useInAppBrowser() {
     selectedPaymentMethodId,
     selectedAsset,
     selectedChainId,
+    rampType,
   } = useRampSDK();
 
   const dispatch = useDispatch();
@@ -50,6 +53,9 @@ export default function useInAppBrowser() {
           customOrderId,
           selectedChainId,
           selectedAddress,
+          rampType === RampType.BUY
+            ? OrderOrderTypeEnum.Buy
+            : OrderOrderTypeEnum.Sell,
         );
         dispatch(addFiatCustomIdData(customIdData));
       }
@@ -123,6 +129,7 @@ export default function useInAppBrowser() {
       dispatch,
       handleSuccessfulOrder,
       lockTime,
+      rampType,
       selectedAddress,
       selectedAsset?.symbol,
       selectedChainId,
