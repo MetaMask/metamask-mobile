@@ -172,22 +172,6 @@ class NotificationManager {
   };
 
   _confirmedCallback = async (transactionMeta, originalTransaction) => {
-    // const { NetworkController } = Engine.context;
-    // const { provider } = NetworkController.getProviderAndBlockTracker();
-
-    // const ethQuery = new EthQuery(provider);
-
-    // const getTransactionReceipt = await query(
-    //   ethQuery,
-    //   'getTransactionReceipt',
-    //   [originalTransaction?.transactionHash],
-    // );
-
-    // if (getTransactionReceipt?.status === '0x0') {
-    //   this._finishedCallback(transactionMeta);
-    //   return;
-    // }
-
     // Once it's confirmed we hide the pending tx notification
     this._removeNotificationById(transactionMeta.id);
     this._transactionsWatchTable[transactionMeta.transaction.nonce].length &&
