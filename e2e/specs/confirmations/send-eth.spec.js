@@ -33,6 +33,7 @@ describe(Smoke('Send ETH'), () => {
         fixture: new FixtureBuilder().withGanacheNetwork().build(),
         restartDevice: true,
         ganacheOptions: defaultGanacheOptions,
+        mocks: true,
       },
       async () => {
         await loginToApp();
@@ -65,6 +66,7 @@ describe(Smoke('Send ETH'), () => {
         restartDevice: true,
         ganacheOptions: defaultGanacheOptions,
         smartContract: MULTISIG_CONTRACT,
+        mocks: true,
       },
       async ({ contractRegistry }) => {
         const multisigAddress = await contractRegistry.getContractAddress(

@@ -1,6 +1,9 @@
 import { DEFAULT_GANACHE_PORT } from '../app/util/test/ganache';
 import { DEFAULT_FIXTURE_SERVER_PORT } from './fixtures/fixture-server';
-import { DEFAULT_DAPP_SERVER_PORT } from './fixtures/fixture-helper';
+import {
+  DEFAULT_DAPP_SERVER_PORT,
+  DEFAULT_MOCK_SERVER_PORT,
+} from './fixtures/fixture-helper';
 
 function getServerPort(defaultPort) {
   if (process.env.CI) {
@@ -19,4 +22,8 @@ export function getFixturesServerPort() {
 
 export function getLocalTestDappPort() {
   return getServerPort(DEFAULT_DAPP_SERVER_PORT);
+}
+
+export function getMockServerPort() {
+  return getServerPort(DEFAULT_MOCK_SERVER_PORT);
 }

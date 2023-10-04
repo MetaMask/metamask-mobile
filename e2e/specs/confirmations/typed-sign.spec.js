@@ -30,6 +30,7 @@ describe(Smoke('Typed Sign'), () => {
           .build(),
         restartDevice: true,
         ganacheOptions: defaultGanacheOptions,
+        mocks: true,
       },
       async () => {
         await loginToApp();
@@ -57,6 +58,7 @@ describe(Smoke('Typed Sign'), () => {
           .build(),
         restartDevice: true,
         ganacheOptions: defaultGanacheOptions,
+        mocks: true,
       },
       async () => {
         await loginToApp();
@@ -84,6 +86,7 @@ describe(Smoke('Typed Sign'), () => {
           .build(),
         restartDevice: true,
         ganacheOptions: defaultGanacheOptions,
+        mocks: true,
       },
       async () => {
         await loginToApp();
@@ -111,6 +114,7 @@ describe(Smoke('Typed Sign'), () => {
           .build(),
         restartDevice: true,
         ganacheOptions: defaultGanacheOptions,
+        mocks: true,
       },
       async () => {
         await loginToApp();
@@ -138,6 +142,7 @@ describe(Smoke('Typed Sign'), () => {
           .build(),
         restartDevice: true,
         ganacheOptions: defaultGanacheOptions,
+        mocks: true,
       },
       async () => {
         await loginToApp();
@@ -165,6 +170,7 @@ describe(Smoke('Typed Sign'), () => {
           .build(),
         restartDevice: true,
         ganacheOptions: defaultGanacheOptions,
+        mocks: true,
       },
       async () => {
         await loginToApp();

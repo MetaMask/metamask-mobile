@@ -33,6 +33,7 @@ describe(Smoke('ERC20 tokens'), () => {
         restartDevice: true,
         ganacheOptions: defaultGanacheOptions,
         smartContract: HST_CONTRACT,
+        mocks: true,
       },
       async ({ contractRegistry }) => {
         const hstAddress = await contractRegistry.getContractAddress(

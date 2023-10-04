@@ -30,6 +30,7 @@ describe(Smoke('Personal Sign'), () => {
           .build(),
         restartDevice: true,
         ganacheOptions: defaultGanacheOptions,
+        mocks: true,
       },
       async () => {
         await loginToApp();
@@ -57,6 +58,7 @@ describe(Smoke('Personal Sign'), () => {
           .build(),
         restartDevice: true,
         ganacheOptions: defaultGanacheOptions,
+        mocks: true,
       },
       async () => {
         await loginToApp();

@@ -3,6 +3,7 @@ import {
   getFixturesServerPort,
   getGanachePort,
   getLocalTestDappPort,
+  getMockServerPort,
 } from './utils';
 export default class TestHelpers {
   static async waitAndTap(elementId, timeout, index) {
@@ -266,6 +267,7 @@ export default class TestHelpers {
       await device.reverseTcpPort(getGanachePort());
       await device.reverseTcpPort(getFixturesServerPort());
       await device.reverseTcpPort(getLocalTestDappPort());
+      await device.reverseTcpPort(getMockServerPort());
     }
   }
 }

@@ -6,9 +6,16 @@ import GanacheSeeder from '../../app/util/test/ganache-seeder';
 import axios from 'axios';
 import path from 'path';
 import createStaticServer from '../create-static-server';
-import { getFixturesServerPort, getLocalTestDappPort } from '../utils';
+import {
+  getFixturesServerPort,
+  getLocalTestDappPort,
+  getMockServerPort,
+} from '../utils';
+import { generateCACertificate, getLocal } from 'mockttp';
+import setupMocking from '../mock-e2e';
 
 export const DEFAULT_DAPP_SERVER_PORT = 8085;
+export const DEFAULT_MOCK_SERVER_PORT = 9100;
 
 const FIXTURE_SERVER_URL = `http://localhost:${getFixturesServerPort()}/state.json`;
 
@@ -91,10 +98,18 @@ export async function withFixtures(options, testSuite) {
     dappOptions,
     dappPath = undefined,
     dappPaths,
+    mocks,
+    testSpecificMock = function () {
+      // do nothing.
+    },
   } = options;
 
   const fixtureServer = new FixtureServer();
   const ganacheServer = new Ganache();
+  const https = await generateCACertificate();
+  const mockServer = getLocal({ https, cors: true });
+  let mockedEndpoint;
+  const mockBasePort = getMockServerPort();
   const dappBasePort = getLocalTestDappPort();
   let numberOfDapps = dapp ? 1 : 0;
   const dappServer = [];
@@ -139,6 +154,13 @@ export async function withFixtures(options, testSuite) {
       }
     }
 
+    if (mocks) {
+      mockedEndpoint = await setupMocking(mockServer, testSpecificMock, {
+        chainId: ganacheOptions?.chainId || 1337,
+      });
+      await mockServer.start(mockBasePort);
+    }
+
     // Start the fixture server
     await startFixtureServer(fixtureServer);
     await loadFixture(fixtureServer, { fixture });
@@ -154,7 +176,7 @@ export async function withFixtures(options, testSuite) {
       });
     }
 
-    await testSuite({ contractRegistry });
+    await testSuite({ contractRegistry, ganacheServer, mockedEndpoint });
   } catch (error) {
     console.error(error);
     throw error;
@@ -177,6 +199,16 @@ export async function withFixtures(options, testSuite) {
       }
     }
     await stopFixtureServer(fixtureServer);
+
+    // Since mockServer could be stop'd at another location,
+    // use a try/catch to avoid an error
+    if (mocks) {
+      try {
+        await mockServer.stop();
+      } catch (e) {
+        console.log('mockServer already stopped');
+      }
+    }
   }
 }
 

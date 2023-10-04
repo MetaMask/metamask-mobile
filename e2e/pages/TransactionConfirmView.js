@@ -69,6 +69,10 @@ export default class TransactionConfirmationView {
     await TestHelpers.checkIfVisible(EDIT_PRIORITY_SCREEN_TEST_ID);
   }
 
+  static async isMaxPriorityFeeVisible() {
+    await TestHelpers.checkIfVisible(MAX_PRIORITY_FEE_INPUT_TEST_ID);
+  }
+
   static async isMaxPriorityFeeCorrect(amount) {
     await TestHelpers.checkIfElementHasString(
       MAX_PRIORITY_FEE_INPUT_TEST_ID,

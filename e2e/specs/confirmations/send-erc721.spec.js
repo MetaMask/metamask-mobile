@@ -34,6 +34,7 @@ describe(Smoke('ERC721 tokens'), () => {
         restartDevice: true,
         ganacheOptions: defaultGanacheOptions,
         smartContract: NFT_CONTRACT,
+        mocks: true,
       },
       async ({ contractRegistry }) => {
         const nftsAddress = await contractRegistry.getContractAddress(
