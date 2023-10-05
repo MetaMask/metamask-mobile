@@ -31,9 +31,10 @@ import { BaseState, ControllerMessenger } from '@metamask/base-controller';
 import { ComposableController } from '@metamask/composable-controller';
 import {
   KeyringController,
-  KeyringControllerState,
-  KeyringControllerStateChangeEvent,
   SignTypedDataVersion,
+  KeyringControllerState,
+  KeyringControllerActions,
+  KeyringControllerEvents,
 } from '@metamask/keyring-controller';
 import {
   NetworkController,
@@ -136,6 +137,7 @@ type GlobalActions =
   | NetworkControllerActions
   | PermissionControllerActions
   | SignatureControllerActions
+  | KeyringControllerActions
   | LoggingControllerActions;
 type GlobalEvents =
   | ApprovalControllerEvents
@@ -145,7 +147,7 @@ type GlobalEvents =
   | NetworkControllerEvents
   | PermissionControllerEvents
   | SignatureControllerEvents
-  | KeyringControllerStateChangeEvent;
+  | KeyringControllerEvents;
 
 type PermissionsByRpcMethod = ReturnType<typeof getPermissionSpecifications>;
 type Permissions = PermissionsByRpcMethod[keyof PermissionsByRpcMethod];
@@ -405,8 +407,6 @@ class Engine {
     const phishingController = new PhishingController();
     phishingController.maybeUpdateState();
 
-    const additionalKeyrings = [QRHardwareKeyring.type, LedgerKeyring.type];
-
     const getIdentities = () => {
       const identities = preferencesController.state.identities;
       const lowerCasedIdentities: PreferencesState['identities'] = {};
@@ -416,11 +416,11 @@ class Engine {
       return lowerCasedIdentities;
     };
 
-    const keyringState = {
-      keyringTypes: additionalKeyrings,
-      ...initialState.KeyringController,
-      ...initialKeyringState,
-    };
+    const qrKeyringBuilder = () => new QRHardwareKeyring();
+    qrKeyringBuilder.type = QRHardwareKeyring.type;
+
+    const ledgerKeyringBuilder = () => new LedgerKeyring();
+    ledgerKeyringBuilder.type = LedgerKeyring.type;
 
     const keyringController = new KeyringController({
       removeIdentity: preferencesController.removeIdentity.bind(
@@ -438,17 +438,20 @@ class Engine {
       setAccountLabel: preferencesController.setAccountLabel.bind(
         preferencesController,
       ),
-      // Error expected.
       encryptor,
-      // @ts-expect-error Error expected.
+      // @ts-expect-error Error might be caused by base controller version mismatch
       messenger: this.controllerMessenger.getRestricted({
         name: 'KeyringController',
+        allowedEvents: [
+          'KeyringController:lock',
+          'KeyringController:unlock',
+          'KeyringController:stateChange',
+          'KeyringController:accountRemoved',
+        ],
+        allowedActions: ['KeyringController:getState'],
       }),
-      state: keyringState,
-      keyringBuilders: [
-        keyringBuilderFactory(QRHardwareKeyring),
-        keyringBuilderFactory(LedgerKeyring),
-      ],
+      state: initialKeyringState || initialState.KeyringController,
+      keyringBuilders: [qrKeyringBuilder, ledgerKeyringBuilder],
     });
 
     const controllers = [
@@ -761,8 +764,8 @@ class Engine {
 
   handleVaultBackup() {
     this.controllerMessenger.subscribe(
-      'KeyringController:stateChange',
-      (state: any) =>
+      AppConstants.KEYRING_STATE_CHANGE_EVENT,
+      (state: KeyringControllerState) =>
         backupVault(state)
           .then((result) => {
             if (result.success) {

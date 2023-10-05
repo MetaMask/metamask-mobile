@@ -1,11 +1,8 @@
 {
   "KeyringController": {
     "isUnlocked": false,
-    "keyrings": [],
-    "keyringTypes": [
-      "QR Hardware Wallet Device",
-      "Ledger"
-    ]
+    "keyringTypes": [],
+    "keyrings": []
   },
   "LoggingController": {
     "logs": {}
