@@ -633,7 +633,7 @@ class TransactionReviewInformation extends PureComponent {
     const { amountError, nonceModalVisible } = this.state;
     const {
       toggleDataView,
-      transaction: { warningGasPriceHigh },
+      transaction: { warningGasPriceHigh, type },
       error,
       over,
       showCustomNonce,
@@ -651,9 +651,10 @@ class TransactionReviewInformation extends PureComponent {
       : strings('transaction.buy_more');
 
     const showFeeMarket =
-      !gasEstimateType ||
-      gasEstimateType === GAS_ESTIMATE_TYPES.FEE_MARKET ||
-      gasEstimateType === GAS_ESTIMATE_TYPES.NONE;
+      (!gasEstimateType ||
+        gasEstimateType === GAS_ESTIMATE_TYPES.FEE_MARKET ||
+        gasEstimateType === GAS_ESTIMATE_TYPES.NONE) &&
+      type !== '0x0';
 
     return (
       <React.Fragment>

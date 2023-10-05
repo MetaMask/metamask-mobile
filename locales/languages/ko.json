@@ -1869,7 +1869,6 @@
   "fiat_on_ramp_aggregator": {
     "onboarding": {
       "what_to_expect": "소개",
-      "best_quotes": "MetaMask의 암호화폐 구매 기능은 전체 공급업체의 견적을 집계하여 최고의 견적을 제공하므로 대기 기간 없이 암호화폐를 소스에서 지갑으로 직접 가져올 수 있습니다.",
       "benefits": "가스 비용이 저렴하면서 수많은 네트워크, 토큰 및 지불 방법이 지원됩니다.",
       "get_started": "지금 시작하세요"
     },
@@ -1914,9 +1913,6 @@
     "select_region_currency": "지역 통화 선택",
     "no_tokens_match": "“{{searchString}}”(와)과 일치하는 토큰이 없습니다",
     "no_currency_match": "“{{searchString}}”(와)과 일치하는 통화가 없습니다",
-    "buy_from_vetted": "통합업체에서 {{ticker}}(을)를 구매할 때 MetaMask 앱을 종료하지 않고도 안전하게 포털에서 가져올 수 있습니다.",
-    "best_price": "최저가",
-    "explore_other_options": "다른 옵션 알아보기",
     "pay_with": "결제 수단:",
     "buy_with": "결제 수단: {{provider}}",
     "minimum": "최소 예치 금액:",
