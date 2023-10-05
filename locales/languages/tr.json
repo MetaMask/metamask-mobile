@@ -1869,7 +1869,6 @@
   "fiat_on_ramp_aggregator": {
     "onboarding": {
       "what_to_expect": "Bekleyebileceklerin",
-      "best_quotes": "Kripto para satın al özelliğimiz, entegre satıcılardan teklifleri toplayarak bekleme süresi olmadan doğrudan cüzdanına kripto para alabilmen için sana bu kaynaklardan en iyi teklifi sunar.",
       "benefits": "Daha az gaz ücreti ödenir ve çeşitli ağ, token ve ödeme yöntemleri desteklenir",
       "get_started": "Başlarken"
     },
