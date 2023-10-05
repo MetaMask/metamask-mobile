@@ -105,3 +105,4 @@ e2e/reports
 # ppom
 ppom/node_modules
 ppom/dist
+app/lib/ppom/ppom.html.js
