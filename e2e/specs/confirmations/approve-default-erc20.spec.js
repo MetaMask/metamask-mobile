@@ -2,7 +2,6 @@
 import { Regression } from '../../tags';
 import TestHelpers from '../../helpers';
 import { loginToApp } from '../../viewHelper';
-import ApprovalModal from '../../pages/modals/SigningModal';
 import FixtureBuilder from '../../fixtures/fixture-builder';
 import {
   withFixtures,
@@ -14,7 +13,6 @@ import { SMART_CONTRACTS } from '../../../app/util/test/smart-contracts';
 import root from '../../../locales/languages/en.json';
 
 const HST_CONTRACT = SMART_CONTRACTS.HST;
-const APPROVE_TOKENS_MESSAGE_TEXT = root.transactions.approve_tokens;
 const WEBVIEW_TEST_DAPP_APPROVE_TOKENS_BUTTON_ID = 'approveTokens';
 
 describe(Regression('ERC20 tokens'), () => {
