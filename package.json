@@ -172,7 +172,7 @@
     "@metamask/controller-utils": "^3.4.0",
     "@metamask/design-tokens": "^1.12.0",
     "@metamask/eth-keyring-controller": "^10.0.1",
-    "@metamask/eth-sig-util": "^6.0.0",
+    "@metamask/eth-sig-util": "^4.0.1",
     "@metamask/etherscan-link": "^2.0.0",
     "@metamask/gas-fee-controller": "^5.0.0",
     "@metamask/keyring-controller": "^6.0.0",
@@ -504,8 +504,7 @@
     "vm": "vm-browserify",
     "os": "react-native-os",
     "net": "react-native-tcp",
-    "fs": "react-native-level-fs",
-    "zlib": "browserify-zlib"
+    "fs": "react-native-level-fs"
   },
   "browser": {
     "crypto": "react-native-crypto",
@@ -520,8 +519,7 @@
     "vm": "vm-browserify",
     "os": "react-native-os",
     "net": "react-native-tcp",
-    "fs": "react-native-level-fs",
-    "zlib": "browserify-zlib"
+    "fs": "react-native-level-fs"
   },
   "engines": {
     "node": "^16.20.0",

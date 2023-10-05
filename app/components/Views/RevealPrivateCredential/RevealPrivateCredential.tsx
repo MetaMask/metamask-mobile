@@ -414,16 +414,6 @@ const RevealPrivateCredential = ({
     setIsModalVisible(false);
   };
 
-  const enableNextButton = async () => {
-    const { KeyringController } = Engine.context as any;
-    try {
-      await KeyringController.verifyPassword(password);
-    } catch {
-      return false;
-    }
-    return true;
-  };
-
   const renderModal = (
     isPrivateKeyReveal: boolean,
     privCredentialName: string,

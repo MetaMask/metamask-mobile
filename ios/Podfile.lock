@@ -83,7 +83,7 @@ PODS:
     - React-Core
   - MultiplatformBleAdapter (0.1.9)
   - OpenSSL-Universal (1.1.1100)
-  - Permission-BluetoothPeripheral (3.8.4):
+  - Permission-BluetoothPeripheral (3.9.3):
     - RNPermissions
   - RCT-Folly (2021.07.22.00):
     - boost
@@ -486,7 +486,7 @@ PODS:
     - React-Core
   - RNOS (1.2.6):
     - React
-  - RNPermissions (3.8.4):
+  - RNPermissions (3.9.3):
     - React-Core
   - RNReanimated (3.1.0):
     - DoubleConversion
@@ -871,7 +871,7 @@ SPEC CHECKSUMS:
   lottie-react-native: 3e722c63015fdb9c27638b0a77969fc412067c18
   MultiplatformBleAdapter: 5a6a897b006764392f9cef785e4360f54fb9477d
   OpenSSL-Universal: ebc357f1e6bc71fa463ccb2fe676756aff50e88c
-  Permission-BluetoothPeripheral: 2b88a131074edafd8a46a5cda4ba610ec986d2fb
+  Permission-BluetoothPeripheral: 04854fb3495961ab0012765a62df9fbd9f764223
   RCT-Folly: 424b8c9a7a0b9ab2886ffe9c3b041ef628fd4fb1
   RCTRequired: 5c6fd63b03abb06947d348dadac51c93e3485bd8
   RCTSearchApi: d2d38a5a7bffbfb144e2c770fbb30f51b1053067
@@ -935,7 +935,7 @@ SPEC CHECKSUMS:
   RNInAppBrowser: e36d6935517101ccba0e875bac8ad7b0cb655364
   RNKeychain: 4f63aada75ebafd26f4bc2c670199461eab85d94
   RNOS: 6f2f9a70895bbbfbdad7196abd952e7b01d45027
-  RNPermissions: f1b49dd05fa9b83993cd05a9ee115247944d8f1a
+  RNPermissions: ac5991487ad04ad1888b26896d44d969e65531b7
   RNReanimated: b1220a0e5168745283ff5d53bfc7d2144b2cee1b
   RNScreens: ea4cd3a853063cda19a4e3c28d2e52180c80f4eb
   RNSensors: c363d486c879e181905dea84a2535e49af1c2d25

@@ -22,7 +22,6 @@ import {
   TokensController,
   TokensState,
 } from '@metamask/assets-controllers';
-import { PersonalMessageParams } from '@metamask/message-manager';
 import {
   AddressBookController,
   AddressBookState,
@@ -83,7 +82,6 @@ import {
   LoggingControllerActions,
 } from '@metamask/logging-controller';
 import LedgerKeyring from '@ledgerhq/metamask-keyring';
-import { keyringBuilderFactory } from '@metamask/eth-keyring-controller';
 import Encryptor from './Encryptor';
 import {
   isMainnetByChainId,
@@ -642,8 +640,8 @@ class Engine {
           toHexadecimal(networkController.state.providerConfig.chainId),
         keyringController: {
           signMessage: keyringController.signMessage.bind(keyringController),
-          signPersonalMessage: (messageParams: PersonalMessageParams) =>
-            keyringController.signPersonalMessage(messageParams),
+          signPersonalMessage:
+            keyringController.signPersonalMessage.bind(keyringController),
           signTypedMessage: (msgParams, { version }) =>
             keyringController.signTypedMessage(
               msgParams,
