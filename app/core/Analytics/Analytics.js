@@ -130,7 +130,7 @@ class Analytics {
     );
 
     // Track security providers toggle
-    const securityProviders = preferencesController?.securityAlertsEnabled ? ['blockaid'] : [];
+    const securityProviders = preferencesController?.securityAlertsEnabled ? 'blockaid' : '';
 
     RCTAnalytics.setUserProfileProperty(
       USER_PROFILE_PROPERTY.SECURITY_PROVIDERS,
