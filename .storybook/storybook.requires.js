@@ -24,6 +24,13 @@ global.STORIES = [
     importPathMatcher:
       "^\\.[\\\\/](?:app\\/component-library\\/components\\/Banners\\/Banner\\/variants\\/BannerAlert(?:\\/(?!\\.)(?:(?:(?!(?:^|\\/)\\.).)*?)\\/|\\/|$)(?!\\.)(?=.)[^/]*?\\.stories\\.(?:ts|tsx|js|jsx)?)$",
   },
+  {
+    titlePrefix: "",
+    directory: "./app/component-library/components/Buttons",
+    files: "**/*.stories.?(ts|tsx|js|jsx)",
+    importPathMatcher:
+      "^\\.[\\\\/](?:app\\/component-library\\/components\\/Buttons(?:\\/(?!\\.)(?:(?:(?!(?:^|\\/)\\.).)*?)\\/|\\/|$)(?!\\.)(?=.)[^/]*?\\.stories\\.(?:ts|tsx|js|jsx)?)$",
+  },
 ];
 
 import "@storybook/addon-ondevice-controls/register";
@@ -50,6 +57,11 @@ const getStories = () => {
   return {
     "./app/component-library/components/Cards/Card/Card.stories.tsx": require("../app/component-library/components/Cards/Card/Card.stories.tsx"),
     "./app/component-library/components/Banners/Banner/variants/BannerAlert/BannerAlert.stories.tsx": require("../app/component-library/components/Banners/Banner/variants/BannerAlert/BannerAlert.stories.tsx"),
+    "./app/component-library/components/Buttons/Button/Button.stories.tsx": require("../app/component-library/components/Buttons/Button/Button.stories.tsx"),
+    "./app/component-library/components/Buttons/Button/variants/ButtonLink/ButtonLink.stories.tsx": require("../app/component-library/components/Buttons/Button/variants/ButtonLink/ButtonLink.stories.tsx"),
+    "./app/component-library/components/Buttons/Button/variants/ButtonPrimary/ButtonPrimary.stories.tsx": require("../app/component-library/components/Buttons/Button/variants/ButtonPrimary/ButtonPrimary.stories.tsx"),
+    "./app/component-library/components/Buttons/Button/variants/ButtonSecondary/ButtonSecondary.stories.tsx": require("../app/component-library/components/Buttons/Button/variants/ButtonSecondary/ButtonSecondary.stories.tsx"),
+    "./app/component-library/components/Buttons/ButtonIcon/ButtonIcon.stories.tsx": require("../app/component-library/components/Buttons/ButtonIcon/ButtonIcon.stories.tsx"),
   };
 };
 
