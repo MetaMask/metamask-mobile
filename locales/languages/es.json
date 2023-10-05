@@ -1869,7 +1869,6 @@
   "fiat_on_ramp_aggregator": {
     "onboarding": {
       "what_to_expect": "Qué esperar",
-      "best_quotes": "Nuestra función de compra de criptomonedas agrega cotizaciones de proveedores integrados, brindándole la mejor cotización de esas fuentes para que pueda obtener criptomonedas directamente en su monedero sin período de espera.",
       "benefits": "Menores tarifas de gas que pagar y numerosas redes, tokens y métodos de pago compatibles",
       "get_started": "Empezar"
     },

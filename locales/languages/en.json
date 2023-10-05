@@ -1870,8 +1870,8 @@
   "fiat_on_ramp_aggregator": {
     "onboarding": {
       "what_to_expect": "What to Expect",
-      "best_quotes": "Our buy crypto feature aggregates quotes from integrated vendors, providing you the best quote from those sources for you to get crypto directly into your wallet with no waiting period.",
-      "benefits": "Less gas fees to pay, and numerous networks, tokens, and payment methods supported",
+      "quotes": "Our buy crypto feature aggregates quotes from integrated vendors, providing quotes from those sources to get crypto directly into your wallet with no waiting period.",
+      "benefits": "Fewer gas fees to pay, and numerous networks, tokens, and payment methods supported",
       "get_started": "Get started"
     },
     "payment_method": {
@@ -2575,11 +2575,11 @@
     "show_display_nft_media_content_5": "Setttings > Security and privacy."
   },
   "ipfs_gateway_banner": {
-        "ipfs_gateway_banner_title": "IPFS gateway",
-        "ipfs_gateway_banner_content1": "This is an IPFS website. to see this site, you need to turn on",
-        "ipfs_gateway_banner_content2": "IPFS gateway",
-        "ipfs_gateway_banner_content3": "in",
-        "ipfs_gateway_banner_content4": "Settings."
+    "ipfs_gateway_banner_title": "IPFS gateway",
+    "ipfs_gateway_banner_content1": "This is an IPFS website. to see this site, you need to turn on",
+    "ipfs_gateway_banner_content2": "IPFS gateway",
+    "ipfs_gateway_banner_content3": "in",
+    "ipfs_gateway_banner_content4": "Settings."
   },
   "ipfs_gateway": {
     "ipfs_gateway_title": "IPFS gateway",

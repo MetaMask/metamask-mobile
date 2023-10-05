@@ -1869,7 +1869,6 @@
   "fiat_on_ramp_aggregator": {
     "onboarding": {
       "what_to_expect": "Yang Diharapkan",
-      "best_quotes": "Fitur beli kripto kami mengumpulkan kuotasi dari vendor terintegrasi, menawarkan kuotasi terbaik dari sumber tersebut agar Anda bisa mendapatkan kripto langsung ke dompet Anda tanpa masa tunggu.",
       "benefits": "Biaya gas yang harus dibayar lebih sedikit, dan ada banyak jaringan, token, serta metode pembayaran yang didukung",
       "get_started": "Mulai"
     },
