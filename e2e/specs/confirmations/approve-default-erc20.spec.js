@@ -22,7 +22,7 @@ describe(Regression('ERC20 tokens'), () => {
     jest.setTimeout(170000);
     if (device.getPlatform() === 'android') {
       await device.reverseTcpPort('8545'); // ganache
-      await device.reverseTcpPort('8080'); // test-dapp
+      await device.reverseTcpPort('8085'); // test-dapp
     }
   });
 
@@ -51,18 +51,25 @@ describe(Regression('ERC20 tokens'), () => {
           buttonId: WEBVIEW_TEST_DAPP_APPROVE_TOKENS_BUTTON_ID,
           contractAddress: hstAddress,
         });
-        await TestHelpers.delay(3000);
+
+        // Tap next button
+        await TestHelpers.checkIfElementWithTextIsVisible(
+          root.transaction.next,
+        );
+        await TestHelpers.tapByText(root.transaction.next);
+
         // Tap approve button
-        //await TestHelpers.tapByText(APPROVE_TEXT);
-        await TestHelpers.checkIfVisible(APPROVAL_MODAL_CONTAINER_ID);
-        
+        await TestHelpers.checkIfElementWithTextIsVisible(
+          root.transactions.tx_review_approve,
+        );
+        await TestHelpers.tapByText(root.transactions.tx_review_approve);
 
         // Navigate to the activity screen
         await TabBarComponent.tapActivity();
 
-        // Assert "Approve TST spending cap" transaction is displayed
+        // Assert erc20 is approved
         await TestHelpers.checkIfElementByTextIsVisible(
-          APPROVE_TOKENS_MESSAGE_TEXT,
+          root.transaction.confirmed,
         );
       },
     );
