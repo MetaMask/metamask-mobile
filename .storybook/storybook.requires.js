@@ -24,6 +24,13 @@ global.STORIES = [
     importPathMatcher:
       "^\\.[\\\\/](?:app\\/component-library\\/components\\/Banners\\/Banner\\/variants\\/BannerAlert(?:\\/(?!\\.)(?:(?:(?!(?:^|\\/)\\.).)*?)\\/|\\/|$)(?!\\.)(?=.)[^/]*?\\.stories\\.(?:ts|tsx|js|jsx)?)$",
   },
+  {
+    titlePrefix: "",
+    directory: "./app/component-library/components/Badges",
+    files: "**/*.stories.?(ts|tsx|js|jsx)",
+    importPathMatcher:
+      "^\\.[\\\\/](?:app\\/component-library\\/components\\/Badges(?:\\/(?!\\.)(?:(?:(?!(?:^|\\/)\\.).)*?)\\/|\\/|$)(?!\\.)(?=.)[^/]*?\\.stories\\.(?:ts|tsx|js|jsx)?)$",
+  },
 ];
 
 import "@storybook/addon-ondevice-controls/register";
@@ -50,6 +57,10 @@ const getStories = () => {
   return {
     "./app/component-library/components/Cards/Card/Card.stories.tsx": require("../app/component-library/components/Cards/Card/Card.stories.tsx"),
     "./app/component-library/components/Banners/Banner/variants/BannerAlert/BannerAlert.stories.tsx": require("../app/component-library/components/Banners/Banner/variants/BannerAlert/BannerAlert.stories.tsx"),
+    "./app/component-library/components/Badges/Badge/Badge.stories.tsx": require("../app/component-library/components/Badges/Badge/Badge.stories.tsx"),
+    "./app/component-library/components/Badges/Badge/variants/BadgeNetwork/BadgeNetwork.stories.tsx": require("../app/component-library/components/Badges/Badge/variants/BadgeNetwork/BadgeNetwork.stories.tsx"),
+    "./app/component-library/components/Badges/Badge/variants/BadgeStatus/BadgeStatus.stories.tsx": require("../app/component-library/components/Badges/Badge/variants/BadgeStatus/BadgeStatus.stories.tsx"),
+    "./app/component-library/components/Badges/BadgeWrapper/BadgeWrapper.stories.tsx": require("../app/component-library/components/Badges/BadgeWrapper/BadgeWrapper.stories.tsx"),
   };
 };
 
