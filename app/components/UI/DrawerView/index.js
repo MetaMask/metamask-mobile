@@ -69,7 +69,10 @@ import {
   networkSwitched,
 } from '../../../actions/onboardNetwork';
 import Routes from '../../../constants/navigation/Routes';
-import { LEDGER_DEVICE, QR_HARDWARE_WALLET_DEVICE } from '../../../constants/keyringTypes';
+import {
+  LEDGER_DEVICE,
+  QR_HARDWARE_WALLET_DEVICE,
+} from '../../../constants/keyringTypes';
 import { scale } from 'react-native-size-matters';
 import generateTestId from '../../../../wdio/utils/generateTestId';
 import { DRAWER_VIEW_LOCK_TEXT_ID } from '../../../../wdio/screen-objects/testIDs/Screens/DrawerView.testIds';
@@ -530,7 +533,11 @@ class DrawerView extends PureComponent {
     const accountTypeLabel = () => {
       if (!keyringOfSelectedAddress) {
         return strings('accounts.imported');
-      } else if ([LEDGER_DEVICE, QR_HARDWARE_WALLET_DEVICE].includes(keyringOfSelectedAddress.type)) {
+      } else if (
+        [LEDGER_DEVICE, QR_HARDWARE_WALLET_DEVICE].includes(
+          keyringOfSelectedAddress.type,
+        )
+      ) {
         if (keyringOfSelectedAddress.type === LEDGER_DEVICE) {
           return strings('accounts.ledger');
         }
@@ -539,14 +546,12 @@ class DrawerView extends PureComponent {
       return null;
     };
 
-    const label = accountTypeLabel()
+    const label = accountTypeLabel();
 
     return label ? (
       <View
         //TODO keyringTypeWrapper is undefined
-        style={[
-          styles.keyringTypeWrapper, styles.hardwareKeyringTypeWrapper,
-        ]}
+        style={[styles.keyringTypeWrapper, styles.hardwareKeyringTypeWrapper]}
       >
         <Text numberOfLines={1} style={styles.keyringTypeText}>
           {label}
