@@ -486,9 +486,7 @@ function Quotes() {
         )}
         <ScreenLayout.Content style={styles.withoutVerticalPadding}>
           <Text centered grey>
-            {strings('fiat_on_ramp_aggregator.buy_from_vetted', {
-              ticker: params.asset?.symbol || '',
-            })}
+            {strings('fiat_on_ramp_aggregator.compare_rates')}
           </Text>
         </ScreenLayout.Content>
       </ScreenLayout.Header>
@@ -523,36 +521,17 @@ function Quotes() {
               <LoadingQuotes />
             ) : (
               filteredQuotes.map((quote, index) => (
-                <React.Fragment key={quote.provider.id}>
-                  {index === 0 && (
-                    <Row first>
-                      <Text primary>
-                        {strings('fiat_on_ramp_aggregator.best_price')}
-                      </Text>
-                    </Row>
-                  )}
-
-                  {index === 1 && (
-                    <Row>
-                      <Text primary>
-                        {strings(
-                          'fiat_on_ramp_aggregator.explore_other_options',
-                        )}
-                      </Text>
-                    </Row>
-                  )}
-                  <Row first={index === 0 || index === 1}>
-                    <Quote
-                      isLoading={isQuoteLoading}
-                      quote={quote}
-                      onPress={() => handleOnQuotePress(quote)}
-                      onPressCTA={() => handleOnPressCTA(quote, index)}
-                      highlighted={quote.provider.id === providerId}
-                      showInfo={() => handleInfoPress(quote)}
-                      rampType={rampType}
-                    />
-                  </Row>
-                </React.Fragment>
+                <Row key={quote.provider.id}>
+                  <Quote
+                    isLoading={isQuoteLoading}
+                    quote={quote}
+                    onPress={() => handleOnQuotePress(quote)}
+                    onPressCTA={() => handleOnPressCTA(quote, index)}
+                    highlighted={quote.provider.id === providerId}
+                    showInfo={() => handleInfoPress(quote)}
+                    rampType={rampType}
+                  />
+                </Row>
               ))
             )}
           </ScreenLayout.Content>

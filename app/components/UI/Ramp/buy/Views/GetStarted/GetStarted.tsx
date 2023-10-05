@@ -109,7 +109,7 @@ const GetStarted: React.FC = () => {
           </ScreenLayout.Content>
           <ScreenLayout.Content>
             <Text centered bold>
-              {strings('fiat_on_ramp_aggregator.onboarding.best_quotes')}
+              {strings('fiat_on_ramp_aggregator.onboarding.quotes')}
             </Text>
           </ScreenLayout.Content>
           <ScreenLayout.Content>

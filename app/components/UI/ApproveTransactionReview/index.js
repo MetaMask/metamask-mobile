@@ -56,7 +56,6 @@ import { WALLET_CONNECT_ORIGIN } from '../../../util/walletconnect';
 import {
   isBlockaidFeatureEnabled,
   getBlockaidMetricsParams,
-  showBlockaidUI,
 } from '../../../util/blockaid';
 import { withNavigation } from '@react-navigation/compat';
 import {
@@ -540,16 +539,14 @@ class ApproveTransactionReview extends PureComponent {
           : AppConstants.REQUEST_SOURCES.IN_APP_BROWSER,
       };
 
-      if (showBlockaidUI()) {
-        const blockaidParams = getBlockaidMetricsParams(
-          transaction.securityAlertResponse,
-        );
+      const blockaidParams = getBlockaidMetricsParams(
+        transaction.securityAlertResponse,
+      );
 
-        params = {
-          ...params,
-          ...blockaidParams,
-        };
-      }
+      params = {
+        ...params,
+        ...blockaidParams,
+      };
       // Send analytics params to parent component so it's available when cancelling and confirming
       onSetAnalyticsParams && onSetAnalyticsParams(params);
 
@@ -689,6 +686,17 @@ class ApproveTransactionReview extends PureComponent {
     }
   };
 
+  onContactUsClicked = () => {
+    const analyticsParams = {
+      ...this.getAnalyticsParams(),
+      external_link_clicked: 'security_alert_support_link',
+    };
+    AnalyticsV2.trackEvent(
+      MetaMetricsEvents.CONTRACT_ADDRESS_COPIED,
+      analyticsParams,
+    );
+  };
+
   renderDetails = () => {
     const {
       originalApproveAmount,
@@ -811,6 +819,7 @@ class ApproveTransactionReview extends PureComponent {
                       <BlockaidBanner
                         securityAlertResponse={securityAlertResponse}
                         style={styles.blockaidWarning}
+                        onContactUsClicked={this.onContactUsClicked}
                       />
                     )}
                     <Text
@@ -945,6 +954,7 @@ class ApproveTransactionReview extends PureComponent {
                                   ? legacyGasObject
                                   : eip1559GasObject
                               }
+                              gasObjectLegacy={legacyGasObject}
                               updateTransactionState={updateTransactionState}
                               onlyGas
                               multiLayerL1FeeTotal={multiLayerL1FeeTotal}

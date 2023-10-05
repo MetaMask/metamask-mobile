@@ -1869,7 +1869,6 @@
   "fiat_on_ramp_aggregator": {
     "onboarding": {
       "what_to_expect": "À quoi s’attendre",
-      "best_quotes": "Notre fonction d’achat de cryptomonnaies regroupe et analyse tous les prix cotés par les vendeurs intégrés pour un achat immédiat de cryptomonnaies et vous trouve la meilleure offre.",
       "benefits": "Des frais de transaction réduits et prise en charge de nombreux réseaux, jetons et méthodes de paiement",
       "get_started": "Commencer"
     },
@@ -1914,9 +1913,6 @@
     "select_region_currency": "Sélectionnez la devise nationale",
     "no_tokens_match": "Aucun jeton correspondant à vos critères de recherche : {{searchString}}",
     "no_currency_match": "Aucune devise correspondant à vos critères de recherche : {{searchString}}",
-    "buy_from_vetted": "Si vous voulez acheter des {{ticker}} auprès de l’un de nos vendeurs intégrés, vous serez redirigé en toute sécurité vers leur portail sans quitter l’application MetaMask.",
-    "best_price": "Meilleur prix",
-    "explore_other_options": "Explorer d’autres options",
     "pay_with": "Payer avec",
     "buy_with": "Acheter avec {{provider}}",
     "minimum": "Le dépôt minimum est de",
