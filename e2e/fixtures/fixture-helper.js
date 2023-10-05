@@ -6,10 +6,13 @@ import GanacheSeeder from '../../app/util/test/ganache-seeder';
 import axios from 'axios';
 import path from 'path';
 import createStaticServer from '../create-static-server';
-import { getFixturesServerPort, getLocalTestDappPort, getMockServerPort } from '../utils';
+import {
+  getFixturesServerPort,
+  getLocalTestDappPort,
+  getMockServerPort,
+} from '../utils';
 import { generateCACertificate, getLocal } from 'mockttp';
 import setupMocking from '../mock-e2e';
-
 
 export const DEFAULT_DAPP_SERVER_PORT = 8085;
 export const DEFAULT_MOCK_SERVER_PORT = 9100;

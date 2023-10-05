@@ -1,6 +1,6 @@
 'use strict';
 
-import { Smoke } from '../../tags';
+import { Regression } from '../../tags';
 import TestHelpers from '../../helpers';
 import AmountView from '../../pages/AmountView';
 import SendView from '../../pages/SendView';
@@ -83,7 +83,6 @@ describe(Regression('Gas Estimates'), () => {
         await TestHelpers.checkIfElementByTextIsVisible(
           `${AMOUNT} ${TOKEN_NAME}`,
         );
-
       },
     );
   });

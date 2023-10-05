@@ -14,7 +14,11 @@ const blacklistedHosts = [
  * @param {string} options.chainId - The chain ID used by the default configured network.
  * @returns
  */
-export default async function setupMocking(server, testSpecificMock, { chainId }) {
+export default async function setupMocking(
+  server,
+  testSpecificMock,
+  { chainId },
+) {
   await server.forAnyRequest().thenPassThrough({
     beforeRequest: (req) => {
       const { host } = req.headers;
