@@ -93,8 +93,14 @@ export class BackgroundBridge extends EventEmitter {
     );
     Engine.context.PreferencesController.subscribe(this.sendStateUpdate);
 
-    Engine.context.KeyringController.onLock(this.onLock.bind(this));
-    Engine.context.KeyringController.onUnlock(this.onUnlock.bind(this));
+    Engine.controllerMessenger.subscribe(
+      'KeyringController:lock',
+      this.onLock.bind(this),
+    );
+    Engine.controllerMessenger.subscribe(
+      'KeyringController:unlock',
+      this.onUnlock.bind(this),
+    );
 
     this.on('update', this.onStateUpdate);
 
