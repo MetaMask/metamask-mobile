@@ -20,6 +20,7 @@ import useAnalytics from '../../../common/hooks/useAnalytics';
 import useFiatCurrencies from '../../hooks/useFiatCurrencies';
 import useCryptoCurrencies from '../../hooks/useCryptoCurrencies';
 import useLimits from '../../hooks/useLimits';
+import useBalance from '../../../common/hooks/useBalance';
 
 import useAddressBalance from '../../../../../hooks/useAddressBalance/useAddressBalance';
 import { Asset } from '../../../../../hooks/useAddressBalance/useAddressBalance.types';
@@ -178,6 +179,15 @@ const BuildQuote = () => {
   const { addressBalance } = useAddressBalance(
     assetForBalance as Asset,
     selectedAddress,
+  );
+
+  const { balanceFiat } = useBalance(
+    selectedAsset
+      ? {
+          address: selectedAsset.address,
+          decimals: selectedAsset.decimals,
+        }
+      : undefined,
   );
 
   const amountIsBelowMinimum = useMemo(
@@ -558,29 +568,29 @@ const BuildQuote = () => {
                 </Text>
               </SelectorButton>
             </Row>
-            <Row>
-              <AssetSelectorButton
-                label={strings('fiat_on_ramp_aggregator.want_to_buy')}
-                icon={
-                  <TokenIcon
-                    medium
-                    icon={selectedAsset?.logo}
-                    symbol={selectedAsset?.symbol}
-                  />
-                }
-                assetSymbol={selectedAsset?.symbol ?? ''}
-                assetName={selectedAsset?.name ?? ''}
-                onPress={handleAssetSelectorPress}
-              />
-              {addressBalance ? (
-                <Row>
-                  <Text small grey>
-                    {strings('fiat_on_ramp_aggregator.current_balance')}:{' '}
-                    {addressBalance}
-                  </Text>
-                </Row>
-              ) : null}
-            </Row>
+
+            <AssetSelectorButton
+              label={strings('fiat_on_ramp_aggregator.want_to_buy')}
+              icon={
+                <TokenIcon
+                  medium
+                  icon={selectedAsset?.logo}
+                  symbol={selectedAsset?.symbol}
+                />
+              }
+              assetSymbol={selectedAsset?.symbol ?? ''}
+              assetName={selectedAsset?.name ?? ''}
+              onPress={handleAssetSelectorPress}
+            />
+            {addressBalance ? (
+              <Row>
+                <Text small grey>
+                  {strings('fiat_on_ramp_aggregator.current_balance')}:{' '}
+                  {addressBalance}
+                  {balanceFiat ? ` ≈ ${balanceFiat}` : null}
+                </Text>
+              </Row>
+            ) : null}
 
             <AmountInput
               highlighted={amountFocused}
@@ -592,7 +602,6 @@ const BuildQuote = () => {
               onPress={onAmountInputPress}
               onCurrencyPress={handleFiatSelectorPress}
             />
-
             {amountIsBelowMinimum && limits && (
               <Row>
                 <Text red small>
@@ -611,24 +620,31 @@ const BuildQuote = () => {
                 </Text>
               </Row>
             )}
+            {/* {!limits || (!amountIsBelowMinimum && !amountIsAboveMaximum) ? (
+              <Row>
+                <Text small />
+              </Row>
+            ) : null} */}
+            <Row>
+              <PaymentMethodSelector
+                label={strings('fiat_on_ramp_aggregator.update_payment_method')}
+                icon={
+                  <PaymentMethodIcon
+                    paymentMethodIcons={currentPaymentMethod?.icons}
+                    paymentMethodType={currentPaymentMethod?.paymentType}
+                    size={20}
+                    color={colors.icon.default}
+                  />
+                }
+                name={currentPaymentMethod?.name}
+                onPress={showPaymentMethodsModal as () => void}
+              />
+            </Row>
           </ScreenLayout.Content>
         </Pressable>
       </ScreenLayout.Body>
       <ScreenLayout.Footer>
         <ScreenLayout.Content>
-          <PaymentMethodSelector
-            label={strings('fiat_on_ramp_aggregator.update_payment_method')}
-            icon={
-              <PaymentMethodIcon
-                paymentMethodIcons={currentPaymentMethod?.icons}
-                paymentMethodType={currentPaymentMethod?.paymentType}
-                size={20}
-                color={colors.icon.default}
-              />
-            }
-            name={currentPaymentMethod?.name}
-            onPress={showPaymentMethodsModal as () => void}
-          />
           <Row style={styles.cta}>
             {currentPaymentMethod?.customAction ? (
               <CustomActionButton

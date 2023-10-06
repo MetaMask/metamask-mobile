@@ -7856,6 +7856,351 @@ exports[`BuildQuote View renders correctly 1`] = `
                                   </View>
                                 </TouchableOpacity>
                               </View>
+                              <Text
+                                style={
+                                  Array [
+                                    Object {
+                                      "color": "#24272A",
+                                      "fontFamily": "EuclidCircularB-Regular",
+                                      "fontSize": 30,
+                                      "fontWeight": "400",
+                                      "marginVertical": 2,
+                                    },
+                                    undefined,
+                                    undefined,
+                                    undefined,
+                                    undefined,
+                                    Object {
+                                      "color": "#24272A",
+                                    },
+                                    undefined,
+                                    undefined,
+                                    undefined,
+                                    undefined,
+                                    Object {
+                                      "color": "#24272A",
+                                    },
+                                    undefined,
+                                    undefined,
+                                    undefined,
+                                    undefined,
+                                    undefined,
+                                    undefined,
+                                    undefined,
+                                    undefined,
+                                    undefined,
+                                    undefined,
+                                    undefined,
+                                    undefined,
+                                    undefined,
+                                    Object {
+                                      "marginVertical": 8,
+                                    },
+                                  ]
+                                }
+                              >
+                                You want to buy
+                              </Text>
+                              <TouchableOpacity
+                                accessibilityRole="button"
+                                accessible={true}
+                                disabled={false}
+                                onPress={[Function]}
+                              >
+                                <View
+                                  style={
+                                    Array [
+                                      Object {
+                                        "borderColor": "#BBC0C5",
+                                        "borderRadius": 8,
+                                        "borderWidth": 1.5,
+                                        "padding": 16,
+                                      },
+                                      undefined,
+                                      undefined,
+                                      undefined,
+                                    ]
+                                  }
+                                >
+                                  <View>
+                                    <View
+                                      style={
+                                        Array [
+                                          Object {
+                                            "alignItems": "center",
+                                            "flexDirection": "row",
+                                          },
+                                          undefined,
+                                        ]
+                                      }
+                                    >
+                                      <View
+                                        style={
+                                          Array [
+                                            Object {
+                                              "alignItems": "center",
+                                              "flexDirection": "row",
+                                              "marginRight": 15,
+                                            },
+                                            undefined,
+                                          ]
+                                        }
+                                      >
+                                        <View
+                                          useNativeDriver={true}
+                                        >
+                                          <Image
+                                            fadeIn={true}
+                                            onError={[Function]}
+                                            onLoadEnd={[Function]}
+                                            source={
+                                              Object {
+                                                "uri": undefined,
+                                              }
+                                            }
+                                            style={
+                                              Array [
+                                                Object {
+                                                  "borderRadius": 12,
+                                                  "height": 24,
+                                                  "width": 24,
+                                                },
+                                                Object {
+                                                  "borderRadius": 18,
+                                                  "height": 36,
+                                                  "width": 36,
+                                                },
+                                                undefined,
+                                                undefined,
+                                                undefined,
+                                              ]
+                                            }
+                                          />
+                                          <View
+                                            collapsable={false}
+                                            style={
+                                              Object {
+                                                "bottom": 0,
+                                                "left": 0,
+                                                "opacity": 1,
+                                                "position": "absolute",
+                                                "right": 0,
+                                                "top": 0,
+                                              }
+                                            }
+                                          >
+                                            <View
+                                              style={
+                                                Array [
+                                                  Object {
+                                                    "borderRadius": 18,
+                                                    "height": 36,
+                                                    "width": 36,
+                                                  },
+                                                  Object {
+                                                    "backgroundColor": "#eee",
+                                                  },
+                                                  undefined,
+                                                ]
+                                              }
+                                            />
+                                          </View>
+                                        </View>
+                                      </View>
+                                      <View
+                                        style={
+                                          Array [
+                                            Object {
+                                              "flex": 1,
+                                            },
+                                            undefined,
+                                          ]
+                                        }
+                                      >
+                                        <Text
+                                          adjustsFontSizeToFit={true}
+                                          numberOfLines={1}
+                                          style={
+                                            Array [
+                                              Object {
+                                                "color": "#24272A",
+                                                "fontFamily": "EuclidCircularB-Regular",
+                                                "fontSize": 30,
+                                                "fontWeight": "400",
+                                                "marginVertical": 2,
+                                              },
+                                              undefined,
+                                              undefined,
+                                              Object {
+                                                "fontFamily": "EuclidCircularB-Bold",
+                                                "fontWeight": "600",
+                                              },
+                                              undefined,
+                                              Object {
+                                                "color": "#24272A",
+                                              },
+                                              undefined,
+                                              undefined,
+                                              undefined,
+                                              undefined,
+                                              Object {
+                                                "color": "#24272A",
+                                              },
+                                              undefined,
+                                              undefined,
+                                              undefined,
+                                              undefined,
+                                              undefined,
+                                              undefined,
+                                              undefined,
+                                              undefined,
+                                              undefined,
+                                              undefined,
+                                              undefined,
+                                              undefined,
+                                              undefined,
+                                              Object {
+                                                "fontSize": 16,
+                                              },
+                                            ]
+                                          }
+                                        >
+                                          Ethereum
+                                        </Text>
+                                      </View>
+                                      <View
+                                        style={
+                                          Array [
+                                            Object {
+                                              "alignItems": "flex-end",
+                                              "flex": 0.6,
+                                            },
+                                            Object {
+                                              "flex": 0,
+                                              "marginLeft": 8,
+                                            },
+                                          ]
+                                        }
+                                      >
+                                        <View>
+                                          <Text
+                                            style={
+                                              Array [
+                                                Object {
+                                                  "color": "#24272A",
+                                                  "fontFamily": "EuclidCircularB-Regular",
+                                                  "fontSize": 30,
+                                                  "fontWeight": "400",
+                                                  "marginVertical": 2,
+                                                },
+                                                undefined,
+                                                undefined,
+                                                undefined,
+                                                undefined,
+                                                Object {
+                                                  "color": "#24272A",
+                                                },
+                                                undefined,
+                                                undefined,
+                                                undefined,
+                                                undefined,
+                                                Object {
+                                                  "color": "#24272A",
+                                                },
+                                                undefined,
+                                                undefined,
+                                                undefined,
+                                                undefined,
+                                                undefined,
+                                                undefined,
+                                                undefined,
+                                                undefined,
+                                                undefined,
+                                                undefined,
+                                                undefined,
+                                                undefined,
+                                                undefined,
+                                                undefined,
+                                              ]
+                                            }
+                                          >
+                                            <Text
+                                              style={
+                                                Array [
+                                                  Object {
+                                                    "color": "#24272A",
+                                                    "fontFamily": "EuclidCircularB-Regular",
+                                                    "fontSize": 30,
+                                                    "fontWeight": "400",
+                                                    "marginVertical": 2,
+                                                  },
+                                                  undefined,
+                                                  undefined,
+                                                  Object {
+                                                    "fontFamily": "EuclidCircularB-Bold",
+                                                    "fontWeight": "600",
+                                                  },
+                                                  undefined,
+                                                  Object {
+                                                    "color": "#24272A",
+                                                  },
+                                                  undefined,
+                                                  undefined,
+                                                  undefined,
+                                                  undefined,
+                                                  Object {
+                                                    "color": "#24272A",
+                                                  },
+                                                  undefined,
+                                                  undefined,
+                                                  undefined,
+                                                  undefined,
+                                                  undefined,
+                                                  undefined,
+                                                  undefined,
+                                                  undefined,
+                                                  undefined,
+                                                  undefined,
+                                                  undefined,
+                                                  undefined,
+                                                  undefined,
+                                                  undefined,
+                                                ]
+                                              }
+                                            >
+                                              ETH
+                                            </Text>
+                                              
+                                            <Text
+                                              allowFontScaling={false}
+                                              style={
+                                                Array [
+                                                  Object {
+                                                    "color": undefined,
+                                                    "fontSize": 16,
+                                                  },
+                                                  Object {
+                                                    "color": "#24272A",
+                                                    "marginLeft": 10,
+                                                  },
+                                                  Object {
+                                                    "fontFamily": "Entypo",
+                                                    "fontStyle": "normal",
+                                                    "fontWeight": "normal",
+                                                  },
+                                                  Object {},
+                                                ]
+                                              }
+                                            >
+                                              
+                                            </Text>
+                                          </Text>
+                                        </View>
+                                      </View>
+                                    </View>
+                                  </View>
+                                </View>
+                              </TouchableOpacity>
                               <View
                                 style={
                                   Array [
@@ -7882,23 +8227,11 @@ exports[`BuildQuote View renders correctly 1`] = `
                                       undefined,
                                       undefined,
                                       undefined,
-                                      Object {
-                                        "color": "#24272A",
-                                      },
-                                      undefined,
-                                      undefined,
                                       undefined,
                                       undefined,
                                       Object {
-                                        "color": "#24272A",
+                                        "color": "#535A61",
                                       },
-                                      undefined,
-                                      undefined,
-                                      undefined,
-                                      undefined,
-                                      undefined,
-                                      undefined,
-                                      undefined,
                                       undefined,
                                       undefined,
                                       undefined,
@@ -7906,372 +8239,27 @@ exports[`BuildQuote View renders correctly 1`] = `
                                       undefined,
                                       undefined,
                                       Object {
-                                        "marginVertical": 8,
+                                        "fontSize": 12,
                                       },
+                                      undefined,
+                                      undefined,
+                                      undefined,
+                                      undefined,
+                                      undefined,
+                                      undefined,
+                                      undefined,
+                                      undefined,
+                                      undefined,
+                                      undefined,
                                     ]
                                   }
                                 >
-                                  You want to buy
+                                  Current balance
+                                  :
+                                   
+                                  5.36385 ETH
+                                   ≈ $27.02
                                 </Text>
-                                <TouchableOpacity
-                                  accessibilityRole="button"
-                                  accessible={true}
-                                  disabled={false}
-                                  onPress={[Function]}
-                                >
-                                  <View
-                                    style={
-                                      Array [
-                                        Object {
-                                          "borderColor": "#BBC0C5",
-                                          "borderRadius": 8,
-                                          "borderWidth": 1.5,
-                                          "padding": 16,
-                                        },
-                                        undefined,
-                                        undefined,
-                                        undefined,
-                                      ]
-                                    }
-                                  >
-                                    <View>
-                                      <View
-                                        style={
-                                          Array [
-                                            Object {
-                                              "alignItems": "center",
-                                              "flexDirection": "row",
-                                            },
-                                            undefined,
-                                          ]
-                                        }
-                                      >
-                                        <View
-                                          style={
-                                            Array [
-                                              Object {
-                                                "alignItems": "center",
-                                                "flexDirection": "row",
-                                                "marginRight": 15,
-                                              },
-                                              undefined,
-                                            ]
-                                          }
-                                        >
-                                          <View
-                                            useNativeDriver={true}
-                                          >
-                                            <Image
-                                              fadeIn={true}
-                                              onError={[Function]}
-                                              onLoadEnd={[Function]}
-                                              source={
-                                                Object {
-                                                  "uri": undefined,
-                                                }
-                                              }
-                                              style={
-                                                Array [
-                                                  Object {
-                                                    "borderRadius": 12,
-                                                    "height": 24,
-                                                    "width": 24,
-                                                  },
-                                                  Object {
-                                                    "borderRadius": 18,
-                                                    "height": 36,
-                                                    "width": 36,
-                                                  },
-                                                  undefined,
-                                                  undefined,
-                                                  undefined,
-                                                ]
-                                              }
-                                            />
-                                            <View
-                                              collapsable={false}
-                                              style={
-                                                Object {
-                                                  "bottom": 0,
-                                                  "left": 0,
-                                                  "opacity": 1,
-                                                  "position": "absolute",
-                                                  "right": 0,
-                                                  "top": 0,
-                                                }
-                                              }
-                                            >
-                                              <View
-                                                style={
-                                                  Array [
-                                                    Object {
-                                                      "borderRadius": 18,
-                                                      "height": 36,
-                                                      "width": 36,
-                                                    },
-                                                    Object {
-                                                      "backgroundColor": "#eee",
-                                                    },
-                                                    undefined,
-                                                  ]
-                                                }
-                                              />
-                                            </View>
-                                          </View>
-                                        </View>
-                                        <View
-                                          style={
-                                            Array [
-                                              Object {
-                                                "flex": 1,
-                                              },
-                                              undefined,
-                                            ]
-                                          }
-                                        >
-                                          <Text
-                                            adjustsFontSizeToFit={true}
-                                            numberOfLines={1}
-                                            style={
-                                              Array [
-                                                Object {
-                                                  "color": "#24272A",
-                                                  "fontFamily": "EuclidCircularB-Regular",
-                                                  "fontSize": 30,
-                                                  "fontWeight": "400",
-                                                  "marginVertical": 2,
-                                                },
-                                                undefined,
-                                                undefined,
-                                                Object {
-                                                  "fontFamily": "EuclidCircularB-Bold",
-                                                  "fontWeight": "600",
-                                                },
-                                                undefined,
-                                                Object {
-                                                  "color": "#24272A",
-                                                },
-                                                undefined,
-                                                undefined,
-                                                undefined,
-                                                undefined,
-                                                Object {
-                                                  "color": "#24272A",
-                                                },
-                                                undefined,
-                                                undefined,
-                                                undefined,
-                                                undefined,
-                                                undefined,
-                                                undefined,
-                                                undefined,
-                                                undefined,
-                                                undefined,
-                                                undefined,
-                                                undefined,
-                                                undefined,
-                                                undefined,
-                                                Object {
-                                                  "fontSize": 16,
-                                                },
-                                              ]
-                                            }
-                                          >
-                                            Ethereum
-                                          </Text>
-                                        </View>
-                                        <View
-                                          style={
-                                            Array [
-                                              Object {
-                                                "alignItems": "flex-end",
-                                                "flex": 0.6,
-                                              },
-                                              Object {
-                                                "flex": 0,
-                                                "marginLeft": 8,
-                                              },
-                                            ]
-                                          }
-                                        >
-                                          <View>
-                                            <Text
-                                              style={
-                                                Array [
-                                                  Object {
-                                                    "color": "#24272A",
-                                                    "fontFamily": "EuclidCircularB-Regular",
-                                                    "fontSize": 30,
-                                                    "fontWeight": "400",
-                                                    "marginVertical": 2,
-                                                  },
-                                                  undefined,
-                                                  undefined,
-                                                  undefined,
-                                                  undefined,
-                                                  Object {
-                                                    "color": "#24272A",
-                                                  },
-                                                  undefined,
-                                                  undefined,
-                                                  undefined,
-                                                  undefined,
-                                                  Object {
-                                                    "color": "#24272A",
-                                                  },
-                                                  undefined,
-                                                  undefined,
-                                                  undefined,
-                                                  undefined,
-                                                  undefined,
-                                                  undefined,
-                                                  undefined,
-                                                  undefined,
-                                                  undefined,
-                                                  undefined,
-                                                  undefined,
-                                                  undefined,
-                                                  undefined,
-                                                  undefined,
-                                                ]
-                                              }
-                                            >
-                                              <Text
-                                                style={
-                                                  Array [
-                                                    Object {
-                                                      "color": "#24272A",
-                                                      "fontFamily": "EuclidCircularB-Regular",
-                                                      "fontSize": 30,
-                                                      "fontWeight": "400",
-                                                      "marginVertical": 2,
-                                                    },
-                                                    undefined,
-                                                    undefined,
-                                                    Object {
-                                                      "fontFamily": "EuclidCircularB-Bold",
-                                                      "fontWeight": "600",
-                                                    },
-                                                    undefined,
-                                                    Object {
-                                                      "color": "#24272A",
-                                                    },
-                                                    undefined,
-                                                    undefined,
-                                                    undefined,
-                                                    undefined,
-                                                    Object {
-                                                      "color": "#24272A",
-                                                    },
-                                                    undefined,
-                                                    undefined,
-                                                    undefined,
-                                                    undefined,
-                                                    undefined,
-                                                    undefined,
-                                                    undefined,
-                                                    undefined,
-                                                    undefined,
-                                                    undefined,
-                                                    undefined,
-                                                    undefined,
-                                                    undefined,
-                                                    undefined,
-                                                  ]
-                                                }
-                                              >
-                                                ETH
-                                              </Text>
-                                                
-                                              <Text
-                                                allowFontScaling={false}
-                                                style={
-                                                  Array [
-                                                    Object {
-                                                      "color": undefined,
-                                                      "fontSize": 16,
-                                                    },
-                                                    Object {
-                                                      "color": "#24272A",
-                                                      "marginLeft": 10,
-                                                    },
-                                                    Object {
-                                                      "fontFamily": "Entypo",
-                                                      "fontStyle": "normal",
-                                                      "fontWeight": "normal",
-                                                    },
-                                                    Object {},
-                                                  ]
-                                                }
-                                              >
-                                                
-                                              </Text>
-                                            </Text>
-                                          </View>
-                                        </View>
-                                      </View>
-                                    </View>
-                                  </View>
-                                </TouchableOpacity>
-                                <View
-                                  style={
-                                    Array [
-                                      Object {
-                                        "marginVertical": 8,
-                                      },
-                                      undefined,
-                                      undefined,
-                                      undefined,
-                                    ]
-                                  }
-                                >
-                                  <Text
-                                    style={
-                                      Array [
-                                        Object {
-                                          "color": "#24272A",
-                                          "fontFamily": "EuclidCircularB-Regular",
-                                          "fontSize": 30,
-                                          "fontWeight": "400",
-                                          "marginVertical": 2,
-                                        },
-                                        undefined,
-                                        undefined,
-                                        undefined,
-                                        undefined,
-                                        undefined,
-                                        undefined,
-                                        Object {
-                                          "color": "#535A61",
-                                        },
-                                        undefined,
-                                        undefined,
-                                        undefined,
-                                        undefined,
-                                        undefined,
-                                        undefined,
-                                        Object {
-                                          "fontSize": 12,
-                                        },
-                                        undefined,
-                                        undefined,
-                                        undefined,
-                                        undefined,
-                                        undefined,
-                                        undefined,
-                                        undefined,
-                                        undefined,
-                                        undefined,
-                                        undefined,
-                                      ]
-                                    }
-                                  >
-                                    Current balance
-                                    :
-                                     
-                                    5.36385 ETH
-                                  </Text>
-                                </View>
                               </View>
                               <Text
                                 style={
@@ -8628,6 +8616,260 @@ exports[`BuildQuote View renders correctly 1`] = `
                                   2
                                 </Text>
                               </View>
+                              <View
+                                style={
+                                  Array [
+                                    Object {
+                                      "marginVertical": 8,
+                                    },
+                                    undefined,
+                                    undefined,
+                                    undefined,
+                                  ]
+                                }
+                              >
+                                <Text
+                                  style={
+                                    Array [
+                                      Object {
+                                        "color": "#24272A",
+                                        "fontFamily": "EuclidCircularB-Regular",
+                                        "fontSize": 30,
+                                        "fontWeight": "400",
+                                        "marginVertical": 2,
+                                      },
+                                      undefined,
+                                      undefined,
+                                      undefined,
+                                      undefined,
+                                      Object {
+                                        "color": "#24272A",
+                                      },
+                                      undefined,
+                                      undefined,
+                                      undefined,
+                                      undefined,
+                                      Object {
+                                        "color": "#24272A",
+                                      },
+                                      undefined,
+                                      undefined,
+                                      undefined,
+                                      undefined,
+                                      undefined,
+                                      undefined,
+                                      undefined,
+                                      undefined,
+                                      undefined,
+                                      undefined,
+                                      undefined,
+                                      undefined,
+                                      undefined,
+                                      Object {
+                                        "marginVertical": 8,
+                                      },
+                                    ]
+                                  }
+                                >
+                                  Update payment method
+                                </Text>
+                                <TouchableOpacity
+                                  accessibilityRole="button"
+                                  accessible={true}
+                                  disabled={false}
+                                  onPress={[Function]}
+                                >
+                                  <View
+                                    style={
+                                      Array [
+                                        Object {
+                                          "borderColor": "#BBC0C5",
+                                          "borderRadius": 8,
+                                          "borderWidth": 1.5,
+                                          "padding": 16,
+                                        },
+                                        undefined,
+                                        undefined,
+                                        undefined,
+                                      ]
+                                    }
+                                  >
+                                    <View>
+                                      <View
+                                        style={
+                                          Array [
+                                            Object {
+                                              "alignItems": "center",
+                                              "flexDirection": "row",
+                                            },
+                                            undefined,
+                                          ]
+                                        }
+                                      >
+                                        <View
+                                          style={
+                                            Array [
+                                              Object {
+                                                "alignItems": "center",
+                                                "flexDirection": "row",
+                                                "marginRight": 15,
+                                              },
+                                              undefined,
+                                            ]
+                                          }
+                                        >
+                                          <Text
+                                            allowFontScaling={false}
+                                            style={
+                                              Array [
+                                                Object {
+                                                  "color": "#24272A",
+                                                  "fontSize": 20,
+                                                },
+                                                undefined,
+                                                Object {
+                                                  "fontFamily": "simple-line-icons",
+                                                  "fontStyle": "normal",
+                                                  "fontWeight": "normal",
+                                                },
+                                                Object {},
+                                              ]
+                                            }
+                                          >
+                                            
+                                          </Text>
+                                        </View>
+                                        <View
+                                          style={
+                                            Array [
+                                              Object {
+                                                "flex": 1,
+                                              },
+                                              undefined,
+                                            ]
+                                          }
+                                        >
+                                          <Text
+                                            adjustsFontSizeToFit={true}
+                                            numberOfLines={1}
+                                            style={
+                                              Array [
+                                                Object {
+                                                  "color": "#24272A",
+                                                  "fontFamily": "EuclidCircularB-Regular",
+                                                  "fontSize": 30,
+                                                  "fontWeight": "400",
+                                                  "marginVertical": 2,
+                                                },
+                                                undefined,
+                                                undefined,
+                                                Object {
+                                                  "fontFamily": "EuclidCircularB-Bold",
+                                                  "fontWeight": "600",
+                                                },
+                                                undefined,
+                                                Object {
+                                                  "color": "#24272A",
+                                                },
+                                                undefined,
+                                                undefined,
+                                                undefined,
+                                                undefined,
+                                                Object {
+                                                  "color": "#24272A",
+                                                },
+                                                undefined,
+                                                undefined,
+                                                undefined,
+                                                undefined,
+                                                undefined,
+                                                undefined,
+                                                undefined,
+                                                undefined,
+                                                undefined,
+                                                undefined,
+                                                undefined,
+                                                undefined,
+                                                undefined,
+                                                undefined,
+                                              ]
+                                            }
+                                          >
+                                            Credit or Debit Card
+                                          </Text>
+                                        </View>
+                                        <Text
+                                          style={
+                                            Array [
+                                              Object {
+                                                "color": "#24272A",
+                                                "fontFamily": "EuclidCircularB-Regular",
+                                                "fontSize": 30,
+                                                "fontWeight": "400",
+                                                "marginVertical": 2,
+                                              },
+                                              undefined,
+                                              undefined,
+                                              undefined,
+                                              undefined,
+                                              undefined,
+                                              undefined,
+                                              undefined,
+                                              undefined,
+                                              undefined,
+                                              undefined,
+                                              undefined,
+                                              undefined,
+                                              undefined,
+                                              undefined,
+                                              undefined,
+                                              undefined,
+                                              undefined,
+                                              undefined,
+                                              undefined,
+                                              undefined,
+                                              undefined,
+                                              undefined,
+                                              undefined,
+                                              Array [
+                                                Object {
+                                                  "color": "#24272A",
+                                                  "fontSize": 15,
+                                                },
+                                                undefined,
+                                              ],
+                                            ]
+                                          }
+                                        >
+                                          <Text
+                                            allowFontScaling={false}
+                                            style={
+                                              Array [
+                                                Object {
+                                                  "color": undefined,
+                                                  "fontSize": 16,
+                                                },
+                                                Object {
+                                                  "color": "#24272A",
+                                                  "marginLeft": 10,
+                                                },
+                                                Object {
+                                                  "fontFamily": "Entypo",
+                                                  "fontStyle": "normal",
+                                                  "fontWeight": "normal",
+                                                },
+                                                Object {},
+                                              ]
+                                            }
+                                          >
+                                            
+                                          </Text>
+                                        </Text>
+                                      </View>
+                                    </View>
+                                  </View>
+                                </TouchableOpacity>
+                              </View>
                             </View>
                           </View>
                         </View>
@@ -8643,249 +8885,6 @@ exports[`BuildQuote View renders correctly 1`] = `
                               ]
                             }
                           >
-                            <Text
-                              style={
-                                Array [
-                                  Object {
-                                    "color": "#24272A",
-                                    "fontFamily": "EuclidCircularB-Regular",
-                                    "fontSize": 30,
-                                    "fontWeight": "400",
-                                    "marginVertical": 2,
-                                  },
-                                  undefined,
-                                  undefined,
-                                  undefined,
-                                  undefined,
-                                  Object {
-                                    "color": "#24272A",
-                                  },
-                                  undefined,
-                                  undefined,
-                                  undefined,
-                                  undefined,
-                                  Object {
-                                    "color": "#24272A",
-                                  },
-                                  undefined,
-                                  undefined,
-                                  undefined,
-                                  undefined,
-                                  undefined,
-                                  undefined,
-                                  undefined,
-                                  undefined,
-                                  undefined,
-                                  undefined,
-                                  undefined,
-                                  undefined,
-                                  undefined,
-                                  Object {
-                                    "marginVertical": 8,
-                                  },
-                                ]
-                              }
-                            >
-                              Update payment method
-                            </Text>
-                            <TouchableOpacity
-                              accessibilityRole="button"
-                              accessible={true}
-                              disabled={false}
-                              onPress={[Function]}
-                            >
-                              <View
-                                style={
-                                  Array [
-                                    Object {
-                                      "borderColor": "#BBC0C5",
-                                      "borderRadius": 8,
-                                      "borderWidth": 1.5,
-                                      "padding": 16,
-                                    },
-                                    Object {
-                                      "paddingVertical": 12,
-                                    },
-                                    undefined,
-                                    undefined,
-                                  ]
-                                }
-                              >
-                                <View>
-                                  <View
-                                    style={
-                                      Array [
-                                        Object {
-                                          "alignItems": "center",
-                                          "flexDirection": "row",
-                                        },
-                                        undefined,
-                                      ]
-                                    }
-                                  >
-                                    <View
-                                      style={
-                                        Array [
-                                          Object {
-                                            "alignItems": "center",
-                                            "flexDirection": "row",
-                                            "marginRight": 15,
-                                          },
-                                          undefined,
-                                        ]
-                                      }
-                                    >
-                                      <Text
-                                        allowFontScaling={false}
-                                        style={
-                                          Array [
-                                            Object {
-                                              "color": "#24272A",
-                                              "fontSize": 20,
-                                            },
-                                            undefined,
-                                            Object {
-                                              "fontFamily": "simple-line-icons",
-                                              "fontStyle": "normal",
-                                              "fontWeight": "normal",
-                                            },
-                                            Object {},
-                                          ]
-                                        }
-                                      >
-                                        
-                                      </Text>
-                                    </View>
-                                    <View
-                                      style={
-                                        Array [
-                                          Object {
-                                            "flex": 1,
-                                          },
-                                          undefined,
-                                        ]
-                                      }
-                                    >
-                                      <Text
-                                        adjustsFontSizeToFit={true}
-                                        numberOfLines={1}
-                                        style={
-                                          Array [
-                                            Object {
-                                              "color": "#24272A",
-                                              "fontFamily": "EuclidCircularB-Regular",
-                                              "fontSize": 30,
-                                              "fontWeight": "400",
-                                              "marginVertical": 2,
-                                            },
-                                            undefined,
-                                            undefined,
-                                            Object {
-                                              "fontFamily": "EuclidCircularB-Bold",
-                                              "fontWeight": "600",
-                                            },
-                                            undefined,
-                                            Object {
-                                              "color": "#24272A",
-                                            },
-                                            undefined,
-                                            undefined,
-                                            undefined,
-                                            undefined,
-                                            Object {
-                                              "color": "#24272A",
-                                            },
-                                            undefined,
-                                            undefined,
-                                            undefined,
-                                            undefined,
-                                            undefined,
-                                            undefined,
-                                            undefined,
-                                            undefined,
-                                            undefined,
-                                            undefined,
-                                            undefined,
-                                            undefined,
-                                            undefined,
-                                            undefined,
-                                          ]
-                                        }
-                                      >
-                                        Credit or Debit Card
-                                      </Text>
-                                    </View>
-                                    <Text
-                                      style={
-                                        Array [
-                                          Object {
-                                            "color": "#24272A",
-                                            "fontFamily": "EuclidCircularB-Regular",
-                                            "fontSize": 30,
-                                            "fontWeight": "400",
-                                            "marginVertical": 2,
-                                          },
-                                          undefined,
-                                          undefined,
-                                          undefined,
-                                          undefined,
-                                          undefined,
-                                          undefined,
-                                          undefined,
-                                          undefined,
-                                          undefined,
-                                          undefined,
-                                          undefined,
-                                          undefined,
-                                          undefined,
-                                          undefined,
-                                          undefined,
-                                          undefined,
-                                          undefined,
-                                          undefined,
-                                          undefined,
-                                          undefined,
-                                          undefined,
-                                          undefined,
-                                          undefined,
-                                          Array [
-                                            Object {
-                                              "color": "#24272A",
-                                              "fontSize": 15,
-                                            },
-                                            undefined,
-                                          ],
-                                        ]
-                                      }
-                                    >
-                                      <Text
-                                        allowFontScaling={false}
-                                        style={
-                                          Array [
-                                            Object {
-                                              "color": undefined,
-                                              "fontSize": 16,
-                                            },
-                                            Object {
-                                              "color": "#24272A",
-                                              "marginLeft": 10,
-                                            },
-                                            Object {
-                                              "fontFamily": "Entypo",
-                                              "fontStyle": "normal",
-                                              "fontWeight": "normal",
-                                            },
-                                            Object {},
-                                          ]
-                                        }
-                                      >
-                                        
-                                      </Text>
-                                    </Text>
-                                  </View>
-                                </View>
-                              </View>
-                            </TouchableOpacity>
                             <View
                               style={
                                 Array [

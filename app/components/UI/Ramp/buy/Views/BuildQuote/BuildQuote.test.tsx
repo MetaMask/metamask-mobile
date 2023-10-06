@@ -18,6 +18,7 @@ import {
 } from './BuildQuote.constants';
 import useLimits from '../../hooks/useLimits';
 import useAddressBalance from '../../../../../hooks/useAddressBalance/useAddressBalance';
+import useBalance from '../../../common/hooks/useBalance';
 
 const getByRoleButton = (name?: string | RegExp) =>
   screen.getByRole('button', { name });
@@ -177,6 +178,13 @@ const mockUseAddressBalanceInitialValue: ReturnType<typeof useAddressBalance> =
 
 jest.mock('../../../../../hooks/useAddressBalance/useAddressBalance', () =>
   jest.fn(() => mockUseAddressBalanceInitialValue),
+);
+const mockUseBalanceInitialValue: Partial<ReturnType<typeof useBalance>> = {
+  balanceFiat: '$27.02',
+};
+
+jest.mock('../../../common/hooks/useBalance', () =>
+  jest.fn(() => mockUseBalanceInitialValue),
 );
 
 const mockSetSelectedRegion = jest.fn();
