@@ -17,6 +17,7 @@ import {
   mockPaymentMethods,
 } from './BuildQuote.constants';
 import useLimits from '../../hooks/useLimits';
+import useAddressBalance from '../../../../../hooks/useAddressBalance/useAddressBalance';
 
 const getByRoleButton = (name?: string | RegExp) =>
   screen.getByRole('button', { name });
@@ -168,6 +169,15 @@ let mockUseLimitsValues = {
 };
 
 jest.mock('../../hooks/useLimits', () => jest.fn(() => mockUseLimitsValues));
+
+const mockUseAddressBalanceInitialValue: ReturnType<typeof useAddressBalance> =
+  {
+    addressBalance: '5.36385 ETH',
+  };
+
+jest.mock('../../../../../hooks/useAddressBalance/useAddressBalance', () =>
+  jest.fn(() => mockUseAddressBalanceInitialValue),
+);
 
 const mockSetSelectedRegion = jest.fn();
 const mockSetSelectedPaymentMethodId = jest.fn();

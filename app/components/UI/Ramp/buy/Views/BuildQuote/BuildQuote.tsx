@@ -12,17 +12,27 @@ import Animated, {
   withTiming,
 } from 'react-native-reanimated';
 import { useNavigation } from '@react-navigation/native';
+
 import { useRampSDK } from '../../../common/sdk';
 import usePaymentMethods from '../../hooks/usePaymentMethods';
 import useRegions from '../../hooks/useRegions';
 import useAnalytics from '../../../common/hooks/useAnalytics';
+import useFiatCurrencies from '../../hooks/useFiatCurrencies';
+import useCryptoCurrencies from '../../hooks/useCryptoCurrencies';
+import useLimits from '../../hooks/useLimits';
+
+import useAddressBalance from '../../../../../hooks/useAddressBalance/useAddressBalance';
+import { Asset } from '../../../../../hooks/useAddressBalance/useAddressBalance.types';
 import useModalHandler from '../../../../../Base/hooks/useModalHandler';
+
 import Text from '../../../../../Base/Text';
 import BaseListItem from '../../../../../Base/ListItem';
 import BaseSelectorButton from '../../../../../Base/SelectorButton';
 import StyledButton from '../../../../StyledButton';
+
 import ScreenLayout from '../../../common/components/ScreenLayout';
 import Box from '../../../common/components/Box';
+import Row from '../../../common/components/Row';
 import AssetSelectorButton from '../../../common/components/AssetSelectorButton';
 import PaymentMethodSelector from '../../../common/components/PaymentMethodSelector';
 import AmountInput from '../../../common/components/AmountInput';
@@ -39,6 +49,8 @@ import ErrorViewWithReporting from '../../../common/components/ErrorViewWithRepo
 import RegionModal from '../../../common/components/RegionModal';
 import SkeletonText from '../../../common/components/SkeletonText';
 import ErrorView from '../../../common/components/ErrorView';
+
+import { NATIVE_ADDRESS } from '../../../../../../constants/on-ramp';
 import { getFiatOnRampAggNavbar } from '../../../../Navbar';
 import { strings } from '../../../../../../../locales/i18n';
 import {
@@ -49,10 +61,8 @@ import Routes from '../../../../../../constants/navigation/Routes';
 import { formatAmount } from '../../../common/utils';
 import { createQuotesNavDetails } from '../Quotes/Quotes';
 import { Region } from '../../../common/types';
-import useFiatCurrencies from '../../hooks/useFiatCurrencies';
-import useCryptoCurrencies from '../../hooks/useCryptoCurrencies';
-import useLimits from '../../hooks/useLimits';
 import { useStyles } from '../../../../../../component-library/hooks';
+
 import styleSheet from './BuildQuote.styles';
 
 // TODO: Convert into typescript and correctly type
@@ -113,6 +123,7 @@ const BuildQuote = () => {
     setSelectedAsset,
     selectedFiatCurrencyId,
     setSelectedFiatCurrencyId,
+    selectedAddress,
     selectedChainId,
     selectedNetworkName,
     sdkError,
@@ -152,6 +163,22 @@ const BuildQuote = () => {
 
   const { limits, isAmountBelowMinimum, isAmountAboveMaximum, isAmountValid } =
     useLimits();
+
+  const assetForBalance =
+    selectedAsset && selectedAsset.address !== NATIVE_ADDRESS
+      ? {
+          address: selectedAsset.address,
+          symbol: selectedAsset.symbol,
+          decimals: selectedAsset.decimals,
+        }
+      : {
+          isETH: true,
+        };
+
+  const { addressBalance } = useAddressBalance(
+    assetForBalance as Asset,
+    selectedAddress,
+  );
 
   const amountIsBelowMinimum = useMemo(
     () => isAmountBelowMinimum(amountNumber),
@@ -518,7 +545,7 @@ const BuildQuote = () => {
           accessible={false}
         >
           <ScreenLayout.Content>
-            <View style={[styles.selectors, styles.row]}>
+            <Row style={styles.selectors}>
               <AccountSelector />
               <View style={styles.spacer} />
               <SelectorButton
@@ -530,8 +557,8 @@ const BuildQuote = () => {
                   {selectedRegion?.emoji}
                 </Text>
               </SelectorButton>
-            </View>
-            <View style={styles.row}>
+            </Row>
+            <Row>
               <AssetSelectorButton
                 label={strings('fiat_on_ramp_aggregator.want_to_buy')}
                 icon={
@@ -545,32 +572,44 @@ const BuildQuote = () => {
                 assetName={selectedAsset?.name ?? ''}
                 onPress={handleAssetSelectorPress}
               />
-            </View>
-            <View style={styles.row}>
-              <AmountInput
-                highlighted={amountFocused}
-                label={strings('fiat_on_ramp_aggregator.amount')}
-                currencySymbol={currentFiatCurrency?.denomSymbol}
-                amount={amountFocused ? amount : formatAmount(amountNumber)}
-                highlightedError={!amountIsValid}
-                currencyCode={currentFiatCurrency?.symbol}
-                onPress={onAmountInputPress}
-                onCurrencyPress={handleFiatSelectorPress}
-              />
-            </View>
+              {addressBalance ? (
+                <Row>
+                  <Text small grey>
+                    {strings('fiat_on_ramp_aggregator.current_balance')}:{' '}
+                    {addressBalance}
+                  </Text>
+                </Row>
+              ) : null}
+            </Row>
+
+            <AmountInput
+              highlighted={amountFocused}
+              label={strings('fiat_on_ramp_aggregator.amount')}
+              currencySymbol={currentFiatCurrency?.denomSymbol}
+              amount={amountFocused ? amount : formatAmount(amountNumber)}
+              highlightedError={!amountIsValid}
+              currencyCode={currentFiatCurrency?.symbol}
+              onPress={onAmountInputPress}
+              onCurrencyPress={handleFiatSelectorPress}
+            />
+
             {amountIsBelowMinimum && limits && (
-              <Text red small>
-                {strings('fiat_on_ramp_aggregator.minimum')}{' '}
-                {currentFiatCurrency?.denomSymbol}
-                {formatAmount(limits.minAmount)}
-              </Text>
+              <Row>
+                <Text red small>
+                  {strings('fiat_on_ramp_aggregator.minimum')}{' '}
+                  {currentFiatCurrency?.denomSymbol}
+                  {formatAmount(limits.minAmount)}
+                </Text>
+              </Row>
             )}
             {amountIsAboveMaximum && limits && (
-              <Text red small>
-                {strings('fiat_on_ramp_aggregator.maximum')}{' '}
-                {currentFiatCurrency?.denomSymbol}
-                {formatAmount(limits.maxAmount)}
-              </Text>
+              <Row>
+                <Text red small>
+                  {strings('fiat_on_ramp_aggregator.maximum')}{' '}
+                  {currentFiatCurrency?.denomSymbol}
+                  {formatAmount(limits.maxAmount)}
+                </Text>
+              </Row>
             )}
           </ScreenLayout.Content>
         </Pressable>
@@ -590,7 +629,7 @@ const BuildQuote = () => {
             name={currentPaymentMethod?.name}
             onPress={showPaymentMethodsModal as () => void}
           />
-          <View style={[styles.row, styles.cta]}>
+          <Row style={styles.cta}>
             {currentPaymentMethod?.customAction ? (
               <CustomActionButton
                 customAction={currentPaymentMethod.customAction}
@@ -609,7 +648,7 @@ const BuildQuote = () => {
                 {strings('fiat_on_ramp_aggregator.get_quotes')}
               </StyledButton>
             )}
-          </View>
+          </Row>
         </ScreenLayout.Content>
       </ScreenLayout.Footer>
 
