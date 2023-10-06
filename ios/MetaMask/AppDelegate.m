@@ -69,15 +69,15 @@
 
 - (void) initializeFlipper:(UIApplication *)application {
   #if DEBUG
-  #ifdef FB_SONARKIT_ENABLED
-    FlipperClient *client = [FlipperClient sharedClient];
-    SKDescriptorMapper *layoutDescriptorMapper = [[SKDescriptorMapper alloc] initWithDefaults];
-    [client addPlugin: [[FlipperKitLayoutPlugin alloc] initWithRootNode: application withDescriptorMapper: layoutDescriptorMapper]];
-    [client addPlugin: [[FKUserDefaultsPlugin alloc] initWithSuiteName:nil]];
-    [client addPlugin: [FlipperKitReactPlugin new]];
-    [client addPlugin: [[FlipperKitNetworkPlugin alloc] initWithNetworkAdapter:[SKIOSNetworkAdapter new]]];
-    [client start];
-  #endif
+ #ifdef FB_SONARKIT_ENABLED
+//   FlipperClient *client = [FlipperClient sharedClient];
+//   SKDescriptorMapper *layoutDescriptorMapper = [[SKDescriptorMapper alloc] initWithDefaults];
+//   [client addPlugin: [[FlipperKitLayoutPlugin alloc] initWithRootNode: application withDescriptorMapper: layoutDescriptorMapper]];
+//   [client addPlugin: [[FKUserDefaultsPlugin alloc] initWithSuiteName:nil]];
+//   [client addPlugin: [FlipperKitReactPlugin new]];
+//   [client addPlugin: [[FlipperKitNetworkPlugin alloc] initWithNetworkAdapter:[SKIOSNetworkAdapter new]]];
+//   [client start];
+ #endif
   #endif
 }
 
