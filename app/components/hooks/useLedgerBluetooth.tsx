@@ -2,6 +2,8 @@ import { useEffect, useRef, useState } from 'react';
 import Engine from '../../core/Engine';
 import { strings } from '../../../locales/i18n';
 import { BluetoothInterface } from '../Views/LedgerConnect/hooks/useBluetoothDevices';
+import * as Ledger from '../../core/Ledger/Ledger'; 
+import type BleTransport from '@ledgerhq/react-native-hw-transport-ble';
 
 export enum LedgerCommunicationErrors {
   LedgerDisconnected = 'LedgerDisconnected',
@@ -40,7 +42,6 @@ const RESTART_LIMIT = 5;
 // 1. One big code block - logic all encapsulated in logicToRun
 // 2. logicToRun calls setUpBluetoothConnection
 function useLedgerBluetooth(deviceId?: string): UseLedgerBluetoothHook {
-  const { KeyringController } = Engine.context as any;
 
   // This is to track if we are expecting code to run or connection operational
   const [isSendingLedgerCommands, setIsSendingLedgerCommands] =
@@ -135,9 +136,12 @@ function useLedgerBluetooth(deviceId?: string): UseLedgerBluetoothHook {
       // Must do this at start of every code block to run to ensure transport is set
       await setUpBluetoothConnection();
 
+      if (!transportRef.current || !deviceId){
+        throw new Error('transportRef.current is undefined')
+      }
       // Initialise the keyring and check for pre-conditions (is the correct app running?)
-      const appName = await KeyringController.connectLedgerHardware(
-        transportRef.current,
+      const appName = await Ledger.connectLedgerHardware(
+        transportRef.current as unknown as BleTransport,
         deviceId,
       );
 
@@ -146,7 +150,7 @@ function useLedgerBluetooth(deviceId?: string): UseLedgerBluetoothHook {
         // Open Ethereum App
         try {
           setIsAppLaunchConfirmationNeeded(true);
-          await KeyringController.openEthereumAppOnLedger();
+          await Ledger.openEthereumAppOnLedger();
         } catch (e: any) {
           if (e.name === 'TransportStatusError') {
             switch (e.statusCode) {
@@ -179,7 +183,7 @@ function useLedgerBluetooth(deviceId?: string): UseLedgerBluetoothHook {
         return;
       } else if (appName !== 'Ethereum') {
         try {
-          await KeyringController.closeRunningAppOnLedger();
+          await Ledger.closeRunningAppOnLedger();
         } catch (e) {
           throw new LedgerError(
             strings('ledger.running_app_close_error'),

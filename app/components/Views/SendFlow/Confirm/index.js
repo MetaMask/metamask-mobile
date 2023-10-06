@@ -107,6 +107,7 @@ import {
   TXN_CONFIRM_SCREEN,
   TXN_CONFIRM_SEND_BUTTON,
 } from '../../../../constants/test-ids';
+import * as Ledger from '../../../core/Ledger/Ledger'; 
 
 const EDIT = 'edit';
 const EDIT_NONCE = 'edit_nonce';
@@ -757,7 +758,7 @@ class Confirm extends PureComponent {
       ]);
 
       if (isLedgerAccount) {
-        const ledgerKeyring = await KeyringController.getLedgerKeyring();
+        const ledgerKeyring = await Ledger.getLedgerKeyring();
         this.setState({ transactionConfirmed: false });
         // Approve transaction for ledger is called in the Confirmation Flow (modals) after user prompt
         this.props.navigation.navigate(

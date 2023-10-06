@@ -67,6 +67,7 @@ import {
   CancelTransactionError,
   SpeedupTransactionError,
 } from '../../../core/Transaction/TransactionError';
+import * as Ledger from '../../../core/Ledger/Ledger'; 
 
 const createStyles = (colors, typography) =>
   StyleSheet.create({
@@ -548,9 +549,7 @@ class Transactions extends PureComponent {
   };
 
   signLedgerTransaction = async (transaction) => {
-    const { KeyringController } = Engine.context;
-
-    const ledgerKeyring = await KeyringController.getLedgerKeyring();
+    const ledgerKeyring = await Ledger.getLedgerKeyring();
 
     const onConfirmation = (isComplete) => {
       if (isComplete) {

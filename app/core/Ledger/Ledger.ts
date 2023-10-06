@@ -167,3 +167,14 @@ export const forgetLedger = async (): Promise<void> => {
   await ethKeyringController.persistAllKeyrings();
   await syncKeyringState();
 };
+
+
+/**
+ * Get DeviceId from Ledger Keyring
+ *
+ * @returns The DeviceId
+ */
+export const getDeviceId = async():Promise<string> => {
+  const ledgerKeyring = await getLedgerKeyring();
+  return ledgerKeyring.deviceId
+};

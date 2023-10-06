@@ -59,6 +59,7 @@ import TemplateConfirmationModal from '../../Approvals/TemplateConfirmationModal
 import { selectTokenList } from '../../../selectors/tokenListController';
 import { selectTokens } from '../../../selectors/tokensController';
 import { selectSelectedAddress } from '../../../selectors/preferencesController';
+import * as Ledger from '../../../core/Ledger/Ledger'; 
 
 const hstInterface = new ethers.utils.Interface(abi);
 
@@ -216,7 +217,7 @@ const RootRPCMethodsUI = (props) => {
 
         // For Ledger Accounts we handover the signing to the confirmation flow
         if (isLedgerAccount) {
-          const ledgerKeyring = await KeyringController.getLedgerKeyring();
+          const ledgerKeyring = await Ledger.getLedgerKeyring();
 
           props.navigation.navigate(
             ...createLedgerTransactionModalNavDetails({

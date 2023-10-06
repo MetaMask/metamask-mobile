@@ -2,6 +2,7 @@ import Engine from './Engine';
 import Logger from '../util/Logger';
 import { syncPrefs, syncAccounts } from '../util/sync';
 import { KeyringTypes } from '@metamask/keyring-controller';
+import * as Ledger from '../../../core/Ledger/Ledger'; 
 
 /**
  * Returns current vault seed phrase
@@ -54,7 +55,7 @@ export const recreateVaultWithNewPassword = async (
     );
   }
 
-  const ledgerKeyring = await KeyringController.getLedgerKeyring();
+  const ledgerKeyring = await Ledger.getLedgerKeyring();
   const serializedLedgerKeyring = await ledgerKeyring.serialize();
 
   const qrKeyring = await KeyringController.getOrAddQRKeyring();
@@ -68,7 +69,7 @@ export const recreateVaultWithNewPassword = async (
   await KeyringController.createNewVaultAndRestore(newPassword, seedPhrase);
 
   await KeyringController.restoreQRKeyring(serializedQRKeyring);
-  await KeyringController.restoreLedgerKeyring(serializedLedgerKeyring);
+  await Ledger.restoreLedgerKeyring(serializedLedgerKeyring);
 
   // Create previous accounts again
   for (let i = 0; i < existingAccountCount - 1; i++) {

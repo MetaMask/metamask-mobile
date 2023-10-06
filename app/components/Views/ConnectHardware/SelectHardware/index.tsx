@@ -21,6 +21,7 @@ import { fontStyles } from '../../../../styles/common';
 import { strings } from '../../../../../locales/i18n';
 import Engine from '../../../../core/Engine';
 import Routes from '../../../../constants/navigation/Routes';
+import * as Ledger from '../../../../core/Ledger/Ledger'; 
 
 const createStyle = (colors: any) =>
   StyleSheet.create({
@@ -100,7 +101,7 @@ const SelectHardwareWallet = () => {
   };
 
   const navigateToConnectLedger = async () => {
-    const ledgerKeyring = await KeyringController.getLedgerKeyring();
+    const ledgerKeyring = await Ledger.getLedgerKeyring();
     const accounts = await ledgerKeyring.getAccounts();
 
     if (accounts.length === 0) {

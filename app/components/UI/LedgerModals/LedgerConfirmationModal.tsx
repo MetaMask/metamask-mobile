@@ -9,7 +9,6 @@ import { Colors } from '../../../util/theme/models';
 import useLedgerBluetooth, {
   LedgerCommunicationErrors,
 } from '../../../components/hooks/useLedgerBluetooth';
-import Engine from '../../../core/Engine';
 import useBluetooth from '../../../components/Views/LedgerConnect/hooks/useBluetooth';
 import useBluetoothPermissions, {
   BluetoothPermissionErrors,
@@ -18,6 +17,7 @@ import ConfirmationStep from './Steps/ConfirmationStep';
 import ErrorStep from './Steps/ErrorStep';
 import OpenETHAppStep from './Steps/OpenETHAppStep';
 import SearchingForDeviceStep from './Steps/SearchingForDeviceStep';
+import * as Ledger from '../../../core/Ledger/Ledger'; 
 
 const createStyles = (colors: Colors) =>
   StyleSheet.create({
@@ -45,7 +45,6 @@ const LedgerConfirmationModal = ({
   onRejection,
   deviceId,
 }: LedgerConfirmationModalProps) => {
-  const { KeyringController } = Engine.context as any;
   const { colors } = useAppThemeFromContext() || mockTheme;
   const styles = useMemo(() => createStyles(colors), [colors]);
   const {
@@ -71,7 +70,7 @@ const LedgerConfirmationModal = ({
   const connectLedger = () => {
     try {
       ledgerLogicToRun(async () => {
-        await KeyringController.unlockLedgerDefaultAccount();
+        await Ledger.unlockLedgerDefaultAccount();
         await onConfirmation();
       });
     } catch (_e) {

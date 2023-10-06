@@ -25,6 +25,7 @@ import { getEtherscanAddressUrl } from '../../../util/etherscan';
 import { findBlockExplorerForRpc } from '../../../util/networks';
 import { useSelector } from 'react-redux';
 import AccountDetails from '../ConnectQRHardware/AccountDetails';
+import * as Ledger from '../../../core/Ledger/Ledger'; 
 
 const createStyles = (colors: any) =>
   StyleSheet.create({
@@ -100,7 +101,7 @@ const LedgerAccountInfo = () => {
 
   useEffect(() => {
     const getAccount = async () => {
-      const ledgerKeyring = await KeyringController.getLedgerKeyring();
+      const ledgerKeyring = await Ledger.getLedgerKeyring();
       const accounts = await ledgerKeyring.getAccounts();
 
       setAccount(accounts[0]);
@@ -111,7 +112,7 @@ const LedgerAccountInfo = () => {
   }, []);
 
   const onForgetDevice = async () => {
-    await KeyringController.forgetLedger();
+    await Ledger.forgetLedger();
     navigation.goBack();
   };
 

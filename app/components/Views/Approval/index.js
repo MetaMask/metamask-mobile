@@ -45,6 +45,7 @@ import {
 } from '../../../selectors/networkController';
 import { selectSelectedAddress } from '../../../selectors/preferencesController';
 import { ethErrors } from 'eth-rpc-errors';
+import * as Ledger from '../../../core/Ledger/Ledger'; 
 
 const REVIEW = 'review';
 const EDIT = 'edit';
@@ -431,7 +432,7 @@ class Approval extends PureComponent {
 
       // For Ledger Accounts we handover the signing to the confirmation flow
       if (isLedgerAccount) {
-        const ledgerKeyring = await KeyringController.getLedgerKeyring();
+        const ledgerKeyring = await Ledger.getLedgerKeyring();
         this.setState({ transactionHandled: true });
         this.setState({ transactionConfirmed: false });
 

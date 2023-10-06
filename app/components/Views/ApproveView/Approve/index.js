@@ -69,6 +69,7 @@ import {
 import ShowBlockExplorer from '../../../UI/ApproveTransactionReview/ShowBlockExplorer';
 import createStyles from './styles';
 import { ethErrors } from 'eth-rpc-errors';
+import * as Ledger from '../../../core/Ledger/Ledger'; 
 
 const EDIT = 'edit';
 const REVIEW = 'review';
@@ -535,7 +536,7 @@ class Approve extends PureComponent {
 
       // For Ledger Accounts we handover the signing to the confirmation flow
       if (isLedgerAccount) {
-        const ledgerKeyring = await KeyringController.getLedgerKeyring();
+        const ledgerKeyring = await Ledger.getLedgerKeyring();
         this.setState({ transactionHandled: true });
         this.setState({ transactionConfirmed: false });
 
