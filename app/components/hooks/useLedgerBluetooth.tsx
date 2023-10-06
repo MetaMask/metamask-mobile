@@ -1,5 +1,4 @@
 import { useEffect, useRef, useState } from 'react';
-import Engine from '../../core/Engine';
 import { strings } from '../../../locales/i18n';
 import { BluetoothInterface } from '../Views/LedgerConnect/hooks/useBluetoothDevices';
 import * as Ledger from '../../core/Ledger/Ledger'; 

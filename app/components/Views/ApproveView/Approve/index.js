@@ -69,7 +69,7 @@ import {
 import ShowBlockExplorer from '../../../UI/ApproveTransactionReview/ShowBlockExplorer';
 import createStyles from './styles';
 import { ethErrors } from 'eth-rpc-errors';
-import * as Ledger from '../../../core/Ledger/Ledger'; 
+import * as Ledger from '../../../../core/Ledger/Ledger'; 
 
 const EDIT = 'edit';
 const REVIEW = 'review';
