@@ -1914,7 +1914,6 @@
     "no_tokens_match": "没有符合“{{searchString}}”的代币",
     "no_currency_match": "没有符合“{{searchString}}”的货币",
     "pay_with": "支付方式：",
-    "buy_with": "使用{{provider}}购买",
     "minimum": "最低保证金为",
     "maximum": "最高保证金为",
     "try_again": "再试一次",

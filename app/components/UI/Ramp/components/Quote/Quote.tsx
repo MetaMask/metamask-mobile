@@ -191,7 +191,7 @@ const Quote: React.FC<Props> = ({
                     color={colors.primary.inverse}
                   />
                 ) : (
-                  strings('fiat_on_ramp_aggregator.buy_with', {
+                  strings('fiat_on_ramp_aggregator.proceed_with', {
                     provider: provider.name,
                   })
                 )}
