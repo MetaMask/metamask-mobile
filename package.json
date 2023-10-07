@@ -131,7 +131,7 @@
   },
   "dependencies": {
     "@consensys/on-ramp-sdk": "1.9.1",
-    "@eth-optimism/contracts": "0.0.0-2021919175625",
+    "@eth-optimism/contracts": "0.0.1",
     "@ethereumjs/common": "^2.3.1",
     "@ethereumjs/tx": "^3.2.1",
     "@exodus/react-native-payments": "git+https://github.com/MetaMask/react-native-payments.git#dbc8cbbed570892d2fea5e3d183bf243e062c1e5",
@@ -326,7 +326,7 @@
     "@metamask/mobile-provider": "^2.1.0",
     "@react-native-community/eslint-config": "^2.0.0",
     "@rpii/wdio-html-reporter": "^7.7.1",
-    "@storybook/addon-actions": "^5.3",
+    "@storybook/addon-actions": "^6.2.0",
     "@storybook/addon-knobs": "^6.2.0",
     "@storybook/addon-links": "^5.3",
     "@storybook/addon-ondevice-actions": "^5.3.23",
@@ -347,7 +347,7 @@
     "@wdio/appium-service": "^7.19.1",
     "@wdio/browserstack-service": "^7.26.0",
     "@wdio/cli": "^7.19.1",
-    "@wdio/cucumber-framework": "^7.19.1",
+    "@wdio/cucumber-framework": "^8.14.6",
     "@wdio/junit-reporter": "^7.25.4",
     "@wdio/local-runner": "^7.19.1",
     "@wdio/spec-reporter": "^7.19.1",
@@ -401,7 +401,7 @@
     "wdio-cucumber-reporter": "^0.0.2",
     "wdio-cucumberjs-json-reporter": "^4.4.3",
     "wdio-image-comparison-service": "^3.1.0",
-    "wdio-vscode-service": "^0.1.5",
+    "wdio-vscode-service": "^4.1.0",
     "xml2js": "^0.5.0"
   },
   "config": {
