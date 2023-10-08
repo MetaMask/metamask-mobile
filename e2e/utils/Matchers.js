@@ -1,3 +1,5 @@
+import { web } from 'detox';
+
 /**
  * Utility class for matching (locating) UI elements
  */
