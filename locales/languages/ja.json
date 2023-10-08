@@ -1869,7 +1869,6 @@
   "fiat_on_ramp_aggregator": {
     "onboarding": {
       "what_to_expect": "今後の流れ",
-      "best_quotes": "仮想通貨購入機能が提携ベンダーからクォートを集め、それらのソースから最も有利なクォートを提供し、待ち時間なしで直接ウォレットに仮想通貨を入金します。",
       "benefits": "ガス代が安く、数々のネットワーク、トークン、支払方法がサポートされています",
       "get_started": "開始"
     },
@@ -1914,9 +1913,6 @@
     "select_region_currency": "地域の通貨を選択",
     "no_tokens_match": "「{{searchString}}」に一致するトークンがありません",
     "no_currency_match": "「{{searchString}}」に一致する通貨がありません",
-    "buy_from_vetted": "提携プロバイダーから{{ticker}}を購入するため、MetaMaskアプリから直接提携プロバイダーのポータルに安全に転送されます",
-    "best_price": "最も有利な価格",
-    "explore_other_options": "他のオプションを検討",
     "pay_with": "支払方法:",
     "buy_with": "{{provider}}で購入",
     "minimum": "最低入金額は",
