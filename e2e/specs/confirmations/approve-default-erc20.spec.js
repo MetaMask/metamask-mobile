@@ -21,8 +21,7 @@ describe(Regression('ERC20 tokens'), () => {
   beforeAll(async () => {
     jest.setTimeout(170000);
     if (device.getPlatform() === 'android') {
-      await device.reverseTcpPort('8545'); // ganache
-      await device.reverseTcpPort('8085'); // test-dapp
+      await TestHelpers.reverseServerPort();
     }
   });
 
@@ -53,8 +52,12 @@ describe(Regression('ERC20 tokens'), () => {
         });
 
         // Assert the default token amount is shown
-        await TestHelpers.checkIfElementByTextIsVisible(
-          `${AMOUNT} ${TOKEN_NAME}`,
+
+        await TestHelpers.checkIfExists('custom-spend-cap-input-input-id');
+
+        await expect(
+          element(by.id('custom-spend-cap-input-input-id')),
+        ).toHaveText('7');
 
         // Tap next button
         await TestHelpers.checkIfElementWithTextIsVisible(
