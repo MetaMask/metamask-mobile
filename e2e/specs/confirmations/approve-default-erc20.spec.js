@@ -14,6 +14,8 @@ import root from '../../../locales/languages/en.json';
 
 const HST_CONTRACT = SMART_CONTRACTS.HST;
 const WEBVIEW_TEST_DAPP_APPROVE_TOKENS_BUTTON_ID = 'approveTokens';
+//const TOKEN_NAME = root.unit.eth;
+//const AMOUNT = '7';
 
 describe(Regression('ERC20 tokens'), () => {
   beforeAll(async () => {
@@ -49,6 +51,10 @@ describe(Regression('ERC20 tokens'), () => {
           buttonId: WEBVIEW_TEST_DAPP_APPROVE_TOKENS_BUTTON_ID,
           contractAddress: hstAddress,
         });
+
+        // Assert the default token amount is shown
+        await TestHelpers.checkIfElementByTextIsVisible(
+          `${AMOUNT} ${TOKEN_NAME}`,
 
         // Tap next button
         await TestHelpers.checkIfElementWithTextIsVisible(
