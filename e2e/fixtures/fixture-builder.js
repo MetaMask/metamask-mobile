@@ -1,3 +1,4 @@
+import { getGanachePort } from '../utils';
 import { merge } from 'lodash';
 
 const DAPP_URL = 'localhost';
@@ -158,7 +159,7 @@ class FixtureBuilder {
               featureFlags: {},
               frequentRpcList: [
                 {
-                  rpcUrl: 'http://localhost:8545',
+                  rpcUrl: `http://localhost:${getGanachePort()}`,
                   chainId: '1337',
                   ticker: 'ETH',
                   nickname: 'Localhost',
@@ -625,7 +626,7 @@ class FixtureBuilder {
       providerConfig: {
         type: 'rpc',
         chainId: '1337',
-        rpcTarget: 'http://localhost:8545',
+        rpcTarget: `http://localhost:${getGanachePort()}`,
         nickname: 'Localhost',
         ticker: 'ETH',
       },

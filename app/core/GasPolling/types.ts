@@ -129,10 +129,12 @@ export interface UseGasTransactionProps {
     suggestedMaxFeePerGas: string;
     suggestedMaxPriorityFeePerGas: string;
   };
+  /**
+   * When legacy transaction gas limit or gas price values are updated in the edit mode, pass those values to this object.
+   */
   gasObjectLegacy?: {
     legacyGasLimit?: string;
     suggestedGasPrice?: string;
-    suggestedMaxFeePerGas?: string;
   };
 
   multiLayerL1FeeTotal?: string;
