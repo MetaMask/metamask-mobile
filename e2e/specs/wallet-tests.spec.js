@@ -52,11 +52,9 @@ describe(Smoke('Wallet Tests'), () => {
 
     // Input incorrect contract address
     await AddCustomTokenView.typeInNFTAddress('1234');
+    await AddCustomTokenView.typeInNFTIdentifier('');
+
     await AddCustomTokenView.isNFTAddressWarningVisible();
-    await AddCustomTokenView.tapImportButton();
-
-    await AddCustomTokenView.isNFTIdentifierWarningVisible();
-
     await AddCustomTokenView.tapBackButton();
 
     await WalletView.tapImportNFTButton();

@@ -30,14 +30,17 @@ import { BaseState, ControllerMessenger } from '@metamask/base-controller';
 import { ComposableController } from '@metamask/composable-controller';
 import {
   KeyringController,
-  KeyringState,
   SignTypedDataVersion,
+  KeyringControllerState,
+  KeyringControllerActions,
+  KeyringControllerEvents,
 } from '@metamask/keyring-controller';
 import {
   NetworkController,
   NetworkControllerActions,
   NetworkControllerEvents,
   NetworkState,
+  NetworkStatus,
 } from '@metamask/network-controller';
 import {
   PhishingController,
@@ -73,6 +76,11 @@ import {
 import SwapsController, { swapsUtils } from '@metamask/swaps-controller';
 import { PPOMController } from '@metamask/ppom-validator';
 import { MetaMaskKeyring as QRHardwareKeyring } from '@keystonehq/metamask-airgapped-keyring';
+import {
+  LoggingController,
+  LoggingControllerState,
+  LoggingControllerActions,
+} from '@metamask/logging-controller';
 import Encryptor from './Encryptor';
 import {
   isMainnetByChainId,
@@ -108,6 +116,7 @@ import {
 import { hasProperty, Json } from '@metamask/controller-utils';
 // TODO: Export this type from the package directly
 import { SwapsState } from '@metamask/swaps-controller/dist/SwapsController';
+import { ethErrors } from 'eth-rpc-errors';
 
 import { PPOM, ppomInit } from '../lib/ppom/PPOMView';
 import RNFSStorageBackend from '../lib/ppom/rnfs-storage-backend';
@@ -124,7 +133,9 @@ type GlobalActions =
   | GetTokenListState
   | NetworkControllerActions
   | PermissionControllerActions
-  | SignatureControllerActions;
+  | SignatureControllerActions
+  | KeyringControllerActions
+  | LoggingControllerActions;
 type GlobalEvents =
   | ApprovalControllerEvents
   | CurrencyRateStateChange
@@ -132,7 +143,8 @@ type GlobalEvents =
   | TokenListStateChange
   | NetworkControllerEvents
   | PermissionControllerEvents
-  | SignatureControllerEvents;
+  | SignatureControllerEvents
+  | KeyringControllerEvents;
 
 type PermissionsByRpcMethod = ReturnType<typeof getPermissionSpecifications>;
 type Permissions = PermissionsByRpcMethod[keyof PermissionsByRpcMethod];
@@ -144,7 +156,7 @@ export interface EngineState {
   NftController: NftState;
   TokenListController: TokenListState;
   CurrencyRateController: CurrencyRateState;
-  KeyringController: KeyringState;
+  KeyringController: KeyringControllerState;
   NetworkController: NetworkState;
   PreferencesController: PreferencesState;
   PhishingController: PhishingState;
@@ -158,6 +170,7 @@ export interface EngineState {
   NftDetectionController: BaseState;
   PermissionController: PermissionControllerState<Permissions>;
   ApprovalController: ApprovalControllerState;
+  LoggingController: LoggingControllerState;
 }
 
 /**
@@ -181,6 +194,7 @@ class Engine {
         CurrencyRateController: CurrencyRateController;
         GasFeeController: GasFeeController;
         KeyringController: KeyringController;
+        LoggingController: LoggingController;
         NetworkController: NetworkController;
         NftController: NftController;
         NftDetectionController: NftDetectionController;
@@ -220,7 +234,7 @@ class Engine {
   // eslint-disable-next-line @typescript-eslint/default-param-last
   constructor(
     initialState: Partial<EngineState> = {},
-    initialKeyringState?: KeyringState | null,
+    initialKeyringState?: KeyringControllerState | null,
   ) {
     this.controllerMessenger = new ControllerMessenger();
 
@@ -248,7 +262,7 @@ class Engine {
           initialState?.PreferencesController?.useTokenDetection ?? true,
         // TODO: Use previous value when preferences UI is available
         useNftDetection: false,
-        openSeaEnabled: false,
+        displayNftMedia: true,
       },
     );
 
@@ -390,8 +404,6 @@ class Engine {
     const phishingController = new PhishingController();
     phishingController.maybeUpdateState();
 
-    const additionalKeyrings = [QRHardwareKeyring];
-
     const getIdentities = () => {
       const identities = preferencesController.state.identities;
       const lowerCasedIdentities: PreferencesState['identities'] = {};
@@ -401,29 +413,40 @@ class Engine {
       return lowerCasedIdentities;
     };
 
-    const keyringState = initialKeyringState || initialState.KeyringController;
+    const qrKeyringBuilder = () => new QRHardwareKeyring();
+    qrKeyringBuilder.type = QRHardwareKeyring.type;
 
-    const keyringController = new KeyringController(
-      {
-        removeIdentity: preferencesController.removeIdentity.bind(
-          preferencesController,
-        ),
-        syncIdentities: preferencesController.syncIdentities.bind(
-          preferencesController,
-        ),
-        updateIdentities: preferencesController.updateIdentities.bind(
-          preferencesController,
-        ),
-        setSelectedAddress: preferencesController.setSelectedAddress.bind(
-          preferencesController,
-        ),
-        setAccountLabel: preferencesController.setAccountLabel.bind(
-          preferencesController,
-        ),
-      },
-      { encryptor, keyringTypes: additionalKeyrings },
-      keyringState,
-    );
+    const keyringController = new KeyringController({
+      removeIdentity: preferencesController.removeIdentity.bind(
+        preferencesController,
+      ),
+      syncIdentities: preferencesController.syncIdentities.bind(
+        preferencesController,
+      ),
+      updateIdentities: preferencesController.updateIdentities.bind(
+        preferencesController,
+      ),
+      setSelectedAddress: preferencesController.setSelectedAddress.bind(
+        preferencesController,
+      ),
+      setAccountLabel: preferencesController.setAccountLabel.bind(
+        preferencesController,
+      ),
+      encryptor,
+      // @ts-expect-error Error might be caused by base controller version mismatch
+      messenger: this.controllerMessenger.getRestricted({
+        name: 'KeyringController',
+        allowedEvents: [
+          'KeyringController:lock',
+          'KeyringController:unlock',
+          'KeyringController:stateChange',
+          'KeyringController:accountRemoved',
+        ],
+        allowedActions: ['KeyringController:getState'],
+      }),
+      state: initialKeyringState || initialState.KeyringController,
+      keyringBuilders: [qrKeyringBuilder],
+    });
 
     const controllers = [
       keyringController,
@@ -434,7 +457,6 @@ class Engine {
         // @ts-expect-error This is added in a patch, but types weren't updated
         getSelectedAddress: () => preferencesController.state.selectedAddress,
         getMultiAccountBalancesEnabled: () =>
-          // @ts-expect-error This is added in a patch, but types weren't updated
           preferencesController.state.isMultiAccountBalancesEnabled,
       }),
       new AddressBookController(),
@@ -527,9 +549,9 @@ class Engine {
         },
       ),
       new TransactionController({
+        blockTracker:
+          networkController.getProviderAndBlockTracker().blockTracker,
         getNetworkState: () => networkController.state,
-        getProvider: () =>
-          networkController.getProviderAndBlockTracker().provider,
         getSelectedAddress: () => preferencesController.state.selectedAddress,
         incomingTransactions: {
           apiKey: process.env.MM_ETHERSCAN_KEY,
@@ -546,6 +568,7 @@ class Engine {
             AppConstants.NETWORK_STATE_CHANGE_EVENT,
             listener,
           ),
+        provider: networkController.getProviderAndBlockTracker().provider,
       }),
       new SwapsController(
         {
@@ -617,11 +640,17 @@ class Engine {
             keyringController.signPersonalMessage.bind(keyringController),
           signTypedMessage: (msgParams, { version }) =>
             keyringController.signTypedMessage(
-              // @ts-expect-error Error might be caused by base controller version mismatch
               msgParams,
               version as SignTypedDataVersion,
             ),
         },
+      }),
+      new LoggingController({
+        // @ts-expect-error Error might be caused by base controller version mismatch
+        messenger: this.controllerMessenger.getRestricted({
+          name: 'LoggingController',
+        }),
+        state: initialState.LoggingController,
       }),
     ];
 
@@ -706,9 +735,9 @@ class Engine {
 
     this.controllerMessenger.subscribe(
       AppConstants.NETWORK_STATE_CHANGE_EVENT,
-      (state: { network: string; providerConfig: { chainId: any } }) => {
+      (state: NetworkState) => {
         if (
-          state.network !== 'loading' &&
+          state.networkStatus === NetworkStatus.Available &&
           state.providerConfig.chainId !== currentChainId
         ) {
           // We should add a state or event emitter saying the provider changed
@@ -728,19 +757,20 @@ class Engine {
   }
 
   handleVaultBackup() {
-    const { KeyringController } = this.context;
-    KeyringController.subscribe((state: any) =>
-      backupVault(state)
-        .then((result) => {
-          if (result.success) {
-            Logger.log('Engine', 'Vault back up successful');
-          } else {
-            Logger.log('Engine', 'Vault backup failed', result.error);
-          }
-        })
-        .catch((error) => {
-          Logger.error(error, 'Engine Vault backup failed');
-        }),
+    this.controllerMessenger.subscribe(
+      AppConstants.KEYRING_STATE_CHANGE_EVENT,
+      (state: KeyringControllerState) =>
+        backupVault(state)
+          .then((result) => {
+            if (result.success) {
+              Logger.log('Engine', 'Vault back up successful');
+            } else {
+              Logger.log('Engine', 'Vault backup failed', result.error);
+            }
+          })
+          .catch((error) => {
+            Logger.error(error, 'Engine Vault backup failed');
+          }),
     );
   }
 
@@ -891,6 +921,7 @@ class Engine {
       TokenBalancesController,
       TokenRatesController,
       PermissionController,
+      LoggingController,
     } = this.context;
 
     // Remove all permissions.
@@ -923,6 +954,8 @@ class Engine {
       transactions: [],
       lastFetchedBlockNumbers: {},
     });
+
+    LoggingController.clear();
   };
 
   removeAllListeners() {
@@ -935,13 +968,26 @@ class Engine {
     Engine.instance = null;
   }
 
-  rejectPendingApproval(id: string, reason: Error) {
+  rejectPendingApproval(
+    id: string,
+    reason: Error = ethErrors.provider.userRejectedRequest(),
+    opts: { ignoreMissing?: boolean; logErrors?: boolean } = {},
+  ) {
     const { ApprovalController } = this.context;
+
+    if (opts.ignoreMissing && !ApprovalController.has({ id })) {
+      return;
+    }
 
     try {
       ApprovalController.reject(id, reason);
     } catch (error: any) {
-      Logger.error(error, 'Reject while rejecting pending connection request');
+      if (opts.logErrors !== false) {
+        Logger.error(
+          error,
+          'Reject while rejecting pending connection request',
+        );
+      }
     }
   }
 
@@ -1017,6 +1063,7 @@ export default {
       NftDetectionController,
       PermissionController,
       ApprovalController,
+      LoggingController,
     } = instance.datamodel.state;
 
     // normalize `null` currencyRate to `0`
@@ -1051,6 +1098,7 @@ export default {
       NftDetectionController,
       PermissionController,
       ApprovalController,
+      LoggingController,
     };
   },
   get datamodel() {
@@ -1083,6 +1131,12 @@ export default {
     requestData?: Record<string, Json>,
     opts?: AcceptOptions & { handleErrors?: boolean },
   ) => instance?.acceptPendingApproval(id, requestData, opts),
-  rejectPendingApproval: (id: string, reason: Error) =>
-    instance?.rejectPendingApproval(id, reason),
+  rejectPendingApproval: (
+    id: string,
+    reason: Error,
+    opts: {
+      ignoreMissing?: boolean;
+      logErrors?: boolean;
+    } = {},
+  ) => instance?.rejectPendingApproval(id, reason, opts),
 };

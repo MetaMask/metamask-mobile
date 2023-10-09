@@ -25,6 +25,7 @@ import { toLowerCaseEquals } from '../general';
 import { fastSplit } from '../number';
 import { buildUnserializedTransaction } from '../transactions/optimismTransaction';
 import handleNetworkSwitch from './handleNetworkSwitch';
+import { regex } from '../../../app/util/regex';
 
 export { handleNetworkSwitch };
 
@@ -230,20 +231,8 @@ export function hasBlockExplorer(key) {
   return key.toLowerCase() !== RPC;
 }
 
-export function isKnownNetwork(id) {
-  const knownNetworks = NetworkListKeys.map(
-    (key) => NetworkList[key].networkId,
-  ).filter((id) => id !== undefined);
-  return knownNetworks.includes(parseInt(id, 10));
-}
-
 export function isprivateConnection(hostname) {
-  return (
-    hostname === 'localhost' ||
-    /(^127\.)|(^10\.)|(^172\.1[6-9]\.)|(^172\.2[0-9]\.)|(^172\.3[0-1]\.)|(^192\.168\.)/.test(
-      hostname,
-    )
-  );
+  return hostname === 'localhost' || regex.localNetwork.test(hostname);
 }
 
 /**
@@ -328,7 +317,7 @@ export function isPrefixedFormattedHexString(value) {
   if (typeof value !== 'string') {
     return false;
   }
-  return /^0x[1-9a-f]+[0-9a-f]*$/iu.test(value);
+  return regex.prefixedFormattedHexString.test(value);
 }
 
 export const getNetworkNonce = async ({ from }) => {
@@ -498,6 +487,3 @@ export const getBlockExplorerTxUrl = (
  */
 export const getIsNetworkOnboarded = (chainId, networkOnboardedState) =>
   networkOnboardedState[chainId];
-
-export const shouldShowLineaMainnetNetwork = () =>
-  new Date().getTime() > Date.UTC(2023, 6, 11, 18);

@@ -48,7 +48,6 @@ import { KEYSTONE_TX_CANCELED } from '../../../constants/error';
 import { ThemeContext, mockTheme } from '../../../util/theme';
 import {
   selectChainId,
-  selectNetwork,
   selectProviderType,
 } from '../../../selectors/networkController';
 import { selectTokenList } from '../../../selectors/tokenListController';
@@ -116,10 +115,6 @@ class Send extends PureComponent {
      * Map representing the address book
      */
     addressBook: PropTypes.object,
-    /**
-     * Network id
-     */
-    networkId: PropTypes.string,
     /**
      * The chain ID of the current selected network
      */
@@ -309,7 +304,7 @@ class Send extends PureComponent {
     function_name = null, // eslint-disable-line no-unused-vars
     parameters = null,
   }) => {
-    const { addressBook, networkId, identities, selectedAddress } = this.props;
+    const { addressBook, chainId, identities, selectedAddress } = this.props;
 
     let newTxMeta = {};
     let txRecipient;
@@ -334,7 +329,7 @@ class Send extends PureComponent {
 
         newTxMeta.transactionToName = getTransactionToName({
           addressBook,
-          networkId,
+          chainId,
           toAddress: newTxMeta.to,
           identities,
           ensRecipient: newTxMeta.ensRecipient,
@@ -374,7 +369,7 @@ class Send extends PureComponent {
         };
         newTxMeta.transactionToName = getTransactionToName({
           addressBook,
-          networkId,
+          chainId,
           toAddress: to,
           identities,
           ensRecipient,
@@ -545,7 +540,7 @@ class Send extends PureComponent {
     this.setState({ transactionConfirmed: true });
     const {
       transaction: { selectedAsset, assetType },
-      networkId,
+      chainId,
       addressBook,
     } = this.props;
     let { transaction } = this.props;
@@ -597,9 +592,9 @@ class Send extends PureComponent {
         }
       }
       const existingContact =
-        addressBook[networkId] && addressBook[networkId][checksummedAddress];
+        addressBook[chainId] && addressBook[chainId][checksummedAddress];
       if (!existingContact) {
-        AddressBookController.set(checksummedAddress, '', networkId);
+        AddressBookController.set(checksummedAddress, '', chainId);
       }
       await new Promise((resolve) => {
         resolve(result);
@@ -695,6 +690,7 @@ class Send extends PureComponent {
       networkType,
       transaction: { selectedAsset, assetType },
     } = this.props;
+
     return {
       view: SEND,
       network: networkType,
@@ -774,7 +770,6 @@ const mapStateToProps = (state) => ({
   transaction: state.transaction,
   networkType: selectProviderType(state),
   tokens: selectTokens(state),
-  networkId: selectNetwork(state),
   chainId: selectChainId(state),
   identities: selectIdentities(state),
   selectedAddress: selectSelectedAddress(state),

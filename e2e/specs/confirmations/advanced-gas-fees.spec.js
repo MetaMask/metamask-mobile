@@ -12,16 +12,14 @@ import {
 } from '../../fixtures/fixture-helper';
 import TabBarComponent from '../../pages/TabBarComponent';
 import WalletActionsModal from '../../pages/modals/WalletActionsModal';
+import TestHelpers from '../../helpers';
 
 const VALID_ADDRESS = '0xebe6CcB6B55e1d094d9c58980Bc10Fed69932cAb';
 
 describe(Smoke('Advanced Gas Fees and Priority Tests'), () => {
   beforeAll(async () => {
     jest.setTimeout(170000);
-    if (device.getPlatform() === 'android') {
-      await device.reverseTcpPort('8081'); // because on android we need to expose the localhost ports to run ganache
-      await device.reverseTcpPort('8545');
-    }
+    await TestHelpers.reverseServerPort();
   });
 
   it('should edit priority gas settings and send ETH', async () => {
