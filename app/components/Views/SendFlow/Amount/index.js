@@ -1257,8 +1257,26 @@ class Amount extends PureComponent {
       });
     };
 
-    const navigateToBuy = () => {
-      navigation.navigate(Routes.FIAT_ON_RAMP_AGGREGATOR.ID);
+    const navigateToBuyOrSwaps = () => {
+      if (
+        !selectedAsset.isETH &&
+        AppConstants.SWAPS.ACTIVE &&
+        swapsIsLive &&
+        isSwapsAllowed(chainId) &&
+        amountError === strings('transaction.insufficient')
+      ) {
+        Analytics.trackEventWithParameters(MetaMetricsEvents.LINK_CLICKED, {
+          location: 'insufficient_funds_warning',
+          text: 'swap_tokens',
+        });
+        navigateToSwap();
+      } else if (isNetworkBuyNativeTokenSupported && selectedAsset.isETH) {
+        Analytics.trackEventWithParameters(MetaMetricsEvents.LINK_CLICKED, {
+          location: 'insufficient_funds_warning',
+          text: 'buy_more',
+        });
+        navigation.navigate(Routes.FIAT_ON_RAMP_AGGREGATOR.ID);
+      }
     };
 
     return (
@@ -1324,7 +1342,7 @@ class Amount extends PureComponent {
             {...generateTestId(Platform, AMOUNT_ERROR)}
           >
             <TouchableOpacity
-              onPress={navigateToBuy}
+              onPress={navigateToBuyOrSwaps}
               style={styles.errorBuyWrapper}
             >
               <Text style={styles.error}>{amountError}</Text>
@@ -1333,20 +1351,17 @@ class Amount extends PureComponent {
                   {strings('transaction.buy_more')}
                 </Text>
               )}
-            </TouchableOpacity>
 
-            {!selectedAsset.isETH &&
-              AppConstants.SWAPS.ACTIVE &&
-              swapsIsLive &&
-              isSwapsAllowed(chainId) &&
-              amountError === strings('transaction.insufficient') && (
-                <Button
-                  variant={ButtonVariants.Primary}
-                  label={strings('transaction.swap_tokens')}
-                  onPress={navigateToSwap}
-                  style={styles.swapOrBuyButton}
-                />
-              )}
+              {!selectedAsset.isETH &&
+                AppConstants.SWAPS.ACTIVE &&
+                swapsIsLive &&
+                isSwapsAllowed(chainId) &&
+                amountError === strings('transaction.insufficient') && (
+                  <Text style={[styles.error, styles.underline]}>
+                    {strings('transaction.swap_tokens')}
+                  </Text>
+                )}
+            </TouchableOpacity>
           </View>
         )}
       </View>
