@@ -56,7 +56,6 @@ import { WALLET_CONNECT_ORIGIN } from '../../../util/walletconnect';
 import {
   isBlockaidFeatureEnabled,
   getBlockaidMetricsParams,
-  showBlockaidUI,
 } from '../../../util/blockaid';
 import { withNavigation } from '@react-navigation/compat';
 import {
@@ -78,7 +77,6 @@ import Routes from '../../../constants/navigation/Routes';
 import createStyles from './styles';
 import {
   selectChainId,
-  selectNetwork,
   selectNetworkConfigurations,
   selectProviderType,
   selectTicker,
@@ -98,6 +96,7 @@ import { getRampNetworks } from '../../../reducers/fiatOrders';
 import SkeletonText from '../Ramp/components/SkeletonText';
 import InfoModal from '../../../components/UI/Swaps/components/InfoModal';
 import BlockaidBanner from '../BlockaidBanner/BlockaidBanner';
+import { regex } from '../../../../app/util/regex';
 
 const { ORIGIN_DEEPLINK, ORIGIN_QR_CODE } = AppConstants.DEEPLINKS;
 const POLLING_INTERVAL_ESTIMATED_L1_FEE = 30000;
@@ -540,16 +539,14 @@ class ApproveTransactionReview extends PureComponent {
           : AppConstants.REQUEST_SOURCES.IN_APP_BROWSER,
       };
 
-      if (showBlockaidUI()) {
-        const blockaidParams = getBlockaidMetricsParams(
-          transaction.securityAlertResponse,
-        );
+      const blockaidParams = getBlockaidMetricsParams(
+        transaction.securityAlertResponse,
+      );
 
-        params = {
-          ...params,
-          ...blockaidParams,
-        };
-      }
+      params = {
+        ...params,
+        ...blockaidParams,
+      };
       // Send analytics params to parent component so it's available when cancelling and confirming
       onSetAnalyticsParams && onSetAnalyticsParams(params);
 
@@ -684,9 +681,20 @@ class ApproveTransactionReview extends PureComponent {
   handleCustomSpendOnInputChange = (value) => {
     if (isNumber(value)) {
       this.setState({
-        tokenSpendValue: value.replace(/[^0-9.]/g, ''),
+        tokenSpendValue: value.replace(regex.nonNumber, ''),
       });
     }
+  };
+
+  onContactUsClicked = () => {
+    const analyticsParams = {
+      ...this.getAnalyticsParams(),
+      external_link_clicked: 'security_alert_support_link',
+    };
+    AnalyticsV2.trackEvent(
+      MetaMetricsEvents.CONTRACT_ADDRESS_COPIED,
+      analyticsParams,
+    );
   };
 
   renderDetails = () => {
@@ -811,6 +819,7 @@ class ApproveTransactionReview extends PureComponent {
                       <BlockaidBanner
                         securityAlertResponse={securityAlertResponse}
                         style={styles.blockaidWarning}
+                        onContactUsClicked={this.onContactUsClicked}
                       />
                     )}
                     <Text
@@ -945,6 +954,7 @@ class ApproveTransactionReview extends PureComponent {
                                   ? legacyGasObject
                                   : eip1559GasObject
                               }
+                              gasObjectLegacy={legacyGasObject}
                               updateTransactionState={updateTransactionState}
                               onlyGas
                               multiLayerL1FeeTotal={multiLayerL1FeeTotal}
@@ -1225,7 +1235,6 @@ const mapStateToProps = (state) => ({
   providerRpcTarget: selectRpcTarget(state),
   primaryCurrency: state.settings.primaryCurrency,
   activeTabUrl: getActiveTabUrl(state),
-  networkId: selectNetwork(state),
   chainId: selectChainId(state),
   tokenList: selectTokenList(state),
   isNativeTokenBuySupported: isNetworkBuyNativeTokenSupported(

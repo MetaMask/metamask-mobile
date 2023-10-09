@@ -111,6 +111,7 @@ import { getRampNetworks } from '../../../../reducers/fiatOrders';
 import { swapsLivenessSelector } from '../../../../reducers/swaps';
 import { isSwapsAllowed } from '../../../../components/UI/Swaps/utils';
 import { swapsUtils } from '@metamask/swaps-controller';
+import { regex } from '../../../../../app/util/regex';
 
 const KEYBOARD_OFFSET = Device.isSmallDevice() ? 80 : 120;
 
@@ -934,7 +935,7 @@ class Amount extends PureComponent {
       hasExchangeRate,
       comma;
     // Remove spaces from input
-    inputValue = inputValue && inputValue.replace(/\s+/g, '');
+    inputValue = inputValue && inputValue.replace(regex.whiteSpaces, '');
     // Handle semicolon for other languages
     if (inputValue && inputValue.includes(',')) {
       comma = true;
