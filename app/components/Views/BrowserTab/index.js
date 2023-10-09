@@ -596,12 +596,9 @@ export const BrowserTab = (props) => {
    */
   const reload = useCallback(() => {
     const { current } = webviewRef;
-    if (!props.isIpfsGatewayEnabled && isResolvedIpfsUrl) {
-      setIpfsBannerVisible(true);
-      return;
-    }
+
     current && current.reload();
-  }, [props.isIpfsGatewayEnabled, isResolvedIpfsUrl]);
+  }, []);
 
   /**
    * Handle when the drawer (app menu) is opened
@@ -836,6 +833,11 @@ export const BrowserTab = (props) => {
     if (!isAllowedUrl(hostname)) {
       handleNotAllowedUrl(url);
       return false;
+    }
+
+    if (!props.isIpfsGatewayEnabled && isResolvedIpfsUrl) {
+      setIpfsBannerVisible(true);
+      return;
     }
 
     // Continue request loading it the protocol is whitelisted
