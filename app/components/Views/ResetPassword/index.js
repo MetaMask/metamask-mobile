@@ -63,7 +63,6 @@ import { recreateVaultWithNewPassword } from '../../../core/Vault';
 import generateTestId from '../../../../wdio/utils/generateTestId';
 import Logger from '../../../util/Logger';
 import { selectSelectedAddress } from '../../../selectors/preferencesController';
-import { regex } from '../../../../app/util/regex';
 
 const createStyles = (colors) =>
   StyleSheet.create({
@@ -460,21 +459,6 @@ class ResetPassword extends PureComponent {
       newPassword,
       this.props.selectedAddress,
     );
-  };
-
-  /**
-   * Returns current vault seed phrase
-   * It does it using an empty password or a password set by the user
-   * depending on the state the app is currently in
-   */
-  getSeedPhrase = async () => {
-    const { KeyringController } = Engine.context;
-    const { originalPassword } = this.state;
-    const keychainPassword = originalPassword;
-    const mnemonic = await KeyringController.exportSeedPhrase(
-      keychainPassword,
-    ).toString();
-    return JSON.stringify(mnemonic).replace(regex.privateCredentials, '');
   };
 
   jumpToConfirmPassword = () => {
