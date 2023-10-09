@@ -1879,7 +1879,7 @@ exports[`Quotes renders correctly after animation with quotes 1`] = `
                                 ]
                               }
                             >
-                              To buy ETH from one of our integrations, you’ll be securely taken to their portal without leaving the MetaMask app
+                              Compare rates from these providers. Quotes are sorted by overall price.
                             </Text>
                           </View>
                         </View>
@@ -1961,65 +1961,7 @@ exports[`Quotes renders correctly after animation with quotes 1`] = `
                                       Object {
                                         "marginVertical": 8,
                                       },
-                                      Object {
-                                        "marginTop": 0,
-                                      },
                                       undefined,
-                                      undefined,
-                                    ]
-                                  }
-                                >
-                                  <Text
-                                    style={
-                                      Array [
-                                        Object {
-                                          "color": "#24272A",
-                                          "fontFamily": "EuclidCircularB-Regular",
-                                          "fontSize": 30,
-                                          "fontWeight": "400",
-                                          "marginVertical": 2,
-                                        },
-                                        undefined,
-                                        undefined,
-                                        undefined,
-                                        undefined,
-                                        undefined,
-                                        undefined,
-                                        undefined,
-                                        undefined,
-                                        undefined,
-                                        undefined,
-                                        Object {
-                                          "color": "#24272A",
-                                        },
-                                        undefined,
-                                        undefined,
-                                        undefined,
-                                        undefined,
-                                        undefined,
-                                        undefined,
-                                        undefined,
-                                        undefined,
-                                        undefined,
-                                        undefined,
-                                        undefined,
-                                        undefined,
-                                        undefined,
-                                      ]
-                                    }
-                                  >
-                                    Best price
-                                  </Text>
-                                </View>
-                                <View
-                                  style={
-                                    Array [
-                                      Object {
-                                        "marginVertical": 8,
-                                      },
-                                      Object {
-                                        "marginTop": 0,
-                                      },
                                       undefined,
                                       undefined,
                                     ]
@@ -2361,62 +2303,6 @@ exports[`Quotes renders correctly after animation with quotes 1`] = `
                                         "marginVertical": 8,
                                       },
                                       undefined,
-                                      undefined,
-                                      undefined,
-                                    ]
-                                  }
-                                >
-                                  <Text
-                                    style={
-                                      Array [
-                                        Object {
-                                          "color": "#24272A",
-                                          "fontFamily": "EuclidCircularB-Regular",
-                                          "fontSize": 30,
-                                          "fontWeight": "400",
-                                          "marginVertical": 2,
-                                        },
-                                        undefined,
-                                        undefined,
-                                        undefined,
-                                        undefined,
-                                        undefined,
-                                        undefined,
-                                        undefined,
-                                        undefined,
-                                        undefined,
-                                        undefined,
-                                        Object {
-                                          "color": "#24272A",
-                                        },
-                                        undefined,
-                                        undefined,
-                                        undefined,
-                                        undefined,
-                                        undefined,
-                                        undefined,
-                                        undefined,
-                                        undefined,
-                                        undefined,
-                                        undefined,
-                                        undefined,
-                                        undefined,
-                                        undefined,
-                                      ]
-                                    }
-                                  >
-                                    Explore other options
-                                  </Text>
-                                </View>
-                                <View
-                                  style={
-                                    Array [
-                                      Object {
-                                        "marginVertical": 8,
-                                      },
-                                      Object {
-                                        "marginTop": 0,
-                                      },
                                       undefined,
                                       undefined,
                                     ]

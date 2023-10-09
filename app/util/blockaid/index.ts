@@ -13,7 +13,7 @@ export const getBlockaidMetricsParams = (
 ) => {
   const additionalParams: Record<string, any> = {};
 
-  if (securityAlertResponse) {
+  if (securityAlertResponse && isBlockaidFeatureEnabled()) {
     const { resultType, reason } = securityAlertResponse;
     let uiCustomizations;
 

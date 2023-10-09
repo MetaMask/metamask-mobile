@@ -221,7 +221,7 @@ exports[`EditGasFeeLegacyUpdate should match snapshot 1`] = `
                 }
               >
                 ~ 
-                0 ETH
+                0.00021 ETH
               </Text>
               <View
                 style={
@@ -790,6 +790,7 @@ exports[`EditGasFeeLegacyUpdate should match snapshot 1`] = `
                           "paddingRight": 6,
                         }
                       }
+                      value="10"
                     />
                   </View>
                   <View
