@@ -19,6 +19,8 @@ import {
 import useLimits from '../../hooks/useLimits';
 import useAddressBalance from '../../../../../hooks/useAddressBalance/useAddressBalance';
 import useBalance from '../../../common/hooks/useBalance';
+import { toTokenMinimalUnit } from '../../../../../../util/number';
+import { BN } from 'ethereumjs-util';
 
 const getByRoleButton = (name?: string | RegExp) =>
   screen.getByRole('button', { name });
@@ -179,12 +181,18 @@ const mockUseAddressBalanceInitialValue: ReturnType<typeof useAddressBalance> =
 jest.mock('../../../../../hooks/useAddressBalance/useAddressBalance', () =>
   jest.fn(() => mockUseAddressBalanceInitialValue),
 );
+
 const mockUseBalanceInitialValue: Partial<ReturnType<typeof useBalance>> = {
   balanceFiat: '$27.02',
+  balanceBN: toTokenMinimalUnit('5.36385', 18) as BN,
+};
+
+const mockUseBalanceValues = {
+  ...mockUseBalanceInitialValue,
 };
 
 jest.mock('../../../common/hooks/useBalance', () =>
-  jest.fn(() => mockUseBalanceInitialValue),
+  jest.fn(() => mockUseBalanceValues),
 );
 
 const mockSetSelectedRegion = jest.fn();
@@ -204,6 +212,8 @@ const mockUseRampSDKInitialValues: Partial<RampSDK> = {
   selectedNetworkName: 'Ethereum',
   sdkError: undefined,
   setSelectedPaymentMethodId: mockSetSelectedPaymentMethodId,
+  isBuy: true,
+  isSell: false,
 };
 
 let mockUseRampSDKValues: Partial<RampSDK> = {

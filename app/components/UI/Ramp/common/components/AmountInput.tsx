@@ -61,17 +61,19 @@ const AmountInput: React.FC<Props> = ({
           </Text>
         </TouchableOpacity>
       </ListItem.Body>
-      <ListItem.Amounts style={styles.chevron}>
-        <TouchableOpacity
-          accessible
-          accessibilityRole="button"
-          disabled={!onCurrencyPress}
-          onPress={onCurrencyPress}
-          hitSlop={{ top: 20, left: 20, right: 20, bottom: 20 }}
-        >
-          <CurrencyChevron currency={currencyCode} />
-        </TouchableOpacity>
-      </ListItem.Amounts>
+      {onCurrencyPress ? (
+        <ListItem.Amounts style={styles.chevron}>
+          <TouchableOpacity
+            accessible
+            accessibilityRole="button"
+            disabled={!onCurrencyPress}
+            onPress={onCurrencyPress}
+            hitSlop={{ top: 20, left: 20, right: 20, bottom: 20 }}
+          >
+            <CurrencyChevron currency={currencyCode} />
+          </TouchableOpacity>
+        </ListItem.Amounts>
+      ) : null}
     </ListItem.Content>
   </Box>
 );

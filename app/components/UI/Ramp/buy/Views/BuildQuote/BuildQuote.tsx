@@ -12,6 +12,7 @@ import Animated, {
   withTiming,
 } from 'react-native-reanimated';
 import { useNavigation } from '@react-navigation/native';
+import { BN } from 'ethereumjs-util';
 
 import { useRampSDK } from '../../../common/sdk';
 import usePaymentMethods from '../../hooks/usePaymentMethods';
@@ -65,6 +66,7 @@ import { Region } from '../../../common/types';
 import { useStyles } from '../../../../../../component-library/hooks';
 
 import styleSheet from './BuildQuote.styles';
+import { toTokenMinimalUnit } from '../../../../../../util/number';
 
 // TODO: Convert into typescript and correctly type
 const ListItem = BaseListItem as any;
@@ -88,6 +90,7 @@ const BuildQuote = () => {
   const [amountFocused, setAmountFocused] = useState(false);
   const [amount, setAmount] = useState('0');
   const [amountNumber, setAmountNumber] = useState(0);
+  const [amountBNMinimalUnit, setAmountBNMinimalUnit] = useState<BN>();
   const [error, setError] = useState<string | null>(null);
   const keyboardHeight = useRef(1000);
   const keypadOffset = useSharedValue(1000);
@@ -128,6 +131,8 @@ const BuildQuote = () => {
     selectedChainId,
     selectedNetworkName,
     sdkError,
+    isBuy,
+    isSell,
   } = useRampSDK();
 
   const {
@@ -181,7 +186,7 @@ const BuildQuote = () => {
     selectedAddress,
   );
 
-  const { balanceFiat } = useBalance(
+  const { balanceFiat, balanceBN } = useBalance(
     selectedAsset
       ? {
           address: selectedAsset.address,
@@ -205,6 +210,13 @@ const BuildQuote = () => {
     [amountNumber, isAmountValid],
   );
 
+  const hasInsufficientBalance = useMemo(() => {
+    if (!balanceBN || !amountBNMinimalUnit) {
+      return null;
+    }
+    return balanceBN.lt(amountBNMinimalUnit);
+  }, [balanceBN, amountBNMinimalUnit]);
+
   const isFetching =
     isFetchingCryptoCurrencies ||
     isFetchingPaymentMethods ||
@@ -223,14 +235,16 @@ const BuildQuote = () => {
       getFiatOnRampAggNavbar(
         navigation,
         {
-          title: strings('fiat_on_ramp_aggregator.amount_to_buy'),
+          title: isBuy
+            ? strings('fiat_on_ramp_aggregator.amount_to_buy')
+            : strings('fiat_on_ramp_aggregator.amount_to_sell'),
           showBack: params.showBack,
         },
         colors,
         handleCancelPress,
       ),
     );
-  }, [navigation, colors, handleCancelPress, params.showBack]);
+  }, [navigation, colors, handleCancelPress, params.showBack, isBuy]);
 
   /**
    * * Keypad style, handlers and effects
@@ -267,10 +281,18 @@ const BuildQuote = () => {
   const handleKeypadDone = useCallback(() => setAmountFocused(false), []);
   const onAmountInputPress = useCallback(() => setAmountFocused(true), []);
 
-  const handleKeypadChange = useCallback(({ value, valueAsNumber }) => {
-    setAmount(`${value}`);
-    setAmountNumber(valueAsNumber);
-  }, []);
+  const handleKeypadChange = useCallback(
+    ({ value, valueAsNumber }) => {
+      setAmount(`${value}`);
+      setAmountNumber(valueAsNumber);
+      if (isSell) {
+        setAmountBNMinimalUnit(
+          toTokenMinimalUnit(`${value}`, selectedAsset?.decimals ?? 0) as BN,
+        );
+      }
+    },
+    [isSell, selectedAsset?.decimals],
+  );
 
   const handleQuickAmountPress = useCallback((value) => {
     setAmount(`${value}`);
@@ -546,6 +568,13 @@ const BuildQuote = () => {
     );
   }
 
+  let displayAmount;
+  if (!isBuy) {
+    displayAmount = `${amount} ${selectedAsset?.symbol}`;
+  } else {
+    displayAmount = amountFocused ? amount : formatAmount(amountNumber);
+  }
+
   return (
     <ScreenLayout>
       <ScreenLayout.Body>
@@ -567,10 +596,27 @@ const BuildQuote = () => {
                   {selectedRegion?.emoji}
                 </Text>
               </SelectorButton>
+              {isSell ? (
+                <>
+                  <View style={styles.spacer} />
+                  <SelectorButton
+                    accessibilityRole="button"
+                    accessible
+                    onPress={handleFiatSelectorPress}
+                  >
+                    <Text primary centered>
+                      {currentFiatCurrency?.symbol}
+                    </Text>
+                  </SelectorButton>
+                </>
+              ) : null}
             </Row>
-
             <AssetSelectorButton
-              label={strings('fiat_on_ramp_aggregator.want_to_buy')}
+              label={
+                isBuy
+                  ? strings('fiat_on_ramp_aggregator.want_to_buy')
+                  : strings('fiat_on_ramp_aggregator.want_to_sell')
+              }
               icon={
                 <TokenIcon
                   medium
@@ -595,39 +641,59 @@ const BuildQuote = () => {
             <AmountInput
               highlighted={amountFocused}
               label={strings('fiat_on_ramp_aggregator.amount')}
-              currencySymbol={currentFiatCurrency?.denomSymbol}
-              amount={amountFocused ? amount : formatAmount(amountNumber)}
+              currencySymbol={
+                isBuy ? currentFiatCurrency?.denomSymbol : undefined
+              }
+              amount={displayAmount}
               highlightedError={!amountIsValid}
-              currencyCode={currentFiatCurrency?.symbol}
+              currencyCode={isBuy ? currentFiatCurrency?.symbol : undefined}
               onPress={onAmountInputPress}
-              onCurrencyPress={handleFiatSelectorPress}
+              onCurrencyPress={isBuy ? handleFiatSelectorPress : undefined}
             />
-            {amountIsBelowMinimum && limits && (
+            {hasInsufficientBalance && (
               <Row>
                 <Text red small>
-                  {strings('fiat_on_ramp_aggregator.minimum')}{' '}
-                  {currentFiatCurrency?.denomSymbol}
-                  {formatAmount(limits.minAmount)}
+                  {strings('fiat_on_ramp_aggregator.insufficient_balance')}
                 </Text>
               </Row>
             )}
-            {amountIsAboveMaximum && limits && (
+            {!hasInsufficientBalance && amountIsBelowMinimum && limits && (
               <Row>
                 <Text red small>
-                  {strings('fiat_on_ramp_aggregator.maximum')}{' '}
-                  {currentFiatCurrency?.denomSymbol}
-                  {formatAmount(limits.maxAmount)}
+                  {isBuy ? (
+                    <>
+                      {strings('fiat_on_ramp_aggregator.minimum')}{' '}
+                      {currentFiatCurrency?.denomSymbol}
+                      {formatAmount(limits.minAmount)}
+                    </>
+                  ) : (
+                    strings('fiat_on_ramp_aggregator.enter_larger_amount')
+                  )}
                 </Text>
               </Row>
             )}
-            {/* {!limits || (!amountIsBelowMinimum && !amountIsAboveMaximum) ? (
+            {!hasInsufficientBalance && amountIsAboveMaximum && limits && (
               <Row>
-                <Text small />
+                <Text red small>
+                  {isBuy ? (
+                    <>
+                      {strings('fiat_on_ramp_aggregator.maximum')}{' '}
+                      {currentFiatCurrency?.denomSymbol}
+                      {formatAmount(limits.maxAmount)}
+                    </>
+                  ) : (
+                    strings('fiat_on_ramp_aggregator.enter_smaller_amount')
+                  )}
+                </Text>
               </Row>
-            ) : null} */}
+            )}
             <Row>
               <PaymentMethodSelector
-                label={strings('fiat_on_ramp_aggregator.update_payment_method')}
+                label={
+                  isBuy
+                    ? strings('fiat_on_ramp_aggregator.update_payment_method')
+                    : strings('fiat_on_ramp_aggregator.send_cash_to')
+                }
                 icon={
                   <PaymentMethodIcon
                     paymentMethodIcons={currentPaymentMethod?.icons}
@@ -684,8 +750,14 @@ const BuildQuote = () => {
         <Keypad
           value={amount}
           onChange={handleKeypadChange}
-          currency={currentFiatCurrency?.symbol}
-          decimals={currentFiatCurrency?.decimals}
+          currency={
+            isBuy
+              ? currentFiatCurrency?.symbol
+              : `${selectedAsset?.symbol}-crypto`
+          }
+          decimals={
+            isBuy ? currentFiatCurrency?.decimals : selectedAsset?.decimals
+          }
         />
         <ScreenLayout.Content>
           <StyledButton

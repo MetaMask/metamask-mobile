@@ -174,7 +174,7 @@ exports[`BuildQuote View Crypto Currency Data renders a special error page if cr
                     }
                   }
                 >
-                  Amount to Buy
+                  Amount to buy
                 </Text>
                 <View
                   style={
@@ -908,7 +908,7 @@ exports[`BuildQuote View Crypto Currency Data renders an error page when there i
                     }
                   }
                 >
-                  Amount to Buy
+                  Amount to buy
                 </Text>
                 <View
                   style={
@@ -1613,7 +1613,7 @@ exports[`BuildQuote View Crypto Currency Data renders the loading page when cryp
                     }
                   }
                 >
-                  Amount to Buy
+                  Amount to buy
                 </Text>
                 <View
                   style={
@@ -2510,7 +2510,7 @@ exports[`BuildQuote View Fiat Currency Data renders an error page when there is 
                     }
                   }
                 >
-                  Amount to Buy
+                  Amount to buy
                 </Text>
                 <View
                   style={
@@ -3215,7 +3215,7 @@ exports[`BuildQuote View Fiat Currency Data renders the loading page when fiats 
                     }
                   }
                 >
-                  Amount to Buy
+                  Amount to buy
                 </Text>
                 <View
                   style={
@@ -4112,7 +4112,7 @@ exports[`BuildQuote View Payment Method Data renders an error page when there is
                     }
                   }
                 >
-                  Amount to Buy
+                  Amount to buy
                 </Text>
                 <View
                   style={
@@ -4817,7 +4817,7 @@ exports[`BuildQuote View Payment Method Data renders the loading page when payme
                     }
                   }
                 >
-                  Amount to Buy
+                  Amount to buy
                 </Text>
                 <View
                   style={
@@ -5714,7 +5714,7 @@ exports[`BuildQuote View Regions data renders an error page when there is a regi
                     }
                   }
                 >
-                  Amount to Buy
+                  Amount to buy
                 </Text>
                 <View
                   style={
@@ -6419,7 +6419,7 @@ exports[`BuildQuote View Regions data renders the loading page when regions are 
                     }
                   }
                 >
-                  Amount to Buy
+                  Amount to buy
                 </Text>
                 <View
                   style={
@@ -7316,7 +7316,7 @@ exports[`BuildQuote View renders correctly 1`] = `
                     }
                   }
                 >
-                  Amount to Buy
+                  Amount to buy
                 </Text>
                 <View
                   style={
@@ -7733,6 +7733,7 @@ exports[`BuildQuote View renders correctly 1`] = `
                                         ]
                                       }
                                     >
+                                       
                                       (
                                       <Text
                                         numberOfLines={1}
@@ -10540,7 +10541,7 @@ exports[`BuildQuote View renders correctly when sdkError is present 1`] = `
                     }
                   }
                 >
-                  Amount to Buy
+                  Amount to buy
                 </Text>
                 <View
                   style={
