@@ -1321,7 +1321,7 @@
   },
   "duplicate_address": {
     "title": "This is a duplicate address",
-    "body": "Your contact list shows this address on more than one chain, including {{chains}}. Be sure to select the correct contact before you send any funds.",
+    "body": "Your contact list shows this address on more than one chain. Be sure to select the correct contact before you send any funds.",
     "button": "Got it"
   },
   "transaction_submitted": {
