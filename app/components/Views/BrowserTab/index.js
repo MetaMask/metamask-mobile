@@ -1117,6 +1117,15 @@ export const BrowserTab = (props) => {
   }, [sendActiveAccount, permittedAccountsList]);
 
   /**
+   * Check when the ipfs gateway is enabled to hide the banner
+   */
+  useEffect(() => {
+    if (props.isIpfsGatewayEnabled) {
+      setIpfsBannerVisible(false);
+    }
+  }, [props.isIpfsGatewayEnabled]);
+
+  /**
    * Allow list updates do not propigate through the useCallbacks this updates a ref that is use in the callbacks
    */
   const updateAllowList = () => {
@@ -1442,9 +1451,6 @@ export const BrowserTab = (props) => {
           onPress: () =>
             props.navigation.navigate(Routes.MODAL.ROOT_MODAL_FLOW, {
               screen: Routes.SHEET.SHOW_IPFS,
-              params: {
-                setIpfsBannerVisible: () => setIpfsBannerVisible(false),
-              },
             }),
           textVariant: TextVariant.BodyMD,
           label: 'Turn on IPFS gateway',
