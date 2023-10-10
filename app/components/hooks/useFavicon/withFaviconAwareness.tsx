@@ -12,16 +12,16 @@ const withFaviconAwareness =
     const { url } = props;
     const favicon = useFavicon(url);
 
-    let faviconSource = '';
+    let faviconSource;
     if (
       typeof favicon === 'object' &&
       favicon !== null &&
       !Array.isArray(favicon)
     ) {
-      faviconSource = (favicon as ImageURISource).uri || '';
+      faviconSource = (favicon as ImageURISource).uri;
     }
 
-    return <Children {...props} faviconSource={faviconSource} />;
+    return <Children {...props} {...(faviconSource && { faviconSource })} />;
   };
 
 export default withFaviconAwareness;

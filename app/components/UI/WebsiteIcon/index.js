@@ -95,8 +95,11 @@ class WebsiteIcon extends PureComponent {
     } = this.props;
     const colors = this.context.colors || mockTheme.colors;
     const styles = createStyles(colors);
+    // apiLogoUrl is the url of the icon to be rendered, but it's populated
+    // from the icon prop, if it exists, or from the faviconSource prop
+    // that is provided by the withFaviconAwareness HOC for useFavicon hook.
     const apiLogoUrl = {
-      uri: icon || faviconSource === '' ? undefined : faviconSource,
+      uri: icon || faviconSource,
     };
 
     let title = this.props.title;
@@ -108,7 +111,7 @@ class WebsiteIcon extends PureComponent {
           : getHost(url).substring(0, 1);
     }
 
-    if (title && (apiLogoUrl.uri === undefined || renderIconUrlError)) {
+    if (title && (!apiLogoUrl?.uri || renderIconUrlError)) {
       return (
         <View style={viewStyle}>
           <View style={[styles.fallback, style]}>
