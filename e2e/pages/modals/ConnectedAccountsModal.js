@@ -53,4 +53,9 @@ export default class ConnectedAccountsModal {
   static async isNotVisible() {
     await TestHelpers.checkIfNotVisible(CONNECTED_ACCOUNTS_MODAL_CONTAINER);
   }
+
+  static async scrollToBottomOfModal() {
+    await TestHelpers.swipe(CONNECTED_ACCOUNTS_MODAL_CONTAINER, 'down', 'slow');
+    await TestHelpers.delay(1000);
+  }
 }

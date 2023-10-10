@@ -1914,7 +1914,6 @@
     "no_tokens_match": "「{{searchString}}」に一致するトークンがありません",
     "no_currency_match": "「{{searchString}}」に一致する通貨がありません",
     "pay_with": "支払方法:",
-    "buy_with": "{{provider}}で購入",
     "minimum": "最低入金額は",
     "maximum": "最高入金額は",
     "try_again": "もう一度やり直してください",
