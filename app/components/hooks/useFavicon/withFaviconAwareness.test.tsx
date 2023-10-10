@@ -46,7 +46,6 @@ describe('withFaviconAwareness', () => {
     expect(renderSpy).toHaveBeenCalled();
     expect(renderSpy.mock.instances[0].props).toEqual({
       url: 'mockedUrl',
-      faviconSource: '',
     });
 
     renderSpy.mockRestore();
