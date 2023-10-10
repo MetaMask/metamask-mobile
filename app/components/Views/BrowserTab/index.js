@@ -837,7 +837,7 @@ export const BrowserTab = (props) => {
 
     if (!props.isIpfsGatewayEnabled && isResolvedIpfsUrl) {
       setIpfsBannerVisible(true);
-      return;
+      return false;
     }
 
     // Continue request loading it the protocol is whitelisted
