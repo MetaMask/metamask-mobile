@@ -51,16 +51,16 @@ const BlockaidBanner = (bannerProps: BlockaidBannerProps) => {
     return null;
   }
 
-  const { resultType, reason, features } = securityAlertResponse;
+  const { result_type, reason, features } = securityAlertResponse;
 
-  if (resultType === ResultType.Benign) {
+  if (result_type === ResultType.Benign) {
     return null;
   }
 
   const title = getTitle(reason);
   const description = getDescription(reason);
 
-  if (resultType === ResultType.Failed) {
+  if (result_type === ResultType.Failed) {
     return (
       <BannerAlert
         severity={BannerAlertSeverity.Warning}
@@ -95,7 +95,7 @@ const BlockaidBanner = (bannerProps: BlockaidBannerProps) => {
   return (
     <BannerAlert
       severity={
-        resultType === ResultType.Malicious
+        result_type === ResultType.Malicious
           ? BannerAlertSeverity.Error
           : BannerAlertSeverity.Warning
       }

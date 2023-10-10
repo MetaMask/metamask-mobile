@@ -26,7 +26,7 @@ describe('BlockaidBanner', () => {
     const wrapper = render(
       <BlockaidBanner
         securityAlertResponse={{
-          resultType: ResultType.Warning,
+          result_type: ResultType.Warning,
           reason: Reason.approvalFarming,
           features: mockFeatures,
         }}
@@ -40,7 +40,7 @@ describe('BlockaidBanner', () => {
     const wrapper = render(
       <BlockaidBanner
         securityAlertResponse={{
-          resultType: ResultType.Malicious,
+          result_type: ResultType.Malicious,
           reason: Reason.rawSignatureFarming,
           features: mockFeatures,
         }}
@@ -63,7 +63,7 @@ describe('BlockaidBanner', () => {
     const wrapper = render(
       <BlockaidBanner
         securityAlertResponse={{
-          resultType: ResultType.Malicious,
+          result_type: ResultType.Malicious,
           reason: Reason.rawSignatureFarming,
           features: mockFeatures,
         }}
@@ -77,7 +77,7 @@ describe('BlockaidBanner', () => {
     const wrapper = render(
       <BlockaidBanner
         securityAlertResponse={{
-          resultType: ResultType.Malicious,
+          result_type: ResultType.Malicious,
           reason: Reason.approvalFarming,
           features: mockFeatures,
         }}
@@ -124,7 +124,7 @@ describe('BlockaidBanner', () => {
     const wrapper = render(
       <BlockaidBanner
         securityAlertResponse={{
-          resultType: ResultType.Benign,
+          result_type: ResultType.Benign,
           reason: Reason.rawSignatureFarming,
           features: mockFeatures,
         }}
@@ -140,7 +140,7 @@ describe('BlockaidBanner', () => {
     const wrapper = render(
       <BlockaidBanner
         securityAlertResponse={{
-          resultType: ResultType.Failed,
+          result_type: ResultType.Failed,
           reason: Reason.rawSignatureFarming,
           features: mockFeatures,
         }}

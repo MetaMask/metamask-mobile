@@ -26,7 +26,7 @@ const convertFilesToBase64 = (files: any[][]) =>
   });
 
 class PPOMInner {
-  _new = invoke.bind('PPOM.new');
+  _new = invoke.bindAsync('PPOM.new');
   _free = invoke.bind('PPOM.free');
   _test = invoke.bindAsync('PPOM.test');
   _validateJsonRpc = invoke.bindAsync('PPOM.validateJsonRpc');

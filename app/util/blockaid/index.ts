@@ -14,20 +14,20 @@ export const getBlockaidMetricsParams = (
   const additionalParams: Record<string, any> = {};
 
   if (securityAlertResponse) {
-    const { resultType, reason } = securityAlertResponse;
+    const { result_type, reason } = securityAlertResponse;
     let uiCustomizations;
 
-    if (resultType === ResultType.Malicious) {
+    if (result_type === ResultType.Malicious) {
       uiCustomizations = ['flagged_as_malicious'];
     }
 
     additionalParams.ui_customizations = uiCustomizations;
 
-    if (resultType !== ResultType.Benign) {
+    if (result_type !== ResultType.Benign) {
       additionalParams.security_alert_reason = Reason.notApplicable;
 
       if (reason) {
-        additionalParams.security_alert_response = resultType;
+        additionalParams.security_alert_response = result_type;
         additionalParams.security_alert_reason = reason;
       }
     }

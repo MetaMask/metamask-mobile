@@ -29,10 +29,10 @@ import { Buffer } from 'buffer';
     await ppomInit(base64ToUint8Array(wasm));
   });
 
-  invoke.define('PPOM.new', async (files) => {
+  invoke.defineAsync('PPOM.new', async (files) => {
     const jsonRpc = invoke.bindAsync('PPOM.jsonRpc');
     files = convertBase64ToFiles(files);
-    ppom = new PPOM(jsonRpc, files);
+    ppom = await PPOM.new((method, params) => jsonRpc(method, params), files);
   });
 
   invoke.define('PPOM.free', (...args) => {
