@@ -80,7 +80,7 @@ export const restoreLedgerKeyring = async (keyringSerialized: {
   keyringController.updateIdentities(
     await keyringController.getEthKeyringController().getAccounts(),
   );
-  await keyringController.fullUpdate();
+  await syncKeyringState();
 };
 
 /**
