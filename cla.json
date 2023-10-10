@@ -935,6 +935,14 @@
       "comment_id": 1754222590,
       "created_at": "2023-10-10T02:23:57Z",
       "repoId": 141427485
+    },
+    {
+      "id": 15957235,
+      "name": "cryptotavares",
+      "pullRequestNo": 7422,
+      "comment_id": 1754839222,
+      "created_at": "2023-10-10T09:45:12Z",
+      "repoId": 141427485
     }
   ]
 }
