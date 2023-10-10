@@ -680,21 +680,66 @@ class TransactionEditor extends PureComponent {
     );
   };
 
+  calculateTotalGasValue = (totalHex) => fromWei(totalHex);
+
+  updateEIP1559GasDataFromLegacyTransaction = ({
+    legacyGasTransaction,
+    totalGasValue,
+  }) => ({
+    // These values are updated to EIP1559GasData to reflect the gas values on the review UI
+    suggestedGasLimit: legacyGasTransaction.suggestedGasLimit,
+    renderableGasFeeMaxNative: legacyGasTransaction.transactionFee,
+    renderableGasFeeMinConversion: legacyGasTransaction.transactionFeeFiat,
+    renderableGasFeeMinNative: legacyGasTransaction.transactionFee,
+    gasFeeMaxNative: totalGasValue,
+    gasFeeMinNative: totalGasValue,
+    maxPriorityFeeNative: totalGasValue,
+    renderableMaxPriorityFeeNative: legacyGasTransaction.transactionFee,
+    renderableMaxFeePerGasNative: legacyGasTransaction.transactionFee,
+    gasLimitHex: legacyGasTransaction?.suggestedGasLimitHex,
+    totalMaxHex: legacyGasTransaction?.totalHex,
+
+    // These values are updated to be able to submit to the network
+    suggestedMaxFeePerGas: legacyGasTransaction?.suggestedGasPrice,
+    suggestedMaxFeePerGasHex: legacyGasTransaction?.suggestedGasPriceHex,
+    suggestedMaxPriorityFeePerGas: legacyGasTransaction?.suggestedGasPrice,
+    suggestedMaxPriorityFeePerGasHex:
+      legacyGasTransaction?.suggestedGasPriceHex,
+  });
+
   saveGasEditionLegacy = (legacyGasTransaction, legacyGasObject) => {
-    const { setTransactionObject } = this.props;
-    legacyGasTransaction.error = this.validateTotal(
-      legacyGasTransaction.totalHex,
-    );
+    const { setTransactionObject, gasEstimateType } = this.props;
+    const totalHex = legacyGasTransaction?.totalHex;
+    legacyGasTransaction.error = this.validateTotal(totalHex);
+
     handleGasFeeSelection(
       hexToBN(legacyGasTransaction.suggestedGasLimitHex),
       hexToBN(legacyGasTransaction.suggestedGasPriceHex),
       setTransactionObject,
     );
+
     this.setState({
       stopUpdateGas: false,
       legacyGasTransaction,
       legacyGasObject,
     });
+
+    // conditionally save to EIP1559GasData when gasEstimateType === GAS_ESTIMATE_TYPES.FEE_MARKET
+    if (gasEstimateType === GAS_ESTIMATE_TYPES.FEE_MARKET) {
+      const totalGasValue = this.calculateTotalGasValue(totalHex);
+      const get1559TransactionData =
+        this.updateEIP1559GasDataFromLegacyTransaction({
+          legacyGasTransaction,
+          totalGasValue,
+        });
+
+      this.setState({
+        EIP1559GasData: {
+          ...this.state.EIP1559GasData,
+          ...get1559TransactionData,
+        },
+      });
+    }
     this.review();
   };
 
@@ -770,8 +815,8 @@ class TransactionEditor extends PureComponent {
 
     const selectedLegacyGasObject = {
       legacyGasLimit: legacyGasObject?.legacyGasLimit,
-      suggestedGasPrice: legacyGasObject?.suggestedGasPrice,
-      suggestedMaxFeePerGas,
+      suggestedGasPrice:
+        legacyGasObject?.suggestedGasPrice || suggestedMaxFeePerGas,
     };
 
     const showLegacyGasEditModal =
