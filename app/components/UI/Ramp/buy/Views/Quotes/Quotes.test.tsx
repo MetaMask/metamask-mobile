@@ -244,12 +244,12 @@ describe('Quotes', () => {
     const quoteToSelect = screen.getByLabelText(mockQuoteProviderName);
     fireEvent.press(quoteToSelect);
 
-    const quoteBuyButton = screen.getByRole('button', {
-      name: `Buy with ${mockQuoteProviderName}`,
+    const quoteContinueButton = screen.getByRole('button', {
+      name: `Continue with ${mockQuoteProviderName}`,
     });
 
     await act(async () => {
-      fireEvent.press(quoteBuyButton);
+      fireEvent.press(quoteContinueButton);
     });
 
     expect(mockNavigate).toBeCalledTimes(1);
@@ -311,12 +311,12 @@ describe('Quotes', () => {
     const quoteToSelect = screen.getByLabelText(mockQuoteProviderName);
     fireEvent.press(quoteToSelect);
 
-    const quoteBuyButton = screen.getByRole('button', {
-      name: `Buy with ${mockQuoteProviderName}`,
+    const quoteContinueButton = screen.getByRole('button', {
+      name: `Continue with ${mockQuoteProviderName}`,
     });
 
     await act(async () => {
-      fireEvent.press(quoteBuyButton);
+      fireEvent.press(quoteContinueButton);
     });
 
     expect(mockRenderInAppBrowser).toBeCalledWith(
