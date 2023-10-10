@@ -12,7 +12,11 @@ import {
   deployErc721,
 } from './wdio/utils/ganache';
 import FixtureBuilder from './e2e/fixtures/fixture-builder';
-import { loadFixture, startFixtureServer, stopFixtureServer } from './e2e/fixtures/fixture-helper';
+import {
+  loadFixture,
+  startFixtureServer,
+  stopFixtureServer,
+} from './e2e/fixtures/fixture-helper';
 import FixtureServer from './e2e/fixtures/fixture-server';
 const { removeSync } = require('fs-extra');
 
@@ -25,7 +29,7 @@ const ERC20 = '@erc20';
 const ERC721 = '@erc721';
 const GAS_API_DOWN = '@gasApiDown';
 const MOCK = '@mock';
-const FIXTURES_SKIP_ONBOARDING = '@fixturesSkipOnboarding'
+const FIXTURES_SKIP_ONBOARDING = '@fixturesSkipOnboarding';
 
 export const config = {
   //
@@ -62,7 +66,7 @@ export const config = {
     './wdio/features/Wallet/AddressFlow.feature',
     './wdio/features/Wallet/ImportCustomToken.feature',
     './wdio/features/Wallet/SendToken.feature',
-    './wdio/features/Accounts/AccountActions.feature'
+    './wdio/features/Accounts/AccountActions.feature',
   ],
   //
   // ============
@@ -298,7 +302,7 @@ export const config = {
 
     const adb = await ADB.createADB();
     await adb.reversePort(8545, 8545);
-    await adb.reversePort(12345, 12345)
+    await adb.reversePort(12345, 12345);
   },
   /**
    * Runs before a WebdriverIO command gets executed.
@@ -349,9 +353,8 @@ export const config = {
       // Start the fixture server
       await startFixtureServer(fixtureServer);
       const state = new FixtureBuilder().build();
-      await loadFixture(fixtureServer, {fixture: state});
+      await loadFixture(fixtureServer, { fixture: state });
     }
-
   },
   /**
    *
