@@ -104,8 +104,6 @@ import { selectContractBalances } from '../../../../selectors/tokenBalancesContr
 import { selectSelectedAddress } from '../../../../selectors/preferencesController';
 import { PREFIX_HEX_STRING } from '../../../../constants/transaction';
 import Routes from '../../../../constants/navigation/Routes';
-import Button from '../../../../component-library/components/Buttons/Button/Button';
-import { ButtonVariants } from '../../../../component-library/components/Buttons/Button';
 import { isNetworkBuyNativeTokenSupported } from '../../../UI/Ramp/utils';
 import { getRampNetworks } from '../../../../reducers/fiatOrders';
 import { swapsLivenessSelector } from '../../../../reducers/swaps';
