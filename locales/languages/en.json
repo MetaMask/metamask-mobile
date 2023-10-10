@@ -1917,7 +1917,7 @@
     "no_currency_match": "No currencies match “{{searchString}}”",
     "compare_rates": "Compare rates from these providers. Quotes are sorted by overall price.",
     "pay_with": "Pay with",
-    "buy_with": "Buy with {{provider}}",
+    "continue_with": "Continue with {{provider}}",
     "minimum": "Minimum deposit is",
     "maximum": "Maximum deposit is",
     "try_again": "Try again",
