@@ -52,7 +52,7 @@ const CollectibleModal = () => {
         setUpdatedCollectible(newUpdatedCollectible);
       }
     }
-  }, [collectibles, displayNftMedia, isIpfsGatewatEnabled, collectible]);
+  }, [isIpfsGatewatEnabled, collectibles, collectible, displayNftMedia]);
 
   useEffect(() => {
     handleUpdateCollectible();

@@ -2287,7 +2287,7 @@ exports[`Quotes renders correctly after animation with quotes 1`] = `
                                                   ]
                                                 }
                                               >
-                                                Buy with Banxa (Staging)
+                                                Continue with Banxa (Staging)
                                               </Text>
                                             </TouchableOpacity>
                                           </View>
@@ -2627,7 +2627,7 @@ exports[`Quotes renders correctly after animation with quotes 1`] = `
                                                   ]
                                                 }
                                               >
-                                                Buy with MoonPay (Staging)
+                                                Continue with MoonPay (Staging)
                                               </Text>
                                             </TouchableOpacity>
                                           </View>

@@ -789,7 +789,9 @@
     "display_nft_media_desc": "Displaying NFT media and data exposes your IP address to OpenSea or other third parties. NFT autodetection relies on this feature, and won't be available when this is turned off.",
     "autodetect_nft_desc": "Let MetaMask add NFTs you own using third-party services (like OpenSea). Autodetecting NFTs exposes your IP and account address to these services. Enabling this feature could associate your IP address with your Ethereum address and display fake NFTs airdropped by scammers. You can add tokens manually to avoid this risk.",
     "incoming_transactions_title": "Show incoming transactions",
-    "incoming_transactions_content": "This relies on the network you select which will expose your Ethereum address and your IP address."
+    "incoming_transactions_content": "This relies on the network you select which will expose your Ethereum address and your IP address.",
+    "display_nft_media_desc_new": "Displaying NFT media and data exposes your IP address to OpenSea or other third parties. NFT autodetection relies on this feature, and won't be available when turned off. If NFT media is fully located on IPFS, it can still be displayed even when this feature is turned off."
+
   },
   "sdk": {
     "disconnect_title": "Disconnect all sites?",
@@ -1926,7 +1928,7 @@
     "no_currency_match": "No currencies match “{{searchString}}”",
     "compare_rates": "Compare rates from these providers. Quotes are sorted by overall price.",
     "pay_with": "Pay with",
-    "buy_with": "Buy with {{provider}}",
+    "continue_with": "Continue with {{provider}}",
     "minimum": "Minimum deposit is",
     "maximum": "Maximum deposit is",
     "try_again": "Try again",
