@@ -18,9 +18,9 @@ import Icon from '../../../component-library/components/Icons/Icon/Icon';
 import Text from '../../../component-library/components/Texts/Text/Text';
 import { useStyles } from '../../../component-library/hooks/useStyles';
 import { isBlockaidFeatureEnabled } from '../../../util/blockaid';
-import AttributionLink from './AttributionLink';
 import {
   ATTRIBUTION_LINE_TEST_ID,
+  FALSE_POSITIVE_REPOST_LINE_TEST_ID,
   REASON_DESCRIPTION_I18N_KEY_MAP,
   REASON_TITLE_I18N_KEY_MAP,
 } from './BlockaidBanner.constants';
@@ -30,6 +30,11 @@ import {
   Reason,
   ResultType,
 } from './BlockaidBanner.types';
+import BlockaidBannerLink from './BlockaidBannerLink';
+import {
+  BLOCKAID_ATTRIBUTION_LINK,
+  BLOCKAID_SUPPORT_LINK,
+} from '../../../constants/urls';
 
 const getTitle = (reason: Reason): string =>
   strings(
@@ -44,7 +49,12 @@ const getDescription = (reason: Reason) =>
   );
 
 const BlockaidBanner = (bannerProps: BlockaidBannerProps) => {
-  const { style, securityAlertResponse, onToggleShowDetails } = bannerProps;
+  const {
+    style,
+    securityAlertResponse,
+    onToggleShowDetails,
+    onContactUsClicked,
+  } = bannerProps;
   const { styles } = useStyles(styleSheet, { style });
 
   if (!securityAlertResponse || !isBlockaidFeatureEnabled()) {
@@ -89,6 +99,23 @@ const BlockaidBanner = (bannerProps: BlockaidBannerProps) => {
             </Text>
           ))}
         </View>
+        <View style={styles.attributionBase}>
+          <View style={styles.attributionItem}>
+            <Text
+              variant={DEFAULT_BANNERBASE_DESCRIPTION_TEXTVARIANT}
+              data-testid={FALSE_POSITIVE_REPOST_LINE_TEST_ID}
+            >
+              {strings('blockaid_banner.does_not_look_right')}
+            </Text>
+          </View>
+          <View style={styles.attributionItem}>
+            <BlockaidBannerLink
+              text={strings('app_information.contact_us')}
+              link={BLOCKAID_SUPPORT_LINK}
+              onContactUsClicked={onContactUsClicked}
+            />
+          </View>
+        </View>
       </Accordion>
     );
 
@@ -123,7 +150,10 @@ const BlockaidBanner = (bannerProps: BlockaidBannerProps) => {
           </Text>
         </View>
         <View style={styles.attributionItem}>
-          <AttributionLink />
+          <BlockaidBannerLink
+            text={strings('blockaid_banner.attribution_link_name')}
+            link={BLOCKAID_ATTRIBUTION_LINK}
+          />
         </View>
       </View>
     </BannerAlert>
