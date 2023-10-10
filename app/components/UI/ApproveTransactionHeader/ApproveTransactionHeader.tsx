@@ -38,6 +38,7 @@ const ApproveTransactionHeader = ({
   url,
   currentEnsName,
   asset,
+  dontWatchAsset,
 }: ApproveTransactionHeaderI) => {
   const [accountName, setAccountName] = useState('');
 
@@ -46,7 +47,7 @@ const ApproveTransactionHeader = ({
   const [isOriginMMSDKRemoteConn, setIsOriginMMSDKRemoteConn] = useState(false);
 
   const { styles } = useStyles(stylesheet, {});
-  const { addressBalance } = useAddressBalance(asset, from);
+  const { addressBalance } = useAddressBalance(asset, from, dontWatchAsset);
 
   const accounts = useSelector(selectAccounts);
 
