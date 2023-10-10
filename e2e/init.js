@@ -1,7 +1,7 @@
+import { getFixturesServerPort } from './utils';
+
 beforeAll(async () => {
-  // Only port forward on android
-  if (device.getPlatform() === 'android') {
-    await device.reverseTcpPort(12345);
-  }
-  await device.launchApp();
+  await device.launchApp({
+    launchArgs: { fixtureServerPort: `${getFixturesServerPort()}` },
+  });
 });
