@@ -151,6 +151,7 @@ export default {
   CANCEL_RATE: 'Transactions (Cancel)',
   SPEED_UP_RATE: 'Transactions (Speed Up)',
   NETWORK_STATE_CHANGE_EVENT: 'NetworkController:stateChange',
+  KEYRING_STATE_CHANGE_EVENT: 'KeyringController:stateChange',
   ETH_SIGN_ERROR: 'eth_sign requires 32 byte message hash',
   TERMS_OF_USE: {
     TERMS_DISPLAYED: 'ToU Displayed',

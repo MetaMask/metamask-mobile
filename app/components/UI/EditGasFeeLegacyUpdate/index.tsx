@@ -62,9 +62,11 @@ const EditGasFeeLegacy = ({
     suggestedMaxFeePerGas?: string;
   }>({
     legacyGasLimit: selectedGasObject.legacyGasLimit,
-    suggestedGasPrice: selectedGasObject.suggestedGasPrice,
-    suggestedMaxFeePerGas: selectedGasObject?.suggestedMaxFeePerGas,
+    suggestedGasPrice:
+      selectedGasObject.suggestedGasPrice ||
+      selectedGasObject.suggestedMaxFeePerGas,
   });
+
   const { colors } = useTheme();
   const styles = createStyles(colors);
 
