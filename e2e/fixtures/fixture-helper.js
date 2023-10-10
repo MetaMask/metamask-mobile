@@ -1,5 +1,5 @@
 /* eslint-disable no-console, import/no-nodejs-modules */
-import FixtureServer from './fixture-server';
+import FixtureServer, { DEFAULT_FIXTURE_SERVER_PORT } from './fixture-server';
 import FixtureBuilder from './fixture-builder';
 import Ganache from '../../app/util/test/ganache';
 import GanacheSeeder from '../../app/util/test/ganache-seeder';
@@ -10,7 +10,12 @@ import { getFixturesServerPort, getLocalTestDappPort } from '../utils';
 
 export const DEFAULT_DAPP_SERVER_PORT = 8085;
 
-const FIXTURE_SERVER_URL = `http://localhost:${getFixturesServerPort()}/state.json`;
+// While Appium is still in use it's necessary to check if getFixturesServerPort if defined and provide a fallback in case it's not.
+const getFixturesPort =
+  typeof getFixturesServerPort === 'function'
+    ? getFixturesServerPort
+    : () => DEFAULT_FIXTURE_SERVER_PORT;
+const FIXTURE_SERVER_URL = `http://localhost:${getFixturesPort()}/state.json`;
 
 // checks if server has already been started
 const isFixtureServerStarted = async () => {

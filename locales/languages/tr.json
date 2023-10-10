@@ -1869,7 +1869,6 @@
   "fiat_on_ramp_aggregator": {
     "onboarding": {
       "what_to_expect": "Bekleyebileceklerin",
-      "best_quotes": "Kripto para satın al özelliğimiz, entegre satıcılardan teklifleri toplayarak bekleme süresi olmadan doğrudan cüzdanına kripto para alabilmen için sana bu kaynaklardan en iyi teklifi sunar.",
       "benefits": "Daha az gaz ücreti ödenir ve çeşitli ağ, token ve ödeme yöntemleri desteklenir",
       "get_started": "Başlarken"
     },
@@ -1914,11 +1913,7 @@
     "select_region_currency": "Bölge Para Birimini Seç",
     "no_tokens_match": "“{{searchString}}” ile eşleşen token yok",
     "no_currency_match": "“{{searchString}}” ile eşleşen para birimi yok",
-    "buy_from_vetted": "Entegrasyonlarımızdan birinden {{ticker}} satın almak için MetaMask uygulamasından ayrılmadan güvenli bir şekilde kendilerinin portalına gideceksin",
-    "best_price": "En iyi fiyat",
-    "explore_other_options": "Diğer seçenekleri keşfedin",
     "pay_with": "Ödeme Aracı",
-    "buy_with": "{{provider}} ile satın al",
     "minimum": "Yatırılabilecek minimum miktar",
     "maximum": "Yatırılabilecek maksimum miktar",
     "try_again": "Tekrar dene",
