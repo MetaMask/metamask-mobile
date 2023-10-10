@@ -1914,7 +1914,6 @@
     "no_tokens_match": "कोई टोकन \"{{searchString}}\" से मेल नहीं खाता",
     "no_currency_match": "कोई भी मुद्रा “{{searchString}}” से मेल नहीं खाती",
     "pay_with": "के साथ भुगतान करें",
-    "buy_with": "{{provider}} से खरीदें",
     "minimum": "न्यूनतम जमा राशि है",
     "maximum": "अधिकतम जमा राशि है",
     "try_again": "पुनः प्रयास करें",

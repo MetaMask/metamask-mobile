@@ -1914,7 +1914,6 @@
     "no_tokens_match": "Tidak ada token yang cocok dengan “{{searchString}}”",
     "no_currency_match": "Tidak ada mata uang yang cocok dengan “{{searchString}}”",
     "pay_with": "Bayar melalui",
-    "buy_with": "Beli melalui {{provider}}",
     "minimum": "Deposit minimum adalah",
     "maximum": "Deposit maksimum adalah",
     "try_again": "Coba lagi",
