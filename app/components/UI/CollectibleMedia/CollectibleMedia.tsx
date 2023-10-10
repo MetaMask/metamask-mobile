@@ -68,7 +68,7 @@ const CollectibleMedia: React.FC<CollectibleMediaProps> = ({
         });
       } else if (isIPFSUri(sourceUri) || isIPFSUri(collectible.tokenURI)) {
         navigate(Routes.MODAL.ROOT_MODAL_FLOW, {
-          screen: Routes.SHEET.SHOW_NFT,
+          screen: Routes.SHEET.SHOW_IPFS,
         });
       } else {
         navigate(Routes.MODAL.ROOT_MODAL_FLOW, {
