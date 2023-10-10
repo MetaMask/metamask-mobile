@@ -35,13 +35,13 @@ la primera vez que se configura MetaMask; le permite
 
 8
 00:00:26.070 --> 00:00:30.120
-recuperar su billetera y los fondos en caso de que
-alguna vez pierda su clave de acceso.
+recuperar su monedero y los fondos en caso de que
+pierda su clave de acceso.
 
 9
 00:00:30.120 --> 00:00:33.451
 Es fundamental que proteja
-su billetera
+su monedero
 
 10
 00:00:33.451 --> 00:00:37.510
@@ -51,7 +51,7 @@ en un lugar sumamente seguro y secreto.
 11
 00:00:37.510 --> 00:00:41.429
 Si alguna persona llegara a encontrarla, accederá
-a la “clave maestra” de su billetera y podrá
+a la “clave maestra” de su monedero y podrá
 
 12
 00:00:41.429 --> 00:00:45.190
@@ -59,7 +59,7 @@ ingresar libremente a todos sus fondos y tomarlos.
 
 13
 00:00:45.190 --> 00:00:50.109
-Para proteger su billetera en MetaMask,
+Para proteger su monedero en MetaMask,
 guarde en un lugar seguro su frase secreta de recuperación.
 
 14
@@ -69,7 +69,7 @@ guardarla en una caja de seguridad
 
 15
 00:00:54.930 --> 00:00:57.729
-o utilizar un administrador seguro de contraseñas.
+o utilizar un gestor de contraseñas protegido.
 
 16
 00:00:57.729 --> 00:01:01.050
@@ -83,8 +83,8 @@ ninguna persona, ni siquiera el equipo de MetaMask, podrá ayudarlo
 
 18
 00:01:04.440 --> 00:01:07.820
-a recuperar
-su billetera.
+recuperar su monedero si pierde
+su frase secreta de recuperación.
 
 19
 00:01:07.820 --> 00:01:12.072
@@ -112,5 +112,5 @@ será con intenciones de estafarlo.
 24
 00:01:26.250 --> 00:01:31.020
 Ahora ya sabe qué es una frase secreta de recuperación
-y qué debe hacer para mantener protegida su billetera.
+y qué debe hacer para mantener protegida su monedero.
 

@@ -1,5 +1,5 @@
 // Third party dependencies.
-import React, { useEffect, useRef, useState } from 'react';
+import React, { useRef } from 'react';
 import { Platform, Switch, View } from 'react-native';
 import { ScrollView } from 'react-native-gesture-handler';
 import images from 'images/image-icons';
@@ -27,7 +27,6 @@ import Networks, {
   getAllNetworks,
   getNetworkImageSource,
   isTestNet,
-  shouldShowLineaMainnetNetwork,
 } from '../../../util/networks';
 import { LINEA_MAINNET, MAINNET } from '../../../constants/network';
 import Button from '../../../component-library/components/Buttons/Button/Button';
@@ -62,18 +61,9 @@ const NetworkSelector = () => {
   const { colors } = useAppTheme();
   const sheetRef = useRef<SheetBottomRef>(null);
   const showTestNetworks = useSelector(selectShowTestNetworks);
-  const [lineaMainnetReleased, setLineaMainnetReleased] = useState(false);
 
   const providerConfig: ProviderConfig = useSelector(selectProviderConfig);
   const networkConfigurations = useSelector(selectNetworkConfigurations);
-
-  useEffect(() => {
-    const shouldShowLineaMainnet = shouldShowLineaMainnetNetwork();
-
-    if (shouldShowLineaMainnet) {
-      setLineaMainnetReleased(shouldShowLineaMainnet);
-    }
-  }, []);
 
   const onNetworkChange = (type: string) => {
     const { NetworkController, CurrencyRateController, TransactionController } =
@@ -249,7 +239,7 @@ const NetworkSelector = () => {
       <SheetHeader title={strings('networks.select_network')} />
       <ScrollView {...generateTestId(Platform, NETWORK_SCROLL_ID)}>
         {renderMainnet()}
-        {lineaMainnetReleased && renderLineaMainnet()}
+        {renderLineaMainnet()}
         {renderRpcNetworks()}
         {renderTestNetworksSwitch()}
         {showTestNetworks && renderOtherNetworks()}

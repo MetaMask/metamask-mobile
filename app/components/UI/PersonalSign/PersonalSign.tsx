@@ -19,6 +19,8 @@ import createStyles from './styles';
 import AppConstants from '../../../core/AppConstants';
 import { selectChainId } from '../../../selectors/networkController';
 import { store } from '../../../store';
+import { getBlockaidMetricsParams } from '../../../util/blockaid';
+import { SecurityAlertResponse } from '../BlockaidBanner/BlockaidBanner.types';
 
 /**
  * Component that supports personal_sign
@@ -41,21 +43,27 @@ const PersonalSign = ({
     account_type?: string;
     dapp_host_name?: string;
     chain_id?: string;
-    sign_type?: string;
+    signature_type?: string;
     [key: string]: string | undefined;
   }
 
   const getAnalyticsParams = useCallback((): AnalyticsParams => {
     try {
       const chainId = selectChainId(store.getState());
-      const url = new URL(currentPageInformation?.url);
+      const pageInfo = currentPageInformation || messageParams.meta;
+      const url = new URL(pageInfo.url);
+
+      const blockaidParams = getBlockaidMetricsParams(
+        messageParams.securityAlertResponse as SecurityAlertResponse,
+      );
 
       return {
         account_type: getAddressAccountType(messageParams.from),
         dapp_host_name: url?.host,
         chain_id: chainId,
-        sign_type: 'personal',
-        ...currentPageInformation?.analytics,
+        signature_type: 'personal_sign',
+        ...pageInfo?.analytics,
+        ...blockaidParams,
       };
     } catch (error) {
       return {};
@@ -64,10 +72,10 @@ const PersonalSign = ({
 
   useEffect(() => {
     AnalyticsV2.trackEvent(
-      MetaMetricsEvents.SIGN_REQUEST_STARTED,
+      MetaMetricsEvents.SIGNATURE_REQUESTED,
       getAnalyticsParams(),
     );
-  }, [getAnalyticsParams]);
+  }, [getAnalyticsParams, messageParams.securityAlertResponse]);
 
   useEffect(() => {
     const onSignatureError = ({ error }: { error: Error }) => {
@@ -112,7 +120,7 @@ const PersonalSign = ({
     await onReject();
     showWalletConnectNotification(false);
     AnalyticsV2.trackEvent(
-      MetaMetricsEvents.SIGN_REQUEST_CANCELLED,
+      MetaMetricsEvents.SIGNATURE_REJECTED,
       getAnalyticsParams(),
     );
   };
@@ -121,7 +129,7 @@ const PersonalSign = ({
     await onConfirm();
     showWalletConnectNotification(true);
     AnalyticsV2.trackEvent(
-      MetaMetricsEvents.SIGN_REQUEST_COMPLETED,
+      MetaMetricsEvents.SIGNATURE_APPROVED,
       getAnalyticsParams(),
     );
   };
@@ -188,7 +196,7 @@ const PersonalSign = ({
       showExpandedMessage={showExpandedMessage}
       toggleExpandedMessage={toggleExpandedMessage}
       truncateMessage={truncateMessage}
-      type="personalSign"
+      type="personal_sign"
       fromAddress={messageParams.from}
       securityAlertResponse={messageParams.securityAlertResponse}
       testID={'personal-signature-request'}
