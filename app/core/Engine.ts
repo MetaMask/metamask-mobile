@@ -81,7 +81,7 @@ import {
   LoggingControllerState,
   LoggingControllerActions,
 } from '@metamask/logging-controller';
-import LedgerKeyring from '@ledgerhq/metamask-keyring';
+import LedgerKeyring from '@stanleyyuen2020/metamask-keyring';
 import Encryptor from './Encryptor';
 import {
   isMainnetByChainId,

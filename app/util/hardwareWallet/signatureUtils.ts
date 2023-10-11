@@ -1,5 +1,5 @@
 import { handleSignatureAction } from '../confirmation/signatureUtils';
-import { getAddressAccountType } from '../address';
+import { getKeyringByAddress } from '../address';
 import { signModalNavDetail } from './hardwareWallets/ledger';
 import { HardwareDeviceNames } from '../../core/Ledger/Ledger'; 
 
@@ -12,7 +12,7 @@ export default async (
   messageParams: any,
   signType: string,
 ) => {
-  const addressType = getAddressAccountType(messageParams.from);
+  const keyring = getKeyringByAddress(messageParams.from);
 
   const onConfirmationComplete = async (confirmed: boolean) => {
     if (!confirmed) {
@@ -22,11 +22,16 @@ export default async (
     }
   };
 
-  const navPromise = navMethodFactory.get(addressType as HardwareDeviceNames);
+  if (!keyring) {
+    //TODO: add error handling
+    throw new Error(`Keyring not found for address ${messageParams.from}`);
+  }
+
+  const navPromise = navMethodFactory.get(keyring.type as HardwareDeviceNames);
 
   if (navPromise === undefined) {
     //TODO: add error handling
-    throw new Error(`No nav type for address type ${addressType}`);
+    throw new Error(`No nav type for address type ${keyring.type}`);
   }
 
   return await navPromise({

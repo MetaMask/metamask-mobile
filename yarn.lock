@@ -3664,16 +3664,6 @@
     rxjs "6"
     semver "^7.3.5"
 
-"@ledgerhq/devices@^6.24.1":
-  version "6.27.1"
-  resolved "https://registry.yarnpkg.com/@ledgerhq/devices/-/devices-6.27.1.tgz#3b13ab1d1ba8201e9e74a08f390560483978c962"
-  integrity sha512-jX++oy89jtv7Dp2X6gwt3MMkoajel80JFWcdc0HCouwDsV1mVJ3SQdwl/bQU0zd8HI6KebvUP95QTwbQLLK/RQ==
-  dependencies:
-    "@ledgerhq/errors" "^6.10.0"
-    "@ledgerhq/logs" "^6.10.0"
-    rxjs "6"
-    semver "^7.3.5"
-
 "@ledgerhq/devices@^8.0.7":
   version "8.0.7"
   resolved "https://registry.yarnpkg.com/@ledgerhq/devices/-/devices-8.0.7.tgz#206434dbd8a097529bbfc95f5eef94c2923c7578"
@@ -3763,15 +3753,6 @@
     "@ledgerhq/errors" "^5.26.0"
     events "^3.2.0"
 
-"@ledgerhq/hw-transport@6.24.1":
-  version "6.24.1"
-  resolved "https://registry.yarnpkg.com/@ledgerhq/hw-transport/-/hw-transport-6.24.1.tgz#5e787268e6d5ce4f9f0d53b0d520c1f071c2d1ae"
-  integrity sha512-cOhxkQJrN7DvPFLLXAS2nqAZ7NIDaFqnbgu9ugTccgbJm2/z7ClRZX/uQoI4FscswZ47MuJQdXqz4nK48phteQ==
-  dependencies:
-    "@ledgerhq/devices" "^6.24.1"
-    "@ledgerhq/errors" "^6.10.0"
-    events "^3.3.0"
-
 "@ledgerhq/hw-transport@^5.26.0", "@ledgerhq/hw-transport@^5.51.1":
   version "5.51.1"
   resolved "https://registry.yarnpkg.com/@ledgerhq/hw-transport/-/hw-transport-5.51.1.tgz#8dd14a8e58cbee4df0c29eaeef983a79f5f22578"
@@ -3799,18 +3780,6 @@
   version "6.10.1"
   resolved "https://registry.yarnpkg.com/@ledgerhq/logs/-/logs-6.10.1.tgz#5bd16082261d7364eabb511c788f00937dac588d"
   integrity sha512-z+ILK8Q3y+nfUl43ctCPuR4Y2bIxk/ooCQFwZxhtci1EhAtMDzMAx2W25qx8G1PPL9UUOdnUax19+F0OjXoj4w==
-
-"@ledgerhq/metamask-keyring@^0.3.3":
-  version "0.3.3"
-  resolved "https://registry.yarnpkg.com/@ledgerhq/metamask-keyring/-/metamask-keyring-0.3.3.tgz#f497e10c386497cb71c6174e39f7d57d3b7f8817"
-  integrity sha512-bbty4Orcm6TZn9RRpVRNwkrid9tyT+Gs+Pcb4sXZQuqI3iYKSnLtWeo1T+iWp4nj9E3x/Mt4YRtMDDmg2iSY2Q==
-  dependencies:
-    "@ethereumjs/tx" "^3.5.0"
-    "@ledgerhq/hw-app-eth" "6.26.1"
-    "@ledgerhq/hw-transport" "6.24.1"
-    buffer "^6.0.3"
-    eth-sig-util "^3.0.1"
-    ethereumjs-util "^7.1.4"
 
 "@ledgerhq/react-native-hw-transport-ble@^6.28.0":
   version "6.29.5"
@@ -5751,6 +5720,17 @@
     "@stablelib/keyagreement" "^1.0.1"
     "@stablelib/random" "^1.0.2"
     "@stablelib/wipe" "^1.0.1"
+
+"@stanleyyuen2020/metamask-keyring@^0.3.6":
+  version "0.3.6"
+  resolved "https://registry.yarnpkg.com/@stanleyyuen2020/metamask-keyring/-/metamask-keyring-0.3.6.tgz#128c060cc4cc9baea8a2fd09ae3d58ed5e7be52d"
+  integrity sha512-r+Ey7rL17n5Q2rgKWH4Nei3COW/2QFeImb0chUtZrethaVbDbl1vj1RzVLCP7GSagRmUvjPWJauAZq7gL4qwYQ==
+  dependencies:
+    "@ethereumjs/tx" "^3.5.0"
+    "@ledgerhq/hw-app-eth" "6.26.1"
+    buffer "^6.0.3"
+    eth-sig-util "^3.0.1"
+    ethereumjs-util "^7.1.5"
 
 "@storybook/addon-actions@^7.4.2":
   version "7.4.2"

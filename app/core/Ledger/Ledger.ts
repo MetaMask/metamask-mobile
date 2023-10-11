@@ -1,10 +1,10 @@
 import Engine from '../Engine';
 import { KeyringController, SignTypedDataVersion } from '@metamask/keyring-controller';
 import type BleTransport from '@ledgerhq/react-native-hw-transport-ble';
-import LedgerKeyring from '@ledgerhq/metamask-keyring';
+import LedgerKeyring from '@stanleyyuen2020/metamask-keyring';
 
 export enum HardwareDeviceNames {
-  ledger = 'Ledger',
+  ledger = 'Ledger Hardware',
   qr = 'QR Hardware',
 }
 

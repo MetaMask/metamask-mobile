@@ -145,6 +145,25 @@ export async function importAccountFromPrivateKey(private_key) {
   return PreferencesController.setSelectedAddress(checksummedAddress);
 }
 
+
+/**
+ * get address's kerying
+ *
+ * @param {String} address - String corresponding to an address
+ * @returns {Keyring} - Returns address's account keyriong
+ */
+export function getKeyringByAddress(address) {
+  if (!isValidHexAddress(address)) {
+    throw new Error(`Invalid address: ${address}`);
+  }
+  const { KeyringController } = Engine.context;
+  const { keyrings } = KeyringController.state;
+  return keyrings.find((keyring) =>
+    keyring.accounts
+      .map((account) => account.toLowerCase())
+      .includes(address.toLowerCase()),
+  );
+}
 /**
  * judge address is hardware account or not
  *
@@ -156,21 +175,8 @@ export function isHardwareAccount(
   address,
   accountTypes = [KeyringTypes.qr, HardwareDeviceNames.ledger],
 ) {
-  const addressToCheck = address.toLowerCase();
-  const { KeyringController } = Engine.context;
-  const { keyrings } = KeyringController.state;
-  for (const keyring of keyrings) {
-    if (
-      accountTypes.includes(keyring.type) &&
-      keyring.accounts
-        .map((account) => account.toLowerCase())
-        .includes(addressToCheck)
-    ) {
-      return true;
-    }
-  }
-
-  return false;
+  const keyring = getKeyringByAddress(address);
+  return keyring && accountTypes.includes(keyring.type)
 }
 
 /**
@@ -275,7 +281,6 @@ export function getAddressAccountType(address) {
   }
   throw new Error(`The address: ${address} is not imported`);
 }
-
 /**
  * Validates an ENS name
  *
