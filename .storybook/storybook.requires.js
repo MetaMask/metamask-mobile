@@ -24,6 +24,13 @@ global.STORIES = [
     importPathMatcher:
       "^\\.[\\\\/](?:app\\/component-library\\/components\\/Banners\\/Banner\\/variants\\/BannerAlert(?:\\/(?!\\.)(?:(?:(?!(?:^|\\/)\\.).)*?)\\/|\\/|$)(?!\\.)(?=.)[^/]*?\\.stories\\.(?:ts|tsx|js|jsx)?)$",
   },
+  {
+    titlePrefix: "",
+    directory: "./app/component-library/components/Pickers",
+    files: "**/*.stories.?(ts|tsx|js|jsx)",
+    importPathMatcher:
+      "^\\.[\\\\/](?:app\\/component-library\\/components\\/Pickers(?:\\/(?!\\.)(?:(?:(?!(?:^|\\/)\\.).)*?)\\/|\\/|$)(?!\\.)(?=.)[^/]*?\\.stories\\.(?:ts|tsx|js|jsx)?)$",
+  },
 ];
 
 import "@storybook/addon-ondevice-controls/register";
@@ -50,6 +57,8 @@ const getStories = () => {
   return {
     "./app/component-library/components/Cards/Card/Card.stories.tsx": require("../app/component-library/components/Cards/Card/Card.stories.tsx"),
     "./app/component-library/components/Banners/Banner/variants/BannerAlert/BannerAlert.stories.tsx": require("../app/component-library/components/Banners/Banner/variants/BannerAlert/BannerAlert.stories.tsx"),
+    "./app/component-library/components/Pickers/PickerAccount/PickerAccount.stories.tsx": require("../app/component-library/components/Pickers/PickerAccount/PickerAccount.stories.tsx"),
+    "./app/component-library/components/Pickers/PickerNetwork/PickerNetwork.stories.tsx": require("../app/component-library/components/Pickers/PickerNetwork/PickerNetwork.stories.tsx"),
   };
 };
 
