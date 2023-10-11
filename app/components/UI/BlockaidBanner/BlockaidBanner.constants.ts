@@ -22,11 +22,7 @@ export const REASON_DESCRIPTION_I18N_KEY_MAP = Object.freeze({
   [Reason.transferFarming]: 'blockaid_banner.transfer_farming_description',
   [Reason.transferFromFarming]: 'blockaid_banner.transfer_farming_description',
   [Reason.unfairTrade]: 'blockaid_banner.unfair_trade_description',
-<<<<<<< HEAD
   [Reason.notApplicable]: 'blockaid_banner.not_applicable',
-=======
-  [Reason.notApplicable]: 'not_applicable',
->>>>>>> 54a918d768e0c9ce617b7f4523988044f935e382
 });
 
 export const REASON_TITLE_I18N_KEY_MAP: Record<string, string> = Object.freeze({
