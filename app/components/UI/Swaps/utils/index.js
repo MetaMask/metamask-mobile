@@ -12,7 +12,7 @@ const {
   AVALANCHE_CHAIN_ID,
   ARBITRUM_CHAIN_ID,
   OPTIMISM_CHAIN_ID,
-  LINEA_CHAIN_ID
+  LINEA_CHAIN_ID,
 } = swapsUtils;
 
 const allowedChainIds = [
