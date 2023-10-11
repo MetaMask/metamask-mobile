@@ -1914,7 +1914,6 @@
     "no_tokens_match": "“{{searchString}}” ile eşleşen token yok",
     "no_currency_match": "“{{searchString}}” ile eşleşen para birimi yok",
     "pay_with": "Ödeme Aracı",
-    "buy_with": "{{provider}} ile satın al",
     "minimum": "Yatırılabilecek minimum miktar",
     "maximum": "Yatırılabilecek maksimum miktar",
     "try_again": "Tekrar dene",

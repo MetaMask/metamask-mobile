@@ -1914,7 +1914,6 @@
     "no_tokens_match": "“{{searchString}}”(와)과 일치하는 토큰이 없습니다",
     "no_currency_match": "“{{searchString}}”(와)과 일치하는 통화가 없습니다",
     "pay_with": "결제 수단:",
-    "buy_with": "결제 수단: {{provider}}",
     "minimum": "최소 예치 금액:",
     "maximum": "최대 예치 금액:",
     "try_again": "다시 시도하세요",
