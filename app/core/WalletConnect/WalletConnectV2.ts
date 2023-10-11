@@ -675,15 +675,18 @@ export class WC2Manager {
         );
         if (activeSession) {
           this.sessions[activeSession.topic]?.setDeeplink(isDeepLink);
-          NotificationManager.showSimpleNotification({
-            duration: 5000,
-            title: strings('walletconnect_sessions.session_already_exist'),
-            description: strings(
-              'walletconnect_sessions.close_current_session',
-            ),
-            status: 'error',
-          });
-          return;
+
+          if (!isDeepLink) {
+            NotificationManager.showSimpleNotification({
+              duration: 5000,
+              title: strings('walletconnect_sessions.session_already_exist'),
+              description: strings(
+                'walletconnect_sessions.close_current_session',
+              ),
+              status: 'error',
+            });
+            return;
+          }
         }
 
         // cleanup uri before pairing.
@@ -708,7 +711,12 @@ export class WC2Manager {
         console.warn(`Invalid wallet connect uri`, wcUri);
       }
     } catch (err) {
-      console.error(`Failed to connect uri=${wcUri}`, err);
+      if (
+        err instanceof Error &&
+        !err.message.startsWith('Pairing already exists')
+      ) {
+        console.error(`Failed to connect uri=${wcUri}`, err);
+      }
     }
   }
 }
