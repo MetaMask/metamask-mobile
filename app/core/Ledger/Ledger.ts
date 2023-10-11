@@ -4,7 +4,7 @@ import type BleTransport from '@ledgerhq/react-native-hw-transport-ble';
 import LedgerKeyring from '@ledgerhq/metamask-keyring';
 
 export enum HardwareDeviceNames {
-  ledger = 'Ledger Hardware',
+  ledger = 'Ledger',
   qr = 'QR Hardware',
 }
 
