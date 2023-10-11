@@ -49,7 +49,7 @@ class Matchers {
    * Get element by web ID.
    *
    * @param {string} webID - The web ID of the element to locate
-   * @return {Promise} - Resolves to the located element
+   * @return {Promise} Resolves to the located element
    */
   async getElementByWebID(webID) {
     return web.element(by.web.id(webID));
