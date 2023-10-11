@@ -558,7 +558,7 @@ const Settings: React.FC = () => {
           {strings('app_settings.display_nft_media')}
         </Text>
         <Text style={styles.desc}>
-          {strings('app_settings.display_nft_media_desc')}
+          {strings('app_settings.display_nft_media_desc_new')}
         </Text>
         <View style={styles.switchElement}>
           <Switch
