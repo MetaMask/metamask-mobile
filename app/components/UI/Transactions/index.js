@@ -67,7 +67,7 @@ import {
   CancelTransactionError,
   SpeedupTransactionError,
 } from '../../../core/Transaction/TransactionError';
-import { KEYRING_LEDGER, getLedgerKeyring } from '../../../core/Ledger/Ledger';
+import * as Ledger from '../../../core/Ledger/Ledger'; 
 
 const createStyles = (colors, typography) =>
   StyleSheet.create({
@@ -263,7 +263,7 @@ class Transactions extends PureComponent {
         KeyringTypes.qr,
       ]),
       isLedgerAccount: isHardwareAccount(this.props.selectedAddress, [
-        KEYRING_LEDGER,
+        KeyringTypes.ledger,
       ]),
     });
   };
@@ -513,7 +513,7 @@ class Transactions extends PureComponent {
       }
 
       const isLedgerAccount = isHardwareAccount(this.props.selectedAddress, [
-        KEYRING_LEDGER,
+        KeyringTypes.ledger,
       ]);
 
       if (isLedgerAccount) {
@@ -549,7 +549,7 @@ class Transactions extends PureComponent {
   };
 
   signLedgerTransaction = async (transaction) => {
-    const ledgerKeyring = await getLedgerKeyring();
+    const ledgerKeyring = await Ledger.getLedgerKeyring();
 
     const onConfirmation = (isComplete) => {
       if (isComplete) {
@@ -585,7 +585,7 @@ class Transactions extends PureComponent {
       }
 
       const isLedgerAccount = isHardwareAccount(this.props.selectedAddress, [
-        KEYRING_LEDGER,
+        KeyringTypes.ledger,
       ]);
 
       if (isLedgerAccount) {

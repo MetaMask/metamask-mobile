@@ -8,8 +8,6 @@ export enum HardwareDeviceNames {
   qr = 'QR Hardware',
 }
 
-export const KEYRING_LEDGER = HardwareDeviceNames.ledger;
-
 //TODO - Patch EthKeyringController into KeyringController
 /**
  * Get EthKeyringController from KeyringController
@@ -170,12 +168,13 @@ export const forgetLedger = async (): Promise<void> => {
   await syncKeyringState();
 };
 
+
 /**
  * Get DeviceId from Ledger Keyring
  *
  * @returns The DeviceId
  */
-export const getDeviceId = async (): Promise<string> => {
+export const getDeviceId = async():Promise<string> => {
   const ledgerKeyring = await getLedgerKeyring();
-  return ledgerKeyring.deviceId;
+  return ledgerKeyring.deviceId
 };

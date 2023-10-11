@@ -1,5 +1,4 @@
 // Third parties dependencies
-import { useNavigation } from '@react-navigation/native';
 import React, {
   forwardRef,
   useCallback,
@@ -8,38 +7,39 @@ import React, {
   useRef,
   useState,
 } from 'react';
-import { Platform, View } from 'react-native';
 import { useSelector } from 'react-redux';
+import { useNavigation } from '@react-navigation/native';
+import { Platform, View } from 'react-native';
 // External dependencies
-import generateTestId from '../../../../wdio/utils/generateTestId';
-import { AvatarAccountType } from '../../../component-library/components/Avatars/Avatar/variants/AvatarAccount';
-import { ButtonIconSizes } from '../../../component-library/components/Buttons/ButtonIcon';
-import ButtonIcon from '../../../component-library/components/Buttons/ButtonIcon/ButtonIcon';
 import { IconName } from '../../../component-library/components/Icons/Icon';
 import PickerAccount from '../../../component-library/components/Pickers/PickerAccount';
-import { useStyles } from '../../../component-library/hooks';
+import { AvatarAccountType } from '../../../component-library/components/Avatars/Avatar/variants/AvatarAccount';
 import { createAccountSelectorNavDetails } from '../../../components/Views/AccountSelector';
-import Routes from '../../../constants/navigation/Routes';
+import { useStyles } from '../../../component-library/hooks';
+import generateTestId from '../../../../wdio/utils/generateTestId';
+import AddressCopy from '../AddressCopy';
+import {
+  doENSReverseLookup,
+  isDefaultAccountName,
+} from '../../../util/ENSUtils';
 import { selectChainId } from '../../../selectors/networkController';
 import {
   selectIdentities,
   selectSelectedAddress,
 } from '../../../selectors/preferencesController';
-import {
-  doENSReverseLookup,
-  isDefaultAccountName,
-} from '../../../util/ENSUtils';
-import AddressCopy from '../AddressCopy';
+import ButtonIcon from '../../../component-library/components/Buttons/ButtonIcon/ButtonIcon';
+import { ButtonIconSizes } from '../../../component-library/components/Buttons/ButtonIcon';
+import Routes from '../../../constants/navigation/Routes';
 
 // Internal dependencies
-import {
-  MAIN_WALLET_ACCOUNT_ACTIONS,
-  WALLET_ACCOUNT_ICON,
-} from '../../../../wdio/screen-objects/testIDs/Screens/WalletView.testIds';
-import { KEYRING_LEDGER } from '../../../core/Ledger/Ledger';
-import { isHardwareAccount } from '../../../util/address';
 import styleSheet from './WalletAccount.styles';
 import { WalletAccountProps } from './WalletAccount.types';
+import {
+  WALLET_ACCOUNT_ICON,
+  MAIN_WALLET_ACCOUNT_ACTIONS,
+} from '../../../../wdio/screen-objects/testIDs/Screens/WalletView.testIds';
+import { isHardwareAccount } from '../../../util/address';
+import { KeyringTypes } from '@metamask/keyring-controller';
 
 const WalletAccount = ({ style }: WalletAccountProps, ref: React.Ref<any>) => {
   const { styles } = useStyles(styleSheet, { style });
@@ -110,7 +110,7 @@ const WalletAccount = ({ style }: WalletAccountProps, ref: React.Ref<any>) => {
         //Currently only show account type label for ledger accounts for unknown reasons
         //TODO: should display account type label for all hardware wallets and imported accounts after confirmed
         accountTypeLabel={
-          isHardwareAccount(account.address, [KEYRING_LEDGER])
+          isHardwareAccount(account.address, [KeyringTypes.ledger])
             ? 'accounts.ledger'
             : ''
         }

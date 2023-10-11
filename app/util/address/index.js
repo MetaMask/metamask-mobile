@@ -33,7 +33,6 @@ import TransactionTypes from '../../core/TransactionTypes';
 import { selectChainId } from '../../selectors/networkController';
 import { store } from '../../store';
 import { regex } from '../../../app/util/regex';
-import { KEYRING_LEDGER } from '../../../app/core/Ledger/Ledger';
 
 const {
   ASSET: { ERC721, ERC1155 },
@@ -154,7 +153,7 @@ export async function importAccountFromPrivateKey(private_key) {
  */
 export function isHardwareAccount(
   address,
-  accountTypes = [KeyringTypes.qr, KEYRING_LEDGER],
+  accountTypes = [KeyringTypes.qr, KeyringTypes.ledger],
 ) {
   const addressToCheck = address.toLowerCase();
   const { KeyringController } = Engine.context;
@@ -180,7 +179,7 @@ export function isHardwareAccount(
  * @returns {Boolean} - Returns a boolean
  */
 export function isExternalHardwareAccount(address) {
-  return isHardwareAccount(address, [KEYRING_LEDGER]);
+  return isHardwareAccount(address, [KeyringTypes.ledger]);
 }
 
 /**
@@ -235,7 +234,8 @@ export function isImportedAccount(address) {
  */
 export function getLabelTextByAddress(address) {
   if (!address) return null;
-  if (isHardwareAccount(address, [KEYRING_LEDGER])) return 'accounts.ledger';
+  if (isHardwareAccount(address, [KeyringTypes.ledger]))
+    return 'accounts.ledger';
   if (isHardwareAccount(address, [KeyringTypes.qr]))
     return 'transaction.hardware';
   if (isImportedAccount(address)) return 'accounts.imported';
@@ -266,7 +266,7 @@ export function getAddressAccountType(address) {
         return 'QR';
       case KeyringTypes.simple:
         return 'Imported';
-      case KEYRING_LEDGER:
+      case KeyringTypes.ledger:
         return 'Ledger';
       default:
         return 'MetaMask';

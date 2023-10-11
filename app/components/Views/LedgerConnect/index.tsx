@@ -31,7 +31,7 @@ import LedgerConnectionError, {
   LedgerConnectionErrorProps,
 } from './LedgerConnectionError';
 import { getNavigationOptionsTitle } from '../../UI/Navbar';
-import { unlockLedgerDefaultAccount } from '../../../core/Ledger/Ledger';
+import * as Ledger from '../../../core/Ledger/Ledger'; 
 
 const ledgerDeviceDarkImage = require('../../../images/ledger-device-dark.png');
 const ledgerDeviceLightImage = require('../../../images/ledger-device-light.png');
@@ -107,7 +107,7 @@ const createStyles = (colors: any) =>
   });
 
 const LedgerConnect = () => {
-  const { AccountTrackerController } = Engine.context as any;
+  const { KeyringController, AccountTrackerController } = Engine.context as any;
   const { colors } = useAppThemeFromContext() ?? mockTheme;
   const navigation = useNavigation();
   const styles = useMemo(() => createStyles(colors), [colors]);
@@ -132,7 +132,7 @@ const LedgerConnect = () => {
   const connectLedger = () => {
     setLoading(true);
     ledgerLogicToRun(async () => {
-      const account = await unlockLedgerDefaultAccount();
+      const account = await Ledger.unlockLedgerDefaultAccount();
       await AccountTrackerController.syncBalanceWithAddresses([account]);
 
       navigation.dispatch(StackActions.popToTop());

@@ -11,8 +11,6 @@ import {
   View,
 } from 'react-native';
 import { connect } from 'react-redux';
-import { KEYRING_LEDGER } from '../../../../app/core/Ledger/Ledger';
-import { regex } from '../../../../app/util/regex';
 import { strings } from '../../../../locales/i18n';
 import {
   WALLET_ACCOUNT_ICON,
@@ -23,19 +21,10 @@ import generateTestId from '../../../../wdio/utils/generateTestId';
 import { showAlert } from '../../../actions/alert';
 import { toggleReceiveModal } from '../../../actions/modals';
 import { newAssetTransaction } from '../../../actions/transaction';
+import Device from '../../../util/device';
 import { protectWalletModalVisible } from '../../../actions/user';
 import Routes from '../../../constants/navigation/Routes';
-import { MetaMetricsEvents } from '../../../core/Analytics';
-import Analytics from '../../../core/Analytics/Analytics';
-import AppConstants from '../../../core/AppConstants';
 import ClipboardManager from '../../../core/ClipboardManager';
-import Engine from '../../../core/Engine';
-import { selectCurrentCurrency } from '../../../selectors/currencyRateController';
-import { selectChainId } from '../../../selectors/networkController';
-import {
-  selectIdentities,
-  selectSelectedAddress,
-} from '../../../selectors/preferencesController';
 import { fontStyles } from '../../../styles/common';
 import {
   doENSReverseLookup,
@@ -46,11 +35,22 @@ import {
   isImportedAccount,
   renderAccountName,
 } from '../../../util/address';
-import Device from '../../../util/device';
 import { ThemeContext, mockTheme } from '../../../util/theme';
-import { createAccountSelectorNavDetails } from '../../Views/AccountSelector';
 import EthereumAddress from '../EthereumAddress';
 import Identicon from '../Identicon';
+import { KeyringTypes } from '@metamask/keyring-controller';
+import { MetaMetricsEvents } from '../../../core/Analytics';
+import Analytics from '../../../core/Analytics/Analytics';
+import AppConstants from '../../../core/AppConstants';
+import Engine from '../../../core/Engine';
+import { selectChainId } from '../../../selectors/networkController';
+import { selectCurrentCurrency } from '../../../selectors/currencyRateController';
+import {
+  selectIdentities,
+  selectSelectedAddress,
+} from '../../../selectors/preferencesController';
+import { createAccountSelectorNavDetails } from '../../Views/AccountSelector';
+import { regex } from '../../../../app/util/regex';
 
 const createStyles = (colors) =>
   StyleSheet.create({
@@ -357,7 +357,7 @@ class AccountOverview extends PureComponent {
     const { accountLabelEditable, accountLabel, ens } = this.state;
 
     const isHardwareWalletAccount = isHardwareAccount(address);
-    const isLedgerAccount = isHardwareAccount(address, [KEYRING_LEDGER]);
+    const isLedgerAccount = isHardwareAccount(address, [KeyringTypes.ledger]);
     const showImportAccountLabel = isImportedAccount(address);
 
     return (
