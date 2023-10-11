@@ -34,6 +34,7 @@ import parseWalletConnectUri, {
 } from './wc-utils';
 import { selectChainId } from '../../selectors/networkController';
 import { store } from '../../store';
+import { WALLET_CONNECT_ORIGIN } from '../../../app/util/walletconnect';
 
 const { PROJECT_ID } = AppConstants.WALLET_CONNECT;
 export const isWC2Enabled =
@@ -253,6 +254,7 @@ class WalletConnect2Session {
 
     const verified = requestEvent.verifyContext?.verified;
     const hostname = verified?.origin;
+    const origin = WALLET_CONNECT_ORIGIN + hostname; // allow correct origin for analytics with eth_sendTtansaction
 
     let method = requestEvent.params.request.method;
     const chainId = parseInt(requestEvent.params.chainId);
@@ -288,7 +290,7 @@ class WalletConnect2Session {
           methodParams[0],
           {
             deviceConfirmedOn: WalletDevice.MM_MOBILE,
-            origin: hostname,
+            origin,
           },
         );
         const hash = await trx.result;
@@ -312,7 +314,7 @@ class WalletConnect2Session {
         method,
         params: methodParams,
       },
-      origin: hostname,
+      origin,
     });
   };
 }
