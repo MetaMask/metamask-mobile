@@ -90,7 +90,7 @@ stages:
     workflows:
       - ios_e2e_test: {}
   run_smoke_e2e_ios_android_stage:
-    workflows: 
+    workflows:
       - ios_e2e_test: {}
       - android_e2e_test: {}
   run_e2e_ios_android_stage:
@@ -114,16 +114,19 @@ workflows:
   check_e2e_trigger:
     steps:
       - script@1:
+          title: Fetch pull request labels
           inputs:
             - content: |-
-                #!/usr/bin/env bash
-                if [[ $BITRISE_GIT_MESSAGE =~ "Run E2E" ]]; then
-                  echo "Now triggering e2e tests"
-                else
-                  echo "No Run E2E label skipping E2E tests."
-                  exit 1
-                fi
-          title: Run if <Run E2E> label is added to PR
+                #!/bin/bash
+                set -ex
+                PR_NUMBER=${BITRISE_PULL_REQUEST}
+                REPO_SLUG=${BITRISEIO_GIT_REPOSITORY_SLUG}
+                OWNER_NAME=${BITRISEIO_GIT_REPOSITORY_OWNER}
+
+                PR_LABELS=$(curl -s -H "Authorization: token ${TEST_GITHUB_LABEL_TOKEN}" \
+                "https://api.github.com/repos/${OWNER_NAME}/${REPO_SLUG}/issues/${PR_NUMBER}/labels" | jq -r '.[].name')
+
+                echo "Pull Request Labels: $PR_LABELS"
     meta:
       bitrise.io:
         stack: linux-docker-android-20.04
@@ -369,7 +372,7 @@ workflows:
           inputs:
             - deploy_path: $BITRISE_DEPLOY_DIR
             - is_compress: true
-            - zip_name: "E2E_Android_Failure_Screenshots"
+            - zip_name: 'E2E_Android_Failure_Screenshots'
 
     meta:
       bitrise.io:
@@ -433,7 +436,7 @@ workflows:
           inputs:
             - deploy_path: $BITRISE_DEPLOY_DIR
             - is_compress: true
-            - zip_name: "E2E_IOS_Failure_Screenshots"
+            - zip_name: 'E2E_IOS_Failure_Screenshots'
   start_e2e_tests:
     steps:
       - build-router-start@0:
@@ -791,7 +794,7 @@ workflows:
           inputs:
             - deploy_path: browserstack_uploaded_apps.json
           title: Bitrise Deploy Browserstack Uploaded Apps
-      
+
 app:
   envs:
     - opts:
@@ -852,7 +855,6 @@ trigger_map:
     pipeline: create_qa_builds_pipeline
   - tag: 'dev-e2e-*'
     pipeline: pr_smoke_e2e_pipeline
-  - pull_request_target_branch: "main"
-    pull_request_source_branch: "*"
+  - pull_request_target_branch: 'main'
+    pull_request_source_branch: '*'
     pipeline: pr_smoke_e2e_pipeline_pr_check
-
