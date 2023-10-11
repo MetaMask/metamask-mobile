@@ -14,6 +14,8 @@ import {
   TransactionController,
   WalletDevice,
 } from '@metamask/transaction-controller';
+import NotificationManager from '../NotificationManager';
+import { strings } from '../../../locales/i18n';
 
 import AsyncStorage from '../../store/async-storage-wrapper';
 import { Core } from '@walletconnect/core';
@@ -673,6 +675,14 @@ export class WC2Manager {
         );
         if (activeSession) {
           this.sessions[activeSession.topic]?.setDeeplink(isDeepLink);
+          NotificationManager.showSimpleNotification({
+            duration: 5000,
+            title: strings('walletconnect_sessions.session_already_exist'),
+            description: strings(
+              'walletconnect_sessions.close_current_session',
+            ),
+            status: 'error',
+          });
           return;
         }
 
