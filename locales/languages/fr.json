@@ -1914,7 +1914,6 @@
     "no_tokens_match": "Aucun jeton correspondant à vos critères de recherche : {{searchString}}",
     "no_currency_match": "Aucune devise correspondant à vos critères de recherche : {{searchString}}",
     "pay_with": "Payer avec",
-    "buy_with": "Acheter avec {{provider}}",
     "minimum": "Le dépôt minimum est de",
     "maximum": "Le dépôt maximum est de",
     "try_again": "Réessayer",
