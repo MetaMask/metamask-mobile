@@ -10,7 +10,7 @@ import NotificationManager from '../../../core/NotificationManager';
 import Engine from '../../../core/Engine';
 import { strings } from '../../../../locales/i18n';
 import { hexToBN, fromWei, isZeroValue } from '../../../util/number';
-import { KeyringTypes, isHardwareAccount } from '../../../util/address';
+import { isHardwareAccount } from '../../../util/address';
 import {
   setEtherTransaction,
   setTransactionObject,
@@ -59,7 +59,7 @@ import TemplateConfirmationModal from '../../Approvals/TemplateConfirmationModal
 import { selectTokenList } from '../../../selectors/tokenListController';
 import { selectTokens } from '../../../selectors/tokensController';
 import { selectSelectedAddress } from '../../../selectors/preferencesController';
-import * as Ledger from '../../../core/Ledger/Ledger'; 
+import { getLedgerKeyring, HardwareDeviceNames } from '../../../core/Ledger/Ledger'; 
 
 const hstInterface = new ethers.utils.Interface(abi);
 
@@ -212,12 +212,12 @@ const RootRPCMethodsUI = (props) => {
 
         const isLedgerAccount = isHardwareAccount(
           transactionMeta.transaction.from,
-          [KeyringTypes.ledger],
+          [HardwareDeviceNames.ledger],
         );
 
         // For Ledger Accounts we handover the signing to the confirmation flow
         if (isLedgerAccount) {
-          const ledgerKeyring = await Ledger.getLedgerKeyring();
+          const ledgerKeyring = await getLedgerKeyring();
 
           props.navigation.navigate(
             ...createLedgerTransactionModalNavDetails({

@@ -69,7 +69,7 @@ import {
 import ShowBlockExplorer from '../../../UI/ApproveTransactionReview/ShowBlockExplorer';
 import createStyles from './styles';
 import { ethErrors } from 'eth-rpc-errors';
-import * as Ledger from '../../../../core/Ledger/Ledger'; 
+import { HardwareDeviceNames, getLedgerKeyring } from '../../../../core/Ledger/Ledger'; 
 
 const EDIT = 'edit';
 const REVIEW = 'review';
@@ -316,7 +316,7 @@ class Approve extends PureComponent {
     await stopGasPolling(this.state.pollToken);
 
     const isLedgerAccount = isHardwareAccount(transaction.from, [
-      KeyringTypes.ledger,
+      HardwareDeviceNames.ledger,
     ]);
 
     this.appStateListener?.remove();
@@ -508,7 +508,7 @@ class Approve extends PureComponent {
     try {
       const transaction = this.prepareTransaction(this.props.transaction);
       const isLedgerAccount = isHardwareAccount(transaction.from, [
-        KeyringTypes.ledger,
+        HardwareDeviceNames.ledger,
       ]);
 
       TransactionController.hub.once(
@@ -536,7 +536,7 @@ class Approve extends PureComponent {
 
       // For Ledger Accounts we handover the signing to the confirmation flow
       if (isLedgerAccount) {
-        const ledgerKeyring = await Ledger.getLedgerKeyring();
+        const ledgerKeyring = await getLedgerKeyring();
         this.setState({ transactionHandled: true });
         this.setState({ transactionConfirmed: false });
 

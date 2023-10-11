@@ -26,6 +26,7 @@ import { AccountSelectorListProps } from './AccountSelectorList.types';
 import styleSheet from './AccountSelectorList.styles';
 import generateTestId from '../../../../wdio/utils/generateTestId';
 import { ACCOUNT_BALANCE_BY_ADDRESS_TEST_ID } from '../../../../wdio/screen-objects/testIDs/Components/AccountListComponent.testIds.js';
+import { HardwareDeviceNames } from '../../../core/Ledger/Ledger'; 
 
 const AccountSelectorList = ({
   onSelectAccount,
@@ -53,7 +54,7 @@ const AccountSelectorList = ({
 
   const getKeyExtractor = ({ address }: Account) => address;
 
-  const getTagLabel = (type: KeyringTypes) => {
+  const getTagLabel = (type: KeyringTypes | HardwareDeviceNames) => {
     let label = '';
     switch (type) {
       case KeyringTypes.qr:
@@ -62,7 +63,7 @@ const AccountSelectorList = ({
       case KeyringTypes.simple:
         label = strings('accounts.imported');
         break;
-      case KeyringTypes.ledger:
+      case HardwareDeviceNames.ledger:
         label = strings('accounts.ledger');
     }
     return label;

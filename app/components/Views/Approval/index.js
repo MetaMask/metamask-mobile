@@ -38,14 +38,13 @@ import {
   TX_SUBMITTED,
   TX_REJECTED,
 } from '../../../constants/transaction';
-import { KeyringTypes } from '@metamask/keyring-controller';
 import {
   selectChainId,
   selectProviderType,
 } from '../../../selectors/networkController';
 import { selectSelectedAddress } from '../../../selectors/preferencesController';
 import { ethErrors } from 'eth-rpc-errors';
-import * as Ledger from '../../../core/Ledger/Ledger'; 
+import { HardwareDeviceNames, getLedgerKeyring } from '../../../core/Ledger/Ledger'; 
 
 const REVIEW = 'review';
 const EDIT = 'edit';
@@ -386,7 +385,7 @@ class Approval extends PureComponent {
     }
 
     const isLedgerAccount = isHardwareAccount(transaction.from, [
-      KeyringTypes.ledger,
+      HardwareDeviceNames.ledger,
     ]);
 
     this.setState({ transactionConfirmed: true });
@@ -432,7 +431,7 @@ class Approval extends PureComponent {
 
       // For Ledger Accounts we handover the signing to the confirmation flow
       if (isLedgerAccount) {
-        const ledgerKeyring = await Ledger.getLedgerKeyring();
+        const ledgerKeyring = await getLedgerKeyring();
         this.setState({ transactionHandled: true });
         this.setState({ transactionConfirmed: false });
 

@@ -28,7 +28,6 @@ import {
   getNormalizedTxState,
 } from '../../../../util/transactions';
 import StyledButton from '../../../UI/StyledButton';
-import { KeyringTypes } from '@metamask/keyring-controller';
 import { WalletDevice } from '@metamask/transaction-controller';
 import { NetworksChainId } from '@metamask/controller-utils';
 import { GAS_ESTIMATE_TYPES } from '@metamask/gas-fee-controller';
@@ -107,7 +106,7 @@ import {
   TXN_CONFIRM_SCREEN,
   TXN_CONFIRM_SEND_BUTTON,
 } from '../../../../constants/test-ids';
-import * as Ledger from '../../../../core/Ledger/Ledger'; 
+import { HardwareDeviceNames, getLedgerKeyring } from '../../../../core/Ledger/Ledger'; 
 
 const EDIT = 'edit';
 const EDIT_NONCE = 'edit_nonce';
@@ -754,11 +753,11 @@ class Confirm extends PureComponent {
         });
 
       const isLedgerAccount = isHardwareAccount(transaction.from, [
-        KeyringTypes.ledger,
+        HardwareDeviceNames.ledger,
       ]);
 
       if (isLedgerAccount) {
-        const ledgerKeyring = await Ledger.getLedgerKeyring();
+        const ledgerKeyring = await getLedgerKeyring();
         this.setState({ transactionConfirmed: false });
         // Approve transaction for ledger is called in the Confirmation Flow (modals) after user prompt
         this.props.navigation.navigate(
@@ -1038,7 +1037,7 @@ class Confirm extends PureComponent {
       gasEstimateType === GAS_ESTIMATE_TYPES.NONE;
     const isQRHardwareWalletDevice = isQRHardwareAccount(fromSelectedAddress);
     const isLedgerAccount = isHardwareAccount(fromSelectedAddress, [
-      KeyringTypes.ledger,
+      HardwareDeviceNames.ledger,
     ]);
 
     const isTestNetwork = isTestNet(chainId);

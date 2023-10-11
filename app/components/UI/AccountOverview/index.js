@@ -38,7 +38,6 @@ import {
 import { ThemeContext, mockTheme } from '../../../util/theme';
 import EthereumAddress from '../EthereumAddress';
 import Identicon from '../Identicon';
-import { KeyringTypes } from '@metamask/keyring-controller';
 import { MetaMetricsEvents } from '../../../core/Analytics';
 import Analytics from '../../../core/Analytics/Analytics';
 import AppConstants from '../../../core/AppConstants';
@@ -51,6 +50,7 @@ import {
 } from '../../../selectors/preferencesController';
 import { createAccountSelectorNavDetails } from '../../Views/AccountSelector';
 import { regex } from '../../../../app/util/regex';
+import { HardwareDeviceNames } from '../../../core/Ledger/Ledger'; 
 
 const createStyles = (colors) =>
   StyleSheet.create({
@@ -357,7 +357,7 @@ class AccountOverview extends PureComponent {
     const { accountLabelEditable, accountLabel, ens } = this.state;
 
     const isHardwareWalletAccount = isHardwareAccount(address);
-    const isLedgerAccount = isHardwareAccount(address, [KeyringTypes.ledger]);
+    const isLedgerAccount = isHardwareAccount(address, [HardwareDeviceNames.ledger]);
     const showImportAccountLabel = isImportedAccount(address);
 
     return (

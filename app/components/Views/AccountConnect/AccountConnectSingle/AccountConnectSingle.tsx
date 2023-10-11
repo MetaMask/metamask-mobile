@@ -37,6 +37,7 @@ import {
   CONNECT_BUTTON_ID,
 } from '../../../../../app/constants/test-ids';
 import generateTestId from '../../../../../wdio/utils/generateTestId';
+import { HardwareDeviceNames } from '../../../../core/Ledger/Ledger'; 
 
 const AccountConnectSingle = ({
   defaultSelectedAccount,
@@ -55,7 +56,7 @@ const AccountConnectSingle = ({
       : AvatarAccountType.JazzIcon,
   );
 
-  const getTagLabel = useCallback((type: KeyringTypes) => {
+  const getTagLabel = useCallback((type: KeyringTypes | HardwareDeviceNames) => {
     let label = '';
     switch (type) {
       case KeyringTypes.qr:
@@ -64,7 +65,7 @@ const AccountConnectSingle = ({
       case KeyringTypes.simple:
         label = strings('accounts.imported');
         break;
-      case KeyringTypes.ledger:
+      case HardwareDeviceNames.ledger:
         label = strings('accounts.ledger');
         break;
     }

@@ -33,6 +33,7 @@ import TransactionTypes from '../../core/TransactionTypes';
 import { selectChainId } from '../../selectors/networkController';
 import { store } from '../../store';
 import { regex } from '../../../app/util/regex';
+import { HardwareDeviceNames } from '../../core/Ledger/Ledger'; 
 
 const {
   ASSET: { ERC721, ERC1155 },
@@ -148,12 +149,12 @@ export async function importAccountFromPrivateKey(private_key) {
  * judge address is hardware account or not
  *
  * @param {String} address - String corresponding to an address
- * @param {Array<KeyringTypes>} accountTypes - If it belongs to a specific hardware account type. By default all types are allowed.
+ * @param {Array<KeyringTypes|HardwareDeviceNames>} accountTypes - If it belongs to a specific hardware account type. By default all types are allowed.
  * @returns {Boolean} - Returns a boolean
  */
 export function isHardwareAccount(
   address,
-  accountTypes = [KeyringTypes.qr, KeyringTypes.ledger],
+  accountTypes = [KeyringTypes.qr, HardwareDeviceNames.ledger],
 ) {
   const addressToCheck = address.toLowerCase();
   const { KeyringController } = Engine.context;
@@ -179,7 +180,7 @@ export function isHardwareAccount(
  * @returns {Boolean} - Returns a boolean
  */
 export function isExternalHardwareAccount(address) {
-  return isHardwareAccount(address, [KeyringTypes.ledger]);
+  return isHardwareAccount(address, [HardwareDeviceNames.ledger]);
 }
 
 /**
@@ -234,7 +235,7 @@ export function isImportedAccount(address) {
  */
 export function getLabelTextByAddress(address) {
   if (!address) return null;
-  if (isHardwareAccount(address, [KeyringTypes.ledger]))
+  if (isHardwareAccount(address, [HardwareDeviceNames.ledger]))
     return 'accounts.ledger';
   if (isHardwareAccount(address, [KeyringTypes.qr]))
     return 'transaction.hardware';
@@ -266,7 +267,7 @@ export function getAddressAccountType(address) {
         return 'QR';
       case KeyringTypes.simple:
         return 'Imported';
-      case KeyringTypes.ledger:
+      case HardwareDeviceNames.ledger:
         return 'Ledger';
       default:
         return 'MetaMask';

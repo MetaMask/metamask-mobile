@@ -1,5 +1,4 @@
 import React, { PureComponent } from 'react';
-import { KeyringTypes } from '@metamask/keyring-controller';
 import PropTypes from 'prop-types';
 import { StyleSheet, View, Text, TouchableOpacity } from 'react-native';
 import { fontStyles } from '../../../styles/common';
@@ -21,6 +20,7 @@ import withQRHardwareAwareness from '../QRHardware/withQRHardwareAwareness';
 import QRSigningDetails from '../QRHardware/QRSigningDetails';
 import { selectProviderType } from '../../../selectors/networkController';
 import BlockaidBanner from '../BlockaidBanner/BlockaidBanner';
+import { HardwareDeviceNames } from '../../../core/Ledger/Ledger'; 
 
 const createStyles = (colors) =>
   StyleSheet.create({
@@ -300,7 +300,7 @@ class SignatureRequest extends PureComponent {
     const styles = this.getStyles();
 
     const isLedgerAccount = isHardwareAccount(selectedAddress, [
-      KeyringTypes.ledger,
+      HardwareDeviceNames.ledger,
     ]);
 
     if (Device.isMediumDevice()) {

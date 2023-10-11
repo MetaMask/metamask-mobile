@@ -1,10 +1,10 @@
 import { handleSignatureAction } from '../confirmation/signatureUtils';
 import { getAddressAccountType } from '../address';
 import { signModalNavDetail } from './hardwareWallets/ledger';
-import { KeyringTypes } from '@metamask/keyring-controller';
+import { HardwareDeviceNames } from '../../core/Ledger/Ledger'; 
 
-const navMethodFactory = new Map<KeyringTypes, any>();
-navMethodFactory.set(KeyringTypes.ledger, signModalNavDetail);
+const navMethodFactory = new Map<HardwareDeviceNames, any>();
+navMethodFactory.set(HardwareDeviceNames.ledger, signModalNavDetail);
 
 export default async (
   onReject: () => void,
@@ -22,7 +22,7 @@ export default async (
     }
   };
 
-  const navPromise = navMethodFactory.get(addressType as KeyringTypes);
+  const navPromise = navMethodFactory.get(addressType as HardwareDeviceNames);
 
   if (navPromise === undefined) {
     //TODO: add error handling
