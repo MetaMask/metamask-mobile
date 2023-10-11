@@ -1,5 +1,5 @@
 # The script invokes tool to generate ppom.html.js
 # This is integrated into "yarn setup"
 cd ./ppom
-yarn lint && yarn build
+yarn && yarn lint && yarn build
 cd ..
