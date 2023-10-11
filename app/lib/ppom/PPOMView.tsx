@@ -5,6 +5,7 @@ import { WebView } from 'react-native-webview';
 
 import Logger from '../../util/Logger.js';
 import asyncInvoke from './invoke-lib';
+// @ts-ignore
 import { html } from './ppom.html.js';
 
 const styles = StyleSheet.create({
