@@ -124,7 +124,7 @@ workflows:
                 OWNER_NAME=${BITRISEIO_GIT_REPOSITORY_OWNER}
 
                 PR_LABELS=$(curl -s -H "Authorization: token ${TEST_GITHUB_LABEL_TOKEN}" \
-                "https://api.github.com/repos/${OWNER_NAME}/${REPO_SLUG}/issues/${PR_NUMBER}/labels"
+                "https://api.github.com/repos/${OWNER_NAME}/${REPO_SLUG}/issues/${PR_NUMBER}/labels")
 
                 echo "Pull Request Labels: $PR_LABELS"
     meta:
