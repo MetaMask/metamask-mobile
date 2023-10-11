@@ -4,16 +4,11 @@ import { SheetBottomRef } from '../../../component-library/components/Sheet/Shee
 import SheetBottom from '../../../component-library/components/Sheet/SheetBottom/SheetBottom';
 import SheetHeader from '../../../component-library/components/Sheet/SheetHeader/SheetHeader';
 import Text from '../../../component-library/components/Texts/Text/Text';
-import { View } from 'react-native';
-import Button from '../../../component-library/components/Buttons/Button/Button';
-import {
-  ButtonSize,
-  ButtonVariants,
-} from '../../../component-library/components/Buttons/Button';
 import { TextVariant } from '../../../component-library/components/Texts/Text';
 import Engine from '../../../core/Engine';
 import { strings } from '../../../../locales/i18n';
 import createStyles from './ShowDisplayNFTMediaSheet.styles';
+import SheetActionView from '../../../components/UI/SheetActionView';
 
 const ShowDisplayNftMediaSheet = () => {
   const styles = createStyles();
@@ -52,22 +47,7 @@ const ShowDisplayNftMediaSheet = () => {
           </Text>
         </Text>
       </Text>
-      <View style={styles.actionsContainer}>
-        <Button
-          label={strings('action_view.cancel')}
-          onPress={onCancel}
-          variant={ButtonVariants.Secondary}
-          size={ButtonSize.Lg}
-          style={styles.cancelButton}
-        />
-        <Button
-          label={strings('action_view.confirm')}
-          onPress={onConfirm}
-          variant={ButtonVariants.Primary}
-          size={ButtonSize.Lg}
-          style={styles.confirmButton}
-        />
-      </View>
+      <SheetActionView onCancel={onCancel} onConfirm={onConfirm} />
     </SheetBottom>
   );
 };

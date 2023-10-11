@@ -1914,7 +1914,6 @@
     "no_tokens_match": "Δεν υπάρχουν tokens που να ταιριάζουν με το “{{searchString}}”",
     "no_currency_match": "Δεν υπάρχουν νομίσματα που να ταιριάζουν με το “{{searchString}}”",
     "pay_with": "Πληρωμή με",
-    "buy_with": "Αγορά με {{provider}}",
     "minimum": "Η ελάχιστη κατάθεση είναι",
     "maximum": "Η μέγιστη κατάθεση είναι",
     "try_again": "Προσπαθήστε ξανά",

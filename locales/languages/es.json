@@ -1914,7 +1914,6 @@
     "no_tokens_match": "Ningún token coincide con \"{{searchString}}\"",
     "no_currency_match": "Ninguna moneda coincide con \"{{searchString}}\"",
     "pay_with": "Pagar con",
-    "buy_with": "Comprar con {{provider}}",
     "minimum": "El depósito mínimo es de",
     "maximum": "El depósito máximo es",
     "try_again": "Vuelva a intentarlo",
