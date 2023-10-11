@@ -64,7 +64,6 @@ describe(Regression('ERC20 tokens'), () => {
         ).toHaveText('2');
 
         // Tap next button
-        console.log('<<<<<<<<<<<< Tap next button');
         await TestHelpers.checkIfElementWithTextIsVisible(
           root.transaction.next,
         );
