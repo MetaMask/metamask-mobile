@@ -1,65 +1,65 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useCallback, useEffect, useState } from 'react';
 
-import { Alert, InteractionManager } from 'react-native';
-import PropTypes from 'prop-types';
-import { connect, useSelector } from 'react-redux';
 import { ethers } from 'ethers';
 import abi from 'human-standard-token-abi';
+import PropTypes from 'prop-types';
+import { Alert, InteractionManager } from 'react-native';
+import { connect, useSelector } from 'react-redux';
 
-import NotificationManager from '../../../core/NotificationManager';
-import Engine from '../../../core/Engine';
+import { query } from '@metamask/controller-utils';
+import { swapsUtils } from '@metamask/swaps-controller';
+import BigNumber from 'bignumber.js';
+import { BN } from 'ethereumjs-util';
 import { strings } from '../../../../locales/i18n';
-import { hexToBN, fromWei, isZeroValue } from '../../../util/number';
-import { KeyringTypes, isHardwareAccount } from '../../../util/address';
 import {
   setEtherTransaction,
   setTransactionObject,
 } from '../../../actions/transaction';
+import { KEYSTONE_TX_CANCELED } from '../../../constants/error';
+import { MetaMetricsEvents } from '../../../core/Analytics';
+import Analytics from '../../../core/Analytics/Analytics';
+import Engine from '../../../core/Engine';
+import NotificationManager from '../../../core/NotificationManager';
+import TransactionTypes from '../../../core/TransactionTypes';
 import WalletConnect from '../../../core/WalletConnect/WalletConnect';
+import Logger from '../../../util/Logger';
+import { isHardwareAccount } from '../../../util/address';
+import AnalyticsV2 from '../../../util/analyticsV2';
+import { toLowerCaseEquals } from '../../../util/general';
+import { fromWei, hexToBN, isZeroValue } from '../../../util/number';
 import {
-  getMethodData,
-  TOKEN_METHOD_TRANSFER,
   APPROVE_FUNCTION_SIGNATURE,
-  getTokenValueParam,
-  getTokenAddressParam,
+  TOKEN_METHOD_TRANSFER,
   calcTokenAmount,
+  getMethodData,
+  getTokenAddressParam,
+  getTokenValueParam,
   getTokenValueParamAsHex,
   isSwapTransaction,
 } from '../../../util/transactions';
-import { BN } from 'ethereumjs-util';
-import Logger from '../../../util/Logger';
-import TransactionTypes from '../../../core/TransactionTypes';
-import { swapsUtils } from '@metamask/swaps-controller';
-import { query } from '@metamask/controller-utils';
-import Analytics from '../../../core/Analytics/Analytics';
-import BigNumber from 'bignumber.js';
-import { toLowerCaseEquals } from '../../../util/general';
-import { KEYSTONE_TX_CANCELED } from '../../../constants/error';
-import { MetaMetricsEvents } from '../../../core/Analytics';
-import AnalyticsV2 from '../../../util/analyticsV2';
 
-import { createLedgerTransactionModalNavDetails } from '../../UI/LedgerModals/LedgerTransactionModal';
+import { KEYRING_LEDGER, getLedgerKeyring } from '../../../core/Ledger/Ledger';
 import {
   selectChainId,
   selectProviderType,
 } from '../../../selectors/networkController';
-import WatchAssetApproval from '../../Approvals/WatchAssetApproval';
-import SignatureApproval from '../../Approvals/SignatureApproval';
+import { selectSelectedAddress } from '../../../selectors/preferencesController';
+import { selectTokenList } from '../../../selectors/tokenListController';
+import { selectTokens } from '../../../selectors/tokensController';
 import AddChainApproval from '../../Approvals/AddChainApproval';
-import SwitchChainApproval from '../../Approvals/SwitchChainApproval';
-import WalletConnectApproval from '../../Approvals/WalletConnectApproval';
 import ConnectApproval from '../../Approvals/ConnectApproval';
+import FlowLoaderModal from '../../Approvals/FlowLoaderModal';
+import PermissionApproval from '../../Approvals/PermissionApproval';
+import SignatureApproval from '../../Approvals/SignatureApproval';
+import SwitchChainApproval from '../../Approvals/SwitchChainApproval';
+import TemplateConfirmationModal from '../../Approvals/TemplateConfirmationModal';
 import {
   TransactionApproval,
   TransactionModalType,
 } from '../../Approvals/TransactionApproval';
-import PermissionApproval from '../../Approvals/PermissionApproval';
-import FlowLoaderModal from '../../Approvals/FlowLoaderModal';
-import TemplateConfirmationModal from '../../Approvals/TemplateConfirmationModal';
-import { selectTokenList } from '../../../selectors/tokenListController';
-import { selectTokens } from '../../../selectors/tokensController';
-import { selectSelectedAddress } from '../../../selectors/preferencesController';
-import * as Ledger from '../../../core/Ledger/Ledger'; 
+import WalletConnectApproval from '../../Approvals/WalletConnectApproval';
+import WatchAssetApproval from '../../Approvals/WatchAssetApproval';
+import { createLedgerTransactionModalNavDetails } from '../../UI/LedgerModals/LedgerTransactionModal';
 
 const hstInterface = new ethers.utils.Interface(abi);
 
@@ -212,12 +212,12 @@ const RootRPCMethodsUI = (props) => {
 
         const isLedgerAccount = isHardwareAccount(
           transactionMeta.transaction.from,
-          [KeyringTypes.ledger],
+          [KEYRING_LEDGER],
         );
 
         // For Ledger Accounts we handover the signing to the confirmation flow
         if (isLedgerAccount) {
-          const ledgerKeyring = await Ledger.getLedgerKeyring();
+          const ledgerKeyring = await getLedgerKeyring();
 
           props.navigation.navigate(
             ...createLedgerTransactionModalNavDetails({

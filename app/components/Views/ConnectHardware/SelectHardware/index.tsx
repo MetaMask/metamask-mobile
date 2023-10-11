@@ -1,27 +1,26 @@
 /* eslint @typescript-eslint/no-var-requires: "off" */
 /* eslint @typescript-eslint/no-require-imports: "off" */
 
+import { useNavigation } from '@react-navigation/native';
 import React, { useEffect } from 'react';
 import {
-  View,
-  SafeAreaView,
-  Text,
-  StyleSheet,
-  TouchableOpacity,
   Image,
+  SafeAreaView,
+  StyleSheet,
+  Text,
+  TouchableOpacity,
+  View,
 } from 'react-native';
-import { useNavigation } from '@react-navigation/native';
+import { strings } from '../../../../../locales/i18n';
+import Routes from '../../../../constants/navigation/Routes';
+import { getLedgerKeyring } from '../../../../core/Ledger/Ledger';
+import { fontStyles } from '../../../../styles/common';
 import {
   mockTheme,
   useAppThemeFromContext,
   useAssetFromTheme,
 } from '../../../../util/theme';
 import { getNavigationOptionsTitle } from '../../../UI/Navbar';
-import { fontStyles } from '../../../../styles/common';
-import { strings } from '../../../../../locales/i18n';
-import Engine from '../../../../core/Engine';
-import Routes from '../../../../constants/navigation/Routes';
-import * as Ledger from '../../../../core/Ledger/Ledger'; 
 
 const createStyle = (colors: any) =>
   StyleSheet.create({
@@ -83,7 +82,6 @@ const SelectHardwareWallet = () => {
   const navigation = useNavigation();
   const { colors } = useAppThemeFromContext() || mockTheme;
   const styles = createStyle(colors);
-  const { KeyringController } = Engine.context as any;
 
   useEffect(() => {
     navigation.setOptions(
@@ -101,7 +99,7 @@ const SelectHardwareWallet = () => {
   };
 
   const navigateToConnectLedger = async () => {
-    const ledgerKeyring = await Ledger.getLedgerKeyring();
+    const ledgerKeyring = await getLedgerKeyring();
     const accounts = await ledgerKeyring.getAccounts();
 
     if (accounts.length === 0) {

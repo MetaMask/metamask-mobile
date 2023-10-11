@@ -1,75 +1,77 @@
-import React, { PureComponent } from 'react';
-import { Alert, InteractionManager, AppState, View } from 'react-native';
+import { BNToHex } from '@metamask/controller-utils';
+import { GAS_ESTIMATE_TYPES } from '@metamask/gas-fee-controller';
+import { ethErrors } from 'eth-rpc-errors';
 import PropTypes from 'prop-types';
-import { KeyringTypes } from '@metamask/keyring-controller';
-import { getApproveNavbar } from '../../../UI/Navbar';
-import { connect } from 'react-redux';
-import {
-  safeToChecksumAddress,
-  isHardwareAccount,
-} from '../../../../util/address';
-import Engine from '../../../../core/Engine';
-import AnimatedTransactionModal from '../../../UI/AnimatedTransactionModal';
-import ApproveTransactionReview from '../../../UI/ApproveTransactionReview';
-import AddNickname from '../../../UI/ApproveTransactionReview/AddNickname';
+import React, { PureComponent } from 'react';
+import { Alert, AppState, InteractionManager, View } from 'react-native';
+import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view';
 import Modal from 'react-native-modal';
+import { connect } from 'react-redux';
 import { strings } from '../../../../../locales/i18n';
-import { getNetworkNonce } from '../../../../util/networks';
-import Analytics from '../../../../core/Analytics/Analytics';
 import {
-  setTransactionObject,
   setNonce,
   setProposedNonce,
+  setTransactionObject,
 } from '../../../../actions/transaction';
-import { GAS_ESTIMATE_TYPES } from '@metamask/gas-fee-controller';
-import { BNToHex } from '@metamask/controller-utils';
-import {
-  addHexPrefix,
-  fromWei,
-  renderFromWei,
-  hexToBN,
-} from '../../../../util/number';
-import { getNormalizedTxState, getTicker } from '../../../../util/transactions';
-import { getGasLimit } from '../../../../util/custom-gas';
-import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view';
-import NotificationManager from '../../../../core/NotificationManager';
-import { MetaMetricsEvents } from '../../../../core/Analytics';
-import Logger from '../../../../util/Logger';
-import EditGasFee1559 from '../../../UI/EditGasFee1559Update';
-import EditGasFeeLegacy from '../../../UI/EditGasFeeLegacyUpdate';
-import AnalyticsV2 from '../../../../util/analyticsV2';
-import AppConstants from '../../../../core/AppConstants';
-import { shallowEqual } from '../../../../util/general';
 import { KEYSTONE_TX_CANCELED } from '../../../../constants/error';
-import GlobalAlert from '../../../UI/GlobalAlert';
-import checkIfAddressIsSaved from '../../../../util/checkAddress';
-import { ThemeContext, mockTheme } from '../../../../util/theme';
-import { createLedgerTransactionModalNavDetails } from '../../../UI/LedgerModals/LedgerTransactionModal';
+import { MetaMetricsEvents } from '../../../../core/Analytics';
+import Analytics from '../../../../core/Analytics/Analytics';
+import AppConstants from '../../../../core/AppConstants';
+import Engine from '../../../../core/Engine';
 import {
   startGasPolling,
   stopGasPolling,
 } from '../../../../core/GasPolling/GasPolling';
 import {
-  selectChainId,
-  selectProviderType,
-  selectTicker,
-  selectRpcTarget,
-  selectNetworkConfigurations,
-} from '../../../../selectors/networkController';
+  KEYRING_LEDGER,
+  getLedgerKeyring,
+} from '../../../../core/Ledger/Ledger';
+import NotificationManager from '../../../../core/NotificationManager';
+import {
+  selectAccounts,
+  selectAccountsLength,
+} from '../../../../selectors/accountTrackerController';
 import {
   selectConversionRate,
   selectCurrentCurrency,
   selectNativeCurrency,
 } from '../../../../selectors/currencyRateController';
-import { selectTokensLength } from '../../../../selectors/tokensController';
 import {
-  selectAccounts,
-  selectAccountsLength,
-} from '../../../../selectors/accountTrackerController';
+  selectChainId,
+  selectNetworkConfigurations,
+  selectProviderType,
+  selectRpcTarget,
+  selectTicker,
+} from '../../../../selectors/networkController';
+import { selectTokensLength } from '../../../../selectors/tokensController';
+import Logger from '../../../../util/Logger';
+import {
+  isHardwareAccount,
+  safeToChecksumAddress,
+} from '../../../../util/address';
+import AnalyticsV2 from '../../../../util/analyticsV2';
+import checkIfAddressIsSaved from '../../../../util/checkAddress';
+import { getGasLimit } from '../../../../util/custom-gas';
+import { shallowEqual } from '../../../../util/general';
+import { getNetworkNonce } from '../../../../util/networks';
+import {
+  addHexPrefix,
+  fromWei,
+  hexToBN,
+  renderFromWei,
+} from '../../../../util/number';
+import { ThemeContext, mockTheme } from '../../../../util/theme';
+import { getNormalizedTxState, getTicker } from '../../../../util/transactions';
+import AnimatedTransactionModal from '../../../UI/AnimatedTransactionModal';
+import ApproveTransactionReview from '../../../UI/ApproveTransactionReview';
+import AddNickname from '../../../UI/ApproveTransactionReview/AddNickname';
 import ShowBlockExplorer from '../../../UI/ApproveTransactionReview/ShowBlockExplorer';
+import EditGasFee1559 from '../../../UI/EditGasFee1559Update';
+import EditGasFeeLegacy from '../../../UI/EditGasFeeLegacyUpdate';
+import GlobalAlert from '../../../UI/GlobalAlert';
+import { createLedgerTransactionModalNavDetails } from '../../../UI/LedgerModals/LedgerTransactionModal';
+import { getApproveNavbar } from '../../../UI/Navbar';
 import createStyles from './styles';
-import { ethErrors } from 'eth-rpc-errors';
-import * as Ledger from '../../../../core/Ledger/Ledger'; 
 
 const EDIT = 'edit';
 const REVIEW = 'review';
@@ -316,7 +318,7 @@ class Approve extends PureComponent {
     await stopGasPolling(this.state.pollToken);
 
     const isLedgerAccount = isHardwareAccount(transaction.from, [
-      KeyringTypes.ledger,
+      KEYRING_LEDGER,
     ]);
 
     this.appStateListener?.remove();
@@ -508,7 +510,7 @@ class Approve extends PureComponent {
     try {
       const transaction = this.prepareTransaction(this.props.transaction);
       const isLedgerAccount = isHardwareAccount(transaction.from, [
-        KeyringTypes.ledger,
+        KEYRING_LEDGER,
       ]);
 
       TransactionController.hub.once(
@@ -536,7 +538,7 @@ class Approve extends PureComponent {
 
       // For Ledger Accounts we handover the signing to the confirmation flow
       if (isLedgerAccount) {
-        const ledgerKeyring = await Ledger.getLedgerKeyring();
+        const ledgerKeyring = await getLedgerKeyring();
         this.setState({ transactionHandled: true });
         this.setState({ transactionConfirmed: false });
 

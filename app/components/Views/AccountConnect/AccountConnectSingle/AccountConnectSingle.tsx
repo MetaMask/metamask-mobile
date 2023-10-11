@@ -37,6 +37,7 @@ import {
   CONNECT_BUTTON_ID,
 } from '../../../../../app/constants/test-ids';
 import generateTestId from '../../../../../wdio/utils/generateTestId';
+import { KEYRING_LEDGER } from '../../../../core/Ledger/Ledger';
 
 const AccountConnectSingle = ({
   defaultSelectedAccount,
@@ -64,7 +65,7 @@ const AccountConnectSingle = ({
       case KeyringTypes.simple:
         label = strings('accounts.imported');
         break;
-      case KeyringTypes.ledger:
+      case KEYRING_LEDGER:
         label = strings('accounts.ledger');
         break;
     }

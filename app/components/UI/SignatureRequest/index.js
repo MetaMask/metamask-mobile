@@ -1,26 +1,26 @@
-import React, { PureComponent } from 'react';
-import { KeyringTypes } from '@metamask/keyring-controller';
 import PropTypes from 'prop-types';
-import { StyleSheet, View, Text, TouchableOpacity } from 'react-native';
-import { fontStyles } from '../../../styles/common';
-import { getHost } from '../../../util/browser';
-import { strings } from '../../../../locales/i18n';
-import { connect } from 'react-redux';
+import React, { PureComponent } from 'react';
+import { StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import Ionicons from 'react-native-vector-icons/Ionicons';
-import WebsiteIcon from '../WebsiteIcon';
-import ActionView from '../ActionView';
-import AccountInfoCard from '../AccountInfoCard';
-import WarningMessage from '../../Views/SendFlow/WarningMessage';
-import Device from '../../../util/device';
+import { connect } from 'react-redux';
+import { strings } from '../../../../locales/i18n';
+import { MetaMetricsEvents } from '../../../core/Analytics';
+import Analytics from '../../../core/Analytics/Analytics';
+import { KEYRING_LEDGER } from '../../../core/Ledger/Ledger';
+import { selectProviderType } from '../../../selectors/networkController';
+import { fontStyles } from '../../../styles/common';
 import { isHardwareAccount } from '../../../util/address';
 import { isBlockaidFeatureEnabled } from '../../../util/blockaid';
-import Analytics from '../../../core/Analytics/Analytics';
-import { MetaMetricsEvents } from '../../../core/Analytics';
+import { getHost } from '../../../util/browser';
+import Device from '../../../util/device';
 import { ThemeContext, mockTheme } from '../../../util/theme';
-import withQRHardwareAwareness from '../QRHardware/withQRHardwareAwareness';
-import QRSigningDetails from '../QRHardware/QRSigningDetails';
-import { selectProviderType } from '../../../selectors/networkController';
+import WarningMessage from '../../Views/SendFlow/WarningMessage';
+import AccountInfoCard from '../AccountInfoCard';
+import ActionView from '../ActionView';
 import BlockaidBanner from '../BlockaidBanner/BlockaidBanner';
+import QRSigningDetails from '../QRHardware/QRSigningDetails';
+import withQRHardwareAwareness from '../QRHardware/withQRHardwareAwareness';
+import WebsiteIcon from '../WebsiteIcon';
 
 const createStyles = (colors) =>
   StyleSheet.create({
@@ -300,7 +300,7 @@ class SignatureRequest extends PureComponent {
     const styles = this.getStyles();
 
     const isLedgerAccount = isHardwareAccount(selectedAddress, [
-      KeyringTypes.ledger,
+      KEYRING_LEDGER,
     ]);
 
     if (Device.isMediumDevice()) {

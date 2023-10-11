@@ -2,9 +2,10 @@ import { handleSignatureAction } from '../confirmation/signatureUtils';
 import { getAddressAccountType } from '../address';
 import { signModalNavDetail } from './hardwareWallets/ledger';
 import { KeyringTypes } from '@metamask/keyring-controller';
+import { KEYRING_LEDGER } from '../../../app/core/Ledger/Ledger';
 
 const navMethodFactory = new Map<KeyringTypes, any>();
-navMethodFactory.set(KeyringTypes.ledger, signModalNavDetail);
+navMethodFactory.set(KEYRING_LEDGER, signModalNavDetail);
 
 export default async (
   onReject: () => void,

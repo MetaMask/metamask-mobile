@@ -1,51 +1,50 @@
-import React, { PureComponent } from 'react';
-import { StyleSheet, AppState, Alert, InteractionManager } from 'react-native';
-import Engine from '../../../core/Engine';
-import PropTypes from 'prop-types';
-import TransactionEditor from '../../UI/TransactionEditor';
-import Modal from 'react-native-modal';
-import { addHexPrefix, BNToHex } from '../../../util/number';
-import { getTransactionOptionsTitle } from '../../UI/Navbar';
-import { resetTransaction } from '../../../actions/transaction';
-import { connect } from 'react-redux';
-import NotificationManager from '../../../core/NotificationManager';
-import Analytics from '../../../core/Analytics/Analytics';
-import AppConstants from '../../../core/AppConstants';
-import { MetaMetricsEvents } from '../../../core/Analytics';
-import {
-  getTransactionReviewActionKey,
-  getNormalizedTxState,
-  getActiveTabUrl,
-} from '../../../util/transactions';
-import { strings } from '../../../../locales/i18n';
-import {
-  getAddressAccountType,
-  isQRHardwareAccount,
-  safeToChecksumAddress,
-  isHardwareAccount,
-} from '../../../util/address';
-import { WALLET_CONNECT_ORIGIN } from '../../../util/walletconnect';
-import Logger from '../../../util/Logger';
-import AnalyticsV2 from '../../../util/analyticsV2';
 import { GAS_ESTIMATE_TYPES } from '@metamask/gas-fee-controller';
+import { ethErrors } from 'eth-rpc-errors';
+import PropTypes from 'prop-types';
+import React, { PureComponent } from 'react';
+import { Alert, AppState, InteractionManager, StyleSheet } from 'react-native';
+import Modal from 'react-native-modal';
+import { connect } from 'react-redux';
+import { strings } from '../../../../locales/i18n';
+import { resetTransaction } from '../../../actions/transaction';
 import { KEYSTONE_TX_CANCELED } from '../../../constants/error';
-import { ThemeContext, mockTheme } from '../../../util/theme';
-import { createLedgerTransactionModalNavDetails } from '../../UI/LedgerModals/LedgerTransactionModal';
 import {
   TX_CANCELLED,
   TX_CONFIRMED,
   TX_FAILED,
-  TX_SUBMITTED,
   TX_REJECTED,
+  TX_SUBMITTED,
 } from '../../../constants/transaction';
-import { KeyringTypes } from '@metamask/keyring-controller';
+import { MetaMetricsEvents } from '../../../core/Analytics';
+import Analytics from '../../../core/Analytics/Analytics';
+import AppConstants from '../../../core/AppConstants';
+import Engine from '../../../core/Engine';
+import { KEYRING_LEDGER, getLedgerKeyring } from '../../../core/Ledger/Ledger';
+import NotificationManager from '../../../core/NotificationManager';
 import {
   selectChainId,
   selectProviderType,
 } from '../../../selectors/networkController';
 import { selectSelectedAddress } from '../../../selectors/preferencesController';
-import { ethErrors } from 'eth-rpc-errors';
-import * as Ledger from '../../../core/Ledger/Ledger'; 
+import Logger from '../../../util/Logger';
+import {
+  getAddressAccountType,
+  isHardwareAccount,
+  isQRHardwareAccount,
+  safeToChecksumAddress,
+} from '../../../util/address';
+import AnalyticsV2 from '../../../util/analyticsV2';
+import { BNToHex, addHexPrefix } from '../../../util/number';
+import { ThemeContext, mockTheme } from '../../../util/theme';
+import {
+  getActiveTabUrl,
+  getNormalizedTxState,
+  getTransactionReviewActionKey,
+} from '../../../util/transactions';
+import { WALLET_CONNECT_ORIGIN } from '../../../util/walletconnect';
+import { createLedgerTransactionModalNavDetails } from '../../UI/LedgerModals/LedgerTransactionModal';
+import { getTransactionOptionsTitle } from '../../UI/Navbar';
+import TransactionEditor from '../../UI/TransactionEditor';
 
 const REVIEW = 'review';
 const EDIT = 'edit';
@@ -386,7 +385,7 @@ class Approval extends PureComponent {
     }
 
     const isLedgerAccount = isHardwareAccount(transaction.from, [
-      KeyringTypes.ledger,
+      KEYRING_LEDGER,
     ]);
 
     this.setState({ transactionConfirmed: true });
@@ -432,7 +431,7 @@ class Approval extends PureComponent {
 
       // For Ledger Accounts we handover the signing to the confirmation flow
       if (isLedgerAccount) {
-        const ledgerKeyring = await Ledger.getLedgerKeyring();
+        const ledgerKeyring = await getLedgerKeyring();
         this.setState({ transactionHandled: true });
         this.setState({ transactionConfirmed: false });
 
