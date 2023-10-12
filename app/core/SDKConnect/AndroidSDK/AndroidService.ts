@@ -353,7 +353,7 @@ export default class AndroidService extends EventEmitter2 {
           isMMSDK: true,
           navigation: null, //props.navigation,
           getApprovedHosts: (host: string) => ({
-            [`${host}`]: true,
+            [host]: true,
           }),
           setApprovedHosts: () => true,
           approveHost: () => ({}),
