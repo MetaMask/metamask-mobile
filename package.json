@@ -652,7 +652,9 @@
       "eth-json-rpc-middleware>ethereumjs-vm>merkle-patricia-tree>ethereumjs-util>ethereum-cryptography>keccak": false,
       "eth-json-rpc-middleware>ethereumjs-vm>merkle-patricia-tree>ethereumjs-util>ethereum-cryptography>secp256k1": false,
       "ethereumjs-abi>ethereumjs-util>ethereum-cryptography>keccak": false,
-      "ethereumjs-abi>ethereumjs-util>ethereum-cryptography>secp256k1": false
+      "ethereumjs-abi>ethereumjs-util>ethereum-cryptography>secp256k1": false,
+      "@metamask/signature-controller>@metamask/message-manager>ethereumjs-util>ethereum-cryptography>keccak": false,
+      "@metamask/signature-controller>@metamask/message-manager>ethereumjs-util>ethereum-cryptography>secp256k1": false
     }
   }
 }
