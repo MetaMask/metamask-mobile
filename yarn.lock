@@ -2572,6 +2572,17 @@
   resolved "https://registry.yarnpkg.com/@icons/material/-/material-0.2.4.tgz#e90c9f71768b3736e76d7dd6783fc6c2afa88bc8"
   integrity sha512-QPcGmICAPbGLGb6F/yNf/KzKqvFx8z5qx3D1yFqVAjoFmXK35EgyW+cJ57Te3CNsmzblwtzakLGFqHPqrfb4Tw==
 
+"@igor-ms/ledgerhq-metamask-keyring@^0.0.3-preview.1":
+  version "0.0.3-preview.1"
+  resolved "https://registry.yarnpkg.com/@igor-ms/ledgerhq-metamask-keyring/-/ledgerhq-metamask-keyring-0.0.3-preview.1.tgz#fd37430e8366567ac5142c1094d8255911b78ac2"
+  integrity sha512-1gjUNa6+4ob+9NZ6EVEoxPEvO3Cn+INwIwm6whx4+McCBIrjwhsv5P+PBXhMkZaOdEf8GGM9K7eObNqIiLtZuQ==
+  dependencies:
+    "@ethereumjs/tx" "^3.5.0"
+    "@ledgerhq/hw-app-eth" "6.26.1"
+    "@metamask/eth-sig-util" "^7.0.0"
+    buffer "^6.0.3"
+    ethereumjs-util "^7.1.5"
+
 "@istanbuljs/load-nyc-config@^1.0.0":
   version "1.1.0"
   resolved "https://registry.yarnpkg.com/@istanbuljs/load-nyc-config/-/load-nyc-config-1.1.0.tgz#fd3db1d59ecf7cf121e80650bb86712f9b55eced"
@@ -5720,17 +5731,6 @@
     "@stablelib/keyagreement" "^1.0.1"
     "@stablelib/random" "^1.0.2"
     "@stablelib/wipe" "^1.0.1"
-
-"@stanleyyuen2020/metamask-keyring@^0.3.6":
-  version "0.3.6"
-  resolved "https://registry.yarnpkg.com/@stanleyyuen2020/metamask-keyring/-/metamask-keyring-0.3.6.tgz#128c060cc4cc9baea8a2fd09ae3d58ed5e7be52d"
-  integrity sha512-r+Ey7rL17n5Q2rgKWH4Nei3COW/2QFeImb0chUtZrethaVbDbl1vj1RzVLCP7GSagRmUvjPWJauAZq7gL4qwYQ==
-  dependencies:
-    "@ethereumjs/tx" "^3.5.0"
-    "@ledgerhq/hw-app-eth" "6.26.1"
-    buffer "^6.0.3"
-    eth-sig-util "^3.0.1"
-    ethereumjs-util "^7.1.5"
 
 "@storybook/addon-actions@^7.4.2":
   version "7.4.2"

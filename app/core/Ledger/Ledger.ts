@@ -1,7 +1,10 @@
 import Engine from '../Engine';
-import { KeyringController, SignTypedDataVersion } from '@metamask/keyring-controller';
+import {
+  KeyringController,
+  SignTypedDataVersion,
+} from '@metamask/keyring-controller';
 import type BleTransport from '@ledgerhq/react-native-hw-transport-ble';
-import LedgerKeyring from '@stanleyyuen2020/metamask-keyring';
+import LedgerKeyring from '@igor-ms/ledgerhq-metamask-keyring';
 
 export enum HardwareDeviceNames {
   ledger = 'Ledger Hardware',
@@ -173,9 +176,9 @@ export const forgetLedger = async (): Promise<void> => {
  *
  * @returns The DeviceId
  */
-export const getDeviceId = async():Promise<string> => {
+export const getDeviceId = async (): Promise<string> => {
   const ledgerKeyring = await getLedgerKeyring();
-  return ledgerKeyring.deviceId
+  return ledgerKeyring.deviceId;
 };
 
 /**
@@ -183,13 +186,13 @@ export const getDeviceId = async():Promise<string> => {
  *
  * @returns signTypedMessage
  */
-export const ledgerSignTypedMessage = async(
+export const ledgerSignTypedMessage = async (
   messageParams: {
     from: string;
     data: string | Record<string, unknown> | Record<string, unknown>[];
   },
-  version: SignTypedDataVersion
-):Promise<string> => {
+  version: SignTypedDataVersion,
+): Promise<string> => {
   await getLedgerKeyring();
   return await getEthKeyringController().signTypedMessage(
     {

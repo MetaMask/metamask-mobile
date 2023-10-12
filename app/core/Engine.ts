@@ -81,7 +81,7 @@ import {
   LoggingControllerState,
   LoggingControllerActions,
 } from '@metamask/logging-controller';
-import LedgerKeyring from '@stanleyyuen2020/metamask-keyring';
+import LedgerKeyring from '@igor-ms/ledgerhq-metamask-keyring';
 import Encryptor from './Encryptor';
 import {
   isMainnetByChainId,
@@ -122,7 +122,7 @@ import { ethErrors } from 'eth-rpc-errors';
 import { PPOM, ppomInit } from '../lib/ppom/PPOMView';
 import RNFSStorageBackend from '../lib/ppom/rnfs-storage-backend';
 import { isHardwareAccount } from '../util/address';
-import { HardwareDeviceNames, ledgerSignTypedMessage } from './Ledger/Ledger'
+import { HardwareDeviceNames, ledgerSignTypedMessage } from './Ledger/Ledger';
 
 const NON_EMPTY = 'NON_EMPTY';
 
@@ -645,15 +645,18 @@ class Engine {
           signPersonalMessage:
             keyringController.signPersonalMessage.bind(keyringController),
           signTypedMessage: (msgParams, { version }) => {
-            if (isHardwareAccount(msgParams.from, [HardwareDeviceNames.ledger])) {
+            if (
+              isHardwareAccount(msgParams.from, [HardwareDeviceNames.ledger])
+            ) {
               return ledgerSignTypedMessage(
                 msgParams,
-                version as SignTypedDataVersion)
+                version as SignTypedDataVersion,
+              );
             }
             return keyringController.signTypedMessage(
               msgParams,
               version as SignTypedDataVersion,
-            )
+            );
           },
         },
       }),
