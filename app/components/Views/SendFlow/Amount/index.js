@@ -1255,14 +1255,15 @@ class Amount extends PureComponent {
       });
     };
 
+    const isSwappable =
+      !selectedAsset.isETH &&
+      AppConstants.SWAPS.ACTIVE &&
+      swapsIsLive &&
+      isSwapsAllowed(chainId) &&
+      amountError === strings('transaction.insufficient');
+
     const navigateToBuyOrSwaps = () => {
-      if (
-        !selectedAsset.isETH &&
-        AppConstants.SWAPS.ACTIVE &&
-        swapsIsLive &&
-        isSwapsAllowed(chainId) &&
-        amountError === strings('transaction.insufficient')
-      ) {
+      if (isSwappable) {
         Analytics.trackEventWithParameters(MetaMetricsEvents.LINK_CLICKED, {
           location: 'insufficient_funds_warning',
           text: 'swap_tokens',
@@ -1350,15 +1351,11 @@ class Amount extends PureComponent {
                 </Text>
               )}
 
-              {!selectedAsset.isETH &&
-                AppConstants.SWAPS.ACTIVE &&
-                swapsIsLive &&
-                isSwapsAllowed(chainId) &&
-                amountError === strings('transaction.insufficient') && (
-                  <Text style={[styles.error, styles.underline]}>
-                    {strings('transaction.swap_tokens')}
-                  </Text>
-                )}
+              {isSwappable && (
+                <Text style={[styles.error, styles.underline]}>
+                  {strings('transaction.swap_tokens')}
+                </Text>
+              )}
             </TouchableOpacity>
           </View>
         )}

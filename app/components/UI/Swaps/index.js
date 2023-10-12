@@ -352,14 +352,15 @@ function SwapsAmountView({
     })();
   }, [swapsControllerTokens, swapsTokens]);
 
+  const canSetAnInitialTokenDestination =
+    !isSourceSet &&
+    initialSource &&
+    swapsControllerTokens &&
+    swapsTokens?.length > 0 &&
+    !sourceToken;
+
   useEffect(() => {
-    if (
-      !isSourceSet &&
-      initialSource &&
-      swapsControllerTokens &&
-      swapsTokens?.length > 0 &&
-      !sourceToken
-    ) {
+    if (canSetAnInitialTokenDestination) {
       setIsSourceSet(true);
       setSourceToken(
         swapsTokens.find((token) =>
@@ -367,13 +368,7 @@ function SwapsAmountView({
         ),
       );
     }
-  }, [
-    initialSource,
-    isSourceSet,
-    sourceToken,
-    swapsControllerTokens,
-    swapsTokens,
-  ]);
+  }, [canSetAnInitialTokenDestination, initialSource, swapsTokens]);
 
   useEffect(() => {
     if (
