@@ -1,18 +1,18 @@
-import Matchers from './Matchers';
 import { waitFor } from 'detox';
 
 /**
- * Class for handling user actions (Gestures), extends Matchers
+ * Class for handling user actions (Gestures)
  */
-class Gestures extends Matchers {
+class Gestures {
   /**
    * Tap an element by ID.
    *
    * @param {string} elementID - ID of the element to tap
    * @param {number} index - Index of the element (default: 0)
    */
-  async tapByID(elementID, index = 0) {
-    const element = await this.getElementByID(elementID);
+  static async tapByID(elementID, index = 0) {
+    const element = await elementID;
+
     await element.atIndex(index).tap();
   }
 
@@ -22,8 +22,9 @@ class Gestures extends Matchers {
    * @param {string} text - Text of the element to tap
    * @param {number} index - Index of the element (default: 0)
    */
-  async tapByText(text, index = 0) {
-    const element = await this.getElementByText(text);
+  static async tapByText(text, index = 0) {
+    const element = await text;
+
     await element.atIndex(index).tap();
   }
 
@@ -33,8 +34,9 @@ class Gestures extends Matchers {
    * @param {string} label - Label of the element to tap
    * @param {number} index - Index of the element (default: 0)
    */
-  async tapByLabel(label, index = 0) {
-    const element = await this.getElementByLabel(label);
+  static async tapByLabel(label, index = 0) {
+    const element = await label;
+
     await element.atIndex(index).tap();
   }
 
@@ -43,9 +45,10 @@ class Gestures extends Matchers {
    *
    * @param {string} elementID - ID of the webview element to tap
    */
-  async tapWebviewElement(elementID) {
+  static async tapWebviewElement(elementID) {
     // This method only works on Android: https://wix.github.io/Detox/docs/api/webviews/
-    const element = await this.getElementByWebID(elementID);
+    const element = await elementID;
+
     await element.tap();
   }
 
@@ -55,11 +58,9 @@ class Gestures extends Matchers {
    * @param {string} parentElement - ID of the parent element
    * @param {string} childElement - ID of the child element to locate within the parent
    */
-  async tapByDescendentTestID(parentElement, childElement) {
-    const element = await this.getElementByDescendent(
-      parentElement,
-      childElement,
-    );
+  static async tapByDescendentTestID(elementID) {
+    const element = await elementID;
+
     await element.tap();
   }
 
@@ -70,10 +71,10 @@ class Gestures extends Matchers {
    * @param {number} index - Index of the element (default: 0)
    * @param {number} timeout - Timeout for waiting (default: 2000ms)
    */
-  async tapAndLongPress(elementID, index = 0, timeout = 2000) {
-    const element = await this.getElementByID(elementID);
-    await element.atIndex(index).tap();
-    await element.longPress(timeout);
+  static async tapAndLongPress(elementID, index = 0, timeout = 2000) {
+    const element = await elementID;
+
+    await element.atIndex(index).longPress(timeout);
   }
 
   /**
@@ -82,8 +83,8 @@ class Gestures extends Matchers {
    * @param {string} elementID - ID of the element to tap
    * @param {Object} point - Coordinates { x, y } where the element will be tapped
    */
-  async tapAtPoint(elementID, point) {
-    const element = await this.getElementByID(elementID);
+  static async tapAtPoint(elementID, point) {
+    const element = await elementID;
     await element.tap(point);
   }
 
@@ -114,8 +115,8 @@ class Gestures extends Matchers {
    * @param {number} index - Index of the element (default: 0)
    * @param {number} timeout - Timeout for waiting (default: 8000ms)
    */
-  async waitAndTap(elementID, index = 0, timeout = 8000) {
-    const element = await this.getElementByID(elementID);
+  static async waitAndTap(elementID, index = 0, timeout = 8000) {
+    const element = await elementID;
     await waitFor(element).toBeVisible().withTimeout(timeout);
     await element.tap(index);
   }
@@ -127,8 +128,8 @@ class Gestures extends Matchers {
    * @param {number} timeout - Timeout for waiting (default: 8000ms)
    * @param {number} index - Index of the element (default: 0)
    */
-  async waitAndTapByLabel(label, timeout = 8000, index = 0) {
-    const element = await this.getElementByLabel(label);
+  static async waitAndTapByLabel(label, timeout = 8000, index = 0) {
+    const element = await label;
     await waitFor(element).toBeVisible().withTimeout(timeout);
     await element.tap(index);
   }
@@ -139,11 +140,9 @@ class Gestures extends Matchers {
    * @param {string} text - Text of the element to tap
    * @param {number} [timeout=8000] - Timeout for waiting (default: 8000ms)
    */
-  async waitAndTapText(text, timeout = 8000) {
-    const element = await this.getElementByText(text);
-    await waitFor(element)
-      .toBeVisible()
-      .withTimeout(timeout || 8000);
+  static async waitAndTapText(text, timeout = 8000) {
+    const element = await text;
+    await waitFor(element).toBeVisible().withTimeout(timeout);
     await element.tap();
   }
 
@@ -153,8 +152,9 @@ class Gestures extends Matchers {
    * @param {string} text - Text of the element to double tap
    * @param {number} index - Index of the element (default: 0)
    */
-  async doubleTapByText(text, index = 0) {
-    const element = await this.getElementByText(text);
+  static async doubleTapByText(text, index = 0) {
+    const element = await text;
+
     await element.atIndex(index).multiTap(2);
   }
 
@@ -164,8 +164,8 @@ class Gestures extends Matchers {
    * @param {string} elementID - ID of the element to type into
    * @param {string} text - Text to be typed into the element
    */
-  async typeText(elementID, text) {
-    const element = await this.getElementByID(elementID);
+  static async typeText(elementID, text) {
+    const element = await elementID;
     await this.tapByID(elementID);
     await element.typeText(text);
   }
@@ -175,8 +175,9 @@ class Gestures extends Matchers {
    *
    * @param {string} elementID - ID of the element to clear
    */
-  async clearField(elementID) {
-    const element = await this.getElementByID(elementID);
+  static async clearField(elementID) {
+    const element = await elementID;
+
     await element.replaceText('');
   }
 
@@ -186,11 +187,12 @@ class Gestures extends Matchers {
    * @param {string} elementID - ID of the element to type into
    * @param {string} text - Text to be typed into the element
    */
-  async typeTextAndHideKeyboard(elementID, text) {
+  static async typeTextAndHideKeyboard(elementID, text) {
+    const element = await elementID;
     if (device.getPlatform() === 'android') {
-      await this.clearField(elementID);
+      await this.clearField(element);
     }
-    await this.typeText(elementID, text + '\n');
+    await this.typeText(element, text + '\n');
   }
 
   /**
@@ -199,19 +201,21 @@ class Gestures extends Matchers {
    * @param {string} elementID - ID of the element to replace the text in
    * @param {string} text - Text to replace the existing text in the element
    */
-  async replaceTextInField(elementID, text) {
-    const element = await this.getElementByID(elementID);
+  static async replaceTextInField(elementID, text) {
+    const element = await elementID;
+
     await element.replaceText(text);
   }
 
   /**
-   * Tap an alert button with a specific text.
+   * Tap an alert button with specific text.
    *
    * @param {string} text - Text of the alert button to tap
    * @param {number} index - Index of the alert button (default: 0)
    */
-  async tapAlertWithButton(text, index = 0) {
-    const element = await this.getElementByLabel(text);
+  static async tapAlertWithButton(text, index = 0) {
+    const element = await text;
+
     await element.atIndex(index).tap();
   }
 
@@ -225,8 +229,9 @@ class Gestures extends Matchers {
    * @param {number} xStart - X-coordinate to start the swipe
    * @param {number} yStart - Y-coordinate to start the swipe
    */
-  async swipe(elementID, direction, speed, percentage, xStart, yStart) {
-    const element = await this.getElementByID(elementID);
+  static async swipe(elementID, direction, speed, percentage, xStart, yStart) {
+    const element = await elementID;
+
     await element.swipe(direction, speed, percentage, xStart, yStart);
   }
 
@@ -238,8 +243,9 @@ class Gestures extends Matchers {
    * @param {string} speed - Speed of the swipe (fast, slow)
    * @param {number} percentage - Percentage of the swipe (0 to 1)
    */
-  async swipeByLabel(label, direction, speed, percentage) {
-    const element = await this.getElementByLabel(label);
+  static async swipeByLabel(label, direction, speed, percentage) {
+    const element = await label;
+
     await element.swipe(direction, speed, percentage);
   }
 
@@ -251,8 +257,9 @@ class Gestures extends Matchers {
    * @param {string} speed - Speed of the swipe (fast, slow)
    * @param {number} percentage - Percentage of the swipe (0 to 1)
    */
-  async swipeByText(text, direction, speed, percentage) {
-    const element = await this.getElementByText(text);
+  static async swipeByText(text, direction, speed, percentage) {
+    const element = await text;
+
     await element.swipe(direction, speed, percentage);
   }
 
@@ -263,8 +270,9 @@ class Gestures extends Matchers {
    * @param {number} distance - Distance to scroll
    * @param {string} direction - Direction of the scroll (up, down, left, right)
    */
-  async scrollUpTo(elementID, distance, direction) {
-    const element = await this.getElementByID(elementID);
+  static async scrollUpTo(elementID, distance, direction) {
+    const element = await elementID;
+
     await element.scroll(distance, direction);
   }
 }
