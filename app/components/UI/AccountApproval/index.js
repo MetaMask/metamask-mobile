@@ -15,6 +15,10 @@ import AccountInfoCard from '../AccountInfoCard';
 import { strings } from '../../../../locales/i18n';
 import Device from '../../../util/device';
 import NotificationManager from '../../../core/NotificationManager';
+import { DEFAULT_BANNERBASE_DESCRIPTION_TEXTVARIANT } from '../../../component-library/components/Banners/Banner/foundation/BannerBase/BannerBase.constants';
+import Accordion from '../../../component-library/components/Accordions/Accordion/Accordion';
+import { AccordionHeaderHorizontalAlignment } from '../../../component-library/components/Accordions/Accordion';
+
 import { MetaMetricsEvents } from '../../../core/Analytics';
 import AnalyticsV2 from '../../../util/analyticsV2';
 
@@ -38,6 +42,20 @@ import SDKConnect from '../../../core/SDKConnect/SDKConnect';
 import Routes from '../../../constants/navigation/Routes';
 import CheckBox from '@react-native-community/checkbox';
 import generateTestId from '../../../../wdio/utils/generateTestId';
+import Engine from '../../../core/Engine';
+import {
+  prefixUrlWithProtocol,
+} from '../../../util/browser';
+import BannerAlert from '../../../component-library/components/Banners/Banner/variants/BannerAlert/BannerAlert';
+import Icon from '../../../component-library/components/Icons/Icon/Icon';
+import {
+  IconColor,
+  IconName,
+  IconSize,
+} from '../../../component-library/components/Icons/Icon';
+import BlockaidBannerLink from '../BlockaidBanner/BlockaidBannerLink';
+
+
 
 const createStyles = (colors, typography) =>
   StyleSheet.create({
@@ -91,6 +109,12 @@ const createStyles = (colors, typography) =>
     },
     button: {
       flex: 1,
+    },
+    warnCTA: {
+      backgroundColor: colors.error.default,
+    },
+    bottom: {
+      marginHorizontal: 24,
     },
     cancel: {
       marginRight: 8,
@@ -214,6 +238,8 @@ class AccountApproval extends PureComponent {
         AppConstants.DEEPLINKS.ORIGIN_QR_CODE &&
       this.props.currentPageInformation.reconnect &&
       this.props.currentPageInformation.apiVersion,
+    blockListType: '',
+    allowList: [],
   };
 
   getAnalyticsParams = () => {
@@ -355,6 +381,31 @@ class AccountApproval extends PureComponent {
     });
   };
 
+  isAllowedUrl = (hostname) => {
+    const { PhishingController } = Engine.context;
+    PhishingController.maybeUpdateState();
+    const phishingControllerTestResult = PhishingController.test(hostname);
+    
+    if (phishingControllerTestResult.result) {
+      this.setState({ blockListType: phishingControllerTestResult.name });
+    }
+    
+    return (
+      (this.state.allowList.includes(hostname)) || !phishingControllerTestResult.result
+    );
+  }
+
+  onContactUsClicked = () => {
+    // const analyticsParams = {
+    //   ...this.getAnalyticsParams(),
+    //   external_link_clicked: 'security_alert_support_link',
+    // };
+    // AnalyticsV2.trackEvent(
+    //   MetaMetricsEvents.CONTRACT_ADDRESS_COPIED,
+    //   analyticsParams,
+    // );
+  };
+
   render = () => {
     const { currentPageInformation, selectedAddress } = this.props;
     const { colors, typography } = this.context || mockTheme;
@@ -364,12 +415,86 @@ class AccountApproval extends PureComponent {
       this.props.currentPageInformation.origin ===
         AppConstants.DEEPLINKS.ORIGIN_QR_CODE;
 
+    
+        const prefixedUrl = prefixUrlWithProtocol(currentPageInformation?.url);
+        const { hostname } = new URL(prefixedUrl);
+       const isAllowed = this.isAllowedUrl(hostname);
+
+       const features = [
+          'Fake',
+          'Secret'
+       ];
+
+       const renderDetails = () =>
+         <Accordion
+           title={strings('blockaid_banner.see_details')}
+          //  onPress={onToggleShowDetails}
+           isExpanded={false}
+           horizontalAlignment={AccordionHeaderHorizontalAlignment.Start}
+         >
+           <View style={styles.details}>
+             {features?.map((feature, i) => (
+               <Text key={`feature-${i}`} style={styles.detailsItem}>
+                 • {feature}
+               </Text>
+             ))}
+           </View>
+           <View style={styles.attributionBase}>
+             <View style={styles.attributionItem}>
+               <Text
+                 variant={DEFAULT_BANNERBASE_DESCRIPTION_TEXTVARIANT}
+                //  data-testid={FALSE_POSITIVE_REPOST_LINE_TEST_ID}
+               >
+                 {strings('blockaid_banner.does_not_look_right')}
+               </Text>
+             </View>
+             <View style={styles.attributionItem}>
+               <BlockaidBannerLink
+                 text={strings('app_information.contact_us')}
+                 link={BLOCKAID_SUPPORT_LINK}
+                 onContactUsClicked={onContactUsClicked}
+               />
+             </View>
+           </View>
+         </Accordion>
+      //  );
+
     return (
       <View
         style={styles.root}
         {...generateTestId(Platform, ACCOUNT_APROVAL_MODAL_CONTAINER_ID)}
       >
         <TransactionHeader currentPageInformation={currentPageInformation} />
+        <BannerAlert
+        severity="Error"
+        title={strings('accounts.deceptive_site_ahead')}
+        description={strings('accounts.deceptive_site_desc')}
+        style={styles.bottom}
+        >
+          {renderDetails()}
+              <View style={{
+                flexDirection: 'row',
+                justifyContent: 'center',
+                alignItems: 'center'
+              }}>
+        <View style={styles.attributionItem}>
+          <Icon
+            name={IconName.SecurityTick}
+            size={IconSize.Sm}
+            color={IconColor.Primary}
+            style={styles.securityTickIcon}
+          />
+        </View>
+        <View style={styles.attributionItem}>
+          <Text
+            variant={DEFAULT_BANNERBASE_DESCRIPTION_TEXTVARIANT}
+            // data-testid={ATTRIBUTION_LINE_TEST_ID}
+          >
+            {strings('accounts.advisory_by')}
+          </Text>
+        </View>
+      </View>
+          </BannerAlert>
         {!currentPageInformation.reconnect && (
           <>
             <Text style={styles.intro}>
@@ -447,7 +572,7 @@ class AccountApproval extends PureComponent {
             disabled={this.state.otp && this.state.confirmDisabled}
             type={'confirm'}
             onPress={this.onConfirm}
-            containerStyle={[styles.button, styles.confirm]}
+            containerStyle={[styles.button, styles.confirm, isAllowed && styles.warnCTA]}
             testID={'connect-approve-button'}
           >
             {currentPageInformation.reconnect

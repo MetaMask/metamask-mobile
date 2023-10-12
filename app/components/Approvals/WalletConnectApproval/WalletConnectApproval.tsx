@@ -12,7 +12,7 @@ const WalletConnectApproval = () => {
     title: meta?.name || meta?.title,
     url: meta?.url,
     icon: meta?.icons?.[0],
-  };
+  };  
 
   return (
     <ApprovalModal
