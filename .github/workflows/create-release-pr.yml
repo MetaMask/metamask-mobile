@@ -28,6 +28,12 @@ jobs:
           # We check out the specified branch, which will be used as the base
           # branch for all git operations and the release PR.
           ref: ${{ github.event.inputs.base-branch }}
+          # The last step of this workflow creates a release branch, which shall itself
+          # trigger another workflow: 'create-bug-report.yml'. However, there is a security
+          # feature in Github that prevents workflows from triggering other workflows by default.
+          # The workaround is to use a personal access token (BUG_REPORT_TOKEN) instead of
+          # the default GITHUB_TOKEN for the checkout action.
+          token: ${{ secrets.BUG_REPORT_TOKEN }}
       - name: Get Node.js version
         id: nvm
         run: echo "NODE_VERSION=$(cat .nvmrc)" >> "$GITHUB_OUTPUT"

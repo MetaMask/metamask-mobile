@@ -529,7 +529,7 @@ exports[`GetStarted renders correctly 1`] = `
                                     ]
                                   }
                                 >
-                                  Our buy crypto feature aggregates quotes from integrated vendors, providing you the best quote from those sources for you to get crypto directly into your wallet with no waiting period.
+                                  Our buy crypto feature aggregates quotes from integrated vendors, providing quotes from those sources to get crypto directly into your wallet with no waiting period.
                                 </Text>
                               </View>
                               <View
@@ -585,7 +585,7 @@ exports[`GetStarted renders correctly 1`] = `
                                     ]
                                   }
                                 >
-                                  Less gas fees to pay, and numerous networks, tokens, and payment methods supported
+                                  Fewer gas fees to pay, and numerous networks, tokens, and payment methods supported
                                 </Text>
                               </View>
                             </View>
