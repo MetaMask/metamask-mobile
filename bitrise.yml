@@ -136,7 +136,7 @@ workflows:
                   echo "Now triggering e2e tests"
                 else
                   echo "No Run E2E label skipping E2E tests."
-                  exit 1
+                  envman add --key RUN_E2E --value "false"
                 fi
 
     meta:
@@ -322,6 +322,7 @@ workflows:
             - command: global add detox-cli
           title: Detox - Install CLI
   android_e2e_test:
+    run_if: '{{enveq "RUN_E2E" "true"}}'
     before_run:
       - code_setup_dev
       - e2e_setup
@@ -391,6 +392,7 @@ workflows:
         stack: linux-docker-android-20.04
         machine_type_id: elite-xl
   ios_e2e_test:
+    run_if: '{{enveq "RUN_E2E" "true"}}'
     before_run:
       - code_setup_dev
       - e2e_setup
@@ -854,6 +856,9 @@ app:
     - opts:
         is_expand: false
       IOS_APP_LINK: ''
+    - opts:
+        is_expand: false
+      RUN_E2E: true
 meta:
   bitrise.io:
     stack: osx-xcode-14.2.x-ventura
