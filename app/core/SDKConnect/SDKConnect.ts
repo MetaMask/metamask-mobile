@@ -304,7 +304,8 @@ export class Connection extends EventEmitter2 {
           return;
         }
 
-        // TODO following logic blocksshould be simplified
+        // TODO following logic blocks should be simplified (too many conditions)
+        // Should be done in a separate PR to avoid breaking changes and separate SDKConnect / Connection logic in different files.
         if (
           this.initialConnection &&
           this.origin === AppConstants.DEEPLINKS.ORIGIN_QR_CODE
