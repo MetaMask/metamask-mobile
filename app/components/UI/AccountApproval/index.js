@@ -4,7 +4,6 @@ import PropTypes from 'prop-types';
 import StyledButton from '../StyledButton';
 import {
   StyleSheet,
-  Text,
   View,
   InteractionManager,
   TouchableOpacity,
@@ -13,6 +12,7 @@ import {
 import TransactionHeader from '../TransactionHeader';
 import AccountInfoCard from '../AccountInfoCard';
 import { strings } from '../../../../locales/i18n';
+import Text, { TextVariant } from '../../../component-library/components/Texts/Text';
 import Device from '../../../util/device';
 import NotificationManager from '../../../core/NotificationManager';
 import { DEFAULT_BANNERBASE_DESCRIPTION_TEXTVARIANT } from '../../../component-library/components/Banners/Banner/foundation/BannerBase/BannerBase.constants';
@@ -54,6 +54,9 @@ import {
   IconSize,
 } from '../../../component-library/components/Icons/Icon';
 import BlockaidBannerLink from '../BlockaidBanner/BlockaidBannerLink';
+import {
+  BLOCKAID_SUPPORT_LINK,
+} from '../../../constants/urls';
 
 
 
@@ -177,6 +180,21 @@ const createStyles = (colors, typography) =>
       margin: 2,
       marginRight: 6,
     },
+    attributionItem: {
+      marginRight: 4,
+    },
+    detailsItem: {
+      marginBottom: 4,
+    },
+    details: { marginLeft: 10, marginBottom: 10 },
+    securityTickIcon: { marginTop: 4 },
+    attributionBase: {
+    height: 24,
+    flexDirection: 'row',
+    justifyContent: 'flex-start',
+    alignItems: 'flex-start',
+    marginTop: 8,
+    }
   });
 
 /**
@@ -396,14 +414,14 @@ class AccountApproval extends PureComponent {
   }
 
   onContactUsClicked = () => {
-    // const analyticsParams = {
-    //   ...this.getAnalyticsParams(),
-    //   external_link_clicked: 'security_alert_support_link',
-    // };
-    // AnalyticsV2.trackEvent(
-    //   MetaMetricsEvents.CONTRACT_ADDRESS_COPIED,
-    //   analyticsParams,
-    // );
+    const analyticsParams = {
+      ...this.getAnalyticsParams(),
+      external_link_clicked: 'security_alert_support_link',
+    };
+    AnalyticsV2.trackEvent(
+      MetaMetricsEvents.CONTRACT_ADDRESS_COPIED,
+      analyticsParams,
+    );
   };
 
   render = () => {
@@ -421,17 +439,18 @@ class AccountApproval extends PureComponent {
        const isAllowed = this.isAllowedUrl(hostname);
 
        const features = [
-          'Fake',
-          'Secret'
+          'Fake versions of MetaMask',
+          'Secret recovery phrase or password theft',
+          'Malicious transactions resulting in stolen assets'
        ];
 
        const renderDetails = () =>
          <Accordion
            title={strings('blockaid_banner.see_details')}
-          //  onPress={onToggleShowDetails}
            isExpanded={false}
            horizontalAlignment={AccordionHeaderHorizontalAlignment.Start}
          >
+          <Text style={{marginTop: 3}}>Potential threats include</Text>
            <View style={styles.details}>
              {features?.map((feature, i) => (
                <Text key={`feature-${i}`} style={styles.detailsItem}>
@@ -452,12 +471,11 @@ class AccountApproval extends PureComponent {
                <BlockaidBannerLink
                  text={strings('app_information.contact_us')}
                  link={BLOCKAID_SUPPORT_LINK}
-                 onContactUsClicked={onContactUsClicked}
+                 onContactUsClicked={this.onContactUsClicked}
                />
              </View>
            </View>
          </Accordion>
-      //  );
 
     return (
       <View
@@ -474,8 +492,8 @@ class AccountApproval extends PureComponent {
           {renderDetails()}
               <View style={{
                 flexDirection: 'row',
-                justifyContent: 'center',
-                alignItems: 'center'
+                alignItems: 'center',
+                marginVertical: 8,
               }}>
         <View style={styles.attributionItem}>
           <Icon
