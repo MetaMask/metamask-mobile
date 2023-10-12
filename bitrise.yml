@@ -114,6 +114,14 @@ workflows:
   check_e2e_trigger:
     steps:
       - script@1:
+          title: Install jq
+          inputs:
+            - content: |-
+                #!/bin/bash
+                set -ex
+                apt-get update -y
+                apt-get install -y jq
+      - script@1:
           title: Fetch pull request labels
           inputs:
             - content: |-
@@ -123,9 +131,16 @@ workflows:
                 REPO_SLUG=${BITRISEIO_GIT_REPOSITORY_SLUG}
                 OWNER_NAME=${BITRISEIO_GIT_REPOSITORY_OWNER}
 
-                PR_LABELS=$(curl -s "https://api.github.com/repos/${OWNER_NAME}/${REPO_SLUG}/issues/${PR_NUMBER}/labels")
-
+                PR_LABELS=$(curl -s "https://api.github.com/repos/${OWNER_NAME}/${REPO_SLUG}/issues/${PR_NUMBER}/labels" | jq -r '.[].name)
                 echo "Pull Request Labels: $PR_LABELS"
+
+                if [[ $PR_LABELS | jq '.array | contains(["Run E2E"])' ]]; then
+                  echo "Now triggering e2e tests"
+                else
+                  echo "No Run E2E label skipping E2E tests."
+                  exit 1
+                fi
+
     meta:
       bitrise.io:
         stack: linux-docker-android-20.04
