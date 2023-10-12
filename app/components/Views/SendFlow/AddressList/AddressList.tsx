@@ -49,7 +49,6 @@ const AddressList: React.FC<AddressListProps> = ({
   const [fuse, setFuse] = useState<any>(undefined);
   const chainId = useSelector(selectChainId);
   const identities = useSelector(selectIdentities);
-  // const networkId = useSelector(selectNetworkId);
   const addressBook = useSelector(
     (state: any) =>
       state.engine.backgroundState.AddressBookController.addressBook,
@@ -116,7 +115,7 @@ const AddressList: React.FC<AddressListProps> = ({
         setContactElements(newContactElements);
       });
     },
-    [onlyRenderAddressBook],
+    [onlyRenderAddressBook, ambiguousAddressEntries, chainId],
   );
 
   useEffect(() => {

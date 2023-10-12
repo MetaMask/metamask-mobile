@@ -1,7 +1,6 @@
 // Third party dependencies.
-import React, { useEffect, useMemo, useRef, useState } from 'react';
+import React, { useRef } from 'react';
 import { View } from 'react-native';
-import { useNavigation } from '@react-navigation/native';
 
 // External dependencies.
 import SheetBottom, {
@@ -37,12 +36,7 @@ const AmbiguousAddressSheet = () => {
       <View style={styles.container}>
         <Text style={styles.heading}>{strings('duplicate_address.title')}</Text>
         <Text style={styles.body}>
-          <Text>
-            {strings('duplicate_address.body', {
-              chain0: 'Ethereum',
-              chain1: 'Polygon',
-            })}
-          </Text>
+          <Text>{strings('duplicate_address.body')}</Text>
         </Text>
         <View style={styles.buttonContainer}>
           <Button

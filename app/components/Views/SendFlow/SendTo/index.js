@@ -72,6 +72,7 @@ import { isNetworkBuyNativeTokenSupported } from '../../../UI/Ramp/utils';
 import { getRampNetworks } from '../../../../reducers/fiatOrders';
 import SendFlowAddressFrom from '../AddressFrom';
 import SendFlowAddressTo from '../AddressTo';
+import { includes } from 'lodash';
 
 const dummy = () => true;
 
@@ -141,6 +142,14 @@ class SendFlow extends PureComponent {
      * Resets transaction state
      */
     resetTransaction: PropTypes.func,
+    /**
+     * Boolean to show warning if send to address is on multiple networks
+     */
+    showAmbiguousAcountWarning: PropTypes.bool,
+    /**
+     * Object of addresses associated with multiple chains {'id': [address: string]}
+     */
+    ambiguousAddressEntries: PropTypes.object,
   };
 
   addressToInputRef = React.createRef();
@@ -156,6 +165,7 @@ class SendFlow extends PureComponent {
     toEnsAddressResolved: undefined,
     confusableCollection: [],
     inputWidth: { width: '99%' },
+    showAmbiguousAcountWarning: false,
   };
 
   updateNavBar = () => {
@@ -408,6 +418,17 @@ class SendFlow extends PureComponent {
   };
 
   onToSelectedAddressChange = (toAccount) => {
+    const currentChain = this.props.ambiguousAddressEntries[this.props.chainId];
+    const isAmbiguousAddress = includes(currentChain, toAccount);
+    if (isAmbiguousAddress) {
+      this.setState({ showAmbiguousAcountWarning: isAmbiguousAddress });
+      AnalyticsV2.trackEvent(
+        MetaMetricsEvents.SEND_FLOW_SELECT_DUPLICATE_ADDRESS,
+        {
+          chain_id: this.props.chainId,
+        },
+      );
+    }
     const addressName = this.getAddressNameFromBookOrIdentities(toAccount);
 
     /**
@@ -432,6 +453,17 @@ class SendFlow extends PureComponent {
         isFromAddressBook: false,
       });
     }
+  };
+
+  onIconPress = () => {
+    const { navigation } = this.props;
+    navigation.navigate(Routes.MODAL.ROOT_MODAL_FLOW, {
+      screen: Routes.SHEET.AMBIGUOUS_ADDRESS,
+    });
+  };
+
+  onAmbiguousAcountWarningDismiss = () => {
+    this.setState({ showAmbiguousAcountWarning: false });
   };
 
   render = () => {
@@ -513,6 +545,7 @@ class SendFlow extends PureComponent {
         {!toSelectedAddressReady ? (
           <AddressList
             inputSearch={toAccount}
+            onIconPress={this.onIconPress}
             onAccountPress={this.onToSelectedAddressChange}
             onAccountLongPress={dummy}
           />
@@ -587,6 +620,14 @@ class SendFlow extends PureComponent {
                   />
                 </View>
               )}
+              {this.state.showAmbiguousAcountWarning && (
+                <View style={styles.warningContainer}>
+                  <WarningMessage
+                    onDismiss={this.onAmbiguousAcountWarningDismiss}
+                    warningMessage={<>{strings('duplicate_address.body')}</>}
+                  />
+                </View>
+              )}
             </ScrollView>
           </View>
         )}
@@ -636,6 +677,7 @@ const mapStateToProps = (state) => ({
     selectChainId(state),
     getRampNetworks(state),
   ),
+  ambiguousAddressEntries: state.user.ambiguousAddressEntries,
 });
 
 const mapDispatchToProps = (dispatch) => ({
