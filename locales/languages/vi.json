@@ -1914,7 +1914,6 @@
     "no_tokens_match": "Không có token nào khớp với \"{{searchString}}\"",
     "no_currency_match": "Không có đơn vị tiền tệ nào khớp với \"{{searchString}}\"",
     "pay_with": "Thanh toán bằng",
-    "buy_with": "Mua bằng {{provider}}",
     "minimum": "Số tiền nạp tối thiểu là",
     "maximum": "Số tiền nạp tối đa là",
     "try_again": "Thử lại",
