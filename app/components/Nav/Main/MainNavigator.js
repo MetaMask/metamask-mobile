@@ -1,5 +1,6 @@
 import React, { useRef, useState, useEffect } from 'react';
 import { Image, StyleSheet, Keyboard, Platform } from 'react-native';
+import PropTypes from 'prop-types';
 import { createStackNavigator } from '@react-navigation/stack';
 import { useSelector } from 'react-redux';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
@@ -45,7 +46,9 @@ import SwapsQuotesView from '../../UI/Swaps/QuotesView';
 import CollectiblesDetails from '../../UI/CollectibleModal';
 import OptinMetrics from '../../UI/OptinMetrics';
 import Drawer from '../../UI/Drawer';
+
 import { RampSDKProvider } from '../../UI/Ramp/common/sdk';
+import { RampType } from '../../UI/Ramp/common/types';
 import GetStarted from '../../UI/Ramp/buy/Views/GetStarted';
 import PaymentMethods from '../../UI/Ramp/buy/Views/PaymentMethods/PaymentMethods';
 import BuildQuote from '../../UI/Ramp/buy/Views/BuildQuote/BuildQuote';
@@ -514,42 +517,40 @@ const PaymentRequestView = () => (
   </Stack.Navigator>
 );
 
-const Ramps = () => (
-  <RampSDKProvider>
-    <Stack.Navigator initialRouteName={Routes.RAMP.BUY.GET_STARTED}>
-      <Stack.Screen name={Routes.RAMP.BUY.GET_STARTED} component={GetStarted} />
+const Ramps = ({ rampType }) => (
+  <RampSDKProvider rampType={rampType}>
+    <Stack.Navigator initialRouteName={Routes.RAMP.GET_STARTED}>
+      <Stack.Screen name={Routes.RAMP.GET_STARTED} component={GetStarted} />
       <Stack.Screen
-        name={Routes.RAMP.BUY.NETWORK_SWITCHER}
+        name={Routes.RAMP.NETWORK_SWITCHER}
         component={NetworkSwitcher}
         options={{ animationEnabled: false }}
       />
       <Stack.Screen
-        name={Routes.RAMP.BUY.PAYMENT_METHOD}
+        name={Routes.RAMP.PAYMENT_METHOD}
         component={PaymentMethods}
       />
       <Stack.Screen
-        name={Routes.RAMP.BUY.PAYMENT_METHOD_HAS_STARTED}
+        name={Routes.RAMP.PAYMENT_METHOD_HAS_STARTED}
         component={PaymentMethods}
         options={{ animationEnabled: false }}
       />
+      <Stack.Screen name={Routes.RAMP.BUILD_QUOTE} component={BuildQuote} />
+      <Stack.Screen name={Routes.RAMP.QUOTES} component={Quotes} />
+      <Stack.Screen name={Routes.RAMP.CHECKOUT} component={CheckoutWebView} />
+      <Stack.Screen name={Routes.RAMP.REGION} component={Regions} />
       <Stack.Screen
-        name={Routes.RAMP.BUY.AMOUNT_TO_BUY}
-        component={BuildQuote}
-      />
-      <Stack.Screen name={Routes.RAMP.BUY.QUOTES} component={Quotes} />
-      <Stack.Screen
-        name={Routes.RAMP.BUY.CHECKOUT}
-        component={CheckoutWebView}
-      />
-      <Stack.Screen name={Routes.RAMP.BUY.REGION} component={Regions} />
-      <Stack.Screen
-        name={Routes.RAMP.BUY.REGION_HAS_STARTED}
+        name={Routes.RAMP.REGION_HAS_STARTED}
         component={Regions}
         options={{ animationEnabled: false }}
       />
     </Stack.Navigator>
   </RampSDKProvider>
 );
+
+Ramps.propTypes = {
+  rampType: PropTypes.string,
+};
 
 const Swaps = () => (
   <Stack.Navigator>
@@ -641,7 +642,12 @@ const MainNavigator = () => (
     <Stack.Screen name="OfflineModeView" component={OfflineModeView} />
     <Stack.Screen name={Routes.QR_SCANNER} component={QrScanner} />
     <Stack.Screen name="PaymentRequestView" component={PaymentRequestView} />
-    <Stack.Screen name={Routes.RAMP.BUY.ID} component={Ramps} />
+    <Stack.Screen name={Routes.RAMP.BUY}>
+      {() => <Ramps rampType={RampType.BUY} />}
+    </Stack.Screen>
+    <Stack.Screen name={Routes.RAMP.SELL}>
+      {() => <Ramps rampType={RampType.SELL} />}
+    </Stack.Screen>
     <Stack.Screen name="Swaps" component={Swaps} />
     <Stack.Screen
       name="SetPasswordFlow"

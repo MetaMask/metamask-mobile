@@ -5,6 +5,7 @@ import { parseUrl } from 'query-string';
 import { WebView, WebViewNavigation } from 'react-native-webview';
 import { useNavigation } from '@react-navigation/native';
 import { Provider } from '@consensys/on-ramp-sdk';
+import { OrderOrderTypeEnum } from '@consensys/on-ramp-sdk/dist/API';
 import { baseStyles } from '../../../../../styles/common';
 import { useTheme } from '../../../../../util/theme';
 import { getFiatOnRampAggNavbar } from '../../../Navbar';
@@ -13,7 +14,10 @@ import {
   addFiatCustomIdData,
   removeFiatCustomIdData,
 } from '../../../../../reducers/fiatOrders';
-import { CustomIdData } from '../../../../../reducers/fiatOrders/types';
+import {
+  CustomIdData,
+  RampType,
+} from '../../../../../reducers/fiatOrders/types';
 import {
   createNavigationDetails,
   useParams,
@@ -35,12 +39,17 @@ interface CheckoutParams {
 }
 
 export const createCheckoutNavDetails = createNavigationDetails<CheckoutParams>(
-  Routes.RAMP.BUY.CHECKOUT,
+  Routes.RAMP.CHECKOUT,
 );
 
 const CheckoutWebView = () => {
-  const { selectedAddress, selectedChainId, sdkError, callbackBaseUrl } =
-    useRampSDK();
+  const {
+    selectedAddress,
+    selectedChainId,
+    sdkError,
+    callbackBaseUrl,
+    rampType,
+  } = useRampSDK();
   const dispatch = useDispatch();
   const trackEvent = useAnalytics();
   const [error, setError] = useState('');
@@ -81,10 +90,13 @@ const CheckoutWebView = () => {
       customOrderId,
       selectedChainId,
       selectedAddress,
+      rampType === RampType.BUY
+        ? OrderOrderTypeEnum.Buy
+        : OrderOrderTypeEnum.Sell,
     );
     setCustomIdData(customOrderIdData);
     dispatch(addFiatCustomIdData(customOrderIdData));
-  }, [customOrderId, dispatch, selectedAddress, selectedChainId]);
+  }, [customOrderId, dispatch, rampType, selectedAddress, selectedChainId]);
 
   const handleNavigationStateChange = async (navState: WebViewNavigation) => {
     if (
@@ -103,7 +115,11 @@ const CheckoutWebView = () => {
           return;
         }
         const orders = await SDK.orders();
-        const order = await orders.getOrderFromCallback(
+        const getOrderFromCallbackMethod =
+          rampType === RampType.BUY
+            ? 'getOrderFromCallback'
+            : 'getSellOrderFromCallback';
+        const order = await orders[getOrderFromCallbackMethod](
           provider.id,
           navState?.url,
           selectedAddress,

@@ -25,7 +25,7 @@ function render(Component: React.ComponentType) {
   return renderScreen(
     Component,
     {
-      name: Routes.RAMP.BUY.AMOUNT_TO_BUY,
+      name: Routes.RAMP.BUILD_QUOTE,
     },
     {
       state: {
@@ -525,7 +525,7 @@ describe('BuildQuote View', () => {
 
     fireEvent.press(submitBtn);
 
-    expect(mockNavigate).toHaveBeenCalledWith(Routes.RAMP.BUY.QUOTES, {
+    expect(mockNavigate).toHaveBeenCalledWith(Routes.RAMP.QUOTES, {
       amount: VALID_AMOUNT,
       asset: mockCryptoCurrenciesData[0],
       fiatCurrency: mockFiatCurrenciesData[0],

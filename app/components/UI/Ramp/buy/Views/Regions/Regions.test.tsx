@@ -6,7 +6,7 @@ import { renderScreen } from '../../../../../../util/test/renderWithProvider';
 import Regions from './Regions';
 import useRegions from '../../hooks/useRegions';
 import { RampSDK } from '../../../common/sdk';
-import { Region } from '../../../common/types';
+import { RampType, Region } from '../../../common/types';
 import { createPaymentMethodsNavDetails } from '../PaymentMethods/PaymentMethods';
 import Routes from '../../../../../../constants/navigation/Routes';
 import initialBackgroundState from '../../../../../../util/test/initial-background-state.json';
@@ -15,7 +15,7 @@ function render(Component: React.ComponentType) {
   return renderScreen(
     Component,
     {
-      name: Routes.RAMP.BUY.REGION,
+      name: Routes.RAMP.REGION,
     },
     {
       state: {
@@ -35,6 +35,7 @@ const mockuseRampSDKInitialValues: Partial<RampSDK> = {
   setSelectedFiatCurrencyId: mockSetSelectedCurrency,
   sdkError: undefined,
   selectedChainId: '1',
+  rampType: RampType.BUY,
 };
 
 let mockUseRampSDKValues: Partial<RampSDK> = {
@@ -56,6 +57,10 @@ const mockRegionsData = [
     id: '/regions/cl',
     name: 'Chile',
     unsupported: false,
+    support: {
+      buy: true,
+      sell: true,
+    },
   },
   {
     currencies: ['/currencies/fiat/ars'],
@@ -63,6 +68,10 @@ const mockRegionsData = [
     id: '/regions/ar',
     name: 'Argentina',
     unsupported: false,
+    support: {
+      buy: true,
+      sell: true,
+    },
   },
 ] as Partial<Country>[];
 

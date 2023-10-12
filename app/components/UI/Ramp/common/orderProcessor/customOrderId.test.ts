@@ -1,4 +1,5 @@
 import { OrderStatusEnum } from '@consensys/on-ramp-sdk';
+import { OrderOrderTypeEnum } from '@consensys/on-ramp-sdk/dist/API';
 import { SDK } from '../sdk';
 import processCustomOrderId, {
   createCustomOrderIdData,
@@ -10,12 +11,37 @@ describe('createCustomOrderIdData', () => {
   it('should return a custom order id data object', () => {
     jest.spyOn(Date, 'now').mockImplementationOnce(() => 123123);
 
-    const customIdData = createCustomOrderIdData('test-id', '1', '0x123');
+    const customIdData = createCustomOrderIdData(
+      'test-id',
+      '1',
+      '0x123',
+      OrderOrderTypeEnum.Buy,
+    );
     expect(customIdData).toEqual({
       id: 'test-id',
       chainId: '1',
       account: '0x123',
+      orderType: 'BUY',
       createdAt: 123123,
+      lastTimeFetched: 0,
+      errorCount: 0,
+    });
+  });
+
+  it('should return a sell custom order id data object', () => {
+    jest.spyOn(Date, 'now').mockImplementationOnce(() => 456456);
+    const customSellIdData = createCustomOrderIdData(
+      'test-sell-id',
+      '1',
+      '0x1234',
+      OrderOrderTypeEnum.Sell,
+    );
+    expect(customSellIdData).toEqual({
+      id: 'test-sell-id',
+      chainId: '1',
+      account: '0x1234',
+      orderType: 'SELL',
+      createdAt: 456456,
       lastTimeFetched: 0,
       errorCount: 0,
     });
@@ -37,6 +63,7 @@ describe('CustomOrderId processor', () => {
       id: '1',
       chainId: '1',
       account: '0x123',
+      orderType: 'BUY',
       createdAt,
       lastTimeFetched,
       errorCount,
@@ -76,6 +103,7 @@ describe('CustomOrderId processor', () => {
       id: '1',
       chainId: '1',
       account: '0x123',
+      orderType: 'BUY',
       createdAt,
       lastTimeFetched,
       errorCount,
@@ -118,6 +146,7 @@ describe('CustomOrderId processor', () => {
       id: '1',
       chainId: '1',
       account: '0x123',
+      orderType: 'BUY',
       createdAt: 0,
       lastTimeFetched: 0,
       errorCount: 0,
@@ -145,6 +174,7 @@ describe('CustomOrderId processor', () => {
       id: '1',
       chainId: '1',
       account: '0x123',
+      orderType: 'BUY',
       createdAt: 0,
       lastTimeFetched: 0,
       errorCount: 0,
@@ -172,6 +202,7 @@ describe('CustomOrderId processor', () => {
       id: '1',
       chainId: '1',
       account: '0x123',
+      orderType: 'BUY',
       createdAt: 0,
       lastTimeFetched: 0,
       errorCount: 0,
@@ -201,6 +232,40 @@ describe('CustomOrderId processor', () => {
       id: '1',
       chainId: '1',
       account: '0x123',
+      orderType: 'BUY',
+      createdAt: 0,
+      lastTimeFetched: now - 1,
+      errorCount: 0,
+    };
+
+    expect(await processCustomOrderId(dummmyCustomOrderIdData)).toEqual([
+      {
+        ...dummmyCustomOrderIdData,
+        lastTimeFetched: now,
+      },
+      null,
+    ]);
+  });
+
+  it('should update sell custom order object when error state is Precreated', async () => {
+    jest.spyOn(SDK, 'orders').mockImplementation(
+      () =>
+        ({
+          getSellOrder: jest.fn().mockResolvedValue({
+            status: OrderStatusEnum.Precreated,
+          }),
+        } as any),
+    );
+
+    const now = 123123123;
+
+    jest.spyOn(Date, 'now').mockImplementation(() => now);
+
+    const dummmyCustomOrderIdData = {
+      id: '1',
+      chainId: '1',
+      account: '0x123',
+      orderType: 'SELL',
       createdAt: 0,
       lastTimeFetched: now - 1,
       errorCount: 0,
@@ -235,6 +300,7 @@ describe('CustomOrderId processor', () => {
       id: '1',
       chainId: '1',
       account: '0x123',
+      orderType: 'BUY',
       createdAt: 0,
       lastTimeFetched: 0,
       errorCount,
@@ -248,6 +314,42 @@ describe('CustomOrderId processor', () => {
       null,
     ]);
   });
+
+  it('should expire sell custom order object when it reaches MAX_ERROR_COUNT', async () => {
+    jest.spyOn(SDK, 'orders').mockImplementation(
+      () =>
+        ({
+          getSellOrder: jest.fn().mockResolvedValue({
+            status: OrderStatusEnum.Unknown,
+          }),
+        } as any),
+    );
+
+    const errorCount = MAX_ERROR_COUNT;
+
+    const now = Math.pow(POLLING_FRECUENCY_IN_SECONDS, errorCount + 1) * 1000;
+
+    jest.spyOn(Date, 'now').mockImplementation(() => now);
+
+    const dummmyCustomOrderIdData = {
+      id: '1',
+      chainId: '1',
+      account: '0x123',
+      orderType: 'SELL',
+      createdAt: 0,
+      lastTimeFetched: 0,
+      errorCount,
+    };
+
+    expect(await processCustomOrderId(dummmyCustomOrderIdData)).toEqual([
+      {
+        ...dummmyCustomOrderIdData,
+        expired: true,
+      },
+      null,
+    ]);
+  });
+
   it('should expire custom order object when state is IdExpired', async () => {
     jest.spyOn(SDK, 'orders').mockImplementation(
       () =>
@@ -266,6 +368,40 @@ describe('CustomOrderId processor', () => {
       id: '1',
       chainId: '1',
       account: '0x123',
+      orderType: 'BUY',
+      createdAt: 0,
+      errorCount: 0,
+      lastTimeFetched: now - 1,
+    };
+
+    expect(await processCustomOrderId(dummmyCustomOrderIdData)).toEqual([
+      {
+        ...dummmyCustomOrderIdData,
+        expired: true,
+      },
+      null,
+    ]);
+  });
+
+  it('should expire sell custom order object when state is IdExpired', async () => {
+    jest.spyOn(SDK, 'orders').mockImplementation(
+      () =>
+        ({
+          getSellOrder: jest.fn().mockResolvedValue({
+            status: OrderStatusEnum.IdExpired,
+          }),
+        } as any),
+    );
+
+    const now = 123123123;
+
+    jest.spyOn(Date, 'now').mockImplementation(() => now);
+
+    const dummmyCustomOrderIdData = {
+      id: '1',
+      chainId: '1',
+      account: '0x123',
+      orderType: 'SELL',
       createdAt: 0,
       errorCount: 0,
       lastTimeFetched: now - 1,
@@ -298,6 +434,41 @@ describe('CustomOrderId processor', () => {
       id: '1',
       chainId: '1',
       account: '0x123',
+      orderType: 'BUY',
+      createdAt: 0,
+      lastTimeFetched: now - 1,
+      errorCount: 0,
+    };
+
+    expect(await processCustomOrderId(dummmyCustomOrderIdData)).toEqual([
+      {
+        ...dummmyCustomOrderIdData,
+        errorCount: 1,
+        lastTimeFetched: now,
+      },
+      null,
+    ]);
+  });
+
+  it('should update sellcustom order object when state is Unknown', async () => {
+    jest.spyOn(SDK, 'orders').mockImplementation(
+      () =>
+        ({
+          getSellOrder: jest.fn().mockResolvedValue({
+            status: OrderStatusEnum.Unknown,
+          }),
+        } as any),
+    );
+
+    const now = 123123123;
+
+    jest.spyOn(Date, 'now').mockImplementation(() => now);
+
+    const dummmyCustomOrderIdData = {
+      id: '1',
+      chainId: '1',
+      account: '0x123',
+      orderType: 'SELL',
       createdAt: 0,
       lastTimeFetched: now - 1,
       errorCount: 0,

@@ -1,10 +1,20 @@
-import { AggregatorNetwork } from '@consensys/on-ramp-sdk/dist/API';
-import { Order } from '@consensys/on-ramp-sdk';
+import {
+  Order,
+  QuoteError,
+  QuoteResponse,
+  SellQuoteResponse,
+} from '@consensys/on-ramp-sdk';
+import {
+  AggregatorNetwork,
+  OrderOrderTypeEnum,
+  SellOrder,
+} from '@consensys/on-ramp-sdk/dist/API';
 import {
   renderFromTokenMinimalUnit,
   renderNumber,
   toTokenMinimalUnit,
 } from '../../../../../util/number';
+import { RampType } from '../types';
 import { getOrders, FiatOrder } from '../../../../../reducers/fiatOrders';
 import { RootState } from '../../../../../reducers';
 
@@ -153,4 +163,44 @@ export function getOrderAmount(order: FiatOrder) {
 export function stateHasOrder(state: RootState, order: FiatOrder) {
   const orders = getOrders(state);
   return orders.some((o) => o.id === order.id);
+}
+
+export function isBuyQuotes(
+  buyOrSellQuotes:
+    | (QuoteResponse | QuoteError)[]
+    | (QuoteError | SellQuoteResponse)[],
+  rampType: RampType,
+): buyOrSellQuotes is QuoteResponse[] {
+  return rampType === RampType.BUY;
+}
+
+export function isSellQuotes(
+  buyOrSellQuotes:
+    | (QuoteResponse | QuoteError)[]
+    | (QuoteError | SellQuoteResponse)[],
+  rampType: RampType,
+): buyOrSellQuotes is SellQuoteResponse[] {
+  return rampType === RampType.SELL;
+}
+
+export function isBuyQuote(
+  quote: QuoteResponse | SellQuoteResponse,
+  rampType: RampType,
+): quote is QuoteResponse {
+  return rampType === RampType.BUY;
+}
+
+export function isSellQuote(
+  quote: QuoteResponse | SellQuoteResponse,
+  rampType: RampType,
+): quote is SellQuoteResponse {
+  return rampType === RampType.SELL;
+}
+
+export function isSellOrder(order: Order): order is SellOrder {
+  return order.orderType === OrderOrderTypeEnum.Sell;
+}
+
+export function isSellFiatOrder(order: FiatOrder): order is FiatOrder {
+  return order.orderType === OrderOrderTypeEnum.Sell;
 }

@@ -1,4 +1,8 @@
-import { Order } from '@consensys/on-ramp-sdk';
+import {
+  Order,
+  QuoteResponse,
+  SellQuoteResponse,
+} from '@consensys/on-ramp-sdk';
 import {
   timeToDescription,
   TimeDescriptions,
@@ -7,8 +11,14 @@ import {
   isNetworkRampSupported,
   isNetworkRampNativeTokenSupported,
   getOrderAmount,
+  isBuyQuotes,
+  isSellQuotes,
+  isBuyQuote,
+  isSellQuote,
+  isSellOrder,
+  isSellFiatOrder,
 } from '.';
-import { FiatOrder } from '../../../../../reducers/fiatOrders/types';
+import { FiatOrder, RampType } from '../../../../../reducers/fiatOrders/types';
 
 describe('timeToDescription', () => {
   it('should return a function', () => {
@@ -250,5 +260,75 @@ describe('getOrderAmount', () => {
         },
       }),
     ).toBe('0.01236');
+  });
+});
+
+describe('Type assertion functions', () => {
+  describe('isBuyQuotes', () => {
+    it('should return true if rampType is BUY', () => {
+      expect(isBuyQuotes([], RampType.BUY)).toBe(true);
+    });
+
+    it('should return false if rampType is SELL', () => {
+      expect(isBuyQuotes([], RampType.SELL)).toBe(false);
+    });
+  });
+
+  describe('isSellQuotes', () => {
+    it('should return true if rampType is SELL', () => {
+      expect(isSellQuotes([], RampType.SELL)).toBe(true);
+    });
+
+    it('should return false if rampType is BUY', () => {
+      expect(isSellQuotes([], RampType.BUY)).toBe(false);
+    });
+  });
+
+  describe('isBuyQuote', () => {
+    it('should return true if rampType is BUY', () => {
+      expect(
+        isBuyQuote({} as QuoteResponse | SellQuoteResponse, RampType.BUY),
+      ).toBe(true);
+    });
+
+    it('should return false if rampType is SELL', () => {
+      expect(
+        isBuyQuote({} as QuoteResponse | SellQuoteResponse, RampType.SELL),
+      ).toBe(false);
+    });
+  });
+
+  describe('isSellQuote', () => {
+    it('should return true if rampType is SELL', () => {
+      expect(
+        isSellQuote({} as QuoteResponse | SellQuoteResponse, RampType.SELL),
+      ).toBe(true);
+    });
+
+    it('should return false if rampType is BUY', () => {
+      expect(
+        isSellQuote({} as QuoteResponse | SellQuoteResponse, RampType.BUY),
+      ).toBe(false);
+    });
+  });
+
+  describe('isSellOrder', () => {
+    it('should return true if orderType is SELL', () => {
+      expect(isSellOrder({ orderType: 'SELL' } as Order)).toBe(true);
+    });
+
+    it('should return false if orderType is BUY', () => {
+      expect(isSellOrder({ orderType: 'BUY' } as Order)).toBe(false);
+    });
+  });
+
+  describe('isSellFiatOrder', () => {
+    it('should return true if orderType is SELL', () => {
+      expect(isSellFiatOrder({ orderType: 'SELL' } as FiatOrder)).toBe(true);
+    });
+
+    it('should return false if orderType is BUY', () => {
+      expect(isSellFiatOrder({ orderType: 'BUY' } as FiatOrder)).toBe(false);
+    });
   });
 });

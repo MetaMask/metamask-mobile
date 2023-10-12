@@ -34,6 +34,7 @@ import styleSheet from './WalletActions.styles';
 import {
   WALLET_BUY,
   WALLET_RECEIVE,
+  WALLET_SELL,
   WALLET_SEND,
   WALLET_SWAP,
 } from './WalletActions.constants';
@@ -66,7 +67,7 @@ const WalletActions = () => {
 
   const onBuy = () => {
     sheetRef.current?.hide(() => {
-      navigate(Routes.RAMP.BUY.ID);
+      navigate(Routes.RAMP.BUY);
       Analytics.trackEventWithParameters(MetaMetricsEvents.BUY_BUTTON_CLICKED, {
         text: 'Buy',
         tokenSymbol: '',
@@ -76,6 +77,18 @@ const WalletActions = () => {
     });
   };
 
+  const onSell = () => {
+    sheetRef.current?.hide(() => {
+      navigate(Routes.RAMP.SELL);
+      // TODO - add analytics for sell
+      // Analytics.trackEventWithParameters(MetaMetricsEvents.BUY_BUTTON_CLICKED, {
+      //   text: 'Buy',
+      //   tokenSymbol: '',
+      //   location: 'TabBar',
+      //   chain_id: chainId,
+      // });
+    });
+  };
   const onSend = () => {
     sheetRef.current?.hide(() => {
       navigate('SendFlowView');
@@ -124,6 +137,18 @@ const WalletActions = () => {
             onPress={onBuy}
             iconStyle={styles.icon}
             {...generateTestId(Platform, WALLET_BUY)}
+          />
+        )}
+
+        {isNetworkRampSupported && (
+          <WalletAction
+            actionTitle={strings('asset_overview.sell_button')}
+            actionDescription={strings('asset_overview.sell_description')}
+            iconName={IconName.Minus}
+            iconSize={AvatarSize.Md}
+            onPress={onSell}
+            iconStyle={styles.icon}
+            {...generateTestId(Platform, WALLET_SELL)}
           />
         )}
 

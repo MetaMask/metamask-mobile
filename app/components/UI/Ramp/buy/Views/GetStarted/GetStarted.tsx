@@ -13,19 +13,15 @@ import Routes from '../../../../../../constants/navigation/Routes';
 import useAnalytics from '../../../common/hooks/useAnalytics';
 import useRampNetwork from '../../../common/hooks/useRampNetwork';
 import styles from './GetStarted.styles';
+import useRegions from '../../hooks/useRegions';
 
 /* eslint-disable import/no-commonjs, @typescript-eslint/no-var-requires, @typescript-eslint/no-require-imports */
 const getStartedIcon = require('../../../common/components/images/WalletInfo.png');
 
 const GetStarted: React.FC = () => {
   const navigation = useNavigation();
-  const {
-    getStarted,
-    setGetStarted,
-    sdkError,
-    selectedChainId,
-    selectedRegion,
-  } = useRampSDK();
+  const { getStarted, setGetStarted, sdkError, selectedChainId } = useRampSDK();
+  const { selectedRegion } = useRegions();
   const [isNetworkRampSupported] = useRampNetwork();
   const trackEvent = useAnalytics();
 
@@ -61,7 +57,7 @@ const GetStarted: React.FC = () => {
       if (!isNetworkRampSupported) {
         navigation.reset({
           index: 0,
-          routes: [{ name: Routes.RAMP.BUY.NETWORK_SWITCHER }],
+          routes: [{ name: Routes.RAMP.NETWORK_SWITCHER }],
         });
         return;
       }
@@ -70,7 +66,7 @@ const GetStarted: React.FC = () => {
           index: 0,
           routes: [
             {
-              name: Routes.RAMP.BUY.PAYMENT_METHOD_HAS_STARTED,
+              name: Routes.RAMP.PAYMENT_METHOD_HAS_STARTED,
               params: { showBack: false },
             },
           ],
@@ -78,7 +74,7 @@ const GetStarted: React.FC = () => {
       } else {
         navigation.reset({
           index: 0,
-          routes: [{ name: Routes.RAMP.BUY.REGION_HAS_STARTED }],
+          routes: [{ name: Routes.RAMP.REGION_HAS_STARTED }],
         });
       }
     }

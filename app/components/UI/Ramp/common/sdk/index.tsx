@@ -28,7 +28,7 @@ import {
   setFiatOrdersPaymentMethodAGG,
   networkShortNameSelector,
 } from '../../../../../reducers/fiatOrders';
-import { Region } from '../types';
+import { RampType, Region } from '../types';
 
 import I18n, { I18nEvents } from '../../../../../../locales/i18n';
 import Device from '../../../../../util/device';
@@ -74,6 +74,9 @@ export interface RampSDK {
   sdk: RegionsService | undefined;
   sdkError?: Error;
 
+  rampType: RampType;
+  setRampType: (rampType: RampType) => void;
+
   selectedRegion: Region | null;
   setSelectedRegion: (region: Region | null) => void;
 
@@ -103,6 +106,7 @@ export interface RampSDK {
 
 interface ProviderProps<T> {
   value?: T;
+  rampType?: RampType;
   children?: React.ReactNode;
 }
 
@@ -122,6 +126,7 @@ const SDKContext = createContext<RampSDK | undefined>(undefined);
 
 export const RampSDKProvider = ({
   value,
+  rampType: providerRampType,
   ...props
 }: ProviderProps<RampSDK>) => {
   const [sdkModule, setSdkModule] = useState<RegionsService>();
@@ -162,6 +167,8 @@ export const RampSDKProvider = ({
     fiatOrdersPaymentMethodSelectorAgg,
   );
   const INITIAL_SELECTED_ASSET = null;
+
+  const [rampType, setRampType] = useState(providerRampType ?? RampType.BUY);
 
   const [selectedRegion, setSelectedRegion] = useState(INITIAL_SELECTED_REGION);
   const [unsupportedRegion, setUnsupportedRegion] = useState<Region>();
@@ -205,36 +212,60 @@ export const RampSDKProvider = ({
     [dispatch],
   );
 
-  const contextValue: RampSDK = {
-    sdk,
-    sdkError,
+  const contextValue: RampSDK = useMemo(
+    () => ({
+      sdk,
+      sdkError,
 
-    selectedRegion,
-    setSelectedRegion: setSelectedRegionCallback,
+      rampType,
+      setRampType,
 
-    unsupportedRegion,
-    setUnsupportedRegion,
+      selectedRegion,
+      setSelectedRegion: setSelectedRegionCallback,
 
-    selectedPaymentMethodId,
-    setSelectedPaymentMethodId: setSelectedPaymentMethodIdCallback,
+      unsupportedRegion,
+      setUnsupportedRegion,
 
-    selectedAsset,
-    setSelectedAsset: setSelectedAssetCallback,
+      selectedPaymentMethodId,
+      setSelectedPaymentMethodId: setSelectedPaymentMethodIdCallback,
 
-    selectedFiatCurrencyId,
-    setSelectedFiatCurrencyId: setSelectedFiatCurrencyIdCallback,
+      selectedAsset,
+      setSelectedAsset: setSelectedAssetCallback,
 
-    getStarted,
-    setGetStarted: setGetStartedCallback,
+      selectedFiatCurrencyId,
+      setSelectedFiatCurrencyId: setSelectedFiatCurrencyIdCallback,
 
-    selectedAddress,
-    selectedChainId,
-    selectedNetworkName,
+      getStarted,
+      setGetStarted: setGetStartedCallback,
 
-    appConfig,
-    callbackBaseUrl,
-    isInternalBuild: isDevelopmentOrInternalBuild,
-  };
+      selectedAddress,
+      selectedChainId,
+      selectedNetworkName,
+
+      appConfig,
+      callbackBaseUrl,
+      isInternalBuild: isDevelopmentOrInternalBuild,
+    }),
+    [
+      getStarted,
+      rampType,
+      sdk,
+      sdkError,
+      selectedAddress,
+      selectedAsset,
+      selectedChainId,
+      selectedFiatCurrencyId,
+      selectedNetworkName,
+      selectedPaymentMethodId,
+      selectedRegion,
+      setGetStartedCallback,
+      setSelectedAssetCallback,
+      setSelectedFiatCurrencyIdCallback,
+      setSelectedPaymentMethodIdCallback,
+      setSelectedRegionCallback,
+      unsupportedRegion,
+    ],
+  );
 
   return <SDKContext.Provider value={value || contextValue} {...props} />;
 };

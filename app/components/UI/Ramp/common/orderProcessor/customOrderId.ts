@@ -1,4 +1,5 @@
 import { Order, OrderStatusEnum } from '@consensys/on-ramp-sdk';
+import { OrderOrderTypeEnum } from '@consensys/on-ramp-sdk/dist/API';
 import AppConstants from '../../../../../core/AppConstants';
 import { CustomIdData } from '../../../../../reducers/fiatOrders/types';
 import { SDK } from '../sdk';
@@ -11,11 +12,13 @@ export function createCustomOrderIdData(
   id: string,
   chainId: string,
   account: string,
+  orderType: OrderOrderTypeEnum,
 ): CustomIdData {
   return {
     id,
     chainId,
     account,
+    orderType,
     createdAt: Date.now(),
     lastTimeFetched: 0,
     errorCount: 0,
@@ -43,7 +46,11 @@ export default async function processCustomOrderIdData(
 
   try {
     const orders = await SDK.orders();
-    const updatedCustomOrderIdData = await orders.getOrder(
+    const getOrderMethod =
+      customOrderIdData.orderType === OrderOrderTypeEnum.Sell
+        ? 'getSellOrder'
+        : 'getOrder';
+    const updatedCustomOrderIdData = await orders[getOrderMethod](
       customOrderIdData.id,
       customOrderIdData.account,
     );

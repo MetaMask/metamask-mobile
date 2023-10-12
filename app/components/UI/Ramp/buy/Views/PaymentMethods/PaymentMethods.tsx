@@ -33,7 +33,7 @@ interface PaymentMethodsParams {
 }
 
 export const createPaymentMethodsNavDetails =
-  createNavigationDetails<PaymentMethodsParams>(Routes.RAMP.BUY.PAYMENT_METHOD);
+  createNavigationDetails<PaymentMethodsParams>(Routes.RAMP.PAYMENT_METHOD);
 
 const PaymentMethods = () => {
   const navigation = useNavigation();
@@ -91,7 +91,7 @@ const PaymentMethods = () => {
     const needsReset = showBack === false;
     if (needsReset) {
       navigation.reset({
-        routes: [{ name: Routes.RAMP.BUY.REGION }],
+        routes: [{ name: Routes.RAMP.REGION }],
       });
     } else {
       navigation.goBack();
@@ -99,6 +99,7 @@ const PaymentMethods = () => {
   }, [showBack, setSelectedPaymentMethodId, setSelectedRegion, navigation]);
 
   const handleContinueToAmount = useCallback(() => {
+    // TODO: handle navigation to Build Quote page
     trackEvent('ONRAMP_CONTINUE_TO_AMOUNT_CLICKED', {
       available_payment_method_ids: paymentMethods?.map(
         (paymentMethod) => paymentMethod.id,

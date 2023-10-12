@@ -1,5 +1,6 @@
 import { useRampSDK } from '../../common/sdk';
 import useSDKMethod from '../../common/hooks/useSDKMethod';
+import { RampType } from '../../common/types';
 
 function useQuotes(amount: number) {
   const {
@@ -8,9 +9,10 @@ function useQuotes(amount: number) {
     selectedAsset,
     selectedAddress,
     selectedFiatCurrencyId,
+    rampType,
   } = useRampSDK();
   const [{ data, isFetching, error }, query] = useSDKMethod(
-    'getQuotes',
+    rampType === RampType.BUY ? 'getQuotes' : 'getSellQuotes',
     selectedRegion?.id,
     selectedPaymentMethodId,
     selectedAsset?.id,

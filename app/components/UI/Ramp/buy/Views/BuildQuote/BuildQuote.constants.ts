@@ -135,6 +135,10 @@ export const mockRegionsData = [
     id: '/regions/cl',
     name: 'Chile',
     unsupported: false,
+    support: {
+      buy: true,
+      sell: true,
+    },
   },
   {
     currencies: ['/currencies/fiat/eur'],
@@ -142,5 +146,9 @@ export const mockRegionsData = [
     id: '/regions/al',
     name: 'Albania',
     unsupported: false,
+    support: {
+      buy: true,
+      sell: true,
+    },
   },
 ] as Country[];

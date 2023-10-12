@@ -64,7 +64,7 @@ interface BuildQuoteParams {
 }
 
 export const createBuildQuoteNavDetails =
-  createNavigationDetails<BuildQuoteParams>(Routes.RAMP.BUY.AMOUNT_TO_BUY);
+  createNavigationDetails<BuildQuoteParams>(Routes.RAMP.BUILD_QUOTE);
 
 const BuildQuote = () => {
   const navigation = useNavigation();

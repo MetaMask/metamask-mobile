@@ -58,6 +58,7 @@ export interface CustomIdData {
   createdAt: number;
   lastTimeFetched: number;
   errorCount: number;
+  orderType: string;
   expired?: boolean;
   order?: Record<string, any>;
 }
@@ -117,3 +118,8 @@ export type Action =
   | ReturnType<typeof updateOnRampNetworks>;
 
 export type Region = Country & State;
+
+export enum RampType {
+  BUY = 'buy',
+  SELL = 'sell',
+}
