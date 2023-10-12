@@ -31,4 +31,36 @@ describe('getBlockaidMetricsParams', () => {
       ppom_eth_getCode_count: 3,
     });
   });
+
+  it('should not return eth call counts if providerRequestsCount is empty', () => {
+    const securityAlertResponse: SecurityAlertResponse = {
+      resultType: ResultType.Malicious,
+      reason: Reason.notApplicable,
+      features: [],
+      providerRequestsCount: {},
+    };
+
+    const result = getBlockaidMetricsParams(securityAlertResponse);
+    expect(result).toEqual({
+      ui_customizations: ['flagged_as_malicious'],
+      security_alert_response: ResultType.Malicious,
+      security_alert_reason: Reason.notApplicable,
+    });
+  });
+
+  it('should not return eth call counts if providerRequestsCount is undefined', () => {
+    const securityAlertResponse: SecurityAlertResponse = {
+      resultType: ResultType.Malicious,
+      reason: Reason.notApplicable,
+      features: [],
+      providerRequestsCount: undefined,
+    };
+
+    const result = getBlockaidMetricsParams(securityAlertResponse);
+    expect(result).toEqual({
+      ui_customizations: ['flagged_as_malicious'],
+      security_alert_response: ResultType.Malicious,
+      security_alert_reason: Reason.notApplicable,
+    });
+  });
 });
