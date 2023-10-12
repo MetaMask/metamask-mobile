@@ -538,9 +538,12 @@
     "suggest_transactions": "Suggest transactions to approve",
     "disconnect": "Disconnect",
     "disconnect_all_accounts": "Disconnect all accounts",
-    "deceptive_site_ahead": "Deceptive Site Ahead",
-    "deceptive_site_desc": "The site you’re trying to visit isn’t safe. Attackers may trick you into doing something dangerous",
-    "advisory_by": "Advisory provided by Ethereum Phishing Detector and PhishFort"
+    "deceptive_site_ahead": "Deceptive site ahead",
+    "deceptive_site_desc": "The site you’re trying to visit isn’t safe. Attackers may trick you into doing something dangerous.",
+    "learn_more": "Learn more",
+    "advisory_by": "Advisory provided by Ethereum Phishing Detector and PhishFort",
+    "report_problem": "Report a problem",
+    "potential_threat": "Potential threats include"
   },
   "toast": {
     "connected_and_active": "connected and active.",
