@@ -1914,7 +1914,6 @@
     "no_tokens_match": "Нет совпадений токенов «{{searchString}}»",
     "no_currency_match": "Нет совпадений валют «{{searchString}}»",
     "pay_with": "Оплатить с помощью",
-    "buy_with": "Купить с помощью {{provider}}",
     "minimum": "Минимальный депозит равен",
     "maximum": "Максимальный депозит равен",
     "try_again": "Повторить попытку",

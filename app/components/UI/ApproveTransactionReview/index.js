@@ -335,8 +335,7 @@ class ApproveTransactionReview extends PureComponent {
       tokenList,
       tokenAllowanceState,
     } = this.props;
-    const { AssetsContractController, TokenBalancesController } =
-      Engine.context;
+    const { TokenBalancesController } = Engine.context;
 
     let host;
 
@@ -391,9 +390,6 @@ class ApproveTransactionReview extends PureComponent {
           tokenName = name;
           tokenSymbol = symbol;
           tokenStandard = standard;
-          tokenDecimals = await AssetsContractController.getERC20TokenDecimals(
-            to,
-          );
         } else {
           tokenDecimals = decimals;
           tokenSymbol = symbol;
@@ -789,6 +785,7 @@ class ApproveTransactionReview extends PureComponent {
         <View style={styles.section} testID={'approve-modal-test-id'}>
           {from && (
             <ApproveTransactionHeader
+              dontWatchAsset
               origin={origin}
               url={activeTabUrl}
               from={from}
