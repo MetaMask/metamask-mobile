@@ -61,7 +61,7 @@ export interface ConnectionProps {
   initialConnection?: boolean;
   originatorInfo?: OriginatorInfo;
   validUntil: number;
-  lastAuthorized: number; // timestamp of last received activity
+  lastAuthorized?: number; // timestamp of last received activity
 }
 export interface ConnectedSessions {
   [id: string]: Connection;
@@ -133,7 +133,7 @@ export class Connection extends EventEmitter2 {
   /*
    * Timestamp of last activity, used to check if channel is still active and to prevent showing OTP approval modal too often.
    */
-  lastAuthorized: number;
+  lastAuthorized?: number;
 
   /**
    * Prevent double sending 'authorized' message.

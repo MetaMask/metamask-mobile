@@ -1197,6 +1197,8 @@ class ApproveTransactionReview extends PureComponent {
           showCancelButton
           bypassAndroidCameraAccessCheck={false}
           fromAddress={from}
+          cancelCallback={this.onCancelPress}
+          successCallback={this.onConfirmPress}
         />
       </View>
     );

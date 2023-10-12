@@ -791,7 +791,6 @@
     "incoming_transactions_title": "Show incoming transactions",
     "incoming_transactions_content": "This relies on the network you select which will expose your Ethereum address and your IP address.",
     "display_nft_media_desc_new": "Displaying NFT media and data exposes your IP address to OpenSea or other third parties. NFT autodetection relies on this feature, and won't be available when turned off. If NFT media is fully located on IPFS, it can still be displayed even when this feature is turned off."
-
   },
   "sdk": {
     "disconnect_title": "Disconnect all sites?",
@@ -1321,6 +1320,11 @@
     "between_account": "Transfer between my accounts",
     "others": "Others",
     "memo": "Memo"
+  },
+  "duplicate_address": {
+    "title": "This is a duplicate address",
+    "body": "Your contact list shows this address on more than one chain. Be sure to select the correct contact before you send any funds.",
+    "button": "Got it"
   },
   "transaction_submitted": {
     "title": "Transaction Submitted",
