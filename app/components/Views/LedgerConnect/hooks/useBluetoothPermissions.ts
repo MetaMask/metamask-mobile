@@ -74,7 +74,8 @@ const useBluetoothPermissions = () => {
         nextAppState === 'active'
       ) {
         setBluetoothPermissionError(undefined);
-        checkPermissions();
+        //TODO test others revokation
+        //checkPermissions();
       }
 
       appState.current = nextAppState;
