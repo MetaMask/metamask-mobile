@@ -626,6 +626,8 @@ class TransactionReview extends PureComponent {
     const {
       QRState,
       transaction: { from },
+      onCancel,
+      onConfirm,
     } = this.props;
 
     const styles = this.getStyles();
@@ -639,6 +641,8 @@ class TransactionReview extends PureComponent {
           showHint={false}
           bypassAndroidCameraAccessCheck={false}
           fromAddress={from}
+          cancelCallback={onCancel}
+          successCallback={onConfirm}
         />
       </View>
     );
