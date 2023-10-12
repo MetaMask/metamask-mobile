@@ -5946,13 +5946,6 @@
   resolved "https://registry.yarnpkg.com/@types/stack-utils/-/stack-utils-2.0.1.tgz#20f18294f797f2209b5f65c8e3b5c8e8261d127c"
   integrity sha512-Hl219/BT5fLAaz6NDkSuhzasy49dwQS/DSdu4MdggFB8zcXv7vflBI3xp7FEmkmdDkBUI2bPUNeMttp2knYdxw==
 
-"@types/stream-buffers@^3.0.3":
-  version "3.0.4"
-  resolved "https://registry.yarnpkg.com/@types/stream-buffers/-/stream-buffers-3.0.4.tgz#bf128182da7bc62722ca0ddf5458a9c65f76e648"
-  integrity sha512-qU/K1tb2yUdhXkLIATzsIPwbtX6BpZk0l3dPW6xqWyhfzzM1ECaQ/8faEnu3CNraLiQ9LHyQQPBGp7N9Fbs25w==
-  dependencies:
-    "@types/node" "*"
-
 "@types/supports-color@^8.1.0":
   version "8.1.1"
   resolved "https://registry.yarnpkg.com/@types/supports-color/-/supports-color-8.1.1.tgz#1b44b1b096479273adf7f93c75fc4ecc40a61ee4"
@@ -6519,18 +6512,18 @@
     junit-report-builder "^3.0.0"
     validator "^13.0.0"
 
-"@wdio/local-runner@^7.19.1":
-  version "7.25.2"
-  resolved "https://registry.yarnpkg.com/@wdio/local-runner/-/local-runner-7.25.2.tgz#e2fe3f366018d80b01c3c58153b5bd85e97b3e3d"
-  integrity sha512-6FXuGSX7UNpMLmH2k0dpCZRxgiX7nF6kDN+NjUyUNdp2H6qLHxkOdpNTI0rIijamHEFADjGoeYAluybu6QtbmA==
+"@wdio/local-runner@^8.16.11":
+  version "8.17.0"
+  resolved "https://registry.yarnpkg.com/@wdio/local-runner/-/local-runner-8.17.0.tgz#76c0c736b2fcd361469d5559260c38280cc3c172"
+  integrity sha512-hYubvTs80U2h9s4mtd7+znRiQwLnn2duwdYW0L+pRkt3yDmaA76R/a//GrpIFqn9j04463S9xv4pOGOat10fPA==
   dependencies:
-    "@types/stream-buffers" "^3.0.3"
-    "@wdio/logger" "7.19.0"
-    "@wdio/repl" "7.25.1"
-    "@wdio/runner" "7.25.2"
-    "@wdio/types" "7.25.1"
+    "@types/node" "^20.1.0"
+    "@wdio/logger" "8.16.17"
+    "@wdio/repl" "8.10.1"
+    "@wdio/runner" "8.17.0"
+    "@wdio/types" "8.17.0"
     async-exit-hook "^2.0.1"
-    split2 "^4.0.0"
+    split2 "^4.1.0"
     stream-buffers "^3.0.2"
 
 "@wdio/logger@5.16.10":
@@ -6713,19 +6706,22 @@
     object-inspect "^1.10.3"
     supports-color "8.1.1"
 
-"@wdio/runner@7.25.2":
-  version "7.25.2"
-  resolved "https://registry.yarnpkg.com/@wdio/runner/-/runner-7.25.2.tgz#1991c8fa09d9840f8bb3d645f47722418ab25043"
-  integrity sha512-0fQe9qmYPmbZ+PiDmZw6uy9XEx0A8+VhQAxyUSp/K9NCDUABY+I1tCSHCY/0mzlwk+ykscn8+qhaN1g9LvBtPA==
+"@wdio/runner@8.17.0":
+  version "8.17.0"
+  resolved "https://registry.yarnpkg.com/@wdio/runner/-/runner-8.17.0.tgz#b2be6cb6d2a328353bc97bcd698dc41c20de1daf"
+  integrity sha512-icWRiCytpIlrJGq2CUUS4QfrFjiiX2pDoBGH1hr7L8XDorQ7niyTQWYPj7DoDuDy42poWuCjsCxZCBgb5YHw1Q==
   dependencies:
-    "@wdio/config" "7.25.1"
-    "@wdio/logger" "7.19.0"
-    "@wdio/types" "7.25.1"
-    "@wdio/utils" "7.25.1"
-    deepmerge "^4.0.0"
+    "@types/node" "^20.1.0"
+    "@wdio/config" "8.17.0"
+    "@wdio/globals" "8.17.0"
+    "@wdio/logger" "8.16.17"
+    "@wdio/types" "8.17.0"
+    "@wdio/utils" "8.17.0"
+    deepmerge-ts "^5.0.0"
+    expect-webdriverio "^4.2.5"
     gaze "^1.1.2"
-    webdriver "7.25.1"
-    webdriverio "7.25.2"
+    webdriver "8.17.0"
+    webdriverio "8.17.0"
 
 "@wdio/spec-reporter@^7.19.1":
   version "7.25.1"
@@ -21368,6 +21364,15 @@ read-pkg-up@^1.0.1:
     find-up "^1.0.0"
     read-pkg "^1.0.0"
 
+read-pkg-up@^10.0.0:
+  version "10.1.0"
+  resolved "https://registry.yarnpkg.com/read-pkg-up/-/read-pkg-up-10.1.0.tgz#2d13ab732d2f05d6e8094167c2112e2ee50644f4"
+  integrity sha512-aNtBq4jR8NawpKJQldrQcSW9y/d+KWH4v24HWkHljOZ7H0av+YTGANBzRh9A5pw7v/bLVsLVPpOhJ7gHNVy8lA==
+  dependencies:
+    find-up "^6.3.0"
+    read-pkg "^8.1.0"
+    type-fest "^4.2.0"
+
 read-pkg-up@^3.0.0:
   version "3.0.0"
   resolved "https://registry.yarnpkg.com/read-pkg-up/-/read-pkg-up-3.0.0.tgz#3ed496685dba0f8fe118d0691dc51f4a1ff96f07"
@@ -23035,11 +23040,6 @@ split2@^3.2.2:
   integrity sha512-9NThjpgZnifTkJpzTZ7Eue85S49QwpNhZTq6GRJwObb6jnLFNGB7Qm73V5HewTROPyxD0C29xqmaI68bQtV+hg==
   dependencies:
     readable-stream "^3.0.0"
-
-split2@^4.0.0:
-  version "4.1.0"
-  resolved "https://registry.yarnpkg.com/split2/-/split2-4.1.0.tgz#101907a24370f85bb782f08adaabe4e281ecf809"
-  integrity sha512-VBiJxFkxiXRlUIeyMQi8s4hgvKCSjtknJv/LVYbrgALPwf5zSKmEwV9Lst25AkvMDnvxODugjdl6KZgwKM1WYQ==
 
 split2@^4.1.0, split2@^4.2.0:
   version "4.2.0"
