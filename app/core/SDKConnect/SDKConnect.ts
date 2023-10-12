@@ -304,7 +304,19 @@ export class Connection extends EventEmitter2 {
           return;
         }
 
+        // TODO following logic blocksshould be simplified
         if (
+          this.initialConnection &&
+          this.origin === AppConstants.DEEPLINKS.ORIGIN_QR_CODE
+        ) {
+          // Ask for authorisation?
+          // Always need to re-approve connection first.
+          await this.checkPermissions({
+            lastAuthorized: this.lastAuthorized,
+          });
+
+          this.sendAuthorized(true);
+        } else if (
           !this.initialConnection &&
           this.origin === AppConstants.DEEPLINKS.ORIGIN_QR_CODE
         ) {
@@ -447,8 +459,11 @@ export class Connection extends EventEmitter2 {
             },
             name: 'metamask-provider',
           }).catch(() => {
-            Logger.log(error, `Connection failed to send otp`);
+            Logger.log(error, `Connection approval failed`);
           });
+          // cleanup connection
+          this.removeConnection({ terminate: true });
+          this.isReady = false;
           this.approvalPromise = undefined;
           return;
         }
@@ -506,14 +521,11 @@ export class Connection extends EventEmitter2 {
           return;
         }
 
-        // Add some delay, otherwise in some rare cases, the ui may not have had time ot initialize and modal doesn't show.
-        setTimeout(() => {
-          this.backgroundBridge?.onMessage({
-            name: 'metamask-provider',
-            data: message,
-            origin: 'sdk',
-          });
-        }, 100);
+        this.backgroundBridge?.onMessage({
+          name: 'metamask-provider',
+          data: message,
+          origin: 'sdk',
+        });
       },
     );
   }
@@ -737,6 +749,9 @@ export class Connection extends EventEmitter2 {
 
   removeConnection({ terminate }: { terminate: boolean }) {
     this.isReady = false;
+    this.lastAuthorized = 0;
+    this.authorizedSent = false;
+    this.disapprove(this.channelId);
     this.disconnect({ terminate });
     this.backgroundBridge?.onDisconnect();
     this.setLoading(false);
@@ -843,7 +858,7 @@ export class SDKConnect extends EventEmitter2 {
       otherPublicKey,
       origin,
       validUntil: Date.now() + DEFAULT_SESSION_TIMEOUT_MS,
-      lastAuthorized: Date.now(),
+      lastAuthorized: 0,
     };
 
     const initialConnection = this.approvedHosts[id] === undefined;
@@ -971,6 +986,10 @@ export class SDKConnect extends EventEmitter2 {
     channelId: string;
     originatorInfo: OriginatorInfo;
   }) {
+    if (!this.connections[channelId]) {
+      return;
+    }
+
     this.connections[channelId].originatorInfo = originatorInfo;
     DefaultPreference.set(
       AppConstants.MM_SDK.SDK_CONNECTIONS,
@@ -1044,6 +1063,11 @@ export class SDKConnect extends EventEmitter2 {
 
       if (ready || connected) {
         existingConnection.disconnect({ terminate: false });
+      }
+
+      if (Platform.OS === 'android') {
+        // Android is too slow to update connected / ready status so we manually abord the reconnection as long as connection exists to prevent conflict.
+        return;
       }
     }
 
@@ -1260,6 +1284,7 @@ export class SDKConnect extends EventEmitter2 {
 
   public disapproveChannel(channelId: string) {
     const hostname = AppConstants.MM_SDK.SDK_REMOTE_ORIGIN + channelId;
+    this.connections[channelId].lastAuthorized = 0;
     delete this.approvedHosts[hostname];
   }
 
