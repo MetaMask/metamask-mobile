@@ -318,7 +318,7 @@
     "zxcvbn": "4.4.2"
   },
   "devDependencies": {
-    "@babel/core": "^7.12.9",
+    "@babel/core": "^7.23.2",
     "@babel/runtime": "^7.12.5",
     "@lavamoat/allow-scripts": "^1.0.6",
     "@metamask/eslint-config": "^7.0.0",
