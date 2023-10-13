@@ -7,6 +7,7 @@ const APPROVE_TEXT = messages.transactions.tx_review_approve;
 const REJECT_TEXT = messages.transaction.reject;
 const APPROVAL_MODAL_CONTAINER_ID = 'approve-modal-test-id';
 const COPY_CONTRACT_ADDRESS_ID = 'contract-address';
+const APPROVE_TOKEN_AMOUNT = 'custom-spend-cap-input-input-id';
 
 export default class ApprovalModal {
   static async tapAddNickName() {
