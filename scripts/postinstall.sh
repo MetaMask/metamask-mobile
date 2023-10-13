@@ -1,7 +1,7 @@
 #!/bin/bash
 echo "PostInstall script:"
 
-echo "1. Build Provider..."
+echo "1. Build Inpage Bridge..."
 rm app/core/InpageBridgeWeb3.js
 mkdir -p js/dist && rm -rf js/dist/*
 cd js/inpage
