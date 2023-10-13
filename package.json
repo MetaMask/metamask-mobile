@@ -230,6 +230,7 @@
     "pbkdf2": "3.1.2",
     "pify": "4.0.1",
     "prop-types": "15.7.2",
+    "pubnub": "4.34.0",
     "pump": "3.0.0",
     "punycode": "^2.1.1",
     "qs": "6.7.3",
@@ -342,29 +343,15 @@
     "@types/react-native-vector-icons": "^6.4.8",
     "@types/react-native-video": "^5.0.13",
     "@types/redux-mock-store": "^1.0.3",
-<<<<<<< HEAD
     "@typescript-eslint/eslint-plugin": "^6.7.0",
     "@typescript-eslint/parser": "^4.20.0",
-=======
-    "@typescript-eslint/eslint-plugin": "^6.7.5",
-    "@typescript-eslint/parser": "^6.7.0",
->>>>>>> main
     "@wdio/appium-service": "^7.19.1",
     "@wdio/browserstack-service": "^7.26.0",
-<<<<<<< HEAD
     "@wdio/cli": "^7.19.1",
-=======
-    "@wdio/cli": "^8.16.11",
->>>>>>> main
     "@wdio/cucumber-framework": "^8.14.6",
     "@wdio/junit-reporter": "^7.25.4",
-<<<<<<< HEAD
     "@wdio/local-runner": "^7.19.1",
     "@wdio/spec-reporter": "^8.4.0",
-=======
-    "@wdio/local-runner": "^8.16.11",
-    "@wdio/spec-reporter": "^7.19.1",
->>>>>>> main
     "appium": "^1.22.3",
     "assert": "1.4.1",
     "babel-core": "7.0.0-bridge.0",
