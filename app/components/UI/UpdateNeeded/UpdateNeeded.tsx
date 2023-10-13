@@ -17,7 +17,8 @@ import Button, {
 } from '../../../component-library/components/Buttons/Button';
 import { MM_APP_STORE_LINK, MM_PLAY_STORE_LINK } from '../../../constants/urls';
 import { MetaMetricsEvents } from '../../../core/Analytics';
-import { trackEvent } from '../../../util/analyticsV2';
+import AnalyticsV2 from '../../../util/analyticsV2';
+
 import { ScrollView } from 'react-native-gesture-handler';
 import generateDeviceAnalyticsMetaData from '../../../util/metrics';
 
@@ -35,7 +36,7 @@ const UpdateNeeded = () => {
   const modalRef = useRef<ReusableModalRef | null>(null);
 
   useEffect(() => {
-    trackEvent(
+    AnalyticsV2.trackEvent(
       MetaMetricsEvents.FORCE_UPGRADE_UPDATE_NEEDED_PROMPT_VIEWED,
       generateDeviceAnalyticsMetaData(),
     );
@@ -46,7 +47,7 @@ const UpdateNeeded = () => {
 
   const triggerClose = () =>
     dismissModal(() => {
-      trackEvent(
+      AnalyticsV2.trackEvent(
         MetaMetricsEvents.FORCE_UPGRADE_REMIND_ME_LATER_CLICKED,
         generateDeviceAnalyticsMetaData(),
       );
@@ -54,7 +55,7 @@ const UpdateNeeded = () => {
 
   const openAppStore = useCallback(() => {
     const link = Platform.OS === 'ios' ? MM_APP_STORE_LINK : MM_PLAY_STORE_LINK;
-    trackEvent(
+    AnalyticsV2.trackEvent(
       MetaMetricsEvents.FORCE_UPGRADE_UPDATE_TO_THE_LATEST_VERSION_CLICKED,
       { ...generateDeviceAnalyticsMetaData(), link },
     );

@@ -62,6 +62,8 @@ const Icon = ({
       style={styles.icon}
       width={sizeAsNum}
       height={sizeAsNum}
+      // This prop it's for testing purposes
+      name={name}
       {...props}
     />
   );

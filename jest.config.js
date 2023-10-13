@@ -16,6 +16,9 @@ const config = {
   coverageReporters: ['text-summary', 'lcov'],
   coverageDirectory: '<rootDir>/tests/coverage',
   maxWorkers: process.env.NODE_ENV !== 'production' ? '25%' : '100%',
+  moduleNameMapper: {
+    '\\.svg': '<rootDir>/app/__mocks__/svgMock.js',
+  },
 };
 
 // eslint-disable-next-line import/no-commonjs

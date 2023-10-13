@@ -1,2 +1,2 @@
-// eslint-disable-next-line import/prefer-default-export
-export const BADGE_NETWORK_TEST_ID = 'badge-network';
+export const BADGE_BADGENETWORK_TEST_ID = 'badge-badgenetwork';
+export const BADGE_BADGESTATUS_TEST_ID = 'badge-badgestatus';

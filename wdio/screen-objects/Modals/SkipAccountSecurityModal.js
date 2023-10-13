@@ -1,4 +1,3 @@
-/* global driver */
 import {
   SKIP_BACKUP_TEXT,
   SKIP_BUTTON,
@@ -16,8 +15,8 @@ class SkipAccountSecurityModal {
   }
 
   async proceedWithoutWalletSecure() {
-    const settimeout = 2000;
-    await driver.pause(settimeout);
+    const setTimeout = 2000;
+    await driver.pause(setTimeout);
     await Gestures.tap(await this.skipBackupText);
     await Gestures.tap(await this.skipButton);
   }
@@ -26,4 +25,5 @@ class SkipAccountSecurityModal {
     await expect(this.skipBackupText).toBeDisplayed();
   }
 }
+
 export default new SkipAccountSecurityModal();

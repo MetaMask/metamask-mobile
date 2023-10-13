@@ -1,7 +1,5 @@
 #!/usr/bin/env node
-/* eslint-disable import/no-commonjs */
-/* eslint-disable import/no-nodejs-modules */
-/* eslint-disable no-console */
+
 const contractMetadata = require('@metamask/contract-metadata');
 const fs = require('fs');
 const path = require('path');

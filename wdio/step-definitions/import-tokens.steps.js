@@ -1,4 +1,3 @@
-/* global driver */
 import { When, Then } from '@wdio/cucumber-framework';
 import AddCustomImportTokensScreen from '../screen-objects/AddCustomImportTokensScreen.js';
 import WalletMainScreen from '../screen-objects/WalletMainScreen.js';

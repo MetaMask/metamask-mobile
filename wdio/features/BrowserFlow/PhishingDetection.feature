@@ -1,4 +1,4 @@
-@androidApp @smoke
+@androidApp @smoke @ChainScenarios
 Feature: This feature file covers phishing detection functionality the browser.
 
   Scenario: Visiting a malicious website prompts the user with the phishing detection warning
@@ -14,5 +14,4 @@ Feature: This feature file covers phishing detection functionality the browser.
     Then I should see a warning screen with Ethereum Phishing Detection title
 
     When I tap the Back button on Phishing Detection page
-    Then I should close the address view
     And the browser view is on the "https://home.metamask.io/" website

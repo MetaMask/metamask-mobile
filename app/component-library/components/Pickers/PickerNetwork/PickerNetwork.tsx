@@ -2,7 +2,7 @@
 
 // Third party dependencies.
 import React from 'react';
-import { TouchableOpacity } from 'react-native';
+import { Platform, TouchableOpacity } from 'react-native';
 
 // External dependencies.
 import Avatar, { AvatarSize, AvatarVariants } from '../../Avatars/Avatar';
@@ -13,6 +13,8 @@ import { useStyles } from '../../../hooks';
 // Internal dependencies.
 import { PickerNetworkProps } from './PickerNetwork.types';
 import stylesheet from './PickerNetwork.styles';
+import generateTestId from '../../../../../wdio/utils/generateTestId';
+import { NAVBAR_NETWORK_TEXT } from '../../../../../wdio/screen-objects/testIDs/Screens/WalletView.testIds';
 
 const PickerNetwork = ({
   onPress,
@@ -31,7 +33,12 @@ const PickerNetwork = ({
         name={label}
         imageSource={imageSource}
       />
-      <Text style={styles.label} numberOfLines={1} variant={TextVariant.BodyMD}>
+      <Text
+        style={styles.label}
+        numberOfLines={1}
+        variant={TextVariant.BodyMD}
+        {...generateTestId(Platform, NAVBAR_NETWORK_TEXT)}
+      >
         {label}
       </Text>
       <Icon size={IconSize.Xs} name={IconName.ArrowDown} />

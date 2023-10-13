@@ -15,7 +15,7 @@ import {
 } from './AccountBalance.constants';
 import {
   BadgeProps,
-  BadgeVariants,
+  BadgeVariant,
 } from '../../../components/Badges/Badge/Badge.types';
 
 // Internal dependencies.
@@ -35,13 +35,13 @@ const accountNativeCurrency = text(
 const accountBalanceLabel = text('accountBalanceLabel', ACCOUNT_BALANCE_LABEL);
 
 const badgeProps: BadgeProps = {
-  variant: BadgeVariants.Network,
+  variant: BadgeVariant.Network,
   name: TEST_NETWORK_NAME,
   imageSource: TEST_REMOTE_IMAGE_SOURCE,
 };
 
 const unknownBadgeProps: BadgeProps = {
-  variant: BadgeVariants.Network,
+  variant: BadgeVariant.Network,
 };
 
 storiesOf('Components Temp / AccountBalance', module)
