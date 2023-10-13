@@ -7,8 +7,8 @@ import { AvatarSize } from '../../Avatar.types';
 
 // Internal dependencies.
 import AvatarNetwork from './AvatarNetwork';
+import { NETWORK_AVATAR_IMAGE_ID } from '../../../../../../constants/test-ids';
 import {
-  NETWORK_AVATAR_IMAGE_ID,
   TEST_LOCAL_IMAGE_SOURCE,
   TEST_NETWORK_NAME,
   TEST_REMOTE_IMAGE_SOURCE,

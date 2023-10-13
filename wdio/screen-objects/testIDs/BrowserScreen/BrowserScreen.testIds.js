@@ -1,4 +1,4 @@
-export const SCREEN_ID = 'browser-screen';
+export const BROWSER_SCREEN_ID = 'browser-screen';
 
 export const NAVBAR_TITLE_NETWORK = 'browser-url-bar';
 

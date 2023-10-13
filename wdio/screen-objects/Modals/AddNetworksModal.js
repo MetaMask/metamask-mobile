@@ -7,8 +7,9 @@ class AddNetworksModal {
     return Selectors.getElementByPlatform(ADD_NETWORK_BUTTON);
   }
 
-  async clickAddNetworks() {
-    await Gestures.tap(this.AddNetworksButton);
+  async tapAddNetworks() {
+    await Gestures.waitAndTap(this.AddNetworksButton);
   }
 }
+
 export default new AddNetworksModal();

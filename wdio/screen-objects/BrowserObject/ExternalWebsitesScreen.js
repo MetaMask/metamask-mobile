@@ -73,7 +73,13 @@ class ExternalWebsitesScreen {
     return Selectors.getXpathElementByText(HOME_FAVORITES_CARDS_URL);
   }
 
+  get testDappConnectButton() {
+    return Selectors.getXpathElementByText('CONNECT');
+  }
+
   async tapHomeFavoritesButton() {
+    const element = await this.homeFavoriteButton;
+    await element.waitForEnabled();
     await Gestures.waitAndTap(this.homeFavoriteButton);
   }
 
@@ -116,9 +122,14 @@ class ExternalWebsitesScreen {
   async tapUniswapConnectButton() {
     await Gestures.waitAndTap(this.uniswapConnectButton);
   }
+  async tapDappConnectButton() {
+    const element = await this.testDappConnectButton;
+    await element.waitForEnabled();
+    await Gestures.waitAndTap(this.testDappConnectButton);
+  }
 
   async tapUniswapMetaMaskWalletButton() {
-    await Gestures.waitAndTap(this.uniswapMetamaskWalletButton);
+    await Gestures.tapTextByXpath('MetaMask');
   }
 
   async isUniswapProfileIconDisplayed() {

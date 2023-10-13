@@ -1,0 +1,11 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`HelpText should render default settings correctly 1`] = `
+<Text
+  color="Default"
+  testID="helptext"
+  variant="sBodySM"
+>
+  Sample HelpText Text
+</Text>
+`;

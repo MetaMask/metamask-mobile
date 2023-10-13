@@ -1,6 +1,6 @@
 // Third party dependencies.
 import React, { useCallback, useContext } from 'react';
-import { View } from 'react-native';
+import { Platform, View } from 'react-native';
 
 // External dependencies.
 import SheetActions from '../../../../component-library/components-temp/SheetActions';
@@ -25,12 +25,14 @@ import { ToastOptions } from '../../../../component-library/components/Toast/Toa
 import { AccountPermissionsScreens } from '../AccountPermissions.types';
 import getAccountNameWithENS from '../../../../util/accounts';
 import { MetaMetricsEvents } from '../../../../core/Analytics';
-import { trackEvent } from '../../../../util/analyticsV2';
+import AnalyticsV2 from '../../../../util/analyticsV2';
 
 // Internal dependencies.
 import { AccountPermissionsRevokeProps } from './AccountPermissionsRevoke.types';
 import styleSheet from './AccountPermissionsRevoke.styles';
 import { useSelector } from 'react-redux';
+import generateTestId from '../../../../../wdio/utils/generateTestId';
+import { CONNECTED_ACCOUNTS_MODAL_REVOKE_BUTTON_ID } from '../../../../../wdio/screen-objects/testIDs/Components/ConnectedAccountsModal.testIds';
 
 const AccountPermissionsRevoke = ({
   ensByAccountAddress,
@@ -68,11 +70,14 @@ const AccountPermissionsRevoke = ({
         await Engine.context.PermissionController.revokeAllPermissions(
           hostname,
         );
-        trackEvent(MetaMetricsEvents.REVOKE_ACCOUNT_DAPP_PERMISSIONS, {
-          number_of_accounts: accountsLength,
-          number_of_accounts_connected: permittedAddresses.length,
-          number_of_networks: nonTestnetNetworks,
-        });
+        AnalyticsV2.trackEvent(
+          MetaMetricsEvents.REVOKE_ACCOUNT_DAPP_PERMISSIONS,
+          {
+            number_of_accounts: accountsLength,
+            number_of_accounts_connected: permittedAddresses.length,
+            number_of_networks: nonTestnetNetworks,
+          },
+        );
       } catch (e) {
         Logger.log(`Failed to revoke all accounts for ${hostname}`, e);
       }
@@ -163,16 +168,23 @@ const AccountPermissionsRevoke = ({
                     labelOptions,
                   });
                 }
-                trackEvent(MetaMetricsEvents.REVOKE_ACCOUNT_DAPP_PERMISSIONS, {
-                  number_of_accounts: accountsLength,
-                  number_of_accounts_connected: permittedAddresses.length,
-                  number_of_networks: nonTestnetNetworks,
-                });
+                AnalyticsV2.trackEvent(
+                  MetaMetricsEvents.REVOKE_ACCOUNT_DAPP_PERMISSIONS,
+                  {
+                    number_of_accounts: accountsLength,
+                    number_of_accounts_connected: permittedAddresses.length,
+                    number_of_networks: nonTestnetNetworks,
+                  },
+                );
               }
             }}
             label={strings('accounts.revoke')}
             size={ButtonSize.Sm}
             style={styles.disconnectButton}
+            {...generateTestId(
+              Platform,
+              CONNECTED_ACCOUNTS_MODAL_REVOKE_BUTTON_ID,
+            )}
           />
         )}
         isSelectionDisabled

@@ -1,0 +1,37 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`TextField should render default settings correctly 1`] = `
+<View
+  style={
+    Object {
+      "alignItems": "center",
+      "backgroundColor": "#FFFFFF",
+      "borderColor": "#BBC0C5",
+      "borderRadius": 8,
+      "borderWidth": 1,
+      "flexDirection": "row",
+      "height": 40,
+      "opacity": 1,
+      "paddingHorizontal": 16,
+    }
+  }
+  testID="textfield"
+>
+  <View
+    style={
+      Object {
+        "flex": 1,
+      }
+    }
+  >
+    <Input
+      autoFocus={false}
+      isDisabled={false}
+      isStateStylesDisabled={true}
+      onBlur={[Function]}
+      onFocus={[Function]}
+      textVariant="sBodyMD"
+    />
+  </View>
+</View>
+`;

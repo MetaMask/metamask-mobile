@@ -8,6 +8,7 @@ import 'react-native-url-polyfill/auto';
 import crypto from 'crypto'; // eslint-disable-line import/no-nodejs-modules, no-unused-vars
 require('react-native-browser-polyfill'); // eslint-disable-line import/no-commonjs
 
+import * as Sentry from '@sentry/react-native'; // eslint-disable-line import/no-namespace
 import { setupSentry } from './app/util/sentryUtils';
 setupSentry();
 
@@ -76,4 +77,4 @@ if (IGNORE_BOXLOGS_DEVELOPMENT === 'true') {
 /**
  * Application entry point responsible for registering root component
  */
-AppRegistry.registerComponent(name, () => Root);
+AppRegistry.registerComponent(name, () => Sentry.wrap(Root));

@@ -2,6 +2,55 @@
 
 ## Current Main Branch
 
+## 6.3.0 - Apr 05, 2023
+- [#6025](https://github.com/MetaMask/metamask-mobile/pull/6025): [FIX] Add url-parse lib to our MainNavigator
+- [#6039](https://github.com/MetaMask/metamask-mobile/pull/6039): [ENHANCEMENT] Improve Android setup instructions
+- [#5996](https://github.com/MetaMask/metamask-mobile/pull/5996): [ENHANCEMENT] Add document to refactor signature request code
+- [#5961](https://github.com/MetaMask/metamask-mobile/pull/5961): [FIX] #5898 - Converting native ETH to fiat and fiat to native ETH results in wrong values beign displayed on the Amount screen
+- [#5958](https://github.com/MetaMask/metamask-mobile/pull/5958): [FEATURE] add consensys zkevm (Linea) support
+- [#5997](https://github.com/MetaMask/metamask-mobile/pull/5997): [FEATURE] Account selector on swaps screen
+- [#6019](https://github.com/MetaMask/metamask-mobile/pull/6019): [ENHANCEMENT] On-ramp: Add #6009 strings
+- [#6023](https://github.com/MetaMask/metamask-mobile/pull/6023): [ENHANCEMENT] disable back press and add margin to the bottom for accept ToU modal
+- [#6016](https://github.com/MetaMask/metamask-mobile/pull/6016): [ENHANCEMENT] On-ramp: Add accessibility label to custom action images
+- [#5948](https://github.com/MetaMask/metamask-mobile/pull/5948): [FEATURE] SDK Session Persistence
+- [#5882](https://github.com/MetaMask/metamask-mobile/pull/5882): [FIX] Skip type checking library declaration files
+- [#5975](https://github.com/MetaMask/metamask-mobile/pull/5975): [FIX] 18 JS type errors for TSC to output 683 TS/TSX errors
+- [#5910](https://github.com/MetaMask/metamask-mobile/pull/5910): [ENHANCEMENT] E2E Permission system tests
+- [#5839](https://github.com/MetaMask/metamask-mobile/pull/5839): [FIX] Clear Hex data when Token Transfer reverts ETH
+- [#5930](https://github.com/MetaMask/metamask-mobile/pull/5930): [ENHANCEMENT] dispaly nft info in browser
+- [#5785](https://github.com/MetaMask/metamask-mobile/pull/5785): [FEATURE] add portfolio button to asset action buttons
+- [#5242](https://github.com/MetaMask/metamask-mobile/pull/5242): [FEATURE] Use Terms Modal
+- [#5941](https://github.com/MetaMask/metamask-mobile/pull/5941): [FIX] bundle video in app to prevent crash when not available
+- [#5669](https://github.com/MetaMask/metamask-mobile/pull/5669): [UPDATE] http-cache-semantics from 4.1.0 to 4.1.1
+- [#5959](https://github.com/MetaMask/metamask-mobile/pull/5959): [UPDATE] @xmldom/xmldom from 0.8.3 to 0.8.6
+- [#5962](https://github.com/MetaMask/metamask-mobile/pull/5962): [FIX] Remove select address as a prop on App index.js
+- [#5964](https://github.com/MetaMask/metamask-mobile/pull/5964): [FEATURE] Added translations for MC 0.5
+- [#4421](https://github.com/MetaMask/metamask-mobile/pull/4421): [FEATURE] Vault corruption recovery flow
+- [#5327](https://github.com/MetaMask/metamask-mobile/pull/5327): [FEATURE] Verify Contract Details
+
+## 6.2.0 - Mar 21, 2023
+- [#5890](https://github.com/MetaMask/metamask-mobile/pull/5890): [FIX] Swap with wallet connect
+- [#5807](https://github.com/MetaMask/metamask-mobile/pull/5807): [IMPROVEMENT] "preview build" support to Bitrise
+- [#5924](https://github.com/MetaMask/metamask-mobile/pull/5924): [UPDATE] the README setup steps
+- [#5901](https://github.com/MetaMask/metamask-mobile/pull/5901): [UPDATE] assets-controllers patch
+- [#5870](https://github.com/MetaMask/metamask-mobile/pull/5870): [IMPROVEMENT] On-ramp: Add buy crypto home button
+- [#5880](https://github.com/MetaMask/metamask-mobile/pull/5880): [UPDATE] Display internet protocol on the new origin pill
+- [#5529](https://github.com/MetaMask/metamask-mobile/pull/5529): [IMPROVEMENT] Network Controller refactor to use the same selector
+- [#5859](https://github.com/MetaMask/metamask-mobile/pull/5859): [UPDATE] scan icon on wallet view
+- [#5868](https://github.com/MetaMask/metamask-mobile/pull/5868): [IMPROVEMENT] permitted account balance
+- [#5842](https://github.com/MetaMask/metamask-mobile/pull/5842): [IMPROVEMENT] show the url protocol
+- [#5309](https://github.com/MetaMask/metamask-mobile/pull/5309): [IMPROVEMENT] New transaction header for approve and approval modal
+- [#5825](https://github.com/MetaMask/metamask-mobile/pull/5825): [Improvement] Send Token E2E test
+- [#5857](https://github.com/MetaMask/metamask-mobile/pull/5857): [IMPROVEMENT] Cherry pick QR scan bug fixes from v6.1 to main
+- [#5855](https://github.com/MetaMask/metamask-mobile/pull/5855): [IMPROVEMENT] dont render suspect links
+- [#5827](https://github.com/MetaMask/metamask-mobile/pull/5827): [IMPROVEMENT] analytics: add missing property to connect completed event
+- [#5711](https://github.com/MetaMask/metamask-mobile/pull/5711): [IMPROVEMENT] Improve signature request message
+- [#5750](https://github.com/MetaMask/metamask-mobile/pull/5750): [FIX] Enable clipboard for private credentials
+- [#5374](https://github.com/MetaMask/metamask-mobile/pull/5374): [IMPROVEMENT] Authentication refactor
+- [#5775](https://github.com/MetaMask/metamask-mobile/pull/5775): [UPDATE] Security Privacy Remember me feature
+- [#5803](https://github.com/MetaMask/metamask-mobile/pull/5803): [UPDATE] Sentry: remove DSN value from codebase
+- [#5796](https://github.com/MetaMask/metamask-mobile/pull/5796): [UPDATE] `@metamask/phishing-controller` to v2
+
 ## 6.1.2 - Mar 03, 2023
 - [#5925](https://github.com/MetaMask/metamask-mobile/pull/5925): [FIX] handle all ios biometric errors and create wallet
 - [#5906](https://github.com/MetaMask/metamask-mobile/pull/5906): [FIX] Add try-catch to recreateVault

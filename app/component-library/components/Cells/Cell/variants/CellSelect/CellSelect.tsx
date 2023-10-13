@@ -11,7 +11,7 @@ import SelectItem from '../../../../Select/Select/SelectItem';
 import CellBase from '../../foundation/CellBase';
 
 // Internal dependencies.
-import { CELL_SELECT_TEST_ID } from './CellSelect.constants';
+import { CELL_SELECT_TEST_ID } from '../../../../../../constants/test-ids';
 import styleSheet from './CellSelect.styles';
 import { CellSelectProps } from './CellSelect.types';
 import generateTestId from '../../../../../../../wdio/utils/generateTestId';
