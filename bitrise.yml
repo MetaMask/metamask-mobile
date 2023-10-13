@@ -52,8 +52,7 @@ pipelines:
   pr_smoke_e2e_pipeline_pr_check:
     stages:
       - label_run_e2e_pr_check: {}
-      - run_smoke_e2e_ios_android_stage: {}
-      - notify: {}
+      # - run_smoke_e2e_ios_android_stage: {}
 #Stages reference workflows. Those workflows cannot but utility "_this-is-a-utility"
 stages:
   create_build_release:
@@ -138,6 +137,11 @@ workflows:
                   echo "No Run E2E label skipping E2E tests."
                   envman add --key RUN_E2E --value "false"
                 fi
+      - bitrise-run@0.9.2:
+          inputs:
+            - workflow_id: ios_e2e_test
+            - environment_variables: |-
+                - RUN_E2E: $RUN_E2E
 
     meta:
       bitrise.io:
