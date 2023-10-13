@@ -352,7 +352,7 @@ function SwapsAmountView({
     })();
   }, [swapsControllerTokens, swapsTokens]);
 
-  const canSetAnInitialTokenDestination =
+  const canSetAnInitialSourceToken =
     !isSourceSet &&
     initialSource &&
     swapsControllerTokens &&
@@ -360,7 +360,7 @@ function SwapsAmountView({
     !sourceToken;
 
   useEffect(() => {
-    if (canSetAnInitialTokenDestination) {
+    if (canSetAnInitialSourceToken) {
       setIsSourceSet(true);
       setSourceToken(
         swapsTokens.find((token) =>
@@ -368,16 +368,17 @@ function SwapsAmountView({
         ),
       );
     }
-  }, [canSetAnInitialTokenDestination, initialSource, swapsTokens]);
+  }, [canSetAnInitialSourceToken, initialSource, swapsTokens]);
+
+  const canSetAnInitialTokenDestination =
+    !isDestinationSet &&
+    initialDestination &&
+    swapsControllerTokens &&
+    swapsTokens?.length > 0 &&
+    !destinationToken;
 
   useEffect(() => {
-    if (
-      !isDestinationSet &&
-      initialDestination &&
-      swapsControllerTokens &&
-      swapsTokens?.length > 0 &&
-      !destinationToken
-    ) {
+    if (canSetAnInitialTokenDestination) {
       setIsDestinationSet(true);
       setDestinationToken(
         swapsTokens.find((token) =>
@@ -385,13 +386,7 @@ function SwapsAmountView({
         ),
       );
     }
-  }, [
-    initialDestination,
-    isDestinationSet,
-    destinationToken,
-    swapsControllerTokens,
-    swapsTokens,
-  ]);
+  }, [canSetAnInitialTokenDestination, initialDestination, swapsTokens]);
 
   useEffect(() => {
     setHasDismissedTokenAlert(false);
