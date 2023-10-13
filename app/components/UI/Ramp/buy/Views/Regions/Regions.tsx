@@ -25,7 +25,7 @@ import { createNavigationDetails } from '../../../../../../util/navigation/navUt
 import { createPaymentMethodsNavDetails } from '../PaymentMethods/PaymentMethods';
 
 import { useRampSDK } from '../../../common/sdk';
-import { RampType, Region } from '../../../common/types';
+import { Region } from '../../../common/types';
 import useAnalytics from '../../../common/hooks/useAnalytics';
 import useRegions from '../../hooks/useRegions';
 
@@ -45,6 +45,8 @@ const RegionsView = () => {
     setSelectedFiatCurrencyId,
     sdkError,
     selectedChainId,
+    isBuy,
+    isSell,
     rampType,
   } = useRampSDK();
   const [isRegionModalVisible, , showRegionModal, hideRegionModal] =
@@ -182,8 +184,8 @@ const RegionsView = () => {
               onPress={handleOnPress}
               disabled={
                 !selectedRegion ||
-                (rampType === RampType.BUY && !selectedRegion.support.buy) ||
-                (rampType === RampType.SELL && !selectedRegion.support.sell)
+                (isBuy && !selectedRegion.support.buy) ||
+                (isSell && !selectedRegion.support.sell)
               }
             >
               {strings('fiat_on_ramp_aggregator.continue')}

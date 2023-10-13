@@ -14,10 +14,7 @@ import {
   addFiatCustomIdData,
   removeFiatCustomIdData,
 } from '../../../../../reducers/fiatOrders';
-import {
-  CustomIdData,
-  RampType,
-} from '../../../../../reducers/fiatOrders/types';
+import { CustomIdData } from '../../../../../reducers/fiatOrders/types';
 import {
   createNavigationDetails,
   useParams,
@@ -43,13 +40,8 @@ export const createCheckoutNavDetails = createNavigationDetails<CheckoutParams>(
 );
 
 const CheckoutWebView = () => {
-  const {
-    selectedAddress,
-    selectedChainId,
-    sdkError,
-    callbackBaseUrl,
-    rampType,
-  } = useRampSDK();
+  const { selectedAddress, selectedChainId, sdkError, callbackBaseUrl, isBuy } =
+    useRampSDK();
   const dispatch = useDispatch();
   const trackEvent = useAnalytics();
   const [error, setError] = useState('');
@@ -90,13 +82,11 @@ const CheckoutWebView = () => {
       customOrderId,
       selectedChainId,
       selectedAddress,
-      rampType === RampType.BUY
-        ? OrderOrderTypeEnum.Buy
-        : OrderOrderTypeEnum.Sell,
+      isBuy ? OrderOrderTypeEnum.Buy : OrderOrderTypeEnum.Sell,
     );
     setCustomIdData(customOrderIdData);
     dispatch(addFiatCustomIdData(customOrderIdData));
-  }, [customOrderId, dispatch, rampType, selectedAddress, selectedChainId]);
+  }, [customOrderId, dispatch, isBuy, selectedAddress, selectedChainId]);
 
   const handleNavigationStateChange = async (navState: WebViewNavigation) => {
     if (
@@ -115,10 +105,9 @@ const CheckoutWebView = () => {
           return;
         }
         const orders = await SDK.orders();
-        const getOrderFromCallbackMethod =
-          rampType === RampType.BUY
-            ? 'getOrderFromCallback'
-            : 'getSellOrderFromCallback';
+        const getOrderFromCallbackMethod = isBuy
+          ? 'getOrderFromCallback'
+          : 'getSellOrderFromCallback';
         const order = await orders[getOrderFromCallbackMethod](
           provider.id,
           navState?.url,

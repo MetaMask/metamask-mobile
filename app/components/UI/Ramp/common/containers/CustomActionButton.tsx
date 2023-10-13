@@ -10,7 +10,6 @@ import useAnalytics from '../hooks/useAnalytics';
 import useInAppBrowser from '../../buy/hooks/useInAppBrowser';
 import Logger from '../../../../../util/Logger';
 import { createCheckoutNavDetails } from '../../buy/Views/Checkout';
-import { RampType } from '../types';
 
 interface Props {
   customAction: PaymentCustomAction;
@@ -39,7 +38,7 @@ const CustomActionButton: React.FC<
     selectedFiatCurrencyId,
     selectedChainId,
     callbackBaseUrl,
-    rampType,
+    isBuy,
     sdk,
   } = useRampSDK();
 
@@ -68,8 +67,7 @@ const CustomActionButton: React.FC<
         payment_method_id: selectedPaymentMethodId as string,
       });
 
-      const getUrlMethod =
-        rampType === RampType.BUY ? 'getBuyUrl' : 'getSellUrl';
+      const getUrlMethod = isBuy ? 'getBuyUrl' : 'getSellUrl';
 
       const buyAction = await sdk[getUrlMethod](
         provider.provider,
@@ -117,8 +115,8 @@ const CustomActionButton: React.FC<
     callbackBaseUrl,
     customAction,
     fiatSymbol,
+    isBuy,
     navigation,
-    rampType,
     renderInAppBrowser,
     sdk,
     selectedAddress,
@@ -134,9 +132,7 @@ const CustomActionButton: React.FC<
   return (
     <CustomActionButtonComponent
       customActionButton={
-        rampType === RampType.BUY
-          ? customAction.buyButton
-          : customAction.sellButton
+        isBuy ? customAction.buyButton : customAction.sellButton
       }
       onPress={handleCustomAction}
       isLoading={isLoading}
