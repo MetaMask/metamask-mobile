@@ -1,19 +1,30 @@
 #!/bin/bash
 echo "PostInstall script:"
 
-echo "1. React Native nodeify..."
+echo "1. Build Provider..."
+mkdir -p app/core/Provider/dist && rm -rf app/core/Provider/dist/*
+cd app/core/Provider/inpage
+../../../../node_modules/.bin/webpack --config webpack.config.js
+cd ..
+node content-script/build.js
+../../../node_modules/.bin/concat-cli -f dist/inpage-bundle.js content-script/index.js -o dist/index-raw.js
+../../../node_modules/.bin/webpack --config webpack.config.js
+cp dist/index.js ../InpageBridgeWeb3.js
+cd ../../..
+
+echo "2. React Native nodeify..."
 node_modules/.bin/rn-nodeify --install 'crypto,buffer,react-native-randombytes,vm,stream,http,https,os,url,net,fs' --hack
 
-echo "2. jetify"
+echo "3. jetify"
 yarn jetify
 
-echo "3. Patch npm packages"
+echo "4. Patch npm packages"
 yarn patch-package
 
-echo "4. Create xcconfig files..."
+echo "5. Create xcconfig files..."
 echo "" > ios/debug.xcconfig
 echo "" > ios/release.xcconfig
 
-echo "5. Init git submodules"
+echo "6. Init git submodules"
 echo "This may take a while..."
 git submodule update --init
