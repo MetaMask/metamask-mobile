@@ -8,7 +8,7 @@ cd app/core/Provider/inpage
 ../../../../node_modules/.bin/webpack --config webpack.config.js
 cd ..
 node content-script/build.js
-../../../node_modules/.bin/concat-cli -f dist/inpage-bundle.js content-script/index.js -o dist/index-raw.js
+cat dist/inpage-bundle.js content-script/index.js > dist/index-raw.js
 ../../../node_modules/.bin/webpack --config webpack.config.js
 cp dist/index.js ../InpageBridgeWeb3.js
 cd ../../..

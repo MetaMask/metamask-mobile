@@ -425,7 +425,6 @@
     "babel-plugin-transform-remove-console": "6.9.4",
     "browserstack-local": "^1.5.1",
     "chromedriver": "^99.0.0",
-    "concat-cli": "^4.0.0",
     "depcheck": "^1.4.5",
     "detox": "^20.11.0",
     "dotenv": "^16.0.3",
