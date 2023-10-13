@@ -52,7 +52,7 @@ pipelines:
   pr_smoke_e2e_pipeline_pr_check:
     stages:
       - label_run_e2e_pr_check: {}
-      # - run_smoke_e2e_ios_android_stage: {}
+      - run_smoke_e2e_ios_android_stage: {}
 #Stages reference workflows. Those workflows cannot but utility "_this-is-a-utility"
 stages:
   create_build_release:
@@ -90,8 +90,10 @@ stages:
       - ios_e2e_test: {}
   run_smoke_e2e_ios_android_stage:
     workflows:
-      - ios_e2e_test: {}
-      - android_e2e_test: {}
+      - ios_e2e_test:
+          run_if: '{{enveq "RUN_E2E" "true"}}'
+      - android_e2e_test:
+          run_if: '{{enveq "RUN_E2E" "true"}}'
   run_e2e_ios_android_stage:
     workflows:
       - ios_e2e_test: {}
@@ -137,12 +139,9 @@ workflows:
                   echo "No Run E2E label skipping E2E tests."
                   envman add --key RUN_E2E --value "false"
                 fi
-      - bitrise-run@0.9.2:
+      - share-pipeline-variable@1:
           inputs:
-            - workflow_id: ios_e2e_test
-            - environment_variables: |-
-                - RUN_E2E: $RUN_E2E
-
+            - variables: $RUN_E2E
     meta:
       bitrise.io:
         stack: linux-docker-android-20.04
@@ -326,7 +325,6 @@ workflows:
             - command: global add detox-cli
           title: Detox - Install CLI
   android_e2e_test:
-    run_if: '{{enveq "RUN_E2E" "true"}}'
     before_run:
       - code_setup_dev
       - e2e_setup
@@ -396,7 +394,6 @@ workflows:
         stack: linux-docker-android-20.04
         machine_type_id: elite-xl
   ios_e2e_test:
-    run_if: '{{enveq "RUN_E2E" "true"}}'
     before_run:
       - code_setup_dev
       - e2e_setup
