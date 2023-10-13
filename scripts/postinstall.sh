@@ -2,16 +2,7 @@
 echo "PostInstall script:"
 
 echo "1. Build Inpage Bridge..."
-rm app/core/InpageBridgeWeb3.js
-mkdir -p js/dist && rm -rf js/dist/*
-cd js/inpage
-../../node_modules/.bin/webpack --config webpack.config.js
-cd ..
-node content-script/build.js
-cat dist/inpage-bundle.js content-script/index.js > dist/index-raw.js
-../node_modules/.bin/webpack --config webpack.config.js
-cd ..
-cp js/dist/index.js app/core/InpageBridgeWeb3.js
+./scripts/build-inpage-bridge.sh
 
 echo "2. React Native nodeify..."
 node_modules/.bin/rn-nodeify --install 'crypto,buffer,react-native-randombytes,vm,stream,http,https,os,url,net,fs' --hack
