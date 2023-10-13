@@ -14,15 +14,11 @@ import {
   TouchableOpacity,
 } from 'react-native';
 import {
-  getNetworkTypeById,
   findBlockExplorerForRpc,
   getBlockExplorerName,
   isMainnetByChainId,
+  getBlockExplorerAddressUrl,
 } from '../../../util/networks';
-import {
-  getEtherscanAddressUrl,
-  getEtherscanBaseUrl,
-} from '../../../util/etherscan';
 import { fontStyles, baseStyles } from '../../../styles/common';
 import { strings } from '../../../../locales/i18n';
 import TransactionElement from '../TransactionElement';
@@ -349,16 +345,11 @@ class Transactions extends PureComponent {
     } = this.props;
     const { rpcBlockExplorer } = this.state;
     try {
-      let url;
-      let title;
-      if (type === RPC) {
-        url = `${rpcBlockExplorer}/address/${selectedAddress}`;
-        title = new URL(rpcBlockExplorer).hostname;
-      } else {
-        const networkResult = getNetworkTypeById(network);
-        url = getEtherscanAddressUrl(networkResult, selectedAddress);
-        title = getEtherscanBaseUrl(networkResult).replace('https://', '');
-      }
+      const { url, title } = getBlockExplorerAddressUrl(
+        type,
+        selectedAddress,
+        rpcBlockExplorer,
+      );
       navigation.push('Webview', {
         screen: 'SimpleWebview',
         params: {

@@ -1,10 +1,10 @@
 import React from 'react';
 import { shallow } from 'enzyme';
+import TEST_ADDRESS from '../../../../constants/address';
 import { ContractBoxProps } from './ContractBox.types';
 import ContractBox from './ContractBox';
 import {
   CONTRACT_BOX_TEST_ID,
-  CONTRACT_ADDRESS,
   CONTRACT_PET_NAME,
   CONTRACT_LOCAL_IMAGE,
   CONTRACT_COPY_ADDRESS,
@@ -16,7 +16,7 @@ describe('ContractBox', () => {
   it('should render ContractBox', () => {
     const wrapper = shallow<ContractBoxProps>(
       <ContractBox
-        contractAddress={CONTRACT_ADDRESS}
+        contractAddress={TEST_ADDRESS}
         contractPetName={CONTRACT_PET_NAME}
         contractLocalImage={CONTRACT_LOCAL_IMAGE}
         onCopyAddress={CONTRACT_COPY_ADDRESS}

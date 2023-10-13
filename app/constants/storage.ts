@@ -1,5 +1,6 @@
 const mm = 'MetaMask';
 const prefix = `@${mm}:`;
+const USE_TERMS_VERSION = 'v1.0';
 
 export const EXISTING_USER = `${prefix}existingUser`;
 export const BIOMETRY_CHOICE = `${prefix}biometryChoice`;
@@ -16,7 +17,6 @@ export const METAMETRICS_SEGMENT_REGULATION_ID = `${prefix}MetaMetricsSegmentReg
 export const ANALYTICS_DATA_RECORDED = `${prefix}analyticsDataRecorded`;
 export const METAMETRICS_ID = `${prefix}MetaMetricsId`;
 export const MIXPANEL_METAMETRICS_ID = `${prefix}MixpanelMetaMetricsId`;
-export const DATA_SET_CONNECTED_FLAG = `${prefix}DataSetConnectedFlag`;
 
 export const WALLETCONNECT_SESSIONS = `${prefix}walletconnectSessions`;
 export const LAST_INCOMING_TX_BLOCK_INFO = `${prefix}lastIncomingTxBlockInfo`;
@@ -49,3 +49,5 @@ export const REVIEW_EVENT_COUNT = 'reviewEventCount';
 export const REVIEW_SHOWN_TIME = 'reviewShownTime';
 
 export const themeAppearanceLight = 'light';
+
+export const USE_TERMS = `${prefix}UserTermsAccepted${USE_TERMS_VERSION}`;

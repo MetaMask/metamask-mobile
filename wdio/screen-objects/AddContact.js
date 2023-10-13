@@ -30,6 +30,8 @@ class Contacts {
     await expect(this.contactScreenContainer).toBeDisplayed();
   }
 
+
+
   async isAddContactButtonEnabled() {
     await expect(this.addContactButton).toBeEnabled();
   }
@@ -37,6 +39,11 @@ class Contacts {
   async tapOnAddContactButton() {
     await Gestures.tap(this.addContactButton);
     await Gestures.tap(this.addContactButton);
+  }
+
+  async waitForAddContactButton() {
+    const element = await this.addContactButton;
+    await element.waitForDisplayed();
   }
 
   async fillContactNamefield(name) {

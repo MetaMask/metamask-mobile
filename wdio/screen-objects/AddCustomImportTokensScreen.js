@@ -30,16 +30,15 @@ class AddCustomImportToken {
   async tapImportButton() {
     await driver.pause(2000);
     await this.scrollToImportButton(); // because the bottom nav is blocking the import button
-    await Gestures.tap(this.importButton);
-    await Gestures.tap(this.importButton);
+    await Gestures.waitAndTap(this.importButton);
   }
 
   async tapTokenSymbolField() {
-    await Gestures.tap(this.symbolField);
+    await Gestures.waitAndTap(this.symbolField);
   }
 
   async isTokenSymbolDisplayed() {
-    await Gestures.tap(this.symbolField);
+    await Gestures.waitAndTap(this.symbolField);
     await expect(this.symbolField).toBeDisplayed();
   }
 

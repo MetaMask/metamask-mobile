@@ -10,25 +10,44 @@ import OnboardingCarouselView from './pages/Onboarding/OnboardingCarouselView';
 import OnboardingWizardModal from './pages/modals/OnboardingWizardModal';
 import WalletView from './pages/WalletView';
 import WhatsNewModal from './pages/modals/WhatsNewModal';
+import Accounts from '../wdio/helpers/Accounts';
 
 import TestHelpers from './helpers';
 
+import TermsOfUseModal from './pages/modals/TermsOfUseModal';
+
 const GOERLI = 'Goerli Test Network';
-const PASSWORD = '12345678';
-const SECRET_RECOVERY_PHRASE =
-  'fold media south add since false relax immense pause cloth just raven';
+
+// detox on ios does not have a clean way of interacting with webview eleemnts. You would need to tap by coordinates
+export const testDappConnectButtonCooridinates = { x: 170, y: 280 };
+export const testDappSendEIP1559ButtonCoordinates = { x: 320, y: 500 };
+
+export const acceptTermOfUse = async () => {
+  // tap on accept term of use screen
+  await TestHelpers.delay(3500);
+  await TermsOfUseModal.isDisplayed();
+  await TermsOfUseModal.tapScrollEndButton();
+  await TermsOfUseModal.tapAgreeCheckBox();
+  await TermsOfUseModal.tapAcceptButton();
+  await TermsOfUseModal.isNotDisplayed();
+};
 
 export const importWalletWithRecoveryPhrase = async () => {
-  // tap on import seed phrase button'
+  const validAccount = Accounts.getValidAccount();
+
+  // tap on import seed phrase button
+  await OnboardingCarouselView.isVisible();
   await OnboardingCarouselView.tapOnGetStartedButton();
   await OnboardingView.tapImportWalletFromSeedPhrase();
   await MetaMetricsOptIn.tapAgreeButton();
+  await TestHelpers.delay(3500);
 
+  await acceptTermOfUse();
   // should import wallet with secret recovery phrase
   await ImportWalletView.clearSecretRecoveryPhraseInputBox();
-  await ImportWalletView.enterSecretRecoveryPhrase(SECRET_RECOVERY_PHRASE);
-  await ImportWalletView.enterPassword(PASSWORD);
-  await ImportWalletView.reEnterPassword(PASSWORD);
+  await ImportWalletView.enterSecretRecoveryPhrase(validAccount.seedPhrase);
+  await ImportWalletView.enterPassword(validAccount.password);
+  await ImportWalletView.reEnterPassword(validAccount.password);
 
   // Should dismiss Automatic Security checks screen
   await TestHelpers.delay(3500);

@@ -8,6 +8,8 @@ export const RPC = 'rpc';
 export const NO_RPC_BLOCK_EXPLORER = 'NO_BLOCK_EXPLORER';
 export const PRIVATENETWORK = 'PRIVATENETWORK';
 export const DEFAULT_MAINNET_CUSTOM_NAME = 'Ethereum Main Custom';
+export const LINEA_TESTNET_NICKNAME = 'Linea Goerli Test Network';
+export const LINEA_TESTNET_TICKER = 'LineaETH';
 
 /**
  * @enum {string}
@@ -23,4 +25,5 @@ export const NETWORKS_CHAIN_ID = {
   AVAXCCHAIN: '43114',
   CELO: '42220',
   HARMONY: '1666600000',
+  LINEA_TESTNET: '59140',
 };

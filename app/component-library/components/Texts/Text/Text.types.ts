@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-shadow */
 // Third party dependencies.
 import { TextProps as RNTextProps } from 'react-native';
 
@@ -10,11 +11,26 @@ export enum TextVariant {
   HeadingMD = 'sHeadingMD',
   HeadingSMRegular = 'sHeadingSMRegular',
   HeadingSM = 'sHeadingSM',
+  BodyLGMedium = 'sBodyLGMedium',
   BodyMD = 'sBodyMD',
   BodyMDBold = 'sBodyMDBold',
   BodySM = 'sBodySM',
   BodySMBold = 'sBodySMBold',
   BodyXS = 'sBodyXS',
+}
+
+/**
+ * Text colors
+ */
+export enum TextColor {
+  Default = 'Default',
+  Alternative = 'Alternative',
+  Muted = 'Muted',
+  Primary = 'Primary',
+  Success = 'Success',
+  Error = 'Error',
+  Warning = 'Warning',
+  Info = 'Info',
 }
 
 /**
@@ -30,11 +46,8 @@ export interface TextProps extends RNTextProps {
    * Text to be displayed.
    */
   children: React.ReactNode;
-}
-
-/**
- * Style sheet input parameters.
- */
-export interface TextStyleSheetVars extends Pick<TextProps, 'style'> {
-  variant: TextVariant;
+  /**
+   * Optional prop to add color to text.
+   */
+  color?: TextColor;
 }

@@ -1,8 +1,9 @@
-/* global driver */
-import { When, Then } from '@wdio/cucumber-framework';
+import { Given, Then, When } from '@wdio/cucumber-framework';
 import WalletMainScreen from '../screen-objects/WalletMainScreen.js';
 import AccountListComponent from '../screen-objects/AccountListComponent';
 import CommonScreen from '../screen-objects/CommonScreen';
+import TabBarModal from '../screen-objects/Modals/TabBarModal';
+import WalletActionModal from '../screen-objects/Modals/WalletActionModal';
 
 Then(/^On the Main Wallet view I tap "([^"]*)?"/, async (text) => {
   const timeout = 1500;
@@ -11,7 +12,7 @@ Then(/^On the Main Wallet view I tap "([^"]*)?"/, async (text) => {
 });
 
 When(/^I tap burger icon/, async () => {
-  const setTimeout = 1500; //added to run on physical device
+  const setTimeout = 2500; //added to run on physical device
   await driver.pause(setTimeout); //added to run on physical device
   await WalletMainScreen.tapBurgerIcon();
 });
@@ -56,6 +57,14 @@ When(/^the account list should be visible/, async () => {
   await AccountListComponent.isComponentDisplayed();
 });
 
+When(/^I long press to remove "([^"]*)"/, async (accountName) => {
+  // should be in a common-step file
+  await driver.pause(3000);
+  await AccountListComponent.longPressOnAccount(accountName);
+  await driver.acceptAlert();
+  await driver.pause(3000);
+});
+
 When(/^the account list should not be visible/, async () => {
   // should be in a common-step file
   await driver.pause(3000);
@@ -63,9 +72,15 @@ When(/^the account list should not be visible/, async () => {
 });
 
 When(/^I dismiss the account list/, async () => {
-  await driver.pause(2500);
-  await driver.touchPerform([{ action: 'tap', options: { x: 100, y: 200 } }]);
+  await AccountListComponent.isComponentDisplayed();
+  await WalletMainScreen.tapIdenticon();
+  await AccountListComponent.isComponentNotDisplayed();
 });
 Then(/^Wallet view is displayed$/, async () => {
   await WalletMainScreen.isMainWalletViewVisible();
+});
+
+Given(/^On the Main Wallet view I tap on the Send Action$/, async () => {
+  await TabBarModal.tapActionButton();
+  await WalletActionModal.tapSendButton();
 });

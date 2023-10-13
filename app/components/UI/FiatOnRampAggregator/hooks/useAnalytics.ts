@@ -1,10 +1,7 @@
 import { useCallback } from 'react';
 import { InteractionManager } from 'react-native';
+import Analytics from '../../../../core/Analytics/Analytics';
 import { MetaMetricsEvents } from '../../../../core/Analytics';
-import {
-  trackLegacyEvent,
-  trackLegacyAnonymousEvent,
-} from '../../../../util/analyticsV2';
 import { AnalyticsEvents } from '../types';
 
 const AnonymousEvents: (keyof AnalyticsEvents)[] = [
@@ -29,10 +26,10 @@ export function trackEvent<T extends keyof AnalyticsEvents>(
 
   InteractionManager.runAfterInteractions(() => {
     if (anonymous) {
-      trackLegacyEvent(event, {});
-      trackLegacyAnonymousEvent(event, params);
+      Analytics.trackEventWithParameters(event, {});
+      Analytics.trackEventWithParameters(event, params, true);
     } else {
-      trackLegacyAnonymousEvent(event, params);
+      Analytics.trackEventWithParameters(event, params);
     }
   });
 }

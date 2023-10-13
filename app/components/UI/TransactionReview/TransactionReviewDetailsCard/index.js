@@ -10,6 +10,7 @@ import { ThemeContext, mockTheme } from '../../../../util/theme';
 import ConnectHeader from '../../ConnectHeader';
 import formatNumber from '../../../../util/formatNumber';
 import TransactionTypes from '../../../../core/TransactionTypes';
+import { renderShortAddress } from '../../../../util/address';
 
 const {
   ASSET: { ERC20 },
@@ -150,14 +151,16 @@ export default class TransactionReviewDetailsCard extends Component {
                   {nickname}
                 </Text>
               ) : (
-                <Text style={styles.address}>{address}</Text>
+                <Text style={styles.address}>
+                  {renderShortAddress(address)}
+                </Text>
               )}
               <Feather
                 name="copy"
                 size={16}
                 color={colors.primary.default}
                 style={styles.copyIcon}
-                onPress={copyContractAddress}
+                onPress={() => copyContractAddress(address)}
               />
             </View>
           </View>

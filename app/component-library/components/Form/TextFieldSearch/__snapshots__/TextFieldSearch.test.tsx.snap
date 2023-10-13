@@ -1,0 +1,14 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`TextFieldSearch should render default settings correctly 1`] = `
+<TextField
+  endAccessory={false}
+  startAccessory={
+    <Icon
+      name="Search"
+      size="16"
+    />
+  }
+  testID="textfieldsearch"
+/>
+`;
