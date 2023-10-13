@@ -10,14 +10,14 @@ import {
 import PropTypes from 'prop-types';
 import EvilIcons from 'react-native-vector-icons/EvilIcons';
 import ElevatedView from 'react-native-elevated-view';
-import { connect } from 'react-redux';
 import { strings } from '../../../../locales/i18n';
 import { fontStyles, baseStyles } from '../../../styles/common';
 import Device from '../../../util/device';
+import { connect } from 'react-redux';
 import { backUpSeedphraseAlertNotVisible } from '../../../actions/user';
 import { findRouteNameFromNavigatorState } from '../../../util/general';
-import { trackEvent } from '../../../util/analyticsV2';
 import { MetaMetricsEvents } from '../../../core/Analytics';
+import AnalyticsV2 from '../../../util/analyticsV2';
 import generateTestId from '../../../../wdio/utils/generateTestId';
 import {
   NOTIFICATION_REMIND_ME_LATER_BUTTON_ID,
@@ -159,10 +159,13 @@ class BackupAlert extends PureComponent {
       screen: 'AccountBackupStep1',
     });
     InteractionManager.runAfterInteractions(() => {
-      trackEvent(MetaMetricsEvents.WALLET_SECURITY_PROTECT_ENGAGED, {
-        wallet_protection_required: false,
-        source: 'Backup Alert',
-      });
+      AnalyticsV2.trackEvent(
+        MetaMetricsEvents.WALLET_SECURITY_PROTECT_ENGAGED,
+        {
+          wallet_protection_required: false,
+          source: 'Backup Alert',
+        },
+      );
     });
   };
 
@@ -170,10 +173,13 @@ class BackupAlert extends PureComponent {
     const { onDismiss, backUpSeedphraseAlertNotVisible } = this.props;
     backUpSeedphraseAlertNotVisible();
     InteractionManager.runAfterInteractions(() => {
-      trackEvent(MetaMetricsEvents.WALLET_SECURITY_PROTECT_DISMISSED, {
-        wallet_protection_required: false,
-        source: 'Backup Alert',
-      });
+      AnalyticsV2.trackEvent(
+        MetaMetricsEvents.WALLET_SECURITY_PROTECT_DISMISSED,
+        {
+          wallet_protection_required: false,
+          source: 'Backup Alert',
+        },
+      );
     });
     if (onDismiss) onDismiss();
   };

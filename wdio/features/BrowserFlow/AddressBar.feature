@@ -1,9 +1,10 @@
 @androidApp
 @regression
+@ChainScenarios
 Feature: This feature file covers address view functionality in the browser.
 
   Scenario: Address bar
-    Navigate to websites using browser address bar.
+  Navigate to websites using browser address bar.
 
     Given the app displayed the splash animation
     And I have imported my wallet

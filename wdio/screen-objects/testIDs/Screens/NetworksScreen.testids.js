@@ -33,3 +33,5 @@ export const NETWORK_BACK_ARROW_BUTTON_ID =
 export const NAV_ANDROID_BACK_BUTTON = 'nav-android-back';
 
 export const NETWORK_SCREEN_CLOSE_ICON = 'close-network-icon';
+
+export const NETWORK_SCREEN_ID = 'networks-screen';

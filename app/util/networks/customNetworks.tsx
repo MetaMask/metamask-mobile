@@ -95,6 +95,17 @@ const PopularList = [
       imageSource: require('../../images/palm.png'),
     },
   },
+  {
+    chainId: '59140',
+    nickname: 'Linea Goerli Test Network',
+    rpcUrl: `https://rpc.goerli.linea.build`,
+    ticker: 'LineaETH',
+    rpcPrefs: {
+      blockExplorerUrl: 'https://explorer.goerli.linea.build',
+      imageUrl: 'LINEATESTNET',
+      imageSource: require('../../images/linea-logo-dark.png'),
+    },
+  },
 ];
 
 export default PopularList;

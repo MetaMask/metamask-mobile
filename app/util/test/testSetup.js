@@ -104,6 +104,9 @@ const keychainMock = {
     IRIS: 'Iris',
   },
   getSupportedBiometryType: jest.fn().mockReturnValue('FaceID'),
+  setInternetCredentials: jest
+    .fn(('server', 'username', 'password'))
+    .mockResolvedValue({ service: 'metamask', storage: 'storage' }),
 };
 
 jest.mock('react-native-keychain', () => keychainMock);
@@ -154,6 +157,12 @@ NativeModules.RNCNetInfo = {
   addListener: jest.fn(),
   removeListeners: jest.fn(),
   getCurrentState: jest.fn(() => Promise.resolve()),
+};
+
+NativeModules.RCTAnalytics = {
+  optIn: jest.fn(),
+  trackEvent: jest.fn(),
+  getRemoteVariables: jest.fn(),
 };
 
 NativeModules.PlatformConstants = {

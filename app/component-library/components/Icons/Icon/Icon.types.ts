@@ -28,6 +28,8 @@ export enum IconSize {
   Md = '20',
   Lg = '24',
   Xl = '32',
+  // TODO finalize Icon size in Design system
+  XXL = '72',
 }
 
 /**
@@ -53,7 +55,7 @@ export interface IconProps extends ViewProps {
  * Asset stored by icon name
  */
 export type AssetByIconName = {
-  [key in IconName]: React.FC<SvgProps>;
+  [key in IconName]: React.FC<SvgProps & { name: string }>;
 };
 
 ///////////////////////////////////////////////////////
