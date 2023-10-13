@@ -70,7 +70,9 @@ const ActivityView = () => {
         >
           <TransactionsView tabLabel={strings('transactions_view.title')} />
           {hasOrders && (
-            <RampOrdersList tabLabel={strings('fiat_on_ramp.purchases')} />
+            <RampOrdersList
+              tabLabel={strings('fiat_on_ramp_aggregator.orders')}
+            />
           )}
         </ScrollableTabView>
       </View>

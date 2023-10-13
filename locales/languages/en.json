@@ -1874,6 +1874,7 @@
   "fiat_on_ramp_aggregator": {
     "buy": "buy",
     "sell": "sell",
+    "orders": "Orders",
     "network_switcher": {
       "title": "Unsupported {{rampType}} Network",
       "description": "To {{rampType}} crypto, you'll need to switch to a supported network",
