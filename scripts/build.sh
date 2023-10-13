@@ -106,6 +106,7 @@ checkParameters(){
 	fi
 }
 
+
 prebuild(){
 	# Import provider
 	yarn --ignore-engines build:static-logos
