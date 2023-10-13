@@ -244,18 +244,18 @@ class AccountApproval extends PureComponent {
     });
   };
 
-  isAllowedUrl = (hostname) => {
+  isUrlFlaggedAsPhishing = (hostname) => {
     const { PhishingController } = Engine.context;
     PhishingController.maybeUpdateState();
     const phishingControllerTestResult = PhishingController.test(hostname);
 
-    if (phishingControllerTestResult.result) {
+    if (!phishingControllerTestResult.result) {
       this.setState({ blockListType: phishingControllerTestResult.name });
     }
 
     return (
       this.state.allowList.includes(hostname) ||
-      !phishingControllerTestResult.result
+      phishingControllerTestResult.result
     );
   };
 
@@ -270,7 +270,7 @@ class AccountApproval extends PureComponent {
 
     const prefixedUrl = prefixUrlWithProtocol(currentPageInformation?.url);
     const { hostname } = new URL(prefixedUrl);
-    const isAllowed = this.isAllowedUrl(hostname);
+    const urlIsFlaggedAsPhishing = this.isUrlFlaggedAsPhishing(hostname);
 
     return (
       <View
@@ -279,7 +279,7 @@ class AccountApproval extends PureComponent {
       >
         <TransactionHeader currentPageInformation={currentPageInformation} />
 
-        {!isAllowed && <ShowWarningBanner />}
+        {urlIsFlaggedAsPhishing && <ShowWarningBanner />}
 
         {!currentPageInformation.reconnect && (
           <>
@@ -361,7 +361,7 @@ class AccountApproval extends PureComponent {
             containerStyle={[
               styles.button,
               styles.confirm,
-              !isAllowed && styles.warningButton,
+              urlIsFlaggedAsPhishing && styles.warningButton,
             ]}
             testID={'connect-approve-button'}
           >
