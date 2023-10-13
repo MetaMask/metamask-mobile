@@ -15,7 +15,7 @@ import ApprovalModal from '../../pages/modals/ApprovalModal';
 
 const HST_CONTRACT = SMART_CONTRACTS.HST;
 const WEBVIEW_TEST_DAPP_APPROVE_TOKENS_BUTTON_ID = 'approveTokens';
-const EXPECTED_TOKEN_AMOUNT = '7'
+const EXPECTED_TOKEN_AMOUNT = '7';
 
 describe(Regression('ERC20 tokens'), () => {
   beforeAll(async () => {

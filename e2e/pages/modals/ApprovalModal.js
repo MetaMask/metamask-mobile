@@ -10,7 +10,7 @@ const COPY_CONTRACT_ADDRESS_ID = 'contract-address';
 
 export default class ApprovalModal {
   static APPROVE_TOKEN_AMOUNT = 'custom-spend-cap-input-input-id';
-  
+
   static async tapAddNickName() {
     await TestHelpers.tapByText(ADD_NICKNAME_TEXT);
   }

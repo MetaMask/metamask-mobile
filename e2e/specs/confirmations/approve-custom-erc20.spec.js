@@ -16,7 +16,6 @@ import ApprovalModal from '../../pages/modals/ApprovalModal';
 const HST_CONTRACT = SMART_CONTRACTS.HST;
 const WEBVIEW_TEST_DAPP_APPROVE_TOKENS_BUTTON_ID = 'approveTokens';
 
-
 describe(Regression('ERC20 tokens'), () => {
   beforeAll(async () => {
     jest.setTimeout(170000);
@@ -60,7 +59,8 @@ describe(Regression('ERC20 tokens'), () => {
 
         // Assert that custom token amount is shown
         await expect(
-          element(by.id(ApprovalModal.APPROVE_TOKEN_AMOUNT))).toHaveText('2');
+          element(by.id(ApprovalModal.APPROVE_TOKEN_AMOUNT)),
+        ).toHaveText('2');
 
         // Tap next button
         await TestHelpers.checkIfElementWithTextIsVisible(
