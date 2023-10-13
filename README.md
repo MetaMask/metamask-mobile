@@ -41,9 +41,9 @@ The code is built using React-Native and running code locally requires a Mac or 
 
 -   Install [cocoapods](https://guides.cocoapods.org/using/getting-started.html) by running:
 
-```bash
-sudo gem install cocoapods -v 1.12.1
-```
+    ```bash
+    sudo gem install cocoapods -v 1.12.1
+    ```
 
 -   Install [Python](https://www.python.org/downloads/) **version ^3.10**
     - _Note_: M1 User might need to stay with **version 3.10**
@@ -53,9 +53,9 @@ sudo gem install cocoapods -v 1.12.1
 #### Android
 
 -   Install [Java](https://www.java.com/en/download/). To check if Java is already installed, run:
-```
-  java -version
-```
+    ```
+    java -version
+    ```
 -   Install the Android SDK, via [Android Studio](https://developer.android.com/studio).
     -   _MetaMask Only:_ To create production builds, you need to install Google Play Licensing Library via the SDK Manager in Android Studio.
 -   Install the Android NDK (version `21.4.7075529`), via [Android Studio](https://developer.android.com/studio)'s SDK Manager.
