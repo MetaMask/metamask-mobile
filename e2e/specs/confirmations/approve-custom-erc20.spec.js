@@ -11,13 +11,10 @@ import TabBarComponent from '../../pages/TabBarComponent';
 import { TestDApp } from '../../pages/TestDApp';
 import { SMART_CONTRACTS } from '../../../app/util/test/smart-contracts';
 import root from '../../../locales/languages/en.json';
-import APPROVE_TOKEN_AMOUNT from ApprovalModal
 import ApprovalModal from '../../pages/modals/ApprovalModal';
 
 const HST_CONTRACT = SMART_CONTRACTS.HST;
 const WEBVIEW_TEST_DAPP_APPROVE_TOKENS_BUTTON_ID = 'approveTokens';
-//const TOKEN_NAME = root.unit.eth;
-//const AMOUNT = '7';
 
 describe(Regression('ERC20 tokens'), () => {
   beforeAll(async () => {
@@ -54,12 +51,15 @@ describe(Regression('ERC20 tokens'), () => {
         });
 
         //Input custom token amount
-        await TestHelpers.checkIfExists(APPROVE_TOKEN_AMOUNT);
-        await TestHelpers.replaceTextInField(APPROVE_TOKEN_AMOUNT,'2',);
+        await TestHelpers.checkIfExists(ApprovalModal.APPROVE_TOKEN_AMOUNT);
+        await TestHelpers.replaceTextInField(
+          ApprovalModal.APPROVE_TOKEN_AMOUNT,
+          '2',
+        );
 
         // Assert that custom token amount is shown
         await expect(
-          element(by.id(APPROVE_TOKEN_AMOUNT)),
+          element(by.id(ApprovalModal.APPROVE_TOKEN_AMOUNT)),
         ).toHaveText('2');
 
         // Tap next button
