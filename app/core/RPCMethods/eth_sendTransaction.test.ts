@@ -86,7 +86,7 @@ function getMockAddTransaction({
     ) => {
       expect(deviceConfirmedOn).toBe('metamask_mobile');
       if (expectedOrigin) {
-        expect(origin).toBe(expectedOrigin);
+        expect(origin).toBe(expectedOrigin.origin);
       }
       if (expectedTransaction) {
         expect(transaction).toBe(expectedTransaction);
@@ -120,7 +120,7 @@ describe('eth_sendTransaction', () => {
       res: pendingResult,
       sendTransaction: getMockAddTransaction({
         expectedTransaction: mockTransactionParameters,
-        expectedOrigin: 'example.metamask.io',
+        expectedOrigin: { origin: 'example.metamask.io' },
         returnValue: expectedResult,
       }),
       validateAccountAndChainId: jest.fn(),
@@ -205,7 +205,7 @@ describe('eth_sendTransaction', () => {
           res: constructPendingJsonRpcResponse(),
           sendTransaction: getMockAddTransaction({
             expectedTransaction: mockTransactionParameters,
-            expectedOrigin: 'example.metamask.io',
+            expectedOrigin: { origin: 'example.metamask.io' },
             addTransactionError: new Error('Failed to add transaction'),
           }),
           validateAccountAndChainId: jest.fn(),
@@ -225,7 +225,7 @@ describe('eth_sendTransaction', () => {
           res: constructPendingJsonRpcResponse(),
           sendTransaction: getMockAddTransaction({
             expectedTransaction: mockTransactionParameters,
-            expectedOrigin: 'example.metamask.io',
+            expectedOrigin: { origin: 'example.metamask.io' },
             processTransactionError: new Error('User rejected the transaction'),
           }),
           validateAccountAndChainId: jest.fn(),
@@ -246,7 +246,7 @@ describe('eth_sendTransaction', () => {
       res: pendingResult,
       sendTransaction: getMockAddTransaction({
         expectedTransaction: mockTransactionParameters,
-        expectedOrigin: 'example.metamask.io',
+        expectedOrigin: { origin: 'example.metamask.io' },
         returnValue: expectedResult,
       }),
       validateAccountAndChainId: jest.fn(),
