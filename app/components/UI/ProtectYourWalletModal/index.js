@@ -8,15 +8,16 @@ import {
   TouchableOpacity,
   InteractionManager,
 } from 'react-native';
-import { connect } from 'react-redux';
-import Icon from 'react-native-vector-icons/FontAwesome';
-import { MetaMetricsEvents } from '../../../core/Analytics';
 import ActionModal from '../ActionModal';
 import { fontStyles } from '../../../styles/common';
+import { connect } from 'react-redux';
 import { protectWalletModalNotVisible } from '../../../actions/user';
+import Icon from 'react-native-vector-icons/FontAwesome';
 import { strings } from '../../../../locales/i18n';
 import scaling from '../../../util/scaling';
-import { trackEvent } from '../../../util/analyticsV2';
+import { MetaMetricsEvents } from '../../../core/Analytics';
+import AnalyticsV2 from '../../../util/analyticsV2';
+
 import { ThemeContext, mockTheme } from '../../../util/theme';
 
 const protectWalletImage = require('../../../images/explain-backup-seedphrase.png'); // eslint-disable-line
@@ -103,10 +104,13 @@ class ProtectYourWalletModal extends PureComponent {
       this.props.passwordSet ? { screen: 'AccountBackupStep1' } : undefined,
     );
     InteractionManager.runAfterInteractions(() => {
-      trackEvent(MetaMetricsEvents.WALLET_SECURITY_PROTECT_ENGAGED, {
-        wallet_protection_required: false,
-        source: 'Modal',
-      });
+      AnalyticsV2.trackEvent(
+        MetaMetricsEvents.WALLET_SECURITY_PROTECT_ENGAGED,
+        {
+          wallet_protection_required: false,
+          source: 'Modal',
+        },
+      );
     });
   };
 
@@ -124,10 +128,13 @@ class ProtectYourWalletModal extends PureComponent {
   onDismiss = () => {
     this.props.protectWalletModalNotVisible();
     InteractionManager.runAfterInteractions(() => {
-      trackEvent(MetaMetricsEvents.WALLET_SECURITY_PROTECT_DISMISSED, {
-        wallet_protection_required: false,
-        source: 'Modal',
-      });
+      AnalyticsV2.trackEvent(
+        MetaMetricsEvents.WALLET_SECURITY_PROTECT_DISMISSED,
+        {
+          wallet_protection_required: false,
+          source: 'Modal',
+        },
+      );
     });
   };
 

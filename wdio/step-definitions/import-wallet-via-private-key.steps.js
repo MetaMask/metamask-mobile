@@ -32,11 +32,11 @@ Then(/^The account is imported/, async () => {
 
 Then(/^I am on the imported account/, async () => {
   await driver.pause(2500);
-  WalletAccountModal.isAccountNameLabelEqualTo('Account 3'); // this can be better
+  await WalletAccountModal.isAccountNameLabelEqualTo('Account 2'); // this can be better
 });
 
 Then(/^I should see an error (.*)/, async (errorMessage) => {
-  ImportAccountScreen.isAlertTextVisible(errorMessage);
+  await ImportAccountScreen.isAlertTextVisible(errorMessage);
   await driver.acceptAlert();
 });
 Then(/^I close the import account screen/, async () => {

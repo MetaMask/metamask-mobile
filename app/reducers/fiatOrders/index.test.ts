@@ -16,7 +16,7 @@ import fiatOrderReducer, {
   getPendingOrders,
   getProviderName,
   initialState,
-  makeOrderIdSelector,
+  getOrderById,
   removeActivationKey,
   removeAuthenticationUrl,
   removeFiatCustomIdData,
@@ -921,7 +921,7 @@ describe('selectors', () => {
     });
   });
 
-  describe('makeOrderIdSelector', () => {
+  describe('getOrderById', () => {
     it('should make selector and return the correct order id', () => {
       const state = {
         engine: {
@@ -986,9 +986,8 @@ describe('selectors', () => {
           ],
         },
       };
-      const selector = makeOrderIdSelector('test-56-order-2');
-      expect(selector).toBeInstanceOf(Function);
-      expect(selector(state)?.id).toBe('test-56-order-2');
+      const order = getOrderById(state, 'test-56-order-2');
+      expect(order?.id).toBe('test-56-order-2');
     });
   });
 

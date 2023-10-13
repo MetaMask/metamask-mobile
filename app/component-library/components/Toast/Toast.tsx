@@ -10,6 +10,7 @@ import React, {
 import {
   Dimensions,
   LayoutChangeEvent,
+  Platform,
   StyleProp,
   View,
   ViewStyle,
@@ -38,6 +39,8 @@ import {
   ToastVariants,
 } from './Toast.types';
 import styles from './Toast.styles';
+import generateTestId from '../../../../wdio/utils/generateTestId';
+import { TOAST_ID } from '../../../../wdio/screen-objects/testIDs/Common.testIds';
 
 const visibilityDuration = 2750;
 const animationDuration = 250;
@@ -165,7 +168,10 @@ const Toast = forwardRef((_, ref: React.ForwardedRef<ToastRef>) => {
     return (
       <>
         {renderAvatar()}
-        <View style={styles.labelsContainer}>
+        <View
+          style={styles.labelsContainer}
+          {...generateTestId(Platform, TOAST_ID)}
+        >
           {renderLabel(labelOptions)}
           {renderButtonLink(linkButtonOptions)}
         </View>

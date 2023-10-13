@@ -1,4 +1,3 @@
-/* global driver */
 import { Then } from '@wdio/cucumber-framework';
 import AddressBookModal from '../screen-objects/Modals/AddressBookModal';
 import Contacts from '../screen-objects/Contacts';
@@ -50,12 +49,11 @@ Then(
 );
 
 Then(/I tap on Edit button to edit Saved contact details/, async () => {
-  const timeout = 2000;
-  await driver.pause(timeout);
   await Contacts.tapOnEditButton();
 });
 
 Then(/I can edit the contact name to "([^"]*)?"/, async (name) => {
+  await AddContact.waitForAddContactButton();
   await AddContact.changeContactName(name);
 });
 

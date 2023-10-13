@@ -1,4 +1,5 @@
 #import "AppDelegate.h"
+#import <Mixpanel/Mixpanel.h>
 #import <React/RCTBridge.h>
 #import <React/RCTBundleURLProvider.h>
 #import <React/RCTRootView.h>
@@ -21,11 +22,13 @@
 - (BOOL)application:(UIApplication *)application didFinishLaunchingWithOptions:(NSDictionary *)launchOptions{
 
   NSString *foxCodeFromBundle = [[NSBundle mainBundle] objectForInfoDictionaryKey:@"fox_code"];
+  NSString *mixPanelTokenFromBundle = [[NSBundle mainBundle] objectForInfoDictionaryKey:@"mixpanel_token"];
 
   NSString *foxCode;
   
   if(foxCodeFromBundle != nil){
     foxCode = foxCodeFromBundle;
+    [Mixpanel sharedInstanceWithToken:mixPanelTokenFromBundle];
   } else {
     foxCode = @"debug";
   }

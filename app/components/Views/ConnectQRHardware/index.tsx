@@ -6,18 +6,19 @@ import React, {
   useState,
 } from 'react';
 import { StyleSheet, Text, TouchableOpacity, View } from 'react-native';
-import Icon from 'react-native-vector-icons/FontAwesome';
-import { UR } from '@ngraveio/bc-ur';
-import { MetaMetricsEvents } from '../../../core/Analytics';
 import Engine from '../../../core/Engine';
 import AnimatedQRScannerModal from '../../UI/QRHardware/AnimatedQRScanner';
 import SelectQRAccounts from './SelectQRAccounts';
 import ConnectQRInstruction from './Instruction';
+import Icon from 'react-native-vector-icons/FontAwesome';
 import BlockingActionModal from '../../UI/BlockingActionModal';
 import { strings } from '../../../../locales/i18n';
 import { IAccount } from './types';
+import { UR } from '@ngraveio/bc-ur';
 import Alert, { AlertType } from '../../Base/Alert';
-import { trackEvent } from '../../../util/analyticsV2';
+import { MetaMetricsEvents } from '../../../core/Analytics';
+import AnalyticsV2 from '../../../util/analyticsV2';
+
 import MaterialIcon from 'react-native-vector-icons/MaterialIcons';
 import Device from '../../../util/device';
 import { useTheme } from '../../../util/theme';
@@ -165,7 +166,7 @@ const ConnectQRHardware = ({ navigation }: IConnectQRHardwareProps) => {
   }, [QRState.sync, hideScanner, showScanner]);
 
   const onConnectHardware = useCallback(async () => {
-    trackEvent(MetaMetricsEvents.CONTINUE_QR_HARDWARE_WALLET, {
+    AnalyticsV2.trackEvent(MetaMetricsEvents.CONTINUE_QR_HARDWARE_WALLET, {
       device_type: 'QR Hardware',
     });
     resetError();
@@ -176,9 +177,12 @@ const ConnectQRHardware = ({ navigation }: IConnectQRHardwareProps) => {
   const onScanSuccess = useCallback(
     (ur: UR) => {
       hideScanner();
-      trackEvent(MetaMetricsEvents.CONNECT_HARDWARE_WALLET_SUCCESS, {
-        device_type: 'QR Hardware',
-      });
+      AnalyticsV2.trackEvent(
+        MetaMetricsEvents.CONNECT_HARDWARE_WALLET_SUCCESS,
+        {
+          device_type: 'QR Hardware',
+        },
+      );
       if (ur.type === SUPPORTED_UR_TYPE.CRYPTO_HDKEY) {
         KeyringController.submitQRCryptoHDKey(ur.cbor.toString('hex'));
       } else {

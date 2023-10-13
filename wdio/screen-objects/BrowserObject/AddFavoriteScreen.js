@@ -1,32 +1,32 @@
 import Selectors from '../../helpers/Selectors';
 import {
-  FAVORITE_SCREEN_ID,
+  ADD_BOOKMARKS_SCREEN_ID,
   FAVORITE_TITLE_EDIT_TEXT,
   FAVORITE_URL_EDIT_TEXT,
-  FAVORITE_ADD_BUTTON,
+  ADD_BOOKMARKS_BUTTON_ID,
   FAVORITE_CANCEL_BUTTON,
 } from '../testIDs/BrowserScreen/AddFavorite.testIds';
 import Gestures from '../../helpers/Gestures';
 
 class AddFavoriteScreen {
   get screen() {
-    return Selectors.getXpathElementByResourceId(FAVORITE_SCREEN_ID);
+    return Selectors.getElementByPlatform(ADD_BOOKMARKS_SCREEN_ID);
   }
 
   get titleEditText() {
-    return Selectors.getXpathElementByResourceId(FAVORITE_TITLE_EDIT_TEXT);
+    return Selectors.getElementByPlatform(FAVORITE_TITLE_EDIT_TEXT);
   }
 
   get urlEditText() {
-    return Selectors.getXpathElementByResourceId(FAVORITE_URL_EDIT_TEXT);
+    return Selectors.getElementByPlatform(FAVORITE_URL_EDIT_TEXT);
   }
 
   get addButton() {
-    return Selectors.getElementByPlatform(FAVORITE_ADD_BUTTON);
+    return Selectors.getXpathElementByText('Add');
   }
 
   get cancelButton() {
-    return Selectors.getElementByPlatform(FAVORITE_CANCEL_BUTTON);
+    return Selectors.getXpathElementByText('Cancel');
   }
 
   async isScreenDisplayed() {
@@ -35,8 +35,7 @@ class AddFavoriteScreen {
 
   async titleEditTextContains(expectedTitle) {
     const textFromElement = await this.titleEditText;
-    const actualTitle = await textFromElement.getText();
-    await expect(expectedTitle).toContain(actualTitle);
+    await expect(await textFromElement.getText()).toContain(expectedTitle);
   }
 
   async editTitleEditText(title) {
@@ -45,8 +44,7 @@ class AddFavoriteScreen {
 
   async urlEditTextContains(expectedUrl) {
     const textFromElement = await this.urlEditText;
-    const actualUrl = await textFromElement.getText();
-    await expect(expectedUrl).toContain(actualUrl);
+    await expect(await textFromElement.getText()).toContain(expectedUrl);
   }
 
   async editUrlEditText(title) {

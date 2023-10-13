@@ -101,7 +101,7 @@ const CheckoutWebView = () => {
     async (token: CryptoCurrency) => {
       if (!token) return;
 
-      const { address, symbol, decimals, network } = token;
+      const { address, symbol, decimals, network, name } = token;
       const chainId = network?.chainId;
 
       if (
@@ -119,7 +119,7 @@ const CheckoutWebView = () => {
           toLowerCaseEquals(t.address, address),
         )
       ) {
-        await TokensController.addToken(address, symbol, decimals);
+        await TokensController.addToken(address, symbol, decimals, null, name);
       }
     },
     [selectedChainId],

@@ -4,14 +4,14 @@ import { shallow } from 'enzyme';
 
 // Internal dependencies.
 import Cell from './Cell';
+import { TEST_AVATAR_PROPS, TEST_CELL_TITLE } from './Cell.constants';
+import { CellVariants } from './Cell.types';
+
 import {
-  TEST_AVATAR_PROPS,
-  TEST_CELL_TITLE,
   CELL_DISPLAY_TEST_ID,
   CELL_MULTI_SELECT_TEST_ID,
   CELL_SELECT_TEST_ID,
-} from './Cell.constants';
-import { CellVariants } from './Cell.types';
+} from '../../../../constants/test-ids';
 
 describe('Cell - Snapshot', () => {
   it('should render CellDisplay given the type Display', () => {
