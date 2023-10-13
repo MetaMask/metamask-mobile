@@ -2,6 +2,7 @@
 echo "PostInstall script:"
 
 echo "1. Build Provider..."
+rm app/core/InpageBridgeWeb3.js
 mkdir -p app/core/Provider/dist && rm -rf app/core/Provider/dist/*
 cd app/core/Provider/inpage
 ../../../../node_modules/.bin/webpack --config webpack.config.js

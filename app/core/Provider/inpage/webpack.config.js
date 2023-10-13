@@ -32,7 +32,6 @@ const config = {
       _stream_writable: require.resolve('readable-stream/writable'),
       _stream_duplex: require.resolve('readable-stream/duplex'),
       _stream_passthrough: require.resolve('readable-stream/passthrough'),
-      https: require.resolve('https-browserify'),
     },
   },
   plugins: [
