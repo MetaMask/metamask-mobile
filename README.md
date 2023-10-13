@@ -25,6 +25,17 @@ The code is built using React-Native and running code locally requires a Mac or 
 
 -   Install [Yarn v1](https://yarnpkg.com/en/docs/install)
 
+    One way to install Yarn v1 is by using brew:
+    ```bash
+    brew install yarn@1.22.19
+    ```
+
+    To check you've installed the right version:
+
+    ```bash
+    yarn --version
+    ```
+
 -   Install the shared [React Native dependencies](https://reactnative.dev/docs/environment-setup#installing-dependencies) (`React Native CLI`, _not_ `Expo CLI`)
     -   XCode version `14.2` or below
 
