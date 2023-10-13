@@ -3,7 +3,6 @@ import { connect } from 'react-redux';
 import PropTypes from 'prop-types';
 import StyledButton from '../StyledButton';
 import {
-  StyleSheet,
   View,
   InteractionManager,
   TouchableOpacity,
@@ -12,14 +11,8 @@ import {
 import TransactionHeader from '../TransactionHeader';
 import AccountInfoCard from '../AccountInfoCard';
 import { strings } from '../../../../locales/i18n';
-import Text, {
-  TextVariant,
-  TextColor,
-} from '../../../component-library/components/Texts/Text';
-import Device from '../../../util/device';
+import Text from '../../../component-library/components/Texts/Text';
 import NotificationManager from '../../../core/NotificationManager';
-import Accordion from '../../../component-library/components/Accordions/Accordion/Accordion';
-import { AccordionHeaderHorizontalAlignment } from '../../../component-library/components/Accordions/Accordion';
 
 import { MetaMetricsEvents } from '../../../core/Analytics';
 import AnalyticsV2 from '../../../util/analyticsV2';
@@ -46,168 +39,8 @@ import CheckBox from '@react-native-community/checkbox';
 import generateTestId from '../../../../wdio/utils/generateTestId';
 import Engine from '../../../core/Engine';
 import { prefixUrlWithProtocol } from '../../../util/browser';
-import BannerAlert from '../../../component-library/components/Banners/Banner/variants/BannerAlert/BannerAlert';
-import { BannerAlertSeverity } from '../../../component-library/components/Banners/Banner/variants/BannerAlert/BannerAlert.types';
-import Icon from '../../../component-library/components/Icons/Icon/Icon';
-import {
-  IconColor,
-  IconName,
-  IconSize,
-} from '../../../component-library/components/Icons/Icon';
-
-const createStyles = (colors, typography) =>
-  StyleSheet.create({
-    root: {
-      backgroundColor: colors.background.default,
-      paddingTop: 24,
-      borderTopLeftRadius: 20,
-      borderTopRightRadius: 20,
-      minHeight: 200,
-      paddingBottom: Device.isIphoneX() ? 20 : 0,
-    },
-    accountCardWrapper: {
-      paddingHorizontal: 24,
-    },
-    intro: {
-      ...typography.sHeadingMD,
-      textAlign: 'center',
-      color: colors.text.default,
-      marginBottom: 8,
-      marginTop: 16,
-    },
-    intro_reconnect: {
-      ...typography.sHeadingMD,
-      textAlign: 'center',
-      color: colors.text.default,
-      marginBottom: 8,
-      marginTop: 16,
-      marginLeft: 16,
-      marginRight: 16,
-    },
-    otpContainer: {},
-    selectOtp: {
-      marginTop: 0,
-      padding: 2,
-      marginLeft: 20,
-      marginRight: 20,
-    },
-    warning: {
-      ...typography.sHeadingSMRegular,
-      color: colors.text.default,
-      paddingHorizontal: 24,
-      marginBottom: 16,
-      width: '100%',
-      textAlign: 'center',
-    },
-    actionContainer: {
-      flex: 0,
-      flexDirection: 'row',
-      paddingVertical: 16,
-      paddingHorizontal: 24,
-    },
-    button: {
-      flex: 1,
-    },
-    warnCTA: {
-      backgroundColor: colors.error.default,
-    },
-    bottom: {
-      marginHorizontal: 24,
-    },
-    cancel: {
-      marginRight: 8,
-    },
-    confirm: {
-      marginLeft: 8,
-    },
-    circle: {
-      width: 16,
-      height: 16,
-      borderRadius: 16 / 2,
-      backgroundColor: colors.background.default,
-      opacity: 1,
-      margin: 2,
-      borderWidth: 2,
-      borderColor: colors.border.default,
-      marginRight: 6,
-    },
-    rememberme: {
-      marginTop: 15,
-      marginBottom: 10,
-      flexDirection: 'row',
-      justifyContent: 'flex-start',
-      marginLeft: 20,
-      alignItems: 'center',
-    },
-    rememberCheckbox: {
-      height: 20,
-      width: 20,
-    },
-    rememberText: { paddingLeft: 10, color: colors.text.default },
-    option: {
-      flex: 1,
-    },
-    touchableOption: {
-      flexDirection: 'row',
-      justifyContent: 'flex-start',
-      alignItems: 'center',
-      borderWidth: 1,
-      borderColor: colors.border.muted,
-      borderRadius: 8,
-      padding: 16,
-      marginLeft: 20,
-      marginRight: 20,
-      marginTop: 16,
-    },
-    selectedOption: {
-      borderColor: colors.primary.default,
-    },
-    optionText: {
-      ...typography.lBodyMD,
-      color: colors.text.default,
-    },
-    selectedCircle: {
-      width: 12,
-      height: 12,
-      borderRadius: 12 / 2,
-      backgroundColor: colors.primary.default,
-      opacity: 1,
-      margin: 2,
-      marginRight: 6,
-    },
-    attributionItem: {
-      marginRight: 4,
-    },
-    detailsItem: {
-      marginBottom: 4,
-    },
-    details: { marginLeft: 10, marginBottom: 10 },
-    securityTickIcon: { marginTop: 4 },
-    attributionBase: {
-      flexDirection: 'row',
-      alignItems: 'center',
-      marginTop: 4,
-    },
-    descriptionText: {
-      paddingRight: 10,
-      paddingTop: 3,
-      lineHeight: 22,
-    },
-    advisoryContainer: {
-      flexDirection: 'row',
-      alignItems: 'center',
-      marginVertical: 8,
-    },
-    advisoryText: {
-      width: '80%',
-    },
-    seeDetails: {
-      marginTop: 8,
-    },
-    headerText: {
-      marginTop: 3,
-    },
-  });
+import createStyles from './styles';
+import ShowWarningBanner from './showWarningBanner';
 
 /**
  * Account access approval component
@@ -426,10 +259,6 @@ class AccountApproval extends PureComponent {
     );
   };
 
-  onContactUsClicked = () => {
-    // do something
-  };
-
   render = () => {
     const { currentPageInformation, selectedAddress } = this.props;
     const { colors, typography } = this.context || mockTheme;
@@ -443,88 +272,15 @@ class AccountApproval extends PureComponent {
     const { hostname } = new URL(prefixedUrl);
     const isAllowed = this.isAllowedUrl(hostname);
 
-    const potentialThreatsForAccountConnect = [
-      'Fake versions of MetaMask',
-      'Secret recovery phrase or password theft',
-      'Malicious transactions resulting in stolen assets',
-    ];
-
-    const renderDetails = () => (
-      <Accordion
-        title={strings('blockaid_banner.see_details')}
-        isExpanded
-        style={styles.seeDetails}
-        horizontalAlignment={AccordionHeaderHorizontalAlignment.Start}
-      >
-        <Text variant={TextVariant.BodySMBold} style={styles.headerText}>
-          {strings('accounts.potential_threat')}
-        </Text>
-        <View style={styles.details}>
-          {potentialThreatsForAccountConnect?.map((value, i) => (
-            <Text
-              key={`value-${i}`}
-              variant={TextVariant.BodySM}
-              style={styles.detailsItem}
-            >
-              • {value}
-            </Text>
-          ))}
-        </View>
-        <View style={styles.attributionBase}>
-          <View style={styles.attributionItem}>
-            <Text variant={TextVariant.BodySM}>
-              {strings('blockaid_banner.does_not_look_right')}
-            </Text>
-          </View>
-          <View style={styles.attributionItem}>
-            <Text
-              color={TextColor.Info}
-              variant={TextVariant.BodySM}
-              onPress={this.onContactUsClicked}
-            >
-              {strings('accounts.report_problem')}
-            </Text>
-          </View>
-        </View>
-      </Accordion>
-    );
-
-    const descriptionText = (
-      <Text variant={TextVariant.BodyMD} style={styles.descriptionText}>
-        {strings('accounts.deceptive_site_desc')}{' '}
-        <Text color={TextColor.Info}>{strings('accounts.learn_more')}</Text>
-      </Text>
-    );
-
     return (
       <View
         style={styles.root}
         {...generateTestId(Platform, ACCOUNT_APROVAL_MODAL_CONTAINER_ID)}
       >
         <TransactionHeader currentPageInformation={currentPageInformation} />
-        <BannerAlert
-          severity={BannerAlertSeverity.Error}
-          title={strings('accounts.deceptive_site_ahead')}
-          description={descriptionText}
-          style={styles.bottom}
-        >
-          {renderDetails()}
-          <View style={styles.advisoryContainer}>
-            <View style={styles.attributionItem}>
-              <Icon
-                name={IconName.SecurityTick}
-                size={IconSize.Sm}
-                color={IconColor.Primary}
-                style={styles.securityTickIcon}
-              />
-            </View>
-            <View style={styles.attributionItem}>
-              <Text variant={TextVariant.BodySM} style={styles.advisoryText}>
-                {strings('accounts.advisory_by')}
-              </Text>
-            </View>
-          </View>
-        </BannerAlert>
+
+        {!isAllowed && <ShowWarningBanner />}
+
         {!currentPageInformation.reconnect && (
           <>
             <Text style={styles.intro}>
@@ -605,7 +361,7 @@ class AccountApproval extends PureComponent {
             containerStyle={[
               styles.button,
               styles.confirm,
-              isAllowed && styles.warnCTA,
+              !isAllowed && styles.warningButton,
             ]}
             testID={'connect-approve-button'}
           >
