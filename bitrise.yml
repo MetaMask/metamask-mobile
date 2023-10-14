@@ -144,9 +144,7 @@ workflows:
                 fi
       - share-pipeline-variable@1:
           inputs:
-            - variables: |-
-                RUN_E2E=$RUN_E2E
-                BUILD_TYPE=debug
+            - variables: RUN_E2E=$RUN_E2E
       # - build-router-start@0:
       #     inputs:
       #       - workflows: |-
