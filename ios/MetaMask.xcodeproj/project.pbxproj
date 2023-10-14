@@ -558,6 +558,7 @@
 				00DD1BFF1BD5951E006B06BC /* Bundle React Native code and images */,
 				15ACCA0022655C3A0063978B /* Embed Frameworks */,
 				802588CED3FC487A5D5263F0 /* [CP] Copy Pods Resources */,
+				C77EFC60F19570875F8DB3BD /* [CP] Embed Pods Frameworks */,
 			);
 			buildRules = (
 			);
@@ -582,6 +583,7 @@
 				B339FF2F289ABD70001B89FB /* Bundle React Native code and images */,
 				B339FF30289ABD70001B89FB /* Embed Frameworks */,
 				8EF10BB14629809332947E5D /* [CP] Copy Pods Resources */,
+				EB3465C9579A347237ADD532 /* [CP] Embed Pods Frameworks */,
 			);
 			buildRules = (
 			);
@@ -924,6 +926,40 @@
 			runOnlyForDeploymentPostprocessing = 0;
 			shellPath = /bin/sh;
 			shellScript = "if [[ -s \"$HOME/.nvm/nvm.sh\" ]]; then\n. \"$HOME/.nvm/nvm.sh\"\nelif [[ -x \"$(command -v brew)\" && -s \"$(brew --prefix nvm)/nvm.sh\" ]]; then\n. \"$(brew --prefix nvm)/nvm.sh\"\nfi\n\nexport NODE_BINARY=$(which node)\n\nif [[ -s \"$HOME/.nvm/nvm.sh\" ]]; then\n. \"$HOME/.nvm/nvm.sh\"\nelif [[ -x \"$(command -v brew)\" && -s \"$(brew --prefix nvm)/nvm.sh\" ]]; then\n. \"$(brew --prefix nvm)/nvm.sh\"\nfi\n\nif [ ! -e \"${SENTRY_PROPERTIES}\" ]; then\n    export SENTRY_PROPERTIES=../sentry.properties\nfi\n\n\nif [ \"$PLATFORM_NAME\" == \"iphonesimulator\" ] && [ \"$CONFIGURATION\" == \"Release\" ]; then\n    ../node_modules/react-native/scripts/react-native-xcode.sh\nelse\n    ../node_modules/@sentry/cli/bin/sentry-cli react-native xcode \\\n    ../node_modules/react-native/scripts/react-native-xcode.sh\nfi\n";
+		};
+		C77EFC60F19570875F8DB3BD /* [CP] Embed Pods Frameworks */ = {
+			isa = PBXShellScriptBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			inputFileListPaths = (
+				"${PODS_ROOT}/Target Support Files/Pods-MetaMask/Pods-MetaMask-frameworks-${CONFIGURATION}-input-files.xcfilelist",
+			);
+			name = "[CP] Embed Pods Frameworks";
+			outputFileListPaths = (
+				"${PODS_ROOT}/Target Support Files/Pods-MetaMask/Pods-MetaMask-frameworks-${CONFIGURATION}-output-files.xcfilelist",
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+			shellPath = /bin/sh;
+			shellScript = "\"${PODS_ROOT}/Target Support Files/Pods-MetaMask/Pods-MetaMask-frameworks.sh\"\n";
+			showEnvVarsInLog = 0;
+		};
+		EB3465C9579A347237ADD532 /* [CP] Embed Pods Frameworks */ = {
+			isa = PBXShellScriptBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			inputFileListPaths = (
+				"${PODS_ROOT}/Target Support Files/Pods-MetaMask-QA/Pods-MetaMask-QA-frameworks-${CONFIGURATION}-input-files.xcfilelist",
+			);
+			name = "[CP] Embed Pods Frameworks";
+			outputFileListPaths = (
+				"${PODS_ROOT}/Target Support Files/Pods-MetaMask-QA/Pods-MetaMask-QA-frameworks-${CONFIGURATION}-output-files.xcfilelist",
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+			shellPath = /bin/sh;
+			shellScript = "\"${PODS_ROOT}/Target Support Files/Pods-MetaMask-QA/Pods-MetaMask-QA-frameworks.sh\"\n";
+			showEnvVarsInLog = 0;
 		};
 /* End PBXShellScriptBuildPhase section */
 
