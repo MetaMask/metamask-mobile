@@ -138,11 +138,11 @@ workflows:
                   echo "No Run E2E label skipping E2E tests."
                   envman add --key RUN_E2E --value "false"
                 fi
-      - share-pipeline-variable@1:
-          inputs:
-            - variables: |-
-                RUN_E2E
-                BUILD_TYPE=debug
+      # - share-pipeline-variable@1:
+      #     inputs:
+      #       - variables: |-
+      #           RUN_E2E
+      #           BUILD_TYPE=debug
       - bitrise-run@0.9:
           inputs:
             - workflow_id: ios_e2e_test
@@ -882,4 +882,5 @@ trigger_map:
     pipeline: pr_smoke_e2e_pipeline
   - pull_request_target_branch: 'main'
     pull_request_source_branch: '*'
-    pipeline: pr_smoke_e2e_pipeline_pr_check
+    # pipeline: pr_smoke_e2e_pipeline_pr_check
+    workflow: check_e2e_trigger
