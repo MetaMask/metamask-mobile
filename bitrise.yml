@@ -136,6 +136,7 @@ workflows:
                 REPO_SLUG=${BITRISEIO_GIT_REPOSITORY_SLUG}
                 OWNER_NAME=${BITRISEIO_GIT_REPOSITORY_OWNER}
                 PR_LABELS=$(curl -s "https://api.github.com/repos/${OWNER_NAME}/${REPO_SLUG}/issues/${PR_NUMBER}/labels" | jq -r '[.[].name]')
+
                 if [[ $(echo "$PR_LABELS" | jq 'contains(["Run E2E"])') == true ]]; then
                   echo "Now triggering e2e tests"
                 else
