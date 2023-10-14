@@ -167,6 +167,14 @@ describe('OrdersList', () => {
     expect(screen.toJSON()).toMatchSnapshot();
   });
 
+  it('resets filter to all after other filter was set', () => {
+    render(<OrdersList />);
+    fireEvent.press(screen.getByRole('button', { name: 'Sell' }));
+    expect(screen.toJSON()).toMatchSnapshot();
+    fireEvent.press(screen.getByRole('button', { name: 'All' }));
+    expect(screen.toJSON()).toMatchSnapshot();
+  });
+
   it('navigates when pressing item', () => {
     render(<OrdersList />);
     fireEvent.press(screen.getByRole('button', { name: 'Sell' }));
