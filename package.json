@@ -282,7 +282,7 @@
     "react-native-screens": "3.13.1",
     "react-native-scrollable-tab-view": "^1.0.0",
     "react-native-search-api": "ombori/react-native-search-api#8/head",
-    "react-native-sensors": "5.3.0",
+    "react-native-sensors": "7.3.6",
     "react-native-share": "8.2.2",
     "react-native-size-matters": "0.4.0",
     "react-native-skeleton-placeholder": "^5.0.0",
