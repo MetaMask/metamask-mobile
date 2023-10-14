@@ -1016,7 +1016,6 @@
 				GCC_PREPROCESSOR_DEFINITIONS = (
 					"DEBUG=1",
 					"$(inherited)",
-					"FB_SONARKIT_ENABLED=1",
 				);
 				HEADER_SEARCH_PATHS = (
 					"$(inherited)",
