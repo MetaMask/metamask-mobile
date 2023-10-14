@@ -30,7 +30,7 @@ interface Props {
 }
 
 function getStatusColorAndText(order: FiatOrder): [TextColor, string] {
-  let statusColor = TextColor.Default;
+  let statusColor;
   switch (order.state) {
     case 'CANCELLED':
     case 'FAILED':
