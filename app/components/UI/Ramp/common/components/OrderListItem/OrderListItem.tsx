@@ -26,7 +26,7 @@ const transactionIconSent = require('../../../../../../images/transaction-icons/
 /* eslint-enable import/no-commonjs, @typescript-eslint/no-var-requires, @typescript-eslint/no-require-imports */
 
 interface Props {
-  order: FiatOrder;
+  readonly order: FiatOrder;
 }
 
 function getStatusColorAndText(order: FiatOrder): [TextColor, string] {
