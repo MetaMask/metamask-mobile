@@ -56,7 +56,7 @@ def common_target_logic
   # Flags change depending on the env values.
   flags = get_default_flags()
 
-  # flipper_config = ENV['NO_FLIPPER'] == "1" ? FlipperConfiguration.disabled : FlipperConfiguration.enabled
+  flipper_config = ENV['NO_FLIPPER'] == "1" ? FlipperConfiguration.disabled : FlipperConfiguration.enabled
 
   use_react_native!(
     :path => config[:reactNativePath],
@@ -71,7 +71,7 @@ def common_target_logic
     #
     # Note that if you have use_frameworks! enabled, Flipper will not work and
     # you should disable the next line.
-    #:flipper_configuration => flipper_config,
+    :flipper_configuration => flipper_config,
     # An absolute path to your application root.
     :app_path => "#{Pod::Config.instance.installation_root}/..",
   )
