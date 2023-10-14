@@ -1201,10 +1201,23 @@
     "@ethereumjs/util" "^8.1.0"
     crc-32 "^1.2.0"
 
+"@ethereumjs/common@^4.0.0":
+  version "4.0.0"
+  resolved "https://registry.yarnpkg.com/@ethereumjs/common/-/common-4.0.0.tgz#da99cdc822041da02753867d4773683f91e5854f"
+  integrity sha512-eVa0/nC15mpotD8HOq6jB883SCWUkLjibr2jLPmPrx4FfmewXqFeh4drgR2sHjq3qWKxpCLK+5qsSJgtXwIzJQ==
+  dependencies:
+    "@ethereumjs/util" "^9.0.0"
+    crc "^4.3.2"
+
 "@ethereumjs/rlp@^4.0.1":
   version "4.0.1"
   resolved "https://registry.yarnpkg.com/@ethereumjs/rlp/-/rlp-4.0.1.tgz#626fabfd9081baab3d0a3074b0c7ecaf674aaa41"
   integrity sha512-tqsQiBQDQdmPWE1xkkBq4rlSW5QZpLOUJ5RJh2/9fug+q9tnUhuZoVLk7s0scUIKTOzEtR72DFBXI4WiZcMpvw==
+
+"@ethereumjs/rlp@^5.0.0":
+  version "5.0.0"
+  resolved "https://registry.yarnpkg.com/@ethereumjs/rlp/-/rlp-5.0.0.tgz#dd81b32b2237bc32fb1b54534f8ff246a6c89d9b"
+  integrity sha512-WuS1l7GJmB0n0HsXLozCoEFc9IwYgf3l0gCkKVYgR67puVF1O4OpEaN0hWmm1c+iHUHFCKt1hJrvy5toLg+6ag==
 
 "@ethereumjs/tx@3.0.0":
   version "3.0.0"
@@ -1240,6 +1253,16 @@
     "@ethereumjs/util" "^8.1.0"
     ethereum-cryptography "^2.0.0"
 
+"@ethereumjs/tx@^5.0.0":
+  version "5.0.0"
+  resolved "https://registry.yarnpkg.com/@ethereumjs/tx/-/tx-5.0.0.tgz#975f25a67ee35bee572ece1f99cd84c45f661eee"
+  integrity sha512-bJBC/jHVIbwvZBVsK0Ls70NzxJ8Q3UvPwskG1LO6+ryVGKY0y1bhRreo0/gR3vTkuRjD+x5QTYV6fIY16tswJA==
+  dependencies:
+    "@ethereumjs/common" "^4.0.0"
+    "@ethereumjs/rlp" "^5.0.0"
+    "@ethereumjs/util" "^9.0.0"
+    ethereum-cryptography "^2.1.2"
+
 "@ethereumjs/util@^8.0.0", "@ethereumjs/util@^8.1.0":
   version "8.1.0"
   resolved "https://registry.yarnpkg.com/@ethereumjs/util/-/util-8.1.0.tgz#299df97fb6b034e0577ce9f94c7d9d1004409ed4"
@@ -1248,6 +1271,14 @@
     "@ethereumjs/rlp" "^4.0.1"
     ethereum-cryptography "^2.0.0"
     micro-ftch "^0.3.1"
+
+"@ethereumjs/util@^9.0.0":
+  version "9.0.0"
+  resolved "https://registry.yarnpkg.com/@ethereumjs/util/-/util-9.0.0.tgz#ac5945c629f3ab2ac584d8b12a8513e8eac29dc4"
+  integrity sha512-V8062I+ZXfFxtFLp7xsPeiT1IxDaVOZaM78nGj1gsWUFeZ8SgADMLDKWehp+muTy1JRbVoXFljZ1qoyv9ji/2g==
+  dependencies:
+    "@ethereumjs/rlp" "^5.0.0"
+    ethereum-cryptography "^2.1.2"
 
 "@ethersproject/abi@5.7.0", "@ethersproject/abi@^5.7.0":
   version "5.7.0"
@@ -8935,6 +8966,11 @@ crc@^3.4.4, crc@^3.8.0:
   dependencies:
     buffer "^5.1.0"
 
+crc@^4.3.2:
+  version "4.3.2"
+  resolved "https://registry.yarnpkg.com/crc/-/crc-4.3.2.tgz#49b7821cbf2cf61dfd079ed93863bbebd5469b9a"
+  integrity sha512-uGDHf4KLLh2zsHa8D8hIQ1H/HtFQhyHrc0uhHBcoKGol/Xnb+MPYfUMw7cvON6ze/GUESTudKayDcJC5HnJv1A==
+
 create-ecdh@^4.0.0:
   version "4.0.4"
   resolved "https://registry.yarnpkg.com/create-ecdh/-/create-ecdh-4.0.4.tgz#d6e7f4bffa66736085a0762fd3a632684dabcc4e"
@@ -11110,7 +11146,7 @@ ethereum-cryptography@^0.1.3:
     secp256k1 "^4.0.1"
     setimmediate "^1.0.5"
 
-ethereum-cryptography@^2.0.0:
+ethereum-cryptography@^2.0.0, ethereum-cryptography@^2.1.2:
   version "2.1.2"
   resolved "https://registry.yarnpkg.com/ethereum-cryptography/-/ethereum-cryptography-2.1.2.tgz#18fa7108622e56481157a5cb7c01c0c6a672eb67"
   integrity sha512-Z5Ba0T0ImZ8fqXrJbpHcbpAvIswRte2wGNR/KePnu8GbbvgJ47lMxT/ZZPG6i9Jaht4azPDop4HaM00J0J59ug==
