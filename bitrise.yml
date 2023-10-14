@@ -52,7 +52,7 @@ pipelines:
   pr_smoke_e2e_pipeline_pr_check:
     stages:
       - label_run_e2e_pr_check: {}
-      - run_smoke_e2e_ios_android_stage: {}
+      - pr_run_smoke_e2e_ios_android_stage: {}
 #Stages reference workflows. Those workflows cannot but utility "_this-is-a-utility"
 stages:
   create_build_release:
@@ -89,6 +89,10 @@ stages:
     workflows:
       - ios_e2e_test: {}
   run_smoke_e2e_ios_android_stage:
+    workflows:
+      - ios_e2e_test: {}
+      - android_e2e_test: {}
+  pr_run_smoke_e2e_ios_android_stage:
     workflows:
       - ios_e2e_test:
           run_if: '{{enveq "RUN_E2E" "true"}}'
@@ -138,6 +142,7 @@ workflows:
                 PR_LABELS=$(curl -s "https://api.github.com/repos/${OWNER_NAME}/${REPO_SLUG}/issues/${PR_NUMBER}/labels" | jq -r '[.[].name]')
                 if [[ $(echo "$PR_LABELS" | jq 'contains(["Run E2E"])') == true ]]; then
                   echo "Now triggering e2e tests"
+                  envman add --key RUN_E2E --value "true"
                 else
                   echo "No Run E2E label skipping E2E tests."
                   envman add --key RUN_E2E --value "false"
