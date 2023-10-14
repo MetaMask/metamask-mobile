@@ -22,7 +22,7 @@ import { useTheme } from '../../../../../../util/theme';
 type filterType = 'ALL' | 'BUY' | 'SELL';
 
 interface FilterButtonProps extends Omit<ButtonProps, 'variant' | 'size'> {
-  selected?: boolean;
+  readonly selected?: boolean;
 }
 
 function FilterButton({ selected = false, ...props }: FilterButtonProps) {
@@ -79,34 +79,32 @@ function OrdersList() {
   );
 
   return (
-    <>
-      <FlatList
-        ListHeaderComponent={
-          <ScrollView horizontal>
-            <Row style={styles.filters}>
-              <FilterButton
-                label="All"
-                onPress={() => setCurrentFilter('ALL')}
-                selected={currentFilter === 'ALL'}
-              />
-              <FilterButton
-                label="Buy"
-                onPress={() => setCurrentFilter('BUY')}
-                selected={currentFilter === 'BUY'}
-              />
-              <FilterButton
-                label="Sell"
-                onPress={() => setCurrentFilter('SELL')}
-                selected={currentFilter === 'SELL'}
-              />
-            </Row>
-          </ScrollView>
-        }
-        data={orders}
-        renderItem={renderItem}
-        keyExtractor={(item) => item.id}
-      />
-    </>
+    <FlatList
+      ListHeaderComponent={
+        <ScrollView horizontal>
+          <Row style={styles.filters}>
+            <FilterButton
+              label="All"
+              onPress={() => setCurrentFilter('ALL')}
+              selected={currentFilter === 'ALL'}
+            />
+            <FilterButton
+              label="Buy"
+              onPress={() => setCurrentFilter('BUY')}
+              selected={currentFilter === 'BUY'}
+            />
+            <FilterButton
+              label="Sell"
+              onPress={() => setCurrentFilter('SELL')}
+              selected={currentFilter === 'SELL'}
+            />
+          </Row>
+        </ScrollView>
+      }
+      data={orders}
+      renderItem={renderItem}
+      keyExtractor={(item) => item.id}
+    />
   );
 }
 
