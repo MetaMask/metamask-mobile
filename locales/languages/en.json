@@ -1875,6 +1875,13 @@
     "buy": "buy",
     "sell": "sell",
     "orders": "Orders",
+    "purchased_currency": "Purchased {{currency}}",
+    "sold_currency": "Sold {{currency}}",
+    "order_status_pending": "Pending",
+    "order_status_processing": "Processing",
+    "order_status_completed": "Completed",
+    "order_status_failed": "Failed",
+    "order_status_cancelled": "Cancelled",
     "network_switcher": {
       "title": "Unsupported {{rampType}} Network",
       "description": "To {{rampType}} crypto, you'll need to switch to a supported network",
