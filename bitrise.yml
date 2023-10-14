@@ -865,9 +865,6 @@ app:
     - opts:
         is_expand: false
       IOS_APP_LINK: ''
-    - opts:
-        is_expand: false
-      RUN_E2E: true
 meta:
   bitrise.io:
     stack: osx-xcode-14.2.x-ventura
