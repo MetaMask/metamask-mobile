@@ -882,4 +882,4 @@ trigger_map:
     pipeline: pr_smoke_e2e_pipeline
   - pull_request_target_branch: 'main'
     pull_request_source_branch: '*'
-    workflow: check_e2e_trigger
+    pipeline: pr_smoke_e2e_pipeline_pr_check
