@@ -90,10 +90,8 @@ stages:
       - ios_e2e_test: {}
   run_smoke_e2e_ios_android_stage:
     workflows:
-      - ios_e2e_test:
-          run_if: '{{enveq "RUN_E2E" "true"}}'
-      - android_e2e_test:
-          run_if: '{{enveq "RUN_E2E" "true"}}'
+      - ios_e2e_test: {}
+      - android_e2e_test: {}
   run_e2e_ios_android_stage:
     workflows:
       - ios_e2e_test: {}
@@ -110,10 +108,8 @@ stages:
   label_run_e2e_pr_check:
     workflows:
       - check_e2e_trigger: {}
-      - ios_e2e_test:
-          run_if: '{{enveq "RUN_E2E" "true"}}'
-      - android_e2e_test:
-          run_if: '{{enveq "RUN_E2E" "true"}}'
+      - ios_e2e_test: {}
+      - android_e2e_test: {}
 workflows:
   # Check if the PR is in draft mode
   check_e2e_trigger:
