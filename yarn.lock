@@ -1624,7 +1624,6 @@
 
 "@exodus/react-native-payments@git+https://github.com/MetaMask/react-native-payments.git#dbc8cbbed570892d2fea5e3d183bf243e062c1e5":
   version "1.5.0"
-  uid dbc8cbbed570892d2fea5e3d183bf243e062c1e5
   resolved "git+https://github.com/MetaMask/react-native-payments.git#dbc8cbbed570892d2fea5e3d183bf243e062c1e5"
   dependencies:
     es6-error "^4.0.2"
@@ -7504,7 +7503,6 @@ bignumber.js@^9.0.1:
 
 "bignumber.js@git+https://github.com/frozeman/bignumber.js-nolookahead.git":
   version "2.0.7"
-  uid "57692b3ecfc98bbdd6b3a516cb2353652ea49934"
   resolved "git+https://github.com/frozeman/bignumber.js-nolookahead.git#57692b3ecfc98bbdd6b3a516cb2353652ea49934"
 
 binary-extensions@^2.0.0:
@@ -8814,7 +8812,7 @@ continuation-local-storage@3.x:
     async-listener "^0.6.0"
     emitter-listener "^1.1.1"
 
-convert-source-map@^1.4.0, convert-source-map@^1.5.0, convert-source-map@^1.6.0, convert-source-map@^1.7.0:
+convert-source-map@^1.4.0, convert-source-map@^1.5.0, convert-source-map@^1.6.0:
   version "1.9.0"
   resolved "https://registry.yarnpkg.com/convert-source-map/-/convert-source-map-1.9.0.tgz#7faae62353fb4213366d0ca98358d22e8368b05f"
   integrity sha512-ASFBup0Mz1uyiIjANan1jzLQami9z1PoYSZCiiYW2FczPbenXc45FZdBZLzOT+r6+iciuEModtmCti+hjaAk0A==
@@ -11171,7 +11169,6 @@ ethereumjs-abi@0.6.6:
 
 ethereumjs-abi@^0.6.8, "ethereumjs-abi@git+https://github.com/ethereumjs/ethereumjs-abi.git":
   version "0.6.8"
-  uid ee3994657fa7a427238e6ba92a84d0b529bbcde0
   resolved "git+https://github.com/ethereumjs/ethereumjs-abi.git#ee3994657fa7a427238e6ba92a84d0b529bbcde0"
   dependencies:
     bn.js "^4.11.8"
@@ -15597,7 +15594,6 @@ lottie-ios@2.5.0:
 
 "lottie-react-native@git+https://github.com/MetaMask/lottie-react-native.git#7ce6a78ac4ac7b9891bc513cb3f12f8b9c9d9106":
   version "3.1.0"
-  uid "7ce6a78ac4ac7b9891bc513cb3f12f8b9c9d9106"
   resolved "git+https://github.com/MetaMask/lottie-react-native.git#7ce6a78ac4ac7b9891bc513cb3f12f8b9c9d9106"
   dependencies:
     invariant "^2.2.2"
@@ -19057,12 +19053,10 @@ react-mixin@^3.0.5:
 
 react-native-actionsheet@beefe/react-native-actionsheet#107/head:
   version "2.4.2"
-  uid fb97d7c6a33bc3213b928a36257dd0c23b42fa6f
   resolved "https://codeload.github.com/beefe/react-native-actionsheet/tar.gz/fb97d7c6a33bc3213b928a36257dd0c23b42fa6f"
 
 "react-native-aes-crypto-forked@git+https://github.com/MetaMask/react-native-aes-crypto-forked.git#397d5db5250e8e7408294807965b5b9fd4ca6a25":
   version "1.2.1"
-  uid "397d5db5250e8e7408294807965b5b9fd4ca6a25"
   resolved "git+https://github.com/MetaMask/react-native-aes-crypto-forked.git#397d5db5250e8e7408294807965b5b9fd4ca6a25"
 
 react-native-aes-crypto@1.3.9:
@@ -19079,7 +19073,6 @@ react-native-animatable@1.3.3, react-native-animatable@^1.3.3:
 
 "react-native-animated-fox@git+https://github.com/MetaMask/react-native-animated-fox.git#16e38d54d829709e497f196e31fa8ff00cdf2aa9":
   version "2.0.1"
-  uid "16e38d54d829709e497f196e31fa8ff00cdf2aa9"
   resolved "git+https://github.com/MetaMask/react-native-animated-fox.git#16e38d54d829709e497f196e31fa8ff00cdf2aa9"
   dependencies:
     prop-types "^15.5.10"
@@ -19109,7 +19102,6 @@ react-native-browser-polyfill@0.1.2:
 
 "react-native-button@git+https://github.com/MetaMask/react-native-button.git#c685e7882034543ceea3f09f6e3d205d18fce46e":
   version "2.3.0"
-  uid c685e7882034543ceea3f09f6e3d205d18fce46e
   resolved "git+https://github.com/MetaMask/react-native-button.git#c685e7882034543ceea3f09f6e3d205d18fce46e"
   dependencies:
     prop-types "^15.5.10"
@@ -19346,7 +19338,6 @@ react-native-progress@3.5.0:
 
 "react-native-push-notification@git+https://github.com/MetaMask/react-native-push-notification.git#975e0e6757c40e3dce2d1b6dd3d66fc91127ac4c":
   version "3.1.3"
-  uid "975e0e6757c40e3dce2d1b6dd3d66fc91127ac4c"
   resolved "git+https://github.com/MetaMask/react-native-push-notification.git#975e0e6757c40e3dce2d1b6dd3d66fc91127ac4c"
 
 react-native-qrcode-svg@5.1.2:
@@ -19365,18 +19356,15 @@ react-native-randombytes@^3.5.3:
     buffer "^4.9.1"
     sjcl "^1.0.3"
 
-react-native-reanimated@2.14.0:
-  version "2.14.0"
-  resolved "https://registry.yarnpkg.com/react-native-reanimated/-/react-native-reanimated-2.14.0.tgz#acc20d62ac4668afffb5bc749cf0a095e6c44239"
-  integrity sha512-WicflLAyXGveVLZCHLqxH4axkb1QoTLejsdb5WbjkMN0mEDHWQQly7BeKR7Ek0zzZnmcrChnNfMLGGW+X3uDkg==
+react-native-reanimated@3.5.4:
+  version "3.5.4"
+  resolved "https://registry.yarnpkg.com/react-native-reanimated/-/react-native-reanimated-3.5.4.tgz#a6c2b0c43b6dad246f5d276213974afedb8e3fc7"
+  integrity sha512-8we9LLDO1o4Oj9/DICeEJ2K1tjfqkJagqQUglxeUAkol/HcEJ6PGxIrpBcNryLqCDYEcu6FZWld/FzizBIw6bg==
   dependencies:
     "@babel/plugin-transform-object-assign" "^7.16.7"
     "@babel/preset-typescript" "^7.16.7"
-    convert-source-map "^1.7.0"
+    convert-source-map "^2.0.0"
     invariant "^2.2.4"
-    lodash.isequal "^4.5.0"
-    setimmediate "^1.0.5"
-    string-hash-64 "^1.0.3"
 
 react-native-redash@16.2.2:
   version "16.2.2"
@@ -19419,7 +19407,6 @@ react-native-scrollable-tab-view@^1.0.0:
 
 react-native-search-api@ombori/react-native-search-api#8/head:
   version "1.0.1"
-  uid "08dbdf1ffd53801057662aa3207c11d2f78e8a94"
   resolved "https://codeload.github.com/ombori/react-native-search-api/tar.gz/08dbdf1ffd53801057662aa3207c11d2f78e8a94"
 
 react-native-securerandom@^0.1.1:
@@ -19453,7 +19440,6 @@ react-native-skeleton-placeholder@^5.0.0:
 
 "react-native-splash-screen@git+https://github.com/MetaMask/react-native-splash-screen.git#1f45c08c0824cd94fdc6fb699529688a73614fee":
   version "3.2.0"
-  uid "1f45c08c0824cd94fdc6fb699529688a73614fee"
   resolved "git+https://github.com/MetaMask/react-native-splash-screen.git#1f45c08c0824cd94fdc6fb699529688a73614fee"
 
 react-native-step-indicator@^1.0.3:
@@ -19509,7 +19495,6 @@ react-native-swipe-gestures@^1.0.4:
 
 react-native-tcp@aprock/react-native-tcp#11/head:
   version "4.0.0"
-  uid "98fbc801f0586297f16730b2f4c75eef15dfabcd"
   resolved "https://codeload.github.com/aprock/react-native-tcp/tar.gz/98fbc801f0586297f16730b2f4c75eef15dfabcd"
   dependencies:
     base64-js "1.3.1"
@@ -21442,11 +21427,6 @@ string-argv@^0.3.1:
   version "0.3.2"
   resolved "https://registry.yarnpkg.com/string-argv/-/string-argv-0.3.2.tgz#2b6d0ef24b656274d957d54e0a4bbf6153dc02b6"
   integrity sha512-aqD2Q0144Z+/RqG52NeHEkZauTAUWJO8c6yTftGJKO3Tja5tUgIfmIl6kExvhtxSDP7fXB6DvzkfMpCd/F3G+Q==
-
-string-hash-64@^1.0.3:
-  version "1.0.3"
-  resolved "https://registry.yarnpkg.com/string-hash-64/-/string-hash-64-1.0.3.tgz#0deb56df58678640db5c479ccbbb597aaa0de322"
-  integrity sha512-D5OKWKvDhyVWWn2x5Y9b+37NUllks34q1dCDhk/vYcso9fmhs+Tl3KR/gE4v5UNj2UA35cnX4KdVVGkG1deKqw==
 
 string-length@^4.0.1:
   version "4.0.2"
