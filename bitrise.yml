@@ -418,12 +418,6 @@ workflows:
     after_run:
       - _notify_failure_on_slack
     steps:
-      - script@1:
-          inputs:
-            - content: |-
-                #!/usr/bin/env bash
-                echo "RUN_E2E: $RUN_E2E"
-          title: See if exist
       - certificate-and-profile-installer@1: {}
       - set-xcode-build-number@1:
           inputs:
