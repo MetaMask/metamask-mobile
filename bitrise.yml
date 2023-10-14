@@ -52,7 +52,8 @@ pipelines:
   pr_smoke_e2e_pipeline_pr_check:
     stages:
       - label_run_e2e_pr_check: {}
-      # - run_smoke_e2e_ios_android_stage: {}
+      - run_smoke_e2e_ios_android_stage:
+          run_if: '{{enveq "RUN_E2E" "true"}}'
 #Stages reference workflows. Those workflows cannot but utility "_this-is-a-utility"
 stages:
   create_build_release:
@@ -108,8 +109,10 @@ stages:
   label_run_e2e_pr_check:
     workflows:
       - check_e2e_trigger: {}
-      # - ios_e2e_test: {}
-      # - android_e2e_test: {}
+      # - ios_e2e_test:
+      #     run_if: '{{enveq "RUN_E2E" "true"}}'
+      # - android_e2e_test:
+      #     run_if: '{{enveq "RUN_E2E" "true"}}'
 workflows:
   # Check if the PR is in draft mode
   check_e2e_trigger:
@@ -144,13 +147,13 @@ workflows:
             - variables: |-
                 RUN_E2E=$RUN_E2E
                 BUILD_TYPE=debug
-      - build-router-start@0:
-          inputs:
-            - workflows: |-
-                ios_e2e_test
-                wdio_android_e2e_test
-            - wait_for_builds: 'true'
-            - access_token: $BITRISE_START_BUILD_ACCESS_TOKEN
+      # - build-router-start@0:
+      #     inputs:
+      #       - workflows: |-
+      #           ios_e2e_test
+      #           wdio_android_e2e_test
+      #       - wait_for_builds: 'true'
+      #       - access_token: $BITRISE_START_BUILD_ACCESS_TOKEN
       # - bitrise-run@0.9:
       #     inputs:
       #       - workflow_id: ios_e2e_test
