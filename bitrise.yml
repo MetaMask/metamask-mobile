@@ -52,8 +52,7 @@ pipelines:
   pr_smoke_e2e_pipeline_pr_check:
     stages:
       - label_run_e2e_pr_check: {}
-      - run_smoke_e2e_ios_android_stage:
-          run_if: '{{enveq "RUN_E2E" "true"}}'
+      - run_smoke_e2e_ios_android_stage: {}
 #Stages reference workflows. Those workflows cannot but utility "_this-is-a-utility"
 stages:
   create_build_release:
@@ -146,9 +145,7 @@ workflows:
                 fi
       - share-pipeline-variable@1:
           inputs:
-            - variables: |-
-                RUN_E2E=$RUN_E2E
-                BUILD_TYPE=debug
+            - variables: RUN_E2E=$RUN_E2E
       # - build-router-start@0:
       #     inputs:
       #       - workflows: |-
