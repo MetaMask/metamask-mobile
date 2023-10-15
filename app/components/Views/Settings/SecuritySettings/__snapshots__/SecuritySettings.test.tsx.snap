@@ -67,6 +67,7 @@ exports[`SecuritySettings should render correctly 1`] = `
         }
       >
         <Text
+          accessibilityRole="text"
           style={
             Object {
               "color": "#24272A",
@@ -103,6 +104,7 @@ exports[`SecuritySettings should render correctly 1`] = `
           </Text>
            
           <Text
+            accessibilityRole="text"
             style={
               Object {
                 "color": "#24272A",
@@ -129,6 +131,7 @@ exports[`SecuritySettings should render correctly 1`] = `
           }
         />
         <Text
+          accessibilityRole="text"
           style={
             Object {
               "color": "#535A61",
@@ -147,6 +150,7 @@ exports[`SecuritySettings should render correctly 1`] = `
           onPress={[Function]}
         >
           <Text
+            accessibilityRole="text"
             style={
               Object {
                 "color": "#0376C9",
@@ -203,6 +207,7 @@ exports[`SecuritySettings should render correctly 1`] = `
             
           </Text>
           <Text
+            accessibilityRole="text"
             style={
               Object {
                 "color": "#24272A",
@@ -240,6 +245,7 @@ exports[`SecuritySettings should render correctly 1`] = `
           variant="Primary"
         >
           <Text
+            accessibilityRole="text"
             style={
               Object {
                 "color": "#FCFCFC",
@@ -264,6 +270,7 @@ exports[`SecuritySettings should render correctly 1`] = `
         testID="change-password-section"
       >
         <Text
+          accessibilityRole="text"
           style={
             Object {
               "color": "#24272A",
@@ -280,6 +287,7 @@ exports[`SecuritySettings should render correctly 1`] = `
           Password
         </Text>
         <Text
+          accessibilityRole="text"
           style={
             Object {
               "color": "#535A61",
@@ -319,6 +327,7 @@ exports[`SecuritySettings should render correctly 1`] = `
           variant="Secondary"
         >
           <Text
+            accessibilityRole="text"
             style={
               Object {
                 "color": "#0376C9",
@@ -343,6 +352,7 @@ exports[`SecuritySettings should render correctly 1`] = `
         testID="auto-lock-section"
       >
         <Text
+          accessibilityRole="text"
           style={
             Object {
               "color": "#24272A",
@@ -359,6 +369,7 @@ exports[`SecuritySettings should render correctly 1`] = `
           Auto-lock
         </Text>
         <Text
+          accessibilityRole="text"
           style={
             Object {
               "color": "#535A61",
@@ -568,6 +579,7 @@ exports[`SecuritySettings should render correctly 1`] = `
         testID="reveal-private-key-section"
       >
         <Text
+          accessibilityRole="text"
           style={
             Object {
               "color": "#24272A",
@@ -584,6 +596,7 @@ exports[`SecuritySettings should render correctly 1`] = `
           Show private key for "[missing {{accountName}} value]"
         </Text>
         <Text
+          accessibilityRole="text"
           style={
             Object {
               "color": "#535A61",
@@ -620,6 +633,7 @@ exports[`SecuritySettings should render correctly 1`] = `
           variant="Primary"
         >
           <Text
+            accessibilityRole="text"
             style={
               Object {
                 "color": "#FCFCFC",
@@ -777,6 +791,7 @@ exports[`SecuritySettings should render correctly 1`] = `
         testID="clear-privacy-section"
       >
         <Text
+          accessibilityRole="text"
           style={
             Object {
               "color": "#24272A",
@@ -793,6 +808,7 @@ exports[`SecuritySettings should render correctly 1`] = `
           Clear privacy data
         </Text>
         <Text
+          accessibilityRole="text"
           style={
             Object {
               "color": "#535A61",
@@ -1659,7 +1675,7 @@ exports[`SecuritySettings should render correctly 1`] = `
             }
           }
         >
-          Displaying NFT media and data exposes your IP address to OpenSea or other third parties. NFT autodetection relies on this feature, and won't be available when this is turned off.
+          Displaying NFT media and data exposes your IP address to OpenSea or other third parties. NFT autodetection relies on this feature, and won't be available when turned off. If NFT media is fully located on IPFS, it can still be displayed even when this feature is turned off.
         </Text>
         <View
           style={

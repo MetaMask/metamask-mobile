@@ -76,7 +76,6 @@ PODS:
     - FlipperKit/FlipperKitNetworkPlugin
   - fmt (6.2.1)
   - glog (0.3.5)
-  - JitsiWebRTC (106.0.0)
   - libevent (2.1.12)
   - lottie-ios (3.4.1)
   - lottie-react-native (5.1.5):
@@ -341,11 +340,13 @@ PODS:
     - React-Core
   - react-native-in-app-review (3.2.3):
     - React
+  - react-native-launch-arguments (4.0.1):
+    - React
   - react-native-netinfo (6.0.0):
     - React-Core
   - react-native-randombytes (3.6.1):
     - React-Core
-  - react-native-safe-area-context (3.2.0):
+  - react-native-safe-area-context (3.4.1):
     - React-Core
   - react-native-slider (4.4.3):
     - React-Core
@@ -358,9 +359,6 @@ PODS:
     - React-Core
   - react-native-view-shot (3.1.2):
     - React
-  - react-native-webrtc (106.0.0-beta.7):
-    - JitsiWebRTC (~> 106.0.0)
-    - React-Core
   - react-native-webview (11.13.0):
     - React-Core
   - React-perflogger (0.71.6)
@@ -514,9 +512,9 @@ PODS:
     - React-RCTImage
   - RNSensors (5.3.0):
     - React
-  - RNSentry (5.1.1):
+  - RNSentry (5.8.1):
     - React-Core
-    - Sentry/HybridSDK (= 8.3.0)
+    - Sentry/HybridSDK (= 8.9.3)
   - RNShare (7.3.7):
     - React-Core
   - RNSVG (12.1.1):
@@ -526,10 +524,10 @@ PODS:
   - segment-analytics-react-native (2.13.0):
     - React-Core
     - sovran-react-native
-  - Sentry/HybridSDK (8.3.0):
-    - SentryPrivate (= 8.3.0)
-  - SentryPrivate (8.3.0)
-  - SocketRocket (0.6.0)
+  - Sentry/HybridSDK (8.9.3):
+    - SentryPrivate (= 8.9.3)
+  - SentryPrivate (8.9.3)
+  - SocketRocket (0.6.1)
   - sovran-react-native (0.4.5):
     - React-Core
   - TcpSockets (4.0.0):
@@ -595,6 +593,7 @@ DEPENDENCIES:
   - "react-native-cookies (from `../node_modules/@react-native-cookies/cookies`)"
   - react-native-get-random-values (from `../node_modules/react-native-get-random-values`)
   - react-native-in-app-review (from `../node_modules/react-native-in-app-review`)
+  - react-native-launch-arguments (from `../node_modules/react-native-launch-arguments`)
   - "react-native-netinfo (from `../node_modules/@react-native-community/netinfo`)"
   - react-native-randombytes (from `../node_modules/react-native-randombytes`)
   - react-native-safe-area-context (from `../node_modules/react-native-safe-area-context`)
@@ -602,7 +601,6 @@ DEPENDENCIES:
   - react-native-splash-screen (from `../node_modules/react-native-splash-screen`)
   - react-native-video (from `../node_modules/react-native-video`)
   - react-native-view-shot (from `../node_modules/react-native-view-shot`)
-  - react-native-webrtc (from `../node_modules/react-native-webrtc`)
   - react-native-webview (from `../node_modules/react-native-webview`)
   - React-perflogger (from `../node_modules/react-native/ReactCommon/reactperflogger`)
   - React-RCTActionSheet (from `../node_modules/react-native/Libraries/ActionSheetIOS`)
@@ -660,7 +658,6 @@ SPEC REPOS:
     - Flipper-RSocket
     - FlipperKit
     - fmt
-    - JitsiWebRTC
     - libevent
     - OpenSSL-Universal
     - Sentry
@@ -731,6 +728,8 @@ EXTERNAL SOURCES:
     :path: "../node_modules/react-native-get-random-values"
   react-native-in-app-review:
     :path: "../node_modules/react-native-in-app-review"
+  react-native-launch-arguments:
+    :path: "../node_modules/react-native-launch-arguments"
   react-native-netinfo:
     :path: "../node_modules/@react-native-community/netinfo"
   react-native-randombytes:
@@ -745,8 +744,6 @@ EXTERNAL SOURCES:
     :path: "../node_modules/react-native-video"
   react-native-view-shot:
     :path: "../node_modules/react-native-view-shot"
-  react-native-webrtc:
-    :path: "../node_modules/react-native-webrtc"
   react-native-webview:
     :path: "../node_modules/react-native-webview"
   React-perflogger:
@@ -851,7 +848,6 @@ SPEC CHECKSUMS:
   FlipperKit: cbdee19bdd4e7f05472a66ce290f1b729ba3cb86
   fmt: ff9d55029c625d3757ed641535fd4a75fedc7ce9
   glog: 04b94705f318337d7ead9e6d17c019bd9b1f6b1b
-  JitsiWebRTC: f441eb0e2d67f0588bf24e21c5162e97342714fb
   libevent: 4049cae6c81cdb3654a443be001fb9bdceff7913
   lottie-ios: 016449b5d8be0c3dcbcfa0a9988469999cd04c5d
   lottie-react-native: 3e722c63015fdb9c27638b0a77969fc412067c18
@@ -879,6 +875,7 @@ SPEC CHECKSUMS:
   react-native-cookies: f54fcded06bb0cda05c11d86788020b43528a26c
   react-native-get-random-values: a6ea6a8a65dc93e96e24a11105b1a9c8cfe1d72a
   react-native-in-app-review: 23f4f5b9fcd94339dd5d93c6230557f9c67c7dda
+  react-native-launch-arguments: 4e0fd58e56dcc7f52eedef9dc8eff81eb73ced7a
   react-native-netinfo: e849fc21ca2f4128a5726c801a82fc6f4a6db50d
   react-native-randombytes: 421f1c7d48c0af8dbcd471b0324393ebf8fe7846
   react-native-safe-area-context: 9e40fb181dac02619414ba1294d6c2a807056ab9
@@ -886,7 +883,6 @@ SPEC CHECKSUMS:
   react-native-splash-screen: 200d11d188e2e78cea3ad319964f6142b6384865
   react-native-video: c26780b224543c62d5e1b2a7244a5cd1b50e8253
   react-native-view-shot: 4475fde003fe8a210053d1f98fb9e06c1d834e1c
-  react-native-webrtc: f73459325441d15812f86071bdbd0bf3376235d1
   react-native-webview: 133a6a5149f963259646e710b4545c67ef35d7c9
   React-perflogger: 43392072a5b867a504e2b4857606f8fc5a403d7f
   React-RCTActionSheet: c7b67c125bebeda9fb19fc7b200d85cb9d6899c4
@@ -921,14 +917,14 @@ SPEC CHECKSUMS:
   RNReanimated: b1220a0e5168745283ff5d53bfc7d2144b2cee1b
   RNScreens: ea4cd3a853063cda19a4e3c28d2e52180c80f4eb
   RNSensors: c363d486c879e181905dea84a2535e49af1c2d25
-  RNSentry: 43658c8c327376e0c06149ce981899f5f84e90d9
+  RNSentry: 221d8c3f0bf0d951e9ecc89d3e42ee97aab9d7c0
   RNShare: f116bbb04f310c665ca483d0bd1e88cf59b3b334
   RNSVG: 551acb6562324b1d52a4e0758f7ca0ec234e278f
   RNVectorIcons: 6607bd3a30291d0edb56f9bbe7ae411ee2b928b0
   segment-analytics-react-native: bd1f13ea95bad2313a9c7130da032af0e9a6da60
-  Sentry: 757565eb01e2a6ef6b26e897e4e47e8213e12f06
-  SentryPrivate: 668d6ce46835769b32e61dc8b5c78ef0b6cdcef8
-  SocketRocket: fccef3f9c5cedea1353a9ef6ada904fde10d6608
+  Sentry: 97161cac725da1ecbe77d1445bf8a61c1e5667f1
+  SentryPrivate: 9a76def09fb08f9501997b8df946e8097947b94f
+  SocketRocket: f32cd54efbe0f095c4d7594881e52619cfe80b17
   sovran-react-native: fd3dc8f1a4b14acdc4ad25fc6b4ac4f52a2a2a15
   TcpSockets: a8eb6b5867fe643e6cfed5db2e4de62f4d1e8fd0
   Yoga: ba09b6b11e6139e3df8229238aa794205ca6a02a

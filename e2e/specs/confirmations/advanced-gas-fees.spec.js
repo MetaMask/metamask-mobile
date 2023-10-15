@@ -17,17 +17,9 @@ import TestHelpers from '../../helpers';
 const VALID_ADDRESS = '0xebe6CcB6B55e1d094d9c58980Bc10Fed69932cAb';
 
 describe(Smoke('Advanced Gas Fees and Priority Tests'), () => {
-  let ganache;
   beforeAll(async () => {
     jest.setTimeout(170000);
-    if (device.getPlatform() === 'android') {
-      await device.reverseTcpPort('8545'); // ganache
-    }
-  });
-
-  afterEach(async () => {
-    await ganache.quit();
-    await TestHelpers.delay(3000);
+    await TestHelpers.reverseServerPort();
   });
 
   it('should edit priority gas settings and send ETH', async () => {
@@ -37,8 +29,7 @@ describe(Smoke('Advanced Gas Fees and Priority Tests'), () => {
         restartDevice: true,
         ganacheOptions: defaultGanacheOptions,
       },
-      async ({ ganacheServer }) => {
-        ganache = ganacheServer;
+      async () => {
         await loginToApp();
 
         // Check that we are on the wallet screen

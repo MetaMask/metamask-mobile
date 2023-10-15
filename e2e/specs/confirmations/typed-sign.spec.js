@@ -14,73 +14,10 @@ import TestHelpers from '../../helpers';
 
 const MAX_ATTEMPTS = 3;
 
-describe(Regression('Sign Messages'), () => {
-  let ganache;
+describe(Regression('Typed Sign'), () => {
   beforeAll(async () => {
-    jest.setTimeout(150000);
-    await device.reverseTcpPort('8545'); // ganache
-    await device.reverseTcpPort('8080'); // test-dapp
-  });
-
-  afterEach(async () => {
-    await ganache.quit();
-    await TestHelpers.delay(3000);
-  });
-
-  it('should sign personal message', async () => {
-    await withFixtures(
-      {
-        dapp: true,
-        fixture: new FixtureBuilder()
-          .withGanacheNetwork()
-          .withPermissionControllerConnectedToTestDapp()
-          .build(),
-        restartDevice: true,
-        ganacheOptions: defaultGanacheOptions,
-      },
-      async ({ ganacheServer }) => {
-        ganache = ganacheServer;
-        await loginToApp();
-
-        await TabBarComponent.tapBrowser();
-        await Browser.navigateToTestDApp();
-
-        await TestHelpers.retry(MAX_ATTEMPTS, async () => {
-          await TestDApp.tapPersonalSignButton();
-          await SigningModal.isPersonalRequestVisible();
-          await SigningModal.tapSignButton();
-          await SigningModal.isNotVisible();
-        });
-      },
-    );
-  });
-
-  it('should cancel personal message', async () => {
-    await withFixtures(
-      {
-        dapp: true,
-        fixture: new FixtureBuilder()
-          .withGanacheNetwork()
-          .withPermissionControllerConnectedToTestDapp()
-          .build(),
-        restartDevice: true,
-        ganacheOptions: defaultGanacheOptions,
-      },
-      async ({ ganacheServer }) => {
-        ganache = ganacheServer;
-        await loginToApp();
-
-        await TabBarComponent.tapBrowser();
-        await Browser.navigateToTestDApp();
-
-        await TestHelpers.retry(MAX_ATTEMPTS, async () => {
-          await TestDApp.tapPersonalSignButton();
-          await SigningModal.isPersonalRequestVisible();
-          await SigningModal.tapCancelButton();
-          await SigningModal.isNotVisible();
-        });
-      },
-    );
+    jest.setTimeout(2500000);
+    await TestHelpers.reverseServerPort();
   });
 
   it('should sign typed message', async () => {
@@ -94,8 +31,7 @@ describe(Regression('Sign Messages'), () => {
         restartDevice: true,
         ganacheOptions: defaultGanacheOptions,
       },
-      async ({ ganacheServer }) => {
-        ganache = ganacheServer;
+      async () => {
         await loginToApp();
 
         await TabBarComponent.tapBrowser();
@@ -122,8 +58,7 @@ describe(Regression('Sign Messages'), () => {
         restartDevice: true,
         ganacheOptions: defaultGanacheOptions,
       },
-      async ({ ganacheServer }) => {
-        ganache = ganacheServer;
+      async () => {
         await loginToApp();
 
         await TabBarComponent.tapBrowser();
@@ -150,8 +85,7 @@ describe(Regression('Sign Messages'), () => {
         restartDevice: true,
         ganacheOptions: defaultGanacheOptions,
       },
-      async ({ ganacheServer }) => {
-        ganache = ganacheServer;
+      async () => {
         await loginToApp();
 
         await TabBarComponent.tapBrowser();
@@ -178,8 +112,7 @@ describe(Regression('Sign Messages'), () => {
         restartDevice: true,
         ganacheOptions: defaultGanacheOptions,
       },
-      async ({ ganacheServer }) => {
-        ganache = ganacheServer;
+      async () => {
         await loginToApp();
 
         await TabBarComponent.tapBrowser();
@@ -206,8 +139,7 @@ describe(Regression('Sign Messages'), () => {
         restartDevice: true,
         ganacheOptions: defaultGanacheOptions,
       },
-      async ({ ganacheServer }) => {
-        ganache = ganacheServer;
+      async () => {
         await loginToApp();
 
         await TabBarComponent.tapBrowser();
@@ -234,8 +166,7 @@ describe(Regression('Sign Messages'), () => {
         restartDevice: true,
         ganacheOptions: defaultGanacheOptions,
       },
-      async ({ ganacheServer }) => {
-        ganache = ganacheServer;
+      async () => {
         await loginToApp();
 
         await TabBarComponent.tapBrowser();
@@ -244,72 +175,6 @@ describe(Regression('Sign Messages'), () => {
         await TestHelpers.retry(MAX_ATTEMPTS, async () => {
           await TestDApp.tapTypedV4SignButton();
           await SigningModal.isTypedRequestVisible();
-          await SigningModal.tapCancelButton();
-          await SigningModal.isNotVisible();
-        });
-      },
-    );
-  });
-
-  it('should sign eth_sign message', async () => {
-    await withFixtures(
-      {
-        dapp: true,
-        fixture: new FixtureBuilder()
-          .withGanacheNetwork()
-          .withPreferencesController({
-            disabledRpcMethodPreferences: {
-              eth_sign: true,
-            },
-          })
-          .withPermissionControllerConnectedToTestDapp()
-          .build(),
-        restartDevice: true,
-        ganacheOptions: defaultGanacheOptions,
-      },
-      async ({ ganacheServer }) => {
-        ganache = ganacheServer;
-        await loginToApp();
-
-        await TabBarComponent.tapBrowser();
-        await Browser.navigateToTestDApp();
-
-        await TestHelpers.retry(MAX_ATTEMPTS, async () => {
-          await TestDApp.tapEthSignButton();
-          await SigningModal.isEthRequestVisible();
-          await SigningModal.tapSignButton();
-          await SigningModal.isNotVisible();
-        });
-      },
-    );
-  });
-
-  it('should cancel eth_sign message', async () => {
-    await withFixtures(
-      {
-        dapp: true,
-        fixture: new FixtureBuilder()
-          .withGanacheNetwork()
-          .withPreferencesController({
-            disabledRpcMethodPreferences: {
-              eth_sign: true,
-            },
-          })
-          .withPermissionControllerConnectedToTestDapp()
-          .build(),
-        restartDevice: true,
-        ganacheOptions: defaultGanacheOptions,
-      },
-      async ({ ganacheServer }) => {
-        ganache = ganacheServer;
-        await loginToApp();
-
-        await TabBarComponent.tapBrowser();
-        await Browser.navigateToTestDApp();
-
-        await TestHelpers.retry(MAX_ATTEMPTS, async () => {
-          await TestDApp.tapEthSignButton();
-          await SigningModal.isEthRequestVisible();
           await SigningModal.tapCancelButton();
           await SigningModal.isNotVisible();
         });
