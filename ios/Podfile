@@ -10,6 +10,10 @@ if linkage != nil
   use_frameworks! :linkage => linkage.to_sym
 end
 
+# react_native_post_install:
+# Disabled to fix SentryPrivate Xcode 15 build error
+# - https://github.com/getsentry/sentry-react-native/issues/3322
+
 # def react_native_post_install(installer)
 # 	installer.pods_project.targets.each do |target|
 #   		target.build_configurations.each do |config|
