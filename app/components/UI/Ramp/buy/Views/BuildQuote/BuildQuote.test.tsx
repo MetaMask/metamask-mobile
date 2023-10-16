@@ -1,6 +1,7 @@
 import React from 'react';
-import { Payment } from '@consensys/on-ramp-sdk';
+import { Limits, Payment } from '@consensys/on-ramp-sdk';
 import { act, fireEvent, screen } from '@testing-library/react-native';
+import { BN } from 'ethereumjs-util';
 import { renderScreen } from '../../../../../../util/test/renderWithProvider';
 import BuildQuote from './BuildQuote';
 import useRegions from '../../hooks/useRegions';
@@ -17,6 +18,9 @@ import {
   mockPaymentMethods,
 } from './BuildQuote.constants';
 import useLimits from '../../hooks/useLimits';
+import useAddressBalance from '../../../../../hooks/useAddressBalance/useAddressBalance';
+import useBalance from '../../../common/hooks/useBalance';
+import { toTokenMinimalUnit } from '../../../../../../util/number';
 
 const getByRoleButton = (name?: string | RegExp) =>
   screen.getByRole('button', { name });
@@ -169,6 +173,28 @@ let mockUseLimitsValues = {
 
 jest.mock('../../hooks/useLimits', () => jest.fn(() => mockUseLimitsValues));
 
+const mockUseAddressBalanceInitialValue: ReturnType<typeof useAddressBalance> =
+  {
+    addressBalance: '5.36385 ETH',
+  };
+
+jest.mock('../../../../../hooks/useAddressBalance/useAddressBalance', () =>
+  jest.fn(() => mockUseAddressBalanceInitialValue),
+);
+
+const mockUseBalanceInitialValue: Partial<ReturnType<typeof useBalance>> = {
+  balanceFiat: '$27.02',
+  balanceBN: toTokenMinimalUnit('5.36385', 18) as BN,
+};
+
+const mockUseBalanceValues = {
+  ...mockUseBalanceInitialValue,
+};
+
+jest.mock('../../../common/hooks/useBalance', () =>
+  jest.fn(() => mockUseBalanceValues),
+);
+
 const mockSetSelectedRegion = jest.fn();
 const mockSetSelectedPaymentMethodId = jest.fn();
 const mockSetSelectedAsset = jest.fn();
@@ -186,6 +212,8 @@ const mockUseRampSDKInitialValues: Partial<RampSDK> = {
   selectedNetworkName: 'Ethereum',
   sdkError: undefined,
   setSelectedPaymentMethodId: mockSetSelectedPaymentMethodId,
+  isBuy: true,
+  isSell: false,
 };
 
 let mockUseRampSDKValues: Partial<RampSDK> = {
@@ -251,12 +279,26 @@ describe('BuildQuote View', () => {
   it('renders correctly', async () => {
     render(BuildQuote);
     expect(screen.toJSON()).toMatchSnapshot();
+
+    mockUseRampSDKValues.isBuy = false;
+    mockUseRampSDKValues.isSell = true;
+    render(BuildQuote);
+    expect(screen.toJSON()).toMatchSnapshot();
   });
 
   it('renders correctly when sdkError is present', async () => {
     mockUseRampSDKValues = {
       ...mockUseRampSDKInitialValues,
       sdkError: new Error('sdkError'),
+    };
+    render(BuildQuote);
+    expect(screen.toJSON()).toMatchSnapshot();
+
+    mockUseRampSDKValues = {
+      ...mockUseRampSDKInitialValues,
+      isBuy: false,
+      isSell: true,
+      sdkError: new Error('sdkError in sell'),
     };
     render(BuildQuote);
     expect(screen.toJSON()).toMatchSnapshot();
@@ -272,14 +314,50 @@ describe('BuildQuote View', () => {
       screen.getByRole('button', { name: 'Return to Home Screen' }),
     );
     expect(mockPop).toBeCalledTimes(1);
+
+    mockPop.mockReset();
+
+    mockUseRampSDKValues = {
+      ...mockUseRampSDKInitialValues,
+      isBuy: false,
+      isSell: true,
+      sdkError: new Error('sdkError in sell'),
+    };
+    render(BuildQuote);
+    fireEvent.press(
+      screen.getByRole('button', { name: 'Return to Home Screen' }),
+    );
+    expect(mockPop).toBeCalledTimes(1);
   });
 
   it('calls setOptions when rendering', async () => {
     render(BuildQuote);
     expect(mockSetOptions).toBeCalledTimes(1);
+
+    mockSetOptions.mockReset();
+
+    mockUseRampSDKValues.isBuy = false;
+    mockUseRampSDKValues.isSell = true;
+    render(BuildQuote);
+    expect(mockSetOptions).toBeCalledTimes(1);
   });
 
   it('navigates and tracks event on cancel button press', async () => {
+    render(BuildQuote);
+    fireEvent.press(screen.getByRole('button', { name: 'Cancel' }));
+    expect(mockPop).toHaveBeenCalled();
+    expect(mockTrackEvent).toBeCalledWith('ONRAMP_CANCELED', {
+      chain_id_destination: '1',
+      location: 'Amount to Buy Screen',
+    });
+
+    mockPop.mockReset();
+    mockTrackEvent.mockReset();
+
+    mockUseRampSDKValues.isBuy = false;
+    mockUseRampSDKValues.isSell = true;
+
+    // TODO(analytics): replace with correct event once sell analytics is implemented
     render(BuildQuote);
     fireEvent.press(screen.getByRole('button', { name: 'Cancel' }));
     expect(mockPop).toHaveBeenCalled();
@@ -321,7 +399,9 @@ describe('BuildQuote View', () => {
     it('calls setSelectedRegion when selecting a region', async () => {
       render(BuildQuote);
       await act(async () =>
-        fireEvent.press(getByRoleButton(mockRegionsData[0].emoji)),
+        fireEvent.press(
+          getByRoleButton(mockUseRegionsValues.selectedRegion?.emoji),
+        ),
       );
       await act(async () =>
         fireEvent.press(getByRoleButton(mockRegionsData[1].name)),
@@ -461,7 +541,8 @@ describe('BuildQuote View', () => {
       render(BuildQuote);
       const initialAmount = '0';
       const validAmount = VALID_AMOUNT.toString();
-      const symbol = mockFiatCurrenciesData[0].denomSymbol;
+      const symbol =
+        mockUseFiatCurrenciesValues.currentFiatCurrency?.denomSymbol;
       fireEvent.press(getByRoleButton(`${symbol}${initialAmount}`));
       fireEvent.press(getByRoleButton(validAmount));
       expect(getByRoleButton(`${symbol}${validAmount}`)).toBeTruthy();
@@ -472,7 +553,8 @@ describe('BuildQuote View', () => {
       const initialAmount = '0';
       const quickAmount =
         mockUseLimitsInitialValues?.limits?.quickAmounts?.[0].toString();
-      const symbol = mockFiatCurrenciesData[0].denomSymbol;
+      const symbol =
+        mockUseFiatCurrenciesValues.currentFiatCurrency?.denomSymbol;
       fireEvent.press(getByRoleButton(`${symbol}${initialAmount}`));
       fireEvent.press(getByRoleButton(`${symbol}${quickAmount}`));
       expect(
@@ -484,7 +566,8 @@ describe('BuildQuote View', () => {
       render(BuildQuote);
       const initialAmount = '0';
       const invalidMaxAmount = (MAX_LIMIT + 1).toString();
-      const denomSymbol = mockFiatCurrenciesData[0]?.denomSymbol;
+      const denomSymbol =
+        mockUseFiatCurrenciesValues.currentFiatCurrency?.denomSymbol;
       fireEvent.press(getByRoleButton(`${denomSymbol}${initialAmount}`));
       fireEvent.press(getByRoleButton(invalidMaxAmount));
       expect(
@@ -496,11 +579,81 @@ describe('BuildQuote View', () => {
       render(BuildQuote);
       const initialAmount = '0';
       const invalidMinAmount = (MIN_LIMIT - 1).toString();
-      const denomSymbol = mockFiatCurrenciesData[0]?.denomSymbol;
+      const denomSymbol =
+        mockUseFiatCurrenciesValues.currentFiatCurrency?.denomSymbol;
       fireEvent.press(getByRoleButton(`${denomSymbol}${initialAmount}`));
       fireEvent.press(getByRoleButton(invalidMinAmount));
       expect(
         screen.getByText(`Minimum deposit is ${denomSymbol}${MIN_LIMIT}`),
+      ).toBeTruthy();
+    });
+  });
+
+  describe('Amount to sell input', () => {
+    beforeEach(() => {
+      mockUseRampSDKValues.isBuy = false;
+      mockUseRampSDKValues.isSell = true;
+      mockUseLimitsValues = {
+        ...mockUseLimitsInitialValues,
+        limits: {
+          ...(mockUseLimitsInitialValues.limits as Limits),
+          quickAmounts: undefined,
+        },
+      };
+    });
+
+    it('updates the amount input', async () => {
+      render(BuildQuote);
+      const initialAmount = '0';
+      const validAmount = VALID_AMOUNT.toString();
+      const symbol = mockUseRampSDKValues.selectedAsset?.symbol;
+      fireEvent.press(getByRoleButton(`${initialAmount} ${symbol}`));
+      fireEvent.press(getByRoleButton(validAmount));
+      expect(getByRoleButton(`${validAmount} ${symbol}`)).toBeTruthy();
+    });
+
+    it('validates the max limit', () => {
+      render(BuildQuote);
+      const initialAmount = '0';
+      const invalidMaxAmount = (MAX_LIMIT + 1).toString();
+      const symbol = mockUseRampSDKValues.selectedAsset?.symbol;
+      fireEvent.press(getByRoleButton(`${initialAmount} ${symbol}`));
+      fireEvent.press(getByRoleButton(invalidMaxAmount));
+      expect(
+        screen.getByText('Enter a smaller amount to continue'),
+      ).toBeTruthy();
+    });
+
+    it('validates the min limit', () => {
+      render(BuildQuote);
+      const initialAmount = '0';
+      const invalidMinAmount = (MIN_LIMIT - 1).toString();
+      const symbol = mockUseRampSDKValues.selectedAsset?.symbol;
+      fireEvent.press(getByRoleButton(`${initialAmount} ${symbol}`));
+      fireEvent.press(getByRoleButton(invalidMinAmount));
+      expect(
+        screen.getByText('Enter a larger amount to continue'),
+      ).toBeTruthy();
+    });
+
+    it('validates the insufficient balance', () => {
+      mockUseLimitsValues.limits = {
+        ...mockUseLimitsValues.limits,
+        maxAmount: 10,
+      } as Limits;
+
+      mockUseBalanceValues.balanceBN = toTokenMinimalUnit(
+        '5',
+        mockUseRampSDKValues.selectedAsset?.decimals || 18,
+      ) as BN;
+      render(BuildQuote);
+      const initialAmount = '0';
+      const overBalanceAmout = '6';
+      const symbol = mockUseRampSDKValues.selectedAsset?.symbol;
+      fireEvent.press(getByRoleButton(`${initialAmount} ${symbol}`));
+      fireEvent.press(getByRoleButton(overBalanceAmout));
+      expect(
+        screen.getByText('This amount is higher than your balance'),
       ).toBeTruthy();
     });
   });
@@ -517,8 +670,9 @@ describe('BuildQuote View', () => {
 
     const initialAmount = '0';
     const validAmount = VALID_AMOUNT.toString();
-    const symbol = mockFiatCurrenciesData[0].denomSymbol;
-    fireEvent.press(getByRoleButton(`${symbol}${initialAmount}`));
+    const denomSymbol =
+      mockUseFiatCurrenciesValues.currentFiatCurrency?.denomSymbol;
+    fireEvent.press(getByRoleButton(`${denomSymbol}${initialAmount}`));
     fireEvent.press(getByRoleButton(validAmount));
     fireEvent.press(getByRoleButton('Done'));
     expect(submitBtn.props.disabled).toBe(false);
@@ -527,14 +681,51 @@ describe('BuildQuote View', () => {
 
     expect(mockNavigate).toHaveBeenCalledWith(Routes.RAMP.QUOTES, {
       amount: VALID_AMOUNT,
-      asset: mockCryptoCurrenciesData[0],
-      fiatCurrency: mockFiatCurrenciesData[0],
+      asset: mockUseRampSDKValues.selectedAsset,
+      fiatCurrency: mockUseFiatCurrenciesValues.currentFiatCurrency,
     });
+
     expect(mockTrackEvent).toHaveBeenCalledWith('ONRAMP_QUOTES_REQUESTED', {
       amount: VALID_AMOUNT,
-      currency_source: mockFiatCurrenciesData[0].symbol,
-      currency_destination: mockCryptoCurrenciesData[0].symbol,
-      payment_method_id: mockPaymentMethods[0].id,
+      currency_source: mockUseFiatCurrenciesValues?.currentFiatCurrency?.symbol,
+      currency_destination: mockUseRampSDKValues?.selectedAsset?.symbol,
+      payment_method_id: mockUsePaymentMethodsValues.currentPaymentMethod?.id,
+      chain_id_destination: '1',
+      location: 'Amount to Buy Screen',
+    });
+  });
+
+  it('Directs the user to the sell quotes page with correct parameters', () => {
+    mockUseRampSDKValues.isBuy = false;
+    mockUseRampSDKValues.isSell = true;
+    render(BuildQuote);
+
+    const submitBtn = getByRoleButton('Get quotes');
+    expect(submitBtn).toBeTruthy();
+    expect(submitBtn.props.disabled).toBe(true);
+
+    const initialAmount = '0';
+    const validAmount = VALID_AMOUNT.toString();
+    const symbol = mockUseRampSDKValues.selectedAsset?.symbol;
+    fireEvent.press(getByRoleButton(`${initialAmount} ${symbol}`));
+    fireEvent.press(getByRoleButton(validAmount));
+    fireEvent.press(getByRoleButton('Done'));
+    expect(submitBtn.props.disabled).toBe(false);
+
+    fireEvent.press(submitBtn);
+
+    expect(mockNavigate).toHaveBeenCalledWith(Routes.RAMP.QUOTES, {
+      amount: VALID_AMOUNT,
+      asset: mockUseRampSDKValues.selectedAsset,
+      fiatCurrency: mockUseFiatCurrenciesValues.currentFiatCurrency,
+    });
+
+    // TODO(analytics): update with correct event once sell analytics is implemented
+    expect(mockTrackEvent).toHaveBeenCalledWith('ONRAMP_QUOTES_REQUESTED', {
+      amount: VALID_AMOUNT,
+      currency_source: mockUseFiatCurrenciesValues?.currentFiatCurrency?.symbol,
+      currency_destination: mockUseRampSDKValues?.selectedAsset?.symbol,
+      payment_method_id: mockUsePaymentMethodsValues.currentPaymentMethod?.id,
       chain_id_destination: '1',
       location: 'Amount to Buy Screen',
     });

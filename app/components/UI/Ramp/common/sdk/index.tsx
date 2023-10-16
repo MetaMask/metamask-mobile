@@ -101,6 +101,9 @@ export interface RampSDK {
   selectedChainId: string;
   selectedNetworkName?: string;
 
+  isBuy: boolean;
+  isSell: boolean;
+
   appConfig: RampSDKConfig;
   callbackBaseUrl: string;
   isInternalBuild: boolean;
@@ -187,6 +190,9 @@ export const RampSDKProvider = ({
       : INITIAL_GET_STARTED_SELL,
   );
 
+  const isBuy = rampType === RampType.BUY;
+  const isSell = rampType === RampType.SELL;
+
   const setSelectedRegionCallback = useCallback(
     (region: Region | null) => {
       setSelectedRegion(region);
@@ -223,8 +229,8 @@ export const RampSDKProvider = ({
     [dispatch, rampType],
   );
 
-  const contextValue: RampSDK = useMemo(
-    () => ({
+  const contextValue = useMemo(
+    (): RampSDK => ({
       sdk,
       sdkError,
 
@@ -253,12 +259,17 @@ export const RampSDKProvider = ({
       selectedChainId,
       selectedNetworkName,
 
+      isBuy,
+      isSell,
+
       appConfig,
       callbackBaseUrl,
       isInternalBuild: isDevelopmentOrInternalBuild,
     }),
     [
       getStarted,
+      isBuy,
+      isSell,
       rampType,
       sdk,
       sdkError,

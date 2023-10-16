@@ -131,7 +131,7 @@ export const mockPaymentMethods = [
 export const mockRegionsData = [
   {
     currencies: ['/currencies/fiat/clp'],
-    emoji: 'chile emoji',
+    emoji: '🇨🇱',
     id: '/regions/cl',
     name: 'Chile',
     unsupported: false,
@@ -142,7 +142,7 @@ export const mockRegionsData = [
   },
   {
     currencies: ['/currencies/fiat/eur'],
-    emoji: 'albania emoji',
+    emoji: '🇦🇱',
     id: '/regions/al',
     name: 'Albania',
     unsupported: false,

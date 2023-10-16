@@ -17,9 +17,6 @@ const styleSheet = (params: { theme: Theme }) => {
     spacer: {
       minWidth: 8,
     },
-    row: {
-      marginVertical: 5,
-    },
     keypadContainer: {
       position: 'absolute',
       bottom: 0,
