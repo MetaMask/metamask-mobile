@@ -3,7 +3,6 @@ import { BannerAlertProps } from '../../../component-library/components/Banners/
 export enum Reason {
   approvalFarming = 'approval_farming',
   blurFarming = 'blur_farming',
-  failed = 'failed',
   maliciousDomain = 'malicious_domain',
   other = 'other',
   permitFarming = 'permit_farming',
@@ -16,6 +15,7 @@ export enum Reason {
   transferFromFarming = 'transfer_from_farming',
 
   // MetaMask defined reasons
+  failed = 'failed',
   notApplicable = 'not_applicable',
 }
 
@@ -23,6 +23,8 @@ export enum ResultType {
   Benign = 'Benign',
   Malicious = 'Malicious',
   Warning = 'Warning',
+
+  // MetaMask defined result types
   Failed = 'Failed',
 }
 
