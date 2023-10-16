@@ -20,7 +20,7 @@ import {
 import Networks from '../../resources/networks.json';
 import TestHelpers from '../../helpers';
 import FixtureServer from '../../fixtures/fixture-server';
-import { getFixturesServerPort } from '../../utils';
+import { getFixturesServerPort } from '../../fixtures/utils';
 
 const fixtureServer = new FixtureServer();
 
