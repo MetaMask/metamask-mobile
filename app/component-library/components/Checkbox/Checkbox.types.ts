@@ -1,4 +1,5 @@
 // Third party dependencies.
+import React from 'react';
 import { TouchableOpacityProps } from 'react-native';
 
 /**
@@ -9,6 +10,10 @@ export interface CheckboxProps extends TouchableOpacityProps {
    * Optional function to trigger when pressing the checkbox.
    */
   onPress?: () => void;
+  /**
+   * Optional label for the Checkbox.
+   */
+  label?: string | React.ReactNode;
   /**
    * Optional prop to configure the checked state.
    */
@@ -25,6 +30,10 @@ export interface CheckboxProps extends TouchableOpacityProps {
    * Optional prop to configure the readonly state.
    */
   isReadOnly?: boolean;
+  /**
+   * Optional prop to configure the danger state.
+   */
+  isDanger?: boolean;
 }
 
 /**
@@ -35,4 +44,5 @@ export type CheckboxStyleSheetVars = Pick<CheckboxProps, 'style'> & {
   isIndeterminate: boolean;
   isDisabled: boolean;
   isReadOnly: boolean;
+  isDanger: boolean;
 };
