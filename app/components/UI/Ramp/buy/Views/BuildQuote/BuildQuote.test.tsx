@@ -1,6 +1,7 @@
 import React from 'react';
 import { Limits, Payment } from '@consensys/on-ramp-sdk';
 import { act, fireEvent, screen } from '@testing-library/react-native';
+import { BN } from 'ethereumjs-util';
 import { renderScreen } from '../../../../../../util/test/renderWithProvider';
 import BuildQuote from './BuildQuote';
 import useRegions from '../../hooks/useRegions';
@@ -20,7 +21,6 @@ import useLimits from '../../hooks/useLimits';
 import useAddressBalance from '../../../../../hooks/useAddressBalance/useAddressBalance';
 import useBalance from '../../../common/hooks/useBalance';
 import { toTokenMinimalUnit } from '../../../../../../util/number';
-import { BN } from 'ethereumjs-util';
 
 const getByRoleButton = (name?: string | RegExp) =>
   screen.getByRole('button', { name });
