@@ -282,7 +282,7 @@ class DeeplinkManager {
               PREFIXES[action],
             );
             // loops back to open the link with the right protocol
-            this.parse(url, { browserCallBack });
+            this.parse(url, { browserCallBack, origin });
           } else if (action === ACTIONS.BUY_CRYPTO) {
             this._handleBuyCrypto();
           } else {
