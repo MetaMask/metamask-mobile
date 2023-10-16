@@ -15,8 +15,7 @@
     "see_details": "詳細を表示",
     "suspicious_request_title": "これは不審なリクエストです",
     "trade_order_farming_description": "このリクエストを承認すると、資産を失う可能性があります。",
-    "transfer_farming_description": "このリクエストを承認すると、詐欺が判明しているサードパーティに資産をすべて奪われます。",
-    "unfair_trade_description": "このリクエストを承認すると、資産を失う可能性があります。"
+    "transfer_farming_description": "このリクエストを承認すると、詐欺が判明しているサードパーティに資産をすべて奪われます。"
   },
   "date": {
     "months": {
