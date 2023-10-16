@@ -131,7 +131,7 @@
   },
   "dependencies": {
     "@consensys/on-ramp-sdk": "1.9.1",
-    "@eth-optimism/contracts": "0.0.1",
+    "@eth-optimism/contracts": "0.6.0",
     "@ethereumjs/common": "^2.3.1",
     "@ethereumjs/tx": "^5.0.0",
     "@exodus/react-native-payments": "git+https://github.com/MetaMask/react-native-payments.git#dbc8cbbed570892d2fea5e3d183bf243e062c1e5",
@@ -276,7 +276,7 @@
     "react-native-push-notification": "git+https://github.com/MetaMask/react-native-push-notification.git#975e0e6757c40e3dce2d1b6dd3d66fc91127ac4c",
     "react-native-qrcode-svg": "5.1.2",
     "react-native-randombytes": "^3.5.3",
-    "react-native-reanimated": "2.14.0",
+    "react-native-reanimated": "3.5.4",
     "react-native-redash": "16.2.2",
     "react-native-safe-area-context": "^3.1.9",
     "react-native-screens": "3.13.1",
