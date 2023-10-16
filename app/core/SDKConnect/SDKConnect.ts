@@ -309,9 +309,13 @@ export class Connection extends EventEmitter2 {
           this.origin === AppConstants.DEEPLINKS.ORIGIN_QR_CODE
         ) {
           const currentTime = Date.now();
+
+          const OTPExpirationDuration =
+            Number(process.env.OTP_EXPIRATION_DURATION_IN_MS) || HOUR_IN_MS;
+
           const channelWasActiveRecently =
             !!this.lastAuthorized &&
-            currentTime - this.lastAuthorized < HOUR_IN_MS;
+            currentTime - this.lastAuthorized < OTPExpirationDuration;
 
           if (channelWasActiveRecently) {
             this.approvalPromise = undefined;
@@ -642,8 +646,11 @@ export class Connection extends EventEmitter2 {
     message?: CommunicationLayerMessage;
     lastAuthorized?: number;
   } = {}): Promise<boolean> {
+    const OTPExpirationDuration =
+      Number(process.env.OTP_EXPIRATION_DURATION_IN_MS) || HOUR_IN_MS;
+
     const channelWasActiveRecently =
-      !!lastAuthorized && Date.now() - lastAuthorized < HOUR_IN_MS;
+      !!lastAuthorized && Date.now() - lastAuthorized < OTPExpirationDuration;
 
     // only ask approval if needed
     const approved = this.isApproved({
