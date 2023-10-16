@@ -19,8 +19,8 @@ const initialState = {
       ...initialBackgroundState,
       AddressBookController: {
         addressBook: {
-          '0x51239E13Fe029cD52asA8babEBafb6814bc8Ba4b': {
-            address: '0x51239E13Fe029cD52asA8babEBafb6814bc8Ba4b',
+          '0xC4955C0d639D99699Bfd7Ec54d9FaFEe40e4D272': {
+            address: '0xC4955C0d639D99699Bfd7Ec54d9FaFEe40e4D272',
             chainId: '1',
             isEns: false,
             memo: '',
@@ -30,8 +30,8 @@ const initialState = {
       },
       PreferencesController: {
         identities: {
-          '0x51239E13Fe029cD52asA8babEBafb6814bc8Ba4b': {
-            address: '0x51239E13Fe029cD52asA8babEBafb6814bc8Ba4b',
+          '0xC4955C0d639D99699Bfd7Ec54d9FaFEe40e4D272': {
+            address: '0xC4955C0d639D99699Bfd7Ec54d9FaFEe40e4D272',
             name: 'Account 1',
           },
         },

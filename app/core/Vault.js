@@ -2,7 +2,7 @@ import Engine from './Engine';
 import Logger from '../util/Logger';
 import { syncPrefs, syncAccounts } from '../util/sync';
 import { KeyringTypes } from '@metamask/keyring-controller';
-import { getLedgerKeyring, restoreLedgerKeyring } from './Ledger/Ledger'; 
+import { getLedgerKeyring, restoreLedgerKeyring } from './Ledger/Ledger';
 
 /**
  * Returns current vault seed phrase

@@ -44,7 +44,10 @@ import {
 } from '../../../selectors/networkController';
 import { selectSelectedAddress } from '../../../selectors/preferencesController';
 import { ethErrors } from 'eth-rpc-errors';
-import { HardwareDeviceNames, getLedgerKeyring } from '../../../core/Ledger/Ledger'; 
+import {
+  HardwareDeviceNames,
+  getLedgerKeyring,
+} from '../../../core/Ledger/Ledger';
 
 const REVIEW = 'review';
 const EDIT = 'edit';

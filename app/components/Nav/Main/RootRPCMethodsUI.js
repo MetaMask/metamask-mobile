@@ -59,7 +59,10 @@ import TemplateConfirmationModal from '../../Approvals/TemplateConfirmationModal
 import { selectTokenList } from '../../../selectors/tokenListController';
 import { selectTokens } from '../../../selectors/tokensController';
 import { selectSelectedAddress } from '../../../selectors/preferencesController';
-import { getLedgerKeyring, HardwareDeviceNames } from '../../../core/Ledger/Ledger'; 
+import {
+  getLedgerKeyring,
+  HardwareDeviceNames,
+} from '../../../core/Ledger/Ledger';
 
 const hstInterface = new ethers.utils.Interface(abi);
 
