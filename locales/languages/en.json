@@ -1875,6 +1875,8 @@
     "buy": "buy",
     "sell": "sell",
     "orders": "Orders",
+    "empty_buy_orders_list": "You don't have buy orders",
+    "empty_sell_orders_list": "You don't have sell orders",
     "purchased_currency": "Purchased {{currency}}",
     "sold_currency": "Sold {{currency}}",
     "order_status_pending": "Pending",

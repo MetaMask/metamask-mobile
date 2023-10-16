@@ -14,9 +14,14 @@ import Button, {
   ButtonVariants,
 } from '../../../../../../component-library/components/Buttons/Button';
 import { ButtonProps } from '../../../../../../component-library/components/Buttons/Button/Button.types';
+import Text, {
+  TextColor,
+  TextVariant,
+} from '../../../../../../component-library/components/Texts/Text';
 
 import { FIAT_ORDER_PROVIDERS } from '../../../../../../constants/on-ramp';
 import { FiatOrder, getOrders } from '../../../../../../reducers/fiatOrders';
+import { strings } from '../../../../../../../locales/i18n';
 import { useTheme } from '../../../../../../util/theme';
 
 type filterType = 'ALL' | 'BUY' | 'SELL';
@@ -104,6 +109,22 @@ function OrdersList() {
       data={orders}
       renderItem={renderItem}
       keyExtractor={(item) => item.id}
+      ListEmptyComponent={
+        <Row>
+          <Text
+            variant={TextVariant.HeadingMD}
+            color={TextColor.Muted}
+            style={styles.emptyMessage}
+          >
+            {currentFilter === 'BUY'
+              ? strings('fiat_on_ramp_aggregator.empty_buy_orders_list')
+              : null}
+            {currentFilter === 'SELL'
+              ? strings('fiat_on_ramp_aggregator.empty_sell_orders_list')
+              : null}
+          </Text>
+        </Row>
+      }
     />
   );
 }

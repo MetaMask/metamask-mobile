@@ -105,7 +105,7 @@ const testOrders: DeepPartial<FiatOrder>[] = [
   },
 ];
 
-function render(Component: React.ReactElement) {
+function render(Component: React.ReactElement, orders = testOrders) {
   return renderWithProvider(Component, {
     state: {
       engine: {
@@ -131,7 +131,7 @@ function render(Component: React.ReactElement) {
         },
       },
       fiatOrders: {
-        orders: testOrders as FiatOrder[],
+        orders: orders as FiatOrder[],
       },
     },
   });
@@ -164,6 +164,24 @@ describe('OrdersList', () => {
   it('renders sell only correctly when pressing sell filter', () => {
     render(<OrdersList />);
     fireEvent.press(screen.getByRole('button', { name: 'Sell' }));
+    expect(screen.toJSON()).toMatchSnapshot();
+  });
+
+  it('renders empty sell message', () => {
+    render(
+      <OrdersList />,
+      [testOrders[0]], // a buy order,
+    );
+    fireEvent.press(screen.getByRole('button', { name: 'Sell' }));
+    expect(screen.toJSON()).toMatchSnapshot();
+  });
+
+  it('renders empty buy message', () => {
+    render(
+      <OrdersList />,
+      [testOrders[1]], // a sell order,
+    );
+    fireEvent.press(screen.getByRole('button', { name: 'Buy' }));
     expect(screen.toJSON()).toMatchSnapshot();
   });
 

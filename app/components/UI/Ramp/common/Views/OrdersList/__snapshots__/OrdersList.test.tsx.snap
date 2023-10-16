@@ -2,6 +2,21 @@
 
 exports[`OrdersList renders buy only correctly when pressing buy filter 1`] = `
 <RCTScrollView
+  ListEmptyComponent={
+    <Row>
+      <Text
+        color="Muted"
+        style={
+          Object {
+            "textAlign": "center",
+          }
+        }
+        variant="sHeadingMD"
+      >
+        You don't have buy orders
+      </Text>
+    </Row>
+  }
   ListHeaderComponent={
     <ScrollView
       horizontal={true}
@@ -1126,6 +1141,19 @@ exports[`OrdersList renders buy only correctly when pressing buy filter 1`] = `
 
 exports[`OrdersList renders correctly 1`] = `
 <RCTScrollView
+  ListEmptyComponent={
+    <Row>
+      <Text
+        color="Muted"
+        style={
+          Object {
+            "textAlign": "center",
+          }
+        }
+        variant="sHeadingMD"
+      />
+    </Row>
+  }
   ListHeaderComponent={
     <ScrollView
       horizontal={true}
@@ -2570,8 +2598,525 @@ exports[`OrdersList renders correctly 1`] = `
 </RCTScrollView>
 `;
 
+exports[`OrdersList renders empty buy message 1`] = `
+<RCTScrollView
+  ListEmptyComponent={
+    <Row>
+      <Text
+        color="Muted"
+        style={
+          Object {
+            "textAlign": "center",
+          }
+        }
+        variant="sHeadingMD"
+      >
+        You don't have buy orders
+      </Text>
+    </Row>
+  }
+  ListHeaderComponent={
+    <ScrollView
+      horizontal={true}
+    >
+      <Row
+        style={
+          Object {
+            "alignItems": "center",
+            "columnGap": 8,
+            "flexDirection": "row",
+            "marginHorizontal": 24,
+            "marginVertical": 16,
+          }
+        }
+      >
+        <FilterButton
+          label="All"
+          onPress={[Function]}
+          selected={false}
+        />
+        <FilterButton
+          label="Buy"
+          onPress={[Function]}
+          selected={true}
+        />
+        <FilterButton
+          label="Sell"
+          onPress={[Function]}
+          selected={false}
+        />
+      </Row>
+    </ScrollView>
+  }
+  data={Array []}
+  getItem={[Function]}
+  getItemCount={[Function]}
+  keyExtractor={[Function]}
+  onContentSizeChange={[Function]}
+  onLayout={[Function]}
+  onMomentumScrollBegin={[Function]}
+  onMomentumScrollEnd={[Function]}
+  onScroll={[Function]}
+  onScrollBeginDrag={[Function]}
+  onScrollEndDrag={[Function]}
+  removeClippedSubviews={false}
+  renderItem={[Function]}
+  scrollEventThrottle={50}
+  stickyHeaderIndices={Array []}
+  viewabilityConfigCallbackPairs={Array []}
+>
+  <View>
+    <View
+      onLayout={[Function]}
+    >
+      <RCTScrollView
+        collapsable={false}
+        horizontal={true}
+        onGestureHandlerEvent={[Function]}
+        onGestureHandlerStateChange={[Function]}
+      >
+        <View>
+          <View
+            style={
+              Array [
+                Object {
+                  "marginVertical": 8,
+                },
+                undefined,
+                undefined,
+                Object {
+                  "alignItems": "center",
+                  "columnGap": 8,
+                  "flexDirection": "row",
+                  "marginHorizontal": 24,
+                  "marginVertical": 16,
+                },
+              ]
+            }
+          >
+            <TouchableOpacity
+              accessibilityRole="button"
+              accessible={true}
+              activeOpacity={1}
+              onPress={[Function]}
+              onPressIn={[Function]}
+              onPressOut={[Function]}
+              style={
+                Object {
+                  "alignItems": "center",
+                  "alignSelf": "flex-start",
+                  "backgroundColor": "transparent",
+                  "borderColor": "#0376C9",
+                  "borderRadius": 16,
+                  "borderWidth": 1,
+                  "flexDirection": "row",
+                  "height": 32,
+                  "justifyContent": "center",
+                  "paddingHorizontal": 16,
+                }
+              }
+              variant="Secondary"
+            >
+              <Text
+                accessibilityRole="text"
+                style={
+                  Object {
+                    "color": "#0376C9",
+                    "fontFamily": "Euclid Circular B",
+                    "fontSize": 14,
+                    "fontWeight": "400",
+                    "letterSpacing": 0,
+                    "lineHeight": 22,
+                  }
+                }
+              >
+                All
+              </Text>
+            </TouchableOpacity>
+            <TouchableOpacity
+              accessibilityRole="button"
+              accessible={true}
+              activeOpacity={1}
+              onPress={[Function]}
+              onPressIn={[Function]}
+              onPressOut={[Function]}
+              style={
+                Object {
+                  "alignItems": "center",
+                  "alignSelf": "flex-start",
+                  "backgroundColor": "#0376C9",
+                  "borderColor": "#0376C9",
+                  "borderRadius": 16,
+                  "borderWidth": 1,
+                  "flexDirection": "row",
+                  "height": 32,
+                  "justifyContent": "center",
+                  "paddingHorizontal": 16,
+                }
+              }
+              variant="Primary"
+            >
+              <Text
+                accessibilityRole="text"
+                style={
+                  Object {
+                    "color": "#FCFCFC",
+                    "fontFamily": "Euclid Circular B",
+                    "fontSize": 14,
+                    "fontWeight": "400",
+                    "letterSpacing": 0,
+                    "lineHeight": 22,
+                  }
+                }
+              >
+                Buy
+              </Text>
+            </TouchableOpacity>
+            <TouchableOpacity
+              accessibilityRole="button"
+              accessible={true}
+              activeOpacity={1}
+              onPress={[Function]}
+              onPressIn={[Function]}
+              onPressOut={[Function]}
+              style={
+                Object {
+                  "alignItems": "center",
+                  "alignSelf": "flex-start",
+                  "backgroundColor": "transparent",
+                  "borderColor": "#0376C9",
+                  "borderRadius": 16,
+                  "borderWidth": 1,
+                  "flexDirection": "row",
+                  "height": 32,
+                  "justifyContent": "center",
+                  "paddingHorizontal": 16,
+                }
+              }
+              variant="Secondary"
+            >
+              <Text
+                accessibilityRole="text"
+                style={
+                  Object {
+                    "color": "#0376C9",
+                    "fontFamily": "Euclid Circular B",
+                    "fontSize": 14,
+                    "fontWeight": "400",
+                    "letterSpacing": 0,
+                    "lineHeight": 22,
+                  }
+                }
+              >
+                Sell
+              </Text>
+            </TouchableOpacity>
+          </View>
+        </View>
+      </RCTScrollView>
+    </View>
+    <View
+      onLayout={[Function]}
+      style={
+        Array [
+          Object {
+            "marginVertical": 8,
+          },
+          undefined,
+          undefined,
+          undefined,
+        ]
+      }
+    >
+      <Text
+        accessibilityRole="text"
+        style={
+          Object {
+            "color": "#BBC0C5",
+            "fontFamily": "Euclid Circular B",
+            "fontSize": 18,
+            "fontWeight": "700",
+            "letterSpacing": 0,
+            "lineHeight": 24,
+            "textAlign": "center",
+          }
+        }
+      >
+        You don't have buy orders
+      </Text>
+    </View>
+  </View>
+</RCTScrollView>
+`;
+
+exports[`OrdersList renders empty sell message 1`] = `
+<RCTScrollView
+  ListEmptyComponent={
+    <Row>
+      <Text
+        color="Muted"
+        style={
+          Object {
+            "textAlign": "center",
+          }
+        }
+        variant="sHeadingMD"
+      >
+        You don't have sell orders
+      </Text>
+    </Row>
+  }
+  ListHeaderComponent={
+    <ScrollView
+      horizontal={true}
+    >
+      <Row
+        style={
+          Object {
+            "alignItems": "center",
+            "columnGap": 8,
+            "flexDirection": "row",
+            "marginHorizontal": 24,
+            "marginVertical": 16,
+          }
+        }
+      >
+        <FilterButton
+          label="All"
+          onPress={[Function]}
+          selected={false}
+        />
+        <FilterButton
+          label="Buy"
+          onPress={[Function]}
+          selected={false}
+        />
+        <FilterButton
+          label="Sell"
+          onPress={[Function]}
+          selected={true}
+        />
+      </Row>
+    </ScrollView>
+  }
+  data={Array []}
+  getItem={[Function]}
+  getItemCount={[Function]}
+  keyExtractor={[Function]}
+  onContentSizeChange={[Function]}
+  onLayout={[Function]}
+  onMomentumScrollBegin={[Function]}
+  onMomentumScrollEnd={[Function]}
+  onScroll={[Function]}
+  onScrollBeginDrag={[Function]}
+  onScrollEndDrag={[Function]}
+  removeClippedSubviews={false}
+  renderItem={[Function]}
+  scrollEventThrottle={50}
+  stickyHeaderIndices={Array []}
+  viewabilityConfigCallbackPairs={Array []}
+>
+  <View>
+    <View
+      onLayout={[Function]}
+    >
+      <RCTScrollView
+        collapsable={false}
+        horizontal={true}
+        onGestureHandlerEvent={[Function]}
+        onGestureHandlerStateChange={[Function]}
+      >
+        <View>
+          <View
+            style={
+              Array [
+                Object {
+                  "marginVertical": 8,
+                },
+                undefined,
+                undefined,
+                Object {
+                  "alignItems": "center",
+                  "columnGap": 8,
+                  "flexDirection": "row",
+                  "marginHorizontal": 24,
+                  "marginVertical": 16,
+                },
+              ]
+            }
+          >
+            <TouchableOpacity
+              accessibilityRole="button"
+              accessible={true}
+              activeOpacity={1}
+              onPress={[Function]}
+              onPressIn={[Function]}
+              onPressOut={[Function]}
+              style={
+                Object {
+                  "alignItems": "center",
+                  "alignSelf": "flex-start",
+                  "backgroundColor": "transparent",
+                  "borderColor": "#0376C9",
+                  "borderRadius": 16,
+                  "borderWidth": 1,
+                  "flexDirection": "row",
+                  "height": 32,
+                  "justifyContent": "center",
+                  "paddingHorizontal": 16,
+                }
+              }
+              variant="Secondary"
+            >
+              <Text
+                accessibilityRole="text"
+                style={
+                  Object {
+                    "color": "#0376C9",
+                    "fontFamily": "Euclid Circular B",
+                    "fontSize": 14,
+                    "fontWeight": "400",
+                    "letterSpacing": 0,
+                    "lineHeight": 22,
+                  }
+                }
+              >
+                All
+              </Text>
+            </TouchableOpacity>
+            <TouchableOpacity
+              accessibilityRole="button"
+              accessible={true}
+              activeOpacity={1}
+              onPress={[Function]}
+              onPressIn={[Function]}
+              onPressOut={[Function]}
+              style={
+                Object {
+                  "alignItems": "center",
+                  "alignSelf": "flex-start",
+                  "backgroundColor": "transparent",
+                  "borderColor": "#0376C9",
+                  "borderRadius": 16,
+                  "borderWidth": 1,
+                  "flexDirection": "row",
+                  "height": 32,
+                  "justifyContent": "center",
+                  "paddingHorizontal": 16,
+                }
+              }
+              variant="Secondary"
+            >
+              <Text
+                accessibilityRole="text"
+                style={
+                  Object {
+                    "color": "#0376C9",
+                    "fontFamily": "Euclid Circular B",
+                    "fontSize": 14,
+                    "fontWeight": "400",
+                    "letterSpacing": 0,
+                    "lineHeight": 22,
+                  }
+                }
+              >
+                Buy
+              </Text>
+            </TouchableOpacity>
+            <TouchableOpacity
+              accessibilityRole="button"
+              accessible={true}
+              activeOpacity={1}
+              onPress={[Function]}
+              onPressIn={[Function]}
+              onPressOut={[Function]}
+              style={
+                Object {
+                  "alignItems": "center",
+                  "alignSelf": "flex-start",
+                  "backgroundColor": "#0376C9",
+                  "borderColor": "#0376C9",
+                  "borderRadius": 16,
+                  "borderWidth": 1,
+                  "flexDirection": "row",
+                  "height": 32,
+                  "justifyContent": "center",
+                  "paddingHorizontal": 16,
+                }
+              }
+              variant="Primary"
+            >
+              <Text
+                accessibilityRole="text"
+                style={
+                  Object {
+                    "color": "#FCFCFC",
+                    "fontFamily": "Euclid Circular B",
+                    "fontSize": 14,
+                    "fontWeight": "400",
+                    "letterSpacing": 0,
+                    "lineHeight": 22,
+                  }
+                }
+              >
+                Sell
+              </Text>
+            </TouchableOpacity>
+          </View>
+        </View>
+      </RCTScrollView>
+    </View>
+    <View
+      onLayout={[Function]}
+      style={
+        Array [
+          Object {
+            "marginVertical": 8,
+          },
+          undefined,
+          undefined,
+          undefined,
+        ]
+      }
+    >
+      <Text
+        accessibilityRole="text"
+        style={
+          Object {
+            "color": "#BBC0C5",
+            "fontFamily": "Euclid Circular B",
+            "fontSize": 18,
+            "fontWeight": "700",
+            "letterSpacing": 0,
+            "lineHeight": 24,
+            "textAlign": "center",
+          }
+        }
+      >
+        You don't have sell orders
+      </Text>
+    </View>
+  </View>
+</RCTScrollView>
+`;
+
 exports[`OrdersList renders sell only correctly when pressing sell filter 1`] = `
 <RCTScrollView
+  ListEmptyComponent={
+    <Row>
+      <Text
+        color="Muted"
+        style={
+          Object {
+            "textAlign": "center",
+          }
+        }
+        variant="sHeadingMD"
+      >
+        You don't have sell orders
+      </Text>
+    </Row>
+  }
   ListHeaderComponent={
     <ScrollView
       horizontal={true}
@@ -3103,6 +3648,21 @@ exports[`OrdersList renders sell only correctly when pressing sell filter 1`] = 
 
 exports[`OrdersList resets filter to all after other filter was set 1`] = `
 <RCTScrollView
+  ListEmptyComponent={
+    <Row>
+      <Text
+        color="Muted"
+        style={
+          Object {
+            "textAlign": "center",
+          }
+        }
+        variant="sHeadingMD"
+      >
+        You don't have sell orders
+      </Text>
+    </Row>
+  }
   ListHeaderComponent={
     <ScrollView
       horizontal={true}
@@ -3634,6 +4194,19 @@ exports[`OrdersList resets filter to all after other filter was set 1`] = `
 
 exports[`OrdersList resets filter to all after other filter was set 2`] = `
 <RCTScrollView
+  ListEmptyComponent={
+    <Row>
+      <Text
+        color="Muted"
+        style={
+          Object {
+            "textAlign": "center",
+          }
+        }
+        variant="sHeadingMD"
+      />
+    </Row>
+  }
   ListHeaderComponent={
     <ScrollView
       horizontal={true}

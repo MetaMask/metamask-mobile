@@ -14,6 +14,9 @@ const createStyles = (colors: Colors) =>
       borderWidth: 1,
       borderColor: colors.primary.default,
     },
+    emptyMessage: {
+      textAlign: 'center',
+    },
     row: {
       borderBottomWidth: StyleSheet.hairlineWidth,
       borderColor: colors.border.muted,
