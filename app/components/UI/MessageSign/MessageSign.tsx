@@ -84,7 +84,7 @@ class MessageSign extends PureComponent<MessageSignProps, MessageSignState> {
 
     AnalyticsV2.trackEvent(
       MetaMetricsEvents.SIGNATURE_REQUESTED,
-      getAnalyticsParams(messageParams, 'message_sign'),
+      getAnalyticsParams(messageParams, 'eth_sign'),
     );
     addSignatureErrorListener(messageParams.metamaskId, this.onSignatureError);
   };
@@ -101,7 +101,7 @@ class MessageSign extends PureComponent<MessageSignProps, MessageSignState> {
     if (error?.message.startsWith(KEYSTONE_TX_CANCELED)) {
       AnalyticsV2.trackEvent(
         MetaMetricsEvents.QR_HARDWARE_TRANSACTION_CANCELED,
-        getAnalyticsParams(messageParams, 'message_sign'),
+        getAnalyticsParams(messageParams, 'eth_sign'),
       );
     }
   };
