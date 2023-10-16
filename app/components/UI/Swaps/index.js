@@ -210,6 +210,7 @@ function SwapsAmountView({
   const explorer = useBlockExplorer(providerConfig, networkConfigurations);
   const initialSource = route.params?.sourceToken ?? SWAPS_NATIVE_ADDRESS;
   const initialDestination = route.params?.destinationToken;
+  const initialAmount = route.params?.amount;
 
   const [amount, setAmount] = useState('0');
   const [slippage, setSlippage] = useState(AppConstants.SWAPS.DEFAULT_SLIPPAGE);
@@ -387,6 +388,15 @@ function SwapsAmountView({
       );
     }
   }, [canSetAnInitialTokenDestination, initialDestination, swapsTokens]);
+
+  const canSetInitialAmount =
+    destinationToken && sourceToken && initialAmount && swapsControllerTokens;
+
+  useEffect(() => {
+    if (canSetInitialAmount) {
+      setAmount(parseInt(initialAmount, 16).toString());
+    }
+  }, [initialAmount, canSetInitialAmount]);
 
   useEffect(() => {
     setHasDismissedTokenAlert(false);

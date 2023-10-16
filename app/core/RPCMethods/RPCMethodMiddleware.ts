@@ -20,7 +20,7 @@ import Networks, {
   getAllNetworks,
 } from '../../util/networks';
 import { isBlockaidFeatureEnabled } from '../../util/blockaid';
-import { polyfillGasPrice } from './utils';
+import { polyfillGasPrice, validateParams } from './utils';
 import ImportedEngine from '../Engine';
 import { strings } from '../../../locales/i18n';
 import { resemblesAddress, safeToChecksumAddress } from '../../util/address';
@@ -39,6 +39,8 @@ import {
   selectProviderType,
 } from '../../selectors/networkController';
 import { regex } from '../../../app/util/regex';
+import { swapsLivenessSelector } from '../../reducers/swaps/index.js';
+import { isSwapsAllowed } from '../../components/UI/Swaps/utils/index.js';
 
 const Engine = ImportedEngine as any;
 
@@ -319,6 +321,51 @@ export const getRpcMethodMiddleware = ({
       permissionRpcMethods.handlers;
 
     const rpcMethods: any = {
+      wallet_swap: async () => {
+        const { from, to } = req.params[0];
+        validateParams(from, ['amount', 'chainId', 'token_address'], 'from');
+        validateParams(to, ['token_address', 'chainId'], 'to');
+
+        const chainId = selectChainId(store.getState());
+
+        if (from.chainId !== to.chainId) {
+          throw ethErrors.rpc.invalidParams(
+            'ChainId value is not consistent between from and to',
+          );
+        }
+
+        if (
+          chainId !== parseInt(from.chainId, 16).toString() ||
+          chainId !== parseInt(to.chainId, 16).toString()
+        ) {
+          // Switch chain id to chain nickname if it exists, if doesn't show the chain id
+          Alert.alert(
+            `This chain is not supported, please switch to this chain id ${parseInt(
+              from.chainId,
+              16,
+            )}`,
+          );
+          return;
+        }
+        // switch to the chain id asked from the dapp
+        // validate if swaps is enable on that network
+        const swapsIsLive = swapsLivenessSelector(store.getState());
+        const isSwappable = isSwapsAllowed(chainId) && swapsIsLive;
+
+        if (!isSwappable) {
+          Alert.alert('Swap is not active or not possible on this chain');
+          return;
+        }
+
+        navigation.navigate('Swaps', {
+          screen: 'SwapsAmountView',
+          params: {
+            sourceToken: from.token_address,
+            destinationToken: to.token_address,
+            amount: from.amount,
+          },
+        });
+      },
       wallet_getPermissions: async () =>
         new Promise<any>((resolve) => {
           getPermissionsHandler.implementation(

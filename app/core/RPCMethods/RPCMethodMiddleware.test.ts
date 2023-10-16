@@ -86,7 +86,10 @@ function assertIsJsonRpcSuccess(
     throw new Error(`Response is missing 'result' property`);
   }
 }
-
+// Mock the navigation object.
+const navigation = {
+  navigate: jest.fn(),
+};
 /**
  * Return a minimal set of options for `getRpcMethodMiddleware`. These options
  * are complete enough to test at least some method handlers, and they are type-
@@ -98,7 +101,7 @@ function getMinimalOptions() {
   return {
     hostname: '',
     getProviderState: jest.fn(),
-    navigation: jest.fn(),
+    navigation,
     url: { current: '' },
     title: { current: '' },
     icon: { current: undefined },
@@ -1139,6 +1142,138 @@ describe('getRpcMethodMiddleware', () => {
       const spy = jest.spyOn(PPOMUtil, 'validateRequest');
       await sendRequest();
       expect(spy).toBeCalledTimes(1);
+    });
+  });
+  describe('wallet_swap', () => {
+    it('should throw error if chainId is not consistent between from and to', async () => {
+      const middleware = getRpcMethodMiddleware({
+        ...getMinimalOptions(),
+        hostname: 'example.metamask.io',
+      });
+      const request = {
+        jsonrpc,
+        id: 1,
+        method: 'wallet_swap',
+        params: [
+          {
+            from: {
+              chainId: '0x2',
+              // DAI address
+              token_address: '0x6b175474e89094c44da98b954eedeac495271d0f',
+              amount: '0x10',
+            },
+            to: {
+              chainId: '0x1',
+              // ETH address
+              token_address: '0x0000000000000000000000000000000000000000',
+            },
+          },
+        ],
+      };
+      const response = await callMiddleware({ middleware, request });
+      await expect(response?.error?.message).toStrictEqual(
+        'ChainId value is not consistent between from and to',
+      );
+    });
+
+    it('should throw error if chainId, from property does not have chainId property', async () => {
+      const middleware = getRpcMethodMiddleware({
+        ...getMinimalOptions(),
+        hostname: 'example.metamask.io',
+      });
+      const request = {
+        jsonrpc,
+        id: 1,
+        method: 'wallet_swap',
+        params: [
+          {
+            from: {
+              // DAI address
+              token_address: '0x6b175474e89094c44da98b954eedeac495271d0f',
+              amount: '0x10',
+            },
+            to: {
+              chainId: '0x1',
+              // ETH address
+              token_address: '0x0000000000000000000000000000000000000000',
+            },
+          },
+        ],
+      };
+
+      const response = await callMiddleware({ middleware, request });
+      await expect(response?.error?.message).toStrictEqual(
+        'chainId property of from is not defined',
+      );
+    });
+
+    it('should navigate to SwapsAmountView if all conditions are met', async () => {
+      const mockState = {
+        swaps: { '1': { isLive: true }, hasOnboarded: false, isLive: true },
+        fiatOrders: {
+          networks: [
+            {
+              active: true,
+              chainId: 1,
+              chainName: 'Ethereum Mainnet',
+              nativeTokenSupported: true,
+            },
+          ],
+        },
+        engine: {
+          backgroundState: {
+            ...initialBackgroundState,
+            NetworkController: {
+              providerConfig: {
+                type: 'mainnet',
+                chainId: '0',
+                ticker: 'eth',
+              },
+            },
+          },
+        },
+      };
+
+      jest.mock('react-redux', () => ({
+        ...jest.requireActual('react-redux'),
+        useSelector: jest
+          .fn()
+          .mockImplementation((callback) => callback(mockState)),
+      }));
+      const middleware = getRpcMethodMiddleware({
+        ...getMinimalOptions(),
+        hostname: 'example.metamask.io',
+      });
+      const request = {
+        jsonrpc,
+        id: 1,
+        method: 'wallet_swap',
+        params: [
+          {
+            from: {
+              chainId: '0x1',
+              // DAI address
+              token_address: '0x6b175474e89094c44da98b954eedeac495271d0f',
+              amount: '0x10',
+            },
+            to: {
+              chainId: '0x1',
+              // ETH address
+              token_address: '0x0000000000000000000000000000000000000000',
+            },
+          },
+        ],
+      };
+
+      await callMiddleware({ middleware, request });
+      expect(navigation.navigate).toHaveBeenCalledWith('Swaps', {
+        screen: 'SwapsAmountView',
+        params: {
+          sourceToken: '0x6b175474e89094c44da98b954eedeac495271d0f',
+          destinationToken: '0x0000000000000000000000000000000000000000',
+          amount: '0x10',
+        },
+      });
     });
   });
 });
