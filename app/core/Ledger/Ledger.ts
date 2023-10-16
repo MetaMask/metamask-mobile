@@ -6,16 +6,16 @@ import {
 import type BleTransport from '@ledgerhq/react-native-hw-transport-ble';
 import LedgerKeyring from '@igor-ms/ledgerhq-metamask-keyring';
 
-type AccountDetails = {
+interface AccountDetails {
   bip44?: boolean;
   hdPath?: string;
-};
-type SerializationOptions = {
+}
+interface SerializationOptions {
   hdPath?: string;
   accounts?: string[];
   deviceId?: string;
   accountDetails?: Record<string, AccountDetails>;
-};
+}
 
 export enum HardwareDeviceNames {
   ledger = 'Ledger Hardware',
