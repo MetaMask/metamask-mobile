@@ -5352,23 +5352,23 @@
     param-case "^3.0.4"
     webdriverio "8.18.2"
 
-"@wdio/browserstack-service@^7.26.0":
-  version "7.33.0"
-  resolved "https://registry.yarnpkg.com/@wdio/browserstack-service/-/browserstack-service-7.33.0.tgz#3323d72b28593b9d50a110b3de0808044b59745e"
-  integrity sha512-QGAMYsk4XhIuGA1OfLqRDGFA4jFmhNhe3L6X8TzAhNdcAcfXiONDAy7l5RLbfoCvKOu2VoltLUwddOBe+tyrNw==
+"@wdio/browserstack-service@^8.16.13":
+  version "8.18.2"
+  resolved "https://registry.yarnpkg.com/@wdio/browserstack-service/-/browserstack-service-8.18.2.tgz#08beffab0549f7e7f4441bcd66b102962ee6db44"
+  integrity sha512-UgCXn01JumUViSRMOxke7W9i3az0HJ6q9Vzk6U1CisaHvASAVz8VRwcZITZzYZUvULyaZBuohCg4G/dD43QqIA==
   dependencies:
     "@types/gitconfiglocal" "^2.0.1"
-    "@wdio/logger" "7.26.0"
-    "@wdio/reporter" "7.25.4"
-    "@wdio/types" "7.33.0"
-    browserstack-local "^1.4.5"
+    "@wdio/logger" "8.16.17"
+    "@wdio/reporter" "8.17.0"
+    "@wdio/types" "8.17.0"
+    browserstack-local "^1.5.1"
     csv-writer "^1.6.0"
     form-data "^4.0.0"
     git-repo-info "^2.1.1"
     gitconfiglocal "^2.1.0"
-    got "^11.0.2"
-    uuid "^9.0.1"
-    webdriverio "7.33.0"
+    got "^ 12.6.1"
+    uuid "^9.0.0"
+    webdriverio "8.18.2"
     winston-transport "^4.5.0"
 
 "@wdio/cli@^7.19.1":
@@ -5609,22 +5609,6 @@
   dependencies:
     "@types/node" "^20.1.0"
 
-"@wdio/reporter@7.25.4":
-  version "7.25.4"
-  resolved "https://registry.yarnpkg.com/@wdio/reporter/-/reporter-7.25.4.tgz#b6a69652dd0c4ec131255000af128eac403a18b9"
-  integrity sha512-M37qzEmF5qNffyZmRQGjDlrXqWW21EFvgW8wsv1b/NtfpZc0c0MoRpeh6BnvX1KcE4nCXfjXgSJPOqV4ZCzUEQ==
-  dependencies:
-    "@types/diff" "^5.0.0"
-    "@types/node" "^18.0.0"
-    "@types/object-inspect" "^1.8.0"
-    "@types/supports-color" "^8.1.0"
-    "@types/tmp" "^0.2.0"
-    "@wdio/types" "7.25.4"
-    diff "^5.0.0"
-    fs-extra "^10.0.0"
-    object-inspect "^1.10.3"
-    supports-color "8.1.1"
-
 "@wdio/reporter@8.17.0":
   version "8.17.0"
   resolved "https://registry.yarnpkg.com/@wdio/reporter/-/reporter-8.17.0.tgz#98514f3ddc89e916dbf63f57d84b14b5d5274d3d"
@@ -5683,14 +5667,6 @@
   integrity sha512-AyNI9iBSos9xWBmiFAF3sBs6AJXO/55VppU/eeF4HRdbZMtMarnvMuahM+jlUrA3vJSmDW+ufelG0MT//6vrnw==
   dependencies:
     "@types/node" "^17.0.4"
-    got "^11.8.1"
-
-"@wdio/types@7.25.4":
-  version "7.25.4"
-  resolved "https://registry.yarnpkg.com/@wdio/types/-/types-7.25.4.tgz#6f8f028e3108dc880de5068264695f1572e65352"
-  integrity sha512-muvNmq48QZCvocctnbe0URq2FjJjUPIG4iLoeMmyF0AQgdbjaUkMkw3BHYNHVTbSOU9WMsr2z8alhj/I2H6NRQ==
-  dependencies:
-    "@types/node" "^18.0.0"
     got "^11.8.1"
 
 "@wdio/types@7.33.0":
@@ -7926,7 +7902,7 @@ browserslist@^4.21.9, browserslist@^4.22.1:
     node-releases "^2.0.13"
     update-browserslist-db "^1.0.13"
 
-browserstack-local@^1.4.5, browserstack-local@^1.5.1:
+browserstack-local@^1.5.1:
   version "1.5.5"
   resolved "https://registry.yarnpkg.com/browserstack-local/-/browserstack-local-1.5.5.tgz#f36b625f3b8bfd053f673d85fd1082f2d0759693"
   integrity sha512-jKne7yosrMcptj3hqxp36TP9k0ZW2sCqhyurX24rUL4G3eT7OLgv+CSQN8iq5dtkv5IK+g+v8fWvsiC/S9KxMg==
@@ -23147,7 +23123,7 @@ uuid@^3.0.1, uuid@^3.3.2:
   resolved "https://registry.yarnpkg.com/uuid/-/uuid-3.4.0.tgz#b23e4358afa8a202fe7a100af1f5f883f02007ee"
   integrity sha512-HjSDRw6gZE5JMggctHBcjVak08+KEVhSIiDzFnT9S9aegmp85S/bReBVTb4QTFaRNptJ9kuYaNhnbNEOkbKb/A==
 
-uuid@^9.0.0, uuid@^9.0.1:
+uuid@^9.0.0:
   version "9.0.1"
   resolved "https://registry.yarnpkg.com/uuid/-/uuid-9.0.1.tgz#e188d4c8853cc722220392c424cd637f32293f30"
   integrity sha512-b+1eJOlsR9K8HJpow9Ok3fiWOWSIcIzXodvv0rQjVoOVNpWMpxf1wZNpt4y9h10odCNrqnYp1OBzRktckBe3sA==

@@ -346,7 +346,7 @@
     "@typescript-eslint/eslint-plugin": "^6.7.0",
     "@typescript-eslint/parser": "^4.20.0",
     "@wdio/appium-service": "^8.16.12",
-    "@wdio/browserstack-service": "^7.26.0",
+    "@wdio/browserstack-service": "^8.16.13",
     "@wdio/cli": "^7.19.1",
     "@wdio/cucumber-framework": "^8.14.6",
     "@wdio/junit-reporter": "^8.17.0",
