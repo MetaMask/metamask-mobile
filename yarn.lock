@@ -1558,6 +1558,17 @@
   resolved "https://registry.yarnpkg.com/@colors/colors/-/colors-1.6.0.tgz#ec6cd237440700bc23ca23087f513c75508958b0"
   integrity sha512-Ir+AOibqzrIsL6ajt3Rz3LskB7OiMVHqltZmspbW/TJuTVuyOMirVqAkjfY6JISiLHgyNqicAC8AyHHGzNd/dA==
 
+"@consensys/ledgerhq-metamask-keyring@0.0.4":
+  version "0.0.4"
+  resolved "https://registry.yarnpkg.com/@consensys/ledgerhq-metamask-keyring/-/ledgerhq-metamask-keyring-0.0.4.tgz#353c446303198305fbd91c12d804d322bf3ec671"
+  integrity sha512-xR6cKQElHqYHkVo8r6PAgR8owRbmOf/sa3nC9bW7amTUSpX5AJvxdyQFw4fVZwOFyjfh+JSD3c+c59JI5nZI/w==
+  dependencies:
+    "@ethereumjs/tx" "^3.5.0"
+    "@ledgerhq/hw-app-eth" "6.26.1"
+    "@metamask/eth-sig-util" "^7.0.0"
+    buffer "^6.0.3"
+    ethereumjs-util "^7.1.5"
+
 "@consensys/on-ramp-sdk@1.23.0":
   version "1.23.0"
   resolved "https://registry.yarnpkg.com/@consensys/on-ramp-sdk/-/on-ramp-sdk-1.23.0.tgz#f5e39a46a4dfbd5d02d79c5adaf1b662ed94d047"
@@ -2571,17 +2582,6 @@
   version "0.2.4"
   resolved "https://registry.yarnpkg.com/@icons/material/-/material-0.2.4.tgz#e90c9f71768b3736e76d7dd6783fc6c2afa88bc8"
   integrity sha512-QPcGmICAPbGLGb6F/yNf/KzKqvFx8z5qx3D1yFqVAjoFmXK35EgyW+cJ57Te3CNsmzblwtzakLGFqHPqrfb4Tw==
-
-"@igor-ms/ledgerhq-metamask-keyring@^0.0.3-preview.1":
-  version "0.0.3-preview.1"
-  resolved "https://registry.yarnpkg.com/@igor-ms/ledgerhq-metamask-keyring/-/ledgerhq-metamask-keyring-0.0.3-preview.1.tgz#fd37430e8366567ac5142c1094d8255911b78ac2"
-  integrity sha512-1gjUNa6+4ob+9NZ6EVEoxPEvO3Cn+INwIwm6whx4+McCBIrjwhsv5P+PBXhMkZaOdEf8GGM9K7eObNqIiLtZuQ==
-  dependencies:
-    "@ethereumjs/tx" "^3.5.0"
-    "@ledgerhq/hw-app-eth" "6.26.1"
-    "@metamask/eth-sig-util" "^7.0.0"
-    buffer "^6.0.3"
-    ethereumjs-util "^7.1.5"
 
 "@istanbuljs/load-nyc-config@^1.0.0":
   version "1.1.0"

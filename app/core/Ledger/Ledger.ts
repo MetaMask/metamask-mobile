@@ -4,18 +4,9 @@ import {
   SignTypedDataVersion,
 } from '@metamask/keyring-controller';
 import type BleTransport from '@ledgerhq/react-native-hw-transport-ble';
-import LedgerKeyring from '@igor-ms/ledgerhq-metamask-keyring';
-
-interface AccountDetails {
-  bip44?: boolean;
-  hdPath?: string;
-}
-interface SerializationOptions {
-  hdPath?: string;
-  accounts?: string[];
-  deviceId?: string;
-  accountDetails?: Record<string, AccountDetails>;
-}
+import LedgerKeyring, {
+  SerializationOptions,
+} from '@consensys/ledgerhq-metamask-keyring';
 
 export enum HardwareDeviceNames {
   ledger = 'Ledger Hardware',
