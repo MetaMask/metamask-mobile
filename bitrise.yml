@@ -52,7 +52,7 @@ pipelines:
   pr_smoke_e2e_pipeline_pr_check:
     stages:
       - label_run_e2e_pr_check: {}
-      - pr_run_smoke_e2e_ios_android_stage: {}
+      - run_smoke_e2e_ios_android_stage: {}
 #Stages reference workflows. Those workflows cannot but utility "_this-is-a-utility"
 stages:
   create_build_release:
