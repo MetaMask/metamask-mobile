@@ -30,7 +30,7 @@ jest.mock('../../../../core/Engine', () => ({
       state: {
         keyrings: [
           {
-            accounts: ['0x0'],
+            accounts: ['0xd018538C87232FF95acbCe4870629b75640a78E7'],
           },
         ],
       },
@@ -42,7 +42,7 @@ const mockInitialState = {
   settings: {},
   transaction: {
     selectedAsset: {
-      address: '0x0',
+      address: '0xd018538C87232FF95acbCe4870629b75640a78E7',
       decimals: 18,
       symbol: 'ETH',
     },
@@ -52,16 +52,16 @@ const mockInitialState = {
       ...initialBackgroundState,
       AccountTrackerController: {
         accounts: {
-          '0x0': {
+          '0xd018538C87232FF95acbCe4870629b75640a78E7': {
             balance: '0x0',
           },
         },
       },
       PreferencesController: {
-        selectedAddress: '0x0',
+        selectedAddress: '0xd018538C87232FF95acbCe4870629b75640a78E7',
         identities: {
-          '0x0': {
-            address: '0x0',
+          '0xd018538C87232FF95acbCe4870629b75640a78E7': {
+            address: '0xd018538C87232FF95acbCe4870629b75640a78E7',
             name: 'Account 1',
           },
         },

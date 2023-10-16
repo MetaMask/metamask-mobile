@@ -106,7 +106,10 @@ import {
   TXN_CONFIRM_SCREEN,
   TXN_CONFIRM_SEND_BUTTON,
 } from '../../../../constants/test-ids';
-import { HardwareDeviceNames, getLedgerKeyring } from '../../../../core/Ledger/Ledger'; 
+import {
+  HardwareDeviceNames,
+  getLedgerKeyring,
+} from '../../../../core/Ledger/Ledger';
 
 const EDIT = 'edit';
 const EDIT_NONCE = 'edit_nonce';

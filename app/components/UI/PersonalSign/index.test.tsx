@@ -37,7 +37,7 @@ jest.mock('@react-navigation/native');
 
 const messageParamsMock = {
   data: 'message',
-  from: '0x0',
+  from: '0xC4955C0d639D99699Bfd7Ec54d9FaFEe40e4D272',
   origin: 'origin',
   metamaskId: 'id',
 };

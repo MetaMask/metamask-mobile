@@ -20,7 +20,7 @@ import withQRHardwareAwareness from '../QRHardware/withQRHardwareAwareness';
 import QRSigningDetails from '../QRHardware/QRSigningDetails';
 import { selectProviderType } from '../../../selectors/networkController';
 import BlockaidBanner from '../BlockaidBanner/BlockaidBanner';
-import { HardwareDeviceNames } from '../../../core/Ledger/Ledger'; 
+import { HardwareDeviceNames } from '../../../core/Ledger/Ledger';
 
 const createStyles = (colors) =>
   StyleSheet.create({

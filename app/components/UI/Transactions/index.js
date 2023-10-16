@@ -67,7 +67,10 @@ import {
   CancelTransactionError,
   SpeedupTransactionError,
 } from '../../../core/Transaction/TransactionError';
-import { HardwareDeviceNames, getLedgerKeyring } from '../../../core/Ledger/Ledger'; 
+import {
+  HardwareDeviceNames,
+  getLedgerKeyring,
+} from '../../../core/Ledger/Ledger';
 
 const createStyles = (colors, typography) =>
   StyleSheet.create({

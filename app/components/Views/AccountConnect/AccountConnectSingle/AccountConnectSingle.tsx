@@ -37,7 +37,7 @@ import {
   CONNECT_BUTTON_ID,
 } from '../../../../../app/constants/test-ids';
 import generateTestId from '../../../../../wdio/utils/generateTestId';
-import { HardwareDeviceNames } from '../../../../core/Ledger/Ledger'; 
+import { HardwareDeviceNames } from '../../../../core/Ledger/Ledger';
 
 const AccountConnectSingle = ({
   defaultSelectedAccount,
@@ -56,21 +56,24 @@ const AccountConnectSingle = ({
       : AvatarAccountType.JazzIcon,
   );
 
-  const getTagLabel = useCallback((type: KeyringTypes | HardwareDeviceNames) => {
-    let label = '';
-    switch (type) {
-      case KeyringTypes.qr:
-        label = strings('transaction.hardware');
-        break;
-      case KeyringTypes.simple:
-        label = strings('accounts.imported');
-        break;
-      case HardwareDeviceNames.ledger:
-        label = strings('accounts.ledger');
-        break;
-    }
-    return label;
-  }, []);
+  const getTagLabel = useCallback(
+    (type: KeyringTypes | HardwareDeviceNames) => {
+      let label = '';
+      switch (type) {
+        case KeyringTypes.qr:
+          label = strings('transaction.hardware');
+          break;
+        case KeyringTypes.simple:
+          label = strings('accounts.imported');
+          break;
+        case HardwareDeviceNames.ledger:
+          label = strings('accounts.ledger');
+          break;
+      }
+      return label;
+    },
+    [],
+  );
 
   const renderSheetAction = useCallback(
     () => (

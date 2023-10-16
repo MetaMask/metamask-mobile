@@ -4,7 +4,9 @@ import {
   SignTypedDataVersion,
 } from '@metamask/keyring-controller';
 import type BleTransport from '@ledgerhq/react-native-hw-transport-ble';
-import LedgerKeyring from '@igor-ms/ledgerhq-metamask-keyring';
+import LedgerKeyring, {
+  SerializationOptions,
+} from '@consensys/ledgerhq-metamask-keyring';
 
 export enum HardwareDeviceNames {
   ledger = 'Ledger Hardware',
@@ -73,11 +75,9 @@ export const getLedgerKeyring = async (): Promise<LedgerKeyring> => {
  *
  * @param keyringSerialized - The serialized keyring;
  */
-export const restoreLedgerKeyring = async (keyringSerialized: {
-  accounts: { address: string; hdPath: string }[];
-  deviceId: string;
-  hdPath: string;
-}): Promise<void> => {
+export const restoreLedgerKeyring = async (
+  keyringSerialized: SerializationOptions,
+): Promise<void> => {
   const keyringController = Engine.context.KeyringController;
   (await getLedgerKeyring()).deserialize(keyringSerialized);
   keyringController.updateIdentities(

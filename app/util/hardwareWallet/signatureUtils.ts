@@ -1,7 +1,7 @@
 import { handleSignatureAction } from '../confirmation/signatureUtils';
 import { getKeyringByAddress } from '../address';
 import { signModalNavDetail } from './hardwareWallets/ledger';
-import { HardwareDeviceNames } from '../../core/Ledger/Ledger'; 
+import { HardwareDeviceNames } from '../../core/Ledger/Ledger';
 
 const navMethodFactory = new Map<HardwareDeviceNames, any>();
 navMethodFactory.set(HardwareDeviceNames.ledger, signModalNavDetail);

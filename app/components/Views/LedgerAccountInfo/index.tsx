@@ -1,8 +1,8 @@
 /* eslint-disable @typescript-eslint/no-require-imports */
 /* eslint-disable @typescript-eslint/no-var-requires */
 /* eslint-disable import/no-commonjs */
-import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import { useNavigation } from '@react-navigation/native';
+import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import {
   Image,
   SafeAreaView,
@@ -10,22 +10,22 @@ import {
   TouchableOpacity,
   View,
 } from 'react-native';
+import { useSelector } from 'react-redux';
+import { strings } from '../../../../locales/i18n';
+import { NO_RPC_BLOCK_EXPLORER, RPC } from '../../../constants/network';
+import Engine from '../../../core/Engine';
+import { forgetLedger, getLedgerKeyring } from '../../../core/Ledger/Ledger';
+import Device from '../../../util/device';
+import { getEtherscanAddressUrl } from '../../../util/etherscan';
+import { findBlockExplorerForRpc } from '../../../util/networks';
 import {
   mockTheme,
   useAppThemeFromContext,
   useAssetFromTheme,
 } from '../../../util/theme';
-import Engine from '../../../core/Engine';
 import Text from '../../Base/Text';
-import { strings } from '../../../../locales/i18n';
-import Device from '../../../util/device';
 import { getNavigationOptionsTitle } from '../../UI/Navbar';
-import { RPC, NO_RPC_BLOCK_EXPLORER } from '../../../constants/network';
-import { getEtherscanAddressUrl } from '../../../util/etherscan';
-import { findBlockExplorerForRpc } from '../../../util/networks';
-import { useSelector } from 'react-redux';
 import AccountDetails from '../ConnectQRHardware/AccountDetails';
-import { getLedgerKeyring, forgetLedger} from '../../../core/Ledger/Ledger'; 
 
 const createStyles = (colors: any) =>
   StyleSheet.create({
@@ -83,7 +83,7 @@ const LedgerAccountInfo = () => {
     ledgerDeviceLightImage,
     ledgerDeviceDarkImage,
   );
-  const { KeyringController, AccountTrackerController } = Engine.context as any;
+  const { AccountTrackerController } = Engine.context as any;
   const provider = useSelector(
     (state: any) =>
       state.engine.backgroundState.NetworkController.providerConfig,
