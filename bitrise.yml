@@ -94,10 +94,8 @@ stages:
       - android_e2e_test: {}
   pr_run_smoke_e2e_ios_android_stage:
     workflows:
-      - ios_e2e_test:
-          run_if: '{{enveq "RUN_E2E" "true"}}'
-      - android_e2e_test:
-          run_if: '{{enveq "RUN_E2E" "true"}}'
+      - ios_e2e_test: {}
+      - android_e2e_test: {}
   run_e2e_ios_android_stage:
     workflows:
       - ios_e2e_test: {}
