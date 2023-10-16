@@ -15,8 +15,7 @@
     "see_details": "Voir les détails",
     "suspicious_request_title": "Cette demande est suspecte",
     "trade_order_farming_description": "Si vous approuvez cette demande, vous risquez de perdre vos actifs.",
-    "transfer_farming_description": "Si vous approuvez cette demande, un tiers connu pour ses activités frauduleuses pourrait s’emparer de tous vos actifs.",
-    "unfair_trade_description": "Si vous approuvez cette demande, vous risquez de perdre vos actifs."
+    "transfer_farming_description": "Si vous approuvez cette demande, un tiers connu pour ses activités frauduleuses pourrait s’emparer de tous vos actifs."
   },
   "date": {
     "months": {

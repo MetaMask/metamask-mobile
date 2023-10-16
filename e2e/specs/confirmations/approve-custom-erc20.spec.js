@@ -15,7 +15,6 @@ import ApprovalModal from '../../pages/modals/ApprovalModal';
 
 const HST_CONTRACT = SMART_CONTRACTS.HST;
 const WEBVIEW_TEST_DAPP_APPROVE_TOKENS_BUTTON_ID = 'approveTokens';
-const EXPECTED_TOKEN_AMOUNT = '7';
 
 describe(Regression('ERC20 tokens'), () => {
   beforeAll(async () => {
@@ -25,7 +24,7 @@ describe(Regression('ERC20 tokens'), () => {
     }
   });
 
-  it('approve default ERC20 token amount from a dapp', async () => {
+  it('approve custom ERC20 token amount from a dapp', async () => {
     await withFixtures(
       {
         dapp: true,
@@ -51,13 +50,17 @@ describe(Regression('ERC20 tokens'), () => {
           contractAddress: hstAddress,
         });
 
-        // Assert the default token amount is shown
-
+        //Input custom token amount
         await TestHelpers.checkIfExists(ApprovalModal.APPROVE_TOKEN_AMOUNT);
+        await TestHelpers.replaceTextInField(
+          ApprovalModal.APPROVE_TOKEN_AMOUNT,
+          '2',
+        );
 
+        // Assert that custom token amount is shown
         await expect(
           element(by.id(ApprovalModal.APPROVE_TOKEN_AMOUNT)),
-        ).toHaveText(EXPECTED_TOKEN_AMOUNT);
+        ).toHaveText('2');
 
         // Tap next button
         await TestHelpers.checkIfElementWithTextIsVisible(

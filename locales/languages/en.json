@@ -15,8 +15,7 @@
     "does_not_look_right": "Something doesn’t look right?",
     "suspicious_request_title": "This is a suspicious request",
     "trade_order_farming_description": "If you approve this request, you might lose your assets.",
-    "transfer_farming_description": "If you approve this request, a third party known for scams will take all your assets.",
-    "unfair_trade_description": "If you approve this request, you might lose your assets."
+    "transfer_farming_description": "If you approve this request, a third party known for scams will take all your assets."
   },
   "date": {
     "months": {
@@ -1319,6 +1318,11 @@
     "between_account": "Transfer between my accounts",
     "others": "Others",
     "memo": "Memo"
+  },
+  "duplicate_address": {
+    "title": "This is a duplicate address",
+    "body": "Your contact list shows this address on more than one chain. Be sure to select the correct contact before you send any funds.",
+    "button": "Got it"
   },
   "transaction_submitted": {
     "title": "Transaction Submitted",
