@@ -2,7 +2,6 @@
   "blockaid_banner": {
     "approval_farming_description": "If you approve this request, a third party known for scams might take all your assets.",
     "attribution": "Security advice by",
-    "attribution_link": "https://blockaid.me",
     "attribution_link_name": "Blockaid",
     "blur_farming_description": "If you approve this request, someone can steal your assets listed on Blur.",
     "deceptive_request_title": "This is a deceptive request",
@@ -13,6 +12,7 @@
     "raw_signature_farming_description": "If you approve this request, you might lose your assets.",
     "seaport_farming_description": "If you approve this request, someone can steal your assets listed on OpenSea.",
     "see_details": "See details",
+    "does_not_look_right": "Something doesn’t look right?",
     "suspicious_request_title": "This is a suspicious request",
     "trade_order_farming_description": "If you approve this request, you might lose your assets.",
     "transfer_farming_description": "If you approve this request, a third party known for scams will take all your assets.",
@@ -789,7 +789,8 @@
     "display_nft_media_desc": "Displaying NFT media and data exposes your IP address to OpenSea or other third parties. NFT autodetection relies on this feature, and won't be available when this is turned off.",
     "autodetect_nft_desc": "Let MetaMask add NFTs you own using third-party services (like OpenSea). Autodetecting NFTs exposes your IP and account address to these services. Enabling this feature could associate your IP address with your Ethereum address and display fake NFTs airdropped by scammers. You can add tokens manually to avoid this risk.",
     "incoming_transactions_title": "Show incoming transactions",
-    "incoming_transactions_content": "This relies on the network you select which will expose your Ethereum address and your IP address."
+    "incoming_transactions_content": "This relies on the network you select which will expose your Ethereum address and your IP address.",
+    "display_nft_media_desc_new": "Displaying NFT media and data exposes your IP address to OpenSea or other third parties. NFT autodetection relies on this feature, and won't be available when turned off. If NFT media is fully located on IPFS, it can still be displayed even when this feature is turned off."
   },
   "sdk": {
     "disconnect_title": "Disconnect all sites?",
@@ -1318,6 +1319,11 @@
     "between_account": "Transfer between my accounts",
     "others": "Others",
     "memo": "Memo"
+  },
+  "duplicate_address": {
+    "title": "This is a duplicate address",
+    "body": "Your contact list shows this address on more than one chain. Be sure to select the correct contact before you send any funds.",
+    "button": "Got it"
   },
   "transaction_submitted": {
     "title": "Transaction Submitted",
@@ -1870,8 +1876,8 @@
   "fiat_on_ramp_aggregator": {
     "onboarding": {
       "what_to_expect": "What to Expect",
-      "best_quotes": "Our buy crypto feature aggregates quotes from integrated vendors, providing you the best quote from those sources for you to get crypto directly into your wallet with no waiting period.",
-      "benefits": "Less gas fees to pay, and numerous networks, tokens, and payment methods supported",
+      "quotes": "Our buy crypto feature aggregates quotes from integrated vendors, providing quotes from those sources to get crypto directly into your wallet with no waiting period.",
+      "benefits": "Fewer gas fees to pay, and numerous networks, tokens, and payment methods supported",
       "get_started": "Get started"
     },
     "payment_method": {
@@ -1915,11 +1921,9 @@
     "select_region_currency": "Select Region Currency",
     "no_tokens_match": "No tokens match “{{searchString}}”",
     "no_currency_match": "No currencies match “{{searchString}}”",
-    "buy_from_vetted": "To buy {{ticker}} from one of our integrations, you’ll be securely taken to their portal without leaving the MetaMask app",
-    "best_price": "Best price",
-    "explore_other_options": "Explore other options",
+    "compare_rates": "Compare rates from these providers. Quotes are sorted by overall price.",
     "pay_with": "Pay with",
-    "buy_with": "Buy with {{provider}}",
+    "continue_with": "Continue with {{provider}}",
     "minimum": "Minimum deposit is",
     "maximum": "Maximum deposit is",
     "try_again": "Try again",
@@ -2577,11 +2581,11 @@
     "show_display_nft_media_content_5": "Setttings > Security and privacy."
   },
   "ipfs_gateway_banner": {
-        "ipfs_gateway_banner_title": "IPFS gateway",
-        "ipfs_gateway_banner_content1": "This is an IPFS website. to see this site, you need to turn on",
-        "ipfs_gateway_banner_content2": "IPFS gateway",
-        "ipfs_gateway_banner_content3": "in",
-        "ipfs_gateway_banner_content4": "Settings."
+    "ipfs_gateway_banner_title": "IPFS gateway",
+    "ipfs_gateway_banner_content1": "This is an IPFS website. to see this site, you need to turn on",
+    "ipfs_gateway_banner_content2": "IPFS gateway",
+    "ipfs_gateway_banner_content3": "in",
+    "ipfs_gateway_banner_content4": "Settings."
   },
   "ipfs_gateway": {
     "ipfs_gateway_title": "IPFS gateway",
