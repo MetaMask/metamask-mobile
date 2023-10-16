@@ -2,3 +2,90 @@
 # Each line is a file pattern followed by one or more owners.
 
 *                                    @MetaMask/mobile-devs
+
+
+
+###########################################################
+#                       Team Ownership                    #
+###########################################################
+
+# The following sections are organized by team. Each team has a set of
+# responsibilities and a set of domains that they are responsible
+# for.
+
+############################################################
+# @MetaMask/confirmations-system-team - Confirmations System
+####################           app/components
+app/components/Approvals/ @MetaMask/confirmations-system-team @MetaMask/mobile-devs
+app/components/hooks/useApproval* @MetaMask/confirmations-system-team @MetaMask/mobile-devs
+app/components/UI/Approval/ @MetaMask/confirmations-system-team @MetaMask/mobile-devs
+app/components/UI/TemplateRenderer/ @MetaMask/confirmations-system-team @MetaMask/mobile-devs
+####################           app/selectors
+app/selectors/approvalController* @MetaMask/confirmations-system-team @MetaMask/mobile-devs // SHOULD IT BE UX?
+
+
+############################################
+# @MetaMask/confirmations - Confirmations UX
+####################           app/actions
+app/actions/transaction/ @MetaMask/confirmations @MetaMask/mobile-devs
+####################           app/component-library
+app/component-library/components-temp/CustomSpendCap/ @MetaMask/confirmations @MetaMask/mobile-devs
+####################           app/components/UI
+app/components/UI/AnimatedTransactionHeader/ @MetaMask/confirmations @MetaMask/mobile-devs
+app/components/UI/ApproveTransactionHeader/ @MetaMask/confirmations @MetaMask/mobile-devs
+app/components/UI/ApproveTransactionReview/ @MetaMask/confirmations @MetaMask/mobile-devs
+app/components/UI/BlockaidBanner/ @MetaMask/confirmations @MetaMask/mobile-devs
+app/components/UI/CustomGasModal/ @MetaMask/confirmations @MetaMask/mobile-devs
+app/components/UI/CustomNonce/ @MetaMask/confirmations @MetaMask/mobile-devs
+app/components/UI/CustomNonceModal/ @MetaMask/confirmations @MetaMask/mobile-devs
+app/components/UI/EditGasFee1559/ @MetaMask/confirmations @MetaMask/mobile-devs
+app/components/UI/EditGasFee1559Update/ @MetaMask/confirmations @MetaMask/mobile-devs
+app/components/UI/EditGasFeeLegacy/ @MetaMask/confirmations @MetaMask/mobile-devs
+app/components/UI/EditGasFeeLegacyUpdate/ @MetaMask/confirmations @MetaMask/mobile-devs
+app/components/UI/MessageSign/ @MetaMask/confirmations @MetaMask/mobile-devs
+app/components/UI/PersonalSign/ @MetaMask/confirmations @MetaMask/mobile-devs
+app/components/UI/QRHardware/ @MetaMask/confirmations @MetaMask/mobile-devs  // CHECK THIS
+app/components/UI/SignatureRequest/ @MetaMask/confirmations @MetaMask/mobile-devs
+app/components/UI/TransactionActionModal/ @MetaMask/confirmations @MetaMask/mobile-devs
+app/components/UI/TransactionEditor/ @MetaMask/confirmations @MetaMask/mobile-devs
+app/components/UI/TransactionElement/ @MetaMask/confirmations @MetaMask/mobile-devs
+app/components/UI/TransactionHeader/ @MetaMask/confirmations @MetaMask/mobile-devs
+app/components/UI/TransactionReview/ @MetaMask/confirmations @MetaMask/mobile-devs
+app/components/UI/Transactions/ @MetaMask/confirmations @MetaMask/mobile-devs
+app/components/UI/TypedSign/ @MetaMask/confirmations @MetaMask/mobile-devs
+app/components/UI/UpdateEIP1559Tx/ @MetaMask/confirmations @MetaMask/mobile-devs
+app/components/UI/WatchAssetRequest/ @MetaMask/confirmations @MetaMask/mobile-devs
+####################           app/components/Views
+app/components/Views/AccountPermissions/ @MetaMask/confirmations @MetaMask/mobile-devs //CHECK THIS
+app/components/Views/AddAsset/ @MetaMask/confirmations @MetaMask/mobile-devs //CHECK THIS
+app/components/Views/Approval/ @MetaMask/confirmations @MetaMask/confirmations-system-team @MetaMask/mobile-devs
+app/components/Views/ApproveView/ @MetaMask/confirmations @MetaMask/mobile-devs
+app/components/Views/DetectTokens/ @MetaMask/confirmations @MetaMask/mobile-devs
+app/components/Views/DetectTokensConfirmation/ @MetaMask/confirmations @MetaMask/mobile-devs
+app/components/Views/GasEducationCarousel/ @MetaMask/confirmations @MetaMask/mobile-devs
+app/components/Views/Send/ @MetaMask/confirmations @MetaMask/mobile-devs
+app/components/Views/SendFlow/ @MetaMask/confirmations @MetaMask/mobile-devs
+app/components/Views/TransactionSummary/ @MetaMask/confirmations @MetaMask/mobile-devs
+app/components/Views/TransactionsView/ @MetaMask/confirmations @MetaMask/mobile-devs
+####################           app/constants
+app/constants/transaction.ts @MetaMask/confirmations @MetaMask/mobile-devs
+####################           app/core
+app/core/GasPolling/ @MetaMask/confirmations @MetaMask/mobile-devs //SHOULD THIS BE SYSTEMS TEAM??
+app/core/Permissions/ @MetaMask/confirmations @MetaMask/mobile-devs
+app/core/TransactionTypes.js @MetaMask/confirmations @MetaMask/mobile-devs
+####################           app/lib
+app/lib/ppom/ @MetaMask/confirmations @MetaMask/mobile-devs
+####################           app/reducers
+app/reducers/transaction/ @MetaMask/confirmations @MetaMask/mobile-devs
+####################           app/selectors
+app/selectors/preferencesController/ @MetaMask/confirmations @MetaMask/mobile-devs //CHECK THIS
+####################           app/util
+app/util/blockaid/ @MetaMask/confirmations @MetaMask/mobile-devs
+app/util/confirmation/ @MetaMask/confirmations @MetaMask/mobile-devs
+app/util/custom-gas/ @MetaMask/confirmations @MetaMask/mobile-devs
+app/util/dapp-transactions/ @MetaMask/confirmations @MetaMask/mobile-devs
+app/util/transactions/ @MetaMask/confirmations @MetaMask/mobile-devs
+app/util/confirm-tx.js @MetaMask/confirmations @MetaMask/mobile-devs
+app/util/transaction-reducer-helpers.js @MetaMask/confirmations @MetaMask/mobile-devs
+
+
