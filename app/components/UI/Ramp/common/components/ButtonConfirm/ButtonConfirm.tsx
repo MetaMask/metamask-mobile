@@ -95,7 +95,7 @@ const ButtonConfirm = ({ onLongPress }: Props) => {
   const triggerPressEnd = useCallback(() => {
     if (longPressProgress.value < finishedAnimationValue) {
       longPressProgress.value = withTiming(initialAnimationValue, {
-        duration: longPressProgress.value * animationDuration,
+        duration: (longPressProgress.value * animationDuration) / 2,
       });
     }
   }, [longPressProgress]);
