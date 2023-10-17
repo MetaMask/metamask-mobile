@@ -376,7 +376,7 @@ workflows:
             - content: |-
                 #!/usr/bin/env bash
                 node -v
-                IGNORE_BOXLOGS_DEVELOPMENT="true" FORCE_BUNDLING=true yarn test:e2e:ios:debug --testNamePattern='Regresion'
+                IGNORE_BOXLOGS_DEVELOPMENT="true" FORCE_BUNDLING=true yarn test:e2e:ios:debug --testNamePattern='Regression'
           title: Detox Build & Test
           is_always_run: false
       - custom-test-results-export@1:
