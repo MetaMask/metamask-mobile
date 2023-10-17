@@ -134,6 +134,7 @@ class BackupAlert extends PureComponent {
   state = {
     inBrowserView: false,
     inAccountBackupStep: false,
+    isVisible: true,
   };
 
   componentDidUpdate = async (prevProps) => {
@@ -155,6 +156,7 @@ class BackupAlert extends PureComponent {
   };
 
   goToBackupFlow = () => {
+    this.setState({ isVisible: false });
     this.props.navigation.navigate('SetPasswordFlow', {
       screen: 'AccountBackupStep1',
     });
@@ -190,7 +192,7 @@ class BackupAlert extends PureComponent {
       backUpSeedphraseVisible,
       onboardingWizardStep,
     } = this.props;
-    const { inBrowserView, blockedView } = this.state;
+    const { inBrowserView, blockedView, isVisible } = this.state;
     const colors = this.context.colors || mockTheme.colors;
     const styles = createStyles(colors);
 
@@ -198,7 +200,8 @@ class BackupAlert extends PureComponent {
       seedphraseBackedUp ||
       blockedView ||
       !backUpSeedphraseVisible ||
-      onboardingWizardStep !== 0;
+      onboardingWizardStep !== 0 ||
+      !isVisible;
 
     if (shouldNotRenderAlert) return null;
     return (
