@@ -68,7 +68,7 @@ class Assertions {
    * Check if an element with the specified ID has the specified text.
    * @param {string} elementId - The ID of the element to check.
    * @param {string} text - The expected text content.
-   * @param {number}  timeout - Timeout in milliseconds.
+   * @param {number} timeout - Timeout in milliseconds.
    */
   static async checkIfHasText(elementId, text, timeout = TIMEOUT) {
     // rename this. checkIfELEMENTHasText makes it clear
