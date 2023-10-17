@@ -42,6 +42,7 @@ import TransactionReviewInformation from './TransactionReviewInformation';
 import TransactionReviewSummary from './TransactionReviewSummary';
 import TransactionReviewData from './TransactionReviewData';
 import Analytics from '../../../core/Analytics/Analytics';
+import AnalyticsV2 from '../../../util/analyticsV2';
 import { MetaMetricsEvents } from '../../../core/Analytics';
 import TransactionHeader from '../TransactionHeader';
 import AccountFromToInfoCard from '../AccountFromToInfoCard';
@@ -291,7 +292,7 @@ class TransactionReview extends PureComponent {
   componentDidMount = async () => {
     const {
       transaction,
-      transaction: { data, to, value, securityAlertResponse },
+      transaction: { data, to, value },
       tokens,
       chainId,
       tokenList,
@@ -317,11 +318,9 @@ class TransactionReview extends PureComponent {
       [assetAmount, conversionRate, fiatValue] = this.getRenderValues()();
     }
 
-    let additionalParams = {};
-
-    if (isBlockaidFeatureEnabled()) {
-      additionalParams = getBlockaidMetricsParams(securityAlertResponse);
-    }
+    const additionalParams = getBlockaidMetricsParams(
+      transaction?.securityAlertResponse,
+    );
 
     this.setState({
       actionKey,
@@ -332,7 +331,7 @@ class TransactionReview extends PureComponent {
       approveTransaction,
     });
     InteractionManager.runAfterInteractions(() => {
-      Analytics.trackEvent(
+      AnalyticsV2.trackEvent(
         MetaMetricsEvents.TRANSACTIONS_CONFIRM_STARTED,
         additionalParams,
       );
@@ -344,6 +343,18 @@ class TransactionReview extends PureComponent {
         POLLING_INTERVAL_ESTIMATED_L1_FEE,
       );
     }
+  };
+
+  onContactUsClicked = () => {
+    const { transaction } = this.props;
+    const additionalParams = {
+      ...getBlockaidMetricsParams(transaction?.securityAlertResponse),
+      external_link_clicked: 'security_alert_support_link',
+    };
+    AnalyticsV2.trackEvent(
+      MetaMetricsEvents.TRANSACTIONS_CONFIRM_STARTED,
+      additionalParams,
+    );
   };
 
   componentWillUnmount = async () => {
@@ -515,6 +526,7 @@ class TransactionReview extends PureComponent {
                       <BlockaidBanner
                         securityAlertResponse={securityAlertResponse}
                         style={styles.blockaidWarning}
+                        onContactUsClicked={this.onContactUsClicked}
                       />
                     )}
                     <TransactionReviewSummary
@@ -586,6 +598,8 @@ class TransactionReview extends PureComponent {
     const {
       QRState,
       transaction: { from },
+      onCancel,
+      onConfirm,
     } = this.props;
 
     const styles = this.getStyles();
@@ -599,6 +613,8 @@ class TransactionReview extends PureComponent {
           showHint={false}
           bypassAndroidCameraAccessCheck={false}
           fromAddress={from}
+          cancelCallback={onCancel}
+          successCallback={onConfirm}
         />
       </View>
     );

@@ -20,6 +20,7 @@ const styleSheet = (_params: {
       flexDirection: 'row',
       justifyContent: 'flex-start',
       alignItems: 'flex-start',
+      marginTop: 8,
     } as ViewStyle),
     attributionItem: {
       marginRight: 4,

@@ -5,8 +5,14 @@ import { shallow } from 'enzyme';
 import { Provider } from 'react-redux';
 // eslint-disable-next-line import/no-namespace
 import * as TransactionUtils from '../../../util/transactions';
+// eslint-disable-next-line import/no-namespace
+import * as BlockaidUtils from '../../../util/blockaid';
+import analyticsV2 from '../../../util/analyticsV2';
 import renderWithProvider from '../../../util/test/renderWithProvider';
 import initialBackgroundState from '../../../util/test/initial-background-state.json';
+import { fireEvent } from '@testing-library/react-native';
+import { TESTID_ACCORDION_CONTENT } from '../../../component-library/components/Accordions/Accordion/Accordion.constants';
+import { FALSE_POSITIVE_REPOST_LINE_TEST_ID } from '../BlockaidBanner/BlockaidBanner.constants';
 
 jest.mock('../../../util/transactions', () => ({
   ...jest.requireActual('../../../util/transactions'),
@@ -121,7 +127,24 @@ describe('TransactionReview', () => {
   });
 
   it('should display blockaid banner', async () => {
-    const { queryByText } = renderWithProvider(
+    const securityAlertResponse = {
+      resultType: 'Malicious',
+      reason: 'blur_farming',
+    };
+    const trackEventSypy = jest
+      .spyOn(analyticsV2, 'trackEvent')
+      .mockImplementation((name, params) => {
+        expect(name).toBeDefined();
+        expect(params).toBeDefined();
+      });
+
+    const blockaidMetricsParamsSpy = jest
+      .spyOn(BlockaidUtils, 'getBlockaidMetricsParams')
+      .mockImplementation(({ resultType, reason }) => ({
+        security_alert_response: resultType,
+        security_alert_reason: reason,
+      }));
+    const { queryByText, queryByTestId, getByText } = renderWithProvider(
       <TransactionReview
         EIP1559GasData={{}}
         generateTransform={generateTransform}
@@ -131,10 +154,7 @@ describe('TransactionReview', () => {
           ...mockState,
           transaction: {
             ...mockState.transaction,
-            securityAlertResponse: {
-              resultType: 'Malicious',
-              reason: 'blur_farming',
-            },
+            securityAlertResponse,
           },
         },
       },
@@ -145,6 +165,23 @@ describe('TransactionReview', () => {
         'If you approve this request, someone can steal your assets listed on Blur.',
       ),
     ).toBeDefined();
+
+    fireEvent.press(await getByText('See details'));
+
+    expect(await queryByTestId(TESTID_ACCORDION_CONTENT)).toBeDefined();
+    expect(
+      await queryByTestId(FALSE_POSITIVE_REPOST_LINE_TEST_ID),
+    ).toBeDefined();
+    expect(await queryByText('Something doesn’t look right?')).toBeDefined();
+    expect(await queryByText('Contact Us')).toBeDefined();
+
+    fireEvent.press(await getByText('Contact Us'));
+
+    expect(trackEventSypy).toHaveBeenCalledTimes(1);
+    expect(blockaidMetricsParamsSpy).toHaveBeenCalledTimes(2);
+    expect(blockaidMetricsParamsSpy).toHaveBeenCalledWith(
+      securityAlertResponse,
+    );
   });
 
   it('should have enabled confirm button if from account has balance', async () => {
@@ -193,6 +230,23 @@ describe('TransactionReview', () => {
     );
     const confirmButton = getByRole('button', { name: 'Confirm' });
     expect(confirmButton.props.disabled).toBe(false);
+  });
+
+  it('should have confirm button disabled if error is defined', async () => {
+    jest.mock('react-redux', () => ({
+      ...jest.requireActual('react-redux'),
+      useSelector: (fn: any) => fn(mockState),
+    }));
+    const { getByRole } = renderWithProvider(
+      <TransactionReview
+        EIP1559GasData={{}}
+        generateTransform={generateTransform}
+        error="You need 1 more ETH to complete the transaction"
+      />,
+      { state: mockState },
+    );
+    const confirmButton = getByRole('button', { name: 'Confirm' });
+    expect(confirmButton.props.disabled).toBe(true);
   });
 
   it('should have confirm button disabled if error is defined', async () => {

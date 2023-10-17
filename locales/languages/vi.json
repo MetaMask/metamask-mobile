@@ -15,8 +15,7 @@
     "see_details": "Xem chi tiết",
     "suspicious_request_title": "Đây là một yêu cầu đáng ngờ",
     "trade_order_farming_description": "Nếu bạn chấp thuận yêu cầu này, bạn có thể mất tài sản của mình.",
-    "transfer_farming_description": "Nếu bạn chấp thuận yêu cầu này, một bên thứ ba nổi tiếng là lừa đảo sẽ lấy hết tài sản của bạn.",
-    "unfair_trade_description": "Nếu bạn chấp thuận yêu cầu này, bạn có thể mất tài sản của mình."
+    "transfer_farming_description": "Nếu bạn chấp thuận yêu cầu này, một bên thứ ba nổi tiếng là lừa đảo sẽ lấy hết tài sản của bạn."
   },
   "date": {
     "months": {
@@ -1869,7 +1868,6 @@
   "fiat_on_ramp_aggregator": {
     "onboarding": {
       "what_to_expect": "Mong đợi",
-      "best_quotes": "Tính năng mua tiền điện tử của chúng tôi sẽ tổng hợp các báo giá từ những nhà cung cấp được tích hợp, mang lại báo giá tốt nhất từ các nguồn đó để bạn có thể nhận tiền điện tử trực tiếp vào ví của mình mà không mất thời gian chờ đợi.",
       "benefits": "Trả ít phí gas hơn và hỗ trợ nhiều mạng, token và phương thức thanh toán",
       "get_started": "Bắt đầu"
     },
@@ -1914,11 +1912,7 @@
     "select_region_currency": "Chọn đơn vị tiền tệ của khu vực",
     "no_tokens_match": "Không có token nào khớp với \"{{searchString}}\"",
     "no_currency_match": "Không có đơn vị tiền tệ nào khớp với \"{{searchString}}\"",
-    "buy_from_vetted": "Để mua {{ticker}} từ một trong những nhà cung cấp tích hợp của chúng tôi, bạn sẽ được chuyển đến cổng thanh toán của họ một cách an toàn mà không cần rời khỏi ứng dụng MetaMask",
-    "best_price": "Giá tốt nhất",
-    "explore_other_options": "Khám phá các tùy chọn khác",
     "pay_with": "Thanh toán bằng",
-    "buy_with": "Mua bằng {{provider}}",
     "minimum": "Số tiền nạp tối thiểu là",
     "maximum": "Số tiền nạp tối đa là",
     "try_again": "Thử lại",
