@@ -93,6 +93,10 @@ import AsyncStorage from '../../../store/async-storage-wrapper';
 import ShowIpfsGatewaySheet from '../../Views/ShowIpfsGatewaySheet/ShowIpfsGatewaySheet';
 import ShowDisplayNftMediaSheet from '../../Views/ShowDisplayMediaNFTSheet/ShowDisplayNFTMediaSheet';
 import AmbiguousAddressSheet from '../../../../app/components/Views/Settings/Contacts/AmbiguousAddressSheet/AmbiguousAddressSheet';
+import {createClient} from "@segment/analytics-react-native";
+import generateDeviceAnalyticsMetaData, {generateMetametricsId} from "../../../util/metrics";
+import {METAMETRICS_ANONYMOUS_ID} from "../../../core/Analytics/MetaMetrics.constants";
+import {MetaMetrics} from "../../../core/Analytics";
 
 const clearStackNavigatorOptions = {
   headerShown: false,
@@ -344,7 +348,11 @@ const App = ({ userLoggedIn }) => {
 
   useEffect(() => {
     const initAnalytics = async () => {
-      await Analytics.init();
+        const metrics = MetaMetrics();
+        metrics.enable();
+        metrics.trackEvent('test event', {
+            ...generateDeviceAnalyticsMetaData(),
+        });
     };
 
     initAnalytics();

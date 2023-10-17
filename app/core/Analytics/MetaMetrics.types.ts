@@ -42,7 +42,7 @@ export interface IMetaMetrics {
   // Method to create a new method to suppress and
   // delete user's data from Segment and all related
   // destinations.
-  createSegmentDeleteRegulation(): void;
+  createSegmentDeleteRegulation(): Promise<void>;
 }
 
 // Represents an MetaMetrics event

@@ -1,3 +1,16 @@
+diff --git a/node_modules/@segment/analytics-react-native/lib/typescript/src/analytics.d.ts b/node_modules/@segment/analytics-react-native/lib/typescript/src/analytics.d.ts
+index 3191cbd..c652193 100644
+--- a/node_modules/@segment/analytics-react-native/lib/typescript/src/analytics.d.ts
++++ b/node_modules/@segment/analytics-react-native/lib/typescript/src/analytics.d.ts
+@@ -132,7 +132,7 @@ export declare class SegmentClient {
+     private onStorageReady;
+     flush(): Promise<void>;
+     screen(name: string, options?: JsonMap): Promise<void>;
+-    track(eventName: string, options?: JsonMap): Promise<void>;
++    track(eventName: string, options?: JsonMap, userId?: string, anonymousId?: string): Promise<void>;
+     identify(userId?: string, userTraits?: UserTraits): Promise<void>;
+     group(groupId: string, groupTraits?: GroupTraits): Promise<void>;
+     alias(newUserId: string): Promise<void>;
 diff --git a/node_modules/@segment/analytics-react-native/src/analytics.ts b/node_modules/@segment/analytics-react-native/src/analytics.ts
 index 4229c6a..83882e2 100644
 --- a/node_modules/@segment/analytics-react-native/src/analytics.ts
@@ -55,6 +68,19 @@ index 4229c6a..83882e2 100644
      this.store.userInfo.set({
        anonymousId,
        userId: undefined,
+diff --git a/node_modules/@segment/analytics-react-native/src/api.ts b/node_modules/@segment/analytics-react-native/src/api.ts
+index 04535b5..9fcb056 100644
+--- a/node_modules/@segment/analytics-react-native/src/api.ts
++++ b/node_modules/@segment/analytics-react-native/src/api.ts
+@@ -17,7 +17,7 @@ export const uploadEvents = async ({
+       writeKey: writeKey,
+     }),
+     headers: {
+-      'Content-Type': 'text/plain',
++      'Content-Type': process.env.SEGMENT_API_CONTENT_TYPE || 'text/plain',
+     },
+   });
+ };
 diff --git a/node_modules/@segment/analytics-react-native/src/events.ts b/node_modules/@segment/analytics-react-native/src/events.ts
 index fe1a369..dc058ee 100644
 --- a/node_modules/@segment/analytics-react-native/src/events.ts

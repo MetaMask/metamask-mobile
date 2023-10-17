@@ -6,7 +6,6 @@ import {
 } from '@segment/analytics-react-native';
 import axios from 'axios';
 import DefaultPreference from 'react-native-default-preference';
-import { bufferToHex, keccak } from 'ethereumjs-util';
 import Logger from '../../util/Logger';
 import {
   AGREED,
@@ -14,7 +13,6 @@ import {
   METRICS_OPT_IN,
   METAMETRICS_ID,
   ANALYTICS_DATA_DELETION_DATE,
-  MIXPANEL_METAMETRICS_ID,
   METAMETRICS_SEGMENT_REGULATION_ID,
 } from '../../constants/storage';
 
@@ -28,6 +26,7 @@ import {
   METAMETRICS_ANONYMOUS_ID,
   SEGMENT_REGULATIONS_ENDPOINT,
 } from './MetaMetrics.constants';
+import {generateMetametricsId} from "../../util/metrics";
 
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
 class MetaMetrics implements IMetaMetrics {
@@ -46,7 +45,7 @@ class MetaMetrics implements IMetaMetrics {
   constructor(segmentClient: any) {
     this.#segmentClient = segmentClient;
     this.#state = States.enabled;
-    // this.#init();
+    this.#init();
   }
 
   // PRIVATE METHODS
@@ -54,39 +53,32 @@ class MetaMetrics implements IMetaMetrics {
   /**
    * Method to initialize private variables async.
    */
-  async #init() {
-    this.#metametricsId = await this.#getMetaMetricsId();
-  }
+  #init = async (): Promise<void> => {
+      this.#metametricsId = await this.#getMetaMetricsId();
+  };
 
   /**
    * Method to generate or retrieve the analytics user ID.
    *
    * @returns Promise containing the user ID.
    */
-  async #getMetaMetricsId(): Promise<string> {
+  #getMetaMetricsId = async (): Promise<string> => {
     let metametricsId: string | undefined;
 
-    // Legacy ID from MixPanel integration
-    metametricsId = await DefaultPreference.get(MIXPANEL_METAMETRICS_ID);
-    if (metametricsId && !__DEV__) {
-      return metametricsId;
-    }
+    // // Legacy ID from MixPanel integration
+    // metametricsId = await DefaultPreference.get(MIXPANEL_METAMETRICS_ID);
+    // if (metametricsId && !__DEV__) {
+    //   return metametricsId;
+    // }
 
     metametricsId = await DefaultPreference.get(METAMETRICS_ID);
     if (!metametricsId) {
-      metametricsId = bufferToHex(
-        keccak(
-          Buffer.from(
-            String(Date.now()) +
-              String(Math.round(Math.random() * Number.MAX_SAFE_INTEGER)),
-          ),
-        ),
-      );
+      metametricsId = generateMetametricsId();
       await DefaultPreference.set(METAMETRICS_ID, metametricsId);
     }
     if (__DEV__) Logger.log(`Current MetaMatrics ID: ${metametricsId}`);
     return metametricsId;
-  }
+  };
 
   /**
    * Method to associate traits or properties to an user.
@@ -96,12 +88,12 @@ class MetaMetrics implements IMetaMetrics {
    * @param userId - User ID generated for Segment
    * @param userTraits - Object containing user relevant traits or properties (optional).
    */
-  #identify(userTraits: UserTraits): void {
+  #identify = (userTraits: UserTraits): void => {
     // The identify method lets you tie a user to their actions
     // and record traits about them. This includes a unique user ID
     // and any optional traits you know about them
     this.#segmentClient.identify(this.#metametricsId, userTraits);
-  }
+  };
 
   /**
    * Method to associate an user to a specific group.
@@ -111,13 +103,13 @@ class MetaMetrics implements IMetaMetrics {
    * @param groupId - Group ID to associate user
    * @param groupTraits - Object containing group relevant traits or properties (optional).
    */
-  #group(groupId: string, groupTraits?: GroupTraits): void {
+  #group = (groupId: string, groupTraits?: GroupTraits): void => {
     // The Group method lets you associate an individual user with a group—
     // whether it’s a company, organization, account, project, or team.
     // This includes a unique group identifier and any additional
     // group traits you may know
     this.#segmentClient.group(groupId, groupTraits);
-  }
+  };
 
   /**
    * Method to track an analytics event.
@@ -128,7 +120,7 @@ class MetaMetrics implements IMetaMetrics {
    * @param anonymously - Boolean indicating if the event should be anonymous.
    * @param properties - Object containing any event relevant traits or properties (optional).
    */
-  #trackEvent(event: string, anonymously: boolean, properties: JsonMap): void {
+  #trackEvent = (event: string, anonymously: boolean, properties: JsonMap): void => {
     if (anonymously) {
       // If the tracking is anonymous, there should not be a MetaMetrics ID
       // included, MetaMetrics core should use the METAMETRICS_ANONYMOUS_ID
@@ -151,15 +143,15 @@ class MetaMetrics implements IMetaMetrics {
       );
     }
     this.#isDataRecorded = true;
-  }
+  };
 
   /**
    * Method to clear the internal state of the library for the current user and group.
    * https://segment.com/docs/connections/sources/catalog/libraries/mobile/react-native/#reset
    */
-  #reset(): void {
+  #reset = (): void => {
     this.#segmentClient.reset(METAMETRICS_ANONYMOUS_ID);
-  }
+  };
 
   /**
    * Method to update the user analytics preference and
@@ -251,7 +243,7 @@ class MetaMetrics implements IMetaMetrics {
 
   // PUBLIC METHODS
 
-  public static getInstance(): IMetaMetrics {
+  public static getInstance = (): IMetaMetrics => {
     if (!MetaMetrics.#instance) {
       // This central client manages all the tracking events
       const segmentClient = createClient({
@@ -259,56 +251,57 @@ class MetaMetrics implements IMetaMetrics {
           ? process.env.SEGMENT_DEV_KEY
           : process.env.SEGMENT_PROD_KEY) as string,
         debug: __DEV__,
+        proxy: (__DEV__
+            ? process.env.SEGMENT_DEV_PROXY_KEY
+            : process.env.SEGMENT_PROD_PROXY_KEY),
       });
       MetaMetrics.#instance = new MetaMetrics(segmentClient);
     }
     return MetaMetrics.#instance;
-  }
+  };
 
-  public enable(): void {
+  public enable = (): void => {
     this.#state = States.enabled;
     this.#storeMetricsOptInPreference();
-  }
+  };
 
-  public disable(): void {
+  public disable = (): void => {
     this.#state = States.disabled;
     this.#storeMetricsOptInPreference();
-  }
+  };
 
-  public state(): States {
-    return this.#state;
-  }
+  public state = (): States => this.#state;
 
-  public addTraitsToUser(userTraits: UserTraits): void {
+  public addTraitsToUser = (userTraits: UserTraits): void => {
     this.#identify(userTraits);
-  }
+  };
 
-  public group(groupId: string, groupTraits?: GroupTraits): void {
+  public group = (groupId: string, groupTraits?: GroupTraits): void => {
     this.#group(groupId, groupTraits);
-  }
+  };
 
-  public trackAnonymousEvent(event: string, properties: JsonMap = {}): void {
+  public trackAnonymousEvent = (event: string, properties: JsonMap = {}): void => {
     if (this.#state === States.disabled) {
       return;
     }
     this.#trackEvent(event, true, properties);
     this.#trackEvent(event, false, {});
-  }
+  };
 
-  public trackEvent(event: string, properties: JsonMap = {}): void {
+  public trackEvent = (event: string, properties: JsonMap = {}): void => {
     if (this.#state === States.disabled) {
       return;
     }
     this.#trackEvent(event, false, properties);
-  }
+  };
 
-  public reset(): void {
+  public reset = (): void => {
     this.#reset();
-  }
+  };
 
-  public createSegmentDeleteRegulation(): void {
+  public createSegmentDeleteRegulation = async (): Promise<void> => {
     this.#createSegmentDeleteRegulation();
-  }
+  };
 }
 
-// export default MetaMetrics.getInstance();
+export default MetaMetrics.getInstance();
