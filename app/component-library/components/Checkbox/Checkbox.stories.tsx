@@ -1,41 +1,32 @@
 /* eslint-disable no-console, react-native/no-inline-styles */
 
-// Third party dependencies.
-import React from 'react';
-import { boolean } from '@storybook/addon-knobs';
-import { storiesOf } from '@storybook/react-native';
-
-// External dependencies.
-import { storybookPropsGroupID } from '../../constants/storybook.constants';
-
 // Internal dependencies.
-import Checkbox from './Checkbox';
-import { CheckboxProps } from './Checkbox.types';
+import { default as CheckboxComponent } from './Checkbox';
+import { SAMPLE_CHECKBOX_PROPS } from './Checkbox.constants';
 
-export const getCheckboxStoryProps = (): CheckboxProps => {
-  const isCheckedToggle = boolean('isChecked', false, storybookPropsGroupID);
-  const isIndeterminateToggle = boolean(
-    'isIndeterminate',
-    false,
-    storybookPropsGroupID,
-  );
-  const isDisabledToggle = boolean('isDisabled', false, storybookPropsGroupID);
-  const isReadOnlyToggle = boolean('isReadOnly', false, storybookPropsGroupID);
-
-  return {
-    isChecked: isCheckedToggle,
-    isIndeterminate: isIndeterminateToggle,
-    isDisabled: isDisabledToggle,
-    isReadOnly: isReadOnlyToggle,
-    onPress: () => console.log("I'm clicked!"),
-  };
+const CheckboxMeta = {
+  title: 'Component Library / Checkbox',
+  component: CheckboxComponent,
+  argTypes: {
+    isChecked: {
+      control: { type: 'boolean' },
+    },
+    isIndeterminate: {
+      control: { type: 'boolean' },
+    },
+    isDisabled: {
+      control: { type: 'boolean' },
+    },
+    isReadOnly: {
+      control: { type: 'boolean' },
+    },
+    isDanger: {
+      control: { type: 'boolean' },
+    },
+  },
 };
+export default CheckboxMeta;
 
-const CheckboxStory = () => <Checkbox {...getCheckboxStoryProps()} />;
-
-storiesOf('Component Library / Checkbox', module).add(
-  'Checkbox',
-  CheckboxStory,
-);
-
-export default CheckboxStory;
+export const Checkbox = {
+  args: SAMPLE_CHECKBOX_PROPS,
+};

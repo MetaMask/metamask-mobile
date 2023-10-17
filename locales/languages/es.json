@@ -15,8 +15,7 @@
     "see_details": "Ver detalles",
     "suspicious_request_title": "Esta es una solicitud sospechosa",
     "trade_order_farming_description": "Si aprueba esta solicitud, podría perder sus activos.",
-    "transfer_farming_description": "Si aprueba esta solicitud, un tercero conocido por estafar, tomará todos sus activos.",
-    "unfair_trade_description": "Si aprueba esta solicitud, podría perder sus activos."
+    "transfer_farming_description": "Si aprueba esta solicitud, un tercero conocido por estafar, tomará todos sus activos."
   },
   "date": {
     "months": {
