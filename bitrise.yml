@@ -748,7 +748,6 @@ workflows:
           inputs:
             - content: |-
                 #!/usr/bin/env bash
-
                 set -e
                 set -x
                 set -o pipefail
@@ -829,6 +828,5 @@ trigger_map:
     pipeline: create_qa_builds_pipeline
   - tag: 'dev-e2e-*'
     pipeline: pr_smoke_e2e_pipeline
-  - pull_request_target_branch: 'main'
-    pull_request_source_branch: '*'
+  - push_branch: feature/label-triggered-e2e-test
     pipeline: pr_smoke_e2e_pipeline
