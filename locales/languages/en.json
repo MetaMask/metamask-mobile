@@ -1999,6 +1999,12 @@
       "total_fees": "Total Fees",
       "amount": "Amount",
       "a_block_explorer": "a block explorer"
+    },
+    "send_transaction": {
+      "sell_crypto": "Sell crypto",
+      "hold_to_confirm": "Hold to confirm",
+      "confirm": "Confirm",
+      "confirmed": "Confirmed!"
     }
   },
   "swaps": {
