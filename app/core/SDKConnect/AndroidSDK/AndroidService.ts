@@ -130,6 +130,7 @@ export default class AndroidService extends EventEmitter2 {
             // Save session to SDKConnect
             SDKConnect.getInstance().addAndroidConnection({
               id: clientInfo.clientId,
+              lastAuthorized: Date.now(),
               origin: AppConstants.MM_SDK.ANDROID_SDK,
               originatorInfo: clientInfo.originatorInfo,
               otherPublicKey: '',
@@ -335,7 +336,7 @@ export default class AndroidService extends EventEmitter2 {
       url: PROTOCOLS.METAMASK + '://' + AppConstants.MM_SDK.SDK_REMOTE_ORIGIN,
       isRemoteConn: true,
       sendMessage: this.sendMessage.bind(this),
-      getApprovedHosts: () => false,
+      getApprovedHosts: () => true,
       remoteConnHost:
         clientInfo.originatorInfo.url ?? clientInfo.originatorInfo.title,
       getRpcMethodMiddleware: ({
@@ -350,8 +351,8 @@ export default class AndroidService extends EventEmitter2 {
           getProviderState,
           isMMSDK: false,
           navigation: null, //props.navigation,
-          getApprovedHosts: () => ({}),
-          setApprovedHosts: () => ({}),
+          getApprovedHosts: () => true,
+          setApprovedHosts: () => true,
           approveHost: () => ({}),
           // Website info
           url: {
