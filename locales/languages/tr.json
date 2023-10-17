@@ -15,8 +15,7 @@
     "see_details": "Ayrıntıları gör",
     "suspicious_request_title": "Bu, şüheli bir taleptir",
     "trade_order_farming_description": "Bu talebi onaylarsanız varlıklarınızı kaybedebilirsiniz.",
-    "transfer_farming_description": "Bu talebi onaylarsanız dolandırıcılıkla bilinen üçüncü bir taraf tüm varlıklarınızı çalar.",
-    "unfair_trade_description": "Bu talebi onaylarsanız varlıklarınızı kaybedebilirsiniz."
+    "transfer_farming_description": "Bu talebi onaylarsanız dolandırıcılıkla bilinen üçüncü bir taraf tüm varlıklarınızı çalar."
   },
   "date": {
     "months": {
