@@ -1,0 +1,30 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`Accordion - Snapshot should render a proper expanded state 1`] = `
+<Fragment>
+  <AccordionHeader
+    isExpanded={true}
+    onPress={[Function]}
+    style={Object {}}
+    testID="accordion"
+    title="Sample Accordion Header Title"
+  />
+  <View
+    testID="accordion-content"
+  >
+    <View />
+  </View>
+</Fragment>
+`;
+
+exports[`Accordion - Snapshot should render default settings correctly 1`] = `
+<Fragment>
+  <AccordionHeader
+    isExpanded={false}
+    onPress={[Function]}
+    style={Object {}}
+    testID="accordion"
+    title="Sample Accordion Header Title"
+  />
+</Fragment>
+`;

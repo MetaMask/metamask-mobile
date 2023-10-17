@@ -1,6 +1,5 @@
 import React, { PureComponent } from 'react';
-import { SafeAreaView, StyleSheet } from 'react-native';
-import { colors } from '../../../../styles/common';
+import { Platform, SafeAreaView, StyleSheet } from 'react-native';
 import PropTypes from 'prop-types';
 import { strings } from '../../../../../locales/i18n';
 import { getNavigationOptionsTitle } from '../../../UI/Navbar';
@@ -9,17 +8,27 @@ import AddressList from '../../SendFlow/AddressList';
 import StyledButton from '../../../UI/StyledButton';
 import Engine from '../../../../core/Engine';
 import ActionSheet from 'react-native-actionsheet';
+import { mockTheme, ThemeContext } from '../../../../util/theme';
+import { selectChainId } from '../../../../selectors/networkController';
 
-const styles = StyleSheet.create({
-	wrapper: {
-		backgroundColor: colors.white,
-		flex: 1,
-	},
-	addContact: {
-		marginHorizontal: 24,
-		marginBottom: 16,
-	},
-});
+import generateTestId from '../../../../../wdio/utils/generateTestId';
+import {
+  CONTACT_ADD_BUTTON,
+  CONTACTS_CONTAINER_ID,
+} from '../../../../../wdio/screen-objects/testIDs/Screens/Contacts.testids';
+
+const createStyles = (colors) =>
+  StyleSheet.create({
+    wrapper: {
+      backgroundColor: colors.background.default,
+      flex: 1,
+      marginTop: 16,
+    },
+    addContact: {
+      marginHorizontal: 24,
+      marginBottom: 16,
+    },
+  });
 
 const EDIT = 'edit';
 const ADD = 'add';
@@ -28,117 +37,141 @@ const ADD = 'add';
  * View that contains app information
  */
 class Contacts extends PureComponent {
-	static navigationOptions = ({ navigation }) =>
-		getNavigationOptionsTitle(strings('app_settings.contacts_title'), navigation);
+  static propTypes = {
+    /**
+     * Map representing the address book
+     */
+    addressBook: PropTypes.object,
+    /**
+     /* navigation object required to push new views
+     */
+    navigation: PropTypes.object,
+    /**
+     * The chain ID for the current selected network
+     */
+    chainId: PropTypes.string,
+  };
 
-	static propTypes = {
-		/**
-		 * Map representing the address book
-		 */
-		addressBook: PropTypes.object,
-		/**
-		/* navigation object required to push new views
-		*/
-		navigation: PropTypes.object,
-		/**
-		 * Network id
-		 */
-		network: PropTypes.string,
-	};
+  state = {
+    reloadAddressList: false,
+  };
 
-	state = {
-		reloadAddressList: false,
-	};
+  actionSheet;
+  contactAddressToRemove;
 
-	actionSheet;
-	contactAddressToRemove;
+  updateNavBar = () => {
+    const { navigation } = this.props;
+    const colors = this.context.colors || mockTheme.colors;
+    navigation.setOptions(
+      getNavigationOptionsTitle(
+        strings('app_settings.contacts_title'),
+        navigation,
+        false,
+        colors,
+      ),
+    );
+  };
 
-	componentDidUpdate = (prevProps) => {
-		const { network } = this.props;
-		if (
-			prevProps.addressBook &&
-			this.props.addressBook &&
-			JSON.stringify(prevProps.addressBook[network]) !== JSON.stringify(this.props.addressBook[network])
-		)
-			this.updateAddressList();
-	};
+  componentDidMount = () => {
+    this.updateNavBar();
+  };
 
-	updateAddressList = () => {
-		this.setState({ reloadAddressList: true });
-		setTimeout(() => {
-			this.setState({ reloadAddressList: false });
-		}, 100);
-	};
+  componentDidUpdate = (prevProps) => {
+    this.updateNavBar();
+    const { chainId } = this.props;
+    if (
+      prevProps.addressBook &&
+      this.props.addressBook &&
+      JSON.stringify(prevProps.addressBook[chainId]) !==
+        JSON.stringify(this.props.addressBook[chainId])
+    )
+      this.updateAddressList();
+  };
 
-	onAddressLongPress = (address) => {
-		this.contactAddressToRemove = address;
-		this.actionSheet && this.actionSheet.show();
-	};
+  updateAddressList = () => {
+    this.setState({ reloadAddressList: true });
+    setTimeout(() => {
+      this.setState({ reloadAddressList: false });
+    }, 100);
+  };
 
-	deleteContact = () => {
-		this.setState({ reloadAddressList: true });
-		const { AddressBookController } = Engine.context;
-		const { network } = this.props;
-		AddressBookController.delete(network, this.contactAddressToRemove);
-		this.setState({ reloadAddressList: false });
-	};
+  onAddressLongPress = (address) => {
+    this.contactAddressToRemove = address;
+    this.actionSheet && this.actionSheet.show();
+  };
 
-	onAddressPress = (address) => {
-		this.props.navigation.navigate('ContactForm', {
-			mode: EDIT,
-			editMode: EDIT,
-			address,
-			onDelete: () => this.updateAddressList(),
-		});
-	};
+  deleteContact = () => {
+    const { AddressBookController } = Engine.context;
+    const { chainId } = this.props;
+    AddressBookController.delete(chainId, this.contactAddressToRemove);
+    this.updateAddressList();
+  };
 
-	goToAddContact = () => {
-		this.props.navigation.navigate('ContactForm', { mode: ADD });
-	};
+  onAddressPress = (address) => {
+    this.props.navigation.navigate('ContactForm', {
+      mode: EDIT,
+      editMode: EDIT,
+      address,
+      onDelete: () => this.updateAddressList(),
+    });
+  };
 
-	goToEditContact = () => {
-		this.props.navigation.navigate('ContactsEdit');
-	};
+  goToAddContact = () => {
+    this.props.navigation.navigate('ContactForm', { mode: ADD });
+  };
 
-	createActionSheetRef = (ref) => {
-		this.actionSheet = ref;
-	};
+  createActionSheetRef = (ref) => {
+    this.actionSheet = ref;
+  };
 
-	render = () => {
-		const { reloadAddressList } = this.state;
-		return (
-			<SafeAreaView style={styles.wrapper} testID={'contacts-screen'}>
-				<AddressList
-					onlyRenderAddressBook
-					reloadAddressList={reloadAddressList}
-					onAccountPress={this.onAddressPress}
-					onAccountLongPress={this.onAddressLongPress}
-				/>
-				<StyledButton
-					type={'confirm'}
-					containerStyle={styles.addContact}
-					onPress={this.goToAddContact}
-					testID={'add-contact-button'}
-				>
-					{strings('address_book.add_contact')}
-				</StyledButton>
-				<ActionSheet
-					ref={this.createActionSheetRef}
-					title={strings('address_book.delete_contact')}
-					options={[strings('address_book.delete'), strings('address_book.cancel')]}
-					cancelButtonIndex={1}
-					destructiveButtonIndex={0}
-					// eslint-disable-next-line react/jsx-no-bind
-					onPress={(index) => (index === 0 ? this.deleteContact() : null)}
-				/>
-			</SafeAreaView>
-		);
-	};
+  render = () => {
+    const { reloadAddressList } = this.state;
+    const colors = this.context.colors || mockTheme.colors;
+    const themeAppearance = this.context.themeAppearance;
+    const styles = createStyles(colors);
+
+    return (
+      <SafeAreaView
+        style={styles.wrapper}
+        {...generateTestId(Platform, CONTACTS_CONTAINER_ID)}
+      >
+        <AddressList
+          onlyRenderAddressBook
+          reloadAddressList={reloadAddressList}
+          onAccountPress={this.onAddressPress}
+          onAccountLongPress={this.onAddressLongPress}
+        />
+        <StyledButton
+          type={'confirm'}
+          containerStyle={styles.addContact}
+          onPress={this.goToAddContact}
+          testID={CONTACT_ADD_BUTTON}
+        >
+          {strings('address_book.add_contact')}
+        </StyledButton>
+        <ActionSheet
+          ref={this.createActionSheetRef}
+          title={strings('address_book.delete_contact')}
+          options={[
+            strings('address_book.delete'),
+            strings('address_book.cancel'),
+          ]}
+          cancelButtonIndex={1}
+          destructiveButtonIndex={0}
+          // eslint-disable-next-line react/jsx-no-bind
+          onPress={(index) => (index === 0 ? this.deleteContact() : null)}
+          theme={themeAppearance}
+        />
+      </SafeAreaView>
+    );
+  };
 }
 
+Contacts.contextType = ThemeContext;
+
 const mapStateToProps = (state) => ({
-	addressBook: state.engine.backgroundState.AddressBookController.addressBook,
-	network: state.engine.backgroundState.NetworkController.network,
+  addressBook: state.engine.backgroundState.AddressBookController.addressBook,
+  chainId: selectChainId(state),
 });
 
 export default connect(mapStateToProps)(Contacts);

@@ -5,13 +5,12 @@ exports[`BrowserBottomBar should render correctly 1`] = `
   elevation={11}
   style={
     Object {
-      "backgroundColor": "#f2f3f4",
-      "borderColor": "#bbc0c5",
+      "backgroundColor": "#FFFFFF",
+      "borderColor": "#D6D9DC",
       "borderTopWidth": 0.5,
       "flex": 0,
       "flexDirection": "row",
       "justifyContent": "space-between",
-      "paddingBottom": 18,
     }
   }
 >
@@ -39,7 +38,7 @@ exports[`BrowserBottomBar should render correctly 1`] = `
       style={
         Array [
           Object {
-            "color": "#6a737d",
+            "color": "#24272A",
             "height": 24,
             "textAlign": "center",
             "width": 24,
@@ -73,13 +72,13 @@ exports[`BrowserBottomBar should render correctly 1`] = `
       style={
         Array [
           Object {
-            "color": "#6a737d",
+            "color": "#24272A",
             "height": 24,
             "textAlign": "center",
             "width": 24,
           },
           Object {
-            "color": "#d6d9dc",
+            "color": "#BBC0C5",
           },
         ]
       }
@@ -107,7 +106,7 @@ exports[`BrowserBottomBar should render correctly 1`] = `
       size={24}
       style={
         Object {
-          "color": "#6a737d",
+          "color": "#24272A",
           "height": 24,
           "textAlign": "center",
           "width": 24,
@@ -131,7 +130,7 @@ exports[`BrowserBottomBar should render correctly 1`] = `
     }
     testID="show-tabs-button"
   >
-    <Connect(TabCountIcon)
+    <Component
       style={
         Object {
           "height": 24,
@@ -163,7 +162,7 @@ exports[`BrowserBottomBar should render correctly 1`] = `
       size={22}
       style={
         Object {
-          "color": "#6a737d",
+          "color": "#24272A",
           "height": 24,
           "textAlign": "center",
           "width": 24,
@@ -193,7 +192,7 @@ exports[`BrowserBottomBar should render correctly 1`] = `
       size={22}
       style={
         Object {
-          "color": "#6a737d",
+          "color": "#24272A",
           "height": 24,
           "textAlign": "center",
           "width": 24,

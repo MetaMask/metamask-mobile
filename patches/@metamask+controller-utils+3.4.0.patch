@@ -1,0 +1,185 @@
+diff --git a/node_modules/@metamask/controller-utils/dist/constants.d.ts b/node_modules/@metamask/controller-utils/dist/constants.d.ts
+index c8e8769..00e617f 100644
+--- a/node_modules/@metamask/controller-utils/dist/constants.d.ts
++++ b/node_modules/@metamask/controller-utils/dist/constants.d.ts
+@@ -1,4 +1,7 @@
+ import { NetworkType, NetworksTicker, NetworksChainId, NetworkId } from './types';
++// PATCH: Restore `MAINNET` constant, which was removed in v3.1.0
++// We need this patch until there are no remaining dependencies on <v3.1.0
++export declare const MAINNET = 'mainnet';
+ export declare const RPC = "rpc";
+ export declare const FALL_BACK_VS_CURRENCY = "ETH";
+ export declare const IPFS_DEFAULT_GATEWAY_URL = "https://cloudflare-ipfs.com/ipfs/";
+@@ -27,6 +30,13 @@ export declare const ASSET_TYPES: {
+ export declare const TESTNET_TICKER_SYMBOLS: {
+     GOERLI: string;
+     SEPOLIA: string;
++    LINEA_GOERLI: string;
++};
++// PATCH: Restore `TESTNET_NETWORK_TYPE_TO_TICKER_SYMBOL` constant, which was removed in v3.1.0
++// We need this patch until there are no remaining dependencies on <v3.1.0
++export declare const TESTNET_TICKER_SYMBOLS: {
++  GOERLI: string;
++  SEPOLIA: string;
+ };
+ /**
+  * Map of all build-in Infura networks to their network, ticker and chain IDs.
+@@ -53,6 +63,20 @@ export declare const BUILT_IN_NETWORKS: {
+             readonly blockExplorerUrl: "https://etherscan.io";
+         };
+     };
++    readonly "linea-goerli": {
++        readonly chainId: NetworksChainId["linea-goerli"];
++        readonly ticker: NetworksTicker["linea-goerli"];
++        readonly rpcPrefs: {
++            readonly blockExplorerUrl: "https://explorer.goerli.linea.build";
++        };
++    };
++    readonly "linea-mainnet": {
++        readonly chainId: NetworksChainId["linea-mainnet"];
++        readonly ticker: NetworksTicker["linea-mainnet"];
++        readonly rpcPrefs: {
++            readonly blockExplorerUrl: "https://lineascan.build";
++        };
++    };
+     readonly localhost: {
+         readonly chainId: NetworksChainId.localhost;
+         readonly blockExplorerUrl: undefined;
+diff --git a/node_modules/@metamask/controller-utils/dist/constants.js b/node_modules/@metamask/controller-utils/dist/constants.js
+index 7bef0e7..92c4143 100644
+--- a/node_modules/@metamask/controller-utils/dist/constants.js
++++ b/node_modules/@metamask/controller-utils/dist/constants.js
+@@ -2,6 +2,9 @@
+ Object.defineProperty(exports, "__esModule", { value: true });
+ exports.NETWORK_ID_TO_ETHERS_NETWORK_NAME_MAP = exports.ApprovalType = exports.ORIGIN_METAMASK = exports.OPENSEA_TEST_API_URL = exports.OPENSEA_API_URL = exports.OPENSEA_PROXY_URL = exports.BUILT_IN_NETWORKS = exports.TESTNET_TICKER_SYMBOLS = exports.ASSET_TYPES = exports.GWEI = exports.ERC1155_TOKEN_RECEIVER_INTERFACE_ID = exports.ERC1155_METADATA_URI_INTERFACE_ID = exports.ERC1155_INTERFACE_ID = exports.ERC721_ENUMERABLE_INTERFACE_ID = exports.ERC721_METADATA_INTERFACE_ID = exports.ERC721_INTERFACE_ID = exports.ERC20 = exports.ERC1155 = exports.ERC721 = exports.MAX_SAFE_CHAIN_ID = exports.GANACHE_CHAIN_ID = exports.IPFS_DEFAULT_GATEWAY_URL = exports.FALL_BACK_VS_CURRENCY = exports.RPC = void 0;
+ const types_1 = require("./types");
++// PATCH: Restore `MAINNET` constant, which was removed in v3.1.0
++// We need this patch until there are no remaining dependencies on <v3.1.0
++exports.MAINNET = 'mainnet';
+ exports.RPC = 'rpc';
+ exports.FALL_BACK_VS_CURRENCY = 'ETH';
+ exports.IPFS_DEFAULT_GATEWAY_URL = 'https://cloudflare-ipfs.com/ipfs/';
+@@ -36,6 +39,16 @@ exports.ASSET_TYPES = {
+ exports.TESTNET_TICKER_SYMBOLS = {
+     GOERLI: 'GoerliETH',
+     SEPOLIA: 'SepoliaETH',
++    LINEA_GOERLI: 'LineaETH'
++};
++// PATCH: Restore `TESTNET_NETWORK_TYPE_TO_TICKER_SYMBOL` constant, which was removed in v3.1.0
++// We need this patch until there are no remaining dependencies on <v3.1.0
++exports.TESTNET_NETWORK_TYPE_TO_TICKER_SYMBOL = {
++  goerli: 'GoerliETH',
++  sepolia: 'SepoliaETH',
++  mainnet: '',
++  rpc: '',
++  localhost: '',
+ };
+ /**
+  * Map of all build-in Infura networks to their network, ticker and chain IDs.
+@@ -62,6 +75,20 @@ exports.BUILT_IN_NETWORKS = {
+             blockExplorerUrl: 'https://etherscan.io',
+         },
+     },
++    [types_1.NetworkType["linea-goerli"]]: {
++        chainId: types_1.NetworksChainId["linea-goerli"],
++        ticker: types_1.NetworksTicker["linea-goerli"],
++        rpcPrefs: {
++            blockExplorerUrl: 'https://explorer.goerli.linea.build',
++        },
++    },
++    [types_1.NetworkType["linea-mainnet"]]: {
++        chainId: types_1.NetworksChainId["linea-mainnet"],
++        ticker: types_1.NetworksTicker["linea-mainnet"],
++        rpcPrefs: {
++            blockExplorerUrl: 'https://lineascan.build',
++        },
++    },
+     [types_1.NetworkType.localhost]: {
+         chainId: types_1.NetworksChainId.localhost,
+         blockExplorerUrl: undefined,
+@@ -107,5 +134,7 @@ exports.NETWORK_ID_TO_ETHERS_NETWORK_NAME_MAP = {
+     [types_1.NetworkId.goerli]: types_1.NetworkType.goerli,
+     [types_1.NetworkId.sepolia]: types_1.NetworkType.sepolia,
+     [types_1.NetworkId.mainnet]: types_1.NetworkType.mainnet,
++    [types_1.NetworkId["linea-goerli"]]: types_1.NetworkType["linea-goerli"],
++    [types_1.NetworkId["linea-mainnet"]]: types_1.NetworkType["linea-mainnet"],
+ };
+ //# sourceMappingURL=constants.js.map
+diff --git a/node_modules/@metamask/controller-utils/dist/types.d.ts b/node_modules/@metamask/controller-utils/dist/types.d.ts
+index 014dbb9..e7f7934 100644
+--- a/node_modules/@metamask/controller-utils/dist/types.d.ts
++++ b/node_modules/@metamask/controller-utils/dist/types.d.ts
+@@ -6,6 +6,8 @@ export declare enum NetworkType {
+     mainnet = "mainnet",
+     goerli = "goerli",
+     sepolia = "sepolia",
++    "linea-goerli" = 'linea-goerli',
++    "linea-mainnet" = 'linea-mainnet',
+     rpc = "rpc"
+ }
+ /**
+@@ -19,18 +21,24 @@ export declare enum NetworksChainId {
+     mainnet = "1",
+     goerli = "5",
+     sepolia = "11155111",
++    "linea-goerli" = "59140",
++    "linea-mainnet" = "59144",
+     localhost = "",
+     rpc = ""
+ }
+ export declare enum NetworkId {
+     mainnet = "1",
+     goerli = "5",
+-    sepolia = "11155111"
++    sepolia = "11155111",
++    "linea-goerli" = "59140",
++    "linea-mainnet" = "59144"
+ }
+ export declare enum NetworksTicker {
+     mainnet = "ETH",
+     goerli = "GoerliETH",
+     sepolia = "SepoliaETH",
++    "linea-goerli" = 'LineaETH',
++    "linea-mainnet" = 'ETH',
+     localhost = "",
+     rpc = ""
+ }
+diff --git a/node_modules/@metamask/controller-utils/dist/types.js b/node_modules/@metamask/controller-utils/dist/types.js
+index 398c77b..accac2c 100644
+--- a/node_modules/@metamask/controller-utils/dist/types.js
++++ b/node_modules/@metamask/controller-utils/dist/types.js
+@@ -10,6 +10,8 @@ var NetworkType;
+     NetworkType["mainnet"] = "mainnet";
+     NetworkType["goerli"] = "goerli";
+     NetworkType["sepolia"] = "sepolia";
++    NetworkType["linea-goerli"] = "linea-goerli";
++    NetworkType["linea-mainnet"] = "linea-mainnet";
+     NetworkType["rpc"] = "rpc";
+ })(NetworkType = exports.NetworkType || (exports.NetworkType = {}));
+ /**
+@@ -27,6 +29,8 @@ var NetworksChainId;
+     NetworksChainId["mainnet"] = "1";
+     NetworksChainId["goerli"] = "5";
+     NetworksChainId["sepolia"] = "11155111";
++    NetworksChainId["linea-goerli"] = "59140";
++    NetworksChainId["linea-mainnet"] = "59144";
+     NetworksChainId["localhost"] = "";
+     NetworksChainId["rpc"] = "";
+ })(NetworksChainId = exports.NetworksChainId || (exports.NetworksChainId = {}));
+@@ -35,12 +39,16 @@ var NetworkId;
+     NetworkId["mainnet"] = "1";
+     NetworkId["goerli"] = "5";
+     NetworkId["sepolia"] = "11155111";
++    NetworkId["linea-goerli"] = "59140";
++    NetworkId["linea-mainnet"] = "59144";
+ })(NetworkId = exports.NetworkId || (exports.NetworkId = {}));
+ var NetworksTicker;
+ (function (NetworksTicker) {
+     NetworksTicker["mainnet"] = "ETH";
+     NetworksTicker["goerli"] = "GoerliETH";
+     NetworksTicker["sepolia"] = "SepoliaETH";
++    NetworksTicker["linea-goerli"] = "LineaETH";
++    NetworksTicker["linea-mainnet"] = "ETH";
+     NetworksTicker["localhost"] = "";
+     NetworksTicker["rpc"] = "";
+ })(NetworksTicker = exports.NetworksTicker || (exports.NetworksTicker = {}));

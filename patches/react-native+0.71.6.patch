@@ -1,0 +1,130 @@
+diff --git a/node_modules/react-native/ReactAndroid/build.gradle b/node_modules/react-native/ReactAndroid/build.gradle
+index 155cb59..053550c 100644
+--- a/node_modules/react-native/ReactAndroid/build.gradle
++++ b/node_modules/react-native/ReactAndroid/build.gradle
+@@ -420,12 +420,9 @@ android {
+ 
+     // Used to override the NDK path/version on internal CI or by allowing
+     // users to customize the NDK path/version from their root project (e.g. for M1 support)
+-    if (rootProject.hasProperty("ndkPath")) {
+-        ndkPath rootProject.ext.ndkPath
+-    }
+-    if (rootProject.hasProperty("ndkVersion")) {
+-        ndkVersion rootProject.ext.ndkVersion
+-    }
++
++    // Added patch to apply ndk Path from MetaMask app gradle.build this is required for M1 Bitrise builds to work
++    ndkPath = project.getProperties().get("ndkPath")
+ 
+     defaultConfig {
+         minSdkVersion(21)
+diff --git a/node_modules/react-native/ReactAndroid/hermes-engine/build.gradle b/node_modules/react-native/ReactAndroid/hermes-engine/build.gradle
+index c714f87..dca2750 100644
+--- a/node_modules/react-native/ReactAndroid/hermes-engine/build.gradle
++++ b/node_modules/react-native/ReactAndroid/hermes-engine/build.gradle
+@@ -43,11 +43,11 @@ def overrideHermesDir = System.getenv("REACT_NATIVE_OVERRIDE_HERMES_DIR") != nul
+ def hermesDir = System.getenv("REACT_NATIVE_OVERRIDE_HERMES_DIR") ?: new File(reactNativeRootDir, "sdks/hermes")
+ def hermesBuildDir = new File("$buildDir/hermes")
+ 
+-def hermesVersion = "main"
+-def hermesVersionFile = new File(reactNativeRootDir, "sdks/.hermesversion")
+-if (hermesVersionFile.exists()) {
+-    hermesVersion = hermesVersionFile.text
+-}
++def hermesVersion = "ae2ac688c3faf868d2360a10a7791226ed5702fb"
++// def hermesVersionFile = new File(reactNativeRootDir, "sdks/.hermesversion")
++// if (hermesVersionFile.exists()) {
++//     hermesVersion = hermesVersionFile.text
++// }
+ def ndkBuildJobs = Runtime.runtime.availableProcessors().toString()
+ def prefabHeadersDir = new File("$buildDir/prefab-headers")
+ 
+@@ -59,7 +59,7 @@ def skipPrefabPublishing = System.getenv("REACT_NATIVE_HERMES_SKIP_PREFAB") != n
+ def jsiDir = new File(reactNativeRootDir, "ReactCommon/jsi")
+ 
+ task downloadHermes(type: Download) {
+-    src("https://github.com/facebook/hermes/tarball/${hermesVersion}")
++    src("https://github.com/MetaMask/hermes/tarball/${hermesVersion}")
+     onlyIfNewer(true)
+     overwrite(false)
+     dest(new File(downloadsDir, "hermes.tar.gz"))
+@@ -120,12 +120,9 @@ android {
+ 
+     // Used to override the NDK path/version on internal CI or by allowing
+     // users to customize the NDK path/version from their root project (e.g. for M1 support)
+-    if (rootProject.hasProperty("ndkPath")) {
+-        ndkPath rootProject.ext.ndkPath
+-    }
+-    if (rootProject.hasProperty("ndkVersion")) {
+-        ndkVersion rootProject.ext.ndkVersion
+-    }
++
++    // Added patch to apply ndk Path from MetaMask app gradle.build this is required for M1 Bitrise builds to work
++    ndkPath = project.getProperties().get("ndkPath")
+ 
+     defaultConfig {
+         minSdkVersion 21
+diff --git a/node_modules/react-native/ReactAndroid/src/main/java/com/facebook/react/views/textinput/ReactEditText.java b/node_modules/react-native/ReactAndroid/src/main/java/com/facebook/react/views/textinput/ReactEditText.java
+index c150abc..a446111 100644
+--- a/node_modules/react-native/ReactAndroid/src/main/java/com/facebook/react/views/textinput/ReactEditText.java
++++ b/node_modules/react-native/ReactAndroid/src/main/java/com/facebook/react/views/textinput/ReactEditText.java
+@@ -31,6 +31,7 @@ import android.view.KeyEvent;
+ import android.view.MotionEvent;
+ import android.view.View;
+ import android.view.accessibility.AccessibilityNodeInfo;
++import android.view.inputmethod.BaseInputConnection;
+ import android.view.inputmethod.EditorInfo;
+ import android.view.inputmethod.InputConnection;
+ import android.view.inputmethod.InputMethodManager;
+@@ -89,6 +90,16 @@ public class ReactEditText extends AppCompatEditText
+   /** A count of events sent to JS or C++. */
+   protected int mNativeEventCount;
+ 
++  /**
++   * Taken from EditorInfo.IME_FLAG_NO_PERSONALIZED_LEARNING We can't use that
++   * value directly as it was only added on Oreo, but we can apply the value
++   * anyway.
++   */
++  private static final int IME_FLAG_NO_PERSONALIZED_LEARNING = 0x1000000;
++  /** Samsung Manufacturer Name */
++  private static final String SAMSUNG_MANUFACTURER_NAME = "samsung";
++  /** Samsung Device Check */
++  private static final Boolean IS_SAMSUNG_DEVICE = Build.MANUFACTURER.equals(SAMSUNG_MANUFACTURER_NAME);
+   private static final int UNSET = -1;
+ 
+   private @Nullable ArrayList<TextWatcher> mListeners;
+@@ -248,16 +259,24 @@ public class ReactEditText extends AppCompatEditText
+   @Override
+   public InputConnection onCreateInputConnection(EditorInfo outAttrs) {
+     ReactContext reactContext = getReactContext(this);
+-    InputConnection inputConnection = super.onCreateInputConnection(outAttrs);
+-    if (inputConnection != null && mOnKeyPress) {
+-      inputConnection =
+-          new ReactEditTextInputConnectionWrapper(
+-              inputConnection, reactContext, this, mEventDispatcher);
+-    }
+-
+-    if (isMultiline() && (shouldBlurOnReturn() || shouldSubmitOnReturn())) {
+-      // Remove IME_FLAG_NO_ENTER_ACTION to keep the original IME_OPTION
+-      outAttrs.imeOptions &= ~EditorInfo.IME_FLAG_NO_ENTER_ACTION;
++    InputConnection inputConnection;
++    // Don't apply learning flag on Samsung devices. Samsung Keyboards do not
++    // support incognito mode.
++    if (IS_SAMSUNG_DEVICE) {
++      // Default React-Native implementation
++      inputConnection = super.onCreateInputConnection(outAttrs);
++      if (isMultiline() && (shouldBlurOnReturn() || shouldSubmitOnReturn())) {
++        // Remove IME_FLAG_NO_ENTER_ACTION to keep the original IME_OPTION
++        outAttrs.imeOptions &= ~EditorInfo.IME_FLAG_NO_ENTER_ACTION;
++      }
++    } else {
++      inputConnection = new BaseInputConnection(this, false);
++      if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
++        outAttrs.imeOptions = EditorInfo.IME_FLAG_NO_PERSONALIZED_LEARNING;
++      } else {
++        // Cover OS versions below Oreo
++        outAttrs.imeOptions = IME_FLAG_NO_PERSONALIZED_LEARNING;
++      }
+     }
+     return inputConnection;
+   }

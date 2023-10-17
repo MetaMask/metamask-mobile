@@ -1,0 +1,105 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`AccordionHeader - Snapshot should render a rotated down Arrow if isExpanded is true 1`] = `
+<TouchableOpacity
+  activeOpacity={0.5}
+  onPress={[Function]}
+  style={
+    Object {
+      "alignItems": "center",
+      "flexDirection": "row",
+      "height": 24,
+      "justifyContent": "center",
+    }
+  }
+  testID="accordionheader"
+>
+  <Text
+    style={
+      Object {
+        "color": "#0376C9",
+      }
+    }
+    testID="accordionheader-title"
+    variant="sBodyMD"
+  >
+    Sample Accordion Header Title
+  </Text>
+  <View
+    style={
+      Array [
+        Object {
+          "marginLeft": 4,
+        },
+        Object {
+          "transform": Array [
+            Object {
+              "rotate": "180deg",
+            },
+          ],
+        },
+      ]
+    }
+    testID="accordionheader-arrow-icon-animation"
+  >
+    <Icon
+      color="#0376C9"
+      name="ArrowUp"
+      size="16"
+      testID="accordionheader-arrow-icon"
+    />
+  </View>
+</TouchableOpacity>
+`;
+
+exports[`AccordionHeader - Snapshot should render default settings correctly 1`] = `
+<TouchableOpacity
+  activeOpacity={0.5}
+  onPress={[Function]}
+  style={
+    Object {
+      "alignItems": "center",
+      "flexDirection": "row",
+      "height": 24,
+      "justifyContent": "center",
+    }
+  }
+  testID="accordionheader"
+>
+  <Text
+    style={
+      Object {
+        "color": "#0376C9",
+      }
+    }
+    testID="accordionheader-title"
+    variant="sBodyMD"
+  >
+    Sample Accordion Header Title
+  </Text>
+  <View
+    style={
+      Array [
+        Object {
+          "marginLeft": 4,
+        },
+        Object {
+          "transform": Array [
+            Object {
+              "rotate": "0deg",
+            },
+          ],
+        },
+      ]
+    }
+    testID="accordionheader-arrow-icon-animation"
+  >
+    <Icon
+      color="#0376C9"
+      name="ArrowUp"
+      size="16"
+      testID="accordionheader-arrow-icon"
+    />
+  </View>
+</TouchableOpacity>
+`;

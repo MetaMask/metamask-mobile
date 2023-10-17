@@ -7,23 +7,24 @@ exports[`SliderButton should render correctly 1`] = `
     Array [
       Object {
         "elevation": 0,
-        "shadowColor": "#75C4FD",
+        "shadowColor": "#0376C933",
         "shadowOffset": Object {
-          "height": 3,
+          "height": 2,
           "width": 0,
         },
-        "shadowOpacity": 0.5,
+        "shadowOpacity": 1,
         "shadowRadius": 8,
       },
       undefined,
     ]
   }
+  testID="swipe-to-swap-button"
 >
   <View
     style={
       Object {
         "alignItems": "center",
-        "backgroundColor": "#0074C8",
+        "backgroundColor": "#0260A4",
         "borderRadius": 60,
         "height": 60,
         "justifyContent": "center",
@@ -37,7 +38,9 @@ exports[`SliderButton should render correctly 1`] = `
       resizeMode="stretch"
       source={
         Object {
-          "testUri": "../../../app/components/UI/SliderButton/assets/slider_button_gradient.png",
+          "default": Object {
+            "uri": "MockImage",
+          },
         }
       }
       style={
@@ -55,7 +58,9 @@ exports[`SliderButton should render correctly 1`] = `
       resizeMode="contain"
       source={
         Object {
-          "testUri": "../../../app/components/UI/SliderButton/assets/slider_button_shine.png",
+          "default": Object {
+            "uri": "MockImage",
+          },
         }
       }
       style={
@@ -86,7 +91,7 @@ exports[`SliderButton should render correctly 1`] = `
       <Text
         style={
           Object {
-            "color": "#FFFFFF",
+            "color": "#FCFCFC",
             "fontFamily": "EuclidCircularB-Regular",
             "fontSize": 16,
             "fontWeight": "400",
@@ -132,7 +137,7 @@ exports[`SliderButton should render correctly 1`] = `
       <Text
         style={
           Object {
-            "color": "#FFFFFF",
+            "color": "#FCFCFC",
             "fontFamily": "EuclidCircularB-Regular",
             "fontSize": 16,
             "fontWeight": "400",
@@ -159,7 +164,7 @@ exports[`SliderButton should render correctly 1`] = `
     style={
       Array [
         Object {
-          "backgroundColor": "#FFFFFF",
+          "backgroundColor": "#FCFCFC",
           "borderColor": "#0260A4",
           "borderRadius": 60,
           "borderWidth": 9.6,

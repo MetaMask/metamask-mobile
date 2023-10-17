@@ -38,28 +38,14 @@ exports[`EditGasFeeLegacy should render correctly 1`] = `
             <TouchableOpacity>
               <Icon
                 allowFontScaling={false}
-                color="#24292E"
+                color="#24272A"
                 name="ios-arrow-back"
                 size={24}
               />
             </TouchableOpacity>
             <Text
               black={true}
-              blue={false}
               bold={true}
-              centered={false}
-              disclaimer={false}
-              green={false}
-              link={false}
-              modal={false}
-              primary={false}
-              red={false}
-              reset={false}
-              right={false}
-              small={false}
-              strikethrough={false}
-              underline={false}
-              upper={false}
             >
               Edit gas fee
             </Text>
@@ -96,52 +82,23 @@ exports[`EditGasFeeLegacy should render correctly 1`] = `
               >
                 <Text
                   black={true}
-                  blue={false}
-                  bold={false}
-                  centered={false}
-                  disclaimer={false}
-                  green={false}
-                  link={false}
-                  modal={false}
-                  primary={false}
-                  red={false}
-                  reset={false}
                   right={true}
-                  small={false}
-                  strikethrough={false}
                   style={
                     Object {
                       "fontSize": 48,
                     }
                   }
-                  underline={false}
-                  upper={false}
                 >
                   ~
                 </Text>
               </View>
               <Text
                 black={true}
-                blue={false}
-                bold={false}
-                centered={false}
-                disclaimer={false}
-                green={false}
-                link={false}
-                modal={false}
-                primary={false}
-                red={false}
-                reset={false}
-                right={false}
-                small={false}
-                strikethrough={false}
                 style={
                   Object {
                     "fontSize": 48,
                   }
                 }
-                underline={false}
-                upper={false}
               />
               <View
                 style={
@@ -154,39 +111,10 @@ exports[`EditGasFeeLegacy should render correctly 1`] = `
             <Text
               big={true}
               black={true}
-              blue={false}
-              bold={false}
-              centered={false}
-              disclaimer={false}
-              green={false}
-              link={false}
-              modal={false}
-              primary={false}
-              red={false}
-              reset={false}
-              right={false}
-              small={false}
-              strikethrough={false}
-              underline={false}
-              upper={false}
             >
               <Text
                 black={true}
-                blue={false}
                 bold={true}
-                centered={false}
-                disclaimer={false}
-                green={false}
-                link={false}
-                modal={false}
-                primary={false}
-                red={false}
-                reset={false}
-                right={false}
-                small={false}
-                strikethrough={false}
-                underline={false}
-                upper={false}
               />
             </Text>
           </View>
@@ -225,22 +153,8 @@ exports[`EditGasFeeLegacy should render correctly 1`] = `
                     >
                       <Text
                         black={true}
-                        blue={false}
                         bold={true}
-                        centered={false}
-                        disclaimer={false}
-                        green={false}
-                        link={false}
-                        modal={false}
                         noMargin={true}
-                        primary={false}
-                        red={false}
-                        reset={false}
-                        right={false}
-                        small={false}
-                        strikethrough={false}
-                        underline={false}
-                        upper={false}
                       >
                         Gas limit
                          
@@ -262,7 +176,7 @@ exports[`EditGasFeeLegacy should render correctly 1`] = `
                           size={14}
                           style={
                             Object {
-                              "color": "#bbc0c5",
+                              "color": "#BBC0C5",
                             }
                           }
                         />
@@ -295,22 +209,8 @@ exports[`EditGasFeeLegacy should render correctly 1`] = `
                     >
                       <Text
                         black={true}
-                        blue={false}
                         bold={true}
-                        centered={false}
-                        disclaimer={false}
-                        green={false}
-                        link={false}
-                        modal={false}
                         noMargin={true}
-                        primary={false}
-                        red={false}
-                        reset={false}
-                        right={false}
-                        small={false}
-                        strikethrough={false}
-                        underline={false}
-                        upper={false}
                       >
                         Gas price
                          
@@ -332,14 +232,14 @@ exports[`EditGasFeeLegacy should render correctly 1`] = `
                           size={14}
                           style={
                             Object {
-                              "color": "#bbc0c5",
+                              "color": "#BBC0C5",
                             }
                           }
                         />
                       </TouchableOpacity>
                     </View>
                   }
-                  min={"0.000001"}
+                  min={"0"}
                   name="Gas price"
                   onChangeValue={[Function]}
                   unit="GWEI"
@@ -371,24 +271,8 @@ exports[`EditGasFeeLegacy should render correctly 1`] = `
           body={
             <View>
               <Text
-                black={false}
-                blue={false}
-                bold={false}
-                centered={false}
-                disclaimer={false}
-                green={false}
                 grey={true}
                 infoModal={true}
-                link={false}
-                modal={false}
-                primary={false}
-                red={false}
-                reset={false}
-                right={false}
-                small={false}
-                strikethrough={false}
-                underline={false}
-                upper={false}
               />
             </View>
           }

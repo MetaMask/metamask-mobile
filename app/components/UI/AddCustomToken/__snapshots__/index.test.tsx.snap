@@ -25,32 +25,37 @@ exports[`AddCustomToken should render correctly 1`] = `
     testID="add-asset-cancel-button"
   >
     <View>
-      <WarningMessage
+      <Alert
+        renderIcon={[Function]}
         style={
           Object {
             "marginHorizontal": 20,
             "marginTop": 20,
-            "paddingRight": 0,
           }
         }
-        warningMessage={
-          <React.Fragment>
-            Anyone can create a token, including creating fake versions of existing tokens. Learn more about 
-            <Text
-              onPress={[Function]}
-              style={
-                Object {
-                  "color": "#037dd6",
-                }
-              }
-              suppressHighlighting={true}
-              testID="add-asset-warning-message"
-            >
-              scams and security risks.
-            </Text>
-          </React.Fragment>
-        }
-      />
+        type="Info"
+      >
+        <Text
+          style={
+            Object {
+              "color": "#24272A",
+            }
+          }
+        >
+          Token detection is not available on this network yet. Please import token manually and make sure you trust it. Learn about 
+        </Text>
+        <Text
+          onPress={[Function]}
+          style={
+            Object {
+              "color": "#0376C9",
+            }
+          }
+          suppressHighlighting={true}
+        >
+          token scams and security risks.
+        </Text>
+      </Alert>
       <View
         style={
           Object {
@@ -61,6 +66,7 @@ exports[`AddCustomToken should render correctly 1`] = `
         <Text
           style={
             Object {
+              "color": "#24272A",
               "fontFamily": "EuclidCircularB-Regular",
               "fontWeight": "400",
             }
@@ -69,17 +75,19 @@ exports[`AddCustomToken should render correctly 1`] = `
           Token Address
         </Text>
         <TextInput
+          keyboardAppearance="light"
           onBlur={[Function]}
           onChangeText={[Function]}
           onSubmitEditing={[Function]}
           placeholder="0x..."
-          placeholderTextColor="#d6d9dc"
+          placeholderTextColor="#BBC0C5"
           returnKeyType="next"
           style={
             Object {
-              "borderColor": "#d6d9dc",
+              "borderColor": "#BBC0C5",
               "borderRadius": 4,
               "borderWidth": 1,
+              "color": "#24272A",
               "fontFamily": "EuclidCircularB-Regular",
               "fontWeight": "400",
               "padding": 16,
@@ -91,7 +99,7 @@ exports[`AddCustomToken should render correctly 1`] = `
         <Text
           style={
             Object {
-              "color": "#D73A49",
+              "color": "#D73847",
               "fontFamily": "EuclidCircularB-Regular",
               "fontWeight": "400",
               "marginTop": 15,
@@ -110,6 +118,7 @@ exports[`AddCustomToken should render correctly 1`] = `
         <Text
           style={
             Object {
+              "color": "#24272A",
               "fontFamily": "EuclidCircularB-Regular",
               "fontWeight": "400",
             }
@@ -118,17 +127,19 @@ exports[`AddCustomToken should render correctly 1`] = `
           Token Symbol
         </Text>
         <TextInput
+          keyboardAppearance="light"
           onBlur={[Function]}
           onChangeText={[Function]}
           onSubmitEditing={[Function]}
           placeholder="GNO"
-          placeholderTextColor="#d6d9dc"
+          placeholderTextColor="#BBC0C5"
           returnKeyType="next"
           style={
             Object {
-              "borderColor": "#d6d9dc",
+              "borderColor": "#BBC0C5",
               "borderRadius": 4,
               "borderWidth": 1,
+              "color": "#24272A",
               "fontFamily": "EuclidCircularB-Regular",
               "fontWeight": "400",
               "padding": 16,
@@ -140,7 +151,7 @@ exports[`AddCustomToken should render correctly 1`] = `
         <Text
           style={
             Object {
-              "color": "#D73A49",
+              "color": "#D73847",
               "fontFamily": "EuclidCircularB-Regular",
               "fontWeight": "400",
               "marginTop": 15,
@@ -158,27 +169,30 @@ exports[`AddCustomToken should render correctly 1`] = `
         <Text
           style={
             Object {
+              "color": "#24272A",
               "fontFamily": "EuclidCircularB-Regular",
               "fontWeight": "400",
             }
           }
         >
-          Token of Precision
+          Token Decimal
         </Text>
         <TextInput
+          keyboardAppearance="light"
           keyboardType="numeric"
           maxLength={2}
           onBlur={[Function]}
           onChangeText={[Function]}
           onSubmitEditing={[Function]}
           placeholder="18"
-          placeholderTextColor="#d6d9dc"
+          placeholderTextColor="#BBC0C5"
           returnKeyType="done"
           style={
             Object {
-              "borderColor": "#d6d9dc",
+              "borderColor": "#BBC0C5",
               "borderRadius": 4,
               "borderWidth": 1,
+              "color": "#24272A",
               "fontFamily": "EuclidCircularB-Regular",
               "fontWeight": "400",
               "padding": 16,
@@ -190,7 +204,7 @@ exports[`AddCustomToken should render correctly 1`] = `
         <Text
           style={
             Object {
-              "color": "#D73A49",
+              "color": "#D73847",
               "fontFamily": "EuclidCircularB-Regular",
               "fontWeight": "400",
               "marginTop": 15,

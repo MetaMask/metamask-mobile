@@ -5,7 +5,7 @@ exports[`WebsiteIcon should render correctly 1`] = `
   <FadeIn
     placeholderStyle={
       Object {
-        "backgroundColor": "#FFFFFF",
+        "backgroundColor": "#F2F4F6",
       }
     }
     useNativeDriver={true}
@@ -14,7 +14,7 @@ exports[`WebsiteIcon should render correctly 1`] = `
       onError={[Function]}
       source={
         Object {
-          "uri": "https://api.faviconkit.com/url.com/64",
+          "uri": "https://api.faviconkit.com/url.com/50",
         }
       }
     />

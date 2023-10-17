@@ -2,9 +2,10 @@
 
 exports[`RemoteImage should render ipfs sources 1`] = `
 <Image
+  onError={[Function]}
   source={
     Object {
-      "uri": "https://cloudflare-ipfs.com/ipfs/QmeE94srcYV9WwJb1p42eM4zncdLUai2N9zmMxxukoEQ23",
+      "uri": "ipfs://QmeE94srcYV9WwJb1p42eM4zncdLUai2N9zmMxxukoEQ23",
     }
   }
 />
@@ -12,6 +13,7 @@ exports[`RemoteImage should render ipfs sources 1`] = `
 
 exports[`RemoteImage should render static sources 1`] = `
 <Image
+  onError={[Function]}
   source={
     Object {
       "uri": "https://s3.amazonaws.com/airswap-token-images/OXT.png",
@@ -25,10 +27,13 @@ exports[`RemoteImage should render svg correctly 1`] = `
   componentLabel="RemoteImage-SVG"
 >
   <View
-    style={Object {}}
+    style={
+      Object {
+        "overflow": "hidden",
+      }
+    }
   >
     <SvgUri
-      fill="black"
       height="100%"
       source={
         Object {

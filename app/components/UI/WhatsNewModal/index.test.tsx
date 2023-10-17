@@ -4,12 +4,12 @@ import WhatsNewModal from './';
 import { NavigationContainer } from '@react-navigation/native';
 
 describe('WhatsNewModal', () => {
-	it('should render correctly', () => {
-		const wrapper = shallow(
-			<NavigationContainer>
-				<WhatsNewModal />
-			</NavigationContainer>
-		);
-		expect(wrapper).toMatchSnapshot();
-	});
+  it('should render correctly', () => {
+    const wrapper = shallow(
+      <NavigationContainer>
+        <WhatsNewModal />
+      </NavigationContainer>,
+    );
+    expect(wrapper).toMatchSnapshot();
+  });
 });

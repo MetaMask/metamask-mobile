@@ -21,7 +21,9 @@ exports[`FoxScreen should render correctly 1`] = `
     resizeMethod="auto"
     source={
       Object {
-        "testUri": "../../../app/images/fox.png",
+        "default": Object {
+          "uri": "MockImage",
+        },
       }
     }
     style={

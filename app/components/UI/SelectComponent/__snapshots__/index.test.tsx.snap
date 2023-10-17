@@ -30,7 +30,7 @@ exports[`SelectComponent should render correctly 1`] = `
           style={
             Object {
               "alignSelf": "flex-start",
-              "color": "#000000",
+              "color": "#24272A",
               "flex": 1,
               "fontFamily": "EuclidCircularB-Regular",
               "fontSize": 14,
@@ -43,7 +43,7 @@ exports[`SelectComponent should render correctly 1`] = `
         />
         <Icon
           allowFontScaling={false}
-          color="#000000"
+          color="#24272A"
           name="arrow-drop-down"
           size={24}
           style={
@@ -64,8 +64,8 @@ exports[`SelectComponent should render correctly 1`] = `
       animationOut="slideOutDown"
       animationOutTiming={300}
       avoidKeyboard={false}
-      backdropColor="black"
-      backdropOpacity={0.7}
+      backdropColor="#00000099"
+      backdropOpacity={1}
       backdropTransitionInTiming={300}
       backdropTransitionOutTiming={300}
       coverScreen={true}
@@ -117,7 +117,7 @@ exports[`SelectComponent should render correctly 1`] = `
         <View
           style={
             Object {
-              "borderBottomColor": "#d6d9dc",
+              "borderBottomColor": "#D6D9DC",
               "borderBottomWidth": 1,
               "height": 50,
               "paddingTop": 5,
@@ -128,6 +128,7 @@ exports[`SelectComponent should render correctly 1`] = `
           <Text
             style={
               Object {
+                "color": "#24272A",
                 "flex": 1,
                 "fontFamily": "EuclidCircularB-Bold",
                 "fontSize": 17,
@@ -160,10 +161,12 @@ exports[`SelectComponent should render correctly 1`] = `
               onPress={[Function]}
               style={
                 Object {
+                  "alignItems": "center",
                   "flexDirection": "row",
                   "height": 35,
+                  "justifyContent": "center",
                   "paddingHorizontal": 15,
-                  "paddingVertical": 4,
+                  "paddingVertical": 5,
                 }
               }
             >
@@ -171,11 +174,11 @@ exports[`SelectComponent should render correctly 1`] = `
                 numberOfLines={1}
                 style={
                   Object {
+                    "color": "#24272A",
                     "flex": 1,
                     "fontFamily": "EuclidCircularB-Regular",
                     "fontSize": 14,
                     "fontWeight": "400",
-                    "paddingVertical": 10,
                   }
                 }
               >
@@ -187,10 +190,12 @@ exports[`SelectComponent should render correctly 1`] = `
               onPress={[Function]}
               style={
                 Object {
+                  "alignItems": "center",
                   "flexDirection": "row",
                   "height": 35,
+                  "justifyContent": "center",
                   "paddingHorizontal": 15,
-                  "paddingVertical": 4,
+                  "paddingVertical": 5,
                 }
               }
             >
@@ -198,11 +203,11 @@ exports[`SelectComponent should render correctly 1`] = `
                 numberOfLines={1}
                 style={
                   Object {
+                    "color": "#24272A",
                     "flex": 1,
                     "fontFamily": "EuclidCircularB-Regular",
                     "fontSize": 14,
                     "fontWeight": "400",
-                    "paddingVertical": 10,
                   }
                 }
               >

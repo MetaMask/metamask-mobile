@@ -9,7 +9,7 @@ import AppConstants from '../core/AppConstants';
  * @returns Payment request universal link / app link
  */
 export function generateUniversalLinkAddress(address) {
-	return `https://${AppConstants.MM_UNIVERSAL_LINK_HOST}/send/${address}`;
+  return `https://${AppConstants.MM_UNIVERSAL_LINK_HOST}/send/${address}`;
 }
 
 /**
@@ -20,8 +20,8 @@ export function generateUniversalLinkAddress(address) {
  * @returns Payment request universal link / app link
  */
 export function generateUniversalLinkRequest(ethereum_link) {
-	const universal_link_format = `https://${AppConstants.MM_UNIVERSAL_LINK_HOST}/send/`;
-	return ethereum_link.replace('ethereum:', universal_link_format);
+  const universal_link_format = `https://${AppConstants.MM_UNIVERSAL_LINK_HOST}/send/`;
+  return ethereum_link.replace('ethereum:', universal_link_format);
 }
 
 /**
@@ -34,16 +34,16 @@ export function generateUniversalLinkRequest(ethereum_link) {
  * @returns Payment request link, it could throw if errors are found
  */
 export function generateETHLink(receiverAddress, value, chainId) {
-	const data = {
-		chain_id: chainId,
-		function_name: undefined,
-		parameters: {
-			value,
-		},
-		scheme: 'ethereum',
-		target_address: receiverAddress,
-	};
-	return build(data);
+  const data = {
+    chain_id: chainId,
+    function_name: undefined,
+    parameters: {
+      value,
+    },
+    scheme: 'ethereum',
+    target_address: receiverAddress,
+  };
+  return build(data);
 }
 
 /**
@@ -56,16 +56,21 @@ export function generateETHLink(receiverAddress, value, chainId) {
  *
  * @returns Payment request link, it could throw if errors are found
  */
-export function generateERC20Link(receiverAddress, assetAddress, value, chainId) {
-	const data = {
-		chain_id: chainId,
-		function_name: 'transfer',
-		parameters: {
-			address: receiverAddress,
-			uint256: value,
-		},
-		scheme: 'ethereum',
-		target_address: assetAddress,
-	};
-	return build(data);
+export function generateERC20Link(
+  receiverAddress,
+  assetAddress,
+  value,
+  chainId,
+) {
+  const data = {
+    chain_id: chainId,
+    function_name: 'transfer',
+    parameters: {
+      address: receiverAddress,
+      uint256: value,
+    },
+    scheme: 'ethereum',
+    target_address: assetAddress,
+  };
+  return build(data);
 }

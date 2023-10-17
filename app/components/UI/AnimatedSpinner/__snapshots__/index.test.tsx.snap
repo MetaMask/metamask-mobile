@@ -4,7 +4,7 @@ exports[`AnimatedSpinner should render correctly 1`] = `
 <View
   style={
     Object {
-      "borderColor": "rgba(185, 156, 171, 0.396)",
+      "borderColor": "#F2F4F6",
       "borderRadius": 64,
       "borderWidth": 3.5,
       "height": 36,
@@ -34,7 +34,7 @@ exports[`AnimatedSpinner should render correctly 1`] = `
   >
     <Icon
       allowFontScaling={false}
-      color="#037DD6"
+      color="#0376C9"
       name="loading"
       size={36}
     />

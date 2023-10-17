@@ -1,0 +1,30 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`Checkbox should render correctly 1`] = `
+<TouchableOpacity
+  disabled={false}
+  style={
+    Object {
+      "alignItems": "center",
+      "flexDirection": "row",
+      "opacity": 1,
+    }
+  }
+>
+  <View
+    accessibilityRole="checkbox"
+    style={
+      Object {
+        "alignItems": "center",
+        "backgroundColor": "#FFFFFF",
+        "borderColor": "#24272A",
+        "borderRadius": 4,
+        "borderWidth": 2,
+        "height": 20,
+        "justifyContent": "center",
+        "width": 20,
+      }
+    }
+  />
+</TouchableOpacity>
+`;

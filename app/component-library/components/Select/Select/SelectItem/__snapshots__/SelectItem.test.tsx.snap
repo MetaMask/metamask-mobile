@@ -1,0 +1,29 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`SelectItem should render snapshot correctly 1`] = `
+<TouchableOpacity
+  disabled={false}
+  style={
+    Object {
+      "opacity": 1,
+      "position": "relative",
+    }
+  }
+>
+  <View
+    accessibilityRole="none"
+    accessible={true}
+    style={
+      Object {
+        "alignItems": "flex-start",
+        "backgroundColor": "#FFFFFF",
+        "borderRadius": 4,
+        "flexDirection": "row",
+        "padding": 16,
+      }
+    }
+  >
+    <View />
+  </View>
+</TouchableOpacity>
+`;

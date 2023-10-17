@@ -1,0 +1,46 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`TagUrl should render correctly 1`] = `
+<View
+  style={
+    Object {
+      "alignItems": "center",
+      "alignSelf": "center",
+      "backgroundColor": "#FFFFFF",
+      "borderColor": "#BBC0C5",
+      "borderRadius": 99,
+      "borderWidth": 1,
+      "flexDirection": "row",
+      "paddingLeft": 8,
+      "paddingRight": 16,
+      "paddingVertical": 8,
+    }
+  }
+>
+  <Avatar
+    imageSource={
+      Object {
+        "uri": "https://uniswap.org/favicon.ico",
+      }
+    }
+    size="32"
+    style={
+      Object {
+        "marginRight": 8,
+      }
+    }
+    variant="Favicon"
+  />
+  <Text
+    style={
+      Object {
+        "color": "#535A61",
+        "flexShrink": 1,
+      }
+    }
+    variant="sBodyMD"
+  >
+    https://uniswap.org
+  </Text>
+</View>
+`;

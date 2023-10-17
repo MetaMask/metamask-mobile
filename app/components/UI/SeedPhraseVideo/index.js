@@ -1,53 +1,50 @@
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import PropTypes from 'prop-types';
-import { StyleSheet, View } from 'react-native';
+import { InteractionManager, StyleSheet, View } from 'react-native';
 import MediaPlayer from '../../Views/MediaPlayer';
-import { TextTrackType } from 'react-native-video';
 import scaling from '../../../util/scaling';
-import { strings } from '../../../../locales/i18n';
+import I18n from '../../../../locales/i18n';
+import recoveryPhraseVideo from '../../../videos/recovery-phrase.mp4';
 
 const HEIGHT = scaling.scale(240);
 
 const styles = StyleSheet.create({
-	videoContainer: {
-		height: HEIGHT,
-		width: '100%',
-	},
-	mediaPlayer: {
-		height: HEIGHT,
-	},
+  videoContainer: {
+    height: HEIGHT,
+    width: '100%',
+  },
+  mediaPlayer: {
+    height: HEIGHT,
+  },
 });
 
 const SeedPhraseVideo = ({ style, onClose }) => {
-	const video_source_uri =
-		'https://github.com/MetaMask/metamask-mobile/blob/main/app/videos/recovery-phrase.mp4?raw=true';
+  const [showVideo, setShowVideo] = useState(false);
+  const language = I18n.locale.substr(0, 2);
 
-	const subtitle_source_tracks = [
-		{
-			index: 0,
-			title: strings('secret_phrase_video_subtitle.title'),
-			language: strings('secret_phrase_video_subtitle.language'),
-			type: TextTrackType.VTT,
-			uri: strings('secret_phrase_video_subtitle.uri'),
-		},
-	];
+  useEffect(() => {
+    InteractionManager.runAfterInteractions(() => {
+      setShowVideo(true);
+    });
+  }, []);
 
-	return (
-		<View style={styles.videoContainer}>
-			<MediaPlayer
-				onClose={onClose}
-				uri={video_source_uri}
-				style={[styles.mediaPlayer, style]}
-				textTracks={subtitle_source_tracks}
-				selectedTextTrack={{ type: 'index', value: 0 }}
-			/>
-		</View>
-	);
+  return (
+    <View style={styles.videoContainer}>
+      {showVideo ? (
+        <MediaPlayer
+          onClose={onClose}
+          uri={recoveryPhraseVideo}
+          style={[styles.mediaPlayer, style]}
+          selectedTextTrack={{ type: 'language', value: language }}
+        />
+      ) : null}
+    </View>
+  );
 };
 
 SeedPhraseVideo.propTypes = {
-	style: PropTypes.object,
-	onClose: PropTypes.func,
+  style: PropTypes.object,
+  onClose: PropTypes.func,
 };
 
 export default SeedPhraseVideo;

@@ -6,19 +6,19 @@ import { Provider } from 'react-redux';
 
 const mockStore = configureMockStore();
 const initialState = {
-	onboarding: {
-		event: 'event',
-	},
+  onboarding: {
+    event: 'event',
+  },
 };
 const store = mockStore(initialState);
 
 describe('OptinMetrics', () => {
-	it('should render correctly', () => {
-		const wrapper = shallow(
-			<Provider store={store}>
-				<OptinMetrics />
-			</Provider>
-		);
-		expect(wrapper).toMatchSnapshot();
-	});
+  it('should render correctly', () => {
+    const wrapper = shallow(
+      <Provider store={store}>
+        <OptinMetrics />
+      </Provider>,
+    );
+    expect(wrapper).toMatchSnapshot();
+  });
 });

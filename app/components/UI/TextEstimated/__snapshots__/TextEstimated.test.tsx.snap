@@ -1,0 +1,16 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`TextEstimated - Snapshot should render default settings correctly 1`] = `
+<TextWithPrefixIcon
+  iconProps={
+    Object {
+      "name": "Tilde",
+      "size": "12",
+    }
+  }
+  testID="text-estimated"
+  variant="sHeadingSMRegular"
+>
+  Sample Text
+</TextWithPrefixIcon>
+`;

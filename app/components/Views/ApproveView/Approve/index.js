@@ -1,5 +1,5 @@
 import React, { PureComponent } from 'react';
-import { StyleSheet, Alert, InteractionManager, AppState, View } from 'react-native';
+import { Alert, InteractionManager, AppState, View } from 'react-native';
 import PropTypes from 'prop-types';
 import { getApproveNavbar } from '../../../UI/Navbar';
 import { connect } from 'react-redux';
@@ -7,651 +7,831 @@ import { safeToChecksumAddress } from '../../../../util/address';
 import Engine from '../../../../core/Engine';
 import AnimatedTransactionModal from '../../../UI/AnimatedTransactionModal';
 import ApproveTransactionReview from '../../../UI/ApproveTransactionReview';
+import AddNickname from '../../../UI/ApproveTransactionReview/AddNickname';
 import Modal from 'react-native-modal';
 import { strings } from '../../../../../locales/i18n';
-import { setTransactionObject } from '../../../../actions/transaction';
-import { GAS_ESTIMATE_TYPES, util } from '@metamask/controllers';
-import { addHexPrefix, fromWei, renderFromWei } from '../../../../util/number';
+import { getNetworkNonce } from '../../../../util/networks';
+import Analytics from '../../../../core/Analytics/Analytics';
 import {
-	getNormalizedTxState,
-	getTicker,
-	parseTransactionEIP1559,
-	parseTransactionLegacy,
-} from '../../../../util/transactions';
+  setTransactionObject,
+  setNonce,
+  setProposedNonce,
+} from '../../../../actions/transaction';
+import { GAS_ESTIMATE_TYPES } from '@metamask/gas-fee-controller';
+import { BNToHex } from '@metamask/controller-utils';
+import {
+  addHexPrefix,
+  fromWei,
+  renderFromWei,
+  hexToBN,
+} from '../../../../util/number';
+import { getNormalizedTxState, getTicker } from '../../../../util/transactions';
 import { getGasLimit } from '../../../../util/custom-gas';
 import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view';
 import NotificationManager from '../../../../core/NotificationManager';
-import Analytics from '../../../../core/Analytics';
-import { ANALYTICS_EVENT_OPTS } from '../../../../util/analytics';
+import { MetaMetricsEvents } from '../../../../core/Analytics';
 import Logger from '../../../../util/Logger';
+import EditGasFee1559 from '../../../UI/EditGasFee1559Update';
+import EditGasFeeLegacy from '../../../UI/EditGasFeeLegacyUpdate';
 import AnalyticsV2 from '../../../../util/analyticsV2';
-import EditGasFee1559 from '../../../UI/EditGasFee1559';
-import EditGasFeeLegacy from '../../../UI/EditGasFeeLegacy';
 import AppConstants from '../../../../core/AppConstants';
 import { shallowEqual } from '../../../../util/general';
-
-const { BNToHex, hexToBN } = util;
+import { KEYSTONE_TX_CANCELED } from '../../../../constants/error';
+import GlobalAlert from '../../../UI/GlobalAlert';
+import checkIfAddressIsSaved from '../../../../util/checkAddress';
+import { ThemeContext, mockTheme } from '../../../../util/theme';
+import {
+  startGasPolling,
+  stopGasPolling,
+} from '../../../../core/GasPolling/GasPolling';
+import {
+  selectChainId,
+  selectProviderType,
+  selectTicker,
+  selectRpcTarget,
+  selectNetworkConfigurations,
+} from '../../../../selectors/networkController';
+import {
+  selectConversionRate,
+  selectCurrentCurrency,
+  selectNativeCurrency,
+} from '../../../../selectors/currencyRateController';
+import { selectTokensLength } from '../../../../selectors/tokensController';
+import {
+  selectAccounts,
+  selectAccountsLength,
+} from '../../../../selectors/accountTrackerController';
+import ShowBlockExplorer from '../../../UI/ApproveTransactionReview/ShowBlockExplorer';
+import createStyles from './styles';
+import { ethErrors } from 'eth-rpc-errors';
 
 const EDIT = 'edit';
 const REVIEW = 'review';
-
-const styles = StyleSheet.create({
-	keyboardAwareWrapper: {
-		flex: 1,
-		justifyContent: 'flex-end',
-	},
-	bottomModal: {
-		justifyContent: 'flex-end',
-		margin: 0,
-	},
-});
 
 /**
  * PureComponent that manages ERC20 approve from the dapp browser
  */
 class Approve extends PureComponent {
-	static navigationOptions = ({ navigation }) => getApproveNavbar('approve.title', navigation);
+  appStateListener;
 
-	static propTypes = {
-		/**
-		 * List of accounts from the AccountTrackerController
-		 */
-		accounts: PropTypes.object,
-		/**
-		 * Transaction state
-		 */
-		transaction: PropTypes.object.isRequired,
-		/**
-		 * Action that sets transaction attributes from object to a transaction
-		 */
-		setTransactionObject: PropTypes.func.isRequired,
-		/**
-		 * List of transactions
-		 */
-		transactions: PropTypes.array,
-		/**
-		 * Number of tokens
-		 */
-		tokensLength: PropTypes.number,
-		/**
-		 * Number of accounts
-		 */
-		accountsLength: PropTypes.number,
-		/**
-		 * A string representing the network name
-		 */
-		providerType: PropTypes.string,
-		/**
-		 * Whether the modal is visible
-		 */
-		modalVisible: PropTypes.bool,
-		/**
-		/* Token approve modal visible or not
-		*/
-		toggleApproveModal: PropTypes.func,
-		/**
-		 * Current selected ticker
-		 */
-		ticker: PropTypes.string,
-		/**
-		 * Gas fee estimates returned by the gas fee controller
-		 */
-		gasFeeEstimates: PropTypes.object,
-		/**
-		 * Estimate type returned by the gas fee controller, can be market-fee, legacy or eth_gasPrice
-		 */
-		gasEstimateType: PropTypes.string,
-		/**
-		 * ETH or fiat, depending on user setting
-		 */
-		primaryCurrency: PropTypes.string,
-		/**
-		 * A string representing the network chainId
-		 */
-		chainId: PropTypes.string,
-		/**
-		 * A string representing the network type
-		 */
-		networkType: PropTypes.string,
-	};
+  static navigationOptions = ({ navigation }) =>
+    getApproveNavbar('approve.title', navigation);
 
-	state = {
-		approved: false,
-		gasError: undefined,
-		ready: false,
-		mode: REVIEW,
-		over: false,
-		analyticsParams: {},
-		gasSelected: AppConstants.GAS_OPTIONS.MEDIUM,
-		gasSelectedTemp: AppConstants.GAS_OPTIONS.MEDIUM,
-		EIP1559GasData: {},
-		EIP1559GasDataTemp: {},
-		LegacyGasData: {},
-		LegacyGasDataTemp: {},
-		transactionConfirmed: false,
-	};
+  static propTypes = {
+    /**
+     * List of accounts from the AccountTrackerController
+     */
+    accounts: PropTypes.object,
+    /**
+     * Transaction state
+     */
+    transaction: PropTypes.object.isRequired,
+    /**
+     * Action that sets transaction attributes from object to a transaction
+     */
+    setTransactionObject: PropTypes.func.isRequired,
+    /**
+     * List of transactions
+     */
+    transactions: PropTypes.array,
+    /**
+     * Number of tokens
+     */
+    tokensLength: PropTypes.number,
+    /**
+     * Number of accounts
+     */
+    accountsLength: PropTypes.number,
+    /**
+     * A string representing the network name
+     */
+    providerType: PropTypes.string,
+    /**
+     * Whether the modal is visible
+     */
+    modalVisible: PropTypes.bool,
+    /**
+    /* Hide modal visible or not
+    */
+    hideModal: PropTypes.func,
+    /**
+     * Current selected ticker
+     */
+    ticker: PropTypes.string,
+    /**
+     * Gas fee estimates returned by the gas fee controller
+     */
+    gasFeeEstimates: PropTypes.object,
+    /**
+     * Estimate type returned by the gas fee controller, can be market-fee, legacy or eth_gasPrice
+     */
+    gasEstimateType: PropTypes.string,
+    /**
+     * ETH or fiat, depending on user setting
+     */
+    primaryCurrency: PropTypes.string,
+    /**
+     * A string representing the network chainId
+     */
+    chainId: PropTypes.string,
+    /**
+     * An object of all saved addresses
+     */
+    addressBook: PropTypes.object,
+    networkConfigurations: PropTypes.object,
+    providerRpcTarget: PropTypes.string,
+    /**
+     * Set transaction nonce
+     */
+    setNonce: PropTypes.func,
+    /**
+     * Set proposed nonce (from network)
+     */
+    setProposedNonce: PropTypes.func,
+    /**
+     * Indicates whether custom nonce should be shown in transaction editor
+     */
+    showCustomNonce: PropTypes.bool,
+  };
 
-	computeGasEstimates = (overrideGasPrice, overrideGasLimit, gasEstimateTypeChanged) => {
-		const { transaction, gasEstimateType, gasFeeEstimates } = this.props;
+  state = {
+    approved: false,
+    gasError: undefined,
+    ready: false,
+    mode: REVIEW,
+    over: false,
+    analyticsParams: {},
+    gasSelected: AppConstants.GAS_OPTIONS.MEDIUM,
+    gasSelectedTemp: AppConstants.GAS_OPTIONS.MEDIUM,
+    transactionConfirmed: false,
+    shouldAddNickname: false,
+    shouldVerifyContractDetails: false,
+    suggestedGasLimit: undefined,
+    eip1559GasObject: {},
+    eip1559GasTransaction: {},
+    legacyGasObject: {},
+    legacyGasTransaction: {},
+    isBlockExplorerVisible: false,
+    address: '',
+    tokenAllowanceState: undefined,
+    isGasEstimateStatusIn: false,
+  };
 
-		const gasSelected = gasEstimateTypeChanged ? AppConstants.GAS_OPTIONS.MEDIUM : this.state.gasSelected;
-		const gasSelectedTemp = gasEstimateTypeChanged ? AppConstants.GAS_OPTIONS.MEDIUM : this.state.gasSelectedTemp;
+  computeGasEstimates = (overrideGasLimit, gasEstimateTypeChanged) => {
+    const { transaction, gasEstimateType } = this.props;
 
-		if (gasEstimateType === GAS_ESTIMATE_TYPES.FEE_MARKET) {
-			const overrideGas = overrideGasPrice
-				? {
-						suggestedMaxFeePerGas: fromWei(overrideGasPrice, 'gwei'),
-						suggestedMaxPriorityFeePerGas: fromWei(overrideGasPrice, 'gwei'),
-						// eslint-disable-next-line no-mixed-spaces-and-tabs
-				  }
-				: null;
+    const gasSelected = gasEstimateTypeChanged
+      ? AppConstants.GAS_OPTIONS.MEDIUM
+      : this.state.gasSelected;
+    const gasSelectedTemp = gasEstimateTypeChanged
+      ? AppConstants.GAS_OPTIONS.MEDIUM
+      : this.state.gasSelectedTemp;
 
-			const initialGas = overrideGas || gasFeeEstimates[gasSelected];
-			const initialGasTemp = overrideGas || gasFeeEstimates[gasSelectedTemp];
+    if (gasEstimateType === GAS_ESTIMATE_TYPES.FEE_MARKET) {
+      const suggestedGasLimit = fromWei(
+        overrideGasLimit || transaction.gas,
+        'wei',
+      );
 
-			const suggestedGasLimit = fromWei(overrideGasLimit || transaction.gas, 'wei');
+      // eslint-disable-next-line react/no-did-update-set-state
+      this.setState(
+        {
+          ready: true,
+          animateOnChange: true,
+          gasSelected,
+          gasSelectedTemp,
+          suggestedGasLimit,
+        },
+        () => {
+          this.setState({ animateOnChange: false });
+        },
+      );
+    } else {
+      const suggestedGasLimit = fromWei(
+        overrideGasLimit || transaction.gas,
+        'wei',
+      );
 
-			const EIP1559GasData = this.parseTransactionDataEIP1559({
-				...initialGas,
-				suggestedGasLimit,
-				selectedOption: gasSelected,
-			});
+      // eslint-disable-next-line react/no-did-update-set-state
+      this.setState(
+        {
+          ready: true,
+          animateOnChange: true,
+          gasSelected,
+          gasSelectedTemp,
+          suggestedGasLimit,
+        },
+        () => {
+          this.setState({ animateOnChange: false });
+        },
+      );
+    }
+  };
 
-			let EIP1559GasDataTemp;
-			if (gasSelected === gasSelectedTemp) {
-				EIP1559GasDataTemp = EIP1559GasData;
-			} else {
-				EIP1559GasDataTemp = this.parseTransactionDataEIP1559({
-					...initialGasTemp,
-					suggestedGasLimit,
-					selectedOption: gasSelectedTemp,
-				});
-			}
+  showVerifyContractDetails = () =>
+    this.setState({ shouldVerifyContractDetails: true });
+  closeVerifyContractDetails = () =>
+    this.setState({ shouldVerifyContractDetails: false });
 
-			// eslint-disable-next-line react/no-did-update-set-state
-			this.setState(
-				{
-					ready: true,
-					EIP1559GasData,
-					EIP1559GasDataTemp,
-					LegacyGasData: {},
-					LegacyGasDataTemp: {},
-					animateOnChange: true,
-					gasSelected,
-					gasSelectedTemp,
-				},
-				() => {
-					this.setState({ animateOnChange: false });
-				}
-			);
-		} else {
-			const suggestedGasLimit = fromWei(overrideGasLimit || transaction.gas, 'wei');
+  toggleModal = (val) => {
+    this.setState({
+      shouldAddNickname: !this.state.shouldAddNickname,
+      address: val,
+    });
+  };
 
-			const getGas = (selected) =>
-				overrideGasPrice
-					? fromWei(overrideGasPrice, 'gwei')
-					: gasEstimateType === GAS_ESTIMATE_TYPES.LEGACY
-					? gasFeeEstimates[selected]
-					: gasFeeEstimates.gasPrice;
+  startPolling = async () => {
+    const pollToken = await startGasPolling(this.state.pollToken);
+    this.setState({ pollToken });
+  };
 
-			const LegacyGasData = this.parseTransactionDataLegacy(
-				{
-					suggestedGasPrice: getGas(gasSelected),
-					suggestedGasLimit,
-				},
-				{ onlyGas: true }
-			);
+  setNetworkNonce = async () => {
+    const { setNonce, setProposedNonce, transaction } = this.props;
+    const proposedNonce = await getNetworkNonce(transaction);
+    setNonce(proposedNonce);
+    setProposedNonce(proposedNonce);
+  };
 
-			let LegacyGasDataTemp;
-			if (gasSelected === gasSelectedTemp) {
-				LegacyGasDataTemp = LegacyGasData;
-			} else {
-				LegacyGasDataTemp = this.parseTransactionDataLegacy(
-					{
-						suggestedGasPrice: getGas(gasSelectedTemp),
-						suggestedGasLimit,
-					},
-					{ onlyGas: true }
-				);
-			}
+  componentDidMount = async () => {
+    const { showCustomNonce } = this.props;
+    if (!this.props?.transaction?.id) {
+      this.props.hideModal();
+      return null;
+    }
+    if (!this.props?.transaction?.gas) this.handleGetGasLimit();
 
-			// eslint-disable-next-line react/no-did-update-set-state
-			this.setState(
-				{
-					ready: true,
-					LegacyGasData,
-					LegacyGasDataTemp,
-					EIP1559GasData: {},
-					EIP1559GasDataTemp: {},
-					animateOnChange: true,
-					gasSelected,
-					gasSelectedTemp,
-				},
-				() => {
-					this.setState({ animateOnChange: false });
-				}
-			);
-		}
-	};
+    this.startPolling();
 
-	startPolling = async () => {
-		const { GasFeeController } = Engine.context;
-		const pollToken = await GasFeeController.getGasFeeEstimatesAndStartPolling(this.state.pollToken);
-		this.setState({ pollToken });
-	};
+    if (showCustomNonce) {
+      await this.setNetworkNonce();
+    }
+    this.appStateListener = AppState.addEventListener(
+      'change',
+      this.handleAppStateChange,
+    );
+  };
 
-	componentDidMount = () => {
-		if (!this.props?.transaction?.id) {
-			this.props.toggleApproveModal(false);
-			return null;
-		}
-		if (!this.props?.transaction?.gas) this.handleGetGasLimit();
+  handleGetGasLimit = async () => {
+    const { setTransactionObject, transaction } = this.props;
+    const estimation = await getGasLimit({ ...transaction, gas: undefined });
+    setTransactionObject({ gas: estimation.gas });
+  };
 
-		this.startPolling();
+  componentDidUpdate = (prevProps) => {
+    const { transaction } = this.props;
 
-		AppState.addEventListener('change', this.handleAppStateChange);
-	};
+    const gasEstimateTypeChanged =
+      prevProps.gasEstimateType !== this.props.gasEstimateType;
 
-	handleGetGasLimit = async () => {
-		const { setTransactionObject, transaction } = this.props;
-		const estimation = await getGasLimit({ ...transaction, gas: undefined });
-		setTransactionObject({ gas: estimation.gas });
-	};
+    if (
+      (!this.state.stopUpdateGas && !this.state.advancedGasInserted) ||
+      gasEstimateTypeChanged
+    ) {
+      if (
+        this.props.gasFeeEstimates &&
+        transaction.gas &&
+        (!shallowEqual(prevProps.gasFeeEstimates, this.props.gasFeeEstimates) ||
+          !transaction.gas.eq(prevProps?.transaction?.gas))
+      ) {
+        this.computeGasEstimates(null, null, gasEstimateTypeChanged);
+      }
+    }
+  };
 
-	componentDidUpdate = (prevProps) => {
-		const { transaction } = this.props;
+  componentWillUnmount = async () => {
+    const { TransactionController } = Engine.context;
+    const { approved } = this.state;
+    const { transaction } = this.props;
 
-		const gasEstimateTypeChanged = prevProps.gasEstimateType !== this.props.gasEstimateType;
+    await stopGasPolling(this.state.pollToken);
+    this.appStateListener?.remove();
+    TransactionController.hub.removeAllListeners(`${transaction.id}:finished`);
+    if (!approved)
+      Engine.rejectPendingApproval(
+        transaction.id,
+        ethErrors.provider.userRejectedRequest(),
+        {
+          ignoreMissing: true,
+          logErrors: false,
+        },
+      );
+  };
 
-		if ((!this.state.stopUpdateGas && !this.state.advancedGasInserted) || gasEstimateTypeChanged) {
-			if (
-				this.props.gasFeeEstimates &&
-				transaction.gas &&
-				(!shallowEqual(prevProps.gasFeeEstimates, this.props.gasFeeEstimates) ||
-					!transaction.gas.eq(prevProps?.transaction?.gas))
-			) {
-				this.computeGasEstimates(null, null, gasEstimateTypeChanged);
-			}
-		}
-	};
+  handleAppStateChange = (appState) => {
+    if (appState !== 'active') {
+      const { transaction } = this.props;
+      Engine.rejectPendingApproval(
+        transaction?.id,
+        ethErrors.provider.userRejectedRequest(),
+        {
+          ignoreMissing: true,
+          logErrors: false,
+        },
+      );
 
-	parseTransactionDataEIP1559 = (gasFee, options) => {
-		const parsedTransactionEIP1559 = parseTransactionEIP1559(
-			{
-				...this.props,
-				selectedGasFee: { ...gasFee, estimatedBaseFee: this.props.gasFeeEstimates.estimatedBaseFee },
-			},
-			{ onlyGas: true }
-		);
+      this.props.hideModal();
+    }
+  };
 
-		parsedTransactionEIP1559.error = this.validateGas(parsedTransactionEIP1559.totalMaxHex);
-		return parsedTransactionEIP1559;
-	};
+  trackApproveEvent = (event) => {
+    const { transaction, tokensLength, accountsLength, providerType } =
+      this.props;
+    InteractionManager.runAfterInteractions(() => {
+      Analytics.trackEventWithParameters(event, {
+        view: transaction.origin,
+        numberOfTokens: tokensLength,
+        numberOfAccounts: accountsLength,
+        network: providerType,
+      });
+    });
+  };
 
-	parseTransactionDataLegacy = (gasFee, options) => {
-		const parsedTransactionLegacy = parseTransactionLegacy(
-			{
-				...this.props,
-				selectedGasFee: gasFee,
-			},
-			{ onlyGas: true }
-		);
-		parsedTransactionLegacy.error = this.validateGas(parsedTransactionLegacy.totalHex);
-		return parsedTransactionLegacy;
-	};
+  cancelGasEdition = () => {
+    this.setState({
+      stopUpdateGas: false,
+    });
+    this.review();
+  };
 
-	componentWillUnmount = () => {
-		const { approved } = this.state;
-		const { transaction } = this.props;
+  saveGasEditionLegacy = (legacyGasTransaction, legacyGasObject) => {
+    legacyGasTransaction.error = this.validateGas(
+      legacyGasTransaction.totalHex,
+    );
+    this.setState({
+      stopUpdateGas: false,
+      legacyGasTransaction,
+      legacyGasObject,
+    });
+    this.review();
+  };
 
-		const { GasFeeController } = Engine.context;
-		GasFeeController.stopPolling(this.state.pollToken);
-		AppState.removeEventListener('change', this.handleAppStateChange);
-		if (!approved) Engine.context.TransactionController.cancelTransaction(transaction.id);
-	};
+  saveGasEdition = (eip1559GasTransaction, eip1559GasObject) => {
+    this.setState({ eip1559GasTransaction, eip1559GasObject });
+    this.review();
+  };
 
-	handleAppStateChange = (appState) => {
-		if (appState !== 'active') {
-			const { transaction } = this.props;
-			transaction && transaction.id && Engine.context.TransactionController.cancelTransaction(transaction.id);
-			this.props.toggleApproveModal(false);
-		}
-	};
+  validateGas = (total) => {
+    let error;
+    const {
+      ticker,
+      transaction: { from },
+      accounts,
+    } = this.props;
 
-	trackApproveEvent = (event) => {
-		const { transaction, tokensLength, accountsLength, providerType } = this.props;
-		InteractionManager.runAfterInteractions(() => {
-			Analytics.trackEventWithParameters(event, {
-				view: transaction.origin,
-				numberOfTokens: tokensLength,
-				numberOfAccounts: accountsLength,
-				network: providerType,
-			});
-		});
-	};
+    const fromAccount = accounts[safeToChecksumAddress(from)];
 
-	cancelGasEdition = () => {
-		this.setState({
-			EIP1559GasDataTemp: { ...this.state.EIP1559GasData },
-			LegacyGasDataTemp: { ...this.state.LegacyGasData },
-			stopUpdateGas: false,
-			gasSelectedTemp: this.state.gasSelected,
-		});
-		this.review();
-	};
+    const weiBalance = hexToBN(fromAccount.balance);
+    const totalTransactionValue = hexToBN(total);
+    if (!weiBalance.gte(totalTransactionValue)) {
+      const amount = renderFromWei(totalTransactionValue.sub(weiBalance));
+      const tokenSymbol = getTicker(ticker);
+      error = strings('transaction.insufficient_amount', {
+        amount,
+        tokenSymbol,
+      });
+    }
 
-	saveGasEdition = (gasSelected) => {
-		this.setState({
-			EIP1559GasData: { ...this.state.EIP1559GasDataTemp },
-			LegacyGasData: { ...this.state.LegacyGasDataTemp },
-			gasSelected,
-			gasSelectedTemp: gasSelected,
-			advancedGasInserted: !gasSelected,
-			stopUpdateGas: false,
-		});
-		this.review();
-	};
+    return error;
+  };
 
-	validateGas = (total) => {
-		let error;
-		const {
-			ticker,
-			transaction: { from },
-			accounts,
-		} = this.props;
+  prepareTransaction = (transaction) => {
+    const { gasEstimateType, showCustomNonce } = this.props;
+    const { legacyGasTransaction, eip1559GasTransaction } = this.state;
+    const transactionToSend = {
+      ...transaction,
+      value: BNToHex(transaction.value),
+      to: safeToChecksumAddress(transaction.to),
+      from: safeToChecksumAddress(transaction.from),
+    };
 
-		const fromAccount = accounts[safeToChecksumAddress(from)];
+    if (gasEstimateType === GAS_ESTIMATE_TYPES.FEE_MARKET) {
+      transactionToSend.gas = eip1559GasTransaction.gasLimitHex;
+      transactionToSend.maxFeePerGas = addHexPrefix(
+        eip1559GasTransaction.suggestedMaxFeePerGasHex,
+      ); //'0x2540be400'
+      transactionToSend.maxPriorityFeePerGas = addHexPrefix(
+        eip1559GasTransaction.suggestedMaxPriorityFeePerGasHex,
+      ); //'0x3b9aca00';
+      delete transactionToSend.gasPrice;
+    } else {
+      transactionToSend.gas = legacyGasTransaction.suggestedGasLimitHex;
+      transactionToSend.gasPrice = addHexPrefix(
+        legacyGasTransaction.suggestedGasPriceHex,
+      );
+    }
 
-		const weiBalance = hexToBN(fromAccount.balance);
-		const totalTransactionValue = hexToBN(total);
-		if (!weiBalance.gte(totalTransactionValue)) {
-			const amount = renderFromWei(totalTransactionValue.sub(weiBalance));
-			const tokenSymbol = getTicker(ticker);
-			error = strings('transaction.insufficient_amount', { amount, tokenSymbol });
-		}
+    if (showCustomNonce && transactionToSend.nonce) {
+      transactionToSend.nonce = BNToHex(transactionToSend.nonce);
+    }
 
-		return error;
-	};
+    return transactionToSend;
+  };
 
-	prepareTransaction = (transaction) => {
-		const { gasEstimateType } = this.props;
-		const { LegacyGasData, EIP1559GasData } = this.state;
-		const transactionToSend = {
-			...transaction,
-			value: BNToHex(transaction.value),
-			to: safeToChecksumAddress(transaction.to),
-			from: safeToChecksumAddress(transaction.from),
-		};
+  getAnalyticsParams = () => {
+    try {
+      const { gasEstimateType } = this.props;
+      const { analyticsParams, gasSelected } = this.state;
+      return {
+        ...analyticsParams,
+        gas_estimate_type: gasEstimateType,
+        gas_mode: gasSelected ? 'Basic' : 'Advanced',
+        speed_set: gasSelected || undefined,
+      };
+    } catch (error) {
+      return {};
+    }
+  };
 
-		if (gasEstimateType === GAS_ESTIMATE_TYPES.FEE_MARKET) {
-			transactionToSend.gas = EIP1559GasData.gasLimitHex;
-			transactionToSend.maxFeePerGas = addHexPrefix(EIP1559GasData.suggestedMaxFeePerGasHex); //'0x2540be400'
-			transactionToSend.maxPriorityFeePerGas = addHexPrefix(EIP1559GasData.suggestedMaxPriorityFeePerGasHex); //'0x3b9aca00';
-			delete transactionToSend.gasPrice;
-		} else {
-			transactionToSend.gas = LegacyGasData.suggestedGasLimitHex;
-			transactionToSend.gasPrice = addHexPrefix(LegacyGasData.suggestedGasPriceHex);
-		}
+  onConfirm = async () => {
+    const { TransactionController, KeyringController, ApprovalController } =
+      Engine.context;
+    const { transactions, gasEstimateType } = this.props;
+    const {
+      legacyGasTransaction,
+      transactionConfirmed,
+      eip1559GasTransaction,
+    } = this.state;
 
-		return transactionToSend;
-	};
+    if (gasEstimateType === GAS_ESTIMATE_TYPES.FEE_MARKET) {
+      if (this.validateGas(eip1559GasTransaction.totalMaxHex)) return;
+    } else if (this.validateGas(legacyGasTransaction.totalHex)) return;
+    if (transactionConfirmed) return;
+    this.setState({ transactionConfirmed: true });
+    try {
+      const transaction = this.prepareTransaction(this.props.transaction);
+      TransactionController.hub.once(
+        `${transaction.id}:finished`,
+        (transactionMeta) => {
+          if (transactionMeta.status === 'submitted') {
+            this.setState({ approved: true });
+            this.props.hideModal();
+            NotificationManager.watchSubmittedTransaction({
+              ...transactionMeta,
+              assetType: 'ETH',
+            });
+          } else {
+            throw transactionMeta.error;
+          }
+        },
+      );
 
-	getAnalyticsParams = () => {
-		try {
-			const { gasEstimateType } = this.props;
-			const { analyticsParams, gasSelected } = this.state;
-			return {
-				...analyticsParams,
-				gas_estimate_type: gasEstimateType,
-				gas_mode: gasSelected ? 'Basic' : 'Advanced',
-				speed_set: gasSelected || undefined,
-			};
-		} catch (error) {
-			return {};
-		}
-	};
+      const fullTx = transactions.find(({ id }) => id === transaction.id);
+      const updatedTx = { ...fullTx, transaction };
+      await TransactionController.updateTransaction(updatedTx);
+      await KeyringController.resetQRKeyringState();
+      await ApprovalController.accept(transaction.id, undefined, {
+        waitForResult: true,
+      });
+      AnalyticsV2.trackEvent(
+        MetaMetricsEvents.APPROVAL_COMPLETED,
+        this.getAnalyticsParams(),
+      );
+    } catch (error) {
+      if (!error?.message.startsWith(KEYSTONE_TX_CANCELED)) {
+        Alert.alert(
+          strings('transactions.transaction_error'),
+          error && error.message,
+          [{ text: 'OK' }],
+        );
+        Logger.error(error, 'error while trying to send transaction (Approve)');
+      } else {
+        AnalyticsV2.trackEvent(
+          MetaMetricsEvents.QR_HARDWARE_TRANSACTION_CANCELED,
+        );
+      }
+      this.setState({ transactionHandled: false });
+    }
+    this.setState({ transactionConfirmed: true });
+  };
 
-	onConfirm = async () => {
-		const { TransactionController } = Engine.context;
-		const { transactions, gasEstimateType } = this.props;
-		const { EIP1559GasData, LegacyGasData, transactionConfirmed } = this.state;
+  onCancel = () => {
+    Engine.rejectPendingApproval(
+      this.props.transaction.id,
+      ethErrors.provider.userRejectedRequest(),
+      {
+        ignoreMissing: true,
+        logErrors: false,
+      },
+    );
+    AnalyticsV2.trackEvent(
+      MetaMetricsEvents.APPROVAL_CANCELLED,
+      this.getAnalyticsParams(),
+    );
+    this.props.hideModal();
 
-		if (gasEstimateType === GAS_ESTIMATE_TYPES.FEE_MARKET) {
-			if (this.validateGas(EIP1559GasData.totalMaxHex)) return;
-		} else if (this.validateGas(LegacyGasData.totalHex)) return;
-		if (transactionConfirmed) return;
-		this.setState({ transactionConfirmed: true });
-		try {
-			const transaction = this.prepareTransaction(this.props.transaction);
-			TransactionController.hub.once(`${transaction.id}:finished`, (transactionMeta) => {
-				if (transactionMeta.status === 'submitted') {
-					this.setState({ approved: true });
-					this.props.toggleApproveModal();
-					NotificationManager.watchSubmittedTransaction({
-						...transactionMeta,
-						assetType: 'ETH',
-					});
-				} else {
-					throw transactionMeta.error;
-				}
-			});
+    NotificationManager.showSimpleNotification({
+      status: `simple_notification_rejected`,
+      duration: 5000,
+      title: strings('notifications.approved_tx_rejected_title'),
+      description: strings('notifications.wc_description'),
+    });
+  };
 
-			const fullTx = transactions.find(({ id }) => id === transaction.id);
-			const updatedTx = { ...fullTx, transaction };
-			await TransactionController.updateTransaction(updatedTx);
-			await TransactionController.approveTransaction(transaction.id);
-			AnalyticsV2.trackEvent(AnalyticsV2.ANALYTICS_EVENTS.APPROVAL_COMPLETED, this.getAnalyticsParams());
-		} catch (error) {
-			Alert.alert(strings('transactions.transaction_error'), error && error.message, [{ text: 'OK' }]);
-			Logger.error(error, 'error while trying to send transaction (Approve)');
-			this.setState({ transactionHandled: false });
-		}
-		this.setState({ transactionConfirmed: true });
-	};
+  review = () => {
+    this.onModeChange(REVIEW);
+  };
 
-	onCancel = () => {
-		AnalyticsV2.trackEvent(AnalyticsV2.ANALYTICS_EVENTS.APPROVAL_CANCELLED, this.getAnalyticsParams());
-		this.props.toggleApproveModal(false);
-	};
+  onModeChange = (mode) => {
+    this.setState({ mode });
+    if (mode === EDIT) {
+      InteractionManager.runAfterInteractions(() => {
+        Analytics.trackEvent(
+          MetaMetricsEvents.SEND_FLOW_ADJUSTS_TRANSACTION_FEE,
+        );
+      });
+    }
+  };
 
-	review = () => {
-		this.onModeChange(REVIEW);
-	};
+  setAnalyticsParams = (analyticsParams) => {
+    this.setState({ analyticsParams });
+  };
 
-	onModeChange = (mode) => {
-		this.setState({ mode });
-		if (mode === EDIT) {
-			InteractionManager.runAfterInteractions(() => {
-				Analytics.trackEvent(ANALYTICS_EVENT_OPTS.SEND_FLOW_ADJUSTS_TRANSACTION_FEE);
-			});
-		}
-	};
+  getGasAnalyticsParams = () => {
+    try {
+      const { analyticsParams } = this.state;
+      const { gasEstimateType } = this.props;
+      return {
+        dapp_host_name: analyticsParams?.dapp_host_name,
+        active_currency: {
+          value: analyticsParams?.active_currency,
+          anonymous: true,
+        },
+        gas_estimate_type: gasEstimateType,
+      };
+    } catch (error) {
+      return {};
+    }
+  };
 
-	setAnalyticsParams = (analyticsParams) => {
-		this.setState({ analyticsParams });
-	};
+  updateGasSelected = (selected) => {
+    this.setState({
+      stopUpdateGas: !selected,
+      gasSelectedTemp: selected,
+      gasSelected: selected,
+    });
+  };
 
-	getGasAnalyticsParams = () => {
-		try {
-			const { analyticsParams } = this.state;
-			const { gasEstimateType, networkType } = this.props;
-			return {
-				dapp_host_name: analyticsParams?.dapp_host_name,
-				dapp_url: analyticsParams?.dapp_url,
-				active_currency: { value: analyticsParams?.active_currency, anonymous: true },
-				gas_estimate_type: gasEstimateType,
-				network_name: networkType,
-			};
-		} catch (error) {
-			return {};
-		}
-	};
+  onUpdatingValuesStart = () => {
+    this.setState({ isAnimating: true });
+  };
+  onUpdatingValuesEnd = () => {
+    this.setState({ isAnimating: false });
+  };
 
-	calculateTempGasFee = (gas, selected) => {
-		const { transaction } = this.props;
-		if (selected && gas) {
-			gas.suggestedGasLimit = fromWei(transaction.gas, 'wei');
-		}
-		this.setState({
-			EIP1559GasDataTemp: this.parseTransactionDataEIP1559({ ...gas, selectedOption: selected }),
-			stopUpdateGas: !selected,
-			gasSelectedTemp: selected,
-		});
-	};
+  updateTransactionState = (gas) => {
+    const gasError = this.validateGas(gas.totalMaxHex || gas.totalHex);
 
-	calculateTempGasFeeLegacy = (gas, selected) => {
-		const { transaction } = this.props;
-		if (selected && gas) {
-			gas.suggestedGasLimit = fromWei(transaction.gas, 'wei');
-		}
-		this.setState({
-			LegacyGasDataTemp: this.parseTransactionDataLegacy(gas),
-			stopUpdateGas: !selected,
-			gasSelectedTemp: selected,
-		});
-	};
+    this.setState({
+      eip1559GasTransaction: gas,
+      legacyGasTransaction: gas,
+      isGasEstimateStatusIn: true,
+      gasError,
+    });
+  };
 
-	onUpdatingValuesStart = () => {
-		this.setState({ isAnimating: true });
-	};
-	onUpdatingValuesEnd = () => {
-		this.setState({ isAnimating: false });
-	};
+  setIsBlockExplorerVisible = () => {
+    this.setState({
+      isBlockExplorerVisible: !this.state.isBlockExplorerVisible,
+    });
+  };
 
-	render = () => {
-		const {
-			mode,
-			ready,
-			over,
-			EIP1559GasData,
-			EIP1559GasDataTemp,
-			LegacyGasData,
-			LegacyGasDataTemp,
-			gasSelected,
-			animateOnChange,
-			isAnimating,
-			transactionConfirmed,
-		} = this.state;
-		const { transaction, gasEstimateType, gasFeeEstimates, primaryCurrency, chainId } = this.props;
+  updateTokenAllowanceState = (value) => {
+    this.setState({ tokenAllowanceState: value });
+  };
 
-		if (!transaction.id) return null;
-		return (
-			<Modal
-				isVisible={this.props.modalVisible}
-				animationIn="slideInUp"
-				animationOut="slideOutDown"
-				style={styles.bottomModal}
-				backdropOpacity={0.7}
-				animationInTiming={600}
-				animationOutTiming={600}
-				onBackdropPress={this.onCancel}
-				onBackButtonPress={this.onCancel}
-				onSwipeComplete={this.onCancel}
-				swipeDirection={'down'}
-				propagateSwipe
-			>
-				<KeyboardAwareScrollView contentContainerStyle={styles.keyboardAwareWrapper}>
-					{mode === 'review' && (
-						<AnimatedTransactionModal onModeChange={this.onModeChange} ready={ready} review={this.review}>
-							<ApproveTransactionReview
-								gasError={EIP1559GasData.error || LegacyGasData.error}
-								onCancel={this.onCancel}
-								onConfirm={this.onConfirm}
-								over={over}
-								onSetAnalyticsParams={this.setAnalyticsParams}
-								EIP1559GasData={EIP1559GasData}
-								LegacyGasData={LegacyGasData}
-								gasEstimateType={gasEstimateType}
-								onUpdatingValuesStart={this.onUpdatingValuesStart}
-								onUpdatingValuesEnd={this.onUpdatingValuesEnd}
-								animateOnChange={animateOnChange}
-								isAnimating={isAnimating}
-								gasEstimationReady={ready}
-								transactionConfirmed={transactionConfirmed}
-							/>
-							{/** View fixes layout issue after removing <CustomGas/> */}
-							<View />
-						</AnimatedTransactionModal>
-					)}
+  render = () => {
+    const colors = this.context.colors || mockTheme.colors;
+    const styles = createStyles(colors);
 
-					{mode !== 'review' &&
-						(gasEstimateType === GAS_ESTIMATE_TYPES.FEE_MARKET ? (
-							<EditGasFee1559
-								selected={gasSelected}
-								gasFee={EIP1559GasDataTemp}
-								gasOptions={gasFeeEstimates}
-								onChange={this.calculateTempGasFee}
-								gasFeeNative={EIP1559GasDataTemp.renderableGasFeeMinNative}
-								gasFeeConversion={EIP1559GasDataTemp.renderableGasFeeMinConversion}
-								gasFeeMaxNative={EIP1559GasDataTemp.renderableGasFeeMaxNative}
-								gasFeeMaxConversion={EIP1559GasDataTemp.renderableGasFeeMaxConversion}
-								maxPriorityFeeNative={EIP1559GasDataTemp.renderableMaxPriorityFeeNative}
-								maxPriorityFeeConversion={EIP1559GasDataTemp.renderableMaxPriorityFeeConversion}
-								maxFeePerGasNative={EIP1559GasDataTemp.renderableMaxFeePerGasNative}
-								maxFeePerGasConversion={EIP1559GasDataTemp.renderableMaxFeePerGasConversion}
-								primaryCurrency={primaryCurrency}
-								chainId={chainId}
-								timeEstimate={EIP1559GasDataTemp.timeEstimate}
-								timeEstimateColor={EIP1559GasDataTemp.timeEstimateColor}
-								timeEstimateId={EIP1559GasDataTemp.timeEstimateId}
-								onCancel={this.cancelGasEdition}
-								onSave={this.saveGasEdition}
-								error={EIP1559GasDataTemp.error}
-								onUpdatingValuesStart={this.onUpdatingValuesStart}
-								onUpdatingValuesEnd={this.onUpdatingValuesEnd}
-								animateOnChange={animateOnChange}
-								isAnimating={isAnimating}
-								view={'Approve'}
-								analyticsParams={this.getGasAnalyticsParams()}
-							/>
-						) : (
-							<EditGasFeeLegacy
-								selected={gasSelected}
-								gasFee={LegacyGasDataTemp}
-								gasEstimateType={gasEstimateType}
-								gasOptions={gasFeeEstimates}
-								onChange={this.calculateTempGasFeeLegacy}
-								gasFeeNative={LegacyGasDataTemp.transactionFee}
-								gasFeeConversion={LegacyGasDataTemp.transactionFeeFiat}
-								gasPriceConversion={LegacyGasDataTemp.transactionFeeFiat}
-								primaryCurrency={primaryCurrency}
-								chainId={chainId}
-								onCancel={this.cancelGasEdition}
-								onSave={this.saveGasEdition}
-								error={LegacyGasDataTemp.error}
-								onUpdatingValuesStart={this.onUpdatingValuesStart}
-								onUpdatingValuesEnd={this.onUpdatingValuesEnd}
-								animateOnChange={animateOnChange}
-								isAnimating={isAnimating}
-								view={'Approve'}
-								analyticsParams={this.getGasAnalyticsParams()}
-							/>
-						))}
-				</KeyboardAwareScrollView>
-			</Modal>
-		);
-	};
+    const {
+      mode,
+      ready,
+      over,
+      gasSelected,
+      animateOnChange,
+      isAnimating,
+      transactionConfirmed,
+      eip1559GasObject,
+      eip1559GasTransaction,
+      legacyGasObject,
+      gasError,
+      address,
+      shouldAddNickname,
+      tokenAllowanceState,
+      isGasEstimateStatusIn,
+      legacyGasTransaction,
+    } = this.state;
+
+    const {
+      transaction,
+      addressBook,
+      gasEstimateType,
+      gasFeeEstimates,
+      primaryCurrency,
+      chainId,
+      providerType,
+      providerRpcTarget,
+      networkConfigurations,
+    } = this.props;
+
+    const selectedGasObject = {
+      suggestedMaxFeePerGas:
+        eip1559GasObject.suggestedMaxFeePerGas ||
+        gasFeeEstimates[gasSelected]?.suggestedMaxFeePerGas,
+      suggestedMaxPriorityFeePerGas:
+        eip1559GasObject.suggestedMaxPriorityFeePerGas ||
+        gasFeeEstimates[gasSelected]?.suggestedMaxPriorityFeePerGas,
+      suggestedGasLimit:
+        eip1559GasObject.suggestedGasLimit ||
+        eip1559GasTransaction.suggestedGasLimit,
+    };
+
+    const selectedLegacyGasObject = {
+      legacyGasLimit: legacyGasObject?.legacyGasLimit,
+      suggestedGasPrice: legacyGasObject?.suggestedGasPrice,
+    };
+
+    const savedContactList = checkIfAddressIsSaved(
+      addressBook,
+      chainId,
+      transaction,
+    );
+
+    const savedContactListToArray = Object.values(addressBook).flatMap(
+      (value) => Object.values(value),
+    );
+
+    let addressNickname = '';
+
+    const filteredSavedContactList = savedContactListToArray.filter(
+      (contact) => contact.address === safeToChecksumAddress(address),
+    );
+
+    if (filteredSavedContactList.length > 0) {
+      addressNickname = filteredSavedContactList[0].name;
+    }
+
+    if (!transaction.id) return null;
+    return (
+      <Modal
+        isVisible={this.props.modalVisible}
+        animationIn="slideInUp"
+        animationOut="slideOutDown"
+        style={
+          this.state.shouldAddNickname
+            ? styles.updateNickView
+            : styles.bottomModal
+        }
+        backdropColor={colors.overlay.default}
+        backdropOpacity={1}
+        animationInTiming={600}
+        animationOutTiming={600}
+        onBackdropPress={this.onCancel}
+        onBackButtonPress={this.onCancel}
+        onSwipeComplete={this.onCancel}
+        swipeDirection={'down'}
+        propagateSwipe
+      >
+        {shouldAddNickname ? (
+          <AddNickname
+            closeModal={this.toggleModal}
+            address={address}
+            savedContactListToArray={savedContactListToArray}
+            addressNickname={addressNickname}
+          />
+        ) : this.state.isBlockExplorerVisible ? (
+          <ShowBlockExplorer
+            setIsBlockExplorerVisible={this.setIsBlockExplorerVisible}
+            type={providerType}
+            address={transaction.to}
+            headerWrapperStyle={styles.headerWrapper}
+            headerTextStyle={styles.headerText}
+            iconStyle={styles.icon}
+            providerRpcTarget={providerRpcTarget}
+            networkConfigurations={networkConfigurations}
+          />
+        ) : (
+          <KeyboardAwareScrollView
+            contentContainerStyle={styles.keyboardAwareWrapper}
+          >
+            {mode === 'review' && (
+              <AnimatedTransactionModal
+                onModeChange={this.onModeChange}
+                ready={ready}
+                review={this.review}
+              >
+                <ApproveTransactionReview
+                  gasError={gasError}
+                  onCancel={this.onCancel}
+                  onConfirm={this.onConfirm}
+                  over={over}
+                  gasSelected={gasSelected}
+                  onSetAnalyticsParams={this.setAnalyticsParams}
+                  gasEstimateType={gasEstimateType}
+                  onUpdatingValuesStart={this.onUpdatingValuesStart}
+                  onUpdatingValuesEnd={this.onUpdatingValuesEnd}
+                  animateOnChange={animateOnChange}
+                  isAnimating={isAnimating}
+                  gasEstimationReady={ready}
+                  savedContactListToArray={savedContactListToArray}
+                  transactionConfirmed={transactionConfirmed}
+                  showBlockExplorer={this.setIsBlockExplorerVisible}
+                  toggleModal={this.toggleModal}
+                  showVerifyContractDetails={this.showVerifyContractDetails}
+                  shouldVerifyContractDetails={
+                    this.state.shouldVerifyContractDetails
+                  }
+                  closeVerifyContractDetails={this.closeVerifyContractDetails}
+                  nicknameExists={savedContactList && !!savedContactList.length}
+                  nickname={
+                    savedContactList && savedContactList.length > 0
+                      ? savedContactList[0].nickname
+                      : ''
+                  }
+                  chainId={chainId}
+                  updateTokenAllowanceState={this.updateTokenAllowanceState}
+                  tokenAllowanceState={tokenAllowanceState}
+                  updateTransactionState={this.updateTransactionState}
+                  legacyGasObject={this.state.legacyGasObject}
+                  eip1559GasObject={this.state.eip1559GasObject}
+                  isGasEstimateStatusIn={isGasEstimateStatusIn}
+                />
+                {/** View fixes layout issue after removing <CustomGas/> */}
+                <View />
+              </AnimatedTransactionModal>
+            )}
+
+            {mode !== 'review' &&
+              (gasEstimateType === GAS_ESTIMATE_TYPES.FEE_MARKET ? (
+                <EditGasFee1559
+                  selectedGasValue={gasSelected}
+                  initialSuggestedGasLimit={this.state.suggestedGasLimit}
+                  gasOptions={gasFeeEstimates}
+                  onChange={this.updateGasSelected}
+                  primaryCurrency={primaryCurrency}
+                  chainId={chainId}
+                  onCancel={this.cancelGasEdition}
+                  onSave={this.saveGasEdition}
+                  animateOnChange={animateOnChange}
+                  isAnimating={isAnimating}
+                  view={'Approve'}
+                  analyticsParams={this.getGasAnalyticsParams()}
+                  onlyGas
+                  selectedGasObject={selectedGasObject}
+                />
+              ) : (
+                <EditGasFeeLegacy
+                  onCancel={this.cancelGasEdition}
+                  onSave={this.saveGasEditionLegacy}
+                  animateOnChange={animateOnChange}
+                  isAnimating={isAnimating}
+                  view={'Approve'}
+                  analyticsParams={this.getGasAnalyticsParams()}
+                  onlyGas
+                  selectedGasObject={selectedLegacyGasObject}
+                  error={legacyGasTransaction.error}
+                  onUpdatingValuesStart={this.onUpdatingValuesStart}
+                  onUpdatingValuesEnd={this.onUpdatingValuesEnd}
+                />
+              ))}
+          </KeyboardAwareScrollView>
+        )}
+        <GlobalAlert />
+      </Modal>
+    );
+  };
 }
 
 const mapStateToProps = (state) => ({
-	accounts: state.engine.backgroundState.AccountTrackerController.accounts,
-	ticker: state.engine.backgroundState.NetworkController.provider.ticker,
-	transaction: getNormalizedTxState(state),
-	transactions: state.engine.backgroundState.TransactionController.transactions,
-	accountsLength: Object.keys(state.engine.backgroundState.AccountTrackerController.accounts || {}).length,
-	tokensLength: state.engine.backgroundState.TokensController.tokens.length,
-	primaryCurrency: state.settings.primaryCurrency,
-	chainId: state.engine.backgroundState.NetworkController.provider.chainId,
-	gasFeeEstimates: state.engine.backgroundState.GasFeeController.gasFeeEstimates,
-	gasEstimateType: state.engine.backgroundState.GasFeeController.gasEstimateType,
-	currentCurrency: state.engine.backgroundState.CurrencyRateController.currentCurrency,
-	nativeCurrency: state.engine.backgroundState.CurrencyRateController.nativeCurrency,
-	conversionRate: state.engine.backgroundState.CurrencyRateController.conversionRate,
-	networkType: state.engine.backgroundState.NetworkController.provider.type,
+  accounts: selectAccounts(state),
+  ticker: selectTicker(state),
+  transaction: getNormalizedTxState(state),
+  transactions: state.engine.backgroundState.TransactionController.transactions,
+  tokensLength: selectTokensLength(state),
+  accountsLength: selectAccountsLength(state),
+  primaryCurrency: state.settings.primaryCurrency,
+  chainId: selectChainId(state),
+  gasFeeEstimates:
+    state.engine.backgroundState.GasFeeController.gasFeeEstimates,
+  gasEstimateType:
+    state.engine.backgroundState.GasFeeController.gasEstimateType,
+  conversionRate: selectConversionRate(state),
+  currentCurrency: selectCurrentCurrency(state),
+  nativeCurrency: selectNativeCurrency(state),
+  showCustomNonce: state.settings.showCustomNonce,
+  addressBook: state.engine.backgroundState.AddressBookController.addressBook,
+  providerType: selectProviderType(state),
+  providerRpcTarget: selectRpcTarget(state),
+  networkConfigurations: selectNetworkConfigurations(state),
 });
 
 const mapDispatchToProps = (dispatch) => ({
-	setTransactionObject: (transaction) => dispatch(setTransactionObject(transaction)),
+  setTransactionObject: (transaction) =>
+    dispatch(setTransactionObject(transaction)),
+  setNonce: (nonce) => dispatch(setNonce(nonce)),
+  setProposedNonce: (nonce) => dispatch(setProposedNonce(nonce)),
 });
+
+Approve.contextType = ThemeContext;
 
 export default connect(mapStateToProps, mapDispatchToProps)(Approve);

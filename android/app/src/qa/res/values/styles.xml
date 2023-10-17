@@ -1,0 +1,21 @@
+<resources>
+
+	<!-- Base application theme. -->
+	<style name="AppTheme" parent="Theme.AppCompat.DayNight.NoActionBar">
+		<!-- Customize your theme here. -->
+		<item name="android:windowBackground">@color/theme</item>
+		<item name="android:statusBarColor">@color/theme</item>
+		<item name="android:navigationBarColor">@color/navBar</item>
+		<item name="android:windowLightStatusBar">@bool/useLightStatusBar</item>
+		<item name="android:textColor">@color/themeInverse</item>
+	</style>
+
+	<style name="SplashTheme" parent="Theme.AppCompat.DayNight">
+		<item name="android:windowBackground">@drawable/background_splash</item>
+		<item name="android:statusBarColor">@color/theme</item>
+		<item name="android:navigationBarColor">@color/navBar</item>
+		<item name="android:windowLightStatusBar">@bool/useLightStatusBar</item>
+		<item name="android:textColor">@color/themeInverse</item>
+	</style>
+
+</resources>

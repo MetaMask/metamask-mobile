@@ -1,0 +1,26 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`Input should render correctly 1`] = `
+<TextInput
+  autoFocus={true}
+  editable={true}
+  onBlur={[Function]}
+  onFocus={[Function]}
+  style={
+    Object {
+      "backgroundColor": "#FFFFFF",
+      "borderColor": "transparent",
+      "borderWidth": 1,
+      "color": "#24272A",
+      "fontFamily": "Euclid Circular B",
+      "fontSize": 14,
+      "fontWeight": "400",
+      "height": 24,
+      "letterSpacing": 0,
+      "opacity": 1,
+      "paddingVertical": 0,
+    }
+  }
+  testID="input"
+/>
+`;

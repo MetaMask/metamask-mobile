@@ -1,0 +1,11 @@
+export const GENERAL_SETTINGS = 'general-settings';
+export const SECURITY_SETTINGS = 'security-settings';
+export const ADVANCED_SETTINGS = 'advanced-settings';
+export const CONTACTS_SETTINGS = 'contacts-settings';
+export const NETWORKS_SETTINGS = 'networks-settings';
+export const ON_RAMP_SETTINGS = 'on-ramp-settings';
+export const EXPERIMENTAL_SETTINGS = 'experimental-settings';
+export const ABOUT_METAMASK_SETTINGS = 'about-metamask-settings';
+export const REQUEST_SETTINGS = 'request-settings';
+export const CONTACT_SETTINGS = 'contact-settings';
+export const LOCK_SETTINGS = 'lock-settings';

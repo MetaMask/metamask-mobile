@@ -25,7 +25,7 @@ exports[`Coachmark should render correctly 1`] = `
       style={
         Object {
           "backgroundColor": "transparent",
-          "borderBottomColor": "#037dd6",
+          "borderBottomColor": "#0376C9",
           "borderBottomWidth": 12,
           "borderLeftColor": "transparent",
           "borderLeftWidth": 15,
@@ -43,9 +43,9 @@ exports[`Coachmark should render correctly 1`] = `
     style={
       Array [
         Object {
-          "backgroundColor": "#037dd6",
+          "backgroundColor": "#0376C9",
           "borderRadius": 8,
-          "padding": 18,
+          "padding": 20,
         },
         Object {},
       ]
@@ -54,15 +54,24 @@ exports[`Coachmark should render correctly 1`] = `
     <View
       style={
         Object {
-          "marginBottom": 0,
+          "alignItems": "center",
+          "flexDirection": "row",
+          "justifyContent": "space-between",
         }
       }
     >
+      <ButtonIcon
+        iconColorOverride="#FCFCFC"
+        iconName="Arrow2Left"
+        onPress={[Function]}
+        size="16"
+        testID="onboarding-wizard-back-button"
+      />
       <Text
         style={
           Object {
             "alignSelf": "center",
-            "color": "#FFFFFF",
+            "color": "#FCFCFC",
             "fontFamily": "EuclidCircularB-Bold",
             "fontSize": 18,
             "fontWeight": "600",
@@ -71,6 +80,11 @@ exports[`Coachmark should render correctly 1`] = `
       >
         title
       </Text>
+      <ButtonIcon
+        iconColorOverride="#FCFCFC"
+        iconName="Close"
+        size="16"
+      />
     </View>
     content
     <View
@@ -81,34 +95,6 @@ exports[`Coachmark should render correctly 1`] = `
         }
       }
     >
-      <StyledButton
-        containerStyle={
-          Array [
-            Object {
-              "height": 45,
-              "padding": 5,
-              "width": 75,
-            },
-            Object {
-              "left": 0,
-            },
-          ]
-        }
-        disabledContainerStyle={
-          Object {
-            "opacity": 0.6,
-          }
-        }
-        onPress={[Function]}
-        styleDisabled={
-          Object {
-            "opacity": 0.6,
-          }
-        }
-        type="transparent"
-      >
-        Back
-      </StyledButton>
       <View
         style={
           Object {
@@ -117,88 +103,16 @@ exports[`Coachmark should render correctly 1`] = `
           }
         }
       >
-        <View
-          key="1"
+        <Text
           style={
-            Array [
-              Object {
-                "backgroundColor": "#FFFFFF",
-                "borderRadius": 3,
-                "height": 6,
-                "margin": 3,
-                "opacity": 0.4,
-                "width": 6,
-              },
-              Object {
-                "opacity": 1,
-              },
-            ]
+            Object {
+              "color": "#FCFCFC",
+            }
           }
-        />
-        <View
-          key="2"
-          style={
-            Array [
-              Object {
-                "backgroundColor": "#FFFFFF",
-                "borderRadius": 3,
-                "height": 6,
-                "margin": 3,
-                "opacity": 0.4,
-                "width": 6,
-              },
-              Object {},
-            ]
-          }
-        />
-        <View
-          key="3"
-          style={
-            Array [
-              Object {
-                "backgroundColor": "#FFFFFF",
-                "borderRadius": 3,
-                "height": 6,
-                "margin": 3,
-                "opacity": 0.4,
-                "width": 6,
-              },
-              Object {},
-            ]
-          }
-        />
-        <View
-          key="4"
-          style={
-            Array [
-              Object {
-                "backgroundColor": "#FFFFFF",
-                "borderRadius": 3,
-                "height": 6,
-                "margin": 3,
-                "opacity": 0.4,
-                "width": 6,
-              },
-              Object {},
-            ]
-          }
-        />
-        <View
-          key="5"
-          style={
-            Array [
-              Object {
-                "backgroundColor": "#FFFFFF",
-                "borderRadius": 3,
-                "height": 6,
-                "margin": 3,
-                "opacity": 0.4,
-                "width": 6,
-              },
-              Object {},
-            ]
-          }
-        />
+        >
+          1
+          /5
+        </Text>
       </View>
       <StyledButton
         containerStyle={
@@ -224,9 +138,10 @@ exports[`Coachmark should render correctly 1`] = `
             "opacity": 0.6,
           }
         }
-        type="normal"
+        testID="onboarding-wizard-got-it-button"
+        type="inverse"
       >
-        Got it!
+        Got it
       </StyledButton>
     </View>
   </View>

@@ -1,0 +1,25 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`WatchAssetApproval renders 1`] = `
+<ApprovalModal
+  isVisible={true}
+>
+  <WatchAssetRequest
+    suggestedAssetMeta={Object {}}
+  />
+</ApprovalModal>
+`;
+
+exports[`WatchAssetApproval returns null if no approval request 1`] = `""`;
+
+exports[`WatchAssetApproval returns null if no request data 1`] = `""`;
+
+exports[`WatchAssetApproval sets isVisible to false if incorrect approval request type 1`] = `
+<ApprovalModal
+  isVisible={false}
+>
+  <WatchAssetRequest
+    suggestedAssetMeta={Object {}}
+  />
+</ApprovalModal>
+`;

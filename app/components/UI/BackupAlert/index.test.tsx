@@ -7,20 +7,23 @@ import { Provider } from 'react-redux';
 
 const mockStore = configureMockStore();
 const initialState = {
-	user: {
-		seedphraseBackedUp: false,
-		passwordSet: false,
-	},
+  user: {
+    seedphraseBackedUp: false,
+    passwordSet: false,
+  },
+  wizard: {
+    step: 0,
+  },
 };
 const store = mockStore(initialState);
 
 describe('BackupAlert', () => {
-	it('should render correctly', () => {
-		const wrapper = shallow(
-			<Provider store={store}>
-				<BackupAlert />
-			</Provider>
-		);
-		expect(wrapper.dive()).toMatchSnapshot();
-	});
+  it('should render correctly', () => {
+    const wrapper = shallow(
+      <Provider store={store}>
+        <BackupAlert />
+      </Provider>,
+    );
+    expect(wrapper).toMatchSnapshot();
+  });
 });

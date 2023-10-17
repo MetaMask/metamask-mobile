@@ -8,19 +8,22 @@ pluginManagement {
 }
 
 rootProject.name = 'MetaMask'
+apply from: file("../node_modules/@react-native-community/cli-platform-android/native_modules.gradle"); applyNativeModulesSettingsGradle(settings)
 include ':app'
+includeBuild('../node_modules/react-native-gradle-plugin')
+includeBuild('../node_modules/react-native') {
+     dependencySubstitution {
+         substitute(module("com.facebook.react:react-android")).using(project(":ReactAndroid"))
+         substitute(module("com.facebook.react:react-native")).using(project(":ReactAndroid"))
+         substitute(module("com.facebook.react:hermes-android")).using(project(":ReactAndroid:hermes-engine"))
+         substitute(module("com.facebook.react:hermes-engine")).using(project(":ReactAndroid:hermes-engine"))
+     }
+}
 include ':@react-native-community_blur'
 project(':@react-native-community_blur').projectDir = new File(rootProject.projectDir, '../node_modules/@react-native-community/blur/android')
 include ':lottie-react-native'
 project(':lottie-react-native').projectDir = new File(rootProject.projectDir, '../node_modules/lottie-react-native/src/android')
 include ':react-native-gesture-handler'
 project(':react-native-gesture-handler').projectDir = new File(rootProject.projectDir, '../node_modules/react-native-gesture-handler/android')
-apply from: file("../node_modules/@react-native-community/cli-platform-android/native_modules.gradle"); applyNativeModulesSettingsGradle(settings)
 include ':react-native-video'
 project(':react-native-video').projectDir = new File(rootProject.projectDir, '../node_modules/react-native-video/android-exoplayer')
-include(":packages:react-native-codegen:android")
-project(":packages:react-native-codegen:android").projectDir = new File(rootProject.projectDir, 
-"../node_modules/react-native/packages/react-native-codegen/android")
-includeBuild("../node_modules/react-native/packages/react-native-codegen/android")
-include ':ReactAndroid'
-project(':ReactAndroid').projectDir = new File(rootProject.projectDir, '../node_modules/react-native/ReactAndroid')

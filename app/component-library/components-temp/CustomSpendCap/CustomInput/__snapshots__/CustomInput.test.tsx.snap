@@ -1,0 +1,67 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`CustomInput should render correctly 1`] = `
+<View
+  style={
+    Array [
+      Object {
+        "backgroundColor": "#FFFFFF",
+        "borderRadius": 8,
+        "flexDirection": "row",
+        "justifyContent": "space-between",
+        "padding": 16,
+      },
+      false,
+    ]
+  }
+  testID="custom-spend-cap-input-test-id"
+>
+  <View
+    style={
+      Object {
+        "alignItems": "center",
+        "flex": 1,
+        "flexDirection": "row",
+      }
+    }
+  >
+    <TextInput
+      keyboardType="numeric"
+      multiline={true}
+      onChangeText={[Function]}
+      placeholder="Enter a number here"
+      style={
+        Array [
+          Object {
+            "color": "#24272A",
+            "flexGrow": 1,
+            "fontFamily": "Euclid Circular B",
+            "fontSize": 14,
+            "fontWeight": "400",
+            "letterSpacing": 0,
+            "lineHeight": 22,
+            "marginRight": 16,
+            "paddingBottom": 0,
+            "paddingTop": 0,
+          },
+          false,
+        ]
+      }
+      testID="custom-spend-cap-input-input-id"
+      value="123"
+    />
+  </View>
+  <Text
+    onPress={[Function]}
+    style={
+      Object {
+        "color": "#535A61",
+      }
+    }
+    testID="custom-spend-cap-max-test-id"
+    variant="sBodySM"
+  >
+    Max
+  </Text>
+</View>
+`;

@@ -9,12 +9,12 @@ const initialState = {};
 const store = mockStore(initialState);
 
 describe('OnboardingCarousel', () => {
-	it('should render correctly', () => {
-		const wrapper = shallow(
-			<Provider store={store}>
-				<OnboardingCarousel />
-			</Provider>
-		);
-		expect(wrapper).toMatchSnapshot();
-	});
+  it('should render correctly', () => {
+    const wrapper = shallow(
+      <Provider store={store}>
+        <OnboardingCarousel />
+      </Provider>,
+    );
+    expect(wrapper).toMatchSnapshot();
+  });
 });

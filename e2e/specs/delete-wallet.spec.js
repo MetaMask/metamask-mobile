@@ -1,80 +1,80 @@
 'use strict';
 
 import TestHelpers from '../helpers';
+import { Smoke } from '../tags';
 
 import OnboardingView from '../pages/Onboarding/OnboardingView';
-import OnboardingCarouselView from '../pages/Onboarding/OnboardingCarouselView';
-import ImportWalletView from '../pages/Onboarding/ImportWalletView';
 
-import MetaMetricsOptIn from '../pages/Onboarding/MetaMetricsOptInView';
-import WalletView from '../pages/WalletView';
 import LoginView from '../pages/LoginView';
 
-import DrawerView from '../pages/Drawer/DrawerView';
+import SettingsView from '../pages/Drawer/Settings/SettingsView';
 
-import OnboardingWizardModal from '../pages/modals/OnboardingWizardModal';
+import SecurityAndPrivacyView from '../pages/Drawer/Settings/SecurityAndPrivacy/SecurityAndPrivacyView';
+import ChangePasswordView from '../pages/Drawer/Settings/SecurityAndPrivacy/ChangePasswordView';
+
 import DeleteWalletModal from '../pages/modals/DeleteWalletModal';
+import { loginToApp } from '../viewHelper';
+import TabBarComponent from '../pages/TabBarComponent';
+import FixtureBuilder from '../fixtures/fixture-builder';
+import { withFixtures } from '../fixtures/fixture-helper';
 
-const SECRET_RECOVERY_PHRASE =
-	'ketchup width ladder rent cheap eye torch employ quantum evidence artefact render protect delay wrap identify valley umbrella yard ridge wool swap differ kidney';
-const PASSWORD = `12345678`;
+describe(
+  Smoke('Log in into the app, change password then delete wallet flow'),
+  () => {
+    const PASSWORD = '123123123';
 
-describe('Import wallet with 24 word seedphrase and delete wallet flow', () => {
-	beforeEach(() => {
-		jest.setTimeout(150000);
-	});
+    beforeAll(async () => {
+      jest.setTimeout(150000);
+      await TestHelpers.reverseServerPort();
+    });
 
-	it('should go to import wallet view', async () => {
-		await OnboardingCarouselView.isVisible();
-		await OnboardingCarouselView.tapOnGetStartedButton();
+    it('should log in into the app, change password then delete wallet flow', async () => {
+      const fixture = new FixtureBuilder().build();
+      await withFixtures({ fixture, restartDevice: true }, async () => {
+        await loginToApp();
 
-		await OnboardingView.isVisible();
-		await OnboardingView.tapImportWalletFromSeedPhrase();
+        // should go to settings then security & privacy
+        await TabBarComponent.tapSettings();
+        await SettingsView.tapSecurityAndPrivacy();
+        await SecurityAndPrivacyView.scrollToChangePasswordView();
+        await SecurityAndPrivacyView.isChangePasswordSectionVisible();
 
-		await MetaMetricsOptIn.isVisible();
-		await MetaMetricsOptIn.tapAgreeButton();
+        // should confirm password before changing it
+        await SecurityAndPrivacyView.tapChangePasswordButton();
 
-		await ImportWalletView.isVisible();
-	});
+        await ChangePasswordView.isVisible();
+        await ChangePasswordView.typeInConfirmPasswordInputBox(PASSWORD);
 
-	it('should import wallet with valid secret recovery phrase and password', async () => {
-		await ImportWalletView.clearSecretRecoveryPhraseInputBox();
-		await ImportWalletView.enterSecretRecoveryPhrase(SECRET_RECOVERY_PHRASE);
-		await ImportWalletView.enterPassword(PASSWORD);
-		await ImportWalletView.reEnterPassword(PASSWORD);
-	});
+        // should change the password
+        const NEW_PASSWORD = '11111111';
+        await ChangePasswordView.tapIUnderstandCheckBox();
+        await ChangePasswordView.enterPassword(NEW_PASSWORD);
+        await ChangePasswordView.reEnterPassword(NEW_PASSWORD);
 
-	it('should dismiss the onboarding wizard', async () => {
-		// dealing with flakiness on bitrise.
-		await TestHelpers.delay(1000);
-		try {
-			await OnboardingWizardModal.isVisible();
-			await OnboardingWizardModal.tapNoThanksButton();
-			await OnboardingWizardModal.isNotVisible();
-		} catch {
-			//
-		}
-	});
+        if ((await device.getPlatform) === 'ios') {
+          await ChangePasswordView.tapResetPasswordButton();
+        }
 
-	it('should open drawer and log out', async () => {
-		await WalletView.tapDrawerButton();
+        // should lock wallet from Settings
+        await device.disableSynchronization(); // because the SRP tutorial video prevents the test from moving forward
+        await SecurityAndPrivacyView.tapBackButton();
+        await device.enableSynchronization();
+        await SettingsView.tapLock();
+        await SettingsView.tapYesAlertButton();
+        await LoginView.isVisible();
 
-		await DrawerView.isVisible();
-		await DrawerView.tapLockAccount();
-		await DrawerView.tapYesAlertButton();
-		await LoginView.isVisible();
-	});
+        // should tap reset wallet button
+        await LoginView.tapResetWalletButton();
 
-	it('should tap reset wallet button', async () => {
-		await LoginView.tapResetWalletButton();
+        await DeleteWalletModal.isVisible();
 
-		await DeleteWalletModal.isVisible();
-	});
-	it('should delete wallet', async () => {
-		await DeleteWalletModal.tapIUnderstandButton();
-		await DeleteWalletModal.typeDeleteInInputBox();
-
-		await TestHelpers.delay(2000);
-		await OnboardingView.isVisible();
-	});
-});
+        // should delete wallet
+        await DeleteWalletModal.tapIUnderstandButton();
+        await DeleteWalletModal.typeDeleteInInputBox();
+        await DeleteWalletModal.tapDeleteMyWalletButton();
+        await TestHelpers.delay(2000);
+        await OnboardingView.isVisible();
+      });
+    });
+  },
+);

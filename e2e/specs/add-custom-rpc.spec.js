@@ -1,151 +1,136 @@
 'use strict';
 import TestHelpers from '../helpers';
-
-import OnboardingView from '../pages/Onboarding/OnboardingView';
-import OnboardingCarouselView from '../pages/Onboarding/OnboardingCarouselView';
-import ProtectYourWalletView from '../pages/Onboarding/ProtectYourWalletView';
-import CreatePasswordView from '../pages/Onboarding/CreatePasswordView';
+import { Regression } from '../tags';
 
 import NetworkView from '../pages/Drawer/Settings/NetworksView';
 
-import MetaMetricsOptIn from '../pages/Onboarding/MetaMetricsOptInView';
 import WalletView from '../pages/WalletView';
-import DrawerView from '../pages/Drawer/DrawerView';
 import SettingsView from '../pages/Drawer/Settings/SettingsView';
 
 import NetworkListModal from '../pages/modals/NetworkListModal';
-import SkipAccountSecurityModal from '../pages/modals/SkipAccountSecurityModal';
-import OnboardingWizardModal from '../pages/modals/OnboardingWizardModal';
-import ProtectYourWalletModal from '../pages/modals/ProtectYourWalletModal';
+import NetworkEducationModal from '../pages/modals/NetworkEducationModal';
 
-const RINKEBY = 'Rinkeby Test Network';
-const XDAI_URL = 'https://dai.poa.network/';
+import { loginToApp } from '../viewHelper';
+import TabBarComponent from '../pages/TabBarComponent';
+import FixtureBuilder from '../fixtures/fixture-builder';
+import {
+  loadFixture,
+  startFixtureServer,
+  stopFixtureServer,
+} from '../fixtures/fixture-helper';
+import { getFixturesServerPort } from '../fixtures/utils';
+import FixtureServer from '../fixtures/fixture-server';
+
+const fixtureServer = new FixtureServer();
+const GORELI = 'Goerli Test Network';
+const XDAI_URL = 'https://rpc.gnosischain.com';
 const MAINNET = 'Ethereum Main Network';
-const PASSWORD = '12345678';
 
-describe('Custom RPC Tests', () => {
-	beforeEach(() => {
-		jest.setTimeout(170000);
-	});
+describe(Regression('Custom RPC Tests'), () => {
+  beforeAll(async () => {
+    await TestHelpers.reverseServerPort();
+    const fixture = new FixtureBuilder().build();
+    await startFixtureServer(fixtureServer);
+    await loadFixture(fixtureServer, { fixture });
+    await device.launchApp({
+      delete: true,
+      launchArgs: { fixtureServerPort: `${getFixturesServerPort()}` },
+    });
+    await loginToApp();
+  });
 
-	it('should create new wallet', async () => {
-		await OnboardingCarouselView.isVisible();
-		await OnboardingCarouselView.tapOnGetStartedButton();
+  beforeEach(() => {
+    jest.setTimeout(150000);
+  });
 
-		await OnboardingView.isVisible();
-		await OnboardingView.tapCreateWallet();
+  afterAll(async () => {
+    await stopFixtureServer(fixtureServer);
+  });
 
-		await MetaMetricsOptIn.isVisible();
-		await MetaMetricsOptIn.tapNoThanksButton();
+  it('should go to settings then networks', async () => {
+    await TabBarComponent.tapSettings();
+    await SettingsView.tapNetworks();
+    await NetworkView.isNetworkViewVisible();
+  });
 
-		await CreatePasswordView.isVisible();
-		await CreatePasswordView.enterPassword(PASSWORD);
-		await CreatePasswordView.reEnterPassword(PASSWORD);
-		await CreatePasswordView.tapIUnderstandCheckBox();
-		await CreatePasswordView.tapCreatePasswordButton();
-	});
+  it('should add xDai network', async () => {
+    // Tap on Add Network button
+    await TestHelpers.delay(3000);
+    await NetworkView.tapAddNetworkButton();
+    await NetworkView.switchToCustomNetworks();
 
-	it('Should skip backup check', async () => {
-		// Check that we are on the Secure your wallet screen
-		await ProtectYourWalletView.isVisible();
-		await ProtectYourWalletView.tapOnRemindMeLaterButton();
+    await NetworkView.typeInNetworkName('xDai');
+    await NetworkView.typeInRpcUrl('abc'); // Input incorrect RPC URL
+    await NetworkView.isRPCWarningVisble(); // Check that warning is displayed
+    await NetworkView.clearRpcInputBox();
+    await NetworkView.typeInRpcUrl(XDAI_URL);
+    await NetworkView.typeInChainId('100');
+    await NetworkView.typeInNetworkSymbol('xDAI\n');
 
-		await SkipAccountSecurityModal.tapIUnderstandCheckBox();
-		await SkipAccountSecurityModal.tapSkipButton();
-		await WalletView.isVisible();
-	});
+    if (device.getPlatform() === 'ios') {
+      await NetworkView.swipeToRPCTitleAndDismissKeyboard(); // Focus outside of text input field
+      await NetworkView.tapRpcNetworkAddButton();
+    }
+    await TestHelpers.delay(3000);
+    await WalletView.isVisible();
+    await WalletView.isNetworkNameVisible('xDai');
+  });
+  it('should dismiss network education modal', async () => {
+    await NetworkEducationModal.isVisible();
+    await NetworkEducationModal.isNetworkNameCorrect('Xdai');
+    await NetworkEducationModal.tapGotItButton();
+    await NetworkEducationModal.isNotVisible();
+  });
 
-	it('should dismiss the onboarding wizard', async () => {
-		// dealing with flakiness on bitrise
-		await TestHelpers.delay(1000);
-		try {
-			await OnboardingWizardModal.isVisible();
-			await OnboardingWizardModal.tapNoThanksButton();
-			await OnboardingWizardModal.isNotVisible();
-		} catch {
-			//
-		}
-	});
+  it('should validate that xDai is added to network list', async () => {
+    // Tap to prompt network list
+    await WalletView.tapNetworksButtonOnNavBar();
 
-	it('should dismiss the protect your wallet modal', async () => {
-		await ProtectYourWalletModal.isCollapsedBackUpYourWalletModalVisible();
-		await TestHelpers.delay(1000);
+    await NetworkListModal.isVisible();
+    await NetworkListModal.isNetworkNameVisibleInListOfNetworks('xDai');
+  });
 
-		await ProtectYourWalletModal.tapRemindMeLaterButton();
+  it('should switch to Goreli then dismiss the network education modal', async () => {
+    await NetworkListModal.isTestNetworkToggleOn();
+    await NetworkListModal.changeNetwork(GORELI);
 
-		await SkipAccountSecurityModal.tapIUnderstandCheckBox();
-		await SkipAccountSecurityModal.tapSkipButton();
+    await NetworkEducationModal.isVisible();
+    await NetworkEducationModal.isNetworkNameCorrect('Goreli Test Network');
 
-		await WalletView.isVisible();
-	});
+    await NetworkEducationModal.tapGotItButton();
+    await NetworkEducationModal.isNotVisible();
 
-	it('should go to settings then networks', async () => {
-		// Open Drawer
-		await WalletView.tapDrawerButton(); // tapping burger menu
+    await WalletView.isVisible();
+  });
 
-		await DrawerView.isVisible();
-		await DrawerView.tapSettings();
+  it('should switch back to xDAI', async () => {
+    await WalletView.isNetworkNameVisible(GORELI);
+    await WalletView.tapNetworksButtonOnNavBar();
 
-		await SettingsView.tapNetworks();
+    await NetworkListModal.isVisible();
+    await NetworkListModal.scrollToBottomOfNetworkList();
 
-		await NetworkView.isNetworkViewVisible();
-	});
+    // Change to back to xDai Network
+    await NetworkListModal.changeNetwork('xDai');
 
-	it('should add xDai network', async () => {
-		// Tap on Add Network button
-		await TestHelpers.delay(3000);
-		await NetworkView.tapAddNetworkButton();
+    await WalletView.isVisible();
+    await WalletView.isNetworkNameVisible('xDai');
+    await NetworkEducationModal.isNotVisible();
+  });
 
-		await NetworkView.isRpcViewVisible();
-		await NetworkView.typeInNetworkName('xDai');
-		await NetworkView.typeInRpcUrl('abc'); // Input incorrect RPC URL
-		await NetworkView.isRPCWarningVisble(); // Check that warning is displayed
-		await NetworkView.clearRpcInputBox();
-		await NetworkView.typeInRpcUrl(XDAI_URL);
-		await NetworkView.typeInChainId('100');
-		await NetworkView.typeInNetworkSymbol('xDAI\n');
+  it('should go to settings networks and remove xDai network', async () => {
+    await TestHelpers.delay(3000);
 
-		await NetworkView.swipeToRPCTitleAndDismissKeyboard(); // Focus outside of text input field
-		await NetworkView.tapRpcNetworkAddButton();
+    await TabBarComponent.tapSettings();
+    await SettingsView.tapNetworks();
 
-		await WalletView.isVisible();
-		await WalletView.isNetworkNameVisible('xDai');
-	});
+    await NetworkView.isNetworkViewVisible();
+    await NetworkView.removeNetwork(); // Tap on xDai to remove network
+    await NetworkEducationModal.tapGotItButton();
 
-	it('should validate that xDai is added to network list then switch networks', async () => {
-		// Tap to prompt network list
-		await WalletView.tapNetworksButtonOnNavBar();
+    await TabBarComponent.tapWallet();
 
-		await NetworkListModal.isVisible();
-		await NetworkListModal.isNetworkNameVisibleInListOfNetworks('xDai');
-		await NetworkListModal.changeNetwork(RINKEBY);
-
-		await WalletView.isNetworkNameVisible(RINKEBY);
-		await WalletView.tapNetworksButtonOnNavBar();
-
-		await NetworkListModal.isVisible();
-		await NetworkListModal.scrollToBottomOfNetworkList();
-
-		// Change to back to xDai Network
-		await NetworkListModal.changeNetwork('xDai');
-
-		await WalletView.isVisible();
-		await WalletView.isNetworkNameVisible('xDai');
-	});
-
-	it('should go to settings networks and remove xDai network', async () => {
-		// Open Drawer
-		await WalletView.tapDrawerButton(); // tapping burger menu
-		await DrawerView.isVisible();
-		await DrawerView.tapSettings();
-
-		await SettingsView.tapNetworks();
-
-		await NetworkView.isNetworkViewVisible();
-		await NetworkView.removeNetwork(); // Tap on xDai to remove network
-		await NetworkView.tapBackButtonAndReturnToWallet();
-
-		await WalletView.isVisible();
-		await WalletView.isNetworkNameVisible(MAINNET);
-	});
+    await WalletView.isVisible();
+    await WalletView.isNetworkNameVisible(MAINNET);
+  });
 });

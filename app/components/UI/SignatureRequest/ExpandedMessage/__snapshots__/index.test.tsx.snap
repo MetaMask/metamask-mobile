@@ -30,7 +30,7 @@ exports[`ExpandedMessage should render correctly 1`] = `
       size={30}
       style={
         Object {
-          "color": "#bbc0c5",
+          "color": "#BBC0C5",
           "flex": 1,
         }
       }
@@ -38,6 +38,7 @@ exports[`ExpandedMessage should render correctly 1`] = `
     <Text
       style={
         Object {
+          "color": "#24272A",
           "flex": 1,
           "fontFamily": "EuclidCircularB-Bold",
           "fontSize": 16,
@@ -79,6 +80,7 @@ exports[`ExpandedMessage should render correctly 1`] = `
     <Text
       style={
         Object {
+          "color": "#24272A",
           "fontFamily": "EuclidCircularB-Bold",
           "fontSize": 16,
           "fontWeight": "600",

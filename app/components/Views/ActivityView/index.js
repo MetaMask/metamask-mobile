@@ -1,63 +1,81 @@
-import React, { useEffect, useContext } from 'react';
-import PropTypes from 'prop-types';
+import React, { useEffect, useCallback } from 'react';
 import { View, StyleSheet } from 'react-native';
 import ScrollableTabView from 'react-native-scrollable-tab-view';
-import { connect } from 'react-redux';
+import { useSelector } from 'react-redux';
 import { useNavigation } from '@react-navigation/native';
 import { getHasOrders } from '../../../reducers/fiatOrders';
-import getNavbarOptions from '../../UI/Navbar';
+import { getTransactionsNavbarOptions } from '../../UI/Navbar';
 import TransactionsView from '../TransactionsView';
 import TabBar from '../../Base/TabBar';
 import { strings } from '../../../../locales/i18n';
-import FiatOrdersView from '../FiatOrdersView';
+import RampOrdersList from '../RampOrdersList';
 import ErrorBoundary from '../ErrorBoundary';
-import { DrawerContext } from '../../Nav/Main/MainNavigator';
+import { useTheme } from '../../../util/theme';
+import Routes from '../../../constants/navigation/Routes';
+import AnalyticsV2 from '../../../util/analyticsV2';
+import { MetaMetricsEvents } from '../../../core/Analytics';
+import { selectAccounts } from '../../../selectors/accountTrackerController';
+import { selectSelectedAddress } from '../../../selectors/preferencesController';
 
 const styles = StyleSheet.create({
-	wrapper: {
-		flex: 1,
-	},
+  wrapper: {
+    flex: 1,
+  },
 });
 
-function ActivityView({ hasOrders }) {
-	const { drawerRef } = useContext(DrawerContext);
-	const navigation = useNavigation();
+const ActivityView = () => {
+  const { colors } = useTheme();
+  const navigation = useNavigation();
+  const selectedAddress = useSelector(selectSelectedAddress);
+  const hasOrders = useSelector((state) => getHasOrders(state) || false);
+  const accounts = useSelector(selectAccounts);
 
-	useEffect(
-		() => {
-			const title = hasOrders ?? false ? 'activity_view.title' : 'transactions_view.title';
-			navigation.setOptions(getNavbarOptions(title, false, drawerRef));
-		},
-		/* eslint-disable-next-line */
-		[navigation, hasOrders]
-	);
+  const openAccountSelector = useCallback(() => {
+    navigation.navigate(Routes.MODAL.ROOT_MODAL_FLOW, {
+      screen: Routes.SHEET.ACCOUNT_SELECTOR,
+    });
+    // Track Event: "Opened Acount Switcher"
+    AnalyticsV2.trackEvent(MetaMetricsEvents.BROWSER_OPEN_ACCOUNT_SWITCH, {
+      number_of_accounts: Object.keys(accounts ?? {}).length,
+    });
+  }, [navigation, accounts]);
 
-	return (
-		<ErrorBoundary view="ActivityView">
-			<View style={styles.wrapper}>
-				<ScrollableTabView
-					renderTabBar={hasOrders && TabBar}
-					locked={!hasOrders}
-					page={!hasOrders ? 0 : undefined}
-				>
-					<TransactionsView tabLabel={strings('transactions_view.title')} />
-					{hasOrders && <FiatOrdersView tabLabel={strings('fiat_on_ramp.purchases')} />}
-				</ScrollableTabView>
-			</View>
-		</ErrorBoundary>
-	);
-}
+  useEffect(
+    () => {
+      const title =
+        hasOrders ?? false ? 'activity_view.title' : 'transactions_view.title';
+      navigation.setOptions(
+        getTransactionsNavbarOptions(
+          title,
+          colors,
+          navigation,
+          selectedAddress,
+          openAccountSelector,
+        ),
+      );
+    },
+    /* eslint-disable-next-line */
+    [navigation, hasOrders, colors, selectedAddress, openAccountSelector],
+  );
 
-ActivityView.defaultProps = {
-	hasOrders: false,
+  const renderTabBar = () => (hasOrders ? <TabBar /> : <View />);
+
+  return (
+    <ErrorBoundary navigation={navigation} view="ActivityView">
+      <View style={styles.wrapper}>
+        <ScrollableTabView
+          renderTabBar={renderTabBar}
+          locked={!hasOrders}
+          page={!hasOrders ? 0 : undefined}
+        >
+          <TransactionsView tabLabel={strings('transactions_view.title')} />
+          {hasOrders && (
+            <RampOrdersList tabLabel={strings('fiat_on_ramp.purchases')} />
+          )}
+        </ScrollableTabView>
+      </View>
+    </ErrorBoundary>
+  );
 };
 
-ActivityView.propTypes = {
-	hasOrders: PropTypes.bool,
-};
-
-const mapStateToProps = (state) => ({
-	hasOrders: getHasOrders(state),
-});
-
-export default connect(mapStateToProps)(ActivityView);
+export default ActivityView;

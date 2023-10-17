@@ -8,19 +8,19 @@ const isAndroid = Platform.OS === 'android';
 const ORIGIN = { x: Device.getDeviceWidth() / 2, y: 0 };
 
 const Confetti = (props) => {
-	let confettiView = false;
+  let confettiView = false;
 
-	useEffect(() => {
-		if (isAndroid && confettiView) {
-			confettiView.startConfetti();
-		}
-	}, [confettiView]);
+  useEffect(() => {
+    if (isAndroid && confettiView) {
+      confettiView.startConfetti();
+    }
+  }, [confettiView]);
 
-	return isAndroid ? (
-		<ConfettiNormal ref={(node) => (confettiView = node)} {...props} />
-	) : (
-		<ConfettiCannon fadeOut count={300} origin={ORIGIN} {...props} />
-	);
+  return isAndroid ? (
+    <ConfettiNormal ref={(node) => (confettiView = node)} {...props} />
+  ) : (
+    <ConfettiCannon fadeOut count={300} origin={ORIGIN} {...props} />
+  );
 };
 
 export default Confetti;

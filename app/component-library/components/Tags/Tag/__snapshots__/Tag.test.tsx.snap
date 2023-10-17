@@ -1,0 +1,28 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`Tag should render correctly 1`] = `
+<View
+  style={
+    Object {
+      "backgroundColor": "#FFFFFF",
+      "borderColor": "#BBC0C5",
+      "borderRadius": 10,
+      "borderWidth": 1,
+      "height": 20,
+      "justifyContent": "center",
+      "paddingHorizontal": 4,
+    }
+  }
+>
+  <Text
+    style={
+      Object {
+        "bottom": 2,
+      }
+    }
+    variant="sBodyMD"
+  >
+    Imported
+  </Text>
+</View>
+`;

@@ -1,0 +1,22 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`Badge should render badge network given the badge network variant 1`] = `
+<BadgeNetwork
+  imageSource={
+    Object {
+      "uri": "https://assets.coingecko.com/coins/images/279/small/ethereum.png?1595348880",
+    }
+  }
+  name="Ethereum"
+  testID="badge-badgenetwork"
+  variant="network"
+/>
+`;
+
+exports[`Badge should render badge status given the badge status variant 1`] = `
+<BadgeStatus
+  state="Inactive"
+  testID="badge-badgestatus"
+  variant="status"
+/>
+`;

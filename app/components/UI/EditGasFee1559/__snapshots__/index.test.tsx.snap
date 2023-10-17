@@ -38,28 +38,14 @@ exports[`EditGasFee1559 should render correctly 1`] = `
             <TouchableOpacity>
               <Icon
                 allowFontScaling={false}
-                color="#24292E"
+                color="#24272A"
                 name="ios-arrow-back"
                 size={24}
               />
             </TouchableOpacity>
             <Text
               black={true}
-              blue={false}
               bold={true}
-              centered={false}
-              disclaimer={false}
-              green={false}
-              link={false}
-              modal={false}
-              primary={false}
-              red={false}
-              reset={false}
-              right={false}
-              small={false}
-              strikethrough={false}
-              underline={false}
-              upper={false}
             >
               Edit priority
             </Text>
@@ -90,21 +76,8 @@ exports[`EditGasFee1559 should render correctly 1`] = `
             <Text
               adjustsFontSizeToFit={true}
               black={true}
-              blue={false}
-              bold={false}
-              centered={false}
-              disclaimer={false}
-              green={false}
-              link={false}
-              modal={false}
               noMargin={true}
               numberOfLines={1}
-              primary={false}
-              red={false}
-              reset={false}
-              right={false}
-              small={false}
-              strikethrough={false}
               style={
                 Object {
                   "flex": 1,
@@ -112,8 +85,6 @@ exports[`EditGasFee1559 should render correctly 1`] = `
                   "textAlign": "center",
                 }
               }
-              underline={false}
-              upper={false}
             >
               ~
             </Text>
@@ -121,46 +92,17 @@ exports[`EditGasFee1559 should render correctly 1`] = `
           <Text
             big={true}
             black={true}
-            blue={false}
-            bold={false}
-            centered={false}
-            disclaimer={false}
-            green={false}
-            link={false}
-            modal={false}
             noMargin={true}
-            primary={false}
-            red={false}
-            reset={false}
-            right={false}
-            small={false}
-            strikethrough={false}
             style={
               Object {
                 "marginBottom": 6,
               }
             }
-            underline={false}
-            upper={false}
           >
             <Text
               black={true}
-              blue={false}
               bold={true}
-              centered={false}
-              disclaimer={false}
-              green={false}
-              link={false}
-              modal={false}
               noMargin={true}
-              primary={false}
-              red={false}
-              reset={false}
-              right={false}
-              small={false}
-              strikethrough={false}
-              underline={false}
-              upper={false}
             >
               Max fee
               :
@@ -178,22 +120,9 @@ exports[`EditGasFee1559 should render correctly 1`] = `
             }
           >
             <Text
-              black={false}
-              blue={false}
               bold={true}
-              centered={false}
-              disclaimer={false}
               green={false}
-              link={false}
-              modal={false}
-              primary={false}
               red={false}
-              reset={false}
-              right={false}
-              small={false}
-              strikethrough={false}
-              underline={false}
-              upper={false}
             />
           </View>
         </FadeAnimationView>
@@ -244,50 +173,22 @@ exports[`EditGasFee1559 should render correctly 1`] = `
                 }
               >
                 <Text
-                  black={false}
-                  blue={false}
                   bold={true}
-                  centered={false}
-                  disclaimer={false}
-                  green={false}
                   link={true}
-                  modal={false}
                   noMargin={true}
-                  primary={false}
-                  red={false}
-                  reset={false}
-                  right={false}
-                  small={false}
-                  strikethrough={false}
-                  underline={false}
-                  upper={false}
                 >
                   Advanced options
                 </Text>
                 <Text
-                  black={false}
-                  blue={false}
                   bold={true}
-                  centered={false}
-                  disclaimer={false}
-                  green={false}
                   link={true}
-                  modal={false}
                   noMargin={true}
-                  primary={false}
-                  red={false}
-                  reset={false}
-                  right={false}
-                  small={false}
-                  strikethrough={false}
                   style={
                     Object {
                       "marginLeft": 5,
                       "paddingTop": 1,
                     }
                   }
-                  underline={false}
-                  upper={false}
                 >
                   <Icon
                     allowFontScaling={false}
@@ -323,22 +224,8 @@ exports[`EditGasFee1559 should render correctly 1`] = `
                       >
                         <Text
                           black={true}
-                          blue={false}
                           bold={true}
-                          centered={false}
-                          disclaimer={false}
-                          green={false}
-                          link={false}
-                          modal={false}
                           noMargin={true}
-                          primary={false}
-                          red={false}
-                          reset={false}
-                          right={false}
-                          small={false}
-                          strikethrough={false}
-                          underline={false}
-                          upper={false}
                         >
                           Gas limit
                            
@@ -360,7 +247,7 @@ exports[`EditGasFee1559 should render correctly 1`] = `
                             size={14}
                             style={
                               Object {
-                                "color": "#bbc0c5",
+                                "color": "#BBC0C5",
                               }
                             }
                           />
@@ -393,22 +280,8 @@ exports[`EditGasFee1559 should render correctly 1`] = `
                       >
                         <Text
                           black={true}
-                          blue={false}
                           bold={true}
-                          centered={false}
-                          disclaimer={false}
-                          green={false}
-                          link={false}
-                          modal={false}
                           noMargin={true}
-                          primary={false}
-                          red={false}
-                          reset={false}
-                          right={false}
-                          small={false}
-                          strikethrough={false}
-                          underline={false}
-                          upper={false}
                         >
                           Max priority fee
                            
@@ -430,60 +303,32 @@ exports[`EditGasFee1559 should render correctly 1`] = `
                             size={14}
                             style={
                               Object {
-                                "color": "#bbc0c5",
+                                "color": "#BBC0C5",
                               }
                             }
                           />
                         </TouchableOpacity>
                       </View>
                     }
-                    min={"0.000001"}
+                    min={"0"}
                     name="Max priority fee"
                     onChangeValue={[Function]}
                     rightLabelComponent={
                       <Text
-                        black={false}
-                        blue={false}
-                        bold={false}
-                        centered={false}
-                        disclaimer={false}
-                        green={false}
                         grey={true}
-                        link={false}
-                        modal={false}
                         noMargin={true}
-                        primary={false}
-                        red={false}
-                        reset={false}
-                        right={false}
                         small={true}
-                        strikethrough={false}
-                        underline={false}
-                        upper={false}
                       >
                         <Text
-                          black={false}
-                          blue={false}
                           bold={true}
-                          centered={false}
-                          disclaimer={false}
-                          green={false}
-                          link={false}
-                          modal={false}
-                          primary={false}
-                          red={false}
                           reset={true}
-                          right={false}
-                          small={false}
-                          strikethrough={false}
-                          underline={false}
-                          upper={false}
                         >
                           Estimate
                           :
                         </Text>
                          
-                         GWEI
+                         
+                        GWEI
                       </Text>
                     }
                     unit="GWEI"
@@ -511,22 +356,9 @@ exports[`EditGasFee1559 should render correctly 1`] = `
                       >
                         <Text
                           black={true}
-                          blue={false}
                           bold={true}
-                          centered={false}
-                          disclaimer={false}
-                          green={false}
-                          link={false}
-                          modal={false}
                           noMargin={true}
-                          primary={false}
                           red={false}
-                          reset={false}
-                          right={false}
-                          small={false}
-                          strikethrough={false}
-                          underline={false}
-                          upper={false}
                         >
                           Max fee
                            
@@ -548,60 +380,32 @@ exports[`EditGasFee1559 should render correctly 1`] = `
                             size={14}
                             style={
                               Object {
-                                "color": "#bbc0c5",
+                                "color": "#BBC0C5",
                               }
                             }
                           />
                         </TouchableOpacity>
                       </View>
                     }
-                    min={"0.000001"}
+                    min={"0"}
                     name="Max fee"
                     onChangeValue={[Function]}
                     rightLabelComponent={
                       <Text
-                        black={false}
-                        blue={false}
-                        bold={false}
-                        centered={false}
-                        disclaimer={false}
-                        green={false}
                         grey={true}
-                        link={false}
-                        modal={false}
                         noMargin={true}
-                        primary={false}
-                        red={false}
-                        reset={false}
-                        right={false}
                         small={true}
-                        strikethrough={false}
-                        underline={false}
-                        upper={false}
                       >
                         <Text
-                          black={false}
-                          blue={false}
                           bold={true}
-                          centered={false}
-                          disclaimer={false}
-                          green={false}
-                          link={false}
-                          modal={false}
-                          primary={false}
-                          red={false}
                           reset={true}
-                          right={false}
-                          small={false}
-                          strikethrough={false}
-                          underline={false}
-                          upper={false}
                         >
                           Estimate
                           :
                         </Text>
                          
-                         GWEI
+                         
+                        GWEI
                       </Text>
                     }
                     unit="GWEI"
@@ -621,22 +425,8 @@ exports[`EditGasFee1559 should render correctly 1`] = `
               }
             >
               <Text
-                black={false}
-                blue={false}
-                bold={false}
                 centered={true}
-                disclaimer={false}
-                green={false}
                 link={true}
-                modal={false}
-                primary={false}
-                red={false}
-                reset={false}
-                right={false}
-                small={false}
-                strikethrough={false}
-                underline={false}
-                upper={false}
               >
                 How should I choose?
               </Text>
@@ -663,24 +453,8 @@ exports[`EditGasFee1559 should render correctly 1`] = `
           body={
             <View>
               <Text
-                black={false}
-                blue={false}
-                bold={false}
-                centered={false}
-                disclaimer={false}
-                green={false}
                 grey={true}
                 infoModal={true}
-                link={false}
-                modal={false}
-                primary={false}
-                red={false}
-                reset={false}
-                right={false}
-                small={false}
-                strikethrough={false}
-                underline={false}
-                upper={false}
               >
                 We have updated the gas fee based on current network conditions and have increased it by at least 10% (required by the network). 
               </Text>
@@ -703,177 +477,71 @@ exports[`EditGasFee1559 should render correctly 1`] = `
                 <TouchableWithoutFeedback>
                   <View>
                     <Text
-                      black={false}
-                      blue={false}
-                      bold={false}
-                      centered={false}
-                      disclaimer={false}
-                      green={false}
                       grey={true}
                       infoModal={true}
-                      link={false}
-                      modal={false}
                       noMargin={true}
-                      primary={false}
-                      red={false}
-                      reset={false}
-                      right={false}
-                      small={false}
-                      strikethrough={false}
-                      underline={false}
-                      upper={false}
                     >
                       Selecting the right gas fee depends on the type of transaction and how important it is to you.
                     </Text>
                     <Text
-                      black={false}
-                      blue={false}
                       bold={true}
-                      centered={false}
-                      disclaimer={false}
-                      green={false}
                       infoModal={true}
-                      link={false}
-                      modal={false}
                       noMargin={true}
                       primary={true}
-                      red={false}
-                      reset={false}
-                      right={false}
-                      small={false}
-                      strikethrough={false}
                       style={
                         Object {
                           "marginTop": 9,
                         }
                       }
-                      underline={false}
-                      upper={false}
-                    >
-                      High
-                    </Text>
-                    <Text
-                      black={false}
-                      blue={false}
-                      bold={false}
-                      centered={false}
-                      disclaimer={false}
-                      green={false}
-                      grey={true}
-                      infoModal={true}
-                      link={false}
-                      modal={false}
-                      noMargin={true}
-                      primary={false}
-                      red={false}
-                      reset={false}
-                      right={false}
-                      small={false}
-                      strikethrough={false}
-                      underline={false}
-                      upper={false}
-                    >
-                      This is best for time sensitive transactions (like Swaps) as it increases the likelihood of a successful transaction. If a Swap takes too long to process it may fail and result in losing some of your gas fee.
-                    </Text>
-                    <Text
-                      black={false}
-                      blue={false}
-                      bold={true}
-                      centered={false}
-                      disclaimer={false}
-                      green={false}
-                      infoModal={true}
-                      link={false}
-                      modal={false}
-                      noMargin={true}
-                      primary={true}
-                      red={false}
-                      reset={false}
-                      right={false}
-                      small={false}
-                      strikethrough={false}
-                      style={
-                        Object {
-                          "marginTop": 9,
-                        }
-                      }
-                      underline={false}
-                      upper={false}
-                    >
-                      Medium
-                    </Text>
-                    <Text
-                      black={false}
-                      blue={false}
-                      bold={false}
-                      centered={false}
-                      disclaimer={false}
-                      green={false}
-                      grey={true}
-                      infoModal={true}
-                      link={false}
-                      modal={false}
-                      noMargin={true}
-                      primary={false}
-                      red={false}
-                      reset={false}
-                      right={false}
-                      small={false}
-                      strikethrough={false}
-                      underline={false}
-                      upper={false}
-                    >
-                      A medium gas fee is good for sending, withdrawing or other non-time sensitive transactions. This setting will most often result in a successful transaction.
-                    </Text>
-                    <Text
-                      black={false}
-                      blue={false}
-                      bold={true}
-                      centered={false}
-                      disclaimer={false}
-                      green={false}
-                      infoModal={true}
-                      link={false}
-                      modal={false}
-                      noMargin={true}
-                      primary={true}
-                      red={false}
-                      reset={false}
-                      right={false}
-                      small={false}
-                      strikethrough={false}
-                      style={
-                        Object {
-                          "marginTop": 9,
-                        }
-                      }
-                      underline={false}
-                      upper={false}
                     >
                       Low
                     </Text>
                     <Text
-                      black={false}
-                      blue={false}
-                      bold={false}
-                      centered={false}
-                      disclaimer={false}
-                      green={false}
                       grey={true}
                       infoModal={true}
-                      link={false}
-                      modal={false}
                       noMargin={true}
-                      primary={false}
-                      red={false}
-                      reset={false}
-                      right={false}
-                      small={false}
-                      strikethrough={false}
-                      underline={false}
-                      upper={false}
                     >
-                      A low gas fee should only be used for unimportant transactions or when network traffic is very low. With a lower fee it can be hard to predict when (or if) your transaction will be successful.
+                      Use Low to wait for a cheaper price. Time estimates are much less accurate as prices are somewhat unpredictable.
+                    </Text>
+                    <Text
+                      bold={true}
+                      infoModal={true}
+                      noMargin={true}
+                      primary={true}
+                      style={
+                        Object {
+                          "marginTop": 9,
+                        }
+                      }
+                    >
+                      Market
+                    </Text>
+                    <Text
+                      grey={true}
+                      infoModal={true}
+                      noMargin={true}
+                    >
+                      Use Market for fast processing at current market price.
+                    </Text>
+                    <Text
+                      bold={true}
+                      infoModal={true}
+                      noMargin={true}
+                      primary={true}
+                      style={
+                        Object {
+                          "marginTop": 9,
+                        }
+                      }
+                    >
+                      Aggresive
+                    </Text>
+                    <Text
+                      grey={true}
+                      infoModal={true}
+                      noMargin={true}
+                    >
+                      High probability, even in volatile markets. Use Aggressive to cover surges in network traffic due to things like popular NFT drops.
                     </Text>
                   </View>
                 </TouchableWithoutFeedback>
