@@ -96,14 +96,6 @@ export default class TransactionConfirmationView {
     await TestHelpers.checkIfVisible(TRANSACTION_ACCOUNT_BALANCE);
   }
 
-  static async isRecipientVisible() {
-    //await TestHelpers.checkIfVisible();
-  }
-
-  static async getRecipientAddress() {
-    //await TestHelpers.checkIfVisible();
-  }
-
   static async isBalanceNotVisible() {
     await TestHelpers.checkIfNotVisible(TRANSACTION_ACCOUNT_BALANCE);
   }
