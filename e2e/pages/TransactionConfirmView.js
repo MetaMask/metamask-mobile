@@ -69,10 +69,6 @@ export default class TransactionConfirmationView {
     await TestHelpers.checkIfVisible(EDIT_PRIORITY_SCREEN_TEST_ID);
   }
 
-  static async isMaxPriorityFeeVisible() {
-    await TestHelpers.checkIfVisible(MAX_PRIORITY_FEE_INPUT_TEST_ID);
-  }
-
   static async isMaxPriorityFeeCorrect(amount) {
     await TestHelpers.checkIfElementHasString(
       MAX_PRIORITY_FEE_INPUT_TEST_ID,
@@ -98,6 +94,14 @@ export default class TransactionConfirmationView {
 
   static async isBalanceVisible() {
     await TestHelpers.checkIfVisible(TRANSACTION_ACCOUNT_BALANCE);
+  }
+
+  static async isRecipientVisible() {
+    //await TestHelpers.checkIfVisible();
+  }
+
+  static async getRecipientAddress() {
+    //await TestHelpers.checkIfVisible();
   }
 
   static async isBalanceNotVisible() {

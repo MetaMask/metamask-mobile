@@ -15,7 +15,7 @@ describe(Regression('ENS'), () => {
   const SAMPLE_ADDRESS = '1111111111111111111111111111111111111111';
   const SAMPLE_ENS = 'confirmationstest.eth';
   const INFURA_URL =
-    'https://mainnet.infura.io/v3/9aa3d95b3bc440fa88ea12eaa4456161';
+    `https://mainnet.infura.io/v3/${process.env.MM_INFURA_PROJECT_ID}`;
 
   const AMOUNT = '0';
 
