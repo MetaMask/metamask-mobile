@@ -55,7 +55,7 @@ class Assertions {
     /* This assertion seems a bit redudant. Please replace me with checkIfVisible
      and delete me
     We already have an assertion to check if an element is visible.
-    No need to check if it exists
+    No need to check if it exists.
     */
 
     await waitFor(element(by.id(elementId)))
