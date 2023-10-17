@@ -86,12 +86,13 @@ const LedgerConfirmationModal = ({
   };
 
   const onRetry = async () => {
-    setPermissionErrorShown(false);
     if (!hasBluetoothPermissions) {
+      setPermissionErrorShown(false);
       await checkPermissions();
     }
 
     if (hasBluetoothPermissions && bluetoothOn) {
+      setPermissionErrorShown(false);
       setErrorDetails(undefined);
       connectLedger();
     }
