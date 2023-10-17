@@ -9,7 +9,6 @@ jest.preprocessor.js
 node_modules
 CHANGELOG.md
 # Ignore auto generated file used for react-native-storybook-loader
-.storybook/storybook.requires.js
 /storybook/storyLoader.js
 wdio
 /app/util/test/testSetup.js
