@@ -34,10 +34,11 @@ import styleSheet from './WalletActions.styles';
 import {
   WALLET_BUY,
   WALLET_RECEIVE,
+  WALLET_SELL,
   WALLET_SEND,
   WALLET_SWAP,
 } from './WalletActions.constants';
-import useOnRampNetwork from '../../UI/Ramp/hooks/useOnRampNetwork';
+import useRampNetwork from '../../UI/Ramp/common/hooks/useRampNetwork';
 
 const WalletActions = () => {
   const { styles } = useStyles(styleSheet, {});
@@ -49,7 +50,7 @@ const WalletActions = () => {
   const swapsIsLive = useSelector(swapsLivenessSelector);
   const dispatch = useDispatch();
 
-  const [isNetworkBuySupported] = useOnRampNetwork();
+  const [isNetworkRampSupported] = useRampNetwork();
 
   const onReceive = () => {
     sheetRef.current?.hide(() => dispatch(toggleReceiveModal()));
@@ -66,7 +67,7 @@ const WalletActions = () => {
 
   const onBuy = () => {
     sheetRef.current?.hide(() => {
-      navigate(Routes.FIAT_ON_RAMP_AGGREGATOR.ID);
+      navigate(Routes.RAMP.BUY);
       Analytics.trackEventWithParameters(MetaMetricsEvents.BUY_BUTTON_CLICKED, {
         text: 'Buy',
         tokenSymbol: '',
@@ -76,6 +77,18 @@ const WalletActions = () => {
     });
   };
 
+  const onSell = () => {
+    sheetRef.current?.hide(() => {
+      navigate(Routes.RAMP.SELL);
+      // TODO - add analytics for sell
+      // Analytics.trackEventWithParameters(MetaMetricsEvents.BUY_BUTTON_CLICKED, {
+      //   text: 'Buy',
+      //   tokenSymbol: '',
+      //   location: 'TabBar',
+      //   chain_id: chainId,
+      // });
+    });
+  };
   const onSend = () => {
     sheetRef.current?.hide(() => {
       navigate('SendFlowView');
@@ -115,7 +128,7 @@ const WalletActions = () => {
   return (
     <SheetBottom ref={sheetRef}>
       <View style={styles.actionsContainer}>
-        {isNetworkBuySupported && (
+        {isNetworkRampSupported && (
           <WalletAction
             actionTitle={strings('asset_overview.buy_button')}
             actionDescription={strings('asset_overview.buy_description')}
@@ -124,6 +137,18 @@ const WalletActions = () => {
             onPress={onBuy}
             iconStyle={styles.icon}
             {...generateTestId(Platform, WALLET_BUY)}
+          />
+        )}
+
+        {isNetworkRampSupported && (
+          <WalletAction
+            actionTitle={strings('asset_overview.sell_button')}
+            actionDescription={strings('asset_overview.sell_description')}
+            iconName={IconName.Minus}
+            iconSize={AvatarSize.Md}
+            onPress={onSell}
+            iconStyle={styles.icon}
+            {...generateTestId(Platform, WALLET_SELL)}
           />
         )}
 

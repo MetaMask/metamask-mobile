@@ -24,8 +24,6 @@ import SDKConnect from '../core/SDKConnect/SDKConnect';
 import Routes from '../constants/navigation/Routes';
 import { getAddress } from '../util/address';
 import WC2Manager from './WalletConnect/WalletConnectV2';
-import { chainIdSelector, getRampNetworks } from '../reducers/fiatOrders';
-import { isNetworkBuySupported } from '../components/UI/Ramp/utils';
 import { Minimizer } from './NativeModules';
 
 class DeeplinkManager {
@@ -183,15 +181,7 @@ class DeeplinkManager {
   }
 
   _handleBuyCrypto() {
-    this.dispatch((_, getState) => {
-      const state = getState();
-      // Do nothing for now if use is not in a supported network
-      if (
-        isNetworkBuySupported(chainIdSelector(state), getRampNetworks(state))
-      ) {
-        this.navigation.navigate(Routes.FIAT_ON_RAMP_AGGREGATOR.ID);
-      }
-    });
+    this.navigation.navigate(Routes.RAMP.BUY);
   }
 
   parse(url, { browserCallBack, origin, onHandled }) {

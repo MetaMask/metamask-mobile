@@ -91,9 +91,9 @@ import Text, {
 import ApproveTransactionHeader from '../ApproveTransactionHeader';
 import VerifyContractDetails from './VerifyContractDetails/VerifyContractDetails';
 import ShowBlockExplorer from './ShowBlockExplorer';
-import { isNetworkBuyNativeTokenSupported } from '../Ramp/utils';
+import { isNetworkRampNativeTokenSupported } from '../Ramp/common/utils';
 import { getRampNetworks } from '../../../reducers/fiatOrders';
-import SkeletonText from '../Ramp/components/SkeletonText';
+import SkeletonText from '../Ramp/common/components/SkeletonText';
 import InfoModal from '../../../components/UI/Swaps/components/InfoModal';
 import BlockaidBanner from '../BlockaidBanner/BlockaidBanner';
 import { regex } from '../../../../app/util/regex';
@@ -1130,7 +1130,7 @@ class ApproveTransactionReview extends PureComponent {
     /* this is kinda weird, we have to reject the transaction to collapse the modal */
     this.onCancelPress();
     try {
-      navigation.navigate('FiatOnRampAggregator');
+      navigation.navigate(Routes.RAMP.BUY);
     } catch (error) {
       Logger.error(error, 'Navigation: Error when navigating to buy ETH.');
     }
@@ -1236,7 +1236,7 @@ const mapStateToProps = (state) => ({
   activeTabUrl: getActiveTabUrl(state),
   chainId: selectChainId(state),
   tokenList: selectTokenList(state),
-  isNativeTokenBuySupported: isNetworkBuyNativeTokenSupported(
+  isNativeTokenBuySupported: isNetworkRampNativeTokenSupported(
     selectChainId(state),
     getRampNetworks(state),
   ),

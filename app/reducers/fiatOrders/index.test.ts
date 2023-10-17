@@ -1,5 +1,8 @@
 import { Order } from '@consensys/on-ramp-sdk';
-import { AggregatorNetwork } from '@consensys/on-ramp-sdk/dist/API';
+import {
+  AggregatorNetwork,
+  OrderOrderTypeEnum,
+} from '@consensys/on-ramp-sdk/dist/API';
 import { merge } from 'lodash';
 import fiatOrderReducer, {
   addActivationKey,
@@ -27,6 +30,7 @@ import fiatOrderReducer, {
   resetFiatOrders,
   selectedAddressSelector,
   setFiatOrdersGetStartedAGG,
+  setFiatOrdersGetStartedSell,
   setFiatOrdersPaymentMethodAGG,
   setFiatOrdersRegionAGG,
   updateActivationKey,
@@ -34,6 +38,7 @@ import fiatOrderReducer, {
   updateFiatOrder,
   updateOnRampNetworks,
   networkShortNameSelector,
+  fiatOrdersGetStartedSell,
 } from '.';
 import { FIAT_ORDER_PROVIDERS } from '../../constants/on-ramp';
 import { CustomIdData, Action, FiatOrder, Region } from './types';
@@ -55,7 +60,7 @@ const mockOrder1 = {
   network: '1',
   txHash: '0x987654321',
   excludeFromPurchases: false,
-  orderType: 'BUY',
+  orderType: OrderOrderTypeEnum.Buy,
   errorCount: 0,
   lastTimeFetched: 0,
   data: {
@@ -94,6 +99,7 @@ const dummyCustomOrderIdData1: CustomIdData = {
   id: '123',
   chainId: '1',
   account: '0x123',
+  orderType: 'BUY',
   createdAt: 123,
   lastTimeFetched: 123,
   errorCount: 0,
@@ -103,6 +109,7 @@ const dummyCustomOrderIdData2: CustomIdData = {
   id: '456',
   chainId: '1',
   account: '0x123',
+  orderType: 'BUY',
   createdAt: 123,
   lastTimeFetched: 123,
   errorCount: 0,
@@ -111,6 +118,7 @@ const dummyCustomOrderIdData3: CustomIdData = {
   id: '789',
   chainId: '1',
   account: '0x123',
+  orderType: 'BUY',
   createdAt: 123,
   lastTimeFetched: 123,
   errorCount: 0,
@@ -301,6 +309,19 @@ describe('fiatOrderReducer', () => {
     );
     expect(stateWithStartedTrue.getStartedAgg).toEqual(true);
     expect(stateWithStartedFalse.getStartedAgg).toEqual(false);
+  });
+
+  it('should set get started sell', () => {
+    const stateWithStartedTrue = fiatOrderReducer(
+      initialState,
+      setFiatOrdersGetStartedSell(true),
+    );
+    const stateWithStartedFalse = fiatOrderReducer(
+      stateWithStartedTrue,
+      setFiatOrdersGetStartedSell(false),
+    );
+    expect(stateWithStartedTrue.getStartedSell).toEqual(true);
+    expect(stateWithStartedFalse.getStartedSell).toEqual(false);
   });
 
   it('should set the selected region', () => {
@@ -647,6 +668,18 @@ describe('selectors', () => {
       });
 
       expect(fiatOrdersGetStartedAgg(state)).toEqual(true);
+    });
+  });
+
+  describe('fiatOrdersGetStartedSell', () => {
+    it('should return the get started sell state', () => {
+      const state = merge({}, initialRootState, {
+        fiatOrders: {
+          getStartedSell: true,
+        },
+      });
+
+      expect(fiatOrdersGetStartedSell(state)).toEqual(true);
     });
   });
 

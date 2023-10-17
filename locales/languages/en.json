@@ -888,6 +888,7 @@
   "asset_overview": {
     "send_button": "Send",
     "buy_button": "Buy",
+    "sell_button": "Sell",
     "receive_button": "Receive",
     "portfolio_button": "Portfolio",
     "add_collectible_button": "Add",
@@ -902,6 +903,7 @@
     "for_help": "for help.",
     "troubleshoot": "Troubleshoot",
     "buy_description": "Buy crypto with cash",
+    "sell_description": "Sell crypto for cash",
     "swap_description": "Exchange between tokens",
     "send_description": "Send crypto to any account",
     "receive_description": "Receive crypto",
@@ -1873,6 +1875,13 @@
     }
   },
   "fiat_on_ramp_aggregator": {
+    "buy": "buy",
+    "sell": "sell",
+    "network_switcher": {
+      "title": "Unsupported {{rampType}} Network",
+      "description": "To {{rampType}} crypto, you'll need to switch to a supported network",
+      "no_networks_found": "No supported networks found"
+    },
     "onboarding": {
       "what_to_expect": "What to Expect",
       "quotes": "Our buy crypto feature aggregates quotes from integrated vendors, providing quotes from those sources to get crypto directly into your wallet with no waiting period.",
@@ -1904,9 +1913,13 @@
     "get_new_quotes": "Get new quotes",
     "quotes_timeout": "Quotes timeout",
     "request_new_quotes": "Please request new quotes to get the latest best rate.",
-    "amount_to_buy": "Amount to Buy",
+    "amount_to_buy": "Amount to buy",
+    "amount_to_sell": "Amount to sell",
     "want_to_buy": "You want to buy",
+    "want_to_sell": "You want to sell",
+    "current_balance": "Current balance",
     "amount": "Amount",
+    "send_cash_to": "Send your cash to",
     "get_quotes": "Get quotes",
     "done": "Done",
     "fetching_quotes": "Fetching quotes",
@@ -1925,6 +1938,9 @@
     "continue_with": "Continue with {{provider}}",
     "minimum": "Minimum deposit is",
     "maximum": "Maximum deposit is",
+    "insufficient_balance": "This amount is higher than your balance",
+    "enter_larger_amount": "Enter a larger amount to continue",
+    "enter_smaller_amount": "Enter a smaller amount to continue",
     "try_again": "Try again",
     "error": "Error",
     "something_went_wrong": "Oops, something went wrong",

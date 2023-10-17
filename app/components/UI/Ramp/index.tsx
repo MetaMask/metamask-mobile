@@ -1,8 +1,10 @@
-import { useDispatch, useSelector } from 'react-redux';
-import { InteractionManager, StyleSheet, View } from 'react-native';
 import React, { useCallback } from 'react';
-import WebView from 'react-native-webview';
+import { InteractionManager, StyleSheet, View } from 'react-native';
+import { useDispatch, useSelector } from 'react-redux';
+import { useNavigation } from '@react-navigation/native';
 import { Order } from '@consensys/on-ramp-sdk';
+import { OrderOrderTypeEnum } from '@consensys/on-ramp-sdk/dist/API';
+import WebView from 'react-native-webview';
 import AppConstants from '../../../core/AppConstants';
 import { MetaMetricsEvents } from '../../../core/Analytics';
 
@@ -24,15 +26,16 @@ import {
 } from '../../../reducers/fiatOrders';
 import useInterval from '../../hooks/useInterval';
 import useThunkDispatch, { ThunkAction } from '../../hooks/useThunkDispatch';
-import processOrder from './orderProcessor';
-import processCustomOrderIdData from './orderProcessor/customOrderId';
-import { aggregatorOrderToFiatOrder } from './orderProcessor/aggregator';
-import { trackEvent } from './hooks/useAnalytics';
-import { AnalyticsEvents } from './types';
+import processOrder from './common/orderProcessor';
+import processCustomOrderIdData from './common/orderProcessor/customOrderId';
+import { aggregatorOrderToFiatOrder } from './common/orderProcessor/aggregator';
+import { trackEvent } from './common/hooks/useAnalytics';
+import { AnalyticsEvents } from './common/types';
 import { CustomIdData } from '../../../reducers/fiatOrders/types';
-import { callbackBaseUrl } from './sdk';
-import useFetchOnRampNetworks from './hooks/useFetchOnRampNetworks';
-import { stateHasOrder } from './utils';
+import { callbackBaseUrl } from './common/sdk';
+import useFetchRampNetworks from './common/hooks/useFetchRampNetworks';
+import { stateHasOrder } from './common/utils';
+import Routes from '../../../constants/navigation/Routes';
 
 const POLLING_FREQUENCY = AppConstants.FIAT_ORDERS.POLLING_FREQUENCY;
 const NOTIFICATION_DURATION = 5000;
@@ -172,6 +175,7 @@ export const getNotificationDetails = (fiatOrder: FiatOrder) => {
       };
     }
     case FIAT_ORDER_STATES.PENDING:
+    case FIAT_ORDER_STATES.CREATED:
     default: {
       return {
         ...baseNotificationDetails,
@@ -264,16 +268,28 @@ const styles = StyleSheet.create({
 });
 
 function FiatOrders() {
-  useFetchOnRampNetworks();
+  useFetchRampNetworks();
   const dispatch = useDispatch();
   const dispatchThunk = useThunkDispatch();
+  const navigation = useNavigation();
   const pendingOrders = useSelector<any, FiatOrder[]>(getPendingOrders);
   const customOrderIds = useSelector<any, CustomIdData[]>(getCustomOrderIds);
   const authenticationUrls = useSelector<any, string[]>(getAuthenticationUrls);
 
   const dispatchAddFiatOrder = useCallback(
-    (order: FiatOrder) => dispatch(addFiatOrder(order)),
-    [dispatch],
+    (order: FiatOrder) => {
+      dispatch(addFiatOrder(order));
+      if (order.orderType === OrderOrderTypeEnum.Sell) {
+        navigation.navigate(Routes.TRANSACTIONS_VIEW, {
+          screen: Routes.RAMP.ORDER_DETAILS,
+          initial: false,
+          params: {
+            orderId: order.id,
+          },
+        });
+      }
+    },
+    [dispatch, navigation],
   );
   const dispatchUpdateFiatOrder = useCallback(
     (order: FiatOrder) => dispatch(updateFiatOrder(order)),

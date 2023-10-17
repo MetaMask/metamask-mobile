@@ -1,6 +1,6 @@
 import { Order } from '@consensys/on-ramp-sdk';
 import { createSelector } from 'reselect';
-import { Region } from '../../components/UI/Ramp/types';
+import { Region } from '../../components/UI/Ramp/common/types';
 import { selectChainId } from '../../selectors/networkController';
 import { selectSelectedAddress } from '../../selectors/preferencesController';
 import {
@@ -46,6 +46,10 @@ export const setFiatOrdersPaymentMethodAGG = (
 });
 export const setFiatOrdersGetStartedAGG = (getStartedFlag: boolean) => ({
   type: ACTIONS.FIAT_SET_GETSTARTED_AGG,
+  payload: getStartedFlag,
+});
+export const setFiatOrdersGetStartedSell = (getStartedFlag: boolean) => ({
+  type: ACTIONS.FIAT_SET_GETSTARTED_SELL,
   payload: getStartedFlag,
 });
 export const addFiatCustomIdData = (customIdData: CustomIdData) => ({
@@ -145,6 +149,10 @@ export const fiatOrdersGetStartedAgg: (
   state: RootState,
 ) => FiatOrdersState['getStartedAgg'] = (state: RootState) =>
   state.fiatOrders.getStartedAgg;
+export const fiatOrdersGetStartedSell: (
+  state: RootState,
+) => FiatOrdersState['getStartedSell'] = (state: RootState) =>
+  state.fiatOrders.getStartedSell;
 
 export const getOrders = createSelector(
   ordersSelector,
@@ -236,6 +244,7 @@ export const initialState: FiatOrdersState = {
   selectedRegionAgg: null,
   selectedPaymentMethodAgg: null,
   getStartedAgg: false,
+  getStartedSell: false,
   authenticationUrls: [],
   activationKeys: [],
 };
@@ -308,6 +317,12 @@ const fiatOrderReducer: (
       return {
         ...state,
         getStartedAgg: action.payload,
+      };
+    }
+    case ACTIONS.FIAT_SET_GETSTARTED_SELL: {
+      return {
+        ...state,
+        getStartedSell: action.payload,
       };
     }
     case ACTIONS.FIAT_SET_REGION_AGG: {
