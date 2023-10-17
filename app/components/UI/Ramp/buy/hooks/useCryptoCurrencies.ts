@@ -2,7 +2,6 @@ import { useEffect, useMemo } from 'react';
 import { useRampSDK } from '../../common/sdk';
 import useSDKMethod from '../../common/hooks/useSDKMethod';
 import { NATIVE_ADDRESS } from '../../../../../constants/on-ramp';
-import { RampType } from '../../common/types';
 
 export default function useCryptoCurrencies() {
   const {
@@ -12,7 +11,7 @@ export default function useCryptoCurrencies() {
     selectedAsset,
     setSelectedAsset,
     selectedChainId,
-    rampType,
+    isBuy,
   } = useRampSDK();
 
   const [
@@ -23,9 +22,7 @@ export default function useCryptoCurrencies() {
     },
     queryGetCryptoCurrencies,
   ] = useSDKMethod(
-    rampType === RampType.BUY
-      ? 'getCryptoCurrencies'
-      : 'getSellCryptoCurrencies',
+    isBuy ? 'getCryptoCurrencies' : 'getSellCryptoCurrencies',
     selectedRegion?.id,
     selectedPaymentMethodId,
     selectedFiatCurrencyId,

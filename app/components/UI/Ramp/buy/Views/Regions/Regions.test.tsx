@@ -6,7 +6,7 @@ import { renderScreen } from '../../../../../../util/test/renderWithProvider';
 import Regions from './Regions';
 import useRegions from '../../hooks/useRegions';
 import { RampSDK } from '../../../common/sdk';
-import { RampType, Region } from '../../../common/types';
+import { Region } from '../../../common/types';
 import { createPaymentMethodsNavDetails } from '../PaymentMethods/PaymentMethods';
 import Routes from '../../../../../../constants/navigation/Routes';
 import initialBackgroundState from '../../../../../../util/test/initial-background-state.json';
@@ -35,7 +35,8 @@ const mockuseRampSDKInitialValues: Partial<RampSDK> = {
   setSelectedFiatCurrencyId: mockSetSelectedCurrency,
   sdkError: undefined,
   selectedChainId: '1',
-  rampType: RampType.BUY,
+  isBuy: true,
+  isSell: false,
 };
 
 let mockUseRampSDKValues: Partial<RampSDK> = {

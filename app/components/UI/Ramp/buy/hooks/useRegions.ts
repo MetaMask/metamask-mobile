@@ -2,7 +2,7 @@ import { useNavigation, useRoute } from '@react-navigation/native';
 import { useCallback, useEffect, useMemo } from 'react';
 import Routes from '../../../../../constants/navigation/Routes';
 import { useRampSDK } from '../../common/sdk';
-import { RampType, Region } from '../../common/types';
+import { Region } from '../../common/types';
 import useSDKMethod from '../../common/hooks/useSDKMethod';
 
 export default function useRegions() {
@@ -13,7 +13,8 @@ export default function useRegions() {
     setSelectedRegion,
     unsupportedRegion,
     setUnsupportedRegion,
-    rampType,
+    isBuy,
+    isSell,
   } = useRampSDK();
 
   const [{ data, isFetching, error }, queryGetCountries] =
@@ -55,8 +56,8 @@ export default function useRegions() {
       redirectToRegion();
     } else if (
       updatedRegion &&
-      ((rampType === RampType.BUY && !updatedRegion.support.buy) ||
-        (rampType === RampType.SELL && !updatedRegion.support.sell))
+      ((isBuy && !updatedRegion.support.buy) ||
+        (isSell && !updatedRegion.support.sell))
     ) {
       setUnsupportedRegion(updatedRegion);
       redirectToRegion();
@@ -67,8 +68,9 @@ export default function useRegions() {
     navigation,
     route.name,
     setUnsupportedRegion,
-    rampType,
     redirectToRegion,
+    isBuy,
+    isSell,
   ]);
 
   const clearUnsupportedRegion = useCallback(

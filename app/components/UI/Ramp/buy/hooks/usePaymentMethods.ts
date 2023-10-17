@@ -1,7 +1,6 @@
 import { useEffect, useMemo, useState } from 'react';
 import { useRampSDK } from '../../common/sdk';
 import useSDKMethod from '../../common/hooks/useSDKMethod';
-import { RampType } from '../../common/types';
 
 function usePaymentMethods() {
   const {
@@ -10,13 +9,14 @@ function usePaymentMethods() {
     setSelectedPaymentMethodId,
     selectedChainId,
     sdk,
-    rampType,
+    isBuy,
   } = useRampSDK();
   const [isFilterLoading, setIsFilterLoading] = useState(true);
   const [allowedMethodIds, setAllowedMethodIds] = useState<string[]>();
 
-  const paymentMethodsMethod =
-    rampType === RampType.BUY ? 'getPaymentMethods' : 'getSellPaymentMethods';
+  const paymentMethodsMethod = isBuy
+    ? 'getPaymentMethods'
+    : 'getSellPaymentMethods';
 
   const [{ data: paymentMethods, isFetching, error }, queryGetPaymentMethods] =
     useSDKMethod(paymentMethodsMethod, selectedRegion?.id);
@@ -31,10 +31,9 @@ function usePaymentMethods() {
           if (!method.customAction) {
             allowed.push(method.id);
           } else {
-            const cryptoCurrenciesMethod =
-              rampType === RampType.BUY
-                ? 'getCryptoCurrencies'
-                : 'getSellCryptoCurrencies';
+            const cryptoCurrenciesMethod = isBuy
+              ? 'getCryptoCurrencies'
+              : 'getSellCryptoCurrencies';
 
             const cryptoCurrencies = await sdk?.[cryptoCurrenciesMethod](
               selectedRegion.id,
