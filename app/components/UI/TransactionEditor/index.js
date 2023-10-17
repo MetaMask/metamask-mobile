@@ -136,6 +136,8 @@ class TransactionEditor extends PureComponent {
     toFocused: false,
     ensRecipient: undefined,
     ready: false,
+    // here error is defaulted to true until its confirmed that there is no error
+    error: true,
     data: undefined,
     amountError: '',
     toAddressError: '',
@@ -151,7 +153,7 @@ class TransactionEditor extends PureComponent {
     suggestedMaxFeePerGas: undefined,
   };
 
-  computeGasEstimates = (gasEstimateTypeChanged) => {
+  computeGasEstimates = async (gasEstimateTypeChanged) => {
     const {
       transaction,
       gasEstimateType,
@@ -213,6 +215,7 @@ class TransactionEditor extends PureComponent {
         });
       }
 
+      await this.validate(EIP1559GasData);
       // eslint-disable-next-line react/no-did-update-set-state
       this.setState(
         {
@@ -264,6 +267,7 @@ class TransactionEditor extends PureComponent {
         });
       }
 
+      await this.validate(undefined, LegacyGasData);
       // eslint-disable-next-line react/no-did-update-set-state
       this.setState(
         {
@@ -396,6 +400,14 @@ class TransactionEditor extends PureComponent {
       ) {
         this.computeGasEstimates(gasEstimateTypeChanged);
       }
+    }
+
+    if (
+      prevProps.transaction !== this.props.transaction ||
+      prevProps.selectedAddress !== this.props.selectedAddress ||
+      prevProps.contractBalances !== this.props.contractBalances
+    ) {
+      this.validate();
     }
   };
 
@@ -609,7 +621,7 @@ class TransactionEditor extends PureComponent {
     this.props?.onModeChange(REVIEW);
   };
 
-  validate = async () => {
+  validate = async (EIP1559GasData, LegacyGasData) => {
     const {
       transaction: {
         assetType,
@@ -621,7 +633,9 @@ class TransactionEditor extends PureComponent {
     } = this.props;
 
     const totalError = this.validateTotal(
-      this.state.EIP1559GasData.totalMaxHex ||
+      EIP1559GasData?.totalMaxHex ||
+        this.state.EIP1559GasData.totalMaxHex ||
+        LegacyGasData?.totalHex ||
         this.state.LegacyGasData.totalHex,
     );
     const amountError = await validateAmount(
@@ -634,7 +648,11 @@ class TransactionEditor extends PureComponent {
       false,
     );
     const toAddressError = this.validateToAddress();
-    this.setState({ amountError: totalError || amountError, toAddressError });
+    this.setState({
+      amountError: totalError || amountError,
+      toAddressError,
+      error: totalError || amountError || toAddressError,
+    });
     return totalError || amountError || toAddressError;
   };
 
@@ -800,6 +818,7 @@ class TransactionEditor extends PureComponent {
     } = this.props;
     const {
       ready,
+      error,
       over,
       EIP1559GasData,
       EIP1559GasDataTemp,
@@ -837,8 +856,8 @@ class TransactionEditor extends PureComponent {
               <TransactionReview
                 onCancel={this.onCancel}
                 onConfirm={this.onConfirm}
-                validate={this.validate}
                 ready={ready}
+                error={error}
                 gasSelected={gasSelected}
                 transactionConfirmed={transactionConfirmed}
                 over={over}
