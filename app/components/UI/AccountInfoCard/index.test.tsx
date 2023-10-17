@@ -5,7 +5,7 @@ import initialBackgroundState from '../../../util/test/initial-background-state.
 
 jest.mock('../../../util/address', () => ({
   ...jest.requireActual('../../../util/address'),
-  renderAccountName: () => '0x0',
+  renderAccountName: () => '0xC4955C0d639D99699Bfd7Ec54d9FaFEe40e4D272',
 }));
 
 jest.mock('../../../core/Engine', () => ({
@@ -31,15 +31,15 @@ const mockInitialState = {
       ...initialBackgroundState,
       AccountTrackerController: {
         accounts: {
-          '0x0': {
+          '0xC4955C0d639D99699Bfd7Ec54d9FaFEe40e4D272': {
             balance: '0x2',
           },
         },
       },
       PreferencesController: {
-        selectedAddress: '0x0',
+        selectedAddress: '0xC4955C0d639D99699Bfd7Ec54d9FaFEe40e4D272',
         identities: {
-          address: '0x0',
+          address: '0xC4955C0d639D99699Bfd7Ec54d9FaFEe40e4D272',
           name: 'Account 1',
         },
       },
@@ -74,7 +74,7 @@ jest.mock('react-redux', () => ({
 describe('AccountInfoCard', () => {
   it('should match snapshot', async () => {
     const container = renderWithProvider(
-      <AccountInfoCard fromAddress="0x0" />,
+      <AccountInfoCard fromAddress="0xC4955C0d639D99699Bfd7Ec54d9FaFEe40e4D272" />,
       { state: mockInitialState },
     );
     expect(container).toMatchSnapshot();
@@ -82,7 +82,10 @@ describe('AccountInfoCard', () => {
 
   it('should show balance header in signing page', async () => {
     const { getByText } = renderWithProvider(
-      <AccountInfoCard fromAddress="0x0" operation="signing" />,
+      <AccountInfoCard
+        fromAddress="0xC4955C0d639D99699Bfd7Ec54d9FaFEe40e4D272"
+        operation="signing"
+      />,
       { state: mockInitialState },
     );
     expect(getByText('Balance')).toBeDefined();
@@ -90,7 +93,10 @@ describe('AccountInfoCard', () => {
 
   it('should show origin header in signing page', async () => {
     const { getByText } = renderWithProvider(
-      <AccountInfoCard fromAddress="0x0" operation="signing" />,
+      <AccountInfoCard
+        fromAddress="0xC4955C0d639D99699Bfd7Ec54d9FaFEe40e4D272"
+        operation="signing"
+      />,
       { state: mockInitialState },
     );
 

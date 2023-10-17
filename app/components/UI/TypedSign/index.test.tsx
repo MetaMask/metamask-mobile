@@ -42,7 +42,7 @@ const messageParamsMock = {
   data: { type: 'string', name: 'Message', value: 'Hi, Alice!' },
   origin: 'example.com',
   metamaskId: 'TestMessageId',
-  from: '0x51239E13Fe029cD52asA8babEBafb6814bc8Ba4b',
+  from: '0xC4955C0d639D99699Bfd7Ec54d9FaFEe40e4D272',
 };
 
 const mockStore = configureMockStore();

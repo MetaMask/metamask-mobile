@@ -33,7 +33,7 @@ import TransactionTypes from '../../core/TransactionTypes';
 import { selectChainId } from '../../selectors/networkController';
 import { store } from '../../store';
 import { regex } from '../../../app/util/regex';
-import { HardwareDeviceNames } from '../../core/Ledger/Ledger'; 
+import { HardwareDeviceNames } from '../../core/Ledger/Ledger';
 
 const {
   ASSET: { ERC721, ERC1155 },
@@ -145,7 +145,6 @@ export async function importAccountFromPrivateKey(private_key) {
   return PreferencesController.setSelectedAddress(checksummedAddress);
 }
 
-
 /**
  * get address's kerying
  *
@@ -176,7 +175,7 @@ export function isHardwareAccount(
   accountTypes = [KeyringTypes.qr, HardwareDeviceNames.ledger],
 ) {
   const keyring = getKeyringByAddress(address);
-  return keyring && accountTypes.includes(keyring.type)
+  return keyring && accountTypes.includes(keyring.type);
 }
 
 /**

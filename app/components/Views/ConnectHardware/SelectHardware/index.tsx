@@ -19,9 +19,8 @@ import {
 import { getNavigationOptionsTitle } from '../../../UI/Navbar';
 import { fontStyles } from '../../../../styles/common';
 import { strings } from '../../../../../locales/i18n';
-import Engine from '../../../../core/Engine';
 import Routes from '../../../../constants/navigation/Routes';
-import { getLedgerKeyring } from '../../../../core/Ledger/Ledger'; 
+import { getLedgerKeyring } from '../../../../core/Ledger/Ledger';
 
 const createStyle = (colors: any) =>
   StyleSheet.create({
@@ -83,7 +82,6 @@ const SelectHardwareWallet = () => {
   const navigation = useNavigation();
   const { colors } = useAppThemeFromContext() || mockTheme;
   const styles = createStyle(colors);
-  const { KeyringController } = Engine.context as any;
 
   useEffect(() => {
     navigation.setOptions(

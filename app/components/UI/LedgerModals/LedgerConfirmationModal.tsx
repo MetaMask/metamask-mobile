@@ -17,7 +17,7 @@ import ConfirmationStep from './Steps/ConfirmationStep';
 import ErrorStep from './Steps/ErrorStep';
 import OpenETHAppStep from './Steps/OpenETHAppStep';
 import SearchingForDeviceStep from './Steps/SearchingForDeviceStep';
-import { unlockLedgerDefaultAccount } from '../../../core/Ledger/Ledger'; 
+import { unlockLedgerDefaultAccount } from '../../../core/Ledger/Ledger';
 
 const createStyles = (colors: Colors) =>
   StyleSheet.create({

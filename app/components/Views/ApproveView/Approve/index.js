@@ -1,7 +1,6 @@
 import React, { PureComponent } from 'react';
 import { Alert, InteractionManager, AppState, View } from 'react-native';
 import PropTypes from 'prop-types';
-import { KeyringTypes } from '@metamask/keyring-controller';
 import { getApproveNavbar } from '../../../UI/Navbar';
 import { connect } from 'react-redux';
 import {
@@ -69,7 +68,10 @@ import {
 import ShowBlockExplorer from '../../../UI/ApproveTransactionReview/ShowBlockExplorer';
 import createStyles from './styles';
 import { ethErrors } from 'eth-rpc-errors';
-import { HardwareDeviceNames, getLedgerKeyring } from '../../../../core/Ledger/Ledger'; 
+import {
+  HardwareDeviceNames,
+  getLedgerKeyring,
+} from '../../../../core/Ledger/Ledger';
 
 const EDIT = 'edit';
 const REVIEW = 'review';
@@ -583,10 +585,13 @@ class Approve extends PureComponent {
   };
 
   onCancel = () => {
-    const { ApprovalController } = Engine.context;
-    ApprovalController.reject(
+    Engine.rejectPendingApproval(
       this.props.transaction.id,
       ethErrors.provider.userRejectedRequest(),
+      {
+        ignoreMissing: true,
+        logErrors: false,
+      },
     );
     AnalyticsV2.trackEvent(
       MetaMetricsEvents.APPROVAL_CANCELLED,

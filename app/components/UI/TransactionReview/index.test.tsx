@@ -5,8 +5,14 @@ import { shallow } from 'enzyme';
 import { Provider } from 'react-redux';
 // eslint-disable-next-line import/no-namespace
 import * as TransactionUtils from '../../../util/transactions';
+// eslint-disable-next-line import/no-namespace
+import * as BlockaidUtils from '../../../util/blockaid';
+import analyticsV2 from '../../../util/analyticsV2';
 import renderWithProvider from '../../../util/test/renderWithProvider';
 import initialBackgroundState from '../../../util/test/initial-background-state.json';
+import { fireEvent } from '@testing-library/react-native';
+import { TESTID_ACCORDION_CONTENT } from '../../../component-library/components/Accordions/Accordion/Accordion.constants';
+import { FALSE_POSITIVE_REPOST_LINE_TEST_ID } from '../BlockaidBanner/BlockaidBanner.constants';
 
 jest.mock('../../../util/transactions', () => ({
   ...jest.requireActual('../../../util/transactions'),
@@ -37,7 +43,7 @@ jest.mock('../../../core/Engine', () => ({
       state: {
         keyrings: [
           {
-            accounts: ['0x0'],
+            accounts: ['0xC4955C0d639D99699Bfd7Ec54d9FaFEe40e4D272'],
           },
         ],
       },
@@ -59,15 +65,15 @@ const mockState = {
       ...initialBackgroundState,
       AccountTrackerController: {
         accounts: {
-          '0x0': {
+          '0xC4955C0d639D99699Bfd7Ec54d9FaFEe40e4D272': {
             balance: '0x2',
           },
         },
       },
       PreferencesController: {
-        selectedAddress: '0x2',
+        selectedAddress: '0xd018538C87232FF95acbCe4870629b75640a78E7',
         identities: {
-          '0x0': { name: 'Account 1' },
+          '0xC4955C0d639D99699Bfd7Ec54d9FaFEe40e4D272': { name: 'Account 1' },
           '0x1': { name: 'Account 2' },
           '0x2': { name: 'Account 3' },
         },
@@ -86,9 +92,17 @@ const mockState = {
     primaryCurrency: 'ETH',
   },
   transaction: {
-    transaction: { from: '0x0', to: '0x1' },
-    transactionTo: '0x1',
-    selectedAsset: { isETH: true, address: '0x0', symbol: 'ETH', decimals: 8 },
+    transaction: {
+      from: '0xC4955C0d639D99699Bfd7Ec54d9FaFEe40e4D272',
+      to: '0xB374Ca013934e498e5baD3409147F34E6c462389',
+    },
+    transactionTo: '0xB374Ca013934e498e5baD3409147F34E6c462389',
+    selectedAsset: {
+      isETH: true,
+      address: '0xC4955C0d639D99699Bfd7Ec54d9FaFEe40e4D272',
+      symbol: 'ETH',
+      decimals: 8,
+    },
     transactionToName: 'Account 2',
     transactionFromName: 'Account 1',
   },
@@ -135,7 +149,24 @@ describe('TransactionReview', () => {
   });
 
   it('should display blockaid banner', async () => {
-    const { queryByText } = renderWithProvider(
+    const securityAlertResponse = {
+      resultType: 'Malicious',
+      reason: 'blur_farming',
+    };
+    const trackEventSypy = jest
+      .spyOn(analyticsV2, 'trackEvent')
+      .mockImplementation((name, params) => {
+        expect(name).toBeDefined();
+        expect(params).toBeDefined();
+      });
+
+    const blockaidMetricsParamsSpy = jest
+      .spyOn(BlockaidUtils, 'getBlockaidMetricsParams')
+      .mockImplementation(({ resultType, reason }) => ({
+        security_alert_response: resultType,
+        security_alert_reason: reason,
+      }));
+    const { queryByText, queryByTestId, getByText } = renderWithProvider(
       <TransactionReview
         EIP1559GasData={{}}
         generateTransform={generateTransform}
@@ -145,10 +176,7 @@ describe('TransactionReview', () => {
           ...mockState,
           transaction: {
             ...mockState.transaction,
-            securityAlertResponse: {
-              resultType: 'Malicious',
-              reason: 'blur_farming',
-            },
+            securityAlertResponse,
           },
         },
       },
@@ -159,6 +187,23 @@ describe('TransactionReview', () => {
         'If you approve this request, someone can steal your assets listed on Blur.',
       ),
     ).toBeDefined();
+
+    fireEvent.press(await getByText('See details'));
+
+    expect(await queryByTestId(TESTID_ACCORDION_CONTENT)).toBeDefined();
+    expect(
+      await queryByTestId(FALSE_POSITIVE_REPOST_LINE_TEST_ID),
+    ).toBeDefined();
+    expect(await queryByText('Something doesn’t look right?')).toBeDefined();
+    expect(await queryByText('Contact Us')).toBeDefined();
+
+    fireEvent.press(await getByText('Contact Us'));
+
+    expect(trackEventSypy).toHaveBeenCalledTimes(1);
+    expect(blockaidMetricsParamsSpy).toHaveBeenCalledTimes(2);
+    expect(blockaidMetricsParamsSpy).toHaveBeenCalledWith(
+      securityAlertResponse,
+    );
   });
 
   it('should have enabled confirm button if from account has balance', async () => {
