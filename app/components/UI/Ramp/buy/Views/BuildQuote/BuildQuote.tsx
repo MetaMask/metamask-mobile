@@ -569,10 +569,10 @@ const BuildQuote = () => {
   }
 
   let displayAmount;
-  if (!isBuy) {
-    displayAmount = `${amount} ${selectedAsset?.symbol}`;
-  } else {
+  if (isBuy) {
     displayAmount = amountFocused ? amount : formatAmount(amountNumber);
+  } else {
+    displayAmount = `${amount} ${selectedAsset?.symbol}`;
   }
 
   return (

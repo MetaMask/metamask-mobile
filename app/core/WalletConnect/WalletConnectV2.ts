@@ -140,8 +140,6 @@ class WalletConnect2Session {
     if (!this.deeplink) return;
 
     setTimeout(() => {
-      // Reset the status of deeplink after each redirect
-      this.deeplink = false;
       Minimizer.goBack();
     }, 300);
   };

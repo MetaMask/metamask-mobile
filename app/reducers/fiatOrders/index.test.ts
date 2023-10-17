@@ -27,6 +27,7 @@ import fiatOrderReducer, {
   resetFiatOrders,
   selectedAddressSelector,
   setFiatOrdersGetStartedAGG,
+  setFiatOrdersGetStartedSell,
   setFiatOrdersPaymentMethodAGG,
   setFiatOrdersRegionAGG,
   updateActivationKey,
@@ -34,6 +35,7 @@ import fiatOrderReducer, {
   updateFiatOrder,
   updateOnRampNetworks,
   networkShortNameSelector,
+  fiatOrdersGetStartedSell,
 } from '.';
 import { FIAT_ORDER_PROVIDERS } from '../../constants/on-ramp';
 import { CustomIdData, Action, FiatOrder, Region } from './types';
@@ -304,6 +306,19 @@ describe('fiatOrderReducer', () => {
     );
     expect(stateWithStartedTrue.getStartedAgg).toEqual(true);
     expect(stateWithStartedFalse.getStartedAgg).toEqual(false);
+  });
+
+  it('should set get started sell', () => {
+    const stateWithStartedTrue = fiatOrderReducer(
+      initialState,
+      setFiatOrdersGetStartedSell(true),
+    );
+    const stateWithStartedFalse = fiatOrderReducer(
+      stateWithStartedTrue,
+      setFiatOrdersGetStartedSell(false),
+    );
+    expect(stateWithStartedTrue.getStartedSell).toEqual(true);
+    expect(stateWithStartedFalse.getStartedSell).toEqual(false);
   });
 
   it('should set the selected region', () => {
@@ -650,6 +665,18 @@ describe('selectors', () => {
       });
 
       expect(fiatOrdersGetStartedAgg(state)).toEqual(true);
+    });
+  });
+
+  describe('fiatOrdersGetStartedSell', () => {
+    it('should return the get started sell state', () => {
+      const state = merge({}, initialRootState, {
+        fiatOrders: {
+          getStartedSell: true,
+        },
+      });
+
+      expect(fiatOrdersGetStartedSell(state)).toEqual(true);
     });
   });
 

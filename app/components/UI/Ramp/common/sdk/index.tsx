@@ -27,6 +27,8 @@ import {
   fiatOrdersPaymentMethodSelectorAgg,
   setFiatOrdersPaymentMethodAGG,
   networkShortNameSelector,
+  fiatOrdersGetStartedSell,
+  setFiatOrdersGetStartedSell,
 } from '../../../../../reducers/fiatOrders';
 import { RampType, Region } from '../types';
 
@@ -159,6 +161,7 @@ export const RampSDKProvider = ({
     fiatOrdersRegionSelectorAgg,
   );
   const INITIAL_GET_STARTED = useSelector(fiatOrdersGetStartedAgg);
+  const INITIAL_GET_STARTED_SELL = useSelector(fiatOrdersGetStartedSell);
   const selectedAddress = useSelector(selectedAddressSelector);
   const selectedChainId = useSelector(chainIdSelector);
   const selectedNetworkNickname = useSelector(selectNickname);
@@ -181,7 +184,11 @@ export const RampSDKProvider = ({
     INITIAL_PAYMENT_METHOD_ID,
   );
   const [selectedFiatCurrencyId, setSelectedFiatCurrencyId] = useState(null);
-  const [getStarted, setGetStarted] = useState(INITIAL_GET_STARTED);
+  const [getStarted, setGetStarted] = useState(
+    (providerRampType ?? RampType.BUY) === RampType.BUY
+      ? INITIAL_GET_STARTED
+      : INITIAL_GET_STARTED_SELL,
+  );
 
   const isBuy = rampType === RampType.BUY;
   const isSell = rampType === RampType.SELL;
@@ -213,9 +220,13 @@ export const RampSDKProvider = ({
   const setGetStartedCallback = useCallback(
     (getStartedFlag) => {
       setGetStarted(getStartedFlag);
-      dispatch(setFiatOrdersGetStartedAGG(getStartedFlag));
+      if (rampType === RampType.BUY) {
+        dispatch(setFiatOrdersGetStartedAGG(getStartedFlag));
+      } else {
+        dispatch(setFiatOrdersGetStartedSell(getStartedFlag));
+      }
     },
-    [dispatch],
+    [dispatch, rampType],
   );
 
   const contextValue = useMemo(
