@@ -54,7 +54,7 @@ class Assertions {
   static async checkIfExists(elementId, timeout = TIMEOUT) {
     /* This assertion seems a bit redudant. Please replace me with checkIfVisible
      and delete me
-    We already have an assertion to check if an element is visible. 
+    We already have an assertion to check if an element is visible.
     No need to check if it exists
     */
 
