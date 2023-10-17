@@ -136,11 +136,7 @@ class TransactionEditor extends PureComponent {
     toFocused: false,
     ensRecipient: undefined,
     ready: false,
-<<<<<<< HEAD
-    // here error is defaulted to true untill its confirmed that there is no error
-=======
     // here error is defaulted to true until its confirmed that there is no error
->>>>>>> 9a37d5a3c3bfc90ee5ce4618d8bbe636e969584c
     error: true,
     data: undefined,
     amountError: '',
