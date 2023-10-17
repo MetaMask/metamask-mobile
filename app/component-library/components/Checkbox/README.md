@@ -6,6 +6,14 @@ Checkbox is a graphical element that allows users to select one or more options 
 
 This component extends [TouchableOpacityProps](https://reactnative.dev/docs/touchableopacity#props) from React Native's [TouchableOpacity](https://reactnative.dev/docs/touchableopacity) component.
 
+### `label`
+
+Optional label for the Checkbox.
+
+| <span style="color:gray;font-size:14px">TYPE</span> | <span style="color:gray;font-size:14px">REQUIRED</span> |
+| :-------------------------------------------------- | :------------------------------------------------------ |
+| string | ReactNode                                    | No                                                     |
+
 ### `isChecked`
 
 Optional prop to configure the checked state.
@@ -38,12 +46,22 @@ Optional prop to configure the readonly state.
 | :-------------------------------------------------- | :------------------------------------------------------ | :----------------------------------------------------- |
 | boolean                                             | No                                                     | false                                                 |
 
+### `isDanger`
+
+Optional prop to configure the readonly state.
+
+| <span style="color:gray;font-size:14px">TYPE</span> | <span style="color:gray;font-size:14px">REQUIRED</span> | <span style="color:gray;font-size:14px">DEFAULT</span> |
+| :-------------------------------------------------- | :------------------------------------------------------ | :----------------------------------------------------- |
+| boolean                                             | No                                                     | false                                                 |
+
 ## Usage
 
 ```javascript
 <Checkbox 
+    label={SAMPLE_CHECKBOX_LABEL}
     isChecked
     isIndeterminate 
     isDisabled 
-    isReadonly/>;
+    isReadonly
+    isDanger/>;
 ```

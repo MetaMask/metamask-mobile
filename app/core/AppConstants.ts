@@ -1,3 +1,4 @@
+import { CoreTypes } from '@walletconnect/types';
 import Device from '../util/device';
 
 const DEVELOPMENT = 'development';
@@ -61,7 +62,7 @@ export default {
         native: 'metamask://',
         universal: 'https://metamask.app.link/',
       },
-    },
+    } as CoreTypes.Metadata,
   },
   SWAPS: {
     ACTIVE: true,

@@ -15,8 +15,7 @@
     "see_details": "查看详细信息",
     "suspicious_request_title": "此请求很可疑",
     "trade_order_farming_description": "如果您批准此请求，可能会遭受资产损失。",
-    "transfer_farming_description": "如果您批准此请求，因欺诈而恶名昭彰的第三方会拿走您的所有资产。",
-    "unfair_trade_description": "如果您批准此请求，可能会遭受资产损失。"
+    "transfer_farming_description": "如果您批准此请求，因欺诈而恶名昭彰的第三方会拿走您的所有资产。"
   },
   "date": {
     "months": {
@@ -1914,7 +1913,6 @@
     "no_tokens_match": "没有符合“{{searchString}}”的代币",
     "no_currency_match": "没有符合“{{searchString}}”的货币",
     "pay_with": "支付方式：",
-    "buy_with": "使用{{provider}}购买",
     "minimum": "最低保证金为",
     "maximum": "最高保证金为",
     "try_again": "再试一次",

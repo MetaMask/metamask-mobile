@@ -15,8 +15,7 @@
     "see_details": "Lihat detailnya",
     "suspicious_request_title": "Ini adalah permintaan yang mencurigakan",
     "trade_order_farming_description": "Jika Anda menyetujui permintaan ini, aset Anda kemungkinan akan hilang.",
-    "transfer_farming_description": "Jika Anda menyetujui permintaan ini, pihak ketiga yang terdeteksi melakukan penipuan akan mengambil semua aset Anda.",
-    "unfair_trade_description": "Jika Anda menyetujui permintaan ini, aset Anda kemungkinan akan hilang."
+    "transfer_farming_description": "Jika Anda menyetujui permintaan ini, pihak ketiga yang terdeteksi melakukan penipuan akan mengambil semua aset Anda."
   },
   "date": {
     "months": {
@@ -1914,7 +1913,6 @@
     "no_tokens_match": "Tidak ada token yang cocok dengan “{{searchString}}”",
     "no_currency_match": "Tidak ada mata uang yang cocok dengan “{{searchString}}”",
     "pay_with": "Bayar melalui",
-    "buy_with": "Beli melalui {{provider}}",
     "minimum": "Deposit minimum adalah",
     "maximum": "Deposit maksimum adalah",
     "try_again": "Coba lagi",

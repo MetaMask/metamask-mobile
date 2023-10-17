@@ -15,8 +15,7 @@
     "see_details": "Details ansehen",
     "suspicious_request_title": "Dies ist eine verdächtige Anfrage.",
     "trade_order_farming_description": "Wenn Sie diese Anfrage genehmigen, könnten Sie Ihre Assets verlieren.",
-    "transfer_farming_description": "Wenn Sie diese Anfrage genehmigen, wird eine dritte Partei, die für Betrügereien bekannt ist, alle Ihre Assets an sich reißen.",
-    "unfair_trade_description": "Wenn Sie diese Anfrage genehmigen, könnten Sie Ihre Assets verlieren."
+    "transfer_farming_description": "Wenn Sie diese Anfrage genehmigen, wird eine dritte Partei, die für Betrügereien bekannt ist, alle Ihre Assets an sich reißen."
   },
   "date": {
     "months": {
@@ -1914,7 +1913,6 @@
     "no_tokens_match": "Keine Tokens, die mit „{{searchString}}“ übereinstimmen.",
     "no_currency_match": "Keine Währungen, die mit „{{searchString}}“ übereinstimmen.",
     "pay_with": "Zahlen mit",
-    "buy_with": "Mit {{provider}} kaufen",
     "minimum": "Die Mindesteinzahlung beträgt",
     "maximum": "Die Höchsteinzahlung beträgt",
     "try_again": "Erneut versuchen",

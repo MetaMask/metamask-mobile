@@ -15,8 +15,7 @@
     "see_details": "Voir les détails",
     "suspicious_request_title": "Cette demande est suspecte",
     "trade_order_farming_description": "Si vous approuvez cette demande, vous risquez de perdre vos actifs.",
-    "transfer_farming_description": "Si vous approuvez cette demande, un tiers connu pour ses activités frauduleuses pourrait s’emparer de tous vos actifs.",
-    "unfair_trade_description": "Si vous approuvez cette demande, vous risquez de perdre vos actifs."
+    "transfer_farming_description": "Si vous approuvez cette demande, un tiers connu pour ses activités frauduleuses pourrait s’emparer de tous vos actifs."
   },
   "date": {
     "months": {
@@ -1914,7 +1913,6 @@
     "no_tokens_match": "Aucun jeton correspondant à vos critères de recherche : {{searchString}}",
     "no_currency_match": "Aucune devise correspondant à vos critères de recherche : {{searchString}}",
     "pay_with": "Payer avec",
-    "buy_with": "Acheter avec {{provider}}",
     "minimum": "Le dépôt minimum est de",
     "maximum": "Le dépôt maximum est de",
     "try_again": "Réessayer",

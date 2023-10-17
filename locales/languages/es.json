@@ -15,8 +15,7 @@
     "see_details": "Ver detalles",
     "suspicious_request_title": "Esta es una solicitud sospechosa",
     "trade_order_farming_description": "Si aprueba esta solicitud, podría perder sus activos.",
-    "transfer_farming_description": "Si aprueba esta solicitud, un tercero conocido por estafar, tomará todos sus activos.",
-    "unfair_trade_description": "Si aprueba esta solicitud, podría perder sus activos."
+    "transfer_farming_description": "Si aprueba esta solicitud, un tercero conocido por estafar, tomará todos sus activos."
   },
   "date": {
     "months": {
@@ -1914,7 +1913,6 @@
     "no_tokens_match": "Ningún token coincide con \"{{searchString}}\"",
     "no_currency_match": "Ninguna moneda coincide con \"{{searchString}}\"",
     "pay_with": "Pagar con",
-    "buy_with": "Comprar con {{provider}}",
     "minimum": "El depósito mínimo es de",
     "maximum": "El depósito máximo es",
     "try_again": "Vuelva a intentarlo",
