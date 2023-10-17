@@ -1,0 +1,27 @@
+name: Bump version name
+on:
+  pull_request:
+    branches:
+      - develop
+      - main
+    types: [opened]
+jobs:
+  bump-version-name:
+    runs-on: ubuntu-latest
+    if: "contains(github.head_ref, 'release/')"
+    permissions:
+      contents: write  
+    steps:
+    - uses: actions/checkout@v3
+    - name: Bump script
+      env:
+        HEAD_REF: ${{ github.head_ref }}
+      run: |
+        ./scripts/bump-version.sh "$HEAD_REF"
+        git diff
+        git config user.name metamaskbot
+        git config user.email metamaskbot@users.noreply.github.com
+        git add bitrise.yml
+        git add package.json
+        git commit -m "Bump version name"
+        git push origin HEAD:"$HEAD_REF" --force
