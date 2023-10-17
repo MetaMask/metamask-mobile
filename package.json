@@ -350,7 +350,7 @@
     "@wdio/cli": "^7.19.1",
     "@wdio/cucumber-framework": "^8.14.6",
     "@wdio/junit-reporter": "^8.17.0",
-    "@wdio/local-runner": "^7.19.1",
+    "@wdio/local-runner": "^8.16.12",
     "@wdio/spec-reporter": "^8.4.0",
     "appium": "^1.22.3",
     "assert": "1.4.1",
