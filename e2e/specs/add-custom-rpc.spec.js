@@ -18,7 +18,7 @@ import {
   startFixtureServer,
   stopFixtureServer,
 } from '../fixtures/fixture-helper';
-import { getFixturesServerPort } from '../utils';
+import { getFixturesServerPort } from '../fixtures/utils';
 import FixtureServer from '../fixtures/fixture-server';
 
 const fixtureServer = new FixtureServer();
