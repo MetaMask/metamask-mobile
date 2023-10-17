@@ -51,7 +51,7 @@ import RPCQueueManager from './RPCQueueManager';
 export const MIN_IN_MS = 1000 * 60;
 export const HOUR_IN_MS = MIN_IN_MS * 60;
 export const DAY_IN_MS = HOUR_IN_MS * 24;
-export const DEFAULT_SESSION_TIMEOUT_MS = 7 * DAY_IN_MS;
+export const DEFAULT_SESSION_TIMEOUT_MS = 30 * DAY_IN_MS;
 
 export interface ConnectionProps {
   id: string;
@@ -322,9 +322,13 @@ export class Connection extends EventEmitter2 {
           this.origin === AppConstants.DEEPLINKS.ORIGIN_QR_CODE
         ) {
           const currentTime = Date.now();
+
+          const OTPExpirationDuration =
+            Number(process.env.OTP_EXPIRATION_DURATION_IN_MS) || HOUR_IN_MS;
+
           const channelWasActiveRecently =
             !!this.lastAuthorized &&
-            currentTime - this.lastAuthorized < HOUR_IN_MS;
+            currentTime - this.lastAuthorized < OTPExpirationDuration;
 
           if (channelWasActiveRecently) {
             this.approvalPromise = undefined;
@@ -655,9 +659,15 @@ export class Connection extends EventEmitter2 {
     message?: CommunicationLayerMessage;
     lastAuthorized?: number;
   } = {}): Promise<boolean> {
-    const channelWasActiveRecently =
-      !!lastAuthorized && Date.now() - lastAuthorized < HOUR_IN_MS;
+    const OTPExpirationDuration =
+      Number(process.env.OTP_EXPIRATION_DURATION_IN_MS) || HOUR_IN_MS;
 
+    const channelWasActiveRecently =
+      !!lastAuthorized && Date.now() - lastAuthorized < OTPExpirationDuration;
+
+    console.warn(
+      `SDKConnect checkPermissions lastAuthorized=${lastAuthorized} OTPExpirationDuration ${OTPExpirationDuration} channelWasActiveRecently ${channelWasActiveRecently}`,
+    );
     // only ask approval if needed
     const approved = this.isApproved({
       channelId: this.channelId,
@@ -854,15 +864,17 @@ export class SDKConnect extends EventEmitter2 {
     }
 
     this.connecting[id] = true;
+    const initialConnection = this.approvedHosts[id] === undefined;
+
     this.connections[id] = {
       id,
       otherPublicKey,
       origin,
       validUntil: Date.now() + DEFAULT_SESSION_TIMEOUT_MS,
-      lastAuthorized: 0,
+      lastAuthorized: initialConnection ? 0 : this.approvedHosts[id],
     };
 
-    const initialConnection = this.approvedHosts[id] === undefined;
+    console.warn(`SDKConnect connections[${id}]`, this.connections[id]);
 
     this.connected[id] = new Connection({
       ...this.connections[id],
@@ -946,9 +958,18 @@ export class SDKConnect extends EventEmitter2 {
     channelId: string;
     loading: boolean;
   }) {
-    const keyringController = (
+    let keyringController = (
       Engine.context as { KeyringController: KeyringController }
     ).KeyringController;
+    if (!keyringController) {
+      console.warn(
+        `SDKConnect::updateSDKLoadingState - keyringController not defined --- waiting for it to be defined`,
+      );
+      await wait(500); // Try again for the app to have time to init.
+      keyringController = (
+        Engine.context as { KeyringController: KeyringController }
+      ).KeyringController;
+    }
     await waitForKeychainUnlocked({ keyringController });
 
     if (loading === true) {
@@ -1312,6 +1333,7 @@ export class SDKConnect extends EventEmitter2 {
     } else {
       // Host is approved for 24h.
       this.approvedHosts[host] = Date.now() + DAY_IN_MS;
+      console.warn(`SDKConnect approveHost ${host}`, this.approvedHosts);
       if (this.connections[channelId]) {
         this.connections[channelId].lastAuthorized = Date.now();
       }

@@ -125,7 +125,6 @@ export default class AndroidService extends EventEmitter2 {
 
         try {
           if (!this.connectedClients?.[clientInfo.clientId]) {
-            this.setupBridge(clientInfo);
             // Save session to SDKConnect
             SDKConnect.getInstance().addAndroidConnection({
               id: clientInfo.clientId,

@@ -47,6 +47,9 @@ export const waitForKeychainUnlocked = async ({
   keyringController: KeyringController;
 }) => {
   let i = 0;
+  if (!keyringController) {
+    console.warn('Keyring controller not found');
+  }
   while (!keyringController.isUnlocked()) {
     await new Promise<void>((res) => setTimeout(() => res(), 600));
     if (i++ > 60) break;
