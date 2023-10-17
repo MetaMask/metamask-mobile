@@ -112,7 +112,7 @@ export async function withFixtures(options, testSuite) {
   const fixtureServer = new FixtureServer();
   const ganacheServer = new Ganache();
   const https = await generateCACertificate();
-  const mockServer = getLocal({ https, cors: true });
+  const mockServer = getLocal({ https, cors: true, debug: true });
   let mockedEndpoint;
   const mockBasePort = getMockServerPort();
   const dappBasePort = getLocalTestDappPort();
