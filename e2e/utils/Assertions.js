@@ -10,7 +10,7 @@ class Assertions {
   /**
    * Check if an element with the specified ID is visible.
    * @param {string} elementId - The ID of the element to check.
-   * @param {number}  Timeout in milliseconds.
+   * @param {number} Timeout in milliseconds.
    */
   static async checkIfVisible(elementId, timeout = TIMEOUT) {
     // rename this. We are checking if element is visible.
