@@ -505,10 +505,13 @@ class Approve extends PureComponent {
   };
 
   onCancel = () => {
-    const { ApprovalController } = Engine.context;
-    ApprovalController.reject(
+    Engine.rejectPendingApproval(
       this.props.transaction.id,
       ethErrors.provider.userRejectedRequest(),
+      {
+        ignoreMissing: true,
+        logErrors: false,
+      },
     );
     AnalyticsV2.trackEvent(
       MetaMetricsEvents.APPROVAL_CANCELLED,

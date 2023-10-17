@@ -257,6 +257,7 @@ class DeeplinkManager {
                 }
                 SDKConnect.getInstance().reconnect({
                   channelId: params.channelId,
+                  otherPublicKey: params.pubkey,
                   context: 'deeplink (universal)',
                 });
               } else {
@@ -291,7 +292,7 @@ class DeeplinkManager {
               PREFIXES[action],
             );
             // loops back to open the link with the right protocol
-            this.parse(url, { browserCallBack });
+            this.parse(url, { browserCallBack, origin });
           } else if (action === ACTIONS.BUY_CRYPTO) {
             this._handleBuyCrypto();
           } else {
@@ -387,6 +388,7 @@ class DeeplinkManager {
               }
               SDKConnect.getInstance().reconnect({
                 channelId: params.channelId,
+                otherPublicKey: params.pubkey,
                 context: 'deeplink (metamask)',
               });
             } else {
