@@ -74,7 +74,7 @@ const useBluetoothPermissions = () => {
         nextAppState === 'active'
       ) {
         setBluetoothPermissionError(undefined);
-        // checkPermissions();
+        checkPermissions();
       }
 
       appState.current = nextAppState;
