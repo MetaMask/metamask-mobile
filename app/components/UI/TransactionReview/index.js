@@ -157,10 +157,6 @@ class TransactionReview extends PureComponent {
      */
     transaction: PropTypes.object,
     /**
-     * Callback to validate transaction in parent state
-     */
-    validate: PropTypes.func,
-    /**
      * Browser/tab information
      */
     browser: PropTypes.object,
@@ -192,6 +188,10 @@ class TransactionReview extends PureComponent {
      * ETH or fiat, depending on user setting
      */
     primaryCurrency: PropTypes.string,
+    /**
+     * Error blockaid transaction execution, undefined value signifies no error.
+     */
+    error: PropTypes.oneOf[(PropTypes.bool, PropTypes.string)],
     /**
      * Whether or not basic gas estimates have been fetched
      */
@@ -265,7 +265,6 @@ class TransactionReview extends PureComponent {
     actionKey: strings('transactions.tx_review_confirm'),
     showHexData: false,
     dataVisible: false,
-    error: undefined,
     assetAmount: undefined,
     conversionRate: undefined,
     fiatValue: undefined,
@@ -300,13 +299,11 @@ class TransactionReview extends PureComponent {
   componentDidMount = async () => {
     const {
       accounts,
-      validate,
       transaction,
       transaction: { data, to, value, from },
       tokens,
       chainId,
       tokenList,
-      ready,
     } = this.props;
     let { showHexData } = this.props;
     let assetAmount, conversionRate, fiatValue;
@@ -315,7 +312,6 @@ class TransactionReview extends PureComponent {
       data &&
       data.substr(0, 10) === APPROVE_FUNCTION_SIGNATURE &&
       (!value || isZeroValue(value));
-    const error = ready && validate && (await validate());
     const actionKey = await getTransactionReviewActionKey(transaction, chainId);
     if (approveTransaction) {
       let contract = tokenList[safeToChecksumAddress(to)];
@@ -337,7 +333,6 @@ class TransactionReview extends PureComponent {
     );
 
     this.setState({
-      error,
       actionKey,
       showHexData,
       assetAmount,
@@ -376,14 +371,6 @@ class TransactionReview extends PureComponent {
   componentWillUnmount = async () => {
     clearInterval(intervalIdForEstimatedL1Fee);
   };
-
-  async componentDidUpdate(prevProps) {
-    if (this.props.ready !== prevProps.ready) {
-      const error = this.props.validate && (await this.props.validate());
-      // eslint-disable-next-line react/no-did-update-set-state
-      this.setState({ error });
-    }
-  }
 
   getRenderValues = () => {
     const {
@@ -500,10 +487,10 @@ class TransactionReview extends PureComponent {
       chainId,
       transaction,
       transaction: { to, origin, from, ensRecipient, securityAlertResponse },
+      error,
     } = this.props;
     const {
       actionKey,
-      error,
       assetAmount,
       conversionRate,
       fiatValue,
