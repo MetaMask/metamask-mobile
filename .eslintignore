@@ -1,4 +1,4 @@
-/js
+/scripts/inpage-bridge
 /app/core/InpageBridgeWeb3.js
 /app/util/blockies.js
 __snapshots__
