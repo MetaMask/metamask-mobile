@@ -59,7 +59,10 @@ jest.mock('../../store', () => ({
   },
 }));
 
-const mockStore = store as { getState: jest.Mock; dispatch: jest.Mock };
+const mockStore = store as unknown as {
+  getState: jest.Mock;
+  dispatch: jest.Mock;
+};
 
 jest.mock('../Permissions', () => ({
   getPermittedAccounts: jest.fn(),
