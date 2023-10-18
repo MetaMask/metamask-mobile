@@ -554,6 +554,29 @@ class Engine {
       }),
     });
 
+    const permissionController = new PermissionController({
+      // @ts-expect-error Error might be caused by base controller version mismatch
+      messenger: this.controllerMessenger.getRestricted({
+        name: 'PermissionController',
+        allowedActions: [
+          `${approvalController.name}:addRequest`,
+          `${approvalController.name}:hasRequest`,
+          `${approvalController.name}:acceptRequest`,
+          `${approvalController.name}:rejectRequest`,
+        ],
+      }),
+      state: initialState.PermissionController,
+      caveatSpecifications: getCaveatSpecifications({ getIdentities }),
+      // @ts-expect-error Inferred permission specification type is incorrect, fix after migrating to TypeScript
+      permissionSpecifications: {
+        ...getPermissionSpecifications({
+          getAllAccounts: () => keyringController.getAccounts(),
+        }),
+        ...getSnapPermissionSpecifications(),
+      },
+      unrestrictedMethods,
+    });
+
     const subjectMetadataController = new SubjectMetadataController({
       messenger: this.controllerMessenger.getRestricted({
         name: 'SubjectMetadataController',
@@ -816,28 +839,7 @@ class Engine {
       ),
       gasFeeController,
       approvalController,
-      new PermissionController({
-        // @ts-expect-error Error might be caused by base controller version mismatch
-        messenger: this.controllerMessenger.getRestricted({
-          name: 'PermissionController',
-          allowedActions: [
-            `${approvalController.name}:addRequest`,
-            `${approvalController.name}:hasRequest`,
-            `${approvalController.name}:acceptRequest`,
-            `${approvalController.name}:rejectRequest`,
-          ],
-        }),
-        state: initialState.PermissionController,
-        caveatSpecifications: getCaveatSpecifications({ getIdentities }),
-        // @ts-expect-error Inferred permission specification type is incorrect, fix after migrating to TypeScript
-        permissionSpecifications: {
-          ...getPermissionSpecifications({
-            getAllAccounts: () => keyringController.getAccounts(),
-          }),
-          ...getSnapPermissionSpecifications(),
-        },
-        unrestrictedMethods,
-      }),
+      permissionController,
       new SignatureController({
         // @ts-expect-error Error might be caused by base controller version mismatch
         messenger: this.controllerMessenger.getRestricted({
