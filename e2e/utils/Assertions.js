@@ -35,8 +35,9 @@ class Assertions {
    */
   static async checkIfElementWithTextIsNotVisible(text) {
     // rename this. We are checking if text is not visible. Not an element with text.
+    const element = await text.atIndex(index || 0);
 
-    return await expect(text.atIndex(0)).not.toBeVisible();
+    return await expect(element).not.toBeVisible();
   }
 
   /**
@@ -53,7 +54,7 @@ class Assertions {
 
   static async checkIfExists(elementId, timeout = TIMEOUT) {
     /* This assertion seems a bit redudant. Please replace me with checkIfVisible
-     and delete me
+     and delete all instances of me throughout the test code.
     We already have an assertion to check if an element is visible.
     No need to check if it exists.
     */
@@ -73,7 +74,7 @@ class Assertions {
   static async checkIfHasText(elementId, text, timeout = TIMEOUT) {
     // rename this. checkIfELEMENTHasText makes it clear
 
-    return await waitFor(elementId).toHaveText(text).withTimeout(timeout);
+    return waitFor(elementId).toHaveText(text).withTimeout(timeout);
   }
 
   /**
@@ -84,10 +85,9 @@ class Assertions {
    */
   static async checkIfElementWithTextIsVisible(text, index, timeout = TIMEOUT) {
     // rename this. We are checking if text is visible. Not an element with text.
+    const element = await text.atIndex(index || 0);
 
-    return await waitFor(element(by.text(text)).atIndex(index || 0))
-      .toBeVisible()
-      .withTimeout(timeout);
+    return await waitFor(element).toBeVisible().withTimeout(timeout);
   }
 
   /**
@@ -97,10 +97,9 @@ class Assertions {
    */
   static async checkIfElementByTextIsVisible(text, timeout = TIMEOUT) {
     // rename. CheckIfTextIsVisible reads better
+    const element = await text;
 
-    return await waitFor(element(by.text(text)))
-      .toBeVisible()
-      .withTimeout(timeout);
+    return await waitFor(element).toBeVisible().withTimeout(timeout);
   }
 
   /**
@@ -109,7 +108,7 @@ class Assertions {
    * @param {string} text - The expected string.
    */
   static async checkIfElementHasString(elementID, text) {
-    return expect(element(by.id(elementID))).toString(text);
+    return expect(elementID).toString(text);
   }
 
   /**
