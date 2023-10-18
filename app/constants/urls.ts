@@ -40,6 +40,8 @@ export const MM_BLOCKLIST_ISSUE_URL =
   'https://github.com/metamask/eth-phishing-detect/issues/new';
 export const PHISHFORT_BLOCKLIST_ISSUE_URL =
   'https://github.com/phishfort/phishfort-lists/issues/new';
+export const CONNECTING_TO_A_DECEPTIVE_SITE =
+  'https://support.metamask.io/hc/en-us/articles/4428045875483--Deceptive-site-ahead-when-trying-to-connect-to-a-site';
 
 // https://github.com/MetaMask/metamask-mobile/tree/gh-pages
 export const MM_APP_CONFIG_URL =

@@ -1,5 +1,5 @@
 import React from 'react';
-import { View } from 'react-native';
+import { View, Linking } from 'react-native';
 import BannerAlert from '../../../component-library/components/Banners/Banner/variants/BannerAlert/BannerAlert';
 import { BannerAlertSeverity } from '../../../component-library/components/Banners/Banner/variants/BannerAlert/BannerAlert.types';
 import { strings } from '../../../../locales/i18n';
@@ -16,20 +16,21 @@ import {
   IconName,
   IconSize,
 } from '../../../component-library/components/Icons/Icon';
+import AnalyticsV2 from '../../../util/analyticsV2';
+import { CONNECTING_TO_A_DECEPTIVE_SITE } from '../../../constants/urls';
 import { AccordionHeaderHorizontalAlignment } from '../../../component-library/components/Accordions/Accordion';
 
 const ShowWarningBanner = () => {
   const { colors, typography } = useTheme();
   const styles = createStyles(colors, typography);
 
-  const handleReportProblem = () => {
-    // go to report a problem url
-    // metrics
-  };
-
   const onLearnMore = () => {
-    // go to learn more url
-    // metrics
+    Linking.openURL(CONNECTING_TO_A_DECEPTIVE_SITE);
+    AnalyticsV2.trackEvent('EXTERNAL_LINK_CLICKED', {
+      location: 'dapp_connection_request',
+      text: 'Learn More',
+      url_domain: CONNECTING_TO_A_DECEPTIVE_SITE,
+    });
   };
 
   const potentialThreatsForAccountConnect = [
@@ -73,22 +74,6 @@ const ShowWarningBanner = () => {
               • {value}
             </Text>
           ))}
-        </View>
-        <View style={styles.attributionBase}>
-          <View style={styles.attributionItem}>
-            <Text variant={TextVariant.BodySM}>
-              {strings('blockaid_banner.does_not_look_right')}
-            </Text>
-          </View>
-          <View style={styles.attributionItem}>
-            <Text
-              color={TextColor.Info}
-              variant={TextVariant.BodySM}
-              onPress={handleReportProblem}
-            >
-              {strings('accounts.report_problem')}
-            </Text>
-          </View>
         </View>
       </Accordion>
       <View style={styles.advisoryContainer}>

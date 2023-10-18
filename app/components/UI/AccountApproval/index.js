@@ -101,8 +101,7 @@ class AccountApproval extends PureComponent {
         AppConstants.DEEPLINKS.ORIGIN_QR_CODE &&
       this.props.currentPageInformation.reconnect &&
       this.props.currentPageInformation.apiVersion,
-    blockListType: '',
-    allowList: [],
+    urlIsFlaggedAsPhishing: false,
   };
 
   getAnalyticsParams = () => {
@@ -129,6 +128,12 @@ class AccountApproval extends PureComponent {
   };
 
   componentDidMount = () => {
+    const { currentPageInformation } = this.props;
+
+    const prefixedUrl = prefixUrlWithProtocol(currentPageInformation?.url);
+    const { hostname } = new URL(prefixedUrl);
+    this.isUrlFlaggedAsPhishing(hostname);
+
     InteractionManager.runAfterInteractions(() => {
       AnalyticsV2.trackEvent(
         MetaMetricsEvents.CONNECT_REQUEST_STARTED,
@@ -249,28 +254,20 @@ class AccountApproval extends PureComponent {
     PhishingController.maybeUpdateState();
     const phishingControllerTestResult = PhishingController.test(hostname);
 
-    if (!phishingControllerTestResult.result) {
-      this.setState({ blockListType: phishingControllerTestResult.name });
-    }
-
-    return (
-      this.state.allowList.includes(hostname) ||
-      phishingControllerTestResult.result
-    );
+    return this.setState({
+      urlIsFlaggedAsPhishing: phishingControllerTestResult.result,
+    });
   };
 
   render = () => {
     const { currentPageInformation, selectedAddress } = this.props;
+    const { urlIsFlaggedAsPhishing } = this.state;
     const { colors, typography } = this.context || mockTheme;
     const styles = createStyles(colors, typography);
     const hasRememberMe =
       !currentPageInformation.reconnect &&
       this.props.currentPageInformation.origin ===
         AppConstants.DEEPLINKS.ORIGIN_QR_CODE;
-
-    const prefixedUrl = prefixUrlWithProtocol(currentPageInformation?.url);
-    const { hostname } = new URL(prefixedUrl);
-    const urlIsFlaggedAsPhishing = this.isUrlFlaggedAsPhishing(hostname);
 
     return (
       <View

@@ -542,7 +542,6 @@
     "deceptive_site_desc": "The site you’re trying to visit isn’t safe. Attackers may trick you into doing something dangerous.",
     "learn_more": "Learn more",
     "advisory_by": "Advisory provided by Ethereum Phishing Detector and PhishFort",
-    "report_problem": "Report a problem",
     "potential_threat": "Potential threats include"
   },
   "toast": {

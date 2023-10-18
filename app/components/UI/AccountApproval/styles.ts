@@ -130,13 +130,8 @@ const createStyles = (colors: ThemeColors, typography: ThemeTypography) =>
     detailsItem: {
       marginBottom: 4,
     },
-    details: { marginLeft: 10, marginBottom: 10 },
+    details: { marginLeft: 10 },
     securityTickIcon: { marginTop: 4 },
-    attributionBase: {
-      flexDirection: 'row',
-      alignItems: 'center',
-      marginTop: 4,
-    },
     descriptionText: {
       paddingRight: 10,
       paddingTop: 3,
