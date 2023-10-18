@@ -214,6 +214,10 @@ export class Connection extends EventEmitter2 {
 
     this.setLoading(true);
 
+    DevLogger.log(
+      `Connection::constructor() id=${this.channelId} initialConnection=${this.initialConnection} lastAuthorized=${this.lastAuthorized}`,
+    );
+
     this.remote = new RemoteCommunication({
       platformType: AppConstants.MM_SDK.PLATFORM as 'metamask-mobile',
       communicationServerUrl: AppConstants.MM_SDK.SERVER_URL,
@@ -664,7 +668,7 @@ export class Connection extends EventEmitter2 {
       !!lastAuthorized && Date.now() - lastAuthorized < OTPExpirationDuration;
 
     DevLogger.log(
-      `SDKConnect checkPermissions lastAuthorized=${lastAuthorized} OTPExpirationDuration ${OTPExpirationDuration} channelWasActiveRecently ${channelWasActiveRecently}`,
+      `SDKConnect checkPermissions initialConnection=${this.initialConnection} lastAuthorized=${lastAuthorized} OTPExpirationDuration ${OTPExpirationDuration} channelWasActiveRecently ${channelWasActiveRecently}`,
     );
     // only ask approval if needed
     const approved = this.isApproved({
@@ -1366,11 +1370,15 @@ export class SDKConnect extends EventEmitter2 {
     if (this.disabledHosts[host]) {
       // Might be useful for future feature.
     } else {
+      const now = Date.now();
       // Host is approved for 24h.
-      this.approvedHosts[host] = Date.now() + DAY_IN_MS;
+      this.approvedHosts[host] = now + DAY_IN_MS;
       DevLogger.log(`SDKConnect approveHost ${host}`, this.approvedHosts);
       if (this.connections[channelId]) {
-        this.connections[channelId].lastAuthorized = Date.now();
+        this.connections[channelId].lastAuthorized = now;
+      }
+      if (this.connected[channelId]) {
+        this.connected[channelId].lastAuthorized = now;
       }
       // Prevent disabled hosts from being persisted.
       DefaultPreference.set(
