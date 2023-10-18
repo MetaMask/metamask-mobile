@@ -1,4 +1,6 @@
 #!/bin/bash
+set -e
+
 echo "PostInstall script:"
 
 echo "1. Build Inpage Bridge..."

@@ -1,4 +1,6 @@
 #!/bin/bash
+set -e
+
 rm app/core/InpageBridgeWeb3.js
 mkdir -p scripts/inpage-bridge/dist && rm -rf scripts/inpage-bridge/dist/*
 cd scripts/inpage-bridge/inpage
