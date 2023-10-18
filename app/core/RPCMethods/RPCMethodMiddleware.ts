@@ -734,6 +734,7 @@ export const getRpcMethodMiddleware = ({
         }),
 
       wallet_watchAsset: async () => {
+        const { AssetsContractController } = Engine.context;
         const {
           params: {
             options: { address, decimals, image, symbol },
@@ -756,8 +757,29 @@ export const getRpcMethodMiddleware = ({
           Engine.context.PreferencesController.state.selectedAddress;
         // Fallback to wallet address if there is no connected account to Dapp.
         const interactingAddress = permittedAccounts?.[0] || selectedAddress;
+        // This variables are to override the value of decimals and symbol from the dapp
+        // if they are wrong accordingly to the token address
+        // *This is an hotfix this logic should live on whatchAsset method on TokensController*
+        let fetchedDecimals, fetchedSymbol;
+        try {
+          [fetchedDecimals, fetchedSymbol] = await Promise.all([
+            AssetsContractController.getERC20TokenDecimals(address),
+            AssetsContractController.getERC721AssetSymbol(address),
+          ]);
+          //The catch it's only to prevent the fetch from the chain to fail
+          // eslint-disable-next-line no-empty
+        } catch (e) {}
+
+        const finalTokenSymbol = fetchedSymbol ?? symbol;
+        const finalTokenDecimals = fetchedDecimals ?? decimals;
+
         await TokensController.watchAsset(
-          { address, symbol, decimals, image },
+          {
+            address,
+            symbol: finalTokenSymbol,
+            decimals: finalTokenDecimals,
+            image,
+          },
           type,
           safeToChecksumAddress(interactingAddress),
         );
