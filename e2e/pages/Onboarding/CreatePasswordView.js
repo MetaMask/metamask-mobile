@@ -1,5 +1,6 @@
 import TestHelpers from '../../helpers';
-
+import Gestures from '../../utils/Gestures';
+import Matchers from '../../utils/Matchers';
 import {
   CREATE_PASSWORD_CONTAINER_ID,
   CREATE_PASSWORD_INPUT_BOX_ID,
@@ -11,26 +12,42 @@ import {
 const CREATE_PASSWORD_BUTTON_ID = 'submit-button';
 const REMEMBER_ME_ID = 'remember-me-toggle';
 
-export default class CreatePasswordView {
-  static async toggleRememberMe() {
+class CreatePasswordView {
+  get createPasswordInputBox() {
+    return Matchers.getElementByID(CREATE_PASSWORD_INPUT_BOX_ID);
+  }
+  get welcomeButton() {
+    return Matchers.getElementByID(WELCOME_SCREEN_GET_STARTED_BUTTON_ID);
+  }
+
+  get confirmPasswordInputBox() {
+    return Matchers.getElementByID(CONFIRM_PASSWORD_INPUT_BOX_ID);
+  }
+  get createPasswordButton() {
+    return device.getPlatform() === 'ios'
+      ? Matchers.getElementByID(CREATE_PASSWORD_BUTTON_ID)
+      : Matchers.getElementByLabel(CREATE_PASSWORD_BUTTON_ID);
+  }
+
+  async toggleRememberMe() {
     await TestHelpers.tap(REMEMBER_ME_ID);
   }
 
-  static async enterPassword(password) {
-    await TestHelpers.typeTextAndHideKeyboard(
-      CREATE_PASSWORD_INPUT_BOX_ID,
+  async enterPassword(password) {
+    await Gestures.typeTextAndHideKeyboard(
+      this.createPasswordInputBox,
       password,
     );
   }
 
-  static async reEnterPassword(password) {
-    await TestHelpers.typeTextAndHideKeyboard(
-      CONFIRM_PASSWORD_INPUT_BOX_ID,
+  async reEnterPassword(password) {
+    await Gestures.typeTextAndHideKeyboard(
+      this.confirmPasswordInputBox,
       password,
     );
   }
 
-  static async tapIUnderstandCheckBox() {
+  async tapIUnderstandCheckBox() {
     if (device.getPlatform() === 'ios') {
       await TestHelpers.tap(IOS_I_UNDERSTAND_BUTTON_ID);
     } else {
@@ -40,20 +57,22 @@ export default class CreatePasswordView {
     }
   }
 
-  static async tapCreatePasswordButton() {
+  async tapCreatePasswordButton() {
     if (device.getPlatform() === 'ios') {
-      await TestHelpers.waitAndTap(CREATE_PASSWORD_BUTTON_ID);
+      await Gestures.waitAndTap(this.createPasswordButton);
     } else {
-      await TestHelpers.waitAndTapByLabel(CREATE_PASSWORD_BUTTON_ID);
+      await Gestures.waitAndTapByLabel(this.createPasswordButton);
     }
   }
 
   // Assertions
-  static async isVisible() {
+  async isVisible() {
     await TestHelpers.checkIfVisible(CREATE_PASSWORD_CONTAINER_ID);
   }
 
-  static async isNotVisible() {
+  async isNotVisible() {
     await TestHelpers.checkIfNotVisible(CREATE_PASSWORD_CONTAINER_ID);
   }
 }
+
+export default new CreatePasswordView();
