@@ -37,6 +37,7 @@ import RPCQueueManager from '../RPCQueueManager';
 import AndroidSDKEventHandler from './AndroidNativeSDKEventHandler';
 import { AndroidClient } from './android-sdk-types';
 import { PROTOCOLS } from '../../../constants/deeplinks';
+import DevLogger from '../utils/DevLogger';
 
 export default class AndroidService extends EventEmitter2 {
   private communicationClient = NativeModules.CommunicationClient;
@@ -50,6 +51,9 @@ export default class AndroidService extends EventEmitter2 {
     this.eventHandler = new AndroidSDKEventHandler();
     this.setupEventListeners()
       .then(() => {
+        DevLogger.log(
+          `AndroidService::constructor event listeners setup completed`,
+        );
         //
       })
       .catch((err) => {
@@ -59,6 +63,7 @@ export default class AndroidService extends EventEmitter2 {
 
   private async setupEventListeners(): Promise<void> {
     try {
+      await wait(200);
       // Wait for keychain to be unlocked before handling rpc calls.
       const keyringController = (
         Engine.context as { KeyringController: KeyringController }
@@ -130,6 +135,7 @@ export default class AndroidService extends EventEmitter2 {
 
         try {
           if (!this.connectedClients?.[clientInfo.clientId]) {
+            await this.requestApproval(clientInfo);
             this.setupBridge(clientInfo);
             // Save session to SDKConnect
             SDKConnect.getInstance().addAndroidConnection({
@@ -337,6 +343,7 @@ export default class AndroidService extends EventEmitter2 {
       return;
     }
 
+    DevLogger.log(`AndroidService::setupBridge`);
     const bridge = new BackgroundBridge({
       webview: null,
       isMMSDK: true,
