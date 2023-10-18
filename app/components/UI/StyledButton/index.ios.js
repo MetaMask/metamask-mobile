@@ -1,7 +1,7 @@
 import React, { PureComponent } from 'react';
 import PropTypes from 'prop-types';
 import { ViewPropTypes, Text } from 'react-native';
-import Button from 'react-native-button';
+import Button from '@metamask/react-native-button';
 import getStyles from './styledButtonStyles';
 import { ThemeContext, mockTheme } from '../../../util/theme';
 

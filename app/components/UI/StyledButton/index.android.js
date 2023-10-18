@@ -6,7 +6,7 @@ import {
   ViewPropTypes,
   TouchableNativeFeedback,
 } from 'react-native';
-import coalesceNonElementChildren from 'react-native-button/coalesceNonElementChildren';
+import coalesceNonElementChildren from '@metamask/react-native-button/coalesceNonElementChildren';
 import getStyles from './styledButtonStyles';
 import { ThemeContext, mockTheme } from '../../../util/theme';
 
