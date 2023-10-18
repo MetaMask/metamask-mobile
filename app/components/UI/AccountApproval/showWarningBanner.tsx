@@ -1,5 +1,5 @@
 import React from 'react';
-import { View, Linking } from 'react-native';
+import { View } from 'react-native';
 import BannerAlert from '../../../component-library/components/Banners/Banner/variants/BannerAlert/BannerAlert';
 import { BannerAlertSeverity } from '../../../component-library/components/Banners/Banner/variants/BannerAlert/BannerAlert.types';
 import { strings } from '../../../../locales/i18n';
@@ -16,28 +16,16 @@ import {
   IconName,
   IconSize,
 } from '../../../component-library/components/Icons/Icon';
-import AnalyticsV2 from '../../../util/analyticsV2';
-import { CONNECTING_TO_A_DECEPTIVE_SITE } from '../../../constants/urls';
 import { AccordionHeaderHorizontalAlignment } from '../../../component-library/components/Accordions/Accordion';
 
-const ShowWarningBanner = () => {
+interface Props {
+  onLearnMore: () => void;
+  descriptionArray: string[];
+}
+
+const ShowWarningBanner = ({ onLearnMore, descriptionArray }: Props) => {
   const { colors, typography } = useTheme();
   const styles = createStyles(colors, typography);
-
-  const onLearnMore = () => {
-    Linking.openURL(CONNECTING_TO_A_DECEPTIVE_SITE);
-    AnalyticsV2.trackEvent('EXTERNAL_LINK_CLICKED', {
-      location: 'dapp_connection_request',
-      text: 'Learn More',
-      url_domain: CONNECTING_TO_A_DECEPTIVE_SITE,
-    });
-  };
-
-  const potentialThreatsForAccountConnect = [
-    'Fake versions of MetaMask',
-    'Secret recovery phrase or password theft',
-    'Malicious transactions resulting in stolen assets',
-  ];
 
   const descriptionText = (
     <Text variant={TextVariant.BodyMD} style={styles.descriptionText}>
@@ -65,7 +53,7 @@ const ShowWarningBanner = () => {
           {strings('accounts.potential_threat')}
         </Text>
         <View style={styles.details}>
-          {potentialThreatsForAccountConnect?.map((value, i) => (
+          {descriptionArray?.map((value, i) => (
             <Text
               key={`value-${i}`}
               variant={TextVariant.BodySM}

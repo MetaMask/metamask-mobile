@@ -7,6 +7,7 @@ import {
   InteractionManager,
   TouchableOpacity,
   Platform,
+  Linking,
 } from 'react-native';
 import TransactionHeader from '../TransactionHeader';
 import AccountInfoCard from '../AccountInfoCard';
@@ -41,6 +42,7 @@ import Engine from '../../../core/Engine';
 import { prefixUrlWithProtocol } from '../../../util/browser';
 import createStyles from './styles';
 import ShowWarningBanner from './showWarningBanner';
+import { CONNECTING_TO_A_DECEPTIVE_SITE } from '../../../constants/urls';
 
 /**
  * Account access approval component
@@ -259,6 +261,21 @@ class AccountApproval extends PureComponent {
     });
   };
 
+  goToLearnMore = () => {
+    Linking.openURL(CONNECTING_TO_A_DECEPTIVE_SITE);
+    AnalyticsV2.trackEvent('EXTERNAL_LINK_CLICKED', {
+      location: 'dapp_connection_request',
+      text: 'Learn More',
+      url_domain: CONNECTING_TO_A_DECEPTIVE_SITE,
+    });
+  };
+
+  potentialThreatsForAccountConnect = [
+    'Fake versions of MetaMask',
+    'Secret recovery phrase or password theft',
+    'Malicious transactions resulting in stolen assets',
+  ];
+
   render = () => {
     const { currentPageInformation, selectedAddress } = this.props;
     const { urlIsFlaggedAsPhishing } = this.state;
@@ -276,7 +293,12 @@ class AccountApproval extends PureComponent {
       >
         <TransactionHeader currentPageInformation={currentPageInformation} />
 
-        {urlIsFlaggedAsPhishing && <ShowWarningBanner />}
+        {urlIsFlaggedAsPhishing && (
+          <ShowWarningBanner
+            onLearnMore={this.goToLearnMore}
+            descriptionArray={this.potentialThreatsForAccountConnect}
+          />
+        )}
 
         {!currentPageInformation.reconnect && (
           <>
