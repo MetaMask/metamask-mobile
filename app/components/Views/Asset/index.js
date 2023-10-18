@@ -379,9 +379,9 @@ class Asset extends PureComponent {
         const alreadyConfirmed = confirmedTxs.find(
           (confirmedTransaction) =>
             toLowerCaseEquals(
-              safeToChecksumAddress(confirmedTransaction.transaction.from),
+              safeToChecksumAddress(confirmedTransaction.txParams.from),
               selectedAddress,
-            ) && confirmedTransaction.transaction.nonce === nonce,
+            ) && confirmedTransaction.txParams.nonce === nonce,
         );
         if (alreadyConfirmed) {
           return false;

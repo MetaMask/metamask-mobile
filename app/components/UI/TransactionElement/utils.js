@@ -865,7 +865,7 @@ export default async function decodeTransaction(args) {
   let transactionElement, transactionDetails;
 
   if (
-    tx.transaction.to?.toLowerCase() === getSwapsContractAddress(chainId) ||
+    tx.txParams.to?.toLowerCase() === getSwapsContractAddress(chainId) ||
     swapsTransactions[tx.id]
   ) {
     const [transactionElement, transactionDetails] = decodeSwapsTx({

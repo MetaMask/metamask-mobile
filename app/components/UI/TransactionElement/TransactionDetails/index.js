@@ -176,7 +176,7 @@ class TransactionDetails extends PureComponent {
       if (!multiLayerL1FeeTotal) {
         multiLayerL1FeeTotal = '0x0'; // Sets it to 0 if it's not available in a txReceipt yet.
       }
-      transactionObject.transaction.multiLayerL1FeeTotal = multiLayerL1FeeTotal;
+      transactionObject.txParams.multiLayerL1FeeTotal = multiLayerL1FeeTotal;
       const decodedTx = await decodeTransaction({
         tx: transactionObject,
         selectedAddress,

@@ -5,7 +5,7 @@ const initialState = {
   ensRecipient: undefined,
   assetType: undefined,
   selectedAsset: {},
-  transaction: {
+  txParams: {
     data: undefined,
     from: undefined,
     gas: undefined,
@@ -75,7 +75,7 @@ const transactionReducer = (state = initialState, action) => {
     case 'SET_RECIPIENT':
       return {
         ...state,
-        transaction: { ...state.transaction, from: action.from },
+        transaction: { ...state.txParams, from: action.from },
         ensRecipient: action.ensRecipient,
         transactionTo: action.to,
         transactionToName: action.transactionToName,
@@ -104,8 +104,8 @@ const transactionReducer = (state = initialState, action) => {
       const txMeta = getTxMeta(action.transaction);
       return {
         ...state,
-        transaction: {
-          ...state.transaction,
+        txParams: {
+          ...state.txParams,
           ...getTxData(action.transaction),
         },
         ...txMeta,

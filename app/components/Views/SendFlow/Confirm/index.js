@@ -221,7 +221,7 @@ class Confirm extends PureComponent {
 
   state = {
     gasEstimationReady: false,
-    fromSelectedAddress: this.props.transactionState.transaction.from,
+    fromSelectedAddress: this.props.transactionState.txParams.from,
     hexDataModalVisible: false,
     warningGasPriceHigh: undefined,
     ready: false,
@@ -316,7 +316,7 @@ class Confirm extends PureComponent {
 
   fetchEstimatedL1Fee = async () => {
     const { transaction, chainId } = this.props;
-    if (!transaction?.transaction) {
+    if (!transaction?.txParams) {
       return;
     }
     try {
@@ -324,7 +324,7 @@ class Confirm extends PureComponent {
         Engine.context.NetworkController.getProviderAndBlockTracker().provider,
       );
       const result = await fetchEstimatedMultiLayerL1Fee(eth, {
-        txParams: transaction.transaction,
+        txParams: transaction.txParams,
         chainId,
       });
       this.setState({
@@ -385,7 +385,7 @@ class Confirm extends PureComponent {
     if (this.state?.closeModal) this.toggleConfirmationModal(REVIEW);
 
     const { errorMessage, fromSelectedAddress } = this.state;
-    const valueChanged = prevProps.transactionState.transaction.value !== value;
+    const valueChanged = prevProps.transactionState.txParams.value !== value;
     const fromAddressChanged =
       prevState.fromSelectedAddress !== fromSelectedAddress;
     const previousContractBalance =
@@ -408,7 +408,7 @@ class Confirm extends PureComponent {
       this.props.gasFeeEstimates &&
       gas &&
       (!shallowEqual(prevProps.gasFeeEstimates, this.props.gasFeeEstimates) ||
-        gas !== prevProps?.transactionState?.transaction?.gas)
+        gas !== prevProps?.transactionState?.txParams?.gas)
     ) {
       const gasEstimateTypeChanged =
         prevProps.gasEstimateType !== this.props.gasEstimateType;
@@ -803,7 +803,7 @@ class Confirm extends PureComponent {
   };
 
   handleCopyHex = () => {
-    const { data } = this.props.transactionState.transaction;
+    const { data } = this.props.transactionState.txParams;
     ClipboardManager.setString(data);
     this.props.showAlert({
       isVisible: true,
@@ -815,7 +815,7 @@ class Confirm extends PureComponent {
 
   renderHexDataModal = () => {
     const { hexDataModalVisible } = this.state;
-    const { data } = this.props.transactionState.transaction;
+    const { data } = this.props.transactionState.txParams;
     const colors = this.context.colors || mockTheme.colors;
     const styles = createStyles(colors);
     return (

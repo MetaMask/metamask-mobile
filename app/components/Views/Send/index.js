@@ -574,7 +574,7 @@ class Send extends PureComponent {
         try {
           const [addressTo] = decodeTransferData(
             'transfer',
-            transactionMeta.transaction.data,
+            transactionMeta.txParams.data,
           );
           if (addressTo) {
             checksummedAddress = toChecksumAddress(addressTo);
@@ -586,7 +586,7 @@ class Send extends PureComponent {
         try {
           const data = decodeTransferData(
             'transferFrom',
-            transactionMeta.transaction.data,
+            transactionMeta.txParams.data,
           );
           const addressTo = data[1];
           if (addressTo) {
