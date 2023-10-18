@@ -6,23 +6,14 @@ import {
   ScrollView,
   ViewStyle,
   TextStyle,
+  ViewProps,
 } from 'react-native';
 import { useTheme } from '../../../../../util/theme';
 import { Colors } from '../../../../../util/theme/models';
 import Text from '../../../../Base/Text';
 
-interface Style {
-  wrapper: ViewStyle;
-  container: ViewStyle;
-  content: ViewStyle;
-  header: ViewStyle;
-  body: ViewStyle;
-  grow: ViewStyle;
-  description: ViewStyle;
-}
-
 const createStyles = (colors: Colors) =>
-  StyleSheet.create<Style>({
+  StyleSheet.create({
     wrapper: {
       flex: 1,
     },
@@ -48,19 +39,12 @@ const createStyles = (colors: Colors) =>
     },
   });
 
-interface IPropsScreenLayout {
+interface ScreenLayoutProps extends ViewProps {
   scrollable?: boolean;
   style?: ViewStyle;
 }
 
-interface IStaticComponents {
-  Header: React.FC<IPropsHeader>;
-  Body: React.FC<IPropsHeader>;
-  Footer: React.FC<IPropsHeader>;
-  Content: React.FC<IPropsHeader>;
-}
-
-interface IPropsHeader {
+interface HeaderProps extends ViewProps {
   title?: string | (() => void);
   description?: string;
   titleStyle?: TextStyle;
@@ -70,24 +54,20 @@ interface IPropsHeader {
   style?: ViewStyle;
 }
 
-interface IPropsBody {
+interface BodyProps extends ViewProps {
   style?: ViewStyle;
 }
 
-interface IPropsFooter {
+interface FooterProps extends ViewProps {
   style?: ViewStyle;
 }
 
-interface IPropsContent {
+interface ContentProps extends ViewProps {
   grow?: boolean;
   style?: ViewStyle;
 }
 
-const ScreenLayout: React.FC<IPropsScreenLayout> & IStaticComponents = ({
-  style,
-  scrollable,
-  ...props
-}: IPropsScreenLayout) => {
+const ScreenLayout = ({ style, scrollable, ...props }: ScreenLayoutProps) => {
   const Component = scrollable ? ScrollView : View;
   const { colors } = useTheme();
   const styles = createStyles(colors);
@@ -98,7 +78,7 @@ const ScreenLayout: React.FC<IPropsScreenLayout> & IStaticComponents = ({
   );
 };
 
-const Header: React.FC<IPropsHeader> = ({
+const Header = ({
   title,
   description,
   bold,
@@ -107,7 +87,7 @@ const Header: React.FC<IPropsHeader> = ({
   titleStyle,
   descriptionStyle,
   ...props
-}: IPropsHeader) => {
+}: HeaderProps) => {
   const { colors } = useTheme();
   const styles = createStyles(colors);
   return (
@@ -127,20 +107,16 @@ const Header: React.FC<IPropsHeader> = ({
   );
 };
 
-const Body: React.FC<IPropsBody> = ({ style, ...props }: IPropsBody) => {
+const Body = ({ style, ...props }: BodyProps) => {
   const { colors } = useTheme();
   const styles = createStyles(colors);
   return <View style={[styles.body, style]} {...props} />;
 };
 
-const Footer: React.FC<IPropsFooter> = ({ style, ...props }: IPropsFooter) => (
+const Footer = ({ style, ...props }: FooterProps) => (
   <View style={style} {...props} />
 );
-const Content: React.FC<IPropsContent> = ({
-  style,
-  grow,
-  ...props
-}: IPropsContent) => {
+const Content = ({ style, grow, ...props }: ContentProps) => {
   const { colors } = useTheme();
   const styles = createStyles(colors);
   return (
