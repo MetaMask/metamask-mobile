@@ -1,0 +1,50 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`Settings should render correctly 1`] = `
+<ScrollViewMock
+  style={
+    Object {
+      "backgroundColor": "#FFFFFF",
+      "flex": 1,
+      "paddingLeft": 18,
+      "zIndex": 99999999999999,
+    }
+  }
+>
+  <withPreventDoubleClick(SettingsDrawer)
+    description="Currency conversion, primary currency, language and search engine"
+    onPress={[Function]}
+    title="General"
+  />
+  <withPreventDoubleClick(SettingsDrawer)
+    description="Privacy settings, MetaMetrics, private key and wallet seed phrase"
+    onPress={[Function]}
+    title="Security & Privacy"
+    warning={false}
+  />
+  <withPreventDoubleClick(SettingsDrawer)
+    description="Access developer features, reset account, setup testnets, sync with extension, state logs, IPFS gateway and custom RPC"
+    onPress={[Function]}
+    title="Advanced"
+  />
+  <withPreventDoubleClick(SettingsDrawer)
+    description="Add, edit, remove, and manage your accounts"
+    onPress={[Function]}
+    title="Contacts"
+  />
+  <withPreventDoubleClick(SettingsDrawer)
+    description="Add and edit custom RPC networks"
+    onPress={[Function]}
+    title="Networks"
+  />
+  <withPreventDoubleClick(SettingsDrawer)
+    description="WalletConnect & more..."
+    onPress={[Function]}
+    title="Experimental"
+  />
+  <withPreventDoubleClick(SettingsDrawer)
+    onPress={[Function]}
+    title="About MetaMask"
+  />
+</ScrollViewMock>
+`;
