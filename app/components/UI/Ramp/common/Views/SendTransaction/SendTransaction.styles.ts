@@ -9,5 +9,13 @@ const styleSheet = (_params: { theme: Theme }) =>
     centered: {
       textAlign: 'center',
     },
+    content: {
+      flex: 1,
+      justifyContent: 'center',
+      alignItems: 'center',
+    },
+    normal: {
+      fontWeight: 'normal',
+    },
   });
 export default styleSheet;

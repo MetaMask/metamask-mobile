@@ -1,4 +1,4 @@
-import React, { forwardRef, useCallback } from 'react';
+import React, { forwardRef, useCallback, useEffect } from 'react';
 import { TouchableOpacity } from 'react-native';
 
 import Animated, {
@@ -40,12 +40,13 @@ const AnimatedText = Animated.createAnimatedComponent(
 
 interface Props {
   onLongPress: () => void;
+  disabled?: boolean;
 }
 
 const initialAnimationValue = 0;
 const finishedAnimationValue = 1;
 
-const ButtonConfirm = ({ onLongPress }: Props) => {
+const ButtonConfirm = ({ onLongPress, disabled = false }: Props) => {
   // Pre-completed progress value
   const longPressProgress = useSharedValue(initialAnimationValue);
   // Completed progress value
@@ -99,6 +100,12 @@ const ButtonConfirm = ({ onLongPress }: Props) => {
       });
     }
   }, [longPressProgress]);
+
+  useEffect(() => {
+    if (disabled) {
+      triggerPressEnd();
+    }
+  }, [disabled, triggerPressEnd]);
 
   const progressBarStyle = useAnimatedStyle(
     () => ({
@@ -177,6 +184,8 @@ const ButtonConfirm = ({ onLongPress }: Props) => {
     <TouchableOpacity
       onPressIn={triggerPressStart}
       onPressOut={triggerPressEnd}
+      disabled={disabled}
+      style={disabled ? styles.disabled : undefined}
       activeOpacity={1}
     >
       <Animated.View
@@ -192,10 +201,10 @@ const ButtonConfirm = ({ onLongPress }: Props) => {
         />
         <AnimatedText> </AnimatedText>
         <AnimatedText style={[styles.label, holdLabelStyle]}>
-          {strings('fiat_on_ramp_aggregator.send_transaction.hold_to_confirm')}
+          {strings('fiat_on_ramp_aggregator.send_transaction.hold_to_send')}
         </AnimatedText>
         <AnimatedText style={[styles.label, confirmLabelStyle]}>
-          {strings('fiat_on_ramp_aggregator.send_transaction.confirm')}
+          {strings('fiat_on_ramp_aggregator.send_transaction.send')}
         </AnimatedText>
         <AnimatedText style={[styles.label, confirmedLabelStyle]}>
           <Icon
@@ -203,7 +212,7 @@ const ButtonConfirm = ({ onLongPress }: Props) => {
             color={IconColor.Inverse}
             size={IconSize.Sm}
           />{' '}
-          {strings('fiat_on_ramp_aggregator.send_transaction.confirmed')}
+          {strings('fiat_on_ramp_aggregator.send_transaction.sent')}
         </AnimatedText>
       </Animated.View>
     </TouchableOpacity>

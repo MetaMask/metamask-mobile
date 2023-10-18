@@ -2002,9 +2002,10 @@
     },
     "send_transaction": {
       "sell_crypto": "Sell crypto",
-      "hold_to_confirm": "Hold to confirm",
-      "confirm": "Confirm",
-      "confirmed": "Confirmed!"
+      "send_description": "You will send your {{cryptocurrency}} to {{provider}}, who then sends your cash to {{paymentMethod}}",
+      "hold_to_send": "Hold to send",
+      "send": "Send",
+      "sent": "Sent!"
     }
   },
   "swaps": {

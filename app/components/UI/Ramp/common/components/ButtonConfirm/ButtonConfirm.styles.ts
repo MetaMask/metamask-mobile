@@ -21,6 +21,9 @@ const createStyles = (colors: Colors) =>
     label: {
       position: 'absolute',
     },
+    disabled: {
+      opacity: 0.5,
+    },
   });
 
 export default createStyles;
