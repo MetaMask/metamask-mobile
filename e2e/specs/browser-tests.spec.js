@@ -13,7 +13,7 @@ import {
   stopFixtureServer,
 } from '../fixtures/fixture-helper';
 import FixtureServer from '../fixtures/fixture-server';
-import { getFixturesServerPort } from '../utils';
+import { getFixturesServerPort } from '../fixtures/utils';
 
 const PHISHING_SITE = 'http://www.empowr.com/FanFeed/Home.aspx';
 const INVALID_URL = 'https://quackquakc.easq';
