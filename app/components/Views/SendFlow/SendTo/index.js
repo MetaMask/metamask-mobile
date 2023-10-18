@@ -418,7 +418,9 @@ class SendFlow extends PureComponent {
   };
 
   onToSelectedAddressChange = (toAccount) => {
-    const currentChain = this.props.ambiguousAddressEntries[this.props.chainId];
+    const currentChain =
+      this.props.ambiguousAddressEntries &&
+      this.props.ambiguousAddressEntries[this.props.chainId];
     const isAmbiguousAddress = includes(currentChain, toAccount);
     if (isAmbiguousAddress) {
       this.setState({ showAmbiguousAcountWarning: isAmbiguousAddress });
