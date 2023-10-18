@@ -1,837 +1,868 @@
 import React, { PureComponent } from 'react';
-import { Alert, InteractionManager, AppState, View } from 'react-native';
+import { SafeAreaView, StyleSheet, Text, View, TouchableOpacity, TextInput, Clipboard, Alert } from 'react-native';
 import PropTypes from 'prop-types';
 import { getApproveNavbar } from '../../../UI/Navbar';
+import { colors, fontStyles, baseStyles } from '../../../../styles/common';
 import { connect } from 'react-redux';
-import { safeToChecksumAddress } from '../../../../util/address';
+import WebsiteIcon from '../../../UI/WebsiteIcon';
+import { getHost } from '../../../../util/browser';
+import TransactionDirection from '../../TransactionDirection';
+import contractMap from 'eth-contract-metadata';
+import { safeToChecksumAddress, renderShortAddress, renderAccountName } from '../../../../util/address';
 import Engine from '../../../../core/Engine';
-import AnimatedTransactionModal from '../../../UI/AnimatedTransactionModal';
-import ApproveTransactionReview from '../../../UI/ApproveTransactionReview';
-import AddNickname from '../../../UI/ApproveTransactionReview/AddNickname';
-import Modal from 'react-native-modal';
+import ActionView from '../../../UI/ActionView';
+import FontAwesome5 from 'react-native-vector-icons/FontAwesome5';
+import IonicIcon from 'react-native-vector-icons/Ionicons';
+import CustomGas from '../../SendFlow/CustomGas';
+import ActionModal from '../../../UI/ActionModal';
 import { strings } from '../../../../../locales/i18n';
-import { getNetworkNonce } from '../../../../util/networks';
-import Analytics from '../../../../core/Analytics/Analytics';
-import {
-  setTransactionObject,
-  setNonce,
-  setProposedNonce,
-} from '../../../../actions/transaction';
-import { GAS_ESTIMATE_TYPES } from '@metamask/gas-fee-controller';
-import { BNToHex } from '@metamask/controller-utils';
-import {
-  addHexPrefix,
-  fromWei,
-  renderFromWei,
-  hexToBN,
-} from '../../../../util/number';
-import { getNormalizedTxState, getTicker } from '../../../../util/transactions';
-import { getGasLimit } from '../../../../util/custom-gas';
+import { setTransactionObject } from '../../../../actions/transaction';
+import { BNToHex, hexToBN } from 'gaba/dist/util';
+import { renderFromWei, weiToFiatNumber, isBN, renderFromTokenMinimalUnit, isDecimal } from '../../../../util/number';
+import { getTicker, decodeTransferData, generateApproveData } from '../../../../util/transactions';
 import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view';
-import NotificationManager from '../../../../core/NotificationManager';
-import { MetaMetricsEvents } from '../../../../core/Analytics';
-import Logger from '../../../../util/Logger';
-import EditGasFee1559 from '../../../UI/EditGasFee1559Update';
-import EditGasFeeLegacy from '../../../UI/EditGasFeeLegacyUpdate';
-import AnalyticsV2 from '../../../../util/analyticsV2';
-import AppConstants from '../../../../core/AppConstants';
-import { shallowEqual } from '../../../../util/general';
-import { KEYSTONE_TX_CANCELED } from '../../../../constants/error';
-import GlobalAlert from '../../../UI/GlobalAlert';
-import checkIfAddressIsSaved from '../../../../util/checkAddress';
-import { ThemeContext, mockTheme } from '../../../../util/theme';
-import {
-  startGasPolling,
-  stopGasPolling,
-} from '../../../../core/GasPolling/GasPolling';
-import {
-  selectChainId,
-  selectProviderType,
-  selectTicker,
-  selectRpcTarget,
-  selectNetworkConfigurations,
-} from '../../../../selectors/networkController';
-import {
-  selectConversionRate,
-  selectCurrentCurrency,
-  selectNativeCurrency,
-} from '../../../../selectors/currencyRateController';
-import { selectTokensLength } from '../../../../selectors/tokensController';
-import {
-  selectAccounts,
-  selectAccountsLength,
-} from '../../../../selectors/accountTrackerController';
-import ShowBlockExplorer from '../../../UI/ApproveTransactionReview/ShowBlockExplorer';
-import createStyles from './styles';
-import { ethErrors } from 'eth-rpc-errors';
+import ErrorMessage from '../../SendFlow/ErrorMessage';
+import { showAlert } from '../../../../actions/alert';
+import Feather from 'react-native-vector-icons/Feather';
+import TransactionsNotificationManager from '../../../../core/TransactionsNotificationManager';
+import Identicon from '../../../UI/Identicon';
 
-const EDIT = 'edit';
-const REVIEW = 'review';
+const styles = StyleSheet.create({
+	wrapper: {
+		backgroundColor: colors.white,
+		flex: 1
+	},
+	icon: {
+		borderRadius: 32,
+		height: 64,
+		width: 64
+	},
+	section: {
+		flexDirection: 'column',
+		paddingHorizontal: 24,
+		borderBottomWidth: 1,
+		borderBottomColor: colors.grey200,
+		paddingVertical: 20
+	},
+	title: {
+		...fontStyles.normal,
+		fontSize: 24,
+		textAlign: 'center',
+		color: colors.black,
+		lineHeight: 34,
+		marginVertical: 16
+	},
+	explanation: {
+		...fontStyles.normal,
+		fontSize: 14,
+		textAlign: 'center',
+		color: colors.grey500,
+		lineHeight: 20
+	},
+	editPermissionText: {
+		...fontStyles.bold,
+		color: colors.blue,
+		fontSize: 14,
+		lineHeight: 20,
+		textAlign: 'center',
+		marginVertical: 20
+	},
+	viewDetailsText: {
+		...fontStyles.normal,
+		color: colors.blue,
+		fontSize: 12,
+		lineHeight: 16,
+		textAlign: 'center'
+	},
+	actionTouchable: {
+		flexDirection: 'column',
+		alignItems: 'center'
+	},
+	websiteIconWrapper: {
+		flexDirection: 'column',
+		alignItems: 'center'
+	},
+	sectionTitleText: {
+		...fontStyles.bold,
+		color: colors.black,
+		fontSize: 14,
+		marginLeft: 8
+	},
+	sectionTitleRow: {
+		flexDirection: 'row',
+		alignItems: 'center',
+		marginBottom: 12
+	},
+	sectionExplanationText: {
+		...fontStyles.normal,
+		fontSize: 12,
+		color: colors.grey500,
+		marginVertical: 6
+	},
+	editText: {
+		...fontStyles.normal,
+		color: colors.blue,
+		fontSize: 12
+	},
+	fiatFeeText: {
+		...fontStyles.bold,
+		fontSize: 18,
+		color: colors.black,
+		textTransform: 'uppercase'
+	},
+	feeText: {
+		...fontStyles.normal,
+		fontSize: 14,
+		color: colors.grey500
+	},
+	row: {
+		flexDirection: 'row',
+		alignItems: 'center'
+	},
+	column: {
+		flexDirection: 'column'
+	},
+	sectionLeft: {
+		flex: 0.6,
+		flexDirection: 'row',
+		alignItems: 'center'
+	},
+	sectionRight: {
+		flex: 0.4,
+		alignItems: 'flex-end'
+	},
+	permissionDetails: {
+		...fontStyles.normal,
+		fontSize: 14,
+		color: colors.black,
+		marginVertical: 8
+	},
+	viewDetailsWrapper: {
+		flexDirection: 'row',
+		marginTop: 20
+	},
+	copyIcon: {
+		marginLeft: 8
+	},
+	customGasModalTitle: {
+		borderBottomColor: colors.grey100,
+		borderBottomWidth: 1
+	},
+	customGasModalTitleText: {
+		...fontStyles.bold,
+		color: colors.black,
+		fontSize: 18,
+		alignSelf: 'center',
+		margin: 16
+	},
+	option: {
+		flexDirection: 'row',
+		marginVertical: 8
+	},
+	optionText: {
+		...fontStyles.normal,
+		fontSize: 14,
+		lineHeight: 20
+	},
+	touchableOption: {
+		flexDirection: 'row'
+	},
+	selectedCircle: {
+		width: 8,
+		height: 8,
+		borderRadius: 8 / 2,
+		margin: 3,
+		backgroundColor: colors.blue
+	},
+	outSelectedCircle: {
+		width: 18,
+		height: 18,
+		borderRadius: 18 / 2,
+		borderWidth: 2,
+		borderColor: colors.blue
+	},
+	circle: {
+		width: 18,
+		height: 18,
+		borderRadius: 18 / 2,
+		backgroundColor: colors.white,
+		opacity: 1,
+		borderWidth: 2,
+		borderColor: colors.grey200
+	},
+	input: {
+		padding: 12,
+		borderColor: colors.grey200,
+		borderRadius: 10,
+		borderWidth: 2
+	},
+	spendLimitContent: {
+		marginLeft: 8,
+		flex: 1
+	},
+	spendLimitWrapper: {
+		padding: 16
+	},
+	spendLimitTitle: {
+		...fontStyles.bold,
+		color: colors.black,
+		fontSize: 14,
+		lineHeight: 20,
+		marginBottom: 8
+	},
+	spendLimitSubtitle: {
+		...fontStyles.normal,
+		fontSize: 12,
+		lineHeight: 18,
+		color: colors.grey500
+	},
+	textBlue: {
+		color: colors.blue
+	},
+	textBlack: {
+		color: colors.black
+	},
+	errorMessageWrapper: {
+		marginTop: 16
+	},
+	fromGraphic: {
+		flex: 1,
+		borderColor: colors.grey100,
+		borderBottomWidth: 1,
+		alignItems: 'center',
+		flexDirection: 'row',
+		minHeight: 42,
+		paddingHorizontal: 16
+	},
+	addressText: {
+		...fontStyles.normal,
+		color: colors.black,
+		marginLeft: 8
+	},
+	tokenBalanceWrapper: {
+		flex: 1,
+		alignItems: 'flex-end'
+	},
+	tokenBalanceText: {
+		...fontStyles.normal,
+		color: colors.grey500,
+		fontSize: 14,
+		lineHeight: 20
+	}
+});
 
 /**
  * PureComponent that manages ERC20 approve from the dapp browser
  */
 class Approve extends PureComponent {
-  appStateListener;
+	static navigationOptions = ({ navigation }) => getApproveNavbar('approve.title', navigation);
 
-  static navigationOptions = ({ navigation }) =>
-    getApproveNavbar('approve.title', navigation);
+	static propTypes = {
+		/**
+		 * List of accounts from the AccountTrackerController
+		 */
+		accounts: PropTypes.object,
+		/**
+		 * Object that represents the navigator
+		 */
+		navigation: PropTypes.object,
+		/**
+		 * ETH to current currency conversion rate
+		 */
+		conversionRate: PropTypes.number,
+		/**
+		 * An object containing token balances for current account and network in the format address => balance
+		 */
+		contractBalances: PropTypes.object,
+		/**
+		 * Currency code of the currently-active currency
+		 */
+		currentCurrency: PropTypes.string,
+		/**
+		/* Identities object required to get account name
+		*/
+		identities: PropTypes.object,
+		/**
+		 * Transaction state
+		 */
+		transaction: PropTypes.object.isRequired,
+		/**
+		 * Action that sets transaction attributes from object to a transaction
+		 */
+		setTransactionObject: PropTypes.func.isRequired,
+		/**
+		 * Action that shows the global alert
+		 */
+		showAlert: PropTypes.func,
+		/**
+		 * Current provider ticker
+		 */
+		ticker: PropTypes.string,
+		/**
+		 * List of transactions
+		 */
+		transactions: PropTypes.array
+	};
 
-  static propTypes = {
-    /**
-     * List of accounts from the AccountTrackerController
-     */
-    accounts: PropTypes.object,
-    /**
-     * Transaction state
-     */
-    transaction: PropTypes.object.isRequired,
-    /**
-     * Action that sets transaction attributes from object to a transaction
-     */
-    setTransactionObject: PropTypes.func.isRequired,
-    /**
-     * List of transactions
-     */
-    transactions: PropTypes.array,
-    /**
-     * Number of tokens
-     */
-    tokensLength: PropTypes.number,
-    /**
-     * Number of accounts
-     */
-    accountsLength: PropTypes.number,
-    /**
-     * A string representing the network name
-     */
-    providerType: PropTypes.string,
-    /**
-     * Whether the modal is visible
-     */
-    modalVisible: PropTypes.bool,
-    /**
-    /* Hide modal visible or not
-    */
-    hideModal: PropTypes.func,
-    /**
-     * Current selected ticker
-     */
-    ticker: PropTypes.string,
-    /**
-     * Gas fee estimates returned by the gas fee controller
-     */
-    gasFeeEstimates: PropTypes.object,
-    /**
-     * Estimate type returned by the gas fee controller, can be market-fee, legacy or eth_gasPrice
-     */
-    gasEstimateType: PropTypes.string,
-    /**
-     * ETH or fiat, depending on user setting
-     */
-    primaryCurrency: PropTypes.string,
-    /**
-     * A string representing the network chainId
-     */
-    chainId: PropTypes.string,
-    /**
-     * An object of all saved addresses
-     */
-    addressBook: PropTypes.object,
-    networkConfigurations: PropTypes.object,
-    providerRpcTarget: PropTypes.string,
-    /**
-     * Set transaction nonce
-     */
-    setNonce: PropTypes.func,
-    /**
-     * Set proposed nonce (from network)
-     */
-    setProposedNonce: PropTypes.func,
-    /**
-     * Indicates whether custom nonce should be shown in transaction editor
-     */
-    showCustomNonce: PropTypes.bool,
-  };
+	state = {
+		approved: false,
+		currentCustomGasSelected: 'average',
+		customGasSelected: 'average',
+		customGas: undefined,
+		customGasPrice: undefined,
+		customGasModalVisible: false,
+		editPermissionModalVisible: false,
+		gasError: undefined,
+		host: undefined,
+		originalApproveAmount: undefined,
+		originalTransactionData: this.props.transaction.data,
+		totalGas: undefined,
+		totalGasFiat: undefined,
+		tokenSymbol: undefined,
+		tokenDecimals: undefined,
+		spendLimitUnlimitedSelected: true,
+		spendLimitCustomValue: undefined,
+		ticker: getTicker(this.props.ticker),
+		validSpendLimitCustomValue: true,
+		viewDetails: false
+	};
 
-  state = {
-    approved: false,
-    gasError: undefined,
-    ready: false,
-    mode: REVIEW,
-    over: false,
-    analyticsParams: {},
-    gasSelected: AppConstants.GAS_OPTIONS.MEDIUM,
-    gasSelectedTemp: AppConstants.GAS_OPTIONS.MEDIUM,
-    transactionConfirmed: false,
-    shouldAddNickname: false,
-    shouldVerifyContractDetails: false,
-    suggestedGasLimit: undefined,
-    eip1559GasObject: {},
-    eip1559GasTransaction: {},
-    legacyGasObject: {},
-    legacyGasTransaction: {},
-    isBlockExplorerVisible: false,
-    address: '',
-    tokenAllowanceState: undefined,
-    isGasEstimateStatusIn: false,
-  };
+	customSpendLimitInput = React.createRef();
 
-  computeGasEstimates = (overrideGasLimit, gasEstimateTypeChanged) => {
-    const { transaction, gasEstimateType } = this.props;
+	componentDidMount = async () => {
+		const {
+			transaction: { origin, to, gas, gasPrice, data },
+			conversionRate
+		} = this.props;
+		const { AssetsContractController } = Engine.context;
+		const host = getHost(origin);
+		let tokenSymbol, tokenDecimals;
+		const contract = contractMap[safeToChecksumAddress(to)];
+		if (!contract) {
+			tokenSymbol = await AssetsContractController.getAssetSymbol(to);
+			tokenDecimals = await AssetsContractController.getTokenDecimals(to);
+		} else {
+			tokenSymbol = contract.symbol;
+			tokenDecimals = contract.decimals;
+		}
+		const originalApproveAmount = decodeTransferData('transfer', data)[1];
+		const totalGas = gas.mul(gasPrice);
+		this.setState({
+			host,
+			originalApproveAmount,
+			tokenDecimals,
+			tokenSymbol,
+			totalGas: renderFromWei(totalGas),
+			totalGasFiat: weiToFiatNumber(totalGas, conversionRate)
+		});
+	};
 
-    const gasSelected = gasEstimateTypeChanged
-      ? AppConstants.GAS_OPTIONS.MEDIUM
-      : this.state.gasSelected;
-    const gasSelectedTemp = gasEstimateTypeChanged
-      ? AppConstants.GAS_OPTIONS.MEDIUM
-      : this.state.gasSelectedTemp;
+	componentWillUnmount = () => {
+		const { approved } = this.state;
+		const { transaction } = this.props;
+		if (!approved) Engine.context.TransactionController.cancelTransaction(transaction.id);
+	};
 
-    if (gasEstimateType === GAS_ESTIMATE_TYPES.FEE_MARKET) {
-      const suggestedGasLimit = fromWei(
-        overrideGasLimit || transaction.gas,
-        'wei',
-      );
+	onViewDetails = () => {
+		const { viewDetails } = this.state;
+		this.setState({ viewDetails: !viewDetails });
+	};
 
-      // eslint-disable-next-line react/no-did-update-set-state
-      this.setState(
-        {
-          ready: true,
-          animateOnChange: true,
-          gasSelected,
-          gasSelectedTemp,
-          suggestedGasLimit,
-        },
-        () => {
-          this.setState({ animateOnChange: false });
-        },
-      );
-    } else {
-      const suggestedGasLimit = fromWei(
-        overrideGasLimit || transaction.gas,
-        'wei',
-      );
+	toggleCustomGasModal = () => {
+		const { customGasModalVisible } = this.state;
+		this.setState({ customGasModalVisible: !customGasModalVisible, gasError: undefined });
+	};
 
-      // eslint-disable-next-line react/no-did-update-set-state
-      this.setState(
-        {
-          ready: true,
-          animateOnChange: true,
-          gasSelected,
-          gasSelectedTemp,
-          suggestedGasLimit,
-        },
-        () => {
-          this.setState({ animateOnChange: false });
-        },
-      );
-    }
-  };
+	toggleEditPermissionModal = () => {
+		const { editPermissionModalVisible } = this.state;
+		this.setState({ editPermissionModalVisible: !editPermissionModalVisible });
+	};
 
-  showVerifyContractDetails = () =>
-    this.setState({ shouldVerifyContractDetails: true });
-  closeVerifyContractDetails = () =>
-    this.setState({ shouldVerifyContractDetails: false });
+	handleSetGasFee = () => {
+		const { customGas, customGasPrice, customGasSelected } = this.state;
+		const { setTransactionObject, conversionRate } = this.props;
 
-  toggleModal = (val) => {
-    this.setState({
-      shouldAddNickname: !this.state.shouldAddNickname,
-      address: val,
-    });
-  };
+		if (!customGas || !customGasPrice) {
+			this.toggleCustomGasModal();
+			return;
+		}
+		this.setState({ gasEstimationReady: false });
 
-  startPolling = async () => {
-    const pollToken = await startGasPolling(this.state.pollToken);
-    this.setState({ pollToken });
-  };
+		setTransactionObject({ gas: customGas, gasPrice: customGasPrice });
+		const totalGas = customGas.mul(customGasPrice);
 
-  setNetworkNonce = async () => {
-    const { setNonce, setProposedNonce, transaction } = this.props;
-    const proposedNonce = await getNetworkNonce(transaction);
-    setNonce(proposedNonce);
-    setProposedNonce(proposedNonce);
-  };
+		setTimeout(() => {
+			this.setState({
+				customGas: undefined,
+				customGasPrice: undefined,
+				gasEstimationReady: true,
+				currentCustomGasSelected: customGasSelected,
+				errorMessage: undefined,
+				totalGas: renderFromWei(totalGas),
+				totalGasFiat: weiToFiatNumber(totalGas, conversionRate)
+			});
+		}, 100);
+		this.toggleCustomGasModal();
+	};
 
-  componentDidMount = async () => {
-    const { showCustomNonce } = this.props;
-    if (!this.props?.transaction?.id) {
-      this.props.hideModal();
-      return null;
-    }
-    if (!this.props?.transaction?.gas) this.handleGetGasLimit();
+	handleGasFeeSelection = ({ gas, gasPrice, customGasSelected, error }) => {
+		this.setState({ customGas: gas, customGasPrice: gasPrice, customGasSelected, gasError: error });
+	};
 
-    this.startPolling();
+	renderCustomGasModal = () => {
+		const { customGasModalVisible, currentCustomGasSelected, gasError } = this.state;
+		const { gas, gasPrice } = this.props.transaction;
+		return (
+			<ActionModal
+				modalVisible={customGasModalVisible}
+				confirmText={strings('transaction.set_gas')}
+				cancelText={strings('transaction.cancel_gas')}
+				confirmDisabled={!!gasError}
+				onCancelPress={this.toggleCustomGasModal}
+				onRequestClose={this.toggleCustomGasModal}
+				onConfirmPress={this.handleSetGasFee}
+				cancelButtonMode={'neutral'}
+				confirmButtonMode={'confirm'}
+			>
+				<View style={baseStyles.flexGrow}>
+					<View style={styles.customGasModalTitle}>
+						<Text style={styles.customGasModalTitleText}>{strings('transaction.transaction_fee')}</Text>
+					</View>
+					<CustomGas
+						selected={currentCustomGasSelected}
+						handleGasFeeSelection={this.handleGasFeeSelection}
+						gas={gas}
+						gasPrice={gasPrice}
+					/>
+				</View>
+			</ActionModal>
+		);
+	};
 
-    if (showCustomNonce) {
-      await this.setNetworkNonce();
-    }
-    this.appStateListener = AppState.addEventListener(
-      'change',
-      this.handleAppStateChange,
-    );
-  };
+	onPressSpendLimitUnlimitedSelected = () => {
+		this.setState({ spendLimitUnlimitedSelected: true, spendLimitCustomValue: undefined });
+	};
 
-  handleGetGasLimit = async () => {
-    const { setTransactionObject, transaction } = this.props;
-    const estimation = await getGasLimit({ ...transaction, gas: undefined });
-    setTransactionObject({ gas: estimation.gas });
-  };
+	onPressSpendLimitCustomSelected = () => {
+		this.setState({ spendLimitUnlimitedSelected: false });
+		setTimeout(
+			() =>
+				this.customSpendLimitInput &&
+				this.customSpendLimitInput.current &&
+				this.customSpendLimitInput.current.focus(),
+			100
+		);
+	};
 
-  componentDidUpdate = (prevProps) => {
-    const { transaction } = this.props;
+	onSpendLimitCustomValueChange = value => {
+		let validSpendLimitCustomValue = true;
+		if (value && isDecimal(value)) {
+			const floatValue = parseFloat(value);
+			if (floatValue < 1) validSpendLimitCustomValue = false;
+		} else {
+			validSpendLimitCustomValue = false;
+		}
+		this.setState({ spendLimitCustomValue: value, validSpendLimitCustomValue });
+	};
 
-    const gasEstimateTypeChanged =
-      prevProps.gasEstimateType !== this.props.gasEstimateType;
+	handleSetSpendLimit = () => {
+		const {
+			transaction: { data },
+			setTransactionObject
+		} = this.props;
+		const { spendLimitCustomValue, originalTransactionData, spendLimitUnlimitedSelected } = this.state;
+		let newData;
+		if (spendLimitUnlimitedSelected) {
+			newData = originalTransactionData;
+		} else {
+			const spender = decodeTransferData('transfer', data)[0];
+			newData = generateApproveData({ spender, value: parseInt(spendLimitCustomValue).toString(16) });
+		}
 
-    if (
-      (!this.state.stopUpdateGas && !this.state.advancedGasInserted) ||
-      gasEstimateTypeChanged
-    ) {
-      if (
-        this.props.gasFeeEstimates &&
-        transaction.gas &&
-        (!shallowEqual(prevProps.gasFeeEstimates, this.props.gasFeeEstimates) ||
-          !transaction.gas.eq(prevProps?.transaction?.gas))
-      ) {
-        this.computeGasEstimates(null, null, gasEstimateTypeChanged);
-      }
-    }
-  };
+		setTransactionObject({ data: newData });
+		this.toggleEditPermissionModal();
+	};
 
-  componentWillUnmount = async () => {
-    const { TransactionController } = Engine.context;
-    const { approved } = this.state;
-    const { transaction } = this.props;
+	renderEditPermissionModal = () => {
+		const {
+			editPermissionModalVisible,
+			host,
+			spendLimitUnlimitedSelected,
+			tokenDecimals,
+			tokenSymbol,
+			spendLimitCustomValue,
+			validSpendLimitCustomValue,
+			originalApproveAmount
+		} = this.state;
+		const {
+			identities,
+			transaction: { from, to },
+			contractBalances
+		} = this.props;
+		const checksummedTo = safeToChecksumAddress(to);
+		const tokenBalance =
+			checksummedTo in contractBalances
+				? renderFromTokenMinimalUnit(contractBalances[checksummedTo], tokenDecimals)
+				: 0;
+		return (
+			<ActionModal
+				modalVisible={editPermissionModalVisible}
+				confirmText={strings('spend_limit_edition.save')}
+				onCancelPress={this.toggleEditPermissionModal}
+				onRequestClose={this.toggleEditPermissionModal}
+				onConfirmPress={this.handleSetSpendLimit}
+				cancelButtonMode={'neutral'}
+				confirmButtonMode={'confirm'}
+				confirmDisabled={!spendLimitUnlimitedSelected && !validSpendLimitCustomValue}
+				displayCancelButton={false}
+			>
+				<View style={baseStyles.flexGrow}>
+					<View style={styles.customGasModalTitle}>
+						<Text style={styles.customGasModalTitleText}>{strings('spend_limit_edition.title')}</Text>
+					</View>
 
-    await stopGasPolling(this.state.pollToken);
-    this.appStateListener?.remove();
-    TransactionController.hub.removeAllListeners(`${transaction.id}:finished`);
-    if (!approved)
-      Engine.rejectPendingApproval(
-        transaction.id,
-        ethErrors.provider.userRejectedRequest(),
-        {
-          ignoreMissing: true,
-          logErrors: false,
-        },
-      );
-  };
+					<KeyboardAwareScrollView extraScrollHeight={-140}>
+						<View style={styles.fromGraphic}>
+							<Identicon address={from} diameter={18} />
+							<Text style={styles.addressText} numberOfLines={1}>
+								{renderAccountName(from, identities)}
+							</Text>
+							<View style={styles.tokenBalanceWrapper}>
+								<Text
+									style={styles.tokenBalanceText}
+									numberOfLines={1}
+								>{`${tokenBalance} ${tokenSymbol}`}</Text>
+							</View>
+						</View>
 
-  handleAppStateChange = (appState) => {
-    if (appState !== 'active') {
-      const { transaction } = this.props;
-      Engine.rejectPendingApproval(
-        transaction?.id,
-        ethErrors.provider.userRejectedRequest(),
-        {
-          ignoreMissing: true,
-          logErrors: false,
-        },
-      );
+						<View style={styles.spendLimitWrapper}>
+							<Text style={styles.spendLimitTitle}>{strings('spend_limit_edition.spend_limit')}</Text>
+							<Text style={styles.spendLimitSubtitle}>
+								{strings('spend_limit_edition.allow')}
+								<Text style={fontStyles.bold}>{` ${host} `}</Text>
+								{strings('spend_limit_edition.allow_explanation')}
+							</Text>
 
-      this.props.hideModal();
-    }
-  };
+							<View style={styles.option}>
+								<TouchableOpacity
+									onPress={this.onPressSpendLimitUnlimitedSelected}
+									style={styles.touchableOption}
+								>
+									{spendLimitUnlimitedSelected ? (
+										<View style={styles.outSelectedCircle}>
+											<View style={styles.selectedCircle} />
+										</View>
+									) : (
+										<View style={styles.circle} />
+									)}
+								</TouchableOpacity>
+								<View style={styles.spendLimitContent}>
+									<Text
+										style={[
+											styles.optionText,
+											spendLimitUnlimitedSelected ? styles.textBlue : styles.textBlack
+										]}
+									>
+										{strings('spend_limit_edition.unlimited')}
+									</Text>
+									<Text style={styles.sectionExplanationText}>
+										{strings('spend_limit_edition.requested_by')}
+										<Text style={fontStyles.bold}>{` ${host}`}</Text>
+									</Text>
+									<Text
+										style={[styles.optionText, styles.textBlack]}
+									>{`${originalApproveAmount} ${tokenSymbol}`}</Text>
+								</View>
+							</View>
 
-  trackApproveEvent = (event) => {
-    const { transaction, tokensLength, accountsLength, providerType } =
-      this.props;
-    InteractionManager.runAfterInteractions(() => {
-      Analytics.trackEventWithParameters(event, {
-        view: transaction.origin,
-        numberOfTokens: tokensLength,
-        numberOfAccounts: accountsLength,
-        network: providerType,
-      });
-    });
-  };
+							<View style={styles.option}>
+								<TouchableOpacity
+									onPress={this.onPressSpendLimitCustomSelected}
+									style={styles.touchableOption}
+								>
+									{spendLimitUnlimitedSelected ? (
+										<View style={styles.circle} />
+									) : (
+										<View style={styles.outSelectedCircle}>
+											<View style={styles.selectedCircle} />
+										</View>
+									)}
+								</TouchableOpacity>
+								<View style={styles.spendLimitContent}>
+									<Text
+										style={[
+											styles.optionText,
+											!spendLimitUnlimitedSelected ? styles.textBlue : styles.textBlack
+										]}
+									>
+										{strings('spend_limit_edition.custom_spend_limit')}
+									</Text>
+									<Text style={styles.sectionExplanationText}>
+										{strings('spend_limit_edition.max_spend_limit')}
+									</Text>
+									<TextInput
+										ref={this.customSpendLimitInput}
+										autoCapitalize="none"
+										keyboardType="numeric"
+										autoCorrect={false}
+										onChangeText={this.onSpendLimitCustomValueChange}
+										placeholder={`100 ${tokenSymbol}`}
+										placeholderTextColor={colors.grey100}
+										spellCheck={false}
+										style={styles.input}
+										value={spendLimitCustomValue}
+										numberOfLines={1}
+										onFocus={this.onPressSpendLimitCustomSelected}
+										returnKeyType={'done'}
+									/>
+									<Text style={styles.sectionExplanationText}>
+										{strings('spend_limit_edition.minimum', { tokenSymbol })}
+									</Text>
+								</View>
+							</View>
+						</View>
+					</KeyboardAwareScrollView>
+				</View>
+			</ActionModal>
+		);
+	};
 
-  cancelGasEdition = () => {
-    this.setState({
-      stopUpdateGas: false,
-    });
-    this.review();
-  };
+	validateGas = () => {
+		let error;
+		const {
+			transaction: { gas, gasPrice, from },
+			accounts
+		} = this.props;
+		const fromAccount = accounts[safeToChecksumAddress(from)];
+		if (!gas) error = strings('transaction.invalid_gas');
+		else if (!gasPrice) error = strings('transaction.invalid_gas_price');
+		else if (fromAccount && isBN(gas) && isBN(gasPrice) && hexToBN(fromAccount.balance).lt(gas.mul(gasPrice))) {
+			error = strings('transaction.insufficient');
+		}
+		this.setState({ gasError: error });
+		return error;
+	};
 
-  saveGasEditionLegacy = (legacyGasTransaction, legacyGasObject) => {
-    legacyGasTransaction.error = this.validateGas(
-      legacyGasTransaction.totalHex,
-    );
-    this.setState({
-      stopUpdateGas: false,
-      legacyGasTransaction,
-      legacyGasObject,
-    });
-    this.review();
-  };
+	prepareTransaction = transaction => ({
+		...transaction,
+		gas: BNToHex(transaction.gas),
+		gasPrice: BNToHex(transaction.gasPrice),
+		value: BNToHex(transaction.value),
+		to: safeToChecksumAddress(transaction.to),
+		from: safeToChecksumAddress(transaction.from)
+	});
 
-  saveGasEdition = (eip1559GasTransaction, eip1559GasObject) => {
-    this.setState({ eip1559GasTransaction, eip1559GasObject });
-    this.review();
-  };
+	onConfirm = async () => {
+		if (this.validateGas()) return;
+		const { TransactionController } = Engine.context;
+		const { transactions } = this.props;
+		try {
+			const transaction = this.prepareTransaction(this.props.transaction);
 
-  validateGas = (total) => {
-    let error;
-    const {
-      ticker,
-      transaction: { from },
-      accounts,
-    } = this.props;
+			TransactionController.hub.once(`${transaction.id}:finished`, transactionMeta => {
+				if (transactionMeta.status === 'submitted') {
+					this.setState({ approved: true });
+					this.props.navigation.pop();
+					TransactionsNotificationManager.watchSubmittedTransaction({
+						...transactionMeta,
+						assetType: 'ETH'
+					});
+				} else {
+					throw transactionMeta.error;
+				}
+			});
 
-    const fromAccount = accounts[safeToChecksumAddress(from)];
+			const fullTx = transactions.find(({ id }) => id === transaction.id);
+			const updatedTx = { ...fullTx, transaction };
+			await TransactionController.updateTransaction(updatedTx);
+			await TransactionController.approveTransaction(transaction.id);
+		} catch (error) {
+			Alert.alert(strings('transactions.transaction_error'), error && error.message, [{ text: 'OK' }]);
+			this.setState({ transactionHandled: false });
+		}
+	};
 
-    const weiBalance = hexToBN(fromAccount.balance);
-    const totalTransactionValue = hexToBN(total);
-    if (!weiBalance.gte(totalTransactionValue)) {
-      const amount = renderFromWei(totalTransactionValue.sub(weiBalance));
-      const tokenSymbol = getTicker(ticker);
-      error = strings('transaction.insufficient_amount', {
-        amount,
-        tokenSymbol,
-      });
-    }
+	onCancel = () => {
+		this.props.navigation.pop();
+	};
 
-    return error;
-  };
+	copyContractAddress = async () => {
+		const { transaction } = this.props;
+		await Clipboard.setString(transaction.to);
+		this.props.showAlert({
+			isVisible: true,
+			autodismiss: 1500,
+			content: 'clipboard-alert',
+			data: { msg: strings('transactions.address_copied_to_clipboard') }
+		});
+	};
 
-  prepareTransaction = (transaction) => {
-    const { gasEstimateType, showCustomNonce } = this.props;
-    const { legacyGasTransaction, eip1559GasTransaction } = this.state;
-    const transactionToSend = {
-      ...transaction,
-      value: BNToHex(transaction.value),
-      to: safeToChecksumAddress(transaction.to),
-      from: safeToChecksumAddress(transaction.from),
-    };
+	render = () => {
+		const {
+			transaction,
+			transaction: { data },
+			currentCurrency
+		} = this.props;
+		const { host, tokenSymbol, viewDetails, totalGas, totalGasFiat, ticker, gasError } = this.state;
+		const amount = decodeTransferData('transfer', data)[1];
+		return (
+			<SafeAreaView style={styles.wrapper}>
+				<TransactionDirection />
+				<ActionView
+					cancelText={strings('spend_limit_edition.cancel')}
+					confirmText={strings('spend_limit_edition.approve')}
+					onCancelPress={this.onCancel}
+					onConfirmPress={this.onConfirm}
+					confirmButtonMode={'confirm'}
+				>
+					<View>
+						<View style={styles.section} testID={'approve-screen'}>
+							<View style={styles.websiteIconWrapper}>
+								<WebsiteIcon style={styles.icon} url={transaction.origin} title={host} />
+							</View>
+							<Text style={styles.title} testID={'allow-access'}>
+								{strings('spend_limit_edition.allow_to_access', { host, tokenSymbol })}
+							</Text>
+							<Text style={styles.explanation}>
+								{strings('spend_limit_edition.you_trust_this_site_1')}
+								<Text style={fontStyles.bold}> {host} </Text>
+								{strings('spend_limit_edition.you_trust_this_site_2', { tokenSymbol })}
+							</Text>
+							<TouchableOpacity style={styles.actionTouchable} onPress={this.toggleEditPermissionModal}>
+								<Text style={styles.editPermissionText}>
+									{strings('spend_limit_edition.edit_permission')}
+								</Text>
+							</TouchableOpacity>
+						</View>
+						<View style={styles.section}>
+							<View style={styles.sectionTitleRow}>
+								<FontAwesome5 name={'tag'} size={20} color={colors.grey500} />
+								<Text style={[styles.sectionTitleText, styles.sectionLeft]}>
+									{strings('transaction.transaction_fee')}
+								</Text>
+								<TouchableOpacity style={styles.sectionRight} onPress={this.toggleCustomGasModal}>
+									<Text style={styles.editText}>{strings('transaction.edit')}</Text>
+								</TouchableOpacity>
+							</View>
+							<View style={styles.row}>
+								<View style={styles.sectionLeft}>
+									<Text style={styles.sectionExplanationText}>
+										{strings('spend_limit_edition.transaction_fee_explanation')}
+									</Text>
+								</View>
+								<View style={[styles.column, styles.sectionRight]}>
+									<Text style={styles.fiatFeeText}>{`${totalGasFiat} ${currentCurrency}`}</Text>
+									<Text style={styles.feeText}>{`${totalGas} ${ticker}`}</Text>
+								</View>
+							</View>
+							<TouchableOpacity style={styles.actionTouchable} onPress={this.onViewDetails}>
+								<View style={styles.viewDetailsWrapper}>
+									<Text style={styles.viewDetailsText}>
+										{strings('spend_limit_edition.view_details')}
+									</Text>
+									<IonicIcon
+										name={`ios-arrow-${viewDetails ? 'up' : 'down'}`}
+										size={16}
+										color={colors.blue}
+										style={styles.copyIcon}
+									/>
+								</View>
+							</TouchableOpacity>
+							{gasError && (
+								<View style={styles.errorMessageWrapper}>
+									<ErrorMessage errorMessage={gasError} />
+								</View>
+							)}
+						</View>
 
-    if (gasEstimateType === GAS_ESTIMATE_TYPES.FEE_MARKET) {
-      transactionToSend.gas = eip1559GasTransaction.gasLimitHex;
-      transactionToSend.maxFeePerGas = addHexPrefix(
-        eip1559GasTransaction.suggestedMaxFeePerGasHex,
-      ); //'0x2540be400'
-      transactionToSend.maxPriorityFeePerGas = addHexPrefix(
-        eip1559GasTransaction.suggestedMaxPriorityFeePerGasHex,
-      ); //'0x3b9aca00';
-      delete transactionToSend.gasPrice;
-    } else {
-      transactionToSend.gas = legacyGasTransaction.suggestedGasLimitHex;
-      transactionToSend.gasPrice = addHexPrefix(
-        legacyGasTransaction.suggestedGasPriceHex,
-      );
-    }
+						{viewDetails && (
+							<View style={styles.section}>
+								<View style={styles.sectionTitleRow}>
+									<FontAwesome5
+										name={'user-check'}
+										size={20}
+										color={colors.grey500}
+										onPress={this.toggleEditPermissionModal}
+									/>
+									<Text style={[styles.sectionTitleText, styles.sectionLeft]}>
+										{strings('spend_limit_edition.permission_request')}
+									</Text>
+									<TouchableOpacity
+										style={styles.sectionRight}
+										onPress={this.toggleEditPermissionModal}
+									>
+										<Text style={styles.editText}>{strings('spend_limit_edition.edit')}</Text>
+									</TouchableOpacity>
+								</View>
+								<View style={styles.row}>
+									<Text style={styles.sectionExplanationText}>
+										{strings('spend_limit_edition.details_explanation', { host })}
+									</Text>
+								</View>
+								<Text style={styles.permissionDetails}>
+									<Text style={fontStyles.bold}>{strings('spend_limit_edition.amount')}</Text>{' '}
+									{`${amount} ${tokenSymbol}`}
+								</Text>
+								<View style={styles.row}>
+									<Text style={styles.permissionDetails}>
+										<Text style={fontStyles.bold}>{strings('spend_limit_edition.to')}</Text>{' '}
+										{strings('spend_limit_edition.contract', {
+											address: renderShortAddress(transaction.to)
+										})}
+									</Text>
+									<Feather
+										name="copy"
+										size={16}
+										color={colors.blue}
+										style={styles.copyIcon}
+										onPress={this.copyContractAddress}
+									/>
+								</View>
+							</View>
+						)}
 
-    if (showCustomNonce && transactionToSend.nonce) {
-      transactionToSend.nonce = BNToHex(transactionToSend.nonce);
-    }
-
-    return transactionToSend;
-  };
-
-  getAnalyticsParams = () => {
-    try {
-      const { gasEstimateType } = this.props;
-      const { analyticsParams, gasSelected } = this.state;
-      return {
-        ...analyticsParams,
-        gas_estimate_type: gasEstimateType,
-        gas_mode: gasSelected ? 'Basic' : 'Advanced',
-        speed_set: gasSelected || undefined,
-      };
-    } catch (error) {
-      return {};
-    }
-  };
-
-  onConfirm = async () => {
-    const { TransactionController, KeyringController, ApprovalController } =
-      Engine.context;
-    const { transactions, gasEstimateType } = this.props;
-    const {
-      legacyGasTransaction,
-      transactionConfirmed,
-      eip1559GasTransaction,
-    } = this.state;
-
-    if (gasEstimateType === GAS_ESTIMATE_TYPES.FEE_MARKET) {
-      if (this.validateGas(eip1559GasTransaction.totalMaxHex)) return;
-    } else if (this.validateGas(legacyGasTransaction.totalHex)) return;
-    if (transactionConfirmed) return;
-    this.setState({ transactionConfirmed: true });
-    try {
-      const transaction = this.prepareTransaction(this.props.transaction);
-      TransactionController.hub.once(
-        `${transaction.id}:finished`,
-        (transactionMeta) => {
-          if (transactionMeta.status === 'submitted') {
-            this.setState({ approved: true });
-            this.props.hideModal();
-            NotificationManager.watchSubmittedTransaction({
-              ...transactionMeta,
-              assetType: 'ETH',
-            });
-          } else {
-            throw transactionMeta.error;
-          }
-        },
-      );
-
-      const fullTx = transactions.find(({ id }) => id === transaction.id);
-      const updatedTx = { ...fullTx, transaction };
-      await TransactionController.updateTransaction(updatedTx);
-      await KeyringController.resetQRKeyringState();
-      await ApprovalController.accept(transaction.id, undefined, {
-        waitForResult: true,
-      });
-      AnalyticsV2.trackEvent(
-        MetaMetricsEvents.APPROVAL_COMPLETED,
-        this.getAnalyticsParams(),
-      );
-    } catch (error) {
-      if (!error?.message.startsWith(KEYSTONE_TX_CANCELED)) {
-        Alert.alert(
-          strings('transactions.transaction_error'),
-          error && error.message,
-          [{ text: 'OK' }],
-        );
-        Logger.error(error, 'error while trying to send transaction (Approve)');
-      } else {
-        AnalyticsV2.trackEvent(
-          MetaMetricsEvents.QR_HARDWARE_TRANSACTION_CANCELED,
-        );
-      }
-      this.setState({ transactionHandled: false });
-    }
-    this.setState({ transactionConfirmed: true });
-  };
-
-  onCancel = () => {
-    Engine.rejectPendingApproval(
-      this.props.transaction.id,
-      ethErrors.provider.userRejectedRequest(),
-      {
-        ignoreMissing: true,
-        logErrors: false,
-      },
-    );
-    AnalyticsV2.trackEvent(
-      MetaMetricsEvents.APPROVAL_CANCELLED,
-      this.getAnalyticsParams(),
-    );
-    this.props.hideModal();
-
-    NotificationManager.showSimpleNotification({
-      status: `simple_notification_rejected`,
-      duration: 5000,
-      title: strings('notifications.approved_tx_rejected_title'),
-      description: strings('notifications.wc_description'),
-    });
-  };
-
-  review = () => {
-    this.onModeChange(REVIEW);
-  };
-
-  onModeChange = (mode) => {
-    this.setState({ mode });
-    if (mode === EDIT) {
-      InteractionManager.runAfterInteractions(() => {
-        Analytics.trackEvent(
-          MetaMetricsEvents.SEND_FLOW_ADJUSTS_TRANSACTION_FEE,
-        );
-      });
-    }
-  };
-
-  setAnalyticsParams = (analyticsParams) => {
-    this.setState({ analyticsParams });
-  };
-
-  getGasAnalyticsParams = () => {
-    try {
-      const { analyticsParams } = this.state;
-      const { gasEstimateType } = this.props;
-      return {
-        dapp_host_name: analyticsParams?.dapp_host_name,
-        active_currency: {
-          value: analyticsParams?.active_currency,
-          anonymous: true,
-        },
-        gas_estimate_type: gasEstimateType,
-      };
-    } catch (error) {
-      return {};
-    }
-  };
-
-  updateGasSelected = (selected) => {
-    this.setState({
-      stopUpdateGas: !selected,
-      gasSelectedTemp: selected,
-      gasSelected: selected,
-    });
-  };
-
-  onUpdatingValuesStart = () => {
-    this.setState({ isAnimating: true });
-  };
-  onUpdatingValuesEnd = () => {
-    this.setState({ isAnimating: false });
-  };
-
-  updateTransactionState = (gas) => {
-    const gasError = this.validateGas(gas.totalMaxHex || gas.totalHex);
-
-    this.setState({
-      eip1559GasTransaction: gas,
-      legacyGasTransaction: gas,
-      isGasEstimateStatusIn: true,
-      gasError,
-    });
-  };
-
-  setIsBlockExplorerVisible = () => {
-    this.setState({
-      isBlockExplorerVisible: !this.state.isBlockExplorerVisible,
-    });
-  };
-
-  updateTokenAllowanceState = (value) => {
-    this.setState({ tokenAllowanceState: value });
-  };
-
-  render = () => {
-    const colors = this.context.colors || mockTheme.colors;
-    const styles = createStyles(colors);
-
-    const {
-      mode,
-      ready,
-      over,
-      gasSelected,
-      animateOnChange,
-      isAnimating,
-      transactionConfirmed,
-      eip1559GasObject,
-      eip1559GasTransaction,
-      legacyGasObject,
-      gasError,
-      address,
-      shouldAddNickname,
-      tokenAllowanceState,
-      isGasEstimateStatusIn,
-      legacyGasTransaction,
-    } = this.state;
-
-    const {
-      transaction,
-      addressBook,
-      gasEstimateType,
-      gasFeeEstimates,
-      primaryCurrency,
-      chainId,
-      providerType,
-      providerRpcTarget,
-      networkConfigurations,
-    } = this.props;
-
-    const selectedGasObject = {
-      suggestedMaxFeePerGas:
-        eip1559GasObject.suggestedMaxFeePerGas ||
-        gasFeeEstimates[gasSelected]?.suggestedMaxFeePerGas,
-      suggestedMaxPriorityFeePerGas:
-        eip1559GasObject.suggestedMaxPriorityFeePerGas ||
-        gasFeeEstimates[gasSelected]?.suggestedMaxPriorityFeePerGas,
-      suggestedGasLimit:
-        eip1559GasObject.suggestedGasLimit ||
-        eip1559GasTransaction.suggestedGasLimit,
-    };
-
-    const selectedLegacyGasObject = {
-      legacyGasLimit: legacyGasObject?.legacyGasLimit,
-      suggestedGasPrice: legacyGasObject?.suggestedGasPrice,
-    };
-
-    const savedContactList = checkIfAddressIsSaved(
-      addressBook,
-      chainId,
-      transaction,
-    );
-
-    const savedContactListToArray = Object.values(addressBook).flatMap(
-      (value) => Object.values(value),
-    );
-
-    let addressNickname = '';
-
-    const filteredSavedContactList = savedContactListToArray.filter(
-      (contact) => contact.address === safeToChecksumAddress(address),
-    );
-
-    if (filteredSavedContactList.length > 0) {
-      addressNickname = filteredSavedContactList[0].name;
-    }
-
-    if (!transaction.id) return null;
-    return (
-      <Modal
-        isVisible={this.props.modalVisible}
-        animationIn="slideInUp"
-        animationOut="slideOutDown"
-        style={
-          this.state.shouldAddNickname
-            ? styles.updateNickView
-            : styles.bottomModal
-        }
-        backdropColor={colors.overlay.default}
-        backdropOpacity={1}
-        animationInTiming={600}
-        animationOutTiming={600}
-        onBackdropPress={this.onCancel}
-        onBackButtonPress={this.onCancel}
-        onSwipeComplete={this.onCancel}
-        swipeDirection={'down'}
-        propagateSwipe
-      >
-        {shouldAddNickname ? (
-          <AddNickname
-            closeModal={this.toggleModal}
-            address={address}
-            savedContactListToArray={savedContactListToArray}
-            addressNickname={addressNickname}
-          />
-        ) : this.state.isBlockExplorerVisible ? (
-          <ShowBlockExplorer
-            setIsBlockExplorerVisible={this.setIsBlockExplorerVisible}
-            type={providerType}
-            address={transaction.to}
-            headerWrapperStyle={styles.headerWrapper}
-            headerTextStyle={styles.headerText}
-            iconStyle={styles.icon}
-            providerRpcTarget={providerRpcTarget}
-            networkConfigurations={networkConfigurations}
-          />
-        ) : (
-          <KeyboardAwareScrollView
-            contentContainerStyle={styles.keyboardAwareWrapper}
-          >
-            {mode === 'review' && (
-              <AnimatedTransactionModal
-                onModeChange={this.onModeChange}
-                ready={ready}
-                review={this.review}
-              >
-                <ApproveTransactionReview
-                  gasError={gasError}
-                  onCancel={this.onCancel}
-                  onConfirm={this.onConfirm}
-                  over={over}
-                  gasSelected={gasSelected}
-                  onSetAnalyticsParams={this.setAnalyticsParams}
-                  gasEstimateType={gasEstimateType}
-                  onUpdatingValuesStart={this.onUpdatingValuesStart}
-                  onUpdatingValuesEnd={this.onUpdatingValuesEnd}
-                  animateOnChange={animateOnChange}
-                  isAnimating={isAnimating}
-                  gasEstimationReady={ready}
-                  savedContactListToArray={savedContactListToArray}
-                  transactionConfirmed={transactionConfirmed}
-                  showBlockExplorer={this.setIsBlockExplorerVisible}
-                  toggleModal={this.toggleModal}
-                  showVerifyContractDetails={this.showVerifyContractDetails}
-                  shouldVerifyContractDetails={
-                    this.state.shouldVerifyContractDetails
-                  }
-                  closeVerifyContractDetails={this.closeVerifyContractDetails}
-                  nicknameExists={savedContactList && !!savedContactList.length}
-                  nickname={
-                    savedContactList && savedContactList.length > 0
-                      ? savedContactList[0].nickname
-                      : ''
-                  }
-                  chainId={chainId}
-                  updateTokenAllowanceState={this.updateTokenAllowanceState}
-                  tokenAllowanceState={tokenAllowanceState}
-                  updateTransactionState={this.updateTransactionState}
-                  legacyGasObject={this.state.legacyGasObject}
-                  eip1559GasObject={this.state.eip1559GasObject}
-                  isGasEstimateStatusIn={isGasEstimateStatusIn}
-                />
-                {/** View fixes layout issue after removing <CustomGas/> */}
-                <View />
-              </AnimatedTransactionModal>
-            )}
-
-            {mode !== 'review' &&
-              (gasEstimateType === GAS_ESTIMATE_TYPES.FEE_MARKET ? (
-                <EditGasFee1559
-                  selectedGasValue={gasSelected}
-                  initialSuggestedGasLimit={this.state.suggestedGasLimit}
-                  gasOptions={gasFeeEstimates}
-                  onChange={this.updateGasSelected}
-                  primaryCurrency={primaryCurrency}
-                  chainId={chainId}
-                  onCancel={this.cancelGasEdition}
-                  onSave={this.saveGasEdition}
-                  animateOnChange={animateOnChange}
-                  isAnimating={isAnimating}
-                  view={'Approve'}
-                  analyticsParams={this.getGasAnalyticsParams()}
-                  onlyGas
-                  selectedGasObject={selectedGasObject}
-                />
-              ) : (
-                <EditGasFeeLegacy
-                  onCancel={this.cancelGasEdition}
-                  onSave={this.saveGasEditionLegacy}
-                  animateOnChange={animateOnChange}
-                  isAnimating={isAnimating}
-                  view={'Approve'}
-                  analyticsParams={this.getGasAnalyticsParams()}
-                  onlyGas
-                  selectedGasObject={selectedLegacyGasObject}
-                  error={legacyGasTransaction.error}
-                  onUpdatingValuesStart={this.onUpdatingValuesStart}
-                  onUpdatingValuesEnd={this.onUpdatingValuesEnd}
-                />
-              ))}
-          </KeyboardAwareScrollView>
-        )}
-        <GlobalAlert />
-      </Modal>
-    );
-  };
+						{viewDetails && (
+							<View style={styles.section}>
+								<View style={styles.sectionTitleRow}>
+									<FontAwesome5 solid name={'file-alt'} size={20} color={colors.grey500} />
+									<Text style={[styles.sectionTitleText, styles.sectionLeft]}>
+										{strings('spend_limit_edition.data')}
+									</Text>
+								</View>
+								<View style={styles.row}>
+									<Text style={styles.sectionExplanationText}>
+										{strings('spend_limit_edition.function_approve')}
+									</Text>
+								</View>
+								<Text style={styles.sectionExplanationText}>{transaction.data}</Text>
+							</View>
+						)}
+						{this.renderCustomGasModal()}
+						{this.renderEditPermissionModal()}
+					</View>
+				</ActionView>
+			</SafeAreaView>
+		);
+	};
 }
 
-const mapStateToProps = (state) => ({
-  accounts: selectAccounts(state),
-  ticker: selectTicker(state),
-  transaction: getNormalizedTxState(state),
-  transactions: state.engine.backgroundState.TransactionController.transactions,
-  tokensLength: selectTokensLength(state),
-  accountsLength: selectAccountsLength(state),
-  primaryCurrency: state.settings.primaryCurrency,
-  chainId: selectChainId(state),
-  gasFeeEstimates:
-    state.engine.backgroundState.GasFeeController.gasFeeEstimates,
-  gasEstimateType:
-    state.engine.backgroundState.GasFeeController.gasEstimateType,
-  conversionRate: selectConversionRate(state),
-  currentCurrency: selectCurrentCurrency(state),
-  nativeCurrency: selectNativeCurrency(state),
-  showCustomNonce: state.settings.showCustomNonce,
-  addressBook: state.engine.backgroundState.AddressBookController.addressBook,
-  providerType: selectProviderType(state),
-  providerRpcTarget: selectRpcTarget(state),
-  networkConfigurations: selectNetworkConfigurations(state),
+const mapStateToProps = state => ({
+	accounts: state.engine.backgroundState.AccountTrackerController.accounts,
+	conversionRate: state.engine.backgroundState.CurrencyRateController.conversionRate,
+	contractBalances: state.engine.backgroundState.TokenBalancesController.contractBalances,
+	currentCurrency: state.engine.backgroundState.CurrencyRateController.currentCurrency,
+	identities: state.engine.backgroundState.PreferencesController.identities,
+	ticker: state.engine.backgroundState.NetworkController.provider.ticker,
+	transaction: state.transaction,
+	transactions: state.engine.backgroundState.TransactionController.transactions
 });
 
-const mapDispatchToProps = (dispatch) => ({
-  setTransactionObject: (transaction) =>
-    dispatch(setTransactionObject(transaction)),
-  setNonce: (nonce) => dispatch(setNonce(nonce)),
-  setProposedNonce: (nonce) => dispatch(setProposedNonce(nonce)),
+const mapDispatchToProps = dispatch => ({
+	setTransactionObject: transaction => dispatch(setTransactionObject(transaction)),
+	showAlert: config => dispatch(showAlert(config))
 });
 
-Approve.contextType = ThemeContext;
-
-export default connect(mapStateToProps, mapDispatchToProps)(Approve);
+export default connect(
+	mapStateToProps,
+	mapDispatchToProps
+)(Approve);

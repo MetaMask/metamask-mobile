@@ -1,0 +1,36 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`Radio should render correctly 1`] = `
+<Svg
+  height="12"
+  preserveAspectRatio="xMidYMid meet"
+  viewBox="0 0 12 12"
+  width="12"
+>
+  <Circle
+    cx="6"
+    cy="6"
+    fill="none"
+    r="5.5"
+    stroke="#D2D8DD"
+  />
+</Svg>
+`;
+
+exports[`Radio should render correctly when selected 1`] = `
+<Svg
+  height="12"
+  preserveAspectRatio="xMidYMid meet"
+  viewBox="0 0 12 12"
+  width="12"
+>
+  <Circle
+    cx="6"
+    cy="6"
+    fill="none"
+    r="4"
+    stroke="#037dd6"
+    strokeWidth="4"
+  />
+</Svg>
+`;
