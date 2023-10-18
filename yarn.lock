@@ -7465,6 +7465,14 @@
   resolved "https://registry.yarnpkg.com/@types/react-native-background-timer/-/react-native-background-timer-2.0.0.tgz#c44c57f8fbca9d9d5521fdd72a8f55232b79381e"
   integrity sha512-y5VW82dL/ESOLg+5QQHyBdsFVA4ZklENxmOyxv8o06T+3HBG2JOSuz/CIPz1vKdB7dmWDGPZNuPosdtnp+xv2A==
 
+"@types/react-native-elevated-view@^0.0.4":
+  version "0.0.4"
+  resolved "https://registry.yarnpkg.com/@types/react-native-elevated-view/-/react-native-elevated-view-0.0.4.tgz#16700bfdcd97193df3909b6f574580f7ede611be"
+  integrity sha512-W/mRsfhyVC+U34L+G2Y2xNS9yVvf09qwgk6L2tLxuTHv1G5fqDe1os1AxOBAbkXkIhJvI6+G3qifBYLP08G57w==
+  dependencies:
+    "@types/react" "*"
+    "@types/react-native" "*"
+
 "@types/react-native-material-textfield@^0.16.5":
   version "0.16.5"
   resolved "https://registry.yarnpkg.com/@types/react-native-material-textfield/-/react-native-material-textfield-0.16.5.tgz#fe91ef6339c282668f6eae24ca09a69f0a974974"

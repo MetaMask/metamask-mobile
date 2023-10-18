@@ -1,0 +1,163 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`BackupAlert should render correctly 1`] = `
+<View
+  style={
+    Array [
+      Object {
+        "shadowOffset": Object {
+          "height": 59.4,
+        },
+        "shadowOpacity": 0.3285,
+        "shadowRadius": 53.46,
+      },
+      Array [
+        Object {
+          "backgroundColor": "#FFFFFF",
+          "borderColor": "#F66A0A",
+          "borderRadius": 8,
+          "borderWidth": 1,
+          "left": 16,
+          "position": "absolute",
+          "right": 16,
+        },
+        Object {
+          "bottom": 120,
+        },
+      ],
+    ]
+  }
+>
+  <View
+    style={
+      Object {
+        "backgroundColor": "#FFD33D19",
+        "flex": 1,
+        "padding": 14,
+      }
+    }
+  >
+    <View
+      style={
+        Object {
+          "flexDirection": "row",
+        }
+      }
+      testID="backup-alert"
+    >
+      <View
+        style={
+          Object {
+            "marginRight": 10,
+          }
+        }
+      >
+        <Text
+          allowFontScaling={false}
+          style={
+            Array [
+              Object {
+                "color": undefined,
+                "fontSize": 12,
+              },
+              Object {
+                "color": "#24272A",
+                "fontSize": 22,
+              },
+              Object {
+                "fontFamily": "EvilIcons",
+                "fontStyle": "normal",
+                "fontWeight": "normal",
+              },
+              Object {},
+            ]
+          }
+        >
+          
+        </Text>
+      </View>
+      <View
+        style={
+          Object {
+            "flex": 1,
+          }
+        }
+      >
+        <Text
+          style={
+            Object {
+              "color": "#24272A",
+              "fontFamily": "EuclidCircularB-Bold",
+              "fontSize": 14,
+              "fontWeight": "600",
+              "marginBottom": 14,
+            }
+          }
+        >
+          Protect your wallet
+        </Text>
+        <View
+          style={
+            Object {
+              "alignContent": "flex-end",
+              "flex": 1,
+              "flexDirection": "row-reverse",
+            }
+          }
+        >
+          <TouchableOpacity
+            onPress={[Function]}
+          >
+            <Text
+              style={
+                Array [
+                  Object {
+                    "color": "#0376C9",
+                    "flex": 1,
+                    "fontFamily": "EuclidCircularB-Regular",
+                    "fontSize": 12,
+                    "fontWeight": "400",
+                    "marginLeft": 14,
+                    "textAlign": "right",
+                  },
+                  Object {
+                    "fontFamily": "EuclidCircularB-Bold",
+                    "fontWeight": "600",
+                  },
+                ]
+              }
+            >
+              Protect wallet
+            </Text>
+          </TouchableOpacity>
+          <TouchableOpacity
+            onPress={[Function]}
+            style={
+              Object {
+                "flex": 1,
+              }
+            }
+          >
+            <Text
+              style={
+                Object {
+                  "color": "#0376C9",
+                  "flex": 1,
+                  "fontFamily": "EuclidCircularB-Regular",
+                  "fontSize": 12,
+                  "fontWeight": "400",
+                  "marginLeft": 14,
+                  "textAlign": "right",
+                }
+              }
+              testID="notification-remind-later-button"
+            >
+              Remind me later
+            </Text>
+          </TouchableOpacity>
+        </View>
+      </View>
+    </View>
+  </View>
+</View>
+`;
