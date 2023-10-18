@@ -47,6 +47,7 @@ const LedgerConfirmationModal = ({
 }: LedgerConfirmationModalProps) => {
   const { colors } = useAppThemeFromContext() || mockTheme;
   const styles = useMemo(() => createStyles(colors), [colors]);
+  const [permissionErrorShown, setPermissionErrorShown] = useState(false);
   const {
     isSendingLedgerCommands,
     isAppLaunchConfirmationNeeded,
@@ -85,6 +86,8 @@ const LedgerConfirmationModal = ({
   };
 
   const onRetry = async () => {
+    setPermissionErrorShown(false);
+
     if (!hasBluetoothPermissions) {
       await checkPermissions();
     }
@@ -95,7 +98,10 @@ const LedgerConfirmationModal = ({
   };
 
   useEffect(() => {
-    hasBluetoothPermissions && bluetoothOn && connectLedger();
+    hasBluetoothPermissions &&
+      bluetoothOn &&
+      !permissionErrorShown &&
+      connectLedger();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [hasBluetoothPermissions, bluetoothOn]);
 
@@ -163,7 +169,7 @@ const LedgerConfirmationModal = ({
       }
     }
 
-    if (bluetoothPermissionError) {
+    if (bluetoothPermissionError && !permissionErrorShown) {
       switch (bluetoothPermissionError) {
         case BluetoothPermissionErrors.LocationAccessBlocked:
           setErrorDetails({
@@ -178,6 +184,7 @@ const LedgerConfirmationModal = ({
           });
           break;
       }
+      setPermissionErrorShown(true);
     }
 
     if (bluetoothConnectionError) {
@@ -190,12 +197,19 @@ const LedgerConfirmationModal = ({
     if (
       !ledgerError &&
       !bluetoothPermissionError &&
-      !bluetoothConnectionError
+      !bluetoothConnectionError &&
+      !permissionErrorShown
     ) {
       setErrorDetails(undefined);
     }
+
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [ledgerError, bluetoothConnectionError, bluetoothPermissionError]);
+  }, [
+    ledgerError,
+    bluetoothConnectionError,
+    bluetoothPermissionError,
+    permissionErrorShown,
+  ]);
 
   if (errorDetails) {
     return (
@@ -207,7 +221,9 @@ const LedgerConfirmationModal = ({
             title={errorDetails?.title}
             subTitle={errorDetails?.subtitle}
             showViewSettings={
-              !!bluetoothConnectionError || !!bluetoothPermissionError
+              permissionErrorShown ||
+              !!bluetoothConnectionError ||
+              !!bluetoothPermissionError
             }
             isRetryHide={
               ledgerError === LedgerCommunicationErrors.UnknownError ||
