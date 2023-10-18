@@ -1,18 +1,34 @@
 import Engine from '../../../Engine';
+// import { EngineState } from '../../../../selectors/types';
+import { createAction, PayloadAction } from '@reduxjs/toolkit';
 
 const initialState = {
-  backgroundState: {},
+  backgroundState: {} as any,
 };
 
-const engineReducer = (state = initialState, action) => {
+// Create an action to initialize the background state
+export const initBgState = createAction('INIT_BG_STATE');
+
+// Create an action to update the background state
+export const updateBgState = createAction('UPDATE_BG_STATE', (key) => ({
+  payload: key,
+}));
+
+export const counter: any = {};
+const engineReducer = (
+  // eslint-disable-next-line @typescript-eslint/default-param-last
+  state = initialState,
+  action: PayloadAction<{ key: any } | undefined>,
+) => {
   switch (action.type) {
-    case 'INIT_BG_STATE':
+    case initBgState.type: {
+      // console.log('Init Action:', Engine);
       return { backgroundState: Engine.state };
-    case 'UPDATE_BG_STATE': {
+    }
+    case updateBgState.type: {
       const newState = { ...state };
-      console.log('Payload key ======>:', action.key);
-      console.log('ENGINE STATE:', Engine.state[action.key]);
-      newState.backgroundState[action.key] = Engine.state[action.key];
+      newState.backgroundState[action.payload?.key] =
+        Engine.state[action.payload.key];
       return newState;
     }
     default:

@@ -8,12 +8,6 @@ import {
   VAULT_CREATION_ERROR,
 } from '../../constants/error';
 
-// import { actions } from '../redux/slices/engine';
-import {
-  initBgState,
-  updateBgState,
-} from '../redux/slices/engine/engineToolkit';
-
 interface InitializeEngineResult {
   success: boolean;
   error?: string;
@@ -91,23 +85,16 @@ class EngineService {
 
     engine?.datamodel?.subscribe?.(() => {
       if (!this.engineInitialized) {
-        console.log('INITIALIZE ENGINE ======>');
-        store.dispatch(initBgState()); //engineToolkit
-        // store.dispatch({ type: INIT_BG_STATE_KEY });
+        store.dispatch({ type: INIT_BG_STATE_KEY });
         this.engineInitialized = true;
       }
     });
 
     controllers.forEach((controller) => {
       const { name, key = undefined } = controller;
-      console.log('UPDATE ENGINE ======>');
       const update_bg_state_cb = () => {
-        console.log('UPDATE STORE: ====>', store);
-        console.log('UPDATE Name: ====>', name);
-        return store.dispatch(updateBgState(name));
-      }; //engineToolkit
-      // const update_bg_state_cb = () =>
-      //   store.dispatch({ type: UPDATE_BG_STATE_KEY, key: name });
+        store.dispatch({ type: UPDATE_BG_STATE_KEY, payload: { key: name } });
+      };
       if (key) {
         engine.controllerMessenger.subscribe(key, update_bg_state_cb);
       } else {
