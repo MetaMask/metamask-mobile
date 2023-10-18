@@ -33,7 +33,7 @@ class Assertions {
    * Check if an element with the specified text is not visible.
    * @param {string} text - The text content to check.
    */
-  static async checkIfElementWithTextIsNotVisible(text) {
+  static async checkIfElementWithTextIsNotVisible(text, index) {
     // rename this. We are checking if text is not visible. Not an element with text.
     const element = await text.atIndex(index || 0);
 
