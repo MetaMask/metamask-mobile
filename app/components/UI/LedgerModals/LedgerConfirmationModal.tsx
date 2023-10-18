@@ -98,7 +98,10 @@ const LedgerConfirmationModal = ({
   };
 
   useEffect(() => {
-    hasBluetoothPermissions && bluetoothOn && connectLedger();
+    hasBluetoothPermissions &&
+      bluetoothOn &&
+      !permissionErrorShown &&
+      connectLedger();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [hasBluetoothPermissions, bluetoothOn]);
 
