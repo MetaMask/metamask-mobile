@@ -1,7 +1,7 @@
 #!/bin/bash
-set -e
+set -euo pipefail
 
-rm app/core/InpageBridgeWeb3.js
+rm -f app/core/InpageBridgeWeb3.js
 mkdir -p scripts/inpage-bridge/dist && rm -rf scripts/inpage-bridge/dist/*
 cd scripts/inpage-bridge/inpage
 ../../../node_modules/.bin/webpack --config webpack.config.js
