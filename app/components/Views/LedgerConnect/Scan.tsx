@@ -64,12 +64,14 @@ const Scan = ({
     hasBluetoothPermissions,
     bluetoothOn,
   );
+  const [permissionErrorShown, setPermissionErrorShown] = useState(false);
 
   useEffect(() => {
     if (
       !bluetoothPermissionError &&
       !bluetoothConnectionError &&
       !deviceScanError &&
+      !permissionErrorShown &&
       !ledgerError
     ) {
       onScanningErrorStateChanged(undefined);
@@ -91,7 +93,7 @@ const Scan = ({
   }, [devices]);
 
   useEffect(() => {
-    if (bluetoothPermissionError) {
+    if (bluetoothPermissionError && !permissionErrorShown) {
       switch (bluetoothPermissionError) {
         case BluetoothPermissionErrors.BluetoothAccessBlocked:
           onScanningErrorStateChanged({
@@ -118,6 +120,7 @@ const Scan = ({
           });
           break;
       }
+      setPermissionErrorShown(true);
     }
 
     if (bluetoothConnectionError) {
@@ -148,7 +151,18 @@ const Scan = ({
       });
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [deviceScanError, bluetoothPermissionError, bluetoothConnectionError]);
+  }, [
+    deviceScanError,
+    bluetoothPermissionError,
+    bluetoothConnectionError,
+    permissionErrorShown,
+  ]);
+
+  useEffect(() => {
+    if (hasBluetoothPermissions) {
+      setPermissionErrorShown(false);
+    }
+  }, [hasBluetoothPermissions]);
 
   const options = devices?.map(
     ({ id, name, ...rest }: Partial<BluetoothDevice>) => ({
