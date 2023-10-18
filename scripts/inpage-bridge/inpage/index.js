@@ -1,6 +1,7 @@
 const { initializeProvider, shimWeb3 } = require('@metamask/providers');
 const ObjectMultiplex = require('@metamask/object-multiplex');
 const pump = require('pump');
+const { v4: uuid } = require('uuid');
 const MobilePortStream = require('./MobilePortStream');
 const ReactNativePostMessageStream = require('./ReactNativePostMessageStream');
 
@@ -18,6 +19,12 @@ const metamaskStream = new ReactNativePostMessageStream({
 initializeProvider({
   connectionStream: metamaskStream,
   shouldSendMetadata: false,
+  providerInfo: {
+    uuid: uuid(),
+    name: process.env.METAMASK_BUILD_NAME,
+    icon: process.env.METAMASK_BUILD_ICON,
+    rdns: process.env.METAMASK_BUILD_APP_ID,
+  },
 });
 
 // Set content script post-setup function
