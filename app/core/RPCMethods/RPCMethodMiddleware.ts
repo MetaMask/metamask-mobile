@@ -31,7 +31,10 @@ import { v1 as random } from 'uuid';
 import { getPermittedAccounts } from '../Permissions';
 import AppConstants from '../AppConstants';
 import { isSmartContractAddress } from '../../util/transactions';
-import { TOKEN_NOT_SUPPORTED_FOR_NETWORK } from '../../constants/error';
+import {
+  TOKEN_NOT_SUPPORTED_FOR_NETWORK,
+  TOKEN_NOT_VALID,
+} from '../../constants/error';
 import PPOMUtil from '../../lib/ppom/ppom-util';
 import {
   selectChainId,
@@ -39,6 +42,7 @@ import {
   selectProviderType,
 } from '../../selectors/networkController';
 import { regex } from '../../../app/util/regex';
+import { isValidAddress } from 'ethereumjs-util';
 
 const Engine = ImportedEngine as any;
 
@@ -745,6 +749,12 @@ export const getRpcMethodMiddleware = ({
         const chainId = selectChainId(store.getState());
 
         checkTabActive();
+
+        const isValidTokenAddress = isValidAddress(address);
+
+        if (!isValidTokenAddress) {
+          throw new Error(TOKEN_NOT_VALID);
+        }
 
         // Check if token exists on wallet's active network.
         const isTokenOnNetwork = await isSmartContractAddress(address, chainId);

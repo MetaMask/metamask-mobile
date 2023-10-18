@@ -161,7 +161,7 @@ export default class AddCustomToken extends PureComponent {
   };
 
   onAddressChange = async (address) => {
-    this.setState({ address, isSymbolAndDecimalEditable: true });
+    this.setState({ address });
     if (address.length === 42) {
       try {
         this.setState({ isSymbolAndDecimalEditable: false });
@@ -179,11 +179,14 @@ export default class AddCustomToken extends PureComponent {
             symbol,
             name,
           });
+        } else {
+          this.setState({ isSymbolAndDecimalEditable: true });
         }
       } catch (e) {
         this.setState({ isSymbolAndDecimalEditable: true });
       }
     } else {
+      // We are cleaning other fields when changing the token address
       this.setState({
         decimals: '',
         symbol: '',
@@ -204,19 +207,14 @@ export default class AddCustomToken extends PureComponent {
   };
 
   validateCustomTokenAddress = async (address) => {
-    const tokenAddress = address || this.state.address;
     let validated = true;
-    const isValidTokenAddress = isValidAddress(tokenAddress);
+    const isValidTokenAddress = isValidAddress(address);
 
     const { chainId } = this.props;
     const toSmartContract =
-      isValidTokenAddress &&
-      (await isSmartContractAddress(tokenAddress, chainId));
+      isValidTokenAddress && (await isSmartContractAddress(address, chainId));
 
-    const addressWithoutSpaces = tokenAddress.replace(
-      regex.addressWithSpaces,
-      '',
-    );
+    const addressWithoutSpaces = address.replace(regex.addressWithSpaces, '');
 
     if (addressWithoutSpaces.length === 0) {
       this.setState({
@@ -268,7 +266,9 @@ export default class AddCustomToken extends PureComponent {
   };
 
   validateCustomToken = async () => {
-    const validatedAddress = await this.validateCustomTokenAddress();
+    const validatedAddress = await this.validateCustomTokenAddress(
+      this.state.address,
+    );
     const validatedSymbol = this.validateCustomTokenSymbol();
     const validatedDecimals = this.validateCustomTokenDecimals();
     return validatedAddress && validatedSymbol && validatedDecimals;
@@ -376,6 +376,10 @@ export default class AddCustomToken extends PureComponent {
     const themeAppearance = this.context.themeAppearance || 'light';
     const styles = createStyles(colors);
 
+    const textInputSymbolAndDecimalsStyle = !isSymbolAndDecimalEditable
+      ? { ...styles.textInput, ...styles.textInputDisabled }
+      : styles.textInput;
+
     return (
       <View
         style={styles.wrapper}
@@ -420,11 +424,7 @@ export default class AddCustomToken extends PureComponent {
                 {strings('token.token_symbol')}
               </Text>
               <TextInput
-                style={
-                  !isSymbolAndDecimalEditable
-                    ? { ...styles.textInput, ...styles.textInputDisabled }
-                    : styles.textInput
-                }
+                style={textInputSymbolAndDecimalsStyle}
                 placeholder={'GNO'}
                 placeholderTextColor={colors.text.muted}
                 value={this.state.symbol}
@@ -444,11 +444,7 @@ export default class AddCustomToken extends PureComponent {
                 {strings('token.token_decimal')}
               </Text>
               <TextInput
-                style={
-                  !isSymbolAndDecimalEditable
-                    ? { ...styles.textInput, ...styles.textInputDisabled }
-                    : styles.textInput
-                }
+                style={textInputSymbolAndDecimalsStyle}
                 value={this.state.decimals}
                 keyboardType="numeric"
                 maxLength={2}
