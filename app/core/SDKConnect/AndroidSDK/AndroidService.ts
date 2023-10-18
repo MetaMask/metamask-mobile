@@ -59,12 +59,14 @@ export default class AndroidService extends EventEmitter2 {
 
   private async setupEventListeners(): Promise<void> {
     try {
-      await wait(200); // Extra wait to make sure ui is ready
       // Wait for keychain to be unlocked before handling rpc calls.
       const keyringController = (
         Engine.context as { KeyringController: KeyringController }
       ).KeyringController;
-      await waitForKeychainUnlocked({ keyringController });
+      await waitForKeychainUnlocked({
+        keyringController,
+        context: 'AndroidService::setupEventListener',
+      });
 
       const rawConnections =
         await SDKConnect.getInstance().loadAndroidConnections();
@@ -121,7 +123,10 @@ export default class AndroidService extends EventEmitter2 {
       ).KeyringController;
 
       const handleEventAsync = async () => {
-        await waitForKeychainUnlocked({ keyringController });
+        await waitForKeychainUnlocked({
+          keyringController,
+          context: 'AndroidService::setupOnClientsConnectedListener',
+        });
 
         try {
           if (!this.connectedClients?.[clientInfo.clientId]) {
@@ -198,7 +203,10 @@ export default class AndroidService extends EventEmitter2 {
           const keyringController = (
             Engine.context as { KeyringController: KeyringController }
           ).KeyringController;
-          await waitForKeychainUnlocked({ keyringController });
+          await waitForKeychainUnlocked({
+            keyringController,
+            context: 'AndroidService::setupOnMessageReceivedListener',
+          });
         } catch (error) {
           Logger.log(error, `AndroidService::onMessageReceived error`);
         }
