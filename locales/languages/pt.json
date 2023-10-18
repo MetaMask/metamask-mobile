@@ -15,8 +15,7 @@
     "see_details": "Ver detalhes",
     "suspicious_request_title": "Essa solicitação é suspeita",
     "trade_order_farming_description": "Se você aprovar essa solicitação, poderá perder seus ativos.",
-    "transfer_farming_description": "Se você aprovar essa solicitação, algum terceiro conhecido por aplicar golpes tomará todos os seus ativos.",
-    "unfair_trade_description": "Se você aprovar essa solicitação, poderá perder seus ativos."
+    "transfer_farming_description": "Se você aprovar essa solicitação, algum terceiro conhecido por aplicar golpes tomará todos os seus ativos."
   },
   "date": {
     "months": {
