@@ -10783,6 +10783,11 @@ react-native-qrcode-svg@5.1.2:
     prop-types "^15.5.10"
     qrcode "^1.2.0"
 
+react-native-qualtrics@^2.2.0:
+  version "2.2.0"
+  resolved "https://registry.yarnpkg.com/react-native-qualtrics/-/react-native-qualtrics-2.2.0.tgz#3e0bc84d54c58726a3b347d5ec412c573632105d"
+  integrity sha512-e7YRC8R9Nd9OVIRzY6yNiuIG8z5SfCXWG42TfyTpG3LMcHSJuw0Vg2ECMKNpjF686TQxjBvfOcY3eRlGU9cUIQ==
+
 react-native-randombytes@^3.5.3:
   version "3.5.3"
   resolved "https://registry.yarnpkg.com/react-native-randombytes/-/react-native-randombytes-3.5.3.tgz#b3bdcd11473cce106551a586244b98855e443cd1"

@@ -29,6 +29,23 @@ buildscript {
         maven {
           url("$rootDir/../node_modules/detox/Detox-android")
         }
-    }
+		maven {
+			url "https://s3-us-west-2.amazonaws.com/si-mobile-sdks/android/"
+		}
+		google()
+		mavenCentral()
+		maven { url 'https://www.jitpack.io' }
+		gradlePluginPortal()
+	}
+
+	subprojects {
+		afterEvaluate {
+			project ->
+				if (project.hasProperty("android")) {
+					android {
+						compileSdkVersion = rootProject.ext.compileSdkVersion
+					}
+				}
+		}
 	}
 }

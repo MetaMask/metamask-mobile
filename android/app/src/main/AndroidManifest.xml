@@ -16,6 +16,7 @@
 		android:allowBackup="false"
 		android:theme="@style/AppTheme"
 		android:hardwareAccelerated="true"
+		tools:replace="android:allowBackup, android:usesCleartextTraffic"
 		android:usesCleartextTraffic="${isDebug}"
 		tools:targetApi="29"
 		tools:ignore="GoogleAppIndexingWarning"
