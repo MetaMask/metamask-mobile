@@ -181,7 +181,7 @@
     "@metamask/sdk-communication-layer": "^0.7.0",
     "@metamask/signature-controller": "4.0.1",
     "@metamask/swappable-obj-proxy": "^2.1.0",
-    "@metamask/swaps-controller": "^6.8.0",
+    "@metamask/swaps-controller": "^6.9.3",
     "@metamask/transaction-controller": "^5.0.0",
     "@metamask/utils": "^5.0.2",
     "@ngraveio/bc-ur": "^1.1.6",
