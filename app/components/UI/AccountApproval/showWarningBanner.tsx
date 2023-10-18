@@ -1,5 +1,5 @@
 import React from 'react';
-import { View } from 'react-native';
+import { View, Linking } from 'react-native';
 import BannerAlert from '../../../component-library/components/Banners/Banner/variants/BannerAlert/BannerAlert';
 import { BannerAlertSeverity } from '../../../component-library/components/Banners/Banner/variants/BannerAlert/BannerAlert.types';
 import { strings } from '../../../../locales/i18n';
@@ -16,31 +16,41 @@ import {
   IconName,
   IconSize,
 } from '../../../component-library/components/Icons/Icon';
+import { CONNECTING_TO_A_DECEPTIVE_SITE } from '../../../constants/urls';
+import AnalyticsV2 from '../../../util/analyticsV2';
 import { AccordionHeaderHorizontalAlignment } from '../../../component-library/components/Accordions/Accordion';
 
-interface Props {
-  onLearnMore: () => void;
-  descriptionArray: string[];
-}
+const descriptionArray = [
+  strings('accounts.fake_metamask'),
+  strings('accounts.srp_theft'),
+  strings('accounts.malicious_transactions'),
+];
 
-const ShowWarningBanner = ({ onLearnMore, descriptionArray }: Props) => {
+const goToLearnMore = () => {
+  Linking.openURL(CONNECTING_TO_A_DECEPTIVE_SITE);
+  AnalyticsV2.trackEvent('EXTERNAL_LINK_CLICKED', {
+    location: 'dapp_connection_request',
+    text: 'Learn More',
+    url_domain: CONNECTING_TO_A_DECEPTIVE_SITE,
+  });
+};
+
+const ShowWarningBanner = () => {
   const { colors, typography } = useTheme();
   const styles = createStyles(colors, typography);
-
-  const descriptionText = (
-    <Text variant={TextVariant.BodyMD} style={styles.descriptionText}>
-      {strings('accounts.deceptive_site_desc')}{' '}
-      <Text color={TextColor.Info} onPress={onLearnMore}>
-        {strings('accounts.learn_more')}
-      </Text>
-    </Text>
-  );
 
   return (
     <BannerAlert
       severity={BannerAlertSeverity.Error}
       title={strings('accounts.deceptive_site_ahead')}
-      description={descriptionText}
+      description={
+        <Text variant={TextVariant.BodyMD} style={styles.descriptionText}>
+          {strings('accounts.deceptive_site_desc')}{' '}
+          <Text color={TextColor.Info} onPress={goToLearnMore}>
+            {strings('accounts.learn_more')}
+          </Text>
+        </Text>
+      }
       style={styles.bottom}
     >
       <Accordion
