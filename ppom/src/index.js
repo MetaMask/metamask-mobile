@@ -1,7 +1,7 @@
-import ppomInit, { PPOM } from '@blockaid/ppom_release';
 import wasm from '@blockaid/ppom_release/ppom_bg.wasm';
 import invoke from 'react-native-webview-invoke/browser';
 import asyncInvoke from './invoke-lib.js';
+import ppomInit, { PPOM } from './ppom';
 // eslint-disable-next-line import/no-nodejs-modules
 import { Buffer } from 'buffer';
 
