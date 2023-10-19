@@ -37,7 +37,7 @@ The code is built using React-Native and running code locally requires a Mac or 
     ```
 
 -   Install the shared [React Native dependencies](https://reactnative.dev/docs/environment-setup#installing-dependencies) (`React Native CLI`, _not_ `Expo CLI`)
-    -   XCode version `14.2` or below
+    -   XCode version `15.0` or below
 
 -   Install [cocoapods](https://guides.cocoapods.org/using/getting-started.html) by running:
 
