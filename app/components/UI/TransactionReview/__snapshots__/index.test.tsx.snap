@@ -1712,8 +1712,8 @@ Array [
               <TouchableOpacity
                 accessibilityRole="button"
                 accessible={true}
-                activeOpacity={1}
-                disabled={true}
+                activeOpacity={0.2}
+                disabled={false}
                 style={
                   Array [
                     Array [
@@ -1735,9 +1735,7 @@ Array [
                         },
                       ],
                     ],
-                    Object {
-                      "opacity": 0.6,
-                    },
+                    null,
                   ]
                 }
                 testID=""
@@ -1751,9 +1749,7 @@ Array [
                         "fontWeight": "500",
                         "textAlign": "center",
                       },
-                      Object {
-                        "color": "#dcdcdc",
-                      },
+                      null,
                       Array [
                         Object {
                           "fontFamily": "EuclidCircularB-Bold",
@@ -1766,9 +1762,7 @@ Array [
                         },
                         undefined,
                       ],
-                      Object {
-                        "opacity": 0.6,
-                      },
+                      null,
                     ]
                   }
                 >

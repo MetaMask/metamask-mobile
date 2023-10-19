@@ -30,8 +30,10 @@ import { BaseState, ControllerMessenger } from '@metamask/base-controller';
 import { ComposableController } from '@metamask/composable-controller';
 import {
   KeyringController,
-  KeyringState,
   SignTypedDataVersion,
+  KeyringControllerState,
+  KeyringControllerActions,
+  KeyringControllerEvents,
 } from '@metamask/keyring-controller';
 import {
   NetworkController,
@@ -132,6 +134,7 @@ type GlobalActions =
   | NetworkControllerActions
   | PermissionControllerActions
   | SignatureControllerActions
+  | KeyringControllerActions
   | LoggingControllerActions;
 type GlobalEvents =
   | ApprovalControllerEvents
@@ -140,7 +143,8 @@ type GlobalEvents =
   | TokenListStateChange
   | NetworkControllerEvents
   | PermissionControllerEvents
-  | SignatureControllerEvents;
+  | SignatureControllerEvents
+  | KeyringControllerEvents;
 
 type PermissionsByRpcMethod = ReturnType<typeof getPermissionSpecifications>;
 type Permissions = PermissionsByRpcMethod[keyof PermissionsByRpcMethod];
@@ -152,7 +156,7 @@ export interface EngineState {
   NftController: NftState;
   TokenListController: TokenListState;
   CurrencyRateController: CurrencyRateState;
-  KeyringController: KeyringState;
+  KeyringController: KeyringControllerState;
   NetworkController: NetworkState;
   PreferencesController: PreferencesState;
   PhishingController: PhishingState;
@@ -230,7 +234,7 @@ class Engine {
   // eslint-disable-next-line @typescript-eslint/default-param-last
   constructor(
     initialState: Partial<EngineState> = {},
-    initialKeyringState?: KeyringState | null,
+    initialKeyringState?: KeyringControllerState | null,
   ) {
     this.controllerMessenger = new ControllerMessenger();
 
@@ -400,8 +404,6 @@ class Engine {
     const phishingController = new PhishingController();
     phishingController.maybeUpdateState();
 
-    const additionalKeyrings = [QRHardwareKeyring];
-
     const getIdentities = () => {
       const identities = preferencesController.state.identities;
       const lowerCasedIdentities: PreferencesState['identities'] = {};
@@ -411,29 +413,40 @@ class Engine {
       return lowerCasedIdentities;
     };
 
-    const keyringState = initialKeyringState || initialState.KeyringController;
+    const qrKeyringBuilder = () => new QRHardwareKeyring();
+    qrKeyringBuilder.type = QRHardwareKeyring.type;
 
-    const keyringController = new KeyringController(
-      {
-        removeIdentity: preferencesController.removeIdentity.bind(
-          preferencesController,
-        ),
-        syncIdentities: preferencesController.syncIdentities.bind(
-          preferencesController,
-        ),
-        updateIdentities: preferencesController.updateIdentities.bind(
-          preferencesController,
-        ),
-        setSelectedAddress: preferencesController.setSelectedAddress.bind(
-          preferencesController,
-        ),
-        setAccountLabel: preferencesController.setAccountLabel.bind(
-          preferencesController,
-        ),
-      },
-      { encryptor, keyringTypes: additionalKeyrings },
-      keyringState,
-    );
+    const keyringController = new KeyringController({
+      removeIdentity: preferencesController.removeIdentity.bind(
+        preferencesController,
+      ),
+      syncIdentities: preferencesController.syncIdentities.bind(
+        preferencesController,
+      ),
+      updateIdentities: preferencesController.updateIdentities.bind(
+        preferencesController,
+      ),
+      setSelectedAddress: preferencesController.setSelectedAddress.bind(
+        preferencesController,
+      ),
+      setAccountLabel: preferencesController.setAccountLabel.bind(
+        preferencesController,
+      ),
+      encryptor,
+      // @ts-expect-error Error might be caused by base controller version mismatch
+      messenger: this.controllerMessenger.getRestricted({
+        name: 'KeyringController',
+        allowedEvents: [
+          'KeyringController:lock',
+          'KeyringController:unlock',
+          'KeyringController:stateChange',
+          'KeyringController:accountRemoved',
+        ],
+        allowedActions: ['KeyringController:getState'],
+      }),
+      state: initialKeyringState || initialState.KeyringController,
+      keyringBuilders: [qrKeyringBuilder],
+    });
 
     const controllers = [
       keyringController,
@@ -542,8 +555,17 @@ class Engine {
         getSelectedAddress: () => preferencesController.state.selectedAddress,
         incomingTransactions: {
           apiKey: process.env.MM_ETHERSCAN_KEY,
-          isEnabled: () =>
-            Boolean(store.getState()?.privacy?.thirdPartyApiMode),
+          isEnabled: () => {
+            const currentHexChainId = addHexPrefix(
+              toHexadecimal(networkController.state.providerConfig.chainId),
+            );
+
+            return Boolean(
+              preferencesController?.state?.showIncomingTransactions?.[
+                currentHexChainId
+              ],
+            );
+          },
           updateTransactions: true,
         },
         messenger: this.controllerMessenger.getRestricted({
@@ -579,6 +601,7 @@ class Engine {
             swapsUtils.AVALANCHE_CHAIN_ID,
             swapsUtils.ARBITRUM_CHAIN_ID,
             swapsUtils.OPTIMISM_CHAIN_ID,
+            swapsUtils.ZKSYNC_ERA_CHAIN_ID,
           ],
         },
       ),
@@ -627,7 +650,6 @@ class Engine {
             keyringController.signPersonalMessage.bind(keyringController),
           signTypedMessage: (msgParams, { version }) =>
             keyringController.signTypedMessage(
-              // @ts-expect-error Error might be caused by base controller version mismatch
               msgParams,
               version as SignTypedDataVersion,
             ),
@@ -745,19 +767,20 @@ class Engine {
   }
 
   handleVaultBackup() {
-    const { KeyringController } = this.context;
-    KeyringController.subscribe((state: any) =>
-      backupVault(state)
-        .then((result) => {
-          if (result.success) {
-            Logger.log('Engine', 'Vault back up successful');
-          } else {
-            Logger.log('Engine', 'Vault backup failed', result.error);
-          }
-        })
-        .catch((error) => {
-          Logger.error(error, 'Engine Vault backup failed');
-        }),
+    this.controllerMessenger.subscribe(
+      AppConstants.KEYRING_STATE_CHANGE_EVENT,
+      (state: KeyringControllerState) =>
+        backupVault(state)
+          .then((result) => {
+            if (result.success) {
+              Logger.log('Engine', 'Vault back up successful');
+            } else {
+              Logger.log('Engine', 'Vault backup failed', result.error);
+            }
+          })
+          .catch((error) => {
+            Logger.error(error, 'Engine Vault backup failed');
+          }),
     );
   }
 

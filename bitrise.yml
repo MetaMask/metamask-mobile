@@ -110,7 +110,7 @@ workflows:
       - git-clone@6: {}
       - nvm@1.3.0:
           inputs:
-            - node_version: '16.13.0'
+            - node_version: '16.20.0'
   code_setup:
     before_run:
       - setup
@@ -583,7 +583,7 @@ workflows:
                 curl -u "$BROWSERSTACK_USERNAME:$BROWSERSTACK_ACCESS_KEY" -X POST "https://api-cloud.browserstack.com/app-automate/upload" -F "file=@$APK_PATH" -F 'data={"custom_id": "'$CUSTOM_ID'"}' | jq -j '.app_url' | envman add --key BROWSERSTACK_APP_URL
                 APK_PATH_FOR_APP_LIVE=$PROJECT_LOCATION/app/build/outputs/apk/qa/release/"$CUSTOM_ID".apk
                 mv "$APK_PATH" "$APK_PATH_FOR_APP_LIVE"
-                curl -u "$BROWSERSTACK_USERNAME:$BROWSERSTACK_ACCESS_KEY" -X POST "https://api-cloud.browserstack.com/app-live/upload" -F "file=@$APK_PATH_FOR_APP_LIVE" -F 'data={"custom_id": "'$CUSTOM_ID'"}' 
+                curl -u "$BROWSERSTACK_USERNAME:$BROWSERSTACK_ACCESS_KEY" -X POST "https://api-cloud.browserstack.com/app-live/upload" -F "file=@$APK_PATH_FOR_APP_LIVE" -F 'data={"custom_id": "'$CUSTOM_ID'"}'
                 curl -u "$BROWSERSTACK_USERNAME:$BROWSERSTACK_ACCESS_KEY" -X GET https://api-cloud.browserstack.com/app-automate/recent_apps | jq > browserstack_uploaded_apps.json
       - deploy-to-bitrise-io@2.2.3:
           is_always_run: false
@@ -757,7 +757,7 @@ workflows:
                 IPA_PATH_FOR_APP_LIVE=ios/build/output/"$CUSTOM_ID".ipa
                 curl -u "$BROWSERSTACK_USERNAME:$BROWSERSTACK_ACCESS_KEY" -X POST "https://api-cloud.browserstack.com/app-automate/upload" -F "file=@$IPA_PATH" -F 'data={"custom_id": "'$CUSTOM_ID'"}' | jq -j '.app_url' | envman add --key BROWSERSTACK_APP_URL
                 mv "$IPA_PATH" "$IPA_PATH_FOR_APP_LIVE"
-                curl -u "$BROWSERSTACK_USERNAME:$BROWSERSTACK_ACCESS_KEY" -X POST "https://api-cloud.browserstack.com/app-live/upload" -F "file=@$IPA_PATH_FOR_APP_LIVE" -F 'data={"custom_id": "'$CUSTOM_ID'"}'   
+                curl -u "$BROWSERSTACK_USERNAME:$BROWSERSTACK_ACCESS_KEY" -X POST "https://api-cloud.browserstack.com/app-live/upload" -F "file=@$IPA_PATH_FOR_APP_LIVE" -F 'data={"custom_id": "'$CUSTOM_ID'"}'
                 curl -u "$BROWSERSTACK_USERNAME:$BROWSERSTACK_ACCESS_KEY" -X GET https://api-cloud.browserstack.com/app-automate/recent_apps | jq > browserstack_uploaded_apps.json
       - deploy-to-bitrise-io@2.2.3:
           is_always_run: false
@@ -820,6 +820,8 @@ meta:
 trigger_map:
   - push_branch: release/*
     pipeline: release_e2e_pipeline
+  - push_branch: main
+    pipeline: pr_smoke_e2e_pipeline
   - tag: 'v*.*.*-RC-*'
     pipeline: release_builds_to_store_pipeline
   - tag: 'qa-*'

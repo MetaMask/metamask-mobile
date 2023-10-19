@@ -1,4 +1,9 @@
 import { waitFor, web } from 'detox';
+import {
+  getFixturesServerPort,
+  getGanachePort,
+  getLocalTestDappPort,
+} from './fixtures/utils';
 export default class TestHelpers {
   static async waitAndTap(elementId, timeout, index) {
     await waitFor(element(by.id(elementId)))
@@ -145,6 +150,7 @@ export default class TestHelpers {
       newInstance: true,
       url: inputURL,
       sourceApp: 'io.metamask',
+      launchArgs: { fixtureServerPort: `${getFixturesServerPort()}` },
     });
   }
 
@@ -252,6 +258,14 @@ export default class TestHelpers {
           });
         }
       }
+    }
+  }
+
+  static async reverseServerPort() {
+    if (device.getPlatform() === 'android') {
+      await device.reverseTcpPort(getGanachePort());
+      await device.reverseTcpPort(getFixturesServerPort());
+      await device.reverseTcpPort(getLocalTestDappPort());
     }
   }
 }

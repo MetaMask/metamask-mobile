@@ -61,7 +61,7 @@ export interface ConnectionProps {
   initialConnection?: boolean;
   originatorInfo?: OriginatorInfo;
   validUntil: number;
-  lastAuthorized: number; // timestamp of last received activity
+  lastAuthorized?: number; // timestamp of last received activity
 }
 export interface ConnectedSessions {
   [id: string]: Connection;
@@ -99,6 +99,7 @@ export const METHODS_TO_REDIRECT: { [method: string]: boolean } = {
   wallet_watchAsset: true,
   wallet_addEthereumChain: true,
   wallet_switchEthereumChain: true,
+  metamask_connectSign: true,
 };
 
 export const METHODS_TO_DELAY: { [method: string]: boolean } = {
@@ -133,7 +134,7 @@ export class Connection extends EventEmitter2 {
   /*
    * Timestamp of last activity, used to check if channel is still active and to prevent showing OTP approval modal too often.
    */
-  lastAuthorized: number;
+  lastAuthorized?: number;
 
   /**
    * Prevent double sending 'authorized' message.
@@ -451,6 +452,34 @@ export class Connection extends EventEmitter2 {
           });
           this.approvalPromise = undefined;
           return;
+        }
+
+        // Special case for metamask_connectSign
+        if (message.method === 'metamask_connectSign') {
+          // Replace with personal_sign
+          message.method = 'personal_sign';
+          if (
+            !(
+              message.params &&
+              Array.isArray(message?.params) &&
+              message.params.length > 0
+            )
+          ) {
+            throw new Error('Invalid message format');
+          }
+          // Append selected address to params
+          const preferencesController = (
+            Engine.context as {
+              PreferencesController: PreferencesController;
+            }
+          ).PreferencesController;
+          const selectedAddress = preferencesController.state.selectedAddress;
+          message.params = [(message.params as string[])[0], selectedAddress];
+          if (Platform.OS === 'ios') {
+            // TODO: why does ios (older devices) requires a delay after request is initially approved?
+            await wait(500);
+          }
+          Logger.log(`metamask_connectSign`, message.params);
         }
 
         this.rpcQueueManager.add({
