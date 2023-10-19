@@ -1398,7 +1398,7 @@ export class SDKConnect extends EventEmitter2 {
     if (this.disabledHosts[host]) {
       // Might be useful for future feature.
     } else {
-      const now = Date.now();
+      const now = Date.now() + DEFAULT_SESSION_TIMEOUT_MS;
       this.approvedHosts[host] = now;
       DevLogger.log(`SDKConnect approveHost ${host}`, this.approvedHosts);
       if (this.connections[channelId]) {
