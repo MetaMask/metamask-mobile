@@ -88,7 +88,9 @@ export default {
       'https://metamask.zendesk.com/hc/en-us/articles/360015489591-Basic-Safety-and-Security-Tips-for-MetaMask',
     TOKEN_BALANCE:
       'https://metamask.zendesk.com/hc/en-us/articles/360028059272-What-to-do-when-your-balance-of-ETH-and-or-ERC20-tokens-is-incorrect-inaccurate',
-    MM_FAUCET: 'https://faucet.metamask.io/',
+    SEPOLIA_FAUCET: 'https://www.infura.io/faucet/sepolia',
+    LINEA_FAUCET: 'https://www.infura.io/faucet/linea',
+    GOERLI_FAUCET: 'https://www.infura.io/faucet/linea',
     WHY_TRANSACTION_TAKE_TIME:
       'https://community.metamask.io/t/what-is-gas-why-do-transactions-take-so-long/3172',
     WHAT_IS_ETH_SIGN_AND_WHY_IS_IT_A_RISK:

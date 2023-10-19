@@ -31,7 +31,11 @@ import {
 import { sumHexWEIs } from '../../../../util/conversions';
 import Analytics from '../../../../core/Analytics/Analytics';
 import { MetaMetricsEvents } from '../../../../core/Analytics';
-import { getNetworkNonce, isTestNet } from '../../../../util/networks';
+import {
+  TESTNET_FAUCETS,
+  getNetworkNonce,
+  isTestNet,
+} from '../../../../util/networks';
 import CustomNonceModal from '../../../UI/CustomNonceModal';
 import { setNonce, setProposedNonce } from '../../../../actions/transaction';
 import TransactionReviewEIP1559 from '../TransactionReviewEIP1559';
@@ -524,11 +528,12 @@ class TransactionReviewInformation extends PureComponent {
   };
 
   goToFaucet = () => {
+    const { chainId } = this.props;
     InteractionManager.runAfterInteractions(() => {
       this.onCancelPress();
       this.props.navigation.navigate(
         ...createBrowserNavDetails({
-          newTabUrl: AppConstants.URLS.MM_FAUCET,
+          newTabUrl: TESTNET_FAUCETS[chainId],
           timestamp: Date.now(),
         }),
       );
