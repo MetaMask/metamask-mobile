@@ -12,6 +12,9 @@ import { useStyles } from '../../../../../hooks';
 import { AvatarTokenProps } from './AvatarToken.types';
 import stylesheet from './AvatarToken.styles';
 import { TOKEN_AVATAR_IMAGE_ID } from './AvatarToken.constants';
+import { useSelector } from 'react-redux';
+import { selectIsIpfsGatewayEnabled } from '../../../../../../selectors/preferencesController';
+import { isIPFSUri } from '../../../../../../util/general';
 
 const AvatarToken = ({
   size,
@@ -28,6 +31,7 @@ const AvatarToken = ({
     isHaloEnabled,
     showFallback,
   });
+  const isIpfsGatewayEnabled = useSelector(selectIsIpfsGatewayEnabled);
 
   const textVariant =
     size === AvatarSize.Sm || size === AvatarSize.Xs
@@ -37,9 +41,13 @@ const AvatarToken = ({
 
   const onError = () => setShowFallback(true);
 
+  const isIpfsDisabledAndUriIsIpfs = imageSource
+    ? !isIpfsGatewayEnabled && isIPFSUri(imageSource)
+    : false;
+
   const tokenImage = () => (
     <AvatarBase size={size} style={styles.base}>
-      {showFallback ? (
+      {showFallback || isIpfsDisabledAndUriIsIpfs ? (
         <Text style={styles.label} variant={textVariant}>
           {tokenNameFirstLetter}
         </Text>
@@ -55,7 +63,7 @@ const AvatarToken = ({
     </AvatarBase>
   );
 
-  return !isHaloEnabled || showFallback ? (
+  return !isHaloEnabled || showFallback || isIpfsDisabledAndUriIsIpfs ? (
     tokenImage()
   ) : (
     <ImageBackground

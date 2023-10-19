@@ -1,8 +1,10 @@
-import { cloneDeep } from 'lodash';
+import { cloneDeep, merge } from 'lodash';
 import { v4 } from 'uuid';
 import { migrations, version } from './migrations';
 import initialBackgroundState from '../util/test/initial-background-state.json';
+import initialRootState from '../util/test/initial-root-state';
 import { IPFS_DEFAULT_GATEWAY_URL } from '../../app/constants/network';
+import { captureException } from '@sentry/react-native';
 
 jest.mock('uuid', () => {
   const actual = jest.requireActual('uuid');
@@ -13,7 +15,18 @@ jest.mock('uuid', () => {
   };
 });
 
+jest.mock('@sentry/react-native', () => ({
+  captureException: jest.fn(),
+}));
+
+const mockedCaptureException = jest.mocked(captureException);
+
 describe('Redux Persist Migrations', () => {
+  beforeEach(() => {
+    jest.restoreAllMocks();
+    jest.resetAllMocks();
+  });
+
   it('should have all migrations up to the latest version', () => {
     // Assert that the latest migration index matches the version constant
     expect(Object.keys(migrations).length - 1).toBe(version);
@@ -22,8 +35,11 @@ describe('Redux Persist Migrations', () => {
   it('should apply last migration version and return state', () => {
     // update this state to be compatible with the most recent migration
     const oldState = {
+      user: {
+        nftDetectionDismissed: true,
+      },
       engine: {
-        backgroundState: initialBackgroundState,
+        backgroundState: { PreferencesController: { openSeaEnabled: true } },
       },
     };
 
@@ -368,6 +384,523 @@ describe('Redux Persist Migrations', () => {
   });
 
   describe('#22', () => {
+    it('should DisplayNftMedia have the same value as openSeaEnabled and delete openSeaEnabled property and delete nftDetectionDismissed', () => {
+      const oldState = {
+        user: { nftDetectionDismissed: true },
+        engine: {
+          backgroundState: { PreferencesController: { openSeaEnabled: true } },
+        },
+      };
+
+      const migration = migrations[22];
+
+      const newState = migration(oldState);
+
+      expect(newState).toStrictEqual({
+        user: {},
+        engine: {
+          backgroundState: { PreferencesController: { displayNftMedia: true } },
+        },
+      });
+    });
+  });
+
+  describe('#23', () => {
+    const invalidBackgroundStates = [
+      {
+        state: merge({}, initialRootState, {
+          engine: {
+            backgroundState: {
+              NetworkController: null,
+            },
+          },
+        }),
+        errorMessage:
+          "Migration 23: Invalid network controller state: 'object'",
+        scenario: 'network controller state is invalid',
+      },
+      {
+        state: merge({}, initialRootState, {
+          engine: {
+            backgroundState: {
+              NetworkController: { networkConfigurations: null },
+            },
+          },
+        }),
+        errorMessage:
+          "Migration 23: Invalid network configuration state: 'object'",
+        scenario: 'network configuration state is invalid',
+      },
+      {
+        state: merge({}, initialRootState, {
+          engine: {
+            backgroundState: {
+              NetworkController: {
+                networkConfigurations: { mockNetworkConfigurationId: {} },
+              },
+            },
+          },
+        }),
+        errorMessage:
+          "Migration 23: Network configuration missing chain ID, id 'mockNetworkConfigurationId', keys ''",
+        scenario: 'network configuration has entry missing chain ID',
+      },
+      {
+        state: merge({}, initialRootState, {
+          engine: {
+            backgroundState: {
+              AddressBookController: null,
+            },
+          },
+        }),
+        errorMessage:
+          "Migration 23: Invalid address book controller state: 'object'",
+        scenario: 'address book controller state is invalid',
+      },
+      {
+        state: merge({}, initialRootState, {
+          engine: {
+            backgroundState: {
+              AddressBookController: { addressBook: null },
+            },
+          },
+        }),
+        errorMessage: "Migration 23: Invalid address book state: 'object'",
+        scenario: 'address book state is invalid',
+      },
+      {
+        state: merge({}, initialRootState, {
+          engine: {
+            backgroundState: {
+              AddressBookController: { addressBook: { 1337: null } },
+            },
+          },
+        }),
+        errorMessage:
+          "Migration 23: Address book configuration invalid, network id '1337', type 'object'",
+        scenario: 'address book network entry is invalid',
+      },
+      {
+        state: merge({}, initialRootState, {
+          engine: {
+            backgroundState: {
+              AddressBookController: {
+                addressBook: {
+                  1337: { '0x0000000000000000000000000000000000000001': {} },
+                },
+              },
+            },
+          },
+        }),
+        errorMessage:
+          "Migration 23: Address book configuration entry missing chain ID, network id '1337', keys ''",
+        scenario: 'address book entry missing chain ID',
+      },
+      {
+        state: merge({}, initialRootState, {
+          user: null,
+        }),
+        errorMessage: "Migration 23: Invalid user state: 'object'",
+        scenario: 'user state is invalid',
+      },
+    ];
+
+    for (const { errorMessage, scenario, state } of invalidBackgroundStates) {
+      it(`should capture exception if ${scenario}`, () => {
+        const migration = migrations[23];
+        const newState = migration(cloneDeep(state));
+
+        expect(newState).toStrictEqual(state);
+        expect(mockedCaptureException).toHaveBeenCalledWith(expect.any(Error));
+        expect(mockedCaptureException.mock.calls[0][0].message).toBe(
+          errorMessage,
+        );
+      });
+    }
+
+    it('should not change state if address book is empty', () => {
+      const state = merge({}, initialRootState, {
+        engine: {
+          backgroundState: {
+            AddressBookController: { addressBook: {} },
+          },
+        },
+      });
+
+      const migration = migrations[22];
+      const newState = migration(cloneDeep(state));
+
+      expect(newState).toStrictEqual(state);
+    });
+
+    it('should not change state if there are no ambiguous network IDs', () => {
+      const state = merge({}, initialRootState, {
+        engine: {
+          backgroundState: {
+            AddressBookController: {
+              addressBook: {
+                11155111: {
+                  '0x0000000000000000000000000000000000000001': {
+                    address: '0x0000000000000000000000000000000000000001',
+                    name: 'Mock',
+                    chainId: '11155111',
+                    memo: '',
+                    isEns: false,
+                  },
+                },
+              },
+            },
+          },
+        },
+      });
+
+      const migration = migrations[23];
+      const newState = migration(cloneDeep(state));
+
+      expect(newState).toStrictEqual(state);
+    });
+
+    it('should migrate ambiguous network IDs based on available networks configured locally', () => {
+      const state = merge({}, initialRootState, {
+        engine: {
+          backgroundState: {
+            AddressBookController: {
+              addressBook: {
+                // This is an ambiguous built-in network (other chains share this network ID)
+                1: {
+                  '0x0000000000000000000000000000000000000001': {
+                    address: '0x0000000000000000000000000000000000000001',
+                    name: 'Mock1',
+                    chainId: '1',
+                    memo: '',
+                    isEns: false,
+                  },
+                },
+                // This is an ambiguous custom network (other chains share this network ID)
+                10: {
+                  '0x0000000000000000000000000000000000000002': {
+                    address: '0x0000000000000000000000000000000000000002',
+                    name: 'Mock2',
+                    chainId: '10',
+                    memo: '',
+                    isEns: false,
+                  },
+                },
+              },
+            },
+            NetworkController: {
+              networkConfigurations: {
+                mockNetworkConfigurationId: {
+                  id: 'mockNetworkConfigurationId',
+                  rpcUrl: 'https://fake-url.metamask.io',
+                  // 2415 is the chain ID for a network with the network ID "10"
+                  chainId: '2415',
+                  ticker: 'ETH',
+                },
+              },
+            },
+          },
+        },
+      });
+
+      const migration = migrations[23];
+      const newState = migration(cloneDeep(state));
+
+      expect(newState.user).toStrictEqual({});
+      expect(newState.engine.backgroundState).toStrictEqual(
+        merge({}, initialBackgroundState, {
+          AddressBookController: {
+            addressBook: {
+              // This is unchanged because the only configured network with a network ID 1 also has
+              // a chain ID of 1.
+              1: {
+                '0x0000000000000000000000000000000000000001': {
+                  address: '0x0000000000000000000000000000000000000001',
+                  name: 'Mock1',
+                  chainId: '1',
+                  memo: '',
+                  isEns: false,
+                },
+              },
+              // This has been updated from 10 to 2415 according to the one configured local network
+              // with a network ID of 2415
+              2415: {
+                '0x0000000000000000000000000000000000000002': {
+                  address: '0x0000000000000000000000000000000000000002',
+                  name: 'Mock2',
+                  chainId: '2415',
+                  memo: '',
+                  isEns: false,
+                },
+              },
+            },
+          },
+          NetworkController: state.engine.backgroundState.NetworkController,
+        }),
+      );
+    });
+
+    it('should duplicate entries where multiple configured networks match network ID', () => {
+      const state = merge({}, initialRootState, {
+        engine: {
+          backgroundState: {
+            AddressBookController: {
+              addressBook: {
+                // This is an ambiguous built-in network (other chains share this network ID)
+                1: {
+                  '0x0000000000000000000000000000000000000001': {
+                    address: '0x0000000000000000000000000000000000000001',
+                    name: 'Mock1',
+                    chainId: '1',
+                    memo: '',
+                    isEns: false,
+                  },
+                },
+                // This is an ambiguous custom network (other chains share this network ID)
+                10: {
+                  '0x0000000000000000000000000000000000000002': {
+                    address: '0x0000000000000000000000000000000000000002',
+                    name: 'Mock2',
+                    chainId: '10',
+                    memo: '',
+                    isEns: false,
+                  },
+                },
+              },
+            },
+            NetworkController: {
+              networkConfigurations: {
+                mockNetworkConfigurationId1: {
+                  id: 'mockNetworkConfigurationId1',
+                  rpcUrl: 'https://fake-url1.metamask.io',
+                  // 10 is the chain ID for a network with the network ID "10"
+                  chainId: '10',
+                  ticker: 'ETH',
+                },
+                mockNetworkConfigurationId2: {
+                  id: 'mockNetworkConfigurationId2',
+                  rpcUrl: 'https://fake-url2.metamask.io',
+                  // 2415 is the chain ID for a network with the network ID "10"
+                  chainId: '2415',
+                  ticker: 'ETH',
+                },
+              },
+            },
+          },
+        },
+      });
+
+      const migration = migrations[23];
+      const newState = migration(cloneDeep(state));
+
+      expect(newState.user).toStrictEqual({
+        ambiguousAddressEntries: {
+          10: ['0x0000000000000000000000000000000000000002'],
+          2415: ['0x0000000000000000000000000000000000000002'],
+        },
+      });
+      expect(newState.engine.backgroundState).toStrictEqual(
+        merge({}, initialBackgroundState, {
+          AddressBookController: {
+            addressBook: {
+              // This is unchanged because the only configured network with a network ID 1 also has
+              // a chain ID of 1.
+              1: {
+                '0x0000000000000000000000000000000000000001': {
+                  address: '0x0000000000000000000000000000000000000001',
+                  name: 'Mock1',
+                  chainId: '1',
+                  memo: '',
+                  isEns: false,
+                },
+              },
+              // The entry for 10 has been duplicated across both locally configured networks that
+              // have a matching network ID: 10 and 2415
+              10: {
+                '0x0000000000000000000000000000000000000002': {
+                  address: '0x0000000000000000000000000000000000000002',
+                  name: 'Mock2',
+                  chainId: '10',
+                  memo: '',
+                  isEns: false,
+                },
+              },
+              2415: {
+                '0x0000000000000000000000000000000000000002': {
+                  address: '0x0000000000000000000000000000000000000002',
+                  name: 'Mock2',
+                  chainId: '2415',
+                  memo: '',
+                  isEns: false,
+                },
+              },
+            },
+          },
+          NetworkController: state.engine.backgroundState.NetworkController,
+        }),
+      );
+    });
+
+    it('should discard address book entries that do not match any configured networks', () => {
+      const state = merge({}, initialRootState, {
+        engine: {
+          backgroundState: {
+            AddressBookController: {
+              addressBook: {
+                // This is an ambiguous built-in network (other chains share this network ID)
+                1: {
+                  '0x0000000000000000000000000000000000000001': {
+                    address: '0x0000000000000000000000000000000000000001',
+                    name: 'Mock1',
+                    chainId: '1',
+                    memo: '',
+                    isEns: false,
+                  },
+                },
+                // This is an ambiguous custom network (other chains share this network ID)
+                10: {
+                  '0x0000000000000000000000000000000000000002': {
+                    address: '0x0000000000000000000000000000000000000002',
+                    name: 'Mock2',
+                    chainId: '10',
+                    memo: '',
+                    isEns: false,
+                  },
+                },
+              },
+            },
+            NetworkController: {
+              networkConfigurations: {},
+            },
+          },
+        },
+      });
+
+      const migration = migrations[23];
+      const newState = migration(cloneDeep(state));
+
+      expect(newState.user).toStrictEqual({});
+      expect(newState.engine.backgroundState).toStrictEqual(
+        merge({}, initialBackgroundState, {
+          AddressBookController: {
+            addressBook: {
+              // This is unchanged because the only configured network with a network ID 1 also has
+              // a chain ID of 1.
+              1: {
+                '0x0000000000000000000000000000000000000001': {
+                  address: '0x0000000000000000000000000000000000000001',
+                  name: 'Mock1',
+                  chainId: '1',
+                  memo: '',
+                  isEns: false,
+                },
+              },
+              // The entry for 10 has been removed because it had no local matches
+            },
+          },
+        }),
+      );
+    });
+  });
+
+  describe('#24', () => {
+    const invalidBackgroundStates = [
+      {
+        state: merge({}, initialRootState, {
+          engine: {
+            backgroundState: {
+              NetworkController: null,
+            },
+          },
+        }),
+        errorMessage:
+          "Migration 24: Invalid network controller state: 'object'",
+        scenario: 'network controller state is invalid',
+      },
+      {
+        state: merge({}, initialRootState, {
+          engine: {
+            backgroundState: {
+              NetworkController: { network: null },
+            },
+          },
+        }),
+        errorMessage: "Migration 24: Invalid network state: 'object'",
+        scenario: 'network state is invalid',
+      },
+    ];
+
+    for (const { errorMessage, scenario, state } of invalidBackgroundStates) {
+      it(`should capture exception if ${scenario}`, () => {
+        const migration = migrations[24];
+        const newState = migration(cloneDeep(state));
+
+        expect(newState).toStrictEqual(state);
+        expect(mockedCaptureException).toHaveBeenCalledWith(expect.any(Error));
+        expect(mockedCaptureException.mock.calls[0][0].message).toBe(
+          errorMessage,
+        );
+      });
+    }
+
+    it('should migrate loading network state', () => {
+      const state = {
+        engine: {
+          backgroundState: merge({}, initialBackgroundState, {
+            NetworkController: {
+              network: 'loading',
+            },
+          }),
+        },
+      };
+
+      const migration = migrations[24];
+      const newState = migration(state);
+
+      expect(newState.engine.backgroundState.NetworkController).toStrictEqual({
+        networkConfigurations: {},
+        networkDetails: {
+          isEIP1559Compatible: false,
+        },
+        networkId: null,
+        networkStatus: 'unknown',
+        providerConfig: {
+          chainId: '1',
+          type: 'mainnet',
+        },
+      });
+    });
+
+    it('should migrate non-loading network state', () => {
+      const state = {
+        engine: {
+          backgroundState: merge({}, initialBackgroundState, {
+            NetworkController: {
+              network: '1',
+            },
+          }),
+        },
+      };
+
+      const migration = migrations[24];
+      const newState = migration(state);
+
+      expect(newState.engine.backgroundState.NetworkController).toStrictEqual({
+        networkConfigurations: {},
+        networkDetails: {
+          isEIP1559Compatible: false,
+        },
+        networkId: '1',
+        networkStatus: 'available',
+        providerConfig: {
+          chainId: '1',
+          type: 'mainnet',
+        },
+      });
+    });
+  });
+
+  describe('#25', () => {
     it('should rename rawTransaction to rawTx', () => {
       const oldState = {
         engine: {

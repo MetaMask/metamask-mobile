@@ -78,14 +78,13 @@ class MessageSign extends PureComponent<MessageSignProps, MessageSignState> {
   };
 
   componentDidMount = () => {
-    const {
-      messageParams: { metamaskId },
-    } = this.props;
+    const { messageParams } = this.props;
+
     AnalyticsV2.trackEvent(
       MetaMetricsEvents.SIGNATURE_REQUESTED,
-      getAnalyticsParams(),
+      getAnalyticsParams(messageParams, 'eth_sign'),
     );
-    addSignatureErrorListener(metamaskId, this.onSignatureError);
+    addSignatureErrorListener(messageParams.metamaskId, this.onSignatureError);
   };
 
   componentWillUnmount = () => {
@@ -96,10 +95,11 @@ class MessageSign extends PureComponent<MessageSignProps, MessageSignState> {
   };
 
   onSignatureError = ({ error }: any) => {
+    const { messageParams } = this.props;
     if (error?.message.startsWith(KEYSTONE_TX_CANCELED)) {
       AnalyticsV2.trackEvent(
         MetaMetricsEvents.QR_HARDWARE_TRANSACTION_CANCELED,
-        getAnalyticsParams(),
+        getAnalyticsParams(messageParams, 'eth_sign'),
       );
     }
   };
@@ -183,7 +183,7 @@ class MessageSign extends PureComponent<MessageSignProps, MessageSignState> {
         truncateMessage={this.state.truncateMessage}
         showExpandedMessage={showExpandedMessage}
         toggleExpandedMessage={toggleExpandedMessage}
-        type="ethSign"
+        type="eth_sign"
         showWarning
         fromAddress={from}
         securityAlertResponse={securityAlertResponse}

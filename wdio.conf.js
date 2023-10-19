@@ -13,7 +13,10 @@ import {
 } from './wdio/utils/ganache';
 import FixtureBuilder from './e2e/fixtures/fixture-builder';
 import { loadFixture, startFixtureServer, stopFixtureServer } from './e2e/fixtures/fixture-helper';
+import FixtureServer from './e2e/fixtures/fixture-server';
 const { removeSync } = require('fs-extra');
+
+const fixtureServer = new FixtureServer();
 
 // cucumber tags
 const GANACHE = '@ganache';
@@ -344,9 +347,9 @@ export const config = {
 
     if (tags.filter((e) => e.name === FIXTURES_SKIP_ONBOARDING).length > 0) {
       // Start the fixture server
-      await startFixtureServer();
+      await startFixtureServer(fixtureServer);
       const state = new FixtureBuilder().build();
-      await loadFixture({fixture: state});
+      await loadFixture(fixtureServer, {fixture: state});
     }
 
   },
@@ -419,7 +422,7 @@ export const config = {
    */
   after: async function (result, capabilities) {
     // Stop the fixture server
-    await stopFixtureServer();
+    await stopFixtureServer(fixtureServer);
 
     if (capabilities.bundleId) {
       driver.terminateApp(capabilities.bundleId);

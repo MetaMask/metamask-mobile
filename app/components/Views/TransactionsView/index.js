@@ -21,7 +21,7 @@ import { addAccountTimeFlagFilter } from '../../../util/transactions';
 import { toLowerCaseEquals } from '../../../util/general';
 import {
   selectChainId,
-  selectNetwork,
+  selectNetworkId,
   selectProviderType,
 } from '../../../selectors/networkController';
 import {
@@ -55,11 +55,11 @@ const TransactionsView = ({
   const [submittedTxs, setSubmittedTxs] = useState([]);
   const [confirmedTxs, setConfirmedTxs] = useState([]);
   const [loading, setLoading] = useState();
-  const networkId = useSelector(selectNetwork);
+  const networkId = useSelector(selectNetworkId);
 
   const filterTransactions = useCallback(
     (networkId) => {
-      if (networkId === 'loading') return;
+      if (networkId === null) return;
 
       let accountAddedTimeInsertPointFound = false;
       const addedAccountTime = identities[selectedAddress]?.importTime;

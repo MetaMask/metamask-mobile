@@ -62,6 +62,10 @@ export interface TransactionEIP1559UpdateProps {
     suggestedMaxFeePerGas: string;
     suggestedMaxPriorityFeePerGas: string;
   };
+  gasObjectLegacy: {
+    legacyGasLimit?: string;
+    suggestedGasPrice?: string;
+  };
   /**
    * update gas transaction state to parent
    */
