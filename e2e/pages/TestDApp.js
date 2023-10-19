@@ -4,7 +4,7 @@ import ConnectModal from './modals/ConnectModal';
 import { BROWSER_WEBVIEW_ID } from '../../app/constants/test-ids';
 import Browser from './Drawer/Browser';
 import root from '../../locales/languages/en.json';
-import { getLocalTestDappPort } from '../utils';
+import { getLocalTestDappPort } from '../fixtures/utils';
 
 export const TEST_DAPP_LOCAL_URL = `http://localhost:${getLocalTestDappPort()}`;
 
