@@ -53,7 +53,6 @@ export const MIN_IN_MS = 1000 * 60;
 export const HOUR_IN_MS = MIN_IN_MS * 60;
 export const DAY_IN_MS = HOUR_IN_MS * 24;
 export const DEFAULT_SESSION_TIMEOUT_MS = 30 * DAY_IN_MS;
-export const DEFAULT_SESSION_TIMEOUT_MS = 30 * DAY_IN_MS;
 
 export interface ConnectionProps {
   id: string;
@@ -101,6 +100,7 @@ export const METHODS_TO_REDIRECT: { [method: string]: boolean } = {
   wallet_watchAsset: true,
   wallet_addEthereumChain: true,
   wallet_switchEthereumChain: true,
+  metamask_connectSign: true,
 };
 
 export const METHODS_TO_DELAY: { [method: string]: boolean } = {
@@ -474,6 +474,30 @@ export class Connection extends EventEmitter2 {
           });
           this.approvalPromise = undefined;
           return;
+        }
+
+        // Special case for metamask_connectSign
+        if (message.method === 'metamask_connectSign') {
+          // Replace with personal_sign
+          message.method = 'personal_sign';
+          if (
+            !(
+              message.params &&
+              Array.isArray(message?.params) &&
+              message.params.length > 0
+            )
+          ) {
+            throw new Error('Invalid message format');
+          }
+          // Append selected address to params
+          const preferencesController = (
+            Engine.context as {
+              PreferencesController: PreferencesController;
+            }
+          ).PreferencesController;
+          const selectedAddress = preferencesController.state.selectedAddress;
+          message.params = [(message.params as string[])[0], selectedAddress];
+          Logger.log(`metamask_connectSign`, message.params);
         }
 
         this.rpcQueueManager.add({
