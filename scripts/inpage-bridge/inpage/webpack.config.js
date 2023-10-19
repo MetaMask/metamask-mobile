@@ -1,5 +1,13 @@
 const webpack = require('webpack');
 const path = require('path');
+const { readFileSync } = require('fs');
+
+const SVG_LOGO_PATH =
+  '../../../app/component-library/components/Icons/Icon/assets/fox.svg';
+function getBuildIcon() {
+  const svg = readFileSync(SVG_LOGO_PATH, 'utf8');
+  return `data:image/svg+xml,${encodeURIComponent(svg)}`;
+}
 
 const config = {
   entry: './index.js',
@@ -38,6 +46,11 @@ const config = {
     new webpack.ProvidePlugin({
       Buffer: ['buffer', 'Buffer'],
       process: 'process/browser',
+    }),
+    new webpack.DefinePlugin({
+      'process.env.METAMASK_BUILD_NAME': JSON.stringify('MetaMask'),
+      'process.env.METAMASK_BUILD_ICON': JSON.stringify(getBuildIcon()),
+      'process.env.METAMASK_BUILD_APP_ID': JSON.stringify('io.metamask.mobile'),
     }),
   ],
 };
