@@ -73,16 +73,14 @@ import {
   PermissionControllerActions,
   PermissionControllerEvents,
   PermissionControllerState,
+  SubjectMetadataController,
+  SubjectMetadataControllerState,
 } from '@metamask/permission-controller';
 import SwapsController, { swapsUtils } from '@metamask/swaps-controller';
 import {
   SnapController,
   SnapControllerState,
 } from '@metamask/snaps-controllers';
-import {
-  SubjectMetadataController,
-  SubjectMetadataControllerState,
-} from '@metamask/subject-metadata-controller';
 import { PPOMController } from '@metamask/ppom-validator';
 import { MetaMaskKeyring as QRHardwareKeyring } from '@keystonehq/metamask-airgapped-keyring';
 import {
