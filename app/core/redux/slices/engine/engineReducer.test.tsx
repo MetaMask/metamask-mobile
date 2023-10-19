@@ -1,4 +1,4 @@
-import engineReducer, { initBgState, updateBgState } from './engineReducer';
+import engineReducer, { initBgState, updateBgState } from '.';
 
 jest.mock('../../../Engine', () => ({
   init: () => jest.requireActual('../../../Engine').default.init({}),

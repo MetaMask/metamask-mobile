@@ -19,7 +19,7 @@ import securityReducer from './security';
 import { combineReducers, Reducer } from 'redux';
 import experimentalSettingsReducer from './experimentalSettings';
 import { EngineState } from '../core/Engine';
-import engineReducer from '../core/redux/slices/engine/engineReducer';
+import engineReducer from '../core/redux/slices/engine';
 /**
  * Infer state from a reducer
  *
