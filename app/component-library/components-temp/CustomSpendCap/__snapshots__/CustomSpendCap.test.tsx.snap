@@ -28,6 +28,7 @@ exports[`CustomSpendCap should match snapshot 1`] = `
       }
     >
       <Text
+        accessibilityRole="text"
         style={
           Object {
             "color": "#24272A",
@@ -108,6 +109,7 @@ exports[`CustomSpendCap should match snapshot 1`] = `
       variant="Link"
     >
       <Text
+        accessibilityRole="text"
         style={
           Object {
             "color": "#0376C9",
@@ -183,6 +185,7 @@ exports[`CustomSpendCap should match snapshot 1`] = `
         />
       </View>
       <Text
+        accessibilityRole="text"
         onPress={[Function]}
         style={
           Object {
@@ -208,6 +211,7 @@ exports[`CustomSpendCap should match snapshot 1`] = `
     }
   >
     <Text
+      accessibilityRole="text"
       style={
         Object {
           "color": "#535A61",
@@ -241,6 +245,7 @@ exports[`CustomSpendCap should match snapshot 1`] = `
         variant="Link"
       >
         <Text
+          accessibilityRole="text"
           style={
             Object {
               "color": "#0376C9",

@@ -5,6 +5,7 @@ import InAppBrowser from 'react-native-inappbrowser-reborn';
 import { OrderStatusEnum, Provider } from '@consensys/on-ramp-sdk';
 import BuyAction from '@consensys/on-ramp-sdk/dist/regions/BuyAction';
 import useAnalytics from './useAnalytics';
+import useHandleSuccessfulOrder from './useHandleSuccessfulOrder';
 import { callbackBaseDeeplink, SDK, useFiatOnRampSDK } from '../sdk';
 import { createCustomOrderIdData } from '../orderProcessor/customOrderId';
 import { aggregatorOrderToFiatOrder } from '../orderProcessor/aggregator';
@@ -15,7 +16,7 @@ import {
 } from '../../../../reducers/fiatOrders';
 import { setLockTime } from '../../../../actions/settings';
 import Logger from '../../../../util/Logger';
-import useHandleSuccessfulOrder from './useHandleSuccessfulOrder';
+import Device from '../../../../util/device';
 
 export default function useInAppBrowser() {
   const {
@@ -53,7 +54,7 @@ export default function useInAppBrowser() {
         dispatch(addFiatCustomIdData(customIdData));
       }
 
-      if (!(await InAppBrowser.isAvailable())) {
+      if (Device.isAndroid() || !(await InAppBrowser.isAvailable())) {
         Linking.openURL(url);
       } else {
         const prevLockTime = lockTime;

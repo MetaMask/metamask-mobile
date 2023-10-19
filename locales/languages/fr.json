@@ -1,4 +1,22 @@
 {
+  "blockaid_banner": {
+    "approval_farming_description": "Si vous approuvez cette demande, un tiers connu pour ses activités frauduleuses pourrait s’emparer de tous vos actifs.",
+    "attribution": "Conseils de sécurité fournis par",
+    "attribution_link": "https://blockaid.me",
+    "attribution_link_name": "Blockaid",
+    "blur_farming_description": "Si vous approuvez cette demande, quelqu’un pourrait s’emparer de vos actifs répertoriés sur Blur.",
+    "deceptive_request_title": "Cette demande est trompeuse",
+    "failed_title": "Cette demande peut présenter des risques",
+    "failed_description": "À cause d’une erreur, cette demande n’a pas été vérifiée par le fournisseur de services de sécurité. Veuillez agir avec prudence.",
+    "malicious_domain_description": "Vous interagissez avec un domaine malveillant. Si vous approuvez cette demande, vous risquez de perdre vos actifs.",
+    "other_description": "Si vous approuvez cette demande, vous risquez de perdre vos actifs.",
+    "raw_signature_farming_description": "Si vous approuvez cette demande, vous risquez de perdre vos actifs.",
+    "seaport_farming_description": "Si vous approuvez cette demande, quelqu’un pourrait s'emparer de vos actifs répertoriés sur OpenSea.",
+    "see_details": "Voir les détails",
+    "suspicious_request_title": "Cette demande est suspecte",
+    "trade_order_farming_description": "Si vous approuvez cette demande, vous risquez de perdre vos actifs.",
+    "transfer_farming_description": "Si vous approuvez cette demande, un tiers connu pour ses activités frauduleuses pourrait s’emparer de tous vos actifs."
+  },
   "date": {
     "months": {
       "0": "Janv.",
@@ -360,7 +378,14 @@
     "error": "Erreur",
     "logout_to_import_seed": "Vous devez d’abord vous déconnecter pour pouvoir importer une phrase secrète de récupération.",
     "ready_to_explore": "Prêt(e) à partir à la découverte des applications de blockchain ?",
-    "unable_to_load": "Impossible de charger le solde"
+    "unable_to_load": "Impossible de charger le solde",
+    "display_nft_media_desc": "Pour importer un NFT, activez l’option « Afficher les supports NFT » dans Paramètres > Sécurité et confidentialité.",
+    "display_nft_media_cta": "Activez l’option « Afficher les supports NFT »",
+    "display_media_nft_warning": "L’affichage des supports et des données NFT peut exposer votre adresse IP à des serveurs centralisés. N’importez un NFT que si vous comprenez les risques encourus.",
+    "nfts_autodetect_title": "Détection automatique des NFT",
+    "nfts_autodetect_cta": "Activez la détection automatique des NFT dans les Paramètres",
+    "display_nft_media_cta_new_1": "Pour voir un NFT, activez l’option « Afficher les supports NFT » dans",
+    "display_nft_media_cta_new_2": "Paramètres > Sécurité et confidentialité."
   },
   "asset_details": {
     "token": "Jeton",
@@ -758,7 +783,12 @@
       "cancel": "Annuler"
     },
     "request_feature": "Demander une fonction",
-    "contact_support": "Contacter l’assistance"
+    "contact_support": "Contacter l’assistance",
+    "display_nft_media": "Afficher les supports NFT",
+    "display_nft_media_desc": "L’affichage des médias et des données NFT expose votre adresse IP à OpenSea ou à d’autres fournisseurs de services tiers. La détection automatique des NFT dépend de cette fonctionnalité et ne sera pas disponible si cette option est désactivée.",
+    "autodetect_nft_desc": "Laissez MetaMask ajouter les NFT que vous possédez en utilisant des services tiers (comme OpenSea). La détection automatique des NFT révèle votre adresse IP et l’adresse de votre compte à ces services. Si vous activez cette fonctionnalité, un lien pourrait être établi entre votre adresse IP et votre adresse Ethereum, et entrainer l’affichage de faux NFT déposés par des escrocs. Vous pouvez ajouter des jetons manuellement pour éviter ce risque.",
+    "incoming_transactions_title": "Afficher les transactions entrantes",
+    "incoming_transactions_content": "Cela dépend du réseau que vous sélectionnez et qui exposera votre adresse Ethereum et votre adresse IP."
   },
   "sdk": {
     "disconnect_title": "Déconnecter tous les sites ?",
@@ -1026,6 +1056,7 @@
     "speedup_tx_message": "Cette tentative ne garantit aucunement l’accélération de votre transaction initiale. Si la tentative d’accélération réussit, les frais de transaction ci-dessus vous seront facturés.",
     "nevermind": "Tant pis",
     "edit_network_fee": "Modifier les frais de gaz",
+    "edit_priority": "Modifier la priorité",
     "gas_cancel_fee": "Frais de gaz d’annulation",
     "gas_speedup_fee": "Frais de gaz d’accélération",
     "use_max": "Utiliser le maximum",
@@ -1331,8 +1362,7 @@
     "you_can": "Ou vous pouvez",
     "add_network": "ajouter manuellement d’autres réseaux.",
     "select_network": "Sélectionner un réseau",
-    "show_test_networks": "Afficher les réseaux de test",
-    "linea_mainnet_not_released_alert": "Nous vous remercions de l’intérêt que vous avez manifesté pour le réseau principal de Linea, il sera bientôt disponible !"
+    "show_test_networks": "Afficher les réseaux de test"
   },
   "select": {
     "cancel": "Annuler",
@@ -1838,7 +1868,6 @@
   "fiat_on_ramp_aggregator": {
     "onboarding": {
       "what_to_expect": "À quoi s’attendre",
-      "best_quotes": "Notre fonction d’achat de cryptomonnaies regroupe et analyse tous les prix cotés par les vendeurs intégrés pour un achat immédiat de cryptomonnaies et vous trouve la meilleure offre.",
       "benefits": "Des frais de transaction réduits et prise en charge de nombreux réseaux, jetons et méthodes de paiement",
       "get_started": "Commencer"
     },
@@ -1883,11 +1912,7 @@
     "select_region_currency": "Sélectionnez la devise nationale",
     "no_tokens_match": "Aucun jeton correspondant à vos critères de recherche : {{searchString}}",
     "no_currency_match": "Aucune devise correspondant à vos critères de recherche : {{searchString}}",
-    "buy_from_vetted": "Si vous voulez acheter des {{ticker}} auprès de l’un de nos vendeurs intégrés, vous serez redirigé en toute sécurité vers leur portail sans quitter l’application MetaMask.",
-    "best_price": "Meilleur prix",
-    "explore_other_options": "Explorer d’autres options",
     "pay_with": "Payer avec",
-    "buy_with": "Acheter avec {{provider}}",
     "minimum": "Le dépôt minimum est de",
     "maximum": "Le dépôt maximum est de",
     "try_again": "Réessayer",
@@ -2362,7 +2387,7 @@
     "description": "Votre adresse IP peut être exposée sur les serveurs de GitHub si vous activez la recherche automatique de mises à jour. On pourra seulement déterminer que votre adresse IP utilise MetaMask. Aucune autre information ou adresse de compte ne sera divulguée."
   },
   "terms_of_use_modal": {
-    "title": "Mise à jour de nos conditions d’utilisation",
+    "title": "Veuillez lire les conditions d’utilisation les plus récentes",
     "terms_of_use_check_description": "J’accepte les conditions d’utilisation, qui s’appliquent à mon utilisation de MetaMask et à toutes ses fonctions",
     "accept_cta": "Accepter",
     "accept_helper_description": "Veuillez faire défiler pour lire toutes les sections"
@@ -2526,5 +2551,36 @@
     "add_new_account": "Ajouter un nouveau compte",
     "add_hardware_wallet": "Ajouter un portefeuille matériel",
     "import_account": "Importer le compte"
+  },
+  "show_nft": {
+    "show_nft_title": "Afficher le NFT",
+    "show_nft_content_1": "Nous utilisons des services tiers pour afficher des images de vos NFT stockés sur IPFS, afficher des informations relatives aux adresses ENS saisies dans la barre d’adresse de votre navigateur et récupérer les icônes des différents jetons. Votre adresse IP peut être exposée si vous avez recours à ces services.",
+    "show_nft_content_2": "En sélectionnant",
+    "show_nft_content_3": "« Confirmer »,",
+    "show_nft_content_4": "vous activerez la résolution IPFS. Vous pouvez désactiver cette option dans",
+    "show_nft_content_5": "Paramètres > Sécurité et confidentialité",
+    "show_nft_content_6": "quand vous le souhaitez."
+  },
+  "show_display_nft_media": {
+    "show_display_nft_media_title": "Afficher les médias NFT",
+    "show_display_nft_media_content_1": "Pour voir un NFT, vous devez activer",
+    "show_display_nft_media_content_2": "Afficher les médias NFT.",
+    "show_display_nft_media_content_3": "L’affichage des médias et des données NFT expose votre adresse IP à OpenSea ou à d’autres fournisseurs de services tiers. La détection automatique des NFT dépend de cette fonctionnalité et ne sera pas disponible si cette option est désactivée.",
+    "show_display_nft_media_content_4": "Vous pouvez désactiver l’affichage des médias NFT dans",
+    "show_display_nft_media_content_5": "Paramètres > Sécurité et confidentialité."
+  },
+  "ipfs_gateway_banner": {
+    "ipfs_gateway_banner_title": "Passerelle IPFS",
+    "ipfs_gateway_banner_content1": "Il s’agit d’un site web IPFS. Pour voir ce site, vous devez activer la",
+    "ipfs_gateway_banner_content2": "passerelle IPFS",
+    "ipfs_gateway_banner_content3": "dans",
+    "ipfs_gateway_banner_content4": "Paramètres."
+  },
+  "ipfs_gateway": {
+    "ipfs_gateway_title": "Passerelle IPFS",
+    "ipfs_gateway_content1": "Nous utilisons des services tiers pour afficher des images de vos NFT stockés sur IPFS, afficher des informations relatives aux adresses ENS saisies dans la barre d’adresse de votre navigateur et récupérer les icônes des différents jetons. Votre adresse IP peut être exposée si vous avez recours à ces services.",
+    "ipfs_gateway_content2": "Vous pouvez désactiver la résolution IPFS dans",
+    "ipfs_gateway_content3": "Paramètres > Sécurité et confidentialité",
+    "ipfs_gateway_content4": "quand vous le souhaitez"
   }
 }

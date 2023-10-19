@@ -18,6 +18,7 @@ exports[`SliderButton should render correctly 1`] = `
       undefined,
     ]
   }
+  testID="swipe-to-swap-button"
 >
   <View
     style={

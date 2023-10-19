@@ -90,6 +90,8 @@ import { PPOMView } from '../../../lib/ppom/PPOMView';
 import NavigationService from '../../../core/NavigationService';
 import LockScreen from '../../Views/LockScreen';
 import AsyncStorage from '../../../store/async-storage-wrapper';
+import ShowIpfsGatewaySheet from '../../Views/ShowIpfsGatewaySheet/ShowIpfsGatewaySheet';
+import ShowDisplayNftMediaSheet from '../../Views/ShowDisplayMediaNFTSheet/ShowDisplayNFTMediaSheet';
 
 const clearStackNavigatorOptions = {
   headerShown: false,
@@ -229,6 +231,8 @@ const App = ({ userLoggedIn }) => {
   const { colors } = useTheme();
   const { toastRef } = useContext(ToastContext);
   const dispatch = useDispatch();
+  const sdkInit = useRef(false);
+  const [onboarded, setOnboarded] = useState(false);
   const triggerSetCurrentRoute = (route) => {
     dispatch(setCurrentRoute(route));
     if (route === 'Wallet' || route === 'BrowserView') {
@@ -347,17 +351,18 @@ const App = ({ userLoggedIn }) => {
     initAnalytics();
   }, []);
 
-  const sdkInit = useRef(false);
   useEffect(() => {
-    if (navigator && !sdkInit.current) {
-      sdkInit.current = true;
+    if (navigator?.getCurrentRoute && !sdkInit.current && onboarded) {
       SDKConnect.getInstance()
         .init({ navigation: navigator })
+        .then(() => {
+          sdkInit.current = true;
+        })
         .catch((err) => {
           console.error(`Cannot initialize SDKConnect`, err);
         });
     }
-  }, [navigator]);
+  }, [navigator, onboarded]);
 
   useEffect(() => {
     if (isWC2Enabled) {
@@ -370,6 +375,7 @@ const App = ({ userLoggedIn }) => {
   useEffect(() => {
     async function checkExisting() {
       const existingUser = await AsyncStorage.getItem(EXISTING_USER);
+      setOnboarded(!!existingUser);
       const route = !existingUser
         ? Routes.ONBOARDING.ROOT_NAV
         : Routes.ONBOARDING.LOGIN;
@@ -525,6 +531,14 @@ const App = ({ userLoggedIn }) => {
       <Stack.Screen
         name={Routes.SHEET.ETH_SIGN_FRICTION}
         component={EthSignFriction}
+      />
+      <Stack.Screen
+        name={Routes.SHEET.SHOW_IPFS}
+        component={ShowIpfsGatewaySheet}
+      />
+      <Stack.Screen
+        name={Routes.SHEET.SHOW_NFT_DISPLAY_MEDIA}
+        component={ShowDisplayNftMediaSheet}
       />
     </Stack.Navigator>
   );
