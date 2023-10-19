@@ -36,7 +36,9 @@ describe('engineReducer', () => {
 
     const key = 'AccountTrackerController';
     // changing the mock version to suit this test manually due to our current global mock
-    Engine.state = { AccountTrackerController: { accounts: 'testValue' } };
+    (Engine as any).state = {
+      AccountTrackerController: { accounts: 'testValue' },
+    };
     const { backgroundState } = engineReducer(
       reduxInitialState,
       updateBgState({ key }),
