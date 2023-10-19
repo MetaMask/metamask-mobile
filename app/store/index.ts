@@ -9,6 +9,7 @@ import { Authentication } from '../core';
 import LockManagerService from '../core/LockManagerService';
 import ReadOnlyNetworkStore from '../util/test/network-store';
 import { isTest } from '../util/test/utils';
+import thunk from 'redux-thunk';
 
 import persistConfig from './persistConfig';
 
@@ -32,7 +33,7 @@ const createStoreAndPersistor = async () => {
 
   store = configureStore({
     reducer: pReducer,
-    middleware: [sagaMiddleware],
+    middleware: [sagaMiddleware, thunk],
     preloadedState: initialState,
   });
 
