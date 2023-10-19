@@ -14,13 +14,19 @@ const config = {
       '<rootDir>/app/util/test/assetFileTransformer.js',
   },
   snapshotSerializers: ['enzyme-to-json/serializer'],
-  // This is an environment variable that can be used to execute logic only in development  testMatch: [
+  // This is an environment variable that can be used to execute logic only in development
   testMatch: [
     '<rootDir>/app/**/?(*.)+(spec|test).[jt]s?(x)',
     '<rootDir>/locales/**/?(*.)+(spec|test).[jt]s?(x)',
   ],
   collectCoverage: process.env.NODE_ENV !== 'production',
-  collectCoverageFrom: ['<rootDir>/app/**/*.{js,ts,tsx,jsx}'],
+  collectCoverageFrom: [
+    '<rootDir>/app/components/Approvals/**/*.[jt]s?(x)',
+    '<rootDir>/app/components/hooks/useApproval*.[jt]s?(x)',
+    '<rootDir>/app/components/UI/Approval/**/*.[jt]s?(x)',
+    '<rootDir>/app/components/UI/TemplateRenderer/**/*.[jt]s?(x)',
+    '<rootDir>/app/selectors/approvalController*.[jt]s?(x)',
+  ],
   coveragePathIgnorePatterns: [
     '__mocks__/',
     '<rootDir>/app/util/test/',
