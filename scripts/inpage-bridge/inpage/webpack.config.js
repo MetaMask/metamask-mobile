@@ -48,7 +48,7 @@ const config = {
       process: 'process/browser',
     }),
     new webpack.DefinePlugin({
-      'process.env.METAMASK_BUILD_NAME': JSON.stringify('MetaMask Mobile'),
+      'process.env.METAMASK_BUILD_NAME': JSON.stringify('MetaMask'),
       'process.env.METAMASK_BUILD_ICON': JSON.stringify(getBuildIcon()),
       'process.env.METAMASK_BUILD_APP_ID': JSON.stringify('io.metamask.mobile'),
     }),
