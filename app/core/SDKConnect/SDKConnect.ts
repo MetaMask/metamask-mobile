@@ -497,6 +497,10 @@ export class Connection extends EventEmitter2 {
           ).PreferencesController;
           const selectedAddress = preferencesController.state.selectedAddress;
           message.params = [(message.params as string[])[0], selectedAddress];
+          if (Platform.OS === 'ios') {
+            // TODO: why does ios (older devices) requires a delay after request is initially approved?
+            await wait(500);
+          }
           Logger.log(`metamask_connectSign`, message.params);
         }
 
@@ -1003,7 +1007,10 @@ export class SDKConnect extends EventEmitter2 {
     const keyringController = (
       Engine.context as { KeyringController: KeyringController }
     ).KeyringController;
-    await waitForKeychainUnlocked({ keyringController });
+    await waitForKeychainUnlocked({
+      keyringController,
+      context: 'updateSDKLoadingState',
+    });
 
     if (loading === true) {
       this.sdkLoadingState[channelId] = true;
