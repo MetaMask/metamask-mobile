@@ -198,9 +198,6 @@ export const TESTNET_FAUCETS = {
     AppConstants.URLS.LINEA_FAUCET,
 };
 
-export const isTestNetworkWithFaucet = (chainId) =>
-  TESTNET_FAUCETS[chainId] !== undefined;
-
 /**
  * Determine whether the given chain ID is for a known testnet.
  *
