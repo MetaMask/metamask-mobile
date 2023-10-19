@@ -17,7 +17,6 @@ export default class ApprovalModal {
   static async tapEditNickName() {
     await TestHelpers.tapByText(EDIT_NICKNAME_TEXT);
   }
-
   static async tapRejectButton() {
     await TestHelpers.tapByText(REJECT_TEXT);
   }
@@ -33,8 +32,10 @@ export default class ApprovalModal {
   static async isNotVisible() {
     await TestHelpers.checkIfNotVisible(APPROVAL_MODAL_CONTAINER_ID);
   }
-
   static async isContractNickNameVisible(nickName) {
     await TestHelpers.checkIfElementWithTextIsVisible(nickName);
+  }
+  static async assertTokenAmountIsShown(amount) {
+    await expect(element(by.id(this.APPROVE_TOKEN_AMOUNT))).toHaveText(amount);
   }
 }

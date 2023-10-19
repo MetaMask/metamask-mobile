@@ -52,15 +52,13 @@ describe(Regression('ERC20 tokens'), () => {
 
         //Input custom token amount
         await TestHelpers.checkIfExists(ApprovalModal.APPROVE_TOKEN_AMOUNT);
-        await TestHelpers.replaceTextInField(
+        await TestHelpers.typeTextAndHideKeyboard(
           ApprovalModal.APPROVE_TOKEN_AMOUNT,
           '2',
         );
 
         // Assert that custom token amount is shown
-        await expect(
-          element(by.id(ApprovalModal.APPROVE_TOKEN_AMOUNT)),
-        ).toHaveText('2');
+        ApprovalModal.assertTokenAmountIsShown('2');
 
         // Tap next button
         await TestHelpers.checkIfElementWithTextIsVisible(
@@ -72,7 +70,7 @@ describe(Regression('ERC20 tokens'), () => {
         await TestHelpers.checkIfElementWithTextIsVisible(
           root.transactions.tx_review_approve,
         );
-        await TestHelpers.tapByText(root.transactions.tx_review_approve);
+        await ApprovalModal.tapApproveButton();
 
         // Navigate to the activity screen
         await TabBarComponent.tapActivity();
