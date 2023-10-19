@@ -138,11 +138,11 @@ export const getPermissionSpecifications = ({ getAllAccounts }) => ({
   },
   [PermissionKeys.snap_confirm]: {
     permissionType: PermissionType.RestrictedMethod,
-    targetKey: PermissionKeys.snap_confirm,
+    targetName: PermissionKeys.snap_confirm,
   },
   [PermissionKeys.snap_getBip44Entropy]: {
     permissionType: PermissionType.RestrictedMethod,
-    targetKey: PermissionKeys.snap_getBip44Entropy,
+    targetName: PermissionKeys.snap_getBip44Entropy,
   },
 });
 
