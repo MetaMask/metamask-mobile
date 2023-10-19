@@ -15,7 +15,11 @@ export const buildSnapEndowmentSpecifications = () =>
   Object.values(endowmentPermissionBuilders).reduce(
     (allSpecifications, { targetKey, specificationBuilder }) => {
       if (!ExcludedSnapEndowments.has(targetKey)) {
-        allSpecifications[targetKey] = specificationBuilder();
+        allSpecifications[targetKey] = {
+          // TODO - rename targetName after updating snap controller to targetKey as permission controller expects targetName
+          targetName: targetKey,
+          ...specificationBuilder(),
+        };
       }
       return allSpecifications;
     },
@@ -30,9 +34,13 @@ export function buildSnapRestrictedMethodSpecifications(hooks: any) {
   return Object.values(restrictedMethodPermissionBuilders).reduce(
     (specifications, { targetKey, specificationBuilder, methodHooks }) => {
       if (!ExcludedSnapPermissions.has(targetKey)) {
-        specifications[targetKey] = specificationBuilder({
-          methodHooks: selectHooks(hooks, methodHooks),
-        });
+        specifications[targetKey] = {
+          // TODO - rename targetName after updating snap controller to targetKey as permission controller expects targetName
+          targetName: targetKey,
+          ...specificationBuilder({
+            methodHooks: selectHooks(hooks, methodHooks),
+          }),
+        };
       }
       return specifications;
     },
