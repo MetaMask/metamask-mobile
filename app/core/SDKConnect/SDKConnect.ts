@@ -686,6 +686,9 @@ export class Connection extends EventEmitter2 {
     const channelWasActiveRecently =
       !!lastAuthorized && Date.now() - lastAuthorized < OTPExpirationDuration;
 
+    DevLogger.log(
+      `SDKConnect checkPermissions initialConnection=${this.initialConnection} lastAuthorized=${lastAuthorized} OTPExpirationDuration ${OTPExpirationDuration} channelWasActiveRecently ${channelWasActiveRecently}`,
+    );
     // only ask approval if needed
     const approved = this.isApproved({
       channelId: this.channelId,
