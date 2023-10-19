@@ -448,9 +448,7 @@ export class Connection extends EventEmitter2 {
             name: 'metamask-provider',
           }).catch(() => {
             Logger.log(error, `Connection failed to send otp`);
-          });
-          // cleanup connection
-         
+          });         
           this.approvalPromise = undefined;
           return;
         }
