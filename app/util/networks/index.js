@@ -198,7 +198,7 @@ export const TESTNET_FAUCETS = {
     AppConstants.URLS.LINEA_FAUCET,
 };
 
-export const isTestNetworkWithFaucetDefined = (chainId) =>
+export const isTestNetworkWithFaucet = (chainId) =>
   TESTNET_FAUCETS[chainId] !== undefined;
 
 /**
