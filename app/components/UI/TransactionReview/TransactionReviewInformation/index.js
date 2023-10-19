@@ -35,6 +35,7 @@ import {
   TESTNET_FAUCETS,
   getNetworkNonce,
   isTestNet,
+  isTestNetworkWithFaucetDefined,
 } from '../../../../util/networks';
 import CustomNonceModal from '../../../UI/CustomNonceModal';
 import { setNonce, setProposedNonce } from '../../../../actions/transaction';
@@ -650,8 +651,7 @@ class TransactionReviewInformation extends PureComponent {
     const colors = this.context.colors || mockTheme.colors;
     const styles = createStyles(colors);
 
-    const isTestNetworkWithFaucet =
-      this.isTestNetwork() && TESTNET_FAUCETS[chainId] !== undefined;
+    const isTestNetworkWithFaucet = isTestNetworkWithFaucetDefined(chainId);
     const errorPress = this.isTestNetwork() ? this.goToFaucet : this.buyEth;
     const errorLinkText = this.isTestNetwork()
       ? strings('transaction.go_to_faucet')

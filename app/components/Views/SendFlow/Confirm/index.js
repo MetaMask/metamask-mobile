@@ -58,6 +58,8 @@ import {
   isMultiLayerFeeNetwork,
   fetchEstimatedMultiLayerL1Fee,
   TESTNET_FAUCETS,
+  isTestNetworkWithFaucet,
+  isTestNetworkWithFaucetDefined,
 } from '../../../../util/networks';
 import Text from '../../../Base/Text';
 import AnalyticsV2 from '../../../../util/analyticsV2';
@@ -965,8 +967,7 @@ class Confirm extends PureComponent {
     const isQRHardwareWalletDevice = isQRHardwareAccount(fromSelectedAddress);
 
     const isTestNetwork = isTestNet(chainId);
-    const isTestNetworkWithFaucet =
-      isTestNetwork && TESTNET_FAUCETS[chainId] !== undefined;
+    const isTestNetworkWithFaucet = isTestNetworkWithFaucetDefined(chainId);
 
     const errorPress = isTestNetwork ? this.goToFaucet : this.buyEth;
     const errorLinkText = isTestNetwork

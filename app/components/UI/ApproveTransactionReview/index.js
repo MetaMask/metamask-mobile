@@ -64,6 +64,7 @@ import {
   fetchEstimatedMultiLayerL1Fee,
   isMainnetByChainId,
   TESTNET_FAUCETS,
+  isTestNetworkWithFaucetDefined,
 } from '../../../util/networks';
 import CustomSpendCap from '../../../component-library/components-temp/CustomSpendCap';
 import IonicIcon from 'react-native-vector-icons/Ionicons';
@@ -741,8 +742,7 @@ class ApproveTransactionReview extends PureComponent {
     } = this.props;
     const styles = this.getStyles();
     const isTestNetwork = isTestNet(chainId);
-    const isTestNetworkWithFaucet =
-      isTestNetwork && TESTNET_FAUCETS[chainId] !== undefined;
+    const isTestNetworkWithFaucet = isTestNetworkWithFaucetDefined(chainId);
 
     const originIsDeeplink =
       origin === ORIGIN_DEEPLINK || origin === ORIGIN_QR_CODE;
