@@ -450,11 +450,7 @@ export class Connection extends EventEmitter2 {
             Logger.log(error, `Connection failed to send otp`);
           });
           // cleanup connection
-          this.removeConnection({
-            context: 'Connection::onMessage',
-            terminate: true,
-          });
-          this.isReady = false;
+         
           this.approvalPromise = undefined;
           return;
         }
