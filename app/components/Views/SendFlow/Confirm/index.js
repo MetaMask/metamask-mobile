@@ -59,7 +59,6 @@ import {
   fetchEstimatedMultiLayerL1Fee,
   TESTNET_FAUCETS,
   isTestNetworkWithFaucet,
-  isTestNetworkWithFaucetDefined,
 } from '../../../../util/networks';
 import Text from '../../../Base/Text';
 import AnalyticsV2 from '../../../../util/analyticsV2';
@@ -967,7 +966,6 @@ class Confirm extends PureComponent {
     const isQRHardwareWalletDevice = isQRHardwareAccount(fromSelectedAddress);
 
     const isTestNetwork = isTestNet(chainId);
-    const isTestNetworkWithFaucet = isTestNetworkWithFaucetDefined(chainId);
 
     const errorPress = isTestNetwork ? this.goToFaucet : this.buyEth;
     const errorLinkText = isTestNetwork
@@ -1069,7 +1067,7 @@ class Confirm extends PureComponent {
 
           {errorMessage && (
             <View style={styles.errorWrapper}>
-              {isTestNetworkWithFaucet || isNativeTokenBuySupported ? (
+              {isTestNetworkWithFaucet(chainId) || isNativeTokenBuySupported ? (
                 <TouchableOpacity onPress={errorPress}>
                   <Text style={styles.error}>{errorMessage}</Text>
                   <Text style={[styles.error, styles.underline]}>

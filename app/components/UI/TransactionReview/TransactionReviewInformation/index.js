@@ -35,7 +35,7 @@ import {
   TESTNET_FAUCETS,
   getNetworkNonce,
   isTestNet,
-  isTestNetworkWithFaucetDefined,
+  isTestNetworkWithFaucet,
 } from '../../../../util/networks';
 import CustomNonceModal from '../../../UI/CustomNonceModal';
 import { setNonce, setProposedNonce } from '../../../../actions/transaction';
@@ -651,7 +651,6 @@ class TransactionReviewInformation extends PureComponent {
     const colors = this.context.colors || mockTheme.colors;
     const styles = createStyles(colors);
 
-    const isTestNetworkWithFaucet = isTestNetworkWithFaucetDefined(chainId);
     const errorPress = this.isTestNetwork() ? this.goToFaucet : this.buyEth;
     const errorLinkText = this.isTestNetwork()
       ? strings('transaction.go_to_faucet')
@@ -692,7 +691,7 @@ class TransactionReviewInformation extends PureComponent {
         )}
         {!!error && (
           <View style={styles.errorWrapper}>
-            {isTestNetworkWithFaucet || isNativeTokenBuySupported ? (
+            {isTestNetworkWithFaucet(chainId) || isNativeTokenBuySupported ? (
               <TouchableOpacity onPress={errorPress}>
                 <Text style={styles.error}>{error}</Text>
                 {over && (

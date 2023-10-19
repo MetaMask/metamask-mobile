@@ -64,7 +64,7 @@ import {
   fetchEstimatedMultiLayerL1Fee,
   isMainnetByChainId,
   TESTNET_FAUCETS,
-  isTestNetworkWithFaucetDefined,
+  isTestNetworkWithFaucet,
 } from '../../../util/networks';
 import CustomSpendCap from '../../../component-library/components-temp/CustomSpendCap';
 import IonicIcon from 'react-native-vector-icons/Ionicons';
@@ -742,7 +742,6 @@ class ApproveTransactionReview extends PureComponent {
     } = this.props;
     const styles = this.getStyles();
     const isTestNetwork = isTestNet(chainId);
-    const isTestNetworkWithFaucet = isTestNetworkWithFaucetDefined(chainId);
 
     const originIsDeeplink =
       origin === ORIGIN_DEEPLINK || origin === ORIGIN_QR_CODE;
@@ -963,7 +962,7 @@ class ApproveTransactionReview extends PureComponent {
                         )}
                         {gasError && (
                           <View style={styles.errorWrapper}>
-                            {isTestNetworkWithFaucet ||
+                            {isTestNetworkWithFaucet(chainId) ||
                             isNativeTokenBuySupported ? (
                               <TouchableOpacity onPress={errorPress}>
                                 <Text reset style={styles.error}>
