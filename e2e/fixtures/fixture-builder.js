@@ -1,3 +1,4 @@
+import { getGanachePort } from './utils';
 import { merge } from 'lodash';
 
 const DAPP_URL = 'localhost';
@@ -158,7 +159,7 @@ class FixtureBuilder {
               featureFlags: {},
               frequentRpcList: [
                 {
-                  rpcUrl: 'http://localhost:8545',
+                  rpcUrl: `http://localhost:${getGanachePort()}`,
                   chainId: '1337',
                   ticker: 'ETH',
                   nickname: 'Localhost',
@@ -205,6 +206,27 @@ class FixtureBuilder {
                   eth_sign: false,
                 },
                 showTestNetworks: true,
+                showIncomingTransactions: {
+                  '0x1': true,
+                  '0x5': true,
+                  '0x38': true,
+                  '0x61': true,
+                  '0xa': true,
+                  '0xa869': true,
+                  '0x1a4': true,
+                  '0x89': true,
+                  '0x13881': true,
+                  '0xa86a': true,
+                  '0xfa': true,
+                  '0xfa2': true,
+                  '0xaa36a7': true,
+                  '0xe704': true,
+                  '0xe708': true,
+                  '0x504': true,
+                  '0x507': true,
+                  '0x505': true,
+                  '0x64': true,
+                },
               },
               _X: null,
             },
@@ -299,7 +321,6 @@ class FixtureBuilder {
         },
         privacy: {
           approvedHosts: {},
-          thirdPartyApiMode: true,
           revealSRPTimestamps: [],
         },
         bookmarks: [],
@@ -476,6 +497,12 @@ class FixtureBuilder {
               shortName: 'Localhost',
               nativeTokenSupported: true,
             },
+            {
+              chainId: 1,
+              chainName: 'Tenderly',
+              shortName: 'Tenderly',
+              nativeTokenSupported: true,
+            },
           ],
           selectedRegionAgg: null,
           selectedPaymentMethodAgg: null,
@@ -534,6 +561,20 @@ class FixtureBuilder {
   }
 
   /**
+   * Merges provided data into the background state of the NetworkController.
+   * @param {object} data - Data to merge into the NetworkController's state.
+   * @returns {FixtureBuilder} - The FixtureBuilder instance for method chaining.
+   */
+  withNetworkController(data) {
+    merge(this.fixture.state.engine.backgroundState.NetworkController, data);
+
+    if (data.providerConfig.ticker !== 'ETH')
+      this.fixture.state.engine.backgroundState.CurrencyRateController.pendingNativeCurrency =
+        data.providerConfig.ticker;
+    return this;
+  }
+
+  /**
    * Connects the PermissionController to a test dapp with specific permissions and origins.
    * @returns {FixtureBuilder} - The FixtureBuilder instance for method chaining.
    */
@@ -585,7 +626,7 @@ class FixtureBuilder {
       providerConfig: {
         type: 'rpc',
         chainId: '1337',
-        rpcTarget: 'http://localhost:8545',
+        rpcTarget: `http://localhost:${getGanachePort()}`,
         nickname: 'Localhost',
         ticker: 'ETH',
       },

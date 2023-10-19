@@ -21,7 +21,6 @@ import Networks, {
   getNetworkImageSource,
   isDefaultMainnet,
   isLineaMainnet,
-  shouldShowLineaMainnetNetwork,
 } from '../../../../util/networks';
 import StyledButton from '../../../UI/StyledButton';
 import Engine from '../../../../core/Engine';
@@ -133,10 +132,6 @@ class NetworksSettings extends PureComponent {
      * Current network provider configuration
      */
     providerConfig: PropTypes.object,
-    /**
-     * Indicates whether third party API mode is enabled
-     */
-    thirdPartyApiMode: PropTypes.bool,
   };
 
   actionSheet = null;
@@ -145,7 +140,6 @@ class NetworksSettings extends PureComponent {
   state = {
     searchString: '',
     filteredNetworks: [],
-    lineaMainnetReleased: false,
   };
 
   updateNavBar = () => {
@@ -162,9 +156,6 @@ class NetworksSettings extends PureComponent {
   };
 
   componentDidMount = () => {
-    const shouldShowLineaMainnet = shouldShowLineaMainnetNetwork();
-
-    this.setState({ lineaMainnetReleased: shouldShowLineaMainnet });
     this.updateNavBar();
   };
 
@@ -498,7 +489,7 @@ class NetworksSettings extends PureComponent {
                 {strings('app_settings.mainnet')}
               </Text>
               {this.renderMainnet()}
-              {this.state.lineaMainnetReleased && this.renderLineaMainnet()}
+              {this.renderLineaMainnet()}
               {this.renderRpcNetworksView()}
               <Text style={styles.sectionLabel}>
                 {strings('app_settings.test_network_name')}
@@ -537,7 +528,6 @@ NetworksSettings.contextType = ThemeContext;
 const mapStateToProps = (state) => ({
   providerConfig: selectProviderConfig(state),
   networkConfigurations: selectNetworkConfigurations(state),
-  thirdPartyApiMode: state.privacy.thirdPartyApiMode,
 });
 
 export default connect(mapStateToProps)(NetworksSettings);

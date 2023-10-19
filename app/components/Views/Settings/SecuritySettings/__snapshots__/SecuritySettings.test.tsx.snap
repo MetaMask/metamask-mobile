@@ -67,6 +67,7 @@ exports[`SecuritySettings should render correctly 1`] = `
         }
       >
         <Text
+          accessibilityRole="text"
           style={
             Object {
               "color": "#24272A",
@@ -103,6 +104,7 @@ exports[`SecuritySettings should render correctly 1`] = `
           </Text>
            
           <Text
+            accessibilityRole="text"
             style={
               Object {
                 "color": "#24272A",
@@ -129,6 +131,7 @@ exports[`SecuritySettings should render correctly 1`] = `
           }
         />
         <Text
+          accessibilityRole="text"
           style={
             Object {
               "color": "#535A61",
@@ -147,6 +150,7 @@ exports[`SecuritySettings should render correctly 1`] = `
           onPress={[Function]}
         >
           <Text
+            accessibilityRole="text"
             style={
               Object {
                 "color": "#0376C9",
@@ -203,6 +207,7 @@ exports[`SecuritySettings should render correctly 1`] = `
             
           </Text>
           <Text
+            accessibilityRole="text"
             style={
               Object {
                 "color": "#24272A",
@@ -240,6 +245,7 @@ exports[`SecuritySettings should render correctly 1`] = `
           variant="Primary"
         >
           <Text
+            accessibilityRole="text"
             style={
               Object {
                 "color": "#FCFCFC",
@@ -264,6 +270,7 @@ exports[`SecuritySettings should render correctly 1`] = `
         testID="change-password-section"
       >
         <Text
+          accessibilityRole="text"
           style={
             Object {
               "color": "#24272A",
@@ -280,6 +287,7 @@ exports[`SecuritySettings should render correctly 1`] = `
           Password
         </Text>
         <Text
+          accessibilityRole="text"
           style={
             Object {
               "color": "#535A61",
@@ -319,6 +327,7 @@ exports[`SecuritySettings should render correctly 1`] = `
           variant="Secondary"
         >
           <Text
+            accessibilityRole="text"
             style={
               Object {
                 "color": "#0376C9",
@@ -343,6 +352,7 @@ exports[`SecuritySettings should render correctly 1`] = `
         testID="auto-lock-section"
       >
         <Text
+          accessibilityRole="text"
           style={
             Object {
               "color": "#24272A",
@@ -359,6 +369,7 @@ exports[`SecuritySettings should render correctly 1`] = `
           Auto-lock
         </Text>
         <Text
+          accessibilityRole="text"
           style={
             Object {
               "color": "#535A61",
@@ -568,6 +579,7 @@ exports[`SecuritySettings should render correctly 1`] = `
         testID="reveal-private-key-section"
       >
         <Text
+          accessibilityRole="text"
           style={
             Object {
               "color": "#24272A",
@@ -584,6 +596,7 @@ exports[`SecuritySettings should render correctly 1`] = `
           Show private key for "[missing {{accountName}} value]"
         </Text>
         <Text
+          accessibilityRole="text"
           style={
             Object {
               "color": "#535A61",
@@ -620,6 +633,7 @@ exports[`SecuritySettings should render correctly 1`] = `
           variant="Primary"
         >
           <Text
+            accessibilityRole="text"
             style={
               Object {
                 "color": "#FCFCFC",
@@ -777,6 +791,7 @@ exports[`SecuritySettings should render correctly 1`] = `
         testID="clear-privacy-section"
       >
         <Text
+          accessibilityRole="text"
           style={
             Object {
               "color": "#24272A",
@@ -793,6 +808,7 @@ exports[`SecuritySettings should render correctly 1`] = `
           Clear privacy data
         </Text>
         <Text
+          accessibilityRole="text"
           style={
             Object {
               "color": "#535A61",
@@ -1542,7 +1558,7 @@ exports[`SecuritySettings should render correctly 1`] = `
             }
           }
         >
-          Get incoming transactions
+          Show incoming transactions
         </Text>
         <Text
           style={
@@ -1556,44 +1572,268 @@ exports[`SecuritySettings should render correctly 1`] = `
             }
           }
         >
-          Third party APIs (Etherscan) are used to show your incoming transactions in the history. Turn off if you don’t want us to pull data from those services.
+          This relies on the network you select which will expose your Ethereum address and your IP address.
         </Text>
-        <View
+        <TouchableOpacity
           style={
             Object {
-              "alignSelf": "flex-start",
-              "marginTop": 18,
+              "backgroundColor": "#FFFFFF",
+              "borderColor": "#BBC0C5",
+              "borderRadius": 4,
+              "borderWidth": 0,
+              "padding": 16,
             }
           }
+          testID="cell-display"
+          variant="Display"
         >
-          <RCTSwitch
-            accessibilityRole="switch"
-            onChange={[Function]}
-            onResponderTerminationRequest={[Function]}
-            onStartShouldSetResponder={[Function]}
-            onTintColor="#0376C9"
+          <View
             style={
-              Array [
-                Object {
-                  "height": 31,
-                  "width": 51,
-                },
-                Array [
-                  Object {
-                    "alignSelf": "flex-start",
-                  },
-                  Object {
-                    "backgroundColor": "#D6D9DC",
-                    "borderRadius": 16,
-                  },
-                ],
-              ]
+              Object {
+                "flexDirection": "row",
+              }
             }
-            thumbTintColor="#FFFFFF"
-            tintColor="#D6D9DC"
-            value={false}
-          />
-        </View>
+          >
+            <View
+              style={
+                Object {
+                  "backgroundColor": "#FFFFFF",
+                  "borderRadius": 16,
+                  "height": 32,
+                  "marginRight": 16,
+                  "overflow": "hidden",
+                  "width": 32,
+                }
+              }
+            >
+              <Image
+                onError={[Function]}
+                resizeMode="contain"
+                source={
+                  Object {
+                    "uri": "MockImage",
+                  }
+                }
+                style={
+                  Object {
+                    "flex": 1,
+                    "height": undefined,
+                    "width": undefined,
+                  }
+                }
+                testID="network-avatar-image"
+              />
+            </View>
+            <View
+              style={
+                Object {
+                  "alignItems": "flex-start",
+                  "flex": 1,
+                }
+              }
+            >
+              <Text
+                accessibilityRole="text"
+                numberOfLines={1}
+                style={
+                  Object {
+                    "color": "#24272A",
+                    "fontFamily": "Euclid Circular B",
+                    "fontSize": 16,
+                    "fontWeight": "400",
+                    "letterSpacing": 0,
+                    "lineHeight": 24,
+                  }
+                }
+                testID="cell-title"
+              >
+                Ethereum Main Network
+              </Text>
+              <Text
+                accessibilityRole="text"
+                numberOfLines={1}
+                style={
+                  Object {
+                    "color": "#535A61",
+                    "fontFamily": "Euclid Circular B",
+                    "fontSize": 14,
+                    "fontWeight": "400",
+                    "letterSpacing": 0,
+                    "lineHeight": 22,
+                  }
+                }
+                testID="cell-secondary-text"
+              >
+                etherscan.io
+              </Text>
+            </View>
+            <View
+              style={
+                Object {
+                  "marginLeft": 16,
+                }
+              }
+            >
+              <RCTSwitch
+                accessibilityRole="switch"
+                onChange={[Function]}
+                onResponderTerminationRequest={[Function]}
+                onStartShouldSetResponder={[Function]}
+                onTintColor="#0376C9"
+                style={
+                  Array [
+                    Object {
+                      "height": 31,
+                      "width": 51,
+                    },
+                    Array [
+                      Object {
+                        "alignSelf": "flex-start",
+                      },
+                      Object {
+                        "backgroundColor": "#D6D9DC",
+                        "borderRadius": 16,
+                      },
+                    ],
+                  ]
+                }
+                thumbTintColor="#FFFFFF"
+                tintColor="#D6D9DC"
+                value={true}
+              />
+            </View>
+          </View>
+        </TouchableOpacity>
+        <TouchableOpacity
+          style={
+            Object {
+              "backgroundColor": "#FFFFFF",
+              "borderColor": "#BBC0C5",
+              "borderRadius": 4,
+              "borderWidth": 0,
+              "padding": 16,
+            }
+          }
+          testID="cell-display"
+          variant="Display"
+        >
+          <View
+            style={
+              Object {
+                "flexDirection": "row",
+              }
+            }
+          >
+            <View
+              style={
+                Object {
+                  "backgroundColor": "#FFFFFF",
+                  "borderRadius": 16,
+                  "height": 32,
+                  "marginRight": 16,
+                  "overflow": "hidden",
+                  "width": 32,
+                }
+              }
+            >
+              <Image
+                onError={[Function]}
+                resizeMode="contain"
+                source={
+                  Object {
+                    "uri": "MockImage",
+                  }
+                }
+                style={
+                  Object {
+                    "flex": 1,
+                    "height": undefined,
+                    "width": undefined,
+                  }
+                }
+                testID="network-avatar-image"
+              />
+            </View>
+            <View
+              style={
+                Object {
+                  "alignItems": "flex-start",
+                  "flex": 1,
+                }
+              }
+            >
+              <Text
+                accessibilityRole="text"
+                numberOfLines={1}
+                style={
+                  Object {
+                    "color": "#24272A",
+                    "fontFamily": "Euclid Circular B",
+                    "fontSize": 16,
+                    "fontWeight": "400",
+                    "letterSpacing": 0,
+                    "lineHeight": 24,
+                  }
+                }
+                testID="cell-title"
+              >
+                Linea Main Network
+              </Text>
+              <Text
+                accessibilityRole="text"
+                numberOfLines={1}
+                style={
+                  Object {
+                    "color": "#535A61",
+                    "fontFamily": "Euclid Circular B",
+                    "fontSize": 14,
+                    "fontWeight": "400",
+                    "letterSpacing": 0,
+                    "lineHeight": 22,
+                  }
+                }
+                testID="cell-secondary-text"
+              >
+                lineascan.build
+              </Text>
+            </View>
+            <View
+              style={
+                Object {
+                  "marginLeft": 16,
+                }
+              }
+            >
+              <RCTSwitch
+                accessibilityRole="switch"
+                onChange={[Function]}
+                onResponderTerminationRequest={[Function]}
+                onStartShouldSetResponder={[Function]}
+                onTintColor="#0376C9"
+                style={
+                  Array [
+                    Object {
+                      "height": 31,
+                      "width": 51,
+                    },
+                    Array [
+                      Object {
+                        "alignSelf": "flex-start",
+                      },
+                      Object {
+                        "backgroundColor": "#D6D9DC",
+                        "borderRadius": 16,
+                      },
+                    ],
+                  ]
+                }
+                thumbTintColor="#FFFFFF"
+                tintColor="#D6D9DC"
+                value={true}
+              />
+            </View>
+          </View>
+        </TouchableOpacity>
       </View>
       <Modal
         animationType="none"
@@ -1659,7 +1899,7 @@ exports[`SecuritySettings should render correctly 1`] = `
             }
           }
         >
-          Displaying NFT media and data exposes your IP address to OpenSea or other third parties. NFT autodetection relies on this feature, and won't be available when this is turned off.
+          Displaying NFT media and data exposes your IP address to OpenSea or other third parties. NFT autodetection relies on this feature, and won't be available when turned off. If NFT media is fully located on IPFS, it can still be displayed even when this feature is turned off.
         </Text>
         <View
           style={

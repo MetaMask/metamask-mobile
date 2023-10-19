@@ -30,7 +30,7 @@ import {
 } from '../../../reducers/swaps';
 import {
   selectChainId,
-  selectNetwork,
+  selectNetworkId,
   selectNetworkConfigurations,
   selectRpcTarget,
 } from '../../../selectors/networkController';
@@ -61,6 +61,10 @@ import {
   selectSelectedAddress,
 } from '../../../selectors/preferencesController';
 import Engine from '../../../core/Engine';
+import {
+  TOKEN_OVERVIEW_BUY_BUTTON,
+  TOKEN_OVERVIEW_SWAP_BUTTON,
+} from '../../../../wdio/screen-objects/testIDs/Screens/TokenOverviewScreen.testIds';
 
 const createStyles = (colors) =>
   StyleSheet.create({
@@ -543,6 +547,7 @@ class Asset extends PureComponent {
                   ...(!AppConstants.SWAPS.ACTIVE ? styles.singleButton : {}),
                 }}
                 onPress={onBuy}
+                testID={TOKEN_OVERVIEW_BUY_BUTTON}
               />
             )}
             {displaySwapsButton && (
@@ -559,6 +564,7 @@ class Asset extends PureComponent {
                     : {}),
                 }}
                 onPress={goToSwaps}
+                testID={TOKEN_OVERVIEW_SWAP_BUTTON}
               />
             )}
           </View>
@@ -581,7 +587,7 @@ const mapStateToProps = (state) => ({
   identities: selectIdentities(state),
   chainId: selectChainId(state),
   tokens: selectTokens(state),
-  networkId: selectNetwork(state),
+  networkId: selectNetworkId(state),
   transactions: state.engine.backgroundState.TransactionController.transactions,
   rpcTarget: selectRpcTarget(state),
   networkConfigurations: selectNetworkConfigurations(state),
