@@ -965,6 +965,8 @@ class Confirm extends PureComponent {
     const isQRHardwareWalletDevice = isQRHardwareAccount(fromSelectedAddress);
 
     const isTestNetwork = isTestNet(chainId);
+    const isTestNetworkWithFaucet =
+      isTestNetwork && TESTNET_FAUCETS[chainId] !== undefined;
 
     const errorPress = isTestNetwork ? this.goToFaucet : this.buyEth;
     const errorLinkText = isTestNetwork
@@ -1066,7 +1068,7 @@ class Confirm extends PureComponent {
 
           {errorMessage && (
             <View style={styles.errorWrapper}>
-              {isTestNetwork || isNativeTokenBuySupported ? (
+              {isTestNetworkWithFaucet || isNativeTokenBuySupported ? (
                 <TouchableOpacity onPress={errorPress}>
                   <Text style={styles.error}>{errorMessage}</Text>
                   <Text style={[styles.error, styles.underline]}>

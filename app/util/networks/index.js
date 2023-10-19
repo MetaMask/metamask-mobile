@@ -193,7 +193,6 @@ const TESTNET_CHAIN_IDS = [
  * A map of testnet chainId and its faucet link
  */
 export const TESTNET_FAUCETS = {
-  [NetworksChainId[NetworkType.goerli]]: AppConstants.URLS.GOERLI_FAUCET,
   [NetworksChainId[NetworkType.sepolia]]: AppConstants.URLS.SEPOLIA_FAUCET,
   [NetworksChainId[NetworkType['linea-goerli']]]:
     AppConstants.URLS.LINEA_FAUCET,

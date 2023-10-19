@@ -741,6 +741,8 @@ class ApproveTransactionReview extends PureComponent {
     } = this.props;
     const styles = this.getStyles();
     const isTestNetwork = isTestNet(chainId);
+    const isTestNetworkWithFaucet =
+      isTestNetwork && TESTNET_FAUCETS[chainId] !== undefined;
 
     const originIsDeeplink =
       origin === ORIGIN_DEEPLINK || origin === ORIGIN_QR_CODE;
@@ -961,7 +963,8 @@ class ApproveTransactionReview extends PureComponent {
                         )}
                         {gasError && (
                           <View style={styles.errorWrapper}>
-                            {isTestNetwork || isNativeTokenBuySupported ? (
+                            {isTestNetworkWithFaucet ||
+                            isNativeTokenBuySupported ? (
                               <TouchableOpacity onPress={errorPress}>
                                 <Text reset style={styles.error}>
                                   {gasError}

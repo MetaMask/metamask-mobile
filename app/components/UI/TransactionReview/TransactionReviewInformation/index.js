@@ -636,6 +636,7 @@ class TransactionReviewInformation extends PureComponent {
   render() {
     const { amountError, nonceModalVisible } = this.state;
     const {
+      chainId,
       toggleDataView,
       transaction: { warningGasPriceHigh, type },
       error,
@@ -649,6 +650,8 @@ class TransactionReviewInformation extends PureComponent {
     const colors = this.context.colors || mockTheme.colors;
     const styles = createStyles(colors);
 
+    const isTestNetworkWithFaucet =
+      this.isTestNetwork() && TESTNET_FAUCETS[chainId] !== undefined;
     const errorPress = this.isTestNetwork() ? this.goToFaucet : this.buyEth;
     const errorLinkText = this.isTestNetwork()
       ? strings('transaction.go_to_faucet')
@@ -689,7 +692,7 @@ class TransactionReviewInformation extends PureComponent {
         )}
         {!!error && (
           <View style={styles.errorWrapper}>
-            {this.isTestNetwork() || isNativeTokenBuySupported ? (
+            {isTestNetworkWithFaucet || isNativeTokenBuySupported ? (
               <TouchableOpacity onPress={errorPress}>
                 <Text style={styles.error}>{error}</Text>
                 {over && (
