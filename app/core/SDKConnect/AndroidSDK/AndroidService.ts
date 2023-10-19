@@ -1,4 +1,3 @@
-import { ethErrors } from 'eth-rpc-errors';
 import { EventEmitter2 } from 'eventemitter2';
 import { NativeModules } from 'react-native';
 import Engine from '../../Engine';
@@ -20,9 +19,7 @@ import {
 } from '../utils/wait.util';
 
 import BackgroundBridge from '../../BackgroundBridge/BackgroundBridge';
-import getRpcMethodMiddleware, {
-  ApprovalTypes,
-} from '../../RPCMethods/RPCMethodMiddleware';
+import getRpcMethodMiddleware from '../../RPCMethods/RPCMethodMiddleware';
 import {
   DEFAULT_SESSION_TIMEOUT_MS,
   METHODS_TO_DELAY,
@@ -30,13 +27,13 @@ import {
   SDKConnect,
 } from '../SDKConnect';
 
-import { ApprovalController } from '@metamask/approval-controller';
 import { KeyringController } from '@metamask/keyring-controller';
 
+import { PROTOCOLS } from '../../../constants/deeplinks';
 import RPCQueueManager from '../RPCQueueManager';
+import DevLogger from '../utils/DevLogger';
 import AndroidSDKEventHandler from './AndroidNativeSDKEventHandler';
 import { AndroidClient } from './android-sdk-types';
-import { PROTOCOLS } from '../../../constants/deeplinks';
 
 export default class AndroidService extends EventEmitter2 {
   private communicationClient = NativeModules.CommunicationClient;
@@ -50,6 +47,9 @@ export default class AndroidService extends EventEmitter2 {
     this.eventHandler = new AndroidSDKEventHandler();
     this.setupEventListeners()
       .then(() => {
+        DevLogger.log(
+          `AndroidService::constructor event listeners setup completed`,
+        );
         //
       })
       .catch((err) => {
@@ -59,23 +59,33 @@ export default class AndroidService extends EventEmitter2 {
 
   private async setupEventListeners(): Promise<void> {
     try {
-      await wait(200); // Extra wait to make sure ui is ready
       // Wait for keychain to be unlocked before handling rpc calls.
       const keyringController = (
         Engine.context as { KeyringController: KeyringController }
       ).KeyringController;
-      await waitForKeychainUnlocked({ keyringController });
+      await waitForKeychainUnlocked({
+        keyringController,
+        context: 'AndroidService::setupEventListener',
+      });
 
+      DevLogger.log(`AndroidService::setupEventListeners loading connections`);
       const rawConnections =
         await SDKConnect.getInstance().loadAndroidConnections();
 
       if (rawConnections) {
         Object.values(rawConnections).forEach((connection) => {
+          DevLogger.log(
+            `AndroidService::setupEventListeners recover client: ${connection.id}`,
+          );
           this.connectedClients[connection.id] = {
             clientId: connection.id,
             originatorInfo: connection.originatorInfo as OriginatorInfo,
           };
         });
+      } else {
+        DevLogger.log(
+          `AndroidService::setupEventListeners no previous connections found`,
+        );
       }
     } catch (err) {
       // Ignore
@@ -93,6 +103,7 @@ export default class AndroidService extends EventEmitter2 {
     this.eventHandler.onClientsConnected((sClientInfo: string) => {
       const clientInfo: AndroidClient = JSON.parse(sClientInfo);
 
+      DevLogger.log(`AndroidService::clients_connected`, clientInfo);
       if (this.connectedClients?.[clientInfo.clientId]) {
         // Skip existing client -- bridge has been setup
         Logger.log(
@@ -116,19 +127,20 @@ export default class AndroidService extends EventEmitter2 {
         return;
       }
 
-      const keyringController = (
-        Engine.context as { KeyringController: KeyringController }
-      ).KeyringController;
-
       const handleEventAsync = async () => {
-        await waitForKeychainUnlocked({ keyringController });
+        const keyringController = (
+          Engine.context as { KeyringController: KeyringController }
+        ).KeyringController;
+
+        await waitForKeychainUnlocked({
+          keyringController,
+          context: 'AndroidService::setupOnClientsConnectedListener',
+        });
 
         try {
           if (!this.connectedClients?.[clientInfo.clientId]) {
-            await this.requestApproval(clientInfo);
-            this.setupBridge(clientInfo);
             // Save session to SDKConnect
-            SDKConnect.getInstance().addAndroidConnection({
+            await SDKConnect.getInstance().addAndroidConnection({
               id: clientInfo.clientId,
               lastAuthorized: Date.now(),
               origin: AppConstants.MM_SDK.ANDROID_SDK,
@@ -193,6 +205,7 @@ export default class AndroidService extends EventEmitter2 {
           message: string;
         };
 
+        DevLogger.log(`AndroidService::onMessageReceived`, jsonMessage);
         try {
           await wait(200); // Extra wait to make sure ui is ready
 
@@ -200,7 +213,10 @@ export default class AndroidService extends EventEmitter2 {
           const keyringController = (
             Engine.context as { KeyringController: KeyringController }
           ).KeyringController;
-          await waitForKeychainUnlocked({ keyringController });
+          await waitForKeychainUnlocked({
+            keyringController,
+            context: 'AndroidService::setupOnMessageReceivedListener',
+          });
         } catch (error) {
           Logger.log(error, `AndroidService::onMessageReceived error`);
         }
@@ -236,7 +252,7 @@ export default class AndroidService extends EventEmitter2 {
         const bridge = this.bridgeByClientId[sessionId];
 
         if (!bridge) {
-          Logger.log(
+          console.warn(
             `AndroidService:: Bridge not found for client`,
             `sessionId=${sessionId} data.id=${data.id}`,
           );
@@ -287,56 +303,25 @@ export default class AndroidService extends EventEmitter2 {
     }
   }
 
-  private async requestApproval(clientInfo: AndroidClient) {
-    const approvalController = (
-      Engine.context as { ApprovalController: ApprovalController }
-    ).ApprovalController;
-
-    // Clear any previous pending approval requests
-    if (approvalController.get(clientInfo.clientId)) {
-      approvalController.reject(
-        clientInfo.clientId,
-        ethErrors.provider.userRejectedRequest(),
-      );
-    }
-
-    // ask for accounts permissions
-    const approvalRequest = {
-      id: clientInfo.clientId,
-      origin: 'Android',
-      type: ApprovalTypes.CONNECT_ACCOUNTS,
-      requestData: {
-        hostname: 'Android SDK',
-        pageMeta: {
-          channelId: clientInfo.clientId,
-          url: clientInfo.originatorInfo.url ?? '',
-          title: clientInfo.originatorInfo.url ?? '',
-          icon: clientInfo.originatorInfo.icon ?? '',
-          analytics: {
-            request_source: AppConstants.REQUEST_SOURCES.SDK_ANDROID,
-            request_platform: 'android',
-          },
-        },
-      },
-    };
-
-    await approvalController.add(approvalRequest);
-
-    this.connectedClients[clientInfo.clientId] = clientInfo;
-  }
-
   private setupBridge(clientInfo: AndroidClient) {
+    DevLogger.log(
+      `AndroidService::setupBridge for id=${clientInfo.clientId} exists=${!!this
+        .bridgeByClientId[clientInfo.clientId]}}`,
+    );
+
     if (this.bridgeByClientId[clientInfo.clientId]) {
       return;
     }
 
     const bridge = new BackgroundBridge({
       webview: null,
-      isMMSDK: false,
+      isMMSDK: true,
       url: PROTOCOLS.METAMASK + '://' + AppConstants.MM_SDK.SDK_REMOTE_ORIGIN,
       isRemoteConn: true,
       sendMessage: this.sendMessage.bind(this),
-      getApprovedHosts: () => true,
+      getApprovedHosts: (host: string) => ({
+        [host]: true,
+      }),
       remoteConnHost:
         clientInfo.originatorInfo.url ?? clientInfo.originatorInfo.title,
       getRpcMethodMiddleware: ({
@@ -349,9 +334,11 @@ export default class AndroidService extends EventEmitter2 {
           hostname:
             clientInfo.originatorInfo.url ?? clientInfo.originatorInfo.title,
           getProviderState,
-          isMMSDK: false,
+          isMMSDK: true,
           navigation: null, //props.navigation,
-          getApprovedHosts: () => true,
+          getApprovedHosts: (host: string) => ({
+            [host]: true,
+          }),
           setApprovedHosts: () => true,
           approveHost: () => ({}),
           // Website info

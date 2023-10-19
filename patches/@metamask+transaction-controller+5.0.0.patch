@@ -366,7 +366,7 @@ index 0000000..8da9369
 +//# sourceMappingURL=IncomingTransactionHelper.js.map
 \ No newline at end of file
 diff --git a/node_modules/@metamask/transaction-controller/dist/TransactionController.d.ts b/node_modules/@metamask/transaction-controller/dist/TransactionController.d.ts
-index e242aed..d315c6c 100644
+index e242aed..7efd89a 100644
 --- a/node_modules/@metamask/transaction-controller/dist/TransactionController.d.ts
 +++ b/node_modules/@metamask/transaction-controller/dist/TransactionController.d.ts
 @@ -2,8 +2,10 @@
@@ -688,7 +688,7 @@ index e242aed..d315c6c 100644
      /**
       * Trim the amount of transactions that are set on the state. Checks
       * if the length of the tx history is longer then desired persistence
-@@ -413,59 +272,36 @@ export declare class TransactionController extends BaseController<TransactionCon
+@@ -413,59 +272,37 @@ export declare class TransactionController extends BaseController<TransactionCon
       * @returns Whether the transaction has failed.
       */
      private checkTxReceiptStatusIsFailed;
@@ -766,6 +766,7 @@ index e242aed..d315c6c 100644
 +    private isTransactionCompleted;
 +    private onIncomingTransactions;
 +    private onUpdatedLastFetchedBlockNumbers;
++    private getNonceTrackerTransactions;
  }
  export default TransactionController;
  //# sourceMappingURL=TransactionController.d.ts.map
@@ -779,7 +780,7 @@ index 07781b0..0000000
 -{"version":3,"file":"TransactionController.d.ts","sourceRoot":"","sources":["../src/TransactionController.ts"],"names":[],"mappings":"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"}
 \ No newline at end of file
 diff --git a/node_modules/@metamask/transaction-controller/dist/TransactionController.js b/node_modules/@metamask/transaction-controller/dist/TransactionController.js
-index 814a899..2862d54 100644
+index 814a899..d2da0a2 100644
 --- a/node_modules/@metamask/transaction-controller/dist/TransactionController.js
 +++ b/node_modules/@metamask/transaction-controller/dist/TransactionController.js
 @@ -12,7 +12,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
@@ -900,8 +901,8 @@ index 814a899..2862d54 100644
              blockTracker,
 -            getPendingTransactions: (address) => (0, utils_1.getAndFormatTransactionsForNonceTracker)(address, TransactionStatus.submitted, this.state.transactions),
 -            getConfirmedTransactions: (address) => (0, utils_1.getAndFormatTransactionsForNonceTracker)(address, TransactionStatus.confirmed, this.state.transactions),
-+            getPendingTransactions: (address) => (0, utils_1.getAndFormatTransactionsForNonceTracker)(address, types_1.TransactionStatus.submitted, this.state.transactions),
-+            getConfirmedTransactions: (address) => (0, utils_1.getAndFormatTransactionsForNonceTracker)(address, types_1.TransactionStatus.confirmed, this.state.transactions),
++            getPendingTransactions: this.getNonceTrackerTransactions.bind(this, types_1.TransactionStatus.submitted),
++            getConfirmedTransactions: this.getNonceTrackerTransactions.bind(this, types_1.TransactionStatus.confirmed),
 +        });
 +        this.incomingTransactionHelper = new IncomingTransactionHelper_1.IncomingTransactionHelper({
 +            blockTracker,
@@ -1315,7 +1316,7 @@ index 814a899..2862d54 100644
                      }
                      return [meta, false];
                  default:
-@@ -856,88 +652,205 @@ class TransactionController extends base_controller_1.BaseController {
+@@ -856,88 +652,209 @@ class TransactionController extends base_controller_1.BaseController {
              return Number(txReceipt.status) === 0;
          });
      }
@@ -1583,6 +1584,10 @@ index 814a899..2862d54 100644
 +    onUpdatedLastFetchedBlockNumbers({ lastFetchedBlockNumbers, blockNumber, }) {
 +        this.update({ lastFetchedBlockNumbers });
 +        this.hub.emit('incomingTransactionBlock', blockNumber);
++    }
++    getNonceTrackerTransactions(status, address) {
++        const { chainId: currentChainId } = this.getNetworkState().providerConfig;
++        return (0, utils_1.getAndFormatTransactionsForNonceTracker)(currentChainId, address, status, this.state.transactions);
      }
  }
  exports.TransactionController = TransactionController;
@@ -2876,7 +2881,7 @@ index 0000000..1cddb49
 +//# sourceMappingURL=types.js.map
 \ No newline at end of file
 diff --git a/node_modules/@metamask/transaction-controller/dist/utils.d.ts b/node_modules/@metamask/transaction-controller/dist/utils.d.ts
-index ccf3362..895cdf1 100644
+index ccf3362..301b1b5 100644
 --- a/node_modules/@metamask/transaction-controller/dist/utils.d.ts
 +++ b/node_modules/@metamask/transaction-controller/dist/utils.d.ts
 @@ -1,6 +1,6 @@
@@ -2909,6 +2914,20 @@ index ccf3362..895cdf1 100644
  export declare const validateGasValues: (gasValues: GasPriceValue | FeeMarketEIP1559Values) => void;
  export declare const isFeeMarketEIP1559Values: (gasValues?: GasPriceValue | FeeMarketEIP1559Values | undefined) => gasValues is FeeMarketEIP1559Values;
  export declare const isGasPriceValue: (gasValues?: GasPriceValue | FeeMarketEIP1559Values | undefined) => gasValues is GasPriceValue;
+@@ -63,10 +49,11 @@ export declare function validateMinimumIncrease(proposed: string, min: string):
+ /**
+  * Helper function to filter and format transactions for the nonce tracker.
+  *
++ * @param currentChainId - Chain ID of the current network.
+  * @param fromAddress - Address of the account from which the transactions to filter from are sent.
+  * @param transactionStatus - Status of the transactions for which to filter.
+  * @param transactions - Array of transactionMeta objects that have been prefiltered.
+  * @returns Array of transactions formatted for the nonce tracker.
+  */
+-export declare function getAndFormatTransactionsForNonceTracker(fromAddress: string, transactionStatus: TransactionStatus, transactions: TransactionMeta[]): NonceTrackerTransaction[];
++export declare function getAndFormatTransactionsForNonceTracker(currentChainId: string, fromAddress: string, transactionStatus: TransactionStatus, transactions: TransactionMeta[]): NonceTrackerTransaction[];
+ //# sourceMappingURL=utils.d.ts.map
+\ No newline at end of file
 diff --git a/node_modules/@metamask/transaction-controller/dist/utils.d.ts.map b/node_modules/@metamask/transaction-controller/dist/utils.d.ts.map
 deleted file mode 100644
 index 9d4045c..0000000
@@ -2918,7 +2937,7 @@ index 9d4045c..0000000
 -{"version":3,"file":"utils.d.ts","sourceRoot":"","sources":["../src/utils.ts"],"names":[],"mappings":"AAOA,OAAO,KAAK,EAAE,WAAW,IAAI,uBAAuB,EAAE,MAAM,iCAAiC,CAAC;AAC9F,OAAO,EACL,WAAW,EACX,eAAe,EACf,aAAa,EACb,sBAAsB,EACtB,iBAAiB,EAClB,MAAM,yBAAyB,CAAC;AACjC,OAAO,KAAK,EAAE,eAAe,EAAE,MAAM,yBAAyB,CAAC;AAE/D,eAAO,MAAM,kBAAkB,qCAAqC,CAAC;AAiBrE;;;;;;GAMG;AACH,wBAAgB,kBAAkB,CAChC,WAAW,EAAE,MAAM,EACnB,SAAS,EAAE,GAAG,GACb,MAAM,CAeR;AAED;;;;;GAKG;AACH,wBAAgB,oBAAoB,CAAC,WAAW,EAAE,WAAW,eAS5D;AAED;;;;;GAKG;AACH,wBAAgB,mBAAmB,CAAC,WAAW,EAAE,WAAW,QAmD3D;AAED;;;;;;GAMG;AACH,eAAO,MAAM,oBAAoB,gBAAiB,WAAW,KAAG,OAO/D,CAAC;AAEF;;;;;;;;GAQG;AACH,wBAAsB,sBAAsB,CAC1C,WAAW,EAAE,MAAM,EACnB,OAAO,EAAE,MAAM,EACf,cAAc,EAAE,MAAM,EACtB,GAAG,CAAC,EAAE,eAAe,GACpB,OAAO,CAAC,CAAC;IAAE,CAAC,MAAM,EAAE,MAAM,GAAG,EAAE,CAAA;CAAE,EAAE;IAAE,CAAC,MAAM,EAAE,MAAM,GAAG,EAAE,CAAA;CAAE,CAAC,CAAC,CA8C/D;AAED,eAAO,MAAM,iBAAiB,cACjB,aAAa,GAAG,sBAAsB,SAUlD,CAAC;AAEF,eAAO,MAAM,wBAAwB,yGAIsC,CAAC;AAE5E,eAAO,MAAM,eAAe,gGAG0B,CAAC;AAEvD,eAAO,MAAM,oBAAoB,UAAW,MAAM,QAAQ,MAAM,KAAG,MACF,CAAC;AAElE,eAAO,MAAM,6BAA6B,UACjC,MAAM,GAAG,SAAS,QACnB,MAAM,KACX,MAEF,CAAC;AAEF;;;;;;;GAOG;AACH,wBAAgB,uBAAuB,CAAC,QAAQ,EAAE,MAAM,EAAE,GAAG,EAAE,MAAM,UAQpE;AAED;;;;;;;GAOG;AACH,wBAAgB,uCAAuC,CACrD,WAAW,EAAE,MAAM,EACnB,iBAAiB,EAAE,iBAAiB,EACpC,YAAY,EAAE,eAAe,EAAE,GAC9B,uBAAuB,EAAE,CAsB3B"}
 \ No newline at end of file
 diff --git a/node_modules/@metamask/transaction-controller/dist/utils.js b/node_modules/@metamask/transaction-controller/dist/utils.js
-index 179a564..ce955ba 100644
+index 179a564..37403ab 100644
 --- a/node_modules/@metamask/transaction-controller/dist/utils.js
 +++ b/node_modules/@metamask/transaction-controller/dist/utils.js
 @@ -1,15 +1,6 @@
@@ -2997,6 +3016,25 @@ index 179a564..ce955ba 100644
  const validateGasValues = (gasValues) => {
      Object.keys(gasValues).forEach((key) => {
          const value = gasValues[key];
+@@ -206,14 +154,16 @@ exports.validateMinimumIncrease = validateMinimumIncrease;
+ /**
+  * Helper function to filter and format transactions for the nonce tracker.
+  *
++ * @param currentChainId - Chain ID of the current network.
+  * @param fromAddress - Address of the account from which the transactions to filter from are sent.
+  * @param transactionStatus - Status of the transactions for which to filter.
+  * @param transactions - Array of transactionMeta objects that have been prefiltered.
+  * @returns Array of transactions formatted for the nonce tracker.
+  */
+-function getAndFormatTransactionsForNonceTracker(fromAddress, transactionStatus, transactions) {
++function getAndFormatTransactionsForNonceTracker(currentChainId, fromAddress, transactionStatus, transactions) {
+     return transactions
+-        .filter(({ status, transaction: { from } }) => status === transactionStatus &&
++        .filter(({ chainId, status, transaction: { from } }) => chainId === currentChainId &&
++        status === transactionStatus &&
+         from.toLowerCase() === fromAddress.toLowerCase())
+         .map(({ status, transaction: { from, gas, value, nonce } }) => {
+         // the only value we care about is the nonce
 diff --git a/node_modules/@metamask/transaction-controller/dist/utils.js.map b/node_modules/@metamask/transaction-controller/dist/utils.js.map
 deleted file mode 100644
 index 8f2f6e3..0000000
