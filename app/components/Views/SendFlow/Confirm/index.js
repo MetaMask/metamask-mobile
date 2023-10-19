@@ -58,6 +58,7 @@ import {
   isMultiLayerFeeNetwork,
   fetchEstimatedMultiLayerL1Fee,
   TESTNET_FAUCETS,
+  isTestNetworkWithFaucet,
 } from '../../../../util/networks';
 import Text from '../../../Base/Text';
 import AnalyticsV2 from '../../../../util/analyticsV2';
@@ -1066,7 +1067,7 @@ class Confirm extends PureComponent {
 
           {errorMessage && (
             <View style={styles.errorWrapper}>
-              {TESTNET_FAUCETS[chainId] || isNativeTokenBuySupported ? (
+              {isTestNetworkWithFaucet(chainId) || isNativeTokenBuySupported ? (
                 <TouchableOpacity onPress={errorPress}>
                   <Text style={styles.error}>{errorMessage}</Text>
                   <Text style={[styles.error, styles.underline]}>

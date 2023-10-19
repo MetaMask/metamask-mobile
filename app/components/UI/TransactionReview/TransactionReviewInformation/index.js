@@ -35,6 +35,7 @@ import {
   TESTNET_FAUCETS,
   getNetworkNonce,
   isTestNet,
+  isTestNetworkWithFaucet,
 } from '../../../../util/networks';
 import CustomNonceModal from '../../../UI/CustomNonceModal';
 import { setNonce, setProposedNonce } from '../../../../actions/transaction';
@@ -690,7 +691,7 @@ class TransactionReviewInformation extends PureComponent {
         )}
         {!!error && (
           <View style={styles.errorWrapper}>
-            {TESTNET_FAUCETS[chainId] || isNativeTokenBuySupported ? (
+            {isTestNetworkWithFaucet(chainId) || isNativeTokenBuySupported ? (
               <TouchableOpacity onPress={errorPress}>
                 <Text style={styles.error}>{error}</Text>
                 {over && (

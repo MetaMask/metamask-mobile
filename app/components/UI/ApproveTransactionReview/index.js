@@ -64,6 +64,7 @@ import {
   fetchEstimatedMultiLayerL1Fee,
   isMainnetByChainId,
   TESTNET_FAUCETS,
+  isTestNetworkWithFaucet,
 } from '../../../util/networks';
 import CustomSpendCap from '../../../component-library/components-temp/CustomSpendCap';
 import IonicIcon from 'react-native-vector-icons/Ionicons';
@@ -961,7 +962,7 @@ class ApproveTransactionReview extends PureComponent {
                         )}
                         {gasError && (
                           <View style={styles.errorWrapper}>
-                            {TESTNET_FAUCETS[chainId] ||
+                            {isTestNetworkWithFaucet(chainId) ||
                             isNativeTokenBuySupported ? (
                               <TouchableOpacity onPress={errorPress}>
                                 <Text reset style={styles.error}>
