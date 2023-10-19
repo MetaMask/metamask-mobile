@@ -3,7 +3,7 @@ import * as Sentry from '@sentry/react-native';
 import { Dedupe, ExtraErrorData } from '@sentry/integrations';
 import extractEthJsErrorMessage from '../extractEthJsErrorMessage';
 import DefaultPreference from 'react-native-default-preference';
-import { regex } from './regex';
+import { regex } from '../regex';
 import { AGREED, METRICS_OPT_IN } from '../../constants/storage';
 
 const METAMASK_ENVIRONMENT = process.env['METAMASK_ENVIRONMENT'] || 'local'; // eslint-disable-line dot-notation
