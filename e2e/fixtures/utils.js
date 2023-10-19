@@ -1,6 +1,6 @@
-import { DEFAULT_GANACHE_PORT } from '../app/util/test/ganache';
-import { DEFAULT_FIXTURE_SERVER_PORT } from './fixtures/fixture-server';
-import { DEFAULT_DAPP_SERVER_PORT } from './fixtures/fixture-helper';
+import { DEFAULT_GANACHE_PORT } from '../../app/util/test/ganache';
+import { DEFAULT_FIXTURE_SERVER_PORT } from './fixture-server';
+import { DEFAULT_DAPP_SERVER_PORT } from './fixture-helper';
 
 function getServerPort(defaultPort) {
   if (process.env.CI) {

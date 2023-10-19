@@ -1,4 +1,4 @@
-import { getGanachePort } from '../utils';
+import { getGanachePort } from './utils';
 import { merge } from 'lodash';
 
 const DAPP_URL = 'localhost';
