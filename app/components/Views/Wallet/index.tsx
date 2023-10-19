@@ -255,7 +255,6 @@ const Wallet = ({ navigation }: any) => {
     } else {
       assets = tokens;
     }
-    // @TICKET_NOTES: assets comes empty
     return (
       <View style={styles.wrapper}>
         <WalletAccount style={styles.walletAccount} ref={walletRef} />
