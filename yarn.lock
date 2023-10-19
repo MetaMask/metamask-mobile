@@ -3962,7 +3962,7 @@
     "@metamask/base-controller" "^3.2.1"
     "@metamask/controller-utils" "^4.3.2"
 
-"@metamask/providers@^13.0.0":
+"@metamask/providers@^13.1.0":
   version "13.1.0"
   resolved "https://registry.yarnpkg.com/@metamask/providers/-/providers-13.1.0.tgz#c5aef8e7073e097e6693cffc5f463b0632e1f1fd"
   integrity sha512-/2Ti81CwZ/9LLpAm9Law+7z1PYbR3EiNXNKCbkppOfxxR1MbC2ps8/GFTjk7UHEMhAVG4k9ziGW8mMsutNVxmA==
