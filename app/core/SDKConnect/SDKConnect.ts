@@ -1392,8 +1392,7 @@ export class SDKConnect extends EventEmitter2 {
       // Might be useful for future feature.
     } else {
       const now = Date.now();
-      // Host is approved for 24h.
-      this.approvedHosts[host] = Date.now() + DAY_IN_MS;
+      this.approvedHosts[host] = now;
       DevLogger.log(`SDKConnect approveHost ${host}`, this.approvedHosts);
       if (this.connections[channelId]) {
         this.connections[channelId].lastAuthorized = now;
