@@ -4051,10 +4051,10 @@
     human-standard-token-abi "^2.0.0"
     web3 "^0.20.7"
 
-"@metamask/test-dapp@^7.1.0":
-  version "7.1.0"
-  resolved "https://registry.yarnpkg.com/@metamask/test-dapp/-/test-dapp-7.1.0.tgz#e7119f12b1dc7a600b0b726e58971900c29b88a7"
-  integrity sha512-uqnno8JmpNMuyxDqQ6rq8+T9hf6Rsuy7rJnHHQd0RFRmva02v6N8rJZpEmftM61ciAaMolSB8XbZPPRsMIdQ8w==
+"@metamask/test-dapp@^7.2.0":
+  version "7.2.0"
+  resolved "https://registry.yarnpkg.com/@metamask/test-dapp/-/test-dapp-7.2.0.tgz#2520dbcf578753ff4a82b3545a2a3cf23cc497e8"
+  integrity sha512-WxdaLIUlxJ9Ucdasa2FVhW1D3B8g9kgSsBfXb5RQ6QWjzx2WeEb8YKwfe4u80xtbBdefrgS24UU6+9wfwxK17w==
 
 "@metamask/transaction-controller@^5.0.0":
   version "5.0.0"
