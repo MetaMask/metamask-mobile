@@ -162,13 +162,13 @@ buildAndroidRunQA(){
 
 buildIosSimulator(){
 	prebuild_ios
-	SIM="${IOS_SIMULATOR:-"iPhone 12 Pro"}"
+	SIM="${IOS_SIMULATOR:-"iPhone 13 Pro"}"
 	react-native run-ios --simulator "$SIM"
 }
 
 buildIosSimulatorQA(){
 	prebuild_ios
-	SIM="${IOS_SIMULATOR:-"iPhone 12 Pro"}"
+	SIM="${IOS_SIMULATOR:-"iPhone 13 Pro"}"
 	react-native run-ios --simulator "$SIM" --scheme "MetaMask-QA"
 }
 
