@@ -1,5 +1,4 @@
 import Engine from '../../../Engine';
-// import { EngineState } from '../../../../selectors/types';
 import { createAction, PayloadAction } from '@reduxjs/toolkit';
 
 const initialState = {
@@ -22,13 +21,14 @@ const engineReducer = (
 ) => {
   switch (action.type) {
     case initBgState.type: {
-      // console.log('Init Action:', Engine);
       return { backgroundState: Engine.state };
     }
     case updateBgState.type: {
       const newState = { ...state };
-      newState.backgroundState[action.payload?.key] =
-        Engine.state[action.payload.key];
+      if (action.payload) {
+        newState.backgroundState[action.payload?.key] =
+          Engine.state[action.payload.key as keyof typeof Engine.state];
+      }
       return newState;
     }
     default:
