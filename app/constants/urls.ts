@@ -13,6 +13,8 @@ export const WHY_TRANSACTION_TAKE_TIME_URL =
   'https://community.metamask.io/t/what-is-gas-why-do-transactions-take-so-long/3172';
 
 export const TOKEN_APPROVAL_SPENDING_CAP = `https://support.metamask.io/hc/en-us/articles/6055177143579-How-to-customize-token-approvals-with-a-spending-cap`;
+export const CONNECTING_TO_A_DECEPTIVE_SITE =
+  'https://support.metamask.io/hc/en-us/articles/4428045875483--Deceptive-site-ahead-when-trying-to-connect-to-a-site';
 
 // Policies
 export const CONSENSYS_PRIVACY_POLICY = 'https://consensys.net/privacy-policy/';
@@ -40,8 +42,6 @@ export const MM_BLOCKLIST_ISSUE_URL =
   'https://github.com/metamask/eth-phishing-detect/issues/new';
 export const PHISHFORT_BLOCKLIST_ISSUE_URL =
   'https://github.com/phishfort/phishfort-lists/issues/new';
-export const CONNECTING_TO_A_DECEPTIVE_SITE =
-  'https://support.metamask.io/hc/en-us/articles/4428045875483--Deceptive-site-ahead-when-trying-to-connect-to-a-site';
 
 // https://github.com/MetaMask/metamask-mobile/tree/gh-pages
 export const MM_APP_CONFIG_URL =
