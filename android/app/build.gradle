@@ -152,30 +152,31 @@ android {
 	  }
 
 	  signingConfigs {
-		release {
-            storeFile file('../keystores/release.keystore')
-            storePassword System.getenv("BITRISEIO_ANDROID_KEYSTORE_PASSWORD")
-            keyAlias System.getenv("BITRISEIO_ANDROID_KEYSTORE_ALIAS")
-            keyPassword System.getenv("BITRISEIO_ANDROID_KEYSTORE_PRIVATE_KEY_PASSWORD")
-		}
-        qa {
-            storeFile file('../keystores/internalRelease.keystore')
-            storePassword System.getenv("BITRISEIO_ANDROID_QA_KEYSTORE_PASSWORD")
-            keyAlias System.getenv("BITRISEIO_ANDROID_QA_KEYSTORE_ALIAS")
-            keyPassword System.getenv("BITRISEIO_ANDROID_QA_KEYSTORE_PRIVATE_KEY_PASSWORD")
-        }
-	    debug {
-            storeFile file('debug.keystore')
-            storePassword 'android'
-            keyAlias 'androiddebugkey'
-            keyPassword 'android'
-        }
-        flask {
-            storeFile file('../keystores/flaskRelease.keystore')
-            storePassword System.getenv("BITRISEIO_ANDROID_FLASK_KEYSTORE_PASSWORD")
-            keyAlias System.getenv("BITRISEIO_ANDROID_FLASK_KEYSTORE_ALIAS")
-            keyPassword System.getenv("BITRISEIO_ANDROID_FLASK_KEYSTORE_PRIVATE_KEY_PASSWORD")
-        }
+      release {
+        storeFile file('../keystores/release.keystore')
+        storePassword System.getenv("BITRISEIO_ANDROID_KEYSTORE_PASSWORD")
+        keyAlias System.getenv("BITRISEIO_ANDROID_KEYSTORE_ALIAS")
+        keyPassword System.getenv("BITRISEIO_ANDROID_KEYSTORE_PRIVATE_KEY_PASSWORD")
+      }
+      qa {
+        storeFile file('../keystores/internalRelease.keystore')
+        storePassword System.getenv("BITRISEIO_ANDROID_QA_KEYSTORE_PASSWORD")
+        keyAlias System.getenv("BITRISEIO_ANDROID_QA_KEYSTORE_ALIAS")
+        keyPassword System.getenv("BITRISEIO_ANDROID_QA_KEYSTORE_PRIVATE_KEY_PASSWORD")
+      }
+      debug {
+        storeFile file('debug.keystore')
+        storePassword 'android'
+        keyAlias 'androiddebugkey'
+        keyPassword 'android'
+      }
+      flask {
+        storeFile file('../keystores/flaskRelease.keystore')
+        storePassword System.getenv("BITRISEIO_ANDROID_FLASK_KEYSTORE_PASSWORD")
+        keyAlias System.getenv("BITRISEIO_ANDROID_FLASK_KEYSTORE_ALIAS")
+        keyPassword System.getenv("BITRISEIO_ANDROID_FLASK_KEYSTORE_PRIVATE_KEY_PASSWORD")
+      }
+    }
 
     splits {
         abi {
