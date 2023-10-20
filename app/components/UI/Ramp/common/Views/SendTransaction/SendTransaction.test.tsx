@@ -123,7 +123,7 @@ function render(Component: React.ComponentType, orders = mockedOrders) {
   return renderScreen(
     Component,
     {
-      name: Routes.RAMP.NETWORK_SWITCHER,
+      name: Routes.RAMP.SEND_TRANSACTION,
     },
     {
       state: {
