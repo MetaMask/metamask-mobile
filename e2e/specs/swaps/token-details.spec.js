@@ -37,4 +37,13 @@ describe(Regression('Token Chart Tests'), () => {
     await TokenOverview.ChartNotVisible();
     await TokenOverview.TokenQuoteIsNotZero();
   });
+
+  it('should view the balance warning when balanceError is true', async () => {
+    await WalletView.tapOnToken();
+    await TokenOverview.isVisible(Networks.Polygon.providerConfig.ticker);
+    await TokenOverview.isBalanceWarningVisible();
+    await TokenOverview.tapBalanceWarning();
+    // await TokenOverview.tapWebViewBackButton(); // TODO: close webview
+    await TokenOverview.tapBackButton();
+  });
 });
