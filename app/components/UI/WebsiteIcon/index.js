@@ -132,6 +132,8 @@ class WebsiteIcon extends PureComponent {
         {imageSVG ? (
           <SvgUri
             uri={imageSVG}
+            width={style.width}
+            height={style.height}
             style={style}
             onError={this.onRenderIconUrlError}
           />
