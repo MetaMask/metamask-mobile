@@ -302,7 +302,7 @@ export class NpmLocation implements SnapLocation {
 
     // cleanup filesystem
     await cleanupFileSystem(pathToFiles);
-  }
+  };
 }
 
 /**
