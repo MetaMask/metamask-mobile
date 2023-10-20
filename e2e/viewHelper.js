@@ -23,7 +23,7 @@ import TestHelpers from './helpers';
 import TermsOfUseModal from './pages/modals/TermsOfUseModal';
 import TabBarComponent from './pages/TabBarComponent';
 import LoginView from './pages/LoginView';
-import { getGanachePort } from './utils';
+import { getGanachePort } from './fixtures/utils';
 
 const GOERLI = 'Goerli Test Network';
 

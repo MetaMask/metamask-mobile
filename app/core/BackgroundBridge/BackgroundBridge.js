@@ -203,7 +203,12 @@ export class BackgroundBridge extends EventEmitter {
 
   notifySelectedAddressChanged(selectedAddress) {
     if (this.isRemoteConn) {
-      if (!this.getApprovedHosts?.()?.[this.remoteConnHost]) return;
+      // Pass the remoteConnHost to getApprovedHosts as AndroidSDK requires it
+      if (
+        !this.getApprovedHosts?.(this.remoteConnHost)?.[this.remoteConnHost]
+      ) {
+        return;
+      }
     }
     this.sendNotification({
       method: NOTIFICATION_NAMES.accountsChanged,

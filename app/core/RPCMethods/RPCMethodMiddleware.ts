@@ -246,7 +246,8 @@ export const getRpcMethodMiddleware = ({
     const getAccounts = (): string[] => {
       const selectedAddress =
         Engine.context.PreferencesController.state.selectedAddress?.toLowerCase();
-      const isEnabled = isWalletConnect || getApprovedHosts()[hostname];
+      const approvedHosts = getApprovedHosts(hostname) || {};
+      const isEnabled = isWalletConnect || approvedHosts[hostname];
       return isEnabled && selectedAddress ? [selectedAddress] : [];
     };
 
@@ -922,5 +923,4 @@ export const getRpcMethodMiddleware = ({
       throw e;
     }
   });
-
 export default getRpcMethodMiddleware;
