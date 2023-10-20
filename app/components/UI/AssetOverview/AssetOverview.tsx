@@ -127,13 +127,10 @@ const AssetOverview: React.FC<AssetOverviewProps> = ({
   const renderWarning = () => (
     <View style={styles.warningWrapper}>
       <TouchableOpacity
+        testID={TOKEN_OVERVIEW_BALANCE_WARNING}
         onPress={() => goToBrowserUrl(AppConstants.URLS.TOKEN_BALANCE)}
       >
-        <Text
-          variant={TextVariant.BodyMD}
-          style={styles.warning}
-          testID={TOKEN_OVERVIEW_BALANCE_WARNING}
-        >
+        <Text variant={TextVariant.BodyMD} style={styles.warning}>
           {strings('asset_overview.were_unable')} {(asset as Asset).symbol}{' '}
           {strings('asset_overview.balance')}{' '}
           <Text variant={TextVariant.BodyMD} style={styles.warningLinks}>
