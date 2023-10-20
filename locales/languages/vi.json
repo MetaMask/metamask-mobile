@@ -2,7 +2,6 @@
   "blockaid_banner": {
     "approval_farming_description": "Nếu bạn chấp thuận yêu cầu này, một bên thứ ba nổi tiếng là lừa đảo có thể lấy hết tài sản của bạn.",
     "attribution": "Lời khuyên bảo mật bởi",
-    "attribution_link": "https://blockaid.me",
     "attribution_link_name": "Blockaid",
     "blur_farming_description": "Nếu bạn chấp thuận yêu cầu này, người khác có thể đánh cắp tài sản của bạn được niêm yết trên Blur.",
     "deceptive_request_title": "Đây là một yêu cầu lừa đảo",
@@ -13,6 +12,7 @@
     "raw_signature_farming_description": "Nếu bạn chấp thuận yêu cầu này, bạn có thể mất tài sản của mình.",
     "seaport_farming_description": "Nếu bạn chấp thuận yêu cầu này, người khác có thể đánh cắp tài sản của bạn được niêm yết trên OpenSea.",
     "see_details": "Xem chi tiết",
+    "does_not_look_right": "Có gì đó không ổn?",
     "suspicious_request_title": "Đây là một yêu cầu đáng ngờ",
     "trade_order_farming_description": "Nếu bạn chấp thuận yêu cầu này, bạn có thể mất tài sản của mình.",
     "transfer_farming_description": "Nếu bạn chấp thuận yêu cầu này, một bên thứ ba nổi tiếng là lừa đảo sẽ lấy hết tài sản của bạn."
@@ -788,7 +788,8 @@
     "display_nft_media_desc": "Việc hiển thị dữ liệu và phương tiện NFT sẽ làm lộ địa chỉ IP của bạn với OpenSea hoặc các bên thứ ba khác. Tính năng Tự động phát hiện NFT hoạt động dựa trên tính năng này và sẽ không khả dụng khi tính năng này bị tắt.",
     "autodetect_nft_desc": "Cho phép MetaMask thêm các NFT mà bạn sở hữu bằng cách sử dụng dịch vụ của bên thứ ba (như OpenSea). Tính năng Tự động phát hiện NFT sẽ làm lộ địa chỉ IP và tài khoản của bạn với các dịch vụ này. Việc bật tính năng này có thể liên kết địa chỉ IP của bạn với địa chỉ Ethereum của bạn và hiển thị các NFT giả do những kẻ lừa đảo phát tán. Bạn có thể thêm token theo cách thủ công để tránh rủi ro này.",
     "incoming_transactions_title": "Hiển thị các giao dịch đến",
-    "incoming_transactions_content": "Điều này phụ thuộc vào mạng bạn chọn, mạng đó sẽ có quyền tiết lộ địa chỉ Ethereum và địa chỉ IP của bạn."
+    "incoming_transactions_content": "Điều này phụ thuộc vào mạng bạn chọn, mạng đó sẽ có quyền tiết lộ địa chỉ Ethereum và địa chỉ IP của bạn.",
+    "display_nft_media_desc_new": "Việc hiển thị dữ liệu và phương tiện NFT sẽ làm lộ địa chỉ IP của bạn với OpenSea hoặc các bên thứ ba khác. Tính năng Tự động phát hiện NFT hoạt động dựa trên tính năng này và sẽ không khả dụng khi bị tắt. Nếu phương tiện NFT được đặt hoàn toàn trên IPFS, nó vẫn có thể được hiển thị ngay cả khi tính năng này bị tắt."
   },
   "sdk": {
     "disconnect_title": "Ngắt kết nối tất cả các trang web?",
@@ -1318,6 +1319,11 @@
     "others": "Khác",
     "memo": "Bản ghi nhớ"
   },
+  "duplicate_address": {
+    "title": "Đây là một địa chỉ trùng lặp",
+    "body": "Danh sách liên hệ của bạn hiển thị địa chỉ này trên nhiều chuỗi khác nhau. Hãy đảm bảo chọn đúng địa chỉ liên hệ trước khi gửi bất kỳ khoản tiền nào.",
+    "button": "Đã hiểu"
+  },
   "transaction_submitted": {
     "title": "Đã gửi giao dịch",
     "your_tx_hash_is": "Mã băm giao dịch của bạn là:",
@@ -1352,6 +1358,7 @@
     "learn_more": "Tìm hiểu thêm",
     "learn_more_url": "https://metamask.zendesk.com/hc/en-us/articles/4417500466971",
     "switch_network": "Chuyển sang mạng",
+    "switch": "Chuyển",
     "new_network": "Đã thêm mạng mới",
     "network_name": "Mạng {{networkName}}",
     "network_added": " hiện có sẵn trong trình chọn mạng.",
@@ -1868,7 +1875,8 @@
   "fiat_on_ramp_aggregator": {
     "onboarding": {
       "what_to_expect": "Mong đợi",
-      "benefits": "Trả ít phí gas hơn và hỗ trợ nhiều mạng, token và phương thức thanh toán",
+      "quotes": "Tính năng mua tiền mã hóa của chúng tôi sẽ tổng hợp báo giá từ các nhà cung cấp được tích hợp, cung cấp báo giá từ các nguồn đó để nhận tiền mã hóa trực tiếp vào ví của bạn mà không mất thời gian chờ đợi.",
+      "benefits": "Trả phí gas ít hơn và hỗ trợ nhiều mạng, token và phương thức thanh toán",
       "get_started": "Bắt đầu"
     },
     "payment_method": {
@@ -1912,7 +1920,9 @@
     "select_region_currency": "Chọn đơn vị tiền tệ của khu vực",
     "no_tokens_match": "Không có token nào khớp với \"{{searchString}}\"",
     "no_currency_match": "Không có đơn vị tiền tệ nào khớp với \"{{searchString}}\"",
+    "compare_rates": "So sánh tỷ giá từ các nhà cung cấp này. Báo giá được sắp xếp theo giá tổng thể.",
     "pay_with": "Thanh toán bằng",
+    "continue_with": "Tiếp tục với {{provider}}",
     "minimum": "Số tiền nạp tối thiểu là",
     "maximum": "Số tiền nạp tối đa là",
     "try_again": "Thử lại",
