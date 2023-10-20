@@ -7,6 +7,7 @@ import {
   TOKEN_OVERVIEW_BUY_BUTTON,
   TOKEN_OVERVIEW_SWAP_BUTTON,
   TOKEN_OVERVIEW_TXN_SCREEN,
+  TOKEN_OVERVIEW_BALANCE_WARNING,
   ASSET_BACK_BUTTON,
 } from '../../wdio/screen-objects/testIDs/Screens/TokenOverviewScreen.testIds';
 import messages from '../../locales/languages/en.json';
@@ -35,6 +36,10 @@ export default class TokenOverview {
 
   static async tapBackButton() {
     await TestHelpers.tap(ASSET_BACK_BUTTON);
+  }
+
+  static async tapBalanceWarning() {
+    await TestHelpers.tap(TOKEN_OVERVIEW_BALANCE_WARNING);
   }
 
   static async isVisible() {
@@ -77,5 +82,9 @@ export default class TokenOverview {
 
   static async isSwapButtonVisible() {
     await TestHelpers.checkIfExists(TOKEN_OVERVIEW_SWAP_BUTTON);
+  }
+
+  static async isBalanceWarningVisible() {
+    await TestHelpers.checkIfExists(TOKEN_OVERVIEW_BALANCE_WARNING);
   }
 }
