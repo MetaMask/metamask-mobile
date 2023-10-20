@@ -38,7 +38,7 @@ export default class ApprovalModal {
   static async isTokenAmountShown(amount) {
     await expect(element(by.id(this.APPROVE_TOKEN_AMOUNT))).toHaveText(amount);
   }
-  static async typeText(elemenetId, text) {
-    await TestHelpers.typeTextAndHideKeyboard(elemenetId, text);
+  static async typeText(elementId, text) {
+    await TestHelpers.typeTextAndHideKeyboard(elementId, text);
   }
 }
