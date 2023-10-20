@@ -74,7 +74,7 @@ const SnapPermissions = ({
   const handleRPCPermissionTitles = useCallback(
     (
       permissionsList: RequestedPermissions,
-      key: typeof EndowmentPermissions['endowment:rpc'],
+      key: (typeof EndowmentPermissions)['endowment:rpc'],
     ) => {
       const rpcPermissionsData: SnapPermissionData[] = [];
       const rpcPermissionsCaveats = permissionsList[key].caveats;
