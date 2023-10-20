@@ -57,8 +57,7 @@ import TemplateConfirmationModal from '../../Approvals/TemplateConfirmationModal
 import { selectTokenList } from '../../../selectors/tokenListController';
 import { selectTokens } from '../../../selectors/tokensController';
 import { selectSelectedAddress } from '../../../selectors/preferencesController';
-import { createAccountConnectNavDetails } from '../../Views/AccountConnect';
-import { InstallSnapApprovalFlow } from '../../UI/InstallSnapApprovalFlow';
+import InstallSnapApproval from '../../Approvals/InstallSnapApproval';
 
 const hstInterface = new ethers.utils.Interface(abi);
 
@@ -331,47 +330,6 @@ const RootRPCMethodsUI = (props) => {
     setTransactionModalType(undefined);
   }, []);
 
-  const onInstallSnapConfirm = () => {
-    acceptPendingApproval(hostToApprove.id, hostToApprove.requestData);
-  };
-
-  const onInstallSnapFinished = () => {
-    setShowPendingApproval(false);
-    setInstallSnap(false);
-  };
-
-  const onInstallSnapReject = () => {
-    rejectPendingApproval(hostToApprove.id, hostToApprove.requestData);
-    setShowPendingApproval(false);
-    setInstallSnap(false);
-  };
-
-  /**
-   * Render the modal that asks the user to approve/reject connections to a dapp using the MetaMask SDK.
-   */
-  const renderInstallSnapApprovalModal = () => (
-    <Modal
-      isVisible={installSnap}
-      animationIn="slideInUp"
-      animationOut="slideOutDown"
-      style={styles.bottomModal}
-      backdropColor={colors.overlay.default}
-      backdropOpacity={1}
-      animationInTiming={300}
-      animationOutTiming={300}
-      onSwipeComplete={onInstallSnapReject}
-      onBackdropPress={onInstallSnapReject}
-      swipeDirection={'down'}
-    >
-      <InstallSnapApprovalFlow
-        onCancel={onInstallSnapReject}
-        onConfirm={onInstallSnapConfirm}
-        onFinish={onInstallSnapFinished}
-        requestData={hostToApprove}
-      />
-    </Modal>
-  );
-
   // unapprovedTransaction effect
   useEffect(() => {
     Engine.context.TransactionController.hub.on(
@@ -412,6 +370,7 @@ const RootRPCMethodsUI = (props) => {
       <PermissionApproval navigation={props.navigation} />
       <FlowLoaderModal />
       <TemplateConfirmationModal />
+      <InstallSnapApproval />
     </React.Fragment>
   );
 };
