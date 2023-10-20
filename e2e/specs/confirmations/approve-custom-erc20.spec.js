@@ -1,5 +1,5 @@
 'use strict';
-import { Regression } from '../../tags';
+import { Smoke } from '../../tags';
 import TestHelpers from '../../helpers';
 import { loginToApp } from '../../viewHelper';
 import FixtureBuilder from '../../fixtures/fixture-builder';
@@ -16,7 +16,7 @@ import ApprovalModal from '../../pages/modals/ApprovalModal';
 const HST_CONTRACT = SMART_CONTRACTS.HST;
 const WEBVIEW_TEST_DAPP_APPROVE_TOKENS_BUTTON_ID = 'approveTokens';
 
-describe(Regression('ERC20 tokens'), () => {
+describe(Smoke('ERC20 tokens'), () => {
   beforeAll(async () => {
     jest.setTimeout(170000);
     if (device.getPlatform() === 'android') {
@@ -52,13 +52,11 @@ describe(Regression('ERC20 tokens'), () => {
 
         //Input custom token amount
         await TestHelpers.checkIfExists(ApprovalModal.APPROVE_TOKEN_AMOUNT);
-        await TestHelpers.typeTextAndHideKeyboard(
-          ApprovalModal.APPROVE_TOKEN_AMOUNT,
-          '2',
-        );
+
+        await ApprovalModal.typeText(ApprovalModal.APPROVE_TOKEN_AMOUNT, '2');
 
         // Assert that custom token amount is shown
-        ApprovalModal.assertTokenAmountIsShown('2');
+        ApprovalModal.isTokenAmountShown('2');
 
         // Tap next button
         await TestHelpers.checkIfElementWithTextIsVisible(

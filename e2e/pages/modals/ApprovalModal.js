@@ -35,7 +35,10 @@ export default class ApprovalModal {
   static async isContractNickNameVisible(nickName) {
     await TestHelpers.checkIfElementWithTextIsVisible(nickName);
   }
-  static async assertTokenAmountIsShown(amount) {
+  static async isTokenAmountShown(amount) {
     await expect(element(by.id(this.APPROVE_TOKEN_AMOUNT))).toHaveText(amount);
+  }
+  static async typeText(elemenetId, text) {
+    await TestHelpers.typeTextAndHideKeyboard(elemenetId, text);
   }
 }
