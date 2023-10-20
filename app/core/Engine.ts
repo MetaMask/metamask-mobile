@@ -35,6 +35,7 @@ import {
   KeyringControllerState,
   KeyringControllerActions,
   KeyringControllerEvents,
+  KeyringTypes,
 } from '@metamask/keyring-controller';
 import {
   NetworkController,
@@ -471,16 +472,15 @@ class Engine {
     /**
      * Gets the mnemonic of the user's primary keyring.
      */
-    const getPrimaryKeyringMnemonic = async () => {
-      try {
-        const mnemonic = await keyringController.exportMnemonic();
-        if (mnemonic) {
-          return mnemonic;
-        }
-        throw new Error('No mnemonic found');
-      } catch (error) {
-        console.error(error);
+    const getPrimaryKeyringMnemonic = () => {
+      const [keyring]: any = keyringController.getKeyringsByType(
+        KeyringTypes.hd,
+      );
+      if (!keyring.mnemonic) {
+        throw new Error('Primary keyring mnemonic unavailable.');
       }
+
+      return keyring.mnemonic;
     };
 
     const getAppState = () => {
@@ -488,7 +488,10 @@ class Engine {
       return state === 'active';
     };
 
-    const getAppKeyForSubject = async (subject, requestedAccount) => {
+    const getAppKeyForSubject = async (
+      subject: string,
+      requestedAccount: string,
+    ) => {
       let account;
 
       if (requestedAccount) {
