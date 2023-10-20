@@ -229,6 +229,8 @@ function SendTransaction() {
               size={ButtonSize.Lg}
               width={ButtonWidthTypes.Full}
               onPress={handleSend}
+              accessibilityRole="button"
+              accessible
               label={
                 <Text
                   variant={TextVariant.BodyLGMedium}
