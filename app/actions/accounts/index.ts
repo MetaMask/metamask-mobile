@@ -1,0 +1,22 @@
+import { Action } from 'redux';
+
+/**
+ * Deference action types available for different RPC event flow
+ */
+export enum ActionType {
+  SET_RELOAD_ACCOUNTS = 'SET_RELOAD_ACCOUNTS',
+}
+
+/**
+ * Extend redux Action interface to add rpcName, eventStage and error properties
+ */
+export interface iAccountActions extends Action {
+  reloadAccounts: boolean;
+}
+
+export function setReloadAccounts(reloadAccounts: boolean): iAccountActions {
+  return {
+    type: ActionType.SET_RELOAD_ACCOUNTS,
+    reloadAccounts,
+  };
+}
