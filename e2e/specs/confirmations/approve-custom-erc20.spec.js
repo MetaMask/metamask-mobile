@@ -51,7 +51,7 @@ describe(Smoke('ERC20 tokens'), () => {
         });
 
         //Input custom token amount
-        await TestHelpers.checkIfExists(ApprovalModal.APPROVE_TOKEN_AMOUNT);
+        await ApprovalModal.isApprovalModalInputBoxVisible();
 
         await ApprovalModal.typeText(ApprovalModal.APPROVE_TOKEN_AMOUNT, '2');
 

@@ -41,4 +41,7 @@ export default class ApprovalModal {
   static async typeText(elementId, text) {
     await TestHelpers.typeTextAndHideKeyboard(elementId, text);
   }
+  static async isApprovalModalInputBoxVisible() {
+    await TestHelpers.checkIfExists(this.APPROVE_TOKEN_AMOUNT);
+  }
 }
