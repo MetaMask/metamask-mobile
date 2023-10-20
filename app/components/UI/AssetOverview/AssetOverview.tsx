@@ -11,6 +11,7 @@ import {
   TOKEN_ASSET_OVERVIEW,
   TOKEN_OVERVIEW_SEND_BUTTON,
   TOKEN_OVERVIEW_RECEIVE_BUTTON,
+  TOKEN_OVERVIEW_BALANCE_WARNING,
 } from '../../../../wdio/screen-objects/testIDs/Screens/TokenOverviewScreen.testIds';
 import generateTestId from '../../../../wdio/utils/generateTestId';
 import { toggleReceiveModal } from '../../../actions/modals';
@@ -39,7 +40,10 @@ import {
   weiToFiat,
 } from '../../../util/number';
 import { getEther } from '../../../util/transactions';
-import Text from '../../Base/Text';
+// import Text from '../../Base/Text';
+import Text, {
+  TextVariant,
+} from '../../../component-library/components/Texts/Text';
 import { createWebviewNavDetails } from '../../Views/SimpleWebview';
 import useTokenHistoricalPrices, {
   TimePeriod,
@@ -126,10 +130,14 @@ const AssetOverview: React.FC<AssetOverviewProps> = ({
       <TouchableOpacity
         onPress={() => goToBrowserUrl(AppConstants.URLS.TOKEN_BALANCE)}
       >
-        <Text style={styles.warning}>
+        <Text
+          variant={TextVariant.BodyMD}
+          style={styles.warning}
+          testID={TOKEN_OVERVIEW_BALANCE_WARNING}
+        >
           {strings('asset_overview.were_unable')} {(asset as Asset).symbol}{' '}
           {strings('asset_overview.balance')}{' '}
-          <Text style={styles.warningLinks}>
+          <Text variant={TextVariant.BodyMD} style={styles.warningLinks}>
             {strings('asset_overview.troubleshooting_missing')}
           </Text>{' '}
           {strings('asset_overview.for_help')}
@@ -214,7 +222,7 @@ const AssetOverview: React.FC<AssetOverviewProps> = ({
       style={styles.wrapper}
       {...generateTestId(Platform, TOKEN_ASSET_OVERVIEW)}
     >
-      {asset.balanceError ? (
+      {!asset.balanceError ? (
         renderWarning()
       ) : (
         <View>
