@@ -40,7 +40,6 @@ import {
   weiToFiat,
 } from '../../../util/number';
 import { getEther } from '../../../util/transactions';
-// import Text from '../../Base/Text';
 import Text, {
   TextVariant,
 } from '../../../component-library/components/Texts/Text';
@@ -222,7 +221,7 @@ const AssetOverview: React.FC<AssetOverviewProps> = ({
       style={styles.wrapper}
       {...generateTestId(Platform, TOKEN_ASSET_OVERVIEW)}
     >
-      {!asset.balanceError ? (
+      {asset.balanceError ? (
         renderWarning()
       ) : (
         <View>
