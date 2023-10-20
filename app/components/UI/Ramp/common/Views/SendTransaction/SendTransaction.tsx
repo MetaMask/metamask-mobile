@@ -1,13 +1,21 @@
-import React, { useCallback, useEffect, useState } from 'react';
+import React, { useCallback, useEffect } from 'react';
 import { View } from 'react-native';
-import { useNavigation } from '@react-navigation/native';
 import { useSelector } from 'react-redux';
-import { Order } from '@consensys/on-ramp-sdk';
+import { useNavigation } from '@react-navigation/native';
+import { BN } from 'ethereumjs-util';
+import { SellOrder } from '@consensys/on-ramp-sdk/dist/API';
+import {
+  Transaction,
+  TransactionController,
+} from '@metamask/transaction-controller';
+import Engine from '../../../../../../core/Engine';
 
+// import TransactionReview from './TransactionReview';
+// import ButtonConfirm from '../../components/ButtonConfirm';
 import Row from '../../components/Row';
 import ScreenLayout from '../../components/ScreenLayout';
-import ButtonConfirm from '../../components/ButtonConfirm';
 import Text, {
+  TextColor,
   TextVariant,
 } from '../../../../../../component-library/components/Texts/Text';
 import Icon, {
@@ -19,6 +27,11 @@ import Avatar, {
   AvatarSize,
   AvatarVariants,
 } from '../../../../../../component-library/components/Avatars/Avatar';
+import Button, {
+  ButtonVariants,
+  ButtonSize,
+  ButtonWidthTypes,
+} from '../../../../../../component-library/components/Buttons/Button';
 import RemoteImage from '../../../../../Base/RemoteImage';
 
 import styleSheet from './SendTransaction.styles';
@@ -32,11 +45,16 @@ import {
 import { getFiatOnRampAggNavbar } from '../../../../Navbar';
 import { useParams } from '../../../../../../util/navigation/navUtils';
 import {
+  addHexPrefix,
   fromTokenMinimalUnitString,
   toTokenMinimalUnit,
 } from '../../../../../../util/number';
 import { strings } from '../../../../../../../locales/i18n';
 import { useStyles } from '../../../../../../component-library/hooks';
+
+import { NATIVE_ADDRESS } from '../../../../../../constants/on-ramp';
+import { safeToChecksumAddress } from '../../../../../../util/address';
+import { generateTransferData } from '../../../../../../util/transactions';
 
 interface SendTransactionParams {
   orderId?: string;
@@ -48,14 +66,13 @@ function SendTransaction() {
   const order = useSelector((state: RootState) =>
     getOrderById(state, params.orderId),
   );
-  const [isLoadingGas] = useState(false);
 
   const {
     styles,
     theme: { colors, themeAppearance },
   } = useStyles(styleSheet, {});
 
-  const orderData = order?.data as Order;
+  const orderData = order?.data as SellOrder;
 
   useEffect(() => {
     navigation.setOptions(
@@ -71,9 +88,54 @@ function SendTransaction() {
     );
   }, [colors, navigation]);
 
-  const handleSend = useCallback(() => {
-    //TODO
-  }, []);
+  const handleSend = useCallback(async () => {
+    const {
+      TransactionController: TxController,
+    }: { TransactionController: TransactionController } = Engine.context;
+
+    let transactionParams: Transaction;
+    const amount = addHexPrefix(
+      new BN(
+        toTokenMinimalUnit(
+          orderData.cryptoAmount || '0',
+          orderData.cryptoCurrency.decimals,
+        ).toString(),
+      ).toString('hex'),
+    );
+    if (orderData.cryptoCurrency.address === NATIVE_ADDRESS) {
+      transactionParams = {
+        from: safeToChecksumAddress(orderData.walletAddress) as string,
+        to: safeToChecksumAddress(orderData.depositWallet),
+        value: amount,
+        chainId: orderData.cryptoCurrency.network.chainId,
+      };
+    } else {
+      transactionParams = {
+        from: safeToChecksumAddress(orderData.walletAddress) as string,
+        to: safeToChecksumAddress(orderData.cryptoCurrency.address),
+        value: '0x0',
+        data: generateTransferData('transfer', {
+          toAddress: safeToChecksumAddress(orderData.depositWallet),
+          amount,
+        }),
+      };
+    }
+
+    try {
+      const response = await TxController.addTransaction(transactionParams);
+      /*const hash = */ await response.result;
+      // TODO: track hash
+    } catch (error) {
+      // User rejected tx from modal
+    }
+  }, [
+    orderData.cryptoAmount,
+    orderData.cryptoCurrency.address,
+    orderData.cryptoCurrency.decimals,
+    orderData.cryptoCurrency.network.chainId,
+    orderData.depositWallet,
+    orderData.walletAddress,
+  ]);
 
   if (!order) {
     return null;
@@ -142,7 +204,7 @@ function SendTransaction() {
               )}
             </Row>
           </View>
-          <Row last />
+          <Row last>{/* <TransactionReview order={order} /> */}</Row>
         </ScreenLayout.Content>
       </ScreenLayout.Body>
 
@@ -162,8 +224,24 @@ function SendTransaction() {
           </Row>
 
           <Row>
-            <ButtonConfirm onLongPress={handleSend} disabled={isLoadingGas} />
+            <Button
+              variant={ButtonVariants.Primary}
+              size={ButtonSize.Lg}
+              width={ButtonWidthTypes.Full}
+              onPress={handleSend}
+              label={
+                <Text
+                  variant={TextVariant.BodyLGMedium}
+                  color={TextColor.Inverse}
+                >
+                  {strings('fiat_on_ramp_aggregator.send_transaction.send')}
+                </Text>
+              }
+            />
           </Row>
+          {/* <Row>
+            <ButtonConfirm onLongPress={handleSend} disabled={isLoadingGas} />
+          </Row> */}
         </ScreenLayout.Content>
       </ScreenLayout.Footer>
     </ScreenLayout>

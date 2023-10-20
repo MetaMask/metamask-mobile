@@ -15,6 +15,7 @@ import {
   FiatOrdersState,
 } from './types';
 import type { RootState } from '../';
+import { isTestNet } from '../../util/networks';
 export type { FiatOrder } from './types';
 
 /** Action Creators */
@@ -163,7 +164,7 @@ export const getOrders = createSelector(
       (order) =>
         !order.excludeFromPurchases &&
         order.account === selectedAddress &&
-        Number(order.network) === Number(chainId),
+        (isTestNet(chainId) || Number(order.network) === Number(chainId)),
     ),
 );
 
