@@ -921,7 +921,7 @@ describe('Redux Persist Migrations', () => {
         },
       };
 
-      const migration = migrations[22];
+      const migration = migrations[25];
 
       const newState = migration(cloneDeep(oldState));
 
@@ -962,7 +962,7 @@ describe('Redux Persist Migrations', () => {
         },
       };
 
-      const migration = migrations[22];
+      const migration = migrations[25];
 
       const newState = migration(cloneDeep(oldState));
 
@@ -976,7 +976,7 @@ describe('Redux Persist Migrations', () => {
         },
       };
 
-      const migration = migrations[22];
+      const migration = migrations[25];
 
       const newState = migration(cloneDeep(stateWithoutTransactionController));
 

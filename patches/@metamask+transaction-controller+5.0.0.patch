@@ -13,7 +13,7 @@ index 0000000..550de56
 +* Once the new patch is merged, add your changes to: refactor/transaction-controller-patch-mobile-5
 diff --git a/node_modules/@metamask/transaction-controller/dist/EtherscanRemoteTransactionSource.d.ts b/node_modules/@metamask/transaction-controller/dist/EtherscanRemoteTransactionSource.d.ts
 new file mode 100644
-index 0000000..7637754
+index 0000000..d7d701f
 --- /dev/null
 +++ b/node_modules/@metamask/transaction-controller/dist/EtherscanRemoteTransactionSource.d.ts
 @@ -0,0 +1,14 @@
@@ -23,21 +23,21 @@ index 0000000..7637754
 + */
 +export declare class EtherscanRemoteTransactionSource implements RemoteTransactionSource {
 +    #private;
-+    constructor({ apiKey, includeTokenTransfers, }?: {
-+        apiKey?: string;
++    constructor({ includeTokenTransfers, }?: {
 +        includeTokenTransfers?: boolean;
 +    });
 +    isSupportedNetwork(chainId: string, _networkId: string): boolean;
++    getLastBlockVariations(): string[];
 +    fetchTransactions(request: RemoteTransactionSourceRequest): Promise<TransactionMeta[]>;
 +}
 +//# sourceMappingURL=EtherscanRemoteTransactionSource.d.ts.map
 \ No newline at end of file
 diff --git a/node_modules/@metamask/transaction-controller/dist/EtherscanRemoteTransactionSource.js b/node_modules/@metamask/transaction-controller/dist/EtherscanRemoteTransactionSource.js
 new file mode 100644
-index 0000000..ef97d13
+index 0000000..983e93a
 --- /dev/null
 +++ b/node_modules/@metamask/transaction-controller/dist/EtherscanRemoteTransactionSource.js
-@@ -0,0 +1,100 @@
+@@ -0,0 +1,124 @@
 +"use strict";
 +var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, generator) {
 +    function adopt(value) { return value instanceof P ? value : new P(function (resolve) { resolve(value); }); }
@@ -59,7 +59,7 @@ index 0000000..ef97d13
 +    if (typeof state === "function" ? receiver !== state || !f : !state.has(receiver)) throw new TypeError("Cannot read private member from an object whose class did not declare it");
 +    return kind === "m" ? f : kind === "a" ? f.call(receiver) : f ? f.value : state.get(receiver);
 +};
-+var _EtherscanRemoteTransactionSource_instances, _EtherscanRemoteTransactionSource_apiKey, _EtherscanRemoteTransactionSource_includeTokenTransfers, _EtherscanRemoteTransactionSource_normalizeTransaction, _EtherscanRemoteTransactionSource_normalizeTokenTransaction, _EtherscanRemoteTransactionSource_normalizeTransactionBase;
++var _EtherscanRemoteTransactionSource_instances, _EtherscanRemoteTransactionSource_includeTokenTransfers, _EtherscanRemoteTransactionSource_isTokenRequestPending, _EtherscanRemoteTransactionSource_fetchNormalTransactions, _EtherscanRemoteTransactionSource_fetchTokenTransactions, _EtherscanRemoteTransactionSource_getResponseTransactions, _EtherscanRemoteTransactionSource_normalizeTransaction, _EtherscanRemoteTransactionSource_normalizeTokenTransaction, _EtherscanRemoteTransactionSource_normalizeTransactionBase;
 +Object.defineProperty(exports, "__esModule", { value: true });
 +exports.EtherscanRemoteTransactionSource = void 0;
 +const controller_utils_1 = require("@metamask/controller-utils");
@@ -67,40 +67,64 @@ index 0000000..ef97d13
 +const uuid_1 = require("uuid");
 +const constants_1 = require("./constants");
 +const etherscan_1 = require("./etherscan");
++const logger_1 = require("./logger");
 +const types_1 = require("./types");
 +/**
 + * A RemoteTransactionSource that fetches transaction data from Etherscan.
 + */
 +class EtherscanRemoteTransactionSource {
-+    constructor({ apiKey, includeTokenTransfers, } = {}) {
++    constructor({ includeTokenTransfers, } = {}) {
 +        _EtherscanRemoteTransactionSource_instances.add(this);
-+        _EtherscanRemoteTransactionSource_apiKey.set(this, void 0);
 +        _EtherscanRemoteTransactionSource_includeTokenTransfers.set(this, void 0);
-+        __classPrivateFieldSet(this, _EtherscanRemoteTransactionSource_apiKey, apiKey, "f");
++        _EtherscanRemoteTransactionSource_isTokenRequestPending.set(this, void 0);
++        _EtherscanRemoteTransactionSource_fetchNormalTransactions.set(this, (request, etherscanRequest) => __awaiter(this, void 0, void 0, function* () {
++            const { currentNetworkId, currentChainId } = request;
++            const chainIdDecimalString = parseInt(currentChainId, 16).toString();
++            const etherscanTransactions = yield (0, etherscan_1.fetchEtherscanTransactions)(etherscanRequest);
++            return __classPrivateFieldGet(this, _EtherscanRemoteTransactionSource_instances, "m", _EtherscanRemoteTransactionSource_getResponseTransactions).call(this, etherscanTransactions).map((tx) => __classPrivateFieldGet(this, _EtherscanRemoteTransactionSource_instances, "m", _EtherscanRemoteTransactionSource_normalizeTransaction).call(this, tx, currentNetworkId, chainIdDecimalString));
++        }));
++        _EtherscanRemoteTransactionSource_fetchTokenTransactions.set(this, (request, etherscanRequest) => __awaiter(this, void 0, void 0, function* () {
++            const { currentNetworkId, currentChainId } = request;
++            const chainIdDecimalString = parseInt(currentChainId, 16).toString();
++            const etherscanTransactions = yield (0, etherscan_1.fetchEtherscanTokenTransactions)(etherscanRequest);
++            return __classPrivateFieldGet(this, _EtherscanRemoteTransactionSource_instances, "m", _EtherscanRemoteTransactionSource_getResponseTransactions).call(this, etherscanTransactions).map((tx) => __classPrivateFieldGet(this, _EtherscanRemoteTransactionSource_instances, "m", _EtherscanRemoteTransactionSource_normalizeTokenTransaction).call(this, tx, currentNetworkId, chainIdDecimalString));
++        }));
 +        __classPrivateFieldSet(this, _EtherscanRemoteTransactionSource_includeTokenTransfers, includeTokenTransfers !== null && includeTokenTransfers !== void 0 ? includeTokenTransfers : true, "f");
++        __classPrivateFieldSet(this, _EtherscanRemoteTransactionSource_isTokenRequestPending, false, "f");
 +    }
 +    isSupportedNetwork(chainId, _networkId) {
 +        return Object.keys(constants_1.ETHERSCAN_SUPPORTED_NETWORKS).includes(chainId);
 +    }
++    getLastBlockVariations() {
++        return [__classPrivateFieldGet(this, _EtherscanRemoteTransactionSource_isTokenRequestPending, "f") ? 'token' : 'normal'];
++    }
 +    fetchTransactions(request) {
 +        return __awaiter(this, void 0, void 0, function* () {
-+            const etherscanRequest = Object.assign(Object.assign({}, request), { apiKey: __classPrivateFieldGet(this, _EtherscanRemoteTransactionSource_apiKey, "f"), chainId: request.currentChainId });
-+            const transactionPromise = (0, etherscan_1.fetchEtherscanTransactions)(etherscanRequest);
-+            const tokenTransactionPromise = __classPrivateFieldGet(this, _EtherscanRemoteTransactionSource_includeTokenTransfers, "f")
-+                ? (0, etherscan_1.fetchEtherscanTokenTransactions)(etherscanRequest)
-+                : Promise.resolve({
-+                    result: [],
-+                });
-+            const [etherscanTransactions, etherscanTokenTransactions] = yield Promise.all([transactionPromise, tokenTransactionPromise]);
-+            const chainIdDecimalString = parseInt(request.currentChainId, 16).toString();
-+            const transactions = etherscanTransactions.result.map((tx) => __classPrivateFieldGet(this, _EtherscanRemoteTransactionSource_instances, "m", _EtherscanRemoteTransactionSource_normalizeTransaction).call(this, tx, request.currentNetworkId, chainIdDecimalString));
-+            const tokenTransactions = etherscanTokenTransactions.result.map((tx) => __classPrivateFieldGet(this, _EtherscanRemoteTransactionSource_instances, "m", _EtherscanRemoteTransactionSource_normalizeTokenTransaction).call(this, tx, request.currentNetworkId, chainIdDecimalString));
-+            return [...transactions, ...tokenTransactions];
++            const etherscanRequest = Object.assign(Object.assign({}, request), { chainId: request.currentChainId });
++            const transactions = __classPrivateFieldGet(this, _EtherscanRemoteTransactionSource_isTokenRequestPending, "f")
++                ? yield __classPrivateFieldGet(this, _EtherscanRemoteTransactionSource_fetchTokenTransactions, "f").call(this, request, etherscanRequest)
++                : yield __classPrivateFieldGet(this, _EtherscanRemoteTransactionSource_fetchNormalTransactions, "f").call(this, request, etherscanRequest);
++            if (__classPrivateFieldGet(this, _EtherscanRemoteTransactionSource_includeTokenTransfers, "f")) {
++                __classPrivateFieldSet(this, _EtherscanRemoteTransactionSource_isTokenRequestPending, !__classPrivateFieldGet(this, _EtherscanRemoteTransactionSource_isTokenRequestPending, "f"), "f");
++            }
++            return transactions;
 +        });
 +    }
 +}
 +exports.EtherscanRemoteTransactionSource = EtherscanRemoteTransactionSource;
-+_EtherscanRemoteTransactionSource_apiKey = new WeakMap(), _EtherscanRemoteTransactionSource_includeTokenTransfers = new WeakMap(), _EtherscanRemoteTransactionSource_instances = new WeakSet(), _EtherscanRemoteTransactionSource_normalizeTransaction = function _EtherscanRemoteTransactionSource_normalizeTransaction(txMeta, currentNetworkId, currentChainId) {
++_EtherscanRemoteTransactionSource_includeTokenTransfers = new WeakMap(), _EtherscanRemoteTransactionSource_isTokenRequestPending = new WeakMap(), _EtherscanRemoteTransactionSource_fetchNormalTransactions = new WeakMap(), _EtherscanRemoteTransactionSource_fetchTokenTransactions = new WeakMap(), _EtherscanRemoteTransactionSource_instances = new WeakSet(), _EtherscanRemoteTransactionSource_getResponseTransactions = function _EtherscanRemoteTransactionSource_getResponseTransactions(response) {
++    let result = response.result;
++    if (response.status === '0') {
++        result = [];
++        if (response.result.length) {
++            (0, logger_1.incomingTransactionsLogger)('Ignored Etherscan request error', {
++                message: response.result,
++                type: __classPrivateFieldGet(this, _EtherscanRemoteTransactionSource_isTokenRequestPending, "f") ? 'token' : 'normal',
++            });
++        }
++    }
++    return result;
++}, _EtherscanRemoteTransactionSource_normalizeTransaction = function _EtherscanRemoteTransactionSource_normalizeTransaction(txMeta, currentNetworkId, currentChainId) {
 +    const base = __classPrivateFieldGet(this, _EtherscanRemoteTransactionSource_instances, "m", _EtherscanRemoteTransactionSource_normalizeTransactionBase).call(this, txMeta, currentNetworkId, currentChainId);
 +    return Object.assign(Object.assign(Object.assign({}, base), { transaction: Object.assign(Object.assign({}, base.transaction), { data: txMeta.input }) }), (txMeta.isError === '0'
 +        ? { status: types_1.TransactionStatus.confirmed }
@@ -141,10 +165,10 @@ index 0000000..ef97d13
 \ No newline at end of file
 diff --git a/node_modules/@metamask/transaction-controller/dist/IncomingTransactionHelper.d.ts b/node_modules/@metamask/transaction-controller/dist/IncomingTransactionHelper.d.ts
 new file mode 100644
-index 0000000..5e1b7fc
+index 0000000..0008411
 --- /dev/null
 +++ b/node_modules/@metamask/transaction-controller/dist/IncomingTransactionHelper.d.ts
-@@ -0,0 +1,23 @@
+@@ -0,0 +1,24 @@
 +/// <reference types="node" />
 +import EventEmitter from 'events';
 +import type { BlockTrackerProxy, NetworkState } from '@metamask/network-controller';
@@ -152,13 +176,14 @@ index 0000000..5e1b7fc
 +export declare class IncomingTransactionHelper {
 +    #private;
 +    hub: EventEmitter;
-+    constructor({ blockTracker, getCurrentAccount, getLastFetchedBlockNumbers, getLocalTransactions, getNetworkState, isEnabled, remoteTransactionSource, transactionLimit, updateTransactions, }: {
++    constructor({ blockTracker, getCurrentAccount, getLastFetchedBlockNumbers, getLocalTransactions, getNetworkState, isEnabled, queryEntireHistory, remoteTransactionSource, transactionLimit, updateTransactions, }: {
 +        blockTracker: BlockTrackerProxy;
 +        getCurrentAccount: () => string;
 +        getNetworkState: () => NetworkState;
 +        getLastFetchedBlockNumbers: () => Record<string, number>;
 +        getLocalTransactions?: () => TransactionMeta[];
 +        isEnabled?: () => boolean;
++        queryEntireHistory?: boolean;
 +        remoteTransactionSource: RemoteTransactionSource;
 +        transactionLimit?: number;
 +        updateTransactions?: boolean;
@@ -171,10 +196,10 @@ index 0000000..5e1b7fc
 \ No newline at end of file
 diff --git a/node_modules/@metamask/transaction-controller/dist/IncomingTransactionHelper.js b/node_modules/@metamask/transaction-controller/dist/IncomingTransactionHelper.js
 new file mode 100644
-index 0000000..8da9369
+index 0000000..b80f25b
 --- /dev/null
 +++ b/node_modules/@metamask/transaction-controller/dist/IncomingTransactionHelper.js
-@@ -0,0 +1,189 @@
+@@ -0,0 +1,204 @@
 +"use strict";
 +var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, generator) {
 +    function adopt(value) { return value instanceof P ? value : new P(function (resolve) { resolve(value); }); }
@@ -199,17 +224,19 @@ index 0000000..8da9369
 +var __importDefault = (this && this.__importDefault) || function (mod) {
 +    return (mod && mod.__esModule) ? mod : { "default": mod };
 +};
-+var _IncomingTransactionHelper_instances, _IncomingTransactionHelper_blockTracker, _IncomingTransactionHelper_getCurrentAccount, _IncomingTransactionHelper_getLastFetchedBlockNumbers, _IncomingTransactionHelper_getLocalTransactions, _IncomingTransactionHelper_getNetworkState, _IncomingTransactionHelper_isEnabled, _IncomingTransactionHelper_isRunning, _IncomingTransactionHelper_mutex, _IncomingTransactionHelper_onLatestBlock, _IncomingTransactionHelper_remoteTransactionSource, _IncomingTransactionHelper_transactionLimit, _IncomingTransactionHelper_updateTransactions, _IncomingTransactionHelper_sortTransactionsByTime, _IncomingTransactionHelper_getNewTransactions, _IncomingTransactionHelper_getUpdatedTransactions, _IncomingTransactionHelper_isTransactionOutdated, _IncomingTransactionHelper_getFromBlock, _IncomingTransactionHelper_updateLastFetchedBlockNumber, _IncomingTransactionHelper_getBlockNumberKey, _IncomingTransactionHelper_canStart, _IncomingTransactionHelper_getCurrentChainId, _IncomingTransactionHelper_getCurrentNetworkId;
++var _IncomingTransactionHelper_instances, _IncomingTransactionHelper_blockTracker, _IncomingTransactionHelper_getCurrentAccount, _IncomingTransactionHelper_getLastFetchedBlockNumbers, _IncomingTransactionHelper_getLocalTransactions, _IncomingTransactionHelper_getNetworkState, _IncomingTransactionHelper_isEnabled, _IncomingTransactionHelper_isRunning, _IncomingTransactionHelper_mutex, _IncomingTransactionHelper_onLatestBlock, _IncomingTransactionHelper_queryEntireHistory, _IncomingTransactionHelper_remoteTransactionSource, _IncomingTransactionHelper_transactionLimit, _IncomingTransactionHelper_updateTransactions, _IncomingTransactionHelper_sortTransactionsByTime, _IncomingTransactionHelper_getNewTransactions, _IncomingTransactionHelper_getUpdatedTransactions, _IncomingTransactionHelper_isTransactionOutdated, _IncomingTransactionHelper_getFromBlock, _IncomingTransactionHelper_updateLastFetchedBlockNumber, _IncomingTransactionHelper_getBlockNumberKey, _IncomingTransactionHelper_canStart, _IncomingTransactionHelper_getCurrentChainId, _IncomingTransactionHelper_getCurrentNetworkId;
 +Object.defineProperty(exports, "__esModule", { value: true });
 +exports.IncomingTransactionHelper = void 0;
 +const events_1 = __importDefault(require("events"));
 +const async_mutex_1 = require("async-mutex");
++const logger_1 = require("./logger");
++const RECENT_HISTORY_BLOCK_RANGE = 10;
 +const UPDATE_CHECKS = [
 +    (txMeta) => txMeta.status,
 +    (txMeta) => txMeta.transaction.gasUsed,
 +];
 +class IncomingTransactionHelper {
-+    constructor({ blockTracker, getCurrentAccount, getLastFetchedBlockNumbers, getLocalTransactions, getNetworkState, isEnabled, remoteTransactionSource, transactionLimit, updateTransactions, }) {
++    constructor({ blockTracker, getCurrentAccount, getLastFetchedBlockNumbers, getLocalTransactions, getNetworkState, isEnabled, queryEntireHistory, remoteTransactionSource, transactionLimit, updateTransactions, }) {
 +        _IncomingTransactionHelper_instances.add(this);
 +        _IncomingTransactionHelper_blockTracker.set(this, void 0);
 +        _IncomingTransactionHelper_getCurrentAccount.set(this, void 0);
@@ -220,6 +247,7 @@ index 0000000..8da9369
 +        _IncomingTransactionHelper_isRunning.set(this, void 0);
 +        _IncomingTransactionHelper_mutex.set(this, new async_mutex_1.Mutex());
 +        _IncomingTransactionHelper_onLatestBlock.set(this, void 0);
++        _IncomingTransactionHelper_queryEntireHistory.set(this, void 0);
 +        _IncomingTransactionHelper_remoteTransactionSource.set(this, void 0);
 +        _IncomingTransactionHelper_transactionLimit.set(this, void 0);
 +        _IncomingTransactionHelper_updateTransactions.set(this, void 0);
@@ -231,6 +259,7 @@ index 0000000..8da9369
 +        __classPrivateFieldSet(this, _IncomingTransactionHelper_getNetworkState, getNetworkState, "f");
 +        __classPrivateFieldSet(this, _IncomingTransactionHelper_isEnabled, isEnabled !== null && isEnabled !== void 0 ? isEnabled : (() => true), "f");
 +        __classPrivateFieldSet(this, _IncomingTransactionHelper_isRunning, false, "f");
++        __classPrivateFieldSet(this, _IncomingTransactionHelper_queryEntireHistory, queryEntireHistory !== null && queryEntireHistory !== void 0 ? queryEntireHistory : true, "f");
 +        __classPrivateFieldSet(this, _IncomingTransactionHelper_remoteTransactionSource, remoteTransactionSource, "f");
 +        __classPrivateFieldSet(this, _IncomingTransactionHelper_transactionLimit, transactionLimit, "f");
 +        __classPrivateFieldSet(this, _IncomingTransactionHelper_updateTransactions, updateTransactions !== null && updateTransactions !== void 0 ? updateTransactions : false, "f");
@@ -260,14 +289,17 @@ index 0000000..8da9369
 +        __classPrivateFieldSet(this, _IncomingTransactionHelper_isRunning, false, "f");
 +    }
 +    update(latestBlockNumberHex) {
++        var _a, _b, _c;
 +        return __awaiter(this, void 0, void 0, function* () {
 +            const releaseLock = yield __classPrivateFieldGet(this, _IncomingTransactionHelper_mutex, "f").acquire();
++            (0, logger_1.incomingTransactionsLogger)('Checking for incoming transactions');
 +            try {
 +                if (!__classPrivateFieldGet(this, _IncomingTransactionHelper_instances, "m", _IncomingTransactionHelper_canStart).call(this)) {
 +                    return;
 +                }
 +                const latestBlockNumber = parseInt(latestBlockNumberHex || (yield __classPrivateFieldGet(this, _IncomingTransactionHelper_blockTracker, "f").getLatestBlock()), 16);
-+                const fromBlock = __classPrivateFieldGet(this, _IncomingTransactionHelper_instances, "m", _IncomingTransactionHelper_getFromBlock).call(this, latestBlockNumber);
++                const additionalLastFetchedKeys = (_c = (_b = (_a = __classPrivateFieldGet(this, _IncomingTransactionHelper_remoteTransactionSource, "f")).getLastBlockVariations) === null || _b === void 0 ? void 0 : _b.call(_a)) !== null && _c !== void 0 ? _c : [];
++                const fromBlock = __classPrivateFieldGet(this, _IncomingTransactionHelper_instances, "m", _IncomingTransactionHelper_getFromBlock).call(this, latestBlockNumber, additionalLastFetchedKeys);
 +                const address = __classPrivateFieldGet(this, _IncomingTransactionHelper_getCurrentAccount, "f").call(this);
 +                const currentChainId = __classPrivateFieldGet(this, _IncomingTransactionHelper_instances, "m", _IncomingTransactionHelper_getCurrentChainId).call(this);
 +                const currentNetworkId = __classPrivateFieldGet(this, _IncomingTransactionHelper_instances, "m", _IncomingTransactionHelper_getCurrentNetworkId).call(this);
@@ -283,6 +315,7 @@ index 0000000..8da9369
 +                        });
 +                }
 +                catch (error) {
++                    (0, logger_1.incomingTransactionsLogger)('Error while fetching remote transactions', error);
 +                    return;
 +                }
 +                if (!__classPrivateFieldGet(this, _IncomingTransactionHelper_updateTransactions, "f")) {
@@ -296,12 +329,16 @@ index 0000000..8da9369
 +                if (newTransactions.length > 0 || updatedTransactions.length > 0) {
 +                    __classPrivateFieldGet(this, _IncomingTransactionHelper_instances, "m", _IncomingTransactionHelper_sortTransactionsByTime).call(this, newTransactions);
 +                    __classPrivateFieldGet(this, _IncomingTransactionHelper_instances, "m", _IncomingTransactionHelper_sortTransactionsByTime).call(this, updatedTransactions);
++                    (0, logger_1.incomingTransactionsLogger)('Found incoming transactions', {
++                        new: newTransactions,
++                        updated: updatedTransactions,
++                    });
 +                    this.hub.emit('transactions', {
 +                        added: newTransactions,
 +                        updated: updatedTransactions,
 +                    });
 +                }
-+                __classPrivateFieldGet(this, _IncomingTransactionHelper_instances, "m", _IncomingTransactionHelper_updateLastFetchedBlockNumber).call(this, remoteTransactions);
++                __classPrivateFieldGet(this, _IncomingTransactionHelper_instances, "m", _IncomingTransactionHelper_updateLastFetchedBlockNumber).call(this, remoteTransactions, additionalLastFetchedKeys);
 +            }
 +            finally {
 +                releaseLock();
@@ -310,7 +347,7 @@ index 0000000..8da9369
 +    }
 +}
 +exports.IncomingTransactionHelper = IncomingTransactionHelper;
-+_IncomingTransactionHelper_blockTracker = new WeakMap(), _IncomingTransactionHelper_getCurrentAccount = new WeakMap(), _IncomingTransactionHelper_getLastFetchedBlockNumbers = new WeakMap(), _IncomingTransactionHelper_getLocalTransactions = new WeakMap(), _IncomingTransactionHelper_getNetworkState = new WeakMap(), _IncomingTransactionHelper_isEnabled = new WeakMap(), _IncomingTransactionHelper_isRunning = new WeakMap(), _IncomingTransactionHelper_mutex = new WeakMap(), _IncomingTransactionHelper_onLatestBlock = new WeakMap(), _IncomingTransactionHelper_remoteTransactionSource = new WeakMap(), _IncomingTransactionHelper_transactionLimit = new WeakMap(), _IncomingTransactionHelper_updateTransactions = new WeakMap(), _IncomingTransactionHelper_instances = new WeakSet(), _IncomingTransactionHelper_sortTransactionsByTime = function _IncomingTransactionHelper_sortTransactionsByTime(transactions) {
++_IncomingTransactionHelper_blockTracker = new WeakMap(), _IncomingTransactionHelper_getCurrentAccount = new WeakMap(), _IncomingTransactionHelper_getLastFetchedBlockNumbers = new WeakMap(), _IncomingTransactionHelper_getLocalTransactions = new WeakMap(), _IncomingTransactionHelper_getNetworkState = new WeakMap(), _IncomingTransactionHelper_isEnabled = new WeakMap(), _IncomingTransactionHelper_isRunning = new WeakMap(), _IncomingTransactionHelper_mutex = new WeakMap(), _IncomingTransactionHelper_onLatestBlock = new WeakMap(), _IncomingTransactionHelper_queryEntireHistory = new WeakMap(), _IncomingTransactionHelper_remoteTransactionSource = new WeakMap(), _IncomingTransactionHelper_transactionLimit = new WeakMap(), _IncomingTransactionHelper_updateTransactions = new WeakMap(), _IncomingTransactionHelper_instances = new WeakSet(), _IncomingTransactionHelper_sortTransactionsByTime = function _IncomingTransactionHelper_sortTransactionsByTime(transactions) {
 +    transactions.sort((a, b) => (a.time < b.time ? -1 : 1));
 +}, _IncomingTransactionHelper_getNewTransactions = function _IncomingTransactionHelper_getNewTransactions(remoteTxs, localTxs) {
 +    return remoteTxs.filter((tx) => !localTxs.some(({ transactionHash }) => transactionHash === tx.transactionHash));
@@ -319,15 +356,16 @@ index 0000000..8da9369
 +        __classPrivateFieldGet(this, _IncomingTransactionHelper_instances, "m", _IncomingTransactionHelper_isTransactionOutdated).call(this, remoteTx, localTx)));
 +}, _IncomingTransactionHelper_isTransactionOutdated = function _IncomingTransactionHelper_isTransactionOutdated(remoteTx, localTx) {
 +    return UPDATE_CHECKS.some((getValue) => getValue(remoteTx) !== getValue(localTx));
-+}, _IncomingTransactionHelper_getFromBlock = function _IncomingTransactionHelper_getFromBlock(_latestBlockNumber) {
-+    const lastFetchedKey = __classPrivateFieldGet(this, _IncomingTransactionHelper_instances, "m", _IncomingTransactionHelper_getBlockNumberKey).call(this);
++}, _IncomingTransactionHelper_getFromBlock = function _IncomingTransactionHelper_getFromBlock(latestBlockNumber, additionalKeys) {
++    const lastFetchedKey = __classPrivateFieldGet(this, _IncomingTransactionHelper_instances, "m", _IncomingTransactionHelper_getBlockNumberKey).call(this, additionalKeys);
 +    const lastFetchedBlockNumber = __classPrivateFieldGet(this, _IncomingTransactionHelper_getLastFetchedBlockNumbers, "f").call(this)[lastFetchedKey];
 +    if (lastFetchedBlockNumber) {
 +        return lastFetchedBlockNumber + 1;
 +    }
-+    // Query entire transaction history
-+    return undefined;
-+}, _IncomingTransactionHelper_updateLastFetchedBlockNumber = function _IncomingTransactionHelper_updateLastFetchedBlockNumber(remoteTxs) {
++    return __classPrivateFieldGet(this, _IncomingTransactionHelper_queryEntireHistory, "f")
++        ? undefined
++        : latestBlockNumber - RECENT_HISTORY_BLOCK_RANGE;
++}, _IncomingTransactionHelper_updateLastFetchedBlockNumber = function _IncomingTransactionHelper_updateLastFetchedBlockNumber(remoteTxs, additionalKeys) {
 +    let lastFetchedBlockNumber = -1;
 +    for (const tx of remoteTxs) {
 +        const currentBlockNumberValue = tx.blockNumber
@@ -338,10 +376,10 @@ index 0000000..8da9369
 +    if (lastFetchedBlockNumber === -1) {
 +        return;
 +    }
-+    const lastFetchedKey = __classPrivateFieldGet(this, _IncomingTransactionHelper_instances, "m", _IncomingTransactionHelper_getBlockNumberKey).call(this);
++    const lastFetchedKey = __classPrivateFieldGet(this, _IncomingTransactionHelper_instances, "m", _IncomingTransactionHelper_getBlockNumberKey).call(this, additionalKeys);
 +    const lastFetchedBlockNumbers = __classPrivateFieldGet(this, _IncomingTransactionHelper_getLastFetchedBlockNumbers, "f").call(this);
 +    const previousValue = lastFetchedBlockNumbers[lastFetchedKey];
-+    if (previousValue === lastFetchedBlockNumber) {
++    if (previousValue >= lastFetchedBlockNumber) {
 +        return;
 +    }
 +    lastFetchedBlockNumbers[lastFetchedKey] = lastFetchedBlockNumber;
@@ -349,8 +387,10 @@ index 0000000..8da9369
 +        lastFetchedBlockNumbers,
 +        blockNumber: lastFetchedBlockNumber,
 +    });
-+}, _IncomingTransactionHelper_getBlockNumberKey = function _IncomingTransactionHelper_getBlockNumberKey() {
-+    return `${__classPrivateFieldGet(this, _IncomingTransactionHelper_instances, "m", _IncomingTransactionHelper_getCurrentChainId).call(this)}#${__classPrivateFieldGet(this, _IncomingTransactionHelper_getCurrentAccount, "f").call(this).toLowerCase()}`;
++}, _IncomingTransactionHelper_getBlockNumberKey = function _IncomingTransactionHelper_getBlockNumberKey(additionalKeys) {
++    const currentChainId = __classPrivateFieldGet(this, _IncomingTransactionHelper_instances, "m", _IncomingTransactionHelper_getCurrentChainId).call(this);
++    const currentAccount = __classPrivateFieldGet(this, _IncomingTransactionHelper_getCurrentAccount, "f").call(this).toLowerCase();
++    return [currentChainId, currentAccount, ...additionalKeys].join('#');
 +}, _IncomingTransactionHelper_canStart = function _IncomingTransactionHelper_canStart() {
 +    const isEnabled = __classPrivateFieldGet(this, _IncomingTransactionHelper_isEnabled, "f").call(this);
 +    const currentChainId = __classPrivateFieldGet(this, _IncomingTransactionHelper_instances, "m", _IncomingTransactionHelper_getCurrentChainId).call(this);
@@ -366,7 +406,7 @@ index 0000000..8da9369
 +//# sourceMappingURL=IncomingTransactionHelper.js.map
 \ No newline at end of file
 diff --git a/node_modules/@metamask/transaction-controller/dist/TransactionController.d.ts b/node_modules/@metamask/transaction-controller/dist/TransactionController.d.ts
-index e242aed..7efd89a 100644
+index e242aed..76e9ee6 100644
 --- a/node_modules/@metamask/transaction-controller/dist/TransactionController.d.ts
 +++ b/node_modules/@metamask/transaction-controller/dist/TransactionController.d.ts
 @@ -2,8 +2,10 @@
@@ -595,9 +635,9 @@ index e242aed..7efd89a 100644
       * @param options.getNetworkState - Gets the state of the network controller.
 +     * @param options.getSelectedAddress - Gets the address of the currently selected account.
 +     * @param options.incomingTransactions - Configuration options for incoming transaction support.
-+     * @param options.incomingTransactions.apiKey - An optional API key to use when fetching remote transaction data.
 +     * @param options.incomingTransactions.includeTokenTransfers - Whether or not to include ERC20 token transfers.
 +     * @param options.incomingTransactions.isEnabled - Whether or not incoming transaction retrieval is enabled.
++     * @param options.incomingTransactions.queryEntireHistory - Whether to initially query the entire transaction history or only recent blocks.
 +     * @param options.incomingTransactions.updateTransactions - Whether or not to update local transactions using remote transaction data.
 +     * @param options.messenger - The controller messenger.
       * @param options.onNetworkStateChange - Allows subscribing to network controller state changes.
@@ -612,9 +652,9 @@ index e242aed..7efd89a 100644
          getNetworkState: () => NetworkState;
 +        getSelectedAddress: () => string;
 +        incomingTransactions: {
-+            apiKey?: string;
 +            includeTokenTransfers?: boolean;
 +            isEnabled?: () => boolean;
++            queryEntireHistory?: boolean;
 +            updateTransactions?: boolean;
 +        };
 +        messenger: TransactionControllerMessenger;
@@ -780,7 +820,7 @@ index 07781b0..0000000
 -{"version":3,"file":"TransactionController.d.ts","sourceRoot":"","sources":["../src/TransactionController.ts"],"names":[],"mappings":"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"}
 \ No newline at end of file
 diff --git a/node_modules/@metamask/transaction-controller/dist/TransactionController.js b/node_modules/@metamask/transaction-controller/dist/TransactionController.js
-index 814a899..e924646 100644
+index 814a899..b14857a 100644
 --- a/node_modules/@metamask/transaction-controller/dist/TransactionController.js
 +++ b/node_modules/@metamask/transaction-controller/dist/TransactionController.js
 @@ -12,7 +12,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
@@ -838,9 +878,9 @@ index 814a899..e924646 100644
       * @param options.getNetworkState - Gets the state of the network controller.
 +     * @param options.getSelectedAddress - Gets the address of the currently selected account.
 +     * @param options.incomingTransactions - Configuration options for incoming transaction support.
-+     * @param options.incomingTransactions.apiKey - An optional API key to use when fetching remote transaction data.
 +     * @param options.incomingTransactions.includeTokenTransfers - Whether or not to include ERC20 token transfers.
 +     * @param options.incomingTransactions.isEnabled - Whether or not incoming transaction retrieval is enabled.
++     * @param options.incomingTransactions.queryEntireHistory - Whether to initially query the entire transaction history or only recent blocks.
 +     * @param options.incomingTransactions.updateTransactions - Whether or not to update local transactions using remote transaction data.
 +     * @param options.messenger - The controller messenger.
       * @param options.onNetworkStateChange - Allows subscribing to network controller state changes.
@@ -911,8 +951,8 @@ index 814a899..e924646 100644
 +            getLocalTransactions: () => this.state.transactions,
 +            getNetworkState,
 +            isEnabled: incomingTransactions.isEnabled,
++            queryEntireHistory: incomingTransactions.queryEntireHistory,
 +            remoteTransactionSource: new EtherscanRemoteTransactionSource_1.EtherscanRemoteTransactionSource({
-+                apiKey: incomingTransactions.apiKey,
 +                includeTokenTransfers: incomingTransactions.includeTokenTransfers,
 +            }),
 +            transactionLimit: this.config.txHistoryLimit,
@@ -1874,10 +1914,10 @@ index 0000000..a19d2ca
 \ No newline at end of file
 diff --git a/node_modules/@metamask/transaction-controller/dist/etherscan.d.ts b/node_modules/@metamask/transaction-controller/dist/etherscan.d.ts
 new file mode 100644
-index 0000000..a49d68f
+index 0000000..936417b
 --- /dev/null
 +++ b/node_modules/@metamask/transaction-controller/dist/etherscan.d.ts
-@@ -0,0 +1,64 @@
+@@ -0,0 +1,63 @@
 +export interface EtherscanTransactionMetaBase {
 +    blockNumber: string;
 +    blockHash: string;
@@ -1908,11 +1948,12 @@ index 0000000..a49d68f
 +    tokenSymbol: string;
 +}
 +export interface EtherscanTransactionResponse<T extends EtherscanTransactionMetaBase> {
-+    result: T[];
++    status: '0' | '1';
++    message?: string;
++    result: string | T[];
 +}
 +export interface EtherscanTransactionRequest {
 +    address: string;
-+    apiKey?: string;
 +    chainId: string;
 +    fromBlock?: number;
 +    limit?: number;
@@ -1922,33 +1963,31 @@ index 0000000..a49d68f
 + *
 + * @param request - Configuration required to fetch transactions.
 + * @param request.address - Address to retrieve transactions for.
-+ * @param request.apiKey - Etherscan API key.
 + * @param request.chainId - Current chain ID used to determine subdomain and domain.
 + * @param request.fromBlock - Block number to start fetching transactions from.
 + * @param request.limit - Number of transactions to retrieve.
 + * @returns An Etherscan response object containing the request status and an array of token transaction data.
 + */
-+export declare function fetchEtherscanTransactions({ address, apiKey, chainId, fromBlock, limit, }: EtherscanTransactionRequest): Promise<EtherscanTransactionResponse<EtherscanTransactionMeta>>;
++export declare function fetchEtherscanTransactions({ address, chainId, fromBlock, limit, }: EtherscanTransactionRequest): Promise<EtherscanTransactionResponse<EtherscanTransactionMeta>>;
 +/**
 + * Retrieves token transaction data from Etherscan.
 + *
 + * @param request - Configuration required to fetch token transactions.
 + * @param request.address - Address to retrieve token transactions for.
-+ * @param request.apiKey - Etherscan API key.
 + * @param request.chainId - Current chain ID used to determine subdomain and domain.
 + * @param request.fromBlock - Block number to start fetching token transactions from.
 + * @param request.limit - Number of token transactions to retrieve.
 + * @returns An Etherscan response object containing the request status and an array of token transaction data.
 + */
-+export declare function fetchEtherscanTokenTransactions({ address, apiKey, chainId, fromBlock, limit, }: EtherscanTransactionRequest): Promise<EtherscanTransactionResponse<EtherscanTokenTransactionMeta>>;
++export declare function fetchEtherscanTokenTransactions({ address, chainId, fromBlock, limit, }: EtherscanTransactionRequest): Promise<EtherscanTransactionResponse<EtherscanTokenTransactionMeta>>;
 +//# sourceMappingURL=etherscan.d.ts.map
 \ No newline at end of file
 diff --git a/node_modules/@metamask/transaction-controller/dist/etherscan.js b/node_modules/@metamask/transaction-controller/dist/etherscan.js
 new file mode 100644
-index 0000000..0757847
+index 0000000..081076a
 --- /dev/null
 +++ b/node_modules/@metamask/transaction-controller/dist/etherscan.js
-@@ -0,0 +1,118 @@
+@@ -0,0 +1,109 @@
 +"use strict";
 +var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, generator) {
 +    function adopt(value) { return value instanceof P ? value : new P(function (resolve) { resolve(value); }); }
@@ -1963,22 +2002,21 @@ index 0000000..0757847
 +exports.fetchEtherscanTokenTransactions = exports.fetchEtherscanTransactions = void 0;
 +const controller_utils_1 = require("@metamask/controller-utils");
 +const constants_1 = require("./constants");
++const logger_1 = require("./logger");
 +/**
 + * Retrieves transaction data from Etherscan.
 + *
 + * @param request - Configuration required to fetch transactions.
 + * @param request.address - Address to retrieve transactions for.
-+ * @param request.apiKey - Etherscan API key.
 + * @param request.chainId - Current chain ID used to determine subdomain and domain.
 + * @param request.fromBlock - Block number to start fetching transactions from.
 + * @param request.limit - Number of transactions to retrieve.
 + * @returns An Etherscan response object containing the request status and an array of token transaction data.
 + */
-+function fetchEtherscanTransactions({ address, apiKey, chainId, fromBlock, limit, }) {
++function fetchEtherscanTransactions({ address, chainId, fromBlock, limit, }) {
 +    return __awaiter(this, void 0, void 0, function* () {
 +        return yield fetchTransactions('txlist', {
 +            address,
-+            apiKey,
 +            chainId,
 +            fromBlock,
 +            limit,
@@ -1991,17 +2029,15 @@ index 0000000..0757847
 + *
 + * @param request - Configuration required to fetch token transactions.
 + * @param request.address - Address to retrieve token transactions for.
-+ * @param request.apiKey - Etherscan API key.
 + * @param request.chainId - Current chain ID used to determine subdomain and domain.
 + * @param request.fromBlock - Block number to start fetching token transactions from.
 + * @param request.limit - Number of token transactions to retrieve.
 + * @returns An Etherscan response object containing the request status and an array of token transaction data.
 + */
-+function fetchEtherscanTokenTransactions({ address, apiKey, chainId, fromBlock, limit, }) {
++function fetchEtherscanTokenTransactions({ address, chainId, fromBlock, limit, }) {
 +    return __awaiter(this, void 0, void 0, function* () {
 +        return yield fetchTransactions('tokentx', {
 +            address,
-+            apiKey,
 +            chainId,
 +            fromBlock,
 +            limit,
@@ -2015,30 +2051,24 @@ index 0000000..0757847
 + * @param action - The Etherscan endpoint to use.
 + * @param options - Options bag.
 + * @param options.address - Address to retrieve transactions for.
-+ * @param options.apiKey - Etherscan API key.
 + * @param options.chainId - Current chain ID used to determine subdomain and domain.
 + * @param options.fromBlock - Block number to start fetching transactions from.
 + * @param options.limit - Number of transactions to retrieve.
 + * @returns An object containing the request status and an array of transaction data.
 + */
-+function fetchTransactions(action, { address, apiKey, chainId, limit, }) {
++function fetchTransactions(action, { address, chainId, fromBlock, limit, }) {
 +    return __awaiter(this, void 0, void 0, function* () {
 +        const urlParams = {
 +            module: 'account',
 +            address,
-+            // Not previously used in mobile due to bug, temporarily disabled to match existing behaviour.
-+            startBlock: undefined,
-+            apikey: apiKey,
++            startBlock: fromBlock === null || fromBlock === void 0 ? void 0 : fromBlock.toString(),
 +            offset: limit === null || limit === void 0 ? void 0 : limit.toString(),
 +            sort: 'desc',
 +        };
 +        const etherscanTxUrl = getEtherscanApiUrl(chainId, Object.assign(Object.assign({}, urlParams), { action }));
++        (0, logger_1.incomingTransactionsLogger)('Sending Etherscan request', etherscanTxUrl);
 +        const response = (yield (0, controller_utils_1.handleFetch)(etherscanTxUrl));
-+        let result = response.result;
-+        if (response.status === '0') {
-+            result = [];
-+        }
-+        return { result };
++        return response;
 +    });
 +}
 +/**
@@ -2104,6 +2134,34 @@ index a4460fa..0000000
 +++ /dev/null
 @@ -1 +0,0 @@
 -{"version":3,"file":"index.js","sourceRoot":"","sources":["../src/index.ts"],"names":[],"mappings":";;;;;;;;;;;;;;;;;AAAA,0DAAwC;AACxC,iCAA+C;AAAtC,6GAAA,oBAAoB,OAAA","sourcesContent":["export * from './TransactionController';\nexport { isEIP1559Transaction } from './utils';\n"]}
+\ No newline at end of file
+diff --git a/node_modules/@metamask/transaction-controller/dist/logger.d.ts b/node_modules/@metamask/transaction-controller/dist/logger.d.ts
+new file mode 100644
+index 0000000..43ad63f
+--- /dev/null
++++ b/node_modules/@metamask/transaction-controller/dist/logger.d.ts
+@@ -0,0 +1,6 @@
++/// <reference types="debug" />
++import { createModuleLogger } from '@metamask/utils';
++export declare const projectLogger: import("debug").Debugger;
++export declare const incomingTransactionsLogger: import("debug").Debugger;
++export { createModuleLogger };
++//# sourceMappingURL=logger.d.ts.map
+\ No newline at end of file
+diff --git a/node_modules/@metamask/transaction-controller/dist/logger.js b/node_modules/@metamask/transaction-controller/dist/logger.js
+new file mode 100644
+index 0000000..69ce8ec
+--- /dev/null
++++ b/node_modules/@metamask/transaction-controller/dist/logger.js
+@@ -0,0 +1,8 @@
++"use strict";
++Object.defineProperty(exports, "__esModule", { value: true });
++exports.createModuleLogger = exports.incomingTransactionsLogger = exports.projectLogger = void 0;
++const utils_1 = require("@metamask/utils");
++Object.defineProperty(exports, "createModuleLogger", { enumerable: true, get: function () { return utils_1.createModuleLogger; } });
++exports.projectLogger = (0, utils_1.createProjectLogger)('transaction-controller');
++exports.incomingTransactionsLogger = (0, utils_1.createModuleLogger)(exports.projectLogger, 'incoming-transactions');
++//# sourceMappingURL=logger.js.map
 \ No newline at end of file
 diff --git a/node_modules/@metamask/transaction-controller/dist/mocks/txsMock.d.ts b/node_modules/@metamask/transaction-controller/dist/mocks/txsMock.d.ts
 deleted file mode 100644
@@ -2716,10 +2774,10 @@ index f038698..0000000
 \ No newline at end of file
 diff --git a/node_modules/@metamask/transaction-controller/dist/types.d.ts b/node_modules/@metamask/transaction-controller/dist/types.d.ts
 new file mode 100644
-index 0000000..b0510c1
+index 0000000..b949e93
 --- /dev/null
 +++ b/node_modules/@metamask/transaction-controller/dist/types.d.ts
-@@ -0,0 +1,139 @@
+@@ -0,0 +1,148 @@
 +/**
 + * @type TransactionMeta
 + *
@@ -2829,10 +2887,6 @@ index 0000000..b0510c1
 +     */
 +    address: string;
 +    /**
-+     * API key if required by the remote source.
-+     */
-+    apiKey?: string;
-+    /**
 +     * The chainId of the current network.
 +     */
 +    currentChainId: string;
@@ -2854,7 +2908,20 @@ index 0000000..b0510c1
 + * Used by the IncomingTransactionHelper to retrieve remote transaction data.
 + */
 +export interface RemoteTransactionSource {
++    /**
++     * @param chainId - The chainId of the current network.
++     * @param networkId - The networkId of the current network.
++     * @returns Whether the remote transaction source supports the specified network.
++     */
 +    isSupportedNetwork: (chainId: string, networkId: string) => boolean;
++    /**
++     * @returns An array of additional keys to use when caching the last fetched block number.
++     */
++    getLastBlockVariations?: () => string[];
++    /**
++     * @param request - A request object containing data such as the address and chain ID.
++     * @returns An array of transaction metadata for the retrieved transactions.
++     */
 +    fetchTransactions: (request: RemoteTransactionSourceRequest) => Promise<TransactionMeta[]>;
 +}
 +export {};
