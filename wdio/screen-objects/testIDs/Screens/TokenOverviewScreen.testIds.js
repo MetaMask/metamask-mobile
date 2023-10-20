@@ -9,3 +9,5 @@ export const TOKEN_OVERVIEW_BUY_BUTTON = 'token-buy-button';
 export const TOKEN_OVERVIEW_SWAP_BUTTON = 'token-swap-button';
 export const TOKEN_OVERVIEW_TXN_SCREEN = 'txn-screen';
 
+export const TOKEN_OVERVIEW_BALANCE_WARNING = 'token-overview-balance-warning';
+
