@@ -613,10 +613,7 @@ export class WC2Manager {
     const keyringController = (
       Engine.context as { KeyringController: KeyringController }
     ).KeyringController;
-    await waitForKeychainUnlocked({
-      keyringController,
-      context: 'WalletConnectV2::onSessionRequest',
-    });
+    await waitForKeychainUnlocked({ keyringController });
 
     try {
       const session = this.sessions[requestEvent.topic];
