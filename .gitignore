@@ -62,6 +62,7 @@ buck-out/
 tests
 
 # app-specific
+/scripts/inpage-bridge/dist
 /android/app/src/main/assets/InpageBridgeWeb3.js
 /app/core/InpageBridgeWeb3.js
 

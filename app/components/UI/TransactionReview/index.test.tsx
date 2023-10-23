@@ -130,6 +130,7 @@ describe('TransactionReview', () => {
     const securityAlertResponse = {
       resultType: 'Malicious',
       reason: 'blur_farming',
+      providerRequestsCount: {},
     };
     const trackEventSypy = jest
       .spyOn(analyticsV2, 'trackEvent')
@@ -140,9 +141,10 @@ describe('TransactionReview', () => {
 
     const blockaidMetricsParamsSpy = jest
       .spyOn(BlockaidUtils, 'getBlockaidMetricsParams')
-      .mockImplementation(({ resultType, reason }) => ({
+      .mockImplementation(({ resultType, reason, providerRequestsCount }) => ({
         security_alert_response: resultType,
         security_alert_reason: reason,
+        security_alert_provider_requests_count: providerRequestsCount,
       }));
     const { queryByText, queryByTestId, getByText } = renderWithProvider(
       <TransactionReview
@@ -199,7 +201,7 @@ describe('TransactionReview', () => {
     expect(confirmButton.props.disabled).not.toBe(true);
   });
 
-  it('should have confirm button disabled if from account has no balance', async () => {
+  it('should not have confirm button disabled if from account has no balance and also if there is no error', async () => {
     const mockNewState = {
       ...mockState,
       engine: {
@@ -225,6 +227,23 @@ describe('TransactionReview', () => {
       <TransactionReview
         EIP1559GasData={{}}
         generateTransform={generateTransform}
+      />,
+      { state: mockState },
+    );
+    const confirmButton = getByRole('button', { name: 'Confirm' });
+    expect(confirmButton.props.disabled).toBe(false);
+  });
+
+  it('should have confirm button disabled if error is defined', async () => {
+    jest.mock('react-redux', () => ({
+      ...jest.requireActual('react-redux'),
+      useSelector: (fn: any) => fn(mockState),
+    }));
+    const { getByRole } = renderWithProvider(
+      <TransactionReview
+        EIP1559GasData={{}}
+        generateTransform={generateTransform}
+        error="You need 1 more ETH to complete the transaction"
       />,
       { state: mockState },
     );

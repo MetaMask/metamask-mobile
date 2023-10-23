@@ -109,7 +109,6 @@ checkParameters(){
 
 prebuild(){
 	# Import provider
-	cp node_modules/@metamask/mobile-provider/dist/index.js app/core/InpageBridgeWeb3.js
 	yarn --ignore-engines build:static-logos
 
 	# Load JS specific env variables
