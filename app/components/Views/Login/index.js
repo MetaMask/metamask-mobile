@@ -3,7 +3,6 @@ import PropTypes from 'prop-types';
 import {
   Alert,
   ActivityIndicator,
-  Text,
   View,
   SafeAreaView,
   StyleSheet,
@@ -12,6 +11,9 @@ import {
   BackHandler,
   Platform,
 } from 'react-native';
+import Text, {
+  TextVariant,
+} from '../../../component-library/components/Texts/Text';
 import AsyncStorage from '../../../store/async-storage-wrapper';
 import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view';
 import Button from 'react-native-button';
@@ -94,6 +96,7 @@ const createStyles = (colors) =>
     },
     title: {
       fontSize: Device.isAndroid() ? 30 : 35,
+      lineHeight: Device.isAndroid() ? 35 : 40,
       marginTop: 20,
       marginBottom: 20,
       color: colors.text.default,
@@ -546,7 +549,9 @@ class Login extends PureComponent {
                 {strings('login.title')}
               </Text>
               <View style={styles.field}>
-                <Text style={styles.label}>{strings('login.password')}</Text>
+                <Text textVariant={TextVariant.BodyMD} style={styles.label}>
+                  {strings('login.password')}
+                </Text>
                 <OutlinedTextField
                   style={styles.input}
                   placeholder={strings('login.password')}
@@ -576,7 +581,11 @@ class Login extends PureComponent {
               {this.renderSwitch()}
 
               {!!this.state.error && (
-                <Text style={styles.errorMsg} testID={LOGIN_PASSWORD_ERROR}>
+                <Text
+                  textVariant={TextVariant.BodyMD}
+                  style={styles.errorMsg}
+                  testID={LOGIN_PASSWORD_ERROR}
+                >
                   {this.state.error}
                 </Text>
               )}
@@ -598,7 +607,9 @@ class Login extends PureComponent {
               </View>
 
               <View style={styles.footer}>
-                <Text style={styles.cant}>{strings('login.go_back')}</Text>
+                <Text textVariant={TextVariant.BodyMD} style={styles.cant}>
+                  {strings('login.go_back')}
+                </Text>
                 <Button
                   style={styles.goBack}
                   onPress={this.toggleWarningModal}
