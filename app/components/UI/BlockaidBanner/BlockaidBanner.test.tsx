@@ -119,7 +119,7 @@ describe('BlockaidBanner', () => {
     const wrapper = render(
       <BlockaidBanner
         securityAlertResponse={{
-          resultType: ResultType.Malicious,
+          result_type: ResultType.Malicious,
           reason: Reason.approvalFarming,
           features: mockFeatures,
         }}

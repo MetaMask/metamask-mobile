@@ -812,7 +812,7 @@ exports[`BlockaidBanner should render something does not look right with contact
         "Operator is untrusted according to previous activity",
       ],
       "reason": "approval_farming",
-      "resultType": "Malicious",
+      "result_type": "Malicious",
     }
   }
   style={
