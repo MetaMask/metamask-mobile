@@ -75,7 +75,7 @@
     "stacktrace:ios": "stack-beautifier sourcemaps/ios/index.js.map -t sourcemaps/trace.txt",
     "update-changelog": "./scripts/auto-changelog.sh",
     "prestorybook": "rnstl",
-    "deduplicate": "yarn yarn-deduplicate",
+    "deduplicate": "yarn yarn-deduplicate && yarn install",
     "create-release": "./scripts/set-versions.sh && yarn update-changelog",
     "add-release-label-to-pr-and-linked-issues": "ts-node ./.github/scripts/add-release-label-to-pr-and-linked-issues.ts",
     "check-e2e-smoke-trigger": "ts-node ./.github/scripts/check-bitrise-e2e-smoke/check-e2e-smoke-trigger.ts",
