@@ -2,7 +2,9 @@ import React, { useState } from 'react';
 import { View } from 'react-native';
 import ButtonLink from '../../../../component-library/components/Buttons/Button/variants/ButtonLink';
 import { useStyles } from '../../../../component-library/hooks';
-import Text from '../../../Base/Text';
+import Text, {
+  TextVariant,
+} from '../../../../component-library/components/Texts/Text';
 import styleSheet from './ContentDisplay.styles';
 import { strings } from '../../../../../locales/i18n';
 
@@ -28,13 +30,16 @@ const ContentDisplay = ({
   return (
     <View>
       <Text
+        variant={TextVariant.BodyMD}
         numberOfLines={isExpanded ? undefined : numberOfLines}
         style={styles.content}
       >
         {content}
       </Text>
       {disclaimer && isExpanded && (
-        <Text style={styles.disclaimer}>{disclaimer}</Text>
+        <Text variant={TextVariant.BodyMD} style={styles.disclaimer}>
+          {disclaimer}
+        </Text>
       )}
       <ButtonLink
         onPress={toggleContent}
