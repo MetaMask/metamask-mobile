@@ -14,6 +14,11 @@ export interface iAccountActions extends Action {
   reloadAccounts: boolean;
 }
 
+/**
+ * setReloadAccounts action creator
+ * @param {boolean} reloadAccounts: true to reload accounts, false otherwise
+ * @returns {iAccountActions} - the action object to set reloadAccounts
+ */
 export function setReloadAccounts(reloadAccounts: boolean): iAccountActions {
   return {
     type: AccountsActionType.SET_RELOAD_ACCOUNTS,

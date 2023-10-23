@@ -60,7 +60,7 @@ const AccountSelector = ({ route }: AccountSelectorProps) => {
     if (reloadAccounts) {
       dispatch(setReloadAccounts(false));
     }
-  }, [reloadAccounts]);
+  }, [dispatch, reloadAccounts]);
 
   const _onSelectAccount = useCallback(
     (address: string) => {
