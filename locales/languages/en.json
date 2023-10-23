@@ -1906,7 +1906,9 @@
     "onboarding": {
       "what_to_expect": "What to Expect",
       "quotes": "Our buy crypto feature aggregates quotes from integrated vendors, providing quotes from those sources to get crypto directly into your wallet with no waiting period.",
+      "quotes_sell": "Now you can choose from more payment methods, tokens, and networks.",
       "benefits": "Fewer gas fees to pay, and numerous networks, tokens, and payment methods supported",
+      "benefits_sell": "Fewer gas fees to pay, and numerous networks, tokens, and payment methods supported",
       "get_started": "Get started"
     },
     "payment_method": {
