@@ -34,7 +34,7 @@ index 0000000..d7d701f
 \ No newline at end of file
 diff --git a/node_modules/@metamask/transaction-controller/dist/EtherscanRemoteTransactionSource.js b/node_modules/@metamask/transaction-controller/dist/EtherscanRemoteTransactionSource.js
 new file mode 100644
-index 0000000..983e93a
+index 0000000..a67d2a2
 --- /dev/null
 +++ b/node_modules/@metamask/transaction-controller/dist/EtherscanRemoteTransactionSource.js
 @@ -0,0 +1,124 @@
@@ -157,7 +157,7 @@ index 0000000..983e93a
 +            to: txMeta.to,
 +            value: (0, controller_utils_1.BNToHex)(new ethereumjs_util_1.BN(txMeta.value)),
 +        },
-+        transactionHash: txMeta.hash,
++        hash: txMeta.hash,
 +        verifiedOnBlockchain: false,
 +    };
 +};
@@ -196,7 +196,7 @@ index 0000000..0008411
 \ No newline at end of file
 diff --git a/node_modules/@metamask/transaction-controller/dist/IncomingTransactionHelper.js b/node_modules/@metamask/transaction-controller/dist/IncomingTransactionHelper.js
 new file mode 100644
-index 0000000..b80f25b
+index 0000000..b5dc6c0
 --- /dev/null
 +++ b/node_modules/@metamask/transaction-controller/dist/IncomingTransactionHelper.js
 @@ -0,0 +1,204 @@
@@ -350,9 +350,9 @@ index 0000000..b80f25b
 +_IncomingTransactionHelper_blockTracker = new WeakMap(), _IncomingTransactionHelper_getCurrentAccount = new WeakMap(), _IncomingTransactionHelper_getLastFetchedBlockNumbers = new WeakMap(), _IncomingTransactionHelper_getLocalTransactions = new WeakMap(), _IncomingTransactionHelper_getNetworkState = new WeakMap(), _IncomingTransactionHelper_isEnabled = new WeakMap(), _IncomingTransactionHelper_isRunning = new WeakMap(), _IncomingTransactionHelper_mutex = new WeakMap(), _IncomingTransactionHelper_onLatestBlock = new WeakMap(), _IncomingTransactionHelper_queryEntireHistory = new WeakMap(), _IncomingTransactionHelper_remoteTransactionSource = new WeakMap(), _IncomingTransactionHelper_transactionLimit = new WeakMap(), _IncomingTransactionHelper_updateTransactions = new WeakMap(), _IncomingTransactionHelper_instances = new WeakSet(), _IncomingTransactionHelper_sortTransactionsByTime = function _IncomingTransactionHelper_sortTransactionsByTime(transactions) {
 +    transactions.sort((a, b) => (a.time < b.time ? -1 : 1));
 +}, _IncomingTransactionHelper_getNewTransactions = function _IncomingTransactionHelper_getNewTransactions(remoteTxs, localTxs) {
-+    return remoteTxs.filter((tx) => !localTxs.some(({ transactionHash }) => transactionHash === tx.transactionHash));
++    return remoteTxs.filter((tx) => !localTxs.some(({ hash }) => hash === tx.hash));
 +}, _IncomingTransactionHelper_getUpdatedTransactions = function _IncomingTransactionHelper_getUpdatedTransactions(remoteTxs, localTxs) {
-+    return remoteTxs.filter((remoteTx) => localTxs.some((localTx) => remoteTx.transactionHash === localTx.transactionHash &&
++    return remoteTxs.filter((remoteTx) => localTxs.some((localTx) => remoteTx.hash === localTx.hash &&
 +        __classPrivateFieldGet(this, _IncomingTransactionHelper_instances, "m", _IncomingTransactionHelper_isTransactionOutdated).call(this, remoteTx, localTx)));
 +}, _IncomingTransactionHelper_isTransactionOutdated = function _IncomingTransactionHelper_isTransactionOutdated(remoteTx, localTx) {
 +    return UPDATE_CHECKS.some((getValue) => getValue(remoteTx) !== getValue(localTx));
@@ -820,7 +820,7 @@ index 07781b0..0000000
 -{"version":3,"file":"TransactionController.d.ts","sourceRoot":"","sources":["../src/TransactionController.ts"],"names":[],"mappings":"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"}
 \ No newline at end of file
 diff --git a/node_modules/@metamask/transaction-controller/dist/TransactionController.js b/node_modules/@metamask/transaction-controller/dist/TransactionController.js
-index 814a899..b14857a 100644
+index 814a899..b1792bf 100644
 --- a/node_modules/@metamask/transaction-controller/dist/TransactionController.js
 +++ b/node_modules/@metamask/transaction-controller/dist/TransactionController.js
 @@ -12,7 +12,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
@@ -1215,19 +1215,22 @@ index 814a899..b14857a 100644
              this.hub.emit(`${transactionMeta.id}:finished`, transactionMeta);
          });
      }
-@@ -522,9 +372,9 @@ class TransactionController extends base_controller_1.BaseController {
+@@ -522,11 +372,9 @@ class TransactionController extends base_controller_1.BaseController {
                  ? Object.assign(Object.assign({}, transactionMeta.transaction), { gasLimit: transactionMeta.transaction.gas, maxFeePerGas: newMaxFeePerGas, maxPriorityFeePerGas: newMaxPriorityFeePerGas, type: 2 }) : Object.assign(Object.assign({}, transactionMeta.transaction), { gasLimit: transactionMeta.transaction.gas, gasPrice: newGasPrice });
              const unsignedEthTx = this.prepareUnsignedEthTx(txParams);
              const signedTx = yield this.sign(unsignedEthTx, transactionMeta.transaction.from);
 -            const rawTransaction = (0, ethereumjs_util_1.bufferToHex)(signedTx.serialize());
-+            const rawTx = (0, ethereumjs_util_1.bufferToHex)(signedTx.serialize());
-             const transactionHash = yield (0, controller_utils_1.query)(this.ethQuery, 'sendRawTransaction', [
+-            const transactionHash = yield (0, controller_utils_1.query)(this.ethQuery, 'sendRawTransaction', [
 -                rawTransaction,
-+                rawTx,
-             ]);
-             const baseTransactionMeta = Object.assign(Object.assign({}, transactionMeta), { id: (0, uuid_1.v1)(), time: Date.now(), transactionHash });
+-            ]);
+-            const baseTransactionMeta = Object.assign(Object.assign({}, transactionMeta), { id: (0, uuid_1.v1)(), time: Date.now(), transactionHash });
++            const rawTx = (0, ethereumjs_util_1.bufferToHex)(signedTx.serialize());
++            const hash = yield (0, controller_utils_1.query)(this.ethQuery, 'sendRawTransaction', [rawTx]);
++            const baseTransactionMeta = Object.assign(Object.assign({}, transactionMeta), { id: (0, uuid_1.v1)(), time: Date.now(), hash });
              const newTransactionMeta = newMaxFeePerGas && newMaxPriorityFeePerGas
-@@ -673,70 +523,6 @@ class TransactionController extends base_controller_1.BaseController {
+                 ? Object.assign(Object.assign({}, baseTransactionMeta), { transaction: Object.assign(Object.assign({}, transactionMeta.transaction), { maxFeePerGas: newMaxFeePerGas, maxPriorityFeePerGas: newMaxPriorityFeePerGas }) }) : Object.assign(Object.assign({}, baseTransactionMeta), { transaction: Object.assign(Object.assign({}, transactionMeta.transaction), { gasPrice: newGasPrice }) });
+             transactions.push(newTransactionMeta);
+@@ -673,70 +521,6 @@ class TransactionController extends base_controller_1.BaseController {
              transactions: this.trimTransactionsForState(newTransactions),
          });
      }
@@ -1298,7 +1301,7 @@ index 814a899..b14857a 100644
      /**
       * Trim the amount of transactions that are set on the state. Checks
       * if the length of the tx history is longer then desired persistence
-@@ -753,7 +539,9 @@ class TransactionController extends base_controller_1.BaseController {
+@@ -753,7 +537,9 @@ class TransactionController extends base_controller_1.BaseController {
       */
      trimTransactionsForState(transactions) {
          const nonceNetworkSet = new Set();
@@ -1309,7 +1312,7 @@ index 814a899..b14857a 100644
              const { chainId, networkID, status, transaction, time } = tx;
              if (transaction) {
                  const key = `${transaction.nonce}-${chainId !== null && chainId !== void 0 ? chainId : networkID}-${new Date(time).toDateString()}`;
-@@ -768,7 +556,7 @@ class TransactionController extends base_controller_1.BaseController {
+@@ -768,7 +554,7 @@ class TransactionController extends base_controller_1.BaseController {
              }
              return false;
          });
@@ -1318,7 +1321,7 @@ index 814a899..b14857a 100644
          return txsToKeep;
      }
      /**
-@@ -778,10 +566,10 @@ class TransactionController extends base_controller_1.BaseController {
+@@ -778,10 +564,10 @@ class TransactionController extends base_controller_1.BaseController {
       * @returns Whether the transaction is in a final state.
       */
      isFinalState(status) {
@@ -1333,25 +1336,38 @@ index 814a899..b14857a 100644
      }
      /**
       * Method to verify the state of a transaction using the Blockchain as a source of truth.
-@@ -793,7 +581,7 @@ class TransactionController extends base_controller_1.BaseController {
+@@ -791,11 +577,11 @@ class TransactionController extends base_controller_1.BaseController {
+      */
+     blockchainTransactionStateReconciler(meta) {
          return __awaiter(this, void 0, void 0, function* () {
-             const { status, transactionHash } = meta;
+-            const { status, transactionHash } = meta;
++            const { status, hash } = meta;
              switch (status) {
 -                case TransactionStatus.confirmed:
 +                case types_1.TransactionStatus.confirmed:
                      const txReceipt = yield (0, controller_utils_1.query)(this.ethQuery, 'getTransactionReceipt', [
-                         transactionHash,
+-                        transactionHash,
++                        hash,
                      ]);
-@@ -810,7 +598,7 @@ class TransactionController extends base_controller_1.BaseController {
+                     if (!txReceipt) {
+                         return [meta, false];
+@@ -810,12 +596,12 @@ class TransactionController extends base_controller_1.BaseController {
                          return [meta, false];
                      }
                      return [meta, true];
 -                case TransactionStatus.submitted:
 +                case types_1.TransactionStatus.submitted:
                      const txObj = yield (0, controller_utils_1.query)(this.ethQuery, 'getTransactionByHash', [
-                         transactionHash,
+-                        transactionHash,
++                        hash,
                      ]);
-@@ -825,9 +613,17 @@ class TransactionController extends base_controller_1.BaseController {
+                     if (!txObj) {
+-                        const receiptShowsFailedStatus = yield this.checkTxReceiptStatusIsFailed(transactionHash);
++                        const receiptShowsFailedStatus = yield this.checkTxReceiptStatusIsFailed(hash);
+                         // Case the txObj is evaluated as false, a second check will
+                         // determine if the tx failed or it is pending or confirmed
+                         if (receiptShowsFailedStatus) {
+@@ -825,9 +611,17 @@ class TransactionController extends base_controller_1.BaseController {
                      }
                      /* istanbul ignore next */
                      if (txObj === null || txObj === void 0 ? void 0 : txObj.blockNumber) {
@@ -1359,7 +1375,7 @@ index 814a899..b14857a 100644
 -                        this.hub.emit(`${meta.id}:confirmed`, meta);
 -                        return [meta, true];
 +                        // transactions can be added to a block and still fail, so we need to check the transaction status before emitting the confirmed event
-+                        const txStatusFailed = yield this.checkTxReceiptStatusIsFailed(transactionHash);
++                        const txStatusFailed = yield this.checkTxReceiptStatusIsFailed(hash);
 +                        if (txStatusFailed) {
 +                            const error = new Error('Transaction failed. The transaction was reversed');
 +                            this.failTransaction(meta, error);
@@ -1372,7 +1388,7 @@ index 814a899..b14857a 100644
                      }
                      return [meta, false];
                  default:
-@@ -856,88 +652,209 @@ class TransactionController extends base_controller_1.BaseController {
+@@ -856,88 +650,207 @@ class TransactionController extends base_controller_1.BaseController {
              return Number(txReceipt.status) === 0;
          });
      }
@@ -1424,7 +1440,7 @@ index 814a899..b14857a 100644
 +                    throw cancelError;
 +                case types_1.TransactionStatus.submitted:
 +                    resultCallbacks === null || resultCallbacks === void 0 ? void 0 : resultCallbacks.success();
-+                    return finalMeta.transactionHash;
++                    return finalMeta.hash;
 +                default:
 +                    const internalError = eth_rpc_errors_1.ethErrors.rpc.internal(`MetaMask Tx Signature: Unknown problem: ${JSON.stringify(finalMeta || transactionId)}`);
 +                    resultCallbacks === null || resultCallbacks === void 0 ? void 0 : resultCallbacks.error(internalError);
@@ -1535,10 +1551,8 @@ index 814a899..b14857a 100644
 +                const rawTx = (0, ethereumjs_util_1.bufferToHex)(signedTx.serialize());
 +                transactionMeta.rawTx = rawTx;
 +                this.updateTransaction(transactionMeta);
-+                const transactionHash = yield (0, controller_utils_1.query)(this.ethQuery, 'sendRawTransaction', [
-+                    rawTx,
-+                ]);
-+                transactionMeta.transactionHash = transactionHash;
++                const hash = yield (0, controller_utils_1.query)(this.ethQuery, 'sendRawTransaction', [rawTx]);
++                transactionMeta.hash = hash;
 +                transactionMeta.status = types_1.TransactionStatus.submitted;
 +                this.updateTransaction(transactionMeta);
 +                this.hub.emit(`${transactionMeta.id}:finished`, transactionMeta);
@@ -1628,7 +1642,7 @@ index 814a899..b14857a 100644
 +        const updatedTransactions = [
 +            ...added,
 +            ...currentTransactions.map((originalTransaction) => {
-+                const updatedTransaction = updated.find(({ transactionHash }) => transactionHash === originalTransaction.transactionHash);
++                const updatedTransaction = updated.find(({ hash }) => hash === originalTransaction.hash);
 +                return updatedTransaction !== null && updatedTransaction !== void 0 ? updatedTransaction : originalTransaction;
 +            }),
 +        ];
@@ -2774,7 +2788,7 @@ index f038698..0000000
 \ No newline at end of file
 diff --git a/node_modules/@metamask/transaction-controller/dist/types.d.ts b/node_modules/@metamask/transaction-controller/dist/types.d.ts
 new file mode 100644
-index 0000000..b949e93
+index 0000000..f19d6f2
 --- /dev/null
 +++ b/node_modules/@metamask/transaction-controller/dist/types.d.ts
 @@ -0,0 +1,148 @@
@@ -2792,7 +2806,7 @@ index 0000000..b949e93
 + * @property time - Timestamp associated with this transaction
 + * @property toSmartContract - Whether transaction recipient is a smart contract
 + * @property transaction - Underlying Transaction object
-+ * @property transactionHash - Hash of a successful transaction
++ * @property hash - Hash of a successful transaction
 + * @property blockNumber - Number of the block where the transaction has been included
 + */
 +export declare type TransactionMeta = ({
@@ -2816,7 +2830,7 @@ index 0000000..b949e93
 +    time: number;
 +    toSmartContract?: boolean;
 +    transaction: Transaction;
-+    transactionHash?: string;
++    hash?: string;
 +    blockNumber?: string;
 +    deviceConfirmedOn?: WalletDevice;
 +    verifiedOnBlockchain?: boolean;
