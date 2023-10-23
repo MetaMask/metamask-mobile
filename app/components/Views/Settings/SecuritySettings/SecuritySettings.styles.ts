@@ -89,6 +89,7 @@ const createStyles = (colors: Colors) =>
     switch: {
       alignSelf: 'flex-start',
     },
+    cellBorder: { borderWidth: 0 },
   });
 
 export default createStyles;
