@@ -16,7 +16,7 @@ exports[`BlockaidBanner should render correctly 1`] = `
         "Operator is untrusted according to previous activity",
       ],
       "reason": "approval_farming",
-      "result_type": "Warning",
+      "resultType": "Warning",
     }
   }
   style={
@@ -256,7 +256,7 @@ exports[`BlockaidBanner should render correctly with list attack details 1`] = `
         "Operator is untrusted according to previous activity",
       ],
       "reason": "approval_farming",
-      "result_type": "Malicious",
+      "resultType": "Malicious",
     }
   }
   style={
@@ -496,7 +496,7 @@ exports[`BlockaidBanner should render correctly with reason "raw_signature_farmi
         "Operator is untrusted according to previous activity",
       ],
       "reason": "raw_signature_farming",
-      "result_type": "Malicious",
+      "resultType": "Malicious",
     }
   }
   style={
@@ -812,13 +812,13 @@ exports[`BlockaidBanner should render something does not look right with contact
         "Operator is untrusted according to previous activity",
       ],
       "reason": "approval_farming",
-      "result_type": "Malicious",
+      "resultType": "Malicious",
     }
   }
   style={
     Object {
-      "backgroundColor": "#FFD33D19",
-      "borderColor": "#F66A0A",
+      "backgroundColor": "#D7384719",
+      "borderColor": "#D73847",
       "borderLeftWidth": 4,
       "borderRadius": 4,
       "flexDirection": "row",
@@ -836,7 +836,7 @@ exports[`BlockaidBanner should render something does not look right with contact
     }
   >
     <SvgMock
-      color="#F66A0A"
+      color="#D73847"
       height={24}
       name="Danger"
       style={
