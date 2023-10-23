@@ -44,7 +44,7 @@ import {
   getEtherscanBaseUrl,
   getEtherscanTransactionUrl,
 } from '../etherscan';
-import { LINEA_FAUCET, SEPOLIA_FAUCET } from 'app/constants/urls';
+import { LINEA_FAUCET, SEPOLIA_FAUCET } from '../../constants/urls';
 
 /**
  * List of the supported networks
