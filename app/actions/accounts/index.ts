@@ -3,7 +3,7 @@ import { Action } from 'redux';
 /**
  * Deference action types available for different RPC event flow
  */
-export enum ActionType {
+export enum AccountsActionType {
   SET_RELOAD_ACCOUNTS = 'SET_RELOAD_ACCOUNTS',
 }
 
@@ -16,7 +16,7 @@ export interface iAccountActions extends Action {
 
 export function setReloadAccounts(reloadAccounts: boolean): iAccountActions {
   return {
-    type: ActionType.SET_RELOAD_ACCOUNTS,
+    type: AccountsActionType.SET_RELOAD_ACCOUNTS,
     reloadAccounts,
   };
 }
