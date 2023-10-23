@@ -53,6 +53,12 @@ export const waitForKeychainUnlocked = async ({
   if (!keyringController) {
     console.warn('Keyring controller not found');
   }
+
+  // Disable during e2e tests otherwise Detox fails
+  if (process.env.IS_TEST === 'true') {
+    return true;
+  }
+
   let unlocked = keyringController.isUnlocked();
   DevLogger.log(
     `SDKConnect:: waitForKeyChainUnlocked[${context}] unlocked: ${unlocked}`,
