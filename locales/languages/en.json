@@ -1987,7 +1987,7 @@
       "select_region_title": "Select your Region",
       "select_country_registered": "Select the country where your card is registered (regardless of where you are located).",
       "unsupported": "Region Not Supported",
-      "unsupported_description": "We are working hard to expand coverage to your region as soon as we can. In the meantime, see our support article for other ways you may be able to buy crypto.",
+      "unsupported_description": "We are working hard to expand coverage to your region as soon as we can. In the meantime, see our support article for other ways you may be able to {{rampType}} crypto.",
       "unsupported_link": "Visit Support Article"
     },
     "order_details": {

@@ -199,7 +199,16 @@ const RegionsView = () => {
         subtitle={`${unsupportedRegion?.emoji}   ${unsupportedRegion?.name}`}
         dismiss={clearUnsupportedRegion}
         title={strings('fiat_on_ramp_aggregator.region.unsupported')}
-        body={strings('fiat_on_ramp_aggregator.region.unsupported_description')}
+        body={strings(
+          'fiat_on_ramp_aggregator.region.unsupported_description',
+          {
+            rampType: strings(
+              isBuy
+                ? 'fiat_on_ramp_aggregator.buy'
+                : 'fiat_on_ramp_aggregator.sell',
+            ),
+          },
+        )}
         link={strings('fiat_on_ramp_aggregator.region.unsupported_link')}
       />
 
