@@ -8,9 +8,10 @@ function useQuotes(amount: number) {
     selectedAsset,
     selectedAddress,
     selectedFiatCurrencyId,
+    isBuy,
   } = useRampSDK();
   const [{ data, isFetching, error }, query] = useSDKMethod(
-    'getQuotes',
+    isBuy ? 'getQuotes' : 'getSellQuotes',
     selectedRegion?.id,
     selectedPaymentMethodId,
     selectedAsset?.id,

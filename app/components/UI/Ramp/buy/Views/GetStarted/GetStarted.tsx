@@ -11,21 +11,18 @@ import { useRampSDK } from '../../../common/sdk';
 import ErrorViewWithReporting from '../../../common/components/ErrorViewWithReporting';
 import Routes from '../../../../../../constants/navigation/Routes';
 import useAnalytics from '../../../common/hooks/useAnalytics';
+import useRampNetwork from '../../../common/hooks/useRampNetwork';
 import styles from './GetStarted.styles';
-import { createRegionsNavDetails } from '../Regions/Regions';
+import useRegions from '../../hooks/useRegions';
 
 /* eslint-disable import/no-commonjs, @typescript-eslint/no-var-requires, @typescript-eslint/no-require-imports */
 const getStartedIcon = require('../../../common/components/images/WalletInfo.png');
 
 const GetStarted: React.FC = () => {
   const navigation = useNavigation();
-  const {
-    getStarted,
-    setGetStarted,
-    sdkError,
-    selectedChainId,
-    selectedRegion,
-  } = useRampSDK();
+  const { getStarted, setGetStarted, sdkError, selectedChainId } = useRampSDK();
+  const { selectedRegion } = useRegions();
+  const [isNetworkRampSupported] = useRampNetwork();
   const trackEvent = useAnalytics();
 
   const { colors } = useTheme();
@@ -52,18 +49,24 @@ const GetStarted: React.FC = () => {
   }, [navigation, colors, handleCancelPress]);
 
   const handleOnPress = useCallback(() => {
-    navigation.navigate(...createRegionsNavDetails());
     setGetStarted(true);
-  }, [navigation, setGetStarted]);
+  }, [setGetStarted]);
 
   useEffect(() => {
     if (getStarted) {
+      if (!isNetworkRampSupported) {
+        navigation.reset({
+          index: 0,
+          routes: [{ name: Routes.RAMP.NETWORK_SWITCHER }],
+        });
+        return;
+      }
       if (selectedRegion) {
         navigation.reset({
           index: 0,
           routes: [
             {
-              name: Routes.RAMP.BUY.PAYMENT_METHOD_HAS_STARTED,
+              name: Routes.RAMP.PAYMENT_METHOD_HAS_STARTED,
               params: { showBack: false },
             },
           ],
@@ -71,11 +74,11 @@ const GetStarted: React.FC = () => {
       } else {
         navigation.reset({
           index: 0,
-          routes: [{ name: Routes.RAMP.BUY.REGION_HAS_STARTED }],
+          routes: [{ name: Routes.RAMP.REGION_HAS_STARTED }],
         });
       }
     }
-  }, [getStarted, navigation, selectedRegion]);
+  }, [getStarted, isNetworkRampSupported, navigation, selectedRegion]);
 
   if (sdkError) {
     return (
@@ -106,7 +109,7 @@ const GetStarted: React.FC = () => {
           </ScreenLayout.Content>
           <ScreenLayout.Content>
             <Text centered bold>
-              {strings('fiat_on_ramp_aggregator.onboarding.best_quotes')}
+              {strings('fiat_on_ramp_aggregator.onboarding.quotes')}
             </Text>
           </ScreenLayout.Content>
           <ScreenLayout.Content>

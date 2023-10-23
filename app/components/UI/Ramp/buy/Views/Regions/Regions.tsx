@@ -33,7 +33,7 @@ import useRegions from '../../hooks/useRegions';
 const ListItem = BaseListItem as any;
 
 export const createRegionsNavDetails = createNavigationDetails(
-  Routes.RAMP.BUY.REGION,
+  Routes.RAMP.REGION,
 );
 
 const RegionsView = () => {
@@ -45,6 +45,9 @@ const RegionsView = () => {
     setSelectedFiatCurrencyId,
     sdkError,
     selectedChainId,
+    isBuy,
+    isSell,
+    rampType,
   } = useRampSDK();
   const [isRegionModalVisible, , showRegionModal, hideRegionModal] =
     useModalHandler(false);
@@ -179,7 +182,11 @@ const RegionsView = () => {
             <StyledButton
               type="confirm"
               onPress={handleOnPress}
-              disabled={!selectedRegion}
+              disabled={
+                !selectedRegion ||
+                (isBuy && !selectedRegion.support.buy) ||
+                (isSell && !selectedRegion.support.sell)
+              }
             >
               {strings('fiat_on_ramp_aggregator.continue')}
             </StyledButton>
@@ -206,6 +213,7 @@ const RegionsView = () => {
         dismiss={hideRegionModal as () => void}
         onRegionPress={handleRegionPress}
         location={'Region Screen'}
+        rampType={rampType}
       />
     </ScreenLayout>
   );

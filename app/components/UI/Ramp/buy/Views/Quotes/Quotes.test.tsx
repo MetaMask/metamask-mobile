@@ -24,12 +24,13 @@ import useQuotes from '../../hooks/useQuotes';
 
 import Routes from '../../../../../../constants/navigation/Routes';
 import initialBackgroundState from '../../../../../../util/test/initial-background-state.json';
+import { RampType } from '../../../common/types';
 
 function render(Component: React.ComponentType) {
   return renderScreen(
     Component,
     {
-      name: Routes.RAMP.BUY.QUOTES,
+      name: Routes.RAMP.QUOTES,
     },
     {
       state: {
@@ -79,6 +80,7 @@ const mockuseRampSDKInitialValues: Partial<RampSDK> = {
   },
   callbackBaseUrl: '',
   sdkError: undefined,
+  rampType: RampType.BUY,
 };
 
 let mockUseRampSDKValues: DeepPartial<RampSDK> = {
@@ -244,16 +246,16 @@ describe('Quotes', () => {
     const quoteToSelect = screen.getByLabelText(mockQuoteProviderName);
     fireEvent.press(quoteToSelect);
 
-    const quoteBuyButton = screen.getByRole('button', {
-      name: `Buy with ${mockQuoteProviderName}`,
+    const quoteContinueButton = screen.getByRole('button', {
+      name: `Continue with ${mockQuoteProviderName}`,
     });
 
     await act(async () => {
-      fireEvent.press(quoteBuyButton);
+      fireEvent.press(quoteContinueButton);
     });
 
     expect(mockNavigate).toBeCalledTimes(1);
-    expect(mockNavigate).toBeCalledWith(Routes.RAMP.BUY.CHECKOUT, {
+    expect(mockNavigate).toBeCalledWith(Routes.RAMP.CHECKOUT, {
       provider: mockedQuote.provider,
       customOrderId: 'test-order-id',
       url: 'https://test-url.on-ramp.metamask',
@@ -311,12 +313,12 @@ describe('Quotes', () => {
     const quoteToSelect = screen.getByLabelText(mockQuoteProviderName);
     fireEvent.press(quoteToSelect);
 
-    const quoteBuyButton = screen.getByRole('button', {
-      name: `Buy with ${mockQuoteProviderName}`,
+    const quoteContinueButton = screen.getByRole('button', {
+      name: `Continue with ${mockQuoteProviderName}`,
     });
 
     await act(async () => {
-      fireEvent.press(quoteBuyButton);
+      fireEvent.press(quoteContinueButton);
     });
 
     expect(mockRenderInAppBrowser).toBeCalledWith(

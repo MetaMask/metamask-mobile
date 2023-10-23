@@ -19,7 +19,7 @@ import BaseListItem from '../../../../Base/ListItem';
 import ModalDragger from '../../../../Base/ModalDragger';
 import { useTheme } from '../../../../../util/theme';
 import RegionAlert from './RegionAlert';
-import { Region, ScreenLocation } from '../types';
+import { RampType, Region, ScreenLocation } from '../types';
 import useAnalytics from '../hooks/useAnalytics';
 import createModalStyles from './modals/Modal.styles';
 
@@ -74,6 +74,7 @@ interface Props {
   data?: Region[] | null;
   onRegionPress: (region: Region) => any;
   location?: ScreenLocation;
+  rampType?: RampType;
 }
 
 const RegionModal: React.FC<Props> = ({
@@ -84,6 +85,7 @@ const RegionModal: React.FC<Props> = ({
   onRegionPress,
   dismiss,
   location,
+  rampType = RampType.BUY,
 }: Props) => {
   const { colors } = useTheme();
   const trackEvent = useAnalytics();
@@ -135,7 +137,11 @@ const RegionModal: React.FC<Props> = ({
         setSearchString('');
         return;
       }
-      if (region.unsupported) {
+      if (
+        region.unsupported ||
+        (rampType === RampType.BUY && !region.support.buy) ||
+        (rampType === RampType.SELL && !region.support.sell)
+      ) {
         setUnsupportedRegion(region);
         setShowAlert(true);
       } else {
@@ -148,7 +154,7 @@ const RegionModal: React.FC<Props> = ({
         location,
       });
     },
-    [location, onRegionPress, regionInTransit, trackEvent],
+    [location, onRegionPress, rampType, regionInTransit, trackEvent],
   );
 
   const renderRegionItem = useCallback(

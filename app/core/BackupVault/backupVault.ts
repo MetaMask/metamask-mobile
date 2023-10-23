@@ -1,4 +1,4 @@
-import { KeyringState } from '@metamask/keyring-controller';
+import { KeyringControllerState } from '@metamask/keyring-controller';
 import Logger from '../../util/Logger';
 import {
   getInternetCredentials,
@@ -35,7 +35,7 @@ interface KeyringBackupResponse {
   }
  */
 export async function backupVault(
-  keyringState: KeyringState,
+  keyringState: KeyringControllerState,
 ): Promise<KeyringBackupResponse> {
   if (keyringState.vault) {
     const backupResult = await setInternetCredentials(

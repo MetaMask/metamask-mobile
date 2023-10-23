@@ -3,17 +3,17 @@ import { fireEvent, screen } from '@testing-library/react-native';
 import { renderScreen } from '../../../../../../util/test/renderWithProvider';
 
 import GetStarted from './GetStarted';
-import { Region } from '../../../common/types';
+import { RampType, Region } from '../../../common/types';
 import { RampSDK } from '../../../common/sdk';
+import useRampNetwork from '../../../common/hooks/useRampNetwork';
 import Routes from '../../../../../../constants/navigation/Routes';
-import { createRegionsNavDetails } from '../Regions/Regions';
 import initialBackgroundState from '../../../../../../util/test/initial-background-state.json';
 
 function render(Component: React.ComponentType) {
   return renderScreen(
     Component,
     {
-      name: Routes.RAMP.BUY.GET_STARTED,
+      name: Routes.RAMP.GET_STARTED,
     },
     {
       state: {
@@ -25,12 +25,23 @@ function render(Component: React.ComponentType) {
   );
 }
 
+const mockUseRampNetworkInitialValue: Partial<
+  ReturnType<typeof useRampNetwork>
+> = [true];
+
+let mockUseRampNetworkValue = [...mockUseRampNetworkInitialValue];
+
+jest.mock('../../../common/hooks/useRampNetwork', () =>
+  jest.fn(() => mockUseRampNetworkValue),
+);
+
 const mockuseRampSDKInitialValues: Partial<RampSDK> = {
   getStarted: false,
   setGetStarted: jest.fn(),
   sdkError: undefined,
   selectedChainId: '1',
   selectedRegion: null,
+  rampType: RampType.BUY,
 };
 
 let mockUseRampSDKValues: Partial<RampSDK> = {
@@ -77,10 +88,14 @@ describe('GetStarted', () => {
     (mockuseRampSDKInitialValues.setGetStarted as jest.Mock).mockClear();
   });
 
-  it('renders correctly', async () => {
+  beforeEach(() => {
+    mockUseRampNetworkValue = [...mockUseRampNetworkInitialValue];
     mockUseRampSDKValues = {
       ...mockuseRampSDKInitialValues,
     };
+  });
+
+  it('renders correctly', async () => {
     render(GetStarted);
     expect(screen.toJSON()).toMatchSnapshot();
   });
@@ -108,26 +123,32 @@ describe('GetStarted', () => {
     expect(mockSetOptions).toBeCalledTimes(1);
   });
 
-  it('navigates on get started button press', async () => {
-    mockUseRampSDKValues = {
-      ...mockuseRampSDKInitialValues,
-    };
+  it('sets get started on button press', async () => {
     render(GetStarted);
     fireEvent.press(screen.getByRole('button', { name: 'Get started' }));
-    expect(mockNavigate).toHaveBeenCalledWith(...createRegionsNavDetails());
     expect(mockUseRampSDKValues.setGetStarted).toHaveBeenCalledWith(true);
   });
 
   it('navigates and tracks event on cancel button press', async () => {
-    mockUseRampSDKValues = {
-      ...mockuseRampSDKInitialValues,
-    };
     render(GetStarted);
     fireEvent.press(screen.getByRole('button', { name: 'Cancel' }));
     expect(mockPop).toHaveBeenCalled();
     expect(mockTrackEvent).toBeCalledWith('ONRAMP_CANCELED', {
       chain_id_destination: '1',
       location: 'Get Started Screen',
+    });
+  });
+
+  it('navigates to network switcher on unsupported network when getStarted is true', async () => {
+    mockUseRampSDKValues = {
+      ...mockuseRampSDKInitialValues,
+      getStarted: true,
+    };
+    mockUseRampNetworkValue = [false];
+    render(GetStarted);
+    expect(mockReset).toBeCalledWith({
+      index: 0,
+      routes: [{ name: Routes.RAMP.NETWORK_SWITCHER }],
     });
   });
 
@@ -141,7 +162,7 @@ describe('GetStarted', () => {
     expect(mockReset).toBeCalledTimes(1);
     expect(mockReset).toBeCalledWith({
       index: 0,
-      routes: [{ name: Routes.RAMP.BUY.REGION_HAS_STARTED }],
+      routes: [{ name: Routes.RAMP.REGION_HAS_STARTED }],
     });
   });
 
@@ -159,7 +180,7 @@ describe('GetStarted', () => {
       index: 0,
       routes: [
         {
-          name: Routes.RAMP.BUY.PAYMENT_METHOD_HAS_STARTED,
+          name: Routes.RAMP.PAYMENT_METHOD_HAS_STARTED,
           params: {
             showBack: false,
           },

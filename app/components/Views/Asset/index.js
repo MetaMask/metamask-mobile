@@ -30,7 +30,7 @@ import {
 } from '../../../reducers/swaps';
 import {
   selectChainId,
-  selectNetwork,
+  selectNetworkId,
   selectNetworkConfigurations,
   selectRpcTarget,
 } from '../../../selectors/networkController';
@@ -475,7 +475,7 @@ class Asset extends PureComponent {
       asset.isETH || asset.address?.toLowerCase() in this.props.swapsTokens;
 
     const onBuy = () => {
-      navigation.navigate(Routes.RAMP.BUY.ID);
+      navigation.navigate(Routes.RAMP.BUY);
       InteractionManager.runAfterInteractions(() => {
         Analytics.trackEventWithParameters(
           MetaMetricsEvents.BUY_BUTTON_CLICKED,
@@ -587,7 +587,7 @@ const mapStateToProps = (state) => ({
   identities: selectIdentities(state),
   chainId: selectChainId(state),
   tokens: selectTokens(state),
-  networkId: selectNetwork(state),
+  networkId: selectNetworkId(state),
   transactions: state.engine.backgroundState.TransactionController.transactions,
   rpcTarget: selectRpcTarget(state),
   networkConfigurations: selectNetworkConfigurations(state),

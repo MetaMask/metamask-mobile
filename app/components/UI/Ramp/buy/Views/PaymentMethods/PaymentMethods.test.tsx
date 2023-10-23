@@ -5,11 +5,11 @@ import { renderScreen } from '../../../../../../util/test/renderWithProvider';
 
 import PaymentMethods from './PaymentMethods';
 import { mockPaymentMethods } from './PaymentMethods.constants';
-import { createAmountToBuyNavDetails } from '../AmountToBuy';
+import { createBuildQuoteNavDetails } from '../BuildQuote/BuildQuote';
 
 import useRegions from '../../hooks/useRegions';
 import usePaymentMethods from '../../hooks/usePaymentMethods';
-import { Region } from '../../../common/types';
+import { RampType, Region } from '../../../common/types';
 import { RampSDK } from '../../../common/sdk';
 import Routes from '../../../../../../constants/navigation/Routes';
 import initialBackgroundState from '../../../../../../util/test/initial-background-state.json';
@@ -18,7 +18,7 @@ function render(Component: React.ComponentType) {
   return renderScreen(
     Component,
     {
-      name: Routes.RAMP.BUY.PAYMENT_METHOD,
+      name: Routes.RAMP.PAYMENT_METHOD,
     },
     {
       state: {
@@ -63,6 +63,7 @@ const mockuseRampSDKInitialValues: Partial<RampSDK> = {
   setSelectedPaymentMethodId: mockSetSelectedPaymentMethodId,
   selectedChainId: '1',
   sdkError: undefined,
+  rampType: RampType.BUY,
 };
 
 let mockUseRampSDKValues: Partial<RampSDK> = {
@@ -247,7 +248,7 @@ describe('PaymentMethods View', () => {
     render(PaymentMethods);
     fireEvent.press(screen.getByRole('button', { name: 'Reset Region' }));
     expect(mockReset).toBeCalledWith({
-      routes: [{ name: Routes.RAMP.BUY.REGION }],
+      routes: [{ name: Routes.RAMP.REGION }],
     });
   });
 
@@ -272,7 +273,7 @@ describe('PaymentMethods View', () => {
   it('navigates to amount to buy on continue button press', async () => {
     render(PaymentMethods);
     fireEvent.press(screen.getByRole('button', { name: 'Continue to amount' }));
-    expect(mockNavigate).toHaveBeenCalledWith(...createAmountToBuyNavDetails());
+    expect(mockNavigate).toHaveBeenCalledWith(...createBuildQuoteNavDetails());
     expect(mockTrackEvent).toHaveBeenCalledWith(
       'ONRAMP_CONTINUE_TO_AMOUNT_CLICKED',
       {

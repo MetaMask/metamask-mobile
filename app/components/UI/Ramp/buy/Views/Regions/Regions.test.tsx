@@ -15,7 +15,7 @@ function render(Component: React.ComponentType) {
   return renderScreen(
     Component,
     {
-      name: Routes.RAMP.BUY.REGION,
+      name: Routes.RAMP.REGION,
     },
     {
       state: {
@@ -35,6 +35,8 @@ const mockuseRampSDKInitialValues: Partial<RampSDK> = {
   setSelectedFiatCurrencyId: mockSetSelectedCurrency,
   sdkError: undefined,
   selectedChainId: '1',
+  isBuy: true,
+  isSell: false,
 };
 
 let mockUseRampSDKValues: Partial<RampSDK> = {
@@ -56,6 +58,10 @@ const mockRegionsData = [
     id: '/regions/cl',
     name: 'Chile',
     unsupported: false,
+    support: {
+      buy: true,
+      sell: true,
+    },
   },
   {
     currencies: ['/currencies/fiat/ars'],
@@ -63,6 +69,10 @@ const mockRegionsData = [
     id: '/regions/ar',
     name: 'Argentina',
     unsupported: false,
+    support: {
+      buy: true,
+      sell: true,
+    },
   },
 ] as Partial<Country>[];
 

@@ -13,6 +13,8 @@ export default function useRegions() {
     setSelectedRegion,
     unsupportedRegion,
     setUnsupportedRegion,
+    isBuy,
+    isSell,
   } = useRampSDK();
 
   const [{ data, isFetching, error }, queryGetCountries] =
@@ -31,24 +33,34 @@ export default function useRegions() {
     return allRegions.find((region) => region.id === selectedRegion.id) ?? null;
   }, [data, selectedRegion]);
 
+  const redirectToRegion = useCallback(() => {
+    if (
+      route.name !== Routes.RAMP.REGION &&
+      route.name !== Routes.RAMP.REGION_HAS_STARTED
+    ) {
+      navigation.reset({
+        index: 0,
+        routes: [
+          {
+            name: Routes.RAMP.REGION_HAS_STARTED,
+          },
+        ],
+      });
+    }
+  }, [navigation, route.name]);
+
   useEffect(() => {
     if (updatedRegion?.unsupported) {
       setSelectedRegion(null);
       setUnsupportedRegion(updatedRegion);
-
-      if (
-        route.name !== Routes.RAMP.BUY.REGION &&
-        route.name !== Routes.RAMP.BUY.REGION_HAS_STARTED
-      ) {
-        navigation.reset({
-          index: 0,
-          routes: [
-            {
-              name: Routes.RAMP.BUY.REGION,
-            },
-          ],
-        });
-      }
+      redirectToRegion();
+    } else if (
+      updatedRegion &&
+      ((isBuy && !updatedRegion.support.buy) ||
+        (isSell && !updatedRegion.support.sell))
+    ) {
+      setUnsupportedRegion(updatedRegion);
+      redirectToRegion();
     }
   }, [
     updatedRegion,
@@ -56,6 +68,9 @@ export default function useRegions() {
     navigation,
     route.name,
     setUnsupportedRegion,
+    redirectToRegion,
+    isBuy,
+    isSell,
   ]);
 
   const clearUnsupportedRegion = useCallback(

@@ -3,6 +3,7 @@ import { Linking } from 'react-native';
 import { useDispatch, useSelector } from 'react-redux';
 import InAppBrowser from 'react-native-inappbrowser-reborn';
 import { OrderStatusEnum, Provider } from '@consensys/on-ramp-sdk';
+import { OrderOrderTypeEnum } from '@consensys/on-ramp-sdk/dist/API';
 import BuyAction from '@consensys/on-ramp-sdk/dist/regions/BuyAction';
 import useAnalytics from '../../common/hooks/useAnalytics';
 import { callbackBaseDeeplink, SDK, useRampSDK } from '../../common/sdk';
@@ -16,6 +17,7 @@ import {
 import { setLockTime } from '../../../../../actions/settings';
 import Logger from '../../../../../util/Logger';
 import useHandleSuccessfulOrder from './useHandleSuccessfulOrder';
+import Device from '../../../../../util/device';
 
 export default function useInAppBrowser() {
   const {
@@ -23,6 +25,7 @@ export default function useInAppBrowser() {
     selectedPaymentMethodId,
     selectedAsset,
     selectedChainId,
+    isBuy,
   } = useRampSDK();
 
   const dispatch = useDispatch();
@@ -49,11 +52,12 @@ export default function useInAppBrowser() {
           customOrderId,
           selectedChainId,
           selectedAddress,
+          isBuy ? OrderOrderTypeEnum.Buy : OrderOrderTypeEnum.Sell,
         );
         dispatch(addFiatCustomIdData(customIdData));
       }
 
-      if (!(await InAppBrowser.isAvailable())) {
+      if (Device.isAndroid() || !(await InAppBrowser.isAvailable())) {
         Linking.openURL(url);
       } else {
         const prevLockTime = lockTime;
@@ -121,6 +125,7 @@ export default function useInAppBrowser() {
     [
       dispatch,
       handleSuccessfulOrder,
+      isBuy,
       lockTime,
       selectedAddress,
       selectedAsset?.symbol,

@@ -26,14 +26,14 @@ import {
   useParams,
 } from '../../../../../../util/navigation/navUtils';
 
-import { createAmountToBuyNavDetails } from '../AmountToBuy';
+import { createBuildQuoteNavDetails } from '../BuildQuote/BuildQuote';
 
 interface PaymentMethodsParams {
   showBack?: boolean;
 }
 
 export const createPaymentMethodsNavDetails =
-  createNavigationDetails<PaymentMethodsParams>(Routes.RAMP.BUY.PAYMENT_METHOD);
+  createNavigationDetails<PaymentMethodsParams>(Routes.RAMP.PAYMENT_METHOD);
 
 const PaymentMethods = () => {
   const navigation = useNavigation();
@@ -91,7 +91,7 @@ const PaymentMethods = () => {
     const needsReset = showBack === false;
     if (needsReset) {
       navigation.reset({
-        routes: [{ name: Routes.RAMP.BUY.REGION }],
+        routes: [{ name: Routes.RAMP.REGION }],
       });
     } else {
       navigation.goBack();
@@ -99,6 +99,7 @@ const PaymentMethods = () => {
   }, [showBack, setSelectedPaymentMethodId, setSelectedRegion, navigation]);
 
   const handleContinueToAmount = useCallback(() => {
+    // TODO: handle navigation to Build Quote page
     trackEvent('ONRAMP_CONTINUE_TO_AMOUNT_CLICKED', {
       available_payment_method_ids: paymentMethods?.map(
         (paymentMethod) => paymentMethod.id,
@@ -107,7 +108,7 @@ const PaymentMethods = () => {
       region: selectedRegion?.id as string,
       location: 'Payment Method Screen',
     });
-    navigation.navigate(...createAmountToBuyNavDetails());
+    navigation.navigate(...createBuildQuoteNavDetails());
   }, [
     currentPaymentMethod?.id,
     navigation,

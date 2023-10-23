@@ -52,7 +52,6 @@ const transactionReducer = (state = initialState, action) => {
       };
     case 'RESET_TRANSACTION':
       return {
-        ...state,
         ...initialState,
       };
     case 'NEW_ASSET_TRANSACTION':

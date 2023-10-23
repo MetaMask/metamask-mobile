@@ -101,7 +101,7 @@ const OrderDetails = () => {
 
   const handleMakeAnotherPurchase = useCallback(() => {
     navigation.goBack();
-    navigation.navigate(Routes.RAMP.BUY.ID);
+    navigation.navigate(Routes.RAMP.BUY);
   }, [navigation]);
 
   if (!order) {

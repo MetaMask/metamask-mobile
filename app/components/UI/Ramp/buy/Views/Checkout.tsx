@@ -5,6 +5,7 @@ import { parseUrl } from 'query-string';
 import { WebView, WebViewNavigation } from 'react-native-webview';
 import { useNavigation } from '@react-navigation/native';
 import { Provider } from '@consensys/on-ramp-sdk';
+import { OrderOrderTypeEnum } from '@consensys/on-ramp-sdk/dist/API';
 import { baseStyles } from '../../../../../styles/common';
 import { useTheme } from '../../../../../util/theme';
 import { getFiatOnRampAggNavbar } from '../../../Navbar';
@@ -35,11 +36,11 @@ interface CheckoutParams {
 }
 
 export const createCheckoutNavDetails = createNavigationDetails<CheckoutParams>(
-  Routes.RAMP.BUY.CHECKOUT,
+  Routes.RAMP.CHECKOUT,
 );
 
 const CheckoutWebView = () => {
-  const { selectedAddress, selectedChainId, sdkError, callbackBaseUrl } =
+  const { selectedAddress, selectedChainId, sdkError, callbackBaseUrl, isBuy } =
     useRampSDK();
   const dispatch = useDispatch();
   const trackEvent = useAnalytics();
@@ -81,10 +82,11 @@ const CheckoutWebView = () => {
       customOrderId,
       selectedChainId,
       selectedAddress,
+      isBuy ? OrderOrderTypeEnum.Buy : OrderOrderTypeEnum.Sell,
     );
     setCustomIdData(customOrderIdData);
     dispatch(addFiatCustomIdData(customOrderIdData));
-  }, [customOrderId, dispatch, selectedAddress, selectedChainId]);
+  }, [customOrderId, dispatch, isBuy, selectedAddress, selectedChainId]);
 
   const handleNavigationStateChange = async (navState: WebViewNavigation) => {
     if (
@@ -103,7 +105,10 @@ const CheckoutWebView = () => {
           return;
         }
         const orders = await SDK.orders();
-        const order = await orders.getOrderFromCallback(
+        const getOrderFromCallbackMethod = isBuy
+          ? 'getOrderFromCallback'
+          : 'getSellOrderFromCallback';
+        const order = await orders[getOrderFromCallbackMethod](
           provider.id,
           navState?.url,
           selectedAddress,

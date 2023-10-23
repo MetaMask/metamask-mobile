@@ -41,10 +41,12 @@ describe('WalletConnect', () => {
     });
   const walletConnectorRejectSessionMock = jest.fn();
 
-  RNWalletConnect.mockImplementation(() => ({
-    on: walletConnectorSessionRequestCallbackMock,
-    rejectSession: walletConnectorRejectSessionMock,
-  }));
+  jest
+    .spyOn(RNWalletConnect.prototype, 'on')
+    .mockImplementation(walletConnectorSessionRequestCallbackMock);
+  jest
+    .spyOn(RNWalletConnect.prototype, 'rejectSession')
+    .mockImplementation(walletConnectorRejectSessionMock);
 
   afterEach(() => {
     // Reset WalletConnect

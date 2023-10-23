@@ -9,13 +9,17 @@ function usePaymentMethods() {
     setSelectedPaymentMethodId,
     selectedChainId,
     sdk,
+    isBuy,
   } = useRampSDK();
   const [isFilterLoading, setIsFilterLoading] = useState(true);
   const [allowedMethodIds, setAllowedMethodIds] = useState<string[]>();
 
-  const [{ data: paymentMethods, isFetching, error }, queryGetPaymentMethods] =
-    useSDKMethod('getPaymentMethods', selectedRegion?.id);
+  const paymentMethodsMethod = isBuy
+    ? 'getPaymentMethods'
+    : 'getSellPaymentMethods';
 
+  const [{ data: paymentMethods, isFetching, error }, queryGetPaymentMethods] =
+    useSDKMethod(paymentMethodsMethod, selectedRegion?.id);
   useEffect(() => setAllowedMethodIds(undefined), [selectedRegion]);
 
   useEffect(() => {
@@ -27,7 +31,11 @@ function usePaymentMethods() {
           if (!method.customAction) {
             allowed.push(method.id);
           } else {
-            const cryptoCurrencies = await sdk?.getCryptoCurrencies(
+            const cryptoCurrenciesMethod = isBuy
+              ? 'getCryptoCurrencies'
+              : 'getSellCryptoCurrencies';
+
+            const cryptoCurrencies = await sdk?.[cryptoCurrenciesMethod](
               selectedRegion.id,
               method.id,
             );

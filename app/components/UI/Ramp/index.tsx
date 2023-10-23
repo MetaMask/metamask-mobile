@@ -31,7 +31,7 @@ import { trackEvent } from './common/hooks/useAnalytics';
 import { AnalyticsEvents } from './common/types';
 import { CustomIdData } from '../../../reducers/fiatOrders/types';
 import { callbackBaseUrl } from './common/sdk';
-import useFetchOnRampNetworks from './common/hooks/useFetchOnRampNetworks';
+import useFetchRampNetworks from './common/hooks/useFetchRampNetworks';
 import { stateHasOrder } from './common/utils';
 
 const POLLING_FREQUENCY = AppConstants.FIAT_ORDERS.POLLING_FREQUENCY;
@@ -172,6 +172,7 @@ export const getNotificationDetails = (fiatOrder: FiatOrder) => {
       };
     }
     case FIAT_ORDER_STATES.PENDING:
+    case FIAT_ORDER_STATES.CREATED:
     default: {
       return {
         ...baseNotificationDetails,
@@ -264,7 +265,7 @@ const styles = StyleSheet.create({
 });
 
 function FiatOrders() {
-  useFetchOnRampNetworks();
+  useFetchRampNetworks();
   const dispatch = useDispatch();
   const dispatchThunk = useThunkDispatch();
   const pendingOrders = useSelector<any, FiatOrder[]>(getPendingOrders);

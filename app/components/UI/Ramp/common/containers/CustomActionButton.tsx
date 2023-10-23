@@ -38,6 +38,7 @@ const CustomActionButton: React.FC<
     selectedFiatCurrencyId,
     selectedChainId,
     callbackBaseUrl,
+    isBuy,
     sdk,
   } = useRampSDK();
 
@@ -66,7 +67,9 @@ const CustomActionButton: React.FC<
         payment_method_id: selectedPaymentMethodId as string,
       });
 
-      const buyAction = await sdk.getBuyUrl(
+      const getUrlMethod = isBuy ? 'getBuyUrl' : 'getSellUrl';
+
+      const buyAction = await sdk[getUrlMethod](
         provider.provider,
         selectedRegion?.id as string,
         selectedPaymentMethodId as string,
@@ -112,6 +115,7 @@ const CustomActionButton: React.FC<
     callbackBaseUrl,
     customAction,
     fiatSymbol,
+    isBuy,
     navigation,
     renderInAppBrowser,
     sdk,
@@ -127,7 +131,9 @@ const CustomActionButton: React.FC<
 
   return (
     <CustomActionButtonComponent
-      customActionButton={customAction.button}
+      customActionButton={
+        isBuy ? customAction.buyButton : customAction.sellButton
+      }
       onPress={handleCustomAction}
       isLoading={isLoading}
       disabled={disabled || isLoading}
