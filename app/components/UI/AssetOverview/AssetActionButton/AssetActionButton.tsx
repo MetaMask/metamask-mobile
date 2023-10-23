@@ -5,7 +5,9 @@ import Ionicon from 'react-native-vector-icons/Ionicons';
 import MaterialCommunityIcon from 'react-native-vector-icons/MaterialCommunityIcons';
 import generateTestId from '../../../../../wdio/utils/generateTestId';
 import { useTheme } from '../../../../util/theme';
-import Text from '../../../Base/Text';
+import Text, {
+  TextVariant,
+} from '../../../../component-library/components/Texts/Text';
 import styleSheet from './AssetActionButton.styles';
 import { useStyles } from '../../../../component-library/hooks';
 
@@ -93,7 +95,11 @@ const AssetActionButton = ({
         {icon && (typeof icon === 'string' ? getIcon(icon) : icon)}
       </View>
       {label && (
-        <Text centered style={styles.buttonText} numberOfLines={1}>
+        <Text
+          variant={TextVariant.BodyMD}
+          style={styles.buttonText}
+          numberOfLines={1}
+        >
           {label.length > maxStringLength
             ? `${label.substring(0, maxStringLength - 3)}...`
             : label}
