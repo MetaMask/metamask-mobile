@@ -19,7 +19,7 @@ import {
   stopFixtureServer,
 } from '../fixtures/fixture-helper';
 import FixtureServer from '../fixtures/fixture-server';
-import { getFixturesServerPort } from '../utils';
+import { getFixturesServerPort } from '../fixtures/utils';
 
 const SUSHI_SWAP = 'https://app.sushi.com/swap';
 const SUSHI_SWAP_SHORT_HAND_URL = 'app.sushi.com';
