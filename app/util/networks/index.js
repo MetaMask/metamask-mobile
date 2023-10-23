@@ -44,6 +44,7 @@ import {
   getEtherscanBaseUrl,
   getEtherscanTransactionUrl,
 } from '../etherscan';
+import { LINEA_FAUCET, SEPOLIA_FAUCET } from 'app/constants/urls';
 
 /**
  * List of the supported networks
@@ -193,9 +194,8 @@ const TESTNET_CHAIN_IDS = [
  * A map of testnet chainId and its faucet link
  */
 export const TESTNET_FAUCETS = {
-  [NetworksChainId[NetworkType.sepolia]]: AppConstants.URLS.SEPOLIA_FAUCET,
-  [NetworksChainId[NetworkType['linea-goerli']]]:
-    AppConstants.URLS.LINEA_FAUCET,
+  [NetworksChainId[NetworkType.sepolia]]: SEPOLIA_FAUCET,
+  [NetworksChainId[NetworkType['linea-goerli']]]: LINEA_FAUCET,
 };
 
 export const isTestNetworkWithFaucet = (chainId) =>
