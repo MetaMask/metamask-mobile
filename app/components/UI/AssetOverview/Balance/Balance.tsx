@@ -23,7 +23,9 @@ const Balance = ({ balance, fiatBalance }: BalanceProps) => {
       <Title style={styles.fiatBalance}>
         {fiatBalance || strings('asset_overview.unable_to_load_balance')}
       </Title>
-      <Text style={styles.text}>{balance}</Text>
+      <Text variant={TextVariant.BodyMD} style={styles.text}>
+        {balance}
+      </Text>
     </View>
   );
 };
