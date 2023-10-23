@@ -16,7 +16,7 @@ exports[`BlockaidBanner should render correctly 1`] = `
         "Operator is untrusted according to previous activity",
       ],
       "reason": "approval_farming",
-      "resultType": "Warning",
+      "result_type": "Malicious",
     }
   }
   style={
