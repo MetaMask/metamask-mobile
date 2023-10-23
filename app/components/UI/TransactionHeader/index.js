@@ -170,7 +170,7 @@ const TransactionHeader = (props) => {
         viewStyle={styles.assetLogo}
         title={iconTitle}
         url={currentEnsName || url}
-        icon={icon}
+        icon={icon?.uri}
       />
     );
   };
