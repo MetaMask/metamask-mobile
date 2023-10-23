@@ -10,8 +10,9 @@ import {
   TouchableOpacity,
   View,
 } from 'react-native';
-import { useSelector } from 'react-redux';
+import { useDispatch, useSelector } from 'react-redux';
 import { strings } from '../../../../locales/i18n';
+import { setReloadAccounts } from '../../../actions/accounts';
 import { NO_RPC_BLOCK_EXPLORER, RPC } from '../../../constants/network';
 import Engine from '../../../core/Engine';
 import { forgetLedger, getLedgerKeyring } from '../../../core/Ledger/Ledger';
@@ -26,6 +27,9 @@ import {
 import Text from '../../Base/Text';
 import { getNavigationOptionsTitle } from '../../UI/Navbar';
 import AccountDetails from '../ConnectQRHardware/AccountDetails';
+
+import ledgerDeviceDarkImage from '../../../images/ledger-device-dark.png';
+import ledgerDeviceLightImage from '../../../images/ledger-device-light.png';
 
 const createStyles = (colors: any) =>
   StyleSheet.create({
@@ -70,10 +74,8 @@ const createStyles = (colors: any) =>
     },
   });
 
-const ledgerDeviceDarkImage = require('../../../images/ledger-device-dark.png');
-const ledgerDeviceLightImage = require('../../../images/ledger-device-light.png');
-
 const LedgerAccountInfo = () => {
+  const dispatch = useDispatch();
   const navigation = useNavigation();
   const [account, setAccount] = useState('');
   const [accountBalance, setAccountBalance] = useState<string>('0');
@@ -113,6 +115,7 @@ const LedgerAccountInfo = () => {
 
   const onForgetDevice = async () => {
     await forgetLedger();
+    dispatch(setReloadAccounts(true));
     navigation.goBack();
   };
 
