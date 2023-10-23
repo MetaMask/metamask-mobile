@@ -43,7 +43,6 @@ describe(Regression('Token Chart Tests'), () => {
     await TokenOverview.isVisible(Networks.Polygon.providerConfig.ticker);
     await TokenOverview.isBalanceWarningVisible();
     await TokenOverview.tapBalanceWarning();
-    // await TokenOverview.tapWebViewBackButton(); // TODO: close webview
     await TokenOverview.tapBackButton();
   });
 });
