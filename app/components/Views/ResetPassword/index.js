@@ -4,7 +4,6 @@ import {
   KeyboardAvoidingView,
   ActivityIndicator,
   Alert,
-  Text,
   View,
   TextInput,
   SafeAreaView,
@@ -16,6 +15,9 @@ import {
 } from 'react-native';
 import CheckBox from '@react-native-community/checkbox';
 import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view';
+import Text, {
+  TextVariant,
+} from '../../../component-library/components/Texts/Text';
 import AsyncStorage from '../../../store/async-storage-wrapper';
 import { connect } from 'react-redux';
 import { passwordSet, seedphraseNotBackedUp } from '../../../actions/user';
@@ -564,11 +566,17 @@ class ResetPassword extends PureComponent {
         <KeyboardAwareScrollView style={baseStyles.flexGrow} enableOnAndroid>
           <View style={styles.confirmPasswordWrapper}>
             <View style={[styles.content, styles.passwordRequiredContent]}>
-              <Text style={styles.confirm_title}>
+              <Text
+                textVariant={TextVariant.BodyMD}
+                style={styles.confirm_title}
+              >
                 {strings('manual_backup_step_1.confirm_password')}
               </Text>
               <View style={styles.text}>
-                <Text style={styles.confirm_label}>
+                <Text
+                  textVariant={TextVariant.BodyMD}
+                  style={styles.confirm_label}
+                >
                   {strings('manual_backup_step_1.before_continiuing')}
                 </Text>
               </View>
@@ -583,7 +591,10 @@ class ResetPassword extends PureComponent {
                 keyboardAppearance={themeAppearance}
               />
               {warningIncorrectPassword && (
-                <Text style={styles.warningMessageText}>
+                <Text
+                  textVariant={TextVariant.BodyMD}
+                  style={styles.warningMessageText}
+                >
                   {warningIncorrectPassword}
                 </Text>
               )}
@@ -639,14 +650,14 @@ class ResetPassword extends PureComponent {
               )}
             </View>
             <ActivityIndicator size="large" color={colors.icon.default} />
-            <Text style={styles.title}>
+            <Text textVariant={TextVariant.BodyMD} style={styles.title}>
               {strings(
                 previousScreen === ONBOARDING
                   ? 'create_wallet.title'
                   : 'secure_your_wallet.creating_password',
               )}
             </Text>
-            <Text style={styles.subtitle}>
+            <Text textVariant={TextVariant.BodyMD} style={styles.subtitle}>
               {strings('create_wallet.subtitle')}
             </Text>
           </View>
@@ -659,17 +670,23 @@ class ResetPassword extends PureComponent {
             >
               <View testID={CREATE_PASSWORD_CONTAINER_ID}>
                 <View style={styles.content}>
-                  <Text style={styles.title}>
+                  <Text textVariant={TextVariant.BodyMD} style={styles.title}>
                     {strings('reset_password.title')}
                   </Text>
                   <View style={styles.text}>
-                    <Text style={styles.subtitle}>
+                    <Text
+                      textVariant={TextVariant.BodyMD}
+                      style={styles.subtitle}
+                    >
                       {strings('reset_password.subtitle')}
                     </Text>
                   </View>
                 </View>
                 <View style={styles.field}>
-                  <Text style={styles.hintLabel}>
+                  <Text
+                    textVariant={TextVariant.BodyMD}
+                    style={styles.hintLabel}
+                  >
                     {strings('reset_password.password')}
                   </Text>
                   <Text
@@ -694,19 +711,33 @@ class ResetPassword extends PureComponent {
                     keyboardAppearance={themeAppearance}
                   />
                   {(password !== '' && (
-                    <Text style={styles.hintLabel}>
+                    <Text
+                      textVariant={TextVariant.BodyMD}
+                      style={styles.hintLabel}
+                    >
                       {strings('reset_password.password_strength')}
-                      <Text style={styles[`strength_${passwordStrengthWord}`]}>
+                      <Text
+                        textVariant={TextVariant.BodyMD}
+                        style={styles[`strength_${passwordStrengthWord}`]}
+                      >
                         {' '}
                         {strings(
                           `reset_password.strength_${passwordStrengthWord}`,
                         )}
                       </Text>
                     </Text>
-                  )) || <Text style={styles.hintLabel} />}
+                  )) || (
+                    <Text
+                      textVariant={TextVariant.BodyMD}
+                      style={styles.hintLabel}
+                    />
+                  )}
                 </View>
                 <View style={styles.field}>
-                  <Text style={styles.hintLabel}>
+                  <Text
+                    textVariant={TextVariant.BodyMD}
+                    style={styles.hintLabel}
+                  >
                     {strings('reset_password.confirm_password')}
                   </Text>
                   <TextInput
@@ -736,7 +767,10 @@ class ResetPassword extends PureComponent {
                       />
                     ) : null}
                   </View>
-                  <Text style={styles.hintLabel}>
+                  <Text
+                    textVariant={TextVariant.BodyMD}
+                    style={styles.hintLabel}
+                  >
                     {strings('reset_password.must_be_at_least', { number: 8 })}
                   </Text>
                 </View>
@@ -754,6 +788,7 @@ class ResetPassword extends PureComponent {
                     testID={IOS_I_UNDERSTAND_BUTTON_ID}
                   />
                   <Text
+                    textVariant={TextVariant.BodyMD}
                     style={styles.label}
                     onPress={this.setSelection}
                     {...generateTestId(
@@ -762,13 +797,24 @@ class ResetPassword extends PureComponent {
                     )}
                   >
                     {strings('reset_password.i_understand')}{' '}
-                    <Text onPress={this.learnMore} style={styles.learnMore}>
+                    <Text
+                      textVariant={TextVariant.BodyMD}
+                      onPress={this.learnMore}
+                      style={styles.learnMore}
+                    >
                       {strings('reset_password.learn_more')}
                     </Text>
                   </Text>
                 </View>
 
-                {!!error && <Text style={styles.errorMsg}>{error}</Text>}
+                {!!error && (
+                  <Text
+                    textVariant={TextVariant.BodyMD}
+                    style={styles.errorMsg}
+                  >
+                    {error}
+                  </Text>
+                )}
               </View>
 
               <View style={styles.ctaWrapper}>
