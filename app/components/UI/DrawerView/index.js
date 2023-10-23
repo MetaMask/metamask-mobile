@@ -541,7 +541,7 @@ class DrawerView extends PureComponent {
         if (keyringOfSelectedAddress.type === LEDGER_DEVICE) {
           return strings('accounts.ledger');
         }
-        return strings('accounts.hardware');
+        return strings('accounts.qr_hardware');
       }
       return null;
     };

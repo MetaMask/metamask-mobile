@@ -243,7 +243,7 @@ export function getLabelTextByAddress(address) {
   if (isHardwareAccount(address, [HardwareDeviceNames.ledger]))
     return 'accounts.ledger';
   if (isHardwareAccount(address, [KeyringTypes.qr]))
-    return 'transaction.hardware';
+    return 'accounts.qr_hardware';
   if (isImportedAccount(address)) return 'accounts.imported';
 
   return null;

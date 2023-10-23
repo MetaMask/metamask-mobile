@@ -112,7 +112,7 @@ const WalletAccount = ({ style }: WalletAccountProps, ref: React.Ref<any>) => {
         accountTypeLabel={
           isHardwareAccount(account.address, [HardwareDeviceNames.ledger])
             ? 'accounts.ledger'
-            : ''
+            : 'accounts.qr_hardware'
         }
         showAddress={false}
         cellAccountContainerStyle={styles.account}
