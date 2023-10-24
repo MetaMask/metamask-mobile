@@ -45,6 +45,7 @@ const styleSheet = (params: { theme: Theme; vars: CellBaseStyleSheetVars }) => {
     },
     tagLabel: {
       marginTop: 4,
+      height: 25,
     },
   });
 };
