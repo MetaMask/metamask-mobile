@@ -28,7 +28,6 @@ import {
   WalletDevice,
   isEIP1559Transaction,
 } from '@metamask/transaction-controller';
-// TODO: Update after this function has been exported from the package
 import { ThemeContext, mockTheme } from '../../../util/theme';
 import {
   selectChainId,
