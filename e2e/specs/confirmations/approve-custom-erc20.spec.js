@@ -56,7 +56,7 @@ describe(Smoke('ERC20 tokens'), () => {
         await ApprovalModal.typeText(ApprovalModal.APPROVE_TOKEN_AMOUNT, '2');
 
         // Assert that custom token amount is shown
-        await ApprovalModal.isTokenAmountShown('2');
+        await ApprovalModal.isTokenAmountShown('2\n');
 
         // Tap next button
         await TestHelpers.checkIfElementWithTextIsVisible(
