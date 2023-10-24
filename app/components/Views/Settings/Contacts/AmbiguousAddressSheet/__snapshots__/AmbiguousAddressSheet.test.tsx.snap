@@ -1,0 +1,70 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`AmbiguousAddressSheet should render correctly 1`] = `
+<ForwardRef>
+  <View
+    style={
+      Object {
+        "alignItems": "center",
+        "alignSelf": "center",
+        "justifyContent": "center",
+        "padding": 16,
+      }
+    }
+  >
+    <Text
+      style={
+        Object {
+          "color": "#24272A",
+          "fontFamily": "Euclid Circular B",
+          "fontSize": 18,
+          "fontWeight": "700",
+          "letterSpacing": 0,
+          "lineHeight": 24,
+        }
+      }
+    >
+      This is a duplicate address
+    </Text>
+    <Text
+      style={
+        Object {
+          "color": "#24272A",
+          "fontFamily": "Euclid Circular B",
+          "fontSize": 14,
+          "fontWeight": "400",
+          "letterSpacing": 0,
+          "lineHeight": 22,
+        }
+      }
+    >
+      <Text>
+        Your contact list shows this address on more than one chain. Be sure to select the correct contact before you send any funds.
+      </Text>
+    </Text>
+    <View
+      style={
+        Object {
+          "flexDirection": "row",
+          "paddingTop": 16,
+        }
+      }
+    >
+      <Button
+        accessibilityRole="button"
+        accessible={true}
+        label="Got it"
+        onPress={[Function]}
+        size="48"
+        style={
+          Object {
+            "flex": 1,
+          }
+        }
+        variant="Primary"
+        width="full"
+      />
+    </View>
+  </View>
+</ForwardRef>
+`;
