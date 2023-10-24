@@ -3,6 +3,7 @@ import { View } from 'react-native';
 import ButtonLink from '../../../../component-library/components/Buttons/Button/variants/ButtonLink';
 import { useStyles } from '../../../../component-library/hooks';
 import Text, {
+  TextColor,
   TextVariant,
 } from '../../../../component-library/components/Texts/Text';
 import styleSheet from './ContentDisplay.styles';
@@ -30,14 +31,17 @@ const ContentDisplay = ({
   return (
     <View>
       <Text
-        variant={TextVariant.BodyMD}
         numberOfLines={isExpanded ? undefined : numberOfLines}
-        style={styles.content}
+        color={TextColor.Alternative}
       >
         {content}
       </Text>
       {disclaimer && isExpanded && (
-        <Text variant={TextVariant.BodyMD} style={styles.disclaimer}>
+        <Text
+          color={TextColor.Alternative}
+          variant={TextVariant.BodyXS}
+          style={styles.disclaimer}
+        >
           {disclaimer}
         </Text>
       )}

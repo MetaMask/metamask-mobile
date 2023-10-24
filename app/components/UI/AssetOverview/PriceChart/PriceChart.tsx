@@ -223,7 +223,7 @@ const PriceChart = ({
       <Title style={styles.noDataOverlayTitle}>
         {strings('asset_overview.no_chart_data.title')}
       </Title>
-      <Text variant={TextVariant.BodyMD} style={styles.noDataOverlayText}>
+      <Text variant={TextVariant.BodyLGMedium} style={styles.noDataOverlayText}>
         {strings('asset_overview.no_chart_data.description')}
       </Text>
     </View>
