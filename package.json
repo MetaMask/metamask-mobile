@@ -130,7 +130,7 @@
     "@metamask/controller-utils": "^3.4.0",
     "@metamask/approval-controller": "3.4.0",
     "@exodus/react-native-payments/validator": "^13.7.0",
-    "react-devtools-core": "4.22.1",
+    "react-devtools-core": "4.28.4",
     "**/got": "^11.8.5",
     "**/qs": "6.10.3",
     "simple-get": "4.0.1",

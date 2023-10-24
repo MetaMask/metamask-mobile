@@ -50,7 +50,6 @@ const createStyles = (colors: any) =>
     warningContainer: {
       marginTop: 20,
       marginHorizontal: 24,
-      marginBottom: 32,
     },
     buyEth: {
       color: colors.primary.default,
