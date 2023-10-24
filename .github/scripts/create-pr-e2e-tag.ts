@@ -48,7 +48,7 @@ async function main(): Promise<void> {
         },
       },
     );
-    console.log('kick off build', response.data);
+    console.log('kick off build', response.data.build_url);
 
     // const tagName = `pr-e2e-${pull_request.number}`;
 
