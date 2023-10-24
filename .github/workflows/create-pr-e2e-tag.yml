@@ -23,19 +23,10 @@ jobs:
       - name: Install dependencies
         run: yarn --immutable
 
-      # - name: Create E2E tag for PR
-      #   env:
-      #     GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-      #   run: yarn run create-pr-e2e-tag
-
-      - name: Create a Git tag
-        run: |
-          git config user.name github-actions
-          git config user.email github-actions@github.com
-          git tag -a e2e-pr-7339 -m "E2E tag for triggering Bitrise E2E build"
-          git push origin e2e-pr-7339
+      - name: Create E2E tag for PR
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: yarn run create-pr-e2e-tag
 # name: Bitrise E2E
 
 # on:
@@ -48,7 +39,7 @@ jobs:
 #     runs-on: ubuntu-latest
 #     steps:
 #       - name: Start pr_smoke_e2e_pipeline workflow in Bitrise
-#         if: contains(github.event.pull_request.labels.*.name, 'needs-smoke-e2e')
+#         if: contains(github.event.pull_request.labels.*.name, 'Run E2E')
 #         run: |
 #           curl https://app.bitrise.io/app/${{ secrets.BITRISE_APP_ID }}/build/start.json -L -H 'Content-Type: application/json' --data '{
 #             "hook_info": {
