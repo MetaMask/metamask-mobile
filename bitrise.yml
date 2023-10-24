@@ -835,6 +835,8 @@ trigger_map:
     pipeline: create_qa_builds_pipeline
   - tag: 'dev-e2e-*'
     pipeline: pr_smoke_e2e_pipeline
+  - tag: 'pr-e2e-*'
+    pipeline: pr_smoke_e2e_pipeline
   # - pull_request_target_branch: main
   #   pull_request_source_branch: '*'
   #   pipeline: pr_smoke_e2e_pipeline
