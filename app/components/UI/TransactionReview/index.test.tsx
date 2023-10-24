@@ -152,6 +152,7 @@ describe('TransactionReview', () => {
     const securityAlertResponse = {
       resultType: 'Malicious',
       reason: 'blur_farming',
+      providerRequestsCount: {},
     };
     const trackEventSypy = jest
       .spyOn(analyticsV2, 'trackEvent')
@@ -162,9 +163,10 @@ describe('TransactionReview', () => {
 
     const blockaidMetricsParamsSpy = jest
       .spyOn(BlockaidUtils, 'getBlockaidMetricsParams')
-      .mockImplementation(({ resultType, reason }) => ({
+      .mockImplementation(({ resultType, reason, providerRequestsCount }) => ({
         security_alert_response: resultType,
         security_alert_reason: reason,
+        security_alert_provider_requests_count: providerRequestsCount,
       }));
     const { queryByText, queryByTestId, getByText } = renderWithProvider(
       <TransactionReview

@@ -73,6 +73,7 @@ const Routes = {
   },
   SHEET: {
     ACCOUNT_SELECTOR: 'AccountSelector',
+    AMBIGUOUS_ADDRESS: 'AmbiguousAddress',
     SDK_LOADING: 'SDKLoading',
     SDK_FEEDBACK: 'SDKFeedback',
     ACCOUNT_CONNECT: 'AccountConnect',
