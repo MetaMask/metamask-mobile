@@ -31,16 +31,14 @@ exports[`AssetActionButtons should render correctly 1`] = `
     }
   />
   <Text
+    color="Primary"
     numberOfLines={1}
     style={
       Object {
-        "color": "#0376C9",
-        "fontSize": 14,
         "marginHorizontal": 3,
         "marginTop": 8,
       }
     }
-    variant="sBodyMD"
   >
     mock text
   </Text>
@@ -92,16 +90,14 @@ exports[`AssetActionButtons should render type add correctly 1`] = `
     />
   </View>
   <Text
+    color="Primary"
     numberOfLines={1}
     style={
       Object {
-        "color": "#0376C9",
-        "fontSize": 14,
         "marginHorizontal": 3,
         "marginTop": 8,
       }
     }
-    variant="sBodyMD"
   >
     mock text
   </Text>
@@ -153,16 +149,14 @@ exports[`AssetActionButtons should render type information correctly 1`] = `
     />
   </View>
   <Text
+    color="Primary"
     numberOfLines={1}
     style={
       Object {
-        "color": "#0376C9",
-        "fontSize": 14,
         "marginHorizontal": 3,
         "marginTop": 8,
       }
     }
-    variant="sBodyMD"
   >
     mock text
   </Text>
@@ -226,16 +220,14 @@ exports[`AssetActionButtons should render type receive correctly 1`] = `
     />
   </View>
   <Text
+    color="Primary"
     numberOfLines={1}
     style={
       Object {
-        "color": "#0376C9",
-        "fontSize": 14,
         "marginHorizontal": 3,
         "marginTop": 8,
       }
     }
-    variant="sBodyMD"
   >
     receive...
   </Text>
@@ -287,16 +279,14 @@ exports[`AssetActionButtons should render type send correctly 1`] = `
     />
   </View>
   <Text
+    color="Primary"
     numberOfLines={1}
     style={
       Object {
-        "color": "#0376C9",
-        "fontSize": 14,
         "marginHorizontal": 3,
         "marginTop": 8,
       }
     }
-    variant="sBodyMD"
   >
     mock text
   </Text>
@@ -354,16 +344,14 @@ exports[`AssetActionButtons should render type swap correctly 1`] = `
     />
   </View>
   <Text
+    color="Primary"
     numberOfLines={1}
     style={
       Object {
-        "color": "#0376C9",
-        "fontSize": 14,
         "marginHorizontal": 3,
         "marginTop": 8,
       }
     }
-    variant="sBodyMD"
   >
     mock text
   </Text>
