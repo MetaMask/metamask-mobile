@@ -99,7 +99,7 @@ import { ButtonVariants } from '../../../component-library/components/Buttons/Bu
 import CLText from '../../../component-library/components/Texts/Text/Text';
 import { TextVariant } from '../../../component-library/components/Texts/Text';
 import { regex } from '../../../../app/util/regex';
-import { selectChainId } from 'app/selectors/networkController';
+import { selectChainId } from '../../../selectors/networkController';
 
 const { HOMEPAGE_URL, NOTIFICATION_NAMES } = AppConstants;
 const HOMEPAGE_HOST = new URL(HOMEPAGE_URL)?.hostname;
