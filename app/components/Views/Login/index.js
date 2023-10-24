@@ -539,7 +539,7 @@ class Login extends PureComponent {
               </Text>
               <View style={styles.field}>
                 <Text
-                  textVariant={TextVariant.HeadingSMRegular}
+                  variant={TextVariant.HeadingSMRegular}
                   style={styles.label}
                 >
                   {strings('login.password')}
@@ -573,11 +573,7 @@ class Login extends PureComponent {
               {this.renderSwitch()}
 
               {!!this.state.error && (
-                <Text
-                  textVariant={TextVariant.BodyMD}
-                  color={TextColor.Error}
-                  testID={LOGIN_PASSWORD_ERROR}
-                >
+                <Text color={TextColor.Error} testID={LOGIN_PASSWORD_ERROR}>
                   {this.state.error}
                 </Text>
               )}
@@ -600,7 +596,7 @@ class Login extends PureComponent {
 
               <View style={styles.footer}>
                 <Text
-                  textVariant={TextVariant.HeadingSMRegular}
+                  variant={TextVariant.HeadingSMRegular}
                   style={styles.cant}
                 >
                   {strings('login.go_back')}
