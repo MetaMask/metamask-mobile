@@ -8,12 +8,15 @@ import multihash from 'multihashes';
 import Engine from '../../core/Engine';
 import { IPFS_GATEWAY_DISABLED_ERROR } from '../../components/Views/BrowserTab/constants';
 
-export default async function resolveEnsToIpfsContentId({ provider, name }) {
+export default async function resolveEnsToIpfsContentId({
+  provider,
+  name,
+  chainId,
+}) {
   const eth = new Eth(provider);
   const hash = namehash.hash(name);
   const contract = new EthContract(eth);
   // lookup registry
-  const chainId = Number.parseInt(await eth.net_version(), 10);
   const registryAddress = getRegistryForChainId(chainId);
   if (!registryAddress) {
     throw new Error(
