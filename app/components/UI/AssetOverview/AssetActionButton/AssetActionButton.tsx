@@ -6,7 +6,7 @@ import MaterialCommunityIcon from 'react-native-vector-icons/MaterialCommunityIc
 import generateTestId from '../../../../../wdio/utils/generateTestId';
 import { useTheme } from '../../../../util/theme';
 import Text, {
-  TextVariant,
+  TextColor,
 } from '../../../../component-library/components/Texts/Text';
 import styleSheet from './AssetActionButton.styles';
 import { useStyles } from '../../../../component-library/hooks';
@@ -96,7 +96,7 @@ const AssetActionButton = ({
       </View>
       {label && (
         <Text
-          variant={TextVariant.BodyMD}
+          color={TextColor.Primary}
           style={styles.buttonText}
           numberOfLines={1}
         >
