@@ -36,8 +36,10 @@ import Device from '../../../util/device';
 import { ThemeContext, mockTheme } from '../../../util/theme';
 import EthereumAddress from '../EthereumAddress';
 import Identicon from '../Identicon';
-import { MetaMetricsEvents } from '../../../core/Analytics';
-import Analytics from '../../../core/Analytics/Analytics';
+import {
+  MetaMetricsEvents,
+  withMetricsAwareness,
+} from '../../hooks/useMetrics';
 import AppConstants from '../../../core/AppConstants';
 import Engine from '../../../core/Engine';
 import { selectChainId } from '../../../selectors/networkController';
@@ -207,6 +209,10 @@ class AccountOverview extends PureComponent {
      * Current opens tabs in browser
      */
     browserTabs: PropTypes.array,
+    /**
+     * Metrics injected by withMetricsAwareness HOC
+     */
+    metrics: PropTypes.object,
   };
 
   state = {
@@ -302,9 +308,8 @@ class AccountOverview extends PureComponent {
       data: { msg: strings('account_details.account_copied_to_clipboard') },
     });
     setTimeout(() => this.props.protectWalletModalVisible(), 2000);
-    InteractionManager.runAfterInteractions(() => {
-      Analytics.trackEvent(MetaMetricsEvents.WALLET_COPIED_ADDRESS);
-    });
+    const { metrics } = this.props;
+    metrics.trackEvent(MetaMetricsEvents.WALLET_COPIED_ADDRESS);
   };
 
   doENSLookup = async () => {
@@ -337,7 +342,8 @@ class AccountOverview extends PureComponent {
       screen: Routes.BROWSER.VIEW,
       params,
     });
-    Analytics.trackEvent(MetaMetricsEvents.PORTFOLIO_LINK_CLICKED, {
+    const { metrics } = this.props;
+    metrics(MetaMetricsEvents.PORTFOLIO_LINK_CLICKED, {
       portfolioUrl: AppConstants.PORTFOLIO_URL,
     });
   };
@@ -478,4 +484,7 @@ const mapDispatchToProps = (dispatch) => ({
 
 AccountOverview.contextType = ThemeContext;
 
-export default connect(mapStateToProps, mapDispatchToProps)(AccountOverview);
+export default connect(
+  mapStateToProps,
+  mapDispatchToProps,
+)(withMetricsAwareness(AccountOverview));

@@ -15,8 +15,10 @@ import { strings } from '../../../../locales/i18n';
 import TabThumbnail from './TabThumbnail';
 import { colors as importedColors, fontStyles } from '../../../styles/common';
 import Device from '../../../util/device';
-import { MetaMetricsEvents } from '../../../core/Analytics';
-import AnalyticsV2 from '../../../util/analyticsV2';
+import {
+  MetaMetricsEvents,
+  withMetricsAwareness,
+} from '../../hooks/useMetrics';
 
 import { ThemeContext, mockTheme } from '../../../util/theme';
 import generateTestId from '../../../../wdio/utils/generateTestId';
@@ -131,7 +133,7 @@ const createStyles = (colors, shadows) =>
  * PureComponent that wraps all the thumbnails
  * representing all the open tabs
  */
-export default class Tabs extends PureComponent {
+class Tabs extends PureComponent {
   static propTypes = {
     /**
      * Array of tabs
@@ -165,6 +167,10 @@ export default class Tabs extends PureComponent {
      * Sets the current tab used for the animation
      */
     animateCurrentTab: PropTypes.func, // eslint-disable-line react/no-unused-prop-types
+    /**
+     * Metrics injected by withMetricsAwareness HOC
+     */
+    metrics: PropTypes.object,
   };
 
   thumbnails = {};
@@ -272,7 +278,8 @@ export default class Tabs extends PureComponent {
   };
 
   trackNewTabEvent = (tabsNumber) => {
-    AnalyticsV2.trackEvent(MetaMetricsEvents.BROWSER_NEW_TAB, {
+    const { metrics } = this.props;
+    metrics.trackEvent(MetaMetricsEvents.BROWSER_NEW_TAB, {
       option_chosen: 'Browser Bottom Bar Menu',
       number_of_tabs: tabsNumber,
     });
@@ -347,3 +354,5 @@ export default class Tabs extends PureComponent {
 }
 
 Tabs.contextType = ThemeContext;
+
+export default withMetricsAwareness(Tabs);

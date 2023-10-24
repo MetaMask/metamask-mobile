@@ -21,11 +21,9 @@ import { clearOnboardingEvents } from '../../../actions/onboarding';
 import { ONBOARDING_WIZARD } from '../../../constants/storage';
 import AppConstants from '../../../core/AppConstants';
 import {
-  Analytics,
-  MetaMetrics,
   MetaMetricsEvents,
-} from '../../../core/Analytics';
-
+  withMetricsAwareness,
+} from '../../hooks/useMetrics';
 import DefaultPreference from 'react-native-default-preference';
 import { ThemeContext } from '../../../util/theme';
 import generateTestId from '../../../../wdio/utils/generateTestId';
@@ -144,6 +142,10 @@ class OptinMetrics extends PureComponent {
      * Object that represents the current route info like params passed to it
      */
     route: PropTypes.object,
+    /**
+     * Metrics instance from withMetricsAwareness HOC
+     */
+    metrics: PropTypes.object,
   };
 
   state = {
@@ -265,13 +267,12 @@ class OptinMetrics extends PureComponent {
    */
   onCancel = async () => {
     setTimeout(async () => {
-      const metrics = await MetaMetrics.getInstance();
       // if users refuses tracking, get rid of the stored events
       // and never send them to Segment
       // and disable analytics
       this.props.clearOnboardingEvents();
+      const { metrics } = this.props;
       await metrics.enable(false);
-      Analytics.disableInstance();
     }, 200);
     this.continue();
   };
@@ -280,8 +281,7 @@ class OptinMetrics extends PureComponent {
    * Callback on press confirm
    */
   onConfirm = async () => {
-    const { events } = this.props;
-    const metrics = await MetaMetrics.getInstance();
+    const { events, metrics } = this.props;
     await metrics.enable();
     InteractionManager.runAfterInteractions(async () => {
       // add traits to user for identification
@@ -314,13 +314,10 @@ class OptinMetrics extends PureComponent {
       this.props.clearOnboardingEvents();
 
       // track event for user opting in
-      metrics.trackEvent(
-        MetaMetricsEvents.ANALYTICS_PREFERENCE_SELECTED.category,
-        {
-          analytics_option_selected: 'Metrics Opt In',
-          updated_after_onboarding: false,
-        },
-      );
+      metrics.trackEvent(MetaMetricsEvents.ANALYTICS_PREFERENCE_SELECTED, {
+        analytics_option_selected: 'Metrics Opt In',
+        updated_after_onboarding: false,
+      });
     });
     this.continue();
   };
@@ -539,4 +536,7 @@ const mapDispatchToProps = (dispatch) => ({
   clearOnboardingEvents: () => dispatch(clearOnboardingEvents()),
 });
 
-export default connect(mapStateToProps, mapDispatchToProps)(OptinMetrics);
+export default connect(
+  mapStateToProps,
+  mapDispatchToProps,
+)(withMetricsAwareness(OptinMetrics));

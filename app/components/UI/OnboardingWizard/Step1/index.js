@@ -15,9 +15,9 @@ import { strings } from '../../../../../locales/i18n';
 import onboardingStyles from './../styles';
 import {
   MetaMetricsEvents,
-  ONBOARDING_WIZARD_STEP_DESCRIPTION,
-} from '../../../../core/Analytics';
-import AnalyticsV2 from '../../../../util/analyticsV2';
+  withMetricsAwareness,
+} from '../../../hooks/useMetrics';
+import { ONBOARDING_WIZARD_STEP_DESCRIPTION } from '../../../../core/Analytics';
 
 import { ThemeContext, mockTheme } from '../../../../util/theme';
 import generateTestId from '../../../../../wdio/utils/generateTestId';
@@ -49,16 +49,20 @@ class Step1 extends PureComponent {
      * Dispatch set onboarding wizard step
      */
     setOnboardingWizardStep: PropTypes.func,
+    /**
+     * Metrics injected by withMetricsAwareness HOC
+     */
+    metrics: PropTypes.object,
   };
 
   /**
    * Dispatches 'setOnboardingWizardStep' with next step
    */
   onNext = () => {
-    const { setOnboardingWizardStep } = this.props;
+    const { setOnboardingWizardStep, metrics } = this.props;
     setOnboardingWizardStep && setOnboardingWizardStep(2);
     InteractionManager.runAfterInteractions(() => {
-      AnalyticsV2.trackEvent(MetaMetricsEvents.ONBOARDING_TOUR_STARTED, {
+      metrics.trackEvent(MetaMetricsEvents.ONBOARDING_TOUR_STARTED, {
         tutorial_step_count: 1,
         tutorial_step_name: ONBOARDING_WIZARD_STEP_DESCRIPTION[1],
       });
@@ -118,4 +122,4 @@ const mapDispatchToProps = (dispatch) => ({
 
 Step1.contextType = ThemeContext;
 
-export default connect(null, mapDispatchToProps)(Step1);
+export default connect(null, mapDispatchToProps)(withMetricsAwareness(Step1));

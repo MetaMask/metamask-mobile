@@ -14,8 +14,10 @@ import { strings } from '../../../../locales/i18n';
 import { isValidAddress } from 'ethereumjs-util';
 import ActionView from '../ActionView';
 import { isSmartContractAddress } from '../../../util/transactions';
-import { MetaMetricsEvents } from '../../../core/Analytics';
-import AnalyticsV2 from '../../../util/analyticsV2';
+import {
+  MetaMetricsEvents,
+  withMetricsAwareness,
+} from '../../hooks/useMetrics';
 
 import AppConstants from '../../../core/AppConstants';
 import Alert, { AlertType } from '../../Base/Alert';
@@ -78,7 +80,7 @@ const createStyles = (colors) =>
 /**
  * Copmonent that provides ability to add custom tokens.
  */
-export default class AddCustomToken extends PureComponent {
+class AddCustomToken extends PureComponent {
   state = {
     address: '',
     symbol: '',
@@ -103,6 +105,10 @@ export default class AddCustomToken extends PureComponent {
      * Checks if token detection is supported
      */
     isTokenDetectionSupported: PropTypes.bool,
+    /**
+     * Metrics injected by withMetricsAwareness HOC
+     */
+    metrics: PropTypes.object,
   };
 
   getAnalyticsParams = () => {
@@ -126,7 +132,8 @@ export default class AddCustomToken extends PureComponent {
     const { address, symbol, decimals, name } = this.state;
     await TokensController.addToken(address, symbol, decimals, { name });
 
-    AnalyticsV2.trackEvent(
+    const { metrics } = this.props;
+    metrics.trackEvent(
       MetaMetricsEvents.TOKEN_ADDED,
       this.getAnalyticsParams(),
     );
@@ -478,3 +485,5 @@ export default class AddCustomToken extends PureComponent {
 }
 
 AddCustomToken.contextType = ThemeContext;
+
+export default withMetricsAwareness(AddCustomToken);

@@ -6,24 +6,24 @@ import { connect } from 'react-redux';
 import { SigningModalSelectorsIDs } from '../../../../e2e/selectors/Modals/SigningModal.selectors';
 import { strings } from '../../../../locales/i18n';
 import ExtendedKeyringTypes from '../../../constants/keyringTypes';
-import { MetaMetricsEvents } from '../../../core/Analytics';
-import Analytics from '../../../core/Analytics/Analytics';
+import {
+  MetaMetricsEvents,
+  withMetricsAwareness,
+} from '../../hooks/useMetrics';
 import { selectProviderType } from '../../../selectors/networkController';
 import { fontStyles } from '../../../styles/common';
 import { isHardwareAccount } from '../../../util/address';
-import AnalyticsV2 from '../../../util/analyticsV2';
 import { getHost } from '../../../util/browser';
 import { getAnalyticsParams } from '../../../util/confirmation/signatureUtils';
 import Device from '../../../util/device';
 import { ThemeContext, mockTheme } from '../../../util/theme';
 import WarningMessage from '../../Views/SendFlow/WarningMessage';
 import AccountInfoCard from '../AccountInfoCard';
-import ActionView, { ConfirmButtonState } from '../ActionView';
+import ActionView from '../ActionView';
 import BlockaidBanner from '../BlockaidBanner/BlockaidBanner';
 import QRSigningDetails from '../QRHardware/QRSigningDetails';
 import withQRHardwareAwareness from '../QRHardware/withQRHardwareAwareness';
 import WebsiteIcon from '../WebsiteIcon';
-import { ResultType } from '../BlockaidBanner/BlockaidBanner.types';
 
 const createStyles = (colors) =>
   StyleSheet.create({
@@ -172,14 +172,19 @@ class SignatureRequest extends PureComponent {
     selectedAddress: PropTypes.string,
     testID: PropTypes.string,
     securityAlertResponse: PropTypes.object,
+    /**
+     * Metrics injected by withMetricsAwareness HOC
+     */
+    metrics: PropTypes.object,
   };
 
   /**
    * Calls trackCancelSignature and onReject callback
    */
   onReject = () => {
-    this.props.onReject();
-    Analytics.trackEventWithParameters(
+    const { onReject, metrics } = this.props;
+    onReject();
+    metrics.trackEvent(
       MetaMetricsEvents.TRANSACTIONS_CANCEL_SIGNATURE,
       this.getTrackingParams(),
     );
@@ -189,8 +194,9 @@ class SignatureRequest extends PureComponent {
    * Calls trackConfirmSignature and onConfirm callback
    */
   onConfirm = () => {
-    this.props.onConfirm();
-    Analytics.trackEventWithParameters(
+    const { onConfirm, metrics } = this.props;
+    onConfirm();
+    metrics.trackEvent(
       MetaMetricsEvents.TRANSACTIONS_CONFIRM_SIGNATURE,
       this.getTrackingParams(),
     );
@@ -303,7 +309,7 @@ class SignatureRequest extends PureComponent {
   };
 
   onContactUsClicked = () => {
-    const { fromAddress, type } = this.props;
+    const { fromAddress, type, metrics } = this.props;
     const analyticsParams = {
       ...getAnalyticsParams(
         {
@@ -313,10 +319,7 @@ class SignatureRequest extends PureComponent {
       ),
       external_link_clicked: 'security_alert_support_link',
     };
-    AnalyticsV2.trackEvent(
-      MetaMetricsEvents.SIGNATURE_REQUESTED,
-      analyticsParams,
-    );
+    metrics.trackEvent(MetaMetricsEvents.SIGNATURE_REQUESTED, analyticsParams);
   };
 
   renderSignatureRequest() {
@@ -335,14 +338,6 @@ class SignatureRequest extends PureComponent {
         expandedHeight = styles.expandedHeight1;
       }
     }
-
-    let confirmButtonState = ConfirmButtonState.Normal;
-    if (securityAlertResponse?.result_type === ResultType.Malicious) {
-      confirmButtonState = ConfirmButtonState.Error;
-    } else if (securityAlertResponse?.result_type === ResultType.Warning) {
-      confirmButtonState = ConfirmButtonState.Warning;
-    }
-
     return (
       <View testID={this.props.testID} style={[styles.root, expandedHeight]}>
         <ActionView
@@ -357,7 +352,6 @@ class SignatureRequest extends PureComponent {
           onCancelPress={this.onReject}
           onConfirmPress={this.onConfirm}
           confirmButtonMode="sign"
-          confirmButtonState={confirmButtonState}
         >
           <View>
             <View style={styles.signingInformation}>
@@ -423,5 +417,5 @@ const mapStateToProps = (state) => ({
 SignatureRequest.contextType = ThemeContext;
 
 export default connect(mapStateToProps)(
-  withQRHardwareAwareness(SignatureRequest),
+  withQRHardwareAwareness(withMetricsAwareness(SignatureRequest)),
 );
