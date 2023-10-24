@@ -1,5 +1,6 @@
 import * as core from '@actions/core';
-import { context } from '@actions/github';
+import { context, getOctokit } from '@actions/github';
+import { GitHub } from '@actions/github/lib/utils';
 // import { GitHub } from '@actions/github/lib/utils';
 import axios from 'axios';
 
@@ -17,7 +18,7 @@ async function main(): Promise<void> {
     process.exit(1);
   }
 
-  //   const octokit: InstanceType<typeof GitHub> = getOctokit(githubToken);
+  const octokit: InstanceType<typeof GitHub> = getOctokit(githubToken);
 
   const { pull_request, label, repository } = context.payload;
 
@@ -50,6 +51,17 @@ async function main(): Promise<void> {
     );
     // const buildLink = ;
     console.log('kick off build', process.env.BITRISE_APP_ID);
+
+    const issue_number = context.issue.number;
+    const message = 'Your custom message here';
+    const commentCreator = await octokit.rest.issues.createComment({
+      owner: context.repo.owner,
+      repo: context.repo.repo,
+      issue_number: issue_number,
+      body: message,
+    });
+
+    console.log('CRAETED COMMENT', commentCreator);
 
     // const tagName = `pr-e2e-${pull_request.number}`;
 
