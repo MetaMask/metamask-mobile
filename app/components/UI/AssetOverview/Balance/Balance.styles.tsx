@@ -7,7 +7,6 @@ const styleSheet = (params: { theme: Theme }) => {
   return StyleSheet.create({
     wrapper: {},
     text: {
-      ...typography.sBodySM,
       marginVertical: 0,
     } as TextStyle,
     fiatBalance: {

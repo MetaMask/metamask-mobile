@@ -36,8 +36,6 @@ const createStyles = (params: { theme: Theme }) => {
     buttonText: {
       marginTop: 8,
       marginHorizontal: 3,
-      color: colors.primary.default,
-      fontSize: 14,
     },
     receive: {
       right: Device.isIos() ? 1 : 0,
