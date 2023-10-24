@@ -11,6 +11,12 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v3
 
+      - name: Set up Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version-file: '.nvmrc'
+          cache: yarn
+
       - name: Create E2E tag for PR
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
