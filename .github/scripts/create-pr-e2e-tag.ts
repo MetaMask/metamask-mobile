@@ -2,7 +2,7 @@ import * as core from '@actions/core';
 import { context, getOctokit } from '@actions/github';
 import { GitHub } from '@actions/github/lib/utils';
 
-const E2E_TRIGGERED_LABEL = 'RUN E2E';
+const E2E_TRIGGERED_LABEL = 'Run E2E';
 
 main().catch((error: Error): void => {
   console.error(error);
@@ -26,8 +26,6 @@ async function main(): Promise<void> {
     core.setFailed('pull_request, label, or repository not found.');
     process.exit(1);
   }
-
-  console.log('LABEL', label);
 
   if (label.name === E2E_TRIGGERED_LABEL) {
     const tagName = `pr-e2e-${pull_request.number}`;
