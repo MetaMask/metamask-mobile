@@ -3,7 +3,7 @@ import { StyleSheet, TextStyle } from 'react-native';
 
 const styleSheet = (params: { theme: Theme }) => {
   const { theme } = params;
-  const { colors, typography } = theme;
+  const { colors } = theme;
   return StyleSheet.create({
     wrapper: {
       paddingTop: 20,
@@ -13,16 +13,11 @@ const styleSheet = (params: { theme: Theme }) => {
       marginBottom: 20,
     },
     warning: {
-      ...typography.sBodyMD,
       borderRadius: 8,
       borderWidth: 1,
       borderColor: colors.warning.default,
       backgroundColor: colors.warning.muted,
       padding: 20,
-    } as TextStyle,
-    warningLinks: {
-      ...typography.sBodyMD,
-      color: colors.primary.default,
     } as TextStyle,
     chartNavigationWrapper: {
       display: 'flex',
