@@ -42,14 +42,17 @@ const styleSheet = (params: {
       justifyContent: 'flex-start',
     },
     accountNameLabelText: {
-      marginLeft: 4,
-      paddingHorizontal: 8,
+      marginTop: 4,
+      marginHorizontal: 5,
+      paddingHorizontal: 5,
       ...fontStyles.bold,
       color: colors.text.alternative,
       borderWidth: 1,
-      borderRadius: 8,
+      borderRadius: 10,
       borderColor: colors.border.default,
       fontSize: 10,
+      justifyContent: 'center',
+      textAlign: 'center',
     },
   });
 };
