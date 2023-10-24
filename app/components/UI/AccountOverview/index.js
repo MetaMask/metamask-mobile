@@ -441,7 +441,7 @@ class AccountOverview extends PureComponent {
                       <Text style={styles.tagText}>
                         {isLedgerAccount
                           ? strings('accounts.ledger')
-                          : strings('transaction.hardware')}
+                          : strings('accounts.qr_hardware')}
                       </Text>
                     </View>
                   )}

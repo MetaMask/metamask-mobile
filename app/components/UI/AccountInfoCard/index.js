@@ -240,7 +240,7 @@ class AccountInfoCard extends PureComponent {
             <Text style={styles.tagText}>
               {isLedgerKeyring
                 ? strings('accounts.ledger')
-                : strings('transaction.hardware')}
+                : strings('accounts.qr_hardware')}
             </Text>
           </View>
         )}

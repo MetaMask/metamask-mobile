@@ -58,7 +58,7 @@ const AccountSelectorList = ({
     let label = '';
     switch (type) {
       case KeyringTypes.qr:
-        label = strings('transaction.hardware');
+        label = strings('accounts.qr_hardware');
         break;
       case KeyringTypes.simple:
         label = strings('accounts.imported');
