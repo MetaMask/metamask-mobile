@@ -29,6 +29,7 @@ const initialRootState: RootState = {
   security: initialSecurityState,
   experimentalSettings: undefined,
   rpcEvents: undefined,
+  accounts: undefined,
 };
 
 export default initialRootState;

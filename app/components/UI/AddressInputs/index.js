@@ -97,6 +97,9 @@ const createStyles = (colors, layout = 'horizontal') => {
     },
     accountNameLabelText: {
       marginLeft: 4,
+      marginTop: 4,
+      horizontalAlign: 'center',
+      textAlign: 'center',
       paddingHorizontal: 8,
       ...fontStyles.bold,
       color: colors.text.alternative,
