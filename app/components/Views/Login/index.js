@@ -12,6 +12,7 @@ import {
   Platform,
 } from 'react-native';
 import Text, {
+  TextColor,
   TextVariant,
 } from '../../../component-library/components/Texts/Text';
 import AsyncStorage from '../../../store/async-storage-wrapper';
@@ -110,21 +111,13 @@ const createStyles = (colors) =>
       flexDirection: 'column',
     },
     label: {
-      color: colors.text.default,
-      fontSize: 16,
       marginBottom: 12,
-      ...fontStyles.normal,
     },
     ctaWrapper: {
       marginTop: 20,
     },
     footer: {
       marginVertical: 40,
-    },
-    errorMsg: {
-      color: colors.error.default,
-      ...fontStyles.normal,
-      lineHeight: 20,
     },
     goBack: {
       marginVertical: 14,
@@ -157,10 +150,6 @@ const createStyles = (colors) =>
       alignSelf: 'center',
       justifyContent: 'center',
       textAlign: 'center',
-      ...fontStyles.normal,
-      fontSize: 16,
-      lineHeight: 24,
-      color: colors.text.default,
     },
     areYouSure: {
       width: '100%',
@@ -549,7 +538,10 @@ class Login extends PureComponent {
                 {strings('login.title')}
               </Text>
               <View style={styles.field}>
-                <Text textVariant={TextVariant.BodyMD} style={styles.label}>
+                <Text
+                  textVariant={TextVariant.HeadingSMRegular}
+                  style={styles.label}
+                >
                   {strings('login.password')}
                 </Text>
                 <OutlinedTextField
@@ -583,7 +575,7 @@ class Login extends PureComponent {
               {!!this.state.error && (
                 <Text
                   textVariant={TextVariant.BodyMD}
-                  style={styles.errorMsg}
+                  color={TextColor.Error}
                   testID={LOGIN_PASSWORD_ERROR}
                 >
                   {this.state.error}
@@ -607,7 +599,10 @@ class Login extends PureComponent {
               </View>
 
               <View style={styles.footer}>
-                <Text textVariant={TextVariant.BodyMD} style={styles.cant}>
+                <Text
+                  textVariant={TextVariant.HeadingSMRegular}
+                  style={styles.cant}
+                >
                   {strings('login.go_back')}
                 </Text>
                 <Button
