@@ -78,6 +78,7 @@ exports[`CellBase - Snapshot should render label when given 1`] = `
       label="Imported"
       style={
         Object {
+          "height": 25,
           "marginTop": 4,
         }
       }
