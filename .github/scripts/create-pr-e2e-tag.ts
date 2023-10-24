@@ -48,7 +48,8 @@ async function main(): Promise<void> {
         },
       },
     );
-    console.log('kick off build', response.data.build_url);
+    // const buildLink = ;
+    console.log('kick off build', process.env.BITRISE_APP_ID);
 
     // const tagName = `pr-e2e-${pull_request.number}`;
 
