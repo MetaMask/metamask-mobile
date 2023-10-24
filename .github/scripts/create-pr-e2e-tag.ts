@@ -1,6 +1,7 @@
 import * as core from '@actions/core';
 import { context, getOctokit } from '@actions/github';
 import { GitHub } from '@actions/github/lib/utils';
+import axios from 'axios';
 
 const E2E_TRIGGERED_LABEL = 'Run E2E';
 
@@ -28,16 +29,15 @@ async function main(): Promise<void> {
   if (label.name === E2E_TRIGGERED_LABEL) {
     const tagName = `pr-e2e-${pull_request.number}`;
 
-    const response = await fetch(
+    const response = await axios.get(
       'https://api.github.com/repos/MetaMask/metamask-mobile/pulls/7339',
       {
-        method: 'GET',
         headers: {
           Accept: 'application/vnd.github.v3+json',
         },
       },
     );
-    const pullRequestInfo = await response.json();
+    const pullRequestInfo = response.data;
     const sha = pullRequestInfo.head.sha;
     console.log('PR INFO', pullRequestInfo.head.sha);
 

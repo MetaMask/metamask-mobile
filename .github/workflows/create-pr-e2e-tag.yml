@@ -17,6 +17,9 @@ jobs:
           node-version-file: '.nvmrc'
           cache: yarn
 
+      - name: Install Axios
+        run: yarn add axios
+
       - name: Install dependencies
         run: yarn --immutable
 
