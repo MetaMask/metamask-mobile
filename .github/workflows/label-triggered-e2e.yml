@@ -16,8 +16,8 @@ jobs:
         with:
           github-token: ${{secrets.GITHUB_TOKEN}}
           script: |
-            const { context, github } = require("@actions/github");
-            const { pull_request, label, repository } = context.payload;
+            const { context: ghContext, github } = require("@actions/github");
+            const { pull_request, label, repository } = ghContext.payload;
 
             if (label.name === 'Run E2E') {
               const tagName = `pr-e2e-${pull_request.number}`;
