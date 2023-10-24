@@ -27,6 +27,8 @@ async function main(): Promise<void> {
     process.exit(1);
   }
 
+  console.log('LABEL', label);
+
   if (label.name === E2E_TRIGGERED_LABEL) {
     const tagName = `pr-e2e-${pull_request.number}`;
 

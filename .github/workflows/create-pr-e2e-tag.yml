@@ -1,11 +1,11 @@
-name: Create Tag on Label
+name: Create E2E tag for PR
 
 on:
   pull_request:
     types: [labeled]
 
 jobs:
-  create-tag:
+  create-pr-e2e-tag:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout code
