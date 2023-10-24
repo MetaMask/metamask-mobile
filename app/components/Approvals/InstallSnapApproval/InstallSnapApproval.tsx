@@ -6,8 +6,7 @@ import { ApprovalTypes } from '../../../core/RPCMethods/RPCMethodMiddleware';
 
 const InstallSnapApproval = () => {
   const [isFinished, setIsFinished] = useState<boolean>(false);
-  const { approvalRequest, pageMeta, onConfirm, onReject } =
-    useApprovalRequest();
+  const { approvalRequest, onConfirm, onReject } = useApprovalRequest();
 
   const onInstallSnapFinished = () => {
     setIsFinished(true);
@@ -24,7 +23,7 @@ const InstallSnapApproval = () => {
         onCancel={onReject}
         onConfirm={onConfirm}
         onFinish={onInstallSnapFinished}
-        requestData={pageMeta}
+        requestData={approvalRequest}
       />
     </ApprovalModal>
   );
