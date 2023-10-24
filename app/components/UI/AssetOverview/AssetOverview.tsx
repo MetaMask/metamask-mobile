@@ -40,9 +40,7 @@ import {
   weiToFiat,
 } from '../../../util/number';
 import { getEther } from '../../../util/transactions';
-import Text, {
-  TextVariant,
-} from '../../../component-library/components/Texts/Text';
+import Text from '../../../component-library/components/Texts/Text';
 import { createWebviewNavDetails } from '../../Views/SimpleWebview';
 import useTokenHistoricalPrices, {
   TimePeriod,
@@ -130,10 +128,10 @@ const AssetOverview: React.FC<AssetOverviewProps> = ({
         testID={TOKEN_OVERVIEW_BALANCE_WARNING}
         onPress={() => goToBrowserUrl(AppConstants.URLS.TOKEN_BALANCE)}
       >
-        <Text variant={TextVariant.BodyMD} style={styles.warning}>
+        <Text style={styles.warning}>
           {strings('asset_overview.were_unable')} {(asset as Asset).symbol}{' '}
           {strings('asset_overview.balance')}{' '}
-          <Text variant={TextVariant.BodyMD} style={styles.warningLinks}>
+          <Text style={styles.warningLinks}>
             {strings('asset_overview.troubleshooting_missing')}
           </Text>{' '}
           {strings('asset_overview.for_help')}

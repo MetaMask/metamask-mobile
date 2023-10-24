@@ -2,7 +2,7 @@ import React, { useMemo } from 'react';
 import PropTypes from 'prop-types';
 import { StyleSheet, View } from 'react-native';
 
-import Text from '../../../Base/Text';
+import Text from '../../../../component-library/components/Texts/Text';
 import AssetActionButton from '../../AssetOverview/AssetActionButton';
 import InfoModal from './InfoModal';
 
