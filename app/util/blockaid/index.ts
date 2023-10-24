@@ -9,19 +9,16 @@ export const isBlockaidFeatureEnabled = () =>
   process.env.MM_BLOCKAID_UI_ENABLED === 'true';
 
 export const getBlockaidMetricsParams = (
-  securityAlertResponse: SecurityAlertResponse,
+  securityAlertResponse?: SecurityAlertResponse,
 ) => {
   const additionalParams: Record<string, any> = {};
 
   if (securityAlertResponse && isBlockaidFeatureEnabled()) {
-    const { resultType, reason } = securityAlertResponse;
-    let uiCustomizations;
+    const { resultType, reason, providerRequestsCount } = securityAlertResponse;
 
     if (resultType === ResultType.Malicious) {
-      uiCustomizations = ['flagged_as_malicious'];
+      additionalParams.ui_customizations = ['flagged_as_malicious'];
     }
-
-    additionalParams.ui_customizations = uiCustomizations;
 
     if (resultType !== ResultType.Benign) {
       additionalParams.security_alert_reason = Reason.notApplicable;
@@ -30,6 +27,14 @@ export const getBlockaidMetricsParams = (
         additionalParams.security_alert_response = resultType;
         additionalParams.security_alert_reason = reason;
       }
+    }
+
+    // add counts of each RPC call
+    if (providerRequestsCount) {
+      Object.keys(providerRequestsCount).forEach((key: string) => {
+        const metricKey = `ppom_${key}_count`;
+        additionalParams[metricKey] = providerRequestsCount[key];
+      });
     }
   }
 
