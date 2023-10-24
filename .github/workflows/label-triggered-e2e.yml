@@ -9,35 +9,12 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout code
-        uses: actions/checkout@v2
+        uses: actions/checkout@v3
 
-      - name: Create tag
-        uses: actions/github-script@v3
-        with:
-          github-token: ${{secrets.GITHUB_TOKEN}}
-          script: |
-            const { context: ghContext, github } = require("@actions/github");
-            const { pull_request, label, repository } = ghContext.payload;
-
-            if (label.name === 'Run E2E') {
-              const tagName = `pr-e2e-${pull_request.number}`;
-              const tagMessage = `Tag created for PR #${pull_request.number}`;
-              const { data: ref } = await github.git.getRef({
-                owner: repository.owner.login,
-                repo: repository.name,
-                ref: `heads/${pull_request.head.ref}`,
-              });
-
-              await github.git.createRef({
-                owner: repository.owner.login,
-                repo: repository.name,
-                ref: `refs/tags/${tagName}`,
-                sha: ref.object.sha,
-              });
-
-              console.log(`Created tag ${tagName}`);
-            }
-
+      - name: Create E2E tag for PR
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: yarn run create-pr-e2e-tag
 # name: Bitrise E2E
 
 # on:
