@@ -2,7 +2,7 @@ import * as core from '@actions/core';
 import { context, getOctokit } from '@actions/github';
 import { GitHub } from '@actions/github/lib/utils';
 
-const E2E_TRIGGERED_LABEL = 'RUN_E2E';
+const E2E_TRIGGERED_LABEL = 'RUN E2E';
 
 main().catch((error: Error): void => {
   console.error(error);
