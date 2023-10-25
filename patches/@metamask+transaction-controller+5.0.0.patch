@@ -12,7 +12,7 @@ index 0000000..550de56
 +* Run "yarn patch:tx <core-directory>" in the mobile repo
 +* Once the new patch is merged, add your changes to: refactor/transaction-controller-patch-mobile-5
 diff --git a/node_modules/@metamask/transaction-controller/dist/TransactionController.d.ts b/node_modules/@metamask/transaction-controller/dist/TransactionController.d.ts
-index e242aed..fd44fa8 100644
+index e242aed..d78c19c 100644
 --- a/node_modules/@metamask/transaction-controller/dist/TransactionController.d.ts
 +++ b/node_modules/@metamask/transaction-controller/dist/TransactionController.d.ts
 @@ -2,8 +2,11 @@
@@ -252,7 +252,7 @@ index e242aed..fd44fa8 100644
      /**
       * EventEmitter instance used to listen to specific transactional events
       */
-@@ -252,25 +116,40 @@ export declare class TransactionController extends BaseController<TransactionCon
+@@ -252,25 +116,45 @@ export declare class TransactionController extends BaseController<TransactionCon
       * Creates a TransactionController instance.
       *
       * @param options - The controller options.
@@ -269,13 +269,15 @@ index e242aed..fd44fa8 100644
 +     * @param options.incomingTransactions.updateTransactions - Whether or not to update local transactions using remote transaction data.
 +     * @param options.messenger - The controller messenger.
       * @param options.onNetworkStateChange - Allows subscribing to network controller state changes.
++     * @param options.pendingTransactions - Configuration options for pending transaction support.
++     * @param options.pendingTransactions.isResubmitEnabled - Whether transaction publishing is automatically retried.
       * @param options.provider - The provider used to create the underlying EthQuery instance.
 -     * @param options.blockTracker - The block tracker used to poll for new blocks data.
       * @param config - Initial options used to configure this controller.
       * @param state - Initial state to set on this controller.
       */
 -    constructor({ getNetworkState, onNetworkStateChange, provider, blockTracker, }: {
-+    constructor({ blockTracker, getCurrentAccountEIP1559Compatibility, getCurrentNetworkEIP1559Compatibility, getGasFeeEstimates, getNetworkState, getSelectedAddress, incomingTransactions, messenger, onNetworkStateChange, provider, }: {
++    constructor({ blockTracker, getCurrentAccountEIP1559Compatibility, getCurrentNetworkEIP1559Compatibility, getGasFeeEstimates, getNetworkState, getSelectedAddress, incomingTransactions, messenger, onNetworkStateChange, pendingTransactions, provider, }: {
 +        blockTracker: BlockTrackerProxy;
 +        getCurrentAccountEIP1559Compatibility: () => Promise<boolean>;
 +        getCurrentNetworkEIP1559Compatibility: () => Promise<boolean>;
@@ -290,6 +292,9 @@ index e242aed..fd44fa8 100644
 +        };
 +        messenger: TransactionControllerMessenger;
          onNetworkStateChange: (listener: (state: NetworkState) => void) => void;
++        pendingTransactions: {
++            isResubmitEnabled?: boolean;
++        };
          provider: ProviderProxy;
 -        blockTracker: BlockTrackerProxy;
      }, config?: Partial<TransactionConfig>, state?: Partial<TransactionState>);
@@ -302,7 +307,7 @@ index e242aed..fd44fa8 100644
      /**
       * Handle new method data request.
       *
-@@ -284,11 +163,20 @@ export declare class TransactionController extends BaseController<TransactionCon
+@@ -284,11 +168,21 @@ export declare class TransactionController extends BaseController<TransactionCon
       * if not provided. If A `<tx.id>:unapproved` hub event will be emitted once added.
       *
       * @param transaction - The transaction object to add.
@@ -323,10 +328,11 @@ index e242aed..fd44fa8 100644
 +    startIncomingTransactionPolling(): void;
 +    stopIncomingTransactionPolling(): void;
 +    updateIncomingTransactions(): Promise<void>;
++    private getChainId;
      prepareUnsignedEthTx(txParams: Record<string, unknown>): TypedTransaction;
      /**
       * `@ethereumjs/tx` uses `@ethereumjs/common` as a configuration tool for
-@@ -300,22 +188,6 @@ export declare class TransactionController extends BaseController<TransactionCon
+@@ -300,22 +194,6 @@ export declare class TransactionController extends BaseController<TransactionCon
       * @returns {Common} common configuration object
       */
      getCommonConfiguration(): Common;
@@ -349,7 +355,7 @@ index e242aed..fd44fa8 100644
      /**
       * Attempts to cancel a transaction based on its ID by setting its status to "rejected"
       * and emitting a `<tx.id>:finished` hub event.
-@@ -339,18 +211,15 @@ export declare class TransactionController extends BaseController<TransactionCon
+@@ -339,18 +217,15 @@ export declare class TransactionController extends BaseController<TransactionCon
       */
      estimateGas(transaction: Transaction): Promise<{
          gas: string;
@@ -376,7 +382,7 @@ index e242aed..fd44fa8 100644
      /**
       * Updates an existing transaction in state.
       *
-@@ -364,16 +233,6 @@ export declare class TransactionController extends BaseController<TransactionCon
+@@ -364,16 +239,6 @@ export declare class TransactionController extends BaseController<TransactionCon
       * current network. If `true`, all transactions are wiped.
       */
      wipeTransactions(ignoreNetwork?: boolean): void;
@@ -393,7 +399,7 @@ index e242aed..fd44fa8 100644
      /**
       * Trim the amount of transactions that are set on the state. Checks
       * if the length of the tx history is longer then desired persistence
-@@ -396,76 +255,39 @@ export declare class TransactionController extends BaseController<TransactionCon
+@@ -396,76 +261,46 @@ export declare class TransactionController extends BaseController<TransactionCon
       * @returns Whether the transaction is in a final state.
       */
      private isFinalState;
@@ -438,59 +444,63 @@ index e242aed..fd44fa8 100644
 -     * Get all the transactions that are locally outdated with respect
 -     * to a remote source (etherscan or blockchain). The returned array
 -     * contains the transactions with the updated data.
--     *
--     * @param remoteTxs - Array of transactions from remote source.
--     * @param localTxs - Array of transactions stored locally.
--     * @returns The updated transactions.
--     */
--    private getUpdatedTransactions;
--    /**
--     * Verifies if a local transaction is outdated with respect to the remote transaction.
 +     * Approves a transaction and updates it's status in state. If this is not a
 +     * retry transaction, a nonce will be generated. The transaction is signed
 +     * using the sign configuration property, then published to the blockchain.
 +     * A `<tx.id>:finished` hub event is fired after success or failure.
       *
+-     * @param remoteTxs - Array of transactions from remote source.
+-     * @param localTxs - Array of transactions stored locally.
+-     * @returns The updated transactions.
++     * @param transactionID - The ID of the transaction to approve.
+      */
+-    private getUpdatedTransactions;
++    private approveTransaction;
++    private publishTransaction;
+     /**
+-     * Verifies if a local transaction is outdated with respect to the remote transaction.
++     * Cancels a transaction based on its ID by setting its status to "rejected"
++     * and emitting a `<tx.id>:finished` hub event.
+      *
 -     * @param remoteTx - The remote transaction from Etherscan.
 -     * @param localTx - The local transaction.
 -     * @returns Whether the transaction is outdated.
-+     * @param transactionID - The ID of the transaction to approve.
++     * @param transactionID - The ID of the transaction to cancel.
       */
 -    private isTransactionOutdated;
-+    private approveTransaction;
++    private cancelTransaction;
      /**
 -     * Verifies if the status of a local transaction is outdated with respect to the remote transaction.
-+     * Cancels a transaction based on its ID by setting its status to "rejected"
-+     * and emitting a `<tx.id>:finished` hub event.
++     * Whether the transaction has at least completed all local processing.
       *
 -     * @param remoteTxHash - Remote transaction hash.
 -     * @param localTxHash - Local transaction hash.
 -     * @param remoteTxStatus - Remote transaction status.
 -     * @param localTxStatus - Local transaction status.
 -     * @returns Whether the status is outdated.
-+     * @param transactionID - The ID of the transaction to cancel.
-      */
--    private isStatusOutdated;
-+    private cancelTransaction;
-     /**
--     * Verifies if the gas data of a local transaction is outdated with respect to the remote transaction.
-+     * Whether the transaction has at least completed all local processing.
-      *
--     * @param remoteGasUsed - Remote gas used in the transaction.
--     * @param localGasUsed - Local gas used in the transaction.
--     * @returns Whether the gas data is outdated.
 +     * @param status - The transaction status.
 +     * @returns Whether the transaction is in a final state.
       */
--    private isGasDataOutdated;
+-    private isStatusOutdated;
 +    private isLocalFinalState;
 +    private getTransaction;
 +    private isTransactionCompleted;
 +    private onIncomingTransactions;
 +    private onUpdatedLastFetchedBlockNumbers;
+     /**
+-     * Verifies if the gas data of a local transaction is outdated with respect to the remote transaction.
++     * Method to set transaction status to dropped.
+      *
+-     * @param remoteGasUsed - Remote gas used in the transaction.
+-     * @param localGasUsed - Local gas used in the transaction.
+-     * @returns Whether the gas data is outdated.
++     * @param transactionMeta - TransactionMeta of transaction to be marked as dropped.
+      */
+-    private isGasDataOutdated;
++    private setTransactionStatusDropped;
 +    private getNonceTrackerTransactions;
-+    private onPendingTransactionsUpdate;
 +    private getEIP1559Compatibility;
++    private addPendingTransactionTrackerListeners;
  }
  export default TransactionController;
  //# sourceMappingURL=TransactionController.d.ts.map
@@ -504,7 +514,7 @@ index 07781b0..0000000
 -{"version":3,"file":"TransactionController.d.ts","sourceRoot":"","sources":["../src/TransactionController.ts"],"names":[],"mappings":"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"}
 \ No newline at end of file
 diff --git a/node_modules/@metamask/transaction-controller/dist/TransactionController.js b/node_modules/@metamask/transaction-controller/dist/TransactionController.js
-index 814a899..d1d0e19 100644
+index 814a899..f81393c 100644
 --- a/node_modules/@metamask/transaction-controller/dist/TransactionController.js
 +++ b/node_modules/@metamask/transaction-controller/dist/TransactionController.js
 @@ -12,7 +12,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
@@ -516,7 +526,7 @@ index 814a899..d1d0e19 100644
  const events_1 = require("events");
  const ethereumjs_util_1 = require("ethereumjs-util");
  const eth_rpc_errors_1 = require("eth-rpc-errors");
-@@ -25,33 +25,19 @@ const async_mutex_1 = require("async-mutex");
+@@ -25,33 +25,18 @@ const async_mutex_1 = require("async-mutex");
  const base_controller_1 = require("@metamask/base-controller");
  const controller_utils_1 = require("@metamask/controller-utils");
  const nonce_tracker_1 = __importDefault(require("nonce-tracker"));
@@ -526,7 +536,6 @@ index 814a899..d1d0e19 100644
 +const EtherscanRemoteTransactionSource_1 = require("./helpers/EtherscanRemoteTransactionSource");
 +const types_1 = require("./types");
 +const PendingTransactionTracker_1 = require("./helpers/PendingTransactionTracker");
-+const logger_1 = require("./logger");
 +const gas_1 = require("./utils/gas");
 +const gas_fees_1 = require("./utils/gas-fees");
  const HARDFORK = 'london';
@@ -560,7 +569,7 @@ index 814a899..d1d0e19 100644
  /**
   * Multiplier used to determine a transaction's increased gas fee during cancellation
   */
-@@ -68,44 +54,26 @@ class TransactionController extends base_controller_1.BaseController {
+@@ -68,44 +53,28 @@ class TransactionController extends base_controller_1.BaseController {
       * Creates a TransactionController instance.
       *
       * @param options - The controller options.
@@ -577,13 +586,15 @@ index 814a899..d1d0e19 100644
 +     * @param options.incomingTransactions.updateTransactions - Whether or not to update local transactions using remote transaction data.
 +     * @param options.messenger - The controller messenger.
       * @param options.onNetworkStateChange - Allows subscribing to network controller state changes.
++     * @param options.pendingTransactions - Configuration options for pending transaction support.
++     * @param options.pendingTransactions.isResubmitEnabled - Whether transaction publishing is automatically retried.
       * @param options.provider - The provider used to create the underlying EthQuery instance.
 -     * @param options.blockTracker - The block tracker used to poll for new blocks data.
       * @param config - Initial options used to configure this controller.
       * @param state - Initial state to set on this controller.
       */
 -    constructor({ getNetworkState, onNetworkStateChange, provider, blockTracker, }, config, state) {
-+    constructor({ blockTracker, getCurrentAccountEIP1559Compatibility, getCurrentNetworkEIP1559Compatibility, getGasFeeEstimates, getNetworkState, getSelectedAddress, incomingTransactions = {}, messenger, onNetworkStateChange, provider, }, config, state) {
++    constructor({ blockTracker, getCurrentAccountEIP1559Compatibility, getCurrentNetworkEIP1559Compatibility, getGasFeeEstimates, getNetworkState, getSelectedAddress, incomingTransactions = {}, messenger, onNetworkStateChange, pendingTransactions = {}, provider, }, config, state) {
          super(config, state);
          this.mutex = new async_mutex_1.Mutex();
 -        this.normalizeTokenTx = (txMeta, currentNetworkID, currentChainId) => {
@@ -617,7 +628,7 @@ index 814a899..d1d0e19 100644
          /**
           * EventEmitter instance used to listen to specific transactional events
           */
-@@ -115,32 +83,66 @@ class TransactionController extends base_controller_1.BaseController {
+@@ -115,32 +84,66 @@ class TransactionController extends base_controller_1.BaseController {
           */
          this.name = 'TransactionController';
          this.defaultConfig = {
@@ -666,22 +677,22 @@ index 814a899..d1d0e19 100644
 +        this.incomingTransactionHelper.hub.on('transactions', this.onIncomingTransactions.bind(this));
 +        this.incomingTransactionHelper.hub.on('updatedLastFetchedBlockNumbers', this.onUpdatedLastFetchedBlockNumbers.bind(this));
 +        this.pendingTransactionTracker = new PendingTransactionTracker_1.PendingTransactionTracker({
++            approveTransaction: this.approveTransaction.bind(this),
 +            blockTracker,
-+            failTransaction: this.failTransaction.bind(this),
-+            getChainId: () => this.getNetworkState().providerConfig.chainId,
++            getChainId: this.getChainId.bind(this),
 +            getEthQuery: () => this.ethQuery,
 +            getTransactions: () => this.state.transactions,
-+        });
-+        this.pendingTransactionTracker.hub.on('transactions', this.onPendingTransactionsUpdate.bind(this));
-+        this.pendingTransactionTracker.hub.on('transaction-confirmed', (transactionMeta) => {
-+            this.hub.emit(`${transactionMeta.id}:confirmed`, transactionMeta);
++            isResubmitEnabled: pendingTransactions.isResubmitEnabled,
++            nonceTracker: this.nonceTracker,
++            onStateChange: this.subscribe.bind(this),
++            publishTransaction: this.publishTransaction.bind(this),
          });
++        this.addPendingTransactionTrackerListeners();
          onNetworkStateChange(() => {
              this.ethQuery = new eth_query_1.default(this.provider);
              this.registry = new eth_method_registry_1.default({ provider: this.provider });
          });
 -        this.poll();
-+        this.pendingTransactionTracker.start();
      }
      failTransaction(transactionMeta, error) {
 -        const newTransactionMeta = Object.assign(Object.assign({}, transactionMeta), { error, status: TransactionStatus.failed });
@@ -689,7 +700,7 @@ index 814a899..d1d0e19 100644
          this.updateTransaction(newTransactionMeta);
          this.hub.emit(`${transactionMeta.id}:finished`, newTransactionMeta);
      }
-@@ -151,58 +153,6 @@ class TransactionController extends base_controller_1.BaseController {
+@@ -151,58 +154,6 @@ class TransactionController extends base_controller_1.BaseController {
              return { registryMethod, parsedRegistryMethod };
          });
      }
@@ -748,7 +759,7 @@ index 814a899..d1d0e19 100644
      /**
       * Handle new method data request.
       *
-@@ -235,13 +185,16 @@ class TransactionController extends base_controller_1.BaseController {
+@@ -235,13 +186,16 @@ class TransactionController extends base_controller_1.BaseController {
       * if not provided. If A `<tx.id>:unapproved` hub event will be emitted once added.
       *
       * @param transaction - The transaction object to add.
@@ -768,7 +779,7 @@ index 814a899..d1d0e19 100644
              const { transactions } = this.state;
              transaction = (0, utils_1.normalizeTransaction)(transaction);
              (0, utils_1.validateTransaction)(transaction);
-@@ -250,42 +203,42 @@ class TransactionController extends base_controller_1.BaseController {
+@@ -250,44 +204,48 @@ class TransactionController extends base_controller_1.BaseController {
                  networkID: networkId !== null && networkId !== void 0 ? networkId : undefined,
                  chainId: providerConfig.chainId,
                  origin,
@@ -824,8 +835,8 @@ index 814a899..d1d0e19 100644
 +                result: this.processApproval(transactionMeta),
 +                transactionMeta,
 +            };
-+        });
-+    }
+         });
+     }
 +    startIncomingTransactionPolling() {
 +        this.incomingTransactionHelper.start();
 +    }
@@ -835,10 +846,16 @@ index 814a899..d1d0e19 100644
 +    updateIncomingTransactions() {
 +        return __awaiter(this, void 0, void 0, function* () {
 +            yield this.incomingTransactionHelper.update();
-         });
-     }
++        });
++    }
++    getChainId() {
++        const { providerConfig } = this.getNetworkState();
++        return providerConfig.chainId;
++    }
      prepareUnsignedEthTx(txParams) {
-@@ -305,7 +258,9 @@ class TransactionController extends base_controller_1.BaseController {
+         return tx_1.TransactionFactory.fromTxData(txParams, {
+             common: this.getCommonConfiguration(),
+@@ -305,7 +263,9 @@ class TransactionController extends base_controller_1.BaseController {
       */
      getCommonConfiguration() {
          const { networkId, providerConfig: { type: chain, chainId, nickname: name }, } = this.getNetworkState();
@@ -849,7 +866,7 @@ index 814a899..d1d0e19 100644
              return new common_1.default({ chain, hardfork: HARDFORK });
          }
          const customChainParams = {
-@@ -315,100 +270,6 @@ class TransactionController extends base_controller_1.BaseController {
+@@ -315,100 +275,6 @@ class TransactionController extends base_controller_1.BaseController {
          };
          return common_1.default.forCustomChain(controller_utils_1.NetworkType.mainnet, customChainParams, HARDFORK);
      }
@@ -950,7 +967,7 @@ index 814a899..d1d0e19 100644
      /**
       * Attempts to cancel a transaction based on its ID by setting its status to "rejected"
       * and emitting a `<tx.id>:finished` hub event.
-@@ -470,9 +331,9 @@ class TransactionController extends base_controller_1.BaseController {
+@@ -470,9 +336,9 @@ class TransactionController extends base_controller_1.BaseController {
                  };
              const unsignedEthTx = this.prepareUnsignedEthTx(txParams);
              const signedTx = yield this.sign(unsignedEthTx, transactionMeta.transaction.from);
@@ -963,7 +980,7 @@ index 814a899..d1d0e19 100644
              this.hub.emit(`${transactionMeta.id}:finished`, transactionMeta);
          });
      }
-@@ -522,9 +383,9 @@ class TransactionController extends base_controller_1.BaseController {
+@@ -522,9 +388,9 @@ class TransactionController extends base_controller_1.BaseController {
                  ? Object.assign(Object.assign({}, transactionMeta.transaction), { gasLimit: transactionMeta.transaction.gas, maxFeePerGas: newMaxFeePerGas, maxPriorityFeePerGas: newMaxPriorityFeePerGas, type: 2 }) : Object.assign(Object.assign({}, transactionMeta.transaction), { gasLimit: transactionMeta.transaction.gas, gasPrice: newGasPrice });
              const unsignedEthTx = this.prepareUnsignedEthTx(txParams);
              const signedTx = yield this.sign(unsignedEthTx, transactionMeta.transaction.from);
@@ -975,7 +992,7 @@ index 814a899..d1d0e19 100644
              ]);
              const baseTransactionMeta = Object.assign(Object.assign({}, transactionMeta), { id: (0, uuid_1.v1)(), time: Date.now(), transactionHash });
              const newTransactionMeta = newMaxFeePerGas && newMaxPriorityFeePerGas
-@@ -542,98 +403,8 @@ class TransactionController extends base_controller_1.BaseController {
+@@ -542,98 +408,8 @@ class TransactionController extends base_controller_1.BaseController {
       */
      estimateGas(transaction) {
          return __awaiter(this, void 0, void 0, function* () {
@@ -1076,7 +1093,7 @@ index 814a899..d1d0e19 100644
          });
      }
      /**
-@@ -673,70 +444,6 @@ class TransactionController extends base_controller_1.BaseController {
+@@ -673,70 +449,6 @@ class TransactionController extends base_controller_1.BaseController {
              transactions: this.trimTransactionsForState(newTransactions),
          });
      }
@@ -1147,7 +1164,7 @@ index 814a899..d1d0e19 100644
      /**
       * Trim the amount of transactions that are set on the state. Checks
       * if the length of the tx history is longer then desired persistence
-@@ -753,7 +460,9 @@ class TransactionController extends base_controller_1.BaseController {
+@@ -753,7 +465,9 @@ class TransactionController extends base_controller_1.BaseController {
       */
      trimTransactionsForState(transactions) {
          const nonceNetworkSet = new Set();
@@ -1158,7 +1175,7 @@ index 814a899..d1d0e19 100644
              const { chainId, networkID, status, transaction, time } = tx;
              if (transaction) {
                  const key = `${transaction.nonce}-${chainId !== null && chainId !== void 0 ? chainId : networkID}-${new Date(time).toDateString()}`;
-@@ -768,7 +477,7 @@ class TransactionController extends base_controller_1.BaseController {
+@@ -768,7 +482,7 @@ class TransactionController extends base_controller_1.BaseController {
              }
              return false;
          });
@@ -1167,7 +1184,7 @@ index 814a899..d1d0e19 100644
          return txsToKeep;
      }
      /**
-@@ -778,166 +487,222 @@ class TransactionController extends base_controller_1.BaseController {
+@@ -778,166 +492,236 @@ class TransactionController extends base_controller_1.BaseController {
       * @returns Whether the transaction is in a final state.
       */
      isFinalState(status) {
@@ -1223,7 +1240,7 @@ index 814a899..d1d0e19 100644
 +                    else {
                          this.failTransaction(meta, error);
 -                        return [meta, false];
--                    }
+                     }
 -                    return [meta, true];
 -                case TransactionStatus.submitted:
 -                    const txObj = yield (0, controller_utils_1.query)(this.ethQuery, 'getTransactionByHash', [
@@ -1243,7 +1260,7 @@ index 814a899..d1d0e19 100644
 -                        meta.status = TransactionStatus.confirmed;
 -                        this.hub.emit(`${meta.id}:confirmed`, meta);
 -                        return [meta, true];
-                     }
+-                    }
 -                    return [meta, false];
 +                }
 +            }
@@ -1267,26 +1284,8 @@ index 814a899..d1d0e19 100644
              }
          });
      }
--    /**
--     * Method to check if a tx has failed according to their receipt
--     * According to the Web3 docs:
--     * TRUE if the transaction was successful, FALSE if the EVM reverted the transaction.
--     * The receipt is not available for pending transactions and returns null.
--     *
--     * @param txHash - The transaction hash.
--     * @returns Whether the transaction has failed.
--     */
--    checkTxReceiptStatusIsFailed(txHash) {
 +    requestApproval(txMeta) {
-         return __awaiter(this, void 0, void 0, function* () {
--            const txReceipt = yield (0, controller_utils_1.query)(this.ethQuery, 'getTransactionReceipt', [
--                txHash,
--            ]);
--            if (!txReceipt) {
--                // Transaction is pending
--                return false;
--            }
--            return Number(txReceipt.status) === 0;
++        return __awaiter(this, void 0, void 0, function* () {
 +            const id = this.getApprovalId(txMeta);
 +            const { origin } = txMeta;
 +            const type = 'transaction';
@@ -1298,31 +1297,34 @@ index 814a899..d1d0e19 100644
 +                requestData,
 +                expectsResult: true,
 +            }, true);
-         });
-     }
++        });
++    }
 +    getApprovalId(txMeta) {
 +        return String(txMeta.id);
 +    }
      /**
--     * Method to verify the state of transactions using Etherscan as a source of truth.
+-     * Method to check if a tx has failed according to their receipt
+-     * According to the Web3 docs:
+-     * TRUE if the transaction was successful, FALSE if the EVM reverted the transaction.
+-     * The receipt is not available for pending transactions and returns null.
 +     * Approves a transaction and updates it's status in state. If this is not a
 +     * retry transaction, a nonce will be generated. The transaction is signed
 +     * using the sign configuration property, then published to the blockchain.
 +     * A `<tx.id>:finished` hub event is fired after success or failure.
       *
--     * @param remoteTxs - Transactions to reconcile that are from a remote source.
--     * @param localTxs - Transactions to reconcile that are local.
--     * @returns A tuple containing a boolean indicating whether or not an update was required, and the updated transaction.
+-     * @param txHash - The transaction hash.
+-     * @returns Whether the transaction has failed.
 +     * @param transactionID - The ID of the transaction to approve.
       */
--    etherscanTransactionStateReconciler(remoteTxs, localTxs) {
--        const updatedTxs = this.getUpdatedTransactions(remoteTxs, localTxs);
--        const newTxs = this.getNewTransactions(remoteTxs, localTxs);
--        const updatedLocalTxs = localTxs.map((tx) => {
--            const txIdx = updatedTxs.findIndex(({ transactionHash }) => transactionHash === tx.transactionHash);
--            return txIdx === -1 ? tx : updatedTxs[txIdx];
+-    checkTxReceiptStatusIsFailed(txHash) {
 +    approveTransaction(transactionID) {
-+        return __awaiter(this, void 0, void 0, function* () {
+         return __awaiter(this, void 0, void 0, function* () {
+-            const txReceipt = yield (0, controller_utils_1.query)(this.ethQuery, 'getTransactionReceipt', [
+-                txHash,
+-            ]);
+-            if (!txReceipt) {
+-                // Transaction is pending
+-                return false;
 +            const { transactions } = this.state;
 +            const releaseLock = yield this.mutex.acquire();
 +            const { providerConfig } = this.getNetworkState();
@@ -1367,9 +1369,7 @@ index 814a899..d1d0e19 100644
 +                const rawTx = (0, ethereumjs_util_1.bufferToHex)(signedTx.serialize());
 +                transactionMeta.rawTx = rawTx;
 +                this.updateTransaction(transactionMeta);
-+                const transactionHash = yield (0, controller_utils_1.query)(this.ethQuery, 'sendRawTransaction', [
-+                    rawTx,
-+                ]);
++                const transactionHash = yield this.publishTransaction(rawTx);
 +                transactionMeta.transactionHash = transactionHash;
 +                transactionMeta.status = types_1.TransactionStatus.submitted;
 +                this.updateTransaction(transactionMeta);
@@ -1384,7 +1384,26 @@ index 814a899..d1d0e19 100644
 +                    nonceLock.releaseLock();
 +                }
 +                releaseLock();
-+            }
+             }
+-            return Number(txReceipt.status) === 0;
+         });
+     }
+-    /**
+-     * Method to verify the state of transactions using Etherscan as a source of truth.
+-     *
+-     * @param remoteTxs - Transactions to reconcile that are from a remote source.
+-     * @param localTxs - Transactions to reconcile that are local.
+-     * @returns A tuple containing a boolean indicating whether or not an update was required, and the updated transaction.
+-     */
+-    etherscanTransactionStateReconciler(remoteTxs, localTxs) {
+-        const updatedTxs = this.getUpdatedTransactions(remoteTxs, localTxs);
+-        const newTxs = this.getNewTransactions(remoteTxs, localTxs);
+-        const updatedLocalTxs = localTxs.map((tx) => {
+-            const txIdx = updatedTxs.findIndex(({ transactionHash }) => transactionHash === tx.transactionHash);
+-            return txIdx === -1 ? tx : updatedTxs[txIdx];
++    publishTransaction(rawTransaction) {
++        return __awaiter(this, void 0, void 0, function* () {
++            return yield (0, controller_utils_1.query)(this.ethQuery, 'sendRawTransaction', [rawTransaction]);
          });
 -        const updateRequired = newTxs.length > 0 || updatedLocalTxs.length > 0;
 -        return [updateRequired, [...newTxs, ...updatedLocalTxs]];
@@ -1484,20 +1503,22 @@ index 814a899..d1d0e19 100644
 +        this.update({ lastFetchedBlockNumbers });
 +        this.hub.emit('incomingTransactionBlock', blockNumber);
      }
--    /**
+     /**
 -     * Verifies if the status of a local transaction is outdated with respect to the remote transaction.
--     *
++     * Method to set transaction status to dropped.
+      *
 -     * @param remoteTxHash - Remote transaction hash.
 -     * @param localTxHash - Local transaction hash.
 -     * @param remoteTxStatus - Remote transaction status.
 -     * @param localTxStatus - Local transaction status.
 -     * @returns Whether the status is outdated.
--     */
++     * @param transactionMeta - TransactionMeta of transaction to be marked as dropped.
+      */
 -    isStatusOutdated(remoteTxHash, localTxHash, remoteTxStatus, localTxStatus) {
 -        return remoteTxHash === localTxHash && remoteTxStatus !== localTxStatus;
-+    getNonceTrackerTransactions(status, address) {
-+        const { chainId: currentChainId } = this.getNetworkState().providerConfig;
-+        return (0, utils_1.getAndFormatTransactionsForNonceTracker)(currentChainId, address, status, this.state.transactions);
++    setTransactionStatusDropped(transactionMeta) {
++        transactionMeta.status = types_1.TransactionStatus.dropped;
++        this.updateTransaction(transactionMeta);
      }
 -    /**
 -     * Verifies if the gas data of a local transaction is outdated with respect to the remote transaction.
@@ -1508,9 +1529,9 @@ index 814a899..d1d0e19 100644
 -     */
 -    isGasDataOutdated(remoteGasUsed, localGasUsed) {
 -        return remoteGasUsed !== localGasUsed;
-+    onPendingTransactionsUpdate(transactions) {
-+        (0, logger_1.pendingTransactionsLogger)('Updated pending transactions');
-+        this.update({ transactions: this.trimTransactionsForState(transactions) });
++    getNonceTrackerTransactions(status, address) {
++        const { chainId: currentChainId } = this.getNetworkState().providerConfig;
++        return (0, utils_1.getAndFormatTransactionsForNonceTracker)(currentChainId, address, status, this.state.transactions);
 +    }
 +    getEIP1559Compatibility() {
 +        var _a, _b;
@@ -1519,6 +1540,12 @@ index 814a899..d1d0e19 100644
 +            const currentAccountIsEIP1559Compatible = (_b = (_a = this.getCurrentAccountEIP1559Compatibility) === null || _a === void 0 ? void 0 : _a.call(this)) !== null && _b !== void 0 ? _b : true;
 +            return (currentNetworkIsEIP1559Compatible && currentAccountIsEIP1559Compatible);
 +        });
++    }
++    addPendingTransactionTrackerListeners() {
++        this.pendingTransactionTracker.hub.on('transaction-confirmed', (transactionMeta) => this.hub.emit(`${transactionMeta.id}:confirmed`, transactionMeta));
++        this.pendingTransactionTracker.hub.on('transaction-dropped', this.setTransactionStatusDropped.bind(this));
++        this.pendingTransactionTracker.hub.on('transaction-failed', this.failTransaction.bind(this));
++        this.pendingTransactionTracker.hub.on('transaction-updated', this.updateTransaction.bind(this));
      }
  }
  exports.TransactionController = TransactionController;
@@ -2215,42 +2242,58 @@ index 0000000..e704acb
 \ No newline at end of file
 diff --git a/node_modules/@metamask/transaction-controller/dist/helpers/PendingTransactionTracker.d.ts b/node_modules/@metamask/transaction-controller/dist/helpers/PendingTransactionTracker.d.ts
 new file mode 100644
-index 0000000..f92011a
+index 0000000..2acf977
 --- /dev/null
 +++ b/node_modules/@metamask/transaction-controller/dist/helpers/PendingTransactionTracker.d.ts
-@@ -0,0 +1,17 @@
+@@ -0,0 +1,33 @@
 +/// <reference types="node" />
 +import EventEmitter from 'events';
-+import { BlockTrackerProxy } from '@metamask/network-controller';
++import type { BlockTrackerProxy } from '@metamask/network-controller';
++import type NonceTracker from 'nonce-tracker';
++import type { TransactionState } from '../TransactionController';
 +import type { TransactionMeta } from '../types';
++declare type Events = {
++    'transaction-confirmed': [txMeta: TransactionMeta];
++    'transaction-dropped': [txMeta: TransactionMeta];
++    'transaction-failed': [txMeta: TransactionMeta, error: Error];
++    'transaction-updated': [txMeta: TransactionMeta, note: string];
++};
++export interface PendingTransactionTrackerEventEmitter extends EventEmitter {
++    on<T extends keyof Events>(eventName: T, listener: (...args: Events[T]) => void): this;
++    emit<T extends keyof Events>(eventName: T, ...args: Events[T]): boolean;
++}
 +export declare class PendingTransactionTracker {
 +    #private;
-+    hub: EventEmitter;
-+    constructor({ blockTracker, failTransaction, getChainId, getEthQuery, getTransactions, }: {
++    hub: PendingTransactionTrackerEventEmitter;
++    constructor({ approveTransaction, blockTracker, getChainId, getEthQuery, getTransactions, isResubmitEnabled, nonceTracker, onStateChange, publishTransaction, }: {
++        approveTransaction: (transactionId: string) => Promise<void>;
 +        blockTracker: BlockTrackerProxy;
-+        failTransaction: (txMeta: TransactionMeta, error: Error) => void;
 +        getChainId: () => string;
 +        getEthQuery: () => any;
 +        getTransactions: () => TransactionMeta[];
++        isResubmitEnabled?: boolean;
++        nonceTracker: NonceTracker;
++        onStateChange: (listener: (state: TransactionState) => void) => void;
++        publishTransaction: (rawTx: string) => Promise<string>;
 +    });
-+    start(): void;
 +}
++export {};
 +//# sourceMappingURL=PendingTransactionTracker.d.ts.map
 \ No newline at end of file
 diff --git a/node_modules/@metamask/transaction-controller/dist/helpers/PendingTransactionTracker.d.ts.map b/node_modules/@metamask/transaction-controller/dist/helpers/PendingTransactionTracker.d.ts.map
 new file mode 100644
-index 0000000..8fefacd
+index 0000000..be570e5
 --- /dev/null
 +++ b/node_modules/@metamask/transaction-controller/dist/helpers/PendingTransactionTracker.d.ts.map
 @@ -0,0 +1 @@
-+{"version":3,"file":"PendingTransactionTracker.d.ts","sourceRoot":"","sources":["../../src/helpers/PendingTransactionTracker.ts"],"names":[],"mappings":";AAAA,OAAO,YAAY,MAAM,QAAQ,CAAC;AAGlC,OAAO,EAAE,iBAAiB,EAAE,MAAM,8BAA8B,CAAC;AAEjE,OAAO,KAAK,EAAE,eAAe,EAAE,MAAM,UAAU,CAAC;AAGhD,qBAAa,yBAAyB;;IACpC,GAAG,EAAE,YAAY,CAAC;gBAYN,EACV,YAAY,EACZ,eAAe,EACf,UAAU,EACV,WAAW,EACX,eAAe,GAChB,EAAE;QACD,YAAY,EAAE,iBAAiB,CAAC;QAChC,eAAe,EAAE,CAAC,MAAM,EAAE,eAAe,EAAE,KAAK,EAAE,KAAK,KAAK,IAAI,CAAC;QACjE,UAAU,EAAE,MAAM,MAAM,CAAC;QACzB,WAAW,EAAE,MAAM,GAAG,CAAC;QACvB,eAAe,EAAE,MAAM,eAAe,EAAE,CAAC;KAC1C;IAUD,KAAK;CA0JN"}
++{"version":3,"file":"PendingTransactionTracker.d.ts","sourceRoot":"","sources":["../../src/helpers/PendingTransactionTracker.ts"],"names":[],"mappings":";AAAA,OAAO,YAAY,MAAM,QAAQ,CAAC;AAElC,OAAO,KAAK,EAAE,iBAAiB,EAAE,MAAM,8BAA8B,CAAC;AACtE,OAAO,KAAK,YAAY,MAAM,eAAe,CAAC;AAG9C,OAAO,KAAK,EAAE,gBAAgB,EAAE,MAAM,0BAA0B,CAAC;AACjE,OAAO,KAAK,EAAE,eAAe,EAAsB,MAAM,UAAU,CAAC;AAyBpE,aAAK,MAAM,GAAG;IACZ,uBAAuB,EAAE,CAAC,MAAM,EAAE,eAAe,CAAC,CAAC;IACnD,qBAAqB,EAAE,CAAC,MAAM,EAAE,eAAe,CAAC,CAAC;IACjD,oBAAoB,EAAE,CAAC,MAAM,EAAE,eAAe,EAAE,KAAK,EAAE,KAAK,CAAC,CAAC;IAC9D,qBAAqB,EAAE,CAAC,MAAM,EAAE,eAAe,EAAE,IAAI,EAAE,MAAM,CAAC,CAAC;CAChE,CAAC;AAEF,MAAM,WAAW,qCAAsC,SAAQ,YAAY;IACzE,EAAE,CAAC,CAAC,SAAS,MAAM,MAAM,EACvB,SAAS,EAAE,CAAC,EACZ,QAAQ,EAAE,CAAC,GAAG,IAAI,EAAE,MAAM,CAAC,CAAC,CAAC,KAAK,IAAI,GACrC,IAAI,CAAC;IAER,IAAI,CAAC,CAAC,SAAS,MAAM,MAAM,EAAE,SAAS,EAAE,CAAC,EAAE,GAAG,IAAI,EAAE,MAAM,CAAC,CAAC,CAAC,GAAG,OAAO,CAAC;CACzE;AAED,qBAAa,yBAAyB;;IACpC,GAAG,EAAE,qCAAqC,CAAC;gBA0B/B,EACV,kBAAkB,EAClB,YAAY,EACZ,UAAU,EACV,WAAW,EACX,eAAe,EACf,iBAAiB,EACjB,YAAY,EACZ,aAAa,EACb,kBAAkB,GACnB,EAAE;QACD,kBAAkB,EAAE,CAAC,aAAa,EAAE,MAAM,KAAK,OAAO,CAAC,IAAI,CAAC,CAAC;QAC7D,YAAY,EAAE,iBAAiB,CAAC;QAChC,UAAU,EAAE,MAAM,MAAM,CAAC;QACzB,WAAW,EAAE,MAAM,GAAG,CAAC;QACvB,eAAe,EAAE,MAAM,eAAe,EAAE,CAAC;QACzC,iBAAiB,CAAC,EAAE,OAAO,CAAC;QAC5B,YAAY,EAAE,YAAY,CAAC;QAC3B,aAAa,EAAE,CAAC,QAAQ,EAAE,CAAC,KAAK,EAAE,gBAAgB,KAAK,IAAI,KAAK,IAAI,CAAC;QACrE,kBAAkB,EAAE,CAAC,KAAK,EAAE,MAAM,KAAK,OAAO,CAAC,MAAM,CAAC,CAAC;KACxD;CAwYF"}
 \ No newline at end of file
 diff --git a/node_modules/@metamask/transaction-controller/dist/helpers/PendingTransactionTracker.js b/node_modules/@metamask/transaction-controller/dist/helpers/PendingTransactionTracker.js
 new file mode 100644
-index 0000000..f7c7872
+index 0000000..647ce2e
 --- /dev/null
 +++ b/node_modules/@metamask/transaction-controller/dist/helpers/PendingTransactionTracker.js
-@@ -0,0 +1,142 @@
+@@ -0,0 +1,319 @@
 +"use strict";
 +var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, generator) {
 +    function adopt(value) { return value instanceof P ? value : new P(function (resolve) { resolve(value); }); }
@@ -2275,132 +2318,309 @@ index 0000000..f7c7872
 +var __importDefault = (this && this.__importDefault) || function (mod) {
 +    return (mod && mod.__esModule) ? mod : { "default": mod };
 +};
-+var _PendingTransactionTracker_instances, _PendingTransactionTracker_blockTracker, _PendingTransactionTracker_failTransaction, _PendingTransactionTracker_getChainId, _PendingTransactionTracker_getEthQuery, _PendingTransactionTracker_getTransactions, _PendingTransactionTracker_onLatestBlock, _PendingTransactionTracker_blockchainTransactionStateReconciler, _PendingTransactionTracker_checkTxReceiptStatusIsFailed;
++var _PendingTransactionTracker_instances, _PendingTransactionTracker_approveTransaction, _PendingTransactionTracker_blockTracker, _PendingTransactionTracker_droppedBlockCountByHash, _PendingTransactionTracker_getChainId, _PendingTransactionTracker_getEthQuery, _PendingTransactionTracker_getTransactions, _PendingTransactionTracker_isResubmitEnabled, _PendingTransactionTracker_listener, _PendingTransactionTracker_nonceTracker, _PendingTransactionTracker_onStateChange, _PendingTransactionTracker_publishTransaction, _PendingTransactionTracker_running, _PendingTransactionTracker_start, _PendingTransactionTracker_stop, _PendingTransactionTracker_onLatestBlock, _PendingTransactionTracker_checkTransactions, _PendingTransactionTracker_resubmitTransactions, _PendingTransactionTracker_isKnownTransactionError, _PendingTransactionTracker_resubmitTransaction, _PendingTransactionTracker_isResubmitDue, _PendingTransactionTracker_checkTransaction, _PendingTransactionTracker_onTransactionConfirmed, _PendingTransactionTracker_isTransactionDropped, _PendingTransactionTracker_isNonceTaken, _PendingTransactionTracker_getPendingTransactions, _PendingTransactionTracker_warnTransaction, _PendingTransactionTracker_failTransaction, _PendingTransactionTracker_dropTransaction, _PendingTransactionTracker_updateTransaction, _PendingTransactionTracker_getTransactionReceipt, _PendingTransactionTracker_getBlockByHash, _PendingTransactionTracker_getNetworkTransactionCount;
 +Object.defineProperty(exports, "__esModule", { value: true });
 +exports.PendingTransactionTracker = void 0;
 +const events_1 = __importDefault(require("events"));
 +const controller_utils_1 = require("@metamask/controller-utils");
 +const logger_1 = require("../logger");
 +const types_1 = require("../types");
++/**
++ * We wait this many blocks before emitting a 'transaction-dropped' event
++ * This is because we could be talking to a node that is out of sync
++ */
++const DROPPED_BLOCK_COUNT = 3;
++const MAX_RETRY_BLOCK_DISTANCE = 50;
++const KNOWN_TRANSACTION_ERRORS = [
++    'replacement transaction underpriced',
++    'known transaction',
++    'gas price too low to replace',
++    'transaction with the same hash was already imported',
++    'gateway timeout',
++    'nonce too low',
++];
 +class PendingTransactionTracker {
-+    constructor({ blockTracker, failTransaction, getChainId, getEthQuery, getTransactions, }) {
++    constructor({ approveTransaction, blockTracker, getChainId, getEthQuery, getTransactions, isResubmitEnabled, nonceTracker, onStateChange, publishTransaction, }) {
 +        _PendingTransactionTracker_instances.add(this);
++        _PendingTransactionTracker_approveTransaction.set(this, void 0);
 +        _PendingTransactionTracker_blockTracker.set(this, void 0);
-+        _PendingTransactionTracker_failTransaction.set(this, void 0);
++        _PendingTransactionTracker_droppedBlockCountByHash.set(this, void 0);
 +        _PendingTransactionTracker_getChainId.set(this, void 0);
 +        _PendingTransactionTracker_getEthQuery.set(this, void 0);
 +        _PendingTransactionTracker_getTransactions.set(this, void 0);
++        _PendingTransactionTracker_isResubmitEnabled.set(this, void 0);
++        _PendingTransactionTracker_listener.set(this, void 0);
++        _PendingTransactionTracker_nonceTracker.set(this, void 0);
++        _PendingTransactionTracker_onStateChange.set(this, void 0);
++        _PendingTransactionTracker_publishTransaction.set(this, void 0);
++        _PendingTransactionTracker_running.set(this, void 0);
 +        this.hub = new events_1.default();
++        __classPrivateFieldSet(this, _PendingTransactionTracker_approveTransaction, approveTransaction, "f");
 +        __classPrivateFieldSet(this, _PendingTransactionTracker_blockTracker, blockTracker, "f");
-+        __classPrivateFieldSet(this, _PendingTransactionTracker_failTransaction, failTransaction, "f");
++        __classPrivateFieldSet(this, _PendingTransactionTracker_droppedBlockCountByHash, new Map(), "f");
 +        __classPrivateFieldSet(this, _PendingTransactionTracker_getChainId, getChainId, "f");
 +        __classPrivateFieldSet(this, _PendingTransactionTracker_getEthQuery, getEthQuery, "f");
 +        __classPrivateFieldSet(this, _PendingTransactionTracker_getTransactions, getTransactions, "f");
-+    }
-+    start() {
-+        // eslint-disable-next-line @typescript-eslint/no-misused-promises
-+        __classPrivateFieldGet(this, _PendingTransactionTracker_blockTracker, "f").addListener('latest', () => __awaiter(this, void 0, void 0, function* () {
-+            yield (0, controller_utils_1.safelyExecute)(() => __classPrivateFieldGet(this, _PendingTransactionTracker_instances, "m", _PendingTransactionTracker_onLatestBlock).call(this));
-+        }));
++        __classPrivateFieldSet(this, _PendingTransactionTracker_isResubmitEnabled, isResubmitEnabled !== null && isResubmitEnabled !== void 0 ? isResubmitEnabled : true, "f");
++        __classPrivateFieldSet(this, _PendingTransactionTracker_listener, __classPrivateFieldGet(this, _PendingTransactionTracker_instances, "m", _PendingTransactionTracker_onLatestBlock).bind(this), "f");
++        __classPrivateFieldSet(this, _PendingTransactionTracker_nonceTracker, nonceTracker, "f");
++        __classPrivateFieldSet(this, _PendingTransactionTracker_onStateChange, onStateChange, "f");
++        __classPrivateFieldSet(this, _PendingTransactionTracker_publishTransaction, publishTransaction, "f");
++        __classPrivateFieldSet(this, _PendingTransactionTracker_running, false, "f");
++        __classPrivateFieldGet(this, _PendingTransactionTracker_onStateChange, "f").call(this, (state) => {
++            const pendingTransactions = __classPrivateFieldGet(this, _PendingTransactionTracker_instances, "m", _PendingTransactionTracker_getPendingTransactions).call(this, state.transactions);
++            if (pendingTransactions.length) {
++                __classPrivateFieldGet(this, _PendingTransactionTracker_instances, "m", _PendingTransactionTracker_start).call(this);
++            }
++            else {
++                __classPrivateFieldGet(this, _PendingTransactionTracker_instances, "m", _PendingTransactionTracker_stop).call(this);
++            }
++        });
 +    }
 +}
 +exports.PendingTransactionTracker = PendingTransactionTracker;
-+_PendingTransactionTracker_blockTracker = new WeakMap(), _PendingTransactionTracker_failTransaction = new WeakMap(), _PendingTransactionTracker_getChainId = new WeakMap(), _PendingTransactionTracker_getEthQuery = new WeakMap(), _PendingTransactionTracker_getTransactions = new WeakMap(), _PendingTransactionTracker_instances = new WeakSet(), _PendingTransactionTracker_onLatestBlock = function _PendingTransactionTracker_onLatestBlock() {
++_PendingTransactionTracker_approveTransaction = new WeakMap(), _PendingTransactionTracker_blockTracker = new WeakMap(), _PendingTransactionTracker_droppedBlockCountByHash = new WeakMap(), _PendingTransactionTracker_getChainId = new WeakMap(), _PendingTransactionTracker_getEthQuery = new WeakMap(), _PendingTransactionTracker_getTransactions = new WeakMap(), _PendingTransactionTracker_isResubmitEnabled = new WeakMap(), _PendingTransactionTracker_listener = new WeakMap(), _PendingTransactionTracker_nonceTracker = new WeakMap(), _PendingTransactionTracker_onStateChange = new WeakMap(), _PendingTransactionTracker_publishTransaction = new WeakMap(), _PendingTransactionTracker_running = new WeakMap(), _PendingTransactionTracker_instances = new WeakSet(), _PendingTransactionTracker_start = function _PendingTransactionTracker_start() {
++    if (__classPrivateFieldGet(this, _PendingTransactionTracker_running, "f")) {
++        return;
++    }
++    __classPrivateFieldGet(this, _PendingTransactionTracker_blockTracker, "f").on('latest', __classPrivateFieldGet(this, _PendingTransactionTracker_listener, "f"));
++    __classPrivateFieldSet(this, _PendingTransactionTracker_running, true, "f");
++    (0, logger_1.pendingTransactionsLogger)('Started polling');
++}, _PendingTransactionTracker_stop = function _PendingTransactionTracker_stop() {
++    if (!__classPrivateFieldGet(this, _PendingTransactionTracker_running, "f")) {
++        return;
++    }
++    __classPrivateFieldGet(this, _PendingTransactionTracker_blockTracker, "f").removeListener('latest', __classPrivateFieldGet(this, _PendingTransactionTracker_listener, "f"));
++    __classPrivateFieldSet(this, _PendingTransactionTracker_running, false, "f");
++    (0, logger_1.pendingTransactionsLogger)('Stopped polling');
++}, _PendingTransactionTracker_onLatestBlock = function _PendingTransactionTracker_onLatestBlock(latestBlockNumber) {
++    return __awaiter(this, void 0, void 0, function* () {
++        const nonceGlobalLock = yield __classPrivateFieldGet(this, _PendingTransactionTracker_nonceTracker, "f").getGlobalLock();
++        try {
++            yield __classPrivateFieldGet(this, _PendingTransactionTracker_instances, "m", _PendingTransactionTracker_checkTransactions).call(this);
++        }
++        catch (error) {
++            /* istanbul ignore next */
++            (0, logger_1.pendingTransactionsLogger)('Failed to check transactions', error);
++        }
++        finally {
++            nonceGlobalLock.releaseLock();
++        }
++        try {
++            yield __classPrivateFieldGet(this, _PendingTransactionTracker_instances, "m", _PendingTransactionTracker_resubmitTransactions).call(this, latestBlockNumber);
++        }
++        catch (error) {
++            /* istanbul ignore next */
++            (0, logger_1.pendingTransactionsLogger)('Failed to resubmit transactions', error);
++        }
++    });
++}, _PendingTransactionTracker_checkTransactions = function _PendingTransactionTracker_checkTransactions() {
 +    return __awaiter(this, void 0, void 0, function* () {
 +        (0, logger_1.pendingTransactionsLogger)('Checking transactions');
-+        const transactions = __classPrivateFieldGet(this, _PendingTransactionTracker_getTransactions, "f").call(this);
-+        const currentChainId = __classPrivateFieldGet(this, _PendingTransactionTracker_getChainId, "f").call(this);
-+        let gotUpdates = false;
-+        yield (0, controller_utils_1.safelyExecute)(() => Promise.all(transactions.map((meta, index) => __awaiter(this, void 0, void 0, function* () {
-+            if (!meta.verifiedOnBlockchain && meta.chainId === currentChainId) {
-+                const [reconciledTx, updateRequired] = yield __classPrivateFieldGet(this, _PendingTransactionTracker_instances, "m", _PendingTransactionTracker_blockchainTransactionStateReconciler).call(this, meta);
-+                if (updateRequired) {
-+                    transactions[index] = reconciledTx;
-+                    gotUpdates = updateRequired;
-+                }
++        const pendingTransactions = __classPrivateFieldGet(this, _PendingTransactionTracker_instances, "m", _PendingTransactionTracker_getPendingTransactions).call(this);
++        if (!pendingTransactions.length) {
++            (0, logger_1.pendingTransactionsLogger)('No pending transactions to check');
++            return;
++        }
++        (0, logger_1.pendingTransactionsLogger)('Found pending transactions to check', {
++            count: pendingTransactions.length,
++            ids: pendingTransactions.map((tx) => tx.id),
++        });
++        yield Promise.all(pendingTransactions.map((tx) => __classPrivateFieldGet(this, _PendingTransactionTracker_instances, "m", _PendingTransactionTracker_checkTransaction).call(this, tx)));
++    });
++}, _PendingTransactionTracker_resubmitTransactions = function _PendingTransactionTracker_resubmitTransactions(latestBlockNumber) {
++    var _a, _b;
++    return __awaiter(this, void 0, void 0, function* () {
++        if (!__classPrivateFieldGet(this, _PendingTransactionTracker_isResubmitEnabled, "f") || !__classPrivateFieldGet(this, _PendingTransactionTracker_running, "f")) {
++            return;
++        }
++        (0, logger_1.pendingTransactionsLogger)('Resubmitting transactions');
++        const pendingTransactions = __classPrivateFieldGet(this, _PendingTransactionTracker_instances, "m", _PendingTransactionTracker_getPendingTransactions).call(this);
++        if (!pendingTransactions.length) {
++            (0, logger_1.pendingTransactionsLogger)('No pending transactions to resubmit');
++            return;
++        }
++        (0, logger_1.pendingTransactionsLogger)('Found pending transactions to resubmit', {
++            count: pendingTransactions.length,
++            ids: pendingTransactions.map((tx) => tx.id),
++        });
++        for (const txMeta of pendingTransactions) {
++            try {
++                yield __classPrivateFieldGet(this, _PendingTransactionTracker_instances, "m", _PendingTransactionTracker_resubmitTransaction).call(this, txMeta, latestBlockNumber);
 +            }
-+        }))));
-+        /* istanbul ignore else */
-+        if (gotUpdates) {
-+            this.hub.emit('transactions', transactions);
-+        }
-+    });
-+}, _PendingTransactionTracker_blockchainTransactionStateReconciler = function _PendingTransactionTracker_blockchainTransactionStateReconciler(meta) {
-+    return __awaiter(this, void 0, void 0, function* () {
-+        const { status, transactionHash, id, chainId, transaction: { to }, } = meta;
-+        switch (status) {
-+            case types_1.TransactionStatus.confirmed:
-+                (0, logger_1.pendingTransactionsLogger)('Checking confirmed transaction', {
-+                    id,
-+                    chainId,
-+                    to,
-+                });
-+                const txReceipt = yield (0, controller_utils_1.query)(__classPrivateFieldGet(this, _PendingTransactionTracker_getEthQuery, "f").call(this), 'getTransactionReceipt', [transactionHash]);
-+                if (!txReceipt) {
-+                    return [meta, false];
-+                }
-+                // Required when adding new transaction metadata properties
-+                // const txBlock = await query(this.#getEthQuery(), 'getBlockByHash', [
-+                //   txReceipt.blockHash,
-+                // ]);
-+                meta.verifiedOnBlockchain = true;
-+                meta.transaction.gasUsed = txReceipt.gasUsed;
-+                // According to the Web3 docs:
-+                // TRUE if the transaction was successful, FALSE if the EVM reverted the transaction.
-+                if (Number(txReceipt.status) === 0) {
-+                    const error = new Error('Transaction failed. The transaction was reversed');
-+                    __classPrivateFieldGet(this, _PendingTransactionTracker_failTransaction, "f").call(this, meta, error);
-+                    return [meta, false];
-+                }
-+                return [meta, true];
-+            case types_1.TransactionStatus.submitted:
-+                (0, logger_1.pendingTransactionsLogger)('Checking submitted transaction', {
-+                    id,
-+                    chainId,
-+                    to,
-+                });
-+                const txObj = yield (0, controller_utils_1.query)(__classPrivateFieldGet(this, _PendingTransactionTracker_getEthQuery, "f").call(this), 'getTransactionByHash', [
-+                    transactionHash,
-+                ]);
-+                if (!txObj) {
-+                    const receiptShowsFailedStatus = yield __classPrivateFieldGet(this, _PendingTransactionTracker_instances, "m", _PendingTransactionTracker_checkTxReceiptStatusIsFailed).call(this, transactionHash);
-+                    // Case the txObj is evaluated as false, a second check will
-+                    // determine if the tx failed or it is pending or confirmed
-+                    if (receiptShowsFailedStatus) {
-+                        const error = new Error('Transaction failed. The transaction was dropped or replaced by a new one');
-+                        __classPrivateFieldGet(this, _PendingTransactionTracker_failTransaction, "f").call(this, meta, error);
-+                    }
-+                }
++            catch (error) {
 +                /* istanbul ignore next */
-+                if (txObj === null || txObj === void 0 ? void 0 : txObj.blockNumber) {
-+                    meta.status = types_1.TransactionStatus.confirmed;
-+                    this.hub.emit('transaction-confirmed', meta);
-+                    return [meta, true];
++                const errorMessage = ((_b = (_a = error.value) === null || _a === void 0 ? void 0 : _a.message) === null || _b === void 0 ? void 0 : _b.toLowerCase()) || error.message.toLowerCase();
++                if (__classPrivateFieldGet(this, _PendingTransactionTracker_instances, "m", _PendingTransactionTracker_isKnownTransactionError).call(this, errorMessage)) {
++                    (0, logger_1.pendingTransactionsLogger)('Ignoring known transaction error', errorMessage);
++                    return;
 +                }
-+                return [meta, false];
-+            default:
-+                return [meta, false];
++                __classPrivateFieldGet(this, _PendingTransactionTracker_instances, "m", _PendingTransactionTracker_warnTransaction).call(this, txMeta, error.message, 'There was an error when resubmitting this transaction.');
++            }
 +        }
 +    });
-+}, _PendingTransactionTracker_checkTxReceiptStatusIsFailed = function _PendingTransactionTracker_checkTxReceiptStatusIsFailed(txHash) {
++}, _PendingTransactionTracker_isKnownTransactionError = function _PendingTransactionTracker_isKnownTransactionError(errorMessage) {
++    return KNOWN_TRANSACTION_ERRORS.some((knownError) => errorMessage.includes(knownError));
++}, _PendingTransactionTracker_resubmitTransaction = function _PendingTransactionTracker_resubmitTransaction(txMeta, latestBlockNumber) {
++    var _a;
 +    return __awaiter(this, void 0, void 0, function* () {
-+        const txReceipt = yield (0, controller_utils_1.query)(__classPrivateFieldGet(this, _PendingTransactionTracker_getEthQuery, "f").call(this), 'getTransactionReceipt', [txHash]);
-+        if (!txReceipt) {
-+            // Transaction is pending
++        if (!__classPrivateFieldGet(this, _PendingTransactionTracker_instances, "m", _PendingTransactionTracker_isResubmitDue).call(this, txMeta, latestBlockNumber)) {
++            return;
++        }
++        (0, logger_1.pendingTransactionsLogger)('Resubmitting transaction', txMeta.id);
++        const { rawTx } = txMeta;
++        if (!(rawTx === null || rawTx === void 0 ? void 0 : rawTx.length)) {
++            (0, logger_1.pendingTransactionsLogger)('Approving transaction as no raw value');
++            yield __classPrivateFieldGet(this, _PendingTransactionTracker_approveTransaction, "f").call(this, txMeta.id);
++            return;
++        }
++        yield __classPrivateFieldGet(this, _PendingTransactionTracker_publishTransaction, "f").call(this, rawTx);
++        txMeta.retryCount = ((_a = txMeta.retryCount) !== null && _a !== void 0 ? _a : 0) + 1;
++        __classPrivateFieldGet(this, _PendingTransactionTracker_instances, "m", _PendingTransactionTracker_updateTransaction).call(this, txMeta, 'PendingTransactionTracker:transaction-retry - Retry count increased');
++    });
++}, _PendingTransactionTracker_isResubmitDue = function _PendingTransactionTracker_isResubmitDue(txMeta, latestBlockNumber) {
++    if (!txMeta.firstRetryBlockNumber) {
++        txMeta.firstRetryBlockNumber = latestBlockNumber;
++        __classPrivateFieldGet(this, _PendingTransactionTracker_instances, "m", _PendingTransactionTracker_updateTransaction).call(this, txMeta, 'PendingTransactionTracker:#isResubmitDue - First retry block number set');
++    }
++    const firstRetryBlockNumber = txMeta.firstRetryBlockNumber || latestBlockNumber;
++    const blocksSinceFirstRetry = Number.parseInt(latestBlockNumber, 16) -
++        Number.parseInt(firstRetryBlockNumber, 16);
++    const retryCount = txMeta.retryCount || 0;
++    // Exponential backoff to limit retries at publishing
++    // Capped at ~15 minutes between retries
++    const requiredBlocksSinceFirstRetry = Math.min(MAX_RETRY_BLOCK_DISTANCE, Math.pow(2, retryCount));
++    return blocksSinceFirstRetry >= requiredBlocksSinceFirstRetry;
++}, _PendingTransactionTracker_checkTransaction = function _PendingTransactionTracker_checkTransaction(txMeta) {
++    return __awaiter(this, void 0, void 0, function* () {
++        const { transactionHash, id } = txMeta;
++        if (!transactionHash) {
++            const error = new Error('We had an error while submitting this transaction, please try again.');
++            error.name = 'NoTxHashError';
++            __classPrivateFieldGet(this, _PendingTransactionTracker_instances, "m", _PendingTransactionTracker_failTransaction).call(this, txMeta, error);
++            return;
++        }
++        if (__classPrivateFieldGet(this, _PendingTransactionTracker_instances, "m", _PendingTransactionTracker_isNonceTaken).call(this, txMeta)) {
++            (0, logger_1.pendingTransactionsLogger)('Nonce already taken', id);
++            __classPrivateFieldGet(this, _PendingTransactionTracker_instances, "m", _PendingTransactionTracker_dropTransaction).call(this, txMeta);
++            return;
++        }
++        try {
++            const receipt = yield __classPrivateFieldGet(this, _PendingTransactionTracker_instances, "m", _PendingTransactionTracker_getTransactionReceipt).call(this, transactionHash);
++            const { blockNumber, blockHash } = receipt || {};
++            const isSuccess = (receipt === null || receipt === void 0 ? void 0 : receipt.status) === '0x1';
++            if (receipt && !isSuccess) {
++                (0, logger_1.pendingTransactionsLogger)('Transaction receipt has failed status');
++                __classPrivateFieldGet(this, _PendingTransactionTracker_instances, "m", _PendingTransactionTracker_failTransaction).call(this, txMeta, new Error('Transaction dropped or replaced'));
++                return;
++            }
++            if (isSuccess && blockNumber && blockHash) {
++                yield __classPrivateFieldGet(this, _PendingTransactionTracker_instances, "m", _PendingTransactionTracker_onTransactionConfirmed).call(this, txMeta, Object.assign(Object.assign({}, receipt), { blockNumber,
++                    blockHash }));
++                return;
++            }
++        }
++        catch (error) {
++            (0, logger_1.pendingTransactionsLogger)('Failed to check transaction', id, error);
++            __classPrivateFieldGet(this, _PendingTransactionTracker_instances, "m", _PendingTransactionTracker_warnTransaction).call(this, txMeta, error.message, 'There was a problem loading this transaction.');
++            return;
++        }
++        if (yield __classPrivateFieldGet(this, _PendingTransactionTracker_instances, "m", _PendingTransactionTracker_isTransactionDropped).call(this, txMeta)) {
++            __classPrivateFieldGet(this, _PendingTransactionTracker_instances, "m", _PendingTransactionTracker_dropTransaction).call(this, txMeta);
++        }
++    });
++}, _PendingTransactionTracker_onTransactionConfirmed = function _PendingTransactionTracker_onTransactionConfirmed(txMeta, receipt) {
++    return __awaiter(this, void 0, void 0, function* () {
++        const { id } = txMeta;
++        const { blockHash } = receipt;
++        (0, logger_1.pendingTransactionsLogger)('Transaction confirmed', id);
++        const { baseFeePerGas, timestamp: blockTimestamp } = yield __classPrivateFieldGet(this, _PendingTransactionTracker_instances, "m", _PendingTransactionTracker_getBlockByHash).call(this, blockHash, false);
++        txMeta.baseFeePerGas = baseFeePerGas;
++        txMeta.blockTimestamp = blockTimestamp;
++        txMeta.status = types_1.TransactionStatus.confirmed;
++        txMeta.transaction.gasUsed = receipt.gasUsed;
++        txMeta.txReceipt = receipt;
++        txMeta.verifiedOnBlockchain = true;
++        __classPrivateFieldGet(this, _PendingTransactionTracker_instances, "m", _PendingTransactionTracker_updateTransaction).call(this, txMeta, 'PendingTransactionTracker:#onTransactionConfirmed - Transaction confirmed');
++        this.hub.emit('transaction-confirmed', txMeta);
++    });
++}, _PendingTransactionTracker_isTransactionDropped = function _PendingTransactionTracker_isTransactionDropped(txMeta) {
++    return __awaiter(this, void 0, void 0, function* () {
++        const { transactionHash, id, transaction: { nonce, from }, } = txMeta;
++        /* istanbul ignore next */
++        if (!nonce || !transactionHash) {
 +            return false;
 +        }
-+        return Number(txReceipt.status) === 0;
++        const networkNextNonceHex = yield __classPrivateFieldGet(this, _PendingTransactionTracker_instances, "m", _PendingTransactionTracker_getNetworkTransactionCount).call(this, from);
++        const networkNextNonceNumber = parseInt(networkNextNonceHex, 16);
++        const nonceNumber = parseInt(nonce, 16);
++        if (nonceNumber >= networkNextNonceNumber) {
++            return false;
++        }
++        let droppedBlockCount = __classPrivateFieldGet(this, _PendingTransactionTracker_droppedBlockCountByHash, "f").get(transactionHash);
++        if (droppedBlockCount === undefined) {
++            droppedBlockCount = 0;
++            __classPrivateFieldGet(this, _PendingTransactionTracker_droppedBlockCountByHash, "f").set(transactionHash, droppedBlockCount);
++        }
++        if (droppedBlockCount < DROPPED_BLOCK_COUNT) {
++            (0, logger_1.pendingTransactionsLogger)('Incrementing dropped block count', { id, droppedBlockCount });
++            __classPrivateFieldGet(this, _PendingTransactionTracker_droppedBlockCountByHash, "f").set(transactionHash, droppedBlockCount + 1);
++            return false;
++        }
++        (0, logger_1.pendingTransactionsLogger)('Hit dropped block count', id);
++        __classPrivateFieldGet(this, _PendingTransactionTracker_droppedBlockCountByHash, "f").delete(transactionHash);
++        return true;
++    });
++}, _PendingTransactionTracker_isNonceTaken = function _PendingTransactionTracker_isNonceTaken(txMeta) {
++    const { id, transaction } = txMeta;
++    return __classPrivateFieldGet(this, _PendingTransactionTracker_getTransactions, "f").call(this).some((tx) => tx.id !== id &&
++        tx.transaction.from === transaction.from &&
++        tx.status === types_1.TransactionStatus.confirmed &&
++        tx.transaction.nonce === transaction.nonce);
++}, _PendingTransactionTracker_getPendingTransactions = function _PendingTransactionTracker_getPendingTransactions(transactions) {
++    const currentChainId = __classPrivateFieldGet(this, _PendingTransactionTracker_getChainId, "f").call(this);
++    return (transactions !== null && transactions !== void 0 ? transactions : __classPrivateFieldGet(this, _PendingTransactionTracker_getTransactions, "f").call(this)).filter((tx) => tx.status === types_1.TransactionStatus.submitted &&
++        tx.chainId === currentChainId &&
++        !tx.verifiedOnBlockchain);
++}, _PendingTransactionTracker_warnTransaction = function _PendingTransactionTracker_warnTransaction(txMeta, error, message) {
++    txMeta.warning = {
++        error,
++        message,
++    };
++    __classPrivateFieldGet(this, _PendingTransactionTracker_instances, "m", _PendingTransactionTracker_updateTransaction).call(this, txMeta, 'PendingTransactionTracker:#warnTransaction - Warning added');
++}, _PendingTransactionTracker_failTransaction = function _PendingTransactionTracker_failTransaction(txMeta, error) {
++    (0, logger_1.pendingTransactionsLogger)('Transaction failed', txMeta.id, error);
++    this.hub.emit('transaction-failed', txMeta, error);
++}, _PendingTransactionTracker_dropTransaction = function _PendingTransactionTracker_dropTransaction(txMeta) {
++    (0, logger_1.pendingTransactionsLogger)('Transaction dropped', txMeta.id);
++    this.hub.emit('transaction-dropped', txMeta);
++}, _PendingTransactionTracker_updateTransaction = function _PendingTransactionTracker_updateTransaction(txMeta, note) {
++    this.hub.emit('transaction-updated', txMeta, note);
++}, _PendingTransactionTracker_getTransactionReceipt = function _PendingTransactionTracker_getTransactionReceipt(txHash) {
++    return __awaiter(this, void 0, void 0, function* () {
++        return yield (0, controller_utils_1.query)(__classPrivateFieldGet(this, _PendingTransactionTracker_getEthQuery, "f").call(this), 'getTransactionReceipt', [txHash]);
++    });
++}, _PendingTransactionTracker_getBlockByHash = function _PendingTransactionTracker_getBlockByHash(blockHash, includeTransactionDetails) {
++    return __awaiter(this, void 0, void 0, function* () {
++        return yield (0, controller_utils_1.query)(__classPrivateFieldGet(this, _PendingTransactionTracker_getEthQuery, "f").call(this), 'getBlockByHash', [
++            blockHash,
++            includeTransactionDetails,
++        ]);
++    });
++}, _PendingTransactionTracker_getNetworkTransactionCount = function _PendingTransactionTracker_getNetworkTransactionCount(address) {
++    return __awaiter(this, void 0, void 0, function* () {
++        return yield (0, controller_utils_1.query)(__classPrivateFieldGet(this, _PendingTransactionTracker_getEthQuery, "f").call(this), 'getTransactionCount', [address]);
 +    });
 +};
 +//# sourceMappingURL=PendingTransactionTracker.js.map
 \ No newline at end of file
 diff --git a/node_modules/@metamask/transaction-controller/dist/helpers/PendingTransactionTracker.js.map b/node_modules/@metamask/transaction-controller/dist/helpers/PendingTransactionTracker.js.map
 new file mode 100644
-index 0000000..2f497f4
+index 0000000..4693775
 --- /dev/null
 +++ b/node_modules/@metamask/transaction-controller/dist/helpers/PendingTransactionTracker.js.map
 @@ -0,0 +1 @@
-+{"version":3,"file":"PendingTransactionTracker.js","sourceRoot":"","sources":["../../src/helpers/PendingTransactionTracker.ts"],"names":[],"mappings":"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","sourcesContent":["import EventEmitter from 'events';\nimport { query, safelyExecute } from '@metamask/controller-utils';\n\nimport { BlockTrackerProxy } from '@metamask/network-controller';\nimport { pendingTransactionsLogger as log } from '../logger';\nimport type { TransactionMeta } from '../types';\nimport { TransactionStatus } from '../types';\n\nexport class PendingTransactionTracker {\n  hub: EventEmitter;\n\n  #blockTracker: BlockTrackerProxy;\n\n  #failTransaction: (txMeta: TransactionMeta, error: Error) => void;\n\n  #getChainId: () => string;\n\n  #getEthQuery: () => any;\n\n  #getTransactions: () => TransactionMeta[];\n\n  constructor({\n    blockTracker,\n    failTransaction,\n    getChainId,\n    getEthQuery,\n    getTransactions,\n  }: {\n    blockTracker: BlockTrackerProxy;\n    failTransaction: (txMeta: TransactionMeta, error: Error) => void;\n    getChainId: () => string;\n    getEthQuery: () => any;\n    getTransactions: () => TransactionMeta[];\n  }) {\n    this.hub = new EventEmitter();\n\n    this.#blockTracker = blockTracker;\n    this.#failTransaction = failTransaction;\n    this.#getChainId = getChainId;\n    this.#getEthQuery = getEthQuery;\n    this.#getTransactions = getTransactions;\n  }\n\n  start() {\n    // eslint-disable-next-line @typescript-eslint/no-misused-promises\n    this.#blockTracker.addListener('latest', async () => {\n      await safelyExecute(() => this.#onLatestBlock());\n    });\n  }\n\n  /**\n   * Check the status of submitted transactions on the network to determine whether they have\n   * been included in a block. Any that have been included in a block are marked as confirmed.\n   */\n  async #onLatestBlock() {\n    log('Checking transactions');\n\n    const transactions = this.#getTransactions();\n    const currentChainId = this.#getChainId();\n    let gotUpdates = false;\n\n    await safelyExecute(() =>\n      Promise.all(\n        transactions.map(async (meta, index) => {\n          if (!meta.verifiedOnBlockchain && meta.chainId === currentChainId) {\n            const [reconciledTx, updateRequired] =\n              await this.#blockchainTransactionStateReconciler(meta);\n            if (updateRequired) {\n              transactions[index] = reconciledTx;\n              gotUpdates = updateRequired;\n            }\n          }\n        }),\n      ),\n    );\n\n    /* istanbul ignore else */\n    if (gotUpdates) {\n      this.hub.emit('transactions', transactions);\n    }\n  }\n\n  /**\n   * Method to verify the state of a transaction using the Blockchain as a source of truth.\n   *\n   * @param meta - The local transaction to verify on the blockchain.\n   * @returns A tuple containing the updated transaction, and whether or not an update was required.\n   */\n  async #blockchainTransactionStateReconciler(\n    meta: TransactionMeta,\n  ): Promise<[TransactionMeta, boolean]> {\n    const {\n      status,\n      transactionHash,\n      id,\n      chainId,\n      transaction: { to },\n    } = meta;\n\n    switch (status) {\n      case TransactionStatus.confirmed:\n        log('Checking confirmed transaction', {\n          id,\n          chainId,\n          to,\n        });\n\n        const txReceipt = await query(\n          this.#getEthQuery(),\n          'getTransactionReceipt',\n          [transactionHash],\n        );\n\n        if (!txReceipt) {\n          return [meta, false];\n        }\n\n        // Required when adding new transaction metadata properties\n        // const txBlock = await query(this.#getEthQuery(), 'getBlockByHash', [\n        //   txReceipt.blockHash,\n        // ]);\n\n        meta.verifiedOnBlockchain = true;\n        meta.transaction.gasUsed = txReceipt.gasUsed;\n\n        // According to the Web3 docs:\n        // TRUE if the transaction was successful, FALSE if the EVM reverted the transaction.\n        if (Number(txReceipt.status) === 0) {\n          const error: Error = new Error(\n            'Transaction failed. The transaction was reversed',\n          );\n          this.#failTransaction(meta, error);\n          return [meta, false];\n        }\n\n        return [meta, true];\n      case TransactionStatus.submitted:\n        log('Checking submitted transaction', {\n          id,\n          chainId,\n          to,\n        });\n\n        const txObj = await query(this.#getEthQuery(), 'getTransactionByHash', [\n          transactionHash,\n        ]);\n\n        if (!txObj) {\n          const receiptShowsFailedStatus =\n            await this.#checkTxReceiptStatusIsFailed(transactionHash);\n\n          // Case the txObj is evaluated as false, a second check will\n          // determine if the tx failed or it is pending or confirmed\n          if (receiptShowsFailedStatus) {\n            const error: Error = new Error(\n              'Transaction failed. The transaction was dropped or replaced by a new one',\n            );\n            this.#failTransaction(meta, error);\n          }\n        }\n\n        /* istanbul ignore next */\n        if (txObj?.blockNumber) {\n          meta.status = TransactionStatus.confirmed;\n          this.hub.emit('transaction-confirmed', meta);\n          return [meta, true];\n        }\n\n        return [meta, false];\n      default:\n        return [meta, false];\n    }\n  }\n\n  /**\n   * Method to check if a tx has failed according to their receipt\n   * According to the Web3 docs:\n   * TRUE if the transaction was successful, FALSE if the EVM reverted the transaction.\n   * The receipt is not available for pending transactions and returns null.\n   *\n   * @param txHash - The transaction hash.\n   * @returns Whether the transaction has failed.\n   */\n  async #checkTxReceiptStatusIsFailed(\n    txHash: string | undefined,\n  ): Promise<boolean> {\n    const txReceipt = await query(\n      this.#getEthQuery(),\n      'getTransactionReceipt',\n      [txHash],\n    );\n    if (!txReceipt) {\n      // Transaction is pending\n      return false;\n    }\n    return Number(txReceipt.status) === 0;\n  }\n}\n"]}
++{"version":3,"file":"PendingTransactionTracker.js","sourceRoot":"","sources":["../../src/helpers/PendingTransactionTracker.ts"],"names":[],"mappings":"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","sourcesContent":["import EventEmitter from 'events';\nimport { query } from '@metamask/controller-utils';\nimport type { BlockTrackerProxy } from '@metamask/network-controller';\nimport type NonceTracker from 'nonce-tracker';\n\nimport { pendingTransactionsLogger as log } from '../logger';\nimport type { TransactionState } from '../TransactionController';\nimport type { TransactionMeta, TransactionReceipt } from '../types';\nimport { TransactionStatus } from '../types';\n\n/**\n * We wait this many blocks before emitting a 'transaction-dropped' event\n * This is because we could be talking to a node that is out of sync\n */\nconst DROPPED_BLOCK_COUNT = 3;\n\nconst MAX_RETRY_BLOCK_DISTANCE = 50;\n\nconst KNOWN_TRANSACTION_ERRORS = [\n  'replacement transaction underpriced',\n  'known transaction',\n  'gas price too low to replace',\n  'transaction with the same hash was already imported',\n  'gateway timeout',\n  'nonce too low',\n];\n\ntype SuccessfulTransactionReceipt = TransactionReceipt & {\n  blockNumber: string;\n  blockHash: string;\n};\n\ntype Events = {\n  'transaction-confirmed': [txMeta: TransactionMeta];\n  'transaction-dropped': [txMeta: TransactionMeta];\n  'transaction-failed': [txMeta: TransactionMeta, error: Error];\n  'transaction-updated': [txMeta: TransactionMeta, note: string];\n};\n\nexport interface PendingTransactionTrackerEventEmitter extends EventEmitter {\n  on<T extends keyof Events>(\n    eventName: T,\n    listener: (...args: Events[T]) => void,\n  ): this;\n\n  emit<T extends keyof Events>(eventName: T, ...args: Events[T]): boolean;\n}\n\nexport class PendingTransactionTracker {\n  hub: PendingTransactionTrackerEventEmitter;\n\n  #approveTransaction: (transactionId: string) => Promise<void>;\n\n  #blockTracker: BlockTrackerProxy;\n\n  #droppedBlockCountByHash: Map<string, number>;\n\n  #getChainId: () => string;\n\n  #getEthQuery: () => any;\n\n  #getTransactions: () => TransactionMeta[];\n\n  #isResubmitEnabled: boolean;\n\n  #listener: any;\n\n  #nonceTracker: NonceTracker;\n\n  #onStateChange: (listener: (state: TransactionState) => void) => void;\n\n  #publishTransaction: (rawTx: string) => Promise<string>;\n\n  #running: boolean;\n\n  constructor({\n    approveTransaction,\n    blockTracker,\n    getChainId,\n    getEthQuery,\n    getTransactions,\n    isResubmitEnabled,\n    nonceTracker,\n    onStateChange,\n    publishTransaction,\n  }: {\n    approveTransaction: (transactionId: string) => Promise<void>;\n    blockTracker: BlockTrackerProxy;\n    getChainId: () => string;\n    getEthQuery: () => any;\n    getTransactions: () => TransactionMeta[];\n    isResubmitEnabled?: boolean;\n    nonceTracker: NonceTracker;\n    onStateChange: (listener: (state: TransactionState) => void) => void;\n    publishTransaction: (rawTx: string) => Promise<string>;\n  }) {\n    this.hub = new EventEmitter() as PendingTransactionTrackerEventEmitter;\n\n    this.#approveTransaction = approveTransaction;\n    this.#blockTracker = blockTracker;\n    this.#droppedBlockCountByHash = new Map();\n    this.#getChainId = getChainId;\n    this.#getEthQuery = getEthQuery;\n    this.#getTransactions = getTransactions;\n    this.#isResubmitEnabled = isResubmitEnabled ?? true;\n    this.#listener = this.#onLatestBlock.bind(this);\n    this.#nonceTracker = nonceTracker;\n    this.#onStateChange = onStateChange;\n    this.#publishTransaction = publishTransaction;\n    this.#running = false;\n\n    this.#onStateChange((state) => {\n      const pendingTransactions = this.#getPendingTransactions(\n        state.transactions,\n      );\n\n      if (pendingTransactions.length) {\n        this.#start();\n      } else {\n        this.#stop();\n      }\n    });\n  }\n\n  #start() {\n    if (this.#running) {\n      return;\n    }\n\n    this.#blockTracker.on('latest', this.#listener);\n    this.#running = true;\n\n    log('Started polling');\n  }\n\n  #stop() {\n    if (!this.#running) {\n      return;\n    }\n\n    this.#blockTracker.removeListener('latest', this.#listener);\n    this.#running = false;\n\n    log('Stopped polling');\n  }\n\n  async #onLatestBlock(latestBlockNumber: string) {\n    const nonceGlobalLock = await this.#nonceTracker.getGlobalLock();\n\n    try {\n      await this.#checkTransactions();\n    } catch (error) {\n      /* istanbul ignore next */\n      log('Failed to check transactions', error);\n    } finally {\n      nonceGlobalLock.releaseLock();\n    }\n\n    try {\n      await this.#resubmitTransactions(latestBlockNumber);\n    } catch (error) {\n      /* istanbul ignore next */\n      log('Failed to resubmit transactions', error);\n    }\n  }\n\n  async #checkTransactions() {\n    log('Checking transactions');\n\n    const pendingTransactions = this.#getPendingTransactions();\n\n    if (!pendingTransactions.length) {\n      log('No pending transactions to check');\n      return;\n    }\n\n    log('Found pending transactions to check', {\n      count: pendingTransactions.length,\n      ids: pendingTransactions.map((tx) => tx.id),\n    });\n\n    await Promise.all(\n      pendingTransactions.map((tx) => this.#checkTransaction(tx)),\n    );\n  }\n\n  async #resubmitTransactions(latestBlockNumber: string) {\n    if (!this.#isResubmitEnabled || !this.#running) {\n      return;\n    }\n\n    log('Resubmitting transactions');\n\n    const pendingTransactions = this.#getPendingTransactions();\n\n    if (!pendingTransactions.length) {\n      log('No pending transactions to resubmit');\n      return;\n    }\n\n    log('Found pending transactions to resubmit', {\n      count: pendingTransactions.length,\n      ids: pendingTransactions.map((tx) => tx.id),\n    });\n\n    for (const txMeta of pendingTransactions) {\n      try {\n        await this.#resubmitTransaction(txMeta, latestBlockNumber);\n      } catch (error: any) {\n        /* istanbul ignore next */\n        const errorMessage =\n          error.value?.message?.toLowerCase() || error.message.toLowerCase();\n\n        if (this.#isKnownTransactionError(errorMessage)) {\n          log('Ignoring known transaction error', errorMessage);\n          return;\n        }\n\n        this.#warnTransaction(\n          txMeta,\n          error.message,\n          'There was an error when resubmitting this transaction.',\n        );\n      }\n    }\n  }\n\n  #isKnownTransactionError(errorMessage: string) {\n    return KNOWN_TRANSACTION_ERRORS.some((knownError) =>\n      errorMessage.includes(knownError),\n    );\n  }\n\n  async #resubmitTransaction(\n    txMeta: TransactionMeta,\n    latestBlockNumber: string,\n  ) {\n    if (!this.#isResubmitDue(txMeta, latestBlockNumber)) {\n      return;\n    }\n\n    log('Resubmitting transaction', txMeta.id);\n\n    const { rawTx } = txMeta;\n\n    if (!rawTx?.length) {\n      log('Approving transaction as no raw value');\n      await this.#approveTransaction(txMeta.id);\n      return;\n    }\n\n    await this.#publishTransaction(rawTx);\n\n    txMeta.retryCount = (txMeta.retryCount ?? 0) + 1;\n\n    this.#updateTransaction(\n      txMeta,\n      'PendingTransactionTracker:transaction-retry - Retry count increased',\n    );\n  }\n\n  #isResubmitDue(txMeta: TransactionMeta, latestBlockNumber: string): boolean {\n    if (!txMeta.firstRetryBlockNumber) {\n      txMeta.firstRetryBlockNumber = latestBlockNumber;\n\n      this.#updateTransaction(\n        txMeta,\n        'PendingTransactionTracker:#isResubmitDue - First retry block number set',\n      );\n    }\n\n    const firstRetryBlockNumber =\n      txMeta.firstRetryBlockNumber || latestBlockNumber;\n\n    const blocksSinceFirstRetry =\n      Number.parseInt(latestBlockNumber, 16) -\n      Number.parseInt(firstRetryBlockNumber, 16);\n\n    const retryCount = txMeta.retryCount || 0;\n\n    // Exponential backoff to limit retries at publishing\n    // Capped at ~15 minutes between retries\n    const requiredBlocksSinceFirstRetry = Math.min(\n      MAX_RETRY_BLOCK_DISTANCE,\n      Math.pow(2, retryCount),\n    );\n\n    return blocksSinceFirstRetry >= requiredBlocksSinceFirstRetry;\n  }\n\n  async #checkTransaction(txMeta: TransactionMeta) {\n    const { transactionHash, id } = txMeta;\n\n    if (!transactionHash) {\n      const error = new Error(\n        'We had an error while submitting this transaction, please try again.',\n      );\n\n      error.name = 'NoTxHashError';\n\n      this.#failTransaction(txMeta, error);\n\n      return;\n    }\n\n    if (this.#isNonceTaken(txMeta)) {\n      log('Nonce already taken', id);\n      this.#dropTransaction(txMeta);\n      return;\n    }\n\n    try {\n      const receipt = await this.#getTransactionReceipt(transactionHash);\n      const { blockNumber, blockHash } = receipt || {};\n      const isSuccess = receipt?.status === '0x1';\n\n      if (receipt && !isSuccess) {\n        log('Transaction receipt has failed status');\n\n        this.#failTransaction(\n          txMeta,\n          new Error('Transaction dropped or replaced'),\n        );\n\n        return;\n      }\n\n      if (isSuccess && blockNumber && blockHash) {\n        await this.#onTransactionConfirmed(txMeta, {\n          ...receipt,\n          blockNumber,\n          blockHash,\n        });\n\n        return;\n      }\n    } catch (error: any) {\n      log('Failed to check transaction', id, error);\n\n      this.#warnTransaction(\n        txMeta,\n        error.message,\n        'There was a problem loading this transaction.',\n      );\n\n      return;\n    }\n\n    if (await this.#isTransactionDropped(txMeta)) {\n      this.#dropTransaction(txMeta);\n    }\n  }\n\n  async #onTransactionConfirmed(\n    txMeta: TransactionMeta,\n    receipt: SuccessfulTransactionReceipt,\n  ) {\n    const { id } = txMeta;\n    const { blockHash } = receipt;\n\n    log('Transaction confirmed', id);\n\n    const { baseFeePerGas, timestamp: blockTimestamp } =\n      await this.#getBlockByHash(blockHash, false);\n\n    txMeta.baseFeePerGas = baseFeePerGas;\n    txMeta.blockTimestamp = blockTimestamp;\n    txMeta.status = TransactionStatus.confirmed;\n    txMeta.transaction.gasUsed = receipt.gasUsed;\n    txMeta.txReceipt = receipt;\n    txMeta.verifiedOnBlockchain = true;\n\n    this.#updateTransaction(\n      txMeta,\n      'PendingTransactionTracker:#onTransactionConfirmed - Transaction confirmed',\n    );\n\n    this.hub.emit('transaction-confirmed', txMeta);\n  }\n\n  async #isTransactionDropped(txMeta: TransactionMeta) {\n    const {\n      transactionHash,\n      id,\n      transaction: { nonce, from },\n    } = txMeta;\n\n    /* istanbul ignore next */\n    if (!nonce || !transactionHash) {\n      return false;\n    }\n\n    const networkNextNonceHex = await this.#getNetworkTransactionCount(from);\n    const networkNextNonceNumber = parseInt(networkNextNonceHex, 16);\n    const nonceNumber = parseInt(nonce, 16);\n\n    if (nonceNumber >= networkNextNonceNumber) {\n      return false;\n    }\n\n    let droppedBlockCount = this.#droppedBlockCountByHash.get(transactionHash);\n\n    if (droppedBlockCount === undefined) {\n      droppedBlockCount = 0;\n      this.#droppedBlockCountByHash.set(transactionHash, droppedBlockCount);\n    }\n\n    if (droppedBlockCount < DROPPED_BLOCK_COUNT) {\n      log('Incrementing dropped block count', { id, droppedBlockCount });\n      this.#droppedBlockCountByHash.set(transactionHash, droppedBlockCount + 1);\n      return false;\n    }\n\n    log('Hit dropped block count', id);\n\n    this.#droppedBlockCountByHash.delete(transactionHash);\n    return true;\n  }\n\n  #isNonceTaken(txMeta: TransactionMeta): boolean {\n    const { id, transaction } = txMeta;\n\n    return this.#getTransactions().some(\n      (tx) =>\n        tx.id !== id &&\n        tx.transaction.from === transaction.from &&\n        tx.status === TransactionStatus.confirmed &&\n        tx.transaction.nonce === transaction.nonce,\n    );\n  }\n\n  #getPendingTransactions(transactions?: TransactionMeta[]): TransactionMeta[] {\n    const currentChainId = this.#getChainId();\n\n    return (transactions ?? this.#getTransactions()).filter(\n      (tx) =>\n        tx.status === TransactionStatus.submitted &&\n        tx.chainId === currentChainId &&\n        !tx.verifiedOnBlockchain,\n    );\n  }\n\n  #warnTransaction(txMeta: TransactionMeta, error: string, message: string) {\n    txMeta.warning = {\n      error,\n      message,\n    };\n\n    this.#updateTransaction(\n      txMeta,\n      'PendingTransactionTracker:#warnTransaction - Warning added',\n    );\n  }\n\n  #failTransaction(txMeta: TransactionMeta, error: Error) {\n    log('Transaction failed', txMeta.id, error);\n    this.hub.emit('transaction-failed', txMeta, error);\n  }\n\n  #dropTransaction(txMeta: TransactionMeta) {\n    log('Transaction dropped', txMeta.id);\n    this.hub.emit('transaction-dropped', txMeta);\n  }\n\n  #updateTransaction(txMeta: TransactionMeta, note: string) {\n    this.hub.emit('transaction-updated', txMeta, note);\n  }\n\n  async #getTransactionReceipt(\n    txHash: string,\n  ): Promise<TransactionReceipt | undefined> {\n    return await query(this.#getEthQuery(), 'getTransactionReceipt', [txHash]);\n  }\n\n  async #getBlockByHash(\n    blockHash: string,\n    includeTransactionDetails: boolean,\n  ): Promise<any> {\n    return await query(this.#getEthQuery(), 'getBlockByHash', [\n      blockHash,\n      includeTransactionDetails,\n    ]);\n  }\n\n  async #getNetworkTransactionCount(address: string): Promise<string> {\n    return await query(this.#getEthQuery(), 'getTransactionCount', [address]);\n  }\n}\n"]}
 \ No newline at end of file
 diff --git a/node_modules/@metamask/transaction-controller/dist/index.d.ts b/node_modules/@metamask/transaction-controller/dist/index.d.ts
 index fc7f49b..415e271 100644
@@ -3085,10 +3305,10 @@ index f038698..0000000
 \ No newline at end of file
 diff --git a/node_modules/@metamask/transaction-controller/dist/types.d.ts b/node_modules/@metamask/transaction-controller/dist/types.d.ts
 new file mode 100644
-index 0000000..493a555
+index 0000000..68b9dbe
 --- /dev/null
 +++ b/node_modules/@metamask/transaction-controller/dist/types.d.ts
-@@ -0,0 +1,229 @@
+@@ -0,0 +1,386 @@
 +/**
 + * @type TransactionMeta
 + *
@@ -3112,37 +3332,96 @@ index 0000000..493a555
 +    status: TransactionStatus.failed;
 +    error: Error;
 +} & TransactionMetaBase);
++/**
++ * Information about a single transaction such as status and block number.
++ */
 +declare type TransactionMetaBase = {
-+    isTransfer?: boolean;
-+    transferInformation?: {
-+        symbol: string;
-+        contractAddress: string;
-+        decimals: number;
-+    };
-+    id: string;
-+    networkID?: string;
-+    chainId?: string;
-+    origin?: string;
-+    rawTx?: string;
-+    time: number;
-+    toSmartContract?: boolean;
-+    transaction: Transaction;
-+    transactionHash?: string;
++    /**
++     * Base fee of the block as a hex value, introduced in EIP-1559.
++     */
++    baseFeePerGas?: string;
++    /**
++     * Number of the block where the transaction has been included.
++     */
 +    blockNumber?: string;
-+    deviceConfirmedOn?: WalletDevice;
-+    verifiedOnBlockchain?: boolean;
++    /**
++     * The timestamp for when the block was collated.
++     */
++    blockTimestamp?: string;
++    /**
++     * Network code as per EIP-155 for this transaction.
++     */
++    chainId: string;
 +    /**
 +     * The initial gas values set when the transaction was first created.
 +     */
 +    defaultGasEstimates?: DefaultGasEstimates;
 +    /**
++     * String to indicate what device the transaction was confirmed on.
++     */
++    deviceConfirmedOn?: WalletDevice;
++    /**
++     * The estimated base fee of the transaction.
++     */
++    estimatedBaseFee?: string;
++    /**
++     * Which estimate level that the API suggested.
++     */
++    estimateSuggested?: string;
++    /**
++     * Which estimate level was used
++     */
++    estimateUsed?: string;
++    /**
++     * The number of the latest block when the transaction submit was first retried.
++     */
++    firstRetryBlockNumber?: string;
++    /**
++     * Generated UUID associated with this transaction.
++     */
++    id: string;
++    /**
++     * Whether the transaction is a transfer.
++     */
++    isTransfer?: boolean;
++    /**
++     * Network code as per EIP-155 for this transaction
++     *
++     * @deprecated Use `chainId` instead.
++     */
++    readonly networkID?: string;
++    /**
++     * Origin this transaction was sent from.
++     */
++    origin?: string;
++    /**
 +     * The original gas estimation of the transaction.
 +     */
 +    originalGasEstimate?: string;
 +    /**
++     * Hex representation of the underlying transaction.
++     */
++    rawTx?: string;
++    /**
++     * When the transaction is dropped, this is the replacement transaction hash.
++     */
++    replacedBy?: string;
++    /**
++     * When the transaction is dropped, this is the replacement transaction ID.
++     */
++    replacedById?: string;
++    /**
++     * The number of times that the transaction submit has been retried.
++     */
++    retryCount?: number;
++    /**
 +     * Response from security validator.
 +     */
 +    securityAlertResponse?: Record<string, unknown>;
++    /**
++     * Response from security provider.
++     */
++    securityProviderResponse?: Record<string, any>;
 +    /**
 +     * If the gas estimation fails, an object containing error and block information.
 +     */
@@ -3155,9 +3434,56 @@ index 0000000..493a555
 +        };
 +    };
 +    /**
++     * The time the transaction was submitted to the network, in Unix epoch time (ms).
++     */
++    submittedTime?: number;
++    /**
++     * Timestamp associated with this transaction.
++     */
++    time: number;
++    /**
++     * Whether transaction recipient is a smart contract.
++     */
++    toSmartContract?: boolean;
++    /**
++     * A hex string of the transaction hash, used to identify the transaction on the network.
++     */
++    transactionHash?: string;
++    /**
++     * Additional transfer information.
++     */
++    transferInformation?: {
++        contractAddress: string;
++        decimals: number;
++        symbol: string;
++    };
++    /**
++     * Underlying Transaction object.
++     */
++    transaction: Transaction;
++    /**
++     * Transaction receipt.
++     */
++    txReceipt?: TransactionReceipt;
++    /**
++     * The gas limit supplied by user.
++     */
++    userEditedGasLimit?: boolean;
++    /**
 +     * Estimate level user selected.
 +     */
 +    userFeeLevel?: string;
++    /**
++     * Whether the transaction is verified on the blockchain.
++     */
++    verifiedOnBlockchain?: boolean;
++    /**
++     * Warning information for the transaction.
++     */
++    warning?: {
++        error: string;
++        message: string;
++    };
 +};
 +/**
 + * The status of the transaction. Each status represents the state of the transaction internally
@@ -3168,6 +3494,7 @@ index 0000000..493a555
 +    approved = "approved",
 +    cancelled = "cancelled",
 +    confirmed = "confirmed",
++    dropped = "dropped",
 +    failed = "failed",
 +    rejected = "rejected",
 +    signed = "signed",
@@ -3211,6 +3538,56 @@ index 0000000..493a555
 +    estimatedBaseFee?: string;
 +    estimateGasError?: string;
 +    type?: string;
++}
++/**
++ * Standard data concerning a transaction processed by the blockchain.
++ */
++export interface TransactionReceipt {
++    /**
++     * The block hash of the block that this transaction was included in.
++     */
++    blockHash?: string;
++    /**
++     * The block number of the block that this transaction was included in.
++     */
++    blockNumber?: string;
++    /**
++     * Effective gas price the transaction was charged at.
++     */
++    effectiveGasPrice?: string;
++    /**
++     * Gas used in the transaction.
++     */
++    gasUsed?: string;
++    /**
++     * Total used gas in hex.
++     */
++    l1Fee?: string;
++    /**
++     * All the logs emitted by this transaction.
++     */
++    logs?: Log[];
++    /**
++     * The status of the transaction.
++     */
++    status?: string;
++    /**
++     * The index of this transaction in the list of transactions included in the block this transaction was mined in.
++     */
++    transactionIndex?: number;
++}
++/**
++ * Represents an event that has been included in a transaction using the EVM `LOG` opcode.
++ */
++export interface Log {
++    /**
++     * Address of the contract that generated log.
++     */
++    address?: string;
++    /**
++     * List of topics for log.
++     */
++    topics?: string;
 +}
 +/**
 + * The configuration required to fetch transaction data from a RemoteTransactionSource.
@@ -3321,10 +3698,10 @@ index 0000000..493a555
 \ No newline at end of file
 diff --git a/node_modules/@metamask/transaction-controller/dist/types.js b/node_modules/@metamask/transaction-controller/dist/types.js
 new file mode 100644
-index 0000000..d977aab
+index 0000000..1500f6f
 --- /dev/null
 +++ b/node_modules/@metamask/transaction-controller/dist/types.js
-@@ -0,0 +1,64 @@
+@@ -0,0 +1,65 @@
 +"use strict";
 +Object.defineProperty(exports, "__esModule", { value: true });
 +exports.UserFeeLevel = exports.TransactionEnvelopeType = exports.WalletDevice = exports.TransactionStatus = void 0;
@@ -3338,6 +3715,7 @@ index 0000000..d977aab
 +    TransactionStatus["approved"] = "approved";
 +    TransactionStatus["cancelled"] = "cancelled";
 +    TransactionStatus["confirmed"] = "confirmed";
++    TransactionStatus["dropped"] = "dropped";
 +    TransactionStatus["failed"] = "failed";
 +    TransactionStatus["rejected"] = "rejected";
 +    TransactionStatus["signed"] = "signed";
