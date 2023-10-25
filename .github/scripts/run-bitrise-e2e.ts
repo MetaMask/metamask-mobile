@@ -20,10 +20,12 @@ async function main(): Promise<void> {
 
   const octokit: InstanceType<typeof GitHub> = getOctokit(githubToken);
 
-  const { pull_request, label, repository } = context.payload;
+  const { pull_request, label } = context.payload;
 
-  if (!pull_request || !label || !repository) {
-    core.setFailed('pull_request, label, or repository not found.');
+  if (!label || !pull_request) {
+    core.setFailed(
+      'label or pull_request property from context.payload not found.',
+    );
     process.exit(1);
   }
 
@@ -38,7 +40,7 @@ async function main(): Promise<void> {
         branch: process.env.GITHUB_HEAD_REF,
         pipeline_id: E2E_PIPELINE,
       },
-      triggered_by: 'create-pr-e2e-tag',
+      triggered_by: 'run-bitrise-e2e',
     };
 
     const bitriseProjectUrl = `https://app.bitrise.io/app/${process.env.BITRISE_APP_ID}`;
@@ -62,13 +64,21 @@ async function main(): Promise<void> {
     const buildLink = `${bitriseProjectUrl}/pipelines/${bitriseBuildResponse.data.build_slug}`;
     const message = `E2E test started on Bitrise: ${buildLink}`;
 
+    if (bitriseBuildResponse.status === 201) {
+      console.log(message);
+    }
+
     // Post build link in PR comments.
-    await octokit.rest.issues.createComment({
+    const postCommentResponse = await octokit.rest.issues.createComment({
       owner: context.repo.owner,
       repo: context.repo.repo,
       issue_number: context.issue.number,
       body: message,
     });
+
+    if (postCommentResponse.status === 201) {
+      console.log(`Posting comment in pull request ${context.issue.number}.`);
+    }
 
     // if (!process.env.GITHUB_REPOSITORY) {
     //   core.setFailed('GITHUB_REPOSITORY not found.');
