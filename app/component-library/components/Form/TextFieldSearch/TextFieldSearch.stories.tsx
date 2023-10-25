@@ -1,6 +1,4 @@
 /* eslint-disable react/display-name */
-import React from 'react';
-
 // External dependencies.
 import { TextFieldSize } from '../TextField/TextField.types';
 
