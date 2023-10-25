@@ -25,7 +25,7 @@ const Input: React.FC<InputProps> = ({
   ...props
 }) => {
   const [isFocused, setIsFocused] = useState(autoFocus);
-  console.log(isStateStylesDisabled);
+
   const { styles } = useStyles(styleSheet, {
     style,
     textVariant,

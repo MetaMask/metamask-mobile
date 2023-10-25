@@ -27,5 +27,5 @@ export const SAMPLE_TEXTFIELDSEARCH_PROPS: TextFieldSearchProps = {
   isError: false,
   isDisabled: false,
   isReadonly: false,
-  placeholder: 'Sample Placeholder',
+  placeholder: 'Sample placeholder',
 };

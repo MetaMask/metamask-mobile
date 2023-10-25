@@ -25,7 +25,7 @@ export const TEXT_COLOR_BY_HELPTEXT_SEVERITY: TextColorByHelpTextSeverity = {
 };
 
 // Sample consts
-export const SAMPLE_HELPTEXT_TEXT = 'Sample HelpText Text';
+export const SAMPLE_HELPTEXT_TEXT = 'Sample HelpText text';
 export const SAMPLE_HELPTEXT_PROPS: HelpTextProps = {
   severity: DEFAULT_HELPTEXT_SEVERITY,
   children: SAMPLE_HELPTEXT_TEXT,
