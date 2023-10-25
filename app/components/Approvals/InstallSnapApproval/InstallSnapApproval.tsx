@@ -12,13 +12,12 @@ const InstallSnapApproval = () => {
     setIsFinished(true);
   };
 
+  const isModalVisible =
+    approvalRequest?.type === ApprovalTypes.INSTALL_SNAP ||
+    (!isFinished && approvalRequest);
+
   return (
-    <ApprovalModal
-      isVisible={
-        approvalRequest?.type === ApprovalTypes.INSTALL_SNAP && !isFinished
-      }
-      onCancel={onReject}
-    >
+    <ApprovalModal isVisible={isModalVisible} onCancel={onReject}>
       <InstallSnapApprovalFlow
         onCancel={onReject}
         onConfirm={onConfirm}
