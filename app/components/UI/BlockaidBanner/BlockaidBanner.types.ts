@@ -31,7 +31,8 @@ export enum ResultType {
 export interface SecurityAlertResponse {
   reason: Reason;
   features: string[];
-  resultType: ResultType;
+  result_type: ResultType;
+  providerRequestsCount?: Record<string, number>;
 }
 
 type BlockaidBannerAllProps = BannerAlertProps & {
