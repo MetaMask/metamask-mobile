@@ -1,58 +1,42 @@
-import { WalletDevice } from '@metamask/transaction-controller';
-import { NavigationProp, ParamListBase } from '@react-navigation/native';
-import { StackNavigationProp } from '@react-navigation/stack';
-import { RootState } from 'app/reducers';
-import { ParseOutput, parse } from 'eth-url-parser';
+'use strict';
+
+import URL from 'url-parse';
 import qs from 'qs';
-import { Alert, InteractionManager } from 'react-native';
-import { AnyAction, Dispatch, Store } from 'redux';
-import UrlParser from 'url-parse';
+import { InteractionManager, Alert } from 'react-native';
+import { parse } from 'eth-url-parser';
+import AppConstants from './AppConstants';
+import Engine from './Engine';
+import { generateApproveData } from '../util/transactions';
+import { NETWORK_ERROR_MISSING_NETWORK_ID } from '../constants/error';
 import { strings } from '../../locales/i18n';
-import { showAlert } from '../actions/alert';
-import { isNetworkBuySupported } from '../components/UI/Ramp/utils';
+import { getNetworkTypeById, handleNetworkSwitch } from '../util/networks';
+import { WalletDevice } from '@metamask/transaction-controller';
+import NotificationManager from '../core/NotificationManager';
 import {
   ACTIONS,
   ETH_ACTIONS,
-  PREFIXES,
   PROTOCOLS,
+  PREFIXES,
 } from '../constants/deeplinks';
-import { NetworkSwitchErrorType } from '../constants/error';
-import Routes from '../constants/navigation/Routes';
-import { chainIdSelector, getRampNetworks } from '../reducers/fiatOrders';
 import Logger from '../util/Logger';
+import { showAlert } from '../actions/alert';
+import SDKConnect from '../core/SDKConnect/SDKConnect';
+import Routes from '../constants/navigation/Routes';
 import { getAddress } from '../util/address';
-import { getNetworkTypeById, handleNetworkSwitch } from '../util/networks';
-import { generateApproveData } from '../util/transactions';
-import AppConstants from './AppConstants';
-import Engine from './Engine';
-import { Minimizer } from './NativeModules';
-import NotificationManager from './NotificationManager';
-import SDKConnect, {
-  DEFAULT_SESSION_TIMEOUT_MS,
-} from './SDKConnect/SDKConnect';
-import DevLogger from './SDKConnect/utils/DevLogger';
 import WC2Manager from './WalletConnect/WalletConnectV2';
+import { chainIdSelector, getRampNetworks } from '../reducers/fiatOrders';
+import { isNetworkBuySupported } from '../components/UI/Ramp/utils';
+import { Minimizer } from './NativeModules';
+import DevLogger from './SDKConnect/utils/DevLogger';
 
 class DeeplinkManager {
-  public navigation: NavigationProp<ParamListBase>;
-  public pendingDeeplink: string | null;
-  public dispatch: Dispatch<any>;
-
-  constructor({
-    navigation,
-    dispatch,
-  }: {
-    navigation: StackNavigationProp<{
-      [route: string]: { screen: string };
-    }>;
-    dispatch: Store<any, AnyAction>['dispatch'];
-  }) {
+  constructor({ navigation, dispatch }) {
     this.navigation = navigation;
     this.pendingDeeplink = null;
     this.dispatch = dispatch;
   }
 
-  setDeeplink = (url: string) => (this.pendingDeeplink = url);
+  setDeeplink = (url) => (this.pendingDeeplink = url);
 
   getPendingDeeplink = () => this.pendingDeeplink;
 
@@ -63,8 +47,8 @@ class DeeplinkManager {
    *
    * @param switchToChainId - Corresponding chain id for new network
    */
-  _handleNetworkSwitch = (switchToChainId: `${number}` | undefined) => {
-    const networkName = handleNetworkSwitch(switchToChainId as string);
+  _handleNetworkSwitch = (switchToChainId) => {
+    const networkName = handleNetworkSwitch(switchToChainId);
 
     if (!networkName) return;
 
@@ -78,8 +62,12 @@ class DeeplinkManager {
     );
   };
 
-  _approveTransaction = async (ethUrl: ParseOutput, origin: string) => {
-    const { parameters, target_address, chain_id } = ethUrl;
+  _approveTransaction = async (ethUrl, origin) => {
+    const {
+      parameters: { address, uint256 },
+      target_address,
+      chain_id,
+    } = ethUrl;
     const { TransactionController, PreferencesController, NetworkController } =
       Engine.context;
 
@@ -88,7 +76,7 @@ class DeeplinkManager {
       NetworkController.setProviderType(newNetworkType);
     }
 
-    const uint256Number = Number(parameters?.uint256);
+    const uint256Number = Number(uint256);
 
     if (Number.isNaN(uint256Number))
       throw new Error('The parameter uint256 should be a number');
@@ -97,10 +85,7 @@ class DeeplinkManager {
 
     const value = uint256Number.toString(16);
 
-    const spenderAddress = await getAddress(
-      parameters?.address as string,
-      chain_id as string,
-    );
+    const spenderAddress = await getAddress(address, chain_id);
     if (!spenderAddress) {
       NotificationManager.showSimpleNotification({
         status: 'simple_notification_rejected',
@@ -124,8 +109,8 @@ class DeeplinkManager {
     });
   };
 
-  async _handleEthereumUrl(url: string, origin: string) {
-    let ethUrl: ParseOutput;
+  async _handleEthereumUrl(url, origin) {
+    let ethUrl = '';
     try {
       ethUrl = parse(url);
     } catch (e) {
@@ -167,10 +152,10 @@ class DeeplinkManager {
           }
         }
       }
-    } catch (e: any) {
+    } catch (e) {
       let alertMessage;
       switch (e.message) {
-        case NetworkSwitchErrorType.missingNetworkId:
+        case NETWORK_ERROR_MISSING_NETWORK_ID:
           alertMessage = strings('send.network_missing_id');
           break;
         default:
@@ -182,7 +167,7 @@ class DeeplinkManager {
     }
   }
 
-  _handleBrowserUrl(url: string, callback: (url: string) => void) {
+  _handleBrowserUrl(url, callback) {
     InteractionManager.runAfterInteractions(() => {
       if (callback) {
         callback(url);
@@ -199,7 +184,7 @@ class DeeplinkManager {
   }
 
   _handleBuyCrypto() {
-    this.dispatch((_: any, getState: Store<RootState, any>['getState']) => {
+    this.dispatch((_, getState) => {
       const state = getState();
       // Do nothing for now if use is not in a supported network
       if (
@@ -210,19 +195,8 @@ class DeeplinkManager {
     });
   }
 
-  parse(
-    url: string,
-    {
-      browserCallBack,
-      origin,
-      onHandled,
-    }: {
-      browserCallBack: (url: string) => void;
-      origin: string;
-      onHandled?: () => void;
-    },
-  ) {
-    const urlObj = new UrlParser(
+  parse(url, { browserCallBack, origin, onHandled }) {
+    const urlObj = new URL(
       url
         .replace(
           `${PROTOCOLS.DAPP}/${PROTOCOLS.HTTPS}://`,
@@ -233,29 +207,11 @@ class DeeplinkManager {
           `${PROTOCOLS.DAPP}/`,
         ),
     );
-    let params: {
-      uri: string;
-      redirect: string;
-      channelId: string;
-      comm: string;
-      pubkey: string;
-    } = {
-      pubkey: '',
-      uri: '',
-      redirect: '',
-      channelId: '',
-      comm: '',
-    };
+    let params;
 
     if (urlObj.query.length) {
       try {
-        params = qs.parse(urlObj.query.substring(1)) as {
-          uri: string;
-          redirect: string;
-          channelId: string;
-          comm: string;
-          pubkey: string;
-        };
+        params = qs.parse(urlObj.query.substring(1));
       } catch (e) {
         if (e) Alert.alert(strings('deeplink.invalid'), e.toString());
       }
@@ -278,7 +234,7 @@ class DeeplinkManager {
 
         if (urlObj.hostname === MM_UNIVERSAL_LINK_HOST) {
           // action is the first part of the pathname
-          const action: ACTIONS = urlObj.pathname.split('/')[1] as ACTIONS;
+          const action = urlObj.pathname.split('/')[1];
 
           if (action === ACTIONS.ANDROID_SDK) {
             DevLogger.log(
@@ -306,14 +262,13 @@ class DeeplinkManager {
                   channelId: params.channelId,
                   otherPublicKey: params.pubkey,
                   context: 'deeplink (universal)',
-                  initialConnection: false,
                 });
               } else {
                 SDKConnect.getInstance().connectToChannel({
                   id: params.channelId,
+                  commLayer: params.comm,
                   origin,
                   otherPublicKey: params.pubkey,
-                  validUntil: Date.now() + DEFAULT_SESSION_TIMEOUT_MS,
                 });
               }
             }
@@ -335,12 +290,12 @@ class DeeplinkManager {
             // This is called from WC just to open the app and it's not supposed to do anything
             return;
           } else if (PREFIXES[action]) {
-            const deeplinkUrl = urlObj.href.replace(
+            const url = urlObj.href.replace(
               `${DEEP_LINK_BASE}/${action}/`,
               PREFIXES[action],
             );
             // loops back to open the link with the right protocol
-            this.parse(deeplinkUrl, { browserCallBack, origin });
+            this.parse(url, { browserCallBack, origin });
           } else if (action === ACTIONS.BUY_CRYPTO) {
             this._handleBuyCrypto();
           } else {
@@ -438,14 +393,13 @@ class DeeplinkManager {
                 channelId: params.channelId,
                 otherPublicKey: params.pubkey,
                 context: 'deeplink (metamask)',
-                initialConnection: false,
               });
             } else {
               SDKConnect.getInstance().connectToChannel({
                 id: params.channelId,
+                commLayer: params.comm,
                 origin,
                 otherPublicKey: params.pubkey,
-                validUntil: Date.now() + DEFAULT_SESSION_TIMEOUT_MS,
               });
             }
           }
@@ -490,18 +444,10 @@ class DeeplinkManager {
   }
 }
 
-let instance: DeeplinkManager;
+let instance = null;
 
 const SharedDeeplinkManager = {
-  init: ({
-    navigation,
-    dispatch,
-  }: {
-    navigation: StackNavigationProp<{
-      [route: string]: { screen: string };
-    }>;
-    dispatch: Dispatch<any>;
-  }) => {
+  init: ({ navigation, dispatch }) => {
     if (instance) {
       return;
     }
@@ -510,8 +456,8 @@ const SharedDeeplinkManager = {
       dispatch,
     });
   },
-  parse: (url: string, args: any) => instance.parse(url, args),
-  setDeeplink: (url: string) => instance.setDeeplink(url),
+  parse: (url, args) => instance.parse(url, args),
+  setDeeplink: (url) => instance.setDeeplink(url),
   getPendingDeeplink: () => instance.getPendingDeeplink(),
   expireDeeplink: () => instance.expireDeeplink(),
 };
