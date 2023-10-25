@@ -26,6 +26,13 @@ global.STORIES = [
   },
   {
     titlePrefix: "",
+    directory: "./app/component-library/components/Form",
+    files: "**/*.stories.?(ts|tsx|js|jsx)",
+    importPathMatcher:
+      "^\\.[\\\\/](?:app\\/component-library\\/components\\/Form(?:\\/(?!\\.)(?:(?:(?!(?:^|\\/)\\.).)*?)\\/|\\/|$)(?!\\.)(?=.)[^/]*?\\.stories\\.(?:ts|tsx|js|jsx)?)$",
+  },
+  {
+    titlePrefix: "",
     directory: "./app/component-library/components/List",
     files: "**/*.stories.?(ts|tsx|js|jsx)",
     importPathMatcher:
@@ -85,6 +92,11 @@ const getStories = () => {
   return {
     "./app/component-library/components/Cards/Card/Card.stories.tsx": require("../app/component-library/components/Cards/Card/Card.stories.tsx"),
     "./app/component-library/components/Banners/Banner/variants/BannerAlert/BannerAlert.stories.tsx": require("../app/component-library/components/Banners/Banner/variants/BannerAlert/BannerAlert.stories.tsx"),
+    "./app/component-library/components/Form/HelpText/HelpText.stories.tsx": require("../app/component-library/components/Form/HelpText/HelpText.stories.tsx"),
+    "./app/component-library/components/Form/Label/Label.stories.tsx": require("../app/component-library/components/Form/Label/Label.stories.tsx"),
+    "./app/component-library/components/Form/TextField/foundation/Input/Input.stories.tsx": require("../app/component-library/components/Form/TextField/foundation/Input/Input.stories.tsx"),
+    "./app/component-library/components/Form/TextField/TextField.stories.tsx": require("../app/component-library/components/Form/TextField/TextField.stories.tsx"),
+    "./app/component-library/components/Form/TextFieldSearch/TextFieldSearch.stories.tsx": require("../app/component-library/components/Form/TextFieldSearch/TextFieldSearch.stories.tsx"),
     "./app/component-library/components/List/ListItem/ListItem.stories.tsx": require("../app/component-library/components/List/ListItem/ListItem.stories.tsx"),
     "./app/component-library/components/Texts/Text/Text.stories.tsx": require("../app/component-library/components/Texts/Text/Text.stories.tsx"),
     "./app/component-library/components/Texts/TextWithPrefixIcon/TextWithPrefixIcon.stories.tsx": require("../app/component-library/components/Texts/TextWithPrefixIcon/TextWithPrefixIcon.stories.tsx"),
