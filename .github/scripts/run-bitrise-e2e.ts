@@ -1,10 +1,10 @@
 import * as core from '@actions/core';
 import { context, getOctokit } from '@actions/github';
 import { GitHub } from '@actions/github/lib/utils';
-// import { GitHub } from '@actions/github/lib/utils';
 import axios from 'axios';
 
 const E2E_TRIGGERED_LABEL = 'Run E2E';
+const E2E_PIPELINE = 'pr_smoke_e2e_pipeline';
 
 main().catch((error: Error): void => {
   console.error(error);
@@ -28,6 +28,7 @@ async function main(): Promise<void> {
   }
 
   if (label.name === E2E_TRIGGERED_LABEL) {
+    // PR includes Run E2E label. Kick off E2E build on Bitrise.
     const data = {
       hook_info: {
         type: 'bitrise',
@@ -35,13 +36,14 @@ async function main(): Promise<void> {
       },
       build_params: {
         branch: process.env.GITHUB_HEAD_REF,
-        pipeline_id: 'pr_smoke_e2e_pipeline',
+        pipeline_id: E2E_PIPELINE,
       },
       triggered_by: 'create-pr-e2e-tag',
     };
 
     const bitriseProjectUrl = `https://app.bitrise.io/app/${process.env.BITRISE_APP_ID}`;
 
+    // Start Bitrise build.
     const bitriseBuildResponse = await axios.post(
       `${bitriseProjectUrl}/build/start.json`,
       data,
@@ -57,9 +59,10 @@ async function main(): Promise<void> {
       process.exit(1);
     }
 
-    const buildLink = `${bitriseProjectUrl}/pipelines${bitriseBuildResponse.data.build_slug}`;
+    const buildLink = `${bitriseProjectUrl}/pipelines/${bitriseBuildResponse.data.build_slug}`;
     const message = `E2E test started on Bitrise: ${buildLink}`;
 
+    // Post build link in PR comments.
     await octokit.rest.issues.createComment({
       owner: context.repo.owner,
       repo: context.repo.repo,

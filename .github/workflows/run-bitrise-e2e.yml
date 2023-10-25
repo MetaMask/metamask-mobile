@@ -1,11 +1,11 @@
-name: Create E2E tag for PR
+name: Run Bitrise E2E
 
 on:
   pull_request:
     types: [labeled]
 
 jobs:
-  create-pr-e2e-tag:
+  run-bitrise-e2e:
     runs-on: ubuntu-latest
     permissions:
       pull-requests: write
@@ -27,12 +27,12 @@ jobs:
       - name: Install dependencies
         run: yarn --immutable
 
-      - name: Create E2E tag for PR
+      - name: Run Bitrise E2E
         env:
           BITRISE_BUILD_TRIGGER_TOKEN: ${{ secrets.BITRISE_BUILD_TRIGGER_TOKEN }}
           BITRISE_APP_ID: 'be69d4368ee7e86d'
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        run: yarn run create-pr-e2e-tag
+        run: yarn run run-bitrise-e2e
 # name: Bitrise E2E
 
 # on:
