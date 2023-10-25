@@ -113,7 +113,8 @@ import {
   SignatureControllerActions,
   SignatureControllerEvents,
 } from '@metamask/signature-controller';
-import { hasProperty, Json } from '@metamask/controller-utils';
+import { hasProperty } from '@metamask/controller-utils';
+import { Json } from '@metamask/utils';
 // TODO: Export this type from the package directly
 import { SwapsState } from '@metamask/swaps-controller/dist/SwapsController';
 import { ethErrors } from 'eth-rpc-errors';
