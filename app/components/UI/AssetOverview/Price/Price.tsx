@@ -10,7 +10,9 @@ import { strings } from '../../../../../locales/i18n';
 import { useStyles } from '../../../../component-library/hooks';
 import { toDateFormat } from '../../../../util/date';
 import { addCurrencySymbol } from '../../../../util/number';
-import Text from '../../../../component-library/components/Texts/Text';
+import Text, {
+  TextVariant,
+} from '../../../../component-library/components/Texts/Text';
 import Title from '../../../Base/Title';
 import { Asset } from '../AssetOverview.types';
 import PriceChart from '../PriceChart/PriceChart';
@@ -77,8 +79,12 @@ const Price = ({
   return (
     <>
       <View style={styles.wrapper}>
-        <Text>{asset.symbol}</Text>
-        {asset.name && <Text style={styles.name}>{asset.name}</Text>}
+        <Text variant={TextVariant.BodySM}>{asset.symbol}</Text>
+        {asset.name && (
+          <Text variant={TextVariant.HeadingMD} style={styles.name}>
+            {asset.name}
+          </Text>
+        )}
         {!isNaN(price) && (
           <Title style={styles.price} testID={TOKEN_PRICE}>
             {isLoading ? (

@@ -17,7 +17,7 @@ const styleSheet = (params: {
       paddingHorizontal: 16,
     },
     name: {
-      ...typography.lBodyLGMedium,
+      fontWeight: '500',
     } as TextStyle,
     price: {
       ...typography.lHeadingLG,
