@@ -80,7 +80,7 @@ async function main(): Promise<void> {
     });
 
     if (postCommentResponse.status === 201) {
-      console.log(`Posting comment in pull request ${pullRequestLink}.`);
+      console.log(`Posting comment in pull request ${pullRequestLink}`);
     }
 
     // if (!process.env.GITHUB_REPOSITORY) {
