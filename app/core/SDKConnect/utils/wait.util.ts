@@ -2,8 +2,9 @@ import { KeyringController } from '@metamask/keyring-controller';
 import { AndroidClient } from '../AndroidSDK/android-sdk-types';
 import RPCQueueManager from '../RPCQueueManager';
 import { Connection, SDKConnect } from '../SDKConnect';
+import DevLogger from './DevLogger';
 
-export const MAX_QUEUE_LOOP = 50; // 50 seconds
+export const MAX_QUEUE_LOOP = Infinity;
 export const wait = (ms: number) =>
   new Promise((resolve) => {
     setTimeout(resolve, ms);
@@ -42,15 +43,38 @@ export const waitForConnectionReadiness = async ({
 };
 
 export const waitForKeychainUnlocked = async ({
+  context,
   keyringController,
 }: {
   keyringController: KeyringController;
+  context?: string;
 }) => {
-  let i = 0;
-  while (!keyringController.isUnlocked()) {
-    await new Promise<void>((res) => setTimeout(() => res(), 600));
-    if (i++ > 60) break;
+  let i = 1;
+  if (!keyringController) {
+    console.warn('Keyring controller not found');
   }
+
+  // Disable during e2e tests otherwise Detox fails
+  if (process.env.IS_TEST === 'true') {
+    return true;
+  }
+
+  let unlocked = keyringController.isUnlocked();
+  DevLogger.log(
+    `SDKConnect:: waitForKeyChainUnlocked[${context}] unlocked: ${unlocked}`,
+  );
+  while (!unlocked) {
+    await wait(1000);
+    if (i % 60 === 0) {
+      console.warn(
+        `SDKConnect [${context}] Waiting for keychain unlock... attempt ${i}`,
+      );
+    }
+    unlocked = keyringController.isUnlocked();
+    i += 1;
+  }
+
+  return unlocked;
 };
 
 export const waitForAndroidServiceBinding = async () => {
