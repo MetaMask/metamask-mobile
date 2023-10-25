@@ -33,28 +33,3 @@ jobs:
           BITRISE_APP_ID: 'be69d4368ee7e86d'
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: yarn run run-bitrise-e2e
-# name: Bitrise E2E
-
-# on:
-#   pull_request:
-#     types: [labeled]
-
-# jobs:
-#   deploy:
-#     name: Run e2e smoke test on Bitrise
-#     runs-on: ubuntu-latest
-#     steps:
-#       - name: Start pr_smoke_e2e_pipeline workflow in Bitrise
-#         if: contains(github.event.pull_request.labels.*.name, 'Run E2E')
-#         run: |
-#           curl https://app.bitrise.io/app/${{ secrets.BITRISE_APP_ID }}/build/start.json -L -H 'Content-Type: application/json' --data '{
-#             "hook_info": {
-#               "type": "bitrise",
-#               "build_trigger_token": "${{ secrets.BITRISE_BUILD_TRIGGER_TOKEN }}"
-#             },
-#             "build_params": {
-#               "branch": "${{ github.head_ref }}",
-#               "pipeline_id": "pr_smoke_e2e_pipeline"
-#             },
-#             "triggered_by": "curl"
-#           }'
