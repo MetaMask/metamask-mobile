@@ -19,10 +19,7 @@ const WEBVIEW_TEST_DAPP_TRANSFER_TOKENS_BUTTON_ID = 'transferTokens';
 describe(Regression('ERC20 tokens'), () => {
   beforeAll(async () => {
     jest.setTimeout(170000);
-    if (device.getPlatform() === 'android') {
-      await device.reverseTcpPort('8545'); // ganache
-      await device.reverseTcpPort('8080'); // test-dapp
-    }
+    await TestHelpers.reverseServerPort();
   });
 
   it('send an ERC20 token from a dapp', async () => {

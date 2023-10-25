@@ -90,8 +90,9 @@ import { PPOMView } from '../../../lib/ppom/PPOMView';
 import NavigationService from '../../../core/NavigationService';
 import LockScreen from '../../Views/LockScreen';
 import AsyncStorage from '../../../store/async-storage-wrapper';
-import ShowNftSheet from '../../Views/ShowNFTSheet/ShowNFTSheet';
+import ShowIpfsGatewaySheet from '../../Views/ShowIpfsGatewaySheet/ShowIpfsGatewaySheet';
 import ShowDisplayNftMediaSheet from '../../Views/ShowDisplayMediaNFTSheet/ShowDisplayNFTMediaSheet';
+import AmbiguousAddressSheet from '../../../../app/components/Views/Settings/Contacts/AmbiguousAddressSheet/AmbiguousAddressSheet';
 
 const clearStackNavigatorOptions = {
   headerShown: false,
@@ -506,6 +507,10 @@ const App = ({ userLoggedIn }) => {
         component={NetworkSelector}
       />
       <Stack.Screen
+        name={Routes.SHEET.AMBIGUOUS_ADDRESS}
+        component={AmbiguousAddressSheet}
+      />
+      <Stack.Screen
         name={Routes.MODAL.TURN_OFF_REMEMBER_ME}
         component={TurnOffRememberMeModal}
       />
@@ -532,7 +537,10 @@ const App = ({ userLoggedIn }) => {
         name={Routes.SHEET.ETH_SIGN_FRICTION}
         component={EthSignFriction}
       />
-      <Stack.Screen name={Routes.SHEET.SHOW_NFT} component={ShowNftSheet} />
+      <Stack.Screen
+        name={Routes.SHEET.SHOW_IPFS}
+        component={ShowIpfsGatewaySheet}
+      />
       <Stack.Screen
         name={Routes.SHEET.SHOW_NFT_DISPLAY_MEDIA}
         component={ShowDisplayNftMediaSheet}

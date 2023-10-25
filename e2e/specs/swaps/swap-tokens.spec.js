@@ -18,24 +18,31 @@ import {
   stopFixtureServer,
 } from '../../fixtures/fixture-helper';
 import Networks from '../../resources/networks.json';
+import TestHelpers from '../../helpers';
+import FixtureServer from '../../fixtures/fixture-server';
+import { getFixturesServerPort } from '../../fixtures/utils';
+
+const fixtureServer = new FixtureServer();
 
 describe(Regression('Swap Tests'), () => {
   let swapOnboarded = false;
   beforeAll(async () => {
+    await TestHelpers.reverseServerPort();
     const fixture = new FixtureBuilder()
       .withNetworkController(Networks.Tenderly)
       .build();
-    await startFixtureServer();
-    await loadFixture({ fixture });
+    await startFixtureServer(fixtureServer);
+    await loadFixture(fixtureServer, { fixture });
     await device.launchApp({
       delete: true,
       permissions: { notifications: 'YES' },
+      launchArgs: { fixtureServerPort: `${getFixturesServerPort()}` },
     });
     await loginToApp();
   });
 
   afterAll(async () => {
-    await stopFixtureServer();
+    await stopFixtureServer(fixtureServer);
   });
 
   beforeEach(async () => {

@@ -31,6 +31,41 @@ global.STORIES = [
     importPathMatcher:
       "^\\.[\\\\/](?:app\\/component-library\\/components\\/Form(?:\\/(?!\\.)(?:(?:(?!(?:^|\\/)\\.).)*?)\\/|\\/|$)(?!\\.)(?=.)[^/]*?\\.stories\\.(?:ts|tsx|js|jsx)?)$",
   },
+  {
+    titlePrefix: "",
+    directory: "./app/component-library/components/List",
+    files: "**/*.stories.?(ts|tsx|js|jsx)",
+    importPathMatcher:
+      "^\\.[\\\\/](?:app\\/component-library\\/components\\/List(?:\\/(?!\\.)(?:(?:(?!(?:^|\\/)\\.).)*?)\\/|\\/|$)(?!\\.)(?=.)[^/]*?\\.stories\\.(?:ts|tsx|js|jsx)?)$",
+  },
+  {
+    titlePrefix: "",
+    directory: "./app/component-library/components/Texts",
+    files: "**/*.stories.?(ts|tsx|js|jsx)",
+    importPathMatcher:
+      "^\\.[\\\\/](?:app\\/component-library\\/components\\/Texts(?:\\/(?!\\.)(?:(?:(?!(?:^|\\/)\\.).)*?)\\/|\\/|$)(?!\\.)(?=.)[^/]*?\\.stories\\.(?:ts|tsx|js|jsx)?)$",
+  },
+  {
+    titlePrefix: "",
+    directory: "./app/component-library/components/Overlay",
+    files: "**/*.stories.?(ts|tsx|js|jsx)",
+    importPathMatcher:
+      "^\\.[\\\\/](?:app\\/component-library\\/components\\/Overlay(?:\\/(?!\\.)(?:(?:(?!(?:^|\\/)\\.).)*?)\\/|\\/|$)(?!\\.)(?=.)[^/]*?\\.stories\\.(?:ts|tsx|js|jsx)?)$",
+  },
+  {
+    titlePrefix: "",
+    directory: "./app/component-library/components/Icons",
+    files: "**/*.stories.?(ts|tsx|js|jsx)",
+    importPathMatcher:
+      "^\\.[\\\\/](?:app\\/component-library\\/components\\/Icons(?:\\/(?!\\.)(?:(?:(?!(?:^|\\/)\\.).)*?)\\/|\\/|$)(?!\\.)(?=.)[^/]*?\\.stories\\.(?:ts|tsx|js|jsx)?)$",
+  },
+  {
+    titlePrefix: "",
+    directory: "./app/component-library/components/Checkbox",
+    files: "**/*.stories.?(ts|tsx|js|jsx)",
+    importPathMatcher:
+      "^\\.[\\\\/](?:app\\/component-library\\/components\\/Checkbox(?:\\/(?!\\.)(?:(?:(?!(?:^|\\/)\\.).)*?)\\/|\\/|$)(?!\\.)(?=.)[^/]*?\\.stories\\.(?:ts|tsx|js|jsx)?)$",
+  },
 ];
 
 import "@storybook/addon-ondevice-controls/register";
@@ -62,6 +97,12 @@ const getStories = () => {
     "./app/component-library/components/Form/TextField/foundation/Input/Input.stories.tsx": require("../app/component-library/components/Form/TextField/foundation/Input/Input.stories.tsx"),
     "./app/component-library/components/Form/TextField/TextField.stories.tsx": require("../app/component-library/components/Form/TextField/TextField.stories.tsx"),
     "./app/component-library/components/Form/TextFieldSearch/TextFieldSearch.stories.tsx": require("../app/component-library/components/Form/TextFieldSearch/TextFieldSearch.stories.tsx"),
+    "./app/component-library/components/List/ListItem/ListItem.stories.tsx": require("../app/component-library/components/List/ListItem/ListItem.stories.tsx"),
+    "./app/component-library/components/Texts/Text/Text.stories.tsx": require("../app/component-library/components/Texts/Text/Text.stories.tsx"),
+    "./app/component-library/components/Texts/TextWithPrefixIcon/TextWithPrefixIcon.stories.tsx": require("../app/component-library/components/Texts/TextWithPrefixIcon/TextWithPrefixIcon.stories.tsx"),
+    "./app/component-library/components/Overlay/Overlay.stories.tsx": require("../app/component-library/components/Overlay/Overlay.stories.tsx"),
+    "./app/component-library/components/Icons/Icon/Icon.stories.tsx": require("../app/component-library/components/Icons/Icon/Icon.stories.tsx"),
+    "./app/component-library/components/Checkbox/Checkbox.stories.tsx": require("../app/component-library/components/Checkbox/Checkbox.stories.tsx"),
   };
 };
 

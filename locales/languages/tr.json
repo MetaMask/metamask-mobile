@@ -2,7 +2,6 @@
   "blockaid_banner": {
     "approval_farming_description": "Bu talebi onaylarsanız dolandırıcılıkla bilinen üçüncü bir taraf tüm varlıklarınızı çalabilir.",
     "attribution": "Güvenlik önerisi: ",
-    "attribution_link": "https://blockaid.me",
     "attribution_link_name": "Blockaid",
     "blur_farming_description": "Bu talebi onaylarsanız birisi Blur üzerinde yer alan varlıklarınızı çalabilir.",
     "deceptive_request_title": "Bu, aldatıcı bir taleptir",
@@ -13,10 +12,10 @@
     "raw_signature_farming_description": "Bu talebi onaylarsanız varlıklarınızı kaybedebilirsiniz.",
     "seaport_farming_description": "Bu talebi onaylarsanız birisi OpenSea üzerinde yer alan varlıklarınızı çalabilir.",
     "see_details": "Ayrıntıları gör",
+    "does_not_look_right": "Bir şeyler doğru görünmüyor mu?",
     "suspicious_request_title": "Bu, şüheli bir taleptir",
     "trade_order_farming_description": "Bu talebi onaylarsanız varlıklarınızı kaybedebilirsiniz.",
-    "transfer_farming_description": "Bu talebi onaylarsanız dolandırıcılıkla bilinen üçüncü bir taraf tüm varlıklarınızı çalar.",
-    "unfair_trade_description": "Bu talebi onaylarsanız varlıklarınızı kaybedebilirsiniz."
+    "transfer_farming_description": "Bu talebi onaylarsanız dolandırıcılıkla bilinen üçüncü bir taraf tüm varlıklarınızı çalar."
   },
   "date": {
     "months": {
@@ -789,7 +788,8 @@
     "display_nft_media_desc": "NFT medyasını ve verilerini göstermek IP adresinizi OpenSea veya diğer üçüncü taraflara ifşa edebilir. NFT otomatik algılama bu özelliğe dayanır ve bu kapatıldığında kullanılamaz.",
     "autodetect_nft_desc": "MetaMask'in üçüncü taraf hizmetleri (OpenSea) kullanarak size ait olan NFT'leri eklemesine izin verin. NFT'leri otomatik algılama, IP adresinizi ve hesap adresinizi bu hizmetlere ifşa eder. Bu özelliğin etkinleştirilmesi IP adresinizi Ethereum adresinizle ilişkilendirebilir ve dolandırıcılar tarafından airdrop'u gerçekleştirilen sahte NFT'leri gösterebilir. Bu riski önlemek için token'leri elle ekleyebilirsiniz.",
     "incoming_transactions_title": "Gelen işlemleri göster",
-    "incoming_transactions_content": "Bu, Ethereum adresinizi ve IP adresinizi ifşa edecek olan seçtiğiniz ağa dayalıdır."
+    "incoming_transactions_content": "Bu, Ethereum adresinizi ve IP adresinizi ifşa edecek olan seçtiğiniz ağa dayalıdır.",
+    "display_nft_media_desc_new": "NFT medyasını ve verilerini görüntülemek, IP adresinizin OpenSea veya diğer üçüncü taraflarla paylaşılmasına neden olabilir. NFT otomatik algılama bu özelliğe dayanır ve kapatıldığında kullanılamaz. NFT medyası tamamen IPFS'de bulunuyorsa bu özellik kapalı olduğunda bile görüntülenmeye devam edebilir."
   },
   "sdk": {
     "disconnect_title": "Tüm sitelerin bağlantısı kesilsin mi?",
@@ -1319,6 +1319,11 @@
     "others": "Diğerleri",
     "memo": "Memo"
   },
+  "duplicate_address": {
+    "title": "Bu yinelenen bir adres",
+    "body": "Kişi listeniz bu adresi birden fazla zincirde gösteriyor. Para göndermeden önce doğru kişiyi seçtiğinizden emin olun.",
+    "button": "Anladım"
+  },
   "transaction_submitted": {
     "title": "İşlem Gönderildi",
     "your_tx_hash_is": "İşlem hash değeriniz:",
@@ -1353,6 +1358,7 @@
     "learn_more": "Daha fazlasını öğrenin",
     "learn_more_url": "https://metamask.zendesk.com/hc/en-us/articles/4417500466971",
     "switch_network": "Ağ değiştir",
+    "switch": "Değiştir",
     "new_network": "Yeni ağ eklendi",
     "network_name": "{{networkName}} Ağı",
     "network_added": " artık ağ seçicide mevcut.",
@@ -1869,7 +1875,7 @@
   "fiat_on_ramp_aggregator": {
     "onboarding": {
       "what_to_expect": "Bekleyebileceklerin",
-      "best_quotes": "Kripto para satın al özelliğimiz, entegre satıcılardan teklifleri toplayarak bekleme süresi olmadan doğrudan cüzdanına kripto para alabilmen için sana bu kaynaklardan en iyi teklifi sunar.",
+      "quotes": "Kripto satın alma özelliğimiz, entegre satıcılardan teklifleri toplayarak bekleme süresi olmadan doğrudan cüzdanınıza kripto para alabilmeniz için size bu kaynaklardan teklifleri sunar.",
       "benefits": "Daha az gaz ücreti ödenir ve çeşitli ağ, token ve ödeme yöntemleri desteklenir",
       "get_started": "Başlarken"
     },
@@ -1914,11 +1920,9 @@
     "select_region_currency": "Bölge Para Birimini Seç",
     "no_tokens_match": "“{{searchString}}” ile eşleşen token yok",
     "no_currency_match": "“{{searchString}}” ile eşleşen para birimi yok",
-    "buy_from_vetted": "Entegrasyonlarımızdan birinden {{ticker}} satın almak için MetaMask uygulamasından ayrılmadan güvenli bir şekilde kendilerinin portalına gideceksin",
-    "best_price": "En iyi fiyat",
-    "explore_other_options": "Diğer seçenekleri keşfedin",
+    "compare_rates": "Bu sağlayıcıların oranlarını karşılaştırın. Teklifler genel fiyata göre sıralanır.",
     "pay_with": "Ödeme Aracı",
-    "buy_with": "{{provider}} ile satın al",
+    "continue_with": "{{provider}} ile devam et",
     "minimum": "Yatırılabilecek minimum miktar",
     "maximum": "Yatırılabilecek maksimum miktar",
     "try_again": "Tekrar dene",
