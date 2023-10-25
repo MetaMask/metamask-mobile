@@ -1,4 +1,8 @@
+/* eslint-disable react/display-name */
 /* eslint-disable no-console */
+// Third party dependencies.
+import React from 'react';
+
 // External dependencies.
 import { mockTheme } from '../../../util/theme';
 
@@ -18,7 +22,7 @@ const OverlayMeta = {
 export default OverlayMeta;
 
 export const Overlay = {
-  args: {
-    onPress: () => console.log("I'm clicked!"),
-  },
+  render: (args: any) => (
+    <OverlayComponent {...args} onPress={() => console.log("I'm clicked!")} />
+  ),
 };
