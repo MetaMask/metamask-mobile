@@ -1,5 +1,8 @@
 import { Country, Order, State } from '@consensys/on-ramp-sdk';
-import { AggregatorNetwork } from '@consensys/on-ramp-sdk/dist/API';
+import {
+  AggregatorNetwork,
+  OrderOrderTypeEnum,
+} from '@consensys/on-ramp-sdk/dist/API';
 import {
   addAuthenticationUrl,
   addFiatCustomIdData,
@@ -46,7 +49,7 @@ export interface FiatOrder {
   network: string; // Network
   txHash?: string; // Transaction hash
   excludeFromPurchases: boolean; // Exclude from purchases
-  orderType: string; // Order type
+  orderType: OrderOrderTypeEnum; // Order type
   errorCount?: number; // Number of errors
   lastTimeFetched?: number; // Last time fetched
   data: Order | WyreOrder; // Original provider data
@@ -59,7 +62,7 @@ export interface CustomIdData {
   createdAt: number;
   lastTimeFetched: number;
   errorCount: number;
-  orderType: string;
+  orderType: OrderOrderTypeEnum;
   expired?: boolean;
   order?: Record<string, any>;
 }

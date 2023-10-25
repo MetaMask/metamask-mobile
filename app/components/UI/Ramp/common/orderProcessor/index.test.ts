@@ -1,4 +1,5 @@
 import { Order } from '@consensys/on-ramp-sdk';
+import { OrderOrderTypeEnum } from '@consensys/on-ramp-sdk/dist/API';
 import processOrder from '.';
 import Logger from '../../../../../util/Logger';
 import { processAggregatorOrder } from './aggregator';
@@ -21,7 +22,7 @@ const mockOrder1 = {
   network: '1',
   txHash: '0x987654321',
   excludeFromPurchases: false,
-  orderType: 'BUY',
+  orderType: OrderOrderTypeEnum.Buy,
   data: {
     id: 'test-id',
     isOnlyLink: false,
