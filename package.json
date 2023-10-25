@@ -174,7 +174,7 @@
     "@metamask/logging-controller": "^1.0.1",
     "@metamask/network-controller": "^8.0.0",
     "@metamask/permission-controller": "^4.0.1",
-    "@metamask/phishing-controller": "^3.0.0",
+    "@metamask/phishing-controller": "^5.0.0",
     "@metamask/ppom-validator": "^0.7.0",
     "@metamask/preferences-controller": "^3.0.0",
     "@metamask/scure-bip39": "^2.1.0",
