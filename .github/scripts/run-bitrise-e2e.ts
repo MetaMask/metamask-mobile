@@ -3,9 +3,6 @@ import { context, getOctokit } from '@actions/github';
 import { GitHub } from '@actions/github/lib/utils';
 import axios from 'axios';
 
-const E2E_TRIGGERED_LABEL = 'Run E2E';
-const E2E_PIPELINE = 'pr_smoke_e2e_pipeline';
-
 main().catch((error: Error): void => {
   console.error(error);
   process.exit(1);
@@ -13,10 +10,23 @@ main().catch((error: Error): void => {
 
 async function main(): Promise<void> {
   const githubToken = process.env.GITHUB_TOKEN;
+  const e2eLabel = process.env.E2E_LABEL;
+  const e2ePipeline = process.env.E2E_PIPELINE;
+
   const pullRequestLink = `https://github.com/MetaMask/metamask-mobile/pull/${context.issue.number}`;
 
   if (!githubToken) {
     core.setFailed('GITHUB_TOKEN not found.');
+    process.exit(1);
+  }
+
+  if (!e2eLabel) {
+    core.setFailed('E2E_LABEL not found.');
+    process.exit(1);
+  }
+
+  if (!e2ePipeline) {
+    core.setFailed('E2E_PIPELINE not found.');
     process.exit(1);
   }
 
@@ -31,8 +41,7 @@ async function main(): Promise<void> {
     process.exit(1);
   }
 
-  if (label.name === E2E_TRIGGERED_LABEL) {
-    // PR includes Run E2E label. Kick off E2E build on Bitrise.
+  if (label.name === e2eLabel) {
     const data = {
       hook_info: {
         type: 'bitrise',
@@ -40,7 +49,7 @@ async function main(): Promise<void> {
       },
       build_params: {
         branch: process.env.GITHUB_HEAD_REF,
-        pipeline_id: E2E_PIPELINE,
+        pipeline_id: e2ePipeline,
         commit_message: `Triggered by run-bitrise-e2e workflow in ${pullRequestLink}`,
       },
       triggered_by: 'run-bitrise-e2e',
@@ -70,9 +79,10 @@ async function main(): Promise<void> {
     if (bitriseBuildResponse.status === 201) {
       console.log(message);
     } else {
-      console.log(
+      core.setFailed(
         `Bitrise build request returned with status code ${bitriseBuildResponse.status}.`,
       );
+      process.exit(1);
     }
 
     // Post build link in PR comments.
@@ -86,13 +96,14 @@ async function main(): Promise<void> {
     if (postCommentResponse.status === 201) {
       console.log(`Posting comment in pull request ${pullRequestLink}`);
     } else {
-      console.log(
+      core.setFailed(
         `Post comment request returned with status code ${postCommentResponse.status}.`,
       );
+      process.exit(1);
     }
   } else {
     console.log(
-      `Skipping E2E build on PR #${pull_request.number} since ${E2E_TRIGGERED_LABEL} label does not exist.`,
+      `Skipping E2E build on PR #${pull_request.number} since workflow was not triggered by ${e2eLabel} label.`,
     );
   }
 }

@@ -1,8 +1,12 @@
-name: Run Bitrise E2E
+name: Run Bitrise E2E Smoke Tests
 
 on:
   pull_request:
     types: [labeled]
+
+env:
+  E2E_LABEL: 'Run Smoke E2E'
+  E2E_PIPELINE: 'pr_smoke_e2e_pipeline'
 
 jobs:
   check-label:
@@ -10,26 +14,16 @@ jobs:
     outputs:
       runE2ELabelExists: ${{ steps.label-check.outputs.result }}
     steps:
-      - name: Check for Run E2E label
+      - name: Check for ${{ env.E2E_LABEL }} label
         uses: actions/github-script@v5
         id: label-check
         with:
           script: |
-            const issue_number = context.issue.number;
-            let labelExists;
-            try {
-              const { data: labels } = await github.rest.issues.listLabelsOnIssue({
-                owner: context.repo.owner,
-                repo: context.repo.repo,
-                issue_number: issue_number
-              });
-              labelExists = labels.some(label => label.name === 'Run E2E');
-              console.log(labelExists ? 'Found Run E2E label, moving on to next job.' : 'Run E2E label does not exist, skipping other jobs.');
-            } catch (error) {
-              const pullRequestLink = `https://github.com/MetaMask/metamask-mobile/pull/${issue_number}`;
-              console.log(`Failed to check for Run E2E label on PR ${pullRequestLink}: ${error}`);
-            }
-            return labelExists;
+            const e2eLabel = process.env.E2E_LABEL;
+            const incomingLabel = context.payload.label.name;
+            const shouldRunE2E = e2eLabel === incomingLabel;
+            console.log(shouldRunE2E ? `Triggered by ${e2eLabel} label, moving on to next job.` : `Triggered by ${incomingLabel} label, skipping other jobs.`);
+            return shouldRunE2E;
 
   run-bitrise-e2e:
     needs: check-label
