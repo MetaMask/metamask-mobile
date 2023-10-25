@@ -41,7 +41,7 @@ async function main(): Promise<void> {
       build_params: {
         branch: process.env.GITHUB_HEAD_REF,
         pipeline_id: E2E_PIPELINE,
-        commit_message_for_next_build: `Triggered by run-bitrise-e2e workflow in ${pullRequestLink}`,
+        commit_message: `Triggered by run-bitrise-e2e workflow in ${pullRequestLink}`,
       },
       triggered_by: 'run-bitrise-e2e',
     };
