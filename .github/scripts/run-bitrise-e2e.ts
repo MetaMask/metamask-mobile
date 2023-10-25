@@ -77,7 +77,8 @@ async function main(): Promise<void> {
     });
 
     if (postCommentResponse.status === 201) {
-      console.log(`Posting comment in pull request ${context.issue.number}.`);
+      const pullRequestLink = `https://github.com/MetaMask/metamask-mobile/pull/${context.issue.number}`;
+      console.log(`Posting comment in pull request ${pullRequestLink}.`);
     }
 
     // if (!process.env.GITHUB_REPOSITORY) {
