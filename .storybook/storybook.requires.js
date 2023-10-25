@@ -26,6 +26,13 @@ global.STORIES = [
   },
   {
     titlePrefix: "",
+    directory: "./app/component-library/components/List",
+    files: "**/*.stories.?(ts|tsx|js|jsx)",
+    importPathMatcher:
+      "^\\.[\\\\/](?:app\\/component-library\\/components\\/List(?:\\/(?!\\.)(?:(?:(?!(?:^|\\/)\\.).)*?)\\/|\\/|$)(?!\\.)(?=.)[^/]*?\\.stories\\.(?:ts|tsx|js|jsx)?)$",
+  },
+  {
+    titlePrefix: "",
     directory: "./app/component-library/components/Texts",
     files: "**/*.stories.?(ts|tsx|js|jsx)",
     importPathMatcher:
@@ -78,6 +85,7 @@ const getStories = () => {
   return {
     "./app/component-library/components/Cards/Card/Card.stories.tsx": require("../app/component-library/components/Cards/Card/Card.stories.tsx"),
     "./app/component-library/components/Banners/Banner/variants/BannerAlert/BannerAlert.stories.tsx": require("../app/component-library/components/Banners/Banner/variants/BannerAlert/BannerAlert.stories.tsx"),
+    "./app/component-library/components/List/ListItem/ListItem.stories.tsx": require("../app/component-library/components/List/ListItem/ListItem.stories.tsx"),
     "./app/component-library/components/Texts/Text/Text.stories.tsx": require("../app/component-library/components/Texts/Text/Text.stories.tsx"),
     "./app/component-library/components/Texts/TextWithPrefixIcon/TextWithPrefixIcon.stories.tsx": require("../app/component-library/components/Texts/TextWithPrefixIcon/TextWithPrefixIcon.stories.tsx"),
     "./app/component-library/components/Overlay/Overlay.stories.tsx": require("../app/component-library/components/Overlay/Overlay.stories.tsx"),
