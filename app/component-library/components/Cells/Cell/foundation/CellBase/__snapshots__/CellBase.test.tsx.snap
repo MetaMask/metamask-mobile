@@ -138,6 +138,7 @@ exports[`CellBase should render default settings correctly 1`] = `
     }
   >
     <Text
+      accessibilityRole="text"
       numberOfLines={1}
       style={
         Object {
@@ -153,6 +154,7 @@ exports[`CellBase should render default settings correctly 1`] = `
       Orangefox.eth
     </Text>
     <Text
+      accessibilityRole="text"
       numberOfLines={1}
       style={
         Object {
@@ -168,6 +170,7 @@ exports[`CellBase should render default settings correctly 1`] = `
       0x2990079bcdEe240329a520d2444386FC119da21a
     </Text>
     <Text
+      accessibilityRole="text"
       numberOfLines={1}
       style={
         Object {
@@ -197,6 +200,7 @@ exports[`CellBase should render default settings correctly 1`] = `
       }
     >
       <Text
+        accessibilityRole="text"
         style={
           Object {
             "bottom": 2,

@@ -161,6 +161,7 @@ exports[`Cell should render CellDisplay given the type Display 1`] = `
       }
     >
       <Text
+        accessibilityRole="text"
         numberOfLines={1}
         style={
           Object {
@@ -176,6 +177,7 @@ exports[`Cell should render CellDisplay given the type Display 1`] = `
         Orangefox.eth
       </Text>
       <Text
+        accessibilityRole="text"
         numberOfLines={1}
         style={
           Object {
@@ -191,6 +193,7 @@ exports[`Cell should render CellDisplay given the type Display 1`] = `
         0x2990079bcdEe240329a520d2444386FC119da21a
       </Text>
       <Text
+        accessibilityRole="text"
         numberOfLines={1}
         style={
           Object {
@@ -220,6 +223,7 @@ exports[`Cell should render CellDisplay given the type Display 1`] = `
         }
       >
         <Text
+          accessibilityRole="text"
           style={
             Object {
               "bottom": 2,
@@ -270,18 +274,28 @@ exports[`Cell should render CellMultiSelect given the type MultiSelect 1`] = `
       style={
         Object {
           "alignItems": "center",
-          "backgroundColor": "#FFFFFF",
-          "borderColor": "#BBC0C5",
-          "borderRadius": 4,
-          "borderWidth": 2,
-          "height": 20,
-          "justifyContent": "center",
+          "flexDirection": "row",
           "marginRight": -8,
           "opacity": 1,
-          "width": 20,
         }
       }
-    />
+    >
+      <View
+        accessibilityRole="checkbox"
+        style={
+          Object {
+            "alignItems": "center",
+            "backgroundColor": "#FFFFFF",
+            "borderColor": "#24272A",
+            "borderRadius": 4,
+            "borderWidth": 2,
+            "height": 20,
+            "justifyContent": "center",
+            "width": 20,
+          }
+        }
+      />
+    </TouchableOpacity>
     <View
       accessible={false}
       style={
@@ -429,6 +443,7 @@ exports[`Cell should render CellMultiSelect given the type MultiSelect 1`] = `
         }
       >
         <Text
+          accessibilityRole="text"
           numberOfLines={1}
           style={
             Object {
@@ -444,6 +459,7 @@ exports[`Cell should render CellMultiSelect given the type MultiSelect 1`] = `
           Orangefox.eth
         </Text>
         <Text
+          accessibilityRole="text"
           numberOfLines={1}
           style={
             Object {
@@ -459,6 +475,7 @@ exports[`Cell should render CellMultiSelect given the type MultiSelect 1`] = `
           0x2990079bcdEe240329a520d2444386FC119da21a
         </Text>
         <Text
+          accessibilityRole="text"
           numberOfLines={1}
           style={
             Object {
@@ -488,6 +505,7 @@ exports[`Cell should render CellMultiSelect given the type MultiSelect 1`] = `
           }
         >
           <Text
+            accessibilityRole="text"
             style={
               Object {
                 "bottom": 2,
@@ -670,6 +688,7 @@ exports[`Cell should render CellSelect given the type Select 1`] = `
         }
       >
         <Text
+          accessibilityRole="text"
           numberOfLines={1}
           style={
             Object {
@@ -685,6 +704,7 @@ exports[`Cell should render CellSelect given the type Select 1`] = `
           Orangefox.eth
         </Text>
         <Text
+          accessibilityRole="text"
           numberOfLines={1}
           style={
             Object {
@@ -700,6 +720,7 @@ exports[`Cell should render CellSelect given the type Select 1`] = `
           0x2990079bcdEe240329a520d2444386FC119da21a
         </Text>
         <Text
+          accessibilityRole="text"
           numberOfLines={1}
           style={
             Object {
@@ -729,6 +750,7 @@ exports[`Cell should render CellSelect given the type Select 1`] = `
           }
         >
           <Text
+            accessibilityRole="text"
             style={
               Object {
                 "bottom": 2,
