@@ -8,12 +8,15 @@ import multihash from 'multihashes';
 import Engine from '../../core/Engine';
 import { IPFS_GATEWAY_DISABLED_ERROR } from '../../components/Views/BrowserTab/constants';
 
-export default async function resolveEnsToIpfsContentId({ provider, name }) {
+export default async function resolveEnsToIpfsContentId({
+  provider,
+  name,
+  chainId,
+}) {
   const eth = new Eth(provider);
   const hash = namehash.hash(name);
   const contract = new EthContract(eth);
   // lookup registry
-  const chainId = Number.parseInt(await eth.net_version(), 10);
   const registryAddress = getRegistryForChainId(chainId);
   if (!registryAddress) {
     throw new Error(
@@ -80,13 +83,13 @@ function hexValueIsEmpty(value) {
 function getRegistryForChainId(chainId) {
   switch (chainId) {
     // mainnet
-    case 1:
+    case '1':
       return '0x00000000000C2E074eC69A0dFb2997BA6C7d2e1e';
     // goerli
-    case 5:
+    case '5':
       return '0x00000000000C2E074eC69A0dFb2997BA6C7d2e1e';
     // sepolia
-    case 11155111:
+    case '11155111':
       return '0x00000000000C2E074eC69A0dFb2997BA6C7d2e1e';
     default:
       return null;
