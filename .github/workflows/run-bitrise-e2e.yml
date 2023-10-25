@@ -26,6 +26,7 @@ jobs:
               const pullRequestLink = `https://github.com/MetaMask/metamask-mobile/pull/${issue_number}`;
               console.log(`Failed to check for Run E2E label on PR ${pullRequestLink}: ${error}`);
             }
+            console.log("WHAT IS IT", runE2ELabelExists);
             return runE2ELabelExists;
 
   run-bitrise-e2e:
