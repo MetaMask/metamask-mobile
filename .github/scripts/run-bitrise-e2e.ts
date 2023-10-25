@@ -82,60 +82,6 @@ async function main(): Promise<void> {
     if (postCommentResponse.status === 201) {
       console.log(`Posting comment in pull request ${pullRequestLink}`);
     }
-
-    // if (!process.env.GITHUB_REPOSITORY) {
-    //   core.setFailed('GITHUB_REPOSITORY not found.');
-    //   process.exit(1);
-    // }
-
-    // if (!process.env.GITHUB_SHA) {
-    //   core.setFailed('GITHUB_SHA not found.');
-    //   process.exit(1);
-    // }
-
-    // const owner = process.env.GITHUB_REPOSITORY.split('/')[0];
-    // const repo = process.env.GITHUB_REPOSITORY.split('/')[1];
-
-    // const statusUpdateResponse = await octokit.rest.repos.createCommitStatus({
-    //   owner,
-    //   repo,
-    //   sha: process.env.GITHUB_SHA,
-    //   state: 'pending', // can be one of "error", "failure", "pending", or "success"
-    //   target_url: `https://github.com/${process.env.GITHUB_REPOSITORY}/actions/runs/${process.env.GITHUB_RUN_ID}`,
-    //   description: 'Your description here',
-    //   context: 'Your context here',
-    // });
-
-    // console.log('Updated status', statusUpdateResponse);
-
-    // const tagName = `pr-e2e-${pull_request.number}`;
-
-    // const response = await axios.get(
-    //   'https://api.github.com/repos/MetaMask/metamask-mobile/pulls/7339',
-    //   {
-    //     headers: {
-    //       Accept: 'application/vnd.github.v3+json',
-    //     },
-    //   },
-    // );
-    // const pullRequestInfo = response.data;
-    // const sha = pullRequestInfo.head.sha;
-    // console.log('PR INFO', pullRequestInfo.head.sha);
-
-    // // const { data: ref } = await octokit.rest.git.getRef({
-    // //   owner: repository.owner.login,
-    // //   repo: repository.name,
-    // //   ref: `heads/${pull_request.head.ref}`,
-    // // });
-
-    // await octokit.rest.git.createRef({
-    //   owner: repository.owner.login,
-    //   repo: repository.name,
-    //   ref: `refs/tags/${tagName}`,
-    //   sha,
-    // });
-
-    // console.log(`Created tag ${tagName}.`);
   } else {
     console.log(
       `Skipping E2E build on PR #${pull_request.number} since ${E2E_TRIGGERED_LABEL} label does not exist.`,
