@@ -21,7 +21,7 @@ jobs:
                 issue_number: issue_number
               });
               runE2ELabelExists = labels.some(label => label.name === 'Run E2E');
-              console.log(labelExists ? 'Found Run E2E label, moving on to next steps.' : 'Run E2E label does not exist, skipping other steps.');
+              console.log(runE2ELabelExists ? 'Found Run E2E label, moving on to next job.' : 'Run E2E label does not exist, skipping other jobs.');
             } catch (error) {
               const pullRequestLink = `https://github.com/MetaMask/metamask-mobile/pull/${issue_number}`;
               console.log(`Failed to check for Run E2E label on PR ${pullRequestLink}: ${error}`);
