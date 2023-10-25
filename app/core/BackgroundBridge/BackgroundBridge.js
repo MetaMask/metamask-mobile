@@ -320,6 +320,7 @@ export class BackgroundBridge extends EventEmitter {
     /*
     from extension https://github.dev/MetaMask/metamask-extension/blob/1d5e8a78400d7aaaf2b3cbdb30cff9399061df34/app/scripts/metamask-controller.js#L3830-L3861
     */
+
     engine.push(
       createSnapMethodMiddleware(true, {
         getAppKey: async () =>
@@ -333,11 +334,20 @@ export class BackgroundBridge extends EventEmitter {
           origin,
         ),
         requestPermissions: async (requestedPermissions) => {
+          console.log(
+            'SNAPS/ backgroundBridge requestPermissions',
+            requestedPermissions,
+          );
           const [approvedPermissions] =
             await Engine.context.PermissionController.requestPermissions(
               { origin },
               requestedPermissions,
             );
+
+          console.log(
+            'SNAPS/ backgroundBridge requestPermissions result ',
+            approvedPermissions,
+          );
 
           return Object.values(approvedPermissions);
         },

@@ -1,0 +1,45 @@
+diff --git a/node_modules/@metamask/rpc-methods/dist/permitted/requestSnaps.js b/node_modules/@metamask/rpc-methods/dist/permitted/requestSnaps.js
+index c6cfdf0..53e715e 100644
+--- a/node_modules/@metamask/rpc-methods/dist/permitted/requestSnaps.js
++++ b/node_modules/@metamask/rpc-methods/dist/permitted/requestSnaps.js
+@@ -53,8 +53,10 @@ function hasPermissions(existingPermissions, requestedPermissions) {
+  * @throws If the params are invalid.
+  */
+ async function requestSnapsImplementation(req, res, _next, end, { installSnaps, requestPermissions, getPermissions }) {
++    console.log('SNAPS/ requestSnapsImplementation',req, res, _next, end, { installSnaps, requestPermissions, getPermissions });
+     const requestedSnaps = req.params;
+     if (!(0, utils_1.isObject)(requestedSnaps)) {
++        console.log('SNAPS/ requestSnapsImplementation if (!(0, utils_1.isObject)(requestedSnaps))');
+         return end(eth_rpc_errors_1.ethErrors.rpc.invalidParams({
+             message: '"params" must be an object.',
+         }));
+@@ -67,22 +69,29 @@ async function requestSnapsImplementation(req, res, _next, end, { installSnaps,
+             acc[(0, snaps_utils_1.getSnapPermissionName)(key)] = requestedSnaps[key];
+             return acc;
+         }, {});
++        console.log('SNAPS/ requestSnapsImplementation requestedPermissions', requestedPermissions);
+         const existingPermissions = await getPermissions();
++        console.log('SNAPS/ requestSnapsImplementation existingPermissions', existingPermissions);
+         if (!existingPermissions ||
+             !hasPermissions(existingPermissions, requestedPermissions)) {
++            console.log('SNAPS/ requestSnapsImplementation  if (!existingPermissions || !hasPermissions(existingPermissions, requestedPermissions))', requestPermissions);
+             const approvedPermissions = await requestPermissions(requestedPermissions);
++            console.log('SNAPS/ requestSnapsImplementation approvedPermissions', approvedPermissions);
+             if (!(approvedPermissions === null || approvedPermissions === void 0 ? void 0 : approvedPermissions.length)) {
++                console.log('SNAPS/ requestSnapsImplementation userRejectedRequest', approvedPermissions);
+                 throw eth_rpc_errors_1.ethErrors.provider.userRejectedRequest({ data: req });
+             }
+         }
+     }
+     catch (error) {
++        console.log('SNAPS/ requestSnapsImplementation error: ', error);
+         return end(error);
+     }
+     try {
+         res.result = await (0, snapInstallation_1.handleInstallSnaps)(requestedSnaps, installSnaps);
+     }
+     catch (error) {
++        console.log('SNAPS/ requestSnapsImplementation error 2: ', error);
+         res.error = error;
+     }
+     return end();

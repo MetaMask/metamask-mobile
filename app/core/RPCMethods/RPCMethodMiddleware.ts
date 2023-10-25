@@ -239,6 +239,7 @@ export const getRpcMethodMiddleware = ({
 }: RPCMethodsMiddleParameters) =>
   // all user facing RPC calls not implemented by the provider
   createAsyncMiddleware(async (req: any, res: any, next: any) => {
+    console.log('SNAPS/ createAsyncMiddleware', req, res, next);
     // Utility function for getting accounts for either WalletConnect or MetaMask SDK.
     const getAccounts = (): string[] => {
       const selectedAddress =

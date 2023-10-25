@@ -58,7 +58,7 @@ const SnapsSettingsList = () => {
     `Snap ${id} failed to install\n\n💀💀💀\n\n${e}`;
 
   const installSnap = async (snapId: string, origin: string): Promise<void> => {
-    const { SnapController } = Engine.context as any;
+    const { SnapController } = Engine.context;
     let message: string;
     try {
       const result = await SnapController.processRequestedSnap(

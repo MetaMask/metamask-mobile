@@ -13,6 +13,11 @@ const snapHandlerMap = permittedSnapMethods.reduce((map, handler) => {
   return map;
 }, new Map());
 
+console.log(
+  'SNAPS/ createSnapMethodMiddleware.ts: snapHandlerMap',
+  snapHandlerMap,
+);
+
 // eslint-disable-next-line import/prefer-default-export
 export function createSnapMethodMiddleware(isSnap: boolean, hooks: any) {
   return async function methodMiddleware(
@@ -23,6 +28,7 @@ export function createSnapMethodMiddleware(isSnap: boolean, hooks: any) {
   ) {
     const handler = snapHandlerMap.get(req.method);
     if (handler) {
+      console.log('SNAPS/ createSnapMethodMiddleware.ts: handler', handler);
       if (/^snap_/iu.test(req.method) && !isSnap) {
         return end(ethErrors.rpc.methodNotFound());
       }
@@ -38,6 +44,7 @@ export function createSnapMethodMiddleware(isSnap: boolean, hooks: any) {
           selectHooks(hooks, hookNames),
         );
       } catch (error) {
+        console.log('SNAPS/ createSnapMethodMiddleware.ts: error', error);
         console.error(error);
         return end(error);
       }

@@ -157,6 +157,10 @@ export default class SnapBridge {
         ),
 
         requestPermissions: async (requestedPermissions: any) => {
+          console.log(
+            'SNAPS/ requestPermissions: requestedPermissions',
+            requestedPermissions,
+          );
           const [approvedPermissions] =
             await PermissionController.requestPermissions(
               { origin: this.snapId },

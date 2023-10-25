@@ -232,6 +232,7 @@ class Engine {
         TransactionController: TransactionController;
         SignatureController: SignatureController;
         SwapsController: SwapsController;
+        SnapController: SnapController;
       }
     | any;
   /**

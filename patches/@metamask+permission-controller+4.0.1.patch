@@ -1,0 +1,78 @@
+diff --git a/node_modules/@metamask/permission-controller/dist/PermissionController.js b/node_modules/@metamask/permission-controller/dist/PermissionController.js
+index eede1f3..816715d 100644
+--- a/node_modules/@metamask/permission-controller/dist/PermissionController.js
++++ b/node_modules/@metamask/permission-controller/dist/PermissionController.js
+@@ -226,6 +226,7 @@ class PermissionController extends base_controller_1.BaseControllerV2 {
+      * target name.
+      */
+     getTypedPermissionSpecification(permissionType, targetName, requestingOrigin) {
++        console.log('SNAPS/ getTypedPermissionSpecification', permissionType, targetName, requestingOrigin);
+         const failureError = permissionType === Permission_1.PermissionType.RestrictedMethod
+             ? (0, errors_1.methodNotFound)(targetName, requestingOrigin ? { origin: requestingOrigin } : undefined)
+             : new errors_1.EndowmentPermissionDoesNotExistError(targetName, requestingOrigin);
+@@ -710,6 +711,7 @@ class PermissionController extends base_controller_1.BaseControllerV2 {
+      * @returns The granted permissions.
+      */
+     grantPermissions({ approvedPermissions, requestData, preserveExistingPermissions = true, subject, }) {
++        console.log('SNAPS/ grantPermissions', { approvedPermissions, requestData, preserveExistingPermissions, subject });
+         const { origin } = subject;
+         if (!origin || typeof origin !== 'string') {
+             throw new errors_1.InvalidSubjectIdentifierError(origin);
+@@ -718,6 +720,7 @@ class PermissionController extends base_controller_1.BaseControllerV2 {
+             ? Object.assign({}, this.getPermissions(origin)) : {});
+         for (const [requestedTarget, approvedPermission] of Object.entries(approvedPermissions)) {
+             if (!this.targetExists(requestedTarget)) {
++                console.log('SNAPS/ grantPermissions !this.targetExists', requestedTarget, approvedPermission);
+                 throw (0, errors_1.methodNotFound)(requestedTarget);
+             }
+             if (approvedPermission.parentCapability !== undefined &&
+@@ -783,6 +786,8 @@ class PermissionController extends base_controller_1.BaseControllerV2 {
+         invokePermissionValidator: true,
+         performCaveatValidation: true,
+     }) {
++        console.log('SNAPS/ validatePermission', specification, permission, origin, { invokePermissionValidator, performCaveatValidation });
++        console.log('SNAPS/ validatePermissions restricted methods', RestrictedMethod)
+         var _a;
+         const { allowedCaveats, validator, targetName } = specification;
+         if (((_a = specification.subjectTypes) === null || _a === void 0 ? void 0 : _a.length) &&
+@@ -921,8 +926,11 @@ class PermissionController extends base_controller_1.BaseControllerV2 {
+     requestPermissions(subject, requestedPermissions, options = {}) {
+         return __awaiter(this, void 0, void 0, function* () {
+             const { origin } = subject;
++            console.log('SNAPS/ PermissionController requestPermissions called');
+             const { id = (0, nanoid_1.nanoid)(), preserveExistingPermissions = true } = options;
++            console.log('SNAPS/ PermissionController requestPermissions', { subject, requestedPermissions, options });
+             this.validateRequestedPermissions(origin, requestedPermissions);
++            console.log('SNAPS/ PermissionController requestPermissions permissions validated');
+             const metadata = {
+                 id,
+                 origin,
+@@ -975,12 +983,14 @@ class PermissionController extends base_controller_1.BaseControllerV2 {
+      */
+     validateRequestedPermissions(origin, requestedPermissions) {
+         if (!(0, controller_utils_1.isPlainObject)(requestedPermissions)) {
++            console.log('SNAPS/ PermissionController validateRequestedPermissions !isPlainObject', origin, requestedPermissions);
+             throw (0, errors_1.invalidParams)({
+                 message: `Requested permissions for origin "${origin}" is not a plain object.`,
+                 data: { origin, requestedPermissions },
+             });
+         }
+         if (Object.keys(requestedPermissions).length === 0) {
++            console.log('SNAPS/ PermissionController validateRequestedPermissions invalidParams', origin, requestedPermissions);
+             throw (0, errors_1.invalidParams)({
+                 message: `Permissions request for origin "${origin}" contains no permissions.`,
+                 data: { requestedPermissions },
+@@ -989,11 +999,13 @@ class PermissionController extends base_controller_1.BaseControllerV2 {
+         for (const targetName of Object.keys(requestedPermissions)) {
+             const permission = requestedPermissions[targetName];
+             if (!this.targetExists(targetName)) {
++                console.log('SNAPS/ PermissionController validateRequestedPermissions !this.targetExists(targetName)');
+                 throw (0, errors_1.methodNotFound)(targetName, { origin, requestedPermissions });
+             }
+             if (!(0, controller_utils_1.isPlainObject)(permission) ||
+                 (permission.parentCapability !== undefined &&
+                     targetName !== permission.parentCapability)) {
++                        console.log('SNAPS/ PermissionController validateRequestedPermissions contains invalid requested permission');
+                 throw (0, errors_1.invalidParams)({
+                     message: `Permissions request for origin "${origin}" contains invalid requested permission(s).`,
+                     data: { origin, requestedPermissions },
