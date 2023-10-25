@@ -13,6 +13,8 @@ main().catch((error: Error): void => {
 
 async function main(): Promise<void> {
   const githubToken = process.env.GITHUB_TOKEN;
+  const pullRequestLink = `https://github.com/MetaMask/metamask-mobile/pull/${context.issue.number}`;
+
   if (!githubToken) {
     core.setFailed('GITHUB_TOKEN not found.');
     process.exit(1);
@@ -39,6 +41,7 @@ async function main(): Promise<void> {
       build_params: {
         branch: process.env.GITHUB_HEAD_REF,
         pipeline_id: E2E_PIPELINE,
+        commit_message_for_next_build: `Triggered by run-bitrise-e2e workflow in ${pullRequestLink}`,
       },
       triggered_by: 'run-bitrise-e2e',
     };
@@ -77,7 +80,6 @@ async function main(): Promise<void> {
     });
 
     if (postCommentResponse.status === 201) {
-      const pullRequestLink = `https://github.com/MetaMask/metamask-mobile/pull/${context.issue.number}`;
       console.log(`Posting comment in pull request ${pullRequestLink}.`);
     }
 
