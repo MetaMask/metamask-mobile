@@ -3,8 +3,6 @@
 // Third library dependencies.
 import React from 'react';
 
-import { Platform } from 'react-native';
-
 // External dependencies.
 import { useStyles } from '../../../../../hooks';
 import SelectItem from '../../../../Select/Select/SelectItem';
