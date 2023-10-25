@@ -7,9 +7,12 @@ on:
 jobs:
   check-label:
     runs-on: ubuntu-latest
+    outputs:
+      runE2ELabelExists: ${{ steps.label-check.outputs.result }}
     steps:
       - name: Check for Run E2E label
         uses: actions/github-script@v5
+        id: label-check
         with:
           script: |
             const issue_number = context.issue.number;
@@ -27,13 +30,11 @@ jobs:
               console.log(`Failed to check for Run E2E label on PR ${pullRequestLink}: ${error}`);
             }
             return labelExists;
-    outputs:
-      runE2ELabelExists: ${{ steps.label-check.outputs.result }}
 
   run-bitrise-e2e:
-    runs-on: ubuntu-latest
     needs: check-label
     if: needs.check-label.outputs.runE2ELabelExists == 'true'
+    runs-on: ubuntu-latest
     permissions:
       pull-requests: write
       contents: write
