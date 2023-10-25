@@ -760,7 +760,7 @@ export const migrations = {
 
     return state;
   },
-  23: (state) => {
+  26: (state) => {
     const transactions =
       state.engine.backgroundState?.TransactionController?.transactions;
 

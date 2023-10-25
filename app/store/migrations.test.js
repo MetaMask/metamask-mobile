@@ -984,7 +984,7 @@ describe('Redux Persist Migrations', () => {
     });
   });
 
-  describe('#23', () => {
+  describe('#26', () => {
     it('should rename transactionHash to hash', () => {
       const oldState = {
         engine: {
@@ -1005,7 +1005,7 @@ describe('Redux Persist Migrations', () => {
         },
       };
 
-      const migration = migrations[23];
+      const migration = migrations[26];
 
       const newState = migration(cloneDeep(oldState));
 
@@ -1046,7 +1046,7 @@ describe('Redux Persist Migrations', () => {
         },
       };
 
-      const migration = migrations[23];
+      const migration = migrations[26];
 
       const newState = migration(cloneDeep(oldState));
 
@@ -1060,7 +1060,7 @@ describe('Redux Persist Migrations', () => {
         },
       };
 
-      const migration = migrations[23];
+      const migration = migrations[26];
 
       const newState = migration(cloneDeep(stateWithoutTransactionController));
 
