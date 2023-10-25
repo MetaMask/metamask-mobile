@@ -46,7 +46,7 @@ class MetaMetrics implements IMetaMetrics {
   constructor(segmentClient: any) {
     this.#segmentClient = segmentClient;
     this.#state = States.enabled;
-    // this.#init();
+    this.#init();
   }
 
   // PRIVATE METHODS
@@ -259,6 +259,9 @@ class MetaMetrics implements IMetaMetrics {
           ? process.env.SEGMENT_DEV_KEY
           : process.env.SEGMENT_PROD_KEY) as string,
         debug: __DEV__,
+        proxy: __DEV__
+          ? process.env.SEGMENT_DEV_PROXY_KEY
+          : process.env.SEGMENT_PROD_PROXY_KEY,
       });
       MetaMetrics.#instance = new MetaMetrics(segmentClient);
     }
@@ -312,3 +315,17 @@ class MetaMetrics implements IMetaMetrics {
 }
 
 // export default MetaMetrics.getInstance();
+
+let instance: IMetaMetrics;
+
+export default {
+  init: () => {
+    if (!instance) {
+      instance = MetaMetrics.getInstance();
+    }
+  },
+  trackEvent: (event: string, properties: JsonMap = {}) =>
+    instance?.trackEvent(event, properties),
+  trackAnonymousEvent: (event: string, properties: JsonMap = {}) =>
+    instance?.trackEvent(event, properties),
+};

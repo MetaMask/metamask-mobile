@@ -563,7 +563,7 @@ export default {
     // Segment and MixPanel
     if (!metametricsId) {
       const distinctId = await instance.getDistinctId();
-      DefaultPreference.set(MIXPANEL_METAMETRICS_ID, distinctId);
+      await DefaultPreference.set(MIXPANEL_METAMETRICS_ID, distinctId);
     }
     try {
       const vars = await RCTAnalytics.getRemoteVariables();
