@@ -379,7 +379,6 @@
     "@storybook/addon-ondevice-controls": "^6.5.6",
     "@storybook/addon-ondevice-knobs": "^5.3.25",
     "@storybook/builder-webpack5": "^7.4.3",
-    "@storybook/manager-webpack5": "^6.5.16",
     "@storybook/react-native": "^6.5.6",
     "@testing-library/react": "14.0.0",
     "@testing-library/react-hooks": "^8.0.1",
