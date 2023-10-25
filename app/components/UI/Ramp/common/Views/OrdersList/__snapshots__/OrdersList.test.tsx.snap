@@ -13,7 +13,7 @@ exports[`OrdersList renders buy only correctly when pressing buy filter 1`] = `
         }
         variant="sHeadingMD"
       >
-        You don't have buy orders
+        You don't have any buy orders
       </Text>
     </Row>
   }
@@ -2611,7 +2611,7 @@ exports[`OrdersList renders empty buy message 1`] = `
         }
         variant="sHeadingMD"
       >
-        You don't have buy orders
+        You don't have any buy orders
       </Text>
     </Row>
   }
@@ -2842,7 +2842,7 @@ exports[`OrdersList renders empty buy message 1`] = `
           }
         }
       >
-        You don't have buy orders
+        You don't have any buy orders
       </Text>
     </View>
   </View>
@@ -2862,7 +2862,7 @@ exports[`OrdersList renders empty sell message 1`] = `
         }
         variant="sHeadingMD"
       >
-        You don't have sell orders
+        You don't have any sell orders
       </Text>
     </Row>
   }
@@ -3093,7 +3093,7 @@ exports[`OrdersList renders empty sell message 1`] = `
           }
         }
       >
-        You don't have sell orders
+        You don't have any sell orders
       </Text>
     </View>
   </View>
@@ -3113,7 +3113,7 @@ exports[`OrdersList renders sell only correctly when pressing sell filter 1`] = 
         }
         variant="sHeadingMD"
       >
-        You don't have sell orders
+        You don't have any sell orders
       </Text>
     </Row>
   }
@@ -3659,7 +3659,7 @@ exports[`OrdersList resets filter to all after other filter was set 1`] = `
         }
         variant="sHeadingMD"
       >
-        You don't have sell orders
+        You don't have any sell orders
       </Text>
     </Row>
   }
