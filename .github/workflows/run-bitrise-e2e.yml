@@ -22,7 +22,7 @@ jobs:
             const e2eLabel = process.env.E2E_LABEL;
             const incomingLabel = context.payload.label.name;
             const shouldRunE2E = e2eLabel === incomingLabel;
-            console.log(shouldRunE2E ? `Triggered by ${e2eLabel} label, moving on to next job.` : `Triggered by ${incomingLabel} label, skipping other jobs.`);
+            console.log(shouldRunE2E ? `Triggered by a label named ${e2eLabel}, moving on to next job.` : `Triggered by a label named ${incomingLabel}, skipping other jobs.`);
             return shouldRunE2E;
 
   run-bitrise-e2e:
