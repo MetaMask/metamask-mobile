@@ -3,6 +3,7 @@ import { FlatList, TouchableHighlight } from 'react-native';
 import { ScrollView } from 'react-native-gesture-handler';
 import { useNavigation } from '@react-navigation/native';
 import { useSelector } from 'react-redux';
+import { OrderOrderTypeEnum } from '@consensys/on-ramp-sdk/dist/API';
 
 import { createOrderDetailsNavDetails } from '../OrderDetails';
 import OrderListItem from '../../components/OrderListItem';
@@ -24,7 +25,7 @@ import { FiatOrder, getOrders } from '../../../../../../reducers/fiatOrders';
 import { strings } from '../../../../../../../locales/i18n';
 import { useTheme } from '../../../../../../util/theme';
 
-type filterType = 'ALL' | 'BUY' | 'SELL';
+type filterType = 'ALL' | OrderOrderTypeEnum;
 
 interface FilterButtonProps extends Omit<ButtonProps, 'variant' | 'size'> {
   readonly selected?: boolean;
@@ -95,13 +96,13 @@ function OrdersList() {
             />
             <FilterButton
               label="Buy"
-              onPress={() => setCurrentFilter('BUY')}
-              selected={currentFilter === 'BUY'}
+              onPress={() => setCurrentFilter(OrderOrderTypeEnum.Buy)}
+              selected={currentFilter === OrderOrderTypeEnum.Buy}
             />
             <FilterButton
               label="Sell"
-              onPress={() => setCurrentFilter('SELL')}
-              selected={currentFilter === 'SELL'}
+              onPress={() => setCurrentFilter(OrderOrderTypeEnum.Sell)}
+              selected={currentFilter === OrderOrderTypeEnum.Sell}
             />
           </Row>
         </ScrollView>
@@ -116,10 +117,10 @@ function OrdersList() {
             color={TextColor.Muted}
             style={styles.emptyMessage}
           >
-            {currentFilter === 'BUY'
+            {currentFilter === OrderOrderTypeEnum.Buy
               ? strings('fiat_on_ramp_aggregator.empty_buy_orders_list')
               : null}
-            {currentFilter === 'SELL'
+            {currentFilter === OrderOrderTypeEnum.Sell
               ? strings('fiat_on_ramp_aggregator.empty_sell_orders_list')
               : null}
           </Text>
