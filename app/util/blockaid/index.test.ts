@@ -13,7 +13,7 @@ describe('getBlockaidMetricsParams', () => {
 
   it('should return additionalParams object when securityAlertResponse defined', () => {
     const securityAlertResponse: SecurityAlertResponse = {
-      resultType: ResultType.Malicious,
+      result_type: ResultType.Malicious,
       reason: Reason.notApplicable,
       providerRequestsCount: {
         eth_call: 5,
@@ -34,7 +34,7 @@ describe('getBlockaidMetricsParams', () => {
 
   it('should not return eth call counts if providerRequestsCount is empty', () => {
     const securityAlertResponse: SecurityAlertResponse = {
-      resultType: ResultType.Malicious,
+      result_type: ResultType.Malicious,
       reason: Reason.notApplicable,
       features: [],
       providerRequestsCount: {},
@@ -50,7 +50,7 @@ describe('getBlockaidMetricsParams', () => {
 
   it('should not return eth call counts if providerRequestsCount is undefined', () => {
     const securityAlertResponse: SecurityAlertResponse = {
-      resultType: ResultType.Malicious,
+      result_type: ResultType.Malicious,
       reason: Reason.notApplicable,
       features: [],
       providerRequestsCount: undefined,
