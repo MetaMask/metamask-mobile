@@ -47,7 +47,7 @@ pipelines:
   pr_smoke_e2e_pipeline:
     stages:
       - run_smoke_e2e_ios_android_stage: {}
-      # - notify: {}
+      - notify: {}
 
 #Stages refrence workflows. Those workflows cannot but utility "_this-is-a-utility"
 stages:
@@ -356,13 +356,6 @@ workflows:
     after_run:
       - _notify_failure_on_slack
     steps:
-      - script:
-          inputs:
-            - content: |-
-                # Add cache directory to environment variable
-
-                echo "Hello"
-          title: See environment variable
       - certificate-and-profile-installer@1: {}
       - set-xcode-build-number@1:
           inputs:
