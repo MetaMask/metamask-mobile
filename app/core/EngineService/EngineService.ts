@@ -99,8 +99,13 @@ class EngineService {
 
     controllers.forEach((controller) => {
       const { name, key = undefined } = controller;
-      const update_bg_state_cb = () =>
+      const update_bg_state_cb = () => {
+        // DEBUG, remove before merge
+        if (name === "PreferencesController") {
+          console.log('PreferencesController state mutation: ', UntypedEngine.state["PreferencesController"])
+        }
         store.dispatch({ type: UPDATE_BG_STATE_KEY, key: name });
+      }
       if (key) {
         engine.controllerMessenger.subscribe(key, update_bg_state_cb);
       } else {

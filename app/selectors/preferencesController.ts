@@ -19,8 +19,11 @@ export const selectIpfsGateway = createSelector(
 
 export const selectSelectedAddress = createSelector(
   selectPreferencesControllerState,
-  (preferencesControllerState: PreferencesState) =>
-    preferencesControllerState.selectedAddress,
+  (preferencesControllerState: PreferencesState) => {
+    // DEBUG: remove before merge
+    console.log('retrieving preferencesControllerState: ', preferencesControllerState);
+    return preferencesControllerState.selectedAddress;
+  }
 );
 
 export const selectUseNftDetection = createSelector(
