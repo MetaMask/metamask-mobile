@@ -12,24 +12,62 @@ jobs:
       contents: write
       statuses: write
     steps:
-      - name: Checkout code
-        uses: actions/checkout@v3
-
-      - name: Set up Node.js
-        uses: actions/setup-node@v3
+      # - script@1:
+      #     title: Install jq
+      #     inputs:
+      #       - content: |-
+      #           #!/bin/bash
+      #           set -ex
+      #           apt-get update -y
+      #           apt-get install -y jq
+      # - script@1:
+      #     title: Fetch pull request labels
+      #     inputs:
+      #       - content: |-
+      #           #!/bin/bash
+      #           set -ex
+      #           PR_NUMBER=${BITRISE_PULL_REQUEST}
+      #           REPO_SLUG=${BITRISEIO_GIT_REPOSITORY_SLUG}
+      #           OWNER_NAME=${BITRISEIO_GIT_REPOSITORY_OWNER}
+      #           PR_LABELS=$(curl -s "https://api.github.com/repos/${OWNER_NAME}/${REPO_SLUG}/issues/${PR_NUMBER}/labels" | jq -r '[.[].name]')
+      #           if [[ $(echo "$PR_LABELS" | jq 'contains(["Run E2E"])') == true ]]; then
+      #             echo "Now triggering e2e tests"
+      #             envman add --key RUN_E2E --value "true"
+      #           else
+      #             echo "No Run E2E label skipping E2E tests."
+      #             envman add --key RUN_E2E --value "false"
+      #           fi
+      - name: Check for label
+        uses: actions/github-script@v5
         with:
-          node-version-file: '.nvmrc'
-          cache: yarn
+          script: |
+            const issue_number = context.issue.number;
+            const { data: labels } = await github.rest.issues.listLabelsOnIssue({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: issue_number
+            });
+            const labelExists = labels.some(label => label.name === 'Run E2E');
+            console.log(labelExists ? 'Label exists' : 'Label does not exist');
 
-      - name: Install Axios
-        run: yarn add axios
+      # - name: Checkout code
+      #   uses: actions/checkout@v3
 
-      - name: Install dependencies
-        run: yarn --immutable
+      # - name: Set up Node.js
+      #   uses: actions/setup-node@v3
+      #   with:
+      #     node-version-file: '.nvmrc'
+      #     cache: yarn
 
-      - name: Run Bitrise E2E
-        env:
-          BITRISE_BUILD_TRIGGER_TOKEN: ${{ secrets.BITRISE_BUILD_TRIGGER_TOKEN }}
-          BITRISE_APP_ID: 'be69d4368ee7e86d'
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        run: yarn run run-bitrise-e2e
+      # - name: Install Axios
+      #   run: yarn add axios
+
+      # - name: Install dependencies
+      #   run: yarn --immutable
+
+      # - name: Run Bitrise E2E
+      #   env:
+      #     BITRISE_BUILD_TRIGGER_TOKEN: ${{ secrets.BITRISE_BUILD_TRIGGER_TOKEN }}
+      #     BITRISE_APP_ID: 'be69d4368ee7e86d'
+      #     GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      #   run: yarn run run-bitrise-e2e
