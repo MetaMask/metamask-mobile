@@ -13,21 +13,22 @@ jobs:
         with:
           script: |
             const issue_number = context.issue.number;
-            let runE2ELabelExists;
+            let labelExists;
             try {
               const { data: labels } = await github.rest.issues.listLabelsOnIssue({
                 owner: context.repo.owner,
                 repo: context.repo.repo,
                 issue_number: issue_number
               });
-              runE2ELabelExists = labels.some(label => label.name === 'Run E2E');
-              console.log(runE2ELabelExists ? 'Found Run E2E label, moving on to next job.' : 'Run E2E label does not exist, skipping other jobs.');
+              labelExists = labels.some(label => label.name === 'Run E2E');
+              console.log(labelExists ? 'Found Run E2E label, moving on to next job.' : 'Run E2E label does not exist, skipping other jobs.');
             } catch (error) {
               const pullRequestLink = `https://github.com/MetaMask/metamask-mobile/pull/${issue_number}`;
               console.log(`Failed to check for Run E2E label on PR ${pullRequestLink}: ${error}`);
             }
-            console.log("WHAT IS IT", runE2ELabelExists);
-            return runE2ELabelExists;
+            return labelExists;
+    outputs:
+      runE2ELabelExists: ${{ steps.label-check.outputs.result }}
 
   run-bitrise-e2e:
     runs-on: ubuntu-latest
