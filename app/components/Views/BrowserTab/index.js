@@ -99,6 +99,7 @@ import { ButtonVariants } from '../../../component-library/components/Buttons/Bu
 import CLText from '../../../component-library/components/Texts/Text/Text';
 import { TextVariant } from '../../../component-library/components/Texts/Text';
 import { regex } from '../../../../app/util/regex';
+import { selectChainId } from '../../../selectors/networkController';
 
 const { HOMEPAGE_URL, NOTIFICATION_NAMES } = AppConstants;
 const HOMEPAGE_HOST = new URL(HOMEPAGE_URL)?.hostname;
@@ -468,6 +469,7 @@ export const BrowserTab = (props) => {
         const { type, hash } = await resolveEnsToIpfsContentId({
           provider,
           name: hostname,
+          chainId: props.chainId,
         });
         if (type === 'ipfs-ns') {
           gatewayUrl = `${props.ipfsGateway}${hash}${pathname || '/'}${
@@ -526,7 +528,7 @@ export const BrowserTab = (props) => {
         goBack();
       }
     },
-    [goBack, props.ipfsGateway, setIpfsBannerVisible],
+    [goBack, props.ipfsGateway, setIpfsBannerVisible, props.chainId],
   );
 
   /**
@@ -1605,6 +1607,10 @@ BrowserTab.propTypes = {
    * Represents ipfs gateway toggle
    */
   isIpfsGatewayEnabled: PropTypes.bool,
+  /**
+   * Represents the current chain id
+   */
+  chainId: PropTypes.string,
 };
 
 BrowserTab.defaultProps = {
@@ -1619,6 +1625,7 @@ const mapStateToProps = (state) => ({
   searchEngine: state.settings.searchEngine,
   whitelist: state.browser.whitelist,
   wizardStep: state.wizard.step,
+  chainId: selectChainId(state),
 });
 
 const mapDispatchToProps = (dispatch) => ({
