@@ -42,7 +42,7 @@ import {
   waitForEmptyRPCQueue,
   waitForKeychainUnlocked,
 } from './utils/wait.util';
-import { Json } from '@metamask/controller-utils';
+import { Json } from '@metamask/utils';
 import { PROTOCOLS } from '../../constants/deeplinks';
 import { Minimizer } from '../NativeModules';
 import AndroidService from './AndroidSDK/AndroidService';
