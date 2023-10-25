@@ -6,6 +6,9 @@ import { IconName, IconSize, IconColor } from '../../Icons/Icon';
 // Internal dependencies.
 import { TextWithPrefixIconProps } from './TextWithPrefixIcon.types';
 
+// Defaults
+export const DEFAULT_TEXTWITHPREFIXICON_COLOR = TextColor.Default;
+
 // Test IDs
 export const TEXT_WITH_PREFIX_ICON_TEST_ID = 'text-with-prefix-icon';
 export const TEXT_WITH_PREFIX_ICON_ICON_TEST_ID = 'text-with-prefix-icon-icon';
