@@ -17,6 +17,9 @@ import { getRpcMethodMiddleware } from './RPCMethodMiddleware';
 import AppConstants from '../AppConstants';
 import { PermissionConstraint } from '@metamask/permission-controller';
 import PPOMUtil from '../../lib/ppom/ppom-util';
+import initialBackgroundState from '../../util/test/initial-background-state.json';
+import { Store } from 'redux';
+import { RootState } from 'app/reducers';
 
 jest.mock('../Engine', () => ({
   context: {
@@ -54,8 +57,6 @@ jest.mock('../../store', () => ({
     getState: jest.fn(),
   },
 }));
-
-const mockStore = store as { getState: jest.Mock };
 
 jest.mock('../Permissions', () => ({
   getPermittedAccounts: jest.fn(),
@@ -212,21 +213,25 @@ function setupGlobalState({
   providerConfig?: ProviderConfig;
   selectedAddress?: string;
 }) {
-  mockStore.getState.mockImplementation(() => ({
-    browser: activeTab
-      ? {
-          activeTab,
-        }
-      : {},
-    engine: {
-      backgroundState: {
-        NetworkController: {
-          providerConfig: providerConfig || {},
+  // TODO: Remove any cast once PermissionController type is fixed. Currently, the state shows never.
+  jest
+    .spyOn(store as Store<Partial<RootState>, any>, 'getState')
+    .mockImplementation(() => ({
+      browser: activeTab
+        ? {
+            activeTab,
+          }
+        : {},
+      engine: {
+        backgroundState: {
+          ...initialBackgroundState,
+          NetworkController: {
+            providerConfig: providerConfig || {},
+          },
+          PreferencesController: selectedAddress ? { selectedAddress } : {},
         },
-        PreferencesController: selectedAddress ? { selectedAddress } : {},
-      },
-    },
-  }));
+      } as any,
+    }));
   if (addTransactionResult) {
     MockEngine.context.TransactionController.addTransaction.mockImplementation(
       async () => ({ result: addTransactionResult }),
