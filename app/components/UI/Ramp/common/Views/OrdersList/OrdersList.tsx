@@ -90,17 +90,17 @@ function OrdersList() {
         <ScrollView horizontal>
           <Row style={styles.filters}>
             <FilterButton
-              label="All"
+              label={strings('fiat_on_ramp_aggregator.All')}
               onPress={() => setCurrentFilter('ALL')}
               selected={currentFilter === 'ALL'}
             />
             <FilterButton
-              label="Buy"
+              label={strings('fiat_on_ramp_aggregator.Buy')}
               onPress={() => setCurrentFilter(OrderOrderTypeEnum.Buy)}
               selected={currentFilter === OrderOrderTypeEnum.Buy}
             />
             <FilterButton
-              label="Sell"
+              label={strings('fiat_on_ramp_aggregator.Sell')}
               onPress={() => setCurrentFilter(OrderOrderTypeEnum.Sell)}
               selected={currentFilter === OrderOrderTypeEnum.Sell}
             />
