@@ -5,74 +5,55 @@ on:
     types: [labeled]
 
 jobs:
-  run-bitrise-e2e:
+  check-label:
     runs-on: ubuntu-latest
-    permissions:
-      pull-requests: write
-      contents: write
-      statuses: write
     steps:
-      # - script@1:
-      #     title: Install jq
-      #     inputs:
-      #       - content: |-
-      #           #!/bin/bash
-      #           set -ex
-      #           apt-get update -y
-      #           apt-get install -y jq
-      # - script@1:
-      #     title: Fetch pull request labels
-      #     inputs:
-      #       - content: |-
-      #           #!/bin/bash
-      #           set -ex
-      #           PR_NUMBER=${BITRISE_PULL_REQUEST}
-      #           REPO_SLUG=${BITRISEIO_GIT_REPOSITORY_SLUG}
-      #           OWNER_NAME=${BITRISEIO_GIT_REPOSITORY_OWNER}
-      #           PR_LABELS=$(curl -s "https://api.github.com/repos/${OWNER_NAME}/${REPO_SLUG}/issues/${PR_NUMBER}/labels" | jq -r '[.[].name]')
-      #           if [[ $(echo "$PR_LABELS" | jq 'contains(["Run E2E"])') == true ]]; then
-      #             echo "Now triggering e2e tests"
-      #             envman add --key RUN_E2E --value "true"
-      #           else
-      #             echo "No Run E2E label skipping E2E tests."
-      #             envman add --key RUN_E2E --value "false"
-      #           fi
-      - name: Check for label
+      - name: Check for Run E2E label
         uses: actions/github-script@v5
         with:
           script: |
             const issue_number = context.issue.number;
+            let runE2ELabelExists;
             try {
-              // const { data: labels } = await github.rest.issues.listLabelsOnIssue({
-              //   owner: context.repo.owner,
-              //   repo: context.repo.repo,
-              //   issue_number: issue_number
-              // });
-              // const labelExists = labels.some(label => label.name === 'Run E2E');
-              // console.log(labelExists ? 'Label exists' : 'Label does not exist');
-              throw new Error("Failed!A")
+              const { data: labels } = await github.rest.issues.listLabelsOnIssue({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                issue_number: issue_number
+              });
+              runE2ELabelExists = labels.some(label => label.name === 'Run E2E');
+              console.log(labelExists ? 'Found Run E2E label, moving on to next steps.' : 'Run E2E label does not exist, skipping other steps.');
             } catch (error) {
-              console.log(`Failed to check for Run E2E label on PR #${issue_number}: ${error}`);
+              const pullRequestLink = `https://github.com/MetaMask/metamask-mobile/pull/${issue_number}`;
+              console.log(`Failed to check for Run E2E label on PR ${pullRequestLink}: ${error}`);
             }
+            return runE2ELabelExists;
 
-      # - name: Checkout code
-      #   uses: actions/checkout@v3
+  run-bitrise-e2e:
+    runs-on: ubuntu-latest
+    needs: check-label
+    if: needs.check-label.outputs.runE2ELabelExists == 'true'
+    permissions:
+      pull-requests: write
+      contents: write
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
 
-      # - name: Set up Node.js
-      #   uses: actions/setup-node@v3
-      #   with:
-      #     node-version-file: '.nvmrc'
-      #     cache: yarn
+      - name: Set up Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version-file: '.nvmrc'
+          cache: yarn
 
-      # - name: Install Axios
-      #   run: yarn add axios
+      - name: Install Axios
+        run: yarn add axios
 
-      # - name: Install dependencies
-      #   run: yarn --immutable
+      - name: Install dependencies
+        run: yarn --immutable
 
-      # - name: Run Bitrise E2E
-      #   env:
-      #     BITRISE_BUILD_TRIGGER_TOKEN: ${{ secrets.BITRISE_BUILD_TRIGGER_TOKEN }}
-      #     BITRISE_APP_ID: 'be69d4368ee7e86d'
-      #     GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-      #   run: yarn run run-bitrise-e2e
+      - name: Run Bitrise E2E
+        env:
+          BITRISE_BUILD_TRIGGER_TOKEN: ${{ secrets.BITRISE_BUILD_TRIGGER_TOKEN }}
+          BITRISE_APP_ID: 'be69d4368ee7e86d'
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: yarn run run-bitrise-e2e

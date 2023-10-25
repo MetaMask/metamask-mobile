@@ -69,6 +69,10 @@ async function main(): Promise<void> {
 
     if (bitriseBuildResponse.status === 201) {
       console.log(message);
+    } else {
+      console.log(
+        `Bitrise build request returned with status code ${bitriseBuildResponse.status}.`,
+      );
     }
 
     // Post build link in PR comments.
@@ -81,6 +85,10 @@ async function main(): Promise<void> {
 
     if (postCommentResponse.status === 201) {
       console.log(`Posting comment in pull request ${pullRequestLink}`);
+    } else {
+      console.log(
+        `Post comment request returned with status code ${postCommentResponse.status}.`,
+      );
     }
   } else {
     console.log(
