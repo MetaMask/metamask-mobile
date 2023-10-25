@@ -4,8 +4,9 @@ import ConnectModal from './modals/ConnectModal';
 import { BROWSER_WEBVIEW_ID } from '../../app/constants/test-ids';
 import Browser from './Drawer/Browser';
 import root from '../../locales/languages/en.json';
+import { getLocalTestDappPort } from '../fixtures/utils';
 
-export const TEST_DAPP_LOCAL_URL = 'http://localhost:8080';
+export const TEST_DAPP_LOCAL_URL = `http://localhost:${getLocalTestDappPort()}`;
 
 const BUTTON_RELATIVE_PONT = { x: 200, y: 5 };
 const CONFIRM_BUTTON_TEXT = root.confirmation_modal.confirm_cta;

@@ -5,7 +5,7 @@ import React from 'react';
 
 // External dependencies.
 import { useStyles } from '../../../hooks';
-import Header from '../../Header';
+import HeaderBase from '../../HeaderBase';
 import ButtonIcon, { ButtonIconVariants } from '../../Buttons/ButtonIcon';
 import { IconName } from '../../Icons/Icon';
 
@@ -38,14 +38,14 @@ const BottomSheetHeader: React.FC<BottomSheetHeaderProps> = ({
   );
 
   return (
-    <Header
+    <HeaderBase
       style={styles.base}
       startAccessory={startAccessory}
       endAccessory={endAccessory}
       {...props}
     >
       {children}
-    </Header>
+    </HeaderBase>
   );
 };
 

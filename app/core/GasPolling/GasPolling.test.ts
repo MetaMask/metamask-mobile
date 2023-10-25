@@ -3,9 +3,10 @@ import {
   startGasPolling,
   getEIP1559TransactionData,
   stopGasPolling,
-  // useDataStore,
 } from './GasPolling';
 import { parseTransactionEIP1559 } from '../../util/transactions';
+import { GasFeeOptions, GetEIP1559TransactionDataProps } from './types';
+import AppConstants from '../AppConstants';
 jest.mock('../../util/transactions');
 const mockedParseTransactionEIP1559 =
   parseTransactionEIP1559 as jest.MockedFunction<
@@ -30,39 +31,43 @@ jest.mock('react-redux', () => ({
 }));
 
 const suggestedGasLimit = '0x123';
+const selectedOption = 'medium';
 const gas = {
   maxWaitTimeEstimate: 45000,
   minWaitTimeEstimate: 15000,
   suggestedMaxFeePerGas: '1.500000018',
   suggestedMaxPriorityFeePerGas: '1.5',
+  selectedOption,
 };
-const selectedOption = 'medium';
-const gasFeeEstimates = {
-  baseFeeTrend: 'down',
-  estimatedBaseFee: '0.000000013',
-  high: {
-    maxWaitTimeEstimate: 60000,
-    minWaitTimeEstimate: 15000,
-    suggestedMaxFeePerGas: '2.450000023',
-    suggestedMaxPriorityFeePerGas: '2.45',
+const gasFeeEstimates: GasFeeOptions = {
+  estimatedBaseFee: null,
+  gasFeeEstimates: {
+    baseFeeTrend: 'down',
+    estimatedBaseFee: '0.000000013',
+    high: {
+      maxWaitTimeEstimate: 60000,
+      minWaitTimeEstimate: 15000,
+      suggestedMaxFeePerGas: '2.450000023',
+      suggestedMaxPriorityFeePerGas: '2.45',
+    },
+    historicalBaseFeeRange: ['0.000000009', '0.000000014'],
+    historicalPriorityFeeRange: ['1', '96'],
+    latestPriorityFeeRange: ['1.5', '2.999999783'],
+    low: {
+      maxWaitTimeEstimate: 30000,
+      minWaitTimeEstimate: 15000,
+      suggestedMaxFeePerGas: '1.410000013',
+      suggestedMaxPriorityFeePerGas: '1.41',
+    },
+    medium: {
+      maxWaitTimeEstimate: 45000,
+      minWaitTimeEstimate: 15000,
+      suggestedMaxFeePerGas: '1.500000018',
+      suggestedMaxPriorityFeePerGas: '1.5',
+    },
+    networkCongestion: 0.4713,
+    priorityFeeTrend: 'level',
   },
-  historicalBaseFeeRange: ['0.000000009', '0.000000014'],
-  historicalPriorityFeeRange: ['1', '96'],
-  latestPriorityFeeRange: ['1.5', '2.999999783'],
-  low: {
-    maxWaitTimeEstimate: 30000,
-    minWaitTimeEstimate: 15000,
-    suggestedMaxFeePerGas: '1.410000013',
-    suggestedMaxPriorityFeePerGas: '1.41',
-  },
-  medium: {
-    maxWaitTimeEstimate: 45000,
-    minWaitTimeEstimate: 15000,
-    suggestedMaxFeePerGas: '1.500000018',
-    suggestedMaxPriorityFeePerGas: '1.5',
-  },
-  networkCongestion: 0.4713,
-  priorityFeeTrend: 'level',
 };
 const contractExchangeRates = {};
 const conversionRate = 1844.31;
@@ -104,10 +109,9 @@ describe('GasPolling', () => {
 });
 
 describe('GetEIP1559TransactionData', () => {
-  const transactionData = {
+  const transactionData: GetEIP1559TransactionDataProps = {
     suggestedGasLimit,
     gas,
-    selectedOption,
     gasFeeEstimates,
     transactionState,
     contractExchangeRates,
@@ -117,10 +121,9 @@ describe('GetEIP1559TransactionData', () => {
   };
 
   it('should fail when incomplete props is passed for ', async () => {
-    const incompleteTransactionData = {
+    const incompleteTransactionData: Partial<GetEIP1559TransactionDataProps> = {
       suggestedGasLimit,
       gas,
-      selectedOption,
       gasFeeEstimates,
       transactionState,
       contractExchangeRates,
@@ -169,7 +172,7 @@ describe('GetEIP1559TransactionData', () => {
       suggestedMaxPriorityFeePerGasHex: '59682f00',
       timeEstimate: 'Likely in < 30 seconds',
       timeEstimateColor: 'green',
-      timeEstimateId: 'likely',
+      timeEstimateId: AppConstants.GAS_TIMES.LIKELY,
       totalMaxConversion: '1844.4',
       totalMaxHex: 'de0e3e3ba6645f6',
       totalMaxNative: '1.00005',
