@@ -63,6 +63,31 @@ async function main(): Promise<void> {
 
     console.log('CRAETED COMMENT', commentCreator);
 
+    if (!process.env.GITHUB_REPOSITORY) {
+      core.setFailed('GITHUB_REPOSITORY not found.');
+      process.exit(1);
+    }
+
+    if (!process.env.GITHUB_SHA) {
+      core.setFailed('GITHUB_SHA not found.');
+      process.exit(1);
+    }
+
+    const owner = process.env.GITHUB_REPOSITORY.split('/')[0];
+    const repo = process.env.GITHUB_REPOSITORY.split('/')[1];
+
+    const statusUpdateResponse = await octokit.rest.repos.createCommitStatus({
+      owner,
+      repo,
+      sha: process.env.GITHUB_SHA,
+      state: 'pending', // can be one of "error", "failure", "pending", or "success"
+      target_url: `https://github.com/${process.env.GITHUB_REPOSITORY}/actions/runs/${process.env.GITHUB_RUN_ID}`,
+      description: 'Your description here',
+      context: 'Your context here',
+    });
+
+    console.log('Updated status', statusUpdateResponse);
+
     // const tagName = `pr-e2e-${pull_request.number}`;
 
     // const response = await axios.get(
