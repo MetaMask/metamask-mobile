@@ -555,8 +555,17 @@ class Engine {
         getSelectedAddress: () => preferencesController.state.selectedAddress,
         incomingTransactions: {
           apiKey: process.env.MM_ETHERSCAN_KEY,
-          isEnabled: () =>
-            Boolean(store.getState()?.privacy?.thirdPartyApiMode),
+          isEnabled: () => {
+            const currentHexChainId = addHexPrefix(
+              toHexadecimal(networkController.state.providerConfig.chainId),
+            );
+
+            return Boolean(
+              preferencesController?.state?.showIncomingTransactions?.[
+                currentHexChainId
+              ],
+            );
+          },
           updateTransactions: true,
         },
         messenger: this.controllerMessenger.getRestricted({
@@ -592,6 +601,8 @@ class Engine {
             swapsUtils.AVALANCHE_CHAIN_ID,
             swapsUtils.ARBITRUM_CHAIN_ID,
             swapsUtils.OPTIMISM_CHAIN_ID,
+            swapsUtils.ZKSYNC_ERA_CHAIN_ID,
+            swapsUtils.LINEA_CHAIN_ID,
           ],
         },
       ),
@@ -670,8 +681,7 @@ class Engine {
               listener,
             ),
           onPreferencesChange: () => undefined,
-          provider: () =>
-            networkController.getProviderAndBlockTracker().provider,
+          provider: networkController.getProviderAndBlockTracker().provider,
           ppomProvider: {
             PPOM,
             ppomInit,

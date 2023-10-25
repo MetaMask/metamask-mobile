@@ -2,7 +2,6 @@
   "blockaid_banner": {
     "approval_farming_description": "このリクエストを承認すると、詐欺が判明しているサードパーティに資産をすべて奪われる可能性があります。",
     "attribution": "セキュリティアドバイスの提供元:",
-    "attribution_link": "https://blockaid.me",
     "attribution_link_name": "Blockaid",
     "blur_farming_description": "このリクエストを承認すると、Blurに登録されている資産を誰かに盗まれる可能性があります。",
     "deceptive_request_title": "これは虚偽のリクエストです",
@@ -13,10 +12,10 @@
     "raw_signature_farming_description": "このリクエストを承認すると、資産を失う可能性があります。",
     "seaport_farming_description": "このリクエストを承認すると、OpenSeaに登録されている資産を誰かに盗まれる可能性があります。",
     "see_details": "詳細を表示",
+    "does_not_look_right": "おかしな点がありますか？",
     "suspicious_request_title": "これは不審なリクエストです",
     "trade_order_farming_description": "このリクエストを承認すると、資産を失う可能性があります。",
-    "transfer_farming_description": "このリクエストを承認すると、詐欺が判明しているサードパーティに資産をすべて奪われます。",
-    "unfair_trade_description": "このリクエストを承認すると、資産を失う可能性があります。"
+    "transfer_farming_description": "このリクエストを承認すると、詐欺が判明しているサードパーティに資産をすべて奪われます。"
   },
   "date": {
     "months": {
@@ -789,7 +788,8 @@
     "display_nft_media_desc": "NFTのメディアとデータを表示した場合、IPアドレスがOpenSeaをはじめとするサードパーティに公開されます。NFTの自動検出はこの機能に依存しており、この設定を無効にすると利用できなくなります。",
     "autodetect_nft_desc": "MetaMaskが、サードパーティサービス (例: OpenSea) を使って、ユーザーが所有するNFTを追加することを許可します。NFTの自動検出機能を利用すると、ユーザーのIPとアカウントアドレスがこれらのサービスに公開されます。この機能を有効にした場合、ユーザーのIPアドレスとイーサリアムアドレスが紐付けられ、詐欺師によりエアドロップされた偽のNFTが表示される可能性があります。このリスクを回避するため、手動でトークンを追加することもできます。",
     "incoming_transactions_title": "受信トランザクションを表示",
-    "incoming_transactions_content": "これは、ユーザーの選択するネットワークに依存し、イーサリアムアドレスおよびIPアドレスが公開されます。"
+    "incoming_transactions_content": "これは、ユーザーの選択するネットワークに依存し、イーサリアムアドレスおよびIPアドレスが公開されます。",
+    "display_nft_media_desc_new": "NFTのメディアとデータを表示した場合、IPアドレスがOpenSeaをはじめとするサードパーティに公開されます。NFTの自動検出はこの機能に依存しており、無効にすると利用できなくなります。NFTメディアがIPFSに完全に保管されている場合は、この機能が無効になっていても表示されます。"
   },
   "sdk": {
     "disconnect_title": "すべてのサイトとの接続を解除しますか？",
@@ -1319,6 +1319,11 @@
     "others": "その他",
     "memo": "メモ"
   },
+  "duplicate_address": {
+    "title": "このアドレスは重複しています",
+    "body": "連絡先リストにこのアドレスが複数のチェーンで登録されています。送金を行う前に、正しい連絡先を選択していることを確認してください。",
+    "button": "了解"
+  },
   "transaction_submitted": {
     "title": "トランザクションが送信されました",
     "your_tx_hash_is": "トランザクションハッシュ:",
@@ -1353,6 +1358,7 @@
     "learn_more": "詳細",
     "learn_more_url": "https://metamask.zendesk.com/hc/en-us/articles/4417500466971",
     "switch_network": "ネットワークに切り替える",
+    "switch": "切り替える",
     "new_network": "新しいネットワークが追加されました",
     "network_name": "{{networkName}}ネットワーク",
     "network_added": "がネットワークセレクターで利用可能になりました。",
@@ -1869,6 +1875,7 @@
   "fiat_on_ramp_aggregator": {
     "onboarding": {
       "what_to_expect": "今後の流れ",
+      "quotes": "当社の仮想通貨購入機能は提携ベンダーからクォートを集め、それらのソースからのクォートを提供し、待ち時間なしで直接ウォレットに仮想通貨を入金します。",
       "benefits": "ガス代が安く、数々のネットワーク、トークン、支払方法がサポートされています",
       "get_started": "開始"
     },
@@ -1913,7 +1920,9 @@
     "select_region_currency": "地域の通貨を選択",
     "no_tokens_match": "「{{searchString}}」に一致するトークンがありません",
     "no_currency_match": "「{{searchString}}」に一致する通貨がありません",
+    "compare_rates": "これらのプロバイダーのレートを比較します。クォートは総合的な価格を基準に並べられています。",
     "pay_with": "支払方法:",
+    "continue_with": "{{provider}}で続行",
     "minimum": "最低入金額は",
     "maximum": "最高入金額は",
     "try_again": "もう一度やり直してください",
