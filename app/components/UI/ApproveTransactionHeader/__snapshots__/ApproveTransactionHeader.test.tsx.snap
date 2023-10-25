@@ -41,11 +41,7 @@ exports[`ApproveTransactionHeader should render correctly 1`] = `
       <Image
         onError={[Function]}
         resizeMode="contain"
-        source={
-          Object {
-            "uri": "https://api.faviconkit.com/metamask.github.io/64",
-          }
-        }
+        source={Object {}}
         style={
           Object {
             "flex": 1,

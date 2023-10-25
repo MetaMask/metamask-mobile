@@ -210,6 +210,7 @@
     "@walletconnect/react-native-compat": "^2.9.0",
     "@walletconnect/se-sdk": "1.5.0",
     "@walletconnect/utils": "^2.9.0",
+    "@xmldom/xmldom": "^0.8.10",
     "appium-adb": "^9.11.4",
     "asyncstorage-down": "4.2.0",
     "axios": "^0.26.1",
