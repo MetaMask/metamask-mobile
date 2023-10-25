@@ -690,7 +690,10 @@ class ResetPassword extends PureComponent {
                   {(password !== '' && (
                     <Text variant={TextVariant.BodySM} style={styles.hintLabel}>
                       {strings('reset_password.password_strength')}
-                      <Text style={styles[`strength_${passwordStrengthWord}`]}>
+                      <Text
+                        variant={TextVariant.BodySM}
+                        style={styles[`strength_${passwordStrengthWord}`]}
+                      >
                         {' '}
                         {strings(
                           `reset_password.strength_${passwordStrengthWord}`,
@@ -762,7 +765,11 @@ class ResetPassword extends PureComponent {
                     )}
                   >
                     {strings('reset_password.i_understand')}{' '}
-                    <Text onPress={this.learnMore} style={styles.learnMore}>
+                    <Text
+                      color={TextColor.Info}
+                      onPress={this.learnMore}
+                      style={styles.learnMore}
+                    >
                       {strings('reset_password.learn_more')}
                     </Text>
                   </Text>
