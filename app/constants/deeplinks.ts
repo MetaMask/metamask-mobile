@@ -29,7 +29,12 @@ export const PREFIXES = {
   [ACTIONS.DAPP]: 'https://',
   [ACTIONS.SEND]: 'ethereum:',
   [ACTIONS.APPROVE]: 'ethereum:',
+  [ACTIONS.PAYMENT]: '',
   [ACTIONS.FOCUS]: '',
+  [ACTIONS.WC]: '',
+  [ACTIONS.CONNECT]: '',
+  [ACTIONS.ANDROID_SDK]: '',
+  [ACTIONS.BUY_CRYPTO]: '',
   [ACTIONS.EMPTY]: '',
   METAMASK: 'metamask://',
 };
