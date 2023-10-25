@@ -3,6 +3,7 @@ import {
   QuoteResponse,
   SellQuoteResponse,
 } from '@consensys/on-ramp-sdk';
+import { OrderOrderTypeEnum } from '@consensys/on-ramp-sdk/dist/API';
 import {
   timeToDescription,
   TimeDescriptions,
@@ -208,7 +209,7 @@ describe('getOrderAmount', () => {
     network: '1',
     txHash: '0x987654321',
     excludeFromPurchases: false,
-    orderType: 'BUY',
+    orderType: OrderOrderTypeEnum.Buy,
     data: {
       id: 'test-id',
       isOnlyLink: false,

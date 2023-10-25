@@ -25,6 +25,7 @@ import Routes from '../constants/navigation/Routes';
 import { getAddress } from '../util/address';
 import WC2Manager from './WalletConnect/WalletConnectV2';
 import { Minimizer } from './NativeModules';
+import DevLogger from './SDKConnect/utils/DevLogger';
 
 class DeeplinkManager {
   constructor({ navigation, dispatch }) {
@@ -206,7 +207,9 @@ class DeeplinkManager {
       }
     }
 
+    // Double log entry because the Logger is too slow and display the message in incorrect order.
     Logger.log(`DeepLinkManager: parsing url=${url} origin=${origin}`);
+    DevLogger.log(`DeepLinkManager: parsing url=${url} origin=${origin}`);
 
     const handled = () => (onHandled ? onHandled() : false);
 
@@ -224,7 +227,7 @@ class DeeplinkManager {
           const action = urlObj.pathname.split('/')[1];
 
           if (action === ACTIONS.ANDROID_SDK) {
-            Logger.log(
+            DevLogger.log(
               `DeeplinkManager:: metamask launched via android sdk universal link`,
             );
             SDKConnect.getInstance().bindAndroidSDK();
@@ -355,7 +358,7 @@ class DeeplinkManager {
       case PROTOCOLS.METAMASK:
         handled();
         if (url.startsWith(`${PREFIXES.METAMASK}${ACTIONS.ANDROID_SDK}`)) {
-          Logger.log(
+          DevLogger.log(
             `DeeplinkManager:: metamask launched via android sdk deeplink`,
           );
           SDKConnect.getInstance().bindAndroidSDK();

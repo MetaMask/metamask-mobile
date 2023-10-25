@@ -1,4 +1,5 @@
 import { CryptoCurrency, Order } from '@consensys/on-ramp-sdk';
+import { OrderOrderTypeEnum } from '@consensys/on-ramp-sdk/dist/API';
 import { useNavigation } from '@react-navigation/native';
 import { useCallback } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
@@ -15,6 +16,7 @@ import { stateHasOrder } from '../../common/utils';
 import useAnalytics from '../../common/hooks/useAnalytics';
 import { hexToBN } from '../../../../../util/number';
 import { selectAccounts } from '../../../../../selectors/accountTrackerController';
+import Routes from '../../../../../constants/navigation/Routes';
 
 function useHandleSuccessfulOrder() {
   const { selectedChainId, selectedAddress } = useRampSDK();
@@ -95,6 +97,15 @@ function useHandleSuccessfulOrder() {
             ? (hexToBN(accounts[selectedAddress].balance) as any)?.isZero?.()
             : undefined,
         });
+        if (order.orderType === OrderOrderTypeEnum.Sell) {
+          navigation.navigate(Routes.TRANSACTIONS_VIEW, {
+            screen: Routes.RAMP.ORDER_DETAILS,
+            initial: false,
+            params: {
+              orderId: order.id,
+            },
+          });
+        }
       });
     },
     [

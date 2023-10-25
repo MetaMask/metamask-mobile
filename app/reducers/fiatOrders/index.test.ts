@@ -1,5 +1,8 @@
 import { Order } from '@consensys/on-ramp-sdk';
-import { AggregatorNetwork } from '@consensys/on-ramp-sdk/dist/API';
+import {
+  AggregatorNetwork,
+  OrderOrderTypeEnum,
+} from '@consensys/on-ramp-sdk/dist/API';
 import { merge } from 'lodash';
 import fiatOrderReducer, {
   addActivationKey,
@@ -57,7 +60,7 @@ const mockOrder1 = {
   network: '1',
   txHash: '0x987654321',
   excludeFromPurchases: false,
-  orderType: 'BUY',
+  orderType: OrderOrderTypeEnum.Buy,
   errorCount: 0,
   lastTimeFetched: 0,
   data: {
