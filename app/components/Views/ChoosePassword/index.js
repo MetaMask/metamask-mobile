@@ -756,6 +756,7 @@ class ChoosePassword extends PureComponent {
                   >
                     {strings('choose_password.i_understand')}{' '}
                     <Text
+                      variant={TextVariant.BodySM}
                       color={TextColor.Info}
                       onPress={this.learnMore}
                       style={styles.learnMore}
