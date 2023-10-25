@@ -86,12 +86,6 @@ export default class Device {
     return this.getDeviceHeight() > 736;
   }
 
-  static isIphone12() {
-    const model = getModel();
-    const models = ['iPhone 12', 'iPhone 12 Pro', 'iPhone 12 Pro Max'];
-    return models.includes(model);
-  }
-
   static hasNotch() {
     return hasNotch();
   }
