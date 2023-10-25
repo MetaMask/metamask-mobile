@@ -773,6 +773,18 @@ export const migrations = {
       return state;
     }
   },
+  /**
+   * This migration is to free space of unused data in the user devices
+   * regarding the phishing list property listState, that is no longer used
+   * @param {any} state - Redux state
+   * @returns
+   */
+  26: (state) => {
+    if (state.engine.backgroundState.PhishingController.listState) {
+      delete state.engine.backgroundState.PhishingController.listState;
+    }
+    return state;
+  },
   // If you are implementing a migration it will break the migration tests,
   // please write a unit for your specific migration version
 };
