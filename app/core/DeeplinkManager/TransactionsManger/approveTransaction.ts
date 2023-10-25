@@ -9,11 +9,11 @@ import NotificationManager from '../../NotificationManager';
 import { WalletDevice } from '@metamask/transaction-controller';
 
 async function approveTransaction({
-  instance,
+  deeplinkManager,
   ethUrl,
   origin,
 }: {
-  instance: DeeplinkManager;
+  deeplinkManager: DeeplinkManager;
   ethUrl: ParseOutput;
   origin: string;
 }) {
@@ -46,7 +46,7 @@ async function approveTransaction({
       title: strings('transaction.invalid_recipient'),
       description: strings('transaction.invalid_recipient_description'),
     });
-    instance.navigation.navigate('WalletView');
+    deeplinkManager.navigation.navigate('WalletView');
   }
 
   const txParams = {

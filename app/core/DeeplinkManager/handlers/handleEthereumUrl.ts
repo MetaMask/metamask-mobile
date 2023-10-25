@@ -6,11 +6,11 @@ import { strings } from '../../../../locales/i18n';
 import { DeeplinkManager } from '../DeeplinkManager';
 
 function handleEthereumUrl({
-  instance,
+  deeplinkManager,
   url,
   origin,
 }: {
-  instance: DeeplinkManager;
+  deeplinkManager: DeeplinkManager;
   url: string;
   origin: string;
 }) {
@@ -28,28 +28,28 @@ function handleEthereumUrl({
     /**
      * Validate and switch network before performing any other action
      */
-    instance._handleNetworkSwitch(ethUrl.chain_id);
+    deeplinkManager._handleNetworkSwitch(ethUrl.chain_id);
 
     switch (ethUrl.function_name) {
       case ETH_ACTIONS.TRANSFER: {
-        instance.navigation.navigate('SendView', {
+        deeplinkManager.navigation.navigate('SendView', {
           screen: 'Send',
           params: { txMeta: { ...txMeta, action: 'send-token' } },
         });
         break;
       }
       case ETH_ACTIONS.APPROVE: {
-        instance._approveTransaction(ethUrl, origin);
+        deeplinkManager._approveTransaction(ethUrl, origin);
         break;
       }
       default: {
         if (ethUrl.parameters?.value) {
-          instance.navigation.navigate('SendView', {
+          deeplinkManager.navigation.navigate('SendView', {
             screen: 'Send',
             params: { txMeta: { ...txMeta, action: 'send-eth' } },
           });
         } else {
-          instance.navigation.navigate('SendFlowView', {
+          deeplinkManager.navigation.navigate('SendFlowView', {
             screen: 'SendTo',
             params: { txMeta },
           });

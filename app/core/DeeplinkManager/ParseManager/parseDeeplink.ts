@@ -9,13 +9,13 @@ import handleUniversalLinks from './handleUniversalLinks';
 import handleWCProtocol from './handleWCProtocol';
 
 function parseDeeplink({
-  instance,
+  deeplinkManager: instance,
   url,
   origin,
   browserCallBack,
   onHandled,
 }: {
-  instance: DeeplinkManager;
+  deeplinkManager: DeeplinkManager;
   url: string;
   origin: string;
   browserCallBack: (url: string) => void;

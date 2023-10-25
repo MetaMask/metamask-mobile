@@ -10,9 +10,9 @@ import handleEthereumUrl from './handlers/handleEthereumUrl';
 import handleNetworkSwitch from './handlers/handleNetworkSwitch';
 
 export class DeeplinkManager {
-  public navigation: NavigationProp<ParamListBase>;
-  public pendingDeeplink: string | null;
-  public dispatch: Dispatch<any>;
+  navigation: NavigationProp<ParamListBase>;
+  pendingDeeplink: string | null;
+  dispatch: Dispatch<any>;
 
   constructor({
     navigation,
@@ -40,21 +40,21 @@ export class DeeplinkManager {
    * @param switchToChainId - Corresponding chain id for new network
    */
   _handleNetworkSwitch = (switchToChainId: `${number}` | undefined) =>
-    handleNetworkSwitch({ instance: this, switchToChainId });
+    handleNetworkSwitch({ deeplinkManager: this, switchToChainId });
 
   _approveTransaction = async (ethUrl: ParseOutput, origin: string) =>
-    approveTransaction({ instance: this, ethUrl, origin });
+    approveTransaction({ deeplinkManager: this, ethUrl, origin });
 
   async _handleEthereumUrl(url: string, origin: string) {
-    return handleEthereumUrl({ instance: this, url, origin });
+    return handleEthereumUrl({ deeplinkManager: this, url, origin });
   }
 
   _handleBrowserUrl(url: string, callback: (url: string) => void) {
-    return handleBrowserUrl({ instance: this, url, callback });
+    return handleBrowserUrl({ deeplinkManager: this, url, callback });
   }
 
   _handleBuyCrypto() {
-    return handleBuyCrypto({ instance: this });
+    return handleBuyCrypto({ deeplinkManager: this });
   }
 
   parse(
@@ -70,7 +70,7 @@ export class DeeplinkManager {
     },
   ) {
     return parseDeeplink({
-      instance: this,
+      deeplinkManager: this,
       url,
       origin,
       browserCallBack,
@@ -79,7 +79,7 @@ export class DeeplinkManager {
   }
 }
 
-let instance: DeeplinkManager;
+let deeplinkManagerInstance: DeeplinkManager;
 
 const SharedDeeplinkManager = {
   init: ({
@@ -91,18 +91,19 @@ const SharedDeeplinkManager = {
     }>;
     dispatch: Dispatch<any>;
   }) => {
-    if (instance) {
+    if (deeplinkManagerInstance) {
       return;
     }
-    instance = new DeeplinkManager({
+
+    deeplinkManagerInstance = new DeeplinkManager({
       navigation,
       dispatch,
     });
   },
-  parse: (url: string, args: any) => instance.parse(url, args),
-  setDeeplink: (url: string) => instance.setDeeplink(url),
-  getPendingDeeplink: () => instance.getPendingDeeplink(),
-  expireDeeplink: () => instance.expireDeeplink(),
+  parse: (url: string, args: any) => deeplinkManagerInstance.parse(url, args),
+  setDeeplink: (url: string) => deeplinkManagerInstance.setDeeplink(url),
+  getPendingDeeplink: () => deeplinkManagerInstance.getPendingDeeplink(),
+  expireDeeplink: () => deeplinkManagerInstance.expireDeeplink(),
 };
 
 export default SharedDeeplinkManager;

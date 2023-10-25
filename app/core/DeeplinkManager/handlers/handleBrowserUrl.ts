@@ -3,11 +3,11 @@ import { InteractionManager } from 'react-native';
 import { DeeplinkManager } from '../DeeplinkManager';
 
 function handleBrowserUrl({
-  instance,
+  deeplinkManager,
   url,
   callback,
 }: {
-  instance: DeeplinkManager;
+  deeplinkManager: DeeplinkManager;
   url: string;
   callback: (url: string) => void;
 }) {
@@ -15,7 +15,7 @@ function handleBrowserUrl({
     if (callback) {
       callback(url);
     } else {
-      instance.navigation.navigate(Routes.BROWSER.HOME, {
+      deeplinkManager.navigation.navigate(Routes.BROWSER.HOME, {
         screen: Routes.BROWSER.VIEW,
         params: {
           newTabUrl: url,

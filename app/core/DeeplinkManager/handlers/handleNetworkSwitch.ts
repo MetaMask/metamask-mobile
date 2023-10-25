@@ -4,17 +4,17 @@ import { DeeplinkManager } from '../DeeplinkManager';
 import { strings } from '../../../../locales/i18n';
 
 function handleNetworkSwitch({
-  instance,
+  deeplinkManager,
   switchToChainId,
 }: {
-  instance: DeeplinkManager;
+  deeplinkManager: DeeplinkManager;
   switchToChainId: `${number}` | undefined;
 }) {
   const networkName = switchNetwork(switchToChainId as string);
 
   if (!networkName) return;
 
-  instance.dispatch(
+  deeplinkManager.dispatch(
     showAlert({
       isVisible: true,
       autodismiss: 5000,
