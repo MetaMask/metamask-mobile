@@ -10,20 +10,41 @@ import SettingsView from '../pages/Drawer/Settings/SettingsView';
 import NetworkListModal from '../pages/modals/NetworkListModal';
 import NetworkEducationModal from '../pages/modals/NetworkEducationModal';
 
-import { CreateNewWallet } from '../viewHelper';
+import { loginToApp } from '../viewHelper';
 import TabBarComponent from '../pages/TabBarComponent';
+import FixtureBuilder from '../fixtures/fixture-builder';
+import {
+  loadFixture,
+  startFixtureServer,
+  stopFixtureServer,
+} from '../fixtures/fixture-helper';
+import { getFixturesServerPort } from '../fixtures/utils';
+import FixtureServer from '../fixtures/fixture-server';
 
+const fixtureServer = new FixtureServer();
 const GORELI = 'Goerli Test Network';
 const XDAI_URL = 'https://rpc.gnosischain.com';
 const MAINNET = 'Ethereum Main Network';
 
 describe(Regression('Custom RPC Tests'), () => {
-  beforeEach(() => {
-    jest.setTimeout(170000);
+  beforeAll(async () => {
+    await TestHelpers.reverseServerPort();
+    const fixture = new FixtureBuilder().build();
+    await startFixtureServer(fixtureServer);
+    await loadFixture(fixtureServer, { fixture });
+    await device.launchApp({
+      delete: true,
+      launchArgs: { fixtureServerPort: `${getFixturesServerPort()}` },
+    });
+    await loginToApp();
   });
 
-  it('should create new wallet', async () => {
-    await CreateNewWallet();
+  beforeEach(() => {
+    jest.setTimeout(150000);
+  });
+
+  afterAll(async () => {
+    await stopFixtureServer(fixtureServer);
   });
 
   it('should go to settings then networks', async () => {
@@ -70,8 +91,6 @@ describe(Regression('Custom RPC Tests'), () => {
   });
 
   it('should switch to Goreli then dismiss the network education modal', async () => {
-    await NetworkListModal.isVisible();
-    await NetworkListModal.tapTestNetworkSwitch();
     await NetworkListModal.isTestNetworkToggleOn();
     await NetworkListModal.changeNetwork(GORELI);
 

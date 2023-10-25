@@ -20,6 +20,7 @@ import { regex } from '../../app/util/regex';
 // Generated using this script: https://gist.github.com/Gudahtt/7a8a9e452bd2efdc5ceecd93610a25d3
 import ambiguousNetworks from './migration-data/amibiguous-networks.json';
 import { NetworkStatus } from '@metamask/network-controller';
+import { ETHERSCAN_SUPPORTED_CHAIN_IDS } from '@metamask/preferences-controller';
 
 export const migrations = {
   // Needed after https://github.com/MetaMask/controllers/pull/152
@@ -742,6 +743,35 @@ export const migrations = {
     delete networkControllerState.network;
 
     return state;
+  },
+  25: (state) => {
+    try {
+      Object.values(ETHERSCAN_SUPPORTED_CHAIN_IDS).forEach((hexChainId) => {
+        const thirdPartyApiMode = state?.privacy?.thirdPartyApiMode ?? true;
+        if (
+          state?.engine?.backgroundState?.PreferencesController
+            ?.showIncomingTransactions
+        ) {
+          state.engine.backgroundState.PreferencesController.showIncomingTransactions =
+            {
+              ...state.engine.backgroundState.PreferencesController
+                .showIncomingTransactions,
+              [hexChainId]: thirdPartyApiMode,
+            };
+        } else if (state?.engine?.backgroundState?.PreferencesController) {
+          state.engine.backgroundState.PreferencesController.showIncomingTransactions =
+            { [hexChainId]: thirdPartyApiMode };
+        }
+      });
+
+      if (state?.privacy?.thirdPartyApiMode !== undefined) {
+        delete state.privacy.thirdPartyApiMode;
+      }
+
+      return state;
+    } catch (e) {
+      return state;
+    }
   },
   // If you are implementing a migration it will break the migration tests,
   // please write a unit for your specific migration version
