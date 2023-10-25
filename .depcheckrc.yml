@@ -1,5 +1,7 @@
 # List things here that *are - 'used, that depcheck is wrong about'
 ignores:
+  - '@metamask/oss-attribution-generator'
+  - 'webpack-cli'
 
   ## Used dependencies
 
@@ -39,7 +41,6 @@ ignores:
   - 'metro'
   - 'metro-react-native-babel-preset'
   - 'octonode'
-  - 'oss-attribution-generator'
   - 'prettier-plugin-gherkin'
   - 'react-native-svg-asset-plugin'
   - 'regenerator-runtime'

@@ -6,7 +6,7 @@ import GanacheSeeder from '../../app/util/test/ganache-seeder';
 import axios from 'axios';
 import path from 'path';
 import createStaticServer from '../create-static-server';
-import { getFixturesServerPort, getLocalTestDappPort } from '../utils';
+import { getFixturesServerPort, getLocalTestDappPort } from './utils';
 
 export const DEFAULT_DAPP_SERVER_PORT = 8085;
 

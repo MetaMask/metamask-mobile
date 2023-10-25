@@ -3,7 +3,7 @@ import {
   getFixturesServerPort,
   getGanachePort,
   getLocalTestDappPort,
-} from './utils';
+} from './fixtures/utils';
 export default class TestHelpers {
   static async waitAndTap(elementId, timeout, index) {
     await waitFor(element(by.id(elementId)))
