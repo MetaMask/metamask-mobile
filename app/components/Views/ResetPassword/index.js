@@ -141,6 +141,7 @@ const createStyles = (colors) =>
     subtitle: {
       lineHeight: 23,
       textAlign: 'center',
+      fontWeight: '400',
     },
     text: {
       marginBottom: 10,
@@ -212,6 +213,7 @@ const createStyles = (colors) =>
       textAlign: 'left',
     },
     showPassword: {
+      marginTop: 14,
       position: 'absolute',
       top: 0,
       right: 0,
@@ -634,7 +636,7 @@ class ResetPassword extends PureComponent {
                   : 'secure_your_wallet.creating_password',
               )}
             </Text>
-            <Text variant={TextVariant.BodySM} style={styles.subtitle}>
+            <Text variant={TextVariant.BodyLGMedium} style={styles.subtitle}>
               {strings('create_wallet.subtitle')}
             </Text>
           </View>
@@ -651,7 +653,10 @@ class ResetPassword extends PureComponent {
                     {strings('reset_password.title')}
                   </Text>
                   <View style={styles.text}>
-                    <Text variant={TextVariant.BodySM} style={styles.subtitle}>
+                    <Text
+                      variant={TextVariant.BodyLGMedium}
+                      style={styles.subtitle}
+                    >
                       {strings('reset_password.subtitle')}
                     </Text>
                   </View>
@@ -663,7 +668,7 @@ class ResetPassword extends PureComponent {
                   <Text
                     onPress={this.toggleShowHide}
                     variant={TextVariant.BodySM}
-                    style={[styles.hintLabel, styles.showPassword]}
+                    style={styles.showPassword}
                   >
                     {strings(
                       `reset_password.${secureTextEntry ? 'show' : 'hide'}`,
