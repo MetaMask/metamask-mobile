@@ -30,6 +30,7 @@ jobs:
         env:
           BITRISE_BUILD_TRIGGER_TOKEN: ${{ secrets.BITRISE_BUILD_TRIGGER_TOKEN }}
           BITRISE_APP_ID: ${{ secrets.BITRISE_APP_ID }}
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: yarn run create-pr-e2e-tag
 # name: Bitrise E2E
 
