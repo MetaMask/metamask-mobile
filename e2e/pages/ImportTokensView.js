@@ -13,6 +13,8 @@ const CANCEL_BUTTON_TEXT = messages.add_asset.tokens.cancel_add_token;
 
 export default class ImportTokensView {
   static async tapImportButton() {
+    await TestHelpers.swipe(TOKEN_INPUT_BOX_ID, 'up', 'fast');
+
     await TestHelpers.tapByText(IMPORT_BUTTON_TEXT);
   }
   static async tapBackButton() {
@@ -30,9 +32,6 @@ export default class ImportTokensView {
     } else {
       await TestHelpers.tapItemAtIndex(TOKEN_RESULTS_LIST_ID);
     }
-  }
-  static async tapOnImportButton() {
-    await TestHelpers.tapByText(IMPORT_BUTTON_TEXT);
   }
 
   static async tapOnCancelButton() {

@@ -30,11 +30,8 @@ import setOnboardingWizardStep from '../../actions/wizard';
 import { v1 as random } from 'uuid';
 import { getPermittedAccounts } from '../Permissions';
 import AppConstants from '../AppConstants';
-import { isSmartContractAddress } from '../../util/transactions';
-import { TOKEN_NOT_SUPPORTED_FOR_NETWORK } from '../../constants/error';
 import PPOMUtil from '../../lib/ppom/ppom-util';
 import {
-  selectChainId,
   selectProviderConfig,
   selectProviderType,
 } from '../../selectors/networkController';
@@ -244,7 +241,8 @@ export const getRpcMethodMiddleware = ({
     const getAccounts = (): string[] => {
       const selectedAddress =
         Engine.context.PreferencesController.state.selectedAddress?.toLowerCase();
-      const isEnabled = isWalletConnect || getApprovedHosts()[hostname];
+      const approvedHosts = getApprovedHosts(hostname) || {};
+      const isEnabled = isWalletConnect || approvedHosts[hostname];
       return isEnabled && selectedAddress ? [selectedAddress] : [];
     };
 
@@ -732,36 +730,8 @@ export const getRpcMethodMiddleware = ({
           });
         }),
 
-      wallet_watchAsset: async () => {
-        const {
-          params: {
-            options: { address, decimals, image, symbol },
-            type,
-          },
-        } = req;
-        const { TokensController } = Engine.context;
-        const chainId = selectChainId(store.getState());
-
-        checkTabActive();
-
-        // Check if token exists on wallet's active network.
-        const isTokenOnNetwork = await isSmartContractAddress(address, chainId);
-        if (!isTokenOnNetwork) {
-          throw new Error(TOKEN_NOT_SUPPORTED_FOR_NETWORK);
-        }
-        const permittedAccounts = await getPermittedAccounts(hostname);
-        // This should return the current active account on the Dapp.
-        const selectedAddress =
-          Engine.context.PreferencesController.state.selectedAddress;
-        // Fallback to wallet address if there is no connected account to Dapp.
-        const interactingAddress = permittedAccounts?.[0] || selectedAddress;
-        await TokensController.watchAsset(
-          { address, symbol, decimals, image },
-          type,
-          safeToChecksumAddress(interactingAddress),
-        );
-        res.result = true;
-      },
+      wallet_watchAsset: async () =>
+        RPCMethods.wallet_watchAsset({ req, res, hostname, checkTabActive }),
 
       metamask_removeFavorite: async () => {
         checkTabActive();
@@ -907,5 +877,4 @@ export const getRpcMethodMiddleware = ({
     }
     await rpcMethods[req.method]();
   });
-
 export default getRpcMethodMiddleware;
