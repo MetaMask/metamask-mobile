@@ -3,10 +3,13 @@ import { handleNetworkSwitch as switchNetwork } from '../../../util/networks';
 import { DeeplinkManager } from '../DeeplinkManager';
 import { strings } from '../../../../locales/i18n';
 
-function handleNetworkSwitch(
-  instance: DeeplinkManager,
-  switchToChainId: `${number}` | undefined,
-) {
+function handleNetworkSwitch({
+  instance,
+  switchToChainId,
+}: {
+  instance: DeeplinkManager;
+  switchToChainId: `${number}` | undefined;
+}) {
   const networkName = switchNetwork(switchToChainId as string);
 
   if (!networkName) return;

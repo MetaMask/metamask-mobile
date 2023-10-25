@@ -8,13 +8,19 @@ import handleMetaMaskProtocol from './handleMetaMaskProtocol';
 import handleUniversalLinks from './handleUniversalLinks';
 import handleWCProtocol from './handleWCProtocol';
 
-function deeplinkParse(
-  instance: DeeplinkManager,
-  url: string,
-  origin: string,
-  browserCallBack: (url: string) => void,
-  onHandled?: () => void,
-) {
+function parseDeeplink({
+  instance,
+  url,
+  origin,
+  browserCallBack,
+  onHandled,
+}: {
+  instance: DeeplinkManager;
+  url: string;
+  origin: string;
+  browserCallBack: (url: string) => void;
+  onHandled?: () => void;
+}) {
   const { urlObj, params } = extractURLParams(url);
 
   // Double log entry because the Logger is too slow and display the message in incorrect order.
@@ -28,7 +34,7 @@ function deeplinkParse(
   switch (urlObj.protocol.replace(':', '')) {
     case PROTOCOLS.HTTP:
     case PROTOCOLS.HTTPS:
-      handleUniversalLinks(
+      handleUniversalLinks({
         instance,
         handled,
         urlObj,
@@ -36,11 +42,11 @@ function deeplinkParse(
         browserCallBack,
         origin,
         wcURL,
-      );
+      });
 
       break;
     case PROTOCOLS.WC:
-      handleWCProtocol(handled, wcURL, origin, params);
+      handleWCProtocol({ handled, wcURL, origin, params });
       break;
 
     case PROTOCOLS.ETHEREUM:
@@ -51,13 +57,13 @@ function deeplinkParse(
     // Specific to the browser screen
     // For ex. navigate to a specific dapp
     case PROTOCOLS.DAPP:
-      handleDappProtocol(instance, handled, urlObj, browserCallBack);
+      handleDappProtocol({ instance, handled, urlObj, browserCallBack });
       break;
 
     // Specific to the MetaMask app
     // For ex. go to settings
     case PROTOCOLS.METAMASK:
-      handleMetaMaskProtocol(instance, handled, wcURL, origin, params, url);
+      handleMetaMaskProtocol({ instance, handled, wcURL, origin, params, url });
       break;
     default:
       return false;
@@ -66,4 +72,4 @@ function deeplinkParse(
   return true;
 }
 
-export default deeplinkParse;
+export default parseDeeplink;

@@ -9,15 +9,23 @@ import DevLogger from '../../../core/SDKConnect/utils/DevLogger';
 import WC2Manager from '../../../core/WalletConnect/WalletConnectV2';
 import extractURLParams from './extractURLParams';
 
-function handleUniversalLinks(
-  instance: DeeplinkManager,
-  handled: () => void,
-  urlObj: ReturnType<typeof extractURLParams>['urlObj'],
-  params: ReturnType<typeof extractURLParams>['params'],
-  browserCallBack: (url: string) => void,
-  origin: string,
-  wcURL: string,
-) {
+function handleUniversalLinks({
+  instance,
+  handled,
+  urlObj,
+  params,
+  browserCallBack,
+  origin,
+  wcURL,
+}: {
+  instance: DeeplinkManager;
+  handled: () => void;
+  urlObj: ReturnType<typeof extractURLParams>['urlObj'];
+  params: ReturnType<typeof extractURLParams>['params'];
+  browserCallBack: (url: string) => void;
+  origin: string;
+  wcURL: string;
+}) {
   const { MM_UNIVERSAL_LINK_HOST, MM_DEEP_ITMS_APP_LINK } = AppConstants;
   const DEEP_LINK_BASE = `${PROTOCOLS.HTTPS}://${MM_UNIVERSAL_LINK_HOST}`;
 

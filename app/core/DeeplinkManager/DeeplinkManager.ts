@@ -3,7 +3,7 @@ import { StackNavigationProp } from '@react-navigation/stack';
 import { ParseOutput } from 'eth-url-parser';
 import { AnyAction, Dispatch, Store } from 'redux';
 import approveTransaction from './TransactionsManger/approveTransaction';
-import deeplinkParse from './ParseManager/deeplinkParse';
+import parseDeeplink from './ParseManager/parseDeeplink';
 import handleBrowserUrl from './handlers/handleBrowserUrl';
 import handleBuyCrypto from './handlers/handleBuyCrypto';
 import handleEthereumUrl from './handlers/handleEthereumUrl';
@@ -40,21 +40,21 @@ export class DeeplinkManager {
    * @param switchToChainId - Corresponding chain id for new network
    */
   _handleNetworkSwitch = (switchToChainId: `${number}` | undefined) =>
-    handleNetworkSwitch(this, switchToChainId);
+    handleNetworkSwitch({ instance: this, switchToChainId });
 
   _approveTransaction = async (ethUrl: ParseOutput, origin: string) =>
-    approveTransaction(this, ethUrl, origin);
+    approveTransaction({ instance: this, ethUrl, origin });
 
   async _handleEthereumUrl(url: string, origin: string) {
-    return handleEthereumUrl(this, url, origin);
+    return handleEthereumUrl({ instance: this, url, origin });
   }
 
   _handleBrowserUrl(url: string, callback: (url: string) => void) {
-    return handleBrowserUrl(this, url, callback);
+    return handleBrowserUrl({ instance: this, url, callback });
   }
 
   _handleBuyCrypto() {
-    return handleBuyCrypto(this);
+    return handleBuyCrypto({ instance: this });
   }
 
   parse(
@@ -69,7 +69,13 @@ export class DeeplinkManager {
       onHandled?: () => void;
     },
   ) {
-    return deeplinkParse(this, url, origin, browserCallBack, onHandled);
+    return parseDeeplink({
+      instance: this,
+      url,
+      origin,
+      browserCallBack,
+      onHandled,
+    });
   }
 }
 

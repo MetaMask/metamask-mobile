@@ -5,7 +5,7 @@ import { chainIdSelector, getRampNetworks } from '../../../reducers/fiatOrders';
 import { Store } from 'redux';
 import { DeeplinkManager } from '../DeeplinkManager';
 
-function handleBuyCrypto(instance: DeeplinkManager) {
+function handleBuyCrypto({ instance }: { instance: DeeplinkManager }) {
   instance.dispatch((_: any, getState: Store<RootState, any>['getState']) => {
     const state = getState();
     // Do nothing for now if use is not in a supported network

@@ -9,14 +9,21 @@ import SDKConnect, {
 import { Minimizer } from '../../../core/NativeModules';
 import AppConstants from '../../../core/AppConstants';
 
-export function handleMetaMaskProtocol(
-  instance: DeeplinkManager,
-  handled: () => void,
-  wcURL: string,
-  origin: string,
-  params: ReturnType<typeof extractURLParams>['params'],
-  url: string,
-) {
+export function handleMetaMaskProtocol({
+  instance,
+  handled,
+  wcURL,
+  origin,
+  params,
+  url,
+}: {
+  instance: DeeplinkManager;
+  handled: () => void;
+  wcURL: string;
+  origin: string;
+  params: ReturnType<typeof extractURLParams>['params'];
+  url: string;
+}) {
   handled();
   if (url.startsWith(`${PREFIXES.METAMASK}${ACTIONS.ANDROID_SDK}`)) {
     DevLogger.log(

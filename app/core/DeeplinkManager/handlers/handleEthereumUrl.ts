@@ -5,11 +5,15 @@ import { Alert } from 'react-native';
 import { strings } from '../../../../locales/i18n';
 import { DeeplinkManager } from '../DeeplinkManager';
 
-function handleEthereumUrl(
-  instance: DeeplinkManager,
-  url: string,
-  origin: string,
-) {
+function handleEthereumUrl({
+  instance,
+  url,
+  origin,
+}: {
+  instance: DeeplinkManager;
+  url: string;
+  origin: string;
+}) {
   let ethUrl: ParseOutput;
   try {
     ethUrl = parse(url);

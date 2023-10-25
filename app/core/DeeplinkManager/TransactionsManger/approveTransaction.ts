@@ -8,11 +8,15 @@ import Engine from '../../Engine';
 import NotificationManager from '../../NotificationManager';
 import { WalletDevice } from '@metamask/transaction-controller';
 
-async function approveTransaction(
-  instance: DeeplinkManager,
-  ethUrl: ParseOutput,
-  origin: string,
-) {
+async function approveTransaction({
+  instance,
+  ethUrl,
+  origin,
+}: {
+  instance: DeeplinkManager;
+  ethUrl: ParseOutput;
+  origin: string;
+}) {
   const { parameters, target_address, chain_id } = ethUrl;
   const { TransactionController, PreferencesController, NetworkController } =
     Engine.context;
