@@ -40,8 +40,10 @@ async function main(): Promise<void> {
       triggered_by: 'create-pr-e2e-tag',
     };
 
-    const response = await axios.post(
-      `https://app.bitrise.io/app/${process.env.BITRISE_APP_ID}/build/start.json`,
+    const bitriseProjectUrl = `https://app.bitrise.io/app/${process.env.BITRISE_APP_ID}`;
+
+    const bitriseBuildResponse = await axios.post(
+      `${bitriseProjectUrl}/build/start.json`,
       data,
       {
         headers: {
@@ -49,44 +51,46 @@ async function main(): Promise<void> {
         },
       },
     );
-    // const buildLink = ;
-    console.log('kick off build', process.env.BITRISE_APP_ID);
 
-    const issue_number = context.issue.number;
-    const message = 'Your custom message here';
-    const commentCreator = await octokit.rest.issues.createComment({
+    if (!bitriseBuildResponse.data.build_slug) {
+      core.setFailed(`Bitrise build slug not found.`);
+      process.exit(1);
+    }
+
+    const buildLink = `${bitriseProjectUrl}/pipelines${bitriseBuildResponse.data.build_slug}`;
+    const message = `E2E test started on Bitrise: ${buildLink}`;
+
+    await octokit.rest.issues.createComment({
       owner: context.repo.owner,
       repo: context.repo.repo,
-      issue_number: issue_number,
+      issue_number: context.issue.number,
       body: message,
     });
 
-    console.log('CRAETED COMMENT', commentCreator);
+    // if (!process.env.GITHUB_REPOSITORY) {
+    //   core.setFailed('GITHUB_REPOSITORY not found.');
+    //   process.exit(1);
+    // }
 
-    if (!process.env.GITHUB_REPOSITORY) {
-      core.setFailed('GITHUB_REPOSITORY not found.');
-      process.exit(1);
-    }
+    // if (!process.env.GITHUB_SHA) {
+    //   core.setFailed('GITHUB_SHA not found.');
+    //   process.exit(1);
+    // }
 
-    if (!process.env.GITHUB_SHA) {
-      core.setFailed('GITHUB_SHA not found.');
-      process.exit(1);
-    }
+    // const owner = process.env.GITHUB_REPOSITORY.split('/')[0];
+    // const repo = process.env.GITHUB_REPOSITORY.split('/')[1];
 
-    const owner = process.env.GITHUB_REPOSITORY.split('/')[0];
-    const repo = process.env.GITHUB_REPOSITORY.split('/')[1];
+    // const statusUpdateResponse = await octokit.rest.repos.createCommitStatus({
+    //   owner,
+    //   repo,
+    //   sha: process.env.GITHUB_SHA,
+    //   state: 'pending', // can be one of "error", "failure", "pending", or "success"
+    //   target_url: `https://github.com/${process.env.GITHUB_REPOSITORY}/actions/runs/${process.env.GITHUB_RUN_ID}`,
+    //   description: 'Your description here',
+    //   context: 'Your context here',
+    // });
 
-    const statusUpdateResponse = await octokit.rest.repos.createCommitStatus({
-      owner,
-      repo,
-      sha: process.env.GITHUB_SHA,
-      state: 'pending', // can be one of "error", "failure", "pending", or "success"
-      target_url: `https://github.com/${process.env.GITHUB_REPOSITORY}/actions/runs/${process.env.GITHUB_RUN_ID}`,
-      description: 'Your description here',
-      context: 'Your context here',
-    });
-
-    console.log('Updated status', statusUpdateResponse);
+    // console.log('Updated status', statusUpdateResponse);
 
     // const tagName = `pr-e2e-${pull_request.number}`;
 
