@@ -1,4 +1,4 @@
-import React, { useCallback, useState } from 'react';
+import React, { useCallback, useEffect, useState } from 'react';
 import {
   InstallSnapApprovalArgs,
   SnapInstallState,
@@ -12,7 +12,7 @@ import { SNAP_INSTALL_FLOW } from '../../../constants/test-ids';
 import Logger from '../../../util/Logger';
 
 const InstallSnapApprovalFlow = ({
-  requestData,
+  requestData: requestDataProp,
   onConfirm,
   onFinish,
   onCancel,
@@ -24,6 +24,14 @@ const InstallSnapApprovalFlow = ({
   const [installError, setInstallError] = useState<Error | undefined>(
     undefined,
   );
+
+  const [requestData, setRequestData] = useState(requestDataProp);
+
+  useEffect(() => {
+    if (requestDataProp) {
+      setRequestData(requestDataProp);
+    }
+  }, [requestDataProp]);
 
   const onConfirmNext = useCallback(() => {
     setInstallState(SnapInstallState.AcceptPermissions);
