@@ -2,7 +2,6 @@
   "blockaid_banner": {
     "approval_farming_description": "如果您批准此请求，因欺诈而恶名昭彰的第三方可能会拿走您的所有资产。",
     "attribution": "安全建议提供商：",
-    "attribution_link": "https://blockaid.me",
     "attribution_link_name": "Blockaid",
     "blur_farming_description": "如果您批准此请求，则有人可以窃取您列于Blur上的资产。",
     "deceptive_request_title": "此请求属欺骗性质",
@@ -13,10 +12,10 @@
     "raw_signature_farming_description": "如果您批准此请求，可能会有资产损失。",
     "seaport_farming_description": "如果您批准此请求，则有人可以窃取您列于OpenSea上的资产。",
     "see_details": "查看详细信息",
+    "does_not_look_right": "有什么不对劲吗？",
     "suspicious_request_title": "此请求很可疑",
     "trade_order_farming_description": "如果您批准此请求，可能会遭受资产损失。",
-    "transfer_farming_description": "如果您批准此请求，因欺诈而恶名昭彰的第三方会拿走您的所有资产。",
-    "unfair_trade_description": "如果您批准此请求，可能会遭受资产损失。"
+    "transfer_farming_description": "如果您批准此请求，因欺诈而恶名昭彰的第三方会拿走您的所有资产。"
   },
   "date": {
     "months": {
@@ -789,7 +788,8 @@
     "display_nft_media_desc": "显示NFT媒体和数据会导致您的IP地址被OpenSea或其他第三方获悉。NFT自动检测依赖于此功能，此功能关闭后将不可用。",
     "autodetect_nft_desc": "让MetaMask使用第三方服务（如OpenSea）来添加您所拥有的NFT。打开自动检测NFT功能后，这些服务就可以获悉您的IP地址和账户地址。启用此功能可能会将您的IP地址与以太坊地址关联起来，并显示骗子空投的虚假NFT。您可以手动添加代币以避免此风险。",
     "incoming_transactions_title": "显示传入的交易",
-    "incoming_transactions_content": "这取决于您选择的网络（如该网络会公开您的以太坊地址和IP地址）。"
+    "incoming_transactions_content": "这取决于您选择的网络（如该网络会公开您的以太坊地址和IP地址）。",
+    "display_nft_media_desc_new": "显示NFT媒体和数据，会导致您的IP地址被OpenSea或其他第三方获悉。NFT自动检测依赖于此功能，此功能关闭后即不可用。如果NFT媒体是完全位于IPFS上，则即使关闭此功能，该NFT媒体仍然可以显示。"
   },
   "sdk": {
     "disconnect_title": "要断开所有网站的连接吗?",
@@ -1319,6 +1319,11 @@
     "others": "其他",
     "memo": "备注"
   },
+  "duplicate_address": {
+    "title": "此为重复地址",
+    "body": "您的联系人列表显示，此地址出现在不止一个链上。在发送任何金额之前，请确保所选择的联系人是正确的。",
+    "button": "知道了"
+  },
   "transaction_submitted": {
     "title": "已提交交易",
     "your_tx_hash_is": "您的交易哈希为：",
@@ -1353,6 +1358,7 @@
     "learn_more": "了解详情",
     "learn_more_url": "https://metamask.zendesk.com/hc/en-us/articles/4417500466971",
     "switch_network": "切换到网络",
+    "switch": "切换",
     "new_network": "已添加新网络",
     "network_name": "{{networkName}}网络",
     "network_added": " 现已在网络选择工具中。",
@@ -1869,6 +1875,7 @@
   "fiat_on_ramp_aggregator": {
     "onboarding": {
       "what_to_expect": "将会发生什么",
+      "quotes": "我们的加密货币买入功能汇合了来自集成供应商的报价，以便为您提供来自这些来源的报价；加密货币将会直接进入您的钱包，无需等待。",
       "benefits": "需要支付的燃料费更少，支持多种网络、代币和支付方式",
       "get_started": "开始使用"
     },
@@ -1913,8 +1920,9 @@
     "select_region_currency": "选择地区货币",
     "no_tokens_match": "没有符合“{{searchString}}”的代币",
     "no_currency_match": "没有符合“{{searchString}}”的货币",
+    "compare_rates": "比较这些供应商的价格。报价按总价格排序。",
     "pay_with": "支付方式：",
-    "buy_with": "使用{{provider}}购买",
+    "continue_with": "继续使用{{provider}}",
     "minimum": "最低保证金为",
     "maximum": "最高保证金为",
     "try_again": "再试一次",
