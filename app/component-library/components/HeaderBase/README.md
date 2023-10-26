@@ -1,6 +1,6 @@
-# Header
+# HeaderBase
 
-Header is a general Header component, most commonly used for BottomSheets, Modals, Page Headers, and Popovers
+The HeaderBase component is a reusable UI component for displaying a header with optional startAccessory, children (title) and endAccessory content areas. It is designed to be flexible and customizable for various use cases to keep a visually balanced appearance.
 
 ## Props
 
@@ -35,17 +35,17 @@ Optional prop to include content to be displayed after the title.
 
 ```javascript
 
-// Header with String title
-<Header 
+// HeaderBase with String title
+<HeaderBase 
   startAccessory={SAMPLE_STARTACCESSORY} 
   endAccessory={SAMPLE_ENDACCESSORY}>
   {SAMPLE_TITLE_STRING}
-</Header>;
+</HeaderBase>;
 
-// Header with custom title
-<Header 
+// HeaderBase with custom title
+<HeaderBase 
   startAccessory={SAMPLE_STARTACCESSORY} 
   endAccessory={SAMPLE_ENDACCESSORY}>
   {CUSTOM_TITLE_NODE}
-</Header>;
+</HeaderBase>;
 ```

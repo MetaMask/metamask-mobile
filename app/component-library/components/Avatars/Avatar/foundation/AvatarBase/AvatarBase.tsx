@@ -16,13 +16,18 @@ const AvatarBase: React.FC<AvatarBaseProps> = ({
   size = AvatarSize.Md,
   style,
   children,
+  ...props
 }) => {
   const { styles } = useStyles(styleSheet, {
     size,
     style,
   });
 
-  return <View style={styles.container}>{children}</View>;
+  return (
+    <View style={styles.container} {...props}>
+      {children}
+    </View>
+  );
 };
 
 export default AvatarBase;
