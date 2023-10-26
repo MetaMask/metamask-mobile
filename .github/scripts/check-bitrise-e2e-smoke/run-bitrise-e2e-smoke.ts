@@ -9,6 +9,7 @@ main().catch((error: Error): void => {
 });
 
 async function main(): Promise<void> {
+  const e2eLabel = process.env.E2E_LABEL;
   const githubToken = process.env.GITHUB_TOKEN;
   const e2ePipeline = process.env.E2E_PIPELINE;
   const pullRequestNumber = context.issue.number;
@@ -60,7 +61,7 @@ async function main(): Promise<void> {
   }
 
   const buildLink = `${bitriseProjectUrl}/pipelines/${bitriseBuildResponse.data.build_slug}`;
-  const message = `E2E test started on Bitrise: ${buildLink}`;
+  const message = `E2E test started on Bitrise: ${buildLink}\nYou can also kick off another Bitrise E2E smoke test by removing and re-applying the (${e2eLabel}) label`;
 
   if (bitriseBuildResponse.status === 201) {
     console.log(message);
@@ -76,7 +77,7 @@ async function main(): Promise<void> {
     owner: repoOwner,
     repo,
     issue_number: pullRequestNumber,
-  })
+  });
 
   if (unlockConvoResponse.status === 204) {
     console.log(`Unlocked conversation for PR ${pullRequestLink}`);
