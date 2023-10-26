@@ -39,6 +39,8 @@ import fiatOrderReducer, {
   updateOnRampNetworks,
   networkShortNameSelector,
   fiatOrdersGetStartedSell,
+  setFiatSellTxHash,
+  removeFiatSellTxHash,
 } from '.';
 import { FIAT_ORDER_PROVIDERS } from '../../constants/on-ramp';
 import { CustomIdData, Action, FiatOrder, Region } from './types';
@@ -589,6 +591,36 @@ describe('fiatOrderReducer', () => {
     );
     expect(stateWithNetworks.networks).toEqual(networks);
     expect(stateWithNoNetworks.networks).toEqual([]);
+  });
+
+  it('should set the sell tx hash', () => {
+    const stateWithOrder1 = fiatOrderReducer(
+      initialState,
+      addFiatOrder(mockOrder1),
+    );
+    const stateWithSellTxHash = fiatOrderReducer(
+      stateWithOrder1,
+      setFiatSellTxHash(mockOrder1.id, '0x123'),
+    );
+
+    expect(stateWithSellTxHash.orders[0].sellTxHash).toEqual('0x123');
+  });
+
+  it('should remove the sell tx hash', () => {
+    const stateWithOrder1 = fiatOrderReducer(
+      initialState,
+      addFiatOrder(mockOrder1),
+    );
+    const stateWithSellTxHash = fiatOrderReducer(
+      stateWithOrder1,
+      setFiatSellTxHash(mockOrder1.id, '0x123'),
+    );
+    const stateWithoutSellTxHash = fiatOrderReducer(
+      stateWithSellTxHash,
+      removeFiatSellTxHash(mockOrder1.id),
+    );
+
+    expect(stateWithoutSellTxHash.orders[0].sellTxHash).not.toBeDefined();
   });
 });
 
