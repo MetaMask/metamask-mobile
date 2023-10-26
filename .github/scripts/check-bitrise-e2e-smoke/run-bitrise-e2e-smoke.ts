@@ -12,7 +12,6 @@ async function main(): Promise<void> {
   const githubToken = process.env.GITHUB_TOKEN;
   const e2eLabel = process.env.E2E_LABEL;
   const e2ePipeline = process.env.E2E_PIPELINE;
-
   const pullRequestLink = `https://github.com/MetaMask/metamask-mobile/pull/${context.issue.number}`;
 
   if (!githubToken) {
