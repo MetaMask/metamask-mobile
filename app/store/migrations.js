@@ -780,7 +780,9 @@ export const migrations = {
    * @returns
    */
   26: (state) => {
-    if (state?.engine?.backgroundState?.PhishingController?.listState) {
+    const phishingControllerState =
+      state.engine.backgroundState.PhishingController;
+    if (phishingControllerState?.listState) {
       delete state.engine.backgroundState.PhishingController.listState;
     } else {
       captureException(
@@ -791,6 +793,24 @@ export const migrations = {
         ),
       );
     }
+
+    if (
+      phishingControllerState?.hotlistLastFetched &&
+      phishingControllerState?.stalelistLastFetched
+    ) {
+      // This will make the list be fetched again when the user updates the app
+      state.engine.backgroundState.PhishingController.hotlistLastFetched = 0;
+      state.engine.backgroundState.PhishingController.stalelistLastFetched = 0;
+    } else {
+      captureException(
+        new Error(
+          `Migration 26: Invalid PhishingControllerState hotlist and stale list fetched: '${JSON.stringify(
+            state.engine.backgroundState.PhishingController,
+          )}'`,
+        ),
+      );
+    }
+
     return state;
   },
   // If you are implementing a migration it will break the migration tests,
