@@ -780,8 +780,16 @@ export const migrations = {
    * @returns
    */
   26: (state) => {
-    if (state.engine.backgroundState.PhishingController.listState) {
+    if (state?.engine?.backgroundState?.PhishingController?.listState) {
       delete state.engine.backgroundState.PhishingController.listState;
+    } else {
+      captureException(
+        new Error(
+          `Migration 26: Invalid PhishingControllerState controller state: '${JSON.stringify(
+            state.engine.backgroundState.PhishingController,
+          )}'`,
+        ),
+      );
     }
     return state;
   },

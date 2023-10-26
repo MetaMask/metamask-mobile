@@ -995,5 +995,24 @@ describe('Redux Persist Migrations', () => {
         },
       });
     });
+
+    it('capture exception if phishing controller state is invalid', () => {
+      const oldState = {
+        engine: {
+          backgroundState: {
+            PhishingController: {},
+          },
+        },
+      };
+      const migration = migrations[26];
+      const newState = migration(oldState);
+      expect(newState).toStrictEqual(oldState);
+      expect(mockedCaptureException).toHaveBeenCalledWith(expect.any(Error));
+      expect(mockedCaptureException.mock.calls[0][0].message).toBe(
+        `Migration 26: Invalid PhishingControllerState controller state: '${JSON.stringify(
+          oldState.engine.backgroundState.PhishingController,
+        )}'`,
+      );
+    });
   });
 });
