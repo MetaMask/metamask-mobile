@@ -2,6 +2,13 @@ import * as core from '@actions/core';
 import { context, getOctokit } from '@actions/github';
 import { GitHub } from '@actions/github/lib/utils';
 
+enum PullRequestTriggerType {
+  Opened = 'opened',
+  Reopened = 'reopened',
+  ReadyForReview = 'ready_for_review',
+  Labeled = 'labeled',
+}
+
 main().catch((error: Error): void => {
   console.error(error);
   process.exit(1);
@@ -10,7 +17,7 @@ main().catch((error: Error): void => {
 async function main(): Promise<void> {
   const githubToken = process.env.GITHUB_TOKEN;
   const e2eLabel = process.env.E2E_LABEL;
-  const triggerAction = context.payload.action;
+  const triggerAction = context.payload.action as PullRequestTriggerType;
   const pullRequestLink = `https://github.com/MetaMask/metamask-mobile/pull/${context.issue.number}`;
   let shouldTriggerE2E = false;
 
@@ -27,7 +34,7 @@ async function main(): Promise<void> {
   console.log(`Workflow triggered by the event (${triggerAction})`);
 
   switch (triggerAction) {
-    case 'opened':
+    case PullRequestTriggerType.Opened:
       shouldTriggerE2E = !context.payload.pull_request?.draft;
       if (!shouldTriggerE2E) {
         console.log(`Skipping E2E smoke since opened PR is in draft.`);
@@ -35,13 +42,21 @@ async function main(): Promise<void> {
         console.log(`Starting E2E smoke since opened PR is ready for review.`);
       }
       break;
-    case 'ready_for_review':
+    case PullRequestTriggerType.Reopened:
+      shouldTriggerE2E = !context.payload.pull_request?.draft;
+      if (!shouldTriggerE2E) {
+        console.log(`Skipping E2E smoke since reopened PR is in draft.`);
+      } else {
+        console.log(`Starting E2E smoke since reopened PR is ready for review.`);
+      }
+      break;
+    case PullRequestTriggerType.ReadyForReview:
       shouldTriggerE2E = true;
       console.log(
         `Starting E2E smoke since PR has changed to ready for review.`,
       );
       break;
-    case 'labeled':
+    case PullRequestTriggerType.Labeled:
       shouldTriggerE2E = e2eLabel === context.payload.label.name;
       if (!shouldTriggerE2E) {
         console.log(
