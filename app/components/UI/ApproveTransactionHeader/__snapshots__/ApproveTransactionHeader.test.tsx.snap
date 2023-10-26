@@ -124,6 +124,8 @@ exports[`ApproveTransactionHeader should render correctly 1`] = `
                   "width": 32,
                 }
               }
+              testID="account-avatar"
+              variant="Account"
             >
               <View
                 style={
@@ -438,6 +440,8 @@ exports[`ApproveTransactionHeader should return origin to be null when not prese
                   "width": 32,
                 }
               }
+              testID="account-avatar"
+              variant="Account"
             >
               <View
                 style={
