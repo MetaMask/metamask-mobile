@@ -1,4 +1,5 @@
 /* eslint-disable no-console */
+import { getFixturesServerPort } from './utils';
 import Koa from 'koa';
 import { isObject, mapValues } from 'lodash';
 
@@ -6,7 +7,7 @@ const CURRENT_STATE_KEY = '__CURRENT__';
 const DEFAULT_STATE_KEY = '__DEFAULT__';
 
 const FIXTURE_SERVER_HOST = 'localhost';
-const FIXTURE_SERVER_PORT = 12345;
+export const DEFAULT_FIXTURE_SERVER_PORT = 12345;
 
 const fixtureSubstitutionPrefix = '__FIXTURE_SUBSTITUTION__';
 const CONTRACT_KEY = 'CONTRACT';
@@ -88,7 +89,7 @@ class FixtureServer {
   async start() {
     const options = {
       host: FIXTURE_SERVER_HOST,
-      port: FIXTURE_SERVER_PORT,
+      port: getFixturesServerPort(),
       exclusive: true,
     };
 
@@ -110,6 +111,7 @@ class FixtureServer {
       this._server.close();
       this._server.once('error', reject);
       this._server.once('close', resolve);
+      this._server = undefined;
     });
   }
   // Load JSON state into the server

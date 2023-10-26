@@ -76,7 +76,6 @@ exports[`AddCustomToken should render correctly 1`] = `
         </Text>
         <TextInput
           keyboardAppearance="light"
-          onBlur={[Function]}
           onChangeText={[Function]}
           onSubmitEditing={[Function]}
           placeholder="0x..."
@@ -127,6 +126,7 @@ exports[`AddCustomToken should render correctly 1`] = `
           Token Symbol
         </Text>
         <TextInput
+          editable={true}
           keyboardAppearance="light"
           onBlur={[Function]}
           onChangeText={[Function]}
@@ -178,6 +178,7 @@ exports[`AddCustomToken should render correctly 1`] = `
           Token Decimal
         </Text>
         <TextInput
+          editable={true}
           keyboardAppearance="light"
           keyboardType="numeric"
           maxLength={2}

@@ -1,5 +1,4 @@
 import { ThemeContext, mockTheme } from '../app/util/theme';
-import { SafeAreaProvider } from 'react-native-safe-area-context';
 import { withNavigation, withSafeArea } from './decorators';
 
 export const decorators = [
@@ -9,8 +8,8 @@ export const decorators = [
       {<StoryFn />}
     </ThemeContext.Provider>
   ),
-  withNavigation,
   withSafeArea,
+  withNavigation,
 ];
 
 export const parameters = {

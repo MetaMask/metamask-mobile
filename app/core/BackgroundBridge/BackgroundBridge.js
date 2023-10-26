@@ -93,8 +93,14 @@ export class BackgroundBridge extends EventEmitter {
     );
     Engine.context.PreferencesController.subscribe(this.sendStateUpdate);
 
-    Engine.context.KeyringController.onLock(this.onLock.bind(this));
-    Engine.context.KeyringController.onUnlock(this.onUnlock.bind(this));
+    Engine.controllerMessenger.subscribe(
+      'KeyringController:lock',
+      this.onLock.bind(this),
+    );
+    Engine.controllerMessenger.subscribe(
+      'KeyringController:unlock',
+      this.onUnlock.bind(this),
+    );
 
     this.on('update', this.onStateUpdate);
 
@@ -189,7 +195,12 @@ export class BackgroundBridge extends EventEmitter {
 
   notifySelectedAddressChanged(selectedAddress) {
     if (this.isRemoteConn) {
-      if (!this.getApprovedHosts?.()?.[this.remoteConnHost]) return;
+      // Pass the remoteConnHost to getApprovedHosts as AndroidSDK requires it
+      if (
+        !this.getApprovedHosts?.(this.remoteConnHost)?.[this.remoteConnHost]
+      ) {
+        return;
+      }
     }
     this.sendNotification({
       method: NOTIFICATION_NAMES.accountsChanged,

@@ -1,9 +1,12 @@
+import { getGanachePort } from '../../../e2e/fixtures/utils';
 import ganache from 'ganache';
+
+export const DEFAULT_GANACHE_PORT = 8545;
 
 const defaultOptions = {
   blockTime: 2,
   network_id: 1337,
-  port: 8545,
+  port: DEFAULT_GANACHE_PORT,
   vmErrorsOnRPCResponse: false,
   hardfork: 'muirGlacier',
   quiet: false,
@@ -14,14 +17,19 @@ export default class Ganache {
     if (!opts.mnemonic) {
       throw new Error('Missing required mnemonic');
     }
-    const options = { ...defaultOptions, ...opts };
+    const options = { ...defaultOptions, ...opts, port: getGanachePort() };
     const { port } = options;
-    this._server = ganache.server(options);
-    await this._server.listen(port);
+    try {
+      this._server = ganache.server(options);
+      await this._server.listen(port);
+    } catch (error) {
+      console.error(error);
+      throw error;
+    }
   }
 
   getProvider() {
-    return this._server.provider;
+    return this._server?.provider;
   }
 
   async getAccounts() {
@@ -50,5 +58,6 @@ export default class Ganache {
       throw new Error('Server not running yet');
     }
     await this._server.close();
+    this._server = undefined;
   }
 }
