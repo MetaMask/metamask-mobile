@@ -1,5 +1,5 @@
 /* eslint-disable no-console */
-import { getFixturesServerPort } from '../utils';
+import { getFixturesServerPort } from './utils';
 import Koa from 'koa';
 import { isObject, mapValues } from 'lodash';
 
