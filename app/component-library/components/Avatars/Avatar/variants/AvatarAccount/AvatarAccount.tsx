@@ -19,8 +19,9 @@ const AvatarAccount = ({
   accountAddress,
   size = AvatarSize.Md,
   style,
+  ...props
 }: AvatarAccountProps) => (
-  <AvatarBase size={size} style={style}>
+  <AvatarBase size={size} style={style} {...props}>
     {
       {
         [AvatarAccountType.JazzIcon]: (

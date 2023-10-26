@@ -50,7 +50,7 @@ const messageParamsMock = {
   meta: {
     url: 'https://metamask.github.io/test-dapp/',
     title: 'E2E Test Dapp',
-    icon: 'https://api.faviconkit.com/metamask.github.io/50',
+    icon: 'https://metamask.github.io/test-dapp/metamask-fox.svg',
     analytics: {
       request_source: 'In-App-Browser',
       request_platform: 'Test-Platform',
