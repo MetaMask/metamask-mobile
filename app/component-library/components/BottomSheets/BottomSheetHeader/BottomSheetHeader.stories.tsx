@@ -1,4 +1,8 @@
+/* eslint-disable react/display-name */
 /* eslint-disable no-console */
+// Third party dependencies.
+import React from 'react';
+
 // Internal dependencies.
 import { default as BottomSheetHeaderComponent } from './BottomSheetHeader';
 
@@ -9,13 +13,17 @@ const BottomSheetHeaderMeta = {
 export default BottomSheetHeaderMeta;
 
 export const BottomSheetHeader = {
-  args: {
-    children: 'Super Long BottomSheetHeader Title that may span 3 lines',
-    onBack: () => {
-      console.log('Back button clicked');
-    },
-    onClose: () => {
-      console.log('Close button clicked');
-    },
-  },
+  render: (args: any) => (
+    <BottomSheetHeaderComponent
+      {...args}
+      onBack={() => {
+        console.log('Back button clicked');
+      }}
+      onClose={() => {
+        console.log('Close button clicked');
+      }}
+    >
+      Super Long BottomSheetHeader Title that may span 3 lines
+    </BottomSheetHeaderComponent>
+  ),
 };

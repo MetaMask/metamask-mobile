@@ -1,3 +1,7 @@
+/* eslint-disable react/display-name */
+// Third party dependencies.
+import React from 'react';
+
 // Internal dependencies.
 import { default as BottomSheetFooterComponent } from './BottomSheetFooter';
 import { SAMPLE_BOTTOMSHEETFOOTER_PROPS } from './BottomSheetFooter.constants';
@@ -19,7 +23,10 @@ const BottomSheetFooterMeta = {
 export default BottomSheetFooterMeta;
 
 export const BottomSheetFooter = {
-  args: {
-    buttonPropsArray: SAMPLE_BOTTOMSHEETFOOTER_PROPS.buttonPropsArray,
-  },
+  render: (args: any) => (
+    <BottomSheetFooterComponent
+      {...args}
+      buttonPropsArray={SAMPLE_BOTTOMSHEETFOOTER_PROPS.buttonPropsArray}
+    />
+  ),
 };
