@@ -133,14 +133,10 @@ export class BackgroundBridge extends EventEmitter {
       return;
     }
 
-    try {
-      this.sendNotification({
-        method: NOTIFICATION_NAMES.unlockStateChanged,
-        params: true,
-      });
-    } catch (e) {
-      // Do nothing
-    }
+    this.sendNotification({
+      method: NOTIFICATION_NAMES.unlockStateChanged,
+      params: true,
+    });
   }
 
   onLock() {
@@ -159,14 +155,10 @@ export class BackgroundBridge extends EventEmitter {
       return;
     }
 
-    try {
-      this.sendNotification({
-        method: NOTIFICATION_NAMES.unlockStateChanged,
-        params: false,
-      });
-    } catch (e) {
-      // Do nothing
-    }
+    this.sendNotification({
+      method: NOTIFICATION_NAMES.unlockStateChanged,
+      params: false,
+    });
   }
 
   getProviderNetworkState() {
