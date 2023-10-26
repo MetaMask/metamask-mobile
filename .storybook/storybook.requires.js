@@ -26,6 +26,13 @@ global.STORIES = [
   },
   {
     titlePrefix: "",
+    directory: "./app/component-library/components/Navigation",
+    files: "**/*.stories.?(ts|tsx|js|jsx)",
+    importPathMatcher:
+      "^\\.[\\\\/](?:app\\/component-library\\/components\\/Navigation(?:\\/(?!\\.)(?:(?:(?!(?:^|\\/)\\.).)*?)\\/|\\/|$)(?!\\.)(?=.)[^/]*?\\.stories\\.(?:ts|tsx|js|jsx)?)$",
+  },
+  {
+    titlePrefix: "",
     directory: "./app/component-library/components/Select",
     files: "**/*.stories.?(ts|tsx|js|jsx)",
     importPathMatcher:
@@ -120,6 +127,8 @@ const getStories = () => {
   return {
     "./app/component-library/components/Cards/Card/Card.stories.tsx": require("../app/component-library/components/Cards/Card/Card.stories.tsx"),
     "./app/component-library/components/Banners/Banner/variants/BannerAlert/BannerAlert.stories.tsx": require("../app/component-library/components/Banners/Banner/variants/BannerAlert/BannerAlert.stories.tsx"),
+    "./app/component-library/components/Navigation/TabBar/TabBar.stories.tsx": require("../app/component-library/components/Navigation/TabBar/TabBar.stories.tsx"),
+    "./app/component-library/components/Navigation/TabBarItem/TabBarItem.stories.tsx": require("../app/component-library/components/Navigation/TabBarItem/TabBarItem.stories.tsx"),
     "./app/component-library/components/Select/MultiSelect/MultiSelectItem/MultiSelectItem.stories.tsx": require("../app/component-library/components/Select/MultiSelect/MultiSelectItem/MultiSelectItem.stories.tsx"),
     "./app/component-library/components/Select/Select/SelectItem/SelectItem.stories.tsx": require("../app/component-library/components/Select/Select/SelectItem/SelectItem.stories.tsx"),
     "./app/component-library/components/Pickers/PickerAccount/PickerAccount.stories.tsx": require("../app/component-library/components/Pickers/PickerAccount/PickerAccount.stories.tsx"),
