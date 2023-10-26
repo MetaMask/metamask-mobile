@@ -24,10 +24,7 @@ const Routes = {
     CONNECT_QR_DEVICE: 'ConnectQRHardwareFlow',
     CONNECT_LEDGER: 'LedgerConnectFlow',
     LEDGER_ACCOUNT: 'LedgerAccountInfo',
-  },
-  LEDGER_CONNECT_FLOW: {
-    ID: 'LedgerConnectFlow',
-    LEDGER_CONNECT: 'LedgerConnect',
+    LEDGER_CONNECT:  'LedgerConnect',
   },
   LEDGER_MESSAGE_SIGN_MODAL: 'LedgerMessageSignModal',
   LEDGER_TRANSACTION_MODAL: 'LedgerTransactionModal',
