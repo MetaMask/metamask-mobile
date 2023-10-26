@@ -7,7 +7,7 @@ main().catch((error: Error): void => {
   process.exit(1);
 });
 
-async function main(): Promise<boolean> {
+async function main(): Promise<void> {
   const githubToken = process.env.GITHUB_TOKEN;
   const e2eLabel = process.env.E2E_LABEL;
   const triggerAction = context.payload.action;
@@ -80,5 +80,6 @@ async function main(): Promise<boolean> {
     }
   }
 
-  return shouldTriggerE2E;
+  // Set the output for the next step to use.
+  core.setOutput("shouldTriggerE2E", shouldTriggerE2E);
 }
