@@ -323,8 +323,8 @@ describe('SendTransaction View', () => {
 
   it('calls TransactionController.addTransaction for native coin when clicking on send button', async () => {
     render(SendTransaction);
-    const sendButton = screen.getByRole('button', { name: 'Send' });
-    fireEvent.press(sendButton);
+    const nextButton = screen.getByRole('button', { name: 'Next' });
+    fireEvent.press(nextButton);
     expect(Engine.context.TransactionController.addTransaction).toBeCalledTimes(
       1,
     );
@@ -346,8 +346,8 @@ describe('SendTransaction View', () => {
   it('calls TransactionController.addTransaction for erc20 when clicking on send button', async () => {
     mockUseParamsValues = { orderId: 'test-id-2' };
     render(SendTransaction);
-    const sendButton = screen.getByRole('button', { name: 'Send' });
-    fireEvent.press(sendButton);
+    const nextButton = screen.getByRole('button', { name: 'Next' });
+    fireEvent.press(nextButton);
     expect(Engine.context.TransactionController.addTransaction).toBeCalledTimes(
       1,
     );

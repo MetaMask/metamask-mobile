@@ -14,6 +14,7 @@ import Engine from '../../../../../../core/Engine';
 // import ButtonConfirm from '../../components/ButtonConfirm';
 import Row from '../../components/Row';
 import ScreenLayout from '../../components/ScreenLayout';
+import PaymentMethodIcon from '../../components/PaymentMethodIcon';
 import Text, {
   TextColor,
   TextVariant,
@@ -182,11 +183,13 @@ function SendTransaction() {
               </Text>
             </Row>
 
-            <Icon
-              name={IconName.Arrow2Down}
-              size={IconSize.Lg}
-              color={IconColor.Alternative}
-            />
+            <Row>
+              <Icon
+                name={IconName.Arrow2Down}
+                size={IconSize.Lg}
+                color={IconColor.Alternative}
+              />
+            </Row>
 
             <Row>
               {orderData.provider?.logos?.[themeAppearance] ? (
@@ -203,6 +206,31 @@ function SendTransaction() {
                 </Text>
               )}
             </Row>
+            {orderData.paymentMethod?.customAction ? null : (
+              <>
+                <Row>
+                  <Icon
+                    name={IconName.Arrow2Down}
+                    size={IconSize.Lg}
+                    color={IconColor.Alternative}
+                  />
+                </Row>
+
+                <Row>
+                  <Text style={styles.centered}>
+                    <PaymentMethodIcon
+                      paymentMethodIcons={orderData.paymentMethod.icons}
+                      paymentMethodType={orderData.paymentMethod.paymentType}
+                      size={20}
+                      color={colors.icon.alternative}
+                    />{' '}
+                    <Text variant={TextVariant.HeadingMD} style={styles.normal}>
+                      {orderData.paymentMethod.name}
+                    </Text>
+                  </Text>
+                </Row>
+              </>
+            )}
           </View>
           <Row last>{/* <TransactionReview order={order} /> */}</Row>
         </ScreenLayout.Content>
@@ -236,7 +264,7 @@ function SendTransaction() {
                   variant={TextVariant.BodyLGMedium}
                   color={TextColor.Inverse}
                 >
-                  {strings('fiat_on_ramp_aggregator.send_transaction.send')}
+                  {strings('fiat_on_ramp_aggregator.send_transaction.next')}
                 </Text>
               }
             />

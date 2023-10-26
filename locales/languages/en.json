@@ -2016,6 +2016,7 @@
     "send_transaction": {
       "sell_crypto": "Sell crypto",
       "send_description": "You will send your {{cryptocurrency}} to {{provider}}, who then sends your cash to {{paymentMethod}}",
+      "next": "Next",
       "hold_to_send": "Hold to send",
       "send": "Send",
       "sent": "Sent!"

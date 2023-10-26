@@ -588,18 +588,31 @@ exports[`SendTransaction View renders correctly 1`] = `
                                   </Text>
                                 </Text>
                               </View>
-                              <SvgMock
-                                color="#6A737D"
-                                height={24}
-                                name="Arrow2Down"
+                              <View
                                 style={
-                                  Object {
-                                    "height": 24,
-                                    "width": 24,
-                                  }
+                                  Array [
+                                    Object {
+                                      "marginVertical": 8,
+                                    },
+                                    undefined,
+                                    undefined,
+                                    undefined,
+                                  ]
                                 }
-                                width={24}
-                              />
+                              >
+                                <SvgMock
+                                  color="#6A737D"
+                                  height={24}
+                                  name="Arrow2Down"
+                                  style={
+                                    Object {
+                                      "height": 24,
+                                      "width": 24,
+                                    }
+                                  }
+                                  width={24}
+                                />
+                              </View>
                               <View
                                 style={
                                   Array [
@@ -626,6 +639,95 @@ exports[`SendTransaction View renders correctly 1`] = `
                                     }
                                   }
                                 />
+                              </View>
+                              <View
+                                style={
+                                  Array [
+                                    Object {
+                                      "marginVertical": 8,
+                                    },
+                                    undefined,
+                                    undefined,
+                                    undefined,
+                                  ]
+                                }
+                              >
+                                <SvgMock
+                                  color="#6A737D"
+                                  height={24}
+                                  name="Arrow2Down"
+                                  style={
+                                    Object {
+                                      "height": 24,
+                                      "width": 24,
+                                    }
+                                  }
+                                  width={24}
+                                />
+                              </View>
+                              <View
+                                style={
+                                  Array [
+                                    Object {
+                                      "marginVertical": 8,
+                                    },
+                                    undefined,
+                                    undefined,
+                                    undefined,
+                                  ]
+                                }
+                              >
+                                <Text
+                                  accessibilityRole="text"
+                                  style={
+                                    Object {
+                                      "color": "#24272A",
+                                      "fontFamily": "Euclid Circular B",
+                                      "fontSize": 14,
+                                      "fontWeight": "400",
+                                      "letterSpacing": 0,
+                                      "lineHeight": 22,
+                                      "textAlign": "center",
+                                    }
+                                  }
+                                >
+                                  <Text
+                                    allowFontScaling={false}
+                                    style={
+                                      Array [
+                                        Object {
+                                          "color": "#6A737D",
+                                          "fontSize": 20,
+                                        },
+                                        undefined,
+                                        Object {
+                                          "fontFamily": "Material Design Icons",
+                                          "fontStyle": "normal",
+                                          "fontWeight": "normal",
+                                        },
+                                        Object {},
+                                      ]
+                                    }
+                                  >
+                                    
+                                  </Text>
+                                   
+                                  <Text
+                                    accessibilityRole="text"
+                                    style={
+                                      Object {
+                                        "color": "#24272A",
+                                        "fontFamily": "Euclid Circular B",
+                                        "fontSize": 18,
+                                        "fontWeight": "normal",
+                                        "letterSpacing": 0,
+                                        "lineHeight": 24,
+                                      }
+                                    }
+                                  >
+                                    Instant Bank Transfer
+                                  </Text>
+                                </Text>
                               </View>
                             </View>
                             <View
@@ -733,7 +835,7 @@ exports[`SendTransaction View renders correctly 1`] = `
                                     }
                                   }
                                 >
-                                  Send
+                                  Next
                                 </Text>
                               </TouchableOpacity>
                             </View>
@@ -1341,18 +1443,31 @@ exports[`SendTransaction View renders correctly for token 1`] = `
                                   </Text>
                                 </Text>
                               </View>
-                              <SvgMock
-                                color="#6A737D"
-                                height={24}
-                                name="Arrow2Down"
+                              <View
                                 style={
-                                  Object {
-                                    "height": 24,
-                                    "width": 24,
-                                  }
+                                  Array [
+                                    Object {
+                                      "marginVertical": 8,
+                                    },
+                                    undefined,
+                                    undefined,
+                                    undefined,
+                                  ]
                                 }
-                                width={24}
-                              />
+                              >
+                                <SvgMock
+                                  color="#6A737D"
+                                  height={24}
+                                  name="Arrow2Down"
+                                  style={
+                                    Object {
+                                      "height": 24,
+                                      "width": 24,
+                                    }
+                                  }
+                                  width={24}
+                                />
+                              </View>
                               <View
                                 style={
                                   Array [
@@ -1379,6 +1494,95 @@ exports[`SendTransaction View renders correctly for token 1`] = `
                                     }
                                   }
                                 />
+                              </View>
+                              <View
+                                style={
+                                  Array [
+                                    Object {
+                                      "marginVertical": 8,
+                                    },
+                                    undefined,
+                                    undefined,
+                                    undefined,
+                                  ]
+                                }
+                              >
+                                <SvgMock
+                                  color="#6A737D"
+                                  height={24}
+                                  name="Arrow2Down"
+                                  style={
+                                    Object {
+                                      "height": 24,
+                                      "width": 24,
+                                    }
+                                  }
+                                  width={24}
+                                />
+                              </View>
+                              <View
+                                style={
+                                  Array [
+                                    Object {
+                                      "marginVertical": 8,
+                                    },
+                                    undefined,
+                                    undefined,
+                                    undefined,
+                                  ]
+                                }
+                              >
+                                <Text
+                                  accessibilityRole="text"
+                                  style={
+                                    Object {
+                                      "color": "#24272A",
+                                      "fontFamily": "Euclid Circular B",
+                                      "fontSize": 14,
+                                      "fontWeight": "400",
+                                      "letterSpacing": 0,
+                                      "lineHeight": 22,
+                                      "textAlign": "center",
+                                    }
+                                  }
+                                >
+                                  <Text
+                                    allowFontScaling={false}
+                                    style={
+                                      Array [
+                                        Object {
+                                          "color": "#6A737D",
+                                          "fontSize": 20,
+                                        },
+                                        undefined,
+                                        Object {
+                                          "fontFamily": "Material Design Icons",
+                                          "fontStyle": "normal",
+                                          "fontWeight": "normal",
+                                        },
+                                        Object {},
+                                      ]
+                                    }
+                                  >
+                                    
+                                  </Text>
+                                   
+                                  <Text
+                                    accessibilityRole="text"
+                                    style={
+                                      Object {
+                                        "color": "#24272A",
+                                        "fontFamily": "Euclid Circular B",
+                                        "fontSize": 18,
+                                        "fontWeight": "normal",
+                                        "letterSpacing": 0,
+                                        "lineHeight": 24,
+                                      }
+                                    }
+                                  >
+                                    Instant Bank Transfer
+                                  </Text>
+                                </Text>
                               </View>
                             </View>
                             <View
@@ -1486,7 +1690,7 @@ exports[`SendTransaction View renders correctly for token 1`] = `
                                     }
                                   }
                                 >
-                                  Send
+                                  Next
                                 </Text>
                               </TouchableOpacity>
                             </View>
