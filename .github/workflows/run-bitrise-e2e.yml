@@ -2,32 +2,57 @@ name: Run Bitrise E2E Smoke Tests
 
 on:
   pull_request:
-    types: [labeled]
+    types: [opened, ready_for_review, labeled]
 
 env:
   E2E_LABEL: 'Run Smoke E2E'
   E2E_PIPELINE: 'pr_smoke_e2e_pipeline'
 
 jobs:
-  check-label:
+  check-e2e-trigger:
     runs-on: ubuntu-latest
     outputs:
-      runE2ELabelExists: ${{ steps.label-check.outputs.result }}
+      shouldRunE2E: ${{ steps.trigger-check.outputs.result }}
     steps:
-      - name: Check for ${{ env.E2E_LABEL }} label
+      - name: Check for E2E trigger
         uses: actions/github-script@v5
-        id: label-check
+        id: trigger-check
         with:
           script: |
             const e2eLabel = process.env.E2E_LABEL;
-            const incomingLabel = context.payload.label.name;
-            const shouldRunE2E = e2eLabel === incomingLabel;
-            console.log(shouldRunE2E ? `Triggered by a label named (${e2eLabel}), moving on to next job.` : `Triggered by a label named (${incomingLabel}), skipping other jobs.`);
-            return shouldRunE2E;
+            const triggerAction = context.payload.action;
+            let shouldTriggerE2E;
+
+            console.log(`Workflow triggered by the event (${triggerAction})`);
+
+            switch (triggerAction) {
+              case 'opened':
+                shouldTriggerE2E = !context.payload.pull_request.draft
+                if (!shouldTrigger) {
+                  console.log(`Skipping E2E smoke since opened PR is in draft.`)
+                } else {
+                  console.log(`Starting E2E smoke since opened PR is ready for review.`)
+                }
+                break;
+              case 'ready_for_review':
+                shouldTriggerE2E = true;
+                console.log(`Starting E2E smoke since PR has changed to ready for review.`)
+                break;
+              case 'labeled':
+                shouldTriggerE2E = e2eLabel === context.payload.label.name
+                if (!shouldTrigger) {
+                  console.log(`Skipping E2E smoke since (${e2eLabel}) is not the label that triggered this workflow.`)
+                } else {
+                  console.log(`Starting E2E smoke since (${e2eLabel}) is the label that triggered this workflow.`)
+                }
+                break;
+            }
+
+            return shouldTriggerE2E;
 
   run-bitrise-e2e:
-    needs: check-label
-    if: needs.check-label.outputs.runE2ELabelExists == 'true'
+    needs: check-e2e-trigger
+    if: needs.check-e2e-trigger.outputs.shouldRunE2E == 'true'
     runs-on: ubuntu-latest
     permissions:
       pull-requests: write

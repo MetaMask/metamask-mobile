@@ -78,7 +78,6 @@
     "deduplicate": "yarn yarn-deduplicate",
     "create-release": "./scripts/set-versions.sh && yarn update-changelog",
     "add-release-label-to-pr-and-linked-issues": "ts-node ./.github/scripts/add-release-label-to-pr-and-linked-issues.ts",
-    "apply-e2e-label": "ts-node ./.github/scripts/apply-e2e-label.ts",
     "run-bitrise-e2e": "ts-node ./.github/scripts/run-bitrise-e2e.ts",
     "check-pr-has-required-labels": "ts-node ./.github/scripts/check-pr-has-required-labels.ts",
     "close-release-bug-report-issue": "ts-node ./.github/scripts/close-release-bug-report-issue.ts",
