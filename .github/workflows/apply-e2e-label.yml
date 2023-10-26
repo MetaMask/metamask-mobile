@@ -2,7 +2,7 @@ name: Apply Run E2E Smoke label
 
 on:
   pull_request:
-    types: [opened, ready-for-review]
+    types: [opened, ready_for_review]
 
 env:
   E2E_LABEL: 'Run Smoke E2E'
