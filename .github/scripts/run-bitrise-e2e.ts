@@ -16,17 +16,17 @@ async function main(): Promise<void> {
   const pullRequestLink = `https://github.com/MetaMask/metamask-mobile/pull/${context.issue.number}`;
 
   if (!githubToken) {
-    core.setFailed('GITHUB_TOKEN not found.');
+    core.setFailed('GITHUB_TOKEN not found');
     process.exit(1);
   }
 
   if (!e2eLabel) {
-    core.setFailed('E2E_LABEL not found.');
+    core.setFailed('E2E_LABEL not found');
     process.exit(1);
   }
 
   if (!e2ePipeline) {
-    core.setFailed('E2E_PIPELINE not found.');
+    core.setFailed('E2E_PIPELINE not found');
     process.exit(1);
   }
 
@@ -36,7 +36,7 @@ async function main(): Promise<void> {
 
   if (!label || !pull_request) {
     core.setFailed(
-      'label or pull_request property from context.payload not found.',
+      'label or pull_request property from context.payload not found',
     );
     process.exit(1);
   }
@@ -50,7 +50,7 @@ async function main(): Promise<void> {
       build_params: {
         branch: process.env.GITHUB_HEAD_REF,
         pipeline_id: e2ePipeline,
-        commit_message: `Triggered by run-bitrise-e2e workflow in ${pullRequestLink}`,
+        commit_message: `Triggered by (run-bitrise-e2e) workflow in ${pullRequestLink}`,
       },
       triggered_by: 'run-bitrise-e2e',
     };
@@ -69,7 +69,7 @@ async function main(): Promise<void> {
     );
 
     if (!bitriseBuildResponse.data.build_slug) {
-      core.setFailed(`Bitrise build slug not found.`);
+      core.setFailed(`Bitrise build slug not found`);
       process.exit(1);
     }
 
@@ -80,7 +80,7 @@ async function main(): Promise<void> {
       console.log(message);
     } else {
       core.setFailed(
-        `Bitrise build request returned with status code ${bitriseBuildResponse.status}.`,
+        `Bitrise build request returned with status code ${bitriseBuildResponse.status}`,
       );
       process.exit(1);
     }
@@ -97,13 +97,13 @@ async function main(): Promise<void> {
       console.log(`Posting comment in pull request ${pullRequestLink}`);
     } else {
       core.setFailed(
-        `Post comment request returned with status code ${postCommentResponse.status}.`,
+        `Post comment request returned with status code ${postCommentResponse.status}`,
       );
       process.exit(1);
     }
   } else {
     console.log(
-      `Skipping E2E build on PR #${pull_request.number} since workflow was not triggered by ${e2eLabel} label.`,
+      `Skipping E2E build on PR #${pull_request.number} since workflow was not triggered by (${e2eLabel}) label`,
     );
   }
 }
