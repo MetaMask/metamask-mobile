@@ -1,22 +1,30 @@
 import {
-  assertIsSemVerVersion,
   createSnapManifest,
   DEFAULT_REQUESTED_SNAP_VERSION,
   getTargetVersion,
   isValidUrl,
   NpmSnapIdStruct,
-  SemVerRange,
-  SemVerVersion,
   SnapManifest,
   VirtualFile,
   normalizeRelative,
+  parseJson,
 } from '@metamask/snaps-utils';
-import { assert, assertStruct, isObject } from '@metamask/utils';
+import {
+  assert,
+  assertStruct,
+  isObject,
+  assertIsSemVerVersion,
+  SemVerRange,
+  SemVerVersion,
+  stringToBytes,
+  bytesToString,
+} from '@metamask/utils';
 
-import { DetectSnapLocationOptions, SnapLocation } from './location';
+import { DetectSnapLocationOptions } from './location';
 import { NativeModules } from 'react-native';
 import RNFetchBlob, { FetchBlobResponse } from 'rn-fetch-blob';
 import Logger from '../../../util/Logger';
+import { SnapLocation } from '@metamask/snaps-controllers';
 
 const { RNTar } = NativeModules;
 
@@ -67,6 +75,7 @@ const decompressFile = async (
   path: string,
   targetPath: string,
 ): Promise<string> => {
+  console.log('SNAPS/ NPM/ decompressFile', path, targetPath);
   try {
     const decompressedDataLocation = await RNTar.unTar(path, targetPath);
     if (decompressedDataLocation) {
@@ -80,7 +89,7 @@ const decompressFile = async (
 };
 const readAndParseAt = async (path: string) => {
   try {
-    return await RNFetchBlob.fs.readFile(path, 'utf8');
+    return stringToBytes(await RNFetchBlob.fs.readFile(path, 'utf8'));
   } catch (error) {
     Logger.error(error as Error, `${SNAPS_NPM_LOG_TAG} readAndParseAt error`);
     throw new Error(`${SNAPS_NPM_LOG_TAG} readAndParseAt error: ${error}`);
@@ -89,6 +98,7 @@ const readAndParseAt = async (path: string) => {
 const fetchAndStoreNPMPackage = async (
   inputRequest: RequestInfo,
 ): Promise<string> => {
+  console.log('SNAPS/ NPM/ fetchAndStoreNPMPackage', inputRequest);
   const { config } = RNFetchBlob;
   const targetDir = RNFetchBlob.fs.dirs.DocumentDir;
   const filePath = `${targetDir}/archive.tgz`;
@@ -146,6 +156,7 @@ export class NpmLocation implements SnapLocation {
   private files?: Map<string, VirtualFile>;
 
   constructor(url: URL, opts: DetectSnapLocationOptions = {}) {
+    console.log('SNAPS/ NpmLocation consructor', url, opts);
     const allowCustomRegistries = opts.allowCustomRegistries ?? false;
     const fetchFunction = opts.fetch ?? globalThis.fetch.bind(globalThis);
     const requestedRange = opts.versionRange ?? DEFAULT_REQUESTED_SNAP_VERSION;
@@ -208,7 +219,7 @@ export class NpmLocation implements SnapLocation {
     }
 
     const vfile = await this.fetch('snap.manifest.json');
-    const result = JSON.parse(vfile.toString());
+    const result = parseJson(vfile.toString());
     vfile.result = createSnapManifest(result);
     this.validatedManifest = vfile as VirtualFile<SnapManifest>;
 
@@ -260,6 +271,8 @@ export class NpmLocation implements SnapLocation {
       );
     this.meta.version = actualVersion;
 
+    console.log('SNAPS/ NPM/ #lazyInit', manifestData, pathToFiles);
+
     let canonicalBase = 'npm://';
     if (this.meta.registry.username !== '') {
       canonicalBase += this.meta.registry.username;
@@ -269,11 +282,8 @@ export class NpmLocation implements SnapLocation {
       canonicalBase += '@';
     }
     canonicalBase += this.meta.registry.host;
-
-    const manifestJSON = JSON.parse(manifestData.data);
     const manifestVFile = new VirtualFile<SnapManifest>({
       value: manifestData.data,
-      result: createSnapManifest(manifestJSON),
       path: manifestData.filePath,
       data: {
         canonicalPath: `${canonicalBase}${manifestData.filePath}`,
@@ -301,7 +311,7 @@ export class NpmLocation implements SnapLocation {
     this.files.set(sourceCodeVFile.path, sourceCodeVFile);
 
     // cleanup filesystem
-    await cleanupFileSystem(pathToFiles);
+    // await cleanupFileSystem(pathToFiles);
   };
 }
 
@@ -321,7 +331,7 @@ export class NpmLocation implements SnapLocation {
 
 interface NPMTarBallData {
   filePath: string;
-  data: string;
+  data: Uint8Array;
 }
 
 async function fetchNpmTarball(
@@ -398,7 +408,8 @@ async function fetchNpmTarball(
     filePath: 'snap.manifest.json',
     data: manifest,
   };
-  const locations = JSON.parse(manifest).source.location.npm;
+  const parsedManifest = parseJson(bytesToString(manifest))!;
+  const locations = parsedManifest.source.location.npm;
 
   if (!locations && !locations.filePath) {
     throw new Error(
@@ -418,7 +429,7 @@ async function fetchNpmTarball(
     filePath: locations.filePath,
     data: sourceCode,
   };
-  const icon: string | undefined = locations.iconPath
+  const icon: Uint8Array | undefined = locations.iconPath
     ? await readAndParseAt(
         `${npmPackageDataLocation}/${locations.iconPath}`,
       ).catch(() => undefined)

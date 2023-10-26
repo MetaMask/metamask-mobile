@@ -81,6 +81,8 @@ import SwapsController, { swapsUtils } from '@metamask/swaps-controller';
 import {
   SnapController,
   SnapControllerState,
+  buildSnapEndowmentSpecifications,
+  buildSnapRestrictedMethodSpecifications,
 } from '@metamask/snaps-controllers';
 import { PPOMController } from '@metamask/ppom-validator';
 import { MetaMaskKeyring as QRHardwareKeyring } from '@keystonehq/metamask-airgapped-keyring';
@@ -114,8 +116,8 @@ import AnalyticsV2 from '../util/analyticsV2';
 import {
   SnapBridge,
   WebviewExecutionService,
-  buildSnapEndowmentSpecifications,
-  buildSnapRestrictedMethodSpecifications,
+  ExcludedSnapEndowments,
+  ExcludedSnapPermissions,
   detectSnapLocation,
   fetchFunction,
 } from './Snaps';
@@ -488,27 +490,11 @@ class Engine {
       return state === 'active';
     };
 
-    const getAppKeyForSubject = async (
-      subject: string,
-      requestedAccount: string,
-    ) => {
-      let account;
-
-      if (requestedAccount) {
-        account = requestedAccount;
-      } else {
-        [account] = await keyringController.getAccounts();
-      }
-      const appKey = await keyringController.exportAppKeyForAddress(
-        account,
-        subject,
-      );
-      return appKey;
-    };
-
     const getSnapPermissionSpecifications = () => ({
-      ...buildSnapEndowmentSpecifications(),
-      ...buildSnapRestrictedMethodSpecifications({
+      ...buildSnapEndowmentSpecifications(ExcludedSnapEndowments),
+      ...buildSnapRestrictedMethodSpecifications(ExcludedSnapPermissions, {
+        encrypt: encryptor.encrypt.bind(encryptor),
+        decrypt: encryptor.decrypt.bind(encryptor),
         clearSnapState: this.controllerMessenger.call.bind(
           this.controllerMessenger,
           'SnapController:clearSnapState',
@@ -531,12 +517,6 @@ class Engine {
           this.controllerMessenger,
           'SnapController:updateSnapState',
         ),
-        showConfirmation: (origin, confirmationData) =>
-          approvalController.addAndShowApprovalRequest({
-            origin,
-            type: 'snapConfirmation',
-            requestData: confirmationData,
-          }),
         showDialog: (origin, type, content, placeholder) =>
           approvalController.addAndShowApprovalRequest({
             origin,
@@ -564,6 +544,9 @@ class Engine {
           `${approvalController.name}:hasRequest`,
           `${approvalController.name}:acceptRequest`,
           `${approvalController.name}:rejectRequest`,
+          `SnapController:getPermitted`,
+          `SnapController:install`,
+          `SubjectMetadataController:getSubjectMetadata`,
         ],
       }),
       state: initialState.PermissionController,
@@ -639,6 +622,8 @@ class Engine {
         'ExecutionService:unhandledError',
         'ExecutionService:outboundRequest',
         'ExecutionService:outboundResponse',
+        'SnapController:snapInstalled',
+        'SnapController:snapUpdated',
       ],
       allowedActions: [
         `${approvalController.name}:addRequest`,
@@ -650,6 +635,10 @@ class Engine {
         `${permissionController.name}:revokeAllPermissions`,
         `${permissionController.name}:revokePermissions`,
         `${permissionController.name}:revokePermissionForAllSubjects`,
+        `${permissionController.name}:getSubjectNames`,
+        `${permissionController.name}:updateCaveat`,
+        `${approvalController.name}:addRequest`,
+        `${approvalController.name}:updateRequestState`,
         `${permissionController.name}:grantPermissions`,
         `${subjectMetadataController.name}:getSubjectMetadata`,
         'ExecutionService:executeSnap',
@@ -663,9 +652,6 @@ class Engine {
     const snapController = new SnapController({
       environmentEndowmentPermissions: Object.values(EndowmentPermissions),
       featureFlags: { dappsCanUpdateSnaps: true },
-      // TO DO
-      getAppKey: async (subject, appKeyType) =>
-        getAppKeyForSubject(`${appKeyType}:${subject}`),
       checkBlockList: async (snapsToCheck) =>
         checkSnapsBlockList(snapsToCheck, SNAP_BLOCKLIST),
       state: initialState.SnapController || {},
@@ -676,8 +662,13 @@ class Engine {
         console.log(
           'TO DO: Create method to close all connections (Closes all connections for the given origin, and removes the references)',
         ),
-      detectSnapLocation: (location, options) =>
-        detectSnapLocation(location, { ...options, fetch: fetchFunction }),
+      detectSnapLocation: (location, options) => {
+        console.log('SNAPS/ Engine detectSnapLocation', location, options);
+        return detectSnapLocation(location, {
+          ...options,
+          fetch: fetchFunction,
+        });
+      },
     });
 
     const controllers = [
