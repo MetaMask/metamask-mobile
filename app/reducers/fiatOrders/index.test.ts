@@ -606,6 +606,19 @@ describe('fiatOrderReducer', () => {
     expect(stateWithSellTxHash.orders[0].sellTxHash).toEqual('0x123');
   });
 
+  it('should return same state when setting the sell tx hash if order does not exist', () => {
+    const stateWithOrder1 = fiatOrderReducer(
+      initialState,
+      addFiatOrder(mockOrder1),
+    );
+    const stateWithoutChanges = fiatOrderReducer(
+      stateWithOrder1,
+      setFiatSellTxHash('non-existing-order', '0x123'),
+    );
+
+    expect(stateWithoutChanges).toEqual(stateWithOrder1);
+  });
+
   it('should remove the sell tx hash', () => {
     const stateWithOrder1 = fiatOrderReducer(
       initialState,
@@ -621,6 +634,19 @@ describe('fiatOrderReducer', () => {
     );
 
     expect(stateWithoutSellTxHash.orders[0].sellTxHash).not.toBeDefined();
+  });
+
+  it('should return same state when removing the sell tx hash if order does not exist', () => {
+    const stateWithOrder1 = fiatOrderReducer(
+      initialState,
+      addFiatOrder(mockOrder1),
+    );
+    const stateWithoutChanges = fiatOrderReducer(
+      stateWithOrder1,
+      removeFiatSellTxHash('non-existing-order'),
+    );
+
+    expect(stateWithoutChanges).toEqual(stateWithOrder1);
   });
 });
 
@@ -716,6 +742,16 @@ describe('selectors', () => {
   });
 
   describe('getOrders', () => {
+    it('should return empty array if order property is not defined', () => {
+      const state = merge({}, initialRootState, {
+        fiatOrders: {
+          orders: undefined,
+        },
+      });
+
+      expect(getOrders(state)).toEqual([]);
+    });
+
     it('should return the orders by address and chainId', () => {
       const state1 = merge({}, initialRootState, {
         engine: {
@@ -1151,6 +1187,16 @@ describe('selectors', () => {
   });
 
   describe('customOrdersSelector', () => {
+    it('should return empty array if custom order property is not defined', () => {
+      const state = merge({}, initialRootState, {
+        fiatOrders: {
+          customOrderIds: undefined,
+        },
+      });
+
+      expect(getCustomOrderIds(state)).toEqual([]);
+    });
+
     it('should return the custom order ids by address and chainId', () => {
       const state = merge({}, initialRootState, {
         engine: {
@@ -1420,6 +1466,15 @@ describe('selectors', () => {
   });
 
   describe('getActivationKeys', () => {
+    it('should return empty array if activation keys property is not defined', () => {
+      const state = merge({}, initialRootState, {
+        fiatOrders: {
+          activationKeys: undefined,
+        },
+      });
+      expect(getActivationKeys(state)).toStrictEqual([]);
+    });
+
     it('should return activation keys', () => {
       const state = merge({}, initialRootState, {
         fiatOrders: {
@@ -1443,6 +1498,15 @@ describe('selectors', () => {
   });
 
   describe('getAuthenticationUrls', () => {
+    it('should return empty array if authentication urls property is not defined', () => {
+      const state = merge({}, initialRootState, {
+        fiatOrders: {
+          authenticationUrls: undefined,
+        },
+      });
+      expect(getAuthenticationUrls(state)).toStrictEqual([]);
+    });
+
     it('should return authentication urls', () => {
       const state = merge({}, initialRootState, {
         fiatOrders: {
