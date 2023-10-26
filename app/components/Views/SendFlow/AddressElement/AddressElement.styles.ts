@@ -21,6 +21,13 @@ const styleSheet = (colors: Colors) =>
     addressTextAddress: {
       color: colors.text.alternative,
     },
+    warningIconWrapper: {
+      padding: 4,
+      alignSelf: 'flex-start',
+    },
+    warningIcon: {
+      color: colors.icon.default,
+    },
   });
 
 export default styleSheet;

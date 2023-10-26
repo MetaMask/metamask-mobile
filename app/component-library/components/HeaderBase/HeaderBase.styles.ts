@@ -5,17 +5,20 @@ import { StyleSheet, ViewStyle } from 'react-native';
 import { Theme } from '../../../util/theme/models';
 
 // Internal dependencies.
-import { HeaderStyleSheetVars } from './Header.types';
+import { HeaderBaseStyleSheetVars } from './HeaderBase.types';
 
 /**
- * Style sheet function for Header component.
+ * Style sheet function for HeaderBase component.
  *
  * @param params Style sheet params.
  * @param params.theme App theme from ThemeContext.
  * @param params.vars Inputs that the style sheet depends on.
  * @returns StyleSheet object.
  */
-const styleSheet = (params: { theme: Theme; vars: HeaderStyleSheetVars }) => {
+const styleSheet = (params: {
+  theme: Theme;
+  vars: HeaderBaseStyleSheetVars;
+}) => {
   const { vars, theme } = params;
   const { style, startAccessorySize, endAccessorySize } = vars;
   let accessoryWidth;
@@ -29,7 +32,6 @@ const styleSheet = (params: { theme: Theme; vars: HeaderStyleSheetVars }) => {
         backgroundColor: theme.colors.background.default,
         flexDirection: 'row',
         alignItems: 'center',
-        padding: 16,
       } as ViewStyle,
       style,
     ) as ViewStyle,
