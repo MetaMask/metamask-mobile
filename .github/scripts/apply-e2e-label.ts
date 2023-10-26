@@ -37,7 +37,7 @@ async function main(): Promise<void> {
       issue_number: issue_number,
       name: e2eLabel,
     });
-    
+
     if (removeLabelResponse.status === 200) {
       console.log(`Removed (${e2eLabel}) label from PR ${pullRequestLink}`);
     } else {
@@ -46,13 +46,20 @@ async function main(): Promise<void> {
       );
       process.exit(1);
     }
-  } catch (error) {
-    if (error.message.includes('Label does not exist')) {
-      console.log(`(${e2eLabel}) label does not exist on ${pullRequestLink}, no need to remove`)
+  } catch (error: unknown) {
+    if (error instanceof Error) {
+      if (error.message.includes('Label does not exist')) {
+        console.log(
+          `(${e2eLabel}) label does not exist on ${pullRequestLink}, no need to remove`,
+        );
+      } else {
+        core.setFailed(
+          `An error occured when attempting to remove (${e2eLabel}) label from ${pullRequestLink}: ${error}`,
+        );
+        process.exit(1);
+      }
     } else {
-      core.setFailed(
-        `An error occured when attempting to remove (${e2eLabel}) label from ${pullRequestLink}: ${error}`,
-      );
+      core.setFailed(`error object is not an instance of Error: ${error}`);
       process.exit(1);
     }
   }
