@@ -170,7 +170,7 @@ describe('BlockaidBanner', () => {
       <BlockaidBanner
         securityAlertResponse={{
           result_type: ResultType.Failed,
-          reason: Reason.rawSignatureFarming,
+          reason: Reason.failed,
           features: mockFeatures,
         }}
       />,

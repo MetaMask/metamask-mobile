@@ -1,6 +1,10 @@
 import Logger from '../../util/Logger';
 import Engine from '../../core/Engine';
 import { isBlockaidFeatureEnabled } from '../../util/blockaid';
+import {
+  Reason,
+  ResultType,
+} from '../../components/UI/BlockaidBanner/BlockaidBanner.types';
 
 const ConfirmationMethods = Object.freeze([
   'eth_sendRawTransaction',
@@ -30,6 +34,11 @@ const validateRequest = async (req: any) => {
     return result;
   } catch (e) {
     Logger.log(`Error validating JSON RPC using PPOM: ${e}`);
+    return {
+      result_type: ResultType.Failed,
+      reason: Reason.failed,
+      description: 'Validating the confirmation failed by throwing error.',
+    };
     return;
   }
 };
