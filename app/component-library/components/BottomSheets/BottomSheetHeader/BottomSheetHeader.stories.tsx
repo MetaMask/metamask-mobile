@@ -13,6 +13,9 @@ const BottomSheetHeaderMeta = {
 export default BottomSheetHeaderMeta;
 
 export const BottomSheetHeader = {
+  args: {
+    chidlren: 'Super Long BottomSheetHeader Title that may span 3 lines',
+  },
   render: (args: any) => (
     <BottomSheetHeaderComponent
       {...args}
@@ -22,8 +25,6 @@ export const BottomSheetHeader = {
       onClose={() => {
         console.log('Close button clicked');
       }}
-    >
-      Super Long BottomSheetHeader Title that may span 3 lines
-    </BottomSheetHeaderComponent>
+    />
   ),
 };
