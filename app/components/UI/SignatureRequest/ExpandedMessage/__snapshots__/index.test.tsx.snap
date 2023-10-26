@@ -65,7 +65,7 @@ exports[`ExpandedMessage should render correctly 1`] = `
       }
     }
   >
-    <WebsiteIcon
+    <Component
       style={
         Object {
           "borderRadius": 20,

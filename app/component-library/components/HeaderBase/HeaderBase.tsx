@@ -9,15 +9,15 @@ import { useComponentSize, useStyles } from '../../hooks';
 import Text from '../Texts/Text';
 
 // Internal dependencies.
-import styleSheet from './Header.styles';
-import { HeaderProps } from './Header.types';
+import styleSheet from './HeaderBase.styles';
+import { HeaderBaseProps } from './HeaderBase.types';
 import {
-  DEFAULT_HEADER_TITLE_TEXTVARIANT,
-  HEADER_TEST_ID,
-  HEADER_TITLE_TEST_ID,
-} from './Header.constants';
+  DEFAULT_HEADERBASE_TITLE_TEXTVARIANT,
+  HEADERBASE_TEST_ID,
+  HEADERBASE_TITLE_TEST_ID,
+} from './HeaderBase.constants';
 
-const Header: React.FC<HeaderProps> = ({
+const HeaderBase: React.FC<HeaderBaseProps> = ({
   style,
   children,
   startAccessory,
@@ -34,16 +34,16 @@ const Header: React.FC<HeaderProps> = ({
   });
 
   return (
-    <View style={styles.base} testID={HEADER_TEST_ID}>
+    <View style={styles.base} testID={HEADERBASE_TEST_ID}>
       <View style={styles.accessoryWrapper}>
         <View onLayout={startAccessoryOnLayout}>{startAccessory}</View>
       </View>
       <View style={styles.titleWrapper}>
         {typeof children === 'string' ? (
           <Text
-            variant={DEFAULT_HEADER_TITLE_TEXTVARIANT}
+            variant={DEFAULT_HEADERBASE_TITLE_TEXTVARIANT}
             style={styles.title}
-            testID={HEADER_TITLE_TEST_ID}
+            testID={HEADERBASE_TITLE_TEST_ID}
           >
             {children}
           </Text>
@@ -58,4 +58,4 @@ const Header: React.FC<HeaderProps> = ({
   );
 };
 
-export default Header;
+export default HeaderBase;
