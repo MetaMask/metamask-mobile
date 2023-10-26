@@ -78,6 +78,8 @@ async function main(): Promise<void> {
     issue_number: pullRequestNumber,
   })
 
+  console.log("RESPONSE", unlockConvoResponse)
+
   if (unlockConvoResponse.status === 204) {
     console.log(`Unlocked conversation for PR ${pullRequestLink}`);
   } else {
