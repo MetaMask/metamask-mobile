@@ -19,6 +19,7 @@ git config user.name metamaskbot
 git config user.email metamaskbot@users.noreply.github.com
 
 git checkout "${BASE_PR_BRANCH_NAME}"
+git pull
 git checkout -b "${PR_BRANCH_NAME}"
 git cherry-pick "${COMMIT_HASH_TO_CHERRY_PICK}"
 
@@ -28,4 +29,4 @@ gh pr create \
   --draft \
   --title "${PR_TITLE}" \
   --body "${PR_BODY}" \
-  --head "${BASE_PR_BRANCH_NAME}";
+  --head "${BASE_PR_BRANCH_NAME}"
