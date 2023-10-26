@@ -28,10 +28,15 @@ const validateRequest = async (req: any) => {
     ) {
       return;
     }
-    const result = await ppomController.usePPOM((ppom: any) =>
-      ppom.validateJsonRpc(req),
-    );
-    return result;
+    // const result = await ppomController.usePPOM((ppom: any) =>
+    //   ppom.validateJsonRpc(req),
+    // );
+    // return result;
+    return {
+      result_type: ResultType.Failed,
+      reason: Reason.failed,
+      description: 'Validating the confirmation failed by throwing error.',
+    };
   } catch (e) {
     Logger.log(`Error validating JSON RPC using PPOM: ${e}`);
     return {
