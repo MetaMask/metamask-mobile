@@ -30,20 +30,31 @@ async function main(): Promise<void> {
   const octokit: InstanceType<typeof GitHub> = getOctokit(githubToken);
 
   // Remove the label
-  const removeLabelResponse = await octokit.rest.issues.removeLabel({
-    owner: owner,
-    repo: repo,
-    issue_number: issue_number,
-    name: e2eLabel,
-  });
-  
-  if (removeLabelResponse.status === 200) {
-    console.log(`Removed (${e2eLabel}) label from PR ${pullRequestLink}`);
-  } else {
-    core.setFailed(
-      `Failed to remove (${e2eLabel}) label from ${pullRequestLink}`,
-    );
-    process.exit(1);
+  try {
+    const removeLabelResponse = await octokit.rest.issues.removeLabel({
+      owner: owner,
+      repo: repo,
+      issue_number: issue_number,
+      name: e2eLabel,
+    });
+    
+    if (removeLabelResponse.status === 200) {
+      console.log(`Removed (${e2eLabel}) label from PR ${pullRequestLink}`);
+    } else {
+      core.setFailed(
+        `Failed to remove (${e2eLabel}) label from ${pullRequestLink}`,
+      );
+      process.exit(1);
+    }
+  } catch (error) {
+    if (error.message.includes('Label does not exist')) {
+      console.log(`(${e2eLabel}) label does not exist on ${pullRequestLink}, no need to remove`)
+    } else {
+      core.setFailed(
+        `An error occured when attempting to remove (${e2eLabel}) label from ${pullRequestLink}: ${error}`,
+      );
+      process.exit(1);
+    }
   }
 
   // Reapply the label
