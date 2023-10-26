@@ -11,9 +11,15 @@ import { AvatarSize } from '../../Avatar.types';
 import { IconSizeByAvatarSize } from './AvatarFavicon.types';
 
 export const TEST_REMOTE_IMAGE_URL = 'https://uniswap.org/favicon.ico';
+export const TEST_REMOTE_SVG_IMAGE_URL =
+  'https://metamask.github.io/test-dapp/metamask-fox.svg';
 
 export const TEST_REMOTE_IMAGE_SOURCE: ImageSourcePropType = {
   uri: TEST_REMOTE_IMAGE_URL,
+};
+
+export const TEST_REMOTE_SVG_IMAGE_SOURCE: ImageSourcePropType = {
+  uri: TEST_REMOTE_SVG_IMAGE_URL,
 };
 
 /* eslint-disable-next-line */
