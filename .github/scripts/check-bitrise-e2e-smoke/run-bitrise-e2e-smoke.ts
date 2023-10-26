@@ -11,7 +11,10 @@ main().catch((error: Error): void => {
 async function main(): Promise<void> {
   const githubToken = process.env.GITHUB_TOKEN;
   const e2ePipeline = process.env.E2E_PIPELINE;
-  const pullRequestLink = `https://github.com/MetaMask/metamask-mobile/pull/${context.issue.number}`;
+  const pullRequestNumber = context.issue.number;
+  const repoOwner = context.repo.owner;
+  const repo = context.repo.repo;
+  const pullRequestLink = `https://github.com/MetaMask/metamask-mobile/pull/${pullRequestNumber}`;
 
   if (!githubToken) {
     core.setFailed('GITHUB_TOKEN not found');
@@ -68,11 +71,27 @@ async function main(): Promise<void> {
     process.exit(1);
   }
 
+  // Reopen conversation in case it's locked
+  const unlockConvoResponse = await octokit.rest.issues.unlock({
+    owner: repoOwner,
+    repo,
+    issue_number: pullRequestNumber,
+  })
+
+  if (unlockConvoResponse.status === 204) {
+    console.log(`Unlocked conversation for PR ${pullRequestLink}`);
+  } else {
+    core.setFailed(
+      `Unlock conversation request returned with status code ${unlockConvoResponse.status}`,
+    );
+    process.exit(1);
+  }
+
   // Post build link in PR comments.
   const postCommentResponse = await octokit.rest.issues.createComment({
-    owner: context.repo.owner,
-    repo: context.repo.repo,
-    issue_number: context.issue.number,
+    owner: repoOwner,
+    repo,
+    issue_number: pullRequestNumber,
     body: message,
   });
 
