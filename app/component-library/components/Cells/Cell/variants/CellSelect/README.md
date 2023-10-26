@@ -6,14 +6,6 @@ CellSelect is a component used for accessing account selection.
 
 This component extends [SelectItemProps](../../Select/Select/SelectItem/SelectItem.types.ts#L7) and [CellBase](../CellBase/CellBase.types.ts#L17).
 
-### `variant`
-
-Variant of Cell.
-
-| <span style="color:gray;font-size:14px">TYPE</span> | <span style="color:gray;font-size:14px">REQUIRED</span> |
-| :-------------------------------------------------- | :------------------------------------------------------ |
-| [CellVariants](../../Cell.types.ts#L9)                                              | No                                                     |
-
 ### `avatarProps`
 
 Props for the [Avatar](../../../../Avatars/Avatar.tsx) component (with the exception of size). Avatar size is restricted to size Md(32x32) for Cells
@@ -79,21 +71,30 @@ Default: false
 | :-------------------------------------------------- | :------------------------------------------------------ | :----------------------------------------------------- |
 | boolean                                             | No                                                      | false                                                  |
 
+### `isDisabled`
+
+Optional boolean to show disabled state in Cell.
+Default: false
+
+| <span style="color:gray;font-size:14px">TYPE</span> | <span style="color:gray;font-size:14px">REQUIRED</span> | <span style="color:gray;font-size:14px">DEFAULT</span> |
+| :-------------------------------------------------- | :------------------------------------------------------ | :----------------------------------------------------- |
+| boolean                                             | No                                                      | false                                                  |
+
 ## Usage
 
 ```javascript
 // Change import path to relative path.
 import CellSelect from 'app/component-library/components/Cells/variants/CellSelect/CellSelect';
-import { CellVariants } from 'app/component-library/components/Cells/Cell.types';
+import { CellVariant } from 'app/component-library/components/Cells/Cell.types';
 
 <CellSelect
-  variant={CellVariants.Select}
   avatarProps={AVATAR_PROPS}
   title={TITLE}
   secondaryText={SECONDARY_TEXT}
   tertiaryText={TERTIARY_TEXT}
   tagLabel={TAG_LABEL}
   isSelected={false}
+  isDisabled={false}
   onPress={() => Alert.alert('Pressed account Cell!')}
 />;
 ```

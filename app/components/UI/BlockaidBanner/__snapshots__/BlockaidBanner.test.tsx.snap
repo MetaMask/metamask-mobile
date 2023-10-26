@@ -16,7 +16,7 @@ exports[`BlockaidBanner should render correctly 1`] = `
         "Operator is untrusted according to previous activity",
       ],
       "reason": "approval_farming",
-      "resultType": "Warning",
+      "result_type": "Warning",
     }
   }
   style={
@@ -209,7 +209,7 @@ exports[`BlockaidBanner should render correctly 1`] = `
             }
           }
         >
-          Security advice by
+          Powered by
         </Text>
       </View>
       <View
@@ -256,7 +256,7 @@ exports[`BlockaidBanner should render correctly with list attack details 1`] = `
         "Operator is untrusted according to previous activity",
       ],
       "reason": "approval_farming",
-      "resultType": "Malicious",
+      "result_type": "Malicious",
     }
   }
   style={
@@ -449,7 +449,7 @@ exports[`BlockaidBanner should render correctly with list attack details 1`] = `
             }
           }
         >
-          Security advice by
+          Powered by
         </Text>
       </View>
       <View
@@ -496,7 +496,7 @@ exports[`BlockaidBanner should render correctly with reason "raw_signature_farmi
         "Operator is untrusted according to previous activity",
       ],
       "reason": "raw_signature_farming",
-      "resultType": "Malicious",
+      "result_type": "Malicious",
     }
   }
   style={
@@ -689,7 +689,7 @@ exports[`BlockaidBanner should render correctly with reason "raw_signature_farmi
             }
           }
         >
-          Security advice by
+          Powered by
         </Text>
       </View>
       <View
@@ -726,76 +726,88 @@ exports[`BlockaidBanner should render correctly with reason "raw_signature_farmi
 
 exports[`BlockaidBanner should render normal banner alert if resultType is failed 1`] = `
 <View
+  collapsable={false}
+  forwardedRef={[Function]}
   style={
     Object {
-      "backgroundColor": "#FFD33D19",
-      "borderColor": "#F66A0A",
-      "borderLeftWidth": 4,
-      "borderRadius": 4,
-      "flexDirection": "row",
-      "padding": 12,
-      "paddingLeft": 8,
+      "marginLeft": 10,
+      "marginRight": 10,
+      "marginTop": 10,
     }
   }
-  testID="banneralert"
 >
   <View
     style={
       Object {
-        "marginRight": 8,
+        "backgroundColor": "#FFD33D19",
+        "borderColor": "#F66A0A",
+        "borderLeftWidth": 4,
+        "borderRadius": 4,
+        "flexDirection": "row",
+        "padding": 12,
+        "paddingLeft": 8,
       }
     }
+    testID="banneralert"
   >
-    <SvgMock
-      color="#F66A0A"
-      height={24}
-      name="Danger"
+    <View
       style={
         Object {
-          "height": 24,
-          "width": 24,
-        }
-      }
-      width={24}
-    />
-  </View>
-  <View
-    style={
-      Object {
-        "flex": 1,
-      }
-    }
-  >
-    <Text
-      accessibilityRole="text"
-      style={
-        Object {
-          "color": "#24272A",
-          "fontFamily": "Euclid Circular B",
-          "fontSize": 16,
-          "fontWeight": "500",
-          "letterSpacing": 0,
-          "lineHeight": 24,
+          "marginRight": 8,
         }
       }
     >
-      This is a suspicious request
-    </Text>
-    <Text
-      accessibilityRole="text"
+      <SvgMock
+        color="#F66A0A"
+        height={24}
+        name="Danger"
+        style={
+          Object {
+            "height": 24,
+            "width": 24,
+          }
+        }
+        width={24}
+      />
+    </View>
+    <View
       style={
         Object {
-          "color": "#24272A",
-          "fontFamily": "Euclid Circular B",
-          "fontSize": 14,
-          "fontWeight": "400",
-          "letterSpacing": 0,
-          "lineHeight": 22,
+          "flex": 1,
         }
       }
     >
-      If you approve this request, you might lose your assets.
-    </Text>
+      <Text
+        accessibilityRole="text"
+        style={
+          Object {
+            "color": "#24272A",
+            "fontFamily": "Euclid Circular B",
+            "fontSize": 16,
+            "fontWeight": "500",
+            "letterSpacing": 0,
+            "lineHeight": 24,
+          }
+        }
+      >
+        Request may not be safe
+      </Text>
+      <Text
+        accessibilityRole="text"
+        style={
+          Object {
+            "color": "#24272A",
+            "fontFamily": "Euclid Circular B",
+            "fontSize": 14,
+            "fontWeight": "400",
+            "letterSpacing": 0,
+            "lineHeight": 22,
+          }
+        }
+      >
+        Because of an error, this request was not verified by the security provider. Proceed with caution.
+      </Text>
+    </View>
   </View>
 </View>
 `;
@@ -812,7 +824,7 @@ exports[`BlockaidBanner should render something does not look right with contact
         "Operator is untrusted according to previous activity",
       ],
       "reason": "approval_farming",
-      "resultType": "Malicious",
+      "result_type": "Malicious",
     }
   }
   style={
@@ -1005,7 +1017,7 @@ exports[`BlockaidBanner should render something does not look right with contact
             }
           }
         >
-          Security advice by
+          Powered by
         </Text>
       </View>
       <View

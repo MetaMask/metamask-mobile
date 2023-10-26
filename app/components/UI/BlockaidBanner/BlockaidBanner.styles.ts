@@ -30,6 +30,11 @@ const styleSheet = (_params: {
     },
     details: { marginLeft: 10, marginBottom: 10 },
     securityTickIcon: { marginTop: 4 },
+    failed: {
+      marginTop: 10,
+      marginLeft: 10,
+      marginRight: 10,
+    },
   });
 
 export default styleSheet;

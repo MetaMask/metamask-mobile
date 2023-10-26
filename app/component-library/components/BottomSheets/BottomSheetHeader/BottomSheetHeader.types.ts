@@ -1,5 +1,5 @@
 // External dependencies.
-import { HeaderProps } from '../../Header/Header.types';
+import { HeaderProps } from '../../HeaderBase/Header.types';
 
 /**
  * BottomSheetHeader component props.
