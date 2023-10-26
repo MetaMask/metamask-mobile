@@ -551,6 +551,11 @@ class Engine {
       new TransactionController({
         blockTracker:
           networkController.getProviderAndBlockTracker().blockTracker,
+        getCurrentNetworkEIP1559Compatibility:
+          networkController.getEIP1559Compatibility.bind(networkController),
+        getCurrentAccountEIP1559Compatibility: () => Promise.resolve(true),
+        getGasFeeEstimates:
+          gasFeeController.fetchGasFeeEstimates.bind(gasFeeController),
         getNetworkState: () => networkController.state,
         getSelectedAddress: () => preferencesController.state.selectedAddress,
         incomingTransactions: {
