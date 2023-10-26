@@ -3,6 +3,7 @@
 // External dependencies.
 import { IconName, IconSize } from '../../Icons/Icon';
 import { ButtonIconSizes } from '../../Buttons/ButtonIcon';
+import { DEFAULT_TEXTFIELD_SIZE } from '../TextField/TextField.constants';
 
 // Internal dependencies.
 import { TextFieldSearchProps } from './TextFieldSearch.types';
@@ -22,4 +23,9 @@ export const SAMPLE_TEXTFIELDSEARCH_PROPS: TextFieldSearchProps = {
   onPressClearButton: () => {
     console.log('clicked');
   },
+  size: DEFAULT_TEXTFIELD_SIZE,
+  isError: false,
+  isDisabled: false,
+  isReadonly: false,
+  placeholder: 'Sample placeholder',
 };
