@@ -225,7 +225,45 @@ const mockOrder2 = {
   } as DeepPartial<SellOrder>,
 } as FiatOrder;
 
-const mockedOrders = [mockOrder, mockOrder2];
+const mockOrder3 = {
+  ...mockOrder2,
+  id: 'test-id-3',
+  data: {
+    ...mockOrder2.data,
+    paymentMethod: {
+      id: '/payments/instant-bank-transfer',
+      paymentType: 'bank-transfer',
+      name: 'Instant Bank Transfer',
+      score: 5,
+      icons: [
+        {
+          type: 'materialCommunityIcons',
+          name: 'bank',
+        },
+      ],
+      logo: {
+        light: [
+          'https://on-ramp.metafi-dev.codefi.network/assets/ACHBankTransfer-regular@3x.png',
+        ],
+        dark: [
+          'https://on-ramp.metafi-dev.codefi.network/assets/ACHBankTransfer@3x.png',
+        ],
+      },
+      delay: [0, 0],
+      amountTier: [3, 3],
+      supportedCurrency: ['/currencies/fiat/usd'],
+      translation: 'ACH',
+      customAction: {
+        button: {
+          dark: [{ value: 'sample value' }],
+          light: [{ value: 'sample value' }],
+        },
+      },
+    },
+  } as DeepPartial<SellOrder>,
+} as FiatOrder;
+
+const mockedOrders = [mockOrder, mockOrder2, mockOrder3];
 
 function render(Component: React.ComponentType, orders = mockedOrders) {
   return renderScreen(
@@ -317,6 +355,12 @@ describe('SendTransaction View', () => {
 
   it('renders correctly for token', async () => {
     mockUseParamsValues = { orderId: 'test-id-2' };
+    render(SendTransaction);
+    expect(screen.toJSON()).toMatchSnapshot();
+  });
+
+  it('renders correctly for custom action payment method', async () => {
+    mockUseParamsValues = { orderId: 'test-id-3' };
     render(SendTransaction);
     expect(screen.toJSON()).toMatchSnapshot();
   });
