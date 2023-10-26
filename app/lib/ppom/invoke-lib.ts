@@ -30,7 +30,7 @@ export default (invoke: any) => {
 
     invoke.define(`${name}_trigger`, ({ id, args }: any) => {
       func(...args)
-        .then((...args1: any[]) => resolveCallback({ id, args1 }))
+        .then((...args2: any[]) => resolveCallback({ id, args: args2 }))
         .catch((e: Error) => rejectCallback({ id, error: serializeError(e) }));
     });
   };

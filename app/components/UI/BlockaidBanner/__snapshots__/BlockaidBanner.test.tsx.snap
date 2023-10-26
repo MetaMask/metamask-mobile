@@ -16,7 +16,7 @@ exports[`BlockaidBanner should render correctly 1`] = `
         "Operator is untrusted according to previous activity",
       ],
       "reason": "approval_farming",
-      "resultType": "Warning",
+      "result_type": "Warning",
     }
   }
   style={
@@ -209,7 +209,7 @@ exports[`BlockaidBanner should render correctly 1`] = `
             }
           }
         >
-          Security advice by
+          Powered by
         </Text>
       </View>
       <View
@@ -256,7 +256,7 @@ exports[`BlockaidBanner should render correctly with list attack details 1`] = `
         "Operator is untrusted according to previous activity",
       ],
       "reason": "approval_farming",
-      "resultType": "Malicious",
+      "result_type": "Malicious",
     }
   }
   style={
@@ -449,7 +449,7 @@ exports[`BlockaidBanner should render correctly with list attack details 1`] = `
             }
           }
         >
-          Security advice by
+          Powered by
         </Text>
       </View>
       <View
@@ -496,7 +496,7 @@ exports[`BlockaidBanner should render correctly with reason "raw_signature_farmi
         "Operator is untrusted according to previous activity",
       ],
       "reason": "raw_signature_farming",
-      "resultType": "Malicious",
+      "result_type": "Malicious",
     }
   }
   style={
@@ -689,7 +689,7 @@ exports[`BlockaidBanner should render correctly with reason "raw_signature_farmi
             }
           }
         >
-          Security advice by
+          Powered by
         </Text>
       </View>
       <View
@@ -812,7 +812,7 @@ exports[`BlockaidBanner should render something does not look right with contact
         "Operator is untrusted according to previous activity",
       ],
       "reason": "approval_farming",
-      "resultType": "Malicious",
+      "result_type": "Malicious",
     }
   }
   style={
@@ -1005,7 +1005,7 @@ exports[`BlockaidBanner should render something does not look right with contact
             }
           }
         >
-          Security advice by
+          Powered by
         </Text>
       </View>
       <View
