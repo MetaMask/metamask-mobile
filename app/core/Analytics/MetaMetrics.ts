@@ -130,6 +130,7 @@ class MetaMetrics implements IMetaMetrics {
    */
   #trackEvent(event: string, anonymously: boolean, properties: JsonMap): void {
     if (anonymously) {
+      console.log('ANONNN TRACK');
       // If the tracking is anonymous, there should not be a MetaMetrics ID
       // included, MetaMetrics core should use the METAMETRICS_ANONYMOUS_ID
       // instead.
@@ -143,6 +144,7 @@ class MetaMetrics implements IMetaMetrics {
       // The Track method lets you record the actions your users perform.
       // Every action triggers an event, which also has associated properties
       // that the track method records.
+      console.log('REGUAR TRACKKKKK');
       this.#segmentClient.track(
         event,
         properties,
@@ -251,19 +253,23 @@ class MetaMetrics implements IMetaMetrics {
 
   // PUBLIC METHODS
 
-  public static getInstance(): IMetaMetrics {
+  public static getInstance(client?: any): IMetaMetrics {
+    // FRANK:
     if (!MetaMetrics.#instance) {
       // This central client manages all the tracking events
-      const segmentClient = createClient({
-        writeKey: (__DEV__
-          ? process.env.SEGMENT_DEV_KEY
-          : process.env.SEGMENT_PROD_KEY) as string,
-        debug: __DEV__,
-        proxy: __DEV__
-          ? process.env.SEGMENT_DEV_PROXY_KEY
-          : process.env.SEGMENT_PROD_PROXY_KEY,
-      });
-      MetaMetrics.#instance = new MetaMetrics(segmentClient);
+      if (!client) {
+        const segmentClient = createClient({
+          writeKey: (__DEV__
+            ? process.env.SEGMENT_DEV_KEY
+            : process.env.SEGMENT_PROD_KEY) as string,
+          debug: __DEV__,
+          proxy: __DEV__
+            ? process.env.SEGMENT_DEV_PROXY_KEY
+            : process.env.SEGMENT_PROD_PROXY_KEY,
+        });
+        client = segmentClient;
+      }
+      MetaMetrics.#instance = new MetaMetrics(client);
     }
     return MetaMetrics.#instance;
   }
@@ -319,13 +325,30 @@ class MetaMetrics implements IMetaMetrics {
 let instance: IMetaMetrics;
 
 export default {
-  init: () => {
+  init: (client: any) => {
     if (!instance) {
-      instance = MetaMetrics.getInstance();
+      instance = MetaMetrics.getInstance(client);
     }
+    return instance;
   },
-  trackEvent: (event: string, properties: JsonMap = {}) =>
-    instance?.trackEvent(event, properties),
+  trackEvent: (event: string, properties: JsonMap = {}) => {
+    instance?.trackEvent(event, properties);
+  },
   trackAnonymousEvent: (event: string, properties: JsonMap = {}) =>
-    instance?.trackEvent(event, properties),
+    instance?.trackAnonymousEvent(event, properties),
+  disable: () => {
+    instance?.disable();
+  },
+  group: (groupId: string, groupTraits?: GroupTraits) => {
+    instance?.group(groupId, groupTraits);
+  },
+  reset: () => {
+    instance?.reset();
+  },
+  createSegmentDeleteRegulation: () => {
+    instance?.createSegmentDeleteRegulation();
+  },
+  addTraitsToUser: (userTraits: UserTraits) => {
+    instance?.addTraitsToUser(userTraits);
+  },
 };

@@ -4,6 +4,7 @@ module.exports = {
   plugins: [
     'transform-inline-environment-variables',
     'react-native-reanimated/plugin',
+    ['@babel/plugin-transform-private-methods', { loose: true }],
   ],
   env: {
     production: {
