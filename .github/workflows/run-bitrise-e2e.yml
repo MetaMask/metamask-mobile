@@ -28,7 +28,7 @@ jobs:
             switch (triggerAction) {
               case 'opened':
                 shouldTriggerE2E = !context.payload.pull_request.draft
-                if (!shouldTrigger) {
+                if (!shouldTriggerE2E) {
                   console.log(`Skipping E2E smoke since opened PR is in draft.`)
                 } else {
                   console.log(`Starting E2E smoke since opened PR is ready for review.`)
@@ -40,7 +40,7 @@ jobs:
                 break;
               case 'labeled':
                 shouldTriggerE2E = e2eLabel === context.payload.label.name
-                if (!shouldTrigger) {
+                if (!shouldTriggerE2E) {
                   console.log(`Skipping E2E smoke since (${e2eLabel}) is not the label that triggered this workflow.`)
                 } else {
                   console.log(`Starting E2E smoke since (${e2eLabel}) is the label that triggered this workflow.`)
