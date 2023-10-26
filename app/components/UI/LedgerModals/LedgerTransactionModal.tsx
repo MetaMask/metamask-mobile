@@ -10,6 +10,8 @@ import {
 } from '../../../util/navigation/navUtils';
 import Routes from '../../../constants/navigation/Routes';
 import { useAppThemeFromContext, mockTheme } from '../../../util/theme';
+import { MetaMetricsEvents } from '../../../core/Analytics';
+import AnalyticsV2 from '../../../util/analyticsV2';
 
 export const createLedgerTransactionModalNavDetails =
   createNavigationDetails<LedgerTransactionModalParams>(
@@ -63,6 +65,13 @@ const LedgerTransactionModal = () => {
       await ApprovalController.accept(transactionId, undefined, {
         waitForResult: true,
       });
+
+      AnalyticsV2.trackEvent(
+        MetaMetricsEvents.CONTINUE_LEDGER_HARDWARE_WALLET,
+        {
+          device_type: 'Ledger',
+        },
+      );
     }
 
     onConfirmationComplete(true);
@@ -72,6 +81,12 @@ const LedgerTransactionModal = () => {
 
   const onRejection = useCallback(() => {
     onConfirmationComplete(false);
+    AnalyticsV2.trackEvent(
+      MetaMetricsEvents.LEDGER_HARDWARE_TRANSACTION_CANCELLED,
+      {
+        device_type: 'Ledger',
+      },
+    );
     dismissModal();
   }, [onConfirmationComplete, dismissModal]);
 

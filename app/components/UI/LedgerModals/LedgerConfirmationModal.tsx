@@ -18,6 +18,8 @@ import ErrorStep from './Steps/ErrorStep';
 import OpenETHAppStep from './Steps/OpenETHAppStep';
 import SearchingForDeviceStep from './Steps/SearchingForDeviceStep';
 import { unlockLedgerDefaultAccount } from '../../../core/Ledger/Ledger';
+import { MetaMetricsEvents } from '../../../core/Analytics';
+import AnalyticsV2 from '../../../util/analyticsV2';
 
 const createStyles = (colors: Colors) =>
   StyleSheet.create({
@@ -73,10 +75,16 @@ const LedgerConfirmationModal = ({
       ledgerLogicToRun(async () => {
         await unlockLedgerDefaultAccount();
         await onConfirmation();
+        AnalyticsV2.trackEvent(MetaMetricsEvents.CONNECT_LEDGER_SUCCESS, {
+          device_type: 'Ledger',
+        });
       });
     } catch (_e) {
       // Handle a super edge case of the user starting a transaction with the device connected
       // After arriving to confirmation the ETH app is not installed anymore this causes a crash.
+      AnalyticsV2.trackEvent(MetaMetricsEvents.LEDGER_HARDWARE_WALLET_ERROR, {
+        device_type: 'Ledger',
+      });
     }
   };
 
@@ -167,6 +175,9 @@ const LedgerConfirmationModal = ({
           });
           break;
       }
+      AnalyticsV2.trackEvent(MetaMetricsEvents.LEDGER_HARDWARE_WALLET_ERROR, {
+        device_type: 'Ledger',
+      });
     }
 
     if (bluetoothPermissionError && !permissionErrorShown) {
@@ -185,12 +196,18 @@ const LedgerConfirmationModal = ({
           break;
       }
       setPermissionErrorShown(true);
+      AnalyticsV2.trackEvent(MetaMetricsEvents.LEDGER_HARDWARE_WALLET_ERROR, {
+        device_type: 'Ledger',
+      });
     }
 
     if (bluetoothConnectionError) {
       setErrorDetails({
         title: strings('ledger.bluetooth_off'),
         subtitle: strings('ledger.bluetooth_off_message'),
+      });
+      AnalyticsV2.trackEvent(MetaMetricsEvents.LEDGER_HARDWARE_WALLET_ERROR, {
+        device_type: 'Ledger',
       });
     }
 
