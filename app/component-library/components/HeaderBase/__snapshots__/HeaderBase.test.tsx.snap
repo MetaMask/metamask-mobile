@@ -1,13 +1,12 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
-exports[`Header should render snapshot correctly 1`] = `
+exports[`HeaderBase should render snapshot correctly 1`] = `
 <View
   style={
     Object {
       "alignItems": "center",
       "backgroundColor": "#FFFFFF",
       "flexDirection": "row",
-      "padding": 16,
     }
   }
   testID="header"
@@ -33,15 +32,21 @@ exports[`Header should render snapshot correctly 1`] = `
     }
   >
     <Text
+      accessibilityRole="text"
       style={
         Object {
+          "color": "#24272A",
+          "fontFamily": "Euclid Circular B",
+          "fontSize": 16,
+          "fontWeight": "700",
+          "letterSpacing": 0,
+          "lineHeight": 24,
           "textAlign": "center",
         }
       }
       testID="header-title"
-      variant="sHeadingSM"
     >
-      Sample Header Title
+      Sample HeaderBase Title
     </Text>
   </View>
   <View
