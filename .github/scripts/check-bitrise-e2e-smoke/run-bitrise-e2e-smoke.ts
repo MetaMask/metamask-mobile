@@ -12,6 +12,7 @@ async function main(): Promise<void> {
   const e2eLabel = process.env.E2E_LABEL;
   const githubToken = process.env.GITHUB_TOKEN;
   const e2ePipeline = process.env.E2E_PIPELINE;
+  const workflowName = process.env.WORKFLOW_NAME;
   const pullRequestNumber = context.issue.number;
   const repoOwner = context.repo.owner;
   const repo = context.repo.repo;
@@ -37,9 +38,9 @@ async function main(): Promise<void> {
     build_params: {
       branch: process.env.GITHUB_HEAD_REF,
       pipeline_id: e2ePipeline,
-      commit_message: `Triggered by (run-bitrise-e2e) workflow in ${pullRequestLink}`,
+      commit_message: `Triggered by (${workflowName}) workflow in ${pullRequestLink}`,
     },
-    triggered_by: 'run-bitrise-e2e',
+    triggered_by: workflowName,
   };
 
   const bitriseProjectUrl = `https://app.bitrise.io/app/${process.env.BITRISE_APP_ID}`;

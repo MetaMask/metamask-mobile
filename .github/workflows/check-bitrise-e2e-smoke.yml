@@ -7,6 +7,7 @@ on:
 env:
   E2E_LABEL: 'Run Smoke E2E'
   E2E_PIPELINE: 'pr_smoke_e2e_pipeline'
+  WORKFLOW_NAME: 'check-bitrise-e2e-smoke'
 
 jobs:
   check-bitrise-e2e-smoke:
