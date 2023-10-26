@@ -99,7 +99,7 @@ import {
   SDK_SECTION,
 } from './SecuritySettings.constants';
 import Cell from '../../../..//component-library/components/Cells/Cell/Cell';
-import { CellVariants } from '../../../../component-library/components/Cells/Cell';
+import { CellVariant } from '../../../../component-library/components/Cells/Cell';
 import { AvatarVariants } from '../../../../component-library/components/Avatars/Avatar/Avatar.types';
 import Networks, {
   getAllNetworks,
@@ -682,7 +682,7 @@ const Settings: React.FC = () => {
       const { name: mainnetName, hexChainId } = Networks.mainnet;
       return (
         <Cell
-          variant={CellVariants.Display}
+          variant={CellVariant.Display}
           title={mainnetName}
           avatarProps={{
             variant: AvatarVariants.Network,
@@ -714,7 +714,7 @@ const Settings: React.FC = () => {
 
       return (
         <Cell
-          variant={CellVariants.Display}
+          variant={CellVariant.Display}
           title={lineaMainnetName}
           avatarProps={{
             variant: AvatarVariants.Network,
@@ -757,7 +757,7 @@ const Settings: React.FC = () => {
           return (
             <Cell
               key={chainId}
-              variant={CellVariants.Display}
+              variant={CellVariant.Display}
               title={name}
               secondaryText={myNetworks[hexChainId].domain}
               avatarProps={{
@@ -795,7 +795,7 @@ const Settings: React.FC = () => {
         return (
           <Cell
             key={chainId}
-            variant={CellVariants.Display}
+            variant={CellVariant.Display}
             title={name}
             secondaryText={myNetworks[hexChainId].domain}
             avatarProps={{
