@@ -26,7 +26,6 @@ import WebviewProgressBar from '../../UI/WebviewProgressBar';
 import { baseStyles, fontStyles } from '../../../styles/common';
 import Logger from '../../../util/Logger';
 import onUrlSubmit, {
-  getHost,
   prefixUrlWithProtocol,
   isTLD,
   protocolAllowList,
@@ -86,10 +85,21 @@ import {
 } from '../../../../wdio/screen-objects/testIDs/BrowserScreen/OptionMenu.testIds';
 import {
   selectIpfsGateway,
+  selectIsIpfsGatewayEnabled,
   selectSelectedAddress,
 } from '../../../selectors/preferencesController';
+import useFavicon from '../../hooks/useFavicon/useFavicon';
 import { IPFS_GATEWAY_DISABLED_ERROR } from './constants';
+import Banner from '../../../component-library/components/Banners/Banner/Banner';
+import {
+  BannerAlertSeverity,
+  BannerVariant,
+} from '../../../component-library/components/Banners/Banner';
+import { ButtonVariants } from '../../../component-library/components/Buttons/Button';
+import CLText from '../../../component-library/components/Texts/Text/Text';
+import { TextVariant } from '../../../component-library/components/Texts/Text';
 import { regex } from '../../../../app/util/regex';
+import { selectChainId } from '../../../selectors/networkController';
 
 const { HOMEPAGE_URL, NOTIFICATION_NAMES } = AppConstants;
 const HOMEPAGE_HOST = new URL(HOMEPAGE_URL)?.hostname;
@@ -228,6 +238,14 @@ const createStyles = (colors, shadows) =>
     fullScreenModal: {
       flex: 1,
     },
+    bannerContainer: {
+      backgroundColor: colors.background.default,
+      position: 'absolute',
+      bottom: 16,
+      left: 16,
+      right: 16,
+      borderRadius: 4,
+    },
   });
 
 const sessionENSNames = {};
@@ -244,6 +262,8 @@ export const BrowserTab = (props) => {
   const [entryScriptWeb3, setEntryScriptWeb3] = useState(null);
   const [showPhishingModal, setShowPhishingModal] = useState(false);
   const [blockedUrl, setBlockedUrl] = useState(undefined);
+  const [ipfsBannerVisible, setIpfsBannerVisible] = useState(false);
+  const [isResolvedIpfsUrl, setIsResolvedIpfsUrl] = useState(false);
   const webviewRef = useRef(null);
   const blockListType = useRef('');
   const allowList = useRef([]);
@@ -267,6 +287,7 @@ export const BrowserTab = (props) => {
 
   const { colors, shadows } = useTheme();
   const styles = createStyles(colors, shadows);
+  const favicon = useFavicon(url.current);
 
   /**
    * Is the current tab the active tab
@@ -448,6 +469,7 @@ export const BrowserTab = (props) => {
         const { type, hash } = await resolveEnsToIpfsContentId({
           provider,
           name: hostname,
+          chainId: props.chainId,
         });
         if (type === 'ipfs-ns') {
           gatewayUrl = `${props.ipfsGateway}${hash}${pathname || '/'}${
@@ -494,10 +516,9 @@ export const BrowserTab = (props) => {
         }
 
         if (err?.message?.startsWith(IPFS_GATEWAY_DISABLED_ERROR)) {
-          Alert.alert(
-            strings('browser.ipfs_gateway_off_title'),
-            strings('browser.ipfs_gateway_off_content'),
-          );
+          setIpfsBannerVisible(true);
+          goBack();
+          throw new Error(err?.message);
         } else {
           Alert.alert(
             strings('browser.failed_to_resolve_ens_name'),
@@ -507,7 +528,7 @@ export const BrowserTab = (props) => {
         goBack();
       }
     },
-    [goBack, props.ipfsGateway],
+    [goBack, props.ipfsGateway, setIpfsBannerVisible, props.chainId],
   );
 
   /**
@@ -515,6 +536,7 @@ export const BrowserTab = (props) => {
    */
   const go = useCallback(
     async (url, initialCall) => {
+      setIsResolvedIpfsUrl(false);
       const prefixedUrl = prefixUrlWithProtocol(url);
       const { hostname, query, pathname } = new URL(prefixedUrl);
       let urlToGo = prefixedUrl;
@@ -522,15 +544,20 @@ export const BrowserTab = (props) => {
       const { current } = webviewRef;
       if (isEnsUrl) {
         current && current.stopLoading();
-        const {
-          url: ensUrl,
-          type,
-          hash,
-          reload,
-        } = await handleIpfsContent(url, { hostname, query, pathname });
-        if (reload) return go(ensUrl);
-        urlToGo = ensUrl;
-        sessionENSNames[urlToGo] = { hostname, hash, type };
+        try {
+          const {
+            url: ensUrl,
+            type,
+            hash,
+            reload,
+          } = await handleIpfsContent(url, { hostname, query, pathname });
+          if (reload) return go(ensUrl);
+          urlToGo = ensUrl;
+          sessionENSNames[urlToGo] = { hostname, hash, type };
+          setIsResolvedIpfsUrl(true);
+        } catch (error) {
+          return null;
+        }
       }
 
       if (isAllowedUrl(hostname)) {
@@ -572,6 +599,7 @@ export const BrowserTab = (props) => {
    */
   const reload = useCallback(() => {
     const { current } = webviewRef;
+
     current && current.reload();
   }, []);
 
@@ -810,6 +838,11 @@ export const BrowserTab = (props) => {
       return false;
     }
 
+    if (!props.isIpfsGatewayEnabled && isResolvedIpfsUrl) {
+      setIpfsBannerVisible(true);
+      return false;
+    }
+
     // Continue request loading it the protocol is whitelisted
     const { protocol } = new URL(url);
     if (protocolAllowList.includes(protocol)) return true;
@@ -868,8 +901,6 @@ export const BrowserTab = (props) => {
     const urlObj = new URL(nativeEvent.url);
     const { origin, pathname = '', query = '' } = urlObj;
     const realUrl = `${origin}${pathname}${query}`;
-    // Generate favicon.
-    const favicon = `https://api.faviconkit.com/${getHost(realUrl)}/50`;
     // Update navigation bar address with title of loaded url.
     changeUrl({ ...nativeEvent, url: realUrl, icon: favicon });
     changeAddressBar({ ...nativeEvent, url: realUrl, icon: favicon });
@@ -1087,6 +1118,15 @@ export const BrowserTab = (props) => {
   }, [sendActiveAccount, permittedAccountsList]);
 
   /**
+   * Check when the ipfs gateway is enabled to hide the banner
+   */
+  useEffect(() => {
+    if (props.isIpfsGatewayEnabled) {
+      setIpfsBannerVisible(false);
+    }
+  }, [props.isIpfsGatewayEnabled]);
+
+  /**
    * Allow list updates do not propigate through the useCallbacks this updates a ref that is use in the callbacks
    */
   const updateAllowList = () => {
@@ -1165,9 +1205,7 @@ export const BrowserTab = (props) => {
               contentDescription: `Launch ${name || url} on MetaMask`,
               keywords: [name.split(' '), url, 'dapp'],
               thumbnail: {
-                uri:
-                  icon.current ||
-                  `https://api.faviconkit.com/${getHost(url)}/256`,
+                uri: icon.current || favicon,
               },
             };
             try {
@@ -1391,6 +1429,41 @@ export const BrowserTab = (props) => {
     [reload],
   );
 
+  const renderIpfsBanner = () => (
+    <View style={styles.bannerContainer}>
+      <Banner
+        title={strings('ipfs_gateway_banner.ipfs_gateway_banner_title')}
+        description={
+          <CLText>
+            {strings('ipfs_gateway_banner.ipfs_gateway_banner_content1')}{' '}
+            <CLText variant={TextVariant.BodyMDBold}>
+              {strings('ipfs_gateway_banner.ipfs_gateway_banner_content2')}
+            </CLText>{' '}
+            {strings('ipfs_gateway_banner.ipfs_gateway_banner_content3')}{' '}
+            <CLText variant={TextVariant.BodyMDBold}>
+              {strings('ipfs_gateway_banner.ipfs_gateway_banner_content4')}
+            </CLText>
+          </CLText>
+        }
+        actionButtonProps={{
+          variant: ButtonVariants.Link,
+          onPress: () =>
+            props.navigation.navigate(Routes.MODAL.ROOT_MODAL_FLOW, {
+              screen: Routes.SHEET.SHOW_IPFS,
+              params: {
+                setIpfsBannerVisible: () => setIpfsBannerVisible(false),
+              },
+            }),
+          textVariant: TextVariant.BodyMD,
+          label: 'Turn on IPFS gateway',
+        }}
+        variant={BannerVariant.Alert}
+        severity={BannerAlertSeverity.Info}
+        onClose={() => setIpfsBannerVisible(false)}
+      />
+    </View>
+  );
+
   /**
    * Main render
    */
@@ -1402,37 +1475,41 @@ export const BrowserTab = (props) => {
       >
         <View style={styles.webview}>
           {!!entryScriptWeb3 && firstUrlLoaded && (
-            <WebView
-              originWhitelist={['*']}
-              decelerationRate={'normal'}
-              ref={webviewRef}
-              renderError={() => (
-                <WebviewError error={error} returnHome={returnHome} />
-              )}
-              source={{ uri: initialUrl }}
-              injectedJavaScriptBeforeContentLoaded={entryScriptWeb3}
-              style={styles.webview}
-              onLoadStart={onLoadStart}
-              onLoad={onLoad}
-              onLoadEnd={onLoadEnd}
-              onLoadProgress={onLoadProgress}
-              onMessage={onMessage}
-              onError={onError}
-              onShouldStartLoadWithRequest={onShouldStartLoadWithRequest}
-              sendCookies
-              javascriptEnabled
-              allowsInlineMediaPlayback
-              useWebkit
-              testID={'browser-webview'}
-              applicationNameForUserAgent={'WebView MetaMaskMobile'}
-              onFileDownload={handleOnFileDownload}
-            />
+            <>
+              <WebView
+                originWhitelist={['*']}
+                decelerationRate={'normal'}
+                ref={webviewRef}
+                renderError={() => (
+                  <WebviewError error={error} returnHome={returnHome} />
+                )}
+                source={{ uri: initialUrl }}
+                injectedJavaScriptBeforeContentLoaded={entryScriptWeb3}
+                style={styles.webview}
+                onLoadStart={onLoadStart}
+                onLoad={onLoad}
+                onLoadEnd={onLoadEnd}
+                onLoadProgress={onLoadProgress}
+                onMessage={onMessage}
+                onError={onError}
+                onShouldStartLoadWithRequest={onShouldStartLoadWithRequest}
+                sendCookies
+                javascriptEnabled
+                allowsInlineMediaPlayback
+                useWebkit
+                testID={'browser-webview'}
+                applicationNameForUserAgent={'WebView MetaMaskMobile'}
+                onFileDownload={handleOnFileDownload}
+              />
+              {ipfsBannerVisible && renderIpfsBanner()}
+            </>
           )}
         </View>
         {updateAllowList()}
         {renderProgressBar()}
         {isTabActive && renderPhishingModal()}
         {isTabActive && renderOptions()}
+
         {isTabActive && renderBottomBar()}
         {isTabActive && renderOnboardingWizard()}
       </View>
@@ -1526,6 +1603,14 @@ BrowserTab.propTypes = {
    * the current version of the app
    */
   app_version: PropTypes.string,
+  /**
+   * Represents ipfs gateway toggle
+   */
+  isIpfsGatewayEnabled: PropTypes.bool,
+  /**
+   * Represents the current chain id
+   */
+  chainId: PropTypes.string,
 };
 
 BrowserTab.defaultProps = {
@@ -1536,9 +1621,11 @@ const mapStateToProps = (state) => ({
   bookmarks: state.bookmarks,
   ipfsGateway: selectIpfsGateway(state),
   selectedAddress: selectSelectedAddress(state)?.toLowerCase(),
+  isIpfsGatewayEnabled: selectIsIpfsGatewayEnabled(state),
   searchEngine: state.settings.searchEngine,
   whitelist: state.browser.whitelist,
   wizardStep: state.wizard.step,
+  chainId: selectChainId(state),
 });
 
 const mapDispatchToProps = (dispatch) => ({

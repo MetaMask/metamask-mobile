@@ -10,6 +10,7 @@ import Engine from '../../../../core/Engine';
 import ActionSheet from 'react-native-actionsheet';
 import { mockTheme, ThemeContext } from '../../../../util/theme';
 import { selectChainId } from '../../../../selectors/networkController';
+import Routes from '../../../../../app/constants/navigation/Routes';
 
 import generateTestId from '../../../../../wdio/utils/generateTestId';
 import {
@@ -124,6 +125,13 @@ class Contacts extends PureComponent {
     this.actionSheet = ref;
   };
 
+  onIconPress = () => {
+    const { navigation } = this.props;
+    navigation.navigate(Routes.MODAL.ROOT_MODAL_FLOW, {
+      screen: Routes.SHEET.AMBIGUOUS_ADDRESS,
+    });
+  };
+
   render = () => {
     const { reloadAddressList } = this.state;
     const colors = this.context.colors || mockTheme.colors;
@@ -139,6 +147,7 @@ class Contacts extends PureComponent {
           onlyRenderAddressBook
           reloadAddressList={reloadAddressList}
           onAccountPress={this.onAddressPress}
+          onIconPress={this.onIconPress}
           onAccountLongPress={this.onAddressLongPress}
         />
         <StyledButton
