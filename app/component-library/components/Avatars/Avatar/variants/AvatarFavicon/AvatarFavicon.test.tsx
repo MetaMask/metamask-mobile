@@ -11,6 +11,7 @@ import {
   TEST_REMOTE_IMAGE_SOURCE,
   FAVICON_AVATAR_IMAGE_ID,
   TEST_LOCAL_IMAGE_SOURCE,
+  TEST_REMOTE_SVG_IMAGE_SOURCE,
 } from './AvatarFavicon.constants';
 
 describe('AvatarFavicon', () => {
@@ -50,6 +51,16 @@ describe('AvatarFavicon', () => {
     expect(imageComponent.exists()).toBe(true);
   });
 
+  it('should render SVG', () => {
+    const wrapper = shallow(
+      <AvatarFavicon
+        size={AvatarSize.Xl}
+        imageSource={TEST_REMOTE_SVG_IMAGE_SOURCE}
+      />,
+    );
+    expect(wrapper).toMatchSnapshot();
+  });
+
   it('should render fallback', () => {
     const wrapper = shallow(
       <AvatarFavicon
@@ -66,5 +77,24 @@ describe('AvatarFavicon', () => {
       (node) => node.prop('testID') === FAVICON_AVATAR_IMAGE_ID,
     );
     expect(currentImageComponent.exists()).toBe(false);
+  });
+
+  it('should render fallback when svg has error', () => {
+    const wrapper = shallow(
+      <AvatarFavicon
+        size={AvatarSize.Xl}
+        imageSource={TEST_REMOTE_SVG_IMAGE_SOURCE}
+      />,
+    );
+    const prevImageComponent = wrapper.findWhere(
+      (node) => node.prop('testID') === FAVICON_AVATAR_IMAGE_ID,
+    );
+    // Simulate onError on Image component
+    prevImageComponent.props().onError(new Error('ERROR!'));
+    const currentImageComponent = wrapper.findWhere(
+      (node) => node.prop('testID') === FAVICON_AVATAR_IMAGE_ID,
+    );
+    expect(currentImageComponent.exists()).toBe(false);
+    expect(wrapper).toMatchSnapshot();
   });
 });
