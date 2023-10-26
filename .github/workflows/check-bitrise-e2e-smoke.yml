@@ -2,7 +2,7 @@ name: Check Bitrise E2E Smoke Tests
 
 on:
   pull_request:
-    types: [opened, ready_for_review, labeled]
+    types: [opened, reopened, ready_for_review, labeled]
 
 env:
   E2E_LABEL: 'Run Smoke E2E'
