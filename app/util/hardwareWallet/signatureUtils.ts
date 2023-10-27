@@ -23,14 +23,12 @@ export default async (
   };
 
   if (!keyring) {
-    //TODO: add error handling
     throw new Error(`Keyring not found for address ${messageParams.from}`);
   }
 
   const navPromise = navMethodFactory.get(keyring.type as HardwareDeviceNames);
 
   if (navPromise === undefined) {
-    //TODO: add error handling
     throw new Error(
       `Keyring type ${keyring.type} not supported for signature redirect navigation`,
     );
