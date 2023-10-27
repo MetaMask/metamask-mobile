@@ -81,7 +81,7 @@ const LedgerConfirmationModal = ({
       // After arriving to confirmation the ETH app is not installed anymore this causes a crash.
       AnalyticsV2.trackEvent(MetaMetricsEvents.LEDGER_HARDWARE_WALLET_ERROR, {
         device_type: 'Ledger',
-        error_details: strings('ledger.error_transaction_ethereumapp'),
+        error: 'LEDGER_ETH_APP_NOT_INSTALLED',
       });
     }
   };
@@ -182,14 +182,10 @@ const LedgerConfirmationModal = ({
           });
           break;
       }
-      if (
-        ledgerError !== LedgerCommunicationErrors.LedgerHasPendingConfirmation
-      ) {
+      if (ledgerError !== LedgerCommunicationErrors.UserRefusedConfirmation) {
         AnalyticsV2.trackEvent(MetaMetricsEvents.LEDGER_HARDWARE_WALLET_ERROR, {
           device_type: 'Ledger',
-          error_details: strings(
-            `${errorDetails?.title}_${errorDetails?.subtitle}`,
-          ),
+          error: `${ledgerError}`,
         });
       }
     }
@@ -212,9 +208,7 @@ const LedgerConfirmationModal = ({
       setPermissionErrorShown(true);
       AnalyticsV2.trackEvent(MetaMetricsEvents.LEDGER_HARDWARE_WALLET_ERROR, {
         device_type: 'Ledger',
-        error_details: strings(
-          `${errorDetails?.title}_${errorDetails?.subtitle}`,
-        ),
+        error: 'LEDGER_BLUETOOTH_PERMISSION_ERR',
       });
     }
 
@@ -225,9 +219,7 @@ const LedgerConfirmationModal = ({
       });
       AnalyticsV2.trackEvent(MetaMetricsEvents.LEDGER_HARDWARE_WALLET_ERROR, {
         device_type: 'Ledger',
-        error_details: strings(
-          `${errorDetails?.title}_${errorDetails?.subtitle}`,
-        ),
+        error: 'LEDGER_BLUETOOTH_PERMISSION_ERR',
       });
     }
 
