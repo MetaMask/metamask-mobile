@@ -1,19 +1,149 @@
+diff --git a/node_modules/@metamask/snaps-controllers/dist/cjs/snaps/SnapController.js b/node_modules/@metamask/snaps-controllers/dist/cjs/snaps/SnapController.js
+index afb526b..ae9d746 100644
+--- a/node_modules/@metamask/snaps-controllers/dist/cjs/snaps/SnapController.js
++++ b/node_modules/@metamask/snaps-controllers/dist/cjs/snaps/SnapController.js
+@@ -598,6 +598,7 @@ class SnapController extends _basecontroller.BaseControllerV2 {
+    * @returns An object of snap ids and snap objects, or errors if a
+    * snap couldn't be installed.
+    */ async installSnaps(origin, requestedSnaps) {
++        console.log('SNAPS/ SnapsController installSnaps called with', origin, {requestedSnaps});
+         const result = {};
+         const snapIds = Object.keys(requestedSnaps);
+         const pendingUpdates = [];
+@@ -605,7 +606,9 @@ class SnapController extends _basecontroller.BaseControllerV2 {
+         try {
+             for (const [snapId, { version: rawVersion }] of Object.entries(requestedSnaps)){
+                 (0, _snapsutils.assertIsValidSnapId)(snapId);
++                console.log('SNAPS/ SnapsController installSnaps assertIsValidSnapId');
+                 const [error, version] = (0, _snapsutils.resolveVersionRange)(rawVersion);
++                console.log('SNAPS/ SnapsController installSnaps resolveVersionRange', error, version);
+                 if (error) {
+                     throw _ethrpcerrors.ethErrors.rpc.invalidParams(`The "version" field must be a valid SemVer version range if specified. Received: "${rawVersion}".`);
+                 }
+@@ -614,6 +617,7 @@ class SnapController extends _basecontroller.BaseControllerV2 {
+                     fetch: _class_private_field_get(this, _fetchFunction),
+                     allowLocal: _class_private_field_get(this, _featureFlags).allowLocalSnaps
+                 });
++                console.log('SNAPS/ SnapsController installSnaps location', {location});
+                 // Existing snaps may need to be updated, unless they should be re-installed (e.g. local snaps)
+                 // Everything else is treated as an install
+                 const isUpdate = this.has(snapId) && !location.shouldAlwaysReload;
+@@ -629,7 +633,9 @@ class SnapController extends _basecontroller.BaseControllerV2 {
+                 } else if (!isUpdate) {
+                     pendingInstalls.push(snapId);
+                 }
++                console.log('SNAPS/ SnapsController installSnaps calling processRequestedSnap');
+                 result[snapId] = await this.processRequestedSnap(origin, snapId, location, version);
++                console.log('SNAPS/ SnapsController installSnaps processRequestedSnap result', result[snapId]);
+             }
+             snapIds.forEach((snapId)=>_class_private_field_get(this, _rollbackSnapshots).delete(snapId));
+         } catch (error) {
+@@ -654,6 +660,7 @@ class SnapController extends _basecontroller.BaseControllerV2 {
+    * @param versionRange - The semver range of the snap to install.
+    * @returns The resulting snap object, or an error if something went wrong.
+    */ async processRequestedSnap(origin, snapId, location, versionRange) {
++        console.log('SNAPS/ SnapsController processRequestedSnap called with', origin, snapId, location, versionRange);
+         const existingSnap = this.getTruncated(snapId);
+         // For devX we always re-install local snaps.
+         if (existingSnap && !location.shouldAlwaysReload) {
+@@ -679,22 +686,27 @@ class SnapController extends _basecontroller.BaseControllerV2 {
+             _class_private_method_get(this, _revokeAllSnapPermissions, revokeAllSnapPermissions).call(this, snapId);
+         }
+         try {
++            console.log('SNAPS/ SnapsController processRequestedSnap calling add');
+             const { sourceCode } = await _class_private_method_get(this, _add, add).call(this, {
+                 origin,
+                 id: snapId,
+                 location,
+                 versionRange
+             });
++            console.log('SNAPS/ SnapsController processRequestedSnap add result', {sourceCode});
+             await this.authorize(snapId, pendingApproval);
++            console.log('SNAPS/ SnapsController processRequestedSnap authorized');
+             pendingApproval = _class_private_method_get(this, _createApproval, createApproval).call(this, {
+                 origin,
+                 snapId,
+                 type: SNAP_APPROVAL_RESULT
+             });
++            console.log('SNAPS/ SnapsController processRequestedSnap createApproval', {pendingApproval});
+             await _class_private_method_get(this, _startSnap, startSnap).call(this, {
+                 snapId,
+                 sourceCode
+             });
++            console.log('SNAPS/ SnapsController processRequestedSnap startSnap');
+             const truncated = this.getTruncatedExpect(snapId);
+             _class_private_method_get(this, _updateApproval, updateApproval).call(this, pendingApproval.id, {
+                 loading: false,
+@@ -1339,18 +1351,22 @@ function updateApproval(id, requestState) {
+ }
+ async function add(args) {
+     const { id: snapId, location, versionRange } = args;
++    console.log('SNAPS/ SnapstoreController: add called with args: ', args);
+     _class_private_method_get(this, _setupRuntime, setupRuntime).call(this, snapId, {
+         sourceCode: null,
+         state: null
+     });
+     const runtime = _class_private_method_get(this, _getRuntimeExpect, getRuntimeExpect).call(this, snapId);
++    console.log('SNAPS/ SnapstoreController: add runtime');
+     if (!runtime.installPromise) {
+         (0, _logging.log)(`Adding snap: ${snapId}`);
+         // If fetching and setting the snap succeeds, this property will be set
+         // to null in the authorize() method.
+         runtime.installPromise = (async ()=>{
+             const fetchedSnap = await _class_private_method_get(this, _fetchSnap, fetchSnap).call(this, snapId, location);
++            console.log('SNAPS/ SnapstoreController: add fetchedSnap: ', fetchedSnap);
+             const manifest = fetchedSnap.manifest.result;
++            console.log('SNAPS/ SnapstoreController: add manifest: ', manifest);
+             if (!(0, _utils.satisfiesVersionRange)(manifest.version, versionRange)) {
+                 throw new Error(`Version mismatch. Manifest for "${snapId}" specifies version "${manifest.version}" which doesn't satisfy requested version range "${versionRange}".`);
+             }
+@@ -1476,11 +1492,16 @@ function set(args) {
+     };
+ }
+ async function fetchSnap(snapId, location) {
++    console.log('SNAPS/ SnapstoreController: fetchSnap called with snapId: ', snapId, ' and location: ', location);
+     try {
+         const manifest = await location.manifest();
++        console.log('SNAPS/ SnapstoreController: fetchSnap manifest', manifest);
+         const sourceCode = await location.fetch(manifest.result.source.location.npm.filePath);
++        console.log('SNAPS/ SnapstoreController: fetchSnap sourcecode');
+         const { iconPath } = manifest.result.source.location.npm;
++        console.log('SNAPS/ SnapstoreController: fetchSnap icon path');
+         const svgIcon = iconPath ? await location.fetch(iconPath) : undefined;
++        console.log('SNAPS/ SnapstoreController: fetchSnap svgIcon', svgIcon);
+         const files = [
+             sourceCode
+         ];
+@@ -1492,6 +1513,7 @@ async function fetchSnap(snapId, location) {
+             sourceCode,
+             svgIcon
+         });
++        console.log('SNAPS/ SnapstoreController: fetchSnap returning data');
+         return {
+             manifest,
+             files,
 diff --git a/node_modules/@metamask/snaps-controllers/dist/esm/snaps/SnapController.js b/node_modules/@metamask/snaps-controllers/dist/esm/snaps/SnapController.js
-index c341023..087aafb 100644
+index c341023..d7a734f 100644
 --- a/node_modules/@metamask/snaps-controllers/dist/esm/snaps/SnapController.js
 +++ b/node_modules/@metamask/snaps-controllers/dist/esm/snaps/SnapController.js
-@@ -582,8 +582,10 @@ _initializeStateMachine = /*#__PURE__*/ new WeakSet(), /**
+@@ -577,13 +577,16 @@ _initializeStateMachine = /*#__PURE__*/ new WeakSet(), /**
+    * @returns An object of snap ids and snap objects, or errors if a
+    * snap couldn't be installed.
+    */ async installSnaps(origin, requestedSnaps) {
++    console.log('SNAPS/ SnapController:installSnaps', {origin}, {requestedSnaps});
+         const result = {};
+         const snapIds = Object.keys(requestedSnaps);
          const pendingUpdates = [];
          const pendingInstalls = [];
          try {
-+            console.log('SNAPS/ SnapController:installSnaps', {origin}, {requestedSnaps});
++            console.log('SNAPS/ SnapController:installSnaps try', {origin}, {requestedSnaps});
              for (const [snapId, { version: rawVersion }] of Object.entries(requestedSnaps)){
                  assertIsValidSnapId(snapId);
 +                console.log('SNAPS/ SnapController:installSnaps isValidSnapId', snapId);
                  const [error, version] = resolveVersionRange(rawVersion);
                  if (error) {
                      throw ethErrors.rpc.invalidParams(`The "version" field must be a valid SemVer version range if specified. Received: "${rawVersion}".`);
-@@ -633,6 +635,7 @@ _initializeStateMachine = /*#__PURE__*/ new WeakSet(), /**
+@@ -633,6 +636,7 @@ _initializeStateMachine = /*#__PURE__*/ new WeakSet(), /**
     * @param versionRange - The semver range of the snap to install.
     * @returns The resulting snap object, or an error if something went wrong.
     */ async processRequestedSnap(origin, snapId, location, versionRange) {
@@ -21,3 +151,19 @@ index c341023..087aafb 100644
          const existingSnap = this.getTruncated(snapId);
          // For devX we always re-install local snaps.
          if (existingSnap && !location.shouldAlwaysReload) {
+@@ -908,6 +912,7 @@ _initializeStateMachine = /*#__PURE__*/ new WeakSet(), /**
+     constructor({ closeAllConnections, messenger, state, dynamicPermissions = [
+         'eth_accounts'
+     ], environmentEndowmentPermissions = [], excludedPermissions = {}, idleTimeCheckInterval = inMilliseconds(5, Duration.Second), maxIdleTime = inMilliseconds(30, Duration.Second), maxRequestTime = inMilliseconds(60, Duration.Second), fetchFunction = globalThis.fetch.bind(globalThis), featureFlags = {}, detectSnapLocation: detectSnapLocationFunction = detectSnapLocation }){
++        console.log('SNAPS/ SnapsController constructor');
+         super({
+             messenger,
+             metadata: {
+@@ -1455,6 +1460,7 @@ function set(args) {
+     };
+ }
+ async function fetchSnap(snapId, location) {
++    console.log('SNAPS/ SnapController fetchSnap', snapId, location);
+     try {
+         const manifest = await location.manifest();
+         const sourceCode = await location.fetch(manifest.result.source.location.npm.filePath);

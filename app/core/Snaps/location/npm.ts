@@ -311,7 +311,7 @@ export class NpmLocation implements SnapLocation {
     this.files.set(sourceCodeVFile.path, sourceCodeVFile);
 
     // cleanup filesystem
-    await cleanupFileSystem(pathToFiles);
+    // await cleanupFileSystem(pathToFiles);
   };
 }
 
