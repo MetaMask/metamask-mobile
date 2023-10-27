@@ -62,16 +62,10 @@ import AUTHENTICATION_TYPE from '../../../constants/userProperties';
 import { ThemeContext, mockTheme } from '../../../util/theme';
 import AnimatedFox from 'react-native-animated-fox';
 
-import {
-  CREATE_PASSWORD_CONTAINER_ID,
-  CREATE_PASSWORD_INPUT_BOX_ID,
-  CONFIRM_PASSWORD_INPUT_BOX_ID,
-  IOS_I_UNDERSTAND_BUTTON_ID,
-  ANDROID_I_UNDERSTAND_BUTTON_ID,
-} from '../../../constants/test-ids';
 import { LoginOptionsSwitch } from '../../UI/LoginOptionsSwitch';
 import generateTestId from '../../../../wdio/utils/generateTestId';
 import navigateTermsOfUse from '../../../util/termsOfUse/termsOfUse';
+import { ChoosePasswordSelectorsIDs } from '../../../../e2e/selectors/Onboarding/ChoosePassword.selectors';
 
 const createStyles = (colors) =>
   StyleSheet.create({
@@ -634,7 +628,7 @@ class ChoosePassword extends PureComponent {
               contentContainerStyle={styles.keyboardScrollableWrapper}
               resetScrollToCoords={{ x: 0, y: 0 }}
             >
-              <View testID={CREATE_PASSWORD_CONTAINER_ID}>
+              <View testID={ChoosePasswordSelectorsIDs.CONTAINER_ID}>
                 <View style={styles.content}>
                   <Text variant={TextVariant.HeadingLG} style={styles.title}>
                     {strings('choose_password.title')}
@@ -668,7 +662,10 @@ class ChoosePassword extends PureComponent {
                     secureTextEntry={secureTextEntry}
                     placeholder=""
                     placeholderTextColor={colors.text.muted}
-                    {...generateTestId(Platform, CREATE_PASSWORD_INPUT_BOX_ID)}
+                    {...generateTestId(
+                      Platform,
+                      ChoosePasswordSelectorsIDs.NEW_PASSWORD_INPUT_ID,
+                    )}
                     onSubmitEditing={this.jumpToConfirmPassword}
                     returnKeyType="next"
                     autoCapitalize="none"
@@ -709,8 +706,12 @@ class ChoosePassword extends PureComponent {
                     secureTextEntry={secureTextEntry}
                     placeholder={''}
                     placeholderTextColor={colors.text.muted}
-                    testID={CONFIRM_PASSWORD_INPUT_BOX_ID}
-                    accessibilityLabel={CONFIRM_PASSWORD_INPUT_BOX_ID}
+                    testID={
+                      ChoosePasswordSelectorsIDs.CONFIRM_PASSWORD_INPUT_ID
+                    }
+                    accessibilityLabel={
+                      ChoosePasswordSelectorsIDs.CONFIRM_PASSWORD_INPUT_ID
+                    }
                     onSubmitEditing={this.onPressCreate}
                     returnKeyType={'done'}
                     autoCapitalize="none"
@@ -745,14 +746,20 @@ class ChoosePassword extends PureComponent {
                       false: colors.border.default,
                     }}
                     boxType="square"
-                    testID={IOS_I_UNDERSTAND_BUTTON_ID}
-                    accessibilityLabel={IOS_I_UNDERSTAND_BUTTON_ID}
+                    testID={
+                      ChoosePasswordSelectorsIDs.IOS_I_UNDERSTAND_BUTTON_ID
+                    }
+                    accessibilityLabel={
+                      ChoosePasswordSelectorsIDs.IOS_I_UNDERSTAND_BUTTON_ID
+                    }
                   />
                   <Text
                     style={styles.label}
                     variant={TextVariant.BodySM}
                     onPress={this.setSelection}
-                    testID={ANDROID_I_UNDERSTAND_BUTTON_ID}
+                    testID={
+                      ChoosePasswordSelectorsIDs.ANDROID_I_UNDERSTAND_BUTTON_ID
+                    }
                   >
                     {strings('choose_password.i_understand')}{' '}
                     <Text
