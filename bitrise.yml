@@ -376,7 +376,7 @@ workflows:
             - content: |-
                 #!/usr/bin/env bash
                 node -v
-                IGNORE_BOXLOGS_DEVELOPMENT="true" FORCE_BUNDLING=true yarn test:e2e:ios:debug --testNamePattern='Smoke'
+                IGNORE_BOXLOGS_DEVELOPMENT="true" FORCE_BUNDLING=true yarn test:e2e:ios:debug --testNamePattern='$TEST_SUITE'
           title: Detox Build & Test
           is_always_run: false
       - custom-test-results-export@1:
@@ -813,6 +813,9 @@ app:
     - opts:
         is_expand: false
       IOS_APP_LINK: ''
+    - opts:
+        is_expand: false
+      TEST_SUITE: 'regression'
 meta:
   bitrise.io:
     stack: osx-xcode-14.2.x-ventura
