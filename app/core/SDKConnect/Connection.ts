@@ -531,7 +531,7 @@ export class Connection extends EventEmitter2 {
         if (lcMethod === RPC_METHODS.ETH_SENDTRANSACTION.toLowerCase()) {
           if (
             !(
-              message.params &&
+              message?.params &&
               Array.isArray(message.params) &&
               message.params.length > 0
             )
