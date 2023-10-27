@@ -70,7 +70,6 @@ const WalletActions = () => {
       navigate(Routes.RAMP.BUY);
       Analytics.trackEventWithParameters(MetaMetricsEvents.BUY_BUTTON_CLICKED, {
         text: 'Buy',
-        tokenSymbol: '',
         location: 'TabBar',
         chain_id: chainId,
       });
@@ -80,13 +79,14 @@ const WalletActions = () => {
   const onSell = () => {
     sheetRef.current?.hide(() => {
       navigate(Routes.RAMP.SELL);
-      // TODO - add analytics for sell
-      // Analytics.trackEventWithParameters(MetaMetricsEvents.BUY_BUTTON_CLICKED, {
-      //   text: 'Buy',
-      //   tokenSymbol: '',
-      //   location: 'TabBar',
-      //   chain_id: chainId,
-      // });
+      Analytics.trackEventWithParameters(
+        MetaMetricsEvents.SELL_BUTTON_CLICKED,
+        {
+          text: 'Buy',
+          location: 'TabBar',
+          chain_id: chainId,
+        },
+      );
     });
   };
   const onSend = () => {

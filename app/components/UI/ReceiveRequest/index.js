@@ -193,6 +193,7 @@ class ReceiveRequest extends PureComponent {
       toggleReceiveModal();
       navigation.navigate(Routes.RAMP.BUY);
       InteractionManager.runAfterInteractions(() => {
+        // ASK PEDRO - do we need an "onSell" method?
         Analytics.trackEventWithParameters(
           MetaMetricsEvents.BUY_BUTTON_CLICKED,
           {

@@ -15,12 +15,7 @@ export type ScreenLocation =
 interface RampButtonClicked {
   text: 'Buy' | 'Buy Native Token';
   location: string;
-}
-interface BuyButtonClicked extends RampButtonClicked {
-  chain_id_destination?: string;
-}
-interface SellButtonClicked extends RampButtonClicked {
-  chain_id_source?: string;
+  chain_id?: string;
 }
 
 interface RampRegionSelected {
@@ -293,8 +288,8 @@ export interface RampError {
 }
 
 export interface EventTypes {
-  BUY_BUTTON_CLICKED: BuyButtonClicked;
-  SELL_BUTTON_CLICKED: SellButtonClicked;
+  BUY_BUTTON_CLICKED: RampButtonClicked;
+  SELL_BUTTON_CLICKED: RampButtonClicked;
 
   ONRAMP_REGION_SELECTED: OnrampRegionSelected;
   OFFRAMP_REGION_SELECTED: OfframpRegionSelected;

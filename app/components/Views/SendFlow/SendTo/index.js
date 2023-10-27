@@ -317,6 +317,7 @@ class SendFlow extends PureComponent {
     this.setState({ toInputHighlighted: !toInputHighlighted });
   };
 
+  // ASK PEDRO - do we need a go to sell
   goToBuy = () => {
     this.props.navigation.navigate(Routes.RAMP.BUY);
     InteractionManager.runAfterInteractions(() => {

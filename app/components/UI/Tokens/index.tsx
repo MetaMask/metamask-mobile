@@ -313,6 +313,7 @@ const Tokens: React.FC<TokensI> = ({ tokens }) => {
     );
   };
 
+  // ASK PEDRO - do we need a "goToSell" method?
   const goToBuy = () => {
     navigation.navigate(Routes.RAMP.BUY);
     InteractionManager.runAfterInteractions(() => {
