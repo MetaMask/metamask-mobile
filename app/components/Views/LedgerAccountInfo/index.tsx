@@ -30,6 +30,8 @@ import AccountDetails from '../ConnectQRHardware/AccountDetails';
 
 import ledgerDeviceDarkImage from '../../../images/ledger-device-dark.png';
 import ledgerDeviceLightImage from '../../../images/ledger-device-light.png';
+import AnalyticsV2 from '../../../util/analyticsV2';
+import { MetaMetricsEvents } from '../../../core/Analytics';
 
 const createStyles = (colors: any) =>
   StyleSheet.create({
@@ -116,6 +118,9 @@ const LedgerAccountInfo = () => {
   const onForgetDevice = async () => {
     await forgetLedger();
     dispatch(setReloadAccounts(true));
+    AnalyticsV2.trackEvent(MetaMetricsEvents.LEDGER_HARDWARE_WALLET_FORGOTTEN, {
+      device_type: 'Ledger',
+    });
     navigation.goBack();
   };
 

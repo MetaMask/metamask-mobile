@@ -307,6 +307,14 @@ enum EVENT_NAME {
 
   // Edit account name
   ACCOUNT_RENAMED = 'Account Renamed',
+
+  //Ledger
+  CONNECT_LEDGER = 'Clicked Connect Ledger',
+  CONTINUE_LEDGER_HARDWARE_WALLET = 'Clicked Continue Ledger Hardware Wallet',
+  CONNECT_LEDGER_SUCCESS = 'Connected Account with hardware wallet',
+  LEDGER_HARDWARE_TRANSACTION_CANCELLED = 'User canceled Ledger hardware transaction',
+  LEDGER_HARDWARE_WALLET_ERROR = 'Ledger hardware wallet error',
+  LEDGER_HARDWARE_WALLET_FORGOTTEN = 'Ledger hardware wallet forgotten',
 }
 
 enum ACTIONS {
@@ -702,6 +710,22 @@ const events = {
   // Experimental Settings
   SETTINGS_EXPERIMENTAL_SECURITY_ALERTS_ENABLED: generateOpt(
     EVENT_NAME.SETTINGS_UPDATED,
+  ),
+
+  // Ledger
+  CONNECT_LEDGER: generateOpt(EVENT_NAME.CONNECT_LEDGER),
+  CONTINUE_LEDGER_HARDWARE_WALLET: generateOpt(
+    EVENT_NAME.CONTINUE_LEDGER_HARDWARE_WALLET,
+  ),
+  CONNECT_LEDGER_SUCCESS: generateOpt(EVENT_NAME.CONNECT_LEDGER_SUCCESS),
+  LEDGER_HARDWARE_TRANSACTION_CANCELLED: generateOpt(
+    EVENT_NAME.LEDGER_HARDWARE_TRANSACTION_CANCELLED,
+  ),
+  LEDGER_HARDWARE_WALLET_ERROR: generateOpt(
+    EVENT_NAME.LEDGER_HARDWARE_WALLET_ERROR,
+  ),
+  LEDGER_HARDWARE_WALLET_FORGOTTEN: generateOpt(
+    EVENT_NAME.LEDGER_HARDWARE_WALLET_FORGOTTEN,
   ),
 };
 

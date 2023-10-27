@@ -32,6 +32,8 @@ import LedgerConnectionError, {
 } from './LedgerConnectionError';
 import { getNavigationOptionsTitle } from '../../UI/Navbar';
 import { unlockLedgerDefaultAccount } from '../../../core/Ledger/Ledger';
+import { MetaMetricsEvents } from '../../../core/Analytics';
+import AnalyticsV2 from '../../../util/analyticsV2';
 
 const ledgerDeviceDarkImage = require('../../../images/ledger-device-dark.png');
 const ledgerDeviceLightImage = require('../../../images/ledger-device-light.png');
@@ -131,10 +133,15 @@ const LedgerConnect = () => {
 
   const connectLedger = () => {
     setLoading(true);
+    AnalyticsV2.trackEvent(MetaMetricsEvents.CONTINUE_LEDGER_HARDWARE_WALLET, {
+      device_type: 'Ledger',
+    });
     ledgerLogicToRun(async () => {
       const account = await unlockLedgerDefaultAccount();
       await AccountTrackerController.syncBalanceWithAddresses([account]);
-
+      AnalyticsV2.trackEvent(MetaMetricsEvents.CONNECT_LEDGER_SUCCESS, {
+        device_type: 'Ledger',
+      });
       navigation.dispatch(StackActions.popToTop());
     });
   };

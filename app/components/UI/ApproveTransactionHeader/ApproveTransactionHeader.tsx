@@ -17,11 +17,7 @@ import {
   renderShortAddress,
   getLabelTextByAddress,
 } from '../../../util/address';
-import {
-  getHost,
-  getUrlObj,
-  prefixUrlWithProtocol,
-} from '../../../util/browser';
+import { getUrlObj, prefixUrlWithProtocol } from '../../../util/browser';
 import {
   getNetworkImageSource,
   getNetworkNameFromProviderConfig,
