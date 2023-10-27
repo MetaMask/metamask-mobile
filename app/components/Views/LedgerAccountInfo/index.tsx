@@ -112,9 +112,6 @@ const LedgerAccountInfo = () => {
     };
 
     getAccount();
-    AnalyticsV2.trackEvent(MetaMetricsEvents.CONNECT_LEDGER, {
-      device_type: 'Ledger',
-    });
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 

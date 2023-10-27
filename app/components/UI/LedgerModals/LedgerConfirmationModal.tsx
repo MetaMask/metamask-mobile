@@ -75,22 +75,29 @@ const LedgerConfirmationModal = ({
       ledgerLogicToRun(async () => {
         await unlockLedgerDefaultAccount();
         await onConfirmation();
-        AnalyticsV2.trackEvent(MetaMetricsEvents.CONNECT_LEDGER_SUCCESS, {
-          device_type: 'Ledger',
-        });
       });
     } catch (_e) {
       // Handle a super edge case of the user starting a transaction with the device connected
       // After arriving to confirmation the ETH app is not installed anymore this causes a crash.
       AnalyticsV2.trackEvent(MetaMetricsEvents.LEDGER_HARDWARE_WALLET_ERROR, {
         device_type: 'Ledger',
+        error_details: strings('ledger.error_transaction_ethereumapp'),
       });
     }
   };
 
   // In case of manual rejection
   const onReject = () => {
-    onRejection();
+    try {
+      onRejection();
+    } finally {
+      AnalyticsV2.trackEvent(
+        MetaMetricsEvents.LEDGER_HARDWARE_TRANSACTION_CANCELLED,
+        {
+          device_type: 'Ledger',
+        },
+      );
+    }
   };
 
   const onRetry = async () => {
@@ -175,9 +182,16 @@ const LedgerConfirmationModal = ({
           });
           break;
       }
-      AnalyticsV2.trackEvent(MetaMetricsEvents.LEDGER_HARDWARE_WALLET_ERROR, {
-        device_type: 'Ledger',
-      });
+      if (
+        ledgerError !== LedgerCommunicationErrors.LedgerHasPendingConfirmation
+      ) {
+        AnalyticsV2.trackEvent(MetaMetricsEvents.LEDGER_HARDWARE_WALLET_ERROR, {
+          device_type: 'Ledger',
+          error_details: strings(
+            `${errorDetails?.title}_${errorDetails?.subtitle}`,
+          ),
+        });
+      }
     }
 
     if (bluetoothPermissionError && !permissionErrorShown) {
@@ -198,6 +212,9 @@ const LedgerConfirmationModal = ({
       setPermissionErrorShown(true);
       AnalyticsV2.trackEvent(MetaMetricsEvents.LEDGER_HARDWARE_WALLET_ERROR, {
         device_type: 'Ledger',
+        error_details: strings(
+          `${errorDetails?.title}_${errorDetails?.subtitle}`,
+        ),
       });
     }
 
@@ -208,6 +225,9 @@ const LedgerConfirmationModal = ({
       });
       AnalyticsV2.trackEvent(MetaMetricsEvents.LEDGER_HARDWARE_WALLET_ERROR, {
         device_type: 'Ledger',
+        error_details: strings(
+          `${errorDetails?.title}_${errorDetails?.subtitle}`,
+        ),
       });
     }
 

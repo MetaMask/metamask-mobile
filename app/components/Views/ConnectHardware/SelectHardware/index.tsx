@@ -21,6 +21,8 @@ import { fontStyles } from '../../../../styles/common';
 import { strings } from '../../../../../locales/i18n';
 import Routes from '../../../../constants/navigation/Routes';
 import { getLedgerKeyring } from '../../../../core/Ledger/Ledger';
+import { MetaMetricsEvents } from '../../../../core/Analytics';
+import AnalyticsV2 from '../../../../util/analyticsV2';
 
 const createStyle = (colors: any) =>
   StyleSheet.create({
@@ -101,6 +103,10 @@ const SelectHardwareWallet = () => {
   const navigateToConnectLedger = async () => {
     const ledgerKeyring = await getLedgerKeyring();
     const accounts = await ledgerKeyring.getAccounts();
+
+    AnalyticsV2.trackEvent(MetaMetricsEvents.CONNECT_LEDGER, {
+      device_type: 'Ledger',
+    });
 
     if (accounts.length === 0) {
       navigation.navigate(Routes.HW.CONNECT_LEDGER);

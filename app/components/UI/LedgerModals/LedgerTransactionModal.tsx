@@ -65,13 +65,6 @@ const LedgerTransactionModal = () => {
       await ApprovalController.accept(transactionId, undefined, {
         waitForResult: true,
       });
-
-      AnalyticsV2.trackEvent(
-        MetaMetricsEvents.CONTINUE_LEDGER_HARDWARE_WALLET,
-        {
-          device_type: 'Ledger',
-        },
-      );
     }
 
     onConfirmationComplete(true);
@@ -81,12 +74,6 @@ const LedgerTransactionModal = () => {
 
   const onRejection = useCallback(() => {
     onConfirmationComplete(false);
-    AnalyticsV2.trackEvent(
-      MetaMetricsEvents.LEDGER_HARDWARE_TRANSACTION_CANCELLED,
-      {
-        device_type: 'Ledger',
-      },
-    );
     dismissModal();
   }, [onConfirmationComplete, dismissModal]);
 
