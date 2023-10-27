@@ -471,7 +471,7 @@ export class Connection extends EventEmitter2 {
           if (
             !(
               message.params &&
-              Array.isArray(message?.params) &&
+              Array.isArray(message.params) &&
               message.params.length > 0
             )
           ) {
