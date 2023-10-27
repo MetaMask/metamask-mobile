@@ -20,7 +20,7 @@ import MaterialCommunityIcon from 'react-native-vector-icons/MaterialCommunityIc
 import { scale } from 'react-native-size-matters';
 import { strings } from '../../../../locales/i18n';
 import AppConstants from '../../../core/AppConstants';
-import DeeplinkManager from '../../../core/DeeplinkManager/DeeplinkManager';
+import SharedDeeplinkManager from '../../../core/DeeplinkManager/SharedDeeplinkManager';
 import Analytics from '../../../core/Analytics/Analytics';
 import { MetaMetricsEvents } from '../../../core/Analytics';
 import { importAccountFromPrivateKey } from '../../../util/address';
@@ -953,7 +953,7 @@ export function getWalletNavbarOptions(
       );
     } else {
       setTimeout(() => {
-        DeeplinkManager.parse(content, {
+        SharedDeeplinkManager.parse(content, {
           origin: AppConstants.DEEPLINKS.ORIGIN_QR_CODE,
         });
       }, 500);

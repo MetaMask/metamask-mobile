@@ -3,7 +3,7 @@ import Routes from '../../../constants/navigation/Routes';
 import { RootState } from '../../../reducers';
 import { chainIdSelector, getRampNetworks } from '../../../reducers/fiatOrders';
 import { Store } from 'redux';
-import { DeeplinkManager } from '../DeeplinkManager';
+import DeeplinkManager from '../DeeplinkManager';
 
 function handleBuyCrypto({
   deeplinkManager,

@@ -48,7 +48,7 @@ import EthereumAddress from '../EthereumAddress';
 import { getEther } from '../../../util/transactions';
 import { newAssetTransaction } from '../../../actions/transaction';
 import { protectWalletModalVisible } from '../../../actions/user';
-import DeeplinkManager from '../../../core/DeeplinkManager/DeeplinkManager';
+import SharedDeeplinkManager from '../../../core/DeeplinkManager/SharedDeeplinkManager';
 import SettingsNotification from '../SettingsNotification';
 import { RPC } from '../../../constants/network';
 import { findRouteNameFromNavigatorState } from '../../../util/general';
@@ -576,15 +576,15 @@ class DrawerView extends PureComponent {
       // eslint-disable-next-line react/no-did-update-set-state
       this.setState({ showProtectWalletModal: false });
     }
-    const pendingDeeplink = DeeplinkManager.getPendingDeeplink();
+    const pendingDeeplink = SharedDeeplinkManager.getPendingDeeplink();
     const { KeyringController } = Engine.context;
     if (
       pendingDeeplink &&
       KeyringController.isUnlocked() &&
       route !== Routes.LOCK_SCREEN
     ) {
-      DeeplinkManager.expireDeeplink();
-      DeeplinkManager.parse(pendingDeeplink, {
+      SharedDeeplinkManager.expireDeeplink();
+      SharedDeeplinkManager.parse(pendingDeeplink, {
         origin: AppConstants.DEEPLINKS.ORIGIN_DEEPLINK,
       });
     }

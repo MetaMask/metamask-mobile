@@ -3,7 +3,7 @@ import { generateApproveData } from '../../../util/transactions';
 import { ParseOutput } from 'eth-url-parser';
 import { strings } from '../../../../locales/i18n';
 import { getAddress } from '../../../util/address';
-import { DeeplinkManager } from '../DeeplinkManager';
+import DeeplinkManager from '../DeeplinkManager';
 import Engine from '../../Engine';
 import NotificationManager from '../../NotificationManager';
 import { WalletDevice } from '@metamask/transaction-controller';

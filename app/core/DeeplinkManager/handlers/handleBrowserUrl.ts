@@ -1,6 +1,6 @@
 import Routes from '../../../constants/navigation/Routes';
 import { InteractionManager } from 'react-native';
-import { DeeplinkManager } from '../DeeplinkManager';
+import DeeplinkManager from '../DeeplinkManager';
 
 function handleBrowserUrl({
   deeplinkManager,

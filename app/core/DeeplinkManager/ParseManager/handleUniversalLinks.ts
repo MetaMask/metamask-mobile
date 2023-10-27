@@ -1,6 +1,6 @@
 import { ACTIONS, PREFIXES, PROTOCOLS } from '../../../constants/deeplinks';
 import AppConstants from '../../../core/AppConstants';
-import { DeeplinkManager } from '../DeeplinkManager';
+import DeeplinkManager from '../DeeplinkManager';
 import { Minimizer } from '../../../core/NativeModules';
 import SDKConnect, {
   DEFAULT_SESSION_TIMEOUT_MS,

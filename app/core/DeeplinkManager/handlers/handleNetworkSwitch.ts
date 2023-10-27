@@ -1,6 +1,6 @@
 import { showAlert } from '../../../actions/alert';
 import { handleNetworkSwitch as switchNetwork } from '../../../util/networks';
-import { DeeplinkManager } from '../DeeplinkManager';
+import DeeplinkManager from '../DeeplinkManager';
 import { strings } from '../../../../locales/i18n';
 
 function handleNetworkSwitch({

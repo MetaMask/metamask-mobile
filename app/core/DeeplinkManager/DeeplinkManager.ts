@@ -9,7 +9,7 @@ import handleBuyCrypto from './handlers/handleBuyCrypto';
 import handleEthereumUrl from './handlers/handleEthereumUrl';
 import handleNetworkSwitch from './handlers/handleNetworkSwitch';
 
-export class DeeplinkManager {
+class DeeplinkManager {
   navigation: NavigationProp<ParamListBase>;
   pendingDeeplink: string | null;
   dispatch: Dispatch<any>;
@@ -79,31 +79,4 @@ export class DeeplinkManager {
   }
 }
 
-let deeplinkManagerInstance: DeeplinkManager;
-
-const SharedDeeplinkManager = {
-  init: ({
-    navigation,
-    dispatch,
-  }: {
-    navigation: StackNavigationProp<{
-      [route: string]: { screen: string };
-    }>;
-    dispatch: Dispatch<any>;
-  }) => {
-    if (deeplinkManagerInstance) {
-      return;
-    }
-
-    deeplinkManagerInstance = new DeeplinkManager({
-      navigation,
-      dispatch,
-    });
-  },
-  parse: (url: string, args: any) => deeplinkManagerInstance.parse(url, args),
-  setDeeplink: (url: string) => deeplinkManagerInstance.setDeeplink(url),
-  getPendingDeeplink: () => deeplinkManagerInstance.getPendingDeeplink(),
-  expireDeeplink: () => deeplinkManagerInstance.expireDeeplink(),
-};
-
-export default SharedDeeplinkManager;
+export default DeeplinkManager;

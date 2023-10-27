@@ -3,7 +3,7 @@ import { NetworkSwitchErrorType } from '../../../constants/error';
 import { ParseOutput, parse } from 'eth-url-parser';
 import { Alert } from 'react-native';
 import { strings } from '../../../../locales/i18n';
-import { DeeplinkManager } from '../DeeplinkManager';
+import DeeplinkManager from '../DeeplinkManager';
 
 function handleEthereumUrl({
   deeplinkManager,

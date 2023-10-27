@@ -1,4 +1,4 @@
-import { DeeplinkManager } from '../DeeplinkManager';
+import DeeplinkManager from '../DeeplinkManager';
 import extractURLParams from './extractURLParams';
 import WC2Manager from '../../../core/WalletConnect/WalletConnectV2';
 import { ACTIONS, PREFIXES } from '../../../constants/deeplinks';

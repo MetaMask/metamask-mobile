@@ -1,6 +1,6 @@
 import { PROTOCOLS } from '../../../constants/deeplinks';
 import Logger from '../../../util/Logger';
-import { DeeplinkManager } from '../DeeplinkManager';
+import DeeplinkManager from '../DeeplinkManager';
 import DevLogger from '../../SDKConnect/utils/DevLogger';
 import extractURLParams from './extractURLParams';
 import handleDappProtocol from './handleDappProtocol';

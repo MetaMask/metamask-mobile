@@ -20,7 +20,7 @@ import { parse } from 'eth-url-parser';
 import { colors as importedColors } from '../../../styles/common';
 import { isValidAddress } from 'ethereumjs-util';
 import { strings } from '../../../../locales/i18n';
-import SharedDeeplinkManager from '../../../core/DeeplinkManager/DeeplinkManager';
+import SharedDeeplinkManager from '../../../core/DeeplinkManager/SharedDeeplinkManager';
 import AppConstants from '../../../core/AppConstants';
 import {
   failedSeedPhraseRequirements,
