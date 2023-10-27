@@ -9,7 +9,7 @@ import { ProviderConfig } from '@metamask/network-controller';
 // External dependencies.
 import SheetHeader from '../../../component-library/components/Sheet/SheetHeader';
 import Cell, {
-  CellVariants,
+  CellVariant,
 } from '../../../component-library/components/Cells/Cell';
 import { AvatarVariants } from '../../../component-library/components/Avatars/Avatar';
 import { strings } from '../../../../locales/i18n';
@@ -116,7 +116,7 @@ const NetworkSelector = () => {
     const { name: mainnetName, chainId } = Networks.mainnet;
     return (
       <Cell
-        variant={CellVariants.Select}
+        variant={CellVariant.Select}
         title={mainnetName}
         avatarProps={{
           variant: AvatarVariants.Network,
@@ -137,7 +137,7 @@ const NetworkSelector = () => {
     const { name: lineaMainnetName, chainId } = Networks['linea-mainnet'];
     return (
       <Cell
-        variant={CellVariants.Select}
+        variant={CellVariant.Select}
         title={lineaMainnetName}
         avatarProps={{
           variant: AvatarVariants.Network,
@@ -161,7 +161,7 @@ const NetworkSelector = () => {
         return (
           <Cell
             key={chainId}
-            variant={CellVariants.Select}
+            variant={CellVariant.Select}
             title={name}
             avatarProps={{
               variant: AvatarVariants.Network,
@@ -188,7 +188,7 @@ const NetworkSelector = () => {
       return (
         <Cell
           key={chainId}
-          variant={CellVariants.Select}
+          variant={CellVariant.Select}
           title={name}
           avatarProps={{
             variant: AvatarVariants.Network,

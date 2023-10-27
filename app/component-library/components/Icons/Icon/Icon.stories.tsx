@@ -1,45 +1,35 @@
-// Third party dependencies.
-import React from 'react';
-import { storiesOf } from '@storybook/react-native';
-import { select } from '@storybook/addon-knobs';
-
-// External dependencies.
-import { storybookPropsGroupID } from '../../../constants/storybook.constants';
-
 // Internal dependencies.
-import Icon from './Icon';
-import { IconSize, IconName, IconProps, IconColor } from './Icon.types';
-import { DEFAULT_ICON_COLOR, DEFAULT_ICON_SIZE } from './Icon.constants';
+import { default as IconComponent } from './Icon';
+import { SAMPLE_ICON_PROPS } from './Icon.constants';
+import { IconColor, IconName, IconSize } from './Icon.types';
 
-export const getIconStoryProps = (): IconProps => {
-  const nameSelector = select(
-    'name',
-    IconName,
-    IconName.Lock,
-    storybookPropsGroupID,
-  );
-  const sizeSelector = select(
-    'size',
-    IconSize,
-    DEFAULT_ICON_SIZE,
-    storybookPropsGroupID,
-  );
-  const colorSelector = select(
-    'color',
-    IconColor,
-    DEFAULT_ICON_COLOR,
-    storybookPropsGroupID,
-  );
-
-  return {
-    name: nameSelector,
-    size: sizeSelector,
-    color: colorSelector,
-  };
+const IconMeta = {
+  title: 'Component Library / Icons',
+  component: IconComponent,
+  argTypes: {
+    name: {
+      options: IconName,
+      control: {
+        type: 'select',
+      },
+      defaultValue: SAMPLE_ICON_PROPS.name,
+    },
+    size: {
+      options: IconSize,
+      control: {
+        type: 'select',
+      },
+      defaultValue: SAMPLE_ICON_PROPS.size,
+    },
+    color: {
+      options: IconColor,
+      control: {
+        type: 'select',
+      },
+      defaultValue: SAMPLE_ICON_PROPS.color,
+    },
+  },
 };
+export default IconMeta;
 
-const IconStory = () => <Icon {...getIconStoryProps()} />;
-
-storiesOf('Component Library / Icons', module).add('Icon', IconStory);
-
-export default IconStory;
+export const Icon = {};
