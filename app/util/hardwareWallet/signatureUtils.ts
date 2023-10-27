@@ -31,7 +31,9 @@ export default async (
 
   if (navPromise === undefined) {
     //TODO: add error handling
-    throw new Error(`Keyring type ${keyring.type} not supported for signature redirect navigation`);
+    throw new Error(
+      `Keyring type ${keyring.type} not supported for signature redirect navigation`,
+    );
   }
 
   return await navPromise({
