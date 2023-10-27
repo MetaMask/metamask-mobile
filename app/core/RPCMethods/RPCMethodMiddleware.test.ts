@@ -1228,20 +1228,17 @@ describe('getRpcMethodMiddleware', () => {
             NetworkController: {
               providerConfig: {
                 type: 'mainnet',
-                chainId: '0',
+                chainId: '1',
                 ticker: 'eth',
               },
             },
           },
         },
       };
+      jest
+        .spyOn(store as Store<Partial<any>, any>, 'getState')
+        .mockImplementation(() => mockState);
 
-      jest.mock('react-redux', () => ({
-        ...jest.requireActual('react-redux'),
-        useSelector: jest
-          .fn()
-          .mockImplementation((callback) => callback(mockState)),
-      }));
       const middleware = getRpcMethodMiddleware({
         ...getMinimalOptions(),
         hostname: 'example.metamask.io',
