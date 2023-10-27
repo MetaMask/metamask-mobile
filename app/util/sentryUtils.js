@@ -131,10 +131,13 @@ function sanitizeAddressesFromErrorMessages(report) {
 // Setup sentry remote error reporting
 export function setupSentry() {
   const init = async () => {
-    const dsn = process.env.MM_SENTRY_DSN;
-
     const environment =
       __DEV__ || !METAMASK_ENVIRONMENT ? 'development' : METAMASK_ENVIRONMENT;
+
+    const dsn =
+      environment === 'qa'
+        ? process.env.MM_SENTRY_DSN_DEV
+        : process.env.MM_SENTRY_DSN;
 
     const metricsOptIn = await DefaultPreference.get(METRICS_OPT_IN);
 
@@ -156,6 +159,7 @@ export function setupSentry() {
       tracesSampleRate: 0.05,
       beforeSend: (report) => rewriteReport(report),
       beforeBreadcrumb: (breadcrumb) => rewriteBreadcrumb(breadcrumb),
+      release: 'io.metamask.MetaMask-QA@7.9.0+1189',
     });
   };
   init();
