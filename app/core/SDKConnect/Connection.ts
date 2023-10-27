@@ -494,8 +494,8 @@ export class Connection extends EventEmitter2 {
           DevLogger.log(`metamask_batch`, JSON.stringify(message, null, 2));
           if (
             !(
-              message.params &&
-              Array.isArray(message?.params) &&
+              message?.params &&
+              Array.isArray(message.params) &&
               message.params.length > 0
             )
           ) {
