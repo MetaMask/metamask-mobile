@@ -470,7 +470,7 @@ export class Connection extends EventEmitter2 {
           message.method = RPC_METHODS.PERSONAL_SIGN;
           if (
             !(
-              message.params &&
+              message?.params &&
               Array.isArray(message.params) &&
               message.params.length > 0
             )
