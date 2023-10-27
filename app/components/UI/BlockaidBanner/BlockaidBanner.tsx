@@ -72,11 +72,13 @@ const BlockaidBanner = (bannerProps: BlockaidBannerProps) => {
 
   if (result_type === ResultType.Failed) {
     return (
-      <BannerAlert
-        severity={BannerAlertSeverity.Warning}
-        title={title}
-        description={description}
-      />
+      <View style={styles.failed}>
+        <BannerAlert
+          severity={BannerAlertSeverity.Warning}
+          title={title}
+          description={description}
+        />
+      </View>
     );
   }
 
