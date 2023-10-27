@@ -6,15 +6,15 @@ import SelectComponent from '../../UI/SelectComponent';
 import { mockTheme, useAppThemeFromContext } from '../../../util/theme';
 import { Colors } from '../../../util/theme/models';
 import Device from '../../../util/device';
-import useBluetooth from './hooks/useBluetooth';
+import useBluetooth from '../../hooks/Ledger/useBluetooth';
 import useBluetoothPermissions, {
   BluetoothPermissionErrors,
-} from './hooks/useBluetoothPermissions';
+} from '../../hooks/useBluetoothPermissions';
 import { LedgerConnectionErrorProps } from './LedgerConnectionError';
 import useBluetoothDevices, {
   BluetoothDevice,
-} from './hooks/useBluetoothDevices';
-import { LedgerCommunicationErrors } from '../../hooks/useLedgerBluetooth';
+} from '../../hooks/Ledger/useBluetoothDevices';
+import { LedgerCommunicationErrors } from '../../hooks/Ledger/useLedgerBluetooth';
 
 const createStyles = (colors: Colors) =>
   StyleSheet.create({

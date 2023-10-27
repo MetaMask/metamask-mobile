@@ -1,11 +1,11 @@
 import { useEffect, useRef, useState } from 'react';
-import { strings } from '../../../locales/i18n';
-import { BluetoothInterface } from '../Views/LedgerConnect/hooks/useBluetoothDevices';
+import { strings } from '../../../../locales/i18n';
+import { BluetoothInterface } from './useBluetoothDevices';
 import {
   connectLedgerHardware,
   openEthereumAppOnLedger,
   closeRunningAppOnLedger,
-} from '../../core/Ledger/Ledger';
+} from '../../../core/Ledger/Ledger';
 import type BleTransport from '@ledgerhq/react-native-hw-transport-ble';
 
 export enum LedgerCommunicationErrors {

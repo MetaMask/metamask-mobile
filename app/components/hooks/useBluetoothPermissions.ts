@@ -2,7 +2,7 @@ import { useState, useRef, useLayoutEffect } from 'react';
 import { AppState, AppStateStatus } from 'react-native';
 import { getSystemVersion } from 'react-native-device-info';
 import { PERMISSIONS, RESULTS, request } from 'react-native-permissions';
-import Device from '../../../../util/device';
+import Device from '../../util/device';
 
 export enum BluetoothPermissionErrors {
   BluetoothAccessBlocked = 'BluetoothAccessBlocked',
