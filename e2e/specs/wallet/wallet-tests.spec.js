@@ -1,14 +1,14 @@
 'use strict';
-import { Smoke } from '../tags';
+import { Smoke } from '../../tags';
 
-import TestHelpers from '../helpers';
-import WalletView from '../pages/WalletView';
-import AddCustomTokenView from '../pages/AddCustomTokenView';
-import ImportTokensView from '../pages/ImportTokensView';
-import NetworkListModal from '../pages/modals/NetworkListModal';
-import NetworkEducationModal from '../pages/modals/NetworkEducationModal';
-import { importWalletWithRecoveryPhrase } from '../viewHelper';
-import Collectibles from '../resources/collectibles.json';
+import TestHelpers from '../../helpers';
+import WalletView from '../../pages/WalletView';
+import AddCustomTokenView from '../../pages/AddCustomTokenView';
+import ImportTokensView from '../../pages/ImportTokensView';
+import NetworkListModal from '../../pages/modals/NetworkListModal';
+import NetworkEducationModal from '../../pages/modals/NetworkEducationModal';
+import { importWalletWithRecoveryPhrase } from '../../viewHelper';
+import Collectibles from '../../resources/collectibles.json';
 
 describe(Smoke('Wallet Tests'), () => {
   const GOERLI = 'Goerli Test Network';

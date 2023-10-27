@@ -1,25 +1,25 @@
 'use strict';
-import TestHelpers from '../helpers';
-import { Regression } from '../tags';
+import TestHelpers from '../../helpers';
+import { Regression } from '../../tags';
 
-import NetworkView from '../pages/Drawer/Settings/NetworksView';
+import NetworkView from '../../pages/Drawer/Settings/NetworksView';
 
-import WalletView from '../pages/WalletView';
-import SettingsView from '../pages/Drawer/Settings/SettingsView';
+import WalletView from '../../pages/WalletView';
+import SettingsView from '../../pages/Drawer/Settings/SettingsView';
 
-import NetworkListModal from '../pages/modals/NetworkListModal';
-import NetworkEducationModal from '../pages/modals/NetworkEducationModal';
+import NetworkListModal from '../../pages/modals/NetworkListModal';
+import NetworkEducationModal from '../../pages/modals/NetworkEducationModal';
 
-import { loginToApp } from '../viewHelper';
-import TabBarComponent from '../pages/TabBarComponent';
-import FixtureBuilder from '../fixtures/fixture-builder';
+import { loginToApp } from '../../viewHelper';
+import TabBarComponent from '../../pages/TabBarComponent';
+import FixtureBuilder from '../../fixtures/fixture-builder';
 import {
   loadFixture,
   startFixtureServer,
   stopFixtureServer,
-} from '../fixtures/fixture-helper';
-import { getFixturesServerPort } from '../fixtures/utils';
-import FixtureServer from '../fixtures/fixture-server';
+} from '../../fixtures/fixture-helper';
+import { getFixturesServerPort } from '../../fixtures/utils';
+import FixtureServer from '../../fixtures/fixture-server';
 
 const fixtureServer = new FixtureServer();
 const GORELI = 'Goerli Test Network';
