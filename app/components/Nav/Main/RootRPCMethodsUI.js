@@ -210,9 +210,6 @@ const RootRPCMethodsUI = (props) => {
         );
         await KeyringController.resetQRKeyringState();
 
-        // eslint-disable-next-line no-console
-        console.log(transactionMeta);
-
         const isLedgerAccount = isHardwareAccount(
           transactionMeta.transaction.from,
           [HardwareDeviceNames.ledger],

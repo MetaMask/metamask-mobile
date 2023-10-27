@@ -584,15 +584,9 @@ const App = ({ userLoggedIn }) => {
     </Stack.Navigator>
   );
 
-  // eslint-disable-next-line react/prop-types
   const LedgerConnectFlow = () => (
-    <Stack.Navigator
-      initialRouteName={Routes.LEDGER_CONNECT_FLOW.LEDGER_CONNECT}
-    >
-      <Stack.Screen
-        name={Routes.LEDGER_CONNECT_FLOW.LEDGER_CONNECT}
-        component={LedgerConnect}
-      />
+    <Stack.Navigator initialRouteName={Routes.HW.LEDGER_CONNECT}>
+      <Stack.Screen name={Routes.HW.LEDGER_CONNECT} component={LedgerConnect} />
     </Stack.Navigator>
   );
 
@@ -689,7 +683,7 @@ const App = ({ userLoggedIn }) => {
               options={{ animationEnabled: true }}
             />
             <Stack.Screen
-              name={Routes.LEDGER_CONNECT_FLOW.ID}
+              name={Routes.HW.CONNECT_LEDGER}
               component={LedgerConnectFlow}
             />
             <Stack.Screen

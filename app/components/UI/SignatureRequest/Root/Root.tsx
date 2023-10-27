@@ -33,7 +33,7 @@ const Root = ({
   const navigation = useNavigation();
   const { colors } = useTheme();
   const [showExpandedMessage, setShowExpandedMessage] = useState(false);
-  const visability = useSelector(
+  const visibility = useSelector(
     (reduxState: any) => reduxState.modals.signMessageModalVisible,
   );
 
@@ -42,7 +42,7 @@ const Root = ({
 
   const currentPageMeta = messageParams?.meta;
 
-  if (!messageParams || !currentPageMeta || !approvalType || !visability) {
+  if (!messageParams || !currentPageMeta || !approvalType || !visibility) {
     return null;
   }
 
