@@ -29,12 +29,12 @@ import {
 import { WALLET_CONNECT_ORIGIN } from '../../../util/walletconnect';
 import useAddressBalance from '../../hooks/useAddressBalance/useAddressBalance';
 import {
-  FAV_ICON_URL,
   ORIGIN_DEEPLINK,
   ORIGIN_QR_CODE,
 } from './ApproveTransactionHeader.constants';
 import stylesheet from './ApproveTransactionHeader.styles';
 import { ApproveTransactionHeaderI } from './ApproveTransactionHeader.types';
+import useFavicon from '../../hooks/useFavicon/useFavicon';
 
 const ApproveTransactionHeader = ({
   from,
@@ -114,15 +114,17 @@ const ApproveTransactionHeader = ({
     url,
   ]);
 
-  const favIconUrl = useMemo(() => {
-    let newUrl = origin;
+  const faviconUpdatedOrigin = useMemo(() => {
+    let newOrigin = origin;
     if (isOriginWalletConnect) {
-      newUrl = origin.split(WALLET_CONNECT_ORIGIN)[1];
+      newOrigin = origin.split(WALLET_CONNECT_ORIGIN)[1];
     } else if (isOriginMMSDKRemoteConn) {
-      newUrl = origin.split(AppConstants.MM_SDK.SDK_REMOTE_ORIGIN)[1];
+      newOrigin = origin.split(AppConstants.MM_SDK.SDK_REMOTE_ORIGIN)[1];
     }
-    return FAV_ICON_URL(getHost(newUrl));
+    return newOrigin;
   }, [origin, isOriginWalletConnect, isOriginMMSDKRemoteConn]);
+
+  const faviconSource = useFavicon(faviconUpdatedOrigin);
 
   const accountTypeLabel = getLabelTextByAddress(activeAddress);
 
@@ -130,7 +132,7 @@ const ApproveTransactionHeader = ({
     <View style={styles.transactionHeader}>
       {origin ? (
         <TagUrl
-          imageSource={{ uri: favIconUrl }}
+          imageSource={faviconSource}
           label={domainTitle}
           style={styles.tagUrl}
         />

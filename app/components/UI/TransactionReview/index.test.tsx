@@ -150,7 +150,7 @@ describe('TransactionReview', () => {
 
   it('should display blockaid banner', async () => {
     const securityAlertResponse = {
-      resultType: 'Malicious',
+      result_type: 'Malicious',
       reason: 'blur_farming',
       providerRequestsCount: {},
     };
@@ -163,8 +163,8 @@ describe('TransactionReview', () => {
 
     const blockaidMetricsParamsSpy = jest
       .spyOn(BlockaidUtils, 'getBlockaidMetricsParams')
-      .mockImplementation(({ resultType, reason, providerRequestsCount }) => ({
-        security_alert_response: resultType,
+      .mockImplementation(({ result_type, reason, providerRequestsCount }) => ({
+        security_alert_response: result_type,
         security_alert_reason: reason,
         security_alert_provider_requests_count: providerRequestsCount,
       }));

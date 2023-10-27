@@ -46,6 +46,7 @@ exports[`WalletAccount renders correctly 1`] = `
             "width": 32,
           }
         }
+        variant="Account"
       >
         <View
           style={

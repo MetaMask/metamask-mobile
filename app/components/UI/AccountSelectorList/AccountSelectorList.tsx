@@ -7,7 +7,7 @@ import { KeyringTypes } from '@metamask/keyring-controller';
 
 // External dependencies.
 import Cell, {
-  CellVariants,
+  CellVariant,
 } from '../../../component-library/components/Cells/Cell';
 import { useStyles } from '../../../component-library/hooks';
 import Text from '../../../component-library/components/Texts/Text';
@@ -161,8 +161,8 @@ const AccountSelectorList = ({
         isDefaultAccountName(name) && ensName ? ensName : name;
       const isDisabled = !!balanceError || isLoading || isSelectionDisabled;
       const cellVariant = isMultiSelect
-        ? CellVariants.MultiSelect
-        : CellVariants.Select;
+        ? CellVariant.MultiSelect
+        : CellVariant.Select;
       let isSelectedAccount = isSelected;
       if (selectedAddresses) {
         isSelectedAccount = selectedAddresses.includes(address);

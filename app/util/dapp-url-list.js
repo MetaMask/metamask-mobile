@@ -172,7 +172,7 @@ export default [
     name: 'SuperRare',
   },
   {
-    url: 'https://uniswap.exchange/',
+    url: 'https://app.uniswap.org/',
     name: 'Uniswap',
   },
   {

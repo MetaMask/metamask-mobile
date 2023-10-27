@@ -34,6 +34,7 @@ const SelectItem: React.FC<SelectItemProps> = ({
       disabled={isDisabled}
       onPress={onPress}
       onLongPress={onLongPress}
+      {...props}
     >
       <ListItem
         padding={DEFAULT_SELECTITEM_PADDING}
