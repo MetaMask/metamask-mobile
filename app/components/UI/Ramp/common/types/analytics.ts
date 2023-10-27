@@ -25,11 +25,11 @@ interface RampRegionSelected {
 }
 
 interface OnrampRegionSelected extends RampRegionSelected {
-  is_unsupported: boolean;
+  is_unsupported?: boolean;
 }
 
 interface OfframpRegionSelected extends RampRegionSelected {
-  is_unsupported_offramp: boolean;
+  is_unsupported_offramp?: boolean;
 }
 
 export interface RampRegionReset {

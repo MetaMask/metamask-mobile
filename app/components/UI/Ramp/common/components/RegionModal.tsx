@@ -1,12 +1,12 @@
 import React, { useCallback, useMemo, useRef, useState } from 'react';
 import {
+  FlatList,
+  SafeAreaView,
   StyleSheet,
   TextInput,
-  SafeAreaView,
   TouchableOpacity,
-  View,
   TouchableWithoutFeedback,
-  FlatList,
+  View,
 } from 'react-native';
 import Modal from 'react-native-modal';
 import Icon from 'react-native-vector-icons/Ionicons';
@@ -147,12 +147,20 @@ const RegionModal: React.FC<Props> = ({
       } else {
         onRegionPress(region);
       }
-      trackEvent('ONRAMP_REGION_SELECTED', {
-        is_unsupported: region.unsupported,
-        country_onramp_id: regionInTransit?.id ?? region.id,
-        state_onramp_id: regionInTransit ? region.id : undefined,
-        location,
-      });
+      trackEvent(
+        rampType === RampType.BUY
+          ? 'ONRAMP_REGION_SELECTED'
+          : 'OFFRAMP_REGION_SELECTED',
+        {
+          is_unsupported:
+            rampType === RampType.BUY ? region.unsupported : undefined,
+          is_unsupported_offramp:
+            rampType === RampType.SELL ? region.unsupported : undefined,
+          country_onramp_id: regionInTransit?.id ?? region.id,
+          state_onramp_id: regionInTransit ? region.id : undefined,
+          location,
+        },
+      );
     },
     [location, onRegionPress, rampType, regionInTransit, trackEvent],
   );
