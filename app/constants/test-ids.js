@@ -1,6 +1,10 @@
 export const DELETE_WALLET_CONTAINER_ID = 'delete-wallet-modal-container';
 export const DELETE_WALLET_INPUT_BOX_ID = 'delete-wallet-inputbox';
 
+export const CELLDISPLAY_TEST_ID = 'celldisplay';
+export const CELLMULTISELECT_TEST_ID = 'cellmultiselect';
+export const CELLSELECT_TEST_ID = 'cellselect';
+
 export const LOGIN_CONTAINER_ID = 'login';
 export const PASSWORD_INPUT_BOX_ID = 'login-password-input';
 export const LOGIN_PASSWORD_ERROR = 'invalid-password-error';
