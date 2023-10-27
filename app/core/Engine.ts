@@ -80,6 +80,7 @@ import {
 import SwapsController, { swapsUtils } from '@metamask/swaps-controller';
 import {
   SnapController,
+  SnapControllerState,
   buildSnapEndowmentSpecifications,
   buildSnapRestrictedMethodSpecifications,
 } from '@metamask/snaps-controllers';
@@ -543,6 +544,9 @@ class Engine {
           `${approvalController.name}:hasRequest`,
           `${approvalController.name}:acceptRequest`,
           `${approvalController.name}:rejectRequest`,
+          `SnapController:getPermitted`,
+          `SnapController:install`,
+          `SubjectMetadataController:getSubjectMetadata`,
         ],
       }),
       state: initialState.PermissionController,
@@ -660,7 +664,10 @@ class Engine {
         ),
       detectSnapLocation: (location, options) => {
         console.log('SNAPS/ Engine detectSnapLocation', location, options);
-        return detectSnapLocation(location, { ...options, fetch: fetchFunction })
+        return detectSnapLocation(location, {
+          ...options,
+          fetch: fetchFunction,
+        });
       },
     });
 

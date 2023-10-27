@@ -58,6 +58,7 @@ const SnapsSettingsList = () => {
     `Snap ${id} failed to install\n\n💀💀💀\n\n${e}`;
 
   const installSnap = async (snapId: string, origin: string): Promise<void> => {
+    console.log('SNAPS/ SnapsSettingsList installSnap', snapId, origin);
     const { SnapController } = Engine.context as any;
     let message: string;
     try {
