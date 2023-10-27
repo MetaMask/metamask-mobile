@@ -27,6 +27,7 @@ import {
 } from '../../../../../../util/navigation/navUtils';
 
 import { createBuildQuoteNavDetails } from '../BuildQuote/BuildQuote';
+import { RampType } from '../../../../../../reducers/fiatOrders/types';
 
 interface PaymentMethodsParams {
   showBack?: boolean;
@@ -42,6 +43,7 @@ const PaymentMethods = () => {
   const { showBack } = useParams<PaymentMethodsParams>();
 
   const {
+    rampType,
     setSelectedRegion,
     setSelectedPaymentMethodId,
     selectedChainId,
@@ -68,17 +70,23 @@ const PaymentMethods = () => {
   const handlePaymentMethodPress = useCallback(
     (id) => {
       setSelectedPaymentMethodId(id);
-      trackEvent('ONRAMP_PAYMENT_METHOD_SELECTED', {
-        payment_method_id: id,
-        available_payment_method_ids: paymentMethods?.map(
-          (paymentMethod) => paymentMethod.id,
-        ) as string[],
-        region: selectedRegion?.id as string,
-        location: 'Payment Method Screen',
-      });
+      trackEvent(
+        rampType === RampType.BUY
+          ? 'ONRAMP_PAYMENT_METHOD_SELECTED'
+          : 'OFFRAMP_PAYMENT_METHOD_SELECTED',
+        {
+          payment_method_id: id,
+          available_payment_method_ids: paymentMethods?.map(
+            (paymentMethod) => paymentMethod.id,
+          ) as string[],
+          region: selectedRegion?.id as string,
+          location: 'Payment Method Screen',
+        },
+      );
     },
     [
       paymentMethods,
+      rampType,
       selectedRegion?.id,
       setSelectedPaymentMethodId,
       trackEvent,
