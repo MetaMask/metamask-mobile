@@ -823,7 +823,7 @@ export class Connection extends EventEmitter2 {
     this.setLoading(false);
   }
 
-  async handleChainRpcResponse({
+  async handleBatchRpcResponse({
     chainRpcs,
     msg,
   }: {
@@ -908,7 +908,7 @@ export class Connection extends EventEmitter2 {
     // handle multichain rpc call responses separately
     const chainRPCs = this.batchRPCManager.getById(msgId);
     if (chainRPCs) {
-      this.handleChainRpcResponse({ chainRpcs: chainRPCs, msg });
+      this.handleBatchRpcResponse({ chainRpcs: chainRPCs, msg });
       return;
     }
 
