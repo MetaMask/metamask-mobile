@@ -117,7 +117,7 @@ const REVIEW = 'review';
 const POLLING_INTERVAL_ESTIMATED_L1_FEE = 30000;
 
 let intervalIdForEstimatedL1Fee;
-//REBASE_CONFIRM
+
 /**
  * View that wraps the wraps the "Send" screen
  */
@@ -785,7 +785,6 @@ class Confirm extends PureComponent {
       await ApprovalController.accept(transactionMeta.id, undefined, {
         waitForResult: true,
       });
-
       await new Promise((resolve) => resolve(result));
 
       if (transactionMeta.error) {
