@@ -68,6 +68,7 @@ export const METHODS_TO_REDIRECT: { [method: string]: boolean } = {
   wallet_addEthereumChain: true,
   wallet_switchEthereumChain: true,
   metamask_connectSign: true,
+  metamask_batch: true,
 };
 
 export const METHODS_TO_DELAY: { [method: string]: boolean } = {
@@ -379,7 +380,7 @@ export class SDKConnect extends EventEmitter2 {
       }
     }
 
-    await wait(1000);
+    await wait(600);
     const keyringController = (
       Engine.context as { KeyringController: KeyringController }
     ).KeyringController;
