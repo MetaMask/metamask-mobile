@@ -24,6 +24,7 @@ export const REASON_DESCRIPTION_I18N_KEY_MAP: { [Reason: string]: string } =
     [Reason.transferFarming]: 'blockaid_banner.transfer_farming_description',
     [Reason.transferFromFarming]:
       'blockaid_banner.transfer_farming_description',
+    [Reason.notApplicable]: 'blockaid_banner.not_applicable',
   });
 
 export const REASON_TITLE_I18N_KEY_MAP: Record<string, string> = Object.freeze({

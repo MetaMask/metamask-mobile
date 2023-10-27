@@ -1,25 +1,36 @@
-/* eslint-disable no-console */
-
-// Third party dependencies.
-import React from 'react';
-import { Alert } from 'react-native';
-import { storiesOf } from '@storybook/react-native';
-
+/* eslint-disable react/display-name */
 // External dependencies.
 import { AvatarAccountType } from '../../Avatars/Avatar/variants/AvatarAccount';
 
 // Internal dependencies.
-import PickerAccount from './PickerAccount';
-import {
-  TEST_ACCOUNT_ADDRESS,
-  TEST_ACCOUNT_NAME,
-} from './PickerAccount.constants';
+import { default as PickerAccountComponent } from './PickerAccount';
+import { SAMPLE_PICKERACCOUNT_PROPS } from './PickerAccount.constants';
 
-storiesOf('Component Library / PickerAccount', module).add('Default', () => (
-  <PickerAccount
-    accountAddress={TEST_ACCOUNT_ADDRESS}
-    accountName={TEST_ACCOUNT_NAME}
-    accountAvatarType={AvatarAccountType.JazzIcon}
-    onPress={() => Alert.alert('Pressed account picker!')}
-  />
-));
+const PickerAccountMeta = {
+  title: 'Component Library / Pickers',
+  component: PickerAccountComponent,
+  argTypes: {
+    accountAddress: {
+      control: { type: 'text' },
+      defaultValue: SAMPLE_PICKERACCOUNT_PROPS.accountAddress,
+    },
+    accountAvatarType: {
+      options: AvatarAccountType,
+      control: {
+        type: 'select',
+      },
+      defaultValue: SAMPLE_PICKERACCOUNT_PROPS.accountAvatarType,
+    },
+    accountName: {
+      control: { type: 'text' },
+      defaultValue: SAMPLE_PICKERACCOUNT_PROPS.accountName,
+    },
+    showAddress: {
+      control: { type: 'boolean' },
+      defaultValue: SAMPLE_PICKERACCOUNT_PROPS.showAddress,
+    },
+  },
+};
+export default PickerAccountMeta;
+
+export const PickerAccount = {};
