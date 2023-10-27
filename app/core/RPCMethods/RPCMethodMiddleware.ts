@@ -32,6 +32,7 @@ import { getPermittedAccounts } from '../Permissions';
 import AppConstants from '../AppConstants';
 import PPOMUtil from '../../lib/ppom/ppom-util';
 import {
+  selectChainId,
   selectProviderConfig,
   selectProviderType,
 } from '../../selectors/networkController';
