@@ -10,7 +10,10 @@ import NotificationManager from '../../../core/NotificationManager';
 import Engine from '../../../core/Engine';
 import { strings } from '../../../../locales/i18n';
 import { hexToBN, fromWei, isZeroValue } from '../../../util/number';
-import { isHardwareAccount } from '../../../util/address';
+import {
+  getAddressAccountType,
+  isHardwareAccount,
+} from '../../../util/address';
 import {
   setEtherTransaction,
   setTransactionObject,
@@ -153,7 +156,11 @@ const RootRPCMethodsUI = (props) => {
           tokensReceived,
           swapTransaction.destinationToken.decimals,
         );
-        const analyticsParams = { ...swapTransaction.analytics };
+
+        const analyticsParams = {
+          ...swapTransaction.analytics,
+          account_type: getAddressAccountType(transactionMeta.transaction.from),
+        };
         delete newSwapsTransactions[transactionMeta.id].analytics;
         delete newSwapsTransactions[transactionMeta.id].paramsForAnalytics;
 
