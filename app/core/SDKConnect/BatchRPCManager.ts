@@ -58,7 +58,7 @@ export class BatchRPCManager {
   }
 
   getById(id: string) {
-    if (id?.indexOf('_') !== -1) {
+    if (id?.includes('_')) {
       // id format is baseId_index
       // extract index from base id
       const [baseId, index] = id.split('_');
