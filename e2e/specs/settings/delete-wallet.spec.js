@@ -1,22 +1,22 @@
 'use strict';
 
-import TestHelpers from '../helpers';
-import { Smoke } from '../tags';
+import TestHelpers from '../../helpers';
+import { Smoke } from '../../tags';
 
-import OnboardingView from '../pages/Onboarding/OnboardingView';
+import OnboardingView from '../../pages/Onboarding/OnboardingView';
 
-import LoginView from '../pages/LoginView';
+import LoginView from '../../pages/LoginView';
 
-import SettingsView from '../pages/Drawer/Settings/SettingsView';
+import SettingsView from '../../pages/Drawer/Settings/SettingsView';
 
-import SecurityAndPrivacyView from '../pages/Drawer/Settings/SecurityAndPrivacy/SecurityAndPrivacyView';
-import ChangePasswordView from '../pages/Drawer/Settings/SecurityAndPrivacy/ChangePasswordView';
+import SecurityAndPrivacyView from '../../pages/Drawer/Settings/SecurityAndPrivacy/SecurityAndPrivacyView';
+import ChangePasswordView from '../../pages/Drawer/Settings/SecurityAndPrivacy/ChangePasswordView';
 
-import DeleteWalletModal from '../pages/modals/DeleteWalletModal';
-import { loginToApp } from '../viewHelper';
-import TabBarComponent from '../pages/TabBarComponent';
-import FixtureBuilder from '../fixtures/fixture-builder';
-import { withFixtures } from '../fixtures/fixture-helper';
+import DeleteWalletModal from '../../pages/modals/DeleteWalletModal';
+import { loginToApp } from '../../viewHelper';
+import TabBarComponent from '../../pages/TabBarComponent';
+import FixtureBuilder from '../../fixtures/fixture-builder';
+import { withFixtures } from '../../fixtures/fixture-helper';
 
 describe(
   Smoke('Log in into the app, change password then delete wallet flow'),

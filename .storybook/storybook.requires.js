@@ -26,6 +26,41 @@ global.STORIES = [
   },
   {
     titlePrefix: "",
+    directory: "./app/component-library/components/BottomSheets",
+    files: "**/*.stories.?(ts|tsx|js|jsx)",
+    importPathMatcher:
+      "^\\.[\\\\/](?:app\\/component-library\\/components\\/BottomSheets(?:\\/(?!\\.)(?:(?:(?!(?:^|\\/)\\.).)*?)\\/|\\/|$)(?!\\.)(?=.)[^/]*?\\.stories\\.(?:ts|tsx|js|jsx)?)$",
+  },
+  {
+    titlePrefix: "",
+    directory: "./app/component-library/components/Navigation",
+    files: "**/*.stories.?(ts|tsx|js|jsx)",
+    importPathMatcher:
+      "^\\.[\\\\/](?:app\\/component-library\\/components\\/Navigation(?:\\/(?!\\.)(?:(?:(?!(?:^|\\/)\\.).)*?)\\/|\\/|$)(?!\\.)(?=.)[^/]*?\\.stories\\.(?:ts|tsx|js|jsx)?)$",
+  },
+  {
+    titlePrefix: "",
+    directory: "./app/component-library/components/Select",
+    files: "**/*.stories.?(ts|tsx|js|jsx)",
+    importPathMatcher:
+      "^\\.[\\\\/](?:app\\/component-library\\/components\\/Select(?:\\/(?!\\.)(?:(?:(?!(?:^|\\/)\\.).)*?)\\/|\\/|$)(?!\\.)(?=.)[^/]*?\\.stories\\.(?:ts|tsx|js|jsx)?)$",
+  },
+  {
+    titlePrefix: "",
+    directory: "./app/component-library/components/Pickers",
+    files: "**/*.stories.?(ts|tsx|js|jsx)",
+    importPathMatcher:
+      "^\\.[\\\\/](?:app\\/component-library\\/components\\/Pickers(?:\\/(?!\\.)(?:(?:(?!(?:^|\\/)\\.).)*?)\\/|\\/|$)(?!\\.)(?=.)[^/]*?\\.stories\\.(?:ts|tsx|js|jsx)?)$",
+  },
+  {
+    titlePrefix: "",
+    directory: "./app/component-library/components/Cells",
+    files: "**/*.stories.?(ts|tsx|js|jsx)",
+    importPathMatcher:
+      "^\\.[\\\\/](?:app\\/component-library\\/components\\/Cells(?:\\/(?!\\.)(?:(?:(?!(?:^|\\/)\\.).)*?)\\/|\\/|$)(?!\\.)(?=.)[^/]*?\\.stories\\.(?:ts|tsx|js|jsx)?)$",
+  },
+  {
+    titlePrefix: "",
     directory: "./app/component-library/components/HeaderBase",
     files: "**/*.stories.?(ts|tsx|js|jsx)",
     importPathMatcher:
@@ -99,6 +134,19 @@ const getStories = () => {
   return {
     "./app/component-library/components/Cards/Card/Card.stories.tsx": require("../app/component-library/components/Cards/Card/Card.stories.tsx"),
     "./app/component-library/components/Banners/Banner/variants/BannerAlert/BannerAlert.stories.tsx": require("../app/component-library/components/Banners/Banner/variants/BannerAlert/BannerAlert.stories.tsx"),
+    "./app/component-library/components/BottomSheets/BottomSheet/BottomSheet.stories.tsx": require("../app/component-library/components/BottomSheets/BottomSheet/BottomSheet.stories.tsx"),
+    "./app/component-library/components/BottomSheets/BottomSheetFooter/BottomSheetFooter.stories.tsx": require("../app/component-library/components/BottomSheets/BottomSheetFooter/BottomSheetFooter.stories.tsx"),
+    "./app/component-library/components/BottomSheets/BottomSheetHeader/BottomSheetHeader.stories.tsx": require("../app/component-library/components/BottomSheets/BottomSheetHeader/BottomSheetHeader.stories.tsx"),
+    "./app/component-library/components/Navigation/TabBar/TabBar.stories.tsx": require("../app/component-library/components/Navigation/TabBar/TabBar.stories.tsx"),
+    "./app/component-library/components/Navigation/TabBarItem/TabBarItem.stories.tsx": require("../app/component-library/components/Navigation/TabBarItem/TabBarItem.stories.tsx"),
+    "./app/component-library/components/Select/MultiSelect/MultiSelectItem/MultiSelectItem.stories.tsx": require("../app/component-library/components/Select/MultiSelect/MultiSelectItem/MultiSelectItem.stories.tsx"),
+    "./app/component-library/components/Select/Select/SelectItem/SelectItem.stories.tsx": require("../app/component-library/components/Select/Select/SelectItem/SelectItem.stories.tsx"),
+    "./app/component-library/components/Pickers/PickerAccount/PickerAccount.stories.tsx": require("../app/component-library/components/Pickers/PickerAccount/PickerAccount.stories.tsx"),
+    "./app/component-library/components/Pickers/PickerNetwork/PickerNetwork.stories.tsx": require("../app/component-library/components/Pickers/PickerNetwork/PickerNetwork.stories.tsx"),
+    "./app/component-library/components/Cells/Cell/Cell.stories.tsx": require("../app/component-library/components/Cells/Cell/Cell.stories.tsx"),
+    "./app/component-library/components/Cells/Cell/variants/CellDisplay/CellDisplay.stories.tsx": require("../app/component-library/components/Cells/Cell/variants/CellDisplay/CellDisplay.stories.tsx"),
+    "./app/component-library/components/Cells/Cell/variants/CellMultiSelect/CellMultiSelect.stories.tsx": require("../app/component-library/components/Cells/Cell/variants/CellMultiSelect/CellMultiSelect.stories.tsx"),
+    "./app/component-library/components/Cells/Cell/variants/CellSelect/CellSelect.stories.tsx": require("../app/component-library/components/Cells/Cell/variants/CellSelect/CellSelect.stories.tsx"),
     "./app/component-library/components/HeaderBase/HeaderBase.stories.tsx": require("../app/component-library/components/HeaderBase/HeaderBase.stories.tsx"),
     "./app/component-library/components/Form/HelpText/HelpText.stories.tsx": require("../app/component-library/components/Form/HelpText/HelpText.stories.tsx"),
     "./app/component-library/components/Form/Label/Label.stories.tsx": require("../app/component-library/components/Form/Label/Label.stories.tsx"),

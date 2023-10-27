@@ -1,6 +1,10 @@
 export const DELETE_WALLET_CONTAINER_ID = 'delete-wallet-modal-container';
 export const DELETE_WALLET_INPUT_BOX_ID = 'delete-wallet-inputbox';
 
+export const CELLDISPLAY_TEST_ID = 'celldisplay';
+export const CELLMULTISELECT_TEST_ID = 'cellmultiselect';
+export const CELLSELECT_TEST_ID = 'cellselect';
+
 export const LOGIN_CONTAINER_ID = 'login';
 export const PASSWORD_INPUT_BOX_ID = 'login-password-input';
 export const LOGIN_PASSWORD_ERROR = 'invalid-password-error';
@@ -54,9 +58,6 @@ export const ADDRESS_ERROR = 'address-error';
 export const ADD_ADDRESS_BUTTON_ID = 'add-address-button';
 
 // Design System test ids
-export const CELL_DISPLAY_TEST_ID = 'cell-display';
-export const CELL_MULTI_SELECT_TEST_ID = 'cell-multi-select';
-export const CELL_SELECT_TEST_ID = 'cell-select';
 export const FAVICON_AVATAR_IMAGE_ID = 'favicon-avatar-image';
 export const NETWORK_AVATAR_IMAGE_ID = 'network-avatar-image';
 export const CHECKBOX_ICON_ID = 'checkbox-icon';
