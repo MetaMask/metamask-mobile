@@ -35,6 +35,7 @@ exports[`TransactionDetails should render correctly 1`] = `
   <Component
     transactionDetails={
       Object {
+        "hash": "0x2",
         "renderFrom": "0x0",
         "renderGas": "21000",
         "renderGasPrice": "2",
@@ -42,7 +43,6 @@ exports[`TransactionDetails should render correctly 1`] = `
         "renderTotalValue": "2 TKN / 0.001 ETH",
         "renderTotalValueFiat": "",
         "renderValue": "2 TKN",
-        "transactionHash": "0x2",
       }
     }
     transactionObject={
