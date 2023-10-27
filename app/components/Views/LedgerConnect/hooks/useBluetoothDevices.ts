@@ -47,6 +47,7 @@ const useBluetoothDevices = (
               }
             },
             error: (_error) => {
+              console.error('Error scanning for bluetooth devices', _error);
               setDeviceScanError(true);
             },
           });

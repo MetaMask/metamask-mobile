@@ -7,14 +7,18 @@
   <uses-permission android:name="android.permission.SYSTEM_ALERT_WINDOW" />
   <uses-permission android:name="android.permission.CAMERA" />
 
-  <!-- Android >= 12 -->
-  <uses-permission android:name="android.permission.BLUETOOTH_SCAN"
-    android:usesPermissionFlags="neverForLocation" />
-  <uses-permission android:name="android.permission.BLUETOOTH_CONNECT" />
-  <!-- Android < 12 -->
+  <!-- Bluetooth permissions: Android API <31 (Android 12)-->
   <uses-permission android:name="android.permission.BLUETOOTH" android:maxSdkVersion="30" />
   <uses-permission android:name="android.permission.BLUETOOTH_ADMIN" android:maxSdkVersion="30" />
-  <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION" android:maxSdkVersion="30" />
+  <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION" tools:node="replace"
+    android:maxSdkVersion="28" />
+  <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION" tools:node="replace"
+    android:maxSdkVersion="30" />
+
+  <!-- Bluetooth permissions: Android API >= 31 (Android 12)-->
+  <uses-permission android:name="android.permission.BLUETOOTH_CONNECT" />
+  <uses-permission android:name="android.permission.BLUETOOTH_SCAN"
+    android:usesPermissionFlags="neverForLocation" />
 
 
   <uses-feature
