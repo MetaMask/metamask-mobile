@@ -8,13 +8,15 @@ const InstallSnapApproval = () => {
   const [isFinished, setIsFinished] = useState<boolean>(false);
   const { approvalRequest, onConfirm, onReject } = useApprovalRequest();
 
+  console.log('SNAPS/ approvalRequest', approvalRequest);
+
   const onInstallSnapFinished = () => {
     setIsFinished(true);
   };
 
-  const isModalVisible =
+  const isModalVisible: boolean =
     approvalRequest?.type === ApprovalTypes.INSTALL_SNAP ||
-    (!isFinished && approvalRequest);
+    (!isFinished && approvalRequest !== undefined);
 
   return (
     <ApprovalModal isVisible={isModalVisible} onCancel={onReject}>

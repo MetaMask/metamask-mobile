@@ -1,0 +1,23 @@
+diff --git a/node_modules/@metamask/snaps-controllers/dist/esm/snaps/SnapController.js b/node_modules/@metamask/snaps-controllers/dist/esm/snaps/SnapController.js
+index c341023..087aafb 100644
+--- a/node_modules/@metamask/snaps-controllers/dist/esm/snaps/SnapController.js
++++ b/node_modules/@metamask/snaps-controllers/dist/esm/snaps/SnapController.js
+@@ -582,8 +582,10 @@ _initializeStateMachine = /*#__PURE__*/ new WeakSet(), /**
+         const pendingUpdates = [];
+         const pendingInstalls = [];
+         try {
++            console.log('SNAPS/ SnapController:installSnaps', {origin}, {requestedSnaps});
+             for (const [snapId, { version: rawVersion }] of Object.entries(requestedSnaps)){
+                 assertIsValidSnapId(snapId);
++                console.log('SNAPS/ SnapController:installSnaps isValidSnapId', snapId);
+                 const [error, version] = resolveVersionRange(rawVersion);
+                 if (error) {
+                     throw ethErrors.rpc.invalidParams(`The "version" field must be a valid SemVer version range if specified. Received: "${rawVersion}".`);
+@@ -633,6 +635,7 @@ _initializeStateMachine = /*#__PURE__*/ new WeakSet(), /**
+    * @param versionRange - The semver range of the snap to install.
+    * @returns The resulting snap object, or an error if something went wrong.
+    */ async processRequestedSnap(origin, snapId, location, versionRange) {
++        console.log('SNAPS/ SnapController:processRequestedSnap', {origin}, {snapId}, {location}, {versionRange});
+         const existingSnap = this.getTruncated(snapId);
+         // For devX we always re-install local snaps.
+         if (existingSnap && !location.shouldAlwaysReload) {
