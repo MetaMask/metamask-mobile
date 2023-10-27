@@ -8,11 +8,11 @@ import { strings } from '../../../../locales/i18n';
 import { Colors } from '../../../util/theme/models';
 import useLedgerBluetooth, {
   LedgerCommunicationErrors,
-} from '../../../components/hooks/useLedgerBluetooth';
-import useBluetooth from '../../../components/Views/LedgerConnect/hooks/useBluetooth';
+} from '../../hooks/Ledger/useLedgerBluetooth';
+import useBluetooth from '../../hooks/Ledger/useBluetooth';
 import useBluetoothPermissions, {
   BluetoothPermissionErrors,
-} from '../../../components/Views/LedgerConnect/hooks/useBluetoothPermissions';
+} from '../../../components/hooks/useBluetoothPermissions';
 import ConfirmationStep from './Steps/ConfirmationStep';
 import ErrorStep from './Steps/ErrorStep';
 import OpenETHAppStep from './Steps/OpenETHAppStep';

@@ -39,7 +39,8 @@
     "chainStatus": {
       "0x1": {
         "chainId": "0x1",
-        "dataFetched": false
+        "dataFetched": false,
+        "versionInfo": []
       }
     },
     "storageMetadata": [],

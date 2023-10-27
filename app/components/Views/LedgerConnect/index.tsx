@@ -25,7 +25,7 @@ import { colors as importedColors, fontStyles } from '../../../styles/common';
 import Scan from './Scan';
 import useLedgerBluetooth, {
   LedgerCommunicationErrors,
-} from '../../hooks/useLedgerBluetooth';
+} from '../../hooks/Ledger/useLedgerBluetooth';
 import { showSimpleNotification } from '../../../actions/notification';
 import LedgerConnectionError, {
   LedgerConnectionErrorProps,

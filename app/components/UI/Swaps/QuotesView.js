@@ -77,7 +77,10 @@ import { decGWEIToHexWEI } from '../../../util/conversions';
 import FadeAnimationView from '../FadeAnimationView';
 import Logger from '../../../util/Logger';
 import { useTheme } from '../../../util/theme';
-import { isHardwareAccount } from '../../../util/address';
+import {
+  getAddressAccountType,
+  isHardwareAccount,
+} from '../../../util/address';
 import {
   selectChainId,
   selectTicker,
@@ -855,9 +858,10 @@ function SwapsQuotesView({
   );
 
   const startSwapAnalytics = useCallback(
-    (selectedQuote) => {
+    (selectedQuote, selectedAddress) => {
       InteractionManager.runAfterInteractions(() => {
         const parameters = {
+          account_type: getAddressAccountType(selectedAddress),
           token_from: sourceToken.symbol,
           token_from_amount: fromTokenMinimalUnitString(
             sourceAmount,
@@ -1033,7 +1037,7 @@ function SwapsQuotesView({
 
     const isHardwareAddress = isHardwareAccount(selectedAddress);
 
-    startSwapAnalytics(selectedQuote);
+    startSwapAnalytics(selectedQuote, selectedAddress);
 
     const { TransactionController } = Engine.context;
     const newSwapsTransactions =
@@ -2102,14 +2106,14 @@ function SwapsQuotesView({
                         {primaryCurrency === 'ETH'
                           ? ` ${renderFromWei(
                               toWei(selectedQuoteValue?.maxEthFee || '0x0'),
-                          )} ${getTicker(ticker)}` // eslint-disable-line
+                            )} ${getTicker(ticker)}` // eslint-disable-line
                           : ` ${
                               weiToFiat(
                                 toWei(selectedQuoteValue?.maxEthFee),
                                 conversionRate,
                                 currentCurrency,
                               ) || '' // eslint-disable-next-line
-                          }`}
+                            }`}
                       </Text>
                     </FadeAnimationView>
                   </>

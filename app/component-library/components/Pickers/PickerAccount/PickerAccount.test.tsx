@@ -7,10 +7,7 @@ import { AvatarAccountType } from '../../Avatars/Avatar/variants/AvatarAccount';
 
 // Internal dependencies.
 import PickerAccount from './PickerAccount';
-import {
-  TEST_ACCOUNT_ADDRESS,
-  TEST_ACCOUNT_NAME,
-} from './PickerAccount.constants';
+import { SAMPLE_PICKERACCOUNT_PROPS } from './PickerAccount.constants';
 
 jest.mock('../../../../core/Engine', () => ({
   context: {
@@ -30,8 +27,8 @@ describe('PickerAccount', () => {
   it('should render correctly', () => {
     const wrapper = shallow(
       <PickerAccount
-        accountAddress={TEST_ACCOUNT_ADDRESS}
-        accountName={TEST_ACCOUNT_NAME}
+        accountAddress={SAMPLE_PICKERACCOUNT_PROPS.accountAddress}
+        accountName={SAMPLE_PICKERACCOUNT_PROPS.accountName}
         accountAvatarType={AvatarAccountType.JazzIcon}
         onPress={jest.fn}
       />,

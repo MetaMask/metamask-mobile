@@ -9,7 +9,7 @@ import SheetActions from '../../../../component-library/components-temp/SheetAct
 import SheetHeader from '../../../../component-library/components/Sheet/SheetHeader';
 import { strings } from '../../../../../locales/i18n';
 import Cell, {
-  CellVariants,
+  CellVariant,
 } from '../../../../component-library/components/Cells/Cell';
 import TagUrl from '../../../../component-library/components/Tags/TagUrl';
 import Text from '../../../../component-library/components/Texts/Text';
@@ -142,7 +142,7 @@ const AccountConnectSingle = ({
 
     return (
       <Cell
-        variant={CellVariants.Display}
+        variant={CellVariant.Display}
         title={name}
         secondaryText={shortAddress}
         tertiaryText={balanceError}
