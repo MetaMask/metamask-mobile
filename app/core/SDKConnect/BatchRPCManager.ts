@@ -1,9 +1,9 @@
 interface RPCMethod {
   id: string;
   method: string;
-  params: any;
+  params: unknown;
   jsonrpc: string;
-  response?: any;
+  response?: unknown;
 }
 
 export interface BatchRPCState {

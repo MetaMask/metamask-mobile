@@ -60,6 +60,24 @@ export interface ConnectionProps {
 // eslint-disable-next-line
 const { version } = require('../../../package.json');
 
+export const RPC_METHODS = {
+  METAMASK_GETPROVIDERSTATE: 'metamask_getProviderState',
+  METAMASK_CONNECTSIGN: 'metamask_connectSign',
+  METAMASK_BATCH: 'metamask_batch',
+  PERSONAL_SIGN: 'personal_sign',
+  ETH_SIGN: 'eth_sign',
+  ETH_REQUESTACCOUNTS: 'eth_requestAccounts',
+  ETH_SENDTRANSACTION: 'eth_sendTransaction',
+  ETH_SIGNTRANSACTION: 'eth_signTransaction',
+  ETH_SIGNTYPEDEATA: 'eth_signTypedData',
+  ETH_SIGNTYPEDEATAV3: 'eth_signTypedData_v3',
+  ETH_SIGNTYPEDEATAV4: 'eth_signTypedData_v4',
+  WALLET_WATCHASSET: 'wallet_watchAsset',
+  WALLET_ADDETHEREUMCHAIN: 'wallet_addEthereumChain',
+  WALLET_SWITCHETHEREUMCHAIN: 'wallet_switchEthereumChain',
+  ETH_ACCOUNTS: 'eth_accounts',
+  ETH_CHAINID: 'eth_chainId',
+};
 export class Connection extends EventEmitter2 {
   channelId;
   remote: RemoteCommunication;
@@ -391,6 +409,7 @@ export class Connection extends EventEmitter2 {
           return;
         }
 
+        const lcMethod = message.method.toLowerCase();
         let needsRedirect = METHODS_TO_REDIRECT[message?.method] ?? false;
 
         if (needsRedirect) {
@@ -402,7 +421,7 @@ export class Connection extends EventEmitter2 {
           !this.originatorInfo?.apiVersion &&
           !needsRedirect &&
           // this.originatorInfo?.platform !== 'unity' &&
-          message?.method === 'metamask_getProviderState'
+          lcMethod === RPC_METHODS.METAMASK_GETPROVIDERSTATE.toLowerCase()
         ) {
           // Manually force redirect if apiVersion isn't defined for backward compatibility
           needsRedirect = true;
@@ -446,9 +465,9 @@ export class Connection extends EventEmitter2 {
         }
 
         // Special case for metamask_connectSign
-        if (message.method === 'metamask_connectSign') {
+        if (lcMethod === RPC_METHODS.METAMASK_CONNECTSIGN.toLowerCase()) {
           // Replace with personal_sign
-          message.method = 'personal_sign';
+          message.method = RPC_METHODS.PERSONAL_SIGN;
           if (
             !(
               message.params &&
@@ -471,9 +490,7 @@ export class Connection extends EventEmitter2 {
             await wait(500);
           }
           Logger.log(`metamask_connectSign`, message.params);
-        }
-
-        if (message.method === 'metamask_batch') {
+        } else if (lcMethod === RPC_METHODS.METAMASK_BATCH.toLowerCase()) {
           DevLogger.log(`metamask_batch`, JSON.stringify(message, null, 2));
           if (
             !(
@@ -511,7 +528,7 @@ export class Connection extends EventEmitter2 {
         });
 
         // We have to implement this method here since the eth_sendTransaction in Engine is not working because we can't send correct origin
-        if (message.method === 'eth_sendTransaction') {
+        if (lcMethod === RPC_METHODS.ETH_SENDTRANSACTION.toLowerCase()) {
           if (
             !(
               message.params &&
@@ -583,7 +600,7 @@ export class Connection extends EventEmitter2 {
     }
 
     this.remote
-      .sendMessage({ type: 'authorized' as MessageType })
+      .sendMessage({ type: MessageType.AUTHORIZED })
       .then(() => {
         this.authorizedSent = true;
       })
