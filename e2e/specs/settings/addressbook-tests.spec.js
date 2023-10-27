@@ -1,25 +1,25 @@
 'use strict';
-import { Smoke } from '../tags';
+import { Smoke } from '../../tags';
 
-import SendView from '../pages/SendView';
+import SendView from '../../pages/SendView';
 
-import SettingsView from '../pages/Drawer/Settings/SettingsView';
-import ContactsView from '../pages/Drawer/Settings/Contacts/ContactsView';
-import AddContactView from '../pages/Drawer/Settings/Contacts/AddContactView';
-import TabBarComponent from '../pages/TabBarComponent';
-import WalletActionsModal from '../pages/modals/WalletActionsModal';
-import AddAddressModal from '../pages/modals/AddAddressModal';
+import SettingsView from '../../pages/Drawer/Settings/SettingsView';
+import ContactsView from '../../pages/Drawer/Settings/Contacts/ContactsView';
+import AddContactView from '../../pages/Drawer/Settings/Contacts/AddContactView';
+import TabBarComponent from '../../pages/TabBarComponent';
+import WalletActionsModal from '../../pages/modals/WalletActionsModal';
+import AddAddressModal from '../../pages/modals/AddAddressModal';
 
-import { loginToApp } from '../viewHelper';
-import FixtureBuilder from '../fixtures/fixture-builder';
+import { loginToApp } from '../../viewHelper';
+import FixtureBuilder from '../../fixtures/fixture-builder';
 import {
   loadFixture,
   startFixtureServer,
   stopFixtureServer,
-} from '../fixtures/fixture-helper';
-import TestHelpers from '../helpers';
-import FixtureServer from '../fixtures/fixture-server';
-import { getFixturesServerPort } from '../fixtures/utils';
+} from '../../fixtures/fixture-helper';
+import TestHelpers from '../../helpers';
+import FixtureServer from '../../fixtures/fixture-server';
+import { getFixturesServerPort } from '../../fixtures/utils';
 
 const INVALID_ADDRESS = '0xB8B4EE5B1b693971eB60bDa15211570df2dB221L';
 const TETHER_ADDRESS = '0xdac17f958d2ee523a2206206994597c13d831ec7';

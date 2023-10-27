@@ -1,25 +1,25 @@
 'use strict';
-import TestHelpers from '../helpers';
+import TestHelpers from '../../helpers';
 
-import Browser from '../pages/Drawer/Browser';
-import { Smoke } from '../tags';
+import Browser from '../../pages/Drawer/Browser';
+import { Smoke } from '../../tags';
 
-import AccountListView from '../pages/AccountListView';
-import TabBarComponent from '../pages/TabBarComponent';
+import AccountListView from '../../pages/AccountListView';
+import TabBarComponent from '../../pages/TabBarComponent';
 
-import ConnectModal from '../pages/modals/ConnectModal';
-import ConnectedAccountsModal from '../pages/modals/ConnectedAccountsModal';
+import ConnectModal from '../../pages/modals/ConnectModal';
+import ConnectedAccountsModal from '../../pages/modals/ConnectedAccountsModal';
 
-import { loginToApp } from '../viewHelper';
-import NetworkListModal from '../pages/modals/NetworkListModal';
-import FixtureBuilder from '../fixtures/fixture-builder';
+import { loginToApp } from '../../viewHelper';
+import NetworkListModal from '../../pages/modals/NetworkListModal';
+import FixtureBuilder from '../../fixtures/fixture-builder';
 import {
   loadFixture,
   startFixtureServer,
   stopFixtureServer,
-} from '../fixtures/fixture-helper';
-import FixtureServer from '../fixtures/fixture-server';
-import { getFixturesServerPort } from '../fixtures/utils';
+} from '../../fixtures/fixture-helper';
+import FixtureServer from '../../fixtures/fixture-server';
+import { getFixturesServerPort } from '../../fixtures/utils';
 
 const SUSHI_SWAP = 'https://app.sushi.com/swap';
 const SUSHI_SWAP_SHORT_HAND_URL = 'app.sushi.com';

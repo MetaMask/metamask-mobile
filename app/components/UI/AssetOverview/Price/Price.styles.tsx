@@ -16,17 +16,13 @@ const styleSheet = (params: {
     wrapper: {
       paddingHorizontal: 16,
     },
-    symbol: {
-      ...typography.sBodySM,
-    } as TextStyle,
     name: {
-      ...typography.lBodyLGMedium,
+      fontWeight: '500',
     } as TextStyle,
     price: {
       ...typography.lHeadingLG,
     } as TextStyle,
     priceDiff: {
-      ...typography.sBodyMD,
       color:
         priceDiff > 0
           ? colors.success.default
@@ -38,9 +34,6 @@ const styleSheet = (params: {
     priceDiffIcon: {
       marginTop: 10,
     },
-    timePeriod: {
-      ...typography.sBodyMD,
-    } as TextStyle,
     loadingPrice: {
       paddingTop: 8,
     },
