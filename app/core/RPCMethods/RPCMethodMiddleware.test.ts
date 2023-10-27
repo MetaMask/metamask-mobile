@@ -1171,6 +1171,7 @@ describe('getRpcMethodMiddleware', () => {
         ],
       };
       const response = await callMiddleware({ middleware, request });
+      //@ts-expect-error now the response can have an error property
       await expect(response?.error?.message).toStrictEqual(
         'ChainId value is not consistent between from and to',
       );
@@ -1202,6 +1203,7 @@ describe('getRpcMethodMiddleware', () => {
       };
 
       const response = await callMiddleware({ middleware, request });
+      //@ts-expect-error now the response can have an error property
       await expect(response?.error?.message).toStrictEqual(
         'chainId property of from is not defined',
       );
