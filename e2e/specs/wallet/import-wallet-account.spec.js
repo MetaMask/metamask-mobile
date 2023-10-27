@@ -1,12 +1,12 @@
 'use strict';
-import { Regression } from '../tags';
+import { Regression } from '../../tags';
 
-import WalletView from '../pages/WalletView';
+import WalletView from '../../pages/WalletView';
 
-import { importWalletWithRecoveryPhrase } from '../viewHelper';
+import { importWalletWithRecoveryPhrase } from '../../viewHelper';
 
-import AccountListView from '../pages/AccountListView';
-import ImportAccountView from '../pages/ImportAccountView';
+import AccountListView from '../../pages/AccountListView';
+import ImportAccountView from '../../pages/ImportAccountView';
 
 describe(Regression('Import account via private to wallet'), () => {
   // This key is for testing private key import only

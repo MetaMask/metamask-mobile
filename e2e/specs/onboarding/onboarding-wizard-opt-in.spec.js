@@ -1,27 +1,27 @@
 'use strict';
-import TestHelpers from '../helpers';
-import { Regression } from '../tags';
+import TestHelpers from '../../helpers';
+import { Regression } from '../../tags';
 
-import ProtectYourWalletView from '../pages/Onboarding/ProtectYourWalletView';
-import CreatePasswordView from '../pages/Onboarding/CreatePasswordView';
-import OnboardingView from '../pages/Onboarding/OnboardingView';
-import OnboardingCarouselView from '../pages/Onboarding/OnboardingCarouselView';
+import ProtectYourWalletView from '../../pages/Onboarding/ProtectYourWalletView';
+import CreatePasswordView from '../../pages/Onboarding/CreatePasswordView';
+import OnboardingView from '../../pages/Onboarding/OnboardingView';
+import OnboardingCarouselView from '../../pages/Onboarding/OnboardingCarouselView';
 
-import MetaMetricsOptIn from '../pages/Onboarding/MetaMetricsOptInView';
-import WalletView from '../pages/WalletView';
-import EnableAutomaticSecurityChecksView from '../pages/EnableAutomaticSecurityChecksView';
+import MetaMetricsOptIn from '../../pages/Onboarding/MetaMetricsOptInView';
+import WalletView from '../../pages/WalletView';
+import EnableAutomaticSecurityChecksView from '../../pages/EnableAutomaticSecurityChecksView';
 
-import SettingsView from '../pages/Drawer/Settings/SettingsView';
-import SecurityAndPrivacy from '../pages/Drawer/Settings/SecurityAndPrivacy/SecurityAndPrivacyView';
+import SettingsView from '../../pages/Drawer/Settings/SettingsView';
+import SecurityAndPrivacy from '../../pages/Drawer/Settings/SecurityAndPrivacy/SecurityAndPrivacyView';
 
-import LoginView from '../pages/LoginView';
+import LoginView from '../../pages/LoginView';
 
-import SkipAccountSecurityModal from '../pages/modals/SkipAccountSecurityModal';
-import OnboardingWizardModal from '../pages/modals/OnboardingWizardModal';
-import ProtectYourWalletModal from '../pages/modals/ProtectYourWalletModal';
-import WhatsNewModal from '../pages/modals/WhatsNewModal';
-import { acceptTermOfUse } from '../viewHelper';
-import TabBarComponent from '../pages/TabBarComponent';
+import SkipAccountSecurityModal from '../../pages/modals/SkipAccountSecurityModal';
+import OnboardingWizardModal from '../../pages/modals/OnboardingWizardModal';
+import ProtectYourWalletModal from '../../pages/modals/ProtectYourWalletModal';
+import WhatsNewModal from '../../pages/modals/WhatsNewModal';
+import { acceptTermOfUse } from '../../viewHelper';
+import TabBarComponent from '../../pages/TabBarComponent';
 
 const PASSWORD = '12345678';
 

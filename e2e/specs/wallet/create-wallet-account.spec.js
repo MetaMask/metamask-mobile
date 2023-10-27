@@ -1,11 +1,11 @@
 'use strict';
-import { Regression } from '../tags';
+import { Regression } from '../../tags';
 
-import WalletView from '../pages/WalletView';
+import WalletView from '../../pages/WalletView';
 
-import { importWalletWithRecoveryPhrase } from '../viewHelper';
+import { importWalletWithRecoveryPhrase } from '../../viewHelper';
 
-import AccountListView from '../pages/AccountListView';
+import AccountListView from '../../pages/AccountListView';
 
 describe(Regression('Create wallet account'), () => {
   beforeEach(() => {
