@@ -20,10 +20,11 @@ import {
   bytesToString,
 } from '@metamask/utils';
 
-import { DetectSnapLocationOptions, SnapLocation } from './location';
+import { DetectSnapLocationOptions } from './location';
 import { NativeModules } from 'react-native';
 import RNFetchBlob, { FetchBlobResponse } from 'rn-fetch-blob';
 import Logger from '../../../util/Logger';
+import { SnapLocation } from '@metamask/snaps-controllers';
 
 const { RNTar } = NativeModules;
 
@@ -74,6 +75,7 @@ const decompressFile = async (
   path: string,
   targetPath: string,
 ): Promise<string> => {
+  console.log('SNAPS/ NPM/ decompressFile', path, targetPath);
   try {
     const decompressedDataLocation = await RNTar.unTar(path, targetPath);
     if (decompressedDataLocation) {
@@ -96,6 +98,7 @@ const readAndParseAt = async (path: string) => {
 const fetchAndStoreNPMPackage = async (
   inputRequest: RequestInfo,
 ): Promise<string> => {
+  console.log('SNAPS/ NPM/ fetchAndStoreNPMPackage', inputRequest);
   const { config } = RNFetchBlob;
   const targetDir = RNFetchBlob.fs.dirs.DocumentDir;
   const filePath = `${targetDir}/archive.tgz`;
@@ -153,6 +156,7 @@ export class NpmLocation implements SnapLocation {
   private files?: Map<string, VirtualFile>;
 
   constructor(url: URL, opts: DetectSnapLocationOptions = {}) {
+    console.log('SNAPS/ NpmLocation consructor', url, opts);
     const allowCustomRegistries = opts.allowCustomRegistries ?? false;
     const fetchFunction = opts.fetch ?? globalThis.fetch.bind(globalThis);
     const requestedRange = opts.versionRange ?? DEFAULT_REQUESTED_SNAP_VERSION;
@@ -266,6 +270,8 @@ export class NpmLocation implements SnapLocation {
         this.meta.fetch,
       );
     this.meta.version = actualVersion;
+
+    console.log('SNAPS/ NPM/ #lazyInit', manifestData, pathToFiles);
 
     let canonicalBase = 'npm://';
     if (this.meta.registry.username !== '') {

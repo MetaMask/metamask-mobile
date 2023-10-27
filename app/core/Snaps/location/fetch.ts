@@ -37,6 +37,7 @@ const convertFetchBlobResponseToResponse = async (
 export const fetchFunction = async (
   inputRequest: RequestInfo,
 ): Promise<Response> => {
+  console.log('SNAPS/ fetchFunction', inputRequest);
   const { config } = RNFetchBlob;
   const urlToFetch: string =
     typeof inputRequest === 'string' ? inputRequest : inputRequest.url;

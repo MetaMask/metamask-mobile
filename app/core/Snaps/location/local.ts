@@ -5,8 +5,8 @@ import {
   VirtualFile,
 } from '@metamask/snaps-utils';
 import { HttpLocation, HttpOptions } from './http';
-import { SnapLocation } from './location';
 import { assert } from '@metamask/utils';
+import { SnapLocation } from '@metamask/snaps-controllers';
 
 export class LocalLocation implements SnapLocation {
   readonly #http: HttpLocation;
