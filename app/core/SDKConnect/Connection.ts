@@ -122,7 +122,7 @@ export class Connection extends EventEmitter2 {
 
   private rpcQueueManager: RPCQueueManager;
 
-  private chainRPCManager: BatchRPCManager;
+  private batchRPCManager: BatchRPCManager;
 
   approveHost: ({ host, hostname }: approveHostProps) => void;
   getApprovedHosts: (context: string) => ApprovedHosts;
@@ -176,8 +176,8 @@ export class Connection extends EventEmitter2 {
     this.host = `${AppConstants.MM_SDK.SDK_REMOTE_ORIGIN}${this.channelId}`;
     // TODO: should be probably contained to current connection
     this.rpcQueueManager = rpcQueueManager;
-    // chainRPCManager should be contained to current connection
-    this.chainRPCManager = new BatchRPCManager(id);
+    // batchRPCManager should be contained to current connection
+    this.batchRPCManager = new BatchRPCManager(id);
     this.approveHost = approveHost;
     this.getApprovedHosts = getApprovedHosts;
     this.disapprove = disapprove;
@@ -502,8 +502,8 @@ export class Connection extends EventEmitter2 {
             throw new Error('Invalid message format');
           }
           const rpcs = message.params;
-          // Add rpcs to the chainRPCManager
-          this.chainRPCManager.add({ id: message.id, rpcs });
+          // Add rpcs to the batch manager
+          this.batchRPCManager.add({ id: message.id, rpcs });
 
           // Send the first rpc method to the background bridge
           const rpc = rpcs[0];
@@ -857,7 +857,7 @@ export class Connection extends EventEmitter2 {
       };
       await this.sendMessage(response);
       // Delete the chain from the chainRPCManager
-      this.chainRPCManager.remove(chainRpcs.baseId);
+      this.batchRPCManager.remove(chainRpcs.baseId);
     } else if (isLastRpc) {
       // Respond to the original rpc call with the list of responses append the current response
       DevLogger.log(
@@ -875,10 +875,10 @@ export class Connection extends EventEmitter2 {
       };
       await this.sendMessage(response);
       // Delete the chain from the chainRPCManager
-      this.chainRPCManager.remove(chainRpcs.baseId);
+      this.batchRPCManager.remove(chainRpcs.baseId);
     } else {
       // Save response and send the next rpc method
-      this.chainRPCManager.addResponse({
+      this.batchRPCManager.addResponse({
         id: chainRpcs.baseId,
         index: chainRpcs.index,
         response: msg?.data?.result,
@@ -906,7 +906,7 @@ export class Connection extends EventEmitter2 {
 
     DevLogger.log(`Connection::sendMessage`, msg);
     // handle multichain rpc call responses separately
-    const chainRPCs = this.chainRPCManager.getId(msgId);
+    const chainRPCs = this.batchRPCManager.getById(msgId);
     if (chainRPCs) {
       this.handleChainRpcResponse({ chainRpcs: chainRPCs, msg });
       return;

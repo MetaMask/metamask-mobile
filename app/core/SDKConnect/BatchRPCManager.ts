@@ -53,11 +53,11 @@ export class BatchRPCManager {
     delete this.rpcChain[id];
   }
 
-  get() {
+  getAll() {
     return this.rpcChain;
   }
 
-  getId(id: string) {
+  getById(id: string) {
     if (id?.indexOf('_') !== -1) {
       // id format is baseId_index
       // extract index from base id
