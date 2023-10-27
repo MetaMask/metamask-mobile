@@ -55,7 +55,6 @@ exports[`AccountSelectorList should render all accounts but only the balance for
       style={null}
     >
       <TouchableOpacity
-        disabled={false}
         onLongPress={[Function]}
         onPress={[Function]}
         style={
@@ -64,6 +63,7 @@ exports[`AccountSelectorList should render all accounts but only the balance for
             "position": "relative",
           }
         }
+        testID="cellselect"
       >
         <View
           accessibilityRole="none"
@@ -97,6 +97,8 @@ exports[`AccountSelectorList should render all accounts but only the balance for
                   "width": 32,
                 }
               }
+              testID="cellbase-avatar"
+              variant="Account"
             >
               <Image
                 source={
@@ -120,6 +122,7 @@ exports[`AccountSelectorList should render all accounts but only the balance for
               }
             >
               <Text
+                accessibilityRole="text"
                 numberOfLines={1}
                 style={
                   Object {
@@ -131,11 +134,11 @@ exports[`AccountSelectorList should render all accounts but only the balance for
                     "lineHeight": 24,
                   }
                 }
-                testID="cell-title"
               >
                 Business Account
               </Text>
               <Text
+                accessibilityRole="text"
                 numberOfLines={1}
                 style={
                   Object {
@@ -147,7 +150,6 @@ exports[`AccountSelectorList should render all accounts but only the balance for
                     "lineHeight": 22,
                   }
                 }
-                testID="cell-secondary-text"
               >
                 0x1
               </Text>
@@ -168,6 +170,7 @@ exports[`AccountSelectorList should render all accounts but only the balance for
                 testID="account-balance-by-address-0x1"
               >
                 <Text
+                  accessibilityRole="text"
                   style={
                     Object {
                       "color": "#24272A",
@@ -222,7 +225,6 @@ exports[`AccountSelectorList should render all accounts but only the balance for
       style={null}
     >
       <TouchableOpacity
-        disabled={false}
         onLongPress={[Function]}
         onPress={[Function]}
         style={
@@ -231,6 +233,7 @@ exports[`AccountSelectorList should render all accounts but only the balance for
             "position": "relative",
           }
         }
+        testID="cellselect"
       >
         <View
           accessibilityRole="none"
@@ -264,6 +267,8 @@ exports[`AccountSelectorList should render all accounts but only the balance for
                   "width": 32,
                 }
               }
+              testID="cellbase-avatar"
+              variant="Account"
             >
               <Image
                 source={
@@ -287,6 +292,7 @@ exports[`AccountSelectorList should render all accounts but only the balance for
               }
             >
               <Text
+                accessibilityRole="text"
                 numberOfLines={1}
                 style={
                   Object {
@@ -298,11 +304,11 @@ exports[`AccountSelectorList should render all accounts but only the balance for
                     "lineHeight": 24,
                   }
                 }
-                testID="cell-title"
               >
                 Personal Account
               </Text>
               <Text
+                accessibilityRole="text"
                 numberOfLines={1}
                 style={
                   Object {
@@ -314,7 +320,6 @@ exports[`AccountSelectorList should render all accounts but only the balance for
                     "lineHeight": 22,
                   }
                 }
-                testID="cell-secondary-text"
               >
                 0x2
               </Text>
@@ -385,7 +390,6 @@ exports[`AccountSelectorList should render all accounts with balances 1`] = `
       style={null}
     >
       <TouchableOpacity
-        disabled={false}
         onLongPress={[Function]}
         onPress={[Function]}
         style={
@@ -394,6 +398,7 @@ exports[`AccountSelectorList should render all accounts with balances 1`] = `
             "position": "relative",
           }
         }
+        testID="cellselect"
       >
         <View
           accessibilityRole="none"
@@ -427,6 +432,8 @@ exports[`AccountSelectorList should render all accounts with balances 1`] = `
                   "width": 32,
                 }
               }
+              testID="cellbase-avatar"
+              variant="Account"
             >
               <View
                 style={
@@ -544,6 +551,7 @@ exports[`AccountSelectorList should render all accounts with balances 1`] = `
               }
             >
               <Text
+                accessibilityRole="text"
                 numberOfLines={1}
                 style={
                   Object {
@@ -555,11 +563,11 @@ exports[`AccountSelectorList should render all accounts with balances 1`] = `
                     "lineHeight": 24,
                   }
                 }
-                testID="cell-title"
               >
                 Business Account
               </Text>
               <Text
+                accessibilityRole="text"
                 numberOfLines={1}
                 style={
                   Object {
@@ -571,7 +579,6 @@ exports[`AccountSelectorList should render all accounts with balances 1`] = `
                     "lineHeight": 22,
                   }
                 }
-                testID="cell-secondary-text"
               >
                 0x1
               </Text>
@@ -592,6 +599,7 @@ exports[`AccountSelectorList should render all accounts with balances 1`] = `
                 testID="account-balance-by-address-0x1"
               >
                 <Text
+                  accessibilityRole="text"
                   style={
                     Object {
                       "color": "#24272A",
@@ -646,7 +654,6 @@ exports[`AccountSelectorList should render all accounts with balances 1`] = `
       style={null}
     >
       <TouchableOpacity
-        disabled={false}
         onLongPress={[Function]}
         onPress={[Function]}
         style={
@@ -655,6 +662,7 @@ exports[`AccountSelectorList should render all accounts with balances 1`] = `
             "position": "relative",
           }
         }
+        testID="cellselect"
       >
         <View
           accessibilityRole="none"
@@ -688,6 +696,8 @@ exports[`AccountSelectorList should render all accounts with balances 1`] = `
                   "width": 32,
                 }
               }
+              testID="cellbase-avatar"
+              variant="Account"
             >
               <View
                 style={
@@ -805,6 +815,7 @@ exports[`AccountSelectorList should render all accounts with balances 1`] = `
               }
             >
               <Text
+                accessibilityRole="text"
                 numberOfLines={1}
                 style={
                   Object {
@@ -816,11 +827,11 @@ exports[`AccountSelectorList should render all accounts with balances 1`] = `
                     "lineHeight": 24,
                   }
                 }
-                testID="cell-title"
               >
                 Personal Account
               </Text>
               <Text
+                accessibilityRole="text"
                 numberOfLines={1}
                 style={
                   Object {
@@ -832,7 +843,6 @@ exports[`AccountSelectorList should render all accounts with balances 1`] = `
                     "lineHeight": 22,
                   }
                 }
-                testID="cell-secondary-text"
               >
                 0x2
               </Text>
@@ -853,6 +863,7 @@ exports[`AccountSelectorList should render all accounts with balances 1`] = `
                 testID="account-balance-by-address-0x2"
               >
                 <Text
+                  accessibilityRole="text"
                   style={
                     Object {
                       "color": "#24272A",
@@ -936,7 +947,7 @@ exports[`AccountSelectorList should render all accounts with right acessory 1`] 
       style={null}
     >
       <TouchableOpacity
-        disabled={false}
+        disabled={true}
         onLongPress={[Function]}
         onPress={[Function]}
         style={
@@ -945,6 +956,7 @@ exports[`AccountSelectorList should render all accounts with right acessory 1`] 
             "position": "relative",
           }
         }
+        testID="cellselect"
       >
         <View
           accessibilityRole="none"
@@ -978,6 +990,8 @@ exports[`AccountSelectorList should render all accounts with right acessory 1`] 
                   "width": 32,
                 }
               }
+              testID="cellbase-avatar"
+              variant="Account"
             >
               <View
                 style={
@@ -1095,6 +1109,7 @@ exports[`AccountSelectorList should render all accounts with right acessory 1`] 
               }
             >
               <Text
+                accessibilityRole="text"
                 numberOfLines={1}
                 style={
                   Object {
@@ -1106,11 +1121,11 @@ exports[`AccountSelectorList should render all accounts with right acessory 1`] 
                     "lineHeight": 24,
                   }
                 }
-                testID="cell-title"
               >
                 Business Account
               </Text>
               <Text
+                accessibilityRole="text"
                 numberOfLines={1}
                 style={
                   Object {
@@ -1122,7 +1137,6 @@ exports[`AccountSelectorList should render all accounts with right acessory 1`] 
                     "lineHeight": 22,
                   }
                 }
-                testID="cell-secondary-text"
               >
                 0x1
               </Text>
@@ -1150,7 +1164,7 @@ exports[`AccountSelectorList should render all accounts with right acessory 1`] 
       style={null}
     >
       <TouchableOpacity
-        disabled={false}
+        disabled={true}
         onLongPress={[Function]}
         onPress={[Function]}
         style={
@@ -1159,6 +1173,7 @@ exports[`AccountSelectorList should render all accounts with right acessory 1`] 
             "position": "relative",
           }
         }
+        testID="cellselect"
       >
         <View
           accessibilityRole="none"
@@ -1192,6 +1207,8 @@ exports[`AccountSelectorList should render all accounts with right acessory 1`] 
                   "width": 32,
                 }
               }
+              testID="cellbase-avatar"
+              variant="Account"
             >
               <View
                 style={
@@ -1309,6 +1326,7 @@ exports[`AccountSelectorList should render all accounts with right acessory 1`] 
               }
             >
               <Text
+                accessibilityRole="text"
                 numberOfLines={1}
                 style={
                   Object {
@@ -1320,11 +1338,11 @@ exports[`AccountSelectorList should render all accounts with right acessory 1`] 
                     "lineHeight": 24,
                   }
                 }
-                testID="cell-title"
               >
                 Personal Account
               </Text>
               <Text
+                accessibilityRole="text"
                 numberOfLines={1}
                 style={
                   Object {
@@ -1336,7 +1354,6 @@ exports[`AccountSelectorList should render all accounts with right acessory 1`] 
                     "lineHeight": 22,
                   }
                 }
-                testID="cell-secondary-text"
               >
                 0x2
               </Text>

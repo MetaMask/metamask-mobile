@@ -83,6 +83,7 @@ import {
   selectNetworkConfigurations,
   selectProviderConfig,
 } from '../../../../../selectors/networkController';
+import { regex } from '../../../../../../app/util/regex';
 
 const createStyles = (colors) =>
   StyleSheet.create({
@@ -242,10 +243,6 @@ class NetworkSettings extends PureComponent {
      * returns an array of onboarded networks
      */
     networkOnboardedState: PropTypes.object,
-    /**
-     * Indicates whether third party API mode is enabled
-     */
-    thirdPartyApiMode: PropTypes.bool,
     /**
      * Checks if adding custom mainnet.
      */
@@ -654,12 +651,12 @@ class NetworkSettings extends PureComponent {
 
     // Check if it's a valid chainId format
     if (chainId.startsWith('0x')) {
-      if (!/^0x[0-9a-f]+$/iu.test(chainId)) {
+      if (!regex.validChainId_hex.test(chainId)) {
         errorMessage = strings('app_settings.invalid_hex_number');
       } else if (!isPrefixedFormattedHexString(chainId)) {
         errorMessage = strings('app_settings.invalid_hex_number_leading_zeros');
       }
-    } else if (!/^[0-9]+$/u.test(chainId)) {
+    } else if (!regex.validChainId.test(chainId)) {
       errorMessage = strings('app_settings.invalid_number');
     } else if (chainId.startsWith('0')) {
       errorMessage = strings('app_settings.invalid_number_leading_zeros');
@@ -1157,7 +1154,6 @@ const mapStateToProps = (state) => ({
   providerConfig: selectProviderConfig(state),
   networkConfigurations: selectNetworkConfigurations(state),
   networkOnboardedState: state.networkOnboarded.networkOnboardedState,
-  thirdPartyApiMode: state.privacy.thirdPartyApiMode,
 });
 
 export default connect(mapStateToProps, mapDispatchToProps)(NetworkSettings);

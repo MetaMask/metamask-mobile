@@ -62,6 +62,7 @@ exports[`AddAsset component renders correctly 1`] = `
         }
       >
         <Text
+          accessibilityRole="text"
           style={
             Object {
               "color": "#24272A",

@@ -25,6 +25,7 @@ import { toLowerCaseEquals } from '../general';
 import { fastSplit } from '../number';
 import { buildUnserializedTransaction } from '../transactions/optimismTransaction';
 import handleNetworkSwitch from './handleNetworkSwitch';
+import { regex } from '../../../app/util/regex';
 
 export { handleNetworkSwitch };
 
@@ -43,6 +44,7 @@ import {
   getEtherscanBaseUrl,
   getEtherscanTransactionUrl,
 } from '../etherscan';
+import { LINEA_FAUCET, SEPOLIA_FAUCET } from '../../constants/urls';
 
 /**
  * List of the supported networks
@@ -189,6 +191,17 @@ const TESTNET_CHAIN_IDS = [
 ];
 
 /**
+ * A map of testnet chainId and its faucet link
+ */
+export const TESTNET_FAUCETS = {
+  [NetworksChainId[NetworkType.sepolia]]: SEPOLIA_FAUCET,
+  [NetworksChainId[NetworkType['linea-goerli']]]: LINEA_FAUCET,
+};
+
+export const isTestNetworkWithFaucet = (chainId) =>
+  TESTNET_FAUCETS[chainId] !== undefined;
+
+/**
  * Determine whether the given chain ID is for a known testnet.
  *
  * @param {string} chainId - The chain ID of the network to check
@@ -231,12 +244,7 @@ export function hasBlockExplorer(key) {
 }
 
 export function isprivateConnection(hostname) {
-  return (
-    hostname === 'localhost' ||
-    /(^127\.)|(^10\.)|(^172\.1[6-9]\.)|(^172\.2[0-9]\.)|(^172\.3[0-1]\.)|(^192\.168\.)/.test(
-      hostname,
-    )
-  );
+  return hostname === 'localhost' || regex.localNetwork.test(hostname);
 }
 
 /**
@@ -321,7 +329,7 @@ export function isPrefixedFormattedHexString(value) {
   if (typeof value !== 'string') {
     return false;
   }
-  return /^0x[1-9a-f]+[0-9a-f]*$/iu.test(value);
+  return regex.prefixedFormattedHexString.test(value);
 }
 
 export const getNetworkNonce = async ({ from }) => {

@@ -6,7 +6,10 @@ import { TESTID_ACCORDION_CONTENT } from '../../../component-library/components/
 import { TESTID_ACCORDIONHEADER } from '../../../component-library/components/Accordions/Accordion/foundation/AccordionHeader/AccordionHeader.constants';
 import { BANNERALERT_TEST_ID } from '../../../component-library/components/Banners/Banner/variants/BannerAlert/BannerAlert.constants';
 import BlockaidBanner from './BlockaidBanner';
-import { ATTRIBUTION_LINE_TEST_ID } from './BlockaidBanner.constants';
+import {
+  ATTRIBUTION_LINE_TEST_ID,
+  FALSE_POSITIVE_REPOST_LINE_TEST_ID,
+} from './BlockaidBanner.constants';
 import { ResultType, Reason } from './BlockaidBanner.types';
 
 jest.mock('../../../util/blockaid', () => ({
@@ -26,7 +29,7 @@ describe('BlockaidBanner', () => {
     const wrapper = render(
       <BlockaidBanner
         securityAlertResponse={{
-          resultType: ResultType.Warning,
+          result_type: ResultType.Warning,
           reason: Reason.approvalFarming,
           features: mockFeatures,
         }}
@@ -40,7 +43,7 @@ describe('BlockaidBanner', () => {
     const wrapper = render(
       <BlockaidBanner
         securityAlertResponse={{
-          resultType: ResultType.Malicious,
+          result_type: ResultType.Malicious,
           reason: Reason.rawSignatureFarming,
           features: mockFeatures,
         }}
@@ -63,7 +66,7 @@ describe('BlockaidBanner', () => {
     const wrapper = render(
       <BlockaidBanner
         securityAlertResponse={{
-          resultType: ResultType.Malicious,
+          result_type: ResultType.Malicious,
           reason: Reason.rawSignatureFarming,
           features: mockFeatures,
         }}
@@ -77,7 +80,7 @@ describe('BlockaidBanner', () => {
     const wrapper = render(
       <BlockaidBanner
         securityAlertResponse={{
-          resultType: ResultType.Malicious,
+          result_type: ResultType.Malicious,
           reason: Reason.approvalFarming,
           features: mockFeatures,
         }}
@@ -112,6 +115,32 @@ describe('BlockaidBanner', () => {
     ).toBeDefined();
   });
 
+  it('should render something does not look right with contact us link when expanded', async () => {
+    const wrapper = render(
+      <BlockaidBanner
+        securityAlertResponse={{
+          result_type: ResultType.Malicious,
+          reason: Reason.approvalFarming,
+          features: mockFeatures,
+        }}
+      />,
+    );
+
+    expect(wrapper).toMatchSnapshot();
+    expect(await wrapper.queryByTestId(TESTID_ACCORDIONHEADER)).toBeDefined();
+    expect(await wrapper.queryByTestId(TESTID_ACCORDION_CONTENT)).toBeNull();
+
+    fireEvent.press(await wrapper.getByText('See details'));
+
+    expect(await wrapper.queryByTestId(TESTID_ACCORDION_CONTENT)).toBeDefined();
+    expect(
+      await wrapper.queryByTestId(FALSE_POSITIVE_REPOST_LINE_TEST_ID),
+    ).toBeDefined();
+    expect(
+      await wrapper.queryByText('Something doesn’t look right?'),
+    ).toBeDefined();
+  });
+
   it('should not render if securityAlertResponse is undefined', async () => {
     const wrapper = render(<BlockaidBanner />);
 
@@ -124,7 +153,7 @@ describe('BlockaidBanner', () => {
     const wrapper = render(
       <BlockaidBanner
         securityAlertResponse={{
-          resultType: ResultType.Benign,
+          result_type: ResultType.Benign,
           reason: Reason.rawSignatureFarming,
           features: mockFeatures,
         }}
@@ -140,8 +169,8 @@ describe('BlockaidBanner', () => {
     const wrapper = render(
       <BlockaidBanner
         securityAlertResponse={{
-          resultType: ResultType.Failed,
-          reason: Reason.rawSignatureFarming,
+          result_type: ResultType.Failed,
+          reason: Reason.failed,
           features: mockFeatures,
         }}
       />,

@@ -31,7 +31,12 @@ import {
 import { sumHexWEIs } from '../../../../util/conversions';
 import Analytics from '../../../../core/Analytics/Analytics';
 import { MetaMetricsEvents } from '../../../../core/Analytics';
-import { getNetworkNonce, isTestNet } from '../../../../util/networks';
+import {
+  TESTNET_FAUCETS,
+  getNetworkNonce,
+  isTestNet,
+  isTestNetworkWithFaucet,
+} from '../../../../util/networks';
 import CustomNonceModal from '../../../UI/CustomNonceModal';
 import { setNonce, setProposedNonce } from '../../../../actions/transaction';
 import TransactionReviewEIP1559 from '../TransactionReviewEIP1559';
@@ -524,11 +529,12 @@ class TransactionReviewInformation extends PureComponent {
   };
 
   goToFaucet = () => {
+    const { chainId } = this.props;
     InteractionManager.runAfterInteractions(() => {
       this.onCancelPress();
       this.props.navigation.navigate(
         ...createBrowserNavDetails({
-          newTabUrl: AppConstants.URLS.MM_FAUCET,
+          newTabUrl: TESTNET_FAUCETS[chainId],
           timestamp: Date.now(),
         }),
       );
@@ -631,8 +637,9 @@ class TransactionReviewInformation extends PureComponent {
   render() {
     const { amountError, nonceModalVisible } = this.state;
     const {
+      chainId,
       toggleDataView,
-      transaction: { warningGasPriceHigh },
+      transaction: { warningGasPriceHigh, type },
       error,
       over,
       showCustomNonce,
@@ -650,9 +657,10 @@ class TransactionReviewInformation extends PureComponent {
       : strings('transaction.buy_more');
 
     const showFeeMarket =
-      !gasEstimateType ||
-      gasEstimateType === GAS_ESTIMATE_TYPES.FEE_MARKET ||
-      gasEstimateType === GAS_ESTIMATE_TYPES.NONE;
+      (!gasEstimateType ||
+        gasEstimateType === GAS_ESTIMATE_TYPES.FEE_MARKET ||
+        gasEstimateType === GAS_ESTIMATE_TYPES.NONE) &&
+      type !== '0x0';
 
     return (
       <React.Fragment>
@@ -683,7 +691,7 @@ class TransactionReviewInformation extends PureComponent {
         )}
         {!!error && (
           <View style={styles.errorWrapper}>
-            {this.isTestNetwork() || isNativeTokenBuySupported ? (
+            {isTestNetworkWithFaucet(chainId) || isNativeTokenBuySupported ? (
               <TouchableOpacity onPress={errorPress}>
                 <Text style={styles.error}>{error}</Text>
                 {over && (

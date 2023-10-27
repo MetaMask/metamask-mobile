@@ -35,19 +35,69 @@ describe('Redux Persist Migrations', () => {
   it('should apply last migration version and return state', () => {
     // update this state to be compatible with the most recent migration
     const oldState = {
-      user: {
-        nftDetectionDismissed: true,
-      },
+      privacy: { thirdPartyApiMode: false },
       engine: {
-        backgroundState: { PreferencesController: { openSeaEnabled: true } },
+        backgroundState: {
+          PreferencesController: {
+            showIncomingTransactions: {
+              '0x1': true,
+              '0x5': true,
+              '0x38': true,
+              '0x61': true,
+              '0xa': true,
+              '0xa869': true,
+              '0x1a4': true,
+              '0x89': true,
+              '0x13881': true,
+              '0xa86a': true,
+              '0xfa': true,
+              '0xfa2': true,
+              '0xaa36a7': true,
+              '0xe704': true,
+              '0xe708': true,
+              '0x504': true,
+              '0x507': true,
+              '0x505': true,
+              '0x64': true,
+            },
+          },
+        },
       },
     };
 
     const migration = migrations[version];
 
     const newState = migration(oldState);
-
-    expect(newState).toBeDefined();
+    expect(newState).toStrictEqual({
+      privacy: {},
+      engine: {
+        backgroundState: {
+          PreferencesController: {
+            showIncomingTransactions: {
+              '0x1': false,
+              '0x5': false,
+              '0x38': false,
+              '0x61': false,
+              '0xa': false,
+              '0xa869': false,
+              '0x1a4': false,
+              '0x89': false,
+              '0x13881': false,
+              '0xa86a': false,
+              '0xfa': false,
+              '0xfa2': false,
+              '0xaa36a7': false,
+              '0xe704': false,
+              '0xe708': false,
+              '0x504': false,
+              '0x507': false,
+              '0x505': false,
+              '0x64': false,
+            },
+          },
+        },
+      },
+    });
   });
 
   describe('#19', () => {
@@ -800,6 +850,171 @@ describe('Redux Persist Migrations', () => {
           },
         }),
       );
+    });
+  });
+
+  describe('#24', () => {
+    const invalidBackgroundStates = [
+      {
+        state: merge({}, initialRootState, {
+          engine: {
+            backgroundState: {
+              NetworkController: null,
+            },
+          },
+        }),
+        errorMessage:
+          "Migration 24: Invalid network controller state: 'object'",
+        scenario: 'network controller state is invalid',
+      },
+      {
+        state: merge({}, initialRootState, {
+          engine: {
+            backgroundState: {
+              NetworkController: { network: null },
+            },
+          },
+        }),
+        errorMessage: "Migration 24: Invalid network state: 'object'",
+        scenario: 'network state is invalid',
+      },
+    ];
+
+    for (const { errorMessage, scenario, state } of invalidBackgroundStates) {
+      it(`should capture exception if ${scenario}`, () => {
+        const migration = migrations[24];
+        const newState = migration(cloneDeep(state));
+
+        expect(newState).toStrictEqual(state);
+        expect(mockedCaptureException).toHaveBeenCalledWith(expect.any(Error));
+        expect(mockedCaptureException.mock.calls[0][0].message).toBe(
+          errorMessage,
+        );
+      });
+    }
+
+    it('should migrate loading network state', () => {
+      const state = {
+        engine: {
+          backgroundState: merge({}, initialBackgroundState, {
+            NetworkController: {
+              network: 'loading',
+            },
+          }),
+        },
+      };
+
+      const migration = migrations[24];
+      const newState = migration(state);
+
+      expect(newState.engine.backgroundState.NetworkController).toStrictEqual({
+        networkConfigurations: {},
+        networkDetails: {
+          isEIP1559Compatible: false,
+        },
+        networkId: null,
+        networkStatus: 'unknown',
+        providerConfig: {
+          chainId: '1',
+          type: 'mainnet',
+        },
+      });
+    });
+
+    it('should migrate non-loading network state', () => {
+      const state = {
+        engine: {
+          backgroundState: merge({}, initialBackgroundState, {
+            NetworkController: {
+              network: '1',
+            },
+          }),
+        },
+      };
+
+      const migration = migrations[24];
+      const newState = migration(state);
+
+      expect(newState.engine.backgroundState.NetworkController).toStrictEqual({
+        networkConfigurations: {},
+        networkDetails: {
+          isEIP1559Compatible: false,
+        },
+        networkId: '1',
+        networkStatus: 'available',
+        providerConfig: {
+          chainId: '1',
+          type: 'mainnet',
+        },
+      });
+    });
+  });
+  describe('#25', () => {
+    it('migrates state from thirdPartyMode to the new incoming transactions networks on preferences controller', () => {
+      const oldState = {
+        privacy: { thirdPartyApiMode: false },
+        engine: {
+          backgroundState: {
+            PreferencesController: {
+              showIncomingTransactions: {
+                '0x1': true,
+                '0x5': true,
+                '0x38': true,
+                '0x61': true,
+                '0xa': true,
+                '0xa869': true,
+                '0x1a4': true,
+                '0x89': true,
+                '0x13881': true,
+                '0xa86a': true,
+                '0xfa': true,
+                '0xfa2': true,
+                '0xaa36a7': true,
+                '0xe704': true,
+                '0xe708': true,
+                '0x504': true,
+                '0x507': true,
+                '0x505': true,
+                '0x64': true,
+              },
+            },
+          },
+        },
+      };
+
+      const migration = migrations[25];
+
+      const newState = migration(oldState);
+      expect(newState).toStrictEqual({
+        privacy: {},
+        engine: {
+          backgroundState: {
+            PreferencesController: {
+              showIncomingTransactions: {
+                '0x1': false,
+                '0x5': false,
+                '0x38': false,
+                '0x61': false,
+                '0xa': false,
+                '0xa869': false,
+                '0x1a4': false,
+                '0x89': false,
+                '0x13881': false,
+                '0xa86a': false,
+                '0xfa': false,
+                '0xfa2': false,
+                '0xaa36a7': false,
+                '0xe704': false,
+                '0xe708': false,
+                '0x504': false,
+                '0x507': false,
+                '0x505': false,
+                '0x64': false,
+              },
+            },
+          },
+        },
+      });
     });
   });
 });

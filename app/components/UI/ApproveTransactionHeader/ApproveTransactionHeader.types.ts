@@ -15,4 +15,5 @@ export interface ApproveTransactionHeaderI {
   currentEnsName?: string;
   from: string;
   asset: Asset;
+  dontWatchAsset?: boolean;
 }

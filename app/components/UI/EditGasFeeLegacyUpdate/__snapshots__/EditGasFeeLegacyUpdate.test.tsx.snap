@@ -79,6 +79,7 @@ exports[`EditGasFeeLegacyUpdate should match snapshot 1`] = `
               </Text>
             </TouchableOpacity>
             <Text
+              accessibilityRole="text"
               style={
                 Object {
                   "color": "#24272A",
@@ -165,6 +166,7 @@ exports[`EditGasFeeLegacyUpdate should match snapshot 1`] = `
           </View>
           <View>
             <Text
+              accessibilityRole="text"
               style={
                 Object {
                   "color": "#F66A0A",
@@ -206,6 +208,7 @@ exports[`EditGasFeeLegacyUpdate should match snapshot 1`] = `
               }
             >
               <Text
+                accessibilityRole="text"
                 style={
                   Object {
                     "color": "#24272A",
@@ -218,7 +221,7 @@ exports[`EditGasFeeLegacyUpdate should match snapshot 1`] = `
                 }
               >
                 ~ 
-                0 ETH
+                0.00021 ETH
               </Text>
               <View
                 style={
@@ -228,6 +231,7 @@ exports[`EditGasFeeLegacyUpdate should match snapshot 1`] = `
                 }
               />
               <Text
+                accessibilityRole="text"
                 style={
                   Object {
                     "color": "#535A61",
@@ -268,6 +272,7 @@ exports[`EditGasFeeLegacyUpdate should match snapshot 1`] = `
                     }
                   >
                     <Text
+                      accessibilityRole="text"
                       style={
                         Object {
                           "color": "#24272A",
@@ -628,6 +633,7 @@ exports[`EditGasFeeLegacyUpdate should match snapshot 1`] = `
                     }
                   >
                     <Text
+                      accessibilityRole="text"
                       style={
                         Object {
                           "color": "#24272A",
@@ -643,6 +649,7 @@ exports[`EditGasFeeLegacyUpdate should match snapshot 1`] = `
                        
                     </Text>
                     <Text
+                      accessibilityRole="text"
                       style={
                         Object {
                           "color": "#535A61",
@@ -783,6 +790,7 @@ exports[`EditGasFeeLegacyUpdate should match snapshot 1`] = `
                           "paddingRight": 6,
                         }
                       }
+                      value="10"
                     />
                   </View>
                   <View
