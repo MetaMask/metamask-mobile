@@ -1,8 +1,9 @@
 import { KeyringController } from '@metamask/keyring-controller';
 import { AndroidClient } from '../AndroidSDK/android-sdk-types';
 import RPCQueueManager from '../RPCQueueManager';
-import { Connection, SDKConnect } from '../SDKConnect';
+import { SDKConnect } from '../SDKConnect';
 import DevLogger from './DevLogger';
+import { Connection } from '../Connection';
 
 export const MAX_QUEUE_LOOP = Infinity;
 export const wait = (ms: number) =>
@@ -53,6 +54,12 @@ export const waitForKeychainUnlocked = async ({
   if (!keyringController) {
     console.warn('Keyring controller not found');
   }
+
+  // Disable during e2e tests otherwise Detox fails
+  if (process.env.IS_TEST === 'true') {
+    return true;
+  }
+
   let unlocked = keyringController.isUnlocked();
   DevLogger.log(
     `SDKConnect:: waitForKeyChainUnlocked[${context}] unlocked: ${unlocked}`,

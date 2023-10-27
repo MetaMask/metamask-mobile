@@ -1,16 +1,32 @@
-// Third party dependencies.
-import React from 'react';
-import { storiesOf } from '@storybook/react-native';
-
 // Internal dependencies.
-import Text from './Text';
-import { TextVariant } from './Text.types';
+import { default as TextComponent } from './Text';
+import { SAMPLE_TEXT_PROPS } from './Text.constants';
+import { TextVariant, TextColor } from './Text.types';
 
-storiesOf('Component Library / Text', module)
-  .addDecorator((getStory) => getStory())
-  .add('Small Display MD', () => (
-    <Text variant={TextVariant.DisplayMD}>{`I'm Text!`}</Text>
-  ))
-  .add('Small Body MD', () => (
-    <Text variant={TextVariant.BodyMD}>{`I'm Text!`}</Text>
-  ));
+const TextMeta = {
+  title: 'Component Library / Texts',
+  component: TextComponent,
+  argTypes: {
+    variant: {
+      options: TextVariant,
+      control: {
+        type: 'select',
+      },
+      defaultValue: SAMPLE_TEXT_PROPS.variant,
+    },
+    children: {
+      control: { type: 'text' },
+      defaultValue: SAMPLE_TEXT_PROPS.children,
+    },
+    color: {
+      options: TextColor,
+      control: {
+        type: 'select',
+      },
+      defaultValue: SAMPLE_TEXT_PROPS.color,
+    },
+  },
+};
+export default TextMeta;
+
+export const Text = {};
