@@ -219,7 +219,7 @@ const LedgerConfirmationModal = ({
       });
       AnalyticsV2.trackEvent(MetaMetricsEvents.LEDGER_HARDWARE_WALLET_ERROR, {
         device_type: 'Ledger',
-        error: 'LEDGER_BLUETOOTH_PERMISSION_ERR',
+        error: 'LEDGER_BLUETOOTH_CONNECTION_ERR',
       });
     }
 
