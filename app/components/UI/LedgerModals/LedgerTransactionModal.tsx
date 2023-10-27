@@ -10,8 +10,6 @@ import {
 } from '../../../util/navigation/navUtils';
 import Routes from '../../../constants/navigation/Routes';
 import { useAppThemeFromContext, mockTheme } from '../../../util/theme';
-import { MetaMetricsEvents } from '../../../core/Analytics';
-import AnalyticsV2 from '../../../util/analyticsV2';
 
 export const createLedgerTransactionModalNavDetails =
   createNavigationDetails<LedgerTransactionModalParams>(
