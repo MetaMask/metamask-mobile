@@ -446,6 +446,7 @@ exports[`Network Selector renders correctly 1`] = `
                                   "position": "relative",
                                 }
                               }
+                              testID="cellselect"
                             >
                               <View
                                 accessibilityRole="none"
@@ -519,7 +520,6 @@ exports[`Network Selector renders correctly 1`] = `
                                           "lineHeight": 24,
                                         }
                                       }
-                                      testID="cell-title"
                                     >
                                       Ethereum Main Network
                                     </Text>
@@ -563,6 +563,7 @@ exports[`Network Selector renders correctly 1`] = `
                                   "position": "relative",
                                 }
                               }
+                              testID="cellselect"
                             >
                               <View
                                 accessibilityRole="none"
@@ -635,7 +636,6 @@ exports[`Network Selector renders correctly 1`] = `
                                           "lineHeight": 24,
                                         }
                                       }
-                                      testID="cell-title"
                                     >
                                       Linea Main Network
                                     </Text>
@@ -653,6 +653,7 @@ exports[`Network Selector renders correctly 1`] = `
                                   "position": "relative",
                                 }
                               }
+                              testID="cellselect"
                             >
                               <View
                                 accessibilityRole="none"
@@ -728,7 +729,6 @@ exports[`Network Selector renders correctly 1`] = `
                                           "lineHeight": 24,
                                         }
                                       }
-                                      testID="cell-title"
                                     >
                                       Avalanche Mainnet C-Chain
                                     </Text>
@@ -746,6 +746,7 @@ exports[`Network Selector renders correctly 1`] = `
                                   "position": "relative",
                                 }
                               }
+                              testID="cellselect"
                             >
                               <View
                                 accessibilityRole="none"
@@ -821,7 +822,6 @@ exports[`Network Selector renders correctly 1`] = `
                                           "lineHeight": 24,
                                         }
                                       }
-                                      testID="cell-title"
                                     >
                                       Polygon Mainnet
                                     </Text>
@@ -839,6 +839,7 @@ exports[`Network Selector renders correctly 1`] = `
                                   "position": "relative",
                                 }
                               }
+                              testID="cellselect"
                             >
                               <View
                                 accessibilityRole="none"
@@ -914,7 +915,6 @@ exports[`Network Selector renders correctly 1`] = `
                                           "lineHeight": 24,
                                         }
                                       }
-                                      testID="cell-title"
                                     >
                                       Optimism
                                     </Text>
@@ -932,6 +932,7 @@ exports[`Network Selector renders correctly 1`] = `
                                   "position": "relative",
                                 }
                               }
+                              testID="cellselect"
                             >
                               <View
                                 accessibilityRole="none"
@@ -1006,7 +1007,6 @@ exports[`Network Selector renders correctly 1`] = `
                                           "lineHeight": 24,
                                         }
                                       }
-                                      testID="cell-title"
                                     >
                                       Gnosis Chain
                                     </Text>
