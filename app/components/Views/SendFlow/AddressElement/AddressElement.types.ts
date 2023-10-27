@@ -10,6 +10,10 @@ export interface AddressElementProps extends TouchableOpacityProps {
    */
   address: string;
   /**
+   * An Address that might exist on many networks
+   */
+  isAmbiguousAddress?: boolean;
+  /**
    * Callback on account press
    */
   onAccountPress: (address: string) => void;
@@ -17,4 +21,8 @@ export interface AddressElementProps extends TouchableOpacityProps {
    * Callback on account long press
    */
   onAccountLongPress: (address: string) => void;
+  /**
+   * Callback for icon press
+   */
+  onIconPress: () => void;
 }

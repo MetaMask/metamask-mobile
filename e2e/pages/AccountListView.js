@@ -1,8 +1,8 @@
 import TestHelpers from '../helpers';
 
 import {
-  CELL_MULTI_SELECT_TEST_ID,
-  CELL_SELECT_TEST_ID,
+  CELLMULTISELECT_TEST_ID, // This TESTID needs to be in a proper folder. It lives in two places. Search and find out
+  CELLSELECT_TEST_ID,
 } from '../../app/constants/test-ids';
 import {
   ACCOUNT_LIST_ID,
@@ -17,7 +17,7 @@ const CREATE_ACCOUNT_TEXT = messages.account_actions.add_new_account;
 
 export default class AccountListView {
   static async tapNewAccount2() {
-    await TestHelpers.tapItemAtIndex(CELL_MULTI_SELECT_TEST_ID, 1);
+    await TestHelpers.tapItemAtIndex(CELLMULTISELECT_TEST_ID, 1);
   }
 
   static async tapAddAccountButton() {
@@ -33,7 +33,7 @@ export default class AccountListView {
   }
 
   static async longPressImportedAccount() {
-    await TestHelpers.tapAndLongPressAtIndex(CELL_SELECT_TEST_ID, 1);
+    await TestHelpers.tapAndLongPressAtIndex(CELLSELECT_TEST_ID, 1);
   }
   static async swipeToDimssAccountsModal() {
     if (device.getPlatform() === 'android') {

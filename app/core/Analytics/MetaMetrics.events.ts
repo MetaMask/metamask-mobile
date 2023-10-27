@@ -793,6 +793,7 @@ enum DESCRIPTION {
   SEND_FLOW_ADDS_AMOUNT = `Adds Amount`,
   SEND_FLOW_CONFIRM_SEND = `Confirm Send`,
   SEND_FLOW_ADJUSTS_TRANSACTION_FEE = `Adjusts transaction fee`,
+  SEND_FLOW_SELECT_DUPLICATE_ADDRESS = `Select duplicate address`,
   SEND_FLOW_CANCEL = `Cancel`,
   // Dapp Interactions
   DAPP_APPROVE_SCREEN_APPROVE = 'Approve',
@@ -1151,6 +1152,11 @@ const legacyMetaMetricsEvents = {
     EVENT_NAME.SEND_FLOW,
     ACTIONS.SEND_FLOW,
     DESCRIPTION.SEND_FLOW_CANCEL,
+  ),
+  SEND_FLOW_SELECT_DUPLICATE_ADDRESS: generateOpt(
+    EVENT_NAME.SEND_FLOW,
+    ACTIONS.SEND_FLOW,
+    DESCRIPTION.SEND_FLOW_SELECT_DUPLICATE_ADDRESS,
   ),
   // Dapp Interactions
   DAPP_APPROVE_SCREEN_APPROVE: generateOpt(
