@@ -15,13 +15,15 @@ import { useAppTheme } from '../../../../../../util/theme';
 import { getNavigationOptionsTitle } from '../../../../Navbar';
 import styles from './Settings.styles';
 import useAnalytics from '../../hooks/useAnalytics';
+import { RampType } from '../../../../../../reducers/fiatOrders/types';
 
 // TODO: Convert into typescript and correctly type optionals
 const ListItem = BaseListItem as any;
 
 function Settings() {
   const navigation = useNavigation();
-  const { selectedRegion, setSelectedRegion, isInternalBuild } = useRampSDK();
+  const { selectedRegion, setSelectedRegion, isInternalBuild, rampType } =
+    useRampSDK();
   const { colors } = useAppTheme();
   const style = styles(colors);
   const trackEvent = useAnalytics();
@@ -39,11 +41,16 @@ function Settings() {
   }, [colors, navigation]);
 
   const handleResetRegion = useCallback(() => {
-    trackEvent('ONRAMP_REGION_RESET', {
-      location: 'Settings Screen',
-    });
+    trackEvent(
+      rampType === RampType.BUY
+        ? 'ONRAMP_REGION_RESET'
+        : 'OFFRAMP_REGION_RESET',
+      {
+        location: 'Settings Screen',
+      },
+    );
     setSelectedRegion(null);
-  }, [setSelectedRegion, trackEvent]);
+  }, [rampType, setSelectedRegion, trackEvent]);
 
   return (
     <KeyboardAvoidingView
