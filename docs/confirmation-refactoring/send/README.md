@@ -36,7 +36,7 @@ There will be more components added to the list above as we do refactoring to br
 
 ### SendTo Component
 
-[/Views/SendFlow/SendTo](https://github.com/MetaMask/metamask-mobile/tree/main/app/components/Views/SendFlow/SendTo) is responsible to render first send page where receipient address is selected:
+[/Views/SendFlow/SendTo](https://github.com/MetaMask/metamask-mobile/tree/main/app/components/Views/SendFlow/SendTo) is responsible to render first send page where recipient address is selected:
 
 <img src="https://github.com/MetaMask/metamask-mobile/blob/send_architectural_doc/docs/confirmation-refactoring/send/send_to.png?raw=true" width="150"/>
 
