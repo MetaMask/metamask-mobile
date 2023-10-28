@@ -350,7 +350,7 @@ workflows:
         machine_type_id: elite-xl
   ios_test_suite_selection:
     envs:
-    - TEST_SUITE: regression
+    - TEST_SUITE: ''
     after_run:
     - ios_e2e_echo_test
   ios_e2e_echo_test:
