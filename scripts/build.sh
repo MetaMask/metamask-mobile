@@ -409,19 +409,19 @@ startWatcher() {
 checkAuthToken() {
 	local propertiesFileName="$1"
 
-	if [ -n "${MM_SENTRY_AUTH_TOKEN}" ]; then
-		sed -i'' -e "s/auth.token.*/auth.token=${MM_SENTRY_AUTH_TOKEN}/" "./${propertiesFileName}";
+	if [ -n "${MM_SENTRY_AUTH_TOKEN_DEV}" ]; then
+		sed -i'' -e "s/auth.token.*/auth.token=${MM_SENTRY_AUTH_TOKEN_DEV}/" "./${propertiesFileName}";
 	elif ! grep -qE '^auth.token=[[:alnum:]]+$' "./${propertiesFileName}"; then
-		printError "Missing auth token in '${propertiesFileName}'; add the token, or set it as MM_SENTRY_AUTH_TOKEN"
+		printError "Missing auth token in '${propertiesFileName}'; add the token, or set it as MM_SENTRY_AUTH_TOKEN_DEV"
 		exit 1
 	fi
 
 	if [ ! -e "./${propertiesFileName}" ]; then
-		if [ -n "${MM_SENTRY_AUTH_TOKEN}" ]; then
+		if [ -n "${MM_SENTRY_AUTH_TOKEN_DEV}" ]; then
 			cp "./${propertiesFileName}.example" "./${propertiesFileName}"
-			sed -i'' -e "s/auth.token.*/auth.token=${MM_SENTRY_AUTH_TOKEN}/" "./${propertiesFileName}";
+			sed -i'' -e "s/auth.token.*/auth.token=${MM_SENTRY_AUTH_TOKEN_DEV}/" "./${propertiesFileName}";
 		else
-			printError "Missing '${propertiesFileName}' file (see '${propertiesFileName}.example' or set MM_SENTRY_AUTH_TOKEN to generate)"
+			printError "Missing '${propertiesFileName}' file (see '${propertiesFileName}.example' or set MM_SENTRY_AUTH_TOKEN_DEV to generate)"
 			exit 1
 		fi
 	fi
