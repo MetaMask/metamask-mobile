@@ -42,11 +42,18 @@ pipelines:
   release_e2e_pipeline:
     stages:
       - run_e2e_ios_android_stage: {}
+      - run_regression_e2e_ios_android_stage: {}
       - notify: {}
   #PR_e2e_verfication (build ios & android), run iOS (smoke), emulator Android
   pr_smoke_e2e_pipeline:
     stages:
       - run_smoke_e2e_ios_android_stage: {}
+      - notify: {}
+
+ #PR_e2e_verfication (build ios & android), run iOS (smoke), emulator Android
+  pr_regression_e2e_pipeline:
+    stages:
+      - run_regression_e2e_ios_android_stage: {}
       - notify: {}
 
 #Stages refrence workflows. Those workflows cannot but utility "_this-is-a-utility"
@@ -86,8 +93,12 @@ stages:
       - ios_e2e_test: {}
   run_smoke_e2e_ios_android_stage:
     workflows:
-      - ios_test_suite_selection: {}
+      - ios_e2e_test: {}
       - android_e2e_test: {}
+  run_regression_e2e_ios_android_stage:
+    workflows:
+      - ios_run_regression_tests: {}
+      - android_run_regression_tests: {}
   run_e2e_ios_android_stage:
     workflows:
       - ios_e2e_test: {}
@@ -311,8 +322,13 @@ workflows:
           inputs:
             - content: |-
                 #!/usr/bin/env bash
+                if [ "$TEST_SUITE" = "regression" ]; then
+                TEST_SUITE="regression"
+                else
+                TEST_SUITE="smoke"
+                fi
                 node -v
-                IGNORE_BOXLOGS_DEVELOPMENT="true" FORCE_BUNDLING=true yarn test:e2e:android:bitrise:debug --testNamePattern='Smoke'
+                IGNORE_BOXLOGS_DEVELOPMENT="true" FORCE_BUNDLING=true yarn test:e2e:android:bitrise:debug --testNamePattern="$TEST_SUITE"
           title: Detox Build & Test
           is_always_run: false
       - custom-test-results-export@1:
@@ -348,26 +364,19 @@ workflows:
       bitrise.io:
         stack: linux-docker-android-20.04
         machine_type_id: elite-xl
-  ios_test_suite_selection:
+ 
+  ### This workflow uses a flag (TEST_SUITE) that defines the specific set of tests to be run.
+  ## in this instance Regression. In future iterations we can rename to ios_test_suite_selection & android_test_suite_selection      
+  ios_run_regression_tests:
     envs:
-    - TEST_SUITE: ''
+    - TEST_SUITE: 'regression'
     after_run:
-    - ios_e2e_echo_test
-  ios_e2e_echo_test:
-    steps:
-     - script@1:
-        inputs:
-         - content: |-
-            #!/usr/bin/env bash
-            if [ "$TEST_SUITE" = "regression" ]; then
-              TEST_SUITE="regression"
-              echo "this is regression: $TEST_SUITE"
-            else
-              TEST_SUITE="smoke"
-              echo "SMOKE: $TEST_SUITE"
-            fi
-             node -v
-             # IGNORE_BOXLOGS_DEVELOPMENT="true" FORCE_BUNDLING=true yarn test:e2e:ios:debug --testNamePattern='$TEST_SUITE'
+    - ios_e2e_test
+  android_run_regression_tests:
+    envs:
+    - TEST_SUITE: 'regression'
+    after_run:
+    - android_e2e_test
 
   ios_e2e_test:
     before_run:
@@ -404,7 +413,7 @@ workflows:
                 echo "SMOKE: TEST_SUITE"
                 fi
                 node -v
-                # IGNORE_BOXLOGS_DEVELOPMENT="true" FORCE_BUNDLING=true yarn test:e2e:ios:debug --testNamePattern='$TEST_SUITE'
+                # IGNORE_BOXLOGS_DEVELOPMENT="true" FORCE_BUNDLING=true yarn test:e2e:ios:debug --testNamePattern="$TEST_SUITE"
           title: Detox Build & Test
           is_always_run: false
       - custom-test-results-export@1:
@@ -841,9 +850,7 @@ app:
     - opts:
         is_expand: false
       IOS_APP_LINK: ''
-    - opts:
-        is_expand: false
-      TEST_SUITE: 'smoke'
+
 meta:
   bitrise.io:
     stack: osx-xcode-14.2.x-ventura
