@@ -406,14 +406,11 @@ workflows:
                 #!/usr/bin/env bash
                 if [ "$TEST_SUITE" = "regression" ]; then
                 TEST_SUITE="regression"
-
-                echo "this is regression: $TEST_SUITE"
                 else
                 TEST_SUITE="smoke"
-                echo "SMOKE: TEST_SUITE"
                 fi
                 node -v
-                # IGNORE_BOXLOGS_DEVELOPMENT="true" FORCE_BUNDLING=true yarn test:e2e:ios:debug --testNamePattern="$TEST_SUITE"
+                IGNORE_BOXLOGS_DEVELOPMENT="true" FORCE_BUNDLING=true yarn test:e2e:ios:debug --testNamePattern="$TEST_SUITE"
           title: Detox Build & Test
           is_always_run: false
       - custom-test-results-export@1:
