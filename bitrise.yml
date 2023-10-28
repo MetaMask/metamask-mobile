@@ -86,7 +86,7 @@ stages:
       - ios_e2e_test: {}
   run_smoke_e2e_ios_android_stage:
     workflows:
-      - ios_e2e_test: {}
+      - ios_test_suite_selection: {}
       - android_e2e_test: {}
   run_e2e_ios_android_stage:
     workflows:
@@ -374,8 +374,8 @@ workflows:
     #             envman add --key BREW_OPT_APPLESIMUTILS --value "/usr/local/opt/applesimutils"
     #             brew tap wix/brew
     #       title: Set Env Path for caching deps
-      - cocoapods-install@2:
-          is_always_run: false
+      # - cocoapods-install@2:
+      #     is_always_run: false
       - script@1:
           inputs:
             - content: |-
