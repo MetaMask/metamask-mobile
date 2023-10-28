@@ -291,6 +291,19 @@ workflows:
             - cache_local_deps: 'yes'
             - command: global add detox-cli
           title: Detox - Install CLI
+   ### This workflow uses a flag (TEST_SUITE) that defines the specific set of tests to be run.
+  ## in this instance Regression. In future iterations we can rename to ios_test_suite_selection & android_test_suite_selection      
+  ios_run_regression_tests:
+    envs:
+    - TEST_SUITE: 'regression'
+    after_run:
+    - ios_e2e_test
+  android_run_regression_tests:
+    envs:
+    - TEST_SUITE: 'regression'
+    after_run:
+    - android_e2e_test
+
   android_e2e_test:
     before_run:
       - code_setup_dev
@@ -364,20 +377,6 @@ workflows:
       bitrise.io:
         stack: linux-docker-android-20.04
         machine_type_id: elite-xl
- 
-  ### This workflow uses a flag (TEST_SUITE) that defines the specific set of tests to be run.
-  ## in this instance Regression. In future iterations we can rename to ios_test_suite_selection & android_test_suite_selection      
-  ios_run_regression_tests:
-    envs:
-    - TEST_SUITE: 'regression'
-    after_run:
-    - ios_e2e_test
-  android_run_regression_tests:
-    envs:
-    - TEST_SUITE: 'regression'
-    after_run:
-    - android_e2e_test
-
   ios_e2e_test:
     before_run:
       - code_setup_dev
@@ -864,4 +863,4 @@ trigger_map:
   - tag: 'dev-e2e-*'
     pipeline: pr_smoke_e2e_pipeline
   - push_branch: detox-add-regreesion
-    pipeline: pr_smoke_e2e_pipeline
+    pipeline: pr_regression_e2e_pipeline
