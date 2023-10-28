@@ -205,6 +205,14 @@ const Wallet = ({ navigation }: any) => {
     /* eslint-disable-next-line */
   }, [navigation, themeColors, networkName, networkImageSource, onTitlePress]);
 
+  useEffect(() => {
+    try {
+      throw new Error('This is a dummy error');
+    } catch (error) {
+      Logger.log('I broke the app', error);
+    }
+  }, []);
+
   const renderTabBar = useCallback(
     () => (
       <DefaultTabBar

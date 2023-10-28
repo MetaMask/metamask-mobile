@@ -31,7 +31,7 @@ import {
   WELCOME_SCREEN_CAROUSEL_CONTAINER_ID,
 } from '../../../../wdio/screen-objects/testIDs/Screens/WelcomeScreen.testIds';
 import generateTestId from '../../../../wdio/utils/generateTestId';
-import Logger from '../../../util/Logger';
+
 const IMAGE_3_RATIO = 215 / 315;
 const IMAGE_2_RATIO = 222 / 239;
 const IMAGE_1_RATIO = 285 / 203;
@@ -190,20 +190,10 @@ class OnboardingCarousel extends PureComponent {
     this.updateNavBar();
   };
 
-  throwDummyError = () => {
-    try {
-      throw new Error('I am a fake error on the carousel screen.');
-    } catch (error) {
-      Logger.log('Error occurred on carousel screen', error);
-    }
-  };
-
   render() {
     const { currentTab } = this.state;
     const colors = this.context.colors || mockTheme.colors;
     const styles = createStyles(colors);
-
-    this.throwDummyError();
 
     return (
       <View
