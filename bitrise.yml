@@ -50,7 +50,7 @@ pipelines:
       - run_smoke_e2e_ios_android_stage: {}
       - notify: {}
 
- #PR_e2e_verfication (build ios & android), run iOS (smoke), emulator Android
+ #PR_e2e_verfication (build ios & android), run iOS (regression), emulator Android
   pr_regression_e2e_pipeline:
     stages:
       - run_regression_e2e_ios_android_stage: {}
@@ -863,3 +863,5 @@ trigger_map:
     pipeline: create_qa_builds_pipeline
   - tag: 'dev-e2e-*'
     pipeline: pr_smoke_e2e_pipeline
+  - push_branch: detox-add-regreesion
+    pipeline: pr_regression_e2e_pipeline
