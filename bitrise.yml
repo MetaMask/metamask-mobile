@@ -352,30 +352,45 @@ workflows:
     envs:
     - TEST_SUITE: regression
     after_run:
-    - ios_e2e_test
+    - ios_e2e_echo_test
+  ios_e2e_echo_test:
+    steps:
+     - script@1:
+        inputs:
+         - content: |-
+            #!/usr/bin/env bash
+            if [ "$TEST_SUITE" = "regression" ]; then
+              TEST_SUITE="regression"
+              echo "this is regression: $TEST_SUITE"
+            else
+              TEST_SUITE="smoke"
+              echo "SMOKE: TEST_SUITE"
+            fi
+             node -v
+             # IGNORE_BOXLOGS_DEVELOPMENT="true" FORCE_BUNDLING=true yarn test:e2e:ios:debug --testNamePattern='$TEST_SUITE'
 
   ios_e2e_test:
-    # before_run:
-    #   - code_setup_dev
-    #   - e2e_setup
-    # after_run:
-    #   - _notify_failure_on_slack
-    # steps:
-    #   - certificate-and-profile-installer@1: {}
-    #   - set-xcode-build-number@1:
-    #       inputs:
-    #         - build_short_version_string: $VERSION_NAME
-    #         - plist_path: $PROJECT_LOCATION_IOS/MetaMask/Info.plist
-    #   - script:
-    #       inputs:
-    #         - content: |-
-    #             # Add cache directory to environment variable
-    #             envman add --key BREW_APPLESIMUTILS --value "$(brew --cellar)/applesimutils"
-    #             envman add --key BREW_OPT_APPLESIMUTILS --value "/usr/local/opt/applesimutils"
-    #             brew tap wix/brew
-    #       title: Set Env Path for caching deps
-      # - cocoapods-install@2:
-      #     is_always_run: false
+    before_run:
+      - code_setup_dev
+      - e2e_setup
+    after_run:
+      - _notify_failure_on_slack
+    steps:
+      - certificate-and-profile-installer@1: {}
+      - set-xcode-build-number@1:
+          inputs:
+            - build_short_version_string: $VERSION_NAME
+            - plist_path: $PROJECT_LOCATION_IOS/MetaMask/Info.plist
+      - script:
+          inputs:
+            - content: |-
+                # Add cache directory to environment variable
+                envman add --key BREW_APPLESIMUTILS --value "$(brew --cellar)/applesimutils"
+                envman add --key BREW_OPT_APPLESIMUTILS --value "/usr/local/opt/applesimutils"
+                brew tap wix/brew
+          title: Set Env Path for caching deps
+      - cocoapods-install@2:
+          is_always_run: false
       - script@1:
           inputs:
             - content: |-
@@ -390,37 +405,37 @@ workflows:
                 fi
                 node -v
                 # IGNORE_BOXLOGS_DEVELOPMENT="true" FORCE_BUNDLING=true yarn test:e2e:ios:debug --testNamePattern='$TEST_SUITE'
-      #     title: Detox Build & Test
-      #     is_always_run: false
-      # - custom-test-results-export@1:
-      #     is_always_run: true
-      #     is_skippable: false
-      #     title: Export test results
-      #     inputs:
-      #       - base_path: $BITRISE_SOURCE_DIR/e2e/reports/
-      #       - test_name: E2E Tests
-      #       - search_pattern: $BITRISE_SOURCE_DIR/e2e/reports/junit.xml
-      # - deploy-to-bitrise-io@2.2.3:
-      #     is_always_run: true
-      #     is_skippable: true
-      #     title: Deploy test report files
-      # - script@1:
-      #     is_always_run: true
-      #     run_if: .IsBuildFailed
-      #     title: Copy screenshot files
-      #     inputs:
-      #       - content: |-
-      #           #!/usr/bin/env bash
-      #           set -ex
-      #           cp -r "$BITRISE_SOURCE_DIR/artifacts/screenshots"  "$BITRISE_DEPLOY_DIR"
-      # - deploy-to-bitrise-io@2.3:
-      #     is_always_run: true
-      #     run_if: .IsBuildFailed
-      #     title: Deploy test screenshots
-      #     inputs:
-      #       - deploy_path: $BITRISE_DEPLOY_DIR
-      #       - is_compress: true
-      #       - zip_name: 'E2E_IOS_Failure_Screenshots'
+          title: Detox Build & Test
+          is_always_run: false
+      - custom-test-results-export@1:
+          is_always_run: true
+          is_skippable: false
+          title: Export test results
+          inputs:
+            - base_path: $BITRISE_SOURCE_DIR/e2e/reports/
+            - test_name: E2E Tests
+            - search_pattern: $BITRISE_SOURCE_DIR/e2e/reports/junit.xml
+      - deploy-to-bitrise-io@2.2.3:
+          is_always_run: true
+          is_skippable: true
+          title: Deploy test report files
+      - script@1:
+          is_always_run: true
+          run_if: .IsBuildFailed
+          title: Copy screenshot files
+          inputs:
+            - content: |-
+                #!/usr/bin/env bash
+                set -ex
+                cp -r "$BITRISE_SOURCE_DIR/artifacts/screenshots"  "$BITRISE_DEPLOY_DIR"
+      - deploy-to-bitrise-io@2.3:
+          is_always_run: true
+          run_if: .IsBuildFailed
+          title: Deploy test screenshots
+          inputs:
+            - deploy_path: $BITRISE_DEPLOY_DIR
+            - is_compress: true
+            - zip_name: 'E2E_IOS_Failure_Screenshots'
   start_e2e_tests:
     steps:
       - build-router-start@0:
