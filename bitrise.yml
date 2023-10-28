@@ -864,4 +864,4 @@ trigger_map:
   - tag: 'dev-e2e-*'
     pipeline: pr_smoke_e2e_pipeline
   - push_branch: detox-add-regreesion
-    pipeline: pr_regression_e2e_pipeline
+    pipeline: pr_smoke_e2e_pipeline
