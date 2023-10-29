@@ -321,7 +321,6 @@ workflows:
           inputs:
             - content: |-
                 #!/usr/bin/env bash
-                "${ANDROID_HOME}/tools/bin/sdkmanager" --update
                 "${ANDROID_HOME}/tools/bin/sdkmanager" "cmake;3.22.1"
           title: Download cmake 3.22.1 with sdkmanager
           is_always_run: false
