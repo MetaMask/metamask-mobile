@@ -76,6 +76,7 @@ import {
   PermissionControllerState,
   SubjectMetadataController,
   SubjectMetadataControllerState,
+  SubjectType,
 } from '@metamask/permission-controller';
 import SwapsController, { swapsUtils } from '@metamask/swaps-controller';
 import {
@@ -695,6 +696,23 @@ class Engine {
         });
       },
     });
+
+    this.controllerMessenger.subscribe(
+      `${snapController.name}:snapAdded`,
+      (snap, svgIcon = null) => {
+        const {
+          manifest: { proposedName },
+          version,
+        } = snap;
+        subjectMetadataController.addSubjectMetadata({
+          subjectType: SubjectType.Snap,
+          name: proposedName,
+          origin: snap.id,
+          version,
+          svgIcon,
+        });
+      },
+    );
 
     const controllers = [
       keyringController,
