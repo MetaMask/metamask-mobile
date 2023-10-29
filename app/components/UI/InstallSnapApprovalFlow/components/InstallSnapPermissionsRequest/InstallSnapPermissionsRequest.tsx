@@ -30,6 +30,7 @@ import { SnapPermissions } from '../../../../Views/Snaps/components/SnapPermissi
 
 const InstallSnapPermissionsRequest = ({
   requestData,
+  requestState,
   onConfirm,
   onCancel,
 }: InstallSnapFlowProps) => {
@@ -86,7 +87,7 @@ const InstallSnapPermissionsRequest = ({
         </Text>
         <ScrollView style={styles.snapPermissionContainer}>
           <SnapPermissions
-            permissions={requestData.permissions}
+            permissions={requestState.permissions}
             showLabel={false}
           />
         </ScrollView>
