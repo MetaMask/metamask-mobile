@@ -79,6 +79,7 @@ import {
 } from '@metamask/permission-controller';
 import SwapsController, { swapsUtils } from '@metamask/swaps-controller';
 import {
+  JsonSnapsRegistry,
   SnapController,
   SnapControllerState,
   buildSnapEndowmentSpecifications,
@@ -606,6 +607,27 @@ class Engine {
       bridge.setupProviderConnection();
     };
 
+    // TODO
+    const requireAllowlist = false;
+
+    const snapsRegistryMessenger = this.controllerMessenger.getRestricted({
+      name: 'SnapsRegistry',
+      allowedEvents: [],
+      allowedActions: [],
+    });
+    const snapsRegistry = new JsonSnapsRegistry({
+      state: initialState.SnapsRegistry,
+      messenger: snapsRegistryMessenger,
+      refetchOnAllowlistMiss: requireAllowlist,
+      failOnUnavailableRegistry: requireAllowlist,
+      url: {
+        registry: 'https://acl.execution.consensys.io/latest/registry.json',
+        signature: 'https://acl.execution.consensys.io/latest/signature.json',
+      },
+      publicKey:
+        '0x025b65308f0f0fb8bc7f7ff87bfc296e0330eee5d3c1d1ee4a048b2fd6a86fa0a6',
+    });
+
     this.snapExecutionService = new WebviewExecutionService({
       // iframeUrl: new URL(
       //   'https://metamask.github.io/iframe-execution-environment/0.11.0',
@@ -641,6 +663,9 @@ class Engine {
         `${approvalController.name}:updateRequestState`,
         `${permissionController.name}:grantPermissions`,
         `${subjectMetadataController.name}:getSubjectMetadata`,
+        `${snapsRegistry.name}:get`,
+        `${snapsRegistry.name}:getMetadata`,
+        `${snapsRegistry.name}:update`,
         'ExecutionService:executeSnap',
         'ExecutionService:getRpcRequestHandler',
         'ExecutionService:terminateSnap',
