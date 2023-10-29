@@ -284,14 +284,8 @@ workflows:
           title: All Tests Passed
           is_always_run: false
   # E2E Steps
-  e2e_setup:
-    steps:
-      - yarn@:
-          inputs:
-            - cache_local_deps: 'yes'
-            - command: global add detox-cli
-          title: Detox - Install CLI
-   ### This workflow uses a flag (TEST_SUITE) that defines the specific set of tests to be run.
+  
+  ### This workflow uses a flag (TEST_SUITE) that defines the specific set of tests to be run.
   ## in this instance Regression. In future iterations we can rename to ios_test_suite_selection & android_test_suite_selection      
   ios_run_regression_tests:
     envs:
@@ -304,6 +298,13 @@ workflows:
     after_run:
     - android_e2e_test
 
+  e2e_setup:
+    steps:
+      - yarn@:
+          inputs:
+            - cache_local_deps: 'yes'
+            - command: global add detox-cli
+          title: Detox - Install CLI
   android_e2e_test:
     before_run:
       - code_setup_dev
