@@ -56,8 +56,7 @@ export default class SnapBridge {
 
     const { NetworkController } = Engine.context as any;
 
-    const provider = NetworkController.provider;
-    const blockTracker = provider._blockTracker;
+    const { provider, blockTracker } = NetworkController.getProviderAndBlockTracker();
 
     this.#providerProxy = null;
     this.#blockTrackerProxy = null;
