@@ -39,7 +39,10 @@ const InstallSnapApprovalFlow = ({
 
   const onPermissionsConfirm = useCallback(() => {
     try {
-      onConfirm();
+      onConfirm(undefined, {
+        ...requestData.requestData,
+        permissions: requestData.requestState.permissions,
+      });
     } catch (error) {
       Logger.error(
         error as Error,
@@ -49,7 +52,7 @@ const InstallSnapApprovalFlow = ({
       setInstallState(SnapInstallState.SnapInstallError);
     }
     setInstallState(SnapInstallState.SnapInstalled);
-  }, [onConfirm]);
+  }, [onConfirm, requestData]);
 
   const onSnapInstalled = useCallback(() => {
     onFinish();
@@ -69,6 +72,7 @@ const InstallSnapApprovalFlow = ({
         return (
           <InstallSnapPermissionsRequest
             requestData={requestData.requestData}
+            requestState={requestData.requestState}
             onConfirm={onPermissionsConfirm}
             onCancel={onCancel}
           />

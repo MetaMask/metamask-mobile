@@ -23,7 +23,7 @@ const testSnaps = {
   iOSLocalHelloWorldSnap: 'local:http://localhost:3000/helloworldsnap/',
   androidLocalSnap: 'local:http://10.0.2.2:3000/snap/',
   starknetSnap: 'npm:@consensys/starknet-snap',
-  filSnap: 'npm:@chainsafe/filsnap',
+  filSnap: 'npm:filsnap',
 };
 
 export const createSnapsSettingsListNavDetails = createNavigationDetails(

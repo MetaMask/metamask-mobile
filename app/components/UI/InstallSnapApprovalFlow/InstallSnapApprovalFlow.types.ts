@@ -8,6 +8,7 @@ interface InstallSnapApprovalArgs {
 
 interface InstallSnapFlowProps {
   requestData: any;
+  requestState: any;
   onConfirm: () => void;
   onCancel: () => void;
   chainId?: string;
