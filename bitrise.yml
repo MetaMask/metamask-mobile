@@ -322,6 +322,7 @@ workflows:
             - content: |-
                 #!/usr/bin/env bash
                 "${ANDROID_HOME}/tools/bin/sdkmanager" "cmake;3.22.1"
+                "${ANDROID_HOME}/tools/bin/sdkmanager" "extras;android;m2repository"
           title: Download cmake 3.22.1 with sdkmanager
           is_always_run: false
       - avd-manager@1:
