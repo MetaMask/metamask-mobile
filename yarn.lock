@@ -4104,33 +4104,6 @@
     "@metamask/utils" "^8.1.0"
     superstruct "^1.0.3"
 
-"@metamask/snaps-utils@2.0.0":
-  version "2.0.0"
-  resolved "https://registry.yarnpkg.com/@metamask/snaps-utils/-/snaps-utils-2.0.0.tgz#64a5b5536f0fa3d61e322450a9eb3d8a606c8af3"
-  integrity sha512-BVSC7tZE+nStyUrj69tcY3zMDGHtgYEXtVVIh7+oNs710rCuh/zXDgOXto0VsE1krWfqPnKm+6JSmFf1fh8ENg==
-  dependencies:
-    "@babel/core" "^7.20.12"
-    "@babel/types" "^7.18.7"
-    "@metamask/base-controller" "^3.2.0"
-    "@metamask/key-tree" "^9.0.0"
-    "@metamask/permission-controller" "^4.1.0"
-    "@metamask/snaps-registry" "^2.0.0"
-    "@metamask/snaps-ui" "^2.0.0"
-    "@metamask/utils" "^8.1.0"
-    "@noble/hashes" "^1.3.1"
-    "@scure/base" "^1.1.1"
-    chalk "^4.1.2"
-    cron-parser "^4.5.0"
-    eth-rpc-errors "^4.0.3"
-    fast-deep-equal "^3.1.3"
-    fast-json-stable-stringify "^2.1.0"
-    is-svg "^4.4.0"
-    rfdc "^1.3.0"
-    semver "^7.5.4"
-    ses "^0.18.7"
-    superstruct "^1.0.3"
-    validate-npm-package-name "^5.0.0"
-
 "@metamask/snaps-utils@^2.0.0", "@metamask/snaps-utils@^2.0.1":
   version "2.0.1"
   resolved "https://registry.yarnpkg.com/@metamask/snaps-utils/-/snaps-utils-2.0.1.tgz#5d631576856bee0e1b704a39991cda5f417861cd"
@@ -23944,7 +23917,7 @@ serve-static@1.15.0, serve-static@^1.13.1:
     parseurl "~1.3.3"
     send "0.18.0"
 
-ses@^0.18.7, ses@^0.18.8:
+ses@^0.18.8:
   version "0.18.8"
   resolved "https://registry.yarnpkg.com/ses/-/ses-0.18.8.tgz#88036511ac3b3c07e4d82dd8cfc6e5f3788205b6"
   integrity sha512-kOH1AhJc6gWDXKURKeU1w7iFUdImAegAljVvBg5EUBgNqjH4bxcEsGVUadVEPtA2PVRMyQp1fiSMDwEZkQNj1g==
