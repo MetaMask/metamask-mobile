@@ -13,10 +13,9 @@ import Engine from '../../../../core/Engine';
 import { createNavigationDetails } from '../../../../util/navigation/navUtils';
 import Routes from '../../../../constants/navigation/Routes';
 import { strings } from '../../../../../locales/i18n';
-import { Snap } from '@metamask/snaps-utils';
+import { RequestedSnapPermissions, Snap } from '@metamask/snaps-utils';
 import { useStyles } from '../../../../component-library/hooks';
 import stylesheet from './SnapsSettingsList.styles';
-import type { RequestedSnapPermissions } from '@metamask/snaps-utils';
 
 const testSnaps = {
   iOSLocalSnap: 'local:http://localhost:3000/snap/',
@@ -59,12 +58,10 @@ const SnapsSettingsList = () => {
     `Snap ${id} failed to install\n\n💀💀💀\n\n${e}`;
 
   const installSnap = async (snapId: string, origin: string): Promise<void> => {
-    console.log('SNAPS/ SnapsSettingsList installSnap', snapId, origin);
     const { SnapController } = Engine.context as any;
     let message: string;
     try {
       const requestedSnap: RequestedSnapPermissions = { [snapId]: {} };
-      console.log('SNAPS/ SnapsSettingsList requestedSnap', { requestedSnap });
       const result = await SnapController.installSnaps(origin, requestedSnap);
       if (result.error) {
         message = installFailedMsg(snapId, result.error);
