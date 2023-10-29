@@ -15,7 +15,7 @@ import AddContactView from '../../pages/Drawer/Settings/Contacts/AddContactView'
 import ContactsView from '../../pages/Drawer/Settings/Contacts/ContactsView';
 import SettingsView from '../../pages/Drawer/Settings/SettingsView';
 
-import ApprovalModal from '../../pages/modals/ApprovalModal';
+import ContractApprovalModal from '../../pages/modals/ContractApprovalModal';
 import NetworkListModal from '../../pages/modals/NetworkListModal';
 import OnboardingWizardModal from '../../pages/modals/OnboardingWizardModal';
 import NetworkEducationModal from '../../pages/modals/NetworkEducationModal';
@@ -137,11 +137,11 @@ describe('Adding Contract Nickname', () => {
   it('should deep link to the approval modal', async () => {
     await TestHelpers.openDeepLink(APPROVAL_DEEPLINK_URL);
     await TestHelpers.delay(3000);
-    await ApprovalModal.isVisible();
+    await ContractApprovalModal.isVisible();
   });
 
   it('should add a nickname to the contract', async () => {
-    await ApprovalModal.tapAddNickName();
+    await ContractApprovalModal.tapAddNickName();
 
     await ContractNickNameView.isVisible();
     await ContractNickNameView.typeContractNickName(CONTRACT_NICK_NAME_TEXT);
@@ -150,11 +150,11 @@ describe('Adding Contract Nickname', () => {
     );
     await ContractNickNameView.tapConfirmButton();
 
-    await ApprovalModal.isContractNickNameVisible(CONTRACT_NICK_NAME_TEXT);
+    await ContractApprovalModal.isContractNickNameVisible(CONTRACT_NICK_NAME_TEXT);
   });
 
   it('should edit the contract nickname', async () => {
-    await ApprovalModal.tapEditNickName();
+    await ContractApprovalModal.tapEditNickName();
 
     await ContractNickNameView.isContractNickNameInInputBoxVisible(
       CONTRACT_NICK_NAME_TEXT,
@@ -163,9 +163,9 @@ describe('Adding Contract Nickname', () => {
     await ContractNickNameView.typeContractNickName('Ace');
     await ContractNickNameView.tapConfirmButton();
 
-    await ApprovalModal.isContractNickNameVisible('Ace');
-    await ApprovalModal.tapToCopyContractAddress();
-    await ApprovalModal.tapRejectButton();
+    await ContractApprovalModal.isContractNickNameVisible('Ace');
+    await ContractApprovalModal.tapToCopyContractAddress();
+    await ContractApprovalModal.tapRejectButton();
   });
 
   it('should verify contract does not appear in contacts view', async () => {
@@ -196,11 +196,11 @@ describe('Adding Contract Nickname', () => {
   it('should deep link to the approval modal and approve transaction', async () => {
     await TestHelpers.openDeepLink(APPROVAL_DEEPLINK_URL);
     await TestHelpers.delay(3000);
-    await ApprovalModal.isVisible();
-    await ApprovalModal.isContractNickNameVisible('Ace');
+    await ContractApprovalModal.isVisible();
+    await ContractApprovalModal.isContractNickNameVisible('Ace');
 
-    await ApprovalModal.tapApproveButton();
-    await ApprovalModal.isNotVisible();
+    await ContractApprovalModal.tapApproveButton();
+    await ContractApprovalModal.isNotVisible();
   });
 
   it('should go to the send view again', async () => {

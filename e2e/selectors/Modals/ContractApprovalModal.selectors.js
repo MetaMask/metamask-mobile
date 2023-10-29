@@ -1,7 +1,7 @@
 import messages from '../../../locales/languages/en.json';
 
 // eslint-disable-next-line import/prefer-default-export
-export const ApprovalModalSelectors = {
+export const ContractApprovalModalSelectors = {
   ADD_NICKNAME_TEXT: messages.nickname.add_nickname,
   EDIT_NICKNAME_TEXT: messages.nickname.edit_nickname,
   APPROVE_TEXT: messages.transactions.tx_review_approve,
