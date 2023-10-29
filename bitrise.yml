@@ -297,6 +297,7 @@ workflows:
     - TEST_SUITE: 'regression'
     after_run:
     - android_e2e_test
+
   e2e_setup:
     steps:
       - yarn@:
@@ -316,13 +317,13 @@ workflows:
           inputs:
             - ndk_version: $NDK_VERSION
             - gradlew_path: $PROJECT_LOCATION/gradlew
-      # - script@1:
-      #     inputs:
-      #       - content: |-
-      #           #!/usr/bin/env bash
-      #           "${ANDROID_HOME}/tools/bin/sdkmanager" "cmake;3.22.1"
-      #     title: Download cmake 3.22.1 with sdkmanager
-      #     is_always_run: false
+      - script@1:
+          inputs:
+            - content: |-
+                #!/usr/bin/env bash
+                "${ANDROID_HOME}/tools/bin/sdkmanager" "cmake;3.22.1"
+          title: Download cmake 3.22.1 with sdkmanager
+          is_always_run: false
       - avd-manager@1:
           inputs:
             - api_level: '30'
