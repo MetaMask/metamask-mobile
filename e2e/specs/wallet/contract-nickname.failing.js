@@ -150,7 +150,9 @@ describe('Adding Contract Nickname', () => {
     );
     await ContractNickNameView.tapConfirmButton();
 
-    await ContractApprovalModal.isContractNickNameVisible(CONTRACT_NICK_NAME_TEXT);
+    await ContractApprovalModal.isContractNickNameVisible(
+      CONTRACT_NICK_NAME_TEXT,
+    );
   });
 
   it('should edit the contract nickname', async () => {
