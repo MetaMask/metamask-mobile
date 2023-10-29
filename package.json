@@ -195,7 +195,7 @@
     "@metamask/signature-controller": "4.0.1",
     "@metamask/slip44": "3.1.0",
     "@metamask/snaps-controllers": "2.0.0",
-    "@metamask/snaps-utils": "2.0.0",
+    "@metamask/snaps-utils": "^2.0.0",
     "@metamask/swappable-obj-proxy": "^2.1.0",
     "@metamask/swaps-controller": "^6.9.3",
     "@metamask/transaction-controller": "^5.0.0",
