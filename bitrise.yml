@@ -341,7 +341,7 @@ workflows:
                 TEST_SUITE="smoke"
                 fi
                 node -v
-                IGNORE_BOXLOGS_DEVELOPMENT="true" FORCE_BUNDLING=true yarn test:e2e:android:bitrise:debug --testNamePattern="regression"
+                IGNORE_BOXLOGS_DEVELOPMENT="true" FORCE_BUNDLING=true yarn test:e2e:android:bitrise:debug --testNamePattern="$TEST_SUITE"
           title: Detox Build & Test
           is_always_run: false
       - custom-test-results-export@1:
