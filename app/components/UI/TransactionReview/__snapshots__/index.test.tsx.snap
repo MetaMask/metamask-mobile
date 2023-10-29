@@ -69,6 +69,8 @@ Array [
                       "width": 32,
                     }
                   }
+                  testID="account-avatar"
+                  variant="Account"
                 >
                   <View
                     style={

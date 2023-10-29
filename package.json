@@ -78,9 +78,11 @@
     "deduplicate": "yarn yarn-deduplicate",
     "create-release": "./scripts/set-versions.sh && yarn update-changelog",
     "add-release-label-to-pr-and-linked-issues": "ts-node ./.github/scripts/add-release-label-to-pr-and-linked-issues.ts",
+    "check-e2e-smoke-trigger": "ts-node ./.github/scripts/check-bitrise-e2e-smoke/check-e2e-smoke-trigger.ts",
+    "run-bitrise-e2e-smoke": "ts-node ./.github/scripts/check-bitrise-e2e-smoke/run-bitrise-e2e-smoke.ts",
     "check-pr-has-required-labels": "ts-node ./.github/scripts/check-pr-has-required-labels.ts",
     "close-release-bug-report-issue": "ts-node ./.github/scripts/close-release-bug-report-issue.ts",
-    "check-issue-template-and-add-labels": "ts-node ./.github/scripts/check-issue-template-and-add-labels.ts",
+    "check-template-and-add-labels": "ts-node ./.github/scripts/check-template-and-add-labels.ts",
     "patch:tx": "./scripts/patch-transaction-controller.sh",
     "storybook-generate": "sb-rn-get-stories",
     "storybook-watch": "sb-rn-watcher"
@@ -147,7 +149,9 @@
     "detox/**/moment": "^2.29.4",
     "d3-color": "3.1.0",
     "**/fast-xml-parser": "4.2.4",
-    "tough-cookie": "4.1.3"
+    "tough-cookie": "4.1.3",
+    "crypto-js": "4.2.0",
+    "browserify-sign": "4.2.2"
   },
   "dependencies": {
     "@consensys/on-ramp-sdk": "1.23.0",
@@ -209,6 +213,7 @@
     "@walletconnect/react-native-compat": "^2.9.0",
     "@walletconnect/se-sdk": "1.5.0",
     "@walletconnect/utils": "^2.9.0",
+    "@xmldom/xmldom": "^0.8.10",
     "appium-adb": "^9.11.4",
     "asyncstorage-down": "4.2.0",
     "axios": "^0.26.1",
@@ -217,7 +222,7 @@
     "buffer": "5.2.1",
     "compare-versions": "^3.6.0",
     "content-hash": "2.5.2",
-    "crypto-js": "^4.1.1",
+    "crypto-js": "^4.2.0",
     "d3-shape": "^3.2.0",
     "dnode": "1.2.2",
     "eciesjs": "^0.3.15",

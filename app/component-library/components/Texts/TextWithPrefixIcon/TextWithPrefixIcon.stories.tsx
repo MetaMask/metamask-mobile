@@ -1,48 +1,66 @@
-// Third party dependencies.
+/* eslint-disable react/display-name */
 import React from 'react';
-import { text, select } from '@storybook/addon-knobs';
-import { storiesOf } from '@storybook/react-native';
 
 // External dependencies.
-import { IconName, IconProps, IconSize } from '../../Icons/Icon';
-import { TextVariant } from '../Text/Text.types';
+import { TextVariant, TextColor } from '../Text';
+import { IconName, IconSize, IconColor } from '../../Icons/Icon';
 
 // Internal dependencies.
-import TextWithPrefixIcon from './TextWithPrefixIcon';
-import { TEST_SAMPLE_TEXT } from './TextWithPrefixIcon.constants';
+import { default as TextWithPrefixIconComponent } from './TextWithPrefixIcon';
+import { SAMPLE_TEXTWITHPREFIXICON_PROPS } from './TextWithPrefixIcon.constants';
 
-storiesOf('Component Library / TextWithPrefixIcon', module).add(
-  'Default',
-  () => {
-    const groupId = 'Props';
-    const iconNameSelector = select(
-      'iconProps.name',
-      IconName,
-      IconName.Lock,
-      groupId,
-    );
-    const iconSizeSelector = select(
-      'iconProps.size',
-      IconSize,
-      IconSize.Md,
-      groupId,
-    );
-    const textVariantSelector = select(
-      'Variant',
-      TextVariant,
-      TextVariant.HeadingSMRegular,
-      groupId,
-    );
-    const inputText = text('Text', TEST_SAMPLE_TEXT, groupId);
-    const iconProps: IconProps = {
-      name: iconNameSelector,
-      size: iconSizeSelector,
-    };
-
-    return (
-      <TextWithPrefixIcon variant={textVariantSelector} iconProps={iconProps}>
-        {inputText}
-      </TextWithPrefixIcon>
-    );
+const TextWithPrefixIconMeta = {
+  title: 'Component Library / Texts',
+  component: TextWithPrefixIconComponent,
+  argTypes: {
+    variant: {
+      options: TextVariant,
+      control: {
+        type: 'select',
+      },
+      defaultValue: SAMPLE_TEXTWITHPREFIXICON_PROPS.variant,
+    },
+    children: {
+      control: { type: 'text' },
+      defaultValue: SAMPLE_TEXTWITHPREFIXICON_PROPS.children,
+    },
+    color: {
+      options: TextColor,
+      control: {
+        type: 'select',
+      },
+      defaultValue: SAMPLE_TEXTWITHPREFIXICON_PROPS.color,
+    },
+    iconSize: {
+      options: IconSize,
+      control: {
+        type: 'select',
+      },
+      defaultValue: SAMPLE_TEXTWITHPREFIXICON_PROPS.iconProps.size,
+    },
+    iconName: {
+      options: IconName,
+      control: {
+        type: 'select',
+      },
+      defaultValue: SAMPLE_TEXTWITHPREFIXICON_PROPS.iconProps.name,
+    },
+    iconColor: {
+      options: IconColor,
+      control: {
+        type: 'select',
+      },
+      defaultValue: SAMPLE_TEXTWITHPREFIXICON_PROPS.iconProps.color,
+    },
   },
-);
+};
+export default TextWithPrefixIconMeta;
+
+export const TextWithPrefixIcon = {
+  render: ({ iconSize, iconName, iconColor, ...props }: any) => (
+    <TextWithPrefixIconComponent
+      iconProps={{ size: iconSize, name: iconName, color: iconColor }}
+      {...props}
+    />
+  ),
+};

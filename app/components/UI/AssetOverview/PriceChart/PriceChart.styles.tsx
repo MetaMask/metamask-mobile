@@ -35,7 +35,6 @@ const styleSheet = (params: { theme: Theme }) => {
       textAlign: 'center',
     } as TextStyle,
     noDataOverlayText: {
-      ...typography.sBodyLGMedium,
       textAlign: 'center',
     } as TextStyle,
   });
