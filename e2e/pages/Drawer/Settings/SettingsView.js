@@ -1,25 +1,12 @@
 import TestHelpers from '../../../helpers';
 import {
   CONTACTS_SETTINGS,
-  GENERAL_SETTINGS,
   LOCK_SETTINGS,
   NETWORKS_SETTINGS,
   SECURITY_SETTINGS,
 } from '../../../../wdio/screen-objects/testIDs/Screens/Settings.testIds';
 
-import messages from '../../../../locales/languages/en.json';
-
-const ADVANCE_TITLE_TEXT = messages.app_settings.advanced_title;
-
 export default class SettingsView {
-  static async tapGeneral() {
-    await TestHelpers.waitAndTap(GENERAL_SETTINGS);
-  }
-
-  static async tapAdvanced() {
-    await TestHelpers.tapByText(ADVANCE_TITLE_TEXT);
-  }
-
   static async tapContacts() {
     await TestHelpers.waitAndTap(CONTACTS_SETTINGS);
   }
