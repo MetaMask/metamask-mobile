@@ -450,7 +450,7 @@
     "koa": "^2.14.2",
     "lint-staged": "10.5.4",
     "metro-config": "~0.73.10",
-    "metro-react-native-babel-preset": "0.73.10",
+    "metro-react-native-babel-preset": "~0.73.10",
     "multiple-cucumber-html-reporter": "^3.0.1",
     "nock": "^13.3.1",
     "nyc": "^15.1.0",
