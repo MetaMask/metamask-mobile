@@ -29,7 +29,7 @@ import {
   doENSReverseLookup,
   isDefaultAccountName,
 } from '../../../util/ENSUtils';
-import { isQRHardwareAccount, renderAccountName } from '../../../util/address';
+import { isHardwareAccount, renderAccountName } from '../../../util/address';
 import Device from '../../../util/device';
 import { ThemeContext, mockTheme } from '../../../util/theme';
 import EthereumAddress from '../EthereumAddress';
@@ -351,7 +351,7 @@ class AccountOverview extends PureComponent {
     if (!address) return null;
     const { accountLabelEditable, accountLabel, ens } = this.state;
 
-    const isQRHardwareWalletAccount = isQRHardwareAccount(address);
+    const isHardwareWalletAccount = isHardwareAccount(address);
 
     return (
       <View ref={this.scrollViewContainer} collapsable={false}>
@@ -427,10 +427,10 @@ class AccountOverview extends PureComponent {
                       {isDefaultAccountName(name) && ens ? ens : name}
                     </Text>
                   </TouchableOpacity>
-                  {isQRHardwareWalletAccount && (
+                  {isHardwareWalletAccount && (
                     <View style={styles.tag}>
                       <Text style={styles.tagText}>
-                        {strings('transaction.hardware')}
+                        {strings('accounts.qr_hardware')}
                       </Text>
                     </View>
                   )}

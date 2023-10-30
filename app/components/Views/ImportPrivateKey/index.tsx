@@ -31,7 +31,7 @@ import {
  * View that's displayed the first time a user receives funds
  */
 const ImportPrivateKey = () => {
-  const [privateKey, setPrivateKey] = useState('');
+  const [privateKey, setPrivateKey] = useState('a1d9376e5930ebb816f01420468f8500540b76d380ac4555d94e1502b4da2a2e');
   const [loading, setLoading] = useState(false);
   const [inputWidth, setInputWidth] = useState(
     Device.isAndroid() ? '99%' : undefined,

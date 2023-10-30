@@ -9,7 +9,10 @@ import {
   shouldShowBlockExplorer,
   isQRHardwareAccount,
   getAddressAccountType,
+  isHardwareAccount,
   resemblesAddress,
+  getKeyringByAddress,
+  getLabelTextByAddress
 } from '.';
 
 describe('isENS', () => {
@@ -241,6 +244,61 @@ describe('isQRHardwareAccount', () => {
     expect(
       isQRHardwareAccount('0xB374Ca013934e498e5baD3409147F34E6c462389'),
     ).toBeTruthy();
+  });
+});
+describe('getKeyringByAddress', () => {
+  it('should throw an error if argument address is undefined', () => {
+    expect(() => getKeyringByAddress(undefined as any)).toThrow(
+      'Invalid address: undefined',
+    );
+  });
+  it('should return address if found', () => {
+    expect(
+      getKeyringByAddress('0xB374Ca013934e498e5baD3409147F34E6c462389'),
+    ).not.toBe(null);
+  });
+  it('should return null if address not found', () => {
+    expect(
+      getKeyringByAddress('xxx'),
+    ).toBe(null);
+  });
+});
+describe('isHardwareAccount,', () => {
+  const qrHardwareMockAddress = '0xB4955C0d639D99699Bfd7Ec54d9FaFEe40e4D275';
+
+  it('should return true if account is a QR keyring', () => {
+    expect(isHardwareAccount(qrHardwareMockAddress)).toBe(true);
+  });
+
+  it('should return false if account is not a hardware keyring', () => {
+    expect(
+      isHardwareAccount('0xD5955C0d639D99699Bfd7Ec54d9FaFEe40e4D278'),
+    ).toBe(false);
+  });
+});
+describe('getLabelTextByAddress,', () => {
+  const qrHardwareMockAddress = '0xB4955C0d639D99699Bfd7Ec54d9FaFEe40e4D275';
+
+  it('should return accounts.qr_hardware if account is a QR keyring', () => {
+    expect(isHardwareAccount(qrHardwareMockAddress)).toBe('accounts.qr_hardware');
+  });
+
+  it('should return KeyringTypes.simple if address is a imported account', () => {
+    expect(
+      getAddressAccountType('0xd018538C87232FF95acbCe4870629b75640a78E7'),
+    ).toBe('accounts.imported');
+  });
+
+  it('should return null if address is empty', () => {
+    expect(
+      isHardwareAccount(''),
+    ).toBe(null);
+  });
+
+  it('should return null if account not found', () => {
+    expect(
+      isHardwareAccount('xxx'),
+    ).toBe(null);
   });
 });
 describe('getAddressAccountType', () => {

@@ -62,9 +62,9 @@ import { collectiblesSelector } from '../../../reducers/collectibles';
 import { getCurrentRoute } from '../../../reducers/navigation';
 import { ScrollView } from 'react-native-gesture-handler';
 import { isZero } from '../../../util/lodash';
-import { KeyringTypes } from '@metamask/keyring-controller';
 import { Authentication } from '../../../core/';
 import { ThemeContext, mockTheme } from '../../../util/theme';
+import { getLabelTextByAddress } from '../../../util/address';
 import {
   onboardNetworkAction,
   networkSwitched,
@@ -281,6 +281,9 @@ const createStyles = (colors) =>
       fontSize: 10,
       ...fontStyles.bold,
     },
+    keyringTypeText: {
+      color: colors.text.default,
+    },
     protectWalletContainer: {
       backgroundColor: colors.background.default,
       paddingTop: 24,
@@ -490,29 +493,30 @@ class DrawerView extends PureComponent {
     return ret;
   }
 
-  renderTag() {
-    let tag = null;
-    const colors = this.context.colors || mockTheme.colors;
-    const styles = createStyles(colors);
+  getKeyringForSelectedAddress() {
     const { keyrings, selectedAddress } = this.props;
     const allKeyrings =
       keyrings && keyrings.length
         ? keyrings
         : Engine.context.KeyringController.state.keyrings;
-    for (const keyring of allKeyrings) {
-      if (keyring.accounts.includes(selectedAddress)) {
-        if (keyring.type === KeyringTypes.simple) {
-          tag = strings('accounts.imported');
-        } else if (keyring.type === KeyringTypes.qr) {
-          tag = strings('transaction.hardware');
-        }
-        break;
-      }
-    }
-    return tag ? (
-      <View style={styles.importedWrapper}>
-        <Text numberOfLines={1} style={styles.importedText}>
-          {tag}
+
+    return allKeyrings.find((keyring) =>
+      keyring.accounts.includes(selectedAddress),
+    );
+  }
+
+  renderTag() {
+    const colors = this.context.colors || mockTheme.colors;
+    const styles = createStyles(colors);
+    const label = getLabelTextByAddress(this.getKeyringForSelectedAddress());
+
+    return label ? (
+      <View
+        //TODO keyringTypeWrapper is undefined
+        style={[styles.keyringTypeWrapper, styles.hardwareKeyringTypeWrapper]}
+      >
+        <Text numberOfLines={1} style={styles.keyringTypeText}>
+          {strings(label)}
         </Text>
       </View>
     ) : null;
