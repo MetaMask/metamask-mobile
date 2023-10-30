@@ -293,6 +293,10 @@ workflows:
     after_run:
     - ios_e2e_test
   android_run_regression_tests:
+    meta:
+      bitrise.io:
+        stack: linux-docker-android-20.04
+        machine_type_id: elite-xl
     envs:
     - TEST_SUITE: 'regression'
     after_run:
