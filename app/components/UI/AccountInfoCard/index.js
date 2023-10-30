@@ -152,7 +152,7 @@ class AccountInfoCard extends PureComponent {
     } = this.props;
 
     const fromAddress = safeToChecksumAddress(rawFromAddress);
-    const accountLabelTag = getLabelTextByAddress(address);
+    const accountLabelTag = getLabelTextByAddress(fromAddress);
     const colors = this.context.colors || mockTheme.colors;
     const styles = createStyles(colors);
     const weiBalance = accounts?.[fromAddress]?.balance
@@ -214,9 +214,7 @@ class AccountInfoCard extends PureComponent {
         </View>
         {accountLabelTag && (
           <View style={styles.tag}>
-            <Text style={styles.tagText}>
-              {strings(accountLabelTag)}
-            </Text>
+            <Text style={styles.tagText}>{strings(accountLabelTag)}</Text>
           </View>
         )}
       </View>

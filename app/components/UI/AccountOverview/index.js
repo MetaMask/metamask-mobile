@@ -29,7 +29,10 @@ import {
   doENSReverseLookup,
   isDefaultAccountName,
 } from '../../../util/ENSUtils';
-import { getLabelTextByAddress, renderAccountName } from '../../../util/address';
+import {
+  getLabelTextByAddress,
+  renderAccountName,
+} from '../../../util/address';
 import Device from '../../../util/device';
 import { ThemeContext, mockTheme } from '../../../util/theme';
 import EthereumAddress from '../EthereumAddress';

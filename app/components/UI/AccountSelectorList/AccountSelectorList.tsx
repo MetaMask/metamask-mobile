@@ -12,7 +12,11 @@ import Cell, {
 import { useStyles } from '../../../component-library/hooks';
 import Text from '../../../component-library/components/Texts/Text';
 import AvatarGroup from '../../../component-library/components/Avatars/AvatarGroup';
-import { formatAddress, safeToChecksumAddress, getLabelTextByAddress } from '../../../util/address';
+import {
+  formatAddress,
+  safeToChecksumAddress,
+  getLabelTextByAddress,
+} from '../../../util/address';
 import { AvatarAccountType } from '../../../component-library/components/Avatars/Avatar/variants/AvatarAccount';
 import { isDefaultAccountName } from '../../../util/ENSUtils';
 import { strings } from '../../../../locales/i18n';

@@ -508,9 +508,7 @@ class DrawerView extends PureComponent {
     const label = getLabelTextByAddress(this.getKeyringForSelectedAddress());
 
     return label ? (
-      <View
-        style={[styles.importedWrapper]}
-      >
+      <View style={[styles.importedWrapper]}>
         <Text numberOfLines={1} style={styles.importedText}>
           {strings(label)}
         </Text>
