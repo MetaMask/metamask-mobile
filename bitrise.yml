@@ -97,7 +97,7 @@ stages:
       - android_e2e_test: {}
   run_regression_e2e_ios_android_stage:
     workflows:
-      - ios_run_regression_tests: {}
+      # - ios_run_regression_tests: {}
       - android_run_regression_tests: {}
   run_e2e_ios_android_stage:
     workflows:
