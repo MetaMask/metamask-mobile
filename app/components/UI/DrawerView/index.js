@@ -281,9 +281,6 @@ const createStyles = (colors) =>
       fontSize: 10,
       ...fontStyles.bold,
     },
-    keyringTypeText: {
-      color: colors.text.default,
-    },
     protectWalletContainer: {
       backgroundColor: colors.background.default,
       paddingTop: 24,
@@ -512,10 +509,9 @@ class DrawerView extends PureComponent {
 
     return label ? (
       <View
-        //TODO keyringTypeWrapper is undefined
-        style={[styles.keyringTypeWrapper, styles.hardwareKeyringTypeWrapper]}
+        style={[styles.importedWrapper]}
       >
-        <Text numberOfLines={1} style={styles.keyringTypeText}>
+        <Text numberOfLines={1} style={styles.importedText}>
           {strings(label)}
         </Text>
       </View>
