@@ -18,6 +18,6 @@ module.exports = {
   addons: ['@storybook/addon-ondevice-controls'],
   framework: '@storybook/react-native',
   core: {
-    builder: 'webpack5',
+    builder: '@storybook/builder-webpack5',
   },
 };
