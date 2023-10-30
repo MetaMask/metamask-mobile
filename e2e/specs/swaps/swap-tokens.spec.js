@@ -104,7 +104,7 @@ describe(Regression('Swap Tests'), () => {
     await WalletView.isVisible();
     await WalletView.tapOnToken('Ethereum');
     await TokenOverview.isVisible();
-
+    await WalletView.toastNotificationNotVisible();
     await TokenOverview.tapSwapButton();
     if (!swapOnboarded) await Onboarding.tapStartSwapping();
     await QuoteView.isVisible();
