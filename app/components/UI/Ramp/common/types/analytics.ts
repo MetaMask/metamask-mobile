@@ -2,6 +2,7 @@ import { MetaMetricsEvents } from 'app/core/Analytics';
 
 export type ScreenLocation =
   | 'Amount to Buy Screen'
+  | 'Amount to Sell Screen'
   | 'Payment Method Screen'
   | 'Region Screen'
   | 'Quotes Screen'

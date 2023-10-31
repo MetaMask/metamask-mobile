@@ -1,5 +1,5 @@
 import React, { useCallback, useEffect } from 'react';
-import { View, TouchableOpacity } from 'react-native';
+import { TouchableOpacity, View } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import FontAwesome from 'react-native-vector-icons/FontAwesome';
 import styles from './Regions.styles';
@@ -25,7 +25,7 @@ import { createNavigationDetails } from '../../../../../../util/navigation/navUt
 import { createPaymentMethodsNavDetails } from '../PaymentMethods/PaymentMethods';
 
 import { useRampSDK } from '../../../common/sdk';
-import { Region } from '../../../common/types';
+import { RampType, Region } from '../../../common/types';
 import useAnalytics from '../../../common/hooks/useAnalytics';
 import useRegions from '../../hooks/useRegions';
 
@@ -63,11 +63,18 @@ const RegionsView = () => {
   } = useRegions();
 
   const handleCancelPress = useCallback(() => {
-    trackEvent('ONRAMP_CANCELED', {
-      location: 'Region Screen',
-      chain_id_destination: selectedChainId,
-    });
-  }, [selectedChainId, trackEvent]);
+    if (rampType === RampType.BUY) {
+      trackEvent('ONRAMP_CANCELED', {
+        location: 'Region Screen',
+        chain_id_destination: selectedChainId,
+      });
+    } else {
+      trackEvent('OFFRAMP_CANCELED', {
+        location: 'Region Screen',
+        chain_id_source: selectedChainId,
+      });
+    }
+  }, [rampType, selectedChainId, trackEvent]);
 
   useEffect(() => {
     navigation.setOptions(

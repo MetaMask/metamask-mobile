@@ -42,7 +42,11 @@ import Animated, {
 } from 'react-native-reanimated';
 import useInAppBrowser from '../../hooks/useInAppBrowser';
 import { createCheckoutNavDetails } from '../Checkout';
-import { PROVIDER_LINKS } from '../../../common/types';
+import {
+  PROVIDER_LINKS,
+  RampType,
+  ScreenLocation,
+} from '../../../common/types';
 import Logger from '../../../../../../util/Logger';
 import Timer from './Timer';
 import { isBuyQuote, isBuyQuotes, isSellQuotes } from '../../../common/utils';
@@ -124,12 +128,20 @@ function Quotes() {
   }, [quotes, rampType]);
 
   const handleCancelPress = useCallback(() => {
-    trackEvent('ONRAMP_CANCELED', {
-      location: 'Quotes Screen',
-      chain_id_destination: selectedChainId,
-      results_count: filteredQuotes.length,
-    });
-  }, [filteredQuotes.length, selectedChainId, trackEvent]);
+    if (rampType === RampType.BUY) {
+      trackEvent('ONRAMP_CANCELED', {
+        location: 'Quotes Screen',
+        chain_id_destination: selectedChainId,
+        results_count: filteredQuotes.length,
+      });
+    } else {
+      trackEvent('OFFRAMP_CANCELED', {
+        location: 'Quotes Screen',
+        chain_id_source: selectedChainId,
+        results_count: filteredQuotes.length,
+      });
+    }
+  }, [filteredQuotes.length, rampType, selectedChainId, trackEvent]);
 
   const handleFetchQuotes = useCallback(() => {
     setIsLoading(true);
@@ -137,19 +149,34 @@ function Quotes() {
     setPollingCyclesLeft(appConfig.POLLING_CYCLES - 1);
     setRemainingTime(appConfig.POLLING_INTERVAL);
     fetchQuotes();
-    trackEvent('ONRAMP_QUOTES_REQUESTED', {
+
+    const payload = {
       currency_source: params.fiatCurrency?.symbol,
       currency_destination: params.asset?.symbol,
       payment_method_id: selectedPaymentMethodId as string,
-      chain_id_destination: selectedChainId,
       amount: params.amount,
-      location: 'Quotes Screen',
-    });
+      location: 'Quotes Screen' as ScreenLocation,
+    };
+
+    if (rampType === RampType.BUY) {
+      trackEvent('ONRAMP_QUOTES_REQUESTED', {
+        ...payload,
+        chain_id_destination: selectedChainId,
+      });
+    } else {
+      trackEvent('OFFRAMP_QUOTES_REQUESTED', {
+        ...payload,
+        chain_id_source: selectedChainId,
+      });
+    }
   }, [
     appConfig.POLLING_CYCLES,
     appConfig.POLLING_INTERVAL,
     fetchQuotes,
-    params,
+    params.amount,
+    params.asset?.symbol,
+    params.fiatCurrency?.symbol,
+    rampType,
     selectedChainId,
     selectedPaymentMethodId,
     trackEvent,

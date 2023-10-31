@@ -108,14 +108,19 @@ const PaymentMethods = () => {
 
   const handleContinueToAmount = useCallback(() => {
     // TODO: handle navigation to Build Quote page
-    trackEvent('ONRAMP_CONTINUE_TO_AMOUNT_CLICKED', {
-      available_payment_method_ids: paymentMethods?.map(
-        (paymentMethod) => paymentMethod.id,
-      ) as string[],
-      payment_method_id: currentPaymentMethod?.id as string,
-      region: selectedRegion?.id as string,
-      location: 'Payment Method Screen',
-    });
+    trackEvent(
+      rampType === RampType.BUY
+        ? 'ONRAMP_CONTINUE_TO_AMOUNT_CLICKED'
+        : 'OFFRAMP_CONTINUE_TO_AMOUNT_CLICKED',
+      {
+        available_payment_method_ids: paymentMethods?.map(
+          (paymentMethod) => paymentMethod.id,
+        ) as string[],
+        payment_method_id: currentPaymentMethod?.id as string,
+        region: selectedRegion?.id as string,
+        location: 'Payment Method Screen',
+      },
+    );
     navigation.navigate(...createBuildQuoteNavDetails());
   }, [
     currentPaymentMethod?.id,
