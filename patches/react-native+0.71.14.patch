@@ -115,10 +115,10 @@ index c714f87..dca2750 100644
      defaultConfig {
          minSdkVersion 21
 diff --git a/node_modules/react-native/ReactAndroid/src/main/java/com/facebook/react/views/textinput/ReactEditText.java b/node_modules/react-native/ReactAndroid/src/main/java/com/facebook/react/views/textinput/ReactEditText.java
-index c150abc..a446111 100644
+index 290bd23..20d85e0 100644
 --- a/node_modules/react-native/ReactAndroid/src/main/java/com/facebook/react/views/textinput/ReactEditText.java
 +++ b/node_modules/react-native/ReactAndroid/src/main/java/com/facebook/react/views/textinput/ReactEditText.java
-@@ -31,6 +31,7 @@ import android.view.KeyEvent;
+@@ -33,6 +33,7 @@ import android.view.KeyEvent;
  import android.view.MotionEvent;
  import android.view.View;
  import android.view.accessibility.AccessibilityNodeInfo;
@@ -126,7 +126,7 @@ index c150abc..a446111 100644
  import android.view.inputmethod.EditorInfo;
  import android.view.inputmethod.InputConnection;
  import android.view.inputmethod.InputMethodManager;
-@@ -89,6 +90,16 @@ public class ReactEditText extends AppCompatEditText
+@@ -94,6 +95,16 @@ public class ReactEditText extends AppCompatEditText
    /** A count of events sent to JS or C++. */
    protected int mNativeEventCount;
  
@@ -143,7 +143,7 @@ index c150abc..a446111 100644
    private static final int UNSET = -1;
  
    private @Nullable ArrayList<TextWatcher> mListeners;
-@@ -248,16 +259,24 @@ public class ReactEditText extends AppCompatEditText
+@@ -253,16 +264,24 @@ public class ReactEditText extends AppCompatEditText
    @Override
    public InputConnection onCreateInputConnection(EditorInfo outAttrs) {
      ReactContext reactContext = getReactContext(this);

@@ -1,9 +1,9 @@
-import TermsOfUseModal from '../pages/modals/TermsOfUseModal';
-import TestHelpers from '../helpers';
-import OnboardingCarouselView from '../pages/Onboarding/OnboardingCarouselView';
-import OnboardingView from '../pages/Onboarding/OnboardingView';
-import MetaMetricsOptIn from '../pages/Onboarding/MetaMetricsOptInView';
-import ImportWalletView from '../pages/Onboarding/ImportWalletView';
+import TermsOfUseModal from '../../pages/modals/TermsOfUseModal';
+import TestHelpers from '../../helpers';
+import OnboardingCarouselView from '../../pages/Onboarding/OnboardingCarouselView';
+import OnboardingView from '../../pages/Onboarding/OnboardingView';
+import MetaMetricsOptIn from '../../pages/Onboarding/MetaMetricsOptInView';
+import ImportWalletView from '../../pages/Onboarding/ImportWalletView';
 
 describe('Term of service', () => {
   beforeEach(() => {

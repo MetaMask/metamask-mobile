@@ -1,23 +1,23 @@
 'use strict';
-import TestHelpers from '../helpers';
-import { Regression } from '../tags';
+import TestHelpers from '../../helpers';
+import { Regression } from '../../tags';
 
-import ConnectModal from '../pages/modals/ConnectModal';
-import NetworkApprovalModal from '../pages/modals/NetworkApprovalModal';
-import NetworkAddedModal from '../pages/modals/NetworkAddedModal';
+import ConnectModal from '../../pages/modals/ConnectModal';
+import NetworkApprovalModal from '../../pages/modals/NetworkApprovalModal';
+import NetworkAddedModal from '../../pages/modals/NetworkAddedModal';
 
-import Browser from '../pages/Drawer/Browser';
-import NetworkView from '../pages/Drawer/Settings/NetworksView';
-import SettingsView from '../pages/Drawer/Settings/SettingsView';
-import LoginView from '../pages/LoginView';
-import TransactionConfirmationView from '../pages/TransactionConfirmView';
+import Browser from '../../pages/Drawer/Browser';
+import NetworkView from '../../pages/Drawer/Settings/NetworksView';
+import SettingsView from '../../pages/Drawer/Settings/SettingsView';
+import LoginView from '../../pages/LoginView';
+import TransactionConfirmationView from '../../pages/TransactionConfirmView';
 
-import SecurityAndPrivacy from '../pages/Drawer/Settings/SecurityAndPrivacy/SecurityAndPrivacyView';
+import SecurityAndPrivacy from '../../pages/Drawer/Settings/SecurityAndPrivacy/SecurityAndPrivacyView';
 
-import WalletView from '../pages/WalletView';
-import { importWalletWithRecoveryPhrase } from '../viewHelper';
-import Accounts from '../../wdio/helpers/Accounts';
-import TabBarComponent from '../pages/TabBarComponent';
+import WalletView from '../../pages/WalletView';
+import { importWalletWithRecoveryPhrase } from '../../viewHelper';
+import Accounts from '../../../wdio/helpers/Accounts';
+import TabBarComponent from '../../pages/TabBarComponent';
 
 const BINANCE_RPC_URL = 'https://bsc-dataseed1.binance.org';
 

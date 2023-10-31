@@ -18,11 +18,6 @@ export const CONNECT_BUTTON_ID = 'connect-approve-button';
 export const ADD_ADDRESS_MODAL_CONTAINER_ID = 'add-address-modal';
 export const ENTER_ALIAS_INPUT_BOX_ID = 'address-alias-input';
 
-export const CREATE_PASSWORD_INPUT_BOX_ID = 'create-password-first-input-field';
-export const CREATE_PASSWORD_CONTAINER_ID = 'create-password-screen';
-export const CONFIRM_PASSWORD_INPUT_BOX_ID =
-  'create-password-second-input-field';
-
 export const CHANGE_PASSWORD_TITLE_ID = 'change-password-section';
 export const CHANGE_PASSWORD_BUTTON_ID = 'change-password-button-id';
 export const CONFIRM_CHANGE_PASSWORD_INPUT_BOX_ID =
@@ -32,11 +27,6 @@ export const REVEAL_SECRET_RECOVERY_PHRASE_BUTTON_ID = 'reveal-seed-button';
 
 export const SUBMIT_BUTTON_ID = 'submit-button';
 export const BACK_ARROW_BUTTON_ID = 'burger-menu-title-back-arrow-button';
-
-export const IOS_I_UNDERSTAND_BUTTON_ID = 'password-understand-box';
-export const ANDROID_I_UNDERSTAND_BUTTON_ID = 'i-understand-text';
-
-export const IMPORT_PASSWORD_CONTAINER_ID = 'import-from-seed-screen';
 
 export const BROWSER_URL_MODAL_ID = 'browser-url-modal';
 export const CLEAR_COOKIES_SECTION = 'clear-cookies-section';
