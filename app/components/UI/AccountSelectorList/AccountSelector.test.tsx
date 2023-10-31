@@ -12,13 +12,8 @@ import { regex } from '../../../../app/util/regex';
 
 const mockEngine = Engine;
 
-const BUSINESS_ACCOUNT = '0x1';
-const PERSONAL_ACCOUNT = '0x2';
-
-jest.mock('../../../util/address', () => ({
-  ...jest.requireActual('../../../util/address'),
-  getLabelTextByAddress: jest.fn(),
-}));
+const BUSINESS_ACCOUNT = '0xC4955C0d639D99699Bfd7Ec54d9FaFEe40e4D272';
+const PERSONAL_ACCOUNT = '0xd018538C87232FF95acbCe4870629b75640a78E7';
 
 jest.mock('../../../core/Engine', () => ({
   init: () => mockEngine.init({}),

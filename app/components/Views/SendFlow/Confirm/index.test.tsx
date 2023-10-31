@@ -74,10 +74,7 @@ jest.mock('../../../../util/ENSUtils', () => ({
   ...jest.requireActual('../../../../util/ENSUtils'),
   doENSReverseLookup: jest.fn(),
 }));
-jest.mock('../../../../util/address', () => ({
-  ...jest.requireActual('../../../../util/address'),
-  isQRHardwareAccount: jest.fn(),
-}));
+
 jest.mock('../../../../core/Engine', () => ({
   context: {
     TokensController: {

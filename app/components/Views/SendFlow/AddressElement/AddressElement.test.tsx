@@ -20,12 +20,12 @@ jest.mock('../../../../core/Engine', () => ({
         },
       })),
     },
+    KeyringController: {
+      state: {
+        keyrings: [],
+      },
+    },
   },
-}));
-
-jest.mock('../../../../util/address', () => ({
-  ...jest.requireActual('../../../../util/address'),
-  getLabelTextByAddress: jest.fn(),
 }));
 
 const initialState = {
@@ -37,8 +37,7 @@ const initialState = {
 const renderComponent = (state: any) =>
   renderWithProvider(
     <AddressElement
-      address={'0x1234567890abcdef'}
-      onIconPress={() => null}
+      address={'0xd018538C87232FF95acbCe4870629b75640a78E7'}
       onAccountPress={() => null}
       onAccountLongPress={() => null}
       testID="address-element"
@@ -53,7 +52,7 @@ describe('AddressElement', () => {
   });
 
   it('should render the address', () => {
-    const address = '0x1234567890abcdef';
+    const address = '0xd018538C87232FF95acbCe4870629b75640a78E7';
     const { getByText } = renderComponent(initialState);
     const addressText = getByText(renderShortAddress(address));
     expect(addressText).toBeDefined();

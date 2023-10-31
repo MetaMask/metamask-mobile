@@ -7,11 +7,6 @@ import { render } from '@testing-library/react-native';
 import SendFlowAddressFrom from './';
 import initialBackgroundState from '../../../../util/test/initial-background-state.json';
 
-jest.mock('../../../../util/address', () => ({
-  ...jest.requireActual('../../../../util/address'),
-  getLabelTextByAddress: jest.fn(),
-}));
-
 jest.mock('../../../../util/ENSUtils', () => ({
   ...jest.requireActual('../../../../util/ENSUtils'),
   doENSReverseLookup: jest.fn(),
@@ -24,11 +19,25 @@ jest.mock('@react-navigation/native', () => ({
   createNavigatorFactory: () => ({}),
 }));
 
+jest.mock('../../../../core/Engine', () => ({
+  context: {
+    KeyringController: {
+      state: {
+        keyrings: [
+          {
+            accounts: ['0xd018538C87232FF95acbCe4870629b75640a78E7'],
+          },
+        ],
+      },
+    },
+  },
+}));
+
 const mockInitialState = {
   settings: {},
   transaction: {
     selectedAsset: {
-      address: '0x0',
+      address: '0xd018538C87232FF95acbCe4870629b75640a78E7',
       decimals: 18,
       symbol: 'ETH',
     },
@@ -38,18 +47,23 @@ const mockInitialState = {
       ...initialBackgroundState,
       AccountTrackerController: {
         accounts: {
-          '0x0': {
+          '0xd018538C87232FF95acbCe4870629b75640a78E7': {
             balance: '0x0',
           },
         },
       },
       PreferencesController: {
-        selectedAddress: '0x0',
+        selectedAddress: '0xd018538C87232FF95acbCe4870629b75640a78E7',
         identities: {
-          '0x0': {
-            address: '0x0',
+          '0xd018538C87232FF95acbCe4870629b75640a78E7': {
+            address: '0xd018538C87232FF95acbCe4870629b75640a78E7',
             name: 'Account 1',
           },
+        },
+      },
+      KeyringController: {
+        state: {
+          keyrings: [],
         },
       },
     },
