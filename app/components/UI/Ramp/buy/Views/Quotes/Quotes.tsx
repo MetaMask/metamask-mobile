@@ -194,12 +194,19 @@ function Quotes() {
       if (quote?.provider) {
         setSelectedProviderInfo(quote.provider);
         setShowProviderInfo(true);
-        trackEvent('ONRAMP_PROVIDER_DETAILS_VIEWED', {
-          provider_onramp: quote.provider.name,
-        });
+
+        if (rampType === RampType.BUY) {
+          trackEvent('ONRAMP_PROVIDER_DETAILS_VIEWED', {
+            provider_onramp: quote.provider.name,
+          });
+        } else {
+          trackEvent('OFFRAMP_PROVIDER_DETAILS_VIEWED', {
+            provider_offramp: quote.provider.name,
+          });
+        }
       }
     },
-    [trackEvent],
+    [rampType, trackEvent],
   );
 
   const handleOnPressCTA = useCallback(
