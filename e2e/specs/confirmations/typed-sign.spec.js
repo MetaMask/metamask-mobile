@@ -9,11 +9,12 @@ import {
   withFixtures,
   defaultGanacheOptions,
 } from '../../fixtures/fixture-helper';
+import { Regression } from '../../tags';
 import TestHelpers from '../../helpers';
 
 const MAX_ATTEMPTS = 3;
 
-describe('Typed Sign', () => {
+describe(Regression('Typed Sign'), () => {
   beforeAll(async () => {
     jest.setTimeout(2500000);
     await TestHelpers.reverseServerPort();
