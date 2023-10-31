@@ -181,51 +181,52 @@ interface OffRampPurchaseSubmitted extends RampPurchaseSubmitted {
   provider_offramp: string;
   chain_id_source: string;
 }
-
-export interface RampPurchaseCompleted {
+// Define a common base interface
+export interface RampPurchase {
   currency_source: string;
   currency_destination: string;
   order_type: string;
+  payment_method_id: string;
+}
+
+// Extend the base interface in your specific interfaces
+export interface RampPurchaseCompleted extends RampPurchase {
   total_fee: number;
   exchange_rate: number;
-  payment_method_id: string;
   gas_fee?: number;
   processing_fee?: number;
 }
-interface OnRampPurchaseCompleted extends RampPurchaseCompleted {
+
+export interface OnRampPurchaseCompleted extends RampPurchaseCompleted {
   amount: number;
   crypto_out: number;
   chain_id_destination: string;
   provider_onramp: string;
 }
 
-interface OffRampPurchaseCompleted extends RampPurchaseCompleted {
+export interface OffRampPurchaseCompleted extends RampPurchaseCompleted {
   crypto_amount: number;
   fiat_out: number;
   chain_id_source: string;
   provider_offramp: string;
 }
 
-export interface RampPurchaseFailed {
-  currency_source: string;
-  currency_destination: string;
-  order_type: string;
-  payment_method_id: string;
-}
+export type RampPurchaseFailed = RampPurchase;
 
-interface OnRampPurchaseFailed extends RampPurchaseFailed {
+export interface OnRampPurchaseFailed extends RampPurchaseFailed {
   amount: number;
   chain_id_destination: string;
   provider_onramp: string;
 }
 
-interface OffRampPurchaseFailed extends RampPurchaseFailed {
+export interface OffRampPurchaseFailed extends RampPurchaseFailed {
   crypto_amount: number;
   chain_id_source: string;
   provider_offramp: string;
 }
-interface OnRampPurchaseCanceled extends OnRampPurchaseFailed {}
-interface OffRampPurchaseCanceled extends OffRampPurchaseFailed {}
+
+export type OnRampPurchaseCanceled = OnRampPurchaseFailed;
+export type OffRampPurchaseCanceled = OffRampPurchaseFailed;
 
 export interface RampPurchaseDetailsViewed {
   purchase_status: string;
