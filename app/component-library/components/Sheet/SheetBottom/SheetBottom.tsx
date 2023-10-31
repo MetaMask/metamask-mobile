@@ -57,6 +57,13 @@ import {
   SheetBottomRef,
 } from './SheetBottom.types';
 
+/**
+ * @deprecated The `<SheetBottom>` component has been deprecated in favor of the new `<BottomSheet>` component from the component-library.
+ * Please update your code to use the new `<BottomSheet>` component instead, which can be found at app/component-library/components/BottomSheets/BottomSheet/BottomSheet.tsx.
+ * You can find documentation for the new BottomSheet component in the README:
+ * {@link https://github.com/MetaMask/metamask-mobile/tree/main/app/component-library/components/BottomSheets/BottomSheet/README.md}
+ * If you would like to help with the replacement of the old SheetBottom component, please create a new GitHub issue to address a Pull request to it.
+ */
 const SheetBottom = forwardRef<SheetBottomRef, SheetBottomProps>(
   (
     {
