@@ -27,6 +27,7 @@ import {
   selectNetworkConfigurations,
   selectProviderConfig,
 } from '../../../../../selectors/networkController';
+import { OrderOrderTypeEnum } from '@consensys/on-ramp-sdk/dist/API';
 
 interface OrderDetailsParams {
   orderId?: string;
@@ -62,15 +63,26 @@ const OrderDetails = () => {
 
   useEffect(() => {
     if (order) {
-      trackEvent('ONRAMP_PURCHASE_DETAILS_VIEWED', {
+      const payload = {
         purchase_status: order.state,
-        provider_onramp: (order.data as Order)?.provider.name,
         payment_method_id: (order.data as Order)?.paymentMethod?.id,
         currency_destination: order.cryptocurrency,
-        currency_source: order.currency,
-        chain_id_destination: order.network,
         order_type: order.orderType,
-      });
+        currency_source: order.currency,
+      };
+      if (order.orderType === OrderOrderTypeEnum.Buy) {
+        trackEvent('ONRAMP_PURCHASE_DETAILS_VIEWED', {
+          ...payload,
+          provider_onramp: (order.data as Order)?.provider.name,
+          chain_id_destination: order.network,
+        });
+      } else {
+        trackEvent('OFFRAMP_PURCHASE_DETAILS_VIEWED', {
+          ...payload,
+          provider_offramp: (order.data as Order)?.provider.name,
+          chain_id_source: order.network,
+        });
+      }
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [trackEvent]);

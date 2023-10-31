@@ -12,6 +12,7 @@ import { useTheme } from '../../../../../util/theme';
 import { strings } from '../../../../../../locales/i18n';
 import { Colors } from '../../../../../util/theme/models';
 import useAnalytics from '../hooks/useAnalytics';
+import { useRampSDK } from '../sdk';
 
 type Logos = QuoteResponse['provider']['logos'];
 
@@ -70,41 +71,42 @@ const InfoAlert: React.FC<Props> = ({
 
   const styles = createStyles(colors);
   const trackEvent = useAnalytics();
+  const { isBuy } = useRampSDK();
 
   const handleProviderHomepageLinkPress = useCallback(
     (url: string) => {
       Linking.openURL(url);
-      trackEvent('ONRAMP_EXTERNAL_LINK_CLICKED', {
+      trackEvent(`${isBuy ? 'ON' : 'OFF'}RAMP_EXTERNAL_LINK_CLICKED`, {
         location: 'Quotes Screen',
         text: 'Provider Homepage',
         url_domain: url,
       });
     },
-    [trackEvent],
+    [isBuy, trackEvent],
   );
 
   const handleProviderPrivacyPolicyLinkPress = useCallback(
     (url: string) => {
       Linking.openURL(url);
-      trackEvent('ONRAMP_EXTERNAL_LINK_CLICKED', {
+      trackEvent(`${isBuy ? 'ON' : 'OFF'}RAMP_EXTERNAL_LINK_CLICKED`, {
         location: 'Quotes Screen',
         text: 'Provider Privacy Policy',
         url_domain: url,
       });
     },
-    [trackEvent],
+    [isBuy, trackEvent],
   );
 
   const handleProviderSupportLinkPress = useCallback(
     (url: string) => {
       Linking.openURL(url);
-      trackEvent('ONRAMP_EXTERNAL_LINK_CLICKED', {
+      trackEvent(`${isBuy ? 'ON' : 'OFF'}RAMP_EXTERNAL_LINK_CLICKED`, {
         location: 'Quotes Screen',
         text: 'Provider Support',
         url_domain: url,
       });
     },
-    [trackEvent],
+    [isBuy, trackEvent],
   );
 
   return (

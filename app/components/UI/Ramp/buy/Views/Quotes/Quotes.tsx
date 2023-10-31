@@ -453,17 +453,29 @@ function Quotes() {
 
       (quotes as (QuoteResponse | SellQuoteResponse | QuoteError)[])
         .filter((quote): quote is QuoteError => Boolean(quote.error))
-        .forEach((quoteError) =>
-          trackEvent('ONRAMP_QUOTE_ERROR', {
-            provider_onramp: quoteError.provider.name,
+        .forEach((quoteError) => {
+          const payload = {
             currency_source: params.fiatCurrency?.symbol,
             currency_destination: params.asset?.symbol,
             payment_method_id: selectedPaymentMethodId as string,
-            chain_id_destination: selectedChainId,
             error_message: quoteError.message,
-            amount: params.amount,
-          }),
-        );
+          };
+          if (rampType === RampType.BUY) {
+            trackEvent('ONRAMP_QUOTE_ERROR', {
+              ...payload,
+              provider_onramp: quoteError.provider.name,
+              chain_id_destination: selectedChainId,
+              amount: params.amount,
+            });
+          } else {
+            trackEvent('OFFRAMP_QUOTE_ERROR', {
+              ...payload,
+              provider_offramp: quoteError.provider.name,
+              chain_id_source: selectedChainId,
+              crypto_amount: params.amount,
+            });
+          }
+        });
     }
   }, [
     appConfig.POLLING_CYCLES,
@@ -472,6 +484,7 @@ function Quotes() {
     params,
     pollingCyclesLeft,
     quotes,
+    rampType,
     selectedChainId,
     selectedPaymentMethodId,
     trackEvent,

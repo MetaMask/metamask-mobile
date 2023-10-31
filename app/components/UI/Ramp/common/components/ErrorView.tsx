@@ -96,6 +96,7 @@ function ErrorView({
     selectedRegion,
     selectedAsset,
     selectedFiatCurrencyId,
+    isBuy,
   } = useRampSDK();
 
   const ctaOnPressCallback = useCallback(() => {
@@ -103,7 +104,7 @@ function ErrorView({
   }, [ctaOnPress]);
 
   useEffect(() => {
-    trackEvent('ONRAMP_ERROR', {
+    trackEvent(`${isBuy ? 'ON' : 'OFF'}RAMP_ERROR`, {
       location,
       message: description,
       payment_method_id: selectedPaymentMethodId as string,
