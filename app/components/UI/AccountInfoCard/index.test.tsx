@@ -80,10 +80,7 @@ describe('AccountInfoCard', () => {
 
   it('should show balance header in signing page', async () => {
     const { getByText } = renderWithProvider(
-      <AccountInfoCard
-        fromAddress="0x0"
-        operation="signing"
-      />,
+      <AccountInfoCard fromAddress="0x0" operation="signing" />,
       { state: mockInitialState },
     );
     expect(getByText('Balance')).toBeDefined();
@@ -91,10 +88,7 @@ describe('AccountInfoCard', () => {
 
   it('should show origin header in signing page', async () => {
     const { getByText } = renderWithProvider(
-      <AccountInfoCard
-        fromAddress="0x0"
-        operation="signing"
-      />,
+      <AccountInfoCard fromAddress="0x0" operation="signing" />,
       { state: mockInitialState },
     );
 

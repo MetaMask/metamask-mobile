@@ -37,7 +37,11 @@ const initialState = {
 
 const renderComponent = (state: any) =>
   renderWithProvider(
-    <AddressList onIconPress={() => null} onAccountLongPress={() => null} onAccountPress={() => null} />,
+    <AddressList
+      onIconPress={() => null}
+      onAccountLongPress={() => null}
+      onAccountPress={() => null}
+    />,
     { state },
   );
 
