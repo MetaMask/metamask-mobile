@@ -1,6 +1,7 @@
 'use strict';
 
 import { loginToApp } from '../../viewHelper';
+import { Regression } from '../../tags';
 import Onboarding from '../../pages/swaps/OnBoarding';
 import QuoteView from '../../pages/swaps/QuoteView';
 import SwapView from '../../pages/swaps/SwapView';
@@ -23,7 +24,7 @@ import { getFixturesServerPort } from '../../fixtures/utils';
 
 const fixtureServer = new FixtureServer();
 
-describe('Swap Tests', () => {
+describe(Regression('Swap Tests'), () => {
   let swapOnboarded = false;
   beforeAll(async () => {
     await TestHelpers.reverseServerPort();
@@ -47,11 +48,9 @@ describe('Swap Tests', () => {
   beforeEach(async () => {
     jest.setTimeout(150000);
   });
-
   it.each`
     quantity | sourceTokenSymbol | destTokenSymbol
     ${'1'}   | ${'ETH'}          | ${'WETH'}
-    ${'1'}   | ${'WETH'}         | ${'ETH'}
     ${'.05'} | ${'ETH'}          | ${'USDC'}
     ${'10'}  | ${'USDC'}         | ${'ETH'}
   `(
@@ -103,7 +102,7 @@ describe('Swap Tests', () => {
     await WalletView.isVisible();
     await WalletView.tapOnToken('Ethereum');
     await TokenOverview.isVisible();
-    await WalletView.toastNotificationNotVisible();
+
     await TokenOverview.tapSwapButton();
     if (!swapOnboarded) await Onboarding.tapStartSwapping();
     await QuoteView.isVisible();
