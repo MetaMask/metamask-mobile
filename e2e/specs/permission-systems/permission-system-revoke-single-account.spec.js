@@ -1,16 +1,16 @@
 'use strict';
-import TestHelpers from '../helpers';
-import { Regression } from '../tags';
+import TestHelpers from '../../helpers';
+import { Regression } from '../../tags';
 
-import Browser from '../pages/Drawer/Browser';
+import Browser from '../../pages/Drawer/Browser';
 
-import TabBarComponent from '../pages/TabBarComponent';
+import TabBarComponent from '../../pages/TabBarComponent';
 
-import NetworkListModal from '../pages/modals/NetworkListModal';
-import ConnectedAccountsModal from '../pages/modals/ConnectedAccountsModal';
-import FixtureBuilder from '../fixtures/fixture-builder';
-import { withFixtures } from '../fixtures/fixture-helper';
-import { loginToApp } from '../viewHelper';
+import NetworkListModal from '../../pages/modals/NetworkListModal';
+import ConnectedAccountsModal from '../../pages/modals/ConnectedAccountsModal';
+import FixtureBuilder from '../../fixtures/fixture-builder';
+import { withFixtures } from '../../fixtures/fixture-helper';
+import { loginToApp } from '../../viewHelper';
 
 describe(Regression('Revoke Single Account after connecting to a dapp'), () => {
   beforeAll(async () => {

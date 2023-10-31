@@ -815,7 +815,7 @@ app:
       IOS_APP_LINK: ''
 meta:
   bitrise.io:
-    stack: osx-xcode-14.2.x-ventura
+    stack: osx-xcode-15.0.x
     machine_type_id: g2-m1-max.5core
 trigger_map:
   - push_branch: release/*
