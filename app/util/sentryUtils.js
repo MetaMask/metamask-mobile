@@ -134,7 +134,7 @@ export function setupSentry() {
     const environment =
       __DEV__ || !METAMASK_ENVIRONMENT ? 'development' : METAMASK_ENVIRONMENT;
 
-    const dsn = process.env.MM_SENTRY_DSN_DEV;
+    const dsn = process.env.MM_SENTRY_DSN;
 
     const metricsOptIn = await DefaultPreference.get(METRICS_OPT_IN);
 
