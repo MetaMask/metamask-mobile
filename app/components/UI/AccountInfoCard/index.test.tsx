@@ -5,16 +5,14 @@ import initialBackgroundState from '../../../util/test/initial-background-state.
 
 jest.mock('../../../util/address', () => ({
   ...jest.requireActual('../../../util/address'),
-  renderAccountName: () => '0xC4955C0d639D99699Bfd7Ec54d9FaFEe40e4D272',
+  renderAccountName: () => '0x0',
+  getLabelTextByAddress: jest.fn(),
 }));
 
 jest.mock('../../../core/Engine', () => ({
   resetState: jest.fn(),
   context: {
     KeyringController: {
-      state: {
-        keyrings: [],
-      },
       createNewVaultAndKeychain: () => jest.fn(),
       setLocked: () => jest.fn(),
       getAccountKeyringType: () => Promise.resolve('HD Key Tree'),
@@ -31,15 +29,15 @@ const mockInitialState = {
       ...initialBackgroundState,
       AccountTrackerController: {
         accounts: {
-          '0xC4955C0d639D99699Bfd7Ec54d9FaFEe40e4D272': {
+          '0x0': {
             balance: '0x2',
           },
         },
       },
       PreferencesController: {
-        selectedAddress: '0xC4955C0d639D99699Bfd7Ec54d9FaFEe40e4D272',
+        selectedAddress: '0x0',
         identities: {
-          address: '0xC4955C0d639D99699Bfd7Ec54d9FaFEe40e4D272',
+          address: '0x0',
           name: 'Account 1',
         },
       },
@@ -74,7 +72,7 @@ jest.mock('react-redux', () => ({
 describe('AccountInfoCard', () => {
   it('should match snapshot', async () => {
     const container = renderWithProvider(
-      <AccountInfoCard fromAddress="0xC4955C0d639D99699Bfd7Ec54d9FaFEe40e4D272" />,
+      <AccountInfoCard fromAddress="0x0" />,
       { state: mockInitialState },
     );
     expect(container).toMatchSnapshot();
@@ -83,7 +81,7 @@ describe('AccountInfoCard', () => {
   it('should show balance header in signing page', async () => {
     const { getByText } = renderWithProvider(
       <AccountInfoCard
-        fromAddress="0xC4955C0d639D99699Bfd7Ec54d9FaFEe40e4D272"
+        fromAddress="0x0"
         operation="signing"
       />,
       { state: mockInitialState },
@@ -94,7 +92,7 @@ describe('AccountInfoCard', () => {
   it('should show origin header in signing page', async () => {
     const { getByText } = renderWithProvider(
       <AccountInfoCard
-        fromAddress="0xC4955C0d639D99699Bfd7Ec54d9FaFEe40e4D272"
+        fromAddress="0x0"
         operation="signing"
       />,
       { state: mockInitialState },

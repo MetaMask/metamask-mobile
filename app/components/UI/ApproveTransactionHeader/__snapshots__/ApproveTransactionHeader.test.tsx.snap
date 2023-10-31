@@ -323,19 +323,29 @@ exports[`ApproveTransactionHeader should render correctly 1`] = `
           >
             Sepolia
           </Text>
-          <Text
-            accessibilityRole="text"
+          <View
             style={
               Object {
-                "color": "#24272A",
-                "fontFamily": "Euclid Circular B",
-                "fontSize": 14,
-                "fontWeight": "700",
-                "letterSpacing": 0,
-                "lineHeight": 22,
+                "alignItems": "center",
+                "flexDirection": "row",
+                "justifyContent": "flex-start",
               }
             }
-          />
+          >
+            <Text
+              accessibilityRole="text"
+              style={
+                Object {
+                  "color": "#24272A",
+                  "fontFamily": "Euclid Circular B",
+                  "fontSize": 14,
+                  "fontWeight": "700",
+                  "letterSpacing": 0,
+                  "lineHeight": 22,
+                }
+              }
+            />
+          </View>
         </View>
       </View>
       <View>
@@ -639,19 +649,29 @@ exports[`ApproveTransactionHeader should return origin to be null when not prese
           >
             Sepolia
           </Text>
-          <Text
-            accessibilityRole="text"
+          <View
             style={
               Object {
-                "color": "#24272A",
-                "fontFamily": "Euclid Circular B",
-                "fontSize": 14,
-                "fontWeight": "700",
-                "letterSpacing": 0,
-                "lineHeight": 22,
+                "alignItems": "center",
+                "flexDirection": "row",
+                "justifyContent": "flex-start",
               }
             }
-          />
+          >
+            <Text
+              accessibilityRole="text"
+              style={
+                Object {
+                  "color": "#24272A",
+                  "fontFamily": "Euclid Circular B",
+                  "fontSize": 14,
+                  "fontWeight": "700",
+                  "letterSpacing": 0,
+                  "lineHeight": 22,
+                }
+              }
+            />
+          </View>
         </View>
       </View>
       <View>

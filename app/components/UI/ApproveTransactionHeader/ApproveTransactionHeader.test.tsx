@@ -66,6 +66,7 @@ jest.mock('react-redux', () => ({
 jest.mock('../../../util/address', () => ({
   ...jest.requireActual('../../../util/address'),
   renderAccountName: jest.fn(),
+  getLabelTextByAddress: jest.fn(),
 }));
 
 describe('ApproveTransactionHeader', () => {

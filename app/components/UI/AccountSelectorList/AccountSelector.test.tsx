@@ -15,6 +15,11 @@ const mockEngine = Engine;
 const BUSINESS_ACCOUNT = '0x1';
 const PERSONAL_ACCOUNT = '0x2';
 
+jest.mock('../../../util/address', () => ({
+  ...jest.requireActual('../../../util/address'),
+  getLabelTextByAddress: jest.fn(),
+}));
+
 jest.mock('../../../core/Engine', () => ({
   init: () => mockEngine.init({}),
   context: {

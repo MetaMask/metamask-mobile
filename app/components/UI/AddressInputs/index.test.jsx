@@ -7,7 +7,7 @@ import initialBackgroundState from '../../../util/test/initial-background-state.
 
 jest.mock('../../../util/address', () => ({
   ...jest.requireActual('../../../util/address'),
-  isQRHardwareAccount: jest.fn(),
+  getLabelTextByAddress: jest.fn(),
 }));
 
 const initialState = {

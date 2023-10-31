@@ -47,11 +47,6 @@ const mockInitialState = {
   },
 };
 
-jest.mock('../../../util/address', () => ({
-  ...jest.requireActual('../../../util/address'),
-  isQRHardwareAccount: () => false,
-}));
-
 jest.mock('../../../core/Engine', () => ({
   context: {
     TokensController: {
@@ -72,6 +67,7 @@ jest.mock('react-redux', () => ({
 
 jest.mock('../../../util/address', () => ({
   ...jest.requireActual('../../../util/address'),
+  getLabelTextByAddress: jest.fn(),
   isQRHardwareAccount: jest.fn(),
 }));
 

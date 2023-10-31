@@ -23,6 +23,11 @@ jest.mock('../../../../core/Engine', () => ({
   },
 }));
 
+jest.mock('../../../../util/address', () => ({
+  ...jest.requireActual('../../../../util/address'),
+  getLabelTextByAddress: jest.fn(),
+}));
+
 const initialState = {
   engine: {
     backgroundState: initialBackgroundState,
@@ -33,6 +38,7 @@ const renderComponent = (state: any) =>
   renderWithProvider(
     <AddressElement
       address={'0x1234567890abcdef'}
+      onIconPress={() => null}
       onAccountPress={() => null}
       onAccountLongPress={() => null}
       testID="address-element"

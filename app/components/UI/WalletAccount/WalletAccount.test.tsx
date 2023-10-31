@@ -11,6 +11,11 @@ import { createAccountSelectorNavDetails } from '../../../components/Views/Accou
 import WalletAccount from './WalletAccount';
 import initialBackgroundState from '../../../util/test/initial-background-state.json';
 
+jest.mock('../../../util/address', () => ({
+  ...jest.requireActual('../../../util/address'),
+  getLabelTextByAddress: jest.fn(),
+}));
+
 const mockInitialState = {
   settings: {
     useBlockieIcon: false,

@@ -155,7 +155,15 @@ exports[`WalletAccount renders correctly 1`] = `
           </RNSVGSvgView>
         </View>
       </View>
-      <View>
+      <View
+        style={
+          Object {
+            "alignItems": "center",
+            "flexDirection": "row",
+            "justifyContent": "flex-start",
+          }
+        }
+      >
         <Text
           accessibilityRole="text"
           style={

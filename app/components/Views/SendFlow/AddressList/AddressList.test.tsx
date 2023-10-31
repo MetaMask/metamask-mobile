@@ -3,14 +3,9 @@ import renderWithProvider from '../../../../util/test/renderWithProvider';
 import initialBackgroundState from '../../../../util/test/initial-background-state.json';
 import AddressList from './';
 
-jest.mock('../../../../core/Engine', () => ({
-  context: {
-    KeyringController: {
-      state: {
-        keyrings: [],
-      },
-    },
-  },
+jest.mock('../../../../util/address', () => ({
+  ...jest.requireActual('../../../../util/address'),
+  getLabelTextByAddress: jest.fn(),
 }));
 
 const initialState = {
@@ -19,8 +14,8 @@ const initialState = {
       ...initialBackgroundState,
       AddressBookController: {
         addressBook: {
-          '0xC4955C0d639D99699Bfd7Ec54d9FaFEe40e4D273': {
-            address: '0xC4955C0d639D99699Bfd7Ec54d9FaFEe40e4D273',
+          '0x51239E13Fe029cD52asA8babEBafb6814bc8Ba4b': {
+            address: '0x51239E13Fe029cD52asA8babEBafb6814bc8Ba4b',
             chainId: '1',
             isEns: false,
             memo: '',
@@ -30,8 +25,8 @@ const initialState = {
       },
       PreferencesController: {
         identities: {
-          '0xC4955C0d639D99699Bfd7Ec54d9FaFEe40e4D273': {
-            address: '0xC4955C0d639D99699Bfd7Ec54d9FaFEe40e4D273',
+          '0x51239E13Fe029cD52asA8babEBafb6814bc8Ba4b': {
+            address: '0x51239E13Fe029cD52asA8babEBafb6814bc8Ba4b',
             name: 'Account 1',
           },
         },
@@ -42,7 +37,7 @@ const initialState = {
 
 const renderComponent = (state: any) =>
   renderWithProvider(
-    <AddressList onAccountLongPress={() => null} onAccountPress={() => null} />,
+    <AddressList onIconPress={() => null} onAccountLongPress={() => null} onAccountPress={() => null} />,
     { state },
   );
 

@@ -9,7 +9,7 @@ import initialBackgroundState from '../../../../util/test/initial-background-sta
 
 jest.mock('../../../../util/address', () => ({
   ...jest.requireActual('../../../../util/address'),
-  isQRHardwareAccount: jest.fn(),
+  getLabelTextByAddress: jest.fn(),
 }));
 
 jest.mock('../../../../util/ENSUtils', () => ({
