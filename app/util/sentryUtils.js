@@ -159,7 +159,7 @@ export function setupSentry() {
       tracesSampleRate: 0.05,
       beforeSend: (report) => rewriteReport(report),
       beforeBreadcrumb: (breadcrumb) => rewriteBreadcrumb(breadcrumb),
-      release: 'io.metamask.MetaMask-QA@7.9.0+1189',
+      release: 'io.metamask.MetaMask-QA@7.9.0+1191',
     });
   };
   init();
