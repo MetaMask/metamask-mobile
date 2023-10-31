@@ -212,22 +212,35 @@ function Quotes() {
           (quote.providerFee ?? 0) +
           (quote.extraFee ?? 0);
 
-        trackEvent('ONRAMP_PROVIDER_SELECTED', {
-          provider_onramp: quote.provider.name,
+        const payload = {
           refresh_count: appConfig.POLLING_CYCLES - pollingCyclesLeft,
           quote_position: index + 1,
           results_count: filteredQuotes.length,
-          crypto_out: quote.amountOut ?? 0,
           currency_source: params.fiatCurrency?.symbol,
           currency_destination: params.asset?.symbol,
-          chain_id_destination: selectedChainId,
           payment_method_id: selectedPaymentMethodId as string,
           total_fee: totalFee,
           gas_fee: quote.networkFee ?? 0,
           processing_fee: quote.providerFee ?? 0,
           exchange_rate:
             ((quote.amountIn ?? 0) - totalFee) / (quote.amountOut ?? 0),
-        });
+        };
+
+        if (rampType === RampType.BUY) {
+          trackEvent('ONRAMP_PROVIDER_SELECTED', {
+            ...payload,
+            provider_onramp: quote.provider.name,
+            crypto_out: quote.amountOut ?? 0,
+            chain_id_destination: selectedChainId,
+          });
+        } else {
+          trackEvent('OFFRAMP_PROVIDER_SELECTED', {
+            ...payload,
+            provider_offramp: quote.provider.name,
+            fiat_out: quote.amountOut ?? 0,
+            chain_id_source: selectedChainId,
+          });
+        }
 
         let buyAction;
         if (isBuyQuote(quote, rampType)) {
@@ -390,10 +403,8 @@ function Quotes() {
           results_count: quotesWithoutError.length,
           average_total_fee: totals.totalFee / quotesWithoutError.length,
           average_gas_fee: totals.totalGasFee / quotesWithoutError.length,
-
           average_processing_fee:
             totals.totalProcessingFee / quotesWithoutError.length,
-
           average_total_fee_of_amount:
             totals.feeAmountRatio / quotesWithoutError.length,
         };

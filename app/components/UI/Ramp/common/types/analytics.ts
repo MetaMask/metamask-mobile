@@ -112,14 +112,11 @@ interface OffRampQuotesReceived extends RampQuotesReceived {
 }
 
 export interface RampProviderSelected {
-  provider_onramp: string;
   refresh_count: number;
   quote_position: number;
   results_count: number;
-  crypto_out: number;
   currency_source: string;
   currency_destination: string;
-  chain_id_destination: string;
   payment_method_id: string;
   total_fee: number;
   gas_fee: number;
@@ -135,9 +132,7 @@ interface OnRampProviderSelected extends RampProviderSelected {
 interface OffRampProviderSelected extends RampProviderSelected {
   provider_offramp: string;
   fiat_out: number;
-  currency_source: string;
-  currency_destination: string;
-  chain_id_destination: string;
+  chain_id_source: string;
 }
 
 export interface OnRampProviderDetailsViewed {
