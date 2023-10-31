@@ -17,11 +17,30 @@ on:
 jobs:
   cherry-pick:
     runs-on: ubuntu-latest
-
+    permissions:
+      contents: write
+      pull-requests: write
     steps:
-    - name: Checkout code
-      uses: actions/checkout@v3
-
+      - uses: actions/checkout@v3
+        with:
+          # This is to guarantee that the most recent tag is fetched.
+          # This can be configured to a more reasonable value by consumers.
+          fetch-depth: 0
+          # We check out the specified branch, which will be used as the base
+          # branch for all git operations and the patch PR.
+          ref: ${{ github.event.inputs.branch_name }}
+          # The last step of this workflow creates a patch branch, which shall itself
+          # trigger another workflow: 'create-bug-report.yml'. However, there is a security
+          # feature in Github that prevents workflows from triggering other workflows by default.
+          # The workaround is to use a personal access token (BUG_REPORT_TOKEN) instead of
+          # the default GITHUB_TOKEN for the checkout action.
+          token: ${{ secrets.BUG_REPORT_TOKEN }}
+      - name: Get Node.js version
+        id: nvm
+        run: echo "NODE_VERSION=$(cat .nvmrc)" >> "$GITHUB_OUTPUT"
+      - uses: actions/setup-node@v3
+        with:
+          node-version: ${{ steps.nvm.outputs.NODE_VERSION }}
     - name: Create Cherry Pick PR
       id: create-cherry-pick-pr
       shell: bash
