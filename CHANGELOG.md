@@ -1,6 +1,13 @@
 # Changelog
 
 ## Current Main Branch
+- [#7536](https://github.com/MetaMask/metamask-mobile/pull/7536): build bump for RC-3
+- [#7532](https://github.com/MetaMask/metamask-mobile/pull/7532): fix: transactions stuck in submitted status [Release Branch]
+- [#7478](https://github.com/MetaMask/metamask-mobile/pull/7478): increase build on RC
+- [#7466](https://github.com/MetaMask/metamask-mobile/pull/7466): chore: Cherry pick 7.9.0/7305
+- [#7467](https://github.com/MetaMask/metamask-mobile/pull/7467): chore: cherry pick Ramp copy updates
+- updated changelog
+- 7.9.0
 
 ## 7.9.0 - Oct 10, 2023
 ### Added
