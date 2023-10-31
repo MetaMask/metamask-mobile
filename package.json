@@ -128,7 +128,7 @@
     "@metamask/controller-utils": "^3.4.0",
     "@metamask/approval-controller": "3.4.0",
     "@exodus/react-native-payments/validator": "^13.7.0",
-    "react-devtools-core": "4.22.1",
+    "react-devtools-core": "4.28.4",
     "**/got": "^11.8.5",
     "**/qs": "6.10.3",
     "simple-get": "4.0.1",
@@ -148,7 +148,9 @@
     "oss-attribution-generator/**/debug": "^2.6.9",
     "d3-color": "3.1.0",
     "**/fast-xml-parser": "4.2.4",
-    "tough-cookie": "4.1.3"
+    "tough-cookie": "4.1.3",
+    "crypto-js": "4.2.0",
+    "browserify-sign": "4.2.2"
   },
   "dependencies": {
     "@consensys/on-ramp-sdk": "1.23.0",
