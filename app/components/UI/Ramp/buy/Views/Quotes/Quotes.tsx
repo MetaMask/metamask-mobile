@@ -381,31 +381,56 @@ function Quotes() {
             feeAmountRatio: 0,
           },
         );
-        trackEvent('ONRAMP_QUOTES_RECEIVED', {
+
+        const payload = {
           currency_source: params.fiatCurrency?.symbol,
           currency_destination: params.asset?.symbol,
-          chain_id_destination: selectedChainId,
-          amount: params.amount,
           payment_method_id: selectedPaymentMethodId as string,
           refresh_count: appConfig.POLLING_CYCLES - pollingCyclesLeft,
           results_count: quotesWithoutError.length,
-          average_crypto_out: totals.amountOut / quotesWithoutError.length,
           average_total_fee: totals.totalFee / quotesWithoutError.length,
           average_gas_fee: totals.totalGasFee / quotesWithoutError.length,
+
           average_processing_fee:
             totals.totalProcessingFee / quotesWithoutError.length,
-          provider_onramp_list: quotesWithoutError.map(
-            ({ provider }) => provider.name,
-          ),
-          provider_onramp_first: quotesWithoutError[0]?.provider?.name,
+
           average_total_fee_of_amount:
             totals.feeAmountRatio / quotesWithoutError.length,
-          provider_onramp_last:
-            quotesWithoutError.length > 1
-              ? quotesWithoutError[quotesWithoutError.length - 1]?.provider
-                  ?.name
-              : undefined,
-        });
+        };
+
+        if (rampType === RampType.BUY) {
+          trackEvent('ONRAMP_QUOTES_RECEIVED', {
+            ...payload,
+            amount: params.amount,
+            average_crypto_out: totals.amountOut / quotesWithoutError.length,
+            chain_id_destination: selectedChainId,
+            provider_onramp_list: quotesWithoutError.map(
+              ({ provider }) => provider.name,
+            ),
+            provider_onramp_first: quotesWithoutError[0]?.provider?.name,
+            provider_onramp_last:
+              quotesWithoutError.length > 1
+                ? quotesWithoutError[quotesWithoutError.length - 1]?.provider
+                    ?.name
+                : undefined,
+          });
+        } else {
+          trackEvent('OFFRAMP_QUOTES_RECEIVED', {
+            ...payload,
+            crypto_amount: params.amount,
+            average_fiat_out: totals.amountOut / quotesWithoutError.length,
+            chain_id_source: selectedChainId,
+            provider_offramp_list: quotesWithoutError.map(
+              ({ provider }) => provider.name,
+            ),
+            provider_offramp_first: quotesWithoutError[0]?.provider?.name,
+            provider_offramp_last:
+              quotesWithoutError.length > 1
+                ? quotesWithoutError[quotesWithoutError.length - 1]?.provider
+                    ?.name
+                : undefined,
+          });
+        }
       }
 
       (quotes as (QuoteResponse | SellQuoteResponse | QuoteError)[])
