@@ -97,8 +97,6 @@ function useHandleSuccessfulOrder() {
         if (order.orderType === OrderOrderTypeEnum.Sell) {
           trackEvent('OFFRAMP_PURCHASE_SUBMITTED', {
             ...payload,
-            crypto_amount: Number((order?.data as Order)?.cryptoAmount),
-            fiat_out: (order?.data as Order)?.fiatAmount,
             provider_offramp: (order?.data as Order)?.provider?.name,
             chain_id_source: selectedChainId,
           });
@@ -112,8 +110,6 @@ function useHandleSuccessfulOrder() {
         } else {
           trackEvent('ONRAMP_PURCHASE_SUBMITTED', {
             ...payload,
-            crypto_out: Number((order?.data as Order)?.cryptoAmount),
-            fiat_amount: (order?.data as Order)?.fiatAmount,
             provider_onramp: (order?.data as Order)?.provider?.name,
             chain_id_destination: selectedChainId,
             has_zero_currency_destination_balance: false,

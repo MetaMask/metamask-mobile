@@ -83,6 +83,7 @@ interface OfframpCanceled extends RampCanceled {
 }
 
 export interface RampQuotesReceived {
+  amount: number;
   currency_source: string;
   currency_destination: string;
   payment_method_id: string;
@@ -95,7 +96,6 @@ export interface RampQuotesReceived {
 }
 
 interface OnRampQuotesReceived extends RampQuotesReceived {
-  amount: number;
   average_crypto_out: number;
   chain_id_destination: string;
   provider_onramp_list: string[];
@@ -103,7 +103,6 @@ interface OnRampQuotesReceived extends RampQuotesReceived {
   provider_onramp_last?: string;
 }
 interface OffRampQuotesReceived extends RampQuotesReceived {
-  crypto_amount: number;
   average_fiat_out: number;
   chain_id_source: string;
   provider_offramp_list: string[];
@@ -167,8 +166,6 @@ export interface RampPurchaseSubmitted {
 }
 
 interface OnRampPurchaseSubmitted extends RampPurchaseSubmitted {
-  fiat_amount: number;
-  crypto_out: number;
   provider_onramp: string;
   chain_id_destination: string;
   has_zero_currency_destination_balance: boolean;
@@ -176,20 +173,17 @@ interface OnRampPurchaseSubmitted extends RampPurchaseSubmitted {
 }
 
 interface OffRampPurchaseSubmitted extends RampPurchaseSubmitted {
-  crypto_amount: number;
-  fiat_out: number;
   provider_offramp: string;
   chain_id_source: string;
 }
-// Define a common base interface
 export interface RampPurchase {
+  amount: number;
   currency_source: string;
   currency_destination: string;
   order_type: string;
   payment_method_id: string;
 }
 
-// Extend the base interface in your specific interfaces
 export interface RampPurchaseCompleted extends RampPurchase {
   total_fee: number;
   exchange_rate: number;
@@ -198,29 +192,23 @@ export interface RampPurchaseCompleted extends RampPurchase {
 }
 
 export interface OnRampPurchaseCompleted extends RampPurchaseCompleted {
-  amount: number;
   crypto_out: number;
   chain_id_destination: string;
   provider_onramp: string;
 }
 
 export interface OffRampPurchaseCompleted extends RampPurchaseCompleted {
-  crypto_amount: number;
   fiat_out: number;
   chain_id_source: string;
   provider_offramp: string;
 }
 
-export type RampPurchaseFailed = RampPurchase;
-
-export interface OnRampPurchaseFailed extends RampPurchaseFailed {
-  amount: number;
+export interface OnRampPurchaseFailed extends RampPurchase {
   chain_id_destination: string;
   provider_onramp: string;
 }
 
-export interface OffRampPurchaseFailed extends RampPurchaseFailed {
-  crypto_amount: number;
+export interface OffRampPurchaseFailed extends RampPurchase {
   chain_id_source: string;
   provider_offramp: string;
 }
@@ -258,19 +246,18 @@ export interface RampExternalLinkClicked {
 }
 
 export interface RampQuoteError {
+  amount: number;
   currency_source: string;
   currency_destination: string;
   payment_method_id: string;
   error_message?: string;
 }
 interface OnRampQuoteError extends RampQuoteError {
-  amount: number;
   provider_onramp: string;
   chain_id_destination: string;
 }
 
 interface OffRampQuoteError extends RampQuoteError {
-  crypto_amount: number;
   provider_offramp: string;
   chain_id_source: string;
 }

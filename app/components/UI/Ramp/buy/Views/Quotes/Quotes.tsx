@@ -403,6 +403,7 @@ function Quotes() {
         );
 
         const payload = {
+          amount: params.amount,
           currency_source: params.fiatCurrency?.symbol,
           currency_destination: params.asset?.symbol,
           payment_method_id: selectedPaymentMethodId as string,
@@ -419,7 +420,6 @@ function Quotes() {
         if (rampType === RampType.BUY) {
           trackEvent('ONRAMP_QUOTES_RECEIVED', {
             ...payload,
-            amount: params.amount,
             average_crypto_out: totals.amountOut / quotesWithoutError.length,
             chain_id_destination: selectedChainId,
             provider_onramp_list: quotesWithoutError.map(
@@ -435,7 +435,6 @@ function Quotes() {
         } else {
           trackEvent('OFFRAMP_QUOTES_RECEIVED', {
             ...payload,
-            crypto_amount: params.amount,
             average_fiat_out: totals.amountOut / quotesWithoutError.length,
             chain_id_source: selectedChainId,
             provider_offramp_list: quotesWithoutError.map(
@@ -455,6 +454,7 @@ function Quotes() {
         .filter((quote): quote is QuoteError => Boolean(quote.error))
         .forEach((quoteError) => {
           const payload = {
+            amount: params.amount,
             currency_source: params.fiatCurrency?.symbol,
             currency_destination: params.asset?.symbol,
             payment_method_id: selectedPaymentMethodId as string,
@@ -465,14 +465,12 @@ function Quotes() {
               ...payload,
               provider_onramp: quoteError.provider.name,
               chain_id_destination: selectedChainId,
-              amount: params.amount,
             });
           } else {
             trackEvent('OFFRAMP_QUOTE_ERROR', {
               ...payload,
               provider_offramp: quoteError.provider.name,
               chain_id_source: selectedChainId,
-              crypto_amount: params.amount,
             });
           }
         });

@@ -76,27 +76,28 @@ export const getAggregatorAnalyticsPayload = (
   ),
 ] => {
   const isBuy = fiatOrder.orderType === OrderOrderTypeEnum.Buy;
+
   let failedOrCancelledParams: OnRampPurchaseFailed | OffRampPurchaseFailed;
 
   if (isBuy) {
     failedOrCancelledParams = {
+      amount: fiatOrder.amount as number,
       currency_source: fiatOrder.currency,
       currency_destination: fiatOrder.cryptocurrency,
       order_type: fiatOrder.orderType,
       payment_method_id: (fiatOrder.data as Order)?.paymentMethod?.id,
       chain_id_destination: fiatOrder.network,
       provider_onramp: (fiatOrder.data as Order)?.provider?.name,
-      amount: fiatOrder.amount as number,
     };
   } else {
     failedOrCancelledParams = {
+      amount: fiatOrder.amount as number,
       currency_source: fiatOrder.currency,
       currency_destination: fiatOrder.cryptocurrency,
       order_type: fiatOrder.orderType,
       payment_method_id: (fiatOrder.data as Order)?.paymentMethod?.id,
       chain_id_source: fiatOrder.network,
       provider_offramp: (fiatOrder.data as Order)?.provider?.name,
-      crypto_amount: fiatOrder.amount as number,
     };
   }
 
@@ -112,7 +113,6 @@ export const getAggregatorAnalyticsPayload = (
   const sellCompletePayload: OffRampPurchaseCompleted = {
     ...failedOrCancelledParams,
     ...sharedCompletedPayload,
-    crypto_amount: fiatOrder.cryptoAmount,
     fiat_out: fiatOrder.amount,
   } as OffRampPurchaseCompleted;
 
@@ -120,7 +120,6 @@ export const getAggregatorAnalyticsPayload = (
     ...failedOrCancelledParams,
     ...sharedCompletedPayload,
     crypto_out: fiatOrder.cryptoAmount,
-    amount: fiatOrder.amount,
   } as OnRampPurchaseCompleted;
 
   switch (fiatOrder.state) {
