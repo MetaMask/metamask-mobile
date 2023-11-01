@@ -56,7 +56,7 @@ export type SDKEventListener = (event: string) => void;
 export const CONNECTION_LOADING_EVENT = 'loading';
 
 export const METHODS_TO_REDIRECT: { [method: string]: boolean } = {
-  [RPC_METHODS.ETH_ACCOUNTS]: true,
+  [RPC_METHODS.ETH_REQUESTACCOUNTS]: true,
   [RPC_METHODS.ETH_SENDTRANSACTION]: true,
   [RPC_METHODS.ETH_SIGNTRANSACTION]: true,
   [RPC_METHODS.ETH_SIGN]: true,
@@ -204,6 +204,9 @@ export class SDKConnect extends EventEmitter2 {
       const host = AppConstants.MM_SDK.SDK_REMOTE_ORIGIN + connection.channelId;
       // Prevent disabled connection ( if user chose do not remember session )
       const isDisabled = this.disabledHosts[host]; // should be 0 when disabled.
+      DevLogger.log(
+        `SDKConnect::watchConnection CLIENTS_DISCONNECTED channel=${connection.channelId} origin=${connection.origin} isDisabled=${isDisabled}`,
+      );
       if (isDisabled !== undefined) {
         this.updateSDKLoadingState({
           channelId: connection.channelId,
@@ -543,6 +546,11 @@ export class SDKConnect extends EventEmitter2 {
   }
 
   public removeChannel(channelId: string, sendTerminate?: boolean) {
+    DevLogger.log(
+      `SDKConnect::removeChannel ${channelId} sendTerminate=${sendTerminate} connectedted=${
+        this.connected[channelId] !== undefined
+      }`,
+    );
     if (this.connected[channelId]) {
       try {
         this.connected[channelId].removeConnection({
