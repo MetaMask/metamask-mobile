@@ -25,14 +25,25 @@ The code is built using React-Native and running code locally requires a Mac or 
 
 -   Install [Yarn v1](https://yarnpkg.com/en/docs/install)
 
+    One way to install Yarn v1 is by using brew:
+    ```bash
+    brew install yarn@1.22.19
+    ```
+
+    To check you've installed the right version:
+
+    ```bash
+    yarn --version
+    ```
+
 -   Install the shared [React Native dependencies](https://reactnative.dev/docs/environment-setup#installing-dependencies) (`React Native CLI`, _not_ `Expo CLI`)
-    -   XCode version `14.2` or below
+    -   XCode version `15.0.1` or below
 
 -   Install [cocoapods](https://guides.cocoapods.org/using/getting-started.html) by running:
 
-```bash
-sudo gem install cocoapods -v 1.12.1
-```
+    ```bash
+    sudo gem install cocoapods -v 1.12.1
+    ```
 
 -   Install [Python](https://www.python.org/downloads/) **version ^3.10**
     - _Note_: M1 User might need to stay with **version 3.10**
@@ -42,9 +53,9 @@ sudo gem install cocoapods -v 1.12.1
 #### Android
 
 -   Install [Java](https://www.java.com/en/download/). To check if Java is already installed, run:
-```
-  java -version
-```
+    ```
+    java -version
+    ```
 -   Install the Android SDK, via [Android Studio](https://developer.android.com/studio).
     -   _MetaMask Only:_ To create production builds, you need to install Google Play Licensing Library via the SDK Manager in Android Studio.
 -   Install the Android NDK (version `21.4.7075529`), via [Android Studio](https://developer.android.com/studio)'s SDK Manager.
@@ -79,7 +90,7 @@ sudo gem install cocoapods -v 1.12.1
     -   [React Native Getting Started - iOS](https://reactnative.dev/docs/environment-setup#installing-dependencies) _(React Native CLI Quickstart -> [your OS] -> iOS)_
 -   Install the correct simulator
     -   **iOS OS Version:** Latest, unless told otherwise
-    -   **Device:** iPhone 12 Pro
+    -   **Device:** iPhone 13 Pro
 
 
 
@@ -226,7 +237,7 @@ Prerequisites for running tests:
 - Make sure to install `detox-cli` by referring to the instructions mentioned [here](https://wix.github.io/Detox/docs/introduction/getting-started/#detox-prerequisites).
 - Additionally, install `applesimutils` by following the guidelines provided [here](https://github.com/wix/AppleSimulatorUtils).
 - Before running any tests, it's recommended to refer to the `iOS section` above and check the latest simulator device specified under `Install the correct simulator`.
-- The default device for iOS is the iPhone 12 Pro and Android the Pixel 5. Ensure you have these set up. 
+- The default device for iOS is the iPhone 13 Pro and Android the Pixel 5. Ensure you have these set up.
 - Make sure that Metro is running. Use this command to launch the metro server:
 
 ```bash

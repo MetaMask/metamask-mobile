@@ -323,7 +323,7 @@ exports[`SecuritySettings should render correctly 1`] = `
               "width": "100%",
             }
           }
-          testID="change-password-button-id"
+          testID="change-password-button"
           variant="Secondary"
         >
           <Text
@@ -1558,7 +1558,7 @@ exports[`SecuritySettings should render correctly 1`] = `
             }
           }
         >
-          Get incoming transactions
+          Show incoming transactions
         </Text>
         <Text
           style={
@@ -1572,44 +1572,284 @@ exports[`SecuritySettings should render correctly 1`] = `
             }
           }
         >
-          Third party APIs (Etherscan) are used to show your incoming transactions in the history. Turn off if you don’t want us to pull data from those services.
+          This relies on the network you select which will expose your Ethereum address and your IP address.
         </Text>
-        <View
-          style={
+        <TouchableOpacity
+          avatarProps={
             Object {
-              "alignSelf": "flex-start",
-              "marginTop": 18,
+              "imageSource": Object {
+                "uri": "MockImage",
+              },
+              "name": "Ethereum Main Network",
+              "variant": "Network",
             }
           }
-        >
-          <RCTSwitch
-            accessibilityRole="switch"
-            onChange={[Function]}
-            onResponderTerminationRequest={[Function]}
-            onStartShouldSetResponder={[Function]}
-            onTintColor="#0376C9"
-            style={
-              Array [
-                Object {
-                  "height": 31,
-                  "width": 51,
-                },
-                Array [
-                  Object {
-                    "alignSelf": "flex-start",
-                  },
-                  Object {
-                    "backgroundColor": "#D6D9DC",
-                    "borderRadius": 16,
-                  },
-                ],
-              ]
+          secondaryText="etherscan.io"
+          style={
+            Object {
+              "backgroundColor": "#FFFFFF",
+              "borderColor": "#BBC0C5",
+              "borderRadius": 4,
+              "borderWidth": 0,
+              "padding": 16,
             }
-            thumbTintColor="#FFFFFF"
-            tintColor="#D6D9DC"
-            value={false}
-          />
-        </View>
+          }
+          testID="celldisplay"
+          title="Ethereum Main Network"
+        >
+          <View
+            style={
+              Object {
+                "flexDirection": "row",
+              }
+            }
+          >
+            <View
+              style={
+                Object {
+                  "backgroundColor": "#FFFFFF",
+                  "borderRadius": 16,
+                  "height": 32,
+                  "marginRight": 16,
+                  "overflow": "hidden",
+                  "width": 32,
+                }
+              }
+            >
+              <Image
+                onError={[Function]}
+                resizeMode="contain"
+                source={
+                  Object {
+                    "uri": "MockImage",
+                  }
+                }
+                style={
+                  Object {
+                    "flex": 1,
+                    "height": undefined,
+                    "width": undefined,
+                  }
+                }
+                testID="network-avatar-image"
+              />
+            </View>
+            <View
+              style={
+                Object {
+                  "alignItems": "flex-start",
+                  "flex": 1,
+                }
+              }
+            >
+              <Text
+                accessibilityRole="text"
+                numberOfLines={1}
+                style={
+                  Object {
+                    "color": "#24272A",
+                    "fontFamily": "Euclid Circular B",
+                    "fontSize": 16,
+                    "fontWeight": "400",
+                    "letterSpacing": 0,
+                    "lineHeight": 24,
+                  }
+                }
+              >
+                Ethereum Main Network
+              </Text>
+              <Text
+                accessibilityRole="text"
+                numberOfLines={1}
+                style={
+                  Object {
+                    "color": "#535A61",
+                    "fontFamily": "Euclid Circular B",
+                    "fontSize": 14,
+                    "fontWeight": "400",
+                    "letterSpacing": 0,
+                    "lineHeight": 22,
+                  }
+                }
+              >
+                etherscan.io
+              </Text>
+            </View>
+            <View
+              style={
+                Object {
+                  "marginLeft": 16,
+                }
+              }
+            >
+              <RCTSwitch
+                accessibilityRole="switch"
+                onChange={[Function]}
+                onResponderTerminationRequest={[Function]}
+                onStartShouldSetResponder={[Function]}
+                onTintColor="#0376C9"
+                style={
+                  Array [
+                    Object {
+                      "height": 31,
+                      "width": 51,
+                    },
+                    Array [
+                      Object {
+                        "alignSelf": "flex-start",
+                      },
+                      Object {
+                        "backgroundColor": "#D6D9DC",
+                        "borderRadius": 16,
+                      },
+                    ],
+                  ]
+                }
+                thumbTintColor="#FFFFFF"
+                tintColor="#D6D9DC"
+                value={true}
+              />
+            </View>
+          </View>
+        </TouchableOpacity>
+        <TouchableOpacity
+          avatarProps={
+            Object {
+              "imageSource": Object {
+                "uri": "MockImage",
+              },
+              "name": "Linea Main Network",
+              "variant": "Network",
+            }
+          }
+          secondaryText="lineascan.build"
+          style={
+            Object {
+              "backgroundColor": "#FFFFFF",
+              "borderColor": "#BBC0C5",
+              "borderRadius": 4,
+              "borderWidth": 0,
+              "padding": 16,
+            }
+          }
+          testID="celldisplay"
+          title="Linea Main Network"
+        >
+          <View
+            style={
+              Object {
+                "flexDirection": "row",
+              }
+            }
+          >
+            <View
+              style={
+                Object {
+                  "backgroundColor": "#FFFFFF",
+                  "borderRadius": 16,
+                  "height": 32,
+                  "marginRight": 16,
+                  "overflow": "hidden",
+                  "width": 32,
+                }
+              }
+            >
+              <Image
+                onError={[Function]}
+                resizeMode="contain"
+                source={
+                  Object {
+                    "uri": "MockImage",
+                  }
+                }
+                style={
+                  Object {
+                    "flex": 1,
+                    "height": undefined,
+                    "width": undefined,
+                  }
+                }
+                testID="network-avatar-image"
+              />
+            </View>
+            <View
+              style={
+                Object {
+                  "alignItems": "flex-start",
+                  "flex": 1,
+                }
+              }
+            >
+              <Text
+                accessibilityRole="text"
+                numberOfLines={1}
+                style={
+                  Object {
+                    "color": "#24272A",
+                    "fontFamily": "Euclid Circular B",
+                    "fontSize": 16,
+                    "fontWeight": "400",
+                    "letterSpacing": 0,
+                    "lineHeight": 24,
+                  }
+                }
+              >
+                Linea Main Network
+              </Text>
+              <Text
+                accessibilityRole="text"
+                numberOfLines={1}
+                style={
+                  Object {
+                    "color": "#535A61",
+                    "fontFamily": "Euclid Circular B",
+                    "fontSize": 14,
+                    "fontWeight": "400",
+                    "letterSpacing": 0,
+                    "lineHeight": 22,
+                  }
+                }
+              >
+                lineascan.build
+              </Text>
+            </View>
+            <View
+              style={
+                Object {
+                  "marginLeft": 16,
+                }
+              }
+            >
+              <RCTSwitch
+                accessibilityRole="switch"
+                onChange={[Function]}
+                onResponderTerminationRequest={[Function]}
+                onStartShouldSetResponder={[Function]}
+                onTintColor="#0376C9"
+                style={
+                  Array [
+                    Object {
+                      "height": 31,
+                      "width": 51,
+                    },
+                    Array [
+                      Object {
+                        "alignSelf": "flex-start",
+                      },
+                      Object {
+                        "backgroundColor": "#D6D9DC",
+                        "borderRadius": 16,
+                      },
+                    ],
+                  ]
+                }
+                thumbTintColor="#FFFFFF"
+                tintColor="#D6D9DC"
+                value={true}
+              />
+            </View>
+          </View>
+        </TouchableOpacity>
       </View>
       <Modal
         animationType="none"
@@ -1675,7 +1915,7 @@ exports[`SecuritySettings should render correctly 1`] = `
             }
           }
         >
-          Displaying NFT media and data exposes your IP address to OpenSea or other third parties. NFT autodetection relies on this feature, and won't be available when this is turned off.
+          Displaying NFT media and data exposes your IP address to OpenSea or other third parties. NFT autodetection relies on this feature, and won't be available when turned off. If NFT media is fully located on IPFS, it can still be displayed even when this feature is turned off.
         </Text>
         <View
           style={

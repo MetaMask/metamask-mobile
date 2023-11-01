@@ -785,7 +785,7 @@ index 07781b0..0000000
 -{"version":3,"file":"TransactionController.d.ts","sourceRoot":"","sources":["../src/TransactionController.ts"],"names":[],"mappings":"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"}
 \ No newline at end of file
 diff --git a/node_modules/@metamask/transaction-controller/dist/TransactionController.js b/node_modules/@metamask/transaction-controller/dist/TransactionController.js
-index 814a899..0404f99 100644
+index 814a899..9db773e 100644
 --- a/node_modules/@metamask/transaction-controller/dist/TransactionController.js
 +++ b/node_modules/@metamask/transaction-controller/dist/TransactionController.js
 @@ -12,7 +12,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
@@ -1298,16 +1298,28 @@ index 814a899..0404f99 100644
                      const txObj = yield (0, controller_utils_1.query)(this.ethQuery, 'getTransactionByHash', [
                          transactionHash,
                      ]);
-@@ -825,7 +606,7 @@ class TransactionController extends base_controller_1.BaseController {
+@@ -825,9 +606,17 @@ class TransactionController extends base_controller_1.BaseController {
                      }
                      /* istanbul ignore next */
                      if (txObj === null || txObj === void 0 ? void 0 : txObj.blockNumber) {
 -                        meta.status = TransactionStatus.confirmed;
-+                        meta.status = types_1.TransactionStatus.confirmed;
-                         this.hub.emit(`${meta.id}:confirmed`, meta);
-                         return [meta, true];
+-                        this.hub.emit(`${meta.id}:confirmed`, meta);
+-                        return [meta, true];
++                        // transactions can be added to a block and still fail, so we need to check the transaction status before emitting the confirmed event
++                        const txStatusFailed = yield this.checkTxReceiptStatusIsFailed(transactionHash);
++                        if (txStatusFailed) {
++                            const error = new Error('Transaction failed. The transaction was reversed');
++                            this.failTransaction(meta, error);
++                        }
++                        else {
++                            meta.status = types_1.TransactionStatus.confirmed;
++                            this.hub.emit(`${meta.id}:confirmed`, meta);
++                            return [meta, true];
++                        }
                      }
-@@ -856,88 +637,195 @@ class TransactionController extends base_controller_1.BaseController {
+                     return [meta, false];
+                 default:
+@@ -856,88 +645,195 @@ class TransactionController extends base_controller_1.BaseController {
              return Number(txReceipt.status) === 0;
          });
      }
