@@ -6,6 +6,7 @@ import Engine from '../../../core/Engine';
 import initialBackgroundState from '../../../util/test/initial-background-state.json';
 import renderWithProvider from '../../../util/test/renderWithProvider';
 import CustomGasModal from './';
+import { CustomGasModalProps } from './CustomGasModal.types';
 
 Engine.init({});
 jest.mock('@react-navigation/native', () => ({
@@ -52,6 +53,27 @@ const eip1559GasData = {
   suggestedMaxFeePerGas: '0x2',
   suggestedMaxPriorityFeePerGas: '0x3',
   suggestedGasLimit: '0x4',
+  high: {
+    maxFeePerGas: '0x0',
+    maxPriorityFeePerGas: '0x1',
+    suggestedMaxFeePerGas: '0x2',
+    suggestedMaxPriorityFeePerGas: '0x3',
+    suggestedGasLimit: '0x4',
+  },
+  low: {
+    maxFeePerGas: '0x0',
+    maxPriorityFeePerGas: '0x1',
+    suggestedMaxFeePerGas: '0x2',
+    suggestedMaxPriorityFeePerGas: '0x3',
+    suggestedGasLimit: '0x4',
+  },
+  medium: {
+    maxFeePerGas: '0x0',
+    maxPriorityFeePerGas: '0x1',
+    suggestedMaxFeePerGas: '0x2',
+    suggestedMaxPriorityFeePerGas: '0x3',
+    suggestedGasLimit: '0x4',
+  },
 };
 const eip1559GasTxn = {
   suggestedGasLimit: '0x5',
@@ -73,7 +95,7 @@ const customGasModalSharedProps = {
   updateGasState,
   onGasChanged: (gas: string) => mockedAction(gas),
   onGasCanceled: (gas: string) => mockedAction(gas),
-};
+} as unknown as CustomGasModalProps;
 
 describe('CustomGasModal', () => {
   it('should render correctly', () => {

@@ -2,6 +2,7 @@ import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view';
 import Modal from 'react-native-modal';
 import { useSelector } from 'react-redux';
+import { GasFeeEstimates } from '@metamask/gas-fee-controller';
 
 import { selectChainId } from '../../../selectors/networkController';
 import { useAppThemeFromContext } from '../../../util/theme';
@@ -9,6 +10,10 @@ import EditGasFee1559 from '../../UI/EditGasFee1559Update';
 import EditGasFeeLegacy from '../../UI/EditGasFeeLegacyUpdate';
 import createStyles from './CustomGasModal.styles';
 import { CustomGasModalProps } from './CustomGasModal.types';
+import {
+  SELECT_GAS_OPTIONS,
+  GAS_ESTIMATE_TYPES_OPTIONS,
+} from '../../../types/gas';
 
 const CustomGasModal = ({
   gasSelected,
@@ -27,9 +32,8 @@ const CustomGasModal = ({
   const { colors } = useAppThemeFromContext();
   const styles = createStyles();
   const transaction = useSelector((state: any) => state.transaction);
-  const gasFeeEstimate = useSelector(
-    (state: any) =>
-      state.engine.backgroundState.GasFeeController.gasFeeEstimates,
+  const gasFeeEstimate = useSelector<any, GasFeeEstimates>(
+    (state) => state.engine.backgroundState.GasFeeController.gasFeeEstimates,
   );
   const primaryCurrency = useSelector(
     (state: any) => state.settings.primaryCurrency,
@@ -38,7 +42,7 @@ const CustomGasModal = ({
   const selectedAsset = useSelector(
     (state: any) => state.transaction.selectedAsset,
   );
-  const gasEstimateType = useSelector(
+  const gasEstimateType = useSelector<any, GAS_ESTIMATE_TYPES_OPTIONS>(
     (state: any) =>
       state.engine.backgroundState.GasFeeController.gasEstimateType,
   );
@@ -62,7 +66,7 @@ const CustomGasModal = ({
     gas_estimate_type: gasEstimateType,
   });
 
-  const onChangeGas = (gasValue: string) => {
+  const onChangeGas = (gasValue: SELECT_GAS_OPTIONS) => {
     setSelectedGas(gasValue);
     onGasChanged(selectedGas);
   };

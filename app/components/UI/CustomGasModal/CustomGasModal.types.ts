@@ -1,5 +1,19 @@
+import { SELECT_GAS_OPTIONS } from '../../../types/gas';
+
+interface EIP1559GasData {
+  maxFeePerGas: string;
+  maxPriorityFeePerGas: string;
+  suggestedMaxFeePerGas: string;
+  suggestedMaxPriorityFeePerGas: string;
+  suggestedGasLimit: string;
+}
+
+type EIP1559GasDataGasOption = {
+  [key in SELECT_GAS_OPTIONS]: EIP1559GasData;
+} & EIP1559GasData;
+
 export interface CustomGasModalProps {
-  gasSelected: string;
+  gasSelected: SELECT_GAS_OPTIONS;
   onChange: (gas: string) => void;
   onCancel: () => void;
   animateOnChange?: boolean;
@@ -17,13 +31,7 @@ export interface CustomGasModalProps {
     legacyGasLimit: string;
     suggestedGasPrice: string;
   };
-  EIP1559GasData?: {
-    maxFeePerGas: string;
-    maxPriorityFeePerGas: string;
-    suggestedMaxFeePerGas: string;
-    suggestedMaxPriorityFeePerGas: string;
-    suggestedGasLimit: string;
-  };
+  EIP1559GasData?: EIP1559GasDataGasOption;
   EIP1559GasTxn?: {
     suggestedGasLimit: string;
     totalMaxHex: string;
