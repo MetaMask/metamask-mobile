@@ -206,10 +206,11 @@ const Wallet = ({ navigation }: any) => {
   }, [navigation, themeColors, networkName, networkImageSource, onTitlePress]);
 
   useEffect(() => {
+    Logger.log("I'm a breakcrumb");
     try {
       throw new Error('This is a dummy error');
-    } catch (error) {
-      Logger.log('I broke the app', error);
+    } catch (error: any) {
+      Logger.error('I broke the app', error);
     }
   }, []);
 
