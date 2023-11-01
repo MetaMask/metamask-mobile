@@ -1,24 +1,19 @@
-import { GasFeeOptions } from '../../../core/GasPolling/types';
+import { GasFeeEstimates } from '@metamask/gas-fee-controller';
+import {
+  SELECT_GAS_OPTIONS,
+  GAS_ESTIMATE_TYPES_OPTIONS,
+} from '../../../types/gas';
+import { UpdateTx1559Options } from '../UpdateEIP1559Tx/types';
 
-export interface RenderInputProps {
-  updateOption:
-    | {
-        isCancel: boolean;
-        maxFeeThreshold: string;
-        maxPriortyFeeThreshold: string;
-        showAdvanced: boolean | undefined;
-      }
-    | undefined;
-}
 export interface EditGasFee1559UpdateProps {
   /**
    * The selected gas value (low, medium, high)
    */
-  selectedGasValue: string;
+  selectedGasValue: SELECT_GAS_OPTIONS | undefined;
   /**
    * Gas fee options.
    */
-  gasOptions: GasFeeOptions;
+  gasOptions: GasFeeEstimates;
   /**
    * Primary currency, either ETH or Fiat
    */
@@ -26,7 +21,7 @@ export interface EditGasFee1559UpdateProps {
   /**
    * Option to display speed up/cancel view
    */
-  updateOption: RenderInputProps;
+  updateOption?: UpdateTx1559Options;
   /**
    * If the values should animate upon update or not
    */
@@ -50,58 +45,56 @@ export interface EditGasFee1559UpdateProps {
   /**
    * Error message to show
    */
-  error: any;
+  error?: any;
   /**
    * Warning message to show
    */
-  warning: any;
+  warning?: any;
   /**
    * Boolean that specifies if the gas price was suggested by the dapp
    */
-  dappSuggestedGas: boolean | undefined;
+  dappSuggestedGas?: boolean;
   /**
    * An array of selected gas value and lower that should be ignored.
    */
-  ignoreOptions: string[] | undefined;
+  ignoreOptions?: string[] | undefined;
   /**
    * Extend options object. Object has option keys and properties will be spread
    */
-  extendOptions: any;
+  extendOptions?: any;
   /**
    * Recommended object with type and render function
    */
-  recommended: any;
+  recommended?: any;
   /**
    * Estimate option to compare with for too low warning
    */
-  warningMinimumEstimateOption: string;
-  /**
-   * Suggested estimate option to show recommended values
-   */
-  suggestedEstimateOption: string;
+  warningMinimumEstimateOption?: SELECT_GAS_OPTIONS;
   /**
    * Boolean to determine if the animation is happening
    */
-  isAnimating: boolean;
+  isAnimating?: boolean;
   /**
    * Extra analytics params to be send with the gas analytics
    */
-  analyticsParams: {
+  analyticsParams: Partial<{
+    active_currency: { value: string; anonymous: boolean };
     chain_id: string;
-    gas_estimate_type: string;
+    gas_estimate_type: GAS_ESTIMATE_TYPES_OPTIONS;
     gas_mode: string;
-    speed_set: string;
-    view: string;
-  };
+    speed_set?: string;
+  }>;
+  view: string;
   /**
    * This is used in calculating the new gas price from the advanced view.
    * The maxFeePerGas is the max fee per gas that the user can set.
    * The maxPriorityFeePerGas is the max fee per gas that the user can set for priority transactions.
    */
   selectedGasObject: {
-    suggestedMaxFeePerGas: string;
+    suggestedMaxFeePerGas: string | undefined;
     suggestedMaxPriorityFeePerGas: string;
-    suggestedGasLimit: string;
+    suggestedGasLimit: string | undefined;
   };
   onlyGas?: boolean;
+  suggestedEstimateOption?: SELECT_GAS_OPTIONS;
 }

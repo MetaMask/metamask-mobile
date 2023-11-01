@@ -25,9 +25,10 @@ import TimeEstimateInfoModal from '../TimeEstimateInfoModal';
 import useModalHandler from '../../Base/hooks/useModalHandler';
 import AppConstants from '../../../core/AppConstants';
 import { useGasTransaction } from '../../../core/GasPolling/GasPolling';
+import { SELECT_GAS_OPTIONS } from '../../../types/gas';
 import { useAppThemeFromContext, mockTheme } from '../../../util/theme';
 import createStyles from './styles';
-import { EditGasFee1559UpdateProps, RenderInputProps } from './types';
+import { EditGasFee1559UpdateProps } from './types';
 import generateTestId from '../../../../wdio/utils/generateTestId';
 import {
   EDIT_PRIORITY_SCREEN_TEST_ID,
@@ -54,13 +55,14 @@ const EditGasFee1559Update = ({
   extendOptions = {},
   recommended,
   warningMinimumEstimateOption,
-  suggestedEstimateOption,
   animateOnChange,
   isAnimating,
   analyticsParams,
+  view,
   warning,
   selectedGasObject,
   onlyGas,
+  suggestedEstimateOption = AppConstants.GAS_OPTIONS.MEDIUM,
 }: EditGasFee1559UpdateProps) => {
   const [modalInfo, updateModalInfo] = useState({
     isVisible: false,
@@ -69,7 +71,9 @@ const EditGasFee1559Update = ({
   const [showAdvancedOptions, setShowAdvancedOptions] = useState(
     !selectedGasValue,
   );
-  const [maxPriorityFeeError, setMaxPriorityFeeError] = useState('');
+  const [maxPriorityFeeError, setMaxPriorityFeeError] = useState<string | null>(
+    '',
+  );
   const [maxFeeError, setMaxFeeError] = useState('');
   const [showLearnMoreModal, setShowLearnMoreModal] = useState(false);
   const [selectedOption, setSelectedOption] = useState(selectedGasValue);
@@ -118,14 +122,14 @@ const EditGasFee1559Update = ({
       return {
         ...analyticsParams,
         chain_id: chainId,
-        function_type: analyticsParams.view,
+        function_type: view,
         gas_mode: selectedOption ? 'Basic' : 'Advanced',
         speed_set: selectedOption || undefined,
       };
     } catch (err) {
       return {};
     }
-  }, [analyticsParams, chainId, selectedOption]);
+  }, [analyticsParams, chainId, selectedOption, view]);
 
   const toggleAdvancedOptions = useCallback(() => {
     if (!showAdvancedOptions) {
@@ -187,16 +191,21 @@ const EditGasFee1559Update = ({
 
   const changedMaxPriorityFee = useCallback(
     (value) => {
-      const lowerValue = new BigNumber(
-        gasOptions?.[
-          warningMinimumEstimateOption
-        ]?.suggestedMaxPriorityFeePerGas,
-      );
+      let lowerValue;
+      if (warningMinimumEstimateOption) {
+        lowerValue = new BigNumber(
+          gasOptions?.[
+            warningMinimumEstimateOption
+          ]?.suggestedMaxPriorityFeePerGas,
+        );
+      }
 
       const higherValue = new BigNumber(
         gasOptions?.high?.suggestedMaxPriorityFeePerGas,
       ).multipliedBy(new BigNumber(1.5));
-      const updateFloor = new BigNumber(updateOption?.maxPriortyFeeThreshold);
+      const updateFloor = updateOption
+        ? new BigNumber(updateOption.maxPriortyFeeThreshold)
+        : undefined;
 
       const valueBN = new BigNumber(value);
 
@@ -210,7 +219,7 @@ const EditGasFee1559Update = ({
                 speed_up_floor_value: updateFloor,
               }),
         );
-      } else if (!lowerValue.isNaN() && valueBN.lt(lowerValue)) {
+      } else if (lowerValue && !lowerValue.isNaN() && valueBN.lt(lowerValue)) {
         setMaxPriorityFeeError(
           strings('edit_gas_fee_eip1559.max_priority_fee_low'),
         );
@@ -240,13 +249,18 @@ const EditGasFee1559Update = ({
 
   const changedMaxFeePerGas = useCallback(
     (value) => {
-      const lowerValue = new BigNumber(
-        gasOptions?.[warningMinimumEstimateOption]?.suggestedMaxFeePerGas,
-      );
+      let lowerValue;
+      if (warningMinimumEstimateOption) {
+        lowerValue = new BigNumber(
+          gasOptions?.[warningMinimumEstimateOption]?.suggestedMaxFeePerGas,
+        );
+      }
       const higherValue = new BigNumber(
         gasOptions?.high?.suggestedMaxFeePerGas,
       ).multipliedBy(new BigNumber(1.5));
-      const updateFloor = new BigNumber(updateOption?.maxFeeThreshold);
+      const updateFloor = updateOption
+        ? new BigNumber(updateOption.maxFeeThreshold)
+        : undefined;
 
       const valueBN = new BigNumber(value);
 
@@ -260,7 +274,7 @@ const EditGasFee1559Update = ({
                 speed_up_floor_value: updateFloor,
               }),
         );
-      } else if (!lowerValue.isNaN() && valueBN.lt(lowerValue)) {
+      } else if (lowerValue && !lowerValue.isNaN() && valueBN.lt(lowerValue)) {
         setMaxFeeError(strings('edit_gas_fee_eip1559.max_fee_low'));
       } else if (!higherValue.isNaN() && valueBN.gt(higherValue)) {
         setMaxFeeError(strings('edit_gas_fee_eip1559.max_fee_high'));
@@ -285,7 +299,7 @@ const EditGasFee1559Update = ({
   );
 
   const selectOption = useCallback(
-    (option) => {
+    (option: SELECT_GAS_OPTIONS) => {
       setSelectedOption(option);
       setMaxFeeError('');
       setMaxPriorityFeeError('');
@@ -395,7 +409,7 @@ const EditGasFee1559Update = ({
     </>
   );
 
-  const renderInputs = (option: RenderInputProps) => (
+  const renderInputs = (option: EditGasFee1559UpdateProps['updateOption']) => (
     <View>
       <FadeAnimationView
         valueToWatch={valueToWatch}
@@ -406,6 +420,8 @@ const EditGasFee1559Update = ({
             selected={selectedOption}
             onPress={selectOption}
             options={renderOptions}
+            circleSize={undefined}
+            disabled={undefined}
           />
         </View>
         <View style={styles.advancedOptionsContainer}>
