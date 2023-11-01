@@ -13,7 +13,7 @@ import Text, {
 } from '../../../../../component-library/components/Texts/Text';
 import { IconName } from '../../../../../component-library/components/Icons/Icon';
 import Cell, {
-  CellVariants,
+  CellVariant,
 } from '../../../../../component-library/components/Cells/Cell';
 import { AvatarVariants } from '../../../../../component-library/components/Avatars/Avatar';
 import {
@@ -68,7 +68,7 @@ const InstallSnapPermissionsRequest = ({
       <View style={styles.accountCardWrapper}>
         <Cell
           style={styles.snapCell}
-          variant={CellVariants.Display}
+          variant={CellVariant.Display}
           title={snapName}
           avatarProps={{
             variant: AvatarVariants.Icon,
