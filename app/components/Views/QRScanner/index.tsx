@@ -113,6 +113,7 @@ const QRScanner = () => {
   const onBarCodeRead = useCallback(
     async (response) => {
       const content = response.data;
+      console.log('READINNGGGGGGGG', content);
       /**
        * Barcode read triggers multiple times
        * shouldReadBarCodeRef controls how often the logic below runs
@@ -127,6 +128,7 @@ const QRScanner = () => {
         origin === Routes.SETTINGS.CONTACT_FORM
       ) {
         if (!isValidAddressInputViaQRCode(content)) {
+          console.log('INVALID ADDRESSSSSSSS');
           showAlertForInvalidAddress();
           end();
           return;
@@ -235,8 +237,10 @@ const QRScanner = () => {
           data = { walletConnectURI: content };
         } else {
           // EIP-945 allows scanning arbitrary data
+          console.log('GOT HEREEREE - data = content');
           data = content;
         }
+        // NOTE: getting here and
         onScanSuccess(data, content);
       }
 

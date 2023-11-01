@@ -917,6 +917,7 @@ export function getWalletNavbarOptions(
   });
 
   const onScanSuccess = (data, content) => {
+    console.log('WE GOTTTTTTTT ONEEEEEEEEEE');
     if (data.private_key) {
       Alert.alert(
         strings('wallet.private_key_detected'),
@@ -952,6 +953,7 @@ export function getWalletNavbarOptions(
         strings('wallet.logout_to_import_seed'),
       );
     } else {
+      console.log('IN THE ELSEEEEEEEEEEEEEEEEEEE');
       setTimeout(() => {
         DeeplinkManager.parse(content, {
           origin: AppConstants.DEEPLINKS.ORIGIN_QR_CODE,
