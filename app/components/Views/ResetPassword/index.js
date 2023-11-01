@@ -52,10 +52,6 @@ import AUTHENTICATION_TYPE from '../../../constants/userProperties';
 import { ThemeContext, mockTheme } from '../../../util/theme';
 import AnimatedFox from 'react-native-animated-fox';
 import {
-  CREATE_PASSWORD_CONTAINER_ID,
-  IOS_I_UNDERSTAND_BUTTON_ID,
-} from '../../../constants/test-ids';
-import {
   RESET_PASSWORD_INPUT_ID,
   RESET_PASSWORD_INPUT_BOX_ID,
   RESET_PASSWORD_CONFIRM_INPUT_BOX_ID,
@@ -66,6 +62,7 @@ import { recreateVaultWithNewPassword } from '../../../core/Vault';
 import generateTestId from '../../../../wdio/utils/generateTestId';
 import Logger from '../../../util/Logger';
 import { selectSelectedAddress } from '../../../selectors/preferencesController';
+import { ChoosePasswordSelectorsIDs } from '../../../../e2e/selectors/Onboarding/ChoosePassword.selectors';
 
 const createStyles = (colors) =>
   StyleSheet.create({
@@ -647,7 +644,7 @@ class ResetPassword extends PureComponent {
               contentContainerStyle={styles.keyboardScrollableWrapper}
               resetScrollToCoords={{ x: 0, y: 0 }}
             >
-              <View testID={CREATE_PASSWORD_CONTAINER_ID}>
+              <View testID={ChoosePasswordSelectorsIDs.CONTAINER_ID}>
                 <View style={styles.content}>
                   <Text variant={TextVariant.HeadingLG} style={styles.title}>
                     {strings('reset_password.title')}
@@ -753,7 +750,9 @@ class ResetPassword extends PureComponent {
                       false: colors.border.default,
                     }}
                     boxType="square"
-                    testID={IOS_I_UNDERSTAND_BUTTON_ID}
+                    testID={
+                      ChoosePasswordSelectorsIDs.IOS_I_UNDERSTAND_BUTTON_ID
+                    }
                   />
                   <Text
                     variant={TextVariant.BodyMD}
