@@ -3837,10 +3837,10 @@
     eth-phishing-detect "^1.2.0"
     punycode "^2.1.1"
 
-"@metamask/ppom-validator@^0.7.0":
-  version "0.7.0"
-  resolved "https://registry.yarnpkg.com/@metamask/ppom-validator/-/ppom-validator-0.7.0.tgz#04ebcbabf7d0eee5c703fa04447c875db9e31725"
-  integrity sha512-s0+u+2SQr47NIfrV6d3H2M8U0rMVsHt2u9okR1f7IW2OfgnOnOLnOMfwOHBHHvGdLh6ktcEsYy13J0ovwflnog==
+"@metamask/ppom-validator@^0.9.0":
+  version "0.9.0"
+  resolved "https://registry.yarnpkg.com/@metamask/ppom-validator/-/ppom-validator-0.9.0.tgz#0d9c8928257fa76c22a6cdc67c334c344f86348e"
+  integrity sha512-/on5NYJwx9aKgGsL4Wc2Surb8Y9s1b4rL7omSKxPV9+RtVwSKQxhavBjiUfVD55NZaPSCYbpjaQOZrWG8LC5hg==
   dependencies:
     "@metamask/base-controller" "^3.0.0"
     "@metamask/controller-utils" "^4.0.0"
