@@ -1,7 +1,6 @@
 'use strict';
 
 import { loginToApp } from '../../viewHelper';
-import { Regression } from '../../tags';
 import Onboarding from '../../pages/swaps/OnBoarding';
 import QuoteView from '../../pages/swaps/QuoteView';
 import SwapView from '../../pages/swaps/SwapView';
@@ -24,7 +23,7 @@ import { getFixturesServerPort } from '../../fixtures/utils';
 
 const fixtureServer = new FixtureServer();
 
-describe(Regression('Swap Tests'), () => {
+describe('Swap Tests', () => {
   let swapOnboarded = false;
   beforeAll(async () => {
     await TestHelpers.reverseServerPort();
@@ -51,6 +50,8 @@ describe(Regression('Swap Tests'), () => {
   it.each`
     quantity | sourceTokenSymbol | destTokenSymbol
     ${'1'}   | ${'ETH'}          | ${'WETH'}
+    ${'1'}   | ${'WETH'}         | ${'ETH'}
+    ${'.05'} | ${'ETH'}          | ${'USDC'}
     ${'10'}  | ${'USDC'}         | ${'ETH'}
   `(
     "should Swap $quantity '$sourceTokenSymbol' to '$destTokenSymbol'",
