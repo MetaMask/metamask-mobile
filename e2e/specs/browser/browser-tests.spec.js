@@ -1,19 +1,19 @@
 'use strict';
-import TestHelpers from '../helpers';
-import { Smoke } from '../tags';
-import Browser from '../pages/Drawer/Browser';
-import { BROWSER_SCREEN_ID } from '../../wdio/screen-objects/testIDs/BrowserScreen/BrowserScreen.testIds';
-import TabBarComponent from '../pages/TabBarComponent';
+import TestHelpers from '../../helpers';
+import { Smoke } from '../../tags';
+import Browser from '../../pages/Drawer/Browser';
+import { BROWSER_SCREEN_ID } from '../../../wdio/screen-objects/testIDs/BrowserScreen/BrowserScreen.testIds';
+import TabBarComponent from '../../pages/TabBarComponent';
 
-import { loginToApp } from '../viewHelper';
-import FixtureBuilder from '../fixtures/fixture-builder';
+import { loginToApp } from '../../viewHelper';
+import FixtureBuilder from '../../fixtures/fixture-builder';
 import {
   loadFixture,
   startFixtureServer,
   stopFixtureServer,
-} from '../fixtures/fixture-helper';
-import FixtureServer from '../fixtures/fixture-server';
-import { getFixturesServerPort } from '../fixtures/utils';
+} from '../../fixtures/fixture-helper';
+import FixtureServer from '../../fixtures/fixture-server';
+import { getFixturesServerPort } from '../../fixtures/utils';
 
 const PHISHING_SITE = 'http://www.empowr.com/FanFeed/Home.aspx';
 const INVALID_URL = 'https://quackquakc.easq';

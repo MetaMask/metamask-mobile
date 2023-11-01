@@ -1,8 +1,8 @@
-import { Regression } from '../tags';
-import { importWalletWithRecoveryPhrase } from '../viewHelper';
-import WalletView from '../pages/WalletView';
-import NetworkListModal from '../pages/modals/NetworkListModal';
-import NetworkEducationModal from '../pages/modals/NetworkEducationModal';
+import { Regression } from '../../tags';
+import { importWalletWithRecoveryPhrase } from '../../viewHelper';
+import WalletView from '../../pages/WalletView';
+import NetworkListModal from '../../pages/modals/NetworkListModal';
+import NetworkEducationModal from '../../pages/modals/NetworkEducationModal';
 
 const GORELI = 'Goerli Test Network';
 const ETHEREUM = 'Ethereum Main Network';
