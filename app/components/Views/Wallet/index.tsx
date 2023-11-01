@@ -230,7 +230,7 @@ const Wallet = ({ navigation }: any) => {
   );
 
   const onChangeTab = useCallback((obj) => {
-    Logger.log('I changed tabs', obj.ref.props.tabLabel);
+    Logger.error('I changed tabs', 'im a string');
     InteractionManager.runAfterInteractions(() => {
       if (obj.ref.props.tabLabel === strings('wallet.tokens')) {
         Analytics.trackEvent(MetaMetricsEvents.WALLET_TOKENS);
