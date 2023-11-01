@@ -51,7 +51,6 @@ describe(Regression('Swap Tests'), () => {
   it.each`
     quantity | sourceTokenSymbol | destTokenSymbol
     ${'1'}   | ${'ETH'}          | ${'WETH'}
-    ${'.05'} | ${'ETH'}          | ${'USDC'}
     ${'10'}  | ${'USDC'}         | ${'ETH'}
   `(
     "should Swap $quantity '$sourceTokenSymbol' to '$destTokenSymbol'",

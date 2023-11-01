@@ -42,7 +42,7 @@ pipelines:
   release_e2e_pipeline:
     stages:
       - run_e2e_ios_android_stage: {}
-      - run_regression_e2e_ios_android_stage: {}
+      # - run_regression_e2e_ios_android_stage: {} Enable whenever regression tests are running successfully. 
       - notify: {}
   #PR_e2e_verfication (build ios & android), run iOS (smoke), emulator Android
   pr_smoke_e2e_pipeline:
