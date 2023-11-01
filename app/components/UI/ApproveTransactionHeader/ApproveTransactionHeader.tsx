@@ -12,7 +12,11 @@ import { useStyles } from '../../../component-library/hooks';
 import { selectProviderConfig } from '../../../selectors/networkController';
 import { selectAccounts } from '../../../selectors/accountTrackerController';
 import { selectIdentities } from '../../../selectors/preferencesController';
-import { renderAccountName, renderShortAddress } from '../../../util/address';
+import {
+  renderAccountName,
+  renderShortAddress,
+  getLabelTextByAddress,
+} from '../../../util/address';
 import { getUrlObj, prefixUrlWithProtocol } from '../../../util/browser';
 import {
   getNetworkImageSource,
@@ -118,6 +122,8 @@ const ApproveTransactionHeader = ({
 
   const faviconSource = useFavicon(faviconUpdatedOrigin);
 
+  const accountTypeLabel = getLabelTextByAddress(activeAddress);
+
   return (
     <View style={styles.transactionHeader}>
       {origin ? (
@@ -132,6 +138,7 @@ const ApproveTransactionHeader = ({
         accountTokenBalance={addressBalance}
         accountName={accountName}
         accountBalanceLabel={strings('transaction.balance')}
+        accountTypeLabel={accountTypeLabel}
         accountNetwork={networkName}
         badgeProps={{
           variant: BadgeVariant.Network,
