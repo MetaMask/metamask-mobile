@@ -1,22 +1,22 @@
 'use strict';
-import TestHelpers from '../helpers';
-import { Regression } from '../tags';
-import WalletView from '../pages/WalletView';
-import ImportAccountView from '../pages/ImportAccountView';
-import TabBarComponent from '../pages/TabBarComponent';
+import TestHelpers from '../../helpers';
+import { Regression } from '../../tags';
+import WalletView from '../../pages/WalletView';
+import ImportAccountView from '../../pages/ImportAccountView';
+import TabBarComponent from '../../pages/TabBarComponent';
 
-import Browser from '../pages/Drawer/Browser';
-import AccountListView from '../pages/AccountListView';
+import Browser from '../../pages/Drawer/Browser';
+import AccountListView from '../../pages/AccountListView';
 
-import ConnectModal from '../pages/modals/ConnectModal';
-import ConnectedAccountsModal from '../pages/modals/ConnectedAccountsModal';
-import NetworkListModal from '../pages/modals/NetworkListModal';
-import NetworkEducationModal from '../pages/modals/NetworkEducationModal';
+import ConnectModal from '../../pages/modals/ConnectModal';
+import ConnectedAccountsModal from '../../pages/modals/ConnectedAccountsModal';
+import NetworkListModal from '../../pages/modals/NetworkListModal';
+import NetworkEducationModal from '../../pages/modals/NetworkEducationModal';
 
-import Accounts from '../../wdio/helpers/Accounts';
+import Accounts from '../../../wdio/helpers/Accounts';
 
-import { importWalletWithRecoveryPhrase } from '../viewHelper';
-import AddAccountModal from '../pages/modals/AddAccountModal';
+import { importWalletWithRecoveryPhrase } from '../../viewHelper';
+import AddAccountModal from '../../pages/modals/AddAccountModal';
 
 const SEPOLIA = 'Sepolia Test Network';
 
