@@ -324,6 +324,7 @@ class SendFlow extends PureComponent {
       AnalyticsV2.trackEvent(MetaMetricsEvents.BUY_BUTTON_CLICKED, {
         button_location: 'Send Flow warning',
         button_copy: 'Buy Native Token',
+        // ASK PEDRO - chain_id?
         chain_id_destination: this.props.chainId,
       });
     });

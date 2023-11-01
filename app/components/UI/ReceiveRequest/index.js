@@ -199,6 +199,7 @@ class ReceiveRequest extends PureComponent {
           {
             text: 'Buy Native Token',
             location: 'Receive Modal',
+            // ASK PEDRO - shouldn't this be chain_id?
             chain_id_destination: this.props.chainId,
           },
         );

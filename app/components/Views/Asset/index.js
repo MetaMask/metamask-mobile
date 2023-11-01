@@ -477,12 +477,13 @@ class Asset extends PureComponent {
     const onBuy = () => {
       navigation.navigate(Routes.RAMP.BUY);
       InteractionManager.runAfterInteractions(() => {
-        // ASK PEDRO - go to
+        // ASK PEDRO  about sell
         Analytics.trackEventWithParameters(
           MetaMetricsEvents.BUY_BUTTON_CLICKED,
           {
             text: 'Buy',
             location: 'Token Screen',
+            // ASK PEDRO - chain_id?
             chain_id_destination: chainId,
           },
         );

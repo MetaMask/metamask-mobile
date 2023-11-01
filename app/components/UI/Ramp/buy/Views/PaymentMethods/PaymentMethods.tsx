@@ -71,9 +71,9 @@ const PaymentMethods = () => {
     (id) => {
       setSelectedPaymentMethodId(id);
       trackEvent(
-        rampType === RampType.BUY
-          ? 'ONRAMP_PAYMENT_METHOD_SELECTED'
-          : 'OFFRAMP_PAYMENT_METHOD_SELECTED',
+        `${
+          rampType === RampType.BUY ? 'ON' : 'OFF'
+        }RAMP_PAYMENT_METHOD_SELECTED`,
         {
           payment_method_id: id,
           available_payment_method_ids: paymentMethods?.map(

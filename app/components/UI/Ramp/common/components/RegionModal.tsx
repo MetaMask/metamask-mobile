@@ -87,6 +87,7 @@ const RegionModal: React.FC<Props> = ({
   location,
   rampType = RampType.BUY,
 }: Props) => {
+  const isBuy = rampType === RampType.BUY;
   const { colors } = useTheme();
   const trackEvent = useAnalytics();
   const styles = createStyles();
@@ -139,30 +140,32 @@ const RegionModal: React.FC<Props> = ({
       }
       if (
         region.unsupported ||
-        (rampType === RampType.BUY && !region.support.buy) ||
-        (rampType === RampType.SELL && !region.support.sell)
+        (isBuy && !region.support.buy) ||
+        (!isBuy && !region.support.sell)
       ) {
         setUnsupportedRegion(region);
         setShowAlert(true);
       } else {
         onRegionPress(region);
       }
-      trackEvent(
-        rampType === RampType.BUY
-          ? 'ONRAMP_REGION_SELECTED'
-          : 'OFFRAMP_REGION_SELECTED',
-        {
-          is_unsupported:
-            rampType === RampType.BUY ? region.unsupported : undefined,
-          is_unsupported_offramp:
-            rampType === RampType.SELL ? region.unsupported : undefined,
+
+      if (isBuy) {
+        trackEvent(`ONRAMP_REGION_SELECTED`, {
+          is_unsupported: region.unsupported,
           country_onramp_id: regionInTransit?.id ?? region.id,
           state_onramp_id: regionInTransit ? region.id : undefined,
           location,
-        },
-      );
+        });
+      } else {
+        trackEvent(`OFFRAMP_REGION_SELECTED`, {
+          is_unsupported_offramp: region.unsupported,
+          country_offramp_id: regionInTransit?.id ?? region.id,
+          state_offramp_id: regionInTransit ? region.id : undefined,
+          location,
+        });
+      }
     },
-    [location, onRegionPress, rampType, regionInTransit, trackEvent],
+    [isBuy, location, onRegionPress, regionInTransit, trackEvent],
   );
 
   const renderRegionItem = useCallback(

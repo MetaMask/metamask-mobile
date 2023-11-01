@@ -82,7 +82,7 @@ const WalletActions = () => {
       Analytics.trackEventWithParameters(
         MetaMetricsEvents.SELL_BUTTON_CLICKED,
         {
-          text: 'Buy',
+          text: 'Sell',
           location: 'TabBar',
           chain_id: chainId,
         },

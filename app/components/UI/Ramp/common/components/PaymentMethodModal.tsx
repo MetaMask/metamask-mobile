@@ -12,6 +12,7 @@ import useAnalytics from '../hooks/useAnalytics';
 import { useTheme } from '../../../../../util/theme';
 import { Colors } from '../../../../../util/theme/models';
 import { Region, ScreenLocation } from '../types';
+import { useRampSDK } from '../sdk';
 
 const createStyles = (colors: Colors) =>
   StyleSheet.create({
@@ -62,12 +63,14 @@ function PaymentMethodModal({
   const { colors } = useTheme();
   const styles = createStyles(colors);
   const trackEvent = useAnalytics();
+  const { isBuy } = useRampSDK();
 
   const handleOnPressItemCallback = useCallback(
     (paymentMethodId) => {
       if (selectedPaymentMethodId !== paymentMethodId) {
         onItemPress(paymentMethodId);
-        trackEvent('ONRAMP_PAYMENT_METHOD_SELECTED', {
+
+        trackEvent(`${isBuy ? 'ON' : 'OFF'}RAMP_PAYMENT_METHOD_SELECTED`, {
           payment_method_id: paymentMethodId,
           available_payment_method_ids: paymentMethods?.map(
             ({ id }) => id,
@@ -80,6 +83,7 @@ function PaymentMethodModal({
       }
     },
     [
+      isBuy,
       location,
       onItemPress,
       paymentMethods,

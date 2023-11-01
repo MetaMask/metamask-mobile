@@ -41,14 +41,9 @@ function Settings() {
   }, [colors, navigation]);
 
   const handleResetRegion = useCallback(() => {
-    trackEvent(
-      rampType === RampType.BUY
-        ? 'ONRAMP_REGION_RESET'
-        : 'OFFRAMP_REGION_RESET',
-      {
-        location: 'Settings Screen',
-      },
-    );
+    trackEvent(`${rampType === RampType.BUY ? 'ON' : 'OFF'}RAMP_REGION_RESET`, {
+      location: 'Settings Screen',
+    });
     setSelectedRegion(null);
   }, [rampType, setSelectedRegion, trackEvent]);
 

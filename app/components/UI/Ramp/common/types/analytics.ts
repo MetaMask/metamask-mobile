@@ -20,16 +20,18 @@ interface RampButtonClicked {
 }
 
 interface RampRegionSelected {
-  country_onramp_id: string;
-  state_onramp_id?: string;
   location?: ScreenLocation;
 }
 
 interface OnrampRegionSelected extends RampRegionSelected {
+  country_onramp_id: string;
+  state_onramp_id?: string;
   is_unsupported?: boolean;
 }
 
 interface OfframpRegionSelected extends RampRegionSelected {
+  country_offramp_id: string;
+  state_offramp_id?: string;
   is_unsupported_offramp?: boolean;
 }
 
