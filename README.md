@@ -37,7 +37,7 @@ The code is built using React-Native and running code locally requires a Mac or 
     ```
 
 -   Install the shared [React Native dependencies](https://reactnative.dev/docs/environment-setup#installing-dependencies) (`React Native CLI`, _not_ `Expo CLI`)
-    -   XCode version `14.2` or below
+    -   XCode version `15.0.1` or below
 
 -   Install [cocoapods](https://guides.cocoapods.org/using/getting-started.html) by running:
 
@@ -90,7 +90,7 @@ The code is built using React-Native and running code locally requires a Mac or 
     -   [React Native Getting Started - iOS](https://reactnative.dev/docs/environment-setup#installing-dependencies) _(React Native CLI Quickstart -> [your OS] -> iOS)_
 -   Install the correct simulator
     -   **iOS OS Version:** Latest, unless told otherwise
-    -   **Device:** iPhone 12 Pro
+    -   **Device:** iPhone 13 Pro
 
 
 
@@ -237,7 +237,7 @@ Prerequisites for running tests:
 - Make sure to install `detox-cli` by referring to the instructions mentioned [here](https://wix.github.io/Detox/docs/introduction/getting-started/#detox-prerequisites).
 - Additionally, install `applesimutils` by following the guidelines provided [here](https://github.com/wix/AppleSimulatorUtils).
 - Before running any tests, it's recommended to refer to the `iOS section` above and check the latest simulator device specified under `Install the correct simulator`.
-- The default device for iOS is the iPhone 12 Pro and Android the Pixel 5. Ensure you have these set up. 
+- The default device for iOS is the iPhone 13 Pro and Android the Pixel 5. Ensure you have these set up.
 - Make sure that Metro is running. Use this command to launch the metro server:
 
 ```bash

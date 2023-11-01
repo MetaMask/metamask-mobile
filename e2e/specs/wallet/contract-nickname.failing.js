@@ -1,32 +1,32 @@
 'use strict';
-import ImportWalletView from '../pages/Onboarding/ImportWalletView';
-import OnboardingView from '../pages/Onboarding/OnboardingView';
-import OnboardingCarouselView from '../pages/Onboarding/OnboardingCarouselView';
+import ImportWalletView from '../../pages/Onboarding/ImportWalletView';
+import OnboardingView from '../../pages/Onboarding/OnboardingView';
+import OnboardingCarouselView from '../../pages/Onboarding/OnboardingCarouselView';
 
-import ContractNickNameView from '../pages/ContractNickNameView';
-import SendView from '../pages/SendView';
+import ContractNickNameView from '../../pages/ContractNickNameView';
+import SendView from '../../pages/SendView';
 
-import MetaMetricsOptIn from '../pages/Onboarding/MetaMetricsOptInView';
-import WalletView from '../pages/WalletView';
-import EnableAutomaticSecurityChecksView from '../pages/EnableAutomaticSecurityChecksView';
-import LoginView from '../pages/LoginView';
+import MetaMetricsOptIn from '../../pages/Onboarding/MetaMetricsOptInView';
+import WalletView from '../../pages/WalletView';
+import EnableAutomaticSecurityChecksView from '../../pages/EnableAutomaticSecurityChecksView';
+import LoginView from '../../pages/LoginView';
 
-import AddContactView from '../pages/Drawer/Settings/Contacts/AddContactView';
-import ContactsView from '../pages/Drawer/Settings/Contacts/ContactsView';
-import SettingsView from '../pages/Drawer/Settings/SettingsView';
+import AddContactView from '../../pages/Drawer/Settings/Contacts/AddContactView';
+import ContactsView from '../../pages/Drawer/Settings/Contacts/ContactsView';
+import SettingsView from '../../pages/Drawer/Settings/SettingsView';
 
-import ApprovalModal from '../pages/modals/ApprovalModal';
-import NetworkListModal from '../pages/modals/NetworkListModal';
-import OnboardingWizardModal from '../pages/modals/OnboardingWizardModal';
-import NetworkEducationModal from '../pages/modals/NetworkEducationModal';
-import WhatsNewModal from '../pages/modals/WhatsNewModal';
-import SecurityAndPrivacy from '../pages/Drawer/Settings/SecurityAndPrivacy/SecurityAndPrivacyView';
+import ApprovalModal from '../../pages/modals/ApprovalModal';
+import NetworkListModal from '../../pages/modals/NetworkListModal';
+import OnboardingWizardModal from '../../pages/modals/OnboardingWizardModal';
+import NetworkEducationModal from '../../pages/modals/NetworkEducationModal';
+import WhatsNewModal from '../../pages/modals/WhatsNewModal';
+import SecurityAndPrivacy from '../../pages/Drawer/Settings/SecurityAndPrivacy/SecurityAndPrivacyView';
 
-import TestHelpers from '../helpers';
-import { acceptTermOfUse } from '../viewHelper';
-import Accounts from '../../wdio/helpers/Accounts';
-import TabBarComponent from '../pages/TabBarComponent';
-import WalletActionsModal from '../pages/modals/WalletActionsModal';
+import TestHelpers from '../../helpers';
+import { acceptTermOfUse } from '../../viewHelper';
+import Accounts from '../../../wdio/helpers/Accounts';
+import TabBarComponent from '../../pages/TabBarComponent';
+import WalletActionsModal from '../../pages/modals/WalletActionsModal';
 
 describe('Adding Contract Nickname', () => {
   const APPROVAL_DEEPLINK_URL =
