@@ -439,7 +439,7 @@
     "eslint-config-prettier": "^8.1.0",
     "eslint-import-resolver-typescript": "^3.5.3",
     "eslint-plugin-import": "^2.27.5",
-    "eslint-plugin-jsdoc": "^36.1.0",
+    "eslint-plugin-jsdoc": "^39.2.5",
     "eslint-plugin-prettier": "^3.3.1",
     "eslint-plugin-react": "7.16.0",
     "eslint-plugin-react-native": "^4.0.0",
@@ -524,7 +524,7 @@
     "fs": "react-native-level-fs"
   },
   "engines": {
-    "node": "^16.20.0",
+    "node": "^18.17.1",
     "yarn": "^1.22.0"
   },
   "lavamoat": {
