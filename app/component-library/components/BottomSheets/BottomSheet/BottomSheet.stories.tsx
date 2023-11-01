@@ -1,42 +1,48 @@
-/* eslint-disable no-console, react-native/no-inline-styles */
-
+/* eslint-disable react-native/no-inline-styles */
+/* eslint-disable react/display-name */
 // Third party dependencies.
 import React, { useRef } from 'react';
-import { Alert, View } from 'react-native';
-import { storiesOf } from '@storybook/react-native';
-import { boolean } from '@storybook/addon-knobs';
+import { View } from 'react-native';
 
 // External dependencies.
-import { storybookPropsGroupID } from '../../../constants/storybook.constants';
 import Text, { TextVariant } from '../../Texts/Text';
 
 // Internal dependencies.
-import BottomSheet from './BottomSheet';
-import { BottomSheetRef } from './BottomSheet.types';
+import { default as BottomSheetComponent } from './BottomSheet';
+import { BottomSheetProps, BottomSheetRef } from './BottomSheet.types';
 
-const BottomSheetFooterStory = () => {
-  const bottomSheetRef = useRef<BottomSheetRef | null>(null);
-  const isInteractable = boolean('isInteractable', true, storybookPropsGroupID);
-
-  return (
-    <BottomSheet
-      onClose={() => Alert.alert('Dismissed sheet!')}
-      ref={bottomSheetRef}
-      isInteractable={isInteractable}
-    >
-      <View
-        style={{
-          height: 300,
-          alignItems: 'center',
-          justifyContent: 'center',
-        }}
-      >
-        <Text variant={TextVariant.BodySM}>{'Wrapped Content'}</Text>
-      </View>
-    </BottomSheet>
-  );
+const BottomSheetMeta = {
+  title: 'Component Library / BottomSheets',
+  component: BottomSheetComponent,
+  argTypes: {
+    isInteractable: {
+      control: { type: 'boolean' },
+      defaultValue: true,
+    },
+  },
 };
+export default BottomSheetMeta;
 
-storiesOf('Component Library / BottomSheets', module).add('BottomSheet', () => (
-  <BottomSheetFooterStory />
-));
+export const BottomSheet = {
+  render: (
+    args: JSX.IntrinsicAttributes &
+      BottomSheetProps &
+      React.RefAttributes<BottomSheetRef>,
+  ) => {
+    // eslint-disable-next-line react-hooks/rules-of-hooks
+    const bottomSheetRef = useRef<BottomSheetRef | null>(null);
+    return (
+      <BottomSheetComponent ref={bottomSheetRef} {...args}>
+        <View
+          style={{
+            height: 300,
+            alignItems: 'center',
+            justifyContent: 'center',
+          }}
+        >
+          <Text variant={TextVariant.BodySM}>{'Wrapped Content'}</Text>
+        </View>
+      </BottomSheetComponent>
+    );
+  },
+};
