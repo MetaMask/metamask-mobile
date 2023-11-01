@@ -409,19 +409,22 @@ startWatcher() {
 checkAuthToken() {
 	local propertiesFileName="$1"
 
-	if [ -n "${MM_SENTRY_AUTH_TOKEN}" ]; then
-		sed -i'' -e "s/auth.token.*/auth.token=${MM_SENTRY_AUTH_TOKEN}/" "./${propertiesFileName}";
-	elif ! grep -qE '^auth.token=[[:alnum:]]+$' "./${propertiesFileName}"; then
-		printError "Missing auth token in '${propertiesFileName}'; add the token, or set it as MM_SENTRY_AUTH_TOKEN"
-		exit 1
-	fi
-
-	if [ ! -e "./${propertiesFileName}" ]; then
+	if [ "$MODE" == "QA" ]; then
+		if [ -n "${MM_SENTRY_AUTH_TOKEN_DEV}" ] && [ -n "${MM_SENTRY_ORG_DEV}" ] && [ -n "${MM_SENTRY_PROJECT_DEV}" ]; then
+			cp "./${propertiesFileName}.example" "./${propertiesFileName}"
+			sed -i'' -e "s/auth.token.*/auth.token=${MM_SENTRY_AUTH_TOKEN_DEV}/" "./${propertiesFileName}";
+			sed -i'' -e "s/defaults.org.*/defaults.org=${MM_SENTRY_ORG_DEV}/" "./${propertiesFileName}";
+			sed -i'' -e "s/defaults.project.*/defaults.project=${MM_SENTRY_PROJECT_DEV}/" "./${propertiesFileName}";
+		else
+			printError "Set MM_SENTRY_AUTH_TOKEN_DEV, MM_SENTRY_ORG_DEV, and MM_SENTRY_PROJECT_DEV to generate '${propertiesFileName}' file"
+			exit 1
+		fi
+	else
 		if [ -n "${MM_SENTRY_AUTH_TOKEN}" ]; then
 			cp "./${propertiesFileName}.example" "./${propertiesFileName}"
 			sed -i'' -e "s/auth.token.*/auth.token=${MM_SENTRY_AUTH_TOKEN}/" "./${propertiesFileName}";
 		else
-			printError "Missing '${propertiesFileName}' file (see '${propertiesFileName}.example' or set MM_SENTRY_AUTH_TOKEN to generate)"
+			printError "Set MM_SENTRY_AUTH_TOKEN to generate '${propertiesFileName}' file"
 			exit 1
 		fi
 	fi
@@ -431,7 +434,6 @@ checkParameters "$@"
 
 printTitle
 if [ "$MODE" == "release" ] || [ "$MODE" == "releaseE2E" ] || [ "$MODE" == "QA" ] || [ "$MODE" == "QAE2E" ]; then
-
  	if [ "$PRE_RELEASE" = false ]; then
 		echo "RELEASE SENTRY PROPS"
  		checkAuthToken 'sentry.release.properties'
