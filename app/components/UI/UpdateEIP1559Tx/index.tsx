@@ -13,6 +13,7 @@ import {
   startGasPolling,
   stopGasPolling,
 } from '../../../core/GasPolling/GasPolling';
+import { SELECT_GAS_OPTIONS } from '../../../types/gas';
 import { GasTransactionProps } from '../../../core/GasPolling/types';
 import { UpdateEIP1559Props, UpdateTx1559Options } from './types';
 import {
@@ -37,9 +38,9 @@ const UpdateEIP1559Tx = ({
   onSave,
 }: UpdateEIP1559Props) => {
   const [animateOnGasChange, setAnimateOnGasChange] = useState(false);
-  const [gasSelected, setGasSelected] = useState(
-    AppConstants.GAS_OPTIONS.MEDIUM,
-  );
+  const [gasSelected, setGasSelected] = useState<
+    SELECT_GAS_OPTIONS | undefined
+  >(AppConstants.GAS_OPTIONS.MEDIUM);
   const stopUpdateGas = useRef(false);
   /**
    * Flag to only display high gas selection option if the legacy is higher then low/med
@@ -176,7 +177,7 @@ const UpdateEIP1559Tx = ({
           onlyDisplayHigh.current = true;
           //Disable polling
           stopUpdateGas.current = true;
-          setGasSelected('');
+          setGasSelected(undefined);
         } else {
           updateTx1559Options.current = {
             maxPriortyFeeThreshold:
@@ -204,7 +205,7 @@ const UpdateEIP1559Tx = ({
     isMaxPriorityFeePerGasMoreThanLegacy,
   ]);
 
-  const update1559TempGasValue = (selected: string) => {
+  const update1559TempGasValue = (selected: SELECT_GAS_OPTIONS) => {
     stopUpdateGas.current = !selected;
     setGasSelected(selected);
   };
@@ -219,7 +220,6 @@ const UpdateEIP1559Tx = ({
     gas_estimate_type: gasEstimateType,
     gas_mode: gasSelected ? 'Basic' : 'Advanced',
     speed_set: gasSelected || undefined,
-    view: isCancel ? AppConstants.CANCEL_RATE : AppConstants.SPEED_UP_RATE,
   });
 
   const selectedGasObject = {
@@ -244,6 +244,7 @@ const UpdateEIP1559Tx = ({
       updateOption={updateTx1559Options.current}
       analyticsParams={getGasAnalyticsParams()}
       animateOnChange={animateOnGasChange}
+      view={isCancel ? AppConstants.CANCEL_RATE : AppConstants.SPEED_UP_RATE}
       selectedGasObject={selectedGasObject}
       onlyGas
     />
