@@ -1,7 +1,7 @@
 import React from 'react';
 import { View } from 'react-native';
 import Cell, {
-  CellVariants,
+  CellVariant,
 } from '../../../../../component-library/components/Cells/Cell';
 import { AvatarVariants } from '../../../../../component-library/components/Avatars/Avatar/Avatar.types';
 import Icon, {
@@ -27,7 +27,7 @@ const SnapElement = (snap: Snap) => {
     <Cell
       testID={SNAP_ElEMENT}
       style={styles.snapCell}
-      variant={CellVariants.Display}
+      variant={CellVariant.Display}
       title={snap.manifest.proposedName}
       secondaryText={snap.id}
       onPress={onPress}

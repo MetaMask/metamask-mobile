@@ -7,7 +7,7 @@ import Text, {
   TextColor,
 } from '../../../../../component-library/components/Texts/Text';
 import Cell, {
-  CellVariants,
+  CellVariant,
 } from '../../../../../component-library/components/Cells/Cell';
 import { AvatarVariants } from '../../../../../component-library/components/Avatars/Avatar/Avatar.types';
 import { IconName } from '../../../../../component-library/components/Icons/Icon';
@@ -69,7 +69,7 @@ const SnapDetails = ({ snap }: SnapDetailsProps) => {
       <Cell
         testID={SNAP_DETAILS_CELL}
         style={styles.snapCell}
-        variant={CellVariants.Display}
+        variant={CellVariant.Display}
         title={snap.manifest.proposedName}
         secondaryText={snap.id}
         avatarProps={{

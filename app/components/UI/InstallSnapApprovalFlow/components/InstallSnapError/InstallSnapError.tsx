@@ -16,7 +16,7 @@ import Icon, {
   IconSize,
 } from '../../../../../component-library/components/Icons/Icon';
 import Cell, {
-  CellVariants,
+  CellVariant,
 } from '../../../../../component-library/components/Cells/Cell';
 import { AvatarVariants } from '../../../../../component-library/components/Avatars/Avatar';
 import {
@@ -64,7 +64,7 @@ const InstallSnapError = ({
       <View style={styles.accountCardWrapper}>
         <Cell
           style={styles.snapCell}
-          variant={CellVariants.Display}
+          variant={CellVariant.Display}
           title={snapName}
           avatarProps={{
             variant: AvatarVariants.Icon,
