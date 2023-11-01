@@ -1,6 +1,5 @@
 import TestHelpers from '../../../../helpers';
 
-import { BACK_ARROW_BUTTON_ID } from '../../../../../app/constants/test-ids';
 import { EDIT_BUTTON } from '../../../../../wdio/screen-objects/testIDs/Common.testIds';
 import {
   ADD_CONTACT_ADD_BUTTON,
@@ -11,8 +10,7 @@ import {
   ADD_CONTACTS_CONTAINER_ID,
 } from '../../../../../wdio/screen-objects/testIDs/Screens/AddContact.testIds';
 import { DELETE_CONTACT_MODAL_DELETE_BUTTON } from '../../../../../wdio/screen-objects/testIDs/Components/DeleteContactModal.testIds';
-
-const ERROR_MESSAGE_LABEL_ID = 'error-message-warning';
+import { CommonSelectorsIDs } from '../../../../selectors/Common.selectors';
 
 export default class AddContactView {
   static async tapAddContactButton() {
@@ -37,7 +35,7 @@ export default class AddContactView {
   }
 
   static async tapBackButton() {
-    await TestHelpers.waitAndTap(BACK_ARROW_BUTTON_ID);
+    await TestHelpers.waitAndTap(CommonSelectorsIDs.BACK_ARROW_BUTTON);
   }
 
   static async tapDeleteContactCTA() {
@@ -82,12 +80,12 @@ export default class AddContactView {
   }
 
   static async isErrorMessageVisible() {
-    await TestHelpers.checkIfVisible(ERROR_MESSAGE_LABEL_ID);
+    await TestHelpers.checkIfVisible(CommonSelectorsIDs.ERROR_MESSAGE);
   }
 
   static async isErrorMessageTextCorrect() {
     await TestHelpers.checkIfElementHasString(
-      ERROR_MESSAGE_LABEL_ID,
+      CommonSelectorsIDs.ERROR_MESSAGE,
       'Invalid address',
     );
   }
