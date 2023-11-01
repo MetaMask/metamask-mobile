@@ -19,6 +19,10 @@ import TimeEstimateInfoModal from '../../TimeEstimateInfoModal';
 import SkeletonComponent from './skeletonComponent';
 import createStyles from './styles';
 import { TransactionEIP1559UpdateProps } from './types';
+import {
+  GetEIP1559TransactionData,
+  GetLegacyTransactionData,
+} from 'app/core/GasPolling/types';
 
 const TransactionReviewEIP1559Update = ({
   primaryCurrency,
@@ -64,7 +68,11 @@ const TransactionReviewEIP1559Update = ({
     multiLayerL1FeeTotal,
   });
 
-  const {
+  let transactionFee,
+    transactionFeeFiat,
+    transactionTotalAmount,
+    transactionTotalAmountFiat,
+    suggestedGasLimit,
     renderableGasFeeMinNative,
     renderableGasFeeMinConversion,
     renderableGasFeeMaxNative,
@@ -74,13 +82,36 @@ const TransactionReviewEIP1559Update = ({
     renderableGasFeeMaxConversion,
     timeEstimateColor,
     timeEstimate,
-    timeEstimateId,
-    transactionFee,
-    transactionFeeFiat,
-    transactionTotalAmount,
-    transactionTotalAmountFiat,
-    suggestedGasLimit,
-  } = gasTransaction;
+    timeEstimateId;
+
+  let legacyGasTransaction: GetLegacyTransactionData;
+  let eip1559GasTransaction: GetEIP1559TransactionData;
+
+  if (legacy) {
+    legacyGasTransaction = gasTransaction as GetLegacyTransactionData;
+    transactionFee = legacyGasTransaction.transactionFee;
+    transactionFeeFiat = legacyGasTransaction.transactionFeeFiat;
+    transactionTotalAmount = legacyGasTransaction.transactionTotalAmount;
+    transactionTotalAmountFiat =
+      legacyGasTransaction.transactionTotalAmountFiat;
+    suggestedGasLimit = legacyGasTransaction.suggestedGasLimit;
+  } else {
+    eip1559GasTransaction = gasTransaction as GetEIP1559TransactionData;
+    suggestedGasLimit = eip1559GasTransaction.suggestedGasLimit;
+    renderableGasFeeMinNative = eip1559GasTransaction.renderableGasFeeMinNative;
+    renderableGasFeeMinConversion =
+      eip1559GasTransaction.renderableGasFeeMinConversion;
+    renderableGasFeeMaxNative = eip1559GasTransaction.renderableGasFeeMaxNative;
+    renderableTotalMinNative = eip1559GasTransaction.renderableTotalMinNative;
+    renderableTotalMinConversion =
+      eip1559GasTransaction.renderableTotalMinConversion;
+    renderableTotalMaxNative = eip1559GasTransaction.renderableTotalMaxNative;
+    renderableGasFeeMaxConversion =
+      eip1559GasTransaction.renderableGasFeeMaxConversion;
+    timeEstimateColor = eip1559GasTransaction.timeEstimateColor;
+    timeEstimate = eip1559GasTransaction.timeEstimate;
+    timeEstimateId = eip1559GasTransaction.timeEstimateId;
+  }
 
   useEffect(() => {
     if (gasEstimationReady) {
@@ -102,8 +133,8 @@ const TransactionReviewEIP1559Update = ({
   const nativeCurrencySelected = primaryCurrency === 'ETH' || !isMainnet;
 
   const switchNativeCurrencyDisplayOptions = (
-    nativeValue: string,
-    fiatValue: string,
+    nativeValue?: string,
+    fiatValue?: string,
   ) => {
     if (nativeCurrencySelected) return nativeValue;
     return fiatValue;
@@ -113,7 +144,7 @@ const TransactionReviewEIP1559Update = ({
 
   return (
     <Summary style={styles.overview(noMargin)}>
-      <Summary.Row>
+      <Summary.Row end={undefined} style={undefined} last={undefined}>
         <View style={styles.gasRowContainer}>
           <View style={styles.gasRowContainer}>
             <Text
@@ -217,7 +248,7 @@ const TransactionReviewEIP1559Update = ({
         </View>
       </Summary.Row>
       {!legacy && (
-        <Summary.Row>
+        <Summary.Row end={undefined} style={undefined} last={undefined}>
           <View style={styles.gasRowContainer}>
             {gasEstimationReady ? (
               <FadeAnimationView
@@ -310,9 +341,9 @@ const TransactionReviewEIP1559Update = ({
       )}
       {!hideTotal && (
         <View>
-          <Summary.Separator />
+          <Summary.Separator style={undefined} />
           <View style={styles.gasBottomRowContainer}>
-            <Summary.Row>
+            <Summary.Row end={undefined} style={undefined} last={undefined}>
               <Text primary bold noMargin>
                 {strings('transaction_review_eip1559.total')}
               </Text>
@@ -375,7 +406,7 @@ const TransactionReviewEIP1559Update = ({
             </Summary.Row>
           </View>
           {!legacy && (
-            <Summary.Row>
+            <Summary.Row end={undefined} style={undefined} last={undefined}>
               {gasEstimationReady ? (
                 <FadeAnimationView
                   style={styles.valuesContainer}

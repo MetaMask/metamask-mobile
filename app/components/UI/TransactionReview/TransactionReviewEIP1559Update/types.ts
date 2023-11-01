@@ -1,3 +1,5 @@
+import { SELECT_GAS_OPTIONS } from '../../../../types/gas';
+
 export interface TransactionEIP1559UpdateProps {
   /**
    * Selected primary currency
@@ -54,12 +56,13 @@ export interface TransactionEIP1559UpdateProps {
   /**
    * The selected gas option
    */
-  gasSelected: string;
+  gasSelected: SELECT_GAS_OPTIONS | null;
   /**
    * gas object for calculating the gas transaction cost
    */
   gasObject: {
-    suggestedMaxFeePerGas: string;
+    suggestedGasLimit: string | undefined;
+    suggestedMaxFeePerGas: string | undefined;
     suggestedMaxPriorityFeePerGas: string;
   };
   gasObjectLegacy: {

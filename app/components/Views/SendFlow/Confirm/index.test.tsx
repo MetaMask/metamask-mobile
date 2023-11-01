@@ -5,6 +5,7 @@ import Confirm from '.';
 import { renderScreen } from '../../../../util/test/renderWithProvider';
 import Routes from '../../../../constants/navigation/Routes';
 import initialBackgroundState from '../../../../util/test/initial-background-state.json';
+import TransactionReviewEIP1559Update from '../../../UI/TransactionReview/TransactionReviewEIP1559Update';
 
 const mockInitialState = {
   engine: {
@@ -17,6 +18,14 @@ const mockInitialState = {
           type: 'mainnet',
         },
       },
+      GasFeeController: {
+        gasFeeEstimates: {
+          low: '0x0',
+          medium: '0x0',
+          high: '0x0',
+        },
+        gasEstimateType: 'none',
+      },
       AccountTrackerController: {
         accounts: {
           '0xe64dD0AB5ad7e8C5F2bf6Ce75C34e187af8b920A': { balance: '0' },
@@ -25,6 +34,7 @@ const mockInitialState = {
       CurrencyRateController: {
         currentCurrency: 'USD',
         conversionRate: 1,
+        nativeCurrency: 'ETH',
       },
       PreferencesController: {
         identities: {
@@ -45,6 +55,7 @@ const mockInitialState = {
       from: '0x15249D1a506AFC731Ee941d0D40Cf33FacD34E58',
       to: '0xe64dD0AB5ad7e8C5F2bf6Ce75C34e187af8b920A',
       value: '0x2',
+      data: undefined,
     },
   },
   fiatOrders: {
@@ -89,6 +100,9 @@ jest.mock('../../../../core/Engine', () => ({
         ],
       },
     },
+    GasFeeController: {
+      getTimeEstimate: jest.fn(),
+    },
   },
 }));
 jest.mock('../../../../util/custom-gas', () => ({
@@ -99,6 +113,7 @@ jest.mock('../../../../util/transactions', () => ({
   ...jest.requireActual('../../../../util/transactions'),
   decodeTransferData: jest.fn().mockImplementation(() => ['0x2']),
 }));
+jest.mock('../../../UI/TransactionReview/TransactionReviewEIP1559Update');
 
 function render(Component: React.ComponentType | ConnectedComponent<any, any>) {
   return renderScreen(
@@ -118,5 +133,7 @@ describe('Confirm', () => {
     await waitFor(() => {
       expect(wrapper).toMatchSnapshot();
     });
+
+    expect(TransactionReviewEIP1559Update).toHaveBeenCalled();
   });
 });
