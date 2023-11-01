@@ -1,9 +1,8 @@
 import { NavigationProp, ParamListBase } from '@react-navigation/native';
-import { StackNavigationProp } from '@react-navigation/stack';
 import { ParseOutput } from 'eth-url-parser';
 import { AnyAction, Dispatch, Store } from 'redux';
-import approveTransaction from './TransactionsManger/approveTransaction';
 import parseDeeplink from './ParseManager/parseDeeplink';
+import approveTransaction from './TransactionsManger/approveTransaction';
 import handleBrowserUrl from './handlers/handleBrowserUrl';
 import handleBuyCrypto from './handlers/handleBuyCrypto';
 import handleEthereumUrl from './handlers/handleEthereumUrl';
@@ -18,9 +17,7 @@ class DeeplinkManager {
     navigation,
     dispatch,
   }: {
-    navigation: StackNavigationProp<{
-      [route: string]: { screen: string };
-    }>;
+    navigation: NavigationProp<ParamListBase>;
     dispatch: Store<any, AnyAction>['dispatch'];
   }) {
     this.navigation = navigation;
@@ -28,22 +25,30 @@ class DeeplinkManager {
     this.dispatch = dispatch;
   }
 
-  setDeeplink = (url: string) => (this.pendingDeeplink = url);
+  setDeeplink(url: string) {
+    this.pendingDeeplink = url;
+  }
 
-  getPendingDeeplink = () => this.pendingDeeplink;
+  getPendingDeeplink() {
+    return this.pendingDeeplink;
+  }
 
-  expireDeeplink = () => (this.pendingDeeplink = null);
+  expireDeeplink() {
+    this.pendingDeeplink = null;
+  }
 
   /**
    * Method in charge of changing network if is needed
    *
    * @param switchToChainId - Corresponding chain id for new network
    */
-  _handleNetworkSwitch = (switchToChainId: `${number}` | undefined) =>
-    handleNetworkSwitch({ deeplinkManager: this, switchToChainId });
+  _handleNetworkSwitch(switchToChainId: `${number}` | undefined) {
+    return handleNetworkSwitch({ deeplinkManager: this, switchToChainId });
+  }
 
-  _approveTransaction = async (ethUrl: ParseOutput, origin: string) =>
-    approveTransaction({ deeplinkManager: this, ethUrl, origin });
+  async _approveTransaction(ethUrl: ParseOutput, origin: string) {
+    return approveTransaction({ deeplinkManager: this, ethUrl, origin });
+  }
 
   async _handleEthereumUrl(url: string, origin: string) {
     return handleEthereumUrl({ deeplinkManager: this, url, origin });

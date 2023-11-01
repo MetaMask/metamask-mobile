@@ -58,6 +58,7 @@ function handleEthereumUrl({
     }
   } catch (e: any) {
     let alertMessage;
+
     switch (e.message) {
       case NetworkSwitchErrorType.missingNetworkId:
         alertMessage = strings('send.network_missing_id');
@@ -67,6 +68,7 @@ function handleEthereumUrl({
           chain_id: ethUrl.chain_id,
         });
     }
+
     Alert.alert(strings('send.network_not_found_title'), alertMessage);
   }
 }

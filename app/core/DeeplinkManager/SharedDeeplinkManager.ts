@@ -1,17 +1,16 @@
-import { StackNavigationProp } from '@react-navigation/stack';
-import DeeplinkManager from './DeeplinkManager';
+import { NavigationProp, ParamListBase } from '@react-navigation/native';
 import { Dispatch } from 'redux';
+import DeeplinkManager from './DeeplinkManager';
 
 let deeplinkManagerInstance: DeeplinkManager;
 
 const SharedDeeplinkManager = {
+  getInstance: () => deeplinkManagerInstance,
   init: ({
     navigation,
     dispatch,
   }: {
-    navigation: StackNavigationProp<{
-      [route: string]: { screen: string };
-    }>;
+    navigation: NavigationProp<ParamListBase>;
     dispatch: Dispatch<any>;
   }) => {
     if (deeplinkManagerInstance) {
