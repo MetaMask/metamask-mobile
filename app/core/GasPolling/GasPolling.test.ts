@@ -32,7 +32,7 @@ jest.mock('react-redux', () => ({
 
 const suggestedGasLimit = '0x123';
 const selectedOption = 'medium';
-const gas = {
+const gas: GetEIP1559TransactionDataProps['gas'] = {
   maxWaitTimeEstimate: 45000,
   minWaitTimeEstimate: 15000,
   suggestedMaxFeePerGas: '1.500000018',
@@ -40,35 +40,33 @@ const gas = {
   selectedOption,
 };
 const gasFeeEstimates: GasFeeOptions = {
-  estimatedBaseFee: null,
-  gasFeeEstimates: {
-    baseFeeTrend: 'down',
-    estimatedBaseFee: '0.000000013',
-    high: {
-      maxWaitTimeEstimate: 60000,
-      minWaitTimeEstimate: 15000,
-      suggestedMaxFeePerGas: '2.450000023',
-      suggestedMaxPriorityFeePerGas: '2.45',
-    },
-    historicalBaseFeeRange: ['0.000000009', '0.000000014'],
-    historicalPriorityFeeRange: ['1', '96'],
-    latestPriorityFeeRange: ['1.5', '2.999999783'],
-    low: {
-      maxWaitTimeEstimate: 30000,
-      minWaitTimeEstimate: 15000,
-      suggestedMaxFeePerGas: '1.410000013',
-      suggestedMaxPriorityFeePerGas: '1.41',
-    },
-    medium: {
-      maxWaitTimeEstimate: 45000,
-      minWaitTimeEstimate: 15000,
-      suggestedMaxFeePerGas: '1.500000018',
-      suggestedMaxPriorityFeePerGas: '1.5',
-    },
-    networkCongestion: 0.4713,
-    priorityFeeTrend: 'level',
+  baseFeeTrend: 'down',
+  estimatedBaseFee: '0.000000013',
+  high: {
+    maxWaitTimeEstimate: 60000,
+    minWaitTimeEstimate: 15000,
+    suggestedMaxFeePerGas: '2.450000023',
+    suggestedMaxPriorityFeePerGas: '2.45',
   },
+  historicalBaseFeeRange: ['0.000000009', '0.000000014'],
+  historicalPriorityFeeRange: ['1', '96'],
+  latestPriorityFeeRange: ['1.5', '2.999999783'],
+  low: {
+    maxWaitTimeEstimate: 30000,
+    minWaitTimeEstimate: 15000,
+    suggestedMaxFeePerGas: '1.410000013',
+    suggestedMaxPriorityFeePerGas: '1.41',
+  },
+  medium: {
+    maxWaitTimeEstimate: 45000,
+    minWaitTimeEstimate: 15000,
+    suggestedMaxFeePerGas: '1.500000018',
+    suggestedMaxPriorityFeePerGas: '1.5',
+  },
+  networkCongestion: 0.4713,
+  priorityFeeTrend: 'level',
 };
+
 const contractExchangeRates = {};
 const conversionRate = 1844.31;
 const currentCurrency = 'USD';
@@ -188,10 +186,3 @@ describe('GetEIP1559TransactionData', () => {
     expect(result).toEqual(expected);
   });
 });
-
-// describe('useDataStore', () => {
-//   it('should return the data store', () => {
-//     const result = useDataStore();
-//     expect(result.conversionRate).toEqual(1);
-//   });
-// });

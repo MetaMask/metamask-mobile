@@ -19,7 +19,9 @@ import {
 } from '../../util/transactions';
 import Engine from '../Engine';
 import {
+  GetEIP1559TransactionData,
   GetEIP1559TransactionDataProps,
+  GetLegacyTransactionData,
   LegacyProps,
   UseGasTransactionProps,
 } from './types';
@@ -106,7 +108,7 @@ export const getEIP1559TransactionData = ({
   currentCurrency,
   nativeCurrency,
   onlyGas,
-}: GetEIP1559TransactionDataProps) => {
+}: GetEIP1559TransactionDataProps): GetEIP1559TransactionData => {
   try {
     if (
       !gas ||
@@ -115,7 +117,7 @@ export const getEIP1559TransactionData = ({
       !currentCurrency ||
       !nativeCurrency
     ) {
-      return 'Incomplete data for EIP1559 transaction';
+      throw new Error('Incomplete data for EIP1559 transaction');
     }
 
     const parsedTransactionEIP1559 = parseTransactionEIP1559(
@@ -139,11 +141,13 @@ export const getEIP1559TransactionData = ({
         },
       },
       { onlyGas },
-    );
+    ) as GetEIP1559TransactionData;
 
     return parsedTransactionEIP1559;
   } catch (error) {
-    return 'Error parsing transaction data';
+    // TODO send error to sentry or start leveraging error.cause for better stack traces
+    // https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Error/cause
+    throw new Error('Error parsing transaction data');
   }
 };
 
@@ -161,7 +165,7 @@ export const getLegacyTransactionData = ({
   gas,
   onlyGas,
   multiLayerL1FeeTotal,
-}: LegacyProps) => {
+}: LegacyProps): GetLegacyTransactionData => {
   const parsedTransationData = parseTransactionLegacy(
     {
       contractExchangeRates,
@@ -175,7 +179,7 @@ export const getLegacyTransactionData = ({
       multiLayerL1FeeTotal,
     },
     { onlyGas },
-  );
+  ) as GetLegacyTransactionData;
 
   return parsedTransationData;
 };
@@ -184,14 +188,42 @@ export const getLegacyTransactionData = ({
  *
  * @returns {Object} the transaction data for the current transaction.
  */
-export const useGasTransaction = ({
+export function useGasTransaction({
   onlyGas,
   gasSelected,
   legacy,
   gasObject,
   gasObjectLegacy,
   multiLayerL1FeeTotal,
-}: UseGasTransactionProps) => {
+}: UseGasTransactionProps & {
+  legacy: false | undefined;
+}): GetEIP1559TransactionData;
+export function useGasTransaction({
+  onlyGas,
+  gasSelected,
+  legacy,
+  gasObject,
+  gasObjectLegacy,
+  multiLayerL1FeeTotal,
+}: UseGasTransactionProps & { legacy: true }): GetLegacyTransactionData;
+export function useGasTransaction({
+  onlyGas,
+  gasSelected,
+  legacy,
+  gasObject,
+  gasObjectLegacy,
+  multiLayerL1FeeTotal,
+}: UseGasTransactionProps):
+  | GetEIP1559TransactionData
+  | GetLegacyTransactionData;
+export function useGasTransaction({
+  onlyGas,
+  gasSelected,
+  legacy,
+  gasObject,
+  gasObjectLegacy,
+  multiLayerL1FeeTotal,
+}: UseGasTransactionProps) {
   const [gasEstimateTypeChange, updateGasEstimateTypeChange] =
     useState<string>('');
 
@@ -274,4 +306,4 @@ export const useGasTransaction = ({
     suggestedGasLimit,
     onlyGas,
   });
-};
+}

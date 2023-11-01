@@ -1,3 +1,6 @@
+import { GAS_TIME_OPTIONS, SELECT_GAS_OPTIONS } from '../../types/gas';
+import BigNumber from 'bignumber.js';
+import { BN } from 'ethereumjs-util';
 export interface GasTransactionProps {
   error: any;
   estimatedBaseFee: string;
@@ -37,7 +40,7 @@ export interface GasTransactionProps {
   /**
    * The time estimate to complete transaction in descriptive text (maybe, likely, very_likely).
    */
-  timeEstimateId: string;
+  timeEstimateId: GasTransactionProps;
   /**
    * The gas price
    */
@@ -74,38 +77,24 @@ export interface GasTransactionProps {
   totalMaxHex: string;
 }
 
+interface GasFeeLevelOptions {
+  maxWaitTimeEstimate: number;
+  minWaitTimeEstimate: number;
+  suggestedMaxFeePerGas: string;
+  suggestedMaxPriorityFeePerGas: string;
+}
+
 export interface GasFeeOptions {
-  estimatedBaseFee: any;
-  /**
-   * This gasFeeEstimate object is returned from Codefi
-   */
-  gasFeeEstimates: {
-    baseFeeTrend: string;
-    estimatedBaseFee: string;
-    low: {
-      maxWaitTimeEstimate: number;
-      minWaitTimeEstimate: number;
-      suggestedMaxFeePerGas: string;
-      suggestedMaxPriorityFeePerGas: string;
-    };
-    medium: {
-      maxWaitTimeEstimate: number;
-      minWaitTimeEstimate: number;
-      suggestedMaxFeePerGas: string;
-      suggestedMaxPriorityFeePerGas: string;
-    };
-    high: {
-      maxWaitTimeEstimate: number;
-      minWaitTimeEstimate: number;
-      suggestedMaxFeePerGas: string;
-      suggestedMaxPriorityFeePerGas: string;
-    };
-    historicalBaseFeeRange: string[];
-    historicalPriorityFeeRange: string[];
-    latestPriorityFeeRange: string[];
-    networkCongestion: number;
-    priorityFeeTrend: string;
-  };
+  baseFeeTrend: string;
+  estimatedBaseFee: string;
+  low: GasFeeLevelOptions;
+  medium: GasFeeLevelOptions;
+  high: GasFeeLevelOptions;
+  historicalBaseFeeRange: string[];
+  historicalPriorityFeeRange: string[];
+  latestPriorityFeeRange: string[];
+  networkCongestion: number;
+  priorityFeeTrend: string;
 }
 
 export interface UseGasTransactionProps {
@@ -114,7 +103,7 @@ export interface UseGasTransactionProps {
    * When it is present, it can take values of ['low', 'medium', 'high', null].
    * If the value is null, it indicates that the advanced option is enabled.
    */
-  gasSelected?: string | null;
+  gasSelected?: SELECT_GAS_OPTIONS | null;
   onlyGas?: boolean;
 
   /**
@@ -125,9 +114,9 @@ export interface UseGasTransactionProps {
    * gas object for calculating the gas transaction cost
    */
   gasObject?: {
-    suggestedGasLimit: string;
-    suggestedMaxFeePerGas: string;
+    suggestedGasLimit: string | undefined;
     suggestedMaxPriorityFeePerGas: string;
+    suggestedMaxFeePerGas: string | undefined;
   };
   /**
    * When legacy transaction gas limit or gas price values are updated in the edit mode, pass those values to this object.
@@ -186,7 +175,7 @@ export interface TransactionSharedProps {
 }
 
 export interface GetEIP1559TransactionDataProps extends TransactionSharedProps {
-  gasFeeEstimates: GasFeeOptions;
+  gasFeeEstimates: GasFeeOptions | Record<string, never>;
   /**
    * if the selected option is not null, use the equivalent from the gasFeeEstimates object. Else, handle the gasFeeEstimates object differently.
    */
@@ -194,7 +183,7 @@ export interface GetEIP1559TransactionDataProps extends TransactionSharedProps {
     /**
      * The selected gas value (low, medium, high). Gas value can be null when the advanced option is modified.
      */
-    selectedOption: string | null;
+    selectedOption: SELECT_GAS_OPTIONS | null;
     maxWaitTimeEstimate: number;
     minWaitTimeEstimate: number;
     suggestedMaxFeePerGas: string;
@@ -206,6 +195,45 @@ export interface GetEIP1559TransactionDataProps extends TransactionSharedProps {
    */
   suggestedGasLimit: string;
   onlyGas?: boolean;
+}
+
+export interface GetEIP1559TransactionData {
+  gasFeeMinNative: string | number | BigNumber;
+  renderableGasFeeMinNative: string;
+  gasFeeMinConversion: string | number | BigNumber;
+  renderableGasFeeMinConversion: string;
+  gasFeeMaxNative: string | number | BigNumber;
+  renderableGasFeeMaxNative: string;
+  gasFeeMaxConversion: string | number | BigNumber;
+  renderableGasFeeMaxConversion: string;
+  maxPriorityFeeNative: string | number | BigNumber;
+  renderableMaxPriorityFeeNative: string;
+  maxPriorityFeeConversion: string | number | BigNumber;
+  renderableMaxPriorityFeeConversion: string;
+  renderableMaxFeePerGasNative: string;
+  renderableMaxFeePerGasConversion: string;
+  timeEstimate: string;
+  timeEstimateColor: string;
+  timeEstimateId: GAS_TIME_OPTIONS;
+  estimatedBaseFee: any;
+  estimatedBaseFeeHex: string | number | BigNumber;
+  suggestedMaxPriorityFeePerGas: string;
+  suggestedMaxPriorityFeePerGasHex: string | number | BigNumber;
+  suggestedMaxFeePerGas: string;
+  suggestedMaxFeePerGasHex: string | number | BigNumber;
+  gasLimitHex: string;
+  suggestedGasLimit: string;
+  suggestedEstimatedGasLimit?: any;
+  totalMaxHex: string | BigNumber;
+  totalMinNative?: any;
+  renderableTotalMinNative?: string;
+  totalMinConversion?: any;
+  renderableTotalMinConversion?: string;
+  totalMaxNative?: any;
+  renderableTotalMaxNative?: string;
+  totalMaxConversion?: any;
+  renderableTotalMaxConversion?: string;
+  totalMinHex?: string | BigNumber;
 }
 
 export interface LegacyProps {
@@ -220,4 +248,16 @@ export interface LegacyProps {
     suggestedGasLimit: string;
     suggestedGasPrice?: string;
   };
+}
+
+export interface GetLegacyTransactionData {
+  transactionFeeFiat: string;
+  transactionFee: string;
+  transactionTotalAmount?: string;
+  transactionTotalAmountFiat?: string;
+  suggestedGasPrice: string | undefined;
+  suggestedGasPriceHex: string | number | BigNumber;
+  suggestedGasLimit: string;
+  suggestedGasLimitHex: string;
+  totalHex: BN;
 }
