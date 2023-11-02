@@ -6,8 +6,7 @@ import { SAMPLE_LISTITEM_PROPS } from '../../../List/ListItem/ListItem.constants
 import { SelectItemProps } from './SelectItem.types';
 
 // Defaults
-export const DEFAULT_SELECTITEM_PADDING = 16;
-export const DEFAULT_SELECTITEM_BORDERRADIUS = 4;
+export const DEFAULT_SELECTITEM_GAP = 16;
 
 // Test IDs
 export const SELECTABLE_ITEM_UNDERLAY_ID = 'selectable-item-underlay';

@@ -142,6 +142,7 @@ const getStories = () => {
     "./app/component-library/components/Select/MultiSelect/MultiSelectItem/MultiSelectItem.stories.tsx": require("../app/component-library/components/Select/MultiSelect/MultiSelectItem/MultiSelectItem.stories.tsx"),
     "./app/component-library/components/Select/Select/SelectItem/SelectItem.stories.tsx": require("../app/component-library/components/Select/Select/SelectItem/SelectItem.stories.tsx"),
     "./app/component-library/components/Select/SelectButton/SelectButton.stories.tsx": require("../app/component-library/components/Select/SelectButton/SelectButton.stories.tsx"),
+    "./app/component-library/components/Select/SelectWrapper/SelectWrapper.stories.tsx": require("../app/component-library/components/Select/SelectWrapper/SelectWrapper.stories.tsx"),
     "./app/component-library/components/Pickers/PickerAccount/PickerAccount.stories.tsx": require("../app/component-library/components/Pickers/PickerAccount/PickerAccount.stories.tsx"),
     "./app/component-library/components/Pickers/PickerNetwork/PickerNetwork.stories.tsx": require("../app/component-library/components/Pickers/PickerNetwork/PickerNetwork.stories.tsx"),
     "./app/component-library/components/Cells/Cell/Cell.stories.tsx": require("../app/component-library/components/Cells/Cell/Cell.stories.tsx"),

@@ -27,6 +27,9 @@ const styleSheet = (params: {
       {
         position: 'relative',
         opacity: isDisabled ? 0.5 : 1,
+        padding: 16,
+        borderRadius: 4,
+        backgroundColor: colors.background.default,
       } as ViewStyle,
       style,
     ) as ViewStyle,

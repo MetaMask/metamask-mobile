@@ -2,38 +2,51 @@
 
 // Third party dependencies.
 import React from 'react';
-import { TouchableOpacity } from 'react-native';
+import { View, TouchableOpacity } from 'react-native';
 
 // External dependencies.
 import { useStyles } from '../../../../hooks';
-import ListItem from '../../../List/ListItem';
-import ListItemColumn, { WidthType } from '../../../List/ListItemColumn';
+import SelectValue from '../../SelectValue/SelectValue';
 
 // Internal dependencies.
 import styleSheet from './SelectButtonBase.styles';
 import { SelectButtonBaseProps } from './SelectButtonBase.types';
 
 const SelectButtonBase: React.FC<SelectButtonBaseProps> = ({
+  style,
+  iconEl,
+  iconProps,
+  title,
+  description,
   startAccessory,
   children,
   endAccessory,
-  caretIcon,
   gap,
   verticalAlignment,
-  style,
-  ...props
+  caretIcon,
+  ...touchableOpacityProps
 }) => {
   const { styles } = useStyles(styleSheet, { style });
   return (
-    <TouchableOpacity style={styles.base} activeOpacity={1} {...props}>
-      <ListItem gap={gap} verticalAlignment={verticalAlignment}>
-        {startAccessory && <ListItemColumn>{startAccessory}</ListItemColumn>}
-        {children && (
-          <ListItemColumn widthType={WidthType.Fill}>{children}</ListItemColumn>
-        )}
-        {endAccessory && <ListItemColumn>{endAccessory}</ListItemColumn>}
-        <ListItemColumn>{caretIcon}</ListItemColumn>
-      </ListItem>
+    <TouchableOpacity
+      style={styles.base}
+      activeOpacity={1}
+      {...touchableOpacityProps}
+    >
+      <SelectValue
+        style={styles.value}
+        iconEl={iconEl}
+        iconProps={iconProps}
+        title={title}
+        description={description}
+        startAccessory={startAccessory}
+        endAccessory={endAccessory}
+        gap={gap}
+        verticalAlignment={verticalAlignment}
+      >
+        {children}
+      </SelectValue>
+      <View>{caretIcon}</View>
     </TouchableOpacity>
   );
 };

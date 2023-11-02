@@ -1,15 +1,7 @@
-/* eslint-disable react/display-name */
-/* eslint-disable react/prop-types */
-/* eslint-disable no-console */
-
-// Third party dependencies.
-import React from 'react';
-
-// External dependencies.
-
 // Internal dependencies.
 import { default as SelectButtonComponent } from './SelectButton';
 import { SelectButtonSize } from './SelectButton.types';
+import { SAMPLE_SELECTBUTTON_PROPS } from './SelectButton.constants';
 
 const SelectButtonStoryMeta = {
   title: 'Component Library / SelectButton',
@@ -20,15 +12,27 @@ const SelectButtonStoryMeta = {
       control: {
         type: 'select',
       },
-      defaultValue: SAMPLE_TEXTFIELD_PROPS.size,
+      defaultValue: SAMPLE_SELECTBUTTON_PROPS.size,
+    },
+    title: {
+      control: { type: 'text' },
+      defaultValue: SAMPLE_SELECTBUTTON_PROPS.title,
+    },
+    description: {
+      control: { type: 'text' },
+      defaultValue: SAMPLE_SELECTBUTTON_PROPS.description,
+    },
+    isDisabled: {
+      control: { type: 'boolean' },
+      defaultValue: SAMPLE_SELECTBUTTON_PROPS.isDisabled,
+    },
+    isDanger: {
+      control: { type: 'boolean' },
+      defaultValue: SAMPLE_SELECTBUTTON_PROPS.isDanger,
     },
   },
 };
 
 export default SelectButtonStoryMeta;
 
-export const SelectButton = {
-  render: () => (
-    <SelectButtonComponent title={'test'} description={'test description'} />
-  ),
-};
+export const SelectButton = {};

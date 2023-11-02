@@ -5,7 +5,7 @@ import { StyleSheet, ViewStyle } from 'react-native';
 import { Theme } from '../../../../../util/theme/models';
 
 /**
- * Style sheet function for SelectButtonBase component.
+ * Style sheet function for SelectValueBase component.
  *
  * @param params Style sheet params.
  * @param params.theme App theme from ThemeContext.
@@ -16,11 +16,7 @@ const styleSheet = (params: { theme: Theme; vars: any }) => {
   const { vars } = params;
   const { style } = vars;
   return StyleSheet.create({
-    base: Object.assign(
-      { flexDirection: 'row', alignItems: 'center' } as ViewStyle,
-      style,
-    ) as ViewStyle,
-    value: { flex: 1, marginRight: 8 },
+    base: Object.assign({} as ViewStyle, style) as ViewStyle,
   });
 };
 

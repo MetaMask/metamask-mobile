@@ -11,10 +11,7 @@ import ListItem from '../../../List/ListItem/ListItem';
 // Internal dependencies.
 import styleSheet from './SelectItem.styles';
 import { SelectItemProps } from './SelectItem.types';
-import {
-  DEFAULT_SELECTITEM_PADDING,
-  DEFAULT_SELECTITEM_BORDERRADIUS,
-} from './SelectItem.constants';
+import { DEFAULT_SELECTITEM_GAP } from './SelectItem.constants';
 
 const SelectItem: React.FC<SelectItemProps> = ({
   style,
@@ -23,10 +20,11 @@ const SelectItem: React.FC<SelectItemProps> = ({
   children,
   onPress,
   onLongPress,
+  gap = DEFAULT_SELECTITEM_GAP,
+  verticalAlignment,
   ...props
 }) => {
   const { styles } = useStyles(styleSheet, { style, isDisabled });
-  const { hitSlop, ...listItemProps } = props;
 
   return (
     <TouchableOpacity
@@ -36,13 +34,7 @@ const SelectItem: React.FC<SelectItemProps> = ({
       onLongPress={onLongPress}
       {...props}
     >
-      <ListItem
-        padding={DEFAULT_SELECTITEM_PADDING}
-        borderRadius={DEFAULT_SELECTITEM_BORDERRADIUS}
-        {...listItemProps}
-      >
-        {children}
-      </ListItem>
+      <ListItem gap={gap}>{children}</ListItem>
       {isSelected && (
         <View style={styles.underlay} accessibilityRole="checkbox" accessible>
           <View style={styles.underlayBar} />

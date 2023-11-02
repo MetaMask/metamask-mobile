@@ -1,7 +1,7 @@
 /* eslint-disable react/prop-types */
 
 // Third party dependencies.
-import React from 'react';
+import React, { ReactElement } from 'react';
 import { View } from 'react-native';
 
 // External dependencies.
@@ -38,9 +38,10 @@ const ListItem: React.FC<ListItemProps> = ({
                 style={{ width: gap }}
                 testID={TESTID_LISTITEM_GAP}
                 accessible={false}
+                key={`gap-${index}`}
               />
             )}
-            {child}
+            {React.cloneElement(child as ReactElement, { key: index })}
           </>
         ))}
     </View>

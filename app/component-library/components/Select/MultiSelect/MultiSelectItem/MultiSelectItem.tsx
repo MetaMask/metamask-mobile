@@ -30,12 +30,7 @@ const MultiSelectItem: React.FC<MultiSelectItemProps> = ({
   const { hitSlop, ...listItemProps } = props;
   return (
     <TouchableOpacity style={styles.base} disabled={isDisabled} {...props}>
-      <ListItem
-        padding={DEFAULT_MULTISELECTITEM_PADDING}
-        borderRadius={DEFAULT_MULTISELECTITEM_BORDERRADIUS}
-        gap={gap}
-        {...listItemProps}
-      >
+      <ListItem gap={gap} {...listItemProps}>
         <Checkbox
           style={styles.checkbox}
           isChecked={isSelected}
