@@ -81,6 +81,7 @@ import {
   LoggingControllerState,
   LoggingControllerActions,
 } from '@metamask/logging-controller';
+import LedgerKeyring from '@consensys/ledgerhq-metamask-keyring';
 import Encryptor from './Encryptor';
 import {
   isMainnetByChainId,
@@ -120,6 +121,8 @@ import { ethErrors } from 'eth-rpc-errors';
 
 import { PPOM, ppomInit } from '../lib/ppom/PPOMView';
 import RNFSStorageBackend from '../lib/ppom/rnfs-storage-backend';
+import { isHardwareAccount } from '../util/address';
+import { HardwareDeviceNames, ledgerSignTypedMessage } from './Ledger/Ledger';
 
 const NON_EMPTY = 'NON_EMPTY';
 
@@ -416,6 +419,9 @@ class Engine {
     const qrKeyringBuilder = () => new QRHardwareKeyring();
     qrKeyringBuilder.type = QRHardwareKeyring.type;
 
+    const ledgerKeyringBuilder = () => new LedgerKeyring();
+    ledgerKeyringBuilder.type = LedgerKeyring.type;
+
     const keyringController = new KeyringController({
       removeIdentity: preferencesController.removeIdentity.bind(
         preferencesController,
@@ -445,7 +451,7 @@ class Engine {
         allowedActions: ['KeyringController:getState'],
       }),
       state: initialKeyringState || initialState.KeyringController,
-      keyringBuilders: [qrKeyringBuilder],
+      keyringBuilders: [qrKeyringBuilder, ledgerKeyringBuilder],
     });
 
     const controllers = [
@@ -649,11 +655,20 @@ class Engine {
           signMessage: keyringController.signMessage.bind(keyringController),
           signPersonalMessage:
             keyringController.signPersonalMessage.bind(keyringController),
-          signTypedMessage: (msgParams, { version }) =>
-            keyringController.signTypedMessage(
+          signTypedMessage: (msgParams, { version }) => {
+            if (
+              isHardwareAccount(msgParams.from, [HardwareDeviceNames.ledger])
+            ) {
+              return ledgerSignTypedMessage(
+                msgParams,
+                version as SignTypedDataVersion,
+              );
+            }
+            return keyringController.signTypedMessage(
               msgParams,
               version as SignTypedDataVersion,
-            ),
+            );
+          },
         },
       }),
       new LoggingController({

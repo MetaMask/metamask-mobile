@@ -72,10 +72,12 @@ import AppConstants from '../../../../core/AppConstants';
 import {
   getAddressAccountType,
   isQRHardwareAccount,
+  isHardwareAccount,
 } from '../../../../util/address';
 import { KEYSTONE_TX_CANCELED } from '../../../../constants/error';
 import { ThemeContext, mockTheme } from '../../../../util/theme';
 import Routes from '../../../../constants/navigation/Routes';
+import { createLedgerTransactionModalNavDetails } from '../../../UI/LedgerModals/LedgerTransactionModal';
 import WarningMessage from '../WarningMessage';
 import { showAlert } from '../../../../actions/alert';
 import ClipboardManager from '../../../../core/ClipboardManager';
@@ -106,6 +108,10 @@ import {
   TXN_CONFIRM_SCREEN,
   TXN_CONFIRM_SEND_BUTTON,
 } from '../../../../constants/test-ids';
+import {
+  HardwareDeviceNames,
+  getLedgerKeyring,
+} from '../../../../core/Ledger/Ledger';
 
 const EDIT = 'edit';
 const EDIT_NONCE = 'edit_nonce';
@@ -664,6 +670,50 @@ class Confirm extends PureComponent {
     });
   };
 
+  onLedgerConfirmation = async (
+    approve,
+    result,
+    transactionMeta,
+    assetType,
+    gaParams,
+  ) => {
+    const { TransactionController } = Engine.context;
+    const { navigation } = this.props;
+    //manual cancel from UI / rejected from ledger
+    try {
+      if (!approve) {
+        TransactionController.hub.removeAllListeners(
+          `${transactionMeta.id}:finished`,
+        );
+        TransactionController.cancelTransaction(transactionMeta.id);
+      } else {
+        await new Promise((resolve) => resolve(result));
+
+        if (transactionMeta.error) {
+          throw transactionMeta.error;
+        }
+
+        InteractionManager.runAfterInteractions(() => {
+          NotificationManager.watchSubmittedTransaction({
+            ...transactionMeta,
+            assetType,
+          });
+          this.checkRemoveCollectible();
+          AnalyticsV2.trackEvent(
+            MetaMetricsEvents.SEND_TRANSACTION_COMPLETED,
+            gaParams,
+          );
+          stopGasPolling();
+          resetTransaction();
+        });
+      }
+    } finally {
+      //Let ledger modal handle the error
+      //TODO: Ledger modal retry may lead to navigation "GO_BACK" not found
+      navigation && navigation.dangerouslyGetParent()?.popToTop();
+    }
+  };
+
   onNext = async () => {
     const { TransactionController, KeyringController, ApprovalController } =
       Engine.context;
@@ -706,6 +756,33 @@ class Confirm extends PureComponent {
           deviceConfirmedOn: WalletDevice.MM_MOBILE,
           origin: TransactionTypes.MMM,
         });
+
+      const isLedgerAccount = isHardwareAccount(transaction.from, [
+        HardwareDeviceNames.ledger,
+      ]);
+
+      if (isLedgerAccount) {
+        const ledgerKeyring = await getLedgerKeyring();
+        this.setState({ transactionConfirmed: false });
+        // Approve transaction for ledger is called in the Confirmation Flow (modals) after user prompt
+        this.props.navigation.navigate(
+          ...createLedgerTransactionModalNavDetails({
+            transactionId: transactionMeta.id,
+            deviceId: ledgerKeyring.deviceId,
+            onConfirmationComplete: async (approve) =>
+              await this.onLedgerConfirmation(
+                approve,
+                result,
+                transactionMeta,
+                assetType,
+                this.getAnalyticsParams(),
+              ),
+            type: 'signTransaction',
+          }),
+        );
+        return;
+      }
+
       await KeyringController.resetQRKeyringState();
       await ApprovalController.accept(transactionMeta.id, undefined, {
         waitForResult: true,
@@ -964,6 +1041,9 @@ class Confirm extends PureComponent {
       gasEstimateType === GAS_ESTIMATE_TYPES.FEE_MARKET ||
       gasEstimateType === GAS_ESTIMATE_TYPES.NONE;
     const isQRHardwareWalletDevice = isQRHardwareAccount(fromSelectedAddress);
+    const isLedgerAccount = isHardwareAccount(fromSelectedAddress, [
+      HardwareDeviceNames.ledger,
+    ]);
 
     const isTestNetwork = isTestNet(chainId);
 
@@ -1122,6 +1202,8 @@ class Confirm extends PureComponent {
               <ActivityIndicator size="small" color={colors.primary.inverse} />
             ) : isQRHardwareWalletDevice ? (
               strings('transaction.confirm_with_qr_hardware')
+            ) : isLedgerAccount ? (
+              strings('transaction.confirm_with_ledger_hardware')
             ) : (
               strings('transaction.send')
             )}

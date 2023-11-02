@@ -21,6 +21,7 @@ import generateTestId from '../../../../wdio/utils/generateTestId';
 import { showAlert } from '../../../actions/alert';
 import { toggleReceiveModal } from '../../../actions/modals';
 import { newAssetTransaction } from '../../../actions/transaction';
+import Device from '../../../util/device';
 import { protectWalletModalVisible } from '../../../actions/user';
 import Routes from '../../../constants/navigation/Routes';
 import ClipboardManager from '../../../core/ClipboardManager';
@@ -30,10 +31,10 @@ import {
   isDefaultAccountName,
 } from '../../../util/ENSUtils';
 import {
-  getLabelTextByAddress,
+  isHardwareAccount,
+  isImportedAccount,
   renderAccountName,
 } from '../../../util/address';
-import Device from '../../../util/device';
 import { ThemeContext, mockTheme } from '../../../util/theme';
 import EthereumAddress from '../EthereumAddress';
 import Identicon from '../Identicon';
@@ -49,6 +50,7 @@ import {
 } from '../../../selectors/preferencesController';
 import { createAccountSelectorNavDetails } from '../../Views/AccountSelector';
 import { regex } from '../../../../app/util/regex';
+import { HardwareDeviceNames } from '../../../core/Ledger/Ledger';
 
 const createStyles = (colors) =>
   StyleSheet.create({
@@ -354,7 +356,11 @@ class AccountOverview extends PureComponent {
     if (!address) return null;
     const { accountLabelEditable, accountLabel, ens } = this.state;
 
-    const accountLabelTag = getLabelTextByAddress(address);
+    const isHardwareWalletAccount = isHardwareAccount(address);
+    const isLedgerAccount = isHardwareAccount(address, [
+      HardwareDeviceNames.ledger,
+    ]);
+    const showImportAccountLabel = isImportedAccount(address);
 
     return (
       <View ref={this.scrollViewContainer} collapsable={false}>
@@ -430,10 +436,19 @@ class AccountOverview extends PureComponent {
                       {isDefaultAccountName(name) && ens ? ens : name}
                     </Text>
                   </TouchableOpacity>
-                  {accountLabelTag && (
+                  {isHardwareWalletAccount && (
                     <View style={styles.tag}>
                       <Text style={styles.tagText}>
-                        {strings(accountLabelTag)}
+                        {isLedgerAccount
+                          ? strings('accounts.ledger')
+                          : strings('accounts.qr_hardware')}
+                      </Text>
+                    </View>
+                  )}
+                  {showImportAccountLabel && (
+                    <View style={styles.tag}>
+                      <Text style={styles.tagText}>
+                        {strings('accounts.imported')}
                       </Text>
                     </View>
                   )}

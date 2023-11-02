@@ -38,7 +38,9 @@ import {
   WALLET_ACCOUNT_ICON,
   MAIN_WALLET_ACCOUNT_ACTIONS,
 } from '../../../../wdio/screen-objects/testIDs/Screens/WalletView.testIds';
-import { getLabelTextByAddress } from '../../../util/address';
+import { isHardwareAccount } from '../../../util/address';
+import { HardwareDeviceNames } from '../../../core/Ledger/Ledger';
+import { KeyringTypes } from '@metamask/keyring-controller';
 
 const WalletAccount = ({ style }: WalletAccountProps, ref: React.Ref<any>) => {
   const { styles } = useStyles(styleSheet, { style });
@@ -94,6 +96,15 @@ const WalletAccount = ({ style }: WalletAccountProps, ref: React.Ref<any>) => {
     });
   };
 
+  const getLabel = useCallback((address: string) => {
+    if (isHardwareAccount(address, [HardwareDeviceNames.ledger])) {
+      return 'accounts.ledger';
+    } else if (isHardwareAccount(address, [KeyringTypes.qr])) {
+      return 'accounts.qr_hardware';
+    }
+    return '';
+  }, []);
+
   return (
     <View style={styles.base}>
       <PickerAccount
@@ -106,7 +117,9 @@ const WalletAccount = ({ style }: WalletAccountProps, ref: React.Ref<any>) => {
         onPress={() => {
           navigate(...createAccountSelectorNavDetails({}));
         }}
-        accountTypeLabel={getLabelTextByAddress(account.address)}
+        //Currently only show account type label for ledger accounts for unknown reasons
+        //TODO: should display account type label for all hardware wallets and imported accounts after confirmed
+        accountTypeLabel={getLabel(account.address)}
         showAddress={false}
         cellAccountContainerStyle={styles.account}
         style={styles.accountPicker}

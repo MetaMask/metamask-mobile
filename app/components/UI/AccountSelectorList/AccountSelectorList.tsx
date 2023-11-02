@@ -12,11 +12,7 @@ import Cell, {
 import { useStyles } from '../../../component-library/hooks';
 import Text from '../../../component-library/components/Texts/Text';
 import AvatarGroup from '../../../component-library/components/Avatars/AvatarGroup';
-import {
-  formatAddress,
-  safeToChecksumAddress,
-  getLabelTextByAddress,
-} from '../../../util/address';
+import { formatAddress, safeToChecksumAddress } from '../../../util/address';
 import { AvatarAccountType } from '../../../component-library/components/Avatars/Avatar/variants/AvatarAccount';
 import { isDefaultAccountName } from '../../../util/ENSUtils';
 import { strings } from '../../../../locales/i18n';
@@ -30,6 +26,7 @@ import { AccountSelectorListProps } from './AccountSelectorList.types';
 import styleSheet from './AccountSelectorList.styles';
 import generateTestId from '../../../../wdio/utils/generateTestId';
 import { ACCOUNT_BALANCE_BY_ADDRESS_TEST_ID } from '../../../../wdio/screen-objects/testIDs/Components/AccountListComponent.testIds.js';
+import { HardwareDeviceNames } from '../../../core/Ledger/Ledger';
 
 const AccountSelectorList = ({
   onSelectAccount,
@@ -56,6 +53,21 @@ const AccountSelectorList = ({
   );
 
   const getKeyExtractor = ({ address }: Account) => address;
+
+  const getTagLabel = (type: KeyringTypes | HardwareDeviceNames) => {
+    let label = '';
+    switch (type) {
+      case KeyringTypes.qr:
+        label = strings('accounts.qr_hardware');
+        break;
+      case KeyringTypes.simple:
+        label = strings('accounts.imported');
+        break;
+      case HardwareDeviceNames.ledger:
+        label = strings('accounts.ledger');
+    }
+    return label;
+  };
 
   const renderAccountBalances = useCallback(
     ({ fiatBalance, tokens }: Assets, address: string) => (
@@ -143,7 +155,7 @@ const AccountSelectorList = ({
       index,
     }) => {
       const shortAddress = formatAddress(address, 'short');
-      const tagLabel = getLabelTextByAddress(address);
+      const tagLabel = getTagLabel(type);
       const ensName = ensByAccountAddress[address];
       const accountName =
         isDefaultAccountName(name) && ensName ? ensName : name;
@@ -181,7 +193,7 @@ const AccountSelectorList = ({
             type: accountAvatarType,
             accountAddress: address,
           }}
-          tagLabel={tagLabel ? strings(tagLabel) : tagLabel}
+          tagLabel={tagLabel}
           disabled={isDisabled}
           style={cellStyle}
         >

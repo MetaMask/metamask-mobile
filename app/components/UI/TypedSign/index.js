@@ -19,6 +19,8 @@ import {
   showWalletConnectNotification,
   typedSign,
 } from '../../../util/confirmation/signatureUtils';
+import { isExternalHardwareAccount } from '../../../util/address';
+import createExternalSignModelNav from '../../../util/hardwareWallet/signatureUtils';
 
 const createStyles = (colors) =>
   StyleSheet.create({
@@ -125,13 +127,24 @@ class TypedSign extends PureComponent {
   };
 
   confirmSignature = async () => {
-    const { messageParams, onConfirm } = this.props;
-    await handleSignatureAction(
-      onConfirm,
-      messageParams,
-      typedSign[messageParams.version],
-      true,
-    );
+    const { messageParams, onConfirm, onReject, navigation } = this.props;
+    if (!isExternalHardwareAccount(messageParams.from)) {
+      await handleSignatureAction(
+        onConfirm,
+        messageParams,
+        typedSign[messageParams.version],
+        true,
+      );
+    } else {
+      navigation.navigate(
+        ...(await createExternalSignModelNav(
+          onReject,
+          onConfirm,
+          messageParams,
+          typedSign[messageParams.version],
+        )),
+      );
+    }
   };
 
   shouldTruncateMessage = (e) => {

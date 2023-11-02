@@ -10,13 +10,17 @@ import {
   renderAccountName,
   renderShortAddress,
   safeToChecksumAddress,
-  getLabelTextByAddress,
 } from '../../../util/address';
 import {
   getActiveTabUrl,
   getNormalizedTxState,
   getTicker,
 } from '../../../util/transactions';
+import Engine from '../../../core/Engine';
+import {
+  QR_HARDWARE_WALLET_DEVICE,
+  LEDGER_DEVICE,
+} from '../../../constants/keyringTypes';
 import Device from '../../../util/device';
 import { ThemeContext, mockTheme } from '../../../util/theme';
 import { selectTicker } from '../../../selectors/networkController';
@@ -136,6 +140,25 @@ class AccountInfoCard extends PureComponent {
     origin: PropTypes.string,
   };
 
+  state = {
+    isHardwareKeyring: false,
+    isLedgerKeyring: false,
+  };
+
+  componentDidMount() {
+    const { KeyringController } = Engine.context;
+    const { fromAddress } = this.props;
+    KeyringController.getAccountKeyringType(fromAddress).then((type) => {
+      if ([QR_HARDWARE_WALLET_DEVICE, LEDGER_DEVICE].includes(type)) {
+        this.setState({ isHardwareKeyring: true });
+
+        if (type === LEDGER_DEVICE) {
+          this.setState({ isLedgerKeyring: true });
+        }
+      }
+    });
+  }
+
   render() {
     const {
       accounts,
@@ -152,7 +175,7 @@ class AccountInfoCard extends PureComponent {
     } = this.props;
 
     const fromAddress = safeToChecksumAddress(rawFromAddress);
-    const accountLabelTag = getLabelTextByAddress(fromAddress);
+    const { isHardwareKeyring, isLedgerKeyring } = this.state;
     const colors = this.context.colors || mockTheme.colors;
     const styles = createStyles(colors);
     const weiBalance = accounts?.[fromAddress]?.balance
@@ -186,7 +209,7 @@ class AccountInfoCard extends PureComponent {
               numberOfLines={1}
               style={[
                 styles.accountName,
-                accountLabelTag ? styles.accountNameSmall : undefined,
+                isHardwareKeyring ? styles.accountNameSmall : undefined,
               ]}
             >
               {accountLabel}
@@ -195,7 +218,7 @@ class AccountInfoCard extends PureComponent {
               numberOfLines={1}
               style={[
                 styles.accountAddress,
-                accountLabelTag ? styles.accountAddressSmall : undefined,
+                isHardwareKeyring ? styles.accountAddressSmall : undefined,
               ]}
             >
               ({address})
@@ -205,16 +228,20 @@ class AccountInfoCard extends PureComponent {
             numberOfLines={1}
             style={[
               styles.balanceText,
-              accountLabelTag ? styles.balanceTextSmall : undefined,
+              isHardwareKeyring ? styles.balanceTextSmall : undefined,
             ]}
           >
             {strings('signature_request.balance_title')}{' '}
             {showFiatBalance ? dollarBalance : ''} {balance}
           </Text>
         </View>
-        {accountLabelTag && (
+        {isHardwareKeyring && (
           <View style={styles.tag}>
-            <Text style={styles.tagText}>{strings(accountLabelTag)}</Text>
+            <Text style={styles.tagText}>
+              {isLedgerKeyring
+                ? strings('accounts.ledger')
+                : strings('accounts.qr_hardware')}
+            </Text>
           </View>
         )}
       </View>

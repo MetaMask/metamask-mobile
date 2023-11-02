@@ -2,6 +2,7 @@
 import React, { useCallback } from 'react';
 import { View, Platform } from 'react-native';
 import { useSelector } from 'react-redux';
+import { KeyringTypes } from '@metamask/keyring-controller';
 
 // External dependencies.
 import SheetActions from '../../../../component-library/components-temp/SheetActions';
@@ -19,7 +20,7 @@ import Button, {
 } from '../../../../component-library/components/Buttons/Button';
 import { AvatarVariants } from '../../../../component-library/components/Avatars/Avatar';
 import { AvatarAccountType } from '../../../../component-library/components/Avatars/Avatar/variants/AvatarAccount';
-import { formatAddress, getLabelTextByAddress } from '../../../../util/address';
+import { formatAddress } from '../../../../util/address';
 import Icon, {
   IconName,
 } from '../../../../component-library/components/Icons/Icon';
@@ -36,6 +37,7 @@ import {
   CONNECT_BUTTON_ID,
 } from '../../../../../app/constants/test-ids';
 import generateTestId from '../../../../../wdio/utils/generateTestId';
+import { HardwareDeviceNames } from '../../../../core/Ledger/Ledger';
 
 const AccountConnectSingle = ({
   defaultSelectedAccount,
@@ -52,6 +54,25 @@ const AccountConnectSingle = ({
     state.settings.useBlockieIcon
       ? AvatarAccountType.Blockies
       : AvatarAccountType.JazzIcon,
+  );
+
+  const getTagLabel = useCallback(
+    (type: KeyringTypes | HardwareDeviceNames) => {
+      let label = '';
+      switch (type) {
+        case KeyringTypes.qr:
+          label = strings('accounts.qr_hardware');
+          break;
+        case KeyringTypes.simple:
+          label = strings('accounts.imported');
+          break;
+        case HardwareDeviceNames.ledger:
+          label = strings('accounts.ledger');
+          break;
+      }
+      return label;
+    },
+    [],
   );
 
   const renderSheetAction = useCallback(
@@ -115,9 +136,9 @@ const AccountConnectSingle = ({
 
   const renderSelectedAccount = useCallback(() => {
     if (!defaultSelectedAccount) return null;
-    const { name, address, balanceError } = defaultSelectedAccount;
+    const { name, address, type, balanceError } = defaultSelectedAccount;
     const shortAddress = formatAddress(address, 'short');
-    const tagLabel = getLabelTextByAddress(address);
+    const tagLabel = getTagLabel(type);
 
     return (
       <Cell
@@ -131,7 +152,7 @@ const AccountConnectSingle = ({
           type: accountAvatarType,
           accountAddress: address,
         }}
-        tagLabel={tagLabel ? strings(tagLabel) : ''}
+        tagLabel={tagLabel}
         disabled={isLoading}
         style={isLoading && styles.disabled}
       >
@@ -146,6 +167,7 @@ const AccountConnectSingle = ({
     defaultSelectedAccount,
     isLoading,
     styles,
+    getTagLabel,
   ]);
 
   return (

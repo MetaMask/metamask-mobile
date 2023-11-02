@@ -20,6 +20,8 @@ import securityReducer from './security';
 import { combineReducers, Reducer } from 'redux';
 import experimentalSettingsReducer from './experimentalSettings';
 import { EngineState } from '../core/Engine';
+import rpcEventReducer from './rpcEvents';
+import accountsReducer from './accounts';
 
 /**
  * Infer state from a reducer
@@ -60,6 +62,8 @@ export interface RootState {
   security: StateFromReducer<typeof securityReducer>;
   // The experimentalSettings reducer is TypeScript but not yet a valid reducer
   experimentalSettings: any;
+  rpcEvents: any;
+  accounts: any;
 }
 
 // TODO: Fix the Action type. It's set to `any` now because some of the
@@ -85,6 +89,8 @@ const rootReducer = combineReducers<RootState, any>({
   networkOnboarded: networkOnboardReducer,
   security: securityReducer,
   experimentalSettings: experimentalSettingsReducer,
+  rpcEvents: rpcEventReducer,
+  accounts: accountsReducer,
 });
 
 export default rootReducer;

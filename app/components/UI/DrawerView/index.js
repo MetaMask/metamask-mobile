@@ -64,12 +64,15 @@ import { ScrollView } from 'react-native-gesture-handler';
 import { isZero } from '../../../util/lodash';
 import { Authentication } from '../../../core/';
 import { ThemeContext, mockTheme } from '../../../util/theme';
-import { getLabelTextByAddress } from '../../../util/address';
 import {
   onboardNetworkAction,
   networkSwitched,
 } from '../../../actions/onboardNetwork';
 import Routes from '../../../constants/navigation/Routes';
+import {
+  LEDGER_DEVICE,
+  QR_HARDWARE_WALLET_DEVICE,
+} from '../../../constants/keyringTypes';
 import { scale } from 'react-native-size-matters';
 import generateTestId from '../../../../wdio/utils/generateTestId';
 import { DRAWER_VIEW_LOCK_TEXT_ID } from '../../../../wdio/screen-objects/testIDs/Screens/DrawerView.testIds';
@@ -281,6 +284,9 @@ const createStyles = (colors) =>
       fontSize: 10,
       ...fontStyles.bold,
     },
+    keyringTypeText: {
+      color: colors.text.default,
+    },
     protectWalletContainer: {
       backgroundColor: colors.background.default,
       paddingTop: 24,
@@ -446,12 +452,22 @@ class DrawerView extends PureComponent {
     /**
      *  Boolean that determines the state of network info modal
      */
+    networkOnboardedState: PropTypes.array,
+    /**
+     * Decides if Ledger's transaction modal is visible
+     */
+    // ledgerTransactionModalVisible: PropTypes.bool,
     infoNetworkModalVisible: PropTypes.bool,
     /**
      * Redux action to close info network modal
      */
     toggleInfoNetworkModal: PropTypes.func,
   };
+
+  constructor(props) {
+    super(props);
+    this.ledgerModalTimer = null;
+  }
 
   state = {
     showProtectWalletModal: undefined,
@@ -490,6 +506,12 @@ class DrawerView extends PureComponent {
     return ret;
   }
 
+  componentWillUnmount() {
+    if (this.ledgerModalTimer) {
+      clearTimeout(this.ledgerModalTimer);
+    }
+  }
+
   getKeyringForSelectedAddress() {
     const { keyrings, selectedAddress } = this.props;
     const allKeyrings =
@@ -505,12 +527,34 @@ class DrawerView extends PureComponent {
   renderTag() {
     const colors = this.context.colors || mockTheme.colors;
     const styles = createStyles(colors);
-    const label = getLabelTextByAddress(this.getKeyringForSelectedAddress());
+    //get all address from keyring where contain the selected address
+    const keyringOfSelectedAddress = this.getKeyringForSelectedAddress();
+
+    const accountTypeLabel = () => {
+      if (!keyringOfSelectedAddress) {
+        return strings('accounts.imported');
+      } else if (
+        [LEDGER_DEVICE, QR_HARDWARE_WALLET_DEVICE].includes(
+          keyringOfSelectedAddress.type,
+        )
+      ) {
+        if (keyringOfSelectedAddress.type === LEDGER_DEVICE) {
+          return strings('accounts.ledger');
+        }
+        return strings('accounts.qr_hardware');
+      }
+      return null;
+    };
+
+    const label = accountTypeLabel();
 
     return label ? (
-      <View style={[styles.importedWrapper]}>
-        <Text numberOfLines={1} style={styles.importedText}>
-          {strings(label)}
+      <View
+        //TODO keyringTypeWrapper is undefined
+        style={[styles.keyringTypeWrapper, styles.hardwareKeyringTypeWrapper]}
+      >
+        <Text numberOfLines={1} style={styles.keyringTypeText}>
+          {label}
         </Text>
       </View>
     ) : null;
@@ -1257,6 +1301,7 @@ const mapStateToProps = (state) => ({
   keyrings: state.engine.backgroundState.KeyringController.keyrings,
   networkModalVisible: state.modals.networkModalVisible,
   receiveModalVisible: state.modals.receiveModalVisible,
+  ledgerTransactionModalVisible: state.modals.ledgerTransactionModalVisible,
   infoNetworkModalVisible: state.modals.infoNetworkModalVisible,
   passwordSet: state.user.passwordSet,
   wizard: state.wizard,
