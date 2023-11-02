@@ -9,7 +9,7 @@ import SelectOption from '../SelectOption/SelectOption';
 import { default as SelectWrapperComponent } from './SelectWrapper';
 
 const SelectWrapperStoryMeta = {
-  title: 'Component Library / SelectWrapper',
+  title: 'Component Library / Select',
   component: SelectWrapperComponent,
 };
 
@@ -17,7 +17,7 @@ export default SelectWrapperStoryMeta;
 
 export const SelectWrapper = {
   render: (args: any) => (
-    <SelectWrapperComponent {...args} placeholder="Test">
+    <SelectWrapperComponent placeholder="Test">
       <SelectOption label="label1" />
     </SelectWrapperComponent>
   ),

@@ -4,7 +4,7 @@ import { SelectButtonSize } from './SelectButton.types';
 import { SAMPLE_SELECTBUTTON_PROPS } from './SelectButton.constants';
 
 const SelectButtonStoryMeta = {
-  title: 'Component Library / SelectButton',
+  title: 'Component Library / Select',
   component: SelectButtonComponent,
   argTypes: {
     size: {

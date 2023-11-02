@@ -16,7 +16,7 @@ const SelectButtonBase: React.FC<SelectButtonBaseProps> = ({
   style,
   iconEl,
   iconProps,
-  title,
+  label,
   description,
   startAccessory,
   children,
@@ -37,7 +37,7 @@ const SelectButtonBase: React.FC<SelectButtonBaseProps> = ({
         style={styles.value}
         iconEl={iconEl}
         iconProps={iconProps}
-        title={title}
+        label={label}
         description={description}
         startAccessory={startAccessory}
         endAccessory={endAccessory}
