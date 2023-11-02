@@ -3,7 +3,6 @@ import renderWithProvider from '../../../../util/test/renderWithProvider';
 
 import SecuritySettings from './SecuritySettings';
 import initialBackgroundState from '../../../../util/test/initial-background-state.json';
-import { CHANGE_PASSWORD_TITLE_ID } from '../../../../constants/test-ids';
 import { AUTO_LOCK_SECTION } from './Sections/AutoLock/constants';
 import {
   BATCH_BALANCE_REQUESTS_SECTION,
@@ -21,6 +20,7 @@ import {
   THIRD_PARTY_SECTION,
   TURN_ON_REMEMBER_ME,
 } from './SecuritySettings.constants';
+import { SecurityPrivacyViewSelectorsIDs } from '../../../../../e2e/selectors/Settings/SecurityAndPrivacy/SecurityPrivacyView.selectors';
 
 const initialState = {
   privacy: { approvedHosts: {} },
@@ -88,7 +88,9 @@ describe('SecuritySettings', () => {
       },
     );
     expect(getByText('Protect your wallet')).toBeTruthy();
-    expect(getByTestId(CHANGE_PASSWORD_TITLE_ID)).toBeTruthy();
+    expect(
+      getByTestId(SecurityPrivacyViewSelectorsIDs.CHANGE_PASSWORD_TITLE),
+    ).toBeTruthy();
     expect(getByTestId(AUTO_LOCK_SECTION)).toBeTruthy();
     expect(getByTestId(LOGIN_OPTIONS)).toBeTruthy();
     expect(getByTestId(TURN_ON_REMEMBER_ME)).toBeTruthy();

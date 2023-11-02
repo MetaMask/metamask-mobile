@@ -112,6 +112,10 @@ export default class WalletView {
     await TestHelpers.checkIfExists(NOTIFICATION_TITLE);
   }
 
+  static async toastNotificationNotVisible() {
+    await TestHelpers.checkIfNotVisible(NOTIFICATION_TITLE);
+  }
+
   static async isNotVisible() {
     await TestHelpers.checkIfNotVisible(WALLET_CONTAINER_ID);
   }
