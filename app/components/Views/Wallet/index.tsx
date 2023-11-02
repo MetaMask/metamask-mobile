@@ -44,6 +44,12 @@ import {
 } from '../../../selectors/currencyRateController';
 import { selectAccounts } from '../../../selectors/accountTrackerController';
 import { selectSelectedAddress } from '../../../selectors/preferencesController';
+import {
+  // addBreadcrumb,
+  captureException,
+  // captureMessage,
+  // withScope,
+} from '@sentry/react-native';
 
 const createStyles = ({ colors, typography }: Theme) =>
   StyleSheet.create({
@@ -230,7 +236,8 @@ const Wallet = ({ navigation }: any) => {
   );
 
   const onChangeTab = useCallback((obj) => {
-    Logger.error('I changed tabs', 'im a string');
+    const dummyError = new Error('Im a dummy error');
+    captureException(dummyError);
     InteractionManager.runAfterInteractions(() => {
       if (obj.ref.props.tabLabel === strings('wallet.tokens')) {
         Analytics.trackEvent(MetaMetricsEvents.WALLET_TOKENS);
