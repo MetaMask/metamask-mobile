@@ -44,7 +44,7 @@ exports[`AccountApproval should render correctly 1`] = `
           onLoadEnd={[Function]}
           source={
             Object {
-              "uri": "https://api.faviconkit.com//50",
+              "uri": undefined,
             }
           }
           style={
