@@ -1,6 +1,6 @@
 'use strict';
 import TestHelpers from '../../helpers';
-import { Regression } from '../../tags';
+import { Smoke } from '../../tags';
 
 import Browser from '../../pages/Drawer/Browser';
 
@@ -12,7 +12,7 @@ import FixtureBuilder from '../../fixtures/fixture-builder';
 import { withFixtures } from '../../fixtures/fixture-helper';
 import { loginToApp } from '../../viewHelper';
 
-describe(Regression('Revoke Single Account after connecting to a dapp'), () => {
+describe(Smoke('Revoke Single Account after connecting to a dapp'), () => {
   beforeAll(async () => {
     jest.setTimeout(150000);
     await TestHelpers.reverseServerPort();
