@@ -69,6 +69,7 @@ import { getVaultFromBackup } from '../../../core/BackupVault';
 import { containsErrorMessage } from '../../../util/errorHandling';
 import { MetaMetricsEvents } from '../../../core/Analytics';
 import { selectSelectedAddress } from '../../../selectors/preferencesController';
+import { RevealSeedViewSelectorsIDs } from '../../../../e2e/selectors/Settings/SecurityAndPrivacy/RevealSeedView.selectors';
 
 const deviceHeight = Device.getDeviceHeight();
 const breakPoint = deviceHeight < 700;
@@ -548,7 +549,7 @@ class Login extends PureComponent {
                   style={styles.input}
                   placeholder={strings('login.password')}
                   placeholderTextColor={colors.text.muted}
-                  testID={'login-password-input'}
+                  testID={RevealSeedViewSelectorsIDs.PASSWORD_INPUT}
                   {...generateTestId(Platform, LOGIN_VIEW_PASSWORD_INPUT_ID)}
                   returnKeyType={'done'}
                   autoCapitalize="none"
