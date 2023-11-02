@@ -10,6 +10,11 @@ import { ThemeContext, mockTheme } from '../../../../util/theme';
 import Root from '.';
 import { ApprovalTypes } from '../../../../core/RPCMethods/RPCMethodMiddleware';
 
+jest.mock('../../../../util/address', () => ({
+  ...jest.requireActual('../../../../util/address'),
+  renderAccountName: jest.fn(),
+}));
+
 jest.mock('react-native-keyboard-aware-scroll-view', () => {
   const KeyboardAwareScrollView = jest.requireActual('react-native').ScrollView;
   return { KeyboardAwareScrollView };
@@ -60,6 +65,9 @@ const messageParamsMock = {
 
 const mockStore = configureMockStore();
 const initialState = {
+  modals: {
+    signMessageModalVisible: false,
+  },
   settings: {},
   engine: {
     backgroundState: {
@@ -92,12 +100,16 @@ const store = mockStore(initialState);
 describe('Root', () => {
   it('should render correctly', () => {
     const wrapper = shallow(
-      <Root
-        messageParams={undefined}
-        approvalType={undefined}
-        onSignConfirm={() => undefined}
-        onSignReject={() => undefined}
-      />,
+      <Provider store={store}>
+        <ThemeContext.Provider value={mockTheme}>
+          <Root
+            messageParams={undefined}
+            approvalType={undefined}
+            onSignConfirm={() => undefined}
+            onSignReject={() => undefined}
+          />
+        </ThemeContext.Provider>
+      </Provider>,
     );
     expect(wrapper).toMatchSnapshot();
   });
