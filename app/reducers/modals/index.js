@@ -5,6 +5,12 @@ const initialState = {
   receiveModalVisible: false,
   receiveAsset: undefined,
   dappTransactionModalVisible: false,
+  approveModalVisible: false,
+  ledgerTransactionModalVisible: false,
+  ledgerSignMessageModalVisible: false,
+  signMessageModalVisible: true,
+  ledgerTransactionActionParams: {},
+  ledgerSignMessageActionParams: {},
 };
 
 const modalsReducer = (state = initialState, action) => {
@@ -51,6 +57,17 @@ const modalsReducer = (state = initialState, action) => {
       return {
         ...state,
         infoNetworkModalVisible: !state.infoNetworkModalVisible,
+      };
+    case 'TOGGLE_SIGN_MODAL':
+      if (action.show === false) {
+        return {
+          ...state,
+          signMessageModalVisible: false,
+        };
+      }
+      return {
+        ...state,
+        signMessageModalVisible: !state.signMessageModalVisible,
       };
     default:
       return state;
