@@ -4020,10 +4020,10 @@
   resolved "https://registry.yarnpkg.com/@metamask/slip44/-/slip44-3.1.0.tgz#f8067796f89fbbd6eaa594660bd6a1fbd6837a51"
   integrity sha512-bFlJ8jhTYJ4iQ0zgh2WMO2615UJ4Ne5J831EjsqKYaZs3qd6UTw/cy76hAmSxhnBluNAH5S6zZzxESLrTitCmQ==
 
-"@metamask/snaps-controllers@2.0.0":
-  version "2.0.0"
-  resolved "https://registry.yarnpkg.com/@metamask/snaps-controllers/-/snaps-controllers-2.0.0.tgz#6400bd613116556016f73c62b66785aaf4ebd521"
-  integrity sha512-u0fKfSWTgAsYCfYFkMY8btFV4mbbsR6pSMgRb1fvg3pbrJUH528SBVyB1tZEXQYy/4L1zUiFyj2DfeOez1eqTQ==
+"@metamask/snaps-controllers@2.0.2":
+  version "2.0.2"
+  resolved "https://registry.yarnpkg.com/@metamask/snaps-controllers/-/snaps-controllers-2.0.2.tgz#e673d1bd9655def9cc1e0bbba247bb25110c0d30"
+  integrity sha512-ZW90M6MMlWU6OnrFDe6zmOcnJVFtzzxo+K7MT8PeHpgxZZuofa5gOwzJe/Zio2Li4oQqP6m2Jkz2LPzSvPFdpQ==
   dependencies:
     "@metamask/approval-controller" "^3.5.0"
     "@metamask/base-controller" "^3.2.0"
@@ -4031,9 +4031,9 @@
     "@metamask/permission-controller" "^4.1.0"
     "@metamask/post-message-stream" "^7.0.0"
     "@metamask/rpc-methods" "^2.0.0"
-    "@metamask/snaps-execution-environments" "^2.0.0"
+    "@metamask/snaps-execution-environments" "^2.0.1"
     "@metamask/snaps-registry" "^2.0.0"
-    "@metamask/snaps-utils" "^2.0.0"
+    "@metamask/snaps-utils" "^2.0.1"
     "@metamask/utils" "^8.1.0"
     "@xstate/fsm" "^2.0.0"
     concat-stream "^2.0.0"
@@ -4046,7 +4046,7 @@
     readable-web-to-node-stream "^3.0.2"
     tar-stream "^2.2.0"
 
-"@metamask/snaps-execution-environments@^2.0.0":
+"@metamask/snaps-execution-environments@^2.0.1":
   version "2.0.1"
   resolved "https://registry.yarnpkg.com/@metamask/snaps-execution-environments/-/snaps-execution-environments-2.0.1.tgz#1c21dc2fd540900bfae24123d4f756faac28ca55"
   integrity sha512-aY6cKozak6hcHzE8hQd8elnebXsYon7YGz/T3knskk9IQxZVh8Nv++Fau9YxsKRryfNJUnlvsrerWbE5+b3R7Q==
