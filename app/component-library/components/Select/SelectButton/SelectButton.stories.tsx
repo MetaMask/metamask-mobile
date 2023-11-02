@@ -14,9 +14,9 @@ const SelectButtonStoryMeta = {
       },
       defaultValue: SAMPLE_SELECTBUTTON_PROPS.size,
     },
-    title: {
+    label: {
       control: { type: 'text' },
-      defaultValue: SAMPLE_SELECTBUTTON_PROPS.title,
+      defaultValue: SAMPLE_SELECTBUTTON_PROPS.label,
     },
     description: {
       control: { type: 'text' },

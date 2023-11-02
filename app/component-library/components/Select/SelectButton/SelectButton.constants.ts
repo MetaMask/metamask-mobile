@@ -32,7 +32,7 @@ export const ICONSIZE_BY_SELECTBUTTONSIZE: IconSizeBySelectButtonSize = {
 // Sample consts
 export const SAMPLE_SELECTBUTTON_PROPS: SelectButtonProps = {
   size: DEFAULT_SELECTBUTTON_SIZE,
-  title: 'Sample SelectButton title',
+  label: 'Sample SelectButton title',
   description: 'Sample SelectButton description',
   isDisabled: false,
   isDanger: false,

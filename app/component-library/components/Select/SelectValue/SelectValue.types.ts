@@ -33,11 +33,11 @@ export interface SelectValueProps extends SelectValueBaseProps {
    */
   iconProps?: AvatarProps;
   /**
-   * Optional prop for title of the SelectValue.
+   * Optional prop for label of the SelectValue.
    */
-  title?: string | React.ReactNode;
+  label?: string | React.ReactNode;
   /**
-   * Optional description below the title.
+   * Optional description below the label.
    */
   description?: string | React.ReactNode;
 }

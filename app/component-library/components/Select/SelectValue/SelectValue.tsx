@@ -13,8 +13,8 @@ import styleSheet from './SelectValue.styles';
 import { SelectValueProps } from './SelectValue.types';
 import SelectValueBase from './foundation/SelectValueBase';
 import {
-  DEFAULT_SELECTVALUE_TITLE_TEXTCOLOR,
-  DEFAULT_SELECTVALUE_TITLE_TEXTVARIANT,
+  DEFAULT_SELECTVALUE_LABEL_TEXTCOLOR,
+  DEFAULT_SELECTVALUE_LABEL_TEXTVARIANT,
   DEFAULT_SELECTVALUE_DESCRIPTION_TEXTCOLOR,
   DEFAULT_SELECTVALUE_DESCRIPTION_TEXTVARIANT,
 } from './SelectValue.constants';
@@ -23,7 +23,7 @@ const SelectValue: React.FC<SelectValueProps> = ({
   style,
   iconEl,
   iconProps,
-  title,
+  label,
   description,
   children,
   startAccessory,
@@ -34,16 +34,16 @@ const SelectValue: React.FC<SelectValueProps> = ({
     style,
   });
 
-  const renderTitle = () =>
-    typeof title === 'string' ? (
+  const renderLabel = () =>
+    typeof label === 'string' ? (
       <Text
-        variant={DEFAULT_SELECTVALUE_TITLE_TEXTVARIANT}
-        color={DEFAULT_SELECTVALUE_TITLE_TEXTCOLOR}
+        variant={DEFAULT_SELECTVALUE_LABEL_TEXTVARIANT}
+        color={DEFAULT_SELECTVALUE_LABEL_TEXTCOLOR}
       >
-        {title}
+        {label}
       </Text>
     ) : (
-      title
+      label
     );
   const renderDescription = () =>
     typeof description === 'string' ? (
@@ -78,7 +78,7 @@ const SelectValue: React.FC<SelectValueProps> = ({
     >
       {children || (
         <>
-          {title && renderTitle()}
+          {label && renderLabel()}
           {description && renderDescription()}
         </>
       )}
