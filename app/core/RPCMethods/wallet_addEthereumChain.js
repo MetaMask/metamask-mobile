@@ -296,23 +296,24 @@ const wallet_addEthereumChain = async ({
       throw ethErrors.provider.userRejectedRequest();
     }
 
-    const networkConfigurationId = NetworkController.upsertNetworkConfiguration(
-      {
-        rpcUrl: firstValidRPCUrl,
-        chainId: chainIdDecimal,
-        ticker,
-        nickname: chainName,
-        rpcPrefs: {
-          blockExplorerUrl: firstValidBlockExplorerUrl,
+    const networkConfigurationId =
+      await NetworkController.upsertNetworkConfiguration(
+        {
+          rpcUrl: firstValidRPCUrl,
+          chainId: chainIdDecimal,
+          ticker,
+          nickname: chainName,
+          rpcPrefs: {
+            blockExplorerUrl: firstValidBlockExplorerUrl,
+          },
         },
-      },
-      {
-        // Metrics-related properties required, but the metric event is a no-op
-        // TODO: Use events for controller metric events
-        referrer: 'ignored',
-        source: 'ignored',
-      },
-    );
+        {
+          // Metrics-related properties required, but the metric event is a no-op
+          // TODO: Use events for controller metric events
+          referrer: 'ignored',
+          source: 'ignored',
+        },
+      );
 
     AnalyticsV2.trackEvent(MetaMetricsEvents.NETWORK_ADDED, analyticsParamsAdd);
 
