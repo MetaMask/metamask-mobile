@@ -1,12 +1,12 @@
 diff --git a/node_modules/react-native/Libraries/Core/InitializeCore.js b/node_modules/react-native/Libraries/Core/InitializeCore.js
-index 1379ffd..22eb577 100644
+index 1379ffd..78056e3 100644
 --- a/node_modules/react-native/Libraries/Core/InitializeCore.js
 +++ b/node_modules/react-native/Libraries/Core/InitializeCore.js
 @@ -24,15 +24,36 @@
  
  'use strict';
  
-+require('../../../../ses.cjs'); // Soon to be released ses@0.18.8
++require('../../../../ses.cjs'); // ses@0.18.8
 +
 +/**
 + * Without consoleTaming: 'unsafe' causes:
