@@ -24,7 +24,7 @@ import AndroidService from './AndroidSDK/AndroidService';
 import RPCQueueManager from './RPCQueueManager';
 import DevLogger from './utils/DevLogger';
 import { wait, waitForKeychainUnlocked } from './utils/wait.util';
-import { Connection, ConnectionProps } from './Connection';
+import { Connection, ConnectionProps, RPC_METHODS } from './Connection';
 
 export const MIN_IN_MS = 1000 * 60;
 export const HOUR_IN_MS = MIN_IN_MS * 60;
@@ -56,23 +56,24 @@ export type SDKEventListener = (event: string) => void;
 export const CONNECTION_LOADING_EVENT = 'loading';
 
 export const METHODS_TO_REDIRECT: { [method: string]: boolean } = {
-  eth_requestAccounts: true,
-  eth_sendTransaction: true,
-  eth_signTransaction: true,
-  eth_sign: true,
-  personal_sign: true,
-  eth_signTypedData: true,
-  eth_signTypedData_v3: true,
-  eth_signTypedData_v4: true,
-  wallet_watchAsset: true,
-  wallet_addEthereumChain: true,
-  wallet_switchEthereumChain: true,
-  metamask_connectSign: true,
+  [RPC_METHODS.ETH_REQUESTACCOUNTS]: true,
+  [RPC_METHODS.ETH_SENDTRANSACTION]: true,
+  [RPC_METHODS.ETH_SIGNTRANSACTION]: true,
+  [RPC_METHODS.ETH_SIGN]: true,
+  [RPC_METHODS.PERSONAL_SIGN]: true,
+  [RPC_METHODS.ETH_SIGNTRANSACTION]: true,
+  [RPC_METHODS.ETH_SIGNTYPEDEATAV3]: true,
+  [RPC_METHODS.ETH_SIGNTYPEDEATAV4]: true,
+  [RPC_METHODS.WALLET_WATCHASSET]: true,
+  [RPC_METHODS.WALLET_ADDETHEREUMCHAIN]: true,
+  [RPC_METHODS.WALLET_SWITCHETHEREUMCHAIN]: true,
+  [RPC_METHODS.METAMASK_CONNECTSIGN]: true,
+  [RPC_METHODS.METAMASK_BATCH]: true,
 };
 
 export const METHODS_TO_DELAY: { [method: string]: boolean } = {
   ...METHODS_TO_REDIRECT,
-  eth_requestAccounts: false,
+  [RPC_METHODS.ETH_REQUESTACCOUNTS]: false,
 };
 
 export class SDKConnect extends EventEmitter2 {
@@ -203,6 +204,9 @@ export class SDKConnect extends EventEmitter2 {
       const host = AppConstants.MM_SDK.SDK_REMOTE_ORIGIN + connection.channelId;
       // Prevent disabled connection ( if user chose do not remember session )
       const isDisabled = this.disabledHosts[host]; // should be 0 when disabled.
+      DevLogger.log(
+        `SDKConnect::watchConnection CLIENTS_DISCONNECTED channel=${connection.channelId} origin=${connection.origin} isDisabled=${isDisabled}`,
+      );
       if (isDisabled !== undefined) {
         this.updateSDKLoadingState({
           channelId: connection.channelId,
@@ -379,7 +383,7 @@ export class SDKConnect extends EventEmitter2 {
       }
     }
 
-    await wait(1000);
+    await wait(600);
     const keyringController = (
       Engine.context as { KeyringController: KeyringController }
     ).KeyringController;
@@ -542,6 +546,11 @@ export class SDKConnect extends EventEmitter2 {
   }
 
   public removeChannel(channelId: string, sendTerminate?: boolean) {
+    DevLogger.log(
+      `SDKConnect::removeChannel ${channelId} sendTerminate=${sendTerminate} connectedted=${
+        this.connected[channelId] !== undefined
+      }`,
+    );
     if (this.connected[channelId]) {
       try {
         this.connected[channelId].removeConnection({
