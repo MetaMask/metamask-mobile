@@ -31,10 +31,20 @@ import { useStyles } from '../../../../hooks/useStyles';
 
 const InstallSnapConnectionRequest = ({
   requestData,
+  requestState,
   onConfirm,
   onCancel,
 }: InstallSnapFlowProps) => {
   const { styles } = useStyles(styleSheet, {});
+  console.log(
+    'SNAPS/ InstallSnapConnectionRequest.tsx/ requestData: ',
+    JSON.stringify(requestData, null, 2),
+  );
+
+  console.log(
+    'SNAPS/ InstallSnapConnectionRequest.tsx/ requestState: ',
+    JSON.stringify(requestState, null, 2),
+  );
 
   const snapName = useMemo(() => {
     const colonIndex = requestData.snapId.indexOf(':');

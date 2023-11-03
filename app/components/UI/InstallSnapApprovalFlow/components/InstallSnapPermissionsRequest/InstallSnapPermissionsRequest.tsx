@@ -35,18 +35,18 @@ const InstallSnapPermissionsRequest = ({
   onCancel,
 }: InstallSnapFlowProps) => {
   const { styles } = useStyles(stylesheet, {});
-  const snapName = useMemo(() => {
-    const colonIndex = requestData.snapId.indexOf(':');
-    if (colonIndex !== -1) {
-      return requestData.snapId.substring(colonIndex + 1);
-    }
-    return requestData.snapId;
-  }, [requestData.snapId]);
+  // const snapName = useMemo(() => {
+  //   const colonIndex = requestData.snapId.indexOf(':');
+  //   if (colonIndex !== -1) {
+  //     return requestData.snapId.substring(colonIndex + 1);
+  //   }
+  //   return requestData.snapId;
+  // }, [requestData.snapId]);
 
-  const dappOrigin = useMemo(
-    () => requestData.metadata.dappOrigin,
-    [requestData.metadata.dappOrigin],
-  );
+  // const dappOrigin = useMemo(
+  //   () => requestData.metadata.dappOrigin,
+  //   [requestData.metadata.dappOrigin],
+  // );
 
   const cancelButtonProps: ButtonProps = {
     variant: ButtonVariants.Secondary,
@@ -67,7 +67,7 @@ const InstallSnapPermissionsRequest = ({
   return (
     <View testID={SNAP_INSTALL_PERMISSIONS_REQUEST} style={styles.root}>
       <View style={styles.accountCardWrapper}>
-        <Cell
+        {/* <Cell
           style={styles.snapCell}
           variant={CellVariant.Display}
           title={snapName}
@@ -75,19 +75,19 @@ const InstallSnapPermissionsRequest = ({
             variant: AvatarVariants.Icon,
             name: IconName.Snaps,
           }}
-        />
+        /> */}
         <SheetHeader
           title={strings('install_snap.permissions_request_title')}
         />
-        <Text style={styles.description} variant={TextVariant.BodyMD}>
+        {/* <Text style={styles.description} variant={TextVariant.BodyMD}>
           {strings('install_snap.permissions_request_description', {
             origin: dappOrigin,
             snap: snapName,
           })}
-        </Text>
+        </Text> */}
         <ScrollView style={styles.snapPermissionContainer}>
           <SnapPermissions
-            permissions={requestState.permissions}
+            permissions={requestData.permissions}
             showLabel={false}
           />
         </ScrollView>

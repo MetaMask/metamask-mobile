@@ -327,15 +327,11 @@ export class BackgroundBridge extends EventEmitter {
           'SnapController:getPermitted',
           origin,
         ),
-        requestPermissions: async (requestedPermissions) => {
-          const [approvedPermissions] =
-            await Engine.context.PermissionController.requestPermissions(
-              { origin },
-              requestedPermissions,
-            );
-
-          return Object.values(approvedPermissions);
-        },
+        requestPermissions: async (requestedPermissions) =>
+          await Engine.context.PermissionController.requestPermissions(
+            { origin },
+            requestedPermissions,
+          ),
         getPermissions: Engine.context.PermissionController.getPermissions.bind(
           Engine.context.PermissionController,
           origin,

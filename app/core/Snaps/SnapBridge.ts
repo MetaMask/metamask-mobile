@@ -150,15 +150,11 @@ export default class SnapBridge {
           this.snapId,
         ),
 
-        requestPermissions: async (requestedPermissions: any) => {
-          const [approvedPermissions] =
-            await PermissionController.requestPermissions(
-              { origin: this.snapId },
-              requestedPermissions,
-            );
-
-          return Object.values(approvedPermissions);
-        },
+        requestPermissions: async (requestedPermissions) =>
+          await Engine.context.PermissionController.requestPermissions(
+            { origin },
+            requestedPermissions,
+          ),
         getPermissions: PermissionController.getPermissions.bind(
           PermissionController,
           this.snapId,

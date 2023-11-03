@@ -13,6 +13,11 @@ const useApprovalRequest = () => {
     | ApprovalRequest<any>
     | undefined;
 
+  console.log(
+    'SNAPS/ useApprovalRequest.ts: pendingApprovals: ',
+    JSON.stringify(pendingApprovals),
+  );
+
   const pageMeta = approvalRequest?.requestData?.pageMeta ?? {};
 
   const onConfirm = useCallback(
@@ -20,6 +25,7 @@ const useApprovalRequest = () => {
       opts?: Parameters<typeof Engine.acceptPendingApproval>[2],
       value?: Parameters<typeof Engine.acceptPendingApproval>[1],
     ) => {
+      console.log('SNAPS/ useApprovalRequest.ts: onConfirm:');
       if (!approvalRequest) return;
 
       await Engine.acceptPendingApproval(
@@ -39,6 +45,11 @@ const useApprovalRequest = () => {
       ethErrors.provider.userRejectedRequest(),
     );
   }, [approvalRequest]);
+
+  console.log(
+    'SNAPS/ useApprovalRequest.ts: pageMeta: ',
+    JSON.stringify(pageMeta, null, 2),
+  );
 
   return {
     approvalRequest: cloneDeep(approvalRequest),

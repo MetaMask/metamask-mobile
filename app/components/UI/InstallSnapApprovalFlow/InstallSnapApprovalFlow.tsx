@@ -17,6 +17,10 @@ const InstallSnapApprovalFlow = ({
   onFinish,
   onCancel,
 }: InstallSnapApprovalArgs) => {
+  console.log(
+    'SNAPS/ InstallSnapApprovalFlow.tsx/ requestDataProp: ',
+    JSON.stringify(requestDataProp, null, 2),
+  );
   const [installState, setInstallState] = useState<SnapInstallState>(
     SnapInstallState.Confirm,
   );
@@ -64,6 +68,7 @@ const InstallSnapApprovalFlow = ({
         return (
           <InstallSnapConnectionRequest
             requestData={requestData.requestData}
+            requestState={requestData.requestState}
             onConfirm={onConfirmNext}
             onCancel={onCancel}
           />
@@ -81,6 +86,7 @@ const InstallSnapApprovalFlow = ({
         return (
           <InstallSnapSuccess
             requestData={requestData.requestData}
+            requestState={requestData.requestState}
             onConfirm={onSnapInstalled}
             onCancel={onCancel}
           />
@@ -89,6 +95,7 @@ const InstallSnapApprovalFlow = ({
         return (
           <InstallSnapError
             requestData={requestData.requestData}
+            requestState={requestData.requestState}
             onConfirm={onSnapInstalled}
             onCancel={onCancel}
             error={installError}
