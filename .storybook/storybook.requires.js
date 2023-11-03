@@ -26,6 +26,13 @@ global.STORIES = [
   },
   {
     titlePrefix: "",
+    directory: "./app/component-library/components/BottomSheets",
+    files: "**/*.stories.?(ts|tsx|js|jsx)",
+    importPathMatcher:
+      "^\\.[\\\\/](?:app\\/component-library\\/components\\/BottomSheets(?:\\/(?!\\.)(?:(?:(?!(?:^|\\/)\\.).)*?)\\/|\\/|$)(?!\\.)(?=.)[^/]*?\\.stories\\.(?:ts|tsx|js|jsx)?)$",
+  },
+  {
+    titlePrefix: "",
     directory: "./app/component-library/components/Navigation",
     files: "**/*.stories.?(ts|tsx|js|jsx)",
     importPathMatcher:
@@ -127,6 +134,9 @@ const getStories = () => {
   return {
     "./app/component-library/components/Cards/Card/Card.stories.tsx": require("../app/component-library/components/Cards/Card/Card.stories.tsx"),
     "./app/component-library/components/Banners/Banner/variants/BannerAlert/BannerAlert.stories.tsx": require("../app/component-library/components/Banners/Banner/variants/BannerAlert/BannerAlert.stories.tsx"),
+    "./app/component-library/components/BottomSheets/BottomSheet/BottomSheet.stories.tsx": require("../app/component-library/components/BottomSheets/BottomSheet/BottomSheet.stories.tsx"),
+    "./app/component-library/components/BottomSheets/BottomSheetFooter/BottomSheetFooter.stories.tsx": require("../app/component-library/components/BottomSheets/BottomSheetFooter/BottomSheetFooter.stories.tsx"),
+    "./app/component-library/components/BottomSheets/BottomSheetHeader/BottomSheetHeader.stories.tsx": require("../app/component-library/components/BottomSheets/BottomSheetHeader/BottomSheetHeader.stories.tsx"),
     "./app/component-library/components/Navigation/TabBar/TabBar.stories.tsx": require("../app/component-library/components/Navigation/TabBar/TabBar.stories.tsx"),
     "./app/component-library/components/Navigation/TabBarItem/TabBarItem.stories.tsx": require("../app/component-library/components/Navigation/TabBarItem/TabBarItem.stories.tsx"),
     "./app/component-library/components/Select/MultiSelect/MultiSelectItem/MultiSelectItem.stories.tsx": require("../app/component-library/components/Select/MultiSelect/MultiSelectItem/MultiSelectItem.stories.tsx"),
