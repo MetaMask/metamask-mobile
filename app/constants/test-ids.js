@@ -32,13 +32,6 @@ export const WHATS_NEW_MODAL_CONTAINER_ID = 'whats-new-modal-container';
 export const WHATS_NEW_MODAL_CLOSE_BUTTON_ID = 'whats-new-modal-close-button';
 export const WHATS_NEW_MODAL_GOT_IT_BUTTON_ID = 'whats-new-modal-got-it-button';
 
-export const INPUT_NETWORK_NAME = 'input-network-name';
-export const ADDRESS_BOOK_NEXT_BUTTON = 'address-book-next-button';
-export const NO_ETH_MESSAGE = 'no-eth-message';
-export const SEND_SCREEN = 'send-screen';
-export const ADDRESS_ERROR = 'address-error';
-export const ADD_ADDRESS_BUTTON_ID = 'add-address-button';
-
 // Design System test ids
 export const FAVICON_AVATAR_IMAGE_ID = 'favicon-avatar-image';
 export const NETWORK_AVATAR_IMAGE_ID = 'network-avatar-image';
