@@ -57,8 +57,16 @@ const BlockaidBanner = (bannerProps: BlockaidBannerProps) => {
   } = bannerProps;
   const { styles } = useStyles(styleSheet, { style });
 
-  if (!securityAlertResponse || !isBlockaidFeatureEnabled()) {
+  if (!isBlockaidFeatureEnabled()) {
     return null;
+  }
+
+  if (!securityAlertResponse) {
+    return (
+      <View>
+        <Text>Loading...</Text>
+      </View>
+    );
   }
 
   const { result_type, reason, features } = securityAlertResponse;
