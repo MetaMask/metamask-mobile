@@ -21,7 +21,7 @@ const ConfirmationMethods = Object.freeze([
 ]);
 
 // const validateRequest = async (req: any, transactionMetaId?: string) => {
-const validateRequest = async (req: any, _: any) => {
+const validateRequest = async (req: any, _?: any) => {
   let securityAlertResponse;
   try {
     const { PPOMController: ppomController, PreferencesController } =
