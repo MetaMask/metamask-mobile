@@ -255,7 +255,7 @@ export function safeToChecksumAddress(address) {
  *  format is used
  * @returns {boolean} whether or not the input is a valid hex address
  */
-export function isValidHexAddress( // NOTE:
+export function isValidHexAddress(
   possibleAddress,
   { allowNonPrefixed = false, mixedCaseUseChecksum = false } = {},
 ) {
@@ -441,14 +441,13 @@ export async function validateAddressOrENS(params) {
  * @returns {boolean} indicates if the string is a valid input.
  */
 export function isValidAddressInputViaQRCode(input) {
-  let address = input;
   if (input.includes(PROTOCOLS.ETHEREUM)) {
     const { pathname } = new URL(input);
     // eslint-disable-next-line no-unused-vars
-    const [inputAddress] = pathname.split('@');
-    address = inputAddress;
+    const [address, _] = pathname.split('@');
+    return isValidHexAddress(address);
   }
-  return isValidHexAddress(address);
+  return isValidHexAddress(input);
 }
 
 /** Removes hex prefix from a string if it's there.
