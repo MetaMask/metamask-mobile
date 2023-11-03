@@ -57,7 +57,6 @@ import TemplateConfirmationModal from '../../Approvals/TemplateConfirmationModal
 import { selectTokenList } from '../../../selectors/tokenListController';
 import { selectTokens } from '../../../selectors/tokensController';
 import { selectSelectedAddress } from '../../../selectors/preferencesController';
-// import ppomUtil from 'app/lib/ppom/ppom-util';
 
 const hstInterface = new ethers.utils.Interface(abi);
 
@@ -225,9 +224,6 @@ const RootRPCMethodsUI = (props) => {
 
   const onUnapprovedTransaction = useCallback(
     async (transactionMeta) => {
-      console.log('transactionMeta = ', transactionMeta);
-      // ppomUtil.validateRequest({method: 'eth_sendTransaction'});
-
       if (transactionMeta.origin === TransactionTypes.MMM) return;
 
       const to = transactionMeta.transaction.to?.toLowerCase();
