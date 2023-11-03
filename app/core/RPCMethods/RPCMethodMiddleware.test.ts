@@ -55,6 +55,7 @@ const MockEngine = Engine as Omit<typeof Engine, 'context'> & {
 jest.mock('../../store', () => ({
   store: {
     getState: jest.fn(),
+    dispatch: jest.fn(),
   },
 }));
 
