@@ -85,6 +85,13 @@ export function prepareTransaction(transaction) {
   };
 }
 
+export function updateTransaction(params) {
+  return {
+    type: 'UPDATE_TRANSACTION',
+    params,
+  };
+}
+
 /**
  * Sets any attribute in transaction object
  *

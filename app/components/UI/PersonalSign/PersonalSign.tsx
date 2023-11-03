@@ -21,6 +21,7 @@ import { selectChainId } from '../../../selectors/networkController';
 import { store } from '../../../store';
 import { getBlockaidMetricsParams } from '../../../util/blockaid';
 import { SecurityAlertResponse } from '../BlockaidBanner/BlockaidBanner.types';
+import { useSelector } from 'react-redux';
 
 /**
  * Component that supports personal_sign
@@ -35,6 +36,9 @@ const PersonalSign = ({
 }: PersonalSignProps) => {
   const navigation = useNavigation();
   const [truncateMessage, setTruncateMessage] = useState<boolean>(false);
+  const { securityAlertResponse } = useSelector(
+    (reduxState: any) => reduxState.signatureRequest,
+  );
 
   const { colors }: any = useTheme();
   const styles = createStyles(colors);
@@ -54,7 +58,7 @@ const PersonalSign = ({
       const url = new URL(pageInfo.url);
 
       const blockaidParams = getBlockaidMetricsParams(
-        messageParams.securityAlertResponse as SecurityAlertResponse,
+        securityAlertResponse as SecurityAlertResponse,
       );
 
       return {
@@ -68,14 +72,14 @@ const PersonalSign = ({
     } catch (error) {
       return {};
     }
-  }, [currentPageInformation, messageParams]);
+  }, [currentPageInformation, messageParams, securityAlertResponse]);
 
   useEffect(() => {
     AnalyticsV2.trackEvent(
       MetaMetricsEvents.SIGNATURE_REQUESTED,
       getAnalyticsParams(),
     );
-  }, [getAnalyticsParams, messageParams.securityAlertResponse]);
+  }, [getAnalyticsParams, securityAlertResponse]);
 
   useEffect(() => {
     const onSignatureError = ({ error }: { error: Error }) => {
@@ -198,7 +202,6 @@ const PersonalSign = ({
       truncateMessage={truncateMessage}
       type="personal_sign"
       fromAddress={messageParams.from}
-      securityAlertResponse={messageParams.securityAlertResponse}
       testID={'personal-signature-request'}
     >
       <View style={styles.messageWrapper}>{renderMessageText()}</View>

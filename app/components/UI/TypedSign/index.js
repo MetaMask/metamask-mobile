@@ -204,7 +204,7 @@ class TypedSign extends PureComponent {
       currentPageInformation,
       showExpandedMessage,
       toggleExpandedMessage,
-      messageParams: { from, securityAlertResponse },
+      messageParams: { from },
     } = this.props;
     const { truncateMessage } = this.state;
     const messageWrapperStyles = [];
@@ -240,7 +240,6 @@ class TypedSign extends PureComponent {
         truncateMessage={truncateMessage}
         type={typedSign[messageParams.version]}
         fromAddress={from}
-        securityAlertResponse={securityAlertResponse}
         testID={'typed-signature-request'}
       >
         <View
