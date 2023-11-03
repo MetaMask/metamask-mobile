@@ -12,11 +12,7 @@ import ListItem from '../../../List/ListItem/ListItem';
 // Internal dependencies.
 import styleSheet from './MultiSelectItem.styles';
 import { MultiSelectItemProps } from './MultiSelectItem.types';
-import {
-  DEFAULT_MULTISELECTITEM_PADDING,
-  DEFAULT_MULTISELECTITEM_BORDERRADIUS,
-  DEFAULT_MULTISELECTITEM_GAP,
-} from './MultiSelectItem.constants';
+import { DEFAULT_MULTISELECTITEM_GAP } from './MultiSelectItem.constants';
 
 const MultiSelectItem: React.FC<MultiSelectItemProps> = ({
   style,

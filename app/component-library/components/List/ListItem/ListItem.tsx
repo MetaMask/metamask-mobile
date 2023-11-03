@@ -1,7 +1,7 @@
 /* eslint-disable react/prop-types */
 
 // Third party dependencies.
-import React, { ReactElement } from 'react';
+import React from 'react';
 import { View } from 'react-native';
 
 // External dependencies.
@@ -32,17 +32,16 @@ const ListItem: React.FC<ListItemProps> = ({
       {React.Children.toArray(children)
         .filter((child) => !!child)
         .map((child, index) => (
-          <>
+          <React.Fragment key={index}>
             {index > 0 && (
               <View
                 style={{ width: gap }}
                 testID={TESTID_LISTITEM_GAP}
                 accessible={false}
-                key={`gap-${index}`}
               />
             )}
-            {React.cloneElement(child as ReactElement, { key: index })}
-          </>
+            {child}
+          </React.Fragment>
         ))}
     </View>
   );

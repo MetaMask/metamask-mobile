@@ -6,8 +6,6 @@ import { SAMPLE_LISTITEM_PROPS } from '../../../List/ListItem/ListItem.constants
 import { MultiSelectItemProps } from './MultiSelectItem.types';
 
 // Defaults
-export const DEFAULT_MULTISELECTITEM_PADDING = 16;
-export const DEFAULT_MULTISELECTITEM_BORDERRADIUS = 4;
 export const DEFAULT_MULTISELECTITEM_GAP = 16;
 
 // Sample consts

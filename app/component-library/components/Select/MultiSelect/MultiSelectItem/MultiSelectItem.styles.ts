@@ -25,6 +25,8 @@ const styleSheet = (params: {
   return StyleSheet.create({
     base: Object.assign(
       {
+        padding: 16,
+        borderRadius: 4,
         alignItems: 'flex-start',
         backgroundColor: colors.background.default,
         opacity: isDisabled ? 0.5 : 1,
