@@ -13,7 +13,7 @@ import {
   NETWORKS_SYMBOL_INPUT_FIELD,
   REMOVE_NETWORK_BUTTON,
 } from './testIDs/Screens/NetworksScreen.testids';
-import { ADD_CUSTOM_RPC_NETWORK_BUTTON_ID } from '../../app/constants/test-ids';
+import { NetworksViewSelectorsIDs } from '../../e2e/selectors/Settings/NetworksView.selectors';
 
 class NetworksScreen {
   get container() {
@@ -33,7 +33,7 @@ class NetworksScreen {
   }
 
   get addCustomNetworkButton() {
-    return Selectors.getElementByPlatform(ADD_CUSTOM_RPC_NETWORK_BUTTON_ID);
+    return Selectors.getElementByPlatform(NetworksViewSelectorsIDs.ADD_CUSTOM_NETWORK_BUTTON);
   }
 
   get networkNameInputField() {

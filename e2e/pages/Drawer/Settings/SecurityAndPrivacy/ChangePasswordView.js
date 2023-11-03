@@ -7,11 +7,8 @@ import {
   RESET_PASSWORD_ANDROID_TERM_CHECKBOX_ID,
 } from '../../../../../wdio/screen-objects/testIDs/Screens/ChangePasswordScreensIDs.testIds';
 
-import messages from '../../../../../locales/languages/en.json';
 import { ChoosePasswordSelectorsIDs } from '../../../../selectors/Onboarding/ChoosePassword.selectors';
-
-const CHANGE_PASSWORD_TEXT = messages.manual_backup_step_1.confirm_password;
-const CONFIRM_BUTTON_TEXT = messages.account_backup_step_4.confirm;
+import { ChangePasswordViewSelectorsText } from '../../../../selectors/Settings/SecurityAndPrivacy/ChangePasswordView.selectors';
 
 export default class ChangePasswordView {
   static async typeInConfirmPasswordInputBox(PASSWORD) {
@@ -22,7 +19,7 @@ export default class ChangePasswordView {
   }
 
   static async tapConfirmButton() {
-    await TestHelpers.tapByText(CONFIRM_BUTTON_TEXT);
+    await TestHelpers.tapByText(ChangePasswordViewSelectorsText.CONFIRM_BUTTON);
   }
 
   static async enterPassword(PASSWORD) {
@@ -56,10 +53,14 @@ export default class ChangePasswordView {
   }
 
   static async isVisible() {
-    await TestHelpers.checkIfElementWithTextIsVisible(CHANGE_PASSWORD_TEXT);
+    await TestHelpers.checkIfElementWithTextIsVisible(
+      ChangePasswordViewSelectorsText.CHANGE_PASSWORD,
+    );
   }
 
   static async isNotVisible() {
-    await TestHelpers.checkIfElementWithTextIsNotVisible(CHANGE_PASSWORD_TEXT);
+    await TestHelpers.checkIfElementWithTextIsNotVisible(
+      ChangePasswordViewSelectorsText.CHANGE_PASSWORD,
+    );
   }
 }
