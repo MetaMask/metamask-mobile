@@ -48,7 +48,7 @@ describe(Smoke('Addressbook Tests'), () => {
     await TabBarComponent.tapActions();
     await WalletActionsModal.tapSendButton();
     // Make sure view with my accounts visible
-    await SendView.isMyAccountsVisisble();
+    await SendView.isMyAccountsVisible();
   });
 
   it('should show invalid address error message', async () => {
