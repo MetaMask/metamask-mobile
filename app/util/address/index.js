@@ -441,7 +441,6 @@ export async function validateAddressOrENS(params) {
  * @returns {boolean} indicates if the string is a valid input.
  */
 export function isValidAddressInputViaQRCode(input) {
-  // NOTE:
   let address = input;
   if (input.includes(PROTOCOLS.ETHEREUM)) {
     const { pathname } = new URL(input);
