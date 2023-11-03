@@ -2,7 +2,7 @@
 
 ## Current Main Branch
 
-## 7.10.0 - Oct 24, 2023
+## 7.10.0 - Nov 3, 2023
 ### Added
 - [#7588](https://github.com/MetaMask/metamask-mobile/pull/7588): chore: cherry pick #7584 - re-create connect_sign feature
 - [#7154](https://github.com/MetaMask/metamask-mobile/pull/7154): feat: incoming transactions by network
