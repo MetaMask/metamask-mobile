@@ -235,7 +235,7 @@ function setupGlobalState({
     }));
   if (addTransactionResult) {
     MockEngine.context.TransactionController.addTransaction.mockImplementation(
-      async () => ({ result: addTransactionResult }),
+      async () => ({ result: addTransactionResult, transactionMeta: '123' }),
     );
   }
   if (permittedAccounts) {
