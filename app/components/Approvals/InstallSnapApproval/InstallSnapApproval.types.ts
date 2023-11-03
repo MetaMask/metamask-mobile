@@ -1,5 +1,5 @@
 interface InstallSnapApprovalArgs {
-  requestData: any;
+  approvalRequest: any;
   onConfirm: () => void;
   onFinish: () => void;
   onCancel: () => void;
@@ -7,7 +7,7 @@ interface InstallSnapApprovalArgs {
 }
 
 interface InstallSnapFlowProps {
-  requestData: any;
+  approvalRequest: any;
   requestState: any;
   onConfirm: () => void;
   onCancel: () => void;

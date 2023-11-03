@@ -688,13 +688,11 @@ class Engine {
         console.log(
           'TO DO: Create method to close all connections (Closes all connections for the given origin, and removes the references)',
         ),
-      detectSnapLocation: (location, options) => {
-        console.log('SNAPS/ Engine detectSnapLocation', location, options);
-        return detectSnapLocation(location, {
+      detectSnapLocation: (location, options) =>
+        detectSnapLocation(location, {
           ...options,
           fetch: fetchFunction,
-        });
-      },
+        }),
     });
 
     this.controllerMessenger.subscribe(

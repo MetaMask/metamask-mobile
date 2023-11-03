@@ -28,21 +28,21 @@ import BottomSheetFooter, {
 } from '../../../../../component-library/components/BottomSheets/BottomSheetFooter';
 import { ButtonProps } from '../../../../../component-library/components/Buttons/Button/Button.types';
 import { useStyles } from '../../../../hooks/useStyles';
-import { InstallSnapFlowProps } from '../../InstallSnapApprovalFlow.types';
+import { InstallSnapFlowProps } from '../../InstallSnapApproval.types';
 
 const InstallSnapSuccess = ({
-  requestData,
+  approvalRequest,
   onConfirm,
-}: InstallSnapFlowProps) => {
+}: Pick<InstallSnapFlowProps, 'approvalRequest' | 'onConfirm'>) => {
   const { styles } = useStyles(stylesheet, {});
 
   const snapName = useMemo(() => {
-    const colonIndex = requestData.snapId.indexOf(':');
+    const colonIndex = approvalRequest.requestData.snapId.indexOf(':');
     if (colonIndex !== -1) {
-      return requestData.snapId.substring(colonIndex + 1);
+      return approvalRequest.requestData.snapId.substring(colonIndex + 1);
     }
-    return requestData.snapId;
-  }, [requestData.snapId]);
+    return approvalRequest.requestData.snapId;
+  }, [approvalRequest.requestData.snapId]);
 
   const okButtonProps: ButtonProps = {
     variant: ButtonVariants.Primary,

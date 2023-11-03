@@ -20,7 +20,6 @@ export function detectSnapLocation(
   location: string | URL,
   opts?: DetectSnapLocationOptions,
 ): SnapLocation {
-  console.log('SNAPS/ detectSnapLocation', location, opts);
   const root = new URL(location.toString());
   switch (root.protocol) {
     case 'local:':
