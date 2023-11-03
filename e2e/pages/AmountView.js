@@ -1,6 +1,9 @@
 import TestHelpers from '../helpers';
 import { CURRENCY_SWITCH } from '../../wdio/screen-objects/testIDs/Screens/AmountScreen.testIds';
-import { AmountViewSelectorsIDs } from '../selectors/AmountView.selectors';
+import {
+  AmountViewSelectorsIDs,
+  AmountViewSelectorsText,
+} from '../selectors/AmountView.selectors';
 
 export default class AmountView {
   static async tapNextButton() {
@@ -41,6 +44,8 @@ export default class AmountView {
   }
 
   static async isVisible() {
-    await TestHelpers.checkIfVisible(AmountViewSelectorsIDs.CONTAINER);
+    await TestHelpers.checkIfElementWithTextIsVisible(
+      AmountViewSelectorsText.SCREEN_TITLE,
+    );
   }
 }
