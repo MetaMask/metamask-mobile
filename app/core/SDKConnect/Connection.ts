@@ -44,6 +44,7 @@ import {
   waitForEmptyRPCQueue,
   waitForKeychainUnlocked,
 } from './utils/wait.util';
+import BatchRPCManager, { BatchRPCState } from './BatchRPCManager';
 
 export interface ConnectionProps {
   id: string;
@@ -59,6 +60,24 @@ export interface ConnectionProps {
 // eslint-disable-next-line
 const { version } = require('../../../package.json');
 
+export const RPC_METHODS = {
+  METAMASK_GETPROVIDERSTATE: 'metamask_getProviderState',
+  METAMASK_CONNECTSIGN: 'metamask_connectSign',
+  METAMASK_BATCH: 'metamask_batch',
+  PERSONAL_SIGN: 'personal_sign',
+  ETH_SIGN: 'eth_sign',
+  ETH_REQUESTACCOUNTS: 'eth_requestAccounts',
+  ETH_SENDTRANSACTION: 'eth_sendTransaction',
+  ETH_SIGNTRANSACTION: 'eth_signTransaction',
+  ETH_SIGNTYPEDEATA: 'eth_signTypedData',
+  ETH_SIGNTYPEDEATAV3: 'eth_signTypedData_v3',
+  ETH_SIGNTYPEDEATAV4: 'eth_signTypedData_v4',
+  WALLET_WATCHASSET: 'wallet_watchAsset',
+  WALLET_ADDETHEREUMCHAIN: 'wallet_addEthereumChain',
+  WALLET_SWITCHETHEREUMCHAIN: 'wallet_switchEthereumChain',
+  ETH_ACCOUNTS: 'eth_accounts',
+  ETH_CHAINID: 'eth_chainId',
+};
 export class Connection extends EventEmitter2 {
   channelId;
   remote: RemoteCommunication;
@@ -102,6 +121,8 @@ export class Connection extends EventEmitter2 {
   private approvalPromise?: Promise<unknown>;
 
   private rpcQueueManager: RPCQueueManager;
+
+  private batchRPCManager: BatchRPCManager;
 
   approveHost: ({ host, hostname }: approveHostProps) => void;
   getApprovedHosts: (context: string) => ApprovedHosts;
@@ -153,7 +174,10 @@ export class Connection extends EventEmitter2 {
     this.originatorInfo = originatorInfo;
     this.initialConnection = initialConnection === true;
     this.host = `${AppConstants.MM_SDK.SDK_REMOTE_ORIGIN}${this.channelId}`;
+    // TODO: should be probably contained to current connection
     this.rpcQueueManager = rpcQueueManager;
+    // batchRPCManager should be contained to current connection
+    this.batchRPCManager = new BatchRPCManager(id);
     this.approveHost = approveHost;
     this.getApprovedHosts = getApprovedHosts;
     this.disapprove = disapprove;
@@ -197,16 +221,25 @@ export class Connection extends EventEmitter2 {
     this.sendMessage = this.sendMessage.bind(this);
 
     this.remote.on(EventType.CLIENTS_CONNECTED, () => {
+      DevLogger.log(
+        `Connection::CLIENTS_CONNECTED id=${this.channelId} receivedDisconnect=${this.receivedDisconnect} origin=${this.origin}`,
+      );
       this.setLoading(true);
       this.receivedDisconnect = false;
       // Auto hide after 3seconds if 'ready' wasn't received
       setTimeout(() => {
+        DevLogger.log(`Connection::CLIENTS_CONNECTED auto-hide loading`);
         this.setLoading(false);
       }, 3000);
     });
 
     this.remote.on(EventType.CLIENTS_DISCONNECTED, () => {
       this.setLoading(false);
+      DevLogger.log(
+        `Connection::CLIENTS_DISCONNECTED id=${
+          this.channelId
+        } paused=${this.remote.isPaused()} origin=${this.origin}`,
+      );
       // Disapprove a given host everytime there is a disconnection to prevent hijacking.
       if (!this.remote.isPaused()) {
         // don't disapprove on deeplink
@@ -218,6 +251,9 @@ export class Connection extends EventEmitter2 {
       }
       this.receivedDisconnect = true;
       this.isReady = false;
+      DevLogger.log(
+        `Connection::CLIENTS_DISCONNECTED id=${this.channelId} switch isReady ==> false`,
+      );
     });
 
     this.remote.on(
@@ -244,6 +280,9 @@ export class Connection extends EventEmitter2 {
           this.approvalPromise = undefined;
         }
 
+        DevLogger.log(
+          `SDKConnect::CLIENTS_READY id=${this.channelId} apiVersion=${apiVersion}`,
+        );
         if (!updatedOriginatorInfo) {
           return;
         }
@@ -370,6 +409,7 @@ export class Connection extends EventEmitter2 {
           return;
         }
 
+        const lcMethod = message.method.toLowerCase();
         let needsRedirect = METHODS_TO_REDIRECT[message?.method] ?? false;
 
         if (needsRedirect) {
@@ -381,7 +421,7 @@ export class Connection extends EventEmitter2 {
           !this.originatorInfo?.apiVersion &&
           !needsRedirect &&
           // this.originatorInfo?.platform !== 'unity' &&
-          message?.method === 'metamask_getProviderState'
+          lcMethod === RPC_METHODS.METAMASK_GETPROVIDERSTATE.toLowerCase()
         ) {
           // Manually force redirect if apiVersion isn't defined for backward compatibility
           needsRedirect = true;
@@ -425,13 +465,13 @@ export class Connection extends EventEmitter2 {
         }
 
         // Special case for metamask_connectSign
-        if (message.method === 'metamask_connectSign') {
+        if (lcMethod === RPC_METHODS.METAMASK_CONNECTSIGN.toLowerCase()) {
           // Replace with personal_sign
-          message.method = 'personal_sign';
+          message.method = RPC_METHODS.PERSONAL_SIGN;
           if (
             !(
-              message.params &&
-              Array.isArray(message?.params) &&
+              message?.params &&
+              Array.isArray(message.params) &&
               message.params.length > 0
             )
           ) {
@@ -450,6 +490,36 @@ export class Connection extends EventEmitter2 {
             await wait(500);
           }
           Logger.log(`metamask_connectSign`, message.params);
+        } else if (lcMethod === RPC_METHODS.METAMASK_BATCH.toLowerCase()) {
+          DevLogger.log(`metamask_batch`, JSON.stringify(message, null, 2));
+          if (
+            !(
+              message?.params &&
+              Array.isArray(message.params) &&
+              message.params.length > 0
+            )
+          ) {
+            throw new Error('Invalid message format');
+          }
+          const rpcs = message.params;
+          // Add rpcs to the batch manager
+          this.batchRPCManager.add({ id: message.id, rpcs });
+
+          // Send the first rpc method to the background bridge
+          const rpc = rpcs[0];
+          rpc.id = message.id + `_0`; // Add index to id to keep track of the order
+          rpc.jsonrpc = '2.0';
+          DevLogger.log(
+            `metamask_batch method=${rpc.method} id=${rpc.id}`,
+            rpc.params,
+          );
+          this.backgroundBridge?.onMessage({
+            name: 'metamask-provider',
+            data: rpc,
+            origin: 'sdk',
+          });
+
+          return;
         }
 
         this.rpcQueueManager.add({
@@ -458,11 +528,11 @@ export class Connection extends EventEmitter2 {
         });
 
         // We have to implement this method here since the eth_sendTransaction in Engine is not working because we can't send correct origin
-        if (message.method === 'eth_sendTransaction') {
+        if (lcMethod === RPC_METHODS.ETH_SENDTRANSACTION.toLowerCase()) {
           if (
             !(
-              message.params &&
-              Array.isArray(message?.params) &&
+              message?.params &&
+              Array.isArray(message.params) &&
               message.params.length > 0
             )
           ) {
@@ -530,7 +600,7 @@ export class Connection extends EventEmitter2 {
     }
 
     this.remote
-      .sendMessage({ type: 'authorized' as MessageType })
+      .sendMessage({ type: MessageType.AUTHORIZED })
       .then(() => {
         this.authorizedSent = true;
       })
@@ -753,23 +823,112 @@ export class Connection extends EventEmitter2 {
     this.setLoading(false);
   }
 
-  async sendMessage(msg: any) {
-    const needsRedirect = this.requestsToRedirect[msg?.data?.id] !== undefined;
-    const method = this.rpcQueueManager.getId(msg?.data?.id);
+  async handleBatchRpcResponse({
+    chainRpcs,
+    msg,
+  }: {
+    chainRpcs: BatchRPCState;
+    msg: any;
+  }) {
+    const isLastRpc = chainRpcs.index === chainRpcs.rpcs.length - 1;
+    const hasError = msg?.data?.error;
+    const origRpcId = parseInt(chainRpcs.baseId);
+    const result = chainRpcs.rpcs
+      .filter((rpc) => rpc.response !== undefined)
+      .map((rpc) => rpc.response);
+    result.push(msg?.data?.result);
 
-    if (msg?.data?.id && method) {
-      this.rpcQueueManager.remove(msg?.data?.id);
+    DevLogger.log(
+      `handleChainRpcResponse origRpcId=${origRpcId} isLastRpc=${isLastRpc} hasError=${hasError}`,
+      chainRpcs,
+    );
+
+    if (hasError) {
+      // Cancel the whole chain if any of the rpcs fails, send previous responses with current error
+      const data = {
+        id: origRpcId,
+        jsonrpc: '2.0',
+        result,
+        error: msg?.data?.error,
+      };
+      const response = {
+        data,
+        name: 'metamask-provider',
+      };
+      await this.sendMessage(response);
+      // Delete the chain from the chainRPCManager
+      this.batchRPCManager.remove(chainRpcs.baseId);
+    } else if (isLastRpc) {
+      // Respond to the original rpc call with the list of responses append the current response
+      DevLogger.log(
+        `handleChainRpcResponse id=${chainRpcs.baseId} result`,
+        result,
+      );
+      const data = {
+        id: origRpcId,
+        jsonrpc: '2.0',
+        result,
+      };
+      const response = {
+        data,
+        name: 'metamask-provider',
+      };
+      await this.sendMessage(response);
+      // Delete the chain from the chainRPCManager
+      this.batchRPCManager.remove(chainRpcs.baseId);
+    } else {
+      // Save response and send the next rpc method
+      this.batchRPCManager.addResponse({
+        id: chainRpcs.baseId,
+        index: chainRpcs.index,
+        response: msg?.data?.result,
+      });
+      // Send the next rpc method to the background bridge
+      const nextRpc = chainRpcs.rpcs[chainRpcs.index + 1];
+      nextRpc.id = chainRpcs.baseId + `_${chainRpcs.index + 1}`; // Add index to id to keep track of the order
+      nextRpc.jsonrpc = '2.0';
+      DevLogger.log(
+        `handleChainRpcResponse method=${nextRpc.method} id=${nextRpc.id}`,
+        nextRpc.params,
+      );
+      this.backgroundBridge?.onMessage({
+        name: 'metamask-provider',
+        data: nextRpc,
+        origin: 'sdk',
+      });
+    }
+  }
+
+  async sendMessage(msg: any) {
+    const msgId = msg?.data?.id + '';
+    const needsRedirect = this.requestsToRedirect[msgId] !== undefined;
+    const method = this.rpcQueueManager.getId(msgId);
+
+    DevLogger.log(`Connection::sendMessage`, msg);
+    // handle multichain rpc call responses separately
+    const chainRPCs = this.batchRPCManager.getById(msgId);
+    if (chainRPCs) {
+      this.handleBatchRpcResponse({ chainRpcs: chainRPCs, msg });
+      return;
+    }
+
+    if (msgId && method) {
+      this.rpcQueueManager.remove(msgId);
     }
 
     this.remote.sendMessage(msg).catch((err) => {
       Logger.log(err, `Connection::sendMessage failed to send`);
     });
 
+    DevLogger.log(
+      `Connection::sendMessage method=${method} id=${msgId} needsRedirect=${needsRedirect}`,
+    );
+
     if (!needsRedirect) {
       return;
     }
 
-    delete this.requestsToRedirect[msg?.data?.id];
+    delete this.requestsToRedirect[msgId];
 
     if (this.origin === AppConstants.DEEPLINKS.ORIGIN_QR_CODE) return;
 

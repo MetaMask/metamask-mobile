@@ -1,31 +1,30 @@
 'use strict';
 
-import URL from 'url-parse';
-import qs from 'qs';
-import { InteractionManager, Alert } from 'react-native';
-import { parse } from 'eth-url-parser';
-import AppConstants from './AppConstants';
-import Engine from './Engine';
-import { generateApproveData } from '../util/transactions';
-import { NETWORK_ERROR_MISSING_NETWORK_ID } from '../constants/error';
-import { strings } from '../../locales/i18n';
-import { getNetworkTypeById, handleNetworkSwitch } from '../util/networks';
 import { WalletDevice } from '@metamask/transaction-controller';
-import NotificationManager from '../core/NotificationManager';
+import { parse } from 'eth-url-parser';
+import qs from 'qs';
+import { Alert, InteractionManager } from 'react-native';
+import URL from 'url-parse';
+import { strings } from '../../locales/i18n';
+import { showAlert } from '../actions/alert';
 import {
   ACTIONS,
   ETH_ACTIONS,
-  PROTOCOLS,
   PREFIXES,
+  PROTOCOLS,
 } from '../constants/deeplinks';
-import Logger from '../util/Logger';
-import { showAlert } from '../actions/alert';
-import SDKConnect from '../core/SDKConnect/SDKConnect';
+import { NETWORK_ERROR_MISSING_NETWORK_ID } from '../constants/error';
 import Routes from '../constants/navigation/Routes';
+import NotificationManager from '../core/NotificationManager';
+import SDKConnect from '../core/SDKConnect/SDKConnect';
 import { getAddress } from '../util/address';
-import WC2Manager from './WalletConnect/WalletConnectV2';
+import { getNetworkTypeById, handleNetworkSwitch } from '../util/networks';
+import { generateApproveData } from '../util/transactions';
+import AppConstants from './AppConstants';
+import Engine from './Engine';
 import { Minimizer } from './NativeModules';
 import DevLogger from './SDKConnect/utils/DevLogger';
+import WC2Manager from './WalletConnect/WalletConnectV2';
 
 class DeeplinkManager {
   constructor({ navigation, dispatch }) {
@@ -207,16 +206,18 @@ class DeeplinkManager {
       }
     }
 
-    // Double log entry because the Logger is too slow and display the message in incorrect order.
-    Logger.log(`DeepLinkManager: parsing url=${url} origin=${origin}`);
-    DevLogger.log(`DeepLinkManager: parsing url=${url} origin=${origin}`);
+    const protocol = urlObj.protocol.replace(':', '');
+    DevLogger.log(
+      `DeepLinkManager: parsing origin=${origin} protocol=${protocol}`,
+      url,
+    );
 
     const handled = () => (onHandled ? onHandled() : false);
 
     const { MM_UNIVERSAL_LINK_HOST, MM_DEEP_ITMS_APP_LINK } = AppConstants;
     const DEEP_LINK_BASE = `${PROTOCOLS.HTTPS}://${MM_UNIVERSAL_LINK_HOST}`;
     const wcURL = params?.uri || urlObj.href;
-    switch (urlObj.protocol.replace(':', '')) {
+    switch (protocol) {
       case PROTOCOLS.HTTP:
       case PROTOCOLS.HTTPS:
         // Universal links
@@ -241,6 +242,9 @@ class DeeplinkManager {
               const connections = SDKConnect.getInstance().getConnections();
               const channelExists = connections[params.channelId] !== undefined;
 
+              DevLogger.log(
+                `DeepLinkManager channel=${params.channelId} exists=${channelExists}`,
+              );
               if (channelExists) {
                 if (origin === AppConstants.DEEPLINKS.ORIGIN_DEEPLINK) {
                   // Automatically re-approve hosts.
