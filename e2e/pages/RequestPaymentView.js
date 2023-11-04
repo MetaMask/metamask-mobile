@@ -1,22 +1,25 @@
 import TestHelpers from '../helpers';
-
-const BACK_BUTTON_ID = 'request-search-asset-back-button';
-const REQUEST_PAYMENT_CONTAINER_ID = 'request-screen';
-const REQUEST_ASSET_LIST_ID = 'searched-asset-results';
-const REQUEST_AMOUNT_INPUT_BOX_ID = 'request-amount-input';
-const TOKEN_SEARCH_INPUT_BOX = 'request-search-asset-input';
+import { RequestPaymentViewSelectors } from '../selectors/RequestPaymentView.selectors';
 
 export default class RequestPaymentView {
+
   static async tapETH() {
-    await TestHelpers.tapItemAtIndex(REQUEST_ASSET_LIST_ID);
+    await TestHelpers.tapItemAtIndex(
+      RequestPaymentViewSelectors.REQUEST_ASSET_LIST_ID,
+    );
   }
 
   static async tapBackButton() {
-    await TestHelpers.tapItemAtIndex(BACK_BUTTON_ID);
+    await TestHelpers.tapItemAtIndex(
+      RequestPaymentViewSelectors.BACK_BUTTON_ID,
+    );
   }
 
   static async searchForToken(token) {
-    await TestHelpers.replaceTextInField(TOKEN_SEARCH_INPUT_BOX, token);
+    await TestHelpers.replaceTextInField(
+      RequestPaymentViewSelectors.TOKEN_SEARCH_INPUT_BOX,
+      token,
+    );
     await TestHelpers.delay(1000);
   }
 
@@ -26,17 +29,21 @@ export default class RequestPaymentView {
 
   static async typeInTokenAmount(amount) {
     await TestHelpers.typeTextAndHideKeyboard(
-      REQUEST_AMOUNT_INPUT_BOX_ID,
+      RequestPaymentViewSelectors.REQUEST_AMOUNT_INPUT_BOX_ID,
       amount,
     );
   }
 
   static async isVisible() {
-    await TestHelpers.checkIfVisible(REQUEST_PAYMENT_CONTAINER_ID);
+    await TestHelpers.checkIfVisible(
+      RequestPaymentViewSelectors.REQUEST_PAYMENT_CONTAINER_ID,
+    );
   }
 
   static async isNotVisible() {
-    await TestHelpers.checkIfNotVisible(REQUEST_PAYMENT_CONTAINER_ID);
+    await TestHelpers.checkIfNotVisible(
+      RequestPaymentViewSelectors.REQUEST_PAYMENT_CONTAINER_ID,
+    );
   }
 
   static async isRequestTitleVisible() {
@@ -44,6 +51,9 @@ export default class RequestPaymentView {
   }
 
   static async isTokenVisibleInSearchResults(token) {
-    await TestHelpers.checkIfElementHasString(REQUEST_ASSET_LIST_ID, token);
+    await TestHelpers.checkIfElementHasString(
+      RequestPaymentViewSelectors.REQUEST_ASSET_LIST_ID,
+      token,
+    );
   }
 }
