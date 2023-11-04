@@ -418,14 +418,14 @@ createSentryProperties() {
 		SENTRY_ORG="$MM_SENTRY_ORG_DEV"
 		SENTRY_PROJECT="$MM_SENTRY_PROJECT_DEV"
 		SENTRY_TOKEN="$MM_SENTRY_AUTH_TOKEN_DEV"
-		SENTRY_PROPERTIES_FILE="sentry.debug.properties"
-	# elif [ "$MODE" == "release" ]; then
-	# 	SENTRY_ORG="$MM_SENTRY_ORG"
-	# 	SENTRY_PROJECT="$MM_SENTRY_PROJECT"
-	# 	SENTRY_TOKEN="$MM_SENTRY_AUTH_TOKEN"
-	# 	SENTRY_PROPERTIES_FILE="sentry.release.properties"
-	# else
-	# 	ENABLE_SENTRY=false
+		SENTRY_PROPERTIES_FILE="sentry.release.properties"
+		# elif [ "$MODE" == "release" ]; then
+		# 	SENTRY_ORG="$MM_SENTRY_ORG"
+		# 	SENTRY_PROJECT="$MM_SENTRY_PROJECT"
+		# 	SENTRY_TOKEN="$MM_SENTRY_AUTH_TOKEN"
+		# 	SENTRY_PROPERTIES_FILE="sentry.release.properties"
+		# else
+		# 	ENABLE_SENTRY=false
 	fi
 
 	if [ "$ENABLE_SENTRY" = true ] ; then
@@ -447,12 +447,11 @@ createSentryProperties() {
 checkParameters "$@"
 
 printTitle
-	createSentryProperties
+createSentryProperties
 
-	if [ -z "$METAMASK_ENVIRONMENT" ]; then
-		printError "Missing METAMASK_ENVIRONMENT; set to 'production' for a production release, 'prerelease' for a pre-release, or 'local' otherwise"
-		exit 1
-	fi
+if [ -z "$METAMASK_ENVIRONMENT" ]; then
+	printError "Missing METAMASK_ENVIRONMENT; set to 'production' for a production release, 'prerelease' for a pre-release, or 'local' otherwise"
+	exit 1
 fi
 
 if [ "$PLATFORM" == "ios" ]; then
