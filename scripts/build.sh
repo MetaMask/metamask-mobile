@@ -431,7 +431,7 @@ createSentryProperties() {
 	if [ "$ENABLE_SENTRY" = true ] ; then
 		if [ -n "${SENTRY_ORG}" ] && [ -n "${SENTRY_PROJECT}" ] && [ -n "${SENTRY_TOKEN}" ]; then
 			echo "GENERATING ${SENTRY_PROPERTIES_FILE} FILE FOR ${MODE} BUILD"
-			cp "./${SENTRY_PROPERTIES_FILE}.example" "./${SENTRY_PROPERTIES_FILE}"
+			cp "./${SENTRY_PROPERTIES_FILE}.example" "./sentry.properties"
 			sed -i'' -e "s/defaults.org.*/defaults.org=${SENTRY_ORG}/" "./${SENTRY_PROPERTIES_FILE}";
 			sed -i'' -e "s/defaults.project.*/defaults.project=${SENTRY_PROJECT}/" "./${SENTRY_PROPERTIES_FILE}";
 			sed -i'' -e "s/auth.token.*/auth.token=${SENTRY_TOKEN}/" "./${SENTRY_PROPERTIES_FILE}";
