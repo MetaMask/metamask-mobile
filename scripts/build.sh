@@ -406,11 +406,11 @@ startWatcher() {
 	fi
 }
 
-createSentryProperties() {
+updateSentryProperties() {
 	local SENTRY_ORG
 	local SENTRY_PROJECT
 	local SENTRY_TOKEN
-	local SENTRY_PROPERTIES_FILE
+	local SENTRY_PROPERTIES_FILE="sentry.properties"
 	local ENABLE_SENTRY=true
 
 
@@ -418,36 +418,33 @@ createSentryProperties() {
 		SENTRY_ORG="$MM_SENTRY_ORG_DEV"
 		SENTRY_PROJECT="$MM_SENTRY_PROJECT_DEV"
 		SENTRY_TOKEN="$MM_SENTRY_AUTH_TOKEN_DEV"
-		SENTRY_PROPERTIES_FILE="sentry.release.properties"
 		# elif [ "$MODE" == "release" ]; then
 		# 	SENTRY_ORG="$MM_SENTRY_ORG"
 		# 	SENTRY_PROJECT="$MM_SENTRY_PROJECT"
 		# 	SENTRY_TOKEN="$MM_SENTRY_AUTH_TOKEN"
-		# 	SENTRY_PROPERTIES_FILE="sentry.release.properties"
 		# else
 		# 	ENABLE_SENTRY=false
 	fi
 
 	if [ "$ENABLE_SENTRY" = true ] ; then
 		if [ -n "${SENTRY_ORG}" ] && [ -n "${SENTRY_PROJECT}" ] && [ -n "${SENTRY_TOKEN}" ]; then
-			echo "GENERATING ${SENTRY_PROPERTIES_FILE} FILE FOR ${MODE} BUILD"
-			cp "./${SENTRY_PROPERTIES_FILE}.example" "./sentry.properties"
+			echo "UPDATING ${SENTRY_PROPERTIES_FILE} FOR ${MODE} BUILD"
 			sed -i'' -e "s/defaults.org.*/defaults.org=${SENTRY_ORG}/" "./${SENTRY_PROPERTIES_FILE}";
 			sed -i'' -e "s/defaults.project.*/defaults.project=${SENTRY_PROJECT}/" "./${SENTRY_PROPERTIES_FILE}";
 			sed -i'' -e "s/auth.token.*/auth.token=${SENTRY_TOKEN}/" "./${SENTRY_PROPERTIES_FILE}";
 		else
-			printError "MetaMask Sentry environment variables needs to be defined to generate ${SENTRY_PROPERTIES_FILE} file for ${MODE} build"
+			printError "MetaMask Sentry environment variables needs to be defined to update ${SENTRY_PROPERTIES_FILE} for ${MODE} build"
 			exit 1
 		fi
 	else
-		echo "SKIPPING CREATION OF sentry.properties FILE FOR ${MODE} BUILD"
+		echo "SKIPPING UPDATE FOR ${SENTRY_PROPERTIES_FILE} FOR ${MODE} BUILD"
 	fi
 }
 
 checkParameters "$@"
 
 printTitle
-createSentryProperties
+updateSentryProperties
 
 if [ -z "$METAMASK_ENVIRONMENT" ]; then
 	printError "Missing METAMASK_ENVIRONMENT; set to 'production' for a production release, 'prerelease' for a pre-release, or 'local' otherwise"
