@@ -407,7 +407,6 @@ startWatcher() {
 }
 
 createSentryProperties() {
-	export SENTRY_PROPERTIES_PATH="${REPO_ROOT_DIR}/sentry.properties.example"
 	local SENTRY_ORG
 	local SENTRY_PROJECT
 	local SENTRY_TOKEN
