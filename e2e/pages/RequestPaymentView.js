@@ -2,7 +2,6 @@ import TestHelpers from '../helpers';
 import { RequestPaymentViewSelectors } from '../selectors/RequestPaymentView.selectors';
 
 export default class RequestPaymentView {
-
   static async tapETH() {
     await TestHelpers.tapItemAtIndex(
       RequestPaymentViewSelectors.REQUEST_ASSET_LIST_ID,
