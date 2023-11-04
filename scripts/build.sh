@@ -414,18 +414,18 @@ createSentryProperties() {
 	local ENABLE_SENTRY=true
 
 
-	if [ "$MODE" == "releaseE2E" ] || [ "$MODE" == "QA" ] || [ "$MODE" == "QAE2E" ]; then
+	if [ "$MODE" == "releaseE2E" ] || [ "$MODE" == "QA" ] || [ "$MODE" == "QAE2E" ] || [ "$MODE" == "release" ]; then
 		SENTRY_ORG="$MM_SENTRY_ORG_DEV"
 		SENTRY_PROJECT="$MM_SENTRY_PROJECT_DEV"
 		SENTRY_TOKEN="$MM_SENTRY_AUTH_TOKEN_DEV"
 		SENTRY_PROPERTIES_FILE="sentry.debug.properties"
-	elif [ "$MODE" == "release" ]; then
-		SENTRY_ORG="$MM_SENTRY_ORG"
-		SENTRY_PROJECT="$MM_SENTRY_PROJECT"
-		SENTRY_TOKEN="$MM_SENTRY_AUTH_TOKEN"
-		SENTRY_PROPERTIES_FILE="sentry.release.properties"
-	else
-		ENABLE_SENTRY=false
+	# elif [ "$MODE" == "release" ]; then
+	# 	SENTRY_ORG="$MM_SENTRY_ORG"
+	# 	SENTRY_PROJECT="$MM_SENTRY_PROJECT"
+	# 	SENTRY_TOKEN="$MM_SENTRY_AUTH_TOKEN"
+	# 	SENTRY_PROPERTIES_FILE="sentry.release.properties"
+	# else
+	# 	ENABLE_SENTRY=false
 	fi
 
 	if [ "$ENABLE_SENTRY" = true ] ; then
