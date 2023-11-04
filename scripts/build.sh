@@ -406,44 +406,49 @@ startWatcher() {
 	fi
 }
 
-checkAuthToken() {
-	local propertiesFileName="$1"
+createSentryProperties() {
+	export SENTRY_PROPERTIES_PATH="${REPO_ROOT_DIR}/sentry.properties.example"
+	local SENTRY_ORG
+	local SENTRY_PROJECT
+	local SENTRY_TOKEN
+	local SENTRY_PROPERTIES_FILE
+	local ENABLE_SENTRY=true
 
-	if [ "$MODE" == "QA" ]; then
-		if [ -n "${MM_SENTRY_AUTH_TOKEN_DEV}" ] && [ -n "${MM_SENTRY_ORG_DEV}" ] && [ -n "${MM_SENTRY_PROJECT_DEV}" ]; then
-			cp "./${propertiesFileName}.example" "./${propertiesFileName}"
-			sed -i'' -e "s/auth.token.*/auth.token=${MM_SENTRY_AUTH_TOKEN_DEV}/" "./${propertiesFileName}";
-			sed -i'' -e "s/defaults.org.*/defaults.org=${MM_SENTRY_ORG_DEV}/" "./${propertiesFileName}";
-			sed -i'' -e "s/defaults.project.*/defaults.project=${MM_SENTRY_PROJECT_DEV}/" "./${propertiesFileName}";
+
+	if [ "$MODE" == "releaseE2E" ] || [ "$MODE" == "QA" ] || [ "$MODE" == "QAE2E" ]; then
+		SENTRY_ORG="$MM_SENTRY_ORG_DEV"
+		SENTRY_PROJECT="$MM_SENTRY_PROJECT_DEV"
+		SENTRY_TOKEN="$MM_SENTRY_AUTH_TOKEN_DEV"
+		SENTRY_PROPERTIES_FILE="sentry.debug.properties"
+	elif [ "$MODE" == "release" ]; then
+		SENTRY_ORG="$MM_SENTRY_ORG"
+		SENTRY_PROJECT="$MM_SENTRY_PROJECT"
+		SENTRY_TOKEN="$MM_SENTRY_AUTH_TOKEN"
+		SENTRY_PROPERTIES_FILE="sentry.release.properties"
+	else
+		ENABLE_SENTRY=false
+	fi
+
+	if [ "$ENABLE_SENTRY" = true ] ; then
+		if [ -n "${SENTRY_ORG}" ] && [ -n "${SENTRY_PROJECT}" ] && [ -n "${SENTRY_TOKEN}" ]; then
+			echo "GENERATING ${SENTRY_PROPERTIES_FILE} FILE FOR ${MODE} BUILD"
+			cp "./${SENTRY_PROPERTIES_FILE}.example" "./${SENTRY_PROPERTIES_FILE}"
+			sed -i'' -e "s/defaults.org.*/defaults.org=${SENTRY_ORG}/" "./${SENTRY_PROPERTIES_FILE}";
+			sed -i'' -e "s/defaults.project.*/defaults.project=${SENTRY_PROJECT}/" "./${SENTRY_PROPERTIES_FILE}";
+			sed -i'' -e "s/auth.token.*/auth.token=${SENTRY_TOKEN}/" "./${SENTRY_PROPERTIES_FILE}";
 		else
-			printError "Set MM_SENTRY_AUTH_TOKEN_DEV, MM_SENTRY_ORG_DEV, and MM_SENTRY_PROJECT_DEV to generate '${propertiesFileName}' file"
+			printError "MetaMask Sentry environment variables needs to be defined to generate ${SENTRY_PROPERTIES_FILE} file for ${MODE} build"
 			exit 1
 		fi
 	else
-		if [ -n "${MM_SENTRY_AUTH_TOKEN}" ]; then
-			cp "./${propertiesFileName}.example" "./${propertiesFileName}"
-			sed -i'' -e "s/auth.token.*/auth.token=${MM_SENTRY_AUTH_TOKEN}/" "./${propertiesFileName}";
-		else
-			printError "Set MM_SENTRY_AUTH_TOKEN to generate '${propertiesFileName}' file"
-			exit 1
-		fi
+		echo "SKIPPING CREATION OF sentry.properties FILE FOR ${MODE} BUILD"
 	fi
 }
 
 checkParameters "$@"
 
 printTitle
-if [ "$MODE" == "release" ] || [ "$MODE" == "releaseE2E" ] || [ "$MODE" == "QA" ] || [ "$MODE" == "QAE2E" ]; then
- 	if [ "$PRE_RELEASE" = false ]; then
-		echo "RELEASE SENTRY PROPS"
- 		checkAuthToken 'sentry.release.properties'
- 		export SENTRY_PROPERTIES="${REPO_ROOT_DIR}/sentry.release.properties"
- 	else
-	 	echo "DEBUG SENTRY PROPS"
- 		checkAuthToken 'sentry.debug.properties'
- 		export SENTRY_PROPERTIES="${REPO_ROOT_DIR}/sentry.debug.properties"
- 	fi
-
+	createSentryProperties
 
 	if [ -z "$METAMASK_ENVIRONMENT" ]; then
 		printError "Missing METAMASK_ENVIRONMENT; set to 'production' for a production release, 'prerelease' for a pre-release, or 'local' otherwise"
