@@ -1,7 +1,6 @@
 import TestHelpers from '../../helpers';
 import { SwapsViewSelectors } from '../../selectors/swaps/SwapsView.selectors.js';
 import messages from '../../../locales/languages/en.json';
-import { Console, error } from 'console';
 
 export default class SwapView {
   static async isVisible() {

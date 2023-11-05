@@ -21,7 +21,7 @@ import { Regression } from '../../tags';
 const fixtureServer = new FixtureServer();
 
 describe(Regression('Swap from Token view'), () => {
-  let swapOnboarded = false;
+  const swapOnboarded = false;
   beforeAll(async () => {
     await TestHelpers.reverseServerPort();
     const fixture = new FixtureBuilder()
