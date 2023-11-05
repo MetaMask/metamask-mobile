@@ -1,6 +1,7 @@
 import TestHelpers from '../../helpers';
 import { SwapsViewSelectors } from '../../selectors/swaps/SwapsView.selectors.js';
 import messages from '../../../locales/languages/en.json';
+import { waitFor } from 'detox';
 
 export default class SwapView {
   static async isVisible() {
@@ -44,6 +45,7 @@ export default class SwapView {
     try {
       await TestHelpers.tapByText('I understand');
     } catch (e) {
+      // eslint-disable-next-line no-console
       console.log(`Price warning not displayed: ${e}`);
     }
   }
