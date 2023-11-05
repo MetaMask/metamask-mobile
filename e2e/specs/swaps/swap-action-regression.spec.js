@@ -1,5 +1,4 @@
 'use strict';
-
 import { loginToApp } from '../../viewHelper';
 import Onboarding from '../../pages/swaps/OnBoarding';
 import QuoteView from '../../pages/swaps/QuoteView';
@@ -8,8 +7,6 @@ import TabBarComponent from '../../pages/TabBarComponent';
 import ActivitiesView from '../../pages/ActivitiesView';
 import DetailsModal from '../../pages/modals/DetailsModal';
 import WalletActionsModal from '../../pages/modals/WalletActionsModal';
-import WalletView from '../../pages/WalletView';
-import TokenOverview from '../../pages/TokenOverview';
 import FixtureBuilder from '../../fixtures/fixture-builder';
 import {
   loadFixture,
@@ -24,7 +21,7 @@ import { Regression } from '../../tags';
 
 const fixtureServer = new FixtureServer();
 
-describe(Regression('Swap Tests'), () => {
+describe(Regression('Multiple Swaps from Actions'), () => {
   let swapOnboarded = false;
   beforeAll(async () => {
     await TestHelpers.reverseServerPort();
@@ -34,7 +31,6 @@ describe(Regression('Swap Tests'), () => {
     await startFixtureServer(fixtureServer);
     await loadFixture(fixtureServer, { fixture });
     await device.launchApp({
-      delete: true,
       permissions: { notifications: 'YES' },
       launchArgs: { fixtureServerPort: `${getFixturesServerPort()}` },
     });
@@ -52,6 +48,7 @@ describe(Regression('Swap Tests'), () => {
     quantity | sourceTokenSymbol | destTokenSymbol
     ${'1'}   | ${'ETH'}          | ${'WETH'}
     ${'1'}   | ${'WETH'}         | ${'ETH'}
+    ${'1'}   | ${'USDC'}         | ${'ETH'}
   `(
     "should Swap $quantity '$sourceTokenSymbol' to '$destTokenSymbol'",
     async ({ quantity, sourceTokenSymbol, destTokenSymbol }) => {
@@ -82,6 +79,7 @@ describe(Regression('Swap Tests'), () => {
       }
       await QuoteView.tapOnGetQuotes();
       await SwapView.isVisible();
+      await SwapView.tapIUnderstandPriceWarning();
       await SwapView.swipeToSwap();
       await SwapView.waitForSwapToComplete(sourceTokenSymbol, destTokenSymbol);
       await TabBarComponent.tapActivity();

@@ -21,7 +21,7 @@ import { Smoke } from '../../tags';
 
 const fixtureServer = new FixtureServer();
 
-describe(Smoke('Swap Tests'), () => {
+describe(Smoke('Swap from Actions'), () => {
   let swapOnboarded = false;
   beforeAll(async () => {
     await TestHelpers.reverseServerPort();
@@ -31,7 +31,6 @@ describe(Smoke('Swap Tests'), () => {
     await startFixtureServer(fixtureServer);
     await loadFixture(fixtureServer, { fixture });
     await device.launchApp({
-      delete: true,
       permissions: { notifications: 'YES' },
       launchArgs: { fixtureServerPort: `${getFixturesServerPort()}` },
     });
@@ -79,6 +78,7 @@ describe(Smoke('Swap Tests'), () => {
       }
       await QuoteView.tapOnGetQuotes();
       await SwapView.isVisible();
+      await SwapView.tapIUnderstandPriceWarning();
       await SwapView.swipeToSwap();
       await SwapView.waitForSwapToComplete(sourceTokenSymbol, destTokenSymbol);
       await TabBarComponent.tapActivity();

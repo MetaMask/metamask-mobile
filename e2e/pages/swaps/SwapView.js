@@ -1,6 +1,7 @@
 import TestHelpers from '../../helpers';
 import { SwapsViewSelectors } from '../../selectors/swaps/SwapsView.selectors.js';
 import messages from '../../../locales/languages/en.json';
+import { Console, error } from 'console';
 
 export default class SwapView {
   static async isVisible() {
@@ -38,5 +39,13 @@ export default class SwapView {
     );
     await device.enableSynchronization();
     await TestHelpers.delay(5000);
+  }
+
+  static async tapIUnderstandPriceWarning() {
+    try {
+      await TestHelpers.tapByText('I understand');
+    } catch (e) {
+      console.log(`Price warning not displayed: ${e}`);
+    }
   }
 }
