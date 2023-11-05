@@ -191,6 +191,10 @@ export class Connection extends EventEmitter2 {
       `Connection::constructor() id=${this.channelId} initialConnection=${this.initialConnection} lastAuthorized=${this.lastAuthorized}`,
     );
 
+    if (!this.channelId) {
+      throw new Error('Connection channelId is undefined');
+    }
+
     this.remote = new RemoteCommunication({
       platformType: AppConstants.MM_SDK.PLATFORM as 'metamask-mobile',
       communicationServerUrl: AppConstants.MM_SDK.SERVER_URL,
@@ -401,6 +405,9 @@ export class Connection extends EventEmitter2 {
         if (message.type === MessageType.TERMINATE) {
           // Delete connection from storage
           this.onTerminate({ channelId: this.channelId });
+          return;
+        } else if (message.type === 'ping') {
+          DevLogger.log(`Connection::ping id=${this.channelId}`);
           return;
         }
 
@@ -783,6 +790,7 @@ export class Connection extends EventEmitter2 {
   }
 
   resume() {
+    DevLogger.log(`Connection::resume() id=${this.channelId}`);
     this.remote.resume();
     this.isResumed = true;
     this.setLoading(false);
