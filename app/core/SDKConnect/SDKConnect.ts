@@ -114,13 +114,23 @@ export class SDKConnect extends EventEmitter2 {
     const existingConnection = this.connected[id] !== undefined;
     const isReady = existingConnection && this.connected[id].isReady;
 
+    DevLogger.log(
+      `SDKConnect::connectToChannel id=${id} isReady=${isReady} existingConnection=${existingConnection}`,
+    );
+
     if (isReady) {
+      DevLogger.log(
+        `SDKConnect::connectToChannel - INTERRUPT  - already ready`,
+      );
       // Nothing to do, already connected.
       return;
     }
 
     // Check if it was previously paused so that it first resume connection.
     if (existingConnection && !this.paused) {
+      DevLogger.log(
+        `SDKConnect::connectToChannel -- CONNECTION SEEMS TO EXISTS ? --`,
+      );
       // if paused --- wait for resume --- otherwise reconnect.
       await this.reconnect({
         channelId: id,
@@ -131,6 +141,9 @@ export class SDKConnect extends EventEmitter2 {
       });
       return;
     } else if (existingConnection && this.paused) {
+      DevLogger.log(
+        `SDKConnect::connectToChannel - INTERRUPT - connection is paused`,
+      );
       return;
     }
 
@@ -421,7 +434,12 @@ export class SDKConnect extends EventEmitter2 {
   }
 
   async reconnectAll() {
-    if (this.reconnected) {
+    DevLogger.log(
+      `SDKConnect::reconnectAll paused=${this.paused} reconnected=${this.reconnected}`,
+    );
+
+    if (this.reconnected && !this.paused) {
+      DevLogger.log(`SDKConnect::reconnectAll - already reconnected`);
       return;
     }
 
@@ -666,6 +684,7 @@ export class SDKConnect extends EventEmitter2 {
       return;
     }
 
+    DevLogger.log(`SDKConnect::_handleAppState appState=${appState}`);
     this.appState = appState;
     if (appState === 'active') {
       if (Device.isAndroid()) {
@@ -734,6 +753,10 @@ export class SDKConnect extends EventEmitter2 {
     navigation: StackNavigationProp<{ [route: string]: { screen: string } }>;
   }) {
     if (this._initialized) {
+      DevLogger.log(
+        `SDKConnect::init() -- SKIP -- already initialized`,
+        this.connections,
+      );
       return;
     }
     DevLogger.log(`SDKConnect::init()`);
