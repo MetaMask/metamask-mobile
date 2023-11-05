@@ -1,4 +1,3 @@
-import { StackNavigationProp } from '@react-navigation/stack';
 import {
   AppState,
   NativeEventSubscription,
@@ -18,13 +17,14 @@ import {
   EventType,
   OriginatorInfo,
 } from '@metamask/sdk-communication-layer';
+import { NavigationContainerRef } from '@react-navigation/native';
 import { EventEmitter2 } from 'eventemitter2';
 import Routes from '../../../app/constants/navigation/Routes';
 import AndroidService from './AndroidSDK/AndroidService';
+import { Connection, ConnectionProps, RPC_METHODS } from './Connection';
 import RPCQueueManager from './RPCQueueManager';
 import DevLogger from './utils/DevLogger';
 import { wait, waitForKeychainUnlocked } from './utils/wait.util';
-import { Connection, ConnectionProps, RPC_METHODS } from './Connection';
 
 export const MIN_IN_MS = 1000 * 60;
 export const HOUR_IN_MS = MIN_IN_MS * 60;
@@ -79,11 +79,10 @@ export const METHODS_TO_DELAY: { [method: string]: boolean } = {
 export class SDKConnect extends EventEmitter2 {
   private static instance: SDKConnect;
 
-  private navigation?: StackNavigationProp<{
-    [route: string]: { screen: string };
-  }>;
+  private navigation?: NavigationContainerRef;
   private reconnected = false;
   private _initialized = false;
+  private _initializing = false;
   private timeout?: number;
   private initTimeout?: number;
   private paused = false;
@@ -274,8 +273,7 @@ export class SDKConnect extends EventEmitter2 {
         screen: Routes.SHEET.SDK_LOADING,
       });
     } else {
-      const currentRoute = (this.navigation as any).getCurrentRoute?.()
-        ?.name as string;
+      const currentRoute = this.navigation?.getCurrentRoute()?.name;
       if (currentRoute === Routes.SHEET.SDK_LOADING) {
         this.navigation?.goBack();
       }
@@ -284,8 +282,7 @@ export class SDKConnect extends EventEmitter2 {
 
   public async hideLoadingState() {
     this.sdkLoadingState = {};
-    const currentRoute = (this.navigation as any).getCurrentRoute?.()
-      ?.name as string;
+    const currentRoute = this.navigation?.getCurrentRoute()?.name;
     if (currentRoute === Routes.SHEET.SDK_LOADING) {
       this.navigation?.goBack();
     }
@@ -749,21 +746,29 @@ export class SDKConnect extends EventEmitter2 {
     return this.connections;
   }
 
-  public async init(props: {
-    navigation: StackNavigationProp<{ [route: string]: { screen: string } }>;
-  }) {
-    if (this._initialized) {
+  public async init({ navigation }: { navigation: NavigationContainerRef }) {
+    if (this._initializing) {
+      DevLogger.log(`SDKConnect::init() -- SKIP -- already initializing`);
+      return;
+    } else if (this._initialized) {
       DevLogger.log(
         `SDKConnect::init() -- SKIP -- already initialized`,
         this.connections,
       );
       return;
     }
-    DevLogger.log(`SDKConnect::init()`);
-    // Change _initialized status at the beginning to prevent double initialization during dev.
-    this._initialized = true;
 
-    this.navigation = props.navigation;
+    // Change _initializing status at the beginning to prevent double initialization during dev.
+    this._initializing = true;
+    DevLogger.log(
+      `SDKConnect::init() paused=${this.paused} server=${AppConstants.MM_SDK.SERVER_URL}`,
+      navigation,
+    );
+    if (!navigation) {
+      console.warn(`SDKConnect::init() no navigation`);
+    }
+    this.appState = 'active';
+    this.navigation = navigation;
 
     // When restarting from being killed, keyringController might be mistakenly restored on unlocked=true so we need to wait for it to get correct state.
     await wait(1000);
@@ -785,6 +790,11 @@ export class SDKConnect extends EventEmitter2 {
 
     if (connectionsStorage) {
       this.connections = JSON.parse(connectionsStorage);
+      DevLogger.log(
+        `SDKConnect::init() - connections [${
+          Object.keys(this.connections).length
+        }]`,
+      );
     }
 
     if (hostsStorage) {
@@ -811,6 +821,11 @@ export class SDKConnect extends EventEmitter2 {
         });
       }
       this.approvedHosts = approvedHosts;
+      DevLogger.log(
+        `SDKConnect::init() - approvedHosts [${
+          Object.keys(this.approvedHosts).length
+        }]`,
+      );
     }
 
     // Need to use a timeout to avoid race condition of double reconnection
@@ -826,6 +841,8 @@ export class SDKConnect extends EventEmitter2 {
 
       await this.reconnectAll();
     }
+
+    this._initialized = true;
   }
 
   public static getInstance(): SDKConnect {
