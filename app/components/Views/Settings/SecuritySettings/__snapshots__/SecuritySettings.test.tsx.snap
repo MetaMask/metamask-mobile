@@ -323,7 +323,7 @@ exports[`SecuritySettings should render correctly 1`] = `
               "width": "100%",
             }
           }
-          testID="change-password-button-id"
+          testID="change-password-button"
           variant="Secondary"
         >
           <Text
@@ -1575,6 +1575,16 @@ exports[`SecuritySettings should render correctly 1`] = `
           This relies on the network you select which will expose your Ethereum address and your IP address.
         </Text>
         <TouchableOpacity
+          avatarProps={
+            Object {
+              "imageSource": Object {
+                "uri": "MockImage",
+              },
+              "name": "Ethereum Main Network",
+              "variant": "Network",
+            }
+          }
+          secondaryText="etherscan.io"
           style={
             Object {
               "backgroundColor": "#FFFFFF",
@@ -1584,8 +1594,8 @@ exports[`SecuritySettings should render correctly 1`] = `
               "padding": 16,
             }
           }
-          testID="cell-display"
-          variant="Display"
+          testID="celldisplay"
+          title="Ethereum Main Network"
         >
           <View
             style={
@@ -1645,7 +1655,6 @@ exports[`SecuritySettings should render correctly 1`] = `
                     "lineHeight": 24,
                   }
                 }
-                testID="cell-title"
               >
                 Ethereum Main Network
               </Text>
@@ -1662,7 +1671,6 @@ exports[`SecuritySettings should render correctly 1`] = `
                     "lineHeight": 22,
                   }
                 }
-                testID="cell-secondary-text"
               >
                 etherscan.io
               </Text>
@@ -1705,6 +1713,16 @@ exports[`SecuritySettings should render correctly 1`] = `
           </View>
         </TouchableOpacity>
         <TouchableOpacity
+          avatarProps={
+            Object {
+              "imageSource": Object {
+                "uri": "MockImage",
+              },
+              "name": "Linea Main Network",
+              "variant": "Network",
+            }
+          }
+          secondaryText="lineascan.build"
           style={
             Object {
               "backgroundColor": "#FFFFFF",
@@ -1714,8 +1732,8 @@ exports[`SecuritySettings should render correctly 1`] = `
               "padding": 16,
             }
           }
-          testID="cell-display"
-          variant="Display"
+          testID="celldisplay"
+          title="Linea Main Network"
         >
           <View
             style={
@@ -1775,7 +1793,6 @@ exports[`SecuritySettings should render correctly 1`] = `
                     "lineHeight": 24,
                   }
                 }
-                testID="cell-title"
               >
                 Linea Main Network
               </Text>
@@ -1792,7 +1809,6 @@ exports[`SecuritySettings should render correctly 1`] = `
                     "lineHeight": 22,
                   }
                 }
-                testID="cell-secondary-text"
               >
                 lineascan.build
               </Text>

@@ -51,6 +51,7 @@ Array [
             "width": 40,
           }
         }
+        variant="Icon"
       >
         <SvgMock
           color="#0376C9"
@@ -88,6 +89,7 @@ Array [
             "width": 40,
           }
         }
+        variant="Icon"
       >
         <SvgMock
           color="#BBC0C5"
@@ -125,6 +127,7 @@ Array [
             "width": 32,
           }
         }
+        variant="Icon"
       >
         <SvgMock
           color="#FCFCFC"
@@ -162,6 +165,7 @@ Array [
             "width": 40,
           }
         }
+        variant="Icon"
       >
         <SvgMock
           color="#BBC0C5"
@@ -199,6 +203,7 @@ Array [
             "width": 40,
           }
         }
+        variant="Icon"
       >
         <SvgMock
           color="#BBC0C5"

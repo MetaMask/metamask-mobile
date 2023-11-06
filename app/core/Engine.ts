@@ -602,6 +602,7 @@ class Engine {
             swapsUtils.ARBITRUM_CHAIN_ID,
             swapsUtils.OPTIMISM_CHAIN_ID,
             swapsUtils.ZKSYNC_ERA_CHAIN_ID,
+            swapsUtils.LINEA_CHAIN_ID,
           ],
         },
       ),
@@ -680,8 +681,7 @@ class Engine {
               listener,
             ),
           onPreferencesChange: () => undefined,
-          provider: () =>
-            networkController.getProviderAndBlockTracker().provider,
+          provider: networkController.getProviderAndBlockTracker().provider,
           ppomProvider: {
             PPOM,
             ppomInit,

@@ -99,7 +99,7 @@ import {
   SDK_SECTION,
 } from './SecuritySettings.constants';
 import Cell from '../../../..//component-library/components/Cells/Cell/Cell';
-import { CellVariants } from '../../../../component-library/components/Cells/Cell';
+import { CellVariant } from '../../../../component-library/components/Cells/Cell';
 import { AvatarVariants } from '../../../../component-library/components/Avatars/Avatar/Avatar.types';
 import Networks, {
   getAllNetworks,
@@ -108,6 +108,7 @@ import Networks, {
 import images from 'images/image-icons';
 import { toHexadecimal } from '../../../../util/number';
 import { ETHERSCAN_SUPPORTED_NETWORKS } from '@metamask/transaction-controller/dist/constants';
+import { SecurityPrivacyViewSelectorsIDs } from '../../../../../e2e/selectors/Settings/SecurityAndPrivacy/SecurityPrivacyView.selectors';
 
 const Heading: React.FC<HeadingProps> = ({ children, first }) => {
   const { colors } = useTheme();
@@ -459,7 +460,7 @@ const Settings: React.FC = () => {
           thumbColor={importedColors.white}
           style={styles.switch}
           ios_backgroundColor={colors.border.muted}
-          testID={'metametrics-switch'}
+          testID={SecurityPrivacyViewSelectorsIDs.METAMETRICS_SWITCH}
         />
       </View>
     </View>
@@ -682,7 +683,7 @@ const Settings: React.FC = () => {
       const { name: mainnetName, hexChainId } = Networks.mainnet;
       return (
         <Cell
-          variant={CellVariants.Display}
+          variant={CellVariant.Display}
           title={mainnetName}
           avatarProps={{
             variant: AvatarVariants.Network,
@@ -714,7 +715,7 @@ const Settings: React.FC = () => {
 
       return (
         <Cell
-          variant={CellVariants.Display}
+          variant={CellVariant.Display}
           title={lineaMainnetName}
           avatarProps={{
             variant: AvatarVariants.Network,
@@ -757,7 +758,7 @@ const Settings: React.FC = () => {
           return (
             <Cell
               key={chainId}
-              variant={CellVariants.Display}
+              variant={CellVariant.Display}
               title={name}
               secondaryText={myNetworks[hexChainId].domain}
               avatarProps={{
@@ -795,7 +796,7 @@ const Settings: React.FC = () => {
         return (
           <Cell
             key={chainId}
-            variant={CellVariants.Display}
+            variant={CellVariant.Display}
             title={name}
             secondaryText={myNetworks[hexChainId].domain}
             avatarProps={{
