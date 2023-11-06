@@ -28,15 +28,7 @@ import processOrder from './common/orderProcessor';
 import processCustomOrderIdData from './common/orderProcessor/customOrderId';
 import { aggregatorOrderToFiatOrder } from './common/orderProcessor/aggregator';
 import { trackEvent } from './common/hooks/useAnalytics';
-import {
-  OffRampPurchaseCanceled,
-  OffRampPurchaseCompleted,
-  OffRampPurchaseFailed,
-  OnRampPurchaseCanceled,
-  OnRampPurchaseCompleted,
-  OnRampPurchaseFailed,
-  RampPurchaseCompleted,
-} from './common/types';
+import { AnalyticsEvents } from './common/types';
 import { CustomIdData } from '../../../reducers/fiatOrders/types';
 import { callbackBaseUrl } from './common/sdk';
 import useFetchRampNetworks from './common/hooks/useFetchRampNetworks';
@@ -66,18 +58,23 @@ export const getAggregatorAnalyticsPayload = (
     | null
   ),
   (
-    | OnRampPurchaseFailed
-    | OnRampPurchaseCanceled
-    | OnRampPurchaseCompleted
-    | OffRampPurchaseFailed
-    | OffRampPurchaseCanceled
-    | OffRampPurchaseCompleted
+    | AnalyticsEvents[
+        | 'ONRAMP_PURCHASE_FAILED'
+        | 'ONRAMP_PURCHASE_CANCELLED'
+        | 'ONRAMP_PURCHASE_COMPLETED'
+        | 'OFFRAMP_PURCHASE_FAILED'
+        | 'OFFRAMP_PURCHASE_CANCELLED'
+        | 'OFFRAMP_PURCHASE_COMPLETED']
     | null
   ),
 ] => {
   const isBuy = fiatOrder.orderType === OrderOrderTypeEnum.Buy;
 
-  let failedOrCancelledParams: OnRampPurchaseFailed | OffRampPurchaseFailed;
+  let failedOrCancelledParams:
+    | AnalyticsEvents['ONRAMP_PURCHASE_FAILED']
+    | AnalyticsEvents['OFFRAMP_PURCHASE_FAILED']
+    | AnalyticsEvents['ONRAMP_PURCHASE_CANCELLED']
+    | AnalyticsEvents['OFFRAMP_PURCHASE_CANCELLED'];
 
   if (isBuy) {
     failedOrCancelledParams = {
@@ -101,7 +98,9 @@ export const getAggregatorAnalyticsPayload = (
     };
   }
 
-  const sharedCompletedPayload: Partial<RampPurchaseCompleted> = {
+  const sharedCompletedPayload: Partial<
+    AnalyticsEvents['OFFRAMP_PURCHASE_COMPLETED']
+  > = {
     total_fee: Number(fiatOrder.fee),
     exchange_rate:
       (Number(fiatOrder.amount) - Number(fiatOrder.fee)) /
@@ -110,34 +109,34 @@ export const getAggregatorAnalyticsPayload = (
     // processing fee
   };
 
-  const sellCompletePayload: OffRampPurchaseCompleted = {
+  const sellCompletePayload: AnalyticsEvents['OFFRAMP_PURCHASE_COMPLETED'] = {
     ...failedOrCancelledParams,
     ...sharedCompletedPayload,
     fiat_out: fiatOrder.amount,
-  } as OffRampPurchaseCompleted;
+  } as AnalyticsEvents['OFFRAMP_PURCHASE_COMPLETED'];
 
-  const buyCompletePayload: OnRampPurchaseCompleted = {
+  const buyCompletePayload: AnalyticsEvents['ONRAMP_PURCHASE_COMPLETED'] = {
     ...failedOrCancelledParams,
     ...sharedCompletedPayload,
     crypto_out: fiatOrder.cryptoAmount,
-  } as OnRampPurchaseCompleted;
+  } as AnalyticsEvents['ONRAMP_PURCHASE_COMPLETED'];
 
   switch (fiatOrder.state) {
     case FIAT_ORDER_STATES.FAILED: {
       return [
-        `${isBuy ? 'ON' : 'OFF'}RAMP_PURCHASE_FAILED`,
+        isBuy ? 'ONRAMP_PURCHASE_FAILED' : 'OFFRAMP_PURCHASE_FAILED',
         failedOrCancelledParams,
       ];
     }
     case FIAT_ORDER_STATES.CANCELLED: {
       return [
-        `${isBuy ? 'ON' : 'OFF'}RAMP_PURCHASE_CANCELLED`,
+        isBuy ? 'ONRAMP_PURCHASE_CANCELLED' : 'OFFRAMP_PURCHASE_CANCELLED',
         failedOrCancelledParams,
       ];
     }
     case FIAT_ORDER_STATES.COMPLETED: {
       return [
-        `${isBuy ? 'ON' : 'OFF'}RAMP_PURCHASE_COMPLETED`,
+        isBuy ? 'ONRAMP_PURCHASE_COMPLETED' : 'OFFRAMP_PURCHASE_COMPLETED',
         isBuy ? buyCompletePayload : sellCompletePayload,
       ];
     }

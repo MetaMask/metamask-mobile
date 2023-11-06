@@ -27,7 +27,6 @@ import {
 } from '../../../../../../util/navigation/navUtils';
 
 import { createBuildQuoteNavDetails } from '../BuildQuote/BuildQuote';
-import { RampType } from '../../../../../../reducers/fiatOrders/types';
 
 interface PaymentMethodsParams {
   showBack?: boolean;
@@ -43,7 +42,7 @@ const PaymentMethods = () => {
   const { showBack } = useParams<PaymentMethodsParams>();
 
   const {
-    rampType,
+    isBuy,
     setSelectedRegion,
     setSelectedPaymentMethodId,
     selectedChainId,
@@ -61,19 +60,19 @@ const PaymentMethods = () => {
   } = usePaymentMethods();
 
   const handleCancelPress = useCallback(() => {
-    trackEvent('ONRAMP_CANCELED', {
+    trackEvent(isBuy ? 'ONRAMP_CANCELED' : 'OFFRAMP_CANCELED', {
       location: 'Payment Method Screen',
       chain_id_destination: selectedChainId,
     });
-  }, [selectedChainId, trackEvent]);
+  }, [isBuy, selectedChainId, trackEvent]);
 
   const handlePaymentMethodPress = useCallback(
     (id) => {
       setSelectedPaymentMethodId(id);
       trackEvent(
-        `${
-          rampType === RampType.BUY ? 'ON' : 'OFF'
-        }RAMP_PAYMENT_METHOD_SELECTED`,
+        isBuy
+          ? 'ONRAMP_PAYMENT_METHOD_SELECTED'
+          : 'OFFRAMP_PAYMENT_METHOD_SELECTED',
         {
           payment_method_id: id,
           available_payment_method_ids: paymentMethods?.map(
@@ -85,8 +84,8 @@ const PaymentMethods = () => {
       );
     },
     [
+      isBuy,
       paymentMethods,
-      rampType,
       selectedRegion?.id,
       setSelectedPaymentMethodId,
       trackEvent,
@@ -107,9 +106,8 @@ const PaymentMethods = () => {
   }, [showBack, setSelectedPaymentMethodId, setSelectedRegion, navigation]);
 
   const handleContinueToAmount = useCallback(() => {
-    // TODO: handle navigation to Build Quote page
     trackEvent(
-      rampType === RampType.BUY
+      isBuy
         ? 'ONRAMP_CONTINUE_TO_AMOUNT_CLICKED'
         : 'OFFRAMP_CONTINUE_TO_AMOUNT_CLICKED',
       {
@@ -124,6 +122,7 @@ const PaymentMethods = () => {
     navigation.navigate(...createBuildQuoteNavDetails());
   }, [
     currentPaymentMethod?.id,
+    isBuy,
     navigation,
     paymentMethods,
     selectedRegion?.id,

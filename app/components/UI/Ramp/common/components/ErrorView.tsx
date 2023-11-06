@@ -104,7 +104,7 @@ function ErrorView({
   }, [ctaOnPress]);
 
   useEffect(() => {
-    trackEvent(`${isBuy ? 'ON' : 'OFF'}RAMP_ERROR`, {
+    trackEvent(isBuy ? 'ONRAMP_ERROR' : 'OFFRAMP_ERROR', {
       location,
       message: description,
       payment_method_id: selectedPaymentMethodId as string,

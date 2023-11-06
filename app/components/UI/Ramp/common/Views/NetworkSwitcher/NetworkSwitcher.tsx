@@ -36,7 +36,6 @@ import { strings } from '../../../../../../../locales/i18n';
 import Routes from '../../../../../../constants/navigation/Routes';
 
 import PopularList from '../../../../../../util/networks/customNetworks';
-import { RampType } from '../../../../../../reducers/fiatOrders/types';
 
 function NetworkSwitcher() {
   const navigation = useNavigation();
@@ -54,7 +53,7 @@ function NetworkSwitcher() {
   } = useRampNetworksDetail();
   const supportedNetworks = useSelector(getRampNetworks);
   const [isCurrentNetworkRampSupported] = useRampNetwork();
-  const { selectedChainId, rampType } = useRampSDK();
+  const { selectedChainId, isBuy } = useRampSDK();
 
   const networkConfigurations = useSelector(selectNetworkConfigurations);
   const [networkToBeAdded, setNetworkToBeAdded] = useState<Network>();
@@ -94,7 +93,7 @@ function NetworkSwitcher() {
   }, [networksDetails, supportedNetworks]);
 
   const handleCancelPress = useCallback(() => {
-    if (rampType === RampType.BUY) {
+    if (isBuy) {
       trackEvent('ONRAMP_CANCELED', {
         location: 'Network Switcher Screen',
         chain_id_destination: selectedChainId,
@@ -105,7 +104,7 @@ function NetworkSwitcher() {
         chain_id_source: selectedChainId,
       });
     }
-  }, [rampType, selectedChainId, trackEvent]);
+  }, [isBuy, selectedChainId, trackEvent]);
 
   useEffect(() => {
     navigation.setOptions(

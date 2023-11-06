@@ -63,24 +63,32 @@ const OrderDetails = () => {
 
   useEffect(() => {
     if (order) {
+      const { data, state, cryptocurrency, orderType, currency, network } =
+        order;
+
+      const {
+        paymentMethod: { id: paymentMethodId },
+        provider: { name: providerName },
+      } = data as Order;
+
       const payload = {
-        purchase_status: order.state,
-        payment_method_id: (order.data as Order)?.paymentMethod?.id,
-        currency_destination: order.cryptocurrency,
-        order_type: order.orderType,
-        currency_source: order.currency,
+        purchase_status: state,
+        payment_method_id: paymentMethodId,
+        currency_destination: cryptocurrency,
+        order_type: orderType,
+        currency_source: currency,
       };
       if (order.orderType === OrderOrderTypeEnum.Buy) {
         trackEvent('ONRAMP_PURCHASE_DETAILS_VIEWED', {
           ...payload,
-          provider_onramp: (order.data as Order)?.provider.name,
-          chain_id_destination: order.network,
+          provider_onramp: providerName,
+          chain_id_destination: network,
         });
       } else {
         trackEvent('OFFRAMP_PURCHASE_DETAILS_VIEWED', {
           ...payload,
-          provider_offramp: (order.data as Order)?.provider.name,
-          chain_id_source: order.network,
+          provider_offramp: providerName,
+          chain_id_source: network,
         });
       }
     }

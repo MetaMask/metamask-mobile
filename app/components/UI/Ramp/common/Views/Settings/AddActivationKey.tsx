@@ -6,6 +6,7 @@ import Text from '../../../../../Base/Text';
 import StyledButton from '../../../../StyledButton';
 import Row from '../../components/Row';
 import ScreenLayout from '../../components/ScreenLayout';
+
 import { getNavigationOptionsTitle } from '../../../../Navbar';
 import {
   createNavigationDetails,

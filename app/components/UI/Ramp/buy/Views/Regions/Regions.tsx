@@ -63,7 +63,7 @@ const RegionsView = () => {
   } = useRegions();
 
   const handleCancelPress = useCallback(() => {
-    if (rampType === RampType.BUY) {
+    if (isBuy) {
       trackEvent('ONRAMP_CANCELED', {
         location: 'Region Screen',
         chain_id_destination: selectedChainId,
@@ -74,7 +74,7 @@ const RegionsView = () => {
         chain_id_source: selectedChainId,
       });
     }
-  }, [rampType, selectedChainId, trackEvent]);
+  }, [isBuy, selectedChainId, trackEvent]);
 
   useEffect(() => {
     navigation.setOptions(

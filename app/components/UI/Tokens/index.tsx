@@ -313,14 +313,12 @@ const Tokens: React.FC<TokensI> = ({ tokens }) => {
     );
   };
 
-  // ASK PEDRO - do we need a "goToSell" method?
   const goToBuy = () => {
     navigation.navigate(Routes.RAMP.BUY);
     InteractionManager.runAfterInteractions(() => {
       Analytics.trackEventWithParameters(MetaMetricsEvents.BUY_BUTTON_CLICKED, {
         text: 'Buy Native Token',
         location: 'Home Screen',
-        // ASK PEDRO - chain_id?
         chain_id_destination: chainId,
       });
     });

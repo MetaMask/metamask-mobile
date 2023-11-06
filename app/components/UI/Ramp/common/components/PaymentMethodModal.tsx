@@ -70,14 +70,19 @@ function PaymentMethodModal({
       if (selectedPaymentMethodId !== paymentMethodId) {
         onItemPress(paymentMethodId);
 
-        trackEvent(`${isBuy ? 'ON' : 'OFF'}RAMP_PAYMENT_METHOD_SELECTED`, {
-          payment_method_id: paymentMethodId,
-          available_payment_method_ids: paymentMethods?.map(
-            ({ id }) => id,
-          ) as string[],
-          region: selectedRegion?.id as string,
-          location,
-        });
+        trackEvent(
+          isBuy
+            ? 'ONRAMP_PAYMENT_METHOD_SELECTED'
+            : 'OFFRAMP_PAYMENT_METHOD_SELECTED',
+          {
+            payment_method_id: paymentMethodId,
+            available_payment_method_ids: paymentMethods?.map(
+              ({ id }) => id,
+            ) as string[],
+            region: selectedRegion?.id as string,
+            location,
+          },
+        );
       } else {
         onItemPress();
       }

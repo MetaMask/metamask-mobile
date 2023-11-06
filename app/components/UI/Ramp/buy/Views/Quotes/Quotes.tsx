@@ -42,11 +42,7 @@ import Animated, {
 } from 'react-native-reanimated';
 import useInAppBrowser from '../../hooks/useInAppBrowser';
 import { createCheckoutNavDetails } from '../Checkout';
-import {
-  PROVIDER_LINKS,
-  RampType,
-  ScreenLocation,
-} from '../../../common/types';
+import { PROVIDER_LINKS, ScreenLocation } from '../../../common/types';
 import Logger from '../../../../../../util/Logger';
 import Timer from './Timer';
 import { isBuyQuote, isBuyQuotes, isSellQuotes } from '../../../common/utils';
@@ -72,6 +68,7 @@ function Quotes() {
     callbackBaseUrl,
     sdkError,
     rampType,
+    isBuy,
   } = useRampSDK();
   const renderInAppBrowser = useInAppBrowser();
 
@@ -128,7 +125,7 @@ function Quotes() {
   }, [quotes, rampType]);
 
   const handleCancelPress = useCallback(() => {
-    if (rampType === RampType.BUY) {
+    if (isBuy) {
       trackEvent('ONRAMP_CANCELED', {
         location: 'Quotes Screen',
         chain_id_destination: selectedChainId,
@@ -141,7 +138,7 @@ function Quotes() {
         results_count: filteredQuotes.length,
       });
     }
-  }, [filteredQuotes.length, rampType, selectedChainId, trackEvent]);
+  }, [filteredQuotes.length, isBuy, selectedChainId, trackEvent]);
 
   const handleFetchQuotes = useCallback(() => {
     setIsLoading(true);
@@ -158,7 +155,7 @@ function Quotes() {
       location: 'Quotes Screen' as ScreenLocation,
     };
 
-    if (rampType === RampType.BUY) {
+    if (isBuy) {
       trackEvent('ONRAMP_QUOTES_REQUESTED', {
         ...payload,
         chain_id_destination: selectedChainId,
@@ -173,10 +170,10 @@ function Quotes() {
     appConfig.POLLING_CYCLES,
     appConfig.POLLING_INTERVAL,
     fetchQuotes,
+    isBuy,
     params.amount,
     params.asset?.symbol,
     params.fiatCurrency?.symbol,
-    rampType,
     selectedChainId,
     selectedPaymentMethodId,
     trackEvent,
@@ -195,7 +192,7 @@ function Quotes() {
         setSelectedProviderInfo(quote.provider);
         setShowProviderInfo(true);
 
-        if (rampType === RampType.BUY) {
+        if (isBuy) {
           trackEvent('ONRAMP_PROVIDER_DETAILS_VIEWED', {
             provider_onramp: quote.provider.name,
           });
@@ -206,7 +203,7 @@ function Quotes() {
         }
       }
     },
-    [rampType, trackEvent],
+    [isBuy, trackEvent],
   );
 
   const handleOnPressCTA = useCallback(
@@ -233,7 +230,7 @@ function Quotes() {
             ((quote.amountIn ?? 0) - totalFee) / (quote.amountOut ?? 0),
         };
 
-        if (rampType === RampType.BUY) {
+        if (isBuy) {
           trackEvent('ONRAMP_PROVIDER_SELECTED', {
             ...payload,
             provider_onramp: quote.provider.name,
@@ -417,7 +414,7 @@ function Quotes() {
             totals.feeAmountRatio / quotesWithoutError.length,
         };
 
-        if (rampType === RampType.BUY) {
+        if (isBuy) {
           trackEvent('ONRAMP_QUOTES_RECEIVED', {
             ...payload,
             average_crypto_out: totals.amountOut / quotesWithoutError.length,
@@ -460,7 +457,7 @@ function Quotes() {
             payment_method_id: selectedPaymentMethodId as string,
             error_message: quoteError.message,
           };
-          if (rampType === RampType.BUY) {
+          if (isBuy) {
             trackEvent('ONRAMP_QUOTE_ERROR', {
               ...payload,
               provider_onramp: quoteError.provider.name,
@@ -478,6 +475,7 @@ function Quotes() {
   }, [
     appConfig.POLLING_CYCLES,
     filteredQuotes,
+    isBuy,
     isFetchingQuotes,
     params,
     pollingCyclesLeft,

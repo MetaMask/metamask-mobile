@@ -76,11 +76,16 @@ const InfoAlert: React.FC<Props> = ({
   const handleProviderHomepageLinkPress = useCallback(
     (url: string) => {
       Linking.openURL(url);
-      trackEvent(`${isBuy ? 'ON' : 'OFF'}RAMP_EXTERNAL_LINK_CLICKED`, {
-        location: 'Quotes Screen',
-        text: 'Provider Homepage',
-        url_domain: url,
-      });
+      trackEvent(
+        isBuy
+          ? 'ONRAMP_EXTERNAL_LINK_CLICKED'
+          : 'OFFRAMP_EXTERNAL_LINK_CLICKED',
+        {
+          location: 'Quotes Screen',
+          text: 'Provider Homepage',
+          url_domain: url,
+        },
+      );
     },
     [isBuy, trackEvent],
   );
@@ -88,11 +93,16 @@ const InfoAlert: React.FC<Props> = ({
   const handleProviderPrivacyPolicyLinkPress = useCallback(
     (url: string) => {
       Linking.openURL(url);
-      trackEvent(`${isBuy ? 'ON' : 'OFF'}RAMP_EXTERNAL_LINK_CLICKED`, {
-        location: 'Quotes Screen',
-        text: 'Provider Privacy Policy',
-        url_domain: url,
-      });
+      trackEvent(
+        isBuy
+          ? 'ONRAMP_EXTERNAL_LINK_CLICKED'
+          : 'OFFRAMP_EXTERNAL_LINK_CLICKED',
+        {
+          location: 'Quotes Screen',
+          text: 'Provider Privacy Policy',
+          url_domain: url,
+        },
+      );
     },
     [isBuy, trackEvent],
   );
@@ -100,11 +110,16 @@ const InfoAlert: React.FC<Props> = ({
   const handleProviderSupportLinkPress = useCallback(
     (url: string) => {
       Linking.openURL(url);
-      trackEvent(`${isBuy ? 'ON' : 'OFF'}RAMP_EXTERNAL_LINK_CLICKED`, {
-        location: 'Quotes Screen',
-        text: 'Provider Support',
-        url_domain: url,
-      });
+      trackEvent(
+        isBuy
+          ? 'ONRAMP_EXTERNAL_LINK_CLICKED'
+          : 'OFFRAMP_EXTERNAL_LINK_CLICKED',
+        {
+          location: 'Quotes Screen',
+          text: 'Provider Support',
+          url_domain: url,
+        },
+      );
     },
     [isBuy, trackEvent],
   );

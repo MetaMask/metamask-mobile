@@ -71,7 +71,7 @@ const WalletActions = () => {
       Analytics.trackEventWithParameters(MetaMetricsEvents.BUY_BUTTON_CLICKED, {
         text: 'Buy',
         location: 'TabBar',
-        chain_id: chainId,
+        chain_id_destination: chainId,
       });
     });
   };
@@ -84,7 +84,7 @@ const WalletActions = () => {
         {
           text: 'Sell',
           location: 'TabBar',
-          chain_id: chainId,
+          chain_id_source: chainId,
         },
       );
     });
