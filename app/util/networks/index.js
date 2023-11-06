@@ -456,12 +456,12 @@ export const getBlockExplorerAddressUrl = (
  * Returns block explorer transaction url and title by network
  *
  * @param {string} networkType Network type
- * @param {string} transactionHash hash of the transaction to be used on the link
+ * @param {string} hash hash of the transaction to be used on the link
  * @param {string} rpcBlockExplorer rpc block explorer base url
  */
 export const getBlockExplorerTxUrl = (
   networkType,
-  transactionHash,
+  hash,
   rpcBlockExplorer = null,
 ) => {
   const isCustomRpcBlockExplorerNetwork = networkType === RPC;
@@ -469,12 +469,12 @@ export const getBlockExplorerTxUrl = (
   if (isCustomRpcBlockExplorerNetwork) {
     if (!rpcBlockExplorer) return { url: null, title: null };
 
-    const url = `${rpcBlockExplorer}/tx/${transactionHash}`;
+    const url = `${rpcBlockExplorer}/tx/${hash}`;
     const title = new URL(rpcBlockExplorer).hostname;
     return { url, title };
   }
 
-  const url = getEtherscanTransactionUrl(networkType, transactionHash);
+  const url = getEtherscanTransactionUrl(networkType, hash);
   const title = getEtherscanBaseUrl(networkType).replace('https://', '');
   return { url, title };
 };

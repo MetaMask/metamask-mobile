@@ -217,11 +217,11 @@ describe('NetworkUtils::getBlockExplorerAddressUrl', () => {
 });
 
 describe('NetworkUtils::getBlockExplorerTxUrl', () => {
-  const mockTransactionHash =
+  const mockHash =
     '0xc4fd7d4ca49e57fed7f533dedc9447cdf3818df2a1f61b405d3e5c10e8fd5b86';
 
   it('should return null result when network type === "rpc" and rpcBlockExplorerUrl === null', () => {
-    const { url, title } = getBlockExplorerTxUrl(RPC, mockTransactionHash);
+    const { url, title } = getBlockExplorerTxUrl(RPC, mockHash);
 
     expect(url).toBe(null);
     expect(title).toBe(null);
@@ -230,40 +230,32 @@ describe('NetworkUtils::getBlockExplorerTxUrl', () => {
   it('should return rpc block explorer tx url when network type === "rpc"', () => {
     const { url, title } = getBlockExplorerTxUrl(
       RPC,
-      mockTransactionHash,
+      mockHash,
       'http://avalanche-rpc-url',
     );
 
-    expect(url).toBe(`http://avalanche-rpc-url/tx/${mockTransactionHash}`);
+    expect(url).toBe(`http://avalanche-rpc-url/tx/${mockHash}`);
     expect(title).toBe(`avalanche-rpc-url`);
   });
 
   it('should return etherscan block explorer tx url when network type !== "rpc"', () => {
-    const { url, title } = getBlockExplorerTxUrl(GOERLI, mockTransactionHash);
+    const { url, title } = getBlockExplorerTxUrl(GOERLI, mockHash);
 
-    expect(url).toBe(`https://goerli.etherscan.io/tx/${mockTransactionHash}`);
+    expect(url).toBe(`https://goerli.etherscan.io/tx/${mockHash}`);
     expect(title).toBe(`goerli.etherscan.io`);
   });
 
   it('should return custom block explorer tx url when network type === "linea-goerli"', () => {
-    const { url, title } = getBlockExplorerTxUrl(
-      LINEA_GOERLI,
-      mockTransactionHash,
-    );
+    const { url, title } = getBlockExplorerTxUrl(LINEA_GOERLI, mockHash);
 
-    expect(url).toBe(
-      `https://goerli.lineascan.build/tx/${mockTransactionHash}`,
-    );
+    expect(url).toBe(`https://goerli.lineascan.build/tx/${mockHash}`);
     expect(title).toBe(`goerli.lineascan.build`);
   });
 
   it('should return custom block explorer tx url when network type === "linea-mainnet"', () => {
-    const { url, title } = getBlockExplorerTxUrl(
-      LINEA_MAINNET,
-      mockTransactionHash,
-    );
+    const { url, title } = getBlockExplorerTxUrl(LINEA_MAINNET, mockHash);
 
-    expect(url).toBe(`https://lineascan.build/tx/${mockTransactionHash}`);
+    expect(url).toBe(`https://lineascan.build/tx/${mockHash}`);
     expect(title).toBe(`lineascan.build`);
   });
 });
