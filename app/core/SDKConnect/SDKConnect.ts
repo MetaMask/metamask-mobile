@@ -53,7 +53,7 @@ export interface approveHostProps {
   context?: string;
 }
 
-export const TIMEOUT_PAUSE_CONNECTIONS = 20000;
+export const TIMEOUT_PAUSE_CONNECTIONS = 25000;
 
 export type SDKEventListener = (event: string) => void;
 
