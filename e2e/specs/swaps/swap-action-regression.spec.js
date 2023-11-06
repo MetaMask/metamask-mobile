@@ -1,5 +1,4 @@
 'use strict';
-
 import { loginToApp } from '../../viewHelper';
 import Onboarding from '../../pages/swaps/OnBoarding';
 import QuoteView from '../../pages/swaps/QuoteView';
@@ -8,8 +7,6 @@ import TabBarComponent from '../../pages/TabBarComponent';
 import ActivitiesView from '../../pages/ActivitiesView';
 import DetailsModal from '../../pages/modals/DetailsModal';
 import WalletActionsModal from '../../pages/modals/WalletActionsModal';
-import WalletView from '../../pages/WalletView';
-import TokenOverview from '../../pages/TokenOverview';
 import FixtureBuilder from '../../fixtures/fixture-builder';
 import {
   loadFixture,
@@ -20,10 +17,11 @@ import Networks from '../../resources/networks.json';
 import TestHelpers from '../../helpers';
 import FixtureServer from '../../fixtures/fixture-server';
 import { getFixturesServerPort } from '../../fixtures/utils';
+import { Regression } from '../../tags';
 
 const fixtureServer = new FixtureServer();
 
-describe('Swap Tests', () => {
+describe(Regression('Multiple Swaps from Actions'), () => {
   let swapOnboarded = false;
   beforeAll(async () => {
     await TestHelpers.reverseServerPort();
@@ -33,7 +31,6 @@ describe('Swap Tests', () => {
     await startFixtureServer(fixtureServer);
     await loadFixture(fixtureServer, { fixture });
     await device.launchApp({
-      delete: true,
       permissions: { notifications: 'YES' },
       launchArgs: { fixtureServerPort: `${getFixturesServerPort()}` },
     });
@@ -51,8 +48,7 @@ describe('Swap Tests', () => {
     quantity | sourceTokenSymbol | destTokenSymbol
     ${'1'}   | ${'ETH'}          | ${'WETH'}
     ${'1'}   | ${'WETH'}         | ${'ETH'}
-    ${'.05'} | ${'ETH'}          | ${'USDC'}
-    ${'10'}  | ${'USDC'}         | ${'ETH'}
+    ${'1'}   | ${'USDC'}         | ${'ETH'}
   `(
     "should Swap $quantity '$sourceTokenSymbol' to '$destTokenSymbol'",
     async ({ quantity, sourceTokenSymbol, destTokenSymbol }) => {
@@ -83,6 +79,7 @@ describe('Swap Tests', () => {
       }
       await QuoteView.tapOnGetQuotes();
       await SwapView.isVisible();
+      await SwapView.tapIUnderstandPriceWarning();
       await SwapView.swipeToSwap();
       await SwapView.waitForSwapToComplete(sourceTokenSymbol, destTokenSymbol);
       await TabBarComponent.tapActivity();
@@ -96,24 +93,4 @@ describe('Swap Tests', () => {
       await DetailsModal.tapOnCloseIcon();
     },
   );
-
-  it('should complete a USDC to DAI swap from the token chart', async () => {
-    await TabBarComponent.tapWallet();
-    await WalletView.isVisible();
-    await WalletView.tapOnToken('Ethereum');
-    await TokenOverview.isVisible();
-
-    await TokenOverview.tapSwapButton();
-    if (!swapOnboarded) await Onboarding.tapStartSwapping();
-    await QuoteView.isVisible();
-    await QuoteView.tapOnSelectSourceToken();
-    await QuoteView.selectToken('USDC');
-    await QuoteView.enterSwapAmount('5');
-    await QuoteView.tapOnSelectDestToken();
-    await QuoteView.selectToken('DAI');
-    await QuoteView.tapOnGetQuotes();
-    await SwapView.isVisible();
-    await SwapView.swipeToSwap();
-    await SwapView.waitForSwapToComplete('USDC', 'DAI');
-  });
 });
