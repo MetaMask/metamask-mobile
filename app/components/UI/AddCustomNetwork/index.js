@@ -18,6 +18,7 @@ import EvilIcons from 'react-native-vector-icons/EvilIcons';
 import Text from '../../Base/Text';
 import { useTheme } from '../../../util/theme';
 import { CANCEL_BUTTON_ID } from '../../../constants/test-ids';
+import { CommonSelectorsIDs } from '../../../../e2e/selectors/Common.selectors';
 
 const createStyles = (colors) =>
   StyleSheet.create({
@@ -258,7 +259,7 @@ const AddCustomNetwork = ({
     return (
       <Alert
         type={AlertType.Warning}
-        testID={'error-message-warning'}
+        testID={CommonSelectorsIDs.ERROR_MESSAGE}
         style={styles.alertContainer}
         renderIcon={() => <EvilIcons name="bell" style={styles.alertIcon} />}
       >

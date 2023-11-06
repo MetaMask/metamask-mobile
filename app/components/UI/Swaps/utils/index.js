@@ -13,6 +13,7 @@ const {
   ARBITRUM_CHAIN_ID,
   OPTIMISM_CHAIN_ID,
   ZKSYNC_ERA_CHAIN_ID,
+  LINEA_CHAIN_ID,
 } = swapsUtils;
 
 const allowedChainIds = [
@@ -23,6 +24,7 @@ const allowedChainIds = [
   ARBITRUM_CHAIN_ID,
   OPTIMISM_CHAIN_ID,
   ZKSYNC_ERA_CHAIN_ID,
+  LINEA_CHAIN_ID,
   SWAPS_TESTNET_CHAIN_ID,
 ];
 

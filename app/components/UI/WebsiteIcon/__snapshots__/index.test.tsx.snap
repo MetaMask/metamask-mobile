@@ -2,7 +2,7 @@
 
 exports[`WebsiteIcon should render correctly 1`] = `
 <View>
-  <FadeIn
+  <View
     placeholderStyle={
       Object {
         "backgroundColor": "#F2F4F6",
@@ -12,12 +12,40 @@ exports[`WebsiteIcon should render correctly 1`] = `
   >
     <Image
       onError={[Function]}
+      onLoadEnd={[Function]}
       source={
         Object {
-          "uri": "https://api.faviconkit.com/url.com/50",
+          "uri": "mockedFaviconSource.png",
         }
       }
     />
-  </FadeIn>
+    <View
+      collapsable={false}
+      style={
+        Object {
+          "bottom": 0,
+          "left": 0,
+          "opacity": 1,
+          "position": "absolute",
+          "right": 0,
+          "top": 0,
+        }
+      }
+    >
+      <View
+        style={
+          Array [
+            Object {},
+            Object {
+              "backgroundColor": "#eee",
+            },
+            Object {
+              "backgroundColor": "#F2F4F6",
+            },
+          ]
+        }
+      />
+    </View>
+  </View>
 </View>
 `;
