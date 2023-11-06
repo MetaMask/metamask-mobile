@@ -356,9 +356,10 @@ export class SDKConnect extends EventEmitter2 {
             existingConnection !== undefined
           } - update otherPublicKey -  ${currentOtherPublicKey} --> ${otherPublicKey}`,
         );
-        if (existingConnection) {
-          existingConnection.remote.setOtherPublicKey(otherPublicKey);
-        }
+        // TODO re-enable after comm layer update.
+        // if (existingConnection) {
+        //   existingConnection.remote.setOtherPublicKey(otherPublicKey);
+        // }
       } else {
         DevLogger.log(
           `SDKConnect::reconnect[${context}] - same otherPublicKey`,
