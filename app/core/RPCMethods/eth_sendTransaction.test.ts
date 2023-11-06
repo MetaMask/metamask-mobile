@@ -101,6 +101,7 @@ function getMockAddTransaction({
       } else {
         return {
           result: Promise.resolve('fake-hash'),
+          transactionMeta: { id: '123' },
         };
       }
     },
