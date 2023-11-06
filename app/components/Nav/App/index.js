@@ -287,7 +287,6 @@ const App = ({ userLoggedIn }) => {
     const deeplink = params?.['+non_branch_link'] || uri || null;
     try {
       if (deeplink) {
-        SharedDeeplinkManager.setDeeplink(deeplink);
         SharedDeeplinkManager.parse(deeplink, {
           origin: AppConstants.DEEPLINKS.ORIGIN_DEEPLINK,
         });

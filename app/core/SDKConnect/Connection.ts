@@ -53,7 +53,7 @@ export interface ConnectionProps {
   reconnect?: boolean;
   initialConnection?: boolean;
   originatorInfo?: OriginatorInfo;
-  validUntil: number;
+  validUntil?: number;
   lastAuthorized?: number; // timestamp of last received activity
 }
 

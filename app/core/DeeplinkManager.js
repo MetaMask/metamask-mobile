@@ -27,7 +27,7 @@ import Engine from './Engine';
 import { Minimizer } from './NativeModules';
 import DevLogger from './SDKConnect/utils/DevLogger';
 import WC2Manager from './WalletConnect/WalletConnectV2';
-import { waitForCondition } from './SDKConnect/utils/wait.util';
+import handleDeeplink from './SDKConnect/handleDeeplink';
 
 class DeeplinkManager {
   constructor({ navigation, dispatch }) {
@@ -195,7 +195,7 @@ class DeeplinkManager {
     });
   }
 
-  async parse(url, { browserCallBack, origin, onHandled }) {
+  parse(url, { browserCallBack, origin, onHandled }) {
     const urlObj = new URL(
       url
         .replace(
@@ -218,19 +218,6 @@ class DeeplinkManager {
     }
 
     const sdkConnect = SDKConnect.getInstance();
-    if (!sdkConnect.hasInitialized()) {
-      DevLogger.log(
-        `DeepLinkManager: sdkConnect not initialized --- waiting for it`,
-      );
-      await waitForCondition({
-        fn: () => sdkConnect.hasInitialized(),
-        context: 'deeplink',
-        waitTime: 500,
-      });
-      DevLogger.log(
-        `DeepLinkManager: sdkConnect initialized --- continue with deeplink`,
-      );
-    }
 
     const protocol = urlObj.protocol.replace(':', '');
     DevLogger.log(
@@ -265,32 +252,13 @@ class DeeplinkManager {
             if (params.redirect) {
               Minimizer.goBack();
             } else if (params.channelId) {
-              const connections = sdkConnect.getConnections();
-              const channelExists = connections[params.channelId] !== undefined;
-
-              DevLogger.log(
-                `DeepLinkManager channel=${params.channelId} exists=${channelExists}`,
-              );
-              if (channelExists) {
-                if (origin === AppConstants.DEEPLINKS.ORIGIN_DEEPLINK) {
-                  // Automatically re-approve hosts.
-                  sdkConnect.revalidateChannel({
-                    channelId: params.channelId,
-                  });
-                }
-                sdkConnect.reconnect({
-                  channelId: params.channelId,
-                  otherPublicKey: params.pubkey,
-                  context: 'deeplink (universal)',
-                });
-              } else {
-                sdkConnect.connectToChannel({
-                  id: params.channelId,
-                  commLayer: params.comm,
-                  origin,
-                  otherPublicKey: params.pubkey,
-                });
-              }
+              handleDeeplink({
+                channelId: params.channelId,
+                origin,
+                context: 'deeplink_universal',
+                otherPublicKey: params.pubkey,
+                sdkConnect,
+              });
             }
             return true;
           } else if (action === ACTIONS.WC && wcURL) {
@@ -399,29 +367,13 @@ class DeeplinkManager {
           if (params.redirect) {
             Minimizer.goBack();
           } else if (params.channelId) {
-            const channelExists =
-              sdkConnect.getApprovedHosts()[params.channelId];
-
-            if (channelExists) {
-              if (origin === AppConstants.DEEPLINKS.ORIGIN_DEEPLINK) {
-                // Automatically re-approve hosts.
-                sdkConnect.revalidateChannel({
-                  channelId: params.channelId,
-                });
-              }
-              sdkConnect.reconnect({
-                channelId: params.channelId,
-                otherPublicKey: params.pubkey,
-                context: 'deeplink (metamask)',
-              });
-            } else {
-              sdkConnect.connectToChannel({
-                id: params.channelId,
-                commLayer: params.comm,
-                origin,
-                otherPublicKey: params.pubkey,
-              });
-            }
+            handleDeeplink({
+              channelId: params.channelId,
+              origin,
+              context: 'deeplink_scheme',
+              otherPublicKey: params.pubkey,
+              sdkConnect,
+            });
           }
           return true;
         } else if (

@@ -118,6 +118,7 @@ export class SDKConnect extends EventEmitter2 {
     id,
     otherPublicKey,
     origin,
+    validUntil = Date.now() + DEFAULT_SESSION_TIMEOUT_MS,
   }: ConnectionProps) {
     const existingConnection = this.connected[id] !== undefined;
     const isReady = existingConnection && this.connected[id].isReady;
@@ -162,7 +163,7 @@ export class SDKConnect extends EventEmitter2 {
       id,
       otherPublicKey,
       origin,
-      validUntil: Date.now() + DEFAULT_SESSION_TIMEOUT_MS,
+      validUntil,
       lastAuthorized: initialConnection ? 0 : this.approvedHosts[id],
     };
 
