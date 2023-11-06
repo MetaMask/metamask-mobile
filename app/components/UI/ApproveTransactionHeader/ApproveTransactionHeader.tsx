@@ -12,7 +12,7 @@ import { useStyles } from '../../../component-library/hooks';
 import { selectProviderConfig } from '../../../selectors/networkController';
 import { selectAccounts } from '../../../selectors/accountTrackerController';
 import { selectIdentities } from '../../../selectors/preferencesController';
-import { renderAccountName, renderShortAddress } from '../../../util/address';
+import { renderAccountName } from '../../../util/address';
 import { getUrlObj, prefixUrlWithProtocol } from '../../../util/browser';
 import {
   getNetworkImageSource,
@@ -23,6 +23,7 @@ import useAddressBalance from '../../hooks/useAddressBalance/useAddressBalance';
 import {
   ORIGIN_DEEPLINK,
   ORIGIN_QR_CODE,
+  APPROVE_TRANSACTION_ORIGIN_PILL,
 } from './ApproveTransactionHeader.constants';
 import stylesheet from './ApproveTransactionHeader.styles';
 import { ApproveTransactionHeaderI } from './ApproveTransactionHeader.types';
@@ -64,16 +65,21 @@ const ApproveTransactionHeader = ({
 
     const isOriginDeepLinkVal =
       origin === ORIGIN_DEEPLINK || origin === ORIGIN_QR_CODE;
-    const isOriginWalletConnectVal = origin?.startsWith(WALLET_CONNECT_ORIGIN);
-
-    const isOriginMMSDKRemoteConnVal = origin?.startsWith(
-      AppConstants.MM_SDK.SDK_REMOTE_ORIGIN,
-    );
 
     setAccountName(accountNameVal);
     setIsOriginDeepLink(isOriginDeepLinkVal);
-    setIsOriginWalletConnect(isOriginWalletConnectVal);
-    setIsOriginMMSDKRemoteConn(isOriginMMSDKRemoteConnVal);
+
+    if (!origin) {
+      setIsOriginWalletConnect(false);
+      setIsOriginMMSDKRemoteConn(false);
+
+      return;
+    }
+
+    setIsOriginWalletConnect(origin.startsWith(WALLET_CONNECT_ORIGIN));
+    setIsOriginMMSDKRemoteConn(
+      origin.startsWith(AppConstants.MM_SDK.SDK_REMOTE_ORIGIN),
+    );
   }, [accounts, identities, activeAddress, origin]);
 
   const networkImage = getNetworkImageSource({
@@ -83,13 +89,13 @@ const ApproveTransactionHeader = ({
 
   const domainTitle = useMemo(() => {
     let title = '';
-    if (isOriginDeepLink) {
-      title = renderShortAddress(from);
-    } else if (isOriginWalletConnect) {
-      title = getUrlObj(origin.split(WALLET_CONNECT_ORIGIN)[1]).origin;
+    if (isOriginWalletConnect) {
+      title = getUrlObj(
+        (origin as string).split(WALLET_CONNECT_ORIGIN)[1],
+      ).origin;
     } else if (isOriginMMSDKRemoteConn) {
       title = getUrlObj(
-        origin.split(AppConstants.MM_SDK.SDK_REMOTE_ORIGIN)[1],
+        (origin as string).split(AppConstants.MM_SDK.SDK_REMOTE_ORIGIN)[1],
       ).origin;
     } else {
       title = prefixUrlWithProtocol(currentEnsName || origin || url);
@@ -99,19 +105,17 @@ const ApproveTransactionHeader = ({
   }, [
     currentEnsName,
     origin,
-    isOriginDeepLink,
     isOriginWalletConnect,
     isOriginMMSDKRemoteConn,
-    from,
     url,
   ]);
 
   const faviconUpdatedOrigin = useMemo(() => {
-    let newOrigin = origin;
+    let newOrigin = origin as string;
     if (isOriginWalletConnect) {
-      newOrigin = origin.split(WALLET_CONNECT_ORIGIN)[1];
+      newOrigin = newOrigin.split(WALLET_CONNECT_ORIGIN)[1];
     } else if (isOriginMMSDKRemoteConn) {
-      newOrigin = origin.split(AppConstants.MM_SDK.SDK_REMOTE_ORIGIN)[1];
+      newOrigin = newOrigin.split(AppConstants.MM_SDK.SDK_REMOTE_ORIGIN)[1];
     }
     return newOrigin;
   }, [origin, isOriginWalletConnect, isOriginMMSDKRemoteConn]);
@@ -120,8 +124,9 @@ const ApproveTransactionHeader = ({
 
   return (
     <View style={styles.transactionHeader}>
-      {origin ? (
+      {origin && !isOriginDeepLink ? (
         <TagUrl
+          testID={APPROVE_TRANSACTION_ORIGIN_PILL}
           imageSource={faviconSource}
           label={domainTitle}
           style={styles.tagUrl}
