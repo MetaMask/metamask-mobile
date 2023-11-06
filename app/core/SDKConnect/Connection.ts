@@ -94,6 +94,10 @@ export class Connection extends EventEmitter2 {
    */
   receivedDisconnect = false;
   /**
+   * receivedClientsReady is used to track when a dApp disconnects before processing the 'clients_ready' message.
+   */
+  receivedClientsReady = false;
+  /**
    * isResumed is used to manage the loading state.
    */
   isResumed = false;
@@ -230,15 +234,21 @@ export class Connection extends EventEmitter2 {
       );
       this.setLoading(true);
       this.receivedDisconnect = false;
-      // Auto hide after 3seconds if 'ready' wasn't received
-      setTimeout(() => {
-        if (this._loading) {
-          DevLogger.log(
-            `Connection::CLIENTS_CONNECTED auto-hide loading after 4s`,
-          );
-          this.setLoading(false);
-        }
-      }, 4000);
+
+      // Auto hide 3seconds after keychain has unlocked if 'ready' wasn't received
+      const keyringController = (
+        Engine.context as { KeyringController: KeyringController }
+      ).KeyringController;
+      waitForKeychainUnlocked({ keyringController }).then(() => {
+        setTimeout(() => {
+          if (this._loading) {
+            DevLogger.log(
+              `Connection::CLIENTS_CONNECTED auto-hide loading after 3s`,
+            );
+            this.setLoading(false);
+          }
+        }, 3000);
+      });
     });
 
     this.remote.on(EventType.CLIENTS_DISCONNECTED, () => {
@@ -246,7 +256,9 @@ export class Connection extends EventEmitter2 {
       DevLogger.log(
         `Connection::CLIENTS_DISCONNECTED id=${
           this.channelId
-        } paused=${this.remote.isPaused()} origin=${this.origin}`,
+        } paused=${this.remote.isPaused()} ready=${this.isReady} origin=${
+          this.origin
+        }`,
       );
       // Disapprove a given host everytime there is a disconnection to prevent hijacking.
       if (!this.remote.isPaused()) {
@@ -257,8 +269,19 @@ export class Connection extends EventEmitter2 {
         this.initialConnection = false;
         this.otps = undefined;
       }
+
+      // detect interruption of connection (can happen on mobile browser ios) - We need to warm the user to redo the connection.
+      if (!this.receivedClientsReady && !this.remote.isPaused()) {
+        // SOCKET CONNECTION WAS INTERRUPTED
+        console.warn(`dApp connection interrupted - please try again`);
+        // Terminate to prevent bypassing initial approval when auto-reconnect on deeplink.
+        this.disconnect({ terminate: true, context: 'CLIENTS_DISCONNECTED' });
+      }
+
       this.receivedDisconnect = true;
+      // Reset connection state
       this.isReady = false;
+      this.receivedClientsReady = false;
       DevLogger.log(
         `Connection::CLIENTS_DISCONNECTED id=${this.channelId} switch isReady ==> false`,
       );
@@ -274,6 +297,7 @@ export class Connection extends EventEmitter2 {
         // clients_ready may be sent multple time (from sdk <0.2.0).
         const updatedOriginatorInfo = clientsReadyMsg?.originatorInfo;
         const apiVersion = updatedOriginatorInfo?.apiVersion;
+        this.receivedClientsReady = true;
 
         // backward compatibility with older sdk -- always first request approval
         if (!apiVersion) {
@@ -804,6 +828,7 @@ export class Connection extends EventEmitter2 {
     DevLogger.log(
       `Connection::disconnect() context=${context} id=${this.channelId} terminate=${terminate}`,
     );
+    this.receivedClientsReady = false;
     if (terminate) {
       this.remote
         .sendMessage({
