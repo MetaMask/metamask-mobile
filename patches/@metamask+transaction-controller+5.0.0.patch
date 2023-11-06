@@ -366,10 +366,10 @@ index 0000000..8da9369
 +//# sourceMappingURL=IncomingTransactionHelper.js.map
 \ No newline at end of file
 diff --git a/node_modules/@metamask/transaction-controller/dist/TransactionController.d.ts b/node_modules/@metamask/transaction-controller/dist/TransactionController.d.ts
-index e242aed..7efd89a 100644
+index e242aed..6a3d257 100644
 --- a/node_modules/@metamask/transaction-controller/dist/TransactionController.d.ts
 +++ b/node_modules/@metamask/transaction-controller/dist/TransactionController.d.ts
-@@ -2,8 +2,10 @@
+@@ -2,8 +2,11 @@
  import { EventEmitter } from 'events';
  import Common from '@ethereumjs/common';
  import { TypedTransaction } from '@ethereumjs/tx';
@@ -378,10 +378,11 @@ index e242aed..7efd89a 100644
  import type { NetworkState, ProviderProxy, BlockTrackerProxy } from '@metamask/network-controller';
 +import { AddApprovalRequest } from '@metamask/approval-controller';
 +import { Transaction, TransactionMeta, WalletDevice } from './types';
++import { NonceLock } from 'nonce-tracker/dist/NonceTracker';
  /**
   * @type Result
   * @property result - Promise resolving to a new transaction hash
-@@ -13,44 +15,6 @@ export interface Result {
+@@ -13,44 +16,6 @@ export interface Result {
      result: Promise<string>;
      transactionMeta: TransactionMeta;
  }
@@ -426,7 +427,7 @@ index e242aed..7efd89a 100644
  export interface GasPriceValue {
      gasPrice: string;
  }
-@@ -58,115 +22,6 @@ export interface FeeMarketEIP1559Values {
+@@ -58,115 +23,6 @@ export interface FeeMarketEIP1559Values {
      maxFeePerGas: string;
      maxPriorityFeePerGas: string;
  }
@@ -542,7 +543,7 @@ index e242aed..7efd89a 100644
  /**
   * @type TransactionConfig
   *
-@@ -203,7 +58,22 @@ export interface TransactionState extends BaseState {
+@@ -203,7 +59,22 @@ export interface TransactionState extends BaseState {
      methodData: {
          [key: string]: MethodData;
      };
@@ -565,7 +566,7 @@ index e242aed..7efd89a 100644
  /**
   * Multiplier used to determine a transaction's increased gas fee during cancellation
   */
-@@ -223,19 +93,10 @@ export declare class TransactionController extends BaseController<TransactionCon
+@@ -223,19 +94,10 @@ export declare class TransactionController extends BaseController<TransactionCon
      private handle?;
      private mutex;
      private getNetworkState;
@@ -587,7 +588,7 @@ index e242aed..7efd89a 100644
      /**
       * EventEmitter instance used to listen to specific transactional events
       */
-@@ -252,18 +113,33 @@ export declare class TransactionController extends BaseController<TransactionCon
+@@ -252,18 +114,33 @@ export declare class TransactionController extends BaseController<TransactionCon
       * Creates a TransactionController instance.
       *
       * @param options - The controller options.
@@ -624,7 +625,7 @@ index e242aed..7efd89a 100644
      }, config?: Partial<TransactionConfig>, state?: Partial<TransactionState>);
      /**
       * Starts a new polling interval.
-@@ -284,11 +160,20 @@ export declare class TransactionController extends BaseController<TransactionCon
+@@ -284,11 +161,20 @@ export declare class TransactionController extends BaseController<TransactionCon
       * if not provided. If A `<tx.id>:unapproved` hub event will be emitted once added.
       *
       * @param transaction - The transaction object to add.
@@ -648,7 +649,7 @@ index e242aed..7efd89a 100644
      prepareUnsignedEthTx(txParams: Record<string, unknown>): TypedTransaction;
      /**
       * `@ethereumjs/tx` uses `@ethereumjs/common` as a configuration tool for
-@@ -300,22 +185,6 @@ export declare class TransactionController extends BaseController<TransactionCon
+@@ -300,22 +186,6 @@ export declare class TransactionController extends BaseController<TransactionCon
       * @returns {Common} common configuration object
       */
      getCommonConfiguration(): Common;
@@ -671,24 +672,28 @@ index e242aed..7efd89a 100644
      /**
       * Attempts to cancel a transaction based on its ID by setting its status to "rejected"
       * and emitting a `<tx.id>:finished` hub event.
-@@ -364,16 +233,6 @@ export declare class TransactionController extends BaseController<TransactionCon
-      * current network. If `true`, all transactions are wiped.
+@@ -365,15 +235,13 @@ export declare class TransactionController extends BaseController<TransactionCon
       */
      wipeTransactions(ignoreNetwork?: boolean): void;
--    /**
+     /**
 -     * Get transactions from Etherscan for the given address. By default all transactions are
 -     * returned, but the `fromBlock` option can be given to filter just for transactions from a
 -     * specific block onward.
--     *
++     * Gets the next nonce according to the nonce-tracker.
++     * Ensure `releaseLock` is called once processing of the `nonce` value is complete.
+      *
 -     * @param address - The address to fetch the transactions for.
 -     * @param opt - Object containing optional data, fromBlock and Etherscan API key.
 -     * @returns The block number of the latest incoming transaction.
--     */
++     * @param address - The hex string address for the transaction.
++     * @returns object with the `nextNonce` `nonceDetails`, and the releaseLock.
+      */
 -    fetchAll(address: string, opt?: FetchAllOptions): Promise<string | void>;
++    getNonceLock(address: string): Promise<NonceLock>;
      /**
       * Trim the amount of transactions that are set on the state. Checks
       * if the length of the tx history is longer then desired persistence
-@@ -413,59 +272,37 @@ export declare class TransactionController extends BaseController<TransactionCon
+@@ -413,59 +281,37 @@ export declare class TransactionController extends BaseController<TransactionCon
       * @returns Whether the transaction has failed.
       */
      private checkTxReceiptStatusIsFailed;
@@ -780,7 +785,7 @@ index 07781b0..0000000
 -{"version":3,"file":"TransactionController.d.ts","sourceRoot":"","sources":["../src/TransactionController.ts"],"names":[],"mappings":";AAAA,OAAO,EAAE,YAAY,EAAE,MAAM,QAAQ,CAAC;AAKtC,OAAO,MAAM,MAAM,oBAAoB,CAAC;AACxC,OAAO,EAAsB,gBAAgB,EAAE,MAAM,gBAAgB,CAAC;AAGtE,OAAO,EACL,cAAc,EACd,UAAU,EACV,SAAS,EACV,MAAM,2BAA2B,CAAC;AACnC,OAAO,KAAK,EACV,YAAY,EACZ,aAAa,EACb,iBAAiB,EAClB,MAAM,8BAA8B,CAAC;AA4BtC;;;;GAIG;AACH,MAAM,WAAW,MAAM;IACrB,MAAM,EAAE,OAAO,CAAC,MAAM,CAAC,CAAC;IACxB,eAAe,EAAE,eAAe,CAAC;CAClC;AAED;;;;GAIG;AACH,MAAM,WAAW,eAAe;IAC9B,SAAS,CAAC,EAAE,MAAM,CAAC;IACnB,eAAe,CAAC,EAAE,MAAM,CAAC;CAC1B;AAED;;;;;;;;;;;;;GAaG;AACH,MAAM,WAAW,WAAW;IAC1B,OAAO,CAAC,EAAE,MAAM,CAAC;IACjB,IAAI,CAAC,EAAE,MAAM,CAAC;IACd,IAAI,EAAE,MAAM,CAAC;IACb,GAAG,CAAC,EAAE,MAAM,CAAC;IACb,QAAQ,CAAC,EAAE,MAAM,CAAC;IAClB,OAAO,CAAC,EAAE,MAAM,CAAC;IACjB,KAAK,CAAC,EAAE,MAAM,CAAC;IACf,EAAE,CAAC,EAAE,MAAM,CAAC;IACZ,KAAK,CAAC,EAAE,MAAM,CAAC;IACf,YAAY,CAAC,EAAE,MAAM,CAAC;IACtB,oBAAoB,CAAC,EAAE,MAAM,CAAC;IAC9B,gBAAgB,CAAC,EAAE,MAAM,CAAC;IAC1B,gBAAgB,CAAC,EAAE,MAAM,CAAC;CAC3B;AAED,MAAM,WAAW,aAAa;IAC5B,QAAQ,EAAE,MAAM,CAAC;CAClB;AAED,MAAM,WAAW,sBAAsB;IACrC,YAAY,EAAE,MAAM,CAAC;IACrB,oBAAoB,EAAE,MAAM,CAAC;CAC9B;AAED;;;;GAIG;AACH,oBAAY,iBAAiB;IAC3B,QAAQ,aAAa;IACrB,SAAS,cAAc;IACvB,SAAS,cAAc;IACvB,MAAM,WAAW;IACjB,QAAQ,aAAa;IACrB,MAAM,WAAW;IACjB,SAAS,cAAc;IACvB,UAAU,eAAe;CAC1B;AAED;;GAEG;AACH,oBAAY,YAAY;IACtB,SAAS,oBAAoB;IAC7B,YAAY,uBAAuB;IACnC,KAAK,iBAAiB;CACvB;AAED,aAAK,mBAAmB,GAAG;IACzB,UAAU,CAAC,EAAE,OAAO,CAAC;IACrB,mBAAmB,CAAC,EAAE;QACpB,MAAM,EAAE,MAAM,CAAC;QACf,eAAe,EAAE,MAAM,CAAC;QACxB,QAAQ,EAAE,MAAM,CAAC;KAClB,CAAC;IACF,EAAE,EAAE,MAAM,CAAC;IACX,SAAS,CAAC,EAAE,MAAM,CAAC;IACnB,OAAO,CAAC,EAAE,MAAM,CAAC;IACjB,MAAM,CAAC,EAAE,MAAM,CAAC;IAChB,cAAc,CAAC,EAAE,MAAM,CAAC;IACxB,IAAI,EAAE,MAAM,CAAC;IACb,eAAe,CAAC,EAAE,OAAO,CAAC;IAC1B,WAAW,EAAE,WAAW,CAAC;IACzB,eAAe,CAAC,EAAE,MAAM,CAAC;IACzB,WAAW,CAAC,EAAE,MAAM,CAAC;IACrB,iBAAiB,CAAC,EAAE,YAAY,CAAC;IACjC,oBAAoB,CAAC,EAAE,OAAO,CAAC;CAChC,CAAC;AAEF;;;;;;;;;;;;;;;;GAgBG;AACH,oBAAY,eAAe,GACvB,CAAC;IACC,MAAM,EAAE,OAAO,CAAC,iBAAiB,EAAE,iBAAiB,CAAC,MAAM,CAAC,CAAC;CAC9D,GAAG,mBAAmB,CAAC,GACxB,CAAC;IAAE,MAAM,EAAE,iBAAiB,CAAC,MAAM,CAAC;IAAC,KAAK,EAAE,KAAK,CAAA;CAAE,GAAG,mBAAmB,CAAC,CAAC;AAE/E;;;;;;;;;;;;;;;;;;;;GAoBG;AACH,MAAM,WAAW,wBAAwB;IACvC,WAAW,EAAE,MAAM,CAAC;IACpB,SAAS,EAAE,MAAM,CAAC;IAClB,IAAI,EAAE,MAAM,CAAC;IACb,KAAK,EAAE,MAAM,CAAC;IACd,SAAS,EAAE,MAAM,CAAC;IAClB,gBAAgB,EAAE,MAAM,CAAC;IACzB,IAAI,EAAE,MAAM,CAAC;IACb,EAAE,EAAE,MAAM,CAAC;IACX,KAAK,EAAE,MAAM,CAAC;IACd,GAAG,EAAE,MAAM,CAAC;IACZ,QAAQ,EAAE,MAAM,CAAC;IACjB,iBAAiB,EAAE,MAAM,CAAC;IAC1B,OAAO,EAAE,MAAM,CAAC;IAChB,OAAO,EAAE,MAAM,CAAC;IAChB,gBAAgB,EAAE,MAAM,CAAC;IACzB,KAAK,EAAE,MAAM,CAAC;IACd,eAAe,EAAE,MAAM,CAAC;IACxB,aAAa,EAAE,MAAM,CAAC;IACtB,YAAY,EAAE,MAAM,CAAC;IACrB,WAAW,EAAE,MAAM,CAAC;CACrB;AAED;;;;;;;GAOG;AACH,MAAM,WAAW,iBAAkB,SAAQ,UAAU;IACnD,QAAQ,EAAE,MAAM,CAAC;IACjB,IAAI,CAAC,EAAE,CAAC,WAAW,EAAE,WAAW,EAAE,IAAI,EAAE,MAAM,KAAK,OAAO,CAAC,GAAG,CAAC,CAAC;IAChE,cAAc,EAAE,MAAM,CAAC;CACxB;AAED;;;;;;GAMG;AACH,MAAM,WAAW,UAAU;IACzB,cAAc,EAAE,MAAM,CAAC;IACvB,oBAAoB,EAAE,MAAM,CAAC,MAAM,EAAE,OAAO,CAAC,CAAC;CAC/C;AAED;;;;;;GAMG;AACH,MAAM,WAAW,gBAAiB,SAAQ,SAAS;IACjD,YAAY,EAAE,eAAe,EAAE,CAAC;IAChC,UAAU,EAAE;QAAE,CAAC,GAAG,EAAE,MAAM,GAAG,UAAU,CAAA;KAAE,CAAC;CAC3C;AAED;;GAEG;AACH,eAAO,MAAM,WAAW,MAAM,CAAC;AAE/B;;GAEG;AACH,eAAO,MAAM,aAAa,MAAM,CAAC;AAEjC;;GAEG;AACH,qBAAa,qBAAsB,SAAQ,cAAc,CACvD,iBAAiB,EACjB,gBAAgB,CACjB;IACC,OAAO,CAAC,QAAQ,CAAM;IAEtB,OAAO,CAAC,YAAY,CAAe;IAEnC,OAAO,CAAC,QAAQ,CAAM;IAEtB,OAAO,CAAC,QAAQ,CAAgB;IAEhC,OAAO,CAAC,MAAM,CAAC,CAAgC;IAE/C,OAAO,CAAC,KAAK,CAAe;IAE5B,OAAO,CAAC,eAAe,CAAqB;IAE5C,OAAO,CAAC,eAAe;YAUT,cAAc;IAM5B;;;;;;;;OAQG;IACH,OAAO,CAAC,WAAW;IA0CnB,OAAO,CAAC,gBAAgB,CA0CtB;IAEF;;OAEG;IACH,GAAG,eAAsB;IAEzB;;OAEG;IACM,IAAI,SAA2B;IAExC;;OAEG;IACH,IAAI,CAAC,EAAE,CACL,WAAW,EAAE,gBAAgB,EAC7B,IAAI,EAAE,MAAM,KACT,OAAO,CAAC,gBAAgB,CAAC,CAAC;IAE/B;;;;;;;;;;OAUG;gBAED,EACE,eAAe,EACf,oBAAoB,EACpB,QAAQ,EACR,YAAY,GACb,EAAE;QACD,eAAe,EAAE,MAAM,YAAY,CAAC;QACpC,oBAAoB,EAAE,CAAC,QAAQ,EAAE,CAAC,KAAK,EAAE,YAAY,KAAK,IAAI,KAAK,IAAI,CAAC;QACxE,QAAQ,EAAE,aAAa,CAAC;QACxB,YAAY,EAAE,iBAAiB,CAAC;KACjC,EACD,MAAM,CAAC,EAAE,OAAO,CAAC,iBAAiB,CAAC,EACnC,KAAK,CAAC,EAAE,OAAO,CAAC,gBAAgB,CAAC;IAyCnC;;;;OAIG;IACG,IAAI,CAAC,QAAQ,CAAC,EAAE,MAAM,GAAG,OAAO,CAAC,IAAI,CAAC;IAS5C;;;;;OAKG;IACG,gBAAgB,CAAC,cAAc,EAAE,MAAM,GAAG,OAAO,CAAC,UAAU,CAAC;IAoBnE;;;;;;;;;OASG;IACG,cAAc,CAClB,WAAW,EAAE,WAAW,EACxB,MAAM,CAAC,EAAE,MAAM,EACf,iBAAiB,CAAC,EAAE,YAAY,GAC/B,OAAO,CAAC,MAAM,CAAC;IAkElB,oBAAoB,CAAC,QAAQ,EAAE,MAAM,CAAC,MAAM,EAAE,OAAO,CAAC,GAAG,gBAAgB;IAOzE;;;;;;;;OAQG;IAEH,sBAAsB,IAAI,MAAM;IAuBhC;;;;;;;OAOG;IACG,kBAAkB,CAAC,aAAa,EAAE,MAAM;IAyF9C;;;;;OAKG;IACH,iBAAiB,CAAC,aAAa,EAAE,MAAM;IAevC;;;;;;OAMG;IACG,eAAe,CACnB,aAAa,EAAE,MAAM,EACrB,SAAS,CAAC,EAAE,aAAa,GAAG,sBAAsB;IA4FpD;;;;;OAKG;IACG,kBAAkB,CACtB,aAAa,EAAE,MAAM,EACrB,SAAS,CAAC,EAAE,aAAa,GAAG,sBAAsB;IAoHpD;;;;;OAKG;IACG,WAAW,CAAC,WAAW,EAAE,WAAW;;;;;;;;;IA6E1C;;;OAGG;IACG,wBAAwB;IAmC9B;;;;OAIG;IACH,iBAAiB,CAAC,eAAe,EAAE,eAAe;IAWlD;;;;;OAKG;IACH,gBAAgB,CAAC,aAAa,CAAC,EAAE,OAAO;IAwBxC;;;;;;;;OAQG;IACG,QAAQ,CACZ,OAAO,EAAE,MAAM,EACf,GAAG,CAAC,EAAE,eAAe,GACpB,OAAO,CAAC,MAAM,GAAG,IAAI,CAAC;IAoFzB;;;;;;;;;;;;;OAaG;IACH,OAAO,CAAC,wBAAwB;IA0BhC;;;;;OAKG;IACH,OAAO,CAAC,YAAY;IASpB;;;;;OAKG;YACW,oCAAoC;IA4DlD;;;;;;;;OAQG;YACW,4BAA4B;IAa1C;;;;;;OAMG;IACH,OAAO,CAAC,mCAAmC;IA0B3C;;;;;;;OAOG;IACH,OAAO,CAAC,kBAAkB;IAY1B;;;;;;;;OAQG;IACH,OAAO,CAAC,sBAAsB;IAe9B;;;;;;OAMG;IACH,OAAO,CAAC,qBAAqB;IAiB7B;;;;;;;;OAQG;IACH,OAAO,CAAC,gBAAgB;IASxB;;;;;;OAMG;IACH,OAAO,CAAC,iBAAiB;CAM1B;AAED,eAAe,qBAAqB,CAAC"}
 \ No newline at end of file
 diff --git a/node_modules/@metamask/transaction-controller/dist/TransactionController.js b/node_modules/@metamask/transaction-controller/dist/TransactionController.js
-index 814a899..d2da0a2 100644
+index 814a899..737b597 100644
 --- a/node_modules/@metamask/transaction-controller/dist/TransactionController.js
 +++ b/node_modules/@metamask/transaction-controller/dist/TransactionController.js
 @@ -12,7 +12,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
@@ -1171,21 +1176,25 @@ index 814a899..d2da0a2 100644
              this.hub.emit(`${transactionMeta.id}:finished`, transactionMeta);
          });
      }
-@@ -673,70 +523,6 @@ class TransactionController extends base_controller_1.BaseController {
-             transactions: this.trimTransactionsForState(newTransactions),
+@@ -674,67 +524,15 @@ class TransactionController extends base_controller_1.BaseController {
          });
      }
--    /**
+     /**
 -     * Get transactions from Etherscan for the given address. By default all transactions are
 -     * returned, but the `fromBlock` option can be given to filter just for transactions from a
 -     * specific block onward.
--     *
++     * Gets the next nonce according to the nonce-tracker.
++     * Ensure `releaseLock` is called once processing of the `nonce` value is complete.
+      *
 -     * @param address - The address to fetch the transactions for.
 -     * @param opt - Object containing optional data, fromBlock and Etherscan API key.
 -     * @returns The block number of the latest incoming transaction.
--     */
++     * @param address - The hex string address for the transaction.
++     * @returns object with the `nextNonce` `nonceDetails`, and the releaseLock.
+      */
 -    fetchAll(address, opt) {
--        return __awaiter(this, void 0, void 0, function* () {
++    getNonceLock(address) {
+         return __awaiter(this, void 0, void 0, function* () {
 -            const { providerConfig, networkId: currentNetworkID } = this.getNetworkState();
 -            const { chainId: currentChainId, type: networkType } = providerConfig;
 -            const { transactions } = this.state;
@@ -1237,12 +1246,11 @@ index 814a899..d2da0a2 100644
 -                this.update({ transactions: this.trimTransactionsForState(allTxs) });
 -            }
 -            return latestIncomingTxBlockNumber;
--        });
--    }
++            return this.nonceTracker.getNonceLock(address);
+         });
+     }
      /**
-      * Trim the amount of transactions that are set on the state. Checks
-      * if the length of the tx history is longer then desired persistence
-@@ -753,7 +539,9 @@ class TransactionController extends base_controller_1.BaseController {
+@@ -753,7 +551,9 @@ class TransactionController extends base_controller_1.BaseController {
       */
      trimTransactionsForState(transactions) {
          const nonceNetworkSet = new Set();
@@ -1253,7 +1261,7 @@ index 814a899..d2da0a2 100644
              const { chainId, networkID, status, transaction, time } = tx;
              if (transaction) {
                  const key = `${transaction.nonce}-${chainId !== null && chainId !== void 0 ? chainId : networkID}-${new Date(time).toDateString()}`;
-@@ -768,7 +556,7 @@ class TransactionController extends base_controller_1.BaseController {
+@@ -768,7 +568,7 @@ class TransactionController extends base_controller_1.BaseController {
              }
              return false;
          });
@@ -1262,7 +1270,7 @@ index 814a899..d2da0a2 100644
          return txsToKeep;
      }
      /**
-@@ -778,10 +566,10 @@ class TransactionController extends base_controller_1.BaseController {
+@@ -778,10 +578,10 @@ class TransactionController extends base_controller_1.BaseController {
       * @returns Whether the transaction is in a final state.
       */
      isFinalState(status) {
@@ -1277,7 +1285,7 @@ index 814a899..d2da0a2 100644
      }
      /**
       * Method to verify the state of a transaction using the Blockchain as a source of truth.
-@@ -793,7 +581,7 @@ class TransactionController extends base_controller_1.BaseController {
+@@ -793,7 +593,7 @@ class TransactionController extends base_controller_1.BaseController {
          return __awaiter(this, void 0, void 0, function* () {
              const { status, transactionHash } = meta;
              switch (status) {
@@ -1286,7 +1294,7 @@ index 814a899..d2da0a2 100644
                      const txReceipt = yield (0, controller_utils_1.query)(this.ethQuery, 'getTransactionReceipt', [
                          transactionHash,
                      ]);
-@@ -810,7 +598,7 @@ class TransactionController extends base_controller_1.BaseController {
+@@ -810,7 +610,7 @@ class TransactionController extends base_controller_1.BaseController {
                          return [meta, false];
                      }
                      return [meta, true];
@@ -1295,7 +1303,7 @@ index 814a899..d2da0a2 100644
                      const txObj = yield (0, controller_utils_1.query)(this.ethQuery, 'getTransactionByHash', [
                          transactionHash,
                      ]);
-@@ -825,9 +613,17 @@ class TransactionController extends base_controller_1.BaseController {
+@@ -825,9 +625,17 @@ class TransactionController extends base_controller_1.BaseController {
                      }
                      /* istanbul ignore next */
                      if (txObj === null || txObj === void 0 ? void 0 : txObj.blockNumber) {
@@ -1316,7 +1324,7 @@ index 814a899..d2da0a2 100644
                      }
                      return [meta, false];
                  default:
-@@ -856,88 +652,209 @@ class TransactionController extends base_controller_1.BaseController {
+@@ -856,88 +664,209 @@ class TransactionController extends base_controller_1.BaseController {
              return Number(txReceipt.status) === 0;
          });
      }

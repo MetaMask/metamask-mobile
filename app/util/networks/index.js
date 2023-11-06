@@ -334,12 +334,14 @@ export function isPrefixedFormattedHexString(value) {
 
 export const getNetworkNonce = async ({ from }) => {
   const { TransactionController } = Engine.context;
-  const networkNonce = await query(
-    TransactionController.ethQuery,
-    'getTransactionCount',
-    [from, 'pending'],
+
+  const { nextNonce, releaseLock } = await TransactionController.getNonceLock(
+    from,
   );
-  return parseInt(networkNonce, 16);
+
+  releaseLock();
+
+  return parseInt(nextNonce, 16);
 };
 
 export function blockTagParamIndex(payload) {
