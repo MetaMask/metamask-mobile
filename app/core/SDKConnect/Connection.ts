@@ -232,9 +232,13 @@ export class Connection extends EventEmitter2 {
       this.receivedDisconnect = false;
       // Auto hide after 3seconds if 'ready' wasn't received
       setTimeout(() => {
-        DevLogger.log(`Connection::CLIENTS_CONNECTED auto-hide loading`);
-        this.setLoading(false);
-      }, 3000);
+        if (this._loading) {
+          DevLogger.log(
+            `Connection::CLIENTS_CONNECTED auto-hide loading after 4s`,
+          );
+          this.setLoading(false);
+        }
+      }, 4000);
     });
 
     this.remote.on(EventType.CLIENTS_DISCONNECTED, () => {
