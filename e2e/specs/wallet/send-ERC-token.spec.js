@@ -1,8 +1,6 @@
 'use strict';
 import { Smoke } from '../../tags';
-
 import TestHelpers from '../../helpers';
-
 import WalletView from '../../pages/WalletView';
 import NetworkEducationModal from '../../pages/modals/NetworkEducationModal';
 import AddCustomTokenView from '../../pages/AddCustomTokenView';
@@ -17,8 +15,9 @@ const TOKEN_ADDRESS = '0x779877A7B0D9E8603169DdbD7836e478b4624789';
 const SEND_ADDRESS = '0xebe6CcB6B55e1d094d9c58980Bc10Fed69932cAb';
 
 describe(Smoke('Send ERC Token'), () => {
-  beforeEach(() => {
+  beforeAll(async () => {
     jest.setTimeout(150000);
+    await device.launchApp();
   });
 
   it('should import wallet and go to the wallet view', async () => {
@@ -30,9 +29,9 @@ describe(Smoke('Send ERC Token'), () => {
     await TestHelpers.delay(2000);
     await NetworkListModal.tapTestNetworkSwitch();
     await NetworkListModal.isTestNetworkToggleOn();
-
     await NetworkListModal.changeNetwork('Sepolia Test Network');
   });
+
   it('should dismiss network education modal', async () => {
     await NetworkEducationModal.isVisible();
     await NetworkEducationModal.tapGotItButton();
@@ -62,7 +61,6 @@ describe(Smoke('Send ERC Token'), () => {
     await SendView.tapNextButton();
     await AmountView.typeInTransactionAmount('0.000001');
     await TestHelpers.delay(5000);
-
     await AmountView.tapNextButton();
     await TransactionConfirmationView.isAmountVisible('< 0.00001 LINK');
     await TransactionConfirmationView.tapConfirmButton();
