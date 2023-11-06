@@ -537,7 +537,15 @@
     "address_balance_activity_permission": "See address, account balance, and activity",
     "suggest_transactions": "Suggest transactions to approve",
     "disconnect": "Disconnect",
-    "disconnect_all_accounts": "Disconnect all accounts"
+    "disconnect_all_accounts": "Disconnect all accounts",
+    "deceptive_site_ahead": "Deceptive site ahead",
+    "deceptive_site_desc": "The site you’re trying to visit isn’t safe. Attackers may trick you into doing something dangerous.",
+    "learn_more": "Learn more",
+    "advisory_by": "Advisory provided by Ethereum Phishing Detector and PhishFort",
+    "potential_threat": "Potential threats include",
+    "fake_metamask": "Fake versions of MetaMask",
+    "srp_theft": "Secret recovery phrase or password theft",
+    "malicious_transactions": "Malicious transactions resulting in stolen assets"
   },
   "toast": {
     "connected_and_active": "connected and active.",
