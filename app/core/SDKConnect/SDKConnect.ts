@@ -168,15 +168,6 @@ export class SDKConnect extends EventEmitter2 {
 
     DevLogger.log(`SDKConnect connections[${id}]`, this.connections[id]);
 
-    await wait(1000);
-    const keyringController = (
-      Engine.context as { KeyringController: KeyringController }
-    ).KeyringController;
-    await waitForKeychainUnlocked({
-      keyringController,
-      context: 'connectToChannel',
-    });
-
     this.connected[id] = new Connection({
       ...this.connections[id],
       initialConnection,
@@ -319,7 +310,7 @@ export class SDKConnect extends EventEmitter2 {
     this.emit('refresh');
   }
 
-  public resume({ channelId }: { channelId: string }) {
+  public async resume({ channelId }: { channelId: string }) {
     const session = this.connected[channelId]?.remote;
 
     DevLogger.log(
@@ -329,6 +320,20 @@ export class SDKConnect extends EventEmitter2 {
     );
     if (session && !session?.isConnected() && !this.connecting[channelId]) {
       this.connected[channelId].resume();
+      DevLogger.log(
+        `SDKConnect::_handleAppState - done resuming: direct: ${this.connected[
+          channelId
+        ].remote.isConnected()}`,
+      );
+      if (Platform.OS === 'android') {
+        // Android needs time to update socket status after resuming.
+        await wait(500);
+        DevLogger.log(
+          `SDKConnect::_handleAppState - done resuming: after: ${this.connected[
+            channelId
+          ].remote.isConnected()}`,
+        );
+      }
     }
   }
 
@@ -369,7 +374,7 @@ export class SDKConnect extends EventEmitter2 {
     // Make sure the connection has resumed from pause before reconnecting.
     await waitForCondition({
       fn: () => !this.paused,
-      context: 'reconnect',
+      context: 'reconnect_from_pause',
     });
     const connecting = this.connecting[channelId] === true;
     const socketConnected = existingConnection?.remote.isConnected() ?? false;
@@ -480,7 +485,14 @@ export class SDKConnect extends EventEmitter2 {
     if (this.paused) return;
 
     for (const id in this.connected) {
+      DevLogger.log(`SDKConnect::pause - pausing ${id}`);
       this.connected[id].pause();
+      // check for paused status?
+      DevLogger.log(
+        `SDKConnect::pause - done - paused=${this.connected[
+          id
+        ].remote.isPaused()}`,
+      );
     }
     this.paused = true;
     this.connecting = {};
@@ -706,6 +718,14 @@ export class SDKConnect extends EventEmitter2 {
       this.timeout = undefined;
 
       if (this.paused) {
+        // Reset connecting status when reconnecting from deeplink.
+        const hasConnecting = Object.keys(this.connecting).length > 0;
+        if (hasConnecting) {
+          console.warn(
+            `SDKConnect::_handleAppState - resuming from pause - reset connecting status`,
+          );
+        }
+        this.connecting = {};
         const connectCount = Object.keys(this.connected).length;
         if (connectCount > 0) {
           // Add delay to pioritize reconnecting from deeplink because it contains the updated connection info (channel dapp public key)
@@ -714,9 +734,16 @@ export class SDKConnect extends EventEmitter2 {
             `SDKConnect::_handleAppState - resuming ${connectCount} connections`,
           );
           for (const id in this.connected) {
-            this.resume({ channelId: id });
+            try {
+              await this.resume({ channelId: id });
+            } catch (err) {
+              // Ignore error, just log it.
+              Logger.log(
+                err,
+                `SDKConnect::_handleAppState - can't resume ${id}`,
+              );
+            }
           }
-          DevLogger.log(`SDKConnect::_handleAppState - done resuming`);
         }
       }
       this.paused = false;
