@@ -256,6 +256,7 @@ class DeeplinkManager {
                 channelId: params.channelId,
                 origin,
                 context: 'deeplink_universal',
+                url,
                 otherPublicKey: params.pubkey,
                 sdkConnect,
               });
@@ -370,6 +371,7 @@ class DeeplinkManager {
             handleDeeplink({
               channelId: params.channelId,
               origin,
+              url,
               context: 'deeplink_scheme',
               otherPublicKey: params.pubkey,
               sdkConnect,
