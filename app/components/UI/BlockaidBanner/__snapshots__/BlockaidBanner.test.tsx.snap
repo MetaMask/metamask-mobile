@@ -2,7 +2,29 @@
 
 exports[`BlockaidBanner should not render if resultType is benign 1`] = `null`;
 
-exports[`BlockaidBanner should not render if securityAlertResponse is undefined 1`] = `null`;
+exports[`BlockaidBanner should not render if securityAlertResponse is undefined 1`] = `
+<View
+  collapsable={false}
+  forwardedRef={[Function]}
+  style={Object {}}
+>
+  <Text
+    accessibilityRole="text"
+    style={
+      Object {
+        "color": "#24272A",
+        "fontFamily": "Euclid Circular B",
+        "fontSize": 14,
+        "fontWeight": "400",
+        "letterSpacing": 0,
+        "lineHeight": 22,
+      }
+    }
+  >
+    Loading...
+  </Text>
+</View>
+`;
 
 exports[`BlockaidBanner should render correctly 1`] = `
 <View
