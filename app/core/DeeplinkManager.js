@@ -220,7 +220,7 @@ class DeeplinkManager {
     const sdkConnect = SDKConnect.getInstance();
     if (!sdkConnect.hasInitialized()) {
       DevLogger.log(
-        `DeepLinkManager: sdkConnect not initialized --- wait for it`,
+        `DeepLinkManager: sdkConnect not initialized --- waiting for it`,
       );
       await waitForCondition({
         fn: () => sdkConnect.hasInitialized(),
@@ -234,7 +234,7 @@ class DeeplinkManager {
 
     const protocol = urlObj.protocol.replace(':', '');
     DevLogger.log(
-      `DeepLinkManager: sdkInit=${sdkConnect.hasInitialized()} parsing origin=${origin} protocol=${protocol}`,
+      `DeepLinkManager:parse sdkInit=${sdkConnect.hasInitialized()} origin=${origin} protocol=${protocol}`,
       url,
     );
 
@@ -475,6 +475,7 @@ const SharedDeeplinkManager = {
       navigation,
       dispatch,
     });
+    DevLogger.log(`DeeplinkManager initialized`);
   },
   parse: (url, args) => instance.parse(url, args),
   setDeeplink: (url) => instance.setDeeplink(url),

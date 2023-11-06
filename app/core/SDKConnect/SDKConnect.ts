@@ -85,8 +85,13 @@ export class SDKConnect extends EventEmitter2 {
 
   private navigation?: NavigationContainerRef;
   private reconnected = false;
+
+  // Track init status to ensure connection recovery priority and prevent double initialization.
   private _initialized = false;
   private _initializing = false;
+  private _postInitialized = false;
+  private _postInitializing = false;
+
   private timeout?: number;
   private initTimeout?: number;
   private paused = false;
@@ -317,10 +322,13 @@ export class SDKConnect extends EventEmitter2 {
   public resume({ channelId }: { channelId: string }) {
     const session = this.connected[channelId]?.remote;
 
+    DevLogger.log(
+      `SDKConnect::resume channel=${channelId} session=${session} paused=${session.isPaused()} connected=${session?.isConnected()} connecting=${
+        this.connecting[channelId]
+      }`,
+    );
     if (session && !session?.isConnected() && !this.connecting[channelId]) {
-      this.connecting[channelId] = true;
       this.connected[channelId].resume();
-      this.connecting[channelId] = false;
     }
   }
 
@@ -337,9 +345,7 @@ export class SDKConnect extends EventEmitter2 {
     updateKey?: boolean;
     initialConnection: boolean;
   }) {
-    const connecting = this.connecting[channelId] === true;
     const existingConnection = this.connected[channelId];
-    const socketConnected = existingConnection?.remote.isConnected() ?? false;
 
     if (this.paused && updateKey) {
       this.connections[channelId].otherPublicKey = otherPublicKey;
@@ -365,6 +371,8 @@ export class SDKConnect extends EventEmitter2 {
       fn: () => !this.paused,
       context: 'reconnect',
     });
+    const connecting = this.connecting[channelId] === true;
+    const socketConnected = existingConnection?.remote.isConnected() ?? false;
 
     DevLogger.log(
       `SDKConnect::reconnect[${context}] - channel=${channelId} paused=${
@@ -461,6 +469,7 @@ export class SDKConnect extends EventEmitter2 {
       }
     });
     this.reconnected = true;
+    DevLogger.log(`SDKConnect::reconnectAll - done`);
   }
 
   setSDKSessions(sdkSessions: SDKSessions) {
@@ -682,6 +691,9 @@ export class SDKConnect extends EventEmitter2 {
   private async _handleAppState(appState: string) {
     // Prevent double handling same app state
     if (this.appState === appState) {
+      DevLogger.log(
+        `SDKConnect::_handleAppState - SKIP - same appState ${appState}`,
+      );
       return;
     }
 
@@ -697,7 +709,7 @@ export class SDKConnect extends EventEmitter2 {
         const connectCount = Object.keys(this.connected).length;
         if (connectCount > 0) {
           // Add delay to pioritize reconnecting from deeplink because it contains the updated connection info (channel dapp public key)
-          await wait(300);
+          await wait(1500);
           DevLogger.log(
             `SDKConnect::_handleAppState - resuming ${connectCount} connections`,
           );
@@ -759,7 +771,12 @@ export class SDKConnect extends EventEmitter2 {
     return this.connections;
   }
 
-  public async init() {
+  public async init({
+    navigation,
+  }: {
+    checkUserLoggedIn: () => boolean;
+    navigation: NavigationContainerRef;
+  }) {
     if (this._initializing) {
       DevLogger.log(
         `SDKConnect::init() -- already initializing -- wait for completion`,
@@ -781,13 +798,11 @@ export class SDKConnect extends EventEmitter2 {
 
     // Change _initializing status at the beginning to prevent double initialization during dev.
     this._initializing = true;
+    this.navigation = navigation;
     DevLogger.log(`SDKConnect::init() - starting`);
 
     // Ignore initial call to _handleAppState since it is first initialization.
     this.appState = 'active';
-
-    // When restarting from being killed, keyringController might be mistakenly restored on unlocked=true so we need to wait for it to get correct state.
-    await wait(600);
 
     if (!this.androidSDKStarted && Platform.OS === 'android') {
       this.androidService = new AndroidService();
@@ -839,35 +854,56 @@ export class SDKConnect extends EventEmitter2 {
       );
     }
 
-    // Need to use a timeout to avoid race condition of double reconnection
-    // - reconnecting from deeplink and reconnecting from being back in foreground.
-    // We prioritize the deeplink and thus use the delay here.
-
-    // if (!this.paused) {
-    //   const keyringController = (
-    //     Engine.context as { KeyringController: KeyringController }
-    //   ).KeyringController;
-    //   await waitForKeychainUnlocked({ keyringController, context: 'init' });
-    //   await wait(2000);
-
-    //   await this.reconnectAll();
-    // }
-
     DevLogger.log(`SDKConnect::init() - done`);
     this._initialized = true;
+  }
 
-    // Add delay to pioritize reconnecting from deeplink because it contains the updated connection info (channel dapp public key)
-    await wait(1000);
+  async postInit() {
+    if (!this._initialized) {
+      throw new Error(`SDKConnect::postInit() - not initialized`);
+    }
+
+    if (this._postInitializing) {
+      DevLogger.log(
+        `SDKConnect::postInit() -- already doing post init -- wait for completion`,
+      );
+      // Wait for initialization to finish.
+      await waitForCondition({
+        fn: () => this._postInitialized,
+        context: 'post_init',
+      });
+      DevLogger.log(
+        `SDKConnect::postInit() -- done waiting for post initialization`,
+      );
+      return;
+    } else if (this._postInitialized) {
+      DevLogger.log(
+        `SDKConnect::postInit() -- SKIP -- already post initialized`,
+      );
+      return;
+    }
+
+    this._postInitializing = true;
+
+    const keyringController = (
+      Engine.context as { KeyringController: KeyringController }
+    ).KeyringController;
+    DevLogger.log(
+      `SDKConnect::postInit() - check keychain unlocked=${keyringController.isUnlocked()}`,
+    );
+
+    await waitForKeychainUnlocked({ keyringController, context: 'init' });
     this.appStateListener = AppState.addEventListener(
       'change',
       this._handleAppState.bind(this),
     );
-    await this.reconnectAll();
-  }
 
-  setNavigation(navigation: NavigationContainerRef) {
-    DevLogger.log(`SDKConnect::setNavigation!!!`);
-    this.navigation = navigation;
+    // Add delay to pioritize reconnecting from deeplink because it contains the updated connection info (channel dapp public key)
+    await wait(2000);
+    await this.reconnectAll();
+
+    this._postInitialized = true;
+    DevLogger.log(`SDKConnect::postInit() - done`);
   }
 
   hasInitialized() {
