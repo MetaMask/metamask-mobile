@@ -4,50 +4,81 @@ import type {
   GroupTraits,
 } from '@segment/analytics-react-native';
 
-// Represents a custom implementation of the Segment ClientMethods type
+/**
+ * custom implementation of the Segment ClientMethods type
+ * Allows to mock the Segment client
+ */
 export interface ISegmentClient {
-  // Method track an event
+  // track an event
   track: (
     event: string,
     properties?: JsonMap,
     userId?: string,
     anonymousId?: string,
   ) => void;
-  // Method to identify an user with ID and traits
+  // identify an user with ID and traits
   identify: (userId?: string, userTraits?: UserTraits) => void;
-  // Method to add an user to a specific group
+  // add a user to a specific group
   group: (groupId: string, groupTraits?: GroupTraits) => void;
-  // Method to clear the internal state of the library for the current user and group.
+  // clear the internal state of the library for the current user and group.
   reset(anonymousId: string): void;
 }
 
-// Represents the interface for the core class MetaMetrics
+/**
+ * MetaMetrics core interface
+ */
 export interface IMetaMetrics {
-  // Method to get current MetaMetrics state
-  state(): States;
-  // Method to enable data tracking
-  enable(): void;
-  // Method to disable data tracking
-  disable(): void;
-  // Method to add traits to an user
-  addTraitsToUser(userTraits: Record<string, string>): void;
-  // Method to add an user to a specific group
+  /**
+   * Get current MetaMetrics state
+   */
+  isEnabled(): boolean;
+  /**
+   * Enable or disable data tracking
+   * @param enable
+   */
+  enable(enable?: boolean): void;
+  /**
+   * add traits to an user
+   * @param userTraits
+   */
+  addTraitsToUser(userTraits: UserTraits): void;
+  /**
+   * add an user to a specific group
+   * @param groupId
+   * @param groupTraits
+   */
   group(groupId: string, groupTraits?: GroupTraits): void;
-  // Method track an anonymous event
+  /**
+   * track an anonymous event
+   * @param event
+   * @param properties
+   */
   trackAnonymousEvent(event: string, properties?: JsonMap): void;
-  // Method track an event
+  /**
+   * track an event
+   * @param event
+   * @param properties
+   */
   trackEvent(event: string, properties?: JsonMap): void;
-  // Method to clear the internal state of the library for the current user and group.
+  /**
+   * clear the internal state of the library for the current user and group.
+   */
   reset(): void;
-  // Method to create a new method to suppress and
-  // delete user's data from Segment and all related
-  // destinations.
-  createSegmentDeleteRegulation(): Promise<void>;
+  /**
+   * create a new method to suppress and
+   * delete user's data from Segment and all related
+   * destinations.
+   */
+  createSegmentDeleteRegulation(): Promise<{
+    status: string;
+    error?: string;
+  }>;
 }
 
-// Represents an MetaMetrics event
+/**
+ * MetaMetrics event interface
+ */
 export interface IMetaMetricsEvent {
-  // Event name to track
   category: string;
   properties?: {
     name?: string;
@@ -55,7 +86,9 @@ export interface IMetaMetricsEvent {
   };
 }
 
-// Expected deletion task status
+/**
+ * deletion task possible status
+ */
 export enum DataDeleteStatus {
   pending = 'PENDING',
   started = 'STARTED',
@@ -64,14 +97,10 @@ export enum DataDeleteStatus {
   unknown = 'UNKNOWN',
 }
 
-// MixPanel expected response status
+/**
+ * deletion task possible response status
+ */
 export enum DataDeleteResponseStatus {
   ok = 'ok',
   error = 'error',
-}
-
-// State of MetaMetrics
-export enum States {
-  enabled = 'ENABLED',
-  disabled = 'DISABLED',
 }
