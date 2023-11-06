@@ -63,6 +63,7 @@ const messageParamsMock = {
 const mockStore = configureMockStore();
 const initialState = {
   settings: {},
+  signatureRequest: {},
   engine: {
     backgroundState: {
       ...initialBackgroundState,
@@ -85,6 +86,11 @@ const initialState = {
       CurrencyRateController: {
         conversionRate: 10,
         currentCurrency: 'usd',
+      },
+      NetworkController: {
+        providerConfig: {
+          chainId: '1',
+        },
       },
     },
   },
