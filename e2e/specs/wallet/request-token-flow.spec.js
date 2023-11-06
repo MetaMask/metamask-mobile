@@ -1,15 +1,11 @@
 'use strict';
 import { Smoke } from '../../tags';
-
 import SendLinkView from '../../pages/SendLinkView';
 import RequestPaymentView from '../../pages/RequestPaymentView';
-
 import TabBarComponent from '../../pages/TabBarComponent';
 import WalletActionsModal from '../../pages/modals/WalletActionsModal';
-
 import ProtectYourWalletModal from '../../pages/modals/ProtectYourWalletModal';
 import RequestPaymentModal from '../../pages/modals/RequestPaymentModal';
-
 import { loginToApp } from '../../viewHelper';
 import { withFixtures } from '../../fixtures/fixture-helper';
 import FixtureBuilder from '../../fixtures/fixture-builder';
