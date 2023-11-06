@@ -320,20 +320,15 @@ export class SDKConnect extends EventEmitter2 {
     );
     if (session && !session?.isConnected() && !this.connecting[channelId]) {
       this.connected[channelId].resume();
+      if (Platform.OS === 'android') {
+        // Some devices (especially android) need time to update socket status after resuming.
+        await wait(500); // at least 500ms
+      }
       DevLogger.log(
-        `SDKConnect::_handleAppState - done resuming: direct: ${this.connected[
+        `SDKConnect::_handleAppState - done resuming - socket_connected=${this.connected[
           channelId
         ].remote.isConnected()}`,
       );
-      if (Platform.OS === 'android') {
-        // Android needs time to update socket status after resuming.
-        await wait(500);
-        DevLogger.log(
-          `SDKConnect::_handleAppState - done resuming: after: ${this.connected[
-            channelId
-          ].remote.isConnected()}`,
-        );
-      }
     }
   }
 
