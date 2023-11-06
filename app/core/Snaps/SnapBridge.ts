@@ -6,7 +6,7 @@ import { Duplex } from 'stream';
 import {
   createSwappableProxy,
   createEventEmitterProxy,
-} from 'swappable-obj-proxy';
+} from '@metamask/swappable-obj-proxy';
 import { JsonRpcEngine } from 'json-rpc-engine';
 import { createEngineStream } from 'json-rpc-middleware-stream';
 import { NetworksChainId } from '@metamask/controller-utils';
@@ -17,7 +17,7 @@ import Logger from '../../util/Logger';
 import { getAllNetworks } from '../../util/networks';
 import { createSnapsMethodMiddleware } from '@metamask/rpc-methods';
 
-const ObjectMultiplex = require('obj-multiplex');
+const ObjectMultiplex = require('@metamask/object-multiplex');
 const createFilterMiddleware = require('eth-json-rpc-filters');
 const createSubscriptionManager = require('eth-json-rpc-filters/subscriptionManager');
 const providerAsMiddleware = require('eth-json-rpc-middleware/providerAsMiddleware');

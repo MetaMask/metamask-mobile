@@ -24820,11 +24820,6 @@ svgo@^2.5.0:
     picocolors "^1.0.0"
     stable "^0.1.8"
 
-swappable-obj-proxy@^1.1.0:
-  version "1.1.0"
-  resolved "https://registry.yarnpkg.com/swappable-obj-proxy/-/swappable-obj-proxy-1.1.0.tgz#fe23c60a0df22499e85d94b71297d9c39ff05fa4"
-  integrity sha512-bXbKO85b0YNbZi/61TjRAbNtY49ABKu7rQ4k2+RFXPL7TA2mphttfqAqCeJ+lrlKlkYc5pvm6erFk6vOWJSpdw==
-
 swc-loader@^0.2.3:
   version "0.2.3"
   resolved "https://registry.yarnpkg.com/swc-loader/-/swc-loader-0.2.3.tgz#6792f1c2e4c9ae9bf9b933b3e010210e270c186d"
