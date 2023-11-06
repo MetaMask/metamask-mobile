@@ -1,10 +1,7 @@
 'use strict';
 import { Regression } from '../../tags';
-
 import WalletView from '../../pages/WalletView';
-
 import { importWalletWithRecoveryPhrase } from '../../viewHelper';
-
 import AccountListView from '../../pages/AccountListView';
 import ImportAccountView from '../../pages/ImportAccountView';
 
@@ -14,8 +11,9 @@ describe(Regression('Import account via private to wallet'), () => {
   const TEST_PRIVATE_KEY =
     'cbfd798afcfd1fd8ecc48cbecb6dc7e876543395640b758a90e11d986e758ad1';
 
-  beforeEach(() => {
+  beforeAll(async () => {
     jest.setTimeout(200000);
+    await device.launchApp();
   });
 
   it('should import wallet and go to the wallet view', async () => {
@@ -27,18 +25,14 @@ describe(Regression('Import account via private to wallet'), () => {
     await AccountListView.isVisible();
     await AccountListView.tapAddAccountButton();
     await AccountListView.tapImportAccountButton();
-
     await ImportAccountView.isVisible();
     // Tap on import button to make sure alert pops up
     await ImportAccountView.tapImportButton();
     await ImportAccountView.tapOKAlertButton();
-
     await ImportAccountView.enterPrivateKey(TEST_PRIVATE_KEY);
     await ImportAccountView.isImportSuccessSreenVisible();
     await ImportAccountView.tapCloseButtonOnImportSuccess();
-
     await AccountListView.swipeToDimssAccountsModal();
-
     await WalletView.isVisible();
     await WalletView.isAccountNameCorrect('Account 3');
   });
