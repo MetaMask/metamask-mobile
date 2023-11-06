@@ -2,6 +2,10 @@
 
 ## Current Main Branch
 
+## 7.9.1 - Nov 1, 2023
+### Fixed
+- [#7653](https://github.com/MetaMask/metamask-mobile/pull/7653): fix: revert nonce logic in transaction controller
+
 ## 7.9.0 - Oct 10, 2023
 ### Added
 - [#7341](https://github.com/MetaMask/metamask-mobile/pull/7341): feat(ramp): add webview debug by env vars
