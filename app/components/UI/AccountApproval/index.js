@@ -101,7 +101,7 @@ class AccountApproval extends PureComponent {
         AppConstants.DEEPLINKS.ORIGIN_QR_CODE &&
       this.props.currentPageInformation.reconnect &&
       this.props.currentPageInformation.apiVersion,
-    urlIsFlaggedAsPhishing: false,
+    isUrlFlaggedAsPhishing: false,
   };
 
   getAnalyticsParams = () => {
@@ -132,7 +132,7 @@ class AccountApproval extends PureComponent {
 
     const prefixedUrl = prefixUrlWithProtocol(currentPageInformation?.url);
     const { hostname } = new URL(prefixedUrl);
-    this.isUrlFlaggedAsPhishing(hostname);
+    this.checkUrlFlaggedAsPhishing(hostname);
 
     InteractionManager.runAfterInteractions(() => {
       AnalyticsV2.trackEvent(
@@ -249,19 +249,19 @@ class AccountApproval extends PureComponent {
     });
   };
 
-  isUrlFlaggedAsPhishing = (hostname) => {
+  checkUrlFlaggedAsPhishing = (hostname) => {
     const { PhishingController } = Engine.context;
     PhishingController.maybeUpdateState();
     const phishingControllerTestResult = PhishingController.test(hostname);
 
     this.setState({
-      urlIsFlaggedAsPhishing: phishingControllerTestResult.result,
+      isUrlFlaggedAsPhishing: phishingControllerTestResult.result,
     });
   };
 
   render = () => {
     const { currentPageInformation, selectedAddress } = this.props;
-    const { urlIsFlaggedAsPhishing } = this.state;
+    const { isUrlFlaggedAsPhishing } = this.state;
     const { colors, typography } = this.context || mockTheme;
     const styles = createStyles(colors, typography);
     const hasRememberMe =
@@ -276,7 +276,7 @@ class AccountApproval extends PureComponent {
       >
         <TransactionHeader currentPageInformation={currentPageInformation} />
 
-        {urlIsFlaggedAsPhishing && <ShowWarningBanner />}
+        {isUrlFlaggedAsPhishing && <ShowWarningBanner />}
 
         {!currentPageInformation.reconnect && (
           <>
@@ -358,7 +358,7 @@ class AccountApproval extends PureComponent {
             containerStyle={[
               styles.button,
               styles.confirm,
-              urlIsFlaggedAsPhishing && styles.warningButton,
+              isUrlFlaggedAsPhishing && styles.warningButton,
             ]}
             testID={'connect-approve-button'}
           >
