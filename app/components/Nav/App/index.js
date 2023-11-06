@@ -1,5 +1,3 @@
-import { CommonActions, NavigationContainer } from '@react-navigation/native';
-import { createStackNavigator } from '@react-navigation/stack';
 import React, {
   useCallback,
   useContext,
@@ -7,92 +5,94 @@ import React, {
   useRef,
   useState,
 } from 'react';
+import { CommonActions, NavigationContainer } from '@react-navigation/native';
 import { Animated, Linking } from 'react-native';
-import branch from 'react-native-branch';
-import { getVersion } from 'react-native-device-info';
-import { connect, useDispatch } from 'react-redux';
-import AmbiguousAddressSheet from '../../../../app/components/Views/Settings/Contacts/AmbiguousAddressSheet/AmbiguousAddressSheet';
-import WC2Manager, {
-  isWC2Enabled,
-} from '../../../../app/core/WalletConnect/WalletConnectV2';
-import {
-  setCurrentBottomNavRoute,
-  setCurrentRoute,
-} from '../../../actions/navigation';
-import ModalConfirmation from '../../../component-library/components/Modals/ModalConfirmation';
-import ModalMandatory from '../../../component-library/components/Modals/ModalMandatory';
-import Toast, {
-  ToastContext,
-} from '../../../component-library/components/Toast';
+import { createStackNavigator } from '@react-navigation/stack';
+import Login from '../../Views/Login';
+import QRScanner from '../../Views/QRScanner';
+import Onboarding from '../../Views/Onboarding';
+import OnboardingCarousel from '../../Views/OnboardingCarousel';
+import ChoosePassword from '../../Views/ChoosePassword';
+import AccountBackupStep1 from '../../Views/AccountBackupStep1';
+import AccountBackupStep1B from '../../Views/AccountBackupStep1B';
+import ManualBackupStep1 from '../../Views/ManualBackupStep1';
+import ManualBackupStep2 from '../../Views/ManualBackupStep2';
+import ManualBackupStep3 from '../../Views/ManualBackupStep3';
+import ImportFromSecretRecoveryPhrase from '../../Views/ImportFromSecretRecoveryPhrase';
 import DeleteWalletModal from '../../../components/UI/DeleteWalletModal';
-import { EnableAutomaticSecurityChecksModal } from '../../../components/UI/EnableAutomaticSecurityChecksModal';
-import { TurnOffRememberMeModal } from '../../../components/UI/TurnOffRememberMeModal';
-import { UpdateNeeded } from '../../../components/UI/UpdateNeeded';
-import AccountActions from '../../../components/Views/AccountActions';
-import AccountConnect from '../../../components/Views/AccountConnect';
-import AccountPermissions from '../../../components/Views/AccountPermissions';
-import AccountSelector from '../../../components/Views/AccountSelector';
-import NetworkSelector from '../../../components/Views/NetworkSelector';
-import EthSignFriction from '../../../components/Views/Settings/AdvancedSettings/EthSignFriction';
-import { AUTHENTICATION_APP_TRIGGERED_AUTH_NO_CREDENTIALS } from '../../../constants/error';
-import Routes from '../../../constants/navigation/Routes';
+import WhatsNewModal from '../../UI/WhatsNewModal/WhatsNewModal';
+import Main from '../Main';
+import OptinMetrics from '../../UI/OptinMetrics';
+import MetaMaskAnimation from '../../UI/MetaMaskAnimation';
+import SimpleWebview from '../../Views/SimpleWebview';
+import SharedDeeplinkManager from '../../../core/DeeplinkManager';
+import Engine from '../../../core/Engine';
+import branch from 'react-native-branch';
+import AppConstants from '../../../core/AppConstants';
+import Logger from '../../../util/Logger';
+import { trackErrorAsAnalytics } from '../../../util/analyticsV2';
+import { routingInstrumentation } from '../../../util/sentryUtils';
+import Analytics from '../../../core/Analytics/Analytics';
+import { connect, useDispatch } from 'react-redux';
 import {
   CURRENT_APP_VERSION,
   EXISTING_USER,
   LAST_APP_VERSION,
 } from '../../../constants/storage';
-import { Authentication } from '../../../core/';
-import Analytics from '../../../core/Analytics/Analytics';
-import AppConstants from '../../../core/AppConstants';
-import SharedDeeplinkManager from '../../../core/DeeplinkManager';
-import Engine from '../../../core/Engine';
-import NavigationService from '../../../core/NavigationService';
-import SDKConnect from '../../../core/SDKConnect/SDKConnect';
-import { PPOMView } from '../../../lib/ppom/PPOMView';
-import AsyncStorage from '../../../store/async-storage-wrapper';
-import { colors as importedColors } from '../../../styles/common';
-import Logger from '../../../util/Logger';
-import { trackErrorAsAnalytics } from '../../../util/analyticsV2';
-import { isBlockaidFeatureEnabled } from '../../../util/blockaid';
-import Device from '../../../util/device';
+import { getVersion } from 'react-native-device-info';
+import {
+  setCurrentBottomNavRoute,
+  setCurrentRoute,
+} from '../../../actions/navigation';
 import { findRouteNameFromNavigatorState } from '../../../util/general';
-import { routingInstrumentation } from '../../../util/sentryUtils';
+import { Authentication } from '../../../core/';
+import { isBlockaidFeatureEnabled } from '../../../util/blockaid';
 import { useTheme } from '../../../util/theme';
-import MetaMaskAnimation from '../../UI/MetaMaskAnimation';
-import OptinMetrics from '../../UI/OptinMetrics';
-import WhatsNewModal from '../../UI/WhatsNewModal/WhatsNewModal';
-import AccountBackupStep1 from '../../Views/AccountBackupStep1';
-import AccountBackupStep1B from '../../Views/AccountBackupStep1B';
+import Device from '../../../util/device';
+import SDKConnect from '../../../core/SDKConnect/SDKConnect';
+import { colors as importedColors } from '../../../styles/common';
+import Routes from '../../../constants/navigation/Routes';
+import ModalConfirmation from '../../../component-library/components/Modals/ModalConfirmation';
+import Toast, {
+  ToastContext,
+} from '../../../component-library/components/Toast';
+import AccountSelector from '../../../components/Views/AccountSelector';
+import AccountConnect from '../../../components/Views/AccountConnect';
+import AccountPermissions from '../../../components/Views/AccountPermissions';
+import { SRPQuiz } from '../../Views/Quiz';
+import { TurnOffRememberMeModal } from '../../../components/UI/TurnOffRememberMeModal';
 import AssetHideConfirmation from '../../Views/AssetHideConfirmation';
-import AssetOptions from '../../Views/AssetOptions';
-import ChoosePassword from '../../Views/ChoosePassword';
-import ConnectQRHardware from '../../Views/ConnectQRHardware';
 import DetectedTokens from '../../Views/DetectedTokens';
 import DetectedTokensConfirmation from '../../Views/DetectedTokensConfirmation';
-import EditAccountName from '../../Views/EditAccountName/EditAccountName';
-import ImportFromSecretRecoveryPhrase from '../../Views/ImportFromSecretRecoveryPhrase';
+import AssetOptions from '../../Views/AssetOptions';
 import ImportPrivateKey from '../../Views/ImportPrivateKey';
 import ImportPrivateKeySuccess from '../../Views/ImportPrivateKeySuccess';
-import LockScreen from '../../Views/LockScreen';
-import Login from '../../Views/Login';
-import ManualBackupStep1 from '../../Views/ManualBackupStep1';
-import ManualBackupStep2 from '../../Views/ManualBackupStep2';
-import ManualBackupStep3 from '../../Views/ManualBackupStep3';
-import Onboarding from '../../Views/Onboarding';
-import OnboardingCarousel from '../../Views/OnboardingCarousel';
-import QRScanner from '../../Views/QRScanner';
-import { SRPQuiz } from '../../Views/Quiz';
-import { RestoreWallet } from '../../Views/RestoreWallet';
-import WalletResetNeeded from '../../Views/RestoreWallet/WalletResetNeeded';
-import WalletRestored from '../../Views/RestoreWallet/WalletRestored';
-import SDKFeedbackModal from '../../Views/SDKFeedbackModal/SDKFeedbackModal';
-import SDKLoadingModal from '../../Views/SDKLoadingModal/SDKLoadingModal';
+import ConnectQRHardware from '../../Views/ConnectQRHardware';
+import { AUTHENTICATION_APP_TRIGGERED_AUTH_NO_CREDENTIALS } from '../../../constants/error';
+import { UpdateNeeded } from '../../../components/UI/UpdateNeeded';
+import { EnableAutomaticSecurityChecksModal } from '../../../components/UI/EnableAutomaticSecurityChecksModal';
 import NetworkSettings from '../../Views/Settings/NetworksSettings/NetworkSettings';
-import ShowDisplayNftMediaSheet from '../../Views/ShowDisplayMediaNFTSheet/ShowDisplayNFTMediaSheet';
-import ShowIpfsGatewaySheet from '../../Views/ShowIpfsGatewaySheet/ShowIpfsGatewaySheet';
-import SimpleWebview from '../../Views/SimpleWebview';
+import ModalMandatory from '../../../component-library/components/Modals/ModalMandatory';
+import { RestoreWallet } from '../../Views/RestoreWallet';
+import WalletRestored from '../../Views/RestoreWallet/WalletRestored';
+import WalletResetNeeded from '../../Views/RestoreWallet/WalletResetNeeded';
+import SDKLoadingModal from '../../Views/SDKLoadingModal/SDKLoadingModal';
+import SDKFeedbackModal from '../../Views/SDKFeedbackModal/SDKFeedbackModal';
+import AccountActions from '../../../components/Views/AccountActions';
+import EthSignFriction from '../../../components/Views/Settings/AdvancedSettings/EthSignFriction';
 import WalletActions from '../../Views/WalletActions';
-import Main from '../Main';
+import NetworkSelector from '../../../components/Views/NetworkSelector';
+import EditAccountName from '../../Views/EditAccountName/EditAccountName';
+import WC2Manager, {
+  isWC2Enabled,
+} from '../../../../app/core/WalletConnect/WalletConnectV2';
+import { PPOMView } from '../../../lib/ppom/PPOMView';
+import NavigationService from '../../../core/NavigationService';
+import LockScreen from '../../Views/LockScreen';
+import AsyncStorage from '../../../store/async-storage-wrapper';
+import ShowIpfsGatewaySheet from '../../Views/ShowIpfsGatewaySheet/ShowIpfsGatewaySheet';
+import ShowDisplayNftMediaSheet from '../../Views/ShowDisplayMediaNFTSheet/ShowDisplayNFTMediaSheet';
+import AmbiguousAddressSheet from '../../../../app/components/Views/Settings/Contacts/AmbiguousAddressSheet/AmbiguousAddressSheet';
 
 const clearStackNavigatorOptions = {
   headerShown: false,
