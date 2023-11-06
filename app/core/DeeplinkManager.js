@@ -27,6 +27,7 @@ import Engine from './Engine';
 import { Minimizer } from './NativeModules';
 import DevLogger from './SDKConnect/utils/DevLogger';
 import WC2Manager from './WalletConnect/WalletConnectV2';
+import { waitForCondition } from './SDKConnect/utils/wait.util';
 
 class DeeplinkManager {
   constructor({ navigation, dispatch }) {
@@ -194,7 +195,7 @@ class DeeplinkManager {
     });
   }
 
-  parse(url, { browserCallBack, origin, onHandled }) {
+  async parse(url, { browserCallBack, origin, onHandled }) {
     const urlObj = new URL(
       url
         .replace(
@@ -216,9 +217,24 @@ class DeeplinkManager {
       }
     }
 
+    const sdkConnect = SDKConnect.getInstance();
+    if (!sdkConnect.hasInitialized()) {
+      DevLogger.log(
+        `DeepLinkManager: sdkConnect not initialized --- wait for it`,
+      );
+      await waitForCondition({
+        fn: () => sdkConnect.hasInitialized(),
+        context: 'deeplink',
+        waitTime: 500,
+      });
+      DevLogger.log(
+        `DeepLinkManager: sdkConnect initialized --- continue with deeplink`,
+      );
+    }
+
     const protocol = urlObj.protocol.replace(':', '');
     DevLogger.log(
-      `DeepLinkManager: parsing origin=${origin} protocol=${protocol}`,
+      `DeepLinkManager: sdkInit=${sdkConnect.hasInitialized()} parsing origin=${origin} protocol=${protocol}`,
       url,
     );
 
@@ -241,7 +257,7 @@ class DeeplinkManager {
             DevLogger.log(
               `DeeplinkManager:: metamask launched via android sdk universal link`,
             );
-            SDKConnect.getInstance().bindAndroidSDK();
+            sdkConnect.bindAndroidSDK();
             return;
           }
 
@@ -249,7 +265,7 @@ class DeeplinkManager {
             if (params.redirect) {
               Minimizer.goBack();
             } else if (params.channelId) {
-              const connections = SDKConnect.getInstance().getConnections();
+              const connections = sdkConnect.getConnections();
               const channelExists = connections[params.channelId] !== undefined;
 
               DevLogger.log(
@@ -258,17 +274,17 @@ class DeeplinkManager {
               if (channelExists) {
                 if (origin === AppConstants.DEEPLINKS.ORIGIN_DEEPLINK) {
                   // Automatically re-approve hosts.
-                  SDKConnect.getInstance().revalidateChannel({
+                  sdkConnect.revalidateChannel({
                     channelId: params.channelId,
                   });
                 }
-                SDKConnect.getInstance().reconnect({
+                sdkConnect.reconnect({
                   channelId: params.channelId,
                   otherPublicKey: params.pubkey,
                   context: 'deeplink (universal)',
                 });
               } else {
-                SDKConnect.getInstance().connectToChannel({
+                sdkConnect.connectToChannel({
                   id: params.channelId,
                   commLayer: params.comm,
                   origin,
@@ -375,7 +391,7 @@ class DeeplinkManager {
           DevLogger.log(
             `DeeplinkManager:: metamask launched via android sdk deeplink`,
           );
-          SDKConnect.getInstance().bindAndroidSDK();
+          sdkConnect.bindAndroidSDK();
           return;
         }
 
@@ -384,22 +400,22 @@ class DeeplinkManager {
             Minimizer.goBack();
           } else if (params.channelId) {
             const channelExists =
-              SDKConnect.getInstance().getApprovedHosts()[params.channelId];
+              sdkConnect.getApprovedHosts()[params.channelId];
 
             if (channelExists) {
               if (origin === AppConstants.DEEPLINKS.ORIGIN_DEEPLINK) {
                 // Automatically re-approve hosts.
-                SDKConnect.getInstance().revalidateChannel({
+                sdkConnect.revalidateChannel({
                   channelId: params.channelId,
                 });
               }
-              SDKConnect.getInstance().reconnect({
+              sdkConnect.reconnect({
                 channelId: params.channelId,
                 otherPublicKey: params.pubkey,
                 context: 'deeplink (metamask)',
               });
             } else {
-              SDKConnect.getInstance().connectToChannel({
+              sdkConnect.connectToChannel({
                 id: params.channelId,
                 commLayer: params.comm,
                 origin,

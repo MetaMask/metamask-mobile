@@ -24,7 +24,11 @@ import AndroidService from './AndroidSDK/AndroidService';
 import { Connection, ConnectionProps, RPC_METHODS } from './Connection';
 import RPCQueueManager from './RPCQueueManager';
 import DevLogger from './utils/DevLogger';
-import { wait, waitForKeychainUnlocked } from './utils/wait.util';
+import {
+  wait,
+  waitForCondition,
+  waitForKeychainUnlocked,
+} from './utils/wait.util';
 
 export const MIN_IN_MS = 1000 * 60;
 export const HOUR_IN_MS = MIN_IN_MS * 60;
@@ -296,6 +300,7 @@ export class SDKConnect extends EventEmitter2 {
     originatorInfo: OriginatorInfo;
   }) {
     if (!this.connections[channelId]) {
+      console.warn(`SDKConnect::updateOriginatorInfos - no connection`);
       return;
     }
 
@@ -323,19 +328,46 @@ export class SDKConnect extends EventEmitter2 {
     channelId,
     otherPublicKey,
     initialConnection,
+    updateKey,
     context,
   }: {
     channelId: string;
     otherPublicKey: string;
     context?: string;
+    updateKey?: boolean;
     initialConnection: boolean;
   }) {
     const connecting = this.connecting[channelId] === true;
     const existingConnection = this.connected[channelId];
     const socketConnected = existingConnection?.remote.isConnected() ?? false;
 
+    if (this.paused && updateKey) {
+      this.connections[channelId].otherPublicKey = otherPublicKey;
+      const currentOtherPublicKey = this.connections[channelId].otherPublicKey;
+      if (currentOtherPublicKey !== otherPublicKey) {
+        console.warn(
+          `SDKConnect::reconnect[${context}] existing=${
+            existingConnection !== undefined
+          } - update otherPublicKey -  ${currentOtherPublicKey} --> ${otherPublicKey}`,
+        );
+        if (existingConnection) {
+          existingConnection.remote.setOtherPublicKey(otherPublicKey);
+        }
+      } else {
+        DevLogger.log(
+          `SDKConnect::reconnect[${context}] - same otherPublicKey`,
+        );
+      }
+    }
+
+    // Make sure the connection has resumed from pause before reconnecting.
+    await waitForCondition({
+      fn: () => !this.paused,
+      context: 'reconnect',
+    });
+
     DevLogger.log(
-      `SDKConnect::reconnect - channel=${channelId} context=${context} paused=${
+      `SDKConnect::reconnect[${context}] - channel=${channelId} paused=${
         this.paused
       } connecting=${connecting} socketConnected=${socketConnected} existingConnection=${
         existingConnection !== undefined
@@ -344,10 +376,6 @@ export class SDKConnect extends EventEmitter2 {
     );
 
     let interruptReason = '';
-
-    if (this.paused) {
-      interruptReason = 'paused';
-    }
 
     if (connecting) {
       interruptReason = 'already connecting';
@@ -366,38 +394,14 @@ export class SDKConnect extends EventEmitter2 {
 
     if (existingConnection) {
       const connected = existingConnection?.remote.isConnected();
-      const ready = existingConnection?.remote.isReady();
-
-      if (ready && connected) {
-        // Ignore reconnection -- already ready to process messages.
-        DevLogger.log(`SDKConnect::reconnect - already ready -- ignoring`);
-        return;
-      }
-
-      if (Platform.OS === 'android') {
-        // Android is too slow to update connected / ready status so we manually abort the reconnection to prevent conflict.
+      const ready = existingConnection?.isReady;
+      if (connected) {
         DevLogger.log(
-          `SDKConnect::reconnect - aborting reconnection on android`,
+          `SDKConnect::reconnect - already connected [ready=${ready}] -- ignoring`,
         );
         return;
-      }
-
-      if (ready || connected) {
-        DevLogger.log(
-          `SDKConnect::reconnect - strange state ready=${ready} connected=${connected}`,
-        );
-        existingConnection.disconnect({
-          terminate: false,
-          context: 'SDKConnect::reconnect',
-        });
       }
     }
-
-    await wait(600);
-    const keyringController = (
-      Engine.context as { KeyringController: KeyringController }
-    ).KeyringController;
-    await waitForKeychainUnlocked({ keyringController, context: 'reconnect' });
 
     DevLogger.log(`SDKConnect::reconnect - starting reconnection`);
 
@@ -435,7 +439,7 @@ export class SDKConnect extends EventEmitter2 {
       `SDKConnect::reconnectAll paused=${this.paused} reconnected=${this.reconnected}`,
     );
 
-    if (this.reconnected && !this.paused) {
+    if (this.reconnected) {
       DevLogger.log(`SDKConnect::reconnectAll - already reconnected`);
       return;
     }
@@ -690,8 +694,17 @@ export class SDKConnect extends EventEmitter2 {
       this.timeout = undefined;
 
       if (this.paused) {
-        for (const id in this.connected) {
-          this.resume({ channelId: id });
+        const connectCount = Object.keys(this.connected).length;
+        if (connectCount > 0) {
+          // Add delay to pioritize reconnecting from deeplink because it contains the updated connection info (channel dapp public key)
+          await wait(300);
+          DevLogger.log(
+            `SDKConnect::_handleAppState - resuming ${connectCount} connections`,
+          );
+          for (const id in this.connected) {
+            this.resume({ channelId: id });
+          }
+          DevLogger.log(`SDKConnect::_handleAppState - done resuming`);
         }
       }
       this.paused = false;
@@ -746,9 +759,17 @@ export class SDKConnect extends EventEmitter2 {
     return this.connections;
   }
 
-  public async init({ navigation }: { navigation: NavigationContainerRef }) {
+  public async init() {
     if (this._initializing) {
-      DevLogger.log(`SDKConnect::init() -- SKIP -- already initializing`);
+      DevLogger.log(
+        `SDKConnect::init() -- already initializing -- wait for completion`,
+      );
+      // Wait for initialization to finish.
+      await waitForCondition({
+        fn: () => this._initialized,
+        context: 'init',
+      });
+      DevLogger.log(`SDKConnect::init() -- done waiting for initialization`);
       return;
     } else if (this._initialized) {
       DevLogger.log(
@@ -760,28 +781,18 @@ export class SDKConnect extends EventEmitter2 {
 
     // Change _initializing status at the beginning to prevent double initialization during dev.
     this._initializing = true;
-    DevLogger.log(
-      `SDKConnect::init() paused=${this.paused} server=${AppConstants.MM_SDK.SERVER_URL}`,
-      navigation,
-    );
-    if (!navigation) {
-      console.warn(`SDKConnect::init() no navigation`);
-    }
+    DevLogger.log(`SDKConnect::init() - starting`);
+
+    // Ignore initial call to _handleAppState since it is first initialization.
     this.appState = 'active';
-    this.navigation = navigation;
 
     // When restarting from being killed, keyringController might be mistakenly restored on unlocked=true so we need to wait for it to get correct state.
-    await wait(1000);
+    await wait(600);
 
     if (!this.androidSDKStarted && Platform.OS === 'android') {
       this.androidService = new AndroidService();
       this.androidSDKStarted = true;
     }
-
-    this.appStateListener = AppState.addEventListener(
-      'change',
-      this._handleAppState.bind(this),
-    );
 
     const [connectionsStorage, hostsStorage] = await Promise.all([
       DefaultPreference.get(AppConstants.MM_SDK.SDK_CONNECTIONS),
@@ -832,17 +843,35 @@ export class SDKConnect extends EventEmitter2 {
     // - reconnecting from deeplink and reconnecting from being back in foreground.
     // We prioritize the deeplink and thus use the delay here.
 
-    if (!this.paused) {
-      const keyringController = (
-        Engine.context as { KeyringController: KeyringController }
-      ).KeyringController;
-      await waitForKeychainUnlocked({ keyringController, context: 'init' });
-      await wait(2000);
+    // if (!this.paused) {
+    //   const keyringController = (
+    //     Engine.context as { KeyringController: KeyringController }
+    //   ).KeyringController;
+    //   await waitForKeychainUnlocked({ keyringController, context: 'init' });
+    //   await wait(2000);
 
-      await this.reconnectAll();
-    }
+    //   await this.reconnectAll();
+    // }
 
+    DevLogger.log(`SDKConnect::init() - done`);
     this._initialized = true;
+
+    // Add delay to pioritize reconnecting from deeplink because it contains the updated connection info (channel dapp public key)
+    await wait(1000);
+    this.appStateListener = AppState.addEventListener(
+      'change',
+      this._handleAppState.bind(this),
+    );
+    await this.reconnectAll();
+  }
+
+  setNavigation(navigation: NavigationContainerRef) {
+    DevLogger.log(`SDKConnect::setNavigation!!!`);
+    this.navigation = navigation;
+  }
+
+  hasInitialized() {
+    return this._initialized;
   }
 
   public static getInstance(): SDKConnect {
