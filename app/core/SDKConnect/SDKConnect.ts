@@ -722,7 +722,6 @@ export class SDKConnect extends EventEmitter2 {
             `SDKConnect::_handleAppState - resuming from pause - reset connecting status`,
           );
         }
-        this.connecting = {};
         const connectCount = Object.keys(this.connected).length;
         if (connectCount > 0) {
           // Add delay to pioritize reconnecting from deeplink because it contains the updated connection info (channel dapp public key)
