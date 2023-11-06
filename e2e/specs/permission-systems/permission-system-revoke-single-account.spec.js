@@ -1,11 +1,8 @@
 'use strict';
 import TestHelpers from '../../helpers';
 import { Smoke } from '../../tags';
-
 import Browser from '../../pages/Drawer/Browser';
-
 import TabBarComponent from '../../pages/TabBarComponent';
-
 import NetworkListModal from '../../pages/modals/NetworkListModal';
 import ConnectedAccountsModal from '../../pages/modals/ConnectedAccountsModal';
 import FixtureBuilder from '../../fixtures/fixture-builder';
