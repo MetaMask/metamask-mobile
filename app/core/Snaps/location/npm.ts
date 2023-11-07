@@ -403,14 +403,8 @@ async function fetchNpmTarball(
     filePath: 'snap.manifest.json',
     data: manifest,
   };
-  const parsedManifest = parseJson(bytesToString(manifest))!;
+  const parsedManifest = parseJson<SnapManifest>(bytesToString(manifest));
   const locations = parsedManifest.source.location.npm;
-
-  if (!locations && !locations.filePath) {
-    throw new Error(
-      `${SNAPS_NPM_LOG_TAG} No filePath location specified in manifest for "${packageName}".`,
-    );
-  }
   const sourceCodePath = `${npmPackageDataLocation}/${locations.filePath}`;
   const sourceCode = await readAndParseAt(sourceCodePath);
 
@@ -430,12 +424,13 @@ async function fetchNpmTarball(
       ).catch(() => undefined)
     : undefined;
 
-  const iconData: NPMTarBallData | undefined = icon
-    ? {
-        filePath: locations.iconPath,
-        data: icon,
-      }
-    : undefined;
+  const iconData: NPMTarBallData | undefined =
+    icon && locations.iconPath
+      ? {
+          filePath: locations.iconPath,
+          data: icon,
+        }
+      : undefined;
 
   return [
     manifestData,
