@@ -18,7 +18,7 @@ import { useStyles } from '../../../component-library/hooks';
 import styleSheet from './NetworkVerificationInfo.styles';
 import { CustomNetworkInformation } from './NetworkVerificationInfo.types';
 import { ScrollView } from 'react-native-gesture-handler';
-import { ADD_CUSTOM_NETWORK_ARTCILE } from './NetworkVerificationInfo.constants';
+import { ADD_CUSTOM_NETWORK_ARTCILE } from '../../../constants/urls';
 
 /**
  * NetworkVerificationInfo component
