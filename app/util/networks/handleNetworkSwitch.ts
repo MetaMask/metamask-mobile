@@ -8,6 +8,7 @@ import {
   selectNetworkConfigurations,
 } from '../../selectors/networkController';
 import { store } from '../../store';
+import Logger from '../Logger';
 
 /**
  * Switch to the given chain ID.
@@ -41,17 +42,29 @@ const handleNetworkSwitch = (switchToChainId: string): string | undefined => {
   if (entry) {
     const [networkConfigurationId, networkConfiguration] = entry;
     const { ticker, nickname } = networkConfiguration;
-    currencyRateController.setNativeCurrency(ticker);
-    networkController.setActiveNetwork(networkConfigurationId);
+    currencyRateController.setNativeCurrency(ticker).catch((error) => {
+      Logger.error(error, 'Failed to set native currency');
+    });
+    networkController
+      .setActiveNetwork(networkConfigurationId)
+      .catch((error) => {
+        Logger.error(error, 'Failed to set active network');
+      });
     return nickname;
   }
 
   const networkType = getNetworkTypeById(switchToChainId);
 
   if (networkType) {
-    currencyRateController.setNativeCurrency('ETH');
+    currencyRateController.setNativeCurrency('ETH').catch((error) => {
+      Logger.error(error, 'Failed to set native currency');
+    });
     // TODO: Align mobile and core types to remove this type cast
-    networkController.setProviderType(networkType as NetworkType);
+    networkController
+      .setProviderType(networkType as NetworkType)
+      .catch((error) => {
+        Logger.error(error, 'Failed to set provider type');
+      });
     return networkType;
   }
 };
