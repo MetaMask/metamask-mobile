@@ -123,12 +123,12 @@ const NetworkVerificationInfo = ({
       />
       {renderAlerts()}
       <Text>
-        {strings('add_custom_network.warning_subtext_1_new')}{' '}
+        {strings('add_custom_network.warning_subtext_new.1')}{' '}
         <Text
           onPress={openHowToUseCustomNetworks}
           color={DEFAULT_BUTTONLINK_LABEL_COLOR}
         >
-          {strings('add_custom_network.warning_subtext_2_new')}
+          {strings('add_custom_network.warning_subtext_new.2')}
         </Text>
       </Text>
       {renderNetworkInfo()}
