@@ -141,7 +141,7 @@ workflows:
                 asdf plugin add yarn
                 asdf list all yarn
                 asdf install yarn latest
-                asdf global yarn 1.22.0
+                asdf global yarn 1.22.19
           title: Node Version Print
       - yarn@0:
           inputs:
