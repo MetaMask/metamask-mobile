@@ -13,7 +13,6 @@ PRE_RELEASE=false
 JS_ENV_FILE=".js.env"
 ANDROID_ENV_FILE=".android.env"
 IOS_ENV_FILE=".ios.env"
-WATCHER_PORT=${WATCHER_PORT:-8081}
 
 envFileMissing() {
 	FILE="$1"
@@ -118,6 +117,7 @@ prebuild(){
 			source $JS_ENV_FILE
 		fi
 	fi
+  WATCHER_PORT=${WATCHER_PORT:-8081}
 }
 
 prebuild_ios(){
@@ -396,6 +396,7 @@ buildIos() {
 
 startWatcher() {
 	source $JS_ENV_FILE
+  WATCHER_PORT=${WATCHER_PORT:-8081}
 	yarn --ignore-engines build:static-logos
 	if [ "$MODE" == "clean" ]; then
 		watchman watch-del-all
