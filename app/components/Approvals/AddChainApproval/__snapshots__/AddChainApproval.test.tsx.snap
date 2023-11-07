@@ -20,12 +20,14 @@ exports[`AddChainApproval renders 1`] = `
           "label": "Cancel",
           "onPress": undefined,
           "size": "48",
+          "testID": "cancel-button",
           "variant": "Secondary",
         },
         Object {
           "label": "Confirm",
           "onPress": undefined,
           "size": "48",
+          "testID": "connect-button",
           "variant": "Primary",
         },
       ]
