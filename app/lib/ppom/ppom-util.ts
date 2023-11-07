@@ -20,8 +20,13 @@ const ConfirmationMethods = Object.freeze([
   'personal_sign',
 ]);
 
-// const validateRequest = async (req: any, transactionMetaId?: string) => {
-const validateRequest = async (req: any, _?: any) => {
+const ErrorResponse = {
+  result_type: ResultType.Failed,
+  reason: Reason.failed,
+  description: 'Validating the confirmation failed by throwing error.',
+};
+
+const validateRequest = async (req: any, transactionId?: string) => {
   let securityAlertResponse;
   try {
     const { PPOMController: ppomController, PreferencesController } =
@@ -33,27 +38,30 @@ const validateRequest = async (req: any, _?: any) => {
     ) {
       return;
     }
+    if (
+      (req.method === 'eth_sendRawTransaction' ||
+        req.method === 'eth_sendTransaction') &&
+      !transactionId
+    ) {
+      securityAlertResponse = ErrorResponse;
+    }
     securityAlertResponse = await ppomController.usePPOM((ppom: any) =>
       ppom.validateJsonRpc(req),
     );
   } catch (e) {
     Logger.log(`Error validating JSON RPC using PPOM: ${e}`);
-    securityAlertResponse = {
-      result_type: ResultType.Failed,
-      reason: Reason.failed,
-      description: 'Validating the confirmation failed by throwing error.',
-    };
+    securityAlertResponse = ErrorResponse;
   } finally {
     if (
       req.method === 'eth_sendRawTransaction' ||
       req.method === 'eth_sendTransaction'
     ) {
       store.dispatch(updateTransaction({ securityAlertResponse }));
-      // todo: handle errors for method below
-      // const { TransactionController } = Engine.context;
-      // TransactionController.addTransactionMetaParams(transactionMetaId, {
-      //   securityAlertResponse,
-      // });
+      //   // todo: handle errors for method below
+      const { TransactionController } = Engine.context;
+      TransactionController.updateSecurityAlertResponse(transactionId, {
+        securityAlertResponse,
+      });
     } else {
       store.dispatch(
         setSignatureRequestSecurityAlertResponse(securityAlertResponse),

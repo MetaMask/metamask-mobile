@@ -100,7 +100,7 @@ async function eth_sendTransaction({
   });
 
   if (isBlockaidFeatureEnabled()) {
-    ppomUtil.validateRequest(req, transactionMeta.id);
+    ppomUtil.validateRequest(req, transactionMeta?.id);
   }
 
   res.result = await result;

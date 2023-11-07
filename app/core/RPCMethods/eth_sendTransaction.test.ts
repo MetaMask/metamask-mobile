@@ -97,6 +97,7 @@ function getMockAddTransaction({
       } else if (processTransactionError) {
         return {
           result: Promise.reject(processTransactionError),
+          transactionMeta: { id: '123' },
         };
       } else {
         return {
