@@ -1,5 +1,5 @@
 import React, { useCallback, useEffect, useState } from 'react';
-import { RefreshControl } from 'react-native';
+import { ActivityIndicator, RefreshControl } from 'react-native';
 import { useDispatch, useSelector } from 'react-redux';
 import { useNavigation } from '@react-navigation/native';
 import { Order } from '@consensys/on-ramp-sdk';
@@ -31,6 +31,7 @@ import {
 } from '../../../../../../selectors/networkController';
 import { RootState } from '../../../../../../reducers';
 import { FIAT_ORDER_STATES } from '../../../../../../constants/on-ramp';
+import ErrorView from '../../components/ErrorView';
 
 interface OrderDetailsParams {
   orderId?: string;
@@ -47,6 +48,10 @@ const OrderDetails = () => {
   const order = useSelector((state: RootState) =>
     getOrderById(state, params.orderId),
   );
+  const [isLoading, setIsLoading] = useState(
+    order && order.state === FIAT_ORDER_STATES.CREATED,
+  );
+  const [error, setError] = useState<string | null>(null);
   const { colors } = useTheme();
   const navigation = useNavigation();
   const dispatch = useDispatch();
@@ -91,19 +96,28 @@ const OrderDetails = () => {
   const handleOnRefresh = useCallback(async () => {
     if (!order) return;
     try {
+      setError(null);
       setIsRefreshing(true);
       await processFiatOrder(order, dispatchUpdateFiatOrder, dispatchThunk, {
         forced: true,
       });
-    } catch (error) {
-      Logger.error(error as Error, {
+    } catch (fetchError) {
+      Logger.error(fetchError as Error, {
         message: 'FiatOrders::OrderDetails error while processing order',
         order,
       });
+      setError((fetchError as Error).message || 'An error as occurred');
     } finally {
+      setIsLoading(false);
       setIsRefreshing(false);
     }
   }, [dispatchThunk, dispatchUpdateFiatOrder, order]);
+
+  useEffect(() => {
+    if (order?.state === FIAT_ORDER_STATES.CREATED) {
+      handleOnRefresh();
+    }
+  }, [handleOnRefresh, order?.state]);
 
   const handleMakeAnotherPurchase = useCallback(() => {
     navigation.goBack();
@@ -112,6 +126,32 @@ const OrderDetails = () => {
 
   if (!order) {
     return <ScreenLayout />;
+  }
+
+  if (isLoading) {
+    return (
+      <ScreenLayout>
+        <ScreenLayout.Body>
+          <ScreenLayout.Content>
+            <ActivityIndicator />
+          </ScreenLayout.Content>
+        </ScreenLayout.Body>
+      </ScreenLayout>
+    );
+  }
+
+  if (error) {
+    return (
+      <ScreenLayout>
+        <ScreenLayout.Body>
+          <ErrorView
+            description={error}
+            ctaOnPress={handleOnRefresh}
+            location="Order Details Screen"
+          />
+        </ScreenLayout.Body>
+      </ScreenLayout>
+    );
   }
 
   return (
