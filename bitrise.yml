@@ -140,6 +140,7 @@ workflows:
           inputs:
             - content: |-
                 #!/usr/bin/env bash
+                asdf plugin add yarn
                 asdf global yarn 1.22.19
                 node -v 
                 yarn setup
