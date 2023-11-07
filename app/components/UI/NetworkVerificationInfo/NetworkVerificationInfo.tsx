@@ -18,6 +18,7 @@ import { useStyles } from '../../../component-library/hooks';
 import styleSheet from './NetworkVerificationInfo.styles';
 import { CustomNetworkInformation } from './NetworkVerificationInfo.types';
 import { ScrollView } from 'react-native-gesture-handler';
+import { ADD_CUSTOM_NETWORK_ARTCILE } from './NetworkVerificationInfo.constants';
 
 /**
  * NetworkVerificationInfo component
@@ -27,7 +28,7 @@ const NetworkVerificationInfo = ({
 }: {
   customNetworkInformation: CustomNetworkInformation;
 }) => {
-  const [networfInfoMaxHeight, setNetworkInfoMaxHeight] = useState<
+  const [networkInfoMaxHeight, setNetworkInfoMaxHeight] = useState<
     number | null
   >(null);
   const [networkDetailsExpanded, setNetworkDetailsExpanded] = useState(false);
@@ -38,10 +39,10 @@ const NetworkVerificationInfo = ({
       nestedScrollEnabled
       style={[
         styles.accountCardWrapper,
-        networfInfoMaxHeight ? { maxHeight: networfInfoMaxHeight } : undefined,
+        networkInfoMaxHeight ? { maxHeight: networkInfoMaxHeight } : undefined,
       ]}
       onLayout={(event) => {
-        if (!networfInfoMaxHeight) {
+        if (!networkInfoMaxHeight) {
           setNetworkInfoMaxHeight(event.nativeEvent.layout.height);
         }
       }}
@@ -86,32 +87,34 @@ const NetworkVerificationInfo = ({
   );
 
   const openHowToUseCustomNetworks = () => {
-    Linking.openURL(
-      'https://support.metamask.io/hc/en-us/articles/360057142392-Verifying-custom-network-information',
-    );
+    Linking.openURL(ADD_CUSTOM_NETWORK_ARTCILE);
   };
-  // This needs to be renderAlerts and need to render multiple alerts
   const renderAlerts = () => {
     if (!customNetworkInformation.alerts.length) return null;
-    // type of alert : {alertError:string, alertSeverity:BannerAlertSeverity }
-    return customNetworkInformation.alerts.map(
-      (
-        networkAlert: {
-          alertError: string;
-          alertSeverity: BannerAlertSeverity;
-        },
-        i: number,
-      ) => (
-        <Banner
-          variant={BannerVariant.Alert}
-          severity={networkAlert.alertSeverity}
-          description={networkAlert.alertError}
-          testID={CommonSelectorsIDs.ERROR_MESSAGE}
-          style={styles.textSection}
-          key={i}
-        />
-      ),
-    );
+    return customNetworkInformation.alerts
+      .sort((a, b) => {
+        if (a.alertSeverity === BannerAlertSeverity.Error) return -1;
+        if (b.alertSeverity === BannerAlertSeverity.Error) return 1;
+        return 0;
+      })
+      .map(
+        (
+          networkAlert: {
+            alertError: string;
+            alertSeverity: BannerAlertSeverity;
+          },
+          i: number,
+        ) => (
+          <Banner
+            variant={BannerVariant.Alert}
+            severity={networkAlert.alertSeverity}
+            description={networkAlert.alertError}
+            testID={CommonSelectorsIDs.ERROR_MESSAGE}
+            style={styles.textSection}
+            key={i}
+          />
+        ),
+      );
   };
 
   return (
