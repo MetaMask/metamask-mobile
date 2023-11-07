@@ -2237,7 +2237,14 @@
     "unrecognized_chain": "This custom network is not recongized",
     "invalid_chain": "The %{rpcUrl} for this Chain ID does not match the chainid.network listing",
     "alert_recommend": "We recommend you",
-    "alert_verify": "verify the chain ID"
+    "alert_verify": "verify the chain ID",
+    "warning_subtext_1_new": "MetaMask doesn’t verify custom networks, so only approve networks you trust.",
+    "warning_subtext_2_new": "Learn more about network security risks and scams.",
+    "invalid_rpc_url": "This network URL doesn't match a known provider for this chain ID.",
+    "invalid_chain_token_decimals": "It looks like this network's decimal doesn't match its chain ID.",
+    "unrecognized_chain_name": "It looks like this network's display name doesn't match its chain ID.",
+    "unrecognized_chain_ticker": "It looks like this network's symbol doesn't match this chain ID.",
+    "unrecongized_chain_id": "We don't recognize this network. Be sure the chain ID is correct before you continue."
   },
   "media_player": {
     "loading": "Loading...",
