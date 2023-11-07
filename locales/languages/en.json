@@ -2006,6 +2006,7 @@
       "details": "Order details",
       "via": "via",
       "purchase_amount": "Purchase Amount Total",
+      "amount_received_total": "Amount Received Total",
       "etherscan": "View full details on",
       "start_new_order": "Start a new order",
       "continue_order": "Continue this order",
@@ -2016,10 +2017,13 @@
       "id": "Order ID",
       "date_and_time": "Date and Time",
       "payment_method": "Payment Method",
+      "destination": "Destination",
       "token_amount": "Token Amount",
+      "token_quantity_sold": "Token Quantity Sold",
       "exchange_rate": "Exchange Rate",
       "total_fees": "Total Fees",
       "amount": "Amount",
+      "value": "Value",
       "a_block_explorer": "a block explorer"
     },
     "send_transaction": {

@@ -28,6 +28,7 @@ import { PROVIDER_LINKS } from '../types';
 import Account from './Account';
 import { FIAT_ORDER_STATES } from '../../../../../constants/on-ramp';
 import { getOrderAmount } from '../utils';
+import { OrderOrderTypeEnum } from '@consensys/on-ramp-sdk/dist/API';
 
 /* eslint-disable-next-line import/no-commonjs, @typescript-eslint/no-var-requires, @typescript-eslint/no-require-imports */
 const failedIcon = require('./images/TransactionIcon_Failed.png');
@@ -252,7 +253,7 @@ const OrderDetails: React.FC<Props> = ({
           providerName={providerName}
         />
         <Group>
-          <Text centered primary style={styles.tokenAmount}>
+          <Text bold centered primary style={styles.tokenAmount}>
             {renderAmount} {cryptocurrency}
           </Text>
           {state !== FIAT_ORDER_STATES.PENDING &&
@@ -326,7 +327,9 @@ const OrderDetails: React.FC<Props> = ({
               <ListItem.Body>
                 <Text black small>
                   {strings(
-                    'fiat_on_ramp_aggregator.order_details.payment_method',
+                    order.orderType === OrderOrderTypeEnum.Buy
+                      ? 'fiat_on_ramp_aggregator.order_details.payment_method'
+                      : 'fiat_on_ramp_aggregator.order_details.destination',
                   )}
                 </Text>
               </ListItem.Body>
@@ -366,7 +369,9 @@ const OrderDetails: React.FC<Props> = ({
               <ListItem.Body>
                 <Text black small>
                   {strings(
-                    'fiat_on_ramp_aggregator.order_details.token_amount',
+                    order.orderType === OrderOrderTypeEnum.Buy
+                      ? 'fiat_on_ramp_aggregator.order_details.token_amount'
+                      : 'fiat_on_ramp_aggregator.order_details.token_quantity_sold',
                   )}
                 </Text>
               </ListItem.Body>
@@ -418,7 +423,11 @@ const OrderDetails: React.FC<Props> = ({
                 <ListItem.Body>
                   <Text black small>
                     {currency}{' '}
-                    {strings('fiat_on_ramp_aggregator.order_details.amount')}
+                    {strings(
+                      order.orderType === OrderOrderTypeEnum.Buy
+                        ? 'fiat_on_ramp_aggregator.order_details.amount'
+                        : 'fiat_on_ramp_aggregator.order_details.value',
+                    )}
                   </Text>
                 </ListItem.Body>
                 <ListItem.Amounts>
@@ -472,7 +481,9 @@ const OrderDetails: React.FC<Props> = ({
               <ListItem.Body>
                 <Text black small>
                   {strings(
-                    'fiat_on_ramp_aggregator.order_details.purchase_amount',
+                    order.orderType === OrderOrderTypeEnum.Buy
+                      ? 'fiat_on_ramp_aggregator.order_details.purchase_amount'
+                      : 'fiat_on_ramp_aggregator.order_details.amount_received_total',
                   )}
                 </Text>
               </ListItem.Body>
