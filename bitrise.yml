@@ -133,9 +133,9 @@ workflows:
                 envman add --key YARN_CACHE_DIR --value "$(yarn cache dir)"
           title: Get Yarn cache directory
       - cache-pull@2: {}
-      - nvm@1.3.3:
-          inputs:
-            - node_version: '18.18.2'
+      # - nvm@1.3.3:
+      #     inputs:
+      #       - node_version: '18.18.2'
       - script@1:
           inputs:
             - content: |-
