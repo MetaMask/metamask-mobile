@@ -21,10 +21,6 @@ import URL from 'url-parse';
 import { getAddressAccountType } from '../../../util/address';
 import { ThemeContext, mockTheme } from '../../../util/theme';
 import {
-  ACCOUNT_APROVAL_MODAL_CONTAINER_ID,
-  CANCEL_BUTTON_ID,
-} from '../../../constants/test-ids';
-import {
   selectChainId,
   selectProviderType,
 } from '../../../selectors/networkController';
@@ -41,6 +37,8 @@ import Engine from '../../../core/Engine';
 import { prefixUrlWithProtocol } from '../../../util/browser';
 import createStyles from './styles';
 import ShowWarningBanner from './showWarningBanner';
+import { ConnectAccountModalSelectorsIDs } from '../../../../e2e/selectors/Modals/ConnectAccountModal.selectors';
+import { CommonSelectorsIDs } from '../../../../e2e/selectors/Common.selectors';
 
 /**
  * Account access approval component
@@ -272,7 +270,7 @@ class AccountApproval extends PureComponent {
     return (
       <View
         style={styles.root}
-        {...generateTestId(Platform, ACCOUNT_APROVAL_MODAL_CONTAINER_ID)}
+        {...generateTestId(Platform, ConnectAccountModalSelectorsIDs.CONTAINER)}
       >
         <TransactionHeader currentPageInformation={currentPageInformation} />
 
@@ -345,7 +343,7 @@ class AccountApproval extends PureComponent {
             type={'cancel'}
             onPress={this.onCancel}
             containerStyle={[styles.button, styles.cancel]}
-            testID={CANCEL_BUTTON_ID}
+            testID={CommonSelectorsIDs.CANCEL_BUTTON}
           >
             {currentPageInformation.reconnect
               ? strings('accountApproval.disconnect')
@@ -360,7 +358,7 @@ class AccountApproval extends PureComponent {
               styles.confirm,
               isUrlFlaggedAsPhishing && styles.warningButton,
             ]}
-            testID={'connect-approve-button'}
+            testID={CommonSelectorsIDs.CONNECT_BUTTON}
           >
             {currentPageInformation.reconnect
               ? strings('accountApproval.resume')
