@@ -14,6 +14,7 @@ import { toLowerCaseEquals } from '../../../util/general';
 import { collectiblesSelector } from '../../../reducers/collectibles';
 import { ThemeContext, mockTheme } from '../../../util/theme';
 import { SEND_BUTTON_ID } from '../../../../wdio/screen-objects/testIDs/Screens/WalletView.testIds';
+import { WalletViewSelectorsIDs } from '../../../../e2e/selectors/WalletView.selectors';
 
 const createStyles = (colors) =>
   StyleSheet.create({
@@ -125,7 +126,10 @@ class CollectibleContractOverview extends PureComponent {
       <View style={styles.wrapper} testID={'collectible-overview-screen'}>
         <View style={styles.assetLogo}>{this.renderLogo()}</View>
         <View style={styles.information}>
-          <Text style={styles.name} testID={'collectible-name'}>
+          <Text
+            style={styles.name}
+            testID={WalletViewSelectorsIDs.NFT_CONTAINER}
+          >
             {ownerOf} {name}
           </Text>
         </View>

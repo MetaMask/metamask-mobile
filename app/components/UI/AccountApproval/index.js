@@ -3,8 +3,6 @@ import { connect } from 'react-redux';
 import PropTypes from 'prop-types';
 import StyledButton from '../StyledButton';
 import {
-  StyleSheet,
-  Text,
   View,
   InteractionManager,
   TouchableOpacity,
@@ -13,18 +11,15 @@ import {
 import TransactionHeader from '../TransactionHeader';
 import AccountInfoCard from '../AccountInfoCard';
 import { strings } from '../../../../locales/i18n';
-import Device from '../../../util/device';
+import Text from '../../../component-library/components/Texts/Text';
 import NotificationManager from '../../../core/NotificationManager';
+
 import { MetaMetricsEvents } from '../../../core/Analytics';
 import AnalyticsV2 from '../../../util/analyticsV2';
 
 import URL from 'url-parse';
 import { getAddressAccountType } from '../../../util/address';
 import { ThemeContext, mockTheme } from '../../../util/theme';
-import {
-  ACCOUNT_APROVAL_MODAL_CONTAINER_ID,
-  CANCEL_BUTTON_ID,
-} from '../../../constants/test-ids';
 import {
   selectChainId,
   selectProviderType,
@@ -38,122 +33,12 @@ import SDKConnect from '../../../core/SDKConnect/SDKConnect';
 import Routes from '../../../constants/navigation/Routes';
 import CheckBox from '@react-native-community/checkbox';
 import generateTestId from '../../../../wdio/utils/generateTestId';
-
-const createStyles = (colors, typography) =>
-  StyleSheet.create({
-    root: {
-      backgroundColor: colors.background.default,
-      paddingTop: 24,
-      borderTopLeftRadius: 20,
-      borderTopRightRadius: 20,
-      minHeight: 200,
-      paddingBottom: Device.isIphoneX() ? 20 : 0,
-    },
-    accountCardWrapper: {
-      paddingHorizontal: 24,
-    },
-    intro: {
-      ...typography.sHeadingMD,
-      textAlign: 'center',
-      color: colors.text.default,
-      marginBottom: 8,
-      marginTop: 16,
-    },
-    intro_reconnect: {
-      ...typography.sHeadingMD,
-      textAlign: 'center',
-      color: colors.text.default,
-      marginBottom: 8,
-      marginTop: 16,
-      marginLeft: 16,
-      marginRight: 16,
-    },
-    otpContainer: {},
-    selectOtp: {
-      marginTop: 0,
-      padding: 2,
-      marginLeft: 20,
-      marginRight: 20,
-    },
-    warning: {
-      ...typography.sHeadingSMRegular,
-      color: colors.text.default,
-      paddingHorizontal: 24,
-      marginBottom: 16,
-      width: '100%',
-      textAlign: 'center',
-    },
-    actionContainer: {
-      flex: 0,
-      flexDirection: 'row',
-      paddingVertical: 16,
-      paddingHorizontal: 24,
-    },
-    button: {
-      flex: 1,
-    },
-    cancel: {
-      marginRight: 8,
-    },
-    confirm: {
-      marginLeft: 8,
-    },
-    circle: {
-      width: 16,
-      height: 16,
-      borderRadius: 16 / 2,
-      backgroundColor: colors.background.default,
-      opacity: 1,
-      margin: 2,
-      borderWidth: 2,
-      borderColor: colors.border.default,
-      marginRight: 6,
-    },
-    rememberme: {
-      marginTop: 15,
-      marginBottom: 10,
-      flexDirection: 'row',
-      justifyContent: 'flex-start',
-      marginLeft: 20,
-      alignItems: 'center',
-    },
-    rememberCheckbox: {
-      height: 20,
-      width: 20,
-    },
-    rememberText: { paddingLeft: 10, color: colors.text.default },
-    option: {
-      flex: 1,
-    },
-    touchableOption: {
-      flexDirection: 'row',
-      justifyContent: 'flex-start',
-      alignItems: 'center',
-      borderWidth: 1,
-      borderColor: colors.border.muted,
-      borderRadius: 8,
-      padding: 16,
-      marginLeft: 20,
-      marginRight: 20,
-      marginTop: 16,
-    },
-    selectedOption: {
-      borderColor: colors.primary.default,
-    },
-    optionText: {
-      ...typography.lBodyMD,
-      color: colors.text.default,
-    },
-    selectedCircle: {
-      width: 12,
-      height: 12,
-      borderRadius: 12 / 2,
-      backgroundColor: colors.primary.default,
-      opacity: 1,
-      margin: 2,
-      marginRight: 6,
-    },
-  });
+import Engine from '../../../core/Engine';
+import { prefixUrlWithProtocol } from '../../../util/browser';
+import createStyles from './styles';
+import ShowWarningBanner from './showWarningBanner';
+import { ConnectAccountModalSelectorsIDs } from '../../../../e2e/selectors/Modals/ConnectAccountModal.selectors';
+import { CommonSelectorsIDs } from '../../../../e2e/selectors/Common.selectors';
 
 /**
  * Account access approval component
@@ -214,6 +99,7 @@ class AccountApproval extends PureComponent {
         AppConstants.DEEPLINKS.ORIGIN_QR_CODE &&
       this.props.currentPageInformation.reconnect &&
       this.props.currentPageInformation.apiVersion,
+    isUrlFlaggedAsPhishing: false,
   };
 
   getAnalyticsParams = () => {
@@ -240,6 +126,12 @@ class AccountApproval extends PureComponent {
   };
 
   componentDidMount = () => {
+    const { currentPageInformation } = this.props;
+
+    const prefixedUrl = prefixUrlWithProtocol(currentPageInformation?.url);
+    const { hostname } = new URL(prefixedUrl);
+    this.checkUrlFlaggedAsPhishing(hostname);
+
     InteractionManager.runAfterInteractions(() => {
       AnalyticsV2.trackEvent(
         MetaMetricsEvents.CONNECT_REQUEST_STARTED,
@@ -355,8 +247,19 @@ class AccountApproval extends PureComponent {
     });
   };
 
+  checkUrlFlaggedAsPhishing = (hostname) => {
+    const { PhishingController } = Engine.context;
+    PhishingController.maybeUpdateState();
+    const phishingControllerTestResult = PhishingController.test(hostname);
+
+    this.setState({
+      isUrlFlaggedAsPhishing: phishingControllerTestResult.result,
+    });
+  };
+
   render = () => {
     const { currentPageInformation, selectedAddress } = this.props;
+    const { isUrlFlaggedAsPhishing } = this.state;
     const { colors, typography } = this.context || mockTheme;
     const styles = createStyles(colors, typography);
     const hasRememberMe =
@@ -367,9 +270,12 @@ class AccountApproval extends PureComponent {
     return (
       <View
         style={styles.root}
-        {...generateTestId(Platform, ACCOUNT_APROVAL_MODAL_CONTAINER_ID)}
+        {...generateTestId(Platform, ConnectAccountModalSelectorsIDs.CONTAINER)}
       >
         <TransactionHeader currentPageInformation={currentPageInformation} />
+
+        {isUrlFlaggedAsPhishing && <ShowWarningBanner />}
+
         {!currentPageInformation.reconnect && (
           <>
             <Text style={styles.intro}>
@@ -437,7 +343,7 @@ class AccountApproval extends PureComponent {
             type={'cancel'}
             onPress={this.onCancel}
             containerStyle={[styles.button, styles.cancel]}
-            testID={CANCEL_BUTTON_ID}
+            testID={CommonSelectorsIDs.CANCEL_BUTTON}
           >
             {currentPageInformation.reconnect
               ? strings('accountApproval.disconnect')
@@ -447,8 +353,12 @@ class AccountApproval extends PureComponent {
             disabled={this.state.otp && this.state.confirmDisabled}
             type={'confirm'}
             onPress={this.onConfirm}
-            containerStyle={[styles.button, styles.confirm]}
-            testID={'connect-approve-button'}
+            containerStyle={[
+              styles.button,
+              styles.confirm,
+              isUrlFlaggedAsPhishing && styles.warningButton,
+            ]}
+            testID={CommonSelectorsIDs.CONNECT_BUTTON}
           >
             {currentPageInformation.reconnect
               ? strings('accountApproval.resume')
