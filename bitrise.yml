@@ -138,13 +138,16 @@ workflows:
             - content: |-
                 #!/usr/bin/env bash
                 echo "The machine type is: $BITRISE_TRIGGERED_WORKFLOW_TITLE"
-                if [[ $BITRISE_TRIGGERED_WORKFLOW_TITLE == *"andriod"* ]]; then
+                test = $BITRISE_TRIGGERED_WORKFLOW_TITLE == *"andriod"*
+                echo "Result is $test"
+                # if [[ $BITRISE_TRIGGERED_WORKFLOW_TITLE == *"andriod"* ]]; then
+                  echo "Installing yarn"
                   asdf plugin-add yarn 1.22.19
                   asdf install yarn latest 1.22.19
                   asdf global yarn
                   asdf info
                   node -v                 
-                fi
+                # fi
           title: Manually install set node and install yarn android workflows
       - yarn@0:
           inputs:
