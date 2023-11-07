@@ -146,6 +146,8 @@ workflows:
                 asdf global yarn 1.22.19
                 node -v 
                 yarn setup
+                asdf info
+                node -v 
           title: Node Version Print
       - yarn@0:
           inputs:
