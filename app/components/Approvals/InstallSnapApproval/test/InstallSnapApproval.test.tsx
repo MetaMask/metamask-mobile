@@ -4,7 +4,6 @@ import {
   SNAP_INSTALL_CANCEL,
   SNAP_INSTALL_CONNECTION_REQUEST,
   SNAP_INSTALL_ERROR,
-  SNAP_INSTALL_OK,
   SNAP_INSTALL_PERMISSIONS_REQUEST,
   SNAP_INSTALL_PERMISSIONS_REQUEST_APPROVE,
   SNAP_INSTALL_SUCCESS,
@@ -16,7 +15,6 @@ import useApprovalRequest from '../../../hooks/useApprovalRequest';
 jest.mock('../../../hooks/useApprovalRequest');
 
 const onConfirm = jest.fn();
-const onFinish = jest.fn();
 const onReject = jest.fn();
 
 const mockApprovalRequest = (approvalRequest?: ApprovalRequest<any>) => {

@@ -99,14 +99,16 @@ const InstallSnapApproval = () => {
     }
   };
 
-  return (
+  const content = renderModalContent();
+
+  return content ? (
     <ApprovalModal
       isVisible={installState !== undefined && !isFinished}
       onCancel={onReject}
     >
-      {renderModalContent()}
+      {content}
     </ApprovalModal>
-  );
+  ) : null;
 };
 
 export default InstallSnapApproval;

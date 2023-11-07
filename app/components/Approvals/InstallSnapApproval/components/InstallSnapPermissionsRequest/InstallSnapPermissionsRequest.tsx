@@ -102,4 +102,4 @@ const InstallSnapPermissionsRequest = ({
   );
 };
 
-export default InstallSnapPermissionsRequest;
+export default React.memo(InstallSnapPermissionsRequest);

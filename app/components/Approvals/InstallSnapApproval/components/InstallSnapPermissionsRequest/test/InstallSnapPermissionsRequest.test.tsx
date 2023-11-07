@@ -4,27 +4,37 @@ import InstallSnapPermissionsRequest from '../InstallSnapPermissionsRequest';
 import { SNAP_PERMISSION_CELL } from '../../../../../../constants/test-ids';
 
 describe('InstallSnapPermissionsRequest', () => {
-  const requestData = {
-    metadata: {
-      id: 'uNadWHqPnwOM4NER3mERI',
-      origin: 'npm:@lavamoat/tss-snap',
-      dappOrigin: 'tss.ac',
+  const installSnapDataApprovalRequest = {
+    id: '-pRxqpl57ssM5nc31C9_9',
+    origin: 'tss.ac',
+    type: 'wallet_installSnap',
+    time: 1699045159224,
+    requestData: {
+      metadata: {
+        id: '-pRxqpl57ssM5nc31C9_9',
+        origin: 'npm:@lavamoat/tss-snap',
+        dappOrigin: 'tss.ac',
+      },
+      snapId: 'npm:@lavamoat/tss-snap',
     },
-    permissions: {
-      snap_manageState: {},
-      'endowment:rpc': {
-        caveats: [
-          {
-            type: 'rpcOrigin',
-            value: {
-              dapps: true,
-              snaps: true,
+    requestState: {
+      loading: false,
+      permissions: {
+        snap_manageState: {},
+        'endowment:rpc': {
+          caveats: [
+            {
+              type: 'rpcOrigin',
+              value: {
+                dapps: true,
+                snaps: true,
+              },
             },
-          },
-        ],
+          ],
+        },
       },
     },
-    snapId: 'npm:@lavamoat/tss-snap',
+    expectsResult: false,
   };
 
   const onConfirm = jest.fn();
@@ -37,7 +47,8 @@ describe('InstallSnapPermissionsRequest', () => {
   it('renders the correct number of permission cells', () => {
     const { getAllByTestId } = render(
       <InstallSnapPermissionsRequest
-        requestData={requestData}
+        approvalRequest={installSnapDataApprovalRequest}
+        requestState={installSnapDataApprovalRequest.requestState}
         onConfirm={onConfirm}
         onCancel={onCancel}
       />,

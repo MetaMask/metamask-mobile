@@ -7,31 +7,40 @@ import {
 } from '../../../../../../constants/test-ids';
 
 describe('InstallSnapError', () => {
-  const requestData = {
-    metadata: {
-      id: 'uNadWHqPnwOM4NER3mERI',
-      origin: 'npm:@lavamoat/tss-snap',
-      dappOrigin: 'tss.ac',
+  const installSnapDataApprovalRequest = {
+    id: '-pRxqpl57ssM5nc31C9_9',
+    origin: 'tss.ac',
+    type: 'wallet_installSnap',
+    time: 1699045159224,
+    requestData: {
+      metadata: {
+        id: '-pRxqpl57ssM5nc31C9_9',
+        origin: 'npm:@lavamoat/tss-snap',
+        dappOrigin: 'tss.ac',
+      },
+      snapId: 'npm:@lavamoat/tss-snap',
     },
-    permissions: {
-      snap_manageState: {},
-      'endowment:rpc': {
-        caveats: [
-          {
-            type: 'rpcOrigin',
-            value: {
-              dapps: true,
-              snaps: true,
+    requestState: {
+      loading: false,
+      permissions: {
+        snap_manageState: {},
+        'endowment:rpc': {
+          caveats: [
+            {
+              type: 'rpcOrigin',
+              value: {
+                dapps: true,
+                snaps: true,
+              },
             },
-          },
-        ],
+          ],
+        },
       },
     },
-    snapId: 'npm:@lavamoat/tss-snap',
+    expectsResult: false,
   };
 
   const onConfirm = jest.fn();
-  const onCancel = jest.fn();
   const error = new Error('Installation failed');
 
   afterEach(() => {
@@ -41,10 +50,9 @@ describe('InstallSnapError', () => {
   it('renders correctly', () => {
     const { getByTestId } = render(
       <InstallSnapError
-        requestData={requestData}
+        approvalRequest={installSnapDataApprovalRequest}
         onConfirm={onConfirm}
         error={error}
-        onCancel={onCancel}
       />,
     );
 
@@ -54,10 +62,9 @@ describe('InstallSnapError', () => {
   it('calls onConfirm when the OK button is pressed', () => {
     const { getByTestId } = render(
       <InstallSnapError
-        requestData={requestData}
+        approvalRequest={installSnapDataApprovalRequest}
         onConfirm={onConfirm}
         error={error}
-        onCancel={onCancel}
       />,
     );
 
@@ -68,10 +75,9 @@ describe('InstallSnapError', () => {
   it('displays the correct snap name', () => {
     const { getByText } = render(
       <InstallSnapError
-        requestData={requestData}
+        approvalRequest={installSnapDataApprovalRequest}
         onConfirm={onConfirm}
         error={error}
-        onCancel={onCancel}
       />,
     );
 
@@ -82,10 +88,9 @@ describe('InstallSnapError', () => {
   it('displays the correct error title', () => {
     const { getByText } = render(
       <InstallSnapError
-        requestData={requestData}
+        approvalRequest={installSnapDataApprovalRequest}
         onConfirm={onConfirm}
         error={error}
-        onCancel={onCancel}
       />,
     );
 

@@ -97,4 +97,4 @@ const InstallSnapError = ({
   );
 };
 
-export default InstallSnapError;
+export default React.memo(InstallSnapError);

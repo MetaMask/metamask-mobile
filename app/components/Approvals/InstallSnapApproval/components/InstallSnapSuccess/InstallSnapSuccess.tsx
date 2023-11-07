@@ -90,4 +90,4 @@ const InstallSnapSuccess = ({
   );
 };
 
-export default InstallSnapSuccess;
+export default React.memo(InstallSnapSuccess);

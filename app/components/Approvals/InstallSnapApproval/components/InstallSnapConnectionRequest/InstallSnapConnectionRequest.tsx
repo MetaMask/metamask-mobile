@@ -61,7 +61,7 @@ const InstallSnapConnectionRequest = ({
 
   const secureIcon = useMemo(
     () =>
-      (getUrlObj(origin) as URL).protocol === 'https:'
+      getUrlObj(origin).protocol === 'https:'
         ? IconName.Lock
         : IconName.LockSlash,
     [origin],
@@ -101,7 +101,7 @@ const InstallSnapConnectionRequest = ({
         <Cell
           style={styles.snapCell}
           variant={CellVariant.Display}
-          title={snapName}
+          title={snapName ?? ''}
           avatarProps={{
             variant: AvatarVariants.Icon,
             name: IconName.Snaps,
@@ -118,4 +118,4 @@ const InstallSnapConnectionRequest = ({
   );
 };
 
-export default InstallSnapConnectionRequest;
+export default React.memo(InstallSnapConnectionRequest);
