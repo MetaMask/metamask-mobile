@@ -121,7 +121,7 @@ workflows:
       - git-clone@6: {}
       - nvm@1.3.3:
           inputs:
-            - node_version: '18.17.1'
+            - node_version: '18.18.2'
   code_setup:
     before_run:
       - setup
@@ -135,7 +135,7 @@ workflows:
       - cache-pull@2: {}
       - nvm@1.3.3:
           inputs:
-            - node_version: '18.17.1'
+            - node_version: '18.18.2'
       - script@1:
           inputs:
             - content: |-
