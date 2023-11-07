@@ -140,6 +140,7 @@ workflows:
           inputs:
             - content: |-
                 #!/usr/bin/env bash
+                cd /bitrise/src
                 nvm version
                 nvm use 18.17.1
                 node -v 
