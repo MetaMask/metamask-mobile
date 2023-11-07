@@ -117,7 +117,9 @@ const OrderDetails = () => {
     if (order?.state === FIAT_ORDER_STATES.CREATED) {
       handleOnRefresh();
     }
-  }, [handleOnRefresh, order?.state]);
+    // only run on mount
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   const handleMakeAnotherPurchase = useCallback(() => {
     navigation.goBack();
