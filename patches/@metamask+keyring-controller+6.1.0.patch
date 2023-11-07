@@ -1,25 +1,8 @@
 diff --git a/node_modules/@metamask/keyring-controller/dist/KeyringController.js b/node_modules/@metamask/keyring-controller/dist/KeyringController.js
-index c905cc0..c2e9197 100644
+index c905cc0..f670fd3 100644
 --- a/node_modules/@metamask/keyring-controller/dist/KeyringController.js
 +++ b/node_modules/@metamask/keyring-controller/dist/KeyringController.js
-@@ -286,6 +286,16 @@ class KeyringController extends base_controller_1.BaseControllerV2 {
-             return __classPrivateFieldGet(this, _KeyringController_keyring, "f").exportAccount(address);
-         });
-     }
-+
-+    /** 
-+    * Temporary function that exports an app key private key for the given Ethereum address and origin.
-+    * @returns The app key private key.
-+    */
-+    exportAppKeyForAddress(account, subject) {
-+        return __awaiter(this, void 0, void 0, function* () {
-+            return yield __classPrivateFieldGet(this, _KeyringController_keyring, "f").exportAppKeyForAddress(account, subject);
-+        })
-+    }
-     /**
-      * Returns the public addresses of all accounts for the current keyring.
-      *
-@@ -678,13 +688,21 @@ class KeyringController extends base_controller_1.BaseControllerV2 {
+@@ -678,13 +678,21 @@ class KeyringController extends base_controller_1.BaseControllerV2 {
      }
      forgetQRDevice() {
          return __awaiter(this, void 0, void 0, function* () {
