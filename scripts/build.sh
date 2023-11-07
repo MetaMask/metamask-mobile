@@ -13,7 +13,7 @@ PRE_RELEASE=false
 JS_ENV_FILE=".js.env"
 ANDROID_ENV_FILE=".android.env"
 IOS_ENV_FILE=".ios.env"
-
+WATCHER_PORT=${WATCHER_PORT:-8081}
 
 envFileMissing() {
 	FILE="$1"
@@ -151,24 +151,24 @@ prebuild_android(){
 
 buildAndroidRun(){
 	prebuild_android
-	react-native run-android --variant=prodDebug --active-arch-only
+	react-native run-android --port=$WATCHER_PORT --variant=prodDebug --active-arch-only
 }
 
 buildAndroidRunQA(){
 	prebuild_android
-	react-native run-android --variant=qaDebug --active-arch-only
+	react-native run-android --port=$WATCHER_PORT --variant=qaDebug --active-arch-only
 }
 
 buildIosSimulator(){
 	prebuild_ios
 	SIM="${IOS_SIMULATOR:-"iPhone 13 Pro"}"
-	react-native run-ios --simulator "$SIM"
+	react-native run-ios --port=$WATCHER_PORT --simulator "$SIM"
 }
 
 buildIosSimulatorQA(){
 	prebuild_ios
 	SIM="${IOS_SIMULATOR:-"iPhone 13 Pro"}"
-	react-native run-ios --simulator "$SIM" --scheme "MetaMask-QA"
+	react-native run-ios --port=$WATCHER_PORT --simulator "$SIM" --scheme "MetaMask-QA"
 }
 
 buildIosSimulatorE2E(){
@@ -187,12 +187,12 @@ runIosE2E(){
 
 buildIosDevice(){
 	prebuild_ios
-	react-native run-ios --device
+	react-native run-ios --port=$WATCHER_PORT --device
 }
 
 buildIosDeviceQA(){
 	prebuild_ios
-	react-native run-ios --device --scheme "MetaMask-QA"
+	react-native run-ios --port=$WATCHER_PORT --device --scheme "MetaMask-QA"
 }
 
 generateArchivePackages() {
@@ -400,9 +400,9 @@ startWatcher() {
 	if [ "$MODE" == "clean" ]; then
 		watchman watch-del-all
 		rm -rf $TMPDIR/metro-cache
-		react-native start -- --reset-cache
+		react-native start --port=$WATCHER_PORT -- --reset-cache
 	else
-		react-native start
+		react-native start --port=$WATCHER_PORT
 	fi
 }
 
