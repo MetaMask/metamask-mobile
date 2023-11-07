@@ -99,11 +99,11 @@ async function eth_sendTransaction({
     origin: hostname,
   });
 
-  res.result = await result;
-
   if (isBlockaidFeatureEnabled()) {
     ppomUtil.validateRequest(req, transactionMeta.id);
   }
+
+  res.result = await result;
 }
 
 export default eth_sendTransaction;
