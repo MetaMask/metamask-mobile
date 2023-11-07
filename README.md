@@ -123,6 +123,13 @@ yarn setup # not the usual install command, this will run a lengthy postinstall 
 yarn watch
 ```
 
+- You can change the default port (8081) from metro using the WATCHER_PORT environment variable. For example:
+```bash
+WATCHER_PORT=8082 yarn watch
+# This value can also be set directly inside .js.env file
+```
+
+```bash
 #### Android
 ```bash
 yarn start:android
