@@ -323,7 +323,7 @@ exports[`SecuritySettings should render correctly 1`] = `
               "width": "100%",
             }
           }
-          testID="change-password-button-id"
+          testID="change-password-button"
           variant="Secondary"
         >
           <Text
