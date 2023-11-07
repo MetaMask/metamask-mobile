@@ -129,7 +129,6 @@ WATCHER_PORT=8082 yarn watch
 # This value can also be set directly inside .js.env file
 ```
 
-```bash
 #### Android
 ```bash
 yarn start:android
