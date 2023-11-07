@@ -66,7 +66,6 @@ const InstallSnapApproval = () => {
         return (
           <InstallSnapConnectionRequest
             approvalRequest={approvalRequest}
-            requestState={approvalRequest.requestState}
             onConfirm={onConfirm}
             onCancel={onReject}
           />
@@ -110,4 +109,4 @@ const InstallSnapApproval = () => {
   );
 };
 
-export default React.memo(InstallSnapApproval);
+export default InstallSnapApproval;

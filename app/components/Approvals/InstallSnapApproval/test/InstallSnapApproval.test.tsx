@@ -1,75 +1,141 @@
 import React from 'react';
 import { render, fireEvent, waitFor } from '@testing-library/react-native';
-import InstallSnapApprovalFlow from '../InstallSnapApprovalFlow';
 import {
   SNAP_INSTALL_CANCEL,
-  SNAP_INSTALL_CONNECT,
   SNAP_INSTALL_CONNECTION_REQUEST,
   SNAP_INSTALL_ERROR,
+  SNAP_INSTALL_OK,
   SNAP_INSTALL_PERMISSIONS_REQUEST,
   SNAP_INSTALL_PERMISSIONS_REQUEST_APPROVE,
   SNAP_INSTALL_SUCCESS,
 } from '../../../../constants/test-ids';
+import InstallSnapApproval from '../InstallSnapApproval';
+import { ApprovalRequest } from '@metamask/approval-controller';
+import useApprovalRequest from '../../../hooks/useApprovalRequest';
+
+jest.mock('../../../hooks/useApprovalRequest');
+
+const onConfirm = jest.fn();
+const onFinish = jest.fn();
+const onReject = jest.fn();
+
+const mockApprovalRequest = (approvalRequest?: ApprovalRequest<any>) => {
+  (
+    useApprovalRequest as jest.MockedFn<typeof useApprovalRequest>
+  ).mockReturnValue({
+    approvalRequest,
+    onConfirm,
+    onReject,
+  } as any);
+};
 
 describe('InstallSnapApprovalFlow', () => {
-  const requestData = {
+  const requestPermissionsData = {
+    id: 'jUU9-fsMO1dkSAKdKxiK_',
+    origin: 'metamask.github.io',
+    type: 'wallet_requestPermissions',
+    time: 1699041698637,
     requestData: {
       metadata: {
-        id: 'uNadWHqPnwOM4NER3mERI',
-        origin: 'npm:@lavamoat/tss-snap',
-        dappOrigin: 'tss.ac',
+        id: 'jUU9-fsMO1dkSAKdKxiK_',
+        origin: 'metamask.github.io',
       },
       permissions: {
-        snap_manageState: {},
+        wallet_snap: {
+          caveats: [
+            {
+              type: 'snapIds',
+              value: {
+                'npm:@metamask/bip32-example-snap': {
+                  version: '1.0.0',
+                },
+              },
+            },
+          ],
+        },
+      },
+    },
+    requestState: null,
+    expectsResult: false,
+  };
+
+  const installSnapData = {
+    id: '-pRxqpl57ssM5nc31C9_9',
+    origin: 'metamask.github.io',
+    type: 'wallet_installSnap',
+    time: 1699045159224,
+    requestData: {
+      metadata: {
+        id: '-pRxqpl57ssM5nc31C9_9',
+        origin: 'npm:@metamask/bip32-example-snap',
+        dappOrigin: 'metamask.github.io',
+      },
+      snapId: 'npm:@metamask/bip32-example-snap',
+    },
+    requestState: {
+      loading: false,
+      permissions: {
         'endowment:rpc': {
           caveats: [
             {
               type: 'rpcOrigin',
               value: {
                 dapps: true,
-                snaps: false,
+                snaps: true,
               },
             },
           ],
         },
+        snap_dialog: {},
+        snap_getBip32Entropy: {
+          caveats: [
+            {
+              type: 'permittedDerivationPaths',
+              value: [
+                {
+                  path: ['m', "44'", "0'"],
+                  curve: 'secp256k1',
+                },
+                {
+                  path: ['m', "44'", "0'"],
+                  curve: 'ed25519',
+                },
+              ],
+            },
+          ],
+        },
+        snap_getBip32PublicKey: {
+          caveats: [
+            {
+              type: 'permittedDerivationPaths',
+              value: [
+                {
+                  path: ['m', "44'", "0'"],
+                  curve: 'secp256k1',
+                },
+              ],
+            },
+          ],
+        },
       },
-      snapId: 'npm:@lavamoat/tss-snap',
     },
-    id: 'uNadWHqPnwOM4NER3mERI',
+    expectsResult: false,
   };
-
-  const onConfirm = jest.fn();
-  const onFinish = jest.fn();
-  const onCancel = jest.fn();
 
   afterEach(() => {
     jest.clearAllMocks();
   });
 
-  it('renders InstallSnapConnectionRequest component initially', () => {
-    const { getByTestId } = render(
-      <InstallSnapApprovalFlow
-        requestData={requestData}
-        onConfirm={onConfirm}
-        onFinish={onFinish}
-        onCancel={onCancel}
-      />,
-    );
+  it('renders InstallSnapConnectionRequest component initially when approval type is wallet_requestPermissions', () => {
+    mockApprovalRequest(requestPermissionsData);
+    const { getByTestId } = render(<InstallSnapApproval />);
     const connectionRequest = getByTestId(SNAP_INSTALL_CONNECTION_REQUEST);
     expect(connectionRequest).toBeDefined();
   });
 
-  it('switches to InstallSnapPermissionsRequest on confirmation', async () => {
-    const { getByTestId, findByTestId } = render(
-      <InstallSnapApprovalFlow
-        requestData={requestData}
-        onConfirm={onConfirm}
-        onFinish={onFinish}
-        onCancel={onCancel}
-      />,
-    );
-    const confirmButton = getByTestId(SNAP_INSTALL_CONNECT);
-    fireEvent.press(confirmButton);
+  it('renders InstallSnapPermissionsRequest when approval type is wallet_installSnap', async () => {
+    mockApprovalRequest(installSnapData);
+    const { findByTestId } = render(<InstallSnapApproval />);
     const permissionsRequest = await findByTestId(
       SNAP_INSTALL_PERMISSIONS_REQUEST,
     );
@@ -77,16 +143,8 @@ describe('InstallSnapApprovalFlow', () => {
   });
 
   it('calls onConfirm when Approve button is pressed in InstallSnapPermissionsRequest', async () => {
-    const { getByTestId } = render(
-      <InstallSnapApprovalFlow
-        requestData={requestData}
-        onConfirm={onConfirm}
-        onFinish={onFinish}
-        onCancel={onCancel}
-      />,
-    );
-    const confirmButton = getByTestId(SNAP_INSTALL_CONNECT);
-    fireEvent.press(confirmButton);
+    mockApprovalRequest(installSnapData);
+    const { getByTestId } = render(<InstallSnapApproval />);
     const permissionsApproveButton = getByTestId(
       SNAP_INSTALL_PERMISSIONS_REQUEST_APPROVE,
     );
@@ -95,16 +153,8 @@ describe('InstallSnapApprovalFlow', () => {
   });
 
   it('renders InstallSnapSuccess on successful installation', async () => {
-    const { getByTestId, findByTestId } = render(
-      <InstallSnapApprovalFlow
-        requestData={requestData}
-        onConfirm={onConfirm}
-        onFinish={onFinish}
-        onCancel={onCancel}
-      />,
-    );
-    const confirmButton = getByTestId(SNAP_INSTALL_CONNECT);
-    fireEvent.press(confirmButton);
+    mockApprovalRequest(installSnapData);
+    const { getByTestId, findByTestId } = render(<InstallSnapApproval />);
     const permissionsRequest = await findByTestId(
       SNAP_INSTALL_PERMISSIONS_REQUEST,
     );
@@ -118,20 +168,12 @@ describe('InstallSnapApprovalFlow', () => {
   });
 
   it('renders InstallSnapError on error during installation', async () => {
+    mockApprovalRequest(installSnapData);
     onConfirm.mockImplementation(() => {
       throw new Error('Installation error');
     });
 
-    const { getByTestId, findByTestId } = render(
-      <InstallSnapApprovalFlow
-        requestData={requestData}
-        onConfirm={onConfirm}
-        onFinish={onFinish}
-        onCancel={onCancel}
-      />,
-    );
-    const confirmButton = getByTestId(SNAP_INSTALL_CONNECT);
-    fireEvent.press(confirmButton);
+    const { getByTestId, findByTestId } = render(<InstallSnapApproval />);
     const permissionsRequest = getByTestId(SNAP_INSTALL_PERMISSIONS_REQUEST);
     expect(permissionsRequest).toBeDefined();
     const permissionsConfirmButton = getByTestId(
@@ -144,16 +186,10 @@ describe('InstallSnapApprovalFlow', () => {
   });
 
   it('calls onCancel on cancel button click', () => {
-    const { getByTestId } = render(
-      <InstallSnapApprovalFlow
-        requestData={requestData}
-        onConfirm={onConfirm}
-        onFinish={onFinish}
-        onCancel={onCancel}
-      />,
-    );
+    mockApprovalRequest(installSnapData);
+    const { getByTestId } = render(<InstallSnapApproval />);
     const cancelButton = getByTestId(SNAP_INSTALL_CANCEL);
     fireEvent.press(cancelButton);
-    expect(onCancel).toHaveBeenCalledTimes(1);
+    expect(onReject).toHaveBeenCalledTimes(1);
   });
 });

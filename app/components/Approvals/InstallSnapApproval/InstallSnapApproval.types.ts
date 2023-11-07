@@ -1,11 +1,3 @@
-interface InstallSnapApprovalArgs {
-  approvalRequest: any;
-  onConfirm: () => void;
-  onFinish: () => void;
-  onCancel: () => void;
-  chainId?: string;
-}
-
 interface InstallSnapFlowProps {
   approvalRequest: any;
   requestState: any;
@@ -23,4 +15,4 @@ export enum SnapInstallState {
 }
 
 // eslint-disable-next-line import/prefer-default-export
-export type { InstallSnapApprovalArgs, InstallSnapFlowProps };
+export type { InstallSnapFlowProps };

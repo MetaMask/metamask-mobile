@@ -1,4 +1,3 @@
-/* eslint-disable no-console */
 import React, { useMemo } from 'react';
 import { ImageSourcePropType, View } from 'react-native';
 import { InstallSnapFlowProps } from '../../InstallSnapApproval.types';
@@ -32,10 +31,12 @@ import { useStyles } from '../../../../hooks/useStyles';
 
 const InstallSnapConnectionRequest = ({
   approvalRequest,
-  requestState,
   onConfirm,
   onCancel,
-}: InstallSnapFlowProps) => {
+}: Pick<
+  InstallSnapFlowProps,
+  'approvalRequest' | 'onConfirm' | 'onCancel'
+>) => {
   const { styles } = useStyles(styleSheet, {});
 
   const snapName: string | null =
@@ -46,22 +47,10 @@ const InstallSnapConnectionRequest = ({
       )?.value ?? {},
     )[0] || null;
 
-  console.log(
-    'SNAPS/ InstallSnapConnectionRequest.tsx/ requestData: ',
-    JSON.stringify(approvalRequest, null, 2),
-  );
-
-  console.log(
-    'SNAPS/ InstallSnapConnectionRequest.tsx/ requestState: ',
-    JSON.stringify(requestState, null, 2),
-  );
-
   const origin = useMemo(
     () => approvalRequest.origin,
     [approvalRequest.origin],
   );
-
-  console.log('SNAPS/ InstallSnapConnectionRequest.tsx/ dappOrigin: ', origin);
 
   const favicon: ImageSourcePropType = useMemo(() => {
     const iconUrl = `https://api.faviconkit.com/${origin}/50`;
