@@ -137,17 +137,15 @@ workflows:
           inputs:
             - content: |-
                 #!/usr/bin/env bash
-                echo $BITRISE_MACHINE_TYPE
+                echo "The machine type is: $BITRISE_MACHINE_TYPE"
                 if [[ $BITRISE_MACHINE_TYPE == *"linux"* ]]; then
-                  asdf plugin-add nodejs
-                  asdf install nodejs 18.18
-                  asdf global nodejs 18.18
-                  asdf plugin-add yarn
-                  asdf install yarn latest
+                  asdf plugin-add yarn 1.22.19
+                  asdf install yarn latest 1.22.19
                   asdf global yarn
                   asdf info
                   node -v                 
                 fi
+            run_if: '{{enveq "BITRISE_MACHINE_TYPE" "linux"}}'
           title: Manually install set node and install yarn for Linux Machines
       - yarn@0:
           inputs:
