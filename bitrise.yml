@@ -137,7 +137,8 @@ workflows:
           inputs:
             - content: |-
                 #!/usr/bin/env bash
-                if [[ $BITRISE_TRIGGERED_WORKFLOW_ID == *"android"* ]]; then
+                echo $BITRISE_MACHINE_TYPE
+                if [[ $BITRISE_MACHINE_TYPE == *"linux"* ]]; then
                   asdf plugin-add nodejs
                   asdf install nodejs 18.18
                   asdf global nodejs 18.18
@@ -147,7 +148,7 @@ workflows:
                   asdf info
                   node -v                 
                 fi
-          title: Node Version Print
+          title: Manually install set node and install yarn for Linux Machines
       - yarn@0:
           inputs:
             - command: setup
