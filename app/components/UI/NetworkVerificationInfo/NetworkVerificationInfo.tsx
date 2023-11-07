@@ -87,7 +87,7 @@ const NetworkVerificationInfo = ({
 
   const openHowToUseCustomNetworks = () => {
     Linking.openURL(
-      'https://metamask.zendesk.com/hc/en-us/articles/360056196151',
+      'https://support.metamask.io/hc/en-us/articles/360057142392-Verifying-custom-network-information',
     );
   };
   // This needs to be renderAlerts and need to render multiple alerts
