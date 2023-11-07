@@ -827,6 +827,9 @@ export class SDKConnect extends EventEmitter2 {
     // Ignore initial call to _handleAppState since it is first initialization.
     this.appState = 'active';
 
+    // When restarting from being killed, keyringController might be mistakenly restored on unlocked=true so we need to wait for it to get correct state.
+    await wait(1000);
+
     if (!this.androidSDKStarted && Platform.OS === 'android') {
       this.androidService = new AndroidService();
       this.androidSDKStarted = true;
