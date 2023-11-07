@@ -11,3 +11,6 @@ export const SAMPLE_PICKERNETWORK_PROPS: PickerNetworkProps = {
   label: 'Ethereum Mainnet',
   onPress: () => console.log('PickerNetwork pressed'),
 };
+
+export const DEFAULT_ACTIVE_OPACITY = 0.2;
+export const WITHOUT_FEEDBACK_ACTIVE_OPACITY = 1;
