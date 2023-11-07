@@ -15,6 +15,7 @@ import {
   ButtonVariants,
 } from '../../../component-library/components/Buttons/Button';
 import { strings } from '../../../../locales/i18n';
+import { CommonSelectorsIDs } from '../../../../e2e/selectors/Common.selectors';
 
 const AddChainApproval = () => {
   const { approvalRequest, onConfirm, onReject } = useApprovalRequest();
@@ -38,12 +39,14 @@ const AddChainApproval = () => {
             label: strings('confirmation_modal.cancel_cta'),
             variant: ButtonVariants.Secondary,
             size: ButtonSize.Lg,
+            testID: CommonSelectorsIDs.CANCEL_BUTTON,
           },
           {
             onPress: onConfirm,
             label: strings('confirmation_modal.confirm_cta'),
             variant: ButtonVariants.Primary,
             size: ButtonSize.Lg,
+            testID: CommonSelectorsIDs.CONNECT_BUTTON,
           },
         ]}
         buttonsAlignment={ButtonsAlignment.Horizontal}

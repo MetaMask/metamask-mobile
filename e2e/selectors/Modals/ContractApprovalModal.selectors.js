@@ -1,12 +1,14 @@
 import messages from '../../../locales/languages/en.json';
 
-// eslint-disable-next-line import/prefer-default-export
-export const ContractApprovalModalSelectors = {
-  ADD_NICKNAME_TEXT: messages.nickname.add_nickname,
-  EDIT_NICKNAME_TEXT: messages.nickname.edit_nickname,
-  APPROVE_TEXT: messages.transactions.tx_review_approve,
-  REJECT_TEXT: messages.transaction.reject,
-  APPROVAL_MODAL_CONTAINER_ID: 'approve-modal-test-id',
-  COPY_CONTRACT_ADDRESS_ID: 'contract-address',
-  APPROVE_TOKEN_AMOUNT_ID: 'custom-spend-cap-input-input-id',
+export const ContractApprovalModalSelectorsText = {
+  ADD_NICKNAME: messages.nickname.add_nickname,
+  EDIT_NICKNAME: messages.nickname.edit_nickname,
+  APPROVE: messages.transactions.tx_review_approve,
+  REJECT: messages.transaction.reject,
+};
+
+export const ContractApprovalModalSelectorsIDs = {
+  CONTAINER: 'approve-modal-test-id',
+  CONTRACT_ADDRESS: 'contract-address',
+  APPROVE_TOKEN_AMOUNT: 'custom-spend-cap-input-input-id',
 };

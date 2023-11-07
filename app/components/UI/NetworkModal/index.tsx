@@ -23,15 +23,7 @@ import AnalyticsV2 from '../../../util/analyticsV2';
 import { useTheme } from '../../../util/theme';
 import { networkSwitched } from '../../../actions/onboardNetwork';
 import generateTestId from '../../../../wdio/utils/generateTestId';
-
-import {
-  APPROVE_NETWORK_DISPLAY_NAME_ID,
-  APPROVE_NETWORK_CANCEL_BUTTON_ID,
-} from '../../../constants/test-ids';
-import {
-  APPROVE_NETWORK_APPROVE_BUTTON,
-  APPROVE_NETWORK_MODAL,
-} from '../../../../wdio/screen-objects/testIDs/Screens/NetworksScreen.testids';
+import { NetworkApprovalModalSelectorsIDs } from '../../../../e2e/selectors/Modals/NetworkApprovalModal.selectors';
 import { ThemeColors } from '@metamask/design-tokens/dist/js/themes/types';
 
 const createStyles = (colors: ThemeColors) =>
@@ -262,7 +254,10 @@ const NetworkModals = (props: NetworkProps) => {
             )}
             <View
               style={styles.nameWrapper}
-              {...generateTestId(Platform, APPROVE_NETWORK_MODAL)}
+              {...generateTestId(
+                Platform,
+                NetworkApprovalModalSelectorsIDs.CONTAINER,
+              )}
             >
               <ImageIcons image={imageUrl} style={styles.popularNetworkImage} />
               <Text black>{nickname}</Text>
@@ -296,7 +291,7 @@ const NetworkModals = (props: NetworkProps) => {
                   bold
                   black
                   style={styles.bottomSpace}
-                  testID={APPROVE_NETWORK_DISPLAY_NAME_ID}
+                  testID={NetworkApprovalModalSelectorsIDs.DISPLAY_NAME}
                 >
                   {nickname}
                 </Text>
@@ -318,7 +313,7 @@ const NetworkModals = (props: NetworkProps) => {
                 type={'cancel'}
                 onPress={onClose}
                 containerStyle={[styles.button, styles.cancel]}
-                testID={APPROVE_NETWORK_CANCEL_BUTTON_ID}
+                testID={NetworkApprovalModalSelectorsIDs.CANCEL_BUTTON}
               >
                 <Text centered>{strings('networks.cancel')}</Text>
               </StyledButton>
@@ -326,7 +321,7 @@ const NetworkModals = (props: NetworkProps) => {
                 type={'confirm'}
                 onPress={addNetwork}
                 containerStyle={[styles.button, styles.confirm]}
-                testID={APPROVE_NETWORK_APPROVE_BUTTON}
+                testID={NetworkApprovalModalSelectorsIDs.APPROVE_BUTTON}
                 disabled={!validateRpcUrl(rpcUrl)}
               >
                 {strings('networks.approve')}
