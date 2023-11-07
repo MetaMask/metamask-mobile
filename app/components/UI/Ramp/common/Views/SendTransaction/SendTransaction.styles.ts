@@ -17,5 +17,11 @@ const styleSheet = (_params: { theme: Theme }) =>
     normal: {
       fontWeight: 'normal',
     },
+    paymentMethodDestination: {
+      flexDirection: 'row',
+      justifyContent: 'center',
+      alignItems: 'center',
+      columnGap: 4,
+    },
   });
 export default styleSheet;

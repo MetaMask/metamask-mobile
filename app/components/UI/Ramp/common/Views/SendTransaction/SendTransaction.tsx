@@ -217,17 +217,17 @@ function SendTransaction() {
                 </Row>
 
                 <Row>
-                  <Text style={styles.centered}>
+                  <View style={styles.paymentMethodDestination}>
                     <PaymentMethodIcon
                       paymentMethodIcons={orderData.paymentMethod.icons}
                       paymentMethodType={orderData.paymentMethod.paymentType}
                       size={20}
                       color={colors.icon.alternative}
-                    />{' '}
+                    />
                     <Text variant={TextVariant.HeadingMD} style={styles.normal}>
                       {orderData.paymentMethod.name}
                     </Text>
-                  </Text>
+                  </View>
                 </Row>
               </>
             )}
