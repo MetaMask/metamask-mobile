@@ -137,8 +137,8 @@ workflows:
           inputs:
             - content: |-
                 #!/usr/bin/env bash
-                echo "The machine type is: $BITRISE_MACHINE_TYPE"
-                if [[ $BITRISE_MACHINE_TYPE == *"linux"* ]]; then
+                echo "The machine type is: $BITRISE_TRIGGERED_WORKFLOW_TITLE"
+                if [[ $BITRISE_TRIGGERED_WORKFLOW_TITLE == *"andriod"* ]]; then
                   asdf plugin-add yarn 1.22.19
                   asdf install yarn latest 1.22.19
                   asdf global yarn
