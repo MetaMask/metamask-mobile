@@ -12,7 +12,7 @@ exports[`AccountApproval should render correctly 1`] = `
       "paddingTop": 24,
     }
   }
-  testID="account-approval-modal-container"
+  testID="connect-account-modal"
 >
   <View
     style={
@@ -348,7 +348,7 @@ exports[`AccountApproval should render correctly 1`] = `
           null,
         ]
       }
-      testID="connect-cancel-button"
+      testID="cancel-button"
     >
       <Text
         style={
@@ -410,7 +410,7 @@ exports[`AccountApproval should render correctly 1`] = `
           null,
         ]
       }
-      testID="connect-approve-button"
+      testID="connect-button"
     >
       <Text
         style={
