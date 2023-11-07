@@ -13,6 +13,7 @@ import { RampType, Region } from '../../../common/types';
 import { RampSDK } from '../../../common/sdk';
 import Routes from '../../../../../../constants/navigation/Routes';
 import initialBackgroundState from '../../../../../../util/test/initial-background-state.json';
+import analytics from '../../../../../../core/Analytics/Analytics';
 
 function render(Component: React.ComponentType) {
   return renderScreen(
@@ -64,6 +65,7 @@ const mockuseRampSDKInitialValues: Partial<RampSDK> = {
   selectedChainId: '1',
   sdkError: undefined,
   rampType: RampType.BUY,
+  isBuy: true,
 };
 
 let mockUseRampSDKValues: Partial<RampSDK> = {
@@ -260,32 +262,81 @@ describe('PaymentMethods View', () => {
       chain_id_destination: '1',
       location: 'Payment Method Screen',
     });
+
+    mockUseRampSDKValues = {
+      ...mockUseRampSDKValues,
+      isBuy: false,
+    };
+    render(PaymentMethods);
+    fireEvent.press(screen.getByRole('button', { name: 'Cancel' }));
+    expect(mockTrackEvent).toBeCalledWith('OFFRAMP_CANCELED', {
+      chain_id_destination: '1',
+      location: 'Payment Method Screen',
+    });
   });
 
   it('selects payment method on press', async () => {
+    const analyticsPayload = {
+      available_payment_method_ids: [
+        '/payments/instant-bank-transfer',
+        '/payments/apple-pay',
+        '/payments/debit-credit-card',
+      ],
+      location: 'Payment Method Screen',
+      payment_method_id: '/payments/debit-credit-card',
+      region: '/regions/cl',
+    };
+
     render(PaymentMethods);
     fireEvent.press(screen.getByRole('button', { name: 'Debit or Credit' }));
     expect(mockSetSelectedPaymentMethodId).toBeCalledWith(
       '/payments/debit-credit-card',
     );
+    expect(mockTrackEvent).toBeCalledWith(
+      'ONRAMP_PAYMENT_METHOD_SELECTED',
+      analyticsPayload,
+    );
+
+    mockUseRampSDKValues = {
+      ...mockUseRampSDKValues,
+      isBuy: false,
+    };
+    render(PaymentMethods);
+    fireEvent.press(screen.getByRole('button', { name: 'Debit or Credit' }));
+    expect(mockTrackEvent).toBeCalledWith(
+      'OFFRAMP_PAYMENT_METHOD_SELECTED',
+      analyticsPayload,
+    );
   });
 
   it('navigates to amount to buy on continue button press', async () => {
+    const analyticsPayload = {
+      available_payment_method_ids: [
+        '/payments/instant-bank-transfer',
+        '/payments/apple-pay',
+        '/payments/debit-credit-card',
+      ],
+      payment_method_id: '/payments/instant-bank-transfer',
+      region: '/regions/cl',
+      location: 'Payment Method Screen',
+    };
     render(PaymentMethods);
     fireEvent.press(screen.getByRole('button', { name: 'Continue to amount' }));
     expect(mockNavigate).toHaveBeenCalledWith(...createBuildQuoteNavDetails());
     expect(mockTrackEvent).toHaveBeenCalledWith(
       'ONRAMP_CONTINUE_TO_AMOUNT_CLICKED',
-      {
-        available_payment_method_ids: [
-          '/payments/instant-bank-transfer',
-          '/payments/apple-pay',
-          '/payments/debit-credit-card',
-        ],
-        payment_method_id: '/payments/instant-bank-transfer',
-        region: '/regions/cl',
-        location: 'Payment Method Screen',
-      },
+      analyticsPayload,
+    );
+
+    mockUseRampSDKValues = {
+      ...mockUseRampSDKValues,
+      isBuy: false,
+    };
+    render(PaymentMethods);
+    fireEvent.press(screen.getByRole('button', { name: 'Continue to amount' }));
+    expect(mockTrackEvent).toHaveBeenCalledWith(
+      'OFFRAMP_CONTINUE_TO_AMOUNT_CLICKED',
+      analyticsPayload,
     );
   });
 
