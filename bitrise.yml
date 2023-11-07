@@ -119,23 +119,9 @@ workflows:
       - activate-ssh-key@4:
           run_if: '{{getenv "SSH_RSA_PRIVATE_KEY" | ne ""}}'
       - git-clone@6: {}
-      - script@1:
-          inputs:
-            - content: |-
-                #!/bin/bash
-                asdf plugin-add nodejs https://github.com/asdf-vm/asdf-nodejs.git
-                asdf install nodejs 18.17.1
-                asdf global nodejs 18.17.1
-          title: Install and Set Node.js version
-      - script@1:
-          inputs:
-            - content: |-
-                #!/usr/bin/env bash
-                envman add --key YARN_CACHE_DIR --value "$(yarn cache dir)"
-          title: Get Yarn cache directory
-      - nvm@1.3.0:
-          inputs:
-            - node_version: '18.17.1'
+      # - nvm@1.3.3:
+      #     inputs:
+      #       - node_version: '18.18.2'
   code_setup:
     before_run:
       - setup
@@ -147,13 +133,16 @@ workflows:
                 envman add --key YARN_CACHE_DIR --value "$(yarn cache dir)"
           title: Get Yarn cache directory
       - cache-pull@2: {}
-      - script@1.1.5:
+      - script@1:
           inputs:
             - content: |-
-                #!/bin/bash
-                asdf plugin-add yarn https://github.com/asdf-vm/asdf-yarn.git
-                asdf global yarn 1.22.11
-          title: Yarn Setup for 18.17.1
+                #!/usr/bin/env bash
+                asdf global nodejs 18.18
+                asdf plugin add yarn
+                asdf list all yarn
+                asdf install yarn latest
+                asdf global yarn 1.22.0
+          title: Node Version Print
       - yarn@0:
           inputs:
             - command: setup
@@ -173,8 +162,6 @@ workflows:
             # postinstall script modifications and could affect hoisting on subsequent installs.
             - cache_paths: '$YARN_CACHE_DIR -> ./yarn.lock'
   code_setup_dev:
-    before_run:
-      - setup
     steps:
       - script@1:
           title: Generate `.npmrc` file for preview builds
