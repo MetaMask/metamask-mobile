@@ -18,7 +18,7 @@ interface ExtraInfo {
  * we will have flags to do different actions based on
  * the environment, for ex. log to a remote server if prod
  */
-export class WrapLogger {
+export class AsyncLogger {
   /**
    * console.log wrapper
    *
@@ -121,8 +121,8 @@ export default class Logger {
    * @param {object} args - data to be logged
    * @returns - void
    */
-  static async log(...args: any[]): Promise<void> {
-    Logger.log(...args).catch(() => {
+  static log(...args: any[]) {
+    AsyncLogger.log(...args).catch(() => {
       // ignore error but avoid dangling promises
     });
   }
@@ -134,11 +134,8 @@ export default class Logger {
    * @param {string|object} extra - Extra error info
    * @returns - void
    */
-  static async error(
-    error: Error | string,
-    extra: ExtraInfo | string | any,
-  ): Promise<void> {
-    Logger.error(error, extra).catch(() => {
+  static error(error: Error | string, extra: ExtraInfo | string | any) {
+    AsyncLogger.error(error, extra).catch(() => {
       // ignore error but avoid dangling promises
     });
   }
@@ -149,8 +146,8 @@ export default class Logger {
    * @param {object} args - data to be logged
    * @returns - void
    */
-  static async message(...args: unknown[]): Promise<void> {
-    Logger.message(...args).catch(() => {
+  static message(...args: unknown[]) {
+    AsyncLogger.message(...args).catch(() => {
       // ignore error but avoid dangling promises
     });
   }
