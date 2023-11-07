@@ -4,7 +4,6 @@ import { Smoke } from '../../tags';
 import Browser from '../../pages/Drawer/Browser';
 import { BROWSER_SCREEN_ID } from '../../../wdio/screen-objects/testIDs/BrowserScreen/BrowserScreen.testIds';
 import TabBarComponent from '../../pages/TabBarComponent';
-
 import { loginToApp } from '../../viewHelper';
 import FixtureBuilder from '../../fixtures/fixture-builder';
 import {
@@ -28,7 +27,6 @@ describe(Smoke('Browser Tests'), () => {
     await startFixtureServer(fixtureServer);
     await loadFixture(fixtureServer, { fixture });
     await device.launchApp({
-      delete: true,
       launchArgs: { fixtureServerPort: `${getFixturesServerPort()}` },
     });
     await loginToApp();
@@ -64,7 +62,6 @@ describe(Smoke('Browser Tests'), () => {
     await Browser.tapAddToFavoritesButton();
     await Browser.isAddBookmarkScreenVisible();
     await Browser.tapAddBookmarksButton();
-
     await Browser.isAddBookmarkScreenNotVisible(); // Add bookmark screen should not be visible
   });
 
@@ -91,18 +88,15 @@ describe(Smoke('Browser Tests'), () => {
       METAMASK_TEST_DAPP_SHORTEN_URL_TEXT,
       0,
     );
-
     await Browser.isVisible();
   });
 
   it('should test invalid URL', async () => {
     await TestHelpers.delay(2000);
-
     await Browser.tapBottomSearchBar();
     // Clear text & Navigate to URL
     await Browser.navigateToURL(INVALID_URL);
     await Browser.waitForBrowserPageToLoad();
-
     await Browser.tapReturnHomeButton();
     // Check that we are on the browser screen
     if (!device.getPlatform() === 'android') {
@@ -116,10 +110,8 @@ describe(Smoke('Browser Tests'), () => {
     // Clear text & Navigate to URL
     await Browser.navigateToURL(PHISHING_SITE);
     await Browser.waitForBrowserPageToLoad();
-
     await Browser.isBackToSafetyButtonVisible();
     await Browser.tapBackToSafetyButton();
-
     // Check that we are on the browser screen
     if (!device.getPlatform() === 'android') {
       await TestHelpers.delay(1500);

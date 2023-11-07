@@ -1,6 +1,6 @@
 {
   "name": "metamask",
-  "version": "7.9.0",
+  "version": "7.10.0",
   "private": true,
   "scripts": {
     "audit:ci": "./scripts/yarn-audit.sh",
@@ -182,7 +182,7 @@
     "@metamask/ppom-validator": "^0.9.0",
     "@metamask/preferences-controller": "^3.0.0",
     "@metamask/scure-bip39": "^2.1.0",
-    "@metamask/sdk-communication-layer": "^0.7.0",
+    "@metamask/sdk-communication-layer": "^0.10.1",
     "@metamask/signature-controller": "4.0.1",
     "@metamask/swappable-obj-proxy": "^2.1.0",
     "@metamask/swaps-controller": "^6.9.3",
@@ -201,6 +201,7 @@
     "@react-navigation/compat": "^5.3.20",
     "@react-navigation/native": "^5.9.4",
     "@react-navigation/stack": "^5.14.5",
+    "@reduxjs/toolkit": "^1.9.5",
     "@rnhooks/keyboard": "^0.0.3",
     "@segment/analytics-react-native": "2.13.0",
     "@segment/sovran-react-native": "0.4.5",
