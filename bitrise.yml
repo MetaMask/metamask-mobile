@@ -126,9 +126,21 @@ workflows:
                 asdf plugin-add nodejs https://github.com/asdf-vm/asdf-nodejs.git
                 asdf install nodejs 18.17.1
                 asdf global nodejs 18.17.1
-                npm install -g yarn
-          title: Install Node.js and Yarn
-      - script@1.1.5:
+          title: Install and Set Node.js version
+      - script@1:
+          inputs:
+            - content: |-
+                #!/usr/bin/env bash
+                envman add --key YARN_CACHE_DIR --value "$(yarn cache dir)"
+          title: Get Yarn cache directory
+      - nvm@1.3.0:
+          inputs:
+            - node_version: '18.17.1'
+  code_setup:
+    before_run:
+      - setup
+    steps:
+      - script@1:
           inputs:
             - content: |-
                 #!/usr/bin/env bash
@@ -141,6 +153,10 @@ workflows:
                 #!/bin/bash
                 yarn install
           title: Yarn Setup for 18.17.1
+      - yarn@0:
+          inputs:
+            - command: setup
+          title: Yarn Setup
       - yarn@0:
           title: Lint
           inputs:
