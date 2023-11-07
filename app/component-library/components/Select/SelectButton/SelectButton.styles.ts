@@ -25,19 +25,24 @@ const styleSheet = (params: {
   const { theme, vars } = params;
   const { style, size, isDisabled, isDanger } = vars;
   let verticalPadding;
+  let minHeight;
 
   switch (size) {
     case SelectButtonSize.Sm:
       verticalPadding = 4;
+      minHeight = 32;
       break;
     case SelectButtonSize.Md:
       verticalPadding = 8;
+      minHeight = 40;
       break;
     case SelectButtonSize.Lg:
       verticalPadding = 12;
+      minHeight = 48;
       break;
     default:
       verticalPadding = 8;
+      minHeight = 32;
       break;
   }
 
@@ -53,6 +58,7 @@ const styleSheet = (params: {
         borderWidth: 1,
         backgroundColor: theme.colors.background.default,
         opacity: isDisabled ? 0.5 : 1,
+        minHeight,
       } as ViewStyle,
       style,
     ) as ViewStyle,

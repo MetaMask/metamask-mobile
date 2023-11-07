@@ -50,6 +50,7 @@ const SelectValue: React.FC<SelectValueProps> = ({
       <Text
         variant={DEFAULT_SELECTVALUE_DESCRIPTION_TEXTVARIANT}
         color={DEFAULT_SELECTVALUE_DESCRIPTION_TEXTCOLOR}
+        numberOfLines={1}
       >
         {description}
       </Text>

@@ -1,3 +1,10 @@
+/* eslint-disable react/display-name */
+// Third party dependencies.
+import React from 'react';
+
+// External dependencies.
+import Avatar, { AvatarVariants } from '../../Avatars/Avatar';
+
 // Internal dependencies.
 import { default as SelectButtonComponent } from './SelectButton';
 import { SelectButtonSize } from './SelectButton.types';
@@ -35,4 +42,11 @@ const SelectButtonStoryMeta = {
 
 export default SelectButtonStoryMeta;
 
-export const SelectButton = {};
+export const SelectButton = {
+  render: (args: any) => (
+    <SelectButtonComponent
+      {...args}
+      iconEl={<Avatar variant={AvatarVariants.Network} />}
+    />
+  ),
+};

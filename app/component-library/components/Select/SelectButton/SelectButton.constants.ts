@@ -3,12 +3,14 @@
 import { TextVariant, TextColor } from '../../Texts/Text';
 import { IconName, IconColor, IconSize } from '../../Icons/Icon';
 import { VerticalAlignment } from '../../List/ListItem';
+import { AvatarSize } from '../../Avatars/Avatar';
 
 // Internal dependencies.
 import {
   SelectButtonSize,
   SelectButtonProps,
-  IconSizeBySelectButtonSize,
+  CaretIconIconSizeBySelectButtonSize,
+  StartIconIconSizeBySelectButtonSize,
 } from './SelectButton.types';
 
 // Defaults
@@ -23,11 +25,18 @@ export const DEFAULT_SELECTBUTTON_CARETICON_ICONNAME = IconName.ArrowDown;
 export const DEFAULT_SELECTBUTTON_CARETICON_ICONCOLOR = IconColor.Default;
 
 // Mappings
-export const ICONSIZE_BY_SELECTBUTTONSIZE: IconSizeBySelectButtonSize = {
-  [SelectButtonSize.Sm]: IconSize.Xs,
-  [SelectButtonSize.Md]: IconSize.Xs,
-  [SelectButtonSize.Lg]: IconSize.Sm,
-};
+export const CARETICON_ICONSIZE_BY_SELECTBUTTONSIZE: CaretIconIconSizeBySelectButtonSize =
+  {
+    [SelectButtonSize.Sm]: IconSize.Xs,
+    [SelectButtonSize.Md]: IconSize.Sm,
+    [SelectButtonSize.Lg]: IconSize.Sm,
+  };
+export const STARTICON_ICONSIZE_BY_SELECTBUTTONSIZE: StartIconIconSizeBySelectButtonSize =
+  {
+    [SelectButtonSize.Sm]: AvatarSize.Xs,
+    [SelectButtonSize.Md]: AvatarSize.Sm,
+    [SelectButtonSize.Lg]: AvatarSize.Sm,
+  };
 
 // Sample consts
 export const SAMPLE_SELECTBUTTON_PROPS: SelectButtonProps = {

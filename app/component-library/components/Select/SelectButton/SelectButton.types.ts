@@ -1,5 +1,6 @@
 // External dependencies.
 import { IconSize } from '../../Icons/Icon';
+import { AvatarSize } from '../../Avatars/Avatar';
 
 // Internal dependencies.
 import { SelectButtonBaseProps } from './foundation/SelectButtonBase.types';
@@ -14,10 +15,14 @@ export enum SelectButtonSize {
 }
 
 /**
- * Mapping of IconSize by SelectButtonSize.
+ * Mapping of Caret IconSize by SelectButtonSize.
  */
-export type IconSizeBySelectButtonSize = {
+export type CaretIconIconSizeBySelectButtonSize = {
   [key in SelectButtonSize]: IconSize;
+};
+
+export type StartIconIconSizeBySelectButtonSize = {
+  [key in SelectButtonSize]: AvatarSize;
 };
 
 /**
