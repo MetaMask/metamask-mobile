@@ -1,24 +1,37 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
 exports[`TransactionReviewData should render correctly 1`] = `
-<TransactionReviewData
-  contractExchangeRates={Object {}}
-  conversionRate={0.1}
-  currentCurrency="usd"
-  showAlert={[Function]}
-  transaction={
+<ContextProvider
+  value={
     Object {
-      "assetType": undefined,
-      "from": "0x1",
-      "gas": "",
-      "gasPrice": "",
-      "selectedAsset": undefined,
-      "to": "0x2",
-      "transaction": Object {
-        "data": "",
+      "store": Object {
+        "clearActions": [Function],
+        "dispatch": [Function],
+        "getActions": [Function],
+        "getState": [Function],
+        "replaceReducer": [Function],
+        "subscribe": [Function],
       },
-      "value": "",
+      "subscription": Subscription {
+        "handleChangeWrapper": [Function],
+        "listeners": Object {
+          "notify": [Function],
+        },
+        "onStateChange": [Function],
+        "parentSub": undefined,
+        "store": Object {
+          "clearActions": [Function],
+          "dispatch": [Function],
+          "getActions": [Function],
+          "getState": [Function],
+          "replaceReducer": [Function],
+          "subscribe": [Function],
+        },
+        "unsubscribe": null,
+      },
     }
   }
-/>
+>
+  <Component />
+</ContextProvider>
 `;

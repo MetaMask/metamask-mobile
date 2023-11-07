@@ -2,8 +2,10 @@
 import { StyleSheet, TextStyle, ViewStyle } from 'react-native';
 
 // External dependencies.
-import { Theme } from '../../../../../../util/theme/models';
 import { colors } from '../../../../../../styles/common';
+
+// Internal dependencies.
+import { ButtonLinkStyleSheetVars } from './ButtonLink.types';
 
 /**
  * Style sheet function for ButtonLink component.
@@ -13,19 +15,17 @@ import { colors } from '../../../../../../styles/common';
  * @param params.vars Inputs that the style sheet depends on.
  * @returns StyleSheet object.
  */
-const styleSheet = (params: { theme: Theme; vars: any }) => {
-  const { theme, vars } = params;
-  const { style, isDanger, pressed } = vars;
-  const colorObj = isDanger ? theme.colors.error : theme.colors.primary;
-  const labelColor: string = pressed ? colorObj.alternative : colorObj.default;
+const styleSheet = (params: { vars: ButtonLinkStyleSheetVars }) => {
+  const { vars } = params;
+  const { style } = vars;
 
   return StyleSheet.create({
     base: Object.assign(
       { backgroundColor: colors.transparent },
       style,
     ) as ViewStyle,
-    baseText: Object.assign(
-      { color: labelColor } as TextStyle,
+    pressedText: Object.assign(
+      { textDecorationLine: 'underline' } as TextStyle,
       style,
     ) as TextStyle,
   });

@@ -1,4 +1,4 @@
-import React, { useRef, useState } from 'react';
+import React, { useCallback, useRef, useState } from 'react';
 import {
   StyleSheet,
   View,
@@ -8,12 +8,13 @@ import {
   TouchableWithoutFeedback,
   NativeSyntheticEvent,
   NativeScrollEvent,
+  Platform,
 } from 'react-native';
 import { fontStyles } from '../../../styles/common';
 import Icon from 'react-native-vector-icons/FontAwesome';
 import { strings } from '../../../../locales/i18n';
 import Device from '../../../util/device';
-import AsyncStorage from '@react-native-async-storage/async-storage';
+import AsyncStorage from '../../../store/async-storage-wrapper';
 import {
   CURRENT_APP_VERSION,
   WHATS_NEW_APP_VERSION_SEEN,
@@ -28,6 +29,8 @@ import {
   WHATS_NEW_MODAL_CLOSE_BUTTON_ID,
 } from '../../../constants/test-ids';
 import { ScrollView } from 'react-native-gesture-handler';
+import generateTestId from '../../../../wdio/utils/generateTestId';
+import { useNavigation } from '@react-navigation/native';
 
 const modalMargin = 24;
 const modalPadding = 24;
@@ -125,11 +128,7 @@ const createStyles = (colors: Colors) =>
     horizontalScrollView: { flexGrow: 0 },
   });
 
-interface WhatsNewModalProps {
-  navigation: any;
-}
-
-const WhatsNewModal = (props: WhatsNewModalProps) => {
+const WhatsNewModal = () => {
   const modalRef = useRef<ReusableModalRef>(null);
   const scrollViewRef = useRef<ScrollView>(null);
   const [currentSlide, setCurrentSlide] = useState(0);
@@ -144,9 +143,13 @@ const WhatsNewModal = (props: WhatsNewModalProps) => {
   const dismissModal = (callback?: () => void) =>
     modalRef.current?.dismissModal(callback);
 
-  const callButton = (onPress: any) => {
-    dismissModal(() => onPress(props));
-  };
+  const navigation = useNavigation();
+  const callButton = useCallback(
+    (onPress: any) => {
+      dismissModal(() => onPress({ navigation }));
+    },
+    [navigation],
+  );
 
   const renderSlideElement = (elementInfo: any) => {
     switch (elementInfo.type) {
@@ -212,9 +215,9 @@ const WhatsNewModal = (props: WhatsNewModalProps) => {
       <Text style={styles.headerText}>{strings('whats_new.title')}</Text>
       <View style={styles.headerClose}>
         <TouchableOpacity
-          testID={WHATS_NEW_MODAL_CLOSE_BUTTON_ID}
           onPress={() => dismissModal()}
           hitSlop={{ top: 10, left: 10, bottom: 10, right: 10 }}
+          {...generateTestId(Platform, WHATS_NEW_MODAL_CLOSE_BUTTON_ID)}
         >
           <Icon name="times" size={16} color={colors.icon.default} />
         </TouchableOpacity>
@@ -253,7 +256,10 @@ const WhatsNewModal = (props: WhatsNewModalProps) => {
       style={styles.screen}
       onDismiss={recordSeenModal}
     >
-      <View style={styles.modal} testID={WHATS_NEW_MODAL_CONTAINER_ID}>
+      <View
+        style={styles.modal}
+        {...generateTestId(Platform, WHATS_NEW_MODAL_CONTAINER_ID)}
+      >
         <View style={styles.bodyContainer}>
           {renderHeader()}
           <View style={styles.slideContent}>

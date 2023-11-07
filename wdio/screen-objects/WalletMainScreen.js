@@ -1,43 +1,33 @@
 import Selectors from '../helpers/Selectors';
 import Gestures from '../helpers/Gestures.js';
 import { WALLET_CONTAINER_ID } from './testIDs/Screens/WalletScreen-testIds.js';
-import {
-  ONBOARDING_WIZARD_STEP_1_CONTAINER_ID,
-  ONBOARDING_WIZARD_STEP_1_NO_THANKS_ID,
-} from './testIDs/Components/OnboardingWizard.testIds';
+import { ONBOARDING_WIZARD_STEP_1_NO_THANKS_ID } from './testIDs/Components/OnboardingWizard.testIds';
 
 import {
-  HAMBURGER_MENU_BUTTON,
   IMPORT_NFT_BUTTON_ID,
   IMPORT_TOKEN_BUTTON_ID,
+  MAIN_WALLET_ACCOUNT_ACTIONS,
   MAIN_WALLET_VIEW_VIA_TOKENS_ID,
   NAVBAR_NETWORK_BUTTON,
   NAVBAR_NETWORK_TEXT,
   NOTIFICATION_REMIND_ME_LATER_BUTTON_ID,
   SECURE_WALLET_BACKUP_ALERT_MODAL,
+  SHARE_ADDRESS,
+  SHOW_PRIVATE_KEY,
+  VIEW_ETHERSCAN,
   WALLET_ACCOUNT_ICON,
-  WALLET_VIEW_BURGER_ICON_ID,
+  ACCOUNT_OVERVIEW_ID,
 } from './testIDs/Screens/WalletView.testIds';
 
-import { DRAWER_VIEW_SETTINGS_TEXT_ID } from './testIDs/Screens/DrawerView.testIds';
-
 import { NOTIFICATION_TITLE } from './testIDs/Components/Notification.testIds';
+import { TAB_BAR_WALLET_BUTTON } from './testIDs/Components/TabBar.testIds';
+import { BACK_BUTTON_SIMPLE_WEBVIEW } from './testIDs/Components/SimpleWebView.testIds';
 
 class WalletMainScreen {
-  get wizardContainer() {
-    return Selectors.getElementByPlatform(
-      ONBOARDING_WIZARD_STEP_1_CONTAINER_ID,
-    );
-  }
-
   get noThanks() {
     return Selectors.getElementByPlatform(
       ONBOARDING_WIZARD_STEP_1_NO_THANKS_ID,
     );
-  }
-
-  get burgerIcon() {
-    return Selectors.getElementByPlatform(WALLET_VIEW_BURGER_ICON_ID);
   }
 
   get ImportToken() {
@@ -52,10 +42,6 @@ class WalletMainScreen {
     return Selectors.getElementByPlatform(NOTIFICATION_TITLE);
   }
 
-  get HamburgerButton() {
-    return Selectors.getElementByPlatform(HAMBURGER_MENU_BUTTON);
-  }
-
   get Identicon() {
     return Selectors.getElementByPlatform(WALLET_ACCOUNT_ICON);
   }
@@ -65,15 +51,11 @@ class WalletMainScreen {
   }
 
   get networkInNavBar() {
-    return Selectors.getElementByPlatform(NAVBAR_NETWORK_BUTTON);
-  }
-
-  get drawerSettings() {
-    return Selectors.getElementByPlatform(DRAWER_VIEW_SETTINGS_TEXT_ID);
+    return Selectors.getXpathElementByResourceId(NAVBAR_NETWORK_BUTTON);
   }
 
   get mainWalletView() {
-    return Selectors.getElementByPlatform(MAIN_WALLET_VIEW_VIA_TOKENS_ID);
+    return Selectors.getXpathElementByResourceId(ACCOUNT_OVERVIEW_ID);
   }
 
   get remindMeLaterNotification() {
@@ -90,28 +72,55 @@ class WalletMainScreen {
     return Selectors.getElementByPlatform(NAVBAR_NETWORK_TEXT);
   }
 
-  async tapSettings() {
-    await Gestures.waitAndTap(this.drawerSettings);
+  get accountActionsButton() {
+    return Selectors.getXpathElementByResourceId(MAIN_WALLET_ACCOUNT_ACTIONS);
   }
 
-  async tapSendIcon(text) {
-    await Gestures.tapTextByXpath(text);
+  get privateKeyActionButton() {
+    return Selectors.getElementByPlatform(SHOW_PRIVATE_KEY);
+  }
+
+  get shareAddressActionButton() {
+    return Selectors.getElementByPlatform(SHARE_ADDRESS);
+  }
+
+  get viewEtherscanActionButton() {
+    return Selectors.getElementByPlatform(VIEW_ETHERSCAN);
+  }
+
+  get walletButton() {
+    return Selectors.getXpathElementByResourceId(TAB_BAR_WALLET_BUTTON);
+  }
+
+  get goBackSimpleWebViewButton() {
+    return Selectors.getElementByPlatform(BACK_BUTTON_SIMPLE_WEBVIEW);
+  }
+
+  get zeroBalance() {
+    return Selectors.getXpathElementByText('$0.00');
+  }
+
+  get networkModal() {
+    return Selectors.getXpathElementByText('Localhost 8545 now active.');
   }
 
   async tapNoThanks() {
     await Gestures.waitAndTap(this.noThanks);
   }
 
-  async tapBurgerIcon() {
-    await Gestures.waitAndTap(this.burgerIcon);
-  }
-
-  async tapBurgerButton() {
-    await Gestures.waitAndTap(this.HamburgerButton);
-  }
-
   async tapImportTokensButton() {
-    await Gestures.waitAndTap(this.ImportToken);
+    const importToken = await this.ImportToken;
+    await importToken.waitForDisplayed();
+
+    let displayed = true;
+    while (displayed) {
+      if (await importToken.isExisting()) {
+        await importToken.click();
+        await driver.pause(3000);
+      } else {
+        displayed = false;
+      }
+    }
   }
 
   async tapImportNFTButton() {
@@ -141,8 +150,7 @@ class WalletMainScreen {
   }
 
   async isVisible() {
-    const element = await this.WalletScreenContainer;
-    await element.waitForDisplayed();
+    expect(this.WalletScreenContainer).toBeDisplayed();
   }
 
   async isNetworkNameCorrect(network) {
@@ -156,26 +164,51 @@ class WalletMainScreen {
     await tokenText.waitForExist({ reverse: true });
   }
 
-  async isOnboardingWizardVisible() {
-    await expect(this.wizardContainer).toBeDisplayed();
-  }
-
   async isMainWalletViewVisible() {
-    const element = await this.mainWalletView;
-    await element.waitForDisplayed();
+    const element = await this.walletButton;
+    await element.waitForDisplayed({ timeout: 100000 });
   }
 
-  async isToastNotificationDisplayed() {
+  async isSubmittedNotificationDisplayed() {
     const element = await this.TokenNotificationTitle;
     await element.waitForDisplayed();
-    expect(await element.getText()).toContain('Transaction');
-    expect(await element.getText()).toContain('Complete!');
+    await expect(element).toHaveText('Transaction submitted');
+    await element.waitForExist({ reverse: true });
+  }
+
+  async isCompleteNotificationDisplayed() {
+    const element = await this.TokenNotificationTitle;
+    await element.waitForDisplayed();
+    await expect(element).toHaveTextContaining('Transaction');
+    await expect(element).toHaveTextContaining('Complete!');
     await element.waitForExist({ reverse: true });
   }
 
   async isNetworkNavbarTitle(text) {
-    const element = await this.networkNavbarTitle;
-    await expect(await element.getText()).toContain(text);
+    await expect(this.networkNavbarTitle).toHaveText(text);
+  }
+
+  async tapAccountActions() {
+    await Gestures.waitAndTap(this.accountActionsButton);
+  }
+
+  async tapShowPrivateKey() {
+    await Gestures.waitAndTap(this.privateKeyActionButton);
+    await Gestures.waitAndTap(this.walletButton);
+  }
+
+  async tapShareAddress() {
+    await Gestures.waitAndTap(this.shareAddressActionButton);
+  }
+
+  async tapViewOnEtherscan() {
+    await Gestures.waitAndTap(this.viewEtherscanActionButton);
+    await Gestures.waitAndTap(this.goBackSimpleWebViewButton);
+  }
+
+  async waitForNetworkModaltoDisappear() {
+    const element = await this.networkModal;
+    await element.waitForExist({ reverse: true });
   }
 }
 

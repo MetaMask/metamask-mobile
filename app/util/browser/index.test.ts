@@ -2,6 +2,7 @@ import onUrlSubmit, {
   isTLD,
   getAlertMessage,
   protocolAllowList,
+  trustedProtocolToDeeplink,
   prefixUrlWithProtocol,
   getUrlObj,
   getHost,
@@ -196,5 +197,48 @@ describe('Browser utils :: protocolWhitelist', () => {
     const { protocol } = new URL('https://meta.io');
 
     expect(protocolAllowList.includes(protocol)).toBeTruthy();
+  });
+});
+
+describe('Browser utils :: trustedProtocolToDeeplink', () => {
+  it('should match wc: protocol', () => {
+    const { protocol } = new URL('wc:f82jdjfjakjskdfj');
+
+    expect(trustedProtocolToDeeplink.includes(protocol)).toBeTruthy();
+  });
+  it('should match metamask: protocol', () => {
+    const { protocol } = new URL('metamask://dapp/home.metamask.io');
+
+    expect(trustedProtocolToDeeplink.includes(protocol)).toBeTruthy();
+  });
+  it('should match ethereum: protocol', () => {
+    const { protocol } = new URL('ethereum://tx');
+
+    expect(trustedProtocolToDeeplink.includes(protocol)).toBeTruthy();
+  });
+  it('should match dapp: protocol', () => {
+    const { protocol } = new URL('dapp://home.metamask.io');
+
+    expect(trustedProtocolToDeeplink.includes(protocol)).toBeTruthy();
+  });
+  it('should not match eth: protocol', () => {
+    const { protocol } = new URL('eth://home.metamask.io');
+
+    expect(trustedProtocolToDeeplink.includes(protocol)).toBeFalsy();
+  });
+  it('should not match tel: protocol', () => {
+    const { protocol } = new URL('tel://home.metamask.io');
+
+    expect(trustedProtocolToDeeplink.includes(protocol)).toBeFalsy();
+  });
+  it('should not match mailto: protocol', () => {
+    const { protocol } = new URL('mailto://home.metamask.io');
+
+    expect(trustedProtocolToDeeplink.includes(protocol)).toBeFalsy();
+  });
+  it('should not match ldap: protocol', () => {
+    const { protocol } = new URL('ldap://home.metamask.io');
+
+    expect(trustedProtocolToDeeplink.includes(protocol)).toBeFalsy();
   });
 });

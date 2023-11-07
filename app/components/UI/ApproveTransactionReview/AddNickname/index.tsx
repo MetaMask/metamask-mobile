@@ -33,10 +33,11 @@ import {
 } from '../../../../constants/error';
 import {
   selectChainId,
-  selectNetwork,
+  selectNetworkConfigurations,
   selectProviderType,
   selectRpcTarget,
 } from '../../../../selectors/networkController';
+import { selectIdentities } from '../../../../selectors/preferencesController';
 
 const getAnalyticsParams = () => ({});
 
@@ -48,17 +49,16 @@ const AddNickname = (props: AddNicknameProps) => {
     addressNickname,
     providerType,
     providerChainId,
-    providerNetwork,
     providerRpcTarget,
     addressBook,
     identities,
-    frequentRpcList,
+    networkConfigurations,
   } = props;
 
   const [newNickname, setNewNickname] = useState(addressNickname);
   const [addressErr, setAddressErr] = useState(null);
   const [addressHasError, setAddressHasError] = useState(false);
-  const [errContinue, setErrContinue] = useState(false);
+  const [errContinue, setErrContinue] = useState<boolean | undefined>(false);
   const [isBlockExplorerVisible, setIsBlockExplorerVisible] = useState(false);
   const [showFullAddress, setShowFullAddress] = useState(false);
   const [shouldDisableButton, setShouldDisableButton] = useState(true);
@@ -73,16 +73,16 @@ const AddNickname = (props: AddNicknameProps) => {
   const validateAddressOrENSFromInput = useCallback(async () => {
     const { addressError, errorContinue } = await validateAddressOrENS({
       toAccount: address,
-      providerNetwork,
       addressBook,
       identities,
+      // TODO: This parameters is effectively ignored, it should be named `chainId`
       providerChainId,
     });
 
     setAddressErr(addressError);
     setErrContinue(errorContinue);
     setAddressHasError(addressError);
-  }, [address, providerNetwork, addressBook, identities, providerChainId]);
+  }, [address, addressBook, identities, providerChainId]);
 
   useEffect(() => {
     validateAddressOrENSFromInput();
@@ -120,7 +120,7 @@ const AddNickname = (props: AddNicknameProps) => {
     AddressBookController.set(
       toChecksumAddress(address),
       newNickname,
-      providerNetwork,
+      providerChainId,
     );
     closeModal();
     AnalyticsV2.trackEvent(
@@ -155,7 +155,7 @@ const AddNickname = (props: AddNicknameProps) => {
   const hasBlockExplorer = shouldShowBlockExplorer({
     providerType,
     providerRpcTarget,
-    frequentRpcList,
+    networkConfigurations,
   });
 
   return (
@@ -169,7 +169,7 @@ const AddNickname = (props: AddNicknameProps) => {
           headerTextStyle={styles.headerText}
           iconStyle={styles.icon}
           providerRpcTarget={providerRpcTarget}
-          frequentRpcList={[]}
+          networkConfigurations={{}}
         />
       ) : (
         <>
@@ -261,11 +261,9 @@ const mapStateToProps = (state: any) => ({
   providerType: selectProviderType(state),
   providerRpcTarget: selectRpcTarget(state),
   providerChainId: selectChainId(state),
-  providerNetwork: selectNetwork(state),
   addressBook: state.engine.backgroundState.AddressBookController.addressBook,
-  identities: state.engine.backgroundState.PreferencesController.identities,
-  frequentRpcList:
-    state.engine.backgroundState.PreferencesController.frequentRpcList,
+  identities: selectIdentities(state),
+  networkConfigurations: selectNetworkConfigurations(state),
 });
 
 const mapDispatchToProps = (dispatch: any) => ({

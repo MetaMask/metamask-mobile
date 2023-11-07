@@ -1,21 +1,27 @@
 // Internal dependencies.
 import { CellDisplayProps } from './variants/CellDisplay/CellDisplay.types';
-import { CellMultiselectProps } from './variants/CellMultiselect/CellMultiselect.types';
+import { CellMultiSelectProps } from './variants/CellMultiSelect/CellMultiSelect.types';
 import { CellSelectProps } from './variants/CellSelect/CellSelect.types';
 
 /**
  * Cell variants.
  */
-export enum CellVariants {
+export enum CellVariant {
   Select = 'Select',
-  Multiselect = 'Multiselect',
+  MultiSelect = 'MultiSelect',
   Display = 'Display',
 }
 
 /**
  * Cell Account component props.
  */
-export type CellProps =
+export type CellProps = (
   | CellDisplayProps
-  | CellMultiselectProps
-  | CellSelectProps;
+  | CellMultiSelectProps
+  | CellSelectProps
+) & {
+  /**
+   * Variant of Cell
+   */
+  variant?: CellVariant;
+};

@@ -20,6 +20,7 @@ exports[`Tokens should hide zero balance tokens when setting is on 1`] = `
     }
   >
     <View
+      collapsable={false}
       pointerEvents="box-none"
       style={
         Object {
@@ -35,6 +36,7 @@ exports[`Tokens should hide zero balance tokens when setting is on 1`] = `
         style={null}
       >
         <View
+          collapsable={false}
           pointerEvents="box-none"
           style={
             Object {
@@ -49,6 +51,7 @@ exports[`Tokens should hide zero balance tokens when setting is on 1`] = `
           }
         >
           <View
+            collapsable={false}
             style={
               Object {
                 "backgroundColor": "rgb(255, 255, 255)",
@@ -66,6 +69,7 @@ exports[`Tokens should hide zero balance tokens when setting is on 1`] = `
           />
         </View>
         <View
+          collapsable={false}
           pointerEvents="box-none"
           style={
             Object {
@@ -97,6 +101,7 @@ exports[`Tokens should hide zero balance tokens when setting is on 1`] = `
             }
           >
             <View
+              collapsable={false}
               pointerEvents="box-none"
               style={
                 Object {
@@ -109,7 +114,6 @@ exports[`Tokens should hide zero balance tokens when setting is on 1`] = `
                 accessibilityRole="header"
                 aria-level="1"
                 collapsable={false}
-                nativeID="animatedComponent"
                 numberOfLines={1}
                 onLayout={[Function]}
                 style={
@@ -137,7 +141,16 @@ exports[`Tokens should hide zero balance tokens when setting is on 1`] = `
     >
       <RNSScreen
         activityState={2}
+        collapsable={false}
         forwardedRef={[Function]}
+        gestureResponseDistance={
+          Object {
+            "bottom": -1,
+            "end": -1,
+            "start": -1,
+            "top": -1,
+          }
+        }
         pointerEvents="box-none"
         style={
           Object {
@@ -212,7 +225,6 @@ exports[`Tokens should hide zero balance tokens when setting is on 1`] = `
         >
           <View
             collapsable={false}
-            nativeID="animatedComponent"
             needsOffscreenAlphaCompositing={false}
             pointerEvents="box-none"
             style={
@@ -241,6 +253,7 @@ exports[`Tokens should hide zero balance tokens when setting is on 1`] = `
               }
             >
               <View
+                collapsable={false}
                 pointerEvents="none"
                 style={
                   Object {
@@ -296,379 +309,680 @@ exports[`Tokens should hide zero balance tokens when setting is on 1`] = `
                         Object {
                           "backgroundColor": "#FFFFFF",
                           "flex": 1,
-                          "minHeight": 500,
                         }
                       }
                       testID="tokens"
                     >
-                      <View>
-                        <TouchableOpacity
-                          onLongPress={[Function]}
-                          onPress={[Function]}
-                          style={
-                            Object {
-                              "alignItems": "flex-start",
-                              "flex": 1,
-                              "flexDirection": "row",
-                              "paddingHorizontal": 15,
-                              "paddingVertical": 10,
-                            }
-                          }
-                          testID="asset-ETH"
-                        >
+                      <RCTScrollView
+                        ListFooterComponent={[Function]}
+                        ListHeaderComponent={
                           <View
-                            onLayout={[Function]}
-                            style={
-                              Object {
-                                "alignSelf": "flex-start",
-                                "position": "relative",
-                              }
-                            }
-                            testID="badge-wrapper-badge"
-                          >
-                            <View>
-                              <View
-                                useNativeDriver={true}
-                              >
-                                <Image
-                                  fadeIn={true}
-                                  onError={[Function]}
-                                  onLoadEnd={[Function]}
-                                  source={
-                                    Object {
-                                      "uri": undefined,
-                                    }
-                                  }
-                                  style={
-                                    Array [
-                                      Object {
-                                        "borderRadius": 12,
-                                        "height": 24,
-                                        "width": 24,
-                                      },
-                                      undefined,
-                                      undefined,
-                                      undefined,
-                                      Object {
-                                        "borderRadius": 12,
-                                        "height": 24,
-                                        "overflow": "hidden",
-                                        "width": 24,
-                                      },
-                                    ]
-                                  }
-                                />
-                                <View
-                                  collapsable={false}
-                                  nativeID="animatedComponent"
-                                  style={
-                                    Object {
-                                      "bottom": 0,
-                                      "left": 0,
-                                      "opacity": 1,
-                                      "position": "absolute",
-                                      "right": 0,
-                                      "top": 0,
-                                    }
-                                  }
-                                >
-                                  <View
-                                    style={
-                                      Array [
-                                        Object {
-                                          "borderRadius": 12,
-                                          "height": 24,
-                                          "overflow": "hidden",
-                                          "width": 24,
-                                        },
-                                        Object {
-                                          "backgroundColor": "#eee",
-                                        },
-                                        undefined,
-                                      ]
-                                    }
-                                  />
-                                </View>
-                              </View>
-                            </View>
-                            <View
-                              style={
-                                Object {
-                                  "alignItems": "center",
-                                  "aspectRatio": 1,
-                                  "height": 0,
-                                  "justifyContent": "center",
-                                  "position": "absolute",
-                                  "right": 0,
-                                  "top": 0,
-                                  "transform": Array [
-                                    Object {
-                                      "translateX": 0,
-                                    },
-                                    Object {
-                                      "translateY": -0,
-                                    },
-                                  ],
-                                }
-                              }
-                            />
-                          </View>
-                          <View
-                            style={
-                              Object {
-                                "flex": 1,
-                                "justifyContent": "center",
-                                "marginLeft": 20,
-                              }
-                            }
-                            testID="balance"
-                          >
-                            <Text
-                              style={
-                                Object {
-                                  "color": "#24272A",
-                                  "fontFamily": "Euclid Circular B",
-                                  "fontSize": 16,
-                                  "fontWeight": "500",
-                                  "letterSpacing": 0,
-                                  "lineHeight": 24,
-                                }
-                              }
-                            >
-                              Ethereum
-                            </Text>
-                            <Text
-                              style={
-                                Object {
-                                  "color": "#535A61",
-                                  "fontFamily": "EuclidCircularB-Regular",
-                                  "fontSize": 14,
-                                  "fontWeight": "400",
-                                  "letterSpacing": 0,
-                                  "lineHeight": 22,
-                                  "textTransform": "uppercase",
-                                }
-                              }
-                            >
-                              &lt; $0.01
-                            </Text>
-                          </View>
-                          <Text
-                            style={
-                              Object {
-                                "color": "#24272A",
-                                "fontFamily": "Euclid Circular B",
-                                "fontSize": 16,
-                                "fontWeight": "500",
-                                "letterSpacing": 0,
-                                "lineHeight": 24,
-                              }
-                            }
-                          >
-                             ETH
-                          </Text>
-                        </TouchableOpacity>
-                        <TouchableOpacity
-                          onLongPress={[Function]}
-                          onPress={[Function]}
-                          style={
-                            Object {
-                              "alignItems": "flex-start",
-                              "flex": 1,
-                              "flexDirection": "row",
-                              "paddingHorizontal": 15,
-                              "paddingVertical": 10,
-                            }
-                          }
-                          testID="asset-BAT"
-                        >
-                          <View
-                            onLayout={[Function]}
-                            style={
-                              Object {
-                                "alignSelf": "flex-start",
-                                "position": "relative",
-                              }
-                            }
-                            testID="badge-wrapper-badge"
-                          >
-                            <View>
-                              <View
-                                style={
-                                  Object {
-                                    "backgroundColor": "#FFFFFF",
-                                    "borderRadius": 12,
-                                    "height": 24,
-                                    "overflow": "hidden",
-                                    "width": 24,
-                                  }
-                                }
-                              >
-                                <Image
-                                  onError={[Function]}
-                                  resizeMode="contain"
-                                  source={
-                                    Object {
-                                      "uri": undefined,
-                                    }
-                                  }
-                                  style={
-                                    Object {
-                                      "flex": 1,
-                                      "height": undefined,
-                                      "width": undefined,
-                                    }
-                                  }
-                                  testID="token-avatar-image"
-                                />
-                              </View>
-                            </View>
-                            <View
-                              style={
-                                Object {
-                                  "alignItems": "center",
-                                  "aspectRatio": 1,
-                                  "height": 0,
-                                  "justifyContent": "center",
-                                  "position": "absolute",
-                                  "right": 0,
-                                  "top": 0,
-                                  "transform": Array [
-                                    Object {
-                                      "translateX": 0,
-                                    },
-                                    Object {
-                                      "translateY": -0,
-                                    },
-                                  ],
-                                }
-                              }
-                            />
-                          </View>
-                          <View
-                            style={
-                              Object {
-                                "flex": 1,
-                                "justifyContent": "center",
-                                "marginLeft": 20,
-                              }
-                            }
-                            testID="balance"
-                          >
-                            <Text
-                              style={
-                                Object {
-                                  "color": "#24272A",
-                                  "fontFamily": "Euclid Circular B",
-                                  "fontSize": 16,
-                                  "fontWeight": "500",
-                                  "letterSpacing": 0,
-                                  "lineHeight": 24,
-                                }
-                              }
-                            >
-                              Bat
-                            </Text>
-                            <Text
-                              style={
-                                Object {
-                                  "color": "#535A61",
-                                  "fontFamily": "EuclidCircularB-Regular",
-                                  "fontSize": 14,
-                                  "fontWeight": "400",
-                                  "letterSpacing": 0,
-                                  "lineHeight": 22,
-                                  "textTransform": "uppercase",
-                                }
-                              }
-                            >
-                              &lt; $0.01
-                            </Text>
-                          </View>
-                          <Text
-                            style={
-                              Object {
-                                "color": "#24272A",
-                                "fontFamily": "Euclid Circular B",
-                                "fontSize": 16,
-                                "fontWeight": "500",
-                                "letterSpacing": 0,
-                                "lineHeight": 24,
-                              }
-                            }
-                          >
-                            &lt; 0.00001 BAT
-                          </Text>
-                        </TouchableOpacity>
-                        <View
-                          style={
-                            Object {
-                              "alignItems": "center",
-                              "flex": 1,
-                              "marginTop": 9,
-                              "paddingBottom": 30,
-                            }
-                          }
-                        >
-                          <TouchableOpacity
-                            disabled={false}
-                            onPress={[Function]}
                             style={
                               Object {
                                 "alignItems": "center",
                                 "flexDirection": "row",
-                                "justifyContent": "center",
+                                "justifyContent": "space-between",
+                                "marginHorizontal": 16,
+                                "marginVertical": 24,
                               }
                             }
-                            testID="import-token-button"
                           >
                             <Text
                               style={
                                 Object {
-                                  "color": "#24272A",
-                                  "fontFamily": "Euclid Circular B",
-                                  "fontSize": 14,
-                                  "fontWeight": "400",
-                                  "letterSpacing": 0,
-                                  "lineHeight": 22,
-                                  "textAlign": "center",
+                                  "fontFamily": "EuclidCircularB-Regular",
+                                  "fontSize": 32,
+                                  "fontWeight": "500",
+                                  "lineHeight": 40,
+                                }
+                              }
+                              testID="total-balance-text"
+                            >
+                              0 USD
+                            </Text>
+                            <Button
+                              endIconName="Export"
+                              label="Portfolio"
+                              onPress={[Function]}
+                              size="40"
+                              style={
+                                Object {
+                                  "marginVertical": 5,
+                                }
+                              }
+                              testID="portfolio-button"
+                              variant="Secondary"
+                              width="full"
+                            />
+                          </View>
+                        }
+                        data={
+                          Array [
+                            Object {
+                              "address": "0x0",
+                              "balanceFiat": "< $0.01",
+                              "decimals": 18,
+                              "iconUrl": "",
+                              "isETH": true,
+                              "name": "Ethereum",
+                              "symbol": "ETH",
+                            },
+                            Object {
+                              "address": "0x01",
+                              "balanceFiat": "$0",
+                              "decimals": 18,
+                              "iconUrl": "",
+                              "name": "Bat",
+                              "symbol": "BAT",
+                            },
+                          ]
+                        }
+                        getItem={[Function]}
+                        getItemCount={[Function]}
+                        keyExtractor={[Function]}
+                        onContentSizeChange={[Function]}
+                        onLayout={[Function]}
+                        onMomentumScrollBegin={[Function]}
+                        onMomentumScrollEnd={[Function]}
+                        onScroll={[Function]}
+                        onScrollBeginDrag={[Function]}
+                        onScrollEndDrag={[Function]}
+                        refreshControl={
+                          <RefreshControlMock
+                            colors={
+                              Array [
+                                "#0376C9",
+                              ]
+                            }
+                            onRefresh={[Function]}
+                            refreshing={false}
+                            tintColor="#24272A"
+                          />
+                        }
+                        removeClippedSubviews={false}
+                        renderItem={[Function]}
+                        scrollEventThrottle={50}
+                        stickyHeaderIndices={Array []}
+                        viewabilityConfigCallbackPairs={Array []}
+                      >
+                        <RCTRefreshControl />
+                        <View>
+                          <View
+                            onLayout={[Function]}
+                          >
+                            <View
+                              style={
+                                Object {
+                                  "alignItems": "center",
+                                  "flexDirection": "row",
+                                  "justifyContent": "space-between",
+                                  "marginHorizontal": 16,
+                                  "marginVertical": 24,
                                 }
                               }
                             >
                               <Text
+                                accessibilityRole="text"
                                 style={
                                   Object {
-                                    "color": "#535A61",
-                                    "fontFamily": "Euclid Circular B",
-                                    "fontSize": 14,
-                                    "fontWeight": "400",
-                                    "letterSpacing": 0,
-                                    "lineHeight": 22,
-                                    "marginBottom": 8,
-                                  }
-                                }
-                              >
-                                Don't see your token?
-                              </Text>
-                               
-                              <Text
-                                style={
-                                  Object {
-                                    "color": "#0376C9",
+                                    "color": "#24272A",
                                     "fontFamily": "EuclidCircularB-Regular",
-                                    "fontSize": 14,
-                                    "fontWeight": "400",
+                                    "fontSize": 32,
+                                    "fontWeight": "500",
                                     "letterSpacing": 0,
-                                    "lineHeight": 22,
+                                    "lineHeight": 40,
+                                  }
+                                }
+                                testID="total-balance-text"
+                              >
+                                0 USD
+                              </Text>
+                              <TouchableOpacity
+                                activeOpacity={1}
+                                onPress={[Function]}
+                                onPressIn={[Function]}
+                                onPressOut={[Function]}
+                                style={
+                                  Object {
+                                    "alignItems": "center",
+                                    "alignSelf": "stretch",
+                                    "backgroundColor": "transparent",
+                                    "borderColor": "#0376C9",
+                                    "borderRadius": 20,
+                                    "borderWidth": 1,
+                                    "flexDirection": "row",
+                                    "height": 40,
+                                    "justifyContent": "center",
+                                    "marginVertical": 5,
+                                    "paddingHorizontal": 16,
+                                  }
+                                }
+                                testID="portfolio-button"
+                                variant="Secondary"
+                              >
+                                <Text
+                                  accessibilityRole="text"
+                                  style={
+                                    Object {
+                                      "color": "#0376C9",
+                                      "fontFamily": "Euclid Circular B",
+                                      "fontSize": 14,
+                                      "fontWeight": "400",
+                                      "letterSpacing": 0,
+                                      "lineHeight": 22,
+                                    }
+                                  }
+                                >
+                                  Portfolio
+                                </Text>
+                                <SvgMock
+                                  color="#0376C9"
+                                  height={16}
+                                  name="Export"
+                                  style={
+                                    Object {
+                                      "height": 16,
+                                      "marginLeft": 8,
+                                      "width": 16,
+                                    }
+                                  }
+                                  width={16}
+                                />
+                              </TouchableOpacity>
+                            </View>
+                          </View>
+                          <View
+                            onFocusCapture={[Function]}
+                            onLayout={[Function]}
+                            style={null}
+                          >
+                            <TouchableOpacity
+                              onLongPress={[Function]}
+                              onPress={[Function]}
+                              style={
+                                Object {
+                                  "alignItems": "flex-start",
+                                  "flex": 1,
+                                  "flexDirection": "row",
+                                  "paddingHorizontal": 15,
+                                  "paddingVertical": 10,
+                                }
+                              }
+                              testID="asset-ETH"
+                            >
+                              <View
+                                onLayout={[Function]}
+                                style={
+                                  Object {
+                                    "alignSelf": "flex-start",
+                                    "position": "relative",
+                                  }
+                                }
+                                testID="badge-wrapper-badge"
+                              >
+                                <View>
+                                  <View
+                                    useNativeDriver={true}
+                                  >
+                                    <Image
+                                      fadeIn={true}
+                                      onError={[Function]}
+                                      onLoadEnd={[Function]}
+                                      source={
+                                        Object {
+                                          "uri": undefined,
+                                        }
+                                      }
+                                      style={
+                                        Array [
+                                          Object {
+                                            "borderRadius": 12,
+                                            "height": 24,
+                                            "width": 24,
+                                          },
+                                          undefined,
+                                          undefined,
+                                          undefined,
+                                          Object {
+                                            "borderRadius": 16,
+                                            "height": 32,
+                                            "overflow": "hidden",
+                                            "width": 32,
+                                          },
+                                        ]
+                                      }
+                                    />
+                                    <View
+                                      collapsable={false}
+                                      style={
+                                        Object {
+                                          "bottom": 0,
+                                          "left": 0,
+                                          "opacity": 1,
+                                          "position": "absolute",
+                                          "right": 0,
+                                          "top": 0,
+                                        }
+                                      }
+                                    >
+                                      <View
+                                        style={
+                                          Array [
+                                            Object {
+                                              "borderRadius": 16,
+                                              "height": 32,
+                                              "overflow": "hidden",
+                                              "width": 32,
+                                            },
+                                            Object {
+                                              "backgroundColor": "#eee",
+                                            },
+                                            undefined,
+                                          ]
+                                        }
+                                      />
+                                    </View>
+                                  </View>
+                                </View>
+                                <View
+                                  style={
+                                    Object {
+                                      "alignItems": "center",
+                                      "aspectRatio": 1,
+                                      "height": 0,
+                                      "justifyContent": "center",
+                                      "position": "absolute",
+                                      "right": 0,
+                                      "top": 0,
+                                      "transform": Array [
+                                        Object {
+                                          "translateX": 0,
+                                        },
+                                        Object {
+                                          "translateY": -0,
+                                        },
+                                      ],
+                                    }
+                                  }
+                                >
+                                  <View
+                                    onLayout={[Function]}
+                                    style={
+                                      Object {
+                                        "alignItems": "center",
+                                        "aspectRatio": 1,
+                                        "height": "50%",
+                                        "justifyContent": "center",
+                                        "minHeight": 16,
+                                        "opacity": 0,
+                                      }
+                                    }
+                                    testID="badge-network"
+                                  >
+                                    <View
+                                      style={
+                                        Object {
+                                          "backgroundColor": "#FFFFFF",
+                                          "borderRadius": 16,
+                                          "height": 32,
+                                          "overflow": "hidden",
+                                          "transform": Array [
+                                            Object {
+                                              "scale": 1,
+                                            },
+                                          ],
+                                          "width": 32,
+                                        }
+                                      }
+                                    >
+                                      <Image
+                                        onError={[Function]}
+                                        resizeMode="contain"
+                                        source={
+                                          Object {
+                                            "uri": "MockImage",
+                                          }
+                                        }
+                                        style={
+                                          Object {
+                                            "flex": 1,
+                                            "height": undefined,
+                                            "width": undefined,
+                                          }
+                                        }
+                                        testID="network-avatar-image"
+                                      />
+                                    </View>
+                                  </View>
+                                </View>
+                              </View>
+                              <View
+                                style={
+                                  Object {
+                                    "flex": 1,
+                                    "justifyContent": "center",
+                                    "marginLeft": 20,
+                                  }
+                                }
+                                testID="balance"
+                              >
+                                <Text
+                                  accessibilityRole="text"
+                                  style={
+                                    Object {
+                                      "color": "#24272A",
+                                      "fontFamily": "Euclid Circular B",
+                                      "fontSize": 16,
+                                      "fontWeight": "500",
+                                      "letterSpacing": 0,
+                                      "lineHeight": 24,
+                                    }
+                                  }
+                                >
+                                  Ethereum
+                                </Text>
+                                <Text
+                                  accessibilityRole="text"
+                                  style={
+                                    Object {
+                                      "color": "#535A61",
+                                      "fontFamily": "EuclidCircularB-Regular",
+                                      "fontSize": 14,
+                                      "fontWeight": "400",
+                                      "letterSpacing": 0,
+                                      "lineHeight": 22,
+                                      "textTransform": "uppercase",
+                                    }
+                                  }
+                                >
+                                  &lt; $0.01
+                                </Text>
+                              </View>
+                              <Text
+                                accessibilityRole="text"
+                                style={
+                                  Object {
+                                    "color": "#24272A",
+                                    "fontFamily": "Euclid Circular B",
+                                    "fontSize": 16,
+                                    "fontWeight": "500",
+                                    "letterSpacing": 0,
+                                    "lineHeight": 24,
                                   }
                                 }
                               >
-                                Import tokens
+                                 ETH
                               </Text>
-                            </Text>
-                          </TouchableOpacity>
+                            </TouchableOpacity>
+                          </View>
+                          <View
+                            onFocusCapture={[Function]}
+                            onLayout={[Function]}
+                            style={null}
+                          >
+                            <TouchableOpacity
+                              onLongPress={[Function]}
+                              onPress={[Function]}
+                              style={
+                                Object {
+                                  "alignItems": "flex-start",
+                                  "flex": 1,
+                                  "flexDirection": "row",
+                                  "paddingHorizontal": 15,
+                                  "paddingVertical": 10,
+                                }
+                              }
+                              testID="asset-BAT"
+                            >
+                              <View
+                                onLayout={[Function]}
+                                style={
+                                  Object {
+                                    "alignSelf": "flex-start",
+                                    "position": "relative",
+                                  }
+                                }
+                                testID="badge-wrapper-badge"
+                              >
+                                <View>
+                                  <View
+                                    style={
+                                      Object {
+                                        "backgroundColor": "#FFFFFF",
+                                        "borderRadius": 16,
+                                        "height": 32,
+                                        "overflow": "hidden",
+                                        "width": 32,
+                                      }
+                                    }
+                                  >
+                                    <Image
+                                      onError={[Function]}
+                                      resizeMode="contain"
+                                      source={
+                                        Object {
+                                          "uri": undefined,
+                                        }
+                                      }
+                                      style={
+                                        Object {
+                                          "flex": 1,
+                                          "height": undefined,
+                                          "width": undefined,
+                                        }
+                                      }
+                                      testID="token-avatar-image"
+                                    />
+                                  </View>
+                                </View>
+                                <View
+                                  style={
+                                    Object {
+                                      "alignItems": "center",
+                                      "aspectRatio": 1,
+                                      "height": 0,
+                                      "justifyContent": "center",
+                                      "position": "absolute",
+                                      "right": 0,
+                                      "top": 0,
+                                      "transform": Array [
+                                        Object {
+                                          "translateX": 0,
+                                        },
+                                        Object {
+                                          "translateY": -0,
+                                        },
+                                      ],
+                                    }
+                                  }
+                                >
+                                  <View
+                                    onLayout={[Function]}
+                                    style={
+                                      Object {
+                                        "alignItems": "center",
+                                        "aspectRatio": 1,
+                                        "height": "50%",
+                                        "justifyContent": "center",
+                                        "minHeight": 16,
+                                        "opacity": 0,
+                                      }
+                                    }
+                                    testID="badge-network"
+                                  >
+                                    <View
+                                      style={
+                                        Object {
+                                          "backgroundColor": "#FFFFFF",
+                                          "borderRadius": 16,
+                                          "height": 32,
+                                          "overflow": "hidden",
+                                          "transform": Array [
+                                            Object {
+                                              "scale": 1,
+                                            },
+                                          ],
+                                          "width": 32,
+                                        }
+                                      }
+                                    >
+                                      <Image
+                                        onError={[Function]}
+                                        resizeMode="contain"
+                                        source={
+                                          Object {
+                                            "uri": "MockImage",
+                                          }
+                                        }
+                                        style={
+                                          Object {
+                                            "flex": 1,
+                                            "height": undefined,
+                                            "width": undefined,
+                                          }
+                                        }
+                                        testID="network-avatar-image"
+                                      />
+                                    </View>
+                                  </View>
+                                </View>
+                              </View>
+                              <View
+                                style={
+                                  Object {
+                                    "flex": 1,
+                                    "justifyContent": "center",
+                                    "marginLeft": 20,
+                                  }
+                                }
+                                testID="balance"
+                              >
+                                <Text
+                                  accessibilityRole="text"
+                                  style={
+                                    Object {
+                                      "color": "#24272A",
+                                      "fontFamily": "Euclid Circular B",
+                                      "fontSize": 16,
+                                      "fontWeight": "500",
+                                      "letterSpacing": 0,
+                                      "lineHeight": 24,
+                                    }
+                                  }
+                                >
+                                  Bat
+                                </Text>
+                                <Text
+                                  accessibilityRole="text"
+                                  style={
+                                    Object {
+                                      "color": "#535A61",
+                                      "fontFamily": "EuclidCircularB-Regular",
+                                      "fontSize": 14,
+                                      "fontWeight": "400",
+                                      "letterSpacing": 0,
+                                      "lineHeight": 22,
+                                      "textTransform": "uppercase",
+                                    }
+                                  }
+                                >
+                                  &lt; $0.01
+                                </Text>
+                              </View>
+                              <Text
+                                accessibilityRole="text"
+                                style={
+                                  Object {
+                                    "color": "#24272A",
+                                    "fontFamily": "Euclid Circular B",
+                                    "fontSize": 16,
+                                    "fontWeight": "500",
+                                    "letterSpacing": 0,
+                                    "lineHeight": 24,
+                                  }
+                                }
+                              >
+                                &lt; 0.00001 BAT
+                              </Text>
+                            </TouchableOpacity>
+                          </View>
+                          <View
+                            onLayout={[Function]}
+                          >
+                            <View
+                              style={
+                                Object {
+                                  "alignItems": "center",
+                                  "flex": 1,
+                                  "marginTop": 9,
+                                  "paddingBottom": 30,
+                                }
+                              }
+                            >
+                              <TouchableOpacity
+                                disabled={false}
+                                onPress={[Function]}
+                                style={
+                                  Object {
+                                    "alignItems": "center",
+                                    "flexDirection": "row",
+                                    "justifyContent": "center",
+                                  }
+                                }
+                                testID="import-token-button"
+                              >
+                                <Text
+                                  accessibilityRole="text"
+                                  style={
+                                    Object {
+                                      "color": "#24272A",
+                                      "fontFamily": "Euclid Circular B",
+                                      "fontSize": 14,
+                                      "fontWeight": "400",
+                                      "letterSpacing": 0,
+                                      "lineHeight": 22,
+                                      "textAlign": "center",
+                                    }
+                                  }
+                                >
+                                  <Text
+                                    accessibilityRole="text"
+                                    style={
+                                      Object {
+                                        "color": "#535A61",
+                                        "fontFamily": "Euclid Circular B",
+                                        "fontSize": 14,
+                                        "fontWeight": "400",
+                                        "letterSpacing": 0,
+                                        "lineHeight": 22,
+                                        "marginBottom": 8,
+                                      }
+                                    }
+                                  >
+                                    Don't see your token?
+                                  </Text>
+                                   
+                                  <Text
+                                    accessibilityRole="text"
+                                    style={
+                                      Object {
+                                        "color": "#0376C9",
+                                        "fontFamily": "EuclidCircularB-Regular",
+                                        "fontSize": 14,
+                                        "fontWeight": "400",
+                                        "letterSpacing": 0,
+                                        "lineHeight": 22,
+                                      }
+                                    }
+                                  >
+                                    Import tokens
+                                  </Text>
+                                </Text>
+                              </TouchableOpacity>
+                            </View>
+                          </View>
                         </View>
-                      </View>
+                      </RCTScrollView>
                     </View>
                   </View>
                 </View>
@@ -702,6 +1016,7 @@ exports[`Tokens should render correctly 1`] = `
     }
   >
     <View
+      collapsable={false}
       pointerEvents="box-none"
       style={
         Object {
@@ -717,6 +1032,7 @@ exports[`Tokens should render correctly 1`] = `
         style={null}
       >
         <View
+          collapsable={false}
           pointerEvents="box-none"
           style={
             Object {
@@ -731,6 +1047,7 @@ exports[`Tokens should render correctly 1`] = `
           }
         >
           <View
+            collapsable={false}
             style={
               Object {
                 "backgroundColor": "rgb(255, 255, 255)",
@@ -748,6 +1065,7 @@ exports[`Tokens should render correctly 1`] = `
           />
         </View>
         <View
+          collapsable={false}
           pointerEvents="box-none"
           style={
             Object {
@@ -779,6 +1097,7 @@ exports[`Tokens should render correctly 1`] = `
             }
           >
             <View
+              collapsable={false}
               pointerEvents="box-none"
               style={
                 Object {
@@ -791,7 +1110,6 @@ exports[`Tokens should render correctly 1`] = `
                 accessibilityRole="header"
                 aria-level="1"
                 collapsable={false}
-                nativeID="animatedComponent"
                 numberOfLines={1}
                 onLayout={[Function]}
                 style={
@@ -819,7 +1137,16 @@ exports[`Tokens should render correctly 1`] = `
     >
       <RNSScreen
         activityState={2}
+        collapsable={false}
         forwardedRef={[Function]}
+        gestureResponseDistance={
+          Object {
+            "bottom": -1,
+            "end": -1,
+            "start": -1,
+            "top": -1,
+          }
+        }
         pointerEvents="box-none"
         style={
           Object {
@@ -894,7 +1221,6 @@ exports[`Tokens should render correctly 1`] = `
         >
           <View
             collapsable={false}
-            nativeID="animatedComponent"
             needsOffscreenAlphaCompositing={false}
             pointerEvents="box-none"
             style={
@@ -923,6 +1249,7 @@ exports[`Tokens should render correctly 1`] = `
               }
             >
               <View
+                collapsable={false}
                 pointerEvents="none"
                 style={
                   Object {
@@ -978,379 +1305,680 @@ exports[`Tokens should render correctly 1`] = `
                         Object {
                           "backgroundColor": "#FFFFFF",
                           "flex": 1,
-                          "minHeight": 500,
                         }
                       }
                       testID="tokens"
                     >
-                      <View>
-                        <TouchableOpacity
-                          onLongPress={[Function]}
-                          onPress={[Function]}
-                          style={
-                            Object {
-                              "alignItems": "flex-start",
-                              "flex": 1,
-                              "flexDirection": "row",
-                              "paddingHorizontal": 15,
-                              "paddingVertical": 10,
-                            }
-                          }
-                          testID="asset-ETH"
-                        >
+                      <RCTScrollView
+                        ListFooterComponent={[Function]}
+                        ListHeaderComponent={
                           <View
-                            onLayout={[Function]}
-                            style={
-                              Object {
-                                "alignSelf": "flex-start",
-                                "position": "relative",
-                              }
-                            }
-                            testID="badge-wrapper-badge"
-                          >
-                            <View>
-                              <View
-                                useNativeDriver={true}
-                              >
-                                <Image
-                                  fadeIn={true}
-                                  onError={[Function]}
-                                  onLoadEnd={[Function]}
-                                  source={
-                                    Object {
-                                      "uri": undefined,
-                                    }
-                                  }
-                                  style={
-                                    Array [
-                                      Object {
-                                        "borderRadius": 12,
-                                        "height": 24,
-                                        "width": 24,
-                                      },
-                                      undefined,
-                                      undefined,
-                                      undefined,
-                                      Object {
-                                        "borderRadius": 12,
-                                        "height": 24,
-                                        "overflow": "hidden",
-                                        "width": 24,
-                                      },
-                                    ]
-                                  }
-                                />
-                                <View
-                                  collapsable={false}
-                                  nativeID="animatedComponent"
-                                  style={
-                                    Object {
-                                      "bottom": 0,
-                                      "left": 0,
-                                      "opacity": 1,
-                                      "position": "absolute",
-                                      "right": 0,
-                                      "top": 0,
-                                    }
-                                  }
-                                >
-                                  <View
-                                    style={
-                                      Array [
-                                        Object {
-                                          "borderRadius": 12,
-                                          "height": 24,
-                                          "overflow": "hidden",
-                                          "width": 24,
-                                        },
-                                        Object {
-                                          "backgroundColor": "#eee",
-                                        },
-                                        undefined,
-                                      ]
-                                    }
-                                  />
-                                </View>
-                              </View>
-                            </View>
-                            <View
-                              style={
-                                Object {
-                                  "alignItems": "center",
-                                  "aspectRatio": 1,
-                                  "height": 0,
-                                  "justifyContent": "center",
-                                  "position": "absolute",
-                                  "right": 0,
-                                  "top": 0,
-                                  "transform": Array [
-                                    Object {
-                                      "translateX": 0,
-                                    },
-                                    Object {
-                                      "translateY": -0,
-                                    },
-                                  ],
-                                }
-                              }
-                            />
-                          </View>
-                          <View
-                            style={
-                              Object {
-                                "flex": 1,
-                                "justifyContent": "center",
-                                "marginLeft": 20,
-                              }
-                            }
-                            testID="balance"
-                          >
-                            <Text
-                              style={
-                                Object {
-                                  "color": "#24272A",
-                                  "fontFamily": "Euclid Circular B",
-                                  "fontSize": 16,
-                                  "fontWeight": "500",
-                                  "letterSpacing": 0,
-                                  "lineHeight": 24,
-                                }
-                              }
-                            >
-                              Ethereum
-                            </Text>
-                            <Text
-                              style={
-                                Object {
-                                  "color": "#535A61",
-                                  "fontFamily": "EuclidCircularB-Regular",
-                                  "fontSize": 14,
-                                  "fontWeight": "400",
-                                  "letterSpacing": 0,
-                                  "lineHeight": 22,
-                                  "textTransform": "uppercase",
-                                }
-                              }
-                            >
-                              &lt; $0.01
-                            </Text>
-                          </View>
-                          <Text
-                            style={
-                              Object {
-                                "color": "#24272A",
-                                "fontFamily": "Euclid Circular B",
-                                "fontSize": 16,
-                                "fontWeight": "500",
-                                "letterSpacing": 0,
-                                "lineHeight": 24,
-                              }
-                            }
-                          >
-                             ETH
-                          </Text>
-                        </TouchableOpacity>
-                        <TouchableOpacity
-                          onLongPress={[Function]}
-                          onPress={[Function]}
-                          style={
-                            Object {
-                              "alignItems": "flex-start",
-                              "flex": 1,
-                              "flexDirection": "row",
-                              "paddingHorizontal": 15,
-                              "paddingVertical": 10,
-                            }
-                          }
-                          testID="asset-BAT"
-                        >
-                          <View
-                            onLayout={[Function]}
-                            style={
-                              Object {
-                                "alignSelf": "flex-start",
-                                "position": "relative",
-                              }
-                            }
-                            testID="badge-wrapper-badge"
-                          >
-                            <View>
-                              <View
-                                style={
-                                  Object {
-                                    "backgroundColor": "#FFFFFF",
-                                    "borderRadius": 12,
-                                    "height": 24,
-                                    "overflow": "hidden",
-                                    "width": 24,
-                                  }
-                                }
-                              >
-                                <Image
-                                  onError={[Function]}
-                                  resizeMode="contain"
-                                  source={
-                                    Object {
-                                      "uri": undefined,
-                                    }
-                                  }
-                                  style={
-                                    Object {
-                                      "flex": 1,
-                                      "height": undefined,
-                                      "width": undefined,
-                                    }
-                                  }
-                                  testID="token-avatar-image"
-                                />
-                              </View>
-                            </View>
-                            <View
-                              style={
-                                Object {
-                                  "alignItems": "center",
-                                  "aspectRatio": 1,
-                                  "height": 0,
-                                  "justifyContent": "center",
-                                  "position": "absolute",
-                                  "right": 0,
-                                  "top": 0,
-                                  "transform": Array [
-                                    Object {
-                                      "translateX": 0,
-                                    },
-                                    Object {
-                                      "translateY": -0,
-                                    },
-                                  ],
-                                }
-                              }
-                            />
-                          </View>
-                          <View
-                            style={
-                              Object {
-                                "flex": 1,
-                                "justifyContent": "center",
-                                "marginLeft": 20,
-                              }
-                            }
-                            testID="balance"
-                          >
-                            <Text
-                              style={
-                                Object {
-                                  "color": "#24272A",
-                                  "fontFamily": "Euclid Circular B",
-                                  "fontSize": 16,
-                                  "fontWeight": "500",
-                                  "letterSpacing": 0,
-                                  "lineHeight": 24,
-                                }
-                              }
-                            >
-                              Bat
-                            </Text>
-                            <Text
-                              style={
-                                Object {
-                                  "color": "#535A61",
-                                  "fontFamily": "EuclidCircularB-Regular",
-                                  "fontSize": 14,
-                                  "fontWeight": "400",
-                                  "letterSpacing": 0,
-                                  "lineHeight": 22,
-                                  "textTransform": "uppercase",
-                                }
-                              }
-                            >
-                              &lt; $0.01
-                            </Text>
-                          </View>
-                          <Text
-                            style={
-                              Object {
-                                "color": "#24272A",
-                                "fontFamily": "Euclid Circular B",
-                                "fontSize": 16,
-                                "fontWeight": "500",
-                                "letterSpacing": 0,
-                                "lineHeight": 24,
-                              }
-                            }
-                          >
-                            &lt; 0.00001 BAT
-                          </Text>
-                        </TouchableOpacity>
-                        <View
-                          style={
-                            Object {
-                              "alignItems": "center",
-                              "flex": 1,
-                              "marginTop": 9,
-                              "paddingBottom": 30,
-                            }
-                          }
-                        >
-                          <TouchableOpacity
-                            disabled={false}
-                            onPress={[Function]}
                             style={
                               Object {
                                 "alignItems": "center",
                                 "flexDirection": "row",
-                                "justifyContent": "center",
+                                "justifyContent": "space-between",
+                                "marginHorizontal": 16,
+                                "marginVertical": 24,
                               }
                             }
-                            testID="import-token-button"
                           >
                             <Text
                               style={
                                 Object {
-                                  "color": "#24272A",
-                                  "fontFamily": "Euclid Circular B",
-                                  "fontSize": 14,
-                                  "fontWeight": "400",
-                                  "letterSpacing": 0,
-                                  "lineHeight": 22,
-                                  "textAlign": "center",
+                                  "fontFamily": "EuclidCircularB-Regular",
+                                  "fontSize": 32,
+                                  "fontWeight": "500",
+                                  "lineHeight": 40,
+                                }
+                              }
+                              testID="total-balance-text"
+                            >
+                              0 USD
+                            </Text>
+                            <Button
+                              endIconName="Export"
+                              label="Portfolio"
+                              onPress={[Function]}
+                              size="40"
+                              style={
+                                Object {
+                                  "marginVertical": 5,
+                                }
+                              }
+                              testID="portfolio-button"
+                              variant="Secondary"
+                              width="full"
+                            />
+                          </View>
+                        }
+                        data={
+                          Array [
+                            Object {
+                              "address": "0x0",
+                              "balanceFiat": "< $0.01",
+                              "decimals": 18,
+                              "iconUrl": "",
+                              "isETH": true,
+                              "name": "Ethereum",
+                              "symbol": "ETH",
+                            },
+                            Object {
+                              "address": "0x01",
+                              "balanceFiat": "$0",
+                              "decimals": 18,
+                              "iconUrl": "",
+                              "name": "Bat",
+                              "symbol": "BAT",
+                            },
+                          ]
+                        }
+                        getItem={[Function]}
+                        getItemCount={[Function]}
+                        keyExtractor={[Function]}
+                        onContentSizeChange={[Function]}
+                        onLayout={[Function]}
+                        onMomentumScrollBegin={[Function]}
+                        onMomentumScrollEnd={[Function]}
+                        onScroll={[Function]}
+                        onScrollBeginDrag={[Function]}
+                        onScrollEndDrag={[Function]}
+                        refreshControl={
+                          <RefreshControlMock
+                            colors={
+                              Array [
+                                "#0376C9",
+                              ]
+                            }
+                            onRefresh={[Function]}
+                            refreshing={false}
+                            tintColor="#24272A"
+                          />
+                        }
+                        removeClippedSubviews={false}
+                        renderItem={[Function]}
+                        scrollEventThrottle={50}
+                        stickyHeaderIndices={Array []}
+                        viewabilityConfigCallbackPairs={Array []}
+                      >
+                        <RCTRefreshControl />
+                        <View>
+                          <View
+                            onLayout={[Function]}
+                          >
+                            <View
+                              style={
+                                Object {
+                                  "alignItems": "center",
+                                  "flexDirection": "row",
+                                  "justifyContent": "space-between",
+                                  "marginHorizontal": 16,
+                                  "marginVertical": 24,
                                 }
                               }
                             >
                               <Text
+                                accessibilityRole="text"
                                 style={
                                   Object {
-                                    "color": "#535A61",
-                                    "fontFamily": "Euclid Circular B",
-                                    "fontSize": 14,
-                                    "fontWeight": "400",
-                                    "letterSpacing": 0,
-                                    "lineHeight": 22,
-                                    "marginBottom": 8,
-                                  }
-                                }
-                              >
-                                Don't see your token?
-                              </Text>
-                               
-                              <Text
-                                style={
-                                  Object {
-                                    "color": "#0376C9",
+                                    "color": "#24272A",
                                     "fontFamily": "EuclidCircularB-Regular",
-                                    "fontSize": 14,
-                                    "fontWeight": "400",
+                                    "fontSize": 32,
+                                    "fontWeight": "500",
                                     "letterSpacing": 0,
-                                    "lineHeight": 22,
+                                    "lineHeight": 40,
+                                  }
+                                }
+                                testID="total-balance-text"
+                              >
+                                0 USD
+                              </Text>
+                              <TouchableOpacity
+                                activeOpacity={1}
+                                onPress={[Function]}
+                                onPressIn={[Function]}
+                                onPressOut={[Function]}
+                                style={
+                                  Object {
+                                    "alignItems": "center",
+                                    "alignSelf": "stretch",
+                                    "backgroundColor": "transparent",
+                                    "borderColor": "#0376C9",
+                                    "borderRadius": 20,
+                                    "borderWidth": 1,
+                                    "flexDirection": "row",
+                                    "height": 40,
+                                    "justifyContent": "center",
+                                    "marginVertical": 5,
+                                    "paddingHorizontal": 16,
+                                  }
+                                }
+                                testID="portfolio-button"
+                                variant="Secondary"
+                              >
+                                <Text
+                                  accessibilityRole="text"
+                                  style={
+                                    Object {
+                                      "color": "#0376C9",
+                                      "fontFamily": "Euclid Circular B",
+                                      "fontSize": 14,
+                                      "fontWeight": "400",
+                                      "letterSpacing": 0,
+                                      "lineHeight": 22,
+                                    }
+                                  }
+                                >
+                                  Portfolio
+                                </Text>
+                                <SvgMock
+                                  color="#0376C9"
+                                  height={16}
+                                  name="Export"
+                                  style={
+                                    Object {
+                                      "height": 16,
+                                      "marginLeft": 8,
+                                      "width": 16,
+                                    }
+                                  }
+                                  width={16}
+                                />
+                              </TouchableOpacity>
+                            </View>
+                          </View>
+                          <View
+                            onFocusCapture={[Function]}
+                            onLayout={[Function]}
+                            style={null}
+                          >
+                            <TouchableOpacity
+                              onLongPress={[Function]}
+                              onPress={[Function]}
+                              style={
+                                Object {
+                                  "alignItems": "flex-start",
+                                  "flex": 1,
+                                  "flexDirection": "row",
+                                  "paddingHorizontal": 15,
+                                  "paddingVertical": 10,
+                                }
+                              }
+                              testID="asset-ETH"
+                            >
+                              <View
+                                onLayout={[Function]}
+                                style={
+                                  Object {
+                                    "alignSelf": "flex-start",
+                                    "position": "relative",
+                                  }
+                                }
+                                testID="badge-wrapper-badge"
+                              >
+                                <View>
+                                  <View
+                                    useNativeDriver={true}
+                                  >
+                                    <Image
+                                      fadeIn={true}
+                                      onError={[Function]}
+                                      onLoadEnd={[Function]}
+                                      source={
+                                        Object {
+                                          "uri": undefined,
+                                        }
+                                      }
+                                      style={
+                                        Array [
+                                          Object {
+                                            "borderRadius": 12,
+                                            "height": 24,
+                                            "width": 24,
+                                          },
+                                          undefined,
+                                          undefined,
+                                          undefined,
+                                          Object {
+                                            "borderRadius": 16,
+                                            "height": 32,
+                                            "overflow": "hidden",
+                                            "width": 32,
+                                          },
+                                        ]
+                                      }
+                                    />
+                                    <View
+                                      collapsable={false}
+                                      style={
+                                        Object {
+                                          "bottom": 0,
+                                          "left": 0,
+                                          "opacity": 1,
+                                          "position": "absolute",
+                                          "right": 0,
+                                          "top": 0,
+                                        }
+                                      }
+                                    >
+                                      <View
+                                        style={
+                                          Array [
+                                            Object {
+                                              "borderRadius": 16,
+                                              "height": 32,
+                                              "overflow": "hidden",
+                                              "width": 32,
+                                            },
+                                            Object {
+                                              "backgroundColor": "#eee",
+                                            },
+                                            undefined,
+                                          ]
+                                        }
+                                      />
+                                    </View>
+                                  </View>
+                                </View>
+                                <View
+                                  style={
+                                    Object {
+                                      "alignItems": "center",
+                                      "aspectRatio": 1,
+                                      "height": 0,
+                                      "justifyContent": "center",
+                                      "position": "absolute",
+                                      "right": 0,
+                                      "top": 0,
+                                      "transform": Array [
+                                        Object {
+                                          "translateX": 0,
+                                        },
+                                        Object {
+                                          "translateY": -0,
+                                        },
+                                      ],
+                                    }
+                                  }
+                                >
+                                  <View
+                                    onLayout={[Function]}
+                                    style={
+                                      Object {
+                                        "alignItems": "center",
+                                        "aspectRatio": 1,
+                                        "height": "50%",
+                                        "justifyContent": "center",
+                                        "minHeight": 16,
+                                        "opacity": 0,
+                                      }
+                                    }
+                                    testID="badge-network"
+                                  >
+                                    <View
+                                      style={
+                                        Object {
+                                          "backgroundColor": "#FFFFFF",
+                                          "borderRadius": 16,
+                                          "height": 32,
+                                          "overflow": "hidden",
+                                          "transform": Array [
+                                            Object {
+                                              "scale": 1,
+                                            },
+                                          ],
+                                          "width": 32,
+                                        }
+                                      }
+                                    >
+                                      <Image
+                                        onError={[Function]}
+                                        resizeMode="contain"
+                                        source={
+                                          Object {
+                                            "uri": "MockImage",
+                                          }
+                                        }
+                                        style={
+                                          Object {
+                                            "flex": 1,
+                                            "height": undefined,
+                                            "width": undefined,
+                                          }
+                                        }
+                                        testID="network-avatar-image"
+                                      />
+                                    </View>
+                                  </View>
+                                </View>
+                              </View>
+                              <View
+                                style={
+                                  Object {
+                                    "flex": 1,
+                                    "justifyContent": "center",
+                                    "marginLeft": 20,
+                                  }
+                                }
+                                testID="balance"
+                              >
+                                <Text
+                                  accessibilityRole="text"
+                                  style={
+                                    Object {
+                                      "color": "#24272A",
+                                      "fontFamily": "Euclid Circular B",
+                                      "fontSize": 16,
+                                      "fontWeight": "500",
+                                      "letterSpacing": 0,
+                                      "lineHeight": 24,
+                                    }
+                                  }
+                                >
+                                  Ethereum
+                                </Text>
+                                <Text
+                                  accessibilityRole="text"
+                                  style={
+                                    Object {
+                                      "color": "#535A61",
+                                      "fontFamily": "EuclidCircularB-Regular",
+                                      "fontSize": 14,
+                                      "fontWeight": "400",
+                                      "letterSpacing": 0,
+                                      "lineHeight": 22,
+                                      "textTransform": "uppercase",
+                                    }
+                                  }
+                                >
+                                  &lt; $0.01
+                                </Text>
+                              </View>
+                              <Text
+                                accessibilityRole="text"
+                                style={
+                                  Object {
+                                    "color": "#24272A",
+                                    "fontFamily": "Euclid Circular B",
+                                    "fontSize": 16,
+                                    "fontWeight": "500",
+                                    "letterSpacing": 0,
+                                    "lineHeight": 24,
                                   }
                                 }
                               >
-                                Import tokens
+                                 ETH
                               </Text>
-                            </Text>
-                          </TouchableOpacity>
+                            </TouchableOpacity>
+                          </View>
+                          <View
+                            onFocusCapture={[Function]}
+                            onLayout={[Function]}
+                            style={null}
+                          >
+                            <TouchableOpacity
+                              onLongPress={[Function]}
+                              onPress={[Function]}
+                              style={
+                                Object {
+                                  "alignItems": "flex-start",
+                                  "flex": 1,
+                                  "flexDirection": "row",
+                                  "paddingHorizontal": 15,
+                                  "paddingVertical": 10,
+                                }
+                              }
+                              testID="asset-BAT"
+                            >
+                              <View
+                                onLayout={[Function]}
+                                style={
+                                  Object {
+                                    "alignSelf": "flex-start",
+                                    "position": "relative",
+                                  }
+                                }
+                                testID="badge-wrapper-badge"
+                              >
+                                <View>
+                                  <View
+                                    style={
+                                      Object {
+                                        "backgroundColor": "#FFFFFF",
+                                        "borderRadius": 16,
+                                        "height": 32,
+                                        "overflow": "hidden",
+                                        "width": 32,
+                                      }
+                                    }
+                                  >
+                                    <Image
+                                      onError={[Function]}
+                                      resizeMode="contain"
+                                      source={
+                                        Object {
+                                          "uri": undefined,
+                                        }
+                                      }
+                                      style={
+                                        Object {
+                                          "flex": 1,
+                                          "height": undefined,
+                                          "width": undefined,
+                                        }
+                                      }
+                                      testID="token-avatar-image"
+                                    />
+                                  </View>
+                                </View>
+                                <View
+                                  style={
+                                    Object {
+                                      "alignItems": "center",
+                                      "aspectRatio": 1,
+                                      "height": 0,
+                                      "justifyContent": "center",
+                                      "position": "absolute",
+                                      "right": 0,
+                                      "top": 0,
+                                      "transform": Array [
+                                        Object {
+                                          "translateX": 0,
+                                        },
+                                        Object {
+                                          "translateY": -0,
+                                        },
+                                      ],
+                                    }
+                                  }
+                                >
+                                  <View
+                                    onLayout={[Function]}
+                                    style={
+                                      Object {
+                                        "alignItems": "center",
+                                        "aspectRatio": 1,
+                                        "height": "50%",
+                                        "justifyContent": "center",
+                                        "minHeight": 16,
+                                        "opacity": 0,
+                                      }
+                                    }
+                                    testID="badge-network"
+                                  >
+                                    <View
+                                      style={
+                                        Object {
+                                          "backgroundColor": "#FFFFFF",
+                                          "borderRadius": 16,
+                                          "height": 32,
+                                          "overflow": "hidden",
+                                          "transform": Array [
+                                            Object {
+                                              "scale": 1,
+                                            },
+                                          ],
+                                          "width": 32,
+                                        }
+                                      }
+                                    >
+                                      <Image
+                                        onError={[Function]}
+                                        resizeMode="contain"
+                                        source={
+                                          Object {
+                                            "uri": "MockImage",
+                                          }
+                                        }
+                                        style={
+                                          Object {
+                                            "flex": 1,
+                                            "height": undefined,
+                                            "width": undefined,
+                                          }
+                                        }
+                                        testID="network-avatar-image"
+                                      />
+                                    </View>
+                                  </View>
+                                </View>
+                              </View>
+                              <View
+                                style={
+                                  Object {
+                                    "flex": 1,
+                                    "justifyContent": "center",
+                                    "marginLeft": 20,
+                                  }
+                                }
+                                testID="balance"
+                              >
+                                <Text
+                                  accessibilityRole="text"
+                                  style={
+                                    Object {
+                                      "color": "#24272A",
+                                      "fontFamily": "Euclid Circular B",
+                                      "fontSize": 16,
+                                      "fontWeight": "500",
+                                      "letterSpacing": 0,
+                                      "lineHeight": 24,
+                                    }
+                                  }
+                                >
+                                  Bat
+                                </Text>
+                                <Text
+                                  accessibilityRole="text"
+                                  style={
+                                    Object {
+                                      "color": "#535A61",
+                                      "fontFamily": "EuclidCircularB-Regular",
+                                      "fontSize": 14,
+                                      "fontWeight": "400",
+                                      "letterSpacing": 0,
+                                      "lineHeight": 22,
+                                      "textTransform": "uppercase",
+                                    }
+                                  }
+                                >
+                                  &lt; $0.01
+                                </Text>
+                              </View>
+                              <Text
+                                accessibilityRole="text"
+                                style={
+                                  Object {
+                                    "color": "#24272A",
+                                    "fontFamily": "Euclid Circular B",
+                                    "fontSize": 16,
+                                    "fontWeight": "500",
+                                    "letterSpacing": 0,
+                                    "lineHeight": 24,
+                                  }
+                                }
+                              >
+                                &lt; 0.00001 BAT
+                              </Text>
+                            </TouchableOpacity>
+                          </View>
+                          <View
+                            onLayout={[Function]}
+                          >
+                            <View
+                              style={
+                                Object {
+                                  "alignItems": "center",
+                                  "flex": 1,
+                                  "marginTop": 9,
+                                  "paddingBottom": 30,
+                                }
+                              }
+                            >
+                              <TouchableOpacity
+                                disabled={false}
+                                onPress={[Function]}
+                                style={
+                                  Object {
+                                    "alignItems": "center",
+                                    "flexDirection": "row",
+                                    "justifyContent": "center",
+                                  }
+                                }
+                                testID="import-token-button"
+                              >
+                                <Text
+                                  accessibilityRole="text"
+                                  style={
+                                    Object {
+                                      "color": "#24272A",
+                                      "fontFamily": "Euclid Circular B",
+                                      "fontSize": 14,
+                                      "fontWeight": "400",
+                                      "letterSpacing": 0,
+                                      "lineHeight": 22,
+                                      "textAlign": "center",
+                                    }
+                                  }
+                                >
+                                  <Text
+                                    accessibilityRole="text"
+                                    style={
+                                      Object {
+                                        "color": "#535A61",
+                                        "fontFamily": "Euclid Circular B",
+                                        "fontSize": 14,
+                                        "fontWeight": "400",
+                                        "letterSpacing": 0,
+                                        "lineHeight": 22,
+                                        "marginBottom": 8,
+                                      }
+                                    }
+                                  >
+                                    Don't see your token?
+                                  </Text>
+                                   
+                                  <Text
+                                    accessibilityRole="text"
+                                    style={
+                                      Object {
+                                        "color": "#0376C9",
+                                        "fontFamily": "EuclidCircularB-Regular",
+                                        "fontSize": 14,
+                                        "fontWeight": "400",
+                                        "letterSpacing": 0,
+                                        "lineHeight": 22,
+                                      }
+                                    }
+                                  >
+                                    Import tokens
+                                  </Text>
+                                </Text>
+                              </TouchableOpacity>
+                            </View>
+                          </View>
                         </View>
-                      </View>
+                      </RCTScrollView>
                     </View>
                   </View>
                 </View>
@@ -1384,6 +2012,7 @@ exports[`Tokens should show all balance tokens when hideZeroBalanceTokens settin
     }
   >
     <View
+      collapsable={false}
       pointerEvents="box-none"
       style={
         Object {
@@ -1399,6 +2028,7 @@ exports[`Tokens should show all balance tokens when hideZeroBalanceTokens settin
         style={null}
       >
         <View
+          collapsable={false}
           pointerEvents="box-none"
           style={
             Object {
@@ -1413,6 +2043,7 @@ exports[`Tokens should show all balance tokens when hideZeroBalanceTokens settin
           }
         >
           <View
+            collapsable={false}
             style={
               Object {
                 "backgroundColor": "rgb(255, 255, 255)",
@@ -1430,6 +2061,7 @@ exports[`Tokens should show all balance tokens when hideZeroBalanceTokens settin
           />
         </View>
         <View
+          collapsable={false}
           pointerEvents="box-none"
           style={
             Object {
@@ -1461,6 +2093,7 @@ exports[`Tokens should show all balance tokens when hideZeroBalanceTokens settin
             }
           >
             <View
+              collapsable={false}
               pointerEvents="box-none"
               style={
                 Object {
@@ -1473,7 +2106,6 @@ exports[`Tokens should show all balance tokens when hideZeroBalanceTokens settin
                 accessibilityRole="header"
                 aria-level="1"
                 collapsable={false}
-                nativeID="animatedComponent"
                 numberOfLines={1}
                 onLayout={[Function]}
                 style={
@@ -1501,7 +2133,16 @@ exports[`Tokens should show all balance tokens when hideZeroBalanceTokens settin
     >
       <RNSScreen
         activityState={2}
+        collapsable={false}
         forwardedRef={[Function]}
+        gestureResponseDistance={
+          Object {
+            "bottom": -1,
+            "end": -1,
+            "start": -1,
+            "top": -1,
+          }
+        }
         pointerEvents="box-none"
         style={
           Object {
@@ -1576,7 +2217,6 @@ exports[`Tokens should show all balance tokens when hideZeroBalanceTokens settin
         >
           <View
             collapsable={false}
-            nativeID="animatedComponent"
             needsOffscreenAlphaCompositing={false}
             pointerEvents="box-none"
             style={
@@ -1605,6 +2245,7 @@ exports[`Tokens should show all balance tokens when hideZeroBalanceTokens settin
               }
             >
               <View
+                collapsable={false}
                 pointerEvents="none"
                 style={
                   Object {
@@ -1660,511 +2301,879 @@ exports[`Tokens should show all balance tokens when hideZeroBalanceTokens settin
                         Object {
                           "backgroundColor": "#FFFFFF",
                           "flex": 1,
-                          "minHeight": 500,
                         }
                       }
                       testID="tokens"
                     >
-                      <View>
-                        <TouchableOpacity
-                          onLongPress={[Function]}
-                          onPress={[Function]}
-                          style={
-                            Object {
-                              "alignItems": "flex-start",
-                              "flex": 1,
-                              "flexDirection": "row",
-                              "paddingHorizontal": 15,
-                              "paddingVertical": 10,
-                            }
-                          }
-                          testID="asset-ETH"
-                        >
+                      <RCTScrollView
+                        ListFooterComponent={[Function]}
+                        ListHeaderComponent={
                           <View
-                            onLayout={[Function]}
-                            style={
-                              Object {
-                                "alignSelf": "flex-start",
-                                "position": "relative",
-                              }
-                            }
-                            testID="badge-wrapper-badge"
-                          >
-                            <View>
-                              <View
-                                useNativeDriver={true}
-                              >
-                                <Image
-                                  fadeIn={true}
-                                  onError={[Function]}
-                                  onLoadEnd={[Function]}
-                                  source={
-                                    Object {
-                                      "uri": undefined,
-                                    }
-                                  }
-                                  style={
-                                    Array [
-                                      Object {
-                                        "borderRadius": 12,
-                                        "height": 24,
-                                        "width": 24,
-                                      },
-                                      undefined,
-                                      undefined,
-                                      undefined,
-                                      Object {
-                                        "borderRadius": 12,
-                                        "height": 24,
-                                        "overflow": "hidden",
-                                        "width": 24,
-                                      },
-                                    ]
-                                  }
-                                />
-                                <View
-                                  collapsable={false}
-                                  nativeID="animatedComponent"
-                                  style={
-                                    Object {
-                                      "bottom": 0,
-                                      "left": 0,
-                                      "opacity": 1,
-                                      "position": "absolute",
-                                      "right": 0,
-                                      "top": 0,
-                                    }
-                                  }
-                                >
-                                  <View
-                                    style={
-                                      Array [
-                                        Object {
-                                          "borderRadius": 12,
-                                          "height": 24,
-                                          "overflow": "hidden",
-                                          "width": 24,
-                                        },
-                                        Object {
-                                          "backgroundColor": "#eee",
-                                        },
-                                        undefined,
-                                      ]
-                                    }
-                                  />
-                                </View>
-                              </View>
-                            </View>
-                            <View
-                              style={
-                                Object {
-                                  "alignItems": "center",
-                                  "aspectRatio": 1,
-                                  "height": 0,
-                                  "justifyContent": "center",
-                                  "position": "absolute",
-                                  "right": 0,
-                                  "top": 0,
-                                  "transform": Array [
-                                    Object {
-                                      "translateX": 0,
-                                    },
-                                    Object {
-                                      "translateY": -0,
-                                    },
-                                  ],
-                                }
-                              }
-                            />
-                          </View>
-                          <View
-                            style={
-                              Object {
-                                "flex": 1,
-                                "justifyContent": "center",
-                                "marginLeft": 20,
-                              }
-                            }
-                            testID="balance"
-                          >
-                            <Text
-                              style={
-                                Object {
-                                  "color": "#24272A",
-                                  "fontFamily": "Euclid Circular B",
-                                  "fontSize": 16,
-                                  "fontWeight": "500",
-                                  "letterSpacing": 0,
-                                  "lineHeight": 24,
-                                }
-                              }
-                            >
-                              Ethereum
-                            </Text>
-                            <Text
-                              style={
-                                Object {
-                                  "color": "#535A61",
-                                  "fontFamily": "EuclidCircularB-Regular",
-                                  "fontSize": 14,
-                                  "fontWeight": "400",
-                                  "letterSpacing": 0,
-                                  "lineHeight": 22,
-                                  "textTransform": "uppercase",
-                                }
-                              }
-                            >
-                              &lt; $0.01
-                            </Text>
-                          </View>
-                          <Text
-                            style={
-                              Object {
-                                "color": "#24272A",
-                                "fontFamily": "Euclid Circular B",
-                                "fontSize": 16,
-                                "fontWeight": "500",
-                                "letterSpacing": 0,
-                                "lineHeight": 24,
-                              }
-                            }
-                          >
-                             ETH
-                          </Text>
-                        </TouchableOpacity>
-                        <TouchableOpacity
-                          onLongPress={[Function]}
-                          onPress={[Function]}
-                          style={
-                            Object {
-                              "alignItems": "flex-start",
-                              "flex": 1,
-                              "flexDirection": "row",
-                              "paddingHorizontal": 15,
-                              "paddingVertical": 10,
-                            }
-                          }
-                          testID="asset-BAT"
-                        >
-                          <View
-                            onLayout={[Function]}
-                            style={
-                              Object {
-                                "alignSelf": "flex-start",
-                                "position": "relative",
-                              }
-                            }
-                            testID="badge-wrapper-badge"
-                          >
-                            <View>
-                              <View
-                                style={
-                                  Object {
-                                    "backgroundColor": "#FFFFFF",
-                                    "borderRadius": 12,
-                                    "height": 24,
-                                    "overflow": "hidden",
-                                    "width": 24,
-                                  }
-                                }
-                              >
-                                <Image
-                                  onError={[Function]}
-                                  resizeMode="contain"
-                                  source={
-                                    Object {
-                                      "uri": undefined,
-                                    }
-                                  }
-                                  style={
-                                    Object {
-                                      "flex": 1,
-                                      "height": undefined,
-                                      "width": undefined,
-                                    }
-                                  }
-                                  testID="token-avatar-image"
-                                />
-                              </View>
-                            </View>
-                            <View
-                              style={
-                                Object {
-                                  "alignItems": "center",
-                                  "aspectRatio": 1,
-                                  "height": 0,
-                                  "justifyContent": "center",
-                                  "position": "absolute",
-                                  "right": 0,
-                                  "top": 0,
-                                  "transform": Array [
-                                    Object {
-                                      "translateX": 0,
-                                    },
-                                    Object {
-                                      "translateY": -0,
-                                    },
-                                  ],
-                                }
-                              }
-                            />
-                          </View>
-                          <View
-                            style={
-                              Object {
-                                "flex": 1,
-                                "justifyContent": "center",
-                                "marginLeft": 20,
-                              }
-                            }
-                            testID="balance"
-                          >
-                            <Text
-                              style={
-                                Object {
-                                  "color": "#24272A",
-                                  "fontFamily": "Euclid Circular B",
-                                  "fontSize": 16,
-                                  "fontWeight": "500",
-                                  "letterSpacing": 0,
-                                  "lineHeight": 24,
-                                }
-                              }
-                            >
-                              Bat
-                            </Text>
-                            <Text
-                              style={
-                                Object {
-                                  "color": "#535A61",
-                                  "fontFamily": "EuclidCircularB-Regular",
-                                  "fontSize": 14,
-                                  "fontWeight": "400",
-                                  "letterSpacing": 0,
-                                  "lineHeight": 22,
-                                  "textTransform": "uppercase",
-                                }
-                              }
-                            >
-                              &lt; $0.01
-                            </Text>
-                          </View>
-                          <Text
-                            style={
-                              Object {
-                                "color": "#24272A",
-                                "fontFamily": "Euclid Circular B",
-                                "fontSize": 16,
-                                "fontWeight": "500",
-                                "letterSpacing": 0,
-                                "lineHeight": 24,
-                              }
-                            }
-                          >
-                            &lt; 0.00001 BAT
-                          </Text>
-                        </TouchableOpacity>
-                        <TouchableOpacity
-                          onLongPress={[Function]}
-                          onPress={[Function]}
-                          style={
-                            Object {
-                              "alignItems": "flex-start",
-                              "flex": 1,
-                              "flexDirection": "row",
-                              "paddingHorizontal": 15,
-                              "paddingVertical": 10,
-                            }
-                          }
-                          testID="asset-LINK"
-                        >
-                          <View
-                            onLayout={[Function]}
-                            style={
-                              Object {
-                                "alignSelf": "flex-start",
-                                "position": "relative",
-                              }
-                            }
-                            testID="badge-wrapper-badge"
-                          >
-                            <View>
-                              <View
-                                style={
-                                  Object {
-                                    "backgroundColor": "#FFFFFF",
-                                    "borderRadius": 12,
-                                    "height": 24,
-                                    "overflow": "hidden",
-                                    "width": 24,
-                                  }
-                                }
-                              >
-                                <Image
-                                  onError={[Function]}
-                                  resizeMode="contain"
-                                  source={
-                                    Object {
-                                      "uri": undefined,
-                                    }
-                                  }
-                                  style={
-                                    Object {
-                                      "flex": 1,
-                                      "height": undefined,
-                                      "width": undefined,
-                                    }
-                                  }
-                                  testID="token-avatar-image"
-                                />
-                              </View>
-                            </View>
-                            <View
-                              style={
-                                Object {
-                                  "alignItems": "center",
-                                  "aspectRatio": 1,
-                                  "height": 0,
-                                  "justifyContent": "center",
-                                  "position": "absolute",
-                                  "right": 0,
-                                  "top": 0,
-                                  "transform": Array [
-                                    Object {
-                                      "translateX": 0,
-                                    },
-                                    Object {
-                                      "translateY": -0,
-                                    },
-                                  ],
-                                }
-                              }
-                            />
-                          </View>
-                          <View
-                            style={
-                              Object {
-                                "flex": 1,
-                                "justifyContent": "center",
-                                "marginLeft": 20,
-                              }
-                            }
-                            testID="balance"
-                          >
-                            <Text
-                              style={
-                                Object {
-                                  "color": "#24272A",
-                                  "fontFamily": "Euclid Circular B",
-                                  "fontSize": 16,
-                                  "fontWeight": "500",
-                                  "letterSpacing": 0,
-                                  "lineHeight": 24,
-                                }
-                              }
-                            >
-                              Link
-                            </Text>
-                            <Text
-                              style={
-                                Object {
-                                  "color": "#535A61",
-                                  "fontFamily": "EuclidCircularB-Regular",
-                                  "fontSize": 14,
-                                  "fontWeight": "400",
-                                  "letterSpacing": 0,
-                                  "lineHeight": 22,
-                                  "textTransform": "uppercase",
-                                }
-                              }
-                            >
-                              &lt; $0.01
-                            </Text>
-                          </View>
-                          <Text
-                            style={
-                              Object {
-                                "color": "#24272A",
-                                "fontFamily": "Euclid Circular B",
-                                "fontSize": 16,
-                                "fontWeight": "500",
-                                "letterSpacing": 0,
-                                "lineHeight": 24,
-                              }
-                            }
-                          >
-                            0 LINK
-                          </Text>
-                        </TouchableOpacity>
-                        <View
-                          style={
-                            Object {
-                              "alignItems": "center",
-                              "flex": 1,
-                              "marginTop": 9,
-                              "paddingBottom": 30,
-                            }
-                          }
-                        >
-                          <TouchableOpacity
-                            disabled={false}
-                            onPress={[Function]}
                             style={
                               Object {
                                 "alignItems": "center",
                                 "flexDirection": "row",
-                                "justifyContent": "center",
+                                "justifyContent": "space-between",
+                                "marginHorizontal": 16,
+                                "marginVertical": 24,
                               }
                             }
-                            testID="import-token-button"
                           >
                             <Text
                               style={
                                 Object {
-                                  "color": "#24272A",
-                                  "fontFamily": "Euclid Circular B",
-                                  "fontSize": 14,
-                                  "fontWeight": "400",
-                                  "letterSpacing": 0,
-                                  "lineHeight": 22,
-                                  "textAlign": "center",
+                                  "fontFamily": "EuclidCircularB-Regular",
+                                  "fontSize": 32,
+                                  "fontWeight": "500",
+                                  "lineHeight": 40,
+                                }
+                              }
+                              testID="total-balance-text"
+                            >
+                              0 USD
+                            </Text>
+                            <Button
+                              endIconName="Export"
+                              label="Portfolio"
+                              onPress={[Function]}
+                              size="40"
+                              style={
+                                Object {
+                                  "marginVertical": 5,
+                                }
+                              }
+                              testID="portfolio-button"
+                              variant="Secondary"
+                              width="full"
+                            />
+                          </View>
+                        }
+                        data={
+                          Array [
+                            Object {
+                              "address": "0x0",
+                              "balanceFiat": "< $0.01",
+                              "decimals": 18,
+                              "iconUrl": "",
+                              "isETH": true,
+                              "name": "Ethereum",
+                              "symbol": "ETH",
+                            },
+                            Object {
+                              "address": "0x01",
+                              "balanceFiat": "$0",
+                              "decimals": 18,
+                              "iconUrl": "",
+                              "name": "Bat",
+                              "symbol": "BAT",
+                            },
+                            Object {
+                              "address": "0x02",
+                              "balanceFiat": "$0",
+                              "decimals": 18,
+                              "iconUrl": "",
+                              "name": "Link",
+                              "symbol": "LINK",
+                            },
+                          ]
+                        }
+                        getItem={[Function]}
+                        getItemCount={[Function]}
+                        keyExtractor={[Function]}
+                        onContentSizeChange={[Function]}
+                        onLayout={[Function]}
+                        onMomentumScrollBegin={[Function]}
+                        onMomentumScrollEnd={[Function]}
+                        onScroll={[Function]}
+                        onScrollBeginDrag={[Function]}
+                        onScrollEndDrag={[Function]}
+                        refreshControl={
+                          <RefreshControlMock
+                            colors={
+                              Array [
+                                "#0376C9",
+                              ]
+                            }
+                            onRefresh={[Function]}
+                            refreshing={false}
+                            tintColor="#24272A"
+                          />
+                        }
+                        removeClippedSubviews={false}
+                        renderItem={[Function]}
+                        scrollEventThrottle={50}
+                        stickyHeaderIndices={Array []}
+                        viewabilityConfigCallbackPairs={Array []}
+                      >
+                        <RCTRefreshControl />
+                        <View>
+                          <View
+                            onLayout={[Function]}
+                          >
+                            <View
+                              style={
+                                Object {
+                                  "alignItems": "center",
+                                  "flexDirection": "row",
+                                  "justifyContent": "space-between",
+                                  "marginHorizontal": 16,
+                                  "marginVertical": 24,
                                 }
                               }
                             >
                               <Text
+                                accessibilityRole="text"
                                 style={
                                   Object {
-                                    "color": "#535A61",
-                                    "fontFamily": "Euclid Circular B",
-                                    "fontSize": 14,
-                                    "fontWeight": "400",
-                                    "letterSpacing": 0,
-                                    "lineHeight": 22,
-                                    "marginBottom": 8,
-                                  }
-                                }
-                              >
-                                Don't see your token?
-                              </Text>
-                               
-                              <Text
-                                style={
-                                  Object {
-                                    "color": "#0376C9",
+                                    "color": "#24272A",
                                     "fontFamily": "EuclidCircularB-Regular",
-                                    "fontSize": 14,
-                                    "fontWeight": "400",
+                                    "fontSize": 32,
+                                    "fontWeight": "500",
                                     "letterSpacing": 0,
-                                    "lineHeight": 22,
+                                    "lineHeight": 40,
+                                  }
+                                }
+                                testID="total-balance-text"
+                              >
+                                0 USD
+                              </Text>
+                              <TouchableOpacity
+                                activeOpacity={1}
+                                onPress={[Function]}
+                                onPressIn={[Function]}
+                                onPressOut={[Function]}
+                                style={
+                                  Object {
+                                    "alignItems": "center",
+                                    "alignSelf": "stretch",
+                                    "backgroundColor": "transparent",
+                                    "borderColor": "#0376C9",
+                                    "borderRadius": 20,
+                                    "borderWidth": 1,
+                                    "flexDirection": "row",
+                                    "height": 40,
+                                    "justifyContent": "center",
+                                    "marginVertical": 5,
+                                    "paddingHorizontal": 16,
+                                  }
+                                }
+                                testID="portfolio-button"
+                                variant="Secondary"
+                              >
+                                <Text
+                                  accessibilityRole="text"
+                                  style={
+                                    Object {
+                                      "color": "#0376C9",
+                                      "fontFamily": "Euclid Circular B",
+                                      "fontSize": 14,
+                                      "fontWeight": "400",
+                                      "letterSpacing": 0,
+                                      "lineHeight": 22,
+                                    }
+                                  }
+                                >
+                                  Portfolio
+                                </Text>
+                                <SvgMock
+                                  color="#0376C9"
+                                  height={16}
+                                  name="Export"
+                                  style={
+                                    Object {
+                                      "height": 16,
+                                      "marginLeft": 8,
+                                      "width": 16,
+                                    }
+                                  }
+                                  width={16}
+                                />
+                              </TouchableOpacity>
+                            </View>
+                          </View>
+                          <View
+                            onFocusCapture={[Function]}
+                            onLayout={[Function]}
+                            style={null}
+                          >
+                            <TouchableOpacity
+                              onLongPress={[Function]}
+                              onPress={[Function]}
+                              style={
+                                Object {
+                                  "alignItems": "flex-start",
+                                  "flex": 1,
+                                  "flexDirection": "row",
+                                  "paddingHorizontal": 15,
+                                  "paddingVertical": 10,
+                                }
+                              }
+                              testID="asset-ETH"
+                            >
+                              <View
+                                onLayout={[Function]}
+                                style={
+                                  Object {
+                                    "alignSelf": "flex-start",
+                                    "position": "relative",
+                                  }
+                                }
+                                testID="badge-wrapper-badge"
+                              >
+                                <View>
+                                  <View
+                                    useNativeDriver={true}
+                                  >
+                                    <Image
+                                      fadeIn={true}
+                                      onError={[Function]}
+                                      onLoadEnd={[Function]}
+                                      source={
+                                        Object {
+                                          "uri": undefined,
+                                        }
+                                      }
+                                      style={
+                                        Array [
+                                          Object {
+                                            "borderRadius": 12,
+                                            "height": 24,
+                                            "width": 24,
+                                          },
+                                          undefined,
+                                          undefined,
+                                          undefined,
+                                          Object {
+                                            "borderRadius": 16,
+                                            "height": 32,
+                                            "overflow": "hidden",
+                                            "width": 32,
+                                          },
+                                        ]
+                                      }
+                                    />
+                                    <View
+                                      collapsable={false}
+                                      style={
+                                        Object {
+                                          "bottom": 0,
+                                          "left": 0,
+                                          "opacity": 1,
+                                          "position": "absolute",
+                                          "right": 0,
+                                          "top": 0,
+                                        }
+                                      }
+                                    >
+                                      <View
+                                        style={
+                                          Array [
+                                            Object {
+                                              "borderRadius": 16,
+                                              "height": 32,
+                                              "overflow": "hidden",
+                                              "width": 32,
+                                            },
+                                            Object {
+                                              "backgroundColor": "#eee",
+                                            },
+                                            undefined,
+                                          ]
+                                        }
+                                      />
+                                    </View>
+                                  </View>
+                                </View>
+                                <View
+                                  style={
+                                    Object {
+                                      "alignItems": "center",
+                                      "aspectRatio": 1,
+                                      "height": 0,
+                                      "justifyContent": "center",
+                                      "position": "absolute",
+                                      "right": 0,
+                                      "top": 0,
+                                      "transform": Array [
+                                        Object {
+                                          "translateX": 0,
+                                        },
+                                        Object {
+                                          "translateY": -0,
+                                        },
+                                      ],
+                                    }
+                                  }
+                                >
+                                  <View
+                                    onLayout={[Function]}
+                                    style={
+                                      Object {
+                                        "alignItems": "center",
+                                        "aspectRatio": 1,
+                                        "height": "50%",
+                                        "justifyContent": "center",
+                                        "minHeight": 16,
+                                        "opacity": 0,
+                                      }
+                                    }
+                                    testID="badge-network"
+                                  >
+                                    <View
+                                      style={
+                                        Object {
+                                          "backgroundColor": "#FFFFFF",
+                                          "borderRadius": 16,
+                                          "height": 32,
+                                          "overflow": "hidden",
+                                          "transform": Array [
+                                            Object {
+                                              "scale": 1,
+                                            },
+                                          ],
+                                          "width": 32,
+                                        }
+                                      }
+                                    >
+                                      <Image
+                                        onError={[Function]}
+                                        resizeMode="contain"
+                                        source={
+                                          Object {
+                                            "uri": "MockImage",
+                                          }
+                                        }
+                                        style={
+                                          Object {
+                                            "flex": 1,
+                                            "height": undefined,
+                                            "width": undefined,
+                                          }
+                                        }
+                                        testID="network-avatar-image"
+                                      />
+                                    </View>
+                                  </View>
+                                </View>
+                              </View>
+                              <View
+                                style={
+                                  Object {
+                                    "flex": 1,
+                                    "justifyContent": "center",
+                                    "marginLeft": 20,
+                                  }
+                                }
+                                testID="balance"
+                              >
+                                <Text
+                                  accessibilityRole="text"
+                                  style={
+                                    Object {
+                                      "color": "#24272A",
+                                      "fontFamily": "Euclid Circular B",
+                                      "fontSize": 16,
+                                      "fontWeight": "500",
+                                      "letterSpacing": 0,
+                                      "lineHeight": 24,
+                                    }
+                                  }
+                                >
+                                  Ethereum
+                                </Text>
+                                <Text
+                                  accessibilityRole="text"
+                                  style={
+                                    Object {
+                                      "color": "#535A61",
+                                      "fontFamily": "EuclidCircularB-Regular",
+                                      "fontSize": 14,
+                                      "fontWeight": "400",
+                                      "letterSpacing": 0,
+                                      "lineHeight": 22,
+                                      "textTransform": "uppercase",
+                                    }
+                                  }
+                                >
+                                  &lt; $0.01
+                                </Text>
+                              </View>
+                              <Text
+                                accessibilityRole="text"
+                                style={
+                                  Object {
+                                    "color": "#24272A",
+                                    "fontFamily": "Euclid Circular B",
+                                    "fontSize": 16,
+                                    "fontWeight": "500",
+                                    "letterSpacing": 0,
+                                    "lineHeight": 24,
                                   }
                                 }
                               >
-                                Import tokens
+                                 ETH
                               </Text>
-                            </Text>
-                          </TouchableOpacity>
+                            </TouchableOpacity>
+                          </View>
+                          <View
+                            onFocusCapture={[Function]}
+                            onLayout={[Function]}
+                            style={null}
+                          >
+                            <TouchableOpacity
+                              onLongPress={[Function]}
+                              onPress={[Function]}
+                              style={
+                                Object {
+                                  "alignItems": "flex-start",
+                                  "flex": 1,
+                                  "flexDirection": "row",
+                                  "paddingHorizontal": 15,
+                                  "paddingVertical": 10,
+                                }
+                              }
+                              testID="asset-BAT"
+                            >
+                              <View
+                                onLayout={[Function]}
+                                style={
+                                  Object {
+                                    "alignSelf": "flex-start",
+                                    "position": "relative",
+                                  }
+                                }
+                                testID="badge-wrapper-badge"
+                              >
+                                <View>
+                                  <View
+                                    style={
+                                      Object {
+                                        "backgroundColor": "#FFFFFF",
+                                        "borderRadius": 16,
+                                        "height": 32,
+                                        "overflow": "hidden",
+                                        "width": 32,
+                                      }
+                                    }
+                                  >
+                                    <Image
+                                      onError={[Function]}
+                                      resizeMode="contain"
+                                      source={
+                                        Object {
+                                          "uri": undefined,
+                                        }
+                                      }
+                                      style={
+                                        Object {
+                                          "flex": 1,
+                                          "height": undefined,
+                                          "width": undefined,
+                                        }
+                                      }
+                                      testID="token-avatar-image"
+                                    />
+                                  </View>
+                                </View>
+                                <View
+                                  style={
+                                    Object {
+                                      "alignItems": "center",
+                                      "aspectRatio": 1,
+                                      "height": 0,
+                                      "justifyContent": "center",
+                                      "position": "absolute",
+                                      "right": 0,
+                                      "top": 0,
+                                      "transform": Array [
+                                        Object {
+                                          "translateX": 0,
+                                        },
+                                        Object {
+                                          "translateY": -0,
+                                        },
+                                      ],
+                                    }
+                                  }
+                                >
+                                  <View
+                                    onLayout={[Function]}
+                                    style={
+                                      Object {
+                                        "alignItems": "center",
+                                        "aspectRatio": 1,
+                                        "height": "50%",
+                                        "justifyContent": "center",
+                                        "minHeight": 16,
+                                        "opacity": 0,
+                                      }
+                                    }
+                                    testID="badge-network"
+                                  >
+                                    <View
+                                      style={
+                                        Object {
+                                          "backgroundColor": "#FFFFFF",
+                                          "borderRadius": 16,
+                                          "height": 32,
+                                          "overflow": "hidden",
+                                          "transform": Array [
+                                            Object {
+                                              "scale": 1,
+                                            },
+                                          ],
+                                          "width": 32,
+                                        }
+                                      }
+                                    >
+                                      <Image
+                                        onError={[Function]}
+                                        resizeMode="contain"
+                                        source={
+                                          Object {
+                                            "uri": "MockImage",
+                                          }
+                                        }
+                                        style={
+                                          Object {
+                                            "flex": 1,
+                                            "height": undefined,
+                                            "width": undefined,
+                                          }
+                                        }
+                                        testID="network-avatar-image"
+                                      />
+                                    </View>
+                                  </View>
+                                </View>
+                              </View>
+                              <View
+                                style={
+                                  Object {
+                                    "flex": 1,
+                                    "justifyContent": "center",
+                                    "marginLeft": 20,
+                                  }
+                                }
+                                testID="balance"
+                              >
+                                <Text
+                                  accessibilityRole="text"
+                                  style={
+                                    Object {
+                                      "color": "#24272A",
+                                      "fontFamily": "Euclid Circular B",
+                                      "fontSize": 16,
+                                      "fontWeight": "500",
+                                      "letterSpacing": 0,
+                                      "lineHeight": 24,
+                                    }
+                                  }
+                                >
+                                  Bat
+                                </Text>
+                                <Text
+                                  accessibilityRole="text"
+                                  style={
+                                    Object {
+                                      "color": "#535A61",
+                                      "fontFamily": "EuclidCircularB-Regular",
+                                      "fontSize": 14,
+                                      "fontWeight": "400",
+                                      "letterSpacing": 0,
+                                      "lineHeight": 22,
+                                      "textTransform": "uppercase",
+                                    }
+                                  }
+                                >
+                                  &lt; $0.01
+                                </Text>
+                              </View>
+                              <Text
+                                accessibilityRole="text"
+                                style={
+                                  Object {
+                                    "color": "#24272A",
+                                    "fontFamily": "Euclid Circular B",
+                                    "fontSize": 16,
+                                    "fontWeight": "500",
+                                    "letterSpacing": 0,
+                                    "lineHeight": 24,
+                                  }
+                                }
+                              >
+                                &lt; 0.00001 BAT
+                              </Text>
+                            </TouchableOpacity>
+                          </View>
+                          <View
+                            onFocusCapture={[Function]}
+                            onLayout={[Function]}
+                            style={null}
+                          >
+                            <TouchableOpacity
+                              onLongPress={[Function]}
+                              onPress={[Function]}
+                              style={
+                                Object {
+                                  "alignItems": "flex-start",
+                                  "flex": 1,
+                                  "flexDirection": "row",
+                                  "paddingHorizontal": 15,
+                                  "paddingVertical": 10,
+                                }
+                              }
+                              testID="asset-LINK"
+                            >
+                              <View
+                                onLayout={[Function]}
+                                style={
+                                  Object {
+                                    "alignSelf": "flex-start",
+                                    "position": "relative",
+                                  }
+                                }
+                                testID="badge-wrapper-badge"
+                              >
+                                <View>
+                                  <View
+                                    style={
+                                      Object {
+                                        "backgroundColor": "#FFFFFF",
+                                        "borderRadius": 16,
+                                        "height": 32,
+                                        "overflow": "hidden",
+                                        "width": 32,
+                                      }
+                                    }
+                                  >
+                                    <Image
+                                      onError={[Function]}
+                                      resizeMode="contain"
+                                      source={
+                                        Object {
+                                          "uri": undefined,
+                                        }
+                                      }
+                                      style={
+                                        Object {
+                                          "flex": 1,
+                                          "height": undefined,
+                                          "width": undefined,
+                                        }
+                                      }
+                                      testID="token-avatar-image"
+                                    />
+                                  </View>
+                                </View>
+                                <View
+                                  style={
+                                    Object {
+                                      "alignItems": "center",
+                                      "aspectRatio": 1,
+                                      "height": 0,
+                                      "justifyContent": "center",
+                                      "position": "absolute",
+                                      "right": 0,
+                                      "top": 0,
+                                      "transform": Array [
+                                        Object {
+                                          "translateX": 0,
+                                        },
+                                        Object {
+                                          "translateY": -0,
+                                        },
+                                      ],
+                                    }
+                                  }
+                                >
+                                  <View
+                                    onLayout={[Function]}
+                                    style={
+                                      Object {
+                                        "alignItems": "center",
+                                        "aspectRatio": 1,
+                                        "height": "50%",
+                                        "justifyContent": "center",
+                                        "minHeight": 16,
+                                        "opacity": 0,
+                                      }
+                                    }
+                                    testID="badge-network"
+                                  >
+                                    <View
+                                      style={
+                                        Object {
+                                          "backgroundColor": "#FFFFFF",
+                                          "borderRadius": 16,
+                                          "height": 32,
+                                          "overflow": "hidden",
+                                          "transform": Array [
+                                            Object {
+                                              "scale": 1,
+                                            },
+                                          ],
+                                          "width": 32,
+                                        }
+                                      }
+                                    >
+                                      <Image
+                                        onError={[Function]}
+                                        resizeMode="contain"
+                                        source={
+                                          Object {
+                                            "uri": "MockImage",
+                                          }
+                                        }
+                                        style={
+                                          Object {
+                                            "flex": 1,
+                                            "height": undefined,
+                                            "width": undefined,
+                                          }
+                                        }
+                                        testID="network-avatar-image"
+                                      />
+                                    </View>
+                                  </View>
+                                </View>
+                              </View>
+                              <View
+                                style={
+                                  Object {
+                                    "flex": 1,
+                                    "justifyContent": "center",
+                                    "marginLeft": 20,
+                                  }
+                                }
+                                testID="balance"
+                              >
+                                <Text
+                                  accessibilityRole="text"
+                                  style={
+                                    Object {
+                                      "color": "#24272A",
+                                      "fontFamily": "Euclid Circular B",
+                                      "fontSize": 16,
+                                      "fontWeight": "500",
+                                      "letterSpacing": 0,
+                                      "lineHeight": 24,
+                                    }
+                                  }
+                                >
+                                  Link
+                                </Text>
+                                <Text
+                                  accessibilityRole="text"
+                                  style={
+                                    Object {
+                                      "color": "#535A61",
+                                      "fontFamily": "EuclidCircularB-Regular",
+                                      "fontSize": 14,
+                                      "fontWeight": "400",
+                                      "letterSpacing": 0,
+                                      "lineHeight": 22,
+                                      "textTransform": "uppercase",
+                                    }
+                                  }
+                                >
+                                  &lt; $0.01
+                                </Text>
+                              </View>
+                              <Text
+                                accessibilityRole="text"
+                                style={
+                                  Object {
+                                    "color": "#24272A",
+                                    "fontFamily": "Euclid Circular B",
+                                    "fontSize": 16,
+                                    "fontWeight": "500",
+                                    "letterSpacing": 0,
+                                    "lineHeight": 24,
+                                  }
+                                }
+                              >
+                                0 LINK
+                              </Text>
+                            </TouchableOpacity>
+                          </View>
+                          <View
+                            onLayout={[Function]}
+                          >
+                            <View
+                              style={
+                                Object {
+                                  "alignItems": "center",
+                                  "flex": 1,
+                                  "marginTop": 9,
+                                  "paddingBottom": 30,
+                                }
+                              }
+                            >
+                              <TouchableOpacity
+                                disabled={false}
+                                onPress={[Function]}
+                                style={
+                                  Object {
+                                    "alignItems": "center",
+                                    "flexDirection": "row",
+                                    "justifyContent": "center",
+                                  }
+                                }
+                                testID="import-token-button"
+                              >
+                                <Text
+                                  accessibilityRole="text"
+                                  style={
+                                    Object {
+                                      "color": "#24272A",
+                                      "fontFamily": "Euclid Circular B",
+                                      "fontSize": 14,
+                                      "fontWeight": "400",
+                                      "letterSpacing": 0,
+                                      "lineHeight": 22,
+                                      "textAlign": "center",
+                                    }
+                                  }
+                                >
+                                  <Text
+                                    accessibilityRole="text"
+                                    style={
+                                      Object {
+                                        "color": "#535A61",
+                                        "fontFamily": "Euclid Circular B",
+                                        "fontSize": 14,
+                                        "fontWeight": "400",
+                                        "letterSpacing": 0,
+                                        "lineHeight": 22,
+                                        "marginBottom": 8,
+                                      }
+                                    }
+                                  >
+                                    Don't see your token?
+                                  </Text>
+                                   
+                                  <Text
+                                    accessibilityRole="text"
+                                    style={
+                                      Object {
+                                        "color": "#0376C9",
+                                        "fontFamily": "EuclidCircularB-Regular",
+                                        "fontSize": 14,
+                                        "fontWeight": "400",
+                                        "letterSpacing": 0,
+                                        "lineHeight": 22,
+                                      }
+                                    }
+                                  >
+                                    Import tokens
+                                  </Text>
+                                </Text>
+                              </TouchableOpacity>
+                            </View>
+                          </View>
                         </View>
-                      </View>
+                      </RCTScrollView>
                     </View>
                   </View>
                 </View>

@@ -1,5 +1,6 @@
-import { fontStyles } from '../../../styles/common';
 import { StyleSheet } from 'react-native';
+
+import { fontStyles } from '../../../styles/common';
 import Device from '../../../util/device';
 
 const createStyles = (colors: any) =>
@@ -10,14 +11,20 @@ const createStyles = (colors: any) =>
       paddingVertical: 10,
     },
     actionViewWrapper: {
-      height: Device.isMediumDevice() ? '100%' : 630,
+      height: Device.isMediumDevice() ? 470 : 550,
+    },
+    actionViewChildren: {
+      height: Device.isMediumDevice() ? 390 : 470,
+    },
+    accountApprovalWrapper: {
+      flex: 1,
     },
     title: {
       ...fontStyles.bold,
       textAlign: 'center',
       color: colors.text.default,
       lineHeight: 34,
-      marginVertical: 8,
+      marginVertical: 3,
       paddingHorizontal: 16,
     },
     tokenKey: {
@@ -41,26 +48,20 @@ const createStyles = (colors: any) =>
       marginHorizontal: 14,
       flexDirection: 'row',
     },
-    editPermissionText: {
-      ...fontStyles.bold,
-      color: colors.primary.default,
-      fontSize: 12,
-      lineHeight: 20,
-      textAlign: 'center',
-      marginVertical: 10,
-      borderWidth: 1,
-      borderRadius: 20,
-      borderColor: colors.primary.default,
-      paddingVertical: 8,
-      paddingHorizontal: 16,
-    },
     viewDetailsText: {
       ...fontStyles.normal,
       color: colors.primary.default,
       fontSize: 12,
       lineHeight: 16,
-      marginTop: 8,
+      marginHorizontal: 4,
       textAlign: 'center',
+    },
+    iconContainer: {
+      flexDirection: 'row',
+      marginTop: 8,
+    },
+    iconDropdown: {
+      color: colors.icon.alternative,
     },
     actionTouchable: {
       flexDirection: 'column',
@@ -146,6 +147,28 @@ const createStyles = (colors: any) =>
       color: colors.text.default,
       textAlign: 'center',
       fontSize: 15,
+    },
+    skeletalView: {
+      height: 50,
+    },
+    transactionWrapper: {
+      marginVertical: 10,
+    },
+    symbol: {
+      marginHorizontal: 5,
+    },
+    alignText: {
+      textAlign: 'center',
+    },
+    tokenContainer: {
+      flexDirection: 'row',
+      justifyContent: 'center',
+      alignItems: 'center',
+    },
+    blockaidWarning: {
+      marginBottom: 10,
+      marginTop: 20,
+      marginHorizontal: 10,
     },
   });
 

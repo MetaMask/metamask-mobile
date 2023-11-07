@@ -114,6 +114,14 @@ Optional prop to control the close button's props.
 | :-------------------------------------------------- | :------------------------------------------------------ |
 | [ButtonIconProps](../../../../Buttons/ButtonIcon/ButtonIcon.types.ts)                                  | No                                                     |
 
+### `children`
+
+Optional prop to add children components to the Banner
+
+| <span style="color:gray;font-size:14px">TYPE</span> | <span style="color:gray;font-size:14px">REQUIRED</span> |
+| :-------------------------------------------------- | :------------------------------------------------------ |
+| React.ReactNode                                     | No                                                     |
+
 ## Usage
 
 ```javascript

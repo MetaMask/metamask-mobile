@@ -18,21 +18,41 @@ class Selectors {
     }
   }
 
-  static async getElementsByPlatform(id) {
+  static async getXpathByContentDesc(id) {
     return driver.$$(`//*[@content-desc='${id}']`);
   }
 
   static async getXpathElementByText(text) {
-    return await $(`//*[@text='${text}']`);
+    const platform = await driver.getPlatform();
+    if (platform === 'iOS') {
+      return await $(`//*[@name='${text}']`);
+    }
+
+    if (platform === 'Android') {
+      return await $(`//*[@text='${text}']`);
+    }
   }
 
   static async getXpathElementByTextContains(text) {
-    const element = await $(`//*[contains(@text, '${text}')]`);
-    return await element;
+    const platform = await driver.getPlatform();
+    if (platform === 'iOS') {
+      return await $(`//*[contains(@name, '${text}')]`);
+    }
+
+    if (platform === 'Android') {
+      return await $(`//*[contains(@text, '${text}')]`);
+    }
   }
 
-  static async getXpathElementByResourceId(text) {
-    return await $(`//*[@resource-id='${text}']`);
+  static async getXpathElementByResourceId(id) {
+    const platform = await driver.getPlatform();
+    if (platform === 'iOS') {
+      return await $(`~${id}`);
+    }
+
+    if (platform === 'Android') {
+      return await $(`//*[@resource-id='${id}']`);
+    }
   }
 
   static async getElementByCss(css) {

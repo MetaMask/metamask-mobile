@@ -18,6 +18,6 @@ describe('GlobalAlert', () => {
         <GlobalAlert />
       </Provider>,
     );
-    expect(wrapper.dive()).toMatchSnapshot();
+    expect(wrapper).toMatchSnapshot();
   });
 });

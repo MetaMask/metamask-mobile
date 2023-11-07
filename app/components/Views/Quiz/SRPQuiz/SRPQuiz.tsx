@@ -33,9 +33,9 @@ const SRPQuiz = () => {
   };
 
   useEffect(() => {
-    AppState.addEventListener('change', dismissModal);
+    const appStateListener = AppState.addEventListener('change', dismissModal);
     return () => {
-      AppState.removeEventListener('change', dismissModal);
+      appStateListener.remove();
     };
   }, []);
 

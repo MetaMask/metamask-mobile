@@ -1,4 +1,3 @@
-import AsyncStorage from '@react-native-async-storage/async-storage';
 import AppConstants from '../../core/AppConstants';
 import { MetaMetricsEvents } from '../../core/Analytics';
 import { trackEventV2 as trackEvent } from '../analyticsV2';
@@ -9,18 +8,15 @@ import {
   TERMS_OF_USE_ACCEPT_BUTTON_ID,
   TERMS_OF_USE_SCREEN_ID,
 } from '../../../wdio/screen-objects/testIDs/Components/TermsOfUse.testIds';
+import AsyncStorage from '../../store/async-storage-wrapper';
 
 const onConfirmUseTerms = async () => {
   await AsyncStorage.setItem(USE_TERMS, TRUE);
-  trackEvent(MetaMetricsEvents.USER_TERMS, {
-    value: AppConstants.TERMS_OF_USE.TERMS_ACCEPTED,
-  });
+  trackEvent(MetaMetricsEvents.USER_TERMS_ACCEPTED, {});
 };
 
 const useTermsDisplayed = () => {
-  trackEvent(MetaMetricsEvents.USER_TERMS, {
-    value: AppConstants.TERMS_OF_USE.TERMS_DISPLAYED,
-  });
+  trackEvent(MetaMetricsEvents.USER_TERMS_SHOWN, {});
 };
 
 export default async function navigateTermsOfUse(

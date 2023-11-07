@@ -1,7 +1,8 @@
 import { Order } from '@consensys/on-ramp-sdk';
 import { createSelector } from 'reselect';
-import { Region } from '../../components/UI/FiatOnRampAggregator/types';
+import { Region } from '../../components/UI/Ramp/types';
 import { selectChainId } from '../../selectors/networkController';
+import { selectSelectedAddress } from '../../selectors/preferencesController';
 import {
   FIAT_ORDER_PROVIDERS,
   FIAT_ORDER_STATES,
@@ -12,8 +13,8 @@ import {
   CustomIdData,
   FiatOrder,
   FiatOrdersState,
-  RootState,
 } from './types';
+import type { RootState } from '../';
 export type { FiatOrder } from './types';
 
 /** Action Creators */
@@ -83,6 +84,13 @@ export const updateActivationKey = (
   payload: { key: activationKey, active },
 });
 
+export const updateOnRampNetworks = (
+  networks: FiatOrdersState['networks'],
+) => ({
+  type: ACTIONS.FIAT_UPDATE_NETWORKS,
+  payload: networks,
+});
+
 /**
  * Selectors
  */
@@ -124,7 +132,7 @@ export const chainIdSelector: (state: RootState) => string = (
 
 export const selectedAddressSelector: (state: RootState) => string = (
   state: RootState,
-) => state.engine.backgroundState.PreferencesController.selectedAddress;
+) => selectSelectedAddress(state);
 export const fiatOrdersRegionSelectorAgg: (
   state: RootState,
 ) => FiatOrdersState['selectedRegionAgg'] = (state: RootState) =>
@@ -204,9 +212,27 @@ export const getHasOrders = createSelector(
   (orders) => orders.length > 0,
 );
 
+export const getRampNetworks: (
+  state: RootState,
+) => FiatOrdersState['networks'] = (state: RootState) =>
+  state.fiatOrders.networks;
+
+export const networkShortNameSelector = createSelector(
+  chainIdSelector,
+  getRampNetworks,
+  (chainId, networks) => {
+    const network = networks.find(
+      (aggregatorNetwork) =>
+        Number(aggregatorNetwork.chainId) === Number(chainId),
+    );
+    return network?.shortName;
+  },
+);
+
 export const initialState: FiatOrdersState = {
   orders: [],
   customOrderIds: [],
+  networks: [],
   selectedRegionAgg: null,
   selectedPaymentMethodAgg: null,
   getStartedAgg: false,
@@ -423,6 +449,12 @@ const fiatOrderReducer: (
           },
           ...activationKeys.slice(index + 1),
         ],
+      };
+    }
+    case ACTIONS.FIAT_UPDATE_NETWORKS: {
+      return {
+        ...state,
+        networks: action.payload,
       };
     }
 

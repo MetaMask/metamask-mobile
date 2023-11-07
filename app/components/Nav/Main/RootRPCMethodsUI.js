@@ -1,13 +1,11 @@
 import React, { useState, useEffect, useCallback } from 'react';
 
-import { StyleSheet, Alert, InteractionManager } from 'react-native';
+import { Alert, InteractionManager } from 'react-native';
 import PropTypes from 'prop-types';
 import { connect, useSelector } from 'react-redux';
 import { ethers } from 'ethers';
 import abi from 'human-standard-token-abi';
-import { ethErrors } from 'eth-json-rpc-errors';
 
-import Approval from '../../Views/Approval';
 import NotificationManager from '../../../core/NotificationManager';
 import Engine from '../../../core/Engine';
 import { strings } from '../../../../locales/i18n';
@@ -16,10 +14,7 @@ import {
   setEtherTransaction,
   setTransactionObject,
 } from '../../../actions/transaction';
-import PersonalSign from '../../UI/PersonalSign';
-import TypedSign from '../../UI/TypedSign';
-import Modal from 'react-native-modal';
-import WalletConnect from '../../../core/WalletConnect';
+import WalletConnect from '../../../core/WalletConnect/WalletConnect';
 import {
   getMethodData,
   TOKEN_METHOD_TRANSFER,
@@ -32,97 +27,47 @@ import {
 } from '../../../util/transactions';
 import { BN } from 'ethereumjs-util';
 import Logger from '../../../util/Logger';
-import MessageSign from '../../UI/MessageSign';
-import Approve from '../../Views/ApproveView/Approve';
-import WatchAssetRequest from '../../UI/WatchAssetRequest';
-import AccountApproval from '../../UI/AccountApproval';
 import TransactionTypes from '../../../core/TransactionTypes';
-import AddCustomNetwork from '../../UI/AddCustomNetwork';
-import SwitchCustomNetwork from '../../UI/SwitchCustomNetwork';
-import {
-  toggleDappTransactionModal,
-  toggleApproveModal,
-} from '../../../actions/modals';
 import { swapsUtils } from '@metamask/swaps-controller';
 import { query } from '@metamask/controller-utils';
 import Analytics from '../../../core/Analytics/Analytics';
 import BigNumber from 'bignumber.js';
-import { getTokenList } from '../../../reducers/tokens';
 import { toLowerCaseEquals } from '../../../util/general';
-import { ApprovalTypes } from '../../../core/RPCMethods/RPCMethodMiddleware';
 import { KEYSTONE_TX_CANCELED } from '../../../constants/error';
 import { MetaMetricsEvents } from '../../../core/Analytics';
 import AnalyticsV2 from '../../../util/analyticsV2';
 
-import { useTheme } from '../../../util/theme';
-import withQRHardwareAwareness from '../../UI/QRHardware/withQRHardwareAwareness';
-import QRSigningModal from '../../UI/QRHardware/QRSigningModal';
-import { networkSwitched } from '../../../actions/onboardNetwork';
 import {
   selectChainId,
   selectProviderType,
 } from '../../../selectors/networkController';
-import { createAccountConnectNavDetails } from '../../Views/AccountConnect';
+import WatchAssetApproval from '../../Approvals/WatchAssetApproval';
+import SignatureApproval from '../../Approvals/SignatureApproval';
+import AddChainApproval from '../../Approvals/AddChainApproval';
+import SwitchChainApproval from '../../Approvals/SwitchChainApproval';
+import WalletConnectApproval from '../../Approvals/WalletConnectApproval';
+import ConnectApproval from '../../Approvals/ConnectApproval';
+import {
+  TransactionApproval,
+  TransactionModalType,
+} from '../../Approvals/TransactionApproval';
+import PermissionApproval from '../../Approvals/PermissionApproval';
+import FlowLoaderModal from '../../Approvals/FlowLoaderModal';
+import TemplateConfirmationModal from '../../Approvals/TemplateConfirmationModal';
+import { selectTokenList } from '../../../selectors/tokenListController';
+import { selectTokens } from '../../../selectors/tokensController';
+import { selectSelectedAddress } from '../../../selectors/preferencesController';
 
 const hstInterface = new ethers.utils.Interface(abi);
 
-const styles = StyleSheet.create({
-  bottomModal: {
-    justifyContent: 'flex-end',
-    margin: 0,
-  },
-});
 const RootRPCMethodsUI = (props) => {
-  const { colors } = useTheme();
-  const [showPendingApproval, setShowPendingApproval] = useState(false);
-  const [signMessageParams, setSignMessageParams] = useState({ data: '' });
-  const [signType, setSignType] = useState(false);
-  const [walletConnectRequestInfo, setWalletConnectRequestInfo] =
-    useState(undefined);
-  const [showExpandedMessage, setShowExpandedMessage] = useState(false);
-  const [currentPageMeta, setCurrentPageMeta] = useState({});
-
-  const tokenList = useSelector(getTokenList);
-
-  const [customNetworkToAdd, setCustomNetworkToAdd] = useState(null);
-  const [customNetworkToSwitch, setCustomNetworkToSwitch] = useState(null);
-
-  const [hostToApprove, setHostToApprove] = useState(null);
-
-  const [watchAsset, setWatchAsset] = useState(false);
-  const [suggestedAssetMeta, setSuggestedAssetMeta] = useState(undefined);
-
+  const [transactionModalType, setTransactionModalType] = useState(undefined);
+  const tokenList = useSelector(selectTokenList);
   const setTransactionObject = props.setTransactionObject;
-  const toggleApproveModal = props.toggleApproveModal;
-  const toggleDappTransactionModal = props.toggleDappTransactionModal;
   const setEtherTransaction = props.setEtherTransaction;
-
-  const showPendingApprovalModal = ({ type, origin }) => {
-    InteractionManager.runAfterInteractions(() => {
-      setShowPendingApproval({ type, origin });
-    });
-  };
-
-  const onUnapprovedMessage = (messageParams, type, origin) => {
-    setCurrentPageMeta(messageParams.meta);
-    const signMessageParams = { ...messageParams };
-    delete signMessageParams.meta;
-    setSignMessageParams(signMessageParams);
-    setSignType(type);
-    showPendingApprovalModal({
-      type: ApprovalTypes.SIGN_MESSAGE,
-      origin: signMessageParams.origin,
-    });
-  };
 
   const initializeWalletConnect = () => {
     WalletConnect.init();
-  };
-
-  const onWalletConnectSessionRequest = () => {
-    WalletConnect.hub.on('walletconnectSessionRequest', (peerInfo) => {
-      setWalletConnectRequestInfo(peerInfo);
-    });
   };
 
   const trackSwaps = useCallback(
@@ -258,7 +203,7 @@ const RootRPCMethodsUI = (props) => {
           },
         );
         await KeyringController.resetQRKeyringState();
-        await TransactionController.approveTransaction(transactionMeta.id);
+        Engine.acceptPendingApproval(transactionMeta.id);
       } catch (error) {
         if (!error?.message.startsWith(KEYSTONE_TX_CANCELED)) {
           Alert.alert(
@@ -342,6 +287,7 @@ const RootRPCMethodsUI = (props) => {
             selectedAsset: asset,
             id: transactionMeta.id,
             origin: transactionMeta.origin,
+            securityAlertResponse: transactionMeta.securityAlertResponse,
             ...transactionMeta.transaction,
           });
         } else {
@@ -353,6 +299,7 @@ const RootRPCMethodsUI = (props) => {
           setEtherTransaction({
             id: transactionMeta.id,
             origin: transactionMeta.origin,
+            securityAlertResponse: transactionMeta.securityAlertResponse,
             ...transactionMeta.transaction,
           });
         }
@@ -362,341 +309,25 @@ const RootRPCMethodsUI = (props) => {
           data.substr(0, 10) === APPROVE_FUNCTION_SIGNATURE &&
           (!value || isZeroValue(value))
         ) {
-          toggleApproveModal();
+          setTransactionModalType(TransactionModalType.Transaction);
         } else {
-          toggleDappTransactionModal();
+          setTransactionModalType(TransactionModalType.Dapp);
         }
       }
     },
     [
-      props.tokens,
       props.chainId,
-      setEtherTransaction,
-      setTransactionObject,
-      toggleApproveModal,
-      toggleDappTransactionModal,
+      props.tokens,
       autoSign,
+      setTransactionObject,
       tokenList,
+      setEtherTransaction,
     ],
   );
 
-  const onSignAction = () => setShowPendingApproval(false);
-
-  const toggleExpandedMessage = () =>
-    setShowExpandedMessage(!showExpandedMessage);
-
-  const renderSigningModal = () => (
-    <Modal
-      isVisible={showPendingApproval?.type === ApprovalTypes.SIGN_MESSAGE}
-      animationIn="slideInUp"
-      animationOut="slideOutDown"
-      style={styles.bottomModal}
-      backdropColor={colors.overlay.default}
-      backdropOpacity={1}
-      animationInTiming={600}
-      animationOutTiming={600}
-      onBackdropPress={onSignAction}
-      onBackButtonPress={
-        showExpandedMessage ? toggleExpandedMessage : onSignAction
-      }
-      onSwipeComplete={onSignAction}
-      swipeDirection={'down'}
-      propagateSwipe
-    >
-      {signType === 'personal' && (
-        <PersonalSign
-          messageParams={signMessageParams}
-          onCancel={onSignAction}
-          onConfirm={onSignAction}
-          currentPageInformation={currentPageMeta}
-          toggleExpandedMessage={toggleExpandedMessage}
-          showExpandedMessage={showExpandedMessage}
-        />
-      )}
-      {signType === 'typed' && (
-        <TypedSign
-          navigation={props.navigation}
-          messageParams={signMessageParams}
-          onCancel={onSignAction}
-          onConfirm={onSignAction}
-          currentPageInformation={currentPageMeta}
-          toggleExpandedMessage={toggleExpandedMessage}
-          showExpandedMessage={showExpandedMessage}
-        />
-      )}
-      {signType === 'eth' && (
-        <MessageSign
-          navigation={props.navigation}
-          messageParams={signMessageParams}
-          onCancel={onSignAction}
-          onConfirm={onSignAction}
-          currentPageInformation={currentPageMeta}
-          toggleExpandedMessage={toggleExpandedMessage}
-          showExpandedMessage={showExpandedMessage}
-        />
-      )}
-    </Modal>
-  );
-
-  const renderQRSigningModal = () => {
-    const {
-      isSigningQRObject,
-      QRState,
-      approveModalVisible,
-      dappTransactionModalVisible,
-    } = props;
-    const shouldRenderThisModal =
-      !showPendingApproval &&
-      !approveModalVisible &&
-      !dappTransactionModalVisible &&
-      isSigningQRObject;
-    return (
-      shouldRenderThisModal && (
-        <QRSigningModal isVisible={isSigningQRObject} QRState={QRState} />
-      )
-    );
-  };
-
-  const onWalletConnectSessionApproval = () => {
-    const { peerId } = walletConnectRequestInfo;
-    setWalletConnectRequestInfo(undefined);
-    WalletConnect.hub.emit('walletconnectSessionRequest::approved', peerId);
-  };
-
-  const onWalletConnectSessionRejected = () => {
-    const peerId = walletConnectRequestInfo?.peerId;
-    setWalletConnectRequestInfo(undefined);
-    WalletConnect.hub.emit('walletconnectSessionRequest::rejected', peerId);
-  };
-
-  const renderWalletConnectSessionRequestModal = () => {
-    const meta = walletConnectRequestInfo?.peerMeta || null;
-    // walletConnectRequestInfo is reset to undefined in onWalletConnectSessionApproval as soon as the approval happens
-    if (!meta) return;
-
-    return (
-      <Modal
-        isVisible={!!meta}
-        animationIn="slideInUp"
-        animationOut="slideOutDown"
-        style={styles.bottomModal}
-        backdropColor={colors.overlay.default}
-        backdropOpacity={1}
-        animationInTiming={300}
-        animationOutTiming={300}
-        onSwipeComplete={onWalletConnectSessionRejected}
-        onBackButtonPress={onWalletConnectSessionRejected}
-        swipeDirection={'down'}
-      >
-        <AccountApproval
-          onCancel={onWalletConnectSessionRejected}
-          onConfirm={onWalletConnectSessionApproval}
-          currentPageInformation={{
-            title: meta?.name,
-            url: meta?.url,
-            icon: meta?.icons?.[0],
-          }}
-          walletConnectRequest
-        />
-      </Modal>
-    );
-  };
-
-  const renderDappTransactionModal = () =>
-    props.dappTransactionModalVisible && (
-      <Approval
-        navigation={props.navigation}
-        dappTransactionModalVisible
-        toggleDappTransactionModal={props.toggleDappTransactionModal}
-      />
-    );
-
-  const renderApproveModal = () =>
-    props.approveModalVisible && (
-      <Approve modalVisible toggleApproveModal={props.toggleApproveModal} />
-    );
-
-  // Reject pending approval using MetaMask SDK.
-  const rejectPendingApproval = (id, error) => {
-    const { ApprovalController } = Engine.context;
-    try {
-      ApprovalController.reject(id, error);
-    } catch (error) {
-      Logger.error(error, 'Reject while rejecting pending connection request');
-    }
-  };
-
-  // Accept pending approval using MetaMask SDK.
-  const acceptPendingApproval = (id, requestData) => {
-    const { ApprovalController } = Engine.context;
-    try {
-      ApprovalController.accept(id, requestData);
-    } catch (err) {
-      // Ignore err if request already approved or doesn't exists.
-    }
-  };
-
-  const onAddCustomNetworkReject = () => {
-    setShowPendingApproval(false);
-    rejectPendingApproval(
-      customNetworkToAdd.id,
-      ethErrors.provider.userRejectedRequest(),
-    );
-  };
-
-  const onAddCustomNetworkConfirm = () => {
-    setShowPendingApproval(false);
-    acceptPendingApproval(customNetworkToAdd.id, customNetworkToAdd.data);
-  };
-
-  /**
-   * Render the modal that asks the user to add chain to wallet.
-   */
-  const renderAddCustomNetworkModal = () => (
-    <Modal
-      isVisible={showPendingApproval?.type === ApprovalTypes.ADD_ETHEREUM_CHAIN}
-      animationIn="slideInUp"
-      animationOut="slideOutDown"
-      style={styles.bottomModal}
-      backdropColor={colors.overlay.default}
-      backdropOpacity={1}
-      animationInTiming={300}
-      animationOutTiming={300}
-      onSwipeComplete={onAddCustomNetworkReject}
-      onBackdropPress={onAddCustomNetworkReject}
-    >
-      <AddCustomNetwork
-        onCancel={onAddCustomNetworkReject}
-        onConfirm={onAddCustomNetworkConfirm}
-        currentPageInformation={currentPageMeta}
-        customNetworkInformation={customNetworkToAdd?.data}
-      />
-    </Modal>
-  );
-
-  const onSwitchCustomNetworkReject = () => {
-    setShowPendingApproval(false);
-    rejectPendingApproval(
-      customNetworkToSwitch.id,
-      ethErrors.provider.userRejectedRequest(),
-    );
-  };
-
-  const onSwitchCustomNetworkConfirm = () => {
-    setShowPendingApproval(false);
-    acceptPendingApproval(customNetworkToSwitch.id, customNetworkToSwitch.data);
-    props.networkSwitched({
-      networkUrl: customNetworkToSwitch.data.rpcUrl,
-      networkStatus: true,
-    });
-  };
-
-  /**
-   * Render the modal that asks the user to switch chain on wallet.
-   */
-  const renderSwitchCustomNetworkModal = () => (
-    <Modal
-      isVisible={
-        showPendingApproval?.type === ApprovalTypes.SWITCH_ETHEREUM_CHAIN
-      }
-      animationIn="slideInUp"
-      animationOut="slideOutDown"
-      style={styles.bottomModal}
-      backdropColor={colors.overlay.default}
-      backdropOpacity={1}
-      animationInTiming={300}
-      animationOutTiming={300}
-      onSwipeComplete={onSwitchCustomNetworkReject}
-      onBackdropPress={onSwitchCustomNetworkReject}
-      swipeDirection={'down'}
-    >
-      <SwitchCustomNetwork
-        onCancel={onSwitchCustomNetworkReject}
-        onConfirm={onSwitchCustomNetworkConfirm}
-        currentPageInformation={currentPageMeta}
-        customNetworkInformation={customNetworkToSwitch?.data}
-        type={customNetworkToSwitch?.data.type}
-      />
-    </Modal>
-  );
-
-  /**
-   * When user clicks on approve to connect with a dapp using the MetaMask SDK.
-   */
-  const onAccountsConfirm = () => {
-    if (hostToApprove) {
-      acceptPendingApproval(hostToApprove.id, hostToApprove.requestData);
-    }
-    setShowPendingApproval(false);
-  };
-
-  /**
-   * When user clicks on reject to connect with a dapp using the MetaMask SDK.
-   */
-  const onAccountsReject = () => {
-    rejectPendingApproval(hostToApprove.id, hostToApprove.requestData);
-    setShowPendingApproval(false);
-  };
-
-  /**
-   * Render the modal that asks the user to approve/reject connections to a dapp using the MetaMask SDK.
-   */
-  const renderAccountsApprovalModal = () => (
-    <Modal
-      isVisible={showPendingApproval?.type === ApprovalTypes.CONNECT_ACCOUNTS}
-      animationIn="slideInUp"
-      animationOut="slideOutDown"
-      style={styles.bottomModal}
-      backdropColor={colors.overlay.default}
-      backdropOpacity={1}
-      animationInTiming={300}
-      animationOutTiming={300}
-      onSwipeComplete={onAccountsReject}
-      onBackdropPress={onAccountsReject}
-      swipeDirection={'down'}
-    >
-      <AccountApproval
-        onCancel={onAccountsReject}
-        onConfirm={onAccountsConfirm}
-        navigation={props.navigation}
-        currentPageInformation={currentPageMeta}
-      />
-    </Modal>
-  );
-
-  /**
-   * On rejection addinga an asset
-   */
-  const onCancelWatchAsset = () => {
-    setWatchAsset(false);
-  };
-
-  /**
-   * Render the add asset modal
-   */
-  const renderWatchAssetModal = () => (
-    <Modal
-      isVisible={watchAsset}
-      animationIn="slideInUp"
-      animationOut="slideOutDown"
-      style={styles.bottomModal}
-      backdropColor={colors.overlay.default}
-      backdropOpacity={1}
-      animationInTiming={600}
-      animationOutTiming={600}
-      onBackdropPress={onCancelWatchAsset}
-      onSwipeComplete={onCancelWatchAsset}
-      swipeDirection={'down'}
-      propagateSwipe
-    >
-      <WatchAssetRequest
-        onCancel={onCancelWatchAsset}
-        onConfirm={onCancelWatchAsset}
-        suggestedAssetMeta={suggestedAssetMeta}
-        currentPageInformation={currentPageMeta}
-      />
-    </Modal>
-  );
+  const onTransactionComplete = useCallback(() => {
+    setTransactionModalType(undefined);
+  }, []);
 
   // unapprovedTransaction effect
   useEffect(() => {
@@ -712,107 +343,11 @@ const RootRPCMethodsUI = (props) => {
     };
   }, [onUnapprovedTransaction]);
 
-  const handlePendingApprovals = async (approval) => {
-    //TODO: IF WE RECEIVE AN APPROVAL REQUEST, AND WE HAVE ONE ACTIVE, SHOULD WE HIDE THE CURRENT ONE OR NOT?
-
-    if (approval.pendingApprovalCount > 0) {
-      const key = Object.keys(approval.pendingApprovals)[0];
-      const request = approval.pendingApprovals[key];
-      const requestData = request.requestData;
-      if (requestData.pageMeta) {
-        setCurrentPageMeta(requestData.pageMeta);
-      }
-
-      switch (request.type) {
-        case ApprovalTypes.REQUEST_PERMISSIONS:
-          if (requestData?.permissions?.eth_accounts) {
-            const {
-              metadata: { id },
-            } = requestData;
-
-            const totalAccounts = props.accountsLength;
-
-            AnalyticsV2.trackEvent(MetaMetricsEvents.CONNECT_REQUEST_STARTED, {
-              number_of_accounts: totalAccounts,
-              source: 'PERMISSION SYSTEM',
-            });
-
-            props.navigation.navigate(
-              ...createAccountConnectNavDetails({
-                hostInfo: requestData,
-                permissionRequestId: id,
-              }),
-            );
-          }
-          break;
-        case ApprovalTypes.CONNECT_ACCOUNTS:
-          setHostToApprove({ data: requestData, id: request.id });
-          showPendingApprovalModal({
-            type: ApprovalTypes.CONNECT_ACCOUNTS,
-            origin: request.origin,
-          });
-          break;
-        case ApprovalTypes.SWITCH_ETHEREUM_CHAIN:
-          setCustomNetworkToSwitch({ data: requestData, id: request.id });
-          showPendingApprovalModal({
-            type: ApprovalTypes.SWITCH_ETHEREUM_CHAIN,
-            origin: request.origin,
-          });
-          break;
-        case ApprovalTypes.ADD_ETHEREUM_CHAIN:
-          setCustomNetworkToAdd({ data: requestData, id: request.id });
-          showPendingApprovalModal({
-            type: ApprovalTypes.ADD_ETHEREUM_CHAIN,
-            origin: request.origin,
-          });
-          break;
-        default:
-          break;
-      }
-    } else {
-      setShowPendingApproval(false);
-    }
-  };
-
   useEffect(() => {
     initializeWalletConnect();
-    onWalletConnectSessionRequest();
-
-    Engine.context.MessageManager.hub.on('unapprovedMessage', (messageParams) =>
-      onUnapprovedMessage(messageParams, 'eth'),
-    );
-
-    Engine.context.PersonalMessageManager.hub.on(
-      'unapprovedMessage',
-      (messageParams) => onUnapprovedMessage(messageParams, 'personal'),
-    );
-
-    Engine.context.TypedMessageManager.hub.on(
-      'unapprovedMessage',
-      (messageParams) => onUnapprovedMessage(messageParams, 'typed'),
-    );
-
-    Engine.controllerMessenger.subscribe(
-      'ApprovalController:stateChange',
-      handlePendingApprovals,
-    );
-
-    Engine.context.TokensController.hub.on(
-      'pendingSuggestedAsset',
-      (suggestedAssetMeta) => {
-        setSuggestedAssetMeta(suggestedAssetMeta);
-        setWatchAsset(true);
-      },
-    );
 
     return function cleanup() {
-      Engine.context.PersonalMessageManager.hub.removeAllListeners();
-      Engine.context.TypedMessageManager.hub.removeAllListeners();
       Engine.context.TokensController.hub.removeAllListeners();
-      Engine.controllerMessenger.unsubscribe(
-        'ApprovalController:stateChange',
-        handlePendingApprovals,
-      );
       WalletConnect.hub.removeAllListeners();
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -820,15 +355,20 @@ const RootRPCMethodsUI = (props) => {
 
   return (
     <React.Fragment>
-      {renderSigningModal()}
-      {renderWalletConnectSessionRequestModal()}
-      {renderDappTransactionModal()}
-      {renderApproveModal()}
-      {renderAddCustomNetworkModal()}
-      {renderSwitchCustomNetworkModal()}
-      {renderWatchAssetModal()}
-      {renderQRSigningModal()}
-      {renderAccountsApprovalModal()}
+      <SignatureApproval />
+      <WalletConnectApproval />
+      <TransactionApproval
+        transactionType={transactionModalType}
+        navigation={props.navigation}
+        onComplete={onTransactionComplete}
+      />
+      <AddChainApproval />
+      <SwitchChainApproval />
+      <WatchAssetApproval />
+      <ConnectApproval navigation={props.navigation} />
+      <PermissionApproval navigation={props.navigation} />
+      <FlowLoaderModal />
+      <TemplateConfirmationModal />
     </React.Fragment>
   );
 };
@@ -852,22 +392,6 @@ RootRPCMethodsUI.propTypes = {
    */
   tokens: PropTypes.array,
   /**
-  /* Hides or shows dApp transaction modal
-  */
-  toggleDappTransactionModal: PropTypes.func,
-  /**
-  /* Hides or shows approve modal
-  */
-  toggleApproveModal: PropTypes.func,
-  /**
-  /* dApp transaction modal visible or not
-  */
-  dappTransactionModalVisible: PropTypes.bool,
-  /**
-  /* Token approve modal visible or not
-  */
-  approveModalVisible: PropTypes.bool,
-  /**
    * Selected address
    */
   selectedAddress: PropTypes.string,
@@ -875,28 +399,15 @@ RootRPCMethodsUI.propTypes = {
    * Chain id
    */
   chainId: PropTypes.string,
-  isSigningQRObject: PropTypes.bool,
-  QRState: PropTypes.object,
-  /**
-   * updates redux when network is switched
-   */
-  networkSwitched: PropTypes.func,
-  accountsLength: PropTypes.number,
 };
 
 const mapStateToProps = (state) => ({
-  selectedAddress:
-    state.engine.backgroundState.PreferencesController.selectedAddress,
+  selectedAddress: selectSelectedAddress(state),
   chainId: selectChainId(state),
-  tokens: state.engine.backgroundState.TokensController.tokens,
-  dappTransactionModalVisible: state.modals.dappTransactionModalVisible,
-  approveModalVisible: state.modals.approveModalVisible,
+  tokens: selectTokens(state),
   swapsTransactions:
     state.engine.backgroundState.TransactionController.swapsTransactions || {},
   providerType: selectProviderType(state),
-  accountsLength: Object.keys(
-    state.engine.backgroundState.AccountTrackerController.accounts || {},
-  ).length,
 });
 
 const mapDispatchToProps = (dispatch) => ({
@@ -904,14 +415,6 @@ const mapDispatchToProps = (dispatch) => ({
     dispatch(setEtherTransaction(transaction)),
   setTransactionObject: (transaction) =>
     dispatch(setTransactionObject(transaction)),
-  toggleDappTransactionModal: (show = null) =>
-    dispatch(toggleDappTransactionModal(show)),
-  toggleApproveModal: (show) => dispatch(toggleApproveModal(show)),
-  networkSwitched: ({ networkUrl, networkStatus }) =>
-    dispatch(networkSwitched({ networkUrl, networkStatus })),
 });
 
-export default connect(
-  mapStateToProps,
-  mapDispatchToProps,
-)(withQRHardwareAwareness(RootRPCMethodsUI));
+export default connect(mapStateToProps, mapDispatchToProps)(RootRPCMethodsUI);

@@ -17,6 +17,7 @@ import {
   setSelectedAsset,
   prepareTransaction,
   setTransactionObject,
+  resetTransaction,
 } from '../../../../actions/transaction';
 import { getSendFlowTitle } from '../../../UI/Navbar';
 import StyledButton from '../../../UI/StyledButton';
@@ -42,6 +43,8 @@ import {
   handleWeiNumber,
   fromTokenMinimalUnitString,
   toHexadecimal,
+  hexToBN,
+  formatValueToMatchTokenDecimals,
 } from '../../../../util/number';
 import {
   getTicker,
@@ -50,7 +53,7 @@ import {
   calculateEIP1559GasFeeHexes,
 } from '../../../../util/transactions';
 import { GAS_ESTIMATE_TYPES } from '@metamask/gas-fee-controller';
-import { hexToBN, BNToHex } from '@metamask/controller-utils';
+import { BNToHex } from '@metamask/controller-utils';
 import ErrorMessage from '../ErrorMessage';
 import { getGasLimit } from '../../../../util/custom-gas';
 import Engine from '../../../../core/Engine';
@@ -75,11 +78,6 @@ import { gte } from '../../../../util/lodash';
 import { ThemeContext, mockTheme } from '../../../../util/theme';
 import Alert, { AlertType } from '../../../../components/Base/Alert';
 import {
-  AMOUNT_SCREEN,
-  AMOUNT_SCREEN_CARET_DROP_DOWN,
-  NEXT_BUTTON,
-  TRANSACTION_AMOUNT_INPUT,
-  AMOUNT_ERROR,
   FIAT_CONVERSION_WARNING_TEXT,
   TRANSACTION_AMOUNT_CONVERSION_VALUE,
   CURRENCY_SWITCH,
@@ -89,7 +87,19 @@ import {
   selectProviderType,
   selectTicker,
 } from '../../../../selectors/networkController';
+import { selectContractExchangeRates } from '../../../../selectors/tokenRatesController';
+import {
+  selectConversionRate,
+  selectCurrentCurrency,
+} from '../../../../selectors/currencyRateController';
+import { selectTokens } from '../../../../selectors/tokensController';
+import { selectAccounts } from '../../../../selectors/accountTrackerController';
+import { selectContractBalances } from '../../../../selectors/tokenBalancesController';
+import { selectSelectedAddress } from '../../../../selectors/preferencesController';
 import { PREFIX_HEX_STRING } from '../../../../constants/transaction';
+import Routes from '../../../../constants/navigation/Routes';
+import { regex } from '../../../../util/regex';
+import { AmountViewSelectorsIDs } from '../../../../../e2e/selectors/AmountView.selectors';
 
 const KEYBOARD_OFFSET = Device.isSmallDevice() ? 80 : 120;
 
@@ -420,6 +430,10 @@ class Amount extends PureComponent {
      * Indicates whether the current transaction is a deep link transaction
      */
     isPaymentRequest: PropTypes.bool,
+    /**
+     * Resets transaction state
+     */
+    resetTransaction: PropTypes.func,
   };
 
   state = {
@@ -438,10 +452,16 @@ class Amount extends PureComponent {
   collectibles = [];
 
   updateNavBar = () => {
-    const { navigation, route } = this.props;
+    const { navigation, route, resetTransaction } = this.props;
     const colors = this.context.colors || mockTheme.colors;
     navigation.setOptions(
-      getSendFlowTitle('send.amount', navigation, route, colors),
+      getSendFlowTitle(
+        'send.amount',
+        navigation,
+        route,
+        colors,
+        resetTransaction,
+      ),
     );
   };
 
@@ -593,6 +613,8 @@ class Amount extends PureComponent {
     if (value && value.includes(',')) {
       value = inputValue.replace(',', '.');
     }
+
+    value = formatValueToMatchTokenDecimals(value, selectedAsset.decimals);
     if (
       !selectedAsset.tokenId &&
       this.validateAmount(value, internalPrimaryCurrencyIsCrypto)
@@ -625,7 +647,7 @@ class Amount extends PureComponent {
     if (onConfirm) {
       onConfirm();
     } else {
-      navigation.navigate('Confirm');
+      navigation.navigate(Routes.SEND_FLOW.CONFIRM);
     }
   };
 
@@ -760,17 +782,31 @@ class Amount extends PureComponent {
 
     let weiBalance, weiInput, amountError;
     if (isDecimal(value)) {
-      if (selectedAsset.isETH) {
-        weiBalance = hexToBN(accounts[selectedAddress].balance);
-        weiInput = toWei(value).add(estimatedTotalGas);
-      } else {
-        weiBalance = contractBalances[selectedAsset.address];
-        weiInput = toTokenMinimalUnit(value, selectedAsset.decimals);
+      // toWei can throw error if input is not a number: Error: while converting number to string, invalid number value
+      let weiValue = 0;
+      try {
+        weiValue = toWei(value);
+      } catch (error) {
+        amountError = strings('transaction.invalid_amount');
       }
-      // TODO: weiBalance is not always guaranteed to be type BN. Need to consolidate type.
-      amountError = gte(weiBalance, weiInput)
-        ? undefined
-        : strings('transaction.insufficient');
+
+      if (!amountError && Number(value) < 0) {
+        amountError = strings('transaction.invalid_amount');
+      }
+
+      if (!amountError) {
+        if (selectedAsset.isETH) {
+          weiBalance = hexToBN(accounts[selectedAddress].balance);
+          weiInput = weiValue.add(estimatedTotalGas);
+        } else {
+          weiBalance = contractBalances[selectedAsset.address];
+          weiInput = toTokenMinimalUnit(value, selectedAsset.decimals);
+        }
+        // TODO: weiBalance is not always guaranteed to be type BN. Need to consolidate type.
+        amountError = gte(weiBalance, weiInput)
+          ? undefined
+          : strings('transaction.insufficient');
+      }
     } else {
       amountError = strings('transaction.invalid_amount');
     }
@@ -851,7 +887,7 @@ class Amount extends PureComponent {
       hasExchangeRate,
       comma;
     // Remove spaces from input
-    inputValue = inputValue && inputValue.replace(/\s+/g, '');
+    inputValue = inputValue && inputValue.replace(regex.whiteSpaces, '');
     // Handle semicolon for other languages
     if (inputValue && inputValue.includes(',')) {
       comma = true;
@@ -863,14 +899,20 @@ class Amount extends PureComponent {
       : '0';
     selectedAsset = selectedAsset || this.props.selectedAsset;
     if (selectedAsset.isETH) {
+      // toWei can throw error if input is not a number: Error: while converting number to string, invalid number value
+      let weiValue = 0;
+
+      try {
+        weiValue = toWei(processedInputValue);
+      } catch (error) {
+        // Do nothing
+      }
+
       hasExchangeRate = !!conversionRate;
       if (internalPrimaryCurrencyIsCrypto) {
-        inputValueConversion = `${weiToFiatNumber(
-          toWei(processedInputValue),
-          conversionRate,
-        )}`;
+        inputValueConversion = `${weiToFiatNumber(weiValue, conversionRate)}`;
         renderableInputValueConversion = `${weiToFiat(
-          toWei(processedInputValue),
+          weiValue,
           conversionRate,
           currentCurrency,
         )}`;
@@ -1169,7 +1211,7 @@ class Amount extends PureComponent {
               placeholder={'0'}
               placeholderTextColor={colors.text.muted}
               keyboardAppearance={themeAppearance}
-              {...generateTestId(Platform, TRANSACTION_AMOUNT_INPUT)}
+              {...generateTestId(Platform, AmountViewSelectorsIDs.AMOUNT_INPUT)}
             />
           </View>
         </View>
@@ -1211,7 +1253,7 @@ class Amount extends PureComponent {
         {amountError && (
           <View
             style={styles.errorMessageWrapper}
-            {...generateTestId(Platform, AMOUNT_ERROR)}
+            {...generateTestId(Platform, AmountViewSelectorsIDs.AMOUNT_ERROR)}
           >
             <ErrorMessage errorMessage={amountError} />
           </View>
@@ -1246,7 +1288,7 @@ class Amount extends PureComponent {
         {amountError && (
           <View
             style={styles.errorMessageWrapper}
-            {...generateTestId(Platform, AMOUNT_ERROR)}
+            {...generateTestId(Platform, AmountViewSelectorsIDs.AMOUNT_ERROR)}
           >
             <ErrorMessage errorMessage={amountError} />
           </View>
@@ -1268,7 +1310,7 @@ class Amount extends PureComponent {
       <SafeAreaView
         edges={['bottom']}
         style={styles.wrapper}
-        {...generateTestId(Platform, AMOUNT_SCREEN)}
+        {...generateTestId(Platform, AmountViewSelectorsIDs.CONTAINER)}
       >
         <ScrollView style={styles.scrollWrapper}>
           {!hasExchangeRate && !selectedAsset.tokenId ? (
@@ -1315,10 +1357,6 @@ class Amount extends PureComponent {
                       size={16}
                       color={colors.primary.inverse}
                       style={styles.iconDropdown}
-                      {...generateTestId(
-                        Platform,
-                        AMOUNT_SCREEN_CARET_DROP_DOWN,
-                      )}
                     />
                   </View>
                 </TouchableOpacity>
@@ -1355,7 +1393,7 @@ class Amount extends PureComponent {
               containerStyle={styles.buttonNext}
               disabled={!estimatedTotalGas}
               onPress={this.onNext}
-              testID={NEXT_BUTTON}
+              testID={AmountViewSelectorsIDs.NEXT_BUTTON}
             >
               {strings('transaction.next')}
             </StyledButton>
@@ -1370,23 +1408,18 @@ class Amount extends PureComponent {
 Amount.contextType = ThemeContext;
 
 const mapStateToProps = (state, ownProps) => ({
-  accounts: state.engine.backgroundState.AccountTrackerController.accounts,
-  contractBalances:
-    state.engine.backgroundState.TokenBalancesController.contractBalances,
-  contractExchangeRates:
-    state.engine.backgroundState.TokenRatesController.contractExchangeRates,
+  accounts: selectAccounts(state),
+  contractExchangeRates: selectContractExchangeRates(state),
+  contractBalances: selectContractBalances(state),
   collectibles: collectiblesSelector(state),
   collectibleContracts: collectibleContractsSelector(state),
-  currentCurrency:
-    state.engine.backgroundState.CurrencyRateController.currentCurrency,
-  conversionRate:
-    state.engine.backgroundState.CurrencyRateController.conversionRate,
+  conversionRate: selectConversionRate(state),
+  currentCurrency: selectCurrentCurrency(state),
   providerType: selectProviderType(state),
   primaryCurrency: state.settings.primaryCurrency,
-  selectedAddress:
-    state.engine.backgroundState.PreferencesController.selectedAddress,
+  selectedAddress: selectSelectedAddress(state),
   ticker: selectTicker(state),
-  tokens: state.engine.backgroundState.TokensController.tokens,
+  tokens: selectTokens(state),
   transactionState: ownProps.transaction || state.transaction,
   selectedAsset: state.transaction.selectedAsset,
   isPaymentRequest: state.transaction.paymentRequest,
@@ -1399,6 +1432,7 @@ const mapDispatchToProps = (dispatch) => ({
     dispatch(prepareTransaction(transaction)),
   setSelectedAsset: (selectedAsset) =>
     dispatch(setSelectedAsset(selectedAsset)),
+  resetTransaction: () => dispatch(resetTransaction()),
 });
 
 export default connect(mapStateToProps, mapDispatchToProps)(Amount);

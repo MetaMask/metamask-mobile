@@ -94,7 +94,7 @@ const ScreenshotDeterrent = ({
 }: {
   enabled: boolean;
   isSRP: boolean;
-  hasNavigation: boolean;
+  hasNavigation?: boolean;
 }) =>
   hasNavigation ? (
     <ScreenshotDeterrentWithNavigation enabled={enabled} isSRP={isSRP} />

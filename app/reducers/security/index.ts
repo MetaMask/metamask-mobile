@@ -2,7 +2,7 @@
 import { ActionType, Action } from '../../actions/security';
 import { SecuritySettingsState } from '../../actions/security/state';
 
-const initialState: Readonly<SecuritySettingsState> = {
+export const initialState: Readonly<SecuritySettingsState> = {
   allowLoginWithRememberMe: false,
   automaticSecurityChecksEnabled: false,
   hasUserSelectedAutomaticSecurityCheckOption: false,

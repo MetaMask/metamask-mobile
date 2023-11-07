@@ -1,6 +1,14 @@
 // Third party dependencies.
 import { ImageSourcePropType } from 'react-native';
 
+/**
+ * Enum to track states of the account connect multi selector screen.
+ */
+export enum AccountConnectMultiSelectorScreens {
+  AccountMultiSelector = 'AccountMultiSelector',
+  AddAccountActions = 'AddAccountActions',
+}
+
 // External dependencies.
 import { UseAccounts } from '../../../hooks/useAccounts';
 import { IconName } from '../../../../component-library/components/Icons/Icon';
@@ -18,4 +26,5 @@ export interface AccountConnectMultiSelectorProps extends UseAccounts {
   favicon: ImageSourcePropType;
   secureIcon: IconName;
   isAutoScrollEnabled?: boolean;
+  onBack: () => void;
 }

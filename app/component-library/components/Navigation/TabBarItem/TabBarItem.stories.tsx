@@ -1,30 +1,49 @@
-/* eslint-disable no-console */
-
-// Third party dependencies.
-import React from 'react';
-import { storiesOf } from '@storybook/react-native';
-import { boolean, select, text } from '@storybook/addon-knobs';
-
+/* eslint-disable react/display-name */
 // External dependencies.
-import { IconName } from '../../Icons/Icon';
+import { IconName, IconColor } from '../../Icons/Icon';
+import { AvatarSize } from '../../Avatars/Avatar';
 
-// Internal dependencies
-import TabBarItem from './TabBarItem';
+// Internal dependencies.
+import { default as TabBarItemComponent } from './TabBarItem';
+import { SAMPLE_TABBARITEM_PROPS } from './TabBarItem.constants';
 
-storiesOf('Component Library / TabBarItem', module)
-  .addDecorator((getStory) => getStory())
-  .add('Default', () => {
-    const groupId = 'Props';
-    const iconSelector = select('name', IconName, IconName.Lock, groupId);
-    const labelSelector = text('label', 'Wallet', groupId);
-    const selectedSelector = boolean('isSelected', true, groupId);
+const TabBarItemMeta = {
+  title: 'Component Library / Navigation',
+  component: TabBarItemComponent,
+  argTypes: {
+    label: {
+      control: { type: 'text' },
+      defaultValue: SAMPLE_TABBARITEM_PROPS.label,
+    },
+    icon: {
+      options: IconName,
+      control: {
+        type: 'select',
+      },
+      defaultValue: SAMPLE_TABBARITEM_PROPS.icon,
+    },
+    iconSize: {
+      options: AvatarSize,
+      control: {
+        type: 'select',
+      },
+      defaultValue: SAMPLE_TABBARITEM_PROPS.iconSize,
+    },
+    iconColor: {
+      options: IconColor,
+      control: {
+        type: 'select',
+      },
+      defaultValue: SAMPLE_TABBARITEM_PROPS.iconColor,
+    },
+    iconBackgroundColor: {
+      control: {
+        type: 'color',
+      },
+      defaultValue: SAMPLE_TABBARITEM_PROPS.iconBackgroundColor,
+    },
+  },
+};
+export default TabBarItemMeta;
 
-    return (
-      <TabBarItem
-        label={labelSelector}
-        icon={iconSelector}
-        onPress={() => console.log("I'm clicked!")}
-        isSelected={selectedSelector}
-      />
-    );
-  });
+export const TabBarItem = {};

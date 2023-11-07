@@ -14,6 +14,12 @@ import { store } from '../../store';
 import { getPermittedAccounts } from '../Permissions';
 import { RPC } from '../../constants/network';
 import { getRpcMethodMiddleware } from './RPCMethodMiddleware';
+import AppConstants from '../AppConstants';
+import { PermissionConstraint } from '@metamask/permission-controller';
+import PPOMUtil from '../../lib/ppom/ppom-util';
+import initialBackgroundState from '../../util/test/initial-background-state.json';
+import { Store } from 'redux';
+import { RootState } from 'app/reducers';
 
 jest.mock('../Engine', () => ({
   context: {
@@ -26,6 +32,15 @@ jest.mock('../Engine', () => ({
     TransactionController: {
       addTransaction: jest.fn(),
     },
+    SignatureController: {
+      newUnsignedMessage: jest.fn(),
+      newUnsignedPersonalMessage: jest.fn(),
+      newUnsignedTypedMessage: jest.fn(),
+    },
+    PermissionController: {
+      requestPermissions: jest.fn(),
+      getPermissions: jest.fn(),
+    },
   },
 }));
 const MockEngine = Engine as Omit<typeof Engine, 'context'> & {
@@ -33,6 +48,7 @@ const MockEngine = Engine as Omit<typeof Engine, 'context'> & {
     NetworkController: Record<string, any>;
     PreferencesController: Record<string, any>;
     TransactionController: Record<string, any>;
+    PermissionController: Record<string, any>;
   };
 };
 
@@ -41,7 +57,6 @@ jest.mock('../../store', () => ({
     getState: jest.fn(),
   },
 }));
-const mockStore = store as { getState: jest.Mock };
 
 jest.mock('../Permissions', () => ({
   getPermittedAccounts: jest.fn(),
@@ -198,13 +213,25 @@ function setupGlobalState({
   providerConfig?: ProviderConfig;
   selectedAddress?: string;
 }) {
-  if (activeTab) {
-    mockStore.getState.mockImplementation(() => ({
-      browser: {
-        activeTab,
-      },
+  // TODO: Remove any cast once PermissionController type is fixed. Currently, the state shows never.
+  jest
+    .spyOn(store as Store<Partial<RootState>, any>, 'getState')
+    .mockImplementation(() => ({
+      browser: activeTab
+        ? {
+            activeTab,
+          }
+        : {},
+      engine: {
+        backgroundState: {
+          ...initialBackgroundState,
+          NetworkController: {
+            providerConfig: providerConfig || {},
+          },
+          PreferencesController: selectedAddress ? { selectedAddress } : {},
+        },
+      } as any,
     }));
-  }
   if (addTransactionResult) {
     MockEngine.context.TransactionController.addTransaction.mockImplementation(
       async () => ({ result: addTransactionResult }),
@@ -215,13 +242,36 @@ function setupGlobalState({
       (hostname) => permittedAccounts[hostname] || [],
     );
   }
-  if (providerConfig) {
-    MockEngine.context.NetworkController.state.providerConfig = providerConfig;
-  }
   if (selectedAddress) {
     MockEngine.context.PreferencesController.state.selectedAddress =
       selectedAddress;
   }
+}
+
+const addressMock = '0x0000000000000000000000000000000000000001';
+const dataMock =
+  '0x0000000000000000000000000000000000000000000000000000000000000000';
+const dataJsonMock = JSON.stringify({ test: 'data', domain: { chainId: '1' } });
+const hostMock = 'example.metamask.io';
+const signatureMock = '0x1234567890';
+
+function setupSignature() {
+  setupGlobalState({
+    activeTab: 1,
+    providerConfig: {
+      chainId: '1',
+      type: RPC,
+    },
+    selectedAddress: addressMock,
+    permittedAccounts: { [hostMock]: [addressMock] },
+  });
+
+  const middleware = getRpcMethodMiddleware({
+    ...getMinimalOptions(),
+    hostname: hostMock,
+  });
+
+  return { middleware };
 }
 
 describe('getRpcMethodMiddleware', () => {
@@ -383,6 +433,66 @@ describe('getRpcMethodMiddleware', () => {
       });
     });
   }
+
+  describe('wallet_requestPermissions', () => {
+    it('can requestPermissions for eth_accounts', async () => {
+      MockEngine.context.PermissionController.requestPermissions.mockImplementation(
+        async () => [
+          {
+            eth_accounts: {
+              parentCapability: 'eth_accounts',
+              caveats: [],
+            },
+          },
+        ],
+      );
+      const middleware = getRpcMethodMiddleware({
+        ...getMinimalOptions(),
+        hostname: 'example.metamask.io',
+      });
+      const request = {
+        jsonrpc,
+        id: 1,
+        method: 'wallet_requestPermissions',
+        params: [
+          {
+            eth_accounts: {},
+          },
+        ],
+      };
+      const response = await callMiddleware({ middleware, request });
+      expect(
+        (response as JsonRpcSuccess<PermissionConstraint[]>).result,
+      ).toEqual([{ parentCapability: 'eth_accounts', caveats: [] }]);
+    });
+  });
+
+  describe('wallet_getPermissions', () => {
+    it('can getPermissions', async () => {
+      MockEngine.context.PermissionController.getPermissions.mockImplementation(
+        () => ({
+          eth_accounts: {
+            parentCapability: 'eth_accounts',
+            caveats: [],
+          },
+        }),
+      );
+      const middleware = getRpcMethodMiddleware({
+        ...getMinimalOptions(),
+        hostname: 'example.metamask.io',
+      });
+      const request = {
+        jsonrpc,
+        id: 1,
+        method: 'wallet_getPermissions',
+        params: [],
+      };
+      const response = await callMiddleware({ middleware, request });
+      expect(
+        (response as JsonRpcSuccess<PermissionConstraint[]>).result,
+      ).toEqual([{ parentCapability: 'eth_accounts', caveats: [] }]);
+    });
+  });
 
   describe('eth_sendTransaction', () => {
     describe('browser', () => {
@@ -854,6 +964,181 @@ describe('getRpcMethodMiddleware', () => {
 
       expect((response as JsonRpcFailure).error).toBeUndefined();
       expect((response as JsonRpcSuccess<string>).result).toBeNull();
+    });
+  });
+
+  describe('eth_sign', () => {
+    async function sendRequest({ data = dataMock } = {}) {
+      const { middleware } = setupSignature();
+
+      const request = {
+        jsonrpc,
+        id: 1,
+        method: 'eth_sign',
+        params: [addressMock, data],
+      };
+
+      return (await callMiddleware({ middleware, request })) as any;
+    }
+
+    beforeEach(() => {
+      Engine.context.PreferencesController.state.disabledRpcMethodPreferences =
+        { eth_sign: true };
+    });
+
+    it('creates unsigned message', async () => {
+      await sendRequest();
+
+      expect(
+        Engine.context.SignatureController.newUnsignedMessage,
+      ).toHaveBeenCalledTimes(1);
+      expect(
+        Engine.context.SignatureController.newUnsignedMessage,
+      ).toHaveBeenCalledWith({
+        data: dataMock,
+        from: addressMock,
+        meta: expect.any(Object),
+        origin: hostMock,
+      });
+    });
+
+    it('returns resolved value from message promise', async () => {
+      Engine.context.SignatureController.newUnsignedMessage.mockResolvedValue(
+        signatureMock,
+      );
+
+      const response = await sendRequest();
+
+      expect(response.error).toBeUndefined();
+      expect(response.result).toBe(signatureMock);
+    });
+
+    it('returns error if eth_sign disabled in preferences', async () => {
+      Engine.context.PreferencesController.state.disabledRpcMethodPreferences =
+        { eth_sign: false };
+
+      const response = await sendRequest();
+
+      expect(response.error.message).toBe(
+        'eth_sign has been disabled. You must enable it in the advanced settings',
+      );
+    });
+
+    it('returns error if data is wrong length', async () => {
+      const response = await sendRequest({ data: '0x1' });
+
+      expect(response.error.message).toBe(AppConstants.ETH_SIGN_ERROR);
+    });
+  });
+
+  describe('personal_sign', () => {
+    async function sendRequest() {
+      const { middleware } = setupSignature();
+
+      const request = {
+        jsonrpc,
+        id: 1,
+        method: 'personal_sign',
+        params: [dataMock, addressMock],
+      };
+
+      Engine.context.SignatureController.newUnsignedPersonalMessage.mockResolvedValue(
+        signatureMock,
+      );
+
+      return (await callMiddleware({ middleware, request })) as any;
+    }
+
+    it('creates unsigned message', async () => {
+      await sendRequest();
+
+      expect(
+        Engine.context.SignatureController.newUnsignedPersonalMessage,
+      ).toHaveBeenCalledTimes(1);
+      expect(
+        Engine.context.SignatureController.newUnsignedPersonalMessage,
+      ).toHaveBeenCalledWith({
+        data: dataMock,
+        from: addressMock,
+        meta: expect.any(Object),
+        origin: hostMock,
+      });
+    });
+
+    it('returns resolved value from message promise', async () => {
+      const response = await sendRequest();
+
+      expect(response.error).toBeUndefined();
+      expect(response.result).toBe(signatureMock);
+    });
+  });
+
+  describe.each([
+    ['eth_signTypedData', 'V1', false],
+    ['eth_signTypedData_v3', 'V3', true],
+    ['eth_signTypedData_v4', 'V4', true],
+  ])('%s', (methodName, version, addressFirst) => {
+    async function sendRequest() {
+      Engine.context.SignatureController.newUnsignedTypedMessage.mockReset();
+
+      const { middleware } = setupSignature();
+
+      const request = {
+        jsonrpc,
+        id: 1,
+        method: methodName,
+        params: [
+          addressFirst ? addressMock : dataJsonMock,
+          addressFirst ? dataJsonMock : addressMock,
+        ],
+      };
+
+      Engine.context.SignatureController.newUnsignedTypedMessage.mockResolvedValue(
+        signatureMock,
+      );
+
+      return (await callMiddleware({ middleware, request })) as any;
+    }
+
+    it('creates unsigned message', async () => {
+      await sendRequest();
+
+      const expectedParams = [
+        {
+          data: dataJsonMock,
+          from: addressMock,
+          meta: expect.any(Object),
+          origin: hostMock,
+        },
+        expect.any(Object),
+        version,
+      ];
+
+      if (version !== 'V1') {
+        expectedParams.push({
+          parseJsonData: false,
+        });
+      }
+
+      expect(
+        Engine.context.SignatureController.newUnsignedTypedMessage,
+      ).toHaveBeenCalledTimes(1);
+      expect(
+        Engine.context.SignatureController.newUnsignedTypedMessage,
+      ).toHaveBeenCalledWith(...expectedParams);
+    });
+
+    it('returns resolved value from message promise', async () => {
+      const response = await sendRequest();
+
+      expect(response.error).toBeUndefined();
+      expect(response.result).toBe(signatureMock);
+    });
+
+    it('should invoke validateRequest method', async () => {
+      const spy = jest.spyOn(PPOMUtil, 'validateRequest');
+      await sendRequest();
+      expect(spy).toBeCalledTimes(1);
     });
   });
 });

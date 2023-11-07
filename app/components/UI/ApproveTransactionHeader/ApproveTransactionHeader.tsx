@@ -1,156 +1,141 @@
-import React, { useState, useEffect, useMemo } from 'react';
-import { View } from 'react-native';
-
-import { getHost, getUrlObj } from '../../../util/browser';
-import { useSelector } from 'react-redux';
-import {
-  getNetworkNameFromProvider,
-  getNetworkImageSource,
-} from '../../../util/networks';
-
-import { renderShortAddress, renderAccountName } from '../../../util/address';
-import { WALLET_CONNECT_ORIGIN } from '../../../util/walletconnect';
-import { renderFromWei, hexToBN } from '../../../util/number';
 import { toChecksumAddress } from 'ethereumjs-util';
-import { getTicker } from '../../../util/transactions';
-import AccountBalance from '../../../component-library/components-temp/Accounts/AccountBalance';
-import TagUrl from '../../../component-library/components/Tags/TagUrl';
+import React, { useEffect, useMemo, useState } from 'react';
+import { View } from 'react-native';
+import { useSelector } from 'react-redux';
 
-import { BadgeVariant } from '../../../component-library/components/Badges/Badge';
+import AppConstants from '../../../../app/core/AppConstants';
 import { strings } from '../../../../locales/i18n';
+import AccountBalance from '../../../component-library/components-temp/Accounts/AccountBalance';
+import { BadgeVariant } from '../../../component-library/components/Badges/Badge';
+import TagUrl from '../../../component-library/components/Tags/TagUrl';
 import { useStyles } from '../../../component-library/hooks';
-import stylesheet from './ApproveTransactionHeader.styles';
+import { selectProviderConfig } from '../../../selectors/networkController';
+import { selectAccounts } from '../../../selectors/accountTrackerController';
+import { selectIdentities } from '../../../selectors/preferencesController';
+import { renderAccountName } from '../../../util/address';
+import { getUrlObj, prefixUrlWithProtocol } from '../../../util/browser';
 import {
-  FAV_ICON_URL,
+  getNetworkImageSource,
+  getNetworkNameFromProviderConfig,
+} from '../../../util/networks';
+import { WALLET_CONNECT_ORIGIN } from '../../../util/walletconnect';
+import useAddressBalance from '../../hooks/useAddressBalance/useAddressBalance';
+import {
   ORIGIN_DEEPLINK,
   ORIGIN_QR_CODE,
+  APPROVE_TRANSACTION_ORIGIN_PILL,
 } from './ApproveTransactionHeader.constants';
-import {
-  AccountInfoI,
-  ApproveTransactionHeaderI,
-  OriginsI,
-} from './ApproveTransactionHeader.types';
-import { selectProviderConfig } from '../../../selectors/networkController';
-import AppConstants from '../../../../app/core/AppConstants';
+import stylesheet from './ApproveTransactionHeader.styles';
+import { ApproveTransactionHeaderI } from './ApproveTransactionHeader.types';
+import useFavicon from '../../hooks/useFavicon/useFavicon';
 
 const ApproveTransactionHeader = ({
   from,
   origin,
   url,
   currentEnsName,
+  asset,
+  dontWatchAsset,
 }: ApproveTransactionHeaderI) => {
-  const [accountInfo, setAccountInfo] = useState<AccountInfoI>({
-    balance: 0,
-    currency: '',
-    accountName: '',
-  });
-  const [origins, setOrigins] = useState<OriginsI>({
-    isOriginDeepLink: false,
-    isOriginWalletConnect: false,
-    isOriginMMSDKRemoteConn: false,
-  });
+  const [accountName, setAccountName] = useState('');
+
+  const [isOriginDeepLink, setIsOriginDeepLink] = useState(false);
+  const [isOriginWalletConnect, setIsOriginWalletConnect] = useState(false);
+  const [isOriginMMSDKRemoteConn, setIsOriginMMSDKRemoteConn] = useState(false);
 
   const { styles } = useStyles(stylesheet, {});
+  const { addressBalance } = useAddressBalance(asset, from, dontWatchAsset);
 
-  const accounts = useSelector(
-    (state: any) =>
-      state.engine.backgroundState.AccountTrackerController.accounts,
-  );
+  const accounts = useSelector(selectAccounts);
 
-  const identities = useSelector(
-    (state: any) =>
-      state.engine.backgroundState.PreferencesController.identities,
-  );
-
-  const network = useSelector(
-    (state: any) =>
-      state.engine.backgroundState.NetworkController.providerConfig,
-  );
-
+  const identities = useSelector(selectIdentities);
   const activeAddress = toChecksumAddress(from);
 
-  const networkProvider = useSelector(selectProviderConfig);
-  const networkName = getNetworkNameFromProvider(networkProvider);
+  const providerConfig = useSelector(selectProviderConfig);
+  const networkName = getNetworkNameFromProviderConfig(providerConfig);
+
+  const useBlockieIcon = useSelector(
+    (state: any) => state.settings.useBlockieIcon,
+  );
 
   useEffect(() => {
-    const { ticker } = network;
-    const weiBalance = activeAddress
-      ? hexToBN(accounts[activeAddress].balance)
-      : 0;
-
-    const balance = Number(renderFromWei(weiBalance));
-    const currency = getTicker(ticker);
-    const accountName = activeAddress
+    const accountNameVal = activeAddress
       ? renderAccountName(activeAddress, identities)
       : '';
 
-    const isOriginDeepLink =
+    const isOriginDeepLinkVal =
       origin === ORIGIN_DEEPLINK || origin === ORIGIN_QR_CODE;
-    const isOriginWalletConnect = origin?.startsWith(WALLET_CONNECT_ORIGIN);
 
-    const isOriginMMSDKRemoteConn = origin?.startsWith(
-      AppConstants.MM_SDK.SDK_REMOTE_ORIGIN,
+    setAccountName(accountNameVal);
+    setIsOriginDeepLink(isOriginDeepLinkVal);
+
+    if (!origin) {
+      setIsOriginWalletConnect(false);
+      setIsOriginMMSDKRemoteConn(false);
+
+      return;
+    }
+
+    setIsOriginWalletConnect(origin.startsWith(WALLET_CONNECT_ORIGIN));
+    setIsOriginMMSDKRemoteConn(
+      origin.startsWith(AppConstants.MM_SDK.SDK_REMOTE_ORIGIN),
     );
-
-    setAccountInfo({
-      balance,
-      currency,
-      accountName,
-    });
-    setOrigins({
-      isOriginDeepLink,
-      isOriginWalletConnect,
-      isOriginMMSDKRemoteConn,
-    });
-  }, [accounts, identities, origin, activeAddress, network]);
+  }, [accounts, identities, activeAddress, origin]);
 
   const networkImage = getNetworkImageSource({
-    networkType: networkProvider.type,
-    chainId: networkProvider.chainId,
+    networkType: providerConfig.type,
+    chainId: providerConfig.chainId,
   });
 
   const domainTitle = useMemo(() => {
-    const { isOriginDeepLink, isOriginWalletConnect, isOriginMMSDKRemoteConn } =
-      origins;
     let title = '';
-    if (isOriginDeepLink) {
-      title = renderShortAddress(from);
-    } else if (isOriginWalletConnect) {
-      title = getUrlObj(origin.split(WALLET_CONNECT_ORIGIN)[1]).origin;
+    if (isOriginWalletConnect) {
+      title = getUrlObj(
+        (origin as string).split(WALLET_CONNECT_ORIGIN)[1],
+      ).origin;
     } else if (isOriginMMSDKRemoteConn) {
       title = getUrlObj(
-        origin.split(AppConstants.MM_SDK.SDK_REMOTE_ORIGIN)[1],
+        (origin as string).split(AppConstants.MM_SDK.SDK_REMOTE_ORIGIN)[1],
       ).origin;
     } else {
-      title = getUrlObj(currentEnsName || url || origin).origin;
+      title = prefixUrlWithProtocol(currentEnsName || origin || url);
     }
 
     return title;
-  }, [currentEnsName, origin, origins, from, url]);
+  }, [
+    currentEnsName,
+    origin,
+    isOriginWalletConnect,
+    isOriginMMSDKRemoteConn,
+    url,
+  ]);
 
-  const favIconUrl = useMemo(() => {
-    const { isOriginWalletConnect, isOriginMMSDKRemoteConn } = origins;
-    let newUrl = url;
+  const faviconUpdatedOrigin = useMemo(() => {
+    let newOrigin = origin as string;
     if (isOriginWalletConnect) {
-      newUrl = origin.split(WALLET_CONNECT_ORIGIN)[1];
+      newOrigin = newOrigin.split(WALLET_CONNECT_ORIGIN)[1];
     } else if (isOriginMMSDKRemoteConn) {
-      newUrl = origin.split(AppConstants.MM_SDK.SDK_REMOTE_ORIGIN)[1];
+      newOrigin = newOrigin.split(AppConstants.MM_SDK.SDK_REMOTE_ORIGIN)[1];
     }
-    return FAV_ICON_URL(getHost(newUrl));
-  }, [origin, origins, url]);
+    return newOrigin;
+  }, [origin, isOriginWalletConnect, isOriginMMSDKRemoteConn]);
+
+  const faviconSource = useFavicon(faviconUpdatedOrigin);
 
   return (
     <View style={styles.transactionHeader}>
-      <TagUrl
-        imageSource={{ uri: favIconUrl }}
-        label={domainTitle}
-        style={styles.tagUrl}
-      />
+      {origin && !isOriginDeepLink ? (
+        <TagUrl
+          testID={APPROVE_TRANSACTION_ORIGIN_PILL}
+          imageSource={faviconSource}
+          label={domainTitle}
+          style={styles.tagUrl}
+        />
+      ) : null}
       <AccountBalance
         accountAddress={activeAddress}
-        accountNativeCurrency={accountInfo.currency}
-        accountBalance={accountInfo.balance}
-        accountName={accountInfo.accountName}
+        accountTokenBalance={addressBalance}
+        accountName={accountName}
         accountBalanceLabel={strings('transaction.balance')}
         accountNetwork={networkName}
         badgeProps={{
@@ -158,6 +143,7 @@ const ApproveTransactionHeader = ({
           name: networkName,
           imageSource: networkImage,
         }}
+        useBlockieIcon={useBlockieIcon}
       />
     </View>
   );

@@ -11,6 +11,11 @@ import { ThemeContext, mockTheme } from '../../../../util/theme';
 import ClipboardManager from '../../../../core/ClipboardManager';
 import { showAlert } from '../../../../actions/alert';
 import GlobalAlert from '../../../../components/UI/GlobalAlert';
+import {
+  selectConversionRate,
+  selectCurrentCurrency,
+} from '../../../../selectors/currencyRateController';
+import { selectContractExchangeRates } from '../../../../selectors/tokenRatesController';
 
 const createStyles = (colors) =>
   StyleSheet.create({
@@ -179,12 +184,9 @@ class TransactionReviewData extends PureComponent {
 }
 
 const mapStateToProps = (state) => ({
-  conversionRate:
-    state.engine.backgroundState.CurrencyRateController.conversionRate,
-  currentCurrency:
-    state.engine.backgroundState.CurrencyRateController.currentCurrency,
-  contractExchangeRates:
-    state.engine.backgroundState.TokenRatesController.contractExchangeRates,
+  conversionRate: selectConversionRate(state),
+  currentCurrency: selectCurrentCurrency(state),
+  contractExchangeRates: selectContractExchangeRates(state),
   transaction: state.transaction,
 });
 

@@ -18,6 +18,7 @@ describe('AccountBase', () => {
         accountBalanceLabel={''}
         accountAddress={TEST_ACCOUNT_ADDRESS}
         badgeProps={BADGE_PROPS}
+        useBlockieIcon={false}
       />,
     );
     const singleSelectComponent = wrapper.findWhere(

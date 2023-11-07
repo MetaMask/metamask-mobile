@@ -1,14 +1,16 @@
+import type { NetworkState } from '@metamask/network-controller';
+
 export interface AddNicknameProps {
   closeModal: () => void;
   address: string;
   addressNickname: string;
-  frequentRpcList: any;
+  networkConfigurations: NetworkState['networkConfigurations'];
   nicknameExists: boolean;
   showModalAlert: (config: any) => void;
   providerType: string;
   providerChainId: string;
-  providerNetwork: number;
-  providerRpcTarget: string;
+  providerNetwork: string;
+  providerRpcTarget?: string;
   addressBook: {
     [key: string]: {
       address: string;

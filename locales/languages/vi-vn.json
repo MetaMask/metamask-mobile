@@ -1536,10 +1536,7 @@
     "ok": "OK"
   },
   "whats_new": {
-    "title": "Xem những tính năng mới",
-    "feature_security_settings_title": "Các tùy chọn cài đặt bảo mật tốt hơn",
-    "feature_security_settings_text": "Giờ đây, bạn có thể đổi mật khẩu ứng dụng MetaMask của mình và xem xét cách sao lưu Cụm mật khẩu khôi phục bí mật của ví trong phần Cài đặt > Bảo mật và quyền riêng tư.",
-    "feature_security_settings_button": "Xem trong phần Cài đặt"
+    "title": "Xem những tính năng mới"
   },
   "invalid_network": {
     "title": "Bạn phải nhập lại mã chuỗi \n cho mạng tùy chỉnh \n %{network}.",

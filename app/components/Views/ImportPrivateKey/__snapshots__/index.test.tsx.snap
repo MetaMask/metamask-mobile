@@ -24,13 +24,7 @@ exports[`ImportPrivateKey should render correctly 1`] = `
     }
   >
     <ForwardRef(BaseNavigationContainer)>
-      <ImportPrivateKey
-        route={
-          Object {
-            "params": Object {},
-          }
-        }
-      />
+      <ImportPrivateKey />
     </ForwardRef(BaseNavigationContainer)>
   </ThemeProvider>
 </ContextProvider>

@@ -1536,10 +1536,7 @@
     "ok": "확인"
   },
   "whats_new": {
-    "title": "최근 소식 보기",
-    "feature_security_settings_title": "개선된 보안 설정",
-    "feature_security_settings_text": "이제 MetaMask 앱 암호를 변경하고 설정 > 보안 및 개인정보 보호에서 지갑 계정 시드 구문을 백업하는 방법을 확인할 수 있습니다.",
-    "feature_security_settings_button": "설정에서 보기"
+    "title": "최근 소식 보기"
   },
   "invalid_network": {
     "title": "맞춤형 네트워크 \n %{network} \n'의 체인 ID를 다시 입력해야 합니다.",

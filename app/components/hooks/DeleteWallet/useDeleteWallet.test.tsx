@@ -1,5 +1,5 @@
-import { renderHook } from '@testing-library/react-hooks';
-import AsyncStorage from '@react-native-async-storage/async-storage';
+import { renderHook } from '@testing-library/react-native';
+import AsyncStorage from '../../../store/async-storage-wrapper';
 import useDeleteWallet from './useDeleteWallet';
 import { Authentication } from '../../../core';
 import AUTHENTICATION_TYPE from '../../../constants/userProperties';
@@ -11,9 +11,11 @@ jest.mock('../../../core/Engine', () => ({
     KeyringController: {
       createNewVaultAndKeychain: () => jest.fn(),
       setLocked: () => jest.fn(),
+      isUnlocked: () => jest.fn(),
     },
   },
 }));
+
 describe('useDeleteWallet', () => {
   test('it should provide two outputs of type function', () => {
     const { result } = renderHook(() => useDeleteWallet());

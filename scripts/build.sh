@@ -14,7 +14,6 @@ JS_ENV_FILE=".js.env"
 ANDROID_ENV_FILE=".android.env"
 IOS_ENV_FILE=".ios.env"
 
-
 envFileMissing() {
 	FILE="$1"
 	echo "'$FILE' is missing, you'll need to add it to the root of the project."
@@ -109,7 +108,6 @@ checkParameters(){
 
 prebuild(){
 	# Import provider
-	cp node_modules/@metamask/mobile-provider/dist/index.js app/core/InpageBridgeWeb3.js
 	yarn --ignore-engines build:static-logos
 
 	# Load JS specific env variables
@@ -119,6 +117,7 @@ prebuild(){
 			source $JS_ENV_FILE
 		fi
 	fi
+  WATCHER_PORT=${WATCHER_PORT:-8081}
 }
 
 prebuild_ios(){
@@ -152,29 +151,34 @@ prebuild_android(){
 
 buildAndroidRun(){
 	prebuild_android
-	react-native run-android --variant=prodDebug
+	react-native run-android --port=$WATCHER_PORT --variant=prodDebug --active-arch-only
 }
 
 buildAndroidRunQA(){
 	prebuild_android
-	react-native run-android --variant=qaDebug
+	react-native run-android --port=$WATCHER_PORT --variant=qaDebug --active-arch-only
 }
 
 buildIosSimulator(){
 	prebuild_ios
-	SIM="${IOS_SIMULATOR:-"iPhone 12 Pro"}"
-	react-native run-ios --simulator "$SIM"
+	SIM="${IOS_SIMULATOR:-"iPhone 13 Pro"}"
+	react-native run-ios --port=$WATCHER_PORT --simulator "$SIM"
 }
 
 buildIosSimulatorQA(){
 	prebuild_ios
-	SIM="${IOS_SIMULATOR:-"iPhone 12 Pro"}"
-	cd ios && xcodebuild -workspace MetaMask.xcworkspace -scheme MetaMask-QA -configuration Debug  -sdk iphonesimulator -derivedDataPath build
+	SIM="${IOS_SIMULATOR:-"iPhone 13 Pro"}"
+	react-native run-ios --port=$WATCHER_PORT --simulator "$SIM" --scheme "MetaMask-QA"
 }
 
 buildIosSimulatorE2E(){
 	prebuild_ios
-	cd ios && xcodebuild -workspace MetaMask.xcworkspace -scheme MetaMask -configuration Debug  -sdk iphonesimulator -derivedDataPath build
+	cd ios && xcodebuild -workspace MetaMask.xcworkspace -scheme MetaMask -configuration Debug -sdk iphonesimulator -derivedDataPath build
+}
+
+buildIosQASimulatorE2E(){
+	prebuild_ios
+	cd ios && xcodebuild -workspace MetaMask.xcworkspace -scheme MetaMask-QA -configuration Debug -sdk iphonesimulator -derivedDataPath build
 }
 
 runIosE2E(){
@@ -183,12 +187,12 @@ runIosE2E(){
 
 buildIosDevice(){
 	prebuild_ios
-	react-native run-ios --device
+	react-native run-ios --port=$WATCHER_PORT --device
 }
 
 buildIosDeviceQA(){
 	prebuild_ios
-	react-native run-ios --device --scheme "MetaMask-QA"
+	react-native run-ios --port=$WATCHER_PORT --device --scheme "MetaMask-QA"
 }
 
 generateArchivePackages() {
@@ -224,7 +228,7 @@ buildIosRelease(){
 		if [ ! -f "ios/release.xcconfig" ] ; then
 			echo "$IOS_ENV" | tr "|" "\n" > ios/release.xcconfig
 		fi
-		./node_modules/.bin/react-native run-ios  --configuration Release --simulator "iPhone 12 Pro"
+		./node_modules/.bin/react-native run-ios --configuration Release --simulator "iPhone 13 Pro"
 	fi
 }
 
@@ -239,8 +243,6 @@ buildIosReleaseE2E(){
 		brew install watchman
 		cd ios
 		generateArchivePackages "MetaMask"
-		# Generate sourcemaps
-		yarn sourcemaps:ios
 	else
 		echo "Release E2E Build started..."
 		if [ ! -f "ios/release.xcconfig" ] ; then
@@ -271,7 +273,7 @@ buildIosQA(){
 		if [ ! -f "ios/release.xcconfig" ] ; then
 			echo "$IOS_ENV" | tr "|" "\n" > ios/release.xcconfig
 		fi
-		./node_modules/.bin/react-native run-ios --scheme MetaMask-QA  --configuration Release --simulator "iPhone 12 Pro"
+		./node_modules/.bin/react-native run-ios --scheme MetaMask-QA--configuration Release --simulator "iPhone 13 Pro"
 	fi
 }
 
@@ -330,12 +332,12 @@ buildAndroidRelease(){
 
 buildAndroidReleaseE2E(){
 	prebuild_android
-	cd android && ./gradlew assembleProdRelease assembleAndroidTest -PminSdkVersion=26 -DtestBuildType=release
+	cd android && ./gradlew assembleProdRelease app:assembleProdReleaseAndroidTest -PminSdkVersion=26 -DtestBuildType=release
 }
 
 buildAndroidQAE2E(){
 	prebuild_android
-	cd android && ./gradlew assembleQaRelease assembleAndroidTest -PminSdkVersion=26 -DtestBuildType=release
+	cd android && ./gradlew assembleQaRelease app:assembleQaReleaseAndroidTest -PminSdkVersion=26 -DtestBuildType=release
 }
 
 buildAndroid() {
@@ -362,8 +364,7 @@ buildAndroidRunE2E(){
 	then
 		source $ANDROID_ENV_FILE
 	fi
-	cd android && ./gradlew assembleAndroidTest -PminSdkVersion=26 -DtestBuildType=debug && cd ..
-	react-native run-android
+	cd android && ./gradlew assembleProdDebug app:assembleAndroidTest -DtestBuildType=debug && cd ..
 }
 
 buildIos() {
@@ -374,6 +375,8 @@ buildIos() {
 		buildIosReleaseE2E
   elif [ "$MODE" == "debugE2E" ] ; then
 		buildIosSimulatorE2E
+  elif [ "$MODE" == "qadebugE2E" ] ; then
+		buildIosQASimulatorE2E
 	elif [ "$MODE" == "QA" ] ; then
 		buildIosQA
 	elif [ "$MODE" == "qaDebug" ] ; then
@@ -393,13 +396,14 @@ buildIos() {
 
 startWatcher() {
 	source $JS_ENV_FILE
+  WATCHER_PORT=${WATCHER_PORT:-8081}
 	yarn --ignore-engines build:static-logos
 	if [ "$MODE" == "clean" ]; then
 		watchman watch-del-all
-		rm -rf $TMPDIR/react-*
-		react-native start -- --reset-cache
+		rm -rf $TMPDIR/metro-cache
+		react-native start --port=$WATCHER_PORT -- --reset-cache
 	else
-		react-native start
+		react-native start --port=$WATCHER_PORT
 	fi
 }
 
@@ -427,9 +431,9 @@ checkAuthToken() {
 checkParameters "$@"
 
 printTitle
+if [ "$MODE" == "release" ] || [ "$MODE" == "releaseE2E" ] || [ "$MODE" == "QA" ] || [ "$MODE" == "QAE2E" ]; then
 
-if [ "$MODE" == "release" ] || [ "$MODE" == "releaseE2E" ] || [ "$MODE" == "QA" ]; then
-	if [ "$PRE_RELEASE" = false ]; then
+ 	if [ "$PRE_RELEASE" = false ]; then
 		echo "RELEASE SENTRY PROPS"
  		checkAuthToken 'sentry.release.properties'
  		export SENTRY_PROPERTIES="${REPO_ROOT_DIR}/sentry.release.properties"

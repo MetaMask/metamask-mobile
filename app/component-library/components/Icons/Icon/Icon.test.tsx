@@ -1,13 +1,14 @@
 // Third party dependencies.
 import React from 'react';
 import { render } from '@testing-library/react-native';
+
+// Internal dependencies
 import Icon from './Icon';
 import { IconName } from './Icon.types';
-import { shallow } from 'enzyme';
 
 describe('Icon', () => {
   it('renders correctly', () => {
-    const wrapper = shallow(<Icon name={IconName.Add} />);
+    const wrapper = render(<Icon name={IconName.Add} />);
 
     expect(wrapper).toMatchSnapshot();
   });

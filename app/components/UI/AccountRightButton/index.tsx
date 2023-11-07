@@ -5,7 +5,7 @@ import React, {
   useRef,
   useState,
 } from 'react';
-import { useDispatch, useSelector } from 'react-redux';
+import { useSelector } from 'react-redux';
 import {
   TouchableOpacity,
   StyleSheet,
@@ -14,6 +14,7 @@ import {
   Platform,
   EmitterSubscription,
 } from 'react-native';
+import { useNavigation } from '@react-navigation/native';
 import Device from '../../../util/device';
 import AvatarAccount, {
   AvatarAccountType,
@@ -25,14 +26,16 @@ import Avatar, {
 } from '../../../component-library/components/Avatars/Avatar';
 import {
   getNetworkImageSource,
-  getNetworkNameFromProvider,
+  getNetworkNameFromProviderConfig,
 } from '../../../util/networks';
-import { toggleNetworkModal } from '../../../actions/modals';
-import BadgeWrapper from '../../../component-library/components/Badges/BadgeWrapper';
-import { selectProviderConfig } from '../../../selectors/networkController';
 import Badge, {
   BadgeVariant,
 } from '../../../component-library/components/Badges/Badge';
+import BadgeWrapper from '../../../component-library/components/Badges/BadgeWrapper';
+import { selectProviderConfig } from '../../../selectors/networkController';
+import Routes from '../../../constants/navigation/Routes';
+import { MetaMetricsEvents } from '../../../core/Analytics';
+import Analytics from '../../../core/Analytics/Analytics';
 
 const styles = StyleSheet.create({
   leftButton: {
@@ -61,7 +64,9 @@ const AccountRightButton = ({
 }: AccountRightButtonProps) => {
   // Placeholder ref for dismissing keyboard. Works when the focused input is within a Webview.
   const placeholderInputRef = useRef<TextInput>(null);
+  const { navigate } = useNavigation();
   const [isKeyboardVisible, setIsKeyboardVisible] = useState<boolean>(false);
+
   const accountAvatarType = useSelector((state: any) =>
     state.settings.useBlockieIcon
       ? AvatarAccountType.Blockies
@@ -70,8 +75,7 @@ const AccountRightButton = ({
   /**
    * Current network
    */
-  const networkProvider = useSelector(selectProviderConfig);
-  const dispatch = useDispatch();
+  const providerConfig = useSelector(selectProviderConfig);
 
   const handleKeyboardVisibility = useCallback(
     (visibility: boolean) => () => {
@@ -114,24 +118,39 @@ const AccountRightButton = ({
   const handleButtonPress = useCallback(() => {
     dismissKeyboard();
     if (!selectedAddress && isNetworkVisible) {
-      dispatch(toggleNetworkModal(false));
+      navigate(Routes.MODAL.ROOT_MODAL_FLOW, {
+        screen: Routes.SHEET.NETWORK_SELECTOR,
+      });
+      Analytics.trackEventWithParameters(
+        MetaMetricsEvents.NETWORK_SELECTOR_PRESSED,
+        {
+          chain_id: providerConfig.chainId,
+        },
+      );
     } else {
       onPress?.();
     }
-  }, [dismissKeyboard, selectedAddress, isNetworkVisible, dispatch, onPress]);
+  }, [
+    dismissKeyboard,
+    selectedAddress,
+    isNetworkVisible,
+    onPress,
+    navigate,
+    providerConfig.chainId,
+  ]);
 
   const networkName = useMemo(
-    () => getNetworkNameFromProvider(networkProvider),
-    [networkProvider],
+    () => getNetworkNameFromProviderConfig(providerConfig),
+    [providerConfig],
   );
 
   const networkImageSource = useMemo(
     () =>
       getNetworkImageSource({
-        networkType: networkProvider.type,
-        chainId: networkProvider.chainId,
+        networkType: providerConfig.type,
+        chainId: providerConfig.chainId,
       }),
-    [networkProvider],
+    [providerConfig],
   );
 
   const renderAvatarAccount = () => (

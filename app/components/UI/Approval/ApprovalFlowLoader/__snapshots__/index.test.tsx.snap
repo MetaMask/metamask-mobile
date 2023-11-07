@@ -1,0 +1,39 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`ApprovalFlowLoader should render correctly 1`] = `
+<View
+  style={
+    Object {
+      "backgroundColor": "#FFFFFF",
+      "borderTopLeftRadius": 10,
+      "borderTopRightRadius": 10,
+      "minHeight": 100,
+      "paddingBottom": 20,
+    }
+  }
+>
+  <View
+    style={
+      Object {
+        "alignItems": "center",
+        "marginVertical": 12,
+      }
+    }
+  >
+    <AnimatedSpinner />
+  </View>
+  <Text
+    centered={true}
+    noMargin={true}
+    primary={true}
+    style={
+      Object {
+        "fontSize": 13,
+        "lineHeight": 20,
+        "paddingHorizontal": 24,
+        "width": "100%",
+      }
+    }
+  />
+</View>
+`;

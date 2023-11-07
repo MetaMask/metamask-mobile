@@ -1,35 +1,37 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
 exports[`CollectibleContracts should render correctly 1`] = `
-<CollectibleContracts
-  chainId={1}
-  collectibleContracts={
-    Array [
-      Object {
-        "address": "0x0",
-        "description": "description",
-        "logo": "logo",
-        "name": "name",
-        "symbol": "NM",
-        "totalSupply": 10,
+<ContextProvider
+  value={
+    Object {
+      "store": Object {
+        "clearActions": [Function],
+        "dispatch": [Function],
+        "getActions": [Function],
+        "getState": [Function],
+        "replaceReducer": [Function],
+        "subscribe": [Function],
       },
-    ]
-  }
-  collectibles={
-    Array [
-      Object {
-        "address": "0x0",
-        "image": "image",
-        "name": "name",
-        "tokenId": 10,
+      "subscription": Subscription {
+        "handleChangeWrapper": [Function],
+        "listeners": Object {
+          "notify": [Function],
+        },
+        "onStateChange": [Function],
+        "parentSub": undefined,
+        "store": Object {
+          "clearActions": [Function],
+          "dispatch": [Function],
+          "getActions": [Function],
+          "getState": [Function],
+          "replaceReducer": [Function],
+          "subscribe": [Function],
+        },
+        "unsubscribe": null,
       },
-    ]
+    }
   }
-  favoriteCollectibles={Array []}
-  networkType="mainnet"
-  nftDetectionDismissed={true}
-  removeFavoriteCollectible={[Function]}
-  selectedAddress="0x1"
-  setNftDetectionDismissed={[Function]}
-/>
+>
+  <Component />
+</ContextProvider>
 `;

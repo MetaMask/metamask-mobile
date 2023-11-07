@@ -1,52 +1,54 @@
 import TestHelpers from '../helpers';
-import { ADDRESS_BOOK_NEXT_BUTTON } from '../../app/constants/test-ids';
-
-const ADDRESS_INPUT_BOX_ID = 'txn-to-address-input';
-const ADD_TO_ADDRESS_BOOK_BUTTON_ID = 'add-address-button';
-const CANCEL_BUTTON_ID = 'send-cancel-button';
-const INCORRECT_ADDRESS_ERROR_ID = 'address-error';
-const NO_ETH_WARNING_MESSAGE_ID = 'no-eth-message';
-const MY_ACCOUNTS_BUTTON_ID = 'my-accounts-button';
-const REMOVE_ADDRESS_BUTTON_ID = 'clear-address-button';
+import {
+  ADD_ADDRESS_BUTTON,
+  SEND_ADDRESS_INPUT_FIELD,
+  SEND_CANCEL_BUTTON,
+} from '../../wdio/screen-objects/testIDs/Screens/SendScreen.testIds';
+import { SendViewSelectorsIDs } from '../selectors/SendView.selectors';
 
 export default class SendView {
-  static async tapcancelButton() {
-    await TestHelpers.tap(CANCEL_BUTTON_ID);
+  static async tapCancelButton() {
+    await TestHelpers.tap(SEND_CANCEL_BUTTON);
   }
 
   static async tapNextButton() {
-    await TestHelpers.waitAndTap(ADDRESS_BOOK_NEXT_BUTTON);
+    if (device.getPlatform() === 'ios') {
+      await TestHelpers.waitAndTap(
+        SendViewSelectorsIDs.ADDRESS_BOOK_NEXT_BUTTON,
+      );
+    } else {
+      await TestHelpers.waitAndTapByLabel(
+        SendViewSelectorsIDs.ADDRESS_BOOK_NEXT_BUTTON,
+      );
+    }
   }
   static async inputAddress(address) {
-    await TestHelpers.replaceTextInField(ADDRESS_INPUT_BOX_ID, address);
+    await TestHelpers.replaceTextInField(SEND_ADDRESS_INPUT_FIELD, address);
   }
 
-  static async tapAndLongPress() {
-    await TestHelpers.tapAndLongPress(ADDRESS_INPUT_BOX_ID);
-  }
   static async tapAddAddressToAddressBook() {
-    await TestHelpers.waitAndTap(ADD_TO_ADDRESS_BOOK_BUTTON_ID);
+    await TestHelpers.waitAndTap(ADD_ADDRESS_BUTTON);
   }
 
   static async removeAddress() {
     // Tap x to remove address
-    await TestHelpers.tap(REMOVE_ADDRESS_BUTTON_ID);
+    await TestHelpers.tap(SendViewSelectorsIDs.ADDRESS_REMOVE_BUTTON);
     await TestHelpers.delay(1000);
   }
 
   // Assertions
 
-  static async isTransferBetweenMyAccountsButtonVisible() {
-    await TestHelpers.checkIfExists(MY_ACCOUNTS_BUTTON_ID);
+  static async isMyAccountsVisible() {
+    await TestHelpers.checkIfExists(SendViewSelectorsIDs.MY_ACCOUNT_ELEMENT);
   }
 
   static async incorrectAddressErrorMessageIsVisible() {
-    await TestHelpers.checkIfVisible(INCORRECT_ADDRESS_ERROR_ID);
+    await TestHelpers.checkIfVisible(SendViewSelectorsIDs.ADDRESS_ERROR);
   }
 
   static async noEthWarningMessageIsVisible() {
     //Check that the warning appears at the bottom of the screen
-    await TestHelpers.checkIfVisible(NO_ETH_WARNING_MESSAGE_ID);
+    await TestHelpers.checkIfVisible(SendViewSelectorsIDs.NO_ETH_MESSAGE);
   }
 
   static async isSavedAliasVisible(name) {

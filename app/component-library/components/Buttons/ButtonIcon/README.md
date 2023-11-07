@@ -6,7 +6,7 @@ ButtonIcon is a icon component in the form of a button.
 
 This component extends `TouchableOpacityProps` from React Native's [TouchableOpacity](https://reactnative.dev/docs/touchableopacity) component.
 
-### `IconName`
+### `iconName`
 
 Icon name of the icon that will be displayed.
 

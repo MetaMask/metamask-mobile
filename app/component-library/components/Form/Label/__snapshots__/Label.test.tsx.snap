@@ -3,7 +3,7 @@
 exports[`Label should render default settings correctly 1`] = `
 <Text
   testID="label"
-  variant="sBodyMDBold"
+  variant="sBodyMD"
 >
   Sample Label Text
 </Text>

@@ -1,14 +1,5 @@
-import React, {
-  useEffect,
-  useRef,
-  useState,
-  useCallback,
-  useContext,
-  useMemo,
-} from 'react';
+import React, { useEffect, useRef, useCallback, useMemo } from 'react';
 import {
-  RefreshControl,
-  ScrollView,
   InteractionManager,
   ActivityIndicator,
   StyleSheet,
@@ -16,11 +7,10 @@ import {
   TextStyle,
 } from 'react-native';
 import { Theme } from '@metamask/design-tokens';
-import { useDispatch, useSelector } from 'react-redux';
+import { useSelector } from 'react-redux';
 import ScrollableTabView from 'react-native-scrollable-tab-view';
 import DefaultTabBar from 'react-native-scrollable-tab-view/DefaultTabBar';
 import { baseStyles } from '../../../styles/common';
-import AccountOverview from '../../UI/AccountOverview';
 import Tokens from '../../UI/Tokens';
 import { getWalletNavbarOptions } from '../../UI/Navbar';
 import { strings } from '../../../../locales/i18n';
@@ -32,21 +22,28 @@ import { MetaMetricsEvents } from '../../../core/Analytics';
 import { getTicker } from '../../../util/transactions';
 import OnboardingWizard from '../../UI/OnboardingWizard';
 import ErrorBoundary from '../ErrorBoundary';
-import { DrawerContext } from '../../Nav/Main/MainNavigator';
 import { useTheme } from '../../../util/theme';
 import { shouldShowWhatsNewModal } from '../../../util/onboarding';
 import Logger from '../../../util/Logger';
 import Routes from '../../../constants/navigation/Routes';
 import {
   getNetworkImageSource,
-  getNetworkNameFromProvider,
+  getNetworkNameFromProviderConfig,
 } from '../../../util/networks';
-import { toggleNetworkModal } from '../../../actions/modals';
 import generateTestId from '../../../../wdio/utils/generateTestId';
 import {
   selectProviderConfig,
   selectTicker,
 } from '../../../selectors/networkController';
+import { selectTokens } from '../../../selectors/tokensController';
+import { useNavigation } from '@react-navigation/native';
+import { WalletAccount } from '../../../components/UI/WalletAccount';
+import {
+  selectConversionRate,
+  selectCurrentCurrency,
+} from '../../../selectors/currencyRateController';
+import { selectAccounts } from '../../../selectors/accountTrackerController';
+import { selectSelectedAddress } from '../../../selectors/preferencesController';
 
 const createStyles = ({ colors, typography }: Theme) =>
   StyleSheet.create({
@@ -54,6 +51,7 @@ const createStyles = ({ colors, typography }: Theme) =>
       flex: 1,
       backgroundColor: colors.background.default,
     },
+    walletAccount: { marginTop: 28 },
     tabUnderlineStyle: {
       height: 2,
       backgroundColor: colors.primary.default,
@@ -81,53 +79,31 @@ const createStyles = ({ colors, typography }: Theme) =>
  * Main view for the wallet
  */
 const Wallet = ({ navigation }: any) => {
-  const { drawerRef } = useContext(DrawerContext);
-  const [refreshing, setRefreshing] = useState(false);
-  const accountOverviewRef = useRef(null);
+  const { navigate } = useNavigation();
+  const walletRef = useRef(null);
   const theme = useTheme();
   const styles = createStyles(theme);
   const { colors } = theme;
   /**
    * Map of accounts to information objects including balances
    */
-  const accounts = useSelector(
-    (state: any) =>
-      state.engine.backgroundState.AccountTrackerController.accounts,
-  );
+  const accounts = useSelector(selectAccounts);
   /**
    * ETH to current currency conversion rate
    */
-  const conversionRate = useSelector(
-    (state: any) =>
-      state.engine.backgroundState.CurrencyRateController.conversionRate,
-  );
+  const conversionRate = useSelector(selectConversionRate);
   /**
    * Currency code of the currently-active currency
    */
-  const currentCurrency = useSelector(
-    (state: any) =>
-      state.engine.backgroundState.CurrencyRateController.currentCurrency,
-  );
-  /**
-   * An object containing each identity in the format address => account
-   */
-  const identities = useSelector(
-    (state: any) =>
-      state.engine.backgroundState.PreferencesController.identities,
-  );
+  const currentCurrency = useSelector(selectCurrentCurrency);
   /**
    * A string that represents the selected address
    */
-  const selectedAddress = useSelector(
-    (state: any) =>
-      state.engine.backgroundState.PreferencesController.selectedAddress,
-  );
+  const selectedAddress = useSelector(selectSelectedAddress);
   /**
    * An array that represents the user tokens
    */
-  const tokens = useSelector(
-    (state: any) => state.engine.backgroundState.TokensController.tokens,
-  );
+  const tokens = useSelector(selectTokens);
   /**
    * Current provider ticker
    */
@@ -137,29 +113,38 @@ const Wallet = ({ navigation }: any) => {
    */
   const wizardStep = useSelector((state: any) => state.wizard.step);
   /**
-   * Current network
+   * Provider configuration for the current selected network
    */
-  const networkProvider = useSelector(selectProviderConfig);
-  const dispatch = useDispatch();
+  const providerConfig = useSelector(selectProviderConfig);
+
   const networkName = useMemo(
-    () => getNetworkNameFromProvider(networkProvider),
-    [networkProvider],
+    () => getNetworkNameFromProviderConfig(providerConfig),
+    [providerConfig],
   );
 
   const networkImageSource = useMemo(
     () =>
       getNetworkImageSource({
-        networkType: networkProvider.type,
-        chainId: networkProvider.chainId,
+        networkType: providerConfig.type,
+        chainId: providerConfig.chainId,
       }),
-    [networkProvider],
+    [providerConfig],
   );
 
   /**
    * Callback to trigger when pressing the navigation title.
    */
-  const onTitlePress = () => dispatch(toggleNetworkModal());
-
+  const onTitlePress = useCallback(() => {
+    navigate(Routes.MODAL.ROOT_MODAL_FLOW, {
+      screen: Routes.SHEET.NETWORK_SELECTOR,
+    });
+    Analytics.trackEventWithParameters(
+      MetaMetricsEvents.NETWORK_SELECTOR_PRESSED,
+      {
+        chain_id: providerConfig.chainId,
+      },
+    );
+  }, [navigate, providerConfig.chainId]);
   const { colors: themeColors } = useTheme();
 
   useEffect(() => {
@@ -214,34 +199,11 @@ const Wallet = ({ navigation }: any) => {
         networkImageSource,
         onTitlePress,
         navigation,
-        drawerRef,
         themeColors,
       ),
     );
     /* eslint-disable-next-line */
   }, [navigation, themeColors, networkName, networkImageSource, onTitlePress]);
-
-  const onRefresh = useCallback(async () => {
-    requestAnimationFrame(async () => {
-      setRefreshing(true);
-      const {
-        TokenDetectionController,
-        NftDetectionController,
-        AccountTrackerController,
-        CurrencyRateController,
-        TokenRatesController,
-      } = Engine.context as any;
-      const actions = [
-        TokenDetectionController.detectTokens(),
-        NftDetectionController.detectNfts(),
-        AccountTrackerController.refresh(),
-        CurrencyRateController.start(),
-        TokenRatesController.poll(),
-      ];
-      await Promise.all(actions);
-      setRefreshing(false);
-    });
-  }, [setRefreshing]);
 
   const renderTabBar = useCallback(
     () => (
@@ -268,10 +230,6 @@ const Wallet = ({ navigation }: any) => {
     });
   }, []);
 
-  const onRef = useCallback((ref) => {
-    accountOverviewRef.current = ref;
-  }, []);
-
   const renderContent = useCallback(() => {
     let balance: any = 0;
     let assets = tokens;
@@ -280,7 +238,8 @@ const Wallet = ({ navigation }: any) => {
 
       assets = [
         {
-          name: getTicker(ticker) === 'ETH' ? 'ETHER' : ticker,
+          // TODO: Add name property to Token interface in controllers.
+          name: getTicker(ticker) === 'ETH' ? 'Ethereum' : ticker,
           symbol: getTicker(ticker),
           isETH: true,
           balance,
@@ -290,25 +249,16 @@ const Wallet = ({ navigation }: any) => {
             currentCurrency,
           ),
           logo: '../images/eth-logo-new.png',
-        },
+        } as any,
         ...(tokens || []),
       ];
     } else {
       assets = tokens;
     }
-    const account = {
-      address: selectedAddress,
-      ...identities[selectedAddress],
-      ...accounts[selectedAddress],
-    };
-
     return (
       <View style={styles.wrapper}>
-        <AccountOverview
-          account={account}
-          navigation={navigation}
-          onRef={onRef}
-        />
+        <WalletAccount style={styles.walletAccount} ref={walletRef} />
+
         <ScrollableTabView
           renderTabBar={renderTabBar}
           // eslint-disable-next-line react/jsx-no-bind
@@ -318,9 +268,15 @@ const Wallet = ({ navigation }: any) => {
             tabLabel={strings('wallet.tokens')}
             key={'tokens-tab'}
             navigation={navigation}
+            // TODO - Consolidate into the correct type.
+            // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+            // @ts-ignore
             tokens={assets}
           />
           <CollectibleContracts
+            // TODO - Extend component to support injected tabLabel prop.
+            // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+            // @ts-ignore
             tabLabel={strings('wallet.collectibles')}
             key={'nfts-tab'}
             navigation={navigation}
@@ -333,16 +289,13 @@ const Wallet = ({ navigation }: any) => {
     accounts,
     conversionRate,
     currentCurrency,
-    identities,
     navigation,
     onChangeTab,
-    onRef,
     selectedAddress,
     ticker,
     tokens,
     styles,
   ]);
-
   const renderLoader = useCallback(
     () => (
       <View style={styles.loader}>
@@ -357,10 +310,10 @@ const Wallet = ({ navigation }: any) => {
    */
   const renderOnboardingWizard = useCallback(
     () =>
-      [1, 2, 3, 4].includes(wizardStep) && (
+      [1, 2, 3].includes(wizardStep) && (
         <OnboardingWizard
           navigation={navigation}
-          coachmarkRef={accountOverviewRef.current}
+          coachmarkRef={walletRef.current}
         />
       ),
     [navigation, wizardStep],
@@ -369,19 +322,8 @@ const Wallet = ({ navigation }: any) => {
   return (
     <ErrorBoundary navigation={navigation} view="Wallet">
       <View style={baseStyles.flexGrow} {...generateTestId('wallet-screen')}>
-        <ScrollView
-          style={styles.wrapper}
-          refreshControl={
-            <RefreshControl
-              colors={[colors.primary.default]}
-              tintColor={colors.icon.default}
-              refreshing={refreshing}
-              onRefresh={onRefresh}
-            />
-          }
-        >
-          {selectedAddress ? renderContent() : renderLoader()}
-        </ScrollView>
+        {selectedAddress ? renderContent() : renderLoader()}
+
         {renderOnboardingWizard()}
       </View>
     </ErrorBoundary>

@@ -4,11 +4,15 @@ export interface AccountBaseProps {
   /**
    * Available balance of the account in native currency.
    */
-  accountBalance: number;
+  accountBalance?: number;
+  /**
+   * Available balance of the account for a token, formatted string.
+   */
+  accountTokenBalance?: string;
   /**
    * Native currency of the account.
    */
-  accountNativeCurrency: string;
+  accountNativeCurrency?: string;
   /**
    * Current network of the account.
    */
@@ -30,4 +34,8 @@ export interface AccountBaseProps {
    * Avatar wrapper props
    */
   badgeProps: BadgeProps;
+  /**
+   * account identicon
+   */
+  useBlockieIcon: boolean;
 }

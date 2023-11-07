@@ -1536,10 +1536,7 @@
     "ok": "OK"
   },
   "whats_new": {
-    "title": "Confira as novidades",
-    "feature_security_settings_title": "Configurações de segurança aperfeiçoadas",
-    "feature_security_settings_text": "Agora, você poderá alterar a sua senha do app MetaMask & ver como fazer uma cópia de segurança da Frase de Recuperação Secreta da sua carteira em Configurações > Segurança & Privacidade.",
-    "feature_security_settings_button": "Exibir em Configurações"
+    "title": "Confira as novidades"
   },
   "invalid_network": {
     "title": "O ID da chain da rede personalizada \n %{network} \n precisa ser inserido novamente.",

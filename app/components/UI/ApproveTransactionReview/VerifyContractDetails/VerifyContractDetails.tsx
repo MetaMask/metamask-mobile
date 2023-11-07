@@ -14,7 +14,7 @@ import { findBlockExplorerForRpc } from '../../../../util/networks';
 import { RPC } from '../../../../constants/network';
 import TransactionTypes from '../../../../core/TransactionTypes';
 import { safeToChecksumAddress } from '../../../../util/address';
-import { Token as TokenType } from '@metamask/assets-controllers';
+import { selectTokens } from '../../../../selectors/tokensController';
 
 const {
   ASSET: { ERC20, ERC1155, ERC721 },
@@ -30,18 +30,16 @@ const VerifyContractDetails = ({
   savedContactListToArray,
   providerType,
   providerRpcTarget,
-  frequentRpcList,
+  networkConfigurations,
   tokenStandard,
+  tokenSymbol,
 }: VerifyContractDetailsProps) => {
   const [contractNickname, setContractNickname] = React.useState<string>('');
   const [tokenNickname, setTokenNickname] = React.useState<string>('');
   const { colors } = useAppThemeFromContext() || mockTheme;
   const styles = createStyles(colors);
 
-  const tokens = useSelector(
-    (state: any) =>
-      state.engine.backgroundState.TokensController.tokens as TokenType[],
-  );
+  const tokens = useSelector(selectTokens);
 
   const tokenData = useMemo(
     () =>
@@ -50,6 +48,12 @@ const VerifyContractDetails = ({
       ),
     [tokens, tokenAddress],
   );
+
+  useEffect(() => {
+    if (tokenSymbol) {
+      setTokenNickname(tokenSymbol);
+    }
+  }, [tokenSymbol]);
 
   useEffect(() => {
     savedContactListToArray.forEach((contact: any) => {
@@ -64,10 +68,10 @@ const VerifyContractDetails = ({
 
   const showBlockExplorerIcon = useCallback(() => {
     if (providerType === RPC) {
-      return findBlockExplorerForRpc(providerRpcTarget, frequentRpcList);
+      return findBlockExplorerForRpc(providerRpcTarget, networkConfigurations);
     }
     return true;
-  }, [providerType, providerRpcTarget, frequentRpcList]);
+  }, [providerType, providerRpcTarget, networkConfigurations]);
 
   const hasBlockExplorer = showBlockExplorerIcon();
 

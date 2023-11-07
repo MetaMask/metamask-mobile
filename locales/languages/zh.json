@@ -1,4 +1,22 @@
 {
+  "blockaid_banner": {
+    "approval_farming_description": "如果您批准此请求，因欺诈而恶名昭彰的第三方可能会拿走您的所有资产。",
+    "attribution": "安全建议提供商：",
+    "attribution_link_name": "Blockaid",
+    "blur_farming_description": "如果您批准此请求，则有人可以窃取您列于Blur上的资产。",
+    "deceptive_request_title": "此请求属欺骗性质",
+    "failed_title": "此请求可能不安全",
+    "failed_description": "由于出现错误，安全服务提供商未验证此请求。请谨慎操作。",
+    "malicious_domain_description": "您正在与恶意网域交互。如果您批准此请求，可能会遭受资产损失。",
+    "other_description": "如果您批准此请求，可能会遭受资产损失。",
+    "raw_signature_farming_description": "如果您批准此请求，可能会有资产损失。",
+    "seaport_farming_description": "如果您批准此请求，则有人可以窃取您列于OpenSea上的资产。",
+    "see_details": "查看详细信息",
+    "does_not_look_right": "有什么不对劲吗？",
+    "suspicious_request_title": "此请求很可疑",
+    "trade_order_farming_description": "如果您批准此请求，可能会遭受资产损失。",
+    "transfer_farming_description": "如果您批准此请求，因欺诈而恶名昭彰的第三方会拿走您的所有资产。"
+  },
   "date": {
     "months": {
       "0": "1 月",
@@ -43,7 +61,7 @@
     "warning_text_1": "如果继续，将删除您当前的",
     "warning_text_2": "钱包和",
     "warning_text_3": "账户。",
-    "warning_text_4": "您只能使用钱包的助记词恢复它们。MetaMask 无法帮助您恢复。",
+    "warning_text_4": "您只能使用钱包的私钥助记词恢复它们。MetaMask 无法帮助您恢复。",
     "warning_proceed": "删除钱包并继续",
     "warning_cancel": "取消",
     "step1": "钱包设置",
@@ -85,7 +103,7 @@
     },
     "step2": {
       "title": "您的账户",
-      "content1": "这是您的第一个账户、总价值及其唯一公共地址 (0x...)。",
+      "content1": "这是您的第一个账户、总价值及其唯一公钥 (0x...)。",
       "content2": "通过点按个人资料图标，您可以在此钱包内创建多个账户。"
     },
     "step3": {
@@ -108,6 +126,37 @@
       "content": "搜索站点；如果您知道要前往的目的地，键入 URL。"
     }
   },
+  "onboarding_wizard_new": {
+    "coachmark": {
+      "action_back": "不，谢谢",
+      "action_next": "进行导览",
+      "progress_next": "知道了"
+    },
+    "step1": {
+      "title": "欢迎使用您的钱包！",
+      "content1": "在区块链上，您需要钱包（或许还需要一些 ETH）。那么让我们来看看如何使用您的 MetaMask 钱包。"
+    },
+    "step2": {
+      "title": "您的账户",
+      "content1": "这是您的账户和独一无二的公钥（0x...）。点击箭头图标创建更多账户。"
+    },
+    "step3": {
+      "title": "管理您的账户",
+      "content1": "编辑您的账户名称，在 Etherscan 上查看交易，分享您的公钥，以及通过点击此图标查看您的私钥"
+    },
+    "step4": {
+      "title": "使用您的钱包",
+      "content1": "通过点击此图标购买、发送、兑换和接收资产"
+    },
+    "step5": {
+      "title": "探索 web3",
+      "content1": "通过点击此图标打开浏览器"
+    },
+    "step6": {
+      "title": "使用该浏览器",
+      "content1": "通过关键字搜索网站或者输入 URL。祝您玩得开心！ "
+    }
+  },
   "create_wallet": {
     "title": "正在创建您的钱包...",
     "subtitle": "这应该不需要很长时间"
@@ -122,7 +171,7 @@
     "sync_help_step_four": "4.扫描二维码开始同步",
     "sync_from_browser_extension_button": "与 MetaMask 扩展程序同步",
     "or": "或者",
-    "import_from_seed_button": "使用助记词导入"
+    "import_from_seed_button": "使用私钥助记词导入"
   },
   "login": {
     "title": "欢迎回来！",
@@ -139,14 +188,14 @@
     "removed_from": "从这个应用程序中永久删除。",
     "this_action": "此操作无法撤销。",
     "you_can_only": "您只能用您的",
-    "recovery_phrase": "助记词恢复此钱包",
-    "metamask_does_not": "MetaMask 不拥有您的助记词。",
+    "recovery_phrase": "私钥助记词恢复此钱包",
+    "metamask_does_not": "MetaMask 不拥有您的私钥助记词。",
     "i_understand": "我明白，继续",
     "passcode_not_set_error": "错误：未设置密码。",
     "wrong_password_error": "错误：解密失败",
     "wrong_password_error_android": "错误：error:1e000065:Cipher functions:OPENSSL_internal:BAD_DECRYPT",
     "vault_error": "错误：没有以前的保管库，无法解锁。",
-    "clean_vault_error": "由于达到了存储限制，MetaMask 遇到错误。本地数据已损坏。请重新安装 MetaMask，并使用您的助记词进行恢复。",
+    "clean_vault_error": "由于达到了存储限制，MetaMask 遇到错误。本地数据已损坏。请重新安装 MetaMask，并使用您的私钥助记词进行恢复。",
     "security_alert_title": "安全警报",
     "security_alert_desc": "要继续，您需要开启密码或设备支持的任何生物特征身份验证方法（FaceID、TouchID 或指纹）"
   },
@@ -163,7 +212,7 @@
     "password": "新密码",
     "confirm_password": "确认密码",
     "create_button": "创建密码",
-    "import_with_seed_phrase": "使用助记词导入",
+    "import_with_seed_phrase": "使用私钥助记词导入",
     "password_length_error": "密码至少需要 8 个字符",
     "password_dont_match": "密码不匹配",
     "password_strength": "密码强度：",
@@ -172,7 +221,7 @@
     "strength_strong": "强",
     "show": "显示",
     "hide": "隐藏",
-    "seed_phrase": "助记词",
+    "seed_phrase": "私钥助记词",
     "must_be_at_least": "必须至少包含 {{number}} 个字符",
     "remember_me": "记住我",
     "security_alert_title": "安全警报",
@@ -180,7 +229,7 @@
     "i_understand": "我了解 MetaMask 无法为我找回此密码。",
     "learn_more": "了解更多。",
     "secure": "保护钱包安全",
-    "confirm": "确认助记词",
+    "confirm": "确认私钥助记词",
     "disable_biometric_error": "您已经禁用了该应用程序的生物识别功能。更新“记住我\"设置，然后再试一次。"
   },
   "reset_password": {
@@ -189,7 +238,7 @@
     "password": "新密码",
     "confirm_password": "确认密码",
     "reset_button": "重置密码",
-    "import_with_seed_phrase": "使用助记词导入",
+    "import_with_seed_phrase": "使用私钥助记词导入",
     "password_length_error": "密码至少需要 8 个字符",
     "password_dont_match": "密码不匹配",
     "password_strength": "密码强度：",
@@ -198,7 +247,7 @@
     "strength_strong": "强",
     "show": "显示",
     "hide": "隐藏",
-    "seed_phrase": "助记词",
+    "seed_phrase": "私钥助记词",
     "must_be_at_least": "必须至少包含 {{number}} 个字符",
     "remember_me": "记住我",
     "security_alert_title": "安全警报",
@@ -206,7 +255,7 @@
     "i_understand": "我了解 MetaMask 无法为我找回此密码。",
     "learn_more": "了解更多。",
     "secure": "保护钱包安全",
-    "confirm": "确认助记词",
+    "confirm": "确认私钥助记词",
     "password_updated": "密码已更新",
     "successfully_changed": "您的密码已成功更改"
   },
@@ -219,16 +268,16 @@
     "cancel_button": "取消",
     "password_length_error": "密码至少需要 8 个字符",
     "password_dont_match": "密码不匹配",
-    "seed_phrase_requirements": "助记词包含 12、15、18、21 或 24 个字词",
-    "invalid_seed_phrase": "助记词无效",
+    "seed_phrase_requirements": "私钥助记词包含 12、15、18、21 或 24 个字词",
+    "invalid_seed_phrase": "私钥助记词无效",
     "error": "错误",
     "invalid_qr_code_title": "无效二维码",
-    "invalid_qr_code_message": "此二维码不代表有效的助记词"
+    "invalid_qr_code_message": "此二维码不代表有效的私钥助记词"
   },
   "bottom_tab_bar": {
-    "dapps": "ÐApps",
+    "dapps": "去中心化应用",
     "wallet": "钱包",
-    "transfer": "转移"
+    "transfer": "转账"
   },
   "drawer": {
     "send_button": "发送",
@@ -239,8 +288,8 @@
     "request_feature": "请求功能",
     "submit_feedback_message": "选择要发送的反馈类型。",
     "submit_bug": "错误报告",
-    "submit_general_feedback": "常规",
-    "share_address": "共享我的公共地址",
+    "submit_general_feedback": "通用",
+    "share_address": "共享我的公钥",
     "view_in_etherscan": "在 Etherscan 上查看",
     "view_in": "在以下位置查看：",
     "browser": "浏览器",
@@ -253,8 +302,8 @@
     "lock_ok": "是",
     "lock_cancel": "否",
     "feedback": "反馈",
-    "metamask_support": "MetaMask 支持",
-    "public_address": "公共地址"
+    "metamask_support": "MetaMask 支持团队",
+    "public_address": "公钥"
   },
   "send": {
     "title": "发送",
@@ -269,7 +318,7 @@
     "network_missing_id": "缺少链 ID。"
   },
   "deposit": {
-    "title": "存款"
+    "title": "保证金"
   },
   "receive": {
     "title": "接收"
@@ -311,7 +360,7 @@
     "add_collectibles": "添加收藏品",
     "no_transactions": "您没有交易！",
     "send_button": "发送",
-    "deposit_button": "存款",
+    "deposit_button": "保证金",
     "copy_address": "复制",
     "collectible_action_title": "收藏品选项",
     "remove_token_title": "要隐藏此代币吗？",
@@ -327,9 +376,16 @@
     "private_key_detected": "检测到私钥",
     "do_you_want_to_import_this_account": "是否要导入此账户？",
     "error": "错误",
-    "logout_to_import_seed": "您需要先注销，然后才能导入助记词。",
+    "logout_to_import_seed": "您需要先注销，然后才能导入私钥助记词。",
     "ready_to_explore": "准备开始探索区块链应用？",
-    "unable_to_load": "无法载入余额"
+    "unable_to_load": "无法载入余额",
+    "display_nft_media_desc": "要导入NFT，请在“设置>安全和隐私”中打开“显示NFT媒体”。",
+    "display_nft_media_cta": "打开“显示NFT媒体”",
+    "display_media_nft_warning": "显示NFT媒体和数据可能会导致您的IP地址被中心化服务器获悉。仅当您了解相关风险时才可导入NFT。",
+    "nfts_autodetect_title": "NFT自动检测",
+    "nfts_autodetect_cta": "在设置中打开“自动检测NFT”",
+    "display_nft_media_cta_new_1": "要查看NFT，请在此打开“显示NFT媒体”",
+    "display_nft_media_cta_new_2": "设置>安全和隐私。"
   },
   "asset_details": {
     "token": "代币",
@@ -399,6 +455,17 @@
     "cta_no_thanks": "不，谢谢",
     "cta_i_agree": "我同意"
   },
+  "template_confirmation": {
+    "ok": "确定",
+    "cancel": "取消"
+  },
+  "approval_result": {
+    "ok": "确定",
+    "success": "成功",
+    "error": "错误",
+    "resultPageSuccessDefaultMessage": "操作已成功完成。",
+    "resultPageErrorDefaultMessage": "操作失败。"
+  },
   "token": {
     "token_symbol": "代币符号",
     "token_address": "代币地址",
@@ -438,7 +505,7 @@
     "untitled_collection": "无标题收藏"
   },
   "transfer": {
-    "title": "转移",
+    "title": "转账",
     "send": "发送",
     "receive": "接收"
   },
@@ -465,20 +532,30 @@
     "unselect_all": "取消全部选择",
     "permissions": "权限",
     "revoke": "撤销",
-    "revoke_all": "全部撤销"
+    "revoke_all": "全部撤销",
+    "site_permission_to": "此网站有权：",
+    "address_balance_activity_permission": "查看地址、账户余额和活动",
+    "suggest_transactions": "建议要批准的交易",
+    "disconnect": "断开连接",
+    "disconnect_all_accounts": "断开所有账户的连接"
   },
   "toast": {
     "connected_and_active": "已连接且处于活动状态。",
     "now_active": "现处于活动状态。",
     "revoked": "已撤销。",
     "revoked_all": "已撤销所有账户。",
-    "accounts_connected": "账户已连接。"
+    "accounts_connected": "账户已连接。",
+    "disconnected": "已断开连接。",
+    "disconnected_all": "所有账户都已断开连接。"
   },
   "connect_qr_hardware": {
     "title": "连接基于二维码的硬件钱包",
     "description1": "连接通过二维码通信的物理隔离（网闸）硬件钱包。",
     "description2": "它如何运行？",
     "description3": "官方支持的物理隔离（网闸）硬件钱包包括：",
+    "keystone": "Keystone",
+    "learnMore": "了解详情",
+    "tutorial": "教程",
     "description4": "Keystone（教程）",
     "description5": "1. 解锁您的Keystone",
     "description6": "2. 点击 ··· 菜单，然后进入同步 >",
@@ -498,6 +575,7 @@
     "current_conversion": "基础货币",
     "current_language": "当前语言",
     "ipfs_gateway": "IPFS 网关",
+    "ipfs_gateway_content": "MetaMask使用第三方服务来显示存储在IPFS的NFT图像、显示与在浏览器地址栏中输入的ENS地址相关的信息，并获取不同代币的图标。当您使用这些服务时，您的IP地址可能会被其获悉。",
     "ipfs_gateway_down": "您当前的 IPFS 网关发生故障",
     "ipfs_gateway_desc": "选择您的首选 IPFS 网关。",
     "search_engine": "搜索引擎",
@@ -542,8 +620,8 @@
     "protect_desc": "为了保护您的钱包，请将助记词保存在不同的地点，如纸上、密码管理器中和/或云端。",
     "protect_desc_no_backup": "这是您钱包的12单词助记词。此助记词可以用来控制您当前和未来的所有账户，包括发送您钱包中资金的能力。请确保安全存储此助记词，不要与任何人分享。MetaMask 不能帮助您恢复这个密钥。",
     "learn_more": "了解更多。",
-    "seedphrase_not_backed_up": "重要！助记词未备份",
-    "seedphrase_backed_up": "助记词已备份",
+    "seedphrase_not_backed_up": "重要！私钥助记词未备份",
+    "seedphrase_backed_up": "私钥助记词已备份",
     "back_up_now": "立即备份",
     "back_up_again": "再次备份",
     "view_hint": "查看提示",
@@ -555,23 +633,39 @@
     "nft_autodetect_desc": "显示 NFT 媒体和数据可能会将您的 IP 地址暴露给集中式服务器。第三方 API（如 OpenSea）被用来检测您钱包中的 NFT。这将使您的账户地址暴露在这些服务中。如果您不希望应用程序从这些服务中获取数据，请禁用该功能。",
     "show_hex_data": "显示十六进制数据",
     "show_hex_data_desc": "选择此项可在发送屏幕上显示十六进制数据字段。",
-    "enable_eth_sign": "切换eth_sign请求",
-    "enable_eth_sign_desc": "启用此选项以允许dapps使用eth_sign请求来请求您的签名。eth_sign是一种开放式签名方法，允许您对任意散列进行签名，因而使其成为危险的网络钓鱼风险。只有当您能够阅读所签内容并信任请求的来源时，才能对eth_sign请求进行签名。",
+    "toggleEthSignBannerDescription": "您面临网络钓鱼攻击的风险。通过关闭 eth_sign 保护自己。",
+    "enable_eth_sign": "Eth_sign 请求",
+    "enable_eth_sign_desc": "如果您启用此设置，您可能会收到不可读的签名请求。对您不理解的信息进行签名，可能会导致您放弃您的资金和 NFT。",
+    "enable_eth_sign_warning": "您面临网络钓鱼攻击的风险。关闭 eth_sign 以保护自己。",
+    "toggleEthSignModalBannerText": "如果要求您打开此设置，",
+    "toggleEthSignModalBannerBoldText": " 您可能遭受了诈骗。",
+    "toggleEthSignModalCheckBox": "我明白，如果我启用 eth_sign 请求，我可能失去所有资金和 NFT。",
+    "toggleEthSignModalDescription": "允许 eth_sign 请求可能会使您易于受到网络钓鱼攻击。始终检查 URL，并且在签署包含代码的消息时保持谨慎。",
+    "toggleEthSignModalFormError": "此文本错误。再试一次。",
+    "toggleEthSignModalFormLabel": "输入“我只签署我理解的内容”以继续",
+    "toggleEthSignModalFormValidation": "我只签署我理解的内容",
+    "toggleEthSignModalTitle": "使用风险自负",
+    "toggleEthSignModalEnable": "启用",
+    "toggleEthSignModalLearnMore": "了解更多。",
+    "toggleEthSignOff": "关闭（推荐）",
+    "toggleEthSignOn": "开启（不推荐）",
+    "toggleEthSignContinueButton": "继续",
+    "toggleEthSignEnableButton": "启用",
     "show_custom_nonce": "自定义交易 nonce",
     "custom_nonce_desc": "打开这个功能可以改变确认屏幕上的 nonce（交易号码）。这是一个高级功能，请谨慎使用。",
-    "accounts_identicon_title": "账户哈希头像",
+    "accounts_identicon_title": "账户 Identicon",
     "accounts_identicon_desc": "哈希头像是帮助您一眼识别账户的独特图标，有 Jazzicons 和 Blockies 两种不同风格。",
     "jazzicons": "Jazzicons",
     "blockies": "Blockies",
-    "general_title": "常规",
+    "general_title": "通用",
     "general_desc": "货币转换、主要货币、语言和搜索引擎",
     "advanced_title": "高级",
-    "advanced_desc": "访问开发人员功能、重置账户、设置测试网、状态日志、IPFS 网关和自定义 RPC",
-    "contacts_title": "联系信息",
+    "advanced_desc": "访问开发者功能、重置账户、设置测试网、状态日志、IPFS 网关和自定义 RPC",
+    "contacts_title": "联系方式",
     "contacts_desc": "添加、编辑、删除和管理您的账户",
     "security_title": "安全和隐私",
     "back": "返回",
-    "security_desc": "隐私设置、MetaMetrics、私钥和钱包助记词",
+    "security_desc": "隐私设置、MetaMetrics、私钥和钱包私钥助记词",
     "networks_title": "网络",
     "networks_default_title": "默认网络",
     "networks_default_cta": "使用此网络",
@@ -596,7 +690,7 @@
     "remove_network": "删除",
     "cancel_remove_network": "取消",
     "info_title": "MetaMask 简介",
-    "experimental_title": "试验",
+    "experimental_title": "实验性",
     "experimental_desc": "WalletConnect 及更多...",
     "legal_title": "法律",
     "conversion_title": "货币转换",
@@ -616,6 +710,8 @@
     "clear_cookies_desc": "选择此选项可清除您的浏览器的 Cookie。",
     "metametrics_title": "参加 MetaMetrics",
     "metametrics_description": "参加 MetaMetrics 以帮助我们改进 MetaMask。",
+    "batch_balance_requests_title": "批量账户余额请求",
+    "batch_balance_requests_description": "我们对账户进行批量处理并查询 Infura ，以便对应地显示您的余额。如果关闭此选项，则仅限查询活跃账户。除非连接钱包，否则某些去中心化应用（dApp）将无法工作。",
     "third_party_title": "获取传入交易",
     "third_party_description": "第三方 API (Etherscan) 用于显示历史记录中的传入交易。如果您不希望我们通过这些服务拉取数据，请关闭。",
     "metametrics_opt_out": "MetaMetrics 退出",
@@ -655,13 +751,13 @@
     "delete_metrics_description_part_three": "删除此数据后，您的钱包和账户将保持原样。此过程最多可能需要60天。查看",
     "delete_metrics_description_part_four": "您启用此操作的日期为",
     "delete_metrics_description_part_five": ". 此过程最多可能需要60天。查看",
-    "consensys_privacy_policy": "ConsenSys隐私政策。",
+    "consensys_privacy_policy": "Consensys 隐私政策。",
     "delete_metrics_button": "删除MetaMetrics数据",
     "check_status_button": "检查状态",
     "delete_metrics_confirm_modal_title": "要删除MetaMetrics数据吗？",
     "delete_metrics_confirm_modal_description": "我们即将删除您所有的MetaMetrics数据。您确定吗？",
     "delete_wallet_data_title": "删除钱包",
-    "delete_wallet_data_description": "这将会刪除您的设备中所有与钱包关联的数据。您的账户存在于区块链上，与 MetaMask无关。您可以随时使用您的助记词来恢复您的账户。",
+    "delete_wallet_data_description": "这将会刪除您的设备中所有与钱包关联的数据。您的账户存在于区块链上，与 MetaMask无关。您可以随时使用您的私钥助记词来恢复您的账户。",
     "delete_wallet_data_button": "删除钱包",
     "delete_data_status_title": "删除任务状态",
     "delete_data_status_description": "当前状态为",
@@ -685,7 +781,15 @@
       "paste_or_type_activation_key": "粘贴或键入激活密钥",
       "add": "添加",
       "cancel": "取消"
-    }
+    },
+    "request_feature": "功能请求",
+    "contact_support": "联系支持团队",
+    "display_nft_media": "显示NFT媒体",
+    "display_nft_media_desc": "显示NFT媒体和数据会导致您的IP地址被OpenSea或其他第三方获悉。NFT自动检测依赖于此功能，此功能关闭后将不可用。",
+    "autodetect_nft_desc": "让MetaMask使用第三方服务（如OpenSea）来添加您所拥有的NFT。打开自动检测NFT功能后，这些服务就可以获悉您的IP地址和账户地址。启用此功能可能会将您的IP地址与以太坊地址关联起来，并显示骗子空投的虚假NFT。您可以手动添加代币以避免此风险。",
+    "incoming_transactions_title": "显示传入的交易",
+    "incoming_transactions_content": "这取决于您选择的网络（如该网络会公开您的以太坊地址和IP地址）。",
+    "display_nft_media_desc_new": "显示NFT媒体和数据，会导致您的IP地址被OpenSea或其他第三方获悉。NFT自动检测依赖于此功能，此功能关闭后即不可用。如果NFT媒体是完全位于IPFS上，则即使关闭此功能，该NFT媒体仍然可以显示。"
   },
   "sdk": {
     "disconnect_title": "要断开所有网站的连接吗?",
@@ -694,7 +798,7 @@
     "disconnect_all": "断开所有连接",
     "cancel": "取消",
     "loading": "正在连接MetaMask…...",
-    "unkown_dapp": "DAPP名称不可用",
+    "unkown_dapp": "去中心化应用（DAPP）名称不可用",
     "no_connections": "找不到连接"
   },
   "sdk_feedback_modal": {
@@ -713,7 +817,7 @@
     "contact_us": "联系我们"
   },
   "reveal_credential": {
-    "seed_phrase_title": "显示助记词",
+    "seed_phrase_title": "显示私钥助记词",
     "private_key_title": "显示私钥",
     "show_private_key": "显示私钥",
     "private_key_title_for_account": "显示 \"{{accountName}}\" 的私钥",
@@ -736,7 +840,7 @@
       "确保没有人在看您的屏幕。",
       "MetaMask 支持部门绝对不会要求您提供这个。"
     ],
-    "private_key_warning_explanation": "请勿泄露此密钥。任何得到您的私钥的人都可以完全控制您的账户，包括转走所有资金。",
+    "private_key_warning_explanation": "请勿泄露此密钥。任何得到您的私钥的人都可以完全控制您的账户，包括转账所有资金。",
     "reveal_credential_modal": [
       "您的 {{credentialName}} 提供 ",
       "对您的账户和资金的完全访问权限。\n\n请勿与任何人分享。\n",
@@ -744,12 +848,12 @@
       "MetaMask支持团队不会要求此项信息，",
       "但网络钓鱼者可能会。"
     ],
-    "seed_phrase": "您的助记词",
+    "seed_phrase": "您的私钥助记词",
     "private_key": "您的私钥",
     "copy_to_clipboard": "复制到剪贴板",
     "enter_password": "输入密码继续",
-    "seed_phrase_copied_ios": "助记词已暂时复制到剪贴板上\n",
-    "seed_phrase_copied_android": "助记词已复制到剪贴板上",
+    "seed_phrase_copied_ios": "私钥助记词已暂时复制到剪贴板上\n",
+    "seed_phrase_copied_android": "私钥助记词已复制到剪贴板上",
     "seed_phrase_copied_time": "（存储时间为1分钟）",
     "private_key_copied": "私钥已复制到剪贴板",
     "private_key_copied_time": "（存储时间为1分钟）",
@@ -764,7 +868,7 @@
     "hold_to_reveal_credential": "按住以显示 {{credentialName}}",
     "keep_credential_safe": "保护您的 {{credentialName}} 安全",
     "srp_abbreviation_text": "助记词",
-    "srp_text": "助记词",
+    "srp_text": "私钥助记词",
     "private_key_text": "私钥",
     "got_it": "知道了",
     "learn_more": "了解更多"
@@ -772,12 +876,12 @@
   "screenshot_deterrent": {
     "title": "安全提示",
     "description": "截图并非保存您的{{credentialName}}的安全方式。请将其存储在不是在线备份的地方，以保证您的账户安全。",
-    "srp_text": "助记词",
+    "srp_text": "私钥助记词",
     "priv_key_text": "私钥"
   },
   "password_reset": {
     "password_title": "密码",
-    "password_desc": "选择一个强密码来解锁您设备上的 MetaMask 应用。如果丢失密码，您将需要助记词来重新导入钱包。",
+    "password_desc": "选择一个强密码来解锁您设备上的 MetaMask 应用。如果丢失密码，您将需要私钥助记词来重新导入钱包。",
     "password_learn_more": "了解更多。",
     "change_password": "更改密码"
   },
@@ -800,14 +904,45 @@
     "buy_description": "用现金购买加密货币",
     "swap_description": "代币之间的兑换",
     "send_description": "向任何账户发送加密货币",
-    "receive_description": "接收加密货币"
+    "receive_description": "接收加密货币",
+    "chart_time_period": {
+      "1d": "今天",
+      "7d": "过去 7 天",
+      "1w": "上周",
+      "1m": "上个月",
+      "3m": "过去3个月",
+      "1y": "去年",
+      "3y": "过去 3 年"
+    },
+    "chart_time_period_navigation": {
+      "1d": "1 天",
+      "7d": "7 天",
+      "1w": "1 周",
+      "1m": "1 个月",
+      "3m": "3 个月",
+      "1y": "1 年",
+      "3y": "3 年"
+    },
+    "no_chart_data": {
+      "title": "无图表数据",
+      "description": "我们无法获取此代币的任何数据"
+    },
+    "your_balance": "您的余额",
+    "unable_to_load_balance": "无法载入您的余额",
+    "about": "关于",
+    "about_content_display": {
+      "show_more": "展开",
+      "show_less": "收起"
+    },
+    "activity": "{{symbol}} 活动",
+    "disclaimer": "市场数据由一个或多个第三方数据源提供，包括 CoinGecko。此类第三方内容仅供参考，不应被视为购买、出售或使用任何特定资产的建议。MetaMask 不建议将此内容用于任何特定目的，也不对其准确性负责。"
   },
   "account_details": {
     "title": "账户详细信息",
     "share_account": "共享",
     "view_account": "在 Etherscan 上查看账户",
     "show_private_key": "显示私钥",
-    "account_copied_to_clipboard": "公共地址已复制到剪贴板",
+    "account_copied_to_clipboard": "公钥已复制到剪贴板",
     "share_public_key": "共享我的公钥："
   },
   "detected_tokens": {
@@ -869,7 +1004,7 @@
     "speedup": "加速",
     "sign_with_keystone": "使用Keystone签署",
     "from": "自",
-    "gas_fee": "网络费",
+    "gas_fee": "燃料费",
     "gas_fee_fast": "快",
     "gas_fee_average": "中",
     "gas_fee_slow": "慢",
@@ -897,10 +1032,10 @@
     "invalid_address": "地址无效",
     "invalid_from_address": "发件人地址无效",
     "invalid_amount": "数额无效",
-    "invalid_gas": "Gas 数额无效",
-    "invalid_gas_price": "Gas 价格无效",
+    "invalid_gas": "燃料金额无效",
+    "invalid_gas_price": "燃料价格无效",
     "high_gas_price": "您的燃料费可能被设置得过高（{{currentGasPrice}}）。请考虑降低金额。",
-    "low_gas_price": "Gas 价格极低",
+    "low_gas_price": "燃料价格极低",
     "invalid_collectible_ownership": "您并不是此收藏品的所有者",
     "known_asset_contract": "已知资产合约地址",
     "max": "最大",
@@ -922,8 +1057,9 @@
     "speedup_tx_message": "提交此尝试不能保证将会加速您的初始交易。如果加速尝试成功，将向您收取以上交易费。",
     "nevermind": "没关系",
     "edit_network_fee": "编辑网络费",
-    "gas_cancel_fee": "Gas 取消费",
-    "gas_speedup_fee": "Gas 加速费",
+    "edit_priority": "编辑优先级",
+    "gas_cancel_fee": "燃料取消费",
+    "gas_speedup_fee": "燃料加速费",
     "use_max": "使用最大值",
     "set_gas": "设置",
     "cancel_gas": "取消",
@@ -932,16 +1068,16 @@
     "transaction_fee_less": "不收费",
     "total_amount": "总数额",
     "view_data": "查看数据",
-    "adjust_transaction_fee": "调整交易费",
+    "adjust_transaction_fee": "调整交易费用",
     "could_not_resolve_ens": "无法解析 ENS",
     "asset": "资产",
     "balance": "余额",
     "token_id": "代币 ID",
-    "not_enough_for_gas": "您的账户中有 0 {{ticker}} 可用于支付交易费。购买一些 {{ticker}} 或从其他账户存入。",
+    "not_enough_for_gas": "您的账户中有 0 {{ticker}} 可用于支付交易费用。购买一些 {{ticker}} 或保证金，从其他账户存入。",
     "send": "发送",
     "confirm_with_qr_hardware": "使用Keystone确认",
     "confirmed": "已确认",
-    "pending": "待处理",
+    "pending": "待定",
     "submitted": "已提交",
     "failed": "失败",
     "cancelled": "已取消",
@@ -959,7 +1095,7 @@
     "gas_education_4": "燃料费会根据网络流量和交易复杂程度而波动。",
     "gas_education_learn_more": "了解更多关于燃料费的信息",
     "confusable_title": "检查收件人地址",
-    "confusable_msg": "我们在 ENS 名称中检测到一个可令人混淆的字符。检查 ENS 名称以避免潜在的骗局。",
+    "confusable_msg": "我们在 ENS 名称中检测到一个可令人混淆的字符。检查 ENS 名称以避免潜在的欺诈。",
     "similar_to": "类似于",
     "contains_zero_width": "包含零宽度字符",
     "dapp_suggested_gas": "此燃料费是由 %{origin} 建议的。它使用的是传统燃料估算，可能不准确。然而，编辑此燃料费可能会导致您的交易出现问题。如果您遇到问题，请联系 %{origin}。",
@@ -973,7 +1109,7 @@
     "no_camera_permission_android": "您需要授予MetaMask对您的相机的访问权限才能继续。您可能还需要更改系统设置。",
     "mismatched_qr_request_id": "扫描的签名二维码不属于当前交易，请检查交易详情后重试。",
     "fiat_conversion_not_available": "目前不提供法币兑换",
-    "hex_data_copied": "Hex数据已复制到剪贴板",
+    "hex_data_copied": "十六进制数据已复制到剪贴板",
     "invalid_recipient": "收件人无效",
     "invalid_recipient_description": "请检查地址，确保其为有效地址"
   },
@@ -982,11 +1118,11 @@
     "advanced_options": "高级",
     "basic_options": "基本",
     "hide_advanced_options": "隐藏高级选项",
-    "gas_limit": "Gas 限额：",
-    "gas_price": "Gas 价格：(GWEI)",
+    "gas_limit": "燃料限额：",
+    "gas_price": "燃料价格：(GWEI)",
     "save": "保存",
-    "warning_gas_limit": "Gas 限额必须大于 20999、小于 7920027",
-    "warning_gas_limit_estimated": "估算燃料限制是 {{gas}}，把它用作最低值",
+    "warning_gas_limit": "燃料限额必须大于 20999、小于 7920027",
+    "warning_gas_limit_estimated": "估算燃料限额是 {{gas}}，把它用作最低值",
     "cost_explanation": "选择您愿意支付的网络费。费用越高，您的交易得到处理的几率越大、速度越快。"
   },
   "spend_limit_edition": {
@@ -1004,14 +1140,16 @@
     "approve": "批准",
     "allow_to_access": "授予权限以访问您的",
     "allow_to_address_access": "准许此地址访问您的",
+    "spend_cap": "下列项目的支出上限请求",
     "token": "代币",
     "nft": "NFT",
     "you_trust_this_site": "授予此权限，即表示您允许以下第三方存取您的资金。",
     "you_trust_this_address": "您是否信任此地址？授予此权限，即表示您允许此地址访问您的资金。",
     "edit_permission": "编辑权限",
     "edit": "编辑",
-    "transaction_fee_explanation": "交易费与此权限关联。",
+    "transaction_fee_explanation": "交易费用与此权限关联。",
     "view_details": "查看详细信息",
+    "view_transaction_details": "查看交易详情",
     "view_data": "查看数据",
     "transaction_details": "交易详细信息",
     "site_url": "站点 URL",
@@ -1074,7 +1212,9 @@
       "tel": "此网站已被禁止自动拨打电话",
       "mailto": "此网站已被禁止自动撰写电子邮件。",
       "generic": "此网站已被禁止自动打开外部应用程序"
-    }
+    },
+    "ipfs_gateway_off_title": "IPFS网关关闭",
+    "ipfs_gateway_off_content": "要查看此网站，请在隐私和安全设置中开启IPFS网关。"
   },
   "backup_alert": {
     "title": "保护您的钱包",
@@ -1098,7 +1238,7 @@
   },
   "transactions": {
     "tx_review_confirm": "确认",
-    "tx_review_transfer": "转移",
+    "tx_review_transfer": "转账",
     "tx_review_contract_deployment": "合约部署",
     "tx_review_transfer_from": "转移自",
     "tx_review_unknown": "未知方法",
@@ -1129,8 +1269,8 @@
     "to": "至",
     "details": "详细信息",
     "amount": "数额",
-    "gas_limit": "Gas 限额（单位）",
-    "gas_price": "Gas 价格 (GWEI)",
+    "gas_limit": "燃料限额（单位）",
+    "gas_price": "燃料价格 (GWEI)",
     "total": "总计",
     "view_on": "在以下位置查看：",
     "view_on_etherscan": "在 Etherscan 上查看",
@@ -1139,7 +1279,7 @@
     "hash_copied_to_clipboard": "交易哈希已复制到剪贴板",
     "address_copied_to_clipboard": "地址已复制到剪贴板",
     "transaction_error": "交易出错",
-    "address_to_placeholder": "搜索、公共地址 (0x) 或 ENS",
+    "address_to_placeholder": "搜索、公钥 (0x) 或 ENS",
     "address_from_balance": "余额：",
     "status": "状态",
     "date": "日期",
@@ -1174,10 +1314,15 @@
     "address": "地址",
     "name": "名称",
     "nickname": "名称",
-    "add_input_placeholder": "公共地址 (0x) 或 ENS",
-    "between_account": "在我的账户之间转移",
+    "add_input_placeholder": "公钥 (0x) 或 ENS",
+    "between_account": "在我的账户之间转账",
     "others": "其他",
     "memo": "备注"
+  },
+  "duplicate_address": {
+    "title": "此为重复地址",
+    "body": "您的联系人列表显示，此地址出现在不止一个链上。在发送任何金额之前，请确保所选择的联系人是正确的。",
+    "button": "知道了"
   },
   "transaction_submitted": {
     "title": "已提交交易",
@@ -1196,7 +1341,7 @@
     "learn_about": "了解",
     "network_risk": "欺诈和网络安全风险",
     "network_display_name": "显示名称",
-    "network_chain_id": "链ID",
+    "network_chain_id": "链 ID",
     "network_rpc_url": "网络URL",
     "view_details": "查看详情",
     "network_details": "网络详情",
@@ -1213,6 +1358,7 @@
     "learn_more": "了解详情",
     "learn_more_url": "https://metamask.zendesk.com/hc/en-us/articles/4417500466971",
     "switch_network": "切换到网络",
+    "switch": "切换",
     "new_network": "已添加新网络",
     "network_name": "{{networkName}}网络",
     "network_added": " 现已在网络选择工具中。",
@@ -1222,8 +1368,8 @@
     "add_other_network_here": "这里。",
     "you_can": "或者您可以",
     "add_network": "手动添加更多网络。",
-    "deprecated_network_msg": "由于以太坊的协议有变化：Rinkeby、Ropsten、Kovan测试网络可能无法可靠地工作，很快就会被弃用。",
-    "select_network": "选择网络"
+    "select_network": "选择网络",
+    "show_test_networks": "显示测试网络"
   },
   "select": {
     "cancel": "取消",
@@ -1294,14 +1440,14 @@
     "donot_rememberme": "不要记住此dApp连接",
     "disconnect": "断开连接",
     "permission": "查看您的",
-    "address": "公共地址",
+    "address": "公钥",
     "sign_messages": "代表您自己",
     "on_your_behalf": "签署消息",
-    "warning": "单击“连接”即表示您允许此去中心化应用查看您的公共地址。这是保护您的数据防范网络钓鱼风险的重要安全步骤。"
+    "warning": "单击“连接”即表示您允许此去中心化应用查看您的公钥。这是保护您的数据防范网络钓鱼风险的重要安全步骤。"
   },
   "import_private_key": {
     "title": "导入账户",
-    "description_one": "导入的账户可在您的钱包中查看，但无法通过 MetaMask 助记词找回。",
+    "description_one": "导入的账户可在您的钱包中查看，但无法通过 MetaMask 私钥助记词找回。",
     "learn_more_here": "在此处详细了解导入的账户。",
     "subtitle": "粘贴您的私钥字符串",
     "cta_text": "导入",
@@ -1327,7 +1473,7 @@
     "step_1": "第 1 步：",
     "step_1_description": "创建密码",
     "step_2": "第 2 步：",
-    "step_2_description": "保存钱包助记词",
+    "step_2_description": "保存钱包私钥助记词",
     "info_text_1": "用几分钟时间完成 MetaMask 钱包的设置。",
     "info_text_2": "这将确保只有您才可以访问自己的资金，还可以在丢失设备时找回自己的钱包",
     "cta_text": "创建密码",
@@ -1338,7 +1484,7 @@
     "remind_me_later_subtext": "（不建议）",
     "title": "保护您的钱包安全",
     "info_text_1_1": "不要冒丢失资金的风险。在信任的地点保存您的",
-    "info_text_1_2": "助记词，",
+    "info_text_1_2": "私钥助记词，",
     "info_text_1_3": "以此保护您的钱包。",
     "info_text_1_4": "如果您被应用锁定或换新设备，这是找回钱包的唯一途径。",
     "cta_text": "开始",
@@ -1346,21 +1492,21 @@
     "skip_button_cancel": "立即保护",
     "skip_button_confirm": "跳过",
     "skip_title": "跳过账户安全？",
-    "skip_check": "我了解丢失助记词后将无法访问钱包。",
-    "what_is_seedphrase_title": "什么是“助记词”",
-    "what_is_seedphrase_text_1": "助记词是一组 12 个字词，包含与您的钱包相关的所有信息，包括您的资金。它像是用来访问整个钱包的一组密码。",
-    "what_is_seedphrase_text_2": "您必须确保助记词保密、安全。如果有人得到您的助记词，他们将能够控制您的账户。",
+    "skip_check": "我了解丢失私钥助记词后将无法访问钱包。",
+    "what_is_seedphrase_title": "什么是“私钥助记词”",
+    "what_is_seedphrase_text_1": "私钥助记词是一组 12 个字词，包含与您的钱包相关的所有信息，包括您的资金。它像是用来访问整个钱包的一组密码。",
+    "what_is_seedphrase_text_2": "您必须确保助记词保密、安全。如果有人得到您的私钥助记词，他们将能够控制您的账户。",
     "what_is_seedphrase_text_3": "将它保存在只有您能够接触的地方。一旦丢失，即使是 MetaMask 也无法帮您找回。"
   },
   "account_backup_step_1B": {
     "title": "保护您的钱包安全",
     "subtitle_1": "保护您的钱包",
-    "subtitle_2": "助记词。",
+    "subtitle_2": "私钥助记词。",
     "cta_text": "开始",
     "learn_more": "了解更多",
     "why_important": "它为什么重要？",
     "manual_title": "手动",
-    "manual_subtitle": "在一张纸上写下您的助记词并将其存放在安全的地方。",
+    "manual_subtitle": "在一张纸上写下您的私钥助记词并将其存放在安全的地方。",
     "manual_security": "安全级别：很强",
     "risks_title": "风险是：",
     "risks_1": "您丢失它",
@@ -1372,16 +1518,16 @@
     "tips_2": "存放在保险箱中",
     "tips_3": "存放在多个秘密地点",
     "why_secure_title": "保护您的钱包",
-    "why_secure_1": "不要冒丢失资金的风险。在信任的地点保存您的助记词，以此保护您的钱包。",
+    "why_secure_1": "不要冒丢失资金的风险。在信任的地点保存您的私钥助记词，以此保护您的钱包。",
     "why_secure_2": " 如果您被应用锁定或换新设备，这是找回钱包的唯一途径。"
   },
   "account_backup_step_2": {
     "cancel_backup_title": "取消备份",
-    "cancel_backup_message": "我们强烈建议您保存助记词，以便恢复钱包。",
+    "cancel_backup_message": "我们强烈建议您保存私钥助记词，以便恢复钱包。",
     "cancel_backup_ok": "是，我将承受风险",
-    "cancel_backup_no": "不，备份助记词",
+    "cancel_backup_no": "不，备份私钥助记词",
     "title": "拿起笔和纸",
-    "info": "下一步是写下您的助记词。",
+    "info": "下一步是写下您的私钥助记词。",
     "info_2_1": "您将需要",
     "info_2_2": "重新输入",
     "info_2_3": " 以进行确认",
@@ -1389,20 +1535,20 @@
   },
   "account_backup_step_3": {
     "cancel_backup_title": "取消备份",
-    "cancel_backup_message": "我们强烈建议您保存助记词，以便恢复钱包。",
+    "cancel_backup_message": "我们强烈建议您保存私钥助记词，以便恢复钱包。",
     "cancel_backup_ok": "是，我将承受风险",
-    "cancel_backup_no": "不，备份助记词",
+    "cancel_backup_no": "不，备份私钥助记词",
     "title": "有人在看吗？",
-    "info_text": "确保其他人或机器人没有看您的屏幕。如果有人复制您的助记词，可能会在其他设备上窃取您的资金",
+    "info_text": "确保其他人或机器人没有看您的屏幕。如果有人复制您的私钥助记词，可能会在其他设备上窃取您的资金",
     "cta_text": "没有人看我"
   },
   "account_backup_step_4": {
     "cancel_backup_title": "取消备份",
-    "cancel_backup_message": "我们强烈建议您保存助记词，以便恢复钱包。",
+    "cancel_backup_message": "我们强烈建议您保存私钥助记词，以便恢复钱包。",
     "cancel_backup_ok": "是，我将承受风险",
-    "cancel_backup_no": "不，备份助记词",
+    "cancel_backup_no": "不，备份私钥助记词",
     "back": "返回",
-    "title": "您的助记词",
+    "title": "您的私钥助记词",
     "info_text_1": "在纸上认真记下这些字词。它们的顺序十分重要。",
     "info_text_2": "您将需要在下一屏幕上重新输入",
     "cta_text": "我已经复制助记词",
@@ -1414,37 +1560,37 @@
     "error_title": "糟糕！",
     "error_message": "字词的顺序不正确。请确保您在纸上的记录正确无误，需要的话可以返回上一屏幕",
     "back": "返回",
-    "title": "确认助记词",
+    "title": "确认私钥助记词",
     "info_text": "按照前一屏幕上呈现的顺序插入每个字词。",
     "cta_text": "确认助记词",
-    "modal_title": "已确认助记词！",
+    "modal_title": "已确认私钥助记词！",
     "modal_text": "这是为了确保您遵守该安全措施",
     "modal_button": "下一步"
   },
   "account_backup_step_6": {
     "title": "安全提示",
-    "info_text": "如果您丢失助记词，MetaMask 无法找回",
-    "tip_1": "为助记词保留多个备份",
+    "info_text": "如果您丢失私钥助记词，MetaMask 无法找回",
+    "tip_1": "为私钥助记词保留多个备份",
     "tip_2": "在信任的密码管理器中保存助记词，并在安全的地方存放纸质备份",
     "tip_3": "切勿将此助记词告诉他人",
-    "disclaimer": "* 您可以在以下位置找到助记词：",
+    "disclaimer": "* 您可以在以下位置找到私钥助记词： ",
     "disclaimer_bold": "“设置”>“安全和隐私”",
     "cta_text": "知道了！",
     "modal_title": "恭喜！",
     "modal_text": "您已完全备份，整装待发！",
     "modal_button": "完成",
-    "copy_seed_phrase": "将助记词复制到剪贴板"
+    "copy_seed_phrase": "将私钥助记词复制到剪贴板"
   },
   "manual_backup": {
     "progressOne": "创建密码",
     "progressTwo": "保护钱包安全",
-    "progressThree": "确认助记词"
+    "progressThree": "确认私钥助记词"
   },
   "manual_backup_step_1": {
-    "action": "写下您的助记词",
-    "info": "这是您的助记词。将它写在纸上并存放在安全的地方。您将需要在下一步中重新输入此助记词（按顺序）。",
+    "action": "写下您的私钥助记词",
+    "info": "这是您的私钥助记词。将它写在纸上并存放在安全的地方。您将需要在下一步中重新输入此私钥助记词（按顺序）。",
     "continue": "继续",
-    "reveal": "点按可显示助记词",
+    "reveal": "点按可显示私钥助记词",
     "watching": "确保没有人在看您的屏幕。",
     "view": "查看",
     "confirm_password": "确认您的密码",
@@ -1454,21 +1600,21 @@
     "learn_more": "了解更多"
   },
   "manual_backup_step_2": {
-    "action": "确认助记词",
+    "action": "确认私钥助记词",
     "info": "按照之前呈现的顺序选择每个字词。",
     "complete": "完整备份",
     "success": "成功"
   },
   "manual_backup_step_3": {
     "congratulations": "恭喜",
-    "success": "您已成功保护自己的钱包。记住妥善保管您的助记词，这是您的责任！",
+    "success": "您已成功保护自己的钱包。记住妥善保管您的私钥助记词，这是您的责任！",
     "hint": "给自己留下提示？",
-    "recover": "如果您丢失助记词，MetaMask 无法找回您的钱包。您可在“设置”>“安全和隐私”中找到助记词。",
+    "recover": "如果您丢失私钥助记词，MetaMask 无法找回您的钱包。您可在“设置”>“安全和隐私”中找到私钥助记词。",
     "learn": "了解更多",
     "done": "完成",
     "recovery_hint": "找回提示",
     "leave_hint": "给自己留下提示。写下您的保存位置，提醒自己如何找到它。这些信息不会离开您的设备。",
-    "no_seedphrase": "不要在这里写您的助记词。",
+    "no_seedphrase": "不要在这里写您的私钥助记词。",
     "example": "例如，妈妈的房子",
     "save": "保存",
     "cancel": "取消"
@@ -1489,18 +1635,18 @@
   },
   "notifications": {
     "pending_title": "已提交交易",
-    "pending_deposit_title": "存款进行中！",
+    "pending_deposit_title": "保证经进行中！",
     "pending_withdrawal_title": "提取进行中！",
     "cancelled_title": "已取消交易！",
     "success_title": "交易 #{{nonce}} 完成！",
     "speedup_title": "正在加快 #{{nonce}}！",
-    "success_deposit_title": "存款完成！",
+    "success_deposit_title": "保证金完成！",
     "success_withdrawal_title": "提取完成！",
     "error_title": "糟糕，出问题了:/",
     "received_title": "您已收到 {{amount}} {{assetType}}",
     "received_payment_title": "已收到即时付款",
     "pending_message": "正在等待确认",
-    "pending_deposit_message": "正在等待存款完成",
+    "pending_deposit_message": "正在等待保证金完成",
     "pending_withdrawal_message": "正在等待提取完成",
     "error_message": "点按以查看此交易",
     "success_message": "点按以查看此交易",
@@ -1526,7 +1672,7 @@
   },
   "protect_your_wallet_modal": {
     "title": "保护您的钱包",
-    "body_for_password": "通过设置密码并保存助记词来保护您的钱包（必要）。",
+    "body_for_password": "通过设置密码并保存私钥助记词来保护您的钱包（必要）。",
     "body_for_seedphrase": "现在价值已经添加到您的钱包中，请设置密码和保存助记词，保护您的钱包（必要）。",
     "button": "保护钱包"
   },
@@ -1569,8 +1715,8 @@
     "request_description": "向朋友请求资产",
     "buy_title": "购买",
     "buy_description": "使用借记卡或银行转账购买加密币",
-    "public_address": "公共地址",
-    "public_address_qr_code": "公共地址",
+    "public_address": "公钥",
+    "public_address_qr_code": "公钥",
     "coming_soon": "即将推出...",
     "request_payment": "请求付款",
     "copy": "复制",
@@ -1581,7 +1727,12 @@
     "wallet_connect_dapps_desc": "查看活动 WalletConnect 会话的列表",
     "wallet_connect_dapps_cta": "查看会话",
     "network_not_supported": "不支持当前网络",
-    "switch_network": "请切换为主网或 Rinkeby"
+    "security_alerts": "安全警报",
+    "security_alerts_desc": "此功能会在本地检查您的交易和签名请求，如有恶意活动就会向您发出警报。您的数据不会与提供此服务的第三方共享。在批准任何请求之前，均必须自行作出审慎调查。无法保证此功能可以检测到所有恶意活动。",
+    "select_providers": "选择提供商",
+    "blockaid": "Blockaid",
+    "moreProviders": "更多提供商即将加入",
+    "switch_network": "请切换为 mainnet 或 sepolia"
   },
   "walletconnect_sessions": {
     "no_active_sessions": "您没有活动会话",
@@ -1617,7 +1768,7 @@
     "text": "您现在可以返回浏览器"
   },
   "account_bar": {
-    "depositing_to": "存款到："
+    "depositing_to": "保证金存入："
   },
   "fiat_on_ramp": {
     "buy_eth": "购买 ETH",
@@ -1670,10 +1821,10 @@
     "wyre_fees_outside_us_fee": "费用为3.9% + 0.30美元 + 燃料费（最低5美元）",
     "wyre_estimated": "估计 {{amount}} {{currency}}",
     "wyre_modal_text": "在美国支持基于 Wyre 的 Apple Pay 付款，康涅狄格州、夏威夷州、北卡罗来纳州、新罕布什尔州、纽约州、弗吉尼亚州和佛蒙特州除外。",
-    "wyre_minimum_deposit": "最低存款为 {{amount}}",
-    "wyre_maximum_deposit": "最高存款为 {{amount}}",
-    "wyre_purchase": "{{currency}} 购买",
-    "wyre_total_label": "Wyre（通过 MetaMask）",
+    "wyre_minimum_deposit": "最低保证金为 {{amount}}",
+    "wyre_maximum_deposit": "最高保证金为 {{amount}}",
+    "apple_pay_purchase": "{{currency}} 购买",
+    "apple_pay_provider_total_label": "{{provider}}（通过 MetaMask）",
     "buy_with": "购买时使用",
     "plus_fee": "加上 {{fee}} 费",
     "notifications": {
@@ -1724,7 +1875,7 @@
   "fiat_on_ramp_aggregator": {
     "onboarding": {
       "what_to_expect": "将会发生什么",
-      "best_quotes": "我们购买加密货币的功能汇总了来自集成供应商的报价，为您提供这些来源的最佳报价；加密货币将会直接进入您的钱包，无需等待。",
+      "quotes": "我们的加密货币买入功能汇合了来自集成供应商的报价，以便为您提供来自这些来源的报价；加密货币将会直接进入您的钱包，无需等待。",
       "benefits": "需要支付的燃料费更少，支持多种网络、代币和支付方式",
       "get_started": "开始使用"
     },
@@ -1769,16 +1920,11 @@
     "select_region_currency": "选择地区货币",
     "no_tokens_match": "没有符合“{{searchString}}”的代币",
     "no_currency_match": "没有符合“{{searchString}}”的货币",
-    "buy_from_vetted": "如需从我们的集成程序之一中购买{{ticker}}，您将被安全地带到其门户，无需离开MetaMask应用",
-    "price": "价格",
-    "total_fees": "总费用",
-    "processing_fee": "处理费",
-    "network_fee": "网络费",
-    "total": "总额",
+    "compare_rates": "比较这些供应商的价格。报价按总价格排序。",
     "pay_with": "支付方式：",
-    "buy_with": "使用{{provider}}购买",
-    "minimum": "最低存款额为",
-    "maximum": "最高存款额为",
+    "continue_with": "继续使用{{provider}}",
+    "minimum": "最低保证金为",
+    "maximum": "最高保证金为",
     "try_again": "再试一次",
     "error": "错误",
     "something_went_wrong": "糟糕！出问题了",
@@ -1788,6 +1934,7 @@
     "webview_received_error": "WebView收到错误状态代码：{{code}}",
     "no_tokens_available_title": "无可用代币",
     "no_tokens_available": "当前{{network}}上没有可用的代币，无法使用所选支付方式购买。",
+    "this_network": "此网络",
     "change_payment_method": "更改付款方式",
     "try_different_region": "请尝试其他区域",
     "return_home": "返回主屏幕",
@@ -1843,14 +1990,14 @@
       "get_the": "获取",
       "best_price": "来自",
       "from_the": "顶级流动性",
-      "top_liquidity": "来源",
+      "top_liquidity": "首要流动性",
       "sources": "的最佳价格。",
       "find_the": "找到",
       "best_swap": "来自......的",
       "across": "最佳交换。",
       "want_to_learn_more": "想了解更多吗？",
       "learn_more": "了解更多关于 MetaMask Swaps 的信息",
-      "what_are": "什么是换币？",
+      "what_are": "什么是代币兑换？",
       "review_audits": "检视我们的正式合约审计",
       "start_swapping": "开始兑换"
     },
@@ -1910,19 +2057,19 @@
     "fetching_new_quotes": "获取新报价中......",
     "you_need": "您需要",
     "more_to_complete": "更多才能完成这次兑换。",
-    "more_gas_to_complete": "更多燃料，以完成这次交换。",
+    "more_gas_to_complete": "更多燃料，以完成这次兑换。",
     "buy_more_eth": "购买更多 ETH。",
     "buy_more": "购买更多 {{ticker}}。",
     "market_price_unavailable_title": "在继续之前，请检查您的费率",
-    "market_price_unavailable": "市场价格不可用，因此价格影响未知。在交换之前，请确认您对您将收到的代币数量感到满意。",
+    "market_price_unavailable": "市场价格不可用，因此价格影响未知。在兑换之前，请确认您对您将收到的代币数量感到满意。",
     "price_difference": "价格差异为 {{amount}}",
     "price_difference_title": "价格差异",
     "price_difference_body": "市场价格的差异可能受到中介机构收取的费用、市场规模、交易规模或市场低效率的影响。",
     "price_impact_title": "价格影响",
-    "price_impact_body": "价格影响是当前市场价格与交易执行期间收到的金额之间的差异。价格影响是您的交易规模相对于流动资金池规模的一个函数。",
+    "price_impact_body": "价格影响是当前市场价格与交易执行期间收到的金额之间的差异。价格影响是您的交易规模相对于流动性池规模的一个函数。",
     "quotes_update_often": "报价经常更新",
     "quotes_update_often_text": "报价经常更新以反映当前的市场状况。",
-    "about_to_swap": "您即将进行交换",
+    "about_to_swap": "您即将进行兑换",
     "for": "用于",
     "new_quotes_in": "以下来源的新报价：",
     "i_understand": "我理解",
@@ -1934,24 +2081,24 @@
     "max_gas_fee": "最大燃料费",
     "edit": "编辑",
     "quotes_include_fee": "报价包括 %{{fee}} 的 MetaMask 费用",
-    "tap_to_swap": "点按以交换",
-    "swipe_to_swap": "滑动以交换",
+    "tap_to_swap": "点按以兑换",
+    "swipe_to_swap": "滑动以兑换",
     "swipe_to": "滑动以",
-    "swap": "交换",
-    "completed_swap": "交换！",
-    "metamask_swap_fee": "MetaMask 交换费用",
+    "swap": "兑换",
+    "completed_swap": "兑换！",
+    "metamask_swap_fee": "MetaMask Swap 费用",
     "fee_text": {
       "get_the": "获取",
       "best_price": "来自",
       "from_the": "顶级流动性",
-      "top_liquidity": "来源的最佳价格。",
+      "top_liquidity": "首要流动性的最佳价格。",
       "fee_is_applied": "该报价中会自动计入一笔 {{fee}} 的费用。您支付该费用以换取使用 MetaMask 流动性提供商信息聚合软件的许可证。",
       "fee_is_not_applied": "MetaMask在此报价中并未包括额外费用。"
     },
     "enable": {
       "this_will": "这将",
       "enable_asset": "启用 {{asset}}",
-      "for_swapping": "用于交换",
+      "for_swapping": "用于兑换",
       "edit_limit": "编辑限制"
     },
     "quotes_overview": "报价概览",
@@ -1966,7 +2113,7 @@
     "guaranteed_amount": "保证金额",
     "quote_source_dex": {
       "1": "这个报价直接来自于一个",
-      "2": "去中心化交易",
+      "2": "去中心化交易所",
       "3": "协议。"
     },
     "quote_source_rfq": {
@@ -1998,10 +2145,10 @@
       "approve": "批准{{sourceToken}}进行交换：最多可以达到{{upTo}}"
     },
     "notification_label": {
-      "swap_pending": "未完成的交换（{{sourceToken}}至{{destinationToken}}）。",
+      "swap_pending": "未完成的兑换（{{sourceToken}} 至{{destinationToken}}）。",
       "swap_confirmed": "交换完成（{{sourceToken}}至{{destinationToken}}）。",
       "approve_pending": "正在批准{{sourceToken}}用于交换",
-      "approve_confirmed": "{{sourceToken}}已获准进行交换"
+      "approve_confirmed": "{{sourceToken}}已获准进行兑换"
     },
     "medium_selected_warning": "交换对时间敏感。不建议使用“中”。",
     "high_recommendation": "交换通常对时间敏感。“高”将有助于避免因市场条件的变化而造成的潜在损失。",
@@ -2013,7 +2160,7 @@
     "gas_education_2": "网络。",
     "gas_education_3": "MetaMask 不从燃料费中获利。",
     "gas_education_4": "此",
-    "gas_education_5": "“估算的燃料费用”",
+    "gas_education_5": "“估算的燃料费”",
     "gas_education_6": "是我们预计的实际费用。具体金额取决于网络条件。",
     "gas_education_7": "“最大燃料费”",
     "gas_education_8": "是您将要支出的最大费用。当网络不稳定时，这可能是一个很大的金额。",
@@ -2023,7 +2170,7 @@
     "title": "保护您的钱包",
     "top_button": "保护钱包",
     "bottom_button": "稍后提醒我",
-    "text": "不要冒丢失资金的风险。在信任的地点保存您的助记词，以此保护您的钱包。",
+    "text": "不要冒丢失资金的风险。在信任的地点保存您的私钥助记词，以此保护您的钱包。",
     "text_bold": "如果您被应用锁定或换新设备，这是找回钱包的唯一途径。",
     "action": "了解更多"
   },
@@ -2044,24 +2191,19 @@
     "submit_ticket_7": "请包含错误消息和屏幕截图。",
     "save_seedphrase_1": "如果此错误持续存在，",
     "save_seedphrase_2": "请保存您的助记词",
-    "save_seedphrase_3": "并重新安装应用。注：没有助记词将无法恢复钱包。",
+    "save_seedphrase_3": "并重新安装应用。注：没有私钥助记词将无法恢复钱包。",
     "copied_clipboard": "已复制到剪贴板",
     "ok": "确定"
   },
   "whats_new": {
     "title": "了解新功能",
-    "slides_button": "购买加密货币",
-    "slide_1_subtitle": "忘掉去中心化交易所吧。使用MetaMask购买加密货币变得更容易了。",
-    "slide_1_body_1": "何不直接将资金存入您的MetaMask钱包？我们一直忙于引入新的合作伙伴和本地支付方式，以便您能更轻松地通过MetaMask用法定货币购买加密货币。",
-    "slide_1_body_2": "我们支持189个国家/地区，在八个不同网络（包括L2）为您提供服务。请选择您首选的支付选项，然后选择提供给您的最佳报价。",
-    "slide_2_subtitle": "印度，你好！",
-    "slide_2_body_1": "印度用户现在可以访问UPI和IMPS，以获得更便宜、更快速、更高效的支付。我们与Transak和Onramp.money合作，使web3在印度比以往任何时候都更容易获取。",
-    "slide_3_subtitle": "启用了PayID、POLi、Interac和iDEAL！",
-    "slide_3_body_1": "我们与Banxa整合，在加拿大、荷兰、澳大利亚、南非和土耳其提供当地银行基础设施和这些新的支付方式。快来看看吧！",
-    "slide_4_subtitle": "拉丁美洲的本地支付选项",
-    "slide_4_body_1": "我们与Transak合作，现在已经于巴西、墨西哥、乌拉圭、智利和秘鲁启用了AstroPay。巴西用户也可以使用Pix来接入加密货币。",
-    "slide_5_subtitle": "避免复杂的身份验证",
-    "slide_5_body_1": "使用Mercuryo，您现在可以购买价值最高达699欧元的加密货币，而无需验证您的身份。这简化了加密货币结账体验，使入门变得更加容易。"
+    "blockaid": {
+      "title": "安全警报助您确保安全",
+      "description_1": "Blockaid提供的安全警报可以幫助您避开已知的欺诈，同时仍能保护自己的隐私。",
+      "description_2": "在批准请求之前，必须自行作出审慎调查。",
+      "description_3": "如果您启用了OpenSea的安全警报，则我们已为您转到此功能。",
+      "action_text": "启用安全警报"
+    }
   },
   "invalid_network": {
     "title": "必须重新输入自定义网络\n %{network} \n的链 ID。",
@@ -2083,7 +2225,7 @@
     "warning": "这样，此网络就可以在 MetaMask 中使用。",
     "warning_subtext_1": "MetaMask 不对自定义网络或其安全性进行验证。",
     "warning_subtext_2": "了解",
-    "warning_subtext_3": "诈骗和网络安全风险",
+    "warning_subtext_3": "欺诈和网络安全风险",
     "display_name": "显示名称",
     "chain_id": "链 ID",
     "network_url": "网络 URL",
@@ -2103,7 +2245,7 @@
   },
   "edit_gas_fee_eip1559": {
     "advanced_options": "高级选项",
-    "gas_limit": "燃料限制",
+    "gas_limit": "燃料限额",
     "max_priority_fee": "最大优先费用",
     "max_fee": "最大费用",
     "estimate": "估算",
@@ -2113,12 +2255,12 @@
     "learn_more": {
       "title": "我应该如何选择？",
       "intro": "选择合适的燃料费取决于交易的类型和它对您的重要性。",
-      "aggressive_label": "高手续费",
-      "aggressive_text": "即使是在动荡的市场中，可能性也很大。使用高手续费（Aggressive）来应对热门NFT drop等导致的网络流量激增。",
+      "aggressive_label": "激进型",
+      "aggressive_text": "即使是在动荡的市场中，可能性也很大。使用激进型（Aggressive）来应对热门 NFT drop 等导致的网络流量激增。",
       "market_label": "市场价手续费",
       "market_text": "使用市场价手续费（Market），以当前市场价格进行快速处理。",
       "low_label": "低",
-      "low_text": "使用“较低”等待更低价格。由于价格有些不可预测，很难预估准确时间。",
+      "low_text": "使用“低级型”等待更低价格。由于价格有些不可预测，很难预估准确时间。",
       "link": "了解更多关于自定义燃料的信息。"
     },
     "save": "保存",
@@ -2131,8 +2273,8 @@
     "max_fee_high": "最大费用高于必要的水平",
     "max_fee_speed_up_low": "最大费用必须至少是 {{speed_up_floor_value}} GWEI（比初始交易高10%）",
     "max_fee_cancel_low": "最大费用必须至少是 {{cancel_value}} GWEI（比初始交易高50%）",
-    "learn_more_gas_limit": "燃料限制是您愿意使用的最大燃料单位。燃料单位是“最大优先费”和“最大费用”的乘数。",
-    "learn_more_max_priority_fee": "最大优先费（又称 “矿工小费”）直接给矿工，激励他们优先处理您的交易。您通常会支付您的最大设置。",
+    "learn_more_gas_limit": "燃料限额是您愿意使用的最大燃料单位。燃料单位是“最大优先费”和“最大费用”的乘数。",
+    "learn_more_max_priority_fee": "最大优先费（又称 “矿工费”）直接给矿工，激励他们优先处理您的交易。您通常会支付您的最大设置。",
     "learn_more_max_fee": "最大费用是您将支付的最大费用（基本费用 + 优先费用）。",
     "learn_more_new_gas_fee": "我们根据目前的网络状况更新了燃料费，将它增加了至少10%（网络要求）。",
     "learn_more_cancel_gas_fee": "我们根据目前的网络状况更新了燃料费，将它增加了至少50%（网络要求）。",
@@ -2140,7 +2282,7 @@
     "medium": "中",
     "high": "高",
     "market": "市场价手续费",
-    "aggressive": "高手续费",
+    "aggressive": "激进型",
     "low_fee_warning": "请记下您的处理时间。未来的交易将排在此项之后。",
     "edit_priority": "编辑优先级",
     "speed_up_transaction": "加快交易速度",
@@ -2148,7 +2290,7 @@
     "new_gas_fee": "新燃料费",
     "edit_suggested_gas_fee": "编辑建议的燃料费",
     "gas_price": "燃料价格",
-    "learn_more_gas_limit_legacy": "燃料限制是指您愿意使用的最大燃料单位。燃料单位是 “燃料价格 ”的倍数。",
+    "learn_more_gas_limit_legacy": "燃料限额是指您愿意使用的最大燃料单位。燃料单位是 “燃料价格 ”的倍数。",
     "learn_more_gas_price": "该网络在提交交易时需要一个“燃料价格”。燃料价格是您愿意就每单位燃料支付的最大金额。",
     "gas_price_low": "就目前的网络条件而言，燃料价格较低",
     "gas_price_high": "燃料价格高于必要水平"
@@ -2176,6 +2318,8 @@
     "very_likely": "很可能在 <",
     "at_least": "至少",
     "less_than": "少于",
+    "warning_very_likely": "此项矿工费比其他选项高得多。",
+    "warning_very_likely_title": "矿工费过高",
     "warning_unknown": "对于目前的市场条件而言，您的最大费用或最大优先费用可能较低。我们不知道您的交易何时（或是否）会被处理。",
     "warning_low": "这降低了您的最大费用，但如果网络流量增加，您的交易可能会被延迟或失败。",
     "warning_low_title": "低优先级",
@@ -2253,7 +2397,7 @@
     "description": "自动检查更新可能会将您的IP地址暴露给GitHub服务器。这仅显示您的IP地址正在使用MetaMask。其他信息或账户地址不会暴露。"
   },
   "terms_of_use_modal": {
-    "title": "我们的使用条款已更新",
+    "title": "查看我们的最新使用条款",
     "terms_of_use_check_description": "我同意适用于我使用MetaMask及其所有功能的使用条款",
     "accept_cta": "接受",
     "accept_helper_description": "请滚动以阅读所有章节"
@@ -2274,17 +2418,18 @@
     "custom_spend_cap": {
       "max": "最大",
       "edit": "编辑",
-      "title": "自定义支出上限",
-      "use_default": "使用默认值",
+      "title": "支出上限",
+      "use_site_suggestion": "使用网站建议",
       "from_your_balance": "从当前余额中。",
-      "no_value_selected": "仅输入一个您觉得现在或将来可放心让{{domain}}访问的数字。以后，您可以随时提高代币上限。",
-      "this_contract_allows": "此合约允许网站",
-      "from_your_current_balance": "从您当前的余额和",
-      "future_tokens": "您将来可能拥有的余额中支出。您的代币可能存在风险。",
-      "info_modal_description_default": "合约可能会在没有进一步通知或同意的情况下支出您的全部代币余额。请设置较低的支出上限以保护自己。",
+      "default_error_message": "仅输入一个您现在或将来对第三方支出感到放心的数字。您以后可以随时提高支出上限。",
+      "this_contract_allows": "这会允许第三方支出",
+      "amount_greater_than_balance": "此操作允许第三方花费您所有的代币余额，直至达到上限或您撤销支出上限为止。如果这不符合您的意图，请考虑设置较低的支出上限。",
+      "info_modal_description_default": "第三方可以在无需进一步通知或同意的情况下支出您的全部代币余额。请设置较低的支出上限以保护自己。",
       "set_spend_cap": "设置支出上限",
       "be_careful": "请小心",
-      "error_enter_number": "错误：仅可输入数字"
+      "error_enter_number": "错误：仅可输入数字",
+      "enter_number": "在此处输入一个数字",
+      "learn_more": "了解详情"
     },
     "token_allowance": {
       "verify_third_party_details": "核实第三方的详细信息",
@@ -2309,7 +2454,7 @@
     "wallet_restored_action": "继续前往钱包",
     "wallet_restored_description_part_one": "您可能需要再次手动添加一些资产、网络和设置。",
     "wallet_restored_description_part_two": "请花点时间",
-    "wallet_restored_description_link": "将您的助记词备份",
+    "wallet_restored_description_link": "将您的私钥助记词备份",
     "wallet_restored_description_part_three": "以防将来需要再次恢复钱包。"
   },
   "new_wallet_needed": {
@@ -2317,34 +2462,34 @@
     "new_wallet_needed_create_new_wallet_action": "创建新钱包",
     "new_wallet_needed_create_try_again_action": "尝试恢复钱包",
     "new_wallet_needed_description_part_one": "您的钱包出了问题，您需要创建一个新的钱包。因为您的账户在区块链上，所以它们仍然安全。只有保存于设备上的首选项、网络、账户名和相关数据丢失了。",
-    "new_wallet_needed_description_part_two": "要将您的账户导入新钱包，您需要使用助记词。如果您没有助记词，就无法导入账户。",
+    "new_wallet_needed_description_part_two": "要将您的账户导入新钱包，您需要使用私钥助记词。如果您没有私钥助记词，就无法导入账户。",
     "new_wallet_needed_description_part_three": "为了避免再次发生这种情况，请确保将 MetaMask 应用程序和操作系统始终更新至最新版本。"
   },
   "srp_security_quiz": {
     "title": "安全问答",
-    "introduction": "要查看助记词，您需要答对两个问题",
+    "introduction": "要查看私钥助记词，您需要答对两个问题",
     "get_started": "开始",
     "learn_more": "了解详情",
     "try_again": "再试一次",
     "continue": "继续",
     "of": "/",
     "question_one": {
-      "question": "如果您丢失了助记词，MetaMask......",
+      "question": "如果您丢失了私钥助记词，MetaMask......",
       "right_answer": "无法帮助您",
       "wrong_answer": "可以为您找回来",
-      "right_answer_title": "答对了！没有人能够帮您找回您的助记词",
+      "right_answer_title": "答对了！没有人能够帮您找回您的私钥助记词",
       "right_answer_description": "将它写下来、刻在金属上，或保存在多个秘密位置，这样您就不会丢失它。如果丢失了，它就会永远消失。",
-      "wrong_answer_title": "答错了！没有人能够帮您找回您的助记词",
-      "wrong_answer_description": "一旦遗失助记词，它将永远消失。无论他人如何保证，无人能够帮您找回。"
+      "wrong_answer_title": "答错了！没有人能够帮您找回您的私钥助记词",
+      "wrong_answer_description": "一旦遗失私钥助记词，它将永远消失。无论他人如何保证，无人能够帮您找回。"
     },
     "question_two": {
-      "question": "如果有人（即使是技术支持人员）查问您的助记词......",
-      "right_answer": "就是在对您进行诈骗",
-      "right_answer_title": "答对了！分享您的助记词绝对不是个好主意",
-      "right_answer_description": "任何声称需要您的助记词的人都在对您进行欺诈。如果您与他们分享助记词，他们就会偷窃您的资产。",
+      "question": "如果有人（即使是技术支持人员）查问您的私钥助记词......",
+      "right_answer": "就是在对您进行欺诈",
+      "right_answer_title": "答对了！分享您的私钥助记词绝对不是个好主意",
+      "right_answer_description": "任何声称需要您的私钥助记词的人都在对您进行欺诈。如果您与他们分享私钥助记词，他们就会偷窃您的资产。",
       "wrong_answer": "您应该交给他们",
-      "wrong_answer_title": "不！永远不要与任何人分享您的助记词",
-      "wrong_answer_description": "任何声称需要您的助记词的人都在对您进行欺诈。如果您与他们分享助记词，他们就会偷窃您的资产。"
+      "wrong_answer_title": "不！永远不要与任何人分享您的私钥助记词",
+      "wrong_answer_description": "任何声称需要您的私钥助记词的人都在对您进行欺诈。如果您与他们分享私钥助记词，他们就会偷窃您的资产。"
     }
   },
   "ledger": {
@@ -2414,6 +2559,38 @@
     "add_account_or_hardware_wallet": "添加账户或硬件钱包",
     "add_account": "添加账户",
     "add_new_account": "添加新账户",
-    "add_hardware_wallet": "添加硬件钱包"
+    "add_hardware_wallet": "添加硬件钱包",
+    "import_account": "导入账户"
+  },
+  "show_nft": {
+    "show_nft_title": "显示NFT",
+    "show_nft_content_1": "我们使用第三方服务来显示您存储在IPFS的NFT图像、显示与您输入到浏览器地址栏中的ENS（Ethereum 域名服务）地址相关的信息，并获取不同代币的图标。当您使用这些服务时，这些服务可能会看到您的IP地址。",
+    "show_nft_content_2": "选择",
+    "show_nft_content_3": "确认",
+    "show_nft_content_4": "会打开IPFS解析。您可以随时在以下位置将其关闭：",
+    "show_nft_content_5": "设置 > 安全和隐私",
+    "show_nft_content_6": "。"
+  },
+  "show_display_nft_media": {
+    "show_display_nft_media_title": "显示 NFT 媒体",
+    "show_display_nft_media_content_1": "要查看 NFT，您需要打开",
+    "show_display_nft_media_content_2": "显示 NFT 媒体。",
+    "show_display_nft_media_content_3": "打开显示 NFT 媒体和数据功能后，OpenSea 或其他第三方就可以看到您的 IP 地址。NFT 自动检测依赖于此功能，关闭后将不可用。",
+    "show_display_nft_media_content_4": "您可以在此处关闭显示 NFT 媒体：",
+    "show_display_nft_media_content_5": "设置 > 安全和隐私。"
+  },
+  "ipfs_gateway_banner": {
+    "ipfs_gateway_banner_title": "IPFS 网关",
+    "ipfs_gateway_banner_content1": "这是一个 IPFS 网站。要查看此网站，您需要",
+    "ipfs_gateway_banner_content2": "在",
+    "ipfs_gateway_banner_content3": "设置中",
+    "ipfs_gateway_banner_content4": "开启 IPFS 网关。"
+  },
+  "ipfs_gateway": {
+    "ipfs_gateway_title": "IPFS 网关",
+    "ipfs_gateway_content1": "我们使用第三方服务来显示您存储在 IPFS 的 NFT 图像，显示与您输入到浏览器地址栏中的ENS（Ethereum 域名服务）地址相关的信息，并获取不同代币的图标。当您使用这些服务时，这些服务可能会看到您的 IP 地址。",
+    "ipfs_gateway_content2": "您可以随时在",
+    "ipfs_gateway_content3": "“设置 > 安全和隐私”中",
+    "ipfs_gateway_content4": "关闭 IPFS 解析"
   }
 }

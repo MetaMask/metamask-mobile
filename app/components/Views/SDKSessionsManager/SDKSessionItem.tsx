@@ -37,6 +37,7 @@ const createStyles = (
     } as TextStyle,
     dappName: {
       flexShrink: 1,
+      flexGrow: 1,
       marginLeft: 5,
       marginRight: 5,
       flexWrap: 'wrap',
@@ -66,13 +67,30 @@ export const SDKSessionItem = ({
   const [icon, setIcon] = useState<string>();
 
   useEffect(() => {
-    const _sessionName =
-      connection.originatorInfo?.url ||
-      connection.originatorInfo?.title ||
-      strings('sdk.unkown_dapp');
-    setIcon(connection.originatorInfo?.icon);
+    let _sessionName = connection.id;
+
+    const {
+      title,
+      url,
+      icon: _icon,
+    } = connection.originatorInfo || {
+      title: '',
+      url: '',
+      icon: '',
+    };
+
+    if (title?.length > 0) {
+      _sessionName = title;
+    } else if (url?.length > 0) {
+      _sessionName = url;
+    }
+
+    if (_icon && _icon?.length > 0) {
+      setIcon(_icon);
+    }
+
     setSessionName(_sessionName);
-  }, [connection]);
+  }, [connection.originatorInfo, connection.id]);
 
   return (
     <View style={styles.container}>

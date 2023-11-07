@@ -84,10 +84,11 @@ const useColorSchemeCustom = (
     [],
   );
   useEffect(() => {
-    Appearance.addChangeListener(onColorSchemeChange);
+    const appearanceStateListener =
+      Appearance.addChangeListener(onColorSchemeChange);
     return () => {
       onColorSchemeChange.cancel();
-      Appearance.removeChangeListener(onColorSchemeChange);
+      appearanceStateListener?.remove();
     };
   }, []);
   return colorScheme;

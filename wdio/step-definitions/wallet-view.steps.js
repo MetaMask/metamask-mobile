@@ -11,15 +11,7 @@ Then(/^On the Main Wallet view I tap "([^"]*)?"/, async (text) => {
   await CommonScreen.tapOnText(text);
 });
 
-When(/^I tap burger icon/, async () => {
-  const setTimeout = 2500; //added to run on physical device
-  await driver.pause(setTimeout); //added to run on physical device
-  await WalletMainScreen.tapBurgerIcon();
-});
-
 When(/^I tap Import Tokens/, async () => {
-  const setTimeout = 1500; //added to run on physical device
-  await driver.pause(setTimeout); //added to run on physical device
   await WalletMainScreen.tapImportTokensButton();
 });
 
@@ -47,6 +39,7 @@ Then(/^I am on the wallet view/, async () => {
 });
 When(/^I tap on the Identicon/, async () => {
   // should be in a commons-step file
+  const setTimeout = 1500;
   await driver.pause(setTimeout);
   await WalletMainScreen.tapIdenticon();
 });
@@ -60,7 +53,7 @@ When(/^the account list should be visible/, async () => {
 When(/^I long press to remove "([^"]*)"/, async (accountName) => {
   // should be in a common-step file
   await driver.pause(3000);
-  await AccountListComponent.longPressOnAccount(accountName);
+  await CommonScreen.longTapOnText(accountName);
   await driver.acceptAlert();
   await driver.pause(3000);
 });
@@ -81,6 +74,23 @@ Then(/^Wallet view is displayed$/, async () => {
 });
 
 Given(/^On the Main Wallet view I tap on the Send Action$/, async () => {
+  await CommonScreen.checkNoNotification();
   await TabBarModal.tapActionButton();
   await WalletActionModal.tapSendButton();
+});
+
+Then(/^I open the account actions$/, async () => {
+  await WalletMainScreen.tapAccountActions();
+});
+
+Then(/^I press show private key$/, async () => {
+  await WalletMainScreen.tapShowPrivateKey();
+});
+
+Then(/^I press share address$/, async () => {
+  await WalletMainScreen.tapShareAddress();
+});
+
+Then(/^I press view on etherscan$/, async () => {
+  await WalletMainScreen.tapViewOnEtherscan();
 });

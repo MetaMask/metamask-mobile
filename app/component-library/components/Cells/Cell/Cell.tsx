@@ -3,27 +3,23 @@ import React from 'react';
 
 // External dependencies.
 import CellDisplay from './variants/CellDisplay';
-import CellMultiselect from './variants/CellMultiselect';
+import { CELLDISPLAY_TEST_ID } from './variants/CellDisplay/CellDisplay.constants';
+import CellMultiSelect from './variants/CellMultiSelect';
+import { CELLMULTISELECT_TEST_ID } from './variants/CellMultiSelect/CellMultiSelect.constants';
 import CellSelect from './variants/CellSelect';
+import { CELLSELECT_TEST_ID } from './variants/CellSelect/CellSelect.constants';
 
 // Internal dependencies.
-import { CellProps, CellVariants } from './Cell.types';
-import {
-  CELL_DISPLAY_TEST_ID,
-  CELL_MULTI_SELECT_TEST_ID,
-  CELL_SELECT_TEST_ID,
-} from '../../../../constants/test-ids';
+import { CellProps, CellVariant } from './Cell.types';
 
-const Cell = (cellProps: CellProps) => {
-  switch (cellProps.variant) {
-    case CellVariants.Display:
-      return <CellDisplay testID={CELL_DISPLAY_TEST_ID} {...cellProps} />;
-    case CellVariants.Multiselect:
-      return (
-        <CellMultiselect testID={CELL_MULTI_SELECT_TEST_ID} {...cellProps} />
-      );
-    case CellVariants.Select:
-      return <CellSelect testID={CELL_SELECT_TEST_ID} {...cellProps} />;
+const Cell = ({ variant, ...props }: CellProps) => {
+  switch (variant) {
+    case CellVariant.Display:
+      return <CellDisplay testID={CELLDISPLAY_TEST_ID} {...props} />;
+    case CellVariant.MultiSelect:
+      return <CellMultiSelect testID={CELLMULTISELECT_TEST_ID} {...props} />;
+    case CellVariant.Select:
+      return <CellSelect testID={CELLSELECT_TEST_ID} {...props} />;
     default:
       throw new Error('Invalid Cell Variant');
   }

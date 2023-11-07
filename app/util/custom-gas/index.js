@@ -107,12 +107,16 @@ export function parseWaitTime(min) {
   return parsed.trim();
 }
 
-export async function getGasLimit(transaction) {
+export async function getGasLimit(transaction, resetGas = false) {
   const { TransactionController } = Engine.context;
 
   let estimation;
   try {
-    estimation = await TransactionController.estimateGas(transaction);
+    const newTransactionObj = resetGas
+      ? { ...transaction, gas: undefined }
+      : transaction;
+
+    estimation = await TransactionController.estimateGas(newTransactionObj);
   } catch (error) {
     estimation = {
       gas: TransactionTypes.CUSTOM_GAS.DEFAULT_GAS_LIMIT,

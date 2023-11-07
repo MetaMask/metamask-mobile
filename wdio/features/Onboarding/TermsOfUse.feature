@@ -1,11 +1,13 @@
-@androidApp @ChainScenarios
-Feature: Terms of Use
+@androidApp
+@regression
+@onboarding
+Feature: Onboarding Terms of Use
 
   Scenario: Install and launch app
     Given the app displayed the splash animation
     And the Welcome Screen is displayed
     When I tap "Get started"
-    Then "Wallet setup" is displayed
+    Then Wallet setup screen is displayed
     When I tap "Import using Secret Recovery Phrase"
     Then "Help us improve MetaMask" is displayed
     When I tap "I agree"
@@ -18,7 +20,7 @@ Feature: Terms of Use
     And the splash animation disappears
     Then the Welcome Screen is displayed
     When I tap "Get started"
-    Then "Wallet setup" is displayed
+    Then Wallet setup screen is displayed
     When I tap "Import using Secret Recovery Phrase"
     Then Terms of Use is displayed
 
@@ -33,6 +35,6 @@ Feature: Terms of Use
     And the splash animation disappears
     Then the Welcome Screen is displayed
     When I tap "Get started"
-    Then "Wallet setup" is displayed
+    Then Wallet setup screen is displayed
     When I tap "Import using Secret Recovery Phrase"
     Then Terms of Use is not displayed

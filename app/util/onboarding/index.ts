@@ -1,5 +1,4 @@
 /* eslint-disable import/prefer-default-export */
-import AsyncStorage from '@react-native-async-storage/async-storage';
 import compareVersions from 'compare-versions';
 import {
   WHATS_NEW_APP_VERSION_SEEN,
@@ -7,6 +6,7 @@ import {
   LAST_APP_VERSION,
 } from '../../constants/storage';
 import { whatsNewList } from '../../components/UI/WhatsNewModal';
+import AsyncStorage from '../../store/async-storage-wrapper';
 
 /**
  * Returns boolean indicating whether or not to show whats new modal

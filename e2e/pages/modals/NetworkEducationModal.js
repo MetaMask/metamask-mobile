@@ -4,27 +4,34 @@ import {
   NETWORK_EDUCATION_MODAL_CLOSE_BUTTON_ID,
   NETWORK_EDUCATION_MODAL_NETWORK_NAME_ID,
 } from '../../../wdio/screen-objects/testIDs/Components/NetworkEducationModalTestIds';
-import messages from '../../../locales/languages/en.json';
+import { NetworkEducationModalSelectorsText } from '../../selectors/Modals/NetworkEducationModal.selectors';
 
-const manuallyAddTokenText = messages.network_information.add_token;
 export default class NetworkEducationModal {
   static async tapGotItButton() {
-    await TestHelpers.tap(NETWORK_EDUCATION_MODAL_CLOSE_BUTTON_ID);
+    if (device.getPlatform() === 'ios') {
+      await TestHelpers.waitAndTap(NETWORK_EDUCATION_MODAL_CLOSE_BUTTON_ID);
+    } else {
+      await TestHelpers.waitAndTapByLabel(
+        NETWORK_EDUCATION_MODAL_CLOSE_BUTTON_ID,
+      );
+    }
   }
 
   static async tapManuallyAddTokenLink() {
-    await TestHelpers.tapByText(manuallyAddTokenText);
+    await TestHelpers.tapByText(NetworkEducationModalSelectorsText.ADD_TOKEN);
   }
 
-  static async isNetworkNameCorrect(network) {
+  static async isNetworkNameCorrect(networkName) {
     await TestHelpers.checkIfElementHasString(
       NETWORK_EDUCATION_MODAL_NETWORK_NAME_ID,
-      network,
+      networkName,
     );
   }
 
   static async isVisible() {
-    await TestHelpers.checkIfVisible(NETWORK_EDUCATION_MODAL_CONTAINER_ID);
+    if (device.getPlatform() === 'ios') {
+      await TestHelpers.checkIfVisible(NETWORK_EDUCATION_MODAL_CONTAINER_ID);
+    }
   }
 
   static async isNotVisible() {

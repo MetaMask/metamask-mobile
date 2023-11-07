@@ -16,7 +16,6 @@ const styleSheet = (params: { theme: Theme }) => {
       paddingHorizontal: 16,
     },
     description: {
-      textAlign: 'center',
       marginVertical: 16,
       color: colors.text.alternative,
     },
@@ -33,6 +32,13 @@ const styleSheet = (params: { theme: Theme }) => {
     },
     downCaretContainer: { justifyContent: 'center', flex: 1 },
     disconnectButton: { alignSelf: 'center' },
+    permissionContainer: { flexDirection: 'row', alignItems: 'center' },
+    securityContainer: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      marginVertical: 16,
+    },
+    permissionDescription: { marginLeft: 16 },
   });
 };
 

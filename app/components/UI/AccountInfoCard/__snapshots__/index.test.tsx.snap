@@ -1,23 +1,251 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
-exports[`AccountInfoCard should render correctly 1`] = `
-<AccountInfoCard
-  accounts={
+exports[`AccountInfoCard should match snapshot 1`] = `
+<View
+  style={
     Object {
-      "0x0": Object {
-        "balance": 200,
-      },
+      "alignItems": "center",
+      "borderColor": "#BBC0C5",
+      "borderRadius": 10,
+      "borderWidth": 1,
+      "flexDirection": "row",
+      "justifyContent": "flex-start",
+      "padding": 16,
     }
   }
-  conversionRate={10}
-  currentCurrency="inr"
-  dispatch={[Function]}
-  identities={
-    Object {
-      "address": "0x0",
-      "name": "Account 1",
+>
+  <View
+    placeholderStyle={
+      Object {
+        "backgroundColor": "#F2F4F6",
+      }
     }
-  }
-  ticker="eth"
-/>
+    useNativeDriver={true}
+  >
+    <View
+      onLoadEnd={[Function]}
+      style={
+        Object {
+          "marginRight": 8,
+        }
+      }
+    >
+      <View
+        style={
+          Array [
+            Object {
+              "overflow": "hidden",
+            },
+            Object {
+              "backgroundColor": "#1593F2",
+              "borderRadius": 20,
+              "height": 40,
+              "width": 40,
+            },
+            undefined,
+          ]
+        }
+      >
+        <RNSVGSvgView
+          bbHeight={40}
+          bbWidth={40}
+          focusable={false}
+          height={40}
+          style={
+            Array [
+              Object {
+                "backgroundColor": "transparent",
+                "borderWidth": 0,
+              },
+              Object {
+                "flex": 0,
+                "height": 40,
+                "width": 40,
+              },
+            ]
+          }
+          width={40}
+        >
+          <RNSVGGroup>
+            <RNSVGRect
+              fill={4280574177}
+              height={40}
+              matrix={
+                Array [
+                  -0.14608302856241107,
+                  0.9892723329629884,
+                  -0.9892723329629884,
+                  -0.14608302856241107,
+                  47.19376996149863,
+                  -3.5316743670534505,
+                ]
+              }
+              propList={
+                Array [
+                  "fill",
+                ]
+              }
+              width={40}
+              x={0}
+              y={0}
+            />
+            <RNSVGRect
+              fill={4294395137}
+              height={40}
+              matrix={
+                Array [
+                  -0.02094241988335673,
+                  -0.9997806834748455,
+                  0.9997806834748455,
+                  -0.02094241988335673,
+                  -18.781089383892542,
+                  50.404901611522334,
+                ]
+              }
+              propList={
+                Array [
+                  "fill",
+                ]
+              }
+              width={40}
+              x={0}
+              y={0}
+            />
+            <RNSVGRect
+              fill={4294736640}
+              height={40}
+              matrix={
+                Array [
+                  -0.458649554484315,
+                  0.8886172326549487,
+                  -0.8886172326549487,
+                  -0.458649554484315,
+                  35.600018143658495,
+                  48.25066628744154,
+                ]
+              }
+              propList={
+                Array [
+                  "fill",
+                ]
+              }
+              width={40}
+              x={0}
+              y={0}
+            />
+          </RNSVGGroup>
+        </RNSVGSvgView>
+      </View>
+    </View>
+    <View
+      collapsable={false}
+      style={
+        Object {
+          "bottom": 0,
+          "left": 0,
+          "opacity": 1,
+          "position": "absolute",
+          "right": 0,
+          "top": 0,
+        }
+      }
+    >
+      <View
+        style={
+          Array [
+            Object {
+              "marginRight": 8,
+            },
+            Object {
+              "backgroundColor": "#eee",
+            },
+            Object {
+              "backgroundColor": "#F2F4F6",
+            },
+          ]
+        }
+      />
+    </View>
+  </View>
+  <View
+    style={
+      Object {
+        "alignItems": "flex-start",
+        "flexDirection": "column",
+        "flexGrow": 1,
+        "justifyContent": "center",
+        "marginRight": 8,
+      }
+    }
+  >
+    <View
+      style={
+        Object {
+          "flexDirection": "row",
+          "justifyContent": "flex-start",
+          "width": "100%",
+        }
+      }
+    >
+      <Text
+        numberOfLines={1}
+        style={
+          Array [
+            Object {
+              "color": "#24272A",
+              "fontFamily": "EuclidCircularB-Bold",
+              "fontSize": 16,
+              "fontWeight": "600",
+              "marginRight": 2,
+              "maxWidth": "45%",
+            },
+            undefined,
+          ]
+        }
+      >
+        0x0
+      </Text>
+      <Text
+        numberOfLines={1}
+        style={
+          Array [
+            Object {
+              "color": "#24272A",
+              "flexGrow": 1,
+              "fontFamily": "EuclidCircularB-Bold",
+              "fontSize": 16,
+              "fontWeight": "600",
+            },
+            undefined,
+          ]
+        }
+      >
+        (
+        0x0...0x0
+        )
+      </Text>
+    </View>
+    <Text
+      numberOfLines={1}
+      style={
+        Array [
+          Object {
+            "alignSelf": "flex-start",
+            "color": "#24272A",
+            "fontFamily": "EuclidCircularB-Regular",
+            "fontSize": 14,
+            "fontWeight": "100",
+          },
+          undefined,
+        ]
+      }
+    >
+      Balance:
+       
+      0 INR
+       
+      (&lt; 0.00001 ETH)
+    </Text>
+  </View>
+</View>
 `;

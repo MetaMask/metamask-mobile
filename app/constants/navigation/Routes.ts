@@ -3,13 +3,14 @@ const Routes = {
   BROWSER_TAB_HOME: 'BrowserTabHome',
   BROWSER_URL_MODAL: 'BrowserUrlModal',
   BROWSER_VIEW: 'BrowserView',
+  SETTINGS_VIEW: 'SettingsView',
   FIAT_ON_RAMP_AGGREGATOR: {
     ID: 'FiatOnRampAggregator',
     GET_STARTED: 'GetStarted',
     PAYMENT_METHOD: 'PaymentMethod',
     PAYMENT_METHOD_HAS_STARTED: 'PaymentMethodHasStarted',
     AMOUNT_TO_BUY: 'AmountToBuy',
-    GET_QUOTES: 'GetQuotes',
+    QUOTES: 'Quotes',
     CHECKOUT: 'Checkout',
     REGION: 'Region',
     REGION_HAS_STARTED: 'RegionHasStarted',
@@ -45,6 +46,8 @@ const Routes = {
   },
   SEND_FLOW: {
     SEND_TO: 'SendTo',
+    AMOUNT: 'Amount',
+    CONFIRM: 'Confirm',
   },
   ACCOUNT_BACKUP: {
     STEP_1_B: 'AccountBackupStep1B',
@@ -53,13 +56,20 @@ const Routes = {
     CONTACT_FORM: 'ContactForm',
     REVEAL_PRIVATE_CREDENTIAL: 'RevealPrivateCredentialView',
     CHANGE_PASSWORD: 'ResetPassword',
+    EXPERIMENTAL_SETTINGS: 'ExperimentalSettings',
   },
   SHEET: {
     ACCOUNT_SELECTOR: 'AccountSelector',
+    AMBIGUOUS_ADDRESS: 'AmbiguousAddress',
     SDK_LOADING: 'SDKLoading',
     SDK_FEEDBACK: 'SDKFeedback',
     ACCOUNT_CONNECT: 'AccountConnect',
     ACCOUNT_PERMISSIONS: 'AccountPermissions',
+    NETWORK_SELECTOR: 'NetworkSelector',
+    ACCOUNT_ACTIONS: 'AccountActions',
+    ETH_SIGN_FRICTION: 'SettingsAdvancedEthSignFriction',
+    SHOW_IPFS: 'ShowIpfs',
+    SHOW_NFT_DISPLAY_MEDIA: 'ShowNftDisplayMedia',
   },
   BROWSER: {
     HOME: 'BrowserTabHome',
@@ -79,6 +89,9 @@ const Routes = {
     WALLET_RESTORED: 'WalletRestored',
     WALLET_RESET_NEEDED: 'WalletResetNeeded',
   },
+  ADD_NETWORK: 'AddNetwork',
+  SWAPS: 'Swaps',
+  LOCK_SCREEN: 'LockScreen',
 };
 
 export default Routes;

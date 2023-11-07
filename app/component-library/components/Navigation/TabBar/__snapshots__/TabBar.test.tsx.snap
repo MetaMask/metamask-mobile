@@ -51,11 +51,50 @@ Array [
             "width": 40,
           }
         }
+        variant="Icon"
       >
         <SvgMock
           color="#0376C9"
           height={24}
           name="Wallet"
+          style={
+            Object {
+              "height": 24,
+              "width": 24,
+            }
+          }
+          width={24}
+        />
+      </View>
+    </TouchableOpacity>
+    <TouchableOpacity
+      onPress={[Function]}
+      style={
+        Object {
+          "alignItems": "center",
+          "flex": 1,
+        }
+      }
+      testID="tab-bar-item-Activity"
+    >
+      <View
+        style={
+          Object {
+            "alignItems": "center",
+            "backgroundColor": "transparent",
+            "borderRadius": 20,
+            "height": 40,
+            "justifyContent": "center",
+            "overflow": "hidden",
+            "width": 40,
+          }
+        }
+        variant="Icon"
+      >
+        <SvgMock
+          color="#BBC0C5"
+          height={24}
+          name="Activity"
           style={
             Object {
               "height": 24,
@@ -88,6 +127,7 @@ Array [
             "width": 32,
           }
         }
+        variant="Icon"
       >
         <SvgMock
           color="#FCFCFC"
@@ -125,11 +165,50 @@ Array [
             "width": 40,
           }
         }
+        variant="Icon"
       >
         <SvgMock
           color="#BBC0C5"
           height={24}
           name="Explore"
+          style={
+            Object {
+              "height": 24,
+              "width": 24,
+            }
+          }
+          width={24}
+        />
+      </View>
+    </TouchableOpacity>
+    <TouchableOpacity
+      onPress={[Function]}
+      style={
+        Object {
+          "alignItems": "center",
+          "flex": 1,
+        }
+      }
+      testID="tab-bar-item-Setting"
+    >
+      <View
+        style={
+          Object {
+            "alignItems": "center",
+            "backgroundColor": "transparent",
+            "borderRadius": 20,
+            "height": 40,
+            "justifyContent": "center",
+            "overflow": "hidden",
+            "width": 40,
+          }
+        }
+        variant="Icon"
+      >
+        <SvgMock
+          color="#BBC0C5"
+          height={24}
+          name="Setting"
           style={
             Object {
               "height": 24,

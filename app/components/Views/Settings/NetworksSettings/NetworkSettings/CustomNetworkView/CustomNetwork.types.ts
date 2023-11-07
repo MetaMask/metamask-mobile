@@ -1,9 +1,13 @@
+import { ImageSourcePropType } from 'react-native';
+import { TabBarProps } from 'react-native-scrollable-tab-view';
+
 export interface Network {
   chainId: string;
   nickname: string;
   rpcPrefs: {
     blockExplorerUrl: string;
-    imageUrl: string;
+    imageSource?: ImageSourcePropType;
+    imageUrl?: string;
   };
   rpcUrl: string;
   ticker: string;
@@ -13,7 +17,7 @@ export interface Network {
   warning?: boolean;
 }
 
-export interface CustomNetworkProps extends Network {
+export interface CustomNetworkProps {
   /**
    * is network modal open
    */
@@ -25,21 +29,34 @@ export interface CustomNetworkProps extends Network {
   /**
    * network to add or switch to
    */
-  selectedNetwork: Network;
+  selectedNetwork?: Network;
   /**
    * show or hide warning modal
    */
-  toggleWarningModal: () => void;
+  toggleWarningModal?: () => void;
   /**
    * show network modal
    */
-  showNetworkModal: () => void;
+  showNetworkModal: (networkConfiguration: Network) => void;
   /**
    * Switch tab between popular and custom networks
    */
-  switchTab: (goToPage: number) => void;
+  // TODO - The name for this type is not accurate. It should be a ref of the ScrollableTabView's tab.
+  switchTab?: TabBarProps;
   /**
    * should navigation return to wallet after network change
    */
   shouldNetworkSwitchPopToWallet: boolean;
+  /**
+   * Callback after network change, overrides shouldNetworkSwitchPopToWallet
+   */
+  onNetworkSwitch?: () => void;
+  /**
+   * Show added networks
+   */
+  showAddedNetworks?: boolean;
+  /**
+   * List of custom networks
+   */
+  customNetworksList?: Network[];
 }

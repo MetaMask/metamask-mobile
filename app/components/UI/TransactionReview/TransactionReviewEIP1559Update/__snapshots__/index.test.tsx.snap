@@ -1,0 +1,546 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`TransactionReviewEIP1559 should render correctly 1`] = `
+<View
+  style={
+    Array [
+      Object {
+        "borderColor": "#D6D9DC",
+        "borderRadius": 8,
+        "borderWidth": 1,
+        "padding": 16,
+      },
+      Object {
+        "marginHorizontal": 24,
+        "paddingBottom": 10,
+        "paddingTop": 10,
+      },
+    ]
+  }
+>
+  <View
+    style={
+      Array [
+        Object {
+          "flexDirection": "row",
+          "justifyContent": "space-between",
+          "marginVertical": 3,
+        },
+        undefined,
+        undefined,
+        undefined,
+      ]
+    }
+  >
+    <View
+      style={
+        Object {
+          "alignItems": "center",
+          "flex": 1,
+          "flexDirection": "row",
+          "marginBottom": 2,
+        }
+      }
+    >
+      <View
+        style={
+          Object {
+            "alignItems": "center",
+            "flex": 1,
+            "flexDirection": "row",
+            "marginBottom": 2,
+          }
+        }
+      >
+        <Text
+          style={
+            Array [
+              Object {
+                "color": "#24272A",
+                "fontFamily": "EuclidCircularB-Regular",
+                "fontSize": 30,
+                "fontWeight": "400",
+                "marginVertical": 2,
+              },
+              undefined,
+              undefined,
+              Object {
+                "fontFamily": "EuclidCircularB-Bold",
+                "fontWeight": "600",
+              },
+              undefined,
+              undefined,
+              undefined,
+              undefined,
+              undefined,
+              false,
+              undefined,
+              Object {
+                "color": "#24272A",
+              },
+              undefined,
+              undefined,
+              undefined,
+              undefined,
+              undefined,
+              undefined,
+              undefined,
+              undefined,
+              undefined,
+              undefined,
+              undefined,
+              Object {
+                "marginVertical": 0,
+              },
+              undefined,
+            ]
+          }
+        >
+          Estimated gas fee
+          <TouchableOpacity
+            hitSlop={
+              Object {
+                "bottom": 10,
+                "left": 10,
+                "right": 10,
+                "top": 10,
+              }
+            }
+            onPress={[Function]}
+            style={
+              Object {
+                "paddingLeft": 2,
+              }
+            }
+          >
+            <Text
+              allowFontScaling={false}
+              style={
+                Array [
+                  Object {
+                    "color": undefined,
+                    "fontSize": 13,
+                  },
+                  Object {
+                    "color": "#BBC0C5",
+                  },
+                  Object {
+                    "fontFamily": "Material Design Icons",
+                    "fontStyle": "normal",
+                    "fontWeight": "normal",
+                  },
+                  Object {},
+                ]
+              }
+            >
+              
+            </Text>
+          </TouchableOpacity>
+        </Text>
+      </View>
+      <View
+        style={
+          Array [
+            Object {
+              "flex": 1,
+              "flexDirection": "row",
+              "justifyContent": "flex-end",
+            },
+          ]
+        }
+      >
+        <View
+          onLayout={[Function]}
+        >
+          <View
+            style={
+              Object {
+                "position": "relative",
+              }
+            }
+          >
+            <View
+              style={
+                Array [
+                  Object {
+                    "borderRadius": 4,
+                    "height": 10,
+                    "width": 80,
+                  },
+                  Object {
+                    "backgroundColor": "#E1E9EE",
+                    "overflow": "hidden",
+                  },
+                ]
+              }
+            />
+          </View>
+        </View>
+      </View>
+    </View>
+  </View>
+  <View
+    style={
+      Array [
+        Object {
+          "flexDirection": "row",
+          "justifyContent": "space-between",
+          "marginVertical": 3,
+        },
+        undefined,
+        undefined,
+        undefined,
+      ]
+    }
+  >
+    <View
+      style={
+        Object {
+          "alignItems": "center",
+          "flex": 1,
+          "flexDirection": "row",
+          "marginBottom": 2,
+        }
+      }
+    >
+      <View
+        style={
+          Array [
+            false,
+          ]
+        }
+      >
+        <View
+          onLayout={[Function]}
+        >
+          <View
+            style={
+              Object {
+                "position": "relative",
+              }
+            }
+          >
+            <View
+              style={
+                Array [
+                  Object {
+                    "borderRadius": 4,
+                    "height": 10,
+                    "width": 120,
+                  },
+                  Object {
+                    "backgroundColor": "#E1E9EE",
+                    "overflow": "hidden",
+                  },
+                ]
+              }
+            />
+          </View>
+        </View>
+      </View>
+      <View
+        style={
+          Array [
+            Object {
+              "flex": 1,
+              "flexDirection": "row",
+              "justifyContent": "flex-end",
+            },
+          ]
+        }
+      >
+        <View
+          onLayout={[Function]}
+        >
+          <View
+            style={
+              Object {
+                "position": "relative",
+              }
+            }
+          >
+            <View
+              style={
+                Array [
+                  Object {
+                    "borderRadius": 4,
+                    "height": 10,
+                    "width": 120,
+                  },
+                  Object {
+                    "backgroundColor": "#E1E9EE",
+                    "overflow": "hidden",
+                  },
+                ]
+              }
+            />
+          </View>
+        </View>
+      </View>
+    </View>
+  </View>
+  <View>
+    <View
+      style={
+        Array [
+          Object {
+            "borderBottomColor": "#D6D9DC",
+            "borderBottomWidth": 1,
+            "marginVertical": 6,
+          },
+          undefined,
+        ]
+      }
+    />
+    <View
+      style={
+        Object {
+          "marginTop": 4,
+        }
+      }
+    >
+      <View
+        style={
+          Array [
+            Object {
+              "flexDirection": "row",
+              "justifyContent": "space-between",
+              "marginVertical": 3,
+            },
+            undefined,
+            undefined,
+            undefined,
+          ]
+        }
+      >
+        <Text
+          style={
+            Array [
+              Object {
+                "color": "#24272A",
+                "fontFamily": "EuclidCircularB-Regular",
+                "fontSize": 30,
+                "fontWeight": "400",
+                "marginVertical": 2,
+              },
+              undefined,
+              undefined,
+              Object {
+                "fontFamily": "EuclidCircularB-Bold",
+                "fontWeight": "600",
+              },
+              undefined,
+              undefined,
+              undefined,
+              undefined,
+              undefined,
+              undefined,
+              undefined,
+              Object {
+                "color": "#24272A",
+              },
+              undefined,
+              undefined,
+              undefined,
+              undefined,
+              undefined,
+              undefined,
+              undefined,
+              undefined,
+              undefined,
+              undefined,
+              undefined,
+              Object {
+                "marginVertical": 0,
+              },
+              undefined,
+            ]
+          }
+        >
+          Total
+        </Text>
+        <View
+          style={
+            Array [
+              Object {
+                "flex": 1,
+                "flexDirection": "row",
+                "justifyContent": "flex-end",
+              },
+            ]
+          }
+        >
+          <View
+            onLayout={[Function]}
+          >
+            <View
+              style={
+                Object {
+                  "position": "relative",
+                }
+              }
+            >
+              <View
+                style={
+                  Array [
+                    Object {
+                      "borderRadius": 4,
+                      "height": 10,
+                      "width": 80,
+                    },
+                    Object {
+                      "backgroundColor": "#E1E9EE",
+                      "overflow": "hidden",
+                    },
+                  ]
+                }
+              />
+            </View>
+          </View>
+        </View>
+      </View>
+    </View>
+    <View
+      style={
+        Array [
+          Object {
+            "flexDirection": "row",
+            "justifyContent": "space-between",
+            "marginVertical": 3,
+          },
+          undefined,
+          undefined,
+          undefined,
+        ]
+      }
+    >
+      <View
+        style={
+          Array [
+            Object {
+              "flex": 1,
+              "flexDirection": "row",
+              "justifyContent": "flex-end",
+            },
+          ]
+        }
+      >
+        <View
+          onLayout={[Function]}
+        >
+          <View
+            style={
+              Object {
+                "position": "relative",
+              }
+            }
+          >
+            <View
+              style={
+                Array [
+                  Object {
+                    "borderRadius": 4,
+                    "height": 10,
+                    "width": 120,
+                  },
+                  Object {
+                    "backgroundColor": "#E1E9EE",
+                    "overflow": "hidden",
+                  },
+                ]
+              }
+            />
+          </View>
+        </View>
+      </View>
+    </View>
+  </View>
+  <Modal
+    animationType="none"
+    deviceHeight={null}
+    deviceWidth={null}
+    hardwareAccelerated={false}
+    hideModalContentWhileAnimating={false}
+    onBackdropPress={[Function]}
+    onModalHide={[Function]}
+    onModalWillHide={[Function]}
+    onModalWillShow={[Function]}
+    onRequestClose={[Function]}
+    onSwipeComplete={[Function]}
+    panResponderThreshold={4}
+    scrollHorizontal={false}
+    scrollOffset={0}
+    scrollOffsetMax={0}
+    scrollTo={null}
+    statusBarTranslucent={false}
+    supportedOrientations={
+      Array [
+        "portrait",
+        "landscape",
+      ]
+    }
+    swipeDirection="down"
+    swipeThreshold={100}
+    transparent={true}
+    visible={false}
+  />
+  <Modal
+    animationType="none"
+    deviceHeight={null}
+    deviceWidth={null}
+    hardwareAccelerated={false}
+    hideModalContentWhileAnimating={false}
+    onBackdropPress={[Function]}
+    onModalHide={[Function]}
+    onModalWillHide={[Function]}
+    onModalWillShow={[Function]}
+    onRequestClose={[Function]}
+    onSwipeComplete={[Function]}
+    panResponderThreshold={4}
+    scrollHorizontal={false}
+    scrollOffset={0}
+    scrollOffsetMax={0}
+    scrollTo={null}
+    statusBarTranslucent={false}
+    supportedOrientations={
+      Array [
+        "portrait",
+        "landscape",
+      ]
+    }
+    swipeDirection="down"
+    swipeThreshold={100}
+    transparent={true}
+    visible={false}
+  />
+  <Modal
+    animationType="none"
+    deviceHeight={null}
+    deviceWidth={null}
+    hardwareAccelerated={false}
+    hideModalContentWhileAnimating={false}
+    onBackdropPress={[Function]}
+    onModalHide={[Function]}
+    onModalWillHide={[Function]}
+    onModalWillShow={[Function]}
+    onRequestClose={[Function]}
+    onSwipeComplete={[Function]}
+    panResponderThreshold={4}
+    scrollHorizontal={false}
+    scrollOffset={0}
+    scrollOffsetMax={0}
+    scrollTo={null}
+    statusBarTranslucent={false}
+    supportedOrientations={
+      Array [
+        "portrait",
+        "landscape",
+      ]
+    }
+    swipeDirection="down"
+    swipeThreshold={100}
+    transparent={true}
+    visible={false}
+  />
+</View>
+`;

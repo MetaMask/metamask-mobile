@@ -21,14 +21,12 @@ const styleSheet = (params: {
 }) => {
   const { vars, theme } = params;
   const { colors } = theme;
-  const { style } = vars;
+  const { style, isDisabled } = vars;
   return StyleSheet.create({
     base: Object.assign(
       {
         position: 'relative',
-        padding: 16,
-        borderRadius: 4,
-        backgroundColor: colors.background.default,
+        opacity: isDisabled ? 0.5 : 1,
       } as ViewStyle,
       style,
     ) as ViewStyle,

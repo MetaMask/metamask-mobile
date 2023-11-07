@@ -1,7 +1,7 @@
 /* eslint-disable react/prop-types */
 
 // Third party dependencies.
-import React from 'react';
+import React, { forwardRef } from 'react';
 import { TouchableOpacity } from 'react-native';
 
 // External dependencies.
@@ -12,16 +12,15 @@ import Icon, { IconName, IconSize } from '../../Icons/Icon';
 import { PickerBaseProps } from './PickerBase.types';
 import styleSheet from './PickerBase.styles';
 
-const PickerBase: React.FC<PickerBaseProps> = ({
-  style,
-  children,
-  ...props
-}) => {
+const PickerBase: React.ForwardRefRenderFunction<
+  TouchableOpacity,
+  PickerBaseProps
+> = ({ style, children, ...props }, ref) => {
   const { styles, theme } = useStyles(styleSheet, { style });
   const { colors } = theme;
 
   return (
-    <TouchableOpacity style={styles.base} {...props}>
+    <TouchableOpacity style={styles.base} {...props} ref={ref}>
       {children}
       <Icon
         size={IconSize.Md}
@@ -33,4 +32,4 @@ const PickerBase: React.FC<PickerBaseProps> = ({
   );
 };
 
-export default PickerBase;
+export default forwardRef(PickerBase);

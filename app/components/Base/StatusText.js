@@ -5,6 +5,7 @@ import { StyleSheet } from 'react-native';
 import { FIAT_ORDER_STATES } from '../../constants/on-ramp';
 import { strings } from '../../../locales/i18n';
 import { useTheme } from '../../util/theme';
+import { DETAILS_MODAL_TITLE } from '../../../wdio/screen-objects/testIDs/Components/DetailsModal.js';
 
 const styles = StyleSheet.create({
   status: {
@@ -15,7 +16,13 @@ const styles = StyleSheet.create({
 });
 
 export const ConfirmedText = (props) => (
-  <Text bold green style={styles.status} {...props} />
+  <Text
+    testID={DETAILS_MODAL_TITLE}
+    bold
+    green
+    style={styles.status}
+    {...props}
+  />
 );
 export const PendingText = (props) => {
   const { colors } = useTheme();
@@ -42,26 +49,42 @@ function StatusText({ status, context, ...props }) {
   switch (status) {
     case 'Confirmed':
     case 'confirmed':
-      return <ConfirmedText>{strings(`${context}.${status}`)}</ConfirmedText>;
+      return (
+        <ConfirmedText {...props}>
+          {strings(`${context}.${status}`)}
+        </ConfirmedText>
+      );
     case 'Pending':
     case 'pending':
     case 'Submitted':
     case 'submitted':
-      return <PendingText>{strings(`${context}.${status}`)}</PendingText>;
+      return (
+        <PendingText {...props}>{strings(`${context}.${status}`)}</PendingText>
+      );
     case 'Failed':
     case 'Cancelled':
     case 'failed':
     case 'cancelled':
-      return <FailedText>{strings(`${context}.${status}`)}</FailedText>;
+      return (
+        <FailedText {...props}>{strings(`${context}.${status}`)}</FailedText>
+      );
 
     case FIAT_ORDER_STATES.COMPLETED:
-      return <ConfirmedText>{strings(`${context}.completed`)}</ConfirmedText>;
+      return (
+        <ConfirmedText {...props}>
+          {strings(`${context}.completed`)}
+        </ConfirmedText>
+      );
     case FIAT_ORDER_STATES.PENDING:
-      return <PendingText>{strings(`${context}.pending`)}</PendingText>;
+      return (
+        <PendingText {...props}>{strings(`${context}.pending`)}</PendingText>
+      );
     case FIAT_ORDER_STATES.FAILED:
-      return <FailedText>{strings(`${context}.failed`)}</FailedText>;
+      return <FailedText {...props}>{strings(`${context}.failed`)}</FailedText>;
     case FIAT_ORDER_STATES.CANCELLED:
-      return <FailedText>{strings(`${context}.cancelled`)}</FailedText>;
+      return (
+        <FailedText {...props}>{strings(`${context}.cancelled`)}</FailedText>
+      );
 
     default:
       return (

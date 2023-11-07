@@ -3,8 +3,7 @@ import { rawEncode, rawDecode } from 'ethereumjs-abi';
 import BigNumber from 'bignumber.js';
 import humanizeDuration from 'humanize-duration';
 import { query, isSmartContractCode } from '@metamask/controller-utils';
-// TODO: Update after this function has been exported from the package
-import { isEIP1559Transaction } from '@metamask/transaction-controller/dist/utils';
+import { isEIP1559Transaction } from '@metamask/transaction-controller';
 import { swapsUtils } from '@metamask/swaps-controller';
 import Engine from '../../core/Engine';
 import I18n, { strings } from '../../../locales/i18n';
@@ -76,6 +75,7 @@ export const TRANSACTION_TYPES = {
   RECEIVED_TOKEN: 'transaction_received_token',
   RECEIVED_COLLECTIBLE: 'transaction_received_collectible',
   SITE_INTERACTION: 'transaction_site_interaction',
+  SWAPS_TRANSACTION: 'swaps_transaction',
   APPROVE: 'transaction_approve',
 };
 
@@ -127,9 +127,9 @@ const actionKeys = {
  * @param {Object} opts - Optional asset parameters
  * @returns {String} - String containing the generated transfer data
  */
-export function generateTransferData(type, opts) {
+export function generateTransferData(type = undefined, opts = {}) {
   if (!type) {
-    throw new Error('[transactions] type must be defined');
+    throw new TypeError('[transactions] type must be defined');
   }
   switch (type) {
     case 'transfer':
@@ -206,7 +206,7 @@ const BASE = 4 * 16;
  *
  * @param {String} type - Method to use to generate data
  * @param {String} data - Data to decode
- * @returns {Object} - Object containing the decoded transfer data
+ * @returns {Array} - Object containing the decoded transfer data
  */
 export function decodeTransferData(type, data) {
   switch (type) {
@@ -245,10 +245,15 @@ export function decodeTransferData(type, data) {
 }
 
 /**
+ * @typedef {Object} MethodData
+ * @property {string} name - The method name
+ */
+
+/**
  * Returns method data object for a transaction dat
  *
  * @param {string} data - Transaction data
- * @returns {object} - Method data object containing the name if is valid
+ * @returns {MethodData} - Method data object containing the name if is valid
  */
 export async function getMethodData(data) {
   if (data.length < 10) return {};
@@ -282,7 +287,7 @@ export async function getMethodData(data) {
  *
  * @param {string} address - Ethereum address
  * @param {string} chainId - Current chainId
- * @returns {boolean} - Whether the given address is a contract
+ * @returns {Promise<boolean>} - Whether the given address is a contract
  */
 export async function isSmartContractAddress(address, chainId) {
   if (!address) return false;
@@ -454,7 +459,7 @@ export function getEther(ticker) {
  *
  * @param {object} config
  * @param {object} config.addressBook - Object of address book entries
- * @param {string} config.network - network id
+ * @param {string} config.chainId - network id
  * @param {string} config.toAddress - hex address of tx recipient
  * @param {object} config.identities - object of identities
  * @param {string} config.ensRecipient - name of ens recipient
@@ -462,7 +467,7 @@ export function getEther(ticker) {
  */
 export function getTransactionToName({
   addressBook,
-  network,
+  chainId,
   toAddress,
   identities,
   ensRecipient,
@@ -471,7 +476,7 @@ export function getTransactionToName({
     return ensRecipient;
   }
 
-  const networkAddressBook = addressBook[network];
+  const networkAddressBook = addressBook[chainId];
   const checksummedToAddress = toChecksumAddress(toAddress);
 
   const transactionToName =
@@ -501,7 +506,9 @@ export function addAccountTimeFlagFilter(
 }
 
 export function getNormalizedTxState(state) {
-  return { ...state.transaction, ...state.transaction.transaction };
+  return state.transaction
+    ? { ...state.transaction, ...state.transaction.transaction }
+    : undefined;
 }
 
 export const getActiveTabUrl = ({ browser = {} }) =>
@@ -652,7 +659,7 @@ export const calculateEIP1559Times = ({
 }) => {
   let timeEstimate = strings('times_eip1559.unknown');
   let timeEstimateColor = 'grey';
-  let timeEstimateId = AppConstants.GAS_TIMES.UNKNOWN;
+  let timeEstimateId;
 
   const LOW = AppConstants.GAS_OPTIONS.LOW;
   const MEDIUM = AppConstants.GAS_OPTIONS.MEDIUM;
@@ -718,6 +725,20 @@ export const calculateEIP1559Times = ({
         hasTime = true;
       }
 
+      if (
+        Number(suggestedMaxPriorityFeePerGas) >=
+        Number(gasFeeEstimates[HIGH].suggestedMaxPriorityFeePerGas)
+      ) {
+        timeEstimate = `${strings(
+          'times_eip1559.likely_in',
+        )} ${humanizeDuration(
+          gasFeeEstimates[HIGH].minWaitTimeEstimate,
+          timeParams,
+        )}`;
+        timeEstimateColor = 'orange';
+        timeEstimateId = AppConstants.GAS_TIMES.VERY_LIKELY;
+      }
+
       if (hasTime) {
         return { timeEstimate, timeEstimateColor, timeEstimateId };
       }
@@ -778,6 +799,9 @@ export const calculateEIP1559Times = ({
     }
   } catch (error) {
     Logger.log('ERROR ESTIMATING TIME', error);
+  }
+  if (!timeEstimateId) {
+    timeEstimate = AppConstants.GAS_TIMES.UNKNOWN;
   }
 
   return { timeEstimate, timeEstimateColor, timeEstimateId };
@@ -1207,7 +1231,7 @@ export const parseTransactionLegacy = (
   const parsedTicker = getTicker(ticker);
   const transactionFee = `${renderFromWei(weiTransactionFee)} ${parsedTicker}`;
 
-  const totalHex = valueBN.add(hexToBN(weiTransactionFee));
+  const totalHex = valueBN.add(weiTransactionFee);
 
   if (onlyGas) {
     return {

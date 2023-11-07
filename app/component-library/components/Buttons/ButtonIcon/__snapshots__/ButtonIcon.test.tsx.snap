@@ -2,15 +2,19 @@
 
 exports[`ButtonIcon should render correctly 1`] = `
 <TouchableOpacity
-  activeOpacity={0.5}
+  accessible={true}
+  activeOpacity={1}
+  disabled={false}
   onPress={[Function]}
   onPressIn={[Function]}
   onPressOut={[Function]}
   style={
     Object {
       "alignItems": "center",
+      "borderRadius": 8,
       "height": 24,
       "justifyContent": "center",
+      "opacity": 1,
       "width": 24,
     }
   }

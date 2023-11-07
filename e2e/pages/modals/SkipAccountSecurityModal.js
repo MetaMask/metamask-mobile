@@ -1,30 +1,37 @@
 import TestHelpers from '../../helpers';
+import {
+  SKIP_BACKUP_MODAL,
+  ANDROID_SKIP_BACKUP_BUTTON_ID,
+  SKIP_BUTTON,
+  iOS_SKIP_BACKUP_BUTTON_ID,
+} from '../../../wdio/screen-objects/testIDs/Components/SkipAccountSecurityModalTestIds';
 
-const SKIP_ACCOUNT_SECURITY_MODAL_CONTAINER_ID = 'skip-backup-modal';
-const iOS_I_UNDERSTAND_BUTTON_ID = 'skip-backup-check';
-const ANDROID_I_UNDERSTAND_BUTTON_ID = 'skip-backup-text';
 export default class SkipAccountSecurityModal {
   static async tapIUnderstandCheckBox() {
     if (device.getPlatform() === 'ios') {
-      await TestHelpers.tap(iOS_I_UNDERSTAND_BUTTON_ID);
+      await TestHelpers.tap(iOS_SKIP_BACKUP_BUTTON_ID);
     } else {
       // Tap by the I understand text
       await TestHelpers.delay(1000);
-      await TestHelpers.tap(ANDROID_I_UNDERSTAND_BUTTON_ID);
+      await TestHelpers.tap(ANDROID_SKIP_BACKUP_BUTTON_ID);
     }
   }
 
   static async tapSkipButton() {
-    await TestHelpers.tapByText('Skip');
+    if (device.getPlatform() === 'ios') {
+      await TestHelpers.tap(SKIP_BUTTON);
+    } else {
+      // Tap by the I understand text
+      await TestHelpers.delay(1000);
+      await TestHelpers.waitAndTapByLabel(SKIP_BUTTON);
+    }
   }
 
   static async isVisible() {
-    await TestHelpers.checkIfVisible(SKIP_ACCOUNT_SECURITY_MODAL_CONTAINER_ID);
+    await TestHelpers.checkIfVisible(SKIP_BACKUP_MODAL);
   }
 
   static async isNotVisible() {
-    await TestHelpers.checkIfNotVisible(
-      SKIP_ACCOUNT_SECURITY_MODAL_CONTAINER_ID,
-    );
+    await TestHelpers.checkIfNotVisible(SKIP_BACKUP_MODAL);
   }
 }

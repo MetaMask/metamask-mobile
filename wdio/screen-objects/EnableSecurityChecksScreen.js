@@ -7,7 +7,7 @@ import {
 
 class EnableAutomaticSecurityChecksScreen {
   get noThanksButton() {
-    return Selectors.getElementByPlatform(
+    return Selectors.getXpathElementByResourceId(
       ENABLE_AUTOMATIC_SECURITY_CHECK_NO_THANKS_BUTTON_ID,
     );
   }
@@ -18,6 +18,8 @@ class EnableAutomaticSecurityChecksScreen {
   }
 
   async tapNoThanksButton() {
+    const element = await this.noThanksButton;
+    await element.waitForExist({ timeout: 100000 });
     await Gestures.waitAndTap(this.noThanksButton);
   }
 

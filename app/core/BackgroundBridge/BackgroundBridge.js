@@ -9,17 +9,21 @@ import {
   createLoggerMiddleware,
 } from '../../util/middlewares';
 import Engine from '../Engine';
+import { createSanitizationMiddleware } from '../SanitizationMiddleware';
 import { getAllNetworks } from '../../util/networks';
 import Logger from '../../util/Logger';
 import AppConstants from '../AppConstants';
 import { createEngineStream } from 'json-rpc-middleware-stream';
-import {
-  createSwappableProxy,
-  createEventEmitterProxy,
-} from 'swappable-obj-proxy';
 import RemotePort from './RemotePort';
 import WalletConnectPort from './WalletConnectPort';
 import Port from './Port';
+import {
+  selectChainId,
+  selectNetworkId,
+  selectProviderConfig,
+  selectLegacyNetwork,
+} from '../../selectors/networkController';
+import { store } from '../../store';
 
 const createFilterMiddleware = require('eth-json-rpc-filters');
 const createSubscriptionManager = require('eth-json-rpc-filters/subscriptionManager');
@@ -58,15 +62,6 @@ export class BackgroundBridge extends EventEmitter {
 
     this.createMiddleware = getRpcMethodMiddleware;
 
-    const provider = Engine.context.NetworkController.provider;
-    const blockTracker = provider._blockTracker;
-
-    // provider and block tracker proxies - because the network changes
-    this._providerProxy = null;
-    this._blockTrackerProxy = null;
-
-    this.setProviderAndBlockTracker({ provider, blockTracker });
-
     this.port = isRemoteConn
       ? new RemotePort(sendMessage)
       : this.isWalletConnect
@@ -75,9 +70,8 @@ export class BackgroundBridge extends EventEmitter {
 
     this.engine = null;
 
-    this.chainIdSent =
-      Engine.context.NetworkController.state.providerConfig.chainId;
-    this.networkVersionSent = Engine.context.NetworkController.state.network;
+    this.chainIdSent = selectChainId(store.getState());
+    this.networkVersionSent = selectNetworkId(store.getState());
 
     // This will only be used for WalletConnect for now
     this.addressSent =
@@ -99,37 +93,24 @@ export class BackgroundBridge extends EventEmitter {
     );
     Engine.context.PreferencesController.subscribe(this.sendStateUpdate);
 
-    Engine.context.KeyringController.onLock(this.onLock.bind(this));
-    Engine.context.KeyringController.onUnlock(this.onUnlock.bind(this));
+    Engine.controllerMessenger.subscribe(
+      'KeyringController:lock',
+      this.onLock.bind(this),
+    );
+    Engine.controllerMessenger.subscribe(
+      'KeyringController:unlock',
+      this.onUnlock.bind(this),
+    );
 
     this.on('update', this.onStateUpdate);
 
     if (this.isRemoteConn) {
       const memState = this.getState();
-      const publicState = this.getProviderNetworkState(memState);
+      const publicState = this.getProviderNetworkState();
       const selectedAddress = memState.selectedAddress;
       this.notifyChainChanged(publicState);
       this.notifySelectedAddressChanged(selectedAddress);
     }
-  }
-
-  setProviderAndBlockTracker({ provider, blockTracker }) {
-    // update or intialize proxies
-    if (this._providerProxy) {
-      this._providerProxy.setTarget(provider);
-    } else {
-      this._providerProxy = createSwappableProxy(provider);
-    }
-    if (this._blockTrackerProxy) {
-      this._blockTrackerProxy.setTarget(blockTracker);
-    } else {
-      this._blockTrackerProxy = createEventEmitterProxy(blockTracker, {
-        eventFilter: 'skipInternal',
-      });
-    }
-    // set new provider and blockTracker
-    this.provider = provider;
-    this.blockTracker = blockTracker;
   }
 
   onUnlock() {
@@ -180,8 +161,8 @@ export class BackgroundBridge extends EventEmitter {
     });
   }
 
-  getProviderNetworkState({ network }) {
-    const { providerConfig } = Engine.context.NetworkController.state;
+  getProviderNetworkState() {
+    const providerConfig = selectProviderConfig(store.getState());
     const networkType = providerConfig.type;
 
     const isInitialNetwork =
@@ -199,7 +180,7 @@ export class BackgroundBridge extends EventEmitter {
     }
 
     const result = {
-      networkVersion: network,
+      networkVersion: selectLegacyNetwork(store.getState()),
       chainId,
     };
     return result;
@@ -214,7 +195,12 @@ export class BackgroundBridge extends EventEmitter {
 
   notifySelectedAddressChanged(selectedAddress) {
     if (this.isRemoteConn) {
-      if (!this.getApprovedHosts?.()?.[this.remoteConnHost]) return;
+      // Pass the remoteConnHost to getApprovedHosts as AndroidSDK requires it
+      if (
+        !this.getApprovedHosts?.(this.remoteConnHost)?.[this.remoteConnHost]
+      ) {
+        return;
+      }
     }
     this.sendNotification({
       method: NOTIFICATION_NAMES.accountsChanged,
@@ -223,13 +209,10 @@ export class BackgroundBridge extends EventEmitter {
   }
 
   onStateUpdate(memState) {
-    const provider = Engine.context.NetworkController.provider;
-    const blockTracker = provider._blockTracker;
-    this.setProviderAndBlockTracker({ provider, blockTracker });
     if (!memState) {
       memState = this.getState();
     }
-    const publicState = this.getProviderNetworkState(memState);
+    const publicState = this.getProviderNetworkState();
 
     // Check if update already sent
     if (
@@ -256,10 +239,9 @@ export class BackgroundBridge extends EventEmitter {
   }
 
   getProviderState() {
-    const memState = this.getState();
     return {
       isUnlocked: this.isUnlocked(),
-      ...this.getProviderNetworkState(memState),
+      ...this.getProviderNetworkState(),
     };
   }
 
@@ -309,9 +291,8 @@ export class BackgroundBridge extends EventEmitter {
     const origin = this.hostname;
     // setup json rpc engine stack
     const engine = new JsonRpcEngine();
-    const provider = this._providerProxy;
-
-    const blockTracker = this._blockTrackerProxy;
+    const { blockTracker, provider } =
+      Engine.context.NetworkController.getProviderAndBlockTracker();
 
     // create filter polyfill middleware
     const filterMiddleware = createFilterMiddleware({ provider, blockTracker });
@@ -351,6 +332,7 @@ export class BackgroundBridge extends EventEmitter {
       );
     }
 
+    engine.push(createSanitizationMiddleware());
     // forward to metamask primary provider
     engine.push(providerAsMiddleware(provider));
     return engine;
@@ -363,15 +345,17 @@ export class BackgroundBridge extends EventEmitter {
   /**
    * The metamask-state of the various controllers, made available to the UI
    *
+   * TODO: Use controller state instead of flattened state for better auditability
+   *
    * @returns {Object} status
    */
   getState() {
     const vault = Engine.context.KeyringController.state.vault;
-    const { network, selectedAddress } = Engine.datamodel.flatState;
+    const { selectedAddress } = Engine.datamodel.flatState;
     return {
       isInitialized: !!vault,
       isUnlocked: true,
-      network,
+      network: selectLegacyNetwork(store.getState()),
       selectedAddress,
     };
   }

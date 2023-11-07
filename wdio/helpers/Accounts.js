@@ -3,7 +3,6 @@ const INCORRECT_SECRET_RECOVERY_PHRASE =
   'gain lemon refuse sunny identify diesel hand endless first involve wink size';
 const CORRECT_PASSWORD = `12345678`;
 const SHORT_PASSWORD = `1234567`;
-
 const INCORRECT_PASSWORD = `12345679`;
 
 class Accounts {

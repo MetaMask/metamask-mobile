@@ -1,46 +1,35 @@
 import React from 'react';
-import ApproveTransactionHeader from './';
+
 import renderWithProvider from '../../../util/test/renderWithProvider';
-import Engine from '../../../core/Engine';
+import ApproveTransactionHeader from './';
+import initialBackgroundState from '../../../util/test/initial-background-state.json';
+import { APPROVE_TRANSACTION_ORIGIN_PILL } from './ApproveTransactionHeader.constants';
 
-Engine.init();
+jest.mock('../../../core/Engine', () => ({
+  context: {
+    TokensController: {
+      addToken: () => undefined,
+    },
+  },
+}));
 
-const initialState = {
+jest.mock('../../../util/address', () => ({
+  ...jest.requireActual('../../../util/address'),
+  renderAccountName: () => 'ABC',
+}));
+
+const mockInitialState = {
   settings: {},
   engine: {
     backgroundState: {
+      ...initialBackgroundState,
       AccountTrackerController: {
         accounts: {
           '0x0': {
-            balance: 200,
+            balance: '200',
           },
           '0x1': {
-            balance: 200,
-          },
-        },
-      },
-      TokensController: {
-        tokens: [],
-      },
-      TokenListController: {
-        tokenList: {},
-      },
-      TokenBalancesController: {},
-      PermissionController: {
-        subjects: {
-          'http://metamask.github.io': {
-            origin: 'http://metamask.github.io',
-            permissions: {
-              eth_accounts: {
-                invoker: 'http://metamask.github.io',
-                caveats: [
-                  {
-                    type: 'restrictReturnedAccounts',
-                    value: [{ address: '0x0' }],
-                  },
-                ],
-              },
-            },
+            balance: '200',
           },
         },
       },
@@ -57,22 +46,12 @@ const initialState = {
           },
         },
       },
-      CurrencyRateController: {
-        conversionRate: 10,
-        currentCurrency: 'usd',
-      },
       NetworkController: {
         providerConfig: {
-          chainId: '0x1',
-          type: 'ropsten',
-          nickname: 'Ropsten',
+          chainId: '0xaa36a7',
+          type: 'sepolia',
+          nickname: 'Sepolia',
         },
-        provider: {
-          ticker: 'eth',
-        },
-      },
-      AddressBookController: {
-        addressBook: {},
       },
     },
   },
@@ -82,7 +61,12 @@ jest.mock('react-redux', () => ({
   ...jest.requireActual('react-redux'),
   useSelector: jest
     .fn()
-    .mockImplementation((callback) => callback(initialState)),
+    .mockImplementation((callback) => callback(mockInitialState)),
+}));
+
+jest.mock('../../../util/address', () => ({
+  ...jest.requireActual('../../../util/address'),
+  renderAccountName: jest.fn(),
 }));
 
 describe('ApproveTransactionHeader', () => {
@@ -92,8 +76,9 @@ describe('ApproveTransactionHeader', () => {
         from="0x0"
         origin="http://metamask.github.io"
         url="http://metamask.github.io"
+        asset={{ address: '0x0', symbol: 'ERC', decimals: 4 }}
       />,
-      { state: initialState },
+      { state: mockInitialState },
     );
     expect(wrapper).toMatchSnapshot();
   });
@@ -104,9 +89,63 @@ describe('ApproveTransactionHeader', () => {
         from="0x0"
         origin="http://metamask.github.io"
         url="http://metamask.github.io"
+        asset={{ address: '0x0', symbol: 'ERC', decimals: 4 }}
       />,
-      { state: initialState },
+      { state: mockInitialState },
     );
     expect(getByText('http://metamask.github.io')).toBeDefined();
+  });
+
+  it('should get origin when present', () => {
+    const { getByText } = renderWithProvider(
+      <ApproveTransactionHeader
+        from="0x0"
+        origin="http://metamask.github.io"
+        url="http://metamask.github.io"
+        asset={{
+          address: '0x0',
+          symbol: 'RAN',
+          decimals: 18,
+        }}
+      />,
+      { state: mockInitialState },
+    );
+    expect(getByText('http://metamask.github.io')).toBeDefined();
+  });
+
+  it('should return origin to be null when not present', () => {
+    const container = renderWithProvider(
+      <ApproveTransactionHeader
+        from="0x0"
+        origin={undefined}
+        url="http://metamask.github.io"
+        asset={{
+          address: '0x0',
+          symbol: 'RAN',
+          decimals: 18,
+        }}
+      />,
+      { state: mockInitialState },
+    );
+    expect(container).toMatchSnapshot();
+  });
+
+  it('should not show an origin pill if origin is deeplink', () => {
+    const { queryByTestId } = renderWithProvider(
+      <ApproveTransactionHeader
+        from="0x0"
+        origin="qr-code"
+        url="http://metamask.github.io"
+        asset={{
+          address: '0x0',
+          symbol: 'RAN',
+          decimals: 18,
+        }}
+      />,
+      { state: mockInitialState },
+    );
+
+    const originPill = queryByTestId(APPROVE_TRANSACTION_ORIGIN_PILL);
+    expect(originPill).toBeNull();
   });
 });

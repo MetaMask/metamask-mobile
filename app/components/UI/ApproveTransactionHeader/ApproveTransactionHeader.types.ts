@@ -1,18 +1,19 @@
+interface Asset {
+  isETH?: boolean;
+  tokenId?: string;
+  address: string;
+  symbol: string;
+  decimals: number;
+  image?: string;
+  name?: string;
+  standard?: string;
+}
+
 export interface ApproveTransactionHeaderI {
-  origin: string;
+  origin?: string;
   url: string;
   currentEnsName?: string;
   from: string;
-}
-
-export interface AccountInfoI {
-  balance: number;
-  currency: string;
-  accountName: string;
-}
-
-export interface OriginsI {
-  isOriginDeepLink: boolean;
-  isOriginWalletConnect: boolean;
-  isOriginMMSDKRemoteConn: boolean;
+  asset: Asset;
+  dontWatchAsset?: boolean;
 }

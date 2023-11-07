@@ -1,62 +1,46 @@
-/* eslint-disable no-console, react-native/no-inline-styles */
-
-// Third party dependencies.
-import React, { useState } from 'react';
-import { View } from 'react-native';
-import { storiesOf } from '@storybook/react-native';
-import { boolean } from '@storybook/addon-knobs';
+/* eslint-disable react/display-name */
+import React from 'react';
 
 // External dependencies.
-import { mockTheme } from '../../../../../util/theme';
+import ListItemColumn, { WidthType } from '../../../List/ListItemColumn';
+import Icon, { IconName } from '../../../Icons/Icon';
 import Text, { TextVariant } from '../../../Texts/Text';
 
 // Internal dependencies.
-import SelectItem from './SelectItem';
+import { default as SelectItemComponent } from './SelectItem';
+import { SAMPLE_SELECTITEM_PROPS } from './SelectItem.constants';
 
-const SelectItemExample = () => {
-  const [selectedIndex, setSelectedIndex] = useState(0);
-
-  const renderItem = (item: number) => (
-    <SelectItem
-      onPress={() => setSelectedIndex(item)}
-      key={`item-${item}`}
-      isSelected={item === selectedIndex}
-    >
-      <View
-        style={{
-          height: 50,
-          backgroundColor: mockTheme.colors.background.alternative,
-          alignItems: 'center',
-          justifyContent: 'center',
-        }}
-      >
-        <Text variant={TextVariant.BodySM}>{'Wrapped Content'}</Text>
-      </View>
-    </SelectItem>
-  );
-
-  return <React.Fragment>{[0, 1, 2].map(renderItem)}</React.Fragment>;
+const SelectItemMeta = {
+  title: 'Component Library / Select',
+  component: SelectItemComponent,
+  argTypes: {
+    isSelected: {
+      control: { type: 'boolean' },
+      defaultValue: SAMPLE_SELECTITEM_PROPS.isSelected,
+    },
+    isDisabled: {
+      control: { type: 'boolean' },
+      defaultValue: SAMPLE_SELECTITEM_PROPS.isDisabled,
+    },
+  },
 };
+export default SelectItemMeta;
 
-storiesOf('Component Library / SelectItem', module)
-  .addDecorator((getStory) => getStory())
-  .add('Default', () => {
-    const groupId = 'Props';
-    const selectedSelector = boolean('isSelected', false, groupId);
-
-    return (
-      <SelectItem isSelected={selectedSelector}>
-        <View
-          style={{
-            height: 50,
-            backgroundColor: mockTheme.colors.background.alternative,
-            alignItems: 'center',
-            justifyContent: 'center',
-          }}
-        >
-          <Text variant={TextVariant.BodySM}>{'Wrapped Content'}</Text>
-        </View>
-      </SelectItem>
-    );
-  })
-  .add('List', () => <SelectItemExample />);
+export const SelectItem = {
+  render: (args: any) => (
+    <SelectItemComponent {...args}>
+      <ListItemColumn>
+        <Icon name={IconName.Clock} />
+      </ListItemColumn>
+      <ListItemColumn widthType={WidthType.Fill}>
+        <Text numberOfLines={1} variant={TextVariant.HeadingSMRegular}>
+          {'Sample Title'}
+        </Text>
+        <Text variant={TextVariant.BodyMD}>{'Sample Description'}</Text>
+      </ListItemColumn>
+      <ListItemColumn>
+        <Icon name={IconName.Arrow2Right} />
+      </ListItemColumn>
+    </SelectItemComponent>
+  ),
+};

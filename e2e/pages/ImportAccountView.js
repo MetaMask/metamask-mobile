@@ -11,7 +11,11 @@ import {
 } from '../../wdio/screen-objects/testIDs/Screens/ImportSuccessScreen.testIds';
 export default class ImportAccountView {
   static async tapImportButton() {
-    await TestHelpers.waitAndTap(IMPORT_PRIVATE_KEY_BUTTON_ID);
+    if (device.getPlatform() === 'ios') {
+      await TestHelpers.waitAndTap(IMPORT_PRIVATE_KEY_BUTTON_ID);
+    } else {
+      await TestHelpers.waitAndTapByLabel(IMPORT_PRIVATE_KEY_BUTTON_ID);
+    }
   }
 
   static async tapOKAlertButton() {

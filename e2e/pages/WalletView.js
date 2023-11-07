@@ -1,63 +1,50 @@
 import TestHelpers from '../helpers';
 
 import {
-  getAssetTestId,
   IMPORT_NFT_BUTTON_ID,
   IMPORT_TOKEN_BUTTON_ID,
   NAVBAR_NETWORK_BUTTON,
+  NAVBAR_NETWORK_TEXT,
   NFT_TAB_CONTAINER_ID,
-  SEND_BUTTON_ID,
   WALLET_ACCOUNT_ICON,
   WALLET_ACCOUNT_NAME_LABEL_INPUT,
   WALLET_ACCOUNT_NAME_LABEL_TEXT,
 } from '../../wdio/screen-objects/testIDs/Screens/WalletView.testIds';
-import { NOTIFICATION_TITLE } from '../../wdio/screen-objects/testIDs/Components/Notification.testIds';
-
-const WALLET_CONTAINER_ID = 'wallet-screen';
-const DRAWER_BUTTON_ID = 'hamburger-menu-button-wallet';
-const NETWORK_NAME_TEXT_ID = 'network-name';
-const NFT_CONTAINER_ID = 'collectible-name';
+import {
+  WalletViewSelectorsIDs,
+  WalletViewSelectorsText,
+} from '../selectors/WalletView.selectors';
+import { CommonSelectorsText } from '../selectors/Common.selectors';
 
 export default class WalletView {
   static async tapOKAlertButton() {
-    await TestHelpers.tapAlertWithButton('OK');
+    await TestHelpers.tapAlertWithButton(CommonSelectorsText.OK_ALERT_BUTTON); // system alert.
   }
 
   static async tapOnToken(token) {
-    await TestHelpers.waitAndTap(getAssetTestId(token));
+    await TestHelpers.waitAndTapText(
+      token || WalletViewSelectorsText.DEFAULT_TOKEN,
+    );
   }
 
   static async tapIdenticon() {
-    await TestHelpers.tap(WALLET_ACCOUNT_ICON);
-  }
-
-  static async tapDrawerButton() {
-    await TestHelpers.tap(DRAWER_BUTTON_ID);
-  }
-
-  static async tapBrowser() {
-    await TestHelpers.tapByText('Browser');
-    await TestHelpers.delay(1000);
-  }
-
-  static async tapWallet() {
-    await TestHelpers.tapByText('Wallet');
-  }
-
-  static async tapSendIcon() {
-    await TestHelpers.waitAndTap(SEND_BUTTON_ID);
+    await TestHelpers.waitAndTap(WALLET_ACCOUNT_ICON);
   }
 
   static async tapNetworksButtonOnNavBar() {
     await TestHelpers.waitAndTap(NAVBAR_NETWORK_BUTTON);
   }
 
+  static async isConnectedNetwork(value) {
+    await TestHelpers.checkIfHasText(NAVBAR_NETWORK_TEXT, value);
+  }
+
   static async tapNftTab() {
-    await TestHelpers.tapByText('NFTs');
+    await TestHelpers.tapByText(WalletViewSelectorsText.NFTS_TAB);
   }
 
   static async tapTokensTab() {
-    await TestHelpers.tapByText('Tokens');
+    await TestHelpers.tapByText(WalletViewSelectorsText.TOKENS_TAB);
   }
 
   static async scrollDownOnNFTsTab() {
@@ -73,7 +60,12 @@ export default class WalletView {
   }
 
   static async tapImportTokensButton() {
-    await TestHelpers.tap(IMPORT_TOKEN_BUTTON_ID);
+    await TestHelpers.delay(2000);
+    if (device.getPlatform() === 'android') {
+      await TestHelpers.tapByText(WalletViewSelectorsText.IMPORT_TOKENS);
+    } else {
+      await TestHelpers.tap(IMPORT_TOKEN_BUTTON_ID);
+    }
   }
 
   static async tapOnNFTInWallet(nftName) {
@@ -82,7 +74,7 @@ export default class WalletView {
 
   static async removeTokenFromWallet(token) {
     await element(by.text(token)).longPress();
-    await TestHelpers.tapByText('Hide');
+    await TestHelpers.tapByText(WalletViewSelectorsText.HIDE_TOKENS);
   }
 
   static async editAccountName(accountName) {
@@ -103,16 +95,14 @@ export default class WalletView {
   static async isVisible() {
     if (!device.getPlatform() === 'android') {
       // Check that we are on the wallet screen
-      await TestHelpers.checkIfExists(WALLET_CONTAINER_ID);
+      await TestHelpers.checkIfExists(WalletViewSelectorsIDs.WALLET_CONTAINER);
     }
   }
 
-  static async isToastNotificationVisible() {
-    await TestHelpers.checkIfExists(NOTIFICATION_TITLE);
-  }
-
   static async isNotVisible() {
-    await TestHelpers.checkIfNotVisible(WALLET_CONTAINER_ID);
+    await TestHelpers.checkIfNotVisible(
+      WalletViewSelectorsIDs.WALLET_CONTAINER,
+    );
   }
 
   static async isNFTVisibleInWallet(nftName) {
@@ -128,12 +118,15 @@ export default class WalletView {
   }
 
   static async isNFTNameVisible(nftName) {
-    await TestHelpers.checkIfElementHasString(NFT_CONTAINER_ID, nftName);
+    await TestHelpers.checkIfElementHasString(
+      WalletViewSelectorsIDs.NFT_CONTAINER,
+      nftName,
+    );
   }
 
   static async isNetworkNameVisible(networkName) {
     await TestHelpers.checkIfElementHasString(
-      NETWORK_NAME_TEXT_ID,
+      WalletViewSelectorsIDs.NETWORK_NAME,
       networkName,
     );
   }
@@ -143,9 +136,5 @@ export default class WalletView {
       WALLET_ACCOUNT_NAME_LABEL_INPUT,
       accountName,
     );
-  }
-
-  static async isAccountBalanceCorrect(accountBalance) {
-    await TestHelpers.checkIfElementHasString('balance', accountBalance);
   }
 }

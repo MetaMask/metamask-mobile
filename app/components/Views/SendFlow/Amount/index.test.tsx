@@ -12,11 +12,10 @@ import {
   TRANSACTION_AMOUNT_CONVERSION_VALUE,
   TRANSACTION_AMOUNT_INPUT,
 } from '../../../../../wdio/screen-objects/testIDs/Screens/AmountScreen.testIds.js';
+import initialBackgroundState from '../../../../util/test/initial-background-state.json';
 
 const mockEngine = Engine;
 const mockTransactionTypes = TransactionTypes;
-
-jest.unmock('react-redux');
 
 jest.mock('../../../../core/Engine', () => ({
   init: () => mockEngine.init({}),
@@ -73,6 +72,7 @@ const RECEIVER_ACCOUNT = '0x2a';
 const initialState = {
   engine: {
     backgroundState: {
+      ...initialBackgroundState,
       NetworkController: {
         network: '1',
         providerConfig: {
@@ -93,19 +93,9 @@ const initialState = {
           },
         },
       },
-      TokensController: {
-        tokens: [],
-      },
       NftController: {
         allNfts: { [CURRENT_ACCOUNT]: { '1': [] } },
         allNftContracts: { [CURRENT_ACCOUNT]: { '1': [] } },
-      },
-      TokenRatesController: {
-        contractExchangeRates: {},
-      },
-      CurrencyRateController: {},
-      TokenBalancesController: {
-        contractBalance: {},
       },
     },
   },
@@ -501,7 +491,9 @@ describe('Amount', () => {
         ...initialState.engine,
         backgroundState: {
           ...initialState.engine.backgroundState,
-          TokenRatesController: {},
+          TokenRatesController: {
+            contractExchangeRates: {},
+          },
           CurrencyRateController: {},
         },
       },
@@ -532,7 +524,7 @@ describe('Amount', () => {
     expect(toJSON()).toMatchSnapshot();
   });
 
-  it('should not show a warning when conversion rate is available', () => {
+  it('should not show a warning when conversion rate is available', async () => {
     const { getByTestId, toJSON } = renderComponent({
       engine: {
         ...initialState.engine,
@@ -567,11 +559,11 @@ describe('Amount', () => {
     });
 
     try {
-      getByTestId(FIAT_CONVERSION_WARNING_TEXT);
+      await getByTestId(FIAT_CONVERSION_WARNING_TEXT);
     } catch (error: any) {
-      expect(error.message).toBe(
-        `Unable to find an element with testID: ${FIAT_CONVERSION_WARNING_TEXT}`,
-      );
+      const expectedErrorMessage = `Unable to find an element with testID: ${FIAT_CONVERSION_WARNING_TEXT}`;
+      const hasErrorMessage = error.message.includes(expectedErrorMessage);
+      expect(hasErrorMessage).toBeTruthy();
     }
     expect(toJSON()).toMatchSnapshot();
   });
@@ -582,7 +574,9 @@ describe('Amount', () => {
         ...initialState.engine,
         backgroundState: {
           ...initialState.engine.backgroundState,
-          TokenRatesController: {},
+          TokenRatesController: {
+            contractExchangeRates: {},
+          },
           CurrencyRateController: {},
         },
       },
@@ -607,9 +601,9 @@ describe('Amount', () => {
     try {
       getByTestId(FIAT_CONVERSION_WARNING_TEXT);
     } catch (error: any) {
-      expect(error.message).toBe(
-        `Unable to find an element with testID: ${FIAT_CONVERSION_WARNING_TEXT}`,
-      );
+      const expectedErrorMessage = `Unable to find an element with testID: ${FIAT_CONVERSION_WARNING_TEXT}`;
+      const hasErrorMessage = error.message.includes(expectedErrorMessage);
+      expect(hasErrorMessage).toBeTruthy();
     }
     expect(toJSON()).toMatchSnapshot();
   });

@@ -1,5 +1,4 @@
 import TestHelpers from '../../../../helpers';
-import { IOS_I_UNDERSTAND_BUTTON_ID } from '../../../../../app/constants/test-ids';
 import {
   RESET_PASSWORD_INPUT_ID,
   RESET_PASSWORD_INPUT_BOX_ID,
@@ -8,9 +7,8 @@ import {
   RESET_PASSWORD_ANDROID_TERM_CHECKBOX_ID,
 } from '../../../../../wdio/screen-objects/testIDs/Screens/ChangePasswordScreensIDs.testIds';
 
-import messages from '../../../../../locales/languages/en.json';
-
-const CHANGE_PASSWORD_TEXT = messages.manual_backup_step_1.confirm_password;
+import { ChoosePasswordSelectorsIDs } from '../../../../selectors/Onboarding/ChoosePassword.selectors';
+import { ChangePasswordViewSelectorsText } from '../../../../selectors/Settings/SecurityAndPrivacy/ChangePasswordView.selectors';
 
 export default class ChangePasswordView {
   static async typeInConfirmPasswordInputBox(PASSWORD) {
@@ -21,7 +19,7 @@ export default class ChangePasswordView {
   }
 
   static async tapConfirmButton() {
-    await TestHelpers.tapByText('CONFIRM');
+    await TestHelpers.tapByText(ChangePasswordViewSelectorsText.CONFIRM_BUTTON);
   }
 
   static async enterPassword(PASSWORD) {
@@ -40,7 +38,9 @@ export default class ChangePasswordView {
 
   static async tapIUnderstandCheckBox() {
     if (device.getPlatform() === 'ios') {
-      await TestHelpers.tap(IOS_I_UNDERSTAND_BUTTON_ID);
+      await TestHelpers.tap(
+        ChoosePasswordSelectorsIDs.IOS_I_UNDERSTAND_BUTTON_ID,
+      );
     } else {
       // Tap by the I understand text
       await TestHelpers.delay(1000);
@@ -53,10 +53,14 @@ export default class ChangePasswordView {
   }
 
   static async isVisible() {
-    await TestHelpers.checkIfElementWithTextIsVisible(CHANGE_PASSWORD_TEXT);
+    await TestHelpers.checkIfElementWithTextIsVisible(
+      ChangePasswordViewSelectorsText.CHANGE_PASSWORD,
+    );
   }
 
   static async isNotVisible() {
-    await TestHelpers.checkIfElementWithTextIsNotVisible(CHANGE_PASSWORD_TEXT);
+    await TestHelpers.checkIfElementWithTextIsNotVisible(
+      ChangePasswordViewSelectorsText.CHANGE_PASSWORD,
+    );
   }
 }

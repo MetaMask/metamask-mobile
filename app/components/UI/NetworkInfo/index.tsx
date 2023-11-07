@@ -1,6 +1,6 @@
 /* eslint-disable no-mixed-spaces-and-tabs */
 import React, { useMemo } from 'react';
-import { View, Text, StyleSheet } from 'react-native';
+import { View, Text, StyleSheet, Platform } from 'react-native';
 import StyledButton from '../StyledButton';
 import { strings } from '../../../../locales/i18n';
 import { RPC } from '../../../constants/network';
@@ -15,13 +15,15 @@ import { fontStyles } from '../../../styles/common';
 import { isTokenDetectionSupportedForNetwork } from '@metamask/assets-controllers/dist/assetsUtil';
 import { NETWORK_EDUCATION_MODAL_CLOSE_BUTTON } from '../../../../wdio/screen-objects/testIDs/Screens/NetworksScreen.testids.js';
 import { selectProviderConfig } from '../../../selectors/networkController';
+import { selectUseTokenDetection } from '../../../selectors/preferencesController';
 import {
   getNetworkImageSource,
-  getNetworkNameFromProvider,
+  getNetworkNameFromProviderConfig,
 } from '../../../util/networks';
 import Avatar, {
   AvatarVariants,
 } from '../../../component-library/components/Avatars/Avatar';
+import generateTestId from '../../../../wdio/utils/generateTestId';
 
 const createStyles = (colors: {
   background: { default: string };
@@ -114,8 +116,8 @@ interface NetworkInfoProps {
 
 const NetworkInfo = (props: NetworkInfoProps) => {
   const { onClose, ticker, isTokenDetectionEnabled } = props;
-  const networkProvider = useSelector(selectProviderConfig);
-  const { type, ticker: networkTicker, rpcTarget, chainId } = networkProvider;
+  const providerConfig = useSelector(selectProviderConfig);
+  const { type, ticker: networkTicker, rpcTarget, chainId } = providerConfig;
   const { colors } = useTheme();
   const styles = createStyles(colors);
   const isTokenDetectionSupported =
@@ -131,22 +133,22 @@ const NetworkInfo = (props: NetworkInfoProps) => {
   const networkImageSource = useMemo(
     () =>
       getNetworkImageSource({
-        networkType: networkProvider.type,
-        chainId: networkProvider.chainId,
+        networkType: providerConfig.type,
+        chainId: providerConfig.chainId,
       }),
-    [networkProvider],
+    [providerConfig],
   );
 
   const networkName = useMemo(
-    () => getNetworkNameFromProvider(networkProvider),
-    [networkProvider],
+    () => getNetworkNameFromProviderConfig(providerConfig),
+    [providerConfig],
   );
 
   return (
     <View style={styles.wrapper}>
       <View
         style={styles.modalContentView}
-        testID={NETWORK_EDUCATION_MODAL_CONTAINER_ID}
+        {...generateTestId(Platform, NETWORK_EDUCATION_MODAL_CONTAINER_ID)}
       >
         <Text style={styles.title}>
           {strings('network_information.switched_network')}
@@ -160,7 +162,10 @@ const NetworkInfo = (props: NetworkInfoProps) => {
             />
             <Text
               style={styles.tokenText}
-              testID={NETWORK_EDUCATION_MODAL_NETWORK_NAME_ID}
+              {...generateTestId(
+                Platform,
+                NETWORK_EDUCATION_MODAL_NETWORK_NAME_ID,
+              )}
             >
               {networkName}
             </Text>
@@ -226,8 +231,7 @@ const NetworkInfo = (props: NetworkInfoProps) => {
 };
 
 const mapStateToProps = (state: any) => ({
-  isTokenDetectionEnabled:
-    state.engine.backgroundState.PreferencesController.useTokenDetection,
+  isTokenDetectionEnabled: selectUseTokenDetection(state),
 });
 
 export default connect(mapStateToProps)(NetworkInfo);

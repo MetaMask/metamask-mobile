@@ -36,11 +36,12 @@ export const getButtonIconStoryProps = (): ButtonIconProps => {
     ButtonIconVariants.Primary,
     storybookPropsGroupID,
   );
-  const disabledSelector = boolean('disabled', false, storybookPropsGroupID);
+  const isDisabledToggle = boolean('isDisabled', false, storybookPropsGroupID);
+
   return {
     variant: variantSelector,
     iconName: iconNameSelector,
-    disabled: disabledSelector,
+    isDisabled: isDisabledToggle,
     onPress: () => console.log("I'm clicked!"),
     size: sizeSelector,
   };

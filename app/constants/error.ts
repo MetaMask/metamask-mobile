@@ -15,6 +15,7 @@ export const KEYSTONE_TX_CANCELED = 'KeystoneError#Tx_canceled';
 
 // Password Errors
 export const WRONG_PASSWORD_ERROR = 'error: Invalid password';
+export const UNRECOGNIZED_PASSWORD_STRENGTH = 'Unrecognized password strength.';
 
 // Contact Flow Errors
 export const CONTACT_ALREADY_SAVED = 'contactAlreadySaved';
@@ -48,3 +49,8 @@ export const VAULT_BACKUP_FAILED_UNDEFINED =
   'Unable to backup vault as it is undefined';
 export const VAULT_FAILED_TO_GET_VAULT_FROM_BACKUP =
   'getVaultFromBackup failed to retrieve vault';
+
+// RPCMethodMiddleware
+export const TOKEN_NOT_SUPPORTED_FOR_NETWORK =
+  'This token is not supported on this network';
+export const TOKEN_NOT_VALID = 'This token address os mpt valid';

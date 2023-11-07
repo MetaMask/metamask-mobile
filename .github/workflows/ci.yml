@@ -8,23 +8,10 @@ jobs:
     runs-on: ubuntu-20.04
     steps:
       - uses: actions/checkout@v3
-      - name: Get Node.js version
-        id: nvm
-        run: echo "NODE_VERSION=$(cat .nvmrc)" >> "$GITHUB_OUTPUT"
       - uses: actions/setup-node@v3
         with:
-          node-version: ${{ steps.nvm.outputs.NODE_VERSION }}
-      - name: Get Yarn cache directory
-        run: echo "YARN_CACHE_DIR=$(yarn cache dir)" >> "$GITHUB_OUTPUT"
-        id: yarn-cache-dir
-      - name: Get Yarn version
-        run: echo "YARN_VERSION=$(yarn --version)" >> "$GITHUB_OUTPUT"
-        id: yarn-version
-      - name: Cache yarn dependencies
-        uses: actions/cache@v3
-        with:
-          path: ${{ steps.yarn-cache-dir.outputs.YARN_CACHE_DIR }}
-          key: yarn-cache-${{ runner.os }}-${{ steps.yarn-version.outputs.YARN_VERSION }}-${{ hashFiles('yarn.lock') }}
+          node-version-file: '.nvmrc'
+          cache: yarn
       - name: Determine whether the current PR is a draft
         id: set-is-draft
         if: github.event_name == 'pull_request' && github.event.pull_request.number
@@ -37,17 +24,31 @@ jobs:
         run: printf '%s\n\n%s' '@metamask:registry=https://npm.pkg.github.com' "//npm.pkg.github.com/:_authToken=${PACKAGE_READ_TOKEN}" > .npmrc
         env:
           PACKAGE_READ_TOKEN: ${{ secrets.PACKAGE_READ_TOKEN }}
-      - run: yarn setup
-      - uses: actions/cache@v3
-        id: restore-build
-        with:
-          path: ./*
-          key: ${{ github.sha }}
+      - run: yarn setup:node
       - name: Require clean working directory
         shell: bash
         run: |
           if ! git diff --exit-code; then
             echo "Working tree dirty at end of job"
+            exit 1
+          fi
+  dedupe:
+    runs-on: ubuntu-20.04
+    needs: setup
+    steps:
+      - uses: actions/checkout@v3
+      - uses: actions/setup-node@v3
+        with:
+          node-version-file: '.nvmrc'
+          cache: yarn
+      - run: yarn setup:node
+      - name: Deduplicate dependencies
+        run: yarn deduplicate
+      - name: Print error if duplicates found
+        shell: bash
+        run: |
+          if ! git diff --exit-code; then
+            echo "Duplicate dependencies detected; run 'yarn deduplicate' to remove them"
             exit 1
           fi
   scripts:
@@ -57,20 +58,17 @@ jobs:
       matrix:
         scripts:
           - lint
+          - lint:tsc
           - audit:ci
+          - test:depcheck
           - test:tgz-check
     steps:
-      - uses: actions/cache@v3
-        id: restore-build
-        with:
-          path: ./*
-          key: ${{ github.sha }}
-      - name: Get Node.js version
-        id: nvm
-        run: echo "NODE_VERSION=$(cat .nvmrc)" >> "$GITHUB_OUTPUT"
+      - uses: actions/checkout@v3
       - uses: actions/setup-node@v3
         with:
-          node-version: ${{ steps.nvm.outputs.NODE_VERSION }}
+          node-version-file: '.nvmrc'
+          cache: yarn
+      - run: yarn setup:node
       - run: yarn ${{ matrix['scripts'] }}
       - name: Require clean working directory
         shell: bash
@@ -79,31 +77,92 @@ jobs:
             echo "Working tree dirty at end of job"
             exit 1
           fi
-  tests:
+  unit-tests:
     runs-on: ubuntu-20.04
+    needs: setup
     strategy:
       matrix:
-        units:
-          - non-components
-          - components-ui
-          - components-views
-          - components-remaining
-    needs: setup
+        shard: [1, 2, 3, 4, 5, 6, 7, 8, 9, 10]
     steps:
-      - uses: actions/cache@v3
-        id: restore-build
-        with:
-          path: ./*
-          key: ${{ github.sha }}
-      - name: Get Node.js version
-        id: nvm
-        run: echo "NODE_VERSION=$(cat .nvmrc)" >> "$GITHUB_OUTPUT"
+      - uses: actions/checkout@v3
       - uses: actions/setup-node@v3
         with:
-          node-version: ${{ steps.nvm.outputs.NODE_VERSION }}
-      - run: yarn test:unit:${{ matrix['units'] }} --forceExit --silent
+          node-version-file: '.nvmrc'
+          cache: yarn
+      - run: yarn setup:node
+      # The "10" in this command is the total number of shards. It must be kept
+      # in sync with the length of matrix.shard
+      - run: yarn test:unit --shard=${{ matrix.shard }}/10 --forceExit --silent --coverageReporters=json
         env:
           NODE_OPTIONS: --max_old_space_size=20480
+      - name: Rename coverage report to include shard number
+        shell: bash
+        run: |
+          mv ./tests/coverage/coverage-final.json ./tests/coverage/coverage-${{ matrix.shard }}.json
+      - uses: actions/upload-artifact@v3
+        with:
+          name: coverage-${{ matrix.shard }}
+          path: ./tests/coverage/coverage-${{ matrix.shard }}.json
+          if-no-files-found: error
+      - name: Require clean working directory
+        shell: bash
+        run: |
+          if ! git diff --exit-code; then
+            echo "Working tree dirty at end of job"
+            exit 1
+          fi
+  merge-unit-tests:
+    runs-on: ubuntu-20.04
+    needs: unit-tests
+    steps:
+      - uses: actions/checkout@v3
+      - uses: actions/setup-node@v3
+        with:
+          node-version-file: '.nvmrc'
+          cache: yarn
+      - run: yarn setup
+      - uses: actions/download-artifact@v3
+        with:
+          path: tests/coverage/
+      - name: Gather partial coverage reports into one directory
+        shell: bash
+        run: |
+          mv ./tests/coverage/coverage-*/* ./tests/coverage
+      - run: yarn test:merge-coverage
+      - run: yarn test:validate-coverage
+      - uses: actions/upload-artifact@v3
+        with:
+          name: coverage
+          path: ./tests/merged-coverage/lcov.info
+          if-no-files-found: error
+      - name: Require clean working directory
+        shell: bash
+        run: |
+          if ! git diff --exit-code; then
+            echo "Working tree dirty at end of job"
+            exit 1
+          fi
+  sonar-cloud:
+    runs-on: ubuntu-20.04
+    needs: merge-unit-tests
+    steps:
+      - uses: actions/checkout@v3
+        with:
+          fetch-depth: 0 # SonarCloud needs a full checkout to perform necessary analysis
+      - uses: actions/download-artifact@v3
+        with:
+          name: coverage
+          path: coverage/
+      - name: Upload coverage reports to Codecov
+        if: ${{ always() }}
+        uses: codecov/codecov-action@d9f34f8cd5cb3b3eb79b3e4b5dae3a16df499a70
+      - name: SonarCloud Scan
+        if: ${{ env.HAVE_SONAR_TOKEN == 'true' }}
+        # This is SonarSource/sonarcloud-github-action@v2.0.0
+        uses: SonarSource/sonarcloud-github-action@4b4d7634dab97dcee0b75763a54a6dc92a9e6bc1
+        env:
+          HAVE_SONAR_TOKEN: ${{ secrets.SONAR_TOKEN != '' }}
+          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
       - name: Require clean working directory
         shell: bash
         run: |
@@ -118,7 +177,7 @@ jobs:
       - uses: actions/checkout@v3
       - name: Download actionlint
         id: download-actionlint
-        run: bash <(curl https://raw.githubusercontent.com/rhysd/actionlint/7fdc9630cc360ea1a469eed64ac6d78caeda1234/scripts/download-actionlint.bash) 1.6.22
+        run: bash <(curl https://raw.githubusercontent.com/rhysd/actionlint/51803be108613182daa27af760ae117916b53e3f/scripts/download-actionlint.bash) 1.6.23
         shell: bash
       - name: Check workflow files
         run: ${{ steps.download-actionlint.outputs.executable }} -color
@@ -126,6 +185,6 @@ jobs:
   all-jobs-pass:
     name: All jobs pass
     runs-on: ubuntu-20.04
-    needs: [setup, scripts, tests, check-workflows]
+    needs: [setup, dedupe, scripts, unit-tests, check-workflows, sonar-cloud]
     steps:
       - run: echo "Great success!"

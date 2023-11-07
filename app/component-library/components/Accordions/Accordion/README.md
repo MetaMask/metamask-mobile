@@ -38,6 +38,14 @@ Optional Function to trigger when pressing the Accordion Header.
 | :-------------------------------------------------- | :------------------------------------------------------ |
 | Function                                            | Yes                                                     |
 
+### `horizontalAlignment`
+
+Optional prop to control the horizontal alignment of the AccordionHeader.
+
+| <span style="color:gray;font-size:14px">TYPE</span> | <span style="color:gray;font-size:14px">REQUIRED</span> | <span style="color:gray;font-size:14px">DEFAULT</span> |
+| :-------------------------------------------------- | :------------------------------------------------------ | :----------------------------------------------------- |
+| AccordionHeaderHorizontalAlignment                   | No                                                     | AccordionHeaderHorizontalAlignment.Center              |
+
 ## Usage
 
 ```javascript
@@ -47,7 +55,8 @@ import Accordion from 'app/component-library/components/Accordions/Accordion/Acc
 <Accordion 
   title={TITLE} 
   isExpanded 
-  onPress={ONPRESS_HANDLER}>
+  onPress={ONPRESS_HANDLER}
+  horizontalAlignment={AccordionHeaderHorizontalAlignment.Center}>
     <ACCORDION_CONTENT/>
 </Accordion>;
 ```

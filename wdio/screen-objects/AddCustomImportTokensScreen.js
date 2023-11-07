@@ -23,13 +23,12 @@ class AddCustomImportToken {
   async typeCustomTokenAddress(text) {
     await Gestures.typeText(this.customTokenAddressField, text);
   }
+
   async scrollToImportButton() {
     await Gestures.swipe({ x: 300, y: 1000 }, { x: 300, y: 10 });
   }
 
   async tapImportButton() {
-    await driver.pause(2000);
-    await this.scrollToImportButton(); // because the bottom nav is blocking the import button
     await Gestures.waitAndTap(this.importButton);
   }
 
@@ -39,13 +38,16 @@ class AddCustomImportToken {
 
   async isTokenSymbolDisplayed() {
     await Gestures.waitAndTap(this.symbolField);
-    await expect(this.symbolField).toBeDisplayed();
   }
 
-  async tapTokenSymbolFieldAndDismissKeyboard() {
-    await this.tapTokenSymbolField();
-    await driver.pause(2000);
-    await driver.hideKeyboard();
+  async waitForImportButtonEnabled() {
+    const importButton = await this.importButton;
+    await importButton.waitForEnabled();
+  }
+
+  async isTokenSymbolFieldNotNull() {
+    await expect(this.symbolField).not.toHaveText('GNO');
   }
 }
+
 export default new AddCustomImportToken();

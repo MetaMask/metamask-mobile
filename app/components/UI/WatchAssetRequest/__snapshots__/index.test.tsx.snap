@@ -1,213 +1,47 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
 exports[`WatchAssetRequest should render correctly 1`] = `
-<View
-  style={
+<ContextProvider
+  value={
     Object {
-      "backgroundColor": "#FFFFFF",
-      "borderTopLeftRadius": 10,
-      "borderTopRightRadius": 10,
-      "minHeight": "50%",
-      "paddingBottom": 20,
+      "store": Object {
+        "clearActions": [Function],
+        "dispatch": [Function],
+        "getActions": [Function],
+        "getState": [Function],
+        "replaceReducer": [Function],
+        "subscribe": [Function],
+      },
+      "subscription": Subscription {
+        "handleChangeWrapper": [Function],
+        "listeners": Object {
+          "notify": [Function],
+        },
+        "onStateChange": [Function],
+        "parentSub": undefined,
+        "store": Object {
+          "clearActions": [Function],
+          "dispatch": [Function],
+          "getActions": [Function],
+          "getState": [Function],
+          "replaceReducer": [Function],
+          "subscribe": [Function],
+        },
+        "unsubscribe": null,
+      },
     }
   }
 >
-  <View>
-    <Text
-      style={
-        Object {
-          "color": "#24272A",
-          "fontFamily": "EuclidCircularB-Bold",
-          "fontSize": 18,
-          "fontWeight": "600",
-          "marginHorizontal": 20,
-          "marginVertical": 12,
-          "textAlign": "center",
-        }
+  <WatchAssetRequest
+    suggestedAssetMeta={
+      Object {
+        "asset": Object {
+          "address": "0x2",
+          "decimals": 0,
+          "symbol": "TKN",
+        },
       }
-    >
-      Add Suggested Token
-    </Text>
-  </View>
-  <ActionView
-    cancelTestID="request-signature-cancel-button"
-    cancelText="CANCEL"
-    confirmButtonMode="normal"
-    confirmTestID="request-signature-confirm-button"
-    confirmText="ADD TOKEN"
-    confirmed={false}
-    onConfirmPress={[Function]}
-    showCancelButton={true}
-    showConfirmButton={true}
-  >
-    <View
-      style={
-        Object {
-          "alignItems": "center",
-          "borderTopColor": "#D6D9DC",
-          "borderTopWidth": 1,
-        }
-      }
-    >
-      <View
-        style={
-          Object {
-            "flexDirection": "row",
-            "margin": 20,
-          }
-        }
-      >
-        <Text
-          style={
-            Object {
-              "color": "#24272A",
-              "fontFamily": "EuclidCircularB-Regular",
-              "fontSize": 16,
-              "fontWeight": "400",
-            }
-          }
-        >
-          Would you like to add this token?
-        </Text>
-      </View>
-      <View
-        style={
-          Object {
-            "alignItems": "flex-start",
-            "flex": 1,
-            "flexDirection": "row",
-            "marginHorizontal": 40,
-            "marginVertical": 30,
-          }
-        }
-      >
-        <View
-          style={
-            Object {
-              "flex": 1,
-              "flexDirection": "column",
-            }
-          }
-        >
-          <View
-            style={
-              Object {
-                "alignItems": "center",
-              }
-            }
-          >
-            <Text
-              style={
-                Object {
-                  "color": "#24272A",
-                  "fontFamily": "EuclidCircularB-Bold",
-                  "fontWeight": "600",
-                }
-              }
-            >
-              Token
-            </Text>
-          </View>
-          <View
-            style={
-              Object {
-                "alignItems": "center",
-              }
-            }
-          >
-            <View
-              style={
-                Object {
-                  "flexDirection": "row",
-                }
-              }
-            >
-              <View
-                style={
-                  Object {
-                    "paddingVertical": 10,
-                  }
-                }
-              >
-                <Connect(TokenImage)
-                  asset={
-                    Object {
-                      "address": "0x2",
-                      "decimals": 0,
-                      "symbol": "TKN",
-                    }
-                  }
-                />
-              </View>
-              <Text
-                style={
-                  Object {
-                    "color": "#24272A",
-                    "fontFamily": "EuclidCircularB-Regular",
-                    "fontSize": 16,
-                    "fontWeight": "400",
-                    "paddingHorizontal": 10,
-                    "paddingTop": 25,
-                  }
-                }
-              >
-                TKN
-              </Text>
-            </View>
-          </View>
-        </View>
-        <View
-          style={
-            Object {
-              "flex": 1,
-              "flexDirection": "column",
-            }
-          }
-        >
-          <View
-            style={
-              Object {
-                "alignItems": "center",
-              }
-            }
-          >
-            <Text
-              style={
-                Object {
-                  "color": "#24272A",
-                  "fontFamily": "EuclidCircularB-Bold",
-                  "fontWeight": "600",
-                }
-              }
-            >
-              Balance
-            </Text>
-          </View>
-          <View
-            style={
-              Object {
-                "alignItems": "center",
-              }
-            }
-          >
-            <Text
-              style={
-                Object {
-                  "color": "#24272A",
-                  "fontFamily": "EuclidCircularB-Regular",
-                  "fontSize": 16,
-                  "fontWeight": "400",
-                  "paddingHorizontal": 10,
-                  "paddingTop": 25,
-                }
-              }
-            >
-              0 TKN
-            </Text>
-          </View>
-        </View>
-      </View>
-    </View>
-  </ActionView>
-</View>
+    }
+  />
+</ContextProvider>
 `;

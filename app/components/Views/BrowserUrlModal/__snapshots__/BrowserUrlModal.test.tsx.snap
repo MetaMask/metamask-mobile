@@ -82,7 +82,7 @@ exports[`BrowserUrlModal should render correctly 1`] = `
       </Text>
     </TouchableOpacity>
   </View>
-  <Connect(UrlAutocomplete)
+  <Component
     onDismiss={[Function]}
     onSubmit={[Function]}
   />

@@ -5,52 +5,74 @@ import React from 'react';
 import { TouchableOpacity } from 'react-native';
 
 // External dependencies.
-import Text, { TextVariant } from '../../../../Texts/Text';
-import Icon, { IconSize } from '../../../../Icons/Icon';
+import Text from '../../../../Texts/Text';
+import Icon from '../../../../Icons/Icon';
 import { useStyles } from '../../../../../hooks';
-import {
-  DEFAULT_BUTTON_SIZE,
-  DEFAULT_BUTTON_WIDTH,
-} from '../../Button.constants';
 
 // Internal dependencies.
 import { ButtonBaseProps } from './ButtonBase.types';
 import styleSheet from './ButtonBase.styles';
+import {
+  DEFAULT_BUTTONBASE_LABEL_COLOR,
+  DEFAULT_BUTTONBASE_SIZE,
+  DEFAULT_BUTTONBASE_WIDTH,
+  DEFAULT_BUTTONBASE_ICON_SIZE,
+  DEFAULT_BUTTONBASE_LABEL_TEXTVARIANT,
+} from './ButtonBase.constants';
 
 const ButtonBase = ({
   label,
-  iconName,
-  size = DEFAULT_BUTTON_SIZE,
+  labelColor = DEFAULT_BUTTONBASE_LABEL_COLOR,
+  startIconName,
+  endIconName,
+  size = DEFAULT_BUTTONBASE_SIZE,
   onPress,
   style,
-  labelColor,
-  width = DEFAULT_BUTTON_WIDTH,
+  width = DEFAULT_BUTTONBASE_WIDTH,
+  isDisabled,
   ...props
 }: ButtonBaseProps) => {
   const { styles } = useStyles(styleSheet, {
     style,
     size,
-    labelColor,
     width,
+    isDisabled,
   });
+
   return (
     <TouchableOpacity
-      activeOpacity={0.5}
+      disabled={isDisabled}
+      activeOpacity={1}
       onPress={onPress}
       style={styles.base}
       {...props}
     >
-      {iconName && (
+      {startIconName && (
         <Icon
-          color={labelColor}
-          name={iconName}
-          size={IconSize.Sm}
-          style={styles.icon}
+          color={labelColor.toString()}
+          name={startIconName}
+          size={DEFAULT_BUTTONBASE_ICON_SIZE}
+          style={styles.startIcon}
         />
       )}
-      <Text variant={TextVariant.BodyMD} style={styles.label}>
-        {label}
-      </Text>
+      {typeof label === 'string' ? (
+        <Text
+          variant={DEFAULT_BUTTONBASE_LABEL_TEXTVARIANT}
+          style={styles.label}
+        >
+          {label}
+        </Text>
+      ) : (
+        label
+      )}
+      {endIconName && (
+        <Icon
+          color={labelColor.toString()}
+          name={endIconName}
+          size={DEFAULT_BUTTONBASE_ICON_SIZE}
+          style={styles.endIcon}
+        />
+      )}
     </TouchableOpacity>
   );
 };

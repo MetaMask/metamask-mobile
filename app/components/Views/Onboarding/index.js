@@ -3,15 +3,19 @@ import PropTypes from 'prop-types';
 import {
   ActivityIndicator,
   BackHandler,
-  Text,
   View,
   ScrollView,
   StyleSheet,
   Image,
   InteractionManager,
   Platform,
+  Animated,
+  Easing,
 } from 'react-native';
-import AsyncStorage from '@react-native-async-storage/async-storage';
+import Text, {
+  TextVariant,
+} from '../../../component-library/components/Texts/Text';
+import AsyncStorage from '../../../store/async-storage-wrapper';
 import StyledButton from '../../UI/StyledButton';
 import {
   fontStyles,
@@ -31,7 +35,6 @@ import {
 } from '../../UI/Navbar';
 import Device from '../../../util/device';
 import BaseNotification from '../../UI/Notification/BaseNotification';
-import Animated, { EasingNode } from 'react-native-reanimated';
 import ElevatedView from 'react-native-elevated-view';
 import { loadingSet, loadingUnset } from '../../../actions/user';
 import PreventScreenshot from '../../../core/PreventScreenshot';
@@ -53,6 +56,7 @@ import {
   WALLET_SETUP_CREATE_NEW_WALLET_BUTTON_ID,
 } from '../../../../wdio/screen-objects/testIDs/Screens/WalletSetupScreen.testIds';
 import Routes from '../../../constants/navigation/Routes';
+import { selectAccounts } from '../../../selectors/accountTrackerController';
 
 const createStyles = (colors) =>
   StyleSheet.create({
@@ -75,9 +79,6 @@ const createStyles = (colors) =>
       height: Device.isIos() ? 90 : 45,
     },
     title: {
-      fontSize: 24,
-      color: colors.text.default,
-      ...fontStyles.bold,
       textAlign: 'center',
     },
     ctas: {
@@ -94,12 +95,8 @@ const createStyles = (colors) =>
       ...fontStyles.normal,
     },
     buttonDescription: {
-      ...fontStyles.normal,
-      fontSize: 14,
       textAlign: 'center',
       marginBottom: 16,
-      color: colors.text.default,
-      lineHeight: 20,
     },
     importWrapper: {
       marginVertical: 24,
@@ -119,10 +116,7 @@ const createStyles = (colors) =>
     },
     loadingText: {
       marginTop: 30,
-      fontSize: 14,
       textAlign: 'center',
-      color: colors.text.default,
-      ...fontStyles.normal,
     },
     modalTypeView: {
       position: 'absolute',
@@ -187,7 +181,7 @@ class Onboarding extends PureComponent {
     Animated.timing(animatedRef, {
       toValue,
       duration: 500,
-      easing: EasingNode.linear,
+      easing: Easing.linear,
       useNativeDriver: true,
     }).start();
   };
@@ -377,6 +371,7 @@ class Onboarding extends PureComponent {
     return (
       <View style={styles.ctas}>
         <Text
+          variant={TextVariant.HeadingLG}
           style={styles.title}
           {...generateTestId(Platform, WALLET_SETUP_SCREEN_TITLE_ID)}
         >
@@ -496,7 +491,7 @@ class Onboarding extends PureComponent {
 Onboarding.contextType = ThemeContext;
 
 const mapStateToProps = (state) => ({
-  accounts: state.engine.backgroundState.AccountTrackerController.accounts,
+  accounts: selectAccounts(state),
   passwordSet: state.user.passwordSet,
   loading: state.user.loadingSet,
   loadingMsg: state.user.loadingMsg,

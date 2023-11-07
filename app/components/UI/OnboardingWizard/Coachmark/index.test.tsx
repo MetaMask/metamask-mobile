@@ -1,6 +1,7 @@
 import React from 'react';
 import { shallow } from 'enzyme';
 import Coachmark from './';
+jest.useFakeTimers();
 
 describe('Coachmark', () => {
   it('should render correctly', () => {

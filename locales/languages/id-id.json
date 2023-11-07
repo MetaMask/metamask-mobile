@@ -1536,10 +1536,7 @@
     "ok": "Oke"
   },
   "whats_new": {
-    "title": "Lihat apa yang baru",
-    "feature_security_settings_title": "Pengaturan keamanan ditingkatkan",
-    "feature_security_settings_text": "Sekarang Anda dapat mengubah kata sandi aplikasi MetaMask & meninjau cara mencadangkan Frasa Pemulihan Rahasia dompet Anda dari Pengaturan > Keamanan & Privasi.",
-    "feature_security_settings_button": "Lihat di Pengaturan"
+    "title": "Lihat apa yang baru"
   },
   "invalid_network": {
     "title": "ID rantai untuk jaringan kustom \n %{network} \n harus dimasukkan kembali.",

@@ -13,7 +13,7 @@ import { connect } from 'react-redux';
 import PropTypes from 'prop-types';
 import { fontStyles } from '../../../styles/common';
 import Emoji from 'react-native-emoji';
-import AsyncStorage from '@react-native-async-storage/async-storage';
+import AsyncStorage from '../../../store/async-storage-wrapper';
 import OnboardingProgress from '../../UI/OnboardingProgress';
 import ActionView from '../../UI/ActionView';
 import { strings } from '../../../../locales/i18n';

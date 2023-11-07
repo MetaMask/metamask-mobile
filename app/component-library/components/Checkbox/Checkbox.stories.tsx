@@ -1,18 +1,32 @@
-/* eslint-disable no-console */
-
-// Third party dependencies.
-import React from 'react';
-import { storiesOf } from '@storybook/react-native';
-import { boolean } from '@storybook/addon-knobs';
+/* eslint-disable no-console, react-native/no-inline-styles */
 
 // Internal dependencies.
-import Checkbox from './Checkbox';
+import { default as CheckboxComponent } from './Checkbox';
+import { SAMPLE_CHECKBOX_PROPS } from './Checkbox.constants';
 
-storiesOf('Component Library / Checkbox', module)
-  .addDecorator((getStory) => getStory())
-  .add('Default', () => {
-    const groupId = 'Props';
-    const selectedSelector = boolean('isSelected', false, groupId);
+const CheckboxMeta = {
+  title: 'Component Library / Checkbox',
+  component: CheckboxComponent,
+  argTypes: {
+    isChecked: {
+      control: { type: 'boolean' },
+    },
+    isIndeterminate: {
+      control: { type: 'boolean' },
+    },
+    isDisabled: {
+      control: { type: 'boolean' },
+    },
+    isReadOnly: {
+      control: { type: 'boolean' },
+    },
+    isDanger: {
+      control: { type: 'boolean' },
+    },
+  },
+};
+export default CheckboxMeta;
 
-    return <Checkbox isSelected={selectedSelector} />;
-  });
+export const Checkbox = {
+  args: SAMPLE_CHECKBOX_PROPS,
+};

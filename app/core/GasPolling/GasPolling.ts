@@ -1,17 +1,28 @@
 import { useEffect, useState } from 'react';
-import { useSelector, shallowEqual } from 'react-redux';
-import Engine from '../Engine';
-import { fromWei } from '../../util/number';
+import { shallowEqual, useSelector } from 'react-redux';
+
+import { GAS_ESTIMATE_TYPES } from '@metamask/gas-fee-controller';
+
+import { selectAccounts } from '../../selectors/accountTrackerController';
+import {
+  selectConversionRate,
+  selectCurrentCurrency,
+  selectNativeCurrency,
+} from '../../selectors/currencyRateController';
+import { selectTicker } from '../../selectors/networkController';
+import { selectContractBalances } from '../../selectors/tokenBalancesController';
+import { selectContractExchangeRates } from '../../selectors/tokenRatesController';
+import { fromWei, isBN, toGwei } from '../../util/number';
 import {
   parseTransactionEIP1559,
   parseTransactionLegacy,
 } from '../../util/transactions';
+import Engine from '../Engine';
 import {
-  UseGasTransactionProps,
   GetEIP1559TransactionDataProps,
   LegacyProps,
+  UseGasTransactionProps,
 } from './types';
-import { selectTicker } from '../../selectors/networkController';
 
 /**
  *
@@ -52,12 +63,12 @@ export const useDataStore = () => {
     (state: any) => [
       state.engine.backgroundState.GasFeeController.gasFeeEstimates,
       state.engine.backgroundState.GasFeeController.gasEstimateType,
-      state.engine.backgroundState.TokenRatesController.contractExchangeRates,
-      state.engine.backgroundState.CurrencyRateController.conversionRate,
-      state.engine.backgroundState.CurrencyRateController.currentCurrency,
-      state.engine.backgroundState.CurrencyRateController.nativeCurrency,
-      state.engine.backgroundState.AccountTrackerController.accounts,
-      state.engine.backgroundState.TokenBalancesController.contractBalances,
+      selectContractExchangeRates(state),
+      selectConversionRate(state),
+      selectCurrentCurrency(state),
+      selectNativeCurrency(state),
+      selectAccounts(state),
+      selectContractBalances(state),
       selectTicker(state),
       state.transaction,
       state.transaction.selectedAsset,
@@ -113,7 +124,13 @@ export const getEIP1559TransactionData = ({
         conversionRate,
         currentCurrency,
         nativeCurrency,
-        transactionState,
+        transactionState: {
+          selectedAsset: transactionState.selectedAsset,
+          transaction: {
+            value: transactionState.transaction.value,
+            data: transactionState.transaction.data,
+          },
+        },
         gasFeeEstimates,
         swapsParams: undefined,
         selectedGasFee: {
@@ -172,6 +189,7 @@ export const useGasTransaction = ({
   gasSelected,
   legacy,
   gasObject,
+  gasObjectLegacy,
   multiLayerL1FeeTotal,
 }: UseGasTransactionProps) => {
   const [gasEstimateTypeChange, updateGasEstimateTypeChange] =
@@ -195,20 +213,35 @@ export const useGasTransaction = ({
   }, [gasEstimateType, gasEstimateTypeChange]);
 
   const {
-    transaction: { gas: transactionGas },
+    transaction: { gas: transactionGas, gasPrice },
   } = transactionState;
 
   const suggestedGasLimit =
     gasObject?.suggestedGasLimit || fromWei(transactionGas, 'wei');
 
+  let suggestedGasPrice;
+
+  if (gasEstimateType === GAS_ESTIMATE_TYPES.FEE_MARKET) {
+    suggestedGasPrice = gasObjectLegacy?.suggestedGasPrice;
+  } else {
+    suggestedGasPrice = gasFeeEstimates?.gasPrice || gasFeeEstimates?.low;
+  }
+
+  if (gasEstimateType !== GAS_ESTIMATE_TYPES.FEE_MARKET) {
+    if (isBN(gasPrice)) {
+      suggestedGasPrice =
+        gasObjectLegacy?.suggestedGasPrice || toGwei(gasPrice).toString();
+    } else {
+      suggestedGasPrice =
+        gasObjectLegacy?.suggestedGasPrice || gasFeeEstimates?.gasPrice;
+    }
+  }
+
   if (legacy) {
     return getLegacyTransactionData({
       gas: {
-        suggestedGasLimit: gasObject?.legacyGasLimit || suggestedGasLimit,
-        suggestedGasPrice:
-          gasFeeEstimates[gasSelected] ||
-          gasObject?.suggestedGasPrice ||
-          gasFeeEstimates?.gasPrice,
+        suggestedGasLimit: gasObjectLegacy?.legacyGasLimit || suggestedGasLimit,
+        suggestedGasPrice,
       },
       contractExchangeRates,
       conversionRate,

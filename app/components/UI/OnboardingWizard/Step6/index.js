@@ -1,7 +1,7 @@
-import React, { useState, useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
 import PropTypes from 'prop-types';
 import { connect } from 'react-redux';
-import { View, Text, StyleSheet } from 'react-native';
+import { Platform, StyleSheet, Text, View } from 'react-native';
 import Coachmark from '../Coachmark';
 import setOnboardingWizardStep from '../../../../actions/wizard';
 import { strings } from '../../../../../locales/i18n';
@@ -14,6 +14,8 @@ import {
 import AnalyticsV2 from '../../../../util/analyticsV2';
 import { useTheme } from '../../../../util/theme';
 import Routes from '../../../../constants/navigation/Routes';
+import generateTestId from '../../../../../wdio/utils/generateTestId';
+import { ONBOARDING_WIZARD_SIXTH_STEP_CONTENT_ID } from '../../../../../wdio/screen-objects/testIDs/Components/OnboardingWizard.testIds';
 
 const styles = StyleSheet.create({
   main: {
@@ -24,6 +26,7 @@ const styles = StyleSheet.create({
     position: 'absolute',
     left: 0,
     right: 0,
+    marginHorizontal: 16,
   },
 });
 
@@ -38,7 +41,7 @@ const Step6 = (props) => {
    * If component ref defined, calculate its position and position coachmark accordingly
    */
   const getPosition = () => {
-    const position = Device.isAndroid() ? 270 : Device.isIphoneX() ? 300 : 270;
+    const position = Device.isAndroid() ? 280 : Device.isIphoneX() ? 320 : 280;
     setCoachmarkTop(position);
     setReady(true);
   };
@@ -74,8 +77,11 @@ const Step6 = (props) => {
    */
   const content = () => (
     <View style={dynamicOnboardingStyles.contentContainer}>
-      <Text style={dynamicOnboardingStyles.content} testID={'step6-title'}>
-        {strings('onboarding_wizard.step6.content')}
+      <Text
+        style={dynamicOnboardingStyles.content}
+        {...generateTestId(Platform, ONBOARDING_WIZARD_SIXTH_STEP_CONTENT_ID)}
+      >
+        {strings('onboarding_wizard_new.step6.content1')}
       </Text>
     </View>
   );
@@ -86,11 +92,10 @@ const Step6 = (props) => {
     <View style={styles.main}>
       <View style={[styles.coachmarkContainer, { top: coachmarkTop }]}>
         <Coachmark
-          title={strings('onboarding_wizard.step6.title')}
+          title={strings('onboarding_wizard_new.step6.title')}
           content={content()}
           onNext={triggerOnClose}
           onBack={onBack}
-          style={dynamicOnboardingStyles.coachmark}
           topIndicatorPosition={'topCenter'}
           onClose={onClose}
           currentStep={5}

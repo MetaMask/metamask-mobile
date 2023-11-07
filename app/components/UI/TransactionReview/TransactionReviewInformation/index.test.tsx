@@ -3,27 +3,12 @@ import TransactionReviewInformation from './';
 import configureMockStore from 'redux-mock-store';
 import { shallow } from 'enzyme';
 import { Provider } from 'react-redux';
+import initialBackgroundState from '../../../../util/test/initial-background-state.json';
 
 const mockStore = configureMockStore();
 const initialState = {
   engine: {
-    backgroundState: {
-      PreferencesController: {
-        selectedAddress: '0x2',
-      },
-      TokenRatesController: {
-        contractExchangeRates: {},
-      },
-      CurrencyRateController: {
-        currentCurrency: 'usd',
-        conversionRate: 0.1,
-      },
-      NetworkController: {
-        providerConfig: {
-          ticker: 'ETH',
-        },
-      },
-    },
+    backgroundState: initialBackgroundState,
   },
   transaction: {
     value: '',
@@ -38,6 +23,16 @@ const initialState = {
   settings: {
     primaryCurrency: 'ETH',
   },
+  fiatOrders: {
+    networks: [
+      {
+        active: true,
+        chainId: 1,
+        chainName: 'Ethereum Mainnet',
+        nativeTokenSupported: true,
+      },
+    ],
+  },
 };
 const store = mockStore(initialState);
 
@@ -48,6 +43,6 @@ describe('TransactionReviewInformation', () => {
         <TransactionReviewInformation EIP1559GasData={{}} />
       </Provider>,
     );
-    expect(wrapper.dive()).toMatchSnapshot();
+    expect(wrapper).toMatchSnapshot();
   });
 });

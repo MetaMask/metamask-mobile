@@ -4,6 +4,7 @@ import { Dedupe, ExtraErrorData } from '@sentry/integrations';
 import extractEthJsErrorMessage from './extractEthJsErrorMessage';
 import DefaultPreference from 'react-native-default-preference';
 import { AGREED, METRICS_OPT_IN } from '../constants/storage';
+import { regex } from './regex';
 
 const METAMASK_ENVIRONMENT = process.env['METAMASK_ENVIRONMENT'] || 'local'; // eslint-disable-line dot-notation
 
@@ -71,21 +72,6 @@ function simplifyErrorMessages(report) {
   });
 }
 
-function rewriteReportUrls(report) {
-  // update request url
-  report.request.url = toMetamaskUrl();
-  // update exception stack trace
-  if (report.exception && report.exception.values) {
-    report.exception.values.forEach((item) => {
-      if (item.stacktrace) {
-        item.stacktrace.frames.forEach((frame) => {
-          frame.filename = toMetamaskUrl(frame.filename);
-        });
-      }
-    });
-  }
-}
-
 function removeDeviceTimezone(report) {
   if (report.contexts && report.contexts.device)
     report.contexts.device.timezone = null;
@@ -94,11 +80,6 @@ function removeDeviceTimezone(report) {
 function removeDeviceName(report) {
   if (report.contexts && report.contexts.device)
     report.contexts.device.name = null;
-}
-
-function toMetamaskUrl() {
-  const metamaskUrl = `metamask-mobile`;
-  return metamaskUrl;
 }
 
 function rewriteReport(report) {
@@ -112,8 +93,6 @@ function rewriteReport(report) {
     // but putting the code here as well gives public visibility to how we are handling
     // privacy with respect to sentry.
     sanitizeAddressesFromErrorMessages(report);
-    // modify report urls
-    rewriteReportUrls(report);
     // remove device timezone
     removeDeviceTimezone(report);
     // remove device name
@@ -128,10 +107,7 @@ function rewriteReport(report) {
 
 function sanitizeUrlsFromErrorMessages(report) {
   rewriteErrorMessages(report, (errorMessage) => {
-    const re =
-      /https?:\/\/(www\.)?[-a-zA-Z0-9@:%._+~#=]{1,256}\.[a-zA-Z0-9()]{1,6}\b([-a-zA-Z0-9()@:%_+.~#?&//=]*)/gu;
-
-    const urlsInMessage = errorMessage.match(re);
+    const urlsInMessage = errorMessage.match(regex.sanitizeUrl);
 
     urlsInMessage?.forEach((url) => {
       if (!ERROR_URL_ALLOWLIST.some((allowedUrl) => url.match(allowedUrl))) {
@@ -144,7 +120,10 @@ function sanitizeUrlsFromErrorMessages(report) {
 
 function sanitizeAddressesFromErrorMessages(report) {
   rewriteErrorMessages(report, (errorMessage) => {
-    const newErrorMessage = errorMessage.replace(/0x[A-Fa-f0-9]{40}/u, '**');
+    const newErrorMessage = errorMessage.replace(
+      regex.replaceNetworkErrorSentry,
+      '**',
+    );
     return newErrorMessage;
   });
 }

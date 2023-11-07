@@ -48,10 +48,13 @@ export default function ActionView({
   showConfirmButton,
   confirmed,
   confirmDisabled,
+  loading = false,
   keyboardShouldPersistTaps = 'never',
   style = undefined,
 }) {
   const { colors } = useTheme();
+  confirmText = confirmText || strings('action_view.confirm');
+  cancelText = cancelText || strings('action_view.cancel');
 
   return (
     <View style={baseStyles.flexGrow}>
@@ -91,12 +94,12 @@ export default function ActionView({
               type={confirmButtonMode}
               onPress={onConfirmPress}
               containerStyle={[styles.button, styles.confirm]}
-              disabled={confirmed || confirmDisabled}
+              disabled={confirmed || confirmDisabled || loading}
             >
-              {confirmed ? (
+              {confirmed || loading ? (
                 <ActivityIndicator
                   size="small"
-                  color={colors.primary.inverse}
+                  color={colors.primary.default}
                 />
               ) : (
                 confirmText
@@ -110,9 +113,9 @@ export default function ActionView({
 }
 
 ActionView.defaultProps = {
-  cancelText: strings('action_view.cancel'),
+  cancelText: '',
   confirmButtonMode: 'normal',
-  confirmText: strings('action_view.confirm'),
+  confirmText: '',
   confirmTestID: '',
   confirmed: false,
   cancelTestID: '',
@@ -174,6 +177,10 @@ ActionView.propTypes = {
    * Whether confirm button is shown
    */
   showConfirmButton: PropTypes.bool,
+  /**
+   * Loading after confirm
+   */
+  loading: PropTypes.bool,
   /**
    * Determines if the keyboard should stay visible after a tap
    */

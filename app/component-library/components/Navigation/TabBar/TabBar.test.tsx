@@ -5,6 +5,7 @@ import { ParamListBase, TabNavigationState } from '@react-navigation/native';
 
 // External dependencies
 import renderWithProvider from '../../../../util/test/renderWithProvider';
+import initialBackgroundState from '../../../../util/test/initial-background-state.json';
 
 // Internal dependencies
 import TabBar from './TabBar';
@@ -16,18 +17,12 @@ const navigation = {
   navigate: jest.fn(),
 };
 
-const initialState = {
+const mockInitialState = {
+  wizard: {
+    step: 1,
+  },
   engine: {
-    backgroundState: {
-      NetworkController: {
-        providerConfig: {
-          type: 'mainnet',
-          nickname: 'Ethereum mainnet',
-          ticket: 'eth',
-          chainId: '1',
-        },
-      },
-    },
+    backgroundState: initialBackgroundState,
   },
 };
 
@@ -39,7 +34,7 @@ jest.mock('react-redux', () => ({
   ...jest.requireActual('react-redux'),
   useSelector: jest
     .fn()
-    .mockImplementation((callback) => callback(initialState)),
+    .mockImplementation((callback) => callback(mockInitialState)),
 }));
 
 // Define the test cases.
@@ -50,6 +45,8 @@ describe('TabBar', () => {
       { key: '1', name: 'Tab 1' },
       { key: '2', name: 'Tab 2' },
       { key: '3', name: 'Tab 3' },
+      { key: '4', name: 'Tab 4' },
+      { key: '5', name: 'Tab 5' },
     ],
   };
   const descriptors = {
@@ -61,14 +58,26 @@ describe('TabBar', () => {
     },
     '2': {
       options: {
-        tabBarIconKey: TabBarIconKey.Actions,
-        rootScreenName: Routes.MODAL.WALLET_ACTIONS,
+        tabBarIconKey: TabBarIconKey.Activity,
+        rootScreenName: Routes.TRANSACTIONS_VIEW,
       },
     },
     '3': {
       options: {
+        tabBarIconKey: TabBarIconKey.Actions,
+        rootScreenName: Routes.MODAL.WALLET_ACTIONS,
+      },
+    },
+    '4': {
+      options: {
         tabBarIconKey: TabBarIconKey.Browser,
         rootScreenName: Routes.BROWSER_VIEW,
+      },
+    },
+    '5': {
+      options: {
+        tabBarIconKey: TabBarIconKey.Setting,
+        rootScreenName: Routes.SETTINGS_VIEW,
       },
     },
   };
@@ -80,6 +89,7 @@ describe('TabBar', () => {
         descriptors={descriptors as any}
         navigation={navigation as any}
       />,
+      { state: mockInitialState },
     );
     expect(toJSON()).toMatchSnapshot();
   });
@@ -91,6 +101,7 @@ describe('TabBar', () => {
         descriptors={descriptors as any}
         navigation={navigation as any}
       />,
+      { state: mockInitialState },
     );
 
     fireEvent.press(getByTestId(`tab-bar-item-${TabBarIconKey.Wallet}`));
@@ -113,5 +124,13 @@ describe('TabBar', () => {
         screen: Routes.MODAL.WALLET_ACTIONS,
       },
     );
+
+    fireEvent.press(getByTestId(`tab-bar-item-${TabBarIconKey.Activity}`));
+    expect(navigation.navigate).toHaveBeenCalledWith(Routes.TRANSACTIONS_VIEW);
+
+    fireEvent.press(getByTestId(`tab-bar-item-${TabBarIconKey.Setting}`));
+    expect(navigation.navigate).toHaveBeenCalledWith(Routes.SETTINGS_VIEW, {
+      screen: 'Settings',
+    });
   });
 });

@@ -17,11 +17,11 @@ import {
 
 class BrowserScreen {
   get container() {
-    return Selectors.getElementByPlatform(BROWSER_SCREEN_ID);
+    return Selectors.getXpathElementByResourceId(BROWSER_SCREEN_ID);
   }
 
   get urlBarTitle() {
-    return Selectors.getElementByPlatform(NAVBAR_TITLE_NETWORK);
+    return Selectors.getXpathElementByResourceId(NAVBAR_TITLE_NETWORK);
   }
 
   get accountIconButton() {
@@ -61,11 +61,14 @@ class BrowserScreen {
   }
 
   async isScreenContentDisplayed() {
-    await expect(await this.container).toBeDisplayed();
+    const screen = await this.container;
+    await screen.waitForDisplayed();
   }
 
   async tapUrlBar() {
     await driver.pause(500);
+    const urlBarTitle = await this.urlBarTitle;
+    await urlBarTitle.waitForEnabled();
     await Gestures.waitAndTap(this.urlBarTitle);
   }
 

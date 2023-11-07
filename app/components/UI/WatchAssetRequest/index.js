@@ -1,21 +1,24 @@
-import React, { useEffect } from 'react';
+import React from 'react';
 import PropTypes from 'prop-types';
 import { StyleSheet, View, Text, InteractionManager } from 'react-native';
 import URL from 'url-parse';
+import { useSelector } from 'react-redux';
 import { fontStyles } from '../../../styles/common';
 import { strings } from '../../../../locales/i18n';
 import ActionView from '../ActionView';
 import { renderFromTokenMinimalUnit } from '../../../util/number';
 import TokenImage from '../../UI/TokenImage';
 import Device from '../../../util/device';
-import Engine from '../../../core/Engine';
 import { MetaMetricsEvents } from '../../../core/Analytics';
 import AnalyticsV2 from '../../../util/analyticsV2';
 
 import useTokenBalance from '../../hooks/useTokenBalance';
 import { useTheme } from '../../../util/theme';
 import NotificationManager from '../../../core/NotificationManager';
-import { safeToChecksumAddress } from '../../../util/address';
+import { selectChainId } from '../../../selectors/networkController';
+import ApproveTransactionHeader from '../ApproveTransactionHeader';
+import { getActiveTabUrl } from '../../../util/transactions';
+import { isEqual } from 'lodash';
 
 const createStyles = (colors) =>
   StyleSheet.create({
@@ -24,7 +27,7 @@ const createStyles = (colors) =>
       borderTopLeftRadius: 10,
       borderTopRightRadius: 10,
       paddingBottom: Device.isIphoneX() ? 20 : 0,
-      minHeight: Device.isIos() ? '50%' : '60%',
+      minHeight: Device.isIos() ? '55%' : '65%',
     },
     title: {
       textAlign: 'center',
@@ -51,6 +54,9 @@ const createStyles = (colors) =>
     tokenInfo: {
       flex: 1,
       flexDirection: 'column',
+    },
+    approveTransactionHeaderWrapper: {
+      paddingTop: 16,
     },
     infoTitleWrapper: {
       alignItems: 'center',
@@ -98,30 +104,21 @@ const WatchAssetRequest = ({
   const { colors } = useTheme();
   const styles = createStyles(colors);
   const [balance, , error] = useTokenBalance(asset.address, interactingAddress);
+  const chainId = useSelector(selectChainId);
   const balanceWithSymbol = error
     ? strings('transaction.failed')
     : `${renderFromTokenMinimalUnit(balance, asset.decimals)} ${asset.symbol}`;
 
-  useEffect(
-    () => async () => {
-      const { TokensController } = Engine.context;
-      typeof suggestedAssetMeta !== undefined &&
-        (await TokensController.rejectWatchAsset(suggestedAssetMeta.id));
-    },
-    [suggestedAssetMeta],
-  );
+  const activeTabUrl = useSelector(getActiveTabUrl, isEqual);
 
   const getAnalyticsParams = () => {
     try {
-      const { NetworkController } = Engine.context;
-      const { chainId } = NetworkController?.state?.providerConfig || {};
       const url = new URL(currentPageInformation?.url);
 
       return {
         token_address: asset?.address,
         token_symbol: asset?.symbol,
         dapp_host_name: url?.host,
-        dapp_url: currentPageInformation?.url,
         chain_id: chainId,
         source: 'Dapp suggested (watchAsset)',
       };
@@ -131,13 +128,7 @@ const WatchAssetRequest = ({
   };
 
   const onConfirmPress = async () => {
-    const { TokensController } = Engine.context;
-    await TokensController.acceptWatchAsset(
-      suggestedAssetMeta.id,
-      // TODO - Ideally, this is already checksummed.
-      safeToChecksumAddress(interactingAddress),
-    );
-    onConfirm && onConfirm();
+    await onConfirm();
     InteractionManager.runAfterInteractions(() => {
       AnalyticsV2.trackEvent(
         MetaMetricsEvents.TOKEN_ADDED,
@@ -154,8 +145,23 @@ const WatchAssetRequest = ({
     });
   };
 
+  const { address, symbol, decimals, standard } = asset;
+
   return (
     <View style={styles.root}>
+      <View style={styles.approveTransactionHeaderWrapper}>
+        <ApproveTransactionHeader
+          origin={currentPageInformation?.url}
+          url={activeTabUrl}
+          from={suggestedAssetMeta.interactingAddress}
+          asset={{
+            address,
+            symbol,
+            decimals,
+            standard,
+          }}
+        />
+      </View>
       <View style={styles.titleWrapper}>
         <Text style={styles.title} onPress={this.cancelSignature}>
           {strings('watch_asset_request.title')}

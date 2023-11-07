@@ -1,8 +1,7 @@
 @androidApp
-@ChainScenarios
 @smoke
-
-Feature: Creating account in wallet
+@accounts
+Feature: Create Account
 
   Scenario: Import wallet
     Given the app displayed the splash animation
@@ -12,10 +11,7 @@ Feature: Creating account in wallet
 
   Scenario: Creating a new wallet account
     Given I am on the wallet view
-
     When I tap on the Identicon
     Then the account list should be visible
-
-    When I tap on Create a new account
-    Then A new account is created
-    And I am on the new account
+    When I tap Create a new account
+    Then I am on the new account

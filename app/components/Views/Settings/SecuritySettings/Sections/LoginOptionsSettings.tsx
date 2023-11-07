@@ -5,13 +5,14 @@ import { BIOMETRY_TYPE } from 'react-native-keychain';
 import { Authentication } from '../../../../../core';
 import AUTHENTICATION_TYPE from '../../../../../constants/userProperties';
 import Device from '../../../../../util/device';
-import AsyncStorage from '@react-native-async-storage/async-storage';
+import AsyncStorage from '../../../../../store/async-storage-wrapper';
 import {
   BIOMETRY_CHOICE_DISABLED,
   PASSCODE_DISABLED,
   TRUE,
 } from '../../../../../constants/storage';
 import { View } from 'react-native';
+import { LOGIN_OPTIONS } from '../SecuritySettings.constants';
 
 interface BiometricOptionSectionProps {
   onSignWithBiometricsOptionUpdated: (enabled: boolean) => Promise<void>;
@@ -76,7 +77,7 @@ const LoginOptionsSettings = ({
   );
 
   return (
-    <View>
+    <View testID={LOGIN_OPTIONS}>
       {biometryType ? (
         <SecurityOptionToggle
           title={strings(`biometrics.enable_${biometryType.toLowerCase()}`)}

@@ -1,18 +1,25 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
 exports[`Link should render correctly 1`] = `
-<Fragment>
-  <Text
-    onPress={[Function]}
-    style={
-      Object {
-        "color": "#0376C9",
-      }
+<ButtonBase
+  label={
+    <Text
+      color="Primary"
+      style={false}
+      variant="sBodyMD"
+    >
+      I'm a Link!
+    </Text>
+  }
+  labelColor="Primary"
+  onPress={[Function]}
+  onPressIn={[Function]}
+  onPressOut={[Function]}
+  size="auto"
+  style={
+    Object {
+      "backgroundColor": "transparent",
     }
-    suppressHighlighting={true}
-    variant="sBodyMD"
-  >
-    I'm a Link!
-  </Text>
-</Fragment>
+  }
+/>
 `;

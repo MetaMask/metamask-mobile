@@ -14,16 +14,17 @@ import Animated, {
 import { useStyles } from '../../../../../hooks';
 import Icon, { IconSize, IconName } from '../../../../Icons/Icon';
 import Text, { TextVariant } from '../../../../Texts/Text';
-import { ACCORDION_EXPAND_TRANSITION_DURATION } from '../../Accordion.constants';
+import { DEFAULT_ACCORDION_EXPANDDURATION } from '../../Accordion.constants';
 
 // Internal dependencies.
 import styleSheet from './AccordionHeader.styles';
 import { AccordionHeaderProps } from './AccordionHeader.types';
 import {
-  ACCORDION_HEADER_TEST_ID,
-  ACCORDION_HEADER_TITLE_TEST_ID,
-  ACCORDION_HEADER_ARROW_ICON_TEST_ID,
-  ACCORDION_HEADER_ARROW_ICON_ANIMATION_TEST_ID,
+  TESTID_ACCORDIONHEADER,
+  TESTID_ACCORDIONHEADER_TITLE,
+  TESTID_ACCORDIONHEADER_ARROWICON,
+  TESTID_ACCORDIONHEADER_ARROWICON_ANIMATION,
+  DEFAULT_ACCORDIONHEADER_HORIZONTALALIGNMENT,
 } from './AccordionHeader.constants';
 
 const AccordionHeader = ({
@@ -31,8 +32,9 @@ const AccordionHeader = ({
   title,
   isExpanded = false,
   onPress,
+  horizontalAlignment = DEFAULT_ACCORDIONHEADER_HORIZONTALALIGNMENT,
 }: AccordionHeaderProps) => {
-  const { styles } = useStyles(styleSheet, { style });
+  const { styles } = useStyles(styleSheet, { style, horizontalAlignment });
   const rotation = useSharedValue(isExpanded ? 180 : 0);
   const animatedStyles = useAnimatedStyle(
     () => ({
@@ -47,7 +49,7 @@ const AccordionHeader = ({
 
   const onHeaderPressed = () => {
     rotation.value = withTiming(rotation.value + 180, {
-      duration: ACCORDION_EXPAND_TRANSITION_DURATION,
+      duration: DEFAULT_ACCORDION_EXPANDDURATION,
       easing: Easing.linear,
     });
     onPress?.();
@@ -58,24 +60,24 @@ const AccordionHeader = ({
       activeOpacity={0.5}
       onPress={onHeaderPressed}
       style={styles.base}
-      testID={ACCORDION_HEADER_TEST_ID}
+      testID={TESTID_ACCORDIONHEADER}
     >
       <Text
         variant={TextVariant.BodyMD}
         style={styles.title}
-        testID={ACCORDION_HEADER_TITLE_TEST_ID}
+        testID={TESTID_ACCORDIONHEADER_TITLE}
       >
         {title}
       </Text>
       <Animated.View
         style={[styles.arrowContainer, animatedStyles]}
-        testID={ACCORDION_HEADER_ARROW_ICON_ANIMATION_TEST_ID}
+        testID={TESTID_ACCORDIONHEADER_ARROWICON_ANIMATION}
       >
         <Icon
           name={IconName.ArrowUp}
           size={IconSize.Sm}
           color={styles.title.color}
-          testID={ACCORDION_HEADER_ARROW_ICON_TEST_ID}
+          testID={TESTID_ACCORDIONHEADER_ARROWICON}
         />
       </Animated.View>
     </TouchableOpacity>

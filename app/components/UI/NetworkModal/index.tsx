@@ -23,17 +23,10 @@ import AnalyticsV2 from '../../../util/analyticsV2';
 import { useTheme } from '../../../util/theme';
 import { networkSwitched } from '../../../actions/onboardNetwork';
 import generateTestId from '../../../../wdio/utils/generateTestId';
+import { NetworkApprovalModalSelectorsIDs } from '../../../../e2e/selectors/Modals/NetworkApprovalModal.selectors';
+import { ThemeColors } from '@metamask/design-tokens/dist/js/themes/types';
 
-import {
-  APPROVE_NETWORK_DISPLAY_NAME_ID,
-  APPROVE_NETWORK_CANCEL_BUTTON_ID,
-} from '../../../constants/test-ids';
-import {
-  APPROVE_NETWORK_APPROVE_BUTTON,
-  APPROVE_NETWORK_MODAL,
-} from '../../../../wdio/screen-objects/testIDs/Screens/NetworksScreen.testids';
-
-const createStyles = (colors) =>
+const createStyles = (colors: ThemeColors) =>
   StyleSheet.create({
     bottomModal: {
       justifyContent: 'flex-end',
@@ -108,9 +101,10 @@ const createStyles = (colors) =>
 interface NetworkProps {
   isVisible: boolean;
   onClose: () => void;
-  network: any;
+  networkConfiguration: any;
   navigation: any;
   shouldNetworkSwitchPopToWallet: boolean;
+  onNetworkSwitch?: () => void;
 }
 
 const NetworkModals = (props: NetworkProps) => {
@@ -118,7 +112,7 @@ const NetworkModals = (props: NetworkProps) => {
     navigation,
     isVisible,
     onClose,
-    network: {
+    networkConfiguration: {
       chainId,
       nickname,
       ticker,
@@ -127,6 +121,7 @@ const NetworkModals = (props: NetworkProps) => {
       rpcPrefs: { blockExplorerUrl, imageUrl },
     },
     shouldNetworkSwitchPopToWallet,
+    onNetworkSwitch,
   } = props;
 
   const [showDetails, setShowDetails] = React.useState(false);
@@ -146,43 +141,9 @@ const NetworkModals = (props: NetworkProps) => {
   };
 
   const addNetwork = async () => {
-    const { PreferencesController } = Engine.context;
-    let formChainId = chainId.trim().toLowerCase();
-
-    if (!formChainId.startsWith('0x')) {
-      formChainId = `0x${parseInt(formChainId, 10).toString(16)}`;
-    }
-
     const validUrl = validateRpcUrl(rpcUrl);
 
-    if (validUrl) {
-      const url = new URLPARSE(rpcUrl);
-      const decimalChainId = getDecimalChainId(chainId);
-      !isprivateConnection(url.hostname) && url.set('protocol', 'https:');
-      PreferencesController.addToFrequentRpcList(
-        url.href,
-        decimalChainId,
-        ticker,
-        nickname,
-        {
-          blockExplorerUrl,
-        },
-      );
-
-      const analyticsParamsAdd = {
-        chain_id: decimalChainId,
-        source: 'Popular network list',
-        symbol: ticker,
-      };
-
-      AnalyticsV2.trackEvent(
-        MetaMetricsEvents.NETWORK_ADDED,
-        analyticsParamsAdd,
-      );
-      setNetworkAdded(true);
-    } else {
-      setNetworkAdded(false);
-    }
+    setNetworkAdded(validUrl);
   };
 
   const showToolTip = () => setShowInfo(!showInfo);
@@ -190,6 +151,25 @@ const NetworkModals = (props: NetworkProps) => {
   const goToLink = () => Linking.openURL(strings('networks.security_link'));
 
   const closeModal = () => {
+    const { NetworkController } = Engine.context;
+    const url = new URLPARSE(rpcUrl);
+    const decimalChainId = getDecimalChainId(chainId);
+    !isprivateConnection(url.hostname) && url.set('protocol', 'https:');
+    NetworkController.upsertNetworkConfiguration(
+      {
+        rpcUrl: url.href,
+        chainId: decimalChainId,
+        ticker,
+        nickname,
+        rpcPrefs: { blockExplorerUrl },
+      },
+      {
+        // Metrics-related properties required, but the metric event is a no-op
+        // TODO: Use events for controller metric events
+        referrer: 'ignored',
+        source: 'ignored',
+      },
+    );
     onClose();
   };
 
@@ -198,11 +178,40 @@ const NetworkModals = (props: NetworkProps) => {
     const url = new URLPARSE(rpcUrl);
     const decimalChainId = getDecimalChainId(chainId);
     CurrencyRateController.setNativeCurrency(ticker);
-    NetworkController.setRpcTarget(url.href, decimalChainId, ticker, nickname);
+    !isprivateConnection(url.hostname) && url.set('protocol', 'https:');
+    NetworkController.upsertNetworkConfiguration(
+      {
+        rpcUrl: url.href,
+        chainId: decimalChainId,
+        ticker,
+        nickname,
+        rpcPrefs: { blockExplorerUrl },
+      },
+      {
+        setActive: true,
+        // Metrics-related properties required, but the metric event is a no-op
+        // TODO: Use events for controller metric events
+        referrer: 'ignored',
+        source: 'ignored',
+      },
+    );
+
+    const analyticsParamsAdd = {
+      chain_id: decimalChainId,
+      source: 'Popular network list',
+      symbol: ticker,
+    };
+
+    AnalyticsV2.trackEvent(MetaMetricsEvents.NETWORK_ADDED, analyticsParamsAdd);
+
     closeModal();
-    shouldNetworkSwitchPopToWallet
-      ? navigation.navigate('WalletView')
-      : navigation.goBack();
+    if (onNetworkSwitch) {
+      onNetworkSwitch();
+    } else {
+      shouldNetworkSwitchPopToWallet
+        ? navigation.navigate('WalletView')
+        : navigation.goBack();
+    }
     dispatch(networkSwitched({ networkUrl: url.href, networkStatus: true }));
   };
 
@@ -245,7 +254,10 @@ const NetworkModals = (props: NetworkProps) => {
             )}
             <View
               style={styles.nameWrapper}
-              {...generateTestId(Platform, APPROVE_NETWORK_MODAL)}
+              {...generateTestId(
+                Platform,
+                NetworkApprovalModalSelectorsIDs.CONTAINER,
+              )}
             >
               <ImageIcons image={imageUrl} style={styles.popularNetworkImage} />
               <Text black>{nickname}</Text>
@@ -279,7 +291,7 @@ const NetworkModals = (props: NetworkProps) => {
                   bold
                   black
                   style={styles.bottomSpace}
-                  testID={APPROVE_NETWORK_DISPLAY_NAME_ID}
+                  testID={NetworkApprovalModalSelectorsIDs.DISPLAY_NAME}
                 >
                   {nickname}
                 </Text>
@@ -301,7 +313,7 @@ const NetworkModals = (props: NetworkProps) => {
                 type={'cancel'}
                 onPress={onClose}
                 containerStyle={[styles.button, styles.cancel]}
-                testID={APPROVE_NETWORK_CANCEL_BUTTON_ID}
+                testID={NetworkApprovalModalSelectorsIDs.CANCEL_BUTTON}
               >
                 <Text centered>{strings('networks.cancel')}</Text>
               </StyledButton>
@@ -309,7 +321,7 @@ const NetworkModals = (props: NetworkProps) => {
                 type={'confirm'}
                 onPress={addNetwork}
                 containerStyle={[styles.button, styles.confirm]}
-                testID={APPROVE_NETWORK_APPROVE_BUTTON}
+                testID={NetworkApprovalModalSelectorsIDs.APPROVE_BUTTON}
                 disabled={!validateRpcUrl(rpcUrl)}
               >
                 {strings('networks.approve')}

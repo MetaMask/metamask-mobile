@@ -173,9 +173,12 @@ const QRSigningDetails = ({
   }, [checkAndroidCamera]);
 
   useEffect(() => {
-    AppState.addEventListener('change', handleAppState);
+    const appStateListener = AppState.addEventListener(
+      'change',
+      handleAppState,
+    );
     return () => {
-      AppState.removeEventListener('change', handleAppState);
+      appStateListener.remove();
     };
   }, [handleAppState]);
 

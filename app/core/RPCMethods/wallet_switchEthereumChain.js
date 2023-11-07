@@ -7,6 +7,11 @@ import {
 } from '../../util/networks';
 import { MetaMetricsEvents } from '../../core/Analytics';
 import AnalyticsV2 from '../../util/analyticsV2';
+import {
+  selectChainId,
+  selectNetworkConfigurations,
+} from '../../selectors/networkController';
+import { store } from '../../store';
 
 const wallet_switchEthereumChain = async ({
   req,
@@ -14,8 +19,7 @@ const wallet_switchEthereumChain = async ({
   requestUserApproval,
   analytics,
 }) => {
-  const { PreferencesController, CurrencyRateController, NetworkController } =
-    Engine.context;
+  const { CurrencyRateController, NetworkController } = Engine.context;
   const params = req.params?.[0];
 
   if (!params || typeof params !== 'object') {
@@ -55,16 +59,22 @@ const wallet_switchEthereumChain = async ({
 
   const chainIdDecimal = parseInt(_chainId, 16).toString(10);
 
-  const frequentRpcList = PreferencesController.state.frequentRpcList;
+  const networkConfigurations = selectNetworkConfigurations(store.getState());
   const existingNetworkDefault = getDefaultNetworkByChainId(chainIdDecimal);
-  const existingNetworkRPC = frequentRpcList.find(
-    (rpc) => rpc.chainId === chainIdDecimal,
+  const existingEntry = Object.entries(networkConfigurations).find(
+    ([, networkConfiguration]) =>
+      networkConfiguration.chainId === chainIdDecimal,
   );
-  if (existingNetworkRPC || existingNetworkDefault) {
-    const currentChainId = NetworkController.state.providerConfig.chainId;
+  if (existingEntry || existingNetworkDefault) {
+    const currentChainId = selectChainId(store.getState());
     if (currentChainId === chainIdDecimal) {
       res.result = null;
       return;
+    }
+
+    let networkConfigurationId, networkConfiguration;
+    if (existingEntry) {
+      [networkConfigurationId, networkConfiguration] = existingEntry;
     }
 
     let requestData;
@@ -73,16 +83,16 @@ const wallet_switchEthereumChain = async ({
       source: 'Switch Network API',
       ...analytics,
     };
-    if (existingNetworkRPC) {
+    if (networkConfiguration) {
       requestData = {
-        rpcUrl: existingNetworkRPC.rpcUrl,
+        rpcUrl: networkConfiguration.rpcUrl,
         chainId: _chainId,
-        chainName: existingNetworkRPC.nickname,
-        ticker: existingNetworkRPC.ticker,
+        chainName: networkConfiguration.nickname,
+        ticker: networkConfiguration.ticker,
       };
       analyticsParams = {
         ...analyticsParams,
-        symbol: existingNetworkRPC?.ticker,
+        symbol: networkConfiguration?.ticker,
       };
     } else {
       requestData = {
@@ -101,14 +111,9 @@ const wallet_switchEthereumChain = async ({
       requestData: { ...requestData, type: 'switch' },
     });
 
-    if (existingNetworkRPC) {
-      CurrencyRateController.setNativeCurrency(existingNetworkRPC.ticker);
-      NetworkController.setRpcTarget(
-        existingNetworkRPC.rpcUrl,
-        chainIdDecimal,
-        existingNetworkRPC.ticker,
-        existingNetworkRPC.nickname,
-      );
+    if (networkConfiguration) {
+      CurrencyRateController.setNativeCurrency(networkConfiguration.ticker);
+      NetworkController.setActiveNetwork(networkConfigurationId);
     } else {
       CurrencyRateController.setNativeCurrency('ETH');
       NetworkController.setProviderType(existingNetworkDefault.networkType);

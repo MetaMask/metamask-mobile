@@ -3,7 +3,7 @@ import { shallow } from 'enzyme';
 import NetworkInfo from './';
 import configureMockStore from 'redux-mock-store';
 import { Provider } from 'react-redux';
-import { MAINNET } from '../../../constants/network';
+import initialBackgroundState from '../../../util/test/initial-background-state.json';
 
 const mockStore = configureMockStore();
 const initialState = {
@@ -11,15 +11,7 @@ const initialState = {
     approvedHosts: {},
   },
   engine: {
-    backgroundState: {
-      NetworkController: {
-        providerConfig: { type: MAINNET, rpcTarget: '' },
-      },
-      PreferencesController: { useTokenDetection: true, frequentRpcList: [] },
-    },
-  },
-  networkOnboarded: {
-    networkOnboardedState: [{ network: MAINNET, onboarded: true }],
+    backgroundState: initialBackgroundState,
   },
 };
 
@@ -38,6 +30,6 @@ describe('NetworkInfo', () => {
         />
       </Provider>,
     );
-    expect(wrapper.dive()).toMatchSnapshot();
+    expect(wrapper).toMatchSnapshot();
   });
 });

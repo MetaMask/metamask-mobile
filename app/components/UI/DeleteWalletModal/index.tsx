@@ -17,20 +17,11 @@ import ReusableModal, { ReusableModalRef } from '../ReusableModal';
 import WarningExistingUserModal from '../WarningExistingUserModal';
 import { useDeleteWallet } from '../../hooks/DeleteWallet';
 import { strings } from '../../../../locales/i18n';
-import {
-  DELETE_WALLET_CONTAINER_ID,
-  DELETE_WALLET_INPUT_BOX_ID,
-} from '../../../constants/test-ids';
 import { tlc } from '../../../util/general';
 import { useTheme } from '../../../util/theme';
 import Device from '../../../util/device';
 import Routes from '../../../constants/navigation/Routes';
-import {
-  DELETE_MODAL_UNDERSTAND_CONTINUE_ID,
-  DELETE_MODAL_CANCEL_BUTTON,
-  DELETE_MODAL_DELETE_MY_WALLET_PERMANENTLY,
-  DELETE_MODEL_DELETE_MY_WALLET_CANCEL,
-} from '../../../../wdio/screen-objects/testIDs/Components/DeleteWalletModal.testIds';
+import { DeleteWalletModalSelectorsIDs } from '../../../../e2e/selectors/Modals/DeleteWalletModal.selectors';
 import generateTestId from '../../../../wdio/utils/generateTestId';
 import { trackEventV2 as trackEvent } from '../../../util/analyticsV2';
 import { MetaMetricsEvents } from '../../../core/Analytics';
@@ -108,8 +99,8 @@ const DeleteWalletModal = () => {
         <WarningExistingUserModal
           warningModalVisible
           cancelText={strings('login.delete_my')}
-          cancelTestID={DELETE_MODAL_DELETE_MY_WALLET_PERMANENTLY}
-          confirmTestID={DELETE_MODEL_DELETE_MY_WALLET_CANCEL}
+          cancelTestID={DeleteWalletModalSelectorsIDs.DELETE_PERMANENTLY_BUTTON}
+          confirmTestID={DeleteWalletModalSelectorsIDs.DELETE_CANCEL_BUTTON}
           cancelButtonDisabled={disableButton}
           onCancelPress={deleteWallet}
           onRequestClose={triggerClose}
@@ -124,8 +115,10 @@ const DeleteWalletModal = () => {
               </Text>
               <OutlinedTextField
                 style={styles.input}
-                testID={DELETE_WALLET_INPUT_BOX_ID}
-                {...generateTestId(Platform, DELETE_WALLET_INPUT_BOX_ID)}
+                {...generateTestId(
+                  Platform,
+                  DeleteWalletModalSelectorsIDs.INPUT,
+                )}
                 autoFocus
                 returnKeyType={'done'}
                 onChangeText={checkDelete}
@@ -146,10 +139,13 @@ const DeleteWalletModal = () => {
           onCancelPress={showConfirmModal}
           onRequestClose={triggerClose}
           onConfirmPress={triggerClose}
-          cancelTestID={DELETE_MODAL_UNDERSTAND_CONTINUE_ID}
-          confirmTestID={DELETE_MODAL_CANCEL_BUTTON}
+          cancelTestID={DeleteWalletModalSelectorsIDs.CONTINUE_BUTTON}
+          confirmTestID={DeleteWalletModalSelectorsIDs.CANCEL_BUTTON}
         >
-          <View style={styles.areYouSure} testID={DELETE_WALLET_CONTAINER_ID}>
+          <View
+            style={styles.areYouSure}
+            testID={DeleteWalletModalSelectorsIDs.CONTAINER}
+          >
             <Icon
               style={styles.warningIcon}
               size={46}

@@ -7,11 +7,10 @@ import FTM from './fantom.png';
 import ETHEREUM from './eth-logo-new.png';
 import BNB from './binance.png';
 import AVAX from './avalanche.png';
-import ROPSTEN from './ropsten-logo-dark.png';
-import KOVAN from './kovan-logo-dark.png';
-import RINKEBY from './rinkeby-logo-dark.png';
 import GOERLI from './goerli-logo-dark.png';
-import LINEATESTNET from './linea-logo-dark.png';
+import LINEA_GOERLI from './linea-testnet-logo.png';
+import SEPOLIA from './sepolia-logo-dark.png';
+import LINEA_MAINNET from './linea-mainnet-logo.png';
 
 export default {
   PALM,
@@ -23,9 +22,8 @@ export default {
   BNB,
   AETH,
   AVAX,
-  ROPSTEN,
-  KOVAN,
-  RINKEBY,
   GOERLI,
-  LINEATESTNET,
+  'LINEA-GOERLI': LINEA_GOERLI,
+  SEPOLIA,
+  'LINEA-MAINNET': LINEA_MAINNET,
 };

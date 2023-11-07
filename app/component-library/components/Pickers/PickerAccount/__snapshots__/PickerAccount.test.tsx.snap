@@ -1,7 +1,7 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
 exports[`PickerAccount should render correctly 1`] = `
-<PickerBase
+<ForwardRef(PickerBase)
   onPress={[Function]}
   style={Object {}}
 >
@@ -26,6 +26,7 @@ exports[`PickerAccount should render correctly 1`] = `
     />
     <View>
       <Text
+        testID="account-label"
         variant="sHeadingSMRegular"
       >
         Orangefox.eth
@@ -42,5 +43,5 @@ exports[`PickerAccount should render correctly 1`] = `
       </Text>
     </View>
   </View>
-</PickerBase>
+</ForwardRef(PickerBase)>
 `;

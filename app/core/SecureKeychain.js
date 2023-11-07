@@ -1,7 +1,7 @@
 import * as Keychain from 'react-native-keychain'; // eslint-disable-line import/no-namespace
 import Encryptor from './Encryptor';
 import { strings } from '../../locales/i18n';
-import AsyncStorage from '@react-native-async-storage/async-storage';
+import AsyncStorage from '../store/async-storage-wrapper';
 import { Platform } from 'react-native';
 import { MetaMetricsEvents } from '../core/Analytics';
 import {
@@ -85,16 +85,23 @@ export default {
 
   async getGenericPassword() {
     if (instance) {
-      instance.isAuthenticating = true;
-      const keychainObject = await Keychain.getGenericPassword(defaultOptions);
-      if (keychainObject.password) {
-        const encryptedPassword = keychainObject.password;
-        const decrypted = await instance.decryptPassword(encryptedPassword);
-        keychainObject.password = decrypted.password;
+      try {
+        instance.isAuthenticating = true;
+        const keychainObject = await Keychain.getGenericPassword(
+          defaultOptions,
+        );
+        if (keychainObject.password) {
+          const encryptedPassword = keychainObject.password;
+          const decrypted = await instance.decryptPassword(encryptedPassword);
+          keychainObject.password = decrypted.password;
+          instance.isAuthenticating = false;
+          return keychainObject;
+        }
         instance.isAuthenticating = false;
-        return keychainObject;
+      } catch (error) {
+        instance.isAuthenticating = false;
+        throw new Error(error.message);
       }
-      instance.isAuthenticating = false;
     }
     return null;
   },

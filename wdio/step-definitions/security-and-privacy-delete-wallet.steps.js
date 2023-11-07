@@ -1,4 +1,4 @@
-import {Then} from '@wdio/cucumber-framework';
+import { Then } from '@wdio/cucumber-framework';
 import SecurityAndPrivacyScreen from '../screen-objects/SecurityAndPrivacyScreen';
 
 Then(/^I tap on the Delete Wallet button$/, async () => {

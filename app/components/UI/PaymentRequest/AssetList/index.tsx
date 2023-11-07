@@ -6,9 +6,9 @@ import { fontStyles } from '../../../../styles/common';
 import Identicon from '../../Identicon';
 import NetworkMainAssetLogo from '../../NetworkMainAssetLogo';
 import { useSelector } from 'react-redux';
-import { getTokenList } from '../../../../reducers/tokens';
 import { toChecksumAddress } from 'ethereumjs-util';
 import { useTheme } from '../../../../util/theme';
+import { selectTokenList } from '../../../../selectors/tokenListController';
 
 const createStyles = (colors: any) =>
   StyleSheet.create({
@@ -71,7 +71,7 @@ const AssetList = ({
   handleSelectAsset,
   emptyMessage,
 }: Props) => {
-  const tokenList = useSelector(getTokenList);
+  const tokenList = useSelector(selectTokenList);
   const { colors } = useTheme();
   const styles = createStyles(colors);
 

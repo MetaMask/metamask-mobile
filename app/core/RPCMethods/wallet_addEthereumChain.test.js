@@ -1,5 +1,10 @@
+import { InteractionManager } from 'react-native';
+import { ethErrors } from 'eth-json-rpc-errors';
 import wallet_addEthereumChain from './wallet_addEthereumChain';
 import Engine from '../Engine';
+
+const mockEngine = Engine;
+
 const correctParams = {
   chainId: '0x64',
   chainName: 'xDai',
@@ -8,30 +13,85 @@ const correctParams = {
   rpcUrls: ['https://rpc.gnosischain.com'],
 };
 
-const otherOptions = {
-  res: {},
-  addCustomNetworkRequest: {},
-  switchCustomNetworkRequest: {},
-};
-
-describe('RPC Method - wallet_addEthereumChain', () => {
-  const MOCK_ENGINE = {
-    context: {
-      PreferencesController: {
-        state: {
-          frequentRpcList: [],
+jest.mock('../Engine', () => ({
+  init: () => mockEngine.init({}),
+  context: {
+    NetworkController: {
+      state: {
+        networkConfigurations: {},
+        providerConfig: {
+          chainId: '1',
         },
       },
-      NetworkController: {
-        state: {
-          providerConfig: {
-            chainId: '1',
+      setActiveNetwork: jest.fn(),
+      upsertNetworkConfiguration: jest.fn(),
+    },
+    CurrencyRateController: {
+      setNativeCurrency: jest.fn(),
+    },
+    ApprovalController: {
+      clear: jest.fn(),
+    },
+  },
+}));
+
+jest.mock('../../store', () => ({
+  store: {
+    getState: jest.fn(() => ({
+      engine: {
+        backgroundState: {
+          NetworkController: {
+            networkConfigurations: {},
+            providerConfig: {
+              chainId: '1',
+            },
           },
         },
       },
-    },
-  };
-  Engine.context = MOCK_ENGINE.context;
+    })),
+  },
+}));
+
+describe('RPC Method - wallet_addEthereumChain', () => {
+  let mockFetch;
+  let otherOptions;
+
+  beforeEach(() => {
+    otherOptions = {
+      res: {},
+      addCustomNetworkRequest: {},
+      switchCustomNetworkRequest: {},
+      requestUserApproval: jest.fn(() => Promise.resolve()),
+      startApprovalFlow: jest.fn(() => ({ id: '1', loadingText: null })),
+      endApprovalFlow: jest.fn(),
+    };
+
+    jest
+      .spyOn(InteractionManager, 'runAfterInteractions')
+      .mockImplementation((callback) => callback());
+
+    mockFetch = jest.fn().mockImplementation(async (url) => {
+      if (url === 'https://rpc.gnosischain.com') {
+        return { json: () => Promise.resolve({ result: '0x64' }) };
+      } else if (url === 'https://chainid.network/chains.json') {
+        return {
+          json: () =>
+            Promise.resolve([
+              { chainId: 100, rpc: ['https://rpc.gnosischain.com'] },
+            ]),
+        };
+      }
+
+      return { json: () => Promise.resolve({}) };
+    });
+
+    global.fetch = mockFetch;
+  });
+
+  afterEach(() => {
+    InteractionManager.runAfterInteractions.mockClear();
+    global.fetch.mockClear();
+  });
 
   it('should report missing params', async () => {
     try {
@@ -200,5 +260,47 @@ describe('RPC Method - wallet_addEthereumChain', () => {
         `Expected a string 'nativeCurrency.symbol'.`,
       );
     }
+  });
+
+  describe('Approval Flow', () => {
+    it('should start and end a new approval flow if chain does not already exist', async () => {
+      await wallet_addEthereumChain({
+        req: {
+          params: [correctParams],
+        },
+        ...otherOptions,
+      });
+
+      expect(otherOptions.startApprovalFlow).toBeCalledTimes(1);
+      expect(otherOptions.endApprovalFlow).toBeCalledTimes(1);
+    });
+
+    it('should end approval flow even if the approval process fails', async () => {
+      await expect(
+        wallet_addEthereumChain({
+          req: {
+            params: [correctParams],
+          },
+          ...otherOptions,
+          requestUserApproval: jest.fn(() => Promise.reject()),
+        }),
+      ).rejects.toThrow(ethErrors.provider.userRejectedRequest());
+
+      expect(otherOptions.startApprovalFlow).toBeCalledTimes(1);
+      expect(otherOptions.endApprovalFlow).toBeCalledTimes(1);
+    });
+
+    it('clears existing approval requests', async () => {
+      Engine.context.ApprovalController.clear.mockClear();
+
+      await wallet_addEthereumChain({
+        req: {
+          params: [correctParams],
+        },
+        ...otherOptions,
+      });
+
+      expect(Engine.context.ApprovalController.clear).toBeCalledTimes(1);
+    });
   });
 });

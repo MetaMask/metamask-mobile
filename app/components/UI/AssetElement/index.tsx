@@ -4,11 +4,14 @@ import { TouchableOpacity, StyleSheet, Platform } from 'react-native';
 import Text, {
   TextVariant,
 } from '../../../component-library/components/Texts/Text';
-import SkeletonText from '../FiatOnRampAggregator/components/SkeletonText';
+import SkeletonText from '../Ramp/components/SkeletonText';
 import { TokenI } from '../Tokens/types';
 import generateTestId from '../../../../wdio/utils/generateTestId';
 import { getAssetTestId } from '../../../../wdio/screen-objects/testIDs/Screens/WalletView.testIds';
-
+import {
+  TOKEN_BALANCE_LOADING,
+  TOKEN_RATE_UNDEFINED,
+} from '../Tokens/constants';
 interface AssetElementProps {
   children?: React.ReactNode;
   asset: TokenI;
@@ -70,10 +73,12 @@ const AssetElement: React.FC<AssetElementProps> = ({
       {balance && (
         <Text
           variant={
-            !asset?.balanceError ? TextVariant.BodyLGMedium : TextVariant.BodySM
+            asset?.balanceError || asset.balanceFiat === TOKEN_RATE_UNDEFINED
+              ? TextVariant.BodySM
+              : TextVariant.BodyLGMedium
           }
         >
-          {balance === 'loading' ? (
+          {balance === TOKEN_BALANCE_LOADING ? (
             <SkeletonText thin style={styles.skeleton} />
           ) : (
             balance

@@ -1,13 +1,13 @@
 // Third party dependencies.
 import React, { useCallback, useRef } from 'react';
-import { Alert, ListRenderItem, View } from 'react-native';
+import { Alert, ListRenderItem, Platform, View } from 'react-native';
 import { FlatList } from 'react-native-gesture-handler';
 import { useSelector } from 'react-redux';
 import { KeyringTypes } from '@metamask/keyring-controller';
 
 // External dependencies.
 import Cell, {
-  CellVariants,
+  CellVariant,
 } from '../../../component-library/components/Cells/Cell';
 import { useStyles } from '../../../component-library/hooks';
 import Text from '../../../component-library/components/Texts/Text';
@@ -24,6 +24,8 @@ import { removeAccountsFromPermissions } from '../../../core/Permissions';
 // Internal dependencies.
 import { AccountSelectorListProps } from './AccountSelectorList.types';
 import styleSheet from './AccountSelectorList.styles';
+import generateTestId from '../../../../wdio/utils/generateTestId';
+import { ACCOUNT_BALANCE_BY_ADDRESS_TEST_ID } from '../../../../wdio/screen-objects/testIDs/Components/AccountListComponent.testIds.js';
 
 const AccountSelectorList = ({
   onSelectAccount,
@@ -65,8 +67,14 @@ const AccountSelectorList = ({
   };
 
   const renderAccountBalances = useCallback(
-    ({ fiatBalance, tokens }: Assets) => (
-      <View style={styles.balancesContainer}>
+    ({ fiatBalance, tokens }: Assets, address: string) => (
+      <View
+        style={styles.balancesContainer}
+        {...generateTestId(
+          Platform,
+          `${ACCOUNT_BALANCE_BY_ADDRESS_TEST_ID}-${address}`,
+        )}
+      >
         <Text style={styles.balanceLabel}>{fiatBalance}</Text>
         {tokens && <AvatarGroup tokenList={tokens} />}
       </View>
@@ -150,8 +158,8 @@ const AccountSelectorList = ({
         isDefaultAccountName(name) && ensName ? ensName : name;
       const isDisabled = !!balanceError || isLoading || isSelectionDisabled;
       const cellVariant = isMultiSelect
-        ? CellVariants.Multiselect
-        : CellVariants.Select;
+        ? CellVariant.MultiSelect
+        : CellVariant.Select;
       let isSelectedAccount = isSelected;
       if (selectedAddresses) {
         isSelectedAccount = selectedAddresses.includes(address);
@@ -187,7 +195,7 @@ const AccountSelectorList = ({
           style={cellStyle}
         >
           {renderRightAccessory?.(address, accountName) ||
-            (assets && renderAccountBalances(assets))}
+            (assets && renderAccountBalances(assets, address))}
         </Cell>
       );
     },

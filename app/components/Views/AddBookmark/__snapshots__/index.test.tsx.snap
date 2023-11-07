@@ -1,7 +1,7 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
 exports[`AddBookmark should render correctly 1`] = `
-<ForwardRef(SafeAreaView)
+<RCTSafeAreaView
   style={
     Object {
       "backgroundColor": "#FFFFFF",
@@ -122,5 +122,5 @@ exports[`AddBookmark should render correctly 1`] = `
       </View>
     </View>
   </ActionView>
-</ForwardRef(SafeAreaView)>
+</RCTSafeAreaView>
 `;

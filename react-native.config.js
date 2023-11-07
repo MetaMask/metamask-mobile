@@ -2,6 +2,9 @@
 // eslint-disable-next-line import/no-commonjs
 module.exports = {
   dependencies: {
+    ...(process.env.NO_FLIPPER
+      ? { 'react-native-flipper': { platforms: { ios: null } } }
+      : {}),
     'react-native-aes-crypto-forked': {
       platforms: {
         ios: null, // disable Android platform, other platforms will still autolink if provided
@@ -9,7 +12,9 @@ module.exports = {
     },
     'react-native-gesture-handler': {
       platforms: {
-        android: null, // disable Android platform, other platforms will still autolink if provided
+        android: {
+          sourceDir: './node_modules/react-native-gesture-handler/android',
+        },
       },
     },
     'react-native-video': {

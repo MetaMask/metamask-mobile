@@ -9,23 +9,31 @@ export const KEEP_SRP_SAFE_URL =
   'https://metamask.zendesk.com/hc/en-us/articles/4407169552667-Scammers-and-Phishers-Rugpulls-and-airdrop-scams';
 export const LEARN_MORE_URL =
   'https://metamask.zendesk.com/hc/en-us/articles/360015489591-Basic-Safety-and-Security-Tips-for-MetaMask';
+export const WHY_TRANSACTION_TAKE_TIME_URL =
+  'https://community.metamask.io/t/what-is-gas-why-do-transactions-take-so-long/3172';
+
+export const TOKEN_APPROVAL_SPENDING_CAP = `https://support.metamask.io/hc/en-us/articles/6055177143579-How-to-customize-token-approvals-with-a-spending-cap`;
+export const CONNECTING_TO_A_DECEPTIVE_SITE =
+  'https://support.metamask.io/hc/en-us/articles/4428045875483--Deceptive-site-ahead-when-trying-to-connect-to-a-site';
 
 // Policies
 export const CONSENSYS_PRIVACY_POLICY = 'https://consensys.net/privacy-policy/';
 
 // Keystone
 export const KEYSTONE_SUPPORT = 'https://keyst.one/mmm';
+export const KEYSTONE_LEARN_MORE =
+  'https://keyst.one/metamask?rfsn=6088257.656b3e9&utm_source=refersion&utm_medium=affiliate&utm_campaign=6088257.656b3e9';
 export const KEYSTONE_SUPPORT_VIDEO = 'https://keyst.one/mmmvideo';
 
 // MixPanel
-export const MIXPANEL_ENDPOINT_BASE_URL = 'https://mixpanel.com/api/app';
+export const MIXPANEL_PROXY_ENDPOINT_BASE_URL =
+  'https://proxy.metafi-dev.codefi.network/mixpanel/v1/api/app';
 
 // Network
 export const CHAINLIST_URL = 'https://chainlist.wtf';
 export const MM_ETHERSCAN_URL = 'https://etherscamdb.info/domain/meta-mask.com';
-export const LINEA_TESTNET_BLOCK_EXPLORER =
-  'https://explorer.goerli.linea.build';
-export const LINEA_TESTNET_RPC_URL = 'https://rpc.goerli.linea.build';
+export const LINEA_GOERLI_BLOCK_EXPLORER = 'https://goerli.lineascan.build';
+export const LINEA_MAINNET_BLOCK_EXPLORER = 'https://lineascan.build';
 
 // Phishing
 export const MM_PHISH_DETECT_URL =
@@ -51,3 +59,9 @@ export const MM_PLAY_STORE_LINK = `market://details?id=${AppConstants.BUNDLE_IDS
 
 // SDK
 export const MM_SDK_DEEPLINK = `https://${AppConstants.MM_UNIVERSAL_LINK_HOST}/connect?`;
+
+export const BLOCKAID_ATTRIBUTION_LINK = 'https://blockaid.me';
+export const BLOCKAID_SUPPORT_LINK = 'https://support.metamask.io/hc/en-us';
+
+export const SEPOLIA_FAUCET = 'https://www.infura.io/faucet/sepolia';
+export const LINEA_FAUCET = 'https://www.infura.io/faucet/linea';

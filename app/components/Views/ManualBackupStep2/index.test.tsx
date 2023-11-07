@@ -40,6 +40,6 @@ describe('ManualBackupStep2', () => {
         />
       </Provider>,
     );
-    expect(wrapper.dive()).toMatchSnapshot();
+    expect(wrapper).toMatchSnapshot();
   });
 });

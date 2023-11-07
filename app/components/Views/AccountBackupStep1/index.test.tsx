@@ -3,17 +3,12 @@ import { shallow } from 'enzyme';
 import AccountBackupStep1 from './';
 import configureMockStore from 'redux-mock-store';
 import { Provider } from 'react-redux';
+import initialBackgroundState from '../../../util/test/initial-background-state.json';
 
 const mockStore = configureMockStore();
 const initialState = {
   engine: {
-    backgroundState: {
-      NetworkController: {
-        providerConfig: {
-          chainId: '1',
-        },
-      },
-    },
+    backgroundState: initialBackgroundState,
   },
 };
 const store = mockStore(initialState);

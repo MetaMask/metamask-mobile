@@ -8,7 +8,7 @@ exports[`Screen should render correctly 1`] = `
     }
   }
 >
-  <ForwardRef(SafeAreaView)
+  <RCTSafeAreaView
     style={
       Object {
         "flex": 1,
@@ -18,6 +18,6 @@ exports[`Screen should render correctly 1`] = `
     <View>
       Foobar
     </View>
-  </ForwardRef(SafeAreaView)>
+  </RCTSafeAreaView>
 </View>
 `;

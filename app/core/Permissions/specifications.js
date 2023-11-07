@@ -58,7 +58,8 @@ export const getCaveatSpecifications = ({ getIdentities }) => ({
         const addressToCompare = address.toLowerCase();
         return allAccounts.includes(addressToCompare);
       });
-      return res.slice(0, 1);
+
+      return res;
     },
 
     validator: (caveat, _origin, _target) =>
@@ -72,7 +73,6 @@ export const getCaveatSpecifications = ({ getIdentities }) => ({
  *
  * @param {{
  *   getAllAccounts: () => Promise<string[]>,
- *   getIdentities: () => Record<string, Identity>,
  * }} options - Options bag.
  * @param options.getAllAccounts - A function that returns all Ethereum accounts
  * in the current MetaMask instance.
@@ -86,7 +86,7 @@ export const getCaveatSpecifications = ({ getIdentities }) => ({
 export const getPermissionSpecifications = ({ getAllAccounts }) => ({
   [PermissionKeys.eth_accounts]: {
     permissionType: PermissionType.RestrictedMethod,
-    targetKey: PermissionKeys.eth_accounts,
+    targetName: PermissionKeys.eth_accounts,
     allowedCaveats: [CaveatTypes.restrictReturnedAccounts],
 
     factory: (permissionOptions, requestData) => {

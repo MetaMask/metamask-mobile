@@ -1,18 +1,18 @@
 // External dependencies.
 import { CellBaseProps } from '../../foundation/CellBase/CellBase.types';
-import { CellDisplayContainerProps } from '../../foundation/CellDisplayContainer/CellDisplayContainer.types';
-import { CellVariants } from '../../Cell.types';
+import { CellVariant } from '../../Cell.types';
+import { CardProps } from 'app/component-library/components/Cards/Card/Card.types';
 
 /**
  * Cell Account Select  component props.
  */
 export interface CellDisplayProps
   extends CellBaseProps,
-    Omit<CellDisplayContainerProps, 'children'> {
+    Omit<CardProps, 'children'> {
   /**
    * Type of Cell
    */
-  variant: CellVariants.Display;
+  variant?: CellVariant.Display;
 }
 
 /**

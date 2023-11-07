@@ -1,0 +1,31 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`ConnectApproval renders 1`] = `
+<ApprovalModal
+  isVisible={true}
+>
+  <Component
+    navigation={Object {}}
+  />
+</ApprovalModal>
+`;
+
+exports[`ConnectApproval sets isVisible to false if incorrect approval request type 1`] = `
+<ApprovalModal
+  isVisible={false}
+>
+  <Component
+    navigation={Object {}}
+  />
+</ApprovalModal>
+`;
+
+exports[`ConnectApproval sets isVisible to false if no approval request 1`] = `
+<ApprovalModal
+  isVisible={false}
+>
+  <Component
+    navigation={Object {}}
+  />
+</ApprovalModal>
+`;

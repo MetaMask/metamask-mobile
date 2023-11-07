@@ -1,17 +1,35 @@
 import React from 'react';
-import { shallow } from 'enzyme';
-import configureMockStore from 'redux-mock-store';
 import AccountInfoCard from './';
-import { Provider } from 'react-redux';
+import renderWithProvider from '../../../util/test/renderWithProvider';
+import initialBackgroundState from '../../../util/test/initial-background-state.json';
 
-const mockStore = configureMockStore();
-const initialState = {
+jest.mock('../../../util/address', () => ({
+  ...jest.requireActual('../../../util/address'),
+  renderAccountName: () => '0x0',
+}));
+
+jest.mock('../../../core/Engine', () => ({
+  resetState: jest.fn(),
+  context: {
+    KeyringController: {
+      createNewVaultAndKeychain: () => jest.fn(),
+      setLocked: () => jest.fn(),
+      getAccountKeyringType: () => Promise.resolve('HD Key Tree'),
+    },
+  },
+}));
+
+const mockInitialState = {
+  settings: {
+    useBlockieIcon: false,
+  },
   engine: {
     backgroundState: {
+      ...initialBackgroundState,
       AccountTrackerController: {
         accounts: {
           '0x0': {
-            balance: 200,
+            balance: '0x2',
           },
         },
       },
@@ -28,21 +46,51 @@ const initialState = {
       },
       NetworkController: {
         providerConfig: {
-          ticker: 'eth',
+          chainId: '0xaa36a7',
+          type: 'sepolia',
+          nickname: 'Sepolia',
         },
+      },
+      TokenBalancesController: {
+        contractBalances: {},
       },
     },
   },
+  transaction: {
+    origin: 'https://metamask.io',
+  },
 };
-const store = mockStore(initialState);
+
+jest.mock('react-redux', () => ({
+  ...jest.requireActual('react-redux'),
+  useSelector: jest
+    .fn()
+    .mockImplementation((callback) => callback(mockInitialState)),
+}));
 
 describe('AccountInfoCard', () => {
-  it('should render correctly', () => {
-    const wrapper = shallow(
-      <Provider store={store}>
-        <AccountInfoCard />
-      </Provider>,
+  it('should match snapshot', async () => {
+    const container = renderWithProvider(
+      <AccountInfoCard fromAddress="0x0" />,
+      { state: mockInitialState },
     );
-    expect(wrapper.dive()).toMatchSnapshot();
+    expect(container).toMatchSnapshot();
+  });
+
+  it('should show balance header in signing page', async () => {
+    const { getByText } = renderWithProvider(
+      <AccountInfoCard fromAddress="0x0" operation="signing" />,
+      { state: mockInitialState },
+    );
+    expect(getByText('Balance')).toBeDefined();
+  });
+
+  it('should show origin header in signing page', async () => {
+    const { getByText } = renderWithProvider(
+      <AccountInfoCard fromAddress="0x0" operation="signing" />,
+      { state: mockInitialState },
+    );
+
+    expect(getByText('https://metamask.io')).toBeDefined();
   });
 });
