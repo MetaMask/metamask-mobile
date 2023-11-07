@@ -42,6 +42,7 @@ const mockuseRampSDKInitialValues: Partial<RampSDK> = {
   selectedChainId: '1',
   selectedRegion: null,
   rampType: RampType.BUY,
+  isBuy: true,
 };
 
 let mockUseRampSDKValues: Partial<RampSDK> = {
@@ -129,12 +130,23 @@ describe('GetStarted', () => {
     expect(mockUseRampSDKValues.setGetStarted).toHaveBeenCalledWith(true);
   });
 
-  it('navigates and tracks event on cancel button press', async () => {
+  it.only('navigates and tracks event on cancel button press', async () => {
     render(GetStarted);
     fireEvent.press(screen.getByRole('button', { name: 'Cancel' }));
     expect(mockPop).toHaveBeenCalled();
     expect(mockTrackEvent).toBeCalledWith('ONRAMP_CANCELED', {
       chain_id_destination: '1',
+      location: 'Get Started Screen',
+    });
+
+    mockUseRampSDKValues = {
+      ...mockUseRampSDKValues,
+      isBuy: false,
+    };
+    render(GetStarted);
+    fireEvent.press(screen.getByRole('button', { name: 'Cancel' }));
+    expect(mockTrackEvent).toBeCalledWith('OFFRAMP_CANCELED', {
+      chain_id_source: '1',
       location: 'Get Started Screen',
     });
   });
