@@ -391,23 +391,155 @@ Array [
                     <View
                       collapsable={false}
                       forwardedRef={[Function]}
-                      style={Object {}}
+                      style={
+                        Object {
+                          "marginBottom": 20,
+                          "marginLeft": 10,
+                          "marginRight": 10,
+                          "marginTop": 10,
+                        }
+                      }
                     >
-                      <Text
-                        accessibilityRole="text"
+                      <View
                         style={
                           Object {
-                            "color": "#24272A",
-                            "fontFamily": "Euclid Circular B",
-                            "fontSize": 14,
-                            "fontWeight": "400",
-                            "letterSpacing": 0,
-                            "lineHeight": 22,
+                            "backgroundColor": "#FFD33D19",
+                            "borderColor": "#F66A0A",
+                            "borderLeftWidth": 4,
+                            "borderRadius": 4,
+                            "flexDirection": "row",
+                            "padding": 12,
+                            "paddingLeft": 8,
                           }
                         }
+                        testID="banneralert"
                       >
-                        Loading...
-                      </Text>
+                        <View
+                          style={
+                            Object {
+                              "marginRight": 8,
+                            }
+                          }
+                        >
+                          <ActivityIndicator
+                            color="#F66A0A"
+                            size="small"
+                          />
+                        </View>
+                        <View
+                          style={
+                            Object {
+                              "flex": 1,
+                            }
+                          }
+                        >
+                          <Text
+                            accessibilityRole="text"
+                            style={
+                              Object {
+                                "color": "#24272A",
+                                "fontFamily": "Euclid Circular B",
+                                "fontSize": 16,
+                                "fontWeight": "500",
+                                "letterSpacing": 0,
+                                "lineHeight": 24,
+                              }
+                            }
+                          >
+                            We’re still evaluating the safety of this request. Wait or proceed with caution.
+                          </Text>
+                          <View
+                            collapsable={false}
+                            forwardedRef={[Function]}
+                            style={
+                              Object {
+                                "alignItems": "flex-start",
+                                "flexDirection": "row",
+                                "height": 24,
+                                "justifyContent": "flex-start",
+                                "marginTop": 8,
+                              }
+                            }
+                          >
+                            <View
+                              collapsable={false}
+                              forwardedRef={[Function]}
+                              style={
+                                Object {
+                                  "marginRight": 4,
+                                }
+                              }
+                            >
+                              <SvgMock
+                                color="#0376C9"
+                                height={16}
+                                name="SecurityTick"
+                                style={
+                                  Object {
+                                    "height": 16,
+                                    "marginTop": 4,
+                                    "width": 16,
+                                  }
+                                }
+                                width={16}
+                              />
+                            </View>
+                            <View
+                              collapsable={false}
+                              forwardedRef={[Function]}
+                              style={
+                                Object {
+                                  "marginRight": 4,
+                                }
+                              }
+                            >
+                              <Text
+                                accessibilityRole="text"
+                                data-testid="blockaid-banner-attribution-line"
+                                style={
+                                  Object {
+                                    "color": "#24272A",
+                                    "fontFamily": "Euclid Circular B",
+                                    "fontSize": 14,
+                                    "fontWeight": "400",
+                                    "letterSpacing": 0,
+                                    "lineHeight": 22,
+                                  }
+                                }
+                              >
+                                Powered by
+                              </Text>
+                            </View>
+                            <View
+                              collapsable={false}
+                              forwardedRef={[Function]}
+                              style={
+                                Object {
+                                  "marginRight": 4,
+                                }
+                              }
+                            >
+                              <Text
+                                accessibilityRole="text"
+                                onPress={[Function]}
+                                style={
+                                  Object {
+                                    "color": "#0376C9",
+                                    "fontFamily": "Euclid Circular B",
+                                    "fontSize": 14,
+                                    "fontWeight": "400",
+                                    "letterSpacing": 0,
+                                    "lineHeight": 22,
+                                  }
+                                }
+                                suppressHighlighting={true}
+                              >
+                                Blockaid
+                              </Text>
+                            </View>
+                          </View>
+                        </View>
+                      </View>
                     </View>
                     <View>
                       <View
