@@ -15,7 +15,6 @@ import AddContactView from '../../pages/Drawer/Settings/Contacts/AddContactView'
 import ContactsView from '../../pages/Drawer/Settings/Contacts/ContactsView';
 import SettingsView from '../../pages/Drawer/Settings/SettingsView';
 
-import { ContractApprovalModalSelectors } from '../../selectors/Modals/ContractApprovalModal.selectors';
 import NetworkListModal from '../../pages/modals/NetworkListModal';
 import OnboardingWizardModal from '../../pages/modals/OnboardingWizardModal';
 import NetworkEducationModal from '../../pages/modals/NetworkEducationModal';
@@ -27,6 +26,7 @@ import { acceptTermOfUse } from '../../viewHelper';
 import Accounts from '../../../wdio/helpers/Accounts';
 import TabBarComponent from '../../pages/TabBarComponent';
 import WalletActionsModal from '../../pages/modals/WalletActionsModal';
+import ContractApprovalModal from '../../pages/modals/ContractApprovalModal';
 
 describe('Adding Contract Nickname', () => {
   const APPROVAL_DEEPLINK_URL =
@@ -114,7 +114,7 @@ describe('Adding Contract Nickname', () => {
     await SettingsView.tapSecurityAndPrivacy();
 
     await SecurityAndPrivacy.scrollToTurnOnRememberMe();
-    TestHelpers.delay(3000);
+    await TestHelpers.delay(3000);
   });
 
   it('should enable remember me', async () => {
@@ -122,7 +122,7 @@ describe('Adding Contract Nickname', () => {
     await SecurityAndPrivacy.tapTurnOnRememberMeToggle();
     await SecurityAndPrivacy.isRememberMeToggleOn();
 
-    TestHelpers.delay(1500);
+    await TestHelpers.delay(1500);
   });
 
   it('should relaunch the app then enable remember me', async () => {
@@ -137,11 +137,11 @@ describe('Adding Contract Nickname', () => {
   it('should deep link to the approval modal', async () => {
     await TestHelpers.openDeepLink(APPROVAL_DEEPLINK_URL);
     await TestHelpers.delay(3000);
-    await ContractApprovalModalSelectors.isVisible();
+    await ContractApprovalModal.isVisible();
   });
 
   it('should add a nickname to the contract', async () => {
-    await ContractApprovalModalSelectors.tapAddNickName();
+    await ContractApprovalModal.tapAddNickName();
 
     await ContractNickNameView.isVisible();
     await ContractNickNameView.typeContractNickName(CONTRACT_NICK_NAME_TEXT);
@@ -150,13 +150,13 @@ describe('Adding Contract Nickname', () => {
     );
     await ContractNickNameView.tapConfirmButton();
 
-    await ContractApprovalModalSelectors.isContractNickNameVisible(
+    await ContractApprovalModal.isContractNickNameVisible(
       CONTRACT_NICK_NAME_TEXT,
     );
   });
 
   it('should edit the contract nickname', async () => {
-    await ContractApprovalModalSelectors.tapEditNickName();
+    await ContractApprovalModal.tapEditNickName();
 
     await ContractNickNameView.isContractNickNameInInputBoxVisible(
       CONTRACT_NICK_NAME_TEXT,
@@ -165,9 +165,9 @@ describe('Adding Contract Nickname', () => {
     await ContractNickNameView.typeContractNickName('Ace');
     await ContractNickNameView.tapConfirmButton();
 
-    await ContractApprovalModalSelectors.isContractNickNameVisible('Ace');
-    await ContractApprovalModalSelectors.tapToCopyContractAddress();
-    await ContractApprovalModalSelectors.tapRejectButton();
+    await ContractApprovalModal.isContractNickNameVisible('Ace');
+    await ContractApprovalModal.tapToCopyContractAddress();
+    await ContractApprovalModal.tapRejectButton();
   });
 
   it('should verify contract does not appear in contacts view', async () => {
@@ -188,7 +188,7 @@ describe('Adding Contract Nickname', () => {
     await TabBarComponent.tapActions();
     await WalletActionsModal.tapSendButton();
     // Make sure view with my accounts visible
-    await SendView.isMyAccountsVisisble();
+    await SendView.isMyAccountsVisible();
   });
 
   it('should verify the contract nickname does not appear in send flow', async () => {
@@ -198,18 +198,18 @@ describe('Adding Contract Nickname', () => {
   it('should deep link to the approval modal and approve transaction', async () => {
     await TestHelpers.openDeepLink(APPROVAL_DEEPLINK_URL);
     await TestHelpers.delay(3000);
-    await ContractApprovalModalSelectors.isVisible();
-    await ContractApprovalModalSelectors.isContractNickNameVisible('Ace');
+    await ContractApprovalModal.isVisible();
+    await ContractApprovalModal.isContractNickNameVisible('Ace');
 
-    await ContractApprovalModalSelectors.tapApproveButton();
-    await ContractApprovalModalSelectors.isNotVisible();
+    await ContractApprovalModal.tapApproveButton();
+    await ContractApprovalModal.isNotVisible();
   });
 
   it('should go to the send view again', async () => {
     await TabBarComponent.tapActions();
     await WalletActionsModal.tapSendButton();
     // Make sure view with my accounts visible
-    await SendView.isMyAccountsVisisble();
+    await SendView.isMyAccountsVisible();
   });
 
   it('should verify the contract nickname does not appear in recents', async () => {

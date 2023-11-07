@@ -19,7 +19,7 @@ The code is built using React-Native and running code locally requires a Mac or 
 
 -   Install [sentry-cli](https://github.com/getsentry/sentry-cli) tools: `brew install getsentry/tools/sentry-cli`
 
--   Install [Node.js](https://nodejs.org) **version 16**
+-   Install [Node.js](https://nodejs.org) **version 18**
 
     -   If you are using [nvm](https://github.com/creationix/nvm#installation) (recommended) running `nvm use` will automatically choose the right node version for you.
 
@@ -108,6 +108,12 @@ yarn setup # not the usual install command, this will run a lengthy postinstall 
 -   Then, in one terminal, run:
 ```bash
 yarn watch
+```
+
+- You can change the default port (8081) from metro using the WATCHER_PORT environment variable. For example:
+```bash
+WATCHER_PORT=8082 yarn watch
+# This value can also be set directly inside .js.env file
 ```
 
 #### Android

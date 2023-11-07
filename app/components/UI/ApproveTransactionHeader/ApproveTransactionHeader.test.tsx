@@ -3,6 +3,7 @@ import React from 'react';
 import renderWithProvider from '../../../util/test/renderWithProvider';
 import ApproveTransactionHeader from './';
 import initialBackgroundState from '../../../util/test/initial-background-state.json';
+import { APPROVE_TRANSACTION_ORIGIN_PILL } from './ApproveTransactionHeader.constants';
 
 jest.mock('../../../core/Engine', () => ({
   context: {
@@ -127,5 +128,24 @@ describe('ApproveTransactionHeader', () => {
       { state: mockInitialState },
     );
     expect(container).toMatchSnapshot();
+  });
+
+  it('should not show an origin pill if origin is deeplink', () => {
+    const { queryByTestId } = renderWithProvider(
+      <ApproveTransactionHeader
+        from="0x0"
+        origin="qr-code"
+        url="http://metamask.github.io"
+        asset={{
+          address: '0x0',
+          symbol: 'RAN',
+          decimals: 18,
+        }}
+      />,
+      { state: mockInitialState },
+    );
+
+    const originPill = queryByTestId(APPROVE_TRANSACTION_ORIGIN_PILL);
+    expect(originPill).toBeNull();
   });
 });
