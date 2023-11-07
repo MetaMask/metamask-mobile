@@ -27,7 +27,9 @@ describe('Authentication', () => {
   });
 
   afterEach(() => {
-    AsyncStorage.clear();
+    AsyncStorage.clear().catch((error) => {
+      Logger.error('Error clearing AsyncStorage', error);
+    });
     jest.restoreAllMocks();
   });
 

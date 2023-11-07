@@ -21,7 +21,7 @@ const waitForInteraction = async () =>
   new Promise((resolve) => {
     InteractionManager.runAfterInteractions(() => {
       resolve();
-    });
+    }).done(() => false);
   });
 
 const wallet_addEthereumChain = async ({

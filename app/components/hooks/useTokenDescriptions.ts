@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-
+import Logger from '../../../app/util/Logger';
 export interface TokenDescriptions {
   en: string;
   de: string;
@@ -70,7 +70,9 @@ const useTokenDescriptions = ({
         setIsLoading(false);
       }
     };
-    fetchPrices();
+    fetchPrices().catch((e) => {
+      Logger.error(e, 'Error fetching token descriptions');
+    });
   }, [address, chainId]);
 
   return { data, isLoading, error };

@@ -1,6 +1,7 @@
 import { useState, useEffect, Dispatch, SetStateAction } from 'react';
 import Engine from '../../core/Engine';
 import { BN } from '@metamask/assets-controllers';
+import Logger from '../../../app/util/Logger';
 
 /**
  * Hook to handle the balance of ERC20 tokens
@@ -35,7 +36,9 @@ const useTokenBalance = (
   };
 
   useEffect(() => {
-    fetchBalance(requestedTokenAddress, userCurrentAddress);
+    fetchBalance(requestedTokenAddress, userCurrentAddress).catch((err) => {
+      Logger.error(err, 'useTokenBalance - fetchBalance');
+    });
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [requestedTokenAddress, userCurrentAddress]);
 

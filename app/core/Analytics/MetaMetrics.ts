@@ -267,12 +267,22 @@ class MetaMetrics implements IMetaMetrics {
 
   public enable(): void {
     this.#state = States.enabled;
-    this.#storeMetricsOptInPreference();
+    this.#storeMetricsOptInPreference().catch((error) => {
+      Logger.error(
+        'Error storing Metrics OptIn flag in user preferences',
+        error,
+      );
+    });
   }
 
   public disable(): void {
     this.#state = States.disabled;
-    this.#storeMetricsOptInPreference();
+    this.#storeMetricsOptInPreference().catch((error) => {
+      Logger.error(
+        `Error storing Metrics OptIn flag in user preferences`,
+        error,
+      );
+    });
   }
 
   public state(): States {
@@ -307,7 +317,9 @@ class MetaMetrics implements IMetaMetrics {
   }
 
   public createSegmentDeleteRegulation(): void {
-    this.#createSegmentDeleteRegulation();
+    this.#createSegmentDeleteRegulation().catch((error) => {
+      Logger.error('Error creating Segment Delete Regulation', error);
+    });
   }
 }
 

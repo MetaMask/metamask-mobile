@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-floating-promises */
 import RNWalletConnect from '@walletconnect/client';
 import { v1 as random } from 'uuid';
 import Engine from '../Engine';
@@ -172,7 +173,7 @@ class WalletConnect {
               const selectedAddress =
                 Engine.context.PreferencesController.state.selectedAddress?.toLowerCase();
 
-              checkActiveAccountAndChainId({
+              await checkActiveAccountAndChainId({
                 address: payload.params[0].from,
                 chainId: payload.params[0].chainId,
                 isWalletConnect: true,

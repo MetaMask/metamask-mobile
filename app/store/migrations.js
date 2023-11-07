@@ -21,6 +21,7 @@ import { regex } from '../../app/util/regex';
 import ambiguousNetworks from './migration-data/amibiguous-networks.json';
 import { NetworkStatus } from '@metamask/network-controller';
 import { ETHERSCAN_SUPPORTED_CHAIN_IDS } from '@metamask/preferences-controller';
+import Logger from '../../app/util/Logger';
 
 export const migrations = {
   // Needed after https://github.com/MetaMask/controllers/pull/152
@@ -194,10 +195,13 @@ export const migrations = {
     return state;
   },
   6: (state) => {
+    const logError = (error) => {
+      Logger.error(error);
+    };
     state.analytics?.enabled
-      ? DefaultPreference.set(METRICS_OPT_IN, AGREED)
-      : DefaultPreference.set(METRICS_OPT_IN, DENIED);
-    DefaultPreference.set(ONBOARDING_WIZARD, EXPLORED);
+      ? DefaultPreference.set(METRICS_OPT_IN, AGREED).catch(logError)
+      : DefaultPreference.set(METRICS_OPT_IN, DENIED).catch(logError);
+    DefaultPreference.set(ONBOARDING_WIZARD, EXPLORED).catch(logError);
 
     return state;
   },

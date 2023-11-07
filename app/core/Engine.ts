@@ -282,7 +282,9 @@ class Engine {
     };
 
     const networkController = new NetworkController(networkControllerOpts);
-    networkController.initializeProvider();
+    networkController.initializeProvider().catch((error) => {
+      Logger.error(error, 'NetworkController failed to initializeProvider');
+    });
 
     const assetsContractController = new AssetsContractController({
       onPreferencesStateChange: (listener) =>
@@ -369,7 +371,9 @@ class Engine {
       }),
       state: initialState.CurrencyRateController,
     });
-    currencyRateController.start();
+    currencyRateController.start().catch((error) => {
+      Logger.error(error, 'CurrencyRateController failed to start');
+    });
 
     const gasFeeController = new GasFeeController({
       messenger: this.controllerMessenger.getRestricted({
@@ -402,7 +406,9 @@ class Engine {
     });
 
     const phishingController = new PhishingController();
-    phishingController.maybeUpdateState();
+    phishingController.maybeUpdateState().catch((error) => {
+      Logger.error(error, 'PhishingController maybeUpdateState error');
+    });
 
     const getIdentities = () => {
       const identities = preferencesController.state.identities;
@@ -486,7 +492,9 @@ class Engine {
               networkController.state.providerConfig.chainId,
             ),
           });
-          tokensController.addDetectedTokens(tokens);
+          tokensController.addDetectedTokens(tokens).catch((error) => {
+            Logger.error(error, 'TokensController addDetectedTokens error');
+          });
         },
         // @ts-expect-error This is added in a patch, but types weren't updated
         updateTokensName: (tokenList) =>
@@ -1129,7 +1137,9 @@ export default {
     return instance.resetState();
   },
   destroyEngine() {
-    instance?.destroyEngineInstance();
+    instance?.destroyEngineInstance().catch((error) => {
+      Logger.error(error, 'Engine failed to destroyEngineInstance');
+    });
     instance = null;
   },
   init(state: Record<string, never> | undefined, keyringState = null) {

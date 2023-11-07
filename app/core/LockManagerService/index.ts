@@ -65,13 +65,15 @@ class LockManagerService {
     // Handle lock logic on background.
     if (nextAppState === 'background') {
       if (lockTime === 0) {
-        this.#lockApp();
+        await this.#lockApp();
       } else {
         // Autolock after some time.
         this.#clearBackgroundTimer();
         this.#lockTimer = BackgroundTimer.setTimeout(() => {
           if (this.#lockTimer) {
-            this.#lockApp();
+            this.#lockApp().catch((error) => {
+              Logger.log('Failed to lock app', error);
+            });
           }
         }, lockTime);
       }

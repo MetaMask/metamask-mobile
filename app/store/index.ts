@@ -12,6 +12,7 @@ import { isTest } from '../util/test/utils';
 import thunk from 'redux-thunk';
 
 import persistConfig from './persistConfig';
+import Logger from '../../app/util/Logger';
 
 // TODO: Improve type safety by using real Action types instead of `any`
 const pReducer = persistReducer<RootState, any>(persistConfig, rootReducer);
@@ -53,6 +54,6 @@ const createStoreAndPersistor = async () => {
 
 (async () => {
   await createStoreAndPersistor();
-})();
+})().catch((err) => Logger.error(err, 'Error creating store and persistor'));
 
 export { store, persistor };

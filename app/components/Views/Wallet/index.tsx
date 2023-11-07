@@ -172,7 +172,9 @@ const Wallet = ({ navigation }: any) => {
         Logger.log(error, "Error while checking What's New modal!");
       }
     };
-    checkWhatsNewModal();
+    checkWhatsNewModal().catch((error) => {
+      Logger.log(error, "Error while checking What's New modal!");
+    });
   }, [wizardStep, navigation]);
 
   useEffect(
@@ -227,7 +229,7 @@ const Wallet = ({ navigation }: any) => {
       } else {
         Analytics.trackEvent(MetaMetricsEvents.WALLET_COLLECTIBLES);
       }
-    });
+    }).done(() => false);
   }, []);
 
   const renderContent = useCallback(() => {

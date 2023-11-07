@@ -118,4 +118,6 @@ const main = async () => {
   console.log(`✅ Finished assets file! 🎉🎉`);
 };
 
-main();
+main().catch((error) => {
+  console.error(error);
+});

@@ -64,7 +64,9 @@ class ReviewManager {
       Logger.log('Falling back to MM review prompt', error);
     } finally {
       // Reset criteria
-      this.resetReviewCriteria();
+      this.resetReviewCriteria().catch((error) => {
+        Logger.log(error, 'Failed to reset review criteria');
+      });
     }
   };
 
@@ -83,7 +85,9 @@ class ReviewManager {
     }
 
     // 3. Handle prompt
-    this.handlePrompt();
+    this.handlePrompt().catch((error) => {
+      Logger.log(error, 'Failed to handle review prompt');
+    });
   };
 
   openFallbackStoreReview = async () => {

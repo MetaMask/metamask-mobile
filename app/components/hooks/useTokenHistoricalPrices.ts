@@ -1,3 +1,4 @@
+import Logger from '../../../app/util/Logger';
 import { useState, useEffect } from 'react';
 
 export type TimePeriod = '1d' | '1w' | '7d' | '1m' | '3m' | '1y' | '3y';
@@ -55,7 +56,9 @@ const useTokenHistoricalPrices = ({
         setIsLoading(false);
       }
     };
-    fetchPrices();
+    fetchPrices().catch((e) => {
+      Logger.error(e, 'Error fetching token prices');
+    });
   }, [address, chainId, timePeriod, from, to, vsCurrency]);
   return { data: prices, isLoading, error };
 };

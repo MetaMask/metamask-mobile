@@ -37,9 +37,11 @@ const useFavicon = (origin: string) => {
           }
         }
       } catch (error) {
-        await Logger.log('Error fetching or caching favicon: ', error);
+        Logger.log('Error fetching or caching favicon: ', error);
       }
-    })();
+    })().catch((error) => {
+      Logger.error(error, 'Error fetching favicon');
+    });
   }, [origin]);
 
   return faviconURI;
