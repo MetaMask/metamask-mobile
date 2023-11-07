@@ -36,6 +36,7 @@ import {
   selectProviderType,
 } from '../../selectors/networkController';
 import { regex } from '../../../app/util/regex';
+import Logger from '../../../app/util/Logger.js';
 
 const Engine = ImportedEngine as any;
 
@@ -319,7 +320,7 @@ export const getRpcMethodMiddleware = ({
     const rpcMethods: any = {
       wallet_getPermissions: async () =>
         new Promise<any>((resolve) => {
-          getPermissionsHandler.implementation(
+          const handle = getPermissionsHandler.implementation(
             req,
             res,
             next,
@@ -334,6 +335,9 @@ export const getRpcMethodMiddleware = ({
                 ),
             },
           );
+          handle?.catch((error) => {
+            Logger.error(error);
+          });
         }),
       wallet_requestPermissions: async () =>
         new Promise<any>((resolve, reject) => {
