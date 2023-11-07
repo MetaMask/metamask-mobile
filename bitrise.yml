@@ -119,9 +119,6 @@ workflows:
       - activate-ssh-key@4:
           run_if: '{{getenv "SSH_RSA_PRIVATE_KEY" | ne ""}}'
       - git-clone@6: {}
-      # - nvm@1.3.3:
-      #     inputs:
-      #       - node_version: '18.18.2'
   code_setup:
     before_run:
       - setup
@@ -133,18 +130,23 @@ workflows:
                 envman add --key YARN_CACHE_DIR --value "$(yarn cache dir)"
           title: Get Yarn cache directory
       - cache-pull@2: {}
-      # - nvm@1.3.3:
-      #     inputs:
-      #       - node_version: '18.18.2'
+      - nvm@1.3.3:
+          inputs:
+            - node_version: '18.18.2'
       - script@1:
           inputs:
             - content: |-
                 #!/usr/bin/env bash
-                asdf plugin-add nodejs
-                asdf install nodejs 18.18
-                asdf global nodejs 18.18
-                asdf info
-                node -v 
+                if [[ $BITRISE_TRIGGERED_WORKFLOW_ID == *"android"* ]]; then
+                  asdf plugin-add nodejs
+                  asdf install nodejs 18.18
+                  asdf global nodejs 18.18
+                  asdf plugin-add yarn
+                  asdf install yarn latest
+                  asdf global yarn
+                  asdf info
+                  node -v                 
+                fi
           title: Node Version Print
       - yarn@0:
           inputs:
