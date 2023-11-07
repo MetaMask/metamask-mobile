@@ -34,6 +34,14 @@ describe('SnapPermissions', () => {
     `Control your ${protocol} accounts and assets`;
   const snapGetEntropyTitle = 'Derive arbitrary keys unique to this snap';
   const endowmentKeyringTitle = 'endowment:keyring';
+  const endowmentWebassemblyTitle = 'Support for WebAssembly';
+  const endowmentEthereumProviderTitle = 'Access the Ethereum provider';
+  const endowmentUnknownTitle = 'Unknown permission';
+  const snapGetLocaleTitle = 'See your preferred language';
+  const endowmentCaveatTransactionOriginTitle =
+    'See the origins of websites that suggest transactions';
+  const endowmentExtendRuntimeTitle = 'Extend runtime';
+  const snapDialogTitle = 'Display custom dialogs';
 
   const mockCoinTypes = [
     { coinType: 0 }, // Bitcoin
@@ -342,6 +350,55 @@ describe('SnapPermissions', () => {
         ],
         date: mockDate2,
       },
+      snap_dialog: {
+        id: '78R00pesFUTy7xwnyvF7J',
+        parentCapability: 'snap_dialog',
+        invoker: 'npm:@metamask/bip32-example-snap',
+        caveats: null,
+        date: mockDate2,
+      },
+      'endowment:ethereum-provider': {
+        id: '2B9DU0Lbai3eIk0Bebs4R',
+        parentCapability: 'endowment:ethereum-provider',
+        invoker: 'npm:@metamask/ethereum-provider-example-snap',
+        caveats: null,
+        date: mockDate2,
+      },
+      'endowment:webassembly': {
+        id: '5HAe9Dv7_AG2pAboj6mM8',
+        parentCapability: 'endowment:webassembly',
+        invoker: 'npm:@metamask/wasm-example-snap',
+        caveats: null,
+        date: mockDate2,
+      },
+      snap_getLocale: {
+        id: 'F_9desnW_zjiboeq90Tgk',
+        parentCapability: 'snap_getLocale',
+        invoker: 'npm:@metamask/get-locale-example-snap',
+        caveats: null,
+        date: mockDate2,
+      },
+      'endowment:extend-runtime': {
+        id: '5HAe8Dv7_AG2pAboj8mM8',
+        parentCapability: 'endowment:extend-runtime',
+        invoker: 'npm:@metamask/runtime-example-snap',
+        caveats: null,
+        date: mockDate2,
+      },
+      'endowment:caveat:transaction-origin': {
+        id: '1HAe8Dv7_AG2pAboj8mY6',
+        parentCapability: 'endowment:caveat:transaction-origin',
+        invoker: 'npm:@metamask/transaction-origin-example-snap',
+        caveats: null,
+        date: mockDate2,
+      },
+      'endowment:unknown': {
+        id: '1HAe8Dv7_AG2pBboj8nY9',
+        parentCapability: 'endowment:unknown',
+        invoker: 'npm:@metamask/unknown-example-snap',
+        caveats: null,
+        date: mockDate2,
+      },
     };
 
     const { getAllByTestId } = render(
@@ -352,7 +409,7 @@ describe('SnapPermissions', () => {
     const permissionCellTitles = getAllByTestId(SNAP_PERMISSIONS_TITLE);
     const permissionCellDates = getAllByTestId(SNAP_PERMISSIONS_DATE);
 
-    expect(permissionCells.length).toBe(14);
+    expect(permissionCells.length).toBe(21);
     expect(permissionCellTitles[0].props.children).toBe(longRunningTitle);
     expect(permissionCellDates[0].props.children).toBe(
       'Approved on May 24 at 5:35 pm',
@@ -415,6 +472,42 @@ describe('SnapPermissions', () => {
     );
     expect(permissionCellTitles[13].props.children).toBe(endowmentKeyringTitle);
     expect(permissionCellDates[13].props.children).toBe(
+      'Approved on Jun 6 at 4:02 pm',
+    );
+    expect(permissionCellTitles[14].props.children).toBe(snapDialogTitle);
+    expect(permissionCellDates[14].props.children).toBe(
+      'Approved on Jun 6 at 4:02 pm',
+    );
+    expect(permissionCellTitles[15].props.children).toBe(
+      endowmentEthereumProviderTitle,
+    );
+    expect(permissionCellDates[15].props.children).toBe(
+      'Approved on Jun 6 at 4:02 pm',
+    );
+    expect(permissionCellTitles[16].props.children).toBe(
+      endowmentWebassemblyTitle,
+    );
+    expect(permissionCellDates[16].props.children).toBe(
+      'Approved on Jun 6 at 4:02 pm',
+    );
+    expect(permissionCellTitles[17].props.children).toBe(snapGetLocaleTitle);
+    expect(permissionCellDates[17].props.children).toBe(
+      'Approved on Jun 6 at 4:02 pm',
+    );
+    expect(permissionCellTitles[18].props.children).toBe(
+      endowmentExtendRuntimeTitle,
+    );
+    expect(permissionCellDates[18].props.children).toBe(
+      'Approved on Jun 6 at 4:02 pm',
+    );
+    expect(permissionCellTitles[19].props.children).toBe(
+      endowmentCaveatTransactionOriginTitle,
+    );
+    expect(permissionCellDates[19].props.children).toBe(
+      'Approved on Jun 6 at 4:02 pm',
+    );
+    expect(permissionCellTitles[20].props.children).toBe(endowmentUnknownTitle);
+    expect(permissionCellDates[20].props.children).toBe(
       'Approved on Jun 6 at 4:02 pm',
     );
   });
