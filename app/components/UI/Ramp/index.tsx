@@ -23,11 +23,14 @@ import {
   getAuthenticationUrls,
   removeAuthenticationUrl,
   getOrderById,
+  addFiatCustomIdData,
 } from '../../../reducers/fiatOrders';
 import useInterval from '../../hooks/useInterval';
 import useThunkDispatch, { ThunkAction } from '../../hooks/useThunkDispatch';
 import processOrder from './common/orderProcessor';
-import processCustomOrderIdData from './common/orderProcessor/customOrderId';
+import processCustomOrderIdData, {
+  createCustomOrderIdData,
+} from './common/orderProcessor/customOrderId';
 import { aggregatorOrderToFiatOrder } from './common/orderProcessor/aggregator';
 import { trackEvent } from './common/hooks/useAnalytics';
 import { AnalyticsEvents } from './common/types';

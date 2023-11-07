@@ -5,31 +5,31 @@ import { useNavigation } from '@react-navigation/native';
 import { Order } from '@consensys/on-ramp-sdk';
 import { OrderOrderTypeEnum } from '@consensys/on-ramp-sdk/dist/API';
 import { ScrollView } from 'react-native-gesture-handler';
-import useAnalytics from '../hooks/useAnalytics';
-import useThunkDispatch from '../../../../hooks/useThunkDispatch';
-import ScreenLayout from '../components/ScreenLayout';
-import OrderDetail from '../components/OrderDetails';
-import Row from '../components/Row';
-import StyledButton from '../../../StyledButton';
+import useAnalytics from '../../hooks/useAnalytics';
+import useThunkDispatch from '../../../../../hooks/useThunkDispatch';
+import ScreenLayout from '../../components/ScreenLayout';
+import OrderDetail from '../../components/OrderDetails';
+import Row from '../../components/Row';
+import StyledButton from '../../../../StyledButton';
 import {
   getOrderById,
   updateFiatOrder,
-} from '../../../../../reducers/fiatOrders';
-import { strings } from '../../../../../../locales/i18n';
-import { getFiatOnRampAggNavbar } from '../../../Navbar';
-import Routes from '../../../../../constants/navigation/Routes';
-import { processFiatOrder } from '../..';
+} from '../../../../../../reducers/fiatOrders';
+import { strings } from '../../../../../../../locales/i18n';
+import { getFiatOnRampAggNavbar } from '../../../../Navbar';
+import Routes from '../../../../../../constants/navigation/Routes';
+import { processFiatOrder } from '../../../index';
 import {
   createNavigationDetails,
   useParams,
-} from '../../../../../util/navigation/navUtils';
-import { useTheme } from '../../../../../util/theme';
-import Logger from '../../../../../util/Logger';
+} from '../../../../../../util/navigation/navUtils';
+import { useTheme } from '../../../../../../util/theme';
+import Logger from '../../../../../../util/Logger';
 import {
   selectNetworkConfigurations,
   selectProviderConfig,
-} from '../../../../../selectors/networkController';
-import { RootState } from '../../../../../reducers';
+} from '../../../../../../selectors/networkController';
+import { RootState } from '../../../../../../reducers';
 
 interface OrderDetailsParams {
   orderId?: string;
