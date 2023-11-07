@@ -680,7 +680,8 @@ class Engine {
               AppConstants.NETWORK_STATE_CHANGE_EVENT,
               listener,
             ),
-          onPreferencesChange: () => undefined,
+          onPreferencesChange: (listener) =>
+            preferencesController.subscribe(listener),
           provider: networkController.getProviderAndBlockTracker().provider,
           ppomProvider: {
             PPOM,
