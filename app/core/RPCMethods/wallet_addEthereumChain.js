@@ -274,7 +274,7 @@ const wallet_addEthereumChain = async ({
 
   if (!matchedChain) {
     alerts.push({
-      alertError: strings('add_custom_network.unrecongized_chain_id'),
+      alertError: strings('add_custom_network.unrecognized_chain_id'),
       alertSeverity: BannerAlertSeverity.Error,
     });
   }
