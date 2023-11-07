@@ -13,6 +13,9 @@ jest.mock('../../core/Engine', () => ({
     PPOMController: {
       usePPOM: jest.fn(),
     },
+    TransactionController: {
+      updateSecurityAlertResponse: () => undefined,
+    },
   },
 }));
 
