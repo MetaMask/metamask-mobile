@@ -151,6 +151,7 @@ workflows:
           inputs:
             - content: |-
                 #!/bin/bash
+                asdf plugin-add yarn https://github.com/asdf-vm/asdf-yarn.git
                 asdf global yarn 1.22.11
           title: Yarn Setup for 18.17.1
       - yarn@0:
