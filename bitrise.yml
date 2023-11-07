@@ -119,7 +119,7 @@ workflows:
       - activate-ssh-key@4:
           run_if: '{{getenv "SSH_RSA_PRIVATE_KEY" | ne ""}}'
       - git-clone@6: {}
-      - nvm@1.3.0:
+      - nvm@1.3.3:
           inputs:
             - node_version: '18.17.1'
   code_setup:
@@ -133,7 +133,7 @@ workflows:
                 envman add --key YARN_CACHE_DIR --value "$(yarn cache dir)"
           title: Get Yarn cache directory
       - cache-pull@2: {}
-      - nvm@1.3.0:
+      - nvm@1.3.3:
           inputs:
             - node_version: '18.17.1'
       - script@1:
