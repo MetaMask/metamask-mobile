@@ -143,12 +143,6 @@ workflows:
                 asdf plugin-add nodejs
                 asdf install nodejs 18.18
                 asdf global nodejs 18.18
-                asdf plugin add yarn
-                asdf list all yarn
-                asdf install yarn latest
-                asdf global yarn 1.22.19
-                node -v 
-                yarn setup
                 asdf info
                 node -v 
           title: Node Version Print
