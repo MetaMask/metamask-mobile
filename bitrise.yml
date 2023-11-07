@@ -141,11 +141,12 @@ workflows:
             - content: |-
                 #!/usr/bin/env bash
                  node -v 
+                 yarn setup
           title: Node Version Print
-      - yarn@0:
-          inputs:
-            - command: setup
-          title: Yarn Setup
+      # - yarn@0:
+      #     inputs:
+      #       - command: setup
+      #     title: Yarn Setup
       - yarn@0:
           title: Lint
           inputs:
