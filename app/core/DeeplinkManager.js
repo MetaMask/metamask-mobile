@@ -169,7 +169,7 @@ class DeeplinkManager {
   }
 
   _handleBrowserUrl(url, callback) {
-    InteractionManager.runAfterInteractions(() => {
+    const handle = InteractionManager.runAfterInteractions(() => {
       if (callback) {
         callback(url);
       } else {
@@ -181,7 +181,10 @@ class DeeplinkManager {
           },
         });
       }
-    }).done?.(() => false);
+    });
+    if (handle && handle.done) {
+      handle.done();
+    }
   }
 
   _handleBuyCrypto() {

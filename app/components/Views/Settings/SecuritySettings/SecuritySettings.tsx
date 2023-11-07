@@ -215,7 +215,9 @@ const Settings: React.FC = () => {
 
   useEffect(() => {
     updateNavBar();
-    handleHintText();
+    handleHintText().catch((error) => {
+      Logger.error(error, 'Error while getting seedphrase hints');
+    });
     AnalyticsV2.trackEvent(MetaMetricsEvents.VIEW_SECURITY_SETTINGS, {});
     const isAnalyticsEnabled = Analytics.checkEnabled();
     setAnalyticsEnabled(isAnalyticsEnabled);
@@ -248,12 +250,16 @@ const Settings: React.FC = () => {
 
   useFocusEffect(
     useCallback(() => {
-      waitForRenderDetectNftComponentRef();
+      waitForRenderDetectNftComponentRef().catch((err) => {
+        Logger.error(err, 'Error while scrolling to detect NFTs');
+      });
     }, [waitForRenderDetectNftComponentRef]),
   );
 
   useEffect(() => {
-    handleAvailableIpfsGateways();
+    handleAvailableIpfsGateways().catch((err) => {
+      Logger.error(err, 'Error while getting available IPFS gateways');
+    });
   }, [handleAvailableIpfsGateways]);
 
   const toggleHint = () => {
@@ -309,8 +315,8 @@ const Settings: React.FC = () => {
           authType = AUTHENTICATION_TYPE.PASSWORD;
         }
         await Authentication.storePassword(password, authType);
-      } catch (error) {
-        Logger.error(error as string, {});
+      } catch (err) {
+        Logger.error('', err);
       }
 
       dispatch(passwordSet());
@@ -343,16 +349,22 @@ const Settings: React.FC = () => {
     let credentials;
     try {
       credentials = await Authentication.getPassword();
-    } catch (error) {
-      Logger.error(error as string, {});
+    } catch (err) {
+      Logger.error('', err);
     }
 
     if (credentials && credentials.password !== '') {
-      storeCredentials(credentials.password, enabled, passwordType);
+      storeCredentials(credentials.password, enabled, passwordType).catch(
+        (err) => {
+          Logger.error(err, 'Error while storing credentials');
+        },
+      );
     } else {
       navigation.navigate('EnterPasswordSimple', {
         onPasswordSet: (password: string) => {
-          storeCredentials(password, enabled, passwordType);
+          storeCredentials(password, enabled, passwordType).catch((err) => {
+            Logger.error(err, 'Error while storing credentials');
+          });
         },
       });
     }
@@ -421,7 +433,7 @@ const Settings: React.FC = () => {
         analytics_option_selected: AnalyticsOptionSelected,
         updated_after_onboarding: true,
       });
-    });
+    })?.done?.();
   };
 
   const toggleMetricsOptIn = (value: boolean) => {

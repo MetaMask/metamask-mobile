@@ -17,7 +17,7 @@ export const trackEventV2 = (eventName, params) => {
     const metricsOptIn = await DefaultPreference.get(METRICS_OPT_IN);
     if (metricsOptIn === DENIED) return;
 
-    InteractionManager.runAfterInteractions(() => {
+    const handle = InteractionManager.runAfterInteractions(() => {
       let anonymousEvent = false;
       try {
         if (!params || Object.keys(params).length === 0) {
@@ -63,7 +63,10 @@ export const trackEventV2 = (eventName, params) => {
       } catch (error) {
         Logger.error(error, 'Error logging analytics');
       }
-    }).done?.(() => false);
+    });
+    if (handle && handle.done) {
+      handle.done();
+    }
   };
   init().catch((error) => {
     Logger.error(error, 'Error logging analytics');

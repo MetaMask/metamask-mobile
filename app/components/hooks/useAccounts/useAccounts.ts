@@ -32,6 +32,7 @@ import {
   selectIsMultiAccountBalancesEnabled,
   selectSelectedAddress,
 } from '../../../selectors/preferencesController';
+import Logger from '../../../../app/util/Logger';
 
 /**
  * Hook that returns both wallet accounts and ens name information.
@@ -177,7 +178,11 @@ const useAccounts = ({
     }, []);
 
     setAccounts(flattenedAccounts);
-    fetchENSNames({ flattenedAccounts, startingIndex: selectedIndex });
+    fetchENSNames({ flattenedAccounts, startingIndex: selectedIndex }).catch(
+      (err) => {
+        Logger.error(err, 'Error fetching ENS names.');
+      },
+    );
     /* eslint-disable-next-line */
   }, [
     selectedAddress,

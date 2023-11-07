@@ -17,7 +17,7 @@ const useEnableAutomaticSecurityChecks = () => {
         navigation.navigate(
           ...createEnableAutomaticSecurityChecksModalNavDetails(),
         );
-      });
+      }).done?.();
     }
   }, [hasUserSelectedAutomaticSecurityCheckOption, navigation]);
 };

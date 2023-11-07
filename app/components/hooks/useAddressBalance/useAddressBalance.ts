@@ -14,6 +14,7 @@ import { selectAccounts } from '../../../selectors/accountTrackerController';
 import { selectContractBalances } from '../../../selectors/tokenBalancesController';
 import { selectSelectedAddress } from '../../../selectors/preferencesController';
 import { Asset } from './useAddressBalance.types';
+import Logger from '../../../../app/util/Logger';
 
 const useAddressBalance = (
   asset: Asset,
@@ -113,7 +114,9 @@ const useAddressBalance = (
           } catch (exp) {
             console.error(`Error in trying to fetch token balance - ${exp}`);
           }
-        })();
+        })().catch((error) => {
+          Logger.error(error, 'Error fetching token balance.');
+        });
       }
     }
   }, [accounts, address, asset, contractBalances, selectedAddress, ticker]);

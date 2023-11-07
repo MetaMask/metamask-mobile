@@ -63,7 +63,7 @@ const Settings = () => {
   const trackEvent = (event: IMetaMetricsEvent) => {
     InteractionManager.runAfterInteractions(() => {
       Analytics.trackEvent(event);
-    });
+    }).done?.();
   };
 
   const onPressGeneral = () => {

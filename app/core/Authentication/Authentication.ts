@@ -354,7 +354,9 @@ class AuthenticationService {
       this.dispatchLogin();
       this.authData = authData;
     } catch (e: any) {
-      this.lockApp(false);
+      this.lockApp(false).catch((error) => {
+        Logger.error(error, 'Error while locking app');
+      });
       throw new AuthenticationError(
         (e as Error).message,
         AUTHENTICATION_FAILED_WALLET_CREATION,
@@ -385,7 +387,9 @@ class AuthenticationService {
       this.dispatchLogin();
       this.authData = authData;
     } catch (e: any) {
-      this.lockApp(false);
+      this.lockApp(false).catch((error) => {
+        Logger.error(error, 'Error while locking app');
+      });
       throw new AuthenticationError(
         (e as Error).message,
         AUTHENTICATION_FAILED_WALLET_CREATION,
@@ -414,7 +418,9 @@ class AuthenticationService {
       this.authData = authData;
       this.dispatchPasswordSet();
     } catch (e: any) {
-      this.lockApp(false);
+      this.lockApp(false).catch((error) => {
+        Logger.error(error, 'Error while locking app');
+      });
       throw new AuthenticationError(
         (e as Error).message,
         AUTHENTICATION_FAILED_TO_LOGIN,
@@ -455,7 +461,10 @@ class AuthenticationService {
       this.dispatchPasswordSet();
     } catch (e: any) {
       this.store?.dispatch(authError(bioStateMachineId));
-      !disableAutoLogout && this.lockApp(false);
+      !disableAutoLogout &&
+        this.lockApp(false).catch((error) => {
+          Logger.error(error, 'Error while locking app');
+        });
       throw new AuthenticationError(
         (e as Error).message,
         AUTHENTICATION_APP_TRIGGERED_AUTH_ERROR,
