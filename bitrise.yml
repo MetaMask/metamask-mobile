@@ -151,7 +151,8 @@ workflows:
           inputs:
             - content: |-
                 #!/bin/bash
-                yarn install
+                echo $(asdf list all nodejs)
+                echo $(yarn -v)
           title: Yarn Setup for 18.17.1
       - yarn@0:
           inputs:
