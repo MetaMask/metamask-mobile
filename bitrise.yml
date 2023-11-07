@@ -141,6 +141,8 @@ workflows:
             - content: |-
                 #!/usr/bin/env bash
                 asdf plugin add yarn
+                asdf list all yarn
+                asdf install yarn latest
                 asdf global yarn 1.22.19
                 node -v 
                 yarn setup
