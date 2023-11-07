@@ -145,7 +145,6 @@ workflows:
                   asdf info
                   node -v                 
                 fi
-            run_if: '{{enveq "BITRISE_MACHINE_TYPE" "linux"}}'
           title: Manually install set node and install yarn for Linux Machines
       - yarn@0:
           inputs:
