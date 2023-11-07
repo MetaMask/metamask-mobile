@@ -136,16 +136,16 @@ workflows:
       - nvm@1.3.3:
           inputs:
             - node_version: '18.17.1'
-      # - script@1:
-      #     inputs:
-      #       - content: |-
-      #           #!/usr/bin/env bash
-      #           cd /bitrise/src
-      #           nvm version
-      #           nvm use 18.17.1
-      #           node -v 
-      #           yarn setup
-      #     title: Node Version Print
+      - script@1:
+          inputs:
+            - content: |-
+                #!/usr/bin/env bash
+                cd /bitrise/src
+                nvm version
+                nvm use 18.17.1
+                node -v 
+                yarn setup
+          title: Node Version Print
       - yarn@0:
           inputs:
             - command: setup
