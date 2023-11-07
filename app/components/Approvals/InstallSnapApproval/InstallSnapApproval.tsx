@@ -74,7 +74,6 @@ const InstallSnapApproval = () => {
         return (
           <InstallSnapPermissionsRequest
             approvalRequest={approvalRequest}
-            requestState={approvalRequest.requestState}
             onConfirm={onPermissionsConfirm}
             onCancel={onReject}
           />
