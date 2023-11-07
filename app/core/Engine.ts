@@ -573,6 +573,9 @@ class Engine {
             AppConstants.NETWORK_STATE_CHANGE_EVENT,
             listener,
           ),
+        pendingTransactions: {
+          isResubmitEnabled: false,
+        },
         provider: networkController.getProviderAndBlockTracker().provider,
       }),
       new SwapsController(
