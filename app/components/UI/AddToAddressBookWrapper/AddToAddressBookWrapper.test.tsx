@@ -2,9 +2,8 @@ import React from 'react';
 import { fireEvent } from '@testing-library/react-native';
 import { Text } from 'react-native';
 
-import AddToAddressBookWrapper, {
-  ADD_TO_ADDRESS_BOOK_BUTTON_ID,
-} from './AddToAddressBookWrapper';
+import AddToAddressBookWrapper from './AddToAddressBookWrapper';
+import { AddAddressModalSelectorsIDs } from '../../../../e2e/selectors/Modals/AddAddressModal.selectors';
 import renderWithProvider from '../../../util/test/renderWithProvider';
 import initialBackgroundState from '../../../util/test/initial-background-state.json';
 
@@ -57,8 +56,12 @@ describe('AddToAddressBookWrapper', () => {
       </AddToAddressBookWrapper>,
       { state: initialState },
     );
-    expect(queryByText(ADD_TO_ADDRESS_BOOK_BUTTON_ID)).toBeDefined();
-    fireEvent.press(getByTestId(ADD_TO_ADDRESS_BOOK_BUTTON_ID));
+    expect(
+      queryByText(AddAddressModalSelectorsIDs.ADD_ADDRESS_BUTTON),
+    ).toBeDefined();
+    fireEvent.press(
+      getByTestId(AddAddressModalSelectorsIDs.ADD_ADDRESS_BUTTON),
+    );
     expect(getByText('Add to address book')).toBeDefined();
   });
   it('should not render touchable wrapper if address is already saved', async () => {
@@ -69,7 +72,9 @@ describe('AddToAddressBookWrapper', () => {
       { state: initialState },
     );
     expect(queryByText('DUMMY')).toBeDefined();
-    expect(queryByText(ADD_TO_ADDRESS_BOOK_BUTTON_ID)).toBeNull();
+    expect(
+      queryByText(AddAddressModalSelectorsIDs.ADD_ADDRESS_BUTTON),
+    ).toBeNull();
   });
   it('should return null if address is already saved and defaultNull is true', async () => {
     const { queryByText } = renderWithProvider(
@@ -79,6 +84,8 @@ describe('AddToAddressBookWrapper', () => {
       { state: initialState },
     );
     expect(queryByText('DUMMY')).toBeNull();
-    expect(queryByText(ADD_TO_ADDRESS_BOOK_BUTTON_ID)).toBeNull();
+    expect(
+      queryByText(AddAddressModalSelectorsIDs.ADD_ADDRESS_BUTTON),
+    ).toBeNull();
   });
 });
