@@ -25,7 +25,7 @@ import { createNavigationDetails } from '../../../../../../util/navigation/navUt
 import { createPaymentMethodsNavDetails } from '../PaymentMethods/PaymentMethods';
 
 import { useRampSDK } from '../../../common/sdk';
-import { RampType, Region } from '../../../common/types';
+import { Region } from '../../../common/types';
 import useAnalytics from '../../../common/hooks/useAnalytics';
 import useRegions from '../../hooks/useRegions';
 

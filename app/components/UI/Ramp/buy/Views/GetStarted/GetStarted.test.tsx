@@ -130,7 +130,7 @@ describe('GetStarted', () => {
     expect(mockUseRampSDKValues.setGetStarted).toHaveBeenCalledWith(true);
   });
 
-  it.only('navigates and tracks event on cancel button press', async () => {
+  it('navigates and tracks event on cancel button press', async () => {
     render(GetStarted);
     fireEvent.press(screen.getByRole('button', { name: 'Cancel' }));
     expect(mockPop).toHaveBeenCalled();
