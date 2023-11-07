@@ -985,7 +985,7 @@ export class Connection extends EventEmitter2 {
       }
       await waitForEmptyRPCQueue(this.rpcQueueManager);
       DevLogger.log(
-        `Connection::sendMessage method=${method} origin=${origin} id=${msgId} goBack()`,
+        `Connection::sendMessage method=${method} origin=${this.origin} id=${msgId} goBack()`,
       );
 
       await wait(100);
