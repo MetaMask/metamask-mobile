@@ -329,7 +329,7 @@ exports[`NetworkVerificationInfo renders correctly 1`] = `
             <SvgMock
               color="#0376C9"
               height={16}
-              name="ArrowUp"
+              name="ArrowDown"
               style={
                 Object {
                   "height": 16,
