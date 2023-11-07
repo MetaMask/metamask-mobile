@@ -140,6 +140,7 @@ workflows:
           inputs:
             - content: |-
                 #!/usr/bin/env bash
+                asdf install node 18.18
                 asdf plugin add yarn
                 asdf list all yarn
                 asdf install yarn latest
