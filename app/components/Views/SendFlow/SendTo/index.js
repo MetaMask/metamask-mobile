@@ -41,11 +41,6 @@ import {
 } from '../../../../actions/transaction';
 import ErrorMessage from '../ErrorMessage';
 import { strings } from '../../../../../locales/i18n';
-import {
-  ADDRESS_BOOK_NEXT_BUTTON,
-  NO_ETH_MESSAGE,
-  ADDRESS_ERROR,
-} from '../../../../constants/test-ids';
 import Routes from '../../../../constants/navigation/Routes';
 import {
   CONTACT_ALREADY_SAVED,
@@ -73,6 +68,7 @@ import { getRampNetworks } from '../../../../reducers/fiatOrders';
 import SendFlowAddressFrom from '../AddressFrom';
 import SendFlowAddressTo from '../AddressTo';
 import { includes } from 'lodash';
+import { SendViewSelectorsIDs } from '../../../../../e2e/selectors/SendView.selectors';
 
 const dummy = () => true;
 
@@ -555,7 +551,10 @@ class SendFlow extends PureComponent {
           <View style={styles.nextActionWrapper}>
             <ScrollView>
               {addressError && addressError !== CONTACT_ALREADY_SAVED && (
-                <View style={styles.addressErrorWrapper} testID={ADDRESS_ERROR}>
+                <View
+                  style={styles.addressErrorWrapper}
+                  testID={SendViewSelectorsIDs.ADDRESS_ERROR}
+                >
                   <ErrorMessage
                     errorMessage={this.renderAddressError(addressError)}
                     errorContinue={!!errorContinue}
@@ -635,14 +634,17 @@ class SendFlow extends PureComponent {
         )}
 
         {!errorContinue && (
-          <View style={styles.footerContainer} testID={NO_ETH_MESSAGE}>
+          <View
+            style={styles.footerContainer}
+            testID={SendViewSelectorsIDs.NO_ETH_MESSAGE}
+          >
             {!errorContinue && (
               <View style={styles.buttonNextWrapper}>
                 <StyledButton
                   type={'confirm'}
                   containerStyle={styles.buttonNext}
                   onPress={this.onTransactionDirectionSet}
-                  testID={ADDRESS_BOOK_NEXT_BUTTON}
+                  testID={SendViewSelectorsIDs.ADDRESS_BOOK_NEXT_BUTTON}
                   //To selectedAddressReady needs to be calculated on this component, needing a bigger refactor
                   //Will be here just to ensure that we don't break existing conditions
                   disabled={
