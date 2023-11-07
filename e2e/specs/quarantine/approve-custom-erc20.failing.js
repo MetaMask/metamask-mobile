@@ -1,5 +1,4 @@
 'use strict';
-import { Regression } from '../../tags';
 import TestHelpers from '../../helpers';
 import { loginToApp } from '../../viewHelper';
 import FixtureBuilder from '../../fixtures/fixture-builder';
@@ -11,12 +10,12 @@ import TabBarComponent from '../../pages/TabBarComponent';
 import { TestDApp } from '../../pages/TestDApp';
 import { SMART_CONTRACTS } from '../../../app/util/test/smart-contracts';
 import root from '../../../locales/languages/en.json';
-import ApprovalModal from '../../pages/modals/ApprovalModal';
+import { ContractApprovalModalSelectors } from '../../selectors/Modals/ContractApprovalModal.selectors';
 
 const HST_CONTRACT = SMART_CONTRACTS.HST;
 const WEBVIEW_TEST_DAPP_APPROVE_TOKENS_BUTTON_ID = 'approveTokens';
 
-describe(Regression('ERC20 tokens'), () => {
+describe('ERC20 tokens', () => {
   beforeAll(async () => {
     jest.setTimeout(170000);
     if (device.getPlatform() === 'android') {
@@ -51,15 +50,19 @@ describe(Regression('ERC20 tokens'), () => {
         });
 
         //Input custom token amount
-        await TestHelpers.checkIfExists(ApprovalModal.APPROVE_TOKEN_AMOUNT);
+        await TestHelpers.checkIfExists(
+          ContractApprovalModalSelectors.APPROVE_TOKEN_AMOUNT_ID,
+        );
         await TestHelpers.replaceTextInField(
-          ApprovalModal.APPROVE_TOKEN_AMOUNT,
+          ContractApprovalModalSelectors.APPROVE_TOKEN_AMOUNT_ID,
           '2',
         );
 
         // Assert that custom token amount is shown
         await expect(
-          element(by.id(ApprovalModal.APPROVE_TOKEN_AMOUNT)),
+          element(
+            by.id(ContractApprovalModalSelectors.APPROVE_TOKEN_AMOUNT_ID),
+          ),
         ).toHaveText('2');
 
         // Tap next button
