@@ -76,7 +76,7 @@ export const showWalletConnectNotification = (
         description: strings('notifications.wc_description'),
       });
     }
-  }).done(() => false);
+  }).done?.(() => false);
 };
 
 export const handleSignatureAction = async (

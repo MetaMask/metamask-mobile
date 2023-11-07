@@ -63,7 +63,7 @@ export const trackEventV2 = (eventName, params) => {
       } catch (error) {
         Logger.error(error, 'Error logging analytics');
       }
-    }).done(() => false);
+    }).done?.(() => false);
   };
   init().catch((error) => {
     Logger.error(error, 'Error logging analytics');

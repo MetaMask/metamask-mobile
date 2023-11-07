@@ -5,6 +5,7 @@ import ApprovalModal from '../ApprovalModal';
 import SwitchCustomNetwork from '../../UI/SwitchCustomNetwork';
 import { networkSwitched } from '../../../actions/onboardNetwork';
 import { useDispatch } from 'react-redux';
+import Logger from '../../../../app/util/Logger';
 
 const SwitchChainApproval = () => {
   const {
@@ -17,7 +18,9 @@ const SwitchChainApproval = () => {
   const dispatch = useDispatch();
 
   const onConfirm = useCallback(() => {
-    defaultOnConfirm();
+    defaultOnConfirm().catch((error) => {
+      Logger.error(error, 'Error while approving switch chain request');
+    });
 
     dispatch(
       networkSwitched({

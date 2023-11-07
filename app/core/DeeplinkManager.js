@@ -181,7 +181,7 @@ class DeeplinkManager {
           },
         });
       }
-    }).done(() => false);
+    }).done?.(() => false);
   }
 
   _handleBuyCrypto() {

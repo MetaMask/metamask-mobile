@@ -229,7 +229,7 @@ const Wallet = ({ navigation }: any) => {
       } else {
         Analytics.trackEvent(MetaMetricsEvents.WALLET_COLLECTIBLES);
       }
-    }).done(() => false);
+    }).done?.(() => false);
   }, []);
 
   const renderContent = useCallback(() => {

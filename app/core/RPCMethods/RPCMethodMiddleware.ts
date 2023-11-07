@@ -36,7 +36,7 @@ import {
   selectProviderType,
 } from '../../selectors/networkController';
 import { regex } from '../../../app/util/regex';
-import Logger from '../../../app/util/Logger.js';
+import Logger from '../../../app/util/Logger';
 
 const Engine = ImportedEngine as any;
 
@@ -336,7 +336,7 @@ export const getRpcMethodMiddleware = ({
             },
           );
           handle?.catch((error) => {
-            Logger.error(error);
+            Logger.error('Failed to get permissions', error);
           });
         }),
       wallet_requestPermissions: async () =>
