@@ -1,6 +1,5 @@
 interface InstallSnapFlowProps {
   approvalRequest: any;
-  requestState: any;
   onConfirm: () => void;
   onCancel: () => void;
   chainId?: string;

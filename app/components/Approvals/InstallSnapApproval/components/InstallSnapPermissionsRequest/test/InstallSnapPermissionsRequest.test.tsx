@@ -48,7 +48,6 @@ describe('InstallSnapPermissionsRequest', () => {
     const { getAllByTestId } = render(
       <InstallSnapPermissionsRequest
         approvalRequest={installSnapDataApprovalRequest}
-        requestState={installSnapDataApprovalRequest.requestState}
         onConfirm={onConfirm}
         onCancel={onCancel}
       />,
