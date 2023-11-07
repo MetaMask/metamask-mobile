@@ -2252,7 +2252,7 @@
     "invalid_chain_token_decimals": "It looks like this network's decimal doesn't match its chain ID.",
     "unrecognized_chain_name": "It looks like this network's display name doesn't match its chain ID.",
     "unrecognized_chain_ticker": "It looks like this network's symbol doesn't match this chain ID.",
-    "unrecongized_chain_id": "We don't recognize this network. Be sure the chain ID is correct before you continue."
+    "unrecognized_chain_id": "We don't recognize this network. Be sure the chain ID is correct before you continue."
   },
   "media_player": {
     "loading": "Loading...",
