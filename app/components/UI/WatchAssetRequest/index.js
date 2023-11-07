@@ -19,7 +19,7 @@ import { selectChainId } from '../../../selectors/networkController';
 import ApproveTransactionHeader from '../ApproveTransactionHeader';
 import { getActiveTabUrl } from '../../../util/transactions';
 import { isEqual } from 'lodash';
-import {SigningModalSelectorsIDs} from "../../../../e2e/selectors/Modals/SigningModal.selectors";
+import { SigningModalSelectorsIDs } from '../../../../e2e/selectors/Modals/SigningModal.selectors';
 
 const createStyles = (colors) =>
   StyleSheet.create({

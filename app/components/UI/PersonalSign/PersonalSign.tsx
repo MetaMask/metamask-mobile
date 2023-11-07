@@ -21,7 +21,7 @@ import { selectChainId } from '../../../selectors/networkController';
 import { store } from '../../../store';
 import { getBlockaidMetricsParams } from '../../../util/blockaid';
 import { SecurityAlertResponse } from '../BlockaidBanner/BlockaidBanner.types';
-import {SigningModalSelectorsIDs} from "../../../../e2e/selectors/Modals/SigningModal.selectors";
+import { SigningModalSelectorsIDs } from '../../../../e2e/selectors/Modals/SigningModal.selectors';
 
 /**
  * Component that supports personal_sign
