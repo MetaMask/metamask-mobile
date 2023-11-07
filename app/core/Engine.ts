@@ -608,7 +608,8 @@ class Engine {
       bridge.setupProviderConnection();
     };
 
-    // TODO
+    // TODO - Require allow list for Main build and disable for flask builds. This value should be set by an env variable
+    // See Extension: https://github.com/MetaMask/metamask-extension/blob/8488e7a2bc809b1ecba51fbb87ca2c934419a261/app/scripts/metamask-controller.js#L1127
     const requireAllowlist = false;
 
     const snapsRegistryMessenger = this.controllerMessenger.getRestricted({
