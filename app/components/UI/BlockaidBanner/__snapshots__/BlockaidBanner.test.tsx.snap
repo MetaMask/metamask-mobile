@@ -292,7 +292,7 @@ exports[`BlockaidBanner should render correctly 1`] = `
         <SvgMock
           color="#0376C9"
           height={16}
-          name="ArrowUp"
+          name="ArrowDown"
           style={
             Object {
               "height": 16,
@@ -532,7 +532,7 @@ exports[`BlockaidBanner should render correctly with list attack details 1`] = `
         <SvgMock
           color="#0376C9"
           height={16}
-          name="ArrowUp"
+          name="ArrowDown"
           style={
             Object {
               "height": 16,
@@ -772,7 +772,7 @@ exports[`BlockaidBanner should render correctly with reason "raw_signature_farmi
         <SvgMock
           color="#0376C9"
           height={16}
-          name="ArrowUp"
+          name="ArrowDown"
           style={
             Object {
               "height": 16,
@@ -1257,7 +1257,7 @@ exports[`BlockaidBanner should render something does not look right with contact
         <SvgMock
           color="#0376C9"
           height={16}
-          name="ArrowUp"
+          name="ArrowDown"
           style={
             Object {
               "height": 16,
