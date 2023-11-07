@@ -48,14 +48,14 @@ describe('AccordionHeader', () => {
     );
     expect(titleElement.props().children).toBe(SAMPLE_ACCORDIONHEADER_TITLE);
   });
-  it('should render the proper arrow up icon', () => {
+  it('should render the proper arrow down icon', () => {
     const wrapper = shallow(
       <AccordionHeader title={SAMPLE_ACCORDIONHEADER_TITLE} />,
     );
     const iconElement = wrapper.findWhere(
       (node) => node.prop('testID') === TESTID_ACCORDIONHEADER_ARROWICON,
     );
-    expect(iconElement.props().name).toBe(IconName.ArrowUp);
+    expect(iconElement.props().name).toBe(IconName.ArrowDown);
   });
   //TODO: Add Test for Pressed state and animation
 });
