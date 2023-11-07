@@ -140,7 +140,7 @@ workflows:
           inputs:
             - content: |-
                 #!/usr/bin/env bash
-                nvm version
+                 node -v 
           title: Node Version Print
       - yarn@0:
           inputs:
