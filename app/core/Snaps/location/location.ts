@@ -1,33 +1,12 @@
-import { SnapManifest, VirtualFile } from '@metamask/snaps-utils';
 import { LocalLocation } from './local';
 import { NpmLocation, NpmOptions } from './npm';
+import type {
+  DetectSnapLocationOptions as DetectSnapLocationOptionsFromPackage,
+  SnapLocation,
+} from '@metamask/snaps-controllers';
 
-export type DetectSnapLocationOptions = NpmOptions & {
-  /**
-   * The function used to fetch data.
-   *
-   * @default globalThis.fetch
-   */
-  fetch?: typeof fetch;
-  /**
-   * @default false
-   */
-  allowHttp?: boolean;
-};
-
-/**
- * This should be exported from the @metamask/snaps-contracts package
- * for now we will define it ourselves
- */
-export interface SnapLocation {
-  /**
-   * All files are relative to the manifest, except the manifest itself.
-   */
-  manifest(): Promise<VirtualFile<SnapManifest>>;
-  fetch(path: string): Promise<VirtualFile>;
-
-  readonly shouldAlwaysReload?: boolean;
-}
+export type DetectSnapLocationOptions = DetectSnapLocationOptionsFromPackage &
+  NpmOptions;
 
 /**
  * Auto-magically detects which SnapLocation object to create based on the provided {@link location}.
