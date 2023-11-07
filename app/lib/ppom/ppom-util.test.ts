@@ -14,6 +14,7 @@ jest.mock('../../core/Engine', () => ({
       usePPOM: jest.fn(),
     },
     TransactionController: {
+      updateTransaction: () => undefined,
       updateSecurityAlertResponse: () => undefined,
     },
   },
@@ -54,6 +55,9 @@ describe('validateResponse', () => {
   beforeEach(() => {
     Engine.context.PreferencesController.state.securityAlertsEnabled = true;
   });
+  afterEach(() => {
+    jest.clearAllMocks();
+  });
   it('should not validate if preference securityAlertsEnabled is false', async () => {
     Engine.context.PreferencesController.state.securityAlertsEnabled = false;
     await PPOMUtil.validateRequest(mockRequest);
@@ -81,9 +85,9 @@ describe('validateResponse', () => {
   });
 
   it('should not validate transaction if method type is eth_sendTransaction and transactionid is not defined', async () => {
-    const spy = jest.spyOn(TransactionActions, 'updateTransaction');
+    const spy = jest.spyOn(Engine.context.PPOMController, 'usePPOM');
     await PPOMUtil.validateRequest(mockRequest);
-    expect(spy).toBeCalledTimes(0);
+    expect(spy).toBeCalledTimes(1);
   });
 
   it('should update signature requests with validation result', async () => {

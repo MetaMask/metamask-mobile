@@ -57,7 +57,6 @@ const validateRequest = async (req: any, transactionId?: string) => {
       req.method === 'eth_sendTransaction'
     ) {
       store.dispatch(updateTransaction({ securityAlertResponse }));
-      //   // todo: handle errors for method below
       const { TransactionController } = Engine.context;
       TransactionController.updateSecurityAlertResponse(transactionId, {
         securityAlertResponse,
