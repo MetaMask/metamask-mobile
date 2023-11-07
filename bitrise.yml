@@ -140,12 +140,7 @@ workflows:
           inputs:
             - content: |-
                 #!/usr/bin/env bash
-                export NVM_DIR="$HOME/.nvm" [ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh"           
-                pwd
-                cd /bitrise/src
-                pwd
-                nvm version
-                nvm use 18.17.1
+                brew install node@18       
                 node -v 
                 yarn setup
           title: Node Version Print
