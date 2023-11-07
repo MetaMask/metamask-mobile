@@ -232,7 +232,7 @@ function SendTransaction() {
               </>
             )}
           </View>
-          <Row last>{/* <TransactionReview order={order} /> */}</Row>
+          {/*<Row last><TransactionReview order={order} /></Row> */}
         </ScreenLayout.Content>
       </ScreenLayout.Body>
 
