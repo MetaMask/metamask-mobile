@@ -2,6 +2,7 @@ import AppConstants from '../AppConstants';
 import SDKConnect from './SDKConnect';
 import DevLogger from './utils/DevLogger';
 import { waitForCondition } from './utils/wait.util';
+import Logger from '../../util/Logger';
 
 const QRCODE_PARAM_PATTERN = '&t=q';
 
@@ -58,26 +59,30 @@ const handleDeeplink = async ({
     `handleDeeplink:: channel=${channelId} exists=${channelExists}`,
   );
 
-  if (channelExists) {
-    if (origin === AppConstants.DEEPLINKS.ORIGIN_DEEPLINK) {
-      // Automatically re-approve hosts.
-      sdkConnect.revalidateChannel({
+  try {
+    if (channelExists) {
+      if (origin === AppConstants.DEEPLINKS.ORIGIN_DEEPLINK) {
+        // Automatically re-approve hosts.
+        await sdkConnect.revalidateChannel({
+          channelId,
+        });
+      }
+      await sdkConnect.reconnect({
         channelId,
+        otherPublicKey,
+        context,
+        initialConnection: false,
+        updateKey: true,
+      });
+    } else {
+      await sdkConnect.connectToChannel({
+        id: channelId,
+        origin,
+        otherPublicKey,
       });
     }
-    sdkConnect.reconnect({
-      channelId,
-      otherPublicKey,
-      context,
-      initialConnection: false,
-      updateKey: true,
-    });
-  } else {
-    sdkConnect.connectToChannel({
-      id: channelId,
-      origin,
-      otherPublicKey,
-    });
+  } catch (error) {
+    Logger.error('Failed to connect to channel', error);
   }
 };
 
