@@ -50,7 +50,6 @@ const styleSheet = (params: {
       borderWidth: 1,
       borderRadius: 10,
       borderColor: colors.border.default,
-      fontSize: 10,
       justifyContent: 'center',
       textAlign: 'center',
     },

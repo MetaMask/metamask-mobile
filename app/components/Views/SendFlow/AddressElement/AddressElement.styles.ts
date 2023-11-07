@@ -30,7 +30,6 @@ const styleSheet = (colors: Colors) =>
       borderWidth: 1,
       borderRadius: 8,
       borderColor: colors.border.default,
-      fontSize: 10,
     },
     accountNameLabel: {
       flexDirection: 'row',
