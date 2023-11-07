@@ -5,8 +5,6 @@ import WebviewPostMessageStream from './WebviewPostMessageStream';
 import SnapWebviewPostMessageStream from './SnapWebviewPostMessageStream';
 import snapsState from './SnapsState';
 import {
-  buildSnapEndowmentSpecifications,
-  buildSnapRestrictedMethodSpecifications,
   ExcludedSnapPermissions,
   ExcludedSnapEndowments,
 } from './permissions/permissions';
@@ -19,8 +17,6 @@ export {
   WebviewExecutionService,
   WebviewPostMessageStream,
   SnapWebviewPostMessageStream,
-  buildSnapEndowmentSpecifications,
-  buildSnapRestrictedMethodSpecifications,
   ExcludedSnapPermissions,
   ExcludedSnapEndowments,
   fetchFunction,

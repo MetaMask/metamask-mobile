@@ -834,7 +834,15 @@
           "snap_getBip44Entropy": "Control your {{protocol}} accounts and assets",
           "snap_getEntropy": "Derive arbitrary keys unique to this snap",
           "endowment:keyring": "endowment:keyring",
-          "wallet_snap": "Connect to {{otherSnapName}}"
+          "wallet_snap": "Connect to {{otherSnapName}}",
+          "endowment:webassembly": "Support for WebAssembly",
+          "endowment:ethereum-provider": "Access the Ethereum provider",
+          "endowment:unknown": "Unknown permission",
+          "snap_getLocale": "See your preferred language",
+          "endowment:caveat:transaction-origin": "See the origins of websites that suggest transactions",
+          "endowment:extend-runtime": "Extend runtime",
+          "snap_dialog": "Display custom dialogs"
+
         }
       }
     }

@@ -25,26 +25,26 @@ import BottomSheetFooter, {
 } from '../../../../../component-library/components/BottomSheets/BottomSheetFooter';
 import { ButtonProps } from '../../../../../component-library/components/Buttons/Button/Button.types';
 import { useStyles } from '../../../../hooks/useStyles';
-import { InstallSnapFlowProps } from '../../InstallSnapApprovalFlow.types';
+import { InstallSnapFlowProps } from '../../InstallSnapApproval.types';
 import { SnapPermissions } from '../../../../Views/Snaps/components/SnapPermissions';
 
 const InstallSnapPermissionsRequest = ({
-  requestData,
+  approvalRequest,
   onConfirm,
   onCancel,
 }: InstallSnapFlowProps) => {
   const { styles } = useStyles(stylesheet, {});
   const snapName = useMemo(() => {
-    const colonIndex = requestData.snapId.indexOf(':');
+    const colonIndex = approvalRequest.requestData.snapId.indexOf(':');
     if (colonIndex !== -1) {
-      return requestData.snapId.substring(colonIndex + 1);
+      return approvalRequest.requestData.snapId.substring(colonIndex + 1);
     }
-    return requestData.snapId;
-  }, [requestData.snapId]);
+    return approvalRequest.requestData.snapId;
+  }, [approvalRequest.requestData.snapId]);
 
-  const dappOrigin = useMemo(
-    () => requestData.metadata.dappOrigin,
-    [requestData.metadata.dappOrigin],
+  const origin = useMemo(
+    () => approvalRequest.origin,
+    [approvalRequest.origin],
   );
 
   const cancelButtonProps: ButtonProps = {
@@ -80,13 +80,13 @@ const InstallSnapPermissionsRequest = ({
         />
         <Text style={styles.description} variant={TextVariant.BodyMD}>
           {strings('install_snap.permissions_request_description', {
-            origin: dappOrigin,
+            origin,
             snap: snapName,
           })}
         </Text>
         <ScrollView style={styles.snapPermissionContainer}>
           <SnapPermissions
-            permissions={requestData.permissions}
+            permissions={approvalRequest.requestState.permissions}
             showLabel={false}
           />
         </ScrollView>
@@ -101,4 +101,4 @@ const InstallSnapPermissionsRequest = ({
   );
 };
 
-export default InstallSnapPermissionsRequest;
+export default React.memo(InstallSnapPermissionsRequest);

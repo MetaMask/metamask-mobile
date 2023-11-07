@@ -7,31 +7,40 @@ import {
 } from '../../../../../../constants/test-ids';
 
 describe('InstallSnapSuccess', () => {
-  const requestData = {
-    metadata: {
-      id: 'uNadWHqPnwOM4NER3mERI',
-      origin: 'npm:@lavamoat/tss-snap',
-      dappOrigin: 'tss.ac',
+  const installSnapDataApprovalRequest = {
+    id: '-pRxqpl57ssM5nc31C9_9',
+    origin: 'tss.ac',
+    type: 'wallet_installSnap',
+    time: 1699045159224,
+    requestData: {
+      metadata: {
+        id: '-pRxqpl57ssM5nc31C9_9',
+        origin: 'npm:@lavamoat/tss-snap',
+        dappOrigin: 'tss.ac',
+      },
+      snapId: 'npm:@lavamoat/tss-snap',
     },
-    permissions: {
-      snap_manageState: {},
-      'endowment:rpc': {
-        caveats: [
-          {
-            type: 'rpcOrigin',
-            value: {
-              dapps: true,
-              snaps: true,
+    requestState: {
+      loading: false,
+      permissions: {
+        snap_manageState: {},
+        'endowment:rpc': {
+          caveats: [
+            {
+              type: 'rpcOrigin',
+              value: {
+                dapps: true,
+                snaps: true,
+              },
             },
-          },
-        ],
+          ],
+        },
       },
     },
-    snapId: 'npm:@lavamoat/tss-snap',
+    expectsResult: false,
   };
 
   const onConfirm = jest.fn();
-  const onCancel = jest.fn();
 
   afterEach(() => {
     jest.clearAllMocks();
@@ -40,9 +49,8 @@ describe('InstallSnapSuccess', () => {
   it('renders correctly', () => {
     const { getByTestId } = render(
       <InstallSnapSuccess
-        requestData={requestData}
+        approvalRequest={installSnapDataApprovalRequest}
         onConfirm={onConfirm}
-        onCancel={onCancel}
       />,
     );
 
@@ -52,9 +60,8 @@ describe('InstallSnapSuccess', () => {
   it('calls onConfirm when the OK button is pressed', () => {
     const { getByTestId } = render(
       <InstallSnapSuccess
-        requestData={requestData}
+        approvalRequest={installSnapDataApprovalRequest}
         onConfirm={onConfirm}
-        onCancel={onCancel}
       />,
     );
 
@@ -65,9 +72,8 @@ describe('InstallSnapSuccess', () => {
   it('displays the correct snap name', () => {
     const { getByText } = render(
       <InstallSnapSuccess
-        requestData={requestData}
+        approvalRequest={installSnapDataApprovalRequest}
         onConfirm={onConfirm}
-        onCancel={onCancel}
       />,
     );
 

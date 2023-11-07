@@ -8,27 +8,33 @@ import {
 } from '../../../../../../constants/test-ids';
 
 describe('InstallSnapConnectionRequest', () => {
-  const requestData = {
-    metadata: {
-      id: 'uNadWHqPnwOM4NER3mERI',
-      origin: 'npm:@lavamoat/tss-snap',
-      dappOrigin: 'tss.ac',
-    },
-    permissions: {
-      snap_manageState: {},
-      'endowment:rpc': {
-        caveats: [
-          {
-            type: 'rpcOrigin',
-            value: {
-              dapps: true,
-              snaps: true,
+  const requestPermissionsData = {
+    id: 'jUU9-fsMO1dkSAKdKxiK_',
+    origin: 'metamask.github.io',
+    type: 'wallet_requestPermissions',
+    time: 1699041698637,
+    requestData: {
+      metadata: {
+        id: 'jUU9-fsMO1dkSAKdKxiK_',
+        origin: 'metamask.github.io',
+      },
+      permissions: {
+        wallet_snap: {
+          caveats: [
+            {
+              type: 'snapIds',
+              value: {
+                'npm:@metamask/bip32-example-snap': {
+                  version: '1.0.0',
+                },
+              },
             },
-          },
-        ],
+          ],
+        },
       },
     },
-    snapId: 'npm:@lavamoat/tss-snap',
+    requestState: null,
+    expectsResult: false,
   };
 
   const onConfirm = jest.fn();
@@ -41,7 +47,7 @@ describe('InstallSnapConnectionRequest', () => {
   it('renders correctly', () => {
     const { getByTestId } = render(
       <InstallSnapConnectionRequest
-        requestData={requestData}
+        approvalRequest={requestPermissionsData}
         onConfirm={onConfirm}
         onCancel={onCancel}
       />,
@@ -52,7 +58,7 @@ describe('InstallSnapConnectionRequest', () => {
   it('calls onConfirm when the connect button is pressed', () => {
     const { getByTestId } = render(
       <InstallSnapConnectionRequest
-        requestData={requestData}
+        approvalRequest={requestPermissionsData}
         onConfirm={onConfirm}
         onCancel={onCancel}
       />,
@@ -65,7 +71,7 @@ describe('InstallSnapConnectionRequest', () => {
   it('calls onCancel when the cancel button is pressed', () => {
     const { getByTestId } = render(
       <InstallSnapConnectionRequest
-        requestData={requestData}
+        approvalRequest={requestPermissionsData}
         onConfirm={onConfirm}
         onCancel={onCancel}
       />,
@@ -78,13 +84,13 @@ describe('InstallSnapConnectionRequest', () => {
   it('correctly prefixes dappOrigin with protocol', () => {
     const { getByText } = render(
       <InstallSnapConnectionRequest
-        requestData={requestData}
+        approvalRequest={requestPermissionsData}
         onConfirm={onConfirm}
         onCancel={onCancel}
       />,
     );
 
-    const expectedUrl = 'https://tss.ac';
+    const expectedUrl = 'https://metamask.github.io';
     expect(getByText(expectedUrl)).toBeTruthy();
   });
 });

@@ -1,6 +1,6 @@
 import React, { useMemo } from 'react';
 import { ImageSourcePropType, View } from 'react-native';
-import { InstallSnapFlowProps } from '../../InstallSnapApprovalFlow.types';
+import { InstallSnapFlowProps } from '../../InstallSnapApproval.types';
 import styleSheet from './InstallSnapConnectionRequest.styles';
 import { strings } from '../../../../../../locales/i18n';
 import {
@@ -30,38 +30,41 @@ import { ButtonProps } from '../../../../../component-library/components/Buttons
 import { useStyles } from '../../../../hooks/useStyles';
 
 const InstallSnapConnectionRequest = ({
-  requestData,
+  approvalRequest,
   onConfirm,
   onCancel,
-}: InstallSnapFlowProps) => {
+}: Pick<
+  InstallSnapFlowProps,
+  'approvalRequest' | 'onConfirm' | 'onCancel'
+>) => {
   const { styles } = useStyles(styleSheet, {});
 
-  const snapName = useMemo(() => {
-    const colonIndex = requestData.snapId.indexOf(':');
-    if (colonIndex !== -1) {
-      return requestData.snapId.substring(colonIndex + 1);
-    }
-    return requestData.snapId;
-  }, [requestData.snapId]);
+  const snapName: string | null =
+    Object.keys(
+      approvalRequest?.requestData?.permissions?.wallet_snap?.caveats?.find(
+        (c: { type: string; value: Record<string, any> }) =>
+          c.type === 'snapIds',
+      )?.value ?? {},
+    )[0] || null;
 
-  const dappOrigin = useMemo(
-    () => requestData.metadata.dappOrigin,
-    [requestData.metadata.dappOrigin],
+  const origin = useMemo(
+    () => approvalRequest.origin,
+    [approvalRequest.origin],
   );
 
   const favicon: ImageSourcePropType = useMemo(() => {
-    const iconUrl = `https://api.faviconkit.com/${dappOrigin}/50`;
+    const iconUrl = `https://api.faviconkit.com/${origin}/50`;
     return { uri: iconUrl };
-  }, [dappOrigin]);
+  }, [origin]);
 
-  const urlWithProtocol = prefixUrlWithProtocol(dappOrigin);
+  const urlWithProtocol = prefixUrlWithProtocol(origin);
 
   const secureIcon = useMemo(
     () =>
-      (getUrlObj(dappOrigin) as URL).protocol === 'https:'
+      getUrlObj(origin).protocol === 'https:'
         ? IconName.Lock
         : IconName.LockSlash,
-    [dappOrigin],
+    [origin],
   );
 
   const cancelButtonProps: ButtonProps = {
@@ -91,14 +94,14 @@ const InstallSnapConnectionRequest = ({
         <SheetHeader title={strings('install_snap.title')} />
         <Text style={styles.description} variant={TextVariant.BodyMD}>
           {strings('install_snap.description', {
-            origin: dappOrigin,
+            origin,
             snap: snapName,
           })}
         </Text>
         <Cell
           style={styles.snapCell}
           variant={CellVariant.Display}
-          title={snapName}
+          title={snapName ?? ''}
           avatarProps={{
             variant: AvatarVariants.Icon,
             name: IconName.Snaps,
@@ -115,4 +118,4 @@ const InstallSnapConnectionRequest = ({
   );
 };
 
-export default InstallSnapConnectionRequest;
+export default React.memo(InstallSnapConnectionRequest);

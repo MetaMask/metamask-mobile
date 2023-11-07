@@ -13,7 +13,7 @@ import Engine from '../../../../core/Engine';
 import { createNavigationDetails } from '../../../../util/navigation/navUtils';
 import Routes from '../../../../constants/navigation/Routes';
 import { strings } from '../../../../../locales/i18n';
-import { Snap } from '@metamask/snaps-utils';
+import { RequestedSnapPermissions, Snap } from '@metamask/snaps-utils';
 import { useStyles } from '../../../../component-library/hooks';
 import stylesheet from './SnapsSettingsList.styles';
 
@@ -22,7 +22,7 @@ const testSnaps = {
   iOSLocalHelloWorldSnap: 'local:http://localhost:3000/helloworldsnap/',
   androidLocalSnap: 'local:http://10.0.2.2:3000/snap/',
   starknetSnap: 'npm:@consensys/starknet-snap',
-  filSnap: 'npm:@chainsafe/filsnap',
+  filSnap: 'npm:filsnap',
 };
 
 export const createSnapsSettingsListNavDetails = createNavigationDetails(
@@ -61,11 +61,8 @@ const SnapsSettingsList = () => {
     const { SnapController } = Engine.context as any;
     let message: string;
     try {
-      const result = await SnapController.processRequestedSnap(
-        origin,
-        snapId,
-        '',
-      );
+      const requestedSnap: RequestedSnapPermissions = { [snapId]: {} };
+      const result = await SnapController.installSnaps(origin, requestedSnap);
       if (result.error) {
         message = installFailedMsg(snapId, result.error);
       } else {
