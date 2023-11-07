@@ -1,5 +1,5 @@
+/* eslint-disable react/prop-types */
 import React, { useState } from 'react';
-import PropTypes from 'prop-types';
 import { Linking } from 'react-native';
 import { strings } from '../../../../locales/i18n';
 import { CommonSelectorsIDs } from '../../../../e2e/selectors/Common.selectors';
@@ -134,13 +134,6 @@ const NetworkVerificationInfo = ({
       {renderNetworkInfo()}
     </ScrollView>
   );
-};
-
-NetworkVerificationInfo.propTypes = {
-  /**
-   * Object containing info of the network to add
-   */
-  customNetworkInformation: PropTypes.object,
 };
 
 export default NetworkVerificationInfo;
