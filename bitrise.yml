@@ -145,7 +145,7 @@ workflows:
                   asdf info
                   node -v                 
                 fi
-          title: Manually install set node and install yarn for Linux Machines
+          title: Manually install set node and install yarn android workflows
       - yarn@0:
           inputs:
             - command: setup
