@@ -30,6 +30,7 @@ import {
   selectProviderConfig,
 } from '../../../../../../selectors/networkController';
 import { RootState } from '../../../../../../reducers';
+import { FIAT_ORDER_STATES } from '../../../../../../constants/on-ramp';
 
 interface OrderDetailsParams {
   orderId?: string;
@@ -136,25 +137,36 @@ const OrderDetails = () => {
         </ScreenLayout.Body>
         <ScreenLayout.Footer>
           <ScreenLayout.Content>
-            {order.orderType === OrderOrderTypeEnum.Sell ? (
+            {order.orderType === OrderOrderTypeEnum.Sell &&
+            !order.sellTxHash &&
+            order.state === FIAT_ORDER_STATES.CREATED ? (
               <Row>
                 <StyledButton
-                  type="normal"
+                  type="confirm"
                   onPress={() => {
                     navigation.navigate(Routes.RAMP.SEND_TRANSACTION, {
                       orderId: order.id,
                     });
                   }}
                 >
-                  [placeholder] Send Transaction
+                  {strings(
+                    'fiat_on_ramp_aggregator.order_details.continue_order',
+                  )}
                 </StyledButton>
               </Row>
             ) : null}
-            <StyledButton type="confirm" onPress={handleMakeAnotherPurchase}>
-              {strings(
-                'fiat_on_ramp_aggregator.order_details.another_purchase',
+
+            {order.state !== FIAT_ORDER_STATES.CREATED &&
+              order.state !== FIAT_ORDER_STATES.PENDING && (
+                <StyledButton
+                  type="confirm"
+                  onPress={handleMakeAnotherPurchase}
+                >
+                  {strings(
+                    'fiat_on_ramp_aggregator.order_details.start_new_order',
+                  )}
+                </StyledButton>
               )}
-            </StyledButton>
           </ScreenLayout.Content>
         </ScreenLayout.Footer>
       </ScrollView>
