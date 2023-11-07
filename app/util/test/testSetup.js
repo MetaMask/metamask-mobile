@@ -5,6 +5,8 @@ import mockClipboard from '@react-native-clipboard/clipboard/jest/clipboard-mock
 import { mockTheme } from '../theme';
 import Adapter from 'enzyme-adapter-react-16';
 import Enzyme from 'enzyme';
+import { SegmentClient } from '@segment/analytics-react-native';
+import { ISegmentClient } from '../../core/Analytics/MetaMetrics.types';
 
 Enzyme.configure({ adapter: new Adapter() });
 
@@ -209,13 +211,23 @@ jest.mock('../theme', () => ({
   useAppThemeFromContext: () => ({ ...mockTheme }),
 }));
 
-jest.mock('@segment/analytics-react-native', () => ({
-  ...jest.requireActual('@segment/analytics-react-native'),
-  createClient: () => ({
-    identify: jest.fn(),
+global.segmentMockClient = null;
+
+const initializeMockClient = () => {
+  global.segmentMockClient = {
+    screen: jest.fn(),
     track: jest.fn(),
+    identify: jest.fn(),
+    flush: jest.fn(),
     group: jest.fn(),
-  }),
+    alias: jest.fn(),
+    reset: jest.fn(),
+  };
+  return global.segmentMockClient;
+};
+
+jest.mock('@segment/analytics-react-native', () => ({
+  createClient: jest.fn(() => initializeMockClient()),
 }));
 
 jest.mock('react-native-push-notification', () => ({

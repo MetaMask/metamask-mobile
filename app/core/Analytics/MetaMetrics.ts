@@ -1,55 +1,43 @@
 import {
   createClient,
+  GroupTraits,
   JsonMap,
   UserTraits,
-  GroupTraits,
 } from '@segment/analytics-react-native';
 import axios from 'axios';
 import DefaultPreference from 'react-native-default-preference';
 import Logger from '../../util/Logger';
 import {
   AGREED,
-  DENIED,
-  METRICS_OPT_IN,
-  METAMETRICS_ID,
   ANALYTICS_DATA_DELETION_DATE,
+  DENIED,
+  METAMETRICS_ID,
   METAMETRICS_SEGMENT_REGULATION_ID,
+  METRICS_OPT_IN,
 } from '../../constants/storage';
 
 import {
+  DataDeleteResponseStatus,
   IMetaMetrics,
   ISegmentClient,
-  DataDeleteResponseStatus,
 } from './MetaMetrics.types';
 import {
   METAMETRICS_ANONYMOUS_ID,
   SEGMENT_REGULATIONS_ENDPOINT,
 } from './MetaMetrics.constants';
-import { generateMetametricsId } from '../../util/metrics';
+import generateMetametricsId from '../../util/metrics/MetaMetricsId';
 
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
 class MetaMetrics implements IMetaMetrics {
   // Singleton instance
-  static #instance: MetaMetrics;
+  private static instance: MetaMetrics | null;
 
-  #metametricsId: string | undefined;
-  #segmentClient: ISegmentClient;
-  #enabled: boolean = false;
+  private metametricsId: string | undefined;
+  private segmentClient: ISegmentClient | undefined;
+  private enabled = false; // default to disabled
 
   constructor(segmentClient: ISegmentClient) {
-    this.#segmentClient = segmentClient;
-    // get the user metrics preference when initializing the class
-    this.#isMetaMetricsEnabled()
-      .then((enabled) => (this.#enabled = enabled))
-      .catch(async (e) => {
-        await Logger.error(e, 'Error getting MetaMetrics user preference');
-      });
-    // get the user unique id when initializing the class
-    this.#getMetaMetricsId()
-      .then((id) => (this.#metametricsId = id))
-      .catch(async (e) => {
-        await Logger.error(e, 'Error getting MetaMetrics ID');
-      });
+    this.segmentClient = segmentClient;
   }
 
   /**
@@ -59,10 +47,11 @@ class MetaMetrics implements IMetaMetrics {
    * @returns Promise containing the enabled state.
    */
   #isMetaMetricsEnabled = async (): Promise<boolean> => {
-    this.#enabled = AGREED === (await DefaultPreference.get(METRICS_OPT_IN));
+    const enabledPref = await DefaultPreference.get(METRICS_OPT_IN);
+    this.enabled = AGREED === enabledPref;
     if (__DEV__)
-      Logger.log(`Current MetaMatrics enable state: ${this.#enabled}`);
-    return this.#enabled;
+      Logger.log(`Current MetaMatrics enable state: ${this.enabled}`);
+    return this.enabled;
   };
 
   /**
@@ -75,13 +64,18 @@ class MetaMetrics implements IMetaMetrics {
     // Important: this ID is used to identify the user in Segment and should be kept in
     // preferences: no reset. If user later anables MetaMetrics,
     // this same ID should be retrieved from preferences and reused.
-    this.#metametricsId = await DefaultPreference.get(METAMETRICS_ID);
-    if (!this.#metametricsId) {
-      this.#metametricsId = generateMetametricsId();
-      await DefaultPreference.set(METAMETRICS_ID, this.#metametricsId);
+    this.metametricsId = await DefaultPreference.get(METAMETRICS_ID);
+    if (!this.metametricsId) {
+      this.metametricsId = generateMetametricsId();
+      await DefaultPreference.set(METAMETRICS_ID, this.metametricsId);
     }
-    if (__DEV__) Logger.log(`Current MetaMatrics ID: ${this.#metametricsId}`);
-    return this.#metametricsId;
+    if (__DEV__) Logger.log(`Current MetaMatrics ID: ${this.metametricsId}`);
+    return this.metametricsId;
+  };
+
+  #resetMetaMetricsId = async (): Promise<void> => {
+    await DefaultPreference.set(METAMETRICS_ID, '');
+    this.metametricsId = await this.#getMetaMetricsId();
   };
 
   /**
@@ -92,7 +86,7 @@ class MetaMetrics implements IMetaMetrics {
    * @param userTraits - Object containing user relevant traits or properties (optional).
    */
   #identify = (userTraits: UserTraits): void => {
-    this.#segmentClient.identify(this.#metametricsId, userTraits);
+    this.segmentClient?.identify(this.metametricsId, userTraits);
   };
 
   /**
@@ -104,7 +98,7 @@ class MetaMetrics implements IMetaMetrics {
    * @param groupTraits - Object containing group relevant traits or properties (optional).
    */
   #group = (groupId: string, groupTraits?: GroupTraits): void => {
-    this.#segmentClient.group(groupId, groupTraits);
+    this.segmentClient?.group(groupId, groupTraits);
   };
 
   /**
@@ -124,17 +118,17 @@ class MetaMetrics implements IMetaMetrics {
     if (anonymously) {
       // If the tracking is anonymous, do not send user specific ID
       // use the default METAMETRICS_ANONYMOUS_ID.
-      this.#segmentClient.track(
+      this.segmentClient?.track(
         event,
         properties,
         undefined,
         METAMETRICS_ANONYMOUS_ID,
       );
     } else {
-      this.#segmentClient.track(
+      this.segmentClient?.track(
         event,
         properties,
-        this.#metametricsId,
+        this.metametricsId,
         METAMETRICS_ANONYMOUS_ID,
       );
     }
@@ -145,20 +139,16 @@ class MetaMetrics implements IMetaMetrics {
    * https://segment.com/docs/connections/sources/catalog/libraries/mobile/react-native/#reset
    */
   #reset = (): void => {
-    // TODO - check if this is the correct way to reset the user and if we have to also reset when non anonyous ID is available
-    this.#segmentClient.reset(METAMETRICS_ANONYMOUS_ID);
+    this.segmentClient?.reset(METAMETRICS_ANONYMOUS_ID);
   };
 
   /**
    * update the user analytics preference and
    * store in DefaultPreference.
    */
-  #storeMetricsOptInPreference = async () => {
+  #storeMetricsOptInPreference = async (enabled: boolean) => {
     try {
-      await DefaultPreference.set(
-        METRICS_OPT_IN,
-        this.#enabled ? AGREED : DENIED,
-      );
+      await DefaultPreference.set(METRICS_OPT_IN, enabled ? AGREED : DENIED);
     } catch (e: any) {
       const errorMsg = 'Error storing Metrics OptIn flag in user preferences';
       Logger.error(e, errorMsg);
@@ -216,7 +206,7 @@ class MetaMetrics implements IMetaMetrics {
         data: JSON.stringify({
           regulationType,
           subjectType: 'USER_ID',
-          subjectIds: [this.#metametricsId],
+          subjectIds: [this.metametricsId],
         }),
       });
       const { result, status } = response as any;
@@ -235,58 +225,67 @@ class MetaMetrics implements IMetaMetrics {
     }
   };
 
-  static getInstance(client?: any): IMetaMetrics {
-    if (!MetaMetrics.#instance) {
-      // This central client manages all the tracking events
-      if (!client) {
-        const segmentClient = createClient({
-          writeKey: (__DEV__
-            ? process.env.SEGMENT_DEV_KEY
-            : process.env.SEGMENT_PROD_KEY) as string,
-          debug: __DEV__,
-          proxy: __DEV__
-            ? process.env.SEGMENT_DEV_PROXY_KEY
-            : process.env.SEGMENT_PROD_PROXY_KEY,
-        });
-        client = segmentClient;
-      }
-      MetaMetrics.#instance = new MetaMetrics(client);
+  static async getInstance(): Promise<IMetaMetrics> {
+    if (!this.instance) {
+      const config = {
+        writeKey: (__DEV__
+          ? process.env.SEGMENT_DEV_KEY
+          : process.env.SEGMENT_PROD_KEY) as string,
+        debug: __DEV__,
+        proxy: __DEV__
+          ? process.env.SEGMENT_DEV_PROXY_KEY
+          : process.env.SEGMENT_PROD_PROXY_KEY,
+      };
+      this.instance = new MetaMetrics(createClient(config));
+      // get the user metrics preference when initializing
+      this.instance.enabled = await this.instance.#isMetaMetricsEnabled();
+      // get the user unique id when initializing
+      this.instance.metametricsId = await this.instance.#getMetaMetricsId();
     }
-    return MetaMetrics.#instance;
+    return this.instance;
   }
 
-  enable(enable: boolean): void {
-    this.#enabled = enable;
-    this.#storeMetricsOptInPreference();
+  static resetInstance(): void {
+    MetaMetrics.instance = null;
   }
 
-  isEnabled(): boolean {
-    return this.#enabled;
+  async enable(enable = true): Promise<void> {
+    this.enabled = enable;
+    await this.#storeMetricsOptInPreference(this.enabled);
+  }
+
+  isEnabled() {
+    return this.enabled;
   }
 
   addTraitsToUser(userTraits: UserTraits): void {
-    this.#identify(userTraits);
+    if (this.enabled) {
+      this.#identify(userTraits);
+    }
   }
 
   group(groupId: string, groupTraits?: GroupTraits): void {
-    this.#group(groupId, groupTraits);
+    if (this.enabled) {
+      this.#group(groupId, groupTraits);
+    }
   }
 
   trackAnonymousEvent(event: string, properties: JsonMap = {}): void {
-    if (this.#enabled) {
+    if (this.enabled) {
       this.#trackEvent(event, true, properties);
       this.#trackEvent(event, false, {});
     }
   }
 
   trackEvent(event: string, properties: JsonMap = {}): void {
-    if (this.#enabled) {
+    if (this.enabled) {
       this.#trackEvent(event, false, properties);
     }
   }
 
-  reset(): void {
+  async reset(): Promise<void> {
     this.#reset();
+    await this.#resetMetaMetricsId();
   }
 
   createSegmentDeleteRegulation = (): Promise<{
@@ -295,37 +294,4 @@ class MetaMetrics implements IMetaMetrics {
   }> => this.#createSegmentDeleteRegulation();
 }
 
-let instance: IMetaMetrics;
-
-export default {
-  /**
-   * Initializes the MetaMetrics instance.
-   * @param client - Segment client instance.
-   */
-  init: (client: ISegmentClient) => {
-    if (!instance) {
-      instance = MetaMetrics.getInstance(client);
-    }
-    return instance;
-  },
-  enable: (enable: boolean = true) => {
-    instance?.enable(enable);
-  },
-  trackEvent: (event: string, properties: JsonMap = {}) => {
-    instance?.trackEvent(event, properties);
-  },
-  trackAnonymousEvent: (event: string, properties: JsonMap = {}) =>
-    instance?.trackAnonymousEvent(event, properties),
-  group: (groupId: string, groupTraits?: GroupTraits) => {
-    instance?.group(groupId, groupTraits);
-  },
-  reset: () => {
-    instance?.reset();
-  },
-  createSegmentDeleteRegulation: () => {
-    instance?.createSegmentDeleteRegulation();
-  },
-  addTraitsToUser: (userTraits: UserTraits) => {
-    instance?.addTraitsToUser(userTraits);
-  },
-};
+export default MetaMetrics;

@@ -1,7 +1,7 @@
 import { bufferToHex, keccak } from 'ethereumjs-util';
 
-export const generateMetametricsId = () => {
-  return bufferToHex(
+const generateMetametricsId = () =>
+  bufferToHex(
     keccak(
       Buffer.from(
         String(Date.now()) +
@@ -9,4 +9,5 @@ export const generateMetametricsId = () => {
       ),
     ),
   );
-};
+
+export default generateMetametricsId;

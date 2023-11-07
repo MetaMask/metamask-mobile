@@ -17,11 +17,14 @@ export interface ISegmentClient {
     anonymousId?: string,
   ) => void;
   // identify an user with ID and traits
-  identify: (userId?: string, userTraits?: UserTraits) => void;
+  identify: (userId?: string, userTraits?: UserTraits) => Promise<void>;
   // add a user to a specific group
-  group: (groupId: string, groupTraits?: GroupTraits) => void;
+  group: (groupId: string, groupTraits?: GroupTraits) => Promise<void>;
   // clear the internal state of the library for the current user and group.
-  reset(anonymousId: string): void;
+  screen: (name: string, properties?: JsonMap) => Promise<void>;
+  flush: () => Promise<void>;
+  alias: (newUserId: string) => Promise<void>;
+  reset: (anonymousId: string) => Promise<void>;
 }
 
 /**
@@ -36,7 +39,7 @@ export interface IMetaMetrics {
    * Enable or disable data tracking
    * @param enable
    */
-  enable(enable?: boolean): void;
+  enable(enable?: boolean): Promise<void>;
   /**
    * add traits to an user
    * @param userTraits
@@ -63,7 +66,7 @@ export interface IMetaMetrics {
   /**
    * clear the internal state of the library for the current user and group.
    */
-  reset(): void;
+  reset(): Promise<void>;
   /**
    * create a new method to suppress and
    * delete user's data from Segment and all related

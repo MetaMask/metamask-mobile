@@ -1,4 +1,4 @@
-import { generateMetametricsId } from './metametricsId'; // replace with your actual file path
+import generateMetametricsId from './';
 
 describe('generateMetametricsId', () => {
   const originalRandom = Math.random;

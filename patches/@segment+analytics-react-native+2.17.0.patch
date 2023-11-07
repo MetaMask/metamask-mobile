@@ -1,9 +1,9 @@
 diff --git a/node_modules/@segment/analytics-react-native/lib/typescript/src/analytics.d.ts b/node_modules/@segment/analytics-react-native/lib/typescript/src/analytics.d.ts
-index 3191cbd..c652193 100644
+index 4ee3741..c0481ce 100644
 --- a/node_modules/@segment/analytics-react-native/lib/typescript/src/analytics.d.ts
 +++ b/node_modules/@segment/analytics-react-native/lib/typescript/src/analytics.d.ts
-@@ -132,7 +132,7 @@ export declare class SegmentClient {
-     private onStorageReady;
+@@ -139,7 +139,7 @@ export declare class SegmentClient {
+     private onReady;
      flush(): Promise<void>;
      screen(name: string, options?: JsonMap): Promise<void>;
 -    track(eventName: string, options?: JsonMap): Promise<void>;
@@ -11,22 +11,31 @@ index 3191cbd..c652193 100644
      identify(userId?: string, userTraits?: UserTraits): Promise<void>;
      group(groupId: string, groupTraits?: GroupTraits): Promise<void>;
      alias(newUserId: string): Promise<void>;
+@@ -167,7 +167,7 @@ export declare class SegmentClient {
+      * @param nextAppState 'active', 'inactive', 'background' or 'unknown'
+      */
+     private handleAppStateChange;
+-    reset(resetAnonymousId?: boolean): Promise<void>;
++    reset(anonymousId: string): Promise<void>;
+     /**
+      * Registers a callback for each plugin that gets added to the analytics client.
+      * @param callback Function to call
 diff --git a/node_modules/@segment/analytics-react-native/src/analytics.ts b/node_modules/@segment/analytics-react-native/src/analytics.ts
-index 4229c6a..83882e2 100644
+index 79cc609..6cd0456 100644
 --- a/node_modules/@segment/analytics-react-native/src/analytics.ts
 +++ b/node_modules/@segment/analytics-react-native/src/analytics.ts
-@@ -383,8 +383,8 @@ export class SegmentClient {
+@@ -412,8 +412,8 @@ export class SegmentClient {
      this.timeline.remove(plugin);
    }
  
 -  async process(incomingEvent: SegmentEvent) {
--    const event = applyRawEventData(incomingEvent);
+-    const event = this.applyRawEventData(incomingEvent);
 +  async process(incomingEvent: SegmentEvent, timestamp?: string) {
-+    const event = applyRawEventData(incomingEvent, timestamp);
-     if (this.store.isReady.get() === true) {
-       this.flushPolicyExecuter.notify(event);
-       return this.timeline.process(event);
-@@ -476,10 +476,12 @@ export class SegmentClient {
++    const event = this.applyRawEventData(incomingEvent, timestamp);
+ 
+     if (this.isReady.value) {
+       return this.startTimelineProcessing(event);
+@@ -529,10 +529,12 @@ export class SegmentClient {
      this.logger.info('SCREEN event saved', event);
    }
  
@@ -40,52 +49,52 @@ index 4229c6a..83882e2 100644
      });
  
      await this.process(event);
-@@ -517,8 +519,11 @@ export class SegmentClient {
+@@ -569,9 +571,11 @@ export class SegmentClient {
+       userId: previousUserId,
        newUserId,
      });
++    const newTimestamp = new Date();
++    newTimestamp.setSeconds(newTimestamp.getSeconds() - 1);
  
 -    await this.process(event);
 -    this.logger.info('ALIAS event saved', event);
-+    const newTimestamp = new Date();  
-+    newTimestamp.setSeconds(newTimestamp.getSeconds() - 1);
-+
 +    await this.process(event, newTimestamp.toISOString());
 +    this.logger.info('ALIAS event saved', event, 'with timestamp', newTimestamp);
    }
  
    /**
-@@ -629,12 +634,7 @@ export class SegmentClient {
+@@ -676,11 +680,8 @@ export class SegmentClient {
      this.appState = nextAppState;
    }
  
--  reset(resetAnonymousId: boolean = true) {
--    const anonymousId =
--      resetAnonymousId === true
--        ? getUUID()
--        : this.store.userInfo.get().anonymousId;
+-  async reset(resetAnonymousId = true) {
++  async reset(anonymousId: string) {
+     try {
+-      const { anonymousId: currentId } = await this.store.userInfo.get(true);
+-      const anonymousId = resetAnonymousId === true ? getUUID() : currentId;
 -
-+  reset(anonymousId: string) {
-     this.store.userInfo.set({
-       anonymousId,
-       userId: undefined,
-diff --git a/node_modules/@segment/analytics-react-native/src/api.ts b/node_modules/@segment/analytics-react-native/src/api.ts
-index 04535b5..9fcb056 100644
---- a/node_modules/@segment/analytics-react-native/src/api.ts
-+++ b/node_modules/@segment/analytics-react-native/src/api.ts
-@@ -17,7 +17,7 @@ export const uploadEvents = async ({
-       writeKey: writeKey,
-     }),
-     headers: {
--      'Content-Type': 'text/plain',
-+      'Content-Type': process.env.SEGMENT_API_CONTENT_TYPE || 'text/plain',
-     },
-   });
- };
+       await this.store.userInfo.set({
+         anonymousId,
+         userId: undefined,
+@@ -791,11 +792,11 @@ export class SegmentClient {
+    * @param event Segment Event
+    * @returns event with data injected
+    */
+-  private applyRawEventData = (event: SegmentEvent): SegmentEvent => {
++  private applyRawEventData = (event: SegmentEvent, timestamp: string = new Date().toISOString()): SegmentEvent => {
+     return {
+       ...event,
+       messageId: getUUID(),
+-      timestamp: new Date().toISOString(),
++      timestamp,
+       integrations: event.integrations ?? {},
+     } as SegmentEvent;
+   };
 diff --git a/node_modules/@segment/analytics-react-native/src/events.ts b/node_modules/@segment/analytics-react-native/src/events.ts
-index fe1a369..dc058ee 100644
+index dc43fdd..e9734df 100644
 --- a/node_modules/@segment/analytics-react-native/src/events.ts
 +++ b/node_modules/@segment/analytics-react-native/src/events.ts
-@@ -16,13 +16,19 @@ import {
+@@ -13,13 +13,19 @@ import {
  export const createTrackEvent = ({
    event,
    properties = {},
@@ -105,17 +114,3 @@ index fe1a369..dc058ee 100644
  });
  
  export const createScreenEvent = ({
-@@ -77,11 +83,11 @@ export const createAliasEvent = ({
-   previousId: userId || anonymousId,
- });
- 
--export const applyRawEventData = (event: SegmentEvent): SegmentEvent => {
-+export const applyRawEventData = (event: SegmentEvent, timestamp: string = new Date().toISOString()): SegmentEvent => {
-   return {
-     ...event,
-     messageId: getUUID(),
--    timestamp: new Date().toISOString(),
-+    timestamp,
-     integrations: event.integrations ?? {},
-   };
- };
