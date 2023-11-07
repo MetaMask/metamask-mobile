@@ -239,16 +239,23 @@ export class Connection extends EventEmitter2 {
       const keyringController = (
         Engine.context as { KeyringController: KeyringController }
       ).KeyringController;
-      waitForKeychainUnlocked({ keyringController }).then(() => {
-        setTimeout(() => {
-          if (this._loading) {
-            DevLogger.log(
-              `Connection::CLIENTS_CONNECTED auto-hide loading after 3s`,
-            );
-            this.setLoading(false);
-          }
-        }, 3000);
-      });
+      waitForKeychainUnlocked({ keyringController })
+        .then(() => {
+          setTimeout(() => {
+            if (this._loading) {
+              DevLogger.log(
+                `Connection::CLIENTS_CONNECTED auto-hide loading after 3s`,
+              );
+              this.setLoading(false);
+            }
+          }, 3000);
+        })
+        .catch((err) => {
+          Logger.log(
+            err,
+            `Connection::CLIENTS_CONNECTED error while waiting for keychain to be unlocked`,
+          );
+        });
     });
 
     this.remote.on(EventType.CLIENTS_DISCONNECTED, () => {
@@ -467,7 +474,10 @@ export class Connection extends EventEmitter2 {
         const keyringController = (
           Engine.context as { KeyringController: KeyringController }
         ).KeyringController;
-        await waitForKeychainUnlocked({ keyringController });
+        await waitForKeychainUnlocked({
+          keyringController,
+          context: 'connection::on_message',
+        });
 
         this.setLoading(false);
 
@@ -945,7 +955,7 @@ export class Connection extends EventEmitter2 {
     // handle multichain rpc call responses separately
     const chainRPCs = this.batchRPCManager.getById(msgId);
     if (chainRPCs) {
-      this.handleBatchRpcResponse({ chainRpcs: chainRPCs, msg });
+      await this.handleBatchRpcResponse({ chainRpcs: chainRPCs, msg });
       return;
     }
 
@@ -958,7 +968,7 @@ export class Connection extends EventEmitter2 {
     });
 
     DevLogger.log(
-      `Connection::sendMessage method=${method} id=${msgId} needsRedirect=${needsRedirect}`,
+      `Connection::sendMessage method=${method} id=${msgId} needsRedirect=${needsRedirect} origin=${this.origin}`,
     );
 
     if (!needsRedirect) {
@@ -970,12 +980,15 @@ export class Connection extends EventEmitter2 {
     if (this.origin === AppConstants.DEEPLINKS.ORIGIN_QR_CODE) return;
 
     try {
-      await waitForEmptyRPCQueue(this.rpcQueueManager);
       if (METHODS_TO_DELAY[method]) {
-        await wait(1000);
+        await wait(1200);
       }
-      this.setLoading(false);
+      await waitForEmptyRPCQueue(this.rpcQueueManager);
+      DevLogger.log(
+        `Connection::sendMessage method=${method} origin=${origin} id=${msgId} goBack()`,
+      );
 
+      await wait(100);
       Minimizer.goBack();
     } catch (err) {
       Logger.log(
