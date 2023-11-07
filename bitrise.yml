@@ -140,8 +140,10 @@ workflows:
           inputs:
             - content: |-
                 #!/usr/bin/env bash
-                 node -v 
-                 yarn setup
+                nvm version
+                nvm use 18.17.1
+                node -v 
+                yarn setup
           title: Node Version Print
       # - yarn@0:
       #     inputs:
