@@ -5,6 +5,7 @@ import extractEthJsErrorMessage from './extractEthJsErrorMessage';
 import DefaultPreference from 'react-native-default-preference';
 import { AGREED, METRICS_OPT_IN } from '../constants/storage';
 import { regex } from './regex';
+import Logger from './Logger';
 
 const METAMASK_ENVIRONMENT = process.env['METAMASK_ENVIRONMENT'] || 'local'; // eslint-disable-line dot-notation
 
@@ -158,7 +159,9 @@ export function setupSentry() {
       beforeBreadcrumb: (breadcrumb) => rewriteBreadcrumb(breadcrumb),
     });
   };
-  init();
+  init().catch((error) => {
+    Logger.error(error, 'Error initializing sentry');
+  });
 }
 
 // eslint-disable-next-line no-empty-function

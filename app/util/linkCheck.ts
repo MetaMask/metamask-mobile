@@ -2,6 +2,7 @@ import Url from 'url-parse';
 import isUrl from 'is-url';
 import { PhishingController as PhishingControllerClass } from '@metamask/phishing-controller';
 import Engine from '../core/Engine';
+import Logger from './Logger';
 const ALLOWED_PROTOCOLS = ['http:', 'https:'];
 const DENYLISTED_DOMAINS = ['metamask.app.link'];
 
@@ -12,7 +13,9 @@ const isAllowedHostname = (hostname: string): boolean => {
   const { PhishingController } = Engine.context as {
     PhishingController: PhishingControllerClass;
   };
-  PhishingController.maybeUpdateState();
+  PhishingController.maybeUpdateState().catch((error) => {
+    Logger.error(error, 'PhishingController maybeUpdateState error');
+  });
   const phishingControllerTestResult = PhishingController.test(hostname);
 
   return !(

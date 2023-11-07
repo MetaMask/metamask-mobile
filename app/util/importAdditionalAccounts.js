@@ -78,5 +78,7 @@ export default async () => {
     accounts = await KeyringController.getAccounts();
   }
 
-  updateIdentities(accounts);
+  updateIdentities(accounts).catch((error) => {
+    Logger.error(error);
+  });
 };
