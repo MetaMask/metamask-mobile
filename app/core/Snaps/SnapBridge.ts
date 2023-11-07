@@ -6,7 +6,7 @@ import { Duplex } from 'stream';
 import {
   createSwappableProxy,
   createEventEmitterProxy,
-} from 'swappable-obj-proxy';
+} from '@metamask/swappable-obj-proxy';
 import { JsonRpcEngine } from 'json-rpc-engine';
 import { createEngineStream } from 'json-rpc-middleware-stream';
 import { NetworksChainId } from '@metamask/controller-utils';
@@ -15,9 +15,9 @@ import Engine from '../Engine';
 import { setupMultiplex } from '../../util/streams';
 import Logger from '../../util/Logger';
 import { getAllNetworks } from '../../util/networks';
-import { createSnapMethodMiddleware } from './createSnapMethodMiddleware';
+import { createSnapsMethodMiddleware } from '@metamask/rpc-methods';
 
-const ObjectMultiplex = require('obj-multiplex');
+const ObjectMultiplex = require('@metamask/object-multiplex');
 const createFilterMiddleware = require('eth-json-rpc-filters');
 const createSubscriptionManager = require('eth-json-rpc-filters/subscriptionManager');
 const providerAsMiddleware = require('eth-json-rpc-middleware/providerAsMiddleware');
@@ -56,8 +56,8 @@ export default class SnapBridge {
 
     const { NetworkController } = Engine.context as any;
 
-    const provider = NetworkController.provider;
-    const blockTracker = provider._blockTracker;
+    const { provider, blockTracker } =
+      NetworkController.getProviderAndBlockTracker();
 
     this.#providerProxy = null;
     this.#blockTrackerProxy = null;
@@ -143,33 +143,22 @@ export default class SnapBridge {
     const { PermissionController } = context;
 
     engine.push(
-      createSnapMethodMiddleware(true, {
-        // getAppKey: async () =>
-        //   new Promise((resolve, reject) => {
-        //     resolve('mockAppKey');
-        //   }),
-        // getUnlockPromise: () => Promise.resolve(),
-
+      createSnapsMethodMiddleware(true, {
         getSnaps: controllerMessenger.call.bind(
           controllerMessenger,
           'SnapController:getPermitted',
           this.snapId,
         ),
 
-        requestPermissions: async (requestedPermissions: any) => {
-          const [approvedPermissions] =
-            await PermissionController.requestPermissions(
-              { origin: this.snapId },
-              requestedPermissions,
-            );
-
-          return Object.values(approvedPermissions);
-        },
+        requestPermissions: async (requestedPermissions) =>
+          await Engine.context.PermissionController.requestPermissions(
+            { origin },
+            requestedPermissions,
+          ),
         getPermissions: PermissionController.getPermissions.bind(
           PermissionController,
           this.snapId,
         ),
-        // getAccounts: (origin) => getPermittedAccounts(origin),
         installSnaps: controllerMessenger.call.bind(
           controllerMessenger,
           'SnapController:install',

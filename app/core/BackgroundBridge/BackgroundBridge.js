@@ -24,8 +24,7 @@ import {
   selectLegacyNetwork,
 } from '../../selectors/networkController';
 import { store } from '../../store';
-import { createSnapMethodMiddleware } from '../Snaps/createSnapMethodMiddleware';
-import { getPermittedAccounts } from '../Permissions';
+import { createSnapsMethodMiddleware } from '@metamask/rpc-methods';
 
 const createFilterMiddleware = require('eth-json-rpc-filters');
 const createSubscriptionManager = require('eth-json-rpc-filters/subscriptionManager');
@@ -321,31 +320,22 @@ export class BackgroundBridge extends EventEmitter {
     from extension https://github.dev/MetaMask/metamask-extension/blob/1d5e8a78400d7aaaf2b3cbdb30cff9399061df34/app/scripts/metamask-controller.js#L3830-L3861
     */
     engine.push(
-      createSnapMethodMiddleware(true, {
-        getAppKey: async () =>
-          new Promise((resolve, reject) => {
-            resolve('mockAppKey');
-          }),
+      createSnapsMethodMiddleware(true, {
         getUnlockPromise: () => Promise.resolve(),
         getSnaps: Engine.controllerMessenger.call.bind(
           Engine.controllerMessenger,
           'SnapController:getPermitted',
           origin,
         ),
-        requestPermissions: async (requestedPermissions) => {
-          const [approvedPermissions] =
-            await Engine.context.PermissionController.requestPermissions(
-              { origin },
-              requestedPermissions,
-            );
-
-          return Object.values(approvedPermissions);
-        },
+        requestPermissions: async (requestedPermissions) =>
+          await Engine.context.PermissionController.requestPermissions(
+            { origin },
+            requestedPermissions,
+          ),
         getPermissions: Engine.context.PermissionController.getPermissions.bind(
           Engine.context.PermissionController,
           origin,
         ),
-        getAccounts: (origin) => getPermittedAccounts(origin),
         installSnaps: Engine.controllerMessenger.call.bind(
           Engine.controllerMessenger,
           'SnapController:install',

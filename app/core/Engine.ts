@@ -76,11 +76,15 @@ import {
   PermissionControllerState,
   SubjectMetadataController,
   SubjectMetadataControllerState,
+  SubjectType,
 } from '@metamask/permission-controller';
 import SwapsController, { swapsUtils } from '@metamask/swaps-controller';
 import {
+  JsonSnapsRegistry,
   SnapController,
   SnapControllerState,
+  buildSnapEndowmentSpecifications,
+  buildSnapRestrictedMethodSpecifications,
 } from '@metamask/snaps-controllers';
 import { PPOMController } from '@metamask/ppom-validator';
 import { MetaMaskKeyring as QRHardwareKeyring } from '@keystonehq/metamask-airgapped-keyring';
@@ -114,8 +118,8 @@ import AnalyticsV2 from '../util/analyticsV2';
 import {
   SnapBridge,
   WebviewExecutionService,
-  buildSnapEndowmentSpecifications,
-  buildSnapRestrictedMethodSpecifications,
+  ExcludedSnapEndowments,
+  ExcludedSnapPermissions,
   detectSnapLocation,
   fetchFunction,
 } from './Snaps';
@@ -490,27 +494,11 @@ class Engine {
       return state === 'active';
     };
 
-    const getAppKeyForSubject = async (
-      subject: string,
-      requestedAccount: string,
-    ) => {
-      let account;
-
-      if (requestedAccount) {
-        account = requestedAccount;
-      } else {
-        [account] = await keyringController.getAccounts();
-      }
-      const appKey = await keyringController.exportAppKeyForAddress(
-        account,
-        subject,
-      );
-      return appKey;
-    };
-
     const getSnapPermissionSpecifications = () => ({
-      ...buildSnapEndowmentSpecifications(),
-      ...buildSnapRestrictedMethodSpecifications({
+      ...buildSnapEndowmentSpecifications(ExcludedSnapEndowments),
+      ...buildSnapRestrictedMethodSpecifications(ExcludedSnapPermissions, {
+        encrypt: encryptor.encrypt.bind(encryptor),
+        decrypt: encryptor.decrypt.bind(encryptor),
         clearSnapState: this.controllerMessenger.call.bind(
           this.controllerMessenger,
           'SnapController:clearSnapState',
@@ -533,12 +521,6 @@ class Engine {
           this.controllerMessenger,
           'SnapController:updateSnapState',
         ),
-        showConfirmation: (origin, confirmationData) =>
-          approvalController.addAndShowApprovalRequest({
-            origin,
-            type: 'snapConfirmation',
-            requestData: confirmationData,
-          }),
         showDialog: (origin, type, content, placeholder) =>
           approvalController.addAndShowApprovalRequest({
             origin,
@@ -565,6 +547,9 @@ class Engine {
           `${approvalController.name}:hasRequest`,
           `${approvalController.name}:acceptRequest`,
           `${approvalController.name}:rejectRequest`,
+          `SnapController:getPermitted`,
+          `SnapController:install`,
+          `SubjectMetadataController:getSubjectMetadata`,
         ],
       }),
       state: initialState.PermissionController,
@@ -624,6 +609,28 @@ class Engine {
       bridge.setupProviderConnection();
     };
 
+    // TODO - Require allow list for Main build and disable for flask builds. This value should be set by an env variable
+    // See Extension: https://github.com/MetaMask/metamask-extension/blob/8488e7a2bc809b1ecba51fbb87ca2c934419a261/app/scripts/metamask-controller.js#L1127
+    const requireAllowlist = false;
+
+    const snapsRegistryMessenger = this.controllerMessenger.getRestricted({
+      name: 'SnapsRegistry',
+      allowedEvents: [],
+      allowedActions: [],
+    });
+    const snapsRegistry = new JsonSnapsRegistry({
+      state: initialState.SnapsRegistry,
+      messenger: snapsRegistryMessenger,
+      refetchOnAllowlistMiss: requireAllowlist,
+      failOnUnavailableRegistry: requireAllowlist,
+      url: {
+        registry: 'https://acl.execution.consensys.io/latest/registry.json',
+        signature: 'https://acl.execution.consensys.io/latest/signature.json',
+      },
+      publicKey:
+        '0x025b65308f0f0fb8bc7f7ff87bfc296e0330eee5d3c1d1ee4a048b2fd6a86fa0a6',
+    });
+
     this.snapExecutionService = new WebviewExecutionService({
       // iframeUrl: new URL(
       //   'https://metamask.github.io/iframe-execution-environment/0.11.0',
@@ -640,6 +647,8 @@ class Engine {
         'ExecutionService:unhandledError',
         'ExecutionService:outboundRequest',
         'ExecutionService:outboundResponse',
+        'SnapController:snapInstalled',
+        'SnapController:snapUpdated',
       ],
       allowedActions: [
         `${approvalController.name}:addRequest`,
@@ -651,8 +660,15 @@ class Engine {
         `${permissionController.name}:revokeAllPermissions`,
         `${permissionController.name}:revokePermissions`,
         `${permissionController.name}:revokePermissionForAllSubjects`,
+        `${permissionController.name}:getSubjectNames`,
+        `${permissionController.name}:updateCaveat`,
+        `${approvalController.name}:addRequest`,
+        `${approvalController.name}:updateRequestState`,
         `${permissionController.name}:grantPermissions`,
         `${subjectMetadataController.name}:getSubjectMetadata`,
+        `${snapsRegistry.name}:get`,
+        `${snapsRegistry.name}:getMetadata`,
+        `${snapsRegistry.name}:update`,
         'ExecutionService:executeSnap',
         'ExecutionService:getRpcRequestHandler',
         'ExecutionService:terminateSnap',
@@ -664,9 +680,6 @@ class Engine {
     const snapController = new SnapController({
       environmentEndowmentPermissions: Object.values(EndowmentPermissions),
       featureFlags: { dappsCanUpdateSnaps: true },
-      // TO DO
-      getAppKey: async (subject, appKeyType) =>
-        getAppKeyForSubject(`${appKeyType}:${subject}`),
       checkBlockList: async (snapsToCheck) =>
         checkSnapsBlockList(snapsToCheck, SNAP_BLOCKLIST),
       state: initialState.SnapController || {},
@@ -678,8 +691,28 @@ class Engine {
           'TO DO: Create method to close all connections (Closes all connections for the given origin, and removes the references)',
         ),
       detectSnapLocation: (location, options) =>
-        detectSnapLocation(location, { ...options, fetch: fetchFunction }),
+        detectSnapLocation(location, {
+          ...options,
+          fetch: fetchFunction,
+        }),
     });
+
+    this.controllerMessenger.subscribe(
+      `${snapController.name}:snapAdded`,
+      (snap, svgIcon = null) => {
+        const {
+          manifest: { proposedName },
+          version,
+        } = snap;
+        subjectMetadataController.addSubjectMetadata({
+          subjectType: SubjectType.Snap,
+          name: proposedName,
+          origin: snap.id,
+          version,
+          svgIcon,
+        });
+      },
+    );
 
     const controllers = [
       keyringController,

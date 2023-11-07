@@ -1,10 +1,10 @@
 import React, { useMemo } from 'react';
 import { View } from 'react-native';
-import stylesheet from './InstallSnapError.styles';
+import stylesheet from './InstallSnapSuccess.styles';
 import { strings } from '../../../../../../locales/i18n';
 import {
-  SNAP_INSTALL_ERROR,
   SNAP_INSTALL_OK,
+  SNAP_INSTALL_SUCCESS,
 } from '../../../../../constants/test-ids';
 import SheetHeader from '../../../../../component-library/components/Sheet/SheetHeader';
 import Text, {
@@ -28,22 +28,21 @@ import BottomSheetFooter, {
 } from '../../../../../component-library/components/BottomSheets/BottomSheetFooter';
 import { ButtonProps } from '../../../../../component-library/components/Buttons/Button/Button.types';
 import { useStyles } from '../../../../hooks/useStyles';
-import { InstallSnapFlowProps } from '../../InstallSnapApprovalFlow.types';
+import { InstallSnapFlowProps } from '../../InstallSnapApproval.types';
 
-const InstallSnapError = ({
-  requestData,
+const InstallSnapSuccess = ({
+  approvalRequest,
   onConfirm,
-  error,
-}: InstallSnapFlowProps) => {
+}: Pick<InstallSnapFlowProps, 'approvalRequest' | 'onConfirm'>) => {
   const { styles } = useStyles(stylesheet, {});
 
   const snapName = useMemo(() => {
-    const colonIndex = requestData.snapId.indexOf(':');
+    const colonIndex = approvalRequest.requestData.snapId.indexOf(':');
     if (colonIndex !== -1) {
-      return requestData.snapId.substring(colonIndex + 1);
+      return approvalRequest.requestData.snapId.substring(colonIndex + 1);
     }
-    return requestData.snapId;
-  }, [requestData.snapId]);
+    return approvalRequest.requestData.snapId;
+  }, [approvalRequest.requestData.snapId]);
 
   const okButtonProps: ButtonProps = {
     variant: ButtonVariants.Primary,
@@ -53,14 +52,8 @@ const InstallSnapError = ({
     testID: SNAP_INSTALL_OK,
   };
 
-  const errorTitle = useMemo(
-    () =>
-      error?.message ? error?.message : strings('install_snap.error_title'),
-    [error],
-  );
-
   return (
-    <View testID={SNAP_INSTALL_ERROR} style={styles.root}>
+    <View testID={SNAP_INSTALL_SUCCESS} style={styles.root}>
       <View style={styles.accountCardWrapper}>
         <Cell
           style={styles.snapCell}
@@ -74,15 +67,15 @@ const InstallSnapError = ({
         <View style={styles.iconContainer}>
           <View style={styles.iconWrapper}>
             <Icon
-              name={IconName.Warning}
-              color={IconColor.Error}
+              name={IconName.Confirmation}
+              color={IconColor.Success}
               size={IconSize.Lg}
             />
           </View>
         </View>
-        <SheetHeader title={errorTitle} />
+        <SheetHeader title={strings('install_snap.installed')} />
         <Text style={styles.description} variant={TextVariant.BodyMD}>
-          {strings('install_snap.error_description', {
+          {strings('install_snap.install_successful', {
             snap: snapName,
           })}
         </Text>
@@ -97,4 +90,4 @@ const InstallSnapError = ({
   );
 };
 
-export default InstallSnapError;
+export default React.memo(InstallSnapSuccess);
