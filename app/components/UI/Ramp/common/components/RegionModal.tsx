@@ -22,7 +22,6 @@ import RegionAlert from './RegionAlert';
 import { RampType, Region, ScreenLocation } from '../types';
 import useAnalytics from '../hooks/useAnalytics';
 import createModalStyles from './modals/Modal.styles';
-import { useRampSDK } from '../sdk';
 
 // TODO: Convert into typescript and correctly type
 const ListItem = BaseListItem as any;
@@ -96,7 +95,7 @@ const RegionModal: React.FC<Props> = ({
   const list = useRef<FlatList<Region>>(null);
   const [searchString, setSearchString] = useState('');
   const [currentData, setCurrentData] = useState(data || []);
-  const { isBuy } = useRampSDK();
+  const isBuy = rampType === RampType.BUY;
 
   // local state variable to set the active view (countries vs. regions)
   const [activeView, setActiveView] = useState(RegionViewType.COUNTRY);
