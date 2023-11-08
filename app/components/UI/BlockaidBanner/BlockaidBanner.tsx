@@ -83,7 +83,7 @@ const BlockaidBanner = (bannerProps: BlockaidBannerProps) => {
     onToggleShowDetails,
     onContactUsClicked,
   } = bannerProps;
-  const { styles } = useStyles(styleSheet, { style });
+  const { styles, theme } = useStyles(styleSheet, { style });
   const [displayPositiveResponse, setDisplayPositiveResponse] = useState(false);
 
   useEffect(() => {
@@ -102,7 +102,12 @@ const BlockaidBanner = (bannerProps: BlockaidBannerProps) => {
         <BannerAlert
           severity={BannerAlertSeverity.Warning}
           title={strings('blockaid_banner.loading_title')}
-          startAccessory={<ActivityIndicator size="small" color="#F66A0A" />}
+          startAccessory={
+            <ActivityIndicator
+              size="small"
+              color={theme.colors.warning.default}
+            />
+          }
         >
           <Attribution styles={styles} />
         </BannerAlert>
