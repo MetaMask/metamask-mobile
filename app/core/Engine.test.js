@@ -43,9 +43,9 @@ describe('Engine', () => {
     const engine = Engine.init({});
     const backgroundState = engine.datamodel.state;
     // Replace phishing controller fallback config, as it bloats the test fixture too much
-    backgroundState.PhishingController.listState.allowlist = [];
-    backgroundState.PhishingController.listState.blocklist = [];
-    backgroundState.PhishingController.listState.fuzzylist = [];
+    backgroundState.PhishingController.phishingLists[0].allowlist = [];
+    backgroundState.PhishingController.phishingLists[0].blocklist = [];
+    backgroundState.PhishingController.phishingLists[0].fuzzylist = [];
     delete backgroundState.PPOMController.chainStatus['0x1'].lastVisited;
 
     expect(engine.datamodel.state).toStrictEqual(initialState);
