@@ -44,10 +44,11 @@ const validateRequest = async (req: any, transactionId?: string) => {
       !transactionId
     ) {
       securityAlertResponse = FailedResponse;
+    } else {
+      securityAlertResponse = await ppomController.usePPOM((ppom: any) =>
+        ppom.validateJsonRpc(req),
+      );
     }
-    securityAlertResponse = await ppomController.usePPOM((ppom: any) =>
-      ppom.validateJsonRpc(req),
-    );
   } catch (e) {
     Logger.log(`Error validating JSON RPC using PPOM: ${e}`);
   } finally {

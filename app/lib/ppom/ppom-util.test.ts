@@ -78,6 +78,12 @@ describe('validateResponse', () => {
     expect(Engine.context.PPOMController.usePPOM).toBeCalledTimes(0);
   });
 
+  it('should not validate transaction if method type is eth_sendTransaction and transactionid is not defined', async () => {
+    const spy = jest.spyOn(Engine.context.PPOMController, 'usePPOM');
+    await PPOMUtil.validateRequest(mockRequest);
+    expect(spy).toBeCalledTimes(0);
+  });
+
   it('should invoke PPOMController usePPOM if securityAlertsEnabled is true', async () => {
     await PPOMUtil.validateRequest(mockRequest, '123');
     expect(Engine.context.PPOMController.usePPOM).toBeCalledTimes(1);
@@ -87,12 +93,6 @@ describe('validateResponse', () => {
     const spy = jest.spyOn(TransactionActions, 'updateTransaction');
     await PPOMUtil.validateRequest(mockRequest, '123');
     expect(spy).toBeCalledTimes(1);
-  });
-
-  it('should not validate transaction if method type is eth_sendTransaction and transactionid is not defined', async () => {
-    const spy = jest.spyOn(Engine.context.PPOMController, 'usePPOM');
-    await PPOMUtil.validateRequest(mockRequest);
-    expect(spy).toBeCalledTimes(0);
   });
 
   it('should update signature requests with validation result', async () => {
