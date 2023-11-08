@@ -62,11 +62,7 @@ import {
 import Routes from '../../../../../../constants/navigation/Routes';
 import { formatAmount } from '../../../common/utils';
 import { createQuotesNavDetails } from '../Quotes/Quotes';
-import {
-  OffRampQuoteRequested,
-  OnRampQuoteRequested,
-  Region,
-} from '../../../common/types';
+import { Region, ScreenLocation } from '../../../common/types';
 import { useStyles } from '../../../../../../component-library/hooks';
 
 import styleSheet from './BuildQuote.styles';
@@ -422,21 +418,20 @@ const BuildQuote = () => {
         currency_source: currentFiatCurrency.symbol,
         currency_destination: selectedAsset.symbol,
         payment_method_id: selectedPaymentMethodId as string,
-        [isBuy ? 'chain_id_destination' : 'chain_id_source']: selectedChainId,
         amount: amountNumber,
-        location: 'Amount to Buy Screen',
+        location: 'Amount to Buy Screen' as ScreenLocation,
       };
 
       if (isBuy) {
-        trackEvent(
-          'ONRAMP_QUOTES_REQUESTED',
-          analyticsPayload as unknown as OnRampQuoteRequested,
-        );
+        trackEvent('ONRAMP_QUOTES_REQUESTED', {
+          ...analyticsPayload,
+          chain_id_destination: selectedChainId,
+        });
       } else {
-        trackEvent(
-          'OFFRAMP_QUOTES_REQUESTED',
-          analyticsPayload as unknown as OffRampQuoteRequested,
-        );
+        trackEvent('OFFRAMP_QUOTES_REQUESTED', {
+          ...analyticsPayload,
+          chain_id_source: selectedChainId,
+        });
       }
     }
   }, [

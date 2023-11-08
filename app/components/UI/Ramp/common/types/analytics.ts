@@ -1,5 +1,3 @@
-import { MetaMetricsEvents } from 'app/core/Analytics';
-
 export type ScreenLocation =
   | 'Amount to Buy Screen'
   | 'Amount to Sell Screen'
@@ -42,25 +40,25 @@ interface OfframpRegionSelected extends RampRegionSelected {
   is_unsupported_offramp?: boolean;
 }
 
-export interface RampRegionReset {
+interface RampRegionReset {
   location?: ScreenLocation;
 }
 
-export interface RampPaymentMethodSelected {
+interface RampPaymentMethodSelected {
   payment_method_id: string;
   available_payment_method_ids: string[];
   region?: string;
   location?: ScreenLocation;
 }
 
-export interface RampContinueToAmountClicked {
+interface RampContinueToAmountClicked {
   payment_method_id: string;
   available_payment_method_ids: string[];
   region: string;
   location: ScreenLocation;
 }
 
-export interface RampQuoteRequested {
+interface RampQuoteRequested {
   currency_source: string;
   currency_destination: string;
   payment_method_id: string;
@@ -68,15 +66,15 @@ export interface RampQuoteRequested {
   location: ScreenLocation;
 }
 
-export interface OnRampQuoteRequested extends RampQuoteRequested {
+interface OnRampQuoteRequested extends RampQuoteRequested {
   chain_id_destination: string;
 }
 
-export interface OffRampQuoteRequested extends RampQuoteRequested {
+interface OffRampQuoteRequested extends RampQuoteRequested {
   chain_id_source: string;
 }
 
-export interface RampCanceled {
+interface RampCanceled {
   location: ScreenLocation;
   results_count?: number;
 }
@@ -91,7 +89,7 @@ interface OfframpCanceled extends RampCanceled {
   provider_offramp?: string;
 }
 
-export interface RampQuotesReceived {
+interface RampQuotesReceived {
   amount: number;
   currency_source: string;
   currency_destination: string;
@@ -119,7 +117,7 @@ interface OffRampQuotesReceived extends RampQuotesReceived {
   provider_offramp_last?: string;
 }
 
-export interface RampProviderSelected {
+interface RampProviderSelected {
   refresh_count: number;
   quote_position: number;
   results_count: number;
@@ -143,14 +141,14 @@ interface OffRampProviderSelected extends RampProviderSelected {
   chain_id_source: string;
 }
 
-export interface OnRampProviderDetailsViewed {
+interface OnRampProviderDetailsViewed {
   provider_onramp: string;
 }
-export interface OffRampProviderDetailsViewed {
+interface OffRampProviderDetailsViewed {
   provider_offramp: string;
 }
 
-export interface RampDirectProviderClicked {
+interface RampDirectProviderClicked {
   region: string;
   currency_source: string;
   currency_destination: string;
@@ -166,7 +164,7 @@ interface OffRampDirectProviderClicked extends RampDirectProviderClicked {
   chain_id_source: string;
 }
 
-export interface RampPurchaseSubmitted {
+interface RampPurchaseSubmitted {
   payment_method_id: string;
   currency_source: string;
   currency_destination: string;
@@ -185,7 +183,7 @@ interface OffRampPurchaseSubmitted extends RampPurchaseSubmitted {
   provider_offramp: string;
   chain_id_source: string;
 }
-export interface RampPurchase {
+interface RampPurchase {
   amount: number;
   currency_source: string;
   currency_destination: string;
@@ -193,31 +191,31 @@ export interface RampPurchase {
   payment_method_id: string;
 }
 
-export interface RampPurchaseCompleted extends RampPurchase {
+interface RampPurchaseCompleted extends RampPurchase {
   total_fee: number;
   exchange_rate: number;
   gas_fee?: number;
   processing_fee?: number;
 }
 
-export interface OnRampPurchaseCompleted extends RampPurchaseCompleted {
+interface OnRampPurchaseCompleted extends RampPurchaseCompleted {
   crypto_out: number;
   chain_id_destination: string;
   provider_onramp: string;
 }
 
-export interface OffRampPurchaseCompleted extends RampPurchaseCompleted {
+interface OffRampPurchaseCompleted extends RampPurchaseCompleted {
   fiat_out: number;
   chain_id_source: string;
   provider_offramp: string;
 }
 
-export interface OnRampPurchaseFailed extends RampPurchase {
+interface OnRampPurchaseFailed extends RampPurchase {
   chain_id_destination: string;
   provider_onramp: string;
 }
 
-export interface OffRampPurchaseFailed extends RampPurchase {
+interface OffRampPurchaseFailed extends RampPurchase {
   chain_id_source: string;
   provider_offramp: string;
 }
@@ -225,7 +223,7 @@ export interface OffRampPurchaseFailed extends RampPurchase {
 export type OnRampPurchaseCanceled = OnRampPurchaseFailed;
 export type OffRampPurchaseCanceled = OffRampPurchaseFailed;
 
-export interface RampPurchaseDetailsViewed {
+interface RampPurchaseDetailsViewed {
   purchase_status: string;
   payment_method_id: string;
   currency_destination: string;
@@ -242,7 +240,7 @@ interface OffRampPurchaseDetailsViewed extends RampPurchaseDetailsViewed {
   chain_id_source: string;
 }
 
-export interface RampExternalLinkClicked {
+interface RampExternalLinkClicked {
   location: ScreenLocation;
   text:
     | 'Etherscan Transaction'
@@ -254,7 +252,7 @@ export interface RampExternalLinkClicked {
   url_domain: string;
 }
 
-export interface RampQuoteError {
+interface RampQuoteError {
   amount: number;
   currency_source: string;
   currency_destination: string;
@@ -271,7 +269,7 @@ interface OffRampQuoteError extends RampQuoteError {
   chain_id_source: string;
 }
 
-export interface RampError {
+interface RampError {
   location: ScreenLocation;
   message: string;
   payment_method_id?: string;
@@ -280,7 +278,7 @@ export interface RampError {
   currency_destination?: string;
 }
 
-export interface EventTypes {
+export interface AnalyticsEvents {
   BUY_BUTTON_CLICKED: BuyButtonClicked;
   SELL_BUTTON_CLICKED: SellButtonClicked;
 
@@ -340,9 +338,3 @@ export interface EventTypes {
 
   // after redirection events will go here
 }
-
-export type AnalyticsEvents = {
-  [K in keyof typeof MetaMetricsEvents]: K extends keyof EventTypes
-    ? EventTypes[K]
-    : never;
-};
