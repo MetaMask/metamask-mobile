@@ -1,5 +1,5 @@
 /* eslint-disable react/prop-types */
-import React, { useState } from 'react';
+import React, { useCallback, useState } from 'react';
 import { Linking } from 'react-native';
 import { strings } from '../../../../locales/i18n';
 import { CommonSelectorsIDs } from '../../../../e2e/selectors/Common.selectors';
@@ -89,33 +89,26 @@ const NetworkVerificationInfo = ({
   const openHowToUseCustomNetworks = () => {
     Linking.openURL(ADD_CUSTOM_NETWORK_ARTCILE);
   };
-  const renderAlerts = () => {
+
+  const renderAlerts = useCallback(() => {
     if (!customNetworkInformation.alerts.length) return null;
-    return customNetworkInformation.alerts
-      .sort((a, b) => {
-        if (a.alertSeverity === BannerAlertSeverity.Error) return -1;
-        if (b.alertSeverity === BannerAlertSeverity.Error) return 1;
-        return 0;
-      })
-      .map(
-        (
-          networkAlert: {
-            alertError: string;
-            alertSeverity: BannerAlertSeverity;
-          },
-          i: number,
-        ) => (
-          <Banner
-            variant={BannerVariant.Alert}
-            severity={networkAlert.alertSeverity}
-            description={networkAlert.alertError}
-            testID={CommonSelectorsIDs.ERROR_MESSAGE}
-            style={styles.textSection}
-            key={i}
-          />
-        ),
-      );
-  };
+    return customNetworkInformation.alerts.map(
+      (networkAlert: {
+        alertError: string;
+        alertSeverity: BannerAlertSeverity;
+        alertOrigin: string;
+      }) => (
+        <Banner
+          variant={BannerVariant.Alert}
+          severity={networkAlert.alertSeverity}
+          description={networkAlert.alertError}
+          testID={CommonSelectorsIDs.ERROR_MESSAGE}
+          style={styles.textSection}
+          key={networkAlert.alertOrigin}
+        />
+      ),
+    );
+  }, [customNetworkInformation.alerts, styles.textSection]);
 
   return (
     <ScrollView style={styles.root}>
@@ -123,6 +116,7 @@ const NetworkVerificationInfo = ({
         imageSource={customNetworkInformation.icon}
         label={customNetworkInformation.chainName}
         style={styles.networkSection}
+        disabled
       />
       {renderAlerts()}
       <Text>

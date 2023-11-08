@@ -3,6 +3,7 @@ import { BannerAlertSeverity } from '../../../component-library/components/Banne
 interface Alert {
   alertError: string;
   alertSeverity: BannerAlertSeverity;
+  alertOrigin: string;
 }
 export interface CustomNetworkInformation {
   chainName: string;

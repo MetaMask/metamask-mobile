@@ -16,8 +16,7 @@ const styleSheet = (params: { theme: Theme }) => {
       borderColor: colors.border.default,
       borderRadius: 10,
       padding: 16,
-      marginTop: 16,
-      marginBottom: 16,
+      marginVertical: 16,
     },
 
     textSection: {

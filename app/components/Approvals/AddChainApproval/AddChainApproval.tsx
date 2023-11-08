@@ -23,7 +23,7 @@ const AddChainApproval = () => {
   if (approvalRequest?.type !== ApprovalTypes.ADD_ETHEREUM_CHAIN) return null;
 
   return (
-    <BottomSheet onClose={onReject} goBackOnClose={false} isFlexible>
+    <BottomSheet onClose={onReject} shouldNavigateBack={false} isFlexible>
       <BottomSheetHeader>
         <Text variant={TextVariant.HeadingMD}>
           {strings('add_custom_network.title')}

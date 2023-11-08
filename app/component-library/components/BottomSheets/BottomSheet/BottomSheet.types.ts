@@ -21,7 +21,7 @@ export interface BottomSheetProps extends ViewProps {
    * Optional boolean that indicates if sheet isUnmounted from the stack or not when closed.
    * @default true
    */
-  goBackOnClose?: boolean;
+  shouldNavigateBack?: boolean;
   /**
    * Optional boolean that allow the bottomsheet to grow until the top.
    */

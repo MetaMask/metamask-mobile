@@ -15,10 +15,7 @@ import { PickerNetworkProps } from './PickerNetwork.types';
 import stylesheet from './PickerNetwork.styles';
 import generateTestId from '../../../../../wdio/utils/generateTestId';
 import { NAVBAR_NETWORK_TEXT } from '../../../../../wdio/screen-objects/testIDs/Screens/WalletView.testIds';
-import {
-  DEFAULT_ACTIVE_OPACITY,
-  WITHOUT_FEEDBACK_ACTIVE_OPACITY,
-} from './PickerNetwork.constants';
+import { PICKER_NETWORK_ARROW_TESTID } from './PickerNetwork.constants';
 
 const PickerNetwork = ({
   onPress,
@@ -30,14 +27,7 @@ const PickerNetwork = ({
   const { styles } = useStyles(stylesheet, { style });
 
   return (
-    <TouchableOpacity
-      activeOpacity={
-        onPress ? DEFAULT_ACTIVE_OPACITY : WITHOUT_FEEDBACK_ACTIVE_OPACITY
-      }
-      style={styles.base}
-      onPress={() => onPress?.()}
-      {...props}
-    >
+    <TouchableOpacity style={styles.base} onPress={onPress} {...props}>
       <Avatar
         variant={AvatarVariants.Network}
         size={AvatarSize.Xs}
@@ -52,7 +42,13 @@ const PickerNetwork = ({
       >
         {label}
       </Text>
-      {onPress && <Icon size={IconSize.Xs} name={IconName.ArrowDown} />}
+      {onPress && (
+        <Icon
+          size={IconSize.Xs}
+          name={IconName.ArrowDown}
+          testID={PICKER_NETWORK_ARROW_TESTID}
+        />
+      )}
     </TouchableOpacity>
   );
 };

@@ -14,6 +14,7 @@ const mockNetworkInfo = {
     {
       alertError: strings('add_custom_network.unrecognized_chain_name'),
       alertSeverity: BannerAlertSeverity.Warning,
+      alertOrigin: 'chain_name',
     },
   ],
   icon: 'test-icon',

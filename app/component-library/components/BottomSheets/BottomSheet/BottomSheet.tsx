@@ -36,7 +36,7 @@ const BottomSheet = forwardRef<BottomSheetRef, BottomSheetProps>(
       children,
       onClose,
       isInteractable = true,
-      goBackOnClose = true,
+      shouldNavigateBack = true,
       isFlexible = false,
       ...props
     },
@@ -52,10 +52,10 @@ const BottomSheet = forwardRef<BottomSheetRef, BottomSheetProps>(
     const navigation = useNavigation();
 
     const onHidden = useCallback(() => {
-      goBackOnClose && navigation.goBack();
+      shouldNavigateBack && navigation.goBack();
       onClose?.(!!postCallback.current);
       postCallback.current?.();
-    }, [navigation, onClose, goBackOnClose]);
+    }, [navigation, onClose, shouldNavigateBack]);
 
     // Dismiss the sheet when Android back button is pressed.
     useEffect(() => {

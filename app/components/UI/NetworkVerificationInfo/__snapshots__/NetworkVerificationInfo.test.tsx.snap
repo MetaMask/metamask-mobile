@@ -14,8 +14,7 @@ exports[`NetworkVerificationInfo renders correctly 1`] = `
 >
   <View>
     <TouchableOpacity
-      activeOpacity={1}
-      onPress={[Function]}
+      disabled={true}
       style={
         Object {
           "alignItems": "center",
@@ -178,8 +177,7 @@ exports[`NetworkVerificationInfo renders correctly 1`] = `
             "borderColor": "#BBC0C5",
             "borderRadius": 10,
             "borderWidth": 1,
-            "marginBottom": 16,
-            "marginTop": 16,
+            "marginVertical": 16,
             "padding": 16,
           },
           undefined,

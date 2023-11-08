@@ -248,12 +248,14 @@ const wallet_addEthereumChain = async ({
       alerts.push({
         alertError: strings('add_custom_network.invalid_rpc_url'),
         alertSeverity: BannerAlertSeverity.Error,
+        alertOrigin: 'rpc_url',
       });
     }
     if (matchedChain.nativeCurrency?.decimals !== EVM_NATIVE_TOKEN_DECIMALS) {
       alerts.push({
         alertError: strings('add_custom_network.invalid_chain_token_decimals'),
         alertSeverity: BannerAlertSeverity.Warning,
+        alertOrigin: 'decimals',
       });
     }
     if (
@@ -262,12 +264,14 @@ const wallet_addEthereumChain = async ({
       alerts.push({
         alertError: strings('add_custom_network.unrecognized_chain_name'),
         alertSeverity: BannerAlertSeverity.Warning,
+        alertOrigin: 'chain_name',
       });
     }
     if (matchedChain.nativeCurrency?.symbol !== requestData.ticker) {
       alerts.push({
         alertError: strings('add_custom_network.unrecognized_chain_ticker'),
         alertSeverity: BannerAlertSeverity.Warning,
+        alertOrigin: 'chain_ticker',
       });
     }
   }
@@ -276,6 +280,7 @@ const wallet_addEthereumChain = async ({
     alerts.push({
       alertError: strings('add_custom_network.unrecognized_chain_id'),
       alertSeverity: BannerAlertSeverity.Error,
+      alertOrigin: 'unknown_chain',
     });
   }
 
