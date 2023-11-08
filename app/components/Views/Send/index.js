@@ -423,7 +423,7 @@ class Send extends PureComponent {
             value: newTxMeta.value,
           },
         ],
-      };      
+      };
       const securityAlertResponse = await ppomUtil.validateRequest(reqObject);
       newTxMeta.securityAlertResponse = securityAlertResponse;
     }
