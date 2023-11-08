@@ -52,16 +52,16 @@ describe(Smoke('ERC20 tokens'), () => {
         });
 
         //Input custom token amount
-        await ContractApprovalModal.inputCustomAmount('2')
+        await ContractApprovalModal.inputCustomAmount('2');
 
         // Assert that custom token amount is shown
-        await ContractApprovalModal.isTokenAmountVisible('2')
+        await ContractApprovalModal.isTokenAmountVisible('2');
 
         // Tap next button
-        await ContractApprovalModal.tapNextButton()
+        await ContractApprovalModal.tapNextButton();
 
         // Tap approve button
-        await ContractApprovalModal.tapApproveButton()
+        await ContractApprovalModal.tapApproveButton();
 
         // Navigate to the activity screen
         await TabBarComponent.tapActivity();
