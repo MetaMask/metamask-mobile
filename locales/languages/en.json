@@ -1977,6 +1977,7 @@
     "return_home": "Return to Home Screen",
     "region": {
       "buy_crypto_tokens": "Buy Crypto Tokens",
+      "sell_crypto_tokens": "Sell Crypto Tokens",
       "title": "Select your Region",
       "description": "The payment methods and tokens available to you are determined by our third-party integrations and may vary depending on your region and support by our integrations.",
       "search_by_country": "Search by country",

@@ -5581,7 +5581,7 @@ exports[`Regions View renders correctly with unsupportedRegion 2`] = `
                     }
                   }
                 >
-                  Buy Crypto Tokens
+                  Sell Crypto Tokens
                 </Text>
                 <View
                   style={
