@@ -411,21 +411,20 @@ class Send extends PureComponent {
 
     newTxMeta.from = selectedAddress;
     newTxMeta.transactionFromName = identities[selectedAddress].name;
-    let securityAlertResponse;
 
-    const reqObject = {
-      jsonrpc: '2.0',
-      method: 'eth_sendTransaction',
-      params: [
-        {
-          from: selectedAddress,
-          to: newTxMeta.transactionTo,
-          value: newTxMeta.value,
-        },
-      ],
-    };
     if (isBlockaidFeatureEnabled()) {
-      securityAlertResponse = await ppomUtil.validateRequest(reqObject);
+      const reqObject = {
+        jsonrpc: '2.0',
+        method: 'eth_sendTransaction',
+        params: [
+          {
+            from: selectedAddress,
+            to: newTxMeta.transactionTo,
+            value: newTxMeta.value,
+          },
+        ],
+      };      
+      const securityAlertResponse = await ppomUtil.validateRequest(reqObject);
       newTxMeta.securityAlertResponse = securityAlertResponse;
     }
 
