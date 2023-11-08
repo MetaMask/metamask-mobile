@@ -166,7 +166,8 @@ function SendTransaction() {
             <Row>
               <Text style={styles.centered}>
                 <Text variant={TextVariant.HeadingMD} style={styles.normal}>
-                  Send{' '}
+                  {strings('fiat_on_ramp_aggregator.send_transaction.send')}
+                  {` `}
                 </Text>
                 <Text variant={TextVariant.HeadingMD}>
                   {fromTokenMinimalUnitString(
