@@ -490,22 +490,10 @@ class DrawerView extends PureComponent {
     return ret;
   }
 
-  getKeyringForSelectedAddress() {
-    const { keyrings, selectedAddress } = this.props;
-    const allKeyrings =
-      keyrings && keyrings.length
-        ? keyrings
-        : Engine.context.KeyringController.state.keyrings;
-
-    return allKeyrings.find((keyring) =>
-      keyring.accounts.includes(selectedAddress),
-    );
-  }
-
   renderTag() {
     const colors = this.context.colors || mockTheme.colors;
     const styles = createStyles(colors);
-    const label = getLabelTextByAddress(this.getKeyringForSelectedAddress());
+    const label = getLabelTextByAddress(this.props.selectedAddress);
 
     return label ? (
       <View style={[styles.importedWrapper]}>

@@ -136,11 +136,11 @@ describe('ApproveTransactionHeader', () => {
   it('should not show an origin pill if origin is deeplink', () => {
     const { queryByTestId } = renderWithProvider(
       <ApproveTransactionHeader
-        from="0x0"
+        from="0xC4955C0d639D99699Bfd7Ec54d9FaFEe40e4D272"
         origin="qr-code"
         url="http://metamask.github.io"
         asset={{
-          address: '0x0',
+          address: '0xC4955C0d639D99699Bfd7Ec54d9FaFEe40e4D272',
           symbol: 'RAN',
           decimals: 18,
         }}
