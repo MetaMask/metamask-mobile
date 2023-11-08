@@ -31,6 +31,7 @@ jest.mock('../Engine', () => ({
     },
     TransactionController: {
       addTransaction: jest.fn(),
+      updateSecurityAlertResponse: jest.fn(),
     },
     SignatureController: {
       newUnsignedMessage: jest.fn(),
