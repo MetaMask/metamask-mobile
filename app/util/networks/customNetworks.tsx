@@ -95,6 +95,17 @@ const PopularList = [
       imageSource: require('../../images/palm.png'),
     },
   },
+  {
+    chainId: '534352',
+    nickname: 'Scroll',
+    rpcUrl: 'https://rpc.scroll.io',
+    ticker: 'ETH',
+    rpcPrefs: {
+      blockExplorerUrl: 'https://scrollscan.com',
+      imageUrl: 'SCROLL',
+      imageSource: require('../../images/scroll.png'),
+    },
+  },
 ];
 
 export default PopularList;
