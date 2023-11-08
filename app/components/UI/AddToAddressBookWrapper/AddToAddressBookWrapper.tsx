@@ -3,15 +3,9 @@ import { useSelector } from 'react-redux';
 import { View, Platform, TextInput, TouchableOpacity } from 'react-native';
 
 import generateTestId from '../../../../wdio/utils/generateTestId';
-import {
-  ADDRESS_ALIAS_CANCEL_BUTTON_ID,
-  ADDRESS_ALIAS_SAVE_BUTTON_ID,
-  ADDRESS_ALIAS_TITLE_ID,
-  ENTER_ALIAS_INPUT_BOX_ID,
-} from '../../../../wdio/screen-objects/testIDs/Screens/AddressBook.testids';
+import { AddAddressModalSelectorsIDs } from '../../../../e2e/selectors/Modals/AddAddressModal.selectors';
 import { strings } from '../../../../locales/i18n';
 import Engine from '../../../core/Engine';
-import { ADD_ADDRESS_MODAL_CONTAINER_ID } from '../../../constants/test-ids';
 import { baseStyles } from '../../../styles/common';
 import { selectChainId } from '../../../selectors/networkController';
 import { useTheme } from '../../../util/theme';
@@ -20,8 +14,6 @@ import useExistingAddress from '../../hooks/useExistingAddress';
 import ActionModal from '../ActionModal';
 
 import createStyles from './styles';
-
-export const ADD_TO_ADDRESS_BOOK_BUTTON_ID = 'add-address-button';
 
 interface AddToAddressBookWrapperProps {
   address: string;
@@ -63,7 +55,7 @@ export const AddToAddressBookWrapper = ({
       <TouchableOpacity
         activeOpacity={0.5}
         onPress={() => setShowAddToAddressBook(true)}
-        testID={ADD_TO_ADDRESS_BOOK_BUTTON_ID}
+        testID={AddAddressModalSelectorsIDs.ADD_ADDRESS_BUTTON}
       >
         {children}
       </TouchableOpacity>
@@ -78,18 +70,21 @@ export const AddToAddressBookWrapper = ({
           cancelButtonMode={'normal'}
           confirmButtonMode={'confirm'}
           confirmDisabled={!alias}
-          cancelTestID={ADDRESS_ALIAS_CANCEL_BUTTON_ID}
-          confirmTestID={ADDRESS_ALIAS_SAVE_BUTTON_ID}
+          cancelTestID={AddAddressModalSelectorsIDs.CANCEL_BUTTON}
+          confirmTestID={AddAddressModalSelectorsIDs.SAVE_BUTTON}
         >
           <View style={styles.addToAddressBookRoot}>
             <View
               style={styles.addToAddressBookWrapper}
-              testID={ADD_ADDRESS_MODAL_CONTAINER_ID}
+              testID={AddAddressModalSelectorsIDs.CONTAINER}
             >
               <View style={baseStyles.flexGrow}>
                 <Text
                   style={styles.addTextTitle}
-                  {...generateTestId(Platform, ADDRESS_ALIAS_TITLE_ID)}
+                  {...generateTestId(
+                    Platform,
+                    AddAddressModalSelectorsIDs.TITLE,
+                  )}
                 >
                   {strings('address_book.add_to_address_book')}
                 </Text>
@@ -112,7 +107,10 @@ export const AddToAddressBookWrapper = ({
                       numberOfLines={1}
                       value={alias}
                       keyboardAppearance={themeAppearance}
-                      {...generateTestId(Platform, ENTER_ALIAS_INPUT_BOX_ID)}
+                      {...generateTestId(
+                        Platform,
+                        AddAddressModalSelectorsIDs.ENTER_ALIAS_INPUT,
+                      )}
                     />
                   </View>
                 </View>
