@@ -605,6 +605,7 @@ exports[`GetStarted renders correctly 1`] = `
                           >
                             <TouchableOpacity
                               accessibilityRole="button"
+                              accessible={true}
                               activeOpacity={0.2}
                               onPress={[Function]}
                               style={
@@ -1275,6 +1276,7 @@ exports[`GetStarted renders correctly 2`] = `
                           >
                             <TouchableOpacity
                               accessibilityRole="button"
+                              accessible={true}
                               activeOpacity={0.2}
                               onPress={[Function]}
                               style={
