@@ -3499,17 +3499,25 @@
     "@metamask/utils" "^6.2.0"
     immer "^9.0.6"
 
+"@metamask/base-controller@^3.2.3":
+  version "3.2.3"
+  resolved "https://registry.yarnpkg.com/@metamask/base-controller/-/base-controller-3.2.3.tgz#7436a14f6789acf0814952dabaa70ee4fb7d473c"
+  integrity sha512-k66oZe7BOEx0D5N5X8feE/32QlrUTmiEHHAZU/yCac2+VHllJOCEQV/cTeaAtgepnEf8O7SskvYZN+eIjgS99w==
+  dependencies:
+    "@metamask/utils" "^8.1.0"
+    immer "^9.0.6"
+
 "@metamask/browser-passworder@^4.0.2":
   version "4.1.0"
   resolved "https://registry.yarnpkg.com/@metamask/browser-passworder/-/browser-passworder-4.1.0.tgz#d515db2ffd69ecab813a688e2b7553f2766c5e79"
   integrity sha512-FBvah1mPte5HudQdkgqAh2+Zc75T9kYxey+dCtHIj9gKohkHDcIA1bTOPLk0bBH+6PnOzYNPG8devvH04GOmPA==
 
-"@metamask/composable-controller@^2.0.0":
-  version "2.0.0"
-  resolved "https://registry.yarnpkg.com/@metamask/composable-controller/-/composable-controller-2.0.0.tgz#a3549c5ad150d2c74e575987968de4b8f8ae5d9b"
-  integrity sha512-vc1OVUtP/h9BYtYQtcJxbwzXKg/ELUguZ7XzT/yEIFUJh9m+1c8f1YPq7wYq1qmSF37U/5O4e/1d7GhJRJw9Dg==
+"@metamask/composable-controller@^3.0.0":
+  version "3.0.3"
+  resolved "https://registry.yarnpkg.com/@metamask/composable-controller/-/composable-controller-3.0.3.tgz#9644a65c482996ee033eae34e169eb9713e4a33e"
+  integrity sha512-dF8emJGwJi66Uhk+VoBaQpl5+DT3+cT/g/IBZ6pg4cbAu8L/kXuS3sw8JEKFskkaSVy/can8qgcBY5zU4LfeUA==
   dependencies:
-    "@metamask/base-controller" "^2.0.0"
+    "@metamask/base-controller" "^3.2.3"
 
 "@metamask/contract-metadata@^1.31.0", "@metamask/contract-metadata@^2.1.0", "@metamask/contract-metadata@^2.3.1":
   version "2.2.0"
