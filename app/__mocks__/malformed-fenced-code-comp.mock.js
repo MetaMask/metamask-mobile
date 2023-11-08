@@ -10,7 +10,6 @@ const MockComponent = () => {
       ///: BEGIN:ONLY_INCLUDE_IN(flask)
       console.log("I am Flask.");
       ///: ENDED:ONLY_INCLUDE_OUT
-    `;
       <Text>Hello from outside Flask fence!</Text>
     </View>
   );
