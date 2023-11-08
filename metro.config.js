@@ -20,7 +20,7 @@ module.exports = (async () => {
           inlineRequires: true,
         },
       }),
-      babelTransformerPath: require.resolve('react-native-svg-transformer'),
+      babelTransformerPath: require.resolve('./metro.transform.js'),
       assetPlugins: ['react-native-svg-asset-plugin'],
       svgAssetPlugin: {
         pngCacheDir: '.png-cache',
@@ -33,7 +33,6 @@ module.exports = (async () => {
     resolver: {
       assetExts: assetExts.filter((ext) => ext !== 'svg'),
       sourceExts: [...sourceExts, 'svg', 'cjs'],
-      resolverMainFields: ['sbmodern', 'react-native', 'browser', 'main'],
     },
     maxWorkers: 2,
   };
