@@ -95,7 +95,7 @@ index 0000000..7dbbf2e
 +//# sourceMappingURL=PollingBlockTracker.js.map
 \ No newline at end of file
 diff --git a/node_modules/web3-provider-engine/index.js b/node_modules/web3-provider-engine/index.js
-index 4a22471..5f20f51 100644
+index 4a22471..93d5450 100644
 --- a/node_modules/web3-provider-engine/index.js
 +++ b/node_modules/web3-provider-engine/index.js
 @@ -1,7 +1,7 @@
@@ -107,15 +107,6 @@ index 4a22471..5f20f51 100644
  const map = require('async/map')
  const eachSeries = require('async/eachSeries')
  const Stoplight = require('./util/stoplight.js')
-@@ -24,7 +24,7 @@ function Web3ProviderEngine(opts) {
-   // block polling
-   const directProvider = { sendAsync: self._handleAsync.bind(self) }
-   const blockTrackerProvider = opts.blockTrackerProvider || directProvider
--  self._blockTracker = opts.blockTracker || new PollingBlockTracker({
-+  self._blockTracker = new PollingBlockTracker({
-     provider: blockTrackerProvider,
-     pollingInterval: opts.pollingInterval || 4000,
-     setSkipCacheFlag: true,
 @@ -48,8 +48,29 @@ Web3ProviderEngine.prototype.start = function(cb = noop){
  
    // on new block, request block body and emit as events
