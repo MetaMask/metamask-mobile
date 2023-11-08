@@ -68,11 +68,11 @@ export interface RampQuoteRequested {
   location: ScreenLocation;
 }
 
-interface OnRampQuoteRequested extends RampQuoteRequested {
+export interface OnRampQuoteRequested extends RampQuoteRequested {
   chain_id_destination: string;
 }
 
-interface OffRampQuoteRequested extends RampQuoteRequested {
+export interface OffRampQuoteRequested extends RampQuoteRequested {
   chain_id_source: string;
 }
 

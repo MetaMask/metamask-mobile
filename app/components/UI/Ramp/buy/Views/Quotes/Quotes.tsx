@@ -287,6 +287,7 @@ function Quotes() {
       }
     },
     [
+      isBuy,
       appConfig.POLLING_CYCLES,
       callbackBaseUrl,
       filteredQuotes.length,

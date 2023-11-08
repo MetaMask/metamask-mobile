@@ -62,7 +62,11 @@ import {
 import Routes from '../../../../../../constants/navigation/Routes';
 import { formatAmount } from '../../../common/utils';
 import { createQuotesNavDetails } from '../Quotes/Quotes';
-import { Region } from '../../../common/types';
+import {
+  OffRampQuoteRequested,
+  OnRampQuoteRequested,
+  Region,
+} from '../../../common/types';
 import { useStyles } from '../../../../../../component-library/hooks';
 
 import styleSheet from './BuildQuote.styles';
@@ -413,18 +417,32 @@ const BuildQuote = () => {
           fiatCurrency: currentFiatCurrency,
         }),
       );
-      trackEvent('ONRAMP_QUOTES_REQUESTED', {
+
+      const analyticsPayload = {
         currency_source: currentFiatCurrency.symbol,
         currency_destination: selectedAsset.symbol,
         payment_method_id: selectedPaymentMethodId as string,
-        chain_id_destination: selectedChainId,
+        [isBuy ? 'chain_id_destination' : 'chain_id_source']: selectedChainId,
         amount: amountNumber,
         location: 'Amount to Buy Screen',
-      });
+      };
+
+      if (isBuy) {
+        trackEvent(
+          'ONRAMP_QUOTES_REQUESTED',
+          analyticsPayload as unknown as OnRampQuoteRequested,
+        );
+      } else {
+        trackEvent(
+          'OFFRAMP_QUOTES_REQUESTED',
+          analyticsPayload as unknown as OffRampQuoteRequested,
+        );
+      }
     }
   }, [
     amountNumber,
     currentFiatCurrency,
+    isBuy,
     navigation,
     selectedAsset,
     selectedChainId,
