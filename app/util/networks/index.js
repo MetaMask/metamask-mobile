@@ -337,7 +337,7 @@ export const getNetworkNonce = async ({ from }) => {
 
   releaseLock();
 
-  return parseInt(nextNonce, 16);
+  return nextNonce;
 };
 
 export function blockTagParamIndex(payload) {
