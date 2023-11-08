@@ -20,7 +20,7 @@ const ConfirmationMethods = Object.freeze([
   'personal_sign',
 ]);
 
-const ErrorResponse = {
+const FailedResponse = {
   result_type: ResultType.Failed,
   reason: Reason.failed,
   description: 'Validating the confirmation failed by throwing error.',
@@ -43,15 +43,17 @@ const validateRequest = async (req: any, transactionId?: string) => {
         req.method === 'eth_sendTransaction') &&
       !transactionId
     ) {
-      securityAlertResponse = ErrorResponse;
+      securityAlertResponse = FailedResponse;
     }
     securityAlertResponse = await ppomController.usePPOM((ppom: any) =>
       ppom.validateJsonRpc(req),
     );
   } catch (e) {
     Logger.log(`Error validating JSON RPC using PPOM: ${e}`);
-    securityAlertResponse = ErrorResponse;
   } finally {
+    if (!securityAlertResponse) {
+      securityAlertResponse = FailedResponse;
+    }
     if (
       req.method === 'eth_sendRawTransaction' ||
       req.method === 'eth_sendTransaction'

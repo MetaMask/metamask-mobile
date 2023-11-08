@@ -9,6 +9,23 @@ import type {
 import eth_sendTransaction from './eth_sendTransaction';
 import PPOMUtil from '../../lib/ppom/ppom-util';
 
+jest.mock('../../core/Engine', () => ({
+  context: {
+    PreferencesController: {
+      state: {
+        securityAlertsEnabled: true,
+      },
+    },
+    PPOMController: {
+      usePPOM: jest.fn(),
+    },
+    TransactionController: {
+      updateTransaction: jest.fn(),
+      updateSecurityAlertResponse: jest.fn(),
+    },
+  },
+}));
+
 /**
  * Construct a `eth_sendTransaction` JSON-RPC request.
  *
