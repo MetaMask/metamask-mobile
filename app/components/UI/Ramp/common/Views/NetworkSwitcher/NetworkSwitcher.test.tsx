@@ -10,6 +10,7 @@ import { RampSDK } from '../../sdk';
 import Routes from '../../../../../../constants/navigation/Routes';
 import initialBackgroundState from '../../../../../../util/test/initial-background-state.json';
 import Engine from '../../../../../../core/Engine';
+import { RampType } from '../../../../../../reducers/fiatOrders/types';
 
 const mockedRampNetworksValues: AggregatorNetwork[] = [
   {
@@ -170,6 +171,9 @@ jest.mock('../../hooks/useRampNetworksDetail', () =>
 
 const mockuseRampSDKInitialValues: Partial<RampSDK> = {
   selectedChainId: '56',
+  isBuy: true,
+  isSell: false,
+  rampType: RampType.BUY,
 };
 
 let mockUseRampSDKValues: Partial<RampSDK> = {
@@ -210,6 +214,13 @@ describe('NetworkSwitcher View', () => {
   });
 
   it('renders correctly', async () => {
+    render(NetworkSwitcher);
+    expect(screen.toJSON()).toMatchSnapshot();
+
+    // check for sell title
+    mockUseRampSDKValues.rampType = RampType.SELL;
+    mockUseRampSDKValues.isSell = true;
+    mockUseRampSDKValues.isBuy = false;
     render(NetworkSwitcher);
     expect(screen.toJSON()).toMatchSnapshot();
   });
@@ -335,6 +346,19 @@ describe('NetworkSwitcher View', () => {
     expect(mockPop).toHaveBeenCalled();
     expect(mockTrackEvent).toBeCalledWith('ONRAMP_CANCELED', {
       chain_id_destination: '56',
+      location: 'Network Switcher Screen',
+    });
+
+    // test for sell copy
+    mockPop.mockReset();
+    mockTrackEvent.mockReset();
+    mockUseRampSDKValues.rampType = RampType.SELL;
+    mockUseRampSDKValues.isSell = true;
+    mockUseRampSDKValues.isBuy = false;
+    render(NetworkSwitcher);
+    fireEvent.press(screen.getByRole('button', { name: 'Cancel' }));
+    expect(mockTrackEvent).toBeCalledWith('OFFRAMP_CANCELED', {
+      chain_id_source: '56',
       location: 'Network Switcher Screen',
     });
   });

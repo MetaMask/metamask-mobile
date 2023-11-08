@@ -112,7 +112,11 @@ function NetworkSwitcher() {
         navigation,
         {
           title: strings('fiat_on_ramp_aggregator.network_switcher.title', {
-            rampType: strings('fiat_on_ramp_aggregator.buy'),
+            rampType: strings(
+              isBuy
+                ? 'fiat_on_ramp_aggregator.buy'
+                : 'fiat_on_ramp_aggregator.sell',
+            ),
           }),
           showBack: false,
         },
@@ -209,7 +213,11 @@ function NetworkSwitcher() {
           <ScreenLayout.Content>
             <Text centered big>
               {strings('fiat_on_ramp_aggregator.network_switcher.description', {
-                rampType: strings('fiat_on_ramp_aggregator.buy'),
+                rampType: strings(
+                  isBuy
+                    ? 'fiat_on_ramp_aggregator.buy'
+                    : 'fiat_on_ramp_aggregator.sell',
+                ),
               })}
             </Text>
 
