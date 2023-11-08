@@ -1,37 +1,38 @@
 import TestHelpers from '../../helpers';
-import { ContractApprovalModalSelectors } from '../../selectors/Modals/ContractApprovalModal.selectors';
+import {
+  ContractApprovalModalSelectorsIDs,
+  ContractApprovalModalSelectorsText,
+} from '../../selectors/Modals/ContractApprovalModal.selectors';
 
 export default class ContractApprovalModal {
   static async tapAddNickName() {
     await TestHelpers.tapByText(
-      ContractApprovalModalSelectors.ADD_NICKNAME_TEXT,
+      ContractApprovalModalSelectorsText.ADD_NICKNAME,
     );
   }
   static async tapEditNickName() {
     await TestHelpers.tapByText(
-      ContractApprovalModalSelectors.EDIT_NICKNAME_TEXT,
+      ContractApprovalModalSelectorsText.EDIT_NICKNAME,
     );
   }
 
   static async tapRejectButton() {
-    await TestHelpers.tapByText(ContractApprovalModalSelectors.REJECT_TEXT);
+    await TestHelpers.tapByText(ContractApprovalModalSelectorsText.REJECT);
   }
   static async tapApproveButton() {
-    await TestHelpers.tapByText(ContractApprovalModalSelectors.APPROVE_TEXT);
+    await TestHelpers.tapByText(ContractApprovalModalSelectorsText.APPROVE);
   }
   static async tapToCopyContractAddress() {
-    await TestHelpers.tap(
-      ContractApprovalModalSelectors.COPY_CONTRACT_ADDRESS_ID,
-    );
+    await TestHelpers.tap(ContractApprovalModalSelectorsIDs.CONTRACT_ADDRESS);
   }
   static async isVisible() {
     await TestHelpers.checkIfVisible(
-      ContractApprovalModalSelectors.APPROVAL_MODAL_CONTAINER_ID,
+      ContractApprovalModalSelectorsIDs.CONTAINER,
     );
   }
   static async isNotVisible() {
     await TestHelpers.checkIfNotVisible(
-      ContractApprovalModalSelectors.APPROVAL_MODAL_CONTAINER_ID,
+      ContractApprovalModalSelectorsIDs.CONTAINER,
     );
   }
 
