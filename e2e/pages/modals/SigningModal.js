@@ -1,44 +1,42 @@
 import TestHelpers from '../../helpers';
-import {
-  SIGNATURE_MODAL_CANCEL_BUTTON_ID,
-  SIGNATURE_MODAL_ETH_ID,
-  SIGNATURE_MODAL_PERSONAL_ID,
-  SIGNATURE_MODAL_SIGN_BUTTON_ID,
-  SIGNATURE_MODAL_TYPED_ID,
-} from '../../../app/constants/test-ids';
+import { SigningModalSelectorsIDs } from '../../selectors/Modals/SigningModal.selectors';
 
 export default class SigningModal {
   static async tapSignButton() {
     if (device.getPlatform() === 'android') {
-      await TestHelpers.waitAndTapByLabel(SIGNATURE_MODAL_SIGN_BUTTON_ID);
+      await TestHelpers.waitAndTapByLabel(SigningModalSelectorsIDs.SIGN_BUTTON);
     } else {
-      await TestHelpers.waitAndTap(SIGNATURE_MODAL_SIGN_BUTTON_ID);
+      await TestHelpers.waitAndTap(SigningModalSelectorsIDs.SIGN_BUTTON);
     }
   }
 
   static async tapCancelButton() {
     if (device.getPlatform() === 'android') {
-      await TestHelpers.waitAndTapByLabel(SIGNATURE_MODAL_CANCEL_BUTTON_ID);
+      await TestHelpers.waitAndTapByLabel(
+        SigningModalSelectorsIDs.CANCEL_BUTTON,
+      );
     } else {
-      await TestHelpers.waitAndTap(SIGNATURE_MODAL_CANCEL_BUTTON_ID);
+      await TestHelpers.waitAndTap(SigningModalSelectorsIDs.CANCEL_BUTTON);
     }
   }
 
   static async isEthRequestVisible() {
-    await TestHelpers.checkIfVisible(SIGNATURE_MODAL_ETH_ID);
+    await TestHelpers.checkIfVisible(SigningModalSelectorsIDs.ETH_REQUEST);
   }
 
   static async isPersonalRequestVisible() {
-    await TestHelpers.checkIfVisible(SIGNATURE_MODAL_PERSONAL_ID);
+    await TestHelpers.checkIfVisible(SigningModalSelectorsIDs.PERSONAL_REQUEST);
   }
 
   static async isTypedRequestVisible() {
-    await TestHelpers.checkIfVisible(SIGNATURE_MODAL_TYPED_ID);
+    await TestHelpers.checkIfVisible(SigningModalSelectorsIDs.TYPED_REQUEST);
   }
 
   static async isNotVisible() {
-    await TestHelpers.checkIfNotVisible(SIGNATURE_MODAL_ETH_ID);
-    await TestHelpers.checkIfNotVisible(SIGNATURE_MODAL_PERSONAL_ID);
-    await TestHelpers.checkIfNotVisible(SIGNATURE_MODAL_TYPED_ID);
+    await TestHelpers.checkIfNotVisible(SigningModalSelectorsIDs.ETH_REQUEST);
+    await TestHelpers.checkIfNotVisible(
+      SigningModalSelectorsIDs.PERSONAL_REQUEST,
+    );
+    await TestHelpers.checkIfNotVisible(SigningModalSelectorsIDs.TYPED_REQUEST);
   }
 }
