@@ -352,6 +352,7 @@ workflows:
                 TEST_SUITE="smoke"
                 fi
                 node -v
+                METAMASK_ENVIRONMENT='production'
                 IGNORE_BOXLOGS_DEVELOPMENT="true" FORCE_BUNDLING=true yarn test:e2e:android:bitrise:debug --testNamePattern="$TEST_SUITE"
           title: Detox Build & Test
           is_always_run: false
@@ -420,6 +421,7 @@ workflows:
                 TEST_SUITE="smoke"
                 fi
                 node -v
+                METAMASK_ENVIRONMENT='production'
                 IGNORE_BOXLOGS_DEVELOPMENT="true" FORCE_BUNDLING=true yarn test:e2e:ios:debug --testNamePattern="$TEST_SUITE"
           title: Detox Build & Test
           is_always_run: false
