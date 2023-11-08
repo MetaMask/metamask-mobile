@@ -1,5 +1,3 @@
-'use strict';
-
 import {
   addBreadcrumb,
   captureException,
@@ -8,6 +6,11 @@ import {
 } from '@sentry/react-native';
 import DefaultPreference from 'react-native-default-preference';
 import { METRICS_OPT_IN, AGREED, DEBUG } from '../constants/storage';
+
+interface ExtraInfo {
+  message?: string;
+  [key: string]: unknown;
+}
 
 /**
  * Wrapper class that allows us to override
@@ -22,13 +25,16 @@ export default class Logger {
    * @param {object} args - data to be logged
    * @returns - void
    */
-  static async log(...args) {
-    // Check if user passed accepted opt-in to metrics
-    const metricsOptIn = await DefaultPreference.get(METRICS_OPT_IN);
+  static async log(...args: any[]): Promise<void> {
     if (__DEV__) {
       args.unshift(DEBUG);
       console.log.apply(null, args); // eslint-disable-line no-console
-    } else if (metricsOptIn === AGREED) {
+      return;
+    }
+
+    // Check if user passed accepted opt-in to metrics
+    const metricsOptIn = await DefaultPreference.get(METRICS_OPT_IN);
+    if (metricsOptIn === AGREED) {
       addBreadcrumb({
         message: JSON.stringify(args),
       });
@@ -42,52 +48,43 @@ export default class Logger {
    * @param {string|object} extra - Extra error info
    * @returns - void
    */
-  static async error(error, extra) {
-    // Check if user passed accepted opt-in to metrics
-    const metricsOptIn = await DefaultPreference.get(METRICS_OPT_IN);
+  static async error(
+    error: Error | string,
+    extra: ExtraInfo | string | any,
+  ): Promise<void> {
     if (__DEV__) {
       console.warn(DEBUG, error); // eslint-disable-line no-console
-    } else if (metricsOptIn === AGREED) {
+      return;
+    }
+
+    // Check if user passed accepted opt-in to metrics
+    const metricsOptIn = await DefaultPreference.get(METRICS_OPT_IN);
+    if (metricsOptIn === AGREED) {
       let exception = error;
 
       if (!error) {
         if (!extra) return console.warn('No error nor extra info provided');
 
-        const typeExtra = typeof extra;
-        switch (typeExtra) {
-          case 'string':
-            exception = new Error(extra);
-            break;
-          case 'object':
-            if (extra.message) {
-              exception = new Error(extra.message);
-            } else {
-              exception = new Error(JSON.stringify(extra));
-            }
-            break;
-          default:
-            exception = new Error('error to capture is not an error instance');
+        if (typeof extra === 'string') {
+          exception = new Error(extra);
+        } else {
+          exception = new Error(extra.message || JSON.stringify(extra));
         }
       } else if (!(error instanceof Error)) {
-        const type = typeof error;
-        switch (type) {
-          case 'string':
-            exception = new Error(error);
-            break;
-          case 'object':
-            exception = new Error(JSON.stringify(error));
-            break;
-          default:
-            exception = new Error('error to capture is not an error instance');
+        if (typeof error === 'string') {
+          exception = new Error(error);
+        } else {
+          // error is an object but not an Error instance
+          exception = new Error(JSON.stringify(error));
         }
-        exception.originalError = error;
+        (exception as any).originalError = error;
       }
+
       if (extra) {
-        if (typeof extra === 'string') {
-          extra = { message: extra };
-        }
+        const extras: ExtraInfo =
+          typeof extra === 'string' ? { message: extra } : extra;
         withScope((scope) => {
-          scope.setExtras(extra);
+          scope.setExtras(extras);
           captureException(exception);
         });
       } else {
@@ -102,13 +99,16 @@ export default class Logger {
    * @param {object} args - data to be logged
    * @returns - void
    */
-  static async message(...args) {
-    // Check if user passed accepted opt-in to metrics
-    const metricsOptIn = await DefaultPreference.get(METRICS_OPT_IN);
+  static async message(...args: unknown[]): Promise<void> {
     if (__DEV__) {
       args.unshift('[MetaMask DEBUG]:');
       // console.log.apply(null, args); // eslint-disable-line no-console
-    } else if (metricsOptIn === 'agreed') {
+      return;
+    }
+
+    // Check if user passed accepted opt-in to metrics
+    const metricsOptIn = await DefaultPreference.get(METRICS_OPT_IN);
+    if (metricsOptIn === 'agreed') {
       captureMessage(JSON.stringify(args));
     }
   }
