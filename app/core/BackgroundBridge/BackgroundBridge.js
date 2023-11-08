@@ -24,7 +24,7 @@ import {
   selectLegacyNetwork,
 } from '../../selectors/networkController';
 import { store } from '../../store';
-import { createSnapsMethodMiddleware } from '@metamask/rpc-methods';
+import { createSnapsMethodMiddleware } from '@metamask/snaps-rpc-methods';
 
 const createFilterMiddleware = require('eth-json-rpc-filters');
 const createSubscriptionManager = require('eth-json-rpc-filters/subscriptionManager');

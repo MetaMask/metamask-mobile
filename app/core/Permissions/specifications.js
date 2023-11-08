@@ -1,5 +1,5 @@
 import { endowmentCaveatSpecifications as snapsEndowmentCaveatSpecifications } from '@metamask/snaps-controllers';
-import { caveatSpecifications as snapsCaveatsSpecifications } from '@metamask/rpc-methods';
+import { caveatSpecifications as snapsCaveatsSpecifications } from '@metamask/snaps-rpc-methods';
 import {
   constructPermission,
   PermissionType,
