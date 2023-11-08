@@ -12,7 +12,7 @@ import getRpcMethodMiddleware, {
 } from '../RPCMethods/RPCMethodMiddleware';
 
 import { ApprovalController } from '@metamask/approval-controller';
-import { Json } from '@metamask/controller-utils';
+import { Json } from '@metamask/utils';
 import { KeyringController } from '@metamask/keyring-controller';
 import { PreferencesController } from '@metamask/preferences-controller';
 import {
