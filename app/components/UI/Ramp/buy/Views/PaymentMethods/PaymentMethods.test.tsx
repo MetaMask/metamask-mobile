@@ -13,7 +13,6 @@ import { RampType, Region } from '../../../common/types';
 import { RampSDK } from '../../../common/sdk';
 import Routes from '../../../../../../constants/navigation/Routes';
 import initialBackgroundState from '../../../../../../util/test/initial-background-state.json';
-import analytics from '../../../../../../core/Analytics/Analytics';
 
 function render(Component: React.ComponentType) {
   return renderScreen(
