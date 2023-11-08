@@ -88,7 +88,7 @@ export class SDKConnect extends EventEmitter2 {
 
   // Track init status to ensure connection recovery priority and prevent double initialization.
   private _initialized = false;
-  private _initializing = false;
+  private _initializing?: Promise<unknown>;
   private _postInitialized = false;
   private _postInitializing = false;
 
@@ -347,6 +347,14 @@ export class SDKConnect extends EventEmitter2 {
     initialConnection: boolean;
   }) {
     const existingConnection = this.connected[channelId];
+
+    // Check if already connected
+    if (existingConnection?.remote.isReady()) {
+      DevLogger.log(
+        `SDKConnect::reconnect[${context}] - already ready - ignore`,
+      );
+      return;
+    }
 
     if (this.paused && updateKey) {
       this.connections[channelId].otherPublicKey = otherPublicKey;
@@ -709,9 +717,17 @@ export class SDKConnect extends EventEmitter2 {
     DevLogger.log(`SDKConnect::_handleAppState appState=${appState}`);
     this.appState = appState;
     if (appState === 'active') {
+      DevLogger.log(
+        `SDKConnect::_handleAppState - resuming - paused=${this.paused}`,
+        this.timeout,
+      );
       if (Device.isAndroid()) {
-        if (this.timeout) BackgroundTimer.clearInterval(this.timeout);
-      } else if (this.timeout) clearTimeout(this.timeout);
+        if (this.timeout) {
+          BackgroundTimer.clearInterval(this.timeout);
+        }
+      } else if (this.timeout) {
+        clearTimeout(this.timeout);
+      }
       this.timeout = undefined;
 
       if (this.paused) {
@@ -796,92 +812,118 @@ export class SDKConnect extends EventEmitter2 {
 
   public async init({
     navigation,
+    context,
   }: {
     checkUserLoggedIn: () => boolean;
     navigation: NavigationContainerRef;
+    context?: string;
   }) {
     if (this._initializing) {
       DevLogger.log(
-        `SDKConnect::init() -- already initializing -- wait for completion`,
+        `SDKConnect::init()[${context}] -- already initializing -- wait for completion`,
       );
-      // Wait for initialization to finish.
-      await waitForCondition({
-        fn: () => this._initialized,
-        context: 'init',
-      });
-      DevLogger.log(`SDKConnect::init() -- done waiting for initialization`);
-      return;
+      return await this._initializing;
+      // // Wait for initialization to finish.
+      // await waitForCondition({
+      //   fn: () => this._initialized,
+      //   context: 'init',
+      // });
+      // DevLogger.log(`SDKConnect::init() -- done waiting for initialization`);
+      // return;
     } else if (this._initialized) {
       DevLogger.log(
-        `SDKConnect::init() -- SKIP -- already initialized`,
+        `SDKConnect::init()[${context}] -- SKIP -- already initialized`,
         this.connections,
       );
       return;
     }
 
-    // Change _initializing status at the beginning to prevent double initialization during dev.
-    this._initializing = true;
-    this.navigation = navigation;
-    DevLogger.log(`SDKConnect::init() - starting`);
+    const doAsyncInit = async () => {
+      this.navigation = navigation;
+      DevLogger.log(`SDKConnect::init()[${context}] - starting`);
 
-    // Ignore initial call to _handleAppState since it is first initialization.
-    this.appState = 'active';
+      // Ignore initial call to _handleAppState since it is first initialization.
+      this.appState = 'active';
 
-    // When restarting from being killed, keyringController might be mistakenly restored on unlocked=true so we need to wait for it to get correct state.
-    await wait(1000);
+      // When restarting from being killed, keyringController might be mistakenly restored on unlocked=true so we need to wait for it to get correct state.
+      await wait(1000);
+      DevLogger.log(`SDKConnect::init() - waited 1000ms - keep initializing`);
 
-    if (!this.androidSDKStarted && Platform.OS === 'android') {
-      this.androidService = new AndroidService();
-      this.androidSDKStarted = true;
-    }
+      if (!this.androidSDKStarted && Platform.OS === 'android') {
+        DevLogger.log(`SDKConnect::init() - starting android service`);
+        this.androidService = new AndroidService();
+        this.androidSDKStarted = true;
+      }
 
-    const [connectionsStorage, hostsStorage] = await Promise.all([
-      DefaultPreference.get(AppConstants.MM_SDK.SDK_CONNECTIONS),
-      DefaultPreference.get(AppConstants.MM_SDK.SDK_APPROVEDHOSTS),
-    ]);
+      try {
+        DevLogger.log(`SDKConnect::init() - loading connections`);
+        // On Android the DefaultPreferences will start loading after the biometrics
+        const [connectionsStorage, hostsStorage] = await Promise.all([
+          DefaultPreference.get(AppConstants.MM_SDK.SDK_CONNECTIONS),
+          DefaultPreference.get(AppConstants.MM_SDK.SDK_APPROVEDHOSTS),
+        ]);
 
-    if (connectionsStorage) {
-      this.connections = JSON.parse(connectionsStorage);
-      DevLogger.log(
-        `SDKConnect::init() - connections [${
-          Object.keys(this.connections).length
-        }]`,
-      );
-    }
+        DevLogger.log(
+          `SDKConnect::init() - connectionsStorage=${connectionsStorage} hostsStorage=${hostsStorage}`,
+        );
 
-    if (hostsStorage) {
-      const uncheckedHosts = JSON.parse(hostsStorage) as ApprovedHosts;
-      // Check if the approved hosts haven't timed out.
-      const approvedHosts: ApprovedHosts = {};
-      let expiredCounter = 0;
-      for (const host in uncheckedHosts) {
-        const expirationTime = uncheckedHosts[host];
-        if (Date.now() < expirationTime) {
-          // Host is valid, add it to the list.
-          approvedHosts[host] = expirationTime;
-        } else {
-          expiredCounter += 1;
+        if (connectionsStorage) {
+          this.connections = JSON.parse(connectionsStorage);
+          DevLogger.log(
+            `SDKConnect::init() - connections [${
+              Object.keys(this.connections).length
+            }]`,
+          );
         }
-      }
-      if (expiredCounter > 1) {
-        // Update the list of approved hosts excluding the expired ones.
-        DefaultPreference.set(
-          AppConstants.MM_SDK.SDK_APPROVEDHOSTS,
-          JSON.stringify(approvedHosts),
-        ).catch((err) => {
-          throw err;
-        });
-      }
-      this.approvedHosts = approvedHosts;
-      DevLogger.log(
-        `SDKConnect::init() - approvedHosts [${
-          Object.keys(this.approvedHosts).length
-        }]`,
-      );
-    }
 
-    DevLogger.log(`SDKConnect::init() - done`);
-    this._initialized = true;
+        if (hostsStorage) {
+          const uncheckedHosts = JSON.parse(hostsStorage) as ApprovedHosts;
+          // Check if the approved hosts haven't timed out.
+          const approvedHosts: ApprovedHosts = {};
+          let expiredCounter = 0;
+          for (const host in uncheckedHosts) {
+            const expirationTime = uncheckedHosts[host];
+            if (Date.now() < expirationTime) {
+              // Host is valid, add it to the list.
+              approvedHosts[host] = expirationTime;
+            } else {
+              expiredCounter += 1;
+            }
+          }
+          if (expiredCounter > 1) {
+            // Update the list of approved hosts excluding the expired ones.
+            await DefaultPreference.set(
+              AppConstants.MM_SDK.SDK_APPROVEDHOSTS,
+              JSON.stringify(approvedHosts),
+            );
+          }
+          this.approvedHosts = approvedHosts;
+          DevLogger.log(
+            `SDKConnect::init() - approvedHosts [${
+              Object.keys(this.approvedHosts).length
+            }]`,
+          );
+        }
+
+        DevLogger.log(`SDKConnect::init() - done`);
+        this._initialized = true;
+      } catch (err) {
+        Logger.log(err, `SDKConnect::init() - error loading connections`);
+      }
+    };
+
+    this._initializing = doAsyncInit();
+
+    return this._initializing;
+    this._initializing = new Promise((resolve, reject) => {
+      doAsyncInit()
+        .then((res) => {
+          resolve(res);
+        })
+        .catch((err) => {
+          reject(err);
+        });
+    });
   }
 
   async postInit() {
