@@ -17,15 +17,12 @@ import Text from '../../../../component-library/components/Texts/Text/Text';
 import { TextVariant } from '../../../../component-library/components/Texts/Text';
 import { selectChainId } from '../../../../selectors/networkController';
 import { selectIdentities } from '../../../../selectors/preferencesController';
-import { regex } from '../../../../../app/util/regex';
+import { regex } from '../../../../util/regex';
+import { SendViewSelectorsIDs } from '../../../../../e2e/selectors/SendView.selectors';
 
 // Internal dependencies
 import { AddressListProps, Contact } from './AddressList.types';
 import styleSheet from './AddressList.styles';
-import {
-  ADDRESS_BOOK_ACCOUNT,
-  MY_ACCOUNT_ELEMENT,
-} from './AddressList.constants';
 
 const LabelElement = (styles: any, label: string) => (
   <View key={label} style={styles.labelElementWrapper}>
@@ -182,7 +179,7 @@ const AddressList: React.FC<AddressListProps> = ({
             onAccountPress={onAccountPress}
             onIconPress={onIconPress}
             onAccountLongPress={onAccountLongPress}
-            testID={MY_ACCOUNT_ELEMENT}
+            testID={SendViewSelectorsIDs.MY_ACCOUNT_ELEMENT}
           />
         ))}
       </View>
@@ -204,7 +201,7 @@ const AddressList: React.FC<AddressListProps> = ({
         onIconPress={onIconPress}
         onAccountPress={onAccountPress}
         onAccountLongPress={onAccountLongPress}
-        testID={ADDRESS_BOOK_ACCOUNT}
+        testID={SendViewSelectorsIDs.ADDRESS_BOOK_ACCOUNT}
         isAmbiguousAddress={addressElement.isAmbiguousAddress}
       />
     );

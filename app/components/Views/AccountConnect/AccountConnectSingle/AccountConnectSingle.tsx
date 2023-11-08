@@ -17,8 +17,10 @@ import Button, {
   ButtonSize,
   ButtonVariants,
 } from '../../../../component-library/components/Buttons/Button';
-import { AvatarVariants } from '../../../../component-library/components/Avatars/Avatar';
-import { AvatarAccountType } from '../../../../component-library/components/Avatars/Avatar/variants/AvatarAccount';
+import {
+  AvatarAccountType,
+  AvatarVariants,
+} from '../../../../component-library/components/Avatars/Avatar';
 import { formatAddress, getLabelTextByAddress } from '../../../../util/address';
 import Icon, {
   IconName,
@@ -30,12 +32,9 @@ import { AccountConnectSingleProps } from './AccountConnectSingle.types';
 import styleSheet from './AccountConnectSingle.styles';
 import USER_INTENT from '../../../../constants/permissions';
 
-import {
-  ACCOUNT_APROVAL_MODAL_CONTAINER_ID,
-  CANCEL_BUTTON_ID,
-  CONNECT_BUTTON_ID,
-} from '../../../../../app/constants/test-ids';
 import generateTestId from '../../../../../wdio/utils/generateTestId';
+import { ConnectAccountModalSelectorsIDs } from '../../../../../e2e/selectors/Modals/ConnectAccountModal.selectors';
+import { CommonSelectorsIDs } from '../../../../../e2e/selectors/Common.selectors';
 
 const AccountConnectSingle = ({
   defaultSelectedAccount,
@@ -95,7 +94,7 @@ const AccountConnectSingle = ({
           }}
           size={ButtonSize.Lg}
           style={styles.button}
-          testID={CANCEL_BUTTON_ID}
+          testID={CommonSelectorsIDs.CANCEL_BUTTON}
         />
         <View style={styles.buttonSeparator} />
         <Button
@@ -106,7 +105,7 @@ const AccountConnectSingle = ({
           }}
           size={ButtonSize.Lg}
           style={styles.button}
-          testID={CONNECT_BUTTON_ID}
+          testID={CommonSelectorsIDs.CONNECT_BUTTON}
         />
       </View>
     ),
@@ -153,7 +152,7 @@ const AccountConnectSingle = ({
       <SheetHeader title={strings('accounts.connect_account_title')} />
       <View
         style={styles.body}
-        {...generateTestId(Platform, ACCOUNT_APROVAL_MODAL_CONTAINER_ID)}
+        {...generateTestId(Platform, ConnectAccountModalSelectorsIDs.CONTAINER)}
       >
         <TagUrl
           imageSource={favicon}

@@ -17,7 +17,7 @@ import Alert, { AlertType } from '../../Base/Alert';
 import EvilIcons from 'react-native-vector-icons/EvilIcons';
 import Text from '../../Base/Text';
 import { useTheme } from '../../../util/theme';
-import { CANCEL_BUTTON_ID } from '../../../constants/test-ids';
+import { CommonSelectorsIDs } from '../../../../e2e/selectors/Common.selectors';
 
 const createStyles = (colors) =>
   StyleSheet.create({
@@ -218,7 +218,7 @@ const AddCustomNetwork = ({
           <TouchableOpacity
             onPress={toggleViewDetails}
             style={styles.detailsBackButton}
-            testID={'go-back-button'}
+            testID={CommonSelectorsIDs.BACK_ARROW_BUTTON}
           >
             <Icon name="angle-left" size={24} style={styles.detailsBackIcon} />
           </TouchableOpacity>
@@ -258,7 +258,7 @@ const AddCustomNetwork = ({
     return (
       <Alert
         type={AlertType.Warning}
-        testID={'error-message-warning'}
+        testID={CommonSelectorsIDs.ERROR_MESSAGE}
         style={styles.alertContainer}
         renderIcon={() => <EvilIcons name="bell" style={styles.alertIcon} />}
       >
@@ -316,7 +316,7 @@ const AddCustomNetwork = ({
           type={'cancel'}
           onPress={cancel}
           containerStyle={[styles.button, styles.cancel]}
-          testID={CANCEL_BUTTON_ID}
+          testID={CommonSelectorsIDs.CANCEL_BUTTON}
         >
           {strings('spend_limit_edition.cancel')}
         </StyledButton>
@@ -324,7 +324,7 @@ const AddCustomNetwork = ({
           type={'confirm'}
           onPress={confirm}
           containerStyle={[styles.button, styles.confirm]}
-          testID={'connect-approve-button'}
+          testID={CommonSelectorsIDs.CONNECT_BUTTON}
         >
           {strings('spend_limit_edition.approve')}
         </StyledButton>

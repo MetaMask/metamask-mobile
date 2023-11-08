@@ -25,6 +25,7 @@ exports[`ApproveTransactionHeader should render correctly 1`] = `
         "paddingVertical": 8,
       }
     }
+    testID="approve_transaction_origin_pill"
   >
     <View
       style={

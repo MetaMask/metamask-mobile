@@ -3826,21 +3826,21 @@
     json-rpc-engine "^6.1.0"
     nanoid "^3.1.31"
 
-"@metamask/phishing-controller@^3.0.0":
-  version "3.0.0"
-  resolved "https://registry.yarnpkg.com/@metamask/phishing-controller/-/phishing-controller-3.0.0.tgz#6a5d93f29354468e416f670d2892e3228b5fd562"
-  integrity sha512-U5TTGod1up/qiClswmjyfZjedzuj1wOcrHSYWyD2u4f1Tq0slcF9vbqV2nDWHslK6z+3hyuUTESd48SZ61sFjA==
+"@metamask/phishing-controller@^5.0.0":
+  version "5.0.0"
+  resolved "https://registry.yarnpkg.com/@metamask/phishing-controller/-/phishing-controller-5.0.0.tgz#f2d1006c4063d13f62f1926d2d3c7ffac5736fec"
+  integrity sha512-mY9g3RV0lxak6YzOD7Ki5WRDIfXbkyn/cpI6BmFMY2Iz/eY0WmDs++NorsWyty3yjLEyTLpMklPA1JsssEylhA==
   dependencies:
-    "@metamask/base-controller" "^2.0.0"
-    "@metamask/controller-utils" "^3.0.0"
+    "@metamask/base-controller" "^3.0.0"
+    "@metamask/controller-utils" "^4.0.0"
     "@types/punycode" "^2.1.0"
     eth-phishing-detect "^1.2.0"
     punycode "^2.1.1"
 
-"@metamask/ppom-validator@^0.7.0":
-  version "0.7.0"
-  resolved "https://registry.yarnpkg.com/@metamask/ppom-validator/-/ppom-validator-0.7.0.tgz#04ebcbabf7d0eee5c703fa04447c875db9e31725"
-  integrity sha512-s0+u+2SQr47NIfrV6d3H2M8U0rMVsHt2u9okR1f7IW2OfgnOnOLnOMfwOHBHHvGdLh6ktcEsYy13J0ovwflnog==
+"@metamask/ppom-validator@^0.10.0":
+  version "0.10.0"
+  resolved "https://registry.yarnpkg.com/@metamask/ppom-validator/-/ppom-validator-0.10.0.tgz#1df0c1f983c1f4b65defd50870bcb88a0118e700"
+  integrity sha512-ivxh7GLxjkoMYvR40xBqRpTotI4aO+7dTogOnyq2jh4XGwueYxREJxkP5lF9aOlT3UFQf5Uu0KRJT1i+KCM9Tg==
   dependencies:
     "@metamask/base-controller" "^3.0.0"
     "@metamask/controller-utils" "^4.0.0"
@@ -3907,10 +3907,10 @@
     "@noble/hashes" "~1.1.1"
     "@scure/base" "~1.1.0"
 
-"@metamask/sdk-communication-layer@^0.7.0":
-  version "0.7.0"
-  resolved "https://registry.yarnpkg.com/@metamask/sdk-communication-layer/-/sdk-communication-layer-0.7.0.tgz#b97a341d620bc3a75862b5932c9b62e98d093946"
-  integrity sha512-jIv/9ujLdqZPfRyAc4Qi865TWk0EhORCDeaa36+r5ED4R84BiUIh1qgyZAW5+Kp4IMlWRjrclGfvrx1exiN3Gw==
+"@metamask/sdk-communication-layer@^0.10.1":
+  version "0.10.1"
+  resolved "https://registry.yarnpkg.com/@metamask/sdk-communication-layer/-/sdk-communication-layer-0.10.1.tgz#95c6a1786dcd7a64c54a8e5cbd11489aa708b074"
+  integrity sha512-lWeh1PUq114h1/44llZgBcG51uOEi5dHjnNHlcYK9Sjq/iJ4s3mp0y39DGXHEs2r6rJQRyQpryoYyPsQTF2Imw==
   dependencies:
     cross-fetch "^3.1.5"
     date-fns "^2.29.3"
@@ -4899,6 +4899,16 @@
   version "1.2.1"
   resolved "https://registry.yarnpkg.com/@redux-saga/types/-/types-1.2.1.tgz#9403f51c17cae37edf870c6bc0c81c1ece5ccef8"
   integrity sha512-1dgmkh+3so0+LlBWRhGA33ua4MYr7tUOj+a9Si28vUi0IUFNbff1T3sgpeDJI/LaC75bBYnQ0A3wXjn0OrRNBA==
+
+"@reduxjs/toolkit@^1.9.5":
+  version "1.9.5"
+  resolved "https://registry.yarnpkg.com/@reduxjs/toolkit/-/toolkit-1.9.5.tgz#d3987849c24189ca483baa7aa59386c8e52077c4"
+  integrity sha512-Rt97jHmfTeaxL4swLRNPD/zV4OxTes4la07Xc4hetpUW/vc75t5m1ANyxG6ymnEQ2FsLQsoMlYB2vV1sO3m8tQ==
+  dependencies:
+    immer "^9.0.21"
+    redux "^4.2.1"
+    redux-thunk "^2.4.2"
+    reselect "^4.1.8"
 
 "@rnhooks/keyboard@^0.0.3":
   version "0.0.3"
@@ -16037,7 +16047,7 @@ immediate@~3.0.5:
   resolved "https://registry.yarnpkg.com/immediate/-/immediate-3.0.6.tgz#9db1dbd0faf8de6fbe0f5dd5e56bb606280de69b"
   integrity sha1-nbHb0Pr43m++D13V5Wu2BigN5ps=
 
-immer@^9.0.6:
+immer@^9.0.21, immer@^9.0.6:
   version "9.0.6"
   resolved "https://registry.yarnpkg.com/immer/-/immer-9.0.6.tgz#7a96bf2674d06c8143e327cbf73539388ddf1a73"
   integrity sha512-G95ivKpy+EvVAnAab4fVa4YGYn24J1SpEktnJX7JJ45Bd7xqME/SCplFzYFmTbrkwZbQ4xJK1xMTUYBkN6pWsQ==
@@ -22753,7 +22763,7 @@ redux@4.1.1:
   dependencies:
     "@babel/runtime" "^7.9.2"
 
-redux@^4.0.0, redux@^4.0.4, redux@^4.0.5:
+redux@^4.0.0, redux@^4.0.4, redux@^4.0.5, redux@^4.2.1:
   version "4.2.1"
   resolved "https://registry.yarnpkg.com/redux/-/redux-4.2.1.tgz#c08f4306826c49b5e9dc901dee0452ea8fce6197"
   integrity sha512-LAUYz4lc+Do8/g7aeRa8JkyDErK6ekstQaqWQrNRW//MY1TvCEpMtpTWvlQ+FPbWCx+Xixu/6SHt5N0HR+SB4w==
@@ -22964,10 +22974,10 @@ requires-port@^1.0.0:
   resolved "https://registry.yarnpkg.com/requires-port/-/requires-port-1.0.0.tgz#925d2601d39ac485e091cf0da5c6e694dc3dcaff"
   integrity sha1-kl0mAdOaxIXgkc8NpcbmlNw9yv8=
 
-reselect@^4.0.0:
-  version "4.0.0"
-  resolved "https://registry.yarnpkg.com/reselect/-/reselect-4.0.0.tgz#f2529830e5d3d0e021408b246a206ef4ea4437f7"
-  integrity sha512-qUgANli03jjAyGlnbYVAV5vvnOmJnODyABz51RdBN7M4WaVu8mecZWgyQNkG8Yqe3KRGRt0l4K4B3XVEULC4CA==
+reselect@^4.0.0, reselect@^4.1.8:
+  version "4.1.8"
+  resolved "https://registry.yarnpkg.com/reselect/-/reselect-4.1.8.tgz#3f5dc671ea168dccdeb3e141236f69f02eaec524"
+  integrity sha512-ab9EmR80F/zQTMNeneUr4cv+jSwPJgIlvEmVwLerwrWVbpLlBuls9XHzIeTFy4cegU2NHBp3va0LKOzU5qFEYQ==
 
 resize-observer-polyfill@^1.5.1:
   version "1.5.1"

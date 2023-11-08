@@ -6,18 +6,14 @@ import {
   NETWORKS_SETTINGS,
   SECURITY_SETTINGS,
 } from '../../../../wdio/screen-objects/testIDs/Screens/Settings.testIds';
-
-import messages from '../../../../locales/languages/en.json';
-
-const ADVANCE_TITLE_TEXT = messages.app_settings.advanced_title;
+import { SettingsViewSelectorsText } from '../../../selectors/Settings/SettingsView.selectors';
 
 export default class SettingsView {
   static async tapGeneral() {
     await TestHelpers.waitAndTap(GENERAL_SETTINGS);
   }
-
   static async tapAdvanced() {
-    await TestHelpers.tapByText(ADVANCE_TITLE_TEXT);
+    await TestHelpers.tapByText(SettingsViewSelectorsText.ADVANCE_TITLE_TEXT);
   }
 
   static async tapContacts() {
