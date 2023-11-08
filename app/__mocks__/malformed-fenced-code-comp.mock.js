@@ -7,9 +7,13 @@ const MockComponent = () => {
   ///: END:ONLY_INCLUDE_IN
   return (
     <View>
-      ///: BEGIN:ONLY_INCLUDE_IN(flask)
+      {
+        ///: BEGIN:ONLY_INCLUDE_IN(flask)
+      }
       console.log("I am Flask.");
-      ///: ENDED:ONLY_INCLUDE_OUT
+      {
+        ///: ENDED:ONLY_INCLUDE_OUT
+      }
       <Text>Hello from outside Flask fence!</Text>
     </View>
   );
