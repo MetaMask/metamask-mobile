@@ -12,7 +12,7 @@ import Row from '../../components/Row';
 
 import Avatar, {
   AvatarSize,
-  AvatarVariants,
+  AvatarVariant,
 } from '../../../../../../component-library/components/Avatars/Avatar';
 import imageIcons from '../../../../../../images/image-icons';
 import Text from '../../../../../Base/Text';
@@ -223,7 +223,7 @@ function NetworkSwitcher() {
                     <View style={customNetworkStyle.popularWrapper}>
                       <View style={customNetworkStyle.popularNetworkImage}>
                         <Avatar
-                          variant={AvatarVariants.Network}
+                          variant={AvatarVariant.Network}
                           size={AvatarSize.Sm}
                           name={'Ethereum Mainnet'}
                           imageSource={imageIcons.ETHEREUM}
@@ -248,7 +248,7 @@ function NetworkSwitcher() {
                     <View style={customNetworkStyle.popularWrapper}>
                       <View style={customNetworkStyle.popularNetworkImage}>
                         <Avatar
-                          variant={AvatarVariants.Network}
+                          variant={AvatarVariant.Network}
                           size={AvatarSize.Sm}
                           name={'Linea Mainnet'}
                           imageSource={imageIcons['LINEA-MAINNET']}
