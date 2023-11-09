@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useCallback } from 'react';
+import { useSelector } from 'react-redux';
 import { View, Text, InteractionManager } from 'react-native';
 import Engine from '../../../core/Engine';
 import SignatureRequest from '../SignatureRequest';
@@ -21,7 +22,6 @@ import { selectChainId } from '../../../selectors/networkController';
 import { store } from '../../../store';
 import { getBlockaidMetricsParams } from '../../../util/blockaid';
 import { SecurityAlertResponse } from '../BlockaidBanner/BlockaidBanner.types';
-import { useSelector } from 'react-redux';
 
 /**
  * Component that supports personal_sign
@@ -101,6 +101,12 @@ const PersonalSign = ({
       );
     };
   }, [getAnalyticsParams, messageParams.metamaskId]);
+
+  useEffect(() => {
+    return () => {
+      // Anything in here is fired on component unmount.
+    };
+  }, []);
 
   const showWalletConnectNotification = (confirmation = false) => {
     InteractionManager.runAfterInteractions(() => {

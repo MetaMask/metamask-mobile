@@ -4,7 +4,7 @@ import { SecurityAlertResponse } from '../../components/UI/BlockaidBanner/Blocka
  * Clears transaction object completely
  */
 export default function setSignatureRequestSecurityAlertResponse(
-  securityAlertResponse: SecurityAlertResponse,
+  securityAlertResponse?: SecurityAlertResponse,
 ) {
   return {
     type: 'SIGNATURE_REQUEST_SECURITY_ALERT_RESPONSE',

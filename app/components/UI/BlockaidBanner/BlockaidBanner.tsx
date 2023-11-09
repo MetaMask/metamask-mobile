@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from 'react';
+import { ActivityIndicator } from 'react-native';
 import { View } from 'react-native-animatable';
 
 import { captureException } from '@sentry/react-native';
@@ -35,7 +36,6 @@ import {
   BLOCKAID_ATTRIBUTION_LINK,
   BLOCKAID_SUPPORT_LINK,
 } from '../../../constants/urls';
-import { ActivityIndicator } from 'react-native';
 
 const getTitle = (reason: Reason): string =>
   strings(
@@ -98,7 +98,7 @@ const BlockaidBanner = (bannerProps: BlockaidBannerProps) => {
 
   if (!securityAlertResponse) {
     return (
-      <View style={styles.marginedBanner}>
+      <View style={styles.bannerWrapperMargined}>
         <BannerAlert
           severity={BannerAlertSeverity.Warning}
           title={strings('blockaid_banner.loading_title')}
@@ -120,7 +120,7 @@ const BlockaidBanner = (bannerProps: BlockaidBannerProps) => {
   if (result_type === ResultType.Benign) {
     if (displayPositiveResponse) {
       return (
-        <View style={styles.marginedBanner}>
+        <View style={styles.bannerWrapperMargined}>
           <BannerAlert
             severity={BannerAlertSeverity.Info}
             title={strings('blockaid_banner.no_risks')}
@@ -141,7 +141,7 @@ const BlockaidBanner = (bannerProps: BlockaidBannerProps) => {
 
   if (result_type === ResultType.Failed) {
     return (
-      <View style={styles.marginedBanner}>
+      <View style={styles.bannerWrapperMargined}>
         <BannerAlert
           severity={BannerAlertSeverity.Warning}
           title={title}
