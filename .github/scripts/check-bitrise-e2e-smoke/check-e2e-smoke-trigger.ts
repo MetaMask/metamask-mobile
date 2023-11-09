@@ -3,8 +3,6 @@ import { context, getOctokit } from '@actions/github';
 import { GitHub } from '@actions/github/lib/utils';
 
 enum PullRequestTriggerType {
-  Opened = 'opened',
-  Reopened = 'reopened',
   ReadyForReview = 'ready_for_review',
   Labeled = 'labeled',
 }
@@ -34,22 +32,6 @@ async function main(): Promise<void> {
   console.log(`Workflow triggered by the event (${triggerAction})`);
 
   switch (triggerAction) {
-    case PullRequestTriggerType.Opened:
-      shouldTriggerE2E = !context.payload.pull_request?.draft;
-      if (!shouldTriggerE2E) {
-        console.log(`Skipping E2E smoke since opened PR is in draft.`);
-      } else {
-        console.log(`Starting E2E smoke since opened PR is ready for review.`);
-      }
-      break;
-    case PullRequestTriggerType.Reopened:
-      shouldTriggerE2E = !context.payload.pull_request?.draft;
-      if (!shouldTriggerE2E) {
-        console.log(`Skipping E2E smoke since reopened PR is in draft.`);
-      } else {
-        console.log(`Starting E2E smoke since reopened PR is ready for review.`);
-      }
-      break;
     case PullRequestTriggerType.ReadyForReview:
       shouldTriggerE2E = true;
       console.log(
@@ -90,7 +72,7 @@ async function main(): Promise<void> {
         process.exit(1);
       }
     } catch (error) {
-      console.log(`Error occured when applying label: ${error}`);
+      core.setFailed(`Error occured when applying label: ${error}`);
       process.exit(1);
     }
   }
