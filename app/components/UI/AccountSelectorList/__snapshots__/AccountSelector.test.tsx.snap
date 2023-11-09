@@ -70,9 +70,7 @@ exports[`AccountSelectorList should render all accounts but only the balance for
           accessible={true}
           style={
             Object {
-              "alignItems": "flex-start",
-              "backgroundColor": "#FFFFFF",
-              "borderRadius": 4,
+              "alignItems": "center",
               "flexDirection": "row",
               "padding": 16,
             }
@@ -240,9 +238,7 @@ exports[`AccountSelectorList should render all accounts but only the balance for
           accessible={true}
           style={
             Object {
-              "alignItems": "flex-start",
-              "backgroundColor": "#FFFFFF",
-              "borderRadius": 4,
+              "alignItems": "center",
               "flexDirection": "row",
               "padding": 16,
             }
@@ -405,9 +401,7 @@ exports[`AccountSelectorList should render all accounts with balances 1`] = `
           accessible={true}
           style={
             Object {
-              "alignItems": "flex-start",
-              "backgroundColor": "#FFFFFF",
-              "borderRadius": 4,
+              "alignItems": "center",
               "flexDirection": "row",
               "padding": 16,
             }
@@ -669,9 +663,7 @@ exports[`AccountSelectorList should render all accounts with balances 1`] = `
           accessible={true}
           style={
             Object {
-              "alignItems": "flex-start",
-              "backgroundColor": "#FFFFFF",
-              "borderRadius": 4,
+              "alignItems": "center",
               "flexDirection": "row",
               "padding": 16,
             }
@@ -963,9 +955,7 @@ exports[`AccountSelectorList should render all accounts with right acessory 1`] 
           accessible={true}
           style={
             Object {
-              "alignItems": "flex-start",
-              "backgroundColor": "#FFFFFF",
-              "borderRadius": 4,
+              "alignItems": "center",
               "flexDirection": "row",
               "padding": 16,
             }
@@ -1180,9 +1170,7 @@ exports[`AccountSelectorList should render all accounts with right acessory 1`] 
           accessible={true}
           style={
             Object {
-              "alignItems": "flex-start",
-              "backgroundColor": "#FFFFFF",
-              "borderRadius": 4,
+              "alignItems": "center",
               "flexDirection": "row",
               "padding": 16,
             }
