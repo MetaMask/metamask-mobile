@@ -1,15 +1,15 @@
 import TestHelpers from '../helpers';
-import messages from '../../locales/languages/en.json';
+import { ActivitiesViewSelectorsText } from '../selectors/ActivitiesView.selectors';
 
 export default class ActivitiesView {
   static async isVisible() {
     await TestHelpers.checkIfElementWithTextIsVisible(
-      messages.transactions_view.title,
+      ActivitiesViewSelectorsText.TITLE,
     );
   }
 
   static async tapOnSwapActivity(sourceToken, destinationToken) {
-    let title = messages.swaps.transaction_label.swap;
+    let title = ActivitiesViewSelectorsText.SWAP;
     title = title.replace('{{sourceToken}}', sourceToken);
     title = title.replace('{{destinationToken}}', destinationToken);
 

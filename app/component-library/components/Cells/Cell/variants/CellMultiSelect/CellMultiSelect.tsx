@@ -7,11 +7,11 @@ import React from 'react';
 import { useStyles } from '../../../../../hooks';
 import MultiSelectItem from '../../../../Select/MultiSelect/MultiSelectItem';
 import CellBase from '../../foundation/CellBase';
+import { CellModalSelectorsIDs } from '../../../../../../../e2e/selectors/Modals/CellModal.selectors';
 
 // Internal dependencies.
 import styleSheet from './CellMultiSelect.styles';
 import { CellMultiSelectProps } from './CellMultiSelect.types';
-import { CELLMULTISELECT_TEST_ID } from './CellMultiSelect.constants';
 
 const CellMultiSelect = ({
   style,
@@ -30,7 +30,7 @@ const CellMultiSelect = ({
     <MultiSelectItem
       isSelected={isSelected}
       style={styles.base}
-      testID={CELLMULTISELECT_TEST_ID}
+      testID={CellModalSelectorsIDs.MULTISELECT}
       {...props}
     >
       <CellBase

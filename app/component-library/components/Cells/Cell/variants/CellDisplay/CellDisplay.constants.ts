@@ -5,9 +5,6 @@ import { AvatarProps } from '../../../../Avatars/Avatar/Avatar.types';
 // Internal dependencies.
 import { CellDisplayProps } from './CellDisplay.types';
 
-// Test IDs
-export const CELLDISPLAY_TEST_ID = 'celldisplay';
-
 // Sample consts
 const SAMPLE_CELLDISPLAY_TITLE = 'Orangefox.eth';
 const SAMPLE_CELLDISPLAY_SECONDARYTEXT =
@@ -20,6 +17,7 @@ const SAMPLE_CELLDISPLAY_AVATARPROPS: AvatarProps = {
   type: AvatarAccountType.JazzIcon,
 };
 
+// eslint-disable-next-line import/prefer-default-export
 export const SAMPLE_CELLDISPLAY_PROPS: CellDisplayProps = {
   title: SAMPLE_CELLDISPLAY_TITLE,
   secondaryText: SAMPLE_CELLDISPLAY_SECONDARYTEXT,

@@ -102,10 +102,7 @@ import { COMFIRM_TXN_AMOUNT } from '../../../../../wdio/screen-objects/testIDs/S
 import { isNetworkBuyNativeTokenSupported } from '../../../UI/Ramp/utils';
 import { getRampNetworks } from '../../../../reducers/fiatOrders';
 import CustomGasModal from '../../../UI/CustomGasModal';
-import {
-  TXN_CONFIRM_SCREEN,
-  TXN_CONFIRM_SEND_BUTTON,
-} from '../../../../constants/test-ids';
+import { ConfirmViewSelectorsIDs } from '../../../../../e2e/selectors/SendFlow/ConfirmView.selectors';
 
 const EDIT = 'edit';
 const EDIT_NONCE = 'edit_nonce';
@@ -325,7 +322,7 @@ class Confirm extends PureComponent {
       const eth = new Eth(
         Engine.context.NetworkController.getProviderAndBlockTracker().provider,
       );
-      const result = await fetchEstimatedMultiLayerL1Fee(eth, {
+      const result = fetchEstimatedMultiLayerL1Fee(eth, {
         txParams: transaction.transaction,
         chainId,
       });
@@ -333,7 +330,7 @@ class Confirm extends PureComponent {
         multiLayerL1FeeTotal: result,
       });
     } catch (e) {
-      Logger.error(e, 'fetchEstimatedMultiLayerL1Fee call failed');
+      await Logger.error(e, 'fetchEstimatedMultiLayerL1Fee call failed');
       this.setState({
         multiLayerL1FeeTotal: '0x0',
       });
@@ -349,7 +346,7 @@ class Confirm extends PureComponent {
       isPaymentRequest,
     } = this.props;
     this.updateNavBar();
-    this.getGasLimit();
+    await this.getGasLimit();
 
     const pollToken = await startGasPolling(this.state.pollToken);
     this.setState({
@@ -363,9 +360,9 @@ class Confirm extends PureComponent {
 
     showCustomNonce && (await this.setNetworkNonce());
     navigation.setParams({ providerType, isPaymentRequest });
-    this.parseTransactionDataHeader();
+    await this.parseTransactionDataHeader();
     if (isMultiLayerFeeNetwork(chainId)) {
-      this.fetchEstimatedL1Fee();
+      await this.fetchEstimatedL1Fee();
       intervalIdForEstimatedL1Fee = setInterval(
         this.fetchEstimatedL1Fee,
         POLLING_INTERVAL_ESTIMATED_L1_FEE,
@@ -737,7 +734,7 @@ class Confirm extends PureComponent {
           error && error.message,
           [{ text: 'OK' }],
         );
-        Logger.error(error, 'error while trying to send transaction (Confirm)');
+        await Logger.error(error, 'error while trying to send transaction (Confirm)');
       } else {
         AnalyticsV2.trackEvent(
           MetaMetricsEvents.QR_HARDWARE_TRANSACTION_CANCELED,
@@ -771,7 +768,7 @@ class Confirm extends PureComponent {
       fromSelectedAddress: accountAddress,
       balanceIsZero: hexToBN(accounts[accountAddress].balance).isZero(),
     });
-    this.parseTransactionDataHeader();
+    await this.parseTransactionDataHeader();
   };
 
   openAccountSelector = () => {
@@ -976,7 +973,7 @@ class Confirm extends PureComponent {
       <SafeAreaView
         edges={['bottom']}
         style={styles.wrapper}
-        testID={TXN_CONFIRM_SCREEN}
+        testID={ConfirmViewSelectorsIDs.CONTAINER}
       >
         <AccountFromToInfoCard
           transactionState={this.props.transactionState}
@@ -1116,7 +1113,7 @@ class Confirm extends PureComponent {
             }
             containerStyle={styles.buttonNext}
             onPress={this.onNext}
-            testID={TXN_CONFIRM_SEND_BUTTON}
+            testID={ConfirmViewSelectorsIDs.SEND_BUTTON}
           >
             {transactionConfirmed ? (
               <ActivityIndicator size="small" color={colors.primary.inverse} />

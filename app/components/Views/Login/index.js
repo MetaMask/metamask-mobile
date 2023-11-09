@@ -52,10 +52,6 @@ import { Authentication } from '../../../core';
 import AUTHENTICATION_TYPE from '../../../constants/userProperties';
 import { ThemeContext, mockTheme } from '../../../util/theme';
 import AnimatedFox from 'react-native-animated-fox';
-import {
-  LOGIN_PASSWORD_ERROR,
-  RESET_WALLET_ID,
-} from '../../../constants/test-ids';
 import { LoginOptionsSwitch } from '../../UI/LoginOptionsSwitch';
 import generateTestId from '../../../../wdio/utils/generateTestId';
 import {
@@ -70,6 +66,7 @@ import { containsErrorMessage } from '../../../util/errorHandling';
 import { MetaMetricsEvents } from '../../../core/Analytics';
 import { selectSelectedAddress } from '../../../selectors/preferencesController';
 import { RevealSeedViewSelectorsIDs } from '../../../../e2e/selectors/Settings/SecurityAndPrivacy/RevealSeedView.selectors';
+import { LoginViewSelectors } from '../../../../e2e/selectors/LoginView.selectors';
 
 const deviceHeight = Device.getDeviceHeight();
 const breakPoint = deviceHeight < 700;
@@ -304,7 +301,10 @@ class Login extends PureComponent {
   handleVaultCorruption = async () => {
     // This is so we can log vault corruption error in sentry
     const vaultCorruptionError = new Error('Vault Corruption Error');
-    Logger.error(vaultCorruptionError, strings('login.clean_vault_error'));
+    await Logger.error(
+      vaultCorruptionError,
+      strings('login.clean_vault_error'),
+    );
 
     const LOGIN_VAULT_CORRUPTION_TAG = 'Login/ handleVaultCorruption:';
     const { navigation } = this.props;
@@ -353,7 +353,7 @@ class Login extends PureComponent {
         throw new Error(`${LOGIN_VAULT_CORRUPTION_TAG} ${backupResult.error}`);
       }
     } catch (e) {
-      Logger.error(e);
+      await Logger.error(e);
       this.setState({
         loading: false,
         error: strings('login.invalid_password'),
@@ -429,7 +429,7 @@ class Login extends PureComponent {
         }
       } else if (toLowerCaseEquals(error, DENY_PIN_ERROR_ANDROID)) {
         this.setState({ loading: false });
-        this.updateBiometryChoice(false);
+        await this.updateBiometryChoice(false);
       } else {
         this.setState({ loading: false, error });
       }
@@ -457,7 +457,7 @@ class Login extends PureComponent {
       field.setValue('');
     } catch (error) {
       this.setState({ hasBiometricCredentials: true });
-      Logger.log(error);
+      await Logger.log(error);
     }
     field?.blur();
   };
@@ -520,7 +520,7 @@ class Login extends PureComponent {
             style={styles.wrapper}
             resetScrollToCoords={{ x: 0, y: 0 }}
           >
-            <View testID={'login'} {...generateTestId(Platform, 'login')}>
+            <View {...generateTestId(Platform, LoginViewSelectors.CONTAINER)}>
               <View style={styles.foxWrapper}>
                 {Device.isAndroid() ? (
                   <Image
@@ -574,7 +574,10 @@ class Login extends PureComponent {
               {this.renderSwitch()}
 
               {!!this.state.error && (
-                <Text color={TextColor.Error} testID={LOGIN_PASSWORD_ERROR}>
+                <Text
+                  color={TextColor.Error}
+                  testID={LoginViewSelectors.PASSWORD_ERROR}
+                >
                   {this.state.error}
                 </Text>
               )}
@@ -605,8 +608,7 @@ class Login extends PureComponent {
                 <Button
                   style={styles.goBack}
                   onPress={this.toggleWarningModal}
-                  testID={RESET_WALLET_ID}
-                  {...generateTestId(Platform, RESET_WALLET_ID)}
+                  {...generateTestId(Platform, LoginViewSelectors.RESET_WALLET)}
                 >
                   {strings('login.reset_wallet')}
                 </Button>

@@ -72,11 +72,6 @@ export default class WalletView {
     await TestHelpers.tapByText(nftName);
   }
 
-  static async removeTokenFromWallet(token) {
-    await element(by.text(token)).longPress();
-    await TestHelpers.tapByText(WalletViewSelectorsText.HIDE_TOKENS);
-  }
-
   static async editAccountName(accountName) {
     // For now this method only works for android.
     if (device.getPlatform() === 'android') {
@@ -99,22 +94,8 @@ export default class WalletView {
     }
   }
 
-  static async isNotVisible() {
-    await TestHelpers.checkIfNotVisible(
-      WalletViewSelectorsIDs.WALLET_CONTAINER,
-    );
-  }
-
   static async isNFTVisibleInWallet(nftName) {
     await TestHelpers.checkIfElementByTextIsVisible(nftName);
-  }
-
-  static async isTokenVisibleInWallet(tokenName) {
-    await TestHelpers.checkIfElementByTextIsVisible(tokenName);
-  }
-
-  static async tokenIsNotVisibleInWallet(tokenName) {
-    await TestHelpers.checkIfElementWithTextIsNotVisible(tokenName);
   }
 
   static async isNFTNameVisible(nftName) {
