@@ -49,6 +49,7 @@ import {
 import { EDIT_BUTTON } from '../../../../wdio/screen-objects/testIDs/Common.testIds';
 import Icon from '../../../component-library/components/Icons/Icon/Icon';
 import { SendLinkViewSelectorsIDs } from '../../../../e2e/selectors/SendLinkView.selectors';
+import Routes from '../../../../app/constants/navigation/Routes';
 
 const trackEvent = (event) => {
   InteractionManager.runAfterInteractions(() => {
@@ -964,6 +965,7 @@ export function getWalletNavbarOptions(
   function openQRScanner() {
     navigation.navigate('QRScanner', {
       onScanSuccess,
+      origin: Routes.WALLET_VIEW,
     });
     trackEvent(MetaMetricsEvents.WALLET_QR_SCANNER);
   }

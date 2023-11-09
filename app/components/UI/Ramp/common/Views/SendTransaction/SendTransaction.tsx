@@ -10,8 +10,6 @@ import {
 } from '@metamask/transaction-controller';
 import Engine from '../../../../../../core/Engine';
 
-// import TransactionReview from './TransactionReview';
-// import ButtonConfirm from '../../components/ButtonConfirm';
 import Row from '../../components/Row';
 import ScreenLayout from '../../components/ScreenLayout';
 import PaymentMethodIcon from '../../components/PaymentMethodIcon';
@@ -166,7 +164,7 @@ function SendTransaction() {
             <Row>
               <Text style={styles.centered}>
                 <Text variant={TextVariant.HeadingMD} style={styles.normal}>
-                  Send{' '}
+                  {strings('fiat_on_ramp_aggregator.send_transaction.send')}{' '}
                 </Text>
                 <Text variant={TextVariant.HeadingMD}>
                   {fromTokenMinimalUnitString(
