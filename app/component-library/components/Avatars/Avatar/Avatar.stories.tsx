@@ -24,7 +24,7 @@ import AvatarTokenStory, {
 } from './variants/AvatarToken/AvatarToken.stories';
 
 // Internal dependencies.
-import { AvatarVariants, AvatarProps } from './Avatar.types';
+import { AvatarVariant, AvatarProps } from './Avatar.types';
 import Avatar from './Avatar';
 
 export const getAvatarStoryProps = (): AvatarProps => {
@@ -32,38 +32,38 @@ export const getAvatarStoryProps = (): AvatarProps => {
 
   const avatarVariantsSelector = select(
     'Avatar Variant',
-    AvatarVariants,
-    AvatarVariants.Account,
+    AvatarVariant,
+    AvatarVariant.Account,
     storybookPropsGroupID,
   );
   switch (avatarVariantsSelector) {
-    case AvatarVariants.Account:
+    case AvatarVariant.Account:
       avatarProps = {
-        variant: AvatarVariants.Account,
+        variant: AvatarVariant.Account,
         ...getAvatarAccountStoryProps(),
       };
       break;
-    case AvatarVariants.Favicon:
+    case AvatarVariant.Favicon:
       avatarProps = {
-        variant: AvatarVariants.Favicon,
+        variant: AvatarVariant.Favicon,
         ...getAvatarFaviconStoryProps(),
       };
       break;
-    case AvatarVariants.Icon:
+    case AvatarVariant.Icon:
       avatarProps = {
-        variant: AvatarVariants.Icon,
+        variant: AvatarVariant.Icon,
         ...getAvatarIconStoryProps(),
       };
       break;
-    case AvatarVariants.Network:
+    case AvatarVariant.Network:
       avatarProps = {
-        variant: AvatarVariants.Network,
+        variant: AvatarVariant.Network,
         ...getAvatarNetworkStoryProps(),
       };
       break;
-    case AvatarVariants.Token:
+    case AvatarVariant.Token:
       avatarProps = {
-        variant: AvatarVariants.Token,
+        variant: AvatarVariant.Token,
         ...getAvatarTokenStoryProps(),
       };
       break;
