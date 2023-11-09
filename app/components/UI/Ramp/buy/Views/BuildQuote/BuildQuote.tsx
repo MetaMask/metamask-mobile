@@ -67,7 +67,6 @@ import { useStyles } from '../../../../../../component-library/hooks';
 
 import styleSheet from './BuildQuote.styles';
 import { toTokenMinimalUnit } from '../../../../../../util/number';
-import buildQuote from './BuildQuote';
 
 // TODO: Convert into typescript and correctly type
 const ListItem = BaseListItem as any;

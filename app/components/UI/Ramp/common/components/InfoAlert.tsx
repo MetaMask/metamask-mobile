@@ -12,7 +12,6 @@ import { useTheme } from '../../../../../util/theme';
 import { strings } from '../../../../../../locales/i18n';
 import { Colors } from '../../../../../util/theme/models';
 import useAnalytics from '../hooks/useAnalytics';
-import { RampType } from '../../../../../reducers/fiatOrders/types';
 
 type Logos = QuoteResponse['provider']['logos'];
 
