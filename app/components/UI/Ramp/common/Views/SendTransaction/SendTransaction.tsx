@@ -10,8 +10,6 @@ import {
 } from '@metamask/transaction-controller';
 import Engine from '../../../../../../core/Engine';
 
-// import TransactionReview from './TransactionReview';
-// import ButtonConfirm from '../../components/ButtonConfirm';
 import Row from '../../components/Row';
 import ScreenLayout from '../../components/ScreenLayout';
 import PaymentMethodIcon from '../../components/PaymentMethodIcon';

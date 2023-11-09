@@ -523,7 +523,7 @@ exports[`SendTransaction View renders correctly 1`] = `
                                     }
                                   >
                                     Send
-                                     
+
                                   </Text>
                                   <Text
                                     accessibilityRole="text"
@@ -539,7 +539,7 @@ exports[`SendTransaction View renders correctly 1`] = `
                                     }
                                   >
                                     0.012361263
-                                     
+
                                   </Text>
                                   <View
                                     style={
@@ -570,7 +570,7 @@ exports[`SendTransaction View renders correctly 1`] = `
                                       testID="token-avatar-image"
                                     />
                                   </View>
-                                   
+
                                   <Text
                                     accessibilityRole="text"
                                     style={
@@ -1359,7 +1359,7 @@ exports[`SendTransaction View renders correctly for custom action payment method
                                     }
                                   >
                                     Send
-                                     
+
                                   </Text>
                                   <Text
                                     accessibilityRole="text"
@@ -1375,7 +1375,7 @@ exports[`SendTransaction View renders correctly for custom action payment method
                                     }
                                   >
                                     0.0123456
-                                     
+
                                   </Text>
                                   <View
                                     style={
@@ -1406,7 +1406,7 @@ exports[`SendTransaction View renders correctly for custom action payment method
                                       testID="token-avatar-image"
                                     />
                                   </View>
-                                   
+
                                   <Text
                                     accessibilityRole="text"
                                     style={
@@ -2111,7 +2111,7 @@ exports[`SendTransaction View renders correctly for token 1`] = `
                                     }
                                   >
                                     Send
-                                     
+
                                   </Text>
                                   <Text
                                     accessibilityRole="text"
@@ -2127,7 +2127,7 @@ exports[`SendTransaction View renders correctly for token 1`] = `
                                     }
                                   >
                                     0.0123456
-                                     
+
                                   </Text>
                                   <View
                                     style={
@@ -2158,7 +2158,7 @@ exports[`SendTransaction View renders correctly for token 1`] = `
                                       testID="token-avatar-image"
                                     />
                                   </View>
-                                   
+
                                   <Text
                                     accessibilityRole="text"
                                     style={
