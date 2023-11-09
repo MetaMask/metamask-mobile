@@ -240,6 +240,15 @@ export class SDKConnect extends EventEmitter2 {
       }
     });
 
+    connection.remote.on(EventType.MESSAGE, () => {
+      if (this.connecting[connection.channelId] === true) {
+        DevLogger.log(
+          `SDKConnect::watchConnection - done connecting - reset status.`,
+        );
+        this.connecting[connection.channelId] = false;
+      }
+    });
+
     connection.on(CONNECTION_LOADING_EVENT, (event: { loading: boolean }) => {
       const channelId = connection.channelId;
       const { loading } = event;
