@@ -18,7 +18,7 @@ const signatureRequestReducer = (
   action: ActionType = { type: 'NONE' },
 ) => {
   switch (action.type) {
-    case 'SIGNATURE_REQUEST_SECURITY_ALERT_RESPONSE':
+    case 'SET_SIGNATURE_REQUEST_SECURITY_ALERT_RESPONSE':
       return {
         securityAlertResponse: action.securityAlertResponse,
       };

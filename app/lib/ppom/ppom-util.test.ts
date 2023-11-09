@@ -90,7 +90,10 @@ describe('validateResponse', () => {
   });
 
   it('should update transaction with validation result', async () => {
-    const spy = jest.spyOn(TransactionActions, 'updateTransaction');
+    const spy = jest.spyOn(
+      TransactionActions,
+      'setTransactionSecurityAlertResponse',
+    );
     await PPOMUtil.validateRequest(mockRequest, '123');
     expect(spy).toBeCalledTimes(2);
   });

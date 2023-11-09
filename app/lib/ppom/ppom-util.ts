@@ -7,7 +7,7 @@ import {
 } from '../../components/UI/BlockaidBanner/BlockaidBanner.types';
 import { store } from '../../store';
 import setSignatureRequestSecurityAlertResponse from '../../actions/signatureRequest';
-import { updateTransaction } from '../../actions/transaction';
+import { setTransactionSecurityAlertResponse } from '../../actions/transaction';
 
 const ConfirmationMethods = Object.freeze([
   'eth_sendRawTransaction',
@@ -56,7 +56,7 @@ const validateRequest = async (req: any, transactionId?: string) => {
         req.method === 'eth_sendTransaction'
       ) {
         store.dispatch(
-          updateTransaction({ securityAlertResponse: RequestInProgress }),
+          setTransactionSecurityAlertResponse(transactionId, RequestInProgress),
         );
       } else {
         store.dispatch(
@@ -77,7 +77,12 @@ const validateRequest = async (req: any, transactionId?: string) => {
       req.method === 'eth_sendRawTransaction' ||
       req.method === 'eth_sendTransaction'
     ) {
-      store.dispatch(updateTransaction({ securityAlertResponse }));
+      store.dispatch(
+        setTransactionSecurityAlertResponse(
+          transactionId,
+          securityAlertResponse,
+        ),
+      );
       const { TransactionController } = Engine.context;
       TransactionController.updateSecurityAlertResponse(transactionId, {
         securityAlertResponse,

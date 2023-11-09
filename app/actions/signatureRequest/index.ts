@@ -7,7 +7,7 @@ export default function setSignatureRequestSecurityAlertResponse(
   securityAlertResponse?: SecurityAlertResponse,
 ) {
   return {
-    type: 'SIGNATURE_REQUEST_SECURITY_ALERT_RESPONSE',
+    type: 'SET_SIGNATURE_REQUEST_SECURITY_ALERT_RESPONSE',
     securityAlertResponse,
   };
 }

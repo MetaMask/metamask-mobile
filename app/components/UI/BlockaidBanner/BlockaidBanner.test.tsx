@@ -141,12 +141,23 @@ describe('BlockaidBanner', () => {
     ).toBeDefined();
   });
 
-  it('should render loader if securityAlertResponse is undefined', async () => {
+  it('should return null if securityAlertResponse is undefined', async () => {
     const wrapper = render(<BlockaidBanner />);
 
     expect(wrapper).toMatchSnapshot();
     expect(await wrapper.queryByTestId(TESTID_ACCORDIONHEADER)).toBeNull();
     expect(await wrapper.queryByTestId(TESTID_ACCORDION_CONTENT)).toBeNull();
+  });
+
+  it('should render loader if reason is requestInProgress', async () => {
+    const wrapper = render(<BlockaidBanner />);
+
+    expect(wrapper).toMatchSnapshot();
+    expect(
+      await wrapper.queryByText(
+        'We’re still evaluating the safety of this request. Wait or proceed with caution.',
+      ),
+    ).toBeDefined();
   });
 
   it('should not render if resultType is benign', async () => {

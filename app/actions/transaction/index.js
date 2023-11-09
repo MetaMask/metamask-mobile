@@ -92,6 +92,17 @@ export function updateTransaction(params) {
   };
 }
 
+export function setTransactionSecurityAlertResponse(
+  transactionId,
+  securityAlertResponse,
+) {
+  return {
+    type: 'SET_TRANSACTION_SECURITY_ALERT_RESPONSE',
+    transactionId,
+    securityAlertResponse,
+  };
+}
+
 /**
  * Sets any attribute in transaction object
  *

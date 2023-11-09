@@ -87,16 +87,18 @@ const BlockaidBanner = (bannerProps: BlockaidBannerProps) => {
   const [displayPositiveResponse, setDisplayPositiveResponse] = useState(false);
 
   useEffect(() => {
-    if (securityAlertResponse === undefined) {
+    if (securityAlertResponse?.reason === Reason.requestInProgress) {
       setDisplayPositiveResponse(true);
     }
   }, [securityAlertResponse]);
 
-  if (!isBlockaidFeatureEnabled()) {
+  if (!securityAlertResponse || !isBlockaidFeatureEnabled()) {
     return null;
   }
 
-  if (!securityAlertResponse) {
+  const { result_type, reason, features } = securityAlertResponse;
+
+  if (securityAlertResponse.reason === Reason.requestInProgress) {
     return (
       <View style={styles.bannerWrapperMargined}>
         <BannerAlert
@@ -114,8 +116,6 @@ const BlockaidBanner = (bannerProps: BlockaidBannerProps) => {
       </View>
     );
   }
-
-  const { result_type, reason, features } = securityAlertResponse;
 
   if (result_type === ResultType.Benign) {
     if (displayPositiveResponse) {
