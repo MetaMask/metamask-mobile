@@ -94,15 +94,6 @@ const WalletAccount = ({ style }: WalletAccountProps, ref: React.Ref<any>) => {
     });
   };
 
-  const getLabel = useCallback((address: string) => {
-    if (isHardwareAccount(address, [ExtendedKeyringTypes.ledger])) {
-      return 'accounts.ledger';
-    } else if (isHardwareAccount(address, [ExtendedKeyringTypes.qr])) {
-      return 'accounts.qr_hardware';
-    }
-    return '';
-  }, []);
-
   return (
     <View style={styles.base}>
       <PickerAccount

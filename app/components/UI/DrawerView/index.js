@@ -45,19 +45,6 @@ import DeeplinkManager from '../../../core/DeeplinkManager';
 import Engine from '../../../core/Engine';
 import { collectiblesSelector } from '../../../reducers/collectibles';
 import { getCurrentRoute } from '../../../reducers/navigation';
-import { ScrollView } from 'react-native-gesture-handler';
-import { isZero } from '../../../util/lodash';
-import { Authentication } from '../../../core/';
-import { ThemeContext, mockTheme } from '../../../util/theme';
-import { getLabelTextByAddress } from '../../../util/address';
-import {
-  onboardNetworkAction,
-  networkSwitched,
-} from '../../../actions/onboardNetwork';
-import Routes from '../../../constants/navigation/Routes';
-import { scale } from 'react-native-size-matters';
-import generateTestId from '../../../../wdio/utils/generateTestId';
-import { DRAWER_VIEW_LOCK_TEXT_ID } from '../../../../wdio/screen-objects/testIDs/Screens/DrawerView.testIds';
 import {
   selectNetworkConfigurations,
   selectProviderConfig,
@@ -67,14 +54,17 @@ import {
   selectIdentities,
   selectSelectedAddress,
 } from '../../../selectors/preferencesController';
+import { selectCurrentCurrency } from '../../../selectors/currencyRateController';
 import { selectContractBalances } from '../../../selectors/tokenBalancesController';
 import { selectTokens } from '../../../selectors/tokensController';
+import { selectAccounts } from '../../../selectors/accountTrackerController';
 import { fontStyles } from '../../../styles/common';
 import {
   doENSReverseLookup,
   isDefaultAccountName,
 } from '../../../util/ENSUtils';
 import Logger from '../../../util/Logger';
+import { getLabelTextByAddress } from '../../../util/address';
 import AnalyticsV2 from '../../../util/analyticsV2';
 import Device from '../../../util/device';
 import {
@@ -99,7 +89,6 @@ import StyledButton from '../StyledButton';
 
 import { createAccountSelectorNavDetails } from '../../Views/AccountSelector';
 import NetworkInfo from '../NetworkInfo';
-import { ExtendedKeyringTypes } from '../../../constants/keyringTypes';
 
 const createStyles = (colors) =>
   StyleSheet.create({

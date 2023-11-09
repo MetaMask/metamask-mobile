@@ -1,27 +1,17 @@
-import PropTypes from 'prop-types';
 import React, { PureComponent } from 'react';
-import { StyleSheet, Text, View } from 'react-native';
-import { connect } from 'react-redux';
-import { strings } from '../../../../locales/i18n';
-import { ExtendedKeyringTypes } from '../../../constants/keyringTypes';
-import Engine from '../../../core/Engine';
-import { selectAccounts } from '../../../selectors/accountTrackerController';
-import {
-  selectConversionRate,
-  selectCurrentCurrency,
-} from '../../../selectors/currencyRateController';
-import { selectTicker } from '../../../selectors/networkController';
-import { selectIdentities } from '../../../selectors/preferencesController';
+import PropTypes from 'prop-types';
+import { StyleSheet, View, Text } from 'react-native';
 import { fontStyles } from '../../../styles/common';
+import { renderFromWei, weiToFiat, hexToBN } from '../../../util/number';
+import Identicon from '../Identicon';
+import { strings } from '../../../../locales/i18n';
+import { connect } from 'react-redux';
 import {
   renderAccountName,
   renderShortAddress,
   safeToChecksumAddress,
   getLabelTextByAddress,
 } from '../../../util/address';
-import Device from '../../../util/device';
-import { hexToBN, renderFromWei, weiToFiat } from '../../../util/number';
-import { ThemeContext, mockTheme } from '../../../util/theme';
 import {
   getActiveTabUrl,
   getNormalizedTxState,
@@ -37,7 +27,6 @@ import {
 import { selectAccounts } from '../../../selectors/accountTrackerController';
 import { selectIdentities } from '../../../selectors/preferencesController';
 import ApproveTransactionHeader from '../ApproveTransactionHeader';
-import Identicon from '../Identicon';
 
 const createStyles = (colors) =>
   StyleSheet.create({
@@ -147,27 +136,6 @@ class AccountInfoCard extends PureComponent {
     origin: PropTypes.string,
   };
 
-  state = {
-    isHardwareKeyring: false,
-    isLedgerKeyring: false,
-  };
-
-  componentDidMount() {
-    const { KeyringController } = Engine.context;
-    const { fromAddress } = this.props;
-    KeyringController.getAccountKeyringType(fromAddress).then((type) => {
-      if (
-        [ExtendedKeyringTypes.qr, ExtendedKeyringTypes.ledger].includes(type)
-      ) {
-        this.setState({ isHardwareKeyring: true });
-
-        if (type === ExtendedKeyringTypes.ledger) {
-          this.setState({ isLedgerKeyring: true });
-        }
-      }
-    });
-  }
-
   render() {
     const {
       accounts,
@@ -184,7 +152,6 @@ class AccountInfoCard extends PureComponent {
     } = this.props;
 
     const fromAddress = safeToChecksumAddress(rawFromAddress);
-    const { isHardwareKeyring, isLedgerKeyring } = this.state;
     const accountLabelTag = getLabelTextByAddress(fromAddress);
     const colors = this.context.colors || mockTheme.colors;
     const styles = createStyles(colors);
@@ -247,11 +214,7 @@ class AccountInfoCard extends PureComponent {
         </View>
         {accountLabelTag && (
           <View style={styles.tag}>
-            <Text style={styles.tagText}>
-              {isLedgerKeyring
-                ? strings('accounts.ledger')
-                : strings('accounts.qr_hardware')}
-            </Text>
+            <Text style={styles.tagText}>{strings(accountLabelTag)}</Text>
           </View>
         )}
       </View>

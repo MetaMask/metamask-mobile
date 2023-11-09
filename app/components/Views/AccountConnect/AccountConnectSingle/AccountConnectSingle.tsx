@@ -35,7 +35,6 @@ import { AccountConnectSingleProps } from './AccountConnectSingle.types';
 import { CommonSelectorsIDs } from '../../../../../e2e/selectors/Common.selectors';
 import { ConnectAccountModalSelectorsIDs } from '../../../../../e2e/selectors/Modals/ConnectAccountModal.selectors';
 import generateTestId from '../../../../../wdio/utils/generateTestId';
-import { ExtendedKeyringTypes } from '../../../../constants/keyringTypes';
 
 const AccountConnectSingle = ({
   defaultSelectedAccount,

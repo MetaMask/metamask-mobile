@@ -1,47 +1,35 @@
 // Third party dependencies.
-import { KeyringTypes } from '@metamask/keyring-controller';
 import React, { useCallback, useRef } from 'react';
 import { Alert, ListRenderItem, Platform, View } from 'react-native';
 import { FlatList } from 'react-native-gesture-handler';
 import { useSelector } from 'react-redux';
+import { KeyringTypes } from '@metamask/keyring-controller';
 
 // External dependencies.
-import { strings } from '../../../../locales/i18n';
-import {
-  AvatarVariants,
-  AvatarVariants,
-} from '../../../component-library/components/Avatars/Avatar/Avatar.types';
-import {
-  AvatarAccountType,
-  AvatarAccountType,
-} from '../../../component-library/components/Avatars/Avatar/variants/AvatarAccount';
-import AvatarGroup from '../../../component-library/components/Avatars/AvatarGroup';
 import Cell, {
   CellVariant,
 } from '../../../component-library/components/Cells/Cell';
+import { useStyles } from '../../../component-library/hooks';
 import Text from '../../../component-library/components/Texts/Text';
+import AvatarGroup from '../../../component-library/components/Avatars/AvatarGroup';
 import {
   formatAddress,
   safeToChecksumAddress,
   getLabelTextByAddress,
-  formatAddress,
-  safeToChecksumAddress,
 } from '../../../util/address';
-import {
-  isDefaultAccountName,
-  isDefaultAccountName,
-} from '../../../util/ENSUtils';
+import { AvatarAccountType } from '../../../component-library/components/Avatars/Avatar/variants/AvatarAccount';
+import { isDefaultAccountName } from '../../../util/ENSUtils';
 import { strings } from '../../../../locales/i18n';
-import { Account, Assets, Account, Assets } from '../../hooks/useAccounts';
+import { AvatarVariants } from '../../../component-library/components/Avatars/Avatar/Avatar.types';
+import { Account, Assets } from '../../hooks/useAccounts';
 import UntypedEngine from '../../../core/Engine';
 import { removeAccountsFromPermissions } from '../../../core/Permissions';
 
 // Internal dependencies.
-import { ExtendedKeyringTypes } from '../../../constants/keyringTypes';
-import { ACCOUNT_BALANCE_BY_ADDRESS_TEST_ID } from '../../../../wdio/screen-objects/testIDs/Components/AccountListComponent.testIds.js';
-import generateTestId from '../../../../wdio/utils/generateTestId';
-import styleSheet from './AccountSelectorList.styles';
 import { AccountSelectorListProps } from './AccountSelectorList.types';
+import styleSheet from './AccountSelectorList.styles';
+import generateTestId from '../../../../wdio/utils/generateTestId';
+import { ACCOUNT_BALANCE_BY_ADDRESS_TEST_ID } from '../../../../wdio/screen-objects/testIDs/Components/AccountListComponent.testIds.js';
 
 const AccountSelectorList = ({
   onSelectAccount,

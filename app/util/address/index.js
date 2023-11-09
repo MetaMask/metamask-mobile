@@ -1,39 +1,38 @@
 import {
-  toChecksumAddress,
-  isValidAddress,
-  isHexString,
   addHexPrefix,
-  isValidChecksumAddress,
   isHexPrefixed,
+  isHexString,
+  isValidAddress,
+  isValidChecksumAddress,
+  toChecksumAddress,
 } from 'ethereumjs-util';
-import URL from 'url-parse';
 import punycode from 'punycode/punycode';
-import { KeyringTypes } from '@metamask/keyring-controller';
-import Engine from '../../core/Engine';
+import URL from 'url-parse';
+import {
+  CONTACT_ALREADY_SAVED,
+  SYMBOL_ERROR,
+} from '../../../app/constants/error';
+import { ExtendedKeyringTypes } from '../../../app/constants/keyringTypes';
+import { regex } from '../../../app/util/regex';
 import { strings } from '../../../locales/i18n';
-import { tlc } from '../general';
+import { PROTOCOLS } from '../../constants/deeplinks';
+import { RPC } from '../../constants/network';
+import Engine from '../../core/Engine';
+import TransactionTypes from '../../core/TransactionTypes';
+import { selectChainId } from '../../selectors/networkController';
+import { store } from '../../store';
 import {
   doENSLookup,
   doENSReverseLookup,
   getCachedENSName,
   isDefaultAccountName,
 } from '../../util/ENSUtils';
-import {
-  isMainnetByChainId,
-  findBlockExplorerForRpc,
-} from '../../util/networks';
-import { RPC } from '../../constants/network';
 import { collectConfusables } from '../../util/confusables';
 import {
-  CONTACT_ALREADY_SAVED,
-  SYMBOL_ERROR,
-} from '../../../app/constants/error';
-import { PROTOCOLS } from '../../constants/deeplinks';
-import TransactionTypes from '../../core/TransactionTypes';
-import { selectChainId } from '../../selectors/networkController';
-import { store } from '../../store';
-import { regex } from '../../../app/util/regex';
-import { ExtendedKeyringTypes } from '../../../app/constants/keyringTypes';
+  findBlockExplorerForRpc,
+  isMainnetByChainId,
+} from '../../util/networks';
+import { tlc } from '../general';
 
 const {
   ASSET: { ERC721, ERC1155 },
@@ -146,24 +145,6 @@ export async function importAccountFromPrivateKey(private_key) {
 }
 
 /**
- * get address's kerying
- *
- * @param {String} address - String corresponding to an address
- * @returns {Keyring} - Returns address's account keyriong
- */
-export function getKeyringByAddress(address) {
-  if (!isValidHexAddress(address)) {
-    throw new Error(`Invalid address: ${address}`);
-  }
-  const { KeyringController } = Engine.context;
-  const { keyrings } = KeyringController.state;
-  return keyrings.find((keyring) =>
-    keyring.accounts
-      .map((account) => account.toLowerCase())
-      .includes(address.toLowerCase()),
-  );
-}
-/**
  * judge address is hardware account or not
  *
  * @param {String} address - String corresponding to an address
@@ -200,7 +181,7 @@ export function isQRHardwareAccount(address) {
   const { KeyringController } = Engine.context;
   const { keyrings } = KeyringController.state;
   const qrKeyrings = keyrings.filter(
-    (keyring) => keyring.type === KeyringTypes.qr,
+    (keyring) => keyring.type === ExtendedKeyringTypes.qr,
   );
   let qrAccounts = [];
   for (const qrKeyring of qrKeyrings) {
@@ -231,18 +212,6 @@ export function getKeyringByAddress(address) {
 }
 
 /**
- * judge address is hardware account or not
- *
- * @param {String} address - String corresponding to an address
- * @param {Array<KeyringTypes|HardwareDeviceNames>} accountTypes - If it belongs to a specific hardware account type. By default all types are allowed.
- * @returns {Boolean} - Returns a boolean
- */
-export function isHardwareAccount(address, accountTypes = [KeyringTypes.qr]) {
-  const keyring = getKeyringByAddress(address);
-  return keyring && accountTypes.includes(keyring.type);
-}
-
-/**
  * gets i18n account label tag text based on address
  *
  * @param {String} address - String corresponding to an address
@@ -253,9 +222,11 @@ export function getLabelTextByAddress(address) {
   const keyring = getKeyringByAddress(address);
   if (keyring) {
     switch (keyring.type) {
-      case KeyringTypes.qr:
+      case ExtendedKeyringTypes.ledger:
+        return 'accounts.ledger';
+      case ExtendedKeyringTypes.qr:
         return 'accounts.qr_hardware';
-      case KeyringTypes.simple:
+      case ExtendedKeyringTypes.simple:
         return 'accounts.imported';
     }
   }
@@ -294,6 +265,7 @@ export function getAddressAccountType(address) {
   }
   throw new Error(`The address: ${address} is not imported`);
 }
+
 /**
  * Validates an ENS name
  *

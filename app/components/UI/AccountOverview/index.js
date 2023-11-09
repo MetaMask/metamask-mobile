@@ -21,7 +21,6 @@ import generateTestId from '../../../../wdio/utils/generateTestId';
 import { showAlert } from '../../../actions/alert';
 import { toggleReceiveModal } from '../../../actions/modals';
 import { newAssetTransaction } from '../../../actions/transaction';
-import Device from '../../../util/device';
 import { protectWalletModalVisible } from '../../../actions/user';
 import Routes from '../../../constants/navigation/Routes';
 import ClipboardManager from '../../../core/ClipboardManager';
@@ -35,22 +34,21 @@ import {
   renderAccountName,
 } from '../../../util/address';
 import Device from '../../../util/device';
-import { ThemeContext, mockTheme } from '../../../util/theme';
-import EthereumAddress from '../EthereumAddress';
-import Identicon from '../Identicon';
+import { regex } from '../../../../app/util/regex';
 import { MetaMetricsEvents } from '../../../core/Analytics';
 import Analytics from '../../../core/Analytics/Analytics';
 import AppConstants from '../../../core/AppConstants';
 import Engine from '../../../core/Engine';
-import { selectChainId } from '../../../selectors/networkController';
 import { selectCurrentCurrency } from '../../../selectors/currencyRateController';
+import { selectChainId } from '../../../selectors/networkController';
 import {
   selectIdentities,
   selectSelectedAddress,
 } from '../../../selectors/preferencesController';
+import { ThemeContext, mockTheme } from '../../../util/theme';
 import { createAccountSelectorNavDetails } from '../../Views/AccountSelector';
-import { regex } from '../../../../app/util/regex';
-import { ExtendedKeyringTypes } from '../../../constants/keyringTypes';
+import EthereumAddress from '../EthereumAddress';
+import Identicon from '../Identicon';
 
 const createStyles = (colors) =>
   StyleSheet.create({
