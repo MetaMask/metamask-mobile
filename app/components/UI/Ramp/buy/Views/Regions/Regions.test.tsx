@@ -204,6 +204,7 @@ describe('Regions View', () => {
     });
 
     // analytics check for offramp
+    mockTrackEvent.mockReset();
     mockUseRampSDKValues = {
       ...mockUseRampSDKInitialValues,
       isBuy: false,
@@ -245,6 +246,7 @@ describe('Regions View', () => {
       location: 'Region Screen',
     });
 
+    mockTrackEvent.mockReset();
     mockUseRampSDKValues = {
       ...mockUseRampSDKInitialValues,
       isBuy: false,
