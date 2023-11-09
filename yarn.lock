@@ -3491,15 +3491,7 @@
     "@metamask/controller-utils" "^3.0.0"
     immer "^9.0.6"
 
-"@metamask/base-controller@^3.0.0", "@metamask/base-controller@^3.1.0", "@metamask/base-controller@^3.2.1":
-  version "3.2.1"
-  resolved "https://registry.yarnpkg.com/@metamask/base-controller/-/base-controller-3.2.1.tgz#9bed5764e786280eccb16a6d1f6582c0f9200871"
-  integrity sha512-KGMh2c9Lt/wHw+lHx7Mk/2uEqf1PKET+lc4R5UHmZ8HuasilhvVqvv/eoiUDBahoIRnK60zCbbclnc3VdnsScw==
-  dependencies:
-    "@metamask/utils" "^6.2.0"
-    immer "^9.0.6"
-
-"@metamask/base-controller@^3.2.3":
+"@metamask/base-controller@^3.0.0", "@metamask/base-controller@^3.1.0", "@metamask/base-controller@^3.2.1", "@metamask/base-controller@^3.2.3":
   version "3.2.3"
   resolved "https://registry.yarnpkg.com/@metamask/base-controller/-/base-controller-3.2.3.tgz#7436a14f6789acf0814952dabaa70ee4fb7d473c"
   integrity sha512-k66oZe7BOEx0D5N5X8feE/32QlrUTmiEHHAZU/yCac2+VHllJOCEQV/cTeaAtgepnEf8O7SskvYZN+eIjgS99w==
@@ -3864,21 +3856,13 @@
     "@metamask/base-controller" "^2.0.0"
     "@metamask/controller-utils" "^3.1.0"
 
-"@metamask/preferences-controller@^4.0.0":
+"@metamask/preferences-controller@^4.0.0", "@metamask/preferences-controller@^4.2.0":
   version "4.4.3"
   resolved "https://registry.yarnpkg.com/@metamask/preferences-controller/-/preferences-controller-4.4.3.tgz#f0f05793370892d2d7bc9b07e685583a1f4d80c9"
   integrity sha512-ftDRfOEgRrQqFyfZEQk9AVD1YMdP54NvtiBCrlqAG4hiFgBXQbQTcyl0i/jR/cfki8hYMuH1gPdId14CCAJbDQ==
   dependencies:
     "@metamask/base-controller" "^3.2.3"
     "@metamask/controller-utils" "^5.0.2"
-
-"@metamask/preferences-controller@^4.2.0":
-  version "4.4.0"
-  resolved "https://registry.yarnpkg.com/@metamask/preferences-controller/-/preferences-controller-4.4.0.tgz#352b16a176695166d585c25e3b78c943219358b7"
-  integrity sha512-f1X15+sqqea3/NMpsCVsAzM/sx/JQgsS+JgK3BR2hnpDCyuYV0HQfLn7ilKqzKFpthtqVgDqXcoZ3q3ekp/J1Q==
-  dependencies:
-    "@metamask/base-controller" "^3.2.1"
-    "@metamask/controller-utils" "^4.3.2"
 
 "@metamask/providers@^13.1.0":
   version "13.1.0"
