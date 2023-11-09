@@ -2,13 +2,13 @@
 import { StyleSheet, ViewStyle } from 'react-native';
 
 // External dependencies.
-import { Theme } from '../../../../../util/theme/models';
+import { Theme } from '../../../../util/theme/models';
 
 // Internal dependencies.
-import { MultiSelectItemStyleSheetVars } from './MultiSelectItem.types';
+import { ListItemMultiSelectStyleSheetVars } from './ListItemMultiSelect.types';
 
 /**
- * Style sheet function for MultiSelectItem component.
+ * Style sheet function for ListItemMultiSelect component.
  *
  * @param params Style sheet params.
  * @param params.theme App theme from ThemeContext.
@@ -17,7 +17,7 @@ import { MultiSelectItemStyleSheetVars } from './MultiSelectItem.types';
  */
 const styleSheet = (params: {
   theme: Theme;
-  vars: MultiSelectItemStyleSheetVars;
+  vars: ListItemMultiSelectStyleSheetVars;
 }) => {
   const { vars, theme } = params;
   const { colors } = theme;
@@ -25,12 +25,17 @@ const styleSheet = (params: {
   return StyleSheet.create({
     base: Object.assign(
       {
+        padding: 16,
+        borderRadius: 4,
         alignItems: 'flex-start',
         backgroundColor: colors.background.default,
         opacity: isDisabled ? 0.5 : 1,
       } as ViewStyle,
       style,
     ) as ViewStyle,
+    listItem: {
+      padding: 0,
+    },
     underlay: {
       ...StyleSheet.absoluteFillObject,
       flexDirection: 'row',

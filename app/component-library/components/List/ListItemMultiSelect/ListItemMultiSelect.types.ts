@@ -2,14 +2,14 @@
 import { TouchableOpacityProps } from 'react-native';
 
 // External dependencies.
-import { ListItemProps } from '../../../List/ListItem/ListItem.types';
+import { ListItemProps } from '../../List/ListItem/ListItem.types';
 
 /**
- * MultiSelectItem component props.
+ * ListItemMultiSelect component props.
  */
-export interface MultiSelectItemProps
+export interface ListItemMultiSelectProps
   extends TouchableOpacityProps,
-    Omit<ListItemProps, 'hitSlop'> {
+    Omit<ListItemProps, 'style'> {
   /**
    * Optional prop to determine if the item is selected.
    */
@@ -23,8 +23,8 @@ export interface MultiSelectItemProps
 /**
  * Style sheet input parameters.
  */
-export type MultiSelectItemStyleSheetVars = Pick<
-  MultiSelectItemProps,
+export type ListItemMultiSelectStyleSheetVars = Pick<
+  ListItemMultiSelectProps,
   'style' | 'isDisabled'
 > & {
   gap: number | string | undefined;

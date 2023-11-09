@@ -1,6 +1,6 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
-exports[`MultiSelectItem should render snapshot correctly 1`] = `
+exports[`ListItemMultiSelect should render snapshot correctly 1`] = `
 <TouchableOpacity
   disabled={false}
   style={
@@ -16,7 +16,9 @@ exports[`MultiSelectItem should render snapshot correctly 1`] = `
     accessible={true}
     style={
       Object {
-        "alignItems": "center",
+        "alignItems": "flex-start",
+        "backgroundColor": "#FFFFFF",
+        "borderRadius": 4,
         "flexDirection": "row",
         "padding": 16,
       }
