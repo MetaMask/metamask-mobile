@@ -1,4 +1,7 @@
 /* eslint-disable react/display-name */
+// Third party dependencies.
+import React from 'react';
+
 // External dependencies.
 import { AvatarSize } from '../../Avatar.types';
 
@@ -26,7 +29,10 @@ const AvatarNetworkMeta = {
 export default AvatarNetworkMeta;
 
 export const AvatarNetwork = {
-  args: {
-    imageSource: SAMPLE_AVATARNETWORK_PROPS.imageSource,
-  },
+  render: (args: any) => (
+    <AvatarNetworkComponent
+      {...args}
+      imageSource={SAMPLE_AVATARNETWORK_PROPS.imageSource}
+    />
+  ),
 };

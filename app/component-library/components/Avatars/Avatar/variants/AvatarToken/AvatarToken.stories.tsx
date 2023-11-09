@@ -1,4 +1,7 @@
 /* eslint-disable react/display-name */
+// Third party dependencies.
+import React from 'react';
+
 // External dependencies.
 import { AvatarSize } from '../../Avatar.types';
 
@@ -26,8 +29,11 @@ const AvatarTokenMeta = {
 export default AvatarTokenMeta;
 
 export const AvatarToken = {
-  args: {
-    imageSource: SAMPLE_AVATARTOKEN_PROPS.imageSource,
-    isIpfsGatewayCheckBypassed: true,
-  },
+  render: (args: any) => (
+    <AvatarTokenComponent
+      {...args}
+      isIpfsGatewayCheckBypassed
+      imageSource={SAMPLE_AVATARTOKEN_PROPS.imageSource}
+    />
+  ),
 };

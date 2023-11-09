@@ -1,4 +1,7 @@
 /* eslint-disable react/display-name */
+// Third party dependencies.
+import React from 'react';
+
 // External dependencies.
 import { AvatarSize } from '../../Avatar.types';
 
@@ -22,7 +25,10 @@ const AvatarFaviconMeta = {
 export default AvatarFaviconMeta;
 
 export const AvatarFavicon = {
-  args: {
-    imageSource: SAMPLE_AVATARFAVICON_PROPS.imageSource,
-  },
+  render: (args: any) => (
+    <AvatarFaviconComponent
+      {...args}
+      imageSource={SAMPLE_AVATARFAVICON_PROPS.imageSource}
+    />
+  ),
 };
