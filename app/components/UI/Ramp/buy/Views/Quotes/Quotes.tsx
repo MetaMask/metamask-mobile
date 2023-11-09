@@ -171,9 +171,7 @@ function Quotes() {
     appConfig.POLLING_INTERVAL,
     fetchQuotes,
     isBuy,
-    params.amount,
-    params.asset?.symbol,
-    params.fiatCurrency?.symbol,
+    params,
     selectedChainId,
     selectedPaymentMethodId,
     trackEvent,
@@ -415,35 +413,33 @@ function Quotes() {
             totals.feeAmountRatio / quotesWithoutError.length,
         };
 
+        const averageOut = totals.amountOut / quotesWithoutError.length;
+        const providerList = quotesWithoutError.map(
+          ({ provider }) => provider.name,
+        );
+        const providerFirst = quotesWithoutError[0]?.provider?.name;
+        const providerLast =
+          quotesWithoutError.length > 1
+            ? quotesWithoutError[quotesWithoutError.length - 1]?.provider?.name
+            : undefined;
+
         if (isBuy) {
           trackEvent('ONRAMP_QUOTES_RECEIVED', {
             ...payload,
-            average_crypto_out: totals.amountOut / quotesWithoutError.length,
+            average_crypto_out: averageOut,
             chain_id_destination: selectedChainId,
-            provider_onramp_list: quotesWithoutError.map(
-              ({ provider }) => provider.name,
-            ),
-            provider_onramp_first: quotesWithoutError[0]?.provider?.name,
-            provider_onramp_last:
-              quotesWithoutError.length > 1
-                ? quotesWithoutError[quotesWithoutError.length - 1]?.provider
-                    ?.name
-                : undefined,
+            provider_onramp_list: providerList,
+            provider_onramp_first: providerFirst,
+            provider_onramp_last: providerLast,
           });
         } else {
           trackEvent('OFFRAMP_QUOTES_RECEIVED', {
             ...payload,
-            average_fiat_out: totals.amountOut / quotesWithoutError.length,
+            average_fiat_out: averageOut,
             chain_id_source: selectedChainId,
-            provider_offramp_list: quotesWithoutError.map(
-              ({ provider }) => provider.name,
-            ),
-            provider_offramp_first: quotesWithoutError[0]?.provider?.name,
-            provider_offramp_last:
-              quotesWithoutError.length > 1
-                ? quotesWithoutError[quotesWithoutError.length - 1]?.provider
-                    ?.name
-                : undefined,
+            provider_offramp_list: providerList,
+            provider_offramp_first: providerFirst,
+            provider_offramp_last: providerLast,
           });
         }
       }
@@ -592,6 +588,7 @@ function Quotes() {
             (link) => link.name === PROVIDER_LINKS.SUPPORT,
           )?.url
         }
+        rampType={rampType}
       />
       <ScreenLayout.Body>
         <Animated.View style={[styles.topBorder, animatedStyles]} />

@@ -237,7 +237,7 @@ describe('Quotes', () => {
   });
 
   const simulateQuoteSelection = async (
-    browser: ProviderBuyFeatureBrowserEnum = ProviderBuyFeatureBrowserEnum.AppBrowser,
+    browser: ProviderBuyFeatureBrowserEnum,
   ) => {
     // Mock the functions for the 2nd mocked quote
     const mockData = cloneDeep(mockQuotesData);
@@ -282,7 +282,9 @@ describe('Quotes', () => {
   };
 
   it('navigates and tracks events when pressing buy button with app browser quote', async () => {
-    const { mockedQuote } = await simulateQuoteSelection();
+    const { mockedQuote } = await simulateQuoteSelection(
+      ProviderBuyFeatureBrowserEnum.AppBrowser,
+    );
     expect(mockNavigate).toBeCalledTimes(1);
     expect(mockNavigate).toBeCalledWith(Routes.RAMP.CHECKOUT, {
       provider: mockedQuote.provider,
@@ -316,7 +318,7 @@ describe('Quotes', () => {
     mockUseRampSDKValues.isSell = true;
     mockUseRampSDKValues.isBuy = false;
 
-    await simulateQuoteSelection();
+    await simulateQuoteSelection(ProviderBuyFeatureBrowserEnum.AppBrowser);
 
     expect(mockTrackEvent.mock.lastCall).toMatchInlineSnapshot(`
       Array [
