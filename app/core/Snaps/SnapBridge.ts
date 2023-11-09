@@ -15,7 +15,7 @@ import Engine from '../Engine';
 import { setupMultiplex } from '../../util/streams';
 import Logger from '../../util/Logger';
 import { getAllNetworks } from '../../util/networks';
-import { createSnapsMethodMiddleware } from '@metamask/snaps-rpc-methods';
+import snapMethodMiddlewareBuilder from './SnapsMethodMiddleware';
 
 const ObjectMultiplex = require('@metamask/object-multiplex');
 const createFilterMiddleware = require('eth-json-rpc-filters');
@@ -132,9 +132,6 @@ export default class SnapBridge {
       engine.emit('notification', message),
     );
 
-    // engine.push(createOriginMiddleware({ origin: this.snapId }));
-    // engine.push(createLoggerMiddleware({ origin: this.snapId }));
-
     // Filter and subscription polyfills
     engine.push(filterMiddleware);
     engine.push(subscriptionManager.middleware);
@@ -143,28 +140,7 @@ export default class SnapBridge {
     const { PermissionController } = context;
 
     engine.push(
-      createSnapsMethodMiddleware(true, {
-        getSnaps: controllerMessenger.call.bind(
-          controllerMessenger,
-          'SnapController:getPermitted',
-          this.snapId,
-        ),
-
-        requestPermissions: async (requestedPermissions) =>
-          await Engine.context.PermissionController.requestPermissions(
-            { origin },
-            requestedPermissions,
-          ),
-        getPermissions: PermissionController.getPermissions.bind(
-          PermissionController,
-          this.snapId,
-        ),
-        installSnaps: controllerMessenger.call.bind(
-          controllerMessenger,
-          'SnapController:install',
-          this.snapId,
-        ),
-      }),
+      snapMethodMiddlewareBuilder(context, controllerMessenger, this.snapId),
     );
 
     engine.push(

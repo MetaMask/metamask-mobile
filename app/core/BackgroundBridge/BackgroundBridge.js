@@ -24,7 +24,7 @@ import {
   selectLegacyNetwork,
 } from '../../selectors/networkController';
 import { store } from '../../store';
-import { createSnapsMethodMiddleware } from '@metamask/snaps-rpc-methods';
+import snapMethodMiddlewareBuilder from '../Snaps/SnapsMethodMiddleware';
 
 const createFilterMiddleware = require('eth-json-rpc-filters');
 const createSubscriptionManager = require('eth-json-rpc-filters/subscriptionManager');
@@ -316,32 +316,12 @@ export class BackgroundBridge extends EventEmitter {
     // watch asset
 
     // Snaps middleware
-    /*
-    from extension https://github.dev/MetaMask/metamask-extension/blob/1d5e8a78400d7aaaf2b3cbdb30cff9399061df34/app/scripts/metamask-controller.js#L3830-L3861
-    */
     engine.push(
-      createSnapsMethodMiddleware(true, {
-        getUnlockPromise: () => Promise.resolve(),
-        getSnaps: Engine.controllerMessenger.call.bind(
-          Engine.controllerMessenger,
-          'SnapController:getPermitted',
-          origin,
-        ),
-        requestPermissions: async (requestedPermissions) =>
-          await Engine.context.PermissionController.requestPermissions(
-            { origin },
-            requestedPermissions,
-          ),
-        getPermissions: Engine.context.PermissionController.getPermissions.bind(
-          Engine.context.PermissionController,
-          origin,
-        ),
-        installSnaps: Engine.controllerMessenger.call.bind(
-          Engine.controllerMessenger,
-          'SnapController:install',
-          origin,
-        ),
-      }),
+      snapMethodMiddlewareBuilder(
+        Engine.context,
+        Engine.controllerMessenger,
+        origin,
+      ),
     );
 
     // user-facing RPC methods
