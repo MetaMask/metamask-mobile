@@ -281,7 +281,7 @@ export class SDKConnect extends EventEmitter2 {
         DevLogger.log(`updateSDKLoadingState - goBack`);
         this.navigation?.goBack();
       } else {
-        console.warn(`updateSDKLoadingState - currentRoute=${currentRoute}`);
+        DevLogger.log(`updateSDKLoadingState - currentRoute=${currentRoute}`);
       }
     }
   }
