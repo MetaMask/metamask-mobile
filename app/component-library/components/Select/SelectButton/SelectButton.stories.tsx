@@ -2,7 +2,7 @@
 // Third party dependencies.
 import React from 'react';
 
-// External dependencies.
+// External
 import Avatar, { AvatarVariants } from '../../Avatars/Avatar';
 
 // Internal dependencies.
@@ -47,6 +47,7 @@ export const SelectButton = {
     <SelectButtonComponent
       {...args}
       iconEl={<Avatar variant={AvatarVariants.Network} />}
+      endAccessory={<Avatar variant={AvatarVariants.Network} />}
     />
   ),
 };

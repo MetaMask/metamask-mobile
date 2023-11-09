@@ -42,7 +42,7 @@ const styleSheet = (params: {
       break;
     default:
       verticalPadding = 8;
-      minHeight = 32;
+      minHeight = 40;
       break;
   }
 
@@ -55,7 +55,7 @@ const styleSheet = (params: {
         borderColor: isDanger
           ? theme.colors.error.default
           : theme.colors.border.default,
-        borderWidth: 1,
+        borderWidth: isDanger ? 2 : 1,
         backgroundColor: theme.colors.background.default,
         opacity: isDisabled ? 0.5 : 1,
         minHeight,
