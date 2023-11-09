@@ -17,10 +17,10 @@ const mockInitialState = {
       ...initialBackgroundState,
       AccountTrackerController: {
         accounts: {
-          '0x0': {
+          '0xe64dD0AB5ad7e8C5F2bf6Ce75C34e187af8b920A': {
             balance: 200,
           },
-          '0x1': {
+          '0x519d2CE57898513F676a5C3b66496c3C394c9CC7': {
             balance: 200,
           },
         },
@@ -31,14 +31,14 @@ const mockInitialState = {
         },
       },
       PreferencesController: {
-        selectedAddress: '0x0',
+        selectedAddress: '0xe64dD0AB5ad7e8C5F2bf6Ce75C34e187af8b920A',
         identities: {
-          '0x0': {
-            address: '0x0',
+          '0xe64dD0AB5ad7e8C5F2bf6Ce75C34e187af8b920A': {
+            address: '0xe64dD0AB5ad7e8C5F2bf6Ce75C34e187af8b920A',
             name: 'Account 1',
           },
-          '0x1': {
-            address: '0x1',
+          '0x519d2CE57898513F676a5C3b66496c3C394c9CC7': {
+            address: '0x519d2CE57898513F676a5C3b66496c3C394c9CC7',
             name: 'Account 2',
           },
         },
@@ -56,6 +56,19 @@ jest.mock('../../../core/Engine', () => ({
   context: {
     TokensController: {
       addToken: () => undefined,
+    },
+    KeyringController: {
+      state: {
+        keyrings: [
+          {
+            accounts: [
+              '0xe64dD0AB5ad7e8C5F2bf6Ce75C34e187af8b920A',
+              '0x519d2CE57898513F676a5C3b66496c3C394c9CC7',
+              '0x07Be9763a718C0539017E2Ab6fC42853b4aEeb6B',
+            ],
+          },
+        ],
+      },
     },
   },
 }));
@@ -86,8 +99,11 @@ jest.mock('react-redux', () => ({
 }));
 
 const transactionState: Transaction = {
-  transaction: { from: '0x0', to: '0x1' },
-  transactionTo: '0x1',
+  transaction: {
+    from: '0xe64dD0AB5ad7e8C5F2bf6Ce75C34e187af8b920A',
+    to: '0x519d2CE57898513F676a5C3b66496c3C394c9CC7',
+  },
+  transactionTo: '0x519d2CE57898513F676a5C3b66496c3C394c9CC7',
   selectedAsset: { isETH: true, address: '0x0', symbol: 'ETH', decimals: 8 },
   transactionToName: 'Account 2',
   transactionFromName: 'Account 1',
@@ -140,7 +156,7 @@ describe('AccountFromToInfoCard', () => {
       <AccountFromToInfoCard transactionState={transactionState} />,
       { state: mockInitialState },
     );
-    expect(await findByText('0x1...0x1')).toBeDefined();
+    expect(await findByText('0x519d...9CC7')).toBeDefined();
   });
 
   it('should render correct to address for NFT send', async () => {
@@ -172,8 +188,11 @@ describe('AccountFromToInfoCard', () => {
   it('should display ens name', async () => {
     const txState: Transaction = {
       ...transactionState,
-      transaction: { from: '0x0', to: '0x3' },
-      transactionTo: '0x3',
+      transaction: {
+        from: '0xe64dD0AB5ad7e8C5F2bf6Ce75C34e187af8b920A',
+        to: '0x9004C7f302475BF5501fbc6254f69C64212A0d12',
+      },
+      transactionTo: '0x9004C7f302475BF5501fbc6254f69C64212A0d12',
     };
     (ENSCache.cache as any) = {
       '10x1': {
@@ -197,7 +216,7 @@ describe('AccountFromToInfoCard', () => {
     const ERC20Transaction = {
       assetType: 'ERC20',
       data: '0xa9059cbb0000000000000000000000002f318c334780961fb129d2a6c30d0763d9a5c9700000000000000000000000000000000000000000000000000000000000003a98',
-      from: '0x1',
+      from: '0x519d2CE57898513F676a5C3b66496c3C394c9CC7',
       selectedAsset: {
         address: '0x326836cc6cd09B5aa59B81A7F72F25FcC0136b95',
         decimals: '4',
@@ -208,7 +227,7 @@ describe('AccountFromToInfoCard', () => {
       to: '0x2f318c334780961fb129d2a6c30d0763d9a5c970',
       transaction: {
         data: '0xa9059cbb0000000000000000000000002f318c334780961fb129d2a6c30d0763d9a5c9700000000000000000000000000000000000000000000000000000000000003a98',
-        from: '0x1',
+        from: '0x519d2CE57898513F676a5C3b66496c3C394c9CC7',
         to: '0x2f318c334780961fb129d2a6c30d0763d9a5c970',
         value: '3a98',
       },
@@ -234,10 +253,10 @@ describe('AccountFromToInfoCard', () => {
     it('should render balance from TokenBalancesController.contractBalances if selectedAddress is same as fromAddress', async () => {
       const transaction = {
         ...ERC20Transaction,
-        from: '0x0',
+        from: '0xe64dD0AB5ad7e8C5F2bf6Ce75C34e187af8b920A',
         transaction: {
           ...ERC20Transaction.transaction,
-          from: '0x0',
+          from: '0xe64dD0AB5ad7e8C5F2bf6Ce75C34e187af8b920A',
         },
       };
       const { findByText } = renderWithProvider(
