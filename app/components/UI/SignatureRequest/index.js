@@ -5,6 +5,7 @@ import { fontStyles } from '../../../styles/common';
 import { getHost } from '../../../util/browser';
 import { strings } from '../../../../locales/i18n';
 import { connect } from 'react-redux';
+import AnalyticsV2 from '../../../util/analyticsV2';
 import Ionicons from 'react-native-vector-icons/Ionicons';
 import WebsiteIcon from '../WebsiteIcon';
 import ActionView from '../ActionView';
@@ -19,6 +20,8 @@ import withQRHardwareAwareness from '../QRHardware/withQRHardwareAwareness';
 import QRSigningDetails from '../QRHardware/QRSigningDetails';
 import { selectProviderType } from '../../../selectors/networkController';
 import BlockaidBanner from '../BlockaidBanner/BlockaidBanner';
+import { getAnalyticsParams } from '../../../util/confirmation/signatureUtils';
+import { SigningModalSelectorsIDs } from '../../../../e2e/selectors/Modals/SigningModal.selectors';
 
 const createStyles = (colors) =>
   StyleSheet.create({
@@ -287,6 +290,24 @@ class SignatureRequest extends PureComponent {
     );
   };
 
+  onContactUsClicked = () => {
+    const { securityAlertResponse, fromAddress, type } = this.props;
+    const analyticsParams = {
+      ...getAnalyticsParams(
+        {
+          securityAlertResponse,
+          from: fromAddress,
+        },
+        type,
+      ),
+      external_link_clicked: 'security_alert_support_link',
+    };
+    AnalyticsV2.trackEvent(
+      MetaMetricsEvents.SIGNATURE_REQUESTED,
+      analyticsParams,
+    );
+  };
+
   renderSignatureRequest() {
     const { securityAlertResponse, showWarning, type } = this.props;
     let expandedHeight;
@@ -301,8 +322,8 @@ class SignatureRequest extends PureComponent {
     return (
       <View testID={this.props.testID} style={[styles.root, expandedHeight]}>
         <ActionView
-          cancelTestID={'request-signature-cancel-button'}
-          confirmTestID={'request-signature-confirm-button'}
+          cancelTestID={SigningModalSelectorsIDs.CANCEL_BUTTON}
+          confirmTestID={SigningModalSelectorsIDs.SIGN_BUTTON}
           cancelText={strings('signature_request.cancel')}
           confirmText={strings('signature_request.sign')}
           onCancelPress={this.onReject}
@@ -330,6 +351,7 @@ class SignatureRequest extends PureComponent {
               <BlockaidBanner
                 securityAlertResponse={securityAlertResponse}
                 style={styles.blockaidBanner}
+                onContactUsClicked={this.onContactUsClicked}
               />
             )}
             {this.renderActionViewChildren()}

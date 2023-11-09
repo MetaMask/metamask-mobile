@@ -132,10 +132,6 @@ class NetworksSettings extends PureComponent {
      * Current network provider configuration
      */
     providerConfig: PropTypes.object,
-    /**
-     * Indicates whether third party API mode is enabled
-     */
-    thirdPartyApiMode: PropTypes.bool,
   };
 
   actionSheet = null;
@@ -532,7 +528,6 @@ NetworksSettings.contextType = ThemeContext;
 const mapStateToProps = (state) => ({
   providerConfig: selectProviderConfig(state),
   networkConfigurations: selectNetworkConfigurations(state),
-  thirdPartyApiMode: state.privacy.thirdPartyApiMode,
 });
 
 export default connect(mapStateToProps)(NetworksSettings);

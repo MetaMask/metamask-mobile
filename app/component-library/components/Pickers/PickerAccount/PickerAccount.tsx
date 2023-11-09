@@ -9,6 +9,7 @@ import Avatar, { AvatarSize, AvatarVariant } from '../../Avatars/Avatar';
 import Text, { TextVariant } from '../../Texts/Text';
 import { formatAddress } from '../../../../util/address';
 import { useStyles } from '../../../hooks';
+import { strings } from '../../../../../locales/i18n';
 
 // Internal dependencies.
 import PickerBase from '../PickerBase';
@@ -26,6 +27,7 @@ const PickerAccount: React.ForwardRefRenderFunction<
     accountAddress,
     accountName,
     accountAvatarType,
+    accountTypeLabel,
     showAddress = true,
     cellAccountContainerStyle = {},
     ...props
@@ -47,13 +49,21 @@ const PickerAccount: React.ForwardRefRenderFunction<
         size={AvatarSize.Md}
         style={styles.accountAvatar}
       />
-      <View>
+      <View style={styles.accountNameLabel}>
         <Text
           variant={TextVariant.HeadingSMRegular}
           {...generateTestId(Platform, WALLET_ACCOUNT_NAME_LABEL_TEXT)}
         >
           {accountName}
         </Text>
+        {accountTypeLabel && (
+          <Text
+            variant={TextVariant.BodySM}
+            style={styles.accountNameLabelText}
+          >
+            {strings(accountTypeLabel)}
+          </Text>
+        )}
         {showAddress && (
           <Text variant={TextVariant.BodyMD} style={styles.accountAddressLabel}>
             {shortenedAddress}

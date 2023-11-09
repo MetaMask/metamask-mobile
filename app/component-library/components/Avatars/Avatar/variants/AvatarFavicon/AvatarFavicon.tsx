@@ -1,8 +1,9 @@
 /* eslint-disable react/prop-types */
 
 // Third party dependencies.
-import React, { useCallback, useState } from 'react';
+import React, { useCallback, useMemo, useState } from 'react';
 import { Image, ImageErrorEventData, NativeSyntheticEvent } from 'react-native';
+import { SvgUri } from 'react-native-svg';
 
 // External dependencies.
 import AvatarBase from '../../foundation/AvatarBase';
@@ -18,6 +19,8 @@ import {
   AVATARFAVICON_IMAGE_TESTID,
 } from './AvatarFavicon.constants';
 import stylesheet from './AvatarFavicon.styles';
+import { isNumber } from 'lodash';
+import { isFaviconSVG } from '../../../../../../util/favicon';
 
 const AvatarFavicon = ({
   imageSource,
@@ -25,7 +28,7 @@ const AvatarFavicon = ({
   style,
   ...props
 }: AvatarFaviconProps) => {
-  const [error, setError] = useState(undefined);
+  const [error, setError] = useState<any>(undefined);
   const { styles } = useStyles(stylesheet, { style, error });
 
   const onError = useCallback(
@@ -34,12 +37,34 @@ const AvatarFavicon = ({
     [setError],
   );
 
-  const renderError = () => (
+  const onSvgError = useCallback((e: any) => setError(e), [setError]);
+
+  // TODO add the fallback with uppercase letter initial
+  //  requires that the domain is passed in as a prop from the parent
+  const renderFallbackFavicon = () => (
     <Icon
       size={ICONSIZE_BY_AVATARSIZE[size]}
       name={DEFAULT_AVATARFAVICON_ERROR_ICON}
     />
   );
+
+  const svgSource = useMemo(() => {
+    if (imageSource && !isNumber(imageSource) && 'uri' in imageSource) {
+      return isFaviconSVG(imageSource);
+    }
+  }, [imageSource]);
+
+  const renderSvg = () =>
+    svgSource ? (
+      <SvgUri
+        testID={AVATARFAVICON_IMAGE_TESTID}
+        width="100%"
+        height="100%"
+        uri={svgSource}
+        style={styles.image}
+        onError={onSvgError}
+      />
+    ) : null;
 
   const renderImage = () => (
     <Image
@@ -51,9 +76,11 @@ const AvatarFavicon = ({
     />
   );
 
+  const renderFavicon = () => (svgSource ? renderSvg() : renderImage());
+
   return (
     <AvatarBase size={size} style={styles.base} {...props}>
-      {error ? renderError() : renderImage()}
+      {error ? renderFallbackFavicon() : renderFavicon()}
     </AvatarBase>
   );
 };

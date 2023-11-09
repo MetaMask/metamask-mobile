@@ -57,6 +57,8 @@ import {
   isMainnetByChainId,
   isMultiLayerFeeNetwork,
   fetchEstimatedMultiLayerL1Fee,
+  TESTNET_FAUCETS,
+  isTestNetworkWithFaucet,
 } from '../../../../util/networks';
 import Text from '../../../Base/Text';
 import AnalyticsV2 from '../../../../util/analyticsV2';
@@ -104,6 +106,8 @@ import {
   TXN_CONFIRM_SCREEN,
   TXN_CONFIRM_SEND_BUTTON,
 } from '../../../../constants/test-ids';
+import { isBlockaidFeatureEnabled } from '../../../../util/blockaid';
+import BlockaidBanner from '../../../UI/BlockaidBanner/BlockaidBanner';
 
 const EDIT = 'edit';
 const EDIT_NONCE = 'edit_nonce';
@@ -873,9 +877,10 @@ class Confirm extends PureComponent {
   };
 
   goToFaucet = () => {
+    const { chainId } = this.props;
     InteractionManager.runAfterInteractions(() => {
       this.props.navigation.navigate(Routes.BROWSER.VIEW, {
-        newTabUrl: AppConstants.URLS.MM_FAUCET,
+        newTabUrl: TESTNET_FAUCETS[chainId],
         timestamp: Date.now(),
       });
     });
@@ -926,6 +931,16 @@ class Confirm extends PureComponent {
     });
   };
 
+  onContactUsClicked = () => {
+    const analyticsParams = {
+      ...this.getAnalyticsParams(),
+      external_link_clicked: 'security_alert_support_link',
+    };
+    AnalyticsV2.trackEvent(
+      MetaMetricsEvents.CONTRACT_ADDRESS_COPIED,
+      analyticsParams,
+    );
+  };
   render = () => {
     const { selectedAsset, paymentRequest } = this.props.transactionState;
     const {
@@ -983,6 +998,15 @@ class Confirm extends PureComponent {
           layout="vertical"
         />
         <ScrollView style={baseStyles.flexGrow} ref={this.setScrollViewRef}>
+          {isBlockaidFeatureEnabled() && (
+            <BlockaidBanner
+              securityAlertResponse={
+                this.props.transaction.securityAlertResponse
+              }
+              style={styles.blockaidBanner}
+              onContactUsClicked={this.onContactUsClicked}
+            />
+          )}
           {!selectedAsset.tokenId ? (
             <View style={styles.amountWrapper}>
               <Text style={styles.textAmountLabel}>
@@ -1064,7 +1088,7 @@ class Confirm extends PureComponent {
 
           {errorMessage && (
             <View style={styles.errorWrapper}>
-              {isTestNetwork || isNativeTokenBuySupported ? (
+              {isTestNetworkWithFaucet(chainId) || isNativeTokenBuySupported ? (
                 <TouchableOpacity onPress={errorPress}>
                   <Text style={styles.error}>{errorMessage}</Text>
                   <Text style={[styles.error, styles.underline]}>

@@ -7,12 +7,16 @@ import { KeyringTypes } from '@metamask/keyring-controller';
 
 // External dependencies.
 import Cell, {
-  CellVariants,
+  CellVariant,
 } from '../../../component-library/components/Cells/Cell';
 import { useStyles } from '../../../component-library/hooks';
 import Text from '../../../component-library/components/Texts/Text';
 import AvatarGroup from '../../../component-library/components/Avatars/AvatarGroup';
-import { formatAddress, safeToChecksumAddress } from '../../../util/address';
+import {
+  formatAddress,
+  safeToChecksumAddress,
+  getLabelTextByAddress,
+} from '../../../util/address';
 import { AvatarAccountType } from '../../../component-library/components/Avatars/Avatar/variants/AvatarAccount';
 import { isDefaultAccountName } from '../../../util/ENSUtils';
 import { strings } from '../../../../locales/i18n';
@@ -52,19 +56,6 @@ const AccountSelectorList = ({
   );
 
   const getKeyExtractor = ({ address }: Account) => address;
-
-  const getTagLabel = (type: KeyringTypes) => {
-    let label = '';
-    switch (type) {
-      case KeyringTypes.qr:
-        label = strings('transaction.hardware');
-        break;
-      case KeyringTypes.simple:
-        label = strings('accounts.imported');
-        break;
-    }
-    return label;
-  };
 
   const renderAccountBalances = useCallback(
     ({ fiatBalance, tokens }: Assets, address: string) => (
@@ -152,14 +143,14 @@ const AccountSelectorList = ({
       index,
     }) => {
       const shortAddress = formatAddress(address, 'short');
-      const tagLabel = getTagLabel(type);
+      const tagLabel = getLabelTextByAddress(address);
       const ensName = ensByAccountAddress[address];
       const accountName =
         isDefaultAccountName(name) && ensName ? ensName : name;
       const isDisabled = !!balanceError || isLoading || isSelectionDisabled;
       const cellVariant = isMultiSelect
-        ? CellVariants.MultiSelect
-        : CellVariants.Select;
+        ? CellVariant.MultiSelect
+        : CellVariant.Select;
       let isSelectedAccount = isSelected;
       if (selectedAddresses) {
         isSelectedAccount = selectedAddresses.includes(address);
@@ -190,7 +181,7 @@ const AccountSelectorList = ({
             type: accountAvatarType,
             accountAddress: address,
           }}
-          tagLabel={tagLabel}
+          tagLabel={tagLabel ? strings(tagLabel) : tagLabel}
           disabled={isDisabled}
           style={cellStyle}
         >

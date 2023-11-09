@@ -19,11 +19,9 @@ import createStyles from './styles';
 import AppConstants from '../../../core/AppConstants';
 import { selectChainId } from '../../../selectors/networkController';
 import { store } from '../../../store';
-import {
-  getBlockaidMetricsParams,
-  isBlockaidFeatureEnabled,
-} from '../../../util/blockaid';
+import { getBlockaidMetricsParams } from '../../../util/blockaid';
 import { SecurityAlertResponse } from '../BlockaidBanner/BlockaidBanner.types';
+import { SigningModalSelectorsIDs } from '../../../../e2e/selectors/Modals/SigningModal.selectors';
 
 /**
  * Component that supports personal_sign
@@ -53,21 +51,19 @@ const PersonalSign = ({
   const getAnalyticsParams = useCallback((): AnalyticsParams => {
     try {
       const chainId = selectChainId(store.getState());
-      const url = new URL(currentPageInformation?.url);
+      const pageInfo = currentPageInformation || messageParams.meta;
+      const url = new URL(pageInfo.url);
 
-      let blockaidParams = {};
-      if (isBlockaidFeatureEnabled()) {
-        blockaidParams = getBlockaidMetricsParams(
-          messageParams.securityAlertResponse as SecurityAlertResponse,
-        );
-      }
+      const blockaidParams = getBlockaidMetricsParams(
+        messageParams.securityAlertResponse as SecurityAlertResponse,
+      );
 
       return {
         account_type: getAddressAccountType(messageParams.from),
         dapp_host_name: url?.host,
         chain_id: chainId,
         signature_type: 'personal_sign',
-        ...currentPageInformation?.analytics,
+        ...pageInfo?.analytics,
         ...blockaidParams,
       };
     } catch (error) {
@@ -204,7 +200,7 @@ const PersonalSign = ({
       type="personal_sign"
       fromAddress={messageParams.from}
       securityAlertResponse={messageParams.securityAlertResponse}
-      testID={'personal-signature-request'}
+      testID={SigningModalSelectorsIDs.PERSONAL_REQUEST}
     >
       <View style={styles.messageWrapper}>{renderMessageText()}</View>
     </SignatureRequest>

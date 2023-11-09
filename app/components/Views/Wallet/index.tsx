@@ -255,7 +255,6 @@ const Wallet = ({ navigation }: any) => {
     } else {
       assets = tokens;
     }
-
     return (
       <View style={styles.wrapper}>
         <WalletAccount style={styles.walletAccount} ref={walletRef} />
@@ -297,7 +296,6 @@ const Wallet = ({ navigation }: any) => {
     tokens,
     styles,
   ]);
-
   const renderLoader = useCallback(
     () => (
       <View style={styles.loader}>

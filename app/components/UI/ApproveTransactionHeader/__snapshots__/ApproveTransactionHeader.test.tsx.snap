@@ -25,6 +25,7 @@ exports[`ApproveTransactionHeader should render correctly 1`] = `
         "paddingVertical": 8,
       }
     }
+    testID="approve_transaction_origin_pill"
   >
     <View
       style={
@@ -41,11 +42,7 @@ exports[`ApproveTransactionHeader should render correctly 1`] = `
       <Image
         onError={[Function]}
         resizeMode="contain"
-        source={
-          Object {
-            "uri": "https://api.faviconkit.com/metamask.github.io/64",
-          }
-        }
+        source={Object {}}
         style={
           Object {
             "flex": 1,
@@ -128,6 +125,8 @@ exports[`ApproveTransactionHeader should render correctly 1`] = `
                   "width": 32,
                 }
               }
+              testID="account-avatar"
+              variant="Account"
             >
               <View
                 style={
@@ -136,7 +135,7 @@ exports[`ApproveTransactionHeader should render correctly 1`] = `
                       "overflow": "hidden",
                     },
                     Object {
-                      "backgroundColor": "#1593F2",
+                      "backgroundColor": "#C7144F",
                       "borderRadius": 16,
                       "height": 32,
                       "width": 32,
@@ -167,16 +166,16 @@ exports[`ApproveTransactionHeader should render correctly 1`] = `
                 >
                   <RNSVGGroup>
                     <RNSVGRect
-                      fill={4280574177}
+                      fill={4294711651}
                       height={32}
                       matrix={
                         Array [
-                          -0.14608302856241107,
-                          0.9892723329629884,
-                          -0.9892723329629884,
-                          -0.14608302856241107,
-                          37.75501596919891,
-                          -2.82533949364276,
+                          0.46329603511986217,
+                          0.8862035792312145,
+                          -0.8862035792312145,
+                          0.46329603511986217,
+                          29.06767649409735,
+                          -8.290603334655817,
                         ]
                       }
                       propList={
@@ -189,16 +188,16 @@ exports[`ApproveTransactionHeader should render correctly 1`] = `
                       y={0}
                     />
                     <RNSVGRect
-                      fill={4294395137}
+                      fill={4280576225}
                       height={32}
                       matrix={
                         Array [
-                          -0.02094241988335673,
-                          -0.9997806834748455,
-                          0.9997806834748455,
-                          -0.02094241988335673,
-                          -15.024871507114028,
-                          40.323921289217864,
+                          -0.5778576243835052,
+                          0.8161375900801603,
+                          -0.8161375900801603,
+                          -0.5778576243835052,
+                          51.62016714634118,
+                          17.239003094412087,
                         ]
                       }
                       propList={
@@ -211,16 +210,16 @@ exports[`ApproveTransactionHeader should render correctly 1`] = `
                       y={0}
                     />
                     <RNSVGRect
-                      fill={4294736640}
+                      fill={4278407261}
                       height={32}
                       matrix={
                         Array [
-                          -0.458649554484315,
-                          0.8886172326549487,
-                          -0.8886172326549487,
-                          -0.458649554484315,
-                          28.4800145149268,
-                          38.60053302995323,
+                          0.7046342099635947,
+                          -0.7095707365365209,
+                          0.7095707365365209,
+                          0.7046342099635947,
+                          -25.225718686778755,
+                          -4.611026307883787,
                         ]
                       }
                       propList={
@@ -325,19 +324,31 @@ exports[`ApproveTransactionHeader should render correctly 1`] = `
           >
             Sepolia
           </Text>
-          <Text
-            accessibilityRole="text"
+          <View
             style={
               Object {
-                "color": "#24272A",
-                "fontFamily": "Euclid Circular B",
-                "fontSize": 14,
-                "fontWeight": "700",
-                "letterSpacing": 0,
-                "lineHeight": 22,
+                "alignItems": "center",
+                "flexDirection": "row",
+                "justifyContent": "flex-start",
               }
             }
-          />
+          >
+            <Text
+              accessibilityRole="text"
+              style={
+                Object {
+                  "color": "#24272A",
+                  "fontFamily": "Euclid Circular B",
+                  "fontSize": 14,
+                  "fontWeight": "700",
+                  "letterSpacing": 0,
+                  "lineHeight": 22,
+                }
+              }
+            >
+              Account 1
+            </Text>
+          </View>
         </View>
       </View>
       <View>
@@ -442,6 +453,8 @@ exports[`ApproveTransactionHeader should return origin to be null when not prese
                   "width": 32,
                 }
               }
+              testID="account-avatar"
+              variant="Account"
             >
               <View
                 style={
@@ -450,7 +463,7 @@ exports[`ApproveTransactionHeader should return origin to be null when not prese
                       "overflow": "hidden",
                     },
                     Object {
-                      "backgroundColor": "#1593F2",
+                      "backgroundColor": "#C7144F",
                       "borderRadius": 16,
                       "height": 32,
                       "width": 32,
@@ -481,16 +494,16 @@ exports[`ApproveTransactionHeader should return origin to be null when not prese
                 >
                   <RNSVGGroup>
                     <RNSVGRect
-                      fill={4280574177}
+                      fill={4294711651}
                       height={32}
                       matrix={
                         Array [
-                          -0.14608302856241107,
-                          0.9892723329629884,
-                          -0.9892723329629884,
-                          -0.14608302856241107,
-                          37.75501596919891,
-                          -2.82533949364276,
+                          0.46329603511986217,
+                          0.8862035792312145,
+                          -0.8862035792312145,
+                          0.46329603511986217,
+                          29.06767649409735,
+                          -8.290603334655817,
                         ]
                       }
                       propList={
@@ -503,16 +516,16 @@ exports[`ApproveTransactionHeader should return origin to be null when not prese
                       y={0}
                     />
                     <RNSVGRect
-                      fill={4294395137}
+                      fill={4280576225}
                       height={32}
                       matrix={
                         Array [
-                          -0.02094241988335673,
-                          -0.9997806834748455,
-                          0.9997806834748455,
-                          -0.02094241988335673,
-                          -15.024871507114028,
-                          40.323921289217864,
+                          -0.5778576243835052,
+                          0.8161375900801603,
+                          -0.8161375900801603,
+                          -0.5778576243835052,
+                          51.62016714634118,
+                          17.239003094412087,
                         ]
                       }
                       propList={
@@ -525,16 +538,16 @@ exports[`ApproveTransactionHeader should return origin to be null when not prese
                       y={0}
                     />
                     <RNSVGRect
-                      fill={4294736640}
+                      fill={4278407261}
                       height={32}
                       matrix={
                         Array [
-                          -0.458649554484315,
-                          0.8886172326549487,
-                          -0.8886172326549487,
-                          -0.458649554484315,
-                          28.4800145149268,
-                          38.60053302995323,
+                          0.7046342099635947,
+                          -0.7095707365365209,
+                          0.7095707365365209,
+                          0.7046342099635947,
+                          -25.225718686778755,
+                          -4.611026307883787,
                         ]
                       }
                       propList={
@@ -639,19 +652,31 @@ exports[`ApproveTransactionHeader should return origin to be null when not prese
           >
             Sepolia
           </Text>
-          <Text
-            accessibilityRole="text"
+          <View
             style={
               Object {
-                "color": "#24272A",
-                "fontFamily": "Euclid Circular B",
-                "fontSize": 14,
-                "fontWeight": "700",
-                "letterSpacing": 0,
-                "lineHeight": 22,
+                "alignItems": "center",
+                "flexDirection": "row",
+                "justifyContent": "flex-start",
               }
             }
-          />
+          >
+            <Text
+              accessibilityRole="text"
+              style={
+                Object {
+                  "color": "#24272A",
+                  "fontFamily": "Euclid Circular B",
+                  "fontSize": 14,
+                  "fontWeight": "700",
+                  "letterSpacing": 0,
+                  "lineHeight": 22,
+                }
+              }
+            >
+              Account 1
+            </Text>
+          </View>
         </View>
       </View>
       <View>

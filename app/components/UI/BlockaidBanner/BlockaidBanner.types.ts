@@ -3,7 +3,6 @@ import { BannerAlertProps } from '../../../component-library/components/Banners/
 export enum Reason {
   approvalFarming = 'approval_farming',
   blurFarming = 'blur_farming',
-  failed = 'failed',
   maliciousDomain = 'malicious_domain',
   other = 'other',
   permitFarming = 'permit_farming',
@@ -14,9 +13,9 @@ export enum Reason {
   tradeOrderFarming = 'trade_order_farming',
   transferFarming = 'transfer_farming',
   transferFromFarming = 'transfer_from_farming',
-  unfairTrade = 'unfair_trade',
 
   // MetaMask defined reasons
+  failed = 'failed',
   notApplicable = 'not_applicable',
 }
 
@@ -24,18 +23,22 @@ export enum ResultType {
   Benign = 'Benign',
   Malicious = 'Malicious',
   Warning = 'Warning',
+
+  // MetaMask defined result types
   Failed = 'Failed',
 }
 
 export interface SecurityAlertResponse {
   reason: Reason;
   features: string[];
-  resultType: ResultType;
+  result_type: ResultType;
+  providerRequestsCount?: Record<string, number>;
 }
 
 type BlockaidBannerAllProps = BannerAlertProps & {
   securityAlertResponse?: SecurityAlertResponse;
   onToggleShowDetails?: () => void;
+  onContactUsClicked?: () => void;
 };
 
 export type BlockaidBannerProps = Omit<BlockaidBannerAllProps, 'severity'>;

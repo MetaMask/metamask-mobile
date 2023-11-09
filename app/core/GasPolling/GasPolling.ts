@@ -12,7 +12,7 @@ import {
 import { selectTicker } from '../../selectors/networkController';
 import { selectContractBalances } from '../../selectors/tokenBalancesController';
 import { selectContractExchangeRates } from '../../selectors/tokenRatesController';
-import { fromWei } from '../../util/number';
+import { fromWei, isBN, toGwei } from '../../util/number';
 import {
   parseTransactionEIP1559,
   parseTransactionLegacy,
@@ -124,7 +124,13 @@ export const getEIP1559TransactionData = ({
         conversionRate,
         currentCurrency,
         nativeCurrency,
-        transactionState,
+        transactionState: {
+          selectedAsset: transactionState.selectedAsset,
+          transaction: {
+            value: transactionState.transaction.value,
+            data: transactionState.transaction.data,
+          },
+        },
         gasFeeEstimates,
         swapsParams: undefined,
         selectedGasFee: {
@@ -207,19 +213,30 @@ export const useGasTransaction = ({
   }, [gasEstimateType, gasEstimateTypeChange]);
 
   const {
-    transaction: { gas: transactionGas },
+    transaction: { gas: transactionGas, gasPrice },
   } = transactionState;
 
   const suggestedGasLimit =
     gasObject?.suggestedGasLimit || fromWei(transactionGas, 'wei');
 
-  const suggestedGasPrice =
-    gasEstimateType === GAS_ESTIMATE_TYPES.FEE_MARKET
-      ? gasObjectLegacy?.suggestedGasPrice ||
-        gasObjectLegacy?.suggestedMaxFeePerGas
-      : gasObjectLegacy?.suggestedGasPrice ||
-        gasFeeEstimates?.gasPrice ||
-        gasFeeEstimates?.low;
+  let suggestedGasPrice;
+
+  if (gasEstimateType === GAS_ESTIMATE_TYPES.FEE_MARKET) {
+    suggestedGasPrice = gasObjectLegacy?.suggestedGasPrice;
+  } else {
+    suggestedGasPrice = gasFeeEstimates?.gasPrice || gasFeeEstimates?.low;
+  }
+
+  if (gasEstimateType !== GAS_ESTIMATE_TYPES.FEE_MARKET) {
+    if (isBN(gasPrice)) {
+      suggestedGasPrice =
+        gasObjectLegacy?.suggestedGasPrice || toGwei(gasPrice).toString();
+    } else {
+      suggestedGasPrice =
+        gasObjectLegacy?.suggestedGasPrice || gasFeeEstimates?.gasPrice;
+    }
+  }
+
   if (legacy) {
     return getLegacyTransactionData({
       gas: {

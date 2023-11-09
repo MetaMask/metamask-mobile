@@ -1,9 +1,11 @@
 import { KeyringController } from '@metamask/keyring-controller';
 import { AndroidClient } from '../AndroidSDK/android-sdk-types';
 import RPCQueueManager from '../RPCQueueManager';
-import { Connection, SDKConnect } from '../SDKConnect';
+import { SDKConnect } from '../SDKConnect';
+import DevLogger from './DevLogger';
+import { Connection } from '../Connection';
 
-export const MAX_QUEUE_LOOP = 50; // 50 seconds
+export const MAX_QUEUE_LOOP = Infinity;
 export const wait = (ms: number) =>
   new Promise((resolve) => {
     setTimeout(resolve, ms);
@@ -26,6 +28,39 @@ export const waitForReadyClient = async (
   }
 };
 
+/**
+ * Asynchronously waits for a given condition to return true by periodically executing
+ * a provided function. This can be useful for delaying subsequent code execution until
+ * a certain condition is met, such as waiting for a resource to become available.
+ *
+ * @param {Object} params - Configuration object for the wait condition.
+ * @param {Function} params.fn - A function that returns a boolean, indicating whether the desired condition is met.
+ * This function is polled repeatedly until it returns true.
+ * @param {number} [params.waitTime=1000] - The time to wait between each poll of `fn`, in milliseconds.
+ * Defaults to 1000ms (1 second) if not specified.
+ * @param {string} [params.context] - Optional context information to be used in logging messages.
+ * If provided, it will be included in log outputs for diagnostic purposes, particularly when the
+ * function has been polled more than 5 times and on every tenth poll thereafter without the condition being met.
+ */
+export const waitForCondition = async ({
+  fn,
+  context,
+  waitTime = 1000,
+}: {
+  fn: () => boolean;
+  waitTime?: number;
+  context?: string;
+}) => {
+  let i = 0;
+  while (!fn()) {
+    i += 1;
+    if (i > 5 && i % 10 === 0) {
+      DevLogger.log(`Waiting for fn context=${context} to return true`);
+    }
+    await wait(waitTime);
+  }
+};
+
 export const waitForConnectionReadiness = async ({
   connection,
 }: {
@@ -42,15 +77,38 @@ export const waitForConnectionReadiness = async ({
 };
 
 export const waitForKeychainUnlocked = async ({
+  context,
   keyringController,
 }: {
   keyringController: KeyringController;
+  context?: string;
 }) => {
-  let i = 0;
-  while (!keyringController.isUnlocked()) {
-    await new Promise<void>((res) => setTimeout(() => res(), 600));
-    if (i++ > 60) break;
+  let i = 1;
+  if (!keyringController) {
+    console.warn('Keyring controller not found');
   }
+
+  // Disable during e2e tests otherwise Detox fails
+  if (process.env.IS_TEST === 'true') {
+    return true;
+  }
+
+  let unlocked = keyringController.isUnlocked();
+  DevLogger.log(
+    `SDKConnect:: waitForKeyChainUnlocked[${context}] unlocked: ${unlocked}`,
+  );
+  while (!unlocked) {
+    await wait(1000);
+    if (i % 60 === 0) {
+      console.warn(
+        `SDKConnect [${context}] Waiting for keychain unlock... attempt ${i}`,
+      );
+    }
+    unlocked = keyringController.isUnlocked();
+    i += 1;
+  }
+
+  return unlocked;
 };
 
 export const waitForAndroidServiceBinding = async () => {

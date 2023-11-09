@@ -10,13 +10,14 @@ import {
   View,
 } from 'react-native';
 import { useDispatch, useSelector } from 'react-redux';
-import AsyncStorage from '../../../store/async-storage-wrapper';
+import { wordlist } from '@metamask/scure-bip39/dist/wordlists/english';
 import QRCode from 'react-native-qrcode-svg';
 import ScrollableTabView, {
   DefaultTabBar,
 } from 'react-native-scrollable-tab-view';
 const CustomTabView = View as any;
 import Icon from 'react-native-vector-icons/FontAwesome5';
+import AsyncStorage from '../../../store/async-storage-wrapper';
 import ActionView from '../../UI/ActionView';
 import ButtonReveal from '../../UI/ButtonReveal';
 import Button, {
@@ -39,6 +40,8 @@ import Engine from '../../../core/Engine';
 import { BIOMETRY_CHOICE } from '../../../constants/storage';
 import { MetaMetricsEvents } from '../../../core/Analytics';
 import AnalyticsV2 from '../../../util/analyticsV2';
+import { uint8ArrayToMnemonic } from '../../../util/mnemonic';
+import { passwordRequirementsMet } from '../../../util/password';
 import { Authentication } from '../../../core/';
 
 import Device from '../../../util/device';
@@ -58,7 +61,6 @@ import {
   SECRET_RECOVERY_PHRASE_TEXT,
 } from '../../../../wdio/screen-objects/testIDs/Screens/RevelSecretRecoveryPhrase.testIds';
 import { selectSelectedAddress } from '../../../selectors/preferencesController';
-import { regex } from '../../../../app/util/regex';
 
 const PRIVATE_KEY = 'private_key';
 
@@ -124,13 +126,8 @@ const RevealPrivateCredential = ({
     try {
       let privateCredential;
       if (!isPrivateKeyReveal) {
-        const mnemonic = await KeyringController.exportSeedPhrase(
-          pswd,
-        ).toString();
-        privateCredential = JSON.stringify(mnemonic).replace(
-          regex.privateCredentials,
-          '',
-        );
+        const uint8ArraySeed = await KeyringController.exportSeedPhrase(pswd);
+        privateCredential = uint8ArrayToMnemonic(uint8ArraySeed, wordlist);
       } else {
         privateCredential = await KeyringController.exportAccount(
           pswd,
@@ -208,20 +205,23 @@ const RevealPrivateCredential = ({
     navigateBack();
   };
 
-  const tryUnlock = () => {
+  const tryUnlock = async () => {
     const { KeyringController } = Engine.context as any;
-    if (KeyringController.validatePassword(password)) {
-      if (!isPrivateKey) {
-        const currentDate = new Date();
-        dispatch(recordSRPRevealTimestamp(currentDate.toString()));
-        AnalyticsV2.trackEvent(MetaMetricsEvents.NEXT_REVEAL_SRP_CTA, {});
-      }
-      setIsModalVisible(true);
-      setWarningIncorrectPassword('');
-    } else {
+    try {
+      await KeyringController.verifyPassword(password);
+    } catch {
       const msg = strings('reveal_credential.warning_incorrect_password');
       setWarningIncorrectPassword(msg);
+      return;
     }
+
+    if (!isPrivateKey) {
+      const currentDate = new Date();
+      dispatch(recordSRPRevealTimestamp(currentDate.toString()));
+      AnalyticsV2.trackEvent(MetaMetricsEvents.NEXT_REVEAL_SRP_CTA, {});
+    }
+    setIsModalVisible(true);
+    setWarningIncorrectPassword('');
   };
 
   const onPasswordChange = (pswd: string) => {
@@ -414,11 +414,6 @@ const RevealPrivateCredential = ({
     setIsModalVisible(false);
   };
 
-  const enableNextButton = () => {
-    const { KeyringController } = Engine.context as any;
-    return KeyringController.validatePassword(password);
-  };
-
   const renderModal = (
     isPrivateKeyReveal: boolean,
     privCredentialName: string,
@@ -537,7 +532,7 @@ const RevealPrivateCredential = ({
         onCancelPress={unlocked ? done : cancelReveal}
         onConfirmPress={() => tryUnlock()}
         showConfirmButton={!unlocked}
-        confirmDisabled={!enableNextButton()}
+        confirmDisabled={!passwordRequirementsMet(password)}
         cancelTestID={SECRET_RECOVERY_PHRASE_CANCEL_BUTTON_ID}
         confirmTestID={SECRET_RECOVERY_PHRASE_NEXT_BUTTON_ID}
       >

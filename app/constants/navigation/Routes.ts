@@ -60,6 +60,7 @@ const Routes = {
   },
   SHEET: {
     ACCOUNT_SELECTOR: 'AccountSelector',
+    AMBIGUOUS_ADDRESS: 'AmbiguousAddress',
     SDK_LOADING: 'SDKLoading',
     SDK_FEEDBACK: 'SDKFeedback',
     ACCOUNT_CONNECT: 'AccountConnect',
@@ -67,7 +68,7 @@ const Routes = {
     NETWORK_SELECTOR: 'NetworkSelector',
     ACCOUNT_ACTIONS: 'AccountActions',
     ETH_SIGN_FRICTION: 'SettingsAdvancedEthSignFriction',
-    SHOW_NFT: 'ShowNft',
+    SHOW_IPFS: 'ShowIpfs',
     SHOW_NFT_DISPLAY_MEDIA: 'ShowNftDisplayMedia',
   },
   BROWSER: {
