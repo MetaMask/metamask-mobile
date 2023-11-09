@@ -26,6 +26,12 @@ const FailedResponse = {
   description: 'Validating the confirmation failed by throwing error.',
 };
 
+const RequestInProgress = {
+  result_type: ResultType.RequestInProgress,
+  reason: Reason.requestInProgress,
+  description: 'Validating the confirmation in progress.',
+};
+
 const validateRequest = async (req: any, transactionId?: string) => {
   let securityAlertResponse;
   try {
@@ -45,6 +51,18 @@ const validateRequest = async (req: any, transactionId?: string) => {
     ) {
       securityAlertResponse = FailedResponse;
     } else {
+      if (
+        req.method === 'eth_sendRawTransaction' ||
+        req.method === 'eth_sendTransaction'
+      ) {
+        store.dispatch(
+          updateTransaction({ securityAlertResponse: RequestInProgress }),
+        );
+      } else {
+        store.dispatch(
+          setSignatureRequestSecurityAlertResponse(RequestInProgress),
+        );
+      }
       securityAlertResponse = await ppomController.usePPOM((ppom: any) =>
         ppom.validateJsonRpc(req),
       );
@@ -70,6 +88,8 @@ const validateRequest = async (req: any, transactionId?: string) => {
       );
     }
   }
+  // todo: once all call to validateRequest are async we may not return any result
+  return securityAlertResponse;
 };
 
 export default { validateRequest };
