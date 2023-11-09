@@ -1,6 +1,11 @@
 import React, { useRef, useState } from 'react';
 import PropTypes from 'prop-types';
-import { StyleSheet, View, ViewPropTypes } from 'react-native';
+import {
+  StyleSheet,
+  TouchableOpacity,
+  View,
+  ViewPropTypes,
+} from 'react-native';
 import AndroidMediaPlayer from './AndroidMediaPlayer';
 import Video from 'react-native-video';
 import Device from '../../../util/device';
@@ -38,6 +43,17 @@ const styleSheet = ({ theme: { colors }, vars: { isPlaying } }) =>
       alignItems: 'center',
     },
     playIcon: { left: isPlaying ? 2 : 0 },
+    volumeButtonCircle: {
+      backgroundColor: colors.overlay.default,
+      position: 'absolute',
+      right: 16,
+      top: 36,
+      height: 36,
+      width: 36,
+      borderRadius: 18,
+      justifyContent: 'center',
+      alignItems: 'center',
+    },
   });
 
 function MediaPlayer({ uri, style, onClose, textTracks, selectedTextTrack }) {
@@ -45,6 +61,7 @@ function MediaPlayer({ uri, style, onClose, textTracks, selectedTextTrack }) {
   const [error, setError] = useState(false);
   const videoRef = useRef();
   const [isPlaying, setIsPlaying] = useState(true);
+  const [isMuted, setIsMuted] = useState(true);
   const videoControlsOpacity = useSharedValue(0);
   const {
     styles,
@@ -78,6 +95,8 @@ function MediaPlayer({ uri, style, onClose, textTracks, selectedTextTrack }) {
     setIsPlaying(!isPlaying);
   };
 
+  const onPressVolumeControls = () => setIsMuted(!isMuted);
+
   return (
     <View style={style}>
       {loading && (
@@ -100,7 +119,7 @@ function MediaPlayer({ uri, style, onClose, textTracks, selectedTextTrack }) {
             onLoad={onLoad}
             onError={onError}
             style={style}
-            muted
+            muted={isMuted}
             paused={!isPlaying}
             source={source}
             controls={false}
@@ -125,6 +144,19 @@ function MediaPlayer({ uri, style, onClose, textTracks, selectedTextTrack }) {
               </View>
             </Animated.View>
           </TapGestureHandler>
+          {isPlaying ? (
+            <TouchableOpacity
+              activeOpacity={1}
+              style={styles.volumeButtonCircle}
+              onPress={onPressVolumeControls}
+            >
+              <Ionicons
+                name={isMuted ? 'ios-volume-off' : 'ios-volume-mute'}
+                size={isMuted ? 22 : 28}
+                color={colors.overlay.inverse}
+              />
+            </TouchableOpacity>
+          ) : null}
         </>
       )}
     </View>
