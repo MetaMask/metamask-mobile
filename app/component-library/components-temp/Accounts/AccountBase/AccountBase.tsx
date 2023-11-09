@@ -11,6 +11,7 @@ import {
   ACCOUNT_BASE_TEST_ID,
 } from './AccountBase.constants';
 import styles from './AccountBase.styles';
+import { strings } from '../../../../../locales/i18n';
 import { AccountBaseProps } from './AccountBase.types';
 
 const AccountBase = ({
@@ -19,6 +20,7 @@ const AccountBase = ({
   accountNativeCurrency,
   accountNetwork,
   accountName,
+  accountTypeLabel,
   accountBalanceLabel,
   accountAddress,
   badgeProps,
@@ -44,7 +46,15 @@ const AccountBase = ({
       </BadgeWrapper>
       <View>
         <Text variant={TextVariant.BodySM}>{accountNetwork}</Text>
-        <Text variant={TextVariant.BodyMDBold}>{accountName}</Text>
+
+        <View style={styles.accountNameLabel}>
+          <Text variant={TextVariant.BodyMDBold}>{accountName}</Text>
+          {accountTypeLabel && (
+            <Text style={styles.accountNameLabelText}>
+              {strings(accountTypeLabel)}
+            </Text>
+          )}
+        </View>
       </View>
     </View>
     <View>
