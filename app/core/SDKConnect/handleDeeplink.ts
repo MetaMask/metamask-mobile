@@ -79,12 +79,14 @@ const handleDeeplink = async ({
         otherPublicKey,
         context,
         initialConnection: false,
+        trigger: 'deeplink',
         updateKey: true,
       });
     } else {
       await sdkConnect.connectToChannel({
         id: channelId,
         origin,
+        trigger: 'deeplink',
         otherPublicKey,
       });
     }

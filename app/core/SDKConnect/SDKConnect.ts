@@ -117,6 +117,7 @@ export class SDKConnect extends EventEmitter2 {
 
   public async connectToChannel({
     id,
+    trigger,
     otherPublicKey,
     origin,
     validUntil = Date.now() + DEFAULT_SESSION_TIMEOUT_MS,
@@ -125,7 +126,7 @@ export class SDKConnect extends EventEmitter2 {
     const isReady = existingConnection && this.connected[id].isReady;
 
     DevLogger.log(
-      `SDKConnect::connectToChannel id=${id} isReady=${isReady} existingConnection=${existingConnection}`,
+      `SDKConnect::connectToChannel id=${id} trigger=${trigger} isReady=${isReady} existingConnection=${existingConnection}`,
     );
 
     if (isReady) {
@@ -145,6 +146,7 @@ export class SDKConnect extends EventEmitter2 {
       await this.reconnect({
         channelId: id,
         initialConnection: false,
+        trigger,
         otherPublicKey:
           this.connected[id].remote.getKeyInfo()?.ecies.otherPubKey ?? '',
         context: 'connectToChannel',
@@ -174,6 +176,7 @@ export class SDKConnect extends EventEmitter2 {
       ...this.connections[id],
       socketServerUrl: this.socketServerUrl,
       initialConnection,
+      trigger,
       rpcQueueManager: this.rpcqueueManager,
       updateOriginatorInfos: this.updateOriginatorInfos.bind(this),
       approveHost: this._approveHost.bind(this),
@@ -345,6 +348,7 @@ export class SDKConnect extends EventEmitter2 {
     channelId,
     otherPublicKey,
     initialConnection,
+    trigger,
     updateKey,
     context,
   }: {
@@ -352,6 +356,7 @@ export class SDKConnect extends EventEmitter2 {
     otherPublicKey: string;
     context?: string;
     updateKey?: boolean;
+    trigger?: ConnectionProps['trigger'];
     initialConnection: boolean;
   }) {
     const existingConnection = this.connected[channelId];
@@ -361,6 +366,10 @@ export class SDKConnect extends EventEmitter2 {
       DevLogger.log(
         `SDKConnect::reconnect[${context}] - already ready - ignore`,
       );
+      if (trigger) {
+        this.connected[channelId].setTrigger('deeplink');
+      }
+
       return;
     }
 
@@ -373,10 +382,9 @@ export class SDKConnect extends EventEmitter2 {
             existingConnection !== undefined
           } - update otherPublicKey -  ${currentOtherPublicKey} --> ${otherPublicKey}`,
         );
-        // TODO re-enable after comm layer update.
-        // if (existingConnection) {
-        //   existingConnection.remote.setOtherPublicKey(otherPublicKey);
-        // }
+        if (existingConnection) {
+          existingConnection.remote.setOtherPublicKey(otherPublicKey);
+        }
       } else {
         DevLogger.log(
           `SDKConnect::reconnect[${context}] - same otherPublicKey`,
@@ -393,7 +401,7 @@ export class SDKConnect extends EventEmitter2 {
     const socketConnected = existingConnection?.remote.isConnected() ?? false;
 
     DevLogger.log(
-      `SDKConnect::reconnect[${context}] - channel=${channelId} paused=${
+      `SDKConnect::reconnect[${context}][${trigger}] - channel=${channelId} paused=${
         this.paused
       } connecting=${connecting} socketConnected=${socketConnected} existingConnection=${
         existingConnection !== undefined
@@ -422,6 +430,10 @@ export class SDKConnect extends EventEmitter2 {
       const connected = existingConnection?.remote.isConnected();
       const ready = existingConnection?.isReady;
       if (connected) {
+        if (trigger) {
+          this.connected[channelId].setTrigger('deeplink');
+        }
+
         DevLogger.log(
           `SDKConnect::reconnect - already connected [ready=${ready}] -- ignoring`,
         );
@@ -438,6 +450,7 @@ export class SDKConnect extends EventEmitter2 {
       socketServerUrl: this.socketServerUrl,
       otherPublicKey,
       reconnect: true,
+      trigger,
       initialConnection,
       rpcQueueManager: this.rpcqueueManager,
       approveHost: this._approveHost.bind(this),
@@ -478,6 +491,7 @@ export class SDKConnect extends EventEmitter2 {
           channelId,
           otherPublicKey: this.connections[channelId].otherPublicKey,
           initialConnection: false,
+          trigger: 'reconnect',
           context: 'reconnectAll',
         }).catch((err) => {
           Logger.log(
@@ -511,7 +525,7 @@ export class SDKConnect extends EventEmitter2 {
     this.paused = true;
     this.connecting = {};
 
-    this.rpcqueueManager.reset();
+    // this.rpcqueueManager.reset();
   }
 
   public async bindAndroidSDK() {

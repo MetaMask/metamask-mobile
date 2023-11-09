@@ -27,6 +27,7 @@ import { ethErrors } from 'eth-rpc-errors';
 import { EventEmitter2 } from 'eventemitter2';
 import { PROTOCOLS } from '../../constants/deeplinks';
 import { Minimizer } from '../NativeModules';
+import BatchRPCManager, { BatchRPCState } from './BatchRPCManager';
 import RPCQueueManager from './RPCQueueManager';
 import {
   ApprovedHosts,
@@ -41,16 +42,16 @@ import generateOTP from './utils/generateOTP.util';
 import {
   wait,
   waitForConnectionReadiness,
-  waitForEmptyRPCQueue,
   waitForKeychainUnlocked,
 } from './utils/wait.util';
-import BatchRPCManager, { BatchRPCState } from './BatchRPCManager';
 
 export interface ConnectionProps {
   id: string;
   otherPublicKey: string;
   origin: string;
   reconnect?: boolean;
+  // Only userful in case of reconnection
+  trigger?: 'deeplink' | 'resume' | 'reconnect';
   initialConnection?: boolean;
   originatorInfo?: OriginatorInfo;
   validUntil?: number;
@@ -102,6 +103,7 @@ export class Connection extends EventEmitter2 {
    */
   isResumed = false;
   initialConnection: boolean;
+  trigger?: ConnectionProps['trigger'];
 
   /*
    * Timestamp of last activity, used to check if channel is still active and to prevent showing OTP approval modal too often.
@@ -151,8 +153,9 @@ export class Connection extends EventEmitter2 {
     rpcQueueManager,
     originatorInfo,
     socketServerUrl,
-    approveHost,
+    trigger,
     lastAuthorized,
+    approveHost,
     getApprovedHosts,
     disapprove,
     revalidate,
@@ -175,6 +178,7 @@ export class Connection extends EventEmitter2 {
   }) {
     super();
     this.origin = origin;
+    this.trigger = trigger;
     this.channelId = id;
     this.lastAuthorized = lastAuthorized;
     this.reconnect = reconnect || false;
@@ -197,7 +201,7 @@ export class Connection extends EventEmitter2 {
     this.setLoading(true);
 
     DevLogger.log(
-      `Connection::constructor() id=${this.channelId} initialConnection=${this.initialConnection} lastAuthorized=${this.lastAuthorized}`,
+      `Connection::constructor() id=${this.channelId} initialConnection=${this.initialConnection} lastAuthorized=${this.lastAuthorized} trigger=${this.trigger}`,
       socketServerUrl,
     );
 
@@ -836,8 +840,16 @@ export class Connection extends EventEmitter2 {
   resume() {
     DevLogger.log(`Connection::resume() id=${this.channelId}`);
     this.remote.resume();
+    this.trigger = 'resume';
     this.isResumed = true;
     this.setLoading(false);
+  }
+
+  setTrigger(trigger: ConnectionProps['trigger']) {
+    DevLogger.log(
+      `Connection::setTrigger() id=${this.channelId} trigger=${trigger}`,
+    );
+    this.trigger = trigger;
   }
 
   disconnect({ terminate, context }: { terminate: boolean; context?: string }) {
@@ -974,7 +986,7 @@ export class Connection extends EventEmitter2 {
     });
 
     DevLogger.log(
-      `Connection::sendMessage method=${method} id=${msgId} needsRedirect=${needsRedirect} origin=${this.origin}`,
+      `Connection::sendMessage method=${method} trigger=${this.trigger} id=${msgId} needsRedirect=${needsRedirect} origin=${this.origin}`,
     );
 
     if (!needsRedirect) {
@@ -985,17 +997,29 @@ export class Connection extends EventEmitter2 {
 
     if (this.origin === AppConstants.DEEPLINKS.ORIGIN_QR_CODE) return;
 
+    if (!this.rpcQueueManager.isEmpty()) {
+      DevLogger.log(`Connection::sendMessage NOT empty --- skip goBack()`);
+      return;
+    }
+
+    if (this.trigger !== 'deeplink') {
+      DevLogger.log(`Connection::sendMessage NOT deeplink --- skip goBack()`);
+      return;
+    }
+
+    // hide modal
+    this.setLoading(false);
+
     try {
       if (METHODS_TO_DELAY[method]) {
         await wait(1200);
       }
-      await waitForEmptyRPCQueue(this.rpcQueueManager);
+
       DevLogger.log(
-        `Connection::sendMessage method=${method} origin=${this.origin} id=${msgId} goBack()`,
+        `Connection::sendMessage method=${method} trigger=${this.trigger} origin=${this.origin} id=${msgId} goBack()`,
       );
 
-      await wait(100);
-      Minimizer.goBack();
+      await Minimizer.goBack();
     } catch (err) {
       Logger.log(
         err,
