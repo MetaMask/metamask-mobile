@@ -521,13 +521,20 @@ class Engine {
           this.controllerMessenger,
           'SnapController:updateSnapState',
         ),
-        showDialog: (origin, type, content, placeholder) =>
+        maybeUpdatePhishingList: this.controllerMessenger.call.bind(
+          this.controllerMessenger,
+          'PhishingController:maybeUpdateState',
+        ),
+        isOnPhishingList: (origin: any) =>
+          this.controllerMessenger.call('PhishingController:testOrigin', origin)
+            .result,
+        showDialog: (origin: any, type: any, content: any, placeholder: any) =>
           approvalController.addAndShowApprovalRequest({
             origin,
             type,
             requestData: { content, placeholder },
           }),
-        showInAppNotification: (origin, args) => {
+        showInAppNotification: (origin: any, args: any) => {
           // eslint-disable-next-line no-console
           console.log(
             'Snaps/ showInAppNotification called with args: ',
@@ -666,6 +673,8 @@ class Engine {
         `${approvalController.name}:updateRequestState`,
         `${permissionController.name}:grantPermissions`,
         `${subjectMetadataController.name}:getSubjectMetadata`,
+        `${phishingController.name}:maybeUpdateState`,
+        `${phishingController.name}:testOrigin`,
         `${snapsRegistry.name}:get`,
         `${snapsRegistry.name}:getMetadata`,
         `${snapsRegistry.name}:update`,
