@@ -1,3 +1,10 @@
++PATCH GENERATED FROM MetaMask/core branch: refactor/transaction-controller-patch-mobile-5
++This patch backports various transaction controller features from the main branch of MetaMask/core
++Steps to update patch:
++* Create a new core branch from: refactor/transaction-controller-patch-mobile-5
++* Run "yarn build" in the core monorepo
++* Run "yarn patch:tx <core-directory>" in the mobile repo
++* Once the new patch is merged, add your changes to: refactor/transaction-controller-patch-mobile-5
 diff --git a/node_modules/@metamask/transaction-controller/dist/EtherscanRemoteTransactionSource.d.ts b/node_modules/@metamask/transaction-controller/dist/EtherscanRemoteTransactionSource.d.ts
 new file mode 100644
 index 0000000..7637754
