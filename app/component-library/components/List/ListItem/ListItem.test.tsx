@@ -8,8 +8,6 @@ import { View } from 'react-native';
 // Internal dependencies.
 import ListItem from './ListItem';
 import {
-  DEFAULT_LISTITEM_PADDING,
-  DEFAULT_LISTITEM_BORDERRADIUS,
   DEFAULT_LISTITEM_GAP,
   TESTID_LISTITEM_GAP,
 } from './ListItem.constants';
@@ -23,48 +21,6 @@ describe('ListItem', () => {
       </ListItem>,
     );
     expect(wrapper).toMatchSnapshot();
-  });
-
-  it('should render the correct default padding', () => {
-    const { getByRole } = render(
-      <ListItem>
-        <View />
-      </ListItem>,
-    );
-    expect(getByRole('none').props.style.padding).toBe(
-      DEFAULT_LISTITEM_PADDING,
-    );
-  });
-
-  it('should render the given padding', () => {
-    const givenPadding = 12;
-    const { getByRole } = render(
-      <ListItem padding={givenPadding}>
-        <View />
-      </ListItem>,
-    );
-    expect(getByRole('none').props.style.padding).toBe(givenPadding);
-  });
-
-  it('should render the correct default borderRadius', () => {
-    const { getByRole } = render(
-      <ListItem>
-        <View />
-      </ListItem>,
-    );
-    expect(getByRole('none').props.style.borderRadius).toBe(
-      DEFAULT_LISTITEM_BORDERRADIUS,
-    );
-  });
-
-  it('should render the given borderRadius', () => {
-    const givenBorderRadius = 12;
-    const { getByRole } = render(
-      <ListItem borderRadius={givenBorderRadius}>
-        <View />
-      </ListItem>,
-    );
-    expect(getByRole('none').props.style.borderRadius).toBe(givenBorderRadius);
   });
 
   it('should render the correct default gap', () => {

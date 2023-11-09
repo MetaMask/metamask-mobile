@@ -7,8 +7,6 @@ exports[`ListItem should render snapshot correctly 1`] = `
   style={
     Object {
       "alignItems": "flex-start",
-      "backgroundColor": "#FFFFFF",
-      "borderRadius": 0,
       "flexDirection": "row",
       "padding": 16,
     }
