@@ -208,6 +208,7 @@ enum EVENT_NAME {
   ONRAMP_PURCHASE_FAILED = 'On-ramp Purchase Failed',
   ONRAMP_PURCHASE_CANCELLED = 'On-ramp Purchase Cancelled',
   ONRAMP_PURCHASE_DETAILS_VIEWED = 'On-ramp Purchase Details Viewed',
+  ONRAMP_EXTERNAL_LINK_CLICKED = 'On-ramp External Link Clicked',
   ONRAMP_QUOTE_ERROR = 'On-ramp Quote Error',
   ONRAMP_ERROR = 'On-ramp Error',
   ONRAMP_SETTINGS_CLICKED = 'On-ramp Settings Clicked',
