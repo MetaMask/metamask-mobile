@@ -5,7 +5,7 @@ import React, { forwardRef } from 'react';
 import { Platform, TouchableOpacity, View } from 'react-native';
 
 // External dependencies.
-import Avatar, { AvatarSize, AvatarVariants } from '../../Avatars/Avatar';
+import Avatar, { AvatarSize, AvatarVariant } from '../../Avatars/Avatar';
 import Text, { TextVariant } from '../../Texts/Text';
 import { formatAddress } from '../../../../util/address';
 import { useStyles } from '../../../hooks';
@@ -43,7 +43,7 @@ const PickerAccount: React.ForwardRefRenderFunction<
   const renderCellAccount = () => (
     <View style={styles.cellAccount}>
       <Avatar
-        variant={AvatarVariants.Account}
+        variant={AvatarVariant.Account}
         type={accountAvatarType}
         accountAddress={accountAddress}
         size={AvatarSize.Md}

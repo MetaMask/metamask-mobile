@@ -53,12 +53,6 @@ exports[`BadgeWrapper should render BadgeWrapper correctly 1`] = `
     }
   >
     <Badge
-      imageSource={
-        Object {
-          "uri": "https://assets.coingecko.com/coins/images/279/small/ethereum.png?1595348880",
-        }
-      }
-      name="Ethereum"
       variant="network"
     />
   </View>
