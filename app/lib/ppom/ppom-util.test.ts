@@ -92,12 +92,12 @@ describe('validateResponse', () => {
   it('should update transaction with validation result', async () => {
     const spy = jest.spyOn(TransactionActions, 'updateTransaction');
     await PPOMUtil.validateRequest(mockRequest, '123');
-    expect(spy).toBeCalledTimes(1);
+    expect(spy).toBeCalledTimes(2);
   });
 
   it('should update signature requests with validation result', async () => {
     const spy = jest.spyOn(SignatureRequestActions, 'default');
     await PPOMUtil.validateRequest(mockSignatureRequest);
-    expect(spy).toBeCalledTimes(1);
+    expect(spy).toBeCalledTimes(2);
   });
 });
