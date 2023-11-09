@@ -2,17 +2,17 @@
 import React from 'react';
 
 // External dependencies.
-import ListItemColumn, { WidthType } from '../../../List/ListItemColumn';
-import Icon, { IconName } from '../../../Icons/Icon';
-import Text, { TextVariant } from '../../../Texts/Text';
+import ListItemColumn, { WidthType } from '../../List/ListItemColumn';
+import Icon, { IconName } from '../../Icons/Icon';
+import Text, { TextVariant } from '../../Texts/Text';
 
 // Internal dependencies.
-import { default as SelectItemComponent } from './SelectItem';
-import { SAMPLE_SELECTITEM_PROPS } from './SelectItem.constants';
+import { default as ListItemSelectComponent } from './ListItemSelect';
+import { SAMPLE_SELECTITEM_PROPS } from './ListItemSelect.constants';
 
-const SelectItemMeta = {
-  title: 'Component Library / Select',
-  component: SelectItemComponent,
+const ListItemSelectMeta = {
+  title: 'Component Library / List',
+  component: ListItemSelectComponent,
   argTypes: {
     isSelected: {
       control: { type: 'boolean' },
@@ -24,11 +24,11 @@ const SelectItemMeta = {
     },
   },
 };
-export default SelectItemMeta;
+export default ListItemSelectMeta;
 
-export const SelectItem = {
+export const ListItemSelect = {
   render: (args: any) => (
-    <SelectItemComponent {...args}>
+    <ListItemSelectComponent {...args}>
       <ListItemColumn>
         <Icon name={IconName.Clock} />
       </ListItemColumn>
@@ -41,6 +41,6 @@ export const SelectItem = {
       <ListItemColumn>
         <Icon name={IconName.Arrow2Right} />
       </ListItemColumn>
-    </SelectItemComponent>
+    </ListItemSelectComponent>
   ),
 };

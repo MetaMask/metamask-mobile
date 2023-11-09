@@ -5,28 +5,26 @@ import React from 'react';
 import { TouchableOpacity, View } from 'react-native';
 
 // External dependencies.
-import { useStyles } from '../../../../hooks';
-import ListItem from '../../../List/ListItem/ListItem';
+import { useStyles } from '../../../hooks';
+import ListItem from '../../List/ListItem/ListItem';
 
 // Internal dependencies.
-import styleSheet from './SelectItem.styles';
-import { SelectItemProps } from './SelectItem.types';
-import {
-  DEFAULT_SELECTITEM_PADDING,
-  DEFAULT_SELECTITEM_BORDERRADIUS,
-} from './SelectItem.constants';
+import styleSheet from './ListItemSelect.styles';
+import { ListItemSelectProps } from './ListItemSelect.types';
+import { DEFAULT_SELECTITEM_GAP } from './ListItemSelect.constants';
 
-const SelectItem: React.FC<SelectItemProps> = ({
+const ListItemSelect: React.FC<ListItemSelectProps> = ({
   style,
   isSelected = false,
   isDisabled = false,
   children,
   onPress,
   onLongPress,
+  gap = DEFAULT_SELECTITEM_GAP,
+  verticalAlignment,
   ...props
 }) => {
   const { styles } = useStyles(styleSheet, { style, isDisabled });
-  const { hitSlop, ...listItemProps } = props;
 
   return (
     <TouchableOpacity
@@ -36,11 +34,7 @@ const SelectItem: React.FC<SelectItemProps> = ({
       onLongPress={onLongPress}
       {...props}
     >
-      <ListItem
-        padding={DEFAULT_SELECTITEM_PADDING}
-        borderRadius={DEFAULT_SELECTITEM_BORDERRADIUS}
-        {...listItemProps}
-      >
+      <ListItem gap={gap} style={styles.listItem}>
         {children}
       </ListItem>
       {isSelected && (
@@ -52,4 +46,4 @@ const SelectItem: React.FC<SelectItemProps> = ({
   );
 };
 
-export default SelectItem;
+export default ListItemSelect;

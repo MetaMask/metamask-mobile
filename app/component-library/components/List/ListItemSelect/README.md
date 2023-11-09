@@ -1,6 +1,6 @@
-# SelectItem
+# ListItemSelect
 
-SelectItem is a wrapper component typically used for item selection scenarios.
+ListItemSelect is a wrapper component typically used for item selection scenarios.
 
 ## Props
 
@@ -25,10 +25,10 @@ Optional prop to determine if the item is disabled.
 ## Usage
 
 ```javascript
-<SelectItem 
+<ListItemSelect 
   onPress={ONPRESS_HANDLER} 
   isSelected 
   isDisabled={false}>
   <SampleContent />
-</SelectItem>;
+</ListItemSelect>;
 ```
