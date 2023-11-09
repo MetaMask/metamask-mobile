@@ -1,7 +1,9 @@
 import Modal from 'react-native-modal';
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { StyleSheet } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
+import setSignatureRequestSecurityAlertResponse from '../../../../actions/signatureRequest';
+import { store } from '../../../../store';
 import { useTheme } from '../../../../util/theme';
 import MessageSign from '../../../UI/MessageSign';
 import PersonalSign from '../../../UI/PersonalSign';
@@ -37,6 +39,10 @@ const Root = ({
     setShowExpandedMessage(!showExpandedMessage);
 
   const currentPageMeta = messageParams?.meta;
+
+  useEffect(() => {
+    store.dispatch(setSignatureRequestSecurityAlertResponse());
+  }, []);
 
   if (!messageParams || !currentPageMeta || !approvalType) {
     return null;
