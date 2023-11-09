@@ -671,8 +671,13 @@ export class SDKConnect extends EventEmitter2 {
     return this.socketServerUrl;
   }
 
-  public setSocketServerUrl(url: string) {
-    this.socketServerUrl = url;
+  public async setSocketServerUrl(url: string) {
+    try {
+      this.socketServerUrl = url;
+      await this.removeAll();
+    } catch (err) {
+      Logger.log(err, `SDKConnect::setSocketServerUrl - error `);
+    }
   }
 
   public async revalidateChannel({ channelId }: { channelId: string }) {
