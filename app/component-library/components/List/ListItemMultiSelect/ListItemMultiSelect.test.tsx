@@ -6,32 +6,32 @@ import { View } from 'react-native';
 // External dependencies.
 
 // Internal dependencies.
-import MultiSelectItem from './MultiSelectItem';
+import ListItemMultiSelect from './ListItemMultiSelect';
 
-describe('MultiSelectItem', () => {
+describe('ListItemMultiSelect', () => {
   it('should render snapshot correctly', () => {
     const wrapper = render(
-      <MultiSelectItem>
+      <ListItemMultiSelect>
         <View />
-      </MultiSelectItem>,
+      </ListItemMultiSelect>,
     );
     expect(wrapper).toMatchSnapshot();
   });
 
   it('should not render the selected view if isSelected is false', () => {
     const { queryByRole } = render(
-      <MultiSelectItem>
+      <ListItemMultiSelect>
         <View />
-      </MultiSelectItem>,
+      </ListItemMultiSelect>,
     );
     expect(queryByRole('checkbox')).toBeNull();
   });
 
   it('should render the selected view if isSelected is true', () => {
     const { queryByRole } = render(
-      <MultiSelectItem isSelected>
+      <ListItemMultiSelect isSelected>
         <View />
-      </MultiSelectItem>,
+      </ListItemMultiSelect>,
     );
     expect(queryByRole('checkbox')).not.toBeNull();
   });

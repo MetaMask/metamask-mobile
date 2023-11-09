@@ -7,7 +7,9 @@ exports[`CellMultiSelect should render default settings correctly 1`] = `
     Object {
       "alignItems": "flex-start",
       "backgroundColor": "#FFFFFF",
+      "borderRadius": 4,
       "opacity": 1,
+      "padding": 16,
     }
   }
   testID="cellmultiselect"
@@ -19,7 +21,7 @@ exports[`CellMultiSelect should render default settings correctly 1`] = `
       Object {
         "alignItems": "center",
         "flexDirection": "row",
-        "padding": 16,
+        "padding": 0,
       }
     }
   >
