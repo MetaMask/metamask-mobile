@@ -1,0 +1,346 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`NetworkVerificationInfo renders correctly 1`] = `
+<RCTScrollView
+  collapsable={false}
+  onGestureHandlerEvent={[Function]}
+  onGestureHandlerStateChange={[Function]}
+  style={
+    Object {
+      "backgroundColor": "#FFFFFF",
+      "paddingHorizontal": 16,
+    }
+  }
+>
+  <View>
+    <TouchableOpacity
+      disabled={true}
+      style={
+        Object {
+          "alignItems": "center",
+          "alignSelf": "center",
+          "backgroundColor": "#F2F4F6",
+          "borderRadius": 16,
+          "flexDirection": "row",
+          "height": 32,
+          "marginBottom": 16,
+          "paddingHorizontal": 8,
+        }
+      }
+    >
+      <View
+        style={
+          Object {
+            "backgroundColor": "#FFFFFF",
+            "borderRadius": 8,
+            "height": 16,
+            "overflow": "hidden",
+            "width": 16,
+          }
+        }
+      >
+        <Image
+          onError={[Function]}
+          resizeMode="contain"
+          source="test-icon"
+          style={
+            Object {
+              "flex": 1,
+              "height": undefined,
+              "width": undefined,
+            }
+          }
+          testID="network-avatar-image"
+        />
+      </View>
+      <Text
+        accessibilityRole="text"
+        numberOfLines={1}
+        style={
+          Object {
+            "color": "#24272A",
+            "flexShrink": 1,
+            "fontFamily": "Euclid Circular B",
+            "fontSize": 14,
+            "fontWeight": "400",
+            "letterSpacing": 0,
+            "lineHeight": 22,
+            "marginHorizontal": 8,
+          }
+        }
+        testID="open-networks-text"
+      >
+        Test Chain
+      </Text>
+    </TouchableOpacity>
+    <View
+      style={
+        Object {
+          "backgroundColor": "#FFD33D19",
+          "borderColor": "#F66A0A",
+          "borderLeftWidth": 4,
+          "borderRadius": 4,
+          "flexDirection": "row",
+          "marginBottom": 8,
+          "padding": 12,
+          "paddingLeft": 8,
+        }
+      }
+      testID="error-message-warning"
+      variant="Alert"
+    >
+      <View
+        style={
+          Object {
+            "marginRight": 8,
+          }
+        }
+      >
+        <SvgMock
+          color="#F66A0A"
+          height={24}
+          name="Danger"
+          style={
+            Object {
+              "height": 24,
+              "width": 24,
+            }
+          }
+          width={24}
+        />
+      </View>
+      <View
+        style={
+          Object {
+            "flex": 1,
+          }
+        }
+      >
+        <Text
+          accessibilityRole="text"
+          style={
+            Object {
+              "color": "#24272A",
+              "fontFamily": "Euclid Circular B",
+              "fontSize": 14,
+              "fontWeight": "400",
+              "letterSpacing": 0,
+              "lineHeight": 22,
+            }
+          }
+        >
+          It looks like this network's display name doesn't match its chain ID.
+        </Text>
+      </View>
+    </View>
+    <Text
+      accessibilityRole="text"
+      style={
+        Object {
+          "color": "#24272A",
+          "fontFamily": "Euclid Circular B",
+          "fontSize": 14,
+          "fontWeight": "400",
+          "letterSpacing": 0,
+          "lineHeight": 22,
+        }
+      }
+    >
+      MetaMask doesn’t verify custom networks, so only approve networks you trust.
+       
+      <Text
+        accessibilityRole="text"
+        onPress={[Function]}
+        style={
+          Object {
+            "color": "#0376C9",
+            "fontFamily": "Euclid Circular B",
+            "fontSize": 14,
+            "fontWeight": "400",
+            "letterSpacing": 0,
+            "lineHeight": 22,
+          }
+        }
+      >
+        Learn more about network security risks and scams.
+      </Text>
+    </Text>
+    <RCTScrollView
+      collapsable={false}
+      nestedScrollEnabled={true}
+      onGestureHandlerEvent={[Function]}
+      onGestureHandlerStateChange={[Function]}
+      onLayout={[Function]}
+      style={
+        Array [
+          Object {
+            "borderColor": "#BBC0C5",
+            "borderRadius": 10,
+            "borderWidth": 1,
+            "marginVertical": 16,
+            "padding": 16,
+          },
+          undefined,
+        ]
+      }
+    >
+      <View>
+        <Text
+          accessibilityRole="text"
+          style={
+            Object {
+              "color": "#24272A",
+              "fontFamily": "Euclid Circular B",
+              "fontSize": 14,
+              "fontWeight": "700",
+              "letterSpacing": 0,
+              "lineHeight": 22,
+            }
+          }
+        >
+          Display name
+        </Text>
+        <Text
+          accessibilityRole="text"
+          style={
+            Object {
+              "color": "#24272A",
+              "fontFamily": "Euclid Circular B",
+              "fontSize": 14,
+              "fontWeight": "400",
+              "letterSpacing": 0,
+              "lineHeight": 22,
+              "marginBottom": 8,
+            }
+          }
+        >
+          Test Chain
+        </Text>
+        <Text
+          accessibilityRole="text"
+          style={
+            Object {
+              "color": "#24272A",
+              "fontFamily": "Euclid Circular B",
+              "fontSize": 14,
+              "fontWeight": "700",
+              "letterSpacing": 0,
+              "lineHeight": 22,
+            }
+          }
+        >
+          Chain ID
+        </Text>
+        <Text
+          accessibilityRole="text"
+          style={
+            Object {
+              "color": "#24272A",
+              "fontFamily": "Euclid Circular B",
+              "fontSize": 14,
+              "fontWeight": "400",
+              "letterSpacing": 0,
+              "lineHeight": 22,
+              "marginBottom": 8,
+            }
+          }
+        >
+          1
+        </Text>
+        <Text
+          accessibilityRole="text"
+          style={
+            Object {
+              "color": "#24272A",
+              "fontFamily": "Euclid Circular B",
+              "fontSize": 14,
+              "fontWeight": "700",
+              "letterSpacing": 0,
+              "lineHeight": 22,
+            }
+          }
+        >
+          Network URL
+        </Text>
+        <Text
+          accessibilityRole="text"
+          style={
+            Object {
+              "color": "#24272A",
+              "fontFamily": "Euclid Circular B",
+              "fontSize": 14,
+              "fontWeight": "400",
+              "letterSpacing": 0,
+              "lineHeight": 22,
+              "marginBottom": 8,
+            }
+          }
+        >
+          http://test.com
+        </Text>
+        <TouchableOpacity
+          activeOpacity={0.5}
+          onPress={[Function]}
+          style={
+            Object {
+              "alignItems": "center",
+              "flexDirection": "row",
+              "height": 24,
+              "justifyContent": "center",
+            }
+          }
+          testID="accordionheader"
+        >
+          <Text
+            accessibilityRole="text"
+            style={
+              Object {
+                "color": "#0376C9",
+                "fontFamily": "Euclid Circular B",
+                "fontSize": 14,
+                "fontWeight": "400",
+                "letterSpacing": 0,
+                "lineHeight": 22,
+              }
+            }
+            testID="accordionheader-title"
+          >
+            View details
+          </Text>
+          <View
+            style={
+              Array [
+                Object {
+                  "marginLeft": 4,
+                },
+                Object {
+                  "transform": Array [
+                    Object {
+                      "rotate": "0deg",
+                    },
+                  ],
+                },
+              ]
+            }
+            testID="accordionheader-arrow-icon-animation"
+          >
+            <SvgMock
+              color="#0376C9"
+              height={16}
+              name="ArrowDown"
+              style={
+                Object {
+                  "height": 16,
+                  "width": 16,
+                }
+              }
+              testID="accordionheader-arrow-icon"
+              width={16}
+            />
+          </View>
+        </TouchableOpacity>
+      </View>
+    </RCTScrollView>
+  </View>
+</RCTScrollView>
+`;

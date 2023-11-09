@@ -2,13 +2,13 @@
 import { StyleSheet, ViewStyle } from 'react-native';
 
 // External dependencies.
-import { Theme } from '../../../../../util/theme/models';
+import { Theme } from '../../../../util/theme/models';
 
 // Internal dependencies.
-import { SelectItemStyleSheetVars } from './SelectItem.types';
+import { ListItemSelectStyleSheetVars } from './ListItemSelect.types';
 
 /**
- * Style sheet function for SelectItem component.
+ * Style sheet function for ListItemSelect component.
  *
  * @param params Style sheet params.
  * @param params.theme App theme from ThemeContext.
@@ -17,7 +17,7 @@ import { SelectItemStyleSheetVars } from './SelectItem.types';
  */
 const styleSheet = (params: {
   theme: Theme;
-  vars: SelectItemStyleSheetVars;
+  vars: ListItemSelectStyleSheetVars;
 }) => {
   const { vars, theme } = params;
   const { colors } = theme;
@@ -27,6 +27,9 @@ const styleSheet = (params: {
       {
         position: 'relative',
         opacity: isDisabled ? 0.5 : 1,
+        padding: 16,
+        borderRadius: 4,
+        backgroundColor: colors.background.default,
       } as ViewStyle,
       style,
     ) as ViewStyle,
@@ -34,6 +37,9 @@ const styleSheet = (params: {
       ...StyleSheet.absoluteFillObject,
       flexDirection: 'row',
       backgroundColor: colors.primary.muted,
+    },
+    listItem: {
+      padding: 0,
     },
     underlayBar: {
       marginVertical: 4,
