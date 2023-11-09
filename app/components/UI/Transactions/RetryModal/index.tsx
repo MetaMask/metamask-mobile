@@ -1,9 +1,11 @@
+import Text, {
+  TextVariant,
+} from '../../../../component-library/components/Texts/Text';
 import React from 'react';
-import { StyleSheet, View, Text } from 'react-native';
-import { fontStyles } from '../../../../styles/common';
-import ActionModal from '../../ActionModal';
+import { StyleSheet, View } from 'react-native';
 import { strings } from '../../../../../locales/i18n';
 import { useTheme } from '../../../../util/theme';
+import ActionModal from '../../ActionModal';
 
 const createStyles = (colors: any) =>
   StyleSheet.create({
@@ -20,21 +22,15 @@ const createStyles = (colors: any) =>
       width: '100%',
     },
     modalText: {
-      ...(fontStyles.normal as any),
-      fontSize: 14,
       textAlign: 'center',
       paddingVertical: 8,
       color: colors.text.default,
     },
     modalTitle: {
-      ...(fontStyles.bold as any),
-      fontSize: 22,
       textAlign: 'center',
       color: colors.text.default,
     },
     modalErrText: {
-      ...(fontStyles.normal as any),
-      fontSize: 14,
       textAlign: 'center',
       paddingVertical: 8,
       color: colors.error.default,
@@ -68,13 +64,15 @@ const RetryModal = ({
       onRequestClose={onCancelPress}
     >
       <View style={styles.modalView}>
-        <Text style={styles.modalTitle}>
+        <Text variant={TextVariant.HeadingLG} style={styles.modalTitle}>
           {strings('transaction_update_retry_modal.title')}
         </Text>
         {errorMsg ? (
-          <Text style={styles.modalErrText}>{errorMsg}</Text>
+          <Text variant={TextVariant.BodyMD} style={styles.modalErrText}>
+            {errorMsg}
+          </Text>
         ) : (
-          <Text style={styles.modalText}>
+          <Text variant={TextVariant.BodyMD} style={styles.modalText}>
             {strings('transaction_update_retry_modal.text')}
           </Text>
         )}
