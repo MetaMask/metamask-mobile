@@ -109,6 +109,7 @@ export class SDKConnect extends EventEmitter2 {
   private disabledHosts: ApprovedHosts = {};
   private rpcqueueManager = new RPCQueueManager();
   private appStateListener: NativeEventSubscription | undefined;
+  private socketServerUrl = AppConstants.MM_SDK.SERVER_URL; // Allow to customize different socket server url
 
   private SDKConnect() {
     // Keep empty to manage singleton
@@ -171,6 +172,7 @@ export class SDKConnect extends EventEmitter2 {
 
     this.connected[id] = new Connection({
       ...this.connections[id],
+      socketServerUrl: this.socketServerUrl,
       initialConnection,
       rpcQueueManager: this.rpcqueueManager,
       updateOriginatorInfos: this.updateOriginatorInfos.bind(this),
@@ -427,6 +429,7 @@ export class SDKConnect extends EventEmitter2 {
     this.connecting[channelId] = true;
     this.connected[channelId] = new Connection({
       ...connection,
+      socketServerUrl: this.socketServerUrl,
       otherPublicKey,
       reconnect: true,
       initialConnection,
@@ -662,6 +665,14 @@ export class SDKConnect extends EventEmitter2 {
     const hostname = AppConstants.MM_SDK.SDK_REMOTE_ORIGIN + channelId;
     this.connections[channelId].lastAuthorized = 0;
     delete this.approvedHosts[hostname];
+  }
+
+  public getSockerServerUrl() {
+    return this.socketServerUrl;
+  }
+
+  public setSocketServerUrl(url: string) {
+    this.socketServerUrl = url;
   }
 
   public async revalidateChannel({ channelId }: { channelId: string }) {
@@ -915,15 +926,6 @@ export class SDKConnect extends EventEmitter2 {
     this._initializing = doAsyncInit();
 
     return this._initializing;
-    this._initializing = new Promise((resolve, reject) => {
-      doAsyncInit()
-        .then((res) => {
-          resolve(res);
-        })
-        .catch((err) => {
-          reject(err);
-        });
-    });
   }
 
   async postInit() {

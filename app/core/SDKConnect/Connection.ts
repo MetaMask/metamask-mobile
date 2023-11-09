@@ -128,6 +128,8 @@ export class Connection extends EventEmitter2 {
 
   private batchRPCManager: BatchRPCManager;
 
+  private socketServerUrl: string;
+
   approveHost: ({ host, hostname }: approveHostProps) => void;
   getApprovedHosts: (context: string) => ApprovedHosts;
   disapprove: (channelId: string) => void;
@@ -148,6 +150,7 @@ export class Connection extends EventEmitter2 {
     initialConnection,
     rpcQueueManager,
     originatorInfo,
+    socketServerUrl,
     approveHost,
     lastAuthorized,
     getApprovedHosts,
@@ -157,6 +160,7 @@ export class Connection extends EventEmitter2 {
     updateOriginatorInfos,
     onTerminate,
   }: ConnectionProps & {
+    socketServerUrl: string; // Allow to customize different socket server url
     rpcQueueManager: RPCQueueManager;
     approveHost: ({ host, hostname }: approveHostProps) => void;
     getApprovedHosts: (context: string) => ApprovedHosts;
@@ -176,6 +180,7 @@ export class Connection extends EventEmitter2 {
     this.reconnect = reconnect || false;
     this.isResumed = false;
     this.originatorInfo = originatorInfo;
+    this.socketServerUrl = socketServerUrl;
     this.initialConnection = initialConnection === true;
     this.host = `${AppConstants.MM_SDK.SDK_REMOTE_ORIGIN}${this.channelId}`;
     // TODO: should be probably contained to current connection
@@ -193,6 +198,7 @@ export class Connection extends EventEmitter2 {
 
     DevLogger.log(
       `Connection::constructor() id=${this.channelId} initialConnection=${this.initialConnection} lastAuthorized=${this.lastAuthorized}`,
+      socketServerUrl,
     );
 
     if (!this.channelId) {
@@ -201,7 +207,7 @@ export class Connection extends EventEmitter2 {
 
     this.remote = new RemoteCommunication({
       platformType: AppConstants.MM_SDK.PLATFORM as 'metamask-mobile',
-      communicationServerUrl: AppConstants.MM_SDK.SERVER_URL,
+      communicationServerUrl: this.socketServerUrl,
       communicationLayerPreference: CommunicationLayerPreference.SOCKET,
       otherPublicKey,
       reconnect,
