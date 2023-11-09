@@ -122,6 +122,7 @@ import {
   ExcludedSnapPermissions,
   detectSnapLocation,
   fetchFunction,
+  DetectSnapLocationOptions,
 } from './Snaps';
 import { getRpcMethodMiddleware } from './RPCMethods/RPCMethodMiddleware';
 import { isBlockaidFeatureEnabled } from '../util/blockaid';
@@ -143,6 +144,8 @@ import { ethErrors } from 'eth-rpc-errors';
 
 import { PPOM, ppomInit } from '../lib/ppom/PPOMView';
 import RNFSStorageBackend from '../lib/ppom/rnfs-storage-backend';
+import { EnumToUnion } from '@metamask/snaps-utils';
+import { DialogType, NotificationArgs } from '@metamask/snaps-rpc-methods';
 
 const NON_EMPTY = 'NON_EMPTY';
 
@@ -495,48 +498,65 @@ class Engine {
     };
 
     const getSnapPermissionSpecifications = () => ({
-      ...buildSnapEndowmentSpecifications(ExcludedSnapEndowments),
-      ...buildSnapRestrictedMethodSpecifications(ExcludedSnapPermissions, {
-        encrypt: encryptor.encrypt.bind(encryptor),
-        decrypt: encryptor.decrypt.bind(encryptor),
-        clearSnapState: this.controllerMessenger.call.bind(
-          this.controllerMessenger,
-          'SnapController:clearSnapState',
-        ),
-        getMnemonic: getPrimaryKeyringMnemonic.bind(this),
-        getUnlockPromise: getAppState.bind(this),
-        getSnap: this.controllerMessenger.call.bind(
-          this.controllerMessenger,
-          'SnapController:get',
-        ),
-        handleSnapRpcRequest: this.controllerMessenger.call.bind(
-          this.controllerMessenger,
-          'SnapController:handleRequest',
-        ),
-        getSnapState: this.controllerMessenger.call.bind(
-          this.controllerMessenger,
-          'SnapController:getSnapState',
-        ),
-        updateSnapState: this.controllerMessenger.call.bind(
-          this.controllerMessenger,
-          'SnapController:updateSnapState',
-        ),
-        showDialog: (origin, type, content, placeholder) =>
-          approvalController.addAndShowApprovalRequest({
-            origin,
-            type,
-            requestData: { content, placeholder },
-          }),
-        showInAppNotification: (origin, args) => {
-          // eslint-disable-next-line no-console
-          console.log(
-            'Snaps/ showInAppNotification called with args: ',
-            args,
-            ' and origin: ',
-            origin,
-          );
+      ...buildSnapEndowmentSpecifications(Object.keys(ExcludedSnapEndowments)),
+      ...buildSnapRestrictedMethodSpecifications(
+        Object.keys(ExcludedSnapPermissions),
+        {
+          encrypt: encryptor.encrypt.bind(encryptor),
+          decrypt: encryptor.decrypt.bind(encryptor),
+          clearSnapState: this.controllerMessenger.call.bind(
+            this.controllerMessenger,
+            'SnapController:clearSnapState',
+          ),
+          getMnemonic: getPrimaryKeyringMnemonic.bind(this),
+          getUnlockPromise: getAppState.bind(this),
+          getSnap: this.controllerMessenger.call.bind(
+            this.controllerMessenger,
+            'SnapController:get',
+          ),
+          handleSnapRpcRequest: this.controllerMessenger.call.bind(
+            this.controllerMessenger,
+            'SnapController:handleRequest',
+          ),
+          getSnapState: this.controllerMessenger.call.bind(
+            this.controllerMessenger,
+            'SnapController:getSnapState',
+          ),
+          updateSnapState: this.controllerMessenger.call.bind(
+            this.controllerMessenger,
+            'SnapController:updateSnapState',
+          ),
+          maybeUpdatePhishingList: this.controllerMessenger.call.bind(
+            this.controllerMessenger,
+            'PhishingController:maybeUpdateState',
+          ),
+          isOnPhishingList: (origin: string) =>
+            this.controllerMessenger.call(
+              'PhishingController:testOrigin',
+              origin,
+            ).result,
+          showDialog: (
+            origin: string,
+            type: EnumToUnion<DialogType>,
+            content: any, // should be Component from '@metamask/snaps-ui';
+            placeholder?: any,
+          ) =>
+            approvalController.addAndShowApprovalRequest({
+              origin,
+              type,
+              requestData: { content, placeholder },
+            }),
+          showInAppNotification: (origin: string, args: NotificationArgs) => {
+            // eslint-disable-next-line no-console
+            console.log(
+              'Snaps/ showInAppNotification called with args: ',
+              args,
+              ' and origin: ',
+              origin,
+            );
+          },
         },
-      }),
+      ),
     });
 
     const permissionController = new PermissionController({
@@ -666,6 +686,8 @@ class Engine {
         `${approvalController.name}:updateRequestState`,
         `${permissionController.name}:grantPermissions`,
         `${subjectMetadataController.name}:getSubjectMetadata`,
+        `${phishingController.name}:maybeUpdateState`,
+        `${phishingController.name}:testOrigin`,
         `${snapsRegistry.name}:get`,
         `${snapsRegistry.name}:getMetadata`,
         `${snapsRegistry.name}:update`,
@@ -690,7 +712,10 @@ class Engine {
         console.log(
           'TO DO: Create method to close all connections (Closes all connections for the given origin, and removes the references)',
         ),
-      detectSnapLocation: (location, options) =>
+      detectSnapLocation: (
+        location: string | URL,
+        options?: DetectSnapLocationOptions,
+      ) =>
         detectSnapLocation(location, {
           ...options,
           fetch: fetchFunction,
