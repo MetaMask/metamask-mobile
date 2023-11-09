@@ -16,9 +16,7 @@ exports[`CellSelect should render default settings correctly 1`] = `
     accessible={true}
     style={
       Object {
-        "alignItems": "flex-start",
-        "backgroundColor": "#FFFFFF",
-        "borderRadius": 4,
+        "alignItems": "center",
         "flexDirection": "row",
         "padding": 16,
       }
