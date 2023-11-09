@@ -1,5 +1,5 @@
 import React, { useCallback } from 'react';
-import { StyleSheet, TouchableOpacity, View, Linking } from 'react-native';
+import { Linking, StyleSheet, TouchableOpacity, View } from 'react-native';
 import Modal from 'react-native-modal';
 import { QuoteResponse } from '@consensys/on-ramp-sdk';
 import IonicIcon from 'react-native-vector-icons/Ionicons';
@@ -12,7 +12,7 @@ import { useTheme } from '../../../../../util/theme';
 import { strings } from '../../../../../../locales/i18n';
 import { Colors } from '../../../../../util/theme/models';
 import useAnalytics from '../hooks/useAnalytics';
-import { useRampSDK } from '../sdk';
+import { RampType } from '../../../../../reducers/fiatOrders/types';
 
 type Logos = QuoteResponse['provider']['logos'];
 
@@ -54,6 +54,7 @@ interface Props {
   providerPrivacyPolicy?: string;
   providerSupport?: string;
   dismiss?: () => any;
+  rampType: RampType;
 }
 
 const InfoAlert: React.FC<Props> = ({
@@ -66,12 +67,12 @@ const InfoAlert: React.FC<Props> = ({
   providerWebsite,
   providerPrivacyPolicy,
   providerSupport,
+  rampType,
 }: Props) => {
   const { colors, themeAppearance } = useTheme();
-
+  const isBuy = rampType === RampType.BUY;
   const styles = createStyles(colors);
   const trackEvent = useAnalytics();
-  const { isBuy } = useRampSDK();
 
   const handleProviderHomepageLinkPress = useCallback(
     (url: string) => {

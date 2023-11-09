@@ -109,8 +109,12 @@ function ErrorView({
       message: description,
       payment_method_id: selectedPaymentMethodId as string,
       region: selectedRegion?.id,
-      currency_source: selectedFiatCurrencyId as string,
-      currency_destination: selectedAsset?.symbol,
+      currency_source: isBuy
+        ? (selectedFiatCurrencyId as string)
+        : selectedAsset?.symbol,
+      currency_destination: isBuy
+        ? selectedAsset?.symbol
+        : (selectedFiatCurrencyId as string),
     });
     // Dependency array does not include extra data since it can mutate after the error
     // is displayed. This is a safe guard to prevent the error from being tracked multiple

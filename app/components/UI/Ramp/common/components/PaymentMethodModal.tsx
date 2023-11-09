@@ -11,7 +11,7 @@ import PaymentMethod from './PaymentMethod';
 import useAnalytics from '../hooks/useAnalytics';
 import { useTheme } from '../../../../../util/theme';
 import { Colors } from '../../../../../util/theme/models';
-import { Region, ScreenLocation } from '../types';
+import { RampType, Region, ScreenLocation } from '../types';
 import { useRampSDK } from '../sdk';
 
 const createStyles = (colors: Colors) =>
@@ -48,6 +48,7 @@ interface Props {
   selectedPaymentMethodType: PaymentType | undefined;
   selectedRegion?: Region | null;
   location?: ScreenLocation;
+  rampType: RampType;
 }
 
 function PaymentMethodModal({
@@ -59,11 +60,12 @@ function PaymentMethodModal({
   selectedPaymentMethodId,
   selectedRegion,
   location,
+  rampType,
 }: Props) {
   const { colors } = useTheme();
   const styles = createStyles(colors);
   const trackEvent = useAnalytics();
-  const { isBuy } = useRampSDK();
+  const isBuy = rampType === RampType.BUY;
 
   const handleOnPressItemCallback = useCallback(
     (paymentMethodId) => {
