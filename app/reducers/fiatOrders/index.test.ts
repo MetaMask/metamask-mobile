@@ -732,7 +732,7 @@ describe('selectors', () => {
             },
             {
               ...mockOrder1,
-              id: 'test-56-order-3',
+              id: 'test-1-order-3',
               network: '1',
               account: '0x4567',
             },
@@ -794,7 +794,7 @@ describe('selectors', () => {
             },
             {
               ...mockOrder1,
-              id: 'test-56-order-3',
+              id: 'test-1-order-3',
               network: '1',
               account: '0x4567',
             },
@@ -809,6 +809,138 @@ describe('selectors', () => {
       ]);
       expect(getOrders(state2)).toHaveLength(1);
       expect(getOrders(state2).map((o) => o.id)).toEqual(['test-1-order-2']);
+    });
+
+    it('should return all the orders in a test net', () => {
+      const state1 = merge({}, initialRootState, {
+        engine: {
+          backgroundState: {
+            NetworkController: {
+              providerConfig: {
+                chainId: '11155111',
+              },
+            },
+            PreferencesController: {
+              selectedAddress: '0x4567',
+            },
+          },
+        },
+        fiatOrders: {
+          orders: [
+            {
+              ...mockOrder1,
+              id: 'test-56-order-1',
+              network: '56',
+              account: '0x4567',
+            },
+            {
+              ...mockOrder1,
+              id: 'test-56-order-2',
+              network: '56',
+              account: '0x1234',
+            },
+            {
+              ...mockOrder1,
+              id: 'test-56-order-3',
+              network: '56',
+              account: '0x4567',
+            },
+            {
+              ...mockOrder1,
+              id: 'test-1-order-1',
+              network: '1',
+              account: '0x4567',
+            },
+            {
+              ...mockOrder1,
+              id: 'test-1-order-2',
+              network: '1',
+              account: '0x1234',
+            },
+            {
+              ...mockOrder1,
+              id: 'test-1-order-3',
+              network: '1',
+              account: '0x4567',
+            },
+          ],
+        },
+      });
+
+      const state2 = merge({}, initialRootState, {
+        engine: {
+          backgroundState: {
+            NetworkController: {
+              providerConfig: {
+                chainId: '11155111',
+              },
+            },
+            PreferencesController: {
+              selectedAddress: '0x1234',
+            },
+          },
+        },
+        fiatOrders: {
+          orders: [
+            {
+              ...mockOrder1,
+              id: 'test-56-order-1',
+              network: '56',
+              account: '0x4567',
+            },
+            {
+              ...mockOrder1,
+              id: 'test-56-order-2',
+              network: '56',
+              account: '0x1234',
+            },
+            {
+              ...mockOrder1,
+              id: 'test-56-order-3',
+              network: '56',
+              account: '0x4567',
+            },
+            {
+              ...mockOrder1,
+              id: 'test-1-order-1',
+              network: '1',
+              account: '0x4567',
+            },
+            {
+              ...mockOrder1,
+              id: 'test-1-order-2',
+              network: '1',
+              account: '0x1234',
+            },
+            {
+              ...mockOrder1,
+              id: 'test-1-order-3',
+              network: '1',
+              excludeFromPurchases: true,
+              account: '0x1234',
+            },
+            {
+              ...mockOrder1,
+              id: 'test-1-order-3',
+              network: '1',
+              account: '0x4567',
+            },
+          ],
+        },
+      });
+
+      expect(getOrders(state1)).toHaveLength(4);
+      expect(getOrders(state1).map((o) => o.id)).toEqual([
+        'test-56-order-1',
+        'test-56-order-3',
+        'test-1-order-1',
+        'test-1-order-3',
+      ]);
+      expect(getOrders(state2)).toHaveLength(2);
+      expect(getOrders(state2).map((o) => o.id)).toEqual([
+        'test-56-order-2',
+        'test-1-order-2',
+      ]);
     });
 
     it('it should return empty array by default', () => {
