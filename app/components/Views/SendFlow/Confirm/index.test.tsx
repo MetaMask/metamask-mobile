@@ -1,10 +1,13 @@
 import React from 'react';
 import { ConnectedComponent } from 'react-redux';
-import { waitFor } from '@testing-library/react-native';
+import { fireEvent, waitFor } from '@testing-library/react-native';
 import Confirm from '.';
 import { renderScreen } from '../../../../util/test/renderWithProvider';
 import Routes from '../../../../constants/navigation/Routes';
 import initialBackgroundState from '../../../../util/test/initial-background-state.json';
+import analyticsV2 from '../../../../util/analyticsV2';
+import { TESTID_ACCORDION_CONTENT } from '../../../../component-library/components/Accordions/Accordion/Accordion.constants';
+import { FALSE_POSITIVE_REPOST_LINE_TEST_ID } from '../../../../components/UI/BlockaidBanner/BlockaidBanner.constants';
 
 const mockInitialState = {
   engine: {
@@ -92,14 +95,20 @@ jest.mock('../../../../util/transactions', () => ({
   decodeTransferData: jest.fn().mockImplementation(() => ['0x2']),
 }));
 
-function render(Component: React.ComponentType | ConnectedComponent<any, any>) {
+function render(
+  Component: React.ComponentType | ConnectedComponent<any, any>,
+  initialState: any,
+) {
   return renderScreen(
     Component,
     {
       name: Routes.SEND_FLOW.CONFIRM,
     },
     {
-      state: mockInitialState,
+      state: {
+        ...mockInitialState,
+        ...initialState,
+      },
     },
   );
 }
@@ -110,5 +119,45 @@ describe('Confirm', () => {
     await waitFor(() => {
       expect(wrapper).toMatchSnapshot();
     });
+  });
+
+  it('should display blockaid banner', async () => {
+    const securityAlertResponse = {
+      result_type: 'Malicious',
+      reason: 'blur_farming',
+      providerRequestsCount: {},
+    };
+    const trackEventSypy = jest
+      .spyOn(analyticsV2, 'trackEvent')
+      .mockImplementation((name, params) => {
+        expect(name).toBeDefined();
+        expect(params).toBeDefined();
+      });
+
+    const { queryByText, queryByTestId, getByText } = render(Confirm, {
+      transaction: {
+        ...mockInitialState.transaction,
+        securityAlertResponse,
+      },
+    });
+    expect(await queryByText('See details')).toBeDefined();
+    expect(
+      await queryByText(
+        'If you approve this request, someone can steal your assets listed on Blur.',
+      ),
+    ).toBeDefined();
+
+    fireEvent.press(await getByText('See details'));
+
+    expect(await queryByTestId(TESTID_ACCORDION_CONTENT)).toBeDefined();
+    expect(
+      await queryByTestId(FALSE_POSITIVE_REPOST_LINE_TEST_ID),
+    ).toBeDefined();
+    expect(await queryByText('Something doesn’t look right?')).toBeDefined();
+    expect(await queryByText('Contact Us')).toBeDefined();
+
+    fireEvent.press(await getByText('Contact Us'));
+
+    expect(trackEventSypy).toHaveBeenCalledTimes(2);
   });
 });
