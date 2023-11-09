@@ -5,7 +5,10 @@ exports[`CellSelect should render default settings correctly 1`] = `
   disabled={false}
   style={
     Object {
+      "backgroundColor": "#FFFFFF",
+      "borderRadius": 4,
       "opacity": 1,
+      "padding": 16,
       "position": "relative",
     }
   }
@@ -18,7 +21,7 @@ exports[`CellSelect should render default settings correctly 1`] = `
       Object {
         "alignItems": "center",
         "flexDirection": "row",
-        "padding": 16,
+        "padding": 0,
       }
     }
   >
