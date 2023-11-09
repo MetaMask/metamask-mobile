@@ -85,13 +85,6 @@ export function prepareTransaction(transaction) {
   };
 }
 
-export function updateTransaction(params) {
-  return {
-    type: 'UPDATE_TRANSACTION',
-    params,
-  };
-}
-
 export function setTransactionSecurityAlertResponse(
   transactionId,
   securityAlertResponse,

@@ -94,11 +94,6 @@ const transactionReducer = (state = initialState, action) => {
         ...state,
         transaction: action.transaction,
       };
-    case 'UPDATE_TRANSACTION':
-      return {
-        ...state,
-        transaction: { ...state.transaction, ...action.params },
-      };
     case 'SET_TRANSACTION_OBJECT': {
       const selectedAsset = action.transaction.selectedAsset;
       if (selectedAsset) {

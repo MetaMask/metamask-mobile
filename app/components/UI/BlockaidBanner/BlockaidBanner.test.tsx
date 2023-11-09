@@ -141,7 +141,7 @@ describe('BlockaidBanner', () => {
     ).toBeDefined();
   });
 
-  it('should return null if securityAlertResponse is undefined', async () => {
+  it('should not return if securityAlertResponse is undefined', async () => {
     const wrapper = render(<BlockaidBanner />);
 
     expect(wrapper).toMatchSnapshot();
