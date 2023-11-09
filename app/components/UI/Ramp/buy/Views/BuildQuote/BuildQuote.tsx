@@ -131,9 +131,14 @@ const BuildQuote = () => {
     selectedChainId,
     selectedNetworkName,
     sdkError,
+    rampType,
     isBuy,
     isSell,
   } = useRampSDK();
+
+  const screenLocation: ScreenLocation = isBuy
+    ? 'Amount to Buy Screen'
+    : 'Amount to Sell Screen';
 
   const {
     data: regions,
@@ -226,12 +231,12 @@ const BuildQuote = () => {
   const handleCancelPress = useCallback(() => {
     if (isBuy) {
       trackEvent('ONRAMP_CANCELED', {
-        location: 'Amount to Buy Screen',
+        location: screenLocation,
         chain_id_destination: selectedChainId,
       });
     } else {
       trackEvent('OFFRAMP_CANCELED', {
-        location: 'Amount to Sell Screen',
+        location: screenLocation,
         chain_id_source: selectedChainId,
       });
     }
@@ -419,7 +424,7 @@ const BuildQuote = () => {
         currency_destination: selectedAsset.symbol,
         payment_method_id: selectedPaymentMethodId as string,
         amount: amountNumber,
-        location: 'Amount to Buy Screen' as ScreenLocation,
+        location: screenLocation,
       };
 
       if (isBuy) {
@@ -492,10 +497,7 @@ const BuildQuote = () => {
     return (
       <ScreenLayout>
         <ScreenLayout.Body>
-          <ErrorViewWithReporting
-            error={sdkError}
-            location={'Amount to Buy Screen'}
-          />
+          <ErrorViewWithReporting error={sdkError} location={screenLocation} />
         </ScreenLayout.Body>
       </ScreenLayout>
     );
@@ -508,7 +510,7 @@ const BuildQuote = () => {
           <ErrorView
             description={error}
             ctaOnPress={retryMethod}
-            location={'Amount to Buy Screen'}
+            location={screenLocation}
           />
         </ScreenLayout.Body>
       </ScreenLayout>
@@ -570,7 +572,7 @@ const BuildQuote = () => {
             )}
             ctaLabel={strings('fiat_on_ramp_aggregator.change_payment_method')}
             ctaOnPress={showPaymentMethodsModal as () => void}
-            location={'Amount to Buy Screen'}
+            location={screenLocation}
           />
         </ScreenLayout.Body>
         <PaymentMethodModal
@@ -582,7 +584,8 @@ const BuildQuote = () => {
           selectedPaymentMethodType={currentPaymentMethod?.paymentType}
           onItemPress={handleChangePaymentMethod}
           selectedRegion={selectedRegion}
-          location={'Amount to Buy Screen'}
+          location={screenLocation}
+          rampType={rampType}
         />
       </ScreenLayout>
     );
@@ -821,7 +824,8 @@ const BuildQuote = () => {
         selectedPaymentMethodType={currentPaymentMethod?.paymentType}
         onItemPress={handleChangePaymentMethod}
         selectedRegion={selectedRegion}
-        location={'Amount to Buy Screen'}
+        location={screenLocation}
+        rampType={rampType}
       />
       <RegionModal
         isVisible={isRegionModalVisible}
@@ -830,7 +834,7 @@ const BuildQuote = () => {
         data={regions}
         dismiss={hideRegionModal as () => void}
         onRegionPress={handleRegionPress}
-        location={'Amount to Buy Screen'}
+        location={screenLocation}
       />
     </ScreenLayout>
   );

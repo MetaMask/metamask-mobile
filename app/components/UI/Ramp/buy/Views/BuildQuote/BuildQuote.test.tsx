@@ -726,7 +726,7 @@ describe('BuildQuote View', () => {
       currency_destination: mockUseRampSDKValues?.selectedAsset?.symbol,
       payment_method_id: mockUsePaymentMethodsValues.currentPaymentMethod?.id,
       chain_id_source: '1',
-      location: 'Amount to Buy Screen',
+      location: 'Amount to Sell Screen',
     });
   });
 });
