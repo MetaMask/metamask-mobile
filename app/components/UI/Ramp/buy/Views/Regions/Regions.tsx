@@ -85,7 +85,7 @@ const RegionsView = () => {
         handleCancelPress,
       ),
     );
-  }, [navigation, colors, handleCancelPress]);
+  }, [isBuy, navigation, colors, handleCancelPress]);
 
   const handleOnPress = useCallback(() => {
     navigation.navigate(...createPaymentMethodsNavDetails());
