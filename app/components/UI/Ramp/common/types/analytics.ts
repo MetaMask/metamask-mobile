@@ -327,7 +327,6 @@ export interface AnalyticsEvents {
   OFFRAMP_PURCHASE_DETAILS_VIEWED: OffRampPurchaseDetailsViewed;
 
   ONRAMP_EXTERNAL_LINK_CLICKED: RampExternalLinkClicked;
-  OFFRAMP_EXTERNAL_LINK_CLICKED: RampExternalLinkClicked;
 
   ONRAMP_QUOTE_ERROR: OnRampQuoteError;
   OFFRAMP_QUOTE_ERROR: OffRampQuoteError;

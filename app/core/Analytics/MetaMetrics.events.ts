@@ -208,7 +208,6 @@ enum EVENT_NAME {
   ONRAMP_PURCHASE_FAILED = 'On-ramp Purchase Failed',
   ONRAMP_PURCHASE_CANCELLED = 'On-ramp Purchase Cancelled',
   ONRAMP_PURCHASE_DETAILS_VIEWED = 'On-ramp Purchase Details Viewed',
-  ONRAMP_EXTERNAL_LINK_CLICKED = 'External Link Clicked',
   ONRAMP_QUOTE_ERROR = 'On-ramp Quote Error',
   ONRAMP_ERROR = 'On-ramp Error',
   ONRAMP_SETTINGS_CLICKED = 'On-ramp Settings Clicked',
@@ -230,7 +229,6 @@ enum EVENT_NAME {
   OFFRAMP_PURCHASE_FAILED = 'Off-ramp Purchase Failed',
   OFFRAMP_PURCHASE_CANCELLED = 'Off-ramp Purchase Cancelled',
   OFFRAMP_PURCHASE_DETAILS_VIEWED = 'Off-ramp Purchase Details Viewed',
-  OFFRAMP_EXTERNAL_LINK_CLICKED = 'External Link Clicked',
   OFFRAMP_QUOTE_ERROR = 'Off-ramp Quote Error',
   OFFRAMP_ERROR = 'Off-ramp Error',
   OFFRAMP_SETTINGS_CLICKED = 'Off-ramp Settings Clicked',
@@ -620,9 +618,6 @@ const events = {
   ),
   OFFRAMP_PURCHASE_DETAILS_VIEWED: generateOpt(
     EVENT_NAME.OFFRAMP_PURCHASE_DETAILS_VIEWED,
-  ),
-  OFFRAMP_EXTERNAL_LINK_CLICKED: generateOpt(
-    EVENT_NAME.OFFRAMP_EXTERNAL_LINK_CLICKED,
   ),
   OFFRAMP_QUOTE_ERROR: generateOpt(EVENT_NAME.OFFRAMP_QUOTE_ERROR),
   OFFRAMP_ERROR: generateOpt(EVENT_NAME.OFFRAMP_ERROR),
