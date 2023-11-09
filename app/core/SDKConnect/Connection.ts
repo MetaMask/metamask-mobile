@@ -532,6 +532,11 @@ export class Connection extends EventEmitter2 {
           ) {
             throw new Error('Invalid message format');
           }
+
+          if (Platform.OS === 'ios') {
+            // TODO: why does ios (older devices) requires a delay after request is initially approved?
+            await wait(1000);
+          }
           // Append selected address to params
           const preferencesController = (
             Engine.context as {
@@ -540,11 +545,11 @@ export class Connection extends EventEmitter2 {
           ).PreferencesController;
           const selectedAddress = preferencesController.state.selectedAddress;
           message.params = [(message.params as string[])[0], selectedAddress];
-          if (Platform.OS === 'ios') {
-            // TODO: why does ios (older devices) requires a delay after request is initially approved?
-            await wait(500);
-          }
-          Logger.log(`metamask_connectSign`, message.params);
+
+          Logger.log(
+            `metamask_connectSign selectedAddress=${selectedAddress}`,
+            message.params,
+          );
         } else if (lcMethod === RPC_METHODS.METAMASK_BATCH.toLowerCase()) {
           DevLogger.log(`metamask_batch`, JSON.stringify(message, null, 2));
           if (
