@@ -103,12 +103,6 @@ const PersonalSign = ({
     };
   }, [getAnalyticsParams, messageParams.metamaskId]);
 
-  useEffect(() => {
-    return () => {
-      // Anything in here is fired on component unmount.
-    };
-  }, []);
-
   const showWalletConnectNotification = (confirmation = false) => {
     InteractionManager.runAfterInteractions(() => {
       messageParams.origin &&
