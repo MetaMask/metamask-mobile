@@ -8,7 +8,7 @@ import { strings } from '../../../../../locales/i18n';
 import SheetActions from '../../../../component-library/components-temp/SheetActions';
 import {
   AvatarAccountType,
-  AvatarVariants,
+  AvatarVariant,
 } from '../../../../component-library/components/Avatars/Avatar';
 import Button, {
   ButtonSize,
@@ -126,7 +126,7 @@ const AccountConnectSingle = ({
         tertiaryText={balanceError}
         onPress={() => onSetScreen(AccountConnectScreens.SingleConnectSelector)}
         avatarProps={{
-          variant: AvatarVariants.Account,
+          variant: AvatarVariant.Account,
           type: accountAvatarType,
           accountAddress: address,
         }}

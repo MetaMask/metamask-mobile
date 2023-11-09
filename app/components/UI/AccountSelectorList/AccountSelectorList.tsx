@@ -20,7 +20,7 @@ import {
 import { AvatarAccountType } from '../../../component-library/components/Avatars/Avatar/variants/AvatarAccount';
 import { isDefaultAccountName } from '../../../util/ENSUtils';
 import { strings } from '../../../../locales/i18n';
-import { AvatarVariants } from '../../../component-library/components/Avatars/Avatar/Avatar.types';
+import { AvatarVariant } from '../../../component-library/components/Avatars/Avatar/Avatar.types';
 import { Account, Assets } from '../../hooks/useAccounts';
 import UntypedEngine from '../../../core/Engine';
 import { removeAccountsFromPermissions } from '../../../core/Permissions';
@@ -177,7 +177,7 @@ const AccountSelectorList = ({
           tertiaryText={balanceError}
           onPress={() => onSelectAccount?.(address, isSelectedAccount)}
           avatarProps={{
-            variant: AvatarVariants.Account,
+            variant: AvatarVariant.Account,
             type: accountAvatarType,
             accountAddress: address,
           }}
