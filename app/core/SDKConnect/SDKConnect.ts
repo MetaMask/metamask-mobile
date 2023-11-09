@@ -256,15 +256,15 @@ export class SDKConnect extends EventEmitter2 {
     channelId: string;
     loading: boolean;
   }) {
-    const keyringController = (
-      Engine.context as { KeyringController: KeyringController }
-    ).KeyringController;
-    await waitForKeychainUnlocked({
-      keyringController,
-      context: 'updateSDKLoadingState',
-    });
-
     if (loading === true) {
+      DevLogger.log(``);
+      const keyringController = (
+        Engine.context as { KeyringController: KeyringController }
+      ).KeyringController;
+      await waitForKeychainUnlocked({
+        keyringController,
+        context: 'updateSDKLoadingState',
+      });
       this.sdkLoadingState[channelId] = true;
     } else {
       delete this.sdkLoadingState[channelId];
@@ -278,7 +278,10 @@ export class SDKConnect extends EventEmitter2 {
     } else {
       const currentRoute = this.navigation?.getCurrentRoute()?.name;
       if (currentRoute === Routes.SHEET.SDK_LOADING) {
+        DevLogger.log(`updateSDKLoadingState - goBack`);
         this.navigation?.goBack();
+      } else {
+        console.warn(`updateSDKLoadingState - currentRoute=${currentRoute}`);
       }
     }
   }
@@ -733,6 +736,13 @@ export class SDKConnect extends EventEmitter2 {
     DevLogger.log(`SDKConnect::_handleAppState appState=${appState}`);
     this.appState = appState;
     if (appState === 'active') {
+      // Close previous loading modal if any.
+      this.hideLoadingState().catch((err) => {
+        Logger.log(
+          err,
+          `SDKConnect::_handleAppState - can't hide loading state`,
+        );
+      });
       DevLogger.log(
         `SDKConnect::_handleAppState - resuming - paused=${this.paused}`,
         this.timeout,

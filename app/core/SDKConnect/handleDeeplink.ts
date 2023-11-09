@@ -59,6 +59,13 @@ const handleDeeplink = async ({
     `handleDeeplink:: channel=${channelId} exists=${channelExists}`,
   );
 
+  // First display the loading modal to give user feedback
+  sdkConnect.updateSDKLoadingState({ channelId, loading: true }).catch(() => {
+    // Ignore error --- We don't want to block while state is being updated.
+  });
+
+  DevLogger.log(`handleDeeplink:: channel=${channelId} loading=true`);
+
   try {
     if (channelExists) {
       if (origin === AppConstants.DEEPLINKS.ORIGIN_DEEPLINK) {
