@@ -24,7 +24,7 @@ import Icon, {
 } from '../../../../../../component-library/components/Icons/Icon';
 import Avatar, {
   AvatarSize,
-  AvatarVariants,
+  AvatarVariant,
 } from '../../../../../../component-library/components/Avatars/Avatar';
 import Button, {
   ButtonVariants,
@@ -177,7 +177,7 @@ function SendTransaction() {
                 </Text>
                 <Avatar
                   size={AvatarSize.Sm}
-                  variant={AvatarVariants.Token}
+                  variant={AvatarVariant.Token}
                   name={order.cryptocurrency}
                   imageSource={tokenIcon}
                 />{' '}
