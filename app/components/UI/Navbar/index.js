@@ -965,7 +965,6 @@ export function getWalletNavbarOptions(
   function openQRScanner() {
     navigation.navigate('QRScanner', {
       onScanSuccess,
-      origin: Routes.WALLET_VIEW,
     });
     trackEvent(MetaMetricsEvents.WALLET_QR_SCANNER);
   }
