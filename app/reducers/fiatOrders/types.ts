@@ -21,6 +21,8 @@ import {
   updateFiatOrder,
   updateActivationKey,
   updateOnRampNetworks,
+  setFiatSellTxHash,
+  removeFiatSellTxHash,
 } from '.';
 import {
   FIAT_ORDER_PROVIDERS,
@@ -48,6 +50,7 @@ export interface FiatOrder {
   account: string; // Account wallet address
   network: string; // Network
   txHash?: string; // Transaction hash
+  sellTxHash?: string; // Sell transaction hash the user has sent
   excludeFromPurchases: boolean; // Exclude from purchases
   orderType: OrderOrderTypeEnum; // Order type
   errorCount?: number; // Number of errors
@@ -103,6 +106,8 @@ export const ACTIONS = {
   FIAT_UPDATE_ACTIVATION_KEY: 'FIAT_UPDATE_ACTIVATION_KEY',
   FIAT_REMOVE_ACTIVATION_KEY: 'FIAT_REMOVE_ACTIVATION_KEY',
   FIAT_UPDATE_NETWORKS: 'FIAT_UPDATE_NETWORKS',
+  FIAT_SET_SELL_TX_HASH: 'FIAT_SET_SELL_TX_HASH',
+  FIAT_REMOVE_SELL_TX_HASH: 'FIAT_REMOVE_SELL_TX_HASH',
 } as const;
 
 export type Action =
@@ -122,7 +127,9 @@ export type Action =
   | ReturnType<typeof addActivationKey>
   | ReturnType<typeof updateActivationKey>
   | ReturnType<typeof removeActivationKey>
-  | ReturnType<typeof updateOnRampNetworks>;
+  | ReturnType<typeof updateOnRampNetworks>
+  | ReturnType<typeof setFiatSellTxHash>
+  | ReturnType<typeof removeFiatSellTxHash>;
 
 export type Region = Country & State;
 
