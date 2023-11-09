@@ -124,7 +124,7 @@ function NetworkSwitcher() {
         handleCancelPress,
       ),
     );
-  }, [navigation, colors, handleCancelPress]);
+  }, [isBuy, navigation, colors, handleCancelPress]);
 
   useEffect(() => {
     if (isCurrentNetworkRampSupported) {

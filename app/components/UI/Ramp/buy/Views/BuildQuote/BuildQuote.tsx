@@ -67,6 +67,7 @@ import { useStyles } from '../../../../../../component-library/hooks';
 
 import styleSheet from './BuildQuote.styles';
 import { toTokenMinimalUnit } from '../../../../../../util/number';
+import buildQuote from './BuildQuote';
 
 // TODO: Convert into typescript and correctly type
 const ListItem = BaseListItem as any;
@@ -240,7 +241,7 @@ const BuildQuote = () => {
         chain_id_source: selectedChainId,
       });
     }
-  }, [isBuy, selectedChainId, trackEvent]);
+  }, [screenLocation, isBuy, selectedChainId, trackEvent]);
 
   useEffect(() => {
     navigation.setOptions(
@@ -440,6 +441,7 @@ const BuildQuote = () => {
       }
     }
   }, [
+    screenLocation,
     amountNumber,
     currentFiatCurrency,
     isBuy,

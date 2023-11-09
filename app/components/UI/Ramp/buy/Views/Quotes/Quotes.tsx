@@ -588,7 +588,6 @@ function Quotes() {
             (link) => link.name === PROVIDER_LINKS.SUPPORT,
           )?.url
         }
-        rampType={rampType}
       />
       <ScreenLayout.Body>
         <Animated.View style={[styles.topBorder, animatedStyles]} />

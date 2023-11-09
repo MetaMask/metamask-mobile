@@ -54,7 +54,6 @@ interface Props {
   providerPrivacyPolicy?: string;
   providerSupport?: string;
   dismiss?: () => any;
-  rampType: RampType;
 }
 
 const InfoAlert: React.FC<Props> = ({
@@ -67,10 +66,8 @@ const InfoAlert: React.FC<Props> = ({
   providerWebsite,
   providerPrivacyPolicy,
   providerSupport,
-  rampType,
 }: Props) => {
   const { colors, themeAppearance } = useTheme();
-  const isBuy = rampType === RampType.BUY;
   const styles = createStyles(colors);
   const trackEvent = useAnalytics();
 
@@ -83,7 +80,7 @@ const InfoAlert: React.FC<Props> = ({
         url_domain: url,
       });
     },
-    [isBuy, trackEvent],
+    [trackEvent],
   );
 
   const handleProviderPrivacyPolicyLinkPress = useCallback(
@@ -95,7 +92,7 @@ const InfoAlert: React.FC<Props> = ({
         url_domain: url,
       });
     },
-    [isBuy, trackEvent],
+    [trackEvent],
   );
 
   const handleProviderSupportLinkPress = useCallback(
@@ -107,7 +104,7 @@ const InfoAlert: React.FC<Props> = ({
         url_domain: url,
       });
     },
-    [isBuy, trackEvent],
+    [trackEvent],
   );
 
   return (

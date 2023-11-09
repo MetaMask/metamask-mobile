@@ -12,7 +12,6 @@ import useAnalytics from '../hooks/useAnalytics';
 import { useTheme } from '../../../../../util/theme';
 import { Colors } from '../../../../../util/theme/models';
 import { RampType, Region, ScreenLocation } from '../types';
-import { useRampSDK } from '../sdk';
 
 const createStyles = (colors: Colors) =>
   StyleSheet.create({
@@ -127,7 +126,7 @@ function PaymentMethodModal({
               <View style={styles.resultsView}>
                 <ScreenLayout.Content style={styles.content}>
                   {paymentMethods?.map((payment) => (
-                    <View key={payment.id} style={styles.row}>
+                    <View key={payment.id} style={styles.row}>s
                       <PaymentMethod
                         payment={payment}
                         highlighted={payment.id === selectedPaymentMethodId}
