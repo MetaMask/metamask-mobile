@@ -65,6 +65,7 @@ const mockuseRampSDKInitialValues: Partial<RampSDK> = {
   sdkError: undefined,
   rampType: RampType.BUY,
   isBuy: true,
+  isSell: false,
 };
 
 let mockUseRampSDKValues: Partial<RampSDK> = {
@@ -262,14 +263,17 @@ describe('PaymentMethods View', () => {
       location: 'Payment Method Screen',
     });
 
+    mockTrackEvent.mockReset();
     mockUseRampSDKValues = {
       ...mockUseRampSDKValues,
       isBuy: false,
+      isSell: true,
+      rampType: RampType.SELL,
     };
     render(PaymentMethods);
     fireEvent.press(screen.getByRole('button', { name: 'Cancel' }));
     expect(mockTrackEvent).toBeCalledWith('OFFRAMP_CANCELED', {
-      chain_id_destination: '1',
+      chain_id_source: '1',
       location: 'Payment Method Screen',
     });
   });
@@ -296,9 +300,12 @@ describe('PaymentMethods View', () => {
       analyticsPayload,
     );
 
+    mockTrackEvent.mockReset();
     mockUseRampSDKValues = {
       ...mockUseRampSDKValues,
       isBuy: false,
+      isSell: true,
+      rampType: RampType.SELL,
     };
     render(PaymentMethods);
     fireEvent.press(screen.getByRole('button', { name: 'Debit or Credit' }));
@@ -327,9 +334,12 @@ describe('PaymentMethods View', () => {
       analyticsPayload,
     );
 
+    mockTrackEvent.mockReset();
     mockUseRampSDKValues = {
       ...mockUseRampSDKValues,
       isBuy: false,
+      isSell: true,
+      rampType: RampType.SELL,
     };
     render(PaymentMethods);
     fireEvent.press(screen.getByRole('button', { name: 'Continue to amount' }));

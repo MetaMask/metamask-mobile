@@ -60,10 +60,17 @@ const PaymentMethods = () => {
   } = usePaymentMethods();
 
   const handleCancelPress = useCallback(() => {
-    trackEvent(isBuy ? 'ONRAMP_CANCELED' : 'OFFRAMP_CANCELED', {
-      location: 'Payment Method Screen',
-      chain_id_destination: selectedChainId,
-    });
+    if (isBuy) {
+      trackEvent('ONRAMP_CANCELED', {
+        location: 'Payment Method Screen',
+        chain_id_destination: selectedChainId,
+      });
+    } else {
+      trackEvent('OFFRAMP_CANCELED', {
+        location: 'Payment Method Screen',
+        chain_id_source: selectedChainId,
+      });
+    }
   }, [isBuy, selectedChainId, trackEvent]);
 
   const handlePaymentMethodPress = useCallback(
