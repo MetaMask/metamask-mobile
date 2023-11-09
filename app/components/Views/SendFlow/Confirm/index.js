@@ -734,7 +734,10 @@ class Confirm extends PureComponent {
           error && error.message,
           [{ text: 'OK' }],
         );
-        await Logger.error(error, 'error while trying to send transaction (Confirm)');
+        await Logger.error(
+          error,
+          'error while trying to send transaction (Confirm)',
+        );
       } else {
         AnalyticsV2.trackEvent(
           MetaMetricsEvents.QR_HARDWARE_TRANSACTION_CANCELED,
