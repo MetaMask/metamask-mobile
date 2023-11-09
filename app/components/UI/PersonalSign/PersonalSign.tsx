@@ -22,6 +22,7 @@ import { selectChainId } from '../../../selectors/networkController';
 import { store } from '../../../store';
 import { getBlockaidMetricsParams } from '../../../util/blockaid';
 import { SecurityAlertResponse } from '../BlockaidBanner/BlockaidBanner.types';
+import { SigningModalSelectorsIDs } from '../../../../e2e/selectors/Modals/SigningModal.selectors';
 
 /**
  * Component that supports personal_sign
@@ -208,7 +209,7 @@ const PersonalSign = ({
       truncateMessage={truncateMessage}
       type="personal_sign"
       fromAddress={messageParams.from}
-      testID={'personal-signature-request'}
+      testID={SigningModalSelectorsIDs.PERSONAL_REQUEST}
     >
       <View style={styles.messageWrapper}>{renderMessageText()}</View>
     </SignatureRequest>
