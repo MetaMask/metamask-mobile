@@ -108,10 +108,8 @@ import {
   TXN_CONFIRM_SCREEN,
   TXN_CONFIRM_SEND_BUTTON,
 } from '../../../../constants/test-ids';
-import {
-  HardwareDeviceNames,
-  getLedgerKeyring,
-} from '../../../../core/Ledger/Ledger';
+import { getLedgerKeyring } from '../../../../core/Ledger/Ledger';
+import { ExtendedKeyringTypes } from '../../../..//constants/keyringTypes';
 
 const EDIT = 'edit';
 const EDIT_NONCE = 'edit_nonce';
@@ -758,7 +756,7 @@ class Confirm extends PureComponent {
         });
 
       const isLedgerAccount = isHardwareAccount(transaction.from, [
-        HardwareDeviceNames.ledger,
+        ExtendedKeyringTypes.ledger,
       ]);
 
       if (isLedgerAccount) {
@@ -1042,7 +1040,7 @@ class Confirm extends PureComponent {
       gasEstimateType === GAS_ESTIMATE_TYPES.NONE;
     const isQRHardwareWalletDevice = isQRHardwareAccount(fromSelectedAddress);
     const isLedgerAccount = isHardwareAccount(fromSelectedAddress, [
-      HardwareDeviceNames.ledger,
+      ExtendedKeyringTypes.ledger,
     ]);
 
     const isTestNetwork = isTestNet(chainId);

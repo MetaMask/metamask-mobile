@@ -122,7 +122,8 @@ import { ethErrors } from 'eth-rpc-errors';
 import { PPOM, ppomInit } from '../lib/ppom/PPOMView';
 import RNFSStorageBackend from '../lib/ppom/rnfs-storage-backend';
 import { isHardwareAccount } from '../util/address';
-import { HardwareDeviceNames, ledgerSignTypedMessage } from './Ledger/Ledger';
+import { ledgerSignTypedMessage } from './Ledger/Ledger';
+import { ExtendedKeyringTypes } from '../constants/keyringTypes';
 
 const NON_EMPTY = 'NON_EMPTY';
 
@@ -657,7 +658,7 @@ class Engine {
             keyringController.signPersonalMessage.bind(keyringController),
           signTypedMessage: (msgParams, { version }) => {
             if (
-              isHardwareAccount(msgParams.from, [HardwareDeviceNames.ledger])
+              isHardwareAccount(msgParams.from, [ExtendedKeyringTypes.ledger])
             ) {
               return ledgerSignTypedMessage(
                 msgParams,

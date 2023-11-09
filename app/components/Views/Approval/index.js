@@ -44,10 +44,8 @@ import {
 } from '../../../selectors/networkController';
 import { selectSelectedAddress } from '../../../selectors/preferencesController';
 import { ethErrors } from 'eth-rpc-errors';
-import {
-  HardwareDeviceNames,
-  getLedgerKeyring,
-} from '../../../core/Ledger/Ledger';
+import { getLedgerKeyring } from '../../../core/Ledger/Ledger';
+import { ExtendedKeyringTypes } from '../../../constants/keyringTypes';
 
 const REVIEW = 'review';
 const EDIT = 'edit';
@@ -388,7 +386,7 @@ class Approval extends PureComponent {
     }
 
     const isLedgerAccount = isHardwareAccount(transaction.from, [
-      HardwareDeviceNames.ledger,
+      ExtendedKeyringTypes.ledger,
     ]);
 
     this.setState({ transactionConfirmed: true });

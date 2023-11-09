@@ -37,7 +37,7 @@ import {
   CONNECT_BUTTON_ID,
 } from '../../../../../app/constants/test-ids';
 import generateTestId from '../../../../../wdio/utils/generateTestId';
-import { HardwareDeviceNames } from '../../../../core/Ledger/Ledger';
+import { ExtendedKeyringTypes } from '../../../../constants/keyringTypes';
 
 const AccountConnectSingle = ({
   defaultSelectedAccount,
@@ -57,16 +57,16 @@ const AccountConnectSingle = ({
   );
 
   const getTagLabel = useCallback(
-    (type: KeyringTypes | HardwareDeviceNames) => {
+    (type: KeyringTypes | ExtendedKeyringTypes) => {
       let label = '';
       switch (type) {
-        case KeyringTypes.qr:
+        case ExtendedKeyringTypes.qr:
           label = strings('accounts.qr_hardware');
           break;
-        case KeyringTypes.simple:
+        case ExtendedKeyringTypes.simple:
           label = strings('accounts.imported');
           break;
-        case HardwareDeviceNames.ledger:
+        case ExtendedKeyringTypes.ledger:
           label = strings('accounts.ledger');
           break;
       }

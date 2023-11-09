@@ -1,28 +1,28 @@
-import React, { PureComponent } from 'react';
 import PropTypes from 'prop-types';
-import { StyleSheet, View, Text, TouchableOpacity } from 'react-native';
-import { fontStyles } from '../../../styles/common';
-import { getHost } from '../../../util/browser';
-import { strings } from '../../../../locales/i18n';
-import { connect } from 'react-redux';
-import AnalyticsV2 from '../../../util/analyticsV2';
+import React, { PureComponent } from 'react';
+import { StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import Ionicons from 'react-native-vector-icons/Ionicons';
-import WebsiteIcon from '../WebsiteIcon';
-import ActionView from '../ActionView';
-import AccountInfoCard from '../AccountInfoCard';
-import WarningMessage from '../../Views/SendFlow/WarningMessage';
-import Device from '../../../util/device';
-import { isHardwareAccount } from '../../../util/address';
-import { isBlockaidFeatureEnabled } from '../../../util/blockaid';
-import Analytics from '../../../core/Analytics/Analytics';
+import { connect } from 'react-redux';
+import { strings } from '../../../../locales/i18n';
 import { MetaMetricsEvents } from '../../../core/Analytics';
-import { ThemeContext, mockTheme } from '../../../util/theme';
-import withQRHardwareAwareness from '../QRHardware/withQRHardwareAwareness';
-import QRSigningDetails from '../QRHardware/QRSigningDetails';
+import Analytics from '../../../core/Analytics/Analytics';
 import { selectProviderType } from '../../../selectors/networkController';
-import BlockaidBanner from '../BlockaidBanner/BlockaidBanner';
+import { fontStyles } from '../../../styles/common';
+import { isHardwareAccount } from '../../../util/address';
+import AnalyticsV2 from '../../../util/analyticsV2';
+import { isBlockaidFeatureEnabled } from '../../../util/blockaid';
+import { getHost } from '../../../util/browser';
 import { getAnalyticsParams } from '../../../util/confirmation/signatureUtils';
-import { HardwareDeviceNames } from '../../../core/Ledger/Ledger';
+import Device from '../../../util/device';
+import { ThemeContext, mockTheme } from '../../../util/theme';
+import WarningMessage from '../../Views/SendFlow/WarningMessage';
+import AccountInfoCard from '../AccountInfoCard';
+import ActionView from '../ActionView';
+import BlockaidBanner from '../BlockaidBanner/BlockaidBanner';
+import QRSigningDetails from '../QRHardware/QRSigningDetails';
+import withQRHardwareAwareness from '../QRHardware/withQRHardwareAwareness';
+import WebsiteIcon from '../WebsiteIcon';
+import { ExtendedKeyringTypes } from '../../../constants/keyringTypes';
 
 const createStyles = (colors) =>
   StyleSheet.create({
@@ -320,7 +320,7 @@ class SignatureRequest extends PureComponent {
     const styles = this.getStyles();
 
     const isLedgerAccount = isHardwareAccount(selectedAddress, [
-      HardwareDeviceNames.ledger,
+      ExtendedKeyringTypes.ledger,
     ]);
 
     if (Device.isMediumDevice()) {

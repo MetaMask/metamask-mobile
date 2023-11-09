@@ -7,11 +7,7 @@ import type BleTransport from '@ledgerhq/react-native-hw-transport-ble';
 import LedgerKeyring, {
   SerializationOptions,
 } from '@consensys/ledgerhq-metamask-keyring';
-
-export enum HardwareDeviceNames {
-  ledger = 'Ledger Hardware',
-  qr = 'QR Hardware',
-}
+import { ExtendedKeyringTypes } from '../../constants/keyringTypes';
 
 //TODO - Patch EthKeyringController into KeyringController
 /**
@@ -50,7 +46,7 @@ export const syncKeyringState = async (): Promise<void> => {
  */
 export const addLedgerKeyring = async (): Promise<LedgerKeyring> =>
   (await getEthKeyringController().addNewKeyring(
-    HardwareDeviceNames.ledger,
+    ExtendedKeyringTypes.ledger,
   )) as unknown as LedgerKeyring;
 
 /**
@@ -60,7 +56,7 @@ export const addLedgerKeyring = async (): Promise<LedgerKeyring> =>
  */
 export const getLedgerKeyring = async (): Promise<LedgerKeyring> => {
   const keyring = getEthKeyringController().getKeyringsByType(
-    HardwareDeviceNames.ledger,
+    ExtendedKeyringTypes.ledger,
   )[0] as unknown as LedgerKeyring;
 
   if (keyring) {

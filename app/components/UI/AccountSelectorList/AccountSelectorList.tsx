@@ -1,32 +1,32 @@
 // Third party dependencies.
+import { KeyringTypes } from '@metamask/keyring-controller';
 import React, { useCallback, useRef } from 'react';
 import { Alert, ListRenderItem, Platform, View } from 'react-native';
 import { FlatList } from 'react-native-gesture-handler';
 import { useSelector } from 'react-redux';
-import { KeyringTypes } from '@metamask/keyring-controller';
 
 // External dependencies.
+import { strings } from '../../../../locales/i18n';
+import { AvatarVariants } from '../../../component-library/components/Avatars/Avatar/Avatar.types';
+import { AvatarAccountType } from '../../../component-library/components/Avatars/Avatar/variants/AvatarAccount';
+import AvatarGroup from '../../../component-library/components/Avatars/AvatarGroup';
 import Cell, {
   CellVariant,
 } from '../../../component-library/components/Cells/Cell';
-import { useStyles } from '../../../component-library/hooks';
 import Text from '../../../component-library/components/Texts/Text';
-import AvatarGroup from '../../../component-library/components/Avatars/AvatarGroup';
-import { formatAddress, safeToChecksumAddress } from '../../../util/address';
-import { AvatarAccountType } from '../../../component-library/components/Avatars/Avatar/variants/AvatarAccount';
-import { isDefaultAccountName } from '../../../util/ENSUtils';
-import { strings } from '../../../../locales/i18n';
-import { AvatarVariants } from '../../../component-library/components/Avatars/Avatar/Avatar.types';
-import { Account, Assets } from '../../hooks/useAccounts';
+import { useStyles } from '../../../component-library/hooks';
 import UntypedEngine from '../../../core/Engine';
 import { removeAccountsFromPermissions } from '../../../core/Permissions';
+import { isDefaultAccountName } from '../../../util/ENSUtils';
+import { formatAddress, safeToChecksumAddress } from '../../../util/address';
+import { Account, Assets } from '../../hooks/useAccounts';
 
 // Internal dependencies.
-import { AccountSelectorListProps } from './AccountSelectorList.types';
-import styleSheet from './AccountSelectorList.styles';
-import generateTestId from '../../../../wdio/utils/generateTestId';
+import { ExtendedKeyringTypes } from '../../../constants/keyringTypes';
 import { ACCOUNT_BALANCE_BY_ADDRESS_TEST_ID } from '../../../../wdio/screen-objects/testIDs/Components/AccountListComponent.testIds.js';
-import { HardwareDeviceNames } from '../../../core/Ledger/Ledger';
+import generateTestId from '../../../../wdio/utils/generateTestId';
+import styleSheet from './AccountSelectorList.styles';
+import { AccountSelectorListProps } from './AccountSelectorList.types';
 
 const AccountSelectorList = ({
   onSelectAccount,
@@ -54,16 +54,16 @@ const AccountSelectorList = ({
 
   const getKeyExtractor = ({ address }: Account) => address;
 
-  const getTagLabel = (type: KeyringTypes | HardwareDeviceNames) => {
+  const getTagLabel = (type: KeyringTypes | ExtendedKeyringTypes) => {
     let label = '';
     switch (type) {
-      case KeyringTypes.qr:
+      case ExtendedKeyringTypes.qr:
         label = strings('accounts.qr_hardware');
         break;
-      case KeyringTypes.simple:
+      case ExtendedKeyringTypes.simple:
         label = strings('accounts.imported');
         break;
-      case HardwareDeviceNames.ledger:
+      case ExtendedKeyringTypes.ledger:
         label = strings('accounts.ledger');
     }
     return label;

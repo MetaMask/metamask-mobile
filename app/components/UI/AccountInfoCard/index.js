@@ -1,36 +1,33 @@
-import React, { PureComponent } from 'react';
 import PropTypes from 'prop-types';
-import { StyleSheet, View, Text } from 'react-native';
-import { fontStyles } from '../../../styles/common';
-import { renderFromWei, weiToFiat, hexToBN } from '../../../util/number';
-import Identicon from '../Identicon';
-import { strings } from '../../../../locales/i18n';
+import React, { PureComponent } from 'react';
+import { StyleSheet, Text, View } from 'react-native';
 import { connect } from 'react-redux';
+import { strings } from '../../../../locales/i18n';
+import { ExtendedKeyringTypes } from '../../../constants/keyringTypes';
+import Engine from '../../../core/Engine';
+import { selectAccounts } from '../../../selectors/accountTrackerController';
+import {
+  selectConversionRate,
+  selectCurrentCurrency,
+} from '../../../selectors/currencyRateController';
+import { selectTicker } from '../../../selectors/networkController';
+import { selectIdentities } from '../../../selectors/preferencesController';
+import { fontStyles } from '../../../styles/common';
 import {
   renderAccountName,
   renderShortAddress,
   safeToChecksumAddress,
 } from '../../../util/address';
+import Device from '../../../util/device';
+import { hexToBN, renderFromWei, weiToFiat } from '../../../util/number';
+import { ThemeContext, mockTheme } from '../../../util/theme';
 import {
   getActiveTabUrl,
   getNormalizedTxState,
   getTicker,
 } from '../../../util/transactions';
-import Engine from '../../../core/Engine';
-import {
-  QR_HARDWARE_WALLET_DEVICE,
-  LEDGER_DEVICE,
-} from '../../../constants/keyringTypes';
-import Device from '../../../util/device';
-import { ThemeContext, mockTheme } from '../../../util/theme';
-import { selectTicker } from '../../../selectors/networkController';
-import {
-  selectConversionRate,
-  selectCurrentCurrency,
-} from '../../../selectors/currencyRateController';
-import { selectAccounts } from '../../../selectors/accountTrackerController';
-import { selectIdentities } from '../../../selectors/preferencesController';
 import ApproveTransactionHeader from '../ApproveTransactionHeader';
+import Identicon from '../Identicon';
 
 const createStyles = (colors) =>
   StyleSheet.create({
@@ -149,10 +146,12 @@ class AccountInfoCard extends PureComponent {
     const { KeyringController } = Engine.context;
     const { fromAddress } = this.props;
     KeyringController.getAccountKeyringType(fromAddress).then((type) => {
-      if ([QR_HARDWARE_WALLET_DEVICE, LEDGER_DEVICE].includes(type)) {
+      if (
+        [ExtendedKeyringTypes.qr, ExtendedKeyringTypes.ledger].includes(type)
+      ) {
         this.setState({ isHardwareKeyring: true });
 
-        if (type === LEDGER_DEVICE) {
+        if (type === ExtendedKeyringTypes.ledger) {
           this.setState({ isLedgerKeyring: true });
         }
       }

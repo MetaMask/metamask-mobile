@@ -50,7 +50,7 @@ import {
 } from '../../../selectors/preferencesController';
 import { createAccountSelectorNavDetails } from '../../Views/AccountSelector';
 import { regex } from '../../../../app/util/regex';
-import { HardwareDeviceNames } from '../../../core/Ledger/Ledger';
+import { ExtendedKeyringTypes } from '../../../constants/keyringTypes';
 
 const createStyles = (colors) =>
   StyleSheet.create({
@@ -358,7 +358,7 @@ class AccountOverview extends PureComponent {
 
     const isHardwareWalletAccount = isHardwareAccount(address);
     const isLedgerAccount = isHardwareAccount(address, [
-      HardwareDeviceNames.ledger,
+      ExtendedKeyringTypes.ledger,
     ]);
     const showImportAccountLabel = isImportedAccount(address);
 

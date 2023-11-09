@@ -1,97 +1,94 @@
+import PropTypes from 'prop-types';
 import React, { PureComponent } from 'react';
 import {
   Alert,
-  TouchableOpacity,
-  View,
   Image,
-  StyleSheet,
-  Text,
   InteractionManager,
   Platform,
+  StyleSheet,
+  Text,
+  TouchableOpacity,
+  View,
 } from 'react-native';
-import PropTypes from 'prop-types';
-import { connect } from 'react-redux';
-import Share from 'react-native-share';
-import Icon from 'react-native-vector-icons/FontAwesome';
-import FeatherIcon from 'react-native-vector-icons/Feather';
-import MaterialIcon from 'react-native-vector-icons/MaterialCommunityIcons';
-import { fontStyles } from '../../../styles/common';
-import {
-  hasBlockExplorer,
-  findBlockExplorerForRpc,
-  getBlockExplorerName,
-} from '../../../util/networks';
-import Identicon from '../Identicon';
-import StyledButton from '../StyledButton';
-import { renderFromWei, renderFiat } from '../../../util/number';
-import { strings } from '../../../../locales/i18n';
+import { ScrollView } from 'react-native-gesture-handler';
 import Modal from 'react-native-modal';
+import Share from 'react-native-share';
+import { scale } from 'react-native-size-matters';
+import FeatherIcon from 'react-native-vector-icons/Feather';
+import Icon from 'react-native-vector-icons/FontAwesome';
+import MaterialIcon from 'react-native-vector-icons/MaterialCommunityIcons';
+import { connect } from 'react-redux';
+import URL from 'url-parse';
+import { strings } from '../../../../locales/i18n';
+import { DRAWER_VIEW_LOCK_TEXT_ID } from '../../../../wdio/screen-objects/testIDs/Screens/DrawerView.testIds';
+import generateTestId from '../../../../wdio/utils/generateTestId';
+import { showAlert } from '../../../actions/alert';
 import {
   toggleInfoNetworkModal,
   toggleNetworkModal,
   toggleReceiveModal,
 } from '../../../actions/modals';
-import { showAlert } from '../../../actions/alert';
 import {
-  getEtherscanAddressUrl,
-  getEtherscanBaseUrl,
-} from '../../../util/etherscan';
-import Engine from '../../../core/Engine';
-import Logger from '../../../util/Logger';
-import Device from '../../../util/device';
-import ReceiveRequest from '../ReceiveRequest';
-import Analytics from '../../../core/Analytics/Analytics';
-import AppConstants from '../../../core/AppConstants';
-import { MetaMetricsEvents } from '../../../core/Analytics';
-import URL from 'url-parse';
-import EthereumAddress from '../EthereumAddress';
-import { getEther } from '../../../util/transactions';
+  networkSwitched,
+  onboardNetworkAction,
+} from '../../../actions/onboardNetwork';
 import { newAssetTransaction } from '../../../actions/transaction';
 import { protectWalletModalVisible } from '../../../actions/user';
-import DeeplinkManager from '../../../core/DeeplinkManager';
-import SettingsNotification from '../SettingsNotification';
+import Routes from '../../../constants/navigation/Routes';
 import { RPC } from '../../../constants/network';
-import { findRouteNameFromNavigatorState } from '../../../util/general';
-import AnalyticsV2 from '../../../util/analyticsV2';
-import {
-  isDefaultAccountName,
-  doENSReverseLookup,
-} from '../../../util/ENSUtils';
+import { Authentication } from '../../../core/';
+import { MetaMetricsEvents } from '../../../core/Analytics';
+import Analytics from '../../../core/Analytics/Analytics';
+import AppConstants from '../../../core/AppConstants';
 import ClipboardManager from '../../../core/ClipboardManager';
+import DeeplinkManager from '../../../core/DeeplinkManager';
+import Engine from '../../../core/Engine';
 import { collectiblesSelector } from '../../../reducers/collectibles';
 import { getCurrentRoute } from '../../../reducers/navigation';
-import { ScrollView } from 'react-native-gesture-handler';
-import { isZero } from '../../../util/lodash';
-import { Authentication } from '../../../core/';
-import { ThemeContext, mockTheme } from '../../../util/theme';
-import {
-  onboardNetworkAction,
-  networkSwitched,
-} from '../../../actions/onboardNetwork';
-import Routes from '../../../constants/navigation/Routes';
-import {
-  LEDGER_DEVICE,
-  QR_HARDWARE_WALLET_DEVICE,
-} from '../../../constants/keyringTypes';
-import { scale } from 'react-native-size-matters';
-import generateTestId from '../../../../wdio/utils/generateTestId';
-import { DRAWER_VIEW_LOCK_TEXT_ID } from '../../../../wdio/screen-objects/testIDs/Screens/DrawerView.testIds';
+import { selectAccounts } from '../../../selectors/accountTrackerController';
+import { selectCurrentCurrency } from '../../../selectors/currencyRateController';
 import {
   selectNetworkConfigurations,
   selectProviderConfig,
   selectTicker,
 } from '../../../selectors/networkController';
-import { selectCurrentCurrency } from '../../../selectors/currencyRateController';
-import { selectTokens } from '../../../selectors/tokensController';
-import { selectAccounts } from '../../../selectors/accountTrackerController';
-import { selectContractBalances } from '../../../selectors/tokenBalancesController';
 import {
   selectIdentities,
   selectSelectedAddress,
 } from '../../../selectors/preferencesController';
+import { selectContractBalances } from '../../../selectors/tokenBalancesController';
+import { selectTokens } from '../../../selectors/tokensController';
+import { fontStyles } from '../../../styles/common';
+import {
+  doENSReverseLookup,
+  isDefaultAccountName,
+} from '../../../util/ENSUtils';
+import Logger from '../../../util/Logger';
+import AnalyticsV2 from '../../../util/analyticsV2';
+import Device from '../../../util/device';
+import {
+  getEtherscanAddressUrl,
+  getEtherscanBaseUrl,
+} from '../../../util/etherscan';
+import { findRouteNameFromNavigatorState } from '../../../util/general';
+import { isZero } from '../../../util/lodash';
+import {
+  findBlockExplorerForRpc,
+  getBlockExplorerName,
+  hasBlockExplorer,
+} from '../../../util/networks';
+import { renderFiat, renderFromWei } from '../../../util/number';
+import { ThemeContext, mockTheme } from '../../../util/theme';
+import { getEther } from '../../../util/transactions';
+import EthereumAddress from '../EthereumAddress';
+import Identicon from '../Identicon';
+import ReceiveRequest from '../ReceiveRequest';
+import SettingsNotification from '../SettingsNotification';
+import StyledButton from '../StyledButton';
 
 import { createAccountSelectorNavDetails } from '../../Views/AccountSelector';
 import NetworkInfo from '../NetworkInfo';
+import { ExtendedKeyringTypes } from '../../../constants/keyringTypes';
 
 const createStyles = (colors) =>
   StyleSheet.create({
@@ -534,11 +531,11 @@ class DrawerView extends PureComponent {
       if (!keyringOfSelectedAddress) {
         return strings('accounts.imported');
       } else if (
-        [LEDGER_DEVICE, QR_HARDWARE_WALLET_DEVICE].includes(
+        [ExtendedKeyringTypes.ledger, ExtendedKeyringTypes.qr].includes(
           keyringOfSelectedAddress.type,
         )
       ) {
-        if (keyringOfSelectedAddress.type === LEDGER_DEVICE) {
+        if (keyringOfSelectedAddress.type === ExtendedKeyringTypes.ledger) {
           return strings('accounts.ledger');
         }
         return strings('accounts.qr_hardware');

@@ -39,8 +39,7 @@ import {
   MAIN_WALLET_ACCOUNT_ACTIONS,
 } from '../../../../wdio/screen-objects/testIDs/Screens/WalletView.testIds';
 import { isHardwareAccount } from '../../../util/address';
-import { HardwareDeviceNames } from '../../../core/Ledger/Ledger';
-import { KeyringTypes } from '@metamask/keyring-controller';
+import { ExtendedKeyringTypes } from '../../../constants/keyringTypes';
 
 const WalletAccount = ({ style }: WalletAccountProps, ref: React.Ref<any>) => {
   const { styles } = useStyles(styleSheet, { style });
@@ -97,9 +96,9 @@ const WalletAccount = ({ style }: WalletAccountProps, ref: React.Ref<any>) => {
   };
 
   const getLabel = useCallback((address: string) => {
-    if (isHardwareAccount(address, [HardwareDeviceNames.ledger])) {
+    if (isHardwareAccount(address, [ExtendedKeyringTypes.ledger])) {
       return 'accounts.ledger';
-    } else if (isHardwareAccount(address, [KeyringTypes.qr])) {
+    } else if (isHardwareAccount(address, [ExtendedKeyringTypes.qr])) {
       return 'accounts.qr_hardware';
     }
     return '';

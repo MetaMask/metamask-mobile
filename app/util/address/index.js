@@ -33,7 +33,7 @@ import TransactionTypes from '../../core/TransactionTypes';
 import { selectChainId } from '../../selectors/networkController';
 import { store } from '../../store';
 import { regex } from '../../../app/util/regex';
-import { HardwareDeviceNames } from '../../core/Ledger/Ledger';
+import { ExtendedKeyringTypes } from '../../../app/constants/keyringTypes';
 
 const {
   ASSET: { ERC721, ERC1155 },
@@ -167,12 +167,12 @@ export function getKeyringByAddress(address) {
  * judge address is hardware account or not
  *
  * @param {String} address - String corresponding to an address
- * @param {Array<KeyringTypes|HardwareDeviceNames>} accountTypes - If it belongs to a specific hardware account type. By default all types are allowed.
+ * @param {Array<ExtendedKeyringTypes>} accountTypes - If it belongs to a specific hardware account type. By default all types are allowed.
  * @returns {Boolean} - Returns a boolean
  */
 export function isHardwareAccount(
   address,
-  accountTypes = [KeyringTypes.qr, HardwareDeviceNames.ledger],
+  accountTypes = [ExtendedKeyringTypes.qr, ExtendedKeyringTypes.ledger],
 ) {
   const keyring = getKeyringByAddress(address);
   return keyring && accountTypes.includes(keyring.type);
@@ -185,7 +185,7 @@ export function isHardwareAccount(
  * @returns {Boolean} - Returns a boolean
  */
 export function isExternalHardwareAccount(address) {
-  return isHardwareAccount(address, [HardwareDeviceNames.ledger]);
+  return isHardwareAccount(address, [ExtendedKeyringTypes.ledger]);
 }
 
 /**
@@ -240,9 +240,9 @@ export function isImportedAccount(address) {
  */
 export function getLabelTextByAddress(address) {
   if (!address) return null;
-  if (isHardwareAccount(address, [HardwareDeviceNames.ledger]))
+  if (isHardwareAccount(address, [ExtendedKeyringTypes.ledger]))
     return 'accounts.ledger';
-  if (isHardwareAccount(address, [KeyringTypes.qr]))
+  if (isHardwareAccount(address, [ExtendedKeyringTypes.qr]))
     return 'accounts.qr_hardware';
   if (isImportedAccount(address)) return 'accounts.imported';
 
@@ -268,11 +268,11 @@ export function getAddressAccountType(address) {
   );
   if (targetKeyring) {
     switch (targetKeyring.type) {
-      case KeyringTypes.qr:
+      case ExtendedKeyringTypes.qr:
         return 'QR';
-      case KeyringTypes.simple:
+      case ExtendedKeyringTypes.simple:
         return 'Imported';
-      case HardwareDeviceNames.ledger:
+      case ExtendedKeyringTypes.ledger:
         return 'Ledger';
       default:
         return 'MetaMask';
