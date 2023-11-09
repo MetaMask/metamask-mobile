@@ -106,6 +106,12 @@ export default class SecurityAndPrivacy {
 
     if (device.getPlatform() === 'android') {
       await TestHelpers.swipeByText(
+        SecurityPrivacyViewSelectorsText.PRIVACY_HEADING,
+        'up',
+        'slow',
+      );
+
+      await TestHelpers.swipeByText(
         SecurityPrivacyViewSelectorsText.CLEAR_BROWSER_COOKIES,
         'up',
         'slow',
