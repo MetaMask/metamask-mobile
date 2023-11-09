@@ -516,6 +516,7 @@
     "import_account": "Import an account",
     "connect_hardware": "Connect hardware wallet",
     "imported": "Imported",
+    "qr_hardware": "QR hardware",
     "remove_account_title": "Account removal",
     "remove_account_message": "Do you really want to remove this account?",
     "no": "No",
@@ -1001,7 +1002,6 @@
     "confirm": "Confirm"
   },
   "transaction": {
-    "hardware": "Hardware",
     "alert": "ALERT",
     "amount": "Amount",
     "next": "Next",
