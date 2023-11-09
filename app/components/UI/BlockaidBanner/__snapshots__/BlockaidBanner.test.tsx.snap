@@ -2,6 +2,8 @@
 
 exports[`BlockaidBanner should not render if resultType is benign 1`] = `null`;
 
+exports[`BlockaidBanner should not render if securityAlertResponse is undefined 1`] = `null`;
+
 exports[`BlockaidBanner should render correctly 1`] = `
 <View
   securityAlertResponse={
