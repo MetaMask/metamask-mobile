@@ -532,7 +532,10 @@ exports[`Cell should render CellSelect given the type Select 1`] = `
   disabled={false}
   style={
     Object {
+      "backgroundColor": "#FFFFFF",
+      "borderRadius": 4,
       "opacity": 1,
+      "padding": 16,
       "position": "relative",
     }
   }
@@ -545,7 +548,7 @@ exports[`Cell should render CellSelect given the type Select 1`] = `
       Object {
         "alignItems": "center",
         "flexDirection": "row",
-        "padding": 16,
+        "padding": 0,
       }
     }
   >
