@@ -23,6 +23,7 @@ import QRSigningDetails from '../QRHardware/QRSigningDetails';
 import withQRHardwareAwareness from '../QRHardware/withQRHardwareAwareness';
 import WebsiteIcon from '../WebsiteIcon';
 import { ExtendedKeyringTypes } from '../../../constants/keyringTypes';
+import { SigningModalSelectorsIDs } from '../../../../e2e/selectors/Modals/SigningModal.selectors';
 
 const createStyles = (colors) =>
   StyleSheet.create({
@@ -332,8 +333,8 @@ class SignatureRequest extends PureComponent {
     return (
       <View testID={this.props.testID} style={[styles.root, expandedHeight]}>
         <ActionView
-          cancelTestID={'request-signature-cancel-button'}
-          confirmTestID={'request-signature-confirm-button'}
+          cancelTestID={SigningModalSelectorsIDs.CANCEL_BUTTON}
+          confirmTestID={SigningModalSelectorsIDs.SIGN_BUTTON}
           cancelText={strings('signature_request.cancel')}
           confirmText={
             isLedgerAccount

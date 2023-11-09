@@ -45,8 +45,19 @@ import DeeplinkManager from '../../../core/DeeplinkManager';
 import Engine from '../../../core/Engine';
 import { collectiblesSelector } from '../../../reducers/collectibles';
 import { getCurrentRoute } from '../../../reducers/navigation';
-import { selectAccounts } from '../../../selectors/accountTrackerController';
-import { selectCurrentCurrency } from '../../../selectors/currencyRateController';
+import { ScrollView } from 'react-native-gesture-handler';
+import { isZero } from '../../../util/lodash';
+import { Authentication } from '../../../core/';
+import { ThemeContext, mockTheme } from '../../../util/theme';
+import { getLabelTextByAddress } from '../../../util/address';
+import {
+  onboardNetworkAction,
+  networkSwitched,
+} from '../../../actions/onboardNetwork';
+import Routes from '../../../constants/navigation/Routes';
+import { scale } from 'react-native-size-matters';
+import generateTestId from '../../../../wdio/utils/generateTestId';
+import { DRAWER_VIEW_LOCK_TEXT_ID } from '../../../../wdio/screen-objects/testIDs/Screens/DrawerView.testIds';
 import {
   selectNetworkConfigurations,
   selectProviderConfig,
@@ -503,55 +514,15 @@ class DrawerView extends PureComponent {
     return ret;
   }
 
-  componentWillUnmount() {
-    if (this.ledgerModalTimer) {
-      clearTimeout(this.ledgerModalTimer);
-    }
-  }
-
-  getKeyringForSelectedAddress() {
-    const { keyrings, selectedAddress } = this.props;
-    const allKeyrings =
-      keyrings && keyrings.length
-        ? keyrings
-        : Engine.context.KeyringController.state.keyrings;
-
-    return allKeyrings.find((keyring) =>
-      keyring.accounts.includes(selectedAddress),
-    );
-  }
-
   renderTag() {
     const colors = this.context.colors || mockTheme.colors;
     const styles = createStyles(colors);
-    //get all address from keyring where contain the selected address
-    const keyringOfSelectedAddress = this.getKeyringForSelectedAddress();
-
-    const accountTypeLabel = () => {
-      if (!keyringOfSelectedAddress) {
-        return strings('accounts.imported');
-      } else if (
-        [ExtendedKeyringTypes.ledger, ExtendedKeyringTypes.qr].includes(
-          keyringOfSelectedAddress.type,
-        )
-      ) {
-        if (keyringOfSelectedAddress.type === ExtendedKeyringTypes.ledger) {
-          return strings('accounts.ledger');
-        }
-        return strings('accounts.qr_hardware');
-      }
-      return null;
-    };
-
-    const label = accountTypeLabel();
+    const label = getLabelTextByAddress(this.props.selectedAddress);
 
     return label ? (
-      <View
-        //TODO keyringTypeWrapper is undefined
-        style={[styles.keyringTypeWrapper, styles.hardwareKeyringTypeWrapper]}
-      >
-        <Text numberOfLines={1} style={styles.keyringTypeText}>
-          {label}
+      <View style={[styles.importedWrapper]}>
+        <Text numberOfLines={1} style={styles.importedText}>
+          {strings(label)}
         </Text>
       </View>
     ) : null;

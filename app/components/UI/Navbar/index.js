@@ -36,10 +36,7 @@ import {
 } from '../../../../wdio/screen-objects/testIDs/Screens/NetworksScreen.testids';
 import { SEND_CANCEL_BUTTON } from '../../../../wdio/screen-objects/testIDs/Screens/SendScreen.testIds';
 import { ASSET_BACK_BUTTON } from '../../../../wdio/screen-objects/testIDs/Screens/TokenOverviewScreen.testIds';
-import {
-  PAYMENT_REQUEST_CLOSE_BUTTON,
-  REQUEST_SEARCH_RESULTS_BACK_BUTTON,
-} from '../../../../wdio/screen-objects/testIDs/Screens/RequestToken.testIds';
+import { REQUEST_SEARCH_RESULTS_BACK_BUTTON } from '../../../../wdio/screen-objects/testIDs/Screens/RequestToken.testIds';
 import { BACK_BUTTON_SIMPLE_WEBVIEW } from '../../../../wdio/screen-objects/testIDs/Components/SimpleWebView.testIds';
 import ButtonIcon, {
   ButtonIconSizes,
@@ -51,6 +48,8 @@ import {
 } from '../../../component-library/components/Icons/Icon';
 import { EDIT_BUTTON } from '../../../../wdio/screen-objects/testIDs/Common.testIds';
 import Icon from '../../../component-library/components/Icons/Icon/Icon';
+import { SendLinkViewSelectorsIDs } from '../../../../e2e/selectors/SendLinkView.selectors';
+import Routes from '../../../../app/constants/navigation/Routes';
 
 const trackEvent = (event) => {
   InteractionManager.runAfterInteractions(() => {
@@ -410,7 +409,10 @@ export function getPaymentRequestSuccessOptionsTitle(navigation, themeColors) {
         // eslint-disable-next-line react/jsx-no-bind
         onPress={() => navigation.pop()}
         style={styles.closeButton}
-        {...generateTestId(Platform, PAYMENT_REQUEST_CLOSE_BUTTON)}
+        {...generateTestId(
+          Platform,
+          SendLinkViewSelectorsIDs.CLOSE_SEND_LINK_VIEW_BUTTON,
+        )}
       >
         <IonicIcon
           name="ios-close"
@@ -963,6 +965,7 @@ export function getWalletNavbarOptions(
   function openQRScanner() {
     navigation.navigate('QRScanner', {
       onScanSuccess,
+      origin: Routes.WALLET_VIEW,
     });
     trackEvent(MetaMetricsEvents.WALLET_QR_SCANNER);
   }

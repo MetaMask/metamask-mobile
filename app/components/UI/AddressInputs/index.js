@@ -24,6 +24,8 @@ import { useTheme } from '../../../util/theme';
 import generateTestId from '../../../../wdio/utils/generateTestId';
 import { SEND_ADDRESS_INPUT_FIELD } from '../../../../wdio/screen-objects/testIDs/Screens/SendScreen.testIds';
 import AddToAddressBookWrapper from '../AddToAddressBookWrapper/AddToAddressBookWrapper';
+import { SendViewSelectorsIDs } from '../../../../e2e/selectors/SendView.selectors';
+
 const createStyles = (colors, layout = 'horizontal') => {
   const isVerticalLayout = layout === 'vertical';
   return StyleSheet.create({
@@ -376,7 +378,7 @@ export const AddressTo = (props) => {
             <TouchableOpacity
               onPress={onClear}
               style={styles.iconWrapper}
-              testID={'clear-address-button'}
+              testID={SendViewSelectorsIDs.ADDRESS_REMOVE_BUTTON}
             >
               <AntIcon
                 name="close"
@@ -489,7 +491,7 @@ export const AddressTo = (props) => {
               <TouchableOpacity
                 onPress={onClear}
                 style={styles.iconWrapper}
-                testID={'clear-address-button'}
+                testID={SendViewSelectorsIDs.ADDRESS_REMOVE_BUTTON}
               >
                 <AntIcon
                   name="close"

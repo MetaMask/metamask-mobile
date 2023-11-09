@@ -212,24 +212,34 @@ export function isQRHardwareAccount(address) {
 }
 
 /**
- * judge address is an imported account or not
+ * get address's kerying
  *
  * @param {String} address - String corresponding to an address
- * @returns {Boolean} - Returns a boolean
+ * @returns {Keyring} - Returns address's account keyriong
  */
-export function isImportedAccount(address) {
+export function getKeyringByAddress(address) {
+  if (!isValidHexAddress(address)) {
+    throw new Error(`Invalid address: ${address}`);
+  }
   const { KeyringController } = Engine.context;
   const { keyrings } = KeyringController.state;
-  const simpleKeyrings = keyrings.filter(
-    (keyring) => keyring.type === KeyringTypes.simple,
+  return keyrings.find((keyring) =>
+    keyring.accounts
+      .map((account) => account.toLowerCase())
+      .includes(address.toLowerCase()),
   );
-  let simpleAccounts = [];
-  for (const simpleKeyring of simpleKeyrings) {
-    simpleAccounts = simpleAccounts.concat(
-      simpleKeyring.accounts.map((account) => account.toLowerCase()),
-    );
-  }
-  return simpleAccounts.includes(address.toLowerCase());
+}
+
+/**
+ * judge address is hardware account or not
+ *
+ * @param {String} address - String corresponding to an address
+ * @param {Array<KeyringTypes|HardwareDeviceNames>} accountTypes - If it belongs to a specific hardware account type. By default all types are allowed.
+ * @returns {Boolean} - Returns a boolean
+ */
+export function isHardwareAccount(address, accountTypes = [KeyringTypes.qr]) {
+  const keyring = getKeyringByAddress(address);
+  return keyring && accountTypes.includes(keyring.type);
 }
 
 /**
@@ -240,14 +250,18 @@ export function isImportedAccount(address) {
  */
 export function getLabelTextByAddress(address) {
   if (!address) return null;
-  if (isHardwareAccount(address, [ExtendedKeyringTypes.ledger]))
-    return 'accounts.ledger';
-  if (isHardwareAccount(address, [ExtendedKeyringTypes.qr]))
-    return 'accounts.qr_hardware';
-  if (isImportedAccount(address)) return 'accounts.imported';
-
+  const keyring = getKeyringByAddress(address);
+  if (keyring) {
+    switch (keyring.type) {
+      case KeyringTypes.qr:
+        return 'accounts.qr_hardware';
+      case KeyringTypes.simple:
+        return 'accounts.imported';
+    }
+  }
   return null;
 }
+
 /**
  * judge address's account type for tracking
  *

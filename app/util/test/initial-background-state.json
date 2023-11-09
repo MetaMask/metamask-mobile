@@ -68,7 +68,7 @@
     "networkStatus": "unknown"
   },
   "PhishingController": {
-    "listState": {
+    "phishingLists": [{
       "allowlist": [],
       "blocklist": [],
       "fuzzylist": [],
@@ -76,7 +76,8 @@
       "version": 2,
       "name": "MetaMask",
       "lastUpdated": 0
-    },
+    }
+  ],
     "whitelist": [],
     "hotlistLastFetched": 0,
     "stalelistLastFetched": 0

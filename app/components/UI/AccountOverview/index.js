@@ -31,10 +31,10 @@ import {
   isDefaultAccountName,
 } from '../../../util/ENSUtils';
 import {
-  isHardwareAccount,
-  isImportedAccount,
+  getLabelTextByAddress,
   renderAccountName,
 } from '../../../util/address';
+import Device from '../../../util/device';
 import { ThemeContext, mockTheme } from '../../../util/theme';
 import EthereumAddress from '../EthereumAddress';
 import Identicon from '../Identicon';
@@ -356,11 +356,7 @@ class AccountOverview extends PureComponent {
     if (!address) return null;
     const { accountLabelEditable, accountLabel, ens } = this.state;
 
-    const isHardwareWalletAccount = isHardwareAccount(address);
-    const isLedgerAccount = isHardwareAccount(address, [
-      ExtendedKeyringTypes.ledger,
-    ]);
-    const showImportAccountLabel = isImportedAccount(address);
+    const accountLabelTag = getLabelTextByAddress(address);
 
     return (
       <View ref={this.scrollViewContainer} collapsable={false}>
@@ -436,19 +432,10 @@ class AccountOverview extends PureComponent {
                       {isDefaultAccountName(name) && ens ? ens : name}
                     </Text>
                   </TouchableOpacity>
-                  {isHardwareWalletAccount && (
+                  {accountLabelTag && (
                     <View style={styles.tag}>
                       <Text style={styles.tagText}>
-                        {isLedgerAccount
-                          ? strings('accounts.ledger')
-                          : strings('accounts.qr_hardware')}
-                      </Text>
-                    </View>
-                  )}
-                  {showImportAccountLabel && (
-                    <View style={styles.tag}>
-                      <Text style={styles.tagText}>
-                        {strings('accounts.imported')}
+                        {strings(accountLabelTag)}
                       </Text>
                     </View>
                   )}

@@ -7,19 +7,34 @@ import { useSelector } from 'react-redux';
 
 // External dependencies.
 import { strings } from '../../../../locales/i18n';
-import { AvatarVariants } from '../../../component-library/components/Avatars/Avatar/Avatar.types';
-import { AvatarAccountType } from '../../../component-library/components/Avatars/Avatar/variants/AvatarAccount';
+import {
+  AvatarVariants,
+  AvatarVariants,
+} from '../../../component-library/components/Avatars/Avatar/Avatar.types';
+import {
+  AvatarAccountType,
+  AvatarAccountType,
+} from '../../../component-library/components/Avatars/Avatar/variants/AvatarAccount';
 import AvatarGroup from '../../../component-library/components/Avatars/AvatarGroup';
 import Cell, {
   CellVariant,
 } from '../../../component-library/components/Cells/Cell';
 import Text from '../../../component-library/components/Texts/Text';
-import { useStyles } from '../../../component-library/hooks';
+import {
+  formatAddress,
+  safeToChecksumAddress,
+  getLabelTextByAddress,
+  formatAddress,
+  safeToChecksumAddress,
+} from '../../../util/address';
+import {
+  isDefaultAccountName,
+  isDefaultAccountName,
+} from '../../../util/ENSUtils';
+import { strings } from '../../../../locales/i18n';
+import { Account, Assets, Account, Assets } from '../../hooks/useAccounts';
 import UntypedEngine from '../../../core/Engine';
 import { removeAccountsFromPermissions } from '../../../core/Permissions';
-import { isDefaultAccountName } from '../../../util/ENSUtils';
-import { formatAddress, safeToChecksumAddress } from '../../../util/address';
-import { Account, Assets } from '../../hooks/useAccounts';
 
 // Internal dependencies.
 import { ExtendedKeyringTypes } from '../../../constants/keyringTypes';
@@ -53,21 +68,6 @@ const AccountSelectorList = ({
   );
 
   const getKeyExtractor = ({ address }: Account) => address;
-
-  const getTagLabel = (type: KeyringTypes | ExtendedKeyringTypes) => {
-    let label = '';
-    switch (type) {
-      case ExtendedKeyringTypes.qr:
-        label = strings('accounts.qr_hardware');
-        break;
-      case ExtendedKeyringTypes.simple:
-        label = strings('accounts.imported');
-        break;
-      case ExtendedKeyringTypes.ledger:
-        label = strings('accounts.ledger');
-    }
-    return label;
-  };
 
   const renderAccountBalances = useCallback(
     ({ fiatBalance, tokens }: Assets, address: string) => (
@@ -155,7 +155,7 @@ const AccountSelectorList = ({
       index,
     }) => {
       const shortAddress = formatAddress(address, 'short');
-      const tagLabel = getTagLabel(type);
+      const tagLabel = getLabelTextByAddress(address);
       const ensName = ensByAccountAddress[address];
       const accountName =
         isDefaultAccountName(name) && ensName ? ensName : name;
@@ -193,7 +193,7 @@ const AccountSelectorList = ({
             type: accountAvatarType,
             accountAddress: address,
           }}
-          tagLabel={tagLabel}
+          tagLabel={tagLabel ? strings(tagLabel) : tagLabel}
           disabled={isDisabled}
           style={cellStyle}
         >

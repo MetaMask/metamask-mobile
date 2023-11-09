@@ -114,7 +114,7 @@ import {
   SignatureControllerActions,
   SignatureControllerEvents,
 } from '@metamask/signature-controller';
-import { hasProperty, Json } from '@metamask/controller-utils';
+import { hasProperty, Json } from '@metamask/utils';
 // TODO: Export this type from the package directly
 import { SwapsState } from '@metamask/swaps-controller/dist/SwapsController';
 import { ethErrors } from 'eth-rpc-errors';
@@ -243,7 +243,6 @@ class Engine {
     this.controllerMessenger = new ControllerMessenger();
 
     const approvalController = new ApprovalController({
-      // @ts-expect-error Error might be caused by base controller version mismatch
       messenger: this.controllerMessenger.getRestricted({
         name: 'ApprovalController',
       }),
@@ -284,7 +283,7 @@ class Engine {
         // noop
       },
     };
-
+    // @ts-expect-error Error might be caused by base controller version mismatch
     const networkController = new NetworkController(networkControllerOpts);
     networkController.initializeProvider();
 
@@ -345,6 +344,7 @@ class Engine {
         provider: networkController.getProviderAndBlockTracker().provider,
         chainId: networkController.state.providerConfig.chainId,
       },
+      // @ts-expect-error Error might be caused by base controller version mismatch
       messenger: this.controllerMessenger.getRestricted({
         name: 'TokensController',
         allowedActions: [`${approvalController.name}:addRequest`],
@@ -362,12 +362,14 @@ class Engine {
           AppConstants.NETWORK_STATE_CHANGE_EVENT,
           listener,
         ),
+      // @ts-expect-error Error might be caused by base controller version mismatch
       messenger: this.controllerMessenger.getRestricted({
         name: 'TokenListController',
         allowedEvents: ['NetworkController:providerConfigChange'],
       }),
     });
     const currencyRateController = new CurrencyRateController({
+      // @ts-expect-error Error might be caused by base controller version mismatch
       messenger: this.controllerMessenger.getRestricted({
         name: 'CurrencyRateController',
       }),
@@ -376,6 +378,7 @@ class Engine {
     currencyRateController.start();
 
     const gasFeeController = new GasFeeController({
+      // @ts-expect-error Error might be caused by base controller version mismatch
       messenger: this.controllerMessenger.getRestricted({
         name: 'GasFeeController',
       }),
@@ -440,7 +443,6 @@ class Engine {
         preferencesController,
       ),
       encryptor,
-      // @ts-expect-error Error might be caused by base controller version mismatch
       messenger: this.controllerMessenger.getRestricted({
         name: 'KeyringController',
         allowedEvents: [
@@ -575,6 +577,7 @@ class Engine {
           },
           updateTransactions: true,
         },
+        // @ts-expect-error Error might be caused by base controller version mismatch
         messenger: this.controllerMessenger.getRestricted({
           name: 'TransactionController',
           allowedActions: [`${approvalController.name}:addRequest`],
@@ -616,7 +619,6 @@ class Engine {
       gasFeeController,
       approvalController,
       new PermissionController({
-        // @ts-expect-error Error might be caused by base controller version mismatch
         messenger: this.controllerMessenger.getRestricted({
           name: 'PermissionController',
           allowedActions: [
@@ -640,7 +642,6 @@ class Engine {
         unrestrictedMethods,
       }),
       new SignatureController({
-        // @ts-expect-error Error might be caused by base controller version mismatch
         messenger: this.controllerMessenger.getRestricted({
           name: 'SignatureController',
           allowedActions: [`${approvalController.name}:addRequest`],
@@ -673,7 +674,6 @@ class Engine {
         },
       }),
       new LoggingController({
-        // @ts-expect-error Error might be caused by base controller version mismatch
         messenger: this.controllerMessenger.getRestricted({
           name: 'LoggingController',
         }),
@@ -687,7 +687,6 @@ class Engine {
           chainId: addHexPrefix(networkController.state.providerConfig.chainId),
           blockaidPublicKey: process.env.BLOCKAID_PUBLIC_KEY as string,
           cdnBaseUrl: process.env.BLOCKAID_FILE_CDN as string,
-          // @ts-expect-error Error might be caused by base controller version mismatch
           messenger: this.controllerMessenger.getRestricted({
             name: 'PPOMController',
           }),
@@ -696,7 +695,8 @@ class Engine {
               AppConstants.NETWORK_STATE_CHANGE_EVENT,
               listener,
             ),
-          onPreferencesChange: () => undefined,
+          onPreferencesChange: (listener) =>
+            preferencesController.subscribe(listener),
           provider: networkController.getProviderAndBlockTracker().provider,
           ppomProvider: {
             PPOM,

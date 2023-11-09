@@ -17,6 +17,7 @@ import { MessageParams, PageMeta } from '../SignatureRequest/types';
 import { Colors } from '../../../util/theme/models';
 import { isExternalHardwareAccount } from '../../../util/address';
 import createExternalSignModelNav from '../../../util/hardwareWallet/signatureUtils';
+import { SigningModalSelectorsIDs } from '../../../../e2e/selectors/Modals/SigningModal.selectors';
 
 interface MessageSignProps {
   /**
@@ -200,7 +201,7 @@ class MessageSign extends PureComponent<MessageSignProps, MessageSignState> {
         showWarning
         fromAddress={from}
         securityAlertResponse={securityAlertResponse}
-        testID={'eth-signature-request'}
+        testID={SigningModalSelectorsIDs.ETH_REQUEST}
       >
         <View style={styles.messageWrapper}>{this.renderMessageText()}</View>
       </SignatureRequest>

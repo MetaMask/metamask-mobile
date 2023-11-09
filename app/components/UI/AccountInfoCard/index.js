@@ -17,6 +17,7 @@ import {
   renderAccountName,
   renderShortAddress,
   safeToChecksumAddress,
+  getLabelTextByAddress,
 } from '../../../util/address';
 import Device from '../../../util/device';
 import { hexToBN, renderFromWei, weiToFiat } from '../../../util/number';
@@ -26,6 +27,15 @@ import {
   getNormalizedTxState,
   getTicker,
 } from '../../../util/transactions';
+import Device from '../../../util/device';
+import { ThemeContext, mockTheme } from '../../../util/theme';
+import { selectTicker } from '../../../selectors/networkController';
+import {
+  selectConversionRate,
+  selectCurrentCurrency,
+} from '../../../selectors/currencyRateController';
+import { selectAccounts } from '../../../selectors/accountTrackerController';
+import { selectIdentities } from '../../../selectors/preferencesController';
 import ApproveTransactionHeader from '../ApproveTransactionHeader';
 import Identicon from '../Identicon';
 
@@ -175,6 +185,7 @@ class AccountInfoCard extends PureComponent {
 
     const fromAddress = safeToChecksumAddress(rawFromAddress);
     const { isHardwareKeyring, isLedgerKeyring } = this.state;
+    const accountLabelTag = getLabelTextByAddress(fromAddress);
     const colors = this.context.colors || mockTheme.colors;
     const styles = createStyles(colors);
     const weiBalance = accounts?.[fromAddress]?.balance
@@ -208,7 +219,7 @@ class AccountInfoCard extends PureComponent {
               numberOfLines={1}
               style={[
                 styles.accountName,
-                isHardwareKeyring ? styles.accountNameSmall : undefined,
+                accountLabelTag ? styles.accountNameSmall : undefined,
               ]}
             >
               {accountLabel}
@@ -217,7 +228,7 @@ class AccountInfoCard extends PureComponent {
               numberOfLines={1}
               style={[
                 styles.accountAddress,
-                isHardwareKeyring ? styles.accountAddressSmall : undefined,
+                accountLabelTag ? styles.accountAddressSmall : undefined,
               ]}
             >
               ({address})
@@ -227,14 +238,14 @@ class AccountInfoCard extends PureComponent {
             numberOfLines={1}
             style={[
               styles.balanceText,
-              isHardwareKeyring ? styles.balanceTextSmall : undefined,
+              accountLabelTag ? styles.balanceTextSmall : undefined,
             ]}
           >
             {strings('signature_request.balance_title')}{' '}
             {showFiatBalance ? dollarBalance : ''} {balance}
           </Text>
         </View>
-        {isHardwareKeyring && (
+        {accountLabelTag && (
           <View style={styles.tag}>
             <Text style={styles.tagText}>
               {isLedgerKeyring

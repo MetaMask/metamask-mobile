@@ -4,6 +4,7 @@ import { fireEvent } from '@testing-library/react-native';
 import renderWithProvider from '../../../util/test/renderWithProvider';
 import { AddressFrom, AddressTo } from './index';
 import initialBackgroundState from '../../../util/test/initial-background-state.json';
+import { AddAddressModalSelectorsIDs } from '../../../../e2e/selectors/Modals/AddAddressModal.selectors';
 
 const initialState = {
   settings: {},
@@ -118,7 +119,9 @@ describe('AddressInputs', () => {
         />,
         { state: initialState },
       );
-      fireEvent.press(getByTestId('add-address-button'));
+      fireEvent.press(
+        getByTestId(AddAddressModalSelectorsIDs.ADD_ADDRESS_BUTTON),
+      );
       expect(getByText('Add to address book')).toBeDefined();
     });
   });
