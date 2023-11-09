@@ -21,8 +21,7 @@ const ListItem = BaseListItem as any;
 
 function Settings() {
   const navigation = useNavigation();
-  const { selectedRegion, setSelectedRegion, isInternalBuild, isBuy } =
-    useRampSDK();
+  const { selectedRegion, setSelectedRegion, isInternalBuild } = useRampSDK();
   const { colors } = useAppTheme();
   const style = styles(colors);
   const trackEvent = useAnalytics();
@@ -40,11 +39,11 @@ function Settings() {
   }, [colors, navigation]);
 
   const handleResetRegion = useCallback(() => {
-    trackEvent(isBuy ? 'ONRAMP_REGION_RESET' : 'OFFRAMP_REGION_RESET', {
+    trackEvent('ONRAMP_REGION_RESET', {
       location: 'Settings Screen',
     });
     setSelectedRegion(null);
-  }, [isBuy, setSelectedRegion, trackEvent]);
+  }, [setSelectedRegion, trackEvent]);
 
   return (
     <KeyboardAvoidingView
