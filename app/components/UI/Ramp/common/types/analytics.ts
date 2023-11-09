@@ -286,7 +286,6 @@ export interface AnalyticsEvents {
   OFFRAMP_REGION_SELECTED: OfframpRegionSelected;
 
   ONRAMP_REGION_RESET: RampRegionReset;
-  OFFRAMP_REGION_RESET: RampRegionReset;
 
   ONRAMP_PAYMENT_METHOD_SELECTED: RampPaymentMethodSelected;
   OFFRAMP_PAYMENT_METHOD_SELECTED: RampPaymentMethodSelected;
