@@ -43,6 +43,7 @@ const mockuseRampSDKInitialValues: Partial<RampSDK> = {
   selectedRegion: null,
   rampType: RampType.BUY,
   isBuy: true,
+  isSell: false,
 };
 
 let mockUseRampSDKValues: Partial<RampSDK> = {
@@ -139,9 +140,12 @@ describe('GetStarted', () => {
       location: 'Get Started Screen',
     });
 
+    mockTrackEvent.mockReset();
     mockUseRampSDKValues = {
       ...mockUseRampSDKValues,
       isBuy: false,
+      isSell: true,
+      rampType: RampType.SELL,
     };
     render(GetStarted);
     fireEvent.press(screen.getByRole('button', { name: 'Cancel' }));
