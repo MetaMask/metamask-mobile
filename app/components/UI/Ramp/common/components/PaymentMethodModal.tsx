@@ -126,7 +126,7 @@ function PaymentMethodModal({
               <View style={styles.resultsView}>
                 <ScreenLayout.Content style={styles.content}>
                   {paymentMethods?.map((payment) => (
-                    <View key={payment.id} style={styles.row}>s
+                    <View key={payment.id} style={styles.row}>
                       <PaymentMethod
                         payment={payment}
                         highlighted={payment.id === selectedPaymentMethodId}
