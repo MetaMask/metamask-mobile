@@ -261,9 +261,7 @@ exports[`Cell should render CellMultiSelect given the type MultiSelect 1`] = `
     accessible={true}
     style={
       Object {
-        "alignItems": "flex-start",
-        "backgroundColor": "#FFFFFF",
-        "borderRadius": 4,
+        "alignItems": "center",
         "flexDirection": "row",
         "padding": 16,
       }
@@ -543,9 +541,7 @@ exports[`Cell should render CellSelect given the type Select 1`] = `
     accessible={true}
     style={
       Object {
-        "alignItems": "flex-start",
-        "backgroundColor": "#FFFFFF",
-        "borderRadius": 4,
+        "alignItems": "center",
         "flexDirection": "row",
         "padding": 16,
       }
