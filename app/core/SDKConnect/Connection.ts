@@ -840,7 +840,6 @@ export class Connection extends EventEmitter2 {
   resume() {
     DevLogger.log(`Connection::resume() id=${this.channelId}`);
     this.remote.resume();
-    this.trigger = 'resume';
     this.isResumed = true;
     this.setLoading(false);
   }
@@ -995,6 +994,9 @@ export class Connection extends EventEmitter2 {
 
     delete this.requestsToRedirect[msgId];
 
+    // hide modal
+    this.setLoading(false);
+
     if (this.origin === AppConstants.DEEPLINKS.ORIGIN_QR_CODE) return;
 
     if (!this.rpcQueueManager.isEmpty()) {
@@ -1006,9 +1008,6 @@ export class Connection extends EventEmitter2 {
       DevLogger.log(`Connection::sendMessage NOT deeplink --- skip goBack()`);
       return;
     }
-
-    // hide modal
-    this.setLoading(false);
 
     try {
       if (METHODS_TO_DELAY[method]) {
