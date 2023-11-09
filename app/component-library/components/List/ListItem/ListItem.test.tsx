@@ -61,15 +61,15 @@ describe('ListItem', () => {
         <View />
       </ListItem>,
     );
-    expect(getByRole('none').props.style.alignItems).toBe('flex-start');
+    expect(getByRole('none').props.style.alignItems).toBe('center');
   });
 
   it('should render the given verticalAlignment', () => {
     const { getByRole } = render(
-      <ListItem verticalAlignment={VerticalAlignment.Center}>
+      <ListItem verticalAlignment={VerticalAlignment.Top}>
         <View />
       </ListItem>,
     );
-    expect(getByRole('none').props.style.alignItems).toBe('center');
+    expect(getByRole('none').props.style.alignItems).toBe('flex-start');
   });
 });
