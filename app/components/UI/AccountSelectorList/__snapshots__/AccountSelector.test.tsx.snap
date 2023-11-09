@@ -59,7 +59,10 @@ exports[`AccountSelectorList should render all accounts but only the balance for
         onPress={[Function]}
         style={
           Object {
+            "backgroundColor": "#FFFFFF",
+            "borderRadius": 4,
             "opacity": 1,
+            "padding": 16,
             "position": "relative",
           }
         }
@@ -72,7 +75,7 @@ exports[`AccountSelectorList should render all accounts but only the balance for
             Object {
               "alignItems": "center",
               "flexDirection": "row",
-              "padding": 16,
+              "padding": 0,
             }
           }
         >
@@ -227,7 +230,10 @@ exports[`AccountSelectorList should render all accounts but only the balance for
         onPress={[Function]}
         style={
           Object {
+            "backgroundColor": "#FFFFFF",
+            "borderRadius": 4,
             "opacity": 1,
+            "padding": 16,
             "position": "relative",
           }
         }
@@ -240,7 +246,7 @@ exports[`AccountSelectorList should render all accounts but only the balance for
             Object {
               "alignItems": "center",
               "flexDirection": "row",
-              "padding": 16,
+              "padding": 0,
             }
           }
         >
@@ -390,7 +396,10 @@ exports[`AccountSelectorList should render all accounts with balances 1`] = `
         onPress={[Function]}
         style={
           Object {
+            "backgroundColor": "#FFFFFF",
+            "borderRadius": 4,
             "opacity": 1,
+            "padding": 16,
             "position": "relative",
           }
         }
@@ -403,7 +412,7 @@ exports[`AccountSelectorList should render all accounts with balances 1`] = `
             Object {
               "alignItems": "center",
               "flexDirection": "row",
-              "padding": 16,
+              "padding": 0,
             }
           }
         >
@@ -652,7 +661,10 @@ exports[`AccountSelectorList should render all accounts with balances 1`] = `
         onPress={[Function]}
         style={
           Object {
+            "backgroundColor": "#FFFFFF",
+            "borderRadius": 4,
             "opacity": 1,
+            "padding": 16,
             "position": "relative",
           }
         }
@@ -665,7 +677,7 @@ exports[`AccountSelectorList should render all accounts with balances 1`] = `
             Object {
               "alignItems": "center",
               "flexDirection": "row",
-              "padding": 16,
+              "padding": 0,
             }
           }
         >
@@ -944,7 +956,10 @@ exports[`AccountSelectorList should render all accounts with right acessory 1`] 
         onPress={[Function]}
         style={
           Object {
+            "backgroundColor": "#FFFFFF",
+            "borderRadius": 4,
             "opacity": 1,
+            "padding": 16,
             "position": "relative",
           }
         }
@@ -957,7 +972,7 @@ exports[`AccountSelectorList should render all accounts with right acessory 1`] 
             Object {
               "alignItems": "center",
               "flexDirection": "row",
-              "padding": 16,
+              "padding": 0,
             }
           }
         >
@@ -1159,7 +1174,10 @@ exports[`AccountSelectorList should render all accounts with right acessory 1`] 
         onPress={[Function]}
         style={
           Object {
+            "backgroundColor": "#FFFFFF",
+            "borderRadius": 4,
             "opacity": 1,
+            "padding": 16,
             "position": "relative",
           }
         }
@@ -1172,7 +1190,7 @@ exports[`AccountSelectorList should render all accounts with right acessory 1`] 
             Object {
               "alignItems": "center",
               "flexDirection": "row",
-              "padding": 16,
+              "padding": 0,
             }
           }
         >
