@@ -289,7 +289,10 @@ export class SDKConnect extends EventEmitter2 {
   public async hideLoadingState() {
     this.sdkLoadingState = {};
     const currentRoute = this.navigation?.getCurrentRoute()?.name;
-    if (currentRoute === Routes.SHEET.SDK_LOADING) {
+    if (
+      currentRoute === Routes.SHEET.SDK_LOADING &&
+      this.navigation?.canGoBack()
+    ) {
       this.navigation?.goBack();
     }
   }
