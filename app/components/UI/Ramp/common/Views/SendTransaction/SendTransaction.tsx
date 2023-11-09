@@ -1,6 +1,6 @@
 import React, { useCallback, useEffect } from 'react';
 import { View } from 'react-native';
-import { useSelector } from 'react-redux';
+import { useDispatch, useSelector } from 'react-redux';
 import { useNavigation } from '@react-navigation/native';
 import { BN } from 'ethereumjs-util';
 import { SellOrder } from '@consensys/on-ramp-sdk/dist/API';
@@ -40,6 +40,7 @@ import { RootState } from '../../../../../../reducers';
 import {
   getOrderById,
   getProviderName,
+  setFiatSellTxHash,
 } from '../../../../../../reducers/fiatOrders';
 import { getFiatOnRampAggNavbar } from '../../../../Navbar';
 import { useParams } from '../../../../../../util/navigation/navUtils';
@@ -62,6 +63,7 @@ interface SendTransactionParams {
 function SendTransaction() {
   const navigation = useNavigation();
   const params = useParams<SendTransactionParams>();
+  const dispatch = useDispatch();
   const order = useSelector((state: RootState) =>
     getOrderById(state, params.orderId),
   );
@@ -122,12 +124,16 @@ function SendTransaction() {
 
     try {
       const response = await TxController.addTransaction(transactionParams);
-      /*const hash = */ await response.result;
-      // TODO: track hash
+      const hash = await response.result;
+      if (order?.id) {
+        dispatch(setFiatSellTxHash(order.id, hash));
+      }
     } catch (error) {
       // User rejected tx from modal
     }
   }, [
+    dispatch,
+    order?.id,
     orderData.cryptoAmount,
     orderData.cryptoCurrency.address,
     orderData.cryptoCurrency.decimals,
@@ -158,8 +164,7 @@ function SendTransaction() {
             <Row>
               <Text style={styles.centered}>
                 <Text variant={TextVariant.HeadingMD} style={styles.normal}>
-                  {strings('fiat_on_ramp_aggregator.send_transaction.send')}
-                  {` `}
+                  {strings('fiat_on_ramp_aggregator.send_transaction.send')}{' '}
                 </Text>
                 <Text variant={TextVariant.HeadingMD}>
                   {fromTokenMinimalUnitString(
@@ -231,7 +236,7 @@ function SendTransaction() {
               </>
             )}
           </View>
-          <Row last>{/* <TransactionReview order={order} /> */}</Row>
+          {/*<Row last><TransactionReview order={order} /></Row> */}
         </ScreenLayout.Content>
       </ScreenLayout.Body>
 

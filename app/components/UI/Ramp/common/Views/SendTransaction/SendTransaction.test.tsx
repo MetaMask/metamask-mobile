@@ -1,5 +1,5 @@
 import React from 'react';
-import { fireEvent, screen } from '@testing-library/react-native';
+import { act, fireEvent, screen } from '@testing-library/react-native';
 import { SellOrder } from '@consensys/on-ramp-sdk/dist/API';
 import { FiatOrder } from '../../../../../../reducers/fiatOrders';
 import Routes from '../../../../../../constants/navigation/Routes';
@@ -327,6 +327,13 @@ jest.mock('../../../../../../core/Engine', () => ({
   },
 }));
 
+const mockDispatch = jest.fn();
+
+jest.mock('react-redux', () => ({
+  ...jest.requireActual('react-redux'),
+  useDispatch: () => mockDispatch,
+}));
+
 describe('SendTransaction View', () => {
   afterEach(() => {
     mockNavigate.mockClear();
@@ -334,6 +341,7 @@ describe('SendTransaction View', () => {
     mockSetOptions.mockClear();
     mockReset.mockClear();
     mockPop.mockClear();
+    mockDispatch.mockClear();
     Engine.context.TransactionController.addTransaction.mockClear();
   });
 
@@ -404,6 +412,32 @@ describe('SendTransaction View', () => {
             "from": "0x1234",
             "to": "0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48",
             "value": "0x0",
+          },
+        ],
+      ]
+    `);
+  });
+
+  it('dispatches setFiatSellTxHash after getting hash from TransactionController.addTransaction', async () => {
+    render(SendTransaction);
+    const nextButton = screen.getByRole('button', { name: 'Next' });
+    (
+      Engine.context.TransactionController.addTransaction as jest.Mock
+    ).mockImplementationOnce(() => ({
+      result: Promise.resolve('0x987654321'),
+    }));
+
+    await act(async () => fireEvent.press(nextButton));
+    expect(mockDispatch).toBeCalledTimes(1);
+    expect(mockDispatch.mock.calls).toMatchInlineSnapshot(`
+      Array [
+        Array [
+          Object {
+            "payload": Object {
+              "orderId": "test-id-1",
+              "txHash": "0x987654321",
+            },
+            "type": "FIAT_SET_SELL_TX_HASH",
           },
         ],
       ]
