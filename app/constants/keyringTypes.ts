@@ -1,10 +1,8 @@
-export const QR_HARDWARE = 'QR Hardware Wallet Device';
-export const LEDGER_HARDWARE = 'Ledger Hardware';
-import { KeyringTypes } from '@metamask/keyring-controller';
-
-export enum ExtendedKeyringTypes {
-  simple = KeyringTypes.simple,
-  hd = KeyringTypes.hd,
-  qr = KeyringTypes.qr,
+enum ExtendedKeyringTypes {
+  simple = 'Simple Key Pair',
+  hd = 'HD Key Tree',
+  qr = 'QR Hardware Wallet Device',
   ledger = 'Ledger Hardware',
 }
+
+export default ExtendedKeyringTypes;
