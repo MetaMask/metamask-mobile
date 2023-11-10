@@ -20,7 +20,7 @@ import { Regression } from '../../tags';
 
 const fixtureServer = new FixtureServer();
 
-xdescribe(Regression('Swap from Token view'), () => {
+describe(Regression('Swap from Token view'), () => {
   const swapOnboarded = false;
   beforeAll(async () => {
     await TestHelpers.reverseServerPort();
@@ -61,6 +61,7 @@ xdescribe(Regression('Swap from Token view'), () => {
     await SwapView.isVisible();
     await SwapView.tapIUnderstandPriceWarning();
     await SwapView.swipeToSwap();
+    await TestHelpers.delay(5000);
     await SwapView.waitForSwapToComplete('USDC', 'DAI');
   });
 });
