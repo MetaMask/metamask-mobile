@@ -1,3 +1,61 @@
+diff --git a/node_modules/react-native/Libraries/Core/InitializeCore.js b/node_modules/react-native/Libraries/Core/InitializeCore.js
+index 1379ffd..340f48d 100644
+--- a/node_modules/react-native/Libraries/Core/InitializeCore.js
++++ b/node_modules/react-native/Libraries/Core/InitializeCore.js
+@@ -24,26 +24,51 @@
+ 
+ 'use strict';
+ 
++const Platform = require('../Utilities/Platform');
++
++if (Platform.OS === 'ios' && !global?.HermesInternal) {
++  require('../../../../ses.cjs'); // ses@0.18.8
++  /**
++   * Without consoleTaming: 'unsafe' causes:
++   * - Attempting to define property on object that is not extensible.
++   * Without errorTrapping 'none' causes:
++   * - TypeError: undefined is not a function (near '...globalThis.process.on...')
++   * Without unhandledRejectionTrapping 'none' causes:
++   * - TypeError: globalThis.process.on is not a function. (In 'globalThis.process.on('unhandledRejection', h.unhandledRejectionHandler)', 'globalThis.process.on' is undefined)
++   * overrideTaming 'severe' is ideal (default override?)
++   * Nb: global.process is only partially shimmed, which confuses SES
++   * Nb: All are Unhandled JS Exceptions, since we call lockdown before setUpErrorHandling
++  */
++  repairIntrinsics({ consoleTaming: 'unsafe', errorTrapping: 'none', unhandledRejectionTrapping: 'none', overrideTaming: 'severe' });
++  require('reflect-metadata'); // Vetted shim required to fix: https://github.com/LavaMoat/docs/issues/26
++  hardenIntrinsics();
++}
++
+ const start = Date.now();
+ 
+ require('./setUpGlobals');
++// require('./setUpDOM'); Introduced in RN v0.72, ensure included when upgrading patch
+ require('./setUpPerformance');
+ require('./setUpErrorHandling');
++
+ require('./polyfillPromise');
++
+ require('./setUpRegeneratorRuntime');
++
+ require('./setUpTimers');
+ require('./setUpXHR');
++
+ require('./setUpAlert');
+ require('./setUpNavigator');
+ require('./setUpBatchedBridge');
+ require('./setUpSegmentFetcher');
+ if (__DEV__) {
+   require('./checkNativeVersion');
+-  require('./setUpDeveloperTools');
++  require('./setUpDeveloperTools'); // console.log calls visible in Metro from here
+   require('../LogBox/LogBox').install();
+ }
+ 
+-require('../ReactNative/AppRegistry');
++require('../ReactNative/AppRegistry'); // reflect-metadata imported after here causes: https://github.com/LavaMoat/docs/issues/26
+ 
+ const GlobalPerformanceLogger = require('../Utilities/GlobalPerformanceLogger');
+ // We could just call GlobalPerformanceLogger.markPoint at the top of the file,
 diff --git a/node_modules/react-native/ReactAndroid/build.gradle b/node_modules/react-native/ReactAndroid/build.gradle
 index 155cb59..053550c 100644
 --- a/node_modules/react-native/ReactAndroid/build.gradle
