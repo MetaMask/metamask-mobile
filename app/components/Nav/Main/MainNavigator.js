@@ -60,6 +60,7 @@ import RampAddActivationKey from '../../UI/Ramp/common/Views/Settings/AddActivat
 import Regions from '../../UI/Ramp/buy/Views/Regions';
 import { colors as importedColors } from '../../../styles/common';
 import OrderDetails from '../../UI/Ramp/common/Views/OrderDetails';
+import SendTransaction from '../../UI/Ramp/common/Views/SendTransaction';
 import TabBar from '../../../component-library/components/Navigation/TabBar';
 import BrowserUrlModal from '../../Views/BrowserUrlModal';
 import Routes from '../../../constants/navigation/Routes';
@@ -177,6 +178,10 @@ const TransactionsHome = () => (
   <Stack.Navigator>
     <Stack.Screen name={Routes.TRANSACTIONS_VIEW} component={ActivityView} />
     <Stack.Screen name={Routes.RAMP.ORDER_DETAILS} component={OrderDetails} />
+    <Stack.Screen
+      name={Routes.RAMP.SEND_TRANSACTION}
+      component={SendTransaction}
+    />
   </Stack.Navigator>
 );
 

@@ -40,7 +40,7 @@ import {
 } from '../../../../selectors/networkController';
 import {
   AvatarSize,
-  AvatarVariants,
+  AvatarVariant,
 } from '../../../../component-library/components/Avatars/Avatar';
 import AvatarNetwork from '../../../../component-library/components/Avatars/Avatar/variants/AvatarNetwork';
 import generateTestId from '../../../../../wdio/utils/generateTestId';
@@ -246,7 +246,7 @@ class NetworksSettings extends PureComponent {
               <View style={styles.network}>
                 {isCustomRPC ? (
                   <AvatarNetwork
-                    variant={AvatarVariants.Network}
+                    variant={AvatarVariant.Network}
                     name={name}
                     imageSource={image}
                     style={styles.networkIcon}

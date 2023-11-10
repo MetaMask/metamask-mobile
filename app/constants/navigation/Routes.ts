@@ -18,6 +18,7 @@ const Routes = {
     REGION_HAS_STARTED: 'RegionHasStarted',
     NETWORK_SWITCHER: 'BuyNetworkSwitcher',
     ORDER_DETAILS: 'OrderDetails',
+    SEND_TRANSACTION: 'SendTransaction',
     SETTINGS: 'RampSettings',
     ADD_ACTIVATION_KEY: 'RampAddActivationKey',
   },

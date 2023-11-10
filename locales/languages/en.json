@@ -514,6 +514,7 @@
     "import_account": "Import an account",
     "connect_hardware": "Connect hardware wallet",
     "imported": "Imported",
+    "qr_hardware": "QR hardware",
     "remove_account_title": "Account removal",
     "remove_account_message": "Do you really want to remove this account?",
     "no": "No",
@@ -1001,7 +1002,6 @@
     "confirm": "Confirm"
   },
   "transaction": {
-    "hardware": "Hardware",
     "alert": "ALERT",
     "amount": "Amount",
     "next": "Next",
@@ -2022,6 +2022,14 @@
       "total_fees": "Total Fees",
       "amount": "Amount",
       "a_block_explorer": "a block explorer"
+    },
+    "send_transaction": {
+      "sell_crypto": "Sell crypto",
+      "send_description": "You will send your {{cryptocurrency}} to {{provider}}, who then sends your cash to {{paymentMethod}}",
+      "next": "Next",
+      "hold_to_send": "Hold to send",
+      "send": "Send",
+      "sent": "Sent!"
     }
   },
   "swaps": {
