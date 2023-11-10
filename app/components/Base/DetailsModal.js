@@ -5,10 +5,7 @@ import Ionicons from 'react-native-vector-icons/Ionicons';
 import { fontStyles } from '../../styles/common';
 import Text from './Text';
 import { useTheme } from '../../util/theme';
-import {
-  DETAILS_MODAL_TITLE,
-  DETAILS_MODAL_CLOSE_ICON,
-} from '../../../wdio/screen-objects/testIDs/Components/DetailsModal.js';
+import { DetailsModalSelectorsIDs } from '../../../e2e/selectors/Modals/DetailsModal.selectors';
 
 const createStyles = (colors) =>
   StyleSheet.create({
@@ -85,7 +82,7 @@ const DetailsModalTitle = ({ style, ...props }) => {
 
   return (
     <Text
-      testID={DETAILS_MODAL_TITLE}
+      testID={DetailsModalSelectorsIDs.TITLE}
       style={[styles.title, style]}
       {...props}
     />
@@ -99,7 +96,7 @@ const DetailsModalCloseIcon = ({ style, ...props }) => {
     <TouchableOpacity
       style={[styles.closeIcon, style]}
       {...props}
-      testID={DETAILS_MODAL_CLOSE_ICON}
+      testID={DetailsModalSelectorsIDs.CLOSE_ICON}
     >
       <Ionicons color={colors.text.default} name={'ios-close'} size={38} />
     </TouchableOpacity>
