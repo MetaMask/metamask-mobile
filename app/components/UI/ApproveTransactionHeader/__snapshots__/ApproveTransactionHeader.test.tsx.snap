@@ -31,7 +31,7 @@ exports[`ApproveTransactionHeader should render correctly 1`] = `
       style={
         Object {
           "backgroundColor": "#FFFFFF",
-          "borderRadius": 0,
+          "borderRadius": 16,
           "height": 32,
           "marginRight": 8,
           "overflow": "hidden",
