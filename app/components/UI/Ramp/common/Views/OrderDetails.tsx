@@ -3,11 +3,13 @@ import { RefreshControl } from 'react-native';
 import { useDispatch, useSelector } from 'react-redux';
 import { useNavigation } from '@react-navigation/native';
 import { Order } from '@consensys/on-ramp-sdk';
+import { OrderOrderTypeEnum } from '@consensys/on-ramp-sdk/dist/API';
 import { ScrollView } from 'react-native-gesture-handler';
 import useAnalytics from '../hooks/useAnalytics';
 import useThunkDispatch from '../../../../hooks/useThunkDispatch';
 import ScreenLayout from '../components/ScreenLayout';
 import OrderDetail from '../components/OrderDetails';
+import Row from '../components/Row';
 import StyledButton from '../../../StyledButton';
 import {
   getOrderById,
@@ -27,6 +29,7 @@ import {
   selectNetworkConfigurations,
   selectProviderConfig,
 } from '../../../../../selectors/networkController';
+import { RootState } from '../../../../../reducers';
 
 interface OrderDetailsParams {
   orderId?: string;
@@ -40,7 +43,9 @@ const OrderDetails = () => {
   const providerConfig = useSelector(selectProviderConfig);
   const networkConfigurations = useSelector(selectNetworkConfigurations);
   const params = useParams<OrderDetailsParams>();
-  const order = useSelector((state) => getOrderById(state, params.orderId));
+  const order = useSelector((state: RootState) =>
+    getOrderById(state, params.orderId),
+  );
   const { colors } = useTheme();
   const navigation = useNavigation();
   const dispatch = useDispatch();
@@ -131,6 +136,20 @@ const OrderDetails = () => {
         </ScreenLayout.Body>
         <ScreenLayout.Footer>
           <ScreenLayout.Content>
+            {order.orderType === OrderOrderTypeEnum.Sell ? (
+              <Row>
+                <StyledButton
+                  type="normal"
+                  onPress={() => {
+                    navigation.navigate(Routes.RAMP.SEND_TRANSACTION, {
+                      orderId: order.id,
+                    });
+                  }}
+                >
+                  [placeholder] Send Transaction
+                </StyledButton>
+              </Row>
+            ) : null}
             <StyledButton type="confirm" onPress={handleMakeAnotherPurchase}>
               {strings(
                 'fiat_on_ramp_aggregator.order_details.another_purchase',

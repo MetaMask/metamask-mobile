@@ -15,6 +15,7 @@ import {
   FiatOrdersState,
 } from './types';
 import type { RootState } from '../';
+import { isTestNet } from '../../util/networks';
 export type { FiatOrder } from './types';
 
 /** Action Creators */
@@ -95,6 +96,16 @@ export const updateOnRampNetworks = (
   payload: networks,
 });
 
+export const setFiatSellTxHash = (orderId: string, txHash: string) => ({
+  type: ACTIONS.FIAT_SET_SELL_TX_HASH,
+  payload: { orderId, txHash },
+});
+
+export const removeFiatSellTxHash = (orderId: string) => ({
+  type: ACTIONS.FIAT_REMOVE_SELL_TX_HASH,
+  payload: orderId,
+});
+
 /**
  * Selectors
  */
@@ -163,7 +174,7 @@ export const getOrders = createSelector(
       (order) =>
         !order.excludeFromPurchases &&
         order.account === selectedAddress &&
-        Number(order.network) === Number(chainId),
+        (isTestNet(chainId) || Number(order.network) === Number(chainId)),
     ),
 );
 
@@ -470,6 +481,44 @@ const fiatOrderReducer: (
       return {
         ...state,
         networks: action.payload,
+      };
+    }
+    case ACTIONS.FIAT_SET_SELL_TX_HASH: {
+      const { orderId, txHash } = action.payload;
+      const orders = state.orders;
+      const index = orders.findIndex((order) => order.id === orderId);
+      if (index === -1) {
+        return state;
+      }
+      return {
+        ...state,
+        orders: [
+          ...orders.slice(0, index),
+          {
+            ...orders[index],
+            sellTxHash: txHash,
+          },
+          ...orders.slice(index + 1),
+        ],
+      };
+    }
+    case ACTIONS.FIAT_REMOVE_SELL_TX_HASH: {
+      const orderId = action.payload;
+      const orders = state.orders;
+      const index = orders.findIndex((order) => order.id === orderId);
+      if (index === -1) {
+        return state;
+      }
+      return {
+        ...state,
+        orders: [
+          ...orders.slice(0, index),
+          {
+            ...orders[index],
+            sellTxHash: undefined,
+          },
+          ...orders.slice(index + 1),
+        ],
       };
     }
 

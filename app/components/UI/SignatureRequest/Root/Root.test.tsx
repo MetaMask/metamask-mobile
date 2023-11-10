@@ -10,11 +10,6 @@ import { ThemeContext, mockTheme } from '../../../../util/theme';
 import Root from '.';
 import { ApprovalTypes } from '../../../../core/RPCMethods/RPCMethodMiddleware';
 
-jest.mock('../../../../util/address', () => ({
-  ...jest.requireActual('../../../../util/address'),
-  renderAccountName: jest.fn(),
-}));
-
 jest.mock('react-native-keyboard-aware-scroll-view', () => {
   const KeyboardAwareScrollView = jest.requireActual('react-native').ScrollView;
   return { KeyboardAwareScrollView };
@@ -28,6 +23,9 @@ jest.mock('../../../../core/Engine', () => ({
       getQRKeyringState: jest.fn(() =>
         Promise.resolve({ subscribe: jest.fn(), unsubscribe: jest.fn() }),
       ),
+      state: {
+        keyrings: [],
+      },
     },
     SignatureController: {
       hub: {
@@ -68,16 +66,16 @@ const initialState = {
       ...initialBackgroundState,
       AccountTrackerController: {
         accounts: {
-          '0x0': {
+          '0xC4955C0d639D99699Bfd7Ec54d9FaFEe40e4D272': {
             balance: 200,
           },
         },
       },
       PreferencesController: {
-        selectedAddress: '0x0',
+        selectedAddress: '0xC4955C0d639D99699Bfd7Ec54d9FaFEe40e4D272',
         identities: {
-          '0x0': {
-            address: '0x0',
+          '0xC4955C0d639D99699Bfd7Ec54d9FaFEe40e4D272': {
+            address: '0xC4955C0d639D99699Bfd7Ec54d9FaFEe40e4D272',
             name: 'Account 1',
           },
         },

@@ -16,6 +16,10 @@ import {
   selectNetworkConfigurations,
 } from '../../selectors/networkController';
 import { store } from '../../store';
+import { BannerAlertSeverity } from '../../component-library/components/Banners/Banner';
+import { strings } from '../../../locales/i18n';
+
+const EVM_NATIVE_TOKEN_DECIMALS = 18;
 
 const waitForInteraction = async () =>
   new Promise((resolve) => {
@@ -201,7 +205,7 @@ const wallet_addEthereumChain = async ({
         message: `Expected null or object 'nativeCurrency'. Received:\n${nativeCurrency}`,
       });
     }
-    if (nativeCurrency.decimals !== 18) {
+    if (nativeCurrency.decimals !== EVM_NATIVE_TOKEN_DECIMALS) {
       throw ethErrors.rpc.invalidParams({
         message: `Expected the number 18 for 'nativeCurrency.decimals' when 'nativeCurrency' is provided. Received: ${nativeCurrency.decimals}`,
       });
@@ -229,7 +233,7 @@ const wallet_addEthereumChain = async ({
     ticker,
   };
 
-  let alert = null;
+  const alerts = [];
   const safeChainsListRequest = await fetch(
     'https://chainid.network/chains.json',
   );
@@ -237,29 +241,50 @@ const wallet_addEthereumChain = async ({
   const matchedChain = safeChainsList.find(
     (chain) => chain.chainId.toString() === chainIdDecimal,
   );
-  let validated = !!matchedChain;
 
   if (matchedChain) {
-    if (
-      matchedChain.nativeCurrency?.decimals !== 18 ||
-      matchedChain.name.toLowerCase() !== requestData.chainName.toLowerCase() ||
-      matchedChain.nativeCurrency?.symbol !== requestData.ticker
-    ) {
-      validated = false;
-    }
-
     const { origin } = new URL(requestData.rpcUrl);
-    if (!matchedChain.rpc.map((rpc) => new URL(rpc).origin).includes(origin)) {
-      validated = false;
+    if (!matchedChain.rpc?.map((rpc) => new URL(rpc).origin).includes(origin)) {
+      alerts.push({
+        alertError: strings('add_custom_network.invalid_rpc_url'),
+        alertSeverity: BannerAlertSeverity.Error,
+        alertOrigin: 'rpc_url',
+      });
+    }
+    if (matchedChain.nativeCurrency?.decimals !== EVM_NATIVE_TOKEN_DECIMALS) {
+      alerts.push({
+        alertError: strings('add_custom_network.invalid_chain_token_decimals'),
+        alertSeverity: BannerAlertSeverity.Warning,
+        alertOrigin: 'decimals',
+      });
+    }
+    if (
+      matchedChain.name?.toLowerCase() !== requestData.chainName.toLowerCase()
+    ) {
+      alerts.push({
+        alertError: strings('add_custom_network.unrecognized_chain_name'),
+        alertSeverity: BannerAlertSeverity.Warning,
+        alertOrigin: 'chain_name',
+      });
+    }
+    if (matchedChain.nativeCurrency?.symbol !== requestData.ticker) {
+      alerts.push({
+        alertError: strings('add_custom_network.unrecognized_chain_ticker'),
+        alertSeverity: BannerAlertSeverity.Warning,
+        alertOrigin: 'chain_ticker',
+      });
     }
   }
 
   if (!matchedChain) {
-    alert = 'UNRECOGNIZED_CHAIN';
-  } else if (!validated) {
-    alert = 'INVALID_CHAIN';
+    alerts.push({
+      alertError: strings('add_custom_network.unrecognized_chain_id'),
+      alertSeverity: BannerAlertSeverity.Error,
+      alertOrigin: 'unknown_chain',
+    });
   }
-  requestData.alert = alert;
+
+  requestData.alerts = alerts;
 
   const analyticsParamsAdd = {
     chain_id: chainIdDecimal,
