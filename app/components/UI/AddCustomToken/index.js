@@ -33,7 +33,7 @@ import {
   TOKEN_PRECISION_WARNING_MESSAGE_ID,
 } from '../../../../wdio/screen-objects/testIDs/Screens/AddCustomToken.testIds';
 import { NFT_IDENTIFIER_INPUT_BOX_ID } from '../../../../wdio/screen-objects/testIDs/Screens/NFTImportScreen.testIds';
-import { regex } from '../../../util/regex';
+import { regex } from '../../../../app/util/regex';
 import { AddCustomTokenViewSelectorsIDs } from '../../../../e2e/selectors/AddCustomTokenView.selectors';
 
 const createStyles = (colors) =>

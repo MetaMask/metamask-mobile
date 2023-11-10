@@ -53,7 +53,7 @@ const TurnOffRememberMeModal = () => {
   const checkPassword = useCallback(
     async (text: string) => {
       setPasswordText(text);
-      await debouncedIsValidPassword(text);
+      debouncedIsValidPassword(text);
     },
     [debouncedIsValidPassword],
   );
@@ -65,7 +65,7 @@ const TurnOffRememberMeModal = () => {
 
   const turnOffRememberMeAndLockApp = useCallback(async () => {
     dispatch(setAllowLoginWithRememberMe(false));
-    await Authentication.lockApp();
+    Authentication.lockApp();
   }, [dispatch]);
 
   const disableRememberMe = useCallback(async () => {

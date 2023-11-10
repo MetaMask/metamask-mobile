@@ -72,7 +72,7 @@ const LoginOptionsSwitch = ({
         />
       </View>
     );
-  } else if (allowLoginWithRememberMe) {
+  } else if (shouldRenderBiometricOption === null && allowLoginWithRememberMe) {
     return (
       <View style={styles.container}>
         <Text style={styles.label}>

@@ -324,7 +324,7 @@ class Confirm extends PureComponent {
       const eth = new Eth(
         Engine.context.NetworkController.getProviderAndBlockTracker().provider,
       );
-      const result = fetchEstimatedMultiLayerL1Fee(eth, {
+      const result = await fetchEstimatedMultiLayerL1Fee(eth, {
         txParams: transaction.transaction,
         chainId,
       });
@@ -332,7 +332,7 @@ class Confirm extends PureComponent {
         multiLayerL1FeeTotal: result,
       });
     } catch (e) {
-      await Logger.error(e, 'fetchEstimatedMultiLayerL1Fee call failed');
+      Logger.error(e, 'fetchEstimatedMultiLayerL1Fee call failed');
       this.setState({
         multiLayerL1FeeTotal: '0x0',
       });
@@ -348,7 +348,7 @@ class Confirm extends PureComponent {
       isPaymentRequest,
     } = this.props;
     this.updateNavBar();
-    await this.getGasLimit();
+    this.getGasLimit();
 
     const pollToken = await startGasPolling(this.state.pollToken);
     this.setState({
@@ -362,9 +362,9 @@ class Confirm extends PureComponent {
 
     showCustomNonce && (await this.setNetworkNonce());
     navigation.setParams({ providerType, isPaymentRequest });
-    await this.parseTransactionDataHeader();
+    this.parseTransactionDataHeader();
     if (isMultiLayerFeeNetwork(chainId)) {
-      await this.fetchEstimatedL1Fee();
+      this.fetchEstimatedL1Fee();
       intervalIdForEstimatedL1Fee = setInterval(
         this.fetchEstimatedL1Fee,
         POLLING_INTERVAL_ESTIMATED_L1_FEE,
@@ -736,10 +736,7 @@ class Confirm extends PureComponent {
           error && error.message,
           [{ text: 'OK' }],
         );
-        await Logger.error(
-          error,
-          'error while trying to send transaction (Confirm)',
-        );
+        Logger.error(error, 'error while trying to send transaction (Confirm)');
       } else {
         AnalyticsV2.trackEvent(
           MetaMetricsEvents.QR_HARDWARE_TRANSACTION_CANCELED,
@@ -773,7 +770,7 @@ class Confirm extends PureComponent {
       fromSelectedAddress: accountAddress,
       balanceIsZero: hexToBN(accounts[accountAddress].balance).isZero(),
     });
-    await this.parseTransactionDataHeader();
+    this.parseTransactionDataHeader();
   };
 
   openAccountSelector = () => {

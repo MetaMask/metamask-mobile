@@ -301,10 +301,7 @@ class Login extends PureComponent {
   handleVaultCorruption = async () => {
     // This is so we can log vault corruption error in sentry
     const vaultCorruptionError = new Error('Vault Corruption Error');
-    await Logger.error(
-      vaultCorruptionError,
-      strings('login.clean_vault_error'),
-    );
+    Logger.error(vaultCorruptionError, strings('login.clean_vault_error'));
 
     const LOGIN_VAULT_CORRUPTION_TAG = 'Login/ handleVaultCorruption:';
     const { navigation } = this.props;
@@ -353,7 +350,7 @@ class Login extends PureComponent {
         throw new Error(`${LOGIN_VAULT_CORRUPTION_TAG} ${backupResult.error}`);
       }
     } catch (e) {
-      await Logger.error(e);
+      Logger.error(e);
       this.setState({
         loading: false,
         error: strings('login.invalid_password'),
@@ -429,7 +426,7 @@ class Login extends PureComponent {
         }
       } else if (toLowerCaseEquals(error, DENY_PIN_ERROR_ANDROID)) {
         this.setState({ loading: false });
-        await this.updateBiometryChoice(false);
+        this.updateBiometryChoice(false);
       } else {
         this.setState({ loading: false, error });
       }
@@ -457,7 +454,7 @@ class Login extends PureComponent {
       field.setValue('');
     } catch (error) {
       this.setState({ hasBiometricCredentials: true });
-      await Logger.log(error);
+      Logger.log(error);
     }
     field?.blur();
   };
@@ -520,7 +517,10 @@ class Login extends PureComponent {
             style={styles.wrapper}
             resetScrollToCoords={{ x: 0, y: 0 }}
           >
-            <View {...generateTestId(Platform, LoginViewSelectors.CONTAINER)}>
+            <View
+              testID={LoginViewSelectors.CONTAINER}
+              {...generateTestId(Platform, LoginViewSelectors.CONTAINER)}
+            >
               <View style={styles.foxWrapper}>
                 {Device.isAndroid() ? (
                   <Image

@@ -83,7 +83,7 @@ const ClearCookiesSection = () => {
   const clearCookies = async () => {
     const useWebKit = true;
     await CookieManager.clearAll(useWebKit);
-    await Logger.log('Browser cookies cleared');
+    Logger.log('Browser cookies cleared');
 
     if (Device.isIos()) {
       const cookies = await CookieManager.getAll(useWebKit);
