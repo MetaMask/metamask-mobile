@@ -98,7 +98,6 @@ Array [
                   ],
                 ]
               }
-              testID="list-item-title"
             >
               <View
                 style={
@@ -359,7 +358,6 @@ Array [
                   ],
                 ]
               }
-              testID="list-item-title"
             >
               <View
                 style={
@@ -527,7 +525,6 @@ Array [
                   ],
                 ]
               }
-              testID="list-item-title"
             >
               <View
                 style={
