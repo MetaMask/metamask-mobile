@@ -801,6 +801,10 @@
     "unkown_dapp": "Nama Aplikasi Terdesentralisasi (DAPP) tidak tersedia",
     "no_connections": "Koneksi tidak ditemukan"
   },
+  "sdk_return_to_app_modal":{
+    "title": "Kembali ke aplikasi",
+    "description": "Silakan kembali ke aplikasi untuk melanjutkan penggunaan layanannya."
+  },
   "sdk_feedback_modal": {
     "ok": "Oke",
     "title": "Akun tidak dapat terhubung",

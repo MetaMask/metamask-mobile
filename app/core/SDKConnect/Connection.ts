@@ -20,9 +20,11 @@ import {
   RemoteCommunication,
 } from '@metamask/sdk-communication-layer';
 import { Json } from '@metamask/utils';
+import { NavigationContainerRef } from '@react-navigation/native';
 import { ethErrors } from 'eth-rpc-errors';
 import { EventEmitter2 } from 'eventemitter2';
 import { PROTOCOLS } from '../../constants/deeplinks';
+import Routes from '../../constants/navigation/Routes';
 import { Minimizer } from '../NativeModules';
 import BatchRPCManager, { BatchRPCState } from './BatchRPCManager';
 import RPCQueueManager from './RPCQueueManager';
@@ -50,6 +52,7 @@ export interface ConnectionProps {
   // Only userful in case of reconnection
   trigger?: 'deeplink' | 'resume' | 'reconnect';
   initialConnection?: boolean;
+  navigation?: NavigationContainerRef;
   originatorInfo?: OriginatorInfo;
   validUntil?: number;
   lastAuthorized?: number; // timestamp of last received activity
@@ -82,6 +85,7 @@ export class Connection extends EventEmitter2 {
   requestsToRedirect: { [request: string]: boolean } = {};
   origin: string;
   host: string;
+  navigation?: NavigationContainerRef;
   originatorInfo?: OriginatorInfo;
   isReady = false;
   backgroundBridge?: BackgroundBridge;
@@ -151,6 +155,7 @@ export class Connection extends EventEmitter2 {
     originatorInfo,
     socketServerUrl,
     trigger,
+    navigation,
     lastAuthorized,
     approveHost,
     getApprovedHosts,
@@ -177,6 +182,7 @@ export class Connection extends EventEmitter2 {
     this.origin = origin;
     this.trigger = trigger;
     this.channelId = id;
+    this.navigation = navigation;
     this.lastAuthorized = lastAuthorized;
     this.reconnect = reconnect || false;
     this.isResumed = false;
@@ -979,7 +985,13 @@ export class Connection extends EventEmitter2 {
         `Connection::sendMessage method=${method} trigger=${this.trigger} origin=${this.origin} id=${msgId} goBack()`,
       );
 
-      await Minimizer.goBack();
+      if (Platform.OS === 'ios' && parseInt(Platform.Version) >= 17) {
+        this.navigation?.navigate(Routes.MODAL.ROOT_MODAL_FLOW, {
+          screen: Routes.SHEET.RETURN_TO_DAPP_MODAL,
+        });
+      } else {
+        await Minimizer.goBack();
+      }
     } catch (err) {
       Logger.log(
         err,

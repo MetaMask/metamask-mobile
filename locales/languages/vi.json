@@ -801,6 +801,10 @@
     "unkown_dapp": "Tên DAPP không khả dụng",
     "no_connections": "Không tìm thấy kết nối nào"
   },
+  "sdk_return_to_app_modal":{
+    "title": "Quay lại ứng dụng",
+    "description": "Vui lòng quay lại ứng dụng để tiếp tục sử dụng các dịch vụ."
+  },
   "sdk_feedback_modal": {
     "ok": "OK",
     "title": "Tài khoản không thể kết nối",
