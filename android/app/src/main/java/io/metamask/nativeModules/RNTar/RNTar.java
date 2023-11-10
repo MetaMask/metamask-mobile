@@ -14,11 +14,7 @@ import java.util.zip.GZIPInputStream;
 import org.apache.commons.compress.archivers.tar.TarArchiveInputStream;
 import org.apache.commons.compress.archivers.tar.TarArchiveEntry;
 import java.io.BufferedInputStream;
-import java.io.BufferedReader;
-import java.io.BufferedWriter;
-import java.io.InputStreamReader;
-import java.io.OutputStreamWriter;
-import java.nio.charset.StandardCharsets;
+import java.io.BufferedOutputStream;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.nio.file.Path;
@@ -91,7 +87,7 @@ public class RNTar extends ReactContextBaseJavaModule {
         // Loop through the entries in the .tgz file
         while ((entry = (TarArchiveEntry) tarInputStream.getNextEntry()) != null) {
           File outputFile = new File(outputPath, entry.getName());
-          
+
           // If it is a directory, create the output directory
           if (entry.isDirectory()) {
             createDirectories(outputFile.getAbsolutePath());
@@ -99,21 +95,18 @@ public class RNTar extends ReactContextBaseJavaModule {
             // Create parent directories if they don't exist
             createDirectories(outputFile.getParent());
 
-            // Set up the output streams for writing the file
-            try (FileOutputStream fos = new FileOutputStream(outputFile);
-                 BufferedWriter dest = new BufferedWriter(new OutputStreamWriter(fos, StandardCharsets.UTF_8))) {
+           // Set up the output streams for writing the file
+          try (FileOutputStream fos = new FileOutputStream(outputFile);
+            BufferedOutputStream dest = new BufferedOutputStream(fos)) {
 
-              // Set up a BufferedReader for reading the file from the .tgz file
-              BufferedReader tarReader = new BufferedReader(new InputStreamReader(tarInputStream, StandardCharsets.UTF_8));
-
-              // Read the file line by line and convert line endings to the system default
-              String line;
-              while ((line = tarReader.readLine()) != null) {
-                dest.write(line);
-                dest.newLine();
-              }
+            // Read and write the file data as bytes
+            byte[] buffer = new byte[4096];
+            int length;
+            while ((length = tarInputStream.read(buffer)) != -1) {
+              dest.write(buffer, 0, length);
             }
           }
+        }
         }
       }
       // Return the output directory path
@@ -128,11 +121,13 @@ public class RNTar extends ReactContextBaseJavaModule {
   public void unTar(String pathToRead, String pathToWrite, final Promise promise) {
     Log.d(MODULE_NAME, "Create event called with name: " + pathToRead
       + " and location: " + pathToWrite);
-    try {
-      String decompressedPath = extractTgzFile(pathToRead, pathToWrite);
-      promise.resolve(decompressedPath);
-    } catch(Exception e) {
-      promise.reject("Error uncompressing file:", e);
-    }
+    new Thread(() -> {
+      try {
+        String decompressedPath = extractTgzFile(pathToRead, pathToWrite);
+        promise.resolve(decompressedPath);
+      } catch(Exception e) {
+        promise.reject("Error uncompressing file:", e);
+      }
+    }).start();
   }
 }
