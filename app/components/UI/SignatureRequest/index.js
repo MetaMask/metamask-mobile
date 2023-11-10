@@ -21,11 +21,11 @@ import QRSigningDetails from '../QRHardware/QRSigningDetails';
 import { selectProviderType } from '../../../selectors/networkController';
 import BlockaidBanner from '../BlockaidBanner/BlockaidBanner';
 import { getAnalyticsParams } from '../../../util/confirmation/signatureUtils';
+import { ExtendedKeyringTypes } from '../../../constants/keyringTypes';
 import { SigningModalSelectorsIDs } from '../../../../e2e/selectors/Modals/SigningModal.selectors';
 import setSignatureRequestSecurityAlertResponse from '../../../actions/signatureRequest';
 import { store } from '../../../store';
 import { isHardwareAccount } from '../../../util/address';
-import { KeyringTypes } from '@metamask/keyring-controller';
 
 const createStyles = (colors) =>
   StyleSheet.create({
@@ -327,7 +327,7 @@ class SignatureRequest extends PureComponent {
     const styles = this.getStyles();
 
     const isLedgerAccount = isHardwareAccount(selectedAddress, [
-      KeyringTypes.ledger,
+      ExtendedKeyringTypes.ledger,
     ]);
 
     if (Device.isMediumDevice()) {

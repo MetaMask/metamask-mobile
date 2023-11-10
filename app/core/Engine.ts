@@ -34,7 +34,6 @@ import {
   KeyringControllerState,
   KeyringControllerActions,
   KeyringControllerEvents,
-  KeyringTypes,
 } from '@metamask/keyring-controller';
 import {
   NetworkController,
@@ -124,6 +123,7 @@ import { PPOM, ppomInit } from '../lib/ppom/PPOMView';
 import RNFSStorageBackend from '../lib/ppom/rnfs-storage-backend';
 import { isHardwareAccount } from '../util/address';
 import { ledgerSignTypedMessage } from './Ledger/Ledger';
+import { ExtendedKeyringTypes } from '../constants/keyringTypes';
 
 const NON_EMPTY = 'NON_EMPTY';
 
@@ -658,7 +658,9 @@ class Engine {
           signPersonalMessage:
             keyringController.signPersonalMessage.bind(keyringController),
           signTypedMessage: (msgParams, { version }) => {
-            if (isHardwareAccount(msgParams.from, [KeyringTypes.ledger])) {
+            if (
+              isHardwareAccount(msgParams.from, [ExtendedKeyringTypes.ledger])
+            ) {
               return ledgerSignTypedMessage(
                 msgParams,
                 version as SignTypedDataVersion,

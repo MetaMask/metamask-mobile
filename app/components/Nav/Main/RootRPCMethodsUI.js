@@ -62,7 +62,7 @@ import { selectTokens } from '../../../selectors/tokensController';
 import { selectSelectedAddress } from '../../../selectors/preferencesController';
 import { getLedgerKeyring } from '../../../core/Ledger/Ledger';
 import { createLedgerTransactionModalNavDetails } from '../../UI/LedgerModals/LedgerTransactionModal';
-import { KeyringTypes } from '@metamask/keyring-controller';
+import { ExtendedKeyringTypes } from '../../../constants/keyringTypes';
 
 const hstInterface = new ethers.utils.Interface(abi);
 
@@ -216,7 +216,7 @@ const RootRPCMethodsUI = (props) => {
 
         const isLedgerAccount = isHardwareAccount(
           transactionMeta.transaction.from,
-          [KeyringTypes.ledger],
+          [ExtendedKeyringTypes.ledger],
         );
 
         // For Ledger Accounts we handover the signing to the confirmation flow

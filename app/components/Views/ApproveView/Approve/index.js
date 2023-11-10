@@ -69,7 +69,7 @@ import ShowBlockExplorer from '../../../UI/ApproveTransactionReview/ShowBlockExp
 import createStyles from './styles';
 import { ethErrors } from 'eth-rpc-errors';
 import { getLedgerKeyring } from '../../../../core/Ledger/Ledger';
-import { KeyringTypes } from '@metamask/keyring-controller';
+import { ExtendedKeyringTypes } from '../../../../constants/keyringTypes';
 
 const EDIT = 'edit';
 const REVIEW = 'review';
@@ -316,7 +316,7 @@ class Approve extends PureComponent {
     await stopGasPolling(this.state.pollToken);
 
     const isLedgerAccount = isHardwareAccount(transaction.from, [
-      KeyringTypes.ledger,
+      ExtendedKeyringTypes.ledger,
     ]);
 
     this.appStateListener?.remove();
@@ -508,7 +508,7 @@ class Approve extends PureComponent {
     try {
       const transaction = this.prepareTransaction(this.props.transaction);
       const isLedgerAccount = isHardwareAccount(transaction.from, [
-        KeyringTypes.ledger,
+        ExtendedKeyringTypes.ledger,
       ]);
 
       TransactionController.hub.once(

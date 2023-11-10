@@ -111,7 +111,7 @@ import {
 import { isBlockaidFeatureEnabled } from '../../../../util/blockaid';
 import BlockaidBanner from '../../../UI/BlockaidBanner/BlockaidBanner';
 import { getLedgerKeyring } from '../../../../core/Ledger/Ledger';
-import { KeyringTypes } from '@metamask/keyring-controller';
+import { ExtendedKeyringTypes } from '../../../..//constants/keyringTypes';
 
 const EDIT = 'edit';
 const EDIT_NONCE = 'edit_nonce';
@@ -758,7 +758,7 @@ class Confirm extends PureComponent {
         });
 
       const isLedgerAccount = isHardwareAccount(transaction.from, [
-        KeyringTypes.ledger,
+        ExtendedKeyringTypes.ledger,
       ]);
 
       if (isLedgerAccount) {
@@ -1052,7 +1052,7 @@ class Confirm extends PureComponent {
       gasEstimateType === GAS_ESTIMATE_TYPES.NONE;
     const isQRHardwareWalletDevice = isQRHardwareAccount(fromSelectedAddress);
     const isLedgerAccount = isHardwareAccount(fromSelectedAddress, [
-      KeyringTypes.ledger,
+      ExtendedKeyringTypes.ledger,
     ]);
 
     const isTestNetwork = isTestNet(chainId);
