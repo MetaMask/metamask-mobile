@@ -9,10 +9,13 @@ import AccountBalance from '../../../component-library/components-temp/Accounts/
 import { BadgeVariant } from '../../../component-library/components/Badges/Badge';
 import TagUrl from '../../../component-library/components/Tags/TagUrl';
 import { useStyles } from '../../../component-library/hooks';
-import { selectProviderConfig } from '../../../selectors/networkController';
 import { selectAccounts } from '../../../selectors/accountTrackerController';
+import { selectProviderConfig } from '../../../selectors/networkController';
 import { selectIdentities } from '../../../selectors/preferencesController';
-import { renderAccountName } from '../../../util/address';
+import {
+  getLabelTextByAddress,
+  renderAccountName,
+} from '../../../util/address';
 import { getUrlObj, prefixUrlWithProtocol } from '../../../util/browser';
 import {
   getNetworkImageSource,
@@ -20,14 +23,14 @@ import {
 } from '../../../util/networks';
 import { WALLET_CONNECT_ORIGIN } from '../../../util/walletconnect';
 import useAddressBalance from '../../hooks/useAddressBalance/useAddressBalance';
+import useFavicon from '../../hooks/useFavicon/useFavicon';
 import {
+  APPROVE_TRANSACTION_ORIGIN_PILL,
   ORIGIN_DEEPLINK,
   ORIGIN_QR_CODE,
-  APPROVE_TRANSACTION_ORIGIN_PILL,
 } from './ApproveTransactionHeader.constants';
 import stylesheet from './ApproveTransactionHeader.styles';
 import { ApproveTransactionHeaderI } from './ApproveTransactionHeader.types';
-import useFavicon from '../../hooks/useFavicon/useFavicon';
 
 const ApproveTransactionHeader = ({
   from,
@@ -122,6 +125,8 @@ const ApproveTransactionHeader = ({
 
   const faviconSource = useFavicon(faviconUpdatedOrigin);
 
+  const accountTypeLabel = getLabelTextByAddress(activeAddress);
+
   return (
     <View style={styles.transactionHeader}>
       {origin && !isOriginDeepLink ? (
@@ -137,6 +142,7 @@ const ApproveTransactionHeader = ({
         accountTokenBalance={addressBalance}
         accountName={accountName}
         accountBalanceLabel={strings('transaction.balance')}
+        accountTypeLabel={accountTypeLabel}
         accountNetwork={networkName}
         badgeProps={{
           variant: BadgeVariant.Network,

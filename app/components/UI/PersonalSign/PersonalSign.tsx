@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useCallback } from 'react';
+import { useSelector } from 'react-redux';
 import { View, Text, InteractionManager } from 'react-native';
 import Engine from '../../../core/Engine';
 import SignatureRequest from '../SignatureRequest';
@@ -36,6 +37,9 @@ const PersonalSign = ({
 }: PersonalSignProps) => {
   const navigation = useNavigation();
   const [truncateMessage, setTruncateMessage] = useState<boolean>(false);
+  const { securityAlertResponse } = useSelector(
+    (reduxState: any) => reduxState.signatureRequest,
+  );
 
   const { colors }: any = useTheme();
   const styles = createStyles(colors);
@@ -55,7 +59,7 @@ const PersonalSign = ({
       const url = new URL(pageInfo.url);
 
       const blockaidParams = getBlockaidMetricsParams(
-        messageParams.securityAlertResponse as SecurityAlertResponse,
+        securityAlertResponse as SecurityAlertResponse,
       );
 
       return {
@@ -69,14 +73,14 @@ const PersonalSign = ({
     } catch (error) {
       return {};
     }
-  }, [currentPageInformation, messageParams]);
+  }, [currentPageInformation, messageParams, securityAlertResponse]);
 
   useEffect(() => {
     AnalyticsV2.trackEvent(
       MetaMetricsEvents.SIGNATURE_REQUESTED,
       getAnalyticsParams(),
     );
-  }, [getAnalyticsParams, messageParams.securityAlertResponse]);
+  }, [getAnalyticsParams, securityAlertResponse]);
 
   useEffect(() => {
     const onSignatureError = ({ error }: { error: Error }) => {
@@ -199,7 +203,6 @@ const PersonalSign = ({
       truncateMessage={truncateMessage}
       type="personal_sign"
       fromAddress={messageParams.from}
-      securityAlertResponse={messageParams.securityAlertResponse}
       testID={SigningModalSelectorsIDs.PERSONAL_REQUEST}
     >
       <View style={styles.messageWrapper}>{renderMessageText()}</View>
