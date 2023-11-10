@@ -1,27 +1,18 @@
 import TestHelpers from '../helpers';
 import messages from '../../locales/languages/en.json';
-import { ActivityViewSelectorsIDs } from '../selectors/ActivityView.selectors';
 
 export default class ActivitiesView {
   static async isVisible() {
-    await TestHelpers.checkIfElementByTextIsVisible(
+    await TestHelpers.checkIfElementWithTextIsVisible(
       messages.transactions_view.title,
     );
   }
 
-  static async tapActivity(title) {
+  static async tapOnSwapActivity(sourceToken, destinationToken) {
+    let title = messages.swaps.transaction_label.swap;
+    title = title.replace('{{sourceToken}}', sourceToken);
+    title = title.replace('{{destinationToken}}', destinationToken);
+
     await TestHelpers.waitAndTapText(title);
-  }
-
-  static async checkActivityTitle(title, index) {
-    return expect(
-      element(by.id(ActivityViewSelectorsIDs.TITLE)).atIndex(index),
-    ).toHaveText(title);
-  }
-
-  static async checkActivityStatus(status, index) {
-    return expect(
-      element(by.id(ActivityViewSelectorsIDs.STATUS)).atIndex(index),
-    ).toHaveText(status);
   }
 }
