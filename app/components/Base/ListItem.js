@@ -4,7 +4,6 @@ import { StyleSheet, View } from 'react-native';
 import { fontStyles } from '../../styles/common';
 import Text from './Text';
 import { useTheme } from '../../util/theme';
-import { ActivityViewSelectorsIDs } from '../../../e2e/selectors/ActivityView.selectors';
 
 const createStyles = (colors) =>
   StyleSheet.create({
@@ -89,13 +88,7 @@ const ListItemBody = ({ style, ...props }) => {
 const ListItemTitle = ({ style, ...props }) => {
   const { colors } = useTheme();
   const styles = createStyles(colors);
-  return (
-    <Text
-      style={[styles.title, style]}
-      {...props}
-      testID={ActivityViewSelectorsIDs.TITLE}
-    />
-  );
+  return <Text style={[styles.title, style]} {...props} />;
 };
 const ListItemAmounts = ({ style, ...props }) => {
   const { colors } = useTheme();
