@@ -1,41 +1,40 @@
 // Third party dependencies.
 import React, { useCallback } from 'react';
-import { View, Platform } from 'react-native';
+import { Platform, View } from 'react-native';
 import { useSelector } from 'react-redux';
-import { KeyringTypes } from '@metamask/keyring-controller';
 
 // External dependencies.
-import SheetActions from '../../../../component-library/components-temp/SheetActions';
-import SheetHeader from '../../../../component-library/components/Sheet/SheetHeader';
 import { strings } from '../../../../../locales/i18n';
-import Cell, {
-  CellVariant,
-} from '../../../../component-library/components/Cells/Cell';
-import TagUrl from '../../../../component-library/components/Tags/TagUrl';
-import Text from '../../../../component-library/components/Texts/Text';
-import { useStyles } from '../../../../component-library/hooks';
+import SheetActions from '../../../../component-library/components-temp/SheetActions';
+import {
+  AvatarAccountType,
+  AvatarVariant,
+} from '../../../../component-library/components/Avatars/Avatar';
 import Button, {
   ButtonSize,
   ButtonVariants,
 } from '../../../../component-library/components/Buttons/Button';
-import {
-  AvatarAccountType,
-  AvatarVariants,
-} from '../../../../component-library/components/Avatars/Avatar';
-import { formatAddress } from '../../../../util/address';
+import Cell, {
+  CellVariant,
+} from '../../../../component-library/components/Cells/Cell';
 import Icon, {
   IconName,
 } from '../../../../component-library/components/Icons/Icon';
+import SheetHeader from '../../../../component-library/components/Sheet/SheetHeader';
+import TagUrl from '../../../../component-library/components/Tags/TagUrl';
+import Text from '../../../../component-library/components/Texts/Text';
+import { useStyles } from '../../../../component-library/hooks';
+import { formatAddress, getLabelTextByAddress } from '../../../../util/address';
 import { AccountConnectScreens } from '../AccountConnect.types';
 
 // Internal dependencies.
-import { AccountConnectSingleProps } from './AccountConnectSingle.types';
-import styleSheet from './AccountConnectSingle.styles';
 import USER_INTENT from '../../../../constants/permissions';
+import styleSheet from './AccountConnectSingle.styles';
+import { AccountConnectSingleProps } from './AccountConnectSingle.types';
 
-import generateTestId from '../../../../../wdio/utils/generateTestId';
-import { ConnectAccountModalSelectorsIDs } from '../../../../../e2e/selectors/Modals/ConnectAccountModal.selectors';
 import { CommonSelectorsIDs } from '../../../../../e2e/selectors/Common.selectors';
+import { ConnectAccountModalSelectorsIDs } from '../../../../../e2e/selectors/Modals/ConnectAccountModal.selectors';
+import generateTestId from '../../../../../wdio/utils/generateTestId';
 
 const AccountConnectSingle = ({
   defaultSelectedAccount,
@@ -53,19 +52,6 @@ const AccountConnectSingle = ({
       ? AvatarAccountType.Blockies
       : AvatarAccountType.JazzIcon,
   );
-
-  const getTagLabel = useCallback((type: KeyringTypes) => {
-    let label = '';
-    switch (type) {
-      case KeyringTypes.qr:
-        label = strings('transaction.hardware');
-        break;
-      case KeyringTypes.simple:
-        label = strings('accounts.imported');
-        break;
-    }
-    return label;
-  }, []);
 
   const renderSheetAction = useCallback(
     () => (
@@ -128,9 +114,9 @@ const AccountConnectSingle = ({
 
   const renderSelectedAccount = useCallback(() => {
     if (!defaultSelectedAccount) return null;
-    const { name, address, type, balanceError } = defaultSelectedAccount;
+    const { name, address, balanceError } = defaultSelectedAccount;
     const shortAddress = formatAddress(address, 'short');
-    const tagLabel = getTagLabel(type);
+    const tagLabel = getLabelTextByAddress(address);
 
     return (
       <Cell
@@ -140,11 +126,11 @@ const AccountConnectSingle = ({
         tertiaryText={balanceError}
         onPress={() => onSetScreen(AccountConnectScreens.SingleConnectSelector)}
         avatarProps={{
-          variant: AvatarVariants.Account,
+          variant: AvatarVariant.Account,
           type: accountAvatarType,
           accountAddress: address,
         }}
-        tagLabel={tagLabel}
+        tagLabel={tagLabel ? strings(tagLabel) : ''}
         disabled={isLoading}
         style={isLoading && styles.disabled}
       >
@@ -159,7 +145,6 @@ const AccountConnectSingle = ({
     defaultSelectedAccount,
     isLoading,
     styles,
-    getTagLabel,
   ]);
 
   return (

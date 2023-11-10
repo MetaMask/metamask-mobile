@@ -10,12 +10,12 @@ jest.mock('../../../core/Engine', () => ({
     TokensController: {
       addToken: () => undefined,
     },
+    KeyringController: {
+      state: {
+        keyrings: [],
+      },
+    },
   },
-}));
-
-jest.mock('../../../util/address', () => ({
-  ...jest.requireActual('../../../util/address'),
-  renderAccountName: () => 'ABC',
 }));
 
 const mockInitialState = {
@@ -25,23 +25,23 @@ const mockInitialState = {
       ...initialBackgroundState,
       AccountTrackerController: {
         accounts: {
-          '0x0': {
+          '0xC4955C0d639D99699Bfd7Ec54d9FaFEe40e4D272': {
             balance: '200',
           },
-          '0x1': {
+          '0xd018538C87232FF95acbCe4870629b75640a78E7': {
             balance: '200',
           },
         },
       },
       PreferencesController: {
-        selectedAddress: '0x0',
+        selectedAddress: '0xC4955C0d639D99699Bfd7Ec54d9FaFEe40e4D272',
         identities: {
-          '0x0': {
-            address: '0x0',
+          '0xC4955C0d639D99699Bfd7Ec54d9FaFEe40e4D272': {
+            address: '0xC4955C0d639D99699Bfd7Ec54d9FaFEe40e4D272',
             name: 'Account 1',
           },
-          '0x1': {
-            address: '0x1',
+          '0xd018538C87232FF95acbCe4870629b75640a78E7': {
+            address: '0xd018538C87232FF95acbCe4870629b75640a78E7',
             name: 'Account 2',
           },
         },
@@ -64,19 +64,18 @@ jest.mock('react-redux', () => ({
     .mockImplementation((callback) => callback(mockInitialState)),
 }));
 
-jest.mock('../../../util/address', () => ({
-  ...jest.requireActual('../../../util/address'),
-  renderAccountName: jest.fn(),
-}));
-
 describe('ApproveTransactionHeader', () => {
   it('should render correctly', () => {
     const wrapper = renderWithProvider(
       <ApproveTransactionHeader
-        from="0x0"
+        from="0xC4955C0d639D99699Bfd7Ec54d9FaFEe40e4D272"
         origin="http://metamask.github.io"
         url="http://metamask.github.io"
-        asset={{ address: '0x0', symbol: 'ERC', decimals: 4 }}
+        asset={{
+          address: '0xC4955C0d639D99699Bfd7Ec54d9FaFEe40e4D272',
+          symbol: 'ERC',
+          decimals: 4,
+        }}
       />,
       { state: mockInitialState },
     );
@@ -86,10 +85,14 @@ describe('ApproveTransactionHeader', () => {
   it('should render with domain title', () => {
     const { getByText } = renderWithProvider(
       <ApproveTransactionHeader
-        from="0x0"
+        from="0xC4955C0d639D99699Bfd7Ec54d9FaFEe40e4D272"
         origin="http://metamask.github.io"
         url="http://metamask.github.io"
-        asset={{ address: '0x0', symbol: 'ERC', decimals: 4 }}
+        asset={{
+          address: '0xC4955C0d639D99699Bfd7Ec54d9FaFEe40e4D272',
+          symbol: 'ERC',
+          decimals: 4,
+        }}
       />,
       { state: mockInitialState },
     );
@@ -99,11 +102,11 @@ describe('ApproveTransactionHeader', () => {
   it('should get origin when present', () => {
     const { getByText } = renderWithProvider(
       <ApproveTransactionHeader
-        from="0x0"
+        from="0xC4955C0d639D99699Bfd7Ec54d9FaFEe40e4D272"
         origin="http://metamask.github.io"
         url="http://metamask.github.io"
         asset={{
-          address: '0x0',
+          address: '0xC4955C0d639D99699Bfd7Ec54d9FaFEe40e4D272',
           symbol: 'RAN',
           decimals: 18,
         }}
@@ -116,11 +119,11 @@ describe('ApproveTransactionHeader', () => {
   it('should return origin to be null when not present', () => {
     const container = renderWithProvider(
       <ApproveTransactionHeader
-        from="0x0"
+        from="0xC4955C0d639D99699Bfd7Ec54d9FaFEe40e4D272"
         origin={undefined}
         url="http://metamask.github.io"
         asset={{
-          address: '0x0',
+          address: '0xC4955C0d639D99699Bfd7Ec54d9FaFEe40e4D272',
           symbol: 'RAN',
           decimals: 18,
         }}
@@ -133,11 +136,11 @@ describe('ApproveTransactionHeader', () => {
   it('should not show an origin pill if origin is deeplink', () => {
     const { queryByTestId } = renderWithProvider(
       <ApproveTransactionHeader
-        from="0x0"
+        from="0xC4955C0d639D99699Bfd7Ec54d9FaFEe40e4D272"
         origin="qr-code"
         url="http://metamask.github.io"
         asset={{
-          address: '0x0',
+          address: '0xC4955C0d639D99699Bfd7Ec54d9FaFEe40e4D272',
           symbol: 'RAN',
           decimals: 18,
         }}

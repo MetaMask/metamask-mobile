@@ -37,6 +37,20 @@ jest.mock('react-native-keyboard-aware-scroll-view', () => {
 
 jest.mock('../QRHardware/withQRHardwareAwareness', () => (obj: any) => obj);
 
+jest.mock('../../../core/Engine', () => ({
+  context: {
+    KeyringController: {
+      state: {
+        keyrings: [
+          {
+            accounts: ['0xC4955C0d639D99699Bfd7Ec54d9FaFEe40e4D272'],
+          },
+        ],
+      },
+    },
+  },
+}));
+
 jest.mock('@react-navigation/compat', () => {
   const actualNav = jest.requireActual('@react-navigation/compat');
   return {
@@ -51,17 +65,17 @@ const mockState = {
       ...initialBackgroundState,
       AccountTrackerController: {
         accounts: {
-          '0x0': {
+          '0xC4955C0d639D99699Bfd7Ec54d9FaFEe40e4D272': {
             balance: '0x2',
           },
         },
       },
       PreferencesController: {
-        selectedAddress: '0x2',
+        selectedAddress: '0xd018538C87232FF95acbCe4870629b75640a78E7',
         identities: {
-          '0x0': { name: 'Account 1' },
-          '0x1': { name: 'Account 2' },
-          '0x2': { name: 'Account 3' },
+          '0xC4955C0d639D99699Bfd7Ec54d9FaFEe40e4D272': { name: 'Account 1' },
+          '0xB374Ca013934e498e5baD3409147F34E6c462389': { name: 'Account 2' },
+          '0xd018538C87232FF95acbCe4870629b75640a78E7': { name: 'Account 3' },
         },
       },
       NetworkController: {
@@ -78,9 +92,17 @@ const mockState = {
     primaryCurrency: 'ETH',
   },
   transaction: {
-    transaction: { from: '0x0', to: '0x1' },
-    transactionTo: '0x1',
-    selectedAsset: { isETH: true, address: '0x0', symbol: 'ETH', decimals: 8 },
+    transaction: {
+      from: '0xC4955C0d639D99699Bfd7Ec54d9FaFEe40e4D272',
+      to: '0xB374Ca013934e498e5baD3409147F34E6c462389',
+    },
+    transactionTo: '0xB374Ca013934e498e5baD3409147F34E6c462389',
+    selectedAsset: {
+      isETH: true,
+      address: '0xC4955C0d639D99699Bfd7Ec54d9FaFEe40e4D272',
+      symbol: 'ETH',
+      decimals: 8,
+    },
     transactionToName: 'Account 2',
     transactionFromName: 'Account 1',
   },
@@ -211,7 +233,7 @@ describe('TransactionReview', () => {
           AccountTrackerController: {
             ...mockState.engine.backgroundState.AccountTrackerController,
             accounts: {
-              '0x0': {
+              '0xC4955C0d639D99699Bfd7Ec54d9FaFEe40e4D272': {
                 balance: '0x0',
               },
             },
@@ -232,23 +254,6 @@ describe('TransactionReview', () => {
     );
     const confirmButton = getByRole('button', { name: 'Confirm' });
     expect(confirmButton.props.disabled).toBe(false);
-  });
-
-  it('should have confirm button disabled if error is defined', async () => {
-    jest.mock('react-redux', () => ({
-      ...jest.requireActual('react-redux'),
-      useSelector: (fn: any) => fn(mockState),
-    }));
-    const { getByRole } = renderWithProvider(
-      <TransactionReview
-        EIP1559GasData={{}}
-        generateTransform={generateTransform}
-        error="You need 1 more ETH to complete the transaction"
-      />,
-      { state: mockState },
-    );
-    const confirmButton = getByRole('button', { name: 'Confirm' });
-    expect(confirmButton.props.disabled).toBe(true);
   });
 
   it('should have confirm button disabled if error is defined', async () => {
