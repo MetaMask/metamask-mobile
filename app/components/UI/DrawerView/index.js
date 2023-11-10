@@ -6,7 +6,6 @@ import {
   InteractionManager,
   Platform,
   StyleSheet,
-  Text,
   TouchableOpacity,
   View,
 } from 'react-native';
@@ -89,6 +88,9 @@ import StyledButton from '../StyledButton';
 
 import { createAccountSelectorNavDetails } from '../../Views/AccountSelector';
 import NetworkInfo from '../NetworkInfo';
+import Text, {
+  TextVariant,
+} from '../../../component-library/components/Texts/Text';
 
 const createStyles = (colors) =>
   StyleSheet.create({
@@ -510,7 +512,11 @@ class DrawerView extends PureComponent {
 
     return label ? (
       <View style={[styles.importedWrapper]}>
-        <Text numberOfLines={1} style={styles.importedText}>
+        <Text
+          varient={TextVariant.BodySMBold}
+          numberOfLines={1}
+          style={styles.importedText}
+        >
           {strings(label)}
         </Text>
       </View>

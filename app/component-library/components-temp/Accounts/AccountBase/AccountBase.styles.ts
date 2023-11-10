@@ -32,10 +32,8 @@ const styleSheet = StyleSheet.create({
   accountNameLabelText: {
     marginLeft: 4,
     paddingHorizontal: 8,
-    ...fontStyles.bold,
     borderWidth: 1,
     borderRadius: 8,
-    fontSize: 10,
   },
 });
 

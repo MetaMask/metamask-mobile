@@ -25,7 +25,6 @@ const styleSheet = (colors: Colors) =>
     accountNameLabelText: {
       marginLeft: 4,
       paddingHorizontal: 8,
-      ...fontStyles.bold,
       color: colors.text.alternative,
       borderWidth: 1,
       borderRadius: 8,
