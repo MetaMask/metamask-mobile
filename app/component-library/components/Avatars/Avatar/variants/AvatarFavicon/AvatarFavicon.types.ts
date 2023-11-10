@@ -17,7 +17,4 @@ export interface AvatarFaviconProps extends AvatarBaseProps {
 /**
  * Style sheet input parameters.
  */
-export interface AvatarFaviconStyleSheetVars
-  extends Pick<AvatarFaviconProps, 'style'> {
-  error: any;
-}
+export type AvatarFaviconStyleSheetVars = Pick<AvatarFaviconProps, 'style'>;

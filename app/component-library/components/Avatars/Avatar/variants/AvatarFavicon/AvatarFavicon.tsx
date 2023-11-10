@@ -29,7 +29,7 @@ const AvatarFavicon = ({
   ...props
 }: AvatarFaviconProps) => {
   const [error, setError] = useState<any>(undefined);
-  const { styles } = useStyles(stylesheet, { style, error });
+  const { styles } = useStyles(stylesheet, { style });
 
   const onError = useCallback(
     (e: NativeSyntheticEvent<ImageErrorEventData>) =>
