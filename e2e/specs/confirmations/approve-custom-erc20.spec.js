@@ -11,7 +11,6 @@ import TabBarComponent from '../../pages/TabBarComponent';
 import { TestDApp } from '../../pages/TestDApp';
 import { SMART_CONTRACTS } from '../../../app/util/test/smart-contracts';
 import root from '../../../locales/languages/en.json';
-import { ContractApprovalModalSelectorsIDs } from '../../selectors/Modals/ContractApprovalModal.selectors';
 import ContractApprovalModal from '../../pages/modals/ContractApprovalModal';
 
 const HST_CONTRACT = SMART_CONTRACTS.HST;

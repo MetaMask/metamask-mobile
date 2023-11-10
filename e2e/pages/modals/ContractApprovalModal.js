@@ -35,8 +35,10 @@ export default class ContractApprovalModal {
     await TestHelpers.checkIfExists(
       ContractApprovalModalSelectorsIDs.APPROVE_TOKEN_AMOUNT,
     );
-    await TestHelpers.typeTextAndHideKeyboard(ContractApprovalModalSelectorsIDs.APPROVE_TOKEN_AMOUNT,
-      amount);
+    await TestHelpers.typeTextAndHideKeyboard(
+      ContractApprovalModalSelectorsIDs.APPROVE_TOKEN_AMOUNT,
+      amount,
+    );
   }
 
   static async isVisible() {
@@ -54,11 +56,9 @@ export default class ContractApprovalModal {
     await TestHelpers.checkIfElementWithTextIsVisible(nickName);
   }
 
-  static async isTokenAmountVisible(amount){
+  static async isTokenAmountVisible(amount) {
     await expect(
-      element(
-        by.id(ContractApprovalModalSelectorsIDs.APPROVE_TOKEN_AMOUNT),
-      ),
+      element(by.id(ContractApprovalModalSelectorsIDs.APPROVE_TOKEN_AMOUNT)),
     ).toHaveText(amount);
   }
 }
