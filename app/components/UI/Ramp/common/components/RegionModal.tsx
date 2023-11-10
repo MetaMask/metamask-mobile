@@ -95,6 +95,7 @@ const RegionModal: React.FC<Props> = ({
   const list = useRef<FlatList<Region>>(null);
   const [searchString, setSearchString] = useState('');
   const [currentData, setCurrentData] = useState(data || []);
+  const isBuy = rampType === RampType.BUY;
 
   // local state variable to set the active view (countries vs. regions)
   const [activeView, setActiveView] = useState(RegionViewType.COUNTRY);
@@ -382,6 +383,13 @@ const RegionModal: React.FC<Props> = ({
           title={strings('fiat_on_ramp_aggregator.region.unsupported')}
           body={strings(
             'fiat_on_ramp_aggregator.region.unsupported_description',
+            {
+              rampType: strings(
+                isBuy
+                  ? 'fiat_on_ramp_aggregator.buy'
+                  : 'fiat_on_ramp_aggregator.sell',
+              ),
+            },
           )}
           link={strings('fiat_on_ramp_aggregator.region.unsupported_link')}
         />
