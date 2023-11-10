@@ -110,6 +110,7 @@ cd metamask-mobile
   cp .android.env.example .android.env && \
   cp .js.env.example .js.env
 ```
+- After updating env vars, make sure to run `source .js.env` on the root of the project
 -   _Non-MetaMask Only:_ Create an account and generate your own API key at [Infura](https://infura.io) in order to connect to main and test nets. Fill `MM_INFURA_PROJECT_ID` in `.js.env`. (App will run without it, but will not be able to connect to actual network.)
 - _Non-MetaMask Only:_ Fill `MM_SENTRY_DSN` in `.js.env` if you want the app to emit logs to your own Sentry project.
 
