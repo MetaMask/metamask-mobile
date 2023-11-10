@@ -13,9 +13,15 @@ import java.io.InputStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+
+import static org.junit.Assert.fail;
+import static org.mockito.Mockito.doAnswer;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
+import static org.mockito.ArgumentMatchers.anyString;
 import java.nio.file.StandardCopyOption;
+import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.TimeUnit;
 
 import io.metamask.nativeModules.RNTar.RNTar;
 
@@ -33,20 +39,36 @@ public class RNTarTest {
   }
 
   @Test
-  public void testUnTar_validTgzFile() throws IOException {
+  public void testUnTar_validTgzFile() throws IOException, InterruptedException {
     // Prepare a sample .tgz file
     InputStream tgzResource = Thread.currentThread().getContextClassLoader().getResourceAsStream("validTgzFile.tgz");
+    CountDownLatch latch = new CountDownLatch(1); // Create a CountDownLatch
+
     try {
       File tgzFile = new File(reactContext.getCacheDir(), "validTgzFile.tgz");
       Files.copy(tgzResource, tgzFile.toPath(), StandardCopyOption.REPLACE_EXISTING);
       String outputPath = reactContext.getCacheDir().getAbsolutePath() + "/output";
+
+      // Set up the promise to count down the latch when resolved
+      doAnswer(invocation -> {
+        latch.countDown();
+        return null;
+      }).when(promise).resolve(anyString());
+
       // Call unTar method
       tar.unTar(tgzFile.getAbsolutePath(), outputPath, promise);
-      // Verify the promise was resolved
+
+      // Wait for the background operation to complete
+      if (!latch.await(5, TimeUnit.SECONDS)) {
+        fail("Timed out waiting for unTar operation to complete");
+      }
+
+      // Verify the promise was resolved with the expected path
       Path expectedDecompressedPath = Paths.get(outputPath, "package");
       verify(promise).resolve(expectedDecompressedPath.toString());
     } finally {
       tgzResource.close();
     }
   }
+
 }
