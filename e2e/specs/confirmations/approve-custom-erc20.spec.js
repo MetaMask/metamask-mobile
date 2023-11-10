@@ -51,7 +51,7 @@ describe(Smoke('ERC20 tokens'), () => {
         });
 
         //Input custom token amount
-        await ContractApprovalModal.inputCustomAmount('2');
+        await ContractApprovalModal.clearAndInputCustomAmount('2');
 
         // Assert that custom token amount is shown
         await ContractApprovalModal.isTokenAmountVisible('2');
