@@ -487,7 +487,7 @@ class Transactions extends PureComponent {
 
   handleSpeedUpTransactionFailure = (e) => {
     const speedUpTxId = this.speedUpTxId;
-    const message = e && e instanceof TransactionError ? e.message : undefined;
+    const message = e instanceof TransactionError ? e.message : undefined;
     Logger.error(e, { message: `speedUpTransaction failed `, speedUpTxId });
     InteractionManager.runAfterInteractions(this.toggleRetry(message));
     this.setState({
@@ -498,7 +498,7 @@ class Transactions extends PureComponent {
 
   handleCancelTransactionFailure = (e) => {
     const cancelTxId = this.cancelTxId;
-    const message = e && e instanceof TransactionError ? e.message : undefined;
+    const message = e instanceof TransactionError ? e.message : undefined;
     Logger.error(e, { message: `cancelTransaction failed `, cancelTxId });
     InteractionManager.runAfterInteractions(this.toggleRetry(message));
     this.setState({
