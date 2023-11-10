@@ -9,19 +9,19 @@ import AvatarNetwork from './variants/AvatarNetwork';
 import AvatarToken from './variants/AvatarToken';
 
 // Internal dependencies.
-import { AvatarProps, AvatarVariants } from './Avatar.types';
+import { AvatarProps, AvatarVariant } from './Avatar.types';
 
 const Avatar = (avatarProps: AvatarProps) => {
   switch (avatarProps.variant) {
-    case AvatarVariants.Account:
+    case AvatarVariant.Account:
       return <AvatarAccount {...avatarProps} />;
-    case AvatarVariants.Favicon:
+    case AvatarVariant.Favicon:
       return <AvatarFavicon {...avatarProps} />;
-    case AvatarVariants.Icon:
+    case AvatarVariant.Icon:
       return <AvatarIcon {...avatarProps} />;
-    case AvatarVariants.Network:
+    case AvatarVariant.Network:
       return <AvatarNetwork {...avatarProps} />;
-    case AvatarVariants.Token:
+    case AvatarVariant.Token:
       return <AvatarToken {...avatarProps} />;
     default:
       throw new Error('Invalid Avatar Variant');

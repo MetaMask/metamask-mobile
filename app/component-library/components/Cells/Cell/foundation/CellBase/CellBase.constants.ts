@@ -1,7 +1,7 @@
 // External dependencies.
 import {
   AvatarSize,
-  AvatarVariants,
+  AvatarVariant,
   AvatarAccountType,
 } from '../../../../Avatars/Avatar';
 import { AvatarProps } from '../../../../Avatars/Avatar/Avatar.types';
@@ -26,7 +26,7 @@ export const SAMPLE_CELLBASE_SECONDARYTEXT =
 export const SAMPLE_CELLBASE_TERTIARY_TEXT = 'Updated 1 sec ago';
 export const SAMPLE_CELLBASE_TAGLABEL = 'Imported';
 export const SAMPLE_CELLBASE_AVATARPROPS: AvatarProps = {
-  variant: AvatarVariants.Account,
+  variant: AvatarVariant.Account,
   accountAddress: '0x2990079bcdEe240329a520d2444386FC119da21a',
   type: AvatarAccountType.JazzIcon,
 };

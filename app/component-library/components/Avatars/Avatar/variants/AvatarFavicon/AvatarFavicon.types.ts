@@ -4,7 +4,7 @@ import { ImageSourcePropType } from 'react-native';
 // External dependencies.
 import { IconSize } from '../../../../Icons/Icon';
 import { AvatarBaseProps } from '../../foundation/AvatarBase';
-import { AvatarVariants, AvatarSize } from '../../Avatar.types';
+import { AvatarVariant, AvatarSize } from '../../Avatar.types';
 
 /**
  * AvatarFavicon component props.
@@ -13,7 +13,7 @@ export interface AvatarFaviconProps extends AvatarBaseProps {
   /**
    * Variant of Avatar
    */
-  variant?: AvatarVariants.Favicon;
+  variant?: AvatarVariant.Favicon;
   /**
    * A favicon image from either a local or remote source.
    */

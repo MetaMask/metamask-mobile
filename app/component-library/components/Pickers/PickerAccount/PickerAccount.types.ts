@@ -27,6 +27,11 @@ export interface PickerAccountProps extends Omit<PickerBaseProps, 'children'> {
    * cell account contianer style.
    */
   cellAccountContainerStyle?: ViewStyle;
+
+  /**
+   * Account type label.
+   */
+  accountTypeLabel?: string;
 }
 
 /**

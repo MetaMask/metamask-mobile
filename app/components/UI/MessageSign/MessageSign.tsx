@@ -15,6 +15,7 @@ import {
 } from '../../../util/confirmation/signatureUtils';
 import { MessageParams, PageMeta } from '../SignatureRequest/types';
 import { Colors } from '../../../util/theme/models';
+import { SigningModalSelectorsIDs } from '../../../../e2e/selectors/Modals/SigningModal.selectors';
 
 interface MessageSignProps {
   /**
@@ -164,7 +165,7 @@ class MessageSign extends PureComponent<MessageSignProps, MessageSignState> {
       navigation,
       showExpandedMessage,
       toggleExpandedMessage,
-      messageParams: { from, securityAlertResponse },
+      messageParams: { from },
     } = this.props;
     const styles = this.getStyles();
 
@@ -186,8 +187,7 @@ class MessageSign extends PureComponent<MessageSignProps, MessageSignState> {
         type="eth_sign"
         showWarning
         fromAddress={from}
-        securityAlertResponse={securityAlertResponse}
-        testID={'eth-signature-request'}
+        testID={SigningModalSelectorsIDs.ETH_REQUEST}
       >
         <View style={styles.messageWrapper}>{this.renderMessageText()}</View>
       </SignatureRequest>

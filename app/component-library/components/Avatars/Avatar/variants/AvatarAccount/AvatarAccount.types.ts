@@ -1,6 +1,6 @@
 // External dependencies.
 import { AvatarBaseProps } from '../../foundation/AvatarBase';
-import { AvatarVariants } from '../../Avatar.types';
+import { AvatarVariant } from '../../Avatar.types';
 
 /**
  * AvatarAccount variants.
@@ -21,7 +21,7 @@ export interface AvatarAccountProps extends AvatarBaseProps {
   /**
    * Variant of Avatar
    */
-  variant?: AvatarVariants.Account;
+  variant?: AvatarVariant.Account;
   /**
    * Optional enum to select the avatar type between `JazzIcon` and `Blockies`.
    * @default JazzIcon

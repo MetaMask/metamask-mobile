@@ -1,6 +1,6 @@
 // External dependencies.
 import { AvatarBaseProps } from '../../foundation/AvatarBase';
-import { AvatarVariants, AvatarSize } from '../../Avatar.types';
+import { AvatarVariant, AvatarSize } from '../../Avatar.types';
 import { IconProps, IconSize } from '../../../../Icons/Icon';
 
 /**
@@ -10,7 +10,7 @@ export interface AvatarIconProps extends AvatarBaseProps {
   /**
    * Variant of Avatar
    */
-  variant?: AvatarVariants.Icon;
+  variant?: AvatarVariant.Icon;
   /**
    * Name of icon to use.
    */

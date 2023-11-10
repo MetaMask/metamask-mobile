@@ -1,6 +1,6 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
-exports[`PickerNetwork should render correctly 1`] = `
+exports[`PickerNetwork renders correctly 1`] = `
 <TouchableOpacity
   onPress={[Function]}
   style={
@@ -15,32 +15,66 @@ exports[`PickerNetwork should render correctly 1`] = `
     }
   }
 >
-  <Avatar
-    imageSource={
+  <View
+    style={
       Object {
-        "uri": "https://assets.coingecko.com/coins/images/279/small/ethereum.png?1595348880",
+        "backgroundColor": "#FFFFFF",
+        "borderRadius": 8,
+        "height": 16,
+        "overflow": "hidden",
+        "width": 16,
       }
     }
-    name="Ethereum Mainnet"
-    size="16"
-    variant="Network"
-  />
+  >
+    <Image
+      onError={[Function]}
+      resizeMode="contain"
+      source={
+        Object {
+          "uri": "https://assets.coingecko.com/coins/images/279/small/ethereum.png?1595348880",
+        }
+      }
+      style={
+        Object {
+          "flex": 1,
+          "height": undefined,
+          "width": undefined,
+        }
+      }
+      testID="network-avatar-image"
+    />
+  </View>
   <Text
+    accessibilityRole="text"
     numberOfLines={1}
     style={
       Object {
+        "color": "#24272A",
         "flexShrink": 1,
+        "fontFamily": "Euclid Circular B",
+        "fontSize": 14,
+        "fontWeight": "400",
+        "letterSpacing": 0,
+        "lineHeight": 22,
         "marginHorizontal": 8,
       }
     }
     testID="open-networks-text"
-    variant="sBodyMD"
   >
     Ethereum Mainnet
   </Text>
-  <Icon
+  <SvgMock
+    color="#24272A"
+    height={12}
     name="ArrowDown"
-    size="12"
+    style={
+      Object {
+        "height": 12,
+        "width": 12,
+      }
+    }
+    testID="pickernetwork-arrow"
+    width={12}
   />
 </TouchableOpacity>
 `;

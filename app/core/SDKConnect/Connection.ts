@@ -12,7 +12,7 @@ import getRpcMethodMiddleware, {
 } from '../RPCMethods/RPCMethodMiddleware';
 
 import { ApprovalController } from '@metamask/approval-controller';
-import { Json } from '@metamask/controller-utils';
+import { Json } from '@metamask/utils';
 import { KeyringController } from '@metamask/keyring-controller';
 import { PreferencesController } from '@metamask/preferences-controller';
 import {
@@ -53,7 +53,7 @@ export interface ConnectionProps {
   reconnect?: boolean;
   initialConnection?: boolean;
   originatorInfo?: OriginatorInfo;
-  validUntil: number;
+  validUntil?: number;
   lastAuthorized?: number; // timestamp of last received activity
 }
 
@@ -93,6 +93,10 @@ export class Connection extends EventEmitter2 {
    * We keep track of the disconnect event to avoid waiting for ready after a message.
    */
   receivedDisconnect = false;
+  /**
+   * receivedClientsReady is used to track when a dApp disconnects before processing the 'clients_ready' message.
+   */
+  receivedClientsReady = false;
   /**
    * isResumed is used to manage the loading state.
    */
@@ -191,6 +195,10 @@ export class Connection extends EventEmitter2 {
       `Connection::constructor() id=${this.channelId} initialConnection=${this.initialConnection} lastAuthorized=${this.lastAuthorized}`,
     );
 
+    if (!this.channelId) {
+      throw new Error('Connection channelId is undefined');
+    }
+
     this.remote = new RemoteCommunication({
       platformType: AppConstants.MM_SDK.PLATFORM as 'metamask-mobile',
       communicationServerUrl: AppConstants.MM_SDK.SERVER_URL,
@@ -226,11 +234,21 @@ export class Connection extends EventEmitter2 {
       );
       this.setLoading(true);
       this.receivedDisconnect = false;
-      // Auto hide after 3seconds if 'ready' wasn't received
-      setTimeout(() => {
-        DevLogger.log(`Connection::CLIENTS_CONNECTED auto-hide loading`);
-        this.setLoading(false);
-      }, 3000);
+
+      // Auto hide 3seconds after keychain has unlocked if 'ready' wasn't received
+      const keyringController = (
+        Engine.context as { KeyringController: KeyringController }
+      ).KeyringController;
+      waitForKeychainUnlocked({ keyringController }).then(() => {
+        setTimeout(() => {
+          if (this._loading) {
+            DevLogger.log(
+              `Connection::CLIENTS_CONNECTED auto-hide loading after 3s`,
+            );
+            this.setLoading(false);
+          }
+        }, 3000);
+      });
     });
 
     this.remote.on(EventType.CLIENTS_DISCONNECTED, () => {
@@ -238,7 +256,9 @@ export class Connection extends EventEmitter2 {
       DevLogger.log(
         `Connection::CLIENTS_DISCONNECTED id=${
           this.channelId
-        } paused=${this.remote.isPaused()} origin=${this.origin}`,
+        } paused=${this.remote.isPaused()} ready=${this.isReady} origin=${
+          this.origin
+        }`,
       );
       // Disapprove a given host everytime there is a disconnection to prevent hijacking.
       if (!this.remote.isPaused()) {
@@ -249,8 +269,19 @@ export class Connection extends EventEmitter2 {
         this.initialConnection = false;
         this.otps = undefined;
       }
+
+      // detect interruption of connection (can happen on mobile browser ios) - We need to warm the user to redo the connection.
+      if (!this.receivedClientsReady && !this.remote.isPaused()) {
+        // SOCKET CONNECTION WAS INTERRUPTED
+        console.warn(`dApp connection interrupted - please try again`);
+        // Terminate to prevent bypassing initial approval when auto-reconnect on deeplink.
+        this.disconnect({ terminate: true, context: 'CLIENTS_DISCONNECTED' });
+      }
+
       this.receivedDisconnect = true;
+      // Reset connection state
       this.isReady = false;
+      this.receivedClientsReady = false;
       DevLogger.log(
         `Connection::CLIENTS_DISCONNECTED id=${this.channelId} switch isReady ==> false`,
       );
@@ -266,6 +297,7 @@ export class Connection extends EventEmitter2 {
         // clients_ready may be sent multple time (from sdk <0.2.0).
         const updatedOriginatorInfo = clientsReadyMsg?.originatorInfo;
         const apiVersion = updatedOriginatorInfo?.apiVersion;
+        this.receivedClientsReady = true;
 
         // backward compatibility with older sdk -- always first request approval
         if (!apiVersion) {
@@ -401,6 +433,9 @@ export class Connection extends EventEmitter2 {
         if (message.type === MessageType.TERMINATE) {
           // Delete connection from storage
           this.onTerminate({ channelId: this.channelId });
+          return;
+        } else if (message.type === 'ping') {
+          DevLogger.log(`Connection::ping id=${this.channelId}`);
           return;
         }
 
@@ -783,6 +818,7 @@ export class Connection extends EventEmitter2 {
   }
 
   resume() {
+    DevLogger.log(`Connection::resume() id=${this.channelId}`);
     this.remote.resume();
     this.isResumed = true;
     this.setLoading(false);
@@ -792,6 +828,7 @@ export class Connection extends EventEmitter2 {
     DevLogger.log(
       `Connection::disconnect() context=${context} id=${this.channelId} terminate=${terminate}`,
     );
+    this.receivedClientsReady = false;
     if (terminate) {
       this.remote
         .sendMessage({

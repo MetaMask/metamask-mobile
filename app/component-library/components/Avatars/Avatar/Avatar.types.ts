@@ -19,7 +19,7 @@ export enum AvatarSize {
 /**
  * Avatar variants.
  */
-export enum AvatarVariants {
+export enum AvatarVariant {
   Account = 'Account',
   Favicon = 'Favicon',
   Icon = 'Icon',

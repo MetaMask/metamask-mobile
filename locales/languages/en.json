@@ -7,7 +7,9 @@
     "deceptive_request_title": "This is a deceptive request",
     "failed_title": "Request may not be safe",
     "failed_description": "Because of an error, this request was not verified by the security provider. Proceed with caution.",
+    "loading_title": "We’re still evaluating the safety of this request. Wait or proceed with caution.",
     "malicious_domain_description": "You're interacting with a malicious domain. If you approve this request, you might lose your assets.",
+    "no_risks": "No risks found",
     "other_description": "If you approve this request, you might lose your assets.",
     "raw_signature_farming_description": "If you approve this request, you might lose your assets.",
     "seaport_farming_description": "If you approve this request, someone can steal your assets listed on OpenSea.",
@@ -514,6 +516,7 @@
     "import_account": "Import an account",
     "connect_hardware": "Connect hardware wallet",
     "imported": "Imported",
+    "qr_hardware": "QR hardware",
     "remove_account_title": "Account removal",
     "remove_account_message": "Do you really want to remove this account?",
     "no": "No",
@@ -537,7 +540,15 @@
     "address_balance_activity_permission": "See address, account balance, and activity",
     "suggest_transactions": "Suggest transactions to approve",
     "disconnect": "Disconnect",
-    "disconnect_all_accounts": "Disconnect all accounts"
+    "disconnect_all_accounts": "Disconnect all accounts",
+    "deceptive_site_ahead": "Deceptive site ahead",
+    "deceptive_site_desc": "The site you’re trying to visit isn’t safe. Attackers may trick you into doing something dangerous.",
+    "learn_more": "Learn more",
+    "advisory_by": "Advisory provided by Ethereum Phishing Detector and PhishFort",
+    "potential_threat": "Potential threats include",
+    "fake_metamask": "Fake versions of MetaMask",
+    "srp_theft": "Secret recovery phrase or password theft",
+    "malicious_transactions": "Malicious transactions resulting in stolen assets"
   },
   "toast": {
     "connected_and_active": "connected and active.",
@@ -991,7 +1002,6 @@
     "confirm": "Confirm"
   },
   "transaction": {
-    "hardware": "Hardware",
     "alert": "ALERT",
     "amount": "Amount",
     "next": "Next",
@@ -2237,7 +2247,13 @@
     "unrecognized_chain": "This custom network is not recongized",
     "invalid_chain": "The %{rpcUrl} for this Chain ID does not match the chainid.network listing",
     "alert_recommend": "We recommend you",
-    "alert_verify": "verify the chain ID"
+    "alert_verify": "verify the chain ID",
+    "warning_subtext_new":{"1":"MetaMask doesn’t verify custom networks, so only approve networks you trust.", "2":"Learn more about network security risks and scams."} ,
+    "invalid_rpc_url": "This network URL doesn't match a known provider for this chain ID.",
+    "invalid_chain_token_decimals": "It looks like this network's decimal doesn't match its chain ID.",
+    "unrecognized_chain_name": "It looks like this network's display name doesn't match its chain ID.",
+    "unrecognized_chain_ticker": "It looks like this network's symbol doesn't match this chain ID.",
+    "unrecognized_chain_id": "We don't recognize this network. Be sure the chain ID is correct before you continue."
   },
   "media_player": {
     "loading": "Loading...",

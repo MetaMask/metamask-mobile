@@ -23,6 +23,10 @@ export interface BottomSheetDialogProps extends ViewProps {
    * Optional callback that gets triggered when sheet is dismissed.
    */
   onDismissed?: () => void;
+  /**
+   * Optional boolean that allow the bottomsheet to grow until the top.
+   */
+  isFlexible?: boolean;
 }
 
 export interface BottomSheetDialogRef {

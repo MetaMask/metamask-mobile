@@ -1,13 +1,13 @@
 // External dependencies.
 import { CellBaseProps } from '../../foundation/CellBase/CellBase.types';
-import { SelectItemProps } from '../../../../Select/Select/SelectItem/SelectItem.types';
+import { ListItemSelectProps } from '../../../../List/ListItemSelect/ListItemSelect.types';
 
 /**
  * Cell Account Select  component props.
  */
 export interface CellSelectProps
   extends CellBaseProps,
-    Omit<SelectItemProps, 'children'> {}
+    Omit<ListItemSelectProps, 'children'> {}
 
 /**
  * Style sheet input parameters.
