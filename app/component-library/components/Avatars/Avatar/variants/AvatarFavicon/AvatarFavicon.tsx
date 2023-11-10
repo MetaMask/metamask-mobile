@@ -37,7 +37,7 @@ const AvatarFavicon = ({
     [setError],
   );
 
-  // const onSvgError = useCallback((e: any) => setError(e), [setError]);
+  const onSvgError = useCallback((e: any) => setError(e), [setError]);
 
   // TODO add the fallback with uppercase letter initial
   //  requires that the domain is passed in as a prop from the parent
@@ -62,7 +62,7 @@ const AvatarFavicon = ({
         height="100%"
         uri={svgSource}
         style={styles.image}
-        // onError={onSvgError}
+        onError={onSvgError}
       />
     ) : null;
 
