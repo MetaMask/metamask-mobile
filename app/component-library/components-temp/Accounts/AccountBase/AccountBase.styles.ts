@@ -1,5 +1,4 @@
 // Third party dependencies.
-import { fontStyles } from '../../../../../app/styles/common';
 import { StyleSheet } from 'react-native';
 
 /**
