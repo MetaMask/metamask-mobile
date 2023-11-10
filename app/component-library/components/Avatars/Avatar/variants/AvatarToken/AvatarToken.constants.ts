@@ -26,4 +26,5 @@ export const SAMPLE_AVATARTOKEN_PROPS: AvatarTokenProps = {
   size: DEFAULT_AVATARTOKEN_SIZE,
   name: 'Wrapped Ethereum',
   imageSource: SAMPLE_AVATARTOKEN_IMAGESOURCE_REMOTE,
+  isIpfsGatewayCheckBypassed: true,
 };
