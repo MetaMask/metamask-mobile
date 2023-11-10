@@ -3,6 +3,9 @@
 // Internal dependencies.
 import { PickerNetworkProps } from './PickerNetwork.types';
 
+// Test IDs
+export const PICKERNETWORK_ARROW_TESTID = 'pickernetwork-arrow';
+
 // Sample consts
 export const SAMPLE_PICKERNETWORK_PROPS: PickerNetworkProps = {
   imageSource: {

@@ -545,14 +545,13 @@ export const getRpcMethodMiddleware = ({
             checkSelectedAddress: isMMSDK || isWalletConnect,
           });
           if (isBlockaidFeatureEnabled()) {
-            req.securityAlertResponse = await PPOMUtil.validateRequest(req);
+            PPOMUtil.validateRequest(req);
           }
           const rawSig = await SignatureController.newUnsignedMessage({
             data: req.params[1],
             from: req.params[0],
             ...pageMeta,
             origin: hostname,
-            securityAlertResponse: req.securityAlertResponse,
           });
 
           res.result = rawSig;
@@ -596,14 +595,13 @@ export const getRpcMethodMiddleware = ({
         });
 
         if (isBlockaidFeatureEnabled()) {
-          req.securityAlertResponse = await PPOMUtil.validateRequest(req);
+          PPOMUtil.validateRequest(req);
         }
 
         const rawSig = await SignatureController.newUnsignedPersonalMessage({
           ...params,
           ...pageMeta,
           origin: hostname,
-          securityAlertResponse: req.securityAlertResponse,
         });
 
         res.result = rawSig;
@@ -646,7 +644,7 @@ export const getRpcMethodMiddleware = ({
         });
 
         if (isBlockaidFeatureEnabled()) {
-          req.securityAlertResponse = await PPOMUtil.validateRequest(req);
+          PPOMUtil.validateRequest(req);
         }
 
         const rawSig = await SignatureController.newUnsignedTypedMessage(
@@ -655,7 +653,6 @@ export const getRpcMethodMiddleware = ({
             from: req.params[1],
             ...pageMeta,
             origin: hostname,
-            securityAlertResponse: req.securityAlertResponse,
           },
           req,
           'V1',
@@ -671,7 +668,7 @@ export const getRpcMethodMiddleware = ({
             : req.params[1];
         const chainId = data.domain.chainId;
         if (isBlockaidFeatureEnabled()) {
-          req.securityAlertResponse = await PPOMUtil.validateRequest(req);
+          PPOMUtil.validateRequest(req);
         }
         res.result = await generateRawSignature({
           version: 'V3',
@@ -693,7 +690,7 @@ export const getRpcMethodMiddleware = ({
         const data = JSON.parse(req.params[1]);
         const chainId = data.domain.chainId;
         if (isBlockaidFeatureEnabled()) {
-          req.securityAlertResponse = await PPOMUtil.validateRequest(req);
+          PPOMUtil.validateRequest(req);
         }
         res.result = await generateRawSignature({
           version: 'V4',

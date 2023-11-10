@@ -11,7 +11,7 @@ import { useStyles } from '../../../component-library/hooks';
 import { WalletActionProps } from './WalletAction.types';
 import styleSheet from './WalletAction.styles';
 import Avatar, {
-  AvatarVariants,
+  AvatarVariant,
 } from '../../../component-library/components/Avatars/Avatar';
 
 const WalletAction = ({
@@ -33,7 +33,7 @@ const WalletAction = ({
       {...props}
     >
       <Avatar
-        variant={AvatarVariants.Icon}
+        variant={AvatarVariant.Icon}
         style={iconStyle}
         size={iconSize}
         name={iconName}
