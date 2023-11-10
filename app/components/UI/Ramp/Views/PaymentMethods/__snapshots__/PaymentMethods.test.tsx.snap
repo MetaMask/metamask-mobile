@@ -623,6 +623,7 @@ exports[`PaymentMethods View renders correctly 1`] = `
                                                 ],
                                               ]
                                             }
+                                            testID="list-item-title"
                                           >
                                             <Text
                                               style={
@@ -1105,6 +1106,7 @@ exports[`PaymentMethods View renders correctly 1`] = `
                                                 ],
                                               ]
                                             }
+                                            testID="list-item-title"
                                           >
                                             <Text
                                               style={
@@ -1608,6 +1610,7 @@ exports[`PaymentMethods View renders correctly 1`] = `
                                                 ],
                                               ]
                                             }
+                                            testID="list-item-title"
                                           >
                                             <Text
                                               style={
@@ -2653,6 +2656,7 @@ exports[`PaymentMethods View renders correctly while loading 1`] = `
                                             ],
                                           ]
                                         }
+                                        testID="list-item-title"
                                       >
                                         <View
                                           style={
@@ -2966,6 +2970,7 @@ exports[`PaymentMethods View renders correctly while loading 1`] = `
                                             ],
                                           ]
                                         }
+                                        testID="list-item-title"
                                       >
                                         <View
                                           style={
@@ -3281,6 +3286,7 @@ exports[`PaymentMethods View renders correctly while loading 1`] = `
                                             ],
                                           ]
                                         }
+                                        testID="list-item-title"
                                       >
                                         <View
                                           style={
@@ -5496,6 +5502,7 @@ exports[`PaymentMethods View renders correctly with null data 1`] = `
                                             ],
                                           ]
                                         }
+                                        testID="list-item-title"
                                       >
                                         <View
                                           style={
@@ -5809,6 +5816,7 @@ exports[`PaymentMethods View renders correctly with null data 1`] = `
                                             ],
                                           ]
                                         }
+                                        testID="list-item-title"
                                       >
                                         <View
                                           style={
@@ -6124,6 +6132,7 @@ exports[`PaymentMethods View renders correctly with null data 1`] = `
                                             ],
                                           ]
                                         }
+                                        testID="list-item-title"
                                       >
                                         <View
                                           style={
@@ -6957,6 +6966,7 @@ exports[`PaymentMethods View renders correctly with payment method with disclaim
                                                 ],
                                               ]
                                             }
+                                            testID="list-item-title"
                                           >
                                             <Text
                                               style={
@@ -7439,6 +7449,7 @@ exports[`PaymentMethods View renders correctly with payment method with disclaim
                                                 ],
                                               ]
                                             }
+                                            testID="list-item-title"
                                           >
                                             <Text
                                               style={
@@ -7942,6 +7953,7 @@ exports[`PaymentMethods View renders correctly with payment method with disclaim
                                                 ],
                                               ]
                                             }
+                                            testID="list-item-title"
                                           >
                                             <Text
                                               style={
@@ -9757,6 +9769,7 @@ exports[`PaymentMethods View renders correctly with show back button false 1`] =
                                                 ],
                                               ]
                                             }
+                                            testID="list-item-title"
                                           >
                                             <Text
                                               style={
@@ -10239,6 +10252,7 @@ exports[`PaymentMethods View renders correctly with show back button false 1`] =
                                                 ],
                                               ]
                                             }
+                                            testID="list-item-title"
                                           >
                                             <Text
                                               style={
@@ -10742,6 +10756,7 @@ exports[`PaymentMethods View renders correctly with show back button false 1`] =
                                                 ],
                                               ]
                                             }
+                                            testID="list-item-title"
                                           >
                                             <Text
                                               style={
