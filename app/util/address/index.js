@@ -1,38 +1,38 @@
 import {
-  addHexPrefix,
-  isHexPrefixed,
-  isHexString,
-  isValidAddress,
-  isValidChecksumAddress,
   toChecksumAddress,
+  isValidAddress,
+  isHexString,
+  addHexPrefix,
+  isValidChecksumAddress,
+  isHexPrefixed,
 } from 'ethereumjs-util';
-import punycode from 'punycode/punycode';
 import URL from 'url-parse';
-import {
-  CONTACT_ALREADY_SAVED,
-  SYMBOL_ERROR,
-} from '../../../app/constants/error';
+import punycode from 'punycode/punycode';
 import { ExtendedKeyringTypes } from '../../../app/constants/keyringTypes';
-import { regex } from '../../../app/util/regex';
-import { strings } from '../../../locales/i18n';
-import { PROTOCOLS } from '../../constants/deeplinks';
-import { RPC } from '../../constants/network';
 import Engine from '../../core/Engine';
-import TransactionTypes from '../../core/TransactionTypes';
-import { selectChainId } from '../../selectors/networkController';
-import { store } from '../../store';
+import { strings } from '../../../locales/i18n';
+import { tlc } from '../general';
 import {
   doENSLookup,
   doENSReverseLookup,
   getCachedENSName,
   isDefaultAccountName,
 } from '../../util/ENSUtils';
+import {
+  isMainnetByChainId,
+  findBlockExplorerForRpc,
+} from '../../util/networks';
+import { RPC } from '../../constants/network';
 import { collectConfusables } from '../../util/confusables';
 import {
-  findBlockExplorerForRpc,
-  isMainnetByChainId,
-} from '../../util/networks';
-import { tlc } from '../general';
+  CONTACT_ALREADY_SAVED,
+  SYMBOL_ERROR,
+} from '../../../app/constants/error';
+import { PROTOCOLS } from '../../constants/deeplinks';
+import TransactionTypes from '../../core/TransactionTypes';
+import { selectChainId } from '../../selectors/networkController';
+import { store } from '../../store';
+import { regex } from '../../../app/util/regex';
 
 const {
   ASSET: { ERC721, ERC1155 },

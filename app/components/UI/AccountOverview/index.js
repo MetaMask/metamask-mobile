@@ -33,21 +33,21 @@ import {
   renderAccountName,
 } from '../../../util/address';
 import Device from '../../../util/device';
-import { regex } from '../../../../app/util/regex';
+import { ThemeContext, mockTheme } from '../../../util/theme';
+import EthereumAddress from '../EthereumAddress';
+import Identicon from '../Identicon';
 import { MetaMetricsEvents } from '../../../core/Analytics';
 import Analytics from '../../../core/Analytics/Analytics';
 import AppConstants from '../../../core/AppConstants';
 import Engine from '../../../core/Engine';
-import { selectCurrentCurrency } from '../../../selectors/currencyRateController';
 import { selectChainId } from '../../../selectors/networkController';
+import { selectCurrentCurrency } from '../../../selectors/currencyRateController';
 import {
   selectIdentities,
   selectSelectedAddress,
 } from '../../../selectors/preferencesController';
-import { ThemeContext, mockTheme } from '../../../util/theme';
 import { createAccountSelectorNavDetails } from '../../Views/AccountSelector';
-import EthereumAddress from '../EthereumAddress';
-import Identicon from '../Identicon';
+import { regex } from '../../../../app/util/regex';
 import Text, {
   TextVariant,
 } from '../../../component-library/components/Texts/Text';

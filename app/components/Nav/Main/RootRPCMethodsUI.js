@@ -6,6 +6,7 @@ import { connect, useSelector } from 'react-redux';
 import { ethers } from 'ethers';
 import abi from 'human-standard-token-abi';
 
+import NotificationManager from '../../../core/NotificationManager';
 import Engine from '../../../core/Engine';
 import { strings } from '../../../../locales/i18n';
 import { hexToBN, fromWei, isZeroValue } from '../../../util/number';
@@ -15,56 +16,51 @@ import {
 } from '../../../actions/transaction';
 import WalletConnect from '../../../core/WalletConnect/WalletConnect';
 import {
-  APPROVE_FUNCTION_SIGNATURE,
-  TOKEN_METHOD_TRANSFER,
-  calcTokenAmount,
   getMethodData,
-  getTokenAddressParam,
+  TOKEN_METHOD_TRANSFER,
+  APPROVE_FUNCTION_SIGNATURE,
   getTokenValueParam,
+  getTokenAddressParam,
+  calcTokenAmount,
   getTokenValueParamAsHex,
   isSwapTransaction,
 } from '../../../util/transactions';
-
-import { query } from '@metamask/controller-utils';
-import { swapsUtils } from '@metamask/swaps-controller';
-import BigNumber from 'bignumber.js';
 import { BN } from 'ethereumjs-util';
-
+import Logger from '../../../util/Logger';
+import TransactionTypes from '../../../core/TransactionTypes';
+import { swapsUtils } from '@metamask/swaps-controller';
+import { query } from '@metamask/controller-utils';
+import Analytics from '../../../core/Analytics/Analytics';
+import BigNumber from 'bignumber.js';
+import { toLowerCaseEquals } from '../../../util/general';
 import { KEYSTONE_TX_CANCELED } from '../../../constants/error';
 import { MetaMetricsEvents } from '../../../core/Analytics';
-import Analytics from '../../../core/Analytics/Analytics';
-import NotificationManager from '../../../core/NotificationManager';
-import TransactionTypes from '../../../core/TransactionTypes';
-
-import Logger from '../../../util/Logger';
+import AnalyticsV2 from '../../../util/analyticsV2';
 import {
   getAddressAccountType,
   isHardwareAccount,
 } from '../../../util/address';
-import AnalyticsV2 from '../../../util/analyticsV2';
-import { toLowerCaseEquals } from '../../../util/general';
-
-import { getLedgerKeyring } from '../../../core/Ledger/Ledger';
 import {
   selectChainId,
   selectProviderType,
 } from '../../../selectors/networkController';
-import { selectSelectedAddress } from '../../../selectors/preferencesController';
-import { selectTokenList } from '../../../selectors/tokenListController';
-import { selectTokens } from '../../../selectors/tokensController';
-import AddChainApproval from '../../Approvals/AddChainApproval';
-import ConnectApproval from '../../Approvals/ConnectApproval';
-import FlowLoaderModal from '../../Approvals/FlowLoaderModal';
-import PermissionApproval from '../../Approvals/PermissionApproval';
+import WatchAssetApproval from '../../Approvals/WatchAssetApproval';
 import SignatureApproval from '../../Approvals/SignatureApproval';
+import AddChainApproval from '../../Approvals/AddChainApproval';
 import SwitchChainApproval from '../../Approvals/SwitchChainApproval';
-import TemplateConfirmationModal from '../../Approvals/TemplateConfirmationModal';
+import WalletConnectApproval from '../../Approvals/WalletConnectApproval';
+import ConnectApproval from '../../Approvals/ConnectApproval';
 import {
   TransactionApproval,
   TransactionModalType,
 } from '../../Approvals/TransactionApproval';
-import WalletConnectApproval from '../../Approvals/WalletConnectApproval';
-import WatchAssetApproval from '../../Approvals/WatchAssetApproval';
+import PermissionApproval from '../../Approvals/PermissionApproval';
+import FlowLoaderModal from '../../Approvals/FlowLoaderModal';
+import TemplateConfirmationModal from '../../Approvals/TemplateConfirmationModal';
+import { selectTokenList } from '../../../selectors/tokenListController';
+import { selectTokens } from '../../../selectors/tokensController';
+import { selectSelectedAddress } from '../../../selectors/preferencesController';
+import { getLedgerKeyring } from '../../../core/Ledger/Ledger';
 import { createLedgerTransactionModalNavDetails } from '../../UI/LedgerModals/LedgerTransactionModal';
 import { ExtendedKeyringTypes } from '../../../constants/keyringTypes';
 
