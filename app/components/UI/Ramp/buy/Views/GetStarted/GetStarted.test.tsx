@@ -42,6 +42,8 @@ const mockuseRampSDKInitialValues: Partial<RampSDK> = {
   selectedChainId: '1',
   selectedRegion: null,
   rampType: RampType.BUY,
+  isBuy: true,
+  isSell: false,
 };
 
 let mockUseRampSDKValues: Partial<RampSDK> = {
@@ -96,6 +98,12 @@ describe('GetStarted', () => {
   });
 
   it('renders correctly', async () => {
+    render(GetStarted);
+    expect(screen.toJSON()).toMatchSnapshot();
+
+    mockUseRampSDKValues.rampType = RampType.SELL;
+    mockUseRampSDKValues.isSell = true;
+    mockUseRampSDKValues.isBuy = false;
     render(GetStarted);
     expect(screen.toJSON()).toMatchSnapshot();
   });
