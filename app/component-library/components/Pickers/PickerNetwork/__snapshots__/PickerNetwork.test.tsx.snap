@@ -1,6 +1,6 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
-exports[`NetworkVerificationInfo renders correctly 1`] = `
+exports[`PickerNetwork renders correctly 1`] = `
 <TouchableOpacity
   onPress={[Function]}
   style={
@@ -31,9 +31,7 @@ exports[`NetworkVerificationInfo renders correctly 1`] = `
       resizeMode="contain"
       source={
         Object {
-          "default": Object {
-            "uri": "MockImage",
-          },
+          "uri": "https://assets.coingecko.com/coins/images/279/small/ethereum.png?1595348880",
         }
       }
       style={
@@ -63,7 +61,7 @@ exports[`NetworkVerificationInfo renders correctly 1`] = `
     }
     testID="open-networks-text"
   >
-    test
+    Ethereum Mainnet
   </Text>
   <SvgMock
     color="#24272A"
@@ -75,7 +73,7 @@ exports[`NetworkVerificationInfo renders correctly 1`] = `
         "width": 12,
       }
     }
-    testID="picker-network-arrow"
+    testID="pickernetwork-arrow"
     width={12}
   />
 </TouchableOpacity>

@@ -15,7 +15,7 @@ import { PickerNetworkProps } from './PickerNetwork.types';
 import stylesheet from './PickerNetwork.styles';
 import generateTestId from '../../../../../wdio/utils/generateTestId';
 import { NAVBAR_NETWORK_TEXT } from '../../../../../wdio/screen-objects/testIDs/Screens/WalletView.testIds';
-import { PICKER_NETWORK_ARROW_TESTID } from './PickerNetwork.constants';
+import { PICKERNETWORK_ARROW_TESTID } from './PickerNetwork.constants';
 
 const PickerNetwork = ({
   onPress,
@@ -46,7 +46,7 @@ const PickerNetwork = ({
         <Icon
           size={IconSize.Xs}
           name={IconName.ArrowDown}
-          testID={PICKER_NETWORK_ARROW_TESTID}
+          testID={PICKERNETWORK_ARROW_TESTID}
         />
       )}
     </TouchableOpacity>
