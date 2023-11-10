@@ -35,6 +35,8 @@ import parseWalletConnectUri, {
 import { selectChainId } from '../../selectors/networkController';
 import { store } from '../../store';
 import { WALLET_CONNECT_ORIGIN } from '../../../app/util/walletconnect';
+import { isBlockaidFeatureEnabled } from '../../../app/util/blockaid';
+import ppomUtil from '../../../app/lib/ppom/ppom-util';
 
 const { PROJECT_ID } = AppConstants.WALLET_CONNECT;
 export const isWC2Enabled =
@@ -284,11 +286,29 @@ class WalletConnect2Session {
           Engine.context as { TransactionController: TransactionController }
         ).TransactionController;
 
+        let securityAlertResponse;
+
+        if (isBlockaidFeatureEnabled()) {
+          const reqObject = {
+            jsonrpc: '2.0',
+            method: 'eth_sendTransaction',
+            params: [
+              {
+                from: methodParams[0].from,
+                to: methodParams[0].to,
+                value: methodParams[0].value,
+              },
+            ],
+          };
+          securityAlertResponse = await ppomUtil.validateRequest(reqObject);
+        }
+
         const trx = await transactionController.addTransaction(
           methodParams[0],
           {
-            deviceConfirmedOn: WalletDevice.MM_MOBILE,
             origin,
+            deviceConfirmedOn: WalletDevice.MM_MOBILE,
+            securityAlertResponse,
           },
         );
         const hash = await trx.result;

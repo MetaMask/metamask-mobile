@@ -7,7 +7,9 @@
     "deceptive_request_title": "This is a deceptive request",
     "failed_title": "Request may not be safe",
     "failed_description": "Because of an error, this request was not verified by the security provider. Proceed with caution.",
+    "loading_title": "We’re still evaluating the safety of this request. Wait or proceed with caution.",
     "malicious_domain_description": "You're interacting with a malicious domain. If you approve this request, you might lose your assets.",
+    "no_risks": "No risks found",
     "other_description": "If you approve this request, you might lose your assets.",
     "raw_signature_farming_description": "If you approve this request, you might lose your assets.",
     "seaport_farming_description": "If you approve this request, someone can steal your assets listed on OpenSea.",
@@ -514,6 +516,7 @@
     "import_account": "Import an account",
     "connect_hardware": "Connect hardware wallet",
     "imported": "Imported",
+    "qr_hardware": "QR hardware",
     "remove_account_title": "Account removal",
     "remove_account_message": "Do you really want to remove this account?",
     "no": "No",
@@ -1001,7 +1004,6 @@
     "confirm": "Confirm"
   },
   "transaction": {
-    "hardware": "Hardware",
     "alert": "ALERT",
     "amount": "Amount",
     "next": "Next",
@@ -2020,6 +2022,14 @@
       "total_fees": "Total Fees",
       "amount": "Amount",
       "a_block_explorer": "a block explorer"
+    },
+    "send_transaction": {
+      "sell_crypto": "Sell crypto",
+      "send_description": "You will send your {{cryptocurrency}} to {{provider}}, who then sends your cash to {{paymentMethod}}",
+      "next": "Next",
+      "hold_to_send": "Hold to send",
+      "send": "Send",
+      "sent": "Sent!"
     }
   },
   "swaps": {
