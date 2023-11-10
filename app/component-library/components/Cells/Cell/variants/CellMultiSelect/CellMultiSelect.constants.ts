@@ -1,5 +1,5 @@
 // External dependencies.
-import { AvatarVariants, AvatarAccountType } from '../../../../Avatars/Avatar';
+import { AvatarVariant, AvatarAccountType } from '../../../../Avatars/Avatar';
 import { AvatarProps } from '../../../../Avatars/Avatar/Avatar.types';
 
 // Internal dependencies.
@@ -12,7 +12,7 @@ const SAMPLE_CELLMULTISELECT_SECONDARYTEXT =
 const SAMPLE_CELLMULTISELECT_TERTIARY_TEXT = 'Updated 1 sec ago';
 const SAMPLE_CELLMULTISELECT_TAGLABEL = 'Imported';
 const SAMPLE_CELLMULTISELECT_AVATARPROPS: AvatarProps = {
-  variant: AvatarVariants.Account,
+  variant: AvatarVariant.Account,
   accountAddress: '0x2990079bcdEe240329a520d2444386FC119da21a',
   type: AvatarAccountType.JazzIcon,
 };

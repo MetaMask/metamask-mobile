@@ -2,33 +2,33 @@
 import React from 'react';
 
 // External dependencies.
-import ListItemColumn, { WidthType } from '../../../List/ListItemColumn';
-import Icon, { IconName } from '../../../Icons/Icon';
-import Text, { TextVariant } from '../../../Texts/Text';
+import ListItemColumn, { WidthType } from '../../List/ListItemColumn';
+import Icon, { IconName } from '../../Icons/Icon';
+import Text, { TextVariant } from '../../Texts/Text';
 
 // Internal dependencies.
-import { default as MultiSelectItemComponent } from './MultiSelectItem';
-import { SAMPLE_MULTISELECTITEM_PROPS } from './MultiSelectItem.constants';
+import { default as ListItemSelectComponent } from './ListItemSelect';
+import { SAMPLE_SELECTITEM_PROPS } from './ListItemSelect.constants';
 
-const MultiSelectItemMeta = {
-  title: 'Component Library / Select',
-  component: MultiSelectItemComponent,
+const ListItemSelectMeta = {
+  title: 'Component Library / List',
+  component: ListItemSelectComponent,
   argTypes: {
     isSelected: {
       control: { type: 'boolean' },
-      defaultValue: SAMPLE_MULTISELECTITEM_PROPS.isSelected,
+      defaultValue: SAMPLE_SELECTITEM_PROPS.isSelected,
     },
     isDisabled: {
       control: { type: 'boolean' },
-      defaultValue: SAMPLE_MULTISELECTITEM_PROPS.isDisabled,
+      defaultValue: SAMPLE_SELECTITEM_PROPS.isDisabled,
     },
   },
 };
-export default MultiSelectItemMeta;
+export default ListItemSelectMeta;
 
-export const MultiSelectItem = {
+export const ListItemSelect = {
   render: (args: any) => (
-    <MultiSelectItemComponent {...args}>
+    <ListItemSelectComponent {...args}>
       <ListItemColumn>
         <Icon name={IconName.Clock} />
       </ListItemColumn>
@@ -41,6 +41,6 @@ export const MultiSelectItem = {
       <ListItemColumn>
         <Icon name={IconName.Arrow2Right} />
       </ListItemColumn>
-    </MultiSelectItemComponent>
+    </ListItemSelectComponent>
   ),
 };

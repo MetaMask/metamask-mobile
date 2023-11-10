@@ -5,37 +5,28 @@ import React from 'react';
 import { TouchableOpacity, View } from 'react-native';
 
 // External dependencies.
-import Checkbox from '../../../Checkbox';
-import { useStyles } from '../../../../hooks';
-import ListItem from '../../../List/ListItem/ListItem';
+import Checkbox from '../../Checkbox';
+import { useStyles } from '../../../hooks';
+import ListItem from '../../List/ListItem/ListItem';
 
 // Internal dependencies.
-import styleSheet from './MultiSelectItem.styles';
-import { MultiSelectItemProps } from './MultiSelectItem.types';
-import {
-  DEFAULT_MULTISELECTITEM_PADDING,
-  DEFAULT_MULTISELECTITEM_BORDERRADIUS,
-  DEFAULT_MULTISELECTITEM_GAP,
-} from './MultiSelectItem.constants';
+import styleSheet from './ListItemMultiSelect.styles';
+import { ListItemMultiSelectProps } from './ListItemMultiSelect.types';
+import { DEFAULT_LISTITEMMULTISELECT_GAP } from './ListItemMultiSelect.constants';
 
-const MultiSelectItem: React.FC<MultiSelectItemProps> = ({
+const ListItemMultiSelect: React.FC<ListItemMultiSelectProps> = ({
   style,
   isSelected = false,
   isDisabled = false,
   children,
-  gap = DEFAULT_MULTISELECTITEM_GAP,
+  gap = DEFAULT_LISTITEMMULTISELECT_GAP,
   ...props
 }) => {
   const { styles } = useStyles(styleSheet, { style, gap, isDisabled });
   const { hitSlop, ...listItemProps } = props;
   return (
     <TouchableOpacity style={styles.base} disabled={isDisabled} {...props}>
-      <ListItem
-        padding={DEFAULT_MULTISELECTITEM_PADDING}
-        borderRadius={DEFAULT_MULTISELECTITEM_BORDERRADIUS}
-        gap={gap}
-        {...listItemProps}
-      >
+      <ListItem gap={gap} style={styles.listItem} {...listItemProps}>
         <Checkbox
           style={styles.checkbox}
           isChecked={isSelected}
@@ -50,4 +41,4 @@ const MultiSelectItem: React.FC<MultiSelectItemProps> = ({
   );
 };
 
-export default MultiSelectItem;
+export default ListItemMultiSelect;

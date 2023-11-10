@@ -2,13 +2,13 @@
 import { StyleSheet, ViewStyle } from 'react-native';
 
 // External dependencies.
-import { Theme } from '../../../../../util/theme/models';
+import { Theme } from '../../../../util/theme/models';
 
 // Internal dependencies.
-import { SelectItemStyleSheetVars } from './SelectItem.types';
+import { ListItemMultiSelectStyleSheetVars } from './ListItemMultiSelect.types';
 
 /**
- * Style sheet function for SelectItem component.
+ * Style sheet function for ListItemMultiSelect component.
  *
  * @param params Style sheet params.
  * @param params.theme App theme from ThemeContext.
@@ -17,30 +17,32 @@ import { SelectItemStyleSheetVars } from './SelectItem.types';
  */
 const styleSheet = (params: {
   theme: Theme;
-  vars: SelectItemStyleSheetVars;
+  vars: ListItemMultiSelectStyleSheetVars;
 }) => {
   const { vars, theme } = params;
   const { colors } = theme;
-  const { style, isDisabled } = vars;
+  const { style, gap, isDisabled } = vars;
   return StyleSheet.create({
     base: Object.assign(
       {
-        position: 'relative',
+        padding: 16,
+        borderRadius: 4,
+        alignItems: 'flex-start',
+        backgroundColor: colors.background.default,
         opacity: isDisabled ? 0.5 : 1,
       } as ViewStyle,
       style,
     ) as ViewStyle,
+    listItem: {
+      padding: 0,
+    },
     underlay: {
       ...StyleSheet.absoluteFillObject,
       flexDirection: 'row',
       backgroundColor: colors.primary.muted,
     },
-    underlayBar: {
-      marginVertical: 4,
-      marginLeft: 4,
-      width: 4,
-      borderRadius: 2,
-      backgroundColor: colors.primary.default,
+    checkbox: {
+      marginRight: 8 - Number(gap),
     },
   });
 };
