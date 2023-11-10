@@ -40,7 +40,7 @@ import {
 } from '../../../util/transactions';
 import Avatar, {
   AvatarSize,
-  AvatarVariants,
+  AvatarVariant,
 } from '../../../component-library/components/Avatars/Avatar';
 import Identicon from '../../UI/Identicon';
 import TransactionTypes from '../../../core/TransactionTypes';
@@ -850,7 +850,7 @@ class ApproveTransactionReview extends PureComponent {
                         <>
                           {tokenImage ? (
                             <Avatar
-                              variant={AvatarVariants.Token}
+                              variant={AvatarVariant.Token}
                               size={AvatarSize.Md}
                               imageSource={{ uri: tokenImage }}
                             />

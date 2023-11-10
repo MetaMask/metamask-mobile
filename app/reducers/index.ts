@@ -1,6 +1,6 @@
 import bookmarksReducer from './bookmarks';
 import browserReducer from './browser';
-import engineReducer from './engine';
+import engineReducer from '../core/redux/slices/engine';
 import privacyReducer from './privacy';
 import modalsReducer from './modals';
 import settingsReducer from './settings';
@@ -11,6 +11,7 @@ import wizardReducer from './wizard';
 import onboardingReducer from './onboarding';
 import fiatOrders from './fiatOrders';
 import swapsReducer from './swaps';
+import signatureRequestReducer from './signatureRequest';
 import notificationReducer from './notification';
 import infuraAvailabilityReducer from './infuraAvailability';
 import collectiblesReducer from './collectibles';
@@ -20,7 +21,6 @@ import securityReducer from './security';
 import { combineReducers, Reducer } from 'redux';
 import experimentalSettingsReducer from './experimentalSettings';
 import { EngineState } from '../core/Engine';
-
 /**
  * Infer state from a reducer
  *
@@ -60,6 +60,7 @@ export interface RootState {
   security: StateFromReducer<typeof securityReducer>;
   // The experimentalSettings reducer is TypeScript but not yet a valid reducer
   experimentalSettings: any;
+  signatureRequest: any;
 }
 
 // TODO: Fix the Action type. It's set to `any` now because some of the
@@ -78,6 +79,7 @@ const rootReducer = combineReducers<RootState, any>({
   wizard: wizardReducer,
   onboarding: onboardingReducer,
   notification: notificationReducer,
+  signatureRequest: signatureRequestReducer,
   swaps: swapsReducer,
   fiatOrders,
   infuraAvailability: infuraAvailabilityReducer,

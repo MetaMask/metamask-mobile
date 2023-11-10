@@ -8,8 +8,9 @@ const GORELI = 'Goerli Test Network';
 const ETHEREUM = 'Ethereum Main Network';
 
 describe(Regression('Connect to a Test Network'), () => {
-  beforeEach(() => {
+  beforeAll(async () => {
     jest.setTimeout(150000);
+    await device.launchApp();
   });
 
   it('should import wallet and go to the wallet view', async () => {
@@ -23,7 +24,6 @@ describe(Regression('Connect to a Test Network'), () => {
     await NetworkListModal.tapTestNetworkSwitch();
     await NetworkListModal.isTestNetworkToggleOn();
     await NetworkListModal.changeNetwork(GORELI);
-
     await NetworkEducationModal.isVisible();
     await NetworkEducationModal.isNetworkNameCorrect(GORELI);
     await NetworkEducationModal.tapGotItButton();
