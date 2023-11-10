@@ -1162,7 +1162,7 @@ describe('getRpcMethodMiddleware', () => {
               chainId: '0x2',
               // DAI address
               token_address: '0x6b175474e89094c44da98b954eedeac495271d0f',
-              amount: '0x10',
+              amount: '0xDE0B6B3A7640000',
             },
             to: {
               chainId: '0x1',
@@ -1193,7 +1193,7 @@ describe('getRpcMethodMiddleware', () => {
             from: {
               // DAI address
               token_address: '0x6b175474e89094c44da98b954eedeac495271d0f',
-              amount: '0x10',
+              amount: '0xDE0B6B3A7640000',
             },
             to: {
               chainId: '0x1',
@@ -1255,7 +1255,7 @@ describe('getRpcMethodMiddleware', () => {
               chainId: '0x1',
               // DAI address
               token_address: '0x6b175474e89094c44da98b954eedeac495271d0f',
-              amount: '0x10',
+              amount: '0xDE0B6B3A7640000',
             },
             to: {
               chainId: '0x1',
@@ -1272,7 +1272,7 @@ describe('getRpcMethodMiddleware', () => {
         params: {
           sourceToken: '0x6b175474e89094c44da98b954eedeac495271d0f',
           destinationToken: '0x0000000000000000000000000000000000000000',
-          amount: '0x10',
+          amount: '1',
         },
       });
     });

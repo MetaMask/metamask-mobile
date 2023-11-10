@@ -39,6 +39,7 @@ import {
 import { regex } from '../../../app/util/regex';
 import { swapsLivenessSelector } from '../../reducers/swaps/index.js';
 import { isSwapsAllowed } from '../../components/UI/Swaps/utils/index.js';
+import { fromWei } from '../../util/number/index.js';
 
 const Engine = ImportedEngine as any;
 
@@ -356,12 +357,15 @@ export const getRpcMethodMiddleware = ({
           return;
         }
 
+        const decimalWei = parseInt(from.amount, 16);
+        const tokenAmount = fromWei(decimalWei);
+
         navigation.navigate('Swaps', {
           screen: 'SwapsAmountView',
           params: {
             sourceToken: from.token_address,
             destinationToken: to.token_address,
-            amount: from.amount,
+            amount: tokenAmount,
           },
         });
       },
