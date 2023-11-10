@@ -1,35 +1,20 @@
-import React, { useCallback, useEffect, useState } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 
+import { Alert, InteractionManager } from 'react-native';
+import PropTypes from 'prop-types';
+import { connect, useSelector } from 'react-redux';
 import { ethers } from 'ethers';
 import abi from 'human-standard-token-abi';
-import PropTypes from 'prop-types';
-import { Alert, InteractionManager } from 'react-native';
-import { connect, useSelector } from 'react-redux';
 
-import { query } from '@metamask/controller-utils';
-import { swapsUtils } from '@metamask/swaps-controller';
-import BigNumber from 'bignumber.js';
-import { BN } from 'ethereumjs-util';
+import NotificationManager from '../../../core/NotificationManager';
+import Engine from '../../../core/Engine';
 import { strings } from '../../../../locales/i18n';
+import { hexToBN, fromWei, isZeroValue } from '../../../util/number';
 import {
   setEtherTransaction,
   setTransactionObject,
 } from '../../../actions/transaction';
-import { KEYSTONE_TX_CANCELED } from '../../../constants/error';
-import { MetaMetricsEvents } from '../../../core/Analytics';
-import Analytics from '../../../core/Analytics/Analytics';
-import Engine from '../../../core/Engine';
-import NotificationManager from '../../../core/NotificationManager';
-import TransactionTypes from '../../../core/TransactionTypes';
 import WalletConnect from '../../../core/WalletConnect/WalletConnect';
-import Logger from '../../../util/Logger';
-import {
-  getAddressAccountType,
-  isHardwareAccount,
-} from '../../../util/address';
-import AnalyticsV2 from '../../../util/analyticsV2';
-import { toLowerCaseEquals } from '../../../util/general';
-import { fromWei, hexToBN, isZeroValue } from '../../../util/number';
 import {
   APPROVE_FUNCTION_SIGNATURE,
   TOKEN_METHOD_TRANSFER,
@@ -40,6 +25,27 @@ import {
   getTokenValueParamAsHex,
   isSwapTransaction,
 } from '../../../util/transactions';
+import { Alert, InteractionManager } from 'react-native';
+
+import { query } from '@metamask/controller-utils';
+import { swapsUtils } from '@metamask/swaps-controller';
+import BigNumber from 'bignumber.js';
+import { BN } from 'ethereumjs-util';
+
+import { KEYSTONE_TX_CANCELED } from '../../../constants/error';
+import { MetaMetricsEvents } from '../../../core/Analytics';
+import Analytics from '../../../core/Analytics/Analytics';
+import Engine from '../../../core/Engine';
+import NotificationManager from '../../../core/NotificationManager';
+import TransactionTypes from '../../../core/TransactionTypes';
+
+import Logger from '../../../util/Logger';
+import {
+  getAddressAccountType,
+  isHardwareAccount,
+} from '../../../util/address';
+import AnalyticsV2 from '../../../util/analyticsV2';
+import { toLowerCaseEquals } from '../../../util/general';
 
 import { getLedgerKeyring } from '../../../core/Ledger/Ledger';
 import {
