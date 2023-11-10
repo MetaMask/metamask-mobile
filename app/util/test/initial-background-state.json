@@ -46,6 +46,7 @@
     "storageMetadata": [],
     "versionInfo": []
   },
+
   "CurrencyRateController": {
     "conversionDate": 0,
     "conversionRate": 0,
