@@ -121,11 +121,13 @@ public class RNTar extends ReactContextBaseJavaModule {
   public void unTar(String pathToRead, String pathToWrite, final Promise promise) {
     Log.d(MODULE_NAME, "Create event called with name: " + pathToRead
       + " and location: " + pathToWrite);
-    try {
-      String decompressedPath = extractTgzFile(pathToRead, pathToWrite);
-      promise.resolve(decompressedPath);
-    } catch(Exception e) {
-      promise.reject("Error uncompressing file:", e);
-    }
+    new Thread(() -> {
+      try {
+        String decompressedPath = extractTgzFile(pathToRead, pathToWrite);
+        promise.resolve(decompressedPath);
+      } catch(Exception e) {
+        promise.reject("Error uncompressing file:", e);
+      }
+    }).start();
   }
 }
