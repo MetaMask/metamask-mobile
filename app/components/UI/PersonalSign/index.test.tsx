@@ -52,6 +52,11 @@ const initialState = {
 
 const store = mockStore(initialState);
 
+jest.mock('react-redux', () => ({
+  ...jest.requireActual('react-redux'),
+  useSelector: (callback: any) => callback({ signatureRequest: {} }),
+}));
+
 function createWrapper({
   origin = messageParamsMock.origin,
   mockConfirm = jest.fn(),

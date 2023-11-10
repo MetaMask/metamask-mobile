@@ -35,15 +35,26 @@ const createStyles = (colors: any) =>
       paddingVertical: 8,
       color: colors.error.default,
     },
+    modalErrText: {
+      textAlign: 'center',
+      paddingVertical: 8,
+      color: colors.error.default,
+    },
   });
 
 interface Props {
   retryIsOpen: boolean;
   onConfirmPress: () => void;
   onCancelPress: () => void;
-  errorMsg: string | undefined;
+  errorMsg?: string;
 }
 
+const RetryModal = ({
+  retryIsOpen,
+  onConfirmPress,
+  onCancelPress,
+  errorMsg,
+}: Props) => {
 const RetryModal = ({
   retryIsOpen,
   onConfirmPress,

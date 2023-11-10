@@ -64,6 +64,7 @@ const initialState = {
     signMessageModalVisible: false,
   },
   settings: {},
+  signatureRequest: {},
   engine: {
     backgroundState: {
       ...initialBackgroundState,
@@ -86,6 +87,11 @@ const initialState = {
       CurrencyRateController: {
         conversionRate: 10,
         currentCurrency: 'usd',
+      },
+      NetworkController: {
+        providerConfig: {
+          chainId: '1',
+        },
       },
     },
   },

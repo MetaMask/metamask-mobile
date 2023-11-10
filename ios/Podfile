@@ -85,6 +85,10 @@ def common_target_logic
   # Pods for MetaMask
   pod 'React-RCTPushNotification', :path => '../node_modules/react-native/Libraries/PushNotificationIOS'
   pod 'ReactNativePayments', :path => '../node_modules/@exodus/react-native-payments/lib/ios/'
+
+   # Comment the next line if you don't want to use dynamic frameworks
+  # use_frameworks!
+	pod 'Permission-BluetoothPeripheral', :path => '../node_modules/react-native-permissions/ios/BluetoothPeripheral'
 end
 
 target 'MetaMask' do

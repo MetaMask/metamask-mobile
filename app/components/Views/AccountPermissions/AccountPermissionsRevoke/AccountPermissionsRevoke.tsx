@@ -39,7 +39,7 @@ import {
 } from '../../../../../wdio/screen-objects/testIDs/Components/ConnectedAccountsModal.testIds';
 import { IconName } from '../../../../component-library/components/Icons/Icon';
 import Avatar from '../../../../component-library/components/Avatars/Avatar/Avatar';
-import { AvatarVariants } from '../../../../component-library/components/Avatars/Avatar';
+import { AvatarVariant } from '../../../../component-library/components/Avatars/Avatar';
 import { selectNetworkConfigurations } from '../../../../selectors/networkController';
 
 const AccountPermissionsRevoke = ({
@@ -128,13 +128,13 @@ const AccountPermissionsRevoke = ({
           {strings('accounts.site_permission_to')}
         </Text>
         <View style={styles.permissionContainer}>
-          <Avatar variant={AvatarVariants.Icon} name={IconName.Eye} />
+          <Avatar variant={AvatarVariant.Icon} name={IconName.Eye} />
           <Text style={styles.permissionDescription}>
             {strings('accounts.address_balance_activity_permission')}
           </Text>
         </View>
         <View style={styles.securityContainer}>
-          <Avatar variant={AvatarVariants.Icon} name={IconName.SecurityTick} />
+          <Avatar variant={AvatarVariant.Icon} name={IconName.SecurityTick} />
           <Text style={styles.permissionDescription}>
             {strings('accounts.suggest_transactions')}
           </Text>

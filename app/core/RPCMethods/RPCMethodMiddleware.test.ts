@@ -31,6 +31,7 @@ jest.mock('../Engine', () => ({
     },
     TransactionController: {
       addTransaction: jest.fn(),
+      updateSecurityAlertResponse: jest.fn(),
     },
     SignatureController: {
       newUnsignedMessage: jest.fn(),
@@ -241,7 +242,7 @@ function setupGlobalState({
   mockStore.dispatch.mockImplementation((obj) => obj);
   if (addTransactionResult) {
     MockEngine.context.TransactionController.addTransaction.mockImplementation(
-      async () => ({ result: addTransactionResult }),
+      async () => ({ result: addTransactionResult, transactionMeta: '123' }),
     );
   }
   if (permittedAccounts) {
