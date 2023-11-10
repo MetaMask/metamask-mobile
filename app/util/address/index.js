@@ -145,31 +145,6 @@ export async function importAccountFromPrivateKey(private_key) {
 }
 
 /**
- * judge address is hardware account or not
- *
- * @param {String} address - String corresponding to an address
- * @param {Array<ExtendedKeyringTypes>} accountTypes - If it belongs to a specific hardware account type. By default all types are allowed.
- * @returns {Boolean} - Returns a boolean
- */
-export function isHardwareAccount(
-  address,
-  accountTypes = [ExtendedKeyringTypes.qr, ExtendedKeyringTypes.ledger],
-) {
-  const keyring = getKeyringByAddress(address);
-  return keyring && accountTypes.includes(keyring.type);
-}
-
-/**
- * judge address is a hardware account that require external operation or not
- *
- * @param {String} address - String corresponding to an address
- * @returns {Boolean} - Returns a boolean
- */
-export function isExternalHardwareAccount(address) {
-  return isHardwareAccount(address, [ExtendedKeyringTypes.ledger]);
-}
-
-/**
  * judge address is QR hardware account or not
  *
  * @param {String} address - String corresponding to an address
@@ -209,6 +184,31 @@ export function getKeyringByAddress(address) {
       .map((account) => account.toLowerCase())
       .includes(address.toLowerCase()),
   );
+}
+
+/**
+ * judge address is hardware account or not
+ *
+ * @param {String} address - String corresponding to an address
+ * @param {Array<ExtendedKeyringTypes>} accountTypes - If it belongs to a specific hardware account type. By default all types are allowed.
+ * @returns {Boolean} - Returns a boolean
+ */
+export function isHardwareAccount(
+  address,
+  accountTypes = [ExtendedKeyringTypes.qr, ExtendedKeyringTypes.ledger],
+) {
+  const keyring = getKeyringByAddress(address);
+  return keyring && accountTypes.includes(keyring.type);
+}
+
+/**
+ * judge address is a hardware account that require external operation or not
+ *
+ * @param {String} address - String corresponding to an address
+ * @returns {Boolean} - Returns a boolean
+ */
+export function isExternalHardwareAccount(address) {
+  return isHardwareAccount(address, [ExtendedKeyringTypes.ledger]);
 }
 
 /**
