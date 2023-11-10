@@ -10,8 +10,9 @@ import {
 import Networks from '../../resources/networks.json';
 
 describe(Regression('Token Chart Tests'), () => {
-  beforeEach(async () => {
+  beforeAll(async () => {
     jest.setTimeout(150000);
+    await device.launchApp();
   });
 
   it('should import wallet and go to the wallet view', async () => {

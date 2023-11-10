@@ -78,11 +78,6 @@ import { gte } from '../../../../util/lodash';
 import { ThemeContext, mockTheme } from '../../../../util/theme';
 import Alert, { AlertType } from '../../../../components/Base/Alert';
 import {
-  AMOUNT_SCREEN,
-  AMOUNT_SCREEN_CARET_DROP_DOWN,
-  NEXT_BUTTON,
-  TRANSACTION_AMOUNT_INPUT,
-  AMOUNT_ERROR,
   FIAT_CONVERSION_WARNING_TEXT,
   TRANSACTION_AMOUNT_CONVERSION_VALUE,
   CURRENCY_SWITCH,
@@ -109,7 +104,8 @@ import { getRampNetworks } from '../../../../reducers/fiatOrders';
 import { swapsLivenessSelector } from '../../../../reducers/swaps';
 import { isSwapsAllowed } from '../../../../components/UI/Swaps/utils';
 import { swapsUtils } from '@metamask/swaps-controller';
-import { regex } from '../../../../../app/util/regex';
+import { regex } from '../../../../util/regex';
+import { AmountViewSelectorsIDs } from '../../../../../e2e/selectors/AmountView.selectors';
 
 const KEYBOARD_OFFSET = Device.isSmallDevice() ? 80 : 120;
 
@@ -1296,7 +1292,7 @@ class Amount extends PureComponent {
               placeholder={'0'}
               placeholderTextColor={colors.text.muted}
               keyboardAppearance={themeAppearance}
-              {...generateTestId(Platform, TRANSACTION_AMOUNT_INPUT)}
+              {...generateTestId(Platform, AmountViewSelectorsIDs.AMOUNT_INPUT)}
             />
           </View>
         </View>
@@ -1338,7 +1334,7 @@ class Amount extends PureComponent {
         {amountError && (
           <View
             style={styles.errorMessageWrapper}
-            {...generateTestId(Platform, AMOUNT_ERROR)}
+            {...generateTestId(Platform, AmountViewSelectorsIDs.AMOUNT_ERROR)}
           >
             <TouchableOpacity
               onPress={navigateToBuyOrSwaps}
@@ -1389,7 +1385,7 @@ class Amount extends PureComponent {
         {amountError && (
           <View
             style={styles.errorMessageWrapper}
-            {...generateTestId(Platform, AMOUNT_ERROR)}
+            {...generateTestId(Platform, AmountViewSelectorsIDs.AMOUNT_ERROR)}
           >
             <ErrorMessage errorMessage={amountError} />
           </View>
@@ -1411,7 +1407,7 @@ class Amount extends PureComponent {
       <SafeAreaView
         edges={['bottom']}
         style={styles.wrapper}
-        {...generateTestId(Platform, AMOUNT_SCREEN)}
+        {...generateTestId(Platform, AmountViewSelectorsIDs.CONTAINER)}
       >
         <ScrollView style={styles.scrollWrapper}>
           {!hasExchangeRate && !selectedAsset.tokenId ? (
@@ -1458,10 +1454,6 @@ class Amount extends PureComponent {
                       size={16}
                       color={colors.primary.inverse}
                       style={styles.iconDropdown}
-                      {...generateTestId(
-                        Platform,
-                        AMOUNT_SCREEN_CARET_DROP_DOWN,
-                      )}
                     />
                   </View>
                 </TouchableOpacity>
@@ -1498,7 +1490,7 @@ class Amount extends PureComponent {
               containerStyle={styles.buttonNext}
               disabled={!estimatedTotalGas}
               onPress={this.onNext}
-              testID={NEXT_BUTTON}
+              testID={AmountViewSelectorsIDs.NEXT_BUTTON}
             >
               {strings('transaction.next')}
             </StyledButton>

@@ -24,10 +24,7 @@ import { useTheme } from '../../../util/theme';
 import ReusableModal, { ReusableModalRef } from '../ReusableModal';
 import { whatsNewList } from './';
 import { Colors } from '../../../util/theme/models';
-import {
-  WHATS_NEW_MODAL_CONTAINER_ID,
-  WHATS_NEW_MODAL_CLOSE_BUTTON_ID,
-} from '../../../constants/test-ids';
+import { WhatsNewModalSelectorsIDs } from '../../../../e2e/selectors/Modals/WhatsNewModal.selectors';
 import { ScrollView } from 'react-native-gesture-handler';
 import generateTestId from '../../../../wdio/utils/generateTestId';
 import { useNavigation } from '@react-navigation/native';
@@ -217,7 +214,7 @@ const WhatsNewModal = () => {
         <TouchableOpacity
           onPress={() => dismissModal()}
           hitSlop={{ top: 10, left: 10, bottom: 10, right: 10 }}
-          {...generateTestId(Platform, WHATS_NEW_MODAL_CLOSE_BUTTON_ID)}
+          {...generateTestId(Platform, WhatsNewModalSelectorsIDs.CLOSE_BUTTON)}
         >
           <Icon name="times" size={16} color={colors.icon.default} />
         </TouchableOpacity>
@@ -258,7 +255,7 @@ const WhatsNewModal = () => {
     >
       <View
         style={styles.modal}
-        {...generateTestId(Platform, WHATS_NEW_MODAL_CONTAINER_ID)}
+        {...generateTestId(Platform, WhatsNewModalSelectorsIDs.CONTAINER)}
       >
         <View style={styles.bodyContainer}>
           {renderHeader()}

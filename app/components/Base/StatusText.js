@@ -5,7 +5,7 @@ import { StyleSheet } from 'react-native';
 import { FIAT_ORDER_STATES } from '../../constants/on-ramp';
 import { strings } from '../../../locales/i18n';
 import { useTheme } from '../../util/theme';
-import { DETAILS_MODAL_TITLE } from '../../../wdio/screen-objects/testIDs/Components/DetailsModal.js';
+import { ActivityViewSelectorsIDs } from '../../../e2e/selectors/ActivityView.selectors';
 
 const styles = StyleSheet.create({
   status: {
@@ -17,7 +17,7 @@ const styles = StyleSheet.create({
 
 export const ConfirmedText = (props) => (
   <Text
-    testID={DETAILS_MODAL_TITLE}
+    testID={ActivityViewSelectorsIDs.STATUS}
     bold
     green
     style={styles.status}
@@ -28,6 +28,7 @@ export const PendingText = (props) => {
   const { colors } = useTheme();
   return (
     <Text
+      testID={ActivityViewSelectorsIDs.STATUS}
       bold
       style={[styles.status, { color: colors.secondary.default }]}
       {...props}
@@ -38,6 +39,7 @@ export const FailedText = (props) => {
   const { colors } = useTheme();
   return (
     <Text
+      testID={ActivityViewSelectorsIDs.STATUS}
       bold
       style={[styles.status, { color: colors.error.default }]}
       {...props}
