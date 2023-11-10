@@ -1,7 +1,3 @@
-import {
-  TransactionController,
-  WalletDevice,
-} from '@metamask/transaction-controller';
 import { Platform } from 'react-native';
 import Logger from '../../util/Logger';
 import AppConstants from '../AppConstants';
@@ -9,10 +5,10 @@ import BackgroundBridge from '../BackgroundBridge/BackgroundBridge';
 import Engine from '../Engine';
 import getRpcMethodMiddleware, {
   ApprovalTypes,
+  RPCMethodsMiddleParameters,
 } from '../RPCMethods/RPCMethodMiddleware';
 
 import { ApprovalController } from '@metamask/approval-controller';
-import { Json } from '@metamask/utils';
 import { KeyringController } from '@metamask/keyring-controller';
 import { PreferencesController } from '@metamask/preferences-controller';
 import {
@@ -23,6 +19,7 @@ import {
   OriginatorInfo,
   RemoteCommunication,
 } from '@metamask/sdk-communication-layer';
+import { Json } from '@metamask/utils';
 import { ethErrors } from 'eth-rpc-errors';
 import { EventEmitter2 } from 'eventemitter2';
 import { PROTOCOLS } from '../../constants/deeplinks';
@@ -573,6 +570,7 @@ export class Connection extends EventEmitter2 {
             `metamask_batch method=${rpc.method} id=${rpc.id}`,
             rpc.params,
           );
+
           this.backgroundBridge?.onMessage({
             name: 'metamask-provider',
             data: rpc,
@@ -586,54 +584,6 @@ export class Connection extends EventEmitter2 {
           id: (message.id as string) ?? 'unknown',
           method: message.method,
         });
-
-        // We have to implement this method here since the eth_sendTransaction in Engine is not working because we can't send correct origin
-        if (lcMethod === RPC_METHODS.ETH_SENDTRANSACTION.toLowerCase()) {
-          if (
-            !(
-              message?.params &&
-              Array.isArray(message.params) &&
-              message.params.length > 0
-            )
-          ) {
-            throw new Error('Invalid message format');
-          }
-
-          const transactionController = (
-            Engine.context as { TransactionController: TransactionController }
-          ).TransactionController;
-          try {
-            const hash = await (
-              await transactionController.addTransaction(message.params[0], {
-                deviceConfirmedOn: WalletDevice.MM_MOBILE,
-                origin: this.originatorInfo?.url
-                  ? AppConstants.MM_SDK.SDK_REMOTE_ORIGIN +
-                    this.originatorInfo?.url
-                  : undefined,
-              })
-            ).result;
-            await this.sendMessage({
-              data: {
-                id: message.id,
-                jsonrpc: '2.0',
-                result: hash,
-              },
-              name: 'metamask-provider',
-            });
-          } catch (error) {
-            this.sendMessage({
-              data: {
-                error,
-                id: message.id,
-                jsonrpc: '2.0',
-              },
-              name: 'metamask-provider',
-            }).catch((err) => {
-              Logger.log(err, `Connection failed to send otp`);
-            });
-          }
-          return;
-        }
 
         this.backgroundBridge?.onMessage({
           name: 'metamask-provider',
@@ -694,11 +644,11 @@ export class Connection extends EventEmitter2 {
       remoteConnHost: this.host,
       getRpcMethodMiddleware: ({
         getProviderState,
-      }: {
-        hostname: string;
-        getProviderState: any;
-      }) =>
-        getRpcMethodMiddleware({
+      }: RPCMethodsMiddleParameters) => {
+        DevLogger.log(
+          `getRpcMethodMiddleware hostname=${this.host} url=${originatorInfo.url} `,
+        );
+        return getRpcMethodMiddleware({
           hostname: this.host,
           getProviderState,
           isMMSDK: true,
@@ -740,7 +690,8 @@ export class Connection extends EventEmitter2 {
           },
           toggleUrlModal: () => null,
           injectHomePageScripts: () => null,
-        }),
+        });
+      },
       isMainFrame: true,
       isWalletConnect: false,
       wcRequestActions: undefined,
@@ -952,6 +903,10 @@ export class Connection extends EventEmitter2 {
         index: chainRpcs.index,
         response: msg?.data?.result,
       });
+
+      // wait 1s before sending the next rpc method To give user time to process UI feedbacks
+      await wait(1000);
+
       // Send the next rpc method to the background bridge
       const nextRpc = chainRpcs.rpcs[chainRpcs.index + 1];
       nextRpc.id = chainRpcs.baseId + `_${chainRpcs.index + 1}`; // Add index to id to keep track of the order
@@ -960,6 +915,7 @@ export class Connection extends EventEmitter2 {
         `handleChainRpcResponse method=${nextRpc.method} id=${nextRpc.id}`,
         nextRpc.params,
       );
+
       this.backgroundBridge?.onMessage({
         name: 'metamask-provider',
         data: nextRpc,
