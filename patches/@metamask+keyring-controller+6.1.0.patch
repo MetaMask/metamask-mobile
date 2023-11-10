@@ -1,5 +1,5 @@
 diff --git a/node_modules/@metamask/keyring-controller/dist/KeyringController.d.ts b/node_modules/@metamask/keyring-controller/dist/KeyringController.d.ts
-index dff777b..bb3aad2 100644
+index dff777b..9fa8a39 100644
 --- a/node_modules/@metamask/keyring-controller/dist/KeyringController.d.ts
 +++ b/node_modules/@metamask/keyring-controller/dist/KeyringController.d.ts
 @@ -1,3 +1,4 @@
@@ -7,7 +7,17 @@ index dff777b..bb3aad2 100644
  import { MetaMaskKeyring as QRKeyring, IKeyringState as IQRKeyringState } from '@keystonehq/metamask-airgapped-keyring';
  import { BaseControllerV2, RestrictedControllerMessenger } from '@metamask/base-controller';
  import { PreferencesController } from '@metamask/preferences-controller';
-@@ -141,6 +142,10 @@ export declare class KeyringController extends BaseControllerV2<typeof name, Key
+@@ -10,7 +11,8 @@ declare const name = "KeyringController";
+ export declare enum KeyringTypes {
+     simple = "Simple Key Pair",
+     hd = "HD Key Tree",
+-    qr = "QR Hardware Wallet Device"
++    qr = "QR Hardware Wallet Device",
++    ledger = 'Ledger Hardware',
+ }
+ /**
+  * @type KeyringObject
+@@ -141,6 +143,10 @@ export declare class KeyringController extends BaseControllerV2<typeof name, Key
       * @param opts.state - Initial state to set on this controller.
       */
      constructor({ removeIdentity, syncIdentities, updateIdentities, setSelectedAddress, setAccountLabel, encryptor, keyringBuilders, cacheEncryptionKey, messenger, state, }: KeyringControllerOptions);
@@ -18,7 +28,7 @@ index dff777b..bb3aad2 100644
      /**
       * Adds a new account to the default (first) HD seed phrase keyring.
       *
-@@ -342,7 +347,10 @@ export declare class KeyringController extends BaseControllerV2<typeof name, Key
+@@ -342,7 +348,10 @@ export declare class KeyringController extends BaseControllerV2<typeof name, Key
      }[]>;
      unlockQRHardwareWalletAccount(index: number): Promise<void>;
      getAccountKeyringType(account: string): Promise<KeyringTypes>;
@@ -30,7 +40,6 @@ index dff777b..bb3aad2 100644
  }
  export default KeyringController;
  //# sourceMappingURL=KeyringController.d.ts.map
-\ No newline at end of file
 diff --git a/node_modules/@metamask/keyring-controller/dist/KeyringController.d.ts.map b/node_modules/@metamask/keyring-controller/dist/KeyringController.d.ts.map
 index 85812da..fa2363d 100644
 --- a/node_modules/@metamask/keyring-controller/dist/KeyringController.d.ts.map

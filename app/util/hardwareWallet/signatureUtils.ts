@@ -1,10 +1,10 @@
 import { handleSignatureAction } from '../confirmation/signatureUtils';
 import { getKeyringByAddress } from '../address';
 import { signModalNavDetail } from './hardwareWallets/ledger';
-import { ExtendedKeyringTypes } from '../../constants/keyringTypes';
+import { KeyringTypes } from '@metamask/keyring-controller';
 
-const navMethodFactory = new Map<ExtendedKeyringTypes, any>();
-navMethodFactory.set(ExtendedKeyringTypes.ledger, signModalNavDetail);
+const navMethodFactory = new Map<KeyringTypes, any>();
+navMethodFactory.set(KeyringTypes.ledger, signModalNavDetail);
 
 export default async (
   onReject: () => void,
@@ -26,7 +26,7 @@ export default async (
     throw new Error(`Keyring not found for address ${messageParams.from}`);
   }
 
-  const navPromise = navMethodFactory.get(keyring.type as ExtendedKeyringTypes);
+  const navPromise = navMethodFactory.get(keyring.type as KeyringTypes);
 
   if (navPromise === undefined) {
     throw new Error(

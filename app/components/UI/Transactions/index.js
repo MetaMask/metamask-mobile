@@ -67,7 +67,7 @@ import {
   SpeedupTransactionError,
 } from '../../../core/Transaction/TransactionError';
 import { getLedgerKeyring } from '../../../core/Ledger/Ledger';
-import { ExtendedKeyringTypes } from '../../../constants/keyringTypes';
+import { KeyringTypes } from '@metamask/keyring-controller';
 
 const createStyles = (colors, typography) =>
   StyleSheet.create({
@@ -260,10 +260,10 @@ class Transactions extends PureComponent {
     this.setState({ rpcBlockExplorer: blockExplorer });
     this.setState({
       isQRHardwareAccount: isHardwareAccount(this.props.selectedAddress, [
-        ExtendedKeyringTypes.qr,
+        KeyringTypes.qr,
       ]),
       isLedgerAccount: isHardwareAccount(this.props.selectedAddress, [
-        ExtendedKeyringTypes.ledger,
+        KeyringTypes.ledger,
       ]),
     });
   };
@@ -513,7 +513,7 @@ class Transactions extends PureComponent {
       }
 
       const isLedgerAccount = isHardwareAccount(this.props.selectedAddress, [
-        ExtendedKeyringTypes.ledger,
+        KeyringTypes.ledger,
       ]);
 
       if (isLedgerAccount) {
@@ -585,7 +585,7 @@ class Transactions extends PureComponent {
       }
 
       const isLedgerAccount = isHardwareAccount(this.props.selectedAddress, [
-        ExtendedKeyringTypes.ledger,
+        KeyringTypes.ledger,
       ]);
 
       if (isLedgerAccount) {

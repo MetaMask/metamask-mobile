@@ -2,12 +2,12 @@ import Engine from '../Engine';
 import {
   KeyringController,
   SignTypedDataVersion,
+  KeyringTypes,
 } from '@metamask/keyring-controller';
 import type BleTransport from '@ledgerhq/react-native-hw-transport-ble';
 import LedgerKeyring, {
   SerializationOptions,
 } from '@consensys/ledgerhq-metamask-keyring';
-import { ExtendedKeyringTypes } from '../../constants/keyringTypes';
 
 //TODO - Patch EthKeyringController into KeyringController
 /**
@@ -46,7 +46,7 @@ export const syncKeyringState = async (): Promise<void> => {
  */
 export const addLedgerKeyring = async (): Promise<LedgerKeyring> =>
   (await getEthKeyringController().addNewKeyring(
-    ExtendedKeyringTypes.ledger,
+    KeyringTypes.ledger,
   )) as unknown as LedgerKeyring;
 
 /**
@@ -56,7 +56,7 @@ export const addLedgerKeyring = async (): Promise<LedgerKeyring> =>
  */
 export const getLedgerKeyring = async (): Promise<LedgerKeyring> => {
   const keyring = getEthKeyringController().getKeyringsByType(
-    ExtendedKeyringTypes.ledger,
+    KeyringTypes.ledger,
   )[0] as unknown as LedgerKeyring;
 
   if (keyring) {

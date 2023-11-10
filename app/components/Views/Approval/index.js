@@ -45,7 +45,7 @@ import {
 import { selectSelectedAddress } from '../../../selectors/preferencesController';
 import { ethErrors } from 'eth-rpc-errors';
 import { getLedgerKeyring } from '../../../core/Ledger/Ledger';
-import { ExtendedKeyringTypes } from '../../../constants/keyringTypes';
+import { KeyringTypes } from '@metamask/keyring-controller';
 
 const REVIEW = 'review';
 const EDIT = 'edit';
@@ -386,7 +386,7 @@ class Approval extends PureComponent {
     }
 
     const isLedgerAccount = isHardwareAccount(transaction.from, [
-      ExtendedKeyringTypes.ledger,
+      KeyringTypes.ledger,
     ]);
 
     this.setState({ transactionConfirmed: true });
