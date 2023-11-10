@@ -1,6 +1,6 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
-exports[`NetworkVerificationInfo renders correctly 1`] = `
+exports[`PickerNetwork renders correctly 1`] = `
 <TouchableOpacity
   onPress={[Function]}
   style={
@@ -18,32 +18,31 @@ exports[`NetworkVerificationInfo renders correctly 1`] = `
   <View
     style={
       Object {
-        "alignItems": "center",
-        "backgroundColor": "#F2F4F6",
+        "backgroundColor": "#FFFFFF",
         "borderRadius": 8,
-        "borderWidth": 1,
         "height": 16,
-        "justifyContent": "center",
         "overflow": "hidden",
         "width": 16,
       }
     }
   >
-    <Text
-      accessibilityRole="text"
-      style={
+    <Image
+      onError={[Function]}
+      resizeMode="contain"
+      source={
         Object {
-          "color": "#24272A",
-          "fontFamily": "Euclid Circular B",
-          "fontSize": 10,
-          "fontWeight": "400",
-          "letterSpacing": 0,
-          "lineHeight": undefined,
+          "uri": "https://assets.coingecko.com/coins/images/279/small/ethereum.png?1595348880",
         }
       }
-    >
-      t
-    </Text>
+      style={
+        Object {
+          "flex": 1,
+          "height": undefined,
+          "width": undefined,
+        }
+      }
+      testID="network-avatar-image"
+    />
   </View>
   <Text
     accessibilityRole="text"
@@ -62,7 +61,7 @@ exports[`NetworkVerificationInfo renders correctly 1`] = `
     }
     testID="open-networks-text"
   >
-    test
+    Ethereum Mainnet
   </Text>
   <SvgMock
     color="#24272A"
@@ -74,7 +73,7 @@ exports[`NetworkVerificationInfo renders correctly 1`] = `
         "width": 12,
       }
     }
-    testID="picker-network-arrow"
+    testID="pickernetwork-arrow"
     width={12}
   />
 </TouchableOpacity>
