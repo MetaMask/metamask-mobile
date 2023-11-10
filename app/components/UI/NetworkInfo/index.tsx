@@ -21,7 +21,7 @@ import {
   getNetworkNameFromProviderConfig,
 } from '../../../util/networks';
 import Avatar, {
-  AvatarVariants,
+  AvatarVariant,
 } from '../../../component-library/components/Avatars/Avatar';
 import generateTestId from '../../../../wdio/utils/generateTestId';
 
@@ -156,7 +156,7 @@ const NetworkInfo = (props: NetworkInfoProps) => {
         <View style={styles.tokenView}>
           <View style={styles.tokenType}>
             <Avatar
-              variant={AvatarVariants.Network}
+              variant={AvatarVariant.Network}
               name={networkName.toUpperCase()}
               imageSource={networkImageSource}
             />

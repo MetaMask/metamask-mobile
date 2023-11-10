@@ -100,7 +100,7 @@ import {
 } from './SecuritySettings.constants';
 import Cell from '../../../..//component-library/components/Cells/Cell/Cell';
 import { CellVariant } from '../../../../component-library/components/Cells/Cell';
-import { AvatarVariants } from '../../../../component-library/components/Avatars/Avatar/Avatar.types';
+import { AvatarVariant } from '../../../../component-library/components/Avatars/Avatar/Avatar.types';
 import Networks, {
   getAllNetworks,
   getNetworkImageSource,
@@ -108,6 +108,7 @@ import Networks, {
 import images from 'images/image-icons';
 import { toHexadecimal } from '../../../../util/number';
 import { ETHERSCAN_SUPPORTED_NETWORKS } from '@metamask/transaction-controller/dist/constants';
+import { SecurityPrivacyViewSelectorsIDs } from '../../../../../e2e/selectors/Settings/SecurityAndPrivacy/SecurityPrivacyView.selectors';
 
 const Heading: React.FC<HeadingProps> = ({ children, first }) => {
   const { colors } = useTheme();
@@ -459,7 +460,7 @@ const Settings: React.FC = () => {
           thumbColor={importedColors.white}
           style={styles.switch}
           ios_backgroundColor={colors.border.muted}
-          testID={'metametrics-switch'}
+          testID={SecurityPrivacyViewSelectorsIDs.METAMETRICS_SWITCH}
         />
       </View>
     </View>
@@ -685,7 +686,7 @@ const Settings: React.FC = () => {
           variant={CellVariant.Display}
           title={mainnetName}
           avatarProps={{
-            variant: AvatarVariants.Network,
+            variant: AvatarVariant.Network,
             name: mainnetName,
             imageSource: images.ETHEREUM,
           }}
@@ -717,7 +718,7 @@ const Settings: React.FC = () => {
           variant={CellVariant.Display}
           title={lineaMainnetName}
           avatarProps={{
-            variant: AvatarVariants.Network,
+            variant: AvatarVariant.Network,
             name: lineaMainnetName,
             imageSource: images['LINEA-MAINNET'],
           }}
@@ -761,7 +762,7 @@ const Settings: React.FC = () => {
               title={name}
               secondaryText={myNetworks[hexChainId].domain}
               avatarProps={{
-                variant: AvatarVariants.Network,
+                variant: AvatarVariant.Network,
                 name,
                 imageSource: image,
               }}
@@ -799,7 +800,7 @@ const Settings: React.FC = () => {
             title={name}
             secondaryText={myNetworks[hexChainId].domain}
             avatarProps={{
-              variant: AvatarVariants.Network,
+              variant: AvatarVariant.Network,
               name,
               imageSource,
             }}

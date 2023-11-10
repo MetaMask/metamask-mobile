@@ -44,7 +44,7 @@ exports[`AccordionHeader - Snapshot should render a rotated down Arrow if isExpa
   >
     <Icon
       color="#0376C9"
-      name="ArrowUp"
+      name="ArrowDown"
       size="16"
       testID="accordionheader-arrow-icon"
     />
@@ -96,7 +96,7 @@ exports[`AccordionHeader - Snapshot should render default settings correctly 1`]
   >
     <Icon
       color="#0376C9"
-      name="ArrowUp"
+      name="ArrowDown"
       size="16"
       testID="accordionheader-arrow-icon"
     />
