@@ -340,7 +340,7 @@ export const getRpcMethodMiddleware = ({
         ) {
           // Switch chain id to chain nickname if it exists, if doesn't show the chain id
           Alert.alert(
-            `This chain is not supported, please switch to this chain id ${parseInt(
+            `This chain is not selected, please switch to this chain id ${parseInt(
               from.chainId,
               16,
             )}`,
