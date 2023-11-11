@@ -85,7 +85,7 @@ const Drawer = forwardRef<DrawerRef, Props>((props, ref) => {
   useEffect(() => {
     if (prevNetwork.current !== chainId && chainId) {
       if (prevNetwork.current) {
-        // Network switched has occured
+        // Network switched has occurred
         // Check if network has been onboarded.
         const networkOnboarded = getIsNetworkOnboarded(
           chainId,

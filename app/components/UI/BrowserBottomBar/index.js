@@ -22,7 +22,7 @@ import {
 } from '../../../../wdio/screen-objects/testIDs/BrowserScreen/BrowserScreen.testIds';
 import { withMetricsAwareness } from '../../../components/hooks/useMetrics';
 
-// NOTE: not needed anymore. The use of BottomTabBar already accomodates the home indicator height
+// NOTE: not needed anymore. The use of BottomTabBar already accommodates the home indicator height
 // TODO: test on an android device
 // const HOME_INDICATOR_HEIGHT = 0;
 // const defaultBottomBarPadding = 0;
