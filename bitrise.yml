@@ -341,9 +341,9 @@ workflows:
             - content: |-
                 #!/usr/bin/env bash
                 if [ "$TEST_SUITE" = "regression" ]; then
-                TEST_SUITE="regression"
+                TEST_SUITE="Regression"
                 else
-                TEST_SUITE="smoke"
+                TEST_SUITE="Smoke"
                 fi
                 node -v
                 IGNORE_BOXLOGS_DEVELOPMENT="true" FORCE_BUNDLING=true yarn test:e2e:android:bitrise:debug --testNamePattern="$TEST_SUITE"
