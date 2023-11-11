@@ -14,22 +14,6 @@ Content to wrap to display.
 | :-------------------------------------------------- | :------------------------------------------------------ |
 | ReactNode                                          | No                                                     |
 
-### `padding`
-
-Optional prop to configure the padding of the ListItem.
-
-| <span style="color:gray;font-size:14px">TYPE</span> | <span style="color:gray;font-size:14px">REQUIRED</span> | <span style="color:gray;font-size:14px">DEFAULT</span> |
-| :-------------------------------------------------- | :------------------------------------------------------ | :----------------------------------------------------- |
-| number or string                                            | No                                                     |                   16                                         |
-
-### `borderRadius`
-
-Optional prop to configure the borderRadius of the ListItem.
-
-| <span style="color:gray;font-size:14px">TYPE</span> | <span style="color:gray;font-size:14px">REQUIRED</span> | <span style="color:gray;font-size:14px">DEFAULT</span> |
-| :-------------------------------------------------- | :------------------------------------------------------ | :----------------------------------------------------- |
-| number or string                                            | No                                                     |                   0                                         |
-
 ### `gap`
 
 Optional prop to configure the gap between items inside the ListItem.

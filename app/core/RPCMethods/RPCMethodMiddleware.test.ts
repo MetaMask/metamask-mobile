@@ -31,6 +31,7 @@ jest.mock('../Engine', () => ({
     },
     TransactionController: {
       addTransaction: jest.fn(),
+      updateSecurityAlertResponse: jest.fn(),
     },
     SignatureController: {
       newUnsignedMessage: jest.fn(),
@@ -55,6 +56,7 @@ const MockEngine = Engine as Omit<typeof Engine, 'context'> & {
 jest.mock('../../store', () => ({
   store: {
     getState: jest.fn(),
+    dispatch: jest.fn(),
   },
 }));
 
@@ -234,7 +236,7 @@ function setupGlobalState({
     }));
   if (addTransactionResult) {
     MockEngine.context.TransactionController.addTransaction.mockImplementation(
-      async () => ({ result: addTransactionResult }),
+      async () => ({ result: addTransactionResult, transactionMeta: '123' }),
     );
   }
   if (permittedAccounts) {

@@ -3,7 +3,7 @@ import { ImageSourcePropType } from 'react-native';
 
 // External dependencies.
 import { AvatarBaseProps } from '../../foundation/AvatarBase/AvatarBase.types';
-import { AvatarVariants } from '../../Avatar.types';
+import { AvatarVariant } from '../../Avatar.types';
 
 /**
  * AvatarNetwork component props.
@@ -12,7 +12,7 @@ export interface AvatarNetworkProps extends AvatarBaseProps {
   /**
    * Variant of Avatar
    */
-  variant?: AvatarVariants.Network;
+  variant?: AvatarVariant.Network;
   /**
    * Optional network name.
    */

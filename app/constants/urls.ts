@@ -65,3 +65,7 @@ export const BLOCKAID_SUPPORT_LINK = 'https://support.metamask.io/hc/en-us';
 
 export const SEPOLIA_FAUCET = 'https://www.infura.io/faucet/sepolia';
 export const LINEA_FAUCET = 'https://www.infura.io/faucet/linea';
+
+// Add custom network
+export const ADD_CUSTOM_NETWORK_ARTCILE =
+  'https://support.metamask.io/hc/en-us/articles/360057142392-Verifying-custom-network-information';

@@ -773,6 +773,46 @@ export const migrations = {
       return state;
     }
   },
+  /**
+   * This migration is to free space of unused data in the user devices
+   * regarding the phishing list property listState, that is no longer used
+   * @param {any} state - Redux state
+   * @returns
+   */
+  26: (state) => {
+    const phishingControllerState =
+      state.engine.backgroundState.PhishingController;
+    if (phishingControllerState?.listState) {
+      delete state.engine.backgroundState.PhishingController.listState;
+    } else {
+      captureException(
+        new Error(
+          `Migration 26: Invalid PhishingControllerState controller state: '${JSON.stringify(
+            state.engine.backgroundState.PhishingController,
+          )}'`,
+        ),
+      );
+    }
+
+    if (
+      phishingControllerState?.hotlistLastFetched &&
+      phishingControllerState?.stalelistLastFetched
+    ) {
+      // This will make the list be fetched again when the user updates the app
+      state.engine.backgroundState.PhishingController.hotlistLastFetched = 0;
+      state.engine.backgroundState.PhishingController.stalelistLastFetched = 0;
+    } else {
+      captureException(
+        new Error(
+          `Migration 26: Invalid PhishingControllerState hotlist and stale list fetched: '${JSON.stringify(
+            state.engine.backgroundState.PhishingController,
+          )}'`,
+        ),
+      );
+    }
+
+    return state;
+  },
   // If you are implementing a migration it will break the migration tests,
   // please write a unit for your specific migration version
 };

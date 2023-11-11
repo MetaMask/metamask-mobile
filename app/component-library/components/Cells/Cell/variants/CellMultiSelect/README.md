@@ -4,7 +4,7 @@ CellMultiSelect is a component used for accessing account selection.
 
 ## Props
 
-This component extends [MultiSelectItemProps](../../Select/MultiSelect/MultiSelectItem/MultiSelectItem.types.ts#L7) and [CellBase](../CellBase/CellBase.types.ts#L17).
+This component extends [ListItemMultiSelectProps](../../List/ListItemMultiSelect/ListItemMultiSelect.types.ts#L7) and [CellBase](../CellBase/CellBase.types.ts#L17).
 
 ### `avatarProps`
 

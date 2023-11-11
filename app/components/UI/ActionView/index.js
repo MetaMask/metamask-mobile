@@ -53,6 +53,8 @@ export default function ActionView({
   style = undefined,
 }) {
   const { colors } = useTheme();
+  confirmText = confirmText || strings('action_view.confirm');
+  cancelText = cancelText || strings('action_view.cancel');
 
   return (
     <View style={baseStyles.flexGrow}>
@@ -111,9 +113,9 @@ export default function ActionView({
 }
 
 ActionView.defaultProps = {
-  cancelText: strings('action_view.cancel'),
+  cancelText: '',
   confirmButtonMode: 'normal',
-  confirmText: strings('action_view.confirm'),
+  confirmText: '',
   confirmTestID: '',
   confirmed: false,
   cancelTestID: '',
