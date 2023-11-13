@@ -44,6 +44,8 @@ const mockUseRampSDKValues: Partial<RampSDK> = {
   ...mockUseRampSDKInitialValues,
 };
 
+jest.useFakeTimers();
+
 jest.mock('../../../common/sdk', () => ({
   ...jest.requireActual('../../../common/sdk'),
   useRampSDK: () => mockUseRampSDKValues,
@@ -193,9 +195,15 @@ describe('OrderDetails', () => {
   });
 
   it('renders a loading screen while the created order is fetched on load', async () => {
-    mockProcessFiatOrder.mockImplementation(() => new Promise(() => {}));
+    mockProcessFiatOrder.mockImplementation(
+      () => new Promise((resolve) => setTimeout(resolve, 1000)),
+    );
+
     testOrder.state = FIAT_ORDER_STATES.CREATED;
     render(OrderDetails, [testOrder]);
+
+    jest.runAllTimers();
+
     expect(screen.toJSON()).toMatchSnapshot();
   });
 
