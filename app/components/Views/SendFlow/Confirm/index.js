@@ -111,7 +111,7 @@ import {
 import { isBlockaidFeatureEnabled } from '../../../../util/blockaid';
 import BlockaidBanner from '../../../UI/BlockaidBanner/BlockaidBanner';
 import { getLedgerKeyring } from '../../../../core/Ledger/Ledger';
-import { ExtendedKeyringTypes } from '../../../..//constants/keyringTypes';
+import ExtendedKeyringTypes from '../../../..//constants/keyringTypes';
 
 const EDIT = 'edit';
 const EDIT_NONCE = 'edit_nonce';
