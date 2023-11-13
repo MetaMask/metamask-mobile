@@ -15,14 +15,6 @@ const ListItemMeta = {
   title: 'Component Library / List',
   component: ListItemComponent,
   argTypes: {
-    padding: {
-      control: { type: 'number' },
-      defaultValue: SAMPLE_LISTITEM_PROPS.padding,
-    },
-    borderRadius: {
-      control: { type: 'number' },
-      defaultValue: SAMPLE_LISTITEM_PROPS.borderRadius,
-    },
     gap: {
       control: { type: 'number' },
       defaultValue: SAMPLE_LISTITEM_PROPS.gap,

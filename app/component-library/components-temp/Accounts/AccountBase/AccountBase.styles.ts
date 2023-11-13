@@ -1,4 +1,5 @@
 // Third party dependencies.
+import { fontStyles } from '../../../../../app/styles/common';
 import { StyleSheet } from 'react-native';
 
 /**
@@ -22,6 +23,19 @@ const styleSheet = StyleSheet.create({
   },
   label: {
     marginLeft: 'auto',
+  },
+  accountNameLabel: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'flex-start',
+  },
+  accountNameLabelText: {
+    marginLeft: 4,
+    paddingHorizontal: 8,
+    ...fontStyles.bold,
+    borderWidth: 1,
+    borderRadius: 8,
+    fontSize: 10,
   },
 });
 

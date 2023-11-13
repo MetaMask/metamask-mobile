@@ -4,7 +4,7 @@ CellSelect is a component used for accessing account selection.
 
 ## Props
 
-This component extends [SelectItemProps](../../Select/Select/SelectItem/SelectItem.types.ts#L7) and [CellBase](../CellBase/CellBase.types.ts#L17).
+This component extends [ListItemSelectProps](../../List/ListItemSelect/ListItemSelect.types.ts#L7) and [CellBase](../CellBase/CellBase.types.ts#L17).
 
 ### `avatarProps`
 
