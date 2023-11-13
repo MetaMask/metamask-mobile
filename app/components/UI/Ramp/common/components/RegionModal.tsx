@@ -96,7 +96,6 @@ const RegionModal: React.FC<Props> = ({
   const list = useRef<FlatList<Region>>(null);
   const [searchString, setSearchString] = useState('');
   const [currentData, setCurrentData] = useState(data || []);
-  const isBuy = rampType === RampType.BUY;
 
   // local state variable to set the active view (countries vs. regions)
   const [activeView, setActiveView] = useState(RegionViewType.COUNTRY);
