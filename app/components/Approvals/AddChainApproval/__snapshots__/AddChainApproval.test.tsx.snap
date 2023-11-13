@@ -1,11 +1,40 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
 exports[`AddChainApproval renders 1`] = `
-<ApprovalModal
-  isVisible={true}
+<ForwardRef
+  isFlexible={true}
+  shouldNavigateBack={false}
 >
-  <AddCustomNetwork />
-</ApprovalModal>
+  <BottomSheetHeader>
+    <Text
+      variant="sHeadingMD"
+    >
+      Allow this site to add a network?
+    </Text>
+  </BottomSheetHeader>
+  <NetworkVerificationInfo />
+  <BottomSheetFooter
+    buttonPropsArray={
+      Array [
+        Object {
+          "label": "Cancel",
+          "onPress": undefined,
+          "size": "48",
+          "testID": "cancel-button",
+          "variant": "Secondary",
+        },
+        Object {
+          "label": "Confirm",
+          "onPress": undefined,
+          "size": "48",
+          "testID": "connect-button",
+          "variant": "Primary",
+        },
+      ]
+    }
+    buttonsAlignment="Horizontal"
+  />
+</ForwardRef>
 `;
 
 exports[`AddChainApproval returns null if incorrect approval request type 1`] = `""`;

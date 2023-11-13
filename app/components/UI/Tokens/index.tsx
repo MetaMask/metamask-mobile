@@ -53,7 +53,7 @@ import { BadgeVariant } from '../../../component-library/components/Badges/Badge
 import images from 'images/image-icons';
 import {
   AvatarSize,
-  AvatarVariants,
+  AvatarVariant,
 } from '../../../component-library/components/Avatars/Avatar';
 import AvatarToken from '../../../component-library/components/Avatars/Avatar/variants/AvatarToken';
 import Text, {
@@ -283,7 +283,7 @@ const Tokens: React.FC<TokensI> = ({ tokens }) => {
             <NetworkMainAssetLogo style={styles.ethLogo} />
           ) : (
             <AvatarToken
-              variant={AvatarVariants.Token}
+              variant={AvatarVariant.Token}
               name={asset.symbol}
               imageSource={{ uri: asset.image }}
               size={AvatarSize.Md}
