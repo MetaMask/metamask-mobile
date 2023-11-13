@@ -21,7 +21,7 @@ import QRSigningDetails from '../QRHardware/QRSigningDetails';
 import { selectProviderType } from '../../../selectors/networkController';
 import BlockaidBanner from '../BlockaidBanner/BlockaidBanner';
 import { getAnalyticsParams } from '../../../util/confirmation/signatureUtils';
-import { ExtendedKeyringTypes } from '../../../constants/keyringTypes';
+import ExtendedKeyringTypes from '../../../constants/keyringTypes';
 import { SigningModalSelectorsIDs } from '../../../../e2e/selectors/Modals/SigningModal.selectors';
 import setSignatureRequestSecurityAlertResponse from '../../../actions/signatureRequest';
 import { store } from '../../../store';

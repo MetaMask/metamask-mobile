@@ -67,7 +67,7 @@ import {
   SpeedupTransactionError,
 } from '../../../core/Transaction/TransactionError';
 import { getLedgerKeyring } from '../../../core/Ledger/Ledger';
-import { ExtendedKeyringTypes } from '../../../constants/keyringTypes';
+import ExtendedKeyringTypes from '../../../constants/keyringTypes';
 
 const createStyles = (colors, typography) =>
   StyleSheet.create({

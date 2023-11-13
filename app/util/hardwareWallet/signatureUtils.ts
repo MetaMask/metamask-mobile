@@ -1,7 +1,7 @@
 import { handleSignatureAction } from '../confirmation/signatureUtils';
 import { getKeyringByAddress } from '../address';
 import { signModalNavDetail } from './hardwareWallets/ledger';
-import { ExtendedKeyringTypes } from '../../constants/keyringTypes';
+import ExtendedKeyringTypes from '../../constants/keyringTypes';
 
 const navMethodFactory = new Map<ExtendedKeyringTypes, any>();
 navMethodFactory.set(ExtendedKeyringTypes.ledger, signModalNavDetail);

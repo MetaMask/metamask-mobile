@@ -62,7 +62,7 @@ import { selectTokens } from '../../../selectors/tokensController';
 import { selectSelectedAddress } from '../../../selectors/preferencesController';
 import { getLedgerKeyring } from '../../../core/Ledger/Ledger';
 import { createLedgerTransactionModalNavDetails } from '../../UI/LedgerModals/LedgerTransactionModal';
-import { ExtendedKeyringTypes } from '../../../constants/keyringTypes';
+import ExtendedKeyringTypes from '../../../constants/keyringTypes';
 
 const hstInterface = new ethers.utils.Interface(abi);
 

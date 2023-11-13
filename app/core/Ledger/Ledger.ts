@@ -7,7 +7,7 @@ import type BleTransport from '@ledgerhq/react-native-hw-transport-ble';
 import LedgerKeyring, {
   SerializationOptions,
 } from '@consensys/ledgerhq-metamask-keyring';
-import { ExtendedKeyringTypes } from '../../constants/keyringTypes';
+import ExtendedKeyringTypes from '../../constants/keyringTypes';
 
 //TODO - Patch EthKeyringController into KeyringController
 /**

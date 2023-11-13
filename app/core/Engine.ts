@@ -123,7 +123,7 @@ import { PPOM, ppomInit } from '../lib/ppom/PPOMView';
 import RNFSStorageBackend from '../lib/ppom/rnfs-storage-backend';
 import { isHardwareAccount } from '../util/address';
 import { ledgerSignTypedMessage } from './Ledger/Ledger';
-import { ExtendedKeyringTypes } from '../constants/keyringTypes';
+import ExtendedKeyringTypes from '../constants/keyringTypes';
 
 const NON_EMPTY = 'NON_EMPTY';
 

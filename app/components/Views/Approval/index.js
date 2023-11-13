@@ -45,7 +45,7 @@ import {
 import { selectSelectedAddress } from '../../../selectors/preferencesController';
 import { ethErrors } from 'eth-rpc-errors';
 import { getLedgerKeyring } from '../../../core/Ledger/Ledger';
-import { ExtendedKeyringTypes } from '../../../constants/keyringTypes';
+import ExtendedKeyringTypes from '../../../constants/keyringTypes';
 
 const REVIEW = 'review';
 const EDIT = 'edit';

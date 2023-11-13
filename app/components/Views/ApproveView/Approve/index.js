@@ -69,7 +69,7 @@ import ShowBlockExplorer from '../../../UI/ApproveTransactionReview/ShowBlockExp
 import createStyles from './styles';
 import { ethErrors } from 'eth-rpc-errors';
 import { getLedgerKeyring } from '../../../../core/Ledger/Ledger';
-import { ExtendedKeyringTypes } from '../../../../constants/keyringTypes';
+import ExtendedKeyringTypes from '../../../../constants/keyringTypes';
 
 const EDIT = 'edit';
 const REVIEW = 'review';

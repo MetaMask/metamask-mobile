@@ -8,7 +8,7 @@ import {
 } from 'ethereumjs-util';
 import URL from 'url-parse';
 import punycode from 'punycode/punycode';
-import { ExtendedKeyringTypes } from '../../../app/constants/keyringTypes';
+import ExtendedKeyringTypes from '../../constants/keyringTypes';
 import Engine from '../../core/Engine';
 import { strings } from '../../../locales/i18n';
 import { tlc } from '../general';
