@@ -1,6 +1,7 @@
-import React, { ComponentType } from 'react';
+import React from 'react';
+// eslint-disable-next-line import/no-namespace
 import * as indexModule from '../../../index';
-import { act, fireEvent, screen, waitFor } from '@testing-library/react-native';
+import { fireEvent, screen, waitFor } from '@testing-library/react-native';
 import { renderScreen } from '../../../../../../util/test/renderWithProvider';
 import OrderDetails from './OrderDetails';
 import initialBackgroundState from '../../../../../../util/test/initial-background-state.json';
@@ -39,7 +40,7 @@ const mockUseRampSDKInitialValues: Partial<RampSDK> = {
   isSell: false,
 };
 
-let mockUseRampSDKValues: Partial<RampSDK> = {
+const mockUseRampSDKValues: Partial<RampSDK> = {
   ...mockUseRampSDKInitialValues,
 };
 
@@ -68,9 +69,17 @@ jest.mock('@react-navigation/native', () => {
 
 let mockProcessFiatOrder: jest.Mock;
 beforeEach(() => {
-  mockProcessFiatOrder = jest
-    .fn()
-    .mockResolvedValue(() => Promise.resolve(testOrder));
+  mockProcessFiatOrder = jest.fn().mockImplementation((order, onSuccess) => {
+    const updatedOrder = {
+      ...order,
+      lastTimeFetched: (order.lastTimefetched || 0) + 1,
+    };
+    if (onSuccess) {
+      onSuccess(updatedOrder);
+    }
+    Promise.resolve();
+  });
+
   jest
     .spyOn(indexModule, 'processFiatOrder')
     .mockImplementation(mockProcessFiatOrder);
@@ -93,6 +102,7 @@ const defaultOrder: DeepPartial<FiatOrder> = {
   amount: '34.23',
   currency: 'USD',
   sellTxHash: '0x123',
+  lastTimeFetched: 0,
   data: {
     cryptoCurrency: {
       decimals: 18,
@@ -161,7 +171,7 @@ describe('OrderDetails', () => {
     );
   });
 
-  it('polls for a created order on load', async () => {
+  it('polls for a created order on load and dispatches an action to update', async () => {
     testOrder.state = FIAT_ORDER_STATES.CREATED;
 
     render(OrderDetails, [testOrder]);
@@ -173,7 +183,13 @@ describe('OrderDetails', () => {
       { forced: true },
     );
 
-    // expect(mockDispatch).toHaveBeenCalledTimes(1);
+    expect(mockDispatch).toHaveBeenCalledWith({
+      type: 'FIAT_UPDATE_ORDER',
+      payload: {
+        ...defaultOrder,
+        lastTimeFetched: 1,
+      },
+    });
   });
 
   it('renders a loading screen while the created order is fetched on load', async () => {
