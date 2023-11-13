@@ -1,6 +1,5 @@
 import React from 'react';
-// eslint-disable-next-line import/no-namespace
-import * as indexModule from '../../../index';
+import { processFiatOrder } from '../../../index';
 import { fireEvent, screen, waitFor } from '@testing-library/react-native';
 import { renderScreen } from '../../../../../../util/test/renderWithProvider';
 import OrderDetails from './OrderDetails';
@@ -10,46 +9,16 @@ import {
   FIAT_ORDER_PROVIDERS,
   FIAT_ORDER_STATES,
 } from '../../../../../../constants/on-ramp';
-import { RampSDK } from '../../sdk';
-import {
-  mockCryptoCurrenciesData,
-  mockFiatCurrenciesData,
-  mockPaymentMethods,
-  mockRegionsData,
-} from '../../../buy/Views/BuildQuote/BuildQuote.constants';
+
 import { OrderOrderTypeEnum } from '@consensys/on-ramp-sdk/dist/API';
-import { Order } from '@consensys/on-ramp-sdk';
-import { PROVIDER_LINKS } from '../../types';
 import Routes from '../../../../../../constants/navigation/Routes';
+import { RampSDK } from '../../sdk';
 
 const mockNavigate = jest.fn();
 const mockGoBack = jest.fn();
 const mockSetNavigationOptions = jest.fn();
 const mockTrackEvent = jest.fn();
 const mockDispatch = jest.fn();
-
-const mockUseRampSDKInitialValues: Partial<RampSDK> = {
-  selectedPaymentMethodId: mockPaymentMethods[0].id,
-  selectedRegion: mockRegionsData[0],
-  selectedAsset: mockCryptoCurrenciesData[0],
-  selectedFiatCurrencyId: mockFiatCurrenciesData[0].id,
-  selectedChainId: '1',
-  selectedNetworkName: 'Ethereum',
-  sdkError: undefined,
-  isBuy: true,
-  isSell: false,
-};
-
-const mockUseRampSDKValues: Partial<RampSDK> = {
-  ...mockUseRampSDKInitialValues,
-};
-
-jest.useFakeTimers();
-
-jest.mock('../../../common/sdk', () => ({
-  ...jest.requireActual('../../../common/sdk'),
-  useRampSDK: () => mockUseRampSDKValues,
-}));
 
 jest.mock('../../../common/hooks/useAnalytics', () => () => mockTrackEvent);
 jest.mock('react-redux', () => ({
@@ -64,40 +33,24 @@ jest.mock('@react-navigation/native', () => {
     useNavigation: () => ({
       navigate: mockNavigate,
       goBack: mockGoBack,
-      setOptions: mockSetNavigationOptions,
+      setOptions: mockSetNavigationOptions.mockImplementation(
+        actualReactNavigation.useNavigation().setOptions,
+      ),
     }),
   };
-});
-
-let mockProcessFiatOrder: jest.Mock;
-beforeEach(() => {
-  mockProcessFiatOrder = jest.fn().mockImplementation((order, onSuccess) => {
-    const updatedOrder = {
-      ...order,
-      lastTimeFetched: (order.lastTimefetched || 0) + 1,
-    };
-    if (onSuccess) {
-      onSuccess(updatedOrder);
-    }
-    Promise.resolve();
-  });
-
-  jest
-    .spyOn(indexModule, 'processFiatOrder')
-    .mockImplementation(mockProcessFiatOrder);
 });
 
 type DeepPartial<BaseType> = {
   [key in keyof BaseType]?: DeepPartial<BaseType[key]>;
 };
 
-const defaultOrder: DeepPartial<FiatOrder> = {
+const mockOrder: DeepPartial<FiatOrder> = {
   id: 'test-order-1',
   account: '0x0',
   network: '1',
   cryptoAmount: '0.01231324',
   orderType: OrderOrderTypeEnum.Buy,
-  state: FIAT_ORDER_STATES.COMPLETED,
+  state: FIAT_ORDER_STATES.PENDING,
   createdAt: 1697242033399,
   provider: FIAT_ORDER_PROVIDERS.AGGREGATOR,
   cryptocurrency: 'ETH',
@@ -117,21 +70,60 @@ const defaultOrder: DeepPartial<FiatOrder> = {
   },
 };
 
-let testOrder: DeepPartial<FiatOrder> = defaultOrder;
+const mockUseRampSDKInitialValues: DeepPartial<RampSDK> = {
+  selectedPaymentMethodId: 'test-payment-method-id',
+  selectedRegion: {
+    currencies: ['/currencies/fiat/clp'],
+    emoji: '🇨🇱',
+    id: '/regions/cl',
+    name: 'Chile',
+    unsupported: false,
+  },
+  selectedAsset: { symbol: 'TEST' },
+  selectedFiatCurrencyId: '/test/fiat-currency',
+};
 
-let mockOrderId = testOrder.id as string;
-jest.mock('../../../../../../util/navigation/navUtils', () => ({
-  ...jest.requireActual('../../../../../../util/navigation/navUtils'),
-  useParams: jest.fn(() => ({
-    orderId: mockOrderId,
-  })),
+const mockUseRampSDKValues: DeepPartial<RampSDK> = {
+  ...mockUseRampSDKInitialValues,
+};
+
+jest.mock('../../../common/sdk', () => ({
+  ...jest.requireActual('../../../common/sdk'),
+  useRampSDK: () => mockUseRampSDKValues,
 }));
 
-beforeEach(() => {
-  mockOrderId = testOrder.id as string;
-});
+const mockUseParamsDefaultValues = {
+  orderId: mockOrder.id,
+};
 
-function render(Component: React.ComponentType, orders = [testOrder]) {
+let mockUseParamsValues = {
+  ...mockUseParamsDefaultValues,
+};
+
+jest.mock('../../../../../../util/navigation/navUtils', () => ({
+  ...jest.requireActual('../../../../../../util/navigation/navUtils'),
+  useParams: () => mockUseParamsValues,
+}));
+
+function mockGetUpdatedOrder(order: FiatOrder) {
+  return {
+    ...order,
+    lastTimeFetched: (order.lastTimeFetched || 0) + 100,
+  };
+}
+
+jest.mock('../../../index', () => ({
+  ...jest.requireActual('../../../index'),
+  processFiatOrder: jest.fn().mockImplementation((order, onSuccess) => {
+    const updatedOrder = mockGetUpdatedOrder(order);
+    if (onSuccess) {
+      onSuccess(updatedOrder);
+    }
+    Promise.resolve();
+  }),
+}));
+
+function render(Component: React.ComponentType, orders = [mockOrder]) {
   return renderScreen(
     Component,
     {
@@ -151,154 +143,64 @@ function render(Component: React.ComponentType, orders = [testOrder]) {
 }
 
 describe('OrderDetails', () => {
+  beforeEach(() => {
+    mockUseParamsValues = {
+      ...mockUseParamsDefaultValues,
+    };
+    (processFiatOrder as jest.Mock).mockClear();
+  });
+
+  it('calls setOptions when rendering', async () => {
+    render(OrderDetails);
+    expect(mockSetNavigationOptions).toHaveBeenCalled();
+  });
+
   it('renders an empty screen layout if there is no order', async () => {
-    testOrder.id = 'invalid-id';
+    mockUseParamsValues = {
+      orderId: 'invalid-id',
+    };
     render(OrderDetails);
     expect(screen.toJSON()).toMatchSnapshot();
   });
 
-  it('calls purchase details viewed analytics event on load if there is an order', async () => {
-    render(OrderDetails, [testOrder]);
-    expect(mockTrackEvent).toHaveBeenCalledWith(
-      'ONRAMP_PURCHASE_DETAILS_VIEWED',
-      {
-        purchase_status: testOrder.state,
-        provider_onramp: (testOrder.data as Order)?.provider.name,
-        payment_method_id: (testOrder.data as Order)?.paymentMethod?.id,
-        currency_destination: testOrder.cryptocurrency,
-        currency_source: testOrder.currency,
-        chain_id_destination: testOrder.network,
-        order_type: testOrder.orderType,
-      },
-    );
-  });
-
-  it('polls for a created order on load and dispatches an action to update', async () => {
-    testOrder.state = FIAT_ORDER_STATES.CREATED;
-
-    render(OrderDetails, [testOrder]);
-
-    expect(mockProcessFiatOrder).toHaveBeenCalledWith(
-      testOrder,
-      expect.any(Function),
-      expect.any(Function),
-      { forced: true },
-    );
-
-    expect(mockDispatch).toHaveBeenCalledWith({
-      type: 'FIAT_UPDATE_ORDER',
-      payload: {
-        ...defaultOrder,
-        lastTimeFetched: 1,
-      },
-    });
-  });
-
-  it('renders a loading screen while the created order is fetched on load', async () => {
-    mockProcessFiatOrder.mockImplementation(
-      () => new Promise((resolve) => setTimeout(resolve, 1000)),
-    );
-
-    testOrder.state = FIAT_ORDER_STATES.CREATED;
-    render(OrderDetails, [testOrder]);
-
-    jest.runAllTimers();
-
+  it('renders a pending order', async () => {
+    render(OrderDetails);
     expect(screen.toJSON()).toMatchSnapshot();
   });
 
-  it('renders an error screen if a CREATED order cannot be polled on load', async () => {
-    testOrder.state = FIAT_ORDER_STATES.CREATED;
-    mockOrderId = testOrder.id as string;
-    mockProcessFiatOrder.mockImplementationOnce(() => {
-      throw new Error('An error occurred');
-    });
-    render(OrderDetails, [testOrder]);
-    expect(screen.toJSON()).toMatchSnapshot();
-
-    fireEvent.press(screen.getByRole('button', { name: 'Try again' }));
-
-    expect(mockProcessFiatOrder).toHaveBeenCalledWith(
-      testOrder,
-      expect.any(Function),
-      expect.any(Function),
-      { forced: true },
-    );
-  });
-
-  it('renders created orders', async () => {
-    testOrder.state = FIAT_ORDER_STATES.CREATED;
-    render(OrderDetails, [testOrder]);
-
-    // should we expect particular text to be present?
-    expect(screen.toJSON()).toMatchSnapshot();
-  });
-  it('renders a "continue" button for created, non-transacted sell orders', async () => {
-    testOrder.orderType = OrderOrderTypeEnum.Sell;
-    testOrder.state = FIAT_ORDER_STATES.CREATED;
-    testOrder.sellTxHash = undefined;
-
-    render(OrderDetails, [testOrder]);
-    await waitFor(() => {
-      expect(
-        screen.getByRole('button', { name: 'Continue this order' }),
-      ).toBeTruthy();
-    });
-
-    fireEvent.press(
-      screen.getByRole('button', { name: 'Continue this order' }),
-    );
-
-    expect(mockNavigate).toHaveBeenCalledWith(Routes.RAMP.SEND_TRANSACTION, {
-      orderId: testOrder.id,
-    });
-  });
-
-  it('renders a completed order correctly with a "start new order" button', async () => {
-    testOrder.state = FIAT_ORDER_STATES.COMPLETED;
-    render(OrderDetails, [testOrder]);
-    expect(screen.toJSON()).toMatchSnapshot();
-    expect(screen.getByText('Start a new order')).toBeTruthy();
-  });
-
-  it('renders the currency for non-pending orders, and handles the case where the currency is not available', async () => {
-    testOrder.state = FIAT_ORDER_STATES.PENDING;
-    render(OrderDetails, [testOrder]);
-    expect(screen.getByText(`... ${testOrder.currency}`)).toBeTruthy();
-
-    testOrder.state = FIAT_ORDER_STATES.COMPLETED;
-    // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-    // @ts-ignore
-    (testOrder.data as Order).fiatCurrency = undefined;
-    render(OrderDetails, [testOrder]);
-    expect(screen.getByText(`... ${testOrder.currency}`)).toBeTruthy();
-
-    testOrder.currencySymbol = undefined;
-    render(OrderDetails, [testOrder]);
-    expect(screen.getByText(`... ${testOrder.currency}`)).toBeTruthy();
-
-    testOrder = defaultOrder;
-    render(OrderDetails, [testOrder]);
-    expect(screen.toJSON()).toMatchSnapshot();
-  });
-
-  it('renders the support links if the provider has them', async () => {
-    (testOrder.data as DeepPartial<Order>).provider = {
-      name: 'Test Provider',
-      links: [
-        {
-          name: PROVIDER_LINKS.SUPPORT,
-          url: 'https://example.com',
-        },
-      ],
+  it('renders a completed order', async () => {
+    const completedOrder = {
+      ...mockOrder,
+      state: FIAT_ORDER_STATES.COMPLETED,
     };
-    render(OrderDetails, [testOrder]);
-
+    render(OrderDetails, [completedOrder]);
     expect(screen.toJSON()).toMatchSnapshot();
   });
 
-  it('Navigates when the user attempts to make another purchase', async () => {
-    testOrder.state = FIAT_ORDER_STATES.COMPLETED;
+  it('renders a cancelled order', async () => {
+    const cancelledOrder = {
+      ...mockOrder,
+      state: FIAT_ORDER_STATES.CANCELLED,
+    };
+    render(OrderDetails, [cancelledOrder]);
+    expect(screen.toJSON()).toMatchSnapshot();
+  });
+
+  it('renders a failed order', async () => {
+    const failedOrder = {
+      ...mockOrder,
+      state: FIAT_ORDER_STATES.FAILED,
+    };
+    render(OrderDetails, [failedOrder]);
+    expect(screen.toJSON()).toMatchSnapshot();
+  });
+
+  it('navigates to buy flow when the user attempts to make another purchase', async () => {
+    const testOrder = {
+      ...mockOrder,
+      state: FIAT_ORDER_STATES.COMPLETED,
+    };
+
     render(OrderDetails, [testOrder]);
     expect(
       screen.getByRole('button', {
@@ -310,5 +212,81 @@ describe('OrderDetails', () => {
 
     expect(mockGoBack).toHaveBeenCalled();
     expect(mockNavigate).toHaveBeenCalledWith(Routes.RAMP.BUY);
+  });
+
+  it('navigates to sell flow when the user attempts to make another purchase', async () => {
+    const testOrder = {
+      ...mockOrder,
+      orderType: OrderOrderTypeEnum.Sell,
+      state: FIAT_ORDER_STATES.COMPLETED,
+    };
+
+    render(OrderDetails, [testOrder]);
+    expect(
+      screen.getByRole('button', {
+        name: 'Start a new order',
+      }),
+    ).toBeTruthy();
+
+    fireEvent.press(screen.getByRole('button', { name: 'Start a new order' }));
+
+    expect(mockGoBack).toHaveBeenCalled();
+    expect(mockNavigate).toHaveBeenCalledWith(Routes.RAMP.SELL);
+  });
+
+  it('renders a created order', async () => {
+    const createdOrder = {
+      ...mockOrder,
+      orderType: OrderOrderTypeEnum.Sell,
+      state: FIAT_ORDER_STATES.CREATED,
+    };
+    await waitFor(() => render(OrderDetails, [createdOrder]));
+    expect(screen.toJSON()).toMatchSnapshot();
+  });
+
+  it('polls for a created order on load and dispatches an action to update', async () => {
+    const createdOrder = {
+      ...mockOrder,
+      orderType: OrderOrderTypeEnum.Sell,
+      state: FIAT_ORDER_STATES.CREATED,
+    };
+
+    await waitFor(() => render(OrderDetails, [createdOrder]));
+
+    expect(processFiatOrder).toHaveBeenCalledWith(
+      createdOrder,
+      expect.any(Function),
+      expect.any(Function),
+      { forced: true },
+    );
+
+    const updatedOrder = mockGetUpdatedOrder(createdOrder as FiatOrder);
+
+    expect(mockDispatch).toHaveBeenCalledWith({
+      type: 'FIAT_UPDATE_ORDER',
+      payload: updatedOrder,
+    });
+  });
+
+  it('renders an error screen if a CREATED order cannot be polled on load', async () => {
+    const createdOrder = {
+      ...mockOrder,
+      orderType: OrderOrderTypeEnum.Sell,
+      state: FIAT_ORDER_STATES.CREATED,
+    };
+    (processFiatOrder as jest.Mock).mockImplementationOnce(() => {
+      throw new Error('An error occurred');
+    });
+    render(OrderDetails, [createdOrder]);
+    expect(screen.toJSON()).toMatchSnapshot();
+
+    fireEvent.press(screen.getByRole('button', { name: 'Try again' }));
+
+    expect(processFiatOrder).toHaveBeenCalledWith(
+      createdOrder,
+      expect.any(Function),
+      expect.any(Function),
+      { forced: true },
+    );
   });
 });

@@ -123,8 +123,12 @@ const OrderDetails = () => {
 
   const handleMakeAnotherPurchase = useCallback(() => {
     navigation.goBack();
-    navigation.navigate(Routes.RAMP.BUY);
-  }, [navigation]);
+    navigation.navigate(
+      order?.orderType === OrderOrderTypeEnum.Buy
+        ? Routes.RAMP.BUY
+        : Routes.RAMP.SELL,
+    );
+  }, [navigation, order?.orderType]);
 
   if (!order) {
     return <ScreenLayout />;
