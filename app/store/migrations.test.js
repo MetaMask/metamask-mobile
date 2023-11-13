@@ -1046,7 +1046,7 @@ describe('Redux Persist Migrations', () => {
   });
 
   describe('#27', () => {
-    it('returns only state if no transaction controller state', () => {
+    it('does nothing if no transaction controller state', () => {
       const oldState = {
         engine: {
           backgroundState: {
