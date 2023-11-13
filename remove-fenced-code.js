@@ -1,10 +1,10 @@
+/* eslint-disable import/no-commonjs */
 const hasKey = (obj, key) => Reflect.hasOwnProperty.call(obj, key);
 
 module.exports = {
   removeFencedCode,
-  lintTransformedFile
+  lintTransformedFile,
 };
-
 
 const DirectiveTerminuses = {
   BEGIN: 'BEGIN',
@@ -33,7 +33,6 @@ function CommandValidators({ features }) {
           ),
         );
       }
-
       for (const param of params) {
         if (!features.all.has(param)) {
           throw new Error(
@@ -396,17 +395,18 @@ eslintrc.overrides.forEach((override) => {
 });
 
 // Remove all test-related overrides. We will never lint test files here.
-eslintrc.overrides = eslintrc.overrides.filter((override) => {
-  return !(
-    (override.extends &&
-      override.extends.find(
-        (configName) =>
-          configName.includes('jest') || configName.includes('mocha'),
-      )) ||
-    (override.plugins &&
-      override.plugins.find((pluginName) => pluginName.includes('jest')))
-  );
-});
+eslintrc.overrides = eslintrc.overrides.filter(
+  (override) =>
+    !(
+      (override.extends &&
+        override.extends.find(
+          (configName) =>
+            configName.includes('jest') || configName.includes('mocha'),
+        )) ||
+      (override.plugins &&
+        override.plugins.find((pluginName) => pluginName.includes('jest')))
+    ),
+);
 
 /**
  * The singleton ESLint instance.
@@ -461,9 +461,11 @@ async function lintTransformedFile(content, filePath) {
   // Errors are stored in the messages array, and their "severity" is 2
   const errorsString = lintResult.messages
     .filter(({ severity }) => severity === 2)
-    .reduce((allErrors, { message, ruleId }) => {
-      return allErrors.concat(`${TAB}${ruleId}\n${TAB}${message}\n\n`);
-    }, '');
+    .reduce(
+      (allErrors, { message, ruleId }) =>
+        allErrors.concat(`${TAB}${ruleId}\n${TAB}${message}\n\n`),
+      '',
+    );
 
   throw new Error(
     `MetaMask build: Lint errors encountered for transformed file "${filePath}":\n\n${errorsString}`,
