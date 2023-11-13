@@ -24,6 +24,7 @@ jobs:
       - uses: actions/checkout@v3
         with:
           ref: main
+          fetch-depth: 0
           token: ${{ secrets.BUG_REPORT_TOKEN }}
       - name: Get Node.js version
         id: nvm
@@ -37,6 +38,5 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
-          git branch -a
-          git fetch origin
+
           ./scripts/create-cherry-pick-pr.sh ${{ github.event.inputs.branch_name }} ${{ github.event.inputs.commit_hash }} ${{ github.event.inputs.PR_number }}
