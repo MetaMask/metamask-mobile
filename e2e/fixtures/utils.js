@@ -4,7 +4,7 @@ import { DEFAULT_DAPP_SERVER_PORT } from './fixture-helper';
 
 function getServerPort(defaultPort) {
   if (process.env.CI) {
-    return defaultPort + (parseInt(process.pid, 10) % 10);
+    return defaultPort + Number(process.env.JEST_WORKER_ID);
   }
   return defaultPort;
 }
