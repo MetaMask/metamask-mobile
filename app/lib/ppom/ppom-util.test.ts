@@ -66,6 +66,12 @@ describe('validateResponse', () => {
     expect(Engine.context.PPOMController.usePPOM).toBeCalledTimes(0);
   });
 
+  it('should not validate user is not on mainnet', async () => {
+    Engine.context.NetworkController.state.providerConfig.chainId = '0x5';
+    await PPOMUtil.validateRequest(mockRequest, '123');
+    expect(Engine.context.PPOMController.usePPOM).toBeCalledTimes(0);
+  });
+
   it('should not validate if requested method is not allowed', async () => {
     Engine.context.PreferencesController.state.securityAlertsEnabled = false;
     await PPOMUtil.validateRequest(
