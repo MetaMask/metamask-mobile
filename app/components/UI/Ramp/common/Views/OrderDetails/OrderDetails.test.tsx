@@ -1,6 +1,6 @@
 import React from 'react';
 import { processFiatOrder } from '../../../index';
-import { fireEvent, screen, waitFor } from '@testing-library/react-native';
+import { act, fireEvent, screen, waitFor } from '@testing-library/react-native';
 import { renderScreen } from '../../../../../../util/test/renderWithProvider';
 import OrderDetails from './OrderDetails';
 import initialBackgroundState from '../../../../../../util/test/initial-background-state.json';
@@ -13,6 +13,7 @@ import {
 import { OrderOrderTypeEnum } from '@consensys/on-ramp-sdk/dist/API';
 import Routes from '../../../../../../constants/navigation/Routes';
 import { RampSDK } from '../../sdk';
+import { PROVIDER_LINKS } from '../../types';
 
 const mockNavigate = jest.fn();
 const mockGoBack = jest.fn();
@@ -148,6 +149,7 @@ describe('OrderDetails', () => {
       ...mockUseParamsDefaultValues,
     };
     (processFiatOrder as jest.Mock).mockClear();
+    mockTrackEvent.mockClear();
   });
 
   it('calls setOptions when rendering', async () => {
@@ -277,10 +279,12 @@ describe('OrderDetails', () => {
     (processFiatOrder as jest.Mock).mockImplementationOnce(() => {
       throw new Error('An error occurred');
     });
-    render(OrderDetails, [createdOrder]);
+    await waitFor(() => render(OrderDetails, [createdOrder]));
     expect(screen.toJSON()).toMatchSnapshot();
 
-    fireEvent.press(screen.getByRole('button', { name: 'Try again' }));
+    await act(async () => {
+      fireEvent.press(screen.getByRole('button', { name: 'Try again' }));
+    });
 
     expect(processFiatOrder).toHaveBeenCalledWith(
       createdOrder,
@@ -288,5 +292,71 @@ describe('OrderDetails', () => {
       expect.any(Function),
       { forced: true },
     );
+  });
+
+  it('renders the support links if the provider has them', async () => {
+    const testOrder = {
+      ...mockOrder,
+      state: FIAT_ORDER_STATES.COMPLETED,
+      data: {
+        provider: {
+          name: 'Test Provider',
+          links: [
+            {
+              name: PROVIDER_LINKS.SUPPORT,
+              url: 'https://example.com',
+            },
+          ],
+        },
+        providerOrderLink: 'https://example.com',
+      },
+    };
+    render(OrderDetails, [testOrder]);
+    expect(screen.toJSON()).toMatchSnapshot();
+
+    fireEvent.press(screen.getByText('Contact Support'));
+    expect(mockTrackEvent).toHaveBeenCalledWith(
+      'ONRAMP_EXTERNAL_LINK_CLICKED',
+      {
+        location: 'Order Details Screen',
+        text: 'Etherscan Transaction',
+        url_domain: 'https://example.com',
+      },
+    );
+
+    fireEvent.press(screen.getByText('View order status on Test Provider'));
+    expect(mockTrackEvent).toHaveBeenCalledWith(
+      'ONRAMP_EXTERNAL_LINK_CLICKED',
+      {
+        location: 'Order Details Screen',
+        text: 'Provider Order Tracking',
+        url_domain: 'https://example.com',
+      },
+    );
+  });
+
+  it('renders a "continue" button for created, non-transacted sell orders', async () => {
+    const testOrder = {
+      ...mockOrder,
+      state: FIAT_ORDER_STATES.CREATED,
+      orderType: OrderOrderTypeEnum.Sell,
+      sellTxHash: undefined,
+    };
+
+    render(OrderDetails, [testOrder]);
+
+    await waitFor(() => {
+      expect(
+        screen.getByRole('button', { name: 'Continue this order' }),
+      ).toBeTruthy();
+    });
+
+    fireEvent.press(
+      screen.getByRole('button', { name: 'Continue this order' }),
+    );
+
+    expect(mockNavigate).toHaveBeenCalledWith(Routes.RAMP.SEND_TRANSACTION, {
+      orderId: testOrder.id,
+    });
   });
 });
