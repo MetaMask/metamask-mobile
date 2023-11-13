@@ -100,6 +100,12 @@ describe('GetStarted', () => {
   it('renders correctly', async () => {
     render(GetStarted);
     expect(screen.toJSON()).toMatchSnapshot();
+
+    mockUseRampSDKValues.rampType = RampType.SELL;
+    mockUseRampSDKValues.isSell = true;
+    mockUseRampSDKValues.isBuy = false;
+    render(GetStarted);
+    expect(screen.toJSON()).toMatchSnapshot();
   });
 
   it('renders correctly when sdkError is present', async () => {

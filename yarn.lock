@@ -1280,15 +1280,15 @@
   resolved "https://registry.yarnpkg.com/@colors/colors/-/colors-1.6.0.tgz#ec6cd237440700bc23ca23087f513c75508958b0"
   integrity sha512-Ir+AOibqzrIsL6ajt3Rz3LskB7OiMVHqltZmspbW/TJuTVuyOMirVqAkjfY6JISiLHgyNqicAC8AyHHGzNd/dA==
 
-"@consensys/on-ramp-sdk@1.24.0-beta.7":
-  version "1.24.0-beta.7"
-  resolved "https://registry.yarnpkg.com/@consensys/on-ramp-sdk/-/on-ramp-sdk-1.24.0-beta.7.tgz#3147c54068a9184f654e6c2bfe095e66ad498ecd"
-  integrity sha512-AMCuUTOd27oRAshX4ycuOHElKSKdaueNBBCGn+8VzHWeCJJ5ky2wXr6oD14TtUuJ1yH2o50l8Z89FZ/uzHVq6g==
+"@consensys/on-ramp-sdk@1.25.3":
+  version "1.25.3"
+  resolved "https://registry.yarnpkg.com/@consensys/on-ramp-sdk/-/on-ramp-sdk-1.25.3.tgz#520205c1c3b6844f0c6fbe50a68d04725dff2df8"
+  integrity sha512-nPcvoG2m75b/6xLdeUMn1egApzNKuI2jHcR+IBOw22VzMR+xdzbf5QrrkTKTNSCH+Pv8qu09E0LFrOXdXoVVlA==
   dependencies:
     async "^3.2.3"
     axios "^0.27.0"
     axios-retry "^3.1.2"
-    crypto-js "^4.1.1"
+    crypto-js "^4.2.0"
     jsonpath-plus "^7.2.0"
     lodash "^4.17.21"
     reflect-metadata "^0.1.13"
@@ -11801,7 +11801,7 @@ crypt@0.0.2:
   resolved "https://registry.yarnpkg.com/crypt/-/crypt-0.0.2.tgz#88d7ff7ec0dfb86f713dc87bbb42d044d3e6c41b"
   integrity sha512-mCxBlsHFYh9C+HVpiEacem8FEBnMXgU9gy4zmNC+SXAZNB/1idgp/aulFJ4FgCi7GPEVbfyng092GqL2k2rmow==
 
-crypto-js@4.2.0, crypto-js@^3.1.4, crypto-js@^4.1.1, crypto-js@^4.2.0:
+crypto-js@4.2.0, crypto-js@^3.1.4, crypto-js@^4.2.0:
   version "4.2.0"
   resolved "https://registry.yarnpkg.com/crypto-js/-/crypto-js-4.2.0.tgz#4d931639ecdfd12ff80e8186dba6af2c2e856631"
   integrity sha512-KALDyEYgpY+Rlob/iriUtjV6d5Eq+Y191A5g4UqLAi8CyGP9N1+FdVbkc1SxKc2r4YAYqG8JzO2KGL+AizD70Q==

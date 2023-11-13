@@ -35,6 +35,7 @@ const mockUseRampSDKInitialValues: Partial<RampSDK> = {
   setSelectedFiatCurrencyId: mockSetSelectedCurrency,
   sdkError: undefined,
   selectedChainId: '1',
+  rampType: RampType.BUY,
   isBuy: true,
   isSell: false,
 };
@@ -270,6 +271,15 @@ describe('Regions View', () => {
     mockUseRegionsValues = {
       ...mockUseRegionsInitialValues,
       unsupportedRegion: mockRegionsData[1] as Region,
+    };
+    render(Regions);
+    expect(screen.toJSON()).toMatchSnapshot();
+
+    mockUseRampSDKValues = {
+      ...mockuseRampSDKInitialValues,
+      isBuy: false,
+      isSell: true,
+      rampType: RampType.SELL,
     };
     render(Regions);
     expect(screen.toJSON()).toMatchSnapshot();

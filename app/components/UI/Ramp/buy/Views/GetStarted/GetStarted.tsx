@@ -117,12 +117,20 @@ const GetStarted: React.FC = () => {
           </ScreenLayout.Content>
           <ScreenLayout.Content>
             <Text centered bold>
-              {strings('fiat_on_ramp_aggregator.onboarding.quotes')}
+              {strings(
+                isBuy
+                  ? 'fiat_on_ramp_aggregator.onboarding.quotes'
+                  : 'fiat_on_ramp_aggregator.onboarding.quotes_sell',
+              )}
             </Text>
           </ScreenLayout.Content>
           <ScreenLayout.Content>
             <Text centered bold>
-              {strings('fiat_on_ramp_aggregator.onboarding.benefits')}
+              {strings(
+                isBuy
+                  ? 'fiat_on_ramp_aggregator.onboarding.benefits'
+                  : 'fiat_on_ramp_aggregator.onboarding.benefits_sell',
+              )}
             </Text>
           </ScreenLayout.Content>
         </ScrollView>
