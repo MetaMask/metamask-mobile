@@ -17,6 +17,11 @@ jest.mock('../../core/Engine', () => ({
       updateTransaction: jest.fn(),
       updateSecurityAlertResponse: jest.fn(),
     },
+    NetworkController: {
+      state: {
+        providerConfig: { chainId: '1' },
+      },
+    },
   },
 }));
 
@@ -54,6 +59,7 @@ const mockSignatureRequest = {
 describe('validateResponse', () => {
   beforeEach(() => {
     Engine.context.PreferencesController.state.securityAlertsEnabled = true;
+    Engine.context.NetworkController.state.providerConfig.chainId = '1';
   });
 
   afterEach(() => {
@@ -67,7 +73,7 @@ describe('validateResponse', () => {
   });
 
   it('should not validate user is not on mainnet', async () => {
-    Engine.context.NetworkController.state.providerConfig.chainId = '0x5';
+    Engine.context.NetworkController.state.providerConfig.chainId = '5';
     await PPOMUtil.validateRequest(mockRequest, '123');
     expect(Engine.context.PPOMController.usePPOM).toBeCalledTimes(0);
   });
