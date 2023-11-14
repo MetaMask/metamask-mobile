@@ -17,9 +17,9 @@ PR_BODY="This PR cherry-picks #${3}"
 
 git config user.name metamaskbot
 git config user.email metamaskbot@users.noreply.github.com
-echo "Start Fetch"
+
 git fetch
-echo "End Fetch"
+
 git checkout "${BASE_PR_BRANCH_NAME}"
 git pull
 git checkout -b "${PR_BRANCH_NAME}"
