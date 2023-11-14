@@ -60,7 +60,7 @@ export const MM_PLAY_STORE_LINK = `market://details?id=${AppConstants.BUNDLE_IDS
 // SDK
 export const MM_SDK_DEEPLINK = `https://${AppConstants.MM_UNIVERSAL_LINK_HOST}/connect?`;
 
-export const BLOCKAID_ATTRIBUTION_LINK = 'https://blockaid.me';
+export const BLOCKAID_ATTRIBUTION_LINK = 'https://blockaid.io';
 export const BLOCKAID_SUPPORT_LINK = 'https://support.metamask.io/hc/en-us';
 
 export const SEPOLIA_FAUCET = 'https://www.infura.io/faucet/sepolia';
