@@ -45,6 +45,7 @@ import {
   waitForKeychainUnlocked,
 } from './utils/wait.util';
 import BatchRPCManager, { BatchRPCState } from './BatchRPCManager';
+import { addTransactionAndValidate } from '../../util/transactions';
 
 export interface ConnectionProps {
   id: string;
@@ -579,7 +580,7 @@ export class Connection extends EventEmitter2 {
           ).TransactionController;
           try {
             const hash = await (
-              await transactionController.addTransaction(message.params[0], {
+              await addTransactionAndValidate(message.params[0], {
                 deviceConfirmedOn: WalletDevice.MM_MOBILE,
                 origin: this.originatorInfo?.url
                   ? AppConstants.MM_SDK.SDK_REMOTE_ORIGIN +

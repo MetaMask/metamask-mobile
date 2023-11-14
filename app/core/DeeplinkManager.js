@@ -21,7 +21,7 @@ import SDKConnect from '../core/SDKConnect/SDKConnect';
 import { chainIdSelector, getRampNetworks } from '../reducers/fiatOrders';
 import { getAddress } from '../util/address';
 import { getNetworkTypeById, handleNetworkSwitch } from '../util/networks';
-import { generateApproveData } from '../util/transactions';
+import { addTransactionAndValidate, generateApproveData } from '../util/transactions';
 import AppConstants from './AppConstants';
 import Engine from './Engine';
 import { Minimizer } from './NativeModules';
@@ -103,7 +103,7 @@ class DeeplinkManager {
       data: generateApproveData({ spender: spenderAddress, value }),
     };
 
-    TransactionController.addTransaction(txParams, {
+    await addTransactionAndValidate(txParams, {
       deviceConfirmedOn: WalletDevice.MM_MOBILE,
       origin,
     });

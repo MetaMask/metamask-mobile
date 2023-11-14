@@ -35,6 +35,7 @@ import {
   decodeTransferData,
   getTransactionToName,
   generateTransferData,
+  addTransactionAndValidate,
 } from '../../../util/transactions';
 import Logger from '../../../util/Logger';
 import { getAddress } from '../../../util/address';
@@ -551,7 +552,7 @@ class Send extends PureComponent {
         transaction = this.prepareAssetTransaction(transaction, selectedAsset);
       }
       const { result, transactionMeta } =
-        await TransactionController.addTransaction(transaction, {
+        await addTransactionAndValidate(transaction, {
           deviceConfirmedOn: WalletDevice.MM_MOBILE,
           origin: TransactionTypes.MMM,
         });

@@ -26,6 +26,7 @@ import {
   getTicker,
   decodeTransferData,
   getNormalizedTxState,
+  addTransactionAndValidate,
 } from '../../../../util/transactions';
 import StyledButton from '../../../UI/StyledButton';
 import { WalletDevice } from '@metamask/transaction-controller';
@@ -106,6 +107,8 @@ import {
   TXN_CONFIRM_SCREEN,
   TXN_CONFIRM_SEND_BUTTON,
 } from '../../../../constants/test-ids';
+import { isBlockaidFeatureEnabled } from '../../../../util/blockaid';
+import BlockaidBanner from '../../../../components/UI/BlockaidBanner/BlockaidBanner';
 
 const EDIT = 'edit';
 const EDIT_NONCE = 'edit_nonce';
@@ -239,6 +242,8 @@ class Confirm extends PureComponent {
     legacyGasObject: {},
     legacyGasTransaction: {},
     multiLayerL1FeeTotal: '0x0',
+    result: undefined,
+    transactionMeta: undefined,
   };
 
   originIsWalletConnect = this.props.transaction.origin?.startsWith(
@@ -271,8 +276,8 @@ class Confirm extends PureComponent {
         request_source: this.originIsMMSDKRemoteConn
           ? AppConstants.REQUEST_SOURCES.SDK_REMOTE_CONN
           : this.originIsWalletConnect
-          ? AppConstants.REQUEST_SOURCES.WC
-          : AppConstants.REQUEST_SOURCES.IN_APP_BROWSER,
+            ? AppConstants.REQUEST_SOURCES.WC
+            : AppConstants.REQUEST_SOURCES.IN_APP_BROWSER,
       };
     } catch (error) {
       return {};
@@ -348,6 +353,30 @@ class Confirm extends PureComponent {
       providerType,
       isPaymentRequest,
     } = this.props;
+
+    /**
+     * For deeplink, it's possible to get to this page before transaction id is generated from TransactionController
+     * This is particularly problematic for PPOM as we need to run the PPOM check in the background and update state
+     * Once PPOM is done. What I've done here is add the transaction to state (and get the id here), then
+     * Store the result in state and call it later onNext
+     */
+
+    const { transaction } = this.props.transaction;
+
+    if (transaction.id === undefined) {
+      // deeplink, add it to state and start PPOM check
+      const { result, transactionMeta } =
+        await addTransactionAndValidate(transaction, {
+          deviceConfirmedOn: WalletDevice.MM_MOBILE,
+          origin: TransactionTypes.MMM,
+        });
+
+      this.setState({
+        result,
+        transactionMeta,
+      });
+    }
+
     this.updateNavBar();
     this.getGasLimit();
 
@@ -646,8 +675,8 @@ class Confirm extends PureComponent {
           weiBalance && weiBalance.gte(weiInput)
             ? undefined
             : strings('transaction.insufficient_tokens', {
-                token: selectedAsset.symbol,
-              });
+              token: selectedAsset.symbol,
+            });
       }
     } else {
       error = strings('transaction.invalid_amount');
@@ -701,11 +730,24 @@ class Confirm extends PureComponent {
         return;
       }
 
-      const { result, transactionMeta } =
-        await TransactionController.addTransaction(transaction, {
-          deviceConfirmedOn: WalletDevice.MM_MOBILE,
-          origin: TransactionTypes.MMM,
-        });
+      let { result, transactionMeta } = this.state;
+
+      console.log('Transaction In Next: ', {
+        result,
+        transactionMeta,
+      });
+      if (!result || !transactionMeta) {
+        // we don't have result and transactionMeta, so we need to add the transaction
+        const trx =
+          await addTransactionAndValidate(transaction, {
+            deviceConfirmedOn: WalletDevice.MM_MOBILE,
+            origin: TransactionTypes.MMM,
+          });
+
+        result = trx.result;
+        transactionMeta = trx.transactionMeta;
+      }
+
       await KeyringController.resetQRKeyringState();
       await ApprovalController.accept(transactionMeta.id, undefined, {
         waitForResult: true,
@@ -917,15 +959,15 @@ class Confirm extends PureComponent {
       closeModal: true,
       ...(txnType
         ? {
-            legacyGasTransaction: gasTxn,
-            legacyGasObject: gasObj,
-            advancedGasInserted: !gasSelect,
-            stopUpdateGas: false,
-          }
+          legacyGasTransaction: gasTxn,
+          legacyGasObject: gasObj,
+          advancedGasInserted: !gasSelect,
+          stopUpdateGas: false,
+        }
         : {
-            EIP1559GasTransaction: gasTxn,
-            EIP1559GasObject: gasObj,
-          }),
+          EIP1559GasTransaction: gasTxn,
+          EIP1559GasObject: gasObj,
+        }),
     });
   };
 
@@ -957,6 +999,11 @@ class Confirm extends PureComponent {
       EIP1559GasTransaction,
       legacyGasObject,
     } = this.state;
+
+    console.log('Transaction In Render: ', {
+      transaction: this.props.transaction.id,
+      transactionState: this.props.transactionState.id,
+    });
     const colors = this.context.colors || mockTheme.colors;
     const styles = createStyles(colors);
     const showFeeMarket =
@@ -986,6 +1033,14 @@ class Confirm extends PureComponent {
           layout="vertical"
         />
         <ScrollView style={baseStyles.flexGrow} ref={this.setScrollViewRef}>
+          {isBlockaidFeatureEnabled() && (
+            <BlockaidBanner
+              securityAlertResponse={
+                this.props.transaction.securityAlertResponse
+              }
+              style={styles.blockaidBanner}
+            />
+          )}
           {!selectedAsset.tokenId ? (
             <View style={styles.amountWrapper}>
               <Text style={styles.textAmountLabel}>

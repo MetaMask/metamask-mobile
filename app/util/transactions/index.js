@@ -1455,11 +1455,14 @@ export const isSwapTransaction = (data, origin, to, chainId) =>
       decodeApproveData(data).spenderAddress?.toLowerCase() ===
         swapsUtils.getSwapsContractAddress(chainId)));
 
+        
 export const addTransactionAndValidate = async (transaction, options) => {
   const { TransactionController } = Engine.context;
   const trx = await TransactionController.addTransaction(transaction, {
     ...options,
   });
+
+  console.log('addTransactionAndValidate result: ', trx);
 
   const id = trx.transactionMeta.id;
   const reqObject = {

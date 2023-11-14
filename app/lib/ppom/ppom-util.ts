@@ -61,6 +61,10 @@ const validateRequest = async (req: any, transactionId?: string) => {
         req.method === 'eth_sendRawTransaction' ||
         req.method === 'eth_sendTransaction'
       ) {
+        console.log('setTransactionSecurityAlertResponse: ', {
+          transactionId,
+          RequestInProgress,
+        });
         store.dispatch(
           setTransactionSecurityAlertResponse(transactionId, RequestInProgress),
         );
