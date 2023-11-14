@@ -22,7 +22,7 @@ jobs:
       pull-requests: write
     steps:
       - name: Checkout code
-      - uses: actions/checkout@v3
+        uses: actions/checkout@v3
         with:
           ref: main
           fetch-depth: 0
