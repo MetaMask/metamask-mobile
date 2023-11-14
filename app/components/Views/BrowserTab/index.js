@@ -15,6 +15,7 @@ import { withNavigation } from '@react-navigation/compat';
 import { WebView } from 'react-native-webview';
 import Icon from 'react-native-vector-icons/FontAwesome';
 import MaterialCommunityIcon from 'react-native-vector-icons/MaterialCommunityIcons';
+import { useIsFocused } from '@react-navigation/native';
 import BrowserBottomBar from '../../UI/BrowserBottomBar';
 import PropTypes from 'prop-types';
 import Share from 'react-native-share';
@@ -252,6 +253,8 @@ const sessionENSNames = {};
 const ensIgnoreList = [];
 
 export const BrowserTab = (props) => {
+  const isFocused = useIsFocused();
+  const [key, setKey] = useState(1);
   const [backEnabled, setBackEnabled] = useState(false);
   const [forwardEnabled, setForwardEnabled] = useState(false);
   const [progress, setProgress] = useState(0);
@@ -1429,6 +1432,16 @@ export const BrowserTab = (props) => {
     [reload],
   );
 
+  /**
+   * This is needed to re-render the webview when this compoennt is unfocused.
+   * Since on IOS after the webview is created changing the javaScriptEnabled property
+   * will not stop any script already running.
+   * This way we can inject the property isFocused to turn the JavaScriptEnabled prop to false
+   */
+  useEffect(() => {
+    setKey((prevKey) => prevKey + 1);
+  }, [isFocused]);
+
   const renderIpfsBanner = () => (
     <View style={styles.bannerContainer}>
       <Banner
@@ -1477,6 +1490,7 @@ export const BrowserTab = (props) => {
           {!!entryScriptWeb3 && firstUrlLoaded && (
             <>
               <WebView
+                key={key}
                 originWhitelist={['*']}
                 decelerationRate={'normal'}
                 ref={webviewRef}
@@ -1494,12 +1508,12 @@ export const BrowserTab = (props) => {
                 onError={onError}
                 onShouldStartLoadWithRequest={onShouldStartLoadWithRequest}
                 sendCookies
-                javascriptEnabled
                 allowsInlineMediaPlayback
                 useWebkit
                 testID={'browser-webview'}
                 applicationNameForUserAgent={'WebView MetaMaskMobile'}
                 onFileDownload={handleOnFileDownload}
+                javaScriptEnabled={isFocused}
               />
               {ipfsBannerVisible && renderIpfsBanner()}
             </>
