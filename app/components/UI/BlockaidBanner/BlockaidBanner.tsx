@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { ActivityIndicator } from 'react-native';
+import { useSelector } from 'react-redux';
 import { View } from 'react-native-animatable';
 
 import { captureException } from '@sentry/react-native';
@@ -36,6 +37,9 @@ import {
   BLOCKAID_ATTRIBUTION_LINK,
   BLOCKAID_SUPPORT_LINK,
 } from '../../../constants/urls';
+import { isMainnetByChainId } from '../../../util/networks';
+import { selectChainId } from '../../../selectors/networkController';
+import { selectIsSecurityAlertsEnabled } from '../../../selectors/preferencesController';
 
 const getTitle = (reason: Reason): string =>
   strings(
@@ -85,6 +89,8 @@ const BlockaidBanner = (bannerProps: BlockaidBannerProps) => {
   } = bannerProps;
   const { styles, theme } = useStyles(styleSheet, { style });
   const [displayPositiveResponse, setDisplayPositiveResponse] = useState(false);
+  const chainId = useSelector(selectChainId);
+  const isSecurityAlertsEnabled = useSelector(selectIsSecurityAlertsEnabled);
 
   useEffect(() => {
     if (securityAlertResponse?.reason === Reason.requestInProgress) {
@@ -92,7 +98,12 @@ const BlockaidBanner = (bannerProps: BlockaidBannerProps) => {
     }
   }, [securityAlertResponse]);
 
-  if (!securityAlertResponse || !isBlockaidFeatureEnabled()) {
+  if (
+    !securityAlertResponse ||
+    !isBlockaidFeatureEnabled() ||
+    !isMainnetByChainId(chainId) ||
+    !isSecurityAlertsEnabled
+  ) {
     return null;
   }
 

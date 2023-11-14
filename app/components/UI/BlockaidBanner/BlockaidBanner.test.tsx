@@ -16,6 +16,21 @@ jest.mock('../../../util/blockaid', () => ({
   isBlockaidFeatureEnabled: jest.fn().mockReturnValue(true),
 }));
 
+jest.mock('react-redux', () => {
+  const mockState = {
+    engine: {
+      backgroundState: {
+        NetworkController: { providerConfig: { chainId: '1' } },
+        PreferencesController: { securityAlertsEnabled: true },
+      },
+    },
+  };
+  return {
+    ...jest.requireActual('react-redux'),
+    useSelector: (fn: any) => fn(mockState),
+  };
+});
+
 describe('BlockaidBanner', () => {
   const mockFeatures = [
     'We found attack vectors in this request',
