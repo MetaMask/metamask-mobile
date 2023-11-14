@@ -2199,9 +2199,7 @@
     "title": "Ver las novedades",
     "blockaid": {
       "title": "Manténgase seguro con alertas de seguridad",
-      "description_1": "Aléjese de las estafas conocidas mientras conserva su privacidad con las alertas de seguridad impulsadas por Blockaid.",
       "description_2": "Siempre asegúrese de hacer su propia diligencia debida antes de aprobar cualquier solicitud.",
-      "description_3": "Si habilitó las alertas de seguridad de OpenSea, lo trasladamos a esta función.",
       "action_text": "Habilitar alertas de seguridad"
     }
   },

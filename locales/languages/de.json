@@ -2199,9 +2199,7 @@
     "title": "Neuigkeiten anzeigen",
     "blockaid": {
       "title": "Gehen Sie mit Sicherheitsbenachrichtigungen auf Nummer sicher.",
-      "description_1": "Fallen Sie nicht bekannten Betrügereien zum Opfer und schützen Sie gleichzeitig Ihre Privatsphäre mit Sicherheitsbenachrichtigungen von Blockaid.",
       "description_2": "Gehen Sie immer mit Sorgfalt vor, bevor Sie Anfragen genehmigen.",
-      "description_3": "Wir haben für Sie diese Funktion aktiviert, wenn Sie die Sicherheitsbenachrichtigungen von OpenSea erhalten haben.",
       "action_text": "Sicherheitsbenachrichtigungen aktivieren"
     }
   },

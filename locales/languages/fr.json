@@ -2199,9 +2199,7 @@
     "title": "Voir les nouveautés",
     "blockaid": {
       "title": "Restez en sécurité grâce aux alertes de sécurité",
-      "description_1": "Évitez de vous faire arnaquer et protégez vos données personnelles grâce aux alertes de sécurité fournies par Blockaid.",
       "description_2": "Vous devez faire preuve de diligence raisonnable avant d’approuver toute demande.",
-      "description_3": "Les utilisateurs qui ont déjà activé les alertes de sécurité OpenSea recevront désormais des alertes de sécurité de ce nouveau fournisseur.",
       "action_text": "Activer les alertes de sécurité"
     }
   },

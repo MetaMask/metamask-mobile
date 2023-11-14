@@ -2199,9 +2199,7 @@
     "title": "Tingnan kung ano'ng bago",
     "blockaid": {
       "title": "Manatiling ligtas gamit ang mga alerto sa seguridad",
-      "description_1": "Iwasan ang mga kilalang panloloko habang pinapanatili pa rin ang iyong pagkapribado gamit ang mga alerto sa seguridad na pinatatakbo ng Blockaid.",
       "description_2": "Palaging gumawa ng sarili mong pagsusuri bago aprubahan ang mga kahilingan.",
-      "description_3": "Kung pinagana mo ang mga alerto sa seguridad mula sa OpenSea, inilipat ka namin sa feature na ito.",
       "action_text": "Paganahin ang mga alerto sa seguridad"
     }
   },

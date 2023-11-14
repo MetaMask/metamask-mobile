@@ -2199,9 +2199,7 @@
     "title": "了解新功能",
     "blockaid": {
       "title": "安全警报助您确保安全",
-      "description_1": "Blockaid提供的安全警报可以幫助您避开已知的欺诈，同时仍能保护自己的隐私。",
       "description_2": "在批准请求之前，必须自行作出审慎调查。",
-      "description_3": "如果您启用了OpenSea的安全警报，则我们已为您转到此功能。",
       "action_text": "启用安全警报"
     }
   },
