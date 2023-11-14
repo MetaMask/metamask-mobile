@@ -1439,7 +1439,7 @@ export const BrowserTab = (props) => {
    * This way we can inject the property isFocused to turn the JavaScriptEnabled prop to false
    */
   useEffect(() => {
-    setKey((prevKey) => prevKey + 1);
+    if (Platform.OS === 'ios') setKey((prevKey) => prevKey + 1);
   }, [isFocused]);
 
   const renderIpfsBanner = () => (
