@@ -276,7 +276,7 @@ describe('Regions View', () => {
     expect(screen.toJSON()).toMatchSnapshot();
 
     mockUseRampSDKValues = {
-      ...mockuseRampSDKInitialValues,
+      ...mockUseRampSDKInitialValues,
       isBuy: false,
       isSell: true,
       rampType: RampType.SELL,
