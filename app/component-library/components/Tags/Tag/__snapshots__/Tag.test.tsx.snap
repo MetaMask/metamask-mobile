@@ -8,7 +8,7 @@ exports[`Tag should render correctly 1`] = `
       "borderColor": "#BBC0C5",
       "borderRadius": 10,
       "borderWidth": 1,
-      "height": 20,
+      "height": 22,
       "justifyContent": "center",
       "paddingHorizontal": 4,
     }
