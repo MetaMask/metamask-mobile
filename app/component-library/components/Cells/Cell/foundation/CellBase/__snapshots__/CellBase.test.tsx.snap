@@ -192,7 +192,7 @@ exports[`CellBase should render default settings correctly 1`] = `
           "borderColor": "#BBC0C5",
           "borderRadius": 10,
           "borderWidth": 1,
-          "height": 25,
+          "height": 20,
           "justifyContent": "center",
           "marginTop": 4,
           "paddingHorizontal": 4,
@@ -206,10 +206,10 @@ exports[`CellBase should render default settings correctly 1`] = `
             "bottom": 2,
             "color": "#24272A",
             "fontFamily": "Euclid Circular B",
-            "fontSize": 12,
-            "fontWeight": "700",
+            "fontSize": 14,
+            "fontWeight": "400",
             "letterSpacing": 0,
-            "lineHeight": 20,
+            "lineHeight": 22,
           }
         }
       >

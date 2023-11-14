@@ -51,7 +51,7 @@ const AccountBase = ({
           <Text variant={TextVariant.BodyMDBold}>{accountName}</Text>
           {accountTypeLabel && (
             <Text
-              variant={TextVariant.BodySMBold}
+              variant={TextVariant.BodySM}
               style={styles.accountNameLabelText}
             >
               {strings(accountTypeLabel)}

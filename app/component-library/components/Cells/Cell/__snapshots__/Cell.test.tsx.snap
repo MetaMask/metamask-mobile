@@ -215,7 +215,7 @@ exports[`Cell should render CellDisplay given the type Display 1`] = `
             "borderColor": "#BBC0C5",
             "borderRadius": 10,
             "borderWidth": 1,
-            "height": 25,
+            "height": 20,
             "justifyContent": "center",
             "marginTop": 4,
             "paddingHorizontal": 4,
@@ -229,10 +229,10 @@ exports[`Cell should render CellDisplay given the type Display 1`] = `
               "bottom": 2,
               "color": "#24272A",
               "fontFamily": "Euclid Circular B",
-              "fontSize": 12,
-              "fontWeight": "700",
+              "fontSize": 14,
+              "fontWeight": "400",
               "letterSpacing": 0,
-              "lineHeight": 20,
+              "lineHeight": 22,
             }
           }
         >
@@ -497,7 +497,7 @@ exports[`Cell should render CellMultiSelect given the type MultiSelect 1`] = `
               "borderColor": "#BBC0C5",
               "borderRadius": 10,
               "borderWidth": 1,
-              "height": 25,
+              "height": 20,
               "justifyContent": "center",
               "marginTop": 4,
               "paddingHorizontal": 4,
@@ -511,10 +511,10 @@ exports[`Cell should render CellMultiSelect given the type MultiSelect 1`] = `
                 "bottom": 2,
                 "color": "#24272A",
                 "fontFamily": "Euclid Circular B",
-                "fontSize": 12,
-                "fontWeight": "700",
+                "fontSize": 14,
+                "fontWeight": "400",
                 "letterSpacing": 0,
-                "lineHeight": 20,
+                "lineHeight": 22,
               }
             }
           >
@@ -743,7 +743,7 @@ exports[`Cell should render CellSelect given the type Select 1`] = `
               "borderColor": "#BBC0C5",
               "borderRadius": 10,
               "borderWidth": 1,
-              "height": 25,
+              "height": 20,
               "justifyContent": "center",
               "marginTop": 4,
               "paddingHorizontal": 4,
@@ -757,10 +757,10 @@ exports[`Cell should render CellSelect given the type Select 1`] = `
                 "bottom": 2,
                 "color": "#24272A",
                 "fontFamily": "Euclid Circular B",
-                "fontSize": 12,
-                "fontWeight": "700",
+                "fontSize": 14,
+                "fontWeight": "400",
                 "letterSpacing": 0,
-                "lineHeight": 20,
+                "lineHeight": 22,
               }
             }
           >

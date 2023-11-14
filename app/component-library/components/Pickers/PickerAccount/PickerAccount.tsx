@@ -58,7 +58,7 @@ const PickerAccount: React.ForwardRefRenderFunction<
         </Text>
         {accountTypeLabel && (
           <Text
-            variant={TextVariant.BodySMBold}
+            variant={TextVariant.BodySM}
             style={styles.accountNameLabelText}
           >
             {strings(accountTypeLabel)}

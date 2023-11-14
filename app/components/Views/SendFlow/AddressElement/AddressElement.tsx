@@ -82,7 +82,7 @@ const AddressElement: React.FC<AddressElementProps> = ({
           </Text>
           {accountTypeLabel && (
             <Text
-              variant={TextVariant.BodySMBold}
+              variant={TextVariant.BodySM}
               style={styles.accountNameLabelText}
             >
               {strings(accountTypeLabel)}

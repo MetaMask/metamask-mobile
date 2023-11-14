@@ -226,7 +226,7 @@ const AddressName = ({
       </Text>
       {accountLabel && (
         <Text
-          variant={TextVariant.BodySMBold}
+          variant={TextVariant.BodySM}
           style={styles.accountNameLabelText}
         >
           {strings(accountLabel)}
