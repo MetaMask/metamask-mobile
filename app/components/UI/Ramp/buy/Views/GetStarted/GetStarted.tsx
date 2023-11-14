@@ -57,8 +57,14 @@ const GetStarted: React.FC = () => {
   }, [navigation, colors, handleCancelPress]);
 
   const handleOnPress = useCallback(() => {
+    trackEvent(
+      isBuy ? 'ONRAMP_GET_STARTED_CLICKED' : 'OFFRAMP_GET_STARTED_CLICKED',
+      {
+        location: 'Get Started Screen',
+      },
+    );
     setGetStarted(true);
-  }, [setGetStarted]);
+  }, [isBuy, setGetStarted, trackEvent]);
 
   useEffect(() => {
     if (getStarted) {

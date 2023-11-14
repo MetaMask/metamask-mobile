@@ -195,6 +195,7 @@ enum EVENT_NAME {
   // On Ramp
   BUY_BUTTON_CLICKED = 'Buy Button Clicked',
   RAMP_REGION_SELECTED = 'Ramp Region Selected',
+  ONRAMP_GET_STARTED_CLICKED = 'On-ramp Get Started Clicked',
   ONRAMP_PAYMENT_METHOD_SELECTED = 'On-ramp Payment Method Selected',
   ONRAMP_CONTINUE_TO_AMOUNT_CLICKED = 'On-ramp Continue To Amount Clicked',
   ONRAMP_QUOTES_REQUESTED = 'On-ramp Quotes Requested',
@@ -216,6 +217,7 @@ enum EVENT_NAME {
 
   // Off Ramp
   SELL_BUTTON_CLICKED = 'Sell Button Clicked',
+  OFFRAMP_GET_STARTED_CLICKED = 'Off-ramp Get Started Clicked',
   OFFRAMP_PAYMENT_METHOD_SELECTED = 'Off-ramp Payment Method Selected',
   OFFRAMP_CONTINUE_TO_AMOUNT_CLICKED = 'Off-ramp Continue To Amount Clicked',
   OFFRAMP_QUOTES_REQUESTED = 'Off-ramp Quotes Requested',
@@ -556,6 +558,9 @@ const events = {
   // ONRAMP
   BUY_BUTTON_CLICKED: generateOpt(EVENT_NAME.BUY_BUTTON_CLICKED),
   RAMP_REGION_SELECTED: generateOpt(EVENT_NAME.RAMP_REGION_SELECTED),
+  ONRAMP_GET_STARTED_CLICKED: generateOpt(
+    EVENT_NAME.ONRAMP_GET_STARTED_CLICKED,
+  ),
   ONRAMP_PAYMENT_METHOD_SELECTED: generateOpt(
     EVENT_NAME.ONRAMP_PAYMENT_METHOD_SELECTED,
   ),
@@ -589,6 +594,9 @@ const events = {
 
   // OFFRAMP
   SELL_BUTTON_CLICKED: generateOpt(EVENT_NAME.SELL_BUTTON_CLICKED),
+  OFFRAMP_GET_STARTED_CLICKED: generateOpt(
+    EVENT_NAME.OFFRAMP_GET_STARTED_CLICKED,
+  ),
   OFFRAMP_PAYMENT_METHOD_SELECTED: generateOpt(
     EVENT_NAME.OFFRAMP_PAYMENT_METHOD_SELECTED,
   ),

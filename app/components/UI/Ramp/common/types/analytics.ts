@@ -12,7 +12,7 @@ export type ScreenLocation =
   | 'Settings Screen';
 
 interface RampButtonClicked {
-  text: 'Buy' | 'Buy Native Token';
+  text?: 'Buy' | 'Buy Native Token';
   location: string;
 }
 
@@ -276,6 +276,9 @@ export interface AnalyticsEvents {
 
   RAMP_REGION_SELECTED: RampRegionSelected;
   RAMP_REGION_RESET: RampRegionReset;
+
+  ONRAMP_GET_STARTED_CLICKED: RampButtonClicked;
+  OFFRAMP_GET_STARTED_CLICKED: RampButtonClicked;
 
   ONRAMP_PAYMENT_METHOD_SELECTED: RampPaymentMethodSelected;
   OFFRAMP_PAYMENT_METHOD_SELECTED: RampPaymentMethodSelected;
