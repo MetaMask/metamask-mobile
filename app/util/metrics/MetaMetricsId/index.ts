@@ -1,1 +1,1 @@
-export { default } from './MetaMetricsId';
+export { default } from './metametricsId';

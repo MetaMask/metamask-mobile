@@ -347,14 +347,24 @@ const App = ({ userLoggedIn }) => {
 
   useEffect(() => {
     const initAnalytics = async () => {
-        const metrics = MetaMetrics();
-        metrics.enable();
-        metrics.trackEvent('test event', {
+      Logger.log('Initializing Segment Analytics');
+        const metrics = await MetaMetrics.getInstance();
+        await metrics.reset();
+        await metrics.enable();
+
+        await metrics.addTraitsToUser({identification: 'test'});
+        metrics.trackEvent('normal event', {
             ...generateDeviceAnalyticsMetaData(),
         });
+      metrics.trackAnonymousEvent('anonymous event', {
+        ...generateDeviceAnalyticsMetaData(),
+      });
+        await metrics.flush();
     };
 
-    initAnalytics();
+    initAnalytics()
+        .then(r => Logger.log('Segment Analytics initialized'))
+        .catch(e => Logger.error('Error initializing Segment Analytics', e));
   }, []);
 
   useEffect(() => {

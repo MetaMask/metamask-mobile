@@ -44,7 +44,7 @@ export interface IMetaMetrics {
    * add traits to an user
    * @param userTraits
    */
-  addTraitsToUser(userTraits: UserTraits): void;
+  addTraitsToUser(userTraits: UserTraits): Promise<void>;
   /**
    * add an user to a specific group
    * @param groupId
@@ -68,7 +68,11 @@ export interface IMetaMetrics {
    */
   reset(): Promise<void>;
   /**
-   * create a new method to suppress and
+   * flush the queue of events
+   * triggers the upload of the events
+   */
+  flush(): Promise<void>
+  /**
    * delete user's data from Segment and all related
    * destinations.
    */

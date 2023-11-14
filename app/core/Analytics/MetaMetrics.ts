@@ -85,7 +85,7 @@ class MetaMetrics implements IMetaMetrics {
    *
    * @param userTraits - Object containing user relevant traits or properties (optional).
    */
-  #identify = (userTraits: UserTraits): void => {
+  #identify = async (userTraits: UserTraits): Promise<void> => {
     this.segmentClient?.identify(this.metametricsId, userTraits);
   };
 
@@ -233,9 +233,10 @@ class MetaMetrics implements IMetaMetrics {
           : process.env.SEGMENT_PROD_KEY) as string,
         debug: __DEV__,
         proxy: __DEV__
-          ? process.env.SEGMENT_DEV_PROXY_KEY
-          : process.env.SEGMENT_PROD_PROXY_KEY,
+          ? process.env.SEGMENT_DEV_PROXY
+          : process.env.SEGMENT_PROD_PROXY,
       };
+      console.debug('MetaMetrics config', config);
       this.instance = new MetaMetrics(createClient(config));
       // get the user metrics preference when initializing
       this.instance.enabled = await this.instance.#isMetaMetricsEnabled();
@@ -249,26 +250,28 @@ class MetaMetrics implements IMetaMetrics {
     MetaMetrics.instance = null;
   }
 
-  async enable(enable = true): Promise<void> {
+  enable = async (enable = true): Promise<void> => {
     this.enabled = enable;
     await this.#storeMetricsOptInPreference(this.enabled);
-  }
+  };
 
   isEnabled() {
     return this.enabled;
   }
 
-  addTraitsToUser(userTraits: UserTraits): void {
+  addTraitsToUser = (userTraits: UserTraits): Promise<void> => {
     if (this.enabled) {
-      this.#identify(userTraits);
+      return this.#identify(userTraits);
     }
-  }
+    return Promise.resolve();
+  };
 
-  group(groupId: string, groupTraits?: GroupTraits): void {
+  group = (groupId: string, groupTraits?: GroupTraits): Promise<void> => {
     if (this.enabled) {
       this.#group(groupId, groupTraits);
     }
-  }
+    return Promise.resolve();
+  };
 
   trackAnonymousEvent(event: string, properties: JsonMap = {}): void {
     if (this.enabled) {
@@ -277,18 +280,21 @@ class MetaMetrics implements IMetaMetrics {
     }
   }
 
-  trackEvent(event: string, properties: JsonMap = {}): void {
+  trackEvent = (event: string, properties: JsonMap = {}): void => {
     if (this.enabled) {
       this.#trackEvent(event, false, properties);
     }
-  }
+  };
 
-  async reset(): Promise<void> {
+  reset = async (): Promise<void> => {
     this.#reset();
     await this.#resetMetaMetricsId();
-  }
+  };
 
-  createSegmentDeleteRegulation = (): Promise<{
+  flush = async (): Promise<void> =>
+      this.segmentClient?.flush();
+
+  createSegmentDeleteRegulation = async (): Promise<{
     status: string;
     error?: string;
   }> => this.#createSegmentDeleteRegulation();
