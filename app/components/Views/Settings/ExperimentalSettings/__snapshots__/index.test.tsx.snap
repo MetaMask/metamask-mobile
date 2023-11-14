@@ -153,7 +153,7 @@ Array [
             }
           }
         >
-          This feature alerts you to malicious activity by locally reviewing your transactions and signature requests. Your data isn't shared with the third parties providing this service. Always do your own due diligence before approving any requests. There’s no guarantee that this feature will detect all malicious activity.
+          This feature alerts you to malicious activity by locally reviewing your transaction and signature requests. Always do your own due diligence before approving any requests. There's no guarantee that this feature will detect all malicious activity. By enabling this feature you agree to the provider's terms of use.
         </Text>
         <Text
           style={
@@ -176,7 +176,7 @@ Array [
             ]
           }
         >
-          Select providers
+          Select your preferred provider
         </Text>
       </View>
       <View
@@ -257,7 +257,7 @@ Array [
           ]
         }
       >
-        More providers coming soon
+        Privacy preserving - no data is shared with third parties. Available on Ethereum Mainnet.
       </Text>
     </View>
   </RCTScrollView>,
@@ -418,7 +418,7 @@ Array [
             }
           }
         >
-          This feature alerts you to malicious activity by locally reviewing your transactions and signature requests. Your data isn't shared with the third parties providing this service. Always do your own due diligence before approving any requests. There’s no guarantee that this feature will detect all malicious activity.
+          This feature alerts you to malicious activity by locally reviewing your transaction and signature requests. Always do your own due diligence before approving any requests. There's no guarantee that this feature will detect all malicious activity. By enabling this feature you agree to the provider's terms of use.
         </Text>
         <Text
           style={
@@ -441,7 +441,7 @@ Array [
             ]
           }
         >
-          Select providers
+          Select your preferred provider
         </Text>
       </View>
       <View
@@ -522,7 +522,7 @@ Array [
           ]
         }
       >
-        More providers coming soon
+        Privacy preserving - no data is shared with third parties. Available on Ethereum Mainnet.
       </Text>
     </View>
   </RCTScrollView>,

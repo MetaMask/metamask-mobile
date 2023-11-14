@@ -184,7 +184,7 @@ const ExperimentalSettings = ({ navigation, route }: Props) => {
           {strings('experimental_settings.security_alerts_desc')}
         </Text>
         <Text style={[styles.title, styles.boldTitle]}>
-          {strings('experimental_settings.select_providers')}
+          {strings('experimental_settings.select_provider')}
         </Text>
       </View>
       <View style={styles.switchElement}>
@@ -205,7 +205,7 @@ const ExperimentalSettings = ({ navigation, route }: Props) => {
         />
       </View>
       <Text style={[styles.title, styles.mutedText]}>
-        {strings('experimental_settings.moreProviders')}
+        {strings('experimental_settings.blockaid_desc')}
       </Text>
     </>
   );
