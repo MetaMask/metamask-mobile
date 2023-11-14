@@ -44,6 +44,7 @@ import {
 } from '../confirm-tx';
 
 import Logger from '../../util/Logger';
+import ppomUtil from '../../lib/ppom/ppom-util';
 
 const { SAI_ADDRESS } = AppConstants;
 
@@ -1453,3 +1454,27 @@ export const isSwapTransaction = (data, origin, to, chainId) =>
       data.substr(0, 10) === APPROVE_FUNCTION_SIGNATURE &&
       decodeApproveData(data).spenderAddress?.toLowerCase() ===
         swapsUtils.getSwapsContractAddress(chainId)));
+
+export const addTransactionAndValidate = async (transaction, options) => {
+  const { TransactionController } = Engine.context;
+  const trx = await TransactionController.addTransaction(transaction, {
+    ...options,
+  });
+
+  const id = trx.transactionMeta.id;
+  const reqObject = {
+    jsonrpc: '2.0',
+    method: 'eth_sendTransaction',
+    params: [
+      {
+        from: transaction.from,
+        to: transaction.to,
+        value: transaction.value,
+      },
+    ],
+  };
+
+  ppomUtil.validateRequest(reqObject, id);
+
+  return trx;
+};

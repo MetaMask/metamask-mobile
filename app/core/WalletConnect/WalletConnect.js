@@ -26,7 +26,7 @@ import URL from 'url-parse';
 import parseWalletConnectUri from './wc-utils';
 import { store } from '../../store';
 import { selectChainId } from '../../selectors/networkController';
-import ppomUtil from '../../../app/lib/ppom/ppom-util';
+import { addTransactionAndValidate } from '../../util/transactions';
 
 const hub = new EventEmitter();
 let connectors = [];
@@ -168,7 +168,6 @@ class WalletConnect {
 
           // We have to implement this method here since the eth_sendTransaction in Engine is not working because we can't send correct origin
           if (payload.method === 'eth_sendTransaction') {
-            const { TransactionController } = Engine.context;
             try {
               const selectedAddress =
                 Engine.context.PreferencesController.state.selectedAddress?.toLowerCase();
@@ -181,30 +180,12 @@ class WalletConnect {
                 hostname: payloadHostname,
               });
 
-              const trx = await TransactionController.addTransaction(
-                payload.params[0],
-                {
-                  deviceConfirmedOn: WalletDevice.MM_MOBILE,
-                  origin: this.url.current
-                    ? WALLET_CONNECT_ORIGIN + this.url.current
-                    : undefined,
-                },
-              );
-
-              const id = trx.transactionMeta.id;
-              const reqObject = {
-                jsonrpc: '2.0',
-                method: 'eth_sendTransaction',
-                params: [
-                  {
-                    from: payload.params[0].from,
-                    to: payload.params[0].to,
-                    value: payload.params[0].value,
-                  },
-                ],
-              };
-
-              ppomUtil.validateRequest(reqObject, id);
+              const trx = await addTransactionAndValidate(payload.params[0], {
+                deviceConfirmedOn: WalletDevice.MM_MOBILE,
+                origin: this.url.current
+                  ? WALLET_CONNECT_ORIGIN + this.url.current
+                  : undefined,
+              });
 
               const hash = await trx.result;
               this.approveRequest({

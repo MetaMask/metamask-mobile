@@ -10,10 +10,7 @@ import { KeyringController } from '@metamask/keyring-controller';
 import { PreferencesController } from '@metamask/preferences-controller';
 import Logger from '../../util/Logger';
 
-import {
-  TransactionController,
-  WalletDevice,
-} from '@metamask/transaction-controller';
+import { WalletDevice } from '@metamask/transaction-controller';
 
 import AsyncStorage from '../../store/async-storage-wrapper';
 import { Core } from '@walletconnect/core';
@@ -34,8 +31,8 @@ import parseWalletConnectUri, {
 } from './wc-utils';
 import { selectChainId } from '../../selectors/networkController';
 import { store } from '../../store';
-import { WALLET_CONNECT_ORIGIN } from '../../../app/util/walletconnect';
-import ppomUtil from '../../../app/lib/ppom/ppom-util';
+import { WALLET_CONNECT_ORIGIN } from '../../util/walletconnect';
+import { addTransactionAndValidate } from '../../util/transactions';
 
 const { PROJECT_ID } = AppConstants.WALLET_CONNECT;
 export const isWC2Enabled =
@@ -281,33 +278,10 @@ class WalletConnect2Session {
 
     if (method === 'eth_sendTransaction') {
       try {
-        const transactionController = (
-          Engine.context as { TransactionController: TransactionController }
-        ).TransactionController;
-
-        const trx = await transactionController.addTransaction(
-          methodParams[0],
-          {
-            origin,
-            deviceConfirmedOn: WalletDevice.MM_MOBILE,
-            securityAlertResponse: undefined,
-          },
-        );
-
-        const id = trx.transactionMeta.id;
-        const reqObject = {
-          jsonrpc: '2.0',
-          method: 'eth_sendTransaction',
-          params: [
-            {
-              from: methodParams[0].from,
-              to: methodParams[0].to,
-              value: methodParams[0].value,
-            },
-          ],
-        };
-
-        ppomUtil.validateRequest(reqObject, id);
+        const trx = await addTransactionAndValidate(methodParams[0], {
+          origin,
+          deviceConfirmedOn: WalletDevice.MM_MOBILE,
+        });
 
         const hash = await trx.result;
 
