@@ -42,6 +42,11 @@ jest.mock('../Engine', () => ({
       requestPermissions: jest.fn(),
       getPermissions: jest.fn(),
     },
+    NetworkController: {
+      state: {
+        providerConfig: { chainId: '1' },
+      },
+    },
   },
 }));
 const MockEngine = Engine as Omit<typeof Engine, 'context'> & {
