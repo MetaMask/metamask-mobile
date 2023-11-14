@@ -197,29 +197,12 @@ describe('Regions View', () => {
     });
     fireEvent.press(regionButton);
     expect(mockSetSelectedRegion).toHaveBeenCalledWith(regionToPress);
-    expect(mockTrackEvent).toBeCalledWith('ONRAMP_REGION_SELECTED', {
-      country_onramp_id: '/regions/cl',
+    expect(mockTrackEvent).toBeCalledWith('RAMP_REGION_SELECTED', {
+      country_id: '/regions/cl',
       is_unsupported: false,
-      location: 'Region Screen',
-      state_onramp_id: '/regions/cl',
-    });
-
-    // analytics check for offramp
-    mockTrackEvent.mockReset();
-    mockUseRampSDKValues = {
-      ...mockUseRampSDKInitialValues,
-      isBuy: false,
-      isSell: true,
-      rampType: RampType.SELL,
-    };
-    render(Regions);
-    fireEvent.press(selectRegionButton);
-    fireEvent.press(regionButton);
-    expect(mockTrackEvent).toBeCalledWith('OFFRAMP_REGION_SELECTED', {
-      country_offramp_id: '/regions/cl',
       is_unsupported_offramp: false,
       location: 'Region Screen',
-      state_offramp_id: '/regions/cl',
+      state_id: '/regions/cl',
     });
   });
 

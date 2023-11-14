@@ -26,17 +26,9 @@ interface SellButtonClicked extends RampButtonClicked {
 
 interface RampRegionSelected {
   location?: ScreenLocation;
-}
-
-interface OnrampRegionSelected extends RampRegionSelected {
-  country_onramp_id: string;
-  state_onramp_id?: string;
+  country_id: string;
+  state_id?: string;
   is_unsupported?: boolean;
-}
-
-interface OfframpRegionSelected extends RampRegionSelected {
-  country_offramp_id: string;
-  state_offramp_id?: string;
   is_unsupported_offramp?: boolean;
 }
 
@@ -282,10 +274,8 @@ export interface AnalyticsEvents {
   BUY_BUTTON_CLICKED: BuyButtonClicked;
   SELL_BUTTON_CLICKED: SellButtonClicked;
 
-  ONRAMP_REGION_SELECTED: OnrampRegionSelected;
-  OFFRAMP_REGION_SELECTED: OfframpRegionSelected;
-
-  ONRAMP_REGION_RESET: RampRegionReset;
+  RAMP_REGION_SELECTED: RampRegionSelected;
+  RAMP_REGION_RESET: RampRegionReset;
 
   ONRAMP_PAYMENT_METHOD_SELECTED: RampPaymentMethodSelected;
   OFFRAMP_PAYMENT_METHOD_SELECTED: RampPaymentMethodSelected;

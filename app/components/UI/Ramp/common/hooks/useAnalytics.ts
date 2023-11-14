@@ -5,8 +5,8 @@ import { MetaMetricsEvents } from '../../../../../core/Analytics';
 import { AnalyticsEvents } from '../types';
 
 const AnonymousEvents: (keyof AnalyticsEvents)[] = [
-  'ONRAMP_REGION_SELECTED',
-  'ONRAMP_REGION_RESET',
+  'RAMP_REGION_SELECTED',
+  'RAMP_REGION_RESET',
   'ONRAMP_PAYMENT_METHOD_SELECTED',
   'ONRAMP_QUOTES_REQUESTED',
   'ONRAMP_QUOTES_RECEIVED',
@@ -16,7 +16,6 @@ const AnonymousEvents: (keyof AnalyticsEvents)[] = [
   'ONRAMP_PROVIDER_DETAILS_VIEWED',
   'ONRAMP_QUOTE_ERROR',
 
-  'OFFRAMP_REGION_SELECTED',
   'OFFRAMP_PAYMENT_METHOD_SELECTED',
   'OFFRAMP_QUOTES_REQUESTED',
   'OFFRAMP_QUOTES_RECEIVED',

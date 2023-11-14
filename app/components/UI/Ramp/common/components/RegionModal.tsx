@@ -149,21 +149,13 @@ const RegionModal: React.FC<Props> = ({
         onRegionPress(region);
       }
 
-      if (isBuy) {
-        trackEvent(`ONRAMP_REGION_SELECTED`, {
-          is_unsupported: region.unsupported,
-          country_onramp_id: regionInTransit?.id ?? region.id,
-          state_onramp_id: regionInTransit ? region.id : undefined,
-          location,
-        });
-      } else {
-        trackEvent(`OFFRAMP_REGION_SELECTED`, {
-          is_unsupported_offramp: region.unsupported,
-          country_offramp_id: regionInTransit?.id ?? region.id,
-          state_offramp_id: regionInTransit ? region.id : undefined,
-          location,
-        });
-      }
+      trackEvent(`RAMP_REGION_SELECTED`, {
+        is_unsupported: region.unsupported,
+        is_unsupported_offramp: region.unsupported,
+        country_id: regionInTransit?.id ?? region.id,
+        state_id: regionInTransit ? region.id : undefined,
+        location,
+      });
     },
     [isBuy, location, onRegionPress, regionInTransit, trackEvent],
   );
