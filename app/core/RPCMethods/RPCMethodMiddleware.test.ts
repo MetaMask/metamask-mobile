@@ -23,9 +23,6 @@ import { RootState } from 'app/reducers';
 
 jest.mock('../Engine', () => ({
   context: {
-    NetworkController: {
-      state: {},
-    },
     PreferencesController: {
       state: {},
     },
