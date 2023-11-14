@@ -149,9 +149,10 @@ const RegionModal: React.FC<Props> = ({
         onRegionPress(region);
       }
 
+      console.log('THE REGION  ', region);
       trackEvent(`RAMP_REGION_SELECTED`, {
-        is_unsupported: region.unsupported,
-        is_unsupported_offramp: region.unsupported,
+        is_unsupported: !region.support.buy,
+        is_unsupported_offramp: !region.support.sell,
         country_id: regionInTransit?.id ?? region.id,
         state_id: regionInTransit ? region.id : undefined,
         location,
