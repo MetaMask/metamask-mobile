@@ -49,7 +49,7 @@ const OrderDetails = () => {
     getOrderById(state, params.orderId),
   );
   const [isLoading, setIsLoading] = useState(
-    order && order.state === FIAT_ORDER_STATES.CREATED,
+    order?.state === FIAT_ORDER_STATES.CREATED,
   );
   const [error, setError] = useState<string | null>(null);
   const { colors } = useTheme();
