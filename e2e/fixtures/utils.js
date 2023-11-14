@@ -18,17 +18,13 @@ function getServerPort(defaultPort) {
 }
 
 export function getGanachePort() {
-  const port = getServerPort(DEFAULT_GANACHE_PORT);
-  return port;
+  return getServerPort(DEFAULT_GANACHE_PORT);
 }
 
 export function getFixturesServerPort() {
-  const port = getServerPort(DEFAULT_FIXTURE_SERVER_PORT);
-  return port;
+  return getServerPort(DEFAULT_FIXTURE_SERVER_PORT);
 }
 
 export function getLocalTestDappPort() {
-  const port = getServerPort(DEFAULT_DAPP_SERVER_PORT);
-
-  return port;
+  return getServerPort(DEFAULT_DAPP_SERVER_PORT);
 }
