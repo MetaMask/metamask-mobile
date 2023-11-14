@@ -313,6 +313,27 @@ describe('OrderDetails', () => {
     };
     render(OrderDetails, [testOrder]);
     expect(screen.toJSON()).toMatchSnapshot();
+  });
+
+  it('tracks external link clicks', () => {
+    const testOrder = {
+      ...mockOrder,
+      state: FIAT_ORDER_STATES.COMPLETED,
+      data: {
+        provider: {
+          name: 'Test Provider',
+          links: [
+            {
+              name: PROVIDER_LINKS.SUPPORT,
+              url: 'https://example.com',
+            },
+          ],
+        },
+        providerOrderLink: 'https://example.com',
+      },
+    };
+
+    render(OrderDetails, [testOrder]);
 
     fireEvent.press(screen.getByText('Contact Support'));
     expect(mockTrackEvent).toHaveBeenCalledWith(
