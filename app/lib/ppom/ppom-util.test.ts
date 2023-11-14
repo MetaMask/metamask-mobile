@@ -67,13 +67,14 @@ describe('validateResponse', () => {
   });
 
   it('should not validate if preference securityAlertsEnabled is false', async () => {
-    const spy = jest.spyOn(
+    const spyTransactionAction = jest.spyOn(
       TransactionActions,
       'setTransactionSecurityAlertResponse',
     );
     Engine.context.PreferencesController.state.securityAlertsEnabled = false;
     await PPOMUtil.validateRequest(mockRequest, '123');
     expect(Engine.context.PPOMController.usePPOM).toBeCalledTimes(0);
+    expect(spyTransactionAction).toBeCalledTimes(0);
   });
 
   it('should not validate user is not on mainnet', async () => {
