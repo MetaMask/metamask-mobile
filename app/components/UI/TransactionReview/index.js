@@ -185,11 +185,7 @@ class TransactionReview extends PureComponent {
     /**
      * Error blockaid transaction execution, undefined value signifies no error.
      */
-    error: PropTypes.oneOfType([
-      PropTypes.bool,
-      PropTypes.string,
-      PropTypes.node,
-    ]),
+    error: PropTypes.oneOfType([PropTypes.string, PropTypes.bool]),
     /**
      * Whether or not basic gas estimates have been fetched
      */
