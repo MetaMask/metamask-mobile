@@ -1433,10 +1433,9 @@ export const BrowserTab = (props) => {
   );
 
   /**
-   * This is needed to re-render the webview when this compoennt is unfocused.
-   * Since on IOS after the webview is created changing the javaScriptEnabled property
-   * will not stop any script already running.
-   * This way we can inject the property isFocused to turn the JavaScriptEnabled prop to false
+   * According to Apple docs, it is not possible to update properties such as `javascriptEnabled` dynamically
+   * - https://developer.apple.com/documentation/webkit/wkwebviewconfiguration.
+   * By updating the key prop, we are forcing iOS WebView to reinitialize with the new `javascriptEnabled` value.
    */
   useEffect(() => {
     if (Platform.OS === 'ios') setKey((prevKey) => prevKey + 1);
