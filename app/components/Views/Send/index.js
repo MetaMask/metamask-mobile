@@ -59,8 +59,6 @@ import {
   selectSelectedAddress,
 } from '../../../selectors/preferencesController';
 import { ethErrors } from 'eth-rpc-errors';
-import { isBlockaidFeatureEnabled } from '../../../util/blockaid';
-import ppomUtil from '../../../lib/ppom/ppom-util';
 
 const REVIEW = 'review';
 const EDIT = 'edit';
@@ -110,8 +108,8 @@ class Send extends PureComponent {
      */
     transaction: PropTypes.object.isRequired,
     /**
-    /* Triggers global alert
-    */
+     * Triggers global alert
+     */
     showAlert: PropTypes.func,
     /**
      * Map representing the address book
@@ -134,12 +132,12 @@ class Send extends PureComponent {
      */
     contractBalances: PropTypes.object,
     /**
-    /* Hides or shows dApp transaction modal
-    */
+     * Hides or shows dApp transaction modal
+     */
     toggleDappTransactionModal: PropTypes.func,
     /**
-    /* dApp transaction modal visible or not
-    */
+     * dApp transaction modal visible or not
+     */
     dappTransactionModalVisible: PropTypes.bool,
     /**
      * List of tokens from TokenListController
@@ -411,23 +409,6 @@ class Send extends PureComponent {
 
     newTxMeta.from = selectedAddress;
     newTxMeta.transactionFromName = identities[selectedAddress].name;
-
-    if (isBlockaidFeatureEnabled()) {
-      const reqObject = {
-        jsonrpc: '2.0',
-        method: 'eth_sendTransaction',
-        params: [
-          {
-            from: selectedAddress,
-            to: newTxMeta.transactionTo,
-            value: newTxMeta.value,
-          },
-        ],
-      };
-      const securityAlertResponse = await ppomUtil.validateRequest(reqObject);
-      newTxMeta.securityAlertResponse = securityAlertResponse;
-    }
-
     this.props.setTransactionObject(newTxMeta);
     this.mounted && this.setState({ ready: true, transactionKey: Date.now() });
   };
