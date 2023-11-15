@@ -5,13 +5,13 @@ import React from 'react';
 
 // External dependencies.
 import { useStyles } from '../../../../../hooks';
-import MultiSelectItem from '../../../../Select/MultiSelect/MultiSelectItem';
+import ListItemMultiSelect from '../../../../List/ListItemMultiSelect';
 import CellBase from '../../foundation/CellBase';
 
 // Internal dependencies.
-import { CELL_MULTI_SELECT_TEST_ID } from '../../../../../../constants/test-ids';
 import styleSheet from './CellMultiSelect.styles';
 import { CellMultiSelectProps } from './CellMultiSelect.types';
+import { CELLMULTISELECT_TEST_ID } from './CellMultiSelect.constants';
 
 const CellMultiSelect = ({
   style,
@@ -27,10 +27,10 @@ const CellMultiSelect = ({
   const { styles } = useStyles(styleSheet, { style });
 
   return (
-    <MultiSelectItem
+    <ListItemMultiSelect
       isSelected={isSelected}
       style={styles.base}
-      testID={CELL_MULTI_SELECT_TEST_ID}
+      testID={CELLMULTISELECT_TEST_ID}
       {...props}
     >
       <CellBase
@@ -43,7 +43,7 @@ const CellMultiSelect = ({
       >
         {children}
       </CellBase>
-    </MultiSelectItem>
+    </ListItemMultiSelect>
   );
 };
 

@@ -40,7 +40,7 @@ import {
 } from '../../../util/transactions';
 import Avatar, {
   AvatarSize,
-  AvatarVariants,
+  AvatarVariant,
 } from '../../../component-library/components/Avatars/Avatar';
 import Identicon from '../../UI/Identicon';
 import TransactionTypes from '../../../core/TransactionTypes';
@@ -63,6 +63,8 @@ import {
   isMultiLayerFeeNetwork,
   fetchEstimatedMultiLayerL1Fee,
   isMainnetByChainId,
+  TESTNET_FAUCETS,
+  isTestNetworkWithFaucet,
 } from '../../../util/networks';
 import CustomSpendCap from '../../../component-library/components-temp/CustomSpendCap';
 import IonicIcon from 'react-native-vector-icons/Ionicons';
@@ -848,7 +850,7 @@ class ApproveTransactionReview extends PureComponent {
                         <>
                           {tokenImage ? (
                             <Avatar
-                              variant={AvatarVariants.Token}
+                              variant={AvatarVariant.Token}
                               size={AvatarSize.Md}
                               imageSource={{ uri: tokenImage }}
                             />
@@ -960,7 +962,8 @@ class ApproveTransactionReview extends PureComponent {
                         )}
                         {gasError && (
                           <View style={styles.errorWrapper}>
-                            {isTestNetwork || isNativeTokenBuySupported ? (
+                            {isTestNetworkWithFaucet(chainId) ||
+                            isNativeTokenBuySupported ? (
                               <TouchableOpacity onPress={errorPress}>
                                 <Text reset style={styles.error}>
                                   {gasError}
@@ -1163,10 +1166,11 @@ class ApproveTransactionReview extends PureComponent {
   };
 
   goToFaucet = () => {
+    const { chainId } = this.props;
     InteractionManager.runAfterInteractions(() => {
       this.onCancelPress();
       this.props.navigation.navigate(Routes.BROWSER.VIEW, {
-        newTabUrl: AppConstants.URLS.MM_FAUCET,
+        newTabUrl: TESTNET_FAUCETS[chainId],
         timestamp: Date.now(),
       });
     });

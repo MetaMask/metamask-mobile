@@ -1,18 +1,21 @@
 import TestHelpers from '../../../../helpers';
-import messages from '../../../../../locales/languages/en.json';
-import { PASSWORD_INPUT_BOX_ID } from '../../../../../app/constants/test-ids';
 import {
   PASSWORD_WARNING_ID,
   REVEAL_SECRET_RECOVERY_PHRASE_TOUCHABLE_BOX_ID,
   SECRET_RECOVERY_PHRASE_CONTAINER_ID,
   SECRET_RECOVERY_PHRASE_TEXT,
 } from '../../../../../wdio/screen-objects/testIDs/Screens/RevelSecretRecoveryPhrase.testIds';
-
-const PASSWORD_WARNING = messages.reveal_credential.unknown_error;
+import {
+  RevealSeedViewSelectorsIDs,
+  RevealSeedViewSelectorsText,
+} from '../../../../selectors/Settings/SecurityAndPrivacy/RevealSeedView.selectors';
 
 export default class RevealSecretRecoveryPhrase {
   static async enterPassword(password) {
-    await TestHelpers.typeTextAndHideKeyboard(PASSWORD_INPUT_BOX_ID, password);
+    await TestHelpers.typeTextAndHideKeyboard(
+      RevealSeedViewSelectorsIDs.PASSWORD_INPUT,
+      password,
+    );
   }
 
   static async isVisible() {
@@ -24,11 +27,16 @@ export default class RevealSecretRecoveryPhrase {
   }
 
   static async passwordWarningIsVisible() {
-    await TestHelpers.checkIfHasText(PASSWORD_WARNING_ID, PASSWORD_WARNING);
+    await TestHelpers.checkIfHasText(
+      PASSWORD_WARNING_ID,
+      RevealSeedViewSelectorsText.PASSWORD_WARNING,
+    );
   }
 
   static async passwordInputIsNotVisible() {
-    await TestHelpers.checkIfNotVisible(PASSWORD_INPUT_BOX_ID);
+    await TestHelpers.checkIfNotVisible(
+      RevealSeedViewSelectorsIDs.PASSWORD_INPUT,
+    );
   }
 
   static async isSecretRecoveryPhraseTouchableBoxVisible() {

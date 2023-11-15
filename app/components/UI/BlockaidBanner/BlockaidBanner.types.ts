@@ -17,6 +17,7 @@ export enum Reason {
   // MetaMask defined reasons
   failed = 'failed',
   notApplicable = 'not_applicable',
+  requestInProgress = 'request_in_progress',
 }
 
 export enum ResultType {
@@ -26,12 +27,14 @@ export enum ResultType {
 
   // MetaMask defined result types
   Failed = 'Failed',
+  RequestInProgress = 'RequestInProgress',
 }
 
 export interface SecurityAlertResponse {
   reason: Reason;
-  features: string[];
-  resultType: ResultType;
+  features?: string[];
+  result_type: ResultType;
+  providerRequestsCount?: Record<string, number>;
 }
 
 type BlockaidBannerAllProps = BannerAlertProps & {

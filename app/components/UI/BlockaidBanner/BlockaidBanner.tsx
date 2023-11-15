@@ -1,4 +1,5 @@
-import React from 'react';
+import React, { useEffect, useState } from 'react';
+import { ActivityIndicator } from 'react-native';
 import { View } from 'react-native-animatable';
 
 import { captureException } from '@sentry/react-native';
@@ -48,6 +49,33 @@ const getDescription = (reason: Reason) =>
       REASON_DESCRIPTION_I18N_KEY_MAP[Reason.other],
   );
 
+const Attribution = ({ styles }: { styles: Record<string, any> }) => (
+  <View style={styles.attributionBase}>
+    <View style={styles.attributionItem}>
+      <Icon
+        name={IconName.SecurityTick}
+        size={IconSize.Sm}
+        color={IconColor.Primary}
+        style={styles.securityTickIcon}
+      />
+    </View>
+    <View style={styles.attributionItem}>
+      <Text
+        variant={DEFAULT_BANNERBASE_DESCRIPTION_TEXTVARIANT}
+        data-testid={ATTRIBUTION_LINE_TEST_ID}
+      >
+        {strings('blockaid_banner.attribution')}
+      </Text>
+    </View>
+    <View style={styles.attributionItem}>
+      <BlockaidBannerLink
+        text={strings('blockaid_banner.attribution_link_name')}
+        link={BLOCKAID_ATTRIBUTION_LINK}
+      />
+    </View>
+  </View>
+);
+
 const BlockaidBanner = (bannerProps: BlockaidBannerProps) => {
   const {
     style,
@@ -55,28 +83,71 @@ const BlockaidBanner = (bannerProps: BlockaidBannerProps) => {
     onToggleShowDetails,
     onContactUsClicked,
   } = bannerProps;
-  const { styles } = useStyles(styleSheet, { style });
+  const { styles, theme } = useStyles(styleSheet, { style });
+  const [displayPositiveResponse, setDisplayPositiveResponse] = useState(false);
+
+  useEffect(() => {
+    if (securityAlertResponse?.reason === Reason.requestInProgress) {
+      setDisplayPositiveResponse(true);
+    }
+  }, [securityAlertResponse]);
 
   if (!securityAlertResponse || !isBlockaidFeatureEnabled()) {
     return null;
   }
 
-  const { resultType, reason, features } = securityAlertResponse;
+  const { result_type, reason, features } = securityAlertResponse;
 
-  if (resultType === ResultType.Benign) {
+  if (securityAlertResponse.reason === Reason.requestInProgress) {
+    return (
+      <View style={styles.bannerWrapperMargined}>
+        <BannerAlert
+          severity={BannerAlertSeverity.Warning}
+          title={strings('blockaid_banner.loading_title')}
+          startAccessory={
+            <ActivityIndicator
+              size="small"
+              color={theme.colors.warning.default}
+            />
+          }
+        >
+          <Attribution styles={styles} />
+        </BannerAlert>
+      </View>
+    );
+  }
+
+  if (result_type === ResultType.Benign) {
+    if (displayPositiveResponse) {
+      return (
+        <View style={styles.bannerWrapperMargined}>
+          <BannerAlert
+            severity={BannerAlertSeverity.Info}
+            title={strings('blockaid_banner.no_risks')}
+            onClose={() => {
+              setDisplayPositiveResponse(false);
+            }}
+          >
+            <Attribution styles={styles} />
+          </BannerAlert>
+        </View>
+      );
+    }
     return null;
   }
 
   const title = getTitle(reason);
   const description = getDescription(reason);
 
-  if (resultType === ResultType.Failed) {
+  if (result_type === ResultType.Failed) {
     return (
-      <BannerAlert
-        severity={BannerAlertSeverity.Warning}
-        title={title}
-        description={description}
-      />
+      <View style={styles.bannerWrapperMargined}>
+        <BannerAlert
+          severity={BannerAlertSeverity.Warning}
+          title={title}
+          description={description}
+        />
+      </View>
     );
   }
 
@@ -122,7 +193,7 @@ const BlockaidBanner = (bannerProps: BlockaidBannerProps) => {
   return (
     <BannerAlert
       severity={
-        resultType === ResultType.Malicious
+        result_type === ResultType.Malicious
           ? BannerAlertSeverity.Error
           : BannerAlertSeverity.Warning
       }
@@ -131,31 +202,7 @@ const BlockaidBanner = (bannerProps: BlockaidBannerProps) => {
       {...bannerProps}
     >
       {renderDetails()}
-
-      <View style={styles.attributionBase}>
-        <View style={styles.attributionItem}>
-          <Icon
-            name={IconName.SecurityTick}
-            size={IconSize.Sm}
-            color={IconColor.Primary}
-            style={styles.securityTickIcon}
-          />
-        </View>
-        <View style={styles.attributionItem}>
-          <Text
-            variant={DEFAULT_BANNERBASE_DESCRIPTION_TEXTVARIANT}
-            data-testid={ATTRIBUTION_LINE_TEST_ID}
-          >
-            {strings('blockaid_banner.attribution')}
-          </Text>
-        </View>
-        <View style={styles.attributionItem}>
-          <BlockaidBannerLink
-            text={strings('blockaid_banner.attribution_link_name')}
-            link={BLOCKAID_ATTRIBUTION_LINK}
-          />
-        </View>
-      </View>
+      <Attribution styles={styles} />
     </BannerAlert>
   );
 };

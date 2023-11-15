@@ -19,7 +19,7 @@ The code is built using React-Native and running code locally requires a Mac or 
 
 -   Install [sentry-cli](https://github.com/getsentry/sentry-cli) tools: `brew install getsentry/tools/sentry-cli`
 
--   Install [Node.js](https://nodejs.org) **version 16**
+-   Install [Node.js](https://nodejs.org) **version 18**
 
     -   If you are using [nvm](https://github.com/creationix/nvm#installation) (recommended) running `nvm use` will automatically choose the right node version for you.
 
@@ -37,7 +37,7 @@ The code is built using React-Native and running code locally requires a Mac or 
     ```
 
 -   Install the shared [React Native dependencies](https://reactnative.dev/docs/environment-setup#installing-dependencies) (`React Native CLI`, _not_ `Expo CLI`)
-    -   XCode version `14.2` or below
+    -   XCode version `15.0.1` or below
 
 -   Install [cocoapods](https://guides.cocoapods.org/using/getting-started.html) by running:
 
@@ -90,7 +90,7 @@ The code is built using React-Native and running code locally requires a Mac or 
     -   [React Native Getting Started - iOS](https://reactnative.dev/docs/environment-setup#installing-dependencies) _(React Native CLI Quickstart -> [your OS] -> iOS)_
 -   Install the correct simulator
     -   **iOS OS Version:** Latest, unless told otherwise
-    -   **Device:** iPhone 12 Pro
+    -   **Device:** iPhone 13 Pro
 
 
 
@@ -112,6 +112,7 @@ cd metamask-mobile
 ```
 -   _Non-MetaMask Only:_ Create an account and generate your own API key at [Infura](https://infura.io) in order to connect to main and test nets. Fill `MM_INFURA_PROJECT_ID` in `.js.env`. (App will run without it, but will not be able to connect to actual network.)
 - _Non-MetaMask Only:_ Fill `MM_SENTRY_DSN` in `.js.env` if you want the app to emit logs to your own Sentry project.
+- Note: after updating env vars, make sure to run `source .js.env` on the root of the project
 
 -   Install the app:
 ```
@@ -121,6 +122,12 @@ yarn setup # not the usual install command, this will run a lengthy postinstall 
 -   Then, in one terminal, run:
 ```bash
 yarn watch
+```
+
+- You can change the default port (8081) from metro using the WATCHER_PORT environment variable. For example:
+```bash
+WATCHER_PORT=8082 yarn watch
+# This value can also be set directly inside .js.env file
 ```
 
 #### Android
@@ -237,7 +244,7 @@ Prerequisites for running tests:
 - Make sure to install `detox-cli` by referring to the instructions mentioned [here](https://wix.github.io/Detox/docs/introduction/getting-started/#detox-prerequisites).
 - Additionally, install `applesimutils` by following the guidelines provided [here](https://github.com/wix/AppleSimulatorUtils).
 - Before running any tests, it's recommended to refer to the `iOS section` above and check the latest simulator device specified under `Install the correct simulator`.
-- The default device for iOS is the iPhone 12 Pro and Android the Pixel 5. Ensure you have these set up. 
+- The default device for iOS is the iPhone 13 Pro and Android the Pixel 5. Ensure you have these set up.
 - Make sure that Metro is running. Use this command to launch the metro server:
 
 ```bash

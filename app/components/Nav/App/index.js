@@ -92,6 +92,7 @@ import LockScreen from '../../Views/LockScreen';
 import AsyncStorage from '../../../store/async-storage-wrapper';
 import ShowIpfsGatewaySheet from '../../Views/ShowIpfsGatewaySheet/ShowIpfsGatewaySheet';
 import ShowDisplayNftMediaSheet from '../../Views/ShowDisplayMediaNFTSheet/ShowDisplayNFTMediaSheet';
+import AmbiguousAddressSheet from '../../../../app/components/Views/Settings/Contacts/AmbiguousAddressSheet/AmbiguousAddressSheet';
 
 const clearStackNavigatorOptions = {
   headerShown: false,
@@ -232,6 +233,8 @@ const App = ({ userLoggedIn }) => {
   const { toastRef } = useContext(ToastContext);
   const dispatch = useDispatch();
   const sdkInit = useRef(false);
+  const sdkPostInit = useRef(false);
+  const [postInitReady, setPostInitReady] = useState(false);
   const [onboarded, setOnboarded] = useState(false);
   const triggerSetCurrentRoute = (route) => {
     dispatch(setCurrentRoute(route));
@@ -284,13 +287,9 @@ const App = ({ userLoggedIn }) => {
     const deeplink = params?.['+non_branch_link'] || uri || null;
     try {
       if (deeplink) {
-        const { KeyringController } = Engine.context;
-        const isUnlocked = KeyringController.isUnlocked();
-        isUnlocked
-          ? SharedDeeplinkManager.parse(deeplink, {
-              origin: AppConstants.DEEPLINKS.ORIGIN_DEEPLINK,
-            })
-          : SharedDeeplinkManager.setDeeplink(deeplink);
+        SharedDeeplinkManager.parse(deeplink, {
+          origin: AppConstants.DEEPLINKS.ORIGIN_DEEPLINK,
+        });
       }
     } catch (e) {
       Logger.error(e, `Deeplink: Error parsing deeplink`);
@@ -352,17 +351,41 @@ const App = ({ userLoggedIn }) => {
   }, []);
 
   useEffect(() => {
-    if (navigator?.getCurrentRoute && !sdkInit.current && onboarded) {
-      SDKConnect.getInstance()
-        .init({ navigation: navigator })
-        .then(() => {
+    // Init SDKConnect only if the navigator is ready, user is onboarded, and SDK is not initialized.
+    async function initSDKConnect() {
+      if (navigator?.getCurrentRoute && onboarded && !sdkInit.current) {
+        try {
+          const sdkConnect = SDKConnect.getInstance();
+          await sdkConnect.init({ navigation: navigator });
+          setPostInitReady(true);
           sdkInit.current = true;
-        })
-        .catch((err) => {
+        } catch (err) {
           console.error(`Cannot initialize SDKConnect`, err);
-        });
+        }
+      }
     }
+    initSDKConnect();
   }, [navigator, onboarded]);
+
+  useEffect(() => {
+    // Handle post-init process separately.
+    async function handlePostInit() {
+      if (
+        sdkInit.current &&
+        !sdkPostInit.current &&
+        postInitReady &&
+        userLoggedIn
+      ) {
+        try {
+          await SDKConnect.getInstance().postInit();
+          sdkPostInit.current = true;
+        } catch (err) {
+          console.error(`Cannot postInit SDKConnect`, err);
+        }
+      }
+    }
+    handlePostInit();
+  }, [userLoggedIn, postInitReady]);
 
   useEffect(() => {
     if (isWC2Enabled) {
@@ -504,6 +527,10 @@ const App = ({ userLoggedIn }) => {
       <Stack.Screen
         name={Routes.SHEET.NETWORK_SELECTOR}
         component={NetworkSelector}
+      />
+      <Stack.Screen
+        name={Routes.SHEET.AMBIGUOUS_ADDRESS}
+        component={AmbiguousAddressSheet}
       />
       <Stack.Screen
         name={Routes.MODAL.TURN_OFF_REMEMBER_ME}

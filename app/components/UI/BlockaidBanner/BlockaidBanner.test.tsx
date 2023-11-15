@@ -29,7 +29,7 @@ describe('BlockaidBanner', () => {
     const wrapper = render(
       <BlockaidBanner
         securityAlertResponse={{
-          resultType: ResultType.Warning,
+          result_type: ResultType.Warning,
           reason: Reason.approvalFarming,
           features: mockFeatures,
         }}
@@ -43,7 +43,7 @@ describe('BlockaidBanner', () => {
     const wrapper = render(
       <BlockaidBanner
         securityAlertResponse={{
-          resultType: ResultType.Malicious,
+          result_type: ResultType.Malicious,
           reason: Reason.rawSignatureFarming,
           features: mockFeatures,
         }}
@@ -66,7 +66,7 @@ describe('BlockaidBanner', () => {
     const wrapper = render(
       <BlockaidBanner
         securityAlertResponse={{
-          resultType: ResultType.Malicious,
+          result_type: ResultType.Malicious,
           reason: Reason.rawSignatureFarming,
           features: mockFeatures,
         }}
@@ -80,7 +80,7 @@ describe('BlockaidBanner', () => {
     const wrapper = render(
       <BlockaidBanner
         securityAlertResponse={{
-          resultType: ResultType.Malicious,
+          result_type: ResultType.Malicious,
           reason: Reason.approvalFarming,
           features: mockFeatures,
         }}
@@ -119,7 +119,7 @@ describe('BlockaidBanner', () => {
     const wrapper = render(
       <BlockaidBanner
         securityAlertResponse={{
-          resultType: ResultType.Malicious,
+          result_type: ResultType.Malicious,
           reason: Reason.approvalFarming,
           features: mockFeatures,
         }}
@@ -149,11 +149,22 @@ describe('BlockaidBanner', () => {
     expect(await wrapper.queryByTestId(TESTID_ACCORDION_CONTENT)).toBeNull();
   });
 
+  it('should render loader if reason is requestInProgress', async () => {
+    const wrapper = render(<BlockaidBanner />);
+
+    expect(wrapper).toMatchSnapshot();
+    expect(
+      await wrapper.queryByText(
+        'We’re still evaluating the safety of this request. Wait or proceed with caution.',
+      ),
+    ).toBeDefined();
+  });
+
   it('should not render if resultType is benign', async () => {
     const wrapper = render(
       <BlockaidBanner
         securityAlertResponse={{
-          resultType: ResultType.Benign,
+          result_type: ResultType.Benign,
           reason: Reason.rawSignatureFarming,
           features: mockFeatures,
         }}
@@ -169,8 +180,8 @@ describe('BlockaidBanner', () => {
     const wrapper = render(
       <BlockaidBanner
         securityAlertResponse={{
-          resultType: ResultType.Failed,
-          reason: Reason.rawSignatureFarming,
+          result_type: ResultType.Failed,
+          reason: Reason.failed,
           features: mockFeatures,
         }}
       />,
