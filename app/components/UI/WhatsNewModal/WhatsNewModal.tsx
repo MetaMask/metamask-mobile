@@ -2,7 +2,6 @@ import React, { useCallback, useRef, useState } from 'react';
 import {
   StyleSheet,
   View,
-  Text,
   TouchableOpacity,
   Image,
   TouchableWithoutFeedback,
@@ -10,8 +9,6 @@ import {
   NativeScrollEvent,
   Platform,
 } from 'react-native';
-import { fontStyles } from '../../../styles/common';
-import Icon from 'react-native-vector-icons/FontAwesome';
 import { strings } from '../../../../locales/i18n';
 import Device from '../../../util/device';
 import AsyncStorage from '../../../store/async-storage-wrapper';
@@ -21,6 +18,15 @@ import {
 } from '../../../constants/storage';
 import StyledButton from '../StyledButton';
 import { useTheme } from '../../../util/theme';
+import Text, {
+  TextColor,
+  TextVariant,
+} from '../../../component-library/components/Texts/Text';
+import Icon, {
+  IconColor,
+  IconName,
+  IconSize,
+} from '../../../component-library/components/Icons/Icon';
 import ReusableModal, { ReusableModalRef } from '../ReusableModal';
 import { whatsNewList } from './';
 import { Colors } from '../../../util/theme/models';
@@ -77,17 +83,9 @@ const createStyles = (colors: Colors) =>
       marginBottom: 20,
       paddingHorizontal: modalPadding,
     },
-    headerCenterAux: {
-      flex: 1,
-    },
     headerClose: {
       flex: 1,
       alignItems: 'flex-end',
-    },
-    headerText: {
-      ...fontStyles.bold,
-      fontSize: 18,
-      color: colors.text.default,
     },
     slideImageContainer: {
       flexDirection: 'row',
@@ -101,16 +99,10 @@ const createStyles = (colors: Colors) =>
       height: slideImageHeight,
     },
     slideTitle: {
-      ...fontStyles.bold,
-      fontSize: 16,
       marginBottom: 12,
-      color: colors.text.default,
     },
     slideDescription: {
-      ...fontStyles.normal,
-      fontSize: 14,
       lineHeight: 20,
-      color: colors.text.default,
       marginBottom: 24,
     },
     screen: { justifyContent: 'center', alignItems: 'center' },
@@ -151,10 +143,24 @@ const WhatsNewModal = () => {
   const renderSlideElement = (elementInfo: any) => {
     switch (elementInfo.type) {
       case 'title':
-        return <Text style={styles.slideTitle}>{elementInfo.title}</Text>;
+        return (
+          <Text
+            color={TextColor.Default}
+            variant={TextVariant.BodyLGMedium}
+            style={styles.slideTitle}
+          >
+            {elementInfo.title}
+          </Text>
+        );
       case 'description':
         return (
-          <Text style={styles.slideDescription}>{elementInfo.description}</Text>
+          <Text
+            color={TextColor.Default}
+            variant={TextVariant.HeadingSMRegular}
+            style={styles.slideDescription}
+          >
+            {elementInfo.description}
+          </Text>
         );
       case 'image':
         return (
@@ -208,15 +214,20 @@ const WhatsNewModal = () => {
 
   const renderHeader = () => (
     <View style={styles.header}>
-      <View style={styles.headerCenterAux} />
-      <Text style={styles.headerText}>{strings('whats_new.title')}</Text>
+      <Text color={TextColor.Default} variant={TextVariant.HeadingMD}>
+        {strings('whats_new.title')}
+      </Text>
       <View style={styles.headerClose}>
         <TouchableOpacity
           onPress={() => dismissModal()}
           hitSlop={{ top: 10, left: 10, bottom: 10, right: 10 }}
           {...generateTestId(Platform, WhatsNewModalSelectorsIDs.CLOSE_BUTTON)}
         >
-          <Icon name="times" size={16} color={colors.icon.default} />
+          <Icon
+            name={IconName.Close}
+            size={IconSize.Md}
+            color={IconColor.Default}
+          />
         </TouchableOpacity>
       </View>
     </View>
