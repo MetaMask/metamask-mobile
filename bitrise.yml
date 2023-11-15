@@ -138,7 +138,7 @@ workflows:
                 asdf global nodejs 18.18
                 asdf plugin add yarn
                 asdf list all yarn
-                asdf install yarn latest
+                asdf install yarn 1.22.19
                 asdf global yarn 1.22.19
           title: Install node and yarn
       - yarn@0:
