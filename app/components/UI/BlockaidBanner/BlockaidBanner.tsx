@@ -156,7 +156,7 @@ const BlockaidBanner = (bannerProps: BlockaidBannerProps) => {
   }
 
   const renderDetails = () =>
-    features?.length <= 0 ? null : (
+    features?.length && features?.length <= 0 ? null : (
       <Accordion
         title={strings('blockaid_banner.see_details')}
         onPress={onToggleShowDetails}
