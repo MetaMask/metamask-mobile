@@ -1728,10 +1728,7 @@
     "wallet_connect_dapps_cta": "OTURUMLARI GÖRÜNTÜLE",
     "network_not_supported": "Geçerli ağ desteklenmiyor",
     "security_alerts": "Güvenlik uyarıları",
-    "security_alerts_desc": "Bu özellik, işlemlerinizi ve imza taleplerinizi yerel olarak inceleyerek sizi kötü amaçlı aktivitelere karşı uyarır. Verileriniz bu hizmeti sunan üçüncü taraflarla paylaşılmaz. Herhangi bir talebi onaylamadan önce kendiniz daima gerekli özeni gösterin. Bu özelliğin tüm kötü amaçlı aktiviteleri algılayacağına dair herhangi bir garanti söz konusu değildir.",
-    "select_providers": "Sağlayıcıları seç",
     "blockaid": "Blockaid",
-    "moreProviders": "Daha fazlası çok yakında",
     "switch_network": "Lütfen ana ağa veya sepolia ağına geçin"
   },
   "walletconnect_sessions": {
