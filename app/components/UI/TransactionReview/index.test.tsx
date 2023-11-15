@@ -120,10 +120,28 @@ const mockState = {
   alert: { isVisible: false },
 };
 
-jest.mock('react-redux', () => ({
-  ...jest.requireActual('react-redux'),
-  useSelector: (fn: any) => fn(mockState),
-}));
+jest.mock('react-redux', () => {
+  const securityAlertResponse = {
+    result_type: 'Malicious',
+    reason: 'blur_farming',
+    providerRequestsCount: {},
+  };
+  return {
+    ...jest.requireActual('react-redux'),
+    useSelector: (fn: any) =>
+      fn({
+        ...mockState,
+        transaction: {
+          ...mockState.transaction,
+          securityAlertResponse,
+          securityAlertResponseMap: {
+            id: '123',
+            response: securityAlertResponse,
+          },
+        },
+      }),
+  };
+});
 
 const generateTransform = jest.fn();
 
@@ -150,7 +168,7 @@ describe('TransactionReview', () => {
     expect(container).toMatchSnapshot();
   });
 
-  it.only('should display blockaid banner', async () => {
+  it('should display blockaid banner', async () => {
     const securityAlertResponse = {
       result_type: 'Malicious',
       reason: 'blur_farming',
@@ -184,7 +202,7 @@ describe('TransactionReview', () => {
             ...mockState.transaction,
             securityAlertResponse,
             securityAlertResponseMap: {
-              transactionId: '123',
+              id: '123',
               response: securityAlertResponse,
             },
           },
