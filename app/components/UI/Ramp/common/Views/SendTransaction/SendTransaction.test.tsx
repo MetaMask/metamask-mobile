@@ -390,6 +390,9 @@ describe('SendTransaction View', () => {
             "to": "0x34256",
             "value": "0x2bea80d2171600",
           },
+          Object {
+            "deviceConfirmedOn": "metamask_mobile",
+          },
         ],
       ]
     `);
@@ -412,6 +415,9 @@ describe('SendTransaction View', () => {
             "from": "0x1234",
             "to": "0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48",
             "value": "0x0",
+          },
+          Object {
+            "deviceConfirmedOn": "metamask_mobile",
           },
         ],
       ]
