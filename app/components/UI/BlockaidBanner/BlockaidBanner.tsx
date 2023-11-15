@@ -123,7 +123,7 @@ const BlockaidBanner = (bannerProps: BlockaidBannerProps) => {
         <View style={styles.bannerWrapperMargined}>
           <BannerAlert
             severity={BannerAlertSeverity.Info}
-            title={strings('blockaid_banner.no_risks')}
+            title={strings('blockaid_banner.loading_complete_title')}
             onClose={() => {
               setDisplayPositiveResponse(false);
             }}
