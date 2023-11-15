@@ -35,6 +35,7 @@ import ErrorView from '../../components/ErrorView';
 
 interface OrderDetailsParams {
   orderId?: string;
+  redirectToSendTransaction?: boolean;
 }
 
 export const createOrderDetailsNavDetails =
@@ -71,6 +72,27 @@ const OrderDetails = () => {
       ),
     );
   }, [colors, navigation]);
+
+  const navigateToSendTransaction = useCallback(() => {
+    if (order?.id) {
+      navigation.navigate(Routes.RAMP.SEND_TRANSACTION, {
+        orderId: order.id,
+      });
+    }
+  }, [navigation, order?.id]);
+
+  useEffect(() => {
+    if (
+      order?.state === FIAT_ORDER_STATES.CREATED &&
+      params.redirectToSendTransaction
+    ) {
+      navigateToSendTransaction();
+    }
+  }, [
+    order?.state,
+    params.redirectToSendTransaction,
+    navigateToSendTransaction,
+  ]);
 
   useEffect(() => {
     if (order) {
@@ -188,14 +210,7 @@ const OrderDetails = () => {
             !order.sellTxHash &&
             order.state === FIAT_ORDER_STATES.CREATED ? (
               <Row>
-                <StyledButton
-                  type="confirm"
-                  onPress={() => {
-                    navigation.navigate(Routes.RAMP.SEND_TRANSACTION, {
-                      orderId: order.id,
-                    });
-                  }}
-                >
+                <StyledButton type="normal" onPress={navigateToSendTransaction}>
                   {strings(
                     'fiat_on_ramp_aggregator.order_details.continue_order',
                   )}

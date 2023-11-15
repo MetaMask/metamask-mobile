@@ -82,9 +82,10 @@ function useHandleSuccessfulOrder() {
           return;
         }
         handleAddFiatOrder(order);
-        NotificationManager.showSimpleNotification(
-          getNotificationDetails(order as any),
-        );
+        const notificationDetails = getNotificationDetails(order as any);
+        if (notificationDetails) {
+          NotificationManager.showSimpleNotification(notificationDetails);
+        }
         trackEvent('ONRAMP_PURCHASE_SUBMITTED', {
           provider_onramp: (order?.data as Order)?.provider?.name,
           payment_method_id: (order?.data as Order)?.paymentMethod?.id,
@@ -103,6 +104,7 @@ function useHandleSuccessfulOrder() {
             initial: false,
             params: {
               orderId: order.id,
+              redirectToSendTransaction: true,
             },
           });
         }
