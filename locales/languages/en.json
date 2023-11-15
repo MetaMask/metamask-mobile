@@ -1739,10 +1739,10 @@
     "wallet_connect_dapps_cta": "VIEW SESSIONS",
     "network_not_supported": "Current network not supported",
     "security_alerts": "Security alerts",
-    "security_alerts_desc": "This feature alerts you to malicious activity by locally reviewing your transactions and signature requests. Your data isn't shared with the third parties providing this service. Always do your own due diligence before approving any requests. There’s no guarantee that this feature will detect all malicious activity.",
-    "select_providers": "Select providers",
+    "security_alerts_desc": "This feature alerts you to malicious activity by locally reviewing your transaction and signature requests. Always do your own due diligence before approving any requests. There's no guarantee that this feature will detect all malicious activity. By enabling this feature you agree to the provider's terms of use.",
+    "select_provider": "Select your preferred provider",
     "blockaid": "Blockaid",
-    "moreProviders": "More providers coming soon",
+    "blockaid_desc": "Privacy preserving - no data is shared with third parties. Available on Ethereum Mainnet.",
     "switch_network": "Please switch to mainnet or sepolia"
   },
   "walletconnect_sessions": {
