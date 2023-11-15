@@ -53,7 +53,7 @@ function NetworkSwitcher() {
   } = useRampNetworksDetail();
   const supportedNetworks = useSelector(getRampNetworks);
   const [isCurrentNetworkRampSupported] = useRampNetwork();
-  const { selectedChainId } = useRampSDK();
+  const { selectedChainId, isBuy } = useRampSDK();
 
   const networkConfigurations = useSelector(selectNetworkConfigurations);
   const [networkToBeAdded, setNetworkToBeAdded] = useState<Network>();
@@ -93,11 +93,18 @@ function NetworkSwitcher() {
   }, [networksDetails, supportedNetworks]);
 
   const handleCancelPress = useCallback(() => {
-    trackEvent('ONRAMP_CANCELED', {
-      location: 'Network Switcher Screen',
-      chain_id_destination: selectedChainId,
-    });
-  }, [selectedChainId, trackEvent]);
+    if (isBuy) {
+      trackEvent('ONRAMP_CANCELED', {
+        location: 'Network Switcher Screen',
+        chain_id_destination: selectedChainId,
+      });
+    } else {
+      trackEvent('OFFRAMP_CANCELED', {
+        location: 'Network Switcher Screen',
+        chain_id_source: selectedChainId,
+      });
+    }
+  }, [isBuy, selectedChainId, trackEvent]);
 
   useEffect(() => {
     navigation.setOptions(
@@ -105,7 +112,11 @@ function NetworkSwitcher() {
         navigation,
         {
           title: strings('fiat_on_ramp_aggregator.network_switcher.title', {
-            rampType: strings('fiat_on_ramp_aggregator.buy'),
+            rampType: strings(
+              isBuy
+                ? 'fiat_on_ramp_aggregator.buy'
+                : 'fiat_on_ramp_aggregator.sell',
+            ),
           }),
           showBack: false,
         },
@@ -113,7 +124,7 @@ function NetworkSwitcher() {
         handleCancelPress,
       ),
     );
-  }, [navigation, colors, handleCancelPress]);
+  }, [isBuy, navigation, colors, handleCancelPress]);
 
   useEffect(() => {
     if (isCurrentNetworkRampSupported) {
@@ -202,7 +213,11 @@ function NetworkSwitcher() {
           <ScreenLayout.Content>
             <Text centered big>
               {strings('fiat_on_ramp_aggregator.network_switcher.description', {
-                rampType: strings('fiat_on_ramp_aggregator.buy'),
+                rampType: strings(
+                  isBuy
+                    ? 'fiat_on_ramp_aggregator.buy'
+                    : 'fiat_on_ramp_aggregator.sell',
+                ),
               })}
             </Text>
 

@@ -64,6 +64,8 @@ const mockuseRampSDKInitialValues: Partial<RampSDK> = {
   selectedChainId: '1',
   sdkError: undefined,
   rampType: RampType.BUY,
+  isBuy: true,
+  isSell: false,
 };
 
 let mockUseRampSDKValues: Partial<RampSDK> = {
@@ -260,6 +262,20 @@ describe('PaymentMethods View', () => {
       chain_id_destination: '1',
       location: 'Payment Method Screen',
     });
+
+    mockTrackEvent.mockReset();
+    mockUseRampSDKValues = {
+      ...mockUseRampSDKValues,
+      isBuy: false,
+      isSell: true,
+      rampType: RampType.SELL,
+    };
+    render(PaymentMethods);
+    fireEvent.press(screen.getByRole('button', { name: 'Cancel' }));
+    expect(mockTrackEvent).toBeCalledWith('OFFRAMP_CANCELED', {
+      chain_id_source: '1',
+      location: 'Payment Method Screen',
+    });
   });
 
   it('selects payment method on press', async () => {
@@ -268,25 +284,93 @@ describe('PaymentMethods View', () => {
     expect(mockSetSelectedPaymentMethodId).toBeCalledWith(
       '/payments/debit-credit-card',
     );
+
+    expect(mockTrackEvent.mock.lastCall).toMatchInlineSnapshot(`
+      Array [
+        "ONRAMP_PAYMENT_METHOD_SELECTED",
+        Object {
+          "available_payment_method_ids": Array [
+            "/payments/instant-bank-transfer",
+            "/payments/apple-pay",
+            "/payments/debit-credit-card",
+          ],
+          "location": "Payment Method Screen",
+          "payment_method_id": "/payments/debit-credit-card",
+          "region": "/regions/cl",
+        },
+      ]
+    `);
+
+    mockTrackEvent.mockReset();
+    mockUseRampSDKValues = {
+      ...mockUseRampSDKValues,
+      isBuy: false,
+      isSell: true,
+      rampType: RampType.SELL,
+    };
+    render(PaymentMethods);
+    fireEvent.press(screen.getByRole('button', { name: 'Debit or Credit' }));
+    expect(mockTrackEvent.mock.lastCall).toMatchInlineSnapshot(`
+      Array [
+        "OFFRAMP_PAYMENT_METHOD_SELECTED",
+        Object {
+          "available_payment_method_ids": Array [
+            "/payments/instant-bank-transfer",
+            "/payments/apple-pay",
+            "/payments/debit-credit-card",
+          ],
+          "location": "Payment Method Screen",
+          "payment_method_id": "/payments/debit-credit-card",
+          "region": "/regions/cl",
+        },
+      ]
+    `);
   });
 
   it('navigates to amount to buy on continue button press', async () => {
     render(PaymentMethods);
     fireEvent.press(screen.getByRole('button', { name: 'Continue to amount' }));
     expect(mockNavigate).toHaveBeenCalledWith(...createBuildQuoteNavDetails());
-    expect(mockTrackEvent).toHaveBeenCalledWith(
-      'ONRAMP_CONTINUE_TO_AMOUNT_CLICKED',
-      {
-        available_payment_method_ids: [
-          '/payments/instant-bank-transfer',
-          '/payments/apple-pay',
-          '/payments/debit-credit-card',
-        ],
-        payment_method_id: '/payments/instant-bank-transfer',
-        region: '/regions/cl',
-        location: 'Payment Method Screen',
-      },
-    );
+    expect(mockTrackEvent.mock.lastCall).toMatchInlineSnapshot(`
+      Array [
+        "ONRAMP_CONTINUE_TO_AMOUNT_CLICKED",
+        Object {
+          "available_payment_method_ids": Array [
+            "/payments/instant-bank-transfer",
+            "/payments/apple-pay",
+            "/payments/debit-credit-card",
+          ],
+          "location": "Payment Method Screen",
+          "payment_method_id": "/payments/instant-bank-transfer",
+          "region": "/regions/cl",
+        },
+      ]
+    `);
+
+    mockTrackEvent.mockReset();
+    mockUseRampSDKValues = {
+      ...mockUseRampSDKValues,
+      isBuy: false,
+      isSell: true,
+      rampType: RampType.SELL,
+    };
+    render(PaymentMethods);
+    fireEvent.press(screen.getByRole('button', { name: 'Continue to amount' }));
+    expect(mockTrackEvent.mock.lastCall).toMatchInlineSnapshot(`
+      Array [
+        "OFFRAMP_CONTINUE_TO_AMOUNT_CLICKED",
+        Object {
+          "available_payment_method_ids": Array [
+            "/payments/instant-bank-transfer",
+            "/payments/apple-pay",
+            "/payments/debit-credit-card",
+          ],
+          "location": "Payment Method Screen",
+          "payment_method_id": "/payments/instant-bank-transfer",
+          "region": "/regions/cl",
+        },
+      ]
+    `);
   });
 
   it('renders correctly with sdkError', async () => {

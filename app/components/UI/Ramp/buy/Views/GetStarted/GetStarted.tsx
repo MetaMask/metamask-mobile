@@ -29,11 +29,18 @@ const GetStarted: React.FC = () => {
   const { colors } = useTheme();
 
   const handleCancelPress = useCallback(() => {
-    trackEvent('ONRAMP_CANCELED', {
-      location: 'Get Started Screen',
-      chain_id_destination: selectedChainId,
-    });
-  }, [selectedChainId, trackEvent]);
+    if (isBuy) {
+      trackEvent('ONRAMP_CANCELED', {
+        location: 'Get Started Screen',
+        chain_id_destination: selectedChainId,
+      });
+    } else {
+      trackEvent('OFFRAMP_CANCELED', {
+        location: 'Get Started Screen',
+        chain_id_source: selectedChainId,
+      });
+    }
+  }, [isBuy, selectedChainId, trackEvent]);
 
   useEffect(() => {
     navigation.setOptions(
@@ -50,8 +57,15 @@ const GetStarted: React.FC = () => {
   }, [navigation, colors, handleCancelPress]);
 
   const handleOnPress = useCallback(() => {
+    trackEvent(
+      isBuy ? 'ONRAMP_GET_STARTED_CLICKED' : 'OFFRAMP_GET_STARTED_CLICKED',
+      {
+        text: 'Get Started',
+        location: 'Get Started Screen',
+      },
+    );
     setGetStarted(true);
-  }, [setGetStarted]);
+  }, [isBuy, setGetStarted, trackEvent]);
 
   useEffect(() => {
     if (getStarted) {

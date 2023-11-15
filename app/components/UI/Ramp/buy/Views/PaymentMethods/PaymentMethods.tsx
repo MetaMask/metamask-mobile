@@ -42,6 +42,7 @@ const PaymentMethods = () => {
   const { showBack } = useParams<PaymentMethodsParams>();
 
   const {
+    isBuy,
     setSelectedRegion,
     setSelectedPaymentMethodId,
     selectedChainId,
@@ -59,25 +60,38 @@ const PaymentMethods = () => {
   } = usePaymentMethods();
 
   const handleCancelPress = useCallback(() => {
-    trackEvent('ONRAMP_CANCELED', {
-      location: 'Payment Method Screen',
-      chain_id_destination: selectedChainId,
-    });
-  }, [selectedChainId, trackEvent]);
+    if (isBuy) {
+      trackEvent('ONRAMP_CANCELED', {
+        location: 'Payment Method Screen',
+        chain_id_destination: selectedChainId,
+      });
+    } else {
+      trackEvent('OFFRAMP_CANCELED', {
+        location: 'Payment Method Screen',
+        chain_id_source: selectedChainId,
+      });
+    }
+  }, [isBuy, selectedChainId, trackEvent]);
 
   const handlePaymentMethodPress = useCallback(
     (id) => {
       setSelectedPaymentMethodId(id);
-      trackEvent('ONRAMP_PAYMENT_METHOD_SELECTED', {
-        payment_method_id: id,
-        available_payment_method_ids: paymentMethods?.map(
-          (paymentMethod) => paymentMethod.id,
-        ) as string[],
-        region: selectedRegion?.id as string,
-        location: 'Payment Method Screen',
-      });
+      trackEvent(
+        isBuy
+          ? 'ONRAMP_PAYMENT_METHOD_SELECTED'
+          : 'OFFRAMP_PAYMENT_METHOD_SELECTED',
+        {
+          payment_method_id: id,
+          available_payment_method_ids: paymentMethods?.map(
+            (paymentMethod) => paymentMethod.id,
+          ) as string[],
+          region: selectedRegion?.id as string,
+          location: 'Payment Method Screen',
+        },
+      );
     },
     [
+      isBuy,
       paymentMethods,
       selectedRegion?.id,
       setSelectedPaymentMethodId,
@@ -99,18 +113,23 @@ const PaymentMethods = () => {
   }, [showBack, setSelectedPaymentMethodId, setSelectedRegion, navigation]);
 
   const handleContinueToAmount = useCallback(() => {
-    // TODO: handle navigation to Build Quote page
-    trackEvent('ONRAMP_CONTINUE_TO_AMOUNT_CLICKED', {
-      available_payment_method_ids: paymentMethods?.map(
-        (paymentMethod) => paymentMethod.id,
-      ) as string[],
-      payment_method_id: currentPaymentMethod?.id as string,
-      region: selectedRegion?.id as string,
-      location: 'Payment Method Screen',
-    });
+    trackEvent(
+      isBuy
+        ? 'ONRAMP_CONTINUE_TO_AMOUNT_CLICKED'
+        : 'OFFRAMP_CONTINUE_TO_AMOUNT_CLICKED',
+      {
+        available_payment_method_ids: paymentMethods?.map(
+          (paymentMethod) => paymentMethod.id,
+        ) as string[],
+        payment_method_id: currentPaymentMethod?.id as string,
+        region: selectedRegion?.id as string,
+        location: 'Payment Method Screen',
+      },
+    );
     navigation.navigate(...createBuildQuoteNavDetails());
   }, [
     currentPaymentMethod?.id,
+    isBuy,
     navigation,
     paymentMethods,
     selectedRegion?.id,

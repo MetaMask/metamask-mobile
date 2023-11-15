@@ -145,6 +145,20 @@ describe('GetStarted', () => {
       chain_id_destination: '1',
       location: 'Get Started Screen',
     });
+
+    mockTrackEvent.mockReset();
+    mockUseRampSDKValues = {
+      ...mockUseRampSDKValues,
+      isBuy: false,
+      isSell: true,
+      rampType: RampType.SELL,
+    };
+    render(GetStarted);
+    fireEvent.press(screen.getByRole('button', { name: 'Cancel' }));
+    expect(mockTrackEvent).toBeCalledWith('OFFRAMP_CANCELED', {
+      chain_id_source: '1',
+      location: 'Get Started Screen',
+    });
   });
 
   it('navigates to network switcher on unsupported network when getStarted is true', async () => {

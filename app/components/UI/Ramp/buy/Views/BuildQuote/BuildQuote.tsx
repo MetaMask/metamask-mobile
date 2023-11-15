@@ -62,7 +62,7 @@ import {
 import Routes from '../../../../../../constants/navigation/Routes';
 import { formatAmount } from '../../../common/utils';
 import { createQuotesNavDetails } from '../Quotes/Quotes';
-import { Region } from '../../../common/types';
+import { Region, ScreenLocation } from '../../../common/types';
 import { useStyles } from '../../../../../../component-library/hooks';
 
 import styleSheet from './BuildQuote.styles';
@@ -131,9 +131,14 @@ const BuildQuote = () => {
     selectedChainId,
     selectedNetworkName,
     sdkError,
+    rampType,
     isBuy,
     isSell,
   } = useRampSDK();
+
+  const screenLocation: ScreenLocation = isBuy
+    ? 'Amount to Buy Screen'
+    : 'Amount to Sell Screen';
 
   const {
     data: regions,
@@ -224,11 +229,18 @@ const BuildQuote = () => {
     isFetchingRegions;
 
   const handleCancelPress = useCallback(() => {
-    trackEvent('ONRAMP_CANCELED', {
-      location: 'Amount to Buy Screen',
-      chain_id_destination: selectedChainId,
-    });
-  }, [selectedChainId, trackEvent]);
+    if (isBuy) {
+      trackEvent('ONRAMP_CANCELED', {
+        location: screenLocation,
+        chain_id_destination: selectedChainId,
+      });
+    } else {
+      trackEvent('OFFRAMP_CANCELED', {
+        location: screenLocation,
+        chain_id_source: selectedChainId,
+      });
+    }
+  }, [screenLocation, isBuy, selectedChainId, trackEvent]);
 
   useEffect(() => {
     navigation.setOptions(
@@ -406,18 +418,34 @@ const BuildQuote = () => {
           fiatCurrency: currentFiatCurrency,
         }),
       );
-      trackEvent('ONRAMP_QUOTES_REQUESTED', {
-        currency_source: currentFiatCurrency.symbol,
-        currency_destination: selectedAsset.symbol,
+
+      const analyticsPayload = {
         payment_method_id: selectedPaymentMethodId as string,
-        chain_id_destination: selectedChainId,
         amount: amountNumber,
-        location: 'Amount to Buy Screen',
-      });
+        location: screenLocation,
+      };
+
+      if (isBuy) {
+        trackEvent('ONRAMP_QUOTES_REQUESTED', {
+          ...analyticsPayload,
+          currency_source: currentFiatCurrency.symbol,
+          currency_destination: selectedAsset.symbol,
+          chain_id_destination: selectedChainId,
+        });
+      } else {
+        trackEvent('OFFRAMP_QUOTES_REQUESTED', {
+          ...analyticsPayload,
+          currency_destination: currentFiatCurrency.symbol,
+          currency_source: selectedAsset.symbol,
+          chain_id_source: selectedChainId,
+        });
+      }
     }
   }, [
+    screenLocation,
     amountNumber,
     currentFiatCurrency,
+    isBuy,
     navigation,
     selectedAsset,
     selectedChainId,
@@ -472,10 +500,7 @@ const BuildQuote = () => {
     return (
       <ScreenLayout>
         <ScreenLayout.Body>
-          <ErrorViewWithReporting
-            error={sdkError}
-            location={'Amount to Buy Screen'}
-          />
+          <ErrorViewWithReporting error={sdkError} location={screenLocation} />
         </ScreenLayout.Body>
       </ScreenLayout>
     );
@@ -488,7 +513,7 @@ const BuildQuote = () => {
           <ErrorView
             description={error}
             ctaOnPress={retryMethod}
-            location={'Amount to Buy Screen'}
+            location={screenLocation}
           />
         </ScreenLayout.Body>
       </ScreenLayout>
@@ -550,7 +575,7 @@ const BuildQuote = () => {
             )}
             ctaLabel={strings('fiat_on_ramp_aggregator.change_payment_method')}
             ctaOnPress={showPaymentMethodsModal as () => void}
-            location={'Amount to Buy Screen'}
+            location={screenLocation}
           />
         </ScreenLayout.Body>
         <PaymentMethodModal
@@ -562,7 +587,8 @@ const BuildQuote = () => {
           selectedPaymentMethodType={currentPaymentMethod?.paymentType}
           onItemPress={handleChangePaymentMethod}
           selectedRegion={selectedRegion}
-          location={'Amount to Buy Screen'}
+          location={screenLocation}
+          rampType={rampType}
         />
       </ScreenLayout>
     );
@@ -801,7 +827,8 @@ const BuildQuote = () => {
         selectedPaymentMethodType={currentPaymentMethod?.paymentType}
         onItemPress={handleChangePaymentMethod}
         selectedRegion={selectedRegion}
-        location={'Amount to Buy Screen'}
+        location={screenLocation}
+        rampType={rampType}
       />
       <RegionModal
         isVisible={isRegionModalVisible}
@@ -810,7 +837,7 @@ const BuildQuote = () => {
         data={regions}
         dismiss={hideRegionModal as () => void}
         onRegionPress={handleRegionPress}
-        location={'Amount to Buy Screen'}
+        location={screenLocation}
       />
     </ScreenLayout>
   );

@@ -1,5 +1,5 @@
 import React, { useCallback } from 'react';
-import { StyleSheet, TouchableOpacity, View, Linking } from 'react-native';
+import { Linking, StyleSheet, TouchableOpacity, View } from 'react-native';
 import Modal from 'react-native-modal';
 import { QuoteResponse } from '@consensys/on-ramp-sdk';
 import IonicIcon from 'react-native-vector-icons/Ionicons';
@@ -67,7 +67,6 @@ const InfoAlert: React.FC<Props> = ({
   providerSupport,
 }: Props) => {
   const { colors, themeAppearance } = useTheme();
-
   const styles = createStyles(colors);
   const trackEvent = useAnalytics();
 

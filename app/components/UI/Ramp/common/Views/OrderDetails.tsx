@@ -67,15 +67,36 @@ const OrderDetails = () => {
 
   useEffect(() => {
     if (order) {
-      trackEvent('ONRAMP_PURCHASE_DETAILS_VIEWED', {
-        purchase_status: order.state,
-        provider_onramp: (order.data as Order)?.provider.name,
-        payment_method_id: (order.data as Order)?.paymentMethod?.id,
-        currency_destination: order.cryptocurrency,
-        currency_source: order.currency,
-        chain_id_destination: order.network,
-        order_type: order.orderType,
-      });
+      const { data, state, cryptocurrency, orderType, currency, network } =
+        order;
+
+      const {
+        paymentMethod: { id: paymentMethodId },
+        provider: { name: providerName },
+      } = data as Order;
+
+      const payload = {
+        status: state,
+        payment_method_id: paymentMethodId,
+        order_type: orderType,
+      };
+      if (order.orderType === OrderOrderTypeEnum.Buy) {
+        trackEvent('ONRAMP_PURCHASE_DETAILS_VIEWED', {
+          ...payload,
+          currency_destination: cryptocurrency,
+          currency_source: currency,
+          provider_onramp: providerName,
+          chain_id_destination: network,
+        });
+      } else {
+        trackEvent('OFFRAMP_PURCHASE_DETAILS_VIEWED', {
+          ...payload,
+          currency_source: cryptocurrency,
+          currency_destination: currency,
+          provider_offramp: providerName,
+          chain_id_source: network,
+        });
+      }
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [trackEvent]);

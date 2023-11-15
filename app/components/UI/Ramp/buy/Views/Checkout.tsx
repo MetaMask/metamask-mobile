@@ -56,12 +56,20 @@ const CheckoutWebView = () => {
   const { url: uri, customOrderId, provider } = params;
 
   const handleCancelPress = useCallback(() => {
-    trackEvent('ONRAMP_CANCELED', {
-      location: 'Provider Webview',
-      chain_id_destination: selectedChainId,
-      provider_onramp: provider.name,
-    });
-  }, [provider.name, selectedChainId, trackEvent]);
+    if (isBuy) {
+      trackEvent('ONRAMP_CANCELED', {
+        location: 'Provider Webview',
+        chain_id_destination: selectedChainId,
+        provider_onramp: provider.name,
+      });
+    } else {
+      trackEvent('OFFRAMP_CANCELED', {
+        location: 'Provider Webview',
+        chain_id_source: selectedChainId,
+        provider_offramp: provider.name,
+      });
+    }
+  }, [isBuy, provider.name, selectedChainId, trackEvent]);
 
   useEffect(() => {
     navigation.setOptions(

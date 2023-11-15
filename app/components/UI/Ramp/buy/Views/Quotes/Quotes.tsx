@@ -42,7 +42,7 @@ import Animated, {
 } from 'react-native-reanimated';
 import useInAppBrowser from '../../hooks/useInAppBrowser';
 import { createCheckoutNavDetails } from '../Checkout';
-import { PROVIDER_LINKS } from '../../../common/types';
+import { PROVIDER_LINKS, ScreenLocation } from '../../../common/types';
 import Logger from '../../../../../../util/Logger';
 import Timer from './Timer';
 import { isBuyQuote, isBuyQuotes, isSellQuotes } from '../../../common/utils';
@@ -68,6 +68,7 @@ function Quotes() {
     callbackBaseUrl,
     sdkError,
     rampType,
+    isBuy,
   } = useRampSDK();
   const renderInAppBrowser = useInAppBrowser();
 
@@ -124,12 +125,20 @@ function Quotes() {
   }, [quotes, rampType]);
 
   const handleCancelPress = useCallback(() => {
-    trackEvent('ONRAMP_CANCELED', {
-      location: 'Quotes Screen',
-      chain_id_destination: selectedChainId,
-      results_count: filteredQuotes.length,
-    });
-  }, [filteredQuotes.length, selectedChainId, trackEvent]);
+    if (isBuy) {
+      trackEvent('ONRAMP_CANCELED', {
+        location: 'Quotes Screen',
+        chain_id_destination: selectedChainId,
+        results_count: filteredQuotes.length,
+      });
+    } else {
+      trackEvent('OFFRAMP_CANCELED', {
+        location: 'Quotes Screen',
+        chain_id_source: selectedChainId,
+        results_count: filteredQuotes.length,
+      });
+    }
+  }, [filteredQuotes.length, isBuy, selectedChainId, trackEvent]);
 
   const handleFetchQuotes = useCallback(() => {
     setIsLoading(true);
@@ -137,18 +146,33 @@ function Quotes() {
     setPollingCyclesLeft(appConfig.POLLING_CYCLES - 1);
     setRemainingTime(appConfig.POLLING_INTERVAL);
     fetchQuotes();
-    trackEvent('ONRAMP_QUOTES_REQUESTED', {
-      currency_source: params.fiatCurrency?.symbol,
-      currency_destination: params.asset?.symbol,
+
+    const payload = {
       payment_method_id: selectedPaymentMethodId as string,
-      chain_id_destination: selectedChainId,
       amount: params.amount,
-      location: 'Quotes Screen',
-    });
+      location: 'Quotes Screen' as ScreenLocation,
+    };
+
+    if (isBuy) {
+      trackEvent('ONRAMP_QUOTES_REQUESTED', {
+        ...payload,
+        currency_source: params.fiatCurrency?.symbol,
+        currency_destination: params.asset?.symbol,
+        chain_id_destination: selectedChainId,
+      });
+    } else {
+      trackEvent('OFFRAMP_QUOTES_REQUESTED', {
+        ...payload,
+        currency_destination: params.fiatCurrency?.symbol,
+        currency_source: params.asset?.symbol,
+        chain_id_source: selectedChainId,
+      });
+    }
   }, [
     appConfig.POLLING_CYCLES,
     appConfig.POLLING_INTERVAL,
     fetchQuotes,
+    isBuy,
     params,
     selectedChainId,
     selectedPaymentMethodId,
@@ -167,12 +191,19 @@ function Quotes() {
       if (quote?.provider) {
         setSelectedProviderInfo(quote.provider);
         setShowProviderInfo(true);
-        trackEvent('ONRAMP_PROVIDER_DETAILS_VIEWED', {
-          provider_onramp: quote.provider.name,
-        });
+
+        if (isBuy) {
+          trackEvent('ONRAMP_PROVIDER_DETAILS_VIEWED', {
+            provider_onramp: quote.provider.name,
+          });
+        } else {
+          trackEvent('OFFRAMP_PROVIDER_DETAILS_VIEWED', {
+            provider_offramp: quote.provider.name,
+          });
+        }
       }
     },
-    [trackEvent],
+    [isBuy, trackEvent],
   );
 
   const handleOnPressCTA = useCallback(
@@ -185,22 +216,37 @@ function Quotes() {
           (quote.providerFee ?? 0) +
           (quote.extraFee ?? 0);
 
-        trackEvent('ONRAMP_PROVIDER_SELECTED', {
-          provider_onramp: quote.provider.name,
+        const payload = {
           refresh_count: appConfig.POLLING_CYCLES - pollingCyclesLeft,
           quote_position: index + 1,
           results_count: filteredQuotes.length,
-          crypto_out: quote.amountOut ?? 0,
-          currency_source: params.fiatCurrency?.symbol,
-          currency_destination: params.asset?.symbol,
-          chain_id_destination: selectedChainId,
           payment_method_id: selectedPaymentMethodId as string,
           total_fee: totalFee,
           gas_fee: quote.networkFee ?? 0,
           processing_fee: quote.providerFee ?? 0,
           exchange_rate:
             ((quote.amountIn ?? 0) - totalFee) / (quote.amountOut ?? 0),
-        });
+        };
+
+        if (isBuy) {
+          trackEvent('ONRAMP_PROVIDER_SELECTED', {
+            ...payload,
+            currency_source: params.fiatCurrency?.symbol,
+            currency_destination: params.asset?.symbol,
+            provider_onramp: quote.provider.name,
+            crypto_out: quote.amountOut ?? 0,
+            chain_id_destination: selectedChainId,
+          });
+        } else {
+          trackEvent('OFFRAMP_PROVIDER_SELECTED', {
+            ...payload,
+            currency_destination: params.fiatCurrency?.symbol,
+            currency_source: params.asset?.symbol,
+            provider_offramp: quote.provider.name,
+            fiat_out: quote.amountOut ?? 0,
+            chain_id_source: selectedChainId,
+          });
+        }
 
         let buyAction;
         if (isBuyQuote(quote, rampType)) {
@@ -243,6 +289,7 @@ function Quotes() {
       }
     },
     [
+      isBuy,
       appConfig.POLLING_CYCLES,
       callbackBaseUrl,
       filteredQuotes.length,
@@ -354,54 +401,91 @@ function Quotes() {
             feeAmountRatio: 0,
           },
         );
-        trackEvent('ONRAMP_QUOTES_RECEIVED', {
-          currency_source: params.fiatCurrency?.symbol,
-          currency_destination: params.asset?.symbol,
-          chain_id_destination: selectedChainId,
+
+        const payload = {
           amount: params.amount,
           payment_method_id: selectedPaymentMethodId as string,
           refresh_count: appConfig.POLLING_CYCLES - pollingCyclesLeft,
           results_count: quotesWithoutError.length,
-          average_crypto_out: totals.amountOut / quotesWithoutError.length,
           average_total_fee: totals.totalFee / quotesWithoutError.length,
           average_gas_fee: totals.totalGasFee / quotesWithoutError.length,
           average_processing_fee:
             totals.totalProcessingFee / quotesWithoutError.length,
-          provider_onramp_list: quotesWithoutError.map(
-            ({ provider }) => provider.name,
-          ),
-          provider_onramp_first: quotesWithoutError[0]?.provider?.name,
           average_total_fee_of_amount:
             totals.feeAmountRatio / quotesWithoutError.length,
-          provider_onramp_last:
-            quotesWithoutError.length > 1
-              ? quotesWithoutError[quotesWithoutError.length - 1]?.provider
-                  ?.name
-              : undefined,
-        });
+        };
+
+        const averageOut = totals.amountOut / quotesWithoutError.length;
+        const providerList = quotesWithoutError.map(
+          ({ provider }) => provider.name,
+        );
+        const providerFirst = quotesWithoutError[0]?.provider?.name;
+        const providerLast =
+          quotesWithoutError.length > 1
+            ? quotesWithoutError[quotesWithoutError.length - 1]?.provider?.name
+            : undefined;
+
+        if (isBuy) {
+          trackEvent('ONRAMP_QUOTES_RECEIVED', {
+            ...payload,
+            currency_source: params.fiatCurrency?.symbol,
+            currency_destination: params.asset?.symbol,
+            average_crypto_out: averageOut,
+            chain_id_destination: selectedChainId,
+            provider_onramp_list: providerList,
+            provider_onramp_first: providerFirst,
+            provider_onramp_last: providerLast,
+          });
+        } else {
+          trackEvent('OFFRAMP_QUOTES_RECEIVED', {
+            ...payload,
+            currency_destination: params.fiatCurrency?.symbol,
+            currency_source: params.asset?.symbol,
+            average_fiat_out: averageOut,
+            chain_id_source: selectedChainId,
+            provider_offramp_list: providerList,
+            provider_offramp_first: providerFirst,
+            provider_offramp_last: providerLast,
+          });
+        }
       }
 
       (quotes as (QuoteResponse | SellQuoteResponse | QuoteError)[])
         .filter((quote): quote is QuoteError => Boolean(quote.error))
-        .forEach((quoteError) =>
-          trackEvent('ONRAMP_QUOTE_ERROR', {
-            provider_onramp: quoteError.provider.name,
-            currency_source: params.fiatCurrency?.symbol,
-            currency_destination: params.asset?.symbol,
-            payment_method_id: selectedPaymentMethodId as string,
-            chain_id_destination: selectedChainId,
-            error_message: quoteError.message,
+        .forEach((quoteError) => {
+          const payload = {
             amount: params.amount,
-          }),
-        );
+            payment_method_id: selectedPaymentMethodId as string,
+            error_message: quoteError.message,
+          };
+          if (isBuy) {
+            trackEvent('ONRAMP_QUOTE_ERROR', {
+              ...payload,
+              currency_source: params.fiatCurrency?.symbol,
+              currency_destination: params.asset?.symbol,
+              provider_onramp: quoteError.provider.name,
+              chain_id_destination: selectedChainId,
+            });
+          } else {
+            trackEvent('OFFRAMP_QUOTE_ERROR', {
+              ...payload,
+              currency_destination: params.fiatCurrency?.symbol,
+              currency_source: params.asset?.symbol,
+              provider_offramp: quoteError.provider.name,
+              chain_id_source: selectedChainId,
+            });
+          }
+        });
     }
   }, [
     appConfig.POLLING_CYCLES,
     filteredQuotes,
+    isBuy,
     isFetchingQuotes,
     params,
     pollingCyclesLeft,
     quotes,
+    rampType,
     selectedChainId,
     selectedPaymentMethodId,
     trackEvent,

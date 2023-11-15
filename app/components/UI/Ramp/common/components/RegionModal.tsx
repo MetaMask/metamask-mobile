@@ -1,12 +1,12 @@
 import React, { useCallback, useMemo, useRef, useState } from 'react';
 import {
+  FlatList,
+  SafeAreaView,
   StyleSheet,
   TextInput,
-  SafeAreaView,
   TouchableOpacity,
-  View,
   TouchableWithoutFeedback,
-  FlatList,
+  View,
 } from 'react-native';
 import Modal from 'react-native-modal';
 import Icon from 'react-native-vector-icons/Ionicons';
@@ -87,6 +87,7 @@ const RegionModal: React.FC<Props> = ({
   location,
   rampType = RampType.BUY,
 }: Props) => {
+  const isBuy = rampType === RampType.BUY;
   const { colors } = useTheme();
   const trackEvent = useAnalytics();
   const styles = createStyles();
@@ -95,7 +96,6 @@ const RegionModal: React.FC<Props> = ({
   const list = useRef<FlatList<Region>>(null);
   const [searchString, setSearchString] = useState('');
   const [currentData, setCurrentData] = useState(data || []);
-  const isBuy = rampType === RampType.BUY;
 
   // local state variable to set the active view (countries vs. regions)
   const [activeView, setActiveView] = useState(RegionViewType.COUNTRY);
@@ -140,22 +140,24 @@ const RegionModal: React.FC<Props> = ({
       }
       if (
         region.unsupported ||
-        (rampType === RampType.BUY && !region.support.buy) ||
-        (rampType === RampType.SELL && !region.support.sell)
+        (isBuy && !region.support.buy) ||
+        (!isBuy && !region.support.sell)
       ) {
         setUnsupportedRegion(region);
         setShowAlert(true);
       } else {
         onRegionPress(region);
       }
-      trackEvent('ONRAMP_REGION_SELECTED', {
-        is_unsupported: region.unsupported,
-        country_onramp_id: regionInTransit?.id ?? region.id,
-        state_onramp_id: regionInTransit ? region.id : undefined,
+
+      trackEvent('RAMP_REGION_SELECTED', {
+        is_unsupported_onramp: !region.support.buy,
+        is_unsupported_offramp: !region.support.sell,
+        country_id: regionInTransit?.id ?? region.id,
+        state_id: regionInTransit ? region.id : undefined,
         location,
       });
     },
-    [location, onRegionPress, rampType, regionInTransit, trackEvent],
+    [isBuy, location, onRegionPress, regionInTransit, trackEvent],
   );
 
   const renderRegionItem = useCallback(

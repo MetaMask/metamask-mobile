@@ -85,25 +85,39 @@ function useHandleSuccessfulOrder() {
         NotificationManager.showSimpleNotification(
           getNotificationDetails(order as any),
         );
-        trackEvent('ONRAMP_PURCHASE_SUBMITTED', {
-          provider_onramp: (order?.data as Order)?.provider?.name,
+
+        const payload = {
           payment_method_id: (order?.data as Order)?.paymentMethod?.id,
-          currency_source: (order?.data as Order)?.fiatCurrency.symbol,
-          currency_destination: (order?.data as Order)?.cryptoCurrency.symbol,
-          chain_id_destination: selectedChainId,
           order_type: order?.orderType,
           is_apple_pay: Boolean(params?.isApplePay),
-          has_zero_native_balance: accounts[selectedAddress]?.balance
-            ? (hexToBN(accounts[selectedAddress].balance) as any)?.isZero?.()
-            : undefined,
-        });
+        };
+
         if (order.orderType === OrderOrderTypeEnum.Sell) {
+          trackEvent('OFFRAMP_PURCHASE_SUBMITTED', {
+            ...payload,
+            provider_offramp: (order?.data as Order)?.provider?.name,
+            chain_id_source: selectedChainId,
+            currency_source: (order?.data as Order)?.cryptoCurrency.symbol,
+            currency_destination: (order?.data as Order)?.fiatCurrency.symbol,
+          });
           navigation.navigate(Routes.TRANSACTIONS_VIEW, {
             screen: Routes.RAMP.ORDER_DETAILS,
             initial: false,
             params: {
               orderId: order.id,
             },
+          });
+        } else {
+          trackEvent('ONRAMP_PURCHASE_SUBMITTED', {
+            ...payload,
+            provider_onramp: (order?.data as Order)?.provider?.name,
+            chain_id_destination: selectedChainId,
+            has_zero_currency_destination_balance: false,
+            has_zero_native_balance: accounts[selectedAddress]?.balance
+              ? (hexToBN(accounts[selectedAddress].balance) as any)?.isZero?.()
+              : undefined,
+            currency_source: (order?.data as Order)?.fiatCurrency.symbol,
+            currency_destination: (order?.data as Order)?.cryptoCurrency.symbol,
           });
         }
       });
