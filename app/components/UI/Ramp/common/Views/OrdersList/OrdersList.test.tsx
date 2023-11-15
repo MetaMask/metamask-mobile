@@ -157,13 +157,13 @@ describe('OrdersList', () => {
 
   it('renders buy only correctly when pressing buy filter', () => {
     render(<OrdersList />);
-    fireEvent.press(screen.getByRole('button', { name: 'Buy' }));
+    fireEvent.press(screen.getByRole('button', { name: 'Purchased' }));
     expect(screen.toJSON()).toMatchSnapshot();
   });
 
   it('renders sell only correctly when pressing sell filter', () => {
     render(<OrdersList />);
-    fireEvent.press(screen.getByRole('button', { name: 'Sell' }));
+    fireEvent.press(screen.getByRole('button', { name: 'Sold' }));
     expect(screen.toJSON()).toMatchSnapshot();
   });
 
@@ -172,7 +172,7 @@ describe('OrdersList', () => {
       <OrdersList />,
       [testOrders[0]], // a buy order,
     );
-    fireEvent.press(screen.getByRole('button', { name: 'Sell' }));
+    fireEvent.press(screen.getByRole('button', { name: 'Sold' }));
     expect(screen.toJSON()).toMatchSnapshot();
   });
 
@@ -181,13 +181,13 @@ describe('OrdersList', () => {
       <OrdersList />,
       [testOrders[1]], // a sell order,
     );
-    fireEvent.press(screen.getByRole('button', { name: 'Buy' }));
+    fireEvent.press(screen.getByRole('button', { name: 'Purchased' }));
     expect(screen.toJSON()).toMatchSnapshot();
   });
 
   it('resets filter to all after other filter was set', () => {
     render(<OrdersList />);
-    fireEvent.press(screen.getByRole('button', { name: 'Sell' }));
+    fireEvent.press(screen.getByRole('button', { name: 'Sold' }));
     expect(screen.toJSON()).toMatchSnapshot();
     fireEvent.press(screen.getByRole('button', { name: 'All' }));
     expect(screen.toJSON()).toMatchSnapshot();
@@ -195,7 +195,7 @@ describe('OrdersList', () => {
 
   it('navigates when pressing item', () => {
     render(<OrdersList />);
-    fireEvent.press(screen.getByRole('button', { name: 'Sell' }));
+    fireEvent.press(screen.getByRole('button', { name: 'Sold' }));
     fireEvent.press(screen.getByRole('button', { name: /Sold ETH/ }));
     expect(mockNavigate).toHaveBeenCalled();
     expect(mockNavigate.mock.calls).toMatchInlineSnapshot(`
