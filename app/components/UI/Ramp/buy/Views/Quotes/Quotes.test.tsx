@@ -164,7 +164,6 @@ describe('Quotes', () => {
   });
 
   it('navigates and tracks event on cancel button press', async () => {
-    // test for buy event
     render(Quotes);
     fireEvent.press(screen.getByRole('button', { name: 'Cancel' }));
     expect(mockPop).toHaveBeenCalled();
@@ -178,7 +177,6 @@ describe('Quotes', () => {
     });
   });
   it('navigates and tracks event on SELL cancel button press', async () => {
-    // test for offramp cancel event
     mockUseRampSDKValues.rampType = RampType.SELL;
     mockUseRampSDKValues.isSell = true;
     mockUseRampSDKValues.isBuy = false;
@@ -527,7 +525,6 @@ describe('Quotes', () => {
   });
 
   it('calls track event on sell quotes received and sell quote error', async () => {
-    // test for offramp cancel event
     mockUseRampSDKValues.rampType = RampType.SELL;
     mockUseRampSDKValues.isSell = true;
     mockUseRampSDKValues.isBuy = false;

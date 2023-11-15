@@ -105,8 +105,6 @@ export const getAggregatorAnalyticsPayload = (
     exchange_rate:
       (Number(fiatOrder.amount) - Number(fiatOrder.fee)) /
       Number(fiatOrder.cryptoAmount),
-    // gas fee,
-    // processing fee
   };
 
   const sellCompletePayload: AnalyticsEvents['OFFRAMP_PURCHASE_COMPLETED'] = {
@@ -135,10 +133,9 @@ export const getAggregatorAnalyticsPayload = (
       ];
     }
     case FIAT_ORDER_STATES.COMPLETED: {
-      return [
-        isBuy ? 'ONRAMP_PURCHASE_COMPLETED' : 'OFFRAMP_PURCHASE_COMPLETED',
-        isBuy ? buyCompletePayload : sellCompletePayload,
-      ];
+      return isBuy
+        ? ['ONRAMP_PURCHASE_COMPLETED', buyCompletePayload]
+        : ['OFFRAMP_PURCHASE_COMPLETED', sellCompletePayload];
     }
     case FIAT_ORDER_STATES.PENDING:
     default: {
