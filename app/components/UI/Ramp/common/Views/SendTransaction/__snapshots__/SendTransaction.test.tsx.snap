@@ -231,30 +231,7 @@ exports[`SendTransaction View renders correctly 1`] = `
                 }
               }
             >
-              <TouchableOpacity
-                accessibilityRole="button"
-                accessible={true}
-                onPress={[Function]}
-                style={
-                  Object {
-                    "paddingHorizontal": 18,
-                    "paddingVertical": 8,
-                  }
-                }
-              >
-                <Text
-                  style={
-                    Object {
-                      "color": "#0376C9",
-                      "fontFamily": "EuclidCircularB-Regular",
-                      "fontSize": 23.57142857142857,
-                      "fontWeight": "400",
-                    }
-                  }
-                >
-                  Cancel
-                </Text>
-              </TouchableOpacity>
+              <View />
             </View>
           </View>
         </View>
@@ -1067,30 +1044,7 @@ exports[`SendTransaction View renders correctly for custom action payment method
                 }
               }
             >
-              <TouchableOpacity
-                accessibilityRole="button"
-                accessible={true}
-                onPress={[Function]}
-                style={
-                  Object {
-                    "paddingHorizontal": 18,
-                    "paddingVertical": 8,
-                  }
-                }
-              >
-                <Text
-                  style={
-                    Object {
-                      "color": "#0376C9",
-                      "fontFamily": "EuclidCircularB-Regular",
-                      "fontSize": 23.57142857142857,
-                      "fontWeight": "400",
-                    }
-                  }
-                >
-                  Cancel
-                </Text>
-              </TouchableOpacity>
+              <View />
             </View>
           </View>
         </View>
@@ -1819,30 +1773,7 @@ exports[`SendTransaction View renders correctly for token 1`] = `
                 }
               }
             >
-              <TouchableOpacity
-                accessibilityRole="button"
-                accessible={true}
-                onPress={[Function]}
-                style={
-                  Object {
-                    "paddingHorizontal": 18,
-                    "paddingVertical": 8,
-                  }
-                }
-              >
-                <Text
-                  style={
-                    Object {
-                      "color": "#0376C9",
-                      "fontFamily": "EuclidCircularB-Regular",
-                      "fontSize": 23.57142857142857,
-                      "fontWeight": "400",
-                    }
-                  }
-                >
-                  Cancel
-                </Text>
-              </TouchableOpacity>
+              <View />
             </View>
           </View>
         </View>
