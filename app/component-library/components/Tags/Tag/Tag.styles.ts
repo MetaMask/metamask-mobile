@@ -25,7 +25,7 @@ const styleSheet = (params: { theme: Theme; vars: TagStyleSheetVars }) => {
         borderColor: theme.colors.border.default,
         borderWidth: 1,
         borderRadius: 10,
-        height: 22,
+        height: 20,
         paddingHorizontal: 4,
         justifyContent: 'center',
       } as ViewStyle,
