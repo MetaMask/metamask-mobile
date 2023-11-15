@@ -83,7 +83,7 @@ PODS:
     - React-Core
   - MultiplatformBleAdapter (0.2.0)
   - OpenSSL-Universal (1.1.1100)
-  - Permission-BluetoothPeripheral (3.9.3):
+  - Permission-BluetoothPeripheral (3.10.1):
     - RNPermissions
   - RCT-Folly (2021.07.22.00):
     - boost
@@ -487,7 +487,7 @@ PODS:
     - React-Core
   - RNOS (1.2.6):
     - React
-  - RNPermissions (3.9.3):
+  - RNPermissions (3.10.1):
     - React-Core
   - RNReanimated (3.1.0):
     - DoubleConversion
@@ -936,7 +936,7 @@ SPEC CHECKSUMS:
   RNInAppBrowser: e36d6935517101ccba0e875bac8ad7b0cb655364
   RNKeychain: 4f63aada75ebafd26f4bc2c670199461eab85d94
   RNOS: 6f2f9a70895bbbfbdad7196abd952e7b01d45027
-  RNPermissions: ac5991487ad04ad1888b26896d44d969e65531b7
+  RNPermissions: 4e3714e18afe7141d000beae3755e5b5fb2f5e05
   RNReanimated: b1220a0e5168745283ff5d53bfc7d2144b2cee1b
   RNScreens: ea4cd3a853063cda19a4e3c28d2e52180c80f4eb
   RNSensors: c363d486c879e181905dea84a2535e49af1c2d25
