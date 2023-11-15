@@ -4,7 +4,6 @@ import {
   Alert,
   ActivityIndicator,
   Keyboard,
-  Text,
   View,
   SafeAreaView,
   StyleSheet,
