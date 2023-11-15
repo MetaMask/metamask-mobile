@@ -106,7 +106,6 @@ const mockState = {
     },
     transactionToName: 'Account 2',
     transactionFromName: 'Account 1',
-    id: '123',
   },
   fiatOrders: {
     networks: [
@@ -200,6 +199,7 @@ describe('TransactionReview', () => {
           ...mockState,
           transaction: {
             ...mockState.transaction,
+            id: '123',
             securityAlertResponse,
             securityAlertResponseMap: {
               id: '123',
