@@ -1891,6 +1891,8 @@
     "All": "All",
     "Buy": "Buy",
     "Sell": "Sell",
+    "Purchased": "Purchased",
+    "Sold": "Sold",
     "empty_buy_orders_list": "You don't have any buy orders",
     "empty_sell_orders_list": "You don't have any sell orders",
     "purchased_currency": "Purchased {{currency}}",
