@@ -45,7 +45,7 @@ describe(
         await ChangePasswordView.enterPassword(NEW_PASSWORD);
         await ChangePasswordView.reEnterPassword(NEW_PASSWORD);
 
-        if ((await device.getPlatform) === 'ios') {
+        if ((await device.getPlatform()) === 'ios') {
           await ChangePasswordView.tapResetPasswordButton();
         }
 

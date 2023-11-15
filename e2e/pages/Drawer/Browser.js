@@ -28,8 +28,6 @@ import {
 import { CommonSelectorsText } from '../../selectors/Common.selectors';
 
 const TEST_DAPP = 'https://metamask.github.io/test-dapp/';
-const WEBVIEW_TEST_DAPP_EIP1559_BUTTON_ID = 'sendEIP1559Button';
-const WEBVIEW_TEST_DAPP_CONNECT_BUTTON_ID = 'connectButton';
 
 export default class Browser {
   static async tapUrlInputBox() {
@@ -133,8 +131,10 @@ export default class Browser {
 
   /** @deprecated **/
   static async tapConnectButton() {
-    if (device.getPlatform === 'android') {
-      await TestHelpers.tapWebviewElement(WEBVIEW_TEST_DAPP_CONNECT_BUTTON_ID);
+    if (device.getPlatform() === 'android') {
+      await TestHelpers.tapWebviewElement(
+        BrowserViewSelectorsIDs.DAPP_CONNECT_BUTTON,
+      );
     } else {
       await TestHelpers.tapAtPoint(
         BROWSER_SCREEN_ID,
@@ -147,7 +147,9 @@ export default class Browser {
   // Please change existing tests to use the following method
   static async tapConnectButtonNew() {
     if (device.getPlatform() === 'android') {
-      await TestHelpers.tapWebviewElement(WEBVIEW_TEST_DAPP_CONNECT_BUTTON_ID);
+      await TestHelpers.tapWebviewElement(
+        BrowserViewSelectorsIDs.DAPP_CONNECT_BUTTON,
+      );
     } else {
       await TestHelpers.tapAtPoint(
         BROWSER_SCREEN_ID,
@@ -162,7 +164,9 @@ export default class Browser {
     if (device.getPlatform() === 'android') {
       await TestHelpers.swipe(BROWSER_SCREEN_ID, 'up', 'slow', 0.5);
       await TestHelpers.delay(1500);
-      await TestHelpers.tapWebviewElement(WEBVIEW_TEST_DAPP_EIP1559_BUTTON_ID);
+      await TestHelpers.tapWebviewElement(
+        BrowserViewSelectorsIDs.DAPP_EIP1559_BUTTON,
+      );
     } else {
       await TestHelpers.swipe(BROWSER_SCREEN_ID, 'up', 'slow', 0.1); // scrolling to the SendEIP1559 button
       await TestHelpers.tapAtPoint(
@@ -216,5 +220,12 @@ export default class Browser {
     await Browser.tapUrlInputBox();
     await Browser.navigateToURL(TEST_DAPP_LOCAL_URL);
     await TestHelpers.delay(3000);
+  }
+
+  static async isWebViewTestDapp() {
+    await TestHelpers.checkIfElementWithTextIsVisible(
+      BrowserViewSelectorsText.METAMASK_TEST_DAPP_URL,
+      0,
+    );
   }
 }
