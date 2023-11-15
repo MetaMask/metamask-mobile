@@ -722,8 +722,9 @@ describe('BuildQuote View', () => {
 
     expect(mockTrackEvent).toHaveBeenCalledWith('OFFRAMP_QUOTES_REQUESTED', {
       amount: VALID_AMOUNT,
-      currency_source: mockUseFiatCurrenciesValues?.currentFiatCurrency?.symbol,
-      currency_destination: mockUseRampSDKValues?.selectedAsset?.symbol,
+      currency_source: mockUseRampSDKValues?.selectedAsset?.symbol,
+      currency_destination:
+        mockUseFiatCurrenciesValues?.currentFiatCurrency?.symbol,
       payment_method_id: mockUsePaymentMethodsValues.currentPaymentMethod?.id,
       chain_id_source: '1',
       location: 'Amount to Sell Screen',

@@ -89,8 +89,8 @@ export const getAggregatorAnalyticsPayload = (
   } else {
     failedOrCancelledParams = {
       amount: fiatOrder.amount as number,
-      currency_source: fiatOrder.currency,
-      currency_destination: fiatOrder.cryptocurrency,
+      currency_source: fiatOrder.cryptocurrency,
+      currency_destination: fiatOrder.currency,
       order_type: fiatOrder.orderType,
       payment_method_id: (fiatOrder.data as Order)?.paymentMethod?.id,
       chain_id_source: fiatOrder.network,

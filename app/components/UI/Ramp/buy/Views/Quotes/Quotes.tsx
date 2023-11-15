@@ -148,8 +148,6 @@ function Quotes() {
     fetchQuotes();
 
     const payload = {
-      currency_source: params.fiatCurrency?.symbol,
-      currency_destination: params.asset?.symbol,
       payment_method_id: selectedPaymentMethodId as string,
       amount: params.amount,
       location: 'Quotes Screen' as ScreenLocation,
@@ -158,11 +156,15 @@ function Quotes() {
     if (isBuy) {
       trackEvent('ONRAMP_QUOTES_REQUESTED', {
         ...payload,
+        currency_source: params.fiatCurrency?.symbol,
+        currency_destination: params.asset?.symbol,
         chain_id_destination: selectedChainId,
       });
     } else {
       trackEvent('OFFRAMP_QUOTES_REQUESTED', {
         ...payload,
+        currency_destination: params.fiatCurrency?.symbol,
+        currency_source: params.asset?.symbol,
         chain_id_source: selectedChainId,
       });
     }
@@ -218,8 +220,6 @@ function Quotes() {
           refresh_count: appConfig.POLLING_CYCLES - pollingCyclesLeft,
           quote_position: index + 1,
           results_count: filteredQuotes.length,
-          currency_source: params.fiatCurrency?.symbol,
-          currency_destination: params.asset?.symbol,
           payment_method_id: selectedPaymentMethodId as string,
           total_fee: totalFee,
           gas_fee: quote.networkFee ?? 0,
@@ -231,6 +231,8 @@ function Quotes() {
         if (isBuy) {
           trackEvent('ONRAMP_PROVIDER_SELECTED', {
             ...payload,
+            currency_source: params.fiatCurrency?.symbol,
+            currency_destination: params.asset?.symbol,
             provider_onramp: quote.provider.name,
             crypto_out: quote.amountOut ?? 0,
             chain_id_destination: selectedChainId,
@@ -238,6 +240,8 @@ function Quotes() {
         } else {
           trackEvent('OFFRAMP_PROVIDER_SELECTED', {
             ...payload,
+            currency_destination: params.fiatCurrency?.symbol,
+            currency_source: params.asset?.symbol,
             provider_offramp: quote.provider.name,
             fiat_out: quote.amountOut ?? 0,
             chain_id_source: selectedChainId,
@@ -400,8 +404,6 @@ function Quotes() {
 
         const payload = {
           amount: params.amount,
-          currency_source: params.fiatCurrency?.symbol,
-          currency_destination: params.asset?.symbol,
           payment_method_id: selectedPaymentMethodId as string,
           refresh_count: appConfig.POLLING_CYCLES - pollingCyclesLeft,
           results_count: quotesWithoutError.length,
@@ -426,6 +428,8 @@ function Quotes() {
         if (isBuy) {
           trackEvent('ONRAMP_QUOTES_RECEIVED', {
             ...payload,
+            currency_source: params.fiatCurrency?.symbol,
+            currency_destination: params.asset?.symbol,
             average_crypto_out: averageOut,
             chain_id_destination: selectedChainId,
             provider_onramp_list: providerList,
@@ -435,6 +439,8 @@ function Quotes() {
         } else {
           trackEvent('OFFRAMP_QUOTES_RECEIVED', {
             ...payload,
+            currency_destination: params.fiatCurrency?.symbol,
+            currency_source: params.asset?.symbol,
             average_fiat_out: averageOut,
             chain_id_source: selectedChainId,
             provider_offramp_list: providerList,
@@ -449,20 +455,22 @@ function Quotes() {
         .forEach((quoteError) => {
           const payload = {
             amount: params.amount,
-            currency_source: params.fiatCurrency?.symbol,
-            currency_destination: params.asset?.symbol,
             payment_method_id: selectedPaymentMethodId as string,
             error_message: quoteError.message,
           };
           if (isBuy) {
             trackEvent('ONRAMP_QUOTE_ERROR', {
               ...payload,
+              currency_source: params.fiatCurrency?.symbol,
+              currency_destination: params.asset?.symbol,
               provider_onramp: quoteError.provider.name,
               chain_id_destination: selectedChainId,
             });
           } else {
             trackEvent('OFFRAMP_QUOTE_ERROR', {
               ...payload,
+              currency_destination: params.fiatCurrency?.symbol,
+              currency_source: params.asset?.symbol,
               provider_offramp: quoteError.provider.name,
               chain_id_source: selectedChainId,
             });
