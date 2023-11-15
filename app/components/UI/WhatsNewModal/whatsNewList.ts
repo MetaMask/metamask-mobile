@@ -20,12 +20,12 @@ export const whatsNew: WhatsNew = {
     ? [
         [
           {
-            type: 'image',
-            image: require('../../../images/whats_new_blockaid.png'),
-          },
-          {
             type: 'title',
             title: strings('whats_new.blockaid.title'),
+          },
+          {
+            type: 'image',
+            image: require('../../../images/whats_new_blockaid.png'),
           },
           {
             type: 'description',
@@ -34,10 +34,6 @@ export const whatsNew: WhatsNew = {
           {
             type: 'description',
             description: strings('whats_new.blockaid.description_2'),
-          },
-          {
-            type: 'description',
-            description: strings('whats_new.blockaid.description_3'),
           },
           {
             type: 'button',
