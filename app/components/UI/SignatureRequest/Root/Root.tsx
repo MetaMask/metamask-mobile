@@ -42,6 +42,9 @@ const Root = ({
 
   useEffect(() => {
     store.dispatch(setSignatureRequestSecurityAlertResponse());
+    return () => {
+      store.dispatch(setSignatureRequestSecurityAlertResponse());
+    };
   }, []);
 
   if (!messageParams || !currentPageMeta || !approvalType) {
