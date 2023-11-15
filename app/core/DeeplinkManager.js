@@ -28,6 +28,7 @@ import { Minimizer } from './NativeModules';
 import DevLogger from './SDKConnect/utils/DevLogger';
 import WC2Manager from './WalletConnect/WalletConnectV2';
 import handleDeeplink from './SDKConnect/handleDeeplink';
+import Logger from '../../app/util/Logger';
 
 class DeeplinkManager {
   constructor({ navigation, dispatch }) {
@@ -135,7 +136,7 @@ class DeeplinkManager {
           break;
         }
         case ETH_ACTIONS.APPROVE: {
-          this._approveTransaction(ethUrl, origin);
+          await this._approveTransaction(ethUrl, origin);
           break;
         }
         default: {
@@ -168,7 +169,7 @@ class DeeplinkManager {
   }
 
   _handleBrowserUrl(url, callback) {
-    InteractionManager.runAfterInteractions(() => {
+    const handle = InteractionManager.runAfterInteractions(() => {
       if (callback) {
         callback(url);
       } else {
@@ -181,6 +182,9 @@ class DeeplinkManager {
         });
       }
     });
+    if (handle && handle.done) {
+      handle.done();
+    }
   }
 
   _handleBuyCrypto() {
@@ -244,7 +248,9 @@ class DeeplinkManager {
             DevLogger.log(
               `DeeplinkManager:: metamask launched via android sdk universal link`,
             );
-            sdkConnect.bindAndroidSDK();
+            sdkConnect.bindAndroidSDK().catch((err) => {
+              Logger.error(`DeepLinkManager failed to connect`, err);
+            });
             return;
           }
 
@@ -259,6 +265,8 @@ class DeeplinkManager {
                 url,
                 otherPublicKey: params.pubkey,
                 sdkConnect,
+              }).catch((err) => {
+                Logger.error(`DeepLinkManager failed to connect`, err);
               });
             }
             return true;
@@ -340,7 +348,9 @@ class DeeplinkManager {
 
       case PROTOCOLS.ETHEREUM:
         handled();
-        this._handleEthereumUrl(url, origin);
+        this._handleEthereumUrl(url, origin).catch((err) => {
+          Logger.error(err, 'Error handling ethereum url');
+        });
         break;
 
       // Specific to the browser screen
@@ -360,7 +370,9 @@ class DeeplinkManager {
           DevLogger.log(
             `DeeplinkManager:: metamask launched via android sdk deeplink`,
           );
-          sdkConnect.bindAndroidSDK();
+          sdkConnect.bindAndroidSDK().catch((err) => {
+            Logger.error(err);
+          });
           return;
         }
 
@@ -375,6 +387,8 @@ class DeeplinkManager {
               context: 'deeplink_scheme',
               otherPublicKey: params.pubkey,
               sdkConnect,
+            }).catch((err) => {
+              Logger.error(err);
             });
           }
           return true;

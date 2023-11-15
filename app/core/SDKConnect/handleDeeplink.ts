@@ -2,6 +2,7 @@ import AppConstants from '../AppConstants';
 import SDKConnect from './SDKConnect';
 import DevLogger from './utils/DevLogger';
 import { waitForCondition } from './utils/wait.util';
+import Logger from '../../util/Logger';
 
 const QRCODE_PARAM_PATTERN = '&t=q';
 
@@ -58,26 +59,39 @@ const handleDeeplink = async ({
     `handleDeeplink:: channel=${channelId} exists=${channelExists}`,
   );
 
-  if (channelExists) {
-    if (origin === AppConstants.DEEPLINKS.ORIGIN_DEEPLINK) {
-      // Automatically re-approve hosts.
-      sdkConnect.revalidateChannel({
+  // First display the loading modal to give user feedback
+  sdkConnect.updateSDKLoadingState({ channelId, loading: true }).catch(() => {
+    // Ignore error --- We don't want to block while state is being updated.
+  });
+
+  DevLogger.log(`handleDeeplink:: channel=${channelId} loading=true`);
+
+  try {
+    if (channelExists) {
+      if (origin === AppConstants.DEEPLINKS.ORIGIN_DEEPLINK) {
+        // Automatically re-approve hosts.
+        await sdkConnect.revalidateChannel({
+          channelId,
+        });
+      }
+      await sdkConnect.reconnect({
         channelId,
+        otherPublicKey,
+        context,
+        initialConnection: false,
+        trigger: 'deeplink',
+        updateKey: true,
+      });
+    } else {
+      await sdkConnect.connectToChannel({
+        id: channelId,
+        origin,
+        trigger: 'deeplink',
+        otherPublicKey,
       });
     }
-    sdkConnect.reconnect({
-      channelId,
-      otherPublicKey,
-      context,
-      initialConnection: false,
-      updateKey: true,
-    });
-  } else {
-    sdkConnect.connectToChannel({
-      id: channelId,
-      origin,
-      otherPublicKey,
-    });
+  } catch (error) {
+    Logger.error('Failed to connect to channel', error);
   }
 };
 

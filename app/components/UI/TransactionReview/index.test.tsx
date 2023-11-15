@@ -77,10 +77,11 @@ const mockState = {
           '0xB374Ca013934e498e5baD3409147F34E6c462389': { name: 'Account 2' },
           '0xd018538C87232FF95acbCe4870629b75640a78E7': { name: 'Account 3' },
         },
+        securityAlertsEnabled: true,
       },
       NetworkController: {
         providerConfig: {
-          chainId: '0xaa36a7',
+          chainId: '1',
           type: 'sepolia',
           nickname: 'Sepolia',
         },
@@ -109,7 +110,7 @@ const mockState = {
   fiatOrders: {
     networks: [
       {
-        chainId: '0xaa36a7',
+        chainId: '1',
         type: 'sepolia',
         nickname: 'Sepolia',
       },
@@ -118,10 +119,27 @@ const mockState = {
   alert: { isVisible: false },
 };
 
-jest.mock('react-redux', () => ({
-  ...jest.requireActual('react-redux'),
-  useSelector: (fn: any) => fn(mockState),
-}));
+jest.mock('react-redux', () => {
+  const securityAlertResponse = {
+    result_type: 'Malicious',
+    reason: 'blur_farming',
+    providerRequestsCount: {},
+  };
+  return {
+    ...jest.requireActual('react-redux'),
+    useSelector: (fn: any) =>
+      fn({
+        ...mockState,
+        transaction: {
+          ...mockState.transaction,
+          currentTransactionSecurityAlertResponse: {
+            id: '123',
+            response: securityAlertResponse,
+          },
+        },
+      }),
+  };
+});
 
 const generateTransform = jest.fn();
 
@@ -163,11 +181,13 @@ describe('TransactionReview', () => {
 
     const blockaidMetricsParamsSpy = jest
       .spyOn(BlockaidUtils, 'getBlockaidMetricsParams')
-      .mockImplementation(({ result_type, reason, providerRequestsCount }) => ({
-        security_alert_response: result_type,
-        security_alert_reason: reason,
-        security_alert_provider_requests_count: providerRequestsCount,
-      }));
+      .mockImplementation(
+        ({ result_type, reason, providerRequestsCount }: any) => ({
+          security_alert_response: result_type,
+          security_alert_reason: reason,
+          security_alert_provider_requests_count: providerRequestsCount,
+        }),
+      );
     const { queryByText, queryByTestId, getByText } = renderWithProvider(
       <TransactionReview
         EIP1559GasData={{}}
@@ -178,7 +198,12 @@ describe('TransactionReview', () => {
           ...mockState,
           transaction: {
             ...mockState.transaction,
+            id: '123',
             securityAlertResponse,
+            currentTransactionSecurityAlertResponse: {
+              id: '123',
+              response: securityAlertResponse,
+            },
           },
         },
       },
