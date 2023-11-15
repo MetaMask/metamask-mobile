@@ -23,8 +23,7 @@ export interface ISegmentClient {
   // clear the internal state of the library for the current user and group.
   screen: (name: string, properties?: JsonMap) => Promise<void>;
   flush: () => Promise<void>;
-  alias: (newUserId: string) => Promise<void>;
-  reset: (anonymousId: string) => Promise<void>;
+  reset: (resetAnonymousId: boolean) => Promise<void>;
 }
 
 /**

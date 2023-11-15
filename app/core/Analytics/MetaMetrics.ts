@@ -13,7 +13,7 @@ import {
   DENIED,
   METAMETRICS_ID,
   METAMETRICS_SEGMENT_REGULATION_ID,
-  METRICS_OPT_IN,
+  METRICS_OPT_IN, MIXPANEL_METAMETRICS_ID,
 } from '../../constants/storage';
 
 import {
@@ -70,6 +70,10 @@ class MetaMetrics implements IMetaMetrics {
       await DefaultPreference.set(METAMETRICS_ID, this.metametricsId);
     }
     if (__DEV__) Logger.log(`Current MetaMatrics ID: ${this.metametricsId}`);
+    if (__DEV__){
+      const metametricsId = await DefaultPreference.get(MIXPANEL_METAMETRICS_ID);
+      Logger.log(`MIXPANEL_METAMETRICS_ID: ${metametricsId}`);
+    }
     return this.metametricsId;
   };
 
@@ -112,34 +116,19 @@ class MetaMetrics implements IMetaMetrics {
    */
   #trackEvent = (
     event: string,
-    anonymously: boolean,
     properties: JsonMap,
-  ): void => {
-    if (anonymously) {
-      // If the tracking is anonymous, do not send user specific ID
-      // use the default METAMETRICS_ANONYMOUS_ID.
+  ): void =>
       this.segmentClient?.track(
-        event,
-        properties,
-        undefined,
-        METAMETRICS_ANONYMOUS_ID,
+          event,
+          properties
       );
-    } else {
-      this.segmentClient?.track(
-        event,
-        properties,
-        this.metametricsId,
-        METAMETRICS_ANONYMOUS_ID,
-      );
-    }
-  };
 
   /**
    * Method to clear the internal state of the library for the current user and group.
    * https://segment.com/docs/connections/sources/catalog/libraries/mobile/react-native/#reset
    */
   #reset = (): void => {
-    this.segmentClient?.reset(METAMETRICS_ANONYMOUS_ID);
+    this.segmentClient?.reset(true);
   };
 
   /**
@@ -229,12 +218,13 @@ class MetaMetrics implements IMetaMetrics {
     if (!this.instance) {
       const config = {
         writeKey: (__DEV__
-          ? process.env.SEGMENT_DEV_KEY
-          : process.env.SEGMENT_PROD_KEY) as string,
+          ? process.env.SEGMENT_DEV_WRITE_KEY
+          : process.env.SEGMENT_PROD_WRITE_KEY) as string,
         debug: __DEV__,
         proxy: __DEV__
-          ? process.env.SEGMENT_DEV_PROXY
-          : process.env.SEGMENT_PROD_PROXY,
+          ? process.env.SEGMENT_DEV_PROXY_URL
+          : process.env.SEGMENT_PROD_PROXY_URL,
+        anonymousId: METAMETRICS_ANONYMOUS_ID,
       };
       console.debug('MetaMetrics config', config);
       this.instance = new MetaMetrics(createClient(config));
@@ -275,14 +265,14 @@ class MetaMetrics implements IMetaMetrics {
 
   trackAnonymousEvent(event: string, properties: JsonMap = {}): void {
     if (this.enabled) {
-      this.#trackEvent(event, true, properties);
-      this.#trackEvent(event, false, {});
+      this.#trackEvent(event, {anonymous: true, ...properties });
+      this.#trackEvent(event, {anonymous: true});
     }
   }
 
   trackEvent = (event: string, properties: JsonMap = {}): void => {
     if (this.enabled) {
-      this.#trackEvent(event, false, properties);
+      this.#trackEvent(event, properties);
     }
   };
 
