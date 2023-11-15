@@ -95,7 +95,7 @@ export const waitForKeychainUnlocked = async ({
 
   let unlocked = keyringController.isUnlocked();
   DevLogger.log(
-    `SDKConnect:: waitForKeyChainUnlocked[${context}] unlocked: ${unlocked}`,
+    `wait:: waitForKeyChainUnlocked[${context}] unlocked: ${unlocked}`,
   );
   while (!unlocked) {
     await wait(1000);
