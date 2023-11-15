@@ -154,7 +154,7 @@ const transactionReducer = (state = initialState, action) => {
       const { transactionId, securityAlertResponse } = action;
       return {
         ...state,
-        securityAlertResponse: {
+        securityAlertResponseMap: {
           id: transactionId,
           response: securityAlertResponse,
         },

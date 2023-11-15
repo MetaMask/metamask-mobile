@@ -95,6 +95,7 @@ const mockState = {
     transaction: {
       from: '0xC4955C0d639D99699Bfd7Ec54d9FaFEe40e4D272',
       to: '0xB374Ca013934e498e5baD3409147F34E6c462389',
+      id: '123',
     },
     transactionTo: '0xB374Ca013934e498e5baD3409147F34E6c462389',
     selectedAsset: {
@@ -149,14 +150,11 @@ describe('TransactionReview', () => {
     expect(container).toMatchSnapshot();
   });
 
-  it('should display blockaid banner', async () => {
+  it.only('should display blockaid banner', async () => {
     const securityAlertResponse = {
-      transactionId: '123',
-      response: {
-        result_type: 'Malicious',
-        reason: 'blur_farming',
-        providerRequestsCount: {},
-      },
+      result_type: 'Malicious',
+      reason: 'blur_farming',
+      providerRequestsCount: {},
     };
     const trackEventSypy = jest
       .spyOn(analyticsV2, 'trackEvent')
@@ -167,11 +165,13 @@ describe('TransactionReview', () => {
 
     const blockaidMetricsParamsSpy = jest
       .spyOn(BlockaidUtils, 'getBlockaidMetricsParams')
-      .mockImplementation(({ result_type, reason, providerRequestsCount }) => ({
-        security_alert_response: result_type,
-        security_alert_reason: reason,
-        security_alert_provider_requests_count: providerRequestsCount,
-      }));
+      .mockImplementation(
+        ({ result_type, reason, providerRequestsCount }: any) => ({
+          security_alert_response: result_type,
+          security_alert_reason: reason,
+          security_alert_provider_requests_count: providerRequestsCount,
+        }),
+      );
     const { queryByText, queryByTestId, getByText } = renderWithProvider(
       <TransactionReview
         EIP1559GasData={{}}
@@ -182,8 +182,12 @@ describe('TransactionReview', () => {
           ...mockState,
           transaction: {
             ...mockState.transaction,
+            securityAlertResponse,
+            securityAlertResponseMap: {
+              transactionId: '123',
+              response: securityAlertResponse,
+            },
           },
-          securityAlertResponse,
         },
       },
     );

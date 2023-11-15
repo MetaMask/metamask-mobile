@@ -19,7 +19,7 @@ const mockState = {
     },
   },
   transaction: {
-    securityAlertResponse: {
+    securityAlertResponseMap: {
       id: '123',
       response: {
         result_type: ResultType.Warning,
