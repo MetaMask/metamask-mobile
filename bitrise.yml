@@ -136,12 +136,12 @@ workflows:
                 #!/usr/bin/env bash
                 echo "Node and Yarn being installed"
                 asdf list all nodejs
-                asdf install nodejs 18.18.2
-                asdf global nodejs 18.18.2
+                asdf install nodejs "$NODE_VERSION"
+                asdf global nodejs "$NODE_VERSION"
                 asdf plugin add yarn
                 asdf list all yarn
-                asdf install yarn 1.22.19
-                asdf global yarn 1.22.19
+                asdf install yarn "$YARN_VERSION"
+                asdf global yarn "$YARN_VERSION"
           title: Install node and yarn
       - yarn@0:
           inputs:
@@ -861,6 +861,12 @@ app:
     - opts:
         is_expand: false
       IOS_APP_LINK: ''
+    - opts:
+        is_expand: false
+      NODE_VERSION: 18.18.2
+    - opts:
+        is_expand: false
+      YARN_VERSION: 1.22.19
 
 meta:
   bitrise.io:
