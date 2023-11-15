@@ -77,10 +77,11 @@ const mockState = {
           '0xB374Ca013934e498e5baD3409147F34E6c462389': { name: 'Account 2' },
           '0xd018538C87232FF95acbCe4870629b75640a78E7': { name: 'Account 3' },
         },
+        securityAlertsEnabled: true,
       },
       NetworkController: {
         providerConfig: {
-          chainId: '0xaa36a7',
+          chainId: '1',
           type: 'sepolia',
           nickname: 'Sepolia',
         },
@@ -109,7 +110,7 @@ const mockState = {
   fiatOrders: {
     networks: [
       {
-        chainId: '0xaa36a7',
+        chainId: '1',
         type: 'sepolia',
         nickname: 'Sepolia',
       },
