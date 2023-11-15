@@ -107,7 +107,7 @@ function SendTransaction() {
       'OFFRAMP_SEND_CRYPTO_PROMPT_VIEWED',
       transactionAnalyticsPayload,
     );
-  }, [transactionAnalyticsPayload]);
+  }, [trackEvent, transactionAnalyticsPayload]);
 
   const handleSend = useCallback(async () => {
     const { TransactionController: TxController } = Engine.context;
@@ -162,7 +162,7 @@ function SendTransaction() {
         transactionAnalyticsPayload,
       );
     }
-  }, [dispatch, order?.id, orderData, transactionAnalyticsPayload]);
+  }, [dispatch, order?.id, orderData, trackEvent, transactionAnalyticsPayload]);
 
   if (!order) {
     return null;
