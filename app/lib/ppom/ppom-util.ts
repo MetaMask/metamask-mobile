@@ -1,6 +1,7 @@
 import Logger from '../../util/Logger';
 import Engine from '../../core/Engine';
 import { isBlockaidFeatureEnabled } from '../../util/blockaid';
+import { isMainnetByChainId } from '../../util/networks';
 import {
   Reason,
   ResultType,
@@ -34,16 +35,22 @@ const RequestInProgress = {
 
 const validateRequest = async (req: any, transactionId?: string) => {
   let securityAlertResponse;
+
+  const {
+    PPOMController: ppomController,
+    PreferencesController,
+    NetworkController,
+  } = Engine.context;
+  const currentChainId = NetworkController.state.providerConfig.chainId;
+  if (
+    !isBlockaidFeatureEnabled() ||
+    !PreferencesController.state.securityAlertsEnabled ||
+    !ConfirmationMethods.includes(req.method) ||
+    !isMainnetByChainId(currentChainId)
+  ) {
+    return;
+  }
   try {
-    const { PPOMController: ppomController, PreferencesController } =
-      Engine.context;
-    if (
-      !isBlockaidFeatureEnabled() ||
-      !PreferencesController.state.securityAlertsEnabled ||
-      !ConfirmationMethods.includes(req.method)
-    ) {
-      return;
-    }
     if (
       (req.method === 'eth_sendRawTransaction' ||
         req.method === 'eth_sendTransaction') &&

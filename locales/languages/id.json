@@ -1728,10 +1728,7 @@
     "wallet_connect_dapps_cta": "LIHAT SESI",
     "network_not_supported": "Tidak mendukung jaringan saat ini",
     "security_alerts": "Peringatan keamanan",
-    "security_alerts_desc": "Fitur ini memberi tahu Anda seputar aktivitas berbahaya dengan meninjau transaksi dan permintaan tanda tangan Anda secara lokal. Data Anda tidak dibagikan kepada pihak ketiga yang menyediakan layanan ini. Selalu lakukan uji tuntas sendiri sebelum menyetujui permintaan apa pun. Tidak ada jaminan bahwa fitur ini akan mendeteksi semua aktivitas berbahaya.",
-    "select_providers": "Pilih penyedia",
     "blockaid": "Blockaid",
-    "moreProviders": "Penyedia lainnya akan segera hadir",
     "switch_network": "Harap beralih ke mainnet atau sepolia"
   },
   "walletconnect_sessions": {

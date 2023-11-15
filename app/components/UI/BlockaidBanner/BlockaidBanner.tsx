@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { ActivityIndicator } from 'react-native';
+import { useSelector } from 'react-redux';
 import { View } from 'react-native-animatable';
 
 import { captureException } from '@sentry/react-native';
@@ -36,6 +37,9 @@ import {
   BLOCKAID_ATTRIBUTION_LINK,
   BLOCKAID_SUPPORT_LINK,
 } from '../../../constants/urls';
+import { isMainnetByChainId } from '../../../util/networks';
+import { selectChainId } from '../../../selectors/networkController';
+import { selectIsSecurityAlertsEnabled } from '../../../selectors/preferencesController';
 
 const getTitle = (reason: Reason): string =>
   strings(
@@ -85,6 +89,8 @@ const BlockaidBanner = (bannerProps: BlockaidBannerProps) => {
   } = bannerProps;
   const { styles, theme } = useStyles(styleSheet, { style });
   const [displayPositiveResponse, setDisplayPositiveResponse] = useState(false);
+  const chainId = useSelector(selectChainId);
+  const isSecurityAlertsEnabled = useSelector(selectIsSecurityAlertsEnabled);
 
   useEffect(() => {
     if (securityAlertResponse?.reason === Reason.requestInProgress) {
@@ -92,7 +98,12 @@ const BlockaidBanner = (bannerProps: BlockaidBannerProps) => {
     }
   }, [securityAlertResponse]);
 
-  if (!securityAlertResponse || !isBlockaidFeatureEnabled()) {
+  if (
+    !securityAlertResponse ||
+    !isBlockaidFeatureEnabled() ||
+    !isMainnetByChainId(chainId) ||
+    !isSecurityAlertsEnabled
+  ) {
     return null;
   }
 
@@ -123,7 +134,7 @@ const BlockaidBanner = (bannerProps: BlockaidBannerProps) => {
         <View style={styles.bannerWrapperMargined}>
           <BannerAlert
             severity={BannerAlertSeverity.Info}
-            title={strings('blockaid_banner.no_risks')}
+            title={strings('blockaid_banner.loading_complete_title')}
             onClose={() => {
               setDisplayPositiveResponse(false);
             }}
@@ -156,7 +167,7 @@ const BlockaidBanner = (bannerProps: BlockaidBannerProps) => {
   }
 
   const renderDetails = () =>
-    features?.length <= 0 ? null : (
+    features?.length && features?.length <= 0 ? null : (
       <Accordion
         title={strings('blockaid_banner.see_details')}
         onPress={onToggleShowDetails}
@@ -166,7 +177,7 @@ const BlockaidBanner = (bannerProps: BlockaidBannerProps) => {
         <View style={styles.details}>
           {features?.map((feature, i) => (
             <Text key={`feature-${i}`} style={styles.detailsItem}>
-              • {feature}
+              • {JSON.stringify(feature)}
             </Text>
           ))}
         </View>

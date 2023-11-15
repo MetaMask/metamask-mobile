@@ -88,3 +88,13 @@ export const selectIsIpfsGatewayEnabled = createSelector(
       }
     ).isIpfsGatewayEnabled,
 );
+
+export const selectIsSecurityAlertsEnabled = createSelector(
+  selectPreferencesControllerState,
+  (preferencesControllerState: PreferencesState) =>
+    (
+      preferencesControllerState as PreferencesState & {
+        securityAlertsEnabled: boolean;
+      }
+    ).securityAlertsEnabled,
+);

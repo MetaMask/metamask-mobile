@@ -32,7 +32,7 @@ export enum ResultType {
 
 export interface SecurityAlertResponse {
   reason: Reason;
-  features?: string[];
+  features?: (string | Record<string, string>)[];
   result_type: ResultType;
   providerRequestsCount?: Record<string, number>;
 }
