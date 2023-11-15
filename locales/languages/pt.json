@@ -2196,9 +2196,12 @@
     "ok": "OK"
   },
   "whats_new": {
+    "title": "Veja as novidades",
     "blockaid": {
       "title": "Fique protegido com os alertas de segurança",
+      "description_1": "Fique longe de golpes conhecidos enquanto preserva sua privacidade com alertas de segurança com tecnologia da Blockaid.",
       "description_2": "Sempre faça sua própria devida diligência antes de aprovar solicitações.",
+      "description_3": "Se você ativou os alertas de segurança da OpenSea, fizemos sua transição para esse recurso.",
       "action_text": "Ativar alertas de segurança"
     }
   },

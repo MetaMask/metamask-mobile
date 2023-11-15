@@ -2196,9 +2196,12 @@
     "ok": "OK"
   },
   "whats_new": {
+    "title": "Xem thông tin mới",
     "blockaid": {
       "title": "Đảm bảo an toàn với cảnh báo bảo mật",
+      "description_1": "Tránh xa các hành vi gian lận đã biết trong khi vẫn bảo vệ quyền riêng tư của bạn với các cảnh báo bảo mật do Blockaid cung cấp.",
       "description_2": "Luôn tự thẩm định trước khi chấp thuận các yêu cầu.",
+      "description_3": "Nếu bạn đã bật cảnh báo bảo mật từ OpenSea, chúng tôi đã chuyển bạn sang tính năng này.",
       "action_text": "Bật cảnh báo bảo mật"
     }
   },

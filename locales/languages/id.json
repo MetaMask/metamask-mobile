@@ -2196,9 +2196,12 @@
     "ok": "Oke"
   },
   "whats_new": {
+    "title": "Lihat yang baru",
     "blockaid": {
       "title": "Tetap aman bersama peringatan keamanan",
+      "description_1": "Hindari penipuan yang terdeteksi sambil tetap menjaga privasi Anda dengan peringatan keamanan yang didukung oleh Blockaid.",
       "description_2": "Selalu lakukan uji tuntas sendiri sebelum menyetujui permintaan.",
+      "description_3": "Jika Anda mengaktifkan peringatan keamanan dari OpenSea, kami telah memindahkan Anda ke fitur ini.",
       "action_text": "Aktifkan peringatan keamanan"
     }
   },
