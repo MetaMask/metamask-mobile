@@ -1732,10 +1732,7 @@
     "wallet_connect_dapps_cta": "VER SESIONES",
     "network_not_supported": "No se admite la red actual",
     "security_alerts": "Alertas de seguridad",
-    "security_alerts_desc": "Esta característica lo alerta sobre actividad maliciosa al revisar localmente sus transacciones y solicitudes de firma. Sus datos no se comparten con los terceros que brindan este servicio. Siempre haga su propia diligencia debida antes de aprobar cualquier solicitud. No hay garantía de que esta característica detecte toda la actividad maliciosa.",
-    "select_providers": "Seleccionar proveedores",
     "blockaid": "Blockaid",
-    "moreProviders": "Próximamente más proveedores",
     "switch_network": "Cambie a la red principal o a Sepolia"
   },
   "walletconnect_sessions": {

@@ -416,7 +416,8 @@ export class Connection extends EventEmitter2 {
           }
         } else if (
           !this.initialConnection &&
-          this.origin === AppConstants.DEEPLINKS.ORIGIN_DEEPLINK
+          (this.origin === AppConstants.DEEPLINKS.ORIGIN_DEEPLINK ||
+            this.trigger === 'deeplink')
         ) {
           // Deeplink channels are automatically approved on re-connection.
           const hostname =

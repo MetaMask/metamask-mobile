@@ -1732,10 +1732,7 @@
     "wallet_connect_dapps_cta": "VER SESSÕES",
     "network_not_supported": "Rede atual não compatível",
     "security_alerts": "Alertas de segurança",
-    "security_alerts_desc": "Esse recurso alerta sobre atividades mal-intencionadas ao analisar localmente suas transações e solicitações de assinatura. Seus dados não são compartilhados com os terceiros prestadores do serviço. Sempre faça sua própria devida diligência antes de aprovar qualquer solicitação. Não há garantia de que esse recurso detectará toda e qualquer atividade mal-intencionada.",
-    "select_providers": "Selecionar provedores",
     "blockaid": "Blockaid",
-    "moreProviders": "Mais provedores em breve",
     "switch_network": "Alterne para a Mainnet ou Sepolia"
   },
   "walletconnect_sessions": {
