@@ -30,9 +30,11 @@ import {
   selectProviderConfig,
 } from '../../../../../selectors/networkController';
 import { RootState } from '../../../../../reducers';
+import { FIAT_ORDER_STATES } from '../../../../../constants/on-ramp';
 
 interface OrderDetailsParams {
   orderId?: string;
+  redirectToSendTransaction?: boolean;
 }
 
 export const createOrderDetailsNavDetails =
@@ -64,6 +66,27 @@ const OrderDetails = () => {
       ),
     );
   }, [colors, navigation]);
+
+  const navigateToSendTransaction = useCallback(() => {
+    if (order?.id) {
+      navigation.navigate(Routes.RAMP.SEND_TRANSACTION, {
+        orderId: order.id,
+      });
+    }
+  }, [navigation, order?.id]);
+
+  useEffect(() => {
+    if (
+      order?.state === FIAT_ORDER_STATES.CREATED &&
+      params.redirectToSendTransaction
+    ) {
+      navigateToSendTransaction();
+    }
+  }, [
+    order?.state,
+    params.redirectToSendTransaction,
+    navigateToSendTransaction,
+  ]);
 
   useEffect(() => {
     if (order) {
@@ -138,14 +161,7 @@ const OrderDetails = () => {
           <ScreenLayout.Content>
             {order.orderType === OrderOrderTypeEnum.Sell ? (
               <Row>
-                <StyledButton
-                  type="normal"
-                  onPress={() => {
-                    navigation.navigate(Routes.RAMP.SEND_TRANSACTION, {
-                      orderId: order.id,
-                    });
-                  }}
-                >
+                <StyledButton type="normal" onPress={navigateToSendTransaction}>
                   [placeholder] Send Transaction
                 </StyledButton>
               </Row>
