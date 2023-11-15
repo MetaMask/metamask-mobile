@@ -22,8 +22,6 @@ import { selectProviderType } from '../../../selectors/networkController';
 import BlockaidBanner from '../BlockaidBanner/BlockaidBanner';
 import { getAnalyticsParams } from '../../../util/confirmation/signatureUtils';
 import { SigningModalSelectorsIDs } from '../../../../e2e/selectors/Modals/SigningModal.selectors';
-import setSignatureRequestSecurityAlertResponse from '../../../actions/signatureRequest';
-import { store } from '../../../store';
 
 const createStyles = (colors) =>
   StyleSheet.create({
@@ -169,10 +167,6 @@ class SignatureRequest extends PureComponent {
     testID: PropTypes.string,
     securityAlertResponse: PropTypes.object,
   };
-
-  componentWillUnmount() {
-    store.dispatch(setSignatureRequestSecurityAlertResponse());
-  }
 
   /**
    * Calls trackCancelSignature and onReject callback
