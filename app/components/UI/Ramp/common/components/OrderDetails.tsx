@@ -72,6 +72,7 @@ interface PropsStage {
   pendingDescription?: string;
   cryptocurrency?: string;
   providerName?: string;
+  rampType?: OrderOrderTypeEnum;
 }
 
 const Row: React.FC = (props) => {
@@ -90,6 +91,7 @@ const Stage: React.FC<PropsStage> = ({
   pendingDescription,
   cryptocurrency,
   providerName,
+  rampType,
 }: PropsStage) => {
   const { colors } = useTheme();
   const styles = createStyles(colors);
@@ -106,14 +108,22 @@ const Stage: React.FC<PropsStage> = ({
             <Text bold big primary centered>
               {strings('fiat_on_ramp_aggregator.order_details.successful')}
             </Text>
-            <Text small centered grey>
-              {strings('fiat_on_ramp_aggregator.order_details.your')}{' '}
-              {cryptocurrency ||
-                strings('fiat_on_ramp_aggregator.order_details.crypto')}{' '}
-              {strings(
-                'fiat_on_ramp_aggregator.order_details.available_in_account',
-              )}
-            </Text>
+            {rampType === OrderOrderTypeEnum.Buy ? (
+              <Text small centered grey>
+                {strings('fiat_on_ramp_aggregator.order_details.your')}{' '}
+                {cryptocurrency ||
+                  strings('fiat_on_ramp_aggregator.order_details.crypto')}{' '}
+                {strings(
+                  'fiat_on_ramp_aggregator.order_details.available_in_account',
+                )}
+              </Text>
+            ) : (
+              <Text small centered grey>
+                {strings(
+                  'fiat_on_ramp_aggregator.order_details.delayed_bank_transfer',
+                )}
+              </Text>
+            )}
           </Group>
         </View>
       );
@@ -252,6 +262,7 @@ const OrderDetails: React.FC<Props> = ({
           pendingDescription={orderData?.timeDescriptionPending}
           cryptocurrency={cryptocurrency}
           providerName={providerName}
+          rampType={order.orderType}
         />
         <Group>
           <Text bold centered primary style={styles.tokenAmount}>
@@ -438,7 +449,9 @@ const OrderDetails: React.FC<Props> = ({
                     <Text small bold primary>
                       {currencySymbol}
                       {renderFiat(
-                        amountOut,
+                        order.orderType === OrderOrderTypeEnum.Buy
+                          ? amountOut
+                          : (amount as number),
                         currency,
                         orderData.fiatCurrency.decimals,
                       )}
@@ -464,7 +477,9 @@ const OrderDetails: React.FC<Props> = ({
                   <Text small bold primary>
                     {currencySymbol}
                     {renderFiat(
-                      cryptoFee as number,
+                      order.orderType === OrderOrderTypeEnum.Buy
+                        ? (cryptoFee as number)
+                        : orderData.totalFeesFiat,
                       currency,
                       orderData.fiatCurrency.decimals,
                     )}
