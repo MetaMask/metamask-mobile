@@ -95,12 +95,12 @@ function OrdersList() {
               selected={currentFilter === 'ALL'}
             />
             <FilterButton
-              label={strings('fiat_on_ramp_aggregator.Buy')}
+              label={strings('fiat_on_ramp_aggregator.Purchased')}
               onPress={() => setCurrentFilter(OrderOrderTypeEnum.Buy)}
               selected={currentFilter === OrderOrderTypeEnum.Buy}
             />
             <FilterButton
-              label={strings('fiat_on_ramp_aggregator.Sell')}
+              label={strings('fiat_on_ramp_aggregator.Sold')}
               onPress={() => setCurrentFilter(OrderOrderTypeEnum.Sell)}
               selected={currentFilter === OrderOrderTypeEnum.Sell}
             />
