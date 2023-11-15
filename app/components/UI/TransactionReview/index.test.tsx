@@ -95,7 +95,6 @@ const mockState = {
     transaction: {
       from: '0xC4955C0d639D99699Bfd7Ec54d9FaFEe40e4D272',
       to: '0xB374Ca013934e498e5baD3409147F34E6c462389',
-      id: '123',
     },
     transactionTo: '0xB374Ca013934e498e5baD3409147F34E6c462389',
     selectedAsset: {
@@ -132,7 +131,6 @@ jest.mock('react-redux', () => {
         ...mockState,
         transaction: {
           ...mockState.transaction,
-          securityAlertResponse,
           securityAlertResponseMap: {
             id: '123',
             response: securityAlertResponse,
