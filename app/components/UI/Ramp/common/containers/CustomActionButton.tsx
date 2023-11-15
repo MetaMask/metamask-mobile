@@ -60,20 +60,22 @@ const CustomActionButton: React.FC<
 
       const payload = {
         region: selectedRegion?.id as string,
-        currency_source: fiatSymbol,
-        currency_destination: selectedAsset?.symbol as string,
         payment_method_id: selectedPaymentMethodId as string,
       };
 
       if (isBuy) {
         trackEvent('ONRAMP_DIRECT_PROVIDER_CLICKED', {
           ...payload,
+          currency_source: fiatSymbol,
+          currency_destination: selectedAsset?.symbol as string,
           provider_onramp: provider.provider.name,
           chain_id_destination: selectedChainId as string,
         });
       } else {
         trackEvent('OFFRAMP_DIRECT_PROVIDER_CLICKED', {
           ...payload,
+          currency_destination: fiatSymbol,
+          currency_source: selectedAsset?.symbol as string,
           provider_offramp: provider.provider.name,
           chain_id_source: selectedChainId as string,
         });

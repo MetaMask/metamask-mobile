@@ -88,8 +88,6 @@ function useHandleSuccessfulOrder() {
 
         const payload = {
           payment_method_id: (order?.data as Order)?.paymentMethod?.id,
-          currency_source: (order?.data as Order)?.fiatCurrency.symbol,
-          currency_destination: (order?.data as Order)?.cryptoCurrency.symbol,
           order_type: order?.orderType,
           is_apple_pay: Boolean(params?.isApplePay),
         };
@@ -99,6 +97,8 @@ function useHandleSuccessfulOrder() {
             ...payload,
             provider_offramp: (order?.data as Order)?.provider?.name,
             chain_id_source: selectedChainId,
+            currency_source: (order?.data as Order)?.cryptoCurrency.symbol,
+            currency_destination: (order?.data as Order)?.fiatCurrency.symbol,
           });
           navigation.navigate(Routes.TRANSACTIONS_VIEW, {
             screen: Routes.RAMP.ORDER_DETAILS,
@@ -116,6 +116,8 @@ function useHandleSuccessfulOrder() {
             has_zero_native_balance: accounts[selectedAddress]?.balance
               ? (hexToBN(accounts[selectedAddress].balance) as any)?.isZero?.()
               : undefined,
+            currency_source: (order?.data as Order)?.fiatCurrency.symbol,
+            currency_destination: (order?.data as Order)?.cryptoCurrency.symbol,
           });
         }
       });

@@ -420,8 +420,6 @@ const BuildQuote = () => {
       );
 
       const analyticsPayload = {
-        currency_source: currentFiatCurrency.symbol,
-        currency_destination: selectedAsset.symbol,
         payment_method_id: selectedPaymentMethodId as string,
         amount: amountNumber,
         location: screenLocation,
@@ -430,11 +428,15 @@ const BuildQuote = () => {
       if (isBuy) {
         trackEvent('ONRAMP_QUOTES_REQUESTED', {
           ...analyticsPayload,
+          currency_source: currentFiatCurrency.symbol,
+          currency_destination: selectedAsset.symbol,
           chain_id_destination: selectedChainId,
         });
       } else {
         trackEvent('OFFRAMP_QUOTES_REQUESTED', {
           ...analyticsPayload,
+          currency_destination: currentFiatCurrency.symbol,
+          currency_source: selectedAsset.symbol,
           chain_id_source: selectedChainId,
         });
       }
