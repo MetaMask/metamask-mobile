@@ -166,7 +166,7 @@ const BlockaidBanner = (bannerProps: BlockaidBannerProps) => {
         <View style={styles.details}>
           {features?.map((feature, i) => (
             <Text key={`feature-${i}`} style={styles.detailsItem}>
-              • {feature}
+              • {JSON.stringify(feature)}
             </Text>
           ))}
         </View>
