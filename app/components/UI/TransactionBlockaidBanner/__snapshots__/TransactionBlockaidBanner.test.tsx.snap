@@ -1,5 +1,7 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
+exports[`TransactionBlockaidBanner should not render if currentTransactionSecurityAlertResponse.id is undefined 1`] = `null`;
+
 exports[`TransactionBlockaidBanner should not render if transactionId passed is undefined 1`] = `null`;
 
 exports[`TransactionBlockaidBanner should render correctly 1`] = `

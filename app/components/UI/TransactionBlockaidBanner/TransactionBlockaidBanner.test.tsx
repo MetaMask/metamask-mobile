@@ -19,7 +19,7 @@ const mockState = {
     },
   },
   transaction: {
-    securityAlertResponseMap: {
+    currentTransactionSecurityAlertResponse: {
       id: '123',
       response: {
         result_type: ResultType.Warning,
@@ -44,6 +44,26 @@ describe('TransactionBlockaidBanner', () => {
   it('should not render if transactionId passed is undefined', async () => {
     const wrapper = renderWithProvider(<TransactionBlockaidBanner />, {
       state: mockState,
+    });
+
+    expect(wrapper).toMatchSnapshot();
+    expect(await wrapper.queryByTestId(TESTID_ACCORDIONHEADER)).toBeNull();
+    expect(await wrapper.queryByTestId(TESTID_ACCORDION_CONTENT)).toBeNull();
+  });
+
+  it('should not render if currentTransactionSecurityAlertResponse.id is undefined', async () => {
+    const wrapper = renderWithProvider(<TransactionBlockaidBanner />, {
+      state: {
+        ...mockState,
+        transaction: {
+          currentTransactionSecurityAlertResponse: {
+            response: {
+              result_type: ResultType.Warning,
+              reason: Reason.approvalFarming,
+            },
+          },
+        },
+      },
     });
 
     expect(wrapper).toMatchSnapshot();
