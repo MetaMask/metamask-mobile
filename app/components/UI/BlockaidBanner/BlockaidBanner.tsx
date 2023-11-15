@@ -122,8 +122,8 @@ const BlockaidBanner = (bannerProps: BlockaidBannerProps) => {
       return (
         <View style={styles.bannerWrapperMargined}>
           <BannerAlert
-            severity={BannerAlertSeverity.Warning}
-            title={strings('blockaid_banner.warning_desc')}
+            severity={BannerAlertSeverity.Info}
+            title={strings('blockaid_banner.loading_complete_title')}
           >
             <Attribution styles={styles} />
           </BannerAlert>
