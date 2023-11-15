@@ -65,7 +65,6 @@ import { selectTokens } from '../../../selectors/tokensController';
 import { selectContractExchangeRates } from '../../../selectors/tokenRatesController';
 import ApproveTransactionHeader from '../ApproveTransactionHeader';
 import AppConstants from '../../../core/AppConstants';
-import BlockaidBanner from '../BlockaidBanner/BlockaidBanner';
 import TransactionBlockaidBanner from '../TransactionBlockaidBanner/TransactionBlockaidBanner';
 
 const POLLING_INTERVAL_ESTIMATED_L1_FEE = 30000;
