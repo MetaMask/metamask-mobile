@@ -231,30 +231,7 @@ exports[`OrderDetails renders a cancelled order 1`] = `
                 }
               }
             >
-              <TouchableOpacity
-                accessibilityRole="button"
-                accessible={true}
-                onPress={[Function]}
-                style={
-                  Object {
-                    "paddingHorizontal": 18,
-                    "paddingVertical": 8,
-                  }
-                }
-              >
-                <Text
-                  style={
-                    Object {
-                      "color": "#0376C9",
-                      "fontFamily": "EuclidCircularB-Regular",
-                      "fontSize": 23.57142857142857,
-                      "fontWeight": "400",
-                    }
-                  }
-                >
-                  Cancel
-                </Text>
-              </TouchableOpacity>
+              <View />
             </View>
           </View>
         </View>
@@ -2195,30 +2172,7 @@ exports[`OrderDetails renders a completed order 1`] = `
                 }
               }
             >
-              <TouchableOpacity
-                accessibilityRole="button"
-                accessible={true}
-                onPress={[Function]}
-                style={
-                  Object {
-                    "paddingHorizontal": 18,
-                    "paddingVertical": 8,
-                  }
-                }
-              >
-                <Text
-                  style={
-                    Object {
-                      "color": "#0376C9",
-                      "fontFamily": "EuclidCircularB-Regular",
-                      "fontSize": 23.57142857142857,
-                      "fontWeight": "400",
-                    }
-                  }
-                >
-                  Cancel
-                </Text>
-              </TouchableOpacity>
+              <View />
             </View>
           </View>
         </View>
@@ -4174,30 +4128,7 @@ exports[`OrderDetails renders a created order 1`] = `
                 }
               }
             >
-              <TouchableOpacity
-                accessibilityRole="button"
-                accessible={true}
-                onPress={[Function]}
-                style={
-                  Object {
-                    "paddingHorizontal": 18,
-                    "paddingVertical": 8,
-                  }
-                }
-              >
-                <Text
-                  style={
-                    Object {
-                      "color": "#0376C9",
-                      "fontFamily": "EuclidCircularB-Regular",
-                      "fontSize": 23.57142857142857,
-                      "fontWeight": "400",
-                    }
-                  }
-                >
-                  Cancel
-                </Text>
-              </TouchableOpacity>
+              <View />
             </View>
           </View>
         </View>
@@ -6081,30 +6012,7 @@ exports[`OrderDetails renders a failed order 1`] = `
                 }
               }
             >
-              <TouchableOpacity
-                accessibilityRole="button"
-                accessible={true}
-                onPress={[Function]}
-                style={
-                  Object {
-                    "paddingHorizontal": 18,
-                    "paddingVertical": 8,
-                  }
-                }
-              >
-                <Text
-                  style={
-                    Object {
-                      "color": "#0376C9",
-                      "fontFamily": "EuclidCircularB-Regular",
-                      "fontSize": 23.57142857142857,
-                      "fontWeight": "400",
-                    }
-                  }
-                >
-                  Cancel
-                </Text>
-              </TouchableOpacity>
+              <View />
             </View>
           </View>
         </View>
@@ -8045,30 +7953,7 @@ exports[`OrderDetails renders a pending order 1`] = `
                 }
               }
             >
-              <TouchableOpacity
-                accessibilityRole="button"
-                accessible={true}
-                onPress={[Function]}
-                style={
-                  Object {
-                    "paddingHorizontal": 18,
-                    "paddingVertical": 8,
-                  }
-                }
-              >
-                <Text
-                  style={
-                    Object {
-                      "color": "#0376C9",
-                      "fontFamily": "EuclidCircularB-Regular",
-                      "fontSize": 23.57142857142857,
-                      "fontWeight": "400",
-                    }
-                  }
-                >
-                  Cancel
-                </Text>
-              </TouchableOpacity>
+              <View />
             </View>
           </View>
         </View>
@@ -9952,30 +9837,7 @@ exports[`OrderDetails renders an empty screen layout if there is no order 1`] = 
                 }
               }
             >
-              <TouchableOpacity
-                accessibilityRole="button"
-                accessible={true}
-                onPress={[Function]}
-                style={
-                  Object {
-                    "paddingHorizontal": 18,
-                    "paddingVertical": 8,
-                  }
-                }
-              >
-                <Text
-                  style={
-                    Object {
-                      "color": "#0376C9",
-                      "fontFamily": "EuclidCircularB-Regular",
-                      "fontSize": 23.57142857142857,
-                      "fontWeight": "400",
-                    }
-                  }
-                >
-                  Cancel
-                </Text>
-              </TouchableOpacity>
+              <View />
             </View>
           </View>
         </View>
@@ -10416,30 +10278,7 @@ exports[`OrderDetails renders an error screen if a CREATED order cannot be polle
                 }
               }
             >
-              <TouchableOpacity
-                accessibilityRole="button"
-                accessible={true}
-                onPress={[Function]}
-                style={
-                  Object {
-                    "paddingHorizontal": 18,
-                    "paddingVertical": 8,
-                  }
-                }
-              >
-                <Text
-                  style={
-                    Object {
-                      "color": "#0376C9",
-                      "fontFamily": "EuclidCircularB-Regular",
-                      "fontSize": 23.57142857142857,
-                      "fontWeight": "400",
-                    }
-                  }
-                >
-                  Cancel
-                </Text>
-              </TouchableOpacity>
+              <View />
             </View>
           </View>
         </View>
@@ -11121,30 +10960,7 @@ exports[`OrderDetails renders the support links if the provider has them 1`] = `
                 }
               }
             >
-              <TouchableOpacity
-                accessibilityRole="button"
-                accessible={true}
-                onPress={[Function]}
-                style={
-                  Object {
-                    "paddingHorizontal": 18,
-                    "paddingVertical": 8,
-                  }
-                }
-              >
-                <Text
-                  style={
-                    Object {
-                      "color": "#0376C9",
-                      "fontFamily": "EuclidCircularB-Regular",
-                      "fontSize": 23.57142857142857,
-                      "fontWeight": "400",
-                    }
-                  }
-                >
-                  Cancel
-                </Text>
-              </TouchableOpacity>
+              <View />
             </View>
           </View>
         </View>

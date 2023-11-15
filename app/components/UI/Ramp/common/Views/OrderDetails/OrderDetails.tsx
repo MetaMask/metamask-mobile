@@ -65,6 +65,7 @@ const OrderDetails = () => {
         navigation,
         {
           title: strings('fiat_on_ramp_aggregator.order_details.details_main'),
+          showCancel: false,
         },
         colors,
       ),
