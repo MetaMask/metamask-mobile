@@ -124,6 +124,9 @@ const BlockaidBanner = (bannerProps: BlockaidBannerProps) => {
           <BannerAlert
             severity={BannerAlertSeverity.Info}
             title={strings('blockaid_banner.loading_complete_title')}
+            onClose={() => {
+              setDisplayPositiveResponse(false);
+            }}
           >
             <Attribution styles={styles} />
           </BannerAlert>
