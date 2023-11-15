@@ -52,6 +52,7 @@ import { useStyles } from '../../../../../../component-library/hooks';
 import { NATIVE_ADDRESS } from '../../../../../../constants/on-ramp';
 import { safeToChecksumAddress } from '../../../../../../util/address';
 import { generateTransferData } from '../../../../../../util/transactions';
+import { trackEvent } from '../../hooks/useAnalytics';
 
 interface SendTransactionParams {
   orderId?: string;
