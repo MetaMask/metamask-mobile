@@ -18,7 +18,7 @@ import { IconName } from '../../../../../component-library/components/Icons/Icon
 import Cell, {
   CellVariant,
 } from '../../../../../component-library/components/Cells/Cell';
-import { AvatarVariants } from '../../../../../component-library/components/Avatars/Avatar';
+import { AvatarVariant } from '../../../../../component-library/components/Avatars/Avatar';
 import {
   ButtonSize,
   ButtonVariants,
@@ -103,7 +103,7 @@ const InstallSnapConnectionRequest = ({
           variant={CellVariant.Display}
           title={snapName ?? ''}
           avatarProps={{
-            variant: AvatarVariants.Icon,
+            variant: AvatarVariant.Icon,
             name: IconName.Snaps,
           }}
         />

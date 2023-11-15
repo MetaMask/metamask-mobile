@@ -3,7 +3,7 @@ import { View } from 'react-native';
 import Cell, {
   CellVariant,
 } from '../../../../../component-library/components/Cells/Cell';
-import { AvatarVariants } from '../../../../../component-library/components/Avatars/Avatar/Avatar.types';
+import { AvatarVariant } from '../../../../../component-library/components/Avatars/Avatar/Avatar.types';
 import Icon, {
   IconName,
 } from '../../../../../component-library/components/Icons/Icon';
@@ -32,7 +32,7 @@ const SnapElement = (snap: Snap) => {
       secondaryText={snap.id}
       onPress={onPress}
       avatarProps={{
-        variant: AvatarVariants.Icon,
+        variant: AvatarVariant.Icon,
         name: IconName.Snaps,
       }}
     >

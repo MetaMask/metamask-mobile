@@ -9,7 +9,7 @@ import Text, {
 import Cell, {
   CellVariant,
 } from '../../../../../component-library/components/Cells/Cell';
-import { AvatarVariants } from '../../../../../component-library/components/Avatars/Avatar/Avatar.types';
+import { AvatarVariant } from '../../../../../component-library/components/Avatars/Avatar/Avatar.types';
 import { IconName } from '../../../../../component-library/components/Icons/Icon';
 import { Snap } from '@metamask/snaps-utils';
 import stylesheet from './SnapDetails.styles';
@@ -73,7 +73,7 @@ const SnapDetails = ({ snap }: SnapDetailsProps) => {
         title={snap.manifest.proposedName}
         secondaryText={snap.id}
         avatarProps={{
-          variant: AvatarVariants.Icon,
+          variant: AvatarVariant.Icon,
           name: IconName.Snaps,
         }}
       />
