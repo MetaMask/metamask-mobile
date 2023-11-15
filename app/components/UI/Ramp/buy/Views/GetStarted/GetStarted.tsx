@@ -60,6 +60,7 @@ const GetStarted: React.FC = () => {
     trackEvent(
       isBuy ? 'ONRAMP_GET_STARTED_CLICKED' : 'OFFRAMP_GET_STARTED_CLICKED',
       {
+        text: 'Get Started',
         location: 'Get Started Screen',
       },
     );

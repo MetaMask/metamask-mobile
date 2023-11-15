@@ -12,7 +12,7 @@ export type ScreenLocation =
   | 'Settings Screen';
 
 interface RampButtonClicked {
-  text?: 'Buy' | 'Buy Native Token';
+  text: 'Buy' | 'Buy Native Token' | 'Sell' | 'Get Started';
   location: string;
 }
 
