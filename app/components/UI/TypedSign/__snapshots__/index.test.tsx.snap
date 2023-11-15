@@ -1,26 +1,61 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
 exports[`TypedSign should render correctly 1`] = `
-<TypedSign
-  currentPageInformation={
+<ContextProvider
+  value={
     Object {
-      "title": "title",
-      "url": "url",
-    }
-  }
-  messageParams={
-    Object {
-      "data": Object {
-        "name": "Message",
-        "type": "string",
-        "value": "Hi, Alice!",
+      "store": Object {
+        "clearActions": [Function],
+        "dispatch": [Function],
+        "getActions": [Function],
+        "getState": [Function],
+        "replaceReducer": [Function],
+        "subscribe": [Function],
+      },
+      "subscription": Subscription {
+        "handleChangeWrapper": [Function],
+        "listeners": Object {
+          "notify": [Function],
+        },
+        "onStateChange": [Function],
+        "parentSub": undefined,
+        "store": Object {
+          "clearActions": [Function],
+          "dispatch": [Function],
+          "getActions": [Function],
+          "getState": [Function],
+          "replaceReducer": [Function],
+          "subscribe": [Function],
+        },
+        "unsubscribe": null,
       },
       "from": "0xC4955C0d639D99699Bfd7Ec54d9FaFEe40e4D272",
       "metamaskId": "TestMessageId",
       "origin": "example.com",
     }
   }
-  onConfirm={[MockFunction]}
-  onReject={[MockFunction]}
-/>
+>
+  <Component
+    currentPageInformation={
+      Object {
+        "title": "title",
+        "url": "http://localhost:8545",
+      }
+    }
+    messageParams={
+      Object {
+        "data": Object {
+          "name": "Message",
+          "type": "string",
+          "value": "Hi, Alice!",
+        },
+        "from": "0xdec94d958b0da848d8cbfa0a9015451a4625452e",
+        "metamaskId": "TestMessageId",
+        "origin": "example.com",
+      }
+    }
+    onConfirm={[MockFunction]}
+    onReject={[MockFunction]}
+  />
+</ContextProvider>
 `;

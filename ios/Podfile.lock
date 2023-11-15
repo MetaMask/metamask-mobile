@@ -599,7 +599,6 @@ DEPENDENCIES:
   - React-logger (from `../node_modules/react-native/ReactCommon/logger`)
   - react-native-aes (from `../node_modules/react-native-aes-crypto`)
   - react-native-background-timer (from `../node_modules/react-native-background-timer`)
-  - react-native-ble-plx (from `../node_modules/react-native-ble-plx`)
   - "react-native-blur (from `../node_modules/@react-native-community/blur`)"
   - react-native-branch (from `../node_modules/react-native-branch`)
   - react-native-camera (from `../node_modules/react-native-camera`)
@@ -674,7 +673,6 @@ SPEC REPOS:
     - fmt
     - GzipSwift
     - libevent
-    - MultiplatformBleAdapter
     - OpenSSL-Universal
     - Sentry
     - SentryPrivate
@@ -734,8 +732,6 @@ EXTERNAL SOURCES:
     :path: "../node_modules/react-native-aes-crypto"
   react-native-background-timer:
     :path: "../node_modules/react-native-background-timer"
-  react-native-ble-plx:
-    :path: "../node_modules/react-native-ble-plx"
   react-native-blur:
     :path: "../node_modules/@react-native-community/blur"
   react-native-branch:

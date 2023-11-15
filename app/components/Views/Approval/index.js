@@ -46,6 +46,7 @@ import { selectSelectedAddress } from '../../../selectors/preferencesController'
 import { ethErrors } from 'eth-rpc-errors';
 import { getLedgerKeyring } from '../../../core/Ledger/Ledger';
 import ExtendedKeyringTypes from '../../../constants/keyringTypes';
+import { getBlockaidMetricsParams } from '../../../util/blockaid';
 
 const REVIEW = 'review';
 const EDIT = 'edit';
@@ -275,10 +276,32 @@ class Approval extends PureComponent {
     };
   };
 
-  getAnalyticsParams = ({ gasEstimateType, gasSelected } = {}) => {
+  getBlockaidMetricsParams = () => {
+    const { transaction } = this.props;
+
+    let blockaidParams = {};
+
+    if (
+      transaction.id === transaction.currentTransactionSecurityAlertResponse.id
+    ) {
+      blockaidParams = getBlockaidMetricsParams(
+        transaction.currentTransactionSecurityAlertResponse?.response,
+      );
+    }
+
+    return blockaidParams;
+  };
+
+  getAnalyticsParams = ({
+    gasEstimateType,
+    gasSelected,
+    withBlockaid,
+  } = {}) => {
     try {
       const { chainId, transaction, selectedAddress } = this.props;
       const { selectedAsset } = transaction;
+      const blockaidParams = {};
+
       return {
         account_type: getAddressAccountType(selectedAddress),
         dapp_host_name: transaction?.origin,
@@ -293,6 +316,7 @@ class Approval extends PureComponent {
           : this.originIsWalletConnect
           ? AppConstants.REQUEST_SOURCES.WC
           : AppConstants.REQUEST_SOURCES.IN_APP_BROWSER,
+        ...blockaidParams,
       };
     } catch (error) {
       return {};
@@ -326,10 +350,10 @@ class Approval extends PureComponent {
     this.props.hideModal();
     this.state.mode === REVIEW && this.trackOnCancel();
     this.showWalletConnectNotification();
-    AnalyticsV2.trackEvent(
-      MetaMetricsEvents.DAPP_TRANSACTION_CANCELLED,
-      this.getAnalyticsParams(),
-    );
+    AnalyticsV2.trackEvent(MetaMetricsEvents.DAPP_TRANSACTION_CANCELLED, {
+      ...this.getAnalyticsParams(),
+      ...this.getBlockaidMetricsParams(),
+    });
   };
 
   onLedgerConfirmation = (approve, transactionId, gaParams) => {
@@ -476,10 +500,13 @@ class Approval extends PureComponent {
       }
       this.setState({ transactionHandled: false });
     }
-    AnalyticsV2.trackEvent(
-      MetaMetricsEvents.DAPP_TRANSACTION_COMPLETED,
-      this.getAnalyticsParams({ gasEstimateType, gasSelected }),
-    );
+    AnalyticsV2.trackEvent(MetaMetricsEvents.DAPP_TRANSACTION_COMPLETED, {
+      ...this.getAnalyticsParams({
+        gasEstimateType,
+        gasSelected,
+      }),
+      ...this.getBlockaidMetricsParams(),
+    });
     this.setState({ transactionConfirmed: false });
   };
 

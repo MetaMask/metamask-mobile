@@ -1,5 +1,6 @@
 import React, { PureComponent } from 'react';
 import PropTypes from 'prop-types';
+import { connect } from 'react-redux';
 import { StyleSheet, View, Text } from 'react-native';
 import { fontStyles } from '../../../styles/common';
 import SignatureRequest from '../SignatureRequest';
@@ -81,6 +82,10 @@ class TypedSign extends PureComponent {
      * Indicated whether or not the expanded message is shown
      */
     showExpandedMessage: PropTypes.bool,
+    /**
+     * Security alert response object
+     */
+    securityAlertResponse: PropTypes.object,
   };
 
   state = {
@@ -118,22 +123,24 @@ class TypedSign extends PureComponent {
   };
 
   rejectSignature = async () => {
-    const { messageParams, onReject } = this.props;
+    const { messageParams, onReject, securityAlertResponse } = this.props;
     await handleSignatureAction(
       onReject,
       messageParams,
       typedSign[messageParams.version],
+      securityAlertResponse,
       false,
     );
   };
 
   confirmSignature = async () => {
-    const { messageParams, onConfirm, onReject, navigation } = this.props;
+    const { messageParams, onConfirm, onReject, navigation, securityAlertResponse } = this.props;
     if (!isExternalHardwareAccount(messageParams.from)) {
       await handleSignatureAction(
         onConfirm,
         messageParams,
         typedSign[messageParams.version],
+        securityAlertResponse,
         true,
       );
     } else {
@@ -270,4 +277,8 @@ class TypedSign extends PureComponent {
 
 TypedSign.contextType = ThemeContext;
 
-export default TypedSign;
+const mapStateToProps = (state) => ({
+  securityAlertResponse: state.signatureRequest.securityAlertResponse,
+});
+
+export default connect(mapStateToProps)(TypedSign);

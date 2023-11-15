@@ -307,10 +307,10 @@ class SignatureRequest extends PureComponent {
     const analyticsParams = {
       ...getAnalyticsParams(
         {
-          securityAlertResponse,
           from: fromAddress,
         },
         type,
+        securityAlertResponse,
       ),
       external_link_clicked: 'security_alert_support_link',
     };

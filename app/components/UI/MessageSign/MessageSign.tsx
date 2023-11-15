@@ -1,4 +1,5 @@
-import React, { PureComponent } from 'react';
+import React, { useEffect, useState } from 'react';
+import { useSelector } from 'react-redux';
 import { StyleSheet, View, Text } from 'react-native';
 import { fontStyles } from '../../../styles/common';
 import SignatureRequest from '../SignatureRequest';
@@ -6,18 +7,19 @@ import ExpandedMessage from '../SignatureRequest/ExpandedMessage';
 import { KEYSTONE_TX_CANCELED } from '../../../constants/error';
 import { MetaMetricsEvents } from '../../../core/Analytics';
 import AnalyticsV2 from '../../../util/analyticsV2';
-import { ThemeContext, mockTheme } from '../../../util/theme';
+import { useTheme } from '../../../util/theme';
 import {
-  addSignatureErrorListener,
   getAnalyticsParams,
   handleSignatureAction,
-  removeSignatureErrorListener,
 } from '../../../util/confirmation/signatureUtils';
 import { MessageParams, PageMeta } from '../SignatureRequest/types';
 import { Colors } from '../../../util/theme/models';
 import { isExternalHardwareAccount } from '../../../util/address';
 import createExternalSignModelNav from '../../../util/hardwareWallet/signatureUtils';
 import { SigningModalSelectorsIDs } from '../../../../e2e/selectors/Modals/SigningModal.selectors';
+import { SecurityAlertResponse } from '../BlockaidBanner/BlockaidBanner.types';
+import { useNavigation } from '@react-navigation/native';
+import Engine from '../../../core/Engine';
 
 interface MessageSignProps {
   /**
@@ -48,10 +50,10 @@ interface MessageSignProps {
    * Indicated whether or not the expanded message is shown
    */
   showExpandedMessage: boolean;
-}
-
-interface MessageSignState {
-  truncateMessage: boolean;
+  /**
+   * Object containing the security alert response
+   */
+  securityAlertResponse?: SecurityAlertResponse;
 }
 
 const createStyles = (colors: Colors) =>
@@ -73,49 +75,72 @@ const createStyles = (colors: Colors) =>
 /**
  * Component that supports eth_sign
  */
-class MessageSign extends PureComponent<MessageSignProps, MessageSignState> {
-  static contextType = ThemeContext;
+const MessageSign = ({
+  onConfirm,
+  onReject,
+  messageParams,
+  currentPageInformation,
+  toggleExpandedMessage,
+  showExpandedMessage,
+}: MessageSignProps) => {
+  const navigation = useNavigation();
+  const [truncateMessage, setTruncateMessage] = useState<boolean>(false);
+  const { securityAlertResponse } = useSelector(
+    (reduxState: any) => reduxState.signatureRequest,
+  );
 
-  state: MessageSignState = {
-    truncateMessage: false,
-  };
+  const { colors } = useTheme();
+  const styles = createStyles(colors);
 
-  componentDidMount = () => {
-    const { messageParams } = this.props;
-
+  useEffect(() => {
     AnalyticsV2.trackEvent(
       MetaMetricsEvents.SIGNATURE_REQUESTED,
       getAnalyticsParams(messageParams, 'eth_sign'),
     );
-    addSignatureErrorListener(messageParams.metamaskId, this.onSignatureError);
-  };
 
-  componentWillUnmount = () => {
-    const {
-      messageParams: { metamaskId },
-    } = this.props;
-    removeSignatureErrorListener(metamaskId, this.onSignatureError);
-  };
+    const onSignatureError = ({ error }: any) => {
+      if (error?.message.startsWith(KEYSTONE_TX_CANCELED)) {
+        AnalyticsV2.trackEvent(
+          MetaMetricsEvents.QR_HARDWARE_TRANSACTION_CANCELED,
+          getAnalyticsParams(messageParams, 'eth_sign'),
+        );
+      }
+    };
 
-  onSignatureError = ({ error }: any) => {
-    const { messageParams } = this.props;
-    if (error?.message.startsWith(KEYSTONE_TX_CANCELED)) {
-      AnalyticsV2.trackEvent(
-        MetaMetricsEvents.QR_HARDWARE_TRANSACTION_CANCELED,
-        getAnalyticsParams(messageParams, 'eth_sign'),
+    Engine.context.SignatureController.hub.on(
+      `${messageParams.metamaskId}:signError`,
+      onSignatureError,
+    );
+    return () => {
+      Engine.context.SignatureController.hub.removeListener(
+        `${messageParams.metamaskId}:signError`,
+        onSignatureError,
       );
+    };
+  }, [messageParams]);
+
+  const shouldTruncateMessage = (e: any) => {
+    if (e.nativeEvent.lines.length > 5) {
+      setTruncateMessage(true);
+      return;
     }
+
+    setTruncateMessage(false);
   };
 
-  rejectSignature = async () => {
-    const { messageParams, onReject } = this.props;
-    await handleSignatureAction(onReject, messageParams, 'eth_sign', false);
+  const rejectSignature = async () => {
+    await handleSignatureAction(
+      onReject,
+      messageParams,
+      'eth_sign',
+      securityAlertResponse,
+      false,
+    );
   };
 
-  confirmSignature = async () => {
-    const { messageParams, onConfirm, onReject, navigation } = this.props;
+  const confirmSignature = async () => {
     if (!isExternalHardwareAccount(messageParams.from)) {
-      await handleSignatureAction(onConfirm, messageParams, 'eth_sign', true);
+      await handleSignatureAction(onConfirm, messageParams, 'eth_sign', securityAlertResponse, true);
     } else {
       navigation.navigate(
         ...(await createExternalSignModelNav(
@@ -128,16 +153,7 @@ class MessageSign extends PureComponent<MessageSignProps, MessageSignState> {
     }
   };
 
-  getStyles = () => {
-    const colors = this.context.colors || mockTheme.colors;
-    return createStyles(colors);
-  };
-
-  renderMessageText = () => {
-    const { messageParams, showExpandedMessage } = this.props;
-    const { truncateMessage } = this.state;
-    const styles = this.getStyles();
-
+  const renderMessageText = () => {
     let messageText;
     if (showExpandedMessage) {
       messageText = (
@@ -153,10 +169,7 @@ class MessageSign extends PureComponent<MessageSignProps, MessageSignState> {
           {messageParams.data}
         </Text>
       ) : (
-        <Text
-          style={styles.messageText}
-          onTextLayout={this.shouldTruncateMessage}
-        >
+        <Text style={styles.messageText} onTextLayout={shouldTruncateMessage}>
           {messageParams.data}
         </Text>
       );
@@ -164,49 +177,30 @@ class MessageSign extends PureComponent<MessageSignProps, MessageSignState> {
     return messageText;
   };
 
-  shouldTruncateMessage = (e: any) => {
-    if (e.nativeEvent.lines.length > 5) {
-      this.setState({ truncateMessage: true });
-      return;
-    }
-    this.setState({ truncateMessage: false });
-  };
-
-  render() {
-    const {
-      currentPageInformation,
-      navigation,
-      showExpandedMessage,
-      toggleExpandedMessage,
-      messageParams: { from },
-    } = this.props;
-    const styles = this.getStyles();
-
-    const rootView = showExpandedMessage ? (
-      <ExpandedMessage
-        currentPageInformation={currentPageInformation}
-        renderMessage={this.renderMessageText}
-        toggleExpandedMessage={toggleExpandedMessage}
-      />
-    ) : (
-      <SignatureRequest
-        navigation={navigation}
-        onReject={this.rejectSignature}
-        onConfirm={this.confirmSignature}
-        currentPageInformation={currentPageInformation}
-        truncateMessage={this.state.truncateMessage}
-        showExpandedMessage={showExpandedMessage}
-        toggleExpandedMessage={toggleExpandedMessage}
-        type="eth_sign"
-        showWarning
-        fromAddress={from}
-        testID={SigningModalSelectorsIDs.ETH_REQUEST}
-      >
-        <View style={styles.messageWrapper}>{this.renderMessageText()}</View>
-      </SignatureRequest>
-    );
-    return rootView;
-  }
-}
+  const rootView = showExpandedMessage ? (
+    <ExpandedMessage
+      currentPageInformation={currentPageInformation}
+      renderMessage={renderMessageText}
+      toggleExpandedMessage={toggleExpandedMessage}
+    />
+  ) : (
+    <SignatureRequest
+      navigation={navigation}
+      onReject={rejectSignature}
+      onConfirm={confirmSignature}
+      currentPageInformation={currentPageInformation}
+      truncateMessage={truncateMessage}
+      showExpandedMessage={showExpandedMessage}
+      toggleExpandedMessage={toggleExpandedMessage}
+      type="eth_sign"
+      showWarning
+      fromAddress={messageParams.from}
+      testID={SigningModalSelectorsIDs.ETH_REQUEST}
+    >
+      <View style={styles.messageWrapper}>{renderMessageText()}</View>
+    </SignatureRequest>
+  );
+  return rootView;
+};
 
 export default MessageSign;
