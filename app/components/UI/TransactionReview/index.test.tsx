@@ -105,6 +105,7 @@ const mockState = {
     },
     transactionToName: 'Account 2',
     transactionFromName: 'Account 1',
+    id: '123',
   },
   fiatOrders: {
     networks: [
@@ -150,9 +151,12 @@ describe('TransactionReview', () => {
 
   it('should display blockaid banner', async () => {
     const securityAlertResponse = {
-      result_type: 'Malicious',
-      reason: 'blur_farming',
-      providerRequestsCount: {},
+      transactionId: '123',
+      response: {
+        result_type: 'Malicious',
+        reason: 'blur_farming',
+        providerRequestsCount: {},
+      },
     };
     const trackEventSypy = jest
       .spyOn(analyticsV2, 'trackEvent')
@@ -178,8 +182,8 @@ describe('TransactionReview', () => {
           ...mockState,
           transaction: {
             ...mockState.transaction,
-            securityAlertResponse,
           },
+          securityAlertResponse,
         },
       },
     );
