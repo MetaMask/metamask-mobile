@@ -135,6 +135,8 @@ workflows:
             - content: |-
                 #!/usr/bin/env bash
                 echo "Node and Yarn being installed"
+                asdf list all nodejs
+                asdf install nodejs 18.18
                 asdf global nodejs 18.18
                 asdf plugin add yarn
                 asdf list all yarn
