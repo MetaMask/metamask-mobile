@@ -28,7 +28,7 @@ interface RampRegionSelected {
   location?: ScreenLocation;
   country_id: string;
   state_id?: string;
-  is_unsupported?: boolean;
+  is_unsupported_onramp?: boolean;
   is_unsupported_offramp?: boolean;
 }
 
@@ -216,7 +216,7 @@ export type OnRampPurchaseCanceled = OnRampPurchaseFailed;
 export type OffRampPurchaseCanceled = OffRampPurchaseFailed;
 
 interface RampPurchaseDetailsViewed {
-  purchase_status: string;
+  status: string;
   payment_method_id: string;
   currency_destination: string;
   order_type: string;

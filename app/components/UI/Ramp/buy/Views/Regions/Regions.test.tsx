@@ -199,7 +199,7 @@ describe('Regions View', () => {
     expect(mockSetSelectedRegion).toHaveBeenCalledWith(regionToPress);
     expect(mockTrackEvent).toBeCalledWith('RAMP_REGION_SELECTED', {
       country_id: '/regions/cl',
-      is_unsupported: false,
+      is_unsupported_onramp: false,
       is_unsupported_offramp: false,
       location: 'Region Screen',
       state_id: '/regions/cl',

@@ -76,7 +76,7 @@ const OrderDetails = () => {
       } = data as Order;
 
       const payload = {
-        purchase_status: state,
+        status: state,
         payment_method_id: paymentMethodId,
         order_type: orderType,
       };
