@@ -43,6 +43,7 @@ import {
   waitForConnectionReadiness,
   waitForKeychainUnlocked,
 } from './utils/wait.util';
+import Device from '../../util/device';
 
 export interface ConnectionProps {
   id: string;
@@ -986,7 +987,8 @@ export class Connection extends EventEmitter2 {
         `Connection::sendMessage method=${method} trigger=${this.trigger} origin=${this.origin} id=${msgId} goBack()`,
       );
 
-      if (Platform.OS === 'ios' && parseInt(Platform.Version) >= 17) {
+      // Check for iOS 17 and above to use a custom modal, as Minimizer.goBack() is incompatible with these versions
+      if (Device.isIos() && parseInt(Platform.Version as string) >= 17) {
         this.navigation?.navigate(Routes.MODAL.ROOT_MODAL_FLOW, {
           screen: Routes.SHEET.RETURN_TO_DAPP_MODAL,
         });
