@@ -78,19 +78,21 @@ const OrderDetails = () => {
       const payload = {
         purchase_status: state,
         payment_method_id: paymentMethodId,
-        currency_destination: cryptocurrency,
         order_type: orderType,
-        currency_source: currency,
       };
       if (order.orderType === OrderOrderTypeEnum.Buy) {
         trackEvent('ONRAMP_PURCHASE_DETAILS_VIEWED', {
           ...payload,
+          currency_destination: cryptocurrency,
+          currency_source: currency,
           provider_onramp: providerName,
           chain_id_destination: network,
         });
       } else {
         trackEvent('OFFRAMP_PURCHASE_DETAILS_VIEWED', {
           ...payload,
+          currency_source: cryptocurrency,
+          currency_destination: currency,
           provider_offramp: providerName,
           chain_id_source: network,
         });
