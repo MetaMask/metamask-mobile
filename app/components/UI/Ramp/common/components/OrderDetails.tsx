@@ -207,6 +207,7 @@ const OrderDetails: React.FC<Props> = ({
   const date = createdAt && toDateFormat(createdAt);
   const renderAmount = getOrderAmount(order);
   const amountOut = Number(amount) - Number(cryptoFee);
+
   const exchangeRate =
     (order.data as Order)?.exchangeRate ??
     Number(amountOut) / Number(cryptoAmount);
@@ -495,7 +496,9 @@ const OrderDetails: React.FC<Props> = ({
                   <Text small bold primary>
                     {currencySymbol}
                     {renderFiat(
-                      amount as number,
+                      order.orderType === OrderOrderTypeEnum.Buy
+                        ? (amount as number)
+                        : amountOut,
                       currency,
                       orderData.fiatCurrency.decimals,
                     )}
