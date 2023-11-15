@@ -1,6 +1,6 @@
 import { CoreTypes } from '@walletconnect/types';
 import Device from '../util/device';
-
+import { DEFAULT_SERVER_URL } from '@metamask/sdk-communication-layer';
 const DEVELOPMENT = 'development';
 
 export default {
@@ -141,9 +141,7 @@ export default {
     ANDROID_CONNECTIONS: 'androidConnections',
     ANDROID_SDK: 'AndroidSDK',
     SDK_APPROVEDHOSTS: 'sdkApprovedHosts',
-    SERVER_URL:
-      process.env.SDK_COMMLAYER_URL ??
-      'https://metamask-sdk-socket.metafi.codefi.network/',
+    SERVER_URL: process.env.SDK_COMMLAYER_URL ?? DEFAULT_SERVER_URL,
     PLATFORM: 'metamask-mobile',
     SDK_REMOTE_ORIGIN: 'MMSDKREMOTE::',
     UNKNOWN_PARAM: 'UNKNOWN',

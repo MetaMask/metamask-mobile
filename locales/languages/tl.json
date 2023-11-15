@@ -1728,10 +1728,7 @@
     "wallet_connect_dapps_cta": "TINGNAN ANG MGA SESSION",
     "network_not_supported": "Hindi sinusuportahan ang kasalukuyang network",
     "security_alerts": "Mga alerto sa seguridad",
-    "security_alerts_desc": "Ang feature na ito ay nagbibigay ng alerto sa iyo sa mapaminsalang aktibidad sa pamamagitan ng lokal na pagsusuri sa iyong mga transaksyon at kahilingan sa paglagda. Ang iyong data ay hindi ibinabahagi sa mga third party na nagbibigay ng serbisyong ito. Palaging gumawa ng sarili mong pagsusuri bago aprubahan ang anumang mga kahilingan. Walang garantiya na made-detect ng feature na ito ang lahat ng mapaminsalang aktibidad.",
-    "select_providers": "Pumili ng mga provider",
     "blockaid": "Blockaid",
-    "moreProviders": "Marami pang parating na mga provider",
     "switch_network": "Mangyaring lumipat sa mainnet o sepolia"
   },
   "walletconnect_sessions": {
