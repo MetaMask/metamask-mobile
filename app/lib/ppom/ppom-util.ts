@@ -75,7 +75,6 @@ const validateRequest = async (req: any, transactionId?: string) => {
       );
     }
   } catch (e) {
-    console.log('--------------------------', e);
     Logger.log(`Error validating JSON RPC using PPOM: ${e}`);
   } finally {
     if (!securityAlertResponse) {
