@@ -290,7 +290,7 @@
     "react-native-flash-message": "0.1.11",
     "react-native-fs": "^2.16.6",
     "react-native-gesture-handler": "^1.10.3",
-    "react-native-get-random-values": "^1.9.0",
+    "react-native-get-random-values": "^1.8.0",
     "react-native-i18n": "2.0.15",
     "react-native-in-app-review": "^3.2.3",
     "react-native-inappbrowser-reborn": "^3.7.0",

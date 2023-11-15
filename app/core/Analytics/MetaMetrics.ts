@@ -272,7 +272,7 @@ class MetaMetrics implements IMetaMetrics {
 
   trackEvent = (event: string, properties: JsonMap = {}): void => {
     if (this.enabled) {
-      this.#trackEvent(event, properties);
+      this.#trackEvent(event, {anonymous: false, ...properties });
     }
   };
 

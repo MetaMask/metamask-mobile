@@ -1,5 +1,5 @@
 diff --git a/node_modules/@segment/analytics-react-native/src/analytics.ts b/node_modules/@segment/analytics-react-native/src/analytics.ts
-index 79cc609..858a4a9 100644
+index 79cc609..d9f3cfb 100644
 --- a/node_modules/@segment/analytics-react-native/src/analytics.ts
 +++ b/node_modules/@segment/analytics-react-native/src/analytics.ts
 @@ -679,7 +679,8 @@ export class SegmentClient {
@@ -20,21 +20,28 @@ index 79cc609..858a4a9 100644
      if (event.type === EventType.IdentifyEvent) {
        const userInfo = await this.userInfo.set((state) => ({
          ...state,
-@@ -875,9 +877,21 @@ export class SegmentClient {
+@@ -875,9 +877,28 @@ export class SegmentClient {
      }
  
      const userInfo = await this.userInfo.get(true);
 +
 +    const isTrackEvent = event.type === EventType.TrackEvent;
 +    const isAnonymousEvent = isTrackEvent && event.properties?.anonymous;
-+    // remove the anonymous property from the event as it doesn't need to be sent to the server
++    // remove the anonymous property from the event as it doesn't have to be sent to the server
 +    isTrackEvent && delete event.properties?.anonymous;
-+    const hasProperties = isTrackEvent && event.properties && Object.entries(event.properties).length > 0;
++    const hasProperties =
++      isTrackEvent &&
++      event.properties &&
++      Object.entries(event.properties).length > 0;
 +
 +    // anonymousId events that contains properties are sent with the anonymousId
 +    // otherwise if they don't contain propertie, they are sent with the userId
-+    // regular non anonymous events are sent with the userId if it exists, otherwise with the anonymousId (non identified user case)
-+    const userId = isAnonymousEvent ? hasProperties ? userInfo.anonymousId : userInfo.userId : userInfo.userId ?? userInfo.anonymousId
++    // regular non anonymous events are sent with the userId if it exists,
++    // otherwise with the anonymousId (non identified user case)
++    const userId =
++      isAnonymousEvent && hasProperties
++        ? userInfo.anonymousId
++        : userInfo.userId ?? userInfo.anonymousId;
 +
      return {
        anonymousId: userInfo.anonymousId,
