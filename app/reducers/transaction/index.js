@@ -129,7 +129,6 @@ const transactionReducer = (state = initialState, action) => {
         type: 'ETHER_TRANSACTION',
         ...getTxMeta(action.transaction),
         transaction: getTxData(action.transaction),
-        securityAlertResponse: action.securityAlertResponse,
       };
     case 'SET_INDIVIDUAL_TOKEN_TRANSACTION':
       return {
@@ -153,13 +152,13 @@ const transactionReducer = (state = initialState, action) => {
       };
     case 'SET_TRANSACTION_SECURITY_ALERT_RESPONSE': {
       const { transactionId, securityAlertResponse } = action;
-      if (state.id === transactionId) {
-        return {
-          ...state,
-          transaction: { ...state.transaction, securityAlertResponse },
-        };
-      }
-      return state;
+      return {
+        ...state,
+        securityAlertResponse: {
+          id: transactionId,
+          response: securityAlertResponse,
+        },
+      };
     }
     default:
       return state;

@@ -66,6 +66,7 @@ import { selectContractExchangeRates } from '../../../selectors/tokenRatesContro
 import ApproveTransactionHeader from '../ApproveTransactionHeader';
 import AppConstants from '../../../core/AppConstants';
 import BlockaidBanner from '../BlockaidBanner/BlockaidBanner';
+import TransactionBlockaidBanner from '../TransactionBlockaidBanner/TransactionBlockaidBanner';
 
 const POLLING_INTERVAL_ESTIMATED_L1_FEE = 30000;
 
@@ -475,9 +476,10 @@ class TransactionReview extends PureComponent {
       gasSelected,
       chainId,
       transaction,
-      transaction: { to, origin, from, ensRecipient, securityAlertResponse },
+      transaction: { to, origin, from, ensRecipient, id: transactionId },
       error,
     } = this.props;
+
     const {
       actionKey,
       assetAmount,
@@ -523,8 +525,8 @@ class TransactionReview extends PureComponent {
                     onStartShouldSetResponder={() => true}
                   >
                     {isBlockaidFeatureEnabled() && (
-                      <BlockaidBanner
-                        securityAlertResponse={securityAlertResponse}
+                      <TransactionBlockaidBanner
+                        transactionId={transactionId}
                         style={styles.blockaidWarning}
                         onContactUsClicked={this.onContactUsClicked}
                       />
