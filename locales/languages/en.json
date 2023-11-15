@@ -2000,6 +2000,7 @@
       "successful": "Order Successful!",
       "your": "Your",
       "available_in_account": "is now available in your account",
+      "delayed_bank_transfer": "It make take a few days to see the cash in your bank account.",
       "crypto": "crypto",
       "failed": "Order Failed",
       "cancelled": "Order Canceled",
