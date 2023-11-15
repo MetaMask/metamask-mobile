@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect } from 'react';
+import React, { useCallback, useEffect, useMemo } from 'react';
 import { View } from 'react-native';
 import { useDispatch, useSelector } from 'react-redux';
 import { useNavigation } from '@react-navigation/native';
@@ -52,7 +52,7 @@ import { useStyles } from '../../../../../../component-library/hooks';
 import { NATIVE_ADDRESS } from '../../../../../../constants/on-ramp';
 import { safeToChecksumAddress } from '../../../../../../util/address';
 import { generateTransferData } from '../../../../../../util/transactions';
-import { trackEvent } from '../../hooks/useAnalytics';
+import useAnalytics from '../../hooks/useAnalytics';
 
 interface SendTransactionParams {
   orderId?: string;
@@ -65,6 +65,7 @@ function SendTransaction() {
   const order = useSelector((state: RootState) =>
     getOrderById(state, params.orderId),
   );
+  const trackEvent = useAnalytics();
 
   const {
     styles,
@@ -87,6 +88,26 @@ function SendTransaction() {
       ),
     );
   }, [colors, navigation]);
+
+  const transactionAnalyticsPayload = useMemo(
+    () => ({
+      crypto_amount: orderData?.cryptoAmount,
+      chain_id_source: orderData?.cryptoCurrency.network.chainId,
+      fiat_out: orderData?.fiatAmount,
+      payment_method_id: orderData?.paymentMethod.id,
+      currency_source: orderData?.cryptoCurrency.symbol,
+      currency_destination: orderData?.fiatCurrency.symbol,
+      order_id: order?.id,
+    }),
+    [order?.id, orderData],
+  );
+
+  useEffect(() => {
+    trackEvent(
+      'OFFRAMP_SEND_CRYPTO_PROMPT_VIEWED',
+      transactionAnalyticsPayload,
+    );
+  }, [transactionAnalyticsPayload]);
 
   const handleSend = useCallback(async () => {
     const { TransactionController: TxController } = Engine.context;
@@ -120,6 +141,10 @@ function SendTransaction() {
     }
 
     try {
+      trackEvent(
+        'OFFRAMP_SEND_TRANSACTION_INVOKED',
+        transactionAnalyticsPayload,
+      );
       const response = await TxController.addTransaction(transactionParams, {
         deviceConfirmedOn: WalletDevice.MM_MOBILE,
       });
@@ -127,19 +152,17 @@ function SendTransaction() {
       if (order?.id) {
         dispatch(setFiatSellTxHash(order.id, hash));
       }
+      trackEvent(
+        'OFFRAMP_SEND_TRANSACTION_CONFIRMED',
+        transactionAnalyticsPayload,
+      );
     } catch (error) {
-      // User rejected tx from modal
+      trackEvent(
+        'OFFRAMP_SEND_TRANSACTION_REJECTED',
+        transactionAnalyticsPayload,
+      );
     }
-  }, [
-    dispatch,
-    order?.id,
-    orderData.cryptoAmount,
-    orderData.cryptoCurrency.address,
-    orderData.cryptoCurrency.decimals,
-    orderData.cryptoCurrency.network.chainId,
-    orderData.depositWallet,
-    orderData.walletAddress,
-  ]);
+  }, [dispatch, order?.id, orderData, transactionAnalyticsPayload]);
 
   if (!order) {
     return null;

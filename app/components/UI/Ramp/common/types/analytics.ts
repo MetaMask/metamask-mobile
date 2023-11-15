@@ -271,13 +271,13 @@ interface RampError {
 }
 
 interface RampTransaction {
-  crypto_amount: number;
-  chain_id_source: string;
+  crypto_amount: string;
+  chain_id_source: number;
   fiat_out: number;
   payment_method_id: string;
   currency_source: string;
   currency_destination: string;
-  order_id: string;
+  order_id?: string;
 }
 
 export interface AnalyticsEvents {

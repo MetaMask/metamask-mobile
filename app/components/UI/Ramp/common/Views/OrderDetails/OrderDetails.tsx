@@ -95,7 +95,7 @@ const OrderDetails = () => {
   ]);
 
   useEffect(() => {
-    if (order) {
+    if (order && !params.redirectToSendTransaction) {
       const { data, state, cryptocurrency, orderType, currency, network } =
         order;
 

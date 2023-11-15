@@ -289,6 +289,7 @@ const mockNavigate = jest.fn();
 const mockGoBack = jest.fn();
 const mockReset = jest.fn();
 const mockPop = jest.fn();
+const mockTrackEvent = jest.fn();
 
 jest.mock('@react-navigation/native', () => {
   const actualReactNavigation = jest.requireActual('@react-navigation/native');
@@ -334,6 +335,8 @@ jest.mock('react-redux', () => ({
   useDispatch: () => mockDispatch,
 }));
 
+jest.mock('../../hooks/useAnalytics', () => () => mockTrackEvent);
+
 describe('SendTransaction View', () => {
   afterEach(() => {
     mockNavigate.mockClear();
@@ -342,6 +345,7 @@ describe('SendTransaction View', () => {
     mockReset.mockClear();
     mockPop.mockClear();
     mockDispatch.mockClear();
+    mockTrackEvent.mockClear();
     Engine.context.TransactionController.addTransaction.mockClear();
   });
 
@@ -359,6 +363,24 @@ describe('SendTransaction View', () => {
   it('renders correctly', async () => {
     render(SendTransaction);
     expect(screen.toJSON()).toMatchSnapshot();
+  });
+
+  it('calls analytics when rendering', async () => {
+    render(SendTransaction);
+    expect(mockTrackEvent.mock.lastCall).toMatchInlineSnapshot(`
+      Array [
+        "OFFRAMP_SEND_CRYPTO_PROMPT_VIEWED",
+        Object {
+          "chain_id_source": 1,
+          "crypto_amount": "0.012361263",
+          "currency_destination": "USD",
+          "currency_source": "ETH",
+          "fiat_out": 0,
+          "order_id": "test-id-1",
+          "payment_method_id": "/payments/instant-bank-transfer",
+        },
+      ]
+    `);
   });
 
   it('renders correctly for token', async () => {
@@ -398,6 +420,26 @@ describe('SendTransaction View', () => {
     `);
   });
 
+  it('calls analytics when clicking on send button', async () => {
+    render(SendTransaction);
+    const nextButton = screen.getByRole('button', { name: 'Next' });
+    fireEvent.press(nextButton);
+    expect(mockTrackEvent.mock.lastCall).toMatchInlineSnapshot(`
+      Array [
+        "OFFRAMP_SEND_TRANSACTION_INVOKED",
+        Object {
+          "chain_id_source": 1,
+          "crypto_amount": "0.012361263",
+          "currency_destination": "USD",
+          "currency_source": "ETH",
+          "fiat_out": 0,
+          "order_id": "test-id-1",
+          "payment_method_id": "/payments/instant-bank-transfer",
+        },
+      ]
+    `);
+  });
+
   it('calls TransactionController.addTransaction for erc20 when clicking on send button', async () => {
     mockUseParamsValues = { orderId: 'test-id-2' };
     render(SendTransaction);
@@ -424,6 +466,32 @@ describe('SendTransaction View', () => {
     `);
   });
 
+  it('calls analytics when the transaction is confirmed ', async () => {
+    render(SendTransaction);
+    const nextButton = screen.getByRole('button', { name: 'Next' });
+    (
+      Engine.context.TransactionController.addTransaction as jest.Mock
+    ).mockImplementationOnce(() => ({
+      result: Promise.resolve('0x987654321'),
+    }));
+
+    await act(async () => fireEvent.press(nextButton));
+    expect(mockTrackEvent.mock.lastCall).toMatchInlineSnapshot(`
+      Array [
+        "OFFRAMP_SEND_TRANSACTION_CONFIRMED",
+        Object {
+          "chain_id_source": 1,
+          "crypto_amount": "0.012361263",
+          "currency_destination": "USD",
+          "currency_source": "ETH",
+          "fiat_out": 0,
+          "order_id": "test-id-1",
+          "payment_method_id": "/payments/instant-bank-transfer",
+        },
+      ]
+    `);
+  });
+
   it('dispatches setFiatSellTxHash after getting hash from TransactionController.addTransaction', async () => {
     render(SendTransaction);
     const nextButton = screen.getByRole('button', { name: 'Next' });
@@ -446,6 +514,32 @@ describe('SendTransaction View', () => {
             "type": "FIAT_SET_SELL_TX_HASH",
           },
         ],
+      ]
+    `);
+  });
+
+  it('calls analytics when the transaction is rejected', async () => {
+    render(SendTransaction);
+    const nextButton = screen.getByRole('button', { name: 'Next' });
+    (
+      Engine.context.TransactionController.addTransaction as jest.Mock
+    ).mockImplementationOnce(() => ({
+      result: Promise.reject(new Error('Transaction rejected')),
+    }));
+
+    await act(async () => fireEvent.press(nextButton));
+    expect(mockTrackEvent.mock.lastCall).toMatchInlineSnapshot(`
+      Array [
+        "OFFRAMP_SEND_TRANSACTION_REJECTED",
+        Object {
+          "chain_id_source": 1,
+          "crypto_amount": "0.012361263",
+          "currency_destination": "USD",
+          "currency_source": "ETH",
+          "fiat_out": 0,
+          "order_id": "test-id-1",
+          "payment_method_id": "/payments/instant-bank-transfer",
+        },
       ]
     `);
   });
