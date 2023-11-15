@@ -97,7 +97,7 @@ import { isNetworkRampNativeTokenSupported } from '../Ramp/common/utils';
 import { getRampNetworks } from '../../../reducers/fiatOrders';
 import SkeletonText from '../Ramp/common/components/SkeletonText';
 import InfoModal from '../../../components/UI/Swaps/components/InfoModal';
-import BlockaidBanner from '../BlockaidBanner/BlockaidBanner';
+import TransactionBlockaidBanner from '../TransactionBlockaidBanner/TransactionBlockaidBanner';
 import { regex } from '../../../../app/util/regex';
 
 const { ORIGIN_DEEPLINK, ORIGIN_QR_CODE } = AppConstants.DEEPLINKS;
@@ -718,7 +718,7 @@ class ApproveTransactionReview extends PureComponent {
       primaryCurrency,
       gasError,
       activeTabUrl,
-      transaction: { origin, from, to, securityAlertResponse },
+      transaction: { origin, from, to, id: transactionId },
       chainId,
       over,
       gasEstimateType,
@@ -815,8 +815,8 @@ class ApproveTransactionReview extends PureComponent {
                     onStartShouldSetResponder={() => true}
                   >
                     {isBlockaidFeatureEnabled() && (
-                      <BlockaidBanner
-                        securityAlertResponse={securityAlertResponse}
+                      <TransactionBlockaidBanner
+                        transactionId={transactionId}
                         style={styles.blockaidWarning}
                         onContactUsClicked={this.onContactUsClicked}
                       />

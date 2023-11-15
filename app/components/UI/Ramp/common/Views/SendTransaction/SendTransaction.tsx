@@ -4,10 +4,7 @@ import { useDispatch, useSelector } from 'react-redux';
 import { useNavigation } from '@react-navigation/native';
 import { BN } from 'ethereumjs-util';
 import { SellOrder } from '@consensys/on-ramp-sdk/dist/API';
-import {
-  Transaction,
-  TransactionController,
-} from '@metamask/transaction-controller';
+import { Transaction, WalletDevice } from '@metamask/transaction-controller';
 import Engine from '../../../../../../core/Engine';
 
 import Row from '../../components/Row';
@@ -90,9 +87,7 @@ function SendTransaction() {
   }, [colors, navigation]);
 
   const handleSend = useCallback(async () => {
-    const {
-      TransactionController: TxController,
-    }: { TransactionController: TransactionController } = Engine.context;
+    const { TransactionController: TxController } = Engine.context;
 
     let transactionParams: Transaction;
     const amount = addHexPrefix(
@@ -123,7 +118,9 @@ function SendTransaction() {
     }
 
     try {
-      const response = await TxController.addTransaction(transactionParams);
+      const response = await TxController.addTransaction(transactionParams, {
+        deviceConfirmedOn: WalletDevice.MM_MOBILE,
+      });
       const hash = await response.result;
       if (order?.id) {
         dispatch(setFiatSellTxHash(order.id, hash));
