@@ -16,6 +16,7 @@ import {
 import { swapsLivenessSelector } from '../../../reducers/swaps';
 import { toggleReceiveModal } from '../../../actions/modals';
 import { isSwapsAllowed } from '../../../components/UI/Swaps/utils';
+import isBridgeAllowed from '../../UI/Bridge/utils/isBridgeAllowed';
 import { useNavigation } from '@react-navigation/native';
 import Routes from '../../../constants/navigation/Routes';
 import { MetaMetricsEvents } from '../../../core/Analytics';
@@ -28,10 +29,13 @@ import WalletAction from '../../../components/UI/WalletAction';
 import { useStyles } from '../../../component-library/hooks';
 import generateTestId from '../../../../wdio/utils/generateTestId';
 import { AvatarSize } from '../../../component-library/components/Avatars/Avatar';
+import { BrowserTab } from '../../../components/UI/Tokens/types';
+import type { BrowserParams } from '../../../components/Views/Browser/Browser.types';
 
 // Internal dependencies
 import styleSheet from './WalletActions.styles';
 import {
+  WALLET_BRIDGE,
   WALLET_BUY,
   WALLET_RECEIVE,
   WALLET_SELL,
@@ -45,6 +49,7 @@ const WalletActions = () => {
   const sheetRef = useRef<SheetBottomRef>(null);
   const { navigate } = useNavigation();
 
+  const browserTabs = useSelector((state: any) => state.browser.tabs);
   const chainId = useSelector(selectChainId);
   const ticker = useSelector(selectTicker);
   const swapsIsLive = useSelector(swapsLivenessSelector);
@@ -125,6 +130,35 @@ const WalletActions = () => {
     });
   };
 
+  const goToBridge = () => {
+    const bridgeUrl = `${AppConstants.PORTFOLIO_URL}/bridge`;
+    const existingBridgeTab = browserTabs.find((tab: BrowserTab) =>
+      tab.url.match(new RegExp(`${bridgeUrl}/(?![a-z])`)),
+    );
+
+    const params: BrowserParams & { existingTabId?: string } = {
+      timestamp: Date.now(),
+    };
+
+    if (existingBridgeTab) {
+      params.newTabUrl = undefined;
+      params.existingTabId = existingBridgeTab.id;
+    } else {
+      params.newTabUrl = `${bridgeUrl}/?metamaskEntry=mobile&srcChain=${chainId}`;
+    }
+
+    navigate(Routes.BROWSER.HOME, {
+      screen: Routes.BROWSER.VIEW,
+      params,
+    });
+    Analytics.trackEvent(MetaMetricsEvents.BRIDGE_LINK_CLICKED, {
+      bridgeUrl,
+      location: 'TabBar',
+      chain_id_source: chainId,
+      token_address_source: undefined,
+    });
+  };
+
   return (
     <SheetBottom ref={sheetRef}>
       <View style={styles.actionsContainer}>
@@ -165,6 +199,18 @@ const WalletActions = () => {
               {...generateTestId(Platform, WALLET_SWAP)}
             />
           )}
+
+        {isBridgeAllowed(chainId) && (
+          <WalletAction
+            actionTitle={strings('asset_overview.bridge')}
+            actionDescription={strings('asset_overview.bridge_description')}
+            iconName={IconName.Bridge}
+            iconSize={AvatarSize.Md}
+            onPress={goToBridge}
+            iconStyle={styles.icon}
+            {...generateTestId(Platform, WALLET_BRIDGE)}
+          />
+        )}
         <WalletAction
           actionTitle={strings('asset_overview.send_button')}
           actionDescription={strings('asset_overview.send_description')}
