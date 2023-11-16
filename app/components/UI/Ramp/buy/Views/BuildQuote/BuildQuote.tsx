@@ -821,7 +821,11 @@ const BuildQuote = () => {
       <PaymentMethodModal
         isVisible={isPaymentMethodModalVisible}
         dismiss={hidePaymentMethodModal as () => void}
-        title={strings('fiat_on_ramp_aggregator.select_payment_method')}
+        title={strings(
+          isBuy
+            ? 'fiat_on_ramp_aggregator.select_payment_method'
+            : 'fiat_on_ramp_aggregator.select_cash_destination',
+        )}
         paymentMethods={paymentMethods}
         selectedPaymentMethodId={selectedPaymentMethodId}
         selectedPaymentMethodType={currentPaymentMethod?.paymentType}

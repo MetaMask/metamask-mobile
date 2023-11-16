@@ -1922,6 +1922,7 @@
     },
     "payment_method": {
       "payment_method": "Payment Method",
+      "cash_destination": "Cash Destination",
       "instant": "Instant",
       "less_than": "Less than",
       "minute": "min",
@@ -1962,6 +1963,7 @@
     "search_by_currency": "Search for a currency",
     "update_payment_method": "Update payment method",
     "select_payment_method": "Select payment method",
+    "select_cash_destination": "Select where to send your cash",
     "select_region_currency": "Select Region Currency",
     "no_tokens_match": "No tokens match “{{searchString}}”",
     "no_currency_match": "No currencies match “{{searchString}}”",

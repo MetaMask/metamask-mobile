@@ -142,7 +142,9 @@ const PaymentMethods = () => {
         navigation,
         {
           title: strings(
-            'fiat_on_ramp_aggregator.payment_method.payment_method',
+            isBuy
+              ? 'fiat_on_ramp_aggregator.payment_method.payment_method'
+              : 'fiat_on_ramp_aggregator.payment_method.cash_destination',
           ),
           showBack,
         },
@@ -150,7 +152,7 @@ const PaymentMethods = () => {
         handleCancelPress,
       ),
     );
-  }, [navigation, colors, handleCancelPress, showBack]);
+  }, [navigation, colors, handleCancelPress, showBack, isBuy]);
 
   if (sdkError) {
     return (
