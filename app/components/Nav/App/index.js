@@ -333,8 +333,8 @@ const App = ({ userLoggedIn }) => {
           const { error } = opts;
 
           if (error) {
+            // Log error for analytics and continue handling deeplink
             Logger.error('Error from Branch: ' + error);
-            return;
           }
 
           handleDeeplink(opts);
