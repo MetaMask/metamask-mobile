@@ -97,6 +97,7 @@ jest.mock('../../../common/sdk', () => ({
 
 const mockUseParamsDefaultValues = {
   orderId: mockOrder.id,
+  redirectToSendTransaction: false,
 };
 
 let mockUseParamsValues = {
@@ -163,10 +164,28 @@ describe('OrderDetails', () => {
 
   it('renders an empty screen layout if there is no order', async () => {
     mockUseParamsValues = {
+      ...mockUseParamsDefaultValues,
       orderId: 'invalid-id',
     };
     render(OrderDetails);
     expect(screen.toJSON()).toMatchSnapshot();
+  });
+
+  it('redirects to send transaction page when user is redirected back from a provider for a sell order', async () => {
+    const testOrder = {
+      ...mockOrder,
+      state: FIAT_ORDER_STATES.CREATED,
+      orderType: OrderOrderTypeEnum.Sell,
+      sellTxHash: undefined,
+    };
+    mockUseParamsValues = {
+      ...mockUseParamsDefaultValues,
+      redirectToSendTransaction: true,
+    };
+    render(OrderDetails, [testOrder]);
+    expect(mockNavigate).toHaveBeenCalledWith(Routes.RAMP.SEND_TRANSACTION, {
+      orderId: testOrder.id,
+    });
   });
 
   it('renders a pending order', async () => {
@@ -199,6 +218,46 @@ describe('OrderDetails', () => {
     };
     render(OrderDetails, [failedOrder]);
     expect(screen.toJSON()).toMatchSnapshot();
+  });
+
+  it('sends analytics events when an order is loaded', () => {
+    render(OrderDetails);
+    expect(mockTrackEvent.mock.lastCall).toMatchInlineSnapshot(`
+      Array [
+        "ONRAMP_PURCHASE_DETAILS_VIEWED",
+        Object {
+          "chain_id_destination": "1",
+          "currency_destination": "ETH",
+          "currency_source": "USD",
+          "order_type": "BUY",
+          "payment_method_id": "test-payment-method-id",
+          "provider_onramp": "Test Provider",
+          "status": "PENDING",
+        },
+      ]
+    `);
+
+    mockTrackEvent.mockReset();
+    const testOrder = {
+      ...mockOrder,
+      orderType: OrderOrderTypeEnum.Sell,
+    };
+
+    render(OrderDetails, [testOrder]);
+    expect(mockTrackEvent.mock.lastCall).toMatchInlineSnapshot(`
+      Array [
+        "OFFRAMP_PURCHASE_DETAILS_VIEWED",
+        Object {
+          "chain_id_source": "1",
+          "currency_destination": "USD",
+          "currency_source": "ETH",
+          "order_type": "SELL",
+          "payment_method_id": "test-payment-method-id",
+          "provider_offramp": "Test Provider",
+          "status": "PENDING",
+        },
+      ]
+    `);
   });
 
   it('navigates to buy flow when the user attempts to make another purchase', async () => {
