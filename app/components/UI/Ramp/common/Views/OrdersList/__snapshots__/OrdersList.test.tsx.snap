@@ -38,12 +38,12 @@ exports[`OrdersList renders buy only correctly when pressing buy filter 1`] = `
           selected={false}
         />
         <FilterButton
-          label="Buy"
+          label="Purchased"
           onPress={[Function]}
           selected={true}
         />
         <FilterButton
-          label="Sell"
+          label="Sold"
           onPress={[Function]}
           selected={false}
         />
@@ -240,7 +240,7 @@ exports[`OrdersList renders buy only correctly when pressing buy filter 1`] = `
                   }
                 }
               >
-                Buy
+                Purchased
               </Text>
             </TouchableOpacity>
             <TouchableOpacity
@@ -279,7 +279,7 @@ exports[`OrdersList renders buy only correctly when pressing buy filter 1`] = `
                   }
                 }
               >
-                Sell
+                Sold
               </Text>
             </TouchableOpacity>
           </View>
@@ -1175,12 +1175,12 @@ exports[`OrdersList renders correctly 1`] = `
           selected={true}
         />
         <FilterButton
-          label="Buy"
+          label="Purchased"
           onPress={[Function]}
           selected={false}
         />
         <FilterButton
-          label="Sell"
+          label="Sold"
           onPress={[Function]}
           selected={false}
         />
@@ -1400,7 +1400,7 @@ exports[`OrdersList renders correctly 1`] = `
                   }
                 }
               >
-                Buy
+                Purchased
               </Text>
             </TouchableOpacity>
             <TouchableOpacity
@@ -1439,7 +1439,7 @@ exports[`OrdersList renders correctly 1`] = `
                   }
                 }
               >
-                Sell
+                Sold
               </Text>
             </TouchableOpacity>
           </View>
@@ -2636,12 +2636,12 @@ exports[`OrdersList renders empty buy message 1`] = `
           selected={false}
         />
         <FilterButton
-          label="Buy"
+          label="Purchased"
           onPress={[Function]}
           selected={true}
         />
         <FilterButton
-          label="Sell"
+          label="Sold"
           onPress={[Function]}
           selected={false}
         />
@@ -2769,7 +2769,7 @@ exports[`OrdersList renders empty buy message 1`] = `
                   }
                 }
               >
-                Buy
+                Purchased
               </Text>
             </TouchableOpacity>
             <TouchableOpacity
@@ -2808,7 +2808,7 @@ exports[`OrdersList renders empty buy message 1`] = `
                   }
                 }
               >
-                Sell
+                Sold
               </Text>
             </TouchableOpacity>
           </View>
@@ -2887,12 +2887,12 @@ exports[`OrdersList renders empty sell message 1`] = `
           selected={false}
         />
         <FilterButton
-          label="Buy"
+          label="Purchased"
           onPress={[Function]}
           selected={false}
         />
         <FilterButton
-          label="Sell"
+          label="Sold"
           onPress={[Function]}
           selected={true}
         />
@@ -3020,7 +3020,7 @@ exports[`OrdersList renders empty sell message 1`] = `
                   }
                 }
               >
-                Buy
+                Purchased
               </Text>
             </TouchableOpacity>
             <TouchableOpacity
@@ -3059,7 +3059,7 @@ exports[`OrdersList renders empty sell message 1`] = `
                   }
                 }
               >
-                Sell
+                Sold
               </Text>
             </TouchableOpacity>
           </View>
@@ -3138,12 +3138,12 @@ exports[`OrdersList renders sell only correctly when pressing sell filter 1`] = 
           selected={false}
         />
         <FilterButton
-          label="Buy"
+          label="Purchased"
           onPress={[Function]}
           selected={false}
         />
         <FilterButton
-          label="Sell"
+          label="Sold"
           onPress={[Function]}
           selected={true}
         />
@@ -3297,7 +3297,7 @@ exports[`OrdersList renders sell only correctly when pressing sell filter 1`] = 
                   }
                 }
               >
-                Buy
+                Purchased
               </Text>
             </TouchableOpacity>
             <TouchableOpacity
@@ -3336,7 +3336,7 @@ exports[`OrdersList renders sell only correctly when pressing sell filter 1`] = 
                   }
                 }
               >
-                Sell
+                Sold
               </Text>
             </TouchableOpacity>
           </View>
@@ -3684,12 +3684,12 @@ exports[`OrdersList resets filter to all after other filter was set 1`] = `
           selected={false}
         />
         <FilterButton
-          label="Buy"
+          label="Purchased"
           onPress={[Function]}
           selected={false}
         />
         <FilterButton
-          label="Sell"
+          label="Sold"
           onPress={[Function]}
           selected={true}
         />
@@ -3843,7 +3843,7 @@ exports[`OrdersList resets filter to all after other filter was set 1`] = `
                   }
                 }
               >
-                Buy
+                Purchased
               </Text>
             </TouchableOpacity>
             <TouchableOpacity
@@ -3882,7 +3882,7 @@ exports[`OrdersList resets filter to all after other filter was set 1`] = `
                   }
                 }
               >
-                Sell
+                Sold
               </Text>
             </TouchableOpacity>
           </View>
@@ -4228,12 +4228,12 @@ exports[`OrdersList resets filter to all after other filter was set 2`] = `
           selected={true}
         />
         <FilterButton
-          label="Buy"
+          label="Purchased"
           onPress={[Function]}
           selected={false}
         />
         <FilterButton
-          label="Sell"
+          label="Sold"
           onPress={[Function]}
           selected={false}
         />
@@ -4453,7 +4453,7 @@ exports[`OrdersList resets filter to all after other filter was set 2`] = `
                   }
                 }
               >
-                Buy
+                Purchased
               </Text>
             </TouchableOpacity>
             <TouchableOpacity
@@ -4492,7 +4492,7 @@ exports[`OrdersList resets filter to all after other filter was set 2`] = `
                   }
                 }
               >
-                Sell
+                Sold
               </Text>
             </TouchableOpacity>
           </View>

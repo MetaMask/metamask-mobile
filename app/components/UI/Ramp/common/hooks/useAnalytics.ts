@@ -5,8 +5,9 @@ import { MetaMetricsEvents } from '../../../../../core/Analytics';
 import { AnalyticsEvents } from '../types';
 
 const AnonymousEvents: (keyof AnalyticsEvents)[] = [
-  'ONRAMP_REGION_SELECTED',
-  'ONRAMP_REGION_RESET',
+  'RAMP_REGION_SELECTED',
+  'RAMP_REGION_RESET',
+  'ONRAMP_GET_STARTED_CLICKED',
   'ONRAMP_PAYMENT_METHOD_SELECTED',
   'ONRAMP_QUOTES_REQUESTED',
   'ONRAMP_QUOTES_RECEIVED',
@@ -15,6 +16,16 @@ const AnonymousEvents: (keyof AnalyticsEvents)[] = [
   'ONRAMP_PURCHASE_FAILED',
   'ONRAMP_PROVIDER_DETAILS_VIEWED',
   'ONRAMP_QUOTE_ERROR',
+
+  'OFFRAMP_GET_STARTED_CLICKED',
+  'OFFRAMP_PAYMENT_METHOD_SELECTED',
+  'OFFRAMP_QUOTES_REQUESTED',
+  'OFFRAMP_QUOTES_RECEIVED',
+  'OFFRAMP_PROVIDER_SELECTED',
+  'OFFRAMP_PURCHASE_COMPLETED',
+  'OFFRAMP_PURCHASE_FAILED',
+  'OFFRAMP_PROVIDER_DETAILS_VIEWED',
+  'OFFRAMP_QUOTE_ERROR',
 ];
 
 export function trackEvent<T extends keyof AnalyticsEvents>(

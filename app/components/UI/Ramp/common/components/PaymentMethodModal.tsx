@@ -11,7 +11,7 @@ import PaymentMethod from './PaymentMethod';
 import useAnalytics from '../hooks/useAnalytics';
 import { useTheme } from '../../../../../util/theme';
 import { Colors } from '../../../../../util/theme/models';
-import { Region, ScreenLocation } from '../types';
+import { RampType, Region, ScreenLocation } from '../types';
 
 const createStyles = (colors: Colors) =>
   StyleSheet.create({
@@ -47,6 +47,7 @@ interface Props {
   selectedPaymentMethodType: PaymentType | undefined;
   selectedRegion?: Region | null;
   location?: ScreenLocation;
+  rampType: RampType;
 }
 
 function PaymentMethodModal({
@@ -58,28 +59,37 @@ function PaymentMethodModal({
   selectedPaymentMethodId,
   selectedRegion,
   location,
+  rampType,
 }: Props) {
   const { colors } = useTheme();
   const styles = createStyles(colors);
   const trackEvent = useAnalytics();
+  const isBuy = rampType === RampType.BUY;
 
   const handleOnPressItemCallback = useCallback(
     (paymentMethodId) => {
       if (selectedPaymentMethodId !== paymentMethodId) {
         onItemPress(paymentMethodId);
-        trackEvent('ONRAMP_PAYMENT_METHOD_SELECTED', {
-          payment_method_id: paymentMethodId,
-          available_payment_method_ids: paymentMethods?.map(
-            ({ id }) => id,
-          ) as string[],
-          region: selectedRegion?.id as string,
-          location,
-        });
+
+        trackEvent(
+          isBuy
+            ? 'ONRAMP_PAYMENT_METHOD_SELECTED'
+            : 'OFFRAMP_PAYMENT_METHOD_SELECTED',
+          {
+            payment_method_id: paymentMethodId,
+            available_payment_method_ids: paymentMethods?.map(
+              ({ id }) => id,
+            ) as string[],
+            region: selectedRegion?.id as string,
+            location,
+          },
+        );
       } else {
         onItemPress();
       }
     },
     [
+      isBuy,
       location,
       onItemPress,
       paymentMethods,

@@ -70,7 +70,7 @@ jest.mock('@react-navigation/native', () => {
   };
 });
 
-const mockuseRampSDKInitialValues: Partial<RampSDK> = {
+const mockUseRampSDKInitialValues: Partial<RampSDK> = {
   selectedPaymentMethodId: '/payment-methods/test-payment-method',
   selectedChainId: '1',
   appConfig: {
@@ -81,10 +81,12 @@ const mockuseRampSDKInitialValues: Partial<RampSDK> = {
   callbackBaseUrl: '',
   sdkError: undefined,
   rampType: RampType.BUY,
+  isBuy: true,
+  isSell: false,
 };
 
 let mockUseRampSDKValues: DeepPartial<RampSDK> = {
-  ...mockuseRampSDKInitialValues,
+  ...mockUseRampSDKInitialValues,
 };
 
 jest.mock('../../../common/sdk', () => ({
@@ -95,7 +97,7 @@ jest.mock('../../../common/sdk', () => ({
 jest.mock('../../../common/hooks/useAnalytics', () => () => mockTrackEvent);
 jest.mock('../../hooks/useInAppBrowser', () => () => mockRenderInAppBrowser);
 
-const mockuseParamsInitialValues: DeepPartial<QuotesParams> = {
+const mockUseParamsInitialValues: DeepPartial<QuotesParams> = {
   amount: 50,
   asset: {
     symbol: 'ETH',
@@ -106,7 +108,7 @@ const mockuseParamsInitialValues: DeepPartial<QuotesParams> = {
 };
 
 let mockUseParamsValues = {
-  ...mockuseParamsInitialValues,
+  ...mockUseParamsInitialValues,
 };
 
 jest.mock('../../../../../../util/navigation/navUtils', () => ({
@@ -116,18 +118,18 @@ jest.mock('../../../../../../util/navigation/navUtils', () => ({
 
 const mockQueryGetQuotes = jest.fn();
 
-const mockuseQuotesInitialValues: Partial<ReturnType<typeof useQuotes>> = {
+const mockUseQuotesInitialValues: Partial<ReturnType<typeof useQuotes>> = {
   data: mockQuotesData as (QuoteResponse | QuoteError)[],
   isFetching: false,
   error: null,
   query: mockQueryGetQuotes,
 };
 
-let mockuseQuotesValues: Partial<ReturnType<typeof useQuotes>> = {
-  ...mockuseQuotesInitialValues,
+let mockUseQuotesValues: Partial<ReturnType<typeof useQuotes>> = {
+  ...mockUseQuotesInitialValues,
 };
 
-jest.mock('../../hooks/useQuotes', () => jest.fn(() => mockuseQuotesValues));
+jest.mock('../../hooks/useQuotes', () => jest.fn(() => mockUseQuotesValues));
 
 describe('Quotes', () => {
   afterEach(() => {
@@ -141,19 +143,19 @@ describe('Quotes', () => {
     // Reference: https://jestjs.io/docs/timer-mocks
     jest.useFakeTimers();
     mockUseRampSDKValues = {
-      ...mockuseRampSDKInitialValues,
+      ...mockUseRampSDKInitialValues,
     };
     mockUseParamsValues = {
-      ...mockuseParamsInitialValues,
+      ...mockUseParamsInitialValues,
     };
-    mockuseQuotesValues = {
-      ...mockuseQuotesInitialValues,
+    mockUseQuotesValues = {
+      ...mockUseQuotesInitialValues,
     };
   });
 
   it('calls setOptions when rendering', async () => {
-    mockuseQuotesValues = {
-      ...mockuseQuotesInitialValues,
+    mockUseQuotesValues = {
+      ...mockUseQuotesInitialValues,
       isFetching: true,
       data: null,
     };
@@ -174,11 +176,26 @@ describe('Quotes', () => {
       jest.useRealTimers();
     });
   });
+  it('navigates and tracks event on SELL cancel button press', async () => {
+    mockUseRampSDKValues.rampType = RampType.SELL;
+    mockUseRampSDKValues.isSell = true;
+    mockUseRampSDKValues.isBuy = false;
+    render(Quotes);
+    fireEvent.press(screen.getByRole('button', { name: 'Cancel' }));
+    expect(mockTrackEvent).toBeCalledWith('OFFRAMP_CANCELED', {
+      chain_id_source: '1',
+      location: 'Quotes Screen',
+      results_count: mockQuotesData.filter((quote) => !quote.error).length,
+    });
+    act(() => {
+      jest.useRealTimers();
+    });
+  });
 
   it('renders animation on first fetching', async () => {
     jest.useRealTimers();
-    mockuseQuotesValues = {
-      ...mockuseQuotesInitialValues,
+    mockUseQuotesValues = {
+      ...mockUseQuotesInitialValues,
       isFetching: true,
       data: null,
     };
@@ -189,8 +206,8 @@ describe('Quotes', () => {
   });
 
   it('renders correctly after animation without quotes', async () => {
-    mockuseQuotesValues = {
-      ...mockuseQuotesInitialValues,
+    mockUseQuotesValues = {
+      ...mockUseQuotesInitialValues,
       data: [],
     };
     render(Quotes);
@@ -217,23 +234,28 @@ describe('Quotes', () => {
     });
   });
 
-  it('navigates and tracks events when pressing buy button with app browser quote', async () => {
+  const simulateQuoteSelection = async (
+    browser: ProviderBuyFeatureBrowserEnum,
+  ) => {
     // Mock the functions for the 2nd mocked quote
     const mockData = cloneDeep(mockQuotesData);
     const mockedQuote = mockData[1] as QuoteResponse;
     const mockQuoteProviderName = mockedQuote.provider?.name as string;
-    mockedQuote.buy = () =>
-      Promise.resolve({
-        browser: ProviderBuyFeatureBrowserEnum.AppBrowser,
-        createWidget: () =>
-          Promise.resolve({
-            url: 'https://test-url.on-ramp.metamask',
-            orderId: 'test-order-id',
-            browser: ProviderBuyFeatureBrowserEnum.AppBrowser,
-          }),
-      });
-    mockuseQuotesValues = {
-      ...mockuseQuotesInitialValues,
+
+    const mockedBuyAction = {
+      browser,
+      createWidget: () =>
+        Promise.resolve({
+          url: 'https://test-url.on-ramp.metamask',
+          orderId: 'test-order-id',
+          browser,
+        }),
+    };
+
+    mockedQuote.buy = () => Promise.resolve(mockedBuyAction);
+
+    mockUseQuotesValues = {
+      ...mockUseQuotesInitialValues,
       data: mockData as (QuoteResponse | QuoteError)[],
     };
     render(Quotes);
@@ -254,12 +276,81 @@ describe('Quotes', () => {
       fireEvent.press(quoteContinueButton);
     });
 
+    return { mockedQuote, mockedBuyAction };
+  };
+
+  it('navigates and tracks events when pressing buy button with app browser quote', async () => {
+    const { mockedQuote } = await simulateQuoteSelection(
+      ProviderBuyFeatureBrowserEnum.AppBrowser,
+    );
     expect(mockNavigate).toBeCalledTimes(1);
     expect(mockNavigate).toBeCalledWith(Routes.RAMP.CHECKOUT, {
       provider: mockedQuote.provider,
       customOrderId: 'test-order-id',
       url: 'https://test-url.on-ramp.metamask',
     });
+    expect(mockTrackEvent.mock.lastCall).toMatchInlineSnapshot(`
+      Array [
+        "ONRAMP_PROVIDER_SELECTED",
+        Object {
+          "chain_id_destination": "1",
+          "crypto_out": 0.0162,
+          "currency_destination": "ETH",
+          "currency_source": "USD",
+          "exchange_rate": 2809.8765432098767,
+          "gas_fee": 2.64,
+          "payment_method_id": "/payment-methods/test-payment-method",
+          "processing_fee": 1.8399999999999999,
+          "provider_onramp": "MoonPay (Staging)",
+          "quote_position": 2,
+          "refresh_count": 1,
+          "results_count": 2,
+          "total_fee": 4.48,
+        },
+      ]
+    `);
+  });
+
+  it('calls the correct analytics event when a sell provider is clicked', async () => {
+    mockUseRampSDKValues.rampType = RampType.SELL;
+    mockUseRampSDKValues.isSell = true;
+    mockUseRampSDKValues.isBuy = false;
+
+    await simulateQuoteSelection(ProviderBuyFeatureBrowserEnum.AppBrowser);
+
+    expect(mockTrackEvent.mock.lastCall).toMatchInlineSnapshot(`
+      Array [
+        "OFFRAMP_PROVIDER_SELECTED",
+        Object {
+          "chain_id_source": "1",
+          "currency_destination": "USD",
+          "currency_source": "ETH",
+          "exchange_rate": 2809.8765432098767,
+          "fiat_out": 0.0162,
+          "gas_fee": 2.64,
+          "payment_method_id": "/payment-methods/test-payment-method",
+          "processing_fee": 1.8399999999999999,
+          "provider_offramp": "MoonPay (Staging)",
+          "quote_position": 2,
+          "refresh_count": 1,
+          "results_count": 2,
+          "total_fee": 4.48,
+        },
+      ]
+    `);
+  });
+
+  it('calls renderInAppBrowser hook and tracks events when pressing buy button with in-app browser quote', async () => {
+    const { mockedQuote, mockedBuyAction } = await simulateQuoteSelection(
+      ProviderBuyFeatureBrowserEnum.InAppOsBrowser,
+    );
+
+    expect(mockRenderInAppBrowser).toBeCalledWith(
+      mockedBuyAction,
+      mockedQuote.provider,
+      mockedQuote.amountIn,
+      mockedQuote.fiat?.symbol,
+    );
 
     expect(mockTrackEvent.mock.lastCall).toMatchInlineSnapshot(`
       Array [
@@ -283,64 +374,26 @@ describe('Quotes', () => {
     `);
   });
 
-  it('calls renderInAppBrowser hook and tracks events when pressing buy button with in-app browser quote', async () => {
-    // Mock the functions for the 2nd mocked quote
-    const mockData = cloneDeep(mockQuotesData);
-    const mockedQuote = mockData[1] as QuoteResponse;
-    const mockQuoteProviderName = mockedQuote.provider?.name as string;
-    const mockedBuyAction = {
-      browser: ProviderBuyFeatureBrowserEnum.InAppOsBrowser,
-      createWidget: () =>
-        Promise.resolve({
-          url: 'https://test-url.on-ramp.metamask',
-          orderId: 'test-order-id',
-          browser: ProviderBuyFeatureBrowserEnum.InAppOsBrowser,
-        }),
-    };
-    mockedQuote.buy = () => Promise.resolve(mockedBuyAction);
-    mockuseQuotesValues = {
-      ...mockuseQuotesInitialValues,
-      data: mockData as (QuoteResponse | QuoteError)[],
-    };
+  it('calls the correct analytics event for in-app browser sell quotes', async () => {
+    mockUseRampSDKValues.rampType = RampType.SELL;
+    mockUseRampSDKValues.isSell = true;
+    mockUseRampSDKValues.isBuy = false;
 
-    render(Quotes);
-    act(() => {
-      jest.advanceTimersByTime(3000);
-      jest.clearAllTimers();
-      jest.useRealTimers();
-    });
-
-    const quoteToSelect = screen.getByLabelText(mockQuoteProviderName);
-    fireEvent.press(quoteToSelect);
-
-    const quoteContinueButton = screen.getByRole('button', {
-      name: `Continue with ${mockQuoteProviderName}`,
-    });
-
-    await act(async () => {
-      fireEvent.press(quoteContinueButton);
-    });
-
-    expect(mockRenderInAppBrowser).toBeCalledWith(
-      mockedBuyAction,
-      mockedQuote.provider,
-      mockedQuote.amountIn,
-      mockedQuote.fiat?.symbol,
-    );
+    await simulateQuoteSelection(ProviderBuyFeatureBrowserEnum.InAppOsBrowser);
 
     expect(mockTrackEvent.mock.lastCall).toMatchInlineSnapshot(`
       Array [
-        "ONRAMP_PROVIDER_SELECTED",
+        "OFFRAMP_PROVIDER_SELECTED",
         Object {
-          "chain_id_destination": "1",
-          "crypto_out": 0.0162,
-          "currency_destination": "ETH",
-          "currency_source": "USD",
+          "chain_id_source": "1",
+          "currency_destination": "USD",
+          "currency_source": "ETH",
           "exchange_rate": 2809.8765432098767,
+          "fiat_out": 0.0162,
           "gas_fee": 2.64,
           "payment_method_id": "/payment-methods/test-payment-method",
           "processing_fee": 1.8399999999999999,
-          "provider_onramp": "MoonPay (Staging)",
+          "provider_offramp": "MoonPay (Staging)",
           "quote_position": 2,
           "refresh_count": 1,
           "results_count": 2,
@@ -405,9 +458,9 @@ describe('Quotes', () => {
 
   it('renders quotes expired screen', async () => {
     mockUseRampSDKValues = {
-      ...mockuseRampSDKInitialValues,
+      ...mockUseRampSDKInitialValues,
       appConfig: {
-        ...mockuseRampSDKInitialValues.appConfig,
+        ...mockUseRampSDKInitialValues.appConfig,
         POLLING_CYCLES: 0,
       },
     };
@@ -471,9 +524,62 @@ describe('Quotes', () => {
     });
   });
 
+  it('calls track event on sell quotes received and sell quote error', async () => {
+    mockUseRampSDKValues.rampType = RampType.SELL;
+    mockUseRampSDKValues.isSell = true;
+    mockUseRampSDKValues.isBuy = false;
+    render(Quotes);
+    act(() => {
+      jest.advanceTimersByTime(3000);
+      jest.clearAllTimers();
+    });
+    expect(mockTrackEvent.mock.calls).toMatchInlineSnapshot(`
+      Array [
+        Array [
+          "OFFRAMP_QUOTES_RECEIVED",
+          Object {
+            "amount": 50,
+            "average_fiat_out": 0.016671,
+            "average_gas_fee": 1.32,
+            "average_processing_fee": 1.455,
+            "average_total_fee": 2.7750000000000004,
+            "average_total_fee_of_amount": 202.50619012432108,
+            "chain_id_source": "1",
+            "currency_destination": "USD",
+            "currency_source": "ETH",
+            "payment_method_id": "/payment-methods/test-payment-method",
+            "provider_offramp_first": "Banxa (Staging)",
+            "provider_offramp_last": "MoonPay (Staging)",
+            "provider_offramp_list": Array [
+              "Banxa (Staging)",
+              "MoonPay (Staging)",
+            ],
+            "refresh_count": 1,
+            "results_count": 2,
+          },
+        ],
+        Array [
+          "OFFRAMP_QUOTE_ERROR",
+          Object {
+            "amount": 50,
+            "chain_id_source": "1",
+            "currency_destination": "USD",
+            "currency_source": "ETH",
+            "error_message": undefined,
+            "payment_method_id": "/payment-methods/test-payment-method",
+            "provider_offramp": "Transak (Staging)",
+          },
+        ],
+      ]
+    `);
+    act(() => {
+      jest.useRealTimers();
+    });
+  });
+
   it('renders correctly with sdkError', async () => {
     mockUseRampSDKValues = {
-      ...mockuseRampSDKInitialValues,
+      ...mockUseRampSDKInitialValues,
       sdkError: new Error('Example SDK Error'),
     };
     render(Quotes);
@@ -486,7 +592,7 @@ describe('Quotes', () => {
 
   it('navigates to home when clicking sdKError button', async () => {
     mockUseRampSDKValues = {
-      ...mockuseRampSDKInitialValues,
+      ...mockUseRampSDKInitialValues,
       sdkError: new Error('Example SDK Error'),
     };
     render(Quotes);
@@ -500,8 +606,8 @@ describe('Quotes', () => {
   });
 
   it('renders correctly when fetching quotes errors', async () => {
-    mockuseQuotesValues = {
-      ...mockuseQuotesInitialValues,
+    mockUseQuotesValues = {
+      ...mockUseQuotesInitialValues,
       error: 'Test Error',
     };
     render(Quotes);
@@ -512,8 +618,8 @@ describe('Quotes', () => {
   });
 
   it('fetches quotes again when pressing button after fetching quotes errors', async () => {
-    mockuseQuotesValues = {
-      ...mockuseQuotesInitialValues,
+    mockUseQuotesValues = {
+      ...mockUseQuotesInitialValues,
       error: 'Test Error',
     };
     render(Quotes);

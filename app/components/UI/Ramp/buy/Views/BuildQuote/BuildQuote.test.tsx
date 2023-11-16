@@ -14,13 +14,14 @@ import usePaymentMethods from '../../hooks/usePaymentMethods';
 import {
   mockCryptoCurrenciesData,
   mockFiatCurrenciesData,
-  mockRegionsData,
   mockPaymentMethods,
+  mockRegionsData,
 } from './BuildQuote.constants';
 import useLimits from '../../hooks/useLimits';
 import useAddressBalance from '../../../../../hooks/useAddressBalance/useAddressBalance';
 import useBalance from '../../../common/hooks/useBalance';
 import { toTokenMinimalUnit } from '../../../../../../util/number';
+import { RampType } from '../../../../../../reducers/fiatOrders/types';
 
 const getByRoleButton = (name?: string | RegExp) =>
   screen.getByRole('button', { name });
@@ -356,14 +357,13 @@ describe('BuildQuote View', () => {
 
     mockUseRampSDKValues.isBuy = false;
     mockUseRampSDKValues.isSell = true;
-
-    // TODO(analytics): replace with correct event once sell analytics is implemented
+    mockUseRampSDKValues.rampType = RampType.SELL;
     render(BuildQuote);
     fireEvent.press(screen.getByRole('button', { name: 'Cancel' }));
     expect(mockPop).toHaveBeenCalled();
-    expect(mockTrackEvent).toBeCalledWith('ONRAMP_CANCELED', {
-      chain_id_destination: '1',
-      location: 'Amount to Buy Screen',
+    expect(mockTrackEvent).toBeCalledWith('OFFRAMP_CANCELED', {
+      chain_id_source: '1',
+      location: 'Amount to Sell Screen',
     });
   });
 
@@ -720,14 +720,14 @@ describe('BuildQuote View', () => {
       fiatCurrency: mockUseFiatCurrenciesValues.currentFiatCurrency,
     });
 
-    // TODO(analytics): update with correct event once sell analytics is implemented
-    expect(mockTrackEvent).toHaveBeenCalledWith('ONRAMP_QUOTES_REQUESTED', {
+    expect(mockTrackEvent).toHaveBeenCalledWith('OFFRAMP_QUOTES_REQUESTED', {
       amount: VALID_AMOUNT,
-      currency_source: mockUseFiatCurrenciesValues?.currentFiatCurrency?.symbol,
-      currency_destination: mockUseRampSDKValues?.selectedAsset?.symbol,
+      currency_source: mockUseRampSDKValues?.selectedAsset?.symbol,
+      currency_destination:
+        mockUseFiatCurrenciesValues?.currentFiatCurrency?.symbol,
       payment_method_id: mockUsePaymentMethodsValues.currentPaymentMethod?.id,
-      chain_id_destination: '1',
-      location: 'Amount to Buy Screen',
+      chain_id_source: '1',
+      location: 'Amount to Sell Screen',
     });
   });
 });
