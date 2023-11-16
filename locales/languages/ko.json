@@ -801,6 +801,10 @@
     "unkown_dapp": "디앱 이름을 사용할 수 없습니다",
     "no_connections": "연결을 찾을 수 없습니다"
   },
+  "sdk_return_to_app_modal":{
+    "title": "앱으로 돌아가기",
+    "description": "서비스를 계속 이용하려면 앱으로 돌아가십시오."
+  },
   "sdk_feedback_modal": {
     "ok": "확인",
     "title": "계정에 연결할 수 없습니다",
