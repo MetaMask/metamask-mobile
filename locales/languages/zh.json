@@ -2772,7 +2772,7 @@
     "ledger_disconnected_error": "与设备的连接已断开。请重试。",
     "unknown_error": "发生意外错误。",
     "unknown_error_message": "发生意外错误。请重试。",
-    "error_occured": "发生错误",
+    "error_occurred": "发生错误",
     "how_to_install_eth_app": "如何在Ledger设备上安装以太坊应用程序",
     "ledger_account_count": "您正在以您的Ledger使用1个MetaMask Mobile账户。",
     "open_eth_app": "请打开以太坊应用程序",

@@ -2772,7 +2772,7 @@
     "ledger_disconnected_error": "기기의 연결이 끊어졌습니다. 다시 시도하세요.",
     "unknown_error": "예기치 못한 오류가 발생했습니다.",
     "unknown_error_message": "예기치 못한 오류가 발생했습니다. 다시 시도하세요.",
-    "error_occured": "오류가 발생했습니다",
+    "error_occurred": "오류가 발생했습니다",
     "how_to_install_eth_app": "Ledger 기기에 이더리움 앱 설치하는 방법",
     "ledger_account_count": "MetaMask Mobile의 Ledger에서 1개의 계정을 사용 중입니다.",
     "open_eth_app": "이더리움 앱을 여세요",

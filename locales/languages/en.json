@@ -2773,7 +2773,7 @@
     "ledger_disconnected_error": "The connection to your device has been lost. Please try again.",
     "unknown_error": "Unexpected error occurred.",
     "unknown_error_message": "An unexpected error occurred. Please try again.",
-    "error_occured": "An error occurred",
+    "error_occurred": "An error occurred",
     "how_to_install_eth_app": "How to install the Ethereum app on a Ledger device",
     "ledger_account_count": "You are using 1 account from your Ledger with MetaMask Mobile.",
     "open_eth_app": "Please open the Ethereum app",

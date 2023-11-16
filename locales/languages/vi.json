@@ -2772,7 +2772,7 @@
     "ledger_disconnected_error": "Đã mất kết nối với thiết bị của bạn. Vui lòng thử lại.",
     "unknown_error": "Đã xảy ra lỗi không mong muốn.",
     "unknown_error_message": "Đã xảy ra lỗi không mong muốn. Vui lòng thử lại.",
-    "error_occured": "Đã xảy ra lỗi",
+    "error_occurred": "Đã xảy ra lỗi",
     "how_to_install_eth_app": "Cách cài đặt ứng dụng Ethereum trên thiết bị Ledger",
     "ledger_account_count": "Bạn đang sử dụng 1 tài khoản từ Ledger bằng MetaMask Di động.",
     "open_eth_app": "Vui lòng mở ứng dụng Ethereum",

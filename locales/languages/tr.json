@@ -2772,7 +2772,7 @@
     "ledger_disconnected_error": "Cihazınız ile bağlantı kaybedildi. Lütfen tekrar deneyin.",
     "unknown_error": "Beklenmedik hata oluştu.",
     "unknown_error_message": "Beklenmeyen bir hata oluştu. Lütfen tekrar deneyin.",
-    "error_occured": "Bir hata oluştu",
+    "error_occurred": "Bir hata oluştu",
     "how_to_install_eth_app": "Ledger cihazına Ethereum uygulaması nasıl yüklenir?",
     "ledger_account_count": "Ledger cihazınızda MetaMask Mobil ile 1 hesap kullanıyorsunuz.",
     "open_eth_app": "Lütfen Ethereum uygulamasını açın",

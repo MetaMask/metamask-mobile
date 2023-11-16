@@ -2772,7 +2772,7 @@
     "ledger_disconnected_error": "La connexion à votre appareil a été perdue, veuillez réessayer.",
     "unknown_error": "Une erreur inattendue est survenue.",
     "unknown_error_message": "Une erreur inattendue est survenue, veuillez réessayer.",
-    "error_occured": "Une erreur est survenue",
+    "error_occurred": "Une erreur est survenue",
     "how_to_install_eth_app": "Comment installer l’application Ethereum sur un appareil Ledger",
     "ledger_account_count": "Vous utilisez 1 compte de votre Ledger avec MetaMask Mobile.",
     "open_eth_app": "Veuillez ouvrir l’application Ethereum",

@@ -2772,7 +2772,7 @@
     "ledger_disconnected_error": "Die Verbindung zu Ihrem Gerät wurde unterbrochen. Bitte versuchen Sie es erneut.",
     "unknown_error": "Ein unerwarteter Fehler ist aufgetreten.",
     "unknown_error_message": "Ein unerwarteter Fehler ist aufgetreten. Bitte versuchen Sie es erneut.",
-    "error_occured": "Ein Fehler ist aufgetreten",
+    "error_occurred": "Ein Fehler ist aufgetreten",
     "how_to_install_eth_app": "So installieren Sie die Ethereum-App auf einem Ledger-Gerät",
     "ledger_account_count": "Sie verwenden 1 Konto von Ihrem Ledger mit MetaMask Mobile.",
     "open_eth_app": "Bitte öffnen Sie die Ethereum-App.",

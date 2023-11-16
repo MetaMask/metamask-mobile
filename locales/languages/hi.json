@@ -2772,7 +2772,7 @@
     "ledger_disconnected_error": "आपके डिवाइस से कनेक्शन टूट गया है। कृपया फिर से कोशिश करें।",
     "unknown_error": "अनपेक्षित गड़बड़ी हुई।",
     "unknown_error_message": "एक अनपेक्षित गड़बड़ी हुई। कृपया फिर से कोशिश करें।",
-    "error_occured": "एक गड़बड़ी हुई",
+    "error_occurred": "एक गड़बड़ी हुई",
     "how_to_install_eth_app": "Ledger डिवाइस पर Ethereum ऐप कैसे इंस्टॉल करें",
     "ledger_account_count": "आप MetaMask मोबाइल के साथ अपने Ledger से 1 अकाउंट का उपयोग कर रहे हैं।",
     "open_eth_app": "कृपया Ethereum ऐप खोलें",

@@ -2772,7 +2772,7 @@
     "ledger_disconnected_error": "デバイスへの接続が失われました。もう一度お試しください。",
     "unknown_error": "予期せぬエラーが発生しました。",
     "unknown_error_message": "予期せぬエラーが発生しました。もう一度お試しください。",
-    "error_occured": "エラーが発生しました",
+    "error_occurred": "エラーが発生しました",
     "how_to_install_eth_app": "Ledgerデバイスにイーサリアムアプリをインストールする方法",
     "ledger_account_count": "MetaMask MobileでLedgerのアカウントを1つ使用しています。",
     "open_eth_app": "イーサリアムアプリを開いてください",

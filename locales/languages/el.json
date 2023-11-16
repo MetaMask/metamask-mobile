@@ -2772,7 +2772,7 @@
     "ledger_disconnected_error": "Η σύνδεση με τη συσκευή σας έχει χαθεί. Προσπαθήστε ξανά.",
     "unknown_error": "Προέκυψε απροσδόκητο σφάλμα.",
     "unknown_error_message": "Προέκυψε ένα μη αναμενόμενο σφάλμα. Προσπαθήστε ξανά.",
-    "error_occured": "Προέκυψε ένα σφάλμα",
+    "error_occurred": "Προέκυψε ένα σφάλμα",
     "how_to_install_eth_app": "Πώς να εγκαταστήσετε την εφαρμογή Ethereum σε μια συσκευή Ledger",
     "ledger_account_count": "Χρησιμοποιείτε 1 λογαριασμό από το Ledger σας με το MetaMask Mobile.",
     "open_eth_app": "Ανοίξτε την εφαρμογή Ethereum",

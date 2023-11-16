@@ -2772,7 +2772,7 @@
     "ledger_disconnected_error": "Koneksi ke perangkat telah terputus. Silakan coba lagi.",
     "unknown_error": "Terjadi kesalahan tidak terduga.",
     "unknown_error_message": "Terjadi kesalahan tidak terduga. Silakan coba lagi.",
-    "error_occured": "Terjadi kesalahan",
+    "error_occurred": "Terjadi kesalahan",
     "how_to_install_eth_app": "Cara menginstal aplikasi Ethereum di perangkat Ledger",
     "ledger_account_count": "Anda menggunakan 1 akun dari Ledger dengan MetaMask Mobile.",
     "open_eth_app": "Buka aplikasi Ethereum",

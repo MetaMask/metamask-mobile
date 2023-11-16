@@ -2772,7 +2772,7 @@
     "ledger_disconnected_error": "Nawala ang koneksyon sa iyong device. Pakisubukang muli.",
     "unknown_error": "Naganap ang hindi inaasahang error.",
     "unknown_error_message": "May naganap na hindi inaasahang error. Mangyaring subukan muli.",
-    "error_occured": "May naganap na error",
+    "error_occurred": "May naganap na error",
     "how_to_install_eth_app": "Paano i-install ang app ng Ethereum sa isang Ledger device",
     "ledger_account_count": "Gumagamit ka ng 1 account mula sa iyong Ledger gamit ang MetaMask Mobile.",
     "open_eth_app": "Mangyaring buksan ang app ng Ethereum",
