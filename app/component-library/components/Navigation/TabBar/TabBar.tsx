@@ -133,7 +133,7 @@ const TabBar = ({ state, descriptors, navigation }: TabBarProps) => {
         />
       );
     },
-    [state, descriptors, navigation, colors, chainId],
+    [state, descriptors, navigation, colors, chainId, dispatch],
   );
 
   const renderTabBarItems = useCallback(
