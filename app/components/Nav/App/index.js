@@ -92,10 +92,8 @@ import AsyncStorage from '../../../store/async-storage-wrapper';
 import ShowIpfsGatewaySheet from '../../Views/ShowIpfsGatewaySheet/ShowIpfsGatewaySheet';
 import ShowDisplayNftMediaSheet from '../../Views/ShowDisplayMediaNFTSheet/ShowDisplayNFTMediaSheet';
 import AmbiguousAddressSheet from '../../../../app/components/Views/Settings/Contacts/AmbiguousAddressSheet/AmbiguousAddressSheet';
-import {createClient} from "@segment/analytics-react-native";
-import generateDeviceAnalyticsMetaData, {generateMetametricsId} from "../../../util/metrics";
-import {METAMETRICS_ANONYMOUS_ID} from "../../../core/Analytics/MetaMetrics.constants";
-import {MetaMetrics} from "../../../core/Analytics";
+import generateDeviceAnalyticsMetaData from '../../../util/metrics';
+import { MetaMetrics } from '../../../core/Analytics';
 
 const clearStackNavigatorOptions = {
   headerShown: false,
@@ -348,23 +346,41 @@ const App = ({ userLoggedIn }) => {
   useEffect(() => {
     const initAnalytics = async () => {
       Logger.log('Initializing Segment Analytics');
-        const metrics = await MetaMetrics.getInstance();
-        await metrics.reset();
-        await metrics.enable();
+      const metrics = await MetaMetrics.getInstance();
+      await metrics.reset();
+      await metrics.enable();
 
-        await metrics.addTraitsToUser({identification: 'test'});
-        metrics.trackEvent('normal event', {
-            ...generateDeviceAnalyticsMetaData(),
-        });
-      metrics.trackAnonymousEvent('anonymous event', {
+      // get time hour and minutes and seconds and concatenate them to get a unique id
+      const date = new Date();
+      const time = `${date.getHours()}${date.getMinutes()}${date.getSeconds()}`;
+
+      // await metrics.addTraitsToUser({identification: 'test'});
+      metrics.trackEvent(time + 'normal anonymous event', {
         ...generateDeviceAnalyticsMetaData(),
       });
+      metrics.trackAnonymousEvent(time + 'anonymous anonymous event', {
+        ...generateDeviceAnalyticsMetaData(),
+      });
+      //run a timer to track another event in 10seconds
+      setTimeout(async () => {
+        await metrics.addTraitsToUser({ testtime: time });
+        metrics.trackEvent(time + 'delayed identified event', {
+          ...generateDeviceAnalyticsMetaData(),
+        });
+        metrics.trackAnonymousEvent(
+          time + 'delayed identified anonymous event',
+          {
+            ...generateDeviceAnalyticsMetaData(),
+          },
+        );
         await metrics.flush();
+      }, 5000);
+      // await metrics.flush();
     };
 
     initAnalytics()
-        .then(r => Logger.log('Segment Analytics initialized'))
-        .catch(e => Logger.error('Error initializing Segment Analytics', e));
+      .then((r) => Logger.log('Segment Analytics initialized'))
+      .catch((e) => Logger.error('Error initializing Segment Analytics', e));
   }, []);
 
   useEffect(() => {

@@ -70,7 +70,7 @@ export interface IMetaMetrics {
    * flush the queue of events
    * triggers the upload of the events
    */
-  flush(): Promise<void>
+  flush(): Promise<void>;
   /**
    * delete user's data from Segment and all related
    * destinations.

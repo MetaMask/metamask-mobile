@@ -13,7 +13,8 @@ import {
   DENIED,
   METAMETRICS_ID,
   METAMETRICS_SEGMENT_REGULATION_ID,
-  METRICS_OPT_IN, MIXPANEL_METAMETRICS_ID,
+  METRICS_OPT_IN,
+  MIXPANEL_METAMETRICS_ID,
 } from '../../constants/storage';
 
 import {
@@ -70,8 +71,10 @@ class MetaMetrics implements IMetaMetrics {
       await DefaultPreference.set(METAMETRICS_ID, this.metametricsId);
     }
     if (__DEV__) Logger.log(`Current MetaMatrics ID: ${this.metametricsId}`);
-    if (__DEV__){
-      const metametricsId = await DefaultPreference.get(MIXPANEL_METAMETRICS_ID);
+    if (__DEV__) {
+      const metametricsId = await DefaultPreference.get(
+        MIXPANEL_METAMETRICS_ID,
+      );
       Logger.log(`MIXPANEL_METAMETRICS_ID: ${metametricsId}`);
     }
     return this.metametricsId;
@@ -114,14 +117,8 @@ class MetaMetrics implements IMetaMetrics {
    * @param anonymously - Boolean indicating if the event should be anonymous.
    * @param properties - Object containing any event relevant traits or properties (optional).
    */
-  #trackEvent = (
-    event: string,
-    properties: JsonMap,
-  ): void =>
-      this.segmentClient?.track(
-          event,
-          properties
-      );
+  #trackEvent = (event: string, properties: JsonMap): void =>
+    this.segmentClient?.track(event, properties);
 
   /**
    * Method to clear the internal state of the library for the current user and group.
@@ -226,7 +223,6 @@ class MetaMetrics implements IMetaMetrics {
           : process.env.SEGMENT_PROD_PROXY_URL,
         anonymousId: METAMETRICS_ANONYMOUS_ID,
       };
-      console.debug('MetaMetrics config', config);
       this.instance = new MetaMetrics(createClient(config));
       // get the user metrics preference when initializing
       this.instance.enabled = await this.instance.#isMetaMetricsEnabled();
@@ -265,14 +261,14 @@ class MetaMetrics implements IMetaMetrics {
 
   trackAnonymousEvent(event: string, properties: JsonMap = {}): void {
     if (this.enabled) {
-      this.#trackEvent(event, {anonymous: true, ...properties });
-      this.#trackEvent(event, {anonymous: true});
+      this.#trackEvent(event, { anonymous: true, ...properties });
+      this.#trackEvent(event, { anonymous: true });
     }
   }
 
   trackEvent = (event: string, properties: JsonMap = {}): void => {
     if (this.enabled) {
-      this.#trackEvent(event, {anonymous: false, ...properties });
+      this.#trackEvent(event, { anonymous: false, ...properties });
     }
   };
 
@@ -281,8 +277,7 @@ class MetaMetrics implements IMetaMetrics {
     await this.#resetMetaMetricsId();
   };
 
-  flush = async (): Promise<void> =>
-      this.segmentClient?.flush();
+  flush = async (): Promise<void> => this.segmentClient?.flush();
 
   createSegmentDeleteRegulation = async (): Promise<{
     status: string;
