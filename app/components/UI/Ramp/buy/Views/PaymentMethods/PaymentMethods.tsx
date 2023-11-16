@@ -207,11 +207,15 @@ const PaymentMethods = () => {
         <ScreenLayout.Body>
           <ErrorView
             title={strings(
-              'fiat_on_ramp_aggregator.payment_method.no_payment_methods_title',
+              isBuy
+                ? 'fiat_on_ramp_aggregator.payment_method.no_payment_methods_title'
+                : 'fiat_on_ramp_aggregator.payment_method.no_cash_destinations_title',
               { regionName: selectedRegion?.name },
             )}
             description={strings(
-              'fiat_on_ramp_aggregator.payment_method.no_payment_methods_description',
+              isBuy
+                ? 'fiat_on_ramp_aggregator.payment_method.no_payment_methods_description'
+                : 'fiat_on_ramp_aggregator.payment_method.no_cash_destinations_description',
               { regionName: selectedRegion?.name },
             )}
             ctaOnPress={handleResetState}
