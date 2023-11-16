@@ -487,7 +487,8 @@ PODS:
     - React-Core
   - RNOS (1.2.6):
     - React
-  - RNPermissions (3.10.1):
+  - RNPermissions (
+  ):
     - React-Core
   - RNReanimated (3.1.0):
     - DoubleConversion
@@ -955,4 +956,4 @@ SPEC CHECKSUMS:
 
 PODFILE CHECKSUM: 9998613cddd82230ec4c763aff8bde34a36caa05
 
-COCOAPODS: 1.14.2
+COCOAPODS: 1.12.1
