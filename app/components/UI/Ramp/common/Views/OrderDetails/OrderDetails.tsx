@@ -84,6 +84,7 @@ const OrderDetails = () => {
   useEffect(() => {
     if (
       order?.state === FIAT_ORDER_STATES.CREATED &&
+      !order.sellTxHash &&
       params.redirectToSendTransaction
     ) {
       navigateToSendTransaction();
@@ -92,6 +93,7 @@ const OrderDetails = () => {
     order?.state,
     params.redirectToSendTransaction,
     navigateToSendTransaction,
+    order?.sellTxHash,
   ]);
 
   useEffect(() => {

@@ -270,6 +270,16 @@ interface RampError {
   currency_destination?: string;
 }
 
+interface RampTransaction {
+  crypto_amount: string;
+  chain_id_source: number;
+  fiat_out: number;
+  payment_method_id: string;
+  currency_source: string;
+  currency_destination: string;
+  order_id?: string;
+}
+
 export interface AnalyticsEvents {
   BUY_BUTTON_CLICKED: BuyButtonClicked;
   SELL_BUTTON_CLICKED: SellButtonClicked;
@@ -326,6 +336,11 @@ export interface AnalyticsEvents {
 
   ONRAMP_ERROR: RampError;
   OFFRAMP_ERROR: RampError;
+
+  OFFRAMP_SEND_CRYPTO_PROMPT_VIEWED: RampTransaction;
+  OFFRAMP_SEND_TRANSACTION_INVOKED: RampTransaction;
+  OFFRAMP_SEND_TRANSACTION_CONFIRMED: RampTransaction;
+  OFFRAMP_SEND_TRANSACTION_REJECTED: RampTransaction;
 
   // after redirection events will go here
 }
