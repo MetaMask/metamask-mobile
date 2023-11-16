@@ -301,6 +301,7 @@ function FiatOrders() {
           initial: false,
           params: {
             orderId: order.id,
+            redirectToSendTransaction: true,
           },
         });
       }
