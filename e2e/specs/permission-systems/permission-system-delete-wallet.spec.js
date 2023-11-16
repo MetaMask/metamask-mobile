@@ -1,24 +1,18 @@
 'use strict';
 import TestHelpers from '../../helpers';
 import { Regression } from '../../tags';
-
 import OnboardingView from '../../pages/Onboarding/OnboardingView';
 import ProtectYourWalletView from '../../pages/Onboarding/ProtectYourWalletView';
 import CreatePasswordView from '../../pages/Onboarding/CreatePasswordView';
-
 import WalletView from '../../pages/WalletView';
-
 import Browser from '../../pages/Drawer/Browser';
 import SettingsView from '../../pages/Drawer/Settings/SettingsView';
-
 import TabBarComponent from '../../pages/TabBarComponent';
-
 import SkipAccountSecurityModal from '../../pages/modals/SkipAccountSecurityModal';
 import ConnectedAccountsModal from '../../pages/modals/ConnectedAccountsModal';
 import DeleteWalletModal from '../../pages/modals/DeleteWalletModal';
 import SecurityAndPrivacyView from '../../pages/Drawer/Settings/SecurityAndPrivacy/SecurityAndPrivacyView';
 import NetworkListModal from '../../pages/modals/NetworkListModal';
-
 import { loginToApp } from '../../viewHelper';
 import FixtureBuilder from '../../fixtures/fixture-builder';
 import { withFixtures } from '../../fixtures/fixture-helper';
@@ -26,6 +20,7 @@ import MetaMetricsOptIn from '../../pages/Onboarding/MetaMetricsOptInView';
 import ProtectYourWalletModal from '../../pages/modals/ProtectYourWalletModal';
 
 const PASSWORD = '12345678';
+
 describe(
   Regression('Permission System: Deleting wallet after connecting to a dapp'),
   () => {
@@ -69,7 +64,7 @@ describe(
           await DeleteWalletModal.tapDeleteMyWalletButton();
           await TestHelpers.delay(2000);
           await OnboardingView.isVisible();
-          await OnboardingView.deleteWalletToastisNotVisible();
+          await OnboardingView.deleteWalletToastIsNotVisible();
           await OnboardingView.tapCreateWallet();
 
           //Create new wallet

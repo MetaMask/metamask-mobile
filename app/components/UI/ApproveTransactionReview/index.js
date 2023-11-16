@@ -40,7 +40,7 @@ import {
 } from '../../../util/transactions';
 import Avatar, {
   AvatarSize,
-  AvatarVariants,
+  AvatarVariant,
 } from '../../../component-library/components/Avatars/Avatar';
 import Identicon from '../../UI/Identicon';
 import TransactionTypes from '../../../core/TransactionTypes';
@@ -97,7 +97,7 @@ import { isNetworkBuyNativeTokenSupported } from '../Ramp/utils';
 import { getRampNetworks } from '../../../reducers/fiatOrders';
 import SkeletonText from '../Ramp/components/SkeletonText';
 import InfoModal from '../../../components/UI/Swaps/components/InfoModal';
-import BlockaidBanner from '../BlockaidBanner/BlockaidBanner';
+import TransactionBlockaidBanner from '../TransactionBlockaidBanner/TransactionBlockaidBanner';
 import { regex } from '../../../../app/util/regex';
 
 const { ORIGIN_DEEPLINK, ORIGIN_QR_CODE } = AppConstants.DEEPLINKS;
@@ -718,7 +718,7 @@ class ApproveTransactionReview extends PureComponent {
       primaryCurrency,
       gasError,
       activeTabUrl,
-      transaction: { origin, from, to, securityAlertResponse },
+      transaction: { origin, from, to, id: transactionId },
       chainId,
       over,
       gasEstimateType,
@@ -815,8 +815,8 @@ class ApproveTransactionReview extends PureComponent {
                     onStartShouldSetResponder={() => true}
                   >
                     {isBlockaidFeatureEnabled() && (
-                      <BlockaidBanner
-                        securityAlertResponse={securityAlertResponse}
+                      <TransactionBlockaidBanner
+                        transactionId={transactionId}
                         style={styles.blockaidWarning}
                         onContactUsClicked={this.onContactUsClicked}
                       />
@@ -850,7 +850,7 @@ class ApproveTransactionReview extends PureComponent {
                         <>
                           {tokenImage ? (
                             <Avatar
-                              variant={AvatarVariants.Token}
+                              variant={AvatarVariant.Token}
                               size={AvatarSize.Md}
                               imageSource={{ uri: tokenImage }}
                             />

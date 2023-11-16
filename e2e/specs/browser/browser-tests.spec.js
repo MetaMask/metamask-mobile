@@ -4,7 +4,6 @@ import { Smoke } from '../../tags';
 import Browser from '../../pages/Drawer/Browser';
 import { BROWSER_SCREEN_ID } from '../../../wdio/screen-objects/testIDs/BrowserScreen/BrowserScreen.testIds';
 import TabBarComponent from '../../pages/TabBarComponent';
-
 import { loginToApp } from '../../viewHelper';
 import FixtureBuilder from '../../fixtures/fixture-builder';
 import {
@@ -18,7 +17,6 @@ import { getFixturesServerPort } from '../../fixtures/utils';
 const PHISHING_SITE = 'http://www.empowr.com/FanFeed/Home.aspx';
 const INVALID_URL = 'https://quackquakc.easq';
 const TEST_DAPP = 'https://metamask.github.io/test-dapp/';
-const METAMASK_TEST_DAPP_SHORTEN_URL_TEXT = 'metamask.github.io';
 const fixtureServer = new FixtureServer();
 
 describe(Smoke('Browser Tests'), () => {
@@ -28,7 +26,6 @@ describe(Smoke('Browser Tests'), () => {
     await startFixtureServer(fixtureServer);
     await loadFixture(fixtureServer, { fixture });
     await device.launchApp({
-      delete: true,
       launchArgs: { fixtureServerPort: `${getFixturesServerPort()}` },
     });
     await loginToApp();
@@ -64,7 +61,6 @@ describe(Smoke('Browser Tests'), () => {
     await Browser.tapAddToFavoritesButton();
     await Browser.isAddBookmarkScreenVisible();
     await Browser.tapAddBookmarksButton();
-
     await Browser.isAddBookmarkScreenNotVisible(); // Add bookmark screen should not be visible
   });
 
@@ -87,27 +83,19 @@ describe(Smoke('Browser Tests'), () => {
       await TestHelpers.tapAtPoint(BROWSER_SCREEN_ID, { x: 180, y: 275 });
       await Browser.waitForBrowserPageToLoad();
     }
-    await TestHelpers.checkIfElementWithTextIsVisible(
-      METAMASK_TEST_DAPP_SHORTEN_URL_TEXT,
-      0,
-    );
-
+    await Browser.isURLBarTextTestDapp();
     await Browser.isVisible();
   });
 
   it('should test invalid URL', async () => {
     await TestHelpers.delay(2000);
-
     await Browser.tapBottomSearchBar();
     // Clear text & Navigate to URL
     await Browser.navigateToURL(INVALID_URL);
     await Browser.waitForBrowserPageToLoad();
-
     await Browser.tapReturnHomeButton();
     // Check that we are on the browser screen
-    if (!device.getPlatform() === 'android') {
-      await TestHelpers.delay(1500);
-    }
+    await TestHelpers.delay(1500);
     await Browser.isVisible();
   });
 
@@ -116,14 +104,10 @@ describe(Smoke('Browser Tests'), () => {
     // Clear text & Navigate to URL
     await Browser.navigateToURL(PHISHING_SITE);
     await Browser.waitForBrowserPageToLoad();
-
     await Browser.isBackToSafetyButtonVisible();
     await Browser.tapBackToSafetyButton();
-
     // Check that we are on the browser screen
-    if (!device.getPlatform() === 'android') {
-      await TestHelpers.delay(1500);
-    }
+    await TestHelpers.delay(1500);
     await Browser.isVisible();
   });
 });

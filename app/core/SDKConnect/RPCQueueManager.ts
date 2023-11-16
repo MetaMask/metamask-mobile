@@ -6,7 +6,18 @@ export class RPCQueueManager {
   }
 
   reset() {
+    const queuLength = Object.keys(this.rpcQueue).length;
+    if (queuLength > 0) {
+      console.warn(
+        `RPCQueueManager: ${queuLength} RPCs still in the queue`,
+        this.rpcQueue,
+      );
+    }
     this.rpcQueue = {};
+  }
+
+  isEmpty() {
+    return Object.keys(this.rpcQueue).length === 0;
   }
 
   remove(id: string) {

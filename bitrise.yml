@@ -42,11 +42,18 @@ pipelines:
   release_e2e_pipeline:
     stages:
       - run_e2e_ios_android_stage: {}
+      # - run_regression_e2e_ios_android_stage: {} Enable whenever regression tests are running successfully. 
       - notify: {}
   #PR_e2e_verfication (build ios & android), run iOS (smoke), emulator Android
   pr_smoke_e2e_pipeline:
     stages:
       - run_smoke_e2e_ios_android_stage: {}
+      - notify: {}
+
+ #PR_e2e_verfication (build ios & android), run iOS (regression), emulator Android
+  pr_regression_e2e_pipeline:
+    stages:
+      - run_regression_e2e_ios_android_stage: {}
       - notify: {}
 
 #Stages refrence workflows. Those workflows cannot but utility "_this-is-a-utility"
@@ -88,6 +95,10 @@ stages:
     workflows:
       - ios_e2e_test: {}
       - android_e2e_test: {}
+  run_regression_e2e_ios_android_stage:
+    workflows:
+      - ios_run_regression_tests: {}
+      - android_run_regression_tests: {}
   run_e2e_ios_android_stage:
     workflows:
       - ios_e2e_test: {}
@@ -108,9 +119,6 @@ workflows:
       - activate-ssh-key@4:
           run_if: '{{getenv "SSH_RSA_PRIVATE_KEY" | ne ""}}'
       - git-clone@6: {}
-      - nvm@1.3.0:
-          inputs:
-            - node_version: '16.20.0'
   code_setup:
     before_run:
       - setup
@@ -122,6 +130,19 @@ workflows:
                 envman add --key YARN_CACHE_DIR --value "$(yarn cache dir)"
           title: Get Yarn cache directory
       - cache-pull@2: {}
+      - script@1:
+          inputs:
+            - content: |-
+                #!/usr/bin/env bash
+                echo "Node and Yarn being installed"
+                asdf list all nodejs
+                asdf install nodejs "$NODE_VERSION"
+                asdf global nodejs "$NODE_VERSION"
+                asdf plugin add yarn
+                asdf list all yarn
+                asdf install yarn "$YARN_VERSION"
+                asdf global yarn "$YARN_VERSION"
+          title: Install node and yarn
       - yarn@0:
           inputs:
             - command: setup
@@ -141,8 +162,6 @@ workflows:
             # postinstall script modifications and could affect hoisting on subsequent installs.
             - cache_paths: '$YARN_CACHE_DIR -> ./yarn.lock'
   code_setup_dev:
-    before_run:
-      - setup
     steps:
       - script@1:
           title: Generate `.npmrc` file for preview builds
@@ -273,6 +292,24 @@ workflows:
           title: All Tests Passed
           is_always_run: false
   # E2E Steps
+  
+  ### This workflow uses a flag (TEST_SUITE) that defines the specific set of tests to be run.
+  ## in this instance Regression. In future iterations we can rename to ios_test_suite_selection & android_test_suite_selection      
+  ios_run_regression_tests:
+    envs:
+    - TEST_SUITE: 'Regression'
+    after_run:
+    - ios_e2e_test
+  android_run_regression_tests:
+    meta:
+      bitrise.io:
+        stack: linux-docker-android-20.04
+        machine_type_id: elite-xl
+    envs:
+    - TEST_SUITE: 'Regression'
+    after_run:
+    - android_e2e_test
+
   e2e_setup:
     steps:
       - yarn@:
@@ -311,8 +348,14 @@ workflows:
           inputs:
             - content: |-
                 #!/usr/bin/env bash
+                if [ "$TEST_SUITE" = "Regression" ]; then
+                  TEST_SUITE="Regression"
+                else
+                  TEST_SUITE="Smoke"
+                fi
                 node -v
-                IGNORE_BOXLOGS_DEVELOPMENT="true" FORCE_BUNDLING=true yarn test:e2e:android:bitrise:debug --testNamePattern='Smoke'
+                export METAMASK_ENVIRONMENT='local'
+                IGNORE_BOXLOGS_DEVELOPMENT="true" FORCE_BUNDLING=true yarn test:e2e:android:bitrise:debug --testNamePattern="$TEST_SUITE"
           title: Detox Build & Test
           is_always_run: false
       - custom-test-results-export@1:
@@ -344,7 +387,6 @@ workflows:
             - deploy_path: $BITRISE_DEPLOY_DIR
             - is_compress: true
             - zip_name: 'E2E_Android_Failure_Screenshots'
-
     meta:
       bitrise.io:
         stack: linux-docker-android-20.04
@@ -375,8 +417,14 @@ workflows:
           inputs:
             - content: |-
                 #!/usr/bin/env bash
+                if [ "$TEST_SUITE" = "Regression" ]; then
+                  TEST_SUITE="Regression"
+                else
+                  TEST_SUITE="Smoke"
+                fi
                 node -v
-                IGNORE_BOXLOGS_DEVELOPMENT="true" FORCE_BUNDLING=true yarn test:e2e:ios:debug --testNamePattern='Smoke'
+                export METAMASK_ENVIRONMENT='local'
+                IGNORE_BOXLOGS_DEVELOPMENT="true" FORCE_BUNDLING=true yarn test:e2e:ios:debug --testNamePattern="$TEST_SUITE"
           title: Detox Build & Test
           is_always_run: false
       - custom-test-results-export@1:
@@ -800,10 +848,10 @@ app:
       PROJECT_LOCATION_IOS: ios
     - opts:
         is_expand: false
-      VERSION_NAME: 7.9.0
+      VERSION_NAME: 7.10.0
     - opts:
         is_expand: false
-      VERSION_NUMBER: 1181
+      VERSION_NUMBER: 1187
     - opts:
         is_expand: false
       ANDROID_APK_LINK: ''
@@ -813,6 +861,13 @@ app:
     - opts:
         is_expand: false
       IOS_APP_LINK: ''
+    - opts:
+        is_expand: false
+      NODE_VERSION: 18.18.2
+    - opts:
+        is_expand: false
+      YARN_VERSION: 1.22.19
+
 meta:
   bitrise.io:
     stack: osx-xcode-15.0.x
@@ -828,3 +883,4 @@ trigger_map:
     pipeline: create_qa_builds_pipeline
   - tag: 'dev-e2e-*'
     pipeline: pr_smoke_e2e_pipeline
+

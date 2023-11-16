@@ -4,10 +4,8 @@ import {
   NETWORK_EDUCATION_MODAL_CLOSE_BUTTON_ID,
   NETWORK_EDUCATION_MODAL_NETWORK_NAME_ID,
 } from '../../../wdio/screen-objects/testIDs/Components/NetworkEducationModalTestIds';
-import messages from '../../../locales/languages/en.json';
+import { NetworkEducationModalSelectorsText } from '../../selectors/Modals/NetworkEducationModal.selectors';
 
-const manuallyAddTokenText = messages.network_information.add_token;
-// const gotItButtonText = messages.network_information.got_it;
 export default class NetworkEducationModal {
   static async tapGotItButton() {
     if (device.getPlatform() === 'ios') {
@@ -20,7 +18,7 @@ export default class NetworkEducationModal {
   }
 
   static async tapManuallyAddTokenLink() {
-    await TestHelpers.tapByText(manuallyAddTokenText);
+    await TestHelpers.tapByText(NetworkEducationModalSelectorsText.ADD_TOKEN);
   }
 
   static async isNetworkNameCorrect(networkName) {

@@ -129,7 +129,6 @@ const transactionReducer = (state = initialState, action) => {
         type: 'ETHER_TRANSACTION',
         ...getTxMeta(action.transaction),
         transaction: getTxData(action.transaction),
-        securityAlertResponse: action.securityAlertResponse,
       };
     case 'SET_INDIVIDUAL_TOKEN_TRANSACTION':
       return {
@@ -151,6 +150,16 @@ const transactionReducer = (state = initialState, action) => {
         assetType: 'ERC721',
         type: 'CONTRACT_COLLECTIBLE_TRANSACTION',
       };
+    case 'SET_TRANSACTION_SECURITY_ALERT_RESPONSE': {
+      const { transactionId, securityAlertResponse } = action;
+      return {
+        ...state,
+        currentTransactionSecurityAlertResponse: {
+          id: transactionId,
+          response: securityAlertResponse,
+        },
+      };
+    }
     default:
       return state;
   }

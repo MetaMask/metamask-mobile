@@ -1,17 +1,11 @@
 'use strict';
-
 import TestHelpers from '../../helpers';
 import { Smoke } from '../../tags';
-
 import OnboardingView from '../../pages/Onboarding/OnboardingView';
-
 import LoginView from '../../pages/LoginView';
-
 import SettingsView from '../../pages/Drawer/Settings/SettingsView';
-
 import SecurityAndPrivacyView from '../../pages/Drawer/Settings/SecurityAndPrivacy/SecurityAndPrivacyView';
 import ChangePasswordView from '../../pages/Drawer/Settings/SecurityAndPrivacy/ChangePasswordView';
-
 import DeleteWalletModal from '../../pages/modals/DeleteWalletModal';
 import { loginToApp } from '../../viewHelper';
 import TabBarComponent from '../../pages/TabBarComponent';
@@ -50,10 +44,6 @@ describe(
         await ChangePasswordView.tapIUnderstandCheckBox();
         await ChangePasswordView.enterPassword(NEW_PASSWORD);
         await ChangePasswordView.reEnterPassword(NEW_PASSWORD);
-
-        if ((await device.getPlatform) === 'ios') {
-          await ChangePasswordView.tapResetPasswordButton();
-        }
 
         // should lock wallet from Settings
         await device.disableSynchronization(); // because the SRP tutorial video prevents the test from moving forward
