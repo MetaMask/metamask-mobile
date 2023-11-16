@@ -69,3 +69,6 @@ export const LINEA_FAUCET = 'https://www.infura.io/faucet/linea';
 // Add custom network
 export const ADD_CUSTOM_NETWORK_ARTCILE =
   'https://support.metamask.io/hc/en-us/articles/360057142392-Verifying-custom-network-information';
+
+export const GOERLI_DEPRECATED_ARTICLE =
+  'https://github.com/eth-clients/goerli#goerli-goerlitzer-testnet';
