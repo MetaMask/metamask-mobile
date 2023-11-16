@@ -4,7 +4,10 @@ import {
   SECURITY_PRIVACY_DELETE_WALLET_BUTTON,
 } from '../../../../../wdio/screen-objects/testIDs/Screens/SecurityPrivacy.testIds';
 import { CommonSelectorsIDs } from '../../../../selectors/Common.selectors';
-import { SecurityPrivacyViewSelectorsIDs } from '../../../../selectors/Settings/SecurityAndPrivacy/SecurityPrivacyView.selectors';
+import {
+  SecurityPrivacyViewSelectorsIDs,
+  SecurityPrivacyViewSelectorsText,
+} from '../../../../selectors/Settings/SecurityAndPrivacy/SecurityPrivacyView.selectors';
 
 export default class SecurityAndPrivacy {
   static async tapChangePasswordButton() {
@@ -93,18 +96,36 @@ export default class SecurityAndPrivacy {
   }
 
   static async scrollToMetaMetrics() {
-    await TestHelpers.swipeByText('Back up now', 'up', 'fast', 0.6);
+    await TestHelpers.swipeByText(
+      SecurityPrivacyViewSelectorsText.BACK_UP_NOW,
+      'up',
+      'fast',
+      0.6,
+    );
     await TestHelpers.delay(1500);
 
     if (device.getPlatform() === 'android') {
-      await TestHelpers.swipeByText('Privacy', 'up', 'slow', 0.5);
-      await TestHelpers.swipeByText('Clear browser cookies', 'up', 'slow', 0.5);
+      await TestHelpers.swipeByText(
+        SecurityPrivacyViewSelectorsText.PRIVACY_HEADING,
+        'up',
+        'slow',
+      );
+
+      await TestHelpers.swipeByText(
+        SecurityPrivacyViewSelectorsText.CLEAR_BROWSER_COOKIES,
+        'up',
+        'slow',
+        0.5,
+      );
 
       await TestHelpers.delay(1000);
     } else {
-      await TestHelpers.swipeByText('Privacy', 'up', 'slow');
+      await TestHelpers.swipeByText(
+        SecurityPrivacyViewSelectorsText.PRIVACY_HEADING,
+        'up',
+        'slow',
+      );
     }
-    //await TestHelpers.swipe(PRIVACY_MODE_SECTION_ID, 'up', 'fast');
   }
 
   static async tapOKAlertButton() {

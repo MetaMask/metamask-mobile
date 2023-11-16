@@ -5,6 +5,7 @@ import { storeFavicon } from '../../actions/browser';
 import isUrl from 'is-url';
 import { isNumber } from 'lodash';
 import { ImageSourcePropType } from 'react-native';
+import AppConstants from '../../../app/core/AppConstants';
 
 /**
  * Fetches the HTML source of the origin
@@ -74,7 +75,14 @@ const getFaviconUrlFromLinks = (
 const originToUrl = (origin: string) => {
   if (origin) {
     try {
-      const originWithProtocol = isUrl(origin) ? origin : `https://${origin}`;
+      // remove sdk origin prefix before conversion
+      const originWithoutPrefix = origin.replace(
+        AppConstants.MM_SDK.SDK_REMOTE_ORIGIN,
+        '',
+      );
+      const originWithProtocol = isUrl(originWithoutPrefix)
+        ? originWithoutPrefix
+        : `https://${originWithoutPrefix}`;
       return new URL(originWithProtocol);
     } catch (e) {
       Logger.log(`Can not convert ${origin} origin to URL`, e);
