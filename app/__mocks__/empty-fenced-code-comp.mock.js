@@ -5,8 +5,7 @@ import { View, Text } from 'react-native';
 
 const MockComponent = () => {
   ///: BEGIN:ONLY_INCLUDE_IN(flask)
-  console.log('Hello, from inside Flask fence');
-  ///: ENDED:ONLY_INCLUDE_IN
+  ///: END:ONLY_INCLUDE_IN
   console.log('Goodbye, from outside Flask fence');
   return (
     <View>
