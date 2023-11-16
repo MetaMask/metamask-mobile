@@ -1,10 +1,10 @@
 import TestHelpers from '../helpers';
 import { testDappConnectButtonCooridinates } from '../viewHelper';
 import ConnectModal from './modals/ConnectModal';
-import { BROWSER_WEBVIEW_ID } from '../../app/constants/test-ids';
 import Browser from './Drawer/Browser';
 import root from '../../locales/languages/en.json';
 import { getLocalTestDappPort } from '../fixtures/utils';
+import { BrowserViewSelectorsIDs } from '../selectors/BrowserView.selectors';
 
 export const TEST_DAPP_LOCAL_URL = `http://localhost:${getLocalTestDappPort()}`;
 
@@ -14,7 +14,7 @@ const CONFIRM_BUTTON_TEXT = root.confirmation_modal.confirm_cta;
 export class TestDApp {
   static async connect() {
     await TestHelpers.tapAtPoint(
-      BROWSER_WEBVIEW_ID,
+      BrowserViewSelectorsIDs.ANDROID_CONTAINER,
       testDappConnectButtonCooridinates,
     );
     await ConnectModal.isVisible();
@@ -50,7 +50,10 @@ export class TestDApp {
 
   static async tapButton(elementId) {
     await this.scrollToButton(elementId);
-    await TestHelpers.tapAtPoint(BROWSER_WEBVIEW_ID, BUTTON_RELATIVE_PONT);
+    await TestHelpers.tapAtPoint(
+      BrowserViewSelectorsIDs.ANDROID_CONTAINER,
+      BUTTON_RELATIVE_PONT,
+    );
     await TestHelpers.delay(3000);
   }
 
@@ -93,7 +96,10 @@ export class TestDApp {
       await TestHelpers.tapWebviewElement(buttonId);
     } else {
       await TestHelpers.delay(5000);
-      await TestHelpers.tapAtPoint(BROWSER_WEBVIEW_ID, BUTTON_RELATIVE_PONT);
+      await TestHelpers.tapAtPoint(
+        BrowserViewSelectorsIDs.ANDROID_CONTAINER,
+        BUTTON_RELATIVE_PONT,
+      );
     }
   }
 }
