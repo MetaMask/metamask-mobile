@@ -491,6 +491,29 @@ index 4ed4990..df0524b 100644
                              });
                          }
                      }
+diff --git a/node_modules/@metamask/assets-controllers/dist/TokenListController.js b/node_modules/@metamask/assets-controllers/dist/TokenListController.js
+index ca388d3..19d63c5 100644
+--- a/node_modules/@metamask/assets-controllers/dist/TokenListController.js
++++ b/node_modules/@metamask/assets-controllers/dist/TokenListController.js
+@@ -162,17 +162,7 @@ class TokenListController extends base_controller_1.BaseControllerV2 {
+                         });
+                         return;
+                     }
+-                    // Filtering out tokens with less than 3 occurrences and native tokens
+-                    const filteredTokenList = tokensFromAPI.filter((token) => token.occurrences &&
+-                        token.occurrences >= 3 &&
+-                        token.address !== '0x0000000000000000000000000000000000000000');
+-                    // Removing the tokens with symbol conflicts
+-                    const symbolsList = filteredTokenList.map((token) => token.symbol);
+-                    const duplicateSymbols = [
+-                        ...new Set(symbolsList.filter((symbol, index) => symbolsList.indexOf(symbol) !== index)),
+-                    ];
+-                    const uniqueTokenList = filteredTokenList.filter((token) => !duplicateSymbols.includes(token.symbol));
+-                    for (const token of uniqueTokenList) {
++                    for (const token of tokensFromAPI) {
+                         const formattedToken = Object.assign(Object.assign({}, token), { aggregators: (0, assetsUtil_1.formatAggregatorNames)(token.aggregators), iconUrl: (0, assetsUtil_1.formatIconUrlWithProxy)({
+                                 chainId: this.chainId,
+                                 tokenAddress: token.address,
 diff --git a/node_modules/@metamask/assets-controllers/dist/TokenRatesController.js b/node_modules/@metamask/assets-controllers/dist/TokenRatesController.js
 index e3f81e9..c7b0a33 100644
 --- a/node_modules/@metamask/assets-controllers/dist/TokenRatesController.js
@@ -929,3 +952,16 @@ index 4b54e82..2322286 100644
  })(SupportedTokenDetectionNetworks = exports.SupportedTokenDetectionNetworks || (exports.SupportedTokenDetectionNetworks = {}));
  /**
   * Check if token detection is enabled for certain networks.
+diff --git a/node_modules/@metamask/assets-controllers/dist/token-service.js b/node_modules/@metamask/assets-controllers/dist/token-service.js
+index fe8566e..a7cbd11 100644
+--- a/node_modules/@metamask/assets-controllers/dist/token-service.js
++++ b/node_modules/@metamask/assets-controllers/dist/token-service.js
+@@ -21,7 +21,7 @@ exports.TOKEN_METADATA_NO_SUPPORT_ERROR = 'TokenService Error: Network does not
+  * @returns The tokens URL.
+  */
+ function getTokensURL(chainId) {
+-    return `${exports.TOKEN_END_POINT_API}/tokens/${chainId}`;
++    return `${exports.TOKEN_END_POINT_API}/tokens/${chainId}?occurrenceFloor=3&includeNativeAssets=false&includeDuplicateSymbolAssets=false&includeTokenFees=false&includeAssetType=false`;
+ }
+ /**
+  * Get the token metadata URL for the given network and token.
