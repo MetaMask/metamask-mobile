@@ -487,8 +487,7 @@ PODS:
     - React-Core
   - RNOS (1.2.6):
     - React
-  - RNPermissions (
-  ):
+  - RNPermissions (3.10.1):
     - React-Core
   - RNReanimated (3.1.0):
     - DoubleConversion
