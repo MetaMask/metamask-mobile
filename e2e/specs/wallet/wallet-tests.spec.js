@@ -84,7 +84,7 @@ describe(Smoke('Wallet Tests'), () => {
 
   it('should add a token via token autocomplete', async () => {
     await WalletView.tapImportTokensButton();
-    // Search for XRPL but select RPL
+    // Search for XRPL but select XRP20
     await ImportTokensView.typeInTokenName('XRPL');
     await TestHelpers.delay(2000);
     await ImportTokensView.tapOnToken(); // taps the first token in the returned list
@@ -92,9 +92,12 @@ describe(Smoke('Wallet Tests'), () => {
     await ImportTokensView.tapImportButton();
     await WalletView.isVisible();
     await TestHelpers.delay(8000); // to prevent flakey behavior in bitrise
-    await WalletView.isTokenVisibleInWallet('0 RPL');
-    await WalletView.removeTokenFromWallet('0 RPL');
+    await WalletView.isTokenVisibleInWallet('0 XRP20');
+  });
+
+  it('should hide token from Wallet view', async () => {
+    await WalletView.removeTokenFromWallet('0 XRP20');
     await TestHelpers.delay(1500);
-    await WalletView.tokenIsNotVisibleInWallet('0 RPL');
+    await WalletView.tokenIsNotVisibleInWallet('0 XRP20');
   });
 });
