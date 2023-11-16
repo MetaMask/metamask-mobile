@@ -176,10 +176,6 @@ class SignatureRequest extends PureComponent {
     securityAlertResponse: PropTypes.object,
   };
 
-  componentWillUnmount() {
-    store.dispatch(setSignatureRequestSecurityAlertResponse());
-  }
-
   /**
    * Calls trackCancelSignature and onReject callback
    */

@@ -67,18 +67,32 @@ describe('validateResponse', () => {
   });
 
   it('should not validate if preference securityAlertsEnabled is false', async () => {
+    const spyTransactionAction = jest.spyOn(
+      TransactionActions,
+      'setTransactionSecurityAlertResponse',
+    );
     Engine.context.PreferencesController.state.securityAlertsEnabled = false;
     await PPOMUtil.validateRequest(mockRequest, '123');
     expect(Engine.context.PPOMController.usePPOM).toBeCalledTimes(0);
+    expect(spyTransactionAction).toBeCalledTimes(0);
   });
 
   it('should not validate user is not on mainnet', async () => {
+    const spyTransactionAction = jest.spyOn(
+      TransactionActions,
+      'setTransactionSecurityAlertResponse',
+    );
     Engine.context.NetworkController.state.providerConfig.chainId = '5';
     await PPOMUtil.validateRequest(mockRequest, '123');
     expect(Engine.context.PPOMController.usePPOM).toBeCalledTimes(0);
+    expect(spyTransactionAction).toBeCalledTimes(0);
   });
 
   it('should not validate if requested method is not allowed', async () => {
+    const spyTransactionAction = jest.spyOn(
+      TransactionActions,
+      'setTransactionSecurityAlertResponse',
+    );
     Engine.context.PreferencesController.state.securityAlertsEnabled = false;
     await PPOMUtil.validateRequest(
       {
@@ -88,12 +102,18 @@ describe('validateResponse', () => {
       '123',
     );
     expect(Engine.context.PPOMController.usePPOM).toBeCalledTimes(0);
+    expect(spyTransactionAction).toBeCalledTimes(0);
   });
 
-  it('should not validate transaction if method type is eth_sendTransaction and transactionid is not defined', async () => {
+  it('should not validate transaction and update response as failed if method type is eth_sendTransaction and transactionid is not defined', async () => {
+    const spyTransactionAction = jest.spyOn(
+      TransactionActions,
+      'setTransactionSecurityAlertResponse',
+    );
     const spy = jest.spyOn(Engine.context.PPOMController, 'usePPOM');
     await PPOMUtil.validateRequest(mockRequest);
     expect(spy).toBeCalledTimes(0);
+    expect(spyTransactionAction).toBeCalledTimes(1);
   });
 
   it('should invoke PPOMController usePPOM if securityAlertsEnabled is true', async () => {

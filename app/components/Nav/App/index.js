@@ -282,7 +282,9 @@ const App = ({ userLoggedIn }) => {
         animationNameRef?.current?.play();
       }
     };
-    appTriggeredAuth();
+    appTriggeredAuth().catch((error) => {
+      Logger.error(error, 'App: Error in appTriggeredAuth');
+    });
   }, [navigator]);
 
   const handleDeeplink = useCallback(({ error, params, uri }) => {
@@ -352,7 +354,9 @@ const App = ({ userLoggedIn }) => {
       await Analytics.init();
     };
 
-    initAnalytics();
+    initAnalytics().catch((err) => {
+      Logger.error(err, 'Error initializing analytics');
+    });
   }, []);
 
   useEffect(() => {
@@ -361,7 +365,7 @@ const App = ({ userLoggedIn }) => {
       if (navigator?.getCurrentRoute && onboarded && !sdkInit.current) {
         try {
           const sdkConnect = SDKConnect.getInstance();
-          await sdkConnect.init({ navigation: navigator });
+          await sdkConnect.init({ navigation: navigator, context: 'Nav/App' });
           setPostInitReady(true);
           sdkInit.current = true;
         } catch (err) {
@@ -369,7 +373,9 @@ const App = ({ userLoggedIn }) => {
         }
       }
     }
-    initSDKConnect();
+    initSDKConnect().catch((err) => {
+      Logger.error(err, 'Error initializing SDKConnect');
+    });
   }, [navigator, onboarded]);
 
   useEffect(() => {
@@ -389,7 +395,9 @@ const App = ({ userLoggedIn }) => {
         }
       }
     }
-    handlePostInit();
+    handlePostInit().catch((err) => {
+      Logger.error(err, 'Error postInit SDKConnect');
+    });
   }, [userLoggedIn, postInitReady]);
 
   useEffect(() => {
@@ -410,7 +418,9 @@ const App = ({ userLoggedIn }) => {
       setRoute(route);
     }
 
-    checkExisting();
+    checkExisting().catch((error) => {
+      Logger.error(error, 'Error checking existing user');
+    });
     /* eslint-disable react-hooks/exhaustive-deps */
   }, []);
 
@@ -441,7 +451,9 @@ const App = ({ userLoggedIn }) => {
       }
     }
 
-    startApp();
+    startApp().catch((error) => {
+      Logger.error(error, 'Error starting app');
+    });
   }, []);
 
   const setNavigatorRef = (ref) => {
