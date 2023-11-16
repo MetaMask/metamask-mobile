@@ -137,8 +137,8 @@ android {
         applicationId "io.metamask"
         minSdkVersion rootProject.ext.minSdkVersion
         targetSdkVersion rootProject.ext.targetSdkVersion
-        versionCode 1198
-        versionName "7.10.0"
+        versionCode 1200
+        versionName "7.11.0"
         testBuildType System.getProperty('testBuildType', 'debug')
         missingDimensionStrategy 'react-native-camera', 'general'
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
