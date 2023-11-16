@@ -1,7 +1,7 @@
 import { render } from '@testing-library/react-native';
 import React from 'react';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
-import ReturnToAppModal from './ReturnToAppModal';
+import ReturnToAppModal from '.';
 
 jest.mock('../../../../locales/i18n', () => ({
   strings: jest.fn().mockImplementation((key) => key),

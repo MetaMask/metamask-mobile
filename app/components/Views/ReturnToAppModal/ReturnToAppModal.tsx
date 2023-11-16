@@ -4,7 +4,7 @@ import React, { useRef } from 'react';
 // External dependencies.
 import { strings } from '../../../../locales/i18n';
 import SheetHeader from '../../../component-library/components/Sheet/SheetHeader';
-import styleSheet from './ReturnToAppModal.styles';
+import styleSheet from '../AccountConnect/AccountConnectSingle/AccountConnectSingle.styles';
 import { useStyles } from '../../../component-library/hooks';
 import Text from '../../../component-library/components/Texts/Text';
 import BottomSheet from '../../../component-library/components/BottomSheets/BottomSheet';
