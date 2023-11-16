@@ -1,8 +1,32 @@
 diff --git a/node_modules/@segment/analytics-react-native/src/analytics.ts b/node_modules/@segment/analytics-react-native/src/analytics.ts
-index 79cc609..d9f3cfb 100644
+index 79cc609..fff7c9b 100644
 --- a/node_modules/@segment/analytics-react-native/src/analytics.ts
 +++ b/node_modules/@segment/analytics-react-native/src/analytics.ts
-@@ -679,7 +679,8 @@ export class SegmentClient {
+@@ -62,6 +62,23 @@ import {
+ 
+ type OnPluginAddedCallback = (plugin: Plugin) => void;
+ 
++/**
++* ============================== PATCH INFORMATION ==============================
++* This patch goal is to make Segment SDK compliant with Metamask advanced privacy
++* The requirement is to disable all tracking by default and to enable it only
++* when the user explicitly agrees to it. This is done by using generated userID and
++* anonymousID that allows to send events to Segment without identifying the user.
++* Original Segment SDK anoonymous idea is not the same as Metamask requirement.
++* The Segment or anonymity still allowd to link anonymous actions with user
++* after when the user agrees to it. This is not allowed in Metamask.
++* The patch adds:
++* - conditional userId generation.
++* - introduces the concept of anonymous events through the anonymous property.
++* - stores the userId and anonymousId in the storage to prevent having to pass them
++*  as parameters through the whole functions call stack.
++* ===============================================================================
++*/
++
+ export class SegmentClient {
+   // the config parameters for the client - a merge of user provided and default options
+   private config: Config;
+@@ -679,7 +696,8 @@ export class SegmentClient {
    async reset(resetAnonymousId = true) {
      try {
        const { anonymousId: currentId } = await this.store.userInfo.get(true);
@@ -12,15 +36,7 @@ index 79cc609..d9f3cfb 100644
  
        await this.store.userInfo.set({
          anonymousId,
-@@ -837,6 +838,7 @@ export class SegmentClient {
-     // Identify and Alias userInfo set operations have to come as soon as possible
-     // Do not block the set by doing a safe get first as it might cause a race condition
-     // within events procesing in the timeline asyncronously
-+
-     if (event.type === EventType.IdentifyEvent) {
-       const userInfo = await this.userInfo.set((state) => ({
-         ...state,
-@@ -875,9 +877,28 @@ export class SegmentClient {
+@@ -875,9 +893,28 @@ export class SegmentClient {
      }
  
      const userInfo = await this.userInfo.get(true);
