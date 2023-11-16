@@ -23,6 +23,11 @@ jest.mock('../../core/Engine', () => ({
       updateTransaction: jest.fn(),
       updateSecurityAlertResponse: jest.fn(),
     },
+    NetworkController: {
+      state: {
+        providerConfig: { chainId: '1' },
+      },
+    },
   },
 }));
 

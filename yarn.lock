@@ -3837,10 +3837,10 @@
     eth-phishing-detect "^1.2.0"
     punycode "^2.1.1"
 
-"@metamask/ppom-validator@^0.10.0":
-  version "0.10.0"
-  resolved "https://registry.yarnpkg.com/@metamask/ppom-validator/-/ppom-validator-0.10.0.tgz#1df0c1f983c1f4b65defd50870bcb88a0118e700"
-  integrity sha512-ivxh7GLxjkoMYvR40xBqRpTotI4aO+7dTogOnyq2jh4XGwueYxREJxkP5lF9aOlT3UFQf5Uu0KRJT1i+KCM9Tg==
+"@metamask/ppom-validator@^0.11.0":
+  version "0.11.0"
+  resolved "https://registry.yarnpkg.com/@metamask/ppom-validator/-/ppom-validator-0.11.0.tgz#4ffbaf602464a7a7fd9ad00fc1b117515f60683f"
+  integrity sha512-CayIrUeXAL+HHx9CZ3c1dGiG7Ib7yzkyjurpovPTiR7v2+5CPDzXHaXvV2ltRBrVMD5UznYxWq+lXrZ0uuwmsA==
   dependencies:
     "@metamask/base-controller" "^3.0.0"
     "@metamask/controller-utils" "^4.0.0"
@@ -3899,10 +3899,10 @@
     "@noble/hashes" "~1.1.1"
     "@scure/base" "~1.1.0"
 
-"@metamask/sdk-communication-layer@^0.10.1":
-  version "0.10.1"
-  resolved "https://registry.yarnpkg.com/@metamask/sdk-communication-layer/-/sdk-communication-layer-0.10.1.tgz#95c6a1786dcd7a64c54a8e5cbd11489aa708b074"
-  integrity sha512-lWeh1PUq114h1/44llZgBcG51uOEi5dHjnNHlcYK9Sjq/iJ4s3mp0y39DGXHEs2r6rJQRyQpryoYyPsQTF2Imw==
+"@metamask/sdk-communication-layer@^0.12.0":
+  version "0.12.0"
+  resolved "https://registry.yarnpkg.com/@metamask/sdk-communication-layer/-/sdk-communication-layer-0.12.0.tgz#fe8de414e42f9037a3c2b791e99e6d5b427448a3"
+  integrity sha512-wrrmPsB1i8Kec5dBUnsIqqGHvq7qbXB0KZGPgQ4wECO3glBcqtHkVT63qaP6T2r+YZnVWisegIVKA+p18/4OmA==
   dependencies:
     cross-fetch "^3.1.5"
     date-fns "^2.29.3"
