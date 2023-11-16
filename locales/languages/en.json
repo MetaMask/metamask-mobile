@@ -1992,6 +1992,7 @@
       "sell_crypto_tokens": "Sell Crypto Tokens",
       "title": "Select your Region",
       "description": "The payment methods and tokens available to you are determined by our third-party integrations and may vary depending on your region and support by our integrations.",
+      "sell_description": "Cash destination options and tokens may vary depending on your region.",
       "search_by_country": "Search by country",
       "search_by_state": "Search by state",
       "no_region_results": "No region matches",

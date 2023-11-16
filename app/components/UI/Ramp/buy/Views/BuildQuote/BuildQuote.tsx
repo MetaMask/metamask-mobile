@@ -833,7 +833,11 @@ const BuildQuote = () => {
       <RegionModal
         isVisible={isRegionModalVisible}
         title={strings('fiat_on_ramp_aggregator.region.title')}
-        description={strings('fiat_on_ramp_aggregator.region.description')}
+        description={strings(
+          isBuy
+            ? 'fiat_on_ramp_aggregator.region.description'
+            : 'fiat_on_ramp_aggregator.region.sell_description',
+        )}
         data={regions}
         dismiss={hideRegionModal as () => void}
         onRegionPress={handleRegionPress}
