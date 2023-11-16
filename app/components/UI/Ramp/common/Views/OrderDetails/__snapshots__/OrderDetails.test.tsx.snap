@@ -12137,6 +12137,10 @@ exports[`OrderDetails renders the support links if the provider has them 1`] = `
                                                     },
                                                     undefined,
                                                     undefined,
+                                                    Object {
+                                                      "fontFamily": "EuclidCircularB-Bold",
+                                                      "fontWeight": "600",
+                                                    },
                                                     undefined,
                                                     undefined,
                                                     undefined,
@@ -12144,11 +12148,14 @@ exports[`OrderDetails renders the support links if the provider has them 1`] = `
                                                     undefined,
                                                     undefined,
                                                     undefined,
+                                                    Object {
+                                                      "color": "#24272A",
+                                                    },
                                                     undefined,
                                                     undefined,
-                                                    undefined,
-                                                    undefined,
-                                                    undefined,
+                                                    Object {
+                                                      "fontSize": 12,
+                                                    },
                                                     undefined,
                                                     undefined,
                                                     undefined,
@@ -12162,7 +12169,9 @@ exports[`OrderDetails renders the support links if the provider has them 1`] = `
                                                   ]
                                                 }
                                               >
-                                                ...
+                                                0.01231
+                                                 
+                                                ETH
                                               </Text>
                                             </View>
                                           </View>

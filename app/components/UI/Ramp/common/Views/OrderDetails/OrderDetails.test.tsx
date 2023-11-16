@@ -68,6 +68,9 @@ const mockOrder: DeepPartial<FiatOrder> = {
     provider: {
       name: 'Test Provider',
     },
+    paymentMethod: {
+      id: 'test-payment-method-id',
+    },
   },
 };
 
@@ -89,7 +92,6 @@ const mockUseRampSDKValues: DeepPartial<RampSDK> = {
 };
 
 jest.mock('../../../common/sdk', () => ({
-  ...jest.requireActual('../../../common/sdk'),
   useRampSDK: () => mockUseRampSDKValues,
 }));
 
@@ -114,7 +116,6 @@ function mockGetUpdatedOrder(order: FiatOrder) {
 }
 
 jest.mock('../../../index', () => ({
-  ...jest.requireActual('../../../index'),
   processFiatOrder: jest.fn().mockImplementation((order, onSuccess) => {
     const updatedOrder = mockGetUpdatedOrder(order);
     if (onSuccess) {
@@ -148,8 +149,11 @@ describe('OrderDetails', () => {
     mockUseParamsValues = {
       ...mockUseParamsDefaultValues,
     };
-    (processFiatOrder as jest.Mock).mockClear();
+  });
+
+  afterEach(() => {
     mockTrackEvent.mockClear();
+    (processFiatOrder as jest.Mock).mockClear();
   });
 
   it('calls setOptions when rendering', async () => {
@@ -299,6 +303,7 @@ describe('OrderDetails', () => {
       ...mockOrder,
       state: FIAT_ORDER_STATES.COMPLETED,
       data: {
+        ...mockOrder.data,
         provider: {
           name: 'Test Provider',
           links: [
@@ -320,6 +325,7 @@ describe('OrderDetails', () => {
       ...mockOrder,
       state: FIAT_ORDER_STATES.COMPLETED,
       data: {
+        ...mockOrder.data,
         provider: {
           name: 'Test Provider',
           links: [
