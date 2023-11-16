@@ -1,7 +1,3 @@
-import {
-  TransactionController,
-  WalletDevice,
-} from '@metamask/transaction-controller';
 import { Platform } from 'react-native';
 import Logger from '../../util/Logger';
 import AppConstants from '../AppConstants';
@@ -9,10 +5,10 @@ import BackgroundBridge from '../BackgroundBridge/BackgroundBridge';
 import Engine from '../Engine';
 import getRpcMethodMiddleware, {
   ApprovalTypes,
+  RPCMethodsMiddleParameters,
 } from '../RPCMethods/RPCMethodMiddleware';
 
 import { ApprovalController } from '@metamask/approval-controller';
-import { Json } from '@metamask/utils';
 import { KeyringController } from '@metamask/keyring-controller';
 import { PreferencesController } from '@metamask/preferences-controller';
 import {
@@ -23,10 +19,14 @@ import {
   OriginatorInfo,
   RemoteCommunication,
 } from '@metamask/sdk-communication-layer';
+import { Json } from '@metamask/utils';
+import { NavigationContainerRef } from '@react-navigation/native';
 import { ethErrors } from 'eth-rpc-errors';
 import { EventEmitter2 } from 'eventemitter2';
 import { PROTOCOLS } from '../../constants/deeplinks';
+import Routes from '../../constants/navigation/Routes';
 import { Minimizer } from '../NativeModules';
+import BatchRPCManager, { BatchRPCState } from './BatchRPCManager';
 import RPCQueueManager from './RPCQueueManager';
 import {
   ApprovedHosts,
@@ -41,17 +41,19 @@ import generateOTP from './utils/generateOTP.util';
 import {
   wait,
   waitForConnectionReadiness,
-  waitForEmptyRPCQueue,
   waitForKeychainUnlocked,
 } from './utils/wait.util';
-import BatchRPCManager, { BatchRPCState } from './BatchRPCManager';
+import Device from '../../util/device';
 
 export interface ConnectionProps {
   id: string;
   otherPublicKey: string;
   origin: string;
   reconnect?: boolean;
+  // Only userful in case of reconnection
+  trigger?: 'deeplink' | 'resume' | 'reconnect';
   initialConnection?: boolean;
+  navigation?: NavigationContainerRef;
   originatorInfo?: OriginatorInfo;
   validUntil?: number;
   lastAuthorized?: number; // timestamp of last received activity
@@ -84,6 +86,7 @@ export class Connection extends EventEmitter2 {
   requestsToRedirect: { [request: string]: boolean } = {};
   origin: string;
   host: string;
+  navigation?: NavigationContainerRef;
   originatorInfo?: OriginatorInfo;
   isReady = false;
   backgroundBridge?: BackgroundBridge;
@@ -102,6 +105,7 @@ export class Connection extends EventEmitter2 {
    */
   isResumed = false;
   initialConnection: boolean;
+  trigger?: ConnectionProps['trigger'];
 
   /*
    * Timestamp of last activity, used to check if channel is still active and to prevent showing OTP approval modal too often.
@@ -128,6 +132,8 @@ export class Connection extends EventEmitter2 {
 
   private batchRPCManager: BatchRPCManager;
 
+  private socketServerUrl: string;
+
   approveHost: ({ host, hostname }: approveHostProps) => void;
   getApprovedHosts: (context: string) => ApprovedHosts;
   disapprove: (channelId: string) => void;
@@ -148,8 +154,11 @@ export class Connection extends EventEmitter2 {
     initialConnection,
     rpcQueueManager,
     originatorInfo,
-    approveHost,
+    socketServerUrl,
+    trigger,
+    navigation,
     lastAuthorized,
+    approveHost,
     getApprovedHosts,
     disapprove,
     revalidate,
@@ -157,6 +166,7 @@ export class Connection extends EventEmitter2 {
     updateOriginatorInfos,
     onTerminate,
   }: ConnectionProps & {
+    socketServerUrl: string; // Allow to customize different socket server url
     rpcQueueManager: RPCQueueManager;
     approveHost: ({ host, hostname }: approveHostProps) => void;
     getApprovedHosts: (context: string) => ApprovedHosts;
@@ -171,11 +181,14 @@ export class Connection extends EventEmitter2 {
   }) {
     super();
     this.origin = origin;
+    this.trigger = trigger;
     this.channelId = id;
+    this.navigation = navigation;
     this.lastAuthorized = lastAuthorized;
     this.reconnect = reconnect || false;
     this.isResumed = false;
     this.originatorInfo = originatorInfo;
+    this.socketServerUrl = socketServerUrl;
     this.initialConnection = initialConnection === true;
     this.host = `${AppConstants.MM_SDK.SDK_REMOTE_ORIGIN}${this.channelId}`;
     // TODO: should be probably contained to current connection
@@ -192,7 +205,8 @@ export class Connection extends EventEmitter2 {
     this.setLoading(true);
 
     DevLogger.log(
-      `Connection::constructor() id=${this.channelId} initialConnection=${this.initialConnection} lastAuthorized=${this.lastAuthorized}`,
+      `Connection::constructor() id=${this.channelId} initialConnection=${this.initialConnection} lastAuthorized=${this.lastAuthorized} trigger=${this.trigger}`,
+      socketServerUrl,
     );
 
     if (!this.channelId) {
@@ -201,7 +215,7 @@ export class Connection extends EventEmitter2 {
 
     this.remote = new RemoteCommunication({
       platformType: AppConstants.MM_SDK.PLATFORM as 'metamask-mobile',
-      communicationServerUrl: AppConstants.MM_SDK.SERVER_URL,
+      communicationServerUrl: this.socketServerUrl,
       communicationLayerPreference: CommunicationLayerPreference.SOCKET,
       otherPublicKey,
       reconnect,
@@ -239,16 +253,23 @@ export class Connection extends EventEmitter2 {
       const keyringController = (
         Engine.context as { KeyringController: KeyringController }
       ).KeyringController;
-      waitForKeychainUnlocked({ keyringController }).then(() => {
-        setTimeout(() => {
-          if (this._loading) {
-            DevLogger.log(
-              `Connection::CLIENTS_CONNECTED auto-hide loading after 3s`,
-            );
-            this.setLoading(false);
-          }
-        }, 3000);
-      });
+      waitForKeychainUnlocked({ keyringController })
+        .then(() => {
+          setTimeout(() => {
+            if (this._loading) {
+              DevLogger.log(
+                `Connection::CLIENTS_CONNECTED auto-hide loading after 3s`,
+              );
+              this.setLoading(false);
+            }
+          }, 3000);
+        })
+        .catch((err) => {
+          Logger.log(
+            err,
+            `Connection::CLIENTS_CONNECTED error while waiting for keychain to be unlocked`,
+          );
+        });
     });
 
     this.remote.on(EventType.CLIENTS_DISCONNECTED, () => {
@@ -396,7 +417,8 @@ export class Connection extends EventEmitter2 {
           }
         } else if (
           !this.initialConnection &&
-          this.origin === AppConstants.DEEPLINKS.ORIGIN_DEEPLINK
+          (this.origin === AppConstants.DEEPLINKS.ORIGIN_DEEPLINK ||
+            this.trigger === 'deeplink')
         ) {
           // Deeplink channels are automatically approved on re-connection.
           const hostname =
@@ -467,7 +489,10 @@ export class Connection extends EventEmitter2 {
         const keyringController = (
           Engine.context as { KeyringController: KeyringController }
         ).KeyringController;
-        await waitForKeychainUnlocked({ keyringController });
+        await waitForKeychainUnlocked({
+          keyringController,
+          context: 'connection::on_message',
+        });
 
         this.setLoading(false);
 
@@ -512,6 +537,11 @@ export class Connection extends EventEmitter2 {
           ) {
             throw new Error('Invalid message format');
           }
+
+          if (Platform.OS === 'ios') {
+            // TODO: why does ios (older devices) requires a delay after request is initially approved?
+            await wait(1000);
+          }
           // Append selected address to params
           const preferencesController = (
             Engine.context as {
@@ -520,11 +550,11 @@ export class Connection extends EventEmitter2 {
           ).PreferencesController;
           const selectedAddress = preferencesController.state.selectedAddress;
           message.params = [(message.params as string[])[0], selectedAddress];
-          if (Platform.OS === 'ios') {
-            // TODO: why does ios (older devices) requires a delay after request is initially approved?
-            await wait(500);
-          }
-          Logger.log(`metamask_connectSign`, message.params);
+
+          Logger.log(
+            `metamask_connectSign selectedAddress=${selectedAddress}`,
+            message.params,
+          );
         } else if (lcMethod === RPC_METHODS.METAMASK_BATCH.toLowerCase()) {
           DevLogger.log(`metamask_batch`, JSON.stringify(message, null, 2));
           if (
@@ -548,6 +578,7 @@ export class Connection extends EventEmitter2 {
             `metamask_batch method=${rpc.method} id=${rpc.id}`,
             rpc.params,
           );
+
           this.backgroundBridge?.onMessage({
             name: 'metamask-provider',
             data: rpc,
@@ -561,54 +592,6 @@ export class Connection extends EventEmitter2 {
           id: (message.id as string) ?? 'unknown',
           method: message.method,
         });
-
-        // We have to implement this method here since the eth_sendTransaction in Engine is not working because we can't send correct origin
-        if (lcMethod === RPC_METHODS.ETH_SENDTRANSACTION.toLowerCase()) {
-          if (
-            !(
-              message?.params &&
-              Array.isArray(message.params) &&
-              message.params.length > 0
-            )
-          ) {
-            throw new Error('Invalid message format');
-          }
-
-          const transactionController = (
-            Engine.context as { TransactionController: TransactionController }
-          ).TransactionController;
-          try {
-            const hash = await (
-              await transactionController.addTransaction(message.params[0], {
-                deviceConfirmedOn: WalletDevice.MM_MOBILE,
-                origin: this.originatorInfo?.url
-                  ? AppConstants.MM_SDK.SDK_REMOTE_ORIGIN +
-                    this.originatorInfo?.url
-                  : undefined,
-              })
-            ).result;
-            await this.sendMessage({
-              data: {
-                id: message.id,
-                jsonrpc: '2.0',
-                result: hash,
-              },
-              name: 'metamask-provider',
-            });
-          } catch (error) {
-            this.sendMessage({
-              data: {
-                error,
-                id: message.id,
-                jsonrpc: '2.0',
-              },
-              name: 'metamask-provider',
-            }).catch((err) => {
-              Logger.log(err, `Connection failed to send otp`);
-            });
-          }
-          return;
-        }
 
         this.backgroundBridge?.onMessage({
           name: 'metamask-provider',
@@ -669,11 +652,11 @@ export class Connection extends EventEmitter2 {
       remoteConnHost: this.host,
       getRpcMethodMiddleware: ({
         getProviderState,
-      }: {
-        hostname: string;
-        getProviderState: any;
-      }) =>
-        getRpcMethodMiddleware({
+      }: RPCMethodsMiddleParameters) => {
+        DevLogger.log(
+          `getRpcMethodMiddleware hostname=${this.host} url=${originatorInfo.url} `,
+        );
+        return getRpcMethodMiddleware({
           hostname: this.host,
           getProviderState,
           isMMSDK: true,
@@ -715,7 +698,8 @@ export class Connection extends EventEmitter2 {
           },
           toggleUrlModal: () => null,
           injectHomePageScripts: () => null,
-        }),
+        });
+      },
       isMainFrame: true,
       isWalletConnect: false,
       wcRequestActions: undefined,
@@ -824,6 +808,13 @@ export class Connection extends EventEmitter2 {
     this.setLoading(false);
   }
 
+  setTrigger(trigger: ConnectionProps['trigger']) {
+    DevLogger.log(
+      `Connection::setTrigger() id=${this.channelId} trigger=${trigger}`,
+    );
+    this.trigger = trigger;
+  }
+
   disconnect({ terminate, context }: { terminate: boolean; context?: string }) {
     DevLogger.log(
       `Connection::disconnect() context=${context} id=${this.channelId} terminate=${terminate}`,
@@ -920,6 +911,10 @@ export class Connection extends EventEmitter2 {
         index: chainRpcs.index,
         response: msg?.data?.result,
       });
+
+      // wait 1s before sending the next rpc method To give user time to process UI feedbacks
+      await wait(1000);
+
       // Send the next rpc method to the background bridge
       const nextRpc = chainRpcs.rpcs[chainRpcs.index + 1];
       nextRpc.id = chainRpcs.baseId + `_${chainRpcs.index + 1}`; // Add index to id to keep track of the order
@@ -928,6 +923,7 @@ export class Connection extends EventEmitter2 {
         `handleChainRpcResponse method=${nextRpc.method} id=${nextRpc.id}`,
         nextRpc.params,
       );
+
       this.backgroundBridge?.onMessage({
         name: 'metamask-provider',
         data: nextRpc,
@@ -945,7 +941,7 @@ export class Connection extends EventEmitter2 {
     // handle multichain rpc call responses separately
     const chainRPCs = this.batchRPCManager.getById(msgId);
     if (chainRPCs) {
-      this.handleBatchRpcResponse({ chainRpcs: chainRPCs, msg });
+      await this.handleBatchRpcResponse({ chainRpcs: chainRPCs, msg });
       return;
     }
 
@@ -958,7 +954,7 @@ export class Connection extends EventEmitter2 {
     });
 
     DevLogger.log(
-      `Connection::sendMessage method=${method} id=${msgId} needsRedirect=${needsRedirect}`,
+      `Connection::sendMessage method=${method} trigger=${this.trigger} id=${msgId} needsRedirect=${needsRedirect} origin=${this.origin}`,
     );
 
     if (!needsRedirect) {
@@ -967,16 +963,38 @@ export class Connection extends EventEmitter2 {
 
     delete this.requestsToRedirect[msgId];
 
+    // hide modal
+    this.setLoading(false);
+
     if (this.origin === AppConstants.DEEPLINKS.ORIGIN_QR_CODE) return;
 
-    try {
-      await waitForEmptyRPCQueue(this.rpcQueueManager);
-      if (METHODS_TO_DELAY[method]) {
-        await wait(1000);
-      }
-      this.setLoading(false);
+    if (!this.rpcQueueManager.isEmpty()) {
+      DevLogger.log(`Connection::sendMessage NOT empty --- skip goBack()`);
+      return;
+    }
 
-      Minimizer.goBack();
+    if (this.trigger !== 'deeplink') {
+      DevLogger.log(`Connection::sendMessage NOT deeplink --- skip goBack()`);
+      return;
+    }
+
+    try {
+      if (METHODS_TO_DELAY[method]) {
+        await wait(1200);
+      }
+
+      DevLogger.log(
+        `Connection::sendMessage method=${method} trigger=${this.trigger} origin=${this.origin} id=${msgId} goBack()`,
+      );
+
+      // Check for iOS 17 and above to use a custom modal, as Minimizer.goBack() is incompatible with these versions
+      if (Device.isIos() && parseInt(Platform.Version as string) >= 17) {
+        this.navigation?.navigate(Routes.MODAL.ROOT_MODAL_FLOW, {
+          screen: Routes.SHEET.RETURN_TO_DAPP_MODAL,
+        });
+      } else {
+        await Minimizer.goBack();
+      }
     } catch (err) {
       Logger.log(
         err,

@@ -135,11 +135,13 @@ workflows:
             - content: |-
                 #!/usr/bin/env bash
                 echo "Node and Yarn being installed"
-                asdf global nodejs 18.18
+                asdf list all nodejs
+                asdf install nodejs "$NODE_VERSION"
+                asdf global nodejs "$NODE_VERSION"
                 asdf plugin add yarn
                 asdf list all yarn
-                asdf install yarn latest
-                asdf global yarn 1.22.19
+                asdf install yarn "$YARN_VERSION"
+                asdf global yarn "$YARN_VERSION"
           title: Install node and yarn
       - yarn@0:
           inputs:
@@ -295,7 +297,7 @@ workflows:
   ## in this instance Regression. In future iterations we can rename to ios_test_suite_selection & android_test_suite_selection      
   ios_run_regression_tests:
     envs:
-    - TEST_SUITE: 'regression'
+    - TEST_SUITE: 'Regression'
     after_run:
     - ios_e2e_test
   android_run_regression_tests:
@@ -304,7 +306,7 @@ workflows:
         stack: linux-docker-android-20.04
         machine_type_id: elite-xl
     envs:
-    - TEST_SUITE: 'regression'
+    - TEST_SUITE: 'Regression'
     after_run:
     - android_e2e_test
 
@@ -346,10 +348,10 @@ workflows:
           inputs:
             - content: |-
                 #!/usr/bin/env bash
-                if [ "$TEST_SUITE" = "regression" ]; then
-                TEST_SUITE="regression"
+                if [ "$TEST_SUITE" = "Regression" ]; then
+                  TEST_SUITE="Regression"
                 else
-                TEST_SUITE="smoke"
+                  TEST_SUITE="Smoke"
                 fi
                 node -v
                 export METAMASK_ENVIRONMENT='local'
@@ -415,10 +417,10 @@ workflows:
           inputs:
             - content: |-
                 #!/usr/bin/env bash
-                if [ "$TEST_SUITE" = "regression" ]; then
-                TEST_SUITE="regression"
+                if [ "$TEST_SUITE" = "Regression" ]; then
+                  TEST_SUITE="Regression"
                 else
-                TEST_SUITE="smoke"
+                  TEST_SUITE="Smoke"
                 fi
                 node -v
                 export METAMASK_ENVIRONMENT='local'
@@ -859,6 +861,12 @@ app:
     - opts:
         is_expand: false
       IOS_APP_LINK: ''
+    - opts:
+        is_expand: false
+      NODE_VERSION: 18.18.2
+    - opts:
+        is_expand: false
+      YARN_VERSION: 1.22.19
 
 meta:
   bitrise.io:
