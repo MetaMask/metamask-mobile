@@ -186,8 +186,10 @@ export const getNotificationDetails = (fiatOrder: FiatOrder) => {
         status: 'success',
       };
     }
+    case FIAT_ORDER_STATES.CREATED: {
+      return null;
+    }
     case FIAT_ORDER_STATES.PENDING:
-    case FIAT_ORDER_STATES.CREATED:
     default: {
       return {
         ...baseNotificationDetails,
@@ -223,9 +225,10 @@ export async function processFiatOrder(
         trackEvent(event, params);
       }
       InteractionManager.runAfterInteractions(() => {
-        NotificationManager.showSimpleNotification(
-          getNotificationDetails(updatedOrder),
-        );
+        const notificationDetails = getNotificationDetails(updatedOrder);
+        if (notificationDetails) {
+          NotificationManager.showSimpleNotification(notificationDetails);
+        }
       });
     }
     dispatchUpdateFiatOrder(updatedOrder);
@@ -259,9 +262,10 @@ async function processCustomOrderId(
       }
       dispatchAddFiatOrder(fiatOrder);
       InteractionManager.runAfterInteractions(() => {
-        NotificationManager.showSimpleNotification(
-          getNotificationDetails(fiatOrder),
-        );
+        const notificationDetails = getNotificationDetails(fiatOrder);
+        if (notificationDetails) {
+          NotificationManager.showSimpleNotification(notificationDetails);
+        }
       });
     });
     dispatchRemoveFiatCustomIdData(customOrderIdData);

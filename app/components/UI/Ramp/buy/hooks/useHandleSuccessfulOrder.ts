@@ -82,9 +82,10 @@ function useHandleSuccessfulOrder() {
           return;
         }
         handleAddFiatOrder(order);
-        NotificationManager.showSimpleNotification(
-          getNotificationDetails(order as any),
-        );
+        const notificationDetails = getNotificationDetails(order as any);
+        if (notificationDetails) {
+          NotificationManager.showSimpleNotification(notificationDetails);
+        }
 
         const payload = {
           payment_method_id: (order?.data as Order)?.paymentMethod?.id,
@@ -105,6 +106,7 @@ function useHandleSuccessfulOrder() {
             initial: false,
             params: {
               orderId: order.id,
+              redirectToSendTransaction: true,
             },
           });
         } else {

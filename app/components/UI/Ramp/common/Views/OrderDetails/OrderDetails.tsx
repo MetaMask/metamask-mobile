@@ -1,38 +1,41 @@
 import React, { useCallback, useEffect, useState } from 'react';
-import { RefreshControl } from 'react-native';
+import { ActivityIndicator, RefreshControl } from 'react-native';
 import { useDispatch, useSelector } from 'react-redux';
 import { useNavigation } from '@react-navigation/native';
 import { Order } from '@consensys/on-ramp-sdk';
 import { OrderOrderTypeEnum } from '@consensys/on-ramp-sdk/dist/API';
 import { ScrollView } from 'react-native-gesture-handler';
-import useAnalytics from '../hooks/useAnalytics';
-import useThunkDispatch from '../../../../hooks/useThunkDispatch';
-import ScreenLayout from '../components/ScreenLayout';
-import OrderDetail from '../components/OrderDetails';
-import Row from '../components/Row';
-import StyledButton from '../../../StyledButton';
+import useAnalytics from '../../hooks/useAnalytics';
+import useThunkDispatch from '../../../../../hooks/useThunkDispatch';
+import ScreenLayout from '../../components/ScreenLayout';
+import OrderDetail from '../../components/OrderDetails';
+import Row from '../../components/Row';
+import StyledButton from '../../../../StyledButton';
 import {
   getOrderById,
   updateFiatOrder,
-} from '../../../../../reducers/fiatOrders';
-import { strings } from '../../../../../../locales/i18n';
-import { getFiatOnRampAggNavbar } from '../../../Navbar';
-import Routes from '../../../../../constants/navigation/Routes';
-import { processFiatOrder } from '../..';
+} from '../../../../../../reducers/fiatOrders';
+import { strings } from '../../../../../../../locales/i18n';
+import { getFiatOnRampAggNavbar } from '../../../../Navbar';
+import Routes from '../../../../../../constants/navigation/Routes';
+import { processFiatOrder } from '../../../index';
 import {
   createNavigationDetails,
   useParams,
-} from '../../../../../util/navigation/navUtils';
-import { useTheme } from '../../../../../util/theme';
-import Logger from '../../../../../util/Logger';
+} from '../../../../../../util/navigation/navUtils';
+import { useTheme } from '../../../../../../util/theme';
+import Logger from '../../../../../../util/Logger';
 import {
   selectNetworkConfigurations,
   selectProviderConfig,
-} from '../../../../../selectors/networkController';
-import { RootState } from '../../../../../reducers';
+} from '../../../../../../selectors/networkController';
+import { RootState } from '../../../../../../reducers';
+import { FIAT_ORDER_STATES } from '../../../../../../constants/on-ramp';
+import ErrorView from '../../components/ErrorView';
 
 interface OrderDetailsParams {
   orderId?: string;
+  redirectToSendTransaction?: boolean;
 }
 
 export const createOrderDetailsNavDetails =
@@ -46,6 +49,10 @@ const OrderDetails = () => {
   const order = useSelector((state: RootState) =>
     getOrderById(state, params.orderId),
   );
+  const [isLoading, setIsLoading] = useState(
+    order?.state === FIAT_ORDER_STATES.CREATED,
+  );
+  const [error, setError] = useState<string | null>(null);
   const { colors } = useTheme();
   const navigation = useNavigation();
   const dispatch = useDispatch();
@@ -59,11 +66,33 @@ const OrderDetails = () => {
         navigation,
         {
           title: strings('fiat_on_ramp_aggregator.order_details.details_main'),
+          showCancel: false,
         },
         colors,
       ),
     );
   }, [colors, navigation]);
+
+  const navigateToSendTransaction = useCallback(() => {
+    if (order?.id) {
+      navigation.navigate(Routes.RAMP.SEND_TRANSACTION, {
+        orderId: order.id,
+      });
+    }
+  }, [navigation, order?.id]);
+
+  useEffect(() => {
+    if (
+      order?.state === FIAT_ORDER_STATES.CREATED &&
+      params.redirectToSendTransaction
+    ) {
+      navigateToSendTransaction();
+    }
+  }, [
+    order?.state,
+    params.redirectToSendTransaction,
+    navigateToSendTransaction,
+  ]);
 
   useEffect(() => {
     if (order) {
@@ -111,27 +140,68 @@ const OrderDetails = () => {
   const handleOnRefresh = useCallback(async () => {
     if (!order) return;
     try {
+      setError(null);
       setIsRefreshing(true);
       await processFiatOrder(order, dispatchUpdateFiatOrder, dispatchThunk, {
         forced: true,
       });
-    } catch (error) {
-      Logger.error(error as Error, {
+    } catch (fetchError) {
+      Logger.error(fetchError as Error, {
         message: 'FiatOrders::OrderDetails error while processing order',
         order,
       });
+      setError((fetchError as Error).message || 'An error as occurred');
     } finally {
+      setIsLoading(false);
       setIsRefreshing(false);
     }
   }, [dispatchThunk, dispatchUpdateFiatOrder, order]);
 
+  useEffect(() => {
+    if (order?.state === FIAT_ORDER_STATES.CREATED) {
+      handleOnRefresh();
+    }
+    // only run on mount
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
   const handleMakeAnotherPurchase = useCallback(() => {
     navigation.goBack();
-    navigation.navigate(Routes.RAMP.BUY);
-  }, [navigation]);
+    navigation.navigate(
+      order?.orderType === OrderOrderTypeEnum.Buy
+        ? Routes.RAMP.BUY
+        : Routes.RAMP.SELL,
+    );
+  }, [navigation, order?.orderType]);
 
   if (!order) {
     return <ScreenLayout />;
+  }
+
+  if (isLoading) {
+    return (
+      <ScreenLayout>
+        <ScreenLayout.Body>
+          <ScreenLayout.Content>
+            <ActivityIndicator />
+          </ScreenLayout.Content>
+        </ScreenLayout.Body>
+      </ScreenLayout>
+    );
+  }
+
+  if (error) {
+    return (
+      <ScreenLayout>
+        <ScreenLayout.Body>
+          <ErrorView
+            description={error}
+            ctaOnPress={handleOnRefresh}
+            location="Order Details Screen"
+          />
+        </ScreenLayout.Body>
+      </ScreenLayout>
+    );
   }
 
   return (
@@ -157,25 +227,29 @@ const OrderDetails = () => {
         </ScreenLayout.Body>
         <ScreenLayout.Footer>
           <ScreenLayout.Content>
-            {order.orderType === OrderOrderTypeEnum.Sell ? (
+            {order.orderType === OrderOrderTypeEnum.Sell &&
+            !order.sellTxHash &&
+            order.state === FIAT_ORDER_STATES.CREATED ? (
               <Row>
-                <StyledButton
-                  type="normal"
-                  onPress={() => {
-                    navigation.navigate(Routes.RAMP.SEND_TRANSACTION, {
-                      orderId: order.id,
-                    });
-                  }}
-                >
-                  [placeholder] Send Transaction
+                <StyledButton type="normal" onPress={navigateToSendTransaction}>
+                  {strings(
+                    'fiat_on_ramp_aggregator.order_details.continue_order',
+                  )}
                 </StyledButton>
               </Row>
             ) : null}
-            <StyledButton type="confirm" onPress={handleMakeAnotherPurchase}>
-              {strings(
-                'fiat_on_ramp_aggregator.order_details.another_purchase',
+
+            {order.state !== FIAT_ORDER_STATES.CREATED &&
+              order.state !== FIAT_ORDER_STATES.PENDING && (
+                <StyledButton
+                  type="confirm"
+                  onPress={handleMakeAnotherPurchase}
+                >
+                  {strings(
+                    'fiat_on_ramp_aggregator.order_details.start_new_order',
+                  )}
+                </StyledButton>
               )}
-            </StyledButton>
           </ScreenLayout.Content>
         </ScreenLayout.Footer>
       </ScrollView>

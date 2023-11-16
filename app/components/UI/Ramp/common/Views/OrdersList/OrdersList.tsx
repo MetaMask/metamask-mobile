@@ -5,7 +5,7 @@ import { useNavigation } from '@react-navigation/native';
 import { useSelector } from 'react-redux';
 import { OrderOrderTypeEnum } from '@consensys/on-ramp-sdk/dist/API';
 
-import { createOrderDetailsNavDetails } from '../OrderDetails';
+import { createOrderDetailsNavDetails } from '../OrderDetails/OrderDetails';
 import OrderListItem from '../../components/OrderListItem';
 import Row from '../../components/Row';
 import createStyles from './OrdersList.styles';
