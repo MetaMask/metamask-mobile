@@ -14,7 +14,6 @@ import {
   METAMETRICS_ID,
   METAMETRICS_SEGMENT_REGULATION_ID,
   METRICS_OPT_IN,
-  MIXPANEL_METAMETRICS_ID,
 } from '../../constants/storage';
 
 import {
@@ -28,10 +27,9 @@ import {
 } from './MetaMetrics.constants';
 import generateMetametricsId from '../../util/metrics/MetaMetricsId';
 
-// eslint-disable-next-line @typescript-eslint/no-unused-vars
 class MetaMetrics implements IMetaMetrics {
   // Singleton instance
-  private static instance: MetaMetrics | null;
+  protected static instance: MetaMetrics | null;
 
   private metametricsId: string | undefined;
   private segmentClient: ISegmentClient | undefined;
@@ -71,12 +69,6 @@ class MetaMetrics implements IMetaMetrics {
       await DefaultPreference.set(METAMETRICS_ID, this.metametricsId);
     }
     if (__DEV__) Logger.log(`Current MetaMatrics ID: ${this.metametricsId}`);
-    if (__DEV__) {
-      const metametricsId = await DefaultPreference.get(
-        MIXPANEL_METAMETRICS_ID,
-      );
-      Logger.log(`MIXPANEL_METAMETRICS_ID: ${metametricsId}`);
-    }
     return this.metametricsId;
   };
 
@@ -211,7 +203,7 @@ class MetaMetrics implements IMetaMetrics {
     }
   };
 
-  static async getInstance(): Promise<IMetaMetrics> {
+  public static async getInstance(): Promise<IMetaMetrics> {
     if (!this.instance) {
       const config = {
         writeKey: (__DEV__
@@ -230,10 +222,6 @@ class MetaMetrics implements IMetaMetrics {
       this.instance.metametricsId = await this.instance.#getMetaMetricsId();
     }
     return this.instance;
-  }
-
-  static resetInstance(): void {
-    MetaMetrics.instance = null;
   }
 
   enable = async (enable = true): Promise<void> => {

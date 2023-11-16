@@ -1,6 +1,5 @@
 import MetaMetrics from './MetaMetrics';
 import DefaultPreference from 'react-native-default-preference';
-import { METAMETRICS_ANONYMOUS_ID } from './MetaMetrics.constants';
 import {
   AGREED,
   ANALYTICS_DATA_DELETION_DATE,
@@ -13,23 +12,35 @@ import axios, { AxiosResponse } from 'axios';
 
 jest.mock('react-native-default-preference');
 const mockGet = jest.fn();
+const mockSet = jest.fn();
 
 jest.mock('axios');
+
+/**
+ * Extend MetaMetrics to allow reset of the singleton instance
+ */
+class TestMetaMetrics extends MetaMetrics {
+  public static resetInstance(): void {
+    TestMetaMetrics.instance = null;
+  }
+}
 
 describe('MetaMetrics', () => {
   beforeEach(async () => {
     DefaultPreference.get = mockGet;
-    MetaMetrics.resetInstance();
+    DefaultPreference.set = mockSet;
+    TestMetaMetrics.resetInstance();
   });
 
   afterEach(() => {
     jest.clearAllMocks();
     mockGet.mockReset();
+    mockSet.mockReset();
   });
 
   it('defaults to disabled metrics', async () => {
     mockGet.mockResolvedValue(undefined);
-    const metaMetrics = await MetaMetrics.getInstance();
+    const metaMetrics = await TestMetaMetrics.getInstance();
 
     expect(DefaultPreference.get).toHaveBeenCalledWith(METRICS_OPT_IN);
     expect(metaMetrics.isEnabled()).toBeFalsy();
@@ -37,14 +48,14 @@ describe('MetaMetrics', () => {
 
   it('uses preference enabled value when set', async () => {
     mockGet.mockImplementation(async () => AGREED);
-    const metaMetrics = await MetaMetrics.getInstance();
+    const metaMetrics = await TestMetaMetrics.getInstance();
 
     expect(DefaultPreference.get).toHaveBeenCalledWith(METRICS_OPT_IN);
     expect(metaMetrics.isEnabled()).toBeTruthy();
   });
 
   it('enables metrics', async () => {
-    const metaMetrics = await MetaMetrics.getInstance();
+    const metaMetrics = await TestMetaMetrics.getInstance();
     await metaMetrics.enable();
 
     expect(DefaultPreference.set).toHaveBeenLastCalledWith(
@@ -55,7 +66,7 @@ describe('MetaMetrics', () => {
   });
 
   it('disables metrics', async () => {
-    const metaMetrics = await MetaMetrics.getInstance();
+    const metaMetrics = await TestMetaMetrics.getInstance();
 
     // Enable first as it is disabled by default
     await metaMetrics.enable();
@@ -76,7 +87,7 @@ describe('MetaMetrics', () => {
   });
 
   it('tracks event', async () => {
-    const metaMetrics = await MetaMetrics.getInstance();
+    const metaMetrics = await TestMetaMetrics.getInstance();
     await metaMetrics.enable();
     const event = 'event1';
     const properties = { prop1: 'value1' };
@@ -85,16 +96,14 @@ describe('MetaMetrics', () => {
 
     expect(DefaultPreference.get).toHaveBeenCalledWith(METRICS_OPT_IN);
     const { segmentMockClient } = global as any;
-    expect(segmentMockClient.track).toHaveBeenCalledWith(
-      event,
-      properties,
-      expect.any(String),
-      METAMETRICS_ANONYMOUS_ID,
-    );
+    expect(segmentMockClient.track).toHaveBeenCalledWith(event, {
+      anonymous: false,
+      ...properties,
+    });
   });
 
   it('tracks anonymous event', async () => {
-    const metaMetrics = await MetaMetrics.getInstance();
+    const metaMetrics = await TestMetaMetrics.getInstance();
     await metaMetrics.enable();
     const event = 'event1';
     const properties = { prop1: 'value1' };
@@ -103,23 +112,18 @@ describe('MetaMetrics', () => {
 
     const { segmentMockClient } = global as any;
     // the anonymous part should not have a user id
-    expect(segmentMockClient.track).toHaveBeenCalledWith(
-      event,
-      properties,
-      undefined,
-      METAMETRICS_ANONYMOUS_ID,
-    );
+    expect(segmentMockClient.track).toHaveBeenCalledWith(event, {
+      anonymous: true,
+      ...properties,
+    });
     // non anonymous part should not have properties
-    expect(segmentMockClient.track).toHaveBeenCalledWith(
-      event,
-      {},
-      expect.any(String),
-      METAMETRICS_ANONYMOUS_ID,
-    );
+    expect(segmentMockClient.track).toHaveBeenCalledWith(event, {
+      anonymous: true,
+    });
   });
 
   it('groups user', async () => {
-    const metaMetrics = await MetaMetrics.getInstance();
+    const metaMetrics = await TestMetaMetrics.getInstance();
     await metaMetrics.enable();
     const groupId = 'group1';
     const groupTraits = { trait1: 'value1' };
@@ -129,7 +133,7 @@ describe('MetaMetrics', () => {
   });
 
   it('creates segment delete regulation', async () => {
-    const metaMetrics = await MetaMetrics.getInstance();
+    const metaMetrics = await TestMetaMetrics.getInstance();
     (axios as jest.MockedFunction<typeof axios>).mockResolvedValue({
       status: 200,
       data: { regulateId: 'regulateId1' },
@@ -148,17 +152,15 @@ describe('MetaMetrics', () => {
   });
 
   it('resets', async () => {
-    const metaMetrics = await MetaMetrics.getInstance();
+    const metaMetrics = await TestMetaMetrics.getInstance();
     await metaMetrics.reset();
     const { segmentMockClient } = global as any;
-    expect(segmentMockClient.reset).toHaveBeenCalledWith(
-      METAMETRICS_ANONYMOUS_ID,
-    );
+    expect(segmentMockClient.reset).toHaveBeenCalledWith(true);
     expect(DefaultPreference.set).toHaveBeenCalledWith(METAMETRICS_ID, '');
   });
 
   it('adds traits to user', async () => {
-    const metaMetrics = await MetaMetrics.getInstance();
+    const metaMetrics = await TestMetaMetrics.getInstance();
     await metaMetrics.enable();
     const userTraits = { trait1: 'value1' };
     metaMetrics.addTraitsToUser(userTraits);
@@ -170,39 +172,44 @@ describe('MetaMetrics', () => {
   });
 
   it('maintains same user id', async () => {
-    const metaMetrics = await MetaMetrics.getInstance();
-    await metaMetrics.enable();
+    await TestMetaMetrics.getInstance();
+    const metricsId = mockSet.mock.calls[0][1];
+    expect(metricsId).not.toEqual('');
 
-    const event = 'event1';
-    const properties = { prop1: 'value1' };
-    metaMetrics.trackEvent(event, properties);
+    // create a new instance and check that user id was not changed
+    await TestMetaMetrics.getInstance();
 
-    const metaMetrics2 = await MetaMetrics.getInstance();
-    metaMetrics2.trackEvent(event, properties);
-
-    const { segmentMockClient } = global as any;
-    expect(segmentMockClient.track.mock.calls[0]).toEqual(
-      segmentMockClient.track.mock.calls[1],
-    );
+    expect(DefaultPreference.set).not.toHaveBeenCalledWith(METAMETRICS_ID, '');
+    expect(DefaultPreference.get).toHaveBeenNthCalledWith(2, METAMETRICS_ID);
   });
 
   it('resets user id', async () => {
-    const metaMetrics = await MetaMetrics.getInstance();
-    await metaMetrics.enable();
+    const metaMetrics = await TestMetaMetrics.getInstance();
+    const metricsId = mockSet.mock.calls[0][1];
 
-    const event = 'event1';
-    const properties = { prop1: 'value1' };
-    metaMetrics.trackEvent(event, properties);
+    expect(metricsId).not.toEqual('');
 
     // reset the instance and SDK must reset user id
     await metaMetrics.reset();
 
-    const metaMetrics2 = await MetaMetrics.getInstance();
-    metaMetrics2.trackEvent(event, properties);
-
-    const { segmentMockClient } = global as any;
-    expect(segmentMockClient.track.mock.calls[0]).not.toEqual(
-      segmentMockClient.track.mock.calls[1],
+    // Check change on the MetaMerics class side
+    expect(DefaultPreference.set).toHaveBeenNthCalledWith(
+      2,
+      METAMETRICS_ID,
+      '',
     );
+
+    // Check MetaMerics class calls the Segment SDK reset
+    const { segmentMockClient } = global as any;
+    expect(segmentMockClient.reset).toHaveBeenCalledTimes(1);
+    expect(segmentMockClient.reset).toHaveBeenCalledWith(true);
+
+    // create a new instance and check user id is different
+    await TestMetaMetrics.getInstance();
+    const metricsId2 = mockSet.mock.calls[2][1];
+
+    expect(metricsId2).not.toEqual('');
+
+    expect(metricsId).not.toEqual(metricsId2);
   });
 });
