@@ -72,7 +72,7 @@ interface PropsStage {
   pendingDescription?: string;
   cryptocurrency?: string;
   providerName?: string;
-  rampType?: OrderOrderTypeEnum;
+  orderType?: OrderOrderTypeEnum;
 }
 
 const Row: React.FC = (props) => {
@@ -91,7 +91,7 @@ const Stage: React.FC<PropsStage> = ({
   pendingDescription,
   cryptocurrency,
   providerName,
-  rampType,
+  orderType,
 }: PropsStage) => {
   const { colors } = useTheme();
   const styles = createStyles(colors);
@@ -108,7 +108,7 @@ const Stage: React.FC<PropsStage> = ({
             <Text bold big primary centered>
               {strings('fiat_on_ramp_aggregator.order_details.successful')}
             </Text>
-            {rampType === OrderOrderTypeEnum.Buy ? (
+            {orderType === OrderOrderTypeEnum.Buy ? (
               <Text small centered grey>
                 {strings('fiat_on_ramp_aggregator.order_details.your')}{' '}
                 {cryptocurrency ||
@@ -262,7 +262,7 @@ const OrderDetails: React.FC<Props> = ({
           pendingDescription={orderData?.timeDescriptionPending}
           cryptocurrency={cryptocurrency}
           providerName={providerName}
-          rampType={order.orderType}
+          orderType={order.orderType}
         />
         <Group>
           <Text bold centered primary style={styles.tokenAmount}>
