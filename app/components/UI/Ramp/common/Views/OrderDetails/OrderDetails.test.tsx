@@ -220,6 +220,46 @@ describe('OrderDetails', () => {
     expect(screen.toJSON()).toMatchSnapshot();
   });
 
+  it('sends analytics events when an order is loaded', () => {
+    render(OrderDetails);
+    expect(mockTrackEvent.mock.lastCall).toMatchInlineSnapshot(`
+      Array [
+        "ONRAMP_PURCHASE_DETAILS_VIEWED",
+        Object {
+          "chain_id_destination": "1",
+          "currency_destination": "ETH",
+          "currency_source": "USD",
+          "order_type": "BUY",
+          "payment_method_id": "test-payment-method-id",
+          "provider_onramp": "Test Provider",
+          "status": "PENDING",
+        },
+      ]
+    `);
+
+    mockTrackEvent.mockReset();
+    const testOrder = {
+      ...mockOrder,
+      orderType: OrderOrderTypeEnum.Sell,
+    };
+
+    render(OrderDetails, [testOrder]);
+    expect(mockTrackEvent.mock.lastCall).toMatchInlineSnapshot(`
+      Array [
+        "OFFRAMP_PURCHASE_DETAILS_VIEWED",
+        Object {
+          "chain_id_source": "1",
+          "currency_destination": "USD",
+          "currency_source": "ETH",
+          "order_type": "SELL",
+          "payment_method_id": "test-payment-method-id",
+          "provider_offramp": "Test Provider",
+          "status": "PENDING",
+        },
+      ]
+    `);
+  });
+
   it('navigates to buy flow when the user attempts to make another purchase', async () => {
     const testOrder = {
       ...mockOrder,
