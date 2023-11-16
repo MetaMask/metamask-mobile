@@ -380,7 +380,7 @@ function getInvalidParamsMessage(filePath, command, details) {
 }
 
 const { ESLint } = require('eslint');
-const eslintrc = require('../../../.eslintrc.js');
+const eslintrc = require('../../.eslintrc.js');
 
 eslintrc.overrides.forEach((override) => {
   const rules = override.rules ?? {};
