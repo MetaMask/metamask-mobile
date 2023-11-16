@@ -10,6 +10,12 @@ const malFormedFencedSrc = './app/__mocks__/malformed-fenced-code-comp.mock.js';
 const emptyFencedSrc = './app/__mocks__/empty-fenced-code-comp.mock.js';
 const invalidParamFencedSrc =
   './app/__mocks__/invalid-param-fenced-comp.mock.js';
+const multipleParamsFencedSrc =
+  './app/__mocks__/multiple-params-fenced-code-comp.mock.js';
+const differentFencedCodeCompSrc =
+  './app/__mocks__/different-fenced-code-comp.mock.js';
+const differentFencedCodeCompResultSrc =
+  './app/__mocks__/different-fenced-code-result-comp.mock.js';
 
 const fencedContent = readFileSync(fencedSrc, {
   encoding: 'utf-8',
@@ -30,6 +36,21 @@ const emptyFencedContent = readFileSync(emptyFencedSrc, {
 const invalidParamFencedContent = readFileSync(invalidParamFencedSrc, {
   encoding: 'utf-8',
 });
+
+const multipleParamFencedContent = readFileSync(multipleParamsFencedSrc, {
+  encoding: 'utf-8',
+});
+
+const differentFencedCodeContent = readFileSync(differentFencedCodeCompSrc, {
+  encoding: 'utf-8',
+});
+
+const differentFencedCodeResultContent = readFileSync(
+  differentFencedCodeCompResultSrc,
+  {
+    encoding: 'utf-8',
+  },
+);
 
 const features = { all: new Set(['flask']), active: new Set([]) };
 
@@ -95,5 +116,63 @@ describe('removeFencedCode', () => {
     expect(errorMessage).toMatch(
       /"invalidParam" is not a declared build feature\./,
     );
+  });
+
+  it('should not modify files without fenced code', () => {
+    const [result, modified] = removeFencedCode(
+      noFencedSrc,
+      features,
+      noFencedContent,
+    );
+    expect(modified).toBe(false);
+    expect(result).toBe(noFencedContent);
+  });
+
+  it('should not removed "flask" fenced code when active feature is set to flask', () => {
+    const flaskFeatures = {
+      all: new Set(['flask']),
+      active: new Set(['flask']),
+    };
+
+    const [processedSource, didModify] = removeFencedCode(
+      fencedSrc,
+      flaskFeatures,
+      fencedContent,
+    );
+    // same output as input
+    expect(processedSource).toBe(fencedContent);
+    expect(didModify).toBe(false);
+  });
+
+  it('should correctly process fences with multiple parameters', () => {
+    const features = {
+      active: new Set(['flask']),
+      all: new Set(['flask', 'snaps']),
+    };
+
+    const [processedSource, didModify] = removeFencedCode(
+      multipleParamsFencedSrc,
+      features,
+      multipleParamFencedContent,
+    );
+
+    // same output as input
+    expect(processedSource).toBe(multipleParamFencedContent);
+    expect(didModify).toBe(false);
+  });
+
+  it('should correctly process fences in files that contain multiple different fences', () => {
+    const features = {
+      active: new Set(['flask']),
+      all: new Set(['flask', 'snaps']),
+    };
+
+    const [processedSource, didModify] = removeFencedCode(
+      differentFencedCodeCompSrc,
+      features,
+      differentFencedCodeContent,
+    );
+    expect(processedSource).toBe(differentFencedCodeResultContent);
+    expect(didModify).toBe(true);
   });
 });
