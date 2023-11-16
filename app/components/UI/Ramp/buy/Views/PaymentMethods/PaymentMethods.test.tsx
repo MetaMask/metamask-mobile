@@ -174,6 +174,17 @@ describe('PaymentMethods View', () => {
     expect(screen.toJSON()).toMatchSnapshot();
   });
 
+  it('renders correctly for sell', async () => {
+    mockUseRampSDKValues = {
+      ...mockuseRampSDKInitialValues,
+      isBuy: false,
+      isSell: true,
+      rampType: RampType.SELL,
+    };
+    render(PaymentMethods);
+    expect(screen.toJSON()).toMatchSnapshot();
+  });
+
   it('renders correctly with show back button false', async () => {
     mockUseParamsValues = {
       showBack: false,

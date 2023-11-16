@@ -245,6 +245,7 @@ const PaymentMethods = () => {
                       ? undefined
                       : () => handlePaymentMethodPress(payment.id)
                   }
+                  isBuy={isBuy}
                 />
               </Row>
             ))}
