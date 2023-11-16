@@ -6,7 +6,7 @@ const path = require('path');
 const {
   removeFencedCode,
   lintTransformedFile,
-} = require('./remove-fenced-code.js');
+} = require('./app/build/transforms/remove-fenced-code');
 
 const filesExtToScan = ['.js', '.cjs', '.mjs', '.ts'];
 
