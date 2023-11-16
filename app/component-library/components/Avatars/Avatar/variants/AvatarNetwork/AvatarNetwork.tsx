@@ -9,10 +9,10 @@ import AvatarBase from '../../foundation/AvatarBase';
 import { AvatarSize } from '../../Avatar.types';
 import Text, { TextVariant } from '../../../../Texts/Text';
 import { useStyles } from '../../../../../hooks';
+import { BrowserViewSelectorsIDs } from '../../../../../../../e2e/selectors/BrowserView.selectors';
 
 // Internal dependencies.
 import { AvatarNetworkProps } from './AvatarNetwork.types';
-import { NETWORK_AVATAR_IMAGE_ID } from './../../../../../../constants/test-ids';
 import stylesheet from './AvatarNetwork.styles';
 import generateTestId from '../../../../../../../wdio/utils/generateTestId';
 
@@ -47,7 +47,7 @@ const AvatarNetwork = ({
           source={imageSource as ImageSourcePropType}
           style={styles.image}
           onError={onError}
-          {...generateTestId(Platform, NETWORK_AVATAR_IMAGE_ID)}
+          {...generateTestId(Platform, BrowserViewSelectorsIDs.AVATAR_IMAGE)}
           resizeMode={'contain'}
         />
       )}

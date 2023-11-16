@@ -4,10 +4,10 @@ import { shallow } from 'enzyme';
 
 // External dependencies.
 import { AvatarSize } from '../../Avatar.types';
+import { BrowserViewSelectorsIDs } from '../../../../../../../e2e/selectors/BrowserView.selectors';
 
 // Internal dependencies.
 import AvatarNetwork from './AvatarNetwork';
-import { NETWORK_AVATAR_IMAGE_ID } from '../../../../../../constants/test-ids';
 import {
   TEST_LOCAL_IMAGE_SOURCE,
   TEST_NETWORK_NAME,
@@ -36,7 +36,7 @@ describe('AvatarNetwork', () => {
     );
 
     const imageComponent = wrapper.findWhere(
-      (node) => node.prop('testID') === NETWORK_AVATAR_IMAGE_ID,
+      (node) => node.prop('testID') === BrowserViewSelectorsIDs.AVATAR_IMAGE,
     );
     expect(imageComponent.exists()).toBe(true);
   });
@@ -51,7 +51,7 @@ describe('AvatarNetwork', () => {
     );
 
     const imageComponent = wrapper.findWhere(
-      (node) => node.prop('testID') === NETWORK_AVATAR_IMAGE_ID,
+      (node) => node.prop('testID') === BrowserViewSelectorsIDs.AVATAR_IMAGE,
     );
     expect(imageComponent.exists()).toBe(true);
   });
@@ -65,12 +65,12 @@ describe('AvatarNetwork', () => {
       />,
     );
     const prevImageComponent = wrapper.findWhere(
-      (node) => node.prop('testID') === NETWORK_AVATAR_IMAGE_ID,
+      (node) => node.prop('testID') === BrowserViewSelectorsIDs.AVATAR_IMAGE,
     );
     // Simulate onError on Image component
     prevImageComponent.props().onError({ nativeEvent: { error: 'ERROR!' } });
     const currentImageComponent = wrapper.findWhere(
-      (node) => node.prop('testID') === NETWORK_AVATAR_IMAGE_ID,
+      (node) => node.prop('testID') === BrowserViewSelectorsIDs.AVATAR_IMAGE,
     );
     expect(currentImageComponent.exists()).toBe(false);
   });
@@ -80,7 +80,7 @@ describe('AvatarNetwork', () => {
       <AvatarNetwork size={AvatarSize.Xl} name={TEST_NETWORK_NAME} />,
     );
     const imageComponent = wrapper.findWhere(
-      (node) => node.prop('testID') === NETWORK_AVATAR_IMAGE_ID,
+      (node) => node.prop('testID') === BrowserViewSelectorsIDs.AVATAR_IMAGE,
     );
     expect(imageComponent.exists()).toBe(false);
   });
