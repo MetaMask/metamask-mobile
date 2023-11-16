@@ -8,6 +8,8 @@ const {
   lintTransformedFile,
 } = require('./remove-fenced-code.js');
 
+const filesExtToScan = ['.js', '.cjs', '.mjs', '.ts'];
+
 module.exports.transform = async ({ src, filename, options }) => {
   if (filename.endsWith('.svg')) {
     return svgTransformer.transform({ src, filename, options });
@@ -16,7 +18,7 @@ module.exports.transform = async ({ src, filename, options }) => {
    * params based on builds we're code splitting
    * i.e: flavorDimensions "version" productFlavors from android/app/build.gradle
    */
-  if (['.js', '.cjs', '.mjs', '.ts'].includes(path.extname(filename))) {
+  if (filesExtToScan.includes(path.extname(filename))) {
     const [processedSource, didModify] = removeFencedCode(
       filename,
       { all: new Set(['flask', 'snaps']), active: new Set([]) },
