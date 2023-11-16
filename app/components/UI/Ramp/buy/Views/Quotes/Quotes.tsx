@@ -550,7 +550,9 @@ function Quotes() {
       <ErrorView
         title={strings('fiat_on_ramp_aggregator.no_providers_available')}
         description={strings(
-          'fiat_on_ramp_aggregator.try_different_amount_to_buy_input',
+          isBuy
+            ? 'fiat_on_ramp_aggregator.try_different_amount_to_buy_input'
+            : 'fiat_on_ramp_aggregator.try_different_amount_to_sell_input',
         )}
         ctaOnPress={() => navigation.goBack()}
         location={'Quotes Screen'}
