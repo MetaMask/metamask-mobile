@@ -4,7 +4,7 @@
 import React, { useCallback, useRef } from 'react';
 import { Platform, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { useSelector } from 'react-redux';
+import { useDispatch, useSelector } from 'react-redux';
 
 // External dependencies.
 import TabBarItem from '../TabBarItem';
@@ -23,8 +23,10 @@ import { ICON_BY_TAB_BAR_ICON_KEY } from './TabBar.constants';
 import { colors as importedColors } from '../../../../styles/common';
 import { AvatarSize } from '../../Avatars/Avatar';
 import OnboardingWizard from '../../../../components/UI/OnboardingWizard';
+import { setJavascriptEnable } from '../../../../actions/browser';
 
 const TabBar = ({ state, descriptors, navigation }: TabBarProps) => {
+  const dispatch = useDispatch<any>();
   const { colors } = useTheme();
   const { bottom: bottomInset } = useSafeAreaInsets();
   const { styles } = useStyles(styleSheet, { bottomInset });
@@ -61,6 +63,7 @@ const TabBar = ({ state, descriptors, navigation }: TabBarProps) => {
         callback?.();
         switch (rootScreenName) {
           case Routes.WALLET_VIEW:
+            dispatch(setJavascriptEnable(false));
             navigation.navigate(Routes.WALLET.HOME, {
               screen: Routes.WALLET.TAB_STACK_FLOW,
               params: {
@@ -69,6 +72,7 @@ const TabBar = ({ state, descriptors, navigation }: TabBarProps) => {
             });
             break;
           case Routes.MODAL.WALLET_ACTIONS:
+            dispatch(setJavascriptEnable(false));
             navigation.navigate(Routes.MODAL.ROOT_MODAL_FLOW, {
               screen: Routes.MODAL.WALLET_ACTIONS,
             });
@@ -81,14 +85,17 @@ const TabBar = ({ state, descriptors, navigation }: TabBarProps) => {
             );
             break;
           case Routes.BROWSER_VIEW:
+            dispatch(setJavascriptEnable(true));
             navigation.navigate(Routes.BROWSER.HOME, {
               screen: Routes.BROWSER_VIEW,
             });
             break;
           case Routes.TRANSACTIONS_VIEW:
+            dispatch(setJavascriptEnable(false));
             navigation.navigate(Routes.TRANSACTIONS_VIEW);
             break;
           case Routes.SETTINGS_VIEW:
+            dispatch(setJavascriptEnable(false));
             navigation.navigate(Routes.SETTINGS_VIEW, {
               screen: 'Settings',
             });

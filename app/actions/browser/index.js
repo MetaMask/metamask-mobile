@@ -109,3 +109,14 @@ export function storeFavicon({ origin, url }) {
     url,
   };
 }
+/**
+ * Store the value of javascrip enabled on in app browser
+ * @param {Boolean} isJavascriptEnabled - Represents in app browser javascript enabled property
+ * @returns
+ */
+export function setJavascriptEnable(isJavascriptEnabled) {
+  return {
+    type: 'JAVASCRIPT_ENABLED',
+    isJavascriptEnabled,
+  };
+}

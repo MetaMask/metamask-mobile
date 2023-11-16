@@ -68,6 +68,12 @@ const browserReducer = (state = initialState, action) => {
           ...state.favicons,
         ].slice(0, AppConstants.FAVICON_CACHE_MAX_SIZE),
       };
+    case 'JAVASCRIPT_ENABLED': {
+      return {
+        ...state,
+        javascriptEnabled: action.isJavascriptEnabled,
+      };
+    }
     default:
       return state;
   }

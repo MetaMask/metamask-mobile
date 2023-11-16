@@ -15,7 +15,6 @@ import { withNavigation } from '@react-navigation/compat';
 import { WebView } from 'react-native-webview';
 import Icon from 'react-native-vector-icons/FontAwesome';
 import MaterialCommunityIcon from 'react-native-vector-icons/MaterialCommunityIcons';
-import { useIsFocused } from '@react-navigation/native';
 import BrowserBottomBar from '../../UI/BrowserBottomBar';
 import PropTypes from 'prop-types';
 import Share from 'react-native-share';
@@ -253,7 +252,6 @@ const sessionENSNames = {};
 const ensIgnoreList = [];
 
 export const BrowserTab = (props) => {
-  const isFocused = useIsFocused();
   const [key, setKey] = useState(1);
   const [backEnabled, setBackEnabled] = useState(false);
   const [forwardEnabled, setForwardEnabled] = useState(false);
@@ -1439,7 +1437,7 @@ export const BrowserTab = (props) => {
    */
   useEffect(() => {
     if (Platform.OS === 'ios') setKey((prevKey) => prevKey + 1);
-  }, [isFocused]);
+  }, [props.isJavascriptEnabled]);
 
   const renderIpfsBanner = () => (
     <View style={styles.bannerContainer}>
@@ -1512,7 +1510,7 @@ export const BrowserTab = (props) => {
                 testID={'browser-webview'}
                 applicationNameForUserAgent={'WebView MetaMaskMobile'}
                 onFileDownload={handleOnFileDownload}
-                javaScriptEnabled={isFocused}
+                javaScriptEnabled={props.isJavascriptEnabled}
               />
               {ipfsBannerVisible && renderIpfsBanner()}
             </>
@@ -1624,6 +1622,10 @@ BrowserTab.propTypes = {
    * Represents the current chain id
    */
   chainId: PropTypes.string,
+  /**
+   * Represents if javascript should be enable on the webview
+   */
+  isJavascriptEnabled: PropTypes.bool,
 };
 
 BrowserTab.defaultProps = {
@@ -1639,6 +1641,7 @@ const mapStateToProps = (state) => ({
   whitelist: state.browser.whitelist,
   wizardStep: state.wizard.step,
   chainId: selectChainId(state),
+  isJavascriptEnabled: state.browser.javascriptEnabled,
 });
 
 const mapDispatchToProps = (dispatch) => ({
