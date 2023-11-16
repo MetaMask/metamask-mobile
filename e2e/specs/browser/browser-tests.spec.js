@@ -83,7 +83,7 @@ describe(Smoke('Browser Tests'), () => {
       await TestHelpers.tapAtPoint(BROWSER_SCREEN_ID, { x: 180, y: 275 });
       await Browser.waitForBrowserPageToLoad();
     }
-    await Browser.isWebViewTestDapp();
+    await Browser.isURLBarTextTestDapp();
     await Browser.isVisible();
   });
 

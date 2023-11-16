@@ -222,7 +222,7 @@ export default class Browser {
     await TestHelpers.delay(3000);
   }
 
-  static async isWebViewTestDapp() {
+  static async isURLBarTextTestDapp() {
     await TestHelpers.checkIfElementWithTextIsVisible(
       BrowserViewSelectorsText.METAMASK_TEST_DAPP_URL,
       0,
