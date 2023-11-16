@@ -97,6 +97,7 @@ jest.mock('../../../common/sdk', () => ({
 
 const mockUseParamsDefaultValues = {
   orderId: mockOrder.id,
+  redirectToSendTransaction: false,
 };
 
 let mockUseParamsValues = {
@@ -163,10 +164,28 @@ describe('OrderDetails', () => {
 
   it('renders an empty screen layout if there is no order', async () => {
     mockUseParamsValues = {
+      ...mockUseParamsDefaultValues,
       orderId: 'invalid-id',
     };
     render(OrderDetails);
     expect(screen.toJSON()).toMatchSnapshot();
+  });
+
+  it('redirects to send transaction page when user is redirected back from a provider for a sell order', async () => {
+    const testOrder = {
+      ...mockOrder,
+      state: FIAT_ORDER_STATES.CREATED,
+      orderType: OrderOrderTypeEnum.Sell,
+      sellTxHash: undefined,
+    };
+    mockUseParamsValues = {
+      ...mockUseParamsDefaultValues,
+      redirectToSendTransaction: true,
+    };
+    render(OrderDetails, [testOrder]);
+    expect(mockNavigate).toHaveBeenCalledWith(Routes.RAMP.SEND_TRANSACTION, {
+      orderId: testOrder.id,
+    });
   });
 
   it('renders a pending order', async () => {
