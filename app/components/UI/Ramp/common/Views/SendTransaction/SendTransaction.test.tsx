@@ -466,7 +466,7 @@ describe('SendTransaction View', () => {
     `);
   });
 
-  it('calls analytics when the transaction is confirmed ', async () => {
+  it('calls analytics and redirects when the transaction is confirmed ', async () => {
     render(SendTransaction);
     const nextButton = screen.getByRole('button', { name: 'Next' });
     (
@@ -490,6 +490,8 @@ describe('SendTransaction View', () => {
         },
       ]
     `);
+
+    expect(mockNavigate).toHaveBeenCalledWith(Routes.WALLET_VIEW);
   });
 
   it('dispatches setFiatSellTxHash after getting hash from TransactionController.addTransaction', async () => {
