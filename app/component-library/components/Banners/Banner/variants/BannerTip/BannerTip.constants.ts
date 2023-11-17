@@ -5,7 +5,6 @@
 /* eslint-disable import/prefer-default-export */
 // External dependencies.
 import { ButtonVariants } from '../../../../Buttons/Button';
-import { BannerVariant } from '../../Banner.types';
 
 // Internal dependencies.
 import {
@@ -34,7 +33,6 @@ export const SAMPLE_BANNERTIP_TITLE = 'Sample Banner Tip Title';
 export const SAMPLE_BANNERTIP_DESCRIPTION = 'Sample Banner Tip Description';
 export const SAMPLE_BANNERTIP_ACTIONBUTTONLABEL = 'Sample Action Button Label';
 export const SAMPLE_BANNERTIP_PROPS: BannerTipProps = {
-  variant: BannerVariant.Tip,
   logoType: DEFAULT_BANNERTIP_LOGOTYPE,
   title: SAMPLE_BANNERTIP_TITLE,
   description: SAMPLE_BANNERTIP_DESCRIPTION,

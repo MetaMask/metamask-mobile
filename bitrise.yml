@@ -297,7 +297,7 @@ workflows:
   ## in this instance Regression. In future iterations we can rename to ios_test_suite_selection & android_test_suite_selection      
   ios_run_regression_tests:
     envs:
-    - TEST_SUITE: 'regression'
+    - TEST_SUITE: 'Regression'
     after_run:
     - ios_e2e_test
   android_run_regression_tests:
@@ -306,7 +306,7 @@ workflows:
         stack: linux-docker-android-20.04
         machine_type_id: elite-xl
     envs:
-    - TEST_SUITE: 'regression'
+    - TEST_SUITE: 'Regression'
     after_run:
     - android_e2e_test
 
@@ -348,10 +348,10 @@ workflows:
           inputs:
             - content: |-
                 #!/usr/bin/env bash
-                if [ "$TEST_SUITE" = "regression" ]; then
-                TEST_SUITE="regression"
+                if [ "$TEST_SUITE" = "Regression" ]; then
+                  TEST_SUITE="Regression"
                 else
-                TEST_SUITE="smoke"
+                  TEST_SUITE="Smoke"
                 fi
                 node -v
                 export METAMASK_ENVIRONMENT='local'
@@ -417,10 +417,10 @@ workflows:
           inputs:
             - content: |-
                 #!/usr/bin/env bash
-                if [ "$TEST_SUITE" = "regression" ]; then
-                TEST_SUITE="regression"
+                if [ "$TEST_SUITE" = "Regression" ]; then
+                  TEST_SUITE="Regression"
                 else
-                TEST_SUITE="smoke"
+                  TEST_SUITE="Smoke"
                 fi
                 node -v
                 export METAMASK_ENVIRONMENT='local'

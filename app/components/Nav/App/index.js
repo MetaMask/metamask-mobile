@@ -82,6 +82,7 @@ import AccountActions from '../../../components/Views/AccountActions';
 import EthSignFriction from '../../../components/Views/Settings/AdvancedSettings/EthSignFriction';
 import WalletActions from '../../Views/WalletActions';
 import NetworkSelector from '../../../components/Views/NetworkSelector';
+import ReturnToAppModal from '../../Views/ReturnToAppModal';
 import EditAccountName from '../../Views/EditAccountName/EditAccountName';
 import WC2Manager, {
   isWC2Enabled,
@@ -333,8 +334,8 @@ const App = ({ userLoggedIn }) => {
           const { error } = opts;
 
           if (error) {
+            // Log error for analytics and continue handling deeplink
             Logger.error('Error from Branch: ' + error);
-            return;
           }
 
           handleDeeplink(opts);
@@ -539,6 +540,10 @@ const App = ({ userLoggedIn }) => {
       <Stack.Screen
         name={Routes.SHEET.NETWORK_SELECTOR}
         component={NetworkSelector}
+      />
+      <Stack.Screen
+        name={Routes.SHEET.RETURN_TO_DAPP_MODAL}
+        component={ReturnToAppModal}
       />
       <Stack.Screen
         name={Routes.SHEET.AMBIGUOUS_ADDRESS}
