@@ -93,7 +93,7 @@ stages:
       - ios_e2e_test: {}
   run_smoke_e2e_ios_android_stage:
     workflows:
-      - ios_e2e_test: {}
+      # - ios_e2e_test: {}
       - android_e2e_test: {}
   run_regression_e2e_ios_android_stage:
     workflows:
@@ -317,80 +317,130 @@ workflows:
             - cache_local_deps: 'yes'
             - command: global add detox-cli
           title: Detox - Install CLI
-  android_e2e_test:
+  android_e2e_build:
     before_run:
-      - code_setup_dev
-      - e2e_setup
-    after_run:
-      - _notify_failure_on_slack
+    - code_setup_dev
+    - e2e_setup
+    # after_run:
+    # - _notify_failure_on_slack
     steps:
-      - restore-gradle-cache@1: {}
-      - install-missing-android-tools@3:
-          inputs:
-            - ndk_version: $NDK_VERSION
-            - gradlew_path: $PROJECT_LOCATION/gradlew
-      - script@1:
-          inputs:
-            - content: |-
-                #!/usr/bin/env bash
-                "${ANDROID_HOME}/tools/bin/sdkmanager" "cmake;3.22.1"
-          title: Download cmake 3.22.1 with sdkmanager
-          is_always_run: false
-      - avd-manager@1:
-          inputs:
-            - api_level: '30'
-            - create_command_flags: '--sdcard 8192M'
-            - start_command_flags: '-read-only'
-            - profile: pixel_5
-      - wait-for-android-emulator@1: {}
-      - save-gradle-cache@1: {}
-      - script@1:
-          inputs:
-            - content: |-
-                #!/usr/bin/env bash
-                if [ "$TEST_SUITE" = "regression" ]; then
-                TEST_SUITE="regression"
-                else
-                TEST_SUITE="smoke"
-                fi
-                node -v
-                export METAMASK_ENVIRONMENT='local'
-                IGNORE_BOXLOGS_DEVELOPMENT="true" FORCE_BUNDLING=true yarn test:e2e:android:bitrise:debug --testNamePattern="$TEST_SUITE"
-          title: Detox Build & Test
-          is_always_run: false
-      - custom-test-results-export@1:
-          is_always_run: true
-          is_skippable: true
-          title: Export test results
-          inputs:
-            - base_path: $BITRISE_SOURCE_DIR/e2e/reports/
-            - test_name: E2E Tests
-            - search_pattern: $BITRISE_SOURCE_DIR/e2e/reports/junit.xml
-      - deploy-to-bitrise-io@2.2.3:
-          is_always_run: true
-          is_skippable: true
-          title: Deploy test report files
-      - script@1:
-          is_always_run: true
-          run_if: .IsBuildFailed
-          title: Copy screenshot files
-          inputs:
-            - content: |-
-                #!/usr/bin/env bash
-                set -ex
-                cp -r "$BITRISE_SOURCE_DIR/artifacts/screenshots"  "$BITRISE_DEPLOY_DIR"
-      - deploy-to-bitrise-io@2.3:
-          is_always_run: true
-          run_if: .IsBuildFailed
-          title: Deploy test screenshots
-          inputs:
-            - deploy_path: $BITRISE_DEPLOY_DIR
-            - is_compress: true
-            - zip_name: 'E2E_Android_Failure_Screenshots'
+    - restore-gradle-cache@1: {}
+    - install-missing-android-tools@3:
+        inputs:
+        - ndk_version: $NDK_VERSION
+        - gradlew_path: $PROJECT_LOCATION/gradlew
+    - script@1:
+        title: Download cmake 3.22.1 with sdkmanager
+        is_always_run: false
+        inputs:
+        - content: |-
+            #!/usr/bin/env bash
+            "${ANDROID_HOME}/tools/bin/sdkmanager" "cmake;3.22.1"
+    - avd-manager@1:
+        inputs:
+        - api_level: "30"
+        - create_command_flags: --sdcard 8192M
+        - start_command_flags: -read-only
+        - profile: pixel_5
+    - wait-for-android-emulator@1: {}
+    - save-gradle-cache@1: {}
+    - script@1:
+        title: Detox Build
+        is_always_run: false
+        inputs:
+        - content: |-
+            #!/usr/bin/env bash
+            if [ "$TEST_SUITE" = "regression" ]; then
+            TEST_SUITE="regression"
+            else
+            TEST_SUITE="smoke"
+            fi
+            node -v
+            export METAMASK_ENVIRONMENT='local'
+            IGNORE_BOXLOGS_DEVELOPMENT="true" FORCE_BUNDLING=true yarn test:e2e:android:bitrise:build --testNamePattern="$TEST_SUITE"
+    - cache-push@2:
+        inputs:
+        - cache_paths: ./android/app/build/outputs/apk/androidTest/qa/debug
     meta:
       bitrise.io:
-        stack: linux-docker-android-20.04
         machine_type_id: elite-xl
+        stack: linux-docker-android-20.04
+  android_e2e_test:
+    before_run:
+    - code_setup_dev
+    - e2e_setup
+    - android_e2e_build
+    after_run:
+    - _notify_failure_on_slack
+    steps:
+    - restore-gradle-cache@1: {}
+    - install-missing-android-tools@3:
+        inputs:
+        - ndk_version: $NDK_VERSION
+        - gradlew_path: $PROJECT_LOCATION/gradlew
+    - script@1:
+        title: Download cmake 3.22.1 with sdkmanager
+        is_always_run: false
+        inputs:
+        - content: |-
+            #!/usr/bin/env bash
+            "${ANDROID_HOME}/tools/bin/sdkmanager" "cmake;3.22.1"
+    - avd-manager@1:
+        inputs:
+        - api_level: "30"
+        - create_command_flags: --sdcard 8192M
+        - start_command_flags: -read-only
+        - profile: pixel_5
+    - wait-for-android-emulator@1: {}
+    - save-gradle-cache@1: {}
+    - cache-pull@2: {}
+    - script@1:
+        title: Detox Run Test
+        is_always_run: false
+        inputs:
+        - content: |-
+            #!/usr/bin/env bash
+            if [ "$TEST_SUITE" = "regression" ]; then
+            TEST_SUITE="regression"
+            else
+            TEST_SUITE="smoke"
+            fi
+            node -v
+            export METAMASK_ENVIRONMENT='local'
+            IGNORE_BOXLOGS_DEVELOPMENT="true" FORCE_BUNDLING=true yarn test:e2e:android:bitrise:run --testNamePattern="$TEST_SUITE"
+    - custom-test-results-export@1:
+        title: Export test results
+        is_always_run: true
+        is_skippable: true
+        inputs:
+        - base_path: $BITRISE_SOURCE_DIR/e2e/reports/
+        - test_name: E2E Tests
+        - search_pattern: $BITRISE_SOURCE_DIR/e2e/reports/junit.xml
+    - deploy-to-bitrise-io@2.2.3:
+        title: Deploy test report files
+        is_always_run: true
+        is_skippable: true
+    - script@1:
+        title: Copy screenshot files
+        is_always_run: true
+        run_if: .IsBuildFailed
+        inputs:
+        - content: |-
+            #!/usr/bin/env bash
+            set -ex
+            cp -r "$BITRISE_SOURCE_DIR/artifacts/screenshots"  "$BITRISE_DEPLOY_DIR"
+    - deploy-to-bitrise-io@2.3:
+        title: Deploy test screenshots
+        is_always_run: true
+        run_if: .IsBuildFailed
+        inputs:
+        - deploy_path: $BITRISE_DEPLOY_DIR
+        - is_compress: true
+        - zip_name: E2E_Android_Failure_Screenshots
+    meta:
+      bitrise.io:
+        machine_type_id: elite-xl
+        stack: linux-docker-android-20.04
   ios_e2e_test:
     before_run:
       - code_setup_dev
