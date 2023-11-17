@@ -7,7 +7,6 @@ import { TextVariant } from '../../Texts/Text';
 import { SAMPLE_ICON_PROPS } from '../../Icons/Icon/Icon.constants';
 import Icon from '../../Icons/Icon';
 import HelpText from '../HelpText';
-import { SAMPLE_INPUT_PROPS } from './foundation/Input/Input.constants';
 
 // Internal dependencies.
 import { TextFieldSize, TextFieldProps } from './TextField.types';
@@ -29,5 +28,7 @@ export const SAMPLE_TEXTFIELD_PROPS: TextFieldProps = {
   endAccessory: <HelpText>SAMPLE</HelpText>,
   size: DEFAULT_TEXTFIELD_SIZE,
   isError: false,
-  ...SAMPLE_INPUT_PROPS,
+  isDisabled: false,
+  isReadonly: false,
+  placeholder: 'Sample Placeholder',
 };

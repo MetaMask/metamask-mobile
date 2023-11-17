@@ -35,19 +35,24 @@ describe('Redux Persist Migrations', () => {
   it('should apply last migration version and return state', () => {
     // update this state to be compatible with the most recent migration
     const oldState = {
-      user: {
-        nftDetectionDismissed: true,
-      },
       engine: {
-        backgroundState: { PreferencesController: { openSeaEnabled: true } },
+        backgroundState: {
+          PhishingController: {
+            listState: {},
+          },
+        },
       },
     };
 
     const migration = migrations[version];
-
     const newState = migration(oldState);
-
-    expect(newState).toBeDefined();
+    expect(newState).toStrictEqual({
+      engine: {
+        backgroundState: {
+          PhishingController: {},
+        },
+      },
+    });
   });
 
   describe('#19', () => {
@@ -897,6 +902,143 @@ describe('Redux Persist Migrations', () => {
           type: 'mainnet',
         },
       });
+    });
+  });
+  describe('#25', () => {
+    it('migrates state from thirdPartyMode to the new incoming transactions networks on preferences controller', () => {
+      const oldState = {
+        privacy: { thirdPartyApiMode: false },
+        engine: {
+          backgroundState: {
+            PreferencesController: {
+              showIncomingTransactions: {
+                '0x1': true,
+                '0x5': true,
+                '0x38': true,
+                '0x61': true,
+                '0xa': true,
+                '0xa869': true,
+                '0x1a4': true,
+                '0x89': true,
+                '0x13881': true,
+                '0xa86a': true,
+                '0xfa': true,
+                '0xfa2': true,
+                '0xaa36a7': true,
+                '0xe704': true,
+                '0xe708': true,
+                '0x504': true,
+                '0x507': true,
+                '0x505': true,
+                '0x64': true,
+              },
+            },
+          },
+        },
+      };
+
+      const migration = migrations[25];
+
+      const newState = migration(oldState);
+      expect(newState).toStrictEqual({
+        privacy: {},
+        engine: {
+          backgroundState: {
+            PreferencesController: {
+              showIncomingTransactions: {
+                '0x1': false,
+                '0x5': false,
+                '0x38': false,
+                '0x61': false,
+                '0xa': false,
+                '0xa869': false,
+                '0x1a4': false,
+                '0x89': false,
+                '0x13881': false,
+                '0xa86a': false,
+                '0xfa': false,
+                '0xfa2': false,
+                '0xaa36a7': false,
+                '0xe704': false,
+                '0xe708': false,
+                '0x504': false,
+                '0x507': false,
+                '0x505': false,
+                '0x64': false,
+              },
+            },
+          },
+        },
+      });
+    });
+  });
+
+  describe('#26', () => {
+    it('delete list state property of phishing controller if it exists', () => {
+      const oldState = {
+        engine: {
+          backgroundState: {
+            PhishingController: {
+              listState: {},
+            },
+          },
+        },
+      };
+
+      const migration = migrations[26];
+      const newState = migration(oldState);
+      expect(newState).toStrictEqual({
+        engine: {
+          backgroundState: {
+            PhishingController: {},
+          },
+        },
+      });
+    });
+    it('hotlist and stale list last fetched is resetted to 0', () => {
+      const oldState = {
+        engine: {
+          backgroundState: {
+            PhishingController: {
+              listState: {},
+              hotlistLastFetched: 1,
+              stalelistLastFetched: 1,
+            },
+          },
+        },
+      };
+
+      const migration = migrations[26];
+      const newState = migration(oldState);
+      expect(newState).toStrictEqual({
+        engine: {
+          backgroundState: {
+            PhishingController: {
+              hotlistLastFetched: 0,
+              stalelistLastFetched: 0,
+            },
+          },
+        },
+      });
+    });
+
+    it('capture exception if phishing controller state is invalid', () => {
+      const oldState = {
+        engine: {
+          backgroundState: {
+            PhishingController: {},
+          },
+        },
+      };
+      const migration = migrations[26];
+      const newState = migration(oldState);
+      expect(newState).toStrictEqual(oldState);
+      expect(mockedCaptureException).toHaveBeenCalledWith(expect.any(Error));
+      expect(mockedCaptureException.mock.calls[0][0].message).toBe(
+        `Migration 26: Invalid PhishingControllerState controller state: '${JSON.stringify(
+          oldState.engine.backgroundState.PhishingController,
+        )}'`,
+      );
     });
   });
 });

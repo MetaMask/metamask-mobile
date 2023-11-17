@@ -442,21 +442,23 @@ exports[`Network Selector renders correctly 1`] = `
                               style={
                                 Object {
                                   "alignItems": "center",
+                                  "backgroundColor": "#FFFFFF",
+                                  "borderRadius": 4,
                                   "opacity": 1,
+                                  "padding": 16,
                                   "position": "relative",
                                 }
                               }
+                              testID="cellselect"
                             >
                               <View
                                 accessibilityRole="none"
                                 accessible={true}
                                 style={
                                   Object {
-                                    "alignItems": "flex-start",
-                                    "backgroundColor": "#FFFFFF",
-                                    "borderRadius": 4,
+                                    "alignItems": "center",
                                     "flexDirection": "row",
-                                    "padding": 16,
+                                    "padding": 0,
                                   }
                                 }
                               >
@@ -479,6 +481,7 @@ exports[`Network Selector renders correctly 1`] = `
                                         "width": 32,
                                       }
                                     }
+                                    testID="cellbase-avatar"
                                   >
                                     <Image
                                       onError={[Function]}
@@ -519,7 +522,6 @@ exports[`Network Selector renders correctly 1`] = `
                                           "lineHeight": 24,
                                         }
                                       }
-                                      testID="cell-title"
                                     >
                                       Ethereum Main Network
                                     </Text>
@@ -559,21 +561,23 @@ exports[`Network Selector renders correctly 1`] = `
                               onPress={[Function]}
                               style={
                                 Object {
+                                  "backgroundColor": "#FFFFFF",
+                                  "borderRadius": 4,
                                   "opacity": 1,
+                                  "padding": 16,
                                   "position": "relative",
                                 }
                               }
+                              testID="cellselect"
                             >
                               <View
                                 accessibilityRole="none"
                                 accessible={true}
                                 style={
                                   Object {
-                                    "alignItems": "flex-start",
-                                    "backgroundColor": "#FFFFFF",
-                                    "borderRadius": 4,
+                                    "alignItems": "center",
                                     "flexDirection": "row",
-                                    "padding": 16,
+                                    "padding": 0,
                                   }
                                 }
                               >
@@ -595,6 +599,7 @@ exports[`Network Selector renders correctly 1`] = `
                                         "width": 32,
                                       }
                                     }
+                                    testID="cellbase-avatar"
                                   >
                                     <Image
                                       onError={[Function]}
@@ -635,7 +640,6 @@ exports[`Network Selector renders correctly 1`] = `
                                           "lineHeight": 24,
                                         }
                                       }
-                                      testID="cell-title"
                                     >
                                       Linea Main Network
                                     </Text>
@@ -649,21 +653,23 @@ exports[`Network Selector renders correctly 1`] = `
                               style={
                                 Object {
                                   "alignItems": "center",
+                                  "backgroundColor": "#FFFFFF",
+                                  "borderRadius": 4,
                                   "opacity": 1,
+                                  "padding": 16,
                                   "position": "relative",
                                 }
                               }
+                              testID="cellselect"
                             >
                               <View
                                 accessibilityRole="none"
                                 accessible={true}
                                 style={
                                   Object {
-                                    "alignItems": "flex-start",
-                                    "backgroundColor": "#FFFFFF",
-                                    "borderRadius": 4,
+                                    "alignItems": "center",
                                     "flexDirection": "row",
-                                    "padding": 16,
+                                    "padding": 0,
                                   }
                                 }
                               >
@@ -686,6 +692,7 @@ exports[`Network Selector renders correctly 1`] = `
                                         "width": 32,
                                       }
                                     }
+                                    testID="cellbase-avatar"
                                   >
                                     <Image
                                       onError={[Function]}
@@ -728,7 +735,6 @@ exports[`Network Selector renders correctly 1`] = `
                                           "lineHeight": 24,
                                         }
                                       }
-                                      testID="cell-title"
                                     >
                                       Avalanche Mainnet C-Chain
                                     </Text>
@@ -742,21 +748,23 @@ exports[`Network Selector renders correctly 1`] = `
                               style={
                                 Object {
                                   "alignItems": "center",
+                                  "backgroundColor": "#FFFFFF",
+                                  "borderRadius": 4,
                                   "opacity": 1,
+                                  "padding": 16,
                                   "position": "relative",
                                 }
                               }
+                              testID="cellselect"
                             >
                               <View
                                 accessibilityRole="none"
                                 accessible={true}
                                 style={
                                   Object {
-                                    "alignItems": "flex-start",
-                                    "backgroundColor": "#FFFFFF",
-                                    "borderRadius": 4,
+                                    "alignItems": "center",
                                     "flexDirection": "row",
-                                    "padding": 16,
+                                    "padding": 0,
                                   }
                                 }
                               >
@@ -779,6 +787,7 @@ exports[`Network Selector renders correctly 1`] = `
                                         "width": 32,
                                       }
                                     }
+                                    testID="cellbase-avatar"
                                   >
                                     <Image
                                       onError={[Function]}
@@ -821,7 +830,6 @@ exports[`Network Selector renders correctly 1`] = `
                                           "lineHeight": 24,
                                         }
                                       }
-                                      testID="cell-title"
                                     >
                                       Polygon Mainnet
                                     </Text>
@@ -835,21 +843,23 @@ exports[`Network Selector renders correctly 1`] = `
                               style={
                                 Object {
                                   "alignItems": "center",
+                                  "backgroundColor": "#FFFFFF",
+                                  "borderRadius": 4,
                                   "opacity": 1,
+                                  "padding": 16,
                                   "position": "relative",
                                 }
                               }
+                              testID="cellselect"
                             >
                               <View
                                 accessibilityRole="none"
                                 accessible={true}
                                 style={
                                   Object {
-                                    "alignItems": "flex-start",
-                                    "backgroundColor": "#FFFFFF",
-                                    "borderRadius": 4,
+                                    "alignItems": "center",
                                     "flexDirection": "row",
-                                    "padding": 16,
+                                    "padding": 0,
                                   }
                                 }
                               >
@@ -872,6 +882,7 @@ exports[`Network Selector renders correctly 1`] = `
                                         "width": 32,
                                       }
                                     }
+                                    testID="cellbase-avatar"
                                   >
                                     <Image
                                       onError={[Function]}
@@ -914,7 +925,6 @@ exports[`Network Selector renders correctly 1`] = `
                                           "lineHeight": 24,
                                         }
                                       }
-                                      testID="cell-title"
                                     >
                                       Optimism
                                     </Text>
@@ -928,21 +938,23 @@ exports[`Network Selector renders correctly 1`] = `
                               style={
                                 Object {
                                   "alignItems": "center",
+                                  "backgroundColor": "#FFFFFF",
+                                  "borderRadius": 4,
                                   "opacity": 1,
+                                  "padding": 16,
                                   "position": "relative",
                                 }
                               }
+                              testID="cellselect"
                             >
                               <View
                                 accessibilityRole="none"
                                 accessible={true}
                                 style={
                                   Object {
-                                    "alignItems": "flex-start",
-                                    "backgroundColor": "#FFFFFF",
-                                    "borderRadius": 4,
+                                    "alignItems": "center",
                                     "flexDirection": "row",
-                                    "padding": 16,
+                                    "padding": 0,
                                   }
                                 }
                               >
@@ -968,6 +980,7 @@ exports[`Network Selector renders correctly 1`] = `
                                         "width": 32,
                                       }
                                     }
+                                    testID="cellbase-avatar"
                                   >
                                     <Text
                                       accessibilityRole="text"
@@ -1006,7 +1019,6 @@ exports[`Network Selector renders correctly 1`] = `
                                           "lineHeight": 24,
                                         }
                                       }
-                                      testID="cell-title"
                                     >
                                       Gnosis Chain
                                     </Text>

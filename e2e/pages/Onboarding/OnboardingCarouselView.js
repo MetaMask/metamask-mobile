@@ -3,16 +3,11 @@ import {
   WELCOME_SCREEN_CAROUSEL_TITLE_ID,
   WELCOME_SCREEN_GET_STARTED_BUTTON_ID,
 } from '../../../wdio/screen-objects/testIDs/Screens/WelcomeScreen.testIds';
-
-const ONBOARDING_CAROUSEL_ID = 'onboarding-carouselcarousel-screen--screen';
-
-const CAROUSEL_SCREEN_ONE_IMAGE_ID = 'carousel-one-image';
-const CAROUSEL_SCREEN_TWO_IMAGE_ID = 'carousel-two-image';
-const CAROUSEL_SCREEN_THREE_IMAGE_ID = 'carousel-three-image';
+import { OnboardingCarouselSelectorIDs } from '../../selectors/Onboarding/OnboardingCarousel.selectors';
 
 export default class OnboardingCarouselView {
   static async swipeCarousel() {
-    await TestHelpers.swipe(ONBOARDING_CAROUSEL_ID, 'left');
+    await TestHelpers.swipe(OnboardingCarouselSelectorIDs.CONTAINER_ID, 'left');
   }
 
   static async tapOnGetStartedButton() {
@@ -25,13 +20,15 @@ export default class OnboardingCarouselView {
 
   static async isMetaMaskWelcomeTextVisible() {
     await TestHelpers.checkIfElementHasString(
-      ONBOARDING_CAROUSEL_ID,
+      OnboardingCarouselSelectorIDs.CONTAINER_ID,
       'Welcome to MetaMask',
     );
   }
 
   static async isWelcomeToMetaMaskImageVisible() {
-    await TestHelpers.checkIfVisible(CAROUSEL_SCREEN_ONE_IMAGE_ID);
+    await TestHelpers.checkIfVisible(
+      OnboardingCarouselSelectorIDs.ONE_IMAGE_ID,
+    );
   }
 
   static async isManageYourDigitalTextVisible() {
@@ -42,7 +39,9 @@ export default class OnboardingCarouselView {
   }
 
   static async isManageYourDigitalImageVisible() {
-    await TestHelpers.checkIfVisible(CAROUSEL_SCREEN_TWO_IMAGE_ID);
+    await TestHelpers.checkIfVisible(
+      OnboardingCarouselSelectorIDs.TWO_IMAGE_ID,
+    );
   }
 
   static async isYourGatewayToWeb3TextVisible() {
@@ -53,16 +52,16 @@ export default class OnboardingCarouselView {
   }
 
   static async isYourGatewayToWeb3ImageVisible() {
-    await TestHelpers.checkIfVisible(CAROUSEL_SCREEN_THREE_IMAGE_ID);
+    await TestHelpers.checkIfVisible(
+      OnboardingCarouselSelectorIDs.THREE_IMAGE_ID,
+    );
   }
 
   static async isVisible() {
     if (device.getPlatform() === 'ios') {
-      await TestHelpers.checkIfVisible(ONBOARDING_CAROUSEL_ID);
+      await TestHelpers.checkIfVisible(
+        OnboardingCarouselSelectorIDs.CONTAINER_ID,
+      );
     }
-  }
-
-  static async isNotVisible() {
-    await TestHelpers.checkIfNotVisible(ONBOARDING_CAROUSEL_ID);
   }
 }

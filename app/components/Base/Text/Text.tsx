@@ -29,6 +29,15 @@ interface TextProps extends React.ComponentPropsWithoutRef<typeof RNText> {
   underline?: boolean;
 }
 
+/**
+ * @deprecated The `<Text />` component has been deprecated in favor of the new `<Text>` component from the component-library.
+ * Please update your code to use the new `<Text>` component instead, which can be found at app/component-library/components/Texts/Text/Text.tsx.
+ * You can find documentation for the new Text component in the README:
+ * {@link https://github.com/MetaMask/metamask-mobile/tree/main/app/component-library/components/Texts/Text}
+ * If you would like to help with the replacement of the old Text component, please submit a pull request against this GitHub issue:
+ * {@link https://github.com/MetaMask/metamask-mobile/issues/6887}
+ */
+
 const Text: React.FC<TextProps> = ({
   reset,
   centered,

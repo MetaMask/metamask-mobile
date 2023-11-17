@@ -16,15 +16,12 @@ import { connect } from 'react-redux';
 import { seedphraseBackedUp } from '../../../actions/user';
 import MaterialIcon from 'react-native-vector-icons/MaterialCommunityIcons';
 import { getOnboardingNavbarOptions } from '../../UI/Navbar';
-import { shuffle, compareSRPs } from '../../../util/SRP';
+import { shuffle, compareMnemonics } from '../../../util/mnemonic';
 import { MetaMetricsEvents } from '../../../core/Analytics';
 import AnalyticsV2 from '../../../util/analyticsV2';
 import { useTheme } from '../../../util/theme';
 import createStyles from './styles';
-import {
-  MANUAL_BACKUP_STEP_2_CONTINUE_BUTTON,
-  PROTECT_YOUR_ACCOUNT_SCREEN,
-} from './../../../constants/test-ids';
+import { ManualBackUpStep2SelectorsIDs } from '../../../../e2e/selectors/Onboarding/ManualBackUpStep2.selectors';
 
 const ManualBackupStep2 = ({ navigation, seedphraseBackedUp, route }) => {
   const { colors } = useTheme();
@@ -120,7 +117,7 @@ const ManualBackupStep2 = ({ navigation, seedphraseBackedUp, route }) => {
       (confirmedWord) => confirmedWord.word,
     );
 
-    return compareSRPs(validWords, proposedWords);
+    return compareMnemonics(validWords, proposedWords);
   }, [confirmedWords, route.params?.words]);
 
   const goNext = () => {
@@ -231,14 +228,17 @@ const ManualBackupStep2 = ({ navigation, seedphraseBackedUp, route }) => {
         />
       </View>
       <ActionView
-        confirmTestID={MANUAL_BACKUP_STEP_2_CONTINUE_BUTTON}
+        confirmTestID={ManualBackUpStep2SelectorsIDs.CONTINUE_BUTTON}
         confirmText={strings('manual_backup_step_2.complete')}
         onConfirmPress={goNext}
         confirmDisabled={!seedPhraseReady || !validateWords()}
         showCancelButton={false}
         confirmButtonMode={'confirm'}
       >
-        <View style={styles.wrapper} testID={PROTECT_YOUR_ACCOUNT_SCREEN}>
+        <View
+          style={styles.wrapper}
+          testID={ManualBackUpStep2SelectorsIDs.CONTAINER}
+        >
           <Text style={styles.action}>
             {strings('manual_backup_step_2.action')}
           </Text>

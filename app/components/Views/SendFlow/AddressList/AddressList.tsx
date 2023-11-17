@@ -17,15 +17,12 @@ import Text from '../../../../component-library/components/Texts/Text/Text';
 import { TextVariant } from '../../../../component-library/components/Texts/Text';
 import { selectChainId } from '../../../../selectors/networkController';
 import { selectIdentities } from '../../../../selectors/preferencesController';
-import { regex } from '../../../../../app/util/regex';
+import { regex } from '../../../../util/regex';
+import { SendViewSelectorsIDs } from '../../../../../e2e/selectors/SendView.selectors';
 
 // Internal dependencies
 import { AddressListProps, Contact } from './AddressList.types';
 import styleSheet from './AddressList.styles';
-import {
-  ADDRESS_BOOK_ACCOUNT,
-  MY_ACCOUNT_ELEMENT,
-} from './AddressList.constants';
 
 const LabelElement = (styles: any, label: string) => (
   <View key={label} style={styles.labelElementWrapper}>
@@ -39,6 +36,7 @@ const AddressList: React.FC<AddressListProps> = ({
   inputSearch,
   onAccountPress,
   onAccountLongPress,
+  onIconPress,
   onlyRenderAddressBook = false,
   reloadAddressList,
 }) => {
@@ -52,18 +50,28 @@ const AddressList: React.FC<AddressListProps> = ({
     (state: any) =>
       state.engine.backgroundState.AddressBookController.addressBook,
   );
+  const ambiguousAddressEntries = useSelector(
+    (state: any) => state.user.ambiguousAddressEntries,
+  );
 
   const networkAddressBook: { [address: string]: AddressBookEntry } = useMemo(
     () => addressBook[chainId] || {},
     [addressBook, chainId],
   );
-
   const parseAddressBook = useCallback(
     (networkAddressBookList) => {
-      const contacts = networkAddressBookList.map((contact: Contact) => ({
-        ...contact,
-        isSmartContract: false,
-      }));
+      const contacts = networkAddressBookList.map((contact: Contact) => {
+        const isAmbiguousAddress =
+          chainId &&
+          ambiguousAddressEntries && // these are possibly undefined
+          ambiguousAddressEntries[chainId] &&
+          ambiguousAddressEntries[chainId].includes(contact.address);
+        return {
+          ...contact,
+          ...(isAmbiguousAddress && { isAmbiguousAddress }),
+          isSmartContract: false,
+        };
+      });
 
       Promise.all(
         contacts.map((contact: Contact) =>
@@ -107,7 +115,7 @@ const AddressList: React.FC<AddressListProps> = ({
         setContactElements(newContactElements);
       });
     },
-    [onlyRenderAddressBook],
+    [onlyRenderAddressBook, ambiguousAddressEntries, chainId],
   );
 
   useEffect(() => {
@@ -169,8 +177,9 @@ const AddressList: React.FC<AddressListProps> = ({
             address={address}
             name={identities[address].name}
             onAccountPress={onAccountPress}
+            onIconPress={onIconPress}
             onAccountLongPress={onAccountLongPress}
-            testID={MY_ACCOUNT_ELEMENT}
+            testID={SendViewSelectorsIDs.MY_ACCOUNT_ELEMENT}
           />
         ))}
       </View>
@@ -189,9 +198,11 @@ const AddressList: React.FC<AddressListProps> = ({
         key={key}
         address={addressElement.address}
         name={addressElement.name}
+        onIconPress={onIconPress}
         onAccountPress={onAccountPress}
         onAccountLongPress={onAccountLongPress}
-        testID={ADDRESS_BOOK_ACCOUNT}
+        testID={SendViewSelectorsIDs.ADDRESS_BOOK_ACCOUNT}
+        isAmbiguousAddress={addressElement.isAmbiguousAddress}
       />
     );
   };

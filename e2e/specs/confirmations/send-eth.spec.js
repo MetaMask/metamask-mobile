@@ -23,9 +23,7 @@ describe(Regression('Send ETH'), () => {
 
   beforeAll(async () => {
     jest.setTimeout(2500000);
-    if (device.getPlatform() === 'android') {
-      await device.reverseTcpPort('8545'); // ganache
-    }
+    await TestHelpers.reverseServerPort();
   });
 
   it('should send ETH to an EOA from inside the wallet', async () => {

@@ -1,14 +1,12 @@
-import {
-  ANDROID_I_UNDERSTAND_BUTTON_ID,
-  SKIP_BUTTON,
-} from '../testIDs/Components/SkipAccountSecurityModalTestIds.js';
+import { SKIP_BUTTON } from '../testIDs/Components/SkipAccountSecurityModalTestIds.js';
 import Selectors from '../../helpers/Selectors';
 import Gestures from '../../helpers/Gestures';
+import { ChoosePasswordSelectorsIDs } from "../../../e2e/selectors/Onboarding/ChoosePassword.selectors";
 
 class SkipAccountSecurityModal {
   get skipBackupText() {
     return Selectors.getXpathElementByResourceId(
-      ANDROID_I_UNDERSTAND_BUTTON_ID,
+      ChoosePasswordSelectorsIDs.ANDROID_I_UNDERSTAND_BUTTON_ID,
     );
   }
 

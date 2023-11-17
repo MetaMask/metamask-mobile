@@ -17,7 +17,6 @@ import { MAINNET } from '../../../../constants/network';
 import ActionModal from '../../../UI/ActionModal';
 import StyledButton from '../../../UI/StyledButton';
 import { clearHistory } from '../../../../actions/browser';
-import { setThirdPartyApiMode } from '../../../../actions/privacy';
 import { colors as importedColors } from '../../../../styles/common';
 import Logger from '../../../../util/Logger';
 import { getNavigationOptionsTitle } from '../../../UI/Navbar';
@@ -55,13 +54,18 @@ import {
   AutoLock,
   ClearPrivacy,
 } from './Sections';
-import { selectProviderType } from '../../../../selectors/networkController';
+import {
+  selectProviderType,
+  selectNetworkConfigurations,
+} from '../../../../selectors/networkController';
 import {
   selectIpfsGateway,
   selectIsIpfsGatewayEnabled,
   selectIsMultiAccountBalancesEnabled,
   selectDisplayNftMedia,
   selectUseNftDetection,
+  selectShowIncomingTransactionNetworks,
+  selectShowTestNetworks,
 } from '../../../../selectors/preferencesController';
 import {
   SECURITY_PRIVACY_MULTI_ACCOUNT_BALANCES_TOGGLE_ID,
@@ -73,8 +77,10 @@ import SelectComponent from '../../../UI/SelectComponent';
 import { timeoutFetch } from '../../../../util/general';
 import createStyles from './SecuritySettings.styles';
 import {
+  EtherscanNetworksType,
   Gateway,
   HeadingProps,
+  NetworksI,
   SecuritySettingsParams,
 } from './SecuritySettings.types';
 import { useFocusEffect, useNavigation } from '@react-navigation/native';
@@ -91,8 +97,18 @@ import {
   NFT_DISPLAY_MEDIA_MODE_SECTION,
   PASSCODE_CHOICE_STRING,
   SDK_SECTION,
-  THIRD_PARTY_SECTION,
 } from './SecuritySettings.constants';
+import Cell from '../../../..//component-library/components/Cells/Cell/Cell';
+import { CellVariant } from '../../../../component-library/components/Cells/Cell';
+import { AvatarVariant } from '../../../../component-library/components/Avatars/Avatar/Avatar.types';
+import Networks, {
+  getAllNetworks,
+  getNetworkImageSource,
+} from '../../../../util/networks';
+import images from 'images/image-icons';
+import { toHexadecimal } from '../../../../util/number';
+import { ETHERSCAN_SUPPORTED_NETWORKS } from '@metamask/transaction-controller/dist/constants';
+import { SecurityPrivacyViewSelectorsIDs } from '../../../../../e2e/selectors/Settings/SecurityAndPrivacy/SecurityPrivacyView.selectors';
 
 const Heading: React.FC<HeadingProps> = ({ children, first }) => {
   const { colors } = useTheme();
@@ -125,9 +141,11 @@ const Settings: React.FC = () => {
   const browserHistory = useSelector((state: any) => state.browser.history);
 
   const lockTime = useSelector((state: any) => state.settings.lockTime);
-  const thirdPartyApiMode = useSelector(
-    (state: any) => state.privacy.thirdPartyApiMode,
+  const showTestNetworks = useSelector(selectShowTestNetworks);
+  const showIncomingTransactionsNetworks = useSelector(
+    selectShowIncomingTransactionNetworks,
   );
+  const networkConfigurations = useSelector(selectNetworkConfigurations);
   const displayNftMedia = useSelector(selectDisplayNftMedia);
   const useNftDetection = useSelector(selectUseNftDetection);
 
@@ -140,6 +158,7 @@ const Settings: React.FC = () => {
   );
   const ipfsGateway = useSelector(selectIpfsGateway);
   const isIpfsGatewayEnabled = useSelector(selectIsIpfsGatewayEnabled);
+  const myNetworks = ETHERSCAN_SUPPORTED_NETWORKS as EtherscanNetworksType;
 
   const isMainnet = type === MAINNET;
 
@@ -441,7 +460,7 @@ const Settings: React.FC = () => {
           thumbColor={importedColors.white}
           style={styles.switch}
           ios_backgroundColor={colors.border.muted}
-          testID={'metametrics-switch'}
+          testID={SecurityPrivacyViewSelectorsIDs.METAMETRICS_SWITCH}
         />
       </View>
     </View>
@@ -483,33 +502,16 @@ const Settings: React.FC = () => {
       </View>
     </View>
   );
-  const toggleThirdPartyAPI = (value: boolean) => {
-    dispatch(setThirdPartyApiMode(value));
+  const toggleEnableIncomingTransactions = (
+    hexChainId: string,
+    value: boolean,
+  ) => {
+    const { PreferencesController } = Engine.context;
+    PreferencesController.setEnableNetworkIncomingTransactions(
+      hexChainId,
+      value,
+    );
   };
-
-  const renderThirdPartySection = () => (
-    <View style={styles.setting} testID={THIRD_PARTY_SECTION}>
-      <Text style={styles.title}>
-        {strings('app_settings.third_party_title')}
-      </Text>
-      <Text style={styles.desc}>
-        {strings('app_settings.third_party_description')}
-      </Text>
-      <View style={styles.switchElement}>
-        <Switch
-          value={thirdPartyApiMode}
-          onValueChange={toggleThirdPartyAPI}
-          trackColor={{
-            true: colors.primary.default,
-            false: colors.border.muted,
-          }}
-          thumbColor={importedColors.white}
-          style={styles.switch}
-          ios_backgroundColor={colors.border.muted}
-        />
-      </View>
-    </View>
-  );
 
   const clearBrowserHistory = () => {
     dispatch(clearHistory());
@@ -557,7 +559,7 @@ const Settings: React.FC = () => {
           {strings('app_settings.display_nft_media')}
         </Text>
         <Text style={styles.desc}>
-          {strings('app_settings.display_nft_media_desc')}
+          {strings('app_settings.display_nft_media_desc_new')}
         </Text>
         <View style={styles.switchElement}>
           <Switch
@@ -676,6 +678,170 @@ const Settings: React.FC = () => {
     />
   );
 
+  const renderShowIncomingTransactions = () => {
+    const renderMainnet = () => {
+      const { name: mainnetName, hexChainId } = Networks.mainnet;
+      return (
+        <Cell
+          variant={CellVariant.Display}
+          title={mainnetName}
+          avatarProps={{
+            variant: AvatarVariant.Network,
+            name: mainnetName,
+            imageSource: images.ETHEREUM,
+          }}
+          secondaryText="etherscan.io"
+          style={styles.cellBorder}
+        >
+          <Switch
+            value={showIncomingTransactionsNetworks[hexChainId]}
+            onValueChange={(value) =>
+              toggleEnableIncomingTransactions(hexChainId, value)
+            }
+            trackColor={{
+              true: colors.primary.default,
+              false: colors.border.muted,
+            }}
+            thumbColor={importedColors.white}
+            style={styles.switch}
+            ios_backgroundColor={colors.border.muted}
+          />
+        </Cell>
+      );
+    };
+
+    const renderLineaMainnet = () => {
+      const { name: lineaMainnetName, hexChainId } = Networks['linea-mainnet'];
+
+      return (
+        <Cell
+          variant={CellVariant.Display}
+          title={lineaMainnetName}
+          avatarProps={{
+            variant: AvatarVariant.Network,
+            name: lineaMainnetName,
+            imageSource: images['LINEA-MAINNET'],
+          }}
+          secondaryText="lineascan.build"
+          style={styles.cellBorder}
+        >
+          <Switch
+            value={showIncomingTransactionsNetworks[hexChainId]}
+            onValueChange={(value) =>
+              toggleEnableIncomingTransactions(hexChainId, value)
+            }
+            trackColor={{
+              true: colors.primary.default,
+              false: colors.border.muted,
+            }}
+            thumbColor={importedColors.white}
+            style={styles.switch}
+            ios_backgroundColor={colors.border.muted}
+          />
+        </Cell>
+      );
+    };
+
+    const renderRpcNetworks = () =>
+      Object.values(networkConfigurations).map(
+        ({ nickname, rpcUrl, chainId }) => {
+          if (!chainId) return null;
+
+          const hexChainId = `0x${toHexadecimal(chainId)}`;
+
+          if (!Object.keys(myNetworks).includes(hexChainId)) return null;
+
+          const { name } = { name: nickname || rpcUrl };
+          //@ts-expect-error - The utils/network file is still JS and this function expects a networkType, and should be optional
+          const image = getNetworkImageSource({ chainId: chainId?.toString() });
+
+          return (
+            <Cell
+              key={chainId}
+              variant={CellVariant.Display}
+              title={name}
+              secondaryText={myNetworks[hexChainId].domain}
+              avatarProps={{
+                variant: AvatarVariant.Network,
+                name,
+                imageSource: image,
+              }}
+              style={styles.cellBorder}
+            >
+              <Switch
+                value={showIncomingTransactionsNetworks[hexChainId]}
+                onValueChange={(value) =>
+                  toggleEnableIncomingTransactions(hexChainId, value)
+                }
+                trackColor={{
+                  true: colors.primary.default,
+                  false: colors.border.muted,
+                }}
+                thumbColor={importedColors.white}
+                style={styles.switch}
+                ios_backgroundColor={colors.border.muted}
+              />
+            </Cell>
+          );
+        },
+      );
+
+    const renderOtherNetworks = () => {
+      const NetworksTyped = Networks as NetworksI;
+      const getOtherNetworks = () => getAllNetworks().slice(2);
+      return getOtherNetworks().map((networkType) => {
+        const { name, imageSource, chainId, hexChainId } =
+          NetworksTyped[networkType];
+        if (!hexChainId) return null;
+        return (
+          <Cell
+            key={chainId}
+            variant={CellVariant.Display}
+            title={name}
+            secondaryText={myNetworks[hexChainId].domain}
+            avatarProps={{
+              variant: AvatarVariant.Network,
+              name,
+              imageSource,
+            }}
+            style={styles.cellBorder}
+          >
+            <Switch
+              value={showIncomingTransactionsNetworks[hexChainId]}
+              onValueChange={(value) => {
+                hexChainId &&
+                  toggleEnableIncomingTransactions(hexChainId, value);
+              }}
+              trackColor={{
+                true: colors.primary.default,
+                false: colors.border.muted,
+              }}
+              thumbColor={importedColors.white}
+              style={styles.switch}
+              ios_backgroundColor={colors.border.muted}
+            />
+          </Cell>
+        );
+      });
+    };
+
+    return (
+      <View style={styles.setting} testID={'third-party-section'}>
+        <Text style={styles.title}>
+          {strings('app_settings.incoming_transactions_title')}
+        </Text>
+        <Text style={styles.desc}>
+          {strings('app_settings.incoming_transactions_content')}
+        </Text>
+
+        {renderMainnet()}
+        {renderLineaMainnet()}
+        {renderRpcNetworks()}
+        {showTestNetworks && renderOtherNetworks()}
+      </View>
+    );
+  };
+
   if (loading) {
     return (
       <View style={styles.loader}>
@@ -714,7 +880,7 @@ const Settings: React.FC = () => {
         <DeleteMetaMetricsData />
         <DeleteWalletData />
         {renderMultiAccountBalancesSection()}
-        {renderThirdPartySection()}
+        {renderShowIncomingTransactions()}
         {renderHistoryModal()}
         {renderDisplayNftMedia()}
         {isMainnet && renderAutoDetectNft()}

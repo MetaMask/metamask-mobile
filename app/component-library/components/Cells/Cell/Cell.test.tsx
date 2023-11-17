@@ -1,119 +1,43 @@
 // Third party dependencies.
 import React from 'react';
-import { shallow } from 'enzyme';
+import { render } from '@testing-library/react-native';
+
+// External dependencies.
+import { CellModalSelectorsIDs } from '../../../../../e2e/selectors/Modals/CellModal.selectors';
 
 // Internal dependencies.
 import Cell from './Cell';
-import { TEST_AVATAR_PROPS, TEST_CELL_TITLE } from './Cell.constants';
-import { CellVariants } from './Cell.types';
-
-import {
-  CELL_DISPLAY_TEST_ID,
-  CELL_MULTI_SELECT_TEST_ID,
-  CELL_SELECT_TEST_ID,
-} from '../../../../constants/test-ids';
-
-describe('Cell - Snapshot', () => {
-  it('should render CellDisplay given the type Display', () => {
-    const wrapper = shallow(
-      <Cell
-        variant={CellVariants.Display}
-        avatarProps={TEST_AVATAR_PROPS}
-        title={TEST_CELL_TITLE}
-      />,
-    );
-    expect(wrapper).toMatchSnapshot();
-  });
-  it('should render CellMultiSelect given the type MultiSelect', () => {
-    const wrapper = shallow(
-      <Cell
-        variant={CellVariants.MultiSelect}
-        avatarProps={TEST_AVATAR_PROPS}
-        title={TEST_CELL_TITLE}
-      />,
-    );
-    expect(wrapper).toMatchSnapshot();
-  });
-  it('should render CellSelect given the type Select', () => {
-    const wrapper = shallow(
-      <Cell
-        variant={CellVariants.Select}
-        avatarProps={TEST_AVATAR_PROPS}
-        title={TEST_CELL_TITLE}
-      />,
-    );
-    expect(wrapper).toMatchSnapshot();
-  });
-});
+import { SAMPLE_CELL_PROPS } from './Cell.constants';
+import { CellVariant } from './Cell.types';
 
 describe('Cell', () => {
   it('should render CellDisplay given the type Display', () => {
-    const wrapper = shallow(
-      <Cell
-        variant={CellVariants.Display}
-        avatarProps={TEST_AVATAR_PROPS}
-        title={TEST_CELL_TITLE}
-      />,
+    const wrapper = render(
+      <Cell variant={CellVariant.Display} {...SAMPLE_CELL_PROPS} />,
     );
-    const cellDisplayComponent = wrapper.findWhere(
-      (node) => node.prop('testID') === CELL_DISPLAY_TEST_ID,
-    );
-    expect(cellDisplayComponent.exists()).toBe(true);
-
-    const cellMultiSelectComponent = wrapper.findWhere(
-      (node) => node.prop('testID') === CELL_MULTI_SELECT_TEST_ID,
-    );
-    expect(cellMultiSelectComponent.exists()).toBe(false);
-
-    const cellSelectComponent = wrapper.findWhere(
-      (node) => node.prop('testID') === CELL_SELECT_TEST_ID,
-    );
-    expect(cellSelectComponent.exists()).toBe(false);
+    expect(wrapper).toMatchSnapshot();
+    expect(wrapper.queryByTestId(CellModalSelectorsIDs.DISPLAY)).not.toBe(null);
+    expect(wrapper.queryByTestId(CellModalSelectorsIDs.MULTISELECT)).toBe(null);
+    expect(wrapper.queryByTestId(CellModalSelectorsIDs.SELECT)).toBe(null);
   });
   it('should render CellMultiSelect given the type MultiSelect', () => {
-    const wrapper = shallow(
-      <Cell
-        variant={CellVariants.MultiSelect}
-        avatarProps={TEST_AVATAR_PROPS}
-        title={TEST_CELL_TITLE}
-      />,
+    const wrapper = render(
+      <Cell variant={CellVariant.MultiSelect} {...SAMPLE_CELL_PROPS} />,
     );
-    const cellDisplayComponent = wrapper.findWhere(
-      (node) => node.prop('testID') === CELL_DISPLAY_TEST_ID,
+    expect(wrapper).toMatchSnapshot();
+    expect(wrapper.queryByTestId(CellModalSelectorsIDs.DISPLAY)).toBe(null);
+    expect(wrapper.queryByTestId(CellModalSelectorsIDs.MULTISELECT)).not.toBe(
+      null,
     );
-    expect(cellDisplayComponent.exists()).toBe(false);
-
-    const cellMultiSelectComponent = wrapper.findWhere(
-      (node) => node.prop('testID') === CELL_MULTI_SELECT_TEST_ID,
-    );
-    expect(cellMultiSelectComponent.exists()).toBe(true);
-
-    const cellSelectComponent = wrapper.findWhere(
-      (node) => node.prop('testID') === CELL_SELECT_TEST_ID,
-    );
-    expect(cellSelectComponent.exists()).toBe(false);
+    expect(wrapper.queryByTestId(CellModalSelectorsIDs.SELECT)).toBe(null);
   });
   it('should render CellSelect given the type Select', () => {
-    const wrapper = shallow(
-      <Cell
-        variant={CellVariants.Select}
-        avatarProps={TEST_AVATAR_PROPS}
-        title={TEST_CELL_TITLE}
-      />,
+    const wrapper = render(
+      <Cell variant={CellVariant.Select} {...SAMPLE_CELL_PROPS} />,
     );
-    const cellDisplayComponent = wrapper.findWhere(
-      (node) => node.prop('testID') === CELL_DISPLAY_TEST_ID,
-    );
-    expect(cellDisplayComponent.exists()).toBe(false);
-
-    const cellMultiSelectComponent = wrapper.findWhere(
-      (node) => node.prop('testID') === CELL_MULTI_SELECT_TEST_ID,
-    );
-    expect(cellMultiSelectComponent.exists()).toBe(false);
-
-    const cellSelectComponent = wrapper.findWhere(
-      (node) => node.prop('testID') === CELL_SELECT_TEST_ID,
-    );
-    expect(cellSelectComponent.exists()).toBe(true);
+    expect(wrapper).toMatchSnapshot();
+    expect(wrapper.queryByTestId(CellModalSelectorsIDs.DISPLAY)).toBe(null);
+    expect(wrapper.queryByTestId(CellModalSelectorsIDs.MULTISELECT)).toBe(null);
+    expect(wrapper.queryByTestId(CellModalSelectorsIDs.SELECT)).not.toBe(null);
   });
 });
