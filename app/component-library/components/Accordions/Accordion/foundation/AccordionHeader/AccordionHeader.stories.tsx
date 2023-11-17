@@ -13,12 +13,14 @@ const AccordionHeaderMeta = {
     },
     isExpanded: {
       control: { type: 'boolean' },
+      defaultValue: SAMPLE_ACCORDIONHEADER_PROPS.isExpanded,
     },
     horizontalAlignment: {
       options: AccordionHeaderHorizontalAlignment,
       control: {
         type: 'select',
       },
+      defaultValue: SAMPLE_ACCORDIONHEADER_PROPS.horizontalAlignment,
     },
   },
 };
