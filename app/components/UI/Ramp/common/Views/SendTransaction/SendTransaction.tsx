@@ -53,6 +53,7 @@ import { NATIVE_ADDRESS } from '../../../../../../constants/on-ramp';
 import { safeToChecksumAddress } from '../../../../../../util/address';
 import { generateTransferData } from '../../../../../../util/transactions';
 import useAnalytics from '../../hooks/useAnalytics';
+import Routes from '../../../../../../constants/navigation/Routes';
 
 interface SendTransactionParams {
   orderId?: string;
@@ -149,20 +150,30 @@ function SendTransaction() {
         deviceConfirmedOn: WalletDevice.MM_MOBILE,
       });
       const hash = await response.result;
+
       if (order?.id) {
         dispatch(setFiatSellTxHash(order.id, hash));
+        navigation.goBack();
+        trackEvent(
+          'OFFRAMP_SEND_TRANSACTION_CONFIRMED',
+          transactionAnalyticsPayload,
+        );
+        navigation.navigate(Routes.WALLET_VIEW);
       }
-      trackEvent(
-        'OFFRAMP_SEND_TRANSACTION_CONFIRMED',
-        transactionAnalyticsPayload,
-      );
     } catch (error) {
       trackEvent(
         'OFFRAMP_SEND_TRANSACTION_REJECTED',
         transactionAnalyticsPayload,
       );
     }
-  }, [dispatch, order?.id, orderData, trackEvent, transactionAnalyticsPayload]);
+  }, [
+    navigation,
+    dispatch,
+    order?.id,
+    orderData,
+    trackEvent,
+    transactionAnalyticsPayload,
+  ]);
 
   if (!order) {
     return null;

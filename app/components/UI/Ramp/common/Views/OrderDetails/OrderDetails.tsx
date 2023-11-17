@@ -233,7 +233,10 @@ const OrderDetails = () => {
             !order.sellTxHash &&
             order.state === FIAT_ORDER_STATES.CREATED ? (
               <Row>
-                <StyledButton type="normal" onPress={navigateToSendTransaction}>
+                <StyledButton
+                  type="confirm"
+                  onPress={navigateToSendTransaction}
+                >
                   {strings(
                     'fiat_on_ramp_aggregator.order_details.continue_order',
                   )}

@@ -1,10 +1,10 @@
 import React, { useCallback } from 'react';
 import {
-  StyleSheet,
-  View,
-  TouchableOpacity,
   Image,
   Linking,
+  StyleSheet,
+  TouchableOpacity,
+  View,
 } from 'react-native';
 import Feather from 'react-native-vector-icons/Feather';
 import { Order, OrderStatusEnum } from '@consensys/on-ramp-sdk';
@@ -73,6 +73,7 @@ interface PropsStage {
   cryptocurrency?: string;
   providerName?: string;
   orderType?: OrderOrderTypeEnum;
+  isTransacted: boolean;
 }
 
 const Row: React.FC = (props) => {
@@ -92,6 +93,7 @@ const Stage: React.FC<PropsStage> = ({
   cryptocurrency,
   providerName,
   orderType,
+  isTransacted,
 }: PropsStage) => {
   const { colors } = useTheme();
   const styles = createStyles(colors);
@@ -155,6 +157,35 @@ const Stage: React.FC<PropsStage> = ({
         </View>
       );
     }
+    case FIAT_ORDER_STATES.CREATED:
+      return (
+        <View style={styles.stage}>
+          <Spinner />
+          <Group>
+            <Text bold big primary centered>
+              {strings(
+                isTransacted
+                  ? 'transaction.submitted'
+                  : 'fiat_on_ramp_aggregator.order_details.pending',
+              )}
+            </Text>
+            {isTransacted ? (
+              pendingDescription ? (
+                <Text small centered grey>
+                  {pendingDescription}
+                </Text>
+              ) : null
+            ) : (
+              <Text small centered grey>
+                {strings(
+                  'fiat_on_ramp_aggregator.order_details.continue_order_description',
+                )}
+              </Text>
+            )}
+          </Group>
+        </View>
+      );
+
     case FIAT_ORDER_STATES.PENDING:
     default: {
       return (
@@ -166,6 +197,7 @@ const Stage: React.FC<PropsStage> = ({
                 ? strings('fiat_on_ramp_aggregator.order_details.processing')
                 : strings('transaction.submitted')}
             </Text>
+
             {pendingDescription ? (
               <Text small centered grey>
                 {pendingDescription}
@@ -263,14 +295,13 @@ const OrderDetails: React.FC<Props> = ({
           cryptocurrency={cryptocurrency}
           providerName={providerName}
           orderType={order.orderType}
+          isTransacted={Boolean(order.sellTxHash)}
         />
         <Group>
           <Text bold centered primary style={styles.tokenAmount}>
             {renderAmount} {cryptocurrency}
           </Text>
-          {state !== FIAT_ORDER_STATES.PENDING &&
-          orderData?.fiatCurrency?.decimals !== undefined &&
-          currencySymbol ? (
+          {orderData?.fiatCurrency?.decimals !== undefined && currencySymbol ? (
             <Text centered small grey>
               {currencySymbol}
               {renderFiat(amountOut, currency, orderData.fiatCurrency.decimals)}
