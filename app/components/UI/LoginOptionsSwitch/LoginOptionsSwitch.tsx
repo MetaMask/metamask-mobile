@@ -4,11 +4,11 @@ import { mockTheme, useAppThemeFromContext } from '../../../util/theme';
 import { strings } from '../../../../locales/i18n';
 import { BIOMETRY_TYPE } from 'react-native-keychain';
 import { createStyles } from './styles';
-import { LOGIN_WITH_BIOMETRICS_SWITCH } from '../../../constants/test-ids';
 import { LOGIN_WITH_REMEMBER_ME_SWITCH } from '../../../../wdio/screen-objects/testIDs/Screens/LoginScreen.testIds';
 import { useSelector } from 'react-redux';
 import generateTestId from '../../../../wdio/utils/generateTestId';
 import { colors as staticColors } from '../../../styles/common';
+import { LoginOptionsSwitchSelectorsIDs } from '../../../../e2e/selectors/LoginOptionsSwitch.selectors';
 
 interface Props {
   shouldRenderBiometricOption: BIOMETRY_TYPE | null;
@@ -68,7 +68,7 @@ const LoginOptionsSwitch = ({
           }}
           thumbColor={staticColors.white}
           ios_backgroundColor={colors.border.muted}
-          testID={LOGIN_WITH_BIOMETRICS_SWITCH}
+          testID={LoginOptionsSwitchSelectorsIDs.BIOMETRICS_SWITCH}
         />
       </View>
     );

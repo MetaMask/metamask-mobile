@@ -22,6 +22,7 @@ const styleSheet = (params: { theme: Theme }) => {
       borderRadius: 8,
       backgroundColor: colors.background.default,
       borderColor: colors.warning.default,
+      paddingBottom: 16,
     },
     upperAlertContainer: { bottom: 120 },
     alertWrapper: {

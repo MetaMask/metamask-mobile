@@ -35,6 +35,7 @@ import parseWalletConnectUri, {
 import { selectChainId } from '../../selectors/networkController';
 import { store } from '../../store';
 import { WALLET_CONNECT_ORIGIN } from '../../../app/util/walletconnect';
+import ppomUtil from '../../../app/lib/ppom/ppom-util';
 
 const { PROJECT_ID } = AppConstants.WALLET_CONNECT;
 export const isWC2Enabled =
@@ -287,10 +288,27 @@ class WalletConnect2Session {
         const trx = await transactionController.addTransaction(
           methodParams[0],
           {
-            deviceConfirmedOn: WalletDevice.MM_MOBILE,
             origin,
+            deviceConfirmedOn: WalletDevice.MM_MOBILE,
+            securityAlertResponse: undefined,
           },
         );
+
+        const id = trx.transactionMeta.id;
+        const reqObject = {
+          jsonrpc: '2.0',
+          method: 'eth_sendTransaction',
+          params: [
+            {
+              from: methodParams[0].from,
+              to: methodParams[0].to,
+              value: methodParams[0].value,
+            },
+          ],
+        };
+
+        ppomUtil.validateRequest(reqObject, id);
+
         const hash = await trx.result;
 
         await this.approveRequest({ id: requestEvent.id + '', result: hash });

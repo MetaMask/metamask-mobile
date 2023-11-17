@@ -17,6 +17,15 @@ export interface BottomSheetProps extends ViewProps {
    * @default true
    */
   isInteractable?: boolean;
+  /**
+   * Optional boolean that indicates if sheet isUnmounted from the stack or not when closed.
+   * @default true
+   */
+  shouldNavigateBack?: boolean;
+  /**
+   * Optional boolean that allow the bottomsheet to grow until the top.
+   */
+  isFlexible?: boolean;
 }
 
 export type BottomSheetPostCallback = () => void;

@@ -5,7 +5,10 @@ exports[`CellSelect should render default settings correctly 1`] = `
   disabled={false}
   style={
     Object {
+      "backgroundColor": "#FFFFFF",
+      "borderRadius": 4,
       "opacity": 1,
+      "padding": 16,
       "position": "relative",
     }
   }
@@ -16,11 +19,9 @@ exports[`CellSelect should render default settings correctly 1`] = `
     accessible={true}
     style={
       Object {
-        "alignItems": "flex-start",
-        "backgroundColor": "#FFFFFF",
-        "borderRadius": 4,
+        "alignItems": "center",
         "flexDirection": "row",
-        "padding": 16,
+        "padding": 0,
       }
     }
   >
@@ -43,7 +44,6 @@ exports[`CellSelect should render default settings correctly 1`] = `
           }
         }
         testID="cellbase-avatar"
-        variant="Account"
       >
         <View
           style={

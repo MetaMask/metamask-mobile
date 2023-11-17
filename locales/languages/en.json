@@ -7,6 +7,8 @@
     "deceptive_request_title": "This is a deceptive request",
     "failed_title": "Request may not be safe",
     "failed_description": "Because of an error, this request was not verified by the security provider. Proceed with caution.",
+    "loading_title": "This request is still being simulated. We recommend waiting for its completion.",
+    "loading_complete_title": "Simulation completed. Review this request before proceeding.",
     "malicious_domain_description": "You're interacting with a malicious domain. If you approve this request, you might lose your assets.",
     "other_description": "If you approve this request, you might lose your assets.",
     "raw_signature_farming_description": "If you approve this request, you might lose your assets.",
@@ -514,6 +516,7 @@
     "import_account": "Import an account",
     "connect_hardware": "Connect hardware wallet",
     "imported": "Imported",
+    "qr_hardware": "QR hardware",
     "remove_account_title": "Account removal",
     "remove_account_message": "Do you really want to remove this account?",
     "no": "No",
@@ -809,6 +812,10 @@
     "unkown_dapp": "DAPP name not available",
     "no_connections": "No connections found"
   },
+  "sdk_return_to_app_modal":{
+    "title": "Return to app",
+    "description": "Please return to the app to continue using their services."
+  },
   "sdk_feedback_modal": {
     "ok": "OK",
     "title": "Account couldn't connect",
@@ -999,7 +1006,6 @@
     "confirm": "Confirm"
   },
   "transaction": {
-    "hardware": "Hardware",
     "alert": "ALERT",
     "amount": "Amount",
     "next": "Next",
@@ -1377,7 +1383,8 @@
     "you_can": "Or you can",
     "add_network": "add more networks manually.",
     "select_network": "Select a network",
-    "show_test_networks": "Show test networks"
+    "show_test_networks": "Show test networks",
+    "deprecated_goerli": "Due to the protocol changes of Ethereum: Goerli test network may not work as reliably and will be deprecated soon."
   },
   "select": {
     "cancel": "Cancel",
@@ -1736,10 +1743,10 @@
     "wallet_connect_dapps_cta": "VIEW SESSIONS",
     "network_not_supported": "Current network not supported",
     "security_alerts": "Security alerts",
-    "security_alerts_desc": "This feature alerts you to malicious activity by locally reviewing your transactions and signature requests. Your data isn't shared with the third parties providing this service. Always do your own due diligence before approving any requests. There’s no guarantee that this feature will detect all malicious activity.",
-    "select_providers": "Select providers",
+    "security_alerts_desc": "This feature alerts you to malicious activity by locally reviewing your transaction and signature requests. Always do your own due diligence before approving any requests. There's no guarantee that this feature will detect all malicious activity. By enabling this feature you agree to the provider's terms of use.",
+    "select_provider": "Select your preferred provider",
     "blockaid": "Blockaid",
-    "moreProviders": "More providers coming soon",
+    "blockaid_desc": "Privacy preserving - no data is shared with third parties. Available on Ethereum Mainnet.",
     "switch_network": "Please switch to mainnet or sepolia"
   },
   "walletconnect_sessions": {
@@ -2204,12 +2211,11 @@
     "ok": "OK"
   },
   "whats_new": {
-    "title": "See what's new",
+    "title": "What's new",
     "blockaid": {
       "title": "Stay safe with security alerts",
-      "description_1": "Steer clear of known scams while still preserving your privacy with security alerts powered by Blockaid.",
+      "description_1": "Steer clear of known scams while still preserving your privacy with security alerts powered by Blockaid on Ethereum Mainnet.",
       "description_2": "Always do your own due diligence before approving requests.",
-      "description_3": "If you enabled security alerts from OpenSea, we've moved you over to this feature.",
       "action_text": "Enable security alerts"
     }
   },
@@ -2245,7 +2251,13 @@
     "unrecognized_chain": "This custom network is not recongized",
     "invalid_chain": "The %{rpcUrl} for this Chain ID does not match the chainid.network listing",
     "alert_recommend": "We recommend you",
-    "alert_verify": "verify the chain ID"
+    "alert_verify": "verify the chain ID",
+    "warning_subtext_new":{"1":"MetaMask doesn’t verify custom networks, so only approve networks you trust.", "2":"Learn more about network security risks and scams."} ,
+    "invalid_rpc_url": "This network URL doesn't match a known provider for this chain ID.",
+    "invalid_chain_token_decimals": "It looks like this network's decimal doesn't match its chain ID.",
+    "unrecognized_chain_name": "It looks like this network's display name doesn't match its chain ID.",
+    "unrecognized_chain_ticker": "It looks like this network's symbol doesn't match this chain ID.",
+    "unrecognized_chain_id": "We don't recognize this network. Be sure the chain ID is correct before you continue."
   },
   "media_player": {
     "loading": "Loading...",

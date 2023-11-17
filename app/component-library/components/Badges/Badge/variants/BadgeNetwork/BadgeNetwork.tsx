@@ -6,7 +6,7 @@ import React from 'react';
 // External dependencies.
 import { useComponentSize, useStyles } from '../../../../../hooks';
 import BadgeBase from '../../foundation/BadgeBase';
-import Avatar, { AvatarVariants } from '../../../../Avatars/Avatar';
+import Avatar, { AvatarVariant } from '../../../../Avatars/Avatar';
 
 // Internal dependencies
 import { BadgeNetworkProps } from './BadgeNetwork.types';
@@ -27,7 +27,7 @@ const BadgeNetwork = ({ style, name, imageSource }: BadgeNetworkProps) => {
       onLayout={onLayoutContainerSize}
     >
       <Avatar
-        variant={AvatarVariants.Network}
+        variant={AvatarVariant.Network}
         size={DEFAULT_BADGENETWORK_NETWORKICON_SIZE}
         name={name}
         imageSource={imageSource}

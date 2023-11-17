@@ -112,6 +112,7 @@ cd metamask-mobile
 ```
 -   _Non-MetaMask Only:_ Create an account and generate your own API key at [Infura](https://infura.io) in order to connect to main and test nets. Fill `MM_INFURA_PROJECT_ID` in `.js.env`. (App will run without it, but will not be able to connect to actual network.)
 - _Non-MetaMask Only:_ Fill `MM_SENTRY_DSN` in `.js.env` if you want the app to emit logs to your own Sentry project.
+- Note: after updating env vars, make sure to run `source .js.env` on the root of the project
 
 -   Install the app:
 ```
@@ -121,6 +122,12 @@ yarn setup # not the usual install command, this will run a lengthy postinstall 
 -   Then, in one terminal, run:
 ```bash
 yarn watch
+```
+
+- You can change the default port (8081) from metro using the WATCHER_PORT environment variable. For example:
+```bash
+WATCHER_PORT=8082 yarn watch
+# This value can also be set directly inside .js.env file
 ```
 
 #### Android
