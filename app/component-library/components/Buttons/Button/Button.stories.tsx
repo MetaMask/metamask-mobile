@@ -1,65 +1,57 @@
-/* eslint-disable no-console */
-
+/* eslint-disable react/display-name */
 // Third party dependencies.
 import React from 'react';
-import { select } from '@storybook/addon-knobs';
-import { storiesOf } from '@storybook/react-native';
 
 // External dependencies.
-import { storybookPropsGroupID } from '../../../constants/storybook.constants';
-import ButtonLinkStory, {
-  getButtonLinkStoryProps,
-} from './variants/ButtonLink/ButtonLink.stories';
-import ButtonPrimaryStory, {
-  getButtonPrimaryStoryProps,
-} from './variants/ButtonPrimary/ButtonPrimary.stories';
-import ButtonSecondaryStory, {
-  getButtonSecondaryStoryProps,
-} from './variants/ButtonSecondary/ButtonSecondary.stories';
+import { SAMPLE_BUTTONLINK_PROPS } from './variants/ButtonLink/ButtonLink.constants';
+import { SAMPLE_BUTTONPRIMARY_PROPS } from './variants/ButtonPrimary/ButtonPrimary.constants';
+import { SAMPLE_BUTTONSECONDARY_PROPS } from './variants/ButtonSecondary/ButtonSecondary.constants';
 
 // Internal dependencies.
-import { ButtonVariants, ButtonProps } from './Button.types';
-import Button from './Button';
+import { ButtonVariants } from './Button.types';
+import { default as ButtonComponent } from './Button';
 
-export const getButtonStoryProps = (): ButtonProps => {
-  let buttonProps: ButtonProps;
-
-  const buttonVariantsSelector = select(
-    'Button Variant',
-    ButtonVariants,
-    ButtonVariants.Primary,
-    storybookPropsGroupID,
-  );
-
-  switch (buttonVariantsSelector) {
-    case ButtonVariants.Link:
-      buttonProps = {
-        variant: ButtonVariants.Link,
-        ...getButtonLinkStoryProps(),
-      };
-      break;
-    case ButtonVariants.Primary:
-      buttonProps = {
-        variant: ButtonVariants.Primary,
-        ...getButtonPrimaryStoryProps(),
-      };
-      break;
-    case ButtonVariants.Secondary:
-      buttonProps = {
-        variant: ButtonVariants.Secondary,
-        ...getButtonSecondaryStoryProps(),
-      };
-      break;
-  }
-
-  return buttonProps;
+const ButtonMeta = {
+  title: 'Component Library / Buttons',
+  component: ButtonComponent,
+  argTypes: {
+    variant: {
+      options: ButtonVariants,
+      control: {
+        type: 'select',
+      },
+      defaultValue: ButtonVariants.Primary,
+    },
+  },
 };
-const ButtonStory = () => <Button {...getButtonStoryProps()} />;
+export default ButtonMeta;
 
-storiesOf('Component Library / Buttons', module)
-  .add('Button', ButtonStory)
-  .add('Variants / ButtonLink', ButtonLinkStory)
-  .add('Variants / ButtonPrimary', ButtonPrimaryStory)
-  .add('Variants / ButtonSecondary', ButtonSecondaryStory);
-
-export default ButtonStory;
+export const Button = {
+  render: (args: { variant: ButtonVariants }) => {
+    switch (args.variant) {
+      case ButtonVariants.Link:
+        return (
+          <ButtonComponent
+            variant={ButtonVariants.Link}
+            {...SAMPLE_BUTTONLINK_PROPS}
+          />
+        );
+      case ButtonVariants.Primary:
+        return (
+          <ButtonComponent
+            variant={ButtonVariants.Primary}
+            {...SAMPLE_BUTTONPRIMARY_PROPS}
+          />
+        );
+      case ButtonVariants.Secondary:
+        return (
+          <ButtonComponent
+            variant={ButtonVariants.Secondary}
+            {...SAMPLE_BUTTONSECONDARY_PROPS}
+          />
+        );
+      default:
+        throw new Error('Invalid Button Variant');
+    }
+  },
+};
