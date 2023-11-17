@@ -126,6 +126,7 @@ prebuild_ios(){
 	if [ "$PRE_RELEASE" = true ] ; then
 		echo "" > ios/debug.xcconfig
 		echo "" > ios/release.xcconfig
+		echo "MM_BLOCKAID_UI_ENABLED=true" > $IOS_ENV_FILE
 	fi
 	# Required to install mixpanel dep
 	git submodule update --init --recursive
