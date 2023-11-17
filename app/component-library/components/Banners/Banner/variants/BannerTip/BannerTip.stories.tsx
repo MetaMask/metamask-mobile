@@ -1,3 +1,7 @@
+/* eslint-disable react/display-name */
+// Third party dependencies.
+import React from 'react';
+
 // Internal dependencies.
 import { BannerTipLogoType } from './BannerTip.types';
 import { default as BannerTipComponent } from './BannerTip';
@@ -12,6 +16,7 @@ const BannerTipMeta = {
       control: {
         type: 'select',
       },
+      defaultValue: SAMPLE_BANNERTIP_PROPS.logoType,
     },
     title: {
       control: { type: 'text' },
@@ -26,7 +31,10 @@ const BannerTipMeta = {
 export default BannerTipMeta;
 
 export const BannerTip = {
-  args: {
-    actionButtonProps: SAMPLE_BANNERTIP_PROPS.actionButtonProps,
-  },
+  render: (args: any) => (
+    <BannerTipComponent
+      {...args}
+      actionButtonProps={SAMPLE_BANNERTIP_PROPS.actionButtonProps}
+    />
+  ),
 };

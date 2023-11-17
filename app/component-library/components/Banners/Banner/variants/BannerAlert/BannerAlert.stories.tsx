@@ -1,3 +1,7 @@
+/* eslint-disable react/display-name */
+// Third party dependencies.
+import React from 'react';
+
 // Internal dependencies.
 import { BannerAlertSeverity } from './BannerAlert.types';
 import { default as BannerAlertComponent } from './BannerAlert';
@@ -27,7 +31,10 @@ const BannerAlertMeta = {
 export default BannerAlertMeta;
 
 export const BannerAlert = {
-  args: {
-    actionButtonProps: SAMPLE_BANNERALERT_PROPS.actionButtonProps,
-  },
+  render: (args: any) => (
+    <BannerAlertComponent
+      {...args}
+      actionButtonProps={SAMPLE_BANNERALERT_PROPS.actionButtonProps}
+    />
+  ),
 };
