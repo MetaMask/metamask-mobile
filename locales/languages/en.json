@@ -2013,7 +2013,7 @@
       "cancelled": "Order Canceled",
       "pending": "Order Pending",
       "failed_description": "Something went wrong, and {{provider}} was unable to complete your order. Please try again or with another provider.",
-      "continue_order_description": "Continue this order below.",
+      "continue_order_description": "To continue your order, you'll need to select the button at the bottom of this page.",
       "the_provider": "the provider",
       "processing": "Processing Order",
       "processing_card_description": "Credit/Debit purchases typically take a few minutes",

@@ -11360,7 +11360,7 @@ exports[`OrderDetails renders non-transacted orders 1`] = `
                                             ]
                                           }
                                         >
-                                          Continue this order below.
+                                          To continue your order, you'll need to select the button at the bottom of this page.
                                         </Text>
                                       </View>
                                     </View>
@@ -12667,9 +12667,8 @@ exports[`OrderDetails renders non-transacted orders 1`] = `
                                             "padding": 15,
                                           },
                                           Object {
-                                            "backgroundColor": "#FFFFFF",
-                                            "borderColor": "#0376C9",
-                                            "borderWidth": 1,
+                                            "backgroundColor": "#0376C9",
+                                            "minHeight": 50,
                                           },
                                           undefined,
                                         ],
@@ -12695,7 +12694,7 @@ exports[`OrderDetails renders non-transacted orders 1`] = `
                                               "textAlign": "center",
                                             },
                                             Object {
-                                              "color": "#0376C9",
+                                              "color": "#FCFCFC",
                                             },
                                             undefined,
                                           ],
