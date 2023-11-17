@@ -19,6 +19,7 @@ interface Props {
   onPress?: () => void;
   highlighted?: boolean;
   compact?: boolean;
+  isBuy: boolean;
 }
 
 const createStyles = (colors: Colors) =>
@@ -100,12 +101,16 @@ const tierDescriptions = [
   strings('fiat_on_ramp_aggregator.payment_method.medium_limit'),
   strings('fiat_on_ramp_aggregator.payment_method.highest_limit'),
 ];
-const renderTiers = (tiers: number[]) => {
-  const threshold = tiers[1] / tierDescriptions.length;
+const sellTierDescriptions = [
+  strings('fiat_on_ramp_aggregator.payment_method.lowest_sell_limit'),
+  strings('fiat_on_ramp_aggregator.payment_method.medium_sell_limit'),
+  strings('fiat_on_ramp_aggregator.payment_method.highest_sell_limit'),
+];
+const renderTiers = (tiers: number[], isBuy: boolean) => {
+  const descriptions = isBuy ? tierDescriptions : sellTierDescriptions;
+  const threshold = tiers[1] / descriptions.length;
   const index = Math.ceil(tiers[0] / threshold) - 1;
-  return tierDescriptions[
-    Math.min(Math.max(0, index), tierDescriptions.length - 1)
-  ];
+  return descriptions[Math.min(Math.max(0, index), descriptions.length - 1)];
 };
 
 const PaymentMethod: React.FC<Props> = ({
@@ -113,6 +118,7 @@ const PaymentMethod: React.FC<Props> = ({
   onPress,
   highlighted,
   compact,
+  isBuy,
 }: Props) => {
   const { colors } = useTheme();
   const styles = createStyles(colors);
@@ -169,7 +175,7 @@ const PaymentMethod: React.FC<Props> = ({
             $
           </Text>
         ))}{' '}
-        {renderTiers(amountTier)}
+        {renderTiers(amountTier, isBuy)}
       </Text>
     </Box>
   );
