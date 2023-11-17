@@ -25,6 +25,13 @@ global.STORIES = [
   },
   {
     titlePrefix: "",
+    directory: "./app/component-library/components/Badges",
+    files: "**/*.stories.?(ts|tsx|js|jsx)",
+    importPathMatcher:
+      "^\\.[\\\\/](?:app\\/component-library\\/components\\/Badges(?:\\/(?!\\.)(?:(?:(?!(?:^|\\/)\\.).)*?)\\/|\\/|$)(?!\\.)(?=.)[^/]*?\\.stories\\.(?:ts|tsx|js|jsx)?)$",
+  },
+  {
+    titlePrefix: "",
     directory: "./app/component-library/components/Accordions",
     files: "**/*.stories.?(ts|tsx|js|jsx)",
     importPathMatcher:
@@ -172,6 +179,10 @@ const getStories = () => {
     "./app/component-library/components/Buttons/Button/variants/ButtonPrimary/ButtonPrimary.stories.tsx": require("../app/component-library/components/Buttons/Button/variants/ButtonPrimary/ButtonPrimary.stories.tsx"),
     "./app/component-library/components/Buttons/Button/variants/ButtonSecondary/ButtonSecondary.stories.tsx": require("../app/component-library/components/Buttons/Button/variants/ButtonSecondary/ButtonSecondary.stories.tsx"),
     "./app/component-library/components/Buttons/ButtonIcon/ButtonIcon.stories.tsx": require("../app/component-library/components/Buttons/ButtonIcon/ButtonIcon.stories.tsx"),
+    "./app/component-library/components/Badges/Badge/Badge.stories.tsx": require("../app/component-library/components/Badges/Badge/Badge.stories.tsx"),
+    "./app/component-library/components/Badges/Badge/variants/BadgeNetwork/BadgeNetwork.stories.tsx": require("../app/component-library/components/Badges/Badge/variants/BadgeNetwork/BadgeNetwork.stories.tsx"),
+    "./app/component-library/components/Badges/Badge/variants/BadgeStatus/BadgeStatus.stories.tsx": require("../app/component-library/components/Badges/Badge/variants/BadgeStatus/BadgeStatus.stories.tsx"),
+    "./app/component-library/components/Badges/BadgeWrapper/BadgeWrapper.stories.tsx": require("../app/component-library/components/Badges/BadgeWrapper/BadgeWrapper.stories.tsx"),
     "./app/component-library/components/Accordions/Accordion/Accordion.stories.tsx": require("../app/component-library/components/Accordions/Accordion/Accordion.stories.tsx"),
     "./app/component-library/components/Accordions/Accordion/foundation/AccordionHeader/AccordionHeader.stories.tsx": require("../app/component-library/components/Accordions/Accordion/foundation/AccordionHeader/AccordionHeader.stories.tsx"),
     "./app/component-library/components/Banners/Banner/Banner.stories.tsx": require("../app/component-library/components/Banners/Banner/Banner.stories.tsx"),

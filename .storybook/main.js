@@ -2,6 +2,7 @@ module.exports = {
   stories: [
     '../app/component-library/components/Cards/Card/**/*.stories.?(ts|tsx|js|jsx)',
     '../app/component-library/components/Buttons/**/*.stories.?(ts|tsx|js|jsx)',
+    '../app/component-library/components/Badges/**/*.stories.?(ts|tsx|js|jsx)',
     '../app/component-library/components/Accordions/**/*.stories.?(ts|tsx|js|jsx)',
     '../app/component-library/components/Banners/**/*.stories.?(ts|tsx|js|jsx)',
     '../app/component-library/components/Modals/**/*.stories.?(ts|tsx|js|jsx)',
