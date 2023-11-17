@@ -565,7 +565,9 @@ const BuildQuote = () => {
             icon="info"
             title={strings('fiat_on_ramp_aggregator.no_tokens_available_title')}
             description={strings(
-              'fiat_on_ramp_aggregator.no_tokens_available',
+              isBuy
+                ? 'fiat_on_ramp_aggregator.no_tokens_available'
+                : 'fiat_on_ramp_aggregator.no_sell_tokens_available',
               {
                 network:
                   selectedNetworkName ||
@@ -573,7 +575,11 @@ const BuildQuote = () => {
                 region: selectedRegion?.name,
               },
             )}
-            ctaLabel={strings('fiat_on_ramp_aggregator.change_payment_method')}
+            ctaLabel={strings(
+              isBuy
+                ? 'fiat_on_ramp_aggregator.change_payment_method'
+                : 'fiat_on_ramp_aggregator.change_cash_destination',
+            )}
             ctaOnPress={showPaymentMethodsModal as () => void}
             location={screenLocation}
           />
@@ -581,7 +587,11 @@ const BuildQuote = () => {
         <PaymentMethodModal
           isVisible={isPaymentMethodModalVisible}
           dismiss={hidePaymentMethodModal as () => void}
-          title={strings('fiat_on_ramp_aggregator.select_payment_method')}
+          title={strings(
+            isBuy
+              ? 'fiat_on_ramp_aggregator.select_payment_method'
+              : 'fiat_on_ramp_aggregator.select_cash_destination',
+          )}
           paymentMethods={paymentMethods}
           selectedPaymentMethodId={selectedPaymentMethodId}
           selectedPaymentMethodType={currentPaymentMethod?.paymentType}

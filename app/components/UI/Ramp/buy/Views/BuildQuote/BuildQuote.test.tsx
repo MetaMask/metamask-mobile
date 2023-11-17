@@ -427,6 +427,12 @@ describe('BuildQuote View', () => {
       };
       render(BuildQuote);
       expect(screen.toJSON()).toMatchSnapshot();
+
+      mockUseRampSDKValues.isBuy = false;
+      mockUseRampSDKValues.isSell = true;
+      mockUseRampSDKValues.rampType = RampType.SELL;
+      render(BuildQuote);
+      expect(screen.toJSON()).toMatchSnapshot();
     });
 
     it('renders an error page when there is a cryptos error', async () => {
