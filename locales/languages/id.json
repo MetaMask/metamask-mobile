@@ -2,7 +2,6 @@
   "blockaid_banner": {
     "approval_farming_description": "Jika Anda menyetujui permintaan ini, pihak ketiga yang terdeteksi melakukan penipuan dapat mengambil semua aset Anda.",
     "attribution": "Saran keamanan oleh",
-    "attribution_link": "https://blockaid.me",
     "attribution_link_name": "Blockaid",
     "blur_farming_description": "Jika Anda menyetujui permintaan ini, seseorang dapat mencuri aset Anda yang terdaftar di Blur.",
     "deceptive_request_title": "Ini adalah permintaan tipuan",
@@ -13,10 +12,10 @@
     "raw_signature_farming_description": "Jika Anda menyetujui permintaan ini, aset Anda kemungkinan akan hilang.",
     "seaport_farming_description": "Jika Anda menyetujui permintaan ini, seseorang dapat mencuri aset Anda yang terdaftar di OpenSea.",
     "see_details": "Lihat detailnya",
+    "does_not_look_right": "Ada yang tidak beres?",
     "suspicious_request_title": "Ini adalah permintaan yang mencurigakan",
     "trade_order_farming_description": "Jika Anda menyetujui permintaan ini, aset Anda kemungkinan akan hilang.",
-    "transfer_farming_description": "Jika Anda menyetujui permintaan ini, pihak ketiga yang terdeteksi melakukan penipuan akan mengambil semua aset Anda.",
-    "unfair_trade_description": "Jika Anda menyetujui permintaan ini, aset Anda kemungkinan akan hilang."
+    "transfer_farming_description": "Jika Anda menyetujui permintaan ini, pihak ketiga yang terdeteksi melakukan penipuan akan mengambil semua aset Anda."
   },
   "date": {
     "months": {
@@ -789,7 +788,8 @@
     "display_nft_media_desc": "Menampilkan media dan data NFT mengekspos alamat IP ke OpenSea atau pihak ketiga lainnya. Autodeteksi NFT mengandalkan fitur ini, dan tidak akan tersedia jika fitur ini dinonaktifkan.",
     "autodetect_nft_desc": "Izinkan MetaMask menambahkan NFT yang Anda miliki menggunakan layanan pihak ketiga (seperti OpenSea). Autodeteksi NFT mengekspos alamat IP dan akun Anda ke layanan ini. Mengaktifkan fitur ini dapat mengaitkan alamat IP dengan alamat Ethereum Anda dan menampilkan NFT palsu yang di-airdrop oleh penipu. Anda dapat menambahkan token secara manual untuk menghindari risiko ini.",
     "incoming_transactions_title": "Tampilkan transaksi masuk",
-    "incoming_transactions_content": "Ini bergantung pada jaringan yang Anda pilih yang akan mengekspos alamat Ethereum dan alamat IP Anda."
+    "incoming_transactions_content": "Ini bergantung pada jaringan yang Anda pilih yang akan mengekspos alamat Ethereum dan alamat IP Anda.",
+    "display_nft_media_desc_new": "Alamat IP dapat diketahui oleh OpenSea atau pihak ketiga lainnya saat Anda menampilkan media dan data NFT. Autodeteksi NFT mengandalkan fitur ini, dan tidak akan tersedia saat dinonaktifkan. Jika media NFT sepenuhnya disimpan di IPFS, maka masih dapat ditampilkan bahkan pada saat fitur ini dinonaktifkan."
   },
   "sdk": {
     "disconnect_title": "Putuskan koneksi semua situs?",
@@ -800,6 +800,10 @@
     "loading": "Menghubungkan ke MetaMask...",
     "unkown_dapp": "Nama Aplikasi Terdesentralisasi (DAPP) tidak tersedia",
     "no_connections": "Koneksi tidak ditemukan"
+  },
+  "sdk_return_to_app_modal":{
+    "title": "Kembali ke aplikasi",
+    "description": "Silakan kembali ke aplikasi untuk melanjutkan penggunaan layanannya."
   },
   "sdk_feedback_modal": {
     "ok": "Oke",
@@ -1319,6 +1323,11 @@
     "others": "Lainnya",
     "memo": "Memo"
   },
+  "duplicate_address": {
+    "title": "Ini adalah alamat duplikat",
+    "body": "Daftar kontak Anda menampilkan alamat ini di lebih dari satu jaringan. Pastikan untuk memilih kontak yang benar sebelum Anda mengirim dana.",
+    "button": "Mengerti"
+  },
   "transaction_submitted": {
     "title": "Transaksi Dikirim",
     "your_tx_hash_is": "Hash transaksi Anda adalah:",
@@ -1353,6 +1362,7 @@
     "learn_more": "Pelajari selengkapnya",
     "learn_more_url": "https://metamask.zendesk.com/hc/en-us/articles/4417500466971",
     "switch_network": "Beralih ke jaringan",
+    "switch": "Alihkan",
     "new_network": "Jaringan baru ditambahkan",
     "network_name": "Jaringan {{networkName}}",
     "network_added": " kini tersedia di pemilih jaringan.",
@@ -1722,10 +1732,7 @@
     "wallet_connect_dapps_cta": "LIHAT SESI",
     "network_not_supported": "Tidak mendukung jaringan saat ini",
     "security_alerts": "Peringatan keamanan",
-    "security_alerts_desc": "Fitur ini memberi tahu Anda seputar aktivitas berbahaya dengan meninjau transaksi dan permintaan tanda tangan Anda secara lokal. Data Anda tidak dibagikan kepada pihak ketiga yang menyediakan layanan ini. Selalu lakukan uji tuntas sendiri sebelum menyetujui permintaan apa pun. Tidak ada jaminan bahwa fitur ini akan mendeteksi semua aktivitas berbahaya.",
-    "select_providers": "Pilih penyedia",
     "blockaid": "Blockaid",
-    "moreProviders": "Penyedia lainnya akan segera hadir",
     "switch_network": "Harap beralih ke mainnet atau sepolia"
   },
   "walletconnect_sessions": {
@@ -1869,8 +1876,8 @@
   "fiat_on_ramp_aggregator": {
     "onboarding": {
       "what_to_expect": "Yang Diharapkan",
-      "best_quotes": "Fitur beli kripto kami mengumpulkan kuotasi dari vendor terintegrasi, menawarkan kuotasi terbaik dari sumber tersebut agar Anda bisa mendapatkan kripto langsung ke dompet Anda tanpa masa tunggu.",
-      "benefits": "Biaya gas yang harus dibayar lebih sedikit, dan ada banyak jaringan, token, serta metode pembayaran yang didukung",
+      "quotes": "Fitur beli kripto kami mengumpulkan kuotasi dari vendor terintegrasi, menawarkan kuotasi dari sumber tersebut agar bisa mendapatkan kripto langsung ke dompet Anda tanpa masa tunggu.",
+      "benefits": "Biaya gas yang harus dibayar semakin sedikit, dan ada banyak jaringan, token, serta metode pembayaran yang didukung",
       "get_started": "Mulai"
     },
     "payment_method": {
@@ -1914,11 +1921,9 @@
     "select_region_currency": "Pilih Mata Uang Wilayah",
     "no_tokens_match": "Tidak ada token yang cocok dengan “{{searchString}}”",
     "no_currency_match": "Tidak ada mata uang yang cocok dengan “{{searchString}}”",
-    "buy_from_vetted": "Untuk membeli {{ticker}} dari salah satu integrasi kami, Anda akan dibawa ke portal mereka tanpa meninggalkan aplikasi MetaMask dengan aman",
-    "best_price": "Harga terbaik",
-    "explore_other_options": "Jelajahi opsi lain",
+    "compare_rates": "Bandingkan tarif dari penyedia ini. Kuotasi diurutkan berdasarkan harga keseluruhan.",
     "pay_with": "Bayar melalui",
-    "buy_with": "Beli melalui {{provider}}",
+    "continue_with": "Lanjutkan melalui {{provider}}",
     "minimum": "Deposit minimum adalah",
     "maximum": "Deposit maksimum adalah",
     "try_again": "Coba lagi",

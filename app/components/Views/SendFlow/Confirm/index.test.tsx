@@ -18,7 +18,9 @@ const mockInitialState = {
         },
       },
       AccountTrackerController: {
-        accounts: { '0x2': { balance: '0' } },
+        accounts: {
+          '0xe64dD0AB5ad7e8C5F2bf6Ce75C34e187af8b920A': { balance: '0' },
+        },
       },
       CurrencyRateController: {
         currentCurrency: 'USD',
@@ -26,7 +28,7 @@ const mockInitialState = {
       },
       PreferencesController: {
         identities: {
-          '0x1': { name: 'Account1' },
+          '0x15249D1a506AFC731Ee941d0D40Cf33FacD34E58': { name: 'Account1' },
         },
       },
       KeyringController: {
@@ -40,8 +42,8 @@ const mockInitialState = {
   transaction: {
     selectedAsset: {},
     transaction: {
-      from: '0x1',
-      to: '0x2',
+      from: '0x15249D1a506AFC731Ee941d0D40Cf33FacD34E58',
+      to: '0xe64dD0AB5ad7e8C5F2bf6Ce75C34e187af8b920A',
       value: '0x2',
     },
   },
@@ -72,14 +74,20 @@ jest.mock('../../../../util/ENSUtils', () => ({
   ...jest.requireActual('../../../../util/ENSUtils'),
   doENSReverseLookup: jest.fn(),
 }));
-jest.mock('../../../../util/address', () => ({
-  ...jest.requireActual('../../../../util/address'),
-  isQRHardwareAccount: jest.fn(),
-}));
+
 jest.mock('../../../../core/Engine', () => ({
   context: {
     TokensController: {
       addToken: jest.fn(),
+    },
+    KeyringController: {
+      state: {
+        keyrings: [
+          {
+            accounts: ['0x15249D1a506AFC731Ee941d0D40Cf33FacD34E58'],
+          },
+        ],
+      },
     },
   },
 }));

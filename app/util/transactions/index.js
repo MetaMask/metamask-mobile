@@ -659,7 +659,7 @@ export const calculateEIP1559Times = ({
 }) => {
   let timeEstimate = strings('times_eip1559.unknown');
   let timeEstimateColor = 'grey';
-  let timeEstimateId = AppConstants.GAS_TIMES.UNKNOWN;
+  let timeEstimateId;
 
   const LOW = AppConstants.GAS_OPTIONS.LOW;
   const MEDIUM = AppConstants.GAS_OPTIONS.MEDIUM;
@@ -799,6 +799,9 @@ export const calculateEIP1559Times = ({
     }
   } catch (error) {
     Logger.log('ERROR ESTIMATING TIME', error);
+  }
+  if (!timeEstimateId) {
+    timeEstimate = AppConstants.GAS_TIMES.UNKNOWN;
   }
 
   return { timeEstimate, timeEstimateColor, timeEstimateId };

@@ -1,54 +1,21 @@
 // Third party dependencies.
 import React from 'react';
-import { shallow } from 'enzyme';
-
-// External dependencies.
-import { TEST_AVATAR_PROPS, TEST_CELL_TITLE } from '../../Cell.constants';
-import { CellVariants } from '../../Cell.types';
+import { render } from '@testing-library/react-native';
 
 // Internal dependencies.
 import CellSelect from './CellSelect';
-import { CELL_SELECT_TEST_ID } from '../../../../../../constants/test-ids';
-
-describe('CellSelect - Snapshot', () => {
-  it('should render default settings correctly', () => {
-    const wrapper = shallow(
-      <CellSelect
-        variant={CellVariants.Select}
-        avatarProps={TEST_AVATAR_PROPS}
-        title={TEST_CELL_TITLE}
-        onPress={jest.fn}
-      />,
-    );
-    expect(wrapper).toMatchSnapshot();
-  });
-  it('should render the proper selected state', () => {
-    const wrapper = shallow(
-      <CellSelect
-        variant={CellVariants.Select}
-        avatarProps={TEST_AVATAR_PROPS}
-        title={TEST_CELL_TITLE}
-        isSelected
-        onPress={jest.fn}
-      />,
-    );
-    expect(wrapper).toMatchSnapshot();
-  });
-});
+import { SAMPLE_CELLSELECT_PROPS } from './CellSelect.constants';
+import { CellModalSelectorsIDs } from '../../../../../../../e2e/selectors/Modals/CellModal.selectors';
 
 describe('CellSelect', () => {
-  it('should render singleSelect', () => {
-    const wrapper = shallow(
-      <CellSelect
-        variant={CellVariants.Select}
-        avatarProps={TEST_AVATAR_PROPS}
-        title={TEST_CELL_TITLE}
-        onPress={jest.fn}
-      />,
+  it('should render default settings correctly', () => {
+    const wrapper = render(<CellSelect {...SAMPLE_CELLSELECT_PROPS} />);
+    expect(wrapper).toMatchSnapshot();
+  });
+  it('should render CellSelect', () => {
+    const { queryByTestId } = render(
+      <CellSelect {...SAMPLE_CELLSELECT_PROPS} />,
     );
-    const singleSelectComponent = wrapper.findWhere(
-      (node) => node.prop('testID') === CELL_SELECT_TEST_ID,
-    );
-    expect(singleSelectComponent.exists()).toBe(true);
+    expect(queryByTestId(CellModalSelectorsIDs.SELECT)).not.toBe(null);
   });
 });

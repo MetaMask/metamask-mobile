@@ -30,7 +30,7 @@ import { protectWalletModalVisible } from '../../../actions/user';
 import ClipboardManager from '../../../core/ClipboardManager';
 import { ThemeContext, mockTheme } from '../../../util/theme';
 import generateTestId from '../../../../wdio/utils/generateTestId';
-import { PAYMENT_REQUEST_QR_CODE_CLOSE_ICON } from '../../../../wdio/screen-objects/testIDs/Screens/RequestToken.testIds';
+import { SendLinkViewSelectorsIDs } from '../../../../e2e/selectors/SendLinkView.selectors';
 
 const isIos = Device.isIos();
 
@@ -266,7 +266,10 @@ class PaymentRequestSuccess extends PureComponent {
     const styles = createStyles(colors);
 
     return (
-      <SafeAreaView style={styles.wrapper} testID={'send-link-screen'}>
+      <SafeAreaView
+        style={styles.wrapper}
+        testID={SendLinkViewSelectorsIDs.CONTAINER_ID}
+      >
         <ScrollView
           style={styles.contentWrapper}
           contentContainerStyle={styles.scrollViewContainer}
@@ -318,7 +321,7 @@ class PaymentRequestSuccess extends PureComponent {
                 type={'normal'}
                 onPress={this.showQRModal}
                 containerStyle={styles.button}
-                testID={'request-qrcode-button'}
+                testID={SendLinkViewSelectorsIDs.QR_CODE_BUTTON}
               >
                 <View style={styles.buttonContent}>
                   <View style={styles.buttonIconWrapper}>
@@ -369,7 +372,10 @@ class PaymentRequestSuccess extends PureComponent {
           backdropOpacity={1}
         >
           <View style={styles.detailsWrapper}>
-            <View style={styles.qrCode} testID={'payment-request-qrcode'}>
+            <View
+              style={styles.qrCode}
+              testID={SendLinkViewSelectorsIDs.QR_MODAL}
+            >
               <View style={styles.titleQr}>
                 <Text style={styles.addressTitle}>
                   {strings('payment_request.request_qr_code')}
@@ -380,7 +386,7 @@ class PaymentRequestSuccess extends PureComponent {
                   onPress={this.closeQRModal}
                   {...generateTestId(
                     Platform,
-                    PAYMENT_REQUEST_QR_CODE_CLOSE_ICON,
+                    SendLinkViewSelectorsIDs.CLOSE_QR_MODAL_BUTTON,
                   )}
                 >
                   <IonicIcon

@@ -29,7 +29,7 @@ exports[`BrowserBottomBar should render correctly 1`] = `
         "width": 24,
       }
     }
-    testID="go-back-button"
+    testID="back-arrow-button"
   >
     <Icon
       allowFontScaling={false}

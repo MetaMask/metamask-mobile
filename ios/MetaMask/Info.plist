@@ -58,8 +58,14 @@
 			</dict>
 		</dict>
 	</dict>
+	<key>NSBluetoothAlwaysUsageDescription</key>
+	<string>MetaMask needs Bluetooth access to connect to external devices.</string>
+	<key>NSBluetoothPeripheralUsageDescription</key>
+	<string>MetaMask needs Bluetooth access to connect to external devices.</string>
 	<key>NSCameraUsageDescription</key>
 	<string>MetaMask needs camera access to scan QR codes</string>
+	<key>NSMicrophoneUsageDescription</key>
+	<string>MetaMask needs microphone access to record audio</string>
 	<key>NSFaceIDUsageDescription</key>
 	<string>$(PRODUCT_NAME) needs to authenticate</string>
 	<key>NSLocationWhenInUseUsageDescription</key>
