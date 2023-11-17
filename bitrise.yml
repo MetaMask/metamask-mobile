@@ -355,6 +355,7 @@ workflows:
                 fi
                 node -v
                 export METAMASK_ENVIRONMENT='local'
+                export METAMASK_BUILD_TYPE='main'
                 IGNORE_BOXLOGS_DEVELOPMENT="true" FORCE_BUNDLING=true yarn test:e2e:android:bitrise:debug --testNamePattern="$TEST_SUITE"
           title: Detox Build & Test
           is_always_run: false
@@ -424,6 +425,7 @@ workflows:
                 fi
                 node -v
                 export METAMASK_ENVIRONMENT='local'
+                export METAMASK_BUILD_TYPE='main'
                 IGNORE_BOXLOGS_DEVELOPMENT="true" FORCE_BUNDLING=true yarn test:e2e:ios:debug --testNamePattern="$TEST_SUITE"
           title: Detox Build & Test
           is_always_run: false
@@ -501,7 +503,7 @@ workflows:
             - content: |-
                 #!/usr/bin/env bash
                 node -v
-                METAMASK_ENVIRONMENT='production' yarn build:android:pre-release:bundle
+                METAMASK_BUILD_TYPE='main' METAMASK_ENVIRONMENT='production' yarn build:android:pre-release:bundle
           title: Build Android Pre-Release Bundle
           is_always_run: false
       - save-gradle-cache@1: {}
@@ -577,7 +579,7 @@ workflows:
             - content: |-
                 #!/usr/bin/env bash
                 node -v
-                GIT_BRANCH=$BITRISE_GIT_BRANCH METAMASK_ENVIRONMENT='qa' yarn build:android:pre-release:bundle:qa
+                GIT_BRANCH=$BITRISE_GIT_BRANCH METAMASK_BUILD_TYPE='main' METAMASK_ENVIRONMENT='qa' yarn build:android:pre-release:bundle:qa
           title: Build Android Pre-Release Bundle
           is_always_run: false
       - save-gradle-cache@1: {}
@@ -724,7 +726,7 @@ workflows:
             - content: |-
                 #!/usr/bin/env bash
                 node -v
-                METAMASK_ENVIRONMENT='production' yarn build:ios:pre-release
+                METAMASK_BUILD_TYPE='main' METAMASK_ENVIRONMENT='production' yarn build:ios:pre-release
           title: iOS Sourcemaps & Build
           is_always_run: false
       - deploy-to-bitrise-io@2.2.3:
@@ -766,7 +768,7 @@ workflows:
             - content: |-
                 #!/usr/bin/env bash
                 node -v
-                GIT_BRANCH=$BITRISE_GIT_BRANCH METAMASK_ENVIRONMENT='qa' yarn build:ios:pre-qa
+                GIT_BRANCH=$BITRISE_GIT_BRANCH METAMASK_BUILD_TYPE='main' METAMASK_ENVIRONMENT='qa' yarn build:ios:pre-qa
           title: iOS Sourcemaps & Build
           is_always_run: false
       - deploy-to-bitrise-io@2.2.3:
