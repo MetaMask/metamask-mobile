@@ -28,7 +28,8 @@ export default class OnboardingView {
     await TestHelpers.checkIfVisible(OnboardingSelectorIDs.CONTAINER_ID);
   }
 
-  static async deleteWalletToastisNotVisible() {
+  static async deleteWalletToastIsNotVisible() {
     await TestHelpers.checkIfVisible(NOTIFICATION_TITLE);
+    await TestHelpers.checkIfNotVisible(NOTIFICATION_TITLE);
   }
 }

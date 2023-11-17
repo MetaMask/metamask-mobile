@@ -132,6 +132,7 @@ function PaymentMethodModal({
                         highlighted={payment.id === selectedPaymentMethodId}
                         onPress={() => handleOnPressItemCallback(payment.id)}
                         compact
+                        isBuy={isBuy}
                       />
                     </View>
                   ))}

@@ -152,7 +152,11 @@ const RegionsView = () => {
     <ScreenLayout>
       <ScreenLayout.Header
         title={strings('fiat_on_ramp_aggregator.region.your_region')}
-        description={strings('fiat_on_ramp_aggregator.region.description')}
+        description={strings(
+          isBuy
+            ? 'fiat_on_ramp_aggregator.region.description'
+            : 'fiat_on_ramp_aggregator.region.sell_description',
+        )}
       />
       <ScreenLayout.Body>
         <ScreenLayout.Content>

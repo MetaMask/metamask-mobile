@@ -58,7 +58,7 @@ jest.mock('@react-navigation/native', () => {
 const mockSetSelectedRegion = jest.fn();
 const mockSetSelectedPaymentMethodId = jest.fn();
 
-const mockuseRampSDKInitialValues: Partial<RampSDK> = {
+const mockUseRampSDKInitialValues: Partial<RampSDK> = {
   setSelectedRegion: mockSetSelectedRegion,
   setSelectedPaymentMethodId: mockSetSelectedPaymentMethodId,
   selectedChainId: '1',
@@ -69,7 +69,7 @@ const mockuseRampSDKInitialValues: Partial<RampSDK> = {
 };
 
 let mockUseRampSDKValues: Partial<RampSDK> = {
-  ...mockuseRampSDKInitialValues,
+  ...mockUseRampSDKInitialValues,
 };
 
 jest.mock('../../../common/sdk', () => ({
@@ -151,7 +151,7 @@ describe('PaymentMethods View', () => {
 
   beforeEach(() => {
     mockUseRampSDKValues = {
-      ...mockuseRampSDKInitialValues,
+      ...mockUseRampSDKInitialValues,
     };
     mockUseRegionsValues = {
       ...mockuseRegionsInitialValues,
@@ -170,6 +170,17 @@ describe('PaymentMethods View', () => {
   });
 
   it('renders correctly', async () => {
+    render(PaymentMethods);
+    expect(screen.toJSON()).toMatchSnapshot();
+  });
+
+  it('renders correctly for sell', async () => {
+    mockUseRampSDKValues = {
+      ...mockUseRampSDKInitialValues,
+      isBuy: false,
+      isSell: true,
+      rampType: RampType.SELL,
+    };
     render(PaymentMethods);
     expect(screen.toJSON()).toMatchSnapshot();
   });
@@ -201,6 +212,21 @@ describe('PaymentMethods View', () => {
   });
 
   it('renders correctly with empty data', async () => {
+    mockUsePaymentMethodsValues = {
+      ...mockUsePaymentMethodsInitialValues,
+      data: [],
+    };
+    render(PaymentMethods);
+    expect(screen.toJSON()).toMatchSnapshot();
+  });
+
+  it('renders correctly with empty data for sell', async () => {
+    mockUseRampSDKValues = {
+      ...mockUseRampSDKInitialValues,
+      isBuy: false,
+      isSell: true,
+      rampType: RampType.SELL,
+    };
     mockUsePaymentMethodsValues = {
       ...mockUsePaymentMethodsInitialValues,
       data: [],
@@ -375,7 +401,7 @@ describe('PaymentMethods View', () => {
 
   it('renders correctly with sdkError', async () => {
     mockUseRampSDKValues = {
-      ...mockuseRampSDKInitialValues,
+      ...mockUseRampSDKInitialValues,
       sdkError: new Error('sdkError'),
     };
     render(PaymentMethods);
@@ -384,7 +410,7 @@ describe('PaymentMethods View', () => {
 
   it('navigates to home when clicking sdKError button', async () => {
     mockUseRampSDKValues = {
-      ...mockuseRampSDKInitialValues,
+      ...mockUseRampSDKInitialValues,
       sdkError: new Error('sdkError'),
     };
     render(PaymentMethods);
