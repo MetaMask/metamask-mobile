@@ -1,6 +1,11 @@
 import React, { FC, useCallback, useEffect, useState } from 'react';
-import { ScrollView, StyleSheet, Switch, Text, View } from 'react-native';
-
+import {
+  InteractionManager,
+  ScrollView,
+  StyleSheet,
+  Switch,
+  View,
+} from 'react-native';
 import { strings } from '../../../../../locales/i18n';
 import Engine from '../../../../core/Engine';
 import {
@@ -8,10 +13,16 @@ import {
   fontStyles,
 } from '../../../../styles/common';
 import { useTheme } from '../../../../util/theme';
+import Text, {
+  TextVariant,
+  TextColor,
+} from '../../../../component-library/components/Texts/Text';
 import { getNavigationOptionsTitle } from '../../../UI/Navbar';
 import StyledButton from '../../../UI/StyledButton';
 import SECURITY_ALERTS_TOGGLE_TEST_ID from './constants';
 import { isBlockaidFeatureEnabled } from '../../../../util/blockaid';
+import AnalyticsV2 from '../../../../util/analyticsV2';
+import { MetaMetricsEvents } from '../../../../core/Analytics';
 
 const createStyles = (colors: any) =>
   StyleSheet.create({
@@ -23,8 +34,6 @@ const createStyles = (colors: any) =>
     },
     title: {
       ...(fontStyles.normal as any),
-      color: colors.text.default,
-      fontSize: 20,
       lineHeight: 20,
       paddingTop: 4,
       marginTop: -4,
@@ -35,23 +44,15 @@ const createStyles = (colors: any) =>
       marginBottom: 18,
     },
     heading: {
+      ...fontStyles.normal,
       marginTop: 18,
-      fontSize: 24,
-      lineHeight: 20,
     },
     desc: {
-      ...(fontStyles.normal as any),
-      color: colors.text.alternative,
-      fontSize: 14,
       lineHeight: 20,
       marginTop: 12,
     },
-    mutedText: {
-      ...(fontStyles.normal as any),
-      color: colors.text.muted,
-    },
     setting: {
-      marginVertical: 18,
+      marginVertical: 16,
     },
     clearHistoryConfirm: {
       marginTop: 18,
@@ -60,12 +61,11 @@ const createStyles = (colors: any) =>
       display: 'flex',
       justifyContent: 'space-between',
       flexDirection: 'row',
+      alignItems: 'center',
+      marginBottom: 5,
     },
     switch: {
       alignSelf: 'flex-end',
-    },
-    switchLabel: {
-      alignSelf: 'flex-start',
     },
     modalView: {
       alignItems: 'center',
@@ -115,6 +115,14 @@ const ExperimentalSettings = ({ navigation, route }: Props) => {
   const toggleSecurityAlertsEnabled = () => {
     PreferencesController?.setSecurityAlertsEnabled(!securityAlertsEnabled);
     setSecurityAlertsEnabled(!securityAlertsEnabled);
+    InteractionManager.runAfterInteractions(() => {
+      AnalyticsV2.trackEvent(
+        MetaMetricsEvents.SETTINGS_EXPERIMENTAL_SECURITY_ALERTS_ENABLED,
+        {
+          security_alerts_enabled: !securityAlertsEnabled,
+        },
+      );
+    });
   };
 
   useEffect(
@@ -139,10 +147,18 @@ const ExperimentalSettings = ({ navigation, route }: Props) => {
 
   const WalletConnectSettings: FC = () => (
     <>
-      <Text style={styles.title}>
+      <Text
+        color={TextColor.Default}
+        variant={TextVariant.HeadingMD}
+        style={styles.title}
+      >
         {strings('experimental_settings.wallet_connect_dapps')}
       </Text>
-      <Text style={styles.desc}>
+      <Text
+        color={TextColor.Alternative}
+        variant={TextVariant.BodyMD}
+        style={styles.desc}
+      >
         {strings('experimental_settings.wallet_connect_dapps_desc')}
       </Text>
       <StyledButton
@@ -157,22 +173,42 @@ const ExperimentalSettings = ({ navigation, route }: Props) => {
 
   const BlockaidSettings: FC = () => (
     <>
-      <Text style={[styles.title, styles.heading]}>
+      <Text
+        color={TextColor.Default}
+        variant={TextVariant.HeadingLG}
+        style={styles.heading}
+      >
         {strings('app_settings.security_heading')}
       </Text>
       <View style={styles.setting}>
-        <Text style={styles.title}>
+        <Text
+          color={TextColor.Default}
+          variant={TextVariant.HeadingMD}
+          style={styles.title}
+        >
           {strings('experimental_settings.security_alerts')}
         </Text>
-        <Text style={styles.desc}>
+        <Text
+          color={TextColor.Alternative}
+          variant={TextVariant.BodyMD}
+          style={styles.desc}
+        >
           {strings('experimental_settings.security_alerts_desc')}
         </Text>
-        <Text style={[styles.title, styles.boldTitle]}>
-          {strings('experimental_settings.select_providers')}
-        </Text>
       </View>
+      <Text
+        color={TextColor.Default}
+        variant={TextVariant.HeadingSM}
+        style={styles.boldTitle}
+      >
+        {strings('experimental_settings.select_provider')}
+      </Text>
       <View style={styles.switchElement}>
-        <Text style={[styles.switchLabel, styles.title]}>
+        <Text
+          color={TextColor.Default}
+          variant={TextVariant.HeadingSMRegular}
+          style={styles.title}
+        >
           {strings('experimental_settings.blockaid')}
         </Text>
         <Switch
@@ -188,8 +224,13 @@ const ExperimentalSettings = ({ navigation, route }: Props) => {
           testID={SECURITY_ALERTS_TOGGLE_TEST_ID}
         />
       </View>
-      <Text style={[styles.title, styles.mutedText]}>
-        {strings('experimental_settings.moreProviders')}
+
+      <Text
+        color={TextColor.Alternative}
+        variant={TextVariant.BodyMD}
+        style={styles.title}
+      >
+        {strings('experimental_settings.blockaid_desc')}
       </Text>
     </>
   );

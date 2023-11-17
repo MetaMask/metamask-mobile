@@ -20,6 +20,7 @@ const styleSheet = (_params: {
       flexDirection: 'row',
       justifyContent: 'flex-start',
       alignItems: 'flex-start',
+      marginTop: 8,
     } as ViewStyle),
     attributionItem: {
       marginRight: 4,
@@ -29,6 +30,12 @@ const styleSheet = (_params: {
     },
     details: { marginLeft: 10, marginBottom: 10 },
     securityTickIcon: { marginTop: 4 },
+    bannerWrapperMargined: {
+      marginTop: 10,
+      marginLeft: 10,
+      marginRight: 10,
+      marginBottom: 20,
+    },
   });
 
 export default styleSheet;

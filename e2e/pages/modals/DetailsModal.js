@@ -4,11 +4,11 @@ import {
   DETAILS_MODAL_STATUS_CONFIRMED,
   DETAILS_MODAL_CLOSE_ICON,
 } from '../../../wdio/screen-objects/testIDs/Components/DetailsModal.js';
-import messages from '../../../locales/languages/en.json';
+import { TransactionDetailsModalSelectorsText } from '../../selectors/Modals/TransactionDetailsModal.selectors';
 
 export default class DetailsModal {
   static async isTitleVisible(sourceToken, destinationToken) {
-    let title = messages.swaps.transaction_label.swap;
+    let title = TransactionDetailsModalSelectorsText.TITLE;
     title = title.replace('{{sourceToken}}', sourceToken);
     title = title.replace('{{destinationToken}}', destinationToken);
     await TestHelpers.checkIfElementHasString(DETAILS_MODAL_TITLE, title);

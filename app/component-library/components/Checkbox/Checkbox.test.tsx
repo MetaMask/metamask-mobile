@@ -1,6 +1,10 @@
 // Third party dependencies.
 import React from 'react';
-import { shallow } from 'enzyme';
+import { render } from '@testing-library/react-native';
+
+// External dependencies.
+import Text, { TextVariant } from '../Texts/Text';
+import { mockTheme } from '../../../util/theme';
 
 // Internal dependencies.
 import Checkbox from './Checkbox';
@@ -8,37 +12,55 @@ import {
   CHECKBOX_ICON_TESTID,
   DEFAULT_CHECKBOX_ISINDETERMINATE_ICONNAME,
   DEFAULT_CHECKBOX_ISCHECKED_ICONNAME,
+  DEFAULT_CHECKBOX_LABEL_TEXTVARIANT,
 } from './Checkbox.constants';
 
 describe('Checkbox', () => {
   it('should render correctly', () => {
-    const wrapper = shallow(<Checkbox />);
+    const wrapper = render(<Checkbox />);
     expect(wrapper).toMatchSnapshot();
   });
 
   it('should render the correct icon when isChecked is true', () => {
-    const wrapper = shallow(<Checkbox isChecked />);
-    const iconComponent = wrapper.findWhere(
-      (node) => node.prop('testID') === CHECKBOX_ICON_TESTID,
+    const { getByTestId } = render(<Checkbox isChecked />);
+    expect(getByTestId(CHECKBOX_ICON_TESTID).props.name).toBe(
+      DEFAULT_CHECKBOX_ISCHECKED_ICONNAME,
     );
-    const iconName = iconComponent.props().name;
-    expect(iconName).toBe(DEFAULT_CHECKBOX_ISCHECKED_ICONNAME);
   });
 
   it('should render the correct icon when isIndeterminate is true', () => {
-    const wrapper = shallow(<Checkbox isIndeterminate />);
-    const iconComponent = wrapper.findWhere(
-      (node) => node.prop('testID') === CHECKBOX_ICON_TESTID,
+    const { getByTestId } = render(<Checkbox isIndeterminate />);
+    expect(getByTestId(CHECKBOX_ICON_TESTID).props.name).toBe(
+      DEFAULT_CHECKBOX_ISINDETERMINATE_ICONNAME,
     );
-    const iconName = iconComponent.props().name;
-    expect(iconName).toBe(DEFAULT_CHECKBOX_ISINDETERMINATE_ICONNAME);
   });
 
   it('should not render any icon when isChecked and isIndeterminate are false', () => {
-    const wrapper = shallow(<Checkbox />);
-    const iconComponent = wrapper.findWhere(
-      (node) => node.prop('testID') === CHECKBOX_ICON_TESTID,
+    const { queryByTestId } = render(<Checkbox />);
+    expect(queryByTestId(CHECKBOX_ICON_TESTID)).toBe(null);
+  });
+
+  it('should not render a label if none is given', () => {
+    const { queryByRole } = render(<Checkbox />);
+    expect(queryByRole('text')).toBe(null);
+  });
+
+  it('should render Checkbox with the right text variant if typeof label === string', () => {
+    const { getByRole } = render(<Checkbox label={'Sample Checkbox Label'} />);
+    expect(getByRole('text').props.style.fontFamily).toBe(
+      mockTheme.typography[DEFAULT_CHECKBOX_LABEL_TEXTVARIANT].fontFamily,
     );
-    expect(iconComponent.exists()).toBe(false);
+  });
+
+  it('should render Checkbox with the custom node if typeof label !== string', () => {
+    const testTextVariant = TextVariant.DisplayMD;
+    const { getByRole } = render(
+      <Checkbox
+        label={<Text variant={testTextVariant}>Sample Checkbox Label</Text>}
+      />,
+    );
+    expect(getByRole('text').props.style.fontFamily).toBe(
+      mockTheme.typography[testTextVariant].fontFamily,
+    );
   });
 });

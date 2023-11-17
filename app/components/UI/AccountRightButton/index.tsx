@@ -21,7 +21,7 @@ import AvatarAccount, {
 } from '../../../component-library/components/Avatars/Avatar/variants/AvatarAccount';
 import { AccountRightButtonProps } from './AccountRightButton.types';
 import Avatar, {
-  AvatarVariants,
+  AvatarVariant,
   AvatarSize,
 } from '../../../component-library/components/Avatars/Avatar';
 import {
@@ -182,7 +182,7 @@ const AccountRightButton = ({
         )
       ) : (
         <Avatar
-          variant={AvatarVariants.Network}
+          variant={AvatarVariant.Network}
           size={AvatarSize.Md}
           name={networkName}
           imageSource={networkImageSource}

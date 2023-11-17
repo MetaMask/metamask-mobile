@@ -10,7 +10,7 @@
     "app/component-library/hooks/**/*",
     // "app/components/**/*",
     "app/constants/**/*",
-    // "app/core/**/*",
+    "app/core/**/*",
     "app/core/*.ts",
     "app/images/**/*",
     "app/lib/**/*",

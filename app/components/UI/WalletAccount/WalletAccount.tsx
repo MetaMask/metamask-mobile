@@ -38,6 +38,7 @@ import {
   WALLET_ACCOUNT_ICON,
   MAIN_WALLET_ACCOUNT_ACTIONS,
 } from '../../../../wdio/screen-objects/testIDs/Screens/WalletView.testIds';
+import { getLabelTextByAddress } from '../../../util/address';
 
 const WalletAccount = ({ style }: WalletAccountProps, ref: React.Ref<any>) => {
   const { styles } = useStyles(styleSheet, { style });
@@ -105,6 +106,7 @@ const WalletAccount = ({ style }: WalletAccountProps, ref: React.Ref<any>) => {
         onPress={() => {
           navigate(...createAccountSelectorNavDetails({}));
         }}
+        accountTypeLabel={getLabelTextByAddress(account.address)}
         showAddress={false}
         cellAccountContainerStyle={styles.account}
         style={styles.accountPicker}
