@@ -16,6 +16,10 @@ export class RPCQueueManager {
     this.rpcQueue = {};
   }
 
+  isEmpty() {
+    return Object.keys(this.rpcQueue).length === 0;
+  }
+
   remove(id: string) {
     delete this.rpcQueue[id];
   }
