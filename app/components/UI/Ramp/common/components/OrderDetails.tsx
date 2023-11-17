@@ -169,13 +169,14 @@ const Stage: React.FC<PropsStage> = ({
                   : 'fiat_on_ramp_aggregator.order_details.pending',
               )}
             </Text>
-            <Text small centered grey>
-              {isTransacted
-                ? pendingDescription
-                : strings(
+            {isTransacted && (
+              <Text small centered grey>
+                {pendingDescription ||
+                  strings(
                     'fiat_on_ramp_aggregator.order_details.continue_order_description',
                   )}
-            </Text>
+              </Text>
+            )}
           </Group>
         </View>
       );
@@ -295,9 +296,7 @@ const OrderDetails: React.FC<Props> = ({
           <Text bold centered primary style={styles.tokenAmount}>
             {renderAmount} {cryptocurrency}
           </Text>
-          {state !== FIAT_ORDER_STATES.PENDING &&
-          orderData?.fiatCurrency?.decimals !== undefined &&
-          currencySymbol ? (
+          {orderData?.fiatCurrency?.decimals !== undefined && currencySymbol ? (
             <Text centered small grey>
               {currencySymbol}
               {renderFiat(amountOut, currency, orderData.fiatCurrency.decimals)}
