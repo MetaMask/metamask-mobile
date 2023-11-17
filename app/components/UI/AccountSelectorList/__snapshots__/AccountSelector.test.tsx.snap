@@ -99,7 +99,6 @@ exports[`AccountSelectorList should render all accounts but only the balance for
                 }
               }
               testID="cellbase-avatar"
-              variant="Account"
             >
               <Image
                 source={
@@ -270,7 +269,6 @@ exports[`AccountSelectorList should render all accounts but only the balance for
                 }
               }
               testID="cellbase-avatar"
-              variant="Account"
             >
               <Image
                 source={
@@ -436,7 +434,6 @@ exports[`AccountSelectorList should render all accounts with balances 1`] = `
                 }
               }
               testID="cellbase-avatar"
-              variant="Account"
             >
               <View
                 style={
@@ -701,7 +698,6 @@ exports[`AccountSelectorList should render all accounts with balances 1`] = `
                 }
               }
               testID="cellbase-avatar"
-              variant="Account"
             >
               <View
                 style={
@@ -996,7 +992,6 @@ exports[`AccountSelectorList should render all accounts with right acessory 1`] 
                 }
               }
               testID="cellbase-avatar"
-              variant="Account"
             >
               <View
                 style={
@@ -1214,7 +1209,6 @@ exports[`AccountSelectorList should render all accounts with right acessory 1`] 
                 }
               }
               testID="cellbase-avatar"
-              variant="Account"
             >
               <View
                 style={
