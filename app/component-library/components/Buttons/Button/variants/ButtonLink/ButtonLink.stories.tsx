@@ -1,32 +1,57 @@
-/* eslint-disable @typescript-eslint/no-unused-vars */
-/* eslint-disable no-console */
-
-// Third party dependencies.
-import React from 'react';
-import { select } from '@storybook/addon-knobs';
-
 // External dependencies.
-import { storybookPropsGroupID } from '../../../../../constants/storybook.constants';
-import { TextVariant } from '../../../../Texts/Text';
-import { getButtonBaseStoryProps } from '../../foundation/ButtonBase/ButtonBase.stories';
+import { IconName } from '../../../../Icons/Icon';
+import { ButtonSize, ButtonWidthTypes } from '../../Button.types';
 
 // Internal dependencies.
-import ButtonLink from './ButtonLink';
-import { ButtonLinkProps } from './ButtonLink.types';
+import { default as ButtonLinkComponent } from './ButtonLink';
+import { SAMPLE_BUTTONLINK_PROPS } from './ButtonLink.constants';
 
-export const getButtonLinkStoryProps = (): ButtonLinkProps => {
-  const textVariantSelector = select(
-    'textVariant',
-    TextVariant,
-    TextVariant.HeadingSMRegular,
-    storybookPropsGroupID,
-  );
-
-  return {
-    ...getButtonBaseStoryProps(),
-  };
+const ButtonLinkMeta = {
+  title: 'Component Library / Buttons',
+  component: ButtonLinkComponent,
+  argTypes: {
+    label: {
+      control: { type: 'text' },
+      defaultValue: SAMPLE_BUTTONLINK_PROPS.label,
+    },
+    startIconName: {
+      options: IconName,
+      control: {
+        type: 'select',
+      },
+      defaultValue: SAMPLE_BUTTONLINK_PROPS.startIconName,
+    },
+    endIconName: {
+      options: IconName,
+      control: {
+        type: 'select',
+      },
+      defaultValue: SAMPLE_BUTTONLINK_PROPS.endIconName,
+    },
+    size: {
+      options: ButtonSize,
+      control: {
+        type: 'select',
+      },
+      defaultValue: SAMPLE_BUTTONLINK_PROPS.size,
+    },
+    isDanger: {
+      control: { type: 'boolean' },
+      defaultValue: SAMPLE_BUTTONLINK_PROPS.isDanger,
+    },
+    isDisabled: {
+      control: { type: 'boolean' },
+      defaultValue: SAMPLE_BUTTONLINK_PROPS.isDisabled,
+    },
+    width: {
+      options: ButtonWidthTypes,
+      control: {
+        type: 'select',
+      },
+      defaultValue: SAMPLE_BUTTONLINK_PROPS.width,
+    },
+  },
 };
+export default ButtonLinkMeta;
 
-const ButtonLinkStory = () => <ButtonLink {...getButtonLinkStoryProps()} />;
-
-export default ButtonLinkStory;
+export const ButtonLink = {};
