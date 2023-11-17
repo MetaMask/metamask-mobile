@@ -126,6 +126,7 @@ prebuild_ios(){
 	if [ "$PRE_RELEASE" = true ] ; then
 		echo "" > ios/debug.xcconfig
 		echo "" > ios/release.xcconfig
+		# Required to enable blockaid for ios release builds
 		echo "MM_BLOCKAID_UI_ENABLED=true" > $IOS_ENV_FILE
 	fi
 	# Required to install mixpanel dep
