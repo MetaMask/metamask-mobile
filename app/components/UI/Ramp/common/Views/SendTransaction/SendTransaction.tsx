@@ -153,20 +153,27 @@ function SendTransaction() {
 
       if (order?.id) {
         dispatch(setFiatSellTxHash(order.id, hash));
+        navigation.goBack();
+        trackEvent(
+          'OFFRAMP_SEND_TRANSACTION_CONFIRMED',
+          transactionAnalyticsPayload,
+        );
+        navigation.navigate(Routes.WALLET_VIEW);
       }
-
-      trackEvent(
-        'OFFRAMP_SEND_TRANSACTION_CONFIRMED',
-        transactionAnalyticsPayload,
-      );
-      navigation.navigate(Routes.WALLET_VIEW);
     } catch (error) {
       trackEvent(
         'OFFRAMP_SEND_TRANSACTION_REJECTED',
         transactionAnalyticsPayload,
       );
     }
-  }, [dispatch, order?.id, orderData, trackEvent, transactionAnalyticsPayload]);
+  }, [
+    navigation,
+    dispatch,
+    order?.id,
+    orderData,
+    trackEvent,
+    transactionAnalyticsPayload,
+  ]);
 
   if (!order) {
     return null;

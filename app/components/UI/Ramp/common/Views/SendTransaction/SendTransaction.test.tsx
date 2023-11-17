@@ -492,6 +492,7 @@ describe('SendTransaction View', () => {
     `);
 
     expect(mockNavigate).toHaveBeenCalledWith(Routes.WALLET_VIEW);
+    expect(mockGoBack).toHaveBeenCalled();
   });
 
   it('dispatches setFiatSellTxHash after getting hash from TransactionController.addTransaction', async () => {
