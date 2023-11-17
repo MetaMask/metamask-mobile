@@ -29,7 +29,7 @@ module.exports.transform = async ({ src, filename, options }) => {
         return flaskFeatureSet;
       default:
         throw new Error(
-          `Invalid BUILD_TYPE of ${buildType} was passed to metro transform`,
+          `Invalid METAMASK_BUILD_TYPE of ${buildType} was passed to metro transform`,
         );
     }
   }
