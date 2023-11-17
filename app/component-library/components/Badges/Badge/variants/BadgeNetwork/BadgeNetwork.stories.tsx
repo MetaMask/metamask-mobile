@@ -21,9 +21,6 @@ const BadgeNetworkMeta = {
 export default BadgeNetworkMeta;
 
 export const BadgeNetwork = {
-  args: {
-    imageSource: SAMPLE_BADGENETWORK_PROPS.imageSource,
-  },
   render: (args: JSX.IntrinsicAttributes & BadgeNetworkProps) => (
     <View
       style={{
@@ -31,7 +28,10 @@ export const BadgeNetwork = {
         width: 50,
       }}
     >
-      <BadgeNetworkComponent {...args} />
+      <BadgeNetworkComponent
+        {...args}
+        imageSource={SAMPLE_BADGENETWORK_PROPS.imageSource}
+      />
     </View>
   ),
 };
