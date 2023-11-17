@@ -52,7 +52,7 @@ function CommandValidators({ features }) {
 // newlines. We except newlines to avoid eating blank lines preceding a fenced
 // line.
 // Double-negative RegEx credit: https://stackoverflow.com/a/3469155
-const linesWithFenceRegex = /^[^\S\r\n]*\/\/\/:.*$/gmu;
+const linesWithFenceRegex = /^[^\S\r\n]{0,20}\/\/\/:[^\r\n]*$/gm;
 
 // Matches the first "///:" in a string, and any preceding whitespace
 const fenceSentinelRegex = /^\s*\/\/\/:/u;
