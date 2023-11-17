@@ -309,6 +309,43 @@ describe('OrderDetails', () => {
     expect(screen.toJSON()).toMatchSnapshot();
   });
 
+  it('renders transacted orders that do not have timeDescriptionPending', async () => {
+    const createdOrder = {
+      ...mockOrder,
+      orderType: OrderOrderTypeEnum.Sell,
+      state: FIAT_ORDER_STATES.CREATED,
+      sellTxHash: '0x123',
+    };
+    await waitFor(() => render(OrderDetails, [createdOrder]));
+    expect(screen.toJSON()).toMatchSnapshot();
+  });
+
+  it('renders transacted orders that have timeDescriptionPending', async () => {
+    const createdOrder = {
+      ...mockOrder,
+      orderType: OrderOrderTypeEnum.Sell,
+      state: FIAT_ORDER_STATES.CREATED,
+      sellTxHash: '0x123',
+      data: {
+        ...mockOrder.data,
+        timeDescriptionPending: 'test-time-description',
+      },
+    };
+    await waitFor(() => render(OrderDetails, [createdOrder]));
+    expect(screen.toJSON()).toMatchSnapshot();
+  });
+
+  it('renders non-transacted orders', async () => {
+    const createdOrder = {
+      ...mockOrder,
+      orderType: OrderOrderTypeEnum.Sell,
+      state: FIAT_ORDER_STATES.CREATED,
+      sellTxHash: undefined,
+    };
+    await waitFor(() => render(OrderDetails, [createdOrder]));
+    expect(screen.toJSON()).toMatchSnapshot();
+  });
+
   it('polls for a created order on load and dispatches an action to update', async () => {
     const createdOrder = {
       ...mockOrder,
