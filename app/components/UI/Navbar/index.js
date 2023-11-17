@@ -968,6 +968,12 @@ export function getWalletNavbarOptions(
     trackEvent(MetaMetricsEvents.WALLET_QR_SCANNER);
   }
 
+  let foxIconName = IconName.Fox;
+
+  ///: BEGIN:ONLY_INCLUDE_IN(flask)
+  foxIconName = IconName.Flask;
+  ///: END:ONLY_INCLUDE_IN
+
   return {
     headerTitle: () => (
       <View style={innerStyles.headerTitle}>
@@ -981,7 +987,7 @@ export function getWalletNavbarOptions(
     ),
     headerLeft: () => (
       <Icon
-        name={IconName.Fox}
+        name={foxIconName}
         IconSize={IconSize.Xl}
         style={styles.fox}
         testID="fox-icon"
