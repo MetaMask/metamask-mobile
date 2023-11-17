@@ -17,7 +17,6 @@ import { getFixturesServerPort } from '../../fixtures/utils';
 const PHISHING_SITE = 'http://www.empowr.com/FanFeed/Home.aspx';
 const INVALID_URL = 'https://quackquakc.easq';
 const TEST_DAPP = 'https://metamask.github.io/test-dapp/';
-const METAMASK_TEST_DAPP_SHORTEN_URL_TEXT = 'metamask.github.io';
 const fixtureServer = new FixtureServer();
 
 describe(Smoke('Browser Tests'), () => {
@@ -84,10 +83,7 @@ describe(Smoke('Browser Tests'), () => {
       await TestHelpers.tapAtPoint(BROWSER_SCREEN_ID, { x: 180, y: 275 });
       await Browser.waitForBrowserPageToLoad();
     }
-    await TestHelpers.checkIfElementWithTextIsVisible(
-      METAMASK_TEST_DAPP_SHORTEN_URL_TEXT,
-      0,
-    );
+    await Browser.isURLBarTextTestDapp();
     await Browser.isVisible();
   });
 
@@ -99,9 +95,7 @@ describe(Smoke('Browser Tests'), () => {
     await Browser.waitForBrowserPageToLoad();
     await Browser.tapReturnHomeButton();
     // Check that we are on the browser screen
-    if (!device.getPlatform() === 'android') {
-      await TestHelpers.delay(1500);
-    }
+    await TestHelpers.delay(1500);
     await Browser.isVisible();
   });
 
@@ -113,9 +107,7 @@ describe(Smoke('Browser Tests'), () => {
     await Browser.isBackToSafetyButtonVisible();
     await Browser.tapBackToSafetyButton();
     // Check that we are on the browser screen
-    if (!device.getPlatform() === 'android') {
-      await TestHelpers.delay(1500);
-    }
+    await TestHelpers.delay(1500);
     await Browser.isVisible();
   });
 });
