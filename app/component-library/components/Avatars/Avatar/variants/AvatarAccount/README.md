@@ -12,7 +12,7 @@ Optional enum to select the avatar type between `JazzIcon` and `Blockies`.
 
 | <span style="color:gray;font-size:14px">TYPE</span> | <span style="color:gray;font-size:14px">REQUIRED</span> | <span style="color:gray;font-size:14px">DEFAULT</span> |
 | :-------------------------------------------------- | :------------------------------------------------------ | :----------------------------------------------------- |
-| [AvatarAccountType](./AvatarAccount.types.ts#L2)    | Yes                                                     | JazzIcon                                               |
+| [AvatarAccountType](./AvatarAccount.types.ts)    | Yes                                                     | JazzIcon                                               |
 
 ### `accountAddress`
 
@@ -25,15 +25,9 @@ An Ethereum wallet address.
 ## Usage
 
 ```javascript
-// Replace import with relative path.
-import AvatarAccount, {
-  AvatarAccountType,
-} from 'app/component-library/components/Avatars/Avatar/variants/AvatarAccount';
-import { AvatarSize } from 'app/component-library/components/Avatars/Avatar/Avatar';
-
 <AvatarAccount
   type={AvatarAccountType.Jazzicon}
-  accountAddress={ACCOUNT_ADDRESS}
+  accountAddress={SAMPLE_ACCOUNT_ADDRESS}
   size={AvatarSize.Md}
 />;
 ```

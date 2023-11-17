@@ -5962,7 +5962,7 @@ exports[`Regions View renders correctly with unsupportedRegion 2`] = `
                               ]
                             }
                           >
-                            The payment methods and tokens available to you are determined by our third-party integrations and may vary depending on your region and support by our integrations.
+                            Cash destination options and tokens may vary depending on your region.
                           </Text>
                         </View>
                         <View
