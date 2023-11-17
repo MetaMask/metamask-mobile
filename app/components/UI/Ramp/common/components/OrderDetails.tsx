@@ -169,14 +169,17 @@ const Stage: React.FC<PropsStage> = ({
                   : 'fiat_on_ramp_aggregator.order_details.pending',
               )}
             </Text>
-            {isTransacted && (
+            {isTransacted && pendingDescription ? (
               <Text small centered grey>
-                {pendingDescription ||
-                  strings(
-                    'fiat_on_ramp_aggregator.order_details.continue_order_description',
-                  )}
+                {pendingDescription}
               </Text>
-            )}
+            ) : isTransacted ? (
+              <Text small centered grey>
+                {strings(
+                  'fiat_on_ramp_aggregator.order_details.continue_order_description',
+                )}
+              </Text>
+            ) : null}
           </Group>
         </View>
       );
