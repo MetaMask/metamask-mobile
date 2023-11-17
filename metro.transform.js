@@ -21,13 +21,16 @@ module.exports.transform = async ({ src, filename, options }) => {
   }
 
   function getBuildTypeFeatures() {
-    switch (process.env.BUILD_TYPE) {
+    const buildType = process.env.METAMASK_BUILD_TYPE ?? 'main';
+    switch (buildType) {
       case 'main':
         return mainFeatureSet;
       case 'flask':
         return flaskFeatureSet;
       default:
-        throw new Error('Invalid build type');
+        throw new Error(
+          `Invalid BUILD_TYPE of ${buildType} was passed to metro transform`,
+        );
     }
   }
 
