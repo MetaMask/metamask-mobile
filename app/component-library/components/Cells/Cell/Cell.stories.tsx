@@ -1,81 +1,57 @@
-/* eslint-disable no-console */
-
+/* eslint-disable react/display-name */
 // Third party dependencies.
 import React from 'react';
-import { Alert } from 'react-native';
-import { boolean, text, select } from '@storybook/addon-knobs';
-import { storiesOf } from '@storybook/react-native';
 
 // External dependencies.
-import { AvatarProps } from '../../Avatars/Avatar/Avatar.types';
-import { getAvatarStoryProps } from '../../Avatars/Avatar/Avatar.stories';
+import { SAMPLE_CELLDISPLAY_PROPS } from './variants/CellDisplay/CellDisplay.constants';
+import { SAMPLE_CELLMULTISELECT_PROPS } from './variants/CellMultiSelect/CellMultiSelect.constants';
+import { SAMPLE_CELLSELECT_PROPS } from './variants/CellSelect/CellSelect.constants';
 
 // Internal dependencies.
-import Cell from './Cell';
-import {
-  TEST_CELL_TITLE,
-  TEST_CELL_SECONDARY_TEXT,
-  TEST_CELL_TERTIARY_TEXT,
-  TEST_TAG_LABEL_TEXT,
-} from './Cell.constants';
-import { CellVariants } from './Cell.types';
+import { CellVariant } from './Cell.types';
+import { default as CellComponent } from './Cell';
 
-storiesOf('Component Library / Cell', module).add('Default', () => {
-  const groupId = 'Props';
-  const cellVariantsSelector = select(
-    'Variant',
-    CellVariants,
-    CellVariants.Display,
-    groupId,
-  );
-  const avatarProps: AvatarProps = getAvatarStoryProps();
-  const titleText = text('title', TEST_CELL_TITLE, groupId);
-  const includeSecondaryText = boolean(
-    'Includes secondaryText?',
-    false,
-    groupId,
-  );
-  const secondaryText = includeSecondaryText
-    ? text('secondaryText', TEST_CELL_SECONDARY_TEXT, groupId)
-    : '';
-  const includeTertiaryText = boolean('Includes tertiaryText?', false, groupId);
-  const tertiaryText = includeTertiaryText
-    ? text('tertiaryText', TEST_CELL_TERTIARY_TEXT, groupId)
-    : '';
-  const includeTagLabel = boolean('Includes label?', false, groupId);
-  const tagLabel = includeTagLabel
-    ? text('label', TEST_TAG_LABEL_TEXT, groupId)
-    : '';
-  const isSelected =
-    cellVariantsSelector === CellVariants.MultiSelect ||
-    cellVariantsSelector === CellVariants.Select
-      ? boolean('isSelected?', false, groupId)
-      : undefined;
+const CellMeta = {
+  title: 'Component Library / Cells',
+  component: CellComponent,
+  argTypes: {
+    variant: {
+      options: CellVariant,
+      control: {
+        type: 'select',
+      },
+      defaultValue: CellVariant.Display,
+    },
+  },
+};
+export default CellMeta;
 
-  switch (cellVariantsSelector) {
-    case CellVariants.Display:
-      return (
-        <Cell
-          variant={cellVariantsSelector}
-          avatarProps={avatarProps}
-          title={titleText}
-          secondaryText={secondaryText}
-          tertiaryText={tertiaryText}
-          tagLabel={tagLabel}
-        />
-      );
-    default:
-      return (
-        <Cell
-          variant={cellVariantsSelector}
-          avatarProps={avatarProps}
-          title={titleText}
-          secondaryText={secondaryText}
-          tertiaryText={tertiaryText}
-          tagLabel={tagLabel}
-          isSelected={isSelected}
-          onPress={() => Alert.alert('Pressed account Cell!')}
-        />
-      );
-  }
-});
+export const Cell = {
+  render: (args: { variant: CellVariant }) => {
+    switch (args.variant) {
+      case CellVariant.Display:
+        return (
+          <CellComponent
+            variant={CellVariant.Display}
+            {...SAMPLE_CELLDISPLAY_PROPS}
+          />
+        );
+      case CellVariant.MultiSelect:
+        return (
+          <CellComponent
+            variant={CellVariant.MultiSelect}
+            {...SAMPLE_CELLMULTISELECT_PROPS}
+          />
+        );
+      case CellVariant.Select:
+        return (
+          <CellComponent
+            variant={CellVariant.Select}
+            {...SAMPLE_CELLSELECT_PROPS}
+          />
+        );
+      default:
+        throw new Error('Invalid Cell Variant');
+    }
+  },
+};

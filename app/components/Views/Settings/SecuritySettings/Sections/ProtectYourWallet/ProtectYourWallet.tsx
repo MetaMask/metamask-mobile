@@ -20,7 +20,7 @@ import AnalyticsV2 from '../../../../../../util/analyticsV2';
 import { useTheme } from '../../../../../../util/theme';
 import { strings } from '../../../../../../../locales/i18n';
 import { LEARN_MORE_URL } from '../../../../../../constants/urls';
-import { REVEAL_SECRET_RECOVERY_PHRASE_BUTTON_ID } from '../../../../../../constants/test-ids';
+import { SecurityPrivacyViewSelectorsIDs } from '../../../../../../../e2e/selectors/Settings/SecurityAndPrivacy/SecurityPrivacyView.selectors';
 import { createStyles } from './styles';
 import Routes from '../../../../../../constants/navigation/Routes';
 
@@ -136,7 +136,7 @@ const ProtectYourWallet = ({
           size={ButtonSize.Lg}
           onPress={openSRPQuiz}
           style={styles.confirm}
-          testID={REVEAL_SECRET_RECOVERY_PHRASE_BUTTON_ID}
+          testID={SecurityPrivacyViewSelectorsIDs.REVEAL_SEED_BUTTON}
         />
       )}
     </View>

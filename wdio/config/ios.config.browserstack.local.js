@@ -17,7 +17,7 @@ config.capabilities = [
     maxInstances: 1,
     build: 'iOS QA E2E Tests',
     automationName: 'XCUITest',
-    deviceName: 'iPhone 12 Pro',
+    deviceName: 'iPhone 13 Pro',
     platformVersion: '16',
     app: process.env.BROWSERSTACK_APP_URL, // TODO: Add package ID when upload to BrowserStack
     'browserstack.debug': true,

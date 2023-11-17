@@ -9,10 +9,7 @@ import Button, {
 import Text from '../../../../../../component-library/components/Texts/Text';
 import { strings } from '../../../../../../../locales/i18n';
 import Routes from '../../../../../../constants/navigation/Routes';
-import {
-  CHANGE_PASSWORD_TITLE_ID,
-  CHANGE_PASSWORD_BUTTON_ID,
-} from '../../../../../../constants/test-ids';
+import { SecurityPrivacyViewSelectorsIDs } from '../../../../../../../e2e/selectors/Settings/SecurityAndPrivacy/SecurityPrivacyView.selectors';
 
 const ChangePassword = () => {
   const { colors } = useTheme();
@@ -24,7 +21,10 @@ const ChangePassword = () => {
   };
 
   return (
-    <View style={styles.setting} testID={CHANGE_PASSWORD_TITLE_ID}>
+    <View
+      style={styles.setting}
+      testID={SecurityPrivacyViewSelectorsIDs.CHANGE_PASSWORD_TITLE}
+    >
       <Text style={styles.title}>
         {strings('password_reset.password_title')}
       </Text>
@@ -34,7 +34,7 @@ const ChangePassword = () => {
         variant={ButtonVariants.Secondary}
         onPress={resetPassword}
         style={styles.confirm}
-        testID={CHANGE_PASSWORD_BUTTON_ID}
+        testID={SecurityPrivacyViewSelectorsIDs.CHANGE_PASSWORD_BUTTON}
       />
     </View>
   );

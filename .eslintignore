@@ -1,3 +1,4 @@
+/scripts/inpage-bridge
 /app/core/InpageBridgeWeb3.js
 /app/util/blockies.js
 __snapshots__
@@ -12,3 +13,4 @@ CHANGELOG.md
 wdio
 /app/util/test/testSetup.js
 /app/lib/ppom/ppom.html.js
+/ppom

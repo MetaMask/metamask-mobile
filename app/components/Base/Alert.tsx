@@ -88,6 +88,14 @@ const getAlertStyles: (
   }
 };
 
+/**
+ * @deprecated The `<Alert />` component has been deprecated in favor of the new `<BannerAlert>` component from the component-library.
+ * Please update your code to use the new `<BannerAlert>` component instead, which can be found at app/component-library/components/Banners/Banner/variants/BannerAlert/BannerAlert.tsx.
+ * You can find documentation for the new BannerAlert component in the README:
+ * {@link https://github.com/MetaMask/metamask-mobile/tree/main/app/component-library/components/Banners/Banner/variants/BannerAlert}
+ * If you would like to help with the replacement of the old Alert component, please submit a pull request against this GitHub issue:
+ * {@link https://github.com/MetaMask/metamask-mobile/issues/6889}
+ */
 const Alert = ({
   type = AlertType.Info,
   small,

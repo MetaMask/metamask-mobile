@@ -53,3 +53,4 @@ export const VAULT_FAILED_TO_GET_VAULT_FROM_BACKUP =
 // RPCMethodMiddleware
 export const TOKEN_NOT_SUPPORTED_FOR_NETWORK =
   'This token is not supported on this network';
+export const TOKEN_NOT_VALID = 'This token address os mpt valid';

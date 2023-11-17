@@ -14,6 +14,7 @@ import { connect } from 'react-redux';
 import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view';
 import FeatherIcons from 'react-native-vector-icons/Feather';
 import { BlurView } from '@react-native-community/blur';
+import { wordlist } from '@metamask/scure-bip39/dist/wordlists/english';
 import { baseStyles } from '../../../styles/common';
 import StyledButton from '../../UI/StyledButton';
 import OnboardingProgress from '../../UI/OnboardingProgress';
@@ -29,14 +30,13 @@ import {
   WRONG_PASSWORD_ERROR,
 } from '../../../constants/onboarding';
 import { useTheme } from '../../../util/theme';
+import { uint8ArrayToMnemonic } from '../../../util/mnemonic';
 import { createStyles } from './styles';
-
-import { CONFIRM_CHANGE_PASSWORD_INPUT_BOX_ID } from '../../../constants/test-ids';
 
 import { MetaMetricsEvents } from '../../../core/Analytics';
 import AnalyticsV2 from '../../../util/analyticsV2';
 import { Authentication } from '../../../core';
-import { regex } from '../../../../app/util/regex';
+import { ManualBackUpStep1SelectorsIDs } from '../../../../e2e/selectors/Onboarding/ManualBackUpStep1.selectors';
 
 /**
  * View that's shown during the second step of
@@ -64,12 +64,10 @@ const ManualBackupStep1 = ({ route, navigation, appTheme }) => {
 
   const tryExportSeedPhrase = async (password) => {
     const { KeyringController } = Engine.context;
-    const mnemonic = await KeyringController.exportSeedPhrase(
+    const uint8ArrayMnemonic = await KeyringController.exportSeedPhrase(
       password,
-    ).toString();
-    return JSON.stringify(mnemonic)
-      .replace(regex.privateCredentials, '')
-      .split(' ');
+    );
+    return uint8ArrayToMnemonic(uint8ArrayMnemonic, wordlist).split(' ');
   };
 
   useEffect(() => {
@@ -207,7 +205,7 @@ const ManualBackupStep1 = ({ route, navigation, appTheme }) => {
               onChangeText={onPasswordChange}
               secureTextEntry
               onSubmitEditing={tryUnlock}
-              testID={CONFIRM_CHANGE_PASSWORD_INPUT_BOX_ID}
+              testID={ManualBackUpStep1SelectorsIDs.CONFIRM_PASSWORD_INPUT}
               keyboardAppearance={themeAppearance}
             />
             {warningIncorrectPassword && (

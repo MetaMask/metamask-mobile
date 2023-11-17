@@ -2,7 +2,7 @@
 import { ImageSourcePropType } from 'react-native';
 import {
   AvatarProps,
-  AvatarVariants,
+  AvatarVariant,
 } from '../../../components/Avatars/Avatar/Avatar.types';
 import { AvatarAccountType } from '../../../components/Avatars/Avatar/variants/AvatarAccount';
 import {
@@ -28,7 +28,7 @@ export const TEST_REMOTE_IMAGE_SOURCE: ImageSourcePropType = {
 };
 
 export const TEST_AVATAR_PROPS: AvatarProps = {
-  variant: AvatarVariants.Account,
+  variant: AvatarVariant.Account,
   accountAddress: TEST_ACCOUNT_ADDRESS,
   type: AvatarAccountType.JazzIcon,
 };

@@ -53,11 +53,6 @@ import { showNetworkOnboardingAction } from '../../../../../actions/onboardNetwo
 import sanitizeUrl, {
   compareSanitizedUrl,
 } from '../../../../../util/sanitizeUrl';
-import {
-  ADD_NETWORKS_ID,
-  RPC_VIEW_CONTAINER_ID,
-  ADD_CUSTOM_RPC_NETWORK_BUTTON_ID,
-} from '../../../../../constants/test-ids';
 import hideKeyFromUrl from '../../../../../util/hideKeyFromUrl';
 import { themeAppearanceLight } from '../../../../../constants/storage';
 import { scale, moderateScale } from 'react-native-size-matters';
@@ -84,6 +79,7 @@ import {
   selectProviderConfig,
 } from '../../../../../selectors/networkController';
 import { regex } from '../../../../../../app/util/regex';
+import { NetworksViewSelectorsIDs } from '../../../../../../e2e/selectors/Settings/NetworksView.selectors';
 
 const createStyles = (colors) =>
   StyleSheet.create({
@@ -243,10 +239,6 @@ class NetworkSettings extends PureComponent {
      * returns an array of onboarded networks
      */
     networkOnboardedState: PropTypes.object,
-    /**
-     * Indicates whether third party API mode is enabled
-     */
-    thirdPartyApiMode: PropTypes.bool,
     /**
      * Checks if adding custom mainnet.
      */
@@ -858,7 +850,10 @@ class NetworkSettings extends PureComponent {
       : styles.button;
 
     return (
-      <SafeAreaView style={styles.wrapper} testID={RPC_VIEW_CONTAINER_ID}>
+      <SafeAreaView
+        style={styles.wrapper}
+        testID={NetworksViewSelectorsIDs.CONTAINER}
+      >
         <KeyboardAwareScrollView style={styles.informationCustomWrapper}>
           {!networkTypeOrRpcUrl ? (
             <WarningMessage
@@ -1001,7 +996,7 @@ class NetworkSettings extends PureComponent {
                     <StyledButton
                       type="confirm"
                       onPress={this.addRpcUrl}
-                      testID={ADD_NETWORKS_ID}
+                      testID={NetworksViewSelectorsIDs.ADD_NETWORKS_BUTTON}
                       containerStyle={[styles.button, styles.confirm]}
                       disabled={isActionDisabled}
                     >
@@ -1013,7 +1008,9 @@ class NetworkSettings extends PureComponent {
                     <StyledButton
                       type="confirm"
                       onPress={this.addRpcUrl}
-                      testID={ADD_CUSTOM_RPC_NETWORK_BUTTON_ID}
+                      testID={
+                        NetworksViewSelectorsIDs.ADD_CUSTOM_NETWORK_BUTTON
+                      }
                       containerStyle={styles.syncConfirm}
                       disabled={isActionDisabled}
                     >
@@ -1072,7 +1069,10 @@ class NetworkSettings extends PureComponent {
     const styles = createStyles(colors);
 
     return (
-      <SafeAreaView style={styles.wrapper} testID={RPC_VIEW_CONTAINER_ID}>
+      <SafeAreaView
+        style={styles.wrapper}
+        testID={NetworksViewSelectorsIDs.CONTAINER}
+      >
         <KeyboardAwareScrollView style={styles.informationWrapper}>
           {networkTypeOrRpcUrl ? (
             this.customNetwork(networkTypeOrRpcUrl)
@@ -1158,7 +1158,6 @@ const mapStateToProps = (state) => ({
   providerConfig: selectProviderConfig(state),
   networkConfigurations: selectNetworkConfigurations(state),
   networkOnboardedState: state.networkOnboarded.networkOnboardedState,
-  thirdPartyApiMode: state.privacy.thirdPartyApiMode,
 });
 
 export default connect(mapStateToProps, mapDispatchToProps)(NetworkSettings);
