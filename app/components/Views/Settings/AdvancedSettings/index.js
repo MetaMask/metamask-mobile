@@ -48,10 +48,7 @@ import Icon, {
 } from '../../../../component-library/components/Icons/Icon';
 import { trackEventV2 as trackEvent } from '../../../../util/analyticsV2';
 import { MetaMetricsEvents } from '../../../../core/Analytics';
-import {
-  ADVANCED_SETTINGS_CONTAINER_ID,
-  ETH_SIGN_SWITCH_ID,
-} from '../../../../constants/test-ids';
+import { AdvancedViewSelectorsIDs } from '../../../../../e2e/selectors/Settings/AdvancedView.selectors';
 
 const createStyles = (colors) =>
   StyleSheet.create({
@@ -361,7 +358,10 @@ class AdvancedSettings extends PureComponent {
           resetScrollToCoords={{ x: 0, y: 0 }}
           ref={this.scrollView}
         >
-          <View style={styles.inner} testID={ADVANCED_SETTINGS_CONTAINER_ID}>
+          <View
+            style={styles.inner}
+            testID={AdvancedViewSelectorsIDs.CONTAINER}
+          >
             <ActionModal
               modalVisible={resetModalVisible}
               confirmText={strings('app_settings.reset_account_confirm_button')}
@@ -448,7 +448,7 @@ class AdvancedSettings extends PureComponent {
                   ios_backgroundColor={colors.border.muted}
                   accessibilityRole={'switch'}
                   accessibilityLabel={strings('app_settings.enable_eth_sign')}
-                  testID={ETH_SIGN_SWITCH_ID}
+                  testID={AdvancedViewSelectorsIDs.ETH_SIGN_SWITCH}
                 />
                 <Text
                   onPress={() =>

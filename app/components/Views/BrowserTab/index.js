@@ -15,6 +15,7 @@ import { withNavigation } from '@react-navigation/compat';
 import { WebView } from 'react-native-webview';
 import Icon from 'react-native-vector-icons/FontAwesome';
 import MaterialCommunityIcon from 'react-native-vector-icons/MaterialCommunityIcons';
+import { useIsFocused } from '@react-navigation/native';
 import BrowserBottomBar from '../../UI/BrowserBottomBar';
 import PropTypes from 'prop-types';
 import Share from 'react-native-share';
@@ -26,7 +27,6 @@ import WebviewProgressBar from '../../UI/WebviewProgressBar';
 import { baseStyles, fontStyles } from '../../../styles/common';
 import Logger from '../../../util/Logger';
 import onUrlSubmit, {
-  getHost,
   prefixUrlWithProtocol,
   isTLD,
   protocolAllowList,
@@ -89,6 +89,7 @@ import {
   selectIsIpfsGatewayEnabled,
   selectSelectedAddress,
 } from '../../../selectors/preferencesController';
+import useFavicon from '../../hooks/useFavicon/useFavicon';
 import { IPFS_GATEWAY_DISABLED_ERROR } from './constants';
 import Banner from '../../../component-library/components/Banners/Banner/Banner';
 import {
@@ -99,6 +100,8 @@ import { ButtonVariants } from '../../../component-library/components/Buttons/Bu
 import CLText from '../../../component-library/components/Texts/Text/Text';
 import { TextVariant } from '../../../component-library/components/Texts/Text';
 import { regex } from '../../../../app/util/regex';
+import { selectChainId } from '../../../selectors/networkController';
+import { BrowserViewSelectorsIDs } from '../../../../e2e/selectors/BrowserView.selectors';
 
 const { HOMEPAGE_URL, NOTIFICATION_NAMES } = AppConstants;
 const HOMEPAGE_HOST = new URL(HOMEPAGE_URL)?.hostname;
@@ -251,6 +254,8 @@ const sessionENSNames = {};
 const ensIgnoreList = [];
 
 export const BrowserTab = (props) => {
+  const isFocused = useIsFocused();
+  const [key, setKey] = useState(1);
   const [backEnabled, setBackEnabled] = useState(false);
   const [forwardEnabled, setForwardEnabled] = useState(false);
   const [progress, setProgress] = useState(0);
@@ -286,6 +291,7 @@ export const BrowserTab = (props) => {
 
   const { colors, shadows } = useTheme();
   const styles = createStyles(colors, shadows);
+  const favicon = useFavicon(url.current);
 
   /**
    * Is the current tab the active tab
@@ -467,6 +473,7 @@ export const BrowserTab = (props) => {
         const { type, hash } = await resolveEnsToIpfsContentId({
           provider,
           name: hostname,
+          chainId: props.chainId,
         });
         if (type === 'ipfs-ns') {
           gatewayUrl = `${props.ipfsGateway}${hash}${pathname || '/'}${
@@ -525,7 +532,7 @@ export const BrowserTab = (props) => {
         goBack();
       }
     },
-    [goBack, props.ipfsGateway, setIpfsBannerVisible],
+    [goBack, props.ipfsGateway, setIpfsBannerVisible, props.chainId],
   );
 
   /**
@@ -898,8 +905,6 @@ export const BrowserTab = (props) => {
     const urlObj = new URL(nativeEvent.url);
     const { origin, pathname = '', query = '' } = urlObj;
     const realUrl = `${origin}${pathname}${query}`;
-    // Generate favicon.
-    const favicon = `https://api.faviconkit.com/${getHost(realUrl)}/50`;
     // Update navigation bar address with title of loaded url.
     changeUrl({ ...nativeEvent, url: realUrl, icon: favicon });
     changeAddressBar({ ...nativeEvent, url: realUrl, icon: favicon });
@@ -1204,9 +1209,7 @@ export const BrowserTab = (props) => {
               contentDescription: `Launch ${name || url} on MetaMask`,
               keywords: [name.split(' '), url, 'dapp'],
               thumbnail: {
-                uri:
-                  icon.current ||
-                  `https://api.faviconkit.com/${getHost(url)}/256`,
+                uri: icon.current || favicon,
               },
             };
             try {
@@ -1430,6 +1433,15 @@ export const BrowserTab = (props) => {
     [reload],
   );
 
+  /**
+   * According to Apple docs, it is not possible to update properties such as `javascriptEnabled` dynamically
+   * - https://developer.apple.com/documentation/webkit/wkwebviewconfiguration.
+   * By updating the key prop, we are forcing iOS WebView to reinitialize with the new `javascriptEnabled` value.
+   */
+  useEffect(() => {
+    if (Platform.OS === 'ios') setKey((prevKey) => prevKey + 1);
+  }, [isFocused]);
+
   const renderIpfsBanner = () => (
     <View style={styles.bannerContainer}>
       <Banner
@@ -1478,6 +1490,7 @@ export const BrowserTab = (props) => {
           {!!entryScriptWeb3 && firstUrlLoaded && (
             <>
               <WebView
+                key={key}
                 originWhitelist={['*']}
                 decelerationRate={'normal'}
                 ref={webviewRef}
@@ -1495,12 +1508,12 @@ export const BrowserTab = (props) => {
                 onError={onError}
                 onShouldStartLoadWithRequest={onShouldStartLoadWithRequest}
                 sendCookies
-                javascriptEnabled
                 allowsInlineMediaPlayback
                 useWebkit
-                testID={'browser-webview'}
+                testID={BrowserViewSelectorsIDs.ANDROID_CONTAINER}
                 applicationNameForUserAgent={'WebView MetaMaskMobile'}
                 onFileDownload={handleOnFileDownload}
+                javaScriptEnabled={isFocused}
               />
               {ipfsBannerVisible && renderIpfsBanner()}
             </>
@@ -1608,6 +1621,10 @@ BrowserTab.propTypes = {
    * Represents ipfs gateway toggle
    */
   isIpfsGatewayEnabled: PropTypes.bool,
+  /**
+   * Represents the current chain id
+   */
+  chainId: PropTypes.string,
 };
 
 BrowserTab.defaultProps = {
@@ -1622,6 +1639,7 @@ const mapStateToProps = (state) => ({
   searchEngine: state.settings.searchEngine,
   whitelist: state.browser.whitelist,
   wizardStep: state.wizard.step,
+  chainId: selectChainId(state),
 });
 
 const mapDispatchToProps = (dispatch) => ({

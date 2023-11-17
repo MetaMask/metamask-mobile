@@ -2,7 +2,6 @@
   "blockaid_banner": {
     "approval_farming_description": "Kung aaprubahan mo ang kahilingang ito, posibleng kunin ng third party na kilala sa mga panloloko ang lahat ng asset mo.",
     "attribution": "Abiso sa seguridad ng",
-    "attribution_link": "https://blockaid.me",
     "attribution_link_name": "Blockaid",
     "blur_farming_description": "Kung aaprubahan mo ang kahilingang ito, posibleng nakawin ng ibang tao ang mga asset mo na nakalista sa Blur.",
     "deceptive_request_title": "Isa itong mapanlinlang na kahilingan",
@@ -13,10 +12,10 @@
     "raw_signature_farming_description": "Kung aaprubahan mo ang kahilingang ito, posibleng mawala sa iyo ang mga asset mo.",
     "seaport_farming_description": "Kung aaprubahan mo ang kahilingang ito, posibleng nakawin ng ibang tao ang mga asset mo na nakalista sa OpenSea.",
     "see_details": "Tingnan ang mga detalye",
+    "does_not_look_right": "Mayroon bang hindi tama?",
     "suspicious_request_title": "Isa itong kahina-hinalang kahilingan",
     "trade_order_farming_description": "Kung aaprubahan mo ang kahilingang ito, posibleng mawala sa iyo ang mga asset mo.",
-    "transfer_farming_description": "Kung aaprubahan mo ang kahilingang ito, kukunin ng third party na kilala sa mga panloloko ang lahat ng asset mo.",
-    "unfair_trade_description": "Kung aaprubahan mo ang kahilingang ito, posibleng mawala sa iyo ang mga asset mo."
+    "transfer_farming_description": "Kung aaprubahan mo ang kahilingang ito, kukunin ng third party na kilala sa mga panloloko ang lahat ng asset mo."
   },
   "date": {
     "months": {
@@ -789,7 +788,8 @@
     "display_nft_media_desc": "Ang pagpapakita ng NFT media at data ay naglalantad sa iyong IP address sa OpenSea o sa ibang mga third party. Ang awtomatikong pagtuklas ng NFT ay nakasalalay sa tampok na ito, at hindi magiging available kapag ito ay naka-off.",
     "autodetect_nft_desc": "Hayaan ang MetaMask na magdagdag ng mga NFT na iyong pag-aari gamit ang mga third-party na (tulad ng OpenSea). Ang awtomatikong pagtuklas ng mga NFT ay naglalantad sa iyong IP at address ng account sa mga serbisyong ito. Ang pagpapagana sa tampok na ito ay maaaring mag-ugnay sa iyong IP sa iyong Ethereum address at magpakita ng pekeng NFT na in-airdrop ng mga manloloko. Maaari kang magdagdag ng token sa manwal na paraan para iwasan ang panganib na ito.",
     "incoming_transactions_title": "Ipakita ang mga papasok na transaksyon",
-    "incoming_transactions_content": "Umaasa ito sa network na iyong pinili na maglalantad sa iyong Ethereum address at IP address."
+    "incoming_transactions_content": "Umaasa ito sa network na iyong pinili na maglalantad sa iyong Ethereum address at IP address.",
+    "display_nft_media_desc_new": "Ang pag-display ng NFT media at datos ay naglalantad sa iyong IP address sa OpenSeas o iba pang third party. Ang auto-detection ng NFT ay nakaasa sa tampok na ito, at hindi ito available kapag naka-off. Kung ang NFT media ay lubos na matatagpuan sa IPFS, maaari pa ring itong i-display kapag ang tampok na ito ay naka-off."
   },
   "sdk": {
     "disconnect_title": "Idiskonekta ang lahat ng site?",
@@ -800,6 +800,10 @@
     "loading": "Kumokonekta sa MetaMask...",
     "unkown_dapp": "Hindi available ang pangalan ng DAPP",
     "no_connections": "Walang nakitang koneksyon"
+  },
+  "sdk_return_to_app_modal":{
+    "title": "Bumalik sa app",
+    "description": "Mangyaring bumalik sa app para magpatuloy sa paggamit ng kanilang serbisyo."
   },
   "sdk_feedback_modal": {
     "ok": "OK",
@@ -1319,6 +1323,11 @@
     "others": "Iba pa",
     "memo": "Memo"
   },
+  "duplicate_address": {
+    "title": "Ito ay isang duplicate na address",
+    "body": "Ang iyong listahan ng kontak ay ipinapakita ang address na ito nang higit sa isang chain. Siguraduhin na piliin ang tamang kontak bago ka magpadala ng anumang pera.",
+    "button": "Nakuha ko"
+  },
   "transaction_submitted": {
     "title": "Naisumite ang Transaksyon",
     "your_tx_hash_is": "Ang hash ng iyong transaksyon ay:",
@@ -1353,6 +1362,7 @@
     "learn_more": "Matuto pa",
     "learn_more_url": "https://metamask.zendesk.com/hc/en-us/articles/4417500466971",
     "switch_network": "Lumipat sa network",
+    "switch": "Lumipat",
     "new_network": "Naidagdag ang bagong network",
     "network_name": "Ang {{networkName}} Network",
     "network_added": " ay available na ngayon sa network selector.",
@@ -1722,10 +1732,7 @@
     "wallet_connect_dapps_cta": "TINGNAN ANG MGA SESSION",
     "network_not_supported": "Hindi sinusuportahan ang kasalukuyang network",
     "security_alerts": "Mga alerto sa seguridad",
-    "security_alerts_desc": "Ang feature na ito ay nagbibigay ng alerto sa iyo sa mapaminsalang aktibidad sa pamamagitan ng lokal na pagsusuri sa iyong mga transaksyon at kahilingan sa paglagda. Ang iyong data ay hindi ibinabahagi sa mga third party na nagbibigay ng serbisyong ito. Palaging gumawa ng sarili mong pagsusuri bago aprubahan ang anumang mga kahilingan. Walang garantiya na made-detect ng feature na ito ang lahat ng mapaminsalang aktibidad.",
-    "select_providers": "Pumili ng mga provider",
     "blockaid": "Blockaid",
-    "moreProviders": "Marami pang parating na mga provider",
     "switch_network": "Mangyaring lumipat sa mainnet o sepolia"
   },
   "walletconnect_sessions": {
@@ -1869,7 +1876,8 @@
   "fiat_on_ramp_aggregator": {
     "onboarding": {
       "what_to_expect": "Ano ang Aasahan",
-      "benefits": "Mas mababa ang bayad sa gas, at mas maraming network, token at paraan ng pagbabayad na sinusuportahan",
+      "quotes": "Pinagsasama-sama ng aming tampok sa pagbili ng crypto ang mga quote mula sa mga pinagsama-samang vendor, na nagbibigay sa iyo ng pinakamahusay na quote mula sa mga pinagmulan na iyon para direktang maipasok mo ang crypto sa iyong wallet nang walang panahon ng paghihintay.",
+      "benefits": "Mas mababa ang gas fee, at mas maraming network, token at paraan ng pagbabayad na sinusuportahan",
       "get_started": "Magsimula"
     },
     "payment_method": {
@@ -1913,7 +1921,9 @@
     "select_region_currency": "Piliin ang Currency ng Rehiyon",
     "no_tokens_match": "Walang katugmang mga token “{{searchString}}”",
     "no_currency_match": "Walang katugmang mga currency “{{searchString}}”",
+    "compare_rates": "Ikumpara ang singil mula sa mga provider na ito. Ang mga quote ay nakaayos ayon sa kabuuang presyo.",
     "pay_with": "Magbayad gamit ang",
+    "continue_with": "Magpatuloy sa {{provider}}",
     "minimum": "Ang pinakamababang deposito ay",
     "maximum": "Ang pinakamataas na deposito ay",
     "try_again": "Subukan muli",
