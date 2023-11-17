@@ -2,7 +2,7 @@
 
 ## Current Main Branch
 
-## 7.11.0 - Nov 7, 2023
+## 7.11.0 - Nov 17, 2023
 ### Added
 - [#7251](https://github.com/MetaMask/metamask-mobile/pull/7251): feat: #999 - RTK consolidate reducers
 - [#7628](https://github.com/MetaMask/metamask-mobile/pull/7628): feat: sdk batch rpc calls
@@ -73,6 +73,10 @@
 - [#7540](https://github.com/MetaMask/metamask-mobile/pull/7540): fix: token decimals fetched from the chain
 - [#7546](https://github.com/MetaMask/metamask-mobile/pull/7546): fix link to testnet faucets
 - [#7557](https://github.com/MetaMask/metamask-mobile/pull/7557): fix(issue template): encourage recordings
+- [#7813](https://github.com/MetaMask/metamask-mobile/pull/7813): fix: Add microphone permissions to iOS 
+- [#7737](https://github.com/MetaMask/metamask-mobile/pull/7737): fix: Use custom controls for iOS video
+- [#7811](https://github.com/MetaMask/metamask-mobile/pull/7811): fix: Lock yarn to 1.22.19
+- [#7733](https://github.com/MetaMask/metamask-mobile/pull/7733): fix: silence PollingBlockTracker Sentry 
 
 ## 7.10.0 - Nov 3, 2023
 ### Added
