@@ -355,7 +355,7 @@ workflows:
                 fi
                 node -v
                 export METAMASK_ENVIRONMENT='local'
-                METAMASK_BUILD_TYPE='main'
+                export METAMASK_BUILD_TYPE='main'
                 IGNORE_BOXLOGS_DEVELOPMENT="true" FORCE_BUNDLING=true yarn test:e2e:android:bitrise:debug --testNamePattern="$TEST_SUITE"
           title: Detox Build & Test
           is_always_run: false
@@ -425,7 +425,7 @@ workflows:
                 fi
                 node -v
                 export METAMASK_ENVIRONMENT='local'
-                METAMASK_BUILD_TYPE='main'
+                export METAMASK_BUILD_TYPE='main'
                 IGNORE_BOXLOGS_DEVELOPMENT="true" FORCE_BUNDLING=true yarn test:e2e:ios:debug --testNamePattern="$TEST_SUITE"
           title: Detox Build & Test
           is_always_run: false
