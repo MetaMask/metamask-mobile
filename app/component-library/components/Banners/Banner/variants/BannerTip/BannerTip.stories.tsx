@@ -1,44 +1,40 @@
+/* eslint-disable react/display-name */
 // Third party dependencies.
 import React from 'react';
-import { select, text } from '@storybook/addon-knobs';
-
-// External dependencies.
-import { storybookPropsGroupID } from '../../../../../constants/storybook.constants';
 
 // Internal dependencies.
-import BannerTip from './BannerTip';
-import { BannerTipProps, BannerTipLogoType } from './BannerTip.types';
-import {
-  DEFAULT_BANNERTIP_LOGOTYPE,
-  SAMPLE_BANNERTIP_TITLE,
-  SAMPLE_BANNERTIP_DESCRIPTION,
-  SAMPLE_BANNERTIP_PROPS,
-} from './BannerTip.constants';
+import { BannerTipLogoType } from './BannerTip.types';
+import { default as BannerTipComponent } from './BannerTip';
+import { SAMPLE_BANNERTIP_PROPS } from './BannerTip.constants';
 
-export const getBannerTipStoryProps = (): BannerTipProps => {
-  const logoTypeSelector = select(
-    'logoType',
-    BannerTipLogoType,
-    DEFAULT_BANNERTIP_LOGOTYPE,
-    storybookPropsGroupID,
-  );
-
-  const title = text('title', SAMPLE_BANNERTIP_TITLE, storybookPropsGroupID);
-  const description = text(
-    'description',
-    SAMPLE_BANNERTIP_DESCRIPTION,
-    storybookPropsGroupID,
-  );
-
-  return {
-    logoType: logoTypeSelector,
-    title,
-    description,
-    actionButtonProps: SAMPLE_BANNERTIP_PROPS.actionButtonProps,
-    onClose: SAMPLE_BANNERTIP_PROPS.onClose,
-  };
+const BannerTipMeta = {
+  title: 'Component Library / Banners',
+  component: BannerTipComponent,
+  argTypes: {
+    logoType: {
+      options: BannerTipLogoType,
+      control: {
+        type: 'select',
+      },
+      defaultValue: SAMPLE_BANNERTIP_PROPS.logoType,
+    },
+    title: {
+      control: { type: 'text' },
+      defaultValue: SAMPLE_BANNERTIP_PROPS.title,
+    },
+    description: {
+      control: { type: 'text' },
+      defaultValue: SAMPLE_BANNERTIP_PROPS.description,
+    },
+  },
 };
+export default BannerTipMeta;
 
-const BannerTipStory = () => <BannerTip {...getBannerTipStoryProps()} />;
-
-export default BannerTipStory;
+export const BannerTip = {
+  render: (args: any) => (
+    <BannerTipComponent
+      {...args}
+      actionButtonProps={SAMPLE_BANNERTIP_PROPS.actionButtonProps}
+    />
+  ),
+};

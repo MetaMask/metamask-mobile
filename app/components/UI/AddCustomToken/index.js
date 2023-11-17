@@ -34,6 +34,7 @@ import {
 } from '../../../../wdio/screen-objects/testIDs/Screens/AddCustomToken.testIds';
 import { NFT_IDENTIFIER_INPUT_BOX_ID } from '../../../../wdio/screen-objects/testIDs/Screens/NFTImportScreen.testIds';
 import { regex } from '../../../../app/util/regex';
+import { AddCustomTokenViewSelectorsIDs } from '../../../../e2e/selectors/AddCustomTokenView.selectors';
 
 const createStyles = (colors) =>
   StyleSheet.create({
@@ -386,8 +387,8 @@ export default class AddCustomToken extends PureComponent {
         {...generateTestId(Platform, CUSTOM_TOKEN_CONTAINER_ID)}
       >
         <ActionView
-          cancelTestID={'add-custom-asset-cancel-button'}
-          confirmTestID={'add-custom-asset-confirm-button'}
+          cancelTestID={AddCustomTokenViewSelectorsIDs.CANCEL_BUTTON}
+          confirmTestID={AddCustomTokenViewSelectorsIDs.CONFIRM_BUTTON}
           cancelText={strings('add_asset.tokens.cancel_add_token')}
           confirmText={strings('add_asset.tokens.add_token')}
           onCancelPress={this.cancelAddToken}

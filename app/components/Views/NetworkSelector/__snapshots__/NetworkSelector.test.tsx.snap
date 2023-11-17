@@ -481,6 +481,7 @@ exports[`Network Selector renders correctly 1`] = `
                                         "width": 32,
                                       }
                                     }
+                                    testID="cellbase-avatar"
                                   >
                                     <Image
                                       onError={[Function]}
@@ -598,6 +599,7 @@ exports[`Network Selector renders correctly 1`] = `
                                         "width": 32,
                                       }
                                     }
+                                    testID="cellbase-avatar"
                                   >
                                     <Image
                                       onError={[Function]}
@@ -690,6 +692,7 @@ exports[`Network Selector renders correctly 1`] = `
                                         "width": 32,
                                       }
                                     }
+                                    testID="cellbase-avatar"
                                   >
                                     <Image
                                       onError={[Function]}
@@ -784,6 +787,7 @@ exports[`Network Selector renders correctly 1`] = `
                                         "width": 32,
                                       }
                                     }
+                                    testID="cellbase-avatar"
                                   >
                                     <Image
                                       onError={[Function]}
@@ -878,6 +882,7 @@ exports[`Network Selector renders correctly 1`] = `
                                         "width": 32,
                                       }
                                     }
+                                    testID="cellbase-avatar"
                                   >
                                     <Image
                                       onError={[Function]}
@@ -975,6 +980,7 @@ exports[`Network Selector renders correctly 1`] = `
                                         "width": 32,
                                       }
                                     }
+                                    testID="cellbase-avatar"
                                   >
                                     <Text
                                       accessibilityRole="text"
