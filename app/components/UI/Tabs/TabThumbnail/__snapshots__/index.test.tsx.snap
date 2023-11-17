@@ -54,7 +54,7 @@ exports[`TabThumbnail should render correctly 1`] = `
           }
         }
       >
-        <WebsiteIcon
+        <Component
           style={
             Object {
               "alignSelf": "flex-start",

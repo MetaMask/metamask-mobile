@@ -4,15 +4,7 @@ CellMultiSelect is a component used for accessing account selection.
 
 ## Props
 
-This component extends [MultiSelectItemProps](../../Select/MultiSelect/MultiSelectItem/MultiSelectItem.types.ts#L7) and [CellBase](../CellBase/CellBase.types.ts#L17).
-
-### `variant`
-
-Variant of Cell.
-
-| <span style="color:gray;font-size:14px">TYPE</span> | <span style="color:gray;font-size:14px">REQUIRED</span> |
-| :-------------------------------------------------- | :------------------------------------------------------ |
-| [CellVariants](../../Cell.types.ts#L9)                                              | No                                                     |
+This component extends [ListItemMultiSelectProps](../../List/ListItemMultiSelect/ListItemMultiSelect.types.ts#L7) and [CellBase](../CellBase/CellBase.types.ts#L17).
 
 ### `avatarProps`
 
@@ -79,21 +71,30 @@ Default: false
 | :-------------------------------------------------- | :------------------------------------------------------ | :----------------------------------------------------- |
 | boolean                                             | No                                                      | false                                                  |
 
+### `isDisabled`
+
+Optional boolean to show disabled state in Cell.
+Default: false
+
+| <span style="color:gray;font-size:14px">TYPE</span> | <span style="color:gray;font-size:14px">REQUIRED</span> | <span style="color:gray;font-size:14px">DEFAULT</span> |
+| :-------------------------------------------------- | :------------------------------------------------------ | :----------------------------------------------------- |
+| boolean                                             | No                                                      | false                                                  |
+
 ## Usage
 
 ```javascript
 // Change import path to relative path.
 import CellMultiSelect from 'app/component-library/components/Cells/variants/CellMultiSelect/CellMultiSelect';
-import { CellVariants } from 'app/component-library/components/Cells/Cell.types';
+import { CellVariant } from 'app/component-library/components/Cells/Cell.types';
 
 <CellMultiSelect
-  variant={CellVariants.MultiSelect}
   avatarProps={AVATAR_PROPS}
   title={TITLE}
   secondaryText={SECONDARY_TEXT}
   tertiaryText={TERTIARY_TEXT}
   tagLabel={TAG_LABEL}
   isSelected={false}
+  isDisabled={false}
   onPress={() => Alert.alert('Pressed account Cell!')}
 />;
 ```

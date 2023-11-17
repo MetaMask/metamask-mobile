@@ -2,12 +2,8 @@
 
 exports[`AvatarFavicon should match the snapshot 1`] = `
 <AvatarBase
-  size="48"
-  style={
-    Object {
-      "borderRadius": 0,
-    }
-  }
+  size="32"
+  style={Object {}}
 >
   <Image
     onError={[Function]}
@@ -25,6 +21,40 @@ exports[`AvatarFavicon should match the snapshot 1`] = `
       }
     }
     testID="favicon-avatar-image"
+  />
+</AvatarBase>
+`;
+
+exports[`AvatarFavicon should render SVG 1`] = `
+<AvatarBase
+  size="32"
+  style={Object {}}
+>
+  <SvgUri
+    height="100%"
+    onError={[Function]}
+    style={
+      Object {
+        "flex": 1,
+        "height": undefined,
+        "width": undefined,
+      }
+    }
+    testID="favicon-avatar-image"
+    uri="https://metamask.github.io/test-dapp/metamask-fox.svg"
+    width="100%"
+  />
+</AvatarBase>
+`;
+
+exports[`AvatarFavicon should render fallback when svg has error 1`] = `
+<AvatarBase
+  size="32"
+  style={Object {}}
+>
+  <Icon
+    name="Global"
+    size="20"
   />
 </AvatarBase>
 `;

@@ -69,6 +69,16 @@ export const selectShowTestNetworks = createSelector(
     ).showTestNetworks,
 );
 
+export const selectShowIncomingTransactionNetworks = createSelector(
+  selectPreferencesControllerState,
+  (preferencesControllerState: PreferencesState) =>
+    (
+      preferencesControllerState as PreferencesState & {
+        showIncomingTransactions: { [chainId: string]: boolean };
+      }
+    ).showIncomingTransactions,
+);
+
 export const selectIsIpfsGatewayEnabled = createSelector(
   selectPreferencesControllerState,
   (preferencesControllerState: PreferencesState) =>
@@ -77,4 +87,14 @@ export const selectIsIpfsGatewayEnabled = createSelector(
         isIpfsGatewayEnabled: boolean;
       }
     ).isIpfsGatewayEnabled,
+);
+
+export const selectIsSecurityAlertsEnabled = createSelector(
+  selectPreferencesControllerState,
+  (preferencesControllerState: PreferencesState) =>
+    (
+      preferencesControllerState as PreferencesState & {
+        securityAlertsEnabled: boolean;
+      }
+    ).securityAlertsEnabled,
 );

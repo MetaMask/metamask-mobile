@@ -19,6 +19,7 @@ import { selectChainId } from '../../../selectors/networkController';
 import ApproveTransactionHeader from '../ApproveTransactionHeader';
 import { getActiveTabUrl } from '../../../util/transactions';
 import { isEqual } from 'lodash';
+import { SigningModalSelectorsIDs } from '../../../../e2e/selectors/Modals/SigningModal.selectors';
 
 const createStyles = (colors) =>
   StyleSheet.create({
@@ -168,8 +169,8 @@ const WatchAssetRequest = ({
         </Text>
       </View>
       <ActionView
-        cancelTestID={'request-signature-cancel-button'}
-        confirmTestID={'request-signature-confirm-button'}
+        cancelTestID={SigningModalSelectorsIDs.CANCEL_BUTTON}
+        confirmTestID={SigningModalSelectorsIDs.SIGN_BUTTON}
         cancelText={strings('watch_asset_request.cancel')}
         confirmText={strings('watch_asset_request.add')}
         onCancelPress={onCancel}

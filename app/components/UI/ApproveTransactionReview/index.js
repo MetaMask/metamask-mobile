@@ -40,7 +40,7 @@ import {
 } from '../../../util/transactions';
 import Avatar, {
   AvatarSize,
-  AvatarVariants,
+  AvatarVariant,
 } from '../../../component-library/components/Avatars/Avatar';
 import Identicon from '../../UI/Identicon';
 import TransactionTypes from '../../../core/TransactionTypes';
@@ -63,6 +63,8 @@ import {
   isMultiLayerFeeNetwork,
   fetchEstimatedMultiLayerL1Fee,
   isMainnetByChainId,
+  TESTNET_FAUCETS,
+  isTestNetworkWithFaucet,
 } from '../../../util/networks';
 import CustomSpendCap from '../../../component-library/components-temp/CustomSpendCap';
 import IonicIcon from 'react-native-vector-icons/Ionicons';
@@ -95,7 +97,7 @@ import { isNetworkBuyNativeTokenSupported } from '../Ramp/utils';
 import { getRampNetworks } from '../../../reducers/fiatOrders';
 import SkeletonText from '../Ramp/components/SkeletonText';
 import InfoModal from '../../../components/UI/Swaps/components/InfoModal';
-import BlockaidBanner from '../BlockaidBanner/BlockaidBanner';
+import TransactionBlockaidBanner from '../TransactionBlockaidBanner/TransactionBlockaidBanner';
 import { regex } from '../../../../app/util/regex';
 
 const { ORIGIN_DEEPLINK, ORIGIN_QR_CODE } = AppConstants.DEEPLINKS;
@@ -335,8 +337,7 @@ class ApproveTransactionReview extends PureComponent {
       tokenList,
       tokenAllowanceState,
     } = this.props;
-    const { AssetsContractController, TokenBalancesController } =
-      Engine.context;
+    const { TokenBalancesController } = Engine.context;
 
     let host;
 
@@ -391,9 +392,6 @@ class ApproveTransactionReview extends PureComponent {
           tokenName = name;
           tokenSymbol = symbol;
           tokenStandard = standard;
-          tokenDecimals = await AssetsContractController.getERC20TokenDecimals(
-            to,
-          );
         } else {
           tokenDecimals = decimals;
           tokenSymbol = symbol;
@@ -720,7 +718,7 @@ class ApproveTransactionReview extends PureComponent {
       primaryCurrency,
       gasError,
       activeTabUrl,
-      transaction: { origin, from, to, securityAlertResponse },
+      transaction: { origin, from, to, id: transactionId },
       chainId,
       over,
       gasEstimateType,
@@ -789,6 +787,7 @@ class ApproveTransactionReview extends PureComponent {
         <View style={styles.section} testID={'approve-modal-test-id'}>
           {from && (
             <ApproveTransactionHeader
+              dontWatchAsset
               origin={origin}
               url={activeTabUrl}
               from={from}
@@ -816,8 +815,8 @@ class ApproveTransactionReview extends PureComponent {
                     onStartShouldSetResponder={() => true}
                   >
                     {isBlockaidFeatureEnabled() && (
-                      <BlockaidBanner
-                        securityAlertResponse={securityAlertResponse}
+                      <TransactionBlockaidBanner
+                        transactionId={transactionId}
                         style={styles.blockaidWarning}
                         onContactUsClicked={this.onContactUsClicked}
                       />
@@ -851,7 +850,7 @@ class ApproveTransactionReview extends PureComponent {
                         <>
                           {tokenImage ? (
                             <Avatar
-                              variant={AvatarVariants.Token}
+                              variant={AvatarVariant.Token}
                               size={AvatarSize.Md}
                               imageSource={{ uri: tokenImage }}
                             />
@@ -963,7 +962,8 @@ class ApproveTransactionReview extends PureComponent {
                         )}
                         {gasError && (
                           <View style={styles.errorWrapper}>
-                            {isTestNetwork || isNativeTokenBuySupported ? (
+                            {isTestNetworkWithFaucet(chainId) ||
+                            isNativeTokenBuySupported ? (
                               <TouchableOpacity onPress={errorPress}>
                                 <Text reset style={styles.error}>
                                   {gasError}
@@ -1166,10 +1166,11 @@ class ApproveTransactionReview extends PureComponent {
   };
 
   goToFaucet = () => {
+    const { chainId } = this.props;
     InteractionManager.runAfterInteractions(() => {
       this.onCancelPress();
       this.props.navigation.navigate(Routes.BROWSER.VIEW, {
-        newTabUrl: AppConstants.URLS.MM_FAUCET,
+        newTabUrl: TESTNET_FAUCETS[chainId],
         timestamp: Date.now(),
       });
     });
@@ -1200,6 +1201,8 @@ class ApproveTransactionReview extends PureComponent {
           showCancelButton
           bypassAndroidCameraAccessCheck={false}
           fromAddress={from}
+          cancelCallback={this.onCancelPress}
+          successCallback={this.onConfirmPress}
         />
       </View>
     );

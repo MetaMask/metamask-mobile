@@ -10,7 +10,7 @@ Variant of Avatar.
 
 | <span style="color:gray;font-size:14px">TYPE</span> | <span style="color:gray;font-size:14px">REQUIRED</span> |
 | :-------------------------------------------------- | :------------------------------------------------------ |
-| [AvatarVariants](./Avatar.types.ts)                                              | No                                                     |
+| [AvatarVariant](./Avatar.types.ts)                                              | No                                                     |
 
 ### `size`
 
@@ -123,7 +123,7 @@ Boolean value that activates halo effect (blurred image colors around).
 ```javascript
 // AvatarAccount
 <Avatar
-  variant={AvatarVariants.Account}
+  variant={AvatarVariant.Account}
   type={AvatarAccountType.Jazzicon}
   accountAddress={ACCOUNT_ADDRESS}
   size={AvatarSize.Md}
@@ -131,14 +131,14 @@ Boolean value that activates halo effect (blurred image colors around).
 
 // AvatarFavicon
 <Avatar
-  variant={AvatarVariants.Favicon}
+  variant={AvatarVariant.Favicon}
   size={AvatarSize.Md} 
   imageSource={{ uri: IMAGE_URL }}
 />;
 
 // AvatarIcon
 <Avatar
-  variant={AvatarVariants.Icon}
+  variant={AvatarVariant.Icon}
   size={AvatarSize.Md}
   name={IconName.Bank}
   iconColor={ICON_COLOR}
@@ -147,7 +147,7 @@ Boolean value that activates halo effect (blurred image colors around).
 
 // AvatarNetwork
 <Avatar
-  variant={AvatarVariants.Network}
+  variant={AvatarVariant.Network}
   size={AvatarSize.Md}
   name={NETWORK_NAME}
   imageSource={{ uri: NETWORK_IMAGE_URL }}
@@ -155,7 +155,7 @@ Boolean value that activates halo effect (blurred image colors around).
 
 // AvatarToken
 <Avatar
-  variant={AvatarVariants.Token}
+  variant={AvatarVariant.Token}
   size={AvatarSize.Md}
   name={TOKEN_NAME}
   imageSource={{ uri: TOKEN_IMAGE_URL }}

@@ -1,23 +1,15 @@
 import TestHelpers from '../helpers';
 
 import {
-  CELL_MULTI_SELECT_TEST_ID,
-  CELL_SELECT_TEST_ID,
-} from '../../app/constants/test-ids';
-import {
   ACCOUNT_LIST_ID,
   ACCOUNT_LIST_ADD_BUTTON_ID,
 } from '../../wdio/screen-objects/testIDs/Components/AccountListComponent.testIds';
-
-import messages from '../../locales/languages/en.json';
-
-const REMOVE_IMPORTED_ACCOUNT_TEXT = messages.accounts.yes_remove_it;
-const IMPORT_ACCOUNT_TEXT = messages.account_actions.import_account;
-const CREATE_ACCOUNT_TEXT = messages.account_actions.add_new_account;
+import { CommonSelectorsIDs } from '../selectors/Common.selectors';
+import { AccountListViewSelectors } from '../selectors/AccountListView.selectors';
 
 export default class AccountListView {
   static async tapNewAccount2() {
-    await TestHelpers.tapItemAtIndex(CELL_MULTI_SELECT_TEST_ID, 1);
+    await TestHelpers.tapItemAtIndex(CommonSelectorsIDs.CELLMULTISELECT, 1);
   }
 
   static async tapAddAccountButton() {
@@ -25,15 +17,15 @@ export default class AccountListView {
   }
 
   static async tapImportAccountButton() {
-    await TestHelpers.tapByText(IMPORT_ACCOUNT_TEXT);
+    await TestHelpers.tapByText(AccountListViewSelectors.IMPORT_ACCOUNT);
   }
 
   static async tapCreateAccountButton() {
-    await TestHelpers.tapByText(CREATE_ACCOUNT_TEXT);
+    await TestHelpers.tapByText(AccountListViewSelectors.CREATE_ACCOUNT);
   }
 
   static async longPressImportedAccount() {
-    await TestHelpers.tapAndLongPressAtIndex(CELL_SELECT_TEST_ID, 1);
+    await TestHelpers.tapAndLongPressAtIndex(CommonSelectorsIDs.CELLSELECT, 1);
   }
   static async swipeToDimssAccountsModal() {
     if (device.getPlatform() === 'android') {
@@ -44,15 +36,13 @@ export default class AccountListView {
   }
 
   static async tapYesToRemoveImportedAccountAlertButton() {
-    await TestHelpers.tapAlertWithButton(REMOVE_IMPORTED_ACCOUNT_TEXT);
+    await TestHelpers.tapAlertWithButton(
+      AccountListViewSelectors.REMOVE_IMPORTED_ACCOUNT,
+    );
   }
 
   static async isVisible() {
     await TestHelpers.checkIfVisible(ACCOUNT_LIST_ID);
-  }
-
-  static async isNotVisible() {
-    await TestHelpers.checkIfNotVisible(ACCOUNT_LIST_ID);
   }
 
   static async isNewAccountNameVisible() {

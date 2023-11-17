@@ -25,10 +25,6 @@ Optional network image from either a local or remote source.
 ## Usage
 
 ```javascript
-// Replace import with relative path.
-import AvatarNetwork from 'app/component-library/components/Avatars/AvatarNetwork';
-import { AvatarSize } from 'app/component-library/components/Avatars/Avatar/Avatar';
-
 <AvatarNetwork
   size={AvatarSize.Md}
   name={NETWORK_NAME}

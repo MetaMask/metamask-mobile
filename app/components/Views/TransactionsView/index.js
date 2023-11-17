@@ -33,6 +33,7 @@ import {
   selectIdentities,
   selectSelectedAddress,
 } from '../../../selectors/preferencesController';
+import { WalletViewSelectorsIDs } from '../../../../e2e/selectors/WalletView.selectors';
 
 const styles = StyleSheet.create({
   wrapper: {
@@ -160,7 +161,10 @@ const TransactionsView = ({
   }, [filterTransactions, networkId]);
 
   return (
-    <View style={styles.wrapper} testID={'wallet-screen'}>
+    <View
+      style={styles.wrapper}
+      testID={WalletViewSelectorsIDs.WALLET_CONTAINER}
+    >
       <Transactions
         navigation={navigation}
         transactions={allTransactions}

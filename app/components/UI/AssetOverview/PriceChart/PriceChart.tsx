@@ -26,7 +26,9 @@ import Icon, {
   IconSize,
 } from '../../../../component-library/components/Icons/Icon';
 import { useStyles } from '../../../../component-library/hooks';
-import Text from '../../../Base/Text';
+import Text, {
+  TextVariant,
+} from '../../../../component-library/components/Texts/Text';
 import Title from '../../../Base/Title';
 import styleSheet, { CHART_HEIGHT } from './PriceChart.styles';
 import { placeholderData } from './utils';
@@ -221,7 +223,7 @@ const PriceChart = ({
       <Title style={styles.noDataOverlayTitle}>
         {strings('asset_overview.no_chart_data.title')}
       </Title>
-      <Text style={styles.noDataOverlayText}>
+      <Text variant={TextVariant.BodyLGMedium} style={styles.noDataOverlayText}>
         {strings('asset_overview.no_chart_data.description')}
       </Text>
     </View>

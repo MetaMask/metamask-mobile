@@ -8,8 +8,8 @@ export const decorators = [
       {<StoryFn />}
     </ThemeContext.Provider>
   ),
-  withNavigation,
   withSafeArea,
+  withNavigation,
 ];
 
 export const parameters = {
