@@ -104,19 +104,9 @@ import { isNetworkBuyNativeTokenSupported } from '../../../UI/Ramp/utils';
 import { getRampNetworks } from '../../../../reducers/fiatOrders';
 import CustomGasModal from '../../../UI/CustomGasModal';
 import { ConfirmViewSelectorsIDs } from '../../../../../e2e/selectors/SendFlow/ConfirmView.selectors';
-import { COMFIRM_TXN_AMOUNT } from '../../../../../wdio/screen-objects/testIDs/Screens/TransactionConfirm.testIds';
-import generateTestId from '../../../../../wdio/utils/generateTestId';
 import ExtendedKeyringTypes from '../../../..//constants/keyringTypes';
-import {
-  TXN_CONFIRM_SCREEN,
-  TXN_CONFIRM_SEND_BUTTON,
-} from '../../../../constants/test-ids';
 import { getLedgerKeyring } from '../../../../core/Ledger/Ledger';
-import { getRampNetworks } from '../../../../reducers/fiatOrders';
-import { baseStyles } from '../../../../styles/common';
-import CustomGasModal from '../../../UI/CustomGasModal';
 import { createLedgerTransactionModalNavDetails } from '../../../UI/LedgerModals/LedgerTransactionModal';
-import { isNetworkBuyNativeTokenSupported } from '../../../UI/Ramp/utils';
 
 const EDIT = 'edit';
 const EDIT_NONCE = 'edit_nonce';
