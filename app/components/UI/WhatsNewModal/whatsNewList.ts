@@ -16,35 +16,58 @@ export const whatsNew: WhatsNew = {
    * The slide content takes the form of union types, where the possible types are `image`, `title`, `description`, or `button`.
    * Both slide count and slide content will be rendered in the same order as the data set.
    */
-  slides: isBlockaidFeatureEnabled()
-    ? [
-        [
-          {
-            type: 'title',
-            title: strings('whats_new.blockaid.title'),
-          },
-          {
-            type: 'image',
-            image: require('../../../images/whats_new_blockaid.png'),
-          },
-          {
-            type: 'description',
-            description: strings('whats_new.blockaid.description_1'),
-          },
-          {
-            type: 'description',
-            description: strings('whats_new.blockaid.description_2'),
-          },
-          {
-            type: 'button',
-            buttonText: strings('whats_new.blockaid.action_text'),
-            buttonType: 'blue',
-            onPress: (props) =>
-              props.navigation.navigate(Routes.SETTINGS_VIEW, {
-                screen: Routes.SETTINGS.EXPERIMENTAL_SETTINGS,
-              }),
-          },
-        ],
-      ]
-    : [],
+  slides: [
+    [
+      {
+        type: 'image',
+        image: require('../../../images/whats_new_sell.png'),
+      },
+      {
+        type: 'title',
+        title: strings('whats_new.sell.title'),
+      },
+      {
+        type: 'description',
+        description: strings('whats_new.sell.description'),
+      },
+      // button to try it out
+      {
+        type: 'button',
+        buttonText: strings('whats_new.sell.action_text'),
+        buttonType: 'blue',
+        onPress: (props) => props.navigation.navigate(Routes.RAMP.SELL),
+      },
+    ],
+    ...(isBlockaidFeatureEnabled()
+      ? ([
+          [
+            {
+              type: 'title',
+              title: strings('whats_new.blockaid.title'),
+            },
+            {
+              type: 'image',
+              image: require('../../../images/whats_new_blockaid.png'),
+            },
+            {
+              type: 'description',
+              description: strings('whats_new.blockaid.description_1'),
+            },
+            {
+              type: 'description',
+              description: strings('whats_new.blockaid.description_2'),
+            },
+            {
+              type: 'button',
+              buttonText: strings('whats_new.blockaid.action_text'),
+              buttonType: 'blue',
+              onPress: (props) =>
+                props.navigation.navigate(Routes.SETTINGS_VIEW, {
+                  screen: Routes.SETTINGS.EXPERIMENTAL_SETTINGS,
+                }),
+            },
+          ],
+        ] as WhatsNew['slides'])
+      : []),
+  ],
 };
