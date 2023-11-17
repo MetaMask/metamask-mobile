@@ -86,7 +86,10 @@ export default function useInAppBrowser() {
           }
 
           const orders = await SDK.orders();
-          const order = await orders.getOrderFromCallback(
+          const getOrderFromCallbackMethod = isBuy
+            ? 'getOrderFromCallback'
+            : 'getSellOrderFromCallback';
+          const order = await orders[getOrderFromCallbackMethod](
             provider.id,
             result.url,
             selectedAddress,
