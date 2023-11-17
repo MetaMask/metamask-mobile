@@ -7,7 +7,6 @@ import { Alert, InteractionManager } from 'react-native';
 import URL from 'url-parse';
 import { strings } from '../../locales/i18n';
 import { showAlert } from '../actions/alert';
-import { isNetworkBuySupported } from '../components/UI/Ramp/utils';
 import {
   ACTIONS,
   ETH_ACTIONS,
@@ -18,7 +17,6 @@ import { NETWORK_ERROR_MISSING_NETWORK_ID } from '../constants/error';
 import Routes from '../constants/navigation/Routes';
 import NotificationManager from '../core/NotificationManager';
 import SDKConnect from '../core/SDKConnect/SDKConnect';
-import { chainIdSelector, getRampNetworks } from '../reducers/fiatOrders';
 import { getAddress } from '../util/address';
 import { getNetworkTypeById, handleNetworkSwitch } from '../util/networks';
 import { generateApproveData } from '../util/transactions';
@@ -188,15 +186,7 @@ class DeeplinkManager {
   }
 
   _handleBuyCrypto() {
-    this.dispatch((_, getState) => {
-      const state = getState();
-      // Do nothing for now if use is not in a supported network
-      if (
-        isNetworkBuySupported(chainIdSelector(state), getRampNetworks(state))
-      ) {
-        this.navigation.navigate(Routes.FIAT_ON_RAMP_AGGREGATOR.ID);
-      }
-    });
+    this.navigation.navigate(Routes.RAMP.BUY);
   }
 
   parse(url, { browserCallBack, origin, onHandled }) {

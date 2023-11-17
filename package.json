@@ -156,7 +156,7 @@
     "axios": "1.6.0"
   },
   "dependencies": {
-    "@consensys/on-ramp-sdk": "1.25.3",
+    "@consensys/on-ramp-sdk": "1.25.4",
     "@eth-optimism/contracts": "0.0.0-2021919175625",
     "@ethereumjs/common": "^2.3.1",
     "@ethereumjs/tx": "^3.2.1",
@@ -257,6 +257,7 @@
     "lottie-ios": "3.4.1",
     "lottie-react-native": "5.1.5",
     "metro-config": "^0.71.1",
+    "metro-react-native-babel-transformer": "0.73.10",
     "multihashes": "0.4.14",
     "number-to-bn": "1.7.0",
     "obs-store": "4.0.3",
