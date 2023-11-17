@@ -99,7 +99,7 @@ import { selectAccounts } from '../../../../selectors/accountTrackerController';
 import { selectContractBalances } from '../../../../selectors/tokenBalancesController';
 import generateTestId from '../../../../../wdio/utils/generateTestId';
 import { COMFIRM_TXN_AMOUNT } from '../../../../../wdio/screen-objects/testIDs/Screens/TransactionConfirm.testIds';
-import { isNetworkBuyNativeTokenSupported } from '../../../UI/Ramp/utils';
+import { isNetworkRampNativeTokenSupported } from '../../../UI/Ramp/common/utils';
 import { getRampNetworks } from '../../../../reducers/fiatOrders';
 import CustomGasModal from '../../../UI/CustomGasModal';
 import { ConfirmViewSelectorsIDs } from '../../../../../e2e/selectors/SendFlow/ConfirmView.selectors';
@@ -862,7 +862,7 @@ class Confirm extends PureComponent {
   buyEth = () => {
     const { navigation } = this.props;
     try {
-      navigation.navigate('FiatOnRampAggregator');
+      navigation.navigate(Routes.RAMP.BUY);
     } catch (error) {
       Logger.error(error, 'Navigation: Error when navigating to buy ETH.');
     }
@@ -1153,7 +1153,7 @@ const mapStateToProps = (state) => ({
   gasEstimateType:
     state.engine.backgroundState.GasFeeController.gasEstimateType,
   isPaymentRequest: state.transaction.paymentRequest,
-  isNativeTokenBuySupported: isNetworkBuyNativeTokenSupported(
+  isNativeTokenBuySupported: isNetworkRampNativeTokenSupported(
     selectChainId(state),
     getRampNetworks(state),
   ),
