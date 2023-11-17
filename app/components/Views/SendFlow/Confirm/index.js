@@ -1,115 +1,122 @@
-import { NetworksChainId } from '@metamask/controller-utils';
-import { GAS_ESTIMATE_TYPES } from '@metamask/gas-fee-controller';
-import { WalletDevice } from '@metamask/transaction-controller';
-import { addHexPrefix } from 'ethereumjs-util';
-import Eth from 'ethjs-query';
-import PropTypes from 'prop-types';
 import React, { PureComponent } from 'react';
+import { baseStyles } from '../../../../styles/common';
 import {
-  ActivityIndicator,
-  Alert,
   InteractionManager,
-  Platform,
+  View,
+  Alert,
   ScrollView,
   TouchableOpacity,
-  View,
+  ActivityIndicator,
+  Platform,
 } from 'react-native';
-import Modal from 'react-native-modal';
-import { SafeAreaView } from 'react-native-safe-area-context';
-import IonicIcon from 'react-native-vector-icons/Ionicons';
 import { connect } from 'react-redux';
-import { strings } from '../../../../../locales/i18n';
-import { COMFIRM_TXN_AMOUNT } from '../../../../../wdio/screen-objects/testIDs/Screens/TransactionConfirm.testIds';
-import generateTestId from '../../../../../wdio/utils/generateTestId';
-import ExtendedKeyringTypes from '../../../..//constants/keyringTypes';
-import { showAlert } from '../../../../actions/alert';
-import { removeFavoriteCollectible } from '../../../../actions/collectibles';
+import { getSendFlowTitle } from '../../../UI/Navbar';
+import PropTypes from 'prop-types';
+import Eth from 'ethjs-query';
+import {
+  renderFromWei,
+  renderFromTokenMinimalUnit,
+  weiToFiat,
+  balanceToFiat,
+  isDecimal,
+  hexToBN,
+  BNToHex,
+} from '../../../../util/number';
+import {
+  getTicker,
+  decodeTransferData,
+  getNormalizedTxState,
+} from '../../../../util/transactions';
+import StyledButton from '../../../UI/StyledButton';
+import { WalletDevice } from '@metamask/transaction-controller';
+import { NetworksChainId } from '@metamask/controller-utils';
+import { GAS_ESTIMATE_TYPES } from '@metamask/gas-fee-controller';
 import {
   prepareTransaction,
   resetTransaction,
   setNonce,
   setProposedNonce,
 } from '../../../../actions/transaction';
-import { KEYSTONE_TX_CANCELED } from '../../../../constants/error';
-import Routes from '../../../../constants/navigation/Routes';
-import {
-  TXN_CONFIRM_SCREEN,
-  TXN_CONFIRM_SEND_BUTTON,
-} from '../../../../constants/test-ids';
-import { MetaMetricsEvents } from '../../../../core/Analytics';
-import Analytics from '../../../../core/Analytics/Analytics';
-import AppConstants from '../../../../core/AppConstants';
-import ClipboardManager from '../../../../core/ClipboardManager';
+import { getGasLimit } from '../../../../util/custom-gas';
 import Engine from '../../../../core/Engine';
+import Logger from '../../../../util/Logger';
+import { WALLET_CONNECT_ORIGIN } from '../../../../util/walletconnect';
+import CustomNonceModal from '../../../UI/CustomNonceModal';
+import NotificationManager from '../../../../core/NotificationManager';
+import { strings } from '../../../../../locales/i18n';
+import CollectibleMedia from '../../../UI/CollectibleMedia';
+import Modal from 'react-native-modal';
+import IonicIcon from 'react-native-vector-icons/Ionicons';
+import TransactionTypes from '../../../../core/TransactionTypes';
+import Analytics from '../../../../core/Analytics/Analytics';
+import { MetaMetricsEvents } from '../../../../core/Analytics';
+import { shallowEqual, renderShortText } from '../../../../util/general';
+import {
+  isTestNet,
+  getNetworkNonce,
+  isMainnetByChainId,
+  isMultiLayerFeeNetwork,
+  fetchEstimatedMultiLayerL1Fee,
+  TESTNET_FAUCETS,
+  isTestNetworkWithFaucet,
+} from '../../../../util/networks';
+import Text from '../../../Base/Text';
+import AnalyticsV2 from '../../../../util/analyticsV2';
+import { addHexPrefix } from 'ethereumjs-util';
+import { removeFavoriteCollectible } from '../../../../actions/collectibles';
+import { SafeAreaView } from 'react-native-safe-area-context';
+import AccountFromToInfoCard from '../../../UI/AccountFromToInfoCard';
+import TransactionReview from '../../../UI/TransactionReview/TransactionReviewEIP1559Update';
+import CustomNonce from '../../../UI/CustomNonce';
+import AppConstants from '../../../../core/AppConstants';
+import {
+  getAddressAccountType,
+  isQRHardwareAccount,
+  isHardwareAccount,
+} from '../../../../util/address';
+import { KEYSTONE_TX_CANCELED } from '../../../../constants/error';
+import { ThemeContext, mockTheme } from '../../../../util/theme';
+import Routes from '../../../../constants/navigation/Routes';
+import WarningMessage from '../WarningMessage';
+import { showAlert } from '../../../../actions/alert';
+import ClipboardManager from '../../../../core/ClipboardManager';
+import GlobalAlert from '../../../UI/GlobalAlert';
+import createStyles from './styles';
 import {
   startGasPolling,
   stopGasPolling,
 } from '../../../../core/GasPolling/GasPolling';
-import { getLedgerKeyring } from '../../../../core/Ledger/Ledger';
-import NotificationManager from '../../../../core/NotificationManager';
-import TransactionTypes from '../../../../core/TransactionTypes';
-import { getRampNetworks } from '../../../../reducers/fiatOrders';
-import { selectAccounts } from '../../../../selectors/accountTrackerController';
-import {
-  selectConversionRate,
-  selectCurrentCurrency,
-} from '../../../../selectors/currencyRateController';
 import {
   selectChainId,
   selectProviderType,
   selectTicker,
 } from '../../../../selectors/networkController';
-import { selectContractBalances } from '../../../../selectors/tokenBalancesController';
+import {
+  selectConversionRate,
+  selectCurrentCurrency,
+} from '../../../../selectors/currencyRateController';
 import { selectContractExchangeRates } from '../../../../selectors/tokenRatesController';
-import { baseStyles } from '../../../../styles/common';
-import Logger from '../../../../util/Logger';
-import {
-  getAddressAccountType,
-  isHardwareAccount,
-  isQRHardwareAccount,
-} from '../../../../util/address';
-import AnalyticsV2 from '../../../../util/analyticsV2';
-import { getGasLimit } from '../../../../util/custom-gas';
-import { renderShortText, shallowEqual } from '../../../../util/general';
-import {
-  TESTNET_FAUCETS,
-  fetchEstimatedMultiLayerL1Fee,
-  getNetworkNonce,
-  isMainnetByChainId,
-  isMultiLayerFeeNetwork,
-  isTestNet,
-  isTestNetworkWithFaucet,
-} from '../../../../util/networks';
-import {
-  BNToHex,
-  balanceToFiat,
-  hexToBN,
-  isDecimal,
-  renderFromTokenMinimalUnit,
-  renderFromWei,
-  weiToFiat,
-} from '../../../../util/number';
-import { ThemeContext, mockTheme } from '../../../../util/theme';
-import {
-  decodeTransferData,
-  getNormalizedTxState,
-  getTicker,
-} from '../../../../util/transactions';
-import { WALLET_CONNECT_ORIGIN } from '../../../../util/walletconnect';
-import Text from '../../../Base/Text';
-import AccountFromToInfoCard from '../../../UI/AccountFromToInfoCard';
-import CollectibleMedia from '../../../UI/CollectibleMedia';
-import CustomGasModal from '../../../UI/CustomGasModal';
-import CustomNonce from '../../../UI/CustomNonce';
-import CustomNonceModal from '../../../UI/CustomNonceModal';
-import GlobalAlert from '../../../UI/GlobalAlert';
-import { createLedgerTransactionModalNavDetails } from '../../../UI/LedgerModals/LedgerTransactionModal';
-import { getSendFlowTitle } from '../../../UI/Navbar';
+import { selectAccounts } from '../../../../selectors/accountTrackerController';
+import { selectContractBalances } from '../../../../selectors/tokenBalancesController';
+import generateTestId from '../../../../../wdio/utils/generateTestId';
+import { COMFIRM_TXN_AMOUNT } from '../../../../../wdio/screen-objects/testIDs/Screens/TransactionConfirm.testIds';
 import { isNetworkBuyNativeTokenSupported } from '../../../UI/Ramp/utils';
-import StyledButton from '../../../UI/StyledButton';
-import TransactionReview from '../../../UI/TransactionReview/TransactionReviewEIP1559Update';
-import WarningMessage from '../WarningMessage';
-import createStyles from './styles';
+import { getRampNetworks } from '../../../../reducers/fiatOrders';
+import CustomGasModal from '../../../UI/CustomGasModal';
+import { ConfirmViewSelectorsIDs } from '../../../../../e2e/selectors/SendFlow/ConfirmView.selectors';
+import { COMFIRM_TXN_AMOUNT } from '../../../../../wdio/screen-objects/testIDs/Screens/TransactionConfirm.testIds';
+import generateTestId from '../../../../../wdio/utils/generateTestId';
+import ExtendedKeyringTypes from '../../../..//constants/keyringTypes';
+import {
+  TXN_CONFIRM_SCREEN,
+  TXN_CONFIRM_SEND_BUTTON,
+} from '../../../../constants/test-ids';
+import { getLedgerKeyring } from '../../../../core/Ledger/Ledger';
+import { getRampNetworks } from '../../../../reducers/fiatOrders';
+import { baseStyles } from '../../../../styles/common';
+import CustomGasModal from '../../../UI/CustomGasModal';
+import { createLedgerTransactionModalNavDetails } from '../../../UI/LedgerModals/LedgerTransactionModal';
+import { isNetworkBuyNativeTokenSupported } from '../../../UI/Ramp/utils';
 
 const EDIT = 'edit';
 const EDIT_NONCE = 'edit_nonce';
@@ -707,7 +714,6 @@ class Confirm extends PureComponent {
       }
     } finally {
       //Let ledger modal handle the error
-      //TODO: Ledger modal retry may lead to navigation "GO_BACK" not found
       navigation && navigation.dangerouslyGetParent()?.popToTop();
     }
   };
@@ -1054,7 +1060,7 @@ class Confirm extends PureComponent {
       <SafeAreaView
         edges={['bottom']}
         style={styles.wrapper}
-        testID={TXN_CONFIRM_SCREEN}
+        testID={ConfirmViewSelectorsIDs.CONTAINER}
       >
         <AccountFromToInfoCard
           transactionState={this.props.transactionState}
@@ -1194,7 +1200,7 @@ class Confirm extends PureComponent {
             }
             containerStyle={styles.buttonNext}
             onPress={this.onNext}
-            testID={TXN_CONFIRM_SEND_BUTTON}
+            testID={ConfirmViewSelectorsIDs.SEND_BUTTON}
           >
             {transactionConfirmed ? (
               <ActivityIndicator size="small" color={colors.primary.inverse} />
