@@ -441,6 +441,11 @@ elif [ "$MODE" == "release" ]; then
 	export SENTRY_PROPERTIES="${REPO_ROOT_DIR}/sentry.release.properties"
 fi
 
+if [ -z "$METAMASK_BUILD_TYPE" ]; then
+	printError "Missing METAMASK_BUILD_TYPE; set to 'main' for a standard release, or 'flask' for a canary flask release. The default value is 'main'."
+	exit 1
+fi
+
 if [ -z "$METAMASK_ENVIRONMENT" ]; then
 	printError "Missing METAMASK_ENVIRONMENT; set to 'production' for a production release, 'prerelease' for a pre-release, or 'local' otherwise"
 	exit 1

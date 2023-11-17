@@ -3,16 +3,11 @@ import { ImageSourcePropType } from 'react-native';
 
 // External dependencies.
 import { AvatarBaseProps } from '../../foundation/AvatarBase/AvatarBase.types';
-import { AvatarVariant } from '../../Avatar.types';
 
 /**
  * AvatarToken component props.
  */
 export interface AvatarTokenProps extends AvatarBaseProps {
-  /**
-   * Variant of Avatar
-   */
-  variant?: AvatarVariant.Token;
   /**
    * Optional token name.
    */
@@ -26,6 +21,11 @@ export interface AvatarTokenProps extends AvatarBaseProps {
    * @default false
    */
   isHaloEnabled?: boolean;
+  /**
+   * Optional boolean to bypass IPFS Gateway Check.
+   * @default false
+   */
+  isIpfsGatewayCheckBypassed?: boolean;
 }
 
 export type AvatarTokenStyleSheetVars = Pick<

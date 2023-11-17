@@ -2,12 +2,6 @@ import TestHelpers from '../helpers';
 import { RequestPaymentViewSelectors } from '../selectors/RequestPaymentView.selectors';
 
 export default class RequestPaymentView {
-  static async tapETH() {
-    await TestHelpers.tapItemAtIndex(
-      RequestPaymentViewSelectors.REQUEST_ASSET_LIST_ID,
-    );
-  }
-
   static async tapBackButton() {
     await TestHelpers.tapItemAtIndex(
       RequestPaymentViewSelectors.BACK_BUTTON_ID,
@@ -37,16 +31,6 @@ export default class RequestPaymentView {
     await TestHelpers.checkIfVisible(
       RequestPaymentViewSelectors.REQUEST_PAYMENT_CONTAINER_ID,
     );
-  }
-
-  static async isNotVisible() {
-    await TestHelpers.checkIfNotVisible(
-      RequestPaymentViewSelectors.REQUEST_PAYMENT_CONTAINER_ID,
-    );
-  }
-
-  static async isRequestTitleVisible() {
-    await TestHelpers.checkIfElementWithTextIsVisible('Request');
   }
 
   static async isTokenVisibleInSearchResults(token) {

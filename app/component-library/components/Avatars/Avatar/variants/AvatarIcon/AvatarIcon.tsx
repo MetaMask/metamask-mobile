@@ -5,26 +5,26 @@ import React from 'react';
 
 // External dependencies.
 import AvatarBase from '../../foundation/AvatarBase';
-import { AvatarSize } from '../../Avatar.types';
 import Icon from '../../../../Icons/Icon';
 import { useStyles } from '../../../../../hooks';
+import { ICONSIZE_BY_AVATARSIZE } from '../../Avatar.constants';
 
 // Internal dependencies.
 import stylesheet from './AvatarIcon.styles';
 import { AvatarIconProps } from './AvatarIcon.types';
-import { ICON_SIZE_BY_AVATAR_SIZE } from './AvatarIcon.constants';
+import { DEFAULT_AVATARICON_SIZE } from './AvatarIcon.constants';
 
 const AvatarIcon = ({
-  size = AvatarSize.Md,
+  size = DEFAULT_AVATARICON_SIZE,
   name,
   style,
   iconColor: iconColorProp,
   backgroundColor,
   ...props
 }: AvatarIconProps) => {
-  const { styles, theme } = useStyles(stylesheet, { style, backgroundColor });
-  const iconSize = ICON_SIZE_BY_AVATAR_SIZE[size];
-  const iconColor = iconColorProp || theme.colors.primary.default;
+  const { styles } = useStyles(stylesheet, { style, backgroundColor });
+  const iconSize = ICONSIZE_BY_AVATARSIZE[size];
+  const iconColor = iconColorProp || styles.icon.color;
 
   return (
     <AvatarBase size={size} style={styles.base} {...props}>
