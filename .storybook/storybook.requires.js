@@ -26,6 +26,13 @@ global.STORIES = [
   },
   {
     titlePrefix: "",
+    directory: "./app/component-library/components/Sheet",
+    files: "**/*.stories.?(ts|tsx|js|jsx)",
+    importPathMatcher:
+      "^\\.[\\\\/](?:app\\/component-library\\/components\\/Sheet(?:\\/(?!\\.)(?:(?:(?!(?:^|\\/)\\.).)*?)\\/|\\/|$)(?!\\.)(?=.)[^/]*?\\.stories\\.(?:ts|tsx|js|jsx)?)$",
+  },
+  {
+    titlePrefix: "",
     directory: "./app/component-library/components/Avatars",
     files: "**/*.stories.?(ts|tsx|js|jsx)",
     importPathMatcher:
@@ -141,6 +148,8 @@ const getStories = () => {
   return {
     "./app/component-library/components/Cards/Card/Card.stories.tsx": require("../app/component-library/components/Cards/Card/Card.stories.tsx"),
     "./app/component-library/components/Banners/Banner/variants/BannerAlert/BannerAlert.stories.tsx": require("../app/component-library/components/Banners/Banner/variants/BannerAlert/BannerAlert.stories.tsx"),
+    "./app/component-library/components/Sheet/SheetBottom/SheetBottom.stories.tsx": require("../app/component-library/components/Sheet/SheetBottom/SheetBottom.stories.tsx"),
+    "./app/component-library/components/Sheet/SheetHeader/SheetHeader.stories.tsx": require("../app/component-library/components/Sheet/SheetHeader/SheetHeader.stories.tsx"),
     "./app/component-library/components/Avatars/Avatar/Avatar.stories.tsx": require("../app/component-library/components/Avatars/Avatar/Avatar.stories.tsx"),
     "./app/component-library/components/Avatars/Avatar/variants/AvatarAccount/AvatarAccount.stories.tsx": require("../app/component-library/components/Avatars/Avatar/variants/AvatarAccount/AvatarAccount.stories.tsx"),
     "./app/component-library/components/Avatars/Avatar/variants/AvatarFavicon/AvatarFavicon.stories.tsx": require("../app/component-library/components/Avatars/Avatar/variants/AvatarFavicon/AvatarFavicon.stories.tsx"),
