@@ -39,6 +39,10 @@ const ButtonSecondaryMeta = {
       control: { type: 'boolean' },
       defaultValue: SAMPLE_BUTTONSECONDARY_PROPS.isDanger,
     },
+    isDisabled: {
+      control: { type: 'boolean' },
+      defaultValue: SAMPLE_BUTTONSECONDARY_PROPS.isDisabled,
+    },
     width: {
       options: ButtonWidthTypes,
       control: {

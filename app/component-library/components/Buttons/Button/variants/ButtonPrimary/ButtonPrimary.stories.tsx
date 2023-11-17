@@ -39,6 +39,10 @@ const ButtonPrimaryMeta = {
       control: { type: 'boolean' },
       defaultValue: SAMPLE_BUTTONPRIMARY_PROPS.isDanger,
     },
+    isDisabled: {
+      control: { type: 'boolean' },
+      defaultValue: SAMPLE_BUTTONPRIMARY_PROPS.isDisabled,
+    },
     width: {
       options: ButtonWidthTypes,
       control: {

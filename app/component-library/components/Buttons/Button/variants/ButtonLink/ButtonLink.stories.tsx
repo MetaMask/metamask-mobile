@@ -39,6 +39,10 @@ const ButtonLinkMeta = {
       control: { type: 'boolean' },
       defaultValue: SAMPLE_BUTTONLINK_PROPS.isDanger,
     },
+    isDisabled: {
+      control: { type: 'boolean' },
+      defaultValue: SAMPLE_BUTTONLINK_PROPS.isDisabled,
+    },
     width: {
       options: ButtonWidthTypes,
       control: {
