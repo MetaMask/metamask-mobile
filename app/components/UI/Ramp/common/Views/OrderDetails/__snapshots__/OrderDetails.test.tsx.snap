@@ -4485,51 +4485,6 @@ exports[`OrderDetails renders a created order 1`] = `
                                         >
                                           Submitted
                                         </Text>
-                                        <Text
-                                          style={
-                                            Array [
-                                              Object {
-                                                "color": "#24272A",
-                                                "fontFamily": "EuclidCircularB-Regular",
-                                                "fontSize": 30,
-                                                "fontWeight": "400",
-                                                "marginVertical": 2,
-                                              },
-                                              Object {
-                                                "textAlign": "center",
-                                              },
-                                              undefined,
-                                              undefined,
-                                              undefined,
-                                              undefined,
-                                              undefined,
-                                              Object {
-                                                "color": "#535A61",
-                                              },
-                                              undefined,
-                                              undefined,
-                                              undefined,
-                                              undefined,
-                                              undefined,
-                                              undefined,
-                                              Object {
-                                                "fontSize": 12,
-                                              },
-                                              undefined,
-                                              undefined,
-                                              undefined,
-                                              undefined,
-                                              undefined,
-                                              undefined,
-                                              undefined,
-                                              undefined,
-                                              undefined,
-                                              undefined,
-                                            ]
-                                          }
-                                        >
-                                          Continue this order below.
-                                        </Text>
                                       </View>
                                     </View>
                                     <View
