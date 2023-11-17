@@ -451,7 +451,7 @@ buildAndroidQAE2E(){
 buildAndroid() {
 	if [ "$MODE" == "release" ] ; then
 		buildAndroidRelease
-	elif [ "$MODE" == "Flask" ] ; then
+	elif [ "$MODE" == "flask" ] ; then
 		buildAndroidFlaskRelease
 	elif [ "$MODE" == "QA" ] ; then
 		buildAndroidQA
@@ -483,7 +483,7 @@ buildIos() {
 	echo "Build iOS $MODE started..."
 	if [ "$MODE" == "release" ] ; then
 		buildIosRelease
-	elif [ "$MODE" == "Flask" ] ; then
+	elif [ "$MODE" == "flask" ] ; then
 		buildIosFlaskRelease
 	elif [ "$MODE" == "releaseE2E" ] ; then
 		buildIosReleaseE2E
@@ -551,7 +551,7 @@ checkAuthToken() {
 checkParameters "$@"
 
 printTitle
-if [ "$MODE" == "releaseE2E" ] || [ "$MODE" == "QA" ] || [ "$MODE" == "QAE2E" ] || [ "$MODE" == "Flask" ]; then
+if [ "$MODE" == "releaseE2E" ] || [ "$MODE" == "QA" ] || [ "$MODE" == "QAE2E" ] || [ "$MODE" == "flask" ]; then
 	echo "DEBUG SENTRY PROPS"
 	checkAuthToken 'sentry.debug.properties'
 	export SENTRY_PROPERTIES="${REPO_ROOT_DIR}/sentry.debug.properties"

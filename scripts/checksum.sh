@@ -8,7 +8,7 @@ FILE=./android/app/build/outputs/apk/qa/release/app-qa-release.apk
   if test -f "$FILE"; then
     shasum -a 512 "$FILE" > ./android/app/build/outputs/apk/qa/release/sha512sums.txt
   fi
-elif [ "$MODE" == "Flask" ]; then
+elif [ "$MODE" == "flask" ]; then
 FILE=./android/app/build/outputs/apk/flask/release/app-flask-release.apk
 
   if test -f "$FILE"; then
