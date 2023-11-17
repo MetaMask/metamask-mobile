@@ -14,6 +14,7 @@ import {
   METAMETRICS_ID,
   METAMETRICS_SEGMENT_REGULATION_ID,
   METRICS_OPT_IN,
+  MIXPANEL_METAMETRICS_ID,
 } from '../../constants/storage';
 
 import {
@@ -25,7 +26,8 @@ import {
   METAMETRICS_ANONYMOUS_ID,
   SEGMENT_REGULATIONS_ENDPOINT,
 } from './MetaMetrics.constants';
-import generateMetametricsId from '../../util/metrics/MetaMetricsId';
+import { v4 as uuidv4 } from 'uuid';
+import { bufferToHex, keccak } from 'ethereumjs-util';
 
 /**
  * MetaMetrics using Segment as the analytics provider.
@@ -105,13 +107,25 @@ class MetaMetrics implements IMetaMetrics {
    */
   #getMetaMetricsId = async (): Promise<string> => {
     // Important: this ID is used to identify the user in Segment and should be kept in
-    // preferences: no reset. If user later anables MetaMetrics,
+    // preferences: no reset unless explicitelu asked for.
+    // If user later anables MetaMetrics,
     // this same ID should be retrieved from preferences and reused.
+
+    // look for a legacy ID from MixPanel integration and use it
+    this.metametricsId = await DefaultPreference.get(MIXPANEL_METAMETRICS_ID);
+    if (this.metametricsId) {
+      await DefaultPreference.set(METAMETRICS_ID, this.metametricsId);
+      return this.metametricsId;
+    }
+
+    // look for a new Metametics ID and use it or generate a new one
     this.metametricsId = await DefaultPreference.get(METAMETRICS_ID);
     if (!this.metametricsId) {
-      this.metametricsId = generateMetametricsId();
+      // keep the id format compatible with MixPanel but base it on a UUIDv4
+      this.metametricsId = bufferToHex(keccak(uuidv4()));
       await DefaultPreference.set(METAMETRICS_ID, this.metametricsId);
     }
+
     if (__DEV__) Logger.log(`Current MetaMatrics ID: ${this.metametricsId}`);
     return this.metametricsId;
   };

@@ -7,6 +7,7 @@ import {
   METAMETRICS_ID,
   METAMETRICS_SEGMENT_REGULATION_ID,
   METRICS_OPT_IN,
+  MIXPANEL_METAMETRICS_ID,
 } from '../../constants/storage';
 import axios, { AxiosResponse } from 'axios';
 
@@ -171,6 +172,22 @@ describe('MetaMetrics', () => {
     );
   });
 
+  it('uses Mixpanel ID if it is set', async () => {
+    const mixPanelId = '0x00';
+    mockGet.mockImplementation(async () => mixPanelId);
+    await TestMetaMetrics.getInstance();
+
+    expect(DefaultPreference.get).toHaveBeenNthCalledWith(
+      2,
+      MIXPANEL_METAMETRICS_ID,
+    );
+    expect(DefaultPreference.set).toHaveBeenCalledWith(
+      METAMETRICS_ID,
+      mixPanelId,
+    );
+    expect(DefaultPreference.get).not.toHaveBeenCalledWith(METAMETRICS_ID);
+  });
+
   it('maintains same user id', async () => {
     await TestMetaMetrics.getInstance();
     const metricsId = mockSet.mock.calls[0][1];
@@ -180,7 +197,7 @@ describe('MetaMetrics', () => {
     await TestMetaMetrics.getInstance();
 
     expect(DefaultPreference.set).not.toHaveBeenCalledWith(METAMETRICS_ID, '');
-    expect(DefaultPreference.get).toHaveBeenNthCalledWith(2, METAMETRICS_ID);
+    expect(DefaultPreference.get).toHaveBeenNthCalledWith(3, METAMETRICS_ID);
   });
 
   it('resets user id', async () => {
