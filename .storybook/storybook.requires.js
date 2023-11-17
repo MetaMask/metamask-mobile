@@ -18,11 +18,31 @@ global.STORIES = [
   },
   {
     titlePrefix: "",
-    directory:
-      "./app/component-library/components/Banners/Banner/variants/BannerAlert",
+    directory: "./app/component-library/components/Banners",
     files: "**/*.stories.?(ts|tsx|js|jsx)",
     importPathMatcher:
-      "^\\.[\\\\/](?:app\\/component-library\\/components\\/Banners\\/Banner\\/variants\\/BannerAlert(?:\\/(?!\\.)(?:(?:(?!(?:^|\\/)\\.).)*?)\\/|\\/|$)(?!\\.)(?=.)[^/]*?\\.stories\\.(?:ts|tsx|js|jsx)?)$",
+      "^\\.[\\\\/](?:app\\/component-library\\/components\\/Banners(?:\\/(?!\\.)(?:(?:(?!(?:^|\\/)\\.).)*?)\\/|\\/|$)(?!\\.)(?=.)[^/]*?\\.stories\\.(?:ts|tsx|js|jsx)?)$",
+  },
+  {
+    titlePrefix: "",
+    directory: "./app/component-library/components/Modals",
+    files: "**/*.stories.?(ts|tsx|js|jsx)",
+    importPathMatcher:
+      "^\\.[\\\\/](?:app\\/component-library\\/components\\/Modals(?:\\/(?!\\.)(?:(?:(?!(?:^|\\/)\\.).)*?)\\/|\\/|$)(?!\\.)(?=.)[^/]*?\\.stories\\.(?:ts|tsx|js|jsx)?)$",
+  },
+  {
+    titlePrefix: "",
+    directory: "./app/component-library/components/Sheet",
+    files: "**/*.stories.?(ts|tsx|js|jsx)",
+    importPathMatcher:
+      "^\\.[\\\\/](?:app\\/component-library\\/components\\/Sheet(?:\\/(?!\\.)(?:(?:(?!(?:^|\\/)\\.).)*?)\\/|\\/|$)(?!\\.)(?=.)[^/]*?\\.stories\\.(?:ts|tsx|js|jsx)?)$",
+  },
+  {
+    titlePrefix: "",
+    directory: "./app/component-library/components/Avatars",
+    files: "**/*.stories.?(ts|tsx|js|jsx)",
+    importPathMatcher:
+      "^\\.[\\\\/](?:app\\/component-library\\/components\\/Avatars(?:\\/(?!\\.)(?:(?:(?!(?:^|\\/)\\.).)*?)\\/|\\/|$)(?!\\.)(?=.)[^/]*?\\.stories\\.(?:ts|tsx|js|jsx)?)$",
   },
   {
     titlePrefix: "",
@@ -133,7 +153,19 @@ if (parameters) {
 const getStories = () => {
   return {
     "./app/component-library/components/Cards/Card/Card.stories.tsx": require("../app/component-library/components/Cards/Card/Card.stories.tsx"),
+    "./app/component-library/components/Banners/Banner/Banner.stories.tsx": require("../app/component-library/components/Banners/Banner/Banner.stories.tsx"),
     "./app/component-library/components/Banners/Banner/variants/BannerAlert/BannerAlert.stories.tsx": require("../app/component-library/components/Banners/Banner/variants/BannerAlert/BannerAlert.stories.tsx"),
+    "./app/component-library/components/Banners/Banner/variants/BannerTip/BannerTip.stories.tsx": require("../app/component-library/components/Banners/Banner/variants/BannerTip/BannerTip.stories.tsx"),
+    "./app/component-library/components/Modals/ModalConfirmation/ModalConfirmation.stories.tsx": require("../app/component-library/components/Modals/ModalConfirmation/ModalConfirmation.stories.tsx"),
+    "./app/component-library/components/Modals/ModalMandatory/ModalMandatory.stories.tsx": require("../app/component-library/components/Modals/ModalMandatory/ModalMandatory.stories.tsx"),
+    "./app/component-library/components/Sheet/SheetBottom/SheetBottom.stories.tsx": require("../app/component-library/components/Sheet/SheetBottom/SheetBottom.stories.tsx"),
+    "./app/component-library/components/Sheet/SheetHeader/SheetHeader.stories.tsx": require("../app/component-library/components/Sheet/SheetHeader/SheetHeader.stories.tsx"),
+    "./app/component-library/components/Avatars/Avatar/Avatar.stories.tsx": require("../app/component-library/components/Avatars/Avatar/Avatar.stories.tsx"),
+    "./app/component-library/components/Avatars/Avatar/variants/AvatarAccount/AvatarAccount.stories.tsx": require("../app/component-library/components/Avatars/Avatar/variants/AvatarAccount/AvatarAccount.stories.tsx"),
+    "./app/component-library/components/Avatars/Avatar/variants/AvatarFavicon/AvatarFavicon.stories.tsx": require("../app/component-library/components/Avatars/Avatar/variants/AvatarFavicon/AvatarFavicon.stories.tsx"),
+    "./app/component-library/components/Avatars/Avatar/variants/AvatarIcon/AvatarIcon.stories.tsx": require("../app/component-library/components/Avatars/Avatar/variants/AvatarIcon/AvatarIcon.stories.tsx"),
+    "./app/component-library/components/Avatars/Avatar/variants/AvatarNetwork/AvatarNetwork.stories.tsx": require("../app/component-library/components/Avatars/Avatar/variants/AvatarNetwork/AvatarNetwork.stories.tsx"),
+    "./app/component-library/components/Avatars/Avatar/variants/AvatarToken/AvatarToken.stories.tsx": require("../app/component-library/components/Avatars/Avatar/variants/AvatarToken/AvatarToken.stories.tsx"),
     "./app/component-library/components/BottomSheets/BottomSheet/BottomSheet.stories.tsx": require("../app/component-library/components/BottomSheets/BottomSheet/BottomSheet.stories.tsx"),
     "./app/component-library/components/BottomSheets/BottomSheetFooter/BottomSheetFooter.stories.tsx": require("../app/component-library/components/BottomSheets/BottomSheetFooter/BottomSheetFooter.stories.tsx"),
     "./app/component-library/components/BottomSheets/BottomSheetHeader/BottomSheetHeader.stories.tsx": require("../app/component-library/components/BottomSheets/BottomSheetHeader/BottomSheetHeader.stories.tsx"),
