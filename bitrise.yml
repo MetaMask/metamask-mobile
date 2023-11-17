@@ -851,7 +851,7 @@ app:
       VERSION_NAME: 7.11.0
     - opts:
         is_expand: false
-      VERSION_NUMBER: 1200
+      VERSION_NUMBER: 1201
     - opts:
         is_expand: false
       ANDROID_APK_LINK: ''
