@@ -1,6 +1,19 @@
-import { migrate, version } from './024';
+import migrate from './024';
+import { merge } from 'lodash';
+import initialRootState from '../../util/test/initial-root-state';
+import initialBackgroundState from '../../util/test/initial-background-state.json';
+import { captureException } from '@sentry/react-native';
+
+jest.mock('@sentry/react-native', () => ({
+  captureException: jest.fn(),
+}));
+const mockedCaptureException = jest.mocked(captureException);
 
 describe('#24', () => {
+  beforeEach(() => {
+    jest.restoreAllMocks();
+    jest.resetAllMocks();
+  });
   const invalidBackgroundStates = [
     {
       state: merge({}, initialRootState, {
@@ -10,8 +23,7 @@ describe('#24', () => {
           },
         },
       }),
-      errorMessage:
-        "Migration 24: Invalid network controller state: 'object'",
+      errorMessage: "Migration 24: Invalid network controller state: 'object'",
       scenario: 'network controller state is invalid',
     },
     {
@@ -28,7 +40,7 @@ describe('#24', () => {
   ];
 
   for (const { errorMessage, scenario, state } of invalidBackgroundStates) {
-    it(`should capture exception if ${scenario}`, () => {      
+    it(`should capture exception if ${scenario}`, () => {
       const newState = migrate(state);
 
       expect(newState).toStrictEqual(state);
@@ -49,7 +61,7 @@ describe('#24', () => {
         }),
       },
     };
-    
+
     const newState = migrate(state);
 
     expect(newState.engine.backgroundState.NetworkController).toStrictEqual({
@@ -76,7 +88,7 @@ describe('#24', () => {
         }),
       },
     };
-    
+
     const newState = migrate(state);
 
     expect(newState.engine.backgroundState.NetworkController).toStrictEqual({

@@ -1,24 +1,6 @@
-import { cloneDeep } from 'lodash';
+import { ETHERSCAN_SUPPORTED_CHAIN_IDS } from '@metamask/preferences-controller';
 
-export const version = 25;
-
-/**
- * 
- *
- * @param originalVersionedData - Versioned MetaMask extension state, exactly what we persist to dist.
- * @param originalVersionedData.meta - State metadata.
- * @param originalVersionedData.meta.version - The current state version.
- * @param originalVersionedData.data - The persisted MetaMask state, keyed by controller.
- * @returns Updated versioned MetaMask extension state.
- */
-export function migrate(originalVersionedData) {
-  const versionedData = cloneDeep(originalVersionedData);
-  versionedData.meta.version = version;
-  versionedData.data = transformState(versionedData.data);
-  return versionedData;
-}
-
-function transformState(state) {
+export default function migrate(state) {
   try {
     Object.values(ETHERSCAN_SUPPORTED_CHAIN_IDS).forEach((hexChainId) => {
       const thirdPartyApiMode = state?.privacy?.thirdPartyApiMode ?? true;

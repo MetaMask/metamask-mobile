@@ -1,4 +1,4 @@
-import { migrate, version } from './022';
+import migrate from './022';
 
 describe('#22', () => {
   it('should DisplayNftMedia have the same value as openSeaEnabled and delete openSeaEnabled property and delete nftDetectionDismissed', () => {

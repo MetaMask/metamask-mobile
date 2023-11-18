@@ -1,4 +1,6 @@
-import { migrate, version } from './021';
+import migrate from './021';
+import { IPFS_DEFAULT_GATEWAY_URL } from '../../../app/constants/network';
+import initialBackgroundState from '../../util/test/initial-background-state.json';
 
 describe('#21', () => {
   it('should not change state if ipfs gateway in use is not outdated', () => {
@@ -30,9 +32,7 @@ describe('#21', () => {
     const currentState = stateWithIpfsGateway('https://hardbin.com/ipfs/');
 
     // State with default ipfs gateway
-    const newStateExpectation = stateWithIpfsGateway(
-      IPFS_DEFAULT_GATEWAY_URL,
-    );
+    const newStateExpectation = stateWithIpfsGateway(IPFS_DEFAULT_GATEWAY_URL);
 
     const newState = migrate(currentState);
     expect(newState).toStrictEqual(newStateExpectation);

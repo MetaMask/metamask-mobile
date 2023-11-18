@@ -1,26 +1,7 @@
-import { cloneDeep } from 'lodash';
-import { getAllNetworks, isSafeChainId } from '../util/networks';
-import { GOERLI } from '../../app/constants/network';
+import { getAllNetworks, isSafeChainId } from '../../util/networks';
+import { GOERLI } from '../../../app/constants/network';
 
-export const version = 2;
-
-/**
- * 
- *
- * @param originalVersionedData - Versioned MetaMask extension state, exactly what we persist to dist.
- * @param originalVersionedData.meta - State metadata.
- * @param originalVersionedData.meta.version - The current state version.
- * @param originalVersionedData.data - The persisted MetaMask state, keyed by controller.
- * @returns Updated versioned MetaMask extension state.
- */
-export function migrate(originalVersionedData) {
-  const versionedData = cloneDeep(originalVersionedData);
-  versionedData.meta.version = version;
-  versionedData.data = transformState(versionedData.data);
-  return versionedData;
-}
-
-function transformState(state) {
+export default function migrate(state) {
   const provider = state.engine.backgroundState.NetworkController.provider;
 
   // Check if the current network is one of the initial networks

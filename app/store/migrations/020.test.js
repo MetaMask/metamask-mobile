@@ -1,7 +1,17 @@
-import { migrate, version } from './020';
+import migrate from './020';
+import { v4 } from 'uuid';
+
+jest.mock('uuid', () => {
+  const actual = jest.requireActual('uuid');
+
+  return {
+    ...actual,
+    v4: jest.fn(),
+  };
+});
 
 describe('#20', () => {
- it('should return state unaltered if there is no preferences controller state', () => {
+  it('should return state unaltered if there is no preferences controller state', () => {
     const oldState = {
       foo: 'bar',
       engine: {

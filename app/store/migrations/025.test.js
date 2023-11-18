@@ -1,4 +1,4 @@
-import { migrate, version } from './025';
+import migrate from './025';
 
 describe('#25', () => {
   it('migrates state from thirdPartyMode to the new incoming transactions networks on preferences controller', () => {

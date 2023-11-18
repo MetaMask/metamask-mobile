@@ -1,6 +1,17 @@
-import { migrate, version } from './026';
+import migrate from './026';
+import { captureException } from '@sentry/react-native';
+
+jest.mock('@sentry/react-native', () => ({
+  captureException: jest.fn(),
+}));
+const mockedCaptureException = jest.mocked(captureException);
 
 describe('#26', () => {
+  beforeEach(() => {
+    jest.restoreAllMocks();
+    jest.resetAllMocks();
+  });
+
   it('delete list state property of phishing controller if it exists', () => {
     const oldState = {
       engine: {
@@ -12,8 +23,7 @@ describe('#26', () => {
       },
     };
 
-    const migration = migrations[26];
-    const newState = migration(oldState);
+    const newState = migrate(oldState);
     expect(newState).toStrictEqual({
       engine: {
         backgroundState: {
@@ -35,8 +45,7 @@ describe('#26', () => {
       },
     };
 
-    const migration = migrations[26];
-    const newState = migration(oldState);
+    const newState = migrate(oldState);
     expect(newState).toStrictEqual({
       engine: {
         backgroundState: {

@@ -1,45 +1,30 @@
-import { cloneDeep } from 'lodash';
 import { isObject, hasProperty } from '@metamask/utils';
 import { captureException } from '@sentry/react-native';
 import { mapValues } from 'lodash';
-
-export const version = 23;
+import ambiguousNetworks from './migration-data/amibiguous-networks.json';
 
 /**
  * Migrate address book state to be keyed by chain ID rather than network ID.
- * 
+ *
  * When choosing which chain ID to migrate each address book entry to, we
  * consider only networks that the user has configured locally. Any entries
  * for chains not configured locally are discarded.
- * 
+ *
  * If there are multiple chain ID candidates for a given network ID (even
  * after filtering to include just locally configured networks), address
  * entries are duplicated on all potentially matching chains. These cases are
  * also stored in the `user.ambiguousAddressEntries` state so that we can
  * warn the user in the UI about these addresses.
- * 
+ *
  * Note: the type is wrong here because it conflicts with `redux-persist`
  * types, due to a bug in that package.
  * See: https://github.com/rt2zz/redux-persist/issues/1065
  * TODO: Use `unknown` as the state type, and silence or work around the
  * redux-persist bug somehow.
  *
- * @param originalVersionedData - Versioned MetaMask extension state, exactly what we persist to dist.
- * @param originalVersionedData.meta - State metadata.
- * @param originalVersionedData.meta.version - The current state version.
- * @param originalVersionedData.data - The persisted MetaMask state, keyed by controller.
- * @returns Updated versioned MetaMask extension state.
- */
-export function migrate(originalVersionedData) {
-  const versionedData = cloneDeep(originalVersionedData);
-  versionedData.meta.version = version;
-  versionedData.data = transformState(versionedData.data);
-  return versionedData;
-}
-
-function transformState(state) {
-  const networkControllerState =
-    state.engine.backgroundState.NetworkController;
+ **/
+export default function migrate(state) {
+  const networkControllerState = state.engine.backgroundState.NetworkController;
   const addressBookControllerState =
     state.engine.backgroundState.AddressBookController;
 
@@ -167,8 +152,8 @@ function transformState(state) {
   )) {
     if (ambiguousNetworks[networkId]) {
       const chainIdCandidates = ambiguousNetworks[networkId].chainIds;
-      const recognizedChainIdCandidates = chainIdCandidates.filter(
-        (chainId) => localChainIds.has(chainId),
+      const recognizedChainIdCandidates = chainIdCandidates.filter((chainId) =>
+        localChainIds.has(chainId),
       );
 
       for (const chainId of recognizedChainIdCandidates) {
