@@ -1,6 +1,6 @@
 {
   "name": "metamask",
-  "version": "7.10.0",
+  "version": "7.11.0",
   "private": true,
   "scripts": {
     "audit:ci": "./scripts/yarn-audit.sh",
@@ -156,7 +156,7 @@
     "axios": "1.6.0"
   },
   "dependencies": {
-    "@consensys/on-ramp-sdk": "1.25.3",
+    "@consensys/on-ramp-sdk": "1.25.4",
     "@eth-optimism/contracts": "0.0.0-2021919175625",
     "@ethereumjs/common": "^2.3.1",
     "@ethereumjs/tx": "^3.2.1",
