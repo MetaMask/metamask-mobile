@@ -1,6 +1,6 @@
 // Third party dependencies.
 import React from 'react';
-import { shallow } from 'enzyme';
+import { render } from '@testing-library/react-native';
 
 // Internal dependencies.
 import BannerAlert from './BannerAlert';
@@ -10,16 +10,9 @@ import {
 } from './BannerAlert.constants';
 
 describe('BannerAlert', () => {
-  it('should render default settings correctly', () => {
-    const wrapper = shallow(<BannerAlert {...SAMPLE_BANNERALERT_PROPS} />);
-    expect(wrapper).toMatchSnapshot();
-  });
   it('should render BannerAlert', () => {
-    const wrapper = shallow(<BannerAlert {...SAMPLE_BANNERALERT_PROPS} />);
-
-    const bannerAlertComponent = wrapper.findWhere(
-      (node) => node.prop('testID') === BANNERALERT_TEST_ID,
-    );
-    expect(bannerAlertComponent.exists()).toBe(true);
+    const wrapper = render(<BannerAlert {...SAMPLE_BANNERALERT_PROPS} />);
+    expect(wrapper).toMatchSnapshot();
+    expect(wrapper.queryByTestId(BANNERALERT_TEST_ID)).not.toBe(null);
   });
 });

@@ -33,17 +33,10 @@ Optional background color of the icon.
 ## Usage
 
 ```javascript
-// Replace import with relative path.
-import AvatarIcon, {
-  AvatarIcon,
-} from 'app/component-library/components/Avatars/Avatar/variants/AvatarAccount';
-import { AvatarSize } from 'app/component-library/components/Avatars/Avatar/Avatar';
-import { IconName } from 'app/component-library/components/Icons/Icon';
-
 <AvatarIcon
   size={AvatarSize.Md}
   name={IconName.Bank}
-  iconColor={ICON_COLOR}
-  backgroundColor={ICON_BACKGROUND_COLOR}
+  iconColor={SAMPLE_ICON_COLOR}
+  backgroundColor={SAMPLE_ICON_BACKGROUND_COLOR}
 />;
 ```

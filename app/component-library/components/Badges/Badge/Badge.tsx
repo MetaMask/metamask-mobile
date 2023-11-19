@@ -12,24 +12,12 @@ import {
   BADGE_BADGESTATUS_TEST_ID,
 } from './Badge.constants';
 
-const Badge = (badgeProps: BadgeProps) => {
-  switch (badgeProps.variant) {
+const Badge = ({ variant, ...props }: BadgeProps) => {
+  switch (variant) {
     case BadgeVariant.Network:
-      return (
-        <BadgeNetwork
-          testID={BADGE_BADGENETWORK_TEST_ID}
-          {...badgeProps}
-          variant={BadgeVariant.Network}
-        />
-      );
+      return <BadgeNetwork testID={BADGE_BADGENETWORK_TEST_ID} {...props} />;
     case BadgeVariant.Status:
-      return (
-        <BadgeStatus
-          testID={BADGE_BADGESTATUS_TEST_ID}
-          {...badgeProps}
-          variant={BadgeVariant.Status}
-        />
-      );
+      return <BadgeStatus testID={BADGE_BADGESTATUS_TEST_ID} {...props} />;
     default:
       throw new Error('Invalid Badge Variant');
   }

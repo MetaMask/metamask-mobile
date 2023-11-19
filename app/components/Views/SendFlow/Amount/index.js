@@ -99,7 +99,7 @@ import { selectSelectedAddress } from '../../../../selectors/preferencesControll
 import { PREFIX_HEX_STRING } from '../../../../constants/transaction';
 import Routes from '../../../../constants/navigation/Routes';
 import { regex } from '../../../../util/regex';
-import { AmountViewSelectorsIDs } from '../../../../../e2e/selectors/AmountView.selectors';
+import { AmountViewSelectorsIDs } from '../../../../../e2e/selectors/SendFlow/AmountView.selectors';
 
 const KEYBOARD_OFFSET = Device.isSmallDevice() ? 80 : 120;
 

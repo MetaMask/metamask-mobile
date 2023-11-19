@@ -4,10 +4,8 @@ import { render } from '@testing-library/react-native';
 
 // Internal dependencies.
 import CellMultiSelect from './CellMultiSelect';
-import {
-  CELLMULTISELECT_TEST_ID,
-  SAMPLE_CELLMULTISELECT_PROPS,
-} from './CellMultiSelect.constants';
+import { SAMPLE_CELLMULTISELECT_PROPS } from './CellMultiSelect.constants';
+import { CellModalSelectorsIDs } from '../../../../../../../e2e/selectors/Modals/CellModal.selectors';
 
 describe('CellMultiSelect', () => {
   it('should render default settings correctly', () => {
@@ -20,6 +18,6 @@ describe('CellMultiSelect', () => {
     const { queryByTestId } = render(
       <CellMultiSelect {...SAMPLE_CELLMULTISELECT_PROPS} />,
     );
-    expect(queryByTestId(CELLMULTISELECT_TEST_ID)).not.toBe(null);
+    expect(queryByTestId(CellModalSelectorsIDs.MULTISELECT)).not.toBe(null);
   });
 });

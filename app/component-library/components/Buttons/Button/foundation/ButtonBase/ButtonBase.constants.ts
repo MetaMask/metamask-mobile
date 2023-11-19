@@ -23,5 +23,6 @@ export const SAMPLE_BUTTONBASE_PROPS: ButtonBaseProps = {
     console.log('Button pressed');
   },
   isDanger: false,
+  isDisabled: false,
   width: ButtonWidthTypes.Auto,
 };

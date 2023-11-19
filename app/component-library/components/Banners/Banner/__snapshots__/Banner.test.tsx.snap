@@ -56,7 +56,7 @@ exports[`Banner should render correctly 1`] = `
         }
       }
     >
-      Hello Error Banner World
+      Sample Banner Title
     </Text>
     <Text
       accessibilityRole="text"
@@ -71,7 +71,7 @@ exports[`Banner should render correctly 1`] = `
         }
       }
     >
-      This is nothing but a test of the emergency broadcast system.
+      Sample Banner Description
     </Text>
   </View>
 </View>
@@ -133,7 +133,7 @@ exports[`Banner should render correctly with a close button 1`] = `
         }
       }
     >
-      Hello Error Banner World
+      Sample Banner Title
     </Text>
     <Text
       accessibilityRole="text"
@@ -148,7 +148,7 @@ exports[`Banner should render correctly with a close button 1`] = `
         }
       }
     >
-      This is nothing but a test of the emergency broadcast system.
+      Sample Banner Description
     </Text>
     <TouchableOpacity
       activeOpacity={1}
@@ -290,7 +290,7 @@ exports[`Banner should render correctly with a start accessory 1`] = `
         }
       }
     >
-      Hello Error Banner World
+      Sample Banner Title
     </Text>
     <Text
       accessibilityRole="text"
@@ -305,7 +305,7 @@ exports[`Banner should render correctly with a start accessory 1`] = `
         }
       }
     >
-      This is nothing but a test of the emergency broadcast system.
+      Sample Banner Description
     </Text>
   </View>
 </View>
@@ -367,7 +367,7 @@ exports[`Banner should render correctly with an action button 1`] = `
         }
       }
     >
-      Hello Error Banner World
+      Sample Banner Title
     </Text>
     <Text
       accessibilityRole="text"
@@ -382,7 +382,7 @@ exports[`Banner should render correctly with an action button 1`] = `
         }
       }
     >
-      This is nothing but a test of the emergency broadcast system.
+      Sample Banner Description
     </Text>
     <TouchableOpacity
       activeOpacity={1}

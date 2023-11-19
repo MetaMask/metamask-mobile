@@ -801,6 +801,10 @@
     "unkown_dapp": "Hindi available ang pangalan ng DAPP",
     "no_connections": "Walang nakitang koneksyon"
   },
+  "sdk_return_to_app_modal":{
+    "title": "Bumalik sa app",
+    "description": "Mangyaring bumalik sa app para magpatuloy sa paggamit ng kanilang serbisyo."
+  },
   "sdk_feedback_modal": {
     "ok": "OK",
     "title": "Hindi makakonekta ang account",

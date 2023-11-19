@@ -31,6 +31,9 @@ const styleSheet = (params: {
       } as ViewStyle,
       style,
     ) as ViewStyle,
+    icon: {
+      color: colors.primary.default,
+    },
   });
 };
 

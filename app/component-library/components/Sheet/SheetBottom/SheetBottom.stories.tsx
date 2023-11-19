@@ -1,14 +1,12 @@
 // Third party dependencies.
 import React, { useRef } from 'react';
 import { Alert, StyleSheet, View } from 'react-native';
-import { storiesOf } from '@storybook/react-native';
-import { boolean } from '@storybook/addon-knobs';
 
 // External dependencies.
 import Text, { TextVariant } from '../../Texts/Text';
 
 // Internal dependencies.
-import SheetBottom from './SheetBottom';
+import { default as SheetBottomComponent } from './SheetBottom';
 import { SheetBottomRef } from './SheetBottom.types';
 
 const styles = StyleSheet.create({
@@ -20,23 +18,26 @@ const styles = StyleSheet.create({
 });
 
 const SheetBottomExample = () => {
-  const groupId = 'Props';
   const bottomSheetRef = useRef<SheetBottomRef | null>(null);
-  const isInteractable = boolean('isInteractable', true, groupId);
 
   return (
-    <SheetBottom
+    <SheetBottomComponent
       onDismissed={() => Alert.alert('Dismissed sheet!')}
       ref={bottomSheetRef}
-      isInteractable={isInteractable}
+      isInteractable
     >
       <View style={styles.wrappedContent}>
         <Text variant={TextVariant.BodySM}>{'Wrapped Content'}</Text>
       </View>
-    </SheetBottom>
+    </SheetBottomComponent>
   );
 };
 
-storiesOf('Component Library / SheetBottom', module).add('Default', () => (
-  <SheetBottomExample />
-));
+const SheetBottomMeta = {
+  title: 'Component Library / Sheet',
+  component: SheetBottomComponent,
+};
+
+export default SheetBottomMeta;
+
+export const SheetBottom = () => <SheetBottomExample />;

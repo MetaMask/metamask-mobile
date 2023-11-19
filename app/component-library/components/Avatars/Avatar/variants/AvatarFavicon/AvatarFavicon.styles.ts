@@ -19,19 +19,11 @@ const styleSheet = (params: {
   theme: Theme;
   vars: AvatarFaviconStyleSheetVars;
 }) => {
-  const { theme, vars } = params;
-  const { colors } = theme;
-  const { style, error } = vars;
-  const baseStyle: ViewStyle = error
-    ? {
-        alignItems: 'center',
-        justifyContent: 'center',
-        backgroundColor: colors.background.alternative,
-      }
-    : { borderRadius: 0 };
+  const { vars } = params;
+  const { style } = vars;
 
   return StyleSheet.create({
-    base: Object.assign(baseStyle, style) as ViewStyle,
+    base: Object.assign({}, style) as ViewStyle,
     image: { flex: 1, height: undefined, width: undefined },
   });
 };

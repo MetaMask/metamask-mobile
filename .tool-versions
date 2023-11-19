@@ -1,2 +1,0 @@
-# If this is version changes you must update the bitrise.yml & .nvmrc.
-nodejs 18.18.2 

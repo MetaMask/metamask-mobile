@@ -99,22 +99,16 @@ export default class WalletView {
     }
   }
 
-  static async isNotVisible() {
-    await TestHelpers.checkIfNotVisible(
-      WalletViewSelectorsIDs.WALLET_CONTAINER,
-    );
-  }
-
-  static async isNFTVisibleInWallet(nftName) {
-    await TestHelpers.checkIfElementByTextIsVisible(nftName);
-  }
-
   static async isTokenVisibleInWallet(tokenName) {
     await TestHelpers.checkIfElementByTextIsVisible(tokenName);
   }
 
   static async tokenIsNotVisibleInWallet(tokenName) {
     await TestHelpers.checkIfElementWithTextIsNotVisible(tokenName);
+  }
+
+  static async isNFTVisibleInWallet(nftName) {
+    await TestHelpers.checkIfElementByTextIsVisible(nftName);
   }
 
   static async isNFTNameVisible(nftName) {

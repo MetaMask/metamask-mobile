@@ -801,6 +801,10 @@
     "unkown_dapp": "Merkeziyetsiz uygulama adı kullanılamıyor",
     "no_connections": "Bağlantı bulunamadı"
   },
+  "sdk_return_to_app_modal":{
+    "title": "Uygulamaya geri dön",
+    "description": "Hizmetlerini kullanmaya devam etmek için lütfen uygulamaya geri dönün."
+  },
   "sdk_feedback_modal": {
     "ok": "Tamam",
     "title": "Hesap bağlantısı kurulamadı",

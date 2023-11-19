@@ -1,5 +1,8 @@
 import { Country, Order, State } from '@consensys/on-ramp-sdk';
-import { AggregatorNetwork } from '@consensys/on-ramp-sdk/dist/API';
+import {
+  AggregatorNetwork,
+  OrderOrderTypeEnum,
+} from '@consensys/on-ramp-sdk/dist/API';
 import {
   addAuthenticationUrl,
   addFiatCustomIdData,
@@ -11,12 +14,15 @@ import {
   removeActivationKey,
   resetFiatOrders,
   setFiatOrdersGetStartedAGG,
+  setFiatOrdersGetStartedSell,
   setFiatOrdersPaymentMethodAGG,
   setFiatOrdersRegionAGG,
   updateFiatCustomIdData,
   updateFiatOrder,
   updateActivationKey,
   updateOnRampNetworks,
+  setFiatSellTxHash,
+  removeFiatSellTxHash,
 } from '.';
 import {
   FIAT_ORDER_PROVIDERS,
@@ -44,8 +50,9 @@ export interface FiatOrder {
   account: string; // Account wallet address
   network: string; // Network
   txHash?: string; // Transaction hash
+  sellTxHash?: string; // Sell transaction hash the user has sent
   excludeFromPurchases: boolean; // Exclude from purchases
-  orderType: string; // Order type
+  orderType: OrderOrderTypeEnum; // Order type
   errorCount?: number; // Number of errors
   lastTimeFetched?: number; // Last time fetched
   data: Order | WyreOrder; // Original provider data
@@ -58,6 +65,7 @@ export interface CustomIdData {
   createdAt: number;
   lastTimeFetched: number;
   errorCount: number;
+  orderType: OrderOrderTypeEnum;
   expired?: boolean;
   order?: Record<string, any>;
 }
@@ -73,6 +81,7 @@ export interface FiatOrdersState {
   selectedRegionAgg: Country | null;
   selectedPaymentMethodAgg: string | null;
   getStartedAgg: boolean;
+  getStartedSell: boolean;
   authenticationUrls: string[];
   activationKeys: ActivationKey[];
 }
@@ -87,6 +96,7 @@ export const ACTIONS = {
   FIAT_SET_REGION_AGG: 'FIAT_SET_REGION_AGG',
   FIAT_SET_PAYMENT_METHOD_AGG: 'FIAT_SET_PAYMENT_METHOD_AGG',
   FIAT_SET_GETSTARTED_AGG: 'FIAT_SET_GETSTARTED_AGG',
+  FIAT_SET_GETSTARTED_SELL: 'FIAT_SET_GETSTARTED_SELL',
   FIAT_ADD_CUSTOM_ID_DATA: 'FIAT_ADD_CUSTOM_ID_DATA',
   FIAT_UPDATE_CUSTOM_ID_DATA: 'FIAT_UPDATE_CUSTOM_ID_DATA',
   FIAT_REMOVE_CUSTOM_ID_DATA: 'FIAT_REMOVE_CUSTOM_ID_DATA',
@@ -96,6 +106,8 @@ export const ACTIONS = {
   FIAT_UPDATE_ACTIVATION_KEY: 'FIAT_UPDATE_ACTIVATION_KEY',
   FIAT_REMOVE_ACTIVATION_KEY: 'FIAT_REMOVE_ACTIVATION_KEY',
   FIAT_UPDATE_NETWORKS: 'FIAT_UPDATE_NETWORKS',
+  FIAT_SET_SELL_TX_HASH: 'FIAT_SET_SELL_TX_HASH',
+  FIAT_REMOVE_SELL_TX_HASH: 'FIAT_REMOVE_SELL_TX_HASH',
 } as const;
 
 export type Action =
@@ -106,6 +118,7 @@ export type Action =
   | ReturnType<typeof setFiatOrdersRegionAGG>
   | ReturnType<typeof setFiatOrdersPaymentMethodAGG>
   | ReturnType<typeof setFiatOrdersGetStartedAGG>
+  | ReturnType<typeof setFiatOrdersGetStartedSell>
   | ReturnType<typeof addFiatCustomIdData>
   | ReturnType<typeof updateFiatCustomIdData>
   | ReturnType<typeof removeFiatCustomIdData>
@@ -114,6 +127,13 @@ export type Action =
   | ReturnType<typeof addActivationKey>
   | ReturnType<typeof updateActivationKey>
   | ReturnType<typeof removeActivationKey>
-  | ReturnType<typeof updateOnRampNetworks>;
+  | ReturnType<typeof updateOnRampNetworks>
+  | ReturnType<typeof setFiatSellTxHash>
+  | ReturnType<typeof removeFiatSellTxHash>;
 
 export type Region = Country & State;
+
+export enum RampType {
+  BUY = 'buy',
+  SELL = 'sell',
+}

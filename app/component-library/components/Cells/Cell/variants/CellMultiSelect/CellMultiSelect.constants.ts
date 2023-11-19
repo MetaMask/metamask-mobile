@@ -5,9 +5,6 @@ import { AvatarProps } from '../../../../Avatars/Avatar/Avatar.types';
 // Internal dependencies.
 import { CellMultiSelectProps } from './CellMultiSelect.types';
 
-// Test IDs
-export const CELLMULTISELECT_TEST_ID = 'cellmultiselect';
-
 // Sample consts
 const SAMPLE_CELLMULTISELECT_TITLE = 'Orangefox.eth';
 const SAMPLE_CELLMULTISELECT_SECONDARYTEXT =
@@ -20,6 +17,7 @@ const SAMPLE_CELLMULTISELECT_AVATARPROPS: AvatarProps = {
   type: AvatarAccountType.JazzIcon,
 };
 
+// eslint-disable-next-line import/prefer-default-export
 export const SAMPLE_CELLMULTISELECT_PROPS: CellMultiSelectProps = {
   title: SAMPLE_CELLMULTISELECT_TITLE,
   secondaryText: SAMPLE_CELLMULTISELECT_SECONDARYTEXT,

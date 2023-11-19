@@ -1,38 +1,36 @@
-// Third party dependencies.
+/* eslint-disable no-console */
+/* eslint-disable react/display-name */
 import React from 'react';
-import { storiesOf } from '@storybook/react-native';
-import { boolean, text } from '@storybook/addon-knobs';
-import { action } from '@storybook/addon-actions';
 
 // Internal dependencies.
-import SheetHeader from './SheetHeader';
+import { default as SheetHeaderComponent } from './SheetHeader';
+import { SAMPLE_SHEETHEADER_PROPS } from './SheetHeader.constants';
 
-storiesOf('Component Library / SheetHeader', module).add('Default', () => {
-  const groupId = 'Props';
-  const includesOnBack = boolean('Includes onBack', false, groupId);
-  const includesActionButtonOptions = boolean(
-    'Includes actionButtonOptions',
-    false,
-    groupId,
-  );
-  const onBack = includesOnBack ? action('onPress') : undefined;
-  const onPress = action('onPress');
-  const actionButtonLabel = includesActionButtonOptions
-    ? text('actionButtonOptions.label', 'Action', groupId)
-    : '';
-  const titleLabel = text('title', 'Title', groupId);
-  const actionButtonOptions = includesActionButtonOptions
-    ? {
-        label: actionButtonLabel,
-        onPress,
-      }
-    : undefined;
+const SheetHeaderMeta = {
+  title: 'Component Library / Sheet',
+  component: SheetHeaderComponent,
+  argTypes: {
+    title: {
+      control: { type: 'text' },
+      defaultValue: SAMPLE_SHEETHEADER_PROPS.title,
+    },
+    actionButtonlabel: {
+      control: { type: 'text' },
+      defaultValue: SAMPLE_SHEETHEADER_PROPS.actionButtonOptions?.label,
+    },
+  },
+};
+export default SheetHeaderMeta;
 
-  return (
-    <SheetHeader
-      onBack={onBack}
-      actionButtonOptions={actionButtonOptions}
-      title={titleLabel}
+export const SheetHeader = {
+  render: ({ title, actionButtonlabel }: any) => (
+    <SheetHeaderComponent
+      title={title}
+      onBack={SAMPLE_SHEETHEADER_PROPS.onBack}
+      actionButtonOptions={{
+        label: actionButtonlabel,
+        onPress: () => console.log('label clicked'),
+      }}
     />
-  );
-});
+  ),
+};

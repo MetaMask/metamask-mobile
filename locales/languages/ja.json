@@ -801,6 +801,10 @@
     "unkown_dapp": "DApp名が利用できません",
     "no_connections": "接続が見つかりません"
   },
+  "sdk_return_to_app_modal":{
+    "title": "アプリに戻る",
+    "description": "サービスを続けて利用するためにアプリに戻ってください。"
+  },
   "sdk_feedback_modal": {
     "ok": "OK",
     "title": "アカウントを接続できませんでした",

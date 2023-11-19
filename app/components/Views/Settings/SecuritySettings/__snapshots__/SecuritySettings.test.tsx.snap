@@ -1615,6 +1615,7 @@ exports[`SecuritySettings should render correctly 1`] = `
                   "width": 32,
                 }
               }
+              testID="cellbase-avatar"
             >
               <Image
                 onError={[Function]}
@@ -1753,6 +1754,7 @@ exports[`SecuritySettings should render correctly 1`] = `
                   "width": 32,
                 }
               }
+              testID="cellbase-avatar"
             >
               <Image
                 onError={[Function]}

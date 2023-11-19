@@ -2,12 +2,12 @@
 import React from 'react';
 import { render } from '@testing-library/react-native';
 
+//External dependencies
+import { CellModalSelectorsIDs } from '../../../../../../../e2e/selectors/Modals/CellModal.selectors';
+
 // Internal dependencies.
 import CellDisplay from './CellDisplay';
-import {
-  CELLDISPLAY_TEST_ID,
-  SAMPLE_CELLDISPLAY_PROPS,
-} from './CellDisplay.constants';
+import { SAMPLE_CELLDISPLAY_PROPS } from './CellDisplay.constants';
 
 describe('CellDisplay', () => {
   it('should render default settings correctly', () => {
@@ -18,6 +18,6 @@ describe('CellDisplay', () => {
     const { queryByTestId } = render(
       <CellDisplay {...SAMPLE_CELLDISPLAY_PROPS} />,
     );
-    expect(queryByTestId(CELLDISPLAY_TEST_ID)).not.toBe(null);
+    expect(queryByTestId(CellModalSelectorsIDs.DISPLAY)).not.toBe(null);
   });
 });

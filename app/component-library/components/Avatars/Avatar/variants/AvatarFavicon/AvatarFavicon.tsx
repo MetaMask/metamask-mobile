@@ -7,15 +7,16 @@ import { SvgUri } from 'react-native-svg';
 
 // External dependencies.
 import AvatarBase from '../../foundation/AvatarBase';
-import { AvatarSize } from '../../Avatar.types';
 import { useStyles } from '../../../../../hooks';
-import Icon, { IconName } from '../../../../Icons/Icon';
+import Icon from '../../../../Icons/Icon';
+import { ICONSIZE_BY_AVATARSIZE } from '../../Avatar.constants';
 
 // Internal dependencies.
 import { AvatarFaviconProps } from './AvatarFavicon.types';
 import {
-  ICON_SIZE_BY_AVATAR_SIZE,
-  FAVICON_AVATAR_IMAGE_ID,
+  DEFAULT_AVATARFAVICON_SIZE,
+  DEFAULT_AVATARFAVICON_ERROR_ICON,
+  AVATARFAVICON_IMAGE_TESTID,
 } from './AvatarFavicon.constants';
 import stylesheet from './AvatarFavicon.styles';
 import { isNumber } from 'lodash';
@@ -23,11 +24,12 @@ import { isFaviconSVG } from '../../../../../../util/favicon';
 
 const AvatarFavicon = ({
   imageSource,
-  size = AvatarSize.Md,
+  size = DEFAULT_AVATARFAVICON_SIZE,
   style,
+  ...props
 }: AvatarFaviconProps) => {
   const [error, setError] = useState<any>(undefined);
-  const { styles } = useStyles(stylesheet, { style, error });
+  const { styles } = useStyles(stylesheet, { style });
 
   const onError = useCallback(
     (e: NativeSyntheticEvent<ImageErrorEventData>) =>
@@ -40,7 +42,10 @@ const AvatarFavicon = ({
   // TODO add the fallback with uppercase letter initial
   //  requires that the domain is passed in as a prop from the parent
   const renderFallbackFavicon = () => (
-    <Icon size={ICON_SIZE_BY_AVATAR_SIZE[size]} name={IconName.Global} />
+    <Icon
+      size={ICONSIZE_BY_AVATARSIZE[size]}
+      name={DEFAULT_AVATARFAVICON_ERROR_ICON}
+    />
   );
 
   const svgSource = useMemo(() => {
@@ -52,7 +57,7 @@ const AvatarFavicon = ({
   const renderSvg = () =>
     svgSource ? (
       <SvgUri
-        testID={FAVICON_AVATAR_IMAGE_ID}
+        testID={AVATARFAVICON_IMAGE_TESTID}
         width="100%"
         height="100%"
         uri={svgSource}
@@ -63,7 +68,7 @@ const AvatarFavicon = ({
 
   const renderImage = () => (
     <Image
-      testID={FAVICON_AVATAR_IMAGE_ID}
+      testID={AVATARFAVICON_IMAGE_TESTID}
       source={imageSource}
       style={styles.image}
       resizeMode={'contain'}
@@ -74,7 +79,7 @@ const AvatarFavicon = ({
   const renderFavicon = () => (svgSource ? renderSvg() : renderImage());
 
   return (
-    <AvatarBase size={size} style={styles.base}>
+    <AvatarBase size={size} style={styles.base} {...props}>
       {error ? renderFallbackFavicon() : renderFavicon()}
     </AvatarBase>
   );

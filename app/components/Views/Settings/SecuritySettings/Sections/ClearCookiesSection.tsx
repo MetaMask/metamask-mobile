@@ -2,13 +2,13 @@ import CookieManager from '@react-native-cookies/cookies';
 import React, { useEffect, useState } from 'react';
 import { StyleSheet, Text, View } from 'react-native';
 import { strings } from '../../../../../../locales/i18n';
-import { CLEAR_COOKIES_SECTION } from '../../../../../constants/test-ids';
 import { fontStyles } from '../../../../../styles/common';
 import Device from '../../../../../util/device';
 import Logger from '../../../../../util/Logger';
 import { mockTheme, useAppThemeFromContext } from '../../../../../util/theme';
 import ActionModal from '../../../../UI/ActionModal';
 import StyledButton from '../../../../UI/StyledButton';
+import { ClearCookiesSectionSelectorsIDs } from '../../../../../../e2e/selectors/Settings/SecurityAndPrivacy/ClearCookiesSection.selectors';
 
 const createStyles = (colors: any) =>
   StyleSheet.create({
@@ -95,7 +95,10 @@ const ClearCookiesSection = () => {
 
   return (
     <>
-      <View style={styles.setting} testID={CLEAR_COOKIES_SECTION}>
+      <View
+        style={styles.setting}
+        testID={ClearCookiesSectionSelectorsIDs.CONTAINER}
+      >
         <Text style={styles.title}>
           {strings('app_settings.clear_browser_cookies_desc')}
         </Text>

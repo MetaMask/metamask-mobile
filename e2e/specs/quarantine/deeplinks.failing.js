@@ -54,7 +54,7 @@ describe(Regression('Deep linking Tests'), () => {
     await SettingsView.tapSecurityAndPrivacy();
 
     await SecurityAndPrivacy.scrollToTurnOnRememberMe();
-    TestHelpers.delay(3000);
+    await TestHelpers.delay(3000);
   });
 
   it('should enable remember me', async () => {
@@ -62,7 +62,7 @@ describe(Regression('Deep linking Tests'), () => {
     await SecurityAndPrivacy.tapTurnOnRememberMeToggle();
     await SecurityAndPrivacy.isRememberMeToggleOn();
 
-    TestHelpers.delay(1500);
+    await TestHelpers.delay(1500);
   });
 
   it('should relaunch the app then enable remember me', async () => {

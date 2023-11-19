@@ -1,36 +1,52 @@
-/* eslint-disable no-console, react-native/no-inline-styles */
-
-// Third party dependencies.
+/* eslint-disable react/display-name */
 import React from 'react';
-import { storiesOf } from '@storybook/react-native';
-import { boolean, text } from '@storybook/addon-knobs';
 
 // Internal dependencies.
-import ModalConfirmation from './ModalConfirmation';
+import { default as ModalConfirmationComponent } from './ModalConfirmation';
+import { SAMPLE_MODALCONFIRMATION_PROPS } from './ModalConfirmation.constants';
 
-storiesOf('Component Library / ModalConfirmation', module).add(
-  'Default',
-  () => {
-    const groupId = 'Props';
-    const isDanger = boolean('isDanger', false, groupId);
-    const titleSelector = text('route.params.title', 'Title!', groupId);
-    const descriptionSelector = text(
-      'route.params.description',
-      'Here is a long description. Here is a long description. Here is a long description. Here is a long description.',
-      groupId,
-    );
-
-    return (
-      <ModalConfirmation
-        route={{
-          params: {
-            onConfirm: () => null,
-            isDanger,
-            title: titleSelector,
-            description: descriptionSelector,
-          },
-        }}
-      />
-    );
+const ModalConfirmationMeta = {
+  title: 'Component Library / Modals',
+  component: ModalConfirmationComponent,
+  argTypes: {
+    title: {
+      control: { type: 'text' },
+      defaultValue: SAMPLE_MODALCONFIRMATION_PROPS.route.params.title,
+    },
+    description: {
+      control: { type: 'text' },
+      defaultValue: SAMPLE_MODALCONFIRMATION_PROPS.route.params.description,
+    },
+    cancelLabel: {
+      control: { type: 'text' },
+      defaultValue: SAMPLE_MODALCONFIRMATION_PROPS.route.params.cancelLabel,
+    },
+    confirmLabel: {
+      control: { type: 'text' },
+      defaultValue: SAMPLE_MODALCONFIRMATION_PROPS.route.params.confirmLabel,
+    },
+    isDanger: {
+      control: { type: 'boolean' },
+      defaultValue: SAMPLE_MODALCONFIRMATION_PROPS.route.params.isDanger,
+    },
   },
-);
+};
+export default ModalConfirmationMeta;
+
+export const ModalConfirmation = {
+  render: (args: {
+    title: string;
+    description: string;
+    onConfirm?: (() => void) | undefined;
+    onCancel?: (() => void) | undefined;
+    cancelLabel?: string | undefined;
+    confirmLabel?: string | undefined;
+    isDanger?: boolean | undefined;
+  }) => (
+    <ModalConfirmationComponent
+      route={{
+        params: { ...args },
+      }}
+    />
+  ),
+};

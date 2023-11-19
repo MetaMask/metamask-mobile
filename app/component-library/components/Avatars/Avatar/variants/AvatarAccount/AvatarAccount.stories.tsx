@@ -1,32 +1,36 @@
-// Third party dependencies.
-import React from 'react';
-import { text, select } from '@storybook/addon-knobs';
-
+/* eslint-disable react/display-name */
 // External dependencies.
 import { AvatarSize } from '../../Avatar.types';
-import { storybookPropsGroupID } from '../../../../../constants/storybook.constants';
 
 // Internal dependencies.
-import AvatarAccount from './AvatarAccount';
-import { AvatarAccountType, AvatarAccountProps } from './AvatarAccount.types';
-import { DUMMY_WALLET_ADDRESS } from './AvatarAccount.constants';
+import { default as AvatarAccountComponent } from './AvatarAccount';
+import { SAMPLE_AVATARACCOUNT_PROPS } from './AvatarAccount.constants';
+import { AvatarAccountType } from './AvatarAccount.types';
 
-export const getAvatarAccountStoryProps = (): AvatarAccountProps => ({
-  accountAddress: text(
-    'accountAddress',
-    DUMMY_WALLET_ADDRESS,
-    storybookPropsGroupID,
-  ),
-  size: select('size', AvatarSize, AvatarSize.Md, storybookPropsGroupID),
-  type: select(
-    'type',
-    AvatarAccountType,
-    AvatarAccountType.JazzIcon,
-    storybookPropsGroupID,
-  ),
-});
-const AvatarAccountStory = () => (
-  <AvatarAccount {...getAvatarAccountStoryProps()} />
-);
+const AvatarAccountMeta = {
+  title: 'Component Library / Avatars',
+  component: AvatarAccountComponent,
+  argTypes: {
+    accountAddress: {
+      control: { type: 'text' },
+      defaultValue: SAMPLE_AVATARACCOUNT_PROPS.accountAddress,
+    },
+    type: {
+      options: AvatarAccountType,
+      control: {
+        type: 'select',
+      },
+      defaultValue: SAMPLE_AVATARACCOUNT_PROPS.type,
+    },
+    size: {
+      options: AvatarSize,
+      control: {
+        type: 'select',
+      },
+      defaultValue: SAMPLE_AVATARACCOUNT_PROPS.size,
+    },
+  },
+};
+export default AvatarAccountMeta;
 
-export default AvatarAccountStory;
+export const AvatarAccount = {};

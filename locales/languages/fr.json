@@ -801,6 +801,10 @@
     "unkown_dapp": "Nom de DAPP non disponible",
     "no_connections": "Aucune connexion trouvée"
   },
+  "sdk_return_to_app_modal":{
+    "title": "Retour à l'application",
+    "description": "Veuillez retourner à l'application pour continuer à utiliser ses services."
+  },
   "sdk_feedback_modal": {
     "ok": "OK",
     "title": "Impossible de connecter le compte",

@@ -38,6 +38,7 @@ import {
   selectRpcTarget,
 } from '../../../../selectors/networkController';
 import { selectIdentities } from '../../../../selectors/preferencesController';
+import { ContractNickNameViewSelectorsIDs } from '../../../../../e2e/selectors/ContractNickNameView.selectors';
 
 const getAnalyticsParams = () => ({});
 
@@ -180,7 +181,10 @@ const AddNickname = (props: AddNicknameProps) => {
             headerTextStyle={styles.headerText}
             iconStyle={styles.icon}
           />
-          <View style={styles.bodyWrapper} testID={'contract-nickname-view'}>
+          <View
+            style={styles.bodyWrapper}
+            testID={ContractNickNameViewSelectorsIDs.CONTAINER}
+          >
             {showFullAddress && (
               <InfoModal
                 isVisible
@@ -227,7 +231,7 @@ const AddNickname = (props: AddNicknameProps) => {
               style={styles.input}
               value={newNickname}
               editable={!addressHasError}
-              testID={'contract-name-input'}
+              testID={ContractNickNameViewSelectorsIDs.NAME_INPUT}
               keyboardAppearance={themeAppearance}
             />
             {addressHasError && (
@@ -245,7 +249,7 @@ const AddNickname = (props: AddNicknameProps) => {
               type={'confirm'}
               disabled={shouldDisableButton}
               onPress={saveTokenNickname}
-              testID={'nickname.save_nickname'}
+              testID={ContractNickNameViewSelectorsIDs.CONFIRM_BUTTON}
             >
               {strings('nickname.save_nickname')}
             </StyledButton>

@@ -1,23 +1,40 @@
-/* eslint-disable no-console */
-
+/* eslint-disable react/display-name */
 // Third party dependencies.
-
-// External dependencies.
+import React from 'react';
 
 // Internal dependencies.
+import { BannerAlertSeverity } from './BannerAlert.types';
 import { default as BannerAlertComponent } from './BannerAlert';
-import {
-  SAMPLE_BANNERALERT_PROPS,
-  STORYBOOK_BANNERALERT_ARGTYPES,
-} from './BannerAlert.constants';
+import { SAMPLE_BANNERALERT_PROPS } from './BannerAlert.constants';
 
 const BannerAlertMeta = {
   title: 'Component Library / Banners',
   component: BannerAlertComponent,
-  argTypes: STORYBOOK_BANNERALERT_ARGTYPES,
+  argTypes: {
+    severity: {
+      options: BannerAlertSeverity,
+      control: {
+        type: 'select',
+      },
+      defaultValue: SAMPLE_BANNERALERT_PROPS.severity,
+    },
+    title: {
+      control: { type: 'text' },
+      defaultValue: SAMPLE_BANNERALERT_PROPS.title,
+    },
+    description: {
+      control: { type: 'text' },
+      defaultValue: SAMPLE_BANNERALERT_PROPS.description,
+    },
+  },
 };
 export default BannerAlertMeta;
 
 export const BannerAlert = {
-  args: SAMPLE_BANNERALERT_PROPS,
+  render: (args: any) => (
+    <BannerAlertComponent
+      {...args}
+      actionButtonProps={SAMPLE_BANNERALERT_PROPS.actionButtonProps}
+    />
+  ),
 };

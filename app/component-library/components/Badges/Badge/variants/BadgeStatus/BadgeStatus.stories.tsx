@@ -1,27 +1,21 @@
-/* eslint-disable no-console */
-// Third party dependencies.
-import React from 'react';
-import { select } from '@storybook/addon-knobs';
-
-// External dependencies.
-import { storybookPropsGroupID } from '../../../../../constants/storybook.constants';
-import { BadgeVariant } from '../../Badge.types';
-
 // Internal dependencies.
-import BadgeStatus from './BadgeStatus';
-import { BadgeStatusState, BadgeStatusProps } from './BadgeStatus.types';
-import { DEFAULT_BADGESTATUS_STATE } from './BadgeStatus.constants';
+import { default as BadgeStatusComponent } from './BadgeStatus';
+import { SAMPLE_BADGESTATUS_PROPS } from './BadgeStatus.constants';
+import { BadgeStatusState } from './BadgeStatus.types';
 
-export const getBadgeStatusStoryProps = (): BadgeStatusProps => ({
-  variant: BadgeVariant.Status,
-  state: select(
-    'state',
-    BadgeStatusState,
-    DEFAULT_BADGESTATUS_STATE,
-    storybookPropsGroupID,
-  ),
-});
+const BadgeStatusMeta = {
+  title: 'Component Library / Badges',
+  component: BadgeStatusComponent,
+  argTypes: {
+    state: {
+      options: BadgeStatusState,
+      control: {
+        type: 'select',
+      },
+      defaultValue: SAMPLE_BADGESTATUS_PROPS.state,
+    },
+  },
+};
+export default BadgeStatusMeta;
 
-const BadgeStatusStory = () => <BadgeStatus {...getBadgeStatusStoryProps()} />;
-
-export default BadgeStatusStory;
+export const BadgeStatus = {};

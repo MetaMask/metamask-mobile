@@ -2,7 +2,6 @@
 import { ColorValue } from 'react-native';
 
 // External dependencies.
-import { BadgeVariant } from '../../Badge.types';
 import { BadgeBaseProps } from '../../foundation/BadgeBase/BadgeBase.types';
 
 /**
@@ -17,10 +16,6 @@ export enum BadgeStatusState {
  * BadgeStatus component props.
  */
 export interface BadgeStatusProps extends Omit<BadgeBaseProps, 'children'> {
-  /**
-   * Optional prop to control the variant of badge.
-   */
-  variant: BadgeVariant.Status;
   /**
    * Optional prop to control the status of BadgeStatus.
    * @default BadgeStatusState.Inactive
