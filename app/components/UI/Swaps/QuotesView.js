@@ -886,7 +886,7 @@ function SwapsQuotesView({
           network_fees_ETH: renderFromWei(toWei(selectedQuoteValue?.ethFee)),
           chain_id: chainId,
         };
-
+        Analytics.trackEventWithParameters(MetaMetricsEvents.SWAP_STARTED, {});
         Analytics.trackEventWithParameters(
           MetaMetricsEvents.SWAP_STARTED,
           parameters,
