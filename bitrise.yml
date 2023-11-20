@@ -364,7 +364,8 @@ workflows:
             IGNORE_BOXLOGS_DEVELOPMENT="true" FORCE_BUNDLING=true yarn test:e2e:android:bitrise:build --testNamePattern="$TEST_SUITE"
     - cache-push@2:
         inputs:
-        - cache_paths: $PROJECT_LOCATION_ANDROID/app/build/outputs
+        - cache_paths: $PROJECT_LOCATION_ANDROID
+        # - cache_paths: $PROJECT_LOCATION_ANDROID/app/build/outputs
     meta:
       bitrise.io:
         machine_type_id: elite-xl
@@ -373,9 +374,16 @@ workflows:
     before_run:
     # - code_setup_dev
     - e2e_setup
-    after_run:
-    - _notify_failure_on_slack
+    # after_run:
+    # - _notify_failure_on_slack
     steps:
+    - script@1:
+        inputs:
+          - content: |-
+              #!/usr/bin/env bash
+              envman add --key YARN_CACHE_DIR --value "$(yarn cache dir)"
+        title: Get Yarn cache directory
+    - cache-pull@2: {}
     - restore-gradle-cache@1: {}
     # - install-missing-android-tools@3:
     #     inputs:
@@ -395,7 +403,7 @@ workflows:
         - start_command_flags: -read-only
         - profile: pixel_5
     # - save-gradle-cache@1: {}
-    - cache-pull@2: {}
+    # - cache-pull@2: {}
     - wait-for-android-emulator@1: {}
     - script@1:
         title: Detox Run Test
