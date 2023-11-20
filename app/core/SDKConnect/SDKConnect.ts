@@ -421,8 +421,11 @@ export class SDKConnect extends EventEmitter2 {
 
     let interruptReason = '';
 
-    if (connecting) {
+    if (connecting && trigger !== 'deeplink') {
       interruptReason = 'already connecting';
+    } else if (connecting && trigger === 'deeplink') {
+      console.warn(`Priotity to deeplink - overwrite previous connection`);
+      this.removeChannel(channelId);
     }
 
     if (!this.connections[channelId]) {
@@ -642,7 +645,6 @@ export class SDKConnect extends EventEmitter2 {
 
       delete this.connected[channelId];
       delete this.connections[channelId];
-      delete this.connecting[channelId];
       delete this.approvedHosts[
         AppConstants.MM_SDK.SDK_REMOTE_ORIGIN + channelId
       ];
@@ -662,6 +664,7 @@ export class SDKConnect extends EventEmitter2 {
         throw err;
       });
     }
+    delete this.connecting[channelId];
     this.emit('refresh');
   }
 
