@@ -43,7 +43,6 @@ exports[`Cell should render CellDisplay given the type Display 1`] = `
         }
       }
       testID="cellbase-avatar"
-      variant="Account"
     >
       <View
         style={
@@ -325,7 +324,6 @@ exports[`Cell should render CellMultiSelect given the type MultiSelect 1`] = `
           }
         }
         testID="cellbase-avatar"
-        variant="Account"
       >
         <View
           style={
@@ -571,7 +569,6 @@ exports[`Cell should render CellSelect given the type Select 1`] = `
           }
         }
         testID="cellbase-avatar"
-        variant="Account"
       >
         <View
           style={
