@@ -17,20 +17,9 @@ const MigratedStorage = {
         // Using new storage system
         return res;
       }
-    } catch {
-      //Fail silently
-    }
-
-    // Using old storage system, should only happen once
-    try {
-      const res = await AsyncStorage.getItem(key);
-      if (res) {
-        // Using old storage system
-        return res;
-      }
     } catch (error) {
       Logger.error(error as Error, { message: 'Failed to run migration' });
-      throw new Error('Failed async storage storage fetch.');
+      throw new Error('Failed Filesystem Storage fetch.');
     }
   },
   async setItem(key: string, value: string) {
@@ -108,7 +97,7 @@ const persistUserTransform = createTransform(
 const persistConfig = {
   key: 'root',
   version,
-  blacklist: ['onboarding'],
+  blacklist: ['onboarding', 'engine'],
   storage: MigratedStorage,
   transforms: [persistTransform, persistUserTransform],
   stateReconciler: autoMergeLevel2, // see "Merge Process" section for details.
