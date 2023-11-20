@@ -801,6 +801,10 @@
     "unkown_dapp": "DAPP-Name nicht verfügbar",
     "no_connections": "Keine Verbindungen gefunden"
   },
+  "sdk_return_to_app_modal":{
+    "title": "Zurück zur App",
+    "description": "Bitte kehren Sie zur App zurück, um deren Dienste weiter zu nutzen."
+  },
   "sdk_feedback_modal": {
     "ok": "OK",
     "title": "Konto konnte keine Verbindung herstellen",
@@ -1728,10 +1732,7 @@
     "wallet_connect_dapps_cta": "SITZUNGEN ANSEHEN",
     "network_not_supported": "Aktuelles Netzwerk nicht unterstützt",
     "security_alerts": "Sicherheitsbenachrichtigungen",
-    "security_alerts_desc": "Diese Funktion warnt Sie vor schädlichen Aktivitäten, indem sie Ihre Transaktionen und Signaturanfragen lokal überprüft. Ihre Daten werden dazu nicht an Dritte weitergegeben, die diesen Dienst anbieten. Denken Sie immer an Ihre eigene Sorgfaltspflicht, bevor Sie Anfragen genehmigen, denn es gibt keine Garantie dafür, dass diese Funktion alle schädlichen Aktivitäten auch tatsächlich erkennt.",
-    "select_providers": "Anbieter auswählen",
     "blockaid": "Blockaid",
-    "moreProviders": "Mehr Anbieter in Kürze",
     "switch_network": "Bitte wechseln Sie auf Mainnet oder Sepolia."
   },
   "walletconnect_sessions": {
