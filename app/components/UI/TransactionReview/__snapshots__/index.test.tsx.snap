@@ -70,7 +70,6 @@ Array [
                     }
                   }
                   testID="account-avatar"
-                  variant="Account"
                 >
                   <View
                     style={

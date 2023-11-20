@@ -7,7 +7,6 @@ import { Alert, InteractionManager } from 'react-native';
 import URL from 'url-parse';
 import { strings } from '../../locales/i18n';
 import { showAlert } from '../actions/alert';
-import { isNetworkBuySupported } from '../components/UI/Ramp/utils';
 import {
   ACTIONS,
   ETH_ACTIONS,
@@ -18,7 +17,6 @@ import { NETWORK_ERROR_MISSING_NETWORK_ID } from '../constants/error';
 import Routes from '../constants/navigation/Routes';
 import NotificationManager from '../core/NotificationManager';
 import SDKConnect from '../core/SDKConnect/SDKConnect';
-import { chainIdSelector, getRampNetworks } from '../reducers/fiatOrders';
 import { getAddress } from '../util/address';
 import { getNetworkTypeById, handleNetworkSwitch } from '../util/networks';
 import { generateApproveData } from '../util/transactions';
@@ -28,6 +26,7 @@ import { Minimizer } from './NativeModules';
 import DevLogger from './SDKConnect/utils/DevLogger';
 import WC2Manager from './WalletConnect/WalletConnectV2';
 import handleDeeplink from './SDKConnect/handleDeeplink';
+import Logger from '../../app/util/Logger';
 
 class DeeplinkManager {
   constructor({ navigation, dispatch }) {
@@ -135,7 +134,7 @@ class DeeplinkManager {
           break;
         }
         case ETH_ACTIONS.APPROVE: {
-          this._approveTransaction(ethUrl, origin);
+          await this._approveTransaction(ethUrl, origin);
           break;
         }
         default: {
@@ -168,7 +167,7 @@ class DeeplinkManager {
   }
 
   _handleBrowserUrl(url, callback) {
-    InteractionManager.runAfterInteractions(() => {
+    const handle = InteractionManager.runAfterInteractions(() => {
       if (callback) {
         callback(url);
       } else {
@@ -181,18 +180,13 @@ class DeeplinkManager {
         });
       }
     });
+    if (handle && handle.done) {
+      handle.done();
+    }
   }
 
   _handleBuyCrypto() {
-    this.dispatch((_, getState) => {
-      const state = getState();
-      // Do nothing for now if use is not in a supported network
-      if (
-        isNetworkBuySupported(chainIdSelector(state), getRampNetworks(state))
-      ) {
-        this.navigation.navigate(Routes.FIAT_ON_RAMP_AGGREGATOR.ID);
-      }
-    });
+    this.navigation.navigate(Routes.RAMP.BUY);
   }
 
   parse(url, { browserCallBack, origin, onHandled }) {
@@ -244,7 +238,9 @@ class DeeplinkManager {
             DevLogger.log(
               `DeeplinkManager:: metamask launched via android sdk universal link`,
             );
-            sdkConnect.bindAndroidSDK();
+            sdkConnect.bindAndroidSDK().catch((err) => {
+              Logger.error(`DeepLinkManager failed to connect`, err);
+            });
             return;
           }
 
@@ -259,6 +255,8 @@ class DeeplinkManager {
                 url,
                 otherPublicKey: params.pubkey,
                 sdkConnect,
+              }).catch((err) => {
+                Logger.error(`DeepLinkManager failed to connect`, err);
               });
             }
             return true;
@@ -340,7 +338,9 @@ class DeeplinkManager {
 
       case PROTOCOLS.ETHEREUM:
         handled();
-        this._handleEthereumUrl(url, origin);
+        this._handleEthereumUrl(url, origin).catch((err) => {
+          Logger.error(err, 'Error handling ethereum url');
+        });
         break;
 
       // Specific to the browser screen
@@ -360,7 +360,9 @@ class DeeplinkManager {
           DevLogger.log(
             `DeeplinkManager:: metamask launched via android sdk deeplink`,
           );
-          sdkConnect.bindAndroidSDK();
+          sdkConnect.bindAndroidSDK().catch((err) => {
+            Logger.error(err);
+          });
           return;
         }
 
@@ -375,6 +377,8 @@ class DeeplinkManager {
               context: 'deeplink_scheme',
               otherPublicKey: params.pubkey,
               sdkConnect,
+            }).catch((err) => {
+              Logger.error(err);
             });
           }
           return true;

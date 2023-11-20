@@ -64,7 +64,7 @@ describe(
           await DeleteWalletModal.tapDeleteMyWalletButton();
           await TestHelpers.delay(2000);
           await OnboardingView.isVisible();
-          await OnboardingView.deleteWalletToastisNotVisible();
+          await OnboardingView.deleteWalletToastIsNotVisible();
           await OnboardingView.tapCreateWallet();
 
           //Create new wallet
