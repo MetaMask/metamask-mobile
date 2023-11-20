@@ -343,6 +343,10 @@ To get a better understanding of the internal architecture of this app take a lo
 
 We have begun documenting our components using Storybook. Please read the [Documentation Guidelines](./storybook/DOCUMENTATION_GUIDELINES.md) to get up and running.
 
+### Code Fencing
+
+When creating builds that support different features, it is desirable to exclude unsupported features, files, and dependencies at build time. This is exactly what Code Fences does. You can find more details about this [HERE](https://github.com/MetaMask/metamask-mobile/blob/main/app/transforms/README.md)
+
 ### Other Docs
 
 - [Adding Confirmations](./docs/confirmations.md)
