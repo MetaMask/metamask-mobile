@@ -1458,7 +1458,7 @@ export function getSwapsQuotesNavbar(navigation, route, themeColors) {
 
 export function getFiatOnRampAggNavbar(
   navigation,
-  { title, showBack = true } = {},
+  { title, showBack = true, showCancel = true } = {},
   themeColors,
   onCancel,
 ) {
@@ -1519,19 +1519,24 @@ export function getFiatOnRampAggNavbar(
         </TouchableOpacity>
       );
     },
-    headerRight: () => (
-      <TouchableOpacity
-        onPress={() => {
-          navigation.dangerouslyGetParent()?.pop();
-          onCancel?.();
-        }}
-        style={styles.closeButton}
-        accessibilityRole="button"
-        accessible
-      >
-        <Text style={innerStyles.headerButtonText}>{navigationCancelText}</Text>
-      </TouchableOpacity>
-    ),
+    headerRight: () => {
+      if (!showCancel) return <View />;
+      return (
+        <TouchableOpacity
+          onPress={() => {
+            navigation.dangerouslyGetParent()?.pop();
+            onCancel?.();
+          }}
+          style={styles.closeButton}
+          accessibilityRole="button"
+          accessible
+        >
+          <Text style={innerStyles.headerButtonText}>
+            {navigationCancelText}
+          </Text>
+        </TouchableOpacity>
+      );
+    },
     headerStyle: innerStyles.headerStyle,
     headerTitleStyle: innerStyles.headerTitleStyle,
   };

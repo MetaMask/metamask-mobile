@@ -1,7 +1,12 @@
 module.exports = {
   stories: [
     '../app/component-library/components/Cards/Card/**/*.stories.?(ts|tsx|js|jsx)',
-    '../app/component-library/components/Banners/Banner/variants/BannerAlert/**/*.stories.?(ts|tsx|js|jsx)',
+    '../app/component-library/components/Buttons/**/*.stories.?(ts|tsx|js|jsx)',
+    '../app/component-library/components/Badges/**/*.stories.?(ts|tsx|js|jsx)',
+    '../app/component-library/components/Accordions/**/*.stories.?(ts|tsx|js|jsx)',
+    '../app/component-library/components/Banners/**/*.stories.?(ts|tsx|js|jsx)',
+    '../app/component-library/components/Modals/**/*.stories.?(ts|tsx|js|jsx)',
+    '../app/component-library/components/Sheet/**/*.stories.?(ts|tsx|js|jsx)',
     '../app/component-library/components/Avatars/**/*.stories.?(ts|tsx|js|jsx)',
     '../app/component-library/components/BottomSheets/**/*.stories.?(ts|tsx|js|jsx)',
     '../app/component-library/components/Navigation/**/*.stories.?(ts|tsx|js|jsx)',
@@ -15,6 +20,7 @@ module.exports = {
     '../app/component-library/components/Overlay/**/*.stories.?(ts|tsx|js|jsx)',
     '../app/component-library/components/Icons/**/*.stories.?(ts|tsx|js|jsx)',
     '../app/component-library/components/Checkbox/**/*.stories.?(ts|tsx|js|jsx)',
+    '../app/component-library/components/Toast/**/*.stories.?(ts|tsx|js|jsx)',
   ],
   addons: ['@storybook/addon-ondevice-controls'],
   framework: '@storybook/react-native',
