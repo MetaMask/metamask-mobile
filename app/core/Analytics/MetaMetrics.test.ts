@@ -9,7 +9,8 @@ import {
   METRICS_OPT_IN,
   MIXPANEL_METAMETRICS_ID,
 } from '../../constants/storage';
-import axios, { AxiosResponse } from 'axios';
+import axios, { AxiosError, AxiosResponse } from 'axios';
+import { DataDeleteResponseStatus } from './MetaMetrics.types';
 
 jest.mock('react-native-default-preference');
 const mockGet = jest.fn();
@@ -103,6 +104,18 @@ describe('MetaMetrics', () => {
     });
   });
 
+  it('does not tracks event when diabled', async () => {
+    const metaMetrics = await TestMetaMetrics.getInstance();
+    const event = 'event1';
+    const properties = { prop1: 'value1' };
+
+    metaMetrics.trackEvent(event, properties);
+
+    expect(DefaultPreference.get).toHaveBeenCalledWith(METRICS_OPT_IN);
+    const { segmentMockClient } = global as any;
+    expect(segmentMockClient.track).not.toHaveBeenCalled();
+  });
+
   it('tracks anonymous event', async () => {
     const metaMetrics = await TestMetaMetrics.getInstance();
     await metaMetrics.enable();
@@ -123,6 +136,20 @@ describe('MetaMetrics', () => {
     });
   });
 
+  it('does not tracks anonymous event if disabled', async () => {
+    const metaMetrics = await TestMetaMetrics.getInstance();
+    const event = 'event1';
+    const properties = { prop1: 'value1' };
+
+    metaMetrics.trackAnonymousEvent(event, properties);
+
+    const { segmentMockClient } = global as any;
+    // the anonymous part
+    expect(segmentMockClient.track).not.toHaveBeenCalled();
+    // non anonymous part
+    expect(segmentMockClient.track).not.toHaveBeenCalled();
+  });
+
   it('groups user', async () => {
     const metaMetrics = await TestMetaMetrics.getInstance();
     await metaMetrics.enable();
@@ -133,6 +160,15 @@ describe('MetaMetrics', () => {
     expect(segmentMockClient.group).toHaveBeenCalledWith(groupId, groupTraits);
   });
 
+  it('does not groups user if disabled', async () => {
+    const metaMetrics = await TestMetaMetrics.getInstance();
+    const groupId = 'group1';
+    const groupTraits = { trait1: 'value1' };
+    metaMetrics.group(groupId, groupTraits);
+    const { segmentMockClient } = global as any;
+    expect(segmentMockClient.group).not.toHaveBeenCalled();
+  });
+
   it('creates segment delete regulation', async () => {
     const metaMetrics = await TestMetaMetrics.getInstance();
     (axios as jest.MockedFunction<typeof axios>).mockResolvedValue({
@@ -140,15 +176,65 @@ describe('MetaMetrics', () => {
       data: { regulateId: 'regulateId1' },
     } as AxiosResponse<any>);
 
-    await metaMetrics.createSegmentDeleteRegulation();
+    const result = await metaMetrics.createDeleteRegulation();
+
+    expect(result).toEqual({ status: DataDeleteResponseStatus.ok });
 
     expect(DefaultPreference.set).toHaveBeenCalledWith(
       METAMETRICS_SEGMENT_REGULATION_ID,
       'regulateId1',
     );
+
+    const currentDate = new Date();
+    const day = currentDate.getUTCDate();
+    const month = currentDate.getUTCMonth() + 1;
+    const year = currentDate.getUTCFullYear();
     expect(DefaultPreference.set).toHaveBeenCalledWith(
       ANALYTICS_DATA_DELETION_DATE,
+      `${day}/${month}/${year}`,
+    );
+  });
+
+  it('handles segment delete regulation error', async () => {
+    const metaMetrics = await TestMetaMetrics.getInstance();
+    (axios as jest.MockedFunction<typeof axios>).mockRejectedValue({
+      response: {
+        status: 422,
+        data: { message: 'Validation error' },
+      },
+    } as AxiosError);
+
+    const result = await metaMetrics.createDeleteRegulation();
+
+    expect(result.status).toBe(DataDeleteResponseStatus.error);
+    expect(DefaultPreference.set).not.toHaveBeenCalledWith(
+      METAMETRICS_SEGMENT_REGULATION_ID,
       expect.any(String),
+    );
+    expect(DefaultPreference.set).not.toHaveBeenCalledWith(
+      ANALYTICS_DATA_DELETION_DATE,
+      expect.any(String),
+    );
+  });
+
+  it('gets delete regulation creation date', async () => {
+    const expectedDate = '04/05/2023';
+    DefaultPreference.get = jest.fn().mockResolvedValue(expectedDate);
+    const metaMetrics = await TestMetaMetrics.getInstance();
+    expect(await metaMetrics.getDeleteRegulationCreationDate()).toBe(
+      expectedDate,
+    );
+    expect(DefaultPreference.get).toHaveBeenCalledWith(
+      ANALYTICS_DATA_DELETION_DATE,
+    );
+  });
+
+  it('returns empty string if no date is set', async () => {
+    DefaultPreference.get = jest.fn().mockResolvedValue(undefined);
+    const metaMetrics = await TestMetaMetrics.getInstance();
+    expect(await metaMetrics.getDeleteRegulationCreationDate()).toBeUndefined();
+    expect(DefaultPreference.get).toHaveBeenCalledWith(
+      ANALYTICS_DATA_DELETION_DATE,
     );
   });
 
@@ -172,6 +258,21 @@ describe('MetaMetrics', () => {
     );
   });
 
+  it('does not add traits to user when disabled', async () => {
+    const metaMetrics = await TestMetaMetrics.getInstance();
+    const userTraits = { trait1: 'value1' };
+    await metaMetrics.addTraitsToUser(userTraits);
+    const { segmentMockClient } = global as any;
+    expect(segmentMockClient.identify).not.toHaveBeenCalled();
+  });
+
+  it('flushes the segment client', async () => {
+    const metaMetrics = await TestMetaMetrics.getInstance();
+    await metaMetrics.flush();
+    const { segmentMockClient } = global as any;
+    expect(segmentMockClient.flush).toHaveBeenCalled();
+  });
+
   it('uses Mixpanel ID if it is set', async () => {
     const mixPanelId = '0x00';
     mockGet.mockImplementation(async () => mixPanelId);
@@ -186,6 +287,21 @@ describe('MetaMetrics', () => {
       mixPanelId,
     );
     expect(DefaultPreference.get).not.toHaveBeenCalledWith(METAMETRICS_ID);
+  });
+
+  it('uses Metametrics ID if it is set', async () => {
+    const id = '0x00';
+    mockGet.mockImplementation(async (key: string) =>
+      key === METAMETRICS_ID ? id : '',
+    );
+    await TestMetaMetrics.getInstance();
+
+    expect(DefaultPreference.get).toHaveBeenNthCalledWith(
+      2,
+      MIXPANEL_METAMETRICS_ID,
+    );
+    expect(DefaultPreference.get).toHaveBeenNthCalledWith(3, METAMETRICS_ID);
+    expect(DefaultPreference.set).not.toHaveBeenCalled();
   });
 
   it('maintains same user id', async () => {

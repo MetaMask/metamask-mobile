@@ -75,10 +75,12 @@ export interface IMetaMetrics {
    * delete user's data from Segment and all related
    * destinations.
    */
-  createSegmentDeleteRegulation(): Promise<{
+  createDeleteRegulation(): Promise<{
     status: string;
     error?: string;
   }>;
+
+  getDeleteRegulationCreationDate(): Promise<string | undefined>;
 }
 
 /**

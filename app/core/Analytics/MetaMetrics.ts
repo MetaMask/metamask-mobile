@@ -188,12 +188,7 @@ class MetaMetrics implements IMetaMetrics {
    * store in DefaultPreference.
    */
   #storeMetricsOptInPreference = async (enabled: boolean) => {
-    try {
-      await DefaultPreference.set(METRICS_OPT_IN, enabled ? AGREED : DENIED);
-    } catch (e: any) {
-      const errorMsg = 'Error storing Metrics OptIn flag in user preferences';
-      Logger.error(e, errorMsg);
-    }
+    await DefaultPreference.set(METRICS_OPT_IN, enabled ? AGREED : DENIED);
   };
 
   /**
@@ -201,11 +196,15 @@ class MetaMetrics implements IMetaMetrics {
    */
   #storeDeleteRegulationCreationDate = async (): Promise<void> => {
     const currentDate = new Date();
+    const day = currentDate.getUTCDate();
+    const month = currentDate.getUTCMonth() + 1;
+    const year = currentDate.getUTCFullYear();
+
+    // store the date in the format DD/MM/YYYY
+    // similar to the one used in the legacy Analytics
     await DefaultPreference.set(
       ANALYTICS_DATA_DELETION_DATE,
-      `${
-        currentDate.getUTCMonth() + 1
-      }/${currentDate.getUTCDate()}/${currentDate.getUTCFullYear()}`,
+      `${day}/${month}/${year}`,
     );
   };
 
@@ -247,19 +246,17 @@ class MetaMetrics implements IMetaMetrics {
           subjectIds: [this.metametricsId],
         }),
       });
-      const { data, status } = response as any;
-
-      if (status === 200) {
-        const { regulateId } = data;
-        await this.#storeDeleteRegulationId(regulateId);
-        await this.#storeDeleteRegulationCreationDate();
-        return { status: DataDeleteResponseStatus.ok };
-      }
-
-      return { status: DataDeleteResponseStatus.error };
+      const { data } = response as any;
+      const { regulateId } = data;
+      await this.#storeDeleteRegulationId(regulateId);
+      await this.#storeDeleteRegulationCreationDate();
+      return { status: DataDeleteResponseStatus.ok };
     } catch (error: any) {
       Logger.error(error, 'Analytics Deletion Task Error');
-      return { status: DataDeleteResponseStatus.error, error };
+      return {
+        status: DataDeleteResponseStatus.error,
+        error: 'Analytics Deletion Task Error',
+      };
     }
   };
 
@@ -382,10 +379,13 @@ class MetaMetrics implements IMetaMetrics {
    * @returns Promise containing the status of the request.
    * Await this method to ensure the request is completed.
    */
-  createSegmentDeleteRegulation = async (): Promise<{
+  createDeleteRegulation = async (): Promise<{
     status: string;
     error?: string;
   }> => this.#createSegmentDeleteRegulation();
+
+  getDeleteRegulationCreationDate = async (): Promise<string | undefined> =>
+    await DefaultPreference.get(ANALYTICS_DATA_DELETION_DATE);
 }
 
 export default MetaMetrics;
