@@ -109,7 +109,7 @@ export class SDKConnect extends EventEmitter2 {
   private disabledHosts: ApprovedHosts = {};
   private rpcqueueManager = new RPCQueueManager();
   private appStateListener: NativeEventSubscription | undefined;
-  private socketServerUrl = AppConstants.MM_SDK.SERVER_URL; // Allow to customize different socket server url
+  private socketServerUrl: string = AppConstants.MM_SDK.SERVER_URL; // Allow to customize different socket server url
 
   private SDKConnect() {
     // Keep empty to manage singleton
