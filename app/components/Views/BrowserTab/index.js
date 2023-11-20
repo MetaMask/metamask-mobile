@@ -1510,7 +1510,7 @@ export const BrowserTab = (props) => {
                 testID={'browser-webview'}
                 applicationNameForUserAgent={'WebView MetaMaskMobile'}
                 onFileDownload={handleOnFileDownload}
-                javaScriptEnabled={props.isJavascriptEnabled}
+                javaScriptEnabled={props.isJavascriptEnabled && isTabActive}
               />
               {ipfsBannerVisible && renderIpfsBanner()}
             </>

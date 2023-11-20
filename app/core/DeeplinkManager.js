@@ -29,6 +29,7 @@ import DevLogger from './SDKConnect/utils/DevLogger';
 import WC2Manager from './WalletConnect/WalletConnectV2';
 import handleDeeplink from './SDKConnect/handleDeeplink';
 import Logger from '../../app/util/Logger';
+import { setJavascriptEnable } from '../actions/browser';
 
 class DeeplinkManager {
   constructor({ navigation, dispatch }) {
@@ -173,6 +174,7 @@ class DeeplinkManager {
       if (callback) {
         callback(url);
       } else {
+        this.dispatch(setJavascriptEnable(true));
         this.navigation.navigate(Routes.BROWSER.HOME, {
           screen: Routes.BROWSER.VIEW,
           params: {
