@@ -9,13 +9,12 @@ import LedgerKeyring, {
 } from '@consensys/ledgerhq-metamask-keyring';
 import ExtendedKeyringTypes from '../../constants/keyringTypes';
 
-//TODO - Patch EthKeyringController into KeyringController
 /**
  * Get EthKeyringController from KeyringController
  *
  * @returns The EthKeyringController
  */
-export const getEthKeyringController = () => {
+const getEthKeyringController = () => {
   const keyringController: KeyringController = Engine.context.KeyringController;
   return keyringController.getEthKeyringController();
 };
@@ -25,7 +24,7 @@ export const getEthKeyringController = () => {
  */
 export const syncKeyringState = async (): Promise<void> => {
   const keyringController = Engine.context.KeyringController;
-  const ethKeyringController = keyringController.getEthKeyringController();
+  const ethKeyringController = getEthKeyringController();
   const { vault } = ethKeyringController.store.getState();
   const { keyrings, isUnlocked, encryptionKey, encryptionSalt } =
     ethKeyringController.memStore.getState();
@@ -75,10 +74,10 @@ export const restoreLedgerKeyring = async (
   keyringSerialized: SerializationOptions,
 ): Promise<void> => {
   const keyringController = Engine.context.KeyringController;
+  const ethKeyringController = getEthKeyringController();
+
   (await getLedgerKeyring()).deserialize(keyringSerialized);
-  keyringController.updateIdentities(
-    await keyringController.getEthKeyringController().getAccounts(),
-  );
+  keyringController.updateIdentities(await ethKeyringController.getAccounts());
   await syncKeyringState();
 };
 
@@ -109,7 +108,7 @@ export const unlockLedgerDefaultAccount = async (): Promise<{
   balance: string;
 }> => {
   const keyringController = Engine.context.KeyringController;
-  const ethKeyringController = keyringController.getEthKeyringController();
+  const ethKeyringController = getEthKeyringController();
   const keyring = await getLedgerKeyring();
   const oldAccounts = await ethKeyringController.getAccounts();
   await ethKeyringController.addNewAccount(keyring);
@@ -156,7 +155,7 @@ export const closeRunningAppOnLedger = async (): Promise<void> => {
  */
 export const forgetLedger = async (): Promise<void> => {
   const keyringController = Engine.context.KeyringController;
-  const ethKeyringController = keyringController.getEthKeyringController();
+  const ethKeyringController = getEthKeyringController();
   const keyring = await getLedgerKeyring();
   keyring.forgetDevice();
 
