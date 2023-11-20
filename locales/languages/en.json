@@ -2162,7 +2162,7 @@
     "i_understand": "I understand",
     "quotes_expire_in": "Quotes expire in",
     "saving": "Saving",
-    "using_best_quote": "Using the best quote",
+    "n_quotes": "{{numberOfQuotes}} quotes",
     "view_details": "View details",
     "estimated_gas_fee": "Estimated gas fee",
     "max_gas_fee": "Max gas fee",
@@ -2175,10 +2175,6 @@
     "completed_swap": "Swap!",
     "metamask_swap_fee": "MetaMask Swap fee",
     "fee_text": {
-      "get_the": "Get the",
-      "best_price": "best price",
-      "from_the": "from the",
-      "top_liquidity": "top liquidity sources every time.",
       "fee_is_applied": "The fee of {{fee}} is automatically factored into this quote. You pay it in exchange for a license to use MetaMask's liquidity provider information aggregation software.",
       "fee_is_not_applied": "MetaMask does not include an additional fee in this quote."
     },
@@ -2211,7 +2207,7 @@
     "quote_source_agg": {
       "1": "This quote comes from an",
       "2": "aggregator",
-      "3": "which finds the best price by splitting your order between different decentralized exchanges."
+      "3_1": "which compares prices and splits your order between different decentralized exchanges."
     },
     "quote_source_cnt": {
       "1": "This quote comes directly from a",

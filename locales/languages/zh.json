@@ -2152,7 +2152,6 @@
     "i_understand": "我理解",
     "quotes_expire_in": "报价到期时间：",
     "saving": "正在保存",
-    "using_best_quote": "使用最佳报价",
     "view_details": "查看详情",
     "estimated_gas_fee": "估算的燃料费",
     "max_gas_fee": "最大燃料费",
@@ -2165,10 +2164,6 @@
     "completed_swap": "兑换！",
     "metamask_swap_fee": "MetaMask Swap 费用",
     "fee_text": {
-      "get_the": "获取",
-      "best_price": "来自",
-      "from_the": "顶级流动性",
-      "top_liquidity": "首要流动性的最佳价格。",
       "fee_is_applied": "该报价中会自动计入一笔 {{fee}} 的费用。您支付该费用以换取使用 MetaMask 流动性提供商信息聚合软件的许可证。",
       "fee_is_not_applied": "MetaMask在此报价中并未包括额外费用。"
     },

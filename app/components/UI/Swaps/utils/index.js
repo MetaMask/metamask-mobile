@@ -213,7 +213,7 @@ export function getQuotesSourceMessage(type) {
       return [
         strings('swaps.quote_source_agg.1'),
         strings('swaps.quote_source_agg.2'),
-        strings('swaps.quote_source_agg.3'),
+        strings('swaps.quote_source_agg.3_1'),
       ];
     }
   }
