@@ -1,6 +1,3 @@
-/* eslint-disable @typescript-eslint/no-require-imports */
-/* eslint-disable import/no-commonjs */
-/* eslint-disable @typescript-eslint/no-var-requires */
 import React, { useEffect, useMemo, useState } from 'react';
 import { SafeAreaView, StyleSheet, View } from 'react-native';
 import { mockTheme, useAppThemeFromContext } from '../../../util/theme';

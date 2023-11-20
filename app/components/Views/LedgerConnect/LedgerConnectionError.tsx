@@ -1,6 +1,3 @@
-/* eslint-disable @typescript-eslint/no-require-imports */
-/* eslint-disable import/no-commonjs */
-/* eslint-disable @typescript-eslint/no-var-requires */
 import React, { useMemo } from 'react';
 import { Image, StyleSheet, View } from 'react-native';
 import {
@@ -59,8 +56,8 @@ const createStyles = (colors: Colors) =>
     },
   });
 
-const ledgerConnectErrorDarkImage = require('../../../images/ledger-connect-error-dark.png');
-const ledgerConnectErrorLightImage = require('../../../images/ledger-connect-error-light.png');
+import ledgerConnectErrorDarkImage from '../../../images/ledger-connect-error-dark.png';
+import ledgerConnectErrorLightImage from '../../../images/ledger-connect-error-light.png';
 
 export interface LedgerConnectionErrorProps {
   errorTitle: string;

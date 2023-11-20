@@ -1,4 +1,3 @@
-/* eslint-disable @typescript-eslint/no-var-requires, @typescript-eslint/no-require-imports, import/no-commonjs */
 import React, { useEffect, useMemo, useState } from 'react';
 import {
   View,
@@ -34,11 +33,12 @@ import { getNavigationOptionsTitle } from '../../UI/Navbar';
 import { unlockLedgerDefaultAccount } from '../../../core/Ledger/Ledger';
 import { MetaMetricsEvents } from '../../../core/Analytics';
 import AnalyticsV2 from '../../../util/analyticsV2';
+import { LEDGER_SUPPORT_LINK } from '../../../constants/urls';
 
-const ledgerDeviceDarkImage = require('../../../images/ledger-device-dark.png');
-const ledgerDeviceLightImage = require('../../../images/ledger-device-light.png');
-const ledgerConnectLightImage = require('../../../images/ledger-connect-light.png');
-const ledgerConnectDarkImage = require('../../../images/ledger-connect-dark.png');
+import ledgerDeviceDarkImage from '../../../images/ledger-device-dark.png';
+import ledgerDeviceLightImage from '../../../images/ledger-device-light.png';
+import ledgerConnectLightImage from '../../../images/ledger-connect-light.png';
+import ledgerConnectDarkImage from '../../../images/ledger-connect-dark.png';
 
 const createStyles = (colors: any) =>
   StyleSheet.create({
@@ -164,7 +164,7 @@ const LedgerConnect = () => {
     navigation.push('Webview', {
       screen: 'SimpleWebview',
       params: {
-        url: 'https://support.ledger.com/hc/en-us/articles/360009576554-Ethereum-ETH-?docs=true',
+        url: LEDGER_SUPPORT_LINK,
         title: strings('ledger.how_to_install_eth_webview_title'),
       },
     });

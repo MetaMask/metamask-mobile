@@ -1,6 +1,3 @@
-/* eslint-disable @typescript-eslint/no-require-imports */
-/* eslint-disable import/no-commonjs */
-/* eslint-disable @typescript-eslint/no-var-requires */
 import React, { useMemo } from 'react';
 import {
   ActivityIndicator,
@@ -14,9 +11,10 @@ import { strings } from '../../../../../locales/i18n';
 import { useAssetFromTheme } from '../../../../util/theme';
 import { useNavigation } from '@react-navigation/native';
 import Device from '../../../../util/device';
+import { LEDGER_SUPPORT_LINK } from '../../../../constants/urls';
 
-const ledgerConnectLightImage = require('../../../../images/ledger-connect-light.png');
-const ledgerConnectDarkImage = require('../../../../images/ledger-connect-dark.png');
+import ledgerConnectLightImage from '../../../../images/ledger-connect-light.png';
+import ledgerConnectDarkImage from '../../../../images/ledger-connect-dark.png';
 
 const createStyles = () =>
   StyleSheet.create({
@@ -71,7 +69,7 @@ const SearchingForDeviceStep = () => {
     navigation.push('Webview', {
       screen: 'SimpleWebview',
       params: {
-        url: 'https://support.ledger.com/hc/en-us/articles/360009576554-Ethereum-ETH-?docs=true',
+        url: LEDGER_SUPPORT_LINK,
         title: strings('ledger.how_to_install_eth_webview_title'),
       },
     });

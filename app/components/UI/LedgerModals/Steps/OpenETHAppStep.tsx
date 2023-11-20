@@ -1,6 +1,3 @@
-/* eslint-disable @typescript-eslint/no-require-imports */
-/* eslint-disable import/no-commonjs */
-/* eslint-disable @typescript-eslint/no-var-requires */
 import React, { useMemo } from 'react';
 import { Image, StyleSheet, View } from 'react-native';
 import StyledButton from '../../StyledButton';
@@ -9,8 +6,8 @@ import { strings } from '../../../../../locales/i18n';
 import Device from '../../../../util/device';
 import { useAssetFromTheme } from '../../../../util/theme';
 
-const ledgerConnectLightImage = require('../../../../images/ledger-connect-light.png');
-const ledgerConnectDarkImage = require('../../../../images/ledger-connect-dark.png');
+import ledgerConnectLightImage from '../../../../images/ledger-connect-light.png';
+import ledgerConnectDarkImage from '../../../../images/ledger-connect-dark.png';
 
 const createStyles = () =>
   StyleSheet.create({
