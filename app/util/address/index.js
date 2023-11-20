@@ -171,11 +171,11 @@ export function isQRHardwareAccount(address) {
  * get address's kerying
  *
  * @param {String} address - String corresponding to an address
- * @returns {Keyring} - Returns address's account keyriong
+ * @returns {Keyring | undefined} - Returns address's account keyriong, otherwise undefined
  */
 export function getKeyringByAddress(address) {
   if (!isValidHexAddress(address)) {
-    throw new Error(`Invalid address: ${address}`);
+    return undefined;
   }
   const { KeyringController } = Engine.context;
   const { keyrings } = KeyringController.state;
