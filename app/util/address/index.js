@@ -171,7 +171,7 @@ export function isQRHardwareAccount(address) {
  * get address's kerying
  *
  * @param {String} address - String corresponding to an address
- * @returns {Keyring | undefined} - Returns address's account keyriong if keyring found, otherwise return undefined
+ * @returns {Keyring | undefined} - Returns the keyring of the provided address if keyring found, otherwise returns undefined
  */
 export function getKeyringByAddress(address) {
   if (!isValidHexAddress(address)) {
