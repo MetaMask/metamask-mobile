@@ -346,7 +346,7 @@ workflows:
         - create_command_flags: --sdcard 8192M
         - start_command_flags: -read-only
         - profile: pixel_5
-    - wait-for-android-emulator@1: {}
+    # - wait-for-android-emulator@1: {}
     - save-gradle-cache@1: {}
     - script@1:
         title: Detox Build
@@ -371,17 +371,16 @@ workflows:
         stack: linux-docker-android-20.04
   android_e2e_test:
     before_run:
-    - code_setup_dev
+    # - code_setup_dev
     - e2e_setup
-    # - android_e2e_build
-    # after_run:
-    # - _notify_failure_on_slack
+    after_run:
+    - _notify_failure_on_slack
     steps:
     - restore-gradle-cache@1: {}
-    - install-missing-android-tools@3:
-        inputs:
-        - ndk_version: $NDK_VERSION
-        - gradlew_path: $PROJECT_LOCATION/gradlew
+    # - install-missing-android-tools@3:
+    #     inputs:
+    #     - ndk_version: $NDK_VERSION
+    #     - gradlew_path: $PROJECT_LOCATION/gradlew
     - script@1:
         title: Download cmake 3.22.1 with sdkmanager
         is_always_run: false
@@ -395,9 +394,9 @@ workflows:
         - create_command_flags: --sdcard 8192M
         - start_command_flags: -read-only
         - profile: pixel_5
-    - wait-for-android-emulator@1: {}
-    - save-gradle-cache@1: {}
+    # - save-gradle-cache@1: {}
     - cache-pull@2: {}
+    - wait-for-android-emulator@1: {}
     - script@1:
         title: Detox Run Test
         is_always_run: false
