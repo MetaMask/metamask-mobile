@@ -1,57 +1,42 @@
-/* eslint-disable no-console */
-
-// Third party dependencies.
-import React from 'react';
-import { select, boolean } from '@storybook/addon-knobs';
-import { storiesOf } from '@storybook/react-native';
-
 // External dependencies.
-import { storybookPropsGroupID } from '../../../constants/storybook.constants';
 import { IconName } from '../../Icons/Icon';
 
 // Internal dependencies.
-import ButtonIcon from './ButtonIcon';
-import {
-  ButtonIconVariants,
-  ButtonIconProps,
-  ButtonIconSizes,
-} from './ButtonIcon.types';
+import { default as ButtonIconComponent } from './ButtonIcon';
+import { SAMPLE_BUTTONICON_PROPS } from './ButtonIcon.constants';
+import { ButtonIconSizes, ButtonIconVariants } from './ButtonIcon.types';
 
-export const getButtonIconStoryProps = (): ButtonIconProps => {
-  const sizeSelector = select(
-    'size',
-    ButtonIconSizes,
-    ButtonIconSizes.Lg,
-    storybookPropsGroupID,
-  );
-  const iconNameSelector = select(
-    'iconName',
-    IconName,
-    IconName.Lock,
-    storybookPropsGroupID,
-  );
-  const variantSelector = select(
-    'variant',
-    ButtonIconVariants,
-    ButtonIconVariants.Primary,
-    storybookPropsGroupID,
-  );
-  const isDisabledToggle = boolean('isDisabled', false, storybookPropsGroupID);
-
-  return {
-    variant: variantSelector,
-    iconName: iconNameSelector,
-    isDisabled: isDisabledToggle,
-    onPress: () => console.log("I'm clicked!"),
-    size: sizeSelector,
-  };
+const ButtonIconMeta = {
+  title: 'Component Library / Buttons',
+  component: ButtonIconComponent,
+  argTypes: {
+    iconName: {
+      options: IconName,
+      control: {
+        type: 'select',
+      },
+      defaultValue: SAMPLE_BUTTONICON_PROPS.iconName,
+    },
+    variant: {
+      options: ButtonIconVariants,
+      control: {
+        type: 'select',
+      },
+      defaultValue: SAMPLE_BUTTONICON_PROPS.variant,
+    },
+    size: {
+      options: ButtonIconSizes,
+      control: {
+        type: 'select',
+      },
+      defaultValue: SAMPLE_BUTTONICON_PROPS.size,
+    },
+    isDisabled: {
+      control: { type: 'boolean' },
+      defaultValue: SAMPLE_BUTTONICON_PROPS.isDisabled,
+    },
+  },
 };
+export default ButtonIconMeta;
 
-const ButtonIconStory = () => <ButtonIcon {...getButtonIconStoryProps()} />;
-
-storiesOf('Component Library / Buttons', module).add(
-  'ButtonIcon',
-  ButtonIconStory,
-);
-
-export default ButtonIconStory;
+export const ButtonIcon = {};

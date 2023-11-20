@@ -124,8 +124,7 @@ const QRScanner = () => {
 
       if (
         origin === Routes.SEND_FLOW.SEND_TO ||
-        origin === Routes.SETTINGS.CONTACT_FORM ||
-        origin === Routes.WALLET_VIEW
+        origin === Routes.SETTINGS.CONTACT_FORM
       ) {
         if (!isValidAddressInputViaQRCode(content)) {
           showAlertForInvalidAddress();

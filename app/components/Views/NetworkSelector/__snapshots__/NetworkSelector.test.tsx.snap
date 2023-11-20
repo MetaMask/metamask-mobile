@@ -442,7 +442,10 @@ exports[`Network Selector renders correctly 1`] = `
                               style={
                                 Object {
                                   "alignItems": "center",
+                                  "backgroundColor": "#FFFFFF",
+                                  "borderRadius": 4,
                                   "opacity": 1,
+                                  "padding": 16,
                                   "position": "relative",
                                 }
                               }
@@ -455,7 +458,7 @@ exports[`Network Selector renders correctly 1`] = `
                                   Object {
                                     "alignItems": "center",
                                     "flexDirection": "row",
-                                    "padding": 16,
+                                    "padding": 0,
                                   }
                                 }
                               >
@@ -478,6 +481,7 @@ exports[`Network Selector renders correctly 1`] = `
                                         "width": 32,
                                       }
                                     }
+                                    testID="cellbase-avatar"
                                   >
                                     <Image
                                       onError={[Function]}
@@ -557,7 +561,10 @@ exports[`Network Selector renders correctly 1`] = `
                               onPress={[Function]}
                               style={
                                 Object {
+                                  "backgroundColor": "#FFFFFF",
+                                  "borderRadius": 4,
                                   "opacity": 1,
+                                  "padding": 16,
                                   "position": "relative",
                                 }
                               }
@@ -570,7 +577,7 @@ exports[`Network Selector renders correctly 1`] = `
                                   Object {
                                     "alignItems": "center",
                                     "flexDirection": "row",
-                                    "padding": 16,
+                                    "padding": 0,
                                   }
                                 }
                               >
@@ -592,6 +599,7 @@ exports[`Network Selector renders correctly 1`] = `
                                         "width": 32,
                                       }
                                     }
+                                    testID="cellbase-avatar"
                                   >
                                     <Image
                                       onError={[Function]}
@@ -645,7 +653,10 @@ exports[`Network Selector renders correctly 1`] = `
                               style={
                                 Object {
                                   "alignItems": "center",
+                                  "backgroundColor": "#FFFFFF",
+                                  "borderRadius": 4,
                                   "opacity": 1,
+                                  "padding": 16,
                                   "position": "relative",
                                 }
                               }
@@ -658,7 +669,7 @@ exports[`Network Selector renders correctly 1`] = `
                                   Object {
                                     "alignItems": "center",
                                     "flexDirection": "row",
-                                    "padding": 16,
+                                    "padding": 0,
                                   }
                                 }
                               >
@@ -681,6 +692,7 @@ exports[`Network Selector renders correctly 1`] = `
                                         "width": 32,
                                       }
                                     }
+                                    testID="cellbase-avatar"
                                   >
                                     <Image
                                       onError={[Function]}
@@ -736,7 +748,10 @@ exports[`Network Selector renders correctly 1`] = `
                               style={
                                 Object {
                                   "alignItems": "center",
+                                  "backgroundColor": "#FFFFFF",
+                                  "borderRadius": 4,
                                   "opacity": 1,
+                                  "padding": 16,
                                   "position": "relative",
                                 }
                               }
@@ -749,7 +764,7 @@ exports[`Network Selector renders correctly 1`] = `
                                   Object {
                                     "alignItems": "center",
                                     "flexDirection": "row",
-                                    "padding": 16,
+                                    "padding": 0,
                                   }
                                 }
                               >
@@ -772,6 +787,7 @@ exports[`Network Selector renders correctly 1`] = `
                                         "width": 32,
                                       }
                                     }
+                                    testID="cellbase-avatar"
                                   >
                                     <Image
                                       onError={[Function]}
@@ -827,7 +843,10 @@ exports[`Network Selector renders correctly 1`] = `
                               style={
                                 Object {
                                   "alignItems": "center",
+                                  "backgroundColor": "#FFFFFF",
+                                  "borderRadius": 4,
                                   "opacity": 1,
+                                  "padding": 16,
                                   "position": "relative",
                                 }
                               }
@@ -840,7 +859,7 @@ exports[`Network Selector renders correctly 1`] = `
                                   Object {
                                     "alignItems": "center",
                                     "flexDirection": "row",
-                                    "padding": 16,
+                                    "padding": 0,
                                   }
                                 }
                               >
@@ -863,6 +882,7 @@ exports[`Network Selector renders correctly 1`] = `
                                         "width": 32,
                                       }
                                     }
+                                    testID="cellbase-avatar"
                                   >
                                     <Image
                                       onError={[Function]}
@@ -918,7 +938,10 @@ exports[`Network Selector renders correctly 1`] = `
                               style={
                                 Object {
                                   "alignItems": "center",
+                                  "backgroundColor": "#FFFFFF",
+                                  "borderRadius": 4,
                                   "opacity": 1,
+                                  "padding": 16,
                                   "position": "relative",
                                 }
                               }
@@ -931,7 +954,7 @@ exports[`Network Selector renders correctly 1`] = `
                                   Object {
                                     "alignItems": "center",
                                     "flexDirection": "row",
-                                    "padding": 16,
+                                    "padding": 0,
                                   }
                                 }
                               >
@@ -957,6 +980,7 @@ exports[`Network Selector renders correctly 1`] = `
                                         "width": 32,
                                       }
                                     }
+                                    testID="cellbase-avatar"
                                   >
                                     <Text
                                       accessibilityRole="text"

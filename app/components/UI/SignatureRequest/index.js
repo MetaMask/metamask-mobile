@@ -388,6 +388,7 @@ class SignatureRequest extends PureComponent {
 
 const mapStateToProps = (state) => ({
   networkType: selectProviderType(state),
+  securityAlertResponse: state.signatureRequest.securityAlertResponse,
 });
 
 SignatureRequest.contextType = ThemeContext;
