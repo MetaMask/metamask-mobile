@@ -364,7 +364,7 @@ workflows:
             IGNORE_BOXLOGS_DEVELOPMENT="true" FORCE_BUNDLING=true yarn test:e2e:android:bitrise:build --testNamePattern="$TEST_SUITE"
     - cache-push@2:
         inputs:
-        - cache_paths: $PROJECT_LOCATION_ANDROID
+        - cache_paths: ./
         # - cache_paths: $PROJECT_LOCATION_ANDROID/app/build/outputs
     meta:
       bitrise.io:
