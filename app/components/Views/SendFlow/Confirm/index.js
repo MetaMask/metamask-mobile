@@ -674,7 +674,7 @@ class Confirm extends PureComponent {
   ) => {
     const { TransactionController } = Engine.context;
     const { navigation } = this.props;
-    //manual cancel from UI / rejected from ledger
+    // Manual cancel from UI or rejected from ledger device.
     try {
       if (!approve) {
         TransactionController.hub.removeAllListeners(
@@ -703,7 +703,7 @@ class Confirm extends PureComponent {
         });
       }
     } finally {
-      //Let ledger modal handle the error
+      // Error handling derived to LedgerConfirmationModal component
       navigation && navigation.dangerouslyGetParent()?.popToTop();
     }
   };

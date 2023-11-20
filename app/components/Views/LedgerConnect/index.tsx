@@ -333,5 +333,5 @@ const LedgerConnect = () => {
     </SafeAreaView>
   );
 };
-// Emanuel Charlie Tiparu
+
 export default React.memo(LedgerConnect);
