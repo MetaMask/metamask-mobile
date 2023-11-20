@@ -2207,7 +2207,7 @@
     "quote_source_agg": {
       "1": "This quote comes from an",
       "2": "aggregator",
-      "3_1": "which compares prices and splits your order between different decentralized exchanges."
+      "3": "which compares prices and splits your order between different decentralized exchanges."
     },
     "quote_source_cnt": {
       "1": "This quote comes directly from a",
