@@ -1,3 +1,4 @@
+import { Platform } from 'react-native';
 import {
   Reason,
   ResultType,
@@ -6,7 +7,7 @@ import {
 
 // eslint-disable-next-line import/prefer-default-export
 export const isBlockaidFeatureEnabled = () =>
-  process.env.MM_BLOCKAID_UI_ENABLED === 'true';
+  Platform.OS !== 'android' && process.env.MM_BLOCKAID_UI_ENABLED === 'true';
 
 export const getBlockaidMetricsParams = (
   securityAlertResponse?: SecurityAlertResponse,
