@@ -93,7 +93,6 @@ The code is built using React-Native and running code locally requires a Mac or 
     -   **Device:** iPhone 13 Pro
 
 
-
 ### Building Locally
 
 -   Clone this repo:
@@ -113,6 +112,13 @@ cd metamask-mobile
 -   _Non-MetaMask Only:_ Create an account and generate your own API key at [Infura](https://infura.io) in order to connect to main and test nets. Fill `MM_INFURA_PROJECT_ID` in `.js.env`. (App will run without it, but will not be able to connect to actual network.)
 - _Non-MetaMask Only:_ Fill `MM_SENTRY_DSN` in `.js.env` if you want the app to emit logs to your own Sentry project.
 - Note: after updating env vars, make sure to run `source .js.env` on the root of the project
+
+-   Choose your Build Type
+Metamask has currently two build types: `main` and `flask`. The `main` build type is the _default_ one and is used for production builds. The `flask` build type is used for a canary release, mainly used for development and testing of new/beta features purposes. To change the build type, set the `METAMASK_BUILD_TYPE` environment variable to either `main` or `flask`. For example:
+
+```bash
+export METAMASK_BUILD_TYPE="main"
+```
 
 -   Install the app:
 ```
