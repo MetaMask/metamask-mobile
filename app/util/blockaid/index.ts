@@ -1,13 +1,13 @@
-import { Platform } from 'react-native';
 import {
   Reason,
   ResultType,
   SecurityAlertResponse,
 } from '../../components/UI/BlockaidBanner/BlockaidBanner.types';
+import Device from '../device';
 
 // eslint-disable-next-line import/prefer-default-export
 export const isBlockaidFeatureEnabled = () =>
-  Platform.OS !== 'android' && process.env.MM_BLOCKAID_UI_ENABLED === 'true';
+  Device.isIos() && process.env.MM_BLOCKAID_UI_ENABLED === 'true';
 
 export const getBlockaidMetricsParams = (
   securityAlertResponse?: SecurityAlertResponse,
