@@ -1,6 +1,6 @@
 import migrate from './025';
 
-describe('#25', () => {
+describe('Migration #25', () => {
   it('migrates state from thirdPartyMode to the new incoming transactions networks on preferences controller', () => {
     const oldState = {
       privacy: { thirdPartyApiMode: false },

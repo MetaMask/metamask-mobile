@@ -3,7 +3,7 @@ import AsyncStorage from './async-storage-wrapper';
 import FilesystemStorage from 'redux-persist-filesystem-storage';
 import autoMergeLevel2 from 'redux-persist/lib/stateReconciler/autoMergeLevel2';
 import { RootState } from '../reducers';
-import migrations, { version } from './migrations';
+import { migrations, version } from './migrations';
 import Logger from '../util/Logger';
 import Device from '../util/device';
 

@@ -10,7 +10,7 @@ jest.mock('uuid', () => {
   };
 });
 
-describe('#20', () => {
+describe('Migration #20', () => {
   it('should return state unaltered if there is no preferences controller state', () => {
     const oldState = {
       foo: 'bar',

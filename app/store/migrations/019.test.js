@@ -1,6 +1,6 @@
 import migrate from './019';
 
-describe('#19', () => {
+describe('Migration #19', () => {
   it('should not change state if recents are missing', () => {
     const oldState = {
       foo: 'bar',

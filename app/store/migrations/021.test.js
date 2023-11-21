@@ -2,7 +2,7 @@ import migrate from './021';
 import { IPFS_DEFAULT_GATEWAY_URL } from '../../../app/constants/network';
 import initialBackgroundState from '../../util/test/initial-background-state.json';
 
-describe('#21', () => {
+describe('Migration #21', () => {
   it('should not change state if ipfs gateway in use is not outdated', () => {
     const currentState = {
       engine: {
