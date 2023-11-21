@@ -1437,7 +1437,7 @@ export const BrowserTab = (props) => {
    */
   useEffect(() => {
     if (Platform.OS === 'ios') setKey((prevKey) => prevKey + 1);
-  }, [props.isJavascriptEnabled]);
+  }, [props.isJavascriptEnabled, isTabActive]);
 
   const renderIpfsBanner = () => (
     <View style={styles.bannerContainer}>
@@ -1520,7 +1520,6 @@ export const BrowserTab = (props) => {
         {renderProgressBar()}
         {isTabActive && renderPhishingModal()}
         {isTabActive && renderOptions()}
-
         {isTabActive && renderBottomBar()}
         {isTabActive && renderOnboardingWizard()}
       </View>
