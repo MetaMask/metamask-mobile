@@ -1,7 +1,9 @@
 import React, { useCallback, useMemo, useRef, useState } from 'react';
 import {
-  FlatList,
+  DefaultSectionT,
   SafeAreaView,
+  SectionList,
+  SectionListData,
   StyleSheet,
   TextInput,
   TouchableOpacity,
@@ -72,6 +74,7 @@ interface Props {
   description?: string;
   dismiss?: () => any;
   data?: Region[] | null;
+  selectedRegion?: Region | null;
   onRegionPress: (region: Region) => any;
   location?: ScreenLocation;
   rampType?: RampType;
@@ -82,6 +85,7 @@ const RegionModal: React.FC<Props> = ({
   title,
   description,
   data,
+  selectedRegion,
   onRegionPress,
   dismiss,
   location,
@@ -93,7 +97,7 @@ const RegionModal: React.FC<Props> = ({
   const styles = createStyles();
   const modalStyles = createModalStyles(colors);
   const searchInput = useRef<TextInput>(null);
-  const list = useRef<FlatList<Region>>(null);
+  const list = useRef<SectionList<Region>>(null);
   const [searchString, setSearchString] = useState('');
   const [currentData, setCurrentData] = useState(data || []);
 
@@ -107,9 +111,19 @@ const RegionModal: React.FC<Props> = ({
     Region | Record<string, never>
   >({});
   const [showAlert, setShowAlert] = useState(false);
-  const dataFuse = useMemo(
-    () =>
-      new Fuse(currentData, {
+
+  const dataSearchResults = useMemo(() => {
+    const allRegions: Region[] = currentData.reduce(
+      (acc: Region[], region: Region) => [
+        ...acc,
+        region,
+        ...((region.states as Region[]) || []),
+      ],
+      [],
+    );
+
+    if (searchString.length > 0) {
+      const dataFuse = new Fuse(allRegions, {
         shouldSort: true,
         threshold: 0.2,
         location: 0,
@@ -117,17 +131,57 @@ const RegionModal: React.FC<Props> = ({
         maxPatternLength: 32,
         minMatchCharLength: 1,
         keys: ['name'],
-      }),
-    [currentData],
-  );
+      });
 
-  const dataSearchResults = useMemo(
-    () =>
-      searchString.length > 0
-        ? dataFuse.search(searchString)?.slice(0, MAX_REGION_RESULTS)
-        : currentData,
-    [searchString, dataFuse, currentData],
-  );
+      const results = dataFuse
+        .search(searchString)
+        ?.slice(0, MAX_REGION_RESULTS);
+
+      if (results?.length) {
+        return [
+          {
+            title: null,
+            data: results,
+          },
+        ];
+      }
+      return [];
+    }
+
+    if (!currentData?.length) return [];
+
+    const popularRegions = allRegions.filter((region) => region.recommended);
+
+    if (popularRegions.length) {
+      return [
+        {
+          title: strings('fiat_on_ramp_aggregator.region.popular_regions'),
+          data: popularRegions,
+        },
+        {
+          title: strings('fiat_on_ramp_aggregator.region.regions'),
+          data: currentData.filter((region) => !region.recommended),
+        },
+      ];
+    }
+
+    return [
+      {
+        title: null,
+        data: currentData,
+      },
+    ];
+  }, [searchString, currentData]);
+
+  const scrollToTop = useCallback(() => {
+    if (list?.current && dataSearchResults?.length) {
+      list.current?.scrollToLocation({
+        animated: false,
+        itemIndex: 0,
+        sectionIndex: 0,
+      });
+    }
+  }, [dataSearchResults?.length]);
 
   const handleOnRegionPressCallback = useCallback(
     (region: Region) => {
@@ -136,6 +190,7 @@ const RegionModal: React.FC<Props> = ({
         setRegionInTransit(region);
         setCurrentData(region.states as Region[]);
         setSearchString('');
+        scrollToTop();
         return;
       }
       if (
@@ -157,7 +212,7 @@ const RegionModal: React.FC<Props> = ({
         location,
       });
     },
-    [isBuy, location, onRegionPress, regionInTransit, trackEvent],
+    [isBuy, location, onRegionPress, regionInTransit, scrollToTop, trackEvent],
   );
 
   const renderRegionItem = useCallback(
@@ -175,7 +230,9 @@ const RegionModal: React.FC<Props> = ({
                   <Text>{region.emoji}</Text>
                 </View>
                 <View>
-                  <Text black>{region.name}</Text>
+                  <Text black bold={selectedRegion?.id === region.id}>
+                    {region.name}
+                  </Text>
                 </View>
               </View>
             </ListItem.Body>
@@ -190,7 +247,13 @@ const RegionModal: React.FC<Props> = ({
         </ListItem>
       </TouchableOpacity>
     ),
-    [handleOnRegionPressCallback, styles.emoji, styles.listItem, styles.region],
+    [
+      handleOnRegionPressCallback,
+      selectedRegion,
+      styles.emoji,
+      styles.listItem,
+      styles.region,
+    ],
   );
   const handleSearchPress = () => searchInput?.current?.focus();
 
@@ -207,11 +270,25 @@ const RegionModal: React.FC<Props> = ({
     [searchString, modalStyles.emptyList],
   );
 
+  const renderSectionHeader = ({
+    section: { title: sectionTitle },
+  }: {
+    section: SectionListData<Region, DefaultSectionT>;
+  }) => {
+    if (!sectionTitle) return null;
+    return (
+      <ListItem style={styles.listItem}>
+        <Text>{sectionTitle}</Text>
+      </ListItem>
+    );
+  };
+
   const handleRegionBackButton = useCallback(() => {
     setActiveView(RegionViewType.COUNTRY);
     setCurrentData(data || []);
     setSearchString('');
-  }, [data]);
+    scrollToTop();
+  }, [data, scrollToTop]);
 
   const onBackButtonPress = useCallback(() => {
     if (activeView === RegionViewType.STATE) {
@@ -221,16 +298,19 @@ const RegionModal: React.FC<Props> = ({
     }
   }, [activeView, dismiss, handleRegionBackButton]);
 
-  const handleSearchTextChange = useCallback((text) => {
-    setSearchString(text);
-    if (list?.current)
-      list.current?.scrollToOffset({ animated: false, offset: 0 });
-  }, []);
+  const handleSearchTextChange = useCallback(
+    (text) => {
+      setSearchString(text);
+      scrollToTop();
+    },
+    [scrollToTop],
+  );
 
   const handleClearSearch = useCallback(() => {
     setSearchString('');
     searchInput?.current?.focus();
-  }, [setSearchString]);
+    scrollToTop();
+  }, [scrollToTop]);
 
   const onModalHide = useCallback(() => {
     setActiveView(RegionViewType.COUNTRY);
@@ -255,66 +335,16 @@ const RegionModal: React.FC<Props> = ({
     >
       <SafeAreaView style={modalStyles.modalView}>
         <ModalDragger />
-        {activeView === RegionViewType.COUNTRY ? (
-          <ScreenLayout>
-            <ScreenLayout.Header
-              bold
-              title={title}
-              description={description}
-              descriptionStyle={modalStyles.headerDescription}
-            >
-              <TouchableWithoutFeedback onPress={handleSearchPress}>
-                <View style={modalStyles.inputWrapper}>
-                  <Icon
-                    name="ios-search"
-                    size={20}
-                    style={modalStyles.searchIcon}
-                  />
-                  <TextInput
-                    ref={searchInput}
-                    style={modalStyles.input}
-                    placeholder={strings(
-                      'fiat_on_ramp_aggregator.region.search_by_country',
-                    )}
-                    placeholderTextColor={colors.text.muted}
-                    value={searchString}
-                    onChangeText={handleSearchTextChange}
-                  />
-                  {searchString.length > 0 && (
-                    <TouchableOpacity onPress={handleClearSearch}>
-                      <Icon
-                        name="ios-close-circle"
-                        size={20}
-                        style={modalStyles.searchIcon}
-                        color={colors.icon.alternative}
-                      />
-                    </TouchableOpacity>
-                  )}
-                </View>
-              </TouchableWithoutFeedback>
-            </ScreenLayout.Header>
-
-            <ScreenLayout.Body>
-              <View style={modalStyles.resultsView}>
-                <FlatList
-                  ref={list}
-                  style={styles.rowView}
-                  keyboardDismissMode="none"
-                  keyboardShouldPersistTaps="always"
-                  data={dataSearchResults}
-                  renderItem={renderRegionItem}
-                  keyExtractor={(item) => item.id}
-                  ListEmptyComponent={renderEmptyList}
-                  ItemSeparatorComponent={Separator}
-                  ListFooterComponent={Separator}
-                  ListHeaderComponent={Separator}
-                />
-              </View>
-            </ScreenLayout.Body>
-          </ScreenLayout>
-        ) : (
-          <ScreenLayout>
-            <ScreenLayout.Header>
+        <ScreenLayout>
+          <ScreenLayout.Header
+            bold
+            title={activeView === RegionViewType.COUNTRY ? title : undefined}
+            description={
+              activeView === RegionViewType.COUNTRY ? description : undefined
+            }
+            descriptionStyle={modalStyles.headerDescription}
+          >
+            {activeView === RegionViewType.STATE ? (
               <ScreenLayout.Content style={styles.subheader}>
                 <TouchableOpacity onPress={handleRegionBackButton}>
                   <Feather
@@ -328,55 +358,60 @@ const RegionModal: React.FC<Props> = ({
                 </Text>
                 <View style={styles.ghostSpacer} />
               </ScreenLayout.Content>
-              <TouchableWithoutFeedback onPress={handleSearchPress}>
-                <View style={modalStyles.inputWrapper}>
-                  <Icon
-                    name="ios-search"
-                    size={20}
-                    style={modalStyles.searchIcon}
-                  />
-                  <TextInput
-                    ref={searchInput}
-                    style={modalStyles.input}
-                    placeholder={strings(
-                      'fiat_on_ramp_aggregator.region.search_by_state',
-                    )}
-                    placeholderTextColor={colors.text.muted}
-                    value={searchString}
-                    onChangeText={handleSearchTextChange}
-                  />
-                  {searchString.length > 0 && (
-                    <TouchableOpacity onPress={handleClearSearch}>
-                      <Icon
-                        name="ios-close-circle"
-                        size={20}
-                        style={modalStyles.searchIcon}
-                        color={colors.text.muted}
-                      />
-                    </TouchableOpacity>
-                  )}
-                </View>
-              </TouchableWithoutFeedback>
-            </ScreenLayout.Header>
+            ) : null}
 
-            <ScreenLayout.Body>
-              <View style={modalStyles.resultsView}>
-                <FlatList
-                  keyboardDismissMode="none"
-                  style={styles.rowView}
-                  keyboardShouldPersistTaps="always"
-                  data={dataSearchResults}
-                  renderItem={renderRegionItem}
-                  keyExtractor={(item) => item.id}
-                  ListEmptyComponent={renderEmptyList}
-                  ItemSeparatorComponent={Separator}
-                  ListFooterComponent={Separator}
-                  ListHeaderComponent={Separator}
+            <TouchableWithoutFeedback onPress={handleSearchPress}>
+              <View style={modalStyles.inputWrapper}>
+                <Icon
+                  name="ios-search"
+                  size={20}
+                  style={modalStyles.searchIcon}
                 />
+                <TextInput
+                  ref={searchInput}
+                  style={modalStyles.input}
+                  placeholder={strings(
+                    activeView === RegionViewType.COUNTRY
+                      ? 'fiat_on_ramp_aggregator.region.search_by_country'
+                      : 'fiat_on_ramp_aggregator.region.search_by_state',
+                  )}
+                  placeholderTextColor={colors.text.muted}
+                  value={searchString}
+                  onChangeText={handleSearchTextChange}
+                />
+                {searchString.length > 0 && (
+                  <TouchableOpacity onPress={handleClearSearch}>
+                    <Icon
+                      name="ios-close-circle"
+                      size={20}
+                      style={modalStyles.searchIcon}
+                      color={colors.text.muted}
+                    />
+                  </TouchableOpacity>
+                )}
               </View>
-            </ScreenLayout.Body>
-          </ScreenLayout>
-        )}
+            </TouchableWithoutFeedback>
+          </ScreenLayout.Header>
+
+          <ScreenLayout.Body>
+            <View style={modalStyles.resultsView}>
+              <SectionList
+                ref={list}
+                style={styles.rowView}
+                keyboardDismissMode="none"
+                keyboardShouldPersistTaps="always"
+                sections={dataSearchResults}
+                renderItem={renderRegionItem}
+                renderSectionHeader={renderSectionHeader}
+                keyExtractor={(item) => item.id}
+                ListEmptyComponent={renderEmptyList}
+                ItemSeparatorComponent={Separator}
+                ListFooterComponent={Separator}
+                stickySectionHeadersEnabled={false}
+              />
+            </View>
+          </ScreenLayout.Body>
+        </ScreenLayout>
 
         <RegionAlert
           isVisible={showAlert}
