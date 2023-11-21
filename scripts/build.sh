@@ -214,8 +214,8 @@ buildIosSimulatorQA(){
 
 buildIosSimulatorFlask(){
 	prebuild_ios
-	SIM="${IOS_SIMULATOR:-"iPhone 12 Pro"}"
-	cd ios && xcodebuild -workspace MetaMask.xcworkspace -scheme MetaMask-Flask -configuration Debug  -sdk iphonesimulator -derivedDataPath build
+	SIM="${IOS_SIMULATOR:-"iPhone 13 Pro"}"
+	react-native run-ios --port=$WATCHER_PORT --simulator "$SIM" --scheme "MetaMask-Flask"
 }
 
 buildIosSimulatorE2E(){
