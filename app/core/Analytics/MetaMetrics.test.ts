@@ -104,7 +104,22 @@ describe('MetaMetrics', () => {
     });
   });
 
-  it('does not tracks event when diabled', async () => {
+  it('tracks event without param', async () => {
+    const metaMetrics = await TestMetaMetrics.getInstance();
+    await metaMetrics.enable();
+    const event = 'event1';
+
+    metaMetrics.trackEvent(event);
+
+    expect(DefaultPreference.get).toHaveBeenCalledWith(METRICS_OPT_IN);
+    const { segmentMockClient } = global as any;
+    expect(segmentMockClient.track).toHaveBeenCalledWith(event, {
+      anonymous: false,
+      ...{},
+    });
+  });
+
+  it('does not track event when diabled', async () => {
     const metaMetrics = await TestMetaMetrics.getInstance();
     const event = 'event1';
     const properties = { prop1: 'value1' };
@@ -136,7 +151,26 @@ describe('MetaMetrics', () => {
     });
   });
 
-  it('does not tracks anonymous event if disabled', async () => {
+  it('tracks anonymous event without param', async () => {
+    const metaMetrics = await TestMetaMetrics.getInstance();
+    await metaMetrics.enable();
+    const event = 'event1';
+
+    metaMetrics.trackAnonymousEvent(event);
+
+    const { segmentMockClient } = global as any;
+    // the anonymous part should not have a user id
+    expect(segmentMockClient.track).toHaveBeenCalledWith(event, {
+      anonymous: true,
+      ...{},
+    });
+    // non anonymous part should not have properties
+    expect(segmentMockClient.track).toHaveBeenCalledWith(event, {
+      anonymous: true,
+    });
+  });
+
+  it('does not track anonymous event if disabled', async () => {
     const metaMetrics = await TestMetaMetrics.getInstance();
     const event = 'event1';
     const properties = { prop1: 'value1' };
