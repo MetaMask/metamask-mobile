@@ -16,7 +16,7 @@ export default function useGoToBridge(location: string) {
 
   return (chainId: string, address?: string) => {
     const existingBridgeTab = browserTabs.find((tab: BrowserTab) =>
-      tab.url.match(new RegExp(`${BRIDGE_URL}/(?![a-z])`)),
+      tab.url.match(new RegExp(BRIDGE_URL)),
     );
 
     const params: BrowserParams & { existingTabId?: string } = {
