@@ -425,7 +425,6 @@ export class SDKConnect extends EventEmitter2 {
       interruptReason = 'already connecting';
     } else if (connecting && trigger === 'deeplink') {
       console.warn(`Priotity to deeplink - overwrite previous connection`);
-      this.removeChannel(channelId);
     }
 
     if (!this.connections[channelId]) {
