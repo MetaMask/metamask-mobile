@@ -879,10 +879,12 @@ trigger_map:
     pipeline: release_e2e_pipeline
   - push_branch: main
     pipeline: pr_smoke_e2e_pipeline
+  - pull_request_source_branch: '*'
+    pull_request_target_branch: 'main'
+    pipeline: pr_smoke_e2e_pipeline
   - tag: 'v*.*.*-RC-*'
     pipeline: release_builds_to_store_pipeline
   - tag: 'qa-*'
     pipeline: create_qa_builds_pipeline
   - tag: 'dev-e2e-*'
     pipeline: pr_smoke_e2e_pipeline
-
