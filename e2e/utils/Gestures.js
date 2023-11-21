@@ -5,18 +5,6 @@ import { waitFor } from 'detox';
  */
 class Gestures {
   /**
-   * Tap an element by descendant test ID.
-   *
-   * @param {Promise} parentElement - ID of the parent element
-   * @param {Promise} childElement - ID of the child element to locate within the parent
-   */
-  static async tapByDescendentTestID(parentElement, childElement) {
-    const element = await parentElement;
-
-    await element.withDescendant(await childElement);
-  }
-
-  /**
    * Tap an element and long press.
    *
    * @param {Promise} elementID - ID of the element to tap
