@@ -176,7 +176,7 @@ const WalletActions = () => {
             actionDescription={strings('asset_overview.bridge_description')}
             iconName={IconName.Bridge}
             iconSize={AvatarSize.Md}
-            onPress={() => goToBridge(chainId)}
+            onPress={goToBridge}
             iconStyle={styles.icon}
             {...generateTestId(Platform, WALLET_BRIDGE)}
           />

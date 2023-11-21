@@ -4,6 +4,7 @@ import { Analytics, MetaMetricsEvents } from '../../../../core/Analytics';
 
 import { useSelector } from 'react-redux';
 import { useNavigation } from '@react-navigation/native';
+import { selectChainId } from '../../../../selectors/networkController';
 
 import type { BrowserTab } from '../../Tokens/types';
 import type { BrowserParams } from '../../../../components/Views/Browser/Browser.types';
@@ -11,10 +12,11 @@ import type { BrowserParams } from '../../../../components/Views/Browser/Browser
 const BRIDGE_URL = `${AppConstants.PORTFOLIO_URL}/bridge`;
 
 export default function useGoToBridge(location: string) {
+  const chainId = useSelector(selectChainId);
   const browserTabs = useSelector((state: any) => state.browser.tabs);
   const { navigate } = useNavigation();
 
-  return (chainId: string, address?: string) => {
+  return (address?: string) => {
     const existingBridgeTab = browserTabs.find((tab: BrowserTab) =>
       tab.url.match(new RegExp(BRIDGE_URL)),
     );
