@@ -36,7 +36,7 @@ export default function useGoToBridge(location: string) {
       screen: Routes.BROWSER.VIEW,
       params,
     });
-    Analytics.trackEvent(MetaMetricsEvents.BRIDGE_LINK_CLICKED, {
+    Analytics.trackEventWithParameters(MetaMetricsEvents.BRIDGE_LINK_CLICKED, {
       bridgeUrl: BRIDGE_URL,
       location,
       chain_id_source: chainId,
