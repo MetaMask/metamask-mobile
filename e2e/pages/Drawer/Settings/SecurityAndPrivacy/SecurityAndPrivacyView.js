@@ -9,23 +9,58 @@ import {
   SecurityPrivacyViewSelectorsText,
 } from '../../../../selectors/Settings/SecurityAndPrivacy/SecurityPrivacyView.selectors';
 
+import Matchers from '../../../../utils/Matchers';
+import Gestures from '../../../../utils/Gestures';
+
 export default class SecurityAndPrivacy {
-  static async tapChangePasswordButton() {
-    await TestHelpers.tap(
+  static get changePasswordButton() {
+    return Matchers.getElementByID(
       SecurityPrivacyViewSelectorsIDs.CHANGE_PASSWORD_BUTTON,
     );
   }
+
+  static get deleteWalletButtonLabel() {
+    return Matchers.getElementByLabel(SECURITY_PRIVACY_DELETE_WALLET_BUTTON);
+  }
+
+  static get deleteWalletButtonID() {
+    return Matchers.getElementByID(SECURITY_PRIVACY_DELETE_WALLET_BUTTON);
+  }
+
+  static get backButton() {
+    return Matchers.getElementByID(CommonSelectorsIDs.BACK_ARROW_BUTTON);
+  }
+
+  static get metaMetricsToggle() {
+    return Matchers.getElementByID(
+      SecurityPrivacyViewSelectorsIDs.METAMETRICS_SWITCH,
+    );
+  }
+
+  static get rememberMeToggle() {
+    return Matchers.getElementByID(SECURITY_PRIVACY_REMEMBER_ME_TOGGLE);
+  }
+
+  static get changePasswordSection() {
+    return Matchers.getElementByID(
+      SecurityPrivacyViewSelectorsIDs.CHANGE_PASSWORD_CONTAINER,
+    );
+  }
+
+  static async tapChangePasswordButton() {
+    await Gestures.tap(this.changePasswordButton);
+  }
+
   static async tapDeleteWalletButton() {
     if (device.getPlatform() === 'android') {
-      await TestHelpers.waitAndTapByLabel(
-        SECURITY_PRIVACY_DELETE_WALLET_BUTTON,
-      );
+      await Gestures.waitAndTap(this.deleteWalletButtonLabel);
     } else {
-      await TestHelpers.waitAndTap(SECURITY_PRIVACY_DELETE_WALLET_BUTTON);
+      await Gestures.waitAndTap(this.deleteWalletButtonID);
     }
   }
+
   static async tapBackButton() {
-    await TestHelpers.tap(CommonSelectorsIDs.BACK_ARROW_BUTTON);
+    await Gestures.tap(this.backButton);
   }
 
   static async scrollToChangePasswordView() {
@@ -39,7 +74,7 @@ export default class SecurityAndPrivacy {
       await TestHelpers.delay(1000);
     } else {
       await TestHelpers.swipe(
-        SecurityPrivacyViewSelectorsIDs.CHANGE_PASSWORD_TITLE,
+        SecurityPrivacyViewSelectorsIDs.CHANGE_PASSWORD_CONTAINER,
         'up',
         'slow',
         0.2,
@@ -86,7 +121,7 @@ export default class SecurityAndPrivacy {
       await TestHelpers.delay(1000);
     } else {
       await TestHelpers.swipe(
-        SecurityPrivacyViewSelectorsIDs.CHANGE_PASSWORD_TITLE,
+        SecurityPrivacyViewSelectorsIDs.CHANGE_PASSWORD_CONTAINER,
         'up',
         'slow',
         0.6,
@@ -128,41 +163,23 @@ export default class SecurityAndPrivacy {
     }
   }
 
-  static async tapOKAlertButton() {
-    await TestHelpers.tapAlertWithButton('OK');
-  }
-
   static async tapMetaMetricsToggle() {
-    await TestHelpers.tap(SecurityPrivacyViewSelectorsIDs.METAMETRICS_SWITCH);
+    await Gestures.tap(this.metaMetricsToggle);
   }
 
   static async tapTurnOnRememberMeToggle() {
-    await TestHelpers.tap(SECURITY_PRIVACY_REMEMBER_ME_TOGGLE);
+    await Gestures.tap(this.rememberMeToggle);
   }
 
-  static async isMetaMetricsToggleOn() {
-    await TestHelpers.checkIfToggleIsOn(
-      SecurityPrivacyViewSelectorsIDs.METAMETRICS_SWITCH,
-    );
+  static async getMetaMetricsToggle() {
+    return await this.metaMetricsToggle;
   }
 
-  static async isMetaMetricsToggleOff() {
-    await TestHelpers.checkIfToggleIsOff(
-      SecurityPrivacyViewSelectorsIDs.METAMETRICS_SWITCH,
-    );
+  static async getRememberMeToggle() {
+    return await this.rememberMeToggle;
   }
 
-  static async isRememberMeToggleOn() {
-    await TestHelpers.checkIfToggleIsOn(SECURITY_PRIVACY_REMEMBER_ME_TOGGLE);
-  }
-
-  static async isRememberMeToggleOff() {
-    await TestHelpers.checkIfToggleIsOff(SECURITY_PRIVACY_REMEMBER_ME_TOGGLE);
-  }
-
-  static async isChangePasswordSectionVisible() {
-    await TestHelpers.checkIfVisible(
-      SecurityPrivacyViewSelectorsIDs.CHANGE_PASSWORD_TITLE,
-    );
+  static async getChangePasswordSection() {
+    return await this.changePasswordSection;
   }
 }

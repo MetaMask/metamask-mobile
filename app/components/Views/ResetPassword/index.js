@@ -53,7 +53,6 @@ import { ThemeContext, mockTheme } from '../../../util/theme';
 import AnimatedFox from 'react-native-animated-fox';
 import {
   RESET_PASSWORD_INPUT_ID,
-  RESET_PASSWORD_INPUT_BOX_ID,
   RESET_PASSWORD_CONFIRM_INPUT_BOX_ID,
   RESET_PASSWORD_ANDROID_TERM_CHECKBOX_ID,
 } from '../../../../wdio/screen-objects/testIDs/Screens/ChangePasswordScreensIDs.testIds';
@@ -678,7 +677,7 @@ class ResetPassword extends PureComponent {
                     secureTextEntry={secureTextEntry}
                     placeholder=""
                     placeholderTextColor={colors.text.muted}
-                    {...generateTestId(Platform, RESET_PASSWORD_INPUT_BOX_ID)}
+                    {...generateTestId(Platform, RESET_PASSWORD_INPUT_ID)}
                     onSubmitEditing={this.jumpToConfirmPassword}
                     returnKeyType="next"
                     autoCapitalize="none"

@@ -118,9 +118,13 @@ describe('Adding Contract Nickname', () => {
   });
 
   it('should enable remember me', async () => {
-    await SecurityAndPrivacy.isRememberMeToggleOff();
+    await expect(
+      await SecurityAndPrivacy.getRememberMeToggle(),
+    ).toHaveToggleValue(false);
     await SecurityAndPrivacy.tapTurnOnRememberMeToggle();
-    await SecurityAndPrivacy.isRememberMeToggleOn();
+    await expect(
+      await SecurityAndPrivacy.getRememberMeToggle(),
+    ).toHaveToggleValue(true);
 
     await TestHelpers.delay(1500);
   });
