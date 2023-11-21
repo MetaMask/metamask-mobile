@@ -247,10 +247,11 @@ describe('isQRHardwareAccount', () => {
   });
 });
 describe('getKeyringByAddress', () => {
-  it('should throw an error if argument address is undefined', () => {
-    expect(() => getKeyringByAddress(undefined as any)).toThrow(
-      'Invalid address: undefined',
-    );
+  it('should return undefined if argument address is undefined', () => {
+    expect(getKeyringByAddress(undefined as any)).toBeUndefined();
+  });
+  it('should return undefined if argument address is not hex address', () => {
+    expect(getKeyringByAddress('ens.eth')).toBeUndefined();
   });
   it('should return address if found', () => {
     expect(

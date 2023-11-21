@@ -2286,6 +2286,11 @@
       "description_1": "Steer clear of known scams while still preserving your privacy with security alerts powered by Blockaid on Ethereum Mainnet.",
       "description_2": "Always do your own due diligence before approving requests.",
       "action_text": "Enable security alerts"
+    },
+    "sell": {
+      "title": "Cashing out made easy",
+      "description": "Sell your crypto directly in MetaMask! We’ll help you find quotes from trusted providers, so you can sell your crypto in an accessible, fast, and secure way, every time.",
+      "action_text": "Try it out"
     }
   },
   "invalid_network": {
