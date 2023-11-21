@@ -1,5 +1,5 @@
 /* eslint-disable dot-notation */
-import { deriveSentryEnvironment } from './sentryUtils';
+import { deriveSentryEnvironment } from './utils';
 
 describe('deriveSentryEnvironment', () => {
   test('should return production-flask for environment if __DEV__ is false, METAMASK_ENVIRONMENT is production, and METAMASK_BUILD_TYPE is flask', async () => {
