@@ -165,6 +165,10 @@ workflows:
             # The Yarn cache is easier and safer to cache than `node_modules`, which could include
             # postinstall script modifications and could affect hoisting on subsequent installs.
             - cache_paths: '$YARN_CACHE_DIR -> ./yarn.lock'
+      - save-cache@1:
+          inputs:
+          - key: node-modules-{{ checksum "yarn.lock" }}
+          - paths: node_modules
   code_setup_dev:
     steps:
       - script@1:
@@ -362,18 +366,18 @@ workflows:
             node -v
             export METAMASK_ENVIRONMENT='local'
             IGNORE_BOXLOGS_DEVELOPMENT="true" FORCE_BUNDLING=true yarn test:e2e:android:bitrise:build --testNamePattern="$TEST_SUITE"
-    - script@1:
-        title: Second Step
-        inputs:
-        - content: |
-            #!/bin/bash
-            ls $BITRISE_SOURCE_DIR
-    - deploy-to-bitrise-io@2: {}
+    # - script@1:
+    #     title: Second Step
+    #     inputs:
+    #     - content: |
+    #         #!/bin/bash
+    #         ls $BITRISE_SOURCE_DIR
+    # - deploy-to-bitrise-io@2: {}
         # inputs:
         # - pipeline_intermediate_files: $BITRISE_SOURCE_DIR
-    # - cache-push@2:
-    #     inputs:
-    #     - cache_paths: ./
+    - cache-push@2:
+        inputs:
+        - cache_paths: $PROJECT_LOCATION_ANDROID/app/build/outputs
         # - cache_paths: $PROJECT_LOCATION_ANDROID/app/build/outputs
     meta:
       bitrise.io:
@@ -382,13 +386,17 @@ workflows:
   android_e2e_test:
     before_run:
     # - code_setup_dev
+    - setup
     - e2e_setup
     # after_run:
     # - _notify_failure_on_slack
     steps:
-    - pull-intermediate-files@1:
+    # - pull-intermediate-files@1:
+    #     inputs:
+    #       - artifact_sources: build_smoke_e2e_ios_android_stage.android_e2e_build
+    - restore-cache@1:
         inputs:
-          - artifact_sources: build_smoke_e2e_ios_android_stage.android_e2e_build
+        - key: node-modules-{{ checksum "yarn.lock" }}
     - script@1:
         inputs:
           - content: |-
