@@ -100,7 +100,7 @@ import {
 } from './SecuritySettings.constants';
 import Cell from '../../../..//component-library/components/Cells/Cell/Cell';
 import { CellVariant } from '../../../../component-library/components/Cells/Cell';
-import { AvatarVariants } from '../../../../component-library/components/Avatars/Avatar/Avatar.types';
+import { AvatarVariant } from '../../../../component-library/components/Avatars/Avatar/Avatar.types';
 import Networks, {
   getAllNetworks,
   getNetworkImageSource,
@@ -686,7 +686,7 @@ const Settings: React.FC = () => {
           variant={CellVariant.Display}
           title={mainnetName}
           avatarProps={{
-            variant: AvatarVariants.Network,
+            variant: AvatarVariant.Network,
             name: mainnetName,
             imageSource: images.ETHEREUM,
           }}
@@ -718,7 +718,7 @@ const Settings: React.FC = () => {
           variant={CellVariant.Display}
           title={lineaMainnetName}
           avatarProps={{
-            variant: AvatarVariants.Network,
+            variant: AvatarVariant.Network,
             name: lineaMainnetName,
             imageSource: images['LINEA-MAINNET'],
           }}
@@ -762,7 +762,7 @@ const Settings: React.FC = () => {
               title={name}
               secondaryText={myNetworks[hexChainId].domain}
               avatarProps={{
-                variant: AvatarVariants.Network,
+                variant: AvatarVariant.Network,
                 name,
                 imageSource: image,
               }}
@@ -800,7 +800,7 @@ const Settings: React.FC = () => {
             title={name}
             secondaryText={myNetworks[hexChainId].domain}
             avatarProps={{
-              variant: AvatarVariants.Network,
+              variant: AvatarVariant.Network,
               name,
               imageSource,
             }}

@@ -5,7 +5,7 @@ import { View, Pressable } from 'react-native';
 // External dependencies.
 import Avatar, {
   AvatarSize,
-  AvatarVariants,
+  AvatarVariant,
 } from '../../../components/Avatars/Avatar';
 import Text, { TextVariant } from '../../../components/Texts/Text';
 import { formatAddress } from '../../../../util/address';
@@ -51,7 +51,7 @@ const ContractBoxBase = ({
         <View style={styles.imageContainer}>
           {contractLocalImage ? (
             <Avatar
-              variant={AvatarVariants.Token}
+              variant={AvatarVariant.Token}
               size={AvatarSize.Md}
               imageSource={contractLocalImage}
             />

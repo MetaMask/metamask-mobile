@@ -1,12 +1,9 @@
 // External dependencies.
-import { AvatarVariants, AvatarAccountType } from '../../../../Avatars/Avatar';
+import { AvatarVariant, AvatarAccountType } from '../../../../Avatars/Avatar';
 import { AvatarProps } from '../../../../Avatars/Avatar/Avatar.types';
 
 // Internal dependencies.
 import { CellMultiSelectProps } from './CellMultiSelect.types';
-
-// Test IDs
-export const CELLMULTISELECT_TEST_ID = 'cellmultiselect';
 
 // Sample consts
 const SAMPLE_CELLMULTISELECT_TITLE = 'Orangefox.eth';
@@ -15,11 +12,12 @@ const SAMPLE_CELLMULTISELECT_SECONDARYTEXT =
 const SAMPLE_CELLMULTISELECT_TERTIARY_TEXT = 'Updated 1 sec ago';
 const SAMPLE_CELLMULTISELECT_TAGLABEL = 'Imported';
 const SAMPLE_CELLMULTISELECT_AVATARPROPS: AvatarProps = {
-  variant: AvatarVariants.Account,
+  variant: AvatarVariant.Account,
   accountAddress: '0x2990079bcdEe240329a520d2444386FC119da21a',
   type: AvatarAccountType.JazzIcon,
 };
 
+// eslint-disable-next-line import/prefer-default-export
 export const SAMPLE_CELLMULTISELECT_PROPS: CellMultiSelectProps = {
   title: SAMPLE_CELLMULTISELECT_TITLE,
   secondaryText: SAMPLE_CELLMULTISELECT_SECONDARYTEXT,

@@ -6,14 +6,6 @@ BadgeStatus is used on top of an element to display status information. **This c
 
 This component extends [BadgeBaseProps](../../foundation/BadgeBase/BadgeBase.types.ts).
 
-### `variant`
-
-Optional prop to control the variant of badge.
-
-| <span style="color:gray;font-size:14px">TYPE</span> | <span style="color:gray;font-size:14px">REQUIRED</span> |
-| :-------------------------------------------------- | :------------------------------------------------------ |
-| [BadgeVariant.Status](../../Badge.types.ts)                                           | Yes                                                     |
-
 ### `state`
 
 Optional prop to control the status of BadgeStatus.

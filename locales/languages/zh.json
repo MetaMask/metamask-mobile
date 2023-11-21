@@ -801,6 +801,10 @@
     "unkown_dapp": "去中心化应用（DAPP）名称不可用",
     "no_connections": "找不到连接"
   },
+  "sdk_return_to_app_modal":{
+    "title": "返回应用",
+    "description": "请返回应用程序以继续使用其服务。"
+  },
   "sdk_feedback_modal": {
     "ok": "确定",
     "title": "账户无法连接",
@@ -1728,10 +1732,7 @@
     "wallet_connect_dapps_cta": "查看会话",
     "network_not_supported": "不支持当前网络",
     "security_alerts": "安全警报",
-    "security_alerts_desc": "此功能会在本地检查您的交易和签名请求，如有恶意活动就会向您发出警报。您的数据不会与提供此服务的第三方共享。在批准任何请求之前，均必须自行作出审慎调查。无法保证此功能可以检测到所有恶意活动。",
-    "select_providers": "选择提供商",
     "blockaid": "Blockaid",
-    "moreProviders": "更多提供商即将加入",
     "switch_network": "请切换为 mainnet 或 sepolia"
   },
   "walletconnect_sessions": {

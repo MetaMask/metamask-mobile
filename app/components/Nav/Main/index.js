@@ -11,6 +11,7 @@ import {
   AppState,
   StyleSheet,
   View,
+  Linking,
   PushNotificationIOS, // eslint-disable-line react-native/split-platform-components
 } from 'react-native';
 import NetInfo from '@react-native-community/netinfo';
@@ -69,6 +70,9 @@ import {
 } from '../../../selectors/networkController';
 import { selectShowIncomingTransactionNetworks } from '../../../selectors/preferencesController';
 import { addHexPrefix, toHexadecimal } from '../../../util/number';
+import { NETWORKS_CHAIN_ID } from '../../../constants/network';
+import WarningAlert from '../../../components/UI/WarningAlert';
+import { GOERLI_DEPRECATED_ARTICLE } from '../../../constants/urls';
 
 const Stack = createStackNavigator();
 
@@ -90,6 +94,7 @@ const Main = (props) => {
   const [forceReload, setForceReload] = useState(false);
   const [showRemindLaterModal, setShowRemindLaterModal] = useState(false);
   const [skipCheckbox, setSkipCheckbox] = useState(false);
+  const [showDeprecatedAlert, setShowDeprecatedAlert] = useState(true);
   const { colors } = useTheme();
   const styles = createStyles(colors);
 
@@ -321,6 +326,23 @@ const Main = (props) => {
     termsOfUse();
   }, [termsOfUse]);
 
+  const openDeprecatedNetworksArticle = () => {
+    Linking.openURL(GOERLI_DEPRECATED_ARTICLE);
+  };
+
+  const renderDeprecatedNetworkAlert = (chainId, backUpSeedphraseVisible) => {
+    if (chainId === NETWORKS_CHAIN_ID.GOERLI && showDeprecatedAlert) {
+      return (
+        <WarningAlert
+          text={strings('networks.deprecated_goerli')}
+          dismissAlert={() => setShowDeprecatedAlert(false)}
+          onPressLearnMore={openDeprecatedNetworksArticle}
+          precedentAlert={backUpSeedphraseVisible}
+        />
+      );
+    }
+  };
+
   return (
     <React.Fragment>
       <View style={styles.flex}>
@@ -338,6 +360,10 @@ const Main = (props) => {
           onDismiss={toggleRemindLater}
           navigation={props.navigation}
         />
+        {renderDeprecatedNetworkAlert(
+          props.chainId,
+          props.backUpSeedphraseVisible,
+        )}
         <SkipAccountSecurityModal
           modalVisible={showRemindLaterModal}
           onCancel={skipAccountModalSecureNow}
@@ -400,6 +426,10 @@ Main.propTypes = {
    * Current chain id
    */
   chainId: PropTypes.string,
+  /**
+   * backup seed phrase modal visible
+   */
+  backUpSeedphraseVisible: PropTypes.bool,
 };
 
 const mapStateToProps = (state) => ({
@@ -407,6 +437,7 @@ const mapStateToProps = (state) => ({
     selectShowIncomingTransactionNetworks(state),
   providerType: selectProviderType(state),
   chainId: selectChainId(state),
+  backUpSeedphraseVisible: state.user.backUpSeedphraseVisible,
 });
 
 const mapDispatchToProps = (dispatch) => ({
