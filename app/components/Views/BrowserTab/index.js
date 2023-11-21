@@ -15,7 +15,6 @@ import { withNavigation } from '@react-navigation/compat';
 import { WebView } from 'react-native-webview';
 import Icon from 'react-native-vector-icons/FontAwesome';
 import MaterialCommunityIcon from 'react-native-vector-icons/MaterialCommunityIcons';
-import { useIsFocused } from '@react-navigation/native';
 import BrowserBottomBar from '../../UI/BrowserBottomBar';
 import PropTypes from 'prop-types';
 import Share from 'react-native-share';
@@ -254,8 +253,6 @@ const sessionENSNames = {};
 const ensIgnoreList = [];
 
 export const BrowserTab = (props) => {
-  const isFocused = useIsFocused();
-  const [key, setKey] = useState(1);
   const [backEnabled, setBackEnabled] = useState(false);
   const [forwardEnabled, setForwardEnabled] = useState(false);
   const [progress, setProgress] = useState(0);
@@ -1433,15 +1430,6 @@ export const BrowserTab = (props) => {
     [reload],
   );
 
-  /**
-   * According to Apple docs, it is not possible to update properties such as `javascriptEnabled` dynamically
-   * - https://developer.apple.com/documentation/webkit/wkwebviewconfiguration.
-   * By updating the key prop, we are forcing iOS WebView to reinitialize with the new `javascriptEnabled` value.
-   */
-  useEffect(() => {
-    if (Platform.OS === 'ios') setKey((prevKey) => prevKey + 1);
-  }, [isFocused]);
-
   const renderIpfsBanner = () => (
     <View style={styles.bannerContainer}>
       <Banner
@@ -1490,7 +1478,6 @@ export const BrowserTab = (props) => {
           {!!entryScriptWeb3 && firstUrlLoaded && (
             <>
               <WebView
-                key={key}
                 originWhitelist={['*']}
                 decelerationRate={'normal'}
                 ref={webviewRef}
