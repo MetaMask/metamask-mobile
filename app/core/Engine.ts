@@ -113,7 +113,7 @@ import {
   SignatureControllerActions,
   SignatureControllerEvents,
 } from '@metamask/signature-controller';
-import { hasProperty, Json } from '@metamask/utils';
+import { hasProperty, Hex, Json } from '@metamask/utils';
 // TODO: Export this type from the package directly
 import { SwapsState } from '@metamask/swaps-controller/dist/SwapsController';
 import { ethErrors } from 'eth-rpc-errors';
@@ -450,6 +450,25 @@ class Engine {
       keyringBuilders: [qrKeyringBuilder],
     });
 
+    const tokenRatesController = new TokenRatesController(
+      {
+        chainId: networkController.state.providerConfig.chainId as Hex,
+        ticker: networkController.state.providerConfig.ticker as Hex,
+        selectedAddress: preferencesController.state.selectedAddress,
+        onTokensStateChange: (listener) => tokensController.subscribe(listener),
+        onNetworkStateChange: (listener) =>
+          this.controllerMessenger.subscribe(
+            AppConstants.NETWORK_STATE_CHANGE_EVENT,
+            listener,
+          ),
+        onPreferencesStateChange: (listener) =>
+          preferencesController.subscribe(listener),
+      },
+      {},
+      initialState.TokenRatesController,
+    );
+    tokenRatesController.start();
+
     const controllers = [
       keyringController,
       new AccountTrackerController({
@@ -531,25 +550,7 @@ class Engine {
         },
         { interval: 10000 },
       ),
-      new TokenRatesController(
-        {
-          onTokensStateChange: (listener) =>
-            tokensController.subscribe(listener),
-          onCurrencyRateStateChange: (listener) =>
-            this.controllerMessenger.subscribe(
-              `${currencyRateController.name}:stateChange`,
-              listener,
-            ),
-          onNetworkStateChange: (listener) =>
-            this.controllerMessenger.subscribe(
-              AppConstants.NETWORK_STATE_CHANGE_EVENT,
-              listener,
-            ),
-        },
-        {
-          chainId: networkController.state.providerConfig.chainId,
-        },
-      ),
+      tokenRatesController,
       new TransactionController({
         blockTracker:
           networkController.getProviderAndBlockTracker().blockTracker,
@@ -833,6 +834,7 @@ class Engine {
       TokenBalancesController,
       TokenRatesController,
       TokensController,
+      NetworkController,
     } = this.context;
     const { selectedAddress } = PreferencesController.state;
     const { currentCurrency } = CurrencyRateController.state;
@@ -854,13 +856,15 @@ class Engine {
     }
     if (tokens.length > 0) {
       const { contractBalances: tokenBalances } = TokenBalancesController.state;
-      const { contractExchangeRates: tokenExchangeRates } =
+      const { contractExchangeRatesByChainId: tokenExchangeRatesByChainId } =
         TokenRatesController.state;
+      const { chainId } = NetworkController.state.providerConfig;
       tokens.forEach(
         (item: { address: string; balance?: string; decimals: number }) => {
           const exchangeRate =
-            item.address in tokenExchangeRates
-              ? tokenExchangeRates[item.address]
+            chainId in tokenExchangeRatesByChainId &&
+            item.address in tokenExchangeRatesByChainId[chainId]
+              ? tokenExchangeRatesByChainId[chainId][item.address]
               : undefined;
           const tokenBalance =
             item.balance ||
@@ -957,7 +961,10 @@ class Engine {
     });
 
     TokenBalancesController.update({ contractBalances: {} });
-    TokenRatesController.update({ contractExchangeRates: {} });
+    TokenRatesController.update({
+      contractExchangeRates: {},
+      contractExchangeRatesByChainId: {},
+    });
 
     TransactionController.update({
       methodData: {},
