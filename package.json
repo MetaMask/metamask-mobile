@@ -24,7 +24,7 @@
     "start:ios:e2e": "./scripts/build.sh ios debugE2E",
     "start:ios:e2e:qa": "./scripts/build.sh ios qadebugE2E",
     "start:ios:device": "./scripts/build.sh ios debug --device",
-    "start:ios:flask": "./scripts/build.sh ios flaskDebug",
+    "start:ios:flask": "export METAMASK_BUILD_TYPE='flask' && ./scripts/build.sh ios flaskDebug",
     "start:android": "./scripts/build.sh android debug",
     "start:android:qa": "./scripts/build.sh android qaDebug",
     "start:android:e2e": "./scripts/build.sh android debugE2E",
