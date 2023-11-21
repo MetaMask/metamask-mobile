@@ -25,6 +25,11 @@ const allowedChainIds = [
   LINEA,
 ];
 
+/**
+ * Returns a boolean for if a bridge is possible on a given chain.
+ * @param chainId The chain ID of the source network.
+ * @returns `true` if the chain is allowed, otherwise, return `false`.
+ */
 export default function isBridgeAllowed(chainId: string) {
   if (!AppConstants.BRIDGE.ACTIVE) return false;
 
