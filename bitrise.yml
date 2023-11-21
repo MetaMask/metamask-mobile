@@ -362,9 +362,18 @@ workflows:
             node -v
             export METAMASK_ENVIRONMENT='local'
             IGNORE_BOXLOGS_DEVELOPMENT="true" FORCE_BUNDLING=true yarn test:e2e:android:bitrise:build --testNamePattern="$TEST_SUITE"
-    - cache-push@2:
+    - script@1:
+        title: Second Step
         inputs:
-        - cache_paths: ./
+        - content: |
+            #!/bin/bash
+            ls $BITRISE_SOURCE_DIR
+    - deploy-to-bitrise-io@2: {}
+        # inputs:
+        # - pipeline_intermediate_files: $BITRISE_SOURCE_DIR
+    # - cache-push@2:
+    #     inputs:
+    #     - cache_paths: ./
         # - cache_paths: $PROJECT_LOCATION_ANDROID/app/build/outputs
     meta:
       bitrise.io:
@@ -377,6 +386,9 @@ workflows:
     # after_run:
     # - _notify_failure_on_slack
     steps:
+    - pull-intermediate-files@1:
+        inputs:
+          - artifact_sources: build_smoke_e2e_ios_android_stage.android_e2e_build
     - script@1:
         inputs:
           - content: |-
@@ -384,6 +396,19 @@ workflows:
               envman add --key YARN_CACHE_DIR --value "$(yarn cache dir)"
         title: Get Yarn cache directory
     - cache-pull@2: {}
+    - script@1:
+        inputs:
+          - content: |-
+              #!/usr/bin/env bash
+              echo "Node and Yarn being installed"
+              asdf list all nodejs
+              asdf install nodejs "$NODE_VERSION"
+              asdf global nodejs "$NODE_VERSION"
+              asdf plugin add yarn
+              asdf list all yarn
+              asdf install yarn "$YARN_VERSION"
+              asdf global yarn "$YARN_VERSION"
+        title: Install node and yarn
     - restore-gradle-cache@1: {}
     # - install-missing-android-tools@3:
     #     inputs:
