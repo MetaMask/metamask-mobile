@@ -1495,12 +1495,12 @@ export const BrowserTab = (props) => {
                 onError={onError}
                 onShouldStartLoadWithRequest={onShouldStartLoadWithRequest}
                 sendCookies
+                javascriptEnabled
                 allowsInlineMediaPlayback
                 useWebkit
                 testID={BrowserViewSelectorsIDs.ANDROID_CONTAINER}
                 applicationNameForUserAgent={'WebView MetaMaskMobile'}
                 onFileDownload={handleOnFileDownload}
-                javaScriptEnabled
               />
               {ipfsBannerVisible && renderIpfsBanner()}
             </>
