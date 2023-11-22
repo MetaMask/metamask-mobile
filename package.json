@@ -53,6 +53,8 @@
     "test:e2e": "yarn test:e2e:ios && yarn test:e2e:android",
     "test:e2e:ios": "detox build -c ios.sim.release && detox test -c ios.sim.release",
     "test:e2e:ios:debug": "IS_TEST='true' detox build -c ios.sim.debug && detox test -c ios.sim.debug",
+    "test:e2e:ios::bitrise:build": "IS_TEST='true' detox build -c ios.sim.debug",
+    "test:e2e:ios::bitrise:run": "IS_TEST='true' detox test -c ios.sim.debug",
     "test:e2e:ios:debug:single": "detox test -c ios.sim.debug",
     "test:e2e:android:debug": "IS_TEST='true' detox build -c android.emu.debug && detox test -c android.emu.debug",
     "test:e2e:android:bitrise:build": "IS_TEST='true' detox build -c android.emu.bitrise.debug",
