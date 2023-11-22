@@ -1,7 +1,7 @@
 /* eslint-disable @typescript-eslint/no-require-imports */
 /* eslint-disable @typescript-eslint/no-var-requires */
 /* eslint-disable import/no-commonjs */
-import { useNavigation } from '@react-navigation/native';
+import { StackActions, useNavigation } from '@react-navigation/native';
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import {
   Image,
@@ -121,7 +121,7 @@ const LedgerAccountInfo = () => {
     AnalyticsV2.trackEvent(MetaMetricsEvents.LEDGER_HARDWARE_WALLET_FORGOTTEN, {
       device_type: 'Ledger',
     });
-    navigation.goBack();
+    navigation.dispatch(StackActions.pop(2));
   };
 
   const getEthAmountForAccount = async (ledgerAccount: string) => {

@@ -262,7 +262,7 @@ const ConnectQRHardware = ({ navigation }: IConnectQRHardwareProps) => {
       Logger.log('Error: Connecting QR hardware wallet', err);
     }
     setBlockingModalVisible(false);
-    navigation.popToTop();
+    navigation.pop(2);
   }, [KeyringController, checkedAccounts, navigation, resetError]);
 
   const onForget = useCallback(async () => {
@@ -278,7 +278,7 @@ const ConnectQRHardware = ({ navigation }: IConnectQRHardwareProps) => {
       safeToChecksumAddress,
     );
     removeAccountsFromPermissions(checksummedRemovedAccounts);
-    navigation.goBack();
+    navigation.pop(2);
   }, [KeyringController, navigation, resetError]);
 
   const renderAlert = () =>

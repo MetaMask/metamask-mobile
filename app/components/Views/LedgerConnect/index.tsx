@@ -142,7 +142,7 @@ const LedgerConnect = () => {
       AnalyticsV2.trackEvent(MetaMetricsEvents.CONNECT_LEDGER_SUCCESS, {
         device_type: 'Ledger',
       });
-      navigation.dispatch(StackActions.popToTop());
+      navigation.dispatch(StackActions.pop(2));
     });
   };
 
