@@ -801,6 +801,10 @@
     "unkown_dapp": "DAPP नाम उपलब्ध नहीं है",
     "no_connections": "कोई कनेक्शन नहीं मिला"
   },
+  "sdk_return_to_app_modal":{
+    "title": "ऐप पर वापस जाएँ",
+    "description": "कृपया सेवाओं का उपयोग जारी रखने के लिए ऐप पर वापस जाएँ।"
+  },
   "sdk_feedback_modal": {
     "ok": "ठीक है",
     "title": "खाता कनेक्ट नहीं हो सका",

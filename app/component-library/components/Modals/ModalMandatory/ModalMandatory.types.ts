@@ -10,7 +10,7 @@ interface BodyNode {
 
 type Body = BodyWebView | BodyNode;
 
-interface MandatoryModalParams {
+export interface MandatoryModalParams {
   params: {
     /**
      * Optional Body, can be a customized componente or a uri for a webview

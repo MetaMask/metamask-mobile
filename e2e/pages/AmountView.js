@@ -3,7 +3,7 @@ import { CURRENCY_SWITCH } from '../../wdio/screen-objects/testIDs/Screens/Amoun
 import {
   AmountViewSelectorsIDs,
   AmountViewSelectorsText,
-} from '../selectors/AmountView.selectors';
+} from '../selectors/SendFlow/AmountView.selectors';
 
 export default class AmountView {
   static async tapNextButton() {

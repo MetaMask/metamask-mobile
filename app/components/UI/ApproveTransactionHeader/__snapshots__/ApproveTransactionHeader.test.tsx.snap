@@ -31,7 +31,7 @@ exports[`ApproveTransactionHeader should render correctly 1`] = `
       style={
         Object {
           "backgroundColor": "#FFFFFF",
-          "borderRadius": 0,
+          "borderRadius": 16,
           "height": 32,
           "marginRight": 8,
           "overflow": "hidden",
@@ -126,7 +126,6 @@ exports[`ApproveTransactionHeader should render correctly 1`] = `
                 }
               }
               testID="account-avatar"
-              variant="Account"
             >
               <View
                 style={
@@ -454,7 +453,6 @@ exports[`ApproveTransactionHeader should return origin to be null when not prese
                 }
               }
               testID="account-avatar"
-              variant="Account"
             >
               <View
                 style={

@@ -5,9 +5,6 @@ import { AvatarProps } from '../../../../Avatars/Avatar/Avatar.types';
 // Internal dependencies.
 import { CellSelectProps } from './CellSelect.types';
 
-// Test IDs
-export const CELLSELECT_TEST_ID = 'cellselect';
-
 // Sample consts
 const SAMPLE_CELLSELECT_TITLE = 'Orangefox.eth';
 const SAMPLE_CELLSELECT_SECONDARYTEXT =
@@ -20,6 +17,7 @@ const SAMPLE_CELLSELECT_AVATARPROPS: AvatarProps = {
   type: AvatarAccountType.JazzIcon,
 };
 
+// eslint-disable-next-line import/prefer-default-export
 export const SAMPLE_CELLSELECT_PROPS: CellSelectProps = {
   title: SAMPLE_CELLSELECT_TITLE,
   secondaryText: SAMPLE_CELLSELECT_SECONDARYTEXT,
