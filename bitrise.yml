@@ -135,6 +135,9 @@ workflows:
       - setup
       - prep_environment
     steps:
+      - restore-cache@1:
+          inputs:
+          - key: node-modules-{{ checksum "yarn.lock" }}
       - yarn@0:
           inputs:
             - command: setup
@@ -386,11 +389,8 @@ workflows:
             node -v
             export METAMASK_ENVIRONMENT='local'
             IGNORE_BOXLOGS_DEVELOPMENT="true" FORCE_BUNDLING=true yarn test:e2e:android:bitrise:build --testNamePattern="$TEST_SUITE"
-    # - cache-push@2:
-    #     title: Cache Build
-    #     inputs:
-    #     - cache_paths: $PROJECT_LOCATION_ANDROID/app/build/outputs
     - save-cache@1:
+        title: Cache Build
         inputs:
         - key: apk-cache-{{ checksum "android/app/build/outputs/apk/prod/debug/app-prod-debug.apk" }}
         - paths: android/app/build/outputs
@@ -407,7 +407,6 @@ workflows:
     # - _notify_failure_on_slack
     steps:
     - restore-gradle-cache@1: {}
-    # - cache-pull@2: {} # pull build cached in the previous workflow
     - restore-cache@1:
         inputs:
         - key: node-modules-{{ checksum "yarn.lock" }}
@@ -510,14 +509,11 @@ workflows:
           title: Detox Build
           is_always_run: false
       - save-cache@1:
+          title: Cache Build
           inputs:
           - key: apk-cache-{{ checksum "$PROJECT_LOCATION/app/build/outputs/bundle/prodRelease/app-prod-debug.aab" }}
           - paths:
             - $PROJECT_LOCATION/app/build/outputs
-      # - cache-push@2:
-      #     title: Cache Build
-      #     inputs:
-      #     - cache_paths: $PROJECT_LOCATION_ANDROID/app/build/outputs
   ios_e2e_test:
     before_run:
       - setup
@@ -542,7 +538,6 @@ workflows:
           title: Set Env Path for caching deps
       - cocoapods-install@2:
           is_always_run: false
-      # - cache-pull@2: {} # pull build cached in the previous workflow
       - script@1:
           inputs:
             - content: |-
