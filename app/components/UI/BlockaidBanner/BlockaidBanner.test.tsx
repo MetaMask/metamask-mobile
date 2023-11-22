@@ -1,6 +1,6 @@
 import React from 'react';
 
-import { fireEvent, render } from '@testing-library/react-native';
+import { fireEvent } from '@testing-library/react-native';
 
 import { TESTID_ACCORDION_CONTENT } from '../../../component-library/components/Accordions/Accordion/Accordion.constants';
 import { TESTID_ACCORDIONHEADER } from '../../../component-library/components/Accordions/Accordion/foundation/AccordionHeader/AccordionHeader.constants';
@@ -11,10 +11,20 @@ import {
   FALSE_POSITIVE_REPOST_LINE_TEST_ID,
 } from './BlockaidBanner.constants';
 import { ResultType, Reason } from './BlockaidBanner.types';
+import renderWithProvider from '../../../util/test/renderWithProvider';
 
 jest.mock('../../../util/blockaid', () => ({
   isBlockaidFeatureEnabled: jest.fn().mockReturnValue(true),
 }));
+
+const mockState = {
+  engine: {
+    backgroundState: {
+      NetworkController: { providerConfig: { chainId: '1' } },
+      PreferencesController: { securityAlertsEnabled: true },
+    },
+  },
+};
 
 describe('BlockaidBanner', () => {
   const mockFeatures = [
@@ -26,28 +36,30 @@ describe('BlockaidBanner', () => {
   ];
 
   it('should render correctly', () => {
-    const wrapper = render(
+    const wrapper = renderWithProvider(
       <BlockaidBanner
         securityAlertResponse={{
-          resultType: ResultType.Warning,
+          result_type: ResultType.Warning,
           reason: Reason.approvalFarming,
           features: mockFeatures,
         }}
       />,
+      { state: mockState },
     );
 
     expect(wrapper).toMatchSnapshot();
   });
 
   it('should render correctly with reason "raw_signature_farming"', async () => {
-    const wrapper = render(
+    const wrapper = renderWithProvider(
       <BlockaidBanner
         securityAlertResponse={{
-          resultType: ResultType.Malicious,
+          result_type: ResultType.Malicious,
           reason: Reason.rawSignatureFarming,
           features: mockFeatures,
         }}
       />,
+      { state: mockState },
     );
 
     expect(wrapper).toMatchSnapshot();
@@ -63,28 +75,30 @@ describe('BlockaidBanner', () => {
   });
 
   it('should render correctly with attribution link', async () => {
-    const wrapper = render(
+    const wrapper = renderWithProvider(
       <BlockaidBanner
         securityAlertResponse={{
-          resultType: ResultType.Malicious,
+          result_type: ResultType.Malicious,
           reason: Reason.rawSignatureFarming,
           features: mockFeatures,
         }}
       />,
+      { state: mockState },
     );
 
     expect(await wrapper.queryByTestId(ATTRIBUTION_LINE_TEST_ID)).toBeDefined();
   });
 
   it('should render correctly with list attack details', async () => {
-    const wrapper = render(
+    const wrapper = renderWithProvider(
       <BlockaidBanner
         securityAlertResponse={{
-          resultType: ResultType.Malicious,
+          result_type: ResultType.Malicious,
           reason: Reason.approvalFarming,
           features: mockFeatures,
         }}
       />,
+      { state: mockState },
     );
 
     expect(wrapper).toMatchSnapshot();
@@ -116,14 +130,15 @@ describe('BlockaidBanner', () => {
   });
 
   it('should render something does not look right with contact us link when expanded', async () => {
-    const wrapper = render(
+    const wrapper = renderWithProvider(
       <BlockaidBanner
         securityAlertResponse={{
-          resultType: ResultType.Malicious,
+          result_type: ResultType.Malicious,
           reason: Reason.approvalFarming,
           features: mockFeatures,
         }}
       />,
+      { state: mockState },
     );
 
     expect(wrapper).toMatchSnapshot();
@@ -142,22 +157,74 @@ describe('BlockaidBanner', () => {
   });
 
   it('should not render if securityAlertResponse is undefined', async () => {
-    const wrapper = render(<BlockaidBanner />);
+    const wrapper = renderWithProvider(<BlockaidBanner />, {
+      state: mockState,
+    });
 
     expect(wrapper).toMatchSnapshot();
     expect(await wrapper.queryByTestId(TESTID_ACCORDIONHEADER)).toBeNull();
     expect(await wrapper.queryByTestId(TESTID_ACCORDION_CONTENT)).toBeNull();
   });
 
+  it('should not render if user is not on mainnet', async () => {
+    const mockStateNetwork = {
+      engine: {
+        backgroundState: {
+          NetworkController: { providerConfig: { chainId: '5' } },
+          PreferencesController: { securityAlertsEnabled: true },
+        },
+      },
+    };
+    const wrapper = renderWithProvider(<BlockaidBanner />, {
+      state: mockStateNetwork,
+    });
+
+    expect(wrapper).toMatchSnapshot();
+    expect(await wrapper.queryByTestId(TESTID_ACCORDIONHEADER)).toBeNull();
+    expect(await wrapper.queryByTestId(TESTID_ACCORDION_CONTENT)).toBeNull();
+  });
+
+  it('should not render if user has not enabled blockaid', async () => {
+    const mockStateNetwork = {
+      engine: {
+        backgroundState: {
+          NetworkController: { providerConfig: { chainId: '1' } },
+          PreferencesController: { securityAlertsEnabled: false },
+        },
+      },
+    };
+    const wrapper = renderWithProvider(<BlockaidBanner />, {
+      state: mockStateNetwork,
+    });
+
+    expect(wrapper).toMatchSnapshot();
+    expect(await wrapper.queryByTestId(TESTID_ACCORDIONHEADER)).toBeNull();
+    expect(await wrapper.queryByTestId(TESTID_ACCORDION_CONTENT)).toBeNull();
+  });
+
+  it('should render loader if reason is requestInProgress', async () => {
+    const wrapper = renderWithProvider(<BlockaidBanner />, {
+      state: mockState,
+    });
+
+    expect(wrapper).toMatchSnapshot();
+    expect(
+      await wrapper.queryByText(
+        'We’re still evaluating the safety of this request. Wait or proceed with caution.',
+      ),
+    ).toBeDefined();
+  });
+
   it('should not render if resultType is benign', async () => {
-    const wrapper = render(
+    const wrapper = renderWithProvider(
       <BlockaidBanner
         securityAlertResponse={{
-          resultType: ResultType.Benign,
+          result_type: ResultType.Benign,
           reason: Reason.rawSignatureFarming,
           features: mockFeatures,
         }}
       />,
+      { state: mockState },
     );
 
     expect(wrapper).toMatchSnapshot();
@@ -166,14 +233,15 @@ describe('BlockaidBanner', () => {
   });
 
   it('should render normal banner alert if resultType is failed', async () => {
-    const wrapper = render(
+    const wrapper = renderWithProvider(
       <BlockaidBanner
         securityAlertResponse={{
-          resultType: ResultType.Failed,
-          reason: Reason.rawSignatureFarming,
+          result_type: ResultType.Failed,
+          reason: Reason.failed,
           features: mockFeatures,
         }}
       />,
+      { state: mockState },
     );
 
     expect(wrapper).toMatchSnapshot();

@@ -34,6 +34,8 @@ import parseWalletConnectUri, {
 } from './wc-utils';
 import { selectChainId } from '../../selectors/networkController';
 import { store } from '../../store';
+import { WALLET_CONNECT_ORIGIN } from '../../../app/util/walletconnect';
+import ppomUtil from '../../../app/lib/ppom/ppom-util';
 
 const { PROJECT_ID } = AppConstants.WALLET_CONNECT;
 export const isWC2Enabled =
@@ -140,8 +142,6 @@ class WalletConnect2Session {
     if (!this.deeplink) return;
 
     setTimeout(() => {
-      // Reset the status of deeplink after each redirect
-      this.deeplink = false;
       Minimizer.goBack();
     }, 300);
   };
@@ -253,6 +253,7 @@ class WalletConnect2Session {
 
     const verified = requestEvent.verifyContext?.verified;
     const hostname = verified?.origin;
+    const origin = WALLET_CONNECT_ORIGIN + hostname; // allow correct origin for analytics with eth_sendTtansaction
 
     let method = requestEvent.params.request.method;
     const chainId = parseInt(requestEvent.params.chainId);
@@ -287,10 +288,27 @@ class WalletConnect2Session {
         const trx = await transactionController.addTransaction(
           methodParams[0],
           {
+            origin,
             deviceConfirmedOn: WalletDevice.MM_MOBILE,
-            origin: hostname,
+            securityAlertResponse: undefined,
           },
         );
+
+        const id = trx.transactionMeta.id;
+        const reqObject = {
+          jsonrpc: '2.0',
+          method: 'eth_sendTransaction',
+          params: [
+            {
+              from: methodParams[0].from,
+              to: methodParams[0].to,
+              value: methodParams[0].value,
+            },
+          ],
+        };
+
+        ppomUtil.validateRequest(reqObject, id);
+
         const hash = await trx.result;
 
         await this.approveRequest({ id: requestEvent.id + '', result: hash });
@@ -312,7 +330,7 @@ class WalletConnect2Session {
         method,
         params: methodParams,
       },
-      origin: hostname,
+      origin,
     });
   };
 }
@@ -613,7 +631,10 @@ export class WC2Manager {
     const keyringController = (
       Engine.context as { KeyringController: KeyringController }
     ).KeyringController;
-    await waitForKeychainUnlocked({ keyringController });
+    await waitForKeychainUnlocked({
+      keyringController,
+      context: 'WalletConnectV2::onSessionRequest',
+    });
 
     try {
       const session = this.sessions[requestEvent.topic];

@@ -5,7 +5,10 @@ import React, { useEffect, useState, useCallback } from 'react';
 import { View, TouchableOpacity } from 'react-native';
 
 // Exgernal dependencies
-import { renderShortAddress } from '../../../../util/address';
+import {
+  renderShortAddress,
+  getLabelTextByAddress,
+} from '../../../../util/address';
 import Identicon from '../../../UI/Identicon';
 import { useSelector } from 'react-redux';
 import { useTheme } from '../../../../util/theme';
@@ -13,6 +16,11 @@ import Text from '../../../../component-library/components/Texts/Text/Text';
 import { TextVariant } from '../../../../component-library/components/Texts/Text';
 import { selectChainId } from '../../../../selectors/networkController';
 import { doENSReverseLookup } from '../../../../util/ENSUtils';
+import { strings } from '../../../../../locales/i18n';
+import Icon, {
+  IconName,
+  IconSize,
+} from '../../../../component-library/components/Icons/Icon';
 
 // Internal dependecies
 import styleSheet from './AddressElement.styles';
@@ -23,6 +31,8 @@ const AddressElement: React.FC<AddressElementProps> = ({
   address,
   onAccountPress,
   onAccountLongPress,
+  onIconPress,
+  isAmbiguousAddress,
   ...props
 }) => {
   const [displayName, setDisplayName] = useState(name);
@@ -48,6 +58,7 @@ const AddressElement: React.FC<AddressElementProps> = ({
       : renderShortAddress(address);
   const secondaryLabel =
     displayName && !displayName.startsWith(' ') && renderShortAddress(address);
+  const accountTypeLabel = getLabelTextByAddress(address);
 
   return (
     <TouchableOpacity
@@ -61,13 +72,23 @@ const AddressElement: React.FC<AddressElementProps> = ({
         <Identicon address={address} diameter={28} />
       </View>
       <View style={styles.addressElementInformation}>
-        <Text
-          variant={TextVariant.BodyMD}
-          style={styles.addressTextNickname}
-          numberOfLines={1}
-        >
-          {primaryLabel}
-        </Text>
+        <View style={styles.accountNameLabel}>
+          <Text
+            variant={TextVariant.BodyMD}
+            style={styles.addressTextNickname}
+            numberOfLines={1}
+          >
+            {primaryLabel}
+          </Text>
+          {accountTypeLabel && (
+            <Text
+              variant={TextVariant.BodySM}
+              style={styles.accountNameLabelText}
+            >
+              {strings(accountTypeLabel)}
+            </Text>
+          )}
+        </View>
         {!!secondaryLabel && (
           <Text
             variant={TextVariant.BodyMD}
@@ -78,6 +99,18 @@ const AddressElement: React.FC<AddressElementProps> = ({
           </Text>
         )}
       </View>
+      {isAmbiguousAddress && (
+        <TouchableOpacity
+          style={styles.warningIconWrapper}
+          onPress={onIconPress}
+        >
+          <Icon
+            name={IconName.Danger}
+            size={IconSize.Lg}
+            color={styles.warningIcon.color}
+          />
+        </TouchableOpacity>
+      )}
     </TouchableOpacity>
   );
 };

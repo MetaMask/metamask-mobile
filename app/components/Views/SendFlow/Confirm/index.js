@@ -57,6 +57,8 @@ import {
   isMainnetByChainId,
   isMultiLayerFeeNetwork,
   fetchEstimatedMultiLayerL1Fee,
+  TESTNET_FAUCETS,
+  isTestNetworkWithFaucet,
 } from '../../../../util/networks';
 import Text from '../../../Base/Text';
 import AnalyticsV2 from '../../../../util/analyticsV2';
@@ -97,13 +99,10 @@ import { selectAccounts } from '../../../../selectors/accountTrackerController';
 import { selectContractBalances } from '../../../../selectors/tokenBalancesController';
 import generateTestId from '../../../../../wdio/utils/generateTestId';
 import { COMFIRM_TXN_AMOUNT } from '../../../../../wdio/screen-objects/testIDs/Screens/TransactionConfirm.testIds';
-import { isNetworkBuyNativeTokenSupported } from '../../../UI/Ramp/utils';
+import { isNetworkRampNativeTokenSupported } from '../../../UI/Ramp/common/utils';
 import { getRampNetworks } from '../../../../reducers/fiatOrders';
 import CustomGasModal from '../../../UI/CustomGasModal';
-import {
-  TXN_CONFIRM_SCREEN,
-  TXN_CONFIRM_SEND_BUTTON,
-} from '../../../../constants/test-ids';
+import { ConfirmViewSelectorsIDs } from '../../../../../e2e/selectors/SendFlow/ConfirmView.selectors';
 
 const EDIT = 'edit';
 const EDIT_NONCE = 'edit_nonce';
@@ -863,7 +862,7 @@ class Confirm extends PureComponent {
   buyEth = () => {
     const { navigation } = this.props;
     try {
-      navigation.navigate('FiatOnRampAggregator');
+      navigation.navigate(Routes.RAMP.BUY);
     } catch (error) {
       Logger.error(error, 'Navigation: Error when navigating to buy ETH.');
     }
@@ -873,9 +872,10 @@ class Confirm extends PureComponent {
   };
 
   goToFaucet = () => {
+    const { chainId } = this.props;
     InteractionManager.runAfterInteractions(() => {
       this.props.navigation.navigate(Routes.BROWSER.VIEW, {
-        newTabUrl: AppConstants.URLS.MM_FAUCET,
+        newTabUrl: TESTNET_FAUCETS[chainId],
         timestamp: Date.now(),
       });
     });
@@ -973,7 +973,7 @@ class Confirm extends PureComponent {
       <SafeAreaView
         edges={['bottom']}
         style={styles.wrapper}
-        testID={TXN_CONFIRM_SCREEN}
+        testID={ConfirmViewSelectorsIDs.CONTAINER}
       >
         <AccountFromToInfoCard
           transactionState={this.props.transactionState}
@@ -1064,7 +1064,7 @@ class Confirm extends PureComponent {
 
           {errorMessage && (
             <View style={styles.errorWrapper}>
-              {isTestNetwork || isNativeTokenBuySupported ? (
+              {isTestNetworkWithFaucet(chainId) || isNativeTokenBuySupported ? (
                 <TouchableOpacity onPress={errorPress}>
                   <Text style={styles.error}>{errorMessage}</Text>
                   <Text style={[styles.error, styles.underline]}>
@@ -1113,7 +1113,7 @@ class Confirm extends PureComponent {
             }
             containerStyle={styles.buttonNext}
             onPress={this.onNext}
-            testID={TXN_CONFIRM_SEND_BUTTON}
+            testID={ConfirmViewSelectorsIDs.SEND_BUTTON}
           >
             {transactionConfirmed ? (
               <ActivityIndicator size="small" color={colors.primary.inverse} />
@@ -1153,7 +1153,7 @@ const mapStateToProps = (state) => ({
   gasEstimateType:
     state.engine.backgroundState.GasFeeController.gasEstimateType,
   isPaymentRequest: state.transaction.paymentRequest,
-  isNativeTokenBuySupported: isNetworkBuyNativeTokenSupported(
+  isNativeTokenBuySupported: isNetworkRampNativeTokenSupported(
     selectChainId(state),
     getRampNetworks(state),
   ),

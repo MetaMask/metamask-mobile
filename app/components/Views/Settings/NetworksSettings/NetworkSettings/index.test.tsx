@@ -13,9 +13,6 @@ const initialState = {
   networkOnboarded: {
     networkOnboardedState: { '1': true },
   },
-  privacy: {
-    thirdPartyApiMode: true,
-  },
 };
 const store = mockStore(initialState);
 

@@ -1,40 +1,23 @@
 // Third party dependencies.
 import React from 'react';
-import { shallow } from 'enzyme';
+import { render } from '@testing-library/react-native';
 
-// External dependencies.
-import { TEST_AVATAR_PROPS, TEST_CELL_TITLE } from '../../Cell.constants';
-import { CellVariants } from '../../Cell.types';
+//External dependencies
+import { CellModalSelectorsIDs } from '../../../../../../../e2e/selectors/Modals/CellModal.selectors';
 
 // Internal dependencies.
 import CellDisplay from './CellDisplay';
-import { CELL_DISPLAY_TEST_ID } from '../../../../../../constants/test-ids';
-
-describe('CellDisplay - Snapshot', () => {
-  it('should render default settings correctly', () => {
-    const wrapper = shallow(
-      <CellDisplay
-        variant={CellVariants.Display}
-        avatarProps={TEST_AVATAR_PROPS}
-        title={TEST_CELL_TITLE}
-      />,
-    );
-    expect(wrapper).toMatchSnapshot();
-  });
-});
+import { SAMPLE_CELLDISPLAY_PROPS } from './CellDisplay.constants';
 
 describe('CellDisplay', () => {
+  it('should render default settings correctly', () => {
+    const wrapper = render(<CellDisplay {...SAMPLE_CELLDISPLAY_PROPS} />);
+    expect(wrapper).toMatchSnapshot();
+  });
   it('should render CellDisplay', () => {
-    const wrapper = shallow(
-      <CellDisplay
-        variant={CellVariants.Display}
-        avatarProps={TEST_AVATAR_PROPS}
-        title={TEST_CELL_TITLE}
-      />,
+    const { queryByTestId } = render(
+      <CellDisplay {...SAMPLE_CELLDISPLAY_PROPS} />,
     );
-    const singleSelectComponent = wrapper.findWhere(
-      (node) => node.prop('testID') === CELL_DISPLAY_TEST_ID,
-    );
-    expect(singleSelectComponent.exists()).toBe(true);
+    expect(queryByTestId(CellModalSelectorsIDs.DISPLAY)).not.toBe(null);
   });
 });

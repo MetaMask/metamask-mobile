@@ -20,6 +20,7 @@ import { regex } from '../../app/util/regex';
 // Generated using this script: https://gist.github.com/Gudahtt/7a8a9e452bd2efdc5ceecd93610a25d3
 import ambiguousNetworks from './migration-data/amibiguous-networks.json';
 import { NetworkStatus } from '@metamask/network-controller';
+import { ETHERSCAN_SUPPORTED_CHAIN_IDS } from '@metamask/preferences-controller';
 
 export const migrations = {
   // Needed after https://github.com/MetaMask/controllers/pull/152
@@ -740,6 +741,75 @@ export const migrations = {
       networkControllerState.networkStatus = NetworkStatus.Available;
     }
     delete networkControllerState.network;
+
+    return state;
+  },
+  25: (state) => {
+    try {
+      Object.values(ETHERSCAN_SUPPORTED_CHAIN_IDS).forEach((hexChainId) => {
+        const thirdPartyApiMode = state?.privacy?.thirdPartyApiMode ?? true;
+        if (
+          state?.engine?.backgroundState?.PreferencesController
+            ?.showIncomingTransactions
+        ) {
+          state.engine.backgroundState.PreferencesController.showIncomingTransactions =
+            {
+              ...state.engine.backgroundState.PreferencesController
+                .showIncomingTransactions,
+              [hexChainId]: thirdPartyApiMode,
+            };
+        } else if (state?.engine?.backgroundState?.PreferencesController) {
+          state.engine.backgroundState.PreferencesController.showIncomingTransactions =
+            { [hexChainId]: thirdPartyApiMode };
+        }
+      });
+
+      if (state?.privacy?.thirdPartyApiMode !== undefined) {
+        delete state.privacy.thirdPartyApiMode;
+      }
+
+      return state;
+    } catch (e) {
+      return state;
+    }
+  },
+  /**
+   * This migration is to free space of unused data in the user devices
+   * regarding the phishing list property listState, that is no longer used
+   * @param {any} state - Redux state
+   * @returns
+   */
+  26: (state) => {
+    const phishingControllerState =
+      state.engine.backgroundState.PhishingController;
+    if (phishingControllerState?.listState) {
+      delete state.engine.backgroundState.PhishingController.listState;
+    } else {
+      captureException(
+        new Error(
+          `Migration 26: Invalid PhishingControllerState controller state: '${JSON.stringify(
+            state.engine.backgroundState.PhishingController,
+          )}'`,
+        ),
+      );
+    }
+
+    if (
+      phishingControllerState?.hotlistLastFetched &&
+      phishingControllerState?.stalelistLastFetched
+    ) {
+      // This will make the list be fetched again when the user updates the app
+      state.engine.backgroundState.PhishingController.hotlistLastFetched = 0;
+      state.engine.backgroundState.PhishingController.stalelistLastFetched = 0;
+    } else {
+      captureException(
+        new Error(
+          `Migration 26: Invalid PhishingControllerState hotlist and stale list fetched: '${JSON.stringify(
+            state.engine.backgroundState.PhishingController,
+          )}'`,
+        ),
+      );
+    }
 
     return state;
   },

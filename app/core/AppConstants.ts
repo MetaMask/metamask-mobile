@@ -1,6 +1,6 @@
 import { CoreTypes } from '@walletconnect/types';
 import Device from '../util/device';
-
+import { DEFAULT_SERVER_URL } from '@metamask/sdk-communication-layer';
 const DEVELOPMENT = 'development';
 
 export default {
@@ -88,7 +88,6 @@ export default {
       'https://metamask.zendesk.com/hc/en-us/articles/360015489591-Basic-Safety-and-Security-Tips-for-MetaMask',
     TOKEN_BALANCE:
       'https://metamask.zendesk.com/hc/en-us/articles/360028059272-What-to-do-when-your-balance-of-ETH-and-or-ERC20-tokens-is-incorrect-inaccurate',
-    MM_FAUCET: 'https://faucet.metamask.io/',
     WHY_TRANSACTION_TAKE_TIME:
       'https://community.metamask.io/t/what-is-gas-why-do-transactions-take-so-long/3172',
     WHAT_IS_ETH_SIGN_AND_WHY_IS_IT_A_RISK:
@@ -142,9 +141,7 @@ export default {
     ANDROID_CONNECTIONS: 'androidConnections',
     ANDROID_SDK: 'AndroidSDK',
     SDK_APPROVEDHOSTS: 'sdkApprovedHosts',
-    SERVER_URL:
-      process.env.SDK_COMMLAYER_URL ??
-      'https://metamask-sdk-socket.metafi.codefi.network/',
+    SERVER_URL: process.env.SDK_COMMLAYER_URL ?? DEFAULT_SERVER_URL,
     PLATFORM: 'metamask-mobile',
     SDK_REMOTE_ORIGIN: 'MMSDKREMOTE::',
     UNKNOWN_PARAM: 'UNKNOWN',
@@ -160,4 +157,5 @@ export default {
     TERMS_OF_USE_URL_WITHOUT_COOKIES:
       'https://legal.consensys.io/plain/terms-of-use/',
   },
+  FAVICON_CACHE_MAX_SIZE: 100,
 } as const;

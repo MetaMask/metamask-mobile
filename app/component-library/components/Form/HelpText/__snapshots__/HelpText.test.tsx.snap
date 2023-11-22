@@ -6,6 +6,6 @@ exports[`HelpText should render default settings correctly 1`] = `
   testID="helptext"
   variant="sBodySM"
 >
-  Sample HelpText Text
+  Sample HelpText text
 </Text>
 `;

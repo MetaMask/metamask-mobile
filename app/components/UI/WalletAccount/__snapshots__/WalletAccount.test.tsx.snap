@@ -54,7 +54,7 @@ exports[`WalletAccount renders correctly 1`] = `
                 "overflow": "hidden",
               },
               Object {
-                "backgroundColor": "#1593F2",
+                "backgroundColor": "#C7144F",
                 "borderRadius": 16,
                 "height": 32,
                 "width": 32,
@@ -85,16 +85,16 @@ exports[`WalletAccount renders correctly 1`] = `
           >
             <RNSVGGroup>
               <RNSVGRect
-                fill={4280574177}
+                fill={4294711651}
                 height={32}
                 matrix={
                   Array [
-                    -0.14608302856241107,
-                    0.9892723329629884,
-                    -0.9892723329629884,
-                    -0.14608302856241107,
-                    37.75501596919891,
-                    -2.82533949364276,
+                    0.46329603511986217,
+                    0.8862035792312145,
+                    -0.8862035792312145,
+                    0.46329603511986217,
+                    29.06767649409735,
+                    -8.290603334655817,
                   ]
                 }
                 propList={
@@ -107,16 +107,16 @@ exports[`WalletAccount renders correctly 1`] = `
                 y={0}
               />
               <RNSVGRect
-                fill={4294395137}
+                fill={4280576225}
                 height={32}
                 matrix={
                   Array [
-                    -0.02094241988335673,
-                    -0.9997806834748455,
-                    0.9997806834748455,
-                    -0.02094241988335673,
-                    -15.024871507114028,
-                    40.323921289217864,
+                    -0.5778576243835052,
+                    0.8161375900801603,
+                    -0.8161375900801603,
+                    -0.5778576243835052,
+                    51.62016714634118,
+                    17.239003094412087,
                   ]
                 }
                 propList={
@@ -129,16 +129,16 @@ exports[`WalletAccount renders correctly 1`] = `
                 y={0}
               />
               <RNSVGRect
-                fill={4294736640}
+                fill={4278407261}
                 height={32}
                 matrix={
                   Array [
-                    -0.458649554484315,
-                    0.8886172326549487,
-                    -0.8886172326549487,
-                    -0.458649554484315,
-                    28.4800145149268,
-                    38.60053302995323,
+                    0.7046342099635947,
+                    -0.7095707365365209,
+                    0.7095707365365209,
+                    0.7046342099635947,
+                    -25.225718686778755,
+                    -4.611026307883787,
                   ]
                 }
                 propList={
@@ -154,7 +154,15 @@ exports[`WalletAccount renders correctly 1`] = `
           </RNSVGSvgView>
         </View>
       </View>
-      <View>
+      <View
+        style={
+          Object {
+            "alignItems": "center",
+            "flexDirection": "row",
+            "justifyContent": "flex-start",
+          }
+        }
+      >
         <Text
           accessibilityRole="text"
           style={
@@ -271,7 +279,7 @@ exports[`WalletAccount renders correctly 1`] = `
             }
             testID="wallet-account-address"
           >
-            0x
+            0xC495...D272
           </Text>
           <SvgMock
             color="#0376C9"

@@ -41,9 +41,10 @@ import {
   selectChainId,
   selectTicker,
 } from '../../../selectors/networkController';
-import { isNetworkBuySupported } from '../Ramp/utils';
+import { isNetworkRampSupported } from '../Ramp/common/utils';
 import { selectSelectedAddress } from '../../../selectors/preferencesController';
 import { getRampNetworks } from '../../../reducers/fiatOrders';
+import { RequestPaymentModalSelectorsIDs } from '../../../../e2e/selectors/Modals/RequestPaymentModal.selectors';
 
 const createStyles = (colors) =>
   StyleSheet.create({
@@ -191,7 +192,7 @@ class ReceiveRequest extends PureComponent {
       );
     } else {
       toggleReceiveModal();
-      navigation.navigate(Routes.FIAT_ON_RAMP_AGGREGATOR.ID);
+      navigation.navigate(Routes.RAMP.BUY);
       InteractionManager.runAfterInteractions(() => {
         Analytics.trackEventWithParameters(
           MetaMetricsEvents.BUY_BUTTON_CLICKED,
@@ -257,7 +258,10 @@ class ReceiveRequest extends PureComponent {
       <SafeAreaView style={styles.wrapper}>
         <ModalDragger />
         <View style={styles.titleWrapper}>
-          <Text style={styles.title} testID={'receive-request-screen'}>
+          <Text
+            style={styles.title}
+            testID={RequestPaymentModalSelectorsIDs.CONTAINER}
+          >
             {strings('receive_request.title')}
           </Text>
         </View>
@@ -289,7 +293,7 @@ class ReceiveRequest extends PureComponent {
                   onSwipeComplete={toggleModal}
                   swipeDirection={'down'}
                   propagateSwipe
-                  testID={'qr-modal'}
+                  testID={RequestPaymentModalSelectorsIDs.QR_MODAL}
                   backdropColor={colors.overlay.default}
                   backdropOpacity={1}
                 >
@@ -306,7 +310,7 @@ class ReceiveRequest extends PureComponent {
           <TouchableOpacity
             style={styles.addressWrapper}
             onPress={this.copyAccountToClipboard}
-            testID={'account-address'}
+            testID={RequestPaymentModalSelectorsIDs.ACCOUNT_ADDRESS}
           >
             <Text>
               <EthereumAddress
@@ -341,7 +345,7 @@ class ReceiveRequest extends PureComponent {
               type={'normal'}
               onPress={this.onReceive}
               containerStyle={styles.actionButton}
-              testID={'request-payment-button'}
+              testID={RequestPaymentModalSelectorsIDs.REQUEST_BUTTON}
             >
               {strings('receive_request.request_payment')}
             </StyledButton>
@@ -362,7 +366,7 @@ const mapStateToProps = (state) => ({
   selectedAddress: selectSelectedAddress(state),
   receiveAsset: state.modals.receiveAsset,
   seedphraseBackedUp: state.user.seedphraseBackedUp,
-  isNetworkBuySupported: isNetworkBuySupported(
+  isNetworkBuySupported: isNetworkRampSupported(
     selectChainId(state),
     getRampNetworks(state),
   ),
