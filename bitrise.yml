@@ -392,9 +392,8 @@ workflows:
     #     - cache_paths: $PROJECT_LOCATION_ANDROID/app/build/outputs
     - save-cache@1:
         inputs:
-        - key: apk-cache-{{ checksum "$PROJECT_LOCATION_ANDROID/app/build/outputs/apk/prod/debug/app-prod-debug.apk" }}
-        paths:
-          - $PROJECT_LOCATION_ANDROID/app/build/outputs/
+        - key: apk-cache-{{ checksum "android/app/build/outputs/apk/prod/debug/app-prod-debug.apk" }}
+        - paths: android/app/build/outputs
     meta:
       bitrise.io:
         machine_type_id: elite-xl
@@ -412,7 +411,7 @@ workflows:
     - restore-cache@1:
         inputs:
         - key: node-modules-{{ checksum "yarn.lock" }}
-        - key: apk-cache-{{ checksum "$PROJECT_LOCATION_ANDROID/app/build/outputs/apk/prod/debug/app-prod-debug.apk" }}
+        - key: apk-cache-{{ checksum "android/app/build/outputs/apk/prod/debug/app-prod-debug.apk" }}
     - script@1:
         title: Download cmake 3.22.1 with sdkmanager
         is_always_run: false
@@ -513,8 +512,8 @@ workflows:
       - save-cache@1:
           inputs:
           - key: apk-cache-{{ checksum "$PROJECT_LOCATION/app/build/outputs/bundle/prodRelease/app-prod-debug.aab" }}
-          paths:
-            - $PROJECT_LOCATION/app/build/outputs/
+          - paths:
+            - $PROJECT_LOCATION/app/build/outputs
       # - cache-push@2:
       #     title: Cache Build
       #     inputs:
