@@ -249,6 +249,7 @@ class SignatureRequest extends PureComponent {
     } = this.props;
     const styles = this.getStyles();
     const url = currentPageInformation.url;
+    const icon = currentPageInformation.icon;
     const title = getHost(url);
     const arrowIcon = truncateMessage ? this.renderArrowIcon() : null;
     return (
@@ -264,7 +265,12 @@ class SignatureRequest extends PureComponent {
           style={styles.children}
           onPress={truncateMessage ? toggleExpandedMessage : null}
         >
-          <WebsiteIcon style={styles.domainLogo} title={title} url={url} />
+          <WebsiteIcon
+            style={styles.domainLogo}
+            title={title}
+            url={url}
+            icon={icon}
+          />
           <View style={styles.messageColumn}>
             <Text style={styles.messageLabelText}>
               {strings('signature_request.message')}:
