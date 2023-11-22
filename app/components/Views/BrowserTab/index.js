@@ -711,6 +711,7 @@ export const BrowserTab = (props) => {
   const changeUrl = async (siteInfo) => {
     url.current = siteInfo.url;
     title.current = siteInfo.title;
+    setInitialUrl(siteInfo.url);
     if (siteInfo.icon) icon.current = siteInfo.icon;
   };
 
@@ -1043,7 +1044,7 @@ export const BrowserTab = (props) => {
 
     setError(false);
 
-    changeUrl(nativeEvent);
+    changeUrl({ ...nativeEvent });
     sendActiveAccount();
 
     icon.current = null;
@@ -1473,6 +1474,17 @@ export const BrowserTab = (props) => {
       />
     </View>
   );
+
+  useEffect(() => {
+    console.log(
+      'ENTER javascipt enabled',
+      props.isJavascriptEnabled,
+      'is tab active',
+      isTabActive,
+      'url',
+      url.current,
+    );
+  }, [props.isJavascriptEnabled, isTabActive, url]);
 
   /**
    * Main render
