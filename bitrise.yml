@@ -181,7 +181,7 @@ workflows:
                 #!/usr/bin/env bash
                 envman add --key YARN_CACHE_DIR --value "$(yarn cache dir)"
           title: Get Yarn cache directory
-      - cache-pull@2: {}
+      # - cache-pull@2: {}
       - script@1:
           inputs:
             - content: |-
@@ -415,9 +415,10 @@ workflows:
     # - restore-gradle-cache@1: {}
     - restore-cache@1:
         inputs:
-        - key: |-
-            apk-cache-{{ .CommitHash }}
-            node-modules-{{ checksum "yarn.lock" }}
+        - key: node-modules-{{ checksum "yarn.lock" }}
+    - restore-cache@1:
+        inputs:
+        - key: apk-cache-{{ .CommitHash }}
     - script@1:
         title: Download cmake 3.22.1 with sdkmanager
         is_always_run: false
