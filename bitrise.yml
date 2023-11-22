@@ -139,6 +139,7 @@ workflows:
           inputs:
           - key: node-modules-{{ checksum "yarn.lock" }}
       - yarn@0:
+          run_if: '{{not (enveq "BITRISE_CACHE_HIT" "exact")}}'
           inputs:
             - command: setup
           title: Yarn Setup
@@ -159,9 +160,9 @@ workflows:
       - save-cache@1:
           inputs:
           - key: node-modules-{{ checksum "yarn.lock" }}
-          - paths:
-            - node_modules
-            - yarn.lock
+          - paths: |-
+              node_modules
+              yarn.lock
   code_setup_dev:
     steps:
       - script@1:
@@ -356,7 +357,10 @@ workflows:
     # after_run:
     # - _notify_failure_on_slack
     steps:
-    - restore-gradle-cache@1: {}
+    # - restore-gradle-cache@1: {}
+    - restore-cache@1:
+        inputs:
+        - key: apk-cache-{{ .CommitHash }}
     - install-missing-android-tools@3:
         inputs:
         - ndk_version: $NDK_VERSION
@@ -368,15 +372,16 @@ workflows:
         - content: |-
             #!/usr/bin/env bash
             "${ANDROID_HOME}/tools/bin/sdkmanager" "cmake;3.22.1"
-    - avd-manager@1:
-        inputs:
-        - api_level: "30"
-        - create_command_flags: --sdcard 8192M
-        - start_command_flags: -read-only
-        - profile: pixel_5
-    - save-gradle-cache@1: {}
+    # - avd-manager@1:
+    #     inputs:
+    #     - api_level: "30"
+    #     - create_command_flags: --sdcard 8192M
+    #     - start_command_flags: -read-only
+    #     - profile: pixel_5
+    # - save-gradle-cache@1: {}
     - script@1:
         title: Detox Build
+        run_if: '{{not (enveq "BITRISE_CACHE_HIT" "exact")}}'
         is_always_run: false
         inputs:
         - content: |-
@@ -393,7 +398,7 @@ workflows:
     - save-cache@1:
         title: Cache Build
         inputs:
-        - key: apk-cache-{{ checksum "android/app/build/outputs/apk/prod/debug/app-prod-debug.apk" }}
+        - key: apk-cache-{{ .CommitHash }}
         - paths: android/app/build/outputs
     meta:
       bitrise.io:
@@ -407,11 +412,12 @@ workflows:
     # after_run:
     # - _notify_failure_on_slack
     steps:
-    - restore-gradle-cache@1: {}
+    # - restore-gradle-cache@1: {}
     - restore-cache@1:
         inputs:
-        - key: node-modules-{{ checksum "yarn.lock" }}
-        - key: apk-cache-{{ checksum "android/app/build/outputs/apk/prod/debug/app-prod-debug.apk" }}
+        - key: |-
+            apk-cache-{{ .CommitHash }}
+            node-modules-{{ checksum "yarn.lock" }}
     - script@1:
         title: Download cmake 3.22.1 with sdkmanager
         is_always_run: false
