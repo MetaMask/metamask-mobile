@@ -3944,10 +3944,10 @@
     human-standard-token-abi "^2.0.0"
     web3 "^0.20.7"
 
-"@metamask/test-dapp@^7.2.0":
-  version "7.2.0"
-  resolved "https://registry.yarnpkg.com/@metamask/test-dapp/-/test-dapp-7.2.0.tgz#2520dbcf578753ff4a82b3545a2a3cf23cc497e8"
-  integrity sha512-WxdaLIUlxJ9Ucdasa2FVhW1D3B8g9kgSsBfXb5RQ6QWjzx2WeEb8YKwfe4u80xtbBdefrgS24UU6+9wfwxK17w==
+"@metamask/test-dapp@^8.0.0":
+  version "8.0.0"
+  resolved "https://registry.yarnpkg.com/@metamask/test-dapp/-/test-dapp-8.0.0.tgz#72f64b18a6157400ef3a3901c35819883524a048"
+  integrity sha512-yy1eZ9fZfJSEJIUjqcigBehFv6vdPGmDkVnzpBpEJqxiMPZGnbR5dypMfo0XsPdp5Lvmawx47Kamuy4Ocsy+iw==
 
 "@metamask/transaction-controller@^5.0.0":
   version "5.0.0"
