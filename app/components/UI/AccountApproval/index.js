@@ -2,11 +2,7 @@ import React, { PureComponent } from 'react';
 import { connect } from 'react-redux';
 import PropTypes from 'prop-types';
 import StyledButton from '../StyledButton';
-import {
-  View,
-  InteractionManager,
-  TouchableOpacity,
-} from 'react-native';
+import { View, InteractionManager, TouchableOpacity } from 'react-native';
 import TransactionHeader from '../TransactionHeader';
 import AccountInfoCard from '../AccountInfoCard';
 import { strings } from '../../../../locales/i18n';
