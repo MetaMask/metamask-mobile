@@ -149,6 +149,13 @@ global.STORIES = [
     importPathMatcher:
       "^\\.[\\\\/](?:app\\/component-library\\/components\\/Checkbox(?:\\/(?!\\.)(?:(?:(?!(?:^|\\/)\\.).)*?)\\/|\\/|$)(?!\\.)(?=.)[^/]*?\\.stories\\.(?:ts|tsx|js|jsx)?)$",
   },
+  {
+    titlePrefix: "",
+    directory: "./app/component-library/components/Toast",
+    files: "**/*.stories.?(ts|tsx|js|jsx)",
+    importPathMatcher:
+      "^\\.[\\\\/](?:app\\/component-library\\/components\\/Toast(?:\\/(?!\\.)(?:(?:(?!(?:^|\\/)\\.).)*?)\\/|\\/|$)(?!\\.)(?=.)[^/]*?\\.stories\\.(?:ts|tsx|js|jsx)?)$",
+  },
 ];
 
 import "@storybook/addon-ondevice-controls/register";
@@ -223,6 +230,7 @@ const getStories = () => {
     "./app/component-library/components/Overlay/Overlay.stories.tsx": require("../app/component-library/components/Overlay/Overlay.stories.tsx"),
     "./app/component-library/components/Icons/Icon/Icon.stories.tsx": require("../app/component-library/components/Icons/Icon/Icon.stories.tsx"),
     "./app/component-library/components/Checkbox/Checkbox.stories.tsx": require("../app/component-library/components/Checkbox/Checkbox.stories.tsx"),
+    "./app/component-library/components/Toast/Toast.stories.tsx": require("../app/component-library/components/Toast/Toast.stories.tsx"),
   };
 };
 
