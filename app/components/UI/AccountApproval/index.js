@@ -2,7 +2,12 @@ import React, { PureComponent } from 'react';
 import { connect } from 'react-redux';
 import PropTypes from 'prop-types';
 import StyledButton from '../StyledButton';
-import { View, InteractionManager, TouchableOpacity } from 'react-native';
+import {
+  View,
+  InteractionManager,
+  TouchableOpacity,
+  Platform,
+} from 'react-native';
 import TransactionHeader from '../TransactionHeader';
 import AccountInfoCard from '../AccountInfoCard';
 import { strings } from '../../../../locales/i18n';
@@ -27,10 +32,12 @@ import { shuffle } from 'lodash';
 import SDKConnect from '../../../core/SDKConnect/SDKConnect';
 import Routes from '../../../constants/navigation/Routes';
 import CheckBox from '@react-native-community/checkbox';
+import generateTestId from '../../../../wdio/utils/generateTestId';
 import Engine from '../../../core/Engine';
 import { prefixUrlWithProtocol } from '../../../util/browser';
 import createStyles from './styles';
 import ShowWarningBanner from './showWarningBanner';
+import { ConnectAccountModalSelectorsIDs } from '../../../../e2e/selectors/Modals/ConnectAccountModal.selectors';
 import { CommonSelectorsIDs } from '../../../../e2e/selectors/Common.selectors';
 
 /**
@@ -261,7 +268,10 @@ class AccountApproval extends PureComponent {
         AppConstants.DEEPLINKS.ORIGIN_QR_CODE;
 
     return (
-      <View style={styles.root}>
+      <View
+        style={styles.root}
+        {...generateTestId(Platform, ConnectAccountModalSelectorsIDs.CONTAINER)}
+      >
         <TransactionHeader currentPageInformation={currentPageInformation} />
 
         {isUrlFlaggedAsPhishing && <ShowWarningBanner />}
