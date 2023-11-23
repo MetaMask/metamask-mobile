@@ -1,13 +1,10 @@
+import { Platform } from 'react-native';
 import Routes from '../../../../app/constants/navigation/Routes';
 import AppConstants from '../../../../app/core/AppConstants';
-import BackgroundBridge from '../../BackgroundBridge/BackgroundBridge';
-import { Platform } from 'react-native';
 import Logger from '../../../util/Logger';
 import Device from '../../../util/device';
 import { Minimizer } from '../../NativeModules';
-import BatchRPCManager from '../BatchRPCManager';
 import { Connection } from '../Connection';
-import RPCQueueManager from '../RPCQueueManager';
 import { METHODS_TO_DELAY } from '../SDKConnect';
 import DevLogger from '../utils/DevLogger';
 import { wait } from '../utils/wait.util';
@@ -15,38 +12,29 @@ import handleBatchRpcResponse from './handleBatchRpcResponse';
 
 export const handleSendMessage = async ({
   msg,
-  rpcQueueManager,
-  backgroundBridge,
-  batchRpcManager,
   connection,
 }: {
   msg: any;
-  rpcQueueManager: RPCQueueManager;
-  backgroundBridge?: BackgroundBridge;
-  batchRpcManager: BatchRPCManager;
   connection: Connection;
 }) => {
   const msgId = msg?.data?.id + '';
   const needsRedirect = connection.requestsToRedirect[msgId] !== undefined;
-  const method = rpcQueueManager.getId(msgId);
+  const method = connection.rpcQueueManager.getId(msgId);
 
   DevLogger.log(`Connection::sendMessage`, msg);
   // handle multichain rpc call responses separately
-  const chainRPCs = batchRpcManager.getById(msgId);
+  const chainRPCs = connection.batchRPCManager.getById(msgId);
   if (chainRPCs) {
     await handleBatchRpcResponse({
       chainRpcs: chainRPCs,
       msg,
       connection,
-      batchRpcManager,
-      rpcQueueManager,
-      backgroundBridge,
     });
     return;
   }
 
   if (msgId && method) {
-    rpcQueueManager.remove(msgId);
+    connection.rpcQueueManager.remove(msgId);
   }
 
   connection.remote.sendMessage(msg).catch((err) => {
@@ -68,7 +56,7 @@ export const handleSendMessage = async ({
 
   if (connection.origin === AppConstants.DEEPLINKS.ORIGIN_QR_CODE) return;
 
-  if (!rpcQueueManager.isEmpty()) {
+  if (!connection.rpcQueueManager.isEmpty()) {
     DevLogger.log(`Connection::sendMessage NOT empty --- skip goBack()`);
     return;
   }
