@@ -14,13 +14,13 @@ import TestHelpers from '../../helpers';
 
 const MAX_ATTEMPTS = 3;
 
-describe(Smoke('Typed Sign'), () => {
+describe(Smoke('Typed Sign V3'), () => {
   beforeAll(async () => {
     jest.setTimeout(2500000);
     await TestHelpers.reverseServerPort();
   });
 
-  it('should sign typed message', async () => {
+  it('should sign typed V3 message', async () => {
     await withFixtures(
       {
         dapp: true,
@@ -38,7 +38,7 @@ describe(Smoke('Typed Sign'), () => {
         await Browser.navigateToTestDApp();
 
         await TestHelpers.retry(MAX_ATTEMPTS, async () => {
-          await TestDApp.tapTypedSignButton();
+          await TestDApp.tapTypedV3SignButton();
           await SigningModal.isTypedRequestVisible();
           await SigningModal.tapSignButton();
           await SigningModal.isNotVisible();
@@ -47,7 +47,7 @@ describe(Smoke('Typed Sign'), () => {
     );
   });
 
-  it('should cancel typed message', async () => {
+  it('should cancel typed V3 message', async () => {
     await withFixtures(
       {
         dapp: true,
@@ -65,9 +65,9 @@ describe(Smoke('Typed Sign'), () => {
         await Browser.navigateToTestDApp();
 
         await TestHelpers.retry(MAX_ATTEMPTS, async () => {
-          await TestDApp.tapTypedSignButton();
+          await TestDApp.tapTypedV3SignButton();
           await SigningModal.isTypedRequestVisible();
-          await SigningModal.tapCancelButton();
+          await SigningModal.tapSignButton();
           await SigningModal.isNotVisible();
         });
       },
