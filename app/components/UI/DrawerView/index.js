@@ -5,12 +5,10 @@ import {
   View,
   Image,
   StyleSheet,
+  Text,
   InteractionManager,
   Platform,
 } from 'react-native';
-import Text, {
-  TextVariant,
-} from '../../../component-library/components/Texts/Text';
 import PropTypes from 'prop-types';
 import { connect } from 'react-redux';
 import Share from 'react-native-share';
@@ -512,11 +510,7 @@ class DrawerView extends PureComponent {
 
     return label ? (
       <View style={[styles.importedWrapper]}>
-        <Text
-          variant={TextVariant.BodySM}
-          numberOfLines={1}
-          style={styles.importedText}
-        >
+        <Text numberOfLines={1} style={styles.importedText}>
           {strings(label)}
         </Text>
       </View>
