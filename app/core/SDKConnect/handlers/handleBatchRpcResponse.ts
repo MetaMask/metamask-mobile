@@ -41,12 +41,7 @@ export const handleBatchRpcResponse = async ({
       data,
       name: 'metamask-provider',
     };
-
     await sendMessage({ msg: response });
-    // await handleSendMessage({
-    //   msg: response,
-    //   connection,
-    // });
 
     // Delete the chain from the chainRPCManager
     batchRPCManager.remove(chainRpcs.baseId);
@@ -66,10 +61,6 @@ export const handleBatchRpcResponse = async ({
       name: 'metamask-provider',
     };
     await sendMessage({ msg: response });
-    // await handleSendMessage({
-    //   msg: response,
-    //   connection,
-    // });
     // Delete the chain from the chainRPCManager
     batchRPCManager.remove(chainRpcs.baseId);
   } else {

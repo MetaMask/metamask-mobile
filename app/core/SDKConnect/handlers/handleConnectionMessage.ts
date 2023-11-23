@@ -79,7 +79,6 @@ export const handleConnectionMessage = async ({
   ).PreferencesController;
   const selectedAddress = preferencesController.state.selectedAddress;
 
-  DevLogger.log(`Connection::onMessage`, message);
   // Wait for bridge to be ready before handling messages.
   // It will wait until user accept/reject the connection request.
   try {
@@ -112,98 +111,15 @@ export const handleConnectionMessage = async ({
     return;
   }
 
-  // // Special case for metamask_connectSign
-  // if (lcMethod === RPC_METHODS.METAMASK_CONNECTWITH.toLowerCase()) {
-  //   // TODO activate once refactor is vetted.
-  //   // // format of the message:
-  //   // // { method: 'metamask_connectWith', params: [ { method: 'personalSign' | 'eth_sendTransaction', params: any[] ] } ] } }
-  //   // if (
-  //   //   !(
-  //   //     message?.params &&
-  //   //     Array.isArray(message.params) &&
-  //   //     message.params.length > 0
-  //   //   )
-  //   // ) {
-  //   //   throw new Error('Invalid message format');
-  //   // }
-  //   // // Extract the rpc method from the params
-  //   // const rpc = message.params[0];
-  //   // message.message = rpc.method;
-  //   // message.params = rpc.params;
-  //   // // Replace message.params with the selected address
-  //   // if (Platform.OS === 'ios') {
-  //   //   // TODO: why does ios (older devices) requires a delay after request is initially approved?
-  //   //   await wait(1000);
-  //   // }
-  // } else if (lcMethod === RPC_METHODS.METAMASK_CONNECTSIGN.toLowerCase()) {
-  //   // Replace with personal_sign
-  //   message.method = RPC_METHODS.PERSONAL_SIGN;
-  //   if (
-  //     !(
-  //       message?.params &&
-  //       Array.isArray(message.params) &&
-  //       message.params.length > 0
-  //     )
-  //   ) {
-  //     throw new Error('Invalid message format');
-  //   }
-
-  //   if (Platform.OS === 'ios') {
-  //     // TODO: why does ios (older devices) requires a delay after request is initially approved?
-  //     await wait(1000);
-  //   }
-
-  //   message.params = [(message.params as string[])[0], selectedAddress];
-
-  //   Logger.log(
-  //     `metamask_connectSign selectedAddress=${selectedAddress}`,
-  //     message.params,
-  //   );
-  // } else if (lcMethod === RPC_METHODS.METAMASK_BATCH.toLowerCase()) {
-  //   DevLogger.log(`metamask_batch`, JSON.stringify(message, null, 2));
-  //   if (
-  //     !(
-  //       message?.params &&
-  //       Array.isArray(message.params) &&
-  //       message.params.length > 0
-  //     )
-  //   ) {
-  //     throw new Error('Invalid message format');
-  //   }
-  //   const rpcs = message.params;
-  //   // Add rpcs to the batch manager
-  //   connection.batchRPCManager.add({ id: message.id, rpcs });
-
-  //   // Send the first rpc method to the background bridge
-  //   const rpc = rpcs[0];
-  //   rpc.id = message.id + `_0`; // Add index to id to keep track of the order
-  //   rpc.jsonrpc = '2.0';
-  //   DevLogger.log(
-  //     `metamask_batch method=${rpc.method} id=${rpc.id}`,
-  //     rpc.params,
-  //   );
-
-  //   connection.backgroundBridge?.onMessage({
-  //     name: 'metamask-provider',
-  //     data: rpc,
-  //     origin: 'sdk',
-  //   });
-
-  //   return;
-  // }
-  // Handle custom rpc method
   const processedRpc = await handleCustomRpcCalls({
     batchRPCManager: connection.batchRPCManager,
     selectedAddress,
-    backgroundBridge: connection.backgroundBridge,
     rpc: {
       id: message.id,
       method: message.method,
       params: message.params as any,
     },
   });
-  DevLogger.log(`message`, message);
-  DevLogger.log(`processedRpc`, processedRpc);
 
   connection.rpcQueueManager.add({
     id: processedRpc?.id ?? message.id,

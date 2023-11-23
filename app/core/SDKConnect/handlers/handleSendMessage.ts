@@ -18,7 +18,7 @@ export const handleSendMessage = async ({
   connection: Connection;
 }) => {
   const msgId = msg?.data?.id + '';
-  const needsRedirect = connection.requestsToRedirect[msgId] !== undefined;
+  const needsRedirect = connection?.requestsToRedirect[msgId] !== undefined;
   const method = connection.rpcQueueManager.getId(msgId);
 
   DevLogger.log(`Connection::sendMessage`, msg);
@@ -30,7 +30,8 @@ export const handleSendMessage = async ({
       msg,
       batchRPCManager: connection.batchRPCManager,
       backgroundBridge: connection.backgroundBridge,
-      sendMessage: ({ msg: newmsg }: { msg: any }) => handleSendMessage(newmsg),
+      sendMessage: ({ msg: newmsg }: { msg: any }) =>
+        handleSendMessage({ msg: newmsg, connection }),
     });
     return;
   }
@@ -51,7 +52,9 @@ export const handleSendMessage = async ({
     return;
   }
 
-  delete connection.requestsToRedirect[msgId];
+  if (connection?.requestsToRedirect && msgId) {
+    delete connection?.requestsToRedirect[msgId];
+  }
 
   // hide modal
   connection.setLoading(false);

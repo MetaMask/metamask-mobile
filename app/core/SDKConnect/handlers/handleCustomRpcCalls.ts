@@ -1,6 +1,5 @@
-import BackgroundBridge from '../../BackgroundBridge/BackgroundBridge';
-import Logger from '../../../util/Logger';
 import { Platform } from 'react-native';
+import Logger from '../../../util/Logger';
 import BatchRPCManager from '../BatchRPCManager';
 import { RPC_METHODS } from '../Connection';
 import DevLogger from '../utils/DevLogger';
@@ -9,12 +8,10 @@ import { wait } from '../utils/wait.util';
 export const handleCustomRpcCalls = async ({
   rpc,
   batchRPCManager,
-  backgroundBridge,
   selectedAddress,
 }: {
   selectedAddress?: string;
   batchRPCManager: BatchRPCManager;
-  backgroundBridge?: BackgroundBridge;
   rpc: { id: string; method: string; params: any[] };
 }) => {
   const { id, method, params } = rpc;
@@ -77,18 +74,10 @@ export const handleCustomRpcCalls = async ({
 
     // Send the first rpc method to the background bridge
     const batchRpc = rpcs[0];
-    batchRpc.id = id + `_0`; // Add index to id to keep track of the order
-    batchRpc.jsonrpc = '2.0';
-    DevLogger.log(
-      `metamask_batch method=${batchRpc.method} id=${batchRpc.id}`,
-      batchRpc.params,
-    );
-
-    backgroundBridge?.onMessage({
-      name: 'metamask-provider',
-      data: batchRpc,
-      origin: 'sdk',
-    });
+    processedMessage.id = id + `_0`; // Add index to id to keep track of the order
+    processedMessage.jsonrpc = '2.0';
+    processedMessage.method = batchRpc.method;
+    processedMessage.params = batchRpc.params;
   }
   return processedMessage;
 };
