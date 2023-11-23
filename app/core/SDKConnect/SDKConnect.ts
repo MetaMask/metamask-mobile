@@ -283,21 +283,6 @@ export class SDKConnect extends EventEmitter2 {
       delete this.sdkLoadingState[channelId];
       await this.hideLoadingState();
     }
-
-    // const loadingSessions = Object.keys(this.sdkLoadingState).length;
-    // if (loadingSessions > 0) {
-    //   this.navigation?.navigate(Routes.MODAL.ROOT_MODAL_FLOW, {
-    //     screen: Routes.SHEET.SDK_LOADING,
-    //   });
-    // } else {
-    //   const currentRoute = this.navigation?.getCurrentRoute()?.name;
-    //   if (currentRoute === Routes.SHEET.SDK_LOADING) {
-    //     DevLogger.log(`updateSDKLoadingState - goBack`);
-    //     this.navigation?.goBack();
-    //   } else {
-    //     DevLogger.log(`updateSDKLoadingState - currentRoute=${currentRoute}`);
-    //   }
-    // }
   }
 
   public async hideLoadingState() {
