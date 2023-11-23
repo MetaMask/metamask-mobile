@@ -136,10 +136,11 @@ workflows:
       - prep_environment
     steps:
       - restore-cache@1:
+          title: Restore cache dependencies
           inputs:
           - key: node-modules-{{ checksum "yarn.lock" }}
       - yarn@0:
-          run_if: '{{not (enveq "BITRISE_CACHE_HIT" "exact")}}'
+          # run_if: '{{not (enveq "BITRISE_CACHE_HIT" "exact")}}'
           inputs:
             - command: setup
           title: Yarn Setup
@@ -158,11 +159,12 @@ workflows:
             # postinstall script modifications and could affect hoisting on subsequent installs.
             - cache_paths: '$YARN_CACHE_DIR -> ./yarn.lock'
       - save-cache@1:
+          title: Save cache dependencies 
           inputs:
           - key: node-modules-{{ checksum "yarn.lock" }}
           - paths: |-
               node_modules
-              yarn.lock
+              ./yarn.lock
   code_setup_dev:
     steps:
       - script@1:
@@ -357,8 +359,9 @@ workflows:
     # after_run:
     # - _notify_failure_on_slack
     steps:
-    # - restore-gradle-cache@1: {}
+    - restore-gradle-cache@1: {}
     - restore-cache@1:
+        title: Restore cache build
         inputs:
         - key: apk-cache-{{ .CommitHash }}
     - install-missing-android-tools@3:
@@ -378,9 +381,9 @@ workflows:
     #     - create_command_flags: --sdcard 8192M
     #     - start_command_flags: -read-only
     #     - profile: pixel_5
-    # - save-gradle-cache@1: {}
+    - save-gradle-cache@1: {}
     - script@1:
-        title: Detox Build
+        title: Run detox build
         run_if: '{{not (enveq "BITRISE_CACHE_HIT" "exact")}}'
         is_always_run: false
         inputs:
@@ -396,7 +399,7 @@ workflows:
             export METAMASK_BUILD_TYPE='main'
             IGNORE_BOXLOGS_DEVELOPMENT="true" FORCE_BUNDLING=true yarn test:e2e:android:bitrise:build --testNamePattern="$TEST_SUITE"
     - save-cache@1:
-        title: Cache Build
+        title: Save cache build
         inputs:
         - key: apk-cache-{{ .CommitHash }}
         - paths: android/app/build/outputs
@@ -412,11 +415,13 @@ workflows:
     # after_run:
     # - _notify_failure_on_slack
     steps:
-    # - restore-gradle-cache@1: {}
+    - restore-gradle-cache@1: {}
     - restore-cache@1:
+        title: Restore cache dependencies
         inputs:
         - key: node-modules-{{ checksum "yarn.lock" }}
     - restore-cache@1:
+        title: Restore cache build
         inputs:
         - key: apk-cache-{{ .CommitHash }}
     - script@1:
@@ -434,7 +439,7 @@ workflows:
         - profile: pixel_5
     - wait-for-android-emulator@1: {}
     - script@1:
-        title: Detox Run Test
+        title: Run detox test
         is_always_run: false
         inputs:
         - content: |-
