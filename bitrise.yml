@@ -95,11 +95,11 @@ stages:
       - ios_e2e_test: {}
   build_smoke_e2e_ios_android_stage:
     workflows:
-      # - ios_e2e_build: {}
+      - ios_e2e_build: {}
       - android_e2e_build: {}
   run_smoke_e2e_ios_android_stage:
     workflows:
-      # - ios_e2e_test: {}
+      - ios_e2e_test: {}
       - android_e2e_test: {}
   run_regression_e2e_ios_android_stage:
     workflows:
@@ -140,7 +140,7 @@ workflows:
           inputs:
           - key: node-modules-{{ checksum "yarn.lock" }}
       - yarn@0:
-          # run_if: '{{not (enveq "BITRISE_CACHE_HIT" "exact")}}'
+          run_if: '{{not (enveq "BITRISE_CACHE_HIT" "exact")}}'
           inputs:
             - command: setup
           title: Yarn Setup
@@ -183,7 +183,6 @@ workflows:
                 #!/usr/bin/env bash
                 envman add --key YARN_CACHE_DIR --value "$(yarn cache dir)"
           title: Get Yarn cache directory
-      # - cache-pull@2: {}
       - script@1:
           inputs:
             - content: |-
@@ -375,12 +374,6 @@ workflows:
         - content: |-
             #!/usr/bin/env bash
             "${ANDROID_HOME}/tools/bin/sdkmanager" "cmake;3.22.1"
-    # - avd-manager@1:
-    #     inputs:
-    #     - api_level: "30"
-    #     - create_command_flags: --sdcard 8192M
-    #     - start_command_flags: -read-only
-    #     - profile: pixel_5
     - save-gradle-cache@1: {}
     - script@1:
         title: Run detox build
@@ -493,6 +486,7 @@ workflows:
     # after_run:
     #   - _notify_failure_on_slack
     steps:
+      - restore-cocoapods-cache@1: {}
       - certificate-and-profile-installer@1: {}
       - set-xcode-build-number@1:
           inputs:
@@ -507,8 +501,15 @@ workflows:
                 brew tap wix/brew
           title: Set Env Path for caching deps
       - cocoapods-install@2:
+          run_if: '{{not (enveq "BITRISE_CACHE_HIT" "exact")}}'
           is_always_run: false
+      - save-cocoapods-cache@1: {}
+      - restore-cache@1:
+          title: Restore cache build
+          inputs:
+          - key: ipa-cache-{{ .CommitHash }}
       - script@1:
+          run_if: '{{not (enveq "BITRISE_CACHE_HIT" "exact")}}'
           inputs:
             - content: |-
                 #!/usr/bin/env bash
@@ -521,12 +522,12 @@ workflows:
                 export METAMASK_ENVIRONMENT='local'
                 export METAMASK_BUILD_TYPE='main'
                 IGNORE_BOXLOGS_DEVELOPMENT="true" FORCE_BUNDLING=true yarn test:e2e:ios:bitrise:build --testNamePattern="$TEST_SUITE"
-          title: Detox Build
+          title: Run detox build
           is_always_run: false
       - save-cache@1:
-          title: Cache Build
+          title: Save cache build
           inputs:
-          - key: apk-cache-{{ checksum "$PROJECT_LOCATION/app/build/outputs/bundle/prodRelease/app-prod-debug.aab" }}
+          - key: ipa-cache-{{ .CommitHash }}
           - paths:
             - $PROJECT_LOCATION/app/build/outputs
   ios_e2e_test:
@@ -537,22 +538,30 @@ workflows:
     # after_run:
     #   - _notify_failure_on_slack
     steps:
-      - restore-cache@1: {}
+      - restore-cache@1:
+          title: Restore cache dependencies
+          inputs:
+          - key: node-modules-{{ checksum "yarn.lock" }}
+      - restore-cache@1:
+          title: Restore cache build
+          inputs:
+          - key: ipa-cache-{{ .CommitHash }}
+      - restore-cocoapods-cache@1: {}
       - certificate-and-profile-installer@1: {}
       - set-xcode-build-number@1:
           inputs:
             - build_short_version_string: $VERSION_NAME
             - plist_path: $PROJECT_LOCATION_IOS/MetaMask/Info.plist
-      - script:
-          inputs:
-            - content: |-
-                # Add cache directory to environment variable
-                envman add --key BREW_APPLESIMUTILS --value "$(brew --cellar)/applesimutils"
-                envman add --key BREW_OPT_APPLESIMUTILS --value "/usr/local/opt/applesimutils"
-                brew tap wix/brew
-          title: Set Env Path for caching deps
-      - cocoapods-install@2:
-          is_always_run: false
+      # - script:
+      #     inputs:
+      #       - content: |-
+      #           # Add cache directory to environment variable
+      #           envman add --key BREW_APPLESIMUTILS --value "$(brew --cellar)/applesimutils"
+      #           envman add --key BREW_OPT_APPLESIMUTILS --value "/usr/local/opt/applesimutils"
+      #           brew tap wix/brew
+      #     title: Set Env Path for caching deps
+      # - cocoapods-install@2:
+      #     is_always_run: false
       - script@1:
           inputs:
             - content: |-
@@ -566,7 +575,7 @@ workflows:
                 export METAMASK_ENVIRONMENT='local'
                 export METAMASK_BUILD_TYPE='main'
                 IGNORE_BOXLOGS_DEVELOPMENT="true" FORCE_BUNDLING=true yarn test:e2e:ios:bitrise:run --testNamePattern="$TEST_SUITE"
-          title: Detox Test
+          title: Run detox test
           is_always_run: false
       - custom-test-results-export@1:
           is_always_run: true
