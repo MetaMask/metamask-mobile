@@ -413,7 +413,7 @@ buildAndroidFlaskRelease(){
 	remapFlaskEnvVariables
 	
 	if [ "$PRE_RELEASE" = false ] ; then
-		adb uninstall io.metamask || true
+		adb uninstall io.metamask.flask || true
 	fi
 	prebuild_android
 
