@@ -275,7 +275,6 @@ export default class AndroidService extends EventEmitter2 {
         const processedRpc = await handleCustomRpcCalls({
           batchRPCManager: this.batchRPCManager,
           selectedAddress,
-          backgroundBridge: bridge,
           rpc: { id: data.id, method: data.method, params: data.params },
         });
 
