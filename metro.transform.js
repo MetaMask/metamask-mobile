@@ -8,6 +8,7 @@ const {
   removeFencedCode,
   lintTransformedFile,
 } = require('./app/transforms/remove-fenced-code');
+const { build } = require('eth-url-parser');
 
 const filesExtToScan = ['.js', '.cjs', '.mjs', '.ts'];
 const availableFeatures = new Set(['flask', 'snaps', 'beta']);
@@ -22,6 +23,7 @@ module.exports.transform = async ({ src, filename, options }) => {
 
   function getBuildTypeFeatures() {
     const buildType = process.env.METAMASK_BUILD_TYPE ?? 'main';
+    console.log(buildType);
     switch (buildType) {
       case 'main':
         return mainFeatureSet;

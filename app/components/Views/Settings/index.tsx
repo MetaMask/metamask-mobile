@@ -167,6 +167,14 @@ const Settings = () => {
     trackEvent(MetaMetricsEvents.NAVIGATION_TAPS_LOGOUT);
   };
 
+
+  console.log('METAMASK_BUILD_TYPE', process.env.METAMASK_BUILD_TYPE)
+  let title = strings('app_settings.info_title');
+
+  ///: BEGIN:ONLY_INCLUDE_IN(flask)
+  title = 'This is for flask only'
+  ///: END:ONLY_INCLUDE_IN
+
   return (
     <ScrollView style={styles.wrapper}>
       <SettingsDrawer
@@ -213,7 +221,7 @@ const Settings = () => {
         testID={EXPERIMENTAL_SETTINGS}
       />
       <SettingsDrawer
-        title={strings('app_settings.info_title')}
+        title={title}
         onPress={onPressInfo}
         testID={ABOUT_METAMASK_SETTINGS}
       />
