@@ -1,8 +1,8 @@
-import AppConstants from '../AppConstants';
-import SDKConnect from './SDKConnect';
-import DevLogger from './utils/DevLogger';
-import { waitForCondition } from './utils/wait.util';
-import Logger from '../../util/Logger';
+import AppConstants from '../../AppConstants';
+import SDKConnect from '../SDKConnect';
+import DevLogger from '../utils/DevLogger';
+import { waitForCondition } from '../utils/wait.util';
+import Logger from '../../../util/Logger';
 
 const QRCODE_PARAM_PATTERN = '&t=q';
 
