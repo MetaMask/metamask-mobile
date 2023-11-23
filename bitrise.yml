@@ -138,7 +138,7 @@ workflows:
       - restore-cache@1:
           title: Restore cache dependencies
           inputs:
-          - key: node-modules-{{ checksum "yarn.lock" }}
+          - key: {{ .OS }}-{{ .Arch }}-node-modules-{{ checksum "yarn.lock" }}
       - yarn@0:
           run_if: '{{not (enveq "BITRISE_CACHE_HIT" "exact")}}'
           inputs:
@@ -161,7 +161,7 @@ workflows:
       - save-cache@1:
           title: Save cache dependencies 
           inputs:
-          - key: node-modules-{{ checksum "yarn.lock" }}
+          - key: {{ .OS }}-{{ .Arch }}-node-modules-{{ checksum "yarn.lock" }}
           - paths: |-
               node_modules
               ./yarn.lock
@@ -412,7 +412,7 @@ workflows:
     - restore-cache@1:
         title: Restore cache dependencies
         inputs:
-        - key: node-modules-{{ checksum "yarn.lock" }}
+        - key: {{ .OS }}-{{ .Arch }}-node-modules-{{ checksum "yarn.lock" }}
     - restore-cache@1:
         title: Restore cache build
         inputs:
@@ -541,7 +541,7 @@ workflows:
       - restore-cache@1:
           title: Restore cache dependencies
           inputs:
-          - key: node-modules-{{ checksum "yarn.lock" }}
+          - key: {{ .OS }}-{{ .Arch }}-node-modules-{{ checksum "yarn.lock" }}
       - restore-cache@1:
           title: Restore cache build
           inputs:
