@@ -51,7 +51,7 @@ describe('deriveSentryEnvironment', () => {
     expect(env).toBe('local');
   });
 
-  test('returns production for non-dev production environment and undefined build type', async () => {
+  test('returns production for non-dev production environment and undefined  build type', async () => {
     const METAMASK_ENVIRONMENT = 'production';
     const isDev = false;
 
