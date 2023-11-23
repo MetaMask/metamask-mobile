@@ -4,6 +4,10 @@ exports[`BlockaidBanner should not render if resultType is benign 1`] = `null`;
 
 exports[`BlockaidBanner should not render if securityAlertResponse is undefined 1`] = `null`;
 
+exports[`BlockaidBanner should not render if user has not enabled blockaid 1`] = `null`;
+
+exports[`BlockaidBanner should not render if user is not on mainnet 1`] = `null`;
+
 exports[`BlockaidBanner should render correctly 1`] = `
 <View
   securityAlertResponse={
@@ -724,12 +728,15 @@ exports[`BlockaidBanner should render correctly with reason "raw_signature_farmi
 </View>
 `;
 
+exports[`BlockaidBanner should render loader if reason is requestInProgress 1`] = `null`;
+
 exports[`BlockaidBanner should render normal banner alert if resultType is failed 1`] = `
 <View
   collapsable={false}
   forwardedRef={[Function]}
   style={
     Object {
+      "marginBottom": 20,
       "marginLeft": 10,
       "marginRight": 10,
       "marginTop": 10,

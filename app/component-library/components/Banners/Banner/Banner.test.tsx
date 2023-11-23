@@ -1,14 +1,19 @@
+// Third party dependencies.
 import React from 'react';
-
 import { render } from '@testing-library/react-native';
-import Banner from './Banner';
+
+// External dependencies.
 import Text from '../../Texts/Text/Text';
-import { BannerAlertSeverity } from './variants/BannerAlert/BannerAlert.types';
-import { BannerVariant } from './Banner.types';
 import { ButtonVariants } from '../../Buttons/Button';
 import { IconName } from '../../Icons/Icon';
 import { ButtonIconSizes, ButtonIconVariants } from '../../Buttons/ButtonIcon';
+
+// Internal dependencies.
+import Banner from './Banner';
 import { TESTID_BANNER_CLOSE_BUTTON_ICON } from './foundation/BannerBase/BannerBase.constants';
+import { BannerAlertSeverity } from './variants/BannerAlert/BannerAlert.types';
+import { BannerVariant } from './Banner.types';
+import { SAMPLE_BANNER_PROPS } from './Banner.constants';
 
 describe('Banner', () => {
   it('should render correctly', () => {
@@ -16,10 +21,8 @@ describe('Banner', () => {
       <Banner
         severity={BannerAlertSeverity.Error}
         variant={BannerVariant.Alert}
-        title="Hello Error Banner World"
-        description={
-          'This is nothing but a test of the emergency broadcast system.'
-        }
+        title={SAMPLE_BANNER_PROPS.title}
+        description={SAMPLE_BANNER_PROPS.description}
       />,
     );
     expect(wrapper).toMatchSnapshot();
@@ -30,10 +33,8 @@ describe('Banner', () => {
       <Banner
         severity={BannerAlertSeverity.Error}
         variant={BannerVariant.Alert}
-        title="Hello Error Banner World"
-        description={
-          'This is nothing but a test of the emergency broadcast system.'
-        }
+        title={SAMPLE_BANNER_PROPS.title}
+        description={SAMPLE_BANNER_PROPS.description}
         startAccessory={<Text>Test Start accessory</Text>}
       />,
     );
@@ -47,10 +48,8 @@ describe('Banner', () => {
       <Banner
         severity={BannerAlertSeverity.Error}
         variant={BannerVariant.Alert}
-        title="Hello Error Banner World"
-        description={
-          'This is nothing but a test of the emergency broadcast system.'
-        }
+        title={SAMPLE_BANNER_PROPS.title}
+        description={SAMPLE_BANNER_PROPS.description}
         actionButtonProps={{
           label: 'Test Action Button',
           onPress: () => jest.fn(),
@@ -68,10 +67,8 @@ describe('Banner', () => {
       <Banner
         severity={BannerAlertSeverity.Error}
         variant={BannerVariant.Alert}
-        title="Hello Error Banner World"
-        description={
-          'This is nothing but a test of the emergency broadcast system.'
-        }
+        title={SAMPLE_BANNER_PROPS.title}
+        description={SAMPLE_BANNER_PROPS.description}
         actionButtonProps={{
           label: 'Test Action Button',
           onPress: () => jest.fn(),

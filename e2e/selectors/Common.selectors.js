@@ -5,10 +5,11 @@ export const CommonSelectorsIDs = {
   BACK_ARROW_BUTTON: 'back-arrow-button',
   CONNECT_BUTTON: 'connect-button',
   CANCEL_BUTTON: 'cancel-button',
-  CELLSELECT: 'cellselect',
 };
 
 export const CommonSelectorsText = {
   OK_ALERT_BUTTON: messages.template_confirmation.ok,
   CANCEL_BUTTON: messages.template_confirmation.cancel,
+  TOAST_REVOKE_ACCOUNTS: messages.toast.revoked_all,
+  TOAST_CONNECTED_ACCOUNTS: messages.toast.connected_and_active,
 };

@@ -82,6 +82,7 @@ import AccountActions from '../../../components/Views/AccountActions';
 import EthSignFriction from '../../../components/Views/Settings/AdvancedSettings/EthSignFriction';
 import WalletActions from '../../Views/WalletActions';
 import NetworkSelector from '../../../components/Views/NetworkSelector';
+import ReturnToAppModal from '../../Views/ReturnToAppModal';
 import EditAccountName from '../../Views/EditAccountName/EditAccountName';
 import WC2Manager, {
   isWC2Enabled,
@@ -277,7 +278,9 @@ const App = ({ userLoggedIn }) => {
         animationNameRef?.current?.play();
       }
     };
-    appTriggeredAuth();
+    appTriggeredAuth().catch((error) => {
+      Logger.error(error, 'App: Error in appTriggeredAuth');
+    });
   }, [navigator]);
 
   const handleDeeplink = useCallback(({ error, params, uri }) => {
@@ -331,8 +334,8 @@ const App = ({ userLoggedIn }) => {
           const { error } = opts;
 
           if (error) {
+            // Log error for analytics and continue handling deeplink
             Logger.error('Error from Branch: ' + error);
-            return;
           }
 
           handleDeeplink(opts);
@@ -347,7 +350,9 @@ const App = ({ userLoggedIn }) => {
       await Analytics.init();
     };
 
-    initAnalytics();
+    initAnalytics().catch((err) => {
+      Logger.error(err, 'Error initializing analytics');
+    });
   }, []);
 
   useEffect(() => {
@@ -356,7 +361,7 @@ const App = ({ userLoggedIn }) => {
       if (navigator?.getCurrentRoute && onboarded && !sdkInit.current) {
         try {
           const sdkConnect = SDKConnect.getInstance();
-          await sdkConnect.init({ navigation: navigator });
+          await sdkConnect.init({ navigation: navigator, context: 'Nav/App' });
           setPostInitReady(true);
           sdkInit.current = true;
         } catch (err) {
@@ -364,7 +369,9 @@ const App = ({ userLoggedIn }) => {
         }
       }
     }
-    initSDKConnect();
+    initSDKConnect().catch((err) => {
+      Logger.error(err, 'Error initializing SDKConnect');
+    });
   }, [navigator, onboarded]);
 
   useEffect(() => {
@@ -384,7 +391,9 @@ const App = ({ userLoggedIn }) => {
         }
       }
     }
-    handlePostInit();
+    handlePostInit().catch((err) => {
+      Logger.error(err, 'Error postInit SDKConnect');
+    });
   }, [userLoggedIn, postInitReady]);
 
   useEffect(() => {
@@ -405,7 +414,9 @@ const App = ({ userLoggedIn }) => {
       setRoute(route);
     }
 
-    checkExisting();
+    checkExisting().catch((error) => {
+      Logger.error(error, 'Error checking existing user');
+    });
     /* eslint-disable react-hooks/exhaustive-deps */
   }, []);
 
@@ -436,7 +447,9 @@ const App = ({ userLoggedIn }) => {
       }
     }
 
-    startApp();
+    startApp().catch((error) => {
+      Logger.error(error, 'Error starting app');
+    });
   }, []);
 
   const setNavigatorRef = (ref) => {
@@ -527,6 +540,10 @@ const App = ({ userLoggedIn }) => {
       <Stack.Screen
         name={Routes.SHEET.NETWORK_SELECTOR}
         component={NetworkSelector}
+      />
+      <Stack.Screen
+        name={Routes.SHEET.RETURN_TO_DAPP_MODAL}
+        component={ReturnToAppModal}
       />
       <Stack.Screen
         name={Routes.SHEET.AMBIGUOUS_ADDRESS}

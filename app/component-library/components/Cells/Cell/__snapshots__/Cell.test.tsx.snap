@@ -43,7 +43,6 @@ exports[`Cell should render CellDisplay given the type Display 1`] = `
         }
       }
       testID="cellbase-avatar"
-      variant="Account"
     >
       <View
         style={
@@ -251,7 +250,9 @@ exports[`Cell should render CellMultiSelect given the type MultiSelect 1`] = `
     Object {
       "alignItems": "flex-start",
       "backgroundColor": "#FFFFFF",
+      "borderRadius": 4,
       "opacity": 1,
+      "padding": 16,
     }
   }
   testID="cellmultiselect"
@@ -263,7 +264,7 @@ exports[`Cell should render CellMultiSelect given the type MultiSelect 1`] = `
       Object {
         "alignItems": "center",
         "flexDirection": "row",
-        "padding": 16,
+        "padding": 0,
       }
     }
   >
@@ -323,7 +324,6 @@ exports[`Cell should render CellMultiSelect given the type MultiSelect 1`] = `
           }
         }
         testID="cellbase-avatar"
-        variant="Account"
       >
         <View
           style={
@@ -569,7 +569,6 @@ exports[`Cell should render CellSelect given the type Select 1`] = `
           }
         }
         testID="cellbase-avatar"
-        variant="Account"
       >
         <View
           style={
