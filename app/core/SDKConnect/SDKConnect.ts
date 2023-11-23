@@ -270,7 +270,6 @@ export class SDKConnect extends EventEmitter2 {
     loading: boolean;
   }) {
     if (loading === true) {
-      DevLogger.log(``);
       const keyringController = (
         Engine.context as { KeyringController: KeyringController }
       ).KeyringController;
