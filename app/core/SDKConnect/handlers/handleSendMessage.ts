@@ -28,7 +28,9 @@ export const handleSendMessage = async ({
     await handleBatchRpcResponse({
       chainRpcs: chainRPCs,
       msg,
-      connection,
+      batchRPCManager: connection.batchRPCManager,
+      backgroundBridge: connection.backgroundBridge,
+      sendMessage: ({ msg: newmsg }: { msg: any }) => handleSendMessage(newmsg),
     });
     return;
   }

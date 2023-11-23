@@ -1,16 +1,19 @@
-import { BatchRPCState } from '../BatchRPCManager';
-import { Connection } from '../Connection';
+import BackgroundBridge from 'app/core/BackgroundBridge/BackgroundBridge';
+import BatchRPCManager, { BatchRPCState } from '../BatchRPCManager';
 import DevLogger from '../utils/DevLogger';
 import { wait } from '../utils/wait.util';
-import handleSendMessage from './handleSendMessage';
 
 export const handleBatchRpcResponse = async ({
   chainRpcs,
+  batchRPCManager,
+  backgroundBridge,
   msg,
-  connection,
+  sendMessage,
 }: {
   chainRpcs: BatchRPCState;
-  connection: Connection;
+  batchRPCManager: BatchRPCManager;
+  backgroundBridge?: BackgroundBridge;
+  sendMessage: ({ msg }: { msg: any }) => Promise<void>;
   msg: any;
 }): Promise<void> => {
   const isLastRpc = chainRpcs.index === chainRpcs.rpcs.length - 1;
@@ -38,12 +41,15 @@ export const handleBatchRpcResponse = async ({
       data,
       name: 'metamask-provider',
     };
-    await handleSendMessage({
-      msg: response,
-      connection,
-    });
+
+    await sendMessage({ msg: response });
+    // await handleSendMessage({
+    //   msg: response,
+    //   connection,
+    // });
+
     // Delete the chain from the chainRPCManager
-    connection.batchRPCManager.remove(chainRpcs.baseId);
+    batchRPCManager.remove(chainRpcs.baseId);
   } else if (isLastRpc) {
     // Respond to the original rpc call with the list of responses append the current response
     DevLogger.log(
@@ -59,15 +65,16 @@ export const handleBatchRpcResponse = async ({
       data,
       name: 'metamask-provider',
     };
-    await handleSendMessage({
-      msg: response,
-      connection,
-    });
+    await sendMessage({ msg: response });
+    // await handleSendMessage({
+    //   msg: response,
+    //   connection,
+    // });
     // Delete the chain from the chainRPCManager
-    connection.batchRPCManager.remove(chainRpcs.baseId);
+    batchRPCManager.remove(chainRpcs.baseId);
   } else {
     // Save response and send the next rpc method
-    connection.batchRPCManager.addResponse({
+    batchRPCManager.addResponse({
       id: chainRpcs.baseId,
       index: chainRpcs.index,
       response: msg?.data?.result,
@@ -85,7 +92,7 @@ export const handleBatchRpcResponse = async ({
       nextRpc.params,
     );
 
-    connection.backgroundBridge?.onMessage({
+    backgroundBridge?.onMessage({
       name: 'metamask-provider',
       data: nextRpc,
       origin: 'sdk',

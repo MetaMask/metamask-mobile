@@ -2,6 +2,7 @@ import { EventEmitter2 } from 'eventemitter2';
 import { NativeModules } from 'react-native';
 import Engine from '../../Engine';
 import { Minimizer } from '../../NativeModules';
+import { RPCQueueManager } from '../RPCQueueManager';
 
 import {
   EventType,
@@ -14,7 +15,6 @@ import AppConstants from '../../AppConstants';
 import {
   wait,
   waitForAndroidServiceBinding,
-  waitForEmptyRPCQueue,
   waitForKeychainUnlocked,
 } from '../utils/wait.util';
 
@@ -30,10 +30,13 @@ import {
 import { KeyringController } from '@metamask/keyring-controller';
 
 import { PROTOCOLS } from '../../../constants/deeplinks';
-import RPCQueueManager from '../RPCQueueManager';
+import handleCustomRpcCalls from '../handlers/handleCustomRpcCalls';
 import DevLogger from '../utils/DevLogger';
 import AndroidSDKEventHandler from './AndroidNativeSDKEventHandler';
 import { AndroidClient } from './android-sdk-types';
+import BatchRPCManager from '../BatchRPCManager';
+import { PreferencesController } from '@metamask/preferences-controller';
+import handleBatchRpcResponse from '../handlers/handleBatchRpcResponse';
 
 export default class AndroidService extends EventEmitter2 {
   private communicationClient = NativeModules.CommunicationClient;
@@ -41,6 +44,7 @@ export default class AndroidService extends EventEmitter2 {
   private rpcQueueManager = new RPCQueueManager();
   private bridgeByClientId: { [clientId: string]: BackgroundBridge } = {};
   private eventHandler: AndroidSDKEventHandler;
+  private batchRPCManager: BatchRPCManager = new BatchRPCManager('android');
 
   constructor() {
     super();
@@ -260,11 +264,30 @@ export default class AndroidService extends EventEmitter2 {
           return;
         }
 
-        this.rpcQueueManager.add({
-          id: data.id,
-          method: data.method,
+        const preferencesController = (
+          Engine.context as {
+            PreferencesController: PreferencesController;
+          }
+        ).PreferencesController;
+        const selectedAddress = preferencesController.state.selectedAddress;
+
+        // Handle custom rpc method
+        const processedRpc = await handleCustomRpcCalls({
+          batchRPCManager: this.batchRPCManager,
+          selectedAddress,
+          backgroundBridge: bridge,
+          rpc: { id: data.id, method: data.method, params: data.params },
         });
-        bridge.onMessage({ name: 'metamask-provider', data });
+
+        DevLogger.log(
+          `AndroidService::onMessageReceived processedRpc`,
+          processedRpc,
+        );
+        this.rpcQueueManager.add({
+          id: processedRpc?.id ?? data.id,
+          method: processedRpc?.method ?? data.method,
+        });
+        bridge.onMessage({ name: 'metamask-provider', data: processedRpc });
       };
       handleEventAsync().catch((err) => {
         Logger.log(
@@ -380,6 +403,20 @@ export default class AndroidService extends EventEmitter2 {
     this.communicationClient.sendMessage(JSON.stringify(message));
     const rpcMethod = this.rpcQueueManager.getId(id);
 
+    DevLogger.log(`AndroidService::sendMessage method=${rpcMethod}`, message);
+    // handle multichain rpc call responses separately
+    const chainRPCs = this.batchRPCManager.getById(id);
+    if (chainRPCs) {
+      await handleBatchRpcResponse({
+        chainRpcs: chainRPCs,
+        msg: message,
+        batchRPCManager: this.batchRPCManager,
+        // backgroundBridge: this.bridgeByClientId[chainRPCs.],
+        sendMessage: ({ msg }) => this.sendMessage(msg),
+      });
+      return;
+    }
+
     if (!rpcMethod && forceRedirect !== true) {
       return;
     }
@@ -393,8 +430,11 @@ export default class AndroidService extends EventEmitter2 {
           // Add delay to see the feedback modal
           await wait(1000);
         }
-        // Make sure we have replied to all messages before redirecting
-        await waitForEmptyRPCQueue(this.rpcQueueManager);
+
+        if (!this.rpcQueueManager.isEmpty()) {
+          DevLogger.log(`Connection::sendMessage NOT empty --- skip goBack()`);
+          return;
+        }
 
         Minimizer.goBack();
       } catch (error) {
