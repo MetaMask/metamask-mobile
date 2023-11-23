@@ -11,6 +11,10 @@ index 0000000..550de56
 +* Run "yarn build" in the core monorepo
 +* Run "yarn patch:tx <core-directory>" in the mobile repo
 +* Once the new patch is merged, add your changes to: refactor/transaction-controller-patch-mobile-5
+diff --git a/node_modules/@metamask/transaction-controller/dist/.DS_Store b/node_modules/@metamask/transaction-controller/dist/.DS_Store
+new file mode 100644
+index 0000000..5008ddf
+Binary files /dev/null and b/node_modules/@metamask/transaction-controller/dist/.DS_Store differ
 diff --git a/node_modules/@metamask/transaction-controller/dist/EtherscanRemoteTransactionSource.d.ts b/node_modules/@metamask/transaction-controller/dist/EtherscanRemoteTransactionSource.d.ts
 new file mode 100644
 index 0000000..7637754
