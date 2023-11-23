@@ -62,7 +62,7 @@ class WebsiteIcon extends PureComponent {
     /**
      * Icon image to use, this substitutes getting the icon from the url
      */
-    icon: PropTypes.string,
+    icon: PropTypes.string | PropTypes.object,
 
     /**
      * Favicon source to use, this substitutes getting the icon from the url
