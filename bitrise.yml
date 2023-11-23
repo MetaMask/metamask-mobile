@@ -37,7 +37,7 @@ pipelines:
   run_e2e_android_pipeline:
     stages:
       - build_e2e_android_stage: {} #builds android detox E2E
-      - run_e2e_android_stage: {} #runs android detox E2E
+      - run_e2e_android_stage: {} #runs android detox test E2E
       - notify: {}
   #PR_e2e_verfication (build ios & android), run iOS (smoke), emulator Android
   release_e2e_pipeline:
@@ -138,9 +138,9 @@ workflows:
       - restore-cache@1:
           title: Restore cache dependencies
           inputs:
-          - key: {{ .OS }}-{{ .Arch }}-node-modules-{{ checksum "yarn.lock" }}
+          - key: '{{ .OS }}-{{ .Arch }}-node-modules-{{ checksum "yarn.lock" }}'
       - yarn@0:
-          run_if: '{{not (enveq "BITRISE_CACHE_HIT" "exact")}}'
+          # run_if: '{{not (enveq "BITRISE_CACHE_HIT" "exact")}}'
           inputs:
             - command: setup
           title: Yarn Setup
@@ -161,7 +161,7 @@ workflows:
       - save-cache@1:
           title: Save cache dependencies 
           inputs:
-          - key: {{ .OS }}-{{ .Arch }}-node-modules-{{ checksum "yarn.lock" }}
+          - key: '{{ .OS }}-{{ .Arch }}-node-modules-{{ checksum "yarn.lock" }}'
           - paths: |-
               node_modules
               ./yarn.lock
@@ -183,6 +183,7 @@ workflows:
                 #!/usr/bin/env bash
                 envman add --key YARN_CACHE_DIR --value "$(yarn cache dir)"
           title: Get Yarn cache directory
+      - cache-pull@2: {}
       - script@1:
           inputs:
             - content: |-
@@ -412,7 +413,7 @@ workflows:
     - restore-cache@1:
         title: Restore cache dependencies
         inputs:
-        - key: {{ .OS }}-{{ .Arch }}-node-modules-{{ checksum "yarn.lock" }}
+        - key: '{{ .OS }}-{{ .Arch }}-node-modules-{{ checksum "yarn.lock" }}'
     - restore-cache@1:
         title: Restore cache build
         inputs:
@@ -541,7 +542,7 @@ workflows:
       - restore-cache@1:
           title: Restore cache dependencies
           inputs:
-          - key: {{ .OS }}-{{ .Arch }}-node-modules-{{ checksum "yarn.lock" }}
+          - key: '{{ .OS }}-{{ .Arch }}-node-modules-{{ checksum "yarn.lock" }}'
       - restore-cache@1:
           title: Restore cache build
           inputs:
@@ -552,15 +553,16 @@ workflows:
           inputs:
             - build_short_version_string: $VERSION_NAME
             - plist_path: $PROJECT_LOCATION_IOS/MetaMask/Info.plist
-      # - script:
-      #     inputs:
-      #       - content: |-
-      #           # Add cache directory to environment variable
-      #           envman add --key BREW_APPLESIMUTILS --value "$(brew --cellar)/applesimutils"
-      #           envman add --key BREW_OPT_APPLESIMUTILS --value "/usr/local/opt/applesimutils"
-      #           brew tap wix/brew
-      #     title: Set Env Path for caching deps
+      - script:
+          inputs:
+            - content: |-
+                # Add cache directory to environment variable
+                envman add --key BREW_APPLESIMUTILS --value "$(brew --cellar)/applesimutils"
+                envman add --key BREW_OPT_APPLESIMUTILS --value "/usr/local/opt/applesimutils"
+                brew tap wix/brew
+          title: Set Env Path for caching deps
       # - cocoapods-install@2:
+      #     run_if: '{{not (enveq "BITRISE_CACHE_HIT" "exact")}}'
       #     is_always_run: false
       - script@1:
           inputs:
@@ -574,6 +576,7 @@ workflows:
                 node -v
                 export METAMASK_ENVIRONMENT='local'
                 export METAMASK_BUILD_TYPE='main'
+                detox rebuild-framework-cache
                 IGNORE_BOXLOGS_DEVELOPMENT="true" FORCE_BUNDLING=true yarn test:e2e:ios:bitrise:run --testNamePattern="$TEST_SUITE"
           title: Run detox test
           is_always_run: false
