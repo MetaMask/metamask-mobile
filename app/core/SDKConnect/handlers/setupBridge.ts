@@ -6,10 +6,10 @@ import getRpcMethodMiddleware, {
 
 import { OriginatorInfo } from '@metamask/sdk-communication-layer';
 import { PROTOCOLS } from '../../../constants/deeplinks';
-import DevLogger from '../utils/DevLogger';
-import { Connection } from '../Connection';
-import handleSendMessage from './handleSendMessage';
 import Logger from '../../../util/Logger';
+import { Connection } from '../Connection';
+import DevLogger from '../utils/DevLogger';
+import handleSendMessage from './handleSendMessage';
 
 export const setupBridge = ({
   originatorInfo,
@@ -30,12 +30,10 @@ export const setupBridge = ({
     url: PROTOCOLS.METAMASK + '://' + AppConstants.MM_SDK.SDK_REMOTE_ORIGIN,
     isRemoteConn: true,
     sendMessage: (msg: any) => {
+      DevLogger.log(`setupBride::sendMessage`, msg);
       handleSendMessage({
         msg,
         connection,
-        batchRpcManager: connection.batchRPCManager,
-        rpcQueueManager: connection.rpcQueueManager,
-        backgroundBridge: connection.backgroundBridge,
       }).catch((err) => {
         Logger.error(err, 'Connection::sendMessage failed to send');
       });

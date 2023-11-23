@@ -299,12 +299,10 @@ export class Connection extends EventEmitter2 {
             updateOriginatorInfos,
             approveHost,
             disapprove,
-            rpcQueueManager: this.rpcQueueManager,
-            batchRpcManager: this.batchRPCManager,
             connection: this,
           });
         } catch (error) {
-          Logger.error(error as Error, 'Connection not initialized');
+          DevLogger.log(`Connection::CLIENTS_READY error`, error);
           throw error;
         }
       },
@@ -313,21 +311,10 @@ export class Connection extends EventEmitter2 {
     this.remote.on(
       EventType.MESSAGE,
       async (message: CommunicationLayerMessage) => {
-        if (
-          !this.backgroundBridge ||
-          !this.rpcQueueManager ||
-          !this.batchRPCManager
-        ) {
-          throw new Error('Connection not initialized');
-        }
-
         try {
           await handleConnectionMessage({
             message,
             Engine,
-            backgroundBridge: this.backgroundBridge,
-            rpcQueueManager: this.rpcQueueManager,
-            batchRpcManager: this.batchRPCManager,
             connection: this,
           });
         } catch (error) {

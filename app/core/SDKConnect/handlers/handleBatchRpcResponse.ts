@@ -1,23 +1,15 @@
-import BackgroundBridge from 'app/core/BackgroundBridge/BackgroundBridge';
-import BatchRPCManager, { BatchRPCState } from '../BatchRPCManager';
+import { BatchRPCState } from '../BatchRPCManager';
 import { Connection } from '../Connection';
 import DevLogger from '../utils/DevLogger';
 import { wait } from '../utils/wait.util';
 import handleSendMessage from './handleSendMessage';
-import RPCQueueManager from '../RPCQueueManager';
 
 export const handleBatchRpcResponse = async ({
   chainRpcs,
   msg,
-  rpcQueueManager,
-  backgroundBridge,
-  batchRpcManager,
   connection,
 }: {
   chainRpcs: BatchRPCState;
-  rpcQueueManager: RPCQueueManager;
-  backgroundBridge?: BackgroundBridge;
-  batchRpcManager: BatchRPCManager;
   connection: Connection;
   msg: any;
 }): Promise<void> => {
@@ -49,12 +41,9 @@ export const handleBatchRpcResponse = async ({
     await handleSendMessage({
       msg: response,
       connection,
-      backgroundBridge,
-      batchRpcManager,
-      rpcQueueManager,
     });
     // Delete the chain from the chainRPCManager
-    batchRpcManager.remove(chainRpcs.baseId);
+    connection.batchRPCManager.remove(chainRpcs.baseId);
   } else if (isLastRpc) {
     // Respond to the original rpc call with the list of responses append the current response
     DevLogger.log(
@@ -73,15 +62,12 @@ export const handleBatchRpcResponse = async ({
     await handleSendMessage({
       msg: response,
       connection,
-      backgroundBridge,
-      batchRpcManager,
-      rpcQueueManager,
     });
     // Delete the chain from the chainRPCManager
-    batchRpcManager.remove(chainRpcs.baseId);
+    connection.batchRPCManager.remove(chainRpcs.baseId);
   } else {
     // Save response and send the next rpc method
-    batchRpcManager.addResponse({
+    connection.batchRPCManager.addResponse({
       id: chainRpcs.baseId,
       index: chainRpcs.index,
       response: msg?.data?.result,
@@ -99,7 +85,7 @@ export const handleBatchRpcResponse = async ({
       nextRpc.params,
     );
 
-    backgroundBridge?.onMessage({
+    connection.backgroundBridge?.onMessage({
       name: 'metamask-provider',
       data: nextRpc,
       origin: 'sdk',

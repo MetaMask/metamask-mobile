@@ -2,9 +2,7 @@ import { ApprovalController } from '@metamask/approval-controller';
 import { MessageType, OriginatorInfo } from '@metamask/sdk-communication-layer';
 import AppConstants from '../../../../app/core/AppConstants';
 import Logger from '../../../util/Logger';
-import BatchRPCManager from '../BatchRPCManager';
 import { Connection } from '../Connection';
-import RPCQueueManager from '../RPCQueueManager';
 import DevLogger from '../utils/DevLogger';
 import checkPermissions from './checkPermissions';
 import handleSendMessage from './handleSendMessage';
@@ -17,8 +15,6 @@ import { setupBridge } from './setupBridge';
 export const handleConnectionReady = async ({
   originatorInfo,
   Engine,
-  rpcQueueManager,
-  batchRpcManager,
   connection,
   approveHost,
   disapprove,
@@ -26,8 +22,6 @@ export const handleConnectionReady = async ({
 }: {
   originatorInfo: OriginatorInfo;
   Engine: any;
-  rpcQueueManager: RPCQueueManager;
-  batchRpcManager: BatchRPCManager;
   connection: Connection;
   approveHost: ({ host, hostname }: approveHostProps) => void;
   disapprove: (channelId: string) => void;
@@ -58,7 +52,7 @@ export const handleConnectionReady = async ({
   }
 
   DevLogger.log(
-    `SDKConnect::CLIENTS_READY id=${connection.channelId} apiVersion=${apiVersion}`,
+    `SDKConnect::CLIENTS_READY id=${connection.channelId} apiVersion=${apiVersion} origin=${connection.origin} trigger=${connection.trigger}`,
   );
   if (!originatorInfo) {
     return;
@@ -69,6 +63,10 @@ export const handleConnectionReady = async ({
     channelId: connection.channelId,
     originatorInfo,
   });
+  DevLogger.log(
+    `SDKConnect::CLIENTS_READY originatorInfo updated`,
+    originatorInfo,
+  );
 
   if (connection.isReady) {
     DevLogger.log(`SDKConnect::CLIENTS_READY already ready`);
@@ -119,6 +117,7 @@ export const handleConnectionReady = async ({
       connection.sendAuthorized(true);
     } else {
       if (approvalController.get(connection.channelId)) {
+        DevLogger.log(`SDKConnect::CLIENTS_READY reject previous approval`);
         // cleaning previous pending approval
         approvalController.reject(
           connection.channelId,
@@ -138,8 +137,6 @@ export const handleConnectionReady = async ({
       handleSendMessage({
         msg,
         connection,
-        batchRpcManager,
-        rpcQueueManager,
       }).catch((err) => {
         Logger.log(err, `SDKConnect:: Connection failed to send otp`);
       });
@@ -181,6 +178,7 @@ export const handleConnectionReady = async ({
     connection.sendAuthorized(true);
   }
 
+  DevLogger.log(`SDKConnect::CLIENTS_READY setup bridge`);
   connection.backgroundBridge = setupBridge({
     originatorInfo,
     connection,
