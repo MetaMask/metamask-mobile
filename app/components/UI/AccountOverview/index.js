@@ -433,7 +433,7 @@ class AccountOverview extends PureComponent {
                   {accountLabelTag && (
                     <View style={styles.tag}>
                       <Text
-                        varient={TextVariant.BodySMBold}
+                        variant={TextVariant.BodySMBold}
                         style={styles.tagText}
                       >
                         {strings(accountLabelTag)}

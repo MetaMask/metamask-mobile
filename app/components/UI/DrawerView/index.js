@@ -513,7 +513,7 @@ class DrawerView extends PureComponent {
     return label ? (
       <View style={[styles.importedWrapper]}>
         <Text
-          varient={TextVariant.BodySM}
+          variant={TextVariant.BodySM}
           numberOfLines={1}
           style={styles.importedText}
         >
