@@ -134,7 +134,7 @@ remapFlaskEnvVariables() {
 	remapEnvVariable "SEGMENT_FLASK_PROD_KEY" "SEGMENT_PROD_KEY"
 	remapEnvVariable "MM_FLASK_SENTRY_DSN" "MM_SENTRY_DSN"
 
-	# ios.env/ios.env variables
+	# ios.env/android.env variables
 	remapEnvVariable "MM_FLASK_BRANCH_KEY_TEST" "MM_BRANCH_KEY_TEST"
 	remapEnvVariable "MM_FLASK_BRANCH_KEY_LIVE" "MM_BRANCH_KEY_LIVE"
 	remapEnvVariable "MM_FLASK_MIXPANEL_TOKEN" "MM_MIXPANEL_TOKEN"
