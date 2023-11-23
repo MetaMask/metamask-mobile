@@ -550,11 +550,11 @@ checkAuthToken() {
 checkParameters "$@"
 
 printTitle
-if [ "$MODE" == "releaseE2E" ] || [ "$MODE" == "QA" ] || [ "$MODE" == "QAE2E" ] || [ "$MODE" == "flask" ]; then
+if [ "$MODE" == "releaseE2E" ] || [ "$MODE" == "QA" ] || [ "$MODE" == "QAE2E" ]; then
 	echo "DEBUG SENTRY PROPS"
 	checkAuthToken 'sentry.debug.properties'
 	export SENTRY_PROPERTIES="${REPO_ROOT_DIR}/sentry.debug.properties"
-elif [ "$MODE" == "release" ]; then
+elif [ "$MODE" == "release" ] || [ "$MODE" == "flask" ]; then
 	echo "RELEASE SENTRY PROPS"
 	checkAuthToken 'sentry.release.properties'
 	export SENTRY_PROPERTIES="${REPO_ROOT_DIR}/sentry.release.properties"
@@ -563,11 +563,15 @@ fi
 if [ -z "$METAMASK_BUILD_TYPE" ]; then
 	printError "Missing METAMASK_BUILD_TYPE; set to 'main' for a standard release, or 'flask' for a canary flask release. The default value is 'main'."
 	exit 1
+else
+    echo "METAMASK_BUILD_TYPE is set to: $METAMASK_BUILD_TYPE"
 fi
 
 if [ -z "$METAMASK_ENVIRONMENT" ]; then
 	printError "Missing METAMASK_ENVIRONMENT; set to 'production' for a production release, 'prerelease' for a pre-release, or 'local' otherwise"
 	exit 1
+else
+    echo "METAMASK_ENVIRONMENT is set to: $METAMASK_ENVIRONMENT"
 fi
 
 if [ "$PLATFORM" == "ios" ]; then
