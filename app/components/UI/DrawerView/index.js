@@ -281,9 +281,6 @@ const createStyles = (colors) =>
       fontSize: 10,
       ...fontStyles.bold,
     },
-    keyringTypeText: {
-      color: colors.text.default,
-    },
     protectWalletContainer: {
       backgroundColor: colors.background.default,
       paddingTop: 24,
@@ -449,22 +446,12 @@ class DrawerView extends PureComponent {
     /**
      *  Boolean that determines the state of network info modal
      */
-    networkOnboardedState: PropTypes.array,
-    /**
-     * Decides if Ledger's transaction modal is visible
-     */
-    // ledgerTransactionModalVisible: PropTypes.bool,
     infoNetworkModalVisible: PropTypes.bool,
     /**
      * Redux action to close info network modal
      */
     toggleInfoNetworkModal: PropTypes.func,
   };
-
-  constructor(props) {
-    super(props);
-    this.ledgerModalTimer = null;
-  }
 
   state = {
     showProtectWalletModal: undefined,
@@ -1258,7 +1245,6 @@ const mapStateToProps = (state) => ({
   keyrings: state.engine.backgroundState.KeyringController.keyrings,
   networkModalVisible: state.modals.networkModalVisible,
   receiveModalVisible: state.modals.receiveModalVisible,
-  ledgerTransactionModalVisible: state.modals.ledgerTransactionModalVisible,
   infoNetworkModalVisible: state.modals.infoNetworkModalVisible,
   passwordSet: state.user.passwordSet,
   wizard: state.wizard,

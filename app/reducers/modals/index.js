@@ -5,12 +5,8 @@ const initialState = {
   receiveModalVisible: false,
   receiveAsset: undefined,
   dappTransactionModalVisible: false,
-  approveModalVisible: false,
-  ledgerTransactionModalVisible: false,
-  ledgerSignMessageModalVisible: false,
+
   signMessageModalVisible: true,
-  ledgerTransactionActionParams: {},
-  ledgerSignMessageActionParams: {},
 };
 
 const modalsReducer = (state = initialState, action) => {
