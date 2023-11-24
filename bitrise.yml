@@ -31,6 +31,7 @@ pipelines:
   #Run E2E test suite for iOS only
   run_e2e_ios_pipeline:
     stages:
+      - build_e2e_ios_stage: {}
       - run_e2e_ios_stage: {}
       - notify: {}
   #Run E2E test suite for Android only
@@ -43,6 +44,7 @@ pipelines:
   release_e2e_pipeline:
     stages:
       - run_e2e_ios_android_stage: {}
+      # - build_regression_e2e_ios_android_stage: {} Enable whenever regression tests are running successfully.
       # - run_regression_e2e_ios_android_stage: {} Enable whenever regression tests are running successfully. 
       - notify: {}
   #PR_e2e_verfication (build ios & android), run iOS (smoke), emulator Android
@@ -55,6 +57,7 @@ pipelines:
  #PR_e2e_verfication (build ios & android), run iOS (regression), emulator Android
   pr_regression_e2e_pipeline:
     stages:
+      - build_regression_e2e_ios_android_stage: {}
       - run_regression_e2e_ios_android_stage: {}
       - notify: {}
 
@@ -90,21 +93,27 @@ stages:
   create_build_qa_ios:
     workflows:
       - build_ios_qa: {}
+  build_e2e_ios_stage:
+    workflows:
+      - ios_e2e_build: {}
   run_e2e_ios_stage:
     workflows:
       - ios_e2e_test: {}
   build_smoke_e2e_ios_android_stage:
     workflows:
       - ios_e2e_build: {}
-      # - android_e2e_build: {}
+      - android_e2e_build: {}
   run_smoke_e2e_ios_android_stage:
     workflows:
       - ios_e2e_test: {}
-      # - android_e2e_test: {}
+      - android_e2e_test: {}
+  build_regression_e2e_ios_android_stage:
+    workflows:
+      - ios_build_regression_tests: {}
+      - android_build_regression_tests: {}
   run_regression_e2e_ios_android_stage:
     workflows:
       - ios_run_regression_tests: {}
-      - android_build_regression_tests: {}
       - android_run_regression_tests: {}
   run_e2e_ios_android_stage:
     workflows:
@@ -183,7 +192,6 @@ workflows:
                 #!/usr/bin/env bash
                 envman add --key YARN_CACHE_DIR --value "$(yarn cache dir)"
           title: Get Yarn cache directory
-      # - cache-pull@2: {}
       - script@1:
           inputs:
             - content: |-
@@ -321,6 +329,11 @@ workflows:
   
   ### This workflow uses a flag (TEST_SUITE) that defines the specific set of tests to be run.
   ## in this instance Regression. In future iterations we can rename to ios_test_suite_selection & android_test_suite_selection      
+  ios_build_regression_tests:
+    envs:
+    - TEST_SUITE: 'Regression'
+    after_run:
+    - ios_e2e_build
   ios_run_regression_tests:
     envs:
     - TEST_SUITE: 'Regression'
@@ -384,9 +397,9 @@ workflows:
         - content: |-
             #!/usr/bin/env bash
             if [ "$TEST_SUITE" = "Regression" ]; then
-            TEST_SUITE="Regression"
+              TEST_SUITE="Regression"
             else
-            TEST_SUITE="Smoke"
+              TEST_SUITE="Smoke"
             fi
             node -v
             export METAMASK_ENVIRONMENT='local'
@@ -439,9 +452,9 @@ workflows:
         - content: |-
             #!/usr/bin/env bash
             if [ "$TEST_SUITE" = "Regression" ]; then
-            TEST_SUITE="Regression"
+              TEST_SUITE="Regression"
             else
-            TEST_SUITE="Smoke"
+              TEST_SUITE="Smoke"
             fi
             node -v
             export METAMASK_ENVIRONMENT='local'
@@ -522,8 +535,6 @@ workflows:
                 node -v
                 export METAMASK_ENVIRONMENT='local'
                 export METAMASK_BUILD_TYPE='main'
-                ls ../Library/Detox
-                ls ../Library/Detox/ios
                 IGNORE_BOXLOGS_DEVELOPMENT="true" FORCE_BUNDLING=true yarn test:e2e:ios:bitrise:build --testNamePattern="$TEST_SUITE"
           title: Run detox build
           is_always_run: false
@@ -532,7 +543,7 @@ workflows:
           inputs:
           - key: ipa-cache-{{ .CommitHash }}
           - paths: |-
-              ios/build/
+              ios/build/Build
               ../Library/Detox/ios
   ios_e2e_test:
     before_run:
@@ -564,17 +575,14 @@ workflows:
                 envman add --key BREW_OPT_APPLESIMUTILS --value "/usr/local/opt/applesimutils"
                 brew tap wix/brew
           title: Set Env Path for caching deps
-      # - cocoapods-install@2:
-      #     run_if: '{{not (enveq "BITRISE_CACHE_HIT" "exact")}}'
-      #     is_always_run: false
       - script@1:
           inputs:
             - content: |-
                 #!/usr/bin/env bash
                 if [ "$TEST_SUITE" = "Regression" ]; then
-                TEST_SUITE="Regression"
+                  TEST_SUITE="Regression"
                 else
-                TEST_SUITE="Smoke"
+                  TEST_SUITE="Smoke"
                 fi
                 node -v
                 export METAMASK_ENVIRONMENT='local'
