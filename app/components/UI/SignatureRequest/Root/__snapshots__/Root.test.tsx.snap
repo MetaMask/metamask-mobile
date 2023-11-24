@@ -387,46 +387,7 @@ exports[`Root should match snapshot 1`] = `
                     }
                   }
                 >
-                  <View>
-                    <View
-                      style={
-                        Array [
-                          Object {
-                            "alignContent": "center",
-                            "backgroundColor": "#FFFFFF",
-                            "borderRadius": 27,
-                            "height": 54,
-                            "justifyContent": "center",
-                            "width": 54,
-                          },
-                          Object {
-                            "borderRadius": 20,
-                            "height": 40,
-                            "marginRight": 8,
-                            "width": 40,
-                          },
-                        ]
-                      }
-                    >
-                      <Text
-                        style={
-                          Array [
-                            Object {
-                              "color": "#24272A",
-                              "fontFamily": "EuclidCircularB-Regular",
-                              "fontSize": 24,
-                              "fontWeight": "400",
-                              "textAlign": "center",
-                              "textTransform": "uppercase",
-                            },
-                            undefined,
-                          ]
-                        }
-                      >
-                        m
-                      </Text>
-                    </View>
-                  </View>
+                  <View />
                   <View
                     style={
                       Object {

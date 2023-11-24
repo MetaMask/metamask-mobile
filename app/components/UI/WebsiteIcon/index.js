@@ -62,7 +62,7 @@ class WebsiteIcon extends PureComponent {
     /**
      * Icon image to use, this substitutes getting the icon from the url
      */
-    icon: PropTypes.string,
+    icon: PropTypes.oneOfType([PropTypes.string | PropTypes.object]),
 
     /**
      * Favicon source to use, this substitutes getting the icon from the url
@@ -98,8 +98,9 @@ class WebsiteIcon extends PureComponent {
     // apiLogoUrl is the url of the icon to be rendered, but it's populated
     // from the icon prop, if it exists, or from the faviconSource prop
     // that is provided by the withFaviconAwareness HOC for useFavicon hook.
+
     const apiLogoUrl = {
-      uri: icon || faviconSource,
+      uri: (typeof icon === 'string' ? icon : icon?.uri) || faviconSource,
     };
 
     let title = this.props.title;
