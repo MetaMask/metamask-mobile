@@ -96,11 +96,11 @@ stages:
   build_smoke_e2e_ios_android_stage:
     workflows:
       - ios_e2e_build: {}
-      - android_e2e_build: {}
+      # - android_e2e_build: {}
   run_smoke_e2e_ios_android_stage:
     workflows:
       - ios_e2e_test: {}
-      - android_e2e_test: {}
+      # - android_e2e_test: {}
   run_regression_e2e_ios_android_stage:
     workflows:
       - ios_run_regression_tests: {}
@@ -164,7 +164,7 @@ workflows:
           - key: '{{ .OS }}-{{ .Arch }}-node-modules-{{ checksum "yarn.lock" }}'
           - paths: |-
               node_modules
-              ./yarn.lock
+              yarn.lock
   code_setup_dev:
     steps:
       - script@1:
@@ -183,7 +183,7 @@ workflows:
                 #!/usr/bin/env bash
                 envman add --key YARN_CACHE_DIR --value "$(yarn cache dir)"
           title: Get Yarn cache directory
-      - cache-pull@2: {}
+      # - cache-pull@2: {}
       - script@1:
           inputs:
             - content: |-
@@ -522,6 +522,8 @@ workflows:
                 node -v
                 export METAMASK_ENVIRONMENT='local'
                 export METAMASK_BUILD_TYPE='main'
+                ls ../Library/Detox
+                ls ../Library/Detox/ios
                 IGNORE_BOXLOGS_DEVELOPMENT="true" FORCE_BUNDLING=true yarn test:e2e:ios:bitrise:build --testNamePattern="$TEST_SUITE"
           title: Run detox build
           is_always_run: false
@@ -529,8 +531,9 @@ workflows:
           title: Save cache build
           inputs:
           - key: ipa-cache-{{ .CommitHash }}
-          - paths:
-            - $PROJECT_LOCATION/app/build/outputs
+          - paths: |-
+              ios/build/
+              ../Library/Detox/ios
   ios_e2e_test:
     before_run:
       - setup
@@ -576,7 +579,6 @@ workflows:
                 node -v
                 export METAMASK_ENVIRONMENT='local'
                 export METAMASK_BUILD_TYPE='main'
-                detox rebuild-framework-cache
                 IGNORE_BOXLOGS_DEVELOPMENT="true" FORCE_BUNDLING=true yarn test:e2e:ios:bitrise:run --testNamePattern="$TEST_SUITE"
           title: Run detox test
           is_always_run: false
