@@ -801,6 +801,10 @@
     "unkown_dapp": "Tên DAPP không khả dụng",
     "no_connections": "Không tìm thấy kết nối nào"
   },
+  "sdk_return_to_app_modal":{
+    "title": "Quay lại ứng dụng",
+    "description": "Vui lòng quay lại ứng dụng để tiếp tục sử dụng các dịch vụ."
+  },
   "sdk_feedback_modal": {
     "ok": "OK",
     "title": "Tài khoản không thể kết nối",
@@ -1728,10 +1732,7 @@
     "wallet_connect_dapps_cta": "XEM PHIÊN",
     "network_not_supported": "Không hỗ trợ mạng hiện tại",
     "security_alerts": "Cảnh báo bảo mật",
-    "security_alerts_desc": "Tính năng này sẽ cảnh báo cho bạn khi có hoạt động độc hại bằng cách xem xét cục bộ các giao dịch và yêu cầu chữ ký của bạn. Dữ liệu của bạn không được chia sẻ với các bên thứ ba cung cấp dịch vụ này. Luôn tự thẩm định trước khi chấp thuận bất kỳ yêu cầu nào. Không có gì đảm bảo rằng tính năng này sẽ phát hiện được tất cả các hoạt động độc hại.",
-    "select_providers": "Chọn nhà cung cấp",
     "blockaid": "Blockaid",
-    "moreProviders": "Sắp có thêm các nhà cung cấp khác",
     "switch_network": "Vui lòng chuyển qua mạng chính hoặc sepolia"
   },
   "walletconnect_sessions": {
