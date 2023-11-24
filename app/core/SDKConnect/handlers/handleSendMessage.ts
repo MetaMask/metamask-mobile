@@ -17,6 +17,9 @@ export const handleSendMessage = async ({
   msg: any;
   connection: Connection;
 }) => {
+  // Make sure loading modal is hidden
+  connection.setLoading(false);
+
   const msgId = msg?.data?.id + '';
   const method = connection.rpcQueueManager.getId(msgId);
   // handle multichain rpc call responses separately
@@ -45,9 +48,6 @@ export const handleSendMessage = async ({
   connection.remote.sendMessage(msg).catch((err) => {
     Logger.log(err, `Connection::sendMessage failed to send`);
   });
-
-  // hide modal
-  connection.setLoading(false);
 
   if (connection.origin === AppConstants.DEEPLINKS.ORIGIN_QR_CODE) return;
 

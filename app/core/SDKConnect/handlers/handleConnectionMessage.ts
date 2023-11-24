@@ -41,6 +41,8 @@ export const handleConnectionMessage = async ({
     return;
   }
 
+  connection.setLoading(false);
+
   // Wait for keychain to be unlocked before handling rpc calls.
   const keyringController = (
     Engine.context as { KeyringController: KeyringController }
@@ -49,8 +51,6 @@ export const handleConnectionMessage = async ({
     keyringController,
     context: 'connection::on_message',
   });
-
-  connection.setLoading(false);
 
   const preferencesController = (
     Engine.context as {
