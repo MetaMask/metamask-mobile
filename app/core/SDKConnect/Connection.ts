@@ -3,6 +3,7 @@ import AppConstants from '../AppConstants';
 import BackgroundBridge from '../BackgroundBridge/BackgroundBridge';
 import Engine from '../Engine';
 
+import { KeyringController } from '@metamask/keyring-controller';
 import {
   CommunicationLayerMessage,
   CommunicationLayerPreference,
@@ -23,7 +24,6 @@ import {
 import { handleConnectionMessage } from './handlers/handleConnectionMessage';
 import handleConnectionReady from './handlers/handleConnectionReady';
 import DevLogger from './utils/DevLogger';
-import { KeyringController } from '@metamask/keyring-controller';
 import { waitForKeychainUnlocked } from './utils/wait.util';
 
 export interface ConnectionProps {
@@ -291,7 +291,7 @@ export class Connection extends EventEmitter2 {
         try {
           await handleConnectionReady({
             originatorInfo: clientsReadyMsg.originatorInfo,
-            Engine,
+            engine: Engine,
             updateOriginatorInfos,
             approveHost,
             disapprove,
@@ -310,7 +310,7 @@ export class Connection extends EventEmitter2 {
         try {
           await handleConnectionMessage({
             message,
-            Engine,
+            engine: Engine,
             connection: this,
           });
         } catch (error) {

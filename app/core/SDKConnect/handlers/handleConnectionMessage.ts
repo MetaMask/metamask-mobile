@@ -14,14 +14,15 @@ import {
 import checkPermissions from './checkPermissions';
 import handleCustomRpcCalls from './handleCustomRpcCalls';
 import handleSendMessage from './handleSendMessage';
+import Engine from '../../Engine';
 
 export const handleConnectionMessage = async ({
   message,
-  Engine,
+  engine,
   connection,
 }: {
   message: CommunicationLayerMessage;
-  Engine: any;
+  engine: typeof Engine;
   connection: Connection;
 }) => {
   // TODO should probably handle this in a separate EventType.TERMINATE event.
@@ -45,7 +46,7 @@ export const handleConnectionMessage = async ({
 
   // Wait for keychain to be unlocked before handling rpc calls.
   const keyringController = (
-    Engine.context as { KeyringController: KeyringController }
+    engine.context as { KeyringController: KeyringController }
   ).KeyringController;
   await waitForKeychainUnlocked({
     keyringController,
@@ -53,7 +54,7 @@ export const handleConnectionMessage = async ({
   });
 
   const preferencesController = (
-    Engine.context as {
+    engine.context as {
       PreferencesController: PreferencesController;
     }
   ).PreferencesController;
@@ -62,7 +63,7 @@ export const handleConnectionMessage = async ({
   // Wait for bridge to be ready before handling messages.
   // It will wait until user accept/reject the connection request.
   try {
-    await checkPermissions({ message, connection, Engine });
+    await checkPermissions({ message, connection, engine });
     if (!connection.receivedDisconnect) {
       await waitForConnectionReadiness({ connection });
       connection.sendAuthorized();

@@ -266,11 +266,11 @@ export class SDKConnect extends EventEmitter2 {
       delete this.sdkLoadingState[channelId];
     }
 
-    const loadingSessions = Object.keys(this.sdkLoadingState).length;
+    const loadingSessionsLen = Object.keys(this.sdkLoadingState).length;
     DevLogger.log(
-      `SDKConnect::updateSDKLoadingState channel=${channelId} loading=${loading} loadingSessions=${loadingSessions}`,
+      `SDKConnect::updateSDKLoadingState channel=${channelId} loading=${loading} loadingSessions=${loadingSessionsLen}`,
     );
-    if (loadingSessions > 0) {
+    if (loadingSessionsLen > 0) {
       // Prevent loading state from showing if keychain is locked.
       const keyringController = (
         Engine.context as { KeyringController: KeyringController }

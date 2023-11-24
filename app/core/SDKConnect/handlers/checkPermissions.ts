@@ -7,15 +7,16 @@ import { ApprovalTypes } from '../../RPCMethods/RPCMethodMiddleware';
 import { PreferencesController } from '@metamask/preferences-controller';
 import { ApprovalController } from '@metamask/approval-controller';
 import { Json } from '@metamask/utils';
+import Engine from '../../Engine';
 
 // TODO: should be more generic and be used in wallet connect and android service as well
 export const checkPermissions = async ({
   connection,
-  Engine,
+  engine,
   lastAuthorized,
 }: {
   connection: Connection;
-  Engine: any;
+  engine: typeof Engine;
   message?: CommunicationLayerMessage;
   lastAuthorized?: number;
 }) => {
@@ -35,7 +36,7 @@ export const checkPermissions = async ({
   });
 
   const preferencesController = (
-    Engine.context as { PreferencesController: PreferencesController }
+    engine.context as { PreferencesController: PreferencesController }
   ).PreferencesController;
   const selectedAddress = preferencesController.state.selectedAddress;
 
@@ -44,7 +45,7 @@ export const checkPermissions = async ({
   }
 
   const approvalController = (
-    Engine.context as { ApprovalController: ApprovalController }
+    engine.context as { ApprovalController: ApprovalController }
   ).ApprovalController;
 
   if (connection.approvalPromise) {

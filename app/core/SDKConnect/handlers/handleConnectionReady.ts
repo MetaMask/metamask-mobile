@@ -11,17 +11,18 @@ import { ethErrors } from 'eth-rpc-errors';
 import { HOUR_IN_MS, approveHostProps } from '../SDKConnect';
 import generateOTP from '../utils/generateOTP.util';
 import { setupBridge } from './setupBridge';
+import Engine from '../../Engine';
 
 export const handleConnectionReady = async ({
   originatorInfo,
-  Engine,
+  engine,
   connection,
   approveHost,
   disapprove,
   updateOriginatorInfos,
 }: {
   originatorInfo: OriginatorInfo;
-  Engine: any;
+  engine: typeof Engine;
   connection: Connection;
   approveHost: ({ host, hostname }: approveHostProps) => void;
   disapprove: (channelId: string) => void;
@@ -31,7 +32,7 @@ export const handleConnectionReady = async ({
   }) => void;
 }) => {
   const approvalController = (
-    Engine.context as { ApprovalController: ApprovalController }
+    engine.context as { ApprovalController: ApprovalController }
   ).ApprovalController;
 
   // clients_ready may be sent multple time (from sdk <0.2.0).
@@ -83,7 +84,7 @@ export const handleConnectionReady = async ({
     // Always need to re-approve connection first.
     await checkPermissions({
       connection,
-      Engine,
+      engine,
       lastAuthorized: connection.lastAuthorized,
     });
 
@@ -110,7 +111,7 @@ export const handleConnectionReady = async ({
       // Always need to re-approve connection first.
       await checkPermissions({
         connection,
-        Engine,
+        engine,
         lastAuthorized: connection.lastAuthorized,
       });
 
@@ -146,7 +147,7 @@ export const handleConnectionReady = async ({
       // Always need to re-approve connection first.
       await checkPermissions({
         connection,
-        Engine,
+        engine,
       });
       connection.sendAuthorized(true);
       connection.lastAuthorized = Date.now();
@@ -174,7 +175,7 @@ export const handleConnectionReady = async ({
     connection.origin === AppConstants.DEEPLINKS.ORIGIN_DEEPLINK
   ) {
     // Should ask for confirmation to reconnect?
-    await checkPermissions({ connection, Engine });
+    await checkPermissions({ connection, engine });
     connection.sendAuthorized(true);
   }
 
