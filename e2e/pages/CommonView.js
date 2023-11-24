@@ -12,9 +12,9 @@ export default class CommonView {
 
   static async tapOkAlert() {
     if (device.getPlatform() === 'android') {
-      await Gestures.tap(this.okAlertByText);
+      await Gestures.waitAndTap(this.okAlertByText);
     }
 
-    await Gestures.tap(this.okAlertByLabel);
+    await Gestures.waitAndTap(this.okAlertByLabel);
   }
 }
