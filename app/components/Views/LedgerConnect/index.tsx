@@ -116,6 +116,7 @@ const LedgerConnect = () => {
   const [selectedDevice, setSelectedDevice] = useState<NanoDevice>(null);
   const [errorDetail, setErrorDetails] = useState<LedgerConnectionErrorProps>();
   const [loading, setLoading] = useState(false);
+  const [retryTimes, setRetryTimes] = useState(0);
   const dispatch = useDispatch();
 
   useEffect(() => {
@@ -204,10 +205,14 @@ const LedgerConnect = () => {
           break;
         case LedgerCommunicationErrors.UnknownError:
         case LedgerCommunicationErrors.LedgerDisconnected:
-          handleErrorWithRetry(
-            strings('ledger.error_during_connection'),
-            strings('ledger.error_during_connection_message'),
-          );
+          if (retryTimes < 3) {
+            setRetryTimes(retryTimes + 1);
+          } else {
+            handleErrorWithRetry(
+              strings('ledger.error_during_connection'),
+              strings('ledger.error_during_connection_message'),
+            );
+          }
           break;
         default: {
           dispatch(
