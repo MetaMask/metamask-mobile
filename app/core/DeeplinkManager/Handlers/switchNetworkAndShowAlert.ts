@@ -3,7 +3,7 @@ import { handleNetworkSwitch as switchNetwork } from '../../../util/networks';
 import DeeplinkManager from '../DeeplinkManager';
 import { strings } from '../../../../locales/i18n';
 
-function handleNetworkSwitch({
+function switchNetworkAndShowAlert({
   deeplinkManager,
   switchToChainId,
 }: {
@@ -24,4 +24,4 @@ function handleNetworkSwitch({
   );
 }
 
-export default handleNetworkSwitch;
+export default switchNetworkAndShowAlert;

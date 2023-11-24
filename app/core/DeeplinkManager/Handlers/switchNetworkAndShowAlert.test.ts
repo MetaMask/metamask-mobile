@@ -1,4 +1,4 @@
-import handleNetworkSwitch from './handleNetworkSwitch';
+import switchNetworkAndShowAlert from './switchNetworkAndShowAlert';
 import DeeplinkManager from '../DeeplinkManager';
 import { showAlert } from '../../../actions/alert';
 import { strings } from '../../../../locales/i18n';
@@ -32,7 +32,7 @@ describe('handleNetworkSwitch', () => {
   it('should dispatch an alert for a valid switchToChainId', () => {
     const switchToChainId = '1'; // Assuming '1' is a valid chain ID
 
-    handleNetworkSwitch({ deeplinkManager, switchToChainId });
+    switchNetworkAndShowAlert({ deeplinkManager, switchToChainId });
 
     expect(deeplinkManager.dispatch).toHaveBeenCalledWith(
       showAlert({
@@ -48,7 +48,7 @@ describe('handleNetworkSwitch', () => {
     const switchToChainId = undefined;
     mockSwitchNetwork.mockReturnValue(undefined);
 
-    handleNetworkSwitch({ deeplinkManager, switchToChainId });
+    switchNetworkAndShowAlert({ deeplinkManager, switchToChainId });
 
     expect(deeplinkManager.dispatch).not.toHaveBeenCalled();
   });
@@ -57,7 +57,7 @@ describe('handleNetworkSwitch', () => {
     const switchToChainId = 'invalid_chain_id' as `${number}` | undefined;
     mockSwitchNetwork.mockReturnValue(undefined);
 
-    handleNetworkSwitch({ deeplinkManager, switchToChainId });
+    switchNetworkAndShowAlert({ deeplinkManager, switchToChainId });
 
     expect(deeplinkManager.dispatch).not.toHaveBeenCalled();
   });
@@ -66,7 +66,7 @@ describe('handleNetworkSwitch', () => {
     const switchToChainId = '1'; // Assuming '1' is a valid chain ID
     mockSwitchNetwork.mockReturnValue(undefined);
 
-    handleNetworkSwitch({ deeplinkManager, switchToChainId });
+    switchNetworkAndShowAlert({ deeplinkManager, switchToChainId });
 
     expect(deeplinkManager.dispatch).not.toHaveBeenCalled();
   });

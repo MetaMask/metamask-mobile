@@ -2,11 +2,11 @@ import { NavigationProp, ParamListBase } from '@react-navigation/native';
 import DeeplinkManager from './DeeplinkManager';
 import handleBrowserUrl from './Handlers/handleBrowserUrl';
 import handleEthereumUrl from './Handlers/handleEthereumUrl';
-import handleNetworkSwitch from './Handlers/handleNetworkSwitch';
+import switchNetworkAndShowAlert from './Handlers/switchNetworkAndShowAlert';
 import parseDeeplink from './ParseManager/parseDeeplink';
 import approveTransaction from './TransactionManager/approveTransaction';
 
-jest.mock('./handlers/handleNetworkSwitch');
+jest.mock('./handlers/switchNetworkAndShowAlert');
 jest.mock('./TransactionManager/approveTransaction');
 jest.mock('./handlers/handleEthereumUrl');
 jest.mock('./handlers/handleBrowserUrl');
@@ -45,7 +45,7 @@ describe('DeeplinkManager', () => {
   it('should handle network switch correctly', () => {
     const chainId = '1';
     deeplinkManager._handleNetworkSwitch(chainId);
-    expect(handleNetworkSwitch).toHaveBeenCalledWith({
+    expect(switchNetworkAndShowAlert).toHaveBeenCalledWith({
       deeplinkManager,
       switchToChainId: chainId,
     });
