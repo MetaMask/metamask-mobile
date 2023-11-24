@@ -6,11 +6,11 @@ import switchNetworkAndShowAlert from './Handlers/switchNetworkAndShowAlert';
 import parseDeeplink from './ParseManager/parseDeeplink';
 import approveTransaction from './TransactionManager/approveTransaction';
 
-jest.mock('./handlers/switchNetworkAndShowAlert');
 jest.mock('./TransactionManager/approveTransaction');
-jest.mock('./handlers/handleEthereumUrl');
-jest.mock('./handlers/handleBrowserUrl');
+jest.mock('./Handlers/handleEthereumUrl');
+jest.mock('./Handlers/handleBrowserUrl');
 jest.mock('./ParseManager/parseDeeplink');
+jest.mock('./Handlers/switchNetworkAndShowAlert');
 
 const mockNavigation = {
   navigate: jest.fn(),
