@@ -1,7 +1,7 @@
 import UrlParser from 'url-parse';
 import DeeplinkManager from '../DeeplinkManager';
 import extractURLParams from './extractURLParams';
-import handleParseDappProtocol from './handleParseDappProtocol';
+import handleDappUrl from './handleDappUrl';
 
 // Mock DeeplinkManager and extractURLParams
 jest.mock('../DeeplinkManager', () =>
@@ -33,7 +33,7 @@ describe('handleDappProtocol', () => {
     } as unknown as ReturnType<typeof extractURLParams>['urlObj'];
 
     // Act
-    handleParseDappProtocol({
+    handleDappUrl({
       instance,
       handled: handledMock,
       urlObj,
@@ -65,7 +65,7 @@ describe('handleDappProtocol', () => {
 
     const { urlObj } = extractURLParams(testUrl);
 
-    handleParseDappProtocol({
+    handleDappUrl({
       instance,
       handled: handledMock,
       urlObj,
@@ -94,7 +94,7 @@ describe('handleDappProtocol', () => {
 
     const { urlObj } = extractURLParams(testUrl);
 
-    handleParseDappProtocol({
+    handleDappUrl({
       instance,
       handled: handledMock,
       urlObj,

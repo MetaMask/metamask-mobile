@@ -1,13 +1,13 @@
 import { ACTIONS } from '../../../constants/deeplinks';
-import AppConstants from '../../../core/AppConstants';
-import { Minimizer } from '../../../core/NativeModules';
-import SDKConnect from '../../../core/SDKConnect/SDKConnect';
-import handleDeeplink from '../../../core/SDKConnect/handleDeeplink';
-import DevLogger from '../../../core/SDKConnect/utils/DevLogger';
-import WC2Manager from '../../../core/WalletConnect/WalletConnectV2';
+import AppConstants from '../../AppConstants';
+import { Minimizer } from '../../NativeModules';
+import SDKConnect from '../../SDKConnect/SDKConnect';
+import handleDeeplink from '../../SDKConnect/handleDeeplink';
+import DevLogger from '../../SDKConnect/utils/DevLogger';
+import WC2Manager from '../../WalletConnect/WalletConnectV2';
 import DeeplinkManager from '../DeeplinkManager';
 import extractURLParams from './extractURLParams';
-import handleParseUniversalLinks from './handleParseUniversalLinks';
+import handleUniversalLink from './handleUniversalLink';
 
 jest.mock('../../../core/SDKConnect/handleDeeplink');
 jest.mock('../../../core/AppConstants');
@@ -97,7 +97,7 @@ describe('handleUniversalLinks', () => {
         pathname: `/${ACTIONS.ANDROID_SDK}/additional/path`,
       } as ReturnType<typeof extractURLParams>['urlObj'];
 
-      handleParseUniversalLinks({
+      handleUniversalLink({
         instance,
         handled,
         urlObj,
@@ -125,7 +125,7 @@ describe('handleUniversalLinks', () => {
         pathname: `/${ACTIONS.CONNECT}/additional/path`,
       } as ReturnType<typeof extractURLParams>['urlObj'];
 
-      handleParseUniversalLinks({
+      handleUniversalLink({
         instance,
         handled,
         urlObj,
@@ -148,7 +148,7 @@ describe('handleUniversalLinks', () => {
         pathname: `/${ACTIONS.CONNECT}/additional/path`,
       } as ReturnType<typeof extractURLParams>['urlObj'];
 
-      handleParseUniversalLinks({
+      handleUniversalLink({
         instance,
         handled,
         urlObj,
@@ -176,7 +176,7 @@ describe('handleUniversalLinks', () => {
         pathname: `/${ACTIONS.CONNECT}/additional/path`,
       } as ReturnType<typeof extractURLParams>['urlObj'];
 
-      handleParseUniversalLinks({
+      handleUniversalLink({
         instance,
         handled,
         urlObj,
@@ -214,7 +214,7 @@ describe('handleUniversalLinks', () => {
 
       wcURL = 'test-wc-url';
 
-      handleParseUniversalLinks({
+      handleUniversalLink({
         instance,
         handled,
         urlObj,
@@ -239,7 +239,7 @@ describe('handleUniversalLinks', () => {
 
       wcURL = '';
 
-      handleParseUniversalLinks({
+      handleUniversalLink({
         instance,
         handled,
         urlObj,
@@ -263,7 +263,7 @@ describe('handleUniversalLinks', () => {
         href: 'test-href',
       } as ReturnType<typeof extractURLParams>['urlObj'];
 
-      handleParseUniversalLinks({
+      handleUniversalLink({
         instance,
         handled,
         urlObj,
@@ -290,7 +290,7 @@ describe('handleUniversalLinks', () => {
         href: 'test-href',
       } as ReturnType<typeof extractURLParams>['urlObj'];
 
-      handleParseUniversalLinks({
+      handleUniversalLink({
         instance,
         handled,
         urlObj,
@@ -314,7 +314,7 @@ describe('handleUniversalLinks', () => {
         href: 'test-href',
       } as ReturnType<typeof extractURLParams>['urlObj'];
 
-      handleParseUniversalLinks({
+      handleUniversalLink({
         instance,
         handled,
         urlObj,

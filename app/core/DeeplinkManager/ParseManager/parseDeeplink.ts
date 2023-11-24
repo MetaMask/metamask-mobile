@@ -4,10 +4,10 @@ import Logger from '../../../util/Logger';
 import DevLogger from '../../SDKConnect/utils/DevLogger';
 import DeeplinkManager from '../DeeplinkManager';
 import extractURLParams from './extractURLParams';
-import handleParseDappProtocol from './handleParseDappProtocol';
-import handleParseMetaMaskProtocol from './handleParseMetaMaskProtocol';
-import handleParseUniversalLinks from './handleParseUniversalLinks';
-import handleParseWCProtocol from './handleParseWCProtocol';
+import handleDappUrl from './handleDappUrl';
+import handleMetaMaskDeeplink from './handleMetaMaskDeeplink';
+import handleUniversalLink from './handleUniversalLink';
+import connectWithWC from './connectWithWC';
 
 function parseDeeplink({
   deeplinkManager: instance,
@@ -39,7 +39,7 @@ function parseDeeplink({
   switch (urlObj.protocol.replace(':', '')) {
     case PROTOCOLS.HTTP:
     case PROTOCOLS.HTTPS:
-      handleParseUniversalLinks({
+      handleUniversalLink({
         instance,
         handled,
         urlObj,
@@ -52,7 +52,7 @@ function parseDeeplink({
 
       break;
     case PROTOCOLS.WC:
-      handleParseWCProtocol({ handled, wcURL, origin, params });
+      connectWithWC({ handled, wcURL, origin, params });
       break;
 
     case PROTOCOLS.ETHEREUM:
@@ -65,13 +65,13 @@ function parseDeeplink({
     // Specific to the browser screen
     // For ex. navigate to a specific dapp
     case PROTOCOLS.DAPP:
-      handleParseDappProtocol({ instance, handled, urlObj, browserCallBack });
+      handleDappUrl({ instance, handled, urlObj, browserCallBack });
       break;
 
     // Specific to the MetaMask app
     // For ex. go to settings
     case PROTOCOLS.METAMASK:
-      handleParseMetaMaskProtocol({
+      handleMetaMaskDeeplink({
         instance,
         handled,
         wcURL,

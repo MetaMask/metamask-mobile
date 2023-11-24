@@ -9,7 +9,7 @@ import Logger from '../../../util/Logger';
 import DeeplinkManager from '../DeeplinkManager';
 import extractURLParams from './extractURLParams';
 
-function handleParseUniversalLinks({
+function handleUniversalLink({
   instance,
   handled,
   urlObj,
@@ -126,4 +126,4 @@ function handleParseUniversalLinks({
   // address, transactions, etc
 }
 
-export default handleParseUniversalLinks;
+export default handleUniversalLink;

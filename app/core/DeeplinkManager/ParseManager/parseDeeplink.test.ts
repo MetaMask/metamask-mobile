@@ -1,41 +1,40 @@
 import DeeplinkManager from '../DeeplinkManager';
 import extractURLParams from './extractURLParams';
-import handleParseDappProtocol from './handleParseDappProtocol';
-import handleParseMetaMaskProtocol from './handleParseMetaMaskProtocol';
-import handleParseUniversalLinks from './handleParseUniversalLinks';
-import handleParseWCProtocol from './handleParseWCProtocol';
+import handleDappUrl from './handleDappUrl';
+import handleMetaMaskDeeplink from './handleMetaMaskDeeplink';
+import handleUniversalLink from './handleUniversalLink';
+import connectWithWC from './connectWithWC';
 import parseDeeplink from './parseDeeplink';
 
 jest.mock('../../../constants/deeplinks');
 jest.mock('../../../util/Logger');
 jest.mock('../DeeplinkManager');
 jest.mock('../../SDKConnect/utils/DevLogger');
-jest.mock('./handleParseDappProtocol');
-jest.mock('./handleParseMetaMaskProtocol');
-jest.mock('./handleParseUniversalLinks');
-jest.mock('./handleParseWCProtocol');
+jest.mock('./handleDappUrl');
+jest.mock('./handleMetaMaskDeeplink');
+jest.mock('./handleUniversalLink');
+jest.mock('./connectWithWC');
 
 describe('parseDeeplink', () => {
   let instance: DeeplinkManager;
   const mockOnHandled = jest.fn();
   const mockBrowserCallBack = jest.fn();
 
-  const mockHandleUniversalLinks =
-    handleParseUniversalLinks as jest.MockedFunction<
-      typeof handleParseUniversalLinks
-    >;
-
-  const mockHandleWCProtocol = handleParseWCProtocol as jest.MockedFunction<
-    typeof handleParseWCProtocol
+  const mockHandleUniversalLinks = handleUniversalLink as jest.MockedFunction<
+    typeof handleUniversalLink
   >;
 
-  const mockHandleDappProtocol = handleParseDappProtocol as jest.MockedFunction<
-    typeof handleParseDappProtocol
+  const mockHandleWCProtocol = connectWithWC as jest.MockedFunction<
+    typeof connectWithWC
+  >;
+
+  const mockHandleDappProtocol = handleDappUrl as jest.MockedFunction<
+    typeof handleDappUrl
   >;
 
   const mockHandleMetaMaskProtocol =
-    handleParseMetaMaskProtocol as jest.MockedFunction<
-      typeof handleParseMetaMaskProtocol
+    handleMetaMaskDeeplink as jest.MockedFunction<
+      typeof handleMetaMaskDeeplink
     >;
 
   beforeEach(() => {

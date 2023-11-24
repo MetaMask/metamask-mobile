@@ -1,12 +1,12 @@
 import { ACTIONS, PREFIXES } from '../../../constants/deeplinks';
-import AppConstants from '../../../core/AppConstants';
-import { Minimizer } from '../../../core/NativeModules';
-import SDKConnect from '../../../core/SDKConnect/SDKConnect';
-import WC2Manager from '../../../core/WalletConnect/WalletConnectV2';
+import AppConstants from '../../AppConstants';
+import { Minimizer } from '../../NativeModules';
+import SDKConnect from '../../SDKConnect/SDKConnect';
+import WC2Manager from '../../WalletConnect/WalletConnectV2';
 import DeeplinkManager from '../DeeplinkManager';
 import extractURLParams from './extractURLParams';
-import handleParseMetaMaskProtocol from './handleParseMetaMaskProtocol';
-import handleDeeplink from '../../../core/SDKConnect/handleDeeplink';
+import handleMetaMaskDeeplink from './handleMetaMaskDeeplink';
+import handleDeeplink from '../../SDKConnect/handleDeeplink';
 
 jest.mock('../../../core/AppConstants');
 jest.mock('../../../core/SDKConnect/handleDeeplink');
@@ -88,7 +88,7 @@ describe('handleMetaMaskProtocol', () => {
   });
 
   it('should call handled', () => {
-    handleParseMetaMaskProtocol({
+    handleMetaMaskDeeplink({
       instance,
       handled,
       params,
@@ -106,7 +106,7 @@ describe('handleMetaMaskProtocol', () => {
     });
 
     it('should call bindAndroidSDK', () => {
-      handleParseMetaMaskProtocol({
+      handleMetaMaskDeeplink({
         instance,
         handled,
         params,
@@ -127,7 +127,7 @@ describe('handleMetaMaskProtocol', () => {
     it('should call Minimizer.goBack when params.redirect is truthy', () => {
       params.redirect = 'ABC';
 
-      handleParseMetaMaskProtocol({
+      handleMetaMaskDeeplink({
         instance,
         handled,
         params,
@@ -145,7 +145,7 @@ describe('handleMetaMaskProtocol', () => {
       params.redirect = '';
       mockGetApprovedHosts.mockReturnValue({ ABC: true });
 
-      handleParseMetaMaskProtocol({
+      handleMetaMaskDeeplink({
         instance,
         handled,
         params,
@@ -185,7 +185,7 @@ describe('handleMetaMaskProtocol', () => {
     });
 
     it('should call WC2Manager.getInstance().connect', () => {
-      handleParseMetaMaskProtocol({
+      handleMetaMaskDeeplink({
         instance,
         handled,
         params,
@@ -204,7 +204,7 @@ describe('handleMetaMaskProtocol', () => {
     });
 
     it('should call _handleBuyCrypto', () => {
-      handleParseMetaMaskProtocol({
+      handleMetaMaskDeeplink({
         instance,
         handled,
         params,

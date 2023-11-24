@@ -8,7 +8,7 @@ import Logger from '../../../util/Logger';
 import DeeplinkManager from '../DeeplinkManager';
 import extractURLParams from './extractURLParams';
 
-export function handleParseMetaMaskProtocol({
+export function handleMetaMaskDeeplink({
   instance,
   handled,
   wcURL,
@@ -83,4 +83,4 @@ export function handleParseMetaMaskProtocol({
   }
 }
 
-export default handleParseMetaMaskProtocol;
+export default handleMetaMaskDeeplink;

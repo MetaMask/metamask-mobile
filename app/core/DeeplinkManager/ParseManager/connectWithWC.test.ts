@@ -1,5 +1,5 @@
-import handleParseWCProtocol from './handleParseWCProtocol';
-import WC2Manager from '../../../core/WalletConnect/WalletConnectV2';
+import connectWithWC from './connectWithWC';
+import WC2Manager from '../../WalletConnect/WalletConnectV2';
 
 jest.mock('../../../core/WalletConnect/WalletConnectV2');
 jest.mock('./extractURLParams');
@@ -14,7 +14,7 @@ describe('handleWCProtocol', () => {
     const wcURL = 'wc:test';
     const origin = 'testOrigin';
     const params = { redirect: 'testRedirect' } as Parameters<
-      typeof handleParseWCProtocol
+      typeof connectWithWC
     >[0]['params'];
 
     const connectMock = jest.fn().mockResolvedValue(null);
@@ -22,7 +22,7 @@ describe('handleWCProtocol', () => {
       connect: connectMock,
     });
 
-    await handleParseWCProtocol({
+    await connectWithWC({
       handled: handledMock,
       wcURL,
       origin,

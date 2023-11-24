@@ -1,7 +1,7 @@
 import DeeplinkManager from '../DeeplinkManager';
 import extractURLParams from './extractURLParams';
 
-export function handleParseDappProtocol({
+export function handleDappUrl({
   instance,
   handled,
   urlObj,
@@ -18,4 +18,4 @@ export function handleParseDappProtocol({
   instance._handleBrowserUrl(urlObj.href, browserCallBack);
 }
 
-export default handleParseDappProtocol;
+export default handleDappUrl;

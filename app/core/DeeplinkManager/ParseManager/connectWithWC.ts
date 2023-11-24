@@ -1,7 +1,7 @@
 import WC2Manager from '../../WalletConnect/WalletConnectV2';
 import extractURLParams from './extractURLParams';
 
-export function handleParseWCProtocol({
+export function connectWithWC({
   handled,
   wcURL,
   origin,
@@ -27,4 +27,4 @@ export function handleParseWCProtocol({
     });
 }
 
-export default handleParseWCProtocol;
+export default connectWithWC;
