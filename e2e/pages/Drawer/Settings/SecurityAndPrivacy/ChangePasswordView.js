@@ -45,11 +45,11 @@ export default class ChangePasswordView {
 
   static async tapIUnderstandCheckBox() {
     if (device.getPlatform() === 'ios') {
-      await Gestures.tap(await this.iosUnderstandCheck);
+      await Gestures.waitAndTap(this.iosUnderstandCheck);
     } else {
       // Tap by the I understand text
       await TestHelpers.delay(1000);
-      await Gestures.tap(await this.androidUnderstandCheck);
+      await Gestures.waitAndTap(this.androidUnderstandCheck);
     }
   }
 

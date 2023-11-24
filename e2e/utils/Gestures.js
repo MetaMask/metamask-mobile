@@ -104,8 +104,8 @@ class Gestures {
    * Swipe on an element identified by ID.
    *
    * @param {Promise<Detox.IndexableNativeElement>} elementID - ID of the element to swipe on
-   * @param {Direction} direction - Direction of the swipe - left | right | top | bottom | up | down
-   * @param {Speed} [speed] - Speed of the swipe (fast, slow)
+   * @param {Detox.Direction} direction - Direction of the swipe - left | right | top | bottom | up | down
+   * @param {Detox.Speed} [speed] - Speed of the swipe (fast, slow)
    * @param {number} [percentage] - Percentage of the swipe (0 to 1)
    * @param {number} [xStart] - X-coordinate to start the swipe
    * @param {number} [yStart] - Y-coordinate to start the swipe
@@ -121,7 +121,7 @@ class Gestures {
    *
    * @param {Promise<Detox.IndexableNativeElement>} elementID - ID of the element to scroll up to
    * @param {number} distance - Distance to scroll
-   * @param {Direction} direction - Direction of the scroll (up, down, left, right)
+   * @param {Detox.Direction} direction - Direction of the scroll (up, down, left, right)
    */
   static async scrollUpTo(elementID, distance, direction) {
     const element = await elementID;

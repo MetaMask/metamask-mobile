@@ -32,7 +32,7 @@ export default class RevealSecretRecoveryPhrase {
   }
 
   static async enterPassword(password) {
-    await Gestures.typeTextAndHideKeyboard(await this.passwordInput, password);
+    await Gestures.typeTextAndHideKeyboard(this.passwordInput, password);
   }
 
   static async getContainer() {
