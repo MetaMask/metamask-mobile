@@ -45,10 +45,6 @@ describe(
         await ChangePasswordView.enterPassword(NEW_PASSWORD);
         await ChangePasswordView.reEnterPassword(NEW_PASSWORD);
 
-        if ((await device.getPlatform) === 'ios') {
-          await ChangePasswordView.tapResetPasswordButton();
-        }
-
         // should lock wallet from Settings
         await device.disableSynchronization(); // because the SRP tutorial video prevents the test from moving forward
         await SecurityAndPrivacyView.tapBackButton();

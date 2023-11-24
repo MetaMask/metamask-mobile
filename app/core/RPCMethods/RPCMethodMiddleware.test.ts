@@ -23,9 +23,6 @@ import { RootState } from 'app/reducers';
 
 jest.mock('../Engine', () => ({
   context: {
-    NetworkController: {
-      state: {},
-    },
     PreferencesController: {
       state: {},
     },
@@ -41,6 +38,11 @@ jest.mock('../Engine', () => ({
     PermissionController: {
       requestPermissions: jest.fn(),
       getPermissions: jest.fn(),
+    },
+    NetworkController: {
+      state: {
+        providerConfig: { chainId: '1' },
+      },
     },
   },
 }));

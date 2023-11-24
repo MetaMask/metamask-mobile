@@ -33,14 +33,10 @@ Boolean value that activates halo effect (blurred image colors around).
 ## Usage
 
 ```javascript
-// Replace import with relative path.
-import AvatarToken from 'app/component-library/components/Avatars/AvatarToken';
-import { AvatarSize } from 'app/component-library/components/Avatars/Avatar/Avatar';
-
 <AvatarToken
   size={AvatarSize.Md}
-  name={TOKEN_NAME}
-  imageSource={{ uri: TOKEN_IMAGE_URL }}
+  name={SAMPLE_TOKEN_NAME}
+  imageSource={{ uri: SAMPLE_TOKEN_IMAGE_URL }}
   isHaloEnabled
 />;
 ```

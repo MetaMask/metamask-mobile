@@ -105,7 +105,7 @@ import { swapsLivenessSelector } from '../../../../reducers/swaps';
 import { isSwapsAllowed } from '../../../../components/UI/Swaps/utils';
 import { swapsUtils } from '@metamask/swaps-controller';
 import { regex } from '../../../../util/regex';
-import { AmountViewSelectorsIDs } from '../../../../../e2e/selectors/AmountView.selectors';
+import { AmountViewSelectorsIDs } from '../../../../../e2e/selectors/SendFlow/AmountView.selectors';
 
 const KEYBOARD_OFFSET = Device.isSmallDevice() ? 80 : 120;
 

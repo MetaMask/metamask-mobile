@@ -1,64 +1,58 @@
-/* eslint-disable no-console */
-
+/* eslint-disable react-native/no-inline-styles */
+/* eslint-disable react/display-name */
 // Third party dependencies.
 import React from 'react';
-import { View } from 'react-native';
-import { select } from '@storybook/addon-knobs';
-import { storiesOf } from '@storybook/react-native';
 
 // External dependencies.
-import { storybookPropsGroupID } from '../../../constants/storybook.constants';
-import BadgeNetworkStory, {
-  getBadgeNetworkStoryProps,
-} from './variants/BadgeNetwork/BadgeNetwork.stories';
-import BadgeStatusStory, {
-  getBadgeStatusStoryProps,
-} from './variants/BadgeStatus/BadgeStatus.stories';
+import { SAMPLE_BADGENETWORK_PROPS } from './variants/BadgeNetwork/BadgeNetwork.constants';
+import { SAMPLE_BADGESTATUS_PROPS } from './variants/BadgeStatus/BadgeStatus.constants';
 
 // Internal dependencies.
-import { BadgeVariant, BadgeProps } from './Badge.types';
-import Badge from './Badge';
+import { BadgeVariant } from './Badge.types';
+import { default as BadgeComponent } from './Badge';
+import { View } from 'react-native';
 
-export const getBadgeStoryProps = (): BadgeProps => {
-  let badgeProps: BadgeProps;
-
-  const badgeVariantSelector = select(
-    'variant',
-    BadgeVariant,
-    BadgeVariant.Network,
-    storybookPropsGroupID,
-  );
-  switch (badgeVariantSelector) {
-    case BadgeVariant.Network:
-      badgeProps = {
-        ...getBadgeNetworkStoryProps(),
-        variant: BadgeVariant.Network,
-      };
-      break;
-    case BadgeVariant.Status:
-      badgeProps = {
-        ...getBadgeStatusStoryProps(),
-        variant: BadgeVariant.Status,
-      };
-      break;
-  }
-  return badgeProps;
+const BadgeMeta = {
+  title: 'Component Library / Badges',
+  component: BadgeComponent,
+  argTypes: {
+    variant: {
+      options: BadgeVariant,
+      control: {
+        type: 'select',
+      },
+      defaultValue: BadgeVariant.Network,
+    },
+  },
 };
-const BadgeStory = () => (
-  <View
-    // eslint-disable-next-line react-native/no-inline-styles
-    style={{
-      height: 50,
-      width: 50,
-    }}
-  >
-    <Badge {...getBadgeStoryProps()} />
-  </View>
-);
+export default BadgeMeta;
 
-storiesOf('Component Library / Badges', module)
-  .add('Badge', BadgeStory)
-  .add('Variants / BadgeNetwork', BadgeNetworkStory)
-  .add('Variants / BadgeStatus', BadgeStatusStory);
-
-export default BadgeStory;
+export const Badge = {
+  render: (args: { variant: BadgeVariant }) => {
+    switch (args.variant) {
+      case BadgeVariant.Network:
+        return (
+          <View
+            style={{
+              height: 50,
+              width: 50,
+            }}
+          >
+            <BadgeComponent
+              variant={BadgeVariant.Network}
+              {...SAMPLE_BADGENETWORK_PROPS}
+            />
+          </View>
+        );
+      case BadgeVariant.Status:
+        return (
+          <BadgeComponent
+            variant={BadgeVariant.Status}
+            {...SAMPLE_BADGESTATUS_PROPS}
+          />
+        );
+      default:
+        throw new Error('Invalid Badge Variant');
+    }
+  },
+};

@@ -2,7 +2,7 @@
 
 exports[`AvatarToken should render correctly 1`] = `
 <AvatarBase
-  size="48"
+  size="32"
   style={Object {}}
 >
   <Image
@@ -10,7 +10,7 @@ exports[`AvatarToken should render correctly 1`] = `
     resizeMode="contain"
     source={
       Object {
-        "uri": "https://cryptologos.cc/logos/usd-coin-usdc-logo.png",
+        "uri": "https://cryptologos.cc/logos/polygon-matic-logo.png",
       }
     }
     style={
