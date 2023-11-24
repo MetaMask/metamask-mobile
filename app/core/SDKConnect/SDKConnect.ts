@@ -241,15 +241,6 @@ export class SDKConnect extends EventEmitter2 {
       }
     });
 
-    connection.remote.on(EventType.MESSAGE, () => {
-      if (this.connecting[connection.channelId] === true) {
-        DevLogger.log(
-          `SDKConnect::watchConnection - done connecting - reset status.`,
-        );
-        this.connecting[connection.channelId] = false;
-      }
-    });
-
     connection.on(CONNECTION_LOADING_EVENT, (event: { loading: boolean }) => {
       const channelId = connection.channelId;
       const { loading } = event;
@@ -270,6 +261,17 @@ export class SDKConnect extends EventEmitter2 {
     loading: boolean;
   }) {
     if (loading === true) {
+      this.sdkLoadingState[channelId] = true;
+    } else {
+      delete this.sdkLoadingState[channelId];
+    }
+
+    const loadingSessions = Object.keys(this.sdkLoadingState).length;
+    DevLogger.log(
+      `SDKConnect::updateSDKLoadingState channel=${channelId} loading=${loading} loadingSessions=${loadingSessions}`,
+    );
+    if (loadingSessions > 0) {
+      // Prevent loading state from showing if keychain is locked.
       const keyringController = (
         Engine.context as { KeyringController: KeyringController }
       ).KeyringController;
@@ -277,9 +279,11 @@ export class SDKConnect extends EventEmitter2 {
         keyringController,
         context: 'updateSDKLoadingState',
       });
-      this.sdkLoadingState[channelId] = true;
+
+      this.navigation?.navigate(Routes.MODAL.ROOT_MODAL_FLOW, {
+        screen: Routes.SHEET.SDK_LOADING,
+      });
     } else {
-      delete this.sdkLoadingState[channelId];
       await this.hideLoadingState();
     }
   }
@@ -409,7 +413,12 @@ export class SDKConnect extends EventEmitter2 {
     if (connecting && trigger !== 'deeplink') {
       interruptReason = 'already connecting';
     } else if (connecting && trigger === 'deeplink') {
-      console.warn(`Priotity to deeplink - overwrite previous connection`);
+      // special case on android where the socket is not updated
+      if (Platform.OS === 'android') {
+        interruptReason = 'already connecting';
+      } else {
+        console.warn(`Priotity to deeplink - overwrite previous connection`);
+      }
     }
 
     if (!this.connections[channelId]) {

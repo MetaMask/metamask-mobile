@@ -3,7 +3,6 @@ import AppConstants from '../AppConstants';
 import BackgroundBridge from '../BackgroundBridge/BackgroundBridge';
 import Engine from '../Engine';
 
-import { KeyringController } from '@metamask/keyring-controller';
 import {
   CommunicationLayerMessage,
   CommunicationLayerPreference,
@@ -24,7 +23,6 @@ import {
 import { handleConnectionMessage } from './handlers/handleConnectionMessage';
 import handleConnectionReady from './handlers/handleConnectionReady';
 import DevLogger from './utils/DevLogger';
-import { waitForKeychainUnlocked } from './utils/wait.util';
 
 export interface ConnectionProps {
   id: string;
@@ -65,7 +63,6 @@ export const RPC_METHODS = {
 export class Connection extends EventEmitter2 {
   channelId;
   remote: RemoteCommunication;
-  requestsToRedirect: { [request: string]: boolean } = {};
   origin: string;
   host: string;
   navigation?: NavigationContainerRef;
@@ -185,8 +182,6 @@ export class Connection extends EventEmitter2 {
     this.isApproved = isApproved;
     this.onTerminate = onTerminate;
 
-    this.setLoading(true);
-
     DevLogger.log(
       `Connection::constructor() id=${this.channelId} initialConnection=${this.initialConnection} lastAuthorized=${this.lastAuthorized} trigger=${this.trigger}`,
       socketServerUrl,
@@ -221,36 +216,33 @@ export class Connection extends EventEmitter2 {
       },
     });
 
-    this.requestsToRedirect = {};
-
-    this.remote.on(EventType.CLIENTS_CONNECTED, () => {
+    this.remote.on(EventType.CLIENTS_CONNECTED, async () => {
       DevLogger.log(
         `Connection::CLIENTS_CONNECTED id=${this.channelId} receivedDisconnect=${this.receivedDisconnect} origin=${this.origin}`,
       );
       this.setLoading(true);
       this.receivedDisconnect = false;
 
-      // Auto hide 3seconds after keychain has unlocked if 'ready' wasn't received
-      const keyringController = (
-        Engine.context as { KeyringController: KeyringController }
-      ).KeyringController;
-      waitForKeychainUnlocked({ keyringController })
-        .then(() => {
-          setTimeout(() => {
-            if (this._loading) {
-              DevLogger.log(
-                `Connection::CLIENTS_CONNECTED auto-hide loading after 3s`,
-              );
-              this.setLoading(false);
-            }
-          }, 3000);
-        })
-        .catch((err) => {
-          Logger.log(
-            err,
-            `Connection::CLIENTS_CONNECTED error while waiting for keychain to be unlocked`,
-          );
-        });
+      // try {
+      //   // Auto hide 3seconds after keychain has unlocked if 'ready' wasn't received
+      //   const keyringController = (
+      //     Engine.context as { KeyringController: KeyringController }
+      //   ).KeyringController;
+      //   await waitForKeychainUnlocked({ keyringController });
+      //   setTimeout(() => {
+      //     if (this._loading) {
+      //       DevLogger.log(
+      //         `Connection::CLIENTS_CONNECTED auto-hide loading after 3s`,
+      //       );
+      //       this.setLoading(false);
+      //     }
+      //   }, 3000);
+      // } catch (error) {
+      //   Logger.log(
+      //     error as Error,
+      //     `Connection::CLIENTS_CONNECTED error while waiting for keychain to be unlocked`,
+      //   );
+      // }
     });
 
     this.remote.on(EventType.CLIENTS_DISCONNECTED, () => {
@@ -352,6 +344,9 @@ export class Connection extends EventEmitter2 {
 
   setLoading(loading: boolean) {
     this._loading = loading;
+    DevLogger.log(
+      `Connection::setLoading() id=${this.channelId} loading=${loading}`,
+    );
     this.emit(CONNECTION_LOADING_EVENT, { loading });
   }
 

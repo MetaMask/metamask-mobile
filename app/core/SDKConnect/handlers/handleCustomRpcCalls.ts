@@ -54,7 +54,7 @@ export const handleCustomRpcCalls = async ({
       await wait(1000);
     }
 
-    processedMessage.params = ['hello world', selectedAddress];
+    processedMessage.params = [...params, selectedAddress];
     DevLogger.log(
       `metamask_connectSign selectedAddress=${selectedAddress} id=${id}`,
       processedMessage,

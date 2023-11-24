@@ -5,8 +5,7 @@ import {
   MessageType,
 } from '@metamask/sdk-communication-layer';
 import Logger from '../../../util/Logger';
-import { Connection, RPC_METHODS } from '../Connection';
-import { METHODS_TO_REDIRECT } from '../SDKConnect';
+import { Connection } from '../Connection';
 import DevLogger from '../utils/DevLogger';
 import {
   waitForConnectionReadiness,
@@ -40,25 +39,6 @@ export const handleConnectionMessage = async ({
   if (!message.method || !message.id) {
     DevLogger.log(`Connection::onMessage invalid message`, message);
     return;
-  }
-
-  const lcMethod = message.method.toLowerCase();
-  let needsRedirect = METHODS_TO_REDIRECT[message?.method] ?? false;
-
-  if (needsRedirect) {
-    connection.requestsToRedirect[message?.id] = true;
-  }
-
-  // Keep this section only for backward compatibility otherwise metamask doesn't redirect properly.
-  if (
-    !connection.originatorInfo?.apiVersion &&
-    !needsRedirect &&
-    // connection.originatorInfo?.platform !== 'unity' &&
-    lcMethod === RPC_METHODS.METAMASK_GETPROVIDERSTATE.toLowerCase()
-  ) {
-    // Manually force redirect if apiVersion isn't defined for backward compatibility
-    needsRedirect = true;
-    connection.requestsToRedirect[message?.id] = true;
   }
 
   // Wait for keychain to be unlocked before handling rpc calls.
