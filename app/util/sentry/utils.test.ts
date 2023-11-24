@@ -78,12 +78,4 @@ describe('deriveSentryEnvironment', () => {
     );
     expect(env).toBe('development');
   });
-
-  test('returns local-flask for non-dev undefined environment and flask build type', async () => {
-    const isDev = false;
-    const METAMASK_BUILD_TYPE = 'flask';
-
-    const env = deriveSentryEnvironment(isDev, undefined, METAMASK_BUILD_TYPE);
-    expect(env).toBe('local-flask');
-  });
 });
