@@ -1,10 +1,10 @@
 import { NavigationProp, ParamListBase } from '@react-navigation/native';
 import DeeplinkManager from './DeeplinkManager';
+import handleBrowserUrl from './Handlers/handleBrowserUrl';
+import handleEthereumUrl from './Handlers/handleEthereumUrl';
+import handleNetworkSwitch from './Handlers/handleNetworkSwitch';
 import parseDeeplink from './ParseManager/parseDeeplink';
 import approveTransaction from './TransactionManager/approveTransaction';
-import handleNetworkSwitch from './Handlers/handleNetworkSwitch';
-import handleEthereumUrl from './Handlers/handleEthereumUrl';
-import handleBrowserUrl from './Handlers/handleBrowserUrl';
 
 jest.mock('./handlers/handleNetworkSwitch');
 jest.mock('./TransactionManager/approveTransaction');
