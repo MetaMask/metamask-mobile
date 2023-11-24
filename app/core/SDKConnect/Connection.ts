@@ -23,6 +23,8 @@ import {
 import { handleConnectionMessage } from './handlers/handleConnectionMessage';
 import handleConnectionReady from './handlers/handleConnectionReady';
 import DevLogger from './utils/DevLogger';
+import { KeyringController } from '@metamask/keyring-controller';
+import { waitForKeychainUnlocked } from './utils/wait.util';
 
 export interface ConnectionProps {
   id: string;
@@ -223,26 +225,26 @@ export class Connection extends EventEmitter2 {
       this.setLoading(true);
       this.receivedDisconnect = false;
 
-      // try {
-      //   // Auto hide 3seconds after keychain has unlocked if 'ready' wasn't received
-      //   const keyringController = (
-      //     Engine.context as { KeyringController: KeyringController }
-      //   ).KeyringController;
-      //   await waitForKeychainUnlocked({ keyringController });
-      //   setTimeout(() => {
-      //     if (this._loading) {
-      //       DevLogger.log(
-      //         `Connection::CLIENTS_CONNECTED auto-hide loading after 3s`,
-      //       );
-      //       this.setLoading(false);
-      //     }
-      //   }, 3000);
-      // } catch (error) {
-      //   Logger.log(
-      //     error as Error,
-      //     `Connection::CLIENTS_CONNECTED error while waiting for keychain to be unlocked`,
-      //   );
-      // }
+      try {
+        // Auto hide 3seconds after keychain has unlocked if 'ready' wasn't received
+        const keyringController = (
+          Engine.context as { KeyringController: KeyringController }
+        ).KeyringController;
+        await waitForKeychainUnlocked({ keyringController });
+        setTimeout(() => {
+          if (this._loading) {
+            DevLogger.log(
+              `Connection::CLIENTS_CONNECTED auto-hide loading after 4s`,
+            );
+            this.setLoading(false);
+          }
+        }, 4000);
+      } catch (error) {
+        Logger.log(
+          error as Error,
+          `Connection::CLIENTS_CONNECTED error while waiting for keychain to be unlocked`,
+        );
+      }
     });
 
     this.remote.on(EventType.CLIENTS_DISCONNECTED, () => {
@@ -267,7 +269,9 @@ export class Connection extends EventEmitter2 {
       // detect interruption of connection (can happen on mobile browser ios) - We need to warm the user to redo the connection.
       if (!this.receivedClientsReady && !this.remote.isPaused()) {
         // SOCKET CONNECTION WAS INTERRUPTED
-        console.warn(`dApp connection interrupted - please try again`);
+        console.warn(
+          `Connected::clients_disconnected dApp connection disconnected before ready`,
+        );
         // Terminate to prevent bypassing initial approval when auto-reconnect on deeplink.
         this.disconnect({ terminate: true, context: 'CLIENTS_DISCONNECTED' });
       }

@@ -888,6 +888,12 @@ export class SDKConnect extends EventEmitter2 {
       return;
     }
 
+    if (!this.androidSDKStarted && Platform.OS === 'android') {
+      DevLogger.log(`SDKConnect::init() - starting android service`);
+      this.androidService = new AndroidService();
+      this.androidSDKStarted = true;
+    }
+
     const doAsyncInit = async () => {
       this.navigation = navigation;
       DevLogger.log(`SDKConnect::init()[${context}] - starting`);
@@ -898,12 +904,6 @@ export class SDKConnect extends EventEmitter2 {
       // When restarting from being killed, keyringController might be mistakenly restored on unlocked=true so we need to wait for it to get correct state.
       await wait(1000);
       DevLogger.log(`SDKConnect::init() - waited 1000ms - keep initializing`);
-
-      if (!this.androidSDKStarted && Platform.OS === 'android') {
-        DevLogger.log(`SDKConnect::init() - starting android service`);
-        this.androidService = new AndroidService();
-        this.androidSDKStarted = true;
-      }
 
       try {
         DevLogger.log(`SDKConnect::init() - loading connections`);
