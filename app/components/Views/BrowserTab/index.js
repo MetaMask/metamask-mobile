@@ -100,6 +100,7 @@ import CLText from '../../../component-library/components/Texts/Text/Text';
 import { TextVariant } from '../../../component-library/components/Texts/Text';
 import { regex } from '../../../../app/util/regex';
 import { selectChainId } from '../../../selectors/networkController';
+import { BrowserViewSelectorsIDs } from '../../../../e2e/selectors/BrowserView.selectors';
 
 const { HOMEPAGE_URL, NOTIFICATION_NAMES } = AppConstants;
 const HOMEPAGE_HOST = new URL(HOMEPAGE_URL)?.hostname;
@@ -1497,7 +1498,7 @@ export const BrowserTab = (props) => {
                 javascriptEnabled
                 allowsInlineMediaPlayback
                 useWebkit
-                testID={'browser-webview'}
+                testID={BrowserViewSelectorsIDs.ANDROID_CONTAINER}
                 applicationNameForUserAgent={'WebView MetaMaskMobile'}
                 onFileDownload={handleOnFileDownload}
               />

@@ -87,7 +87,7 @@ const Settings = () => {
 
   const onPressOnRamp = () => {
     trackEvent(MetaMetricsEvents.ONRAMP_SETTINGS_CLICKED);
-    navigation.navigate(Routes.FIAT_ON_RAMP_AGGREGATOR.SETTINGS);
+    navigation.navigate(Routes.RAMP.SETTINGS);
   };
 
   const onPressExperimental = () => {

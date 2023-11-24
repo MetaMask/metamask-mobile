@@ -82,7 +82,7 @@ import { selectContractExchangeRates } from '../../../selectors/tokenRatesContro
 import { selectAccounts } from '../../../selectors/accountTrackerController';
 import { selectContractBalances } from '../../../selectors/tokenBalancesController';
 import { selectSelectedAddress } from '../../../selectors/preferencesController';
-import AccountSelector from '../Ramp/components/AccountSelector';
+import AccountSelector from '../Ramp/common/components/AccountSelector';
 import {
   SWAP_SOURCE_TOKEN,
   SWAP_DEST_TOKEN,

@@ -1,6 +1,6 @@
 {
   "name": "metamask",
-  "version": "7.10.0",
+  "version": "7.11.0",
   "private": true,
   "scripts": {
     "audit:ci": "./scripts/yarn-audit.sh",
@@ -156,7 +156,7 @@
     "axios": "1.6.0"
   },
   "dependencies": {
-    "@consensys/on-ramp-sdk": "1.25.3",
+    "@consensys/on-ramp-sdk": "1.25.4",
     "@eth-optimism/contracts": "0.0.0-2021919175625",
     "@ethereumjs/common": "^2.3.1",
     "@ethereumjs/tx": "^3.2.1",
@@ -181,10 +181,10 @@
     "@metamask/network-controller": "^8.0.0",
     "@metamask/permission-controller": "^4.0.1",
     "@metamask/phishing-controller": "^5.0.0",
-    "@metamask/ppom-validator": "^0.10.0",
+    "@metamask/ppom-validator": "^0.11.0",
     "@metamask/preferences-controller": "^4.0.0",
     "@metamask/scure-bip39": "^2.1.0",
-    "@metamask/sdk-communication-layer": "^0.10.1",
+    "@metamask/sdk-communication-layer": "^0.12.0",
     "@metamask/signature-controller": "4.0.1",
     "@metamask/swappable-obj-proxy": "^2.1.0",
     "@metamask/swaps-controller": "^6.9.3",
@@ -257,6 +257,7 @@
     "lottie-ios": "3.4.1",
     "lottie-react-native": "5.1.5",
     "metro-config": "^0.71.1",
+    "metro-react-native-babel-transformer": "0.73.10",
     "multihashes": "0.4.14",
     "number-to-bn": "1.7.0",
     "obs-store": "4.0.3",
