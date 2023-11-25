@@ -6,8 +6,13 @@ import {
   NetworkStatus,
 } from '@metamask/network-controller';
 
-const selectNetworkControllerState = (state: RootState) =>
-  state?.engine?.backgroundState?.NetworkController;
+const selectNetworkControllerState = (state: RootState) => {
+  console.log(
+    'STATE:==========',
+    state?.engine?.backgroundState,
+  );
+  return state?.engine?.backgroundState?.NetworkController;
+};
 
 export const selectProviderConfig = createSelector(
   selectNetworkControllerState,

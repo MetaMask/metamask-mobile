@@ -13,8 +13,12 @@ interface InitializeEngineResult {
   error?: string;
 }
 
-const UPDATE_BG_STATE_KEY = 'UPDATE_BG_STATE';
-const INIT_BG_STATE_KEY = 'INIT_BG_STATE';
+// const UPDATE_BG_STATE_KEY = 'UPDATE_BG_STATE';
+const UPDATE_BG_STATE_KEY = (controllerName: string) =>
+  `UPDATE_BG_STATE_${controllerName}`;
+// const INIT_BG_STATE_KEY = 'INIT_BG_STATE';
+const INIT_BG_STATE_KEY = (controllerName: string) =>
+  `INIT_BG_STATE_${controllerName}`;
 class EngineService {
   private engineInitialized = false;
 
@@ -91,8 +95,17 @@ class EngineService {
     }
 
     engine?.datamodel?.subscribe?.(() => {
+      console.log('  EngineInitialized = ', this.engineInitialized);
       if (!this.engineInitialized) {
-        store.dispatch({ type: INIT_BG_STATE_KEY });
+        console.log('INITIALISING datamodel: -> ', engine?.datamodel);
+        controllers.forEach((controller) => {
+          const { name } = controller;
+          console.log('WE ARE INITIALISING! ->', name);
+          store.dispatch({
+            type: INIT_BG_STATE_KEY(name),
+            payload: { key: name },
+          });
+        });
         this.engineInitialized = true;
       }
     });
@@ -100,11 +113,15 @@ class EngineService {
     controllers.forEach((controller) => {
       const { name, key = undefined } = controller;
       const update_bg_state_cb = () => {
-        store.dispatch({ type: UPDATE_BG_STATE_KEY, payload: { key: name } });
+        store.dispatch({
+          type: UPDATE_BG_STATE_KEY(name),
+          payload: { key: name },
+        });
       };
       if (key) {
         engine.controllerMessenger.subscribe(key, update_bg_state_cb);
       } else {
+        //why this else?
         engine.context[name].subscribe(update_bg_state_cb);
       }
     });

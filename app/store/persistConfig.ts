@@ -6,6 +6,7 @@ import { RootState } from '../reducers';
 import { migrations, version } from './migrations';
 import Logger from '../util/Logger';
 import Device from '../util/device';
+import { Platform } from 'react-native';
 
 const TIMEOUT = 40000;
 
@@ -35,7 +36,7 @@ const MigratedStorage = {
   },
   async setItem(key: string, value: string) {
     try {
-      return await FilesystemStorage.setItem(key, value, Device.isIos());
+      return await FilesystemStorage.setItem(key, value, Platform.OS === 'ios');
     } catch (error) {
       Logger.error(error as Error, { message: 'Failed to set item' });
     }
@@ -48,51 +49,6 @@ const MigratedStorage = {
     }
   },
 };
-
-/**
- * Transform middleware that blacklists fields from redux persist that we deem too large for persisted storage
- */
-const persistTransform = createTransform(
-  (inboundState: RootState['engine']) => {
-    const {
-      TokenListController,
-      SwapsController,
-      PhishingController,
-      ...controllers
-    } = inboundState.backgroundState || {};
-    // TODO: Fix this type error
-    // @ts-expect-error Fix this typo, should be `tokensChainsCache`
-    const { tokenList, tokensChainCache, ...persistedTokenListController } =
-      TokenListController;
-    const {
-      aggregatorMetadata,
-      aggregatorMetadataLastFetched,
-      chainCache,
-      tokens,
-      tokensLastFetched,
-      topAssets,
-      topAssetsLastFetched,
-      ...persistedSwapsController
-    } = SwapsController;
-    // TODO: Fix this type error
-    // @ts-expect-error There is no `phishing` property in the phishing controller state
-    const { phishing, whitelist, ...persistedPhishingController } =
-      PhishingController;
-
-    // Reconstruct data to persist
-    const newState = {
-      backgroundState: {
-        ...controllers,
-        TokenListController: persistedTokenListController,
-        SwapsController: persistedSwapsController,
-        PhishingController: persistedPhishingController,
-      },
-    };
-    return newState;
-  },
-  null,
-  { whitelist: ['engine'] },
-);
 
 const persistUserTransform = createTransform(
   // TODO: Add types for the 'user' slice
@@ -110,7 +66,7 @@ const persistConfig = {
   version,
   blacklist: ['onboarding'],
   storage: MigratedStorage,
-  transforms: [persistTransform, persistUserTransform],
+  transforms: [persistUserTransform],
   stateReconciler: autoMergeLevel2, // see "Merge Process" section for details.
   migrate: createMigrate(migrations, { debug: false }),
   timeout: TIMEOUT,
