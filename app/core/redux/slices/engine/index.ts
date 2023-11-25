@@ -76,18 +76,20 @@ const controllerNames = [
 ];
 
 // Create an action to initialize the background state
-export const initBgState = createAction('INIT_BG_STATE', (key) => ({
-  payload: key,
-}));
+// export const initBgState = (controllerName: string) =>
+//   createAction(`INIT_BG_STATE_${controllerName}`, (key) => ({
+//     payload: key,
+//   }));
 
 // Create an action to update the background state
 // export const updateBgState = createAction('UPDATE_BG_STATE', (key) => ({
 //   payload: key,
 // }));
 
-export const updateBgState = createAction('UPDATE_BG_STATE', (key) => ({
-  payload: key,
-}));
+// export const updateBgState = (controllerName: string) =>
+//   createAction(`UPDATE_BG_STATE_${controllerName}`, (key) => ({
+//     payload: key,
+//   }));
 
 const MigratedStorage = {
   async getItem(key: string) {
@@ -124,10 +126,6 @@ const controllerPersistConfig = (controllerName: any, denyList?: string[]) => ({
   storage: MigratedStorage,
 });
 
-// engine: { backgroundState: { controller1Reducer, controller2Reducer}}
-// engine: { backgroundState: []}
-// engine: ....
-
 const controllerReducer =
   ({
     controllerName,
@@ -138,21 +136,19 @@ const controllerReducer =
   }) =>
   // eslint-disable-next-line @typescript-eslint/default-param-last
   (state = initialState, action: any) => {
+    console.log('ACTION:', action);
     switch (action.type) {
-      case initBgState(controllerName): {
-        console.log('STATE: ', state);
+      case `INIT_BG_STATE_${controllerName}`: {
+        console.log('Reducer - STORE INITIAL STATE: ', state);
+        console.log('Reducer - ENGINE INITIAL STATE: ', Engine);
         const initialEngineValue =
           Engine.state[controllerName as keyof typeof Engine.state];
         return { ...state, initialEngineValue };
       }
-      case updateBgState(controllerName): {
+      case `UPDATE_BG_STATE_${controllerName}`: {
         const newState = { ...state };
-        // if (action.payload) {
-        // newState[action.payload?.key] =
-        //   Engine.state[action.payload.key as keyof typeof Engine.state];
         newState[controllerName] =
           Engine.state[controllerName as keyof typeof Engine.state];
-        // }
         return newState;
       }
       default:
@@ -160,11 +156,10 @@ const controllerReducer =
     }
   };
 
-const controllerReducers = controllerNames.reduce(
+export const controllerReducers = controllerNames.reduce(
   (output, controllerConfig) => {
     const { name, initialState, denyList = [] } = controllerConfig;
     output[name] = persistReducer(
-      //have these take objects
       controllerPersistConfig(name, denyList),
       controllerReducer({ name, initialState }),
     );
@@ -176,6 +171,8 @@ const controllerReducers = controllerNames.reduce(
 const engineReducer = combineReducers({
   backgroundState: combineReducers(controllerReducers),
 });
+// RECOVERY PHRASE: buzz pill embody elite name festival crystal pigeon grief memory allow blue
+
 // const engineReducer = (
 //   // eslint-disable-next-line @typescript-eslint/default-param-last
 //   state = initialState,

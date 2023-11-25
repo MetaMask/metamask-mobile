@@ -8,7 +8,7 @@ import {
 
 const selectNetworkControllerState = (state: RootState) => {
   console.log(
-    'STATE:==========',
+    'REDUX STATE in selector:==========',
     state?.engine?.backgroundState,
   );
   return state?.engine?.backgroundState?.NetworkController;
@@ -72,3 +72,4 @@ export const selectLegacyNetwork = createSelector(
     return networkStatus !== NetworkStatus.Available ? 'loading' : networkId;
   },
 );
+
