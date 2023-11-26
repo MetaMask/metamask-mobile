@@ -365,7 +365,8 @@ export class SDKConnect extends EventEmitter2 {
     trigger?: ConnectionProps['trigger'];
     initialConnection: boolean;
   }) {
-    const existingConnection = this.connected[channelId];
+    const existingConnection: Connection | undefined =
+      this.connected[channelId];
 
     // Check if already connected
     if (existingConnection?.remote.isReady()) {
@@ -398,11 +399,15 @@ export class SDKConnect extends EventEmitter2 {
       }
     }
 
+    const wasPaused = existingConnection?.remote.isPaused();
     // Make sure the connection has resumed from pause before reconnecting.
     await waitForCondition({
       fn: () => !this.paused,
       context: 'reconnect_from_pause',
     });
+    if (wasPaused) {
+      DevLogger.log(`SDKConnect::reconnect[${context}] - not paused anymore`);
+    }
     const connecting = this.connecting[channelId] === true;
     const socketConnected = existingConnection?.remote.isConnected() ?? false;
 
@@ -421,12 +426,14 @@ export class SDKConnect extends EventEmitter2 {
       interruptReason = 'already connecting';
     } else if (connecting && trigger === 'deeplink') {
       // special case on android where the socket is not updated
-      if (Platform.OS === 'android') {
-        interruptReason = 'already connecting';
-      } else {
-        console.warn(`Priotity to deeplink - overwrite previous connection`);
-        this.removeChannel(channelId, true);
-      }
+      // if (Platform.OS === 'android') {
+      //   interruptReason = 'already connecting';
+      // } else {
+      //   console.warn(`Priotity to deeplink - overwrite previous connection`);
+      //   this.removeChannel(channelId, true);
+      // }
+      console.warn(`Priotity to deeplink - overwrite previous connection`);
+      this.removeChannel(channelId, true);
     }
 
     if (!this.connections[channelId]) {
@@ -789,6 +796,15 @@ export class SDKConnect extends EventEmitter2 {
         if (this.timeout) {
           BackgroundTimer.clearInterval(this.timeout);
         }
+        // Android cannot process deeplinks until keychain is unlocked and we want to process deeplinks first
+        // so we wait for keychain to be unlocked before resuming connections.
+        const keyringController = (
+          Engine.context as { KeyringController: KeyringController }
+        ).KeyringController;
+        await waitForKeychainUnlocked({
+          keyringController,
+          context: 'handleAppState',
+        });
       } else if (this.timeout) {
         clearTimeout(this.timeout);
       }

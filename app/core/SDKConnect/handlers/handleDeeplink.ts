@@ -91,7 +91,7 @@ const handleDeeplink = async ({
       });
     }
   } catch (error) {
-    Logger.error('Failed to connect to channel', error);
+    Logger.error(error, 'Failed to connect to channel');
   }
 };
 

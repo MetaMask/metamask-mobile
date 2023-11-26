@@ -15,7 +15,7 @@ export const handleBatchRpcResponse = async ({
   backgroundBridge?: BackgroundBridge;
   sendMessage: ({ msg }: { msg: any }) => Promise<void>;
   msg: any;
-}): Promise<void> => {
+}): Promise<boolean> => {
   const isLastRpc = chainRpcs.index === chainRpcs.rpcs.length - 1;
   const hasError = msg?.data?.error;
   const origRpcId = parseInt(chainRpcs.baseId);
@@ -41,10 +41,11 @@ export const handleBatchRpcResponse = async ({
       data,
       name: 'metamask-provider',
     };
-    await sendMessage({ msg: response });
 
     // Delete the chain from the chainRPCManager
     batchRPCManager.remove(chainRpcs.baseId);
+
+    await sendMessage({ msg: response });
   } else if (isLastRpc) {
     // Respond to the original rpc call with the list of responses append the current response
     DevLogger.log(
@@ -92,6 +93,7 @@ export const handleBatchRpcResponse = async ({
       origin: 'sdk',
     });
   }
+  return isLastRpc;
 };
 
 export default handleBatchRpcResponse;

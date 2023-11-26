@@ -4,7 +4,7 @@ import AppConstants from '../../../../app/core/AppConstants';
 import Logger from '../../../util/Logger';
 import Device from '../../../util/device';
 import { Minimizer } from '../../NativeModules';
-import { Connection } from '../Connection';
+import { Connection, RPC_METHODS } from '../Connection';
 import { METHODS_TO_DELAY } from '../SDKConnect';
 import DevLogger from '../utils/DevLogger';
 import { wait } from '../utils/wait.util';
@@ -21,11 +21,11 @@ export const handleSendMessage = async ({
   connection.setLoading(false);
 
   const msgId = msg?.data?.id + '';
-  const method = connection.rpcQueueManager.getId(msgId);
+  let method = connection.rpcQueueManager.getId(msgId);
   // handle multichain rpc call responses separately
   const chainRPCs = connection.batchRPCManager.getById(msgId);
   if (chainRPCs) {
-    await handleBatchRpcResponse({
+    const isLastRpc = await handleBatchRpcResponse({
       chainRpcs: chainRPCs,
       msg,
       batchRPCManager: connection.batchRPCManager,
@@ -33,6 +33,14 @@ export const handleSendMessage = async ({
       sendMessage: ({ msg: newmsg }: { msg: any }) =>
         handleSendMessage({ msg: newmsg, connection }),
     });
+    if (!isLastRpc) {
+      // Only continue processing the message and goback if all rpcs in the batch have been handled
+      return;
+    }
+
+    // Always set the method to metamask_batch otherwise it may not have been set correctly because of the batch rpc flow.
+    method = RPC_METHODS.METAMASK_BATCH;
+    DevLogger.log(`Connection::sendMessage chainRPCs=${chainRPCs} COMPLETED!`);
   }
 
   if (msgId && method) {
