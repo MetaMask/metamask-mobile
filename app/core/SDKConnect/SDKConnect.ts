@@ -323,22 +323,29 @@ export class SDKConnect extends EventEmitter2 {
 
   public async resume({ channelId }: { channelId: string }) {
     const session = this.connected[channelId]?.remote;
+    const alreadyResumed = this.connected[channelId].isResumed ?? false;
 
     DevLogger.log(
-      `SDKConnect::resume channel=${channelId} session=${session} paused=${session.isPaused()} connected=${session?.isConnected()} connecting=${
+      `SDKConnect::resume channel=${channelId} alreadyResumed=${alreadyResumed} session=${session} paused=${session.isPaused()} connected=${session?.isConnected()} connecting=${
         this.connecting[channelId]
       }`,
     );
-    if (session && !session?.isConnected() && !this.connecting[channelId]) {
+    if (
+      session &&
+      !session?.isConnected() &&
+      !alreadyResumed &&
+      !this.connecting[channelId]
+    ) {
       this.connected[channelId].resume();
-      if (Platform.OS === 'android') {
-        // Some devices (especially android) need time to update socket status after resuming.
-        await wait(500); // at least 500ms
-      }
+      await wait(500); // Some devices (especially android) need time to update socket status after resuming.
       DevLogger.log(
         `SDKConnect::_handleAppState - done resuming - socket_connected=${this.connected[
           channelId
         ].remote.isConnected()}`,
+      );
+    } else {
+      DevLogger.log(
+        `SDKConnect::_handleAppState - SKIP - connection.resumed=${this.connected[channelId]?.isResumed}`,
       );
     }
   }
@@ -438,9 +445,11 @@ export class SDKConnect extends EventEmitter2 {
       const ready = existingConnection?.isReady;
       if (connected) {
         if (trigger) {
-          this.connected[channelId].setTrigger('deeplink');
+          this.connected[channelId].setTrigger(trigger);
         }
+      }
 
+      if (ready) {
         DevLogger.log(
           `SDKConnect::reconnect - already connected [ready=${ready}] -- ignoring`,
         );
@@ -521,6 +530,10 @@ export class SDKConnect extends EventEmitter2 {
     if (this.paused) return;
 
     for (const id in this.connected) {
+      if (!this.connected[id].remote.isReady()) {
+        DevLogger.log(`SDKConnect::pause - SKIP - non active connection ${id}`);
+        continue;
+      }
       DevLogger.log(`SDKConnect::pause - pausing ${id}`);
       this.connected[id].pause();
       // check for paused status?
@@ -788,13 +801,14 @@ export class SDKConnect extends EventEmitter2 {
           console.warn(
             `SDKConnect::_handleAppState - resuming from pause - reset connecting status`,
           );
+          this.connecting = {};
         }
-        const connectCount = Object.keys(this.connected).length;
-        if (connectCount > 0) {
+        const connectedCount = Object.keys(this.connected).length;
+        if (connectedCount > 0) {
           // Add delay to pioritize reconnecting from deeplink because it contains the updated connection info (channel dapp public key)
-          await wait(1500);
+          await wait(2000);
           DevLogger.log(
-            `SDKConnect::_handleAppState - resuming ${connectCount} connections`,
+            `SDKConnect::_handleAppState - resuming ${connectedCount} connections`,
           );
           for (const id in this.connected) {
             try {

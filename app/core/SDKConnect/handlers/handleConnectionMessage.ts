@@ -42,6 +42,10 @@ export const handleConnectionMessage = async ({
     return;
   }
 
+  DevLogger.log(
+    `Connection::onMessage id=${connection.channelId} method=${message.method}`,
+  );
+
   connection.setLoading(false);
 
   // Wait for keychain to be unlocked before handling rpc calls.

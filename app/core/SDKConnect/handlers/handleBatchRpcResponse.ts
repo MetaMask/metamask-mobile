@@ -60,9 +60,12 @@ export const handleBatchRpcResponse = async ({
       data,
       name: 'metamask-provider',
     };
-    await sendMessage({ msg: response });
-    // Delete the chain from the chainRPCManager
+
+    //  all batch have been handled can remove from the batch manager before processing it
     batchRPCManager.remove(chainRpcs.baseId);
+
+    // Process the reponse as a normal rpc call
+    await sendMessage({ msg: response });
   } else {
     // Save response and send the next rpc method
     batchRPCManager.addResponse({
@@ -71,8 +74,8 @@ export const handleBatchRpcResponse = async ({
       response: msg?.data?.result,
     });
 
-    // wait 1s before sending the next rpc method To give user time to process UI feedbacks
-    await wait(1000);
+    // wait 500ms before sending the next rpc method To give user time to process UI feedbacks
+    await wait(500);
 
     // Send the next rpc method to the background bridge
     const nextRpc = chainRpcs.rpcs[chainRpcs.index + 1];

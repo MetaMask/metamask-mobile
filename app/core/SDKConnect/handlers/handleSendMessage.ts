@@ -33,7 +33,6 @@ export const handleSendMessage = async ({
       sendMessage: ({ msg: newmsg }: { msg: any }) =>
         handleSendMessage({ msg: newmsg, connection }),
     });
-    return;
   }
 
   if (msgId && method) {

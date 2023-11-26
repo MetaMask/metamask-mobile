@@ -360,6 +360,7 @@ export class Connection extends EventEmitter2 {
 
   pause() {
     this.remote.pause();
+    this.isResumed = false;
   }
 
   resume() {
