@@ -6,7 +6,7 @@ module.exports = {
       config: 'e2e/jest.e2e.config.js',
     },
     jest: {
-      setupTimeout: 120000,
+      setupTimeout: 220000,
     },
     retries: 2,
   },
@@ -56,7 +56,7 @@ module.exports = {
     'ios.simulator': {
       type: 'ios.simulator',
       device: {
-        type: 'iPhone 13 Pro',
+        type: 'iPhone 14 Pro',
       },
     },
     'android.bitrise.emulator': {
