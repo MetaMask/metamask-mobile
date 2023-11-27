@@ -11,5 +11,11 @@ export const migrations: MigrationManifest = {};
 
 for (let i = 0; i < version; i++) {
   const filename = `${i}`.padStart(3, '0');
-  migrations[i] = require(`./${filename}`).migration;
+  try {
+    migrations[i] = require(`./${filename}`).migration;
+  } catch (e) {
+    throw new Error(
+      `No migration found for version ${i}. Did you skip a version?`,
+    );
+  }
 }
