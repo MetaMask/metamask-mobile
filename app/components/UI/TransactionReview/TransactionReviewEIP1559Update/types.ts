@@ -1,4 +1,4 @@
-import { SELECT_GAS_OPTIONS } from '../../../../types/gas';
+import { AVAILABLE_GAS_OPTIONS } from '../../../../types/gas';
 
 export interface TransactionEIP1559UpdateProps {
   /**
@@ -56,7 +56,7 @@ export interface TransactionEIP1559UpdateProps {
   /**
    * The selected gas option
    */
-  gasSelected: SELECT_GAS_OPTIONS | null;
+  gasSelected: AVAILABLE_GAS_OPTIONS | null;
   /**
    * gas object for calculating the gas transaction cost
    */

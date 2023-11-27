@@ -11,7 +11,7 @@ import EditGasFeeLegacy from '../../UI/EditGasFeeLegacyUpdate';
 import createStyles from './CustomGasModal.styles';
 import { CustomGasModalProps } from './CustomGasModal.types';
 import {
-  SELECT_GAS_OPTIONS,
+  AVAILABLE_GAS_OPTIONS,
   GAS_ESTIMATE_TYPES_OPTIONS,
 } from '../../../types/gas';
 
@@ -66,7 +66,7 @@ const CustomGasModal = ({
     gas_estimate_type: gasEstimateType,
   });
 
-  const onChangeGas = (gasValue: SELECT_GAS_OPTIONS) => {
+  const onChangeGas = (gasValue: AVAILABLE_GAS_OPTIONS) => {
     setSelectedGas(gasValue);
     onGasChanged(selectedGas);
   };

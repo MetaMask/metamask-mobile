@@ -13,7 +13,7 @@ import {
   startGasPolling,
   stopGasPolling,
 } from '../../../core/GasPolling/GasPolling';
-import { SELECT_GAS_OPTIONS } from '../../../types/gas';
+import { AVAILABLE_GAS_OPTIONS } from '../../../types/gas';
 import { GasTransactionProps } from '../../../core/GasPolling/types';
 import { UpdateEIP1559Props, UpdateTx1559Options } from './types';
 import {
@@ -39,7 +39,7 @@ const UpdateEIP1559Tx = ({
 }: UpdateEIP1559Props) => {
   const [animateOnGasChange, setAnimateOnGasChange] = useState(false);
   const [gasSelected, setGasSelected] = useState<
-    SELECT_GAS_OPTIONS | undefined
+    AVAILABLE_GAS_OPTIONS | undefined
   >(AppConstants.GAS_OPTIONS.MEDIUM);
   const stopUpdateGas = useRef(false);
   /**
@@ -205,7 +205,7 @@ const UpdateEIP1559Tx = ({
     isMaxPriorityFeePerGasMoreThanLegacy,
   ]);
 
-  const update1559TempGasValue = (selected: SELECT_GAS_OPTIONS) => {
+  const update1559TempGasValue = (selected: AVAILABLE_GAS_OPTIONS) => {
     stopUpdateGas.current = !selected;
     setGasSelected(selected);
   };

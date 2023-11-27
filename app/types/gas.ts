@@ -9,7 +9,7 @@ export type GAS_TIME_OPTIONS =
 export type GAS_ESTIMATE_TYPES_OPTIONS =
   (typeof GAS_ESTIMATE_TYPES)[keyof typeof GAS_ESTIMATE_TYPES];
 
-export type SELECT_GAS_OPTIONS = Omit<
+export type AVAILABLE_GAS_OPTIONS = Omit<
   GAS_OPTIONS,
   'MARKET' | 'AGGRESSIVE'
 >[keyof Omit<GAS_OPTIONS, 'MARKET' | 'AGGRESSIVE'>];

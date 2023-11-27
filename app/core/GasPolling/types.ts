@@ -1,4 +1,4 @@
-import { GAS_TIME_OPTIONS, SELECT_GAS_OPTIONS } from '../../types/gas';
+import { GAS_TIME_OPTIONS, AVAILABLE_GAS_OPTIONS } from '../../types/gas';
 import BigNumber from 'bignumber.js';
 import { BN } from 'ethereumjs-util';
 export interface GasTransactionProps {
@@ -103,7 +103,7 @@ export interface UseGasTransactionProps {
    * When it is present, it can take values of ['low', 'medium', 'high', null].
    * If the value is null, it indicates that the advanced option is enabled.
    */
-  gasSelected?: SELECT_GAS_OPTIONS | null;
+  gasSelected?: AVAILABLE_GAS_OPTIONS | null;
   onlyGas?: boolean;
 
   /**
@@ -183,7 +183,7 @@ export interface GetEIP1559TransactionDataProps extends TransactionSharedProps {
     /**
      * The selected gas value (low, medium, high). Gas value can be null when the advanced option is modified.
      */
-    selectedOption: SELECT_GAS_OPTIONS | null;
+    selectedOption: AVAILABLE_GAS_OPTIONS | null;
     maxWaitTimeEstimate: number;
     minWaitTimeEstimate: number;
     suggestedMaxFeePerGas: string;

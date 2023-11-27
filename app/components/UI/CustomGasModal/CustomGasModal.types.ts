@@ -1,4 +1,4 @@
-import { SELECT_GAS_OPTIONS } from '../../../types/gas';
+import { AVAILABLE_GAS_OPTIONS } from '../../../types/gas';
 
 interface EIP1559GasData {
   maxFeePerGas: string;
@@ -9,11 +9,11 @@ interface EIP1559GasData {
 }
 
 type EIP1559GasDataGasOption = {
-  [key in SELECT_GAS_OPTIONS]: EIP1559GasData;
+  [key in AVAILABLE_GAS_OPTIONS]: EIP1559GasData;
 } & EIP1559GasData;
 
 export interface CustomGasModalProps {
-  gasSelected: SELECT_GAS_OPTIONS;
+  gasSelected: AVAILABLE_GAS_OPTIONS;
   onChange: (gas: string) => void;
   onCancel: () => void;
   animateOnChange?: boolean;

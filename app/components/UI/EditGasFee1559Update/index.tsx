@@ -25,7 +25,7 @@ import TimeEstimateInfoModal from '../TimeEstimateInfoModal';
 import useModalHandler from '../../Base/hooks/useModalHandler';
 import AppConstants from '../../../core/AppConstants';
 import { useGasTransaction } from '../../../core/GasPolling/GasPolling';
-import { SELECT_GAS_OPTIONS } from '../../../types/gas';
+import { AVAILABLE_GAS_OPTIONS } from '../../../types/gas';
 import { useAppThemeFromContext, mockTheme } from '../../../util/theme';
 import createStyles from './styles';
 import { EditGasFee1559UpdateProps } from './types';
@@ -299,7 +299,7 @@ const EditGasFee1559Update = ({
   );
 
   const selectOption = useCallback(
-    (option: SELECT_GAS_OPTIONS) => {
+    (option: AVAILABLE_GAS_OPTIONS) => {
       setSelectedOption(option);
       setMaxFeeError('');
       setMaxPriorityFeeError('');

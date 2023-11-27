@@ -1,6 +1,6 @@
 import { GasFeeEstimates } from '@metamask/gas-fee-controller';
 import {
-  SELECT_GAS_OPTIONS,
+  AVAILABLE_GAS_OPTIONS,
   GAS_ESTIMATE_TYPES_OPTIONS,
 } from '../../../types/gas';
 import { UpdateTx1559Options } from '../UpdateEIP1559Tx/types';
@@ -9,7 +9,7 @@ export interface EditGasFee1559UpdateProps {
   /**
    * The selected gas value (low, medium, high)
    */
-  selectedGasValue: SELECT_GAS_OPTIONS | undefined;
+  selectedGasValue: AVAILABLE_GAS_OPTIONS | undefined;
   /**
    * Gas fee options.
    */
@@ -69,7 +69,7 @@ export interface EditGasFee1559UpdateProps {
   /**
    * Estimate option to compare with for too low warning
    */
-  warningMinimumEstimateOption?: SELECT_GAS_OPTIONS;
+  warningMinimumEstimateOption?: AVAILABLE_GAS_OPTIONS;
   /**
    * Boolean to determine if the animation is happening
    */
@@ -96,5 +96,5 @@ export interface EditGasFee1559UpdateProps {
     suggestedGasLimit: string | undefined;
   };
   onlyGas?: boolean;
-  suggestedEstimateOption?: SELECT_GAS_OPTIONS;
+  suggestedEstimateOption?: AVAILABLE_GAS_OPTIONS;
 }
