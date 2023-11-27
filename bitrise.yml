@@ -144,12 +144,23 @@ workflows:
       - setup
       - prep_environment
     steps:
-      - restore-cache@1:
-          title: Restore cache dependencies
-          inputs:
-          - key: '{{ .OS }}-{{ .Arch }}-node-modules-{{ checksum "yarn.lock" }}'
+      # - script@1.1.5:
+      #     inputs:
+      #     - content: |-
+      #         #!/bin/bash
+      #         set -e
+      #         set -x
+      #         envman add --key RUN_YARN_SETUP --value false
+      #         if [[ "${BITRISE_CACHE_HIT}" == "exact" ]] ; then
+      #           if [[ "$(uname)" == "Darwin" ]] ; then
+      #             envman add --key RUN_YARN_SETUP --value true
+      #           fi
+      #         else
+      #           envman add --key RUN_YARN_SETUP --value true
+      #         fi
       - yarn@0:
-          # run_if: '{{not (enveq "BITRISE_CACHE_HIT" "exact")}}'
+          run_if: '{{not (enveq "BITRISE_CACHE_HIT" "exact")}}'
+          # run_if: '{{(getenv "RUN_YARN_SETUP")}}'
           inputs:
             - command: setup
           title: Yarn Setup
@@ -161,12 +172,12 @@ workflows:
           inputs:
             - command: audit:ci
           title: Audit Dependencies
-      - cache-push@2:
-          # Manual cache path needed here because the `yarn` step only caches for the `install` command
-          inputs:
-            # The Yarn cache is easier and safer to cache than `node_modules`, which could include
-            # postinstall script modifications and could affect hoisting on subsequent installs.
-            - cache_paths: '$YARN_CACHE_DIR -> ./yarn.lock'
+      # - cache-push@2:
+      #     # Manual cache path needed here because the `yarn` step only caches for the `install` command
+      #     inputs:
+      #       # The Yarn cache is easier and safer to cache than `node_modules`, which could include
+      #       # postinstall script modifications and could affect hoisting on subsequent installs.
+      #       - cache_paths: '$YARN_CACHE_DIR -> ./yarn.lock'
       - save-cache@1:
           title: Save cache dependencies 
           inputs:
@@ -186,12 +197,12 @@ workflows:
       - code_setup
   prep_environment:
     steps:
-      - script@1:
-          inputs:
-            - content: |-
-                #!/usr/bin/env bash
-                envman add --key YARN_CACHE_DIR --value "$(yarn cache dir)"
-          title: Get Yarn cache directory
+      # - script@1:
+      #     inputs:
+      #       - content: |-
+      #           #!/usr/bin/env bash
+      #           envman add --key YARN_CACHE_DIR --value "$(yarn cache dir)"
+      #     title: Get Yarn cache directory
       - script@1:
           inputs:
             - content: |-
@@ -205,6 +216,10 @@ workflows:
                 asdf install yarn "$YARN_VERSION"
                 asdf global yarn "$YARN_VERSION"
           title: Install node and yarn
+      - restore-cache@1:
+          title: Restore cache dependencies
+          inputs:
+          - key: '{{ .OS }}-{{ .Arch }}-node-modules-{{ checksum "yarn.lock" }}'
 
   # Notifications utility workflows
   # Provides values for commit or branch message and path depending on commit env setup initialised or not
@@ -373,10 +388,6 @@ workflows:
     # - _notify_failure_on_slack
     steps:
     - restore-gradle-cache@1: {}
-    - restore-cache@1:
-        title: Restore cache build
-        inputs:
-        - key: apk-cache-{{ .CommitHash }}
     - install-missing-android-tools@3:
         inputs:
         - ndk_version: $NDK_VERSION
@@ -389,6 +400,10 @@ workflows:
             #!/usr/bin/env bash
             "${ANDROID_HOME}/tools/bin/sdkmanager" "cmake;3.22.1"
     - save-gradle-cache@1: {}
+    - restore-cache@1:
+        title: Restore cache build
+        inputs:
+        - key: apk-cache-{{ .CommitHash }}
     - script@1:
         title: Run detox build
         run_if: '{{not (enveq "BITRISE_CACHE_HIT" "exact")}}'
@@ -423,10 +438,6 @@ workflows:
     # - _notify_failure_on_slack
     steps:
     - restore-gradle-cache@1: {}
-    - restore-cache@1:
-        title: Restore cache dependencies
-        inputs:
-        - key: '{{ .OS }}-{{ .Arch }}-node-modules-{{ checksum "yarn.lock" }}'
     - restore-cache@1:
         title: Restore cache build
         inputs:
@@ -553,15 +564,15 @@ workflows:
     # after_run:
     #   - _notify_failure_on_slack
     steps:
-      - restore-cache@1:
-          title: Restore cache dependencies
-          inputs:
-          - key: '{{ .OS }}-{{ .Arch }}-node-modules-{{ checksum "yarn.lock" }}'
+      # - restore-cache@1:
+      #     title: Restore cache dependencies
+      #     inputs:
+      #     - key: '{{ .OS }}-{{ .Arch }}-node-modules-{{ checksum "yarn.lock" }}'
+      - restore-cocoapods-cache@1: {}
       - restore-cache@1:
           title: Restore cache build
           inputs:
           - key: ipa-cache-{{ .CommitHash }}
-      - restore-cocoapods-cache@1: {}
       - certificate-and-profile-installer@1: {}
       - set-xcode-build-number@1:
           inputs:
