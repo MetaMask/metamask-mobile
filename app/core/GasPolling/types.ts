@@ -114,7 +114,7 @@ export interface UseGasTransactionProps {
    * gas object for calculating the gas transaction cost
    */
   gasObject?: {
-    suggestedGasLimit: string | undefined;
+    suggestedGasLimit?: string;
     suggestedMaxPriorityFeePerGas: string;
     suggestedMaxFeePerGas: string | undefined;
   };
