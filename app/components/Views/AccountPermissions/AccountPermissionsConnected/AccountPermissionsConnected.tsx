@@ -32,6 +32,7 @@ import {
 import generateTestId from '../../../../../wdio/utils/generateTestId';
 import Routes from '../../../../constants/navigation/Routes';
 import { selectProviderConfig } from '../../../../selectors/networkController';
+import { ConnectedAccountsSelectorsIDs } from '../../../../../e2e/selectors/Modals/ConnectedAccounts.selectors';
 
 // Internal dependencies.
 import { AccountPermissionsConnectedProps } from './AccountPermissionsConnected.types';
@@ -122,7 +123,10 @@ const AccountPermissionsConnected = ({
 
   const renderSheetAction = useCallback(
     () => (
-      <View style={styles.sheetActionContainer}>
+      <View
+        style={styles.sheetActionContainer}
+        testID={ConnectedAccountsSelectorsIDs.CONNECT_ACCOUNTS_BUTTON}
+      >
         <SheetActions
           actions={[
             {
