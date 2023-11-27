@@ -144,23 +144,9 @@ workflows:
       - setup
       - prep_environment
     steps:
-      # - script@1.1.5:
-      #     inputs:
-      #     - content: |-
-      #         #!/bin/bash
-      #         set -e
-      #         set -x
-      #         envman add --key RUN_YARN_SETUP --value false
-      #         if [[ "${BITRISE_CACHE_HIT}" == "exact" ]] ; then
-      #           if [[ "$(uname)" == "Darwin" ]] ; then
-      #             envman add --key RUN_YARN_SETUP --value true
-      #           fi
-      #         else
-      #           envman add --key RUN_YARN_SETUP --value true
-      #         fi
       - yarn@0:
-          run_if: '{{not (enveq "BITRISE_CACHE_HIT" "exact")}}'
-          #  test run_if: '{{(getenv "RUN_YARN_SETUP")}}'
+          # run_if: '{{not (enveq "BITRISE_CACHE_HIT" "exact")}}'
+          run_if: '{{(getenv "RUN_YARN_SETUP")}}'
           inputs:
             - command: setup
           title: Yarn Setup
@@ -220,6 +206,20 @@ workflows:
           title: Restore cache dependencies
           inputs:
           - key: '{{ .OS }}-{{ .Arch }}-node-modules-{{ checksum "yarn.lock" }}'
+      - script@1.1.5:
+          inputs:
+          - content: |-
+              #!/bin/bash
+              set -e
+              set -x
+              envman add --key RUN_YARN_SETUP --value false
+              if [[ "${BITRISE_CACHE_HIT}" == "exact" ]] ; then
+                if [[ "$(uname)" == "Darwin" ]] ; then
+                  envman add --key RUN_YARN_SETUP --value true
+                fi
+              else
+                envman add --key RUN_YARN_SETUP --value true
+              fi
 
   # Notifications utility workflows
   # Provides values for commit or branch message and path depending on commit env setup initialised or not
