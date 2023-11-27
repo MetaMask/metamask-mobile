@@ -72,13 +72,14 @@ const transactionReview = {
   isAnimating: false,
   gasEstimationReady: false,
   legacy: false,
-  gasSelected: '',
+  gasSelected: null,
   gasObject: {
     suggestedMaxFeePerGas: '',
     suggestedMaxPriorityFeePerGas: '',
   },
   updateTransactionState: undefined,
   onlyGas: false,
+  gasObjectLegacy: {},
 };
 
 describe('TransactionReviewEIP1559', () => {
