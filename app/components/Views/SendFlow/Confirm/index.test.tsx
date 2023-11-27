@@ -5,7 +5,6 @@ import Confirm from '.';
 import { renderScreen } from '../../../../util/test/renderWithProvider';
 import Routes from '../../../../constants/navigation/Routes';
 import initialBackgroundState from '../../../../util/test/initial-background-state.json';
-import TransactionReviewEIP1559Update from '../../../UI/TransactionReview/TransactionReviewEIP1559Update';
 
 const mockInitialState = {
   engine: {
@@ -113,7 +112,10 @@ jest.mock('../../../../util/transactions', () => ({
   ...jest.requireActual('../../../../util/transactions'),
   decodeTransferData: jest.fn().mockImplementation(() => ['0x2']),
 }));
-jest.mock('../../../UI/TransactionReview/TransactionReviewEIP1559Update');
+jest.mock(
+  '../../../UI/TransactionReview/TransactionReviewEIP1559Update',
+  () => 'TransactionReviewEIP1559Update',
+);
 
 function render(Component: React.ComponentType | ConnectedComponent<any, any>) {
   return renderScreen(
@@ -133,7 +135,5 @@ describe('Confirm', () => {
     await waitFor(() => {
       expect(wrapper).toMatchSnapshot();
     });
-
-    expect(TransactionReviewEIP1559Update).toHaveBeenCalled();
   });
 });

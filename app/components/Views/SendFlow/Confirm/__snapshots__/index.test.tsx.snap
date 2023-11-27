@@ -973,6 +973,19 @@ exports[`Confirm should render correctly 1`] = `
                               testID="confirm-txn-amount"
                             />
                           </View>
+                          <TransactionReviewEIP1559Update
+                            gasEstimationReady={false}
+                            gasObject={Object {}}
+                            gasObjectLegacy={Object {}}
+                            gasSelected="medium"
+                            legacy={false}
+                            multiLayerL1FeeTotal="0x0"
+                            onEdit={[Function]}
+                            onUpdatingValuesEnd={[Function]}
+                            onUpdatingValuesStart={[Function]}
+                            onlyGas={false}
+                            updateTransactionState={[Function]}
+                          />
                           <View
                             style={
                               Object {
