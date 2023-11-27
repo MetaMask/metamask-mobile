@@ -1,10 +1,12 @@
 import { KeyringController } from '@metamask/keyring-controller';
+import { NetworkController } from '@metamask/network-controller';
 import { PreferencesController } from '@metamask/preferences-controller';
 import {
   CommunicationLayerMessage,
   MessageType,
 } from '@metamask/sdk-communication-layer';
 import Logger from '../../../util/Logger';
+import Engine from '../../Engine';
 import { Connection } from '../Connection';
 import DevLogger from '../utils/DevLogger';
 import {
@@ -14,7 +16,6 @@ import {
 import checkPermissions from './checkPermissions';
 import handleCustomRpcCalls from './handleCustomRpcCalls';
 import handleSendMessage from './handleSendMessage';
-import Engine from '../../Engine';
 
 export const handleConnectionMessage = async ({
   message,
@@ -64,6 +65,15 @@ export const handleConnectionMessage = async ({
   ).PreferencesController;
   const selectedAddress = preferencesController.state.selectedAddress;
 
+  const networkController = (
+    engine.context as {
+      NetworkController: NetworkController;
+    }
+  ).NetworkController;
+  const networkId = networkController.state.networkId ?? 1; // default to mainnet;
+  // transform networkId to 0x value
+  const hexChainId = `0x${networkId.toString(16)}`;
+
   // Wait for bridge to be ready before handling messages.
   // It will wait until user accept/reject the connection request.
   try {
@@ -99,6 +109,7 @@ export const handleConnectionMessage = async ({
   const processedRpc = await handleCustomRpcCalls({
     batchRPCManager: connection.batchRPCManager,
     selectedAddress,
+    selectedChainId: hexChainId,
     rpc: {
       id: message.id,
       method: message.method,

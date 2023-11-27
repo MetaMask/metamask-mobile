@@ -552,8 +552,6 @@ export class SDKConnect extends EventEmitter2 {
     }
     this.paused = true;
     this.connecting = {};
-
-    // this.rpcqueueManager.reset();
   }
 
   public async bindAndroidSDK() {
@@ -561,12 +559,13 @@ export class SDKConnect extends EventEmitter2 {
       return;
     }
 
+    if (this.androidSDKBound) return;
+
     try {
-      // Always bind native module to client during deeplinks otherwise connection may have an invalid status
+      // Always bind native module to client as early as possible otherwise connection may have an invalid status
       await NativeModules.CommunicationClient.bindService();
       this.androidSDKBound = true;
     } catch (err) {
-      if (this.androidSDKBound) return;
       Logger.log(err, `SDKConnect::bindAndroiSDK failed`);
     }
   }
@@ -904,13 +903,6 @@ export class SDKConnect extends EventEmitter2 {
         `SDKConnect::init()[${context}] -- already initializing -- wait for completion`,
       );
       return await this._initializing;
-      // // Wait for initialization to finish.
-      // await waitForCondition({
-      //   fn: () => this._initialized,
-      //   context: 'init',
-      // });
-      // DevLogger.log(`SDKConnect::init() -- done waiting for initialization`);
-      // return;
     } else if (this._initialized) {
       DevLogger.log(
         `SDKConnect::init()[${context}] -- SKIP -- already initialized`,
@@ -1039,7 +1031,7 @@ export class SDKConnect extends EventEmitter2 {
     );
 
     // Add delay to pioritize reconnecting from deeplink because it contains the updated connection info (channel dapp public key)
-    await wait(2000);
+    await wait(3000);
     await this.reconnectAll();
 
     this._postInitialized = true;
