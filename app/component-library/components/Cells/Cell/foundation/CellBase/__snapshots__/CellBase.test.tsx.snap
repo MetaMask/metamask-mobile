@@ -20,7 +20,6 @@ exports[`CellBase should render default settings correctly 1`] = `
       }
     }
     testID="cellbase-avatar"
-    variant="Account"
   >
     <View
       style={
@@ -150,6 +149,7 @@ exports[`CellBase should render default settings correctly 1`] = `
           "lineHeight": 24,
         }
       }
+      testID="cellbase-avatar-title"
     >
       Orangefox.eth
     </Text>

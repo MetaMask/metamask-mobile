@@ -1,12 +1,9 @@
 import TestHelpers from '../../helpers';
-import messages from '../../../locales/languages/en.json';
-import { NETWORK_AVATAR_IMAGE_ID } from '../../../app/constants/test-ids';
 import { MULTI_TAB_ADD_BUTTON } from '../../../wdio/screen-objects/testIDs/BrowserScreen/MultiTab.testIds';
 import {
   BROWSER_SCREEN_ID,
   HOME_BUTTON,
   TABS_BUTTON,
-  BACK_BUTTON,
   OPTIONS_BUTTON,
   SEARCH_BUTTON,
   NAVBAR_TITLE_NETWORK,
@@ -24,21 +21,13 @@ import {
   testDappSendEIP1559ButtonCoordinates,
 } from '../../viewHelper';
 import { TEST_DAPP_LOCAL_URL } from '../TestDApp';
+import {
+  BrowserViewSelectorsIDs,
+  BrowserViewSelectorsText,
+} from '../../selectors/BrowserView.selectors';
+import { CommonSelectorsText } from '../../selectors/Common.selectors';
 
 const TEST_DAPP = 'https://metamask.github.io/test-dapp/';
-
-const RETURN_HOME_TEXT = messages.webview_error.return_home;
-const BACK_TO_SAFETY_TEXT = messages.phishing.back_to_safety;
-const REVOKE_ALL_ACCOUNTS_TEXT = messages.toast.revoked_all;
-const CONNECTED_ACCOUNTS_TEXT = messages.toast.connected_and_active;
-
-const ADD_FAVORITES_BUTTON_TEXT = messages.browser.add_to_favorites;
-const BACK_TO_SAFETY_BUTTON_TEXT = messages.phishing.back_to_safety;
-
-const CONFIRM_BUTTON_TEXT = messages.confirmation_modal.confirm_cta;
-
-const WEBVIEW_TEST_DAPP_EIP1559_BUTTON_ID = 'sendEIP1559Button';
-const WEBVIEW_TEST_DAPP_CONNECT_BUTTON_ID = 'connectButton';
 
 export default class Browser {
   static async tapUrlInputBox() {
@@ -61,11 +50,10 @@ export default class Browser {
   }
 
   static async tapOpenNewTabButton() {
-    await TestHelpers.checkIfExists(MULTI_TAB_ADD_BUTTON);
-    await TestHelpers.tap(MULTI_TAB_ADD_BUTTON);
+    await TestHelpers.waitAndTap(MULTI_TAB_ADD_BUTTON);
   }
   static async tapNetworkAvatarButtonOnBrowser() {
-    await TestHelpers.waitAndTap(NETWORK_AVATAR_IMAGE_ID);
+    await TestHelpers.waitAndTap(BrowserViewSelectorsIDs.AVATAR_IMAGE);
   }
 
   static async tapNetworkAvatarButtonOnBrowserWhileAccountIsConnectedToDapp() {
@@ -73,7 +61,7 @@ export default class Browser {
       await TestHelpers.delay(3000); // to wait until toast notifcation disappears
       await TestHelpers.tapByDescendentTestID(
         ACCOUNT_BUTTON,
-        NETWORK_AVATAR_IMAGE_ID,
+        BrowserViewSelectorsIDs.AVATAR_IMAGE,
       );
     } else {
       await this.tapNetworkAvatarButtonOnBrowser();
@@ -81,7 +69,7 @@ export default class Browser {
   }
 
   static async tapAddToFavoritesButton() {
-    await TestHelpers.tapByText(ADD_FAVORITES_BUTTON_TEXT);
+    await TestHelpers.tapByText(BrowserViewSelectorsText.ADD_FAVORITES_BUTTON);
   }
 
   static async tapAddBookmarksButton() {
@@ -96,14 +84,10 @@ export default class Browser {
   }
 
   static async tapBackToSafetyButton() {
-    await TestHelpers.tapByText(BACK_TO_SAFETY_TEXT);
+    await TestHelpers.tapByText(BrowserViewSelectorsText.BACK_TO_SAFETY_BUTTON);
   }
   static async tapReturnHomeButton() {
-    await TestHelpers.tapByText(RETURN_HOME_TEXT);
-  }
-  static async tapBrowserBackButton() {
-    // This action is android specific
-    await TestHelpers.tap(BACK_BUTTON);
+    await TestHelpers.tapByText(BrowserViewSelectorsText.RETURN_HOME);
   }
 
   static async navigateToURL(url) {
@@ -146,8 +130,10 @@ export default class Browser {
 
   /** @deprecated **/
   static async tapConnectButton() {
-    if (device.getPlatform === 'android') {
-      await TestHelpers.tapWebviewElement(WEBVIEW_TEST_DAPP_CONNECT_BUTTON_ID);
+    if (device.getPlatform() === 'android') {
+      await TestHelpers.tapWebviewElement(
+        BrowserViewSelectorsIDs.DAPP_CONNECT_BUTTON,
+      );
     } else {
       await TestHelpers.tapAtPoint(
         BROWSER_SCREEN_ID,
@@ -160,7 +146,9 @@ export default class Browser {
   // Please change existing tests to use the following method
   static async tapConnectButtonNew() {
     if (device.getPlatform() === 'android') {
-      await TestHelpers.tapWebviewElement(WEBVIEW_TEST_DAPP_CONNECT_BUTTON_ID);
+      await TestHelpers.tapWebviewElement(
+        BrowserViewSelectorsIDs.DAPP_CONNECT_BUTTON,
+      );
     } else {
       await TestHelpers.tapAtPoint(
         BROWSER_SCREEN_ID,
@@ -175,7 +163,9 @@ export default class Browser {
     if (device.getPlatform() === 'android') {
       await TestHelpers.swipe(BROWSER_SCREEN_ID, 'up', 'slow', 0.5);
       await TestHelpers.delay(1500);
-      await TestHelpers.tapWebviewElement(WEBVIEW_TEST_DAPP_EIP1559_BUTTON_ID);
+      await TestHelpers.tapWebviewElement(
+        BrowserViewSelectorsIDs.DAPP_EIP1559_BUTTON,
+      );
     } else {
       await TestHelpers.swipe(BROWSER_SCREEN_ID, 'up', 'slow', 0.1); // scrolling to the SendEIP1559 button
       await TestHelpers.tapAtPoint(
@@ -183,7 +173,7 @@ export default class Browser {
         testDappSendEIP1559ButtonCoordinates,
       );
     }
-    await TestHelpers.tapByText(CONFIRM_BUTTON_TEXT, 1);
+    await TestHelpers.tapByText(BrowserViewSelectorsText.CONFIRM_BUTTON, 1);
   }
   static async waitForBrowserPageToLoad() {
     await TestHelpers.delay(5000);
@@ -205,17 +195,13 @@ export default class Browser {
     await TestHelpers.checkIfNotVisible(ADD_BOOKMARKS_SCREEN_ID);
   }
 
-  static async isBrowserFavoriteVisible(browserFavoriteName) {
-    await TestHelpers.checkIfElementWithTextIsVisible(browserFavoriteName);
-  }
-
   static async isBackToSafetyButtonVisible() {
     await TestHelpers.checkIfElementWithTextIsVisible(
-      BACK_TO_SAFETY_BUTTON_TEXT,
+      BrowserViewSelectorsText.BACK_TO_SAFETY_BUTTON,
     );
   }
   static async isAccountToastVisible(accountName) {
-    const connectedAccountMessage = `${accountName} ${CONNECTED_ACCOUNTS_TEXT}`;
+    const connectedAccountMessage = `${accountName} ${CommonSelectorsText.TOAST_CONNECTED_ACCOUNTS}`;
     await TestHelpers.checkIfElementHasString(
       NOTIFICATION_TITLE,
       connectedAccountMessage,
@@ -225,13 +211,19 @@ export default class Browser {
   static async isRevokeAllAccountToastVisible() {
     await TestHelpers.checkIfElementHasString(
       NOTIFICATION_TITLE,
-      REVOKE_ALL_ACCOUNTS_TEXT,
+      CommonSelectorsText.TOAST_REVOKE_ACCOUNTS,
     );
   }
 
   static async navigateToTestDApp() {
-    await Browser.tapUrlInputBox();
-    await Browser.navigateToURL(TEST_DAPP_LOCAL_URL);
-    await TestHelpers.delay(3000);
+    await this.tapUrlInputBox();
+    await this.navigateToURL(TEST_DAPP_LOCAL_URL);
+  }
+
+  static async isURLBarTextTestDapp() {
+    await TestHelpers.checkIfElementWithTextIsVisible(
+      BrowserViewSelectorsText.METAMASK_TEST_DAPP_URL,
+      0,
+    );
   }
 }

@@ -16,10 +16,10 @@ import {
   DEFAULT_CELLBASE_AVATAR_TITLE_TEXTVARIANT,
   DEFAULT_CELLBASE_AVATAR_SECONDARYTEXT_TEXTVARIANT,
   DEFAULT_CELLBASE_AVATAR_TERTIARYTEXT_TEXTVARIANT,
-  CELLBASE_AVATAR_TEST_ID,
 } from './CellBase.constants';
 import styleSheet from './CellBase.styles';
 import { CellBaseProps } from './CellBase.types';
+import { CellModalSelectorsIDs } from '../../../../../../../e2e/selectors/Modals/CellModal.selectors';
 
 const CellBase = ({
   style,
@@ -37,7 +37,7 @@ const CellBase = ({
       {/* DEV Note: Account Avatar should be replaced with Avatar with Badge whenever available */}
       <Avatar
         style={styles.avatar}
-        testID={CELLBASE_AVATAR_TEST_ID}
+        testID={CellModalSelectorsIDs.BASE_AVATAR}
         {...avatarProps}
         size={DEFAULT_CELLBASE_AVATAR_SIZE}
       />
@@ -45,6 +45,7 @@ const CellBase = ({
         <Text
           numberOfLines={1}
           variant={DEFAULT_CELLBASE_AVATAR_TITLE_TEXTVARIANT}
+          testID={CellModalSelectorsIDs.BASE_TITLE}
         >
           {title}
         </Text>
