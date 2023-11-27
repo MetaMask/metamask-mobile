@@ -95,7 +95,8 @@ const customGasModalSharedProps = {
   updateGasState,
   onGasChanged: (gas: string) => mockedAction(gas),
   onGasCanceled: (gas: string) => mockedAction(gas),
-} as unknown as CustomGasModalProps;
+  legacy: true,
+} as CustomGasModalProps;
 
 describe('CustomGasModal', () => {
   it('should render correctly', () => {
