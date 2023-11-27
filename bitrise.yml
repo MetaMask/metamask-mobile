@@ -160,7 +160,7 @@ workflows:
       #         fi
       - yarn@0:
           run_if: '{{not (enveq "BITRISE_CACHE_HIT" "exact")}}'
-          # run_if: '{{(getenv "RUN_YARN_SETUP")}}'
+          #  test run_if: '{{(getenv "RUN_YARN_SETUP")}}'
           inputs:
             - command: setup
           title: Yarn Setup
