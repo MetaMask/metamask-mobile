@@ -14,7 +14,7 @@
     "app/components/UI/EditGasFee1559Update/**/*",
     "app/components/UI/EditGasFeeLegacyUpdate/**/*",
     "app/components/UI/TransactionReview/TransactionReviewEIP1559Update/**/*",
-    "app/components/UI/EditGasFee1559/index.test.tsx",
+    "app/components/UI/EditGasFee1559/**/*",
     "app/components/UI/EditGasFeeLegacy/index.test.tsx",
     // "app/components/**/*",
     "app/constants/**/*",
