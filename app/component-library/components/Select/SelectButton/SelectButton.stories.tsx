@@ -2,9 +2,6 @@
 // Third party dependencies.
 import React from 'react';
 
-// External
-import { SAMPLE_AVATAR_PROPS } from '../../Avatars/Avatar/Avatar.constants';
-
 // Internal dependencies.
 import { default as SelectButtonComponent } from './SelectButton';
 import { SelectButtonSize } from './SelectButton.types';
