@@ -12,7 +12,7 @@ import {
 } from 'react-native';
 import { useSelector, useDispatch } from 'react-redux';
 import { useNavigation } from '@react-navigation/native';
-import { setShowLedgerBeta } from '../../../../actions/settings';
+import { setLedgerBetaEnabled } from '../../../../actions/settings';
 import {
   mockTheme,
   useAppThemeFromContext,
@@ -93,7 +93,7 @@ const SelectHardwareWallet = () => {
   const [ledgerTaps, setLedgerTaps] = useState<number>(1);
 
   const ledgerBetaEnabled = useSelector(
-    (state: any) => state.settings.enableLedgerBeta,
+    (state: any) => state.settings.ledgerBeatEnabled,
   );
 
   const dispatch = useDispatch();
@@ -116,7 +116,7 @@ const SelectHardwareWallet = () => {
       [
         {
           text: strings('ledger.ledger_beta_cta'),
-          onPress: () => dispatch(setShowLedgerBeta(true)),
+          onPress: () => dispatch(setLedgerBetaEnabled(true)),
         },
       ],
     );
