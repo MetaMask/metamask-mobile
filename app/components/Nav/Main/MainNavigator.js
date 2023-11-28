@@ -307,7 +307,6 @@ const HomeTabs = () => {
 
   const chainId = useSelector((state) => {
     const providerConfig = selectProviderConfig(state);
-    console.log('PROVIDER CONFIG:', providerConfig);
     return NetworksChainId[providerConfig.type];
   });
 

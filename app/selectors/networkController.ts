@@ -6,13 +6,8 @@ import {
   NetworkStatus,
 } from '@metamask/network-controller';
 
-const selectNetworkControllerState = (state: RootState) => {
-  console.log(
-    'REDUX STATE in selector:==========',
-    state?.engine?.backgroundState,
-  );
-  return state?.engine?.backgroundState?.NetworkController;
-};
+const selectNetworkControllerState = (state: RootState) =>
+  state?.engine?.backgroundState?.NetworkController;
 
 export const selectProviderConfig = createSelector(
   selectNetworkControllerState,
@@ -72,4 +67,3 @@ export const selectLegacyNetwork = createSelector(
     return networkStatus !== NetworkStatus.Available ? 'loading' : networkId;
   },
 );
-

@@ -97,11 +97,16 @@ class EngineService {
     engine?.datamodel?.subscribe?.(() => {
       console.log('  EngineInitialized ===== ', this.engineInitialized);
       if (!this.engineInitialized) {
-        console.log('INITIALISING datamodel: ===== ', engine?.datamodel);
+        // console.log('INITIALISING datamodel: ===== ', engine?.datamodel);
         console.log('INITIALISING Engine State: ===== ', engine?.state);
         controllers.forEach((controller) => {
           const { name } = controller;
-          console.log('WE ARE INITIALISING! =====', name);
+          console.log(
+            'WE ARE INITIALISING and dispatching! =====',
+            name,
+            ' -> ',
+            INIT_BG_STATE_KEY(name),
+          );
           store.dispatch({
             type: INIT_BG_STATE_KEY(name),
             payload: { key: name },

@@ -4,6 +4,7 @@ import { persistReducer } from 'redux-persist';
 import { combineReducers } from 'redux';
 import { createAction } from '@reduxjs/toolkit';
 import Logger from '../../../../util/Logger';
+import { Platform } from 'react-native';
 
 // const initialState = {
 //   backgroundState: {} as any,
@@ -106,7 +107,7 @@ const MigratedStorage = {
   },
   async setItem(key: string, value: string) {
     try {
-      return await FilesystemStorage.setItem(key, value, Device.isIos());
+      return await FilesystemStorage.setItem(key, value, Platform.OS === 'ios');
     } catch (error) {
       Logger.error(error as Error, { message: 'Failed to set item' });
     }
@@ -136,20 +137,44 @@ const controllerReducer =
   }) =>
   // eslint-disable-next-line @typescript-eslint/default-param-last
   (state = initialState, action: any) => {
-    console.log('ACTION:', action);
+    // console.log('ACTION TYPE:', action, ' Controller Name: ', controllerName); // <- this runs but controllerName is undefined
+    // console.log('ACTION TYPE:', action);
     switch (action.type) {
-      case `INIT_BG_STATE_${controllerName}`: {
-        console.log('Reducer - STORE INITIAL STATE: ', state);
-        console.log('Reducer - ENGINE INITIAL STATE: ', Engine);
+      case `INIT_BG_STATE_${controllerName || action.key}`: {
+        // <- i think there's something going on when creating these names
+        // when the app first runs, it runs
+        console.log('ACTION INITIALISE ********', action);
+        if (controllerName === 'NetworkController') {
+          console.log('Reducer - STORE INITIAL STATE: ', state);
+          console.log(
+            'Reducer - ENGINE INITIAL STATE: ',
+            !!Engine,
+            Engine.state[controllerName],
+          );
+        }
         const initialEngineValue =
           Engine.state[controllerName as keyof typeof Engine.state];
-        return { ...state, initialEngineValue };
+        const returnedObject = {
+          ...state,
+          ...initialEngineValue,
+        };
+        if (controllerName === 'NetworkController') {
+          console.log('initial Value:', initialEngineValue);
+          console.log('Returned Object :', returnedObject);
+        }
+        return returnedObject;
       }
       case `UPDATE_BG_STATE_${controllerName}`: {
-        const newState = { ...state };
-        newState[controllerName] =
-          Engine.state[controllerName as keyof typeof Engine.state];
-        return newState;
+        console.log('ACTION UPDATE ********', action);
+
+        // newState[controllerName] =
+        //   Engine.state[controllerName as keyof typeof Engine.state];
+        if (controllerName === 'NetworkController') {
+          console.log('Update new State Value:', {
+            ...Engine.state[controllerName as keyof typeof Engine.state],
+          });
+        }
+        return { ...Engine.state[controllerName as keyof typeof Engine.state] };
       }
       default:
         return state;
@@ -159,14 +184,34 @@ const controllerReducer =
 export const controllerReducers = controllerNames.reduce(
   (output, controllerConfig) => {
     const { name, initialState, denyList = [] } = controllerConfig;
-    output[name] = persistReducer(
+    // console.log('REDUCER NAME =============,', name);
+
+    // Log the action type associated with the reducer
+    const INIT_BG_STATE_KEY = `INIT_BG_STATE_${name}`;
+    const UPDATE_BG_STATE_KEY = `UPDATE_BG_STATE_${name}`;
+    console.log('INIT ACTION TYPE:', INIT_BG_STATE_KEY);
+    console.log('UPDATE ACTION TYPE:', UPDATE_BG_STATE_KEY);
+
+    const reducer = persistReducer(
       controllerPersistConfig(name, denyList),
-      controllerReducer({ name, initialState }),
+      controllerReducer({ controllerName: name, initialState }),
     );
+    // Log the properties of the reducer
+    // console.log(`REDUCER CONTENT for ${name}:`, {
+    //   name,
+    //   initialState,
+    //   denyList,
+    //   reducerFunction: reducer,
+    // });
+
+    output[name] = reducer;
     return output;
   },
   {},
 );
+
+// Log the final object after the loop is complete
+console.log('FINAL REDUCERS OBJECT ===========', controllerReducers);
 
 const engineReducer = combineReducers({
   backgroundState: combineReducers(controllerReducers),

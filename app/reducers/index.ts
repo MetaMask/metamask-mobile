@@ -65,7 +65,6 @@ export interface RootState {
 
 // TODO: Fix the Action type. It's set to `any` now because some of the
 // TypeScript reducers have invalid actions
-console.log('REDUCERS: ', controllerReducers.AccountTrackerController);
 const rootReducer = combineReducers<RootState, any>({
   collectibles: collectiblesReducer,
   engine: engineReducer as any,
