@@ -411,7 +411,6 @@ workflows:
                 envman add --key BREW_APPLESIMUTILS --value "$(brew --cellar)/applesimutils"
                 envman add --key BREW_OPT_APPLESIMUTILS --value "/usr/local/opt/applesimutils"
                 brew tap wix/brew
-                asdf install ruby 3.0.3
           title: Set Env Path for caching deps
       - cocoapods-install:
           is_always_run: false
