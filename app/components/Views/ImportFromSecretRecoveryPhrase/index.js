@@ -64,7 +64,6 @@ import {
   IMPORT_FROM_SEED_SCREEN_PASSWORD_STRENGTH_ID,
   IMPORT_FROM_SEED_SCREEN_CONFIRM_PASSWORD_CHECK_ICON_ID,
 } from '../../../../wdio/screen-objects/testIDs/Screens/ImportFromSeedScreen.testIds';
-import { IMPORT_PASSWORD_CONTAINER_ID } from '../../../constants/test-ids';
 import createStyles from './styles';
 import { Authentication } from '../../../core';
 import AUTHENTICATION_TYPE from '../../../constants/userProperties';
@@ -73,6 +72,7 @@ import {
   updateAuthTypeStorageFlags,
 } from '../../../util/authentication';
 import navigateTermsOfUse from '../../../util/termsOfUse/termsOfUse';
+import { ImportFromSeedSelectorsIDs } from '../../../../e2e/selectors/Onboarding/ImportFromSeed.selectors';
 
 const MINIMUM_SUPPORTED_CLIPBOARD_VERSION = 9;
 
@@ -424,7 +424,7 @@ const ImportFromSecretRecoveryPhrase = ({
         style={styles.wrapper}
         resetScrollToCoords={{ x: 0, y: 0 }}
       >
-        <View testID={IMPORT_PASSWORD_CONTAINER_ID}>
+        <View testID={ImportFromSeedSelectorsIDs.CONTAINER_ID}>
           <Text
             style={styles.title}
             {...generateTestId(Platform, IMPORT_FROM_SEED_SCREEN_TITLE_ID)}

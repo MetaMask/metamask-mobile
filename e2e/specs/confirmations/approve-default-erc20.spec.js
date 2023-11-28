@@ -11,11 +11,11 @@ import TabBarComponent from '../../pages/TabBarComponent';
 import { TestDApp } from '../../pages/TestDApp';
 import { SMART_CONTRACTS } from '../../../app/util/test/smart-contracts';
 import root from '../../../locales/languages/en.json';
+import { ContractApprovalModalSelectorsIDs } from '../../selectors/Modals/ContractApprovalModal.selectors';
 
 const HST_CONTRACT = SMART_CONTRACTS.HST;
 const WEBVIEW_TEST_DAPP_APPROVE_TOKENS_BUTTON_ID = 'approveTokens';
-//const TOKEN_NAME = root.unit.eth;
-//const AMOUNT = '7';
+const EXPECTED_TOKEN_AMOUNT = '7';
 
 describe(Regression('ERC20 tokens'), () => {
   beforeAll(async () => {
@@ -52,12 +52,15 @@ describe(Regression('ERC20 tokens'), () => {
         });
 
         // Assert the default token amount is shown
-
-        await TestHelpers.checkIfExists('custom-spend-cap-input-input-id');
+        await TestHelpers.checkIfExists(
+          ContractApprovalModalSelectorsIDs.APPROVE_TOKEN_AMOUNT,
+        );
 
         await expect(
-          element(by.id('custom-spend-cap-input-input-id')),
-        ).toHaveText('7');
+          element(
+            by.id(ContractApprovalModalSelectorsIDs.APPROVE_TOKEN_AMOUNT),
+          ),
+        ).toHaveText(EXPECTED_TOKEN_AMOUNT);
 
         // Tap next button
         await TestHelpers.checkIfElementWithTextIsVisible(

@@ -2,7 +2,6 @@
   "blockaid_banner": {
     "approval_farming_description": "Si vous approuvez cette demande, un tiers connu pour ses activités frauduleuses pourrait s’emparer de tous vos actifs.",
     "attribution": "Conseils de sécurité fournis par",
-    "attribution_link": "https://blockaid.me",
     "attribution_link_name": "Blockaid",
     "blur_farming_description": "Si vous approuvez cette demande, quelqu’un pourrait s’emparer de vos actifs répertoriés sur Blur.",
     "deceptive_request_title": "Cette demande est trompeuse",
@@ -13,10 +12,10 @@
     "raw_signature_farming_description": "Si vous approuvez cette demande, vous risquez de perdre vos actifs.",
     "seaport_farming_description": "Si vous approuvez cette demande, quelqu’un pourrait s'emparer de vos actifs répertoriés sur OpenSea.",
     "see_details": "Voir les détails",
+    "does_not_look_right": "Quelque chose ne vous semble pas correct ?",
     "suspicious_request_title": "Cette demande est suspecte",
     "trade_order_farming_description": "Si vous approuvez cette demande, vous risquez de perdre vos actifs.",
-    "transfer_farming_description": "Si vous approuvez cette demande, un tiers connu pour ses activités frauduleuses pourrait s’emparer de tous vos actifs.",
-    "unfair_trade_description": "Si vous approuvez cette demande, vous risquez de perdre vos actifs."
+    "transfer_farming_description": "Si vous approuvez cette demande, un tiers connu pour ses activités frauduleuses pourrait s’emparer de tous vos actifs."
   },
   "date": {
     "months": {
@@ -789,7 +788,8 @@
     "display_nft_media_desc": "L’affichage des médias et des données NFT expose votre adresse IP à OpenSea ou à d’autres fournisseurs de services tiers. La détection automatique des NFT dépend de cette fonctionnalité et ne sera pas disponible si cette option est désactivée.",
     "autodetect_nft_desc": "Laissez MetaMask ajouter les NFT que vous possédez en utilisant des services tiers (comme OpenSea). La détection automatique des NFT révèle votre adresse IP et l’adresse de votre compte à ces services. Si vous activez cette fonctionnalité, un lien pourrait être établi entre votre adresse IP et votre adresse Ethereum, et entrainer l’affichage de faux NFT déposés par des escrocs. Vous pouvez ajouter des jetons manuellement pour éviter ce risque.",
     "incoming_transactions_title": "Afficher les transactions entrantes",
-    "incoming_transactions_content": "Cela dépend du réseau que vous sélectionnez et qui exposera votre adresse Ethereum et votre adresse IP."
+    "incoming_transactions_content": "Cela dépend du réseau que vous sélectionnez et qui exposera votre adresse Ethereum et votre adresse IP.",
+    "display_nft_media_desc_new": "L’affichage des médias et des données NFT expose votre adresse IP à OpenSea ou à de tierces parties. La détection automatique des NFT dépend de cette fonctionnalité et ne sera pas disponible si elle est désactivée. Si les médias NFT sont entièrement hébergés sur IPFS, ils peuvent toujours être affichés même si cette fonctionnalité est désactivée."
   },
   "sdk": {
     "disconnect_title": "Déconnecter tous les sites ?",
@@ -800,6 +800,10 @@
     "loading": "Connexion à MetaMask...",
     "unkown_dapp": "Nom de DAPP non disponible",
     "no_connections": "Aucune connexion trouvée"
+  },
+  "sdk_return_to_app_modal":{
+    "title": "Retour à l'application",
+    "description": "Veuillez retourner à l'application pour continuer à utiliser ses services."
   },
   "sdk_feedback_modal": {
     "ok": "OK",
@@ -1319,6 +1323,11 @@
     "others": "Autres",
     "memo": "Mémo"
   },
+  "duplicate_address": {
+    "title": "Il s’agit d’une adresse dupliquée",
+    "body": "Votre liste de contacts affiche cette adresse sur plus d’une chaîne. Assurez-vous de sélectionner le bon contact avant d’envoyer des fonds.",
+    "button": "J’ai compris"
+  },
   "transaction_submitted": {
     "title": "Transaction soumise",
     "your_tx_hash_is": "Hachage de votre transaction :",
@@ -1353,6 +1362,7 @@
     "learn_more": "En savoir plus",
     "learn_more_url": "https://metamask.zendesk.com/hc/en-us/articles/4417500466971",
     "switch_network": "Changer de réseau",
+    "switch": "Changer",
     "new_network": "Nouveau réseau ajouté",
     "network_name": "Réseau {{networkName}}",
     "network_added": " est maintenant disponible dans le sélecteur de réseau.",
@@ -1722,10 +1732,7 @@
     "wallet_connect_dapps_cta": "VOIR LES SESSIONS",
     "network_not_supported": "Le réseau actuel n’est pas pris en charge",
     "security_alerts": "Alertes de sécurité",
-    "security_alerts_desc": "Cette fonctionnalité vous avertit de toute activité malveillante en examinant localement vos transactions et vos demandes de signature. Vos données ne sont pas partagées avec les tiers qui fournissent ce service. Vous devez faire preuve de diligence raisonnable avant d’approuver toute demande. Rien ne garantit que toutes les activités malveillantes seront détectées par cette fonctionnalité.",
-    "select_providers": "Sélectionner les fournisseurs",
     "blockaid": "Blockaid",
-    "moreProviders": "D’autres fournisseurs seront bientôt disponibles",
     "switch_network": "Veuillez passer à Mainnet ou à Sepolia"
   },
   "walletconnect_sessions": {
@@ -1869,7 +1876,8 @@
   "fiat_on_ramp_aggregator": {
     "onboarding": {
       "what_to_expect": "À quoi s’attendre",
-      "benefits": "Des frais de transaction réduits et prise en charge de nombreux réseaux, jetons et méthodes de paiement",
+      "quotes": "Notre fonction d’achat de cryptomonnaies regroupe et affiche les prix cotés par les vendeurs intégrés pour vous aider à effectuer sans délai ce type de transaction.",
+      "benefits": "Moins de frais de gaz à payer et la prise en charge de nombreux réseaux, jetons et modes de paiement",
       "get_started": "Commencer"
     },
     "payment_method": {
@@ -1913,7 +1921,9 @@
     "select_region_currency": "Sélectionnez la devise nationale",
     "no_tokens_match": "Aucun jeton correspondant à vos critères de recherche : {{searchString}}",
     "no_currency_match": "Aucune devise correspondant à vos critères de recherche : {{searchString}}",
+    "compare_rates": "Comparez les tarifs de ces fournisseurs. Les prix cotés sont classés par le prix total de la transaction.",
     "pay_with": "Payer avec",
+    "continue_with": "Continuer avec {{provider}}",
     "minimum": "Le dépôt minimum est de",
     "maximum": "Le dépôt maximum est de",
     "try_again": "Réessayer",

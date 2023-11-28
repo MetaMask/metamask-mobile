@@ -9,4 +9,6 @@ export const DEFAULT_ICON_COLOR = IconColor.Default;
 // Sample consts
 export const SAMPLE_ICON_PROPS: IconProps = {
   name: IconName.Add,
+  size: DEFAULT_ICON_SIZE,
+  color: DEFAULT_ICON_COLOR,
 };

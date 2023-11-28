@@ -90,6 +90,7 @@ import { selectAccounts } from '../../../selectors/accountTrackerController';
 import { selectContractBalances } from '../../../selectors/tokenBalancesController';
 import { selectSelectedAddress } from '../../../selectors/preferencesController';
 import { resetTransaction, setRecipient } from '../../../actions/transaction';
+import Routes from '../../../constants/navigation/Routes';
 import {
   SWAP_QUOTE_SUMMARY,
   SWAP_GAS_FEE,
@@ -1322,7 +1323,7 @@ function SwapsQuotesView({
 
   const buyEth = useCallback(() => {
     try {
-      navigation.navigate('FiatOnRampAggregator');
+      navigation.navigate(Routes.RAMP.BUY);
     } catch (error) {
       Logger.error(error, 'Navigation: Error when navigating to buy ETH.');
     }
@@ -2102,14 +2103,14 @@ function SwapsQuotesView({
                         {primaryCurrency === 'ETH'
                           ? ` ${renderFromWei(
                               toWei(selectedQuoteValue?.maxEthFee || '0x0'),
-                          )} ${getTicker(ticker)}` // eslint-disable-line
+                            )} ${getTicker(ticker)}` // eslint-disable-line
                           : ` ${
                               weiToFiat(
                                 toWei(selectedQuoteValue?.maxEthFee),
                                 conversionRate,
                                 currentCurrency,
                               ) || '' // eslint-disable-next-line
-                          }`}
+                            }`}
                       </Text>
                     </FadeAnimationView>
                   </>

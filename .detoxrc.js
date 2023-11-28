@@ -6,7 +6,7 @@ module.exports = {
       config: 'e2e/jest.e2e.config.js',
     },
     jest: {
-      setupTimeout: 120000,
+      setupTimeout: 220000,
     },
     retries: 2,
   },
@@ -56,7 +56,7 @@ module.exports = {
     'ios.simulator': {
       type: 'ios.simulator',
       device: {
-        type: 'iPhone 12 Pro',
+        type: 'iPhone 13 Pro',
       },
     },
     'android.bitrise.emulator': {
@@ -82,7 +82,7 @@ module.exports = {
       type: 'ios.app',
       binaryPath:
         'ios/build/Build/Products/Release-iphonesimulator/MetaMask.app',
-      build: "METAMASK_ENVIRONMENT='production' yarn build:ios:release:e2e",
+      build: "METAMASK_BUILD_TYPE='main' METAMASK_ENVIRONMENT='production' yarn build:ios:release:e2e",
     },
     'android.bitrise.debug': {
       type: 'android.apk',
@@ -98,12 +98,12 @@ module.exports = {
       type: 'android.apk',
       binaryPath:
         'android/app/build/outputs/apk/prod/release/app-prod-release.apk',
-      build: "METAMASK_ENVIRONMENT='production' yarn build:android:release:e2e",
+      build: "METAMASK_BUILD_TYPE='main' METAMASK_ENVIRONMENT='production' yarn build:android:release:e2e",
     },
     'android.qa': {
       type: 'android.apk',
       binaryPath: 'android/app/build/outputs/apk/qa/release/app-qa-release.apk',
-      build: "METAMASK_ENVIRONMENT='qa' yarn build:android:qa:e2e",
+      build: "METAMASK_BUILD_TYPE='main' METAMASK_ENVIRONMENT='qa' yarn build:android:qa:e2e",
     },
   },
 };

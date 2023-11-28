@@ -53,7 +53,7 @@ import { BadgeVariant } from '../../../component-library/components/Badges/Badge
 import images from 'images/image-icons';
 import {
   AvatarSize,
-  AvatarVariants,
+  AvatarVariant,
 } from '../../../component-library/components/Avatars/Avatar';
 import AvatarToken from '../../../component-library/components/Avatars/Avatar/variants/AvatarToken';
 import Text, {
@@ -68,7 +68,7 @@ import { useNavigation } from '@react-navigation/native';
 import { EngineState } from '../../../selectors/types';
 import { StackNavigationProp } from '@react-navigation/stack';
 import createStyles from './styles';
-import SkeletonText from '../Ramp/components/SkeletonText';
+import SkeletonText from '../Ramp/common/components/SkeletonText';
 import Routes from '../../../constants/navigation/Routes';
 import { TOKEN_BALANCE_LOADING, TOKEN_RATE_UNDEFINED } from './constants';
 import AppConstants from '../../../core/AppConstants';
@@ -80,7 +80,7 @@ import {
 } from '../../../../wdio/screen-objects/testIDs/Components/Tokens.testIds';
 
 import { BrowserTab, TokenI, TokensI } from './types';
-import useOnRampNetwork from '../Ramp/hooks/useOnRampNetwork';
+import useRampNetwork from '../Ramp/common/hooks/useRampNetwork';
 import Badge from '../../../component-library/components/Badges/Badge/Badge';
 import useTokenBalancesController from '../../hooks/useTokenBalancesController/useTokenBalancesController';
 import {
@@ -99,7 +99,7 @@ const Tokens: React.FC<TokensI> = ({ tokens }) => {
   const [tokenToRemove, setTokenToRemove] = useState<TokenI>();
   const [isAddTokenEnabled, setIsAddTokenEnabled] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
-  const [isNetworkBuySupported, isNativeTokenBuySupported] = useOnRampNetwork();
+  const [isNetworkRampSupported, isNativeTokenRampSupported] = useRampNetwork();
 
   const actionSheet = useRef<ActionSheet>();
 
@@ -283,7 +283,7 @@ const Tokens: React.FC<TokensI> = ({ tokens }) => {
             <NetworkMainAssetLogo style={styles.ethLogo} />
           ) : (
             <AvatarToken
-              variant={AvatarVariants.Token}
+              variant={AvatarVariant.Token}
               name={asset.symbol}
               imageSource={{ uri: asset.image }}
               size={AvatarSize.Md}
@@ -314,7 +314,7 @@ const Tokens: React.FC<TokensI> = ({ tokens }) => {
   };
 
   const goToBuy = () => {
-    navigation.navigate(Routes.FIAT_ON_RAMP_AGGREGATOR.ID);
+    navigation.navigate(Routes.RAMP.BUY);
     InteractionManager.runAfterInteractions(() => {
       Analytics.trackEventWithParameters(MetaMetricsEvents.BUY_BUTTON_CLICKED, {
         text: 'Buy Native Token',
@@ -364,7 +364,7 @@ const Tokens: React.FC<TokensI> = ({ tokens }) => {
     if (
       !mainToken ||
       !isZero(mainToken.balance) ||
-      !(isNetworkBuySupported && isNativeTokenBuySupported)
+      !(isNetworkRampSupported && isNativeTokenRampSupported)
     ) {
       return null;
     }

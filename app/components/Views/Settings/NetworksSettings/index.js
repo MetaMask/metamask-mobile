@@ -40,7 +40,7 @@ import {
 } from '../../../../selectors/networkController';
 import {
   AvatarSize,
-  AvatarVariants,
+  AvatarVariant,
 } from '../../../../component-library/components/Avatars/Avatar';
 import AvatarNetwork from '../../../../component-library/components/Avatars/Avatar/variants/AvatarNetwork';
 import generateTestId from '../../../../../wdio/utils/generateTestId';
@@ -132,10 +132,6 @@ class NetworksSettings extends PureComponent {
      * Current network provider configuration
      */
     providerConfig: PropTypes.object,
-    /**
-     * Indicates whether third party API mode is enabled
-     */
-    thirdPartyApiMode: PropTypes.bool,
   };
 
   actionSheet = null;
@@ -250,7 +246,7 @@ class NetworksSettings extends PureComponent {
               <View style={styles.network}>
                 {isCustomRPC ? (
                   <AvatarNetwork
-                    variant={AvatarVariants.Network}
+                    variant={AvatarVariant.Network}
                     name={name}
                     imageSource={image}
                     style={styles.networkIcon}
@@ -532,7 +528,6 @@ NetworksSettings.contextType = ThemeContext;
 const mapStateToProps = (state) => ({
   providerConfig: selectProviderConfig(state),
   networkConfigurations: selectNetworkConfigurations(state),
-  thirdPartyApiMode: state.privacy.thirdPartyApiMode,
 });
 
 export default connect(mapStateToProps)(NetworksSettings);

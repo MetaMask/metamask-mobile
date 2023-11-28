@@ -15,11 +15,7 @@ import {
   LINEA_MAINNET,
 } from '../../../app/constants/network';
 import { NetworkSwitchErrorType } from '../../../app/constants/error';
-import {
-  NetworksChainId,
-  NetworkType,
-  query,
-} from '@metamask/controller-utils';
+import { NetworksChainId, NetworkType } from '@metamask/controller-utils';
 import Engine from '../../core/Engine';
 import { toLowerCaseEquals } from '../general';
 import { fastSplit } from '../number';
@@ -44,6 +40,7 @@ import {
   getEtherscanBaseUrl,
   getEtherscanTransactionUrl,
 } from '../etherscan';
+import { LINEA_FAUCET, SEPOLIA_FAUCET } from '../../constants/urls';
 
 /**
  * List of the supported networks
@@ -190,6 +187,17 @@ const TESTNET_CHAIN_IDS = [
 ];
 
 /**
+ * A map of testnet chainId and its faucet link
+ */
+export const TESTNET_FAUCETS = {
+  [NetworksChainId[NetworkType.sepolia]]: SEPOLIA_FAUCET,
+  [NetworksChainId[NetworkType['linea-goerli']]]: LINEA_FAUCET,
+};
+
+export const isTestNetworkWithFaucet = (chainId) =>
+  TESTNET_FAUCETS[chainId] !== undefined;
+
+/**
  * Determine whether the given chain ID is for a known testnet.
  *
  * @param {string} chainId - The chain ID of the network to check
@@ -322,12 +330,14 @@ export function isPrefixedFormattedHexString(value) {
 
 export const getNetworkNonce = async ({ from }) => {
   const { TransactionController } = Engine.context;
-  const networkNonce = await query(
-    TransactionController.ethQuery,
-    'getTransactionCount',
-    [from, 'pending'],
+
+  const { nextNonce, releaseLock } = await TransactionController.getNonceLock(
+    from,
   );
-  return parseInt(networkNonce, 16);
+
+  releaseLock();
+
+  return nextNonce;
 };
 
 export function blockTagParamIndex(payload) {

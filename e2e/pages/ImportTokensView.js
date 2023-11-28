@@ -5,15 +5,13 @@ import {
   TOKEN_RESULTS_LIST_ID,
   TOKEN_INPUT_BOX_ID,
 } from '../../wdio/screen-objects/testIDs/Screens/AssetSearch.testIds';
-
-import messages from '../../locales/languages/en.json';
-
-const IMPORT_BUTTON_TEXT = messages.add_asset.tokens.add_token;
-const CANCEL_BUTTON_TEXT = messages.add_asset.tokens.cancel_add_token;
+import { ImportTokenViewSelectorsText } from '../selectors/ImportTokenView.selectors';
 
 export default class ImportTokensView {
   static async tapImportButton() {
-    await TestHelpers.tapByText(IMPORT_BUTTON_TEXT);
+    await TestHelpers.swipe(TOKEN_INPUT_BOX_ID, 'up', 'fast');
+
+    await TestHelpers.tapByText(ImportTokenViewSelectorsText.IMPORT_BUTTON);
   }
   static async tapBackButton() {
     await TestHelpers.tap(ASSET_BACK_BUTTON);
@@ -31,12 +29,9 @@ export default class ImportTokensView {
       await TestHelpers.tapItemAtIndex(TOKEN_RESULTS_LIST_ID);
     }
   }
-  static async tapOnImportButton() {
-    await TestHelpers.tapByText(IMPORT_BUTTON_TEXT);
-  }
 
   static async tapOnCancelButton() {
-    await TestHelpers.tapByText(CANCEL_BUTTON_TEXT);
+    await TestHelpers.tapByText(ImportTokenViewSelectorsText.CANCEL_BUTTON);
   }
 
   static async isVisible() {
