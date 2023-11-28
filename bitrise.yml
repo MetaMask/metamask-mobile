@@ -416,7 +416,7 @@ workflows:
           title: Set Env Path for caching deps
       - cocoapods-install@2:
           inputs:
-                - vesion: "1.11.1"
+              - command: 'pod install 1.11.3'
           is_always_run: false
       - script@1:
           inputs:
