@@ -119,6 +119,13 @@ workflows:
       - activate-ssh-key@4:
           run_if: '{{getenv "SSH_RSA_PRIVATE_KEY" | ne ""}}'
       - git-clone@6: {}
+      - script:
+          inputs:
+            - content: |-
+                rbenv install ruby 3.0.3
+                sudo gem install cocoapods -v 1.12.1
+                cd ios && pod install
+          title: Install Ruby and Cocoapods
   code_setup:
     before_run:
       - setup
@@ -415,7 +422,7 @@ workflows:
       - script:
           inputs:
             - content: |-
-                asdf install ruby 3.0.3
+                rbenv install ruby 3.0.3
                 sudo gem install cocoapods -v 1.12.1
                 cd ios && pod install
           title: Install Ruby and Cocoapods
