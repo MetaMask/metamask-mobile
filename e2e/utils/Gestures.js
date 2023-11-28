@@ -85,7 +85,7 @@ class Gestures {
     if (device.getPlatform() === 'android') {
       await this.clearField(element);
     }
-    await this.typeText(element, text + '\n');
+    await element.typeText(text + '\n');
   }
 
   /**
@@ -113,7 +113,9 @@ class Gestures {
   static async swipe(elementID, direction, speed, percentage, xStart, yStart) {
     const element = await elementID;
 
-    await element.swipe(direction, speed, percentage, xStart, yStart);
+    await element
+      .atIndex(0)
+      .swipe(direction, speed, percentage, xStart, yStart);
   }
 
   /**

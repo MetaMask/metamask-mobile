@@ -8,50 +8,52 @@ import { RevealSeedViewSelectorsIDs } from '../../../../selectors/Settings/Secur
 import Matchers from '../../../../utils/Matchers';
 import Gestures from '../../../../utils/Gestures';
 
-export default class RevealSecretRecoveryPhrase {
-  static get container() {
+class RevealSecretRecoveryPhrase {
+  get container() {
     return Matchers.getElementByID(SECRET_RECOVERY_PHRASE_CONTAINER_ID);
   }
 
-  static get passwordInput() {
+  get passwordInput() {
     return Matchers.getElementByID(RevealSeedViewSelectorsIDs.PASSWORD_INPUT);
   }
 
-  static get passwordWarning() {
+  get passwordWarning() {
     return Matchers.getElementByID(PASSWORD_WARNING_ID);
   }
 
-  static get touchableBox() {
+  get touchableBox() {
     return Matchers.getElementByID(
       REVEAL_SECRET_RECOVERY_PHRASE_TOUCHABLE_BOX_ID,
     );
   }
 
-  static get recoveryPhrase() {
+  get recoveryPhrase() {
     return Matchers.getElementByText(SECRET_RECOVERY_PHRASE_TEXT);
   }
 
-  static async enterPassword(password) {
+  async enterPassword(password) {
     await Gestures.typeTextAndHideKeyboard(this.passwordInput, password);
   }
 
-  static async getContainer() {
+  async getContainer() {
     return await this.container;
   }
 
-  static async getPasswordWarning() {
+  async getPasswordWarning() {
     return await this.passwordWarning;
   }
 
-  static async getPasswordInput() {
+  async getPasswordInput() {
     return await this.passwordInput;
   }
 
-  static async getRecoveryPhraseTouchableBox() {
+  async getRecoveryPhraseTouchableBox() {
     return await this.touchableBox;
   }
 
-  static async getRecoveryPhrase() {
+  async getRecoveryPhrase() {
     return await this.recoveryPhrase;
   }
 }
+
+export default new RevealSecretRecoveryPhrase();

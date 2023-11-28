@@ -8,80 +8,79 @@ import {
   SecurityPrivacyViewSelectorsIDs,
   SecurityPrivacyViewSelectorsText,
 } from '../../../../selectors/Settings/SecurityAndPrivacy/SecurityPrivacyView.selectors';
-
 import Matchers from '../../../../utils/Matchers';
 import Gestures from '../../../../utils/Gestures';
 
-export default class SecurityAndPrivacy {
-  static get container() {
+class SecurityAndPrivacy {
+  get container() {
     return Matchers.getElementByID(
       SecurityPrivacyViewSelectorsIDs.CHANGE_PASSWORD_CONTAINER,
     );
   }
 
-  static get changePasswordButton() {
+  get changePasswordButton() {
     return Matchers.getElementByID(
       SecurityPrivacyViewSelectorsIDs.CHANGE_PASSWORD_BUTTON,
     );
   }
 
-  static get deleteWalletButtonLabel() {
+  get deleteWalletButtonLabel() {
     return Matchers.getElementByLabel(SECURITY_PRIVACY_DELETE_WALLET_BUTTON);
   }
 
-  static get deleteWalletButtonID() {
+  get deleteWalletButtonID() {
     return Matchers.getElementByID(SECURITY_PRIVACY_DELETE_WALLET_BUTTON);
   }
 
-  static get backButton() {
+  get backButton() {
     return Matchers.getElementByID(CommonSelectorsIDs.BACK_ARROW_BUTTON);
   }
 
-  static get metaMetricsToggle() {
+  get metaMetricsToggle() {
     return Matchers.getElementByID(
       SecurityPrivacyViewSelectorsIDs.METAMETRICS_SWITCH,
     );
   }
 
-  static get rememberMeToggle() {
+  get rememberMeToggle() {
     return Matchers.getElementByID(SECURITY_PRIVACY_REMEMBER_ME_TOGGLE);
   }
 
-  static get changePasswordSection() {
+  get changePasswordSection() {
     return Matchers.getElementByID(
       SecurityPrivacyViewSelectorsIDs.CHANGE_PASSWORD_CONTAINER,
     );
   }
 
-  static get securitySettingsScroll() {
+  get securitySettingsScroll() {
     return Matchers.getElementByID(
       SecurityPrivacyViewSelectorsIDs.SECURITY_SETTINGS_SCROLL,
     );
   }
 
-  static get backUpNow() {
+  get backUpNow() {
     return Matchers.getElementByText(
       SecurityPrivacyViewSelectorsText.BACK_UP_NOW,
     );
   }
 
-  static get privacyHeader() {
+  get privacyHeader() {
     return Matchers.getElementByText(
       SecurityPrivacyViewSelectorsText.PRIVACY_HEADING,
     );
   }
 
-  static get clearBrowserCookiesButton() {
+  get clearBrowserCookiesButton() {
     return Matchers.getElementByText(
       SecurityPrivacyViewSelectorsText.CLEAR_BROWSER_COOKIES,
     );
   }
 
-  static async tapChangePasswordButton() {
+  async tapChangePasswordButton() {
     await Gestures.waitAndTap(this.changePasswordButton);
   }
 
-  static async tapDeleteWalletButton() {
+  async tapDeleteWalletButton() {
     if (device.getPlatform() === 'android') {
       await Gestures.waitAndTap(this.deleteWalletButtonLabel);
     } else {
@@ -89,11 +88,11 @@ export default class SecurityAndPrivacy {
     }
   }
 
-  static async tapBackButton() {
+  async tapBackButton() {
     await Gestures.waitAndTap(this.backButton);
   }
 
-  static async scrollToChangePasswordView() {
+  async scrollToChangePasswordView() {
     // Scroll to the bottom
     if (device.getPlatform() === 'android') {
       await Gestures.swipe(this.securitySettingsScroll, 'up', 'slow');
@@ -102,7 +101,8 @@ export default class SecurityAndPrivacy {
       await Gestures.swipe(this.container, 'up', 'slow', 0.2);
     }
   }
-  static async scrollToDeleteWalletButton() {
+
+  async scrollToDeleteWalletButton() {
     // Scroll to the bottom
     await Gestures.swipe(this.securitySettingsScroll, 'up', 'fast', 0.6);
     await TestHelpers.delay(1500);
@@ -116,7 +116,7 @@ export default class SecurityAndPrivacy {
     }
   }
 
-  static async scrollToTurnOnRememberMe() {
+  async scrollToTurnOnRememberMe() {
     // Scroll to the bottom
     if (device.getPlatform() === 'android') {
       await Gestures.swipe(this.securitySettingsScroll, 'up', 'slow');
@@ -127,7 +127,7 @@ export default class SecurityAndPrivacy {
     //await TestHelpers.swipe(PRIVACY_MODE_SECTION_ID, 'up', 'fast');
   }
 
-  static async scrollToMetaMetrics() {
+  async scrollToMetaMetrics() {
     await Gestures.swipe(this.backUpNow, 'up', 'fast', 0.6);
     await TestHelpers.delay(1500);
 
@@ -142,23 +142,25 @@ export default class SecurityAndPrivacy {
     }
   }
 
-  static async tapMetaMetricsToggle() {
+  async tapMetaMetricsToggle() {
     await Gestures.waitAndTap(this.metaMetricsToggle);
   }
 
-  static async tapTurnOnRememberMeToggle() {
+  async tapTurnOnRememberMeToggle() {
     await Gestures.waitAndTap(this.rememberMeToggle);
   }
 
-  static async getMetaMetricsToggle() {
+  async getMetaMetricsToggle() {
     return await this.metaMetricsToggle;
   }
 
-  static async getRememberMeToggle() {
+  async getRememberMeToggle() {
     return await this.rememberMeToggle;
   }
 
-  static async getChangePasswordSection() {
+  async getChangePasswordSection() {
     return await this.changePasswordSection;
   }
 }
+
+export default new SecurityAndPrivacy();

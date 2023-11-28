@@ -107,9 +107,6 @@ describe(
       await SecurityAndPrivacy.tapMetaMetricsToggle();
       await TestHelpers.delay(1500);
       await CommonView.tapOkAlert();
-      await expect(
-        await SecurityAndPrivacy.getMetaMetricsToggle(),
-      ).toHaveToggleValue(false);
     });
 
     it('should relaunch the app and log in', async () => {

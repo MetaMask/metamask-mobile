@@ -10,40 +10,40 @@ import { ChangePasswordViewSelectorsText } from '../../../../selectors/Settings/
 import Matchers from '../../../../utils/Matchers';
 import Gestures from '../../../../utils/Gestures';
 
-export default class ChangePasswordView {
-  static get title() {
+class ChangePasswordView {
+  get title() {
     return Matchers.getElementByText(
       ChangePasswordViewSelectorsText.CHANGE_PASSWORD,
     );
   }
 
-  static get passwordInput() {
+  get passwordInput() {
     return Matchers.getElementByID(RESET_PASSWORD_INPUT_ID);
   }
 
-  static get confirmPasswordInput() {
+  get confirmPasswordInput() {
     return Matchers.getElementByID(RESET_PASSWORD_CONFIRM_INPUT_BOX_ID);
   }
 
-  static get androidUnderstandCheck() {
+  get androidUnderstandCheck() {
     return Matchers.getElementByID(RESET_PASSWORD_ANDROID_TERM_CHECKBOX_ID);
   }
 
-  static get iosUnderstandCheck() {
+  get iosUnderstandCheck() {
     return Matchers.getElementByID(
       ChoosePasswordSelectorsIDs.IOS_I_UNDERSTAND_BUTTON_ID,
     );
   }
 
-  static async typeInConfirmPasswordInputBox(PASSWORD) {
+  async typeInConfirmPasswordInputBox(PASSWORD) {
     await Gestures.typeTextAndHideKeyboard(this.passwordInput, PASSWORD);
   }
 
-  static async reEnterPassword(PASSWORD) {
+  async reEnterPassword(PASSWORD) {
     await Gestures.typeTextAndHideKeyboard(this.confirmPasswordInput, PASSWORD);
   }
 
-  static async tapIUnderstandCheckBox() {
+  async tapIUnderstandCheckBox() {
     if (device.getPlatform() === 'ios') {
       await Gestures.waitAndTap(this.iosUnderstandCheck);
     } else {
@@ -53,7 +53,9 @@ export default class ChangePasswordView {
     }
   }
 
-  static async getTitle() {
+  async getTitle() {
     return await this.title;
   }
 }
+
+export default new ChangePasswordView();
