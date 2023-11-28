@@ -92,7 +92,7 @@ const SelectHardwareWallet = () => {
   const styles = createStyle(colors);
   const [ledgerTaps, setLedgerTaps] = useState<number>(1);
 
-  const enableLedgerBeta = useSelector(
+  const ledgerBetaEnabled = useSelector(
     (state: any) => state.settings.enableLedgerBeta,
   );
 
@@ -122,7 +122,7 @@ const SelectHardwareWallet = () => {
     );
 
   const updateLedgerBetaTaps = () => {
-    if (enableLedgerBeta) {
+    if (ledgerBetaEnabled) {
       return;
     }
 
@@ -166,7 +166,7 @@ const SelectHardwareWallet = () => {
   const LedgerButton = () => {
     const ledgerLogo = useAssetFromTheme(ledgerLogoLight, ledgerLogoDark);
     return (
-      enableLedgerBeta &&
+      ledgerBetaEnabled &&
       renderHardwareButton(ledgerLogo, navigateToConnectLedger)
     );
   };
