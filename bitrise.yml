@@ -412,7 +412,7 @@ workflows:
                 envman add --key BREW_OPT_APPLESIMUTILS --value "/usr/local/opt/applesimutils"
                 brew tap wix/brew
           title: Set Env Path for caching deps
-     - script:
+      - script:
           inputs:
             - content: |-
                 rbenv install -l
