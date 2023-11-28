@@ -1,16 +1,18 @@
 /* eslint @typescript-eslint/no-var-requires: "off" */
 /* eslint @typescript-eslint/no-require-imports: "off" */
 
-import React, { useEffect } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   View,
   SafeAreaView,
-  Text,
   StyleSheet,
   TouchableOpacity,
   Image,
+  Alert,
 } from 'react-native';
+import { useSelector, useDispatch } from 'react-redux';
 import { useNavigation } from '@react-navigation/native';
+import { setShowLedgerBeta } from '../../../../actions/settings';
 import {
   mockTheme,
   useAppThemeFromContext,
@@ -23,9 +25,13 @@ import Routes from '../../../../constants/navigation/Routes';
 import { getLedgerKeyring } from '../../../../core/Ledger/Ledger';
 import { MetaMetricsEvents } from '../../../../core/Analytics';
 import AnalyticsV2 from '../../../../util/analyticsV2';
+import Text, {
+  TextVariant,
+} from '../../../../component-library/components/Texts/Text';
 
 const createStyle = (colors: any) =>
   StyleSheet.create({
+    screen: { justifyContent: 'center' },
     container: {
       flex: 1,
       marginHorizontal: '5%',
@@ -84,6 +90,13 @@ const SelectHardwareWallet = () => {
   const navigation = useNavigation();
   const { colors } = useAppThemeFromContext() || mockTheme;
   const styles = createStyle(colors);
+  const [ledgerTaps, setLedgerTaps] = useState<number>(1);
+
+  const showLedgerBeta = useSelector(
+    (state: any) => state.settings.showLedgerBeta,
+  );
+
+  const dispatch = useDispatch();
 
   useEffect(() => {
     navigation.setOptions(
@@ -95,6 +108,30 @@ const SelectHardwareWallet = () => {
       ),
     );
   }, [navigation, colors]);
+
+  const showLedgerBetaAlert = () =>
+    Alert.alert(
+      strings('ledger.ledger_beta_alert'),
+      strings('ledger.ledger_beta_alert_description'),
+      [
+        {
+          text: strings('ledger.ledger_beta_cta'),
+          onPress: () => dispatch(setShowLedgerBeta(true)),
+        },
+      ],
+    );
+
+  const updateLedgerBetaTaps = () => {
+    if (showLedgerBeta) {
+      return;
+    }
+
+    if (ledgerTaps === 7) {
+      showLedgerBetaAlert();
+    } else {
+      setLedgerTaps(ledgerTaps + 1);
+    }
+  };
 
   const navigateToConnectQRWallet = () => {
     navigation.navigate(Routes.HW.CONNECT_QR_DEVICE);
@@ -126,22 +163,32 @@ const SelectHardwareWallet = () => {
     </TouchableOpacity>
   );
 
+  const LedgerButton = () => {
+    const ledgerLogo = useAssetFromTheme(ledgerLogoLight, ledgerLogoDark);
+    return (
+      showLedgerBeta &&
+      renderHardwareButton(ledgerLogo, navigateToConnectLedger)
+    );
+  };
+
+  const QRButton = () => {
+    const qrHardwareLogo = useAssetFromTheme(
+      qrHardwareLogoLight,
+      qrHardwareLogoDark,
+    );
+    return renderHardwareButton(qrHardwareLogo, navigateToConnectQRWallet);
+  };
+
   return (
     <SafeAreaView style={styles.container}>
       <View style={styles.textContainer}>
-        <Text style={styles.text}>
+        <Text variant={TextVariant.BodyMD} onPress={updateLedgerBetaTaps}>
           {strings('connect_hardware.select_hardware')}
         </Text>
       </View>
       <View style={styles.buttonsContainer}>
-        {renderHardwareButton(
-          useAssetFromTheme(ledgerLogoLight, ledgerLogoDark),
-          navigateToConnectLedger,
-        )}
-        {renderHardwareButton(
-          useAssetFromTheme(qrHardwareLogoLight, qrHardwareLogoDark),
-          navigateToConnectQRWallet,
-        )}
+        <LedgerButton />
+        <QRButton />
       </View>
     </SafeAreaView>
   );

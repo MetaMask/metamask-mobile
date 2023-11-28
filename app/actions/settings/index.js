@@ -46,3 +46,10 @@ export function setUseBlockieIcon(useBlockieIcon) {
     useBlockieIcon,
   };
 }
+
+export function setShowLedgerBeta(showLedgerBeta) {
+  return {
+    type: 'SET_SHOW_LEDGER_BETA',
+    showLedgerBeta,
+  };
+}
