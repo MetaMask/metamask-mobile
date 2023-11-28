@@ -23,7 +23,7 @@ The code is built using React-Native and running code locally requires a Mac or 
 
     -   If you are using [nvm](https://github.com/creationix/nvm#installation) (recommended) running `nvm use` will automatically choose the right node version for you.
 
-- Install [Yarn v1](https://yarnpkg.com/en/docs/install)
+- Install [Yarn](https://yarnpkg.com/en/docs/install)
 
 -   Install the shared [React Native dependencies](https://reactnative.dev/docs/environment-setup#installing-dependencies) (`React Native CLI`, _not_ `Expo CLI`)
     -   XCode version `15.0.1` or below
