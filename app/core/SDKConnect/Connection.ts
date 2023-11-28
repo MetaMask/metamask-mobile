@@ -25,6 +25,10 @@ import { handleConnectionMessage } from './handlers/handleConnectionMessage';
 import handleConnectionReady from './handlers/handleConnectionReady';
 import DevLogger from './utils/DevLogger';
 import { waitForKeychainUnlocked } from './utils/wait.util';
+import Device from '../../util/device';
+import { Minimizer } from '../NativeModules';
+import { Platform } from 'react-native';
+import Routes from '../../../app/constants/navigation/Routes';
 
 export interface ConnectionProps {
   id: string;
@@ -294,12 +298,29 @@ export class Connection extends EventEmitter2 {
             engine: Engine,
             updateOriginatorInfos,
             approveHost,
+            onError: (error) => {
+              Logger.error(error, '');
+              // Redirect on deeplinks
+              if (this.trigger === 'deeplink') {
+                // Check for iOS 17 and above to use a custom modal, as Minimizer.goBack() is incompatible with these versions
+                if (
+                  Device.isIos() &&
+                  parseInt(Platform.Version as string) >= 17
+                ) {
+                  this.navigation?.navigate(Routes.MODAL.ROOT_MODAL_FLOW, {
+                    screen: Routes.SHEET.RETURN_TO_DAPP_MODAL,
+                  });
+                } else {
+                  Minimizer.goBack();
+                }
+              }
+            },
             disapprove,
             connection: this,
           });
         } catch (error) {
           DevLogger.log(`Connection::CLIENTS_READY error`, error);
-          throw error;
+          // Send error message to user
         }
       },
     );
