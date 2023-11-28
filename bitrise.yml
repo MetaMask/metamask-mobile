@@ -413,7 +413,7 @@ workflows:
                 brew tap wix/brew
                 asdf install ruby 3.0.3
                 sudo gem install cocoapods
-          title: Set Env Path for caching deps
+          title: Set Env Path for caching deps & Ruby install
       - cocoapods-install@2:
           is_always_run: false
       - script@1:
