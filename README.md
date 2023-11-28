@@ -42,7 +42,7 @@ The code is built using React-Native and running code locally requires a Mac or 
 -   Install [cocoapods](https://guides.cocoapods.org/using/getting-started.html) by running:
 
     ```bash
-    sudo gem install cocoapods -v 1.11.3
+    sudo gem install cocoapods -v 1.12.1
     ```
 
 -   Install [Python](https://www.python.org/downloads/) **version ^3.10**
