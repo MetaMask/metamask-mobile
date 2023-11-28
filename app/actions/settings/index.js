@@ -47,9 +47,9 @@ export function setUseBlockieIcon(useBlockieIcon) {
   };
 }
 
-export function setShowLedgerBeta(showLedgerBeta) {
+export function setShowLedgerBeta(enableLedgerBeta) {
   return {
-    type: 'SET_SHOW_LEDGER_BETA',
-    showLedgerBeta,
+    type: 'SET_ENABLE_LEDGER_BETA',
+    enableLedgerBeta,
   };
 }
