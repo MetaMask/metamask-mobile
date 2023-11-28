@@ -53,6 +53,7 @@ export const handleCustomRpcCalls = async ({
       await wait(1000);
     }
 
+    processedMessage.method = RPC_METHODS.PERSONAL_SIGN;
     processedMessage.params = [...params, selectedAddress];
     DevLogger.log(
       `metamask_connectSign selectedAddress=${selectedAddress} id=${id}`,
