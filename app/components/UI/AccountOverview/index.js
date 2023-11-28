@@ -48,7 +48,8 @@ import {
   selectSelectedAddress,
 } from '../../../selectors/preferencesController';
 import { createAccountSelectorNavDetails } from '../../Views/AccountSelector';
-import { regex } from '../../../../app/util/regex';
+import { regex } from '../../../util/regex';
+import { AccountOverviewSelectorsIDs } from '../../../../e2e/selectors/AccountOverview.selectors';
 
 const createStyles = (colors) =>
   StyleSheet.create({
@@ -363,7 +364,7 @@ class AccountOverview extends PureComponent {
           keyboardShouldPersistTaps={'never'}
           style={styles.scrollView}
           contentContainerStyle={styles.wrapper}
-          testID={'account-overview'}
+          testID={AccountOverviewSelectorsIDs.CONTAINER}
         >
           <View style={styles.info} ref={this.mainView}>
             <TouchableOpacity

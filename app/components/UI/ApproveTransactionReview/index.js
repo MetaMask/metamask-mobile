@@ -9,7 +9,7 @@ import {
 import Eth from 'ethjs-query';
 import ActionView from '../../UI/ActionView';
 import PropTypes from 'prop-types';
-import { getApproveNavbar } from '../../UI/Navbar';
+import { getApproveNavbar } from '../Navbar';
 import { connect } from 'react-redux';
 import { getHost } from '../../../util/browser';
 import {
@@ -98,7 +98,8 @@ import { getRampNetworks } from '../../../reducers/fiatOrders';
 import SkeletonText from '../Ramp/common/components/SkeletonText';
 import InfoModal from '../../../components/UI/Swaps/components/InfoModal';
 import TransactionBlockaidBanner from '../TransactionBlockaidBanner/TransactionBlockaidBanner';
-import { regex } from '../../../../app/util/regex';
+import { regex } from '../../../util/regex';
+import { ApproveModalSelectorsIDs } from '../../../../e2e/selectors/Modals/ApproveModal.selectors';
 
 const { ORIGIN_DEEPLINK, ORIGIN_QR_CODE } = AppConstants.DEEPLINKS;
 const POLLING_INTERVAL_ESTIMATED_L1_FEE = 30000;
@@ -314,7 +315,7 @@ class ApproveTransactionReview extends PureComponent {
       const eth = new Eth(
         Engine.context.NetworkController.getProviderAndBlockTracker().provider,
       );
-      const result = await fetchEstimatedMultiLayerL1Fee(eth, {
+      const result = fetchEstimatedMultiLayerL1Fee(eth, {
         txParams: transaction.transaction,
         chainId,
       });
@@ -469,7 +470,7 @@ class ApproveTransactionReview extends PureComponent {
       },
     );
     if (isMultiLayerFeeNetwork(chainId)) {
-      this.fetchEstimatedL1Fee();
+      await this.fetchEstimatedL1Fee();
       intervalIdForEstimatedL1Fee = setInterval(
         this.fetchEstimatedL1Fee,
         POLLING_INTERVAL_ESTIMATED_L1_FEE,
@@ -784,7 +785,10 @@ class ApproveTransactionReview extends PureComponent {
 
     return (
       <>
-        <View style={styles.section} testID={'approve-modal-test-id'}>
+        <View
+          style={styles.section}
+          testID={ApproveModalSelectorsIDs.CONTAINER}
+        >
           {from && (
             <ApproveTransactionHeader
               dontWatchAsset
@@ -824,7 +828,7 @@ class ApproveTransactionReview extends PureComponent {
                     <Text
                       variant={TextVariant.HeadingMD}
                       style={styles.title}
-                      testID={'allow-access'}
+                      testID={ApproveModalSelectorsIDs.ALLOW_ACCESS}
                     >
                       {strings(
                         `spend_limit_edition.${
@@ -1185,7 +1189,10 @@ class ApproveTransactionReview extends PureComponent {
     } = this.props;
     const styles = this.getStyles();
     return (
-      <View style={styles.actionViewQRObject} testID={'qr-details'}>
+      <View
+        style={styles.actionViewQRObject}
+        testID={ApproveModalSelectorsIDs.QR_DETAILS}
+      >
         <TransactionHeader
           currentPageInformation={{
             origin,
