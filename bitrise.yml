@@ -119,14 +119,6 @@ workflows:
       - activate-ssh-key@4:
           run_if: '{{getenv "SSH_RSA_PRIVATE_KEY" | ne ""}}'
       - git-clone@6: {}
-      - script:
-          inputs:
-            - content: |-
-                rbenv install -l
-                rbenv install 3.0.6
-                sudo gem install cocoapods -v 1.12.1
-                cd ios && pod install
-          title: Install Ruby and Cocoapods
   code_setup:
     before_run:
       - setup
@@ -420,10 +412,11 @@ workflows:
                 envman add --key BREW_OPT_APPLESIMUTILS --value "/usr/local/opt/applesimutils"
                 brew tap wix/brew
           title: Set Env Path for caching deps
-      - script:
+     - script:
           inputs:
             - content: |-
-                rbenv install ruby 3.0.3
+                rbenv install -l
+                rbenv install 3.0.6
                 sudo gem install cocoapods -v 1.12.1
                 cd ios && pod install
           title: Install Ruby and Cocoapods
