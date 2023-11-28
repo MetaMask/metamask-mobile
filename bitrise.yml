@@ -416,19 +416,14 @@ workflows:
           inputs:
             - content: |-
                 #!/usr/bin/env bash
-                asdf install ruby 3.0.3
-                sudo gem install cocoapods
-          title: Install Ruby and cocoapods
-      - script@1:
-          inputs:
-            - content: |-
-                #!/usr/bin/env bash
                 if [ "$TEST_SUITE" = "Regression" ]; then
                   TEST_SUITE="Regression"
                 else
                   TEST_SUITE="Smoke"
                 fi
                 node -v
+                asdf install ruby 3.0.3
+                sudo gem install cocoapods
                 export METAMASK_ENVIRONMENT='local'
                 export METAMASK_BUILD_TYPE='main'
                 IGNORE_BOXLOGS_DEVELOPMENT="true" FORCE_BUNDLING=true yarn test:e2e:ios:debug --testNamePattern="$TEST_SUITE"
