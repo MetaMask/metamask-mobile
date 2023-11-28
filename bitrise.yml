@@ -122,7 +122,8 @@ workflows:
       - script:
           inputs:
             - content: |-
-                rbenv install ruby 3.0.3
+                rbenv install -l
+                rbenv install 3.0.3
                 sudo gem install cocoapods -v 1.12.1
                 cd ios && pod install
           title: Install Ruby and Cocoapods
