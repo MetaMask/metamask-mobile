@@ -417,7 +417,7 @@ workflows:
             - content: |-
                 asdf install ruby 3.0.3
                 sudo gem install cocoapods -v 1.12.1
-                cd ios && bundle exec pod install
+                cd ios && pod install
           title: Install Ruby and Cocoapods
       - script@1:
           inputs:
