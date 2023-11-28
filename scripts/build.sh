@@ -128,15 +128,7 @@ remapFlaskEnvVariables() {
 	# remap flask env variables to match what the app expects
 
 	echo "Remapping flask env variable names to match production"
-
-	# js.env variables``
-	remapEnvVariable "SEGMENT_FLASK_DEV_KEY" "SEGMENT_DEV_KEY"
-	remapEnvVariable "SEGMENT_FLASK_PROD_KEY" "SEGMENT_PROD_KEY"
-	remapEnvVariable "MM_FLASK_SENTRY_DSN" "MM_SENTRY_DSN"
-
 	# ios.env/android.env variables
-	remapEnvVariable "MM_FLASK_BRANCH_KEY_TEST" "MM_BRANCH_KEY_TEST"
-	remapEnvVariable "MM_FLASK_BRANCH_KEY_LIVE" "MM_BRANCH_KEY_LIVE"
 	remapEnvVariable "MM_FLASK_MIXPANEL_TOKEN" "MM_MIXPANEL_TOKEN"
 }
 
