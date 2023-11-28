@@ -6,7 +6,7 @@ const initialState = {
   lockTime: -1, // Disabled by default
   useBlockieIcon: true,
   hideZeroBalanceTokens: false,
-  ledgerBeatEnabled: false,
+  ledgerBetaEnabled: false,
 };
 
 const settingsReducer = (state = initialState, action) => {
@@ -46,10 +46,10 @@ const settingsReducer = (state = initialState, action) => {
         ...state,
         primaryCurrency: action.primaryCurrency,
       };
-    case 'SET_ENABLE_LEDGER_BETA':
+    case 'SET_LEDGER_BETA_ENABLED':
       return {
         ...state,
-        ledgerBeatEnabled: action.ledgerBeatEnabled,
+        ledgerBetaEnabled: action.ledgerBetaEnabled,
       };
     default:
       return state;

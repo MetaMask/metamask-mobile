@@ -93,7 +93,7 @@ const SelectHardwareWallet = () => {
   const [ledgerTaps, setLedgerTaps] = useState<number>(1);
 
   const ledgerBetaEnabled = useSelector(
-    (state: any) => state.settings.ledgerBeatEnabled,
+    (state: any) => state.settings.ledgerBetaEnabled,
   );
 
   const dispatch = useDispatch();

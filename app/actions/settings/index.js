@@ -49,7 +49,7 @@ export function setUseBlockieIcon(useBlockieIcon) {
 
 export function setLedgerBetaEnabled(ledgerBetaEnabled) {
   return {
-    type: 'SET_ENABLE_LEDGER_BETA',
+    type: 'SET_LEDGER_BETA_ENABLED',
     ledgerBetaEnabled,
   };
 }
