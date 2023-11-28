@@ -5,7 +5,7 @@
 import { MigrationManifest } from 'redux-persist';
 
 // The latest (i.e. highest) version number.
-export const version = 26;
+export const version = 27;
 
 export const migrations: MigrationManifest = {};
 
