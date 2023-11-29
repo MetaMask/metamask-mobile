@@ -1,7 +1,7 @@
 /* eslint @typescript-eslint/no-var-requires: "off" */
 /* eslint @typescript-eslint/no-require-imports: "off" */
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import {
   View,
   SafeAreaView,
@@ -109,17 +109,25 @@ const SelectHardwareWallet = () => {
     );
   }, [navigation, colors]);
 
-  const showLedgerBetaAlert = () =>
-    Alert.alert(
-      strings('ledger.ledger_beta_alert'),
-      strings('ledger.ledger_beta_alert_description'),
-      [
-        {
-          text: strings('ledger.ledger_beta_cta'),
-          onPress: () => dispatch(setLedgerBetaEnabled(true)),
-        },
-      ],
-    );
+  const showLedgerBetaAlert = useCallback(() => {
+    if (!ledgerBetaEnabled) {
+      Alert.alert(
+        strings('ledger.ledger_beta_alert'),
+        strings('ledger.ledger_beta_alert_description'),
+        [
+          {
+            text: strings('ledger.ledger_beta_cta'),
+            onPress: () => {
+              dispatch(setLedgerBetaEnabled(true));
+              setLedgerTaps(1);
+            },
+          },
+        ],
+      );
+    } else {
+      dispatch(setLedgerBetaEnabled(false));
+    }
+  }, [ledgerBetaEnabled, dispatch]);
 
   const updateLedgerBetaTaps = () => {
     if (ledgerBetaEnabled) {
