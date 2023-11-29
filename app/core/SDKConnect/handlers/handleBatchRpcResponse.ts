@@ -12,7 +12,7 @@ export const handleBatchRpcResponse = async ({
 }: {
   chainRpcs: BatchRPCState;
   batchRPCManager: BatchRPCManager;
-  backgroundBridge?: BackgroundBridge;
+  backgroundBridge: BackgroundBridge;
   sendMessage: ({ msg }: { msg: any }) => Promise<void>;
   msg: any;
 }): Promise<boolean> => {
@@ -25,7 +25,7 @@ export const handleBatchRpcResponse = async ({
   result.push(msg?.data?.result);
 
   DevLogger.log(
-    `handleChainRpcResponse origRpcId=${origRpcId} isLastRpc=${isLastRpc} hasError=${hasError}`,
+    `handleBatchRpcResponse origRpcId=${origRpcId} isLastRpc=${isLastRpc} hasError=${hasError}`,
     chainRpcs,
   );
 
@@ -87,7 +87,7 @@ export const handleBatchRpcResponse = async ({
       nextRpc.params,
     );
 
-    backgroundBridge?.onMessage({
+    backgroundBridge.onMessage({
       name: 'metamask-provider',
       data: nextRpc,
       origin: 'sdk',
