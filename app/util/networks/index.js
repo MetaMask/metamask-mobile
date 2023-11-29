@@ -15,11 +15,7 @@ import {
   LINEA_MAINNET,
 } from '../../../app/constants/network';
 import { NetworkSwitchErrorType } from '../../../app/constants/error';
-import {
-  NetworksChainId,
-  NetworkType,
-  query,
-} from '@metamask/controller-utils';
+import { NetworksChainId, NetworkType } from '@metamask/controller-utils';
 import Engine from '../../core/Engine';
 import { toLowerCaseEquals } from '../general';
 import { fastSplit } from '../number';
@@ -334,12 +330,14 @@ export function isPrefixedFormattedHexString(value) {
 
 export const getNetworkNonce = async ({ from }) => {
   const { TransactionController } = Engine.context;
-  const networkNonce = await query(
-    TransactionController.ethQuery,
-    'getTransactionCount',
-    [from, 'pending'],
+
+  const { nextNonce, releaseLock } = await TransactionController.getNonceLock(
+    from,
   );
-  return parseInt(networkNonce, 16);
+
+  releaseLock();
+
+  return nextNonce;
 };
 
 export function blockTagParamIndex(payload) {
