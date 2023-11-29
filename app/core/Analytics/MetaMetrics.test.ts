@@ -178,9 +178,6 @@ describe('MetaMetrics', () => {
     metaMetrics.trackAnonymousEvent(event, properties);
 
     const { segmentMockClient } = global as any;
-    // the anonymous part
-    expect(segmentMockClient.track).not.toHaveBeenCalled();
-    // non anonymous part
     expect(segmentMockClient.track).not.toHaveBeenCalled();
   });
 

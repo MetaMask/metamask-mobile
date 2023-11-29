@@ -81,7 +81,7 @@ class MetaMetrics implements IMetaMetrics {
   private segmentClient: ISegmentClient | undefined;
   private enabled = false; // default to disabled
 
-  constructor(segmentClient: ISegmentClient) {
+  private constructor(segmentClient: ISegmentClient) {
     this.segmentClient = segmentClient;
   }
 
