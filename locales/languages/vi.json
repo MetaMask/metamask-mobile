@@ -1,12 +1,14 @@
 {
   "blockaid_banner": {
     "approval_farming_description": "Nếu bạn chấp thuận yêu cầu này, một bên thứ ba nổi tiếng là lừa đảo có thể lấy hết tài sản của bạn.",
-    "attribution": "Lời khuyên bảo mật bởi",
+    "attribution": "Được cung cấp bởi",
     "attribution_link_name": "Blockaid",
     "blur_farming_description": "Nếu bạn chấp thuận yêu cầu này, người khác có thể đánh cắp tài sản của bạn được niêm yết trên Blur.",
     "deceptive_request_title": "Đây là một yêu cầu lừa đảo",
     "failed_title": "Yêu cầu có thể không an toàn",
     "failed_description": "Do có lỗi, yêu cầu này đã không được nhà cung cấp dịch vụ bảo mật xác minh. Hãy thực hiện cẩn thận.",
+    "loading_title": "Yêu cầu này vẫn đang được mô phỏng. Chúng tôi khuyên bạn nên đợi quá trình mô phỏng hoàn tất.",
+    "loading_complete_title": "Mô phỏng đã hoàn tất. Vui lòng xem lại yêu cầu này trước khi tiếp tục.",
     "malicious_domain_description": "Bạn đang tương tác với một tên miền độc hại. Nếu bạn chấp thuận yêu cầu này, bạn có thể mất tài sản của mình.",
     "other_description": "Nếu bạn chấp thuận yêu cầu này, bạn có thể mất tài sản của mình.",
     "raw_signature_farming_description": "Nếu bạn chấp thuận yêu cầu này, bạn có thể mất tài sản của mình.",
@@ -514,6 +516,7 @@
     "import_account": "Nhập tài khoản",
     "connect_hardware": "Kết nối với ví cứng",
     "imported": "Đã nhập",
+    "qr_hardware": "Ví cứng QR",
     "remove_account_title": "Đã gỡ bỏ tài khoản",
     "remove_account_message": "Bạn có thật sự muốn gỡ bỏ tài khoản này?",
     "no": "Không",
@@ -537,7 +540,15 @@
     "address_balance_activity_permission": "Xem địa chỉ, số dư tài khoản và hoạt động",
     "suggest_transactions": "Đề xuất các giao dịch cần chấp thuận",
     "disconnect": "Ngắt kết nối",
-    "disconnect_all_accounts": "Ngắt kết nối tất cả các tài khoản"
+    "disconnect_all_accounts": "Ngắt kết nối tất cả các tài khoản",
+    "deceptive_site_ahead": "Phía trước là trang web lừa đảo",
+    "deceptive_site_desc": "Trang web mà bạn đang cố gắng truy cập không an toàn. Những kẻ tấn công có thể lừa bạn thực hiện một hành động nguy hiểm.",
+    "learn_more": "Tìm hiểu thêm",
+    "advisory_by": "Cảnh báo được cung cấp bởi Trình phát hiện lừa đảo qua mạng Ethereum và PhishFort",
+    "potential_threat": "Các mối đe dọa tiềm ẩn bao gồm",
+    "fake_metamask": "Các phiên bản giả mạo của MetaMask",
+    "srp_theft": "Đánh cắp mật khẩu hoặc cụm từ khôi phục bí mật",
+    "malicious_transactions": "Các giao dịch độc hại dẫn đến tài sản bị đánh cắp"
   },
   "toast": {
     "connected_and_active": "đã được kết nối và đang hoạt động.",
@@ -690,6 +701,7 @@
     "remove_network": "Gỡ bỏ",
     "cancel_remove_network": "Hủy",
     "info_title": "Giới thiệu về MetaMask",
+    "info_title_flask": "About MetaMask Flask",
     "experimental_title": "Thử nghiệm",
     "experimental_desc": "WalletConnect và hơn thế nữa...",
     "legal_title": "Pháp lý",
@@ -801,9 +813,9 @@
     "unkown_dapp": "Tên DAPP không khả dụng",
     "no_connections": "Không tìm thấy kết nối nào"
   },
-  "sdk_return_to_app_modal":{
+  "sdk_return_to_app_modal": {
     "title": "Quay lại ứng dụng",
-    "description": "Vui lòng quay lại ứng dụng để tiếp tục sử dụng các dịch vụ."
+    "description": "Vui lòng quay lại ứng dụng để tiếp tục sử dụng các dịch vụ của họ."
   },
   "sdk_feedback_modal": {
     "ok": "OK",
@@ -892,6 +904,7 @@
   "asset_overview": {
     "send_button": "Gửi",
     "buy_button": "Mua",
+    "sell_button": "Bán",
     "receive_button": "Nhận",
     "portfolio_button": "Danh mục đầu tư",
     "add_collectible_button": "Thêm",
@@ -906,6 +919,7 @@
     "for_help": "để được trợ giúp.",
     "troubleshoot": "Khắc phục sự cố",
     "buy_description": "Mua tiền mã hóa bằng tiền",
+    "sell_description": "Bán tiền mã hóa lấy tiền mặt",
     "swap_description": "Chuyển đổi giữa các token",
     "send_description": "Gửi tiền mã hóa đến bất kỳ tài khoản nào",
     "receive_description": "Nhận tiền mã hóa",
@@ -995,7 +1009,6 @@
     "confirm": "Xác nhận"
   },
   "transaction": {
-    "hardware": "Phần cứng",
     "alert": "CẢNH BÁO",
     "amount": "Số tiền",
     "next": "Tiếp",
@@ -1373,7 +1386,8 @@
     "you_can": "Hoặc bạn có thể",
     "add_network": "thêm thủ công các mạng khác.",
     "select_network": "Chọn mạng",
-    "show_test_networks": "Hiển thị các mạng thử nghiệm"
+    "show_test_networks": "Hiển thị các mạng thử nghiệm",
+    "deprecated_goerli": "Do những thay đổi trong giao thức của Ethereum: Mạng thử nghiệm Goerli có thể không hoạt động đáng tin cậy và sẽ sớm bị ngừng sử dụng."
   },
   "select": {
     "cancel": "Hủy",
@@ -1732,7 +1746,10 @@
     "wallet_connect_dapps_cta": "XEM PHIÊN",
     "network_not_supported": "Không hỗ trợ mạng hiện tại",
     "security_alerts": "Cảnh báo bảo mật",
+    "security_alerts_desc": "Tính năng này sẽ cảnh báo bạn về hoạt động độc hại bằng cách xem xét cục bộ các yêu cầu giao dịch và chữ ký của bạn. Hãy luôn tự mình thực hiện quy trình thẩm định trước khi chấp thuận bất kỳ yêu cầu nào. Không có gì đảm bảo rằng tính năng này sẽ phát hiện được tất cả các hoạt động độc hại. Bằng cách bật tính năng này, bạn đồng ý với các điều khoản sử dụng của nhà cung cấp.",
+    "select_provider": "Chọn nhà cung cấp ưu tiên của bạn",
     "blockaid": "Blockaid",
+    "blockaid_desc": "Bảo vệ quyền riêng tư - không chia sẻ dữ liệu với bên thứ ba. Có sẵn trên Ethereum Mainnet.",
     "switch_network": "Vui lòng chuyển qua mạng chính hoặc sepolia"
   },
   "walletconnect_sessions": {
@@ -1874,14 +1891,39 @@
     }
   },
   "fiat_on_ramp_aggregator": {
+    "buy": "mua",
+    "sell": "bán",
+    "orders": "Lệnh",
+    "All": "Tất cả",
+    "Buy": "Mua",
+    "Sell": "Bán",
+    "Purchased": "Đã mua",
+    "Sold": "Đã bán",
+    "empty_buy_orders_list": "Bạn không có bất kỳ lệnh mua nào",
+    "empty_sell_orders_list": "Bạn không có bất kỳ lệnh bán nào",
+    "purchased_currency": "Đã mua {{currency}}",
+    "sold_currency": "Đã bán {{currency}}",
+    "order_status_pending": "Chờ xử lý",
+    "order_status_processing": "Đang xử lý",
+    "order_status_completed": "Đã hoàn tất",
+    "order_status_failed": "Không thành công",
+    "order_status_cancelled": "Đã hủy",
+    "network_switcher": {
+      "title": "Mạng {{rampType}} không được hỗ trợ",
+      "description": "Để {{rampType}} tiền mã hóa, bạn sẽ cần chuyển sang một mạng được hỗ trợ",
+      "no_networks_found": "Không tìm thấy mạng được hỗ trợ"
+    },
     "onboarding": {
       "what_to_expect": "Mong đợi",
       "quotes": "Tính năng mua tiền mã hóa của chúng tôi sẽ tổng hợp báo giá từ các nhà cung cấp được tích hợp, cung cấp báo giá từ các nguồn đó để nhận tiền mã hóa trực tiếp vào ví của bạn mà không mất thời gian chờ đợi.",
+      "quotes_sell": "Giờ đây, bạn có thể rút tiền trực tiếp trong MetaMask! Nhận báo giá cập nhật từng phút từ các nhà cung cấp đáng tin cậy trong lúc chúng tôi hướng dẫn bạn từng bước.",
       "benefits": "Trả phí gas ít hơn và hỗ trợ nhiều mạng, token và phương thức thanh toán",
+      "benefits_sell": "Giờ đây, việc chuyển đổi tiền mã hóa sang tiền nội tệ của bạn đã trở nên dễ dàng hơn bao giờ hết.",
       "get_started": "Bắt đầu"
     },
     "payment_method": {
       "payment_method": "Phương thức thanh toán",
+      "cash_destination": "Điểm nhận tiền",
       "instant": "Ngay lập tức",
       "less_than": "Ít hơn",
       "minute": "phút",
@@ -1893,9 +1935,14 @@
       "lowest_limit": "giới hạn mua thấp nhất",
       "medium_limit": "giới hạn mua trung bình",
       "highest_limit": "giới hạn mua cao nhất",
+      "lowest_sell_limit": "giới hạn bán thấp nhất",
+      "medium_sell_limit": "giới hạn bán trung bình",
+      "highest_sell_limit": "giới hạn bán cao nhất",
       "continue_to_amount": "Tiếp tục đến số lượng",
       "no_payment_methods_title": "Không có phương thức thanh toán tại {{regionName}}",
+      "no_cash_destinations_title": "Không có Điểm nhận tiền tại {{regionName}}",
       "no_payment_methods_description": "Hiện tại không có phương thức thanh toán nào được hỗ trợ trong khu vực của bạn. Hãy sớm kiểm tra lại, chúng tôi thường xuyên mở rộng hỗ trợ cho các khu vực mới.\n\nNếu bạn đã chọn {{regionName}} do nhầm lẫn, hãy nhấn vào nút bên dưới để đặt lại khu vực của bạn.",
+      "no_cash_destinations_description": "Hiện tại, không có điểm nhận tiền nào được hỗ trợ tại khu vực của bạn. Hãy sớm kiểm tra lại, chúng tôi thường xuyên mở rộng hỗ trợ cho các khu vực mới.\n\nNếu bạn đã chọn {{regionName}} do nhầm lẫn, hãy nhấn vào nút bên dưới để đặt lại khu vực của bạn.",
       "reset_region": "Đặt lại khu vực"
     },
     "continue": "Tiếp tục",
@@ -1905,9 +1952,13 @@
     "get_new_quotes": "Nhận báo giá mới",
     "quotes_timeout": "Hết thời gian chờ báo giá",
     "request_new_quotes": "Vui lòng yêu cầu báo giá mới để nhận tỷ giá tốt nhất và mới nhất.",
-    "amount_to_buy": "Số lượng mua",
+    "amount_to_buy": "Số tiền cần mua",
+    "amount_to_sell": "Số tiền cần bán",
     "want_to_buy": "Bạn muốn mua",
+    "want_to_sell": "Bạn muốn bán",
+    "current_balance": "Số dư hiện tại",
     "amount": "Số lượng",
+    "send_cash_to": "Gửi tiền của bạn đến",
     "get_quotes": "Nhận báo giá",
     "done": "Hoàn tất",
     "fetching_quotes": "Tìm nạp báo giá",
@@ -1918,6 +1969,7 @@
     "search_by_currency": "Tìm kiếm theo đơn vị tiền tệ",
     "update_payment_method": "Cập nhật phương thức thanh toán",
     "select_payment_method": "Chọn phương thức thanh toán",
+    "select_cash_destination": "Chọn nơi gửi tiền của bạn",
     "select_region_currency": "Chọn đơn vị tiền tệ của khu vực",
     "no_tokens_match": "Không có token nào khớp với \"{{searchString}}\"",
     "no_currency_match": "Không có đơn vị tiền tệ nào khớp với \"{{searchString}}\"",
@@ -1926,23 +1978,31 @@
     "continue_with": "Tiếp tục với {{provider}}",
     "minimum": "Số tiền nạp tối thiểu là",
     "maximum": "Số tiền nạp tối đa là",
+    "insufficient_balance": "Số tiền này cao hơn số dư của bạn",
+    "enter_larger_amount": "Nhập số tiền lớn hơn để tiếp tục",
+    "enter_smaller_amount": "Nhập số tiền nhỏ hơn để tiếp tục",
     "try_again": "Thử lại",
     "error": "Lỗi",
     "something_went_wrong": "Rất tiếc, đã xảy ra lỗi",
     "report_this_issue": "Báo cáo sự cố này",
     "no_providers_available": "Hiện không có nhà cung cấp nào",
     "try_different_amount_to_buy_input": "Hãy thử chọn một phương thức thanh toán khác hoặc cố gắng tăng hoặc giảm số lượng bạn muốn mua!",
+    "try_different_amount_to_sell_input": "Hãy thử chọn một điểm rút tiền khác hoặc thử tăng/giảm số tiền mà bạn muốn bán!",
     "webview_received_error": "WebView đã nhận được mã trạng thái lỗi: {{code}}",
     "no_tokens_available_title": "Hiện không có token nào",
     "no_tokens_available": "Hiện không có token nào để mua trên {{network}} bằng phương thức thanh toán đã chọn.",
+    "no_sell_tokens_available": "Hiện không có token khả dụng để bán trên {{network}} với điểm nhận tiền đã chọn.",
     "this_network": "mạng này",
     "change_payment_method": "Thay đổi phương thức thanh toán",
+    "change_cash_destination": "Thay đổi điểm nhận tiền",
     "try_different_region": "Hãy thử một khu vực khác",
     "return_home": "Quay lại Màn hình chính",
     "region": {
       "buy_crypto_tokens": "Mua token tiền điện tử",
+      "sell_crypto_tokens": "Bán token tiền mã hóa",
       "title": "Chọn khu vực của bạn",
       "description": "Phương thức thanh toán và token có sẵn dành cho bạn được xác định bởi các nhà cung cấp tích hợp bên thứ ba của chúng tôi và có thể khác nhau tùy thuộc vào khu vực của bạn cũng như tùy theo sự hỗ trợ của các nhà cung cấp tích hợp của chúng tôi.",
+      "sell_description": "Các tùy chọn điểm nhận tiền và token có thể khác nhau tùy theo khu vực của bạn.",
       "search_by_country": "Tìm kiếm theo quốc gia",
       "search_by_state": "Tìm kiếm theo tiểu bang",
       "no_region_results": "Không có khu vực phù hợp",
@@ -1951,7 +2011,7 @@
       "select_region_title": "Chọn khu vực của bạn",
       "select_country_registered": "Chọn quốc gia nơi bạn đăng ký thẻ (bất kể bạn đang ở đâu).",
       "unsupported": "Khu vực không được hỗ trợ",
-      "unsupported_description": "Chúng tôi đang nỗ lực để mở rộng phạm vi phủ sóng đến khu vực của bạn sớm nhất có thể. Trong thời gian chờ đợi, hãy xem bài viết hỗ trợ của chúng tôi để biết các cách khác để mua tiền điện tử.",
+      "unsupported_description": "Chúng tôi đang nỗ lực để mở rộng phạm vi phủ sóng đến khu vực của bạn sớm nhất có thể. Trong thời gian chờ đợi, hãy xem bài viết hỗ trợ của chúng tôi để biết các cách khác để {{rampType}} tiền mã hóa.",
       "unsupported_link": "Truy cập bài viết hỗ trợ"
     },
     "order_details": {
@@ -1959,10 +2019,13 @@
       "successful": "Đặt lệnh thành công!",
       "your": "Của bạn",
       "available_in_account": "hiện đã có trong tài khoản của bạn",
+      "delayed_bank_transfer": "Có thể mất vài ngày để thấy tiền trong tài khoản ngân hàng của bạn.",
       "crypto": "tiền mã hóa",
       "failed": "Đặt lệnh không thành công",
       "cancelled": "Đã hủy lệnh",
+      "pending": "Lệnh đang chờ xử lý",
       "failed_description": "Đã xảy ra sự cố và {{provider}} không thể hoàn tất lệnh của bạn. Vui lòng thử lại hoặc sử dụng một nhà cung cấp khác.",
+      "continue_order_description": "Để tiếp tục lệnh, bạn sẽ cần chọn nút ở cuối trang này.",
       "the_provider": "nhà cung cấp",
       "processing": "Đang xử lý lệnh",
       "processing_card_description": "Mua bằng thẻ Tín dụng/Ghi nợ thường mất vài phút",
@@ -1970,8 +2033,10 @@
       "details": "Chi tiết về lệnh",
       "via": "qua",
       "purchase_amount": "Tổng số lượng mua",
+      "amount_received_total": "Tổng số tiền nhận được",
       "etherscan": "Xem chi tiết đầy đủ trên",
-      "another_purchase": "Thực hiện một giao dịch mua khác",
+      "start_new_order": "Bắt đầu một lệnh mới",
+      "continue_order": "Tiếp tục với lệnh này",
       "questions": "Có câu hỏi?",
       "contact_support": "Liên hệ bộ phận hỗ trợ",
       "support": "Hỗ trợ",
@@ -1979,11 +2044,22 @@
       "id": "Mã lệnh",
       "date_and_time": "Ngày và giờ",
       "payment_method": "Phương thức thanh toán",
+      "destination": "Điểm nhận",
       "token_amount": "Số lượng token",
+      "token_quantity_sold": "Số lượng token đã bán",
       "exchange_rate": "Tỷ giá",
       "total_fees": "Tổng phí",
       "amount": "Số lượng",
+      "value": "Giá trị",
       "a_block_explorer": "block explorer"
+    },
+    "send_transaction": {
+      "sell_crypto": "Bán tiền mã hóa",
+      "send_description": "Bạn sẽ gửi {{cryptocurrency}} cho {{provider}}, sau đó họ sẽ gửi tiền đến {{paymentMethod}}",
+      "next": "Tiếp theo",
+      "hold_to_send": "Giữ để gửi",
+      "send": "Gửi",
+      "sent": "Đã gửi!"
     }
   },
   "swaps": {
@@ -2197,13 +2273,17 @@
     "ok": "OK"
   },
   "whats_new": {
-    "title": "Xem thông tin mới",
+    "title": "Xem tính năng mới",
     "blockaid": {
       "title": "Đảm bảo an toàn với cảnh báo bảo mật",
-      "description_1": "Tránh xa các hành vi gian lận đã biết trong khi vẫn bảo vệ quyền riêng tư của bạn với các cảnh báo bảo mật do Blockaid cung cấp.",
+      "description_1": "Tránh xa các hành vi gian lận đã biết trong khi vẫn bảo vệ quyền riêng tư của bạn với các cảnh báo bảo mật do Blockaid cung cấp trên Ethereum Mainnet.",
       "description_2": "Luôn tự thẩm định trước khi chấp thuận các yêu cầu.",
-      "description_3": "Nếu bạn đã bật cảnh báo bảo mật từ OpenSea, chúng tôi đã chuyển bạn sang tính năng này.",
       "action_text": "Bật cảnh báo bảo mật"
+    },
+    "sell": {
+      "title": "Rút tiền dễ dàng",
+      "description": "Bán tiền mã hóa trực tiếp trong MetaMask! Chúng tôi sẽ giúp bạn tìm báo giá từ các nhà cung cấp đáng tin cậy, qua đó bạn có thể bán tiền mã hóa mọi lúc một cách dễ dàng, nhanh chóng và an toàn.",
+      "action_text": "Thử ngay"
     }
   },
   "invalid_network": {
@@ -2238,7 +2318,16 @@
     "unrecognized_chain": "Không thể nhận diện mạng tùy chỉnh này",
     "invalid_chain": "%{rpcUrl} cho ID chuỗi này không khớp với danh sách chainid.network",
     "alert_recommend": "Chúng tôi khuyên bạn nên",
-    "alert_verify": "xác minh ID chuỗi"
+    "alert_verify": "xác minh ID chuỗi",
+    "warning_subtext_new": {
+      "1": "MetaMask không xác minh các mạng tùy chỉnh, vì vậy chỉ chấp thuận các mạng mà bạn tin tưởng.",
+      "2": "Tìm hiểu thêm về các rủi ro bảo mật mạng và các hành vi lừa đảo."
+    },
+    "invalid_rpc_url": "URL mạng này không trùng khớp với một nhà cung cấp đã biết cho ID chuỗi này.",
+    "invalid_chain_token_decimals": "Có vẻ như số thập phân của mạng này không trùng khớp với ID chuỗi của nó.",
+    "unrecognized_chain_name": "Có vẻ như tên hiển thị của mạng này không trùng khớp với ID chuỗi của nó.",
+    "unrecognized_chain_ticker": "Có vẻ như biểu tượng của mạng này không trùng khớp với ID chuỗi này.",
+    "unrecognized_chain_id": "Chúng tôi không nhận dạng được mạng này. Đảm bảo ID chuỗi phải chính xác trước khi bạn tiếp tục."
   },
   "media_player": {
     "loading": "Đang tải...",
