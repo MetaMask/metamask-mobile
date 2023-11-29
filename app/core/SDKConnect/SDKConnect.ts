@@ -423,15 +423,19 @@ export class SDKConnect extends EventEmitter2 {
     let interruptReason = '';
 
     if (connecting && trigger !== 'deeplink') {
+      // Prioritize deeplinks -- interrup other connection attempts.
       interruptReason = 'already connecting';
     } else if (connecting && trigger === 'deeplink') {
-      // special case on android where the socket is not updated
+      // Keep comment for future reference in case android issue re-surface
+      // special case on android where the socket was not updated
       // if (Platform.OS === 'android') {
       //   interruptReason = 'already connecting';
       // } else {
       //   console.warn(`Priotity to deeplink - overwrite previous connection`);
       //   this.removeChannel(channelId, true);
       // }
+
+      // This condition should not happen keeping it for debug purpose.
       console.warn(`Priotity to deeplink - overwrite previous connection`);
       this.removeChannel(channelId, true);
     }
@@ -454,6 +458,10 @@ export class SDKConnect extends EventEmitter2 {
         if (trigger) {
           this.connected[channelId].setTrigger(trigger);
         }
+        DevLogger.log(
+          `SDKConnect::reconnect - already connected [connected] -- trigger updated to '${trigger}'`,
+        );
+        return;
       }
 
       if (ready) {
