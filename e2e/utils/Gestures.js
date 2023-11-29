@@ -113,8 +113,33 @@ class Gestures {
   static async swipe(elementID, direction, speed, percentage, xStart, yStart) {
     const element = await elementID;
 
+    await element.swipe(direction, speed, percentage, xStart, yStart);
+  }
+
+  /**
+   * Swipe on an element identified by ID.
+   *
+   * @param {Promise<Detox.IndexableNativeElement>} elementID - ID of the element to swipe on
+   * @param {Detox.Direction} direction - Direction of the swipe - left | right | top | bottom | up | down
+   * @param {Detox.Speed} [speed] - Speed of the swipe (fast, slow)
+   * @param {number} [percentage] - Percentage of the swipe (0 to 1)
+   * @param {number} [xStart] - X-coordinate to start the swipe
+   * @param {number} [yStart] - Y-coordinate to start the swipe
+   * @param {number} index - Index of the element (default 0)
+   */
+  static async swipeAtIndex(
+    elementID,
+    direction,
+    speed,
+    percentage,
+    xStart,
+    yStart,
+    index = 0,
+  ) {
+    const element = await elementID;
+
     await element
-      .atIndex(0)
+      .atIndex(index)
       .swipe(direction, speed, percentage, xStart, yStart);
   }
 

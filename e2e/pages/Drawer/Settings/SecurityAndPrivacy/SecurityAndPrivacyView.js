@@ -132,13 +132,18 @@ class SecurityAndPrivacy {
     await TestHelpers.delay(1500);
 
     if (device.getPlatform() === 'android') {
-      await Gestures.swipe(this.privacyHeader, 'up', 'slow');
+      await Gestures.swipeAtIndex(this.privacyHeader, 'up', 'slow');
 
-      await Gestures.swipe(this.clearBrowserCookiesButton, 'up', 'slow', 0.5);
+      await Gestures.swipeAtIndex(
+        this.clearBrowserCookiesButton,
+        'up',
+        'slow',
+        0.5,
+      );
 
       await TestHelpers.delay(1000);
     } else {
-      await Gestures.swipe(this.privacyHeader, 'up', 'slow');
+      await Gestures.swipeAtIndex(this.privacyHeader, 'up', 'slow');
     }
   }
 
