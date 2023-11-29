@@ -449,8 +449,10 @@ workflows:
                 ln -s $(which ccache) /usr/local/bin/c++
                 ln -s $(which ccache) /usr/local/bin/clang
                 ln -s $(which ccache) /usr/local/bin/clang++
+                source ./ccache.conf
                 ccache --config-path $(pwd)/ccache.conf
                 ccache --set-config cache_dir=$(pwd)/ccache
+                ccache -p
       - script@1:
           inputs:
             - content: |-
@@ -466,6 +468,11 @@ workflows:
                 IGNORE_BOXLOGS_DEVELOPMENT="true" FORCE_BUNDLING=true yarn test:e2e:ios:debug --testNamePattern="$TEST_SUITE"
           title: Detox Build & Test
           is_always_run: false
+      - script@1: 
+          title: CCache Statistics 
+          inputs:
+            - content: |-
+                ccache -s
       - custom-test-results-export@1:
           is_always_run: true
           is_skippable: false
