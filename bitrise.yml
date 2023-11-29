@@ -449,9 +449,10 @@ workflows:
                 ln -s $(which ccache) /usr/local/bin/c++
                 ln -s $(which ccache) /usr/local/bin/clang
                 ln -s $(which ccache) /usr/local/bin/clang++
-                source ./ccache.conf
                 ccache --config-path $(pwd)/ccache.conf
                 ccache --set-config cache_dir=$(pwd)/ccache
+                source ./ccache.conf
+                ccache --get-config compiler_check
                 ccache -p
       - script@1:
           inputs:
