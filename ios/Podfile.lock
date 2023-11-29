@@ -84,7 +84,6 @@ PODS:
   - MultiplatformBleAdapter (0.2.0)
   - OpenSSL-Universal (1.1.1100)
   - Permission-BluetoothPeripheral (3.10.1):
-  - Permission-BluetoothPeripheral (3.10.1):
     - RNPermissions
   - RCT-Folly (2021.07.22.00):
     - boost
@@ -598,6 +597,7 @@ DEPENDENCIES:
   - React-logger (from `../node_modules/react-native/ReactCommon/logger`)
   - react-native-aes (from `../node_modules/react-native-aes-crypto`)
   - react-native-background-timer (from `../node_modules/react-native-background-timer`)
+  - react-native-ble-plx (from `../node_modules/react-native-ble-plx`)
   - "react-native-blur (from `../node_modules/@react-native-community/blur`)"
   - react-native-branch (from `../node_modules/react-native-branch`)
   - react-native-camera (from `../node_modules/react-native-camera`)
@@ -671,6 +671,7 @@ SPEC REPOS:
     - FlipperKit
     - fmt
     - libevent
+    - MultiplatformBleAdapter
     - OpenSSL-Universal
     - Sentry
     - SentryPrivate
@@ -730,6 +731,8 @@ EXTERNAL SOURCES:
     :path: "../node_modules/react-native-aes-crypto"
   react-native-background-timer:
     :path: "../node_modules/react-native-background-timer"
+  react-native-ble-plx:
+    :path: "../node_modules/react-native-ble-plx"
   react-native-blur:
     :path: "../node_modules/@react-native-community/blur"
   react-native-branch:
