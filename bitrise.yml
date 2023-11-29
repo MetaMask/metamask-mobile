@@ -437,6 +437,20 @@ workflows:
           title: Set Env Path for caching deps & Ruby install
       - cocoapods-install@2:
           is_always_run: false
+      - script@1: 
+          title: Setup CCache 
+          inputs:
+            - content: |-
+                #!/usr/bin/env bash
+                brew install ccache
+                ln -s $(which ccache) /usr/local/bin/gcc
+                ln -s $(which ccache) /usr/local/bin/g++
+                ln -s $(which ccache) /usr/local/bin/cc
+                ln -s $(which ccache) /usr/local/bin/c++
+                ln -s $(which ccache) /usr/local/bin/clang
+                ln -s $(which ccache) /usr/local/bin/clang++
+                ccache --config-path $(pwd)/ccache.conf
+                ccache --set-config cache_dir=$(pwd)/ccache
       - script@1:
           inputs:
             - content: |-
@@ -786,20 +800,6 @@ workflows:
             - build_version: $VERSION_NUMBER
             - plist_path: $PROJECT_LOCATION_IOS/MetaMask/MetaMask-QA-Info.plist
       - cocoapods-install@2: {}
-      - script@1: 
-          title: ccache setup
-          inputs:
-            - content: |-
-                #!/usr/bin/env bash
-                brew install ccache
-                ln -s $(which ccache) /usr/local/bin/gcc
-                ln -s $(which ccache) /usr/local/bin/g++
-                ln -s $(which ccache) /usr/local/bin/cc
-                ln -s $(which ccache) /usr/local/bin/c++
-                ln -s $(which ccache) /usr/local/bin/clang
-                ln -s $(which ccache) /usr/local/bin/clang++
-                ccache --config-path $(pwd)/ccache.conf
-                ccache --set-config cache_dir=$(pwd)/ccache
       - script@1:
           inputs:
             - content: |-
