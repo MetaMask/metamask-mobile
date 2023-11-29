@@ -201,6 +201,10 @@
     "security_alert_title": "Security Alert",
     "security_alert_desc": "In order to proceed, you need to turn Passcode on or any biometrics authentication method supported in your device (FaceID, TouchID or Fingerprint)"
   },
+  "connect_hardware": {
+    "title_select_hardware": "Connect a hardware wallet",
+    "select_hardware": "Select a hardware wallet you'd like to use"
+  },
   "enter_password": {
     "title": "Enter your password",
     "desc": "Please enter your password in order to continue",
@@ -513,6 +517,7 @@
   },
   "accounts": {
     "create_new_account": "Create a new account",
+    "qr_hardware": "QR hardware",
     "import_account": "Import an account",
     "connect_hardware": "Connect hardware wallet",
     "imported": "Imported",
@@ -536,6 +541,7 @@
     "permissions": "Permissions",
     "revoke": "Revoke",
     "revoke_all": "Revoke all",
+    "ledger": "Ledger",
     "site_permission_to": "This site has permission to:",
     "address_balance_activity_permission": "See address, account balance, and activity",
     "suggest_transactions": "Suggest transactions to approve",
@@ -1022,6 +1028,7 @@
     "save": "Save",
     "speedup": "Speed up",
     "sign_with_keystone": "Sign with Keystone",
+    "sign_with_ledger": "Sign with Ledger",
     "from": "From",
     "gas_fee": "Gas fee",
     "gas_fee_fast": "FAST",
@@ -1095,6 +1102,7 @@
     "not_enough_for_gas": "You have 0 {{ticker}} in your account to pay for transaction fees. Buy some {{ticker}} or deposit from another account.",
     "send": "Send",
     "confirm_with_qr_hardware": "Confirm with Keystone",
+    "confirm_with_ledger_hardware": "Confirm with Ledger",
     "confirmed": "Confirmed",
     "pending": "Pending",
     "submitted": "Submitted",
@@ -2641,7 +2649,12 @@
     "not_supported_error": "Only version 4 of typed data signing is supported.",
     "error_during_connection": "An unknown error occured",
     "error_during_connection_message": "There's been a slight problem connecting your Ledger Nano X, tap 'Retry' below to give this another go. Sometimes this occurs due to the ETH app on your Ledger Nano X being open at the start of the pairing process with MetaMask Mobile.",
-    "how_to_install_eth_webview_title": "How to install the Ethereum App"
+    "how_to_install_eth_webview_title": "How to install the Ethereum App",
+    "nonce_too_low": "Nonce too low",
+    "nonce_too_low_error": "The set nonce is too low",
+    "ledger_beta_alert": "Enabling Ledger integration",
+    "ledger_beta_alert_description": "You've found an experimental feature! By continuing you accept you're using this experimental feature at your own risk.",
+    "ledger_beta_cta": "Continue"
   },
   "account_actions": {
     "edit_name": "Edit account name",

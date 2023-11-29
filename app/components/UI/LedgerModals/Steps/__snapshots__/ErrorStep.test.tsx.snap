@@ -1,0 +1,61 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`ErrorStep AppTheme is dark renders correctly when showViewSettings false 1`] = `
+<Component
+  onReject={[MockFunction]}
+  onRetry={[MockFunction]}
+  showViewSettings={false}
+  subTitle="Error Subtitle"
+  title="Error Title"
+/>
+`;
+
+exports[`ErrorStep AppTheme is dark renders correctly when showViewSettings is true 1`] = `
+<Component
+  onReject={[MockFunction]}
+  onRetry={[MockFunction]}
+  showViewSettings={true}
+  subTitle="Error Subtitle"
+  title="Error Title"
+/>
+`;
+
+exports[`ErrorStep AppTheme is light renders correctly when showViewSettings false 1`] = `
+<Component
+  onReject={[MockFunction]}
+  onRetry={[MockFunction]}
+  showViewSettings={false}
+  subTitle="Error Subtitle"
+  title="Error Title"
+/>
+`;
+
+exports[`ErrorStep AppTheme is light renders correctly when showViewSettings is true 1`] = `
+<Component
+  onReject={[MockFunction]}
+  onRetry={[MockFunction]}
+  showViewSettings={true}
+  subTitle="Error Subtitle"
+  title="Error Title"
+/>
+`;
+
+exports[`ErrorStep AppTheme is os renders correctly when showViewSettings false 1`] = `
+<Component
+  onReject={[MockFunction]}
+  onRetry={[MockFunction]}
+  showViewSettings={false}
+  subTitle="Error Subtitle"
+  title="Error Title"
+/>
+`;
+
+exports[`ErrorStep AppTheme is os renders correctly when showViewSettings is true 1`] = `
+<Component
+  onReject={[MockFunction]}
+  onRetry={[MockFunction]}
+  showViewSettings={true}
+  subTitle="Error Subtitle"
+  title="Error Title"
+/>
+`;
