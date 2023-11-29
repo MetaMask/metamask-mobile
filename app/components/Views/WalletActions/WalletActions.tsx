@@ -130,7 +130,7 @@ const WalletActions = () => {
   };
 
   return (
-    <SheetBottom ref={sheetRef}>
+    <SheetBottom reservedMinOverlayHeight={150} ref={sheetRef}>
       <View style={styles.actionsContainer}>
         {isNetworkRampSupported && (
           <WalletAction
