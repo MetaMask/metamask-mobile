@@ -910,6 +910,7 @@
     "add_collectible_button": "Add",
     "info": "Info",
     "swap": "Swap",
+    "bridge": "Bridge",
     "description": "Description",
     "totalSupply": "Total Supply",
     "address": "Address",
@@ -921,6 +922,7 @@
     "buy_description": "Buy crypto with cash",
     "sell_description": "Sell crypto for cash",
     "swap_description": "Exchange between tokens",
+    "bridge_description": "Transfer tokens between networks",
     "send_description": "Send crypto to any account",
     "receive_description": "Receive crypto",
     "chart_time_period": {
