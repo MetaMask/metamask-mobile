@@ -70,17 +70,16 @@
     "networkStatus": "unknown"
   },
   "PhishingController": {
-    "phishingLists": [
-      {
-        "allowlist": [],
-        "blocklist": [],
-        "fuzzylist": [],
-        "tolerance": 2,
-        "version": 2,
-        "name": "MetaMask",
-        "lastUpdated": 0
-      }
-    ],
+    "phishingLists": [{
+      "allowlist": [],
+      "blocklist": [],
+      "fuzzylist": [],
+      "tolerance": 2,
+      "version": 2,
+      "name": "MetaMask",
+      "lastUpdated": 0
+    }
+  ],
     "whitelist": [],
     "hotlistLastFetched": 0,
     "stalelistLastFetched": 0
@@ -132,8 +131,15 @@
   "TransactionController": {
     "lastFetchedBlockNumbers": {},
     "methodData": {},
-    "submitHistory": [],
     "transactions": []
+  },
+  "SnapController":  {
+    "snapErrors": {},
+    "snapStates": {},
+    "snaps":  {}
+  },
+  "SubjectMetadataController":  {
+    "subjectMetadata":  {}
   },
   "SwapsController": {
     "quotes": {},
