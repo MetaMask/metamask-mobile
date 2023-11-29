@@ -693,6 +693,9 @@ export class SDKConnect extends EventEmitter2 {
     for (const id in this.connections) {
       this.removeChannel(id, true);
     }
+
+    // Remove all android connections
+    await DefaultPreference.clear(AppConstants.MM_SDK.ANDROID_CONNECTIONS);
     // Also remove approved hosts that may have been skipped.
     this.approvedHosts = {};
     this.disabledHosts = {};

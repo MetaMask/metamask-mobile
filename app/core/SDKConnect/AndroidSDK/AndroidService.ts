@@ -1,8 +1,13 @@
+import { NetworkController } from '@metamask/network-controller';
 import { EventEmitter2 } from 'eventemitter2';
 import { NativeModules } from 'react-native';
 import Engine from '../../Engine';
 import { Minimizer } from '../../NativeModules';
+import getRpcMethodMiddleware, {
+  ApprovalTypes,
+} from '../../RPCMethods/RPCMethodMiddleware';
 import { RPCQueueManager } from '../RPCQueueManager';
+import { Json } from '@metamask/utils';
 
 import {
   EventType,
@@ -19,7 +24,6 @@ import {
 } from '../utils/wait.util';
 
 import BackgroundBridge from '../../BackgroundBridge/BackgroundBridge';
-import getRpcMethodMiddleware from '../../RPCMethods/RPCMethodMiddleware';
 import {
   DEFAULT_SESSION_TIMEOUT_MS,
   METHODS_TO_DELAY,
@@ -29,14 +33,15 @@ import {
 
 import { KeyringController } from '@metamask/keyring-controller';
 
+import { ApprovalController } from '@metamask/approval-controller';
+import { PreferencesController } from '@metamask/preferences-controller';
 import { PROTOCOLS } from '../../../constants/deeplinks';
+import BatchRPCManager from '../BatchRPCManager';
+import handleBatchRpcResponse from '../handlers/handleBatchRpcResponse';
 import handleCustomRpcCalls from '../handlers/handleCustomRpcCalls';
 import DevLogger from '../utils/DevLogger';
 import AndroidSDKEventHandler from './AndroidNativeSDKEventHandler';
 import { AndroidClient } from './android-sdk-types';
-import BatchRPCManager from '../BatchRPCManager';
-import { PreferencesController } from '@metamask/preferences-controller';
-import handleBatchRpcResponse from '../handlers/handleBatchRpcResponse';
 
 export default class AndroidService extends EventEmitter2 {
   private communicationClient = NativeModules.CommunicationClient;
@@ -143,6 +148,13 @@ export default class AndroidService extends EventEmitter2 {
 
         try {
           if (!this.connectedClients?.[clientInfo.clientId]) {
+            DevLogger.log(`AndroidService::clients_connected - new client`);
+            // Ask for account permissions
+            await this.checkPermission({
+              originatorInfo: clientInfo.originatorInfo,
+              channelId: clientInfo.clientId,
+            });
+
             this.setupBridge(clientInfo);
             // Save session to SDKConnect
             await SDKConnect.getInstance().addAndroidConnection({
@@ -200,6 +212,42 @@ export default class AndroidService extends EventEmitter2 {
         );
       });
     });
+  }
+
+  private async checkPermission({
+    originatorInfo,
+    channelId,
+  }: {
+    originatorInfo: OriginatorInfo;
+    channelId: string;
+  }): Promise<unknown> {
+    const approvalController = (
+      Engine.context as { ApprovalController: ApprovalController }
+    ).ApprovalController;
+
+    const approvalRequest = {
+      origin: AppConstants.MM_SDK.ANDROID_SDK,
+      type: ApprovalTypes.CONNECT_ACCOUNTS,
+      requestData: {
+        hostname: originatorInfo?.title ?? '',
+        pageMeta: {
+          channelId,
+          reconnect: false,
+          origin: AppConstants.MM_SDK.ANDROID_SDK,
+          url: originatorInfo?.url ?? '',
+          title: originatorInfo?.title ?? '',
+          icon: originatorInfo?.icon ?? '',
+          otps: [],
+          analytics: {
+            request_source: AppConstants.REQUEST_SOURCES.SDK_REMOTE_CONN,
+            request_platform:
+              originatorInfo?.platform ?? AppConstants.MM_SDK.UNKNOWN_PARAM,
+          },
+        } as Json,
+      },
+      id: channelId,
+    };
+    return approvalController.add(approvalRequest);
   }
 
   private setupOnMessageReceivedListener() {
@@ -271,9 +319,19 @@ export default class AndroidService extends EventEmitter2 {
         ).PreferencesController;
         const selectedAddress = preferencesController.state.selectedAddress;
 
+        const networkController = (
+          Engine.context as {
+            NetworkController: NetworkController;
+          }
+        ).NetworkController;
+        const networkId = networkController.state.networkId ?? 1; // default to mainnet;
+        // transform networkId to 0x value
+        const hexChainId = `0x${networkId.toString(16)}`;
+
         // Handle custom rpc method
         const processedRpc = await handleCustomRpcCalls({
           batchRPCManager: this.batchRPCManager,
+          selectedChainId: hexChainId,
           selectedAddress,
           rpc: { id: data.id, method: data.method, params: data.params },
         });
