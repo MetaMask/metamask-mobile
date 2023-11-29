@@ -58,13 +58,13 @@ describe(Regression('Deep linking Tests'), () => {
   });
 
   it('should enable remember me', async () => {
-    await expect(
-      await SecurityAndPrivacy.getRememberMeToggleValue(),
-    ).toBeTruthy();
+    await expect(await SecurityAndPrivacy.rememberMeToggle).toHaveToggleValue(
+      true,
+    );
     await SecurityAndPrivacy.tapTurnOnRememberMeToggle();
-    await expect(
-      await SecurityAndPrivacy.getRememberMeToggleValue(),
-    ).toBeTruthy();
+    await expect(await SecurityAndPrivacy.rememberMeToggle).toHaveToggleValue(
+      false,
+    );
 
     await TestHelpers.delay(1500);
   });

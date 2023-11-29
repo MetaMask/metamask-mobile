@@ -32,13 +32,13 @@ describe(
         await SettingsView.tapSecurityAndPrivacy();
         await SecurityAndPrivacyView.scrollToChangePasswordView();
         await expect(
-          await SecurityAndPrivacyView.getChangePasswordSection(),
+          await SecurityAndPrivacyView.changePasswordSection,
         ).toBeVisible();
 
         // should confirm password before changing it
         await SecurityAndPrivacyView.tapChangePasswordButton();
 
-        await expect(await ChangePasswordView.getTitle()).toBeVisible();
+        await expect(await ChangePasswordView.title).toBeVisible();
         await ChangePasswordView.typeInConfirmPasswordInputBox(PASSWORD);
 
         // should change the password

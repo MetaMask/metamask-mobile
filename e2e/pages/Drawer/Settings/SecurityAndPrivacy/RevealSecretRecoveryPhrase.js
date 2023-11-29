@@ -34,26 +34,6 @@ class RevealSecretRecoveryPhrase {
   async enterPassword(password) {
     await Gestures.typeTextAndHideKeyboard(this.passwordInput, password);
   }
-
-  async getContainer() {
-    return await this.container;
-  }
-
-  async getPasswordWarning() {
-    return await this.passwordWarning;
-  }
-
-  async getPasswordInput() {
-    return await this.passwordInput;
-  }
-
-  async getRecoveryPhraseTouchableBox() {
-    return await this.touchableBox;
-  }
-
-  async getRecoveryPhrase() {
-    return await this.recoveryPhrase;
-  }
 }
 
 export default new RevealSecretRecoveryPhrase();

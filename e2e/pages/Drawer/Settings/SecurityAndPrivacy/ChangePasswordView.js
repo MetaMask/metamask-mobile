@@ -52,10 +52,6 @@ class ChangePasswordView {
       await Gestures.waitAndTap(this.androidUnderstandCheck);
     }
   }
-
-  async getTitle() {
-    return await this.title;
-  }
 }
 
 export default new ChangePasswordView();

@@ -98,7 +98,7 @@ describe(
       await SecurityAndPrivacy.scrollToMetaMetrics();
       await TestHelpers.delay(2000);
       await expect(
-        await SecurityAndPrivacy.getMetaMetricsToggle(),
+        await SecurityAndPrivacy.metaMetricsToggle,
       ).toHaveToggleValue(true);
       await TestHelpers.delay(4500);
     });
@@ -108,7 +108,7 @@ describe(
       await TestHelpers.delay(1500);
       await CommonView.tapOkAlert();
       await expect(
-        await SecurityAndPrivacy.getMetaMetricsToggle(),
+        await SecurityAndPrivacy.metaMetricsToggle,
       ).toHaveToggleValue(false);
     });
 
@@ -138,7 +138,7 @@ describe(
       await SettingsView.tapSecurityAndPrivacy();
       await SecurityAndPrivacy.scrollToMetaMetrics();
       await expect(
-        await SecurityAndPrivacy.getMetaMetricsToggle(),
+        await SecurityAndPrivacy.metaMetricsToggle,
       ).toHaveToggleValue(false);
     });
   },

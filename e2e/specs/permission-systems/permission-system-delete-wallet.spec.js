@@ -55,7 +55,7 @@ describe(
           await SettingsView.tapSecurityAndPrivacy();
           await SecurityAndPrivacyView.scrollToChangePasswordView();
           await expect(
-            await SecurityAndPrivacyView.getChangePasswordSection(),
+            await SecurityAndPrivacyView.changePasswordSection,
           ).toBeVisible();
           await SecurityAndPrivacyView.scrollToDeleteWalletButton();
           await SecurityAndPrivacyView.tapDeleteWalletButton();

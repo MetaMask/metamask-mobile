@@ -149,18 +149,6 @@ class SecurityAndPrivacy {
   async tapTurnOnRememberMeToggle() {
     await Gestures.waitAndTap(this.rememberMeToggle);
   }
-
-  async getMetaMetricsToggle() {
-    return await this.metaMetricsToggle;
-  }
-
-  async getRememberMeToggle() {
-    return await this.rememberMeToggle;
-  }
-
-  async getChangePasswordSection() {
-    return await this.changePasswordSection;
-  }
 }
 
 export default new SecurityAndPrivacy();
