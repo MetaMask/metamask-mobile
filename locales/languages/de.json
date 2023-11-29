@@ -1,12 +1,14 @@
 {
   "blockaid_banner": {
     "approval_farming_description": "Wenn Sie diese Anfrage genehmigen, könnte eine dritte Partei, die für Betrügereien bekannt ist, alle Ihre Assets an sich reißen.",
-    "attribution": "Sicherheitshinweis von",
+    "attribution": "Powered by",
     "attribution_link_name": "Blockaid",
     "blur_farming_description": "Wenn Sie diese Anfrage genehmigen, kann jemand Ihre auf Blur aufgeführten Assets stehlen.",
     "deceptive_request_title": "Dies ist eine betrügerische Anfrage.",
     "failed_title": "Anfrage ist möglicherweise nicht sicher",
     "failed_description": "Aufgrund eines Fehlers wurde diese Anfrage vom Sicherheitsanbieter nicht überprüft. Gehen Sie mit Bedacht vor.",
+    "loading_title": "Dieser Anfrage wird derzeit noch simuliert. Wir empfehlen, den Abschluss der Simulation abzuwarten.",
+    "loading_complete_title": "Simulation abgeschlossen. Überprüfen Sie diese Anfrage, bevor Sie fortfahren.",
     "malicious_domain_description": "Sie haben es mit einer bösartigen Domain zu tun. Wenn Sie diese Anfrage genehmigen, könnten Sie Ihre Assets verlieren.",
     "other_description": "Wenn Sie diese Anfrage genehmigen, könnten Sie Ihre Assets verlieren.",
     "raw_signature_farming_description": "Wenn Sie diese Anfrage genehmigen, könnten Sie Ihre Assets verlieren.",
@@ -514,6 +516,7 @@
     "import_account": "Ein Konto importieren",
     "connect_hardware": "Hardware-Wallet verknüpfen",
     "imported": "Importiert",
+    "qr_hardware": "QR-Hardware",
     "remove_account_title": "Kontoentfernung",
     "remove_account_message": "Möchten Sie dieses Konto wirklich entfernen?",
     "no": "Nein",
@@ -537,7 +540,15 @@
     "address_balance_activity_permission": "Siehe Adresse, Kontostand und Aktivität",
     "suggest_transactions": "Transaktionen zur Bestätigung vorschlagen",
     "disconnect": "Trennen",
-    "disconnect_all_accounts": "Alle Konten trennen"
+    "disconnect_all_accounts": "Alle Konten trennen",
+    "deceptive_site_ahead": "Täuschende Website voraus",
+    "deceptive_site_desc": "Die Website, die Sie besuchen wollen, ist nicht sicher. Angreifer könnten Sie dazu verleiten, etwas Gefährliches zu tun.",
+    "learn_more": "Mehr erfahren",
+    "advisory_by": "Hinweis von Ethereum Phishing-Detektor und PhishFor",
+    "potential_threat": "Mögliche Bedrohungen umfassen",
+    "fake_metamask": "Fake-Version von MetaMask",
+    "srp_theft": "Diebstahl der geheimen Wiederherstellungsphrase oder des Passworts",
+    "malicious_transactions": "Böswillige Transaktionen, die zu gestohlenen Assets führen"
   },
   "toast": {
     "connected_and_active": "verbunden und aktiv.",
@@ -690,6 +701,7 @@
     "remove_network": "Entfernen",
     "cancel_remove_network": "Stornieren",
     "info_title": "Über MetaMask",
+    "info_title_flask": "About MetaMask Flask",
     "experimental_title": "Experimentell",
     "experimental_desc": "WalletConnect und mehr ...",
     "legal_title": "Rechtliches",
@@ -801,9 +813,9 @@
     "unkown_dapp": "DAPP-Name nicht verfügbar",
     "no_connections": "Keine Verbindungen gefunden"
   },
-  "sdk_return_to_app_modal":{
-    "title": "Zurück zur App",
-    "description": "Bitte kehren Sie zur App zurück, um deren Dienste weiter zu nutzen."
+  "sdk_return_to_app_modal": {
+    "title": "Zur App zurückkehren",
+    "description": "Bitte kehren Sie zur App zurück, um ihre Dienste weiter zu nutzen."
   },
   "sdk_feedback_modal": {
     "ok": "OK",
@@ -892,6 +904,7 @@
   "asset_overview": {
     "send_button": "Senden",
     "buy_button": "Kaufen",
+    "sell_button": "Verkaufen",
     "receive_button": "Empfangen",
     "portfolio_button": "Portfolio",
     "add_collectible_button": "Hinzufügen",
@@ -906,6 +919,7 @@
     "for_help": ", um Hilfe zu erhalten.",
     "troubleshoot": "Problemlösung",
     "buy_description": "Krypto mit Bargeld kaufen",
+    "sell_description": "Krypto für Bargeld verkaufen",
     "swap_description": "Tausch zwischen Token",
     "send_description": "Krypto an ein beliebiges Konto senden",
     "receive_description": "Krypto empfangen",
@@ -995,7 +1009,6 @@
     "confirm": "Bestätigen"
   },
   "transaction": {
-    "hardware": "Hardware",
     "alert": "BENACHRICHTIGUNG",
     "amount": "Betrag",
     "next": "Weiter",
@@ -1373,7 +1386,8 @@
     "you_can": "Sie können aber auch",
     "add_network": "weitere Netzwerke manuell hinzufügen.",
     "select_network": "Netzwerk wählen",
-    "show_test_networks": "Testnetzwerke anzeigen"
+    "show_test_networks": "Testnetzwerke anzeigen",
+    "deprecated_goerli": "Aufgrund der Protokolländerungen von Ethereum: Das Goerli-Testnetzwerk funktioniert möglicherweise nicht mehr so zuverlässig und wird demnächst abgeschaltet."
   },
   "select": {
     "cancel": "Stornieren",
@@ -1732,7 +1746,10 @@
     "wallet_connect_dapps_cta": "SITZUNGEN ANSEHEN",
     "network_not_supported": "Aktuelles Netzwerk nicht unterstützt",
     "security_alerts": "Sicherheitsbenachrichtigungen",
+    "security_alerts_desc": "Diese Funktion warnt Sie vor böswilligen Aktivitäten, indem sie Ihre Transaktions- und Signaturanfragen lokal überprüft. Führen Sie immer Ihre eigene Prüfung durch, bevor Sie eine Anfrage genehmigen. Es gibt keine Garantie dafür, dass diese Funktion alle bösartigen Aktivitäten erkennt. Mit der Aktivierung dieser Funktion erklären Sie sich mit den Nutzungsbedingungen des Anbieters einverstanden.",
+    "select_provider": "Wählen Sie Ihren bevorzugten Anbieter",
     "blockaid": "Blockaid",
+    "blockaid_desc": "Wahrung der Privatsphäre – keine Daten werden an Dritte weitergegeben. Verfügbar im Ethereum Mainnet.",
     "switch_network": "Bitte wechseln Sie auf Mainnet oder Sepolia."
   },
   "walletconnect_sessions": {
@@ -1874,14 +1891,39 @@
     }
   },
   "fiat_on_ramp_aggregator": {
+    "buy": "kaufen",
+    "sell": "verkaufen",
+    "orders": "Orders",
+    "All": "Alle",
+    "Buy": "Kaufen",
+    "Sell": "Verkaufen",
+    "Purchased": "Gekauft",
+    "Sold": "Verkauft",
+    "empty_buy_orders_list": "Sie haben keine Kauforders",
+    "empty_sell_orders_list": "Sie haben keine Verkaufsorders",
+    "purchased_currency": "{{currency}} gekauft",
+    "sold_currency": "{{currency}} verkauft",
+    "order_status_pending": "Ausstehend",
+    "order_status_processing": "Verarbeitung",
+    "order_status_completed": "Abgeschlossen",
+    "order_status_failed": "Fehlgeschlagen",
+    "order_status_cancelled": "Abgebrochen",
+    "network_switcher": {
+      "title": "Nicht unterstütztes {{rampType}}-Netzwerk",
+      "description": "Um Krypto zu {{rampType}}, müssen Sie zu einem unterstützten Netzwerk wechseln",
+      "no_networks_found": "Keine unterstützten Netzwerke gefunden"
+    },
     "onboarding": {
       "what_to_expect": "Was Sie erwartet",
       "quotes": "Unsere Krypto-Kauffunktion sammelt Angebote von integrierten Händlern und stellt Ihnen Angebote aus diesen Quellen zur Verfügung, damit Sie Krypto direkt und ohne Wartezeit in Ihre Wallet bekommen.",
+      "quotes_sell": "Jetzt können Sie sich direkt in MetaMask auszahlen lassen! Erhalten Sie aktuelle Angebote von vertrauenswürdigen Anbietern, während wir Sie bei jedem Schritt begleiten.",
       "benefits": "Sie zahlen weniger Gas-Gebühren und es werden zahlreiche Netzwerke, Tokens und Zahlungsmethoden unterstützt",
+      "benefits_sell": "Die Umstellung von Krypto auf Ihre Landeswährung ist jetzt einfacher denn je.",
       "get_started": "Erste Schritte"
     },
     "payment_method": {
       "payment_method": "Zahlungsmethode",
+      "cash_destination": "Bargeldziele",
       "instant": "Sofort",
       "less_than": "Weniger als",
       "minute": "Min.",
@@ -1893,9 +1935,14 @@
       "lowest_limit": "niedrigstes Kauflimit",
       "medium_limit": "mittleres Kauflimit",
       "highest_limit": "höchstes Kauflimit",
+      "lowest_sell_limit": "niedrigstes Verkaufslimit",
+      "medium_sell_limit": "mittleres Verkaufslimit",
+      "highest_sell_limit": "höchstes Verkaufslimit",
       "continue_to_amount": "Weiter zum Betrag",
       "no_payment_methods_title": "Keine Zahlungsmethoden in {{regionName}}",
+      "no_cash_destinations_title": "Keine Bargeldziele in {{regionName}}",
       "no_payment_methods_description": "In Ihrer Region gibt es momentan keine unterstützen Zahlungsmethoden. Bitte kommen Sie bald wieder, wir weiten unsere Unterstützung stetig in neue Umgebungen aus.\n\nWenn Sie {{regionName}} aus Versehen ausgewählt haben, klicken Sie auf die Schaltfläche weiter unten, um Ihre Region zurückzusetzen.",
+      "no_cash_destinations_description": "Derzeit gibt es in Ihrer Region keine unterstützten Bargeldziele. Bitte schauen Sie bald wieder vorbei; wir erweitern den Support regelmäßig auf neue Regionen.\n\nWenn Sie irrtümlich {{regionName}} ausgewählt haben, klicken Sie auf die Schaltfläche unten, um Ihre Region zurückzusetzen.",
       "reset_region": "Region zurücksetzen"
     },
     "continue": "Weiter",
@@ -1905,9 +1952,13 @@
     "get_new_quotes": "Neue Angebote einholen",
     "quotes_timeout": "Angebote-Timeout",
     "request_new_quotes": "Bitte fragen Sie neue Angebote an, um den besten Kurs zu bekommen.",
-    "amount_to_buy": "Kaufmenge",
+    "amount_to_buy": "Betrag zum Kauf",
+    "amount_to_sell": "Betrag zum Verkauf",
     "want_to_buy": "Sie möchten kaufen",
+    "want_to_sell": "Sie möchten verkaufen",
+    "current_balance": "Aktueller Kontostand",
     "amount": "Betrag",
+    "send_cash_to": "Senden Sie Ihr Bargeld an",
     "get_quotes": "Angebote einholen",
     "done": "Fertig",
     "fetching_quotes": "Angebote einholen",
@@ -1918,6 +1969,7 @@
     "search_by_currency": "Währung suchen",
     "update_payment_method": "Zahlungsmethode aktualisieren",
     "select_payment_method": "Zahlungsmethode auswählen",
+    "select_cash_destination": "Wählen Sie aus, wohin Sie Ihr Bargeld senden möchten",
     "select_region_currency": "Regionale Währung auswählen",
     "no_tokens_match": "Keine Tokens, die mit „{{searchString}}“ übereinstimmen.",
     "no_currency_match": "Keine Währungen, die mit „{{searchString}}“ übereinstimmen.",
@@ -1926,23 +1978,31 @@
     "continue_with": "Weiter mit {{provider}}",
     "minimum": "Die Mindesteinzahlung beträgt",
     "maximum": "Die Höchsteinzahlung beträgt",
+    "insufficient_balance": "Dieser Betrag ist höher als Ihr Kontostand",
+    "enter_larger_amount": "Geben Sie zum Fortfahren einen größeren Betrag ein",
+    "enter_smaller_amount": "Geben Sie zum Fortfahren einen kleineren Betrag ein",
     "try_again": "Erneut versuchen",
     "error": "Fehler",
     "something_went_wrong": "Hoppla, etwas ist schiefgelaufen.",
     "report_this_issue": "Problem melden",
     "no_providers_available": "Keine Anbieter verfügbar",
     "try_different_amount_to_buy_input": "Versuchen Sie, eine andere Zahlungsmethode auszuwählen oder den gewünschten Kaufbetrag zu reduzieren bzw. zu erhöhen!",
+    "try_different_amount_to_sell_input": "Versuchen Sie, ein anderes Auszahlungsziel zu wählen oder versuchen Sie, den Betrag, den Sie verkaufen wollen, zu erhöhen oder zu verringern!",
     "webview_received_error": "WebView erhielt Fehler-Statuscode: {{code}}",
     "no_tokens_available_title": "Keine Tokens verfügbar",
     "no_tokens_available": "Derzeit gibt es keine Kryptowährungen, die in {{network}} in der {{region}} gekauft werden können.",
+    "no_sell_tokens_available": "Es sind derzeit keine Tokens verfügbar, die bei {{network}} mit dem ausgewählten Bargeldziel verkauft werden können.",
     "this_network": "dieses Netzwerk",
     "change_payment_method": "Zahlungsmethode ändern",
+    "change_cash_destination": "Bargeldziel ändern",
     "try_different_region": "Andere Region ausprobieren",
     "return_home": "Zur Startseite zurückkehren",
     "region": {
       "buy_crypto_tokens": "Krypto-Tokens kaufen",
+      "sell_crypto_tokens": "Krypto-Tokens verkaufen",
       "title": "Wählen Sie Ihre Region.",
       "description": "Die Ihnen zur Verfügung stehenden Zahlungsmethoden und Tokens hängen von unseren Drittanbieter-Integrationen ab und könnten sich je nach Ihrer Region und der Unterstützung unsere Integrationen unterscheiden.",
+      "sell_description": "Bargeldzieloptionen und Tokens können je nach Region variieren.",
       "search_by_country": "Nach Land suchen",
       "search_by_state": "Nach Staat suchen",
       "no_region_results": "Keine übereinstimmenden Regionen",
@@ -1951,7 +2011,7 @@
       "select_region_title": "Wählen Sie Ihre Region.",
       "select_country_registered": "Wählen Sie das Land, in dem Ihre Karte registriert ist (unabhängig davon, ob Sie sich dort aufhalten).",
       "unsupported": "Region wird nicht unterstützt",
-      "unsupported_description": "Wir arbeiten daran, unsere Dienste so bald wie möglich in Ihrer Region anzubieten. In der Zwischenzeit lesen Sie bitte unseren Support-Artikel und erfahren Sie, wie Sie eventuell auf andere Weise Krypto kaufen können.",
+      "unsupported_description": "Wir arbeiten hart daran, die Abdeckung auf Ihre Region zu erweitern, sobald wir können. In der Zwischenzeit finden Sie in unserem Support-Artikel weitere Möglichkeiten, wie Sie {{rampType}}-Krypto nutzen können.",
       "unsupported_link": "Support-Artikel aufrufen"
     },
     "order_details": {
@@ -1959,10 +2019,13 @@
       "successful": "Order erfolgreich!",
       "your": "Ihr/e",
       "available_in_account": "ist nun in Ihrem Konto verfügbar",
+      "delayed_bank_transfer": "Es kann ein paar Tage dauern, bis Sie das Geld auf Ihrem Bankkonto sehen.",
       "crypto": "Krypto",
       "failed": "Order fehlgeschlagen",
       "cancelled": "Order storniert",
+      "pending": "Order ausstehend",
       "failed_description": "Etwas ist schiefgelaufen und {{provider}} konnte Ihre Transaktion nicht abschließen. Bitte versuchen Sie es erneut oder wählen Sie einen anderen Anbieter.",
+      "continue_order_description": "Um Ihre Order fortzusetzen, müssen Sie die Schaltfläche am unteren Rand dieser Seite anklicken.",
       "the_provider": "der Anbieter",
       "processing": "Order wird verarbeitet",
       "processing_card_description": "Kredit-/Debitkäufe dauern in der Regel nur wenige Minuten.",
@@ -1970,8 +2033,10 @@
       "details": "Order-Details",
       "via": "via",
       "purchase_amount": "Gesamtkaufbetrag",
+      "amount_received_total": "Insgesamt erhaltener Betrag",
       "etherscan": "Alle Details ansehen auf",
-      "another_purchase": "Einen weiteren Kauf tätigen",
+      "start_new_order": "Eine neue Order starten",
+      "continue_order": "Diese Order fortsetzen",
       "questions": "Fragen?",
       "contact_support": "Support kontaktieren",
       "support": "Support",
@@ -1979,11 +2044,22 @@
       "id": "Order-ID",
       "date_and_time": "Datum und Uhrzeit",
       "payment_method": "Zahlungsmethode",
+      "destination": "Ziel",
       "token_amount": "Token-Betrag",
+      "token_quantity_sold": "Verkaufte Token-Menge",
       "exchange_rate": "Wechselkurs",
       "total_fees": "Gesamtgebühren",
       "amount": "Betrag",
+      "value": "Wert",
       "a_block_explorer": "ein Block-Explorer"
+    },
+    "send_transaction": {
+      "sell_crypto": "Krypto Verkaufen",
+      "send_description": "Sie senden Ihre {{cryptocurrency}} an {{provider}}, der dann Ihr Geld an {{paymentMethod}} sendet",
+      "next": "Weiter",
+      "hold_to_send": "Zum Senden halten",
+      "send": "Senden",
+      "sent": "Gesendet!"
     }
   },
   "swaps": {
@@ -2197,13 +2273,17 @@
     "ok": "OK"
   },
   "whats_new": {
-    "title": "Neuigkeiten anzeigen",
+    "title": "Was neu ist",
     "blockaid": {
       "title": "Gehen Sie mit Sicherheitsbenachrichtigungen auf Nummer sicher.",
-      "description_1": "Fallen Sie nicht bekannten Betrügereien zum Opfer und schützen Sie gleichzeitig Ihre Privatsphäre mit Sicherheitsbenachrichtigungen von Blockaid.",
+      "description_1": "Fallen Sie nicht bekannten Betrügereien zum Opfer und schützen Sie gleichzeitig Ihre Privatsphäre mit Sicherheitsbenachrichtigungen von Blockaid im Ethereum Mainnet.",
       "description_2": "Gehen Sie immer mit Sorgfalt vor, bevor Sie Anfragen genehmigen.",
-      "description_3": "Wir haben für Sie diese Funktion aktiviert, wenn Sie die Sicherheitsbenachrichtigungen von OpenSea erhalten haben.",
       "action_text": "Sicherheitsbenachrichtigungen aktivieren"
+    },
+    "sell": {
+      "title": "Auszahlen leicht gemacht",
+      "description": "Verkaufen Sie Ihre Krypto direkt in MetaMask! Wir helfen Ihnen, Kurse von vertrauenswürdigen Anbietern zu finden, damit Sie Ihre Krypto jederzeit zugreifbar, schnell und sicher verkaufen können.",
+      "action_text": "Probieren Sie es aus"
     }
   },
   "invalid_network": {
@@ -2238,7 +2318,16 @@
     "unrecognized_chain": "Dieses benutzerdefinierte Netzwerk wird nicht erkannt.",
     "invalid_chain": "Die %{rpcUrl} für diese Chain-ID stimmt nicht mit dem chainid.network-Eintrag überein",
     "alert_recommend": "Wir empfehlen Ihnen,",
-    "alert_verify": "die Chain-ID zu verifizieren."
+    "alert_verify": "die Chain-ID zu verifizieren.",
+    "warning_subtext_new": {
+      "1": "MetaMask prüft keine benutzerdefinierten Netzwerke, also genehmigen Sie nur Netzwerke, denen Sie vertrauen.",
+      "2": "Erfahren Sie mehr über Netzwerksicherheitsrisiken und -betrug."
+    },
+    "invalid_rpc_url": "Diese Netzwerk-URL stimmt nicht mit einem bekannten Anbieter für diese Chain-ID überein.",
+    "invalid_chain_token_decimals": "Es scheint, dass die Dezimale dieses Netzwerkes nicht mit seiner Chain-ID übereinstimmt.",
+    "unrecognized_chain_name": "Es scheint, dass der Anzeigename dieses Netzwerkes nicht mit seiner Chain-ID übereinstimmt.",
+    "unrecognized_chain_ticker": "Es scheint, dass das Symbol dieses Netzwerkes nicht mit dieser Chain-ID übereinstimmt.",
+    "unrecognized_chain_id": "Dieses Netzwerk ist uns nicht bekannt. Stellen Sie sicher, dass die Chain-ID korrekt ist, bevor Sie fortfahren."
   },
   "media_player": {
     "loading": "Wird geladen ...",

@@ -167,6 +167,12 @@ const Settings = () => {
     trackEvent(MetaMetricsEvents.NAVIGATION_TAPS_LOGOUT);
   };
 
+  let aboutMetaMaskTitle = strings('app_settings.info_title');
+
+  ///: BEGIN:ONLY_INCLUDE_IN(flask)
+  aboutMetaMaskTitle = strings('app_settings.info_title_flask');
+  ///: END:ONLY_INCLUDE_IN
+
   return (
     <ScrollView style={styles.wrapper}>
       <SettingsDrawer
@@ -213,7 +219,7 @@ const Settings = () => {
         testID={EXPERIMENTAL_SETTINGS}
       />
       <SettingsDrawer
-        title={strings('app_settings.info_title')}
+        title={aboutMetaMaskTitle}
         onPress={onPressInfo}
         testID={ABOUT_METAMASK_SETTINGS}
       />
