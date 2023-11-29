@@ -147,14 +147,14 @@ workflows:
           inputs:
             - command: setup
           title: Yarn Setup
-      # - yarn@0:
-      #     title: Lint
-      #     inputs:
-      #       - command: lint
-      # - yarn@0:
-      #     inputs:
-      #       - command: audit:ci
-      #     title: Audit Dependencies
+      - yarn@0:
+          title: Lint
+          inputs:
+            - command: lint
+      - yarn@0:
+          inputs:
+            - command: audit:ci
+          title: Audit Dependencies
       - cache-push@2:
           # Manual cache path needed here because the `yarn` step only caches for the `install` command
           inputs:
@@ -413,6 +413,7 @@ workflows:
                 brew tap wix/brew
           title: Set Env Path for caching deps
       - cocoapods-install@2: {}
+          is_always_run: false
       - script@1:
           inputs:
             - content: |-
