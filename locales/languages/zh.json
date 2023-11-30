@@ -1845,16 +1845,6 @@
     "apple_pay_provider_total_label": "{{provider}}（通过 MetaMask）",
     "buy_with": "购买时使用",
     "plus_fee": "加上 {{fee}} 费",
-    "notifications": {
-      "purchase_failed_title": "购买 {{currency}} 失败！请重试，抱歉给您带来不便！",
-      "purchase_failed_description": "验证您的支付方式和卡支持",
-      "purchase_cancelled_title": "您的购买已取消",
-      "purchase_cancelled_description": "验证您的支付方式和卡支持",
-      "purchase_completed_title": "您已成功购买 {{amount}} {{currency}}！",
-      "purchase_completed_description": "您的 {{currency}} 现在可用",
-      "purchase_pending_title": "正在处理您的 {{currency}} 购买",
-      "purchase_pending_description": "您的存款正在进行"
-    },
     "date": "日期",
     "from": "自",
     "to": "至",
@@ -2060,6 +2050,16 @@
       "hold_to_send": "等待发送",
       "send": "发送",
       "sent": "已发送！"
+    },
+    "notifications": {
+      "purchase_failed_title": "购买 {{currency}} 失败！请重试，抱歉给您带来不便！",
+      "purchase_failed_description": "验证您的支付方式和卡支持",
+      "purchase_cancelled_title": "您的购买已取消",
+      "purchase_cancelled_description": "验证您的支付方式和卡支持",
+      "purchase_completed_title": "您已成功购买 {{amount}} {{currency}}！",
+      "purchase_completed_description": "您的 {{currency}} 现在可用",
+      "purchase_pending_title": "正在处理您的 {{currency}} 购买",
+      "purchase_pending_description": "您的存款正在进行"
     }
   },
   "swaps": {

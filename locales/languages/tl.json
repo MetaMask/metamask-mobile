@@ -1845,16 +1845,6 @@
     "apple_pay_provider_total_label": "{{provider}} (gamit ang MetaMask)",
     "buy_with": "Bumili gamit ang",
     "plus_fee": "At dagdag na bayarin na {{fee}}",
-    "notifications": {
-      "purchase_failed_title": "Nabigo ang pagbili ng {{currency}}! Pakisubukan ulit, pasensya na sa abala!",
-      "purchase_failed_description": "I-verify ang iyong paraan ng pagbabayad at suporta sa card",
-      "purchase_cancelled_title": "Nakansela ang iyong pagbili",
-      "purchase_cancelled_description": "I-verify ang iyong paraan ng pagbabayad at suporta sa card",
-      "purchase_completed_title": "Matagumpay ang pagbili mo ng {{amount}} {{currency}}!",
-      "purchase_completed_description": "Available na ang {{currency}}",
-      "purchase_pending_title": "Pinoproseso ang pagbili mo ng {{currency}}",
-      "purchase_pending_description": "Ilang minuto lang ang aabutin nito..."
-    },
     "date": "Petsa",
     "from": "Mula kay/sa",
     "to": "Para kay/sa",
@@ -2060,6 +2050,16 @@
       "hold_to_send": "Pindutin nang matagal para ipadala",
       "send": "Ipadala",
       "sent": "Naipadala!"
+    },
+    "notifications": {
+      "purchase_failed_title": "Nabigo ang pagbili ng {{currency}}! Pakisubukan ulit, pasensya na sa abala!",
+      "purchase_failed_description": "I-verify ang iyong paraan ng pagbabayad at suporta sa card",
+      "purchase_cancelled_title": "Nakansela ang iyong pagbili",
+      "purchase_cancelled_description": "I-verify ang iyong paraan ng pagbabayad at suporta sa card",
+      "purchase_completed_title": "Matagumpay ang pagbili mo ng {{amount}} {{currency}}!",
+      "purchase_completed_description": "Available na ang {{currency}}",
+      "purchase_pending_title": "Pinoproseso ang pagbili mo ng {{currency}}",
+      "purchase_pending_description": "Ilang minuto lang ang aabutin nito..."
     }
   },
   "swaps": {

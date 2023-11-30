@@ -1845,16 +1845,6 @@
     "apple_pay_provider_total_label": "{{provider}} (thông qua MetaMask)",
     "buy_with": "Mua bằng",
     "plus_fee": "Cộng phí {{fee}}",
-    "notifications": {
-      "purchase_failed_title": "Giao dịch mua {{currency}} đã thất bại! Vui lòng thử lại, rất tiếc vì sự bất tiện này!",
-      "purchase_failed_description": "Xác minh phương thức thanh toán và hỗ trợ thẻ của bạn",
-      "purchase_cancelled_title": "Giao dịch mua của bạn đã bị hủy",
-      "purchase_cancelled_description": "Xác minh phương thức thanh toán và hỗ trợ thẻ của bạn",
-      "purchase_completed_title": "Giao dịch mua {{amount}} {{currency}} của bạn đã thành công!",
-      "purchase_completed_description": "{{currency}} của bạn giờ đã sẵn sàng",
-      "purchase_pending_title": "Đang xử lý giao dịch mua {{currency}} của bạn",
-      "purchase_pending_description": "Quá trình này chỉ mất vài phút..."
-    },
     "date": "Ngày",
     "from": "Từ",
     "to": "Đến",
@@ -2060,6 +2050,16 @@
       "hold_to_send": "Giữ để gửi",
       "send": "Gửi",
       "sent": "Đã gửi!"
+    },
+    "notifications": {
+      "purchase_failed_title": "Giao dịch mua {{currency}} đã thất bại! Vui lòng thử lại, rất tiếc vì sự bất tiện này!",
+      "purchase_failed_description": "Xác minh phương thức thanh toán và hỗ trợ thẻ của bạn",
+      "purchase_cancelled_title": "Giao dịch mua của bạn đã bị hủy",
+      "purchase_cancelled_description": "Xác minh phương thức thanh toán và hỗ trợ thẻ của bạn",
+      "purchase_completed_title": "Giao dịch mua {{amount}} {{currency}} của bạn đã thành công!",
+      "purchase_completed_description": "{{currency}} của bạn giờ đã sẵn sàng",
+      "purchase_pending_title": "Đang xử lý giao dịch mua {{currency}} của bạn",
+      "purchase_pending_description": "Quá trình này chỉ mất vài phút..."
     }
   },
   "swaps": {
