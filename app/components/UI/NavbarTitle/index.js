@@ -128,7 +128,6 @@ class NavbarTitle extends PureComponent {
         onPress={this.openNetworkList}
         style={styles.wrapper}
         activeOpacity={this.props.disableNetwork ? 1 : 0.2}
-        // testID={'navbar-title-text'}
       >
         {title ? (
           <Text numberOfLines={1} style={styles.title}>
