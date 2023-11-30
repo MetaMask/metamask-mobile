@@ -12,4 +12,5 @@ module.exports = {
     },
   },
   comments: false,
+  compact: true,
 };

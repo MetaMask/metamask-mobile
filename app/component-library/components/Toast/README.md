@@ -1,5 +1,7 @@
 # Toast
 
+![Toast](./Toast.png)
+
 Toast is a component that slides up from the bottom. It is typically used to show post confirmation information.
 
 ## Methods

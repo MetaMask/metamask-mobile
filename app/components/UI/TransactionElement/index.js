@@ -162,6 +162,8 @@ class TransactionElement extends PureComponent {
     signQRTransaction: PropTypes.func,
     cancelUnsignedQRTransaction: PropTypes.func,
     isQRHardwareAccount: PropTypes.bool,
+    isLedgerAccount: PropTypes.bool,
+    signLedgerTransaction: PropTypes.func,
   };
 
   state = {
@@ -315,15 +317,18 @@ class TransactionElement extends PureComponent {
       chainId,
       selectedAddress,
       isQRHardwareAccount,
+      isLedgerAccount,
       tx: { time, status },
     } = this.props;
     const { colors, typography } = this.context || mockTheme;
     const styles = createStyles(colors, typography);
     const { value, fiatValue = false, actionKey } = transactionElement;
     const renderNormalActions =
-      status === 'submitted' || (status === 'approved' && !isQRHardwareAccount);
+      status === 'submitted' ||
+      (status === 'approved' && !isQRHardwareAccount && !isLedgerAccount);
     const renderUnsignedQRActions =
       status === 'approved' && isQRHardwareAccount;
+    const renderLedgerActions = status === 'approved' && isLedgerAccount;
     const accountImportTime = identities[selectedAddress]?.importTime;
     return (
       <>
@@ -366,6 +371,9 @@ class TransactionElement extends PureComponent {
               {this.renderQRSignButton()}
               {this.renderCancelUnsignedButton()}
             </ListItem.Actions>
+          )}
+          {renderLedgerActions && (
+            <ListItem.Actions>{this.renderLedgerSignButton()}</ListItem.Actions>
           )}
         </ListItem>
         {accountImportTime <= time && this.renderImportTime()}
@@ -438,6 +446,10 @@ class TransactionElement extends PureComponent {
     this.mounted && this.props.signQRTransaction(this.props.tx);
   };
 
+  showLedgerSigninModal = () => {
+    this.mounted && this.props.signLedgerTransaction(this.props.tx);
+  };
+
   cancelUnsignedQRTransaction = () => {
     this.mounted && this.props.cancelUnsignedQRTransaction(this.props.tx);
   };
@@ -475,6 +487,24 @@ class TransactionElement extends PureComponent {
         onPress={this.showQRSigningModal}
       >
         {strings('transaction.sign_with_keystone')}
+      </StyledButton>
+    );
+  };
+
+  renderLedgerSignButton = () => {
+    const { colors, typography } = this.context || mockTheme;
+    const styles = createStyles(colors, typography);
+    return (
+      <StyledButton
+        type={'normal'}
+        containerStyle={[
+          styles.actionContainerStyle,
+          styles.speedupActionContainerStyle,
+        ]}
+        style={styles.actionStyle}
+        onPress={this.showLedgerSigninModal}
+      >
+        {strings('transaction.sign_with_ledger')}
       </StyledButton>
     );
   };

@@ -1,5 +1,7 @@
 # BannerTip
 
+![BannerTip](./BannerTip.png)
+
 BannerTip is an inline notification that offers users educational tips, knowledge, and helpful links. 
 
 ## BannerTip Props

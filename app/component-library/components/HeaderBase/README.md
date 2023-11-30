@@ -1,5 +1,7 @@
 # HeaderBase
 
+![HeaderBase](./HeaderBase.png)
+
 The HeaderBase component is a reusable UI component for displaying a header with optional startAccessory, children (title) and endAccessory content areas. It is designed to be flexible and customizable for various use cases to keep a visually balanced appearance.
 
 ## Props

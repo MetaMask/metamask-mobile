@@ -8,7 +8,7 @@ import {
 } from 'ethereumjs-util';
 import URL from 'url-parse';
 import punycode from 'punycode/punycode';
-import { KeyringTypes } from '@metamask/keyring-controller';
+import ExtendedKeyringTypes from '../../constants/keyringTypes';
 import Engine from '../../core/Engine';
 import { strings } from '../../../locales/i18n';
 import { tlc } from '../general';
@@ -156,7 +156,7 @@ export function isQRHardwareAccount(address) {
   const { KeyringController } = Engine.context;
   const { keyrings } = KeyringController.state;
   const qrKeyrings = keyrings.filter(
-    (keyring) => keyring.type === KeyringTypes.qr,
+    (keyring) => keyring.type === ExtendedKeyringTypes.qr,
   );
   let qrAccounts = [];
   for (const qrKeyring of qrKeyrings) {
@@ -190,12 +190,25 @@ export function getKeyringByAddress(address) {
  * judge address is hardware account or not
  *
  * @param {String} address - String corresponding to an address
- * @param {Array<KeyringTypes|HardwareDeviceNames>} accountTypes - If it belongs to a specific hardware account type. By default all types are allowed.
+ * @param {Array<ExtendedKeyringTypes>} accountTypes - If it belongs to a specific hardware account type. By default all types are allowed.
  * @returns {Boolean} - Returns a boolean
  */
-export function isHardwareAccount(address, accountTypes = [KeyringTypes.qr]) {
+export function isHardwareAccount(
+  address,
+  accountTypes = [ExtendedKeyringTypes.qr, ExtendedKeyringTypes.ledger],
+) {
   const keyring = getKeyringByAddress(address);
   return keyring && accountTypes.includes(keyring.type);
+}
+
+/**
+ * judge address is a hardware account that require external operation or not
+ *
+ * @param {String} address - String corresponding to an address
+ * @returns {Boolean} - Returns a boolean
+ */
+export function isExternalHardwareAccount(address) {
+  return isHardwareAccount(address, [ExtendedKeyringTypes.ledger]);
 }
 
 /**
@@ -209,9 +222,11 @@ export function getLabelTextByAddress(address) {
   const keyring = getKeyringByAddress(address);
   if (keyring) {
     switch (keyring.type) {
-      case KeyringTypes.qr:
+      case ExtendedKeyringTypes.ledger:
+        return 'accounts.ledger';
+      case ExtendedKeyringTypes.qr:
         return 'accounts.qr_hardware';
-      case KeyringTypes.simple:
+      case ExtendedKeyringTypes.simple:
         return 'accounts.imported';
     }
   }
@@ -238,10 +253,12 @@ export function getAddressAccountType(address) {
   );
   if (targetKeyring) {
     switch (targetKeyring.type) {
-      case KeyringTypes.qr:
+      case ExtendedKeyringTypes.qr:
         return 'QR';
-      case KeyringTypes.simple:
+      case ExtendedKeyringTypes.simple:
         return 'Imported';
+      case ExtendedKeyringTypes.ledger:
+        return 'Ledger';
       default:
         return 'MetaMask';
     }

@@ -31,7 +31,8 @@ import {
 } from '../../../selectors/networkController';
 import { selectTokensByAddress } from '../../../selectors/tokensController';
 import { baseStyles, fontStyles } from '../../../styles/common';
-import { isQRHardwareAccount } from '../../../util/address';
+import { isHardwareAccount } from '../../../util/address';
+import { createLedgerTransactionModalNavDetails } from '../../UI/LedgerModals/LedgerTransactionModal';
 import Device from '../../../util/device';
 import Logger from '../../../util/Logger';
 import {
@@ -65,6 +66,8 @@ import {
   CancelTransactionError,
   SpeedupTransactionError,
 } from '../../../core/Transaction/TransactionError';
+import { getLedgerKeyring } from '../../../core/Ledger/Ledger';
+import ExtendedKeyringTypes from '../../../constants/keyringTypes';
 
 const createStyles = (colors, typography) =>
   StyleSheet.create({
@@ -215,6 +218,7 @@ class Transactions extends PureComponent {
     rpcBlockExplorer: undefined,
     errorMsg: undefined,
     isQRHardwareAccount: false,
+    isLedgerAccount: false,
   };
 
   existingGas = null;
@@ -233,7 +237,7 @@ class Transactions extends PureComponent {
       this.props.onRefSet && this.props.onRefSet(this.flatList);
     }, 100);
     this.setState({
-      isQRHardwareAccount: isQRHardwareAccount(this.props.selectedAddress),
+      isQRHardwareAccount: isHardwareAccount(this.props.selectedAddress),
     });
   };
 
@@ -254,6 +258,14 @@ class Transactions extends PureComponent {
     }
 
     this.setState({ rpcBlockExplorer: blockExplorer });
+    this.setState({
+      isQRHardwareAccount: isHardwareAccount(this.props.selectedAddress, [
+        ExtendedKeyringTypes.qr,
+      ]),
+      isLedgerAccount: isHardwareAccount(this.props.selectedAddress, [
+        ExtendedKeyringTypes.ledger,
+      ]),
+    });
   };
 
   componentDidUpdate() {
@@ -500,13 +512,30 @@ class Transactions extends PureComponent {
         throw new SpeedupTransactionError(transactionObject.error);
       }
 
-      await Engine.context.TransactionController.speedUpTransaction(
-        this.speedUpTxId,
-        transactionObject?.suggestedMaxFeePerGasHex && {
-          maxFeePerGas: `0x${transactionObject?.suggestedMaxFeePerGasHex}`,
-          maxPriorityFeePerGas: `0x${transactionObject?.suggestedMaxPriorityFeePerGasHex}`,
-        },
-      );
+      const isLedgerAccount = isHardwareAccount(this.props.selectedAddress, [
+        ExtendedKeyringTypes.ledger,
+      ]);
+
+      if (isLedgerAccount) {
+        await this.signLedgerTransaction({
+          id: this.speedUpTxId,
+          replacementParams: {
+            type: 'speedUp',
+            eip1559GasFee: {
+              maxFeePerGas: `0x${transactionObject?.suggestedMaxFeePerGasHex}`,
+              maxPriorityFeePerGas: `0x${transactionObject?.suggestedMaxPriorityFeePerGasHex}`,
+            },
+          },
+        });
+      } else {
+        await Engine.context.TransactionController.speedUpTransaction(
+          this.speedUpTxId,
+          transactionObject?.suggestedMaxFeePerGasHex && {
+            maxFeePerGas: `0x${transactionObject?.suggestedMaxFeePerGasHex}`,
+            maxPriorityFeePerGas: `0x${transactionObject?.suggestedMaxPriorityFeePerGasHex}`,
+          },
+        );
+      }
       this.onSpeedUpCompleted();
     } catch (e) {
       this.handleSpeedUpTransactionFailure(e);
@@ -517,6 +546,29 @@ class Transactions extends PureComponent {
     const { KeyringController, ApprovalController } = Engine.context;
     await KeyringController.resetQRKeyringState();
     await ApprovalController.accept(tx.id, undefined, { waitForResult: true });
+  };
+
+  signLedgerTransaction = async (transaction) => {
+    const ledgerKeyring = await getLedgerKeyring();
+
+    const onConfirmation = (isComplete) => {
+      if (isComplete) {
+        transaction.speedUpParams &&
+        transaction.speedUpParams?.type === 'SpeedUp'
+          ? this.onSpeedUpCompleted()
+          : this.onCancelCompleted();
+      }
+    };
+
+    this.props.navigation.navigate(
+      ...createLedgerTransactionModalNavDetails({
+        transactionId: transaction.id,
+        deviceId: ledgerKeyring.deviceId,
+        onConfirmationComplete: onConfirmation,
+        type: 'signTransaction',
+        replacementParams: transaction?.replacementParams,
+      }),
+    );
   };
 
   cancelUnsignedQRTransaction = async (tx) => {
@@ -532,13 +584,30 @@ class Transactions extends PureComponent {
         throw new CancelTransactionError(transactionObject.error);
       }
 
-      await Engine.context.TransactionController.stopTransaction(
-        this.cancelTxId,
-        transactionObject?.suggestedMaxFeePerGasHex && {
-          maxFeePerGas: `0x${transactionObject?.suggestedMaxFeePerGasHex}`,
-          maxPriorityFeePerGas: `0x${transactionObject?.suggestedMaxPriorityFeePerGasHex}`,
-        },
-      );
+      const isLedgerAccount = isHardwareAccount(this.props.selectedAddress, [
+        ExtendedKeyringTypes.ledger,
+      ]);
+
+      if (isLedgerAccount) {
+        await this.signLedgerTransaction({
+          id: this.cancelTxId,
+          replacementParams: {
+            type: 'cancel',
+            eip1559GasFee: {
+              maxFeePerGas: `0x${transactionObject?.suggestedMaxFeePerGasHex}`,
+              maxPriorityFeePerGas: `0x${transactionObject?.suggestedMaxPriorityFeePerGasHex}`,
+            },
+          },
+        });
+      } else {
+        await Engine.context.TransactionController.stopTransaction(
+          this.cancelTxId,
+          transactionObject?.suggestedMaxFeePerGasHex && {
+            maxFeePerGas: `0x${transactionObject?.suggestedMaxFeePerGasHex}`,
+            maxPriorityFeePerGas: `0x${transactionObject?.suggestedMaxPriorityFeePerGasHex}`,
+          },
+        );
+      }
       this.onCancelCompleted();
     } catch (e) {
       this.handleCancelTransactionFailure(e);
@@ -552,7 +621,9 @@ class Transactions extends PureComponent {
       assetSymbol={this.props.assetSymbol}
       onSpeedUpAction={this.onSpeedUpAction}
       isQRHardwareAccount={this.state.isQRHardwareAccount}
+      isLedgerAccount={this.state.isLedgerAccount}
       signQRTransaction={this.signQRTransaction}
+      signLedgerTransaction={this.signLedgerTransaction}
       cancelUnsignedQRTransaction={this.cancelUnsignedQRTransaction}
       onCancelAction={this.onCancelAction}
       testID={'txn-item'}

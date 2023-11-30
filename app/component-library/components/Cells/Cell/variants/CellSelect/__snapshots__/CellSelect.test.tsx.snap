@@ -173,6 +173,7 @@ exports[`CellSelect should render default settings correctly 1`] = `
               "lineHeight": 24,
             }
           }
+          testID="cellbase-avatar-title"
         >
           Orangefox.eth
         </Text>

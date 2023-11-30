@@ -341,6 +341,7 @@ class FixtureBuilder {
           collectibleContractModalVisible: false,
           receiveModalVisible: false,
           dappTransactionModalVisible: false,
+          signMessageModalVisible: true,
         },
         settings: {
           searchEngine: 'DuckDuckGo',

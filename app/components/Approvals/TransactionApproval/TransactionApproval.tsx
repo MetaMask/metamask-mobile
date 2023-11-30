@@ -49,7 +49,13 @@ const TransactionApprovalInternal = (props: TransactionApprovalProps) => {
   }
 
   if (props.transactionType === TransactionModalType.Transaction) {
-    return <Approve modalVisible hideModal={onComplete} />;
+    return (
+      <Approve
+        modalVisible
+        hideModal={onComplete}
+        navigation={props.navigation}
+      />
+    );
   }
 
   if (props.isSigningQRObject && !props.transactionType) {

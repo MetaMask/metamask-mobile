@@ -49,4 +49,13 @@ export default class ConnectModal {
       ConnectAccountModalSelectorsIDs.CONTAINER,
     );
   }
+
+  static async scrollToBottomOfModal() {
+    await TestHelpers.swipe(
+      ConnectAccountModalSelectorsIDs.CONTAINER,
+      'down',
+      'slow',
+    );
+    await TestHelpers.delay(1000);
+  }
 }

@@ -20,6 +20,7 @@ import {
   ADD_ACCOUNT_NEW_ACCOUNT_BUTTON,
   ADD_ACCOUNT_IMPORT_ACCOUNT_BUTTON,
 } from '../../../../wdio/screen-objects/testIDs/Components/AddAccountModal.testIds';
+import Routes from '../../../constants/navigation/Routes';
 
 const AddAccountActions = ({ onBack }: AddAccountActionsProps) => {
   const { navigate } = useNavigation();
@@ -32,7 +33,7 @@ const AddAccountActions = ({ onBack }: AddAccountActionsProps) => {
   }, [navigate, onBack]);
 
   const openConnectHardwareWallet = useCallback(() => {
-    navigate('ConnectQRHardwareFlow');
+    navigate(Routes.HW.CONNECT);
     onBack();
     AnalyticsV2.trackEvent(MetaMetricsEvents.CONNECT_HARDWARE_WALLET, {});
   }, [onBack, navigate]);

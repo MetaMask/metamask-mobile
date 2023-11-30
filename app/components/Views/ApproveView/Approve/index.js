@@ -3,7 +3,10 @@ import { Alert, InteractionManager, AppState, View } from 'react-native';
 import PropTypes from 'prop-types';
 import { getApproveNavbar } from '../../../UI/Navbar';
 import { connect } from 'react-redux';
-import { safeToChecksumAddress } from '../../../../util/address';
+import {
+  safeToChecksumAddress,
+  isHardwareAccount,
+} from '../../../../util/address';
 import Engine from '../../../../core/Engine';
 import AnimatedTransactionModal from '../../../UI/AnimatedTransactionModal';
 import ApproveTransactionReview from '../../../UI/ApproveTransactionReview';
@@ -40,6 +43,7 @@ import { KEYSTONE_TX_CANCELED } from '../../../../constants/error';
 import GlobalAlert from '../../../UI/GlobalAlert';
 import checkIfAddressIsSaved from '../../../../util/checkAddress';
 import { ThemeContext, mockTheme } from '../../../../util/theme';
+import { createLedgerTransactionModalNavDetails } from '../../../UI/LedgerModals/LedgerTransactionModal';
 import {
   startGasPolling,
   stopGasPolling,
@@ -64,6 +68,8 @@ import {
 import ShowBlockExplorer from '../../../UI/ApproveTransactionReview/ShowBlockExplorer';
 import createStyles from './styles';
 import { ethErrors } from 'eth-rpc-errors';
+import { getLedgerKeyring } from '../../../../core/Ledger/Ledger';
+import ExtendedKeyringTypes from '../../../../constants/keyringTypes';
 
 const EDIT = 'edit';
 const REVIEW = 'review';
@@ -152,6 +158,10 @@ class Approve extends PureComponent {
      * Indicates whether custom nonce should be shown in transaction editor
      */
     showCustomNonce: PropTypes.bool,
+    /**
+     * Object that represents the navigator
+     */
+    navigation: PropTypes.object,
   };
 
   state = {
@@ -304,17 +314,26 @@ class Approve extends PureComponent {
     const { transaction } = this.props;
 
     await stopGasPolling(this.state.pollToken);
+
+    const isLedgerAccount = isHardwareAccount(transaction.from, [
+      ExtendedKeyringTypes.ledger,
+    ]);
+
     this.appStateListener?.remove();
-    TransactionController.hub.removeAllListeners(`${transaction.id}:finished`);
-    if (!approved)
-      Engine.rejectPendingApproval(
-        transaction.id,
-        ethErrors.provider.userRejectedRequest(),
-        {
-          ignoreMissing: true,
-          logErrors: false,
-        },
+    if (!isLedgerAccount) {
+      TransactionController.hub.removeAllListeners(
+        `${transaction.id}:finished`,
       );
+      if (!approved)
+        Engine.rejectPendingApproval(
+          transaction.id,
+          ethErrors.provider.userRejectedRequest(),
+          {
+            ignoreMissing: true,
+            logErrors: false,
+          },
+        );
+    }
   };
 
   handleAppStateChange = (appState) => {
@@ -442,6 +461,33 @@ class Approve extends PureComponent {
     }
   };
 
+  onLedgerConfirmation = (approve, transactionId, gaParams) => {
+    const { TransactionController } = Engine.context;
+    try {
+      //manual cancel from UI when transaction is awaiting from ledger confirmation
+      if (!approve) {
+        //cancelTransaction will change transaction status to reject and throw error from event listener
+        //component is being unmounted, error will be unhandled, hence remove listener before cancel
+        TransactionController.hub.removeAllListeners(
+          `${transactionId}:finished`,
+        );
+
+        TransactionController.cancelTransaction(transactionId);
+
+        AnalyticsV2.trackEvent(MetaMetricsEvents.APPROVAL_CANCELLED, gaParams);
+
+        NotificationManager.showSimpleNotification({
+          status: `simple_notification_rejected`,
+          duration: 5000,
+          title: strings('notifications.wc_sent_tx_rejected_title'),
+          description: strings('notifications.wc_description'),
+        });
+      }
+    } finally {
+      AnalyticsV2.trackEvent(MetaMetricsEvents.APPROVAL_COMPLETED, gaParams);
+    }
+  };
+
   onConfirm = async () => {
     const { TransactionController, KeyringController, ApprovalController } =
       Engine.context;
@@ -456,15 +502,23 @@ class Approve extends PureComponent {
       if (this.validateGas(eip1559GasTransaction.totalMaxHex)) return;
     } else if (this.validateGas(legacyGasTransaction.totalHex)) return;
     if (transactionConfirmed) return;
+
     this.setState({ transactionConfirmed: true });
+
     try {
       const transaction = this.prepareTransaction(this.props.transaction);
+      const isLedgerAccount = isHardwareAccount(transaction.from, [
+        ExtendedKeyringTypes.ledger,
+      ]);
+
       TransactionController.hub.once(
         `${transaction.id}:finished`,
         (transactionMeta) => {
           if (transactionMeta.status === 'submitted') {
-            this.setState({ approved: true });
-            this.props.hideModal();
+            if (!isLedgerAccount) {
+              this.setState({ approved: true });
+              this.props.hideModal();
+            }
             NotificationManager.watchSubmittedTransaction({
               ...transactionMeta,
               assetType: 'ETH',
@@ -479,9 +533,33 @@ class Approve extends PureComponent {
       const updatedTx = { ...fullTx, transaction };
       await TransactionController.updateTransaction(updatedTx);
       await KeyringController.resetQRKeyringState();
+
+      // For Ledger Accounts we handover the signing to the confirmation flow
+      if (isLedgerAccount) {
+        const ledgerKeyring = await getLedgerKeyring();
+        this.setState({ transactionHandled: true });
+        this.setState({ transactionConfirmed: false });
+
+        this.props.navigation.navigate(
+          ...createLedgerTransactionModalNavDetails({
+            transactionId: transaction.id,
+            deviceId: ledgerKeyring.deviceId,
+            onConfirmationComplete: (approve) =>
+              this.onLedgerConfirmation(
+                approve,
+                transaction.id,
+                this.getAnalyticsParams(),
+              ),
+            type: 'signTransaction',
+          }),
+        );
+        this.props.hideModal();
+        return;
+      }
       await ApprovalController.accept(transaction.id, undefined, {
         waitForResult: true,
       });
+
       AnalyticsV2.trackEvent(
         MetaMetricsEvents.APPROVAL_COMPLETED,
         this.getAnalyticsParams(),

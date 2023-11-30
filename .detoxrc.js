@@ -6,7 +6,7 @@ module.exports = {
       config: 'e2e/jest.e2e.config.js',
     },
     jest: {
-      setupTimeout: 120000,
+      setupTimeout: 220000,
     },
     retries: 2,
   },

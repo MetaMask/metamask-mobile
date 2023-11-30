@@ -1,5 +1,7 @@
 # Avatar
 
+![Avatar](./Avatar.png)
+
 The Avatar is a round graphic identity. It unifies [AvatarAccount](./variants/AvatarAccount/AvatarAccount.tsx), [AvatarFavicon](./variants/AvatarFavicon/AvatarFavicon.tsx), [AvatarIcon](./variants/AvatarIcon/AvatarIcon.tsx), [AvatarNetwork](./variants/AvatarNetwork/AvatarNetwork.tsx) and [AvatarToken](./variants/AvatarToken/AvatarToken.tsx).
 
 ## Common Props

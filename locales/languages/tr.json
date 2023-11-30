@@ -1,12 +1,14 @@
 {
   "blockaid_banner": {
     "approval_farming_description": "Bu talebi onaylarsanız dolandırıcılıkla bilinen üçüncü bir taraf tüm varlıklarınızı çalabilir.",
-    "attribution": "Güvenlik önerisi: ",
+    "attribution": "Destekleyen",
     "attribution_link_name": "Blockaid",
     "blur_farming_description": "Bu talebi onaylarsanız birisi Blur üzerinde yer alan varlıklarınızı çalabilir.",
     "deceptive_request_title": "Bu, aldatıcı bir taleptir",
     "failed_title": "Talep güvenli olmayabilir",
     "failed_description": "Bu talep bir hatadan dolayı güvenlik sağlayıcısı tarafından doğrulanmadı. Dikkatli bir şekilde ilerleyin.",
+    "loading_title": "Bu talep hala simüle ediliyor. Tamamlanmasını beklemenizi tavsiye ederiz.",
+    "loading_complete_title": "Simülasyon tamamlandı. İlerlemeden önce bu talebi inceleyin.",
     "malicious_domain_description": "Kötü niyetli bir alanla etkileşimde bulunuyorsunuz. Bu talebi onaylarsanız varlıklarınızı kaybedebilirsiniz.",
     "other_description": "Bu talebi onaylarsanız varlıklarınızı kaybedebilirsiniz.",
     "raw_signature_farming_description": "Bu talebi onaylarsanız varlıklarınızı kaybedebilirsiniz.",
@@ -514,6 +516,7 @@
     "import_account": "Bir hesabı içe aktar",
     "connect_hardware": "Donanım cüzdanı bağla",
     "imported": "İçe aktarıldı",
+    "qr_hardware": "QR donanımı",
     "remove_account_title": "Hesap kaldırma",
     "remove_account_message": "Bu hesabı gerçekten kaldırmak istiyor musunuz?",
     "no": "Hayır",
@@ -537,7 +540,15 @@
     "address_balance_activity_permission": "Adres, hesap bakiyesi ve aktiviteyi görme",
     "suggest_transactions": "Onaylanacak işlemleri önerme",
     "disconnect": "Bağlantıyı kes",
-    "disconnect_all_accounts": "Tüm hesapların bağlantısını kes"
+    "disconnect_all_accounts": "Tüm hesapların bağlantısını kes",
+    "deceptive_site_ahead": "Aldatıcı siteye gidiliyor",
+    "deceptive_site_desc": "Ziyaret etmeye çalıştığınız sayfa güvenli değil. Saldırganlar tehlikeli bir şey yapmanız konusunda sizi aldatabilir.",
+    "learn_more": "Daha fazla bilgi",
+    "advisory_by": "Ethereum Kimlik Avı Algılayıcı ve PhishFort tarafından sunulan uyarı",
+    "potential_threat": "Potansiyel tehditler şunları içerir",
+    "fake_metamask": "Sahte MetaMask sürümleri",
+    "srp_theft": "Gizli kurtarma ifadesi veya şifre hırsızlığı",
+    "malicious_transactions": "Varlıkların çalınmasına neden olan kötü amaçlı işlemler"
   },
   "toast": {
     "connected_and_active": "bağlandı ve aktif.",
@@ -690,6 +701,7 @@
     "remove_network": "Kaldır",
     "cancel_remove_network": "İptal",
     "info_title": "MetaMask Hakkında",
+    "info_title_flask": "About MetaMask Flask",
     "experimental_title": "Deneysel",
     "experimental_desc": "WalletConnect ve daha fazlası...",
     "legal_title": "Hukuki",
@@ -801,7 +813,7 @@
     "unkown_dapp": "Merkeziyetsiz uygulama adı kullanılamıyor",
     "no_connections": "Bağlantı bulunamadı"
   },
-  "sdk_return_to_app_modal":{
+  "sdk_return_to_app_modal": {
     "title": "Uygulamaya geri dön",
     "description": "Hizmetlerini kullanmaya devam etmek için lütfen uygulamaya geri dönün."
   },
@@ -892,6 +904,7 @@
   "asset_overview": {
     "send_button": "Gönder",
     "buy_button": "Satın Al",
+    "sell_button": "Sat",
     "receive_button": "Al",
     "portfolio_button": "Portföy",
     "add_collectible_button": "Ekle",
@@ -906,6 +919,7 @@
     "for_help": "makaleye bakın.",
     "troubleshoot": "Sorun Giderme",
     "buy_description": "Nakit ile kripto satın alın",
+    "sell_description": "Nakit karşılığında kripto sat",
     "swap_description": "Tokenler arasında swap gerçekleştirin",
     "send_description": "Dilediğin hesaba kripto gönderin",
     "receive_description": "Kripto alın",
@@ -995,7 +1009,6 @@
     "confirm": "Onayla"
   },
   "transaction": {
-    "hardware": "Donanım",
     "alert": "UYARI",
     "amount": "Tutar",
     "next": "Sonraki",
@@ -1373,7 +1386,8 @@
     "you_can": "Veya",
     "add_network": "manuel olarak daha fazla ekleyebilirsiniz.",
     "select_network": "Bir ağ seçin",
-    "show_test_networks": "Test ağlarını göster"
+    "show_test_networks": "Test ağlarını göster",
+    "deprecated_goerli": "Ethereum'da yaşanan protokol değişikliklerinden dolayı: Goerli test ağı güvenilir bir şekilde çalışmayabilir ve yakında kullanım dışı olacak."
   },
   "select": {
     "cancel": "İptal",
@@ -1732,7 +1746,10 @@
     "wallet_connect_dapps_cta": "OTURUMLARI GÖRÜNTÜLE",
     "network_not_supported": "Geçerli ağ desteklenmiyor",
     "security_alerts": "Güvenlik uyarıları",
+    "security_alerts_desc": "Bu özellik, işlem ve imza taleplerinizi yerel bir şekilde incelerken gizliliğinizi koruyarak Ethereum Ana Ağındaki kötü amaçlı faaliyetlere karşı sizi uyarır. Verileriniz, bu hizmeti sunan üçüncü taraf ile paylaşılmaz. Talepleri onaylamadan önce her zaman gereken özeni kendiniz gösterin. Bu özelliğin tüm kötü amaçlı faaliyetleri algılayacağına dair herhangi bir garanti bulunmamaktadır.",
+    "select_provider": "Tercih ettiğiniz sağlayıcıyı seçin",
     "blockaid": "Blockaid",
+    "blockaid_desc": "Gizliliği koruma - üçüncü taraflarla hiçbir veri paylaşılmaz. Ethereum Ana Ağında mevcuttur.",
     "switch_network": "Lütfen ana ağa veya sepolia ağına geçin"
   },
   "walletconnect_sessions": {
@@ -1874,14 +1891,39 @@
     }
   },
   "fiat_on_ramp_aggregator": {
+    "buy": "al",
+    "sell": "sat",
+    "orders": "Emirler",
+    "All": "Tümü",
+    "Buy": "Al",
+    "Sell": "Sat",
+    "Purchased": "Satın Alındı",
+    "Sold": "Satıldı",
+    "empty_buy_orders_list": "Hiç al emriniz yok",
+    "empty_sell_orders_list": "Hiç sat emriniz yok",
+    "purchased_currency": "{{currency}} satın alındı",
+    "sold_currency": "{{currency}} satıldı",
+    "order_status_pending": "Bekliyor",
+    "order_status_processing": "Gerçekleştiriliyor",
+    "order_status_completed": "Tamamlandı",
+    "order_status_failed": "Başarısız oldu",
+    "order_status_cancelled": "İptal edildi",
+    "network_switcher": {
+      "title": "Desteklenmeyen {{rampType}} Ağı",
+      "description": "Kripto {{rampType}} için desteklenen bir ağa geçmeniz gerekir",
+      "no_networks_found": "Desteklenen ağ bulunamadı"
+    },
     "onboarding": {
       "what_to_expect": "Bekleyebileceklerin",
       "quotes": "Kripto satın alma özelliğimiz, entegre satıcılardan teklifleri toplayarak bekleme süresi olmadan doğrudan cüzdanınıza kripto para alabilmeniz için size bu kaynaklardan teklifleri sunar.",
+      "quotes_sell": "Artık doğrudan MetaMask'te paraya çevirebilirsiniz! Biz size yolun her adımında rehberlik ederken güvenilir sağlayıcılardan en güncel teklifleri alın.",
       "benefits": "Daha az gaz ücreti ödenir ve çeşitli ağ, token ve ödeme yöntemleri desteklenir",
+      "benefits_sell": "Kriptodan yerel para biriminize off-ramp artık hiç olmadığı kadar kolay.",
       "get_started": "Başlarken"
     },
     "payment_method": {
       "payment_method": "Ödeme Yöntemi",
+      "cash_destination": "Nakit Varış Yeri",
       "instant": "Anında",
       "less_than": "En fazla",
       "minute": "dk.",
@@ -1893,9 +1935,14 @@
       "lowest_limit": "en düşük limit",
       "medium_limit": "orta limit",
       "highest_limit": "en yüksek limit",
+      "lowest_sell_limit": "en düşük sat limiti",
+      "medium_sell_limit": "orta sat limiti",
+      "highest_sell_limit": "en yüksek sat limiti",
       "continue_to_amount": "Tutara devam et",
       "no_payment_methods_title": "{{regionName}} bölgesinde Ödeme Yöntemi yok",
+      "no_cash_destinations_title": "{{regionName}} bölgesinde Nakit Varış Yeri yok",
       "no_payment_methods_description": "Şu anda bölgenizde desteklenen ödeme yöntemleri bulunmamaktadır. Lütfen yakında tekrar kontrol edin; yeni bölgelere desteği sık sık genişletiyoruz.\n\n{{regionName}} bölgesini yanlışlıkla seçtiyseniz bölgenizi sıfırlamak için aşağıdaki düğmeye tıklayın.",
+      "no_cash_destinations_description": "Şu anda bölgenizde desteklenen nakit varış yeri yok. Lütfen kısa bir süre sonra kontrol edin; yeni bölgeleri desteklemek için sıklıkla hizmet ağımızı genişletiyoruz.\n\n{{regionName}} bölgesini yanlışlıkla seçtiyseniz bölgenizi sıfırlamak için aşağıdaki düğmeye tıklayın.",
       "reset_region": "Bölgeyi Sıfırla"
     },
     "continue": "Devam Et",
@@ -1905,9 +1952,13 @@
     "get_new_quotes": "Yeni teklifler al",
     "quotes_timeout": "Teklifler için zaman aşımı",
     "request_new_quotes": "En yeni en iyi oranı almak için lütfen yeni teklifler talep et.",
-    "amount_to_buy": "Satın Alınacak Tutar",
+    "amount_to_buy": "Alınacak tutar",
+    "amount_to_sell": "Satılacak tutar",
     "want_to_buy": "Şunu almak istiyorsun:",
+    "want_to_sell": "Satmak istediğiniz",
+    "current_balance": "Mevcut bakiye",
     "amount": "Tutar",
+    "send_cash_to": "Nakdinizi şuraya gönderin",
     "get_quotes": "Teklif al",
     "done": "Bitti",
     "fetching_quotes": "Teklifler alınıyor",
@@ -1918,6 +1969,7 @@
     "search_by_currency": "Para birimi ara",
     "update_payment_method": "Ödeme yöntemini güncelle",
     "select_payment_method": "Ödeme yöntemi seç",
+    "select_cash_destination": "Nakdinizin nereye gönderileceğini seçin",
     "select_region_currency": "Bölge Para Birimini Seç",
     "no_tokens_match": "“{{searchString}}” ile eşleşen token yok",
     "no_currency_match": "“{{searchString}}” ile eşleşen para birimi yok",
@@ -1926,23 +1978,31 @@
     "continue_with": "{{provider}} ile devam et",
     "minimum": "Yatırılabilecek minimum miktar",
     "maximum": "Yatırılabilecek maksimum miktar",
+    "insufficient_balance": "Bu tutar bakiyenizden yüksek",
+    "enter_larger_amount": "Devam etmek için daha büyük bir tutar girin",
+    "enter_smaller_amount": "Devam etmek için daha küçük bir tutar girin",
     "try_again": "Tekrar dene",
     "error": "Hata",
     "something_went_wrong": "Hay aksi, bir şeyler ters gitti",
     "report_this_issue": "Bu sorunu bildir",
     "no_providers_available": "Sağlayıcı mevcut değil",
     "try_different_amount_to_buy_input": "Farklı bir ödeme yöntemi seçmeyi dene veya satın almak istediğin tutarı artırmayı veya azaltmayı dene!",
+    "try_different_amount_to_sell_input": "Farklı bir nakde çevirme varış yeri seçmeyi deneyin veya satmak istediğiniz tutarı artırın ya da azaltın!",
     "webview_received_error": "WebView şu hata durum kodunu aldı: {{code}}",
     "no_tokens_available_title": "Token Yok",
     "no_tokens_available": "Şu anda {{network}} üzerinde seçili ödeme yöntemi ile mevcut token bulunmamaktadır.",
+    "no_sell_tokens_available": "Şu anda {{network}} üzerinde seçili nakit varış yeri ile mevcut token bulunmamaktadır.",
     "this_network": "bu ağ",
     "change_payment_method": "Ödeme yöntemini değiştir",
+    "change_cash_destination": "Nakit varış yerini değiştir",
     "try_different_region": "Farklı bir bölge deneyin",
     "return_home": "Ana Ekrana Geri Dön",
     "region": {
       "buy_crypto_tokens": "Kripto Token Satın Al",
+      "sell_crypto_tokens": "Kripto Token Sat",
       "title": "Bölgeni Seç",
       "description": "Kullanabileceğin ödeme yöntemleri ve tokenler üçüncü taraf entegrasyonlarımız tarafından belirlenir ve bölgen ile entegrasyonlarımızın desteğine bağlı olarak değişiklik gösterebilir.",
+      "sell_description": "Nakit varış yeri seçenekleri ve tokenler bölgenize bağlı olarak değişiklik gösterebilir.",
       "search_by_country": "Ülkeye göre ara",
       "search_by_state": "Eyalete göre ara",
       "no_region_results": "Eşleşen bölge yok",
@@ -1951,7 +2011,7 @@
       "select_region_title": "Bölgeni Seç",
       "select_country_registered": "Kartının kayıtlı olduğu ülkeyi seç (bulunduğun yere bakılmaksızın).",
       "unsupported": "Bölge Desteklenmiyor",
-      "unsupported_description": "Mümkün olan en kısa süre içinde bölgeni de kapsamak için çok çalışıyoruz. Bu sırada, kripto satın alabileceğin diğer yolları öğrenmek üzere destek makalemize bak.",
+      "unsupported_description": "Mümkün olan en kısa süre içinde bölgenizi de kapsamak için çok çalışıyoruz. Bu sırada, kripto {{rampType}} için diğer yolları öğrenmek üzere destek makalemize bakın.",
       "unsupported_link": "Destek Makalesini Ziyaret Et"
     },
     "order_details": {
@@ -1959,10 +2019,13 @@
       "successful": "Emir Başarılı!",
       "your": "Size ait",
       "available_in_account": "şu anda hesabınızda",
+      "delayed_bank_transfer": "Nakdin banka hesabınıza yansıması birkaç gün sürebilir.",
       "crypto": "kripto",
       "failed": "Emir Başarısız Oldu",
       "cancelled": "Emir İptal Edildi",
+      "pending": "Emir Bekliyor",
       "failed_description": "Bir şeyler ters gitti ve {{provider}} emrinizi tamamlayamadı. Lütfen tekrar veya başka bir sağlayıcı ile deneyin.",
+      "continue_order_description": "Emrinize devam etmek için bu sayfanın alt kısmındaki düğmeyi seçmeniz gerekecek.",
       "the_provider": "sağlayıcı",
       "processing": "Emir Gerçekleştiriliyor",
       "processing_card_description": "Kredi Kartı/Banka Kartı satın alma işlemleri genellikle birkaç dakika sürer",
@@ -1970,8 +2033,10 @@
       "details": "Emir bilgileri",
       "via": "aracı",
       "purchase_amount": "Satın Alınan Toplam Tutar",
+      "amount_received_total": "Alınan Toplam Tutar",
       "etherscan": "Tüm ayrıntıları şurada görüntüle",
-      "another_purchase": "Başka bir satın alma işlemi gerçekleştir",
+      "start_new_order": "Yeni bir emir başlat",
+      "continue_order": "Bu emre devam et",
       "questions": "Sorularınız mı var?",
       "contact_support": "Destek ile İletişim Kur",
       "support": "Destek",
@@ -1979,11 +2044,22 @@
       "id": "Emir Numarası",
       "date_and_time": "Tarih ve Saat",
       "payment_method": "Ödeme Yöntemi",
+      "destination": "Varış yeri",
       "token_amount": "Token Tutarı",
+      "token_quantity_sold": "Satılan Token Miktarı",
       "exchange_rate": "Dönüştürme Oranı",
       "total_fees": "Toplam Ücretler",
       "amount": "Tutar",
+      "value": "Değer",
       "a_block_explorer": "bir blok gezgini"
+    },
+    "send_transaction": {
+      "sell_crypto": "Kripto sat",
+      "send_description": "Siz {{provider}} adlı sağlayıcıya {{cryptocurrency}} gönderirsiniz, o da ardından nakdinizi {{paymentMethod}} ödeme yöntemine gönderir",
+      "next": "Sonraki",
+      "hold_to_send": "Göndermek için tut",
+      "send": "Gönder",
+      "sent": "Gönderildi!"
     }
   },
   "swaps": {
@@ -2197,13 +2273,17 @@
     "ok": "Tamam"
   },
   "whats_new": {
-    "title": "Yeniliklere bakın",
+    "title": "Yenilikler",
     "blockaid": {
       "title": "Güvenlik uyarıları ile güvende kalın",
-      "description_1": "Blockaid tarafından desteklenen güvenlik uyarıları ile gizliliğinizi korumaya devam ederken bilinen dolandırıcılıklardan uzak durun.",
+      "description_1": "Ethereum Ana Ağında Blockaid tarafından desteklenen güvenlik uyarıları ile gizliliğinizi korumaya devam ederken bilinen dolandırıcılıklardan uzak durun.",
       "description_2": "Talepleri onaylamadan önce kendiniz her zaman gerekli özeni gösterin.",
-      "description_3": "OpenSea'den güvenlik uyarılarını etkinleştirdiyseniz sizi bu özelliğe taşıdık.",
       "action_text": "Güvenlik uyarılarını etkinleştir"
+    },
+    "sell": {
+      "title": "Paraya çevirmek artık kolay",
+      "description": "Kriptonuzu doğrudan MetaMask'ta satın! Kriptonuzu her defasında erişilebilir, hızlı ve güvenli bir şekilde satabilmeniz için güvenilir sağlayıcılardan teklifleri bulmanıza yardımcı olacağız.",
+      "action_text": "Deneyin"
     }
   },
   "invalid_network": {
@@ -2238,7 +2318,16 @@
     "unrecognized_chain": "Bu kişisel ağ tanınmıyor",
     "invalid_chain": "Bu Zincir Kimliği için %{rpcUrl} zincir kimliği ağ listesi ile uyumlu değil",
     "alert_recommend": "Size",
-    "alert_verify": "zincir kimliğini doğrulamanızı öneririz"
+    "alert_verify": "zincir kimliğini doğrulamanızı öneririz",
+    "warning_subtext_new": {
+      "1": "MetaMask özel ağları doğrulamaz, bu yüzden sadece güvendiğiniz ağları onaylayın.",
+      "2": "Ağ güvenlik riskleri ve dolandırıcılıklar hakkında daha fazla bilgi alın."
+    },
+    "invalid_rpc_url": "Bu ağın URL adresi bu zincir kimliği için bilinen bir sağlayıcı ile eşleşmiyor.",
+    "invalid_chain_token_decimals": "Görünüşe göre, bu ağın ondalığı zincirinin kimliği ile eşleşmiyor.",
+    "unrecognized_chain_name": "Görünüşe göre, bu ağın görüntülenme adı zincir kimliği ile eşleşmiyor.",
+    "unrecognized_chain_ticker": "Görünüşe göre, bu ağın sembolü bu zincir kimliği ile eşleşmiyor.",
+    "unrecognized_chain_id": "Bu ağı tanıyamadık. Devam etmeden önce zincir kimliğinin doğru olduğundan emin olun."
   },
   "media_player": {
     "loading": "Yükleniyor...",

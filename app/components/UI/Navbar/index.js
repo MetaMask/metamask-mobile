@@ -182,7 +182,7 @@ export function getNavigationOptionsTitle(
   navigation,
   isFullScreenModal,
   themeColors,
-  navigationPopEvent,
+  navigationPopEvent = undefined,
 ) {
   const innerStyles = StyleSheet.create({
     headerTitleStyle: {
@@ -191,7 +191,7 @@ export function getNavigationOptionsTitle(
       ...fontStyles.normal,
     },
     headerIcon: {
-      color: themeColors.primary.default,
+      color: themeColors.text.default,
     },
     headerStyle: {
       backgroundColor: themeColors.background.default,

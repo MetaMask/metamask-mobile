@@ -1,5 +1,7 @@
 # ButtonIcon
 
+![ButtonIcon](./ButtonIcon.png)
+
 ButtonIcon is a icon component in the form of a button.
 
 ## Props

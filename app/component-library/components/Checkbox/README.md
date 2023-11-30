@@ -1,5 +1,7 @@
 # Checkbox
 
+![Checkbox](./Checkbox.png)
+
 Checkbox is a graphical element that allows users to select one or more options from a set of choices.
 
 ## Props

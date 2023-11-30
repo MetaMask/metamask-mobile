@@ -1,12 +1,14 @@
 {
   "blockaid_banner": {
     "approval_farming_description": "이 요청을 승인하면 스캠을 목적으로 하는 타사가 회원님의 자산을 모두 가져갈 수 있습니다.",
-    "attribution": "보안 권고 제공처:",
+    "attribution": "제공자:",
     "attribution_link_name": "Blockaid",
     "blur_farming_description": "이 요청을 승인하면 Blur에 등록된 회원님의 자산을 타인이 훔칠 수 있습니다.",
     "deceptive_request_title": "사기성 요청입니다",
     "failed_title": "안전하지 않은 요청일 수 있습니다",
     "failed_description": "오류로 인해 보안업체에서 이 요청을 확인하지 못했습니다. 주의하여 진행하세요.",
+    "loading_title": "이 요청은 아직 시뮬레이션 중입니다. 완료될 때까지 기다려 주세요.",
+    "loading_complete_title": "시뮬레이션이 완료되었습니다. 계속하기 전에 이 요청을 검토하세요.",
     "malicious_domain_description": "악성 도메인과 인터렉션하고 있습니다. 이 요청을 승인하면 본인의 자산을 잃을 수도 있습니다.",
     "other_description": "이 요청을 승인하면, 자산을 잃을 수 있습니다.",
     "raw_signature_farming_description": "이 요청을 승인하면, 자산을 잃을 수 있습니다.",
@@ -514,6 +516,7 @@
     "import_account": "계정 가져오기",
     "connect_hardware": "하드웨어 지갑 연결",
     "imported": "가져옴",
+    "qr_hardware": "QR 하드웨어",
     "remove_account_title": "계정 제거",
     "remove_account_message": "해당 계정을 정말로 제거하시겠습니까?",
     "no": "아니오",
@@ -537,7 +540,15 @@
     "address_balance_activity_permission": "주소, 계정 잔액, 활동 보기",
     "suggest_transactions": "승인할 트랜잭션 추천",
     "disconnect": "연결 해제",
-    "disconnect_all_accounts": "모든 계정 연결 해제"
+    "disconnect_all_accounts": "모든 계정 연결 해제",
+    "deceptive_site_ahead": "의심스러운 사이트 주의",
+    "deceptive_site_desc": "방문하려는 사이트가 안전하지 않습니다. 공격자가 위험한 작업을 하도록 유도할 수 있습니다.",
+    "learn_more": "자세히 알아보기",
+    "advisory_by": "Ethereum Phishing Detector와 PhishFort에서 자문 제공",
+    "potential_threat": "다음과 같은 잠재적 위협이 있습니다.",
+    "fake_metamask": "MetaMask 위조 버전",
+    "srp_theft": "비밀복구구문 또는 비밀번호 도용",
+    "malicious_transactions": "자산 도난으로 이어지는 악성 거래"
   },
   "toast": {
     "connected_and_active": "연결되어 활성화됨.",
@@ -690,6 +701,7 @@
     "remove_network": "제거",
     "cancel_remove_network": "취소",
     "info_title": "MetaMask 소개",
+    "info_title_flask": "About MetaMask Flask",
     "experimental_title": "실험적",
     "experimental_desc": "지갑 연결 및 기타...",
     "legal_title": "법률",
@@ -801,9 +813,9 @@
     "unkown_dapp": "디앱 이름을 사용할 수 없습니다",
     "no_connections": "연결을 찾을 수 없습니다"
   },
-  "sdk_return_to_app_modal":{
+  "sdk_return_to_app_modal": {
     "title": "앱으로 돌아가기",
-    "description": "서비스를 계속 이용하려면 앱으로 돌아가십시오."
+    "description": "서비스를 계속 이용하려면 앱으로 돌아가세요."
   },
   "sdk_feedback_modal": {
     "ok": "확인",
@@ -892,6 +904,7 @@
   "asset_overview": {
     "send_button": "보내기",
     "buy_button": "구매",
+    "sell_button": "매도",
     "receive_button": "받기",
     "portfolio_button": "포트폴리오",
     "add_collectible_button": "추가",
@@ -906,6 +919,7 @@
     "for_help": "요청하세요.",
     "troubleshoot": "문제 해결",
     "buy_description": "현금으로 암호화폐 구입",
+    "sell_description": "암호화폐를 현금에 매도",
     "swap_description": "토큰 간 교환",
     "send_description": "원하는 계정에 암호화폐 보내기",
     "receive_description": "암호화폐 수령",
@@ -995,7 +1009,6 @@
     "confirm": "컨펌"
   },
   "transaction": {
-    "hardware": "하드웨어",
     "alert": "경고",
     "amount": "금액",
     "next": "다음",
@@ -1373,7 +1386,8 @@
     "you_can": "또는 다음을 확인하세요:",
     "add_network": "네트워크를 직접 추가할 수도 있습니다.",
     "select_network": "네트워크 선택",
-    "show_test_networks": "테스트 네트워크 표시"
+    "show_test_networks": "테스트 네트워크 표시",
+    "deprecated_goerli": "이더리움의 프로토콜 변경으로 인해 Goerli 테스트 네트워크가 안정적으로 작동하지 않을 수 있으며, 곧 사용 중지될 예정입니다."
   },
   "select": {
     "cancel": "취소",
@@ -1732,7 +1746,10 @@
     "wallet_connect_dapps_cta": "세션 확인",
     "network_not_supported": "현재 네트워크는 지원하지 않음",
     "security_alerts": "보안 경고",
+    "security_alerts_desc": "이 기능은 거래 및 서명 요청을 로컬에서 검토하여 악의적인 활동이 있는 경우 경고합니다. 요청을 승인하기 전에 항상 직접 검토하세요. 이 기능이 모든 악성 활동 탐지를 보장하지는 않습니다. 이 기능을 활성화하면 제공 업체의 이용 약관에 동의하는 것이 됩니다.",
+    "select_provider": "선호하는 공급업체 선택",
     "blockaid": "Blockaid",
+    "blockaid_desc": "개인정보 보호 - 제삼자와 데이터를 공유하지 않습니다. 이더리움 메인넷에서 사용할 수 있습니다.",
     "switch_network": "메인넷이나 세폴리아로 전환하세요"
   },
   "walletconnect_sessions": {
@@ -1874,14 +1891,39 @@
     }
   },
   "fiat_on_ramp_aggregator": {
+    "buy": "매수",
+    "sell": "매도",
+    "orders": "주문",
+    "All": "전부",
+    "Buy": "매수",
+    "Sell": "매도",
+    "Purchased": "매수함",
+    "Sold": "매도함",
+    "empty_buy_orders_list": "매수 주문이 없습니다",
+    "empty_sell_orders_list": "매도 주문이 없습니다",
+    "purchased_currency": "{{currency}} 매수함",
+    "sold_currency": "{{currency}} 매도함",
+    "order_status_pending": "보류 중",
+    "order_status_processing": "처리 중",
+    "order_status_completed": "완료",
+    "order_status_failed": "실패",
+    "order_status_cancelled": "취소됨",
+    "network_switcher": {
+      "title": "지원되지 않는 {{rampType}} 네트워크",
+      "description": "암호화폐를 {{rampType}}하려면 지원되는 네트워크로 변경해야 합니다",
+      "no_networks_found": "지원되는 네트워크가 없습니다"
+    },
     "onboarding": {
       "what_to_expect": "소개",
       "quotes": "MetaMask의 암호화폐 구매 기능은 통합된 공급업체로부터 견적을 집계하여 견적을 제공하므로 대기 기간 없이 암호화폐를 소스에서 지갑으로 직접 가져올 수 있습니다.",
+      "quotes_sell": "이제 MetaMask에서 직접 현금을 인출할 수 있습니다! MetaMask의 안내에 따라 한 단계씩 진행하며 신뢰하는 제공업체의 최신 견적을 받으세요.",
       "benefits": "가스비가 저렴하면서 수많은 네트워크, 토큰, 결제 수단이 지원됩니다.",
+      "benefits_sell": "이제 암호화폐를 현지 통화로 환전하는 것이 어느 때보다 쉬워졌습니다.",
       "get_started": "지금 시작하세요"
     },
     "payment_method": {
       "payment_method": "결제방법",
+      "cash_destination": "현금 송금처",
       "instant": "즉시",
       "less_than": "다음 미만:",
       "minute": "분",
@@ -1893,9 +1935,14 @@
       "lowest_limit": "최저 구매 한도",
       "medium_limit": "중간 구매 한도",
       "highest_limit": "최대 구매 한도",
+      "lowest_sell_limit": "최저 매도 한도",
+      "medium_sell_limit": "중간 매도 한도",
+      "highest_sell_limit": "최고 매도 한도",
       "continue_to_amount": "다음 금액으로 계속:",
       "no_payment_methods_title": "{{regionName}}에 결제 방법이 없음",
+      "no_cash_destinations_title": "{{regionName}}에 현금 송금처가 없습니다",
       "no_payment_methods_description": "현재 회원님의 지역에는 지원되는 결제 방법이 없습니다. 새로운 지역에 대한 결제 지원을 빠르게 확장 중이오니 곧 다시 확인해 주세요.\n\n {{regionName}}을(를) 실수로 선택하셨다면 아래 버튼을 클릭하여 지역 정보를 다시 설정하세요.",
+      "no_cash_destinations_description": "현재 고객님이 계신 지역에 지원되는 현금 송금처가 없습니다. 새로운 지역으로 지원을 확대하고 있으니 나중에 확인해 주세요.\n\n실수로 {{regionName}} 지역을 선택했다면, 아래 버튼을 클릭하여 지역을 재설정하세요.",
       "reset_region": "지역 재설정"
     },
     "continue": "계속",
@@ -1905,9 +1952,13 @@
     "get_new_quotes": "새 견적 받기",
     "quotes_timeout": "견적 만료",
     "request_new_quotes": "새 견적을 신청하여 최신 요율을 확인하세요.",
-    "amount_to_buy": "구매량",
+    "amount_to_buy": "매수 금액",
+    "amount_to_sell": "매도 금액",
     "want_to_buy": "희망 구매량",
+    "want_to_sell": "매도 희망",
+    "current_balance": "현재 잔액",
     "amount": "수량",
+    "send_cash_to": "송금 대상:",
     "get_quotes": "견적 받기",
     "done": "완료",
     "fetching_quotes": "견적 가져오기",
@@ -1918,6 +1969,7 @@
     "search_by_currency": "통화별 검색",
     "update_payment_method": "결제 방법 변경",
     "select_payment_method": "결제 방법 선택",
+    "select_cash_destination": "송금 대상을 선택하세요",
     "select_region_currency": "지역 통화 선택",
     "no_tokens_match": "“{{searchString}}”(와)과 일치하는 토큰이 없습니다",
     "no_currency_match": "“{{searchString}}”(와)과 일치하는 통화가 없습니다",
@@ -1926,23 +1978,31 @@
     "continue_with": "{{provider}}(으)로 계속",
     "minimum": "최소 예치 금액:",
     "maximum": "최대 예치 금액:",
+    "insufficient_balance": "잔액이 부족합니다",
+    "enter_larger_amount": "계속하려면 더 많은 금액을 입력하세요",
+    "enter_smaller_amount": "계속하려면 더 적은 금액을 입력하세요",
     "try_again": "다시 시도하세요",
     "error": "오류",
     "something_went_wrong": "죄송합니다, 오류가 발생했습니다.",
     "report_this_issue": "이 문제 보고",
     "no_providers_available": "공급업체가 없습니다.",
     "try_different_amount_to_buy_input": "다른 결제 방법을 선택하시거나 원하는 구매량을 늘리거나 줄이세요!",
+    "try_different_amount_to_sell_input": "다른 현금 송금처를 선택하거나 매도 금액을 변경하세요!",
     "webview_received_error": "WebView 수신 오류 코드: {{code}}",
     "no_tokens_available_title": "사용 가능한 토큰 없음",
     "no_tokens_available": "현재 {{network}}에서 선택한 결제 방식으로 구매할 수 있는 토큰이 없습니다.",
+    "no_sell_tokens_available": "현재 {{network}}에서 선택한 현금 송금처로 매도할 수 있는 토큰이 없습니다.",
     "this_network": "이 네트워크",
     "change_payment_method": "결제 방법 변경",
+    "change_cash_destination": "현금 송금처 변경",
     "try_different_region": "다른 지역을 시도",
     "return_home": "홈 화면으로 돌아가기",
     "region": {
       "buy_crypto_tokens": "암호화폐 토큰 구매",
+      "sell_crypto_tokens": "암호화폐 토큰 매도",
       "title": "지역을 선택하세요",
       "description": "이용 가능 지불 방법과 토큰은 타사 통합업체가 결정하므로 현재 거주지의 지역 및 통합업체에 따라 달라질 수 있습니다.",
+      "sell_description": "현금 송금처 옵션과 토큰은 지역별로 다를 수 있습니다.",
       "search_by_country": "국가별 검색",
       "search_by_state": "주별 검색",
       "no_region_results": "일치하는 지역이 없습니다",
@@ -1951,7 +2011,7 @@
       "select_region_title": "지역을 선택하세요",
       "select_country_registered": "현재 거주지와 상관없이 카드를 등록한 국가를 선택하세요.",
       "unsupported": "지원되지 않는 지역입니다",
-      "unsupported_description": "가능한 한 빠른 시한 내에 여러분의 지역으로 범위를 확장하기 위해 열심히 노력하고 있습니다. 그동안 암호화폐를 구매할 수 있는 다른 방법을 원하시면 고객 지원 문서를 참조하세요.",
+      "unsupported_description": "고객님이 계신 지역으로 지원 범위를 확대하기 위해 최대한 노력하고 있습니다. 그 동안 암호화폐를 {{rampType}}할 수 있는 다른 방법에 대해서는 도움말을 참고하세요.",
       "unsupported_link": "고객 지원 문서"
     },
     "order_details": {
@@ -1959,10 +2019,13 @@
       "successful": "주문 성공",
       "your": "내",
       "available_in_account": "(을)를 계정에서 확인할 수 있습니다",
+      "delayed_bank_transfer": "은행 계좌로 현금이 입금되는 데는 며칠이 소요됩니다.",
       "crypto": "암호화폐",
       "failed": "주문 실패",
       "cancelled": "주문 취소됨",
+      "pending": "주문 보류 중",
       "failed_description": "오류가 발생해 {{provider}}(이)가 주문을 완료하지 못했습니다. 나중에 다시 시도하거나 다른 공급업체를 이용하세요.",
+      "continue_order_description": "주문을 계속하려면 이 페이지의 하단에 있는 버튼을 선택해야 합니다.",
       "the_provider": "공급업체",
       "processing": "주문 처리 중",
       "processing_card_description": "신용카드/직불카드 구매는 보통 몇 분가량 소요됩니다",
@@ -1970,8 +2033,10 @@
       "details": "주문 세부 정보",
       "via": "방법:",
       "purchase_amount": "총 구매 금액",
+      "amount_received_total": "총 수취 금액",
       "etherscan": "다음에서 전체 세부 정보 보기:",
-      "another_purchase": "추가 구매",
+      "start_new_order": "새 주문 시작",
+      "continue_order": "이 주문 계속",
       "questions": "질문이 있으신가요?",
       "contact_support": "문의하기",
       "support": "지원",
@@ -1979,11 +2044,22 @@
       "id": "주문 ID",
       "date_and_time": "날짜 및 시간",
       "payment_method": "결제 방법",
+      "destination": "송금처",
       "token_amount": "토큰 수량",
+      "token_quantity_sold": "매도한 토큰 수량",
       "exchange_rate": "환율",
       "total_fees": "총 수수료",
       "amount": "금액",
+      "value": "가격",
       "a_block_explorer": "블록 탐색기"
+    },
+    "send_transaction": {
+      "sell_crypto": "암호화폐 매도",
+      "send_description": "{{cryptocurrency}}을(를) {{provider}}에게 전송하면, {{paymentMethod}}로 현금을 받습니다.",
+      "next": "다음",
+      "hold_to_send": "길게 눌러 전송",
+      "send": "전송",
+      "sent": "전송 완료!"
     }
   },
   "swaps": {
@@ -2197,13 +2273,17 @@
     "ok": "확인"
   },
   "whats_new": {
-    "title": "새롭게 바뀐 사항을 확인하세요",
+    "title": "새로운 소식",
     "blockaid": {
       "title": "보안 경고로 안전성을 유지하세요",
-      "description_1": "Blockaid가 제공하는 보안 경고를 통해 개인정보를 보호하면서 알려진 사기를 피하세요.",
+      "description_1": "이더리움 메인넷에서 Blockaid가 제공하는 보안 경고를 통해 개인정보를 보호하면서 사기를 피하세요.",
       "description_2": "요청을 승인하기 전에 항상 직접 확인하세요.",
-      "description_3": "OpenSea에서 보안 경고를 활성화하면, 이 기능으로 이동합니다.",
       "action_text": "보안 경고 활성화"
+    },
+    "sell": {
+      "title": "간편한 현금 인출",
+      "description": "MetaMask에서 바로 암호화폐를 매도하세요! 신뢰할 수 있는 제공업체의 견적을 찾을 수 있도록 도와드립니다. 언제나 쉽고 빠르며 안전한 방법으로 암호화폐를 매도할 수 있습니다.",
+      "action_text": "사용해 보세요"
     }
   },
   "invalid_network": {
@@ -2238,7 +2318,16 @@
     "unrecognized_chain": "이 맞춤 네트워크가 인식되지 않습니다",
     "invalid_chain": "체인 ID용 %{rpcUrl}(이)가 체인 ID 네트워크 목록과 일치하지 않습니다",
     "alert_recommend": "체인 ID를",
-    "alert_verify": "인증할 것을 권고합니다"
+    "alert_verify": "인증할 것을 권고합니다",
+    "warning_subtext_new": {
+      "1": "MetaMask는 사용자 지정 네트워크를 확인하지 않습니다. 신뢰할 수 있는 네트워크만 승인하세요.",
+      "2": "네트워크 보안 위험 및 사기에 관해 자세히 알아보세요."
+    },
+    "invalid_rpc_url": "이 네트워크 URL은 이 체인 ID에 대해 알려진 공급자와 일치하지 않습니다.",
+    "invalid_chain_token_decimals": "이 네트워크의 10진수가 체인 ID와 일치하지 않는 것 같습니다.",
+    "unrecognized_chain_name": "이 네트워크의 이름이 체인 ID와 일치하지 않는 것 같습니다.",
+    "unrecognized_chain_ticker": "네트워크의 심볼이 이 체인 ID와 일치하지 않는 것 같습니다.",
+    "unrecognized_chain_id": "이 네트워크를 인식할 수 없습니다. 계속하기 전에 체인 ID가 올바른지 확인하세요."
   },
   "media_player": {
     "loading": "로딩 중...",

@@ -1,5 +1,7 @@
 # BannerAlert
 
+![BannerAlert](./BannerAlert.png)
+
 BannerAlert is an inline notification that notifies users of important information & sometimes time-sensitive changes.
 
 ## BannerAlert Props

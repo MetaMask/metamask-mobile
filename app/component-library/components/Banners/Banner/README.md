@@ -1,5 +1,8 @@
 # Banner
 
+![BannerAlert](./variants/BannerAlert/BannerAlert.png)
+![BannerTip](./variants/BannerTip/BannerTip.png)
+
 This component is a union Banner component, which consists of [BannerAlert](../BannerAlert/BannerAlert.tsx) and [BannerTip](../BannerTip/BannerTip.tsx).
 
 ## Banner Props

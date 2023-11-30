@@ -20,45 +20,16 @@ exports[`SendFlowAddressFrom should render correctly 1`] = `
     }
   >
     <Text
+      accessibilityRole="text"
       style={
-        Array [
-          Object {
-            "color": "#24272A",
-            "fontFamily": "EuclidCircularB-Regular",
-            "fontSize": 30,
-            "fontWeight": "400",
-            "marginVertical": 2,
-          },
-          undefined,
-          undefined,
-          undefined,
-          undefined,
-          undefined,
-          undefined,
-          undefined,
-          undefined,
-          undefined,
-          undefined,
-          undefined,
-          undefined,
-          undefined,
-          undefined,
-          undefined,
-          undefined,
-          undefined,
-          undefined,
-          undefined,
-          undefined,
-          undefined,
-          undefined,
-          undefined,
-          Object {
-            "color": "#24272A",
-            "fontFamily": "EuclidCircularB-Regular",
-            "fontSize": 16,
-            "fontWeight": "400",
-          },
-        ]
+        Object {
+          "color": "#24272A",
+          "fontFamily": "EuclidCircularB-Regular",
+          "fontSize": 16,
+          "fontWeight": "400",
+          "letterSpacing": 0,
+          "lineHeight": 22,
+        }
       }
     >
       From:
@@ -175,90 +146,32 @@ exports[`SendFlowAddressFrom should render correctly 1`] = `
         }
       >
         <Text
+          accessibilityRole="text"
           style={
-            Array [
-              Object {
-                "color": "#24272A",
-                "fontFamily": "EuclidCircularB-Regular",
-                "fontSize": 30,
-                "fontWeight": "400",
-                "marginVertical": 2,
-              },
-              undefined,
-              undefined,
-              undefined,
-              undefined,
-              undefined,
-              undefined,
-              undefined,
-              undefined,
-              undefined,
-              undefined,
-              undefined,
-              undefined,
-              undefined,
-              undefined,
-              undefined,
-              undefined,
-              undefined,
-              undefined,
-              undefined,
-              undefined,
-              undefined,
-              undefined,
-              undefined,
-              Object {
-                "color": "#24272A",
-                "fontFamily": "EuclidCircularB-Regular",
-                "fontSize": 14,
-                "fontWeight": "400",
-              },
-            ]
+            Object {
+              "color": "#24272A",
+              "fontFamily": "EuclidCircularB-Regular",
+              "fontSize": 14,
+              "fontWeight": "400",
+              "letterSpacing": 0,
+              "lineHeight": 22,
+            }
           }
         >
           Account 1
         </Text>
       </View>
       <Text
+        accessibilityRole="text"
         style={
-          Array [
-            Object {
-              "color": "#24272A",
-              "fontFamily": "EuclidCircularB-Regular",
-              "fontSize": 30,
-              "fontWeight": "400",
-              "marginVertical": 2,
-            },
-            undefined,
-            undefined,
-            undefined,
-            undefined,
-            undefined,
-            undefined,
-            undefined,
-            undefined,
-            undefined,
-            undefined,
-            undefined,
-            undefined,
-            undefined,
-            undefined,
-            undefined,
-            undefined,
-            undefined,
-            undefined,
-            undefined,
-            undefined,
-            undefined,
-            undefined,
-            undefined,
-            Object {
-              "color": "#535A61",
-              "fontFamily": "EuclidCircularB-Regular",
-              "fontSize": 12,
-              "fontWeight": "400",
-            },
-          ]
+          Object {
+            "color": "#535A61",
+            "fontFamily": "EuclidCircularB-Regular",
+            "fontSize": 12,
+            "fontWeight": "400",
+            "letterSpacing": 0,
+            "lineHeight": 22,
+          }
         }
       >
         Balance: 

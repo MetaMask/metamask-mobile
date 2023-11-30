@@ -20,6 +20,6 @@ describe(Regression('Create wallet account'), () => {
     await AccountListView.tapAddAccountButton();
     // Tap on Create New Account
     await AccountListView.tapCreateAccountButton();
-    await AccountListView.isNewAccountNameVisible();
+    await AccountListView.isAccount2VisibleAtIndex(1);
   });
 });

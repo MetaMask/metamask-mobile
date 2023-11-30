@@ -5,7 +5,6 @@ import {
   Platform,
   ScrollView,
   StyleSheet,
-  Text,
   TextInput,
   TouchableOpacity,
   View,
@@ -49,6 +48,9 @@ import {
 } from '../../../selectors/preferencesController';
 import { createAccountSelectorNavDetails } from '../../Views/AccountSelector';
 import { regex } from '../../../../app/util/regex';
+import Text, {
+  TextVariant,
+} from '../../../component-library/components/Texts/Text';
 
 const createStyles = (colors) =>
   StyleSheet.create({
@@ -94,8 +96,6 @@ const createStyles = (colors) =>
       borderRadius: 14,
     },
     tagText: {
-      fontSize: 12,
-      ...fontStyles.bold,
       minWidth: 32,
       textAlign: 'center',
       color: colors.text.default,
@@ -432,7 +432,10 @@ class AccountOverview extends PureComponent {
                   </TouchableOpacity>
                   {accountLabelTag && (
                     <View style={styles.tag}>
-                      <Text style={styles.tagText}>
+                      <Text
+                        variant={TextVariant.BodySMBold}
+                        style={styles.tagText}
+                      >
                         {strings(accountLabelTag)}
                       </Text>
                     </View>

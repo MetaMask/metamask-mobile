@@ -1,5 +1,7 @@
 # Tag
 
+![Tag](./Tag.png)
+
 Tag is a component used to display text within a container.
 
 ## Props

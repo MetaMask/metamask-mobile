@@ -9,7 +9,7 @@ const {
   lintTransformedFile,
 } = require('./app/transforms/remove-fenced-code');
 
-const filesExtToScan = ['.js', '.cjs', '.mjs', '.ts'];
+const filesExtToScan = ['.js', '.jsx', '.cjs', '.mjs', '.ts', '.tsx'];
 const availableFeatures = new Set(['flask', 'snaps', 'beta']);
 
 const mainFeatureSet = new Set([]);

@@ -1,5 +1,7 @@
 # TextField
 
+![TextField](./TextField.png)
+
 TextField is an input component that lets user enter a text data into a boxed field. It can sometimes contain related information or controls.
 
 ## Props

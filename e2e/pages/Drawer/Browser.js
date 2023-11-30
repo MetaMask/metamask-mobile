@@ -50,8 +50,7 @@ export default class Browser {
   }
 
   static async tapOpenNewTabButton() {
-    await TestHelpers.checkIfExists(MULTI_TAB_ADD_BUTTON);
-    await TestHelpers.tap(MULTI_TAB_ADD_BUTTON);
+    await TestHelpers.waitAndTap(MULTI_TAB_ADD_BUTTON);
   }
   static async tapNetworkAvatarButtonOnBrowser() {
     await TestHelpers.waitAndTap(BrowserViewSelectorsIDs.AVATAR_IMAGE);
@@ -217,9 +216,8 @@ export default class Browser {
   }
 
   static async navigateToTestDApp() {
-    await Browser.tapUrlInputBox();
-    await Browser.navigateToURL(TEST_DAPP_LOCAL_URL);
-    await TestHelpers.delay(3000);
+    await this.tapUrlInputBox();
+    await this.navigateToURL(TEST_DAPP_LOCAL_URL);
   }
 
   static async isURLBarTextTestDapp() {

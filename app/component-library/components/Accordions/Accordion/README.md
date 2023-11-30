@@ -1,5 +1,7 @@
 # Accordion
 
+![Accordion](./Accordion.png)
+
 Accordion is a single component, used to hide certain contents under an Accordion Header, and can be triggered to show when clicking an Accordion Header.
 
 ## Props
