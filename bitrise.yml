@@ -447,13 +447,13 @@ workflows:
                 current_branch=$(git rev-parse --abbrev-ref HEAD)
                 if [ "$current_branch" = "main" ]; then
                     echo "On main branch, we will not use cache, but will save it for future runs"
-                    envman add --key SKIP_CACHE_RESTORE --value true
+                    envman add --key SKIP_CCACHE_RESTORE --value true
                 else 
                     differences=$(git diff main...$current_branch -- $folder)
                     if [ -z "$differences" ]; then
                         echo "No differences detected, we will use main cache"
-                        envman add --key SKIP_CACHE_UPLOAD --value true
-                        envman add --key USE_MAIN_CACHE --value true
+                        envman add --key SKIP_CCACHE_UPLOAD --value true
+                        envman add --key USE_MAIN_CCACHE --value true
                     else
                         echo "$differences" > $output_file
                         echo "Differences written to $output_file"
@@ -473,9 +473,9 @@ workflows:
                 ln -s $(which ccache) /usr/local/bin/clang++
       - restore-cache@1:
           title: Restore CCache
-          run_if: '{{not (enveq "SKIP_CACHE_RESTORE" "true")}}'
+          run_if: '{{not (enveq "SKIP_CCACHE_RESTORE" "true")}}'
           inputs:
-          - key: 'ios-ccache-{{if getenv "USE_MAIN_CACHE" }}main{{else}}{{ checksum "ios-diff.txt"}}{{end}}'
+          - key: 'ios-ccache-{{if getenv "USE_MAIN_CCACHE" }}main{{else}}{{ checksum "ios-diff.txt"}}{{end}}'
       - script@1:
           inputs:
             - content: |-
@@ -497,9 +497,9 @@ workflows:
           is_always_run: false
       - save-cache@1:
           title: Save CCache
-          run_if: '{{not (enveq "SKIP_CACHE_UPLOAD" "true")}}'
+          run_if: '{{not (enveq "SKIP_CCACHE_UPLOAD" "true")}}'
           inputs:
-          - key: 'ios-ccache-{{if getenv "USE_MAIN_CACHE" }}main{{else}}{{ checksum "ios-diff.txt"}}{{end}}'
+          - key: 'ios-ccache-{{if getenv "USE_MAIN_CCACHE" }}main{{else}}{{ checksum "ios-diff.txt"}}{{end}}'
           - paths: |-
               ccache
       - script@1: 
