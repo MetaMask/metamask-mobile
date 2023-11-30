@@ -6,16 +6,8 @@ class CommonView {
     return Matchers.getElementByText('OK');
   }
 
-  get okAlertByLabel() {
-    return Matchers.getElementByLabel('OK');
-  }
-
   async tapOkAlert() {
-    if (device.getPlatform() === 'android') {
-      await Gestures.waitAndTap(this.okAlertByText);
-    } else {
-      await Gestures.waitAndTap(this.okAlertByLabel);
-    }
+    await Gestures.waitAndTap(this.okAlertByText);
   }
 }
 
