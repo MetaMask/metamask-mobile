@@ -453,7 +453,7 @@ workflows:
           title: Check native dependency diff for ios folder
           inputs:
             - content: |-
-                #!/bin/bash
+                #!/usr/bin/env bash
                 # Define the folder and the output file
                 folder="ios"
                 output_file="ios-diff.txt"
