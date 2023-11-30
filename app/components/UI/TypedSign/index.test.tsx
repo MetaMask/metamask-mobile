@@ -11,6 +11,7 @@ import { InteractionManager } from 'react-native';
 import { strings } from '../../../../locales/i18n';
 import AppConstants from '../../../core/AppConstants';
 import initialBackgroundState from '../../../util/test/initial-background-state.json';
+import analyticsV2 from '../../../util/analyticsV2';
 
 jest.mock('../../../core/Engine', () => ({
   acceptPendingApproval: jest.fn(),
@@ -21,6 +22,11 @@ jest.mock('../../../core/Engine', () => ({
         on: jest.fn(),
       },
     },
+    KeyringController: {
+      state: {
+        keyrings: [],
+      },
+    },
   },
 }));
 
@@ -28,10 +34,15 @@ jest.mock('../../../core/NotificationManager', () => ({
   showSimpleNotification: jest.fn(),
 }));
 
+jest.mock('../../../util/analyticsV2', () => ({
+  trackEvent: jest.fn(),
+}));
+
 const messageParamsMock = {
   data: { type: 'string', name: 'Message', value: 'Hi, Alice!' },
   origin: 'example.com',
   metamaskId: 'TestMessageId',
+  from: '0xC4955C0d639D99699Bfd7Ec54d9FaFEe40e4D272',
 };
 
 const mockStore = configureMockStore();
@@ -62,6 +73,14 @@ function createWrapper({
 }
 
 describe('TypedSign', () => {
+  beforeEach(() => {
+    (analyticsV2.trackEvent as jest.Mock).mockImplementation(() => undefined);
+  });
+
+  afterEach(() => {
+    (analyticsV2.trackEvent as jest.Mock).mockReset();
+  });
+
   it('should render correctly', () => {
     const wrapper = createWrapper();
     expect(wrapper).toMatchSnapshot();
@@ -174,6 +193,44 @@ describe('TypedSign', () => {
         duration: 5000,
         title: strings('notifications.wc_signed_rejected_title'),
         description: strings('notifications.wc_description'),
+      });
+    });
+  });
+
+  describe('shouldTruncateMessage', () => {
+    it('sets truncateMessage to true if message is more then 5 characters', () => {
+      const wrapper = createWrapper().dive();
+      const instance = wrapper.instance() as any;
+      instance.shouldTruncateMessage({
+        nativeEvent: {
+          layout: {
+            height: 200,
+          },
+        },
+      });
+      expect(instance.state.truncateMessage).toBe(true);
+    });
+
+    it('sets truncateMessage to false if message is less then 5 characters', () => {
+      const wrapper = createWrapper().dive();
+      const instance = wrapper.instance() as any;
+      instance.shouldTruncateMessage({
+        nativeEvent: {
+          layout: {
+            height: 50,
+          },
+        },
+      });
+      expect(instance.state.truncateMessage).toBe(false);
+    });
+
+    describe('onSignatureError', () => {
+      it('track has been called', () => {
+        const wrapper = createWrapper().dive();
+        const instance = wrapper.instance() as any;
+        const input = { error: { message: 'KeystoneError#Tx_canceled' } };
+        instance.onSignatureError(input);
+        expect(analyticsV2.trackEvent).toHaveBeenCalledTimes(2); // From component mount to onSignatureError, has been called 2 times
       });
     });
   });

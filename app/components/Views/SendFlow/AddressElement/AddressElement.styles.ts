@@ -1,6 +1,5 @@
-import { Colors } from '../../../../util/theme/models';
 import { StyleSheet } from 'react-native';
-import { fontStyles } from '../../../../styles/common';
+import { Colors } from '../../../../util/theme/models';
 
 const styleSheet = (colors: Colors) =>
   StyleSheet.create({
@@ -25,7 +24,6 @@ const styleSheet = (colors: Colors) =>
     accountNameLabelText: {
       marginLeft: 4,
       paddingHorizontal: 8,
-      ...fontStyles.bold,
       color: colors.text.alternative,
       borderWidth: 1,
       borderRadius: 8,
