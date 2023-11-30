@@ -62,9 +62,12 @@ const ApplePayButton = ({
     } catch (error: any) {
       NotificationManager.showSimpleNotification({
         duration: 5000,
-        title: strings('fiat_on_ramp_aggregator.notifications.purchase_failed_title', {
-          currency: quote.crypto?.symbol,
-        }),
+        title: strings(
+          'fiat_on_ramp_aggregator.notifications.purchase_failed_title',
+          {
+            currency: quote.crypto?.symbol,
+          },
+        ),
         description: error.message,
         status: 'error',
       });
