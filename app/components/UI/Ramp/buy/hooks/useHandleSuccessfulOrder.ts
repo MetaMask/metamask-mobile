@@ -82,7 +82,7 @@ function useHandleSuccessfulOrder() {
           return;
         }
         handleAddFiatOrder(order);
-        const notificationDetails = getNotificationDetails(order as any);
+        const notificationDetails = getNotificationDetails(order);
         if (notificationDetails) {
           NotificationManager.showSimpleNotification(notificationDetails);
         }
