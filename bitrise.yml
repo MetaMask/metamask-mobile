@@ -473,10 +473,12 @@ workflows:
                     echo "$differences" > $output_file
                     # Later use the output file to checksum and save cache
                     echo "Differences written to $output_file"
+                    envman add --key IOS_DIFF --value true
                 fi
       - restore-cache@1:
           title: Restore CCache
-          run_if: '!file_exists("ios-diff.txt")'
+          run_if: |-
+                {{.IOS_DIFF}}
           inputs:
           - key: '{{ .Arch }}-ccache-{{ checksum "ios-diff.txt" }}'
       - script@1:
@@ -500,7 +502,8 @@ workflows:
           is_always_run: false
       - save-cache@1:
           title: Save CCache
-          run_if: '!file_exists("ios-diff.txt")'
+          run_if: |-
+                {{.IOS_DIFF}}
           inputs:
           - key: '{{ .Arch }}-ccache-{{ checksum "ios-diff.txt" }}'
           - paths: |-
