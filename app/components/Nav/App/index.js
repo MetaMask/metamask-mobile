@@ -31,7 +31,7 @@ import branch from 'react-native-branch';
 import AppConstants from '../../../core/AppConstants';
 import Logger from '../../../util/Logger';
 import { trackErrorAsAnalytics } from '../../../util/analyticsV2';
-import { routingInstrumentation } from '../../../util/sentryUtils';
+import { routingInstrumentation } from '../../../util/sentry/utils';
 import Analytics from '../../../core/Analytics/Analytics';
 import { connect, useDispatch } from 'react-redux';
 import {
@@ -68,6 +68,9 @@ import AssetOptions from '../../Views/AssetOptions';
 import ImportPrivateKey from '../../Views/ImportPrivateKey';
 import ImportPrivateKeySuccess from '../../Views/ImportPrivateKeySuccess';
 import ConnectQRHardware from '../../Views/ConnectQRHardware';
+import SelectHardwareWallet from '../../Views/ConnectHardware/SelectHardware';
+import LedgerAccountInfo from '../../Views/LedgerAccountInfo';
+import LedgerConnect from '../../Views/LedgerConnect';
 import { AUTHENTICATION_APP_TRIGGERED_AUTH_NO_CREDENTIALS } from '../../../constants/error';
 import { UpdateNeeded } from '../../../components/UI/UpdateNeeded';
 import { EnableAutomaticSecurityChecksModal } from '../../../components/UI/EnableAutomaticSecurityChecksModal';
@@ -78,6 +81,8 @@ import WalletRestored from '../../Views/RestoreWallet/WalletRestored';
 import WalletResetNeeded from '../../Views/RestoreWallet/WalletResetNeeded';
 import SDKLoadingModal from '../../Views/SDKLoadingModal/SDKLoadingModal';
 import SDKFeedbackModal from '../../Views/SDKFeedbackModal/SDKFeedbackModal';
+import LedgerMessageSignModal from '../../UI/LedgerModals/LedgerMessageSignModal';
+import LedgerTransactionModal from '../../UI/LedgerModals/LedgerTransactionModal';
 import AccountActions from '../../../components/Views/AccountActions';
 import EthSignFriction from '../../../components/Views/Settings/AdvancedSettings/EthSignFriction';
 import WalletActions from '../../Views/WalletActions';
@@ -618,6 +623,23 @@ const App = ({ userLoggedIn }) => {
     </Stack.Navigator>
   );
 
+  const LedgerConnectFlow = () => (
+    <Stack.Navigator initialRouteName={Routes.HW.LEDGER_CONNECT}>
+      <Stack.Screen name={Routes.HW.LEDGER_CONNECT} component={LedgerConnect} />
+    </Stack.Navigator>
+  );
+
+  const ConnectHardwareWalletFlow = () => (
+    <Stack.Navigator name="ConnectHardwareWallet">
+      <Stack.Screen
+        name={Routes.HW.SELECT_DEVICE}
+        component={SelectHardwareWallet}
+        options={SelectHardwareWallet.navigationOptions}
+      />
+      <Stack.Screen name="LedgerAccountInfo" component={LedgerAccountInfo} />
+    </Stack.Navigator>
+  );
+
   const EditAccountNameFlow = () => (
     <Stack.Navigator>
       <Stack.Screen name="EditAccountName" component={EditAccountName} />
@@ -698,6 +720,40 @@ const App = ({ userLoggedIn }) => {
               name="ConnectQRHardwareFlow"
               component={ConnectQRHardwareFlow}
               options={{ animationEnabled: true }}
+            />
+            <Stack.Screen
+              name={Routes.HW.CONNECT_LEDGER}
+              component={LedgerConnectFlow}
+            />
+            <Stack.Screen
+              name={Routes.HW.CONNECT}
+              component={ConnectHardwareWalletFlow}
+            />
+            <Stack.Screen
+              options={{
+                //Refer to - https://reactnavigation.org/docs/stack-navigator/#animations
+                cardStyle: { backgroundColor: importedColors.transparent },
+                cardStyleInterpolator: () => ({
+                  overlayStyle: {
+                    opacity: 0,
+                  },
+                }),
+              }}
+              name={Routes.LEDGER_TRANSACTION_MODAL}
+              component={LedgerTransactionModal}
+            />
+            <Stack.Screen
+              options={{
+                //Refer to - https://reactnavigation.org/docs/stack-navigator/#animations
+                cardStyle: { backgroundColor: importedColors.transparent },
+                cardStyleInterpolator: () => ({
+                  overlayStyle: {
+                    opacity: 0,
+                  },
+                }),
+              }}
+              name={Routes.LEDGER_MESSAGE_SIGN_MODAL}
+              component={LedgerMessageSignModal}
             />
             <Stack.Screen
               name="EditAccountName"
