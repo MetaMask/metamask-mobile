@@ -1,20 +1,22 @@
 import Matchers from '../utils/Matchers';
 import Gestures from '../utils/Gestures';
 
-export default class CommonView {
-  static get okAlertByText() {
+class CommonView {
+  get okAlertByText() {
     return Matchers.getElementByText('OK');
   }
 
-  static get okAlertByLabel() {
-    return Matchers.getElementByText('OK');
+  get okAlertByLabel() {
+    return Matchers.getElementByLabel('OK');
   }
 
-  static async tapOkAlert() {
+  async tapOkAlert() {
     if (device.getPlatform() === 'android') {
       await Gestures.waitAndTap(this.okAlertByText);
+    } else {
+      await Gestures.waitAndTap(this.okAlertByLabel);
     }
-
-    await Gestures.waitAndTap(this.okAlertByLabel);
   }
 }
+
+export default new CommonView();

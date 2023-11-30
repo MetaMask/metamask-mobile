@@ -100,7 +100,6 @@ describe(
       await expect(
         await SecurityAndPrivacy.metaMetricsToggle,
       ).toHaveToggleValue(true);
-      await TestHelpers.delay(4500);
     });
 
     it('should disable metametrics', async () => {
