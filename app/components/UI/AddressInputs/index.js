@@ -18,13 +18,15 @@ import {
   getLabelTextByAddress,
 } from '../../../util/address';
 import { strings } from '../../../../locales/i18n';
-import Text from '../../Base/Text';
 import { hasZeroWidthPoints } from '../../../util/confusables';
 import { useTheme } from '../../../util/theme';
 import generateTestId from '../../../../wdio/utils/generateTestId';
 import { SEND_ADDRESS_INPUT_FIELD } from '../../../../wdio/screen-objects/testIDs/Screens/SendScreen.testIds';
 import AddToAddressBookWrapper from '../AddToAddressBookWrapper/AddToAddressBookWrapper';
 import { SendViewSelectorsIDs } from '../../../../e2e/selectors/SendView.selectors';
+import Text, {
+  TextVariant,
+} from '../../../component-library/components/Texts/Text';
 
 const createStyles = (colors, layout = 'horizontal') => {
   const isVerticalLayout = layout === 'vertical';
@@ -99,15 +101,13 @@ const createStyles = (colors, layout = 'horizontal') => {
     },
     accountNameLabelText: {
       marginLeft: 4,
-      marginTop: 4,
+      horizontalAlign: 'center',
       textAlign: 'center',
       paddingHorizontal: 8,
-      ...fontStyles.bold,
       color: colors.text.alternative,
       borderWidth: 1,
       borderRadius: 8,
       borderColor: colors.border.default,
-      fontSize: 10,
     },
     textBalance: {
       ...fontStyles.normal,
@@ -224,7 +224,12 @@ const AddressName = ({
         {toAddressName}
       </Text>
       {accountLabel && (
-        <Text style={styles.accountNameLabelText}>{strings(accountLabel)}</Text>
+        <Text
+          variant={TextVariant.BodySMBold}
+          style={styles.accountNameLabelText}
+        >
+          {strings(accountLabel)}
+        </Text>
       )}
     </View>
   );
@@ -606,7 +611,10 @@ export const AddressFrom = (props) => {
           <View style={styles.accountNameLabel}>
             <Text style={styles.textAddress}>{fromAccountName}</Text>
             {accountLabel && (
-              <Text style={styles.accountNameLabelText}>
+              <Text
+                variant={TextVariant.BodySMBold}
+                style={styles.accountNameLabelText}
+              >
                 {strings(accountLabel)}
               </Text>
             )}
