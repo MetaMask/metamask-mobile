@@ -81,7 +81,7 @@ class MetaMetrics implements IMetaMetrics {
   private segmentClient: ISegmentClient | undefined;
   private enabled = false; // default to disabled
 
-  private constructor(segmentClient: ISegmentClient) {
+  protected constructor(segmentClient: ISegmentClient) {
     this.segmentClient = segmentClient;
   }
 
@@ -169,7 +169,6 @@ class MetaMetrics implements IMetaMetrics {
    * https://segment.com/docs/connections/sources/catalog/libraries/mobile/react-native/#track
    *
    * @param event - Analytics event name.
-   * @param anonymously - Boolean indicating if the event should be anonymous.
    * @param properties - Object containing any event relevant traits or properties (optional).
    */
   #trackEvent = (event: string, properties: JsonMap): void =>
