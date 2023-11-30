@@ -438,7 +438,7 @@ workflows:
       - cocoapods-install@2:
           is_always_run: false
       - script@1: 
-          title: Setup CCache 
+          title: Install CCache 
           inputs:
             - content: |-
                 #!/usr/bin/env bash
@@ -449,15 +449,15 @@ workflows:
                 ln -s $(which ccache) /usr/local/bin/c++
                 ln -s $(which ccache) /usr/local/bin/clang
                 ln -s $(which ccache) /usr/local/bin/clang++
-                ccache --config-path $(pwd)/ccache.conf
-                ccache --set-config cache_dir=$(pwd)/ccache
-                ccache --get-config compiler_check
-                ccache -p
       - script@1:
           inputs:
             - content: |-
                 #!/usr/bin/env bash
+                ccache --config-path $(pwd)/ccache.conf
+                ccache --set-config cache_dir=$(pwd)/ccache
+                ccache --get-config compiler_check
                 source ./ccache.conf
+                ccache -p
                 if [ "$TEST_SUITE" = "Regression" ]; then
                   TEST_SUITE="Regression"
                 else
