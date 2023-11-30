@@ -1,5 +1,7 @@
 # ListItemMultiSelect
 
+![ListItemMultiSelect](./ListItemMultiSelect.png)
+
 ListItemMultiSelect is a wrapper component typically used for multi item selection scenarios.
 
 ## Props

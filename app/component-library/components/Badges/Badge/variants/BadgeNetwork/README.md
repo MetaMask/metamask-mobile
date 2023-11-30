@@ -1,5 +1,7 @@
 # BadgeNetwork
 
+![BadgeNetwork](./BadgeNetwork.png)
+
 BadgeNetwork is used on top of an element to display network information. **This component is not meant to be used by itself**. It is used by [BadgeWrapper](../BadgeWrapper/BadgeWrapper.tsx), which can render this component as a badge.
 
 ## Props
