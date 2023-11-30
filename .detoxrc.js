@@ -76,7 +76,7 @@ module.exports = {
     'ios.debug': {
       type: 'ios.app',
       binaryPath: 'ios/build/Build/Products/Debug-iphonesimulator/MetaMask.app',
-      build: "CC=clang CXX=clang CLANG=clang CLANGPLUSPLUS=clang++ LD=clang LDPLUSPLUS=clang++ yarn start:ios:e2e",
+      build: 'yarn start:ios:e2e',
     },
     'ios.release': {
       type: 'ios.app',

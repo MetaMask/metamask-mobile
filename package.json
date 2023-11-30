@@ -534,7 +534,6 @@
     "fs": "react-native-level-fs"
   },
   "engines": {
-    "node": "^18.17.1",
     "yarn": "^1.22.0"
   },
   "lavamoat": {

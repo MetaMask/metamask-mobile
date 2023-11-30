@@ -346,4 +346,3 @@ We have begun documenting our components using Storybook. Please read the [Docum
 ### Other Docs
 
 - [Adding Confirmations](./docs/confirmations.md)
-
