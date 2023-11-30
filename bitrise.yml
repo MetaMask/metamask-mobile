@@ -472,7 +472,7 @@ workflows:
                 ln -s $(which ccache) /usr/local/bin/clang++
       - restore-cache@1:
           title: Restore CCache
-          run_if: '{{not (enveq "SKIP_CACHE_RESTORE" true)}}'
+          run_if: '{{not (enveq "SKIP_CACHE_RESTORE" "true")}}'
           inputs:
           - key: 'ios-ccache-{{ if .USE_MAIN_CACHE }}main{{else}}{{ checksum "ios-diff.txt"}}'
       - script@1:
