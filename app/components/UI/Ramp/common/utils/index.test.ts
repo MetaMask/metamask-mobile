@@ -445,5 +445,10 @@ describe('getNotificationDetails', () => {
         "title": "Order completed",
       }
     `);
+    const createdDetails = getNotificationDetails({
+      ...mockSellOrder,
+      state: FIAT_ORDER_STATES.CREATED,
+    });
+    expect(createdDetails).toMatchInlineSnapshot(`null`);
   });
 });
