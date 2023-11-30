@@ -4,7 +4,7 @@ import {
   JsonMap,
   UserTraits,
 } from '@segment/analytics-react-native';
-import axios from 'axios';
+// import axios from 'axios';
 import DefaultPreference from 'react-native-default-preference';
 import Logger from '../../util/Logger';
 import {
@@ -24,7 +24,7 @@ import {
 } from './MetaMetrics.types';
 import {
   METAMETRICS_ANONYMOUS_ID,
-  SEGMENT_REGULATIONS_ENDPOINT,
+  // SEGMENT_REGULATIONS_ENDPOINT,
 } from './MetaMetrics.constants';
 import { v4 as uuidv4 } from 'uuid';
 import { bufferToHex, keccak } from 'ethereumjs-util';
@@ -220,44 +220,56 @@ class MetaMetrics implements IMetaMetrics {
   };
 
   /**
+   * TODO: this is a temporary placeholder implementation.
+   * This #createSegmentDeleteRegulation method is currently not testable
+   * because Segment delete endpoint proxy is not ready to use.
+   * The implementation is mock tested.
+   * Real work on this delete feature will be done in a next PR in this batch.
+   */
+
+  /**
    * generate a new delete regulation for the user.
    * This is necessary to respect the GDPR and CCPA regulations.
    * Check Segment documentation for more information.
    * https://segment.com/docs/privacy/user-deletion-and-suppression/
    */
-  #createSegmentDeleteRegulation = async (): Promise<{
+  #createDeleteRegulation = async (): Promise<{
     status: string;
     error?: string;
-  }> => {
-    const segmentToken = process.env.SEGMENT_DELETION_API_KEY;
-    const regulationType = 'DELETE_ONLY';
-    try {
-      const response = await axios({
-        url: SEGMENT_REGULATIONS_ENDPOINT,
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/vnd.segment.v1alpha+json',
-          Authorization: `Bearer ${segmentToken}`,
-        },
-        data: JSON.stringify({
-          regulationType,
-          subjectType: 'USER_ID',
-          subjectIds: [this.metametricsId],
-        }),
-      });
-      const { data } = response as any;
-      const { regulateId } = data;
-      await this.#storeDeleteRegulationId(regulateId);
-      await this.#storeDeleteRegulationCreationDate();
-      return { status: DataDeleteResponseStatus.ok };
-    } catch (error: any) {
-      Logger.error(error, 'Analytics Deletion Task Error');
-      return {
-        status: DataDeleteResponseStatus.error,
-        error: 'Analytics Deletion Task Error',
-      };
-    }
-  };
+  }> => ({
+    status: DataDeleteResponseStatus.error,
+    error: 'Analytics Deletion Task Error',
+  });
+  // => {
+  //   const segmentToken = process.env.SEGMENT_DELETION_API_KEY;
+  //   const regulationType = 'DELETE_ONLY';
+  //   try {
+  //     const response = await axios({
+  //       url: SEGMENT_REGULATIONS_ENDPOINT,
+  //       method: 'POST',
+  //       headers: {
+  //         'Content-Type': 'application/vnd.segment.v1alpha+json',
+  //         Authorization: `Bearer ${segmentToken}`,
+  //       },
+  //       data: JSON.stringify({
+  //         regulationType,
+  //         subjectType: 'USER_ID',
+  //         subjectIds: [this.metametricsId],
+  //       }),
+  //     });
+  //     const { data } = response as any;
+  //     const { regulateId } = data;
+  //     await this.#storeDeleteRegulationId(regulateId);
+  //     await this.#storeDeleteRegulationCreationDate();
+  //     return { status: DataDeleteResponseStatus.ok };
+  //   } catch (error: any) {
+  //     Logger.error(error, 'Analytics Deletion Task Error');
+  //     return {
+  //       status: DataDeleteResponseStatus.error,
+  //       error: 'Analytics Deletion Task Error',
+  //     };
+  //   }
+  // };
 
   /**
    * get an instance of the MetaMetrics system
@@ -381,7 +393,7 @@ class MetaMetrics implements IMetaMetrics {
   createDeleteRegulation = async (): Promise<{
     status: string;
     error?: string;
-  }> => this.#createSegmentDeleteRegulation();
+  }> => this.#createDeleteRegulation();
 
   getDeleteRegulationCreationDate = async (): Promise<string | undefined> =>
     await DefaultPreference.get(ANALYTICS_DATA_DELETION_DATE);
