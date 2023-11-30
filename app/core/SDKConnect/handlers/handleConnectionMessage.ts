@@ -116,6 +116,7 @@ export const handleConnectionMessage = async ({
       params: message.params as any,
     },
   });
+  DevLogger.log(`[handleConnectionMessage] processedRpc`, processedRpc);
 
   connection.rpcQueueManager.add({
     id: processedRpc?.id ?? message.id,

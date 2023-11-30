@@ -17,30 +17,39 @@ export const handleSendMessage = async ({
   msg: any;
   connection: Connection;
 }) => {
-  // Make sure loading modal is hidden
+  DevLogger.log(`[handleSendMessage] msg`, msg);
   connection.setLoading(false);
 
   const msgId = msg?.data?.id + '';
   let method = connection.rpcQueueManager.getId(msgId);
   // handle multichain rpc call responses separately
   const chainRPCs = connection.batchRPCManager.getById(msgId);
+  DevLogger.log(`[handleSendMessage] chainRPCs`, chainRPCs);
   if (chainRPCs) {
-    const isLastRpc = await handleBatchRpcResponse({
+    const isLastRpcOrError = await handleBatchRpcResponse({
       chainRpcs: chainRPCs,
       msg,
       batchRPCManager: connection.batchRPCManager,
       backgroundBridge: connection.backgroundBridge,
-      sendMessage: ({ msg: newmsg }: { msg: any }) =>
-        handleSendMessage({ msg: newmsg, connection }),
+      sendMessage: ({ msg: newmsg }: { msg: any }) => {
+        DevLogger.log(`[handleSendMessage] initial msg`, msg);
+        DevLogger.log(`[handleSendMessage]     new msg`, newmsg);
+        return handleSendMessage({ msg: newmsg, connection });
+      },
     });
-    if (!isLastRpc) {
+
+    // check if lastrpc or if an error occured during the chain
+    if (!isLastRpcOrError) {
       // Only continue processing the message and goback if all rpcs in the batch have been handled
+      DevLogger.log(
+        `[handleSendMessage] chainRPCs=${chainRPCs} NOT COMPLETED!`,
+      );
       return;
     }
 
     // Always set the method to metamask_batch otherwise it may not have been set correctly because of the batch rpc flow.
     method = RPC_METHODS.METAMASK_BATCH;
-    DevLogger.log(`Connection::sendMessage chainRPCs=${chainRPCs} COMPLETED!`);
+    DevLogger.log(`[handleSendMessage] chainRPCs=${chainRPCs} COMPLETED!`);
   }
 
   if (msgId && method) {
@@ -49,7 +58,7 @@ export const handleSendMessage = async ({
 
   const canRedirect = connection.rpcQueueManager.canRedirect({ method });
   DevLogger.log(
-    `Connection::sendMessage method=${method} trigger=${connection.trigger} id=${msgId} origin=${connection.origin} canRedirect=${canRedirect}`,
+    `[handleSendMessage] method=${method} trigger=${connection.trigger} id=${msgId} origin=${connection.origin} canRedirect=${canRedirect}`,
   );
 
   connection.remote.sendMessage(msg).catch((err) => {
@@ -60,14 +69,14 @@ export const handleSendMessage = async ({
 
   if (!canRedirect) {
     DevLogger.log(
-      `Connection::sendMessage canDirect=false method=${method} --- skip goBack()`,
+      `[handleSendMessage] canDirect=false method=${method} --- skip goBack()`,
       connection.rpcQueueManager,
     );
     return;
   }
 
   if (connection.trigger !== 'deeplink') {
-    DevLogger.log(`Connection::sendMessage NOT deeplink --- skip goBack()`);
+    DevLogger.log(`[handleSendMessage] NOT deeplink --- skip goBack()`);
     return;
   }
 
@@ -77,7 +86,7 @@ export const handleSendMessage = async ({
     }
 
     DevLogger.log(
-      `Connection::sendMessage method=${method} trigger=${connection.trigger} origin=${connection.origin} id=${msgId} goBack()`,
+      `[handleSendMessage] method=${method} trigger=${connection.trigger} origin=${connection.origin} id=${msgId} goBack()`,
     );
 
     // Trigger should be removed changed after redirect so we don't redirect the dapp next time and go back to nothing.

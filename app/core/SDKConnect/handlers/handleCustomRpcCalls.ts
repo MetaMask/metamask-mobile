@@ -35,7 +35,7 @@ export const handleCustomRpcCalls = async ({
       await wait(1000);
     }
 
-    const [targetRpc] = [params];
+    const targetRpc = params[0];
     const wrapedRpc = overwriteRPCWith({
       rpc: targetRpc as any,
       accountAddress: selectedAddress,
@@ -77,6 +77,10 @@ export const handleCustomRpcCalls = async ({
     processedMessage.jsonrpc = '2.0';
     processedMessage.method = batchRpc.method;
     processedMessage.params = batchRpc.params;
+    DevLogger.log(
+      `handleCustomRpcCalls method=${method} id=${id}`,
+      processedMessage,
+    );
   }
   return processedMessage;
 };

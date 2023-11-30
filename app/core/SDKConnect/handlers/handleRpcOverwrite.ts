@@ -10,6 +10,7 @@ export const overwriteRPCWith = ({
   accountAddress: string;
   selectedChainId: string;
 }) => {
+  DevLogger.log(`overwriteRPCWith:: method=${rpc?.method}`, rpc);
   // Handle
   if (rpc.method.toLowerCase() === RPC_METHODS.PERSONAL_SIGN.toLowerCase()) {
     // Replace address value with the selected address
