@@ -18,7 +18,9 @@ import {
   isSellQuote,
   isSellOrder,
   isSellFiatOrder,
+  getNotificationDetails,
 } from '.';
+import { FIAT_ORDER_STATES } from '../../../../../constants/on-ramp';
 import { FiatOrder, RampType } from '../../../../../reducers/fiatOrders/types';
 
 describe('timeToDescription', () => {
@@ -331,5 +333,117 @@ describe('Type assertion functions', () => {
     it('should return false if orderType is BUY', () => {
       expect(isSellFiatOrder({ orderType: 'BUY' } as FiatOrder)).toBe(false);
     });
+  });
+});
+
+describe('getNotificationDetails', () => {
+  const mockOrder = {
+    state: FIAT_ORDER_STATES.PENDING,
+    orderType: OrderOrderTypeEnum.Buy,
+    cryptocurrency: 'ETH',
+    cryptoAmount: '0.01',
+  } as FiatOrder;
+
+  const mockSellOrder = {
+    ...mockOrder,
+    orderType: OrderOrderTypeEnum.Sell,
+  };
+
+  it('should return correct details for buy orders', () => {
+    const pendingDetails = getNotificationDetails(mockOrder);
+    expect(pendingDetails).toMatchInlineSnapshot(`
+      Object {
+        "description": "This should only take a few minutes...",
+        "duration": 5000,
+        "status": "pending",
+        "title": "Processing your purchase of ETH",
+      }
+    `);
+    const cancelledDetails = getNotificationDetails({
+      ...mockOrder,
+      state: FIAT_ORDER_STATES.CANCELLED,
+    });
+    expect(cancelledDetails).toMatchInlineSnapshot(`
+      Object {
+        "description": "Verify your payment method and card support",
+        "duration": 5000,
+        "status": "cancelled",
+        "title": "Your purchase was cancelled",
+      }
+    `);
+    const failedDetails = getNotificationDetails({
+      ...mockOrder,
+      state: FIAT_ORDER_STATES.FAILED,
+    });
+    expect(failedDetails).toMatchInlineSnapshot(`
+      Object {
+        "description": "Verify your payment method and card support",
+        "duration": 5000,
+        "status": "error",
+        "title": "Purchase of ETH has failed! Please try again, sorry for the inconvenience!",
+      }
+    `);
+
+    const completedDetails = getNotificationDetails({
+      ...mockOrder,
+      state: FIAT_ORDER_STATES.COMPLETED,
+    });
+    expect(completedDetails).toMatchInlineSnapshot(`
+      Object {
+        "description": "Your ETH is now available",
+        "duration": 5000,
+        "status": "success",
+        "title": "Your purchase of 0.01 ETH was successful!",
+      }
+    `);
+  });
+
+  it('should return correct details for sell orders', () => {
+    const pendingDetails = getNotificationDetails(mockSellOrder);
+    expect(pendingDetails).toMatchInlineSnapshot(`
+      Object {
+        "description": "Your order is now being processed.",
+        "duration": 5000,
+        "status": "pending",
+        "title": "ETH sale processing",
+      }
+    `);
+    const cancelledDetails = getNotificationDetails({
+      ...mockSellOrder,
+      state: FIAT_ORDER_STATES.CANCELLED,
+    });
+    expect(cancelledDetails).toMatchInlineSnapshot(`
+      Object {
+        "description": "Your order couldn´t be completed.",
+        "duration": 5000,
+        "status": "cancelled",
+        "title": "Order cancelled",
+      }
+    `);
+    const failedDetails = getNotificationDetails({
+      ...mockSellOrder,
+      state: FIAT_ORDER_STATES.FAILED,
+    });
+    expect(failedDetails).toMatchInlineSnapshot(`
+      Object {
+        "description": "Your order couldn´t be completed.",
+        "duration": 5000,
+        "status": "error",
+        "title": "Order failed",
+      }
+    `);
+
+    const completedDetails = getNotificationDetails({
+      ...mockSellOrder,
+      state: FIAT_ORDER_STATES.COMPLETED,
+    });
+    expect(completedDetails).toMatchInlineSnapshot(`
+      Object {
+        "description": "Your order was successful!.",
+        "duration": 5000,
+        "status": "success",
+        "title": "Order completed",
+      }
+    `);
   });
 });
