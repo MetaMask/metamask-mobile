@@ -176,11 +176,11 @@ workflows:
                 #!/usr/bin/env bash
                 envman add --key YARN_CACHE_DIR --value "$(yarn cache dir)"
           title: Get Yarn cache directory
-      - yarn@0:
-          # run_if: '{{not (enveq "BITRISE_CACHE_HIT" "exact")}}'
-          inputs:
-            - command: setup
-          title: Yarn Setup
+      # - yarn@0:
+      #     run_if: '{{not (enveq "BITRISE_CACHE_HIT" "exact")}}'
+      #     inputs:
+      #       - command: setup
+      #     title: Yarn Setup
       - yarn@0:
           title: Lint
           inputs:
@@ -193,7 +193,9 @@ workflows:
           title: Save cache dependencies 
           inputs:
           - key: '{{ .OS }}-{{ .Arch }}-node-modules-{{ checksum "yarn.lock" }}'
-          - paths: $YARN_CACHE_DIR
+          - paths: |-
+              $YARN_CACHE_DIR
+              node_modules
   code_setup_dev:
     steps:
       - script@1:
@@ -223,6 +225,18 @@ workflows:
           title: Restore cache dependencies
           inputs:
           - key: '{{ .OS }}-{{ .Arch }}-node-modules-{{ checksum "yarn.lock" }}'
+      - yarn@0:
+          run_if: '{{not (enveq "BITRISE_CACHE_HIT" "exact")}}'
+          inputs:
+            - command: setup
+          title: Yarn Setup
+      - script@1:
+          run_if: '{{enveq "BITRISE_CACHE_HIT" "exact"}}'
+          inputs:
+            - content: |-
+                #!/usr/bin/env bash
+                ./scripts/postinstall.sh
+          title: Run postinstall
 
   # Notifications utility workflows
   # Provides values for commit or branch message and path depending on commit env setup initialised or not
@@ -387,8 +401,8 @@ workflows:
     before_run:
     - code_setup_dev
     - e2e_setup
-    after_run:
-    - _notify_failure_on_slack
+    # after_run:
+    # - _notify_failure_on_slack
     steps:
     - restore-gradle-cache@1: {}
     - restore-cache@1:
@@ -437,8 +451,8 @@ workflows:
     - setup
     - prep_environment
     - e2e_setup
-    after_run:
-    - _notify_failure_on_slack
+    # after_run:
+    # - _notify_failure_on_slack
     steps:
     - restore-gradle-cache@1: {}
     - restore-cache@1:
@@ -511,8 +525,8 @@ workflows:
     before_run:
       - code_setup_dev
       - e2e_setup
-    after_run:
-      - _notify_failure_on_slack
+    # after_run:
+    #   - _notify_failure_on_slack
     steps:
       - restore-cocoapods-cache@1: {}
       - certificate-and-profile-installer@1: {}
@@ -566,8 +580,8 @@ workflows:
       - setup
       - prep_environment
       - e2e_setup
-    after_run:
-      - _notify_failure_on_slack
+    # after_run:
+    #   - _notify_failure_on_slack
     steps:
       - restore-cache@1:
           title: Restore cache build
