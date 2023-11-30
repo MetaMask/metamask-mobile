@@ -452,6 +452,7 @@ workflows:
                     differences=$(git diff main...$current_branch -- $folder)
                     if [ -z "$differences" ]; then
                         echo "No differences detected, we will use main cache"
+                        envman add --key SKIP_CACHE_UPLOAD --value true
                         envman add --key USE_MAIN_CACHE --value true
                     else
                         echo "$differences" > $output_file
@@ -496,6 +497,7 @@ workflows:
           is_always_run: false
       - save-cache@1:
           title: Save CCache
+          run_if: '{{not (enveq "SKIP_CACHE_UPLOAD" "true")}}'
           inputs:
           - key: 'ios-ccache-{{if getenv "USE_MAIN_CACHE" }}main{{else}}{{ checksum "ios-diff.txt"}}{{end}}'
           - paths: |-
