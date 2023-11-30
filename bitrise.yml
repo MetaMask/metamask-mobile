@@ -450,9 +450,9 @@ workflows:
                 ln -s $(which ccache) /usr/local/bin/clang
                 ln -s $(which ccache) /usr/local/bin/clang++
       - restore-cache@1:
-        title: Restore CCache
-        inputs:
-        - key: '{{ .OS }}-{{ .Arch }}-ccache-{{ checksum "ios/Podfile.lock" }}'
+          title: Restore CCache
+          inputs:
+          - key: '{{ .OS }}-{{ .Arch }}-ccache-{{ checksum "ios/Podfile.lock" }}'
       - script@1:
           inputs:
             - content: |-
