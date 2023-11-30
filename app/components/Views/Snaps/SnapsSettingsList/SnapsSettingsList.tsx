@@ -13,6 +13,7 @@ import { strings } from '../../../../../locales/i18n';
 import { useStyles } from '../../../../component-library/hooks';
 import stylesheet from './SnapsSettingsList.styles';
 import RNFetchBlob, { FetchBlobResponse } from 'rn-fetch-blob';
+import Logger from '../../../../util/Logger';
 
 const { RNTar } = NativeModules;
 
@@ -68,6 +69,10 @@ const SnapsSettingsList = () => {
     const path = res.data;
     try {
       const decompressedDataLocation = await RNTar.unTar(path, targetDir);
+      Logger.log(
+        'SNAPS/ Decompressed data location: ',
+        decompressedDataLocation,
+      );
       Alert.alert(
         'Success',
         'Decompressed data location: ' + decompressedDataLocation,

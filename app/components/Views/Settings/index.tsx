@@ -29,7 +29,9 @@ import {
   REQUEST_SETTINGS,
   SECURITY_SETTINGS,
 } from '../../../../wdio/screen-objects/testIDs/Screens/Settings.testIds';
+///: BEGIN:ONLY_INCLUDE_IN(flask)
 import { createSnapsSettingsListNavDetails } from '../Snaps/SnapsSettingsList/SnapsSettingsList';
+///: END:ONLY_INCLUDE_IN
 
 const createStyles = (colors: Colors) =>
   StyleSheet.create({
@@ -114,9 +116,13 @@ const Settings = () => {
       },
     });
   };
+
+  ///: BEGIN:ONLY_INCLUDE_IN(flask)
   const onPressSnaps = () => {
     navigation.navigate(...createSnapsSettingsListNavDetails());
   };
+  ///: END:ONLY_INCLUDE_IN
+
   const submitFeedback = () => {
     trackEvent(MetaMetricsEvents.NAVIGATION_TAPS_SEND_FEEDBACK);
     goToBrowserUrl(
@@ -209,11 +215,17 @@ const Settings = () => {
         onPress={onPressNetworks}
         testID={NETWORKS_SETTINGS}
       />
+      {
+        ///: BEGIN:ONLY_INCLUDE_IN(flask)
+      }
       <SettingsDrawer
         title={strings('app_settings.snaps.title')}
         description={strings('app_settings.snaps.description')}
         onPress={onPressSnaps}
       />
+      {
+        ///: END:ONLY_INCLUDE_IN
+      }
       <SettingsDrawer
         title={strings('app_settings.fiat_on_ramp.title')}
         description={strings('app_settings.fiat_on_ramp.description')}
