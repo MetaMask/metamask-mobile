@@ -43,6 +43,7 @@ pipelines:
   #PR_e2e_verfication (build ios & android), run iOS (smoke), emulator Android
   release_e2e_pipeline:
     stages:
+      - build_e2e_ios_android_stage: {}
       - run_e2e_ios_android_stage: {}
       # - build_regression_e2e_ios_android_stage: {} Enable whenever regression tests are running successfully.
       # - run_regression_e2e_ios_android_stage: {} Enable whenever regression tests are running successfully. 
@@ -119,6 +120,10 @@ stages:
     workflows:
       - ios_e2e_test: {}
       - android_e2e_test: {}
+  build_e2e_ios_android_stage:
+    workflows:
+      - ios_e2e_build: {}
+      - android_e2e_build: {}
   build_e2e_android_stage:
     workflows:
       - android_e2e_build: {}
@@ -144,6 +149,12 @@ workflows:
       - setup
       - prep_environment
     steps:
+      - script@1:
+          inputs:
+            - content: |-
+                #!/usr/bin/env bash
+                envman add --key YARN_CACHE_DIR --value "$(yarn cache dir)"
+          title: Get Yarn cache directory
       - yarn@0:
           # run_if: '{{not (enveq "BITRISE_CACHE_HIT" "exact")}}'
           inputs:
@@ -161,9 +172,7 @@ workflows:
           title: Save cache dependencies 
           inputs:
           - key: '{{ .OS }}-{{ .Arch }}-node-modules-{{ checksum "yarn.lock" }}'
-          - paths: |-
-              node_modules
-              yarn.lock
+          - paths: $YARN_CACHE_DIR
   code_setup_dev:
     steps:
       - script@1:
