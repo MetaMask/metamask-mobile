@@ -6,11 +6,13 @@ import com.facebook.react.bridge.ReactApplicationContext;
 import org.junit.Before;
 import org.junit.Test;
 import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.assertEquals;
 import org.junit.runner.RunWith;
 import org.junit.runners.JUnit4;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
+import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -68,10 +70,18 @@ public class RNTarTest {
       Path expectedDecompressedPath = Paths.get(outputPath, "package");
       verify(promise).resolve(expectedDecompressedPath.toString());
 
+      // verify the filename is properly parsed
       File outputDir = new File(outputPath, "package");
       String expectedFilename = "test.txt";
       File extractedFile = new File(outputDir, expectedFilename);
       assertTrue("Extracted file with correct filename does not exist: " + extractedFile.getAbsolutePath(), extractedFile.exists());
+
+      // Read the content of the file
+      String fileContent = new String(Files.readAllBytes(extractedFile.toPath()), StandardCharsets.UTF_8);
+
+      // Assert that the file content is as expected
+      String expectedContent = "testing";
+      assertEquals("Extracted file content does not match expected content", expectedContent, fileContent.trim());
     } finally {
       tgzResource.close();
     }
