@@ -467,25 +467,24 @@ export default class AndroidService extends EventEmitter2 {
     // handle multichain rpc call responses separately
     const chainRPCs = this.batchRPCManager.getById(id);
     if (chainRPCs) {
-      const isLastRpc = await handleBatchRpcResponse({
+      const isLastRpcOrError = await handleBatchRpcResponse({
         chainRpcs: chainRPCs,
         msg: message,
         backgroundBridge: this.bridgeByClientId[this.currentClientId ?? ''],
         batchRPCManager: this.batchRPCManager,
         sendMessage: ({ msg }) => this.sendMessage(msg),
       });
-      // FIXME on android we need to manually send the next rpc request.
-
       DevLogger.log(
-        `AndroidService::sendMessage isLastRpc=${isLastRpc}`,
+        `AndroidService::sendMessage isLastRpc=${isLastRpcOrError}`,
         chainRPCs,
       );
 
-      if (!isLastRpc) {
+      if (!isLastRpcOrError) {
         DevLogger.log(
           `AndroidService::sendMessage NOT last rpc --- skip goBack()`,
           chainRPCs,
         );
+        this.rpcQueueManager.remove(id);
         // Only continue processing the message and goback if all rpcs in the batch have been handled
         return;
       }
@@ -497,15 +496,18 @@ export default class AndroidService extends EventEmitter2 {
       );
     }
 
+    this.rpcQueueManager.remove(id);
+
     if (!rpcMethod && forceRedirect !== true) {
+      DevLogger.log(
+        `Connection::sendMessage no rpc method --- rpcMethod=${rpcMethod} forceRedirect=${forceRedirect} --- skip goBack()`,
+      );
       return;
     }
 
     const needsRedirect = this.rpcQueueManager.canRedirect({
       method: rpcMethod,
     });
-
-    this.rpcQueueManager.remove(id);
 
     if (needsRedirect || forceRedirect === true) {
       try {
