@@ -5,6 +5,7 @@ import com.facebook.react.bridge.Promise;
 import com.facebook.react.bridge.ReactApplicationContext;
 import org.junit.Before;
 import org.junit.Test;
+import static org.junit.Assert.assertTrue;
 import org.junit.runner.RunWith;
 import org.junit.runners.JUnit4;
 import java.io.File;
@@ -45,7 +46,7 @@ public class RNTarTest {
     CountDownLatch latch = new CountDownLatch(1); // Create a CountDownLatch
 
     try {
-      File tgzFile = new File(reactContext.getCacheDir(), "validTgzFile.tgz");
+      File tgzFile = new File(reactContext.getCacheDir(), "validTestTGZFile.tgz");
       Files.copy(tgzResource, tgzFile.toPath(), StandardCopyOption.REPLACE_EXISTING);
       String outputPath = reactContext.getCacheDir().getAbsolutePath() + "/output";
 
@@ -66,6 +67,11 @@ public class RNTarTest {
       // Verify the promise was resolved with the expected path
       Path expectedDecompressedPath = Paths.get(outputPath, "package");
       verify(promise).resolve(expectedDecompressedPath.toString());
+
+      File outputDir = new File(outputPath, "package");
+      String expectedFilename = "test.txt";
+      File extractedFile = new File(outputDir, expectedFilename);
+      assertTrue("Extracted file with correct filename does not exist: " + extractedFile.getAbsolutePath(), extractedFile.exists());
     } finally {
       tgzResource.close();
     }
