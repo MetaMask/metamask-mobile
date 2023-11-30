@@ -800,12 +800,14 @@ class Engine {
       TokenDetectionController,
       TokenListController,
       TransactionController,
+      TokenRatesController,
     } = this.context;
 
     TokenListController.start();
     NftDetectionController.start();
     TokenDetectionController.start();
     TransactionController.startIncomingTransactionPolling();
+    TokenRatesController.start();
   }
 
   configureControllersOnNetworkChange() {

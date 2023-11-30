@@ -600,7 +600,7 @@ index 8bb7c20..cda8bb7 100644
       * Fetches a pairs of token address and native currency.
       *
 diff --git a/node_modules/@metamask/assets-controllers/dist/TokenRatesController.js b/node_modules/@metamask/assets-controllers/dist/TokenRatesController.js
-index e3f81e9..148957f 100644
+index e3f81e9..8f037ca 100644
 --- a/node_modules/@metamask/assets-controllers/dist/TokenRatesController.js
 +++ b/node_modules/@metamask/assets-controllers/dist/TokenRatesController.js
 @@ -8,11 +8,36 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
@@ -685,7 +685,7 @@ index e3f81e9..148957f 100644
              threshold: 6 * 60 * 60 * 1000,
          };
          this.defaultState = {
-@@ -85,60 +117,56 @@ class TokenRatesController extends base_controller_1.BaseController {
+@@ -85,60 +117,57 @@ class TokenRatesController extends base_controller_1.BaseController {
          if (config === null || config === void 0 ? void 0 : config.disabled) {
              this.configure({ disabled: true }, false, false);
          }
@@ -727,7 +727,7 @@ index e3f81e9..148957f 100644
 +            if (this.config.chainId !== chainId ||
 +                this.config.nativeCurrency !== ticker) {
 +                this.update({ contractExchangeRates: {} });
-+                this.configure({ chainId, nativeCurrency: ticker });
++                this.configure({ chainId, nativeCurrency: ticker ?? 'ETH' });
 +                __classPrivateFieldGet(this, _TokenRatesController_instances, "m", _TokenRatesController_updateTokenList).call(this);
 +                if (__classPrivateFieldGet(this, _TokenRatesController_pollState, "f") === PollState.Active) {
 +                    yield this.updateExchangeRates();
@@ -735,6 +735,7 @@ index e3f81e9..148957f 100644
 +            }
 +        }));
      }
++
      /**
 -     * Sets a new polling interval.
 -     *
@@ -788,7 +789,7 @@ index e3f81e9..148957f 100644
      }
      /**
       * Fetches a pairs of token address and native currency.
-@@ -147,11 +175,12 @@ class TokenRatesController extends base_controller_1.BaseController {
+@@ -147,11 +176,12 @@ class TokenRatesController extends base_controller_1.BaseController {
       * @param vsCurrency - Query according to tokens in tokenList and native currency.
       * @returns The exchange rates for the given pairs.
       */
@@ -804,7 +805,7 @@ index e3f81e9..148957f 100644
          });
      }
      /**
-@@ -241,7 +270,7 @@ class TokenRatesController extends base_controller_1.BaseController {
+@@ -241,7 +271,7 @@ class TokenRatesController extends base_controller_1.BaseController {
              const nativeCurrencySupported = yield this.checkIsSupportedVsCurrency(nativeCurrency);
              if (nativeCurrencySupported) {
                  // If it is we can do a simple fetch against the CoinGecko API
@@ -813,7 +814,7 @@ index e3f81e9..148957f 100644
                  this.tokenList.forEach((token) => {
                      const price = prices[token.address.toLowerCase()];
                      contractExchangeRates[(0, controller_utils_1.toChecksumHexAddress)(token.address)] = price
-@@ -259,7 +288,7 @@ class TokenRatesController extends base_controller_1.BaseController {
+@@ -259,7 +289,7 @@ class TokenRatesController extends base_controller_1.BaseController {
                          tokenExchangeRates,
                          { conversionRate: vsCurrencyToNativeCurrencyConversionRate },
                      ] = yield Promise.all([
@@ -822,7 +823,7 @@ index e3f81e9..148957f 100644
                          (0, crypto_compare_1.fetchExchangeRate)(nativeCurrency, controller_utils_1.FALL_BACK_VS_CURRENCY, false),
                      ]);
                  }
-@@ -282,5 +311,26 @@ class TokenRatesController extends base_controller_1.BaseController {
+@@ -282,5 +312,26 @@ class TokenRatesController extends base_controller_1.BaseController {
      }
  }
  exports.TokenRatesController = TokenRatesController;
