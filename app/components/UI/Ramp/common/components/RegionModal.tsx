@@ -112,8 +112,8 @@ const RegionModal: React.FC<Props> = ({
   >({});
   const [showAlert, setShowAlert] = useState(false);
 
-  const dataSearchResults = useMemo(() => {
-    const allRegions: Region[] = currentData.reduce(
+  const fuseData = useMemo(() => {
+    const flatRegions: Region[] = currentData.reduce(
       (acc: Region[], region: Region) => [
         ...acc,
         region,
@@ -121,19 +121,20 @@ const RegionModal: React.FC<Props> = ({
       ],
       [],
     );
+    return new Fuse(flatRegions, {
+      shouldSort: true,
+      threshold: 0.2,
+      location: 0,
+      distance: 100,
+      maxPatternLength: 32,
+      minMatchCharLength: 1,
+      keys: ['name'],
+    });
+  }, [currentData]);
 
+  const dataSearchResults = useMemo(() => {
     if (searchString.length > 0) {
-      const dataFuse = new Fuse(allRegions, {
-        shouldSort: true,
-        threshold: 0.2,
-        location: 0,
-        distance: 100,
-        maxPatternLength: 32,
-        minMatchCharLength: 1,
-        keys: ['name'],
-      });
-
-      const results = dataFuse
+      const results = fuseData
         .search(searchString)
         ?.slice(0, MAX_REGION_RESULTS);
 
@@ -150,7 +151,7 @@ const RegionModal: React.FC<Props> = ({
 
     if (!currentData?.length) return [];
 
-    const popularRegions = allRegions.filter((region) => region.recommended);
+    const popularRegions = currentData.filter((region) => region.recommended);
 
     if (popularRegions.length) {
       return [
@@ -171,7 +172,7 @@ const RegionModal: React.FC<Props> = ({
         data: currentData,
       },
     ];
-  }, [searchString, currentData]);
+  }, [searchString, currentData, fuseData]);
 
   const scrollToTop = useCallback(() => {
     if (list?.current && dataSearchResults?.length) {
