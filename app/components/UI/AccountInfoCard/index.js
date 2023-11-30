@@ -1,6 +1,6 @@
 import React, { PureComponent } from 'react';
 import PropTypes from 'prop-types';
-import { StyleSheet, View, Text } from 'react-native';
+import { StyleSheet, View } from 'react-native';
 import { fontStyles } from '../../../styles/common';
 import { renderFromWei, weiToFiat, hexToBN } from '../../../util/number';
 import Identicon from '../Identicon';
@@ -27,6 +27,9 @@ import {
 import { selectAccounts } from '../../../selectors/accountTrackerController';
 import { selectIdentities } from '../../../selectors/preferencesController';
 import ApproveTransactionHeader from '../ApproveTransactionHeader';
+import Text, {
+  TextVariant,
+} from '../../../component-library/components/Texts/Text';
 
 const createStyles = (colors) =>
   StyleSheet.create({
@@ -91,8 +94,6 @@ const createStyles = (colors) =>
     },
     tagText: {
       textAlign: 'center',
-      fontSize: 8,
-      ...fontStyles.bold,
       color: colors.text.default,
     },
   });
@@ -214,7 +215,9 @@ class AccountInfoCard extends PureComponent {
         </View>
         {accountLabelTag && (
           <View style={styles.tag}>
-            <Text style={styles.tagText}>{strings(accountLabelTag)}</Text>
+            <Text variant={TextVariant.BodySMBold} style={styles.tagText}>
+              {strings(accountLabelTag)}
+            </Text>
           </View>
         )}
       </View>

@@ -29,6 +29,8 @@ const initialRootState: RootState = {
   security: initialSecurityState,
   signatureRequest: undefined,
   experimentalSettings: undefined,
+  rpcEvents: undefined,
+  accounts: undefined,
 };
 
 export default initialRootState;
