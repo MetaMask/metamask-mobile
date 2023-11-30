@@ -449,6 +449,10 @@ workflows:
                 ln -s $(which ccache) /usr/local/bin/c++
                 ln -s $(which ccache) /usr/local/bin/clang
                 ln -s $(which ccache) /usr/local/bin/clang++
+      - restore-cache@1:
+        title: Restore CCache
+        inputs:
+        - key: '{{ .OS }}-{{ .Arch }}-ccache-{{ checksum "ios/Podfile.lock" }}'
       - script@1:
           inputs:
             - content: |-
@@ -474,6 +478,12 @@ workflows:
           inputs:
             - content: |-
                 ccache -s
+      - save-cache@1:
+          title: Save cache dependencies 
+          inputs:
+          - key: '{{ .OS }}-{{ .Arch }}-ccache-{{ checksum "ios/Podfile.lock" }}'
+          - paths: |-
+              ccache
       - custom-test-results-export@1:
           is_always_run: true
           is_skippable: false
