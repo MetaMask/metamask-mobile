@@ -474,7 +474,7 @@ workflows:
           title: Restore CCache
           run_if: '{{not (enveq "SKIP_CACHE_RESTORE" "true")}}'
           inputs:
-          - key: 'ios-ccache-{{ if .USE_MAIN_CACHE }}main{{else}}{{ checksum "ios-diff.txt"}}'
+          - key: 'ios-ccache-{{if getenv "USE_MAIN_CACHE" }}main{{else}}{{ checksum "ios-diff.txt"}}'
       - script@1:
           inputs:
             - content: |-
@@ -497,7 +497,7 @@ workflows:
       - save-cache@1:
           title: Save CCache
           inputs:
-          - key: 'ios-ccache-{{ if .USE_MAIN_CACHE }}main{{else}}{{ checksum "ios-diff.txt"}}'
+          - key: 'ios-ccache-{{if getenv "USE_MAIN_CACHE" }}main{{else}}{{ checksum "ios-diff.txt"}}'
           - paths: |-
               ccache
       - script@1: 
