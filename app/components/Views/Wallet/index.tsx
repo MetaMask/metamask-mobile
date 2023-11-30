@@ -149,7 +149,7 @@ const Wallet = ({ navigation }: any) => {
 
   useEffect(() => {
     const { TokenRatesController } = Engine.context;
-    TokenRatesController.poll();
+    TokenRatesController.updateExchangeRates();
   }, [tokens]);
 
   /**

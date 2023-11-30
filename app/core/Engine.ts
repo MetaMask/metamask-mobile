@@ -538,25 +538,19 @@ class Engine {
         },
         { interval: 10000 },
       ),
-      new TokenRatesController(
-        {
-          onTokensStateChange: (listener) =>
-            tokensController.subscribe(listener),
-          onCurrencyRateStateChange: (listener) =>
-            this.controllerMessenger.subscribe(
-              `${currencyRateController.name}:stateChange`,
-              listener,
-            ),
-          onNetworkStateChange: (listener) =>
-            this.controllerMessenger.subscribe(
-              AppConstants.NETWORK_STATE_CHANGE_EVENT,
-              listener,
-            ),
-        },
-        {
-          chainId: networkController.state.providerConfig.chainId,
-        },
-      ),
+      new TokenRatesController({
+        onTokensStateChange: (listener) => tokensController.subscribe(listener),
+        onNetworkStateChange: (listener) =>
+          this.controllerMessenger.subscribe(
+            AppConstants.NETWORK_STATE_CHANGE_EVENT,
+            listener,
+          ),
+        onPreferencesStateChange: (listener) =>
+          preferencesController.subscribe(listener),
+        chainId: networkController.state.providerConfig.chainId,
+        ticker: networkController.state.providerConfig.ticker ?? 'ETH',
+        selectedAddress: preferencesController.state.selectedAddress,
+      }),
       new TransactionController({
         blockTracker:
           networkController.getProviderAndBlockTracker().blockTracker,
