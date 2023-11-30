@@ -1,5 +1,7 @@
 # BottomSheetHeader
 
+![BottomSheetHeader](./BottomSheetHeader.png)
+
 BottomSheetHeader is a Header component specifically used for BottomSheets.
 
 ## Props
