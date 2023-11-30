@@ -107,6 +107,9 @@ const Routes = {
   ADD_NETWORK: 'AddNetwork',
   SWAPS: 'Swaps',
   LOCK_SCREEN: 'LockScreen',
+  SNAPS: {
+    SNAPS_SETTINGS_LIST: 'SnapsSettingsList',
+  },
 };
 
 export default Routes;
