@@ -438,6 +438,30 @@ workflows:
       - cocoapods-install@2:
           is_always_run: false
       - script@1: 
+          title: Check native dependency diff for ios folder
+          inputs:
+            - content: |-
+                #!/usr/bin/env bash
+                folder="ios"
+                output_file="ios-diff.txt"
+                current_branch=$(git rev-parse --abbrev-ref HEAD)
+                if [ "$current_branch" = "main" ]; then
+                    # If the current branch is "main", get the diff for the last commit
+                    differences=$(git diff HEAD^ HEAD -- $folder)
+                else
+                    # If the current branch is not "main", get the diff with "main"
+                    differences=$(git diff main...$current_branch -- $folder)
+                fi
+                if [ -z "$differences" ]; then
+                    echo "No differences detected"
+                    envman add --key IOS_DIFF --value false
+                else
+                    echo "$differences" > $output_file
+                    # Later use the output file to checksum and save cache
+                    echo "Differences written to $output_file"
+                    envman add --key IOS_DIFF --value true
+                fi
+      - script@1: 
           title: Install CCache & symlink 
           inputs:
             - content: |-
@@ -449,32 +473,6 @@ workflows:
                 ln -s $(which ccache) /usr/local/bin/c++
                 ln -s $(which ccache) /usr/local/bin/clang
                 ln -s $(which ccache) /usr/local/bin/clang++
-      - script@1: 
-          title: Check native dependency diff for ios folder
-          inputs:
-            - content: |-
-                #!/usr/bin/env bash
-                # Define the folder and the output file
-                folder="ios"
-                output_file="ios-diff.txt"
-                # Get the current branch
-                current_branch=$(git rev-parse --abbrev-ref HEAD)
-                if [ "$current_branch" = "main" ]; then
-                    # If the current branch is "main", get the diff for the last commit
-                    differences=$(git diff HEAD^ HEAD -- $folder)
-                else
-                    # If the current branch is not "main", get the diff with "main"
-                    differences=$(git diff main...$current_branch -- $folder)
-                fi
-                # Check if the differences string is empty
-                if [ -z "$differences" ]; then
-                    echo "No differences detected"
-                else
-                    echo "$differences" > $output_file
-                    # Later use the output file to checksum and save cache
-                    echo "Differences written to $output_file"
-                    envman add --key IOS_DIFF --value true
-                fi
       - restore-cache@1:
           title: Restore CCache
           run_if: |-
@@ -485,10 +483,12 @@ workflows:
           inputs:
             - content: |-
                 #!/usr/bin/env bash
-                ccache --config-path $(pwd)/ccache.conf
-                ccache --set-config cache_dir=$(pwd)/ccache
-                source ./ccache.conf
-                ccache -p
+                if [ "$IOS_DIFF" = true ] ; then
+                  ccache --config-path $(pwd)/ccache.conf
+                  ccache --set-config cache_dir=$(pwd)/ccache
+                  source ./ccache.conf
+                  ccache -p
+                fi
                 if [ "$TEST_SUITE" = "Regression" ]; then
                   TEST_SUITE="Regression"
                 else
