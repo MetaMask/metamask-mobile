@@ -451,13 +451,13 @@ workflows:
                 ln -s $(which ccache) /usr/local/bin/clang++
                 ccache --config-path $(pwd)/ccache.conf
                 ccache --set-config cache_dir=$(pwd)/ccache
-                source ./ccache.conf
                 ccache --get-config compiler_check
                 ccache -p
       - script@1:
           inputs:
             - content: |-
                 #!/usr/bin/env bash
+                source ./ccache.conf
                 if [ "$TEST_SUITE" = "Regression" ]; then
                   TEST_SUITE="Regression"
                 else
