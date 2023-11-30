@@ -446,20 +446,17 @@ workflows:
                 output_file="ios-diff.txt"
                 current_branch=$(git rev-parse --abbrev-ref HEAD)
                 if [ "$current_branch" = "main" ]; then
-                    # If the current branch is "main", get the diff for the last commit
-                    differences=$(git diff HEAD^ HEAD -- $folder)
-                else
-                    # If the current branch is not "main", get the diff with "main"
+                    echo "On main branch, we will not use cache, but will save it for future runs"
+                    envman add --key SKIP_CACHE_RESTORE --value true
+                else 
                     differences=$(git diff main...$current_branch -- $folder)
-                fi
-                if [ -z "$differences" ]; then
-                    echo "No differences detected"
-                    envman add --key IOS_DIFF --value false
-                else
-                    echo "$differences" > $output_file
-                    # Later use the output file to checksum and save cache
-                    echo "Differences written to $output_file"
-                    envman add --key IOS_DIFF --value true
+                    if [ -z "$differences" ]; then
+                        echo "No differences detected, we will use main cache"
+                        envman add --key USE_MAIN_CACHE --value true
+                    else
+                        echo "$differences" > $output_file
+                        echo "Differences written to $output_file"
+                    fi
                 fi
       - script@1: 
           title: Install CCache & symlink 
@@ -475,20 +472,17 @@ workflows:
                 ln -s $(which ccache) /usr/local/bin/clang++
       - restore-cache@1:
           title: Restore CCache
-          run_if: |-
-                {{.IOS_DIFF}}
+          run_if: not .SKIP_CACHE_RESTORE
           inputs:
-          - key: '{{ .Arch }}-ccache-{{ checksum "ios-diff.txt" }}'
+          - key: 'ios-ccache-{{ if .USE_MAIN_CACHE }}main{{else}}{{ checksum "ios-diff.txt"}}'
       - script@1:
           inputs:
             - content: |-
                 #!/usr/bin/env bash
-                if [ "$IOS_DIFF" = true ] ; then
-                  ccache --config-path $(pwd)/ccache.conf
-                  ccache --set-config cache_dir=$(pwd)/ccache
-                  source ./ccache.conf
-                  ccache -p
-                fi
+                ccache --config-path $(pwd)/ccache.conf
+                ccache --set-config cache_dir=$(pwd)/ccache
+                source ./ccache.conf
+                ccache -p
                 if [ "$TEST_SUITE" = "Regression" ]; then
                   TEST_SUITE="Regression"
                 else
@@ -502,10 +496,8 @@ workflows:
           is_always_run: false
       - save-cache@1:
           title: Save CCache
-          run_if: |-
-                {{.IOS_DIFF}}
           inputs:
-          - key: '{{ .Arch }}-ccache-{{ checksum "ios-diff.txt" }}'
+          - key: 'ios-ccache-{{ if .USE_MAIN_CACHE }}main{{else}}{{ checksum "ios-diff.txt"}}'
           - paths: |-
               ccache
       - script@1: 
