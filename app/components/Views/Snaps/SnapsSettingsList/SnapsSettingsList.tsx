@@ -37,7 +37,7 @@ const SnapsSettingsList = () => {
     );
   }, [colors, navigation]);
 
-  const testSnapUrl = 'https://registry.npmjs.org/filsnap';
+  const fileSnapUrl = 'https://registry.npmjs.org/filsnap';
   const targetDir = RNFetchBlob.fs.dirs.DocumentDir;
   const filePath = `${targetDir}/archive.tgz`;
 
@@ -53,18 +53,17 @@ const SnapsSettingsList = () => {
     }).fetch('GET', urlToFetch);
     return response;
   };
-  const testRNTar = async () => {
+  const runRNTar = async () => {
     let registryData;
     try {
-      const registryResponse = await fetch(testSnapUrl);
+      const registryResponse = await fetch(fileSnapUrl);
       registryData = await registryResponse.json();
     } catch (err) {
-      console.error('SNAPS/', 'Error fetching registry data: ', err);
+      Logger.error('SNAPS/ Error fetching registry data: ', err);
       Alert.alert('Error', 'Failed to fetch registry data');
       return;
     }
     const tarballUrl = registryData.versions['0.0.1'].dist.tarball;
-    // Step 2: Fetch the tarball
     const res = await fetchFunction(tarballUrl);
     const path = res.data;
     try {
@@ -78,7 +77,7 @@ const SnapsSettingsList = () => {
         'Decompressed data location: ' + decompressedDataLocation,
       );
     } catch (err) {
-      console.error('SNAPS/', 'Error: ', err);
+      Logger.error('SNAPS/ Error: ', err);
       Alert.alert('Error', (err as Error).message);
     }
   };
@@ -88,8 +87,8 @@ const SnapsSettingsList = () => {
       {__DEV__ ? (
         <View>
           <Button
-            label={'Test RNTar'}
-            onPress={testRNTar}
+            label={'Decompress tarball'}
+            onPress={runRNTar}
             variant={ButtonVariants.Primary}
             size={ButtonSize.Sm}
             style={styles.installBtn}
