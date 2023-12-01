@@ -6,7 +6,6 @@ import { RootState } from '../reducers';
 import { migrations, version } from './migrations';
 import Logger from '../util/Logger';
 import Device from '../util/device';
-import { Platform } from 'react-native';
 
 const TIMEOUT = 40000;
 
@@ -36,7 +35,7 @@ const MigratedStorage = {
   },
   async setItem(key: string, value: string) {
     try {
-      return await FilesystemStorage.setItem(key, value, Platform.OS === 'ios');
+      return await FilesystemStorage.setItem(key, value, Device.isIos());
     } catch (error) {
       Logger.error(error as Error, { message: 'Failed to set item' });
     }
@@ -64,7 +63,7 @@ const persistUserTransform = createTransform(
 const persistConfig = {
   key: 'root',
   version,
-  blacklist: ['onboarding'],
+  blacklist: ['onboarding', 'engine'],
   storage: MigratedStorage,
   transforms: [persistUserTransform],
   stateReconciler: autoMergeLevel2, // see "Merge Process" section for details.
