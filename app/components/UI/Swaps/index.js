@@ -52,7 +52,6 @@ import {
 } from './utils';
 import { getSwapsAmountNavbar } from '../Navbar';
 
-import Onboarding from './components/Onboarding';
 import useModalHandler from '../../Base/hooks/useModalHandler';
 import Text from '../../Base/Text';
 import Keypad from '../../Base/Keypad';
@@ -648,17 +647,6 @@ function SwapsAmountView({
 
   const disabledView =
     !destinationTokenHasEnoughOcurrances && !hasDismissedTokenAlert;
-
-  if (!userHasOnboarded) {
-    return (
-      <ScreenView
-        style={styles.container}
-        contentContainerStyle={styles.screen}
-      >
-        <Onboarding setHasOnboarded={setHasOnboarded} />
-      </ScreenView>
-    );
-  }
 
   return (
     <ScreenView

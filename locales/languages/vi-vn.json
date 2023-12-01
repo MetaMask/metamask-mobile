@@ -1436,7 +1436,6 @@
     "i_understand": "Tôi đã hiểu",
     "quotes_expire_in": "Báo giá sẽ hết hạn sau",
     "saving": "Đang lưu",
-    "using_best_quote": "Sử dụng báo giá tốt nhất",
     "view_details": "Xem chi tiết",
     "estimated_gas_fee": "Phí gas ước tính",
     "max_gas_fee": "Phí gas tối đa",
@@ -1449,10 +1448,6 @@
     "completed_swap": "Hoán đổi!",
     "metamask_swap_fee": "Phí hoán đổi của MetaMask",
     "fee_text": {
-      "get_the": "Tận hưởng",
-      "best_price": "giá tốt nhất",
-      "from_the": "từ",
-      "top_liquidity": "các nguồn thanh khoản hàng đầu.",
       "fee_is_applied": "Khoản phí {{fee}} tự động được tính vào mỗi báo giá để hỗ trợ sự phát triển liên tục và giúp MetaMask hoàn thiện hơn nữa."
     },
     "enable": {

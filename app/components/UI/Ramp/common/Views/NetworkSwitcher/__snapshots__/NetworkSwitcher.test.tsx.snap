@@ -138,7 +138,6 @@ exports[`NetworkSwitcher View renders and dismisses network modal when pressing 
                     "justifyContent": "center",
                   }
                 }
-                testID="navbar-title-text"
               >
                 <Text
                   numberOfLines={1}
@@ -2251,7 +2250,6 @@ exports[`NetworkSwitcher View renders and dismisses network modal when pressing 
                     "justifyContent": "center",
                   }
                 }
-                testID="navbar-title-text"
               >
                 <Text
                   numberOfLines={1}
@@ -3408,7 +3406,6 @@ exports[`NetworkSwitcher View renders correctly 1`] = `
                     "justifyContent": "center",
                   }
                 }
-                testID="navbar-title-text"
               >
                 <Text
                   numberOfLines={1}
@@ -4565,7 +4562,6 @@ exports[`NetworkSwitcher View renders correctly 2`] = `
                     "justifyContent": "center",
                   }
                 }
-                testID="navbar-title-text"
               >
                 <Text
                   numberOfLines={1}
@@ -5722,7 +5718,6 @@ exports[`NetworkSwitcher View renders correctly while loading 1`] = `
                     "justifyContent": "center",
                   }
                 }
-                testID="navbar-title-text"
               >
                 <Text
                   numberOfLines={1}
@@ -6981,7 +6976,6 @@ exports[`NetworkSwitcher View renders correctly while loading 2`] = `
                     "justifyContent": "center",
                   }
                 }
-                testID="navbar-title-text"
               >
                 <Text
                   numberOfLines={1}
@@ -8240,7 +8234,6 @@ exports[`NetworkSwitcher View renders correctly with errors 1`] = `
                     "justifyContent": "center",
                   }
                 }
-                testID="navbar-title-text"
               >
                 <Text
                   numberOfLines={1}
@@ -8924,7 +8917,6 @@ exports[`NetworkSwitcher View renders correctly with errors 2`] = `
                     "justifyContent": "center",
                   }
                 }
-                testID="navbar-title-text"
               >
                 <Text
                   numberOfLines={1}
@@ -9608,7 +9600,6 @@ exports[`NetworkSwitcher View renders correctly with no data 1`] = `
                     "justifyContent": "center",
                   }
                 }
-                testID="navbar-title-text"
               >
                 <Text
                   numberOfLines={1}
