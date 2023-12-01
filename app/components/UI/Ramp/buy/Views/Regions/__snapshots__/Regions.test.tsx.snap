@@ -7809,7 +7809,6 @@ exports[`Regions View renders regions modal when pressing select button 1`] = `
                                         }
                                       >
                                         <RCTScrollView
-                                          ItemSeparatorComponent={[Function]}
                                           ListEmptyComponent={
                                             <View
                                               style={
@@ -7825,34 +7824,38 @@ exports[`Regions View renders regions modal when pressing select button 1`] = `
                                             </View>
                                           }
                                           ListFooterComponent={[Function]}
-                                          ListHeaderComponent={[Function]}
                                           data={
                                             Array [
                                               Object {
-                                                "currencies": Array [
-                                                  "/currencies/fiat/clp",
+                                                "data": Array [
+                                                  Object {
+                                                    "currencies": Array [
+                                                      "/currencies/fiat/clp",
+                                                    ],
+                                                    "emoji": "🇨🇱",
+                                                    "id": "/regions/cl",
+                                                    "name": "Chile",
+                                                    "support": Object {
+                                                      "buy": true,
+                                                      "sell": true,
+                                                    },
+                                                    "unsupported": false,
+                                                  },
+                                                  Object {
+                                                    "currencies": Array [
+                                                      "/currencies/fiat/ars",
+                                                    ],
+                                                    "emoji": "🇦🇷",
+                                                    "id": "/regions/ar",
+                                                    "name": "Argentina",
+                                                    "support": Object {
+                                                      "buy": true,
+                                                      "sell": true,
+                                                    },
+                                                    "unsupported": false,
+                                                  },
                                                 ],
-                                                "emoji": "🇨🇱",
-                                                "id": "/regions/cl",
-                                                "name": "Chile",
-                                                "support": Object {
-                                                  "buy": true,
-                                                  "sell": true,
-                                                },
-                                                "unsupported": false,
-                                              },
-                                              Object {
-                                                "currencies": Array [
-                                                  "/currencies/fiat/ars",
-                                                ],
-                                                "emoji": "🇦🇷",
-                                                "id": "/regions/ar",
-                                                "name": "Argentina",
-                                                "support": Object {
-                                                  "buy": true,
-                                                  "sell": true,
-                                                },
-                                                "unsupported": false,
+                                                "title": null,
                                               },
                                             ]
                                           }
@@ -7868,7 +7871,6 @@ exports[`Regions View renders regions modal when pressing select button 1`] = `
                                           onScroll={[Function]}
                                           onScrollBeginDrag={[Function]}
                                           onScrollEndDrag={[Function]}
-                                          removeClippedSubviews={false}
                                           renderItem={[Function]}
                                           scrollEventThrottle={50}
                                           stickyHeaderIndices={Array []}
@@ -7877,52 +7879,33 @@ exports[`Regions View renders regions modal when pressing select button 1`] = `
                                               "paddingHorizontal": 0,
                                             }
                                           }
-                                          viewabilityConfigCallbackPairs={Array []}
                                         >
                                           <View>
                                             <View
+                                              onFocusCapture={[Function]}
                                               onLayout={[Function]}
-                                            >
-                                              <View
-                                                style={
-                                                  Object {
-                                                    "backgroundColor": "#D6D9DC",
-                                                    "height": 1,
-                                                    "width": "100%",
-                                                  }
-                                                }
-                                              />
-                                            </View>
+                                              style={null}
+                                            />
                                             <View
                                               onFocusCapture={[Function]}
                                               onLayout={[Function]}
                                               style={null}
                                             >
-                                              <TouchableOpacity
-                                                accessibilityRole="button"
-                                                accessible={true}
-                                                onPress={[Function]}
-                                              >
-                                                <View
-                                                  style={
-                                                    Array [
-                                                      Object {
-                                                        "padding": 15,
-                                                      },
-                                                      Object {
-                                                        "paddingHorizontal": 24,
-                                                      },
-                                                    ]
-                                                  }
+                                              <View>
+                                                <TouchableOpacity
+                                                  accessibilityRole="button"
+                                                  accessible={true}
+                                                  onPress={[Function]}
                                                 >
                                                   <View
                                                     style={
                                                       Array [
                                                         Object {
-                                                          "alignItems": "center",
-                                                          "flexDirection": "row",
+                                                          "padding": 15,
                                                         },
-                                                        undefined,
+                                                        Object {
+                                                          "paddingHorizontal": 24,
+                                                        },
                                                       ]
                                                     }
                                                   >
@@ -7930,7 +7913,8 @@ exports[`Regions View renders regions modal when pressing select button 1`] = `
                                                       style={
                                                         Array [
                                                           Object {
-                                                            "flex": 1,
+                                                            "alignItems": "center",
+                                                            "flexDirection": "row",
                                                           },
                                                           undefined,
                                                         ]
@@ -7938,118 +7922,129 @@ exports[`Regions View renders regions modal when pressing select button 1`] = `
                                                     >
                                                       <View
                                                         style={
-                                                          Object {
-                                                            "alignItems": "center",
-                                                            "flexDirection": "row",
-                                                          }
+                                                          Array [
+                                                            Object {
+                                                              "flex": 1,
+                                                            },
+                                                            undefined,
+                                                          ]
                                                         }
                                                       >
                                                         <View
                                                           style={
                                                             Object {
-                                                              "paddingRight": 16,
+                                                              "alignItems": "center",
+                                                              "flexDirection": "row",
                                                             }
                                                           }
                                                         >
-                                                          <Text
+                                                          <View
                                                             style={
-                                                              Array [
-                                                                Object {
-                                                                  "color": "#24272A",
-                                                                  "fontFamily": "EuclidCircularB-Regular",
-                                                                  "fontSize": 30,
-                                                                  "fontWeight": "400",
-                                                                  "marginVertical": 2,
-                                                                },
-                                                                undefined,
-                                                                undefined,
-                                                                undefined,
-                                                                undefined,
-                                                                undefined,
-                                                                undefined,
-                                                                undefined,
-                                                                undefined,
-                                                                undefined,
-                                                                undefined,
-                                                                undefined,
-                                                                undefined,
-                                                                undefined,
-                                                                undefined,
-                                                                undefined,
-                                                                undefined,
-                                                                undefined,
-                                                                undefined,
-                                                                undefined,
-                                                                undefined,
-                                                                undefined,
-                                                                undefined,
-                                                                undefined,
-                                                                undefined,
-                                                              ]
+                                                              Object {
+                                                                "paddingRight": 16,
+                                                              }
                                                             }
                                                           >
-                                                            🇨🇱
-                                                          </Text>
-                                                        </View>
-                                                        <View>
-                                                          <Text
-                                                            style={
-                                                              Array [
-                                                                Object {
-                                                                  "color": "#24272A",
-                                                                  "fontFamily": "EuclidCircularB-Regular",
-                                                                  "fontSize": 30,
-                                                                  "fontWeight": "400",
-                                                                  "marginVertical": 2,
-                                                                },
-                                                                undefined,
-                                                                undefined,
-                                                                undefined,
-                                                                undefined,
-                                                                Object {
-                                                                  "color": "#24272A",
-                                                                },
-                                                                undefined,
-                                                                undefined,
-                                                                undefined,
-                                                                undefined,
-                                                                Object {
-                                                                  "color": "#24272A",
-                                                                },
-                                                                undefined,
-                                                                undefined,
-                                                                undefined,
-                                                                undefined,
-                                                                undefined,
-                                                                undefined,
-                                                                undefined,
-                                                                undefined,
-                                                                undefined,
-                                                                undefined,
-                                                                undefined,
-                                                                undefined,
-                                                                undefined,
-                                                                undefined,
-                                                              ]
-                                                            }
-                                                          >
-                                                            Chile
-                                                          </Text>
+                                                            <Text
+                                                              style={
+                                                                Array [
+                                                                  Object {
+                                                                    "color": "#24272A",
+                                                                    "fontFamily": "EuclidCircularB-Regular",
+                                                                    "fontSize": 30,
+                                                                    "fontWeight": "400",
+                                                                    "marginVertical": 2,
+                                                                  },
+                                                                  undefined,
+                                                                  undefined,
+                                                                  undefined,
+                                                                  undefined,
+                                                                  undefined,
+                                                                  undefined,
+                                                                  undefined,
+                                                                  undefined,
+                                                                  undefined,
+                                                                  undefined,
+                                                                  undefined,
+                                                                  undefined,
+                                                                  undefined,
+                                                                  undefined,
+                                                                  undefined,
+                                                                  undefined,
+                                                                  undefined,
+                                                                  undefined,
+                                                                  undefined,
+                                                                  undefined,
+                                                                  undefined,
+                                                                  undefined,
+                                                                  undefined,
+                                                                  undefined,
+                                                                ]
+                                                              }
+                                                            >
+                                                              🇨🇱
+                                                            </Text>
+                                                          </View>
+                                                          <View>
+                                                            <Text
+                                                              style={
+                                                                Array [
+                                                                  Object {
+                                                                    "color": "#24272A",
+                                                                    "fontFamily": "EuclidCircularB-Regular",
+                                                                    "fontSize": 30,
+                                                                    "fontWeight": "400",
+                                                                    "marginVertical": 2,
+                                                                  },
+                                                                  undefined,
+                                                                  undefined,
+                                                                  false,
+                                                                  undefined,
+                                                                  Object {
+                                                                    "color": "#24272A",
+                                                                  },
+                                                                  undefined,
+                                                                  undefined,
+                                                                  undefined,
+                                                                  undefined,
+                                                                  Object {
+                                                                    "color": "#24272A",
+                                                                  },
+                                                                  undefined,
+                                                                  undefined,
+                                                                  undefined,
+                                                                  undefined,
+                                                                  undefined,
+                                                                  undefined,
+                                                                  undefined,
+                                                                  undefined,
+                                                                  undefined,
+                                                                  undefined,
+                                                                  undefined,
+                                                                  undefined,
+                                                                  undefined,
+                                                                  undefined,
+                                                                ]
+                                                              }
+                                                            >
+                                                              Chile
+                                                            </Text>
+                                                          </View>
                                                         </View>
                                                       </View>
                                                     </View>
                                                   </View>
-                                                </View>
-                                              </TouchableOpacity>
-                                              <View
-                                                style={
-                                                  Object {
-                                                    "backgroundColor": "#D6D9DC",
-                                                    "height": 1,
-                                                    "width": "100%",
+                                                </TouchableOpacity>
+                                                <View
+                                                  style={
+                                                    Object {
+                                                      "backgroundColor": "#D6D9DC",
+                                                      "height": 1,
+                                                      "width": "100%",
+                                                    }
                                                   }
-                                                }
-                                              />
+                                                />
+                                              </View>
                                             </View>
                                             <View
                                               onFocusCapture={[Function]}
@@ -8162,7 +8157,7 @@ exports[`Regions View renders regions modal when pressing select button 1`] = `
                                                                 },
                                                                 undefined,
                                                                 undefined,
-                                                                undefined,
+                                                                false,
                                                                 undefined,
                                                                 Object {
                                                                   "color": "#24272A",
@@ -8200,6 +8195,11 @@ exports[`Regions View renders regions modal when pressing select button 1`] = `
                                                 </View>
                                               </TouchableOpacity>
                                             </View>
+                                            <View
+                                              onFocusCapture={[Function]}
+                                              onLayout={[Function]}
+                                              style={null}
+                                            />
                                             <View
                                               onLayout={[Function]}
                                             >
