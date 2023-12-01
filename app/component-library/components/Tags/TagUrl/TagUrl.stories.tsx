@@ -17,7 +17,7 @@ const TagUrlMeta = {
       control: { type: 'text' },
       defaultValue: SAMPLE_TAGURL_PROPS.label,
     },
-    'cta.label': {
+    ctaLabel: {
       control: { type: 'text' },
       defaultValue: SAMPLE_TAGURL_PROPS.cta?.label,
     },
