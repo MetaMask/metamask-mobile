@@ -139,30 +139,7 @@ workflows:
     steps:
       - activate-ssh-key@4:
           run_if: '{{getenv "SSH_RSA_PRIVATE_KEY" | ne ""}}'
-      - git-clone@6: {}
-      - script@1:
-          title: X 
-          inputs:
-            - content: |
-                #!/usr/bin/env bash
-                folder="ios"
-                output_file="ios-diff.txt"
-                current_branch=$(git rev-parse --abbrev-ref HEAD)
-                if [ "$current_branch" = "main" ]; then
-                    echo "On main branch, we will not use cache, but will save it for future runs"
-                    envman add --key SKIP_CCACHE_RESTORE --value true
-                else 
-                    git fetch origin refs/heads/main
-                    differences=$(git diff origin/main...$current_branch -- $folder)
-                    if [ -z "$differences" ]; then
-                        echo "No differences detected, we will use main cache"
-                        envman add --key SKIP_CCACHE_UPLOAD --value true
-                        envman add --key USE_MAIN_CCACHE --value true
-                    else
-                        echo "$differences" > $output_file
-                        echo "Differences written to $output_file"
-                    fi
-                fi
+      - git-clone@6: {}   
   code_setup:
     before_run:
       - setup
@@ -472,6 +449,7 @@ workflows:
                     echo "On main branch, we will not use cache, but will save it for future runs"
                     envman add --key SKIP_CCACHE_RESTORE --value true
                 else 
+                    git fetch origin refs/heads/main
                     differences=$(git diff origin/main...$current_branch -- $folder)
                     if [ -z "$differences" ]; then
                         echo "No differences detected, we will use main cache"
