@@ -565,7 +565,7 @@ class ResetPassword extends PureComponent {
                 onChangeText={this.onPasswordChange}
                 secureTextEntry
                 onSubmitEditing={this.tryUnlock}
-                {...generateTestId(Platform, RESET_PASSWORD_INPUT_ID)}
+                testID={RESET_PASSWORD_INPUT_ID}
                 keyboardAppearance={themeAppearance}
               />
               {warningIncorrectPassword && (
