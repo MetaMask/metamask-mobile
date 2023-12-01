@@ -492,22 +492,21 @@ index 4ed4990..df0524b 100644
                          }
                      }
 diff --git a/node_modules/@metamask/assets-controllers/dist/TokenRatesController.d.ts b/node_modules/@metamask/assets-controllers/dist/TokenRatesController.d.ts
-index 8bb7c20..cda8bb7 100644
+index 8bb7c20..4ebc108 100644
 --- a/node_modules/@metamask/assets-controllers/dist/TokenRatesController.d.ts
 +++ b/node_modules/@metamask/assets-controllers/dist/TokenRatesController.d.ts
-@@ -1,7 +1,9 @@
+@@ -1,7 +1,8 @@
 -import { BaseController, BaseConfig, BaseState } from '@metamask/base-controller';
 +import type { BaseConfig, BaseState } from '@metamask/base-controller';
 +import { BaseController } from '@metamask/base-controller';
  import type { NetworkState } from '@metamask/network-controller';
 +import type { PreferencesState } from '@metamask/preferences-controller';
-+import type { Hex } from '@metamask/utils';
  import type { TokensState } from './TokensController';
 -import type { CurrencyRateState } from './CurrencyRateController';
  /**
   * @type CoinGeckoResponse
   *
-@@ -40,6 +42,7 @@ export interface Token {
+@@ -40,6 +41,7 @@ export interface Token {
      image?: string;
      balanceError?: unknown;
      isERC721?: boolean;
@@ -515,28 +514,26 @@ index 8bb7c20..cda8bb7 100644
  }
  /**
   * @type TokenRatesConfig
-@@ -54,8 +57,18 @@ export interface Token {
- export interface TokenRatesConfig extends BaseConfig {
+@@ -55,7 +57,17 @@ export interface TokenRatesConfig extends BaseConfig {
      interval: number;
      nativeCurrency: string;
--    chainId: string;
+     chainId: string;
 -    tokens: Token[];
-+    chainId: Hex;
 +    selectedAddress: string;
 +    allTokens: {
-+        [chainId: Hex]: {
++        [chainId: string]: {
 +            [key: string]: Token[];
 +        };
 +    };
 +    allDetectedTokens: {
-+        [chainId: Hex]: {
++        [chainId: string]: {
 +            [key: string]: Token[];
 +        };
 +    };
      threshold: number;
  }
  interface ContractExchangeRates {
-@@ -76,6 +89,7 @@ export interface TokenRatesState extends BaseState {
+@@ -76,6 +88,7 @@ export interface TokenRatesState extends BaseState {
   * for tokens stored in the TokensController
   */
  export declare class TokenRatesController extends BaseController<TokenRatesConfig, TokenRatesState> {
@@ -544,7 +541,7 @@ index 8bb7c20..cda8bb7 100644
      private handle?;
      private tokenList;
      private supportedChains;
-@@ -88,41 +102,31 @@ export declare class TokenRatesController extends BaseController<TokenRatesConfi
+@@ -88,41 +101,31 @@ export declare class TokenRatesController extends BaseController<TokenRatesConfi
       * Creates a TokenRatesController instance.
       *
       * @param options - The controller options.
@@ -560,7 +557,7 @@ index 8bb7c20..cda8bb7 100644
       */
 -    constructor({ onTokensStateChange, onCurrencyRateStateChange, onNetworkStateChange, }: {
 +    constructor({ chainId: initialChainId, ticker: initialTicker, selectedAddress: initialSelectedAddress, onPreferencesStateChange, onTokensStateChange, onNetworkStateChange, }: {
-+        chainId: Hex;
++        chainId: string;
 +        ticker: string;
 +        selectedAddress: string;
 +        onPreferencesStateChange: (listener: (preferencesState: PreferencesState) => void) => void;
