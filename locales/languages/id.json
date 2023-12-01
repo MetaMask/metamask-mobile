@@ -2152,7 +2152,6 @@
     "i_understand": "Saya mengerti",
     "quotes_expire_in": "Kuotasi berakhir dalam",
     "saving": "Menyimpan",
-    "using_best_quote": "Menggunakan kuotasi terbaik",
     "view_details": "Lihat detail",
     "estimated_gas_fee": "Estimasi biaya gas",
     "max_gas_fee": "Biaya gas maks",
@@ -2165,10 +2164,6 @@
     "completed_swap": "Tukar!",
     "metamask_swap_fee": "Biaya MetaMask Swap",
     "fee_text": {
-      "get_the": "Dapatkan",
-      "best_price": "harga terbaik",
-      "from_the": "dari",
-      "top_liquidity": "sumber likuiditas teratas setiap saat.",
       "fee_is_applied": "Biaya sebesar {{fee}} otomatis diperhitungkan ke dalam kuotasi ini. Anda membayarnya sebagai ganti lisensi untuk menggunakan perangkat lunak pengumpul informasi penyedia likuiditas MetaMask.",
       "fee_is_not_applied": "MetaMask tidak menyertakan biaya tambahan dalam kuotasi ini."
     },
