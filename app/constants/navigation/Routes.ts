@@ -107,6 +107,11 @@ const Routes = {
   ADD_NETWORK: 'AddNetwork',
   SWAPS: 'Swaps',
   LOCK_SCREEN: 'LockScreen',
+  ///: BEGIN:ONLY_INCLUDE_IN(flask)
+  SNAPS: {
+    SNAPS_SETTINGS_LIST: 'SnapsSettingsList',
+  },
+  ///: END:ONLY_INCLUDE_IN
 };
 
 export default Routes;

@@ -1941,9 +1941,9 @@ function SwapsQuotesView({
               savings={isSaving}
             >
               <QuotesSummary.HeaderText style={styles.bestQuoteText} bold>
-                {isSaving
-                  ? strings('swaps.savings')
-                  : strings('swaps.using_best_quote')}
+                {`${strings('swaps.n_quotes', {
+                  numberOfQuotes: allQuotes.length,
+                })} `}
               </QuotesSummary.HeaderText>
               {allQuotes.length > 1 && (
                 <TouchableOpacity
@@ -2218,10 +2218,6 @@ function SwapsQuotesView({
         title={strings('swaps.metamask_swap_fee')}
         body={
           <Text style={styles.text}>
-            {strings('swaps.fee_text.get_the')}{' '}
-            <Text bold>{strings('swaps.fee_text.best_price')}</Text>{' '}
-            {strings('swaps.fee_text.from_the')}{' '}
-            <Text bold>{strings('swaps.fee_text.top_liquidity')}</Text>{' '}
             {selectedQuote && selectedQuote?.fee > 0
               ? strings('swaps.fee_text.fee_is_applied', {
                   fee: `${selectedQuote.fee}%`,

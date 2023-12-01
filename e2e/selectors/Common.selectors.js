@@ -5,6 +5,8 @@ export const CommonSelectorsIDs = {
   BACK_ARROW_BUTTON: 'back-arrow-button',
   CONNECT_BUTTON: 'connect-button',
   CANCEL_BUTTON: 'cancel-button',
+  TOAST_NOTIFICATION_TITLE: 'notification-title',
+  NOTIFICATION_CONFIRM_BUTTON: 'confirm-notification-button',
 };
 
 export const CommonSelectorsText = {
