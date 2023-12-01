@@ -449,6 +449,7 @@ workflows:
                     echo "On main branch, we will not use cache, but will save it for future runs"
                     envman add --key SKIP_CCACHE_RESTORE --value true
                 else 
+                    git fetch origin
                     differences=$(git diff main...$current_branch -- $folder)
                     if [ -z "$differences" ]; then
                         echo "No differences detected, we will use main cache"
