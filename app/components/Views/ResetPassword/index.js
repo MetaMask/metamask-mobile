@@ -11,7 +11,6 @@ import {
   ScrollView,
   Image,
   InteractionManager,
-  Platform,
 } from 'react-native';
 import CheckBox from '@react-native-community/checkbox';
 import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view';
@@ -51,14 +50,8 @@ import { Authentication } from '../../../core';
 import AUTHENTICATION_TYPE from '../../../constants/userProperties';
 import { ThemeContext, mockTheme } from '../../../util/theme';
 import AnimatedFox from 'react-native-animated-fox';
-import {
-  RESET_PASSWORD_INPUT_ID,
-  RESET_PASSWORD_CONFIRM_INPUT_BOX_ID,
-  RESET_PASSWORD_ANDROID_TERM_CHECKBOX_ID,
-} from '../../../../wdio/screen-objects/testIDs/Screens/ChangePasswordScreensIDs.testIds';
 import { LoginOptionsSwitch } from '../../UI/LoginOptionsSwitch';
 import { recreateVaultWithNewPassword } from '../../../core/Vault';
-import generateTestId from '../../../../wdio/utils/generateTestId';
 import Logger from '../../../util/Logger';
 import { selectSelectedAddress } from '../../../selectors/preferencesController';
 import { ChoosePasswordSelectorsIDs } from '../../../../e2e/selectors/Onboarding/ChoosePassword.selectors';
@@ -565,7 +558,7 @@ class ResetPassword extends PureComponent {
                 onChangeText={this.onPasswordChange}
                 secureTextEntry
                 onSubmitEditing={this.tryUnlock}
-                testID={RESET_PASSWORD_INPUT_ID}
+                testID={ChoosePasswordSelectorsIDs.NEW_PASSWORD_INPUT_ID}
                 keyboardAppearance={themeAppearance}
               />
               {warningIncorrectPassword && (
@@ -579,7 +572,7 @@ class ResetPassword extends PureComponent {
                 containerStyle={styles.button}
                 type={'confirm'}
                 onPress={this.tryUnlock}
-                testID={'submit-button'}
+                testID={ChoosePasswordSelectorsIDs.SUBMIT_BUTTON_ID}
               >
                 {strings('manual_backup_step_1.confirm')}
               </StyledButton>
@@ -637,7 +630,7 @@ class ResetPassword extends PureComponent {
             </Text>
           </View>
         ) : (
-          <View style={styles.wrapper} testID={'choose-password-screen'}>
+          <View style={styles.wrapper}>
             <KeyboardAwareScrollView
               style={styles.scrollableWrapper}
               contentContainerStyle={styles.keyboardScrollableWrapper}
@@ -677,7 +670,7 @@ class ResetPassword extends PureComponent {
                     secureTextEntry={secureTextEntry}
                     placeholder=""
                     placeholderTextColor={colors.text.muted}
-                    testID={RESET_PASSWORD_INPUT_ID}
+                    testID={ChoosePasswordSelectorsIDs.NEW_PASSWORD_INPUT_ID}
                     onSubmitEditing={this.jumpToConfirmPassword}
                     returnKeyType="next"
                     autoCapitalize="none"
@@ -715,10 +708,9 @@ class ResetPassword extends PureComponent {
                     secureTextEntry={secureTextEntry}
                     placeholder={''}
                     placeholderTextColor={colors.text.muted}
-                    {...generateTestId(
-                      Platform,
-                      RESET_PASSWORD_CONFIRM_INPUT_BOX_ID,
-                    )}
+                    testID={
+                      ChoosePasswordSelectorsIDs.CONFIRM_PASSWORD_INPUT_ID
+                    }
                     zasdfasfasf
                     onSubmitEditing={this.onPressCreate}
                     returnKeyType={'done'}
@@ -757,10 +749,9 @@ class ResetPassword extends PureComponent {
                     variant={TextVariant.BodyMD}
                     style={styles.label}
                     onPress={this.setSelection}
-                    {...generateTestId(
-                      Platform,
-                      RESET_PASSWORD_ANDROID_TERM_CHECKBOX_ID,
-                    )}
+                    testID={
+                      ChoosePasswordSelectorsIDs.ANDROID_I_UNDERSTAND_BUTTON_ID
+                    }
                   >
                     {strings('reset_password.i_understand')}{' '}
                     <Text
@@ -780,7 +771,7 @@ class ResetPassword extends PureComponent {
                 <StyledButton
                   type={'blue'}
                   onPress={this.onPressCreate}
-                  testID={'submit-button'}
+                  testID={ChoosePasswordSelectorsIDs.SUBMIT_BUTTON_ID}
                   disabled={!canSubmit}
                 >
                   {strings('reset_password.reset_button')}
