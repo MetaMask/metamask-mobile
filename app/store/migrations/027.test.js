@@ -1,6 +1,6 @@
 import migration from './027';
 
-describe('#27', () => {
+describe('Migration #27', () => {
   it('does nothing if no transaction controller state', () => {
     const oldState = {
       engine: {
