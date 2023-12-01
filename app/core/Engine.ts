@@ -552,6 +552,7 @@ class Engine {
               AppConstants.NETWORK_STATE_CHANGE_EVENT,
               listener,
             ),
+          coinGeckoHeader: process.env.COIN_GECKO_HEADER,
         },
         {
           chainId: networkController.state.providerConfig.chainId,

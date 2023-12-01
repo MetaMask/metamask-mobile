@@ -517,7 +517,7 @@ index 8bb7c20..f6f43f2 100644
       * Checks if the active network's native currency is supported by the coingecko API.
       * If supported, it fetches and maps contractExchange rates to a format to be consumed by the UI.
 diff --git a/node_modules/@metamask/assets-controllers/dist/TokenRatesController.js b/node_modules/@metamask/assets-controllers/dist/TokenRatesController.js
-index e3f81e9..b8e07f6 100644
+index e3f81e9..362fe9f 100644
 --- a/node_modules/@metamask/assets-controllers/dist/TokenRatesController.js
 +++ b/node_modules/@metamask/assets-controllers/dist/TokenRatesController.js
 @@ -1,4 +1,11 @@
@@ -532,7 +532,19 @@ index e3f81e9..b8e07f6 100644
  var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, generator) {
      function adopt(value) { return value instanceof P ? value : new P(function (resolve) { resolve(value); }); }
      return new (P || (P = Promise))(function (resolve, reject) {
-@@ -77,6 +84,7 @@ class TokenRatesController extends base_controller_1.BaseController {
+@@ -55,9 +62,10 @@ class TokenRatesController extends base_controller_1.BaseController {
+      * @param config - Initial options used to configure this controller.
+      * @param state - Initial state to set on this controller.
+      */
+-    constructor({ onTokensStateChange, onCurrencyRateStateChange, onNetworkStateChange, }, config, state) {
++    constructor({ onTokensStateChange, onCurrencyRateStateChange, onNetworkStateChange, coinGeckoHeader }, config, state) {
+         super(config, state);
+         this.tokenList = [];
++        this.coinGeckoHeader = coinGeckoHeader;
+         this.supportedChains = {
+             timestamp: 0,
+             data: null,
+@@ -77,6 +85,7 @@ class TokenRatesController extends base_controller_1.BaseController {
              chainId: '',
              tokens: [],
              threshold: 6 * 60 * 60 * 1000,
@@ -540,15 +552,7 @@ index e3f81e9..b8e07f6 100644
          };
          this.defaultState = {
              contractExchangeRates: {},
-@@ -93,7 +101,6 @@ class TokenRatesController extends base_controller_1.BaseController {
-         });
-         onNetworkStateChange(({ providerConfig }) => {
-             const { chainId } = providerConfig;
--            this.update({ contractExchangeRates: {} });
-             this.configure({ chainId });
-         });
-         this.poll();
-@@ -107,7 +114,7 @@ class TokenRatesController extends base_controller_1.BaseController {
+@@ -107,7 +116,7 @@ class TokenRatesController extends base_controller_1.BaseController {
          return __awaiter(this, void 0, void 0, function* () {
              interval && this.configure({ interval }, false, false);
              this.handle && clearTimeout(this.handle);
@@ -557,7 +561,21 @@ index e3f81e9..b8e07f6 100644
              this.handle = setTimeout(() => {
                  this.poll(this.config.interval);
              }, this.config.interval);
-@@ -201,8 +208,11 @@ class TokenRatesController extends base_controller_1.BaseController {
+@@ -151,7 +160,12 @@ class TokenRatesController extends base_controller_1.BaseController {
+         return __awaiter(this, void 0, void 0, function* () {
+             const tokenPairs = this.tokenList.map((token) => token.address).join(',');
+             const query = `contract_addresses=${tokenPairs}&vs_currencies=${vsCurrency.toLowerCase()}`;
+-            return (0, controller_utils_1.handleFetch)(CoinGeckoApi.getTokenPriceURL(chainSlug, query));
++            return (0, controller_utils_1.handleFetch)(CoinGeckoApi.getTokenPriceURL(chainSlug, query),  {
++                headers: {
++                  'Content-Type': 'application/json',
++                  'X-CoinGecko-Source': this.coinGeckoHeader
++                },
++              });
+         });
+     }
+     /**
+@@ -201,8 +215,11 @@ class TokenRatesController extends base_controller_1.BaseController {
      }
      /**
       * Updates exchange rates for all tokens.
@@ -570,7 +588,7 @@ index e3f81e9..b8e07f6 100644
          return __awaiter(this, void 0, void 0, function* () {
              if (this.tokenList.length === 0 || this.disabled) {
                  return;
-@@ -217,7 +227,13 @@ class TokenRatesController extends base_controller_1.BaseController {
+@@ -217,7 +234,13 @@ class TokenRatesController extends base_controller_1.BaseController {
              }
              else {
                  const { nativeCurrency } = this.config;
@@ -585,12 +603,10 @@ index e3f81e9..b8e07f6 100644
              }
              this.update({ contractExchangeRates: newContractExchangeRates });
          });
-@@ -236,46 +252,47 @@ class TokenRatesController extends base_controller_1.BaseController {
+@@ -236,46 +259,43 @@ class TokenRatesController extends base_controller_1.BaseController {
       */
      fetchAndMapExchangeRates(nativeCurrency, slug) {
          return __awaiter(this, void 0, void 0, function* () {
-+            // Clear exchange rates before fetching new ones.
-+            this.update({ contractExchangeRates: {} });
 +            // Set new native currency to prevent this method from being called multiple times
 +            this.configure({ previousNativeCurrency: nativeCurrency });
              const contractExchangeRates = {};
@@ -656,8 +672,6 @@ index e3f81e9..b8e07f6 100644
 -                            vsCurrencyToNativeCurrencyConversionRate;
 +            }
 +            catch (error) {
-+                // If there is an error catched we clean the state
-+                this.update({ contractExchangeRates: {} });
 +                if (error instanceof Error &&
 +                    error.message.includes('market does not exist for this coin pair')) {
 +                    return {};
