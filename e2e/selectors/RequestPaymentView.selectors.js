@@ -5,4 +5,5 @@ export const RequestPaymentViewSelectors = {
   REQUEST_ASSET_LIST_ID: 'searched-asset-results',
   REQUEST_AMOUNT_INPUT_BOX_ID: 'request-amount-input',
   TOKEN_SEARCH_INPUT_BOX: 'request-search-asset-input',
+  PAYMENT_REQUEST_CLOSE_BUTTON: 'send-link-close-button',
 };

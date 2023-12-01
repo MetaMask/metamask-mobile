@@ -2152,7 +2152,6 @@
     "i_understand": "Nauunawaan ko",
     "quotes_expire_in": "Mag-e-expire ang mga quote sa",
     "saving": "Nagse-save",
-    "using_best_quote": "Gamit ang pinakamagandang quote",
     "view_details": "Tingnan ang mga detalye",
     "estimated_gas_fee": "Tinantyang bayad sa gas",
     "max_gas_fee": "Pinakamataas na bayad sa gas",
@@ -2165,10 +2164,6 @@
     "completed_swap": "I-swap!",
     "metamask_swap_fee": "Bayad sa Pag-swap sa MetaMask",
     "fee_text": {
-      "get_the": "Makuha ang",
-      "best_price": "pinakasulit na presyo",
-      "from_the": "mula kay/sa",
-      "top_liquidity": "mga nangungunang pinagmumulan ng liquidity palagi.",
       "fee_is_applied": "Ang bayad na {{fee}} ay awtomatikong isinasali sa quote na ito. Babayaran mo ito bilang kapalit ng isang lisensya para gamitin ang software ng pagsasama-sama ng impormasyon ng tagapagbigay ng liquidity ng MetaMask.",
       "fee_is_not_applied": "Hindi nagsasama ang MetaMask ng karagdagang singil sa quote na ito."
     },

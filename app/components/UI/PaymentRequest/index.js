@@ -8,7 +8,6 @@ import {
   TouchableOpacity,
   KeyboardAvoidingView,
   InteractionManager,
-  Platform,
 } from 'react-native';
 import { connect } from 'react-redux';
 import { fontStyles, baseStyles } from '../../../styles/common';
@@ -60,12 +59,8 @@ import { selectTokenListArray } from '../../../selectors/tokenListController';
 import { selectTokens } from '../../../selectors/tokensController';
 import { selectContractExchangeRates } from '../../../selectors/tokenRatesController';
 import { selectSelectedAddress } from '../../../selectors/preferencesController';
-import generateTestId from '../../../../wdio/utils/generateTestId';
-import {
-  REQUEST_AMOUNT_INPUT,
-  REQUEST_SEARCH_ASSET_INPUT,
-  REQUEST_SEARCH_SCREEN,
-} from '../../../../wdio/screen-objects/testIDs/Screens/RequestToken.testIds';
+
+import { RequestPaymentViewSelectors } from '../../../../e2e/selectors/RequestPaymentView.selectors';
 
 const KEYBOARD_OFFSET = 120;
 const createStyles = (colors) =>
@@ -462,7 +457,7 @@ class PaymentRequest extends PureComponent {
     return (
       <View
         style={baseStyles.flexGrow}
-        {...generateTestId(Platform, REQUEST_SEARCH_SCREEN)}
+        testID={RequestPaymentViewSelectors.REQUEST_PAYMENT_CONTAINER_ID}
       >
         <View>
           <Text style={styles.title}>
@@ -489,7 +484,7 @@ class PaymentRequest extends PureComponent {
               returnKeyType="go"
               value={this.state.searchInputValue}
               blurOnSubmit
-              {...generateTestId(Platform, REQUEST_SEARCH_ASSET_INPUT)}
+              testID={RequestPaymentViewSelectors.TOKEN_SEARCH_INPUT_BOX}
               keyboardAppearance={themeAppearance}
             />
             {this.state.searchInputValue ? (
@@ -506,7 +501,10 @@ class PaymentRequest extends PureComponent {
             ) : null}
           </View>
         )}
-        <View style={styles.assetsWrapper} testID={'searched-asset-results'}>
+        <View
+          style={styles.assetsWrapper}
+          testID={RequestPaymentViewSelectors.REQUEST_ASSET_LIST_ID}
+        >
           <Text style={styles.assetsTitle}>
             {this.state.searchInputValue
               ? strings('payment_request.search_results')
@@ -759,7 +757,10 @@ class PaymentRequest extends PureComponent {
       switchable = false;
     }
     return (
-      <View style={styles.enterAmountWrapper} testID={'request-amount-screen'}>
+      <View
+        style={styles.enterAmountWrapper}
+        testID={RequestPaymentViewSelectors.REQUEST_PAYMENT_CONTAINER_ID}
+      >
         <View>
           <Text style={styles.title}>
             {strings('payment_request.enter_amount')}
@@ -786,7 +787,9 @@ class PaymentRequest extends PureComponent {
                     value={amount}
                     onSubmitEditing={this.onNext}
                     ref={this.amountInput}
-                    {...generateTestId(Platform, REQUEST_AMOUNT_INPUT)}
+                    testID={
+                      RequestPaymentViewSelectors.REQUEST_AMOUNT_INPUT_BOX_ID
+                    }
                     keyboardAppearance={themeAppearance}
                   />
                   <Text
