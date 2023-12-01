@@ -10,6 +10,7 @@ import PersonalSign from '../../../UI/PersonalSign';
 import TypedSign from '../../../UI/TypedSign';
 import { MessageParams } from '../types';
 import { ApprovalTypes } from '../../../../core/RPCMethods/RPCMethodMiddleware';
+import { useSelector } from 'react-redux';
 
 interface RootProps {
   messageParams?: MessageParams;
@@ -34,6 +35,9 @@ const Root = ({
   const navigation = useNavigation();
   const { colors } = useTheme();
   const [showExpandedMessage, setShowExpandedMessage] = useState(false);
+  const visibility = useSelector(
+    (reduxState: any) => reduxState.modals.signMessageModalVisible,
+  );
 
   const toggleExpandedMessage = () =>
     setShowExpandedMessage(!showExpandedMessage);
@@ -47,7 +51,7 @@ const Root = ({
     };
   }, []);
 
-  if (!messageParams || !currentPageMeta || !approvalType) {
+  if (!messageParams || !currentPageMeta || !approvalType || !visibility) {
     return null;
   }
 

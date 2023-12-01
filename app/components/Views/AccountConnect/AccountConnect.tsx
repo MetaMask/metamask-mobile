@@ -33,7 +33,10 @@ import { getActiveTabUrl } from '../../../util/transactions';
 import { getUrlObj, prefixUrlWithProtocol } from '../../../util/browser';
 import { strings } from '../../../../locales/i18n';
 import { AvatarAccountType } from '../../../component-library/components/Avatars/Avatar/variants/AvatarAccount';
-import { safeToChecksumAddress } from '../../../util/address';
+import {
+  getAddressAccountType,
+  safeToChecksumAddress,
+} from '../../../util/address';
 import USER_INTENT from '../../../constants/permissions';
 import { selectAccountsLength } from '../../../selectors/accountTrackerController';
 import {
@@ -149,6 +152,7 @@ const AccountConnect = (props: AccountConnectProps) => {
       AnalyticsV2.trackEvent(MetaMetricsEvents.CONNECT_REQUEST_COMPLETED, {
         number_of_accounts: accountsLength,
         number_of_accounts_connected: connectedAccountLength,
+        account_type: getAddressAccountType(activeAddress),
         source: 'in-app browser',
       });
       let labelOptions: ToastOptions['labelOptions'] = [];

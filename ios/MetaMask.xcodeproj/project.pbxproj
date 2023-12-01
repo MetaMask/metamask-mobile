@@ -9,7 +9,7 @@
 /* Begin PBXBuildFile section */
 		07CBADD9D4B441008304F8D3 /* EuclidCircularB-Light.otf in Resources */ = {isa = PBXBuildFile; fileRef = A98029A3662F4C1391489A6B /* EuclidCircularB-Light.otf */; };
 		0C119A06A4353DD11451F541 /* libPods-MetaMask-Flask.a in Frameworks */ = {isa = PBXBuildFile; fileRef = FA078AF57878ABB05D063C8F /* libPods-MetaMask-Flask.a */; };
-		0FD509E0336BF221F6527B24 /* (null) in Frameworks */ = {isa = PBXBuildFile; };
+		0FD509E0336BF221F6527B24 /* BuildFile in Frameworks */ = {isa = PBXBuildFile; };
 		13B07FBC1A68108700A75B9A /* AppDelegate.m in Sources */ = {isa = PBXBuildFile; fileRef = 13B07FB01A68108700A75B9A /* AppDelegate.m */; };
 		13B07FBF1A68108700A75B9A /* Images.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 13B07FB51A68108700A75B9A /* Images.xcassets */; };
 		13B07FC11A68108700A75B9A /* main.m in Sources */ = {isa = PBXBuildFile; fileRef = 13B07FB71A68108700A75B9A /* main.m */; };
@@ -73,6 +73,15 @@
 		2EF282882B0FF86900D7B4B1 /* EuclidCircularB-SemiboldItalic.otf in Resources */ = {isa = PBXBuildFile; fileRef = 9499B01ECAC44DA29AC44E80 /* EuclidCircularB-SemiboldItalic.otf */; };
 		2EF2828B2B0FF86900D7B4B1 /* Mixpanel.framework in Embed Frameworks */ = {isa = PBXBuildFile; fileRef = 15F7795722A1B79400B1DF8C /* Mixpanel.framework */; settings = {ATTRIBUTES = (CodeSignOnCopy, RemoveHeadersOnCopy, ); }; };
 		2EF2828C2B0FF86900D7B4B1 /* Branch.framework in Embed Frameworks */ = {isa = PBXBuildFile; fileRef = 153F84C92319B8DB00C19B63 /* Branch.framework */; settings = {ATTRIBUTES = (CodeSignOnCopy, RemoveHeadersOnCopy, ); }; };
+		2EF2832A2B17EBD600D7B4B1 /* RnTar.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2EF283292B17EBD600D7B4B1 /* RnTar.swift */; };
+		2EF2832B2B17EBD600D7B4B1 /* RnTar.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2EF283292B17EBD600D7B4B1 /* RnTar.swift */; };
+		2EF2832C2B17EBD600D7B4B1 /* RnTar.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2EF283292B17EBD600D7B4B1 /* RnTar.swift */; };
+		2EF283322B17EC1A00D7B4B1 /* RNTar.m in Sources */ = {isa = PBXBuildFile; fileRef = 2EF283312B17EC1A00D7B4B1 /* RNTar.m */; };
+		2EF283332B17EC1A00D7B4B1 /* RNTar.m in Sources */ = {isa = PBXBuildFile; fileRef = 2EF283312B17EC1A00D7B4B1 /* RNTar.m */; };
+		2EF283342B17EC1A00D7B4B1 /* RNTar.m in Sources */ = {isa = PBXBuildFile; fileRef = 2EF283312B17EC1A00D7B4B1 /* RNTar.m */; };
+		2EF283372B17EC7900D7B4B1 /* Light-Swift-Untar.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2EF283362B17EC7900D7B4B1 /* Light-Swift-Untar.swift */; };
+		2EF283382B17EC7900D7B4B1 /* Light-Swift-Untar.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2EF283362B17EC7900D7B4B1 /* Light-Swift-Untar.swift */; };
+		2EF283392B17EC7900D7B4B1 /* Light-Swift-Untar.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2EF283362B17EC7900D7B4B1 /* Light-Swift-Untar.swift */; };
 		34CEE49BC79D411687B42FA9 /* Roboto-Regular.ttf in Resources */ = {isa = PBXBuildFile; fileRef = 459C4774EB724F2D8E12F088 /* Roboto-Regular.ttf */; };
 		373454C575C84C24B0BB24D4 /* EuclidCircularB-SemiboldItalic.otf in Resources */ = {isa = PBXBuildFile; fileRef = 9499B01ECAC44DA29AC44E80 /* EuclidCircularB-SemiboldItalic.otf */; };
 		39D0D096A0F340ABAC1A8565 /* EuclidCircularB-Regular.otf in Resources */ = {isa = PBXBuildFile; fileRef = F564570593ED4F3FB10BD348 /* EuclidCircularB-Regular.otf */; };
@@ -131,7 +140,7 @@
 		B339FF31289ABD70001B89FB /* Mixpanel.framework in Embed Frameworks */ = {isa = PBXBuildFile; fileRef = 15F7795722A1B79400B1DF8C /* Mixpanel.framework */; settings = {ATTRIBUTES = (CodeSignOnCopy, RemoveHeadersOnCopy, ); }; };
 		B339FF32289ABD70001B89FB /* Branch.framework in Embed Frameworks */ = {isa = PBXBuildFile; fileRef = 153F84C92319B8DB00C19B63 /* Branch.framework */; settings = {ATTRIBUTES = (CodeSignOnCopy, RemoveHeadersOnCopy, ); }; };
 		B339FF3C289ABF2C001B89FB /* MetaMask-QA-Info.plist in Resources */ = {isa = PBXBuildFile; fileRef = B339FEA72899852C001B89FB /* MetaMask-QA-Info.plist */; };
-		B638844E306CAE9147B52C85 /* (null) in Frameworks */ = {isa = PBXBuildFile; };
+		B638844E306CAE9147B52C85 /* BuildFile in Frameworks */ = {isa = PBXBuildFile; };
 		BF39E5BAE0F34F9091FF6AC0 /* EuclidCircularB-Semibold.otf in Resources */ = {isa = PBXBuildFile; fileRef = A8DE9C5BC0714D648276E123 /* EuclidCircularB-Semibold.otf */; };
 		CD13D926E1E84D9ABFE672C0 /* Roboto-BlackItalic.ttf in Resources */ = {isa = PBXBuildFile; fileRef = 3E2492C67CF345CABD7B8601 /* Roboto-BlackItalic.ttf */; };
 		CF9895772A3B49BE00B4C9B5 /* RCTMinimizer.m in Sources */ = {isa = PBXBuildFile; fileRef = CF9895762A3B49BE00B4C9B5 /* RCTMinimizer.m */; };
@@ -139,7 +148,7 @@
 		CF98DA9C28D9FEB700096782 /* RCTScreenshotDetect.m in Sources */ = {isa = PBXBuildFile; fileRef = CF98DA9B28D9FEB700096782 /* RCTScreenshotDetect.m */; };
 		CFD8DFC828EDD4C800CC75F6 /* RCTScreenshotDetect.m in Sources */ = {isa = PBXBuildFile; fileRef = CF98DA9B28D9FEB700096782 /* RCTScreenshotDetect.m */; };
 		D171C39A8BD44DBEB6B68480 /* EuclidCircularB-MediumItalic.otf in Resources */ = {isa = PBXBuildFile; fileRef = 42CBA652072F4BE2A8B815C1 /* EuclidCircularB-MediumItalic.otf */; };
-		D45BF85DECACCB74EDCBE88A /* (null) in Frameworks */ = {isa = PBXBuildFile; };
+		D45BF85DECACCB74EDCBE88A /* BuildFile in Frameworks */ = {isa = PBXBuildFile; };
 		DC6A024F56DD43E1A83B47B1 /* Roboto-MediumItalic.ttf in Resources */ = {isa = PBXBuildFile; fileRef = D5FF0FF1DFB74B3C8BB99E09 /* Roboto-MediumItalic.ttf */; };
 		DDB2D8FF8BDA806A38D61B1B /* libPods-MetaMask-QA.a in Frameworks */ = {isa = PBXBuildFile; fileRef = E0B857D61941CE8A3F59C662 /* libPods-MetaMask-QA.a */; };
 		E34DE917F6FC4438A6E88402 /* EuclidCircularB-BoldItalic.otf in Resources */ = {isa = PBXBuildFile; fileRef = 13EE4910D3BD408A8FCCA5D7 /* EuclidCircularB-BoldItalic.otf */; };
@@ -305,6 +314,9 @@
 		2D16E6891FA4F8E400B85C8A /* libReact.a */ = {isa = PBXFileReference; explicitFileType = archive.ar; path = libReact.a; sourceTree = BUILT_PRODUCTS_DIR; };
 		2D38A4BA1190B57818AFF2BC /* Pods-MetaMask.debug.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-MetaMask.debug.xcconfig"; path = "Target Support Files/Pods-MetaMask/Pods-MetaMask.debug.xcconfig"; sourceTree = "<group>"; };
 		2EF282922B0FF86900D7B4B1 /* MetaMask-Flask.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = "MetaMask-Flask.app"; sourceTree = BUILT_PRODUCTS_DIR; };
+		2EF283292B17EBD600D7B4B1 /* RnTar.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RnTar.swift; sourceTree = "<group>"; };
+		2EF283312B17EC1A00D7B4B1 /* RNTar.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = RNTar.m; sourceTree = "<group>"; };
+		2EF283362B17EC7900D7B4B1 /* Light-Swift-Untar.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "Light-Swift-Untar.swift"; sourceTree = "<group>"; };
 		3E2492C67CF345CABD7B8601 /* Roboto-BlackItalic.ttf */ = {isa = PBXFileReference; explicitFileType = undefined; fileEncoding = 9; includeInIndex = 0; lastKnownFileType = unknown; name = "Roboto-BlackItalic.ttf"; path = "../app/fonts/Roboto-BlackItalic.ttf"; sourceTree = "<group>"; };
 		42C239E9FAA64BD9A34B8D8A /* MaterialCommunityIcons.ttf */ = {isa = PBXFileReference; explicitFileType = undefined; fileEncoding = 9; includeInIndex = 0; lastKnownFileType = unknown; name = MaterialCommunityIcons.ttf; path = "../node_modules/react-native-vector-icons/Fonts/MaterialCommunityIcons.ttf"; sourceTree = "<group>"; };
 		42C6DDE3B80F47AFA9C9D4F5 /* Foundation.ttf */ = {isa = PBXFileReference; explicitFileType = undefined; fileEncoding = 9; includeInIndex = 0; lastKnownFileType = unknown; name = Foundation.ttf; path = "../node_modules/react-native-vector-icons/Fonts/Foundation.ttf"; sourceTree = "<group>"; };
@@ -374,9 +386,9 @@
 				153C1ABB2217BCDC0088EFE0 /* JavaScriptCore.framework in Frameworks */,
 				15F7795E22A1B7B500B1DF8C /* Mixpanel.framework in Frameworks */,
 				153F84CA2319B8FD00C19B63 /* Branch.framework in Frameworks */,
-				0FD509E0336BF221F6527B24 /* (null) in Frameworks */,
-				D45BF85DECACCB74EDCBE88A /* (null) in Frameworks */,
-				B638844E306CAE9147B52C85 /* (null) in Frameworks */,
+				0FD509E0336BF221F6527B24 /* BuildFile in Frameworks */,
+				D45BF85DECACCB74EDCBE88A /* BuildFile in Frameworks */,
+				B638844E306CAE9147B52C85 /* BuildFile in Frameworks */,
 				7CFB6EF0B7853F1C4E863E5E /* libPods-MetaMask.a in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -511,6 +523,14 @@
 			name = Frameworks;
 			sourceTree = "<group>";
 		};
+		2EF283352B17EC4E00D7B4B1 /* Light-Swift-Untar-V2 */ = {
+			isa = PBXGroup;
+			children = (
+				2EF283362B17EC7900D7B4B1 /* Light-Swift-Untar.swift */,
+			);
+			path = "Light-Swift-Untar-V2";
+			sourceTree = "<group>";
+		};
 		4A27949D046C4516B9653BBB /* Resources */ = {
 			isa = PBXGroup;
 			children = (
@@ -578,6 +598,9 @@
 		83CBB9F61A601CBA00E9B192 = {
 			isa = PBXGroup;
 			children = (
+				2EF283352B17EC4E00D7B4B1 /* Light-Swift-Untar-V2 */,
+				2EF283312B17EC1A00D7B4B1 /* RNTar.m */,
+				2EF283292B17EBD600D7B4B1 /* RnTar.swift */,
 				654378AF243E2ADC00571B9C /* File.swift */,
 				15FDD86021B76461006B7C35 /* release.xcconfig */,
 				15FDD82721B7642B006B7C35 /* debug.xcconfig */,
@@ -1219,7 +1242,10 @@
 			buildActionMask = 2147483647;
 			files = (
 				13B07FBC1A68108700A75B9A /* AppDelegate.m in Sources */,
+				2EF283322B17EC1A00D7B4B1 /* RNTar.m in Sources */,
 				654378B0243E2ADC00571B9C /* File.swift in Sources */,
+				2EF2832A2B17EBD600D7B4B1 /* RnTar.swift in Sources */,
+				2EF283372B17EC7900D7B4B1 /* Light-Swift-Untar.swift in Sources */,
 				CF98DA9C28D9FEB700096782 /* RCTScreenshotDetect.m in Sources */,
 				15F7796522A1BC8C00B1DF8C /* RCTAnalytics.m in Sources */,
 				CF9895772A3B49BE00B4C9B5 /* RCTMinimizer.m in Sources */,
@@ -1232,7 +1258,10 @@
 			buildActionMask = 2147483647;
 			files = (
 				2EF2825A2B0FF86900D7B4B1 /* AppDelegate.m in Sources */,
+				2EF283342B17EC1A00D7B4B1 /* RNTar.m in Sources */,
 				2EF2825B2B0FF86900D7B4B1 /* File.swift in Sources */,
+				2EF2832C2B17EBD600D7B4B1 /* RnTar.swift in Sources */,
+				2EF283392B17EC7900D7B4B1 /* Light-Swift-Untar.swift in Sources */,
 				2EF2825C2B0FF86900D7B4B1 /* RCTScreenshotDetect.m in Sources */,
 				2EF2825D2B0FF86900D7B4B1 /* RCTAnalytics.m in Sources */,
 				2EF2825E2B0FF86900D7B4B1 /* RCTMinimizer.m in Sources */,
@@ -1245,7 +1274,10 @@
 			buildActionMask = 2147483647;
 			files = (
 				CFD8DFC828EDD4C800CC75F6 /* RCTScreenshotDetect.m in Sources */,
+				2EF283332B17EC1A00D7B4B1 /* RNTar.m in Sources */,
 				B339FF02289ABD70001B89FB /* AppDelegate.m in Sources */,
+				2EF2832B2B17EBD600D7B4B1 /* RnTar.swift in Sources */,
+				2EF283382B17EC7900D7B4B1 /* Light-Swift-Untar.swift in Sources */,
 				B339FF03289ABD70001B89FB /* File.swift in Sources */,
 				B339FF04289ABD70001B89FB /* RCTAnalytics.m in Sources */,
 				CF9895782A3B49BE00B4C9B5 /* RCTMinimizer.m in Sources */,
