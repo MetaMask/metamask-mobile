@@ -649,17 +649,6 @@ function SwapsAmountView({
   const disabledView =
     !destinationTokenHasEnoughOcurrances && !hasDismissedTokenAlert;
 
-  if (!userHasOnboarded) {
-    return (
-      <ScreenView
-        style={styles.container}
-        contentContainerStyle={styles.screen}
-      >
-        <Onboarding setHasOnboarded={setHasOnboarded} />
-      </ScreenView>
-    );
-  }
-
   return (
     <ScreenView
       style={styles.container}
