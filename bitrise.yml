@@ -139,7 +139,7 @@ workflows:
     steps:
       - activate-ssh-key@4:
           run_if: '{{getenv "SSH_RSA_PRIVATE_KEY" | ne ""}}'
-      - git-clone@6: {}   
+      - git-clone@6: {}
   code_setup:
     before_run:
       - setup
@@ -365,10 +365,54 @@ workflows:
             - profile: pixel_5
       - wait-for-android-emulator@1: {}
       - save-gradle-cache@1: {}
+      - script@1: 
+          title: Check native folder diff for Android
+          inputs:
+            - content: |-
+                #!/usr/bin/env bash
+                folder="android"
+                output_file="android-diff.txt"
+                current_branch=$(git rev-parse --abbrev-ref HEAD)
+                if [ "$current_branch" = "main" ]; then
+                    echo "On main branch, we will not use cache, but will save it for future runs"
+                    envman add --key SKIP_CCACHE_RESTORE --value true
+                else 
+                    git fetch origin refs/heads/main
+                    differences=$(git diff origin/main...$current_branch -- $folder)
+                    if [ -z "$differences" ]; then
+                        echo "No differences detected, we will use main cache"
+                        envman add --key SKIP_CCACHE_UPLOAD --value true
+                        envman add --key USE_MAIN_CCACHE --value true
+                    else
+                        echo "$differences" > $output_file
+                        echo "Differences written to $output_file"
+                    fi
+                fi
+      - script@1: 
+          title: Install CCache & symlink 
+          inputs:
+            - content: |-
+                #!/usr/bin/env bash
+                brew install ccache
+                ln -s $(which ccache) /usr/local/bin/gcc
+                ln -s $(which ccache) /usr/local/bin/g++
+                ln -s $(which ccache) /usr/local/bin/cc
+                ln -s $(which ccache) /usr/local/bin/c++
+                ln -s $(which ccache) /usr/local/bin/clang
+                ln -s $(which ccache) /usr/local/bin/clang++
+      - restore-cache@1:
+          title: Restore CCache
+          run_if: '{{not (enveq "SKIP_CCACHE_RESTORE" "true")}}'
+          inputs:
+          - key: 'android-ccache-{{if getenv "USE_MAIN_CCACHE" }}main{{else}}{{ checksum "android-diff.txt"}}{{end}}'
       - script@1:
           inputs:
             - content: |-
                 #!/usr/bin/env bash
+                ccache --config-path $(pwd)/ccache.conf
+                ccache --set-config cache_dir=$(pwd)/ccache
+                source ./ccache.conf
+                ccache -p
                 if [ "$TEST_SUITE" = "Regression" ]; then
                   TEST_SUITE="Regression"
                 else
@@ -380,6 +424,19 @@ workflows:
                 IGNORE_BOXLOGS_DEVELOPMENT="true" FORCE_BUNDLING=true yarn test:e2e:android:bitrise:debug --testNamePattern="$TEST_SUITE"
           title: Detox Build & Test
           is_always_run: false
+      - save-cache@1:
+          title: Save CCache
+          run_if: '{{not (enveq "SKIP_CCACHE_UPLOAD" "true")}}'
+          inputs:
+          - key: 'android-ccache-{{if getenv "USE_MAIN_CCACHE" }}main{{else}}{{ checksum "android-diff.txt"}}{{end}}'
+          - paths: |-
+              ccache
+      - script@1: 
+          title: CCache statistics and uninstall
+          inputs:
+            - content: |-
+                ccache -s
+                brew uninstall ccache
       - custom-test-results-export@1:
           is_always_run: true
           is_skippable: true
@@ -438,7 +495,7 @@ workflows:
       - cocoapods-install@2:
           is_always_run: false
       - script@1: 
-          title: Check native dependency diff for ios folder
+          title: Check native folder diff for iOS
           inputs:
             - content: |-
                 #!/usr/bin/env bash
