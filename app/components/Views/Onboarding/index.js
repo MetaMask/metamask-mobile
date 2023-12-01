@@ -27,7 +27,6 @@ import { strings } from '../../../../locales/i18n';
 import Button from 'react-native-button';
 import { connect } from 'react-redux';
 import FadeOutOverlay from '../../UI/FadeOutOverlay';
-import Analytics from '../../../core/Analytics/Analytics';
 import { saveOnboardingEvent } from '../../../actions/onboarding';
 import {
   getTransparentBackOnboardingNavbarOptions,
@@ -40,11 +39,9 @@ import { loadingSet, loadingUnset } from '../../../actions/user';
 import PreventScreenshot from '../../../core/PreventScreenshot';
 import WarningExistingUserModal from '../../UI/WarningExistingUserModal';
 import { PREVIOUS_SCREEN, ONBOARDING } from '../../../constants/navigation';
-import { EXISTING_USER, METRICS_OPT_IN } from '../../../constants/storage';
-import { MetaMetricsEvents } from '../../../core/Analytics';
-import AnalyticsV2 from '../../../util/analyticsV2';
+import { EXISTING_USER } from '../../../constants/storage';
+import { MetaMetrics, MetaMetricsEvents } from '../../../core/Analytics';
 
-import DefaultPreference from 'react-native-default-preference';
 import { Authentication } from '../../../core';
 import { ThemeContext, mockTheme } from '../../../util/theme';
 import AnimatedFox from 'react-native-animated-fox';
@@ -282,8 +279,8 @@ class Onboarding extends PureComponent {
 
   onPressCreate = () => {
     const action = async () => {
-      const metricsOptIn = await DefaultPreference.get(METRICS_OPT_IN);
-      if (metricsOptIn) {
+      const metrics = await MetaMetrics.getInstance();
+      if (metrics.isEnabled()) {
         this.props.navigation.navigate('ChoosePassword', {
           [PREVIOUS_SCREEN]: ONBOARDING,
         });
@@ -304,8 +301,8 @@ class Onboarding extends PureComponent {
 
   onPressImport = () => {
     const action = async () => {
-      const metricsOptIn = await DefaultPreference.get(METRICS_OPT_IN);
-      if (metricsOptIn) {
+      const metrics = await MetaMetrics.getInstance();
+      if (metrics.isEnabled()) {
         this.props.navigation.push(
           Routes.ONBOARDING.IMPORT_FROM_SECRET_RECOVERY_PHRASE,
         );
@@ -324,15 +321,13 @@ class Onboarding extends PureComponent {
     this.handleExistingUser(action);
   };
 
-  track = (...eventArgs) => {
+  track = (event) => {
     InteractionManager.runAfterInteractions(async () => {
-      if (Analytics.checkEnabled()) {
-        AnalyticsV2.trackEvent(...eventArgs);
-        return;
-      }
-      const metricsOptIn = await DefaultPreference.get(METRICS_OPT_IN);
-      if (!metricsOptIn) {
-        this.props.saveOnboardingEvent(eventArgs);
+      const metrics = await MetaMetrics.getInstance();
+      if (metrics.isEnabled()) {
+        metrics.trackEvent(event.category);
+      } else {
+        this.props.saveOnboardingEvent(event.category);
       }
     });
   };

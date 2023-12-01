@@ -34,8 +34,7 @@ import {
   MIN_PASSWORD_LENGTH,
 } from '../../../util/password';
 import importAdditionalAccounts from '../../../util/importAdditionalAccounts';
-import { MetaMetricsEvents } from '../../../core/Analytics';
-import AnalyticsV2 from '../../../util/analyticsV2';
+import { MetaMetrics, MetaMetricsEvents } from '../../../core/Analytics';
 
 import { useTheme } from '../../../util/theme';
 import { passwordSet, seedphraseBackedUp } from '../../../actions/user';
@@ -192,8 +191,9 @@ const ImportFromSecretRecoveryPhrase = ({
     setSeed(parsedSeed);
 
     if (loading) return;
-    InteractionManager.runAfterInteractions(() => {
-      AnalyticsV2.trackEvent(MetaMetricsEvents.WALLET_IMPORT_ATTEMPTED);
+    InteractionManager.runAfterInteractions(async () => {
+      const metrics = await MetaMetrics.getInstance();
+      metrics.trackEvent(MetaMetricsEvents.WALLET_IMPORT_ATTEMPTED.category);
     });
     let error = null;
     if (!passwordRequirementsMet(password)) {
@@ -210,8 +210,9 @@ const ImportFromSecretRecoveryPhrase = ({
 
     if (error) {
       Alert.alert(strings('import_from_seed.error'), error);
-      InteractionManager.runAfterInteractions(() => {
-        AnalyticsV2.trackEvent(MetaMetricsEvents.WALLET_SETUP_FAILURE, {
+      InteractionManager.runAfterInteractions(async () => {
+        const metrics = await MetaMetrics.getInstance();
+        metrics.trackEvent(MetaMetricsEvents.WALLET_SETUP_FAILURE.category, {
           wallet_setup_type: 'import',
           error_type: error,
         });
@@ -242,14 +243,18 @@ const ImportFromSecretRecoveryPhrase = ({
         passwordSet();
         setLockTime(AppConstants.DEFAULT_LOCK_TIMEOUT);
         seedphraseBackedUp();
-        InteractionManager.runAfterInteractions(() => {
-          AnalyticsV2.trackEvent(MetaMetricsEvents.WALLET_IMPORTED, {
+        InteractionManager.runAfterInteractions(async () => {
+          const metrics = await MetaMetrics.getInstance();
+          metrics.trackEvent(MetaMetricsEvents.WALLET_IMPORTED.category, {
             biometrics_enabled: Boolean(biometryType),
           });
-          AnalyticsV2.trackEvent(MetaMetricsEvents.WALLET_SETUP_COMPLETED, {
-            wallet_setup_type: 'import',
-            new_wallet: false,
-          });
+          metrics.trackEvent(
+            MetaMetricsEvents.WALLET_SETUP_COMPLETED.category,
+            {
+              wallet_setup_type: 'import',
+              new_wallet: false,
+            },
+          );
         });
         if (onboardingWizard) {
           navigation.replace(Routes.ONBOARDING.MANUAL_BACKUP.STEP_3);
@@ -273,8 +278,9 @@ const ImportFromSecretRecoveryPhrase = ({
           setError(error.message);
           Logger.log('Error with seed phrase import', error.message);
         }
-        InteractionManager.runAfterInteractions(() => {
-          AnalyticsV2.trackEvent(MetaMetricsEvents.WALLET_SETUP_FAILURE, {
+        InteractionManager.runAfterInteractions(async () => {
+          const metrics = await MetaMetrics.getInstance();
+          metrics.trackEvent(MetaMetricsEvents.WALLET_SETUP_FAILURE.category, {
             wallet_setup_type: 'import',
             error_type: error.toString(),
           });

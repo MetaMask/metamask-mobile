@@ -55,8 +55,7 @@ import {
 } from '../../../util/password';
 
 import { CHOOSE_PASSWORD_STEPS } from '../../../constants/onboarding';
-import { MetaMetricsEvents } from '../../../core/Analytics';
-import AnalyticsV2 from '../../../util/analyticsV2';
+import { MetaMetrics, MetaMetricsEvents } from '../../../core/Analytics';
 import { Authentication } from '../../../core';
 import AUTHENTICATION_TYPE from '../../../constants/userProperties';
 import { ThemeContext, mockTheme } from '../../../util/theme';
@@ -340,8 +339,9 @@ class ChoosePassword extends PureComponent {
       Alert.alert('Error', strings('choose_password.password_dont_match'));
       return;
     }
-    InteractionManager.runAfterInteractions(() => {
-      AnalyticsV2.trackEvent(MetaMetricsEvents.WALLET_CREATION_ATTEMPTED);
+    InteractionManager.runAfterInteractions(async () => {
+      const metrics = await MetaMetrics.getInstance();
+      metrics.trackEvent(MetaMetricsEvents.WALLET_CREATION_ATTEMPTED.category);
     });
 
     try {
@@ -369,11 +369,12 @@ class ChoosePassword extends PureComponent {
       this.props.setLockTime(AppConstants.DEFAULT_LOCK_TIMEOUT);
       this.setState({ loading: false });
       this.props.navigation.replace('AccountBackupStep1');
-      InteractionManager.runAfterInteractions(() => {
-        AnalyticsV2.trackEvent(MetaMetricsEvents.WALLET_CREATED, {
+      InteractionManager.runAfterInteractions(async () => {
+        const metrics = await MetaMetrics.getInstance();
+        metrics.trackEvent(MetaMetricsEvents.WALLET_CREATED.category, {
           biometrics_enabled: Boolean(this.state.biometryType),
         });
-        AnalyticsV2.trackEvent(MetaMetricsEvents.WALLET_SETUP_COMPLETED, {
+        metrics.trackEvent(MetaMetricsEvents.WALLET_SETUP_COMPLETED.category, {
           wallet_setup_type: 'new',
           new_wallet: true,
         });
@@ -399,8 +400,9 @@ class ChoosePassword extends PureComponent {
       } else {
         this.setState({ loading: false, error: error.toString() });
       }
-      InteractionManager.runAfterInteractions(() => {
-        AnalyticsV2.trackEvent(MetaMetricsEvents.WALLET_SETUP_FAILURE, {
+      InteractionManager.runAfterInteractions(async () => {
+        const metrics = await MetaMetrics.getInstance();
+        metrics.trackEvent(MetaMetricsEvents.WALLET_SETUP_FAILURE.category, {
           wallet_setup_type: 'new',
           error_type: error.toString(),
         });

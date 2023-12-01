@@ -33,8 +33,7 @@ import { useTheme } from '../../../util/theme';
 import { uint8ArrayToMnemonic } from '../../../util/mnemonic';
 import { createStyles } from './styles';
 
-import { MetaMetricsEvents } from '../../../core/Analytics';
-import AnalyticsV2 from '../../../util/analyticsV2';
+import { MetaMetrics, MetaMetricsEvents } from '../../../core/Analytics';
 import { Authentication } from '../../../core';
 import { ManualBackUpStep1SelectorsIDs } from '../../../../e2e/selectors/Onboarding/ManualBackUpStep1.selectors';
 
@@ -109,8 +108,11 @@ const ManualBackupStep1 = ({ route, navigation, appTheme }) => {
 
   const revealSeedPhrase = () => {
     setSeedPhraseHidden(false);
-    InteractionManager.runAfterInteractions(() => {
-      AnalyticsV2.trackEvent(MetaMetricsEvents.WALLET_SECURITY_PHRASE_REVEALED);
+    InteractionManager.runAfterInteractions(async () => {
+      const metrics = await MetaMetrics.getInstance();
+      metrics.trackEvent(
+        MetaMetricsEvents.WALLET_SECURITY_PHRASE_REVEALED.category,
+      );
     });
   };
 

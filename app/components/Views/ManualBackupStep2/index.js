@@ -17,8 +17,7 @@ import { seedphraseBackedUp } from '../../../actions/user';
 import MaterialIcon from 'react-native-vector-icons/MaterialCommunityIcons';
 import { getOnboardingNavbarOptions } from '../../UI/Navbar';
 import { shuffle, compareMnemonics } from '../../../util/mnemonic';
-import { MetaMetricsEvents } from '../../../core/Analytics';
-import AnalyticsV2 from '../../../util/analyticsV2';
+import { MetaMetrics, MetaMetricsEvents } from '../../../core/Analytics';
 import { useTheme } from '../../../util/theme';
 import createStyles from './styles';
 import { ManualBackUpStep2SelectorsIDs } from '../../../../e2e/selectors/Onboarding/ManualBackUpStep2.selectors';
@@ -123,14 +122,15 @@ const ManualBackupStep2 = ({ navigation, seedphraseBackedUp, route }) => {
   const goNext = () => {
     if (validateWords()) {
       seedphraseBackedUp();
-      InteractionManager.runAfterInteractions(() => {
+      InteractionManager.runAfterInteractions(async () => {
         const words = route.params?.words;
         navigation.navigate('ManualBackupStep3', {
           steps: route.params?.steps,
           words,
         });
-        AnalyticsV2.trackEvent(
-          MetaMetricsEvents.WALLET_SECURITY_PHRASE_CONFIRMED,
+        const metrics = await MetaMetrics.getInstance();
+        metrics.trackEvent(
+          MetaMetricsEvents.WALLET_SECURITY_PHRASE_CONFIRMED.category,
         );
       });
     } else {

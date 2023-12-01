@@ -17,17 +17,14 @@ import { getOptinMetricsNavbarOptions } from '../Navbar';
 import { strings } from '../../../../locales/i18n';
 import setOnboardingWizardStep from '../../../actions/wizard';
 import { connect } from 'react-redux';
-import Analytics from '../../../core/Analytics/Analytics';
 import { clearOnboardingEvents } from '../../../actions/onboarding';
-import {
-  ONBOARDING_WIZARD,
-  METRICS_OPT_IN,
-  DENIED,
-  AGREED,
-} from '../../../constants/storage';
+import { ONBOARDING_WIZARD } from '../../../constants/storage';
 import AppConstants from '../../../core/AppConstants';
-import { MetaMetricsEvents } from '../../../core/Analytics';
-import AnalyticsV2 from '../../../util/analyticsV2';
+import {
+  Analytics,
+  MetaMetrics,
+  MetaMetricsEvents,
+} from '../../../core/Analytics';
 
 import DefaultPreference from 'react-native-default-preference';
 import { ThemeContext } from '../../../util/theme';
@@ -261,31 +258,13 @@ class OptinMetrics extends PureComponent {
   };
 
   /**
-   * Track the event of opt in or opt out.
-   * @param AnalyticsOptionSelected - User selected option regarding the tracking of events
-   */
-  trackOptInEvent = (AnalyticsOptionSelected) => {
-    InteractionManager.runAfterInteractions(async () => {
-      AnalyticsV2.trackEvent(MetaMetricsEvents.ANALYTICS_PREFERENCE_SELECTED, {
-        analytics_option_selected: AnalyticsOptionSelected,
-        updated_after_onboarding: false,
-      });
-    });
-  };
-
-  /**
    * Callback on press cancel
    */
   onCancel = async () => {
-    const { events } = this.props;
-    const metricsOptionSelected = 'Metrics Opt Out';
     setTimeout(async () => {
-      if (events && events.length) {
-        events.forEach((eventArgs) => AnalyticsV2.trackEvent(...eventArgs));
-      }
-      this.trackOptInEvent(metricsOptionSelected);
+      const metrics = await MetaMetrics.getInstance();
       this.props.clearOnboardingEvents();
-      await DefaultPreference.set(METRICS_OPT_IN, DENIED);
+      await metrics.enable(false);
       Analytics.disableInstance();
     }, 200);
     this.continue();
@@ -296,16 +275,26 @@ class OptinMetrics extends PureComponent {
    */
   onConfirm = async () => {
     const { events } = this.props;
-    const metricsOptionSelected = 'Metrics Opt In';
-    Analytics.enable();
-    setTimeout(async () => {
+    const metrics = await MetaMetrics.getInstance();
+    await metrics.enable();
+    InteractionManager.runAfterInteractions(async () => {
+      // track onboarding events that were stored before user opted in
       if (events && events.length) {
-        events.forEach((eventArgs) => AnalyticsV2.trackEvent(...eventArgs));
+        events.forEach((eventArgs) => {
+          metrics.trackEvent(...eventArgs);
+        });
       }
-      this.trackOptInEvent(metricsOptionSelected);
       this.props.clearOnboardingEvents();
-      await DefaultPreference.set(METRICS_OPT_IN, AGREED);
-    }, 200);
+
+      // track event for user opting in
+      metrics.trackEvent(
+        MetaMetricsEvents.ANALYTICS_PREFERENCE_SELECTED.category,
+        {
+          analytics_option_selected: 'Metrics Opt In',
+          updated_after_onboarding: false,
+        },
+      );
+    });
     this.continue();
   };
 

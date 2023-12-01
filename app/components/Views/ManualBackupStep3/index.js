@@ -28,8 +28,7 @@ import {
   ONBOARDING_WIZARD,
   SEED_PHRASE_HINTS,
 } from '../../../constants/storage';
-import { MetaMetricsEvents } from '../../../core/Analytics';
-import AnalyticsV2 from '../../../util/analyticsV2';
+import { MetaMetrics, MetaMetricsEvents } from '../../../core/Analytics';
 import DefaultPreference from 'react-native-default-preference';
 import { ThemeContext, mockTheme } from '../../../util/theme';
 
@@ -138,8 +137,9 @@ class ManualBackupStep3 extends PureComponent {
     this.setState({
       hintText: manualBackup,
     });
-    InteractionManager.runAfterInteractions(() => {
-      AnalyticsV2.trackEvent(MetaMetricsEvents.WALLET_SECURITY_COMPLETED);
+    InteractionManager.runAfterInteractions(async () => {
+      const metrics = await MetaMetrics.getInstance();
+      metrics.trackEvent(MetaMetricsEvents.WALLET_SECURITY_COMPLETED.category);
     });
     BackHandler.addEventListener(HARDWARE_BACK_PRESS, hardwareBackPress);
   };
@@ -186,9 +186,10 @@ class ManualBackupStep3 extends PureComponent {
       SEED_PHRASE_HINTS,
       JSON.stringify({ ...parsedHints, manualBackup: hintText }),
     );
-    InteractionManager.runAfterInteractions(() => {
-      AnalyticsV2.trackEvent(
-        MetaMetricsEvents.WALLET_SECURITY_RECOVERY_HINT_SAVED,
+    InteractionManager.runAfterInteractions(async () => {
+      const metrics = await MetaMetrics.getInstance();
+      metrics.trackEvent(
+        MetaMetricsEvents.WALLET_SECURITY_RECOVERY_HINT_SAVED.category,
       );
     });
   };

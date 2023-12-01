@@ -10,7 +10,7 @@ import {
   InteractionManager,
   Platform,
 } from 'react-native';
-import { MetaMetricsEvents } from '../../../core/Analytics';
+import { MetaMetrics, MetaMetricsEvents } from '../../../core/Analytics';
 import StyledButton from '../../UI/StyledButton';
 import { fontStyles, baseStyles } from '../../../styles/common';
 import { strings } from '../../../../locales/i18n';
@@ -21,9 +21,6 @@ import OnboardingScreenWithBg from '../../UI/OnboardingScreenWithBg';
 import Device from '../../../util/device';
 import { saveOnboardingEvent } from '../../../actions/onboarding';
 import { connect } from 'react-redux';
-import AnalyticsV2 from '../../../util/analyticsV2';
-import DefaultPreference from 'react-native-default-preference';
-import { METRICS_OPT_IN } from '../../../constants/storage';
 import { ThemeContext, mockTheme } from '../../../util/theme';
 import {
   WELCOME_SCREEN_CAROUSEL_TITLE_ID,
@@ -146,27 +143,27 @@ class OnboardingCarousel extends PureComponent {
     currentTab: 1,
   };
 
-  trackEvent = (eventArgs) => {
+  track = (event, properties) => {
     InteractionManager.runAfterInteractions(async () => {
-      const metricsOptIn = await DefaultPreference.get(METRICS_OPT_IN);
-      if (metricsOptIn) {
-        AnalyticsV2.trackEvent(eventArgs);
+      const metrics = await MetaMetrics.getInstance();
+      if (metrics.isEnabled()) {
+        metrics.trackEvent(event.category, properties);
       } else {
-        this.props.saveOnboardingEvent(eventArgs);
+        this.props.saveOnboardingEvent(event.category);
       }
     });
   };
 
   onPressGetStarted = () => {
     this.props.navigation.navigate('Onboarding');
-    this.trackEvent(MetaMetricsEvents.ONBOARDING_STARTED);
+    this.track(MetaMetricsEvents.ONBOARDING_STARTED);
   };
 
   renderTabBar = () => <View />;
 
   onChangeTab = (obj) => {
     this.setState({ currentTab: obj.i + 1 });
-    this.trackEvent(MetaMetricsEvents.ONBOARDING_WELCOME_SCREEN_ENGAGEMENT, {
+    this.track(MetaMetricsEvents.ONBOARDING_WELCOME_SCREEN_ENGAGEMENT, {
       message_title: strings(`onboarding_carousel.title${[obj.i + 1]}`, {
         locale: 'en',
       }),
@@ -182,7 +179,7 @@ class OnboardingCarousel extends PureComponent {
 
   componentDidMount = () => {
     this.updateNavBar();
-    this.trackEvent(MetaMetricsEvents.ONBOARDING_WELCOME_MESSAGE_VIEWED);
+    this.track(MetaMetricsEvents.ONBOARDING_WELCOME_MESSAGE_VIEWED);
   };
 
   componentDidUpdate = () => {

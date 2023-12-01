@@ -83,6 +83,7 @@ const DeleteMetaMetricsData = () => {
 
   const deleteMetaMetrics = async () => {
     try {
+      // delete legacy metrics
       const response = await Analytics.createDataDeletionTask();
       if (response.status === DataDeleteResponseStatus.ok) {
         setDataDeleteStatus(DataDeleteStatus.pending);
@@ -92,6 +93,8 @@ const DeleteMetaMetricsData = () => {
       } else {
         showDeleteTaskError();
       }
+      // TODO add Segment delete request here
+      // TODO add Segment reset here
     } catch (error: any) {
       showDeleteTaskError();
       Logger.log('Error deleteMetaMetrics -', error);

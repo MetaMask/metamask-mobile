@@ -27,8 +27,7 @@ import SkipAccountSecurityModal from '../../UI/SkipAccountSecurityModal';
 import SeedPhraseVideo from '../../UI/SeedPhraseVideo';
 import { connect } from 'react-redux';
 import setOnboardingWizardStep from '../../../actions/wizard';
-import { MetaMetricsEvents } from '../../../core/Analytics';
-import AnalyticsV2 from '../../../util/analyticsV2';
+import { MetaMetrics, MetaMetricsEvents } from '../../../core/Analytics';
 
 import DefaultPreference from 'react-native-default-preference';
 import { useTheme } from '../../../util/theme';
@@ -165,8 +164,9 @@ const AccountBackupStep1 = (props) => {
 
   const goNext = () => {
     props.navigation.navigate('AccountBackupStep1B', { ...props.route.params });
-    InteractionManager.runAfterInteractions(() => {
-      AnalyticsV2.trackEvent(MetaMetricsEvents.WALLET_SECURITY_STARTED);
+    InteractionManager.runAfterInteractions(async () => {
+      const metrics = await MetaMetrics.getInstance();
+      metrics.trackEvent(MetaMetricsEvents.WALLET_SECURITY_STARTED.category);
     });
   };
 
@@ -174,8 +174,11 @@ const AccountBackupStep1 = (props) => {
     if (hasFunds) return;
 
     setRemindLaterModal(true);
-    InteractionManager.runAfterInteractions(() => {
-      AnalyticsV2.trackEvent(MetaMetricsEvents.WALLET_SECURITY_SKIP_INITIATED);
+    InteractionManager.runAfterInteractions(async () => {
+      const metrics = await MetaMetrics.getInstance();
+      metrics.trackEvent(
+        MetaMetricsEvents.WALLET_SECURITY_SKIP_INITIATED.category,
+      );
     });
   };
 
@@ -194,8 +197,11 @@ const AccountBackupStep1 = (props) => {
 
   const skip = async () => {
     hideRemindLaterModal();
-    InteractionManager.runAfterInteractions(() => {
-      AnalyticsV2.trackEvent(MetaMetricsEvents.WALLET_SECURITY_SKIP_CONFIRMED);
+    InteractionManager.runAfterInteractions(async () => {
+      const metrics = await MetaMetrics.getInstance();
+      metrics.trackEvent(
+        MetaMetricsEvents.WALLET_SECURITY_SKIP_CONFIRMED.category,
+      );
     });
     // Get onboarding wizard state
     const onboardingWizard = await DefaultPreference.get(ONBOARDING_WIZARD);
