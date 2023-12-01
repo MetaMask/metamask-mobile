@@ -492,7 +492,7 @@ index 4ed4990..df0524b 100644
                          }
                      }
 diff --git a/node_modules/@metamask/assets-controllers/dist/TokenRatesController.d.ts b/node_modules/@metamask/assets-controllers/dist/TokenRatesController.d.ts
-index 8bb7c20..4ebc108 100644
+index 8bb7c20..810d961 100644
 --- a/node_modules/@metamask/assets-controllers/dist/TokenRatesController.d.ts
 +++ b/node_modules/@metamask/assets-controllers/dist/TokenRatesController.d.ts
 @@ -1,7 +1,8 @@
@@ -541,7 +541,7 @@ index 8bb7c20..4ebc108 100644
      private handle?;
      private tokenList;
      private supportedChains;
-@@ -88,41 +101,31 @@ export declare class TokenRatesController extends BaseController<TokenRatesConfi
+@@ -88,41 +101,32 @@ export declare class TokenRatesController extends BaseController<TokenRatesConfi
       * Creates a TokenRatesController instance.
       *
       * @param options - The controller options.
@@ -560,6 +560,7 @@ index 8bb7c20..4ebc108 100644
 +        chainId: string;
 +        ticker: string;
 +        selectedAddress: string;
++        coinGeckoHeader: string;
 +        onPreferencesStateChange: (listener: (preferencesState: PreferencesState) => void) => void;
          onTokensStateChange: (listener: (tokensState: TokensState) => void) => void;
 -        onCurrencyRateStateChange: (listener: (currencyRateState: CurrencyRateState) => void) => void;
@@ -597,10 +598,10 @@ index 8bb7c20..4ebc108 100644
       * Fetches a pairs of token address and native currency.
       *
 diff --git a/node_modules/@metamask/assets-controllers/dist/TokenRatesController.js b/node_modules/@metamask/assets-controllers/dist/TokenRatesController.js
-index e3f81e9..1a526c4 100644
+index e3f81e9..10994ef 100644
 --- a/node_modules/@metamask/assets-controllers/dist/TokenRatesController.js
 +++ b/node_modules/@metamask/assets-controllers/dist/TokenRatesController.js
-@@ -8,11 +8,382 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
+@@ -8,11 +8,30 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
          step((generator = generator.apply(thisArg, _arguments || [])).next());
      });
  };
@@ -628,362 +629,10 @@ index e3f81e9..1a526c4 100644
 +    PollState["Inactive"] = "Inactive";
 +})(PollState || (PollState = {}));
 +
-+const CURRENCY_PRICE_API_CURRENCIES_SUPPORTED = {
-+    "btc": {
-+      "name": "Bitcoin",
-+      "ticker": "btc",
-+      "currencyType": "crypto"
-+    },
-+    "eth": {
-+      "name": "Ether",
-+      "ticker": "eth",
-+      "currencyType": "crypto"
-+    },
-+    "ltc": {
-+      "name": "Litecoin",
-+      "ticker": "ltc",
-+      "currencyType": "crypto"
-+    },
-+    "bch": {
-+      "name": "Bitcoin Cash",
-+      "ticker": "bch",
-+      "currencyType": "crypto"
-+    },
-+    "bnb": {
-+      "name": "Binance Coin",
-+      "ticker": "bnb",
-+      "currencyType": "crypto"
-+    },
-+    "eos": {
-+      "name": "EOS",
-+      "ticker": "eos",
-+      "currencyType": "crypto"
-+    },
-+    "xrp": {
-+      "name": "XRP",
-+      "ticker": "xrp",
-+      "currencyType": "crypto"
-+    },
-+    "xlm": {
-+      "name": "Lumens",
-+      "ticker": "xlm",
-+      "currencyType": "crypto"
-+    },
-+    "link": {
-+      "name": "Chainlink",
-+      "ticker": "link",
-+      "currencyType": "crypto"
-+    },
-+    "dot": {
-+      "name": "Polkadot",
-+      "ticker": "dot",
-+      "currencyType": "crypto"
-+    },
-+    "yfi": {
-+      "name": "Yearn.finance",
-+      "ticker": "yfi",
-+      "currencyType": "crypto"
-+    },
-+    "usd": {
-+      "name": "US Dollar",
-+      "ticker": "usd",
-+      "value": 1,
-+      "currencyType": "fiat"
-+    },
-+    "aed": {
-+      "name": "United Arab Emirates Dirham",
-+      "ticker": "aed",
-+      "currencyType": "fiat"
-+    },
-+    "ars": {
-+      "name": "Argentine Peso",
-+      "ticker": "ars",
-+      "currencyType": "fiat"
-+    },
-+    "aud": {
-+      "name": "Australian Dollar",
-+      "ticker": "aud",
-+      "currencyType": "fiat"
-+    },
-+    "bdt": {
-+      "name": "Bangladeshi Taka",
-+      "ticker": "bdt",
-+      "currencyType": "fiat"
-+    },
-+    "bhd": {
-+      "name": "Bahraini Dinar",
-+      "ticker": "bhd",
-+      "currencyType": "fiat"
-+    },
-+    "bmd": {
-+      "name": "Bermudian Dollar",
-+      "ticker": "bmd",
-+      "currencyType": "fiat"
-+    },
-+    "brl": {
-+      "name": "Brazil Real",
-+      "ticker": "brl",
-+      "currencyType": "fiat"
-+    },
-+    "cad": {
-+      "name": "Canadian Dollar",
-+      "ticker": "cad",
-+      "currencyType": "fiat"
-+    },
-+    "chf": {
-+      "name": "Swiss Franc",
-+      "ticker": "chf",
-+      "currencyType": "fiat"
-+    },
-+    "clp": {
-+      "name": "Chilean Peso",
-+      "ticker": "clp",
-+      "currencyType": "fiat"
-+    },
-+    "cny": {
-+      "name": "Chinese Yuan",
-+      "ticker": "cny",
-+      "currencyType": "fiat"
-+    },
-+    "czk": {
-+      "name": "Czech Koruna",
-+      "ticker": "czk",
-+      "currencyType": "fiat"
-+    },
-+    "dkk": {
-+      "name": "Danish Krone",
-+      "ticker": "dkk",
-+      "currencyType": "fiat"
-+    },
-+    "eur": {
-+      "name": "Euro",
-+      "ticker": "eur",
-+      "currencyType": "fiat"
-+    },
-+    "gbp": {
-+      "name": "British Pound Sterling",
-+      "ticker": "gbp",
-+      "currencyType": "fiat"
-+    },
-+    "hkd": {
-+      "name": "Hong Kong Dollar",
-+      "ticker": "hkd",
-+      "currencyType": "fiat"
-+    },
-+    "huf": {
-+      "name": "Hungarian Forint",
-+      "ticker": "huf",
-+      "currencyType": "fiat"
-+    },
-+    "idr": {
-+      "name": "Indonesian Rupiah",
-+      "ticker": "idr",
-+      "currencyType": "fiat"
-+    },
-+    "ils": {
-+      "name": "Israeli New Shekel",
-+      "ticker": "ils",
-+      "currencyType": "fiat"
-+    },
-+    "inr": {
-+      "name": "Indian Rupee",
-+      "ticker": "inr",
-+      "currencyType": "fiat"
-+    },
-+    "jpy": {
-+      "name": "Japanese Yen",
-+      "ticker": "jpy",
-+      "currencyType": "fiat"
-+    },
-+    "krw": {
-+      "name": "South Korean Won",
-+      "ticker": "krw",
-+      "currencyType": "fiat"
-+    },
-+    "kwd": {
-+      "name": "Kuwaiti Dinar",
-+      "ticker": "kwd",
-+      "currencyType": "fiat"
-+    },
-+    "lkr": {
-+      "name": "Sri Lankan Rupee",
-+      "ticker": "lkr",
-+      "currencyType": "fiat"
-+    },
-+    "mmk": {
-+      "name": "Burmese Kyat",
-+      "ticker": "mmk",
-+      "currencyType": "fiat"
-+    },
-+    "mxn": {
-+      "name": "Mexican Peso",
-+      "ticker": "mxn",
-+      "currencyType": "fiat"
-+    },
-+    "myr": {
-+      "name": "Malaysian Ringgit",
-+      "ticker": "myr",
-+      "currencyType": "fiat"
-+    },
-+    "ngn": {
-+      "name": "Nigerian Naira",
-+      "ticker": "ngn",
-+      "currencyType": "fiat"
-+    },
-+    "nok": {
-+      "name": "Norwegian Krone",
-+      "ticker": "nok",
-+      "currencyType": "fiat"
-+    },
-+    "nzd": {
-+      "name": "New Zealand Dollar",
-+      "ticker": "nzd",
-+      "currencyType": "fiat"
-+    },
-+    "php": {
-+      "name": "Philippine Peso",
-+      "ticker": "php",
-+      "currencyType": "fiat"
-+    },
-+    "pkr": {
-+      "name": "Pakistani Rupee",
-+      "ticker": "pkr",
-+      "currencyType": "fiat"
-+    },
-+    "pln": {
-+      "name": "Polish Zloty",
-+      "ticker": "pln",
-+      "currencyType": "fiat"
-+    },
-+    "rub": {
-+      "name": "Russian Ruble",
-+      "ticker": "rub",
-+      "currencyType": "fiat"
-+    },
-+    "sar": {
-+      "name": "Saudi Riyal",
-+      "ticker": "sar",
-+      "currencyType": "fiat"
-+    },
-+    "sek": {
-+      "name": "Swedish Krona",
-+      "ticker": "sek",
-+      "currencyType": "fiat"
-+    },
-+    "sgd": {
-+      "name": "Singapore Dollar",
-+      "ticker": "sgd",
-+      "currencyType": "fiat"
-+    },
-+    "thb": {
-+      "name": "Thai Baht",
-+      "ticker": "thb",
-+      "currencyType": "fiat"
-+    },
-+    "try": {
-+      "name": "Turkish Lira",
-+      "ticker": "try",
-+      "currencyType": "fiat"
-+    },
-+    "twd": {
-+      "name": "New Taiwan Dollar",
-+      "ticker": "twd",
-+      "currencyType": "fiat"
-+    },
-+    "uah": {
-+      "name": "Ukrainian hryvnia",
-+      "ticker": "uah",
-+      "currencyType": "fiat"
-+    },
-+    "vef": {
-+      "name": "Venezuelan bolívar fuerte",
-+      "ticker": "vef",
-+      "currencyType": "fiat"
-+    },
-+    "vnd": {
-+      "name": "Vietnamese đồng",
-+      "ticker": "vnd",
-+      "currencyType": "fiat"
-+    },
-+    "zar": {
-+      "name": "South African Rand",
-+      "ticker": "zar",
-+      "currencyType": "fiat"
-+    },
-+    "xdr": {
-+      "name": "IMF Special Drawing Rights",
-+      "ticker": "xdr",
-+      "currencyType": "fiat"
-+    },
-+    "xag": {
-+      "name": "Silver - Troy Ounce",
-+      "ticker": "xag",
-+      "currencyType": "commodity"
-+    },
-+    "xau": {
-+      "name": "Gold - Troy Ounce",
-+      "ticker": "xau",
-+      "currencyType": "commodity"
-+    },
-+    "bits": {
-+      "name": "Bits",
-+      "ticker": "bits",
-+      "currencyType": "crypto"
-+    },
-+    "sats": {
-+      "name": "Satoshi",
-+      "ticker": "sats",
-+      "currencyType": "crypto"
-+    }
-+  }
-+
-+const CHAIN_ID_PRICE_API_SUPPORTED = {
-+    1: 'ethereum',
-+    10: 'optimistic-ethereum',
-+    25: 'cronos',
-+    56: 'binance-smart-chain',
-+    57: 'syscoin',
-+    66: 'okex-chain',
-+    70: 'hoo-smart-chain',
-+    82: 'meter',
-+    88: 'tomochain',
-+    100: 'xdai',
-+    106: 'velas',
-+    122: 'fuse',
-+    128: 'huobi-token',
-+    137: 'polygon-pos',
-+    250: 'fantom',
-+    288: 'boba',
-+    321: 'kucoin-community-chain',
-+    324: 'zksync',
-+    361: 'theta',
-+    1088: 'metis-andromeda',
-+    1284: 'moonbeam',
-+    1285: 'moonriver',
-+    8453: 'base',
-+    8545: 'shiden network',
-+    10000: 'smartbch',
-+    42161: 'arbitrum-one',
-+    42220: 'celo',
-+    42262: 'oasis',
-+    43114: 'avalanche',
-+    59144: 'linea',
-+    333999: 'polis-chain',
-+    1313161554: 'aurora',
-+    1666600000: 'harmony-shard-0',
-+  }
-+
-+const PriceApi = {
-+    BASE_URL: 'https://price.api.cx.metamask.io',
-+    getTokenPriceURL(chainId, query) {
-+        return `${this.BASE_URL}/v2/chains/${chainId}/spot-prices?${query}`
-+    }
-+}
-+
  const CoinGeckoApi = {
      BASE_URL: 'https://api.coingecko.com/api/v3',
      getTokenPriceURL(chainSlug, query) {
-@@ -49,14 +420,18 @@ class TokenRatesController extends base_controller_1.BaseController {
+@@ -49,15 +68,20 @@ class TokenRatesController extends base_controller_1.BaseController {
       * Creates a TokenRatesController instance.
       *
       * @param options - The controller options.
@@ -998,13 +647,15 @@ index e3f81e9..1a526c4 100644
       * @param state - Initial state to set on this controller.
       */
 -    constructor({ onTokensStateChange, onCurrencyRateStateChange, onNetworkStateChange, }, config, state) {
-+    constructor({ chainId: initialChainId, ticker: initialTicker, selectedAddress: initialSelectedAddress, onPreferencesStateChange, onTokensStateChange, onNetworkStateChange, }, config, state) {
++    constructor({ chainId: initialChainId, ticker: initialTicker, selectedAddress: initialSelectedAddress, onPreferencesStateChange, onTokensStateChange, onNetworkStateChange, coinGeckoHeader}, config, state) {
          super(config, state);
 +        _TokenRatesController_instances.add(this);
          this.tokenList = [];
++        this.coinGeckoHeader = coinGeckoHeader;
          this.supportedChains = {
              timestamp: 0,
-@@ -66,16 +441,19 @@ class TokenRatesController extends base_controller_1.BaseController {
+             data: null,
+@@ -66,16 +90,19 @@ class TokenRatesController extends base_controller_1.BaseController {
              timestamp: 0,
              data: [],
          };
@@ -1028,7 +679,7 @@ index e3f81e9..1a526c4 100644
              threshold: 6 * 60 * 60 * 1000,
          };
          this.defaultState = {
-@@ -85,60 +463,57 @@ class TokenRatesController extends base_controller_1.BaseController {
+@@ -85,60 +112,57 @@ class TokenRatesController extends base_controller_1.BaseController {
          if (config === null || config === void 0 ? void 0 : config.disabled) {
              this.configure({ disabled: true }, false, false);
          }
@@ -1105,7 +756,8 @@ index e3f81e9..1a526c4 100644
 -     * TODO: Replace this with a method.
 -     *
 -     * @param _chainId - The current chain ID.
--     */
++     * Stop polling.
+      */
 -    set chainId(_chainId) {
 -        !this.disabled && (0, controller_utils_1.safelyExecute)(() => this.updateExchangeRates());
 -    }
@@ -1118,8 +770,7 @@ index e3f81e9..1a526c4 100644
 -     * TODO: Replace this with a method.
 -     *
 -     * @param tokens - List of tokens to track exchange rates for.
-+     * Stop polling.
-      */
+-     */
 -    set tokens(tokens) {
 -        this.tokenList = tokens;
 -        !this.disabled && (0, controller_utils_1.safelyExecute)(() => this.updateExchangeRates());
@@ -1132,37 +783,52 @@ index e3f81e9..1a526c4 100644
      }
      /**
       * Fetches a pairs of token address and native currency.
-@@ -147,11 +522,12 @@ class TokenRatesController extends base_controller_1.BaseController {
-      * @param vsCurrency - Query according to tokens in tokenList and native currency.
+@@ -148,11 +172,34 @@ class TokenRatesController extends base_controller_1.BaseController {
       * @returns The exchange rates for the given pairs.
       */
--    fetchExchangeRate(chainSlug, vsCurrency) {
-+    fetchExchangeRate(vsCurrency) {
-         return __awaiter(this, void 0, void 0, function* () {
+     fetchExchangeRate(chainSlug, vsCurrency) {
+-        return __awaiter(this, void 0, void 0, function* () {
 -            const tokenPairs = this.tokenList.map((token) => token.address).join(',');
 -            const query = `contract_addresses=${tokenPairs}&vs_currencies=${vsCurrency.toLowerCase()}`;
 -            return (0, controller_utils_1.handleFetch)(CoinGeckoApi.getTokenPriceURL(chainSlug, query));
-+            const { chainId } = this.config;
-+            const tokenPairs = this.tokenList.join(',');
-+            const query = `tokenAddresses=${tokenPairs}&vsCurrency=${vsCurrency.toLowerCase()}`;
-+            return (0, controller_utils_1.handleFetch)(PriceApi.getTokenPriceURL(chainId, query));
-         });
+-        });
++            const tokenPairs = this.tokenList;
++
++            const tokenPairsChunks = (chunkSize) =>
++            tokenPairs.reduce((resultArray, item, index) => {
++              const chunkIndex = Math.floor(index / chunkSize);
++              if (!resultArray[chunkIndex]) {
++                resultArray[chunkIndex] = [];
++              }
++      
++              resultArray[chunkIndex].push(item);
++      
++              return resultArray;
++            }, []);
++
++      
++          const tokensPairsChunks = tokenPairsChunks(20);
++          
++          return tokensPairsChunks.map((tokenPairsChunk) => {
++            const query = `contract_addresses=${tokenPairsChunk.join(
++              ',',
++            )}&vs_currencies=${vsCurrency.toLowerCase()}`;
++            return (0, controller_utils_1.handleFetch)(CoinGeckoApi.getTokenPriceURL(chainSlug, query), {
++                headers: {
++                    'Content-Type': 'application/json',
++                    'X-CoinGecko-Source': this.coinGeckoHeader
++                },
++            });;
++          });       
      }
      /**
-@@ -207,17 +583,19 @@ class TokenRatesController extends base_controller_1.BaseController {
-             if (this.tokenList.length === 0 || this.disabled) {
-                 return;
-             }
--            const slug = yield this.getChainSlug();
-+            const {chainId} = this.config;
+      * Checks if the current native currency is a supported vs currency to use
+@@ -210,12 +257,11 @@ class TokenRatesController extends base_controller_1.BaseController {
+             const slug = yield this.getChainSlug();
              let newContractExchangeRates = {};
--            if (!slug) {
+             if (!slug) {
 -                this.tokenList.forEach((token) => {
 -                    const address = (0, controller_utils_1.toChecksumHexAddress)(token.address);
-+            if (!Object.prototype.hasOwnProperty.call(
-+                CHAIN_ID_PRICE_API_SUPPORTED,
-+                chainId,
-+              )) {
 +                this.tokenList.forEach((tokenAddress) => {
 +                    const address = (0, controller_utils_1.toChecksumHexAddress)(tokenAddress);
                      newContractExchangeRates[address] = undefined;
@@ -1171,50 +837,65 @@ index e3f81e9..1a526c4 100644
 -            else {
 +            } else {
                  const { nativeCurrency } = this.config;
--                newContractExchangeRates = yield this.fetchAndMapExchangeRates(nativeCurrency, slug);
-+                newContractExchangeRates = yield this.fetchAndMapExchangeRates(nativeCurrency);
+                 newContractExchangeRates = yield this.fetchAndMapExchangeRates(nativeCurrency, slug);
              }
-             this.update({ contractExchangeRates: newContractExchangeRates });
-         });
-@@ -234,17 +612,19 @@ class TokenRatesController extends base_controller_1.BaseController {
-      * @returns An object with conversion rates for each token
-      * related to the network's native currency.
-      */
--    fetchAndMapExchangeRates(nativeCurrency, slug) {
-+    fetchAndMapExchangeRates(nativeCurrency) {
+@@ -237,14 +283,23 @@ class TokenRatesController extends base_controller_1.BaseController {
+     fetchAndMapExchangeRates(nativeCurrency, slug) {
          return __awaiter(this, void 0, void 0, function* () {
              const contractExchangeRates = {};
 -            // check if native currency is supported as a vs_currency by the API
 -            const nativeCurrencySupported = yield this.checkIsSupportedVsCurrency(nativeCurrency);
--            if (nativeCurrencySupported) {
--                // If it is we can do a simple fetch against the CoinGecko API
++            if(this.tokenList.length === 0){ 
++                return contractExchangeRates;
++            }
++
++            const nativeCurrencySupported = yield this.checkIsSupportedVsCurrency(
++                nativeCurrency,
++              );
++    
+             if (nativeCurrencySupported) {
+                 // If it is we can do a simple fetch against the CoinGecko API
 -                const prices = yield this.fetchExchangeRate(slug, nativeCurrency);
 -                this.tokenList.forEach((token) => {
 -                    const price = prices[token.address.toLowerCase()];
 -                    contractExchangeRates[(0, controller_utils_1.toChecksumHexAddress)(token.address)] = price
-+            if(this.tokenList.length === 0){ 
-+                return contractExchangeRates;
-+            }
-+    
-+            if (Object.prototype.hasOwnProperty.call(CURRENCY_PRICE_API_CURRENCIES_SUPPORTED,nativeCurrency.toLowerCase())) {
-+                // If it is we can do a simple fetch against the Price API
-+                const prices = yield this.fetchExchangeRate(nativeCurrency);
++                const res = yield Promise.all(
++                    this.fetchExchangeRate(slug, nativeCurrency),
++                  );
++                const prices = Object.assign({}, ...res);
 +                this.tokenList.forEach((tokenAddress) => {
 +                    const price = prices[tokenAddress.toLowerCase()];
 +                    contractExchangeRates[(0, controller_utils_1.toChecksumHexAddress)(tokenAddress)] = price
                          ? price[nativeCurrency.toLowerCase()]
                          : 0;
                  });
-@@ -259,7 +639,7 @@ class TokenRatesController extends base_controller_1.BaseController {
-                         tokenExchangeRates,
+@@ -252,14 +307,14 @@ class TokenRatesController extends base_controller_1.BaseController {
+             else {
+                 // if native currency is not supported we need to use a fallback vsCurrency, get the exchange rates
+                 // in token/fallback-currency format and convert them to expected token/nativeCurrency format.
+-                let tokenExchangeRates;
++                let tokenExchangeRatesResponse;
+                 let vsCurrencyToNativeCurrencyConversionRate = 0;
+                 try {
+                     [
+-                        tokenExchangeRates,
++                        tokenExchangeRatesResponse,
                          { conversionRate: vsCurrencyToNativeCurrencyConversionRate },
                      ] = yield Promise.all([
 -                        this.fetchExchangeRate(slug, controller_utils_1.FALL_BACK_VS_CURRENCY),
-+                        this.fetchExchangeRate(controller_utils_1.FALL_BACK_VS_CURRENCY),
++                       Promise.all(this.fetchExchangeRate(slug, controller_utils_1.FALL_BACK_VS_CURRENCY)),
                          (0, crypto_compare_1.fetchExchangeRate)(nativeCurrency, controller_utils_1.FALL_BACK_VS_CURRENCY, false),
                      ]);
                  }
-@@ -282,5 +662,29 @@ class TokenRatesController extends base_controller_1.BaseController {
+@@ -270,6 +325,7 @@ class TokenRatesController extends base_controller_1.BaseController {
+                     }
+                     throw error;
+                 }
++                const tokenExchangeRates = Object.assign({}, ...tokenExchangeRatesResponse);
+                 for (const [tokenAddress, conversion] of Object.entries(tokenExchangeRates)) {
+                     const tokenToVsCurrencyConversionRate = conversion[controller_utils_1.FALL_BACK_VS_CURRENCY.toLowerCase()];
+                     contractExchangeRates[(0, controller_utils_1.toChecksumHexAddress)(tokenAddress)] =
+@@ -282,5 +338,29 @@ class TokenRatesController extends base_controller_1.BaseController {
      }
  }
  exports.TokenRatesController = TokenRatesController;
