@@ -1,11 +1,15 @@
 import { Appearance } from 'react-native';
 import { store } from '../../../store';
 import {
-  DeviceMetaData,
+  UserProfileMetaData,
   UserProfilePropery,
-} from './UserSettingsAnalyticsMetaData.types';
+} from './UserProfileAnalyticsMetaData.types';
 
-const generateUserSettingsAnalyticsMetaData = (): DeviceMetaData => {
+/**
+ * Generate user profile analytics meta data
+ * To be used in the Segment identify call
+ */
+const generateUserProfileAnalyticsMetaData = (): UserProfileMetaData => {
   const reduxState = store.getState();
   const preferencesController =
     reduxState?.engine?.backgroundState?.PreferencesController;
@@ -37,4 +41,4 @@ const generateUserSettingsAnalyticsMetaData = (): DeviceMetaData => {
   };
 };
 
-export default generateUserSettingsAnalyticsMetaData;
+export default generateUserProfileAnalyticsMetaData;

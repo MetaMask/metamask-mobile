@@ -10,7 +10,7 @@ export enum UserProfilePropery {
   SECURITY_PROVIDERS = 'security_providers',
 }
 
-export interface DeviceMetaData {
+export interface UserProfileMetaData {
   [UserProfilePropery.ENABLE_OPENSEA_API]: string;
   [UserProfilePropery.NFT_AUTODETECTION]: string;
   [UserProfilePropery.THEME]: string;
