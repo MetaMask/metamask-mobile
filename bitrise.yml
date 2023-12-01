@@ -404,7 +404,6 @@ workflows:
           inputs:
             - content: |-
                 #!/usr/bin/env bash
-                ccache --config-path $(pwd)/ccache.conf
                 ccache --set-config cache_dir=$(pwd)/ccache
                 source ./ccache.conf
                 ccache -p
