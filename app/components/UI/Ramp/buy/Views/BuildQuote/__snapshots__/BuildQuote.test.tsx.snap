@@ -161,7 +161,6 @@ exports[`BuildQuote View Crypto Currency Data renders a special error page if cr
                     "justifyContent": "center",
                   }
                 }
-                testID="navbar-title-text"
               >
                 <Text
                   numberOfLines={1}
@@ -895,7 +894,6 @@ exports[`BuildQuote View Crypto Currency Data renders a special error page if cr
                     "justifyContent": "center",
                   }
                 }
-                testID="navbar-title-text"
               >
                 <Text
                   numberOfLines={1}
@@ -1629,7 +1627,6 @@ exports[`BuildQuote View Crypto Currency Data renders an error page when there i
                     "justifyContent": "center",
                   }
                 }
-                testID="navbar-title-text"
               >
                 <Text
                   numberOfLines={1}
@@ -2334,7 +2331,6 @@ exports[`BuildQuote View Crypto Currency Data renders the loading page when cryp
                     "justifyContent": "center",
                   }
                 }
-                testID="navbar-title-text"
               >
                 <Text
                   numberOfLines={1}
@@ -3231,7 +3227,6 @@ exports[`BuildQuote View Fiat Currency Data renders an error page when there is 
                     "justifyContent": "center",
                   }
                 }
-                testID="navbar-title-text"
               >
                 <Text
                   numberOfLines={1}
@@ -3936,7 +3931,6 @@ exports[`BuildQuote View Fiat Currency Data renders the loading page when fiats 
                     "justifyContent": "center",
                   }
                 }
-                testID="navbar-title-text"
               >
                 <Text
                   numberOfLines={1}
@@ -4833,7 +4827,6 @@ exports[`BuildQuote View Payment Method Data renders an error page when there is
                     "justifyContent": "center",
                   }
                 }
-                testID="navbar-title-text"
               >
                 <Text
                   numberOfLines={1}
@@ -5538,7 +5531,6 @@ exports[`BuildQuote View Payment Method Data renders the loading page when payme
                     "justifyContent": "center",
                   }
                 }
-                testID="navbar-title-text"
               >
                 <Text
                   numberOfLines={1}
@@ -6435,7 +6427,6 @@ exports[`BuildQuote View Regions data renders an error page when there is a regi
                     "justifyContent": "center",
                   }
                 }
-                testID="navbar-title-text"
               >
                 <Text
                   numberOfLines={1}
@@ -7140,7 +7131,6 @@ exports[`BuildQuote View Regions data renders the loading page when regions are 
                     "justifyContent": "center",
                   }
                 }
-                testID="navbar-title-text"
               >
                 <Text
                   numberOfLines={1}
@@ -8037,7 +8027,6 @@ exports[`BuildQuote View renders correctly 1`] = `
                     "justifyContent": "center",
                   }
                 }
-                testID="navbar-title-text"
               >
                 <Text
                   numberOfLines={1}
@@ -11262,7 +11251,6 @@ exports[`BuildQuote View renders correctly 2`] = `
                     "justifyContent": "center",
                   }
                 }
-                testID="navbar-title-text"
               >
                 <Text
                   numberOfLines={1}
@@ -14434,7 +14422,6 @@ exports[`BuildQuote View renders correctly when sdkError is present 1`] = `
                     "justifyContent": "center",
                   }
                 }
-                testID="navbar-title-text"
               >
                 <Text
                   numberOfLines={1}
@@ -15139,7 +15126,6 @@ exports[`BuildQuote View renders correctly when sdkError is present 2`] = `
                     "justifyContent": "center",
                   }
                 }
-                testID="navbar-title-text"
               >
                 <Text
                   numberOfLines={1}
