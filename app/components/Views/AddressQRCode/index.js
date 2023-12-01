@@ -19,6 +19,7 @@ import { protectWalletModalVisible } from '../../../actions/user';
 import ClipboardManager from '../../../core/ClipboardManager';
 import { ThemeContext, mockTheme } from '../../../util/theme';
 import { selectSelectedAddress } from '../../../selectors/preferencesController';
+import {AddressQRCodeModalSelectorsIDs} from "../../../../e2e/selectors/Modals/AddressQRCodeModal.selectors";
 
 const WIDTH = Dimensions.get('window').width - 88;
 
@@ -143,7 +144,7 @@ class AddressQRCode extends PureComponent {
           <TouchableOpacity
             style={styles.closeIcon}
             onPress={this.closeQrModal}
-            testID={'close-qr-modal'}
+            testID={AddressQRCodeModalSelectorsIDs.CONTAINER}
           >
             <IonicIcon
               name={'ios-close'}
@@ -164,7 +165,10 @@ class AddressQRCode extends PureComponent {
               {strings('receive_request.public_address_qr_code')}
             </Text>
             <TouchableOpacity onPress={this.copyAccountToClipboard}>
-              <Text style={styles.address} testID={'public-address-input'}>
+              <Text
+                style={styles.address}
+                testID={AddressQRCodeModalSelectorsIDs.PUBLIC_ADDRESS_INPUT}
+              >
                 {this.processAddress()}
               </Text>
             </TouchableOpacity>

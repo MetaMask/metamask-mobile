@@ -621,7 +621,7 @@ class ChoosePassword extends PureComponent {
             </Text>
           </View>
         ) : (
-          <View style={styles.wrapper} testID={'choose-password-screen'}>
+          <View style={styles.wrapper}>
             <OnboardingProgress steps={CHOOSE_PASSWORD_STEPS} />
             <KeyboardAwareScrollView
               style={styles.scrollableWrapper}
@@ -780,7 +780,7 @@ class ChoosePassword extends PureComponent {
                 <StyledButton
                   type={'blue'}
                   onPress={this.onPressCreate}
-                  testID={'submit-button'}
+                  testID={ChoosePasswordSelectorsIDs.SUBMIT_BUTTON_ID}
                   disabled={!canSubmit}
                 >
                   {strings('choose_password.create_button')}

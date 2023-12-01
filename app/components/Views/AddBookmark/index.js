@@ -20,6 +20,7 @@ import {
   ADD_BOOKMARKS_SCREEN_ID,
   FAVORITE_URL_EDIT_TEXT,
 } from '../../../../wdio/screen-objects/testIDs/BrowserScreen/AddFavorite.testIds';
+import { AddBookmarkViewSelectorsIDs } from '../../../../e2e/selectors/AddBookmarkView.selectors';
 
 const createStyles = (colors) =>
   StyleSheet.create({
@@ -136,8 +137,8 @@ export default class AddBookmark extends PureComponent {
         {...generateTestId(Platform, ADD_BOOKMARKS_SCREEN_ID)}
       >
         <ActionView
-          cancelTestID={'add-bookmark-cancel-button'}
-          confirmTestID={'add-bookmark-confirm-button'}
+          cancelTestID={AddBookmarkViewSelectorsIDs.CANCEL_BUTTON}
+          confirmTestID={AddBookmarkViewSelectorsIDs.CONFIRM_BUTTON}
           cancelText={strings('add_favorite.cancel_button')}
           confirmText={strings('add_favorite.add_button')}
           onCancelPress={this.cancelAddBookmark}
