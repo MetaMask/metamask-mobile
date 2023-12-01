@@ -59,6 +59,10 @@ export enum ApprovalTypes {
   TRANSACTION = 'transaction',
   RESULT_ERROR = 'result_error',
   RESULT_SUCCESS = 'result_success',
+  ///: BEGIN:ONLY_INCLUDE_IN(snaps)
+  INSTALL_SNAP = 'wallet_installSnap',
+  UPDATE_SNAP = 'wallet_updateSnap',
+  ///: END:ONLY_INCLUDE_IN
 }
 
 export interface RPCMethodsMiddleParameters {
@@ -366,6 +370,14 @@ export const getRpcMethodMiddleware = ({
             ?.then(resolve)
             .catch(reject);
         }),
+      ///: BEGIN:ONLY_INCLUDE_IN(snaps)
+      // SNAPS TEMPORAL METHODS
+      snap_confirm: () => {
+        // eslint-disable-next-line no-console
+        Logger.log('[RPCMethodsMiddleware LOG] snap_confirm executed');
+        res.result = {};
+      },
+      ///: END:ONLY_INCLUDE_IN
       eth_getTransactionByHash: async () => {
         res.result = await polyfillGasPrice('getTransactionByHash', req.params);
       },
