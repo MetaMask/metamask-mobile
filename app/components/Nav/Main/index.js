@@ -73,7 +73,9 @@ import { addHexPrefix, toHexadecimal } from '../../../util/number';
 import { NETWORKS_CHAIN_ID } from '../../../constants/network';
 import WarningAlert from '../../../components/UI/WarningAlert';
 import { GOERLI_DEPRECATED_ARTICLE } from '../../../constants/urls';
+///: BEGIN:ONLY_INCLUDE_IN(snaps)
 import { SnapsExecutionWebView } from '../../UI/SnapsExecutionWebView';
+///: END:ONLY_INCLUDE_IN
 
 const Stack = createStackNavigator();
 
@@ -352,9 +354,15 @@ const Main = (props) => {
         ) : (
           renderLoader()
         )}
+        {
+          ///: BEGIN:ONLY_INCLUDE_IN(snaps)
+        }
         <View>
           <SnapsExecutionWebView />
         </View>
+        {
+          ///: END:ONLY_INCLUDE_IN
+        }
         <GlobalAlert />
         <FadeOutOverlay />
         <Notification navigation={props.navigation} />

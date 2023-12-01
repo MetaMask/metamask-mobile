@@ -22,7 +22,9 @@ import {
   TokensController,
   TokensState,
 } from '@metamask/assets-controllers';
+///: BEGIN:ONLY_INCLUDE_IN(snaps)
 import { AppState } from 'react-native';
+///: END:ONLY_INCLUDE_IN
 import {
   AddressBookController,
   AddressBookState,
@@ -35,7 +37,9 @@ import {
   KeyringControllerState,
   KeyringControllerActions,
   KeyringControllerEvents,
+  ///: BEGIN:ONLY_INCLUDE_IN(snaps)
   KeyringTypes,
+  ///: END:ONLY_INCLUDE_IN
 } from '@metamask/keyring-controller';
 import {
   NetworkController,
@@ -74,12 +78,15 @@ import {
   PermissionControllerActions,
   PermissionControllerEvents,
   PermissionControllerState,
+  ///: BEGIN:ONLY_INCLUDE_IN(snaps)
   SubjectMetadataController,
   SubjectMetadataControllerState,
   SubjectType,
+  ///: END:ONLY_INCLUDE_IN
 } from '@metamask/permission-controller';
 import SwapsController, { swapsUtils } from '@metamask/swaps-controller';
 import { PPOMController, PPOMState } from '@metamask/ppom-validator';
+///: BEGIN:ONLY_INCLUDE_IN(snaps)
 import {
   JsonSnapsRegistry,
   SnapController,
@@ -87,6 +94,9 @@ import {
   buildSnapEndowmentSpecifications,
   buildSnapRestrictedMethodSpecifications,
 } from '@metamask/snaps-controllers';
+import { EnumToUnion } from '@metamask/snaps-utils';
+import { DialogType, NotificationArgs } from '@metamask/snaps-rpc-methods';
+///: END:ONLY_INCLUDE_IN
 import { MetaMaskKeyring as QRHardwareKeyring } from '@keystonehq/metamask-airgapped-keyring';
 import {
   LoggingController,
@@ -111,11 +121,14 @@ import {
 } from '../util/number';
 import NotificationManager from './NotificationManager';
 import Logger from '../util/Logger';
+///: BEGIN:ONLY_INCLUDE_IN(snaps)
 import { EndowmentPermissions } from '../constants/permissions';
 import { SNAP_BLOCKLIST, checkSnapsBlockList } from '../util/snaps';
+///: END:ONLY_INCLUDE_IN
 import { isZero } from '../util/lodash';
 import { MetaMetricsEvents } from './Analytics';
 import AnalyticsV2 from '../util/analyticsV2';
+///: BEGIN:ONLY_INCLUDE_IN(snaps)
 import {
   SnapBridge,
   WebviewExecutionService,
@@ -126,6 +139,7 @@ import {
   DetectSnapLocationOptions,
 } from './Snaps';
 import { getRpcMethodMiddleware } from './RPCMethods/RPCMethodMiddleware';
+///: END:ONLY_INCLUDE_IN
 import { isBlockaidFeatureEnabled } from '../util/blockaid';
 import {
   getCaveatSpecifications,
@@ -148,8 +162,6 @@ import RNFSStorageBackend from '../lib/ppom/rnfs-storage-backend';
 import { isHardwareAccount } from '../util/address';
 import { ledgerSignTypedMessage } from './Ledger/Ledger';
 import ExtendedKeyringTypes from '../constants/keyringTypes';
-import { EnumToUnion } from '@metamask/snaps-utils';
-import { DialogType, NotificationArgs } from '@metamask/snaps-rpc-methods';
 
 const NON_EMPTY = 'NON_EMPTY';
 
@@ -198,9 +210,13 @@ export interface EngineState {
   TokensController: TokensState;
   TokenDetectionController: BaseState;
   NftDetectionController: BaseState;
+  ///: BEGIN:ONLY_INCLUDE_IN(snaps)
   SnapController: SnapControllerState;
+  ///: END:ONLY_INCLUDE_IN
   PermissionController: PermissionControllerState<Permissions>;
+  ///: BEGIN:ONLY_INCLUDE_IN(snaps)
   SubjectMetadataController: SubjectMetadataControllerState;
+  ///: END:ONLY_INCLUDE_IN
   ApprovalController: ApprovalControllerState;
   LoggingController: LoggingControllerState;
   PPOMController: PPOMState;
@@ -486,6 +502,7 @@ class Engine {
       keyringBuilders: [qrKeyringBuilder, ledgerKeyringBuilder],
     });
 
+    ///: BEGIN:ONLY_INCLUDE_IN(snaps)
     /**
      * Gets the mnemonic of the user's primary keyring.
      */
@@ -566,6 +583,7 @@ class Engine {
         },
       ),
     });
+    ///: END:ONLY_INCLUDE_IN
 
     const permissionController = new PermissionController({
       messenger: this.controllerMessenger.getRestricted({
@@ -587,11 +605,14 @@ class Engine {
         ...getPermissionSpecifications({
           getAllAccounts: () => keyringController.getAccounts(),
         }),
+        ///: BEGIN:ONLY_INCLUDE_IN(snaps)
         ...getSnapPermissionSpecifications(),
+        ///: END:ONLY_INCLUDE_IN
       },
       unrestrictedMethods,
     });
 
+    ///: BEGIN:ONLY_INCLUDE_IN(snaps)
     const subjectMetadataController = new SubjectMetadataController({
       messenger: this.controllerMessenger.getRestricted({
         name: 'SubjectMetadataController',
@@ -746,7 +767,7 @@ class Engine {
         });
       },
     );
-
+    ///: END:ONLY_INCLUDE_IN
     const controllers = [
       keyringController,
       new AccountTrackerController({
@@ -942,8 +963,10 @@ class Engine {
         }),
         state: initialState.LoggingController,
       }),
+      ///: BEGIN:ONLY_INCLUDE_IN(snaps)
       snapController,
       subjectMetadataController,
+      ///: END:ONLY_INCLUDE_IN
     ];
 
     if (isBlockaidFeatureEnabled()) {
@@ -1362,9 +1385,13 @@ export default {
       TokensController,
       TokenDetectionController,
       NftDetectionController,
+      ///: BEGIN:ONLY_INCLUDE_IN(snaps)
       SnapController,
+      ///: END:ONLY_INCLUDE_IN
       PermissionController,
+      ///: BEGIN:ONLY_INCLUDE_IN(snaps)
       SubjectMetadataController,
+      ///: END:ONLY_INCLUDE_IN
       ApprovalController,
       LoggingController,
     } = instance.datamodel.state;
@@ -1399,9 +1426,13 @@ export default {
       GasFeeController,
       TokenDetectionController,
       NftDetectionController,
+      ///: BEGIN:ONLY_INCLUDE_IN(flask)
       SnapController,
+      ///: END:ONLY_INCLUDE_IN
       PermissionController,
+      ///: BEGIN:ONLY_INCLUDE_IN(flask)
       SubjectMetadataController,
+      ///: END:ONLY_INCLUDE_IN
       ApprovalController,
       LoggingController,
     };

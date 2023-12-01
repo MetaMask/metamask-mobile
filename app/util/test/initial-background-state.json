@@ -70,7 +70,8 @@
     "networkStatus": "unknown"
   },
   "PhishingController": {
-    "phishingLists": [{
+    "phishingLists": [
+      {
       "allowlist": [],
       "blocklist": [],
       "fuzzylist": [],

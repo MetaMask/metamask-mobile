@@ -1,3 +1,4 @@
+///: BEGIN:ONLY_INCLUDE_IN(snaps)
 export const EndowmentPermissions = Object.freeze({
   'endowment:network-access': 'endowment:network-access',
   'endowment:long-running': 'endowment:long-running',
@@ -6,6 +7,7 @@ export const EndowmentPermissions = Object.freeze({
   'endowment:ethereum-provider': 'endowment:ethereum-provider',
   'endowment:rpc': 'endowment:rpc',
 } as const);
+///: END:ONLY_INCLUDE_IN
 
 export enum USER_INTENT {
   None,
