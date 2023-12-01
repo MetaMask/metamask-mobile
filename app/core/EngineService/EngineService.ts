@@ -73,10 +73,22 @@ class EngineService {
         name: 'ApprovalController',
         key: `${engine.context.ApprovalController.name}:stateChange`,
       },
+      ///: BEGIN:ONLY_INCLUDE_IN(snaps)
+      {
+        name: 'SnapController',
+        key: `${engine.context.SnapController.name}:stateChange`,
+      },
+      ///: END:ONLY_INCLUDE_IN
       {
         name: 'PermissionController',
         key: `${engine.context.PermissionController.name}:stateChange`,
       },
+      ///: BEGIN:ONLY_INCLUDE_IN(snaps)
+      {
+        name: 'subjectMetadataController',
+        key: `${engine.context.SubjectMetadataController.name}:stateChange`,
+      },
+      ///: END:ONLY_INCLUDE_IN
       {
         name: 'LoggingController',
         key: `${engine.context.LoggingController.name}:stateChange`,

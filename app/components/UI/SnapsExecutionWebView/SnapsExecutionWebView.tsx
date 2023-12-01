@@ -42,7 +42,7 @@ const SnapsExecutionWebView = () => {
   };
 
   return (
-    <ScrollView style={styles.container}>
+    <ScrollView>
       <View style={styles.webview}>
         <WebView
           ref={webviewRef}
