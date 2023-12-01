@@ -393,9 +393,8 @@ workflows:
           inputs:
             - content: |-
                 #!/usr/bin/env bash
+                sudo apt update
                 sudo apt install ccache
-                sudo /usr/sbin/update-ccache-symlinks
-                export PATH="/usr/lib/ccache/:$PATH"
       - restore-cache@1:
           title: Restore CCache
           run_if: '{{not (enveq "SKIP_CCACHE_RESTORE" "true")}}'
