@@ -188,7 +188,7 @@ workflows:
           title: Run my script
           inputs:
           - content: |
-              #!/bin/bash
+              #!/usr/bin/env bash
               set -ex
               export INPUT1="Value 1"
               export INPUT2="Value 2"
@@ -197,7 +197,7 @@ workflows:
           title: Run my script again
           inputs:
           - content: |
-              #!/bin/bash
+              #!/usr/bin/env bash
               set -ex
               export INPUT1="Another Value 1"
               export INPUT2="Another Value 2"
