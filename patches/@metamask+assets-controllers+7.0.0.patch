@@ -517,7 +517,7 @@ index 8bb7c20..f6f43f2 100644
       * Checks if the active network's native currency is supported by the coingecko API.
       * If supported, it fetches and maps contractExchange rates to a format to be consumed by the UI.
 diff --git a/node_modules/@metamask/assets-controllers/dist/TokenRatesController.js b/node_modules/@metamask/assets-controllers/dist/TokenRatesController.js
-index e3f81e9..362fe9f 100644
+index e3f81e9..a4834a6 100644
 --- a/node_modules/@metamask/assets-controllers/dist/TokenRatesController.js
 +++ b/node_modules/@metamask/assets-controllers/dist/TokenRatesController.js
 @@ -1,4 +1,11 @@
@@ -552,7 +552,15 @@ index e3f81e9..362fe9f 100644
          };
          this.defaultState = {
              contractExchangeRates: {},
-@@ -107,7 +116,7 @@ class TokenRatesController extends base_controller_1.BaseController {
+@@ -93,7 +102,6 @@ class TokenRatesController extends base_controller_1.BaseController {
+         });
+         onNetworkStateChange(({ providerConfig }) => {
+             const { chainId } = providerConfig;
+-            this.update({ contractExchangeRates: {} });
+             this.configure({ chainId });
+         });
+         this.poll();
+@@ -107,7 +115,7 @@ class TokenRatesController extends base_controller_1.BaseController {
          return __awaiter(this, void 0, void 0, function* () {
              interval && this.configure({ interval }, false, false);
              this.handle && clearTimeout(this.handle);
@@ -561,7 +569,7 @@ index e3f81e9..362fe9f 100644
              this.handle = setTimeout(() => {
                  this.poll(this.config.interval);
              }, this.config.interval);
-@@ -151,7 +160,12 @@ class TokenRatesController extends base_controller_1.BaseController {
+@@ -151,7 +159,12 @@ class TokenRatesController extends base_controller_1.BaseController {
          return __awaiter(this, void 0, void 0, function* () {
              const tokenPairs = this.tokenList.map((token) => token.address).join(',');
              const query = `contract_addresses=${tokenPairs}&vs_currencies=${vsCurrency.toLowerCase()}`;
@@ -575,7 +583,7 @@ index e3f81e9..362fe9f 100644
          });
      }
      /**
-@@ -201,8 +215,11 @@ class TokenRatesController extends base_controller_1.BaseController {
+@@ -201,8 +214,11 @@ class TokenRatesController extends base_controller_1.BaseController {
      }
      /**
       * Updates exchange rates for all tokens.
@@ -588,7 +596,7 @@ index e3f81e9..362fe9f 100644
          return __awaiter(this, void 0, void 0, function* () {
              if (this.tokenList.length === 0 || this.disabled) {
                  return;
-@@ -217,7 +234,13 @@ class TokenRatesController extends base_controller_1.BaseController {
+@@ -217,7 +233,13 @@ class TokenRatesController extends base_controller_1.BaseController {
              }
              else {
                  const { nativeCurrency } = this.config;
@@ -603,7 +611,7 @@ index e3f81e9..362fe9f 100644
              }
              this.update({ contractExchangeRates: newContractExchangeRates });
          });
-@@ -236,46 +259,43 @@ class TokenRatesController extends base_controller_1.BaseController {
+@@ -236,46 +258,43 @@ class TokenRatesController extends base_controller_1.BaseController {
       */
      fetchAndMapExchangeRates(nativeCurrency, slug) {
          return __awaiter(this, void 0, void 0, function* () {
