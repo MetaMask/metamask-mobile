@@ -431,7 +431,7 @@ workflows:
           inputs:
             - content: |-
                 ccache -s
-                brew uninstall ccache
+                sudo apt uninstall ccache
       - custom-test-results-export@1:
           is_always_run: true
           is_skippable: true
