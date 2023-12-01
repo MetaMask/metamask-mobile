@@ -169,9 +169,9 @@ const Settings = () => {
 
   let aboutMetaMaskTitle = strings('app_settings.info_title');
 
-  ///: BEGIN:ONLY_INCLUDE_IN(flask)
+  ///: BEGIN:ONLY_INCLUDE_IF(flask)
   aboutMetaMaskTitle = strings('app_settings.info_title_flask');
-  ///: END:ONLY_INCLUDE_IN
+  ///: END:ONLY_INCLUDE_IF
 
   return (
     <ScrollView style={styles.wrapper}>
