@@ -2152,7 +2152,6 @@
     "i_understand": "Anlıyorum",
     "quotes_expire_in": "Tekliflerin bitmesine kalan süre:",
     "saving": "Kaydediliyor",
-    "using_best_quote": "En iyi teklif kullanılıyor",
     "view_details": "Ayrıntıları görüntüle",
     "estimated_gas_fee": "Tahmini gaz ücreti",
     "max_gas_fee": "Maks. gaz ücreti",
@@ -2165,10 +2164,6 @@
     "completed_swap": "Swap gerçekleştir!",
     "metamask_swap_fee": "MetaMask Swap ücreti",
     "fee_text": {
-      "get_the": "Tüm zamanların en iyi likidite",
-      "best_price": "kaynaklarından",
-      "from_the": "en iyi fiyatı",
-      "top_liquidity": "al.",
       "fee_is_applied": "Bu teklife otomatik olarak {{fee}} ücret dahil edilmiştir. MetaMask'in likidite sağlayıcı bilgilerinin toplandığı yazılımı kullanma lisansı karşılığında ödersiniz.",
       "fee_is_not_applied": "MetaMask bu teklife ek bir ücret eklemez."
     },

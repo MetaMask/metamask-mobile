@@ -114,18 +114,6 @@ const createStyles = (colors, shadows) =>
     red: {
       color: colors.error.default,
     },
-    bestBadge: {
-      flexDirection: 'row',
-    },
-    bestBadgeWrapper: {
-      paddingVertical: 0,
-      paddingHorizontal: 8,
-      backgroundColor: colors.primary.default,
-      borderRadius: 4,
-    },
-    bestBadgeText: {
-      color: colors.primary.inverse,
-    },
     transparent: {
       opacity: 0,
     },
@@ -436,23 +424,7 @@ function QuotesModal({
                             </Text>
                           </View>
                           <View style={styles.columnValue}>
-                            {index === 0 ? (
-                              showOverallValue ? (
-                                <View style={styles.bestBadge}>
-                                  <View style={styles.bestBadgeWrapper}>
-                                    <Text
-                                      bold
-                                      small
-                                      style={styles.bestBadgeText}
-                                    >
-                                      {strings('swaps.best')}
-                                    </Text>
-                                  </View>
-                                </View>
-                              ) : (
-                                <Text> - </Text>
-                              )
-                            ) : showOverallValue ? (
+                            {showOverallValue ? (
                               <Text primary style={styles.red}>
                                 -
                                 {weiToFiat(
