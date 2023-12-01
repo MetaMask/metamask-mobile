@@ -306,8 +306,8 @@ describe('MetaMetrics', () => {
   });
 
   it('uses Mixpanel ID if it is set', async () => {
-    const mixPanelId = '0x00';
-    mockGet.mockImplementation(async () => mixPanelId);
+    const mixPanelUUID = '00000000-0000-0000-0000-000000000000';
+    mockGet.mockImplementation(async () => mixPanelUUID);
     await TestMetaMetrics.getInstance();
 
     expect(DefaultPreference.get).toHaveBeenNthCalledWith(
@@ -316,15 +316,15 @@ describe('MetaMetrics', () => {
     );
     expect(DefaultPreference.set).toHaveBeenCalledWith(
       METAMETRICS_ID,
-      mixPanelId,
+      mixPanelUUID,
     );
     expect(DefaultPreference.get).not.toHaveBeenCalledWith(METAMETRICS_ID);
   });
 
   it('uses Metametrics ID if it is set', async () => {
-    const id = '0x00';
+    const UUID = '00000000-0000-0000-0000-000000000000';
     mockGet.mockImplementation(async (key: string) =>
-      key === METAMETRICS_ID ? id : '',
+      key === METAMETRICS_ID ? UUID : '',
     );
     await TestMetaMetrics.getInstance();
 

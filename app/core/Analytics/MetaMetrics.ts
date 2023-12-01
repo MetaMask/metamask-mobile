@@ -27,7 +27,6 @@ import {
   // SEGMENT_REGULATIONS_ENDPOINT,
 } from './MetaMetrics.constants';
 import { v4 as uuidv4 } from 'uuid';
-import { bufferToHex, keccak } from 'ethereumjs-util';
 
 /**
  * MetaMetrics using Segment as the analytics provider.
@@ -122,7 +121,7 @@ class MetaMetrics implements IMetaMetrics {
     this.metametricsId = await DefaultPreference.get(METAMETRICS_ID);
     if (!this.metametricsId) {
       // keep the id format compatible with MixPanel but base it on a UUIDv4
-      this.metametricsId = bufferToHex(keccak(uuidv4()));
+      this.metametricsId = uuidv4();
       await DefaultPreference.set(METAMETRICS_ID, this.metametricsId);
     }
 
