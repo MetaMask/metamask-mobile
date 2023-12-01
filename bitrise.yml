@@ -185,6 +185,24 @@ workflows:
   code_setup_dev:
     steps:
       - script@1:
+          title: Run my script
+          inputs:
+          - content: |
+              #!/bin/bash
+              set -ex
+              export INPUT1="Value 1"
+              export INPUT2="Value 2"
+              ${MY_SCRIPT}
+      - script@1:
+          title: Run my script again
+          inputs:
+          - content: |
+              #!/bin/bash
+              set -ex
+              export INPUT1="Another Value 1"
+              export INPUT2="Another Value 2"
+              ${MY_SCRIPT}
+      - script@1:
           title: Generate `.npmrc` file for preview builds
           inputs:
             - content: |
@@ -1071,6 +1089,11 @@ app:
     - opts:
         is_expand: false
       YARN_VERSION: 1.22.19
+    - MY_SCRIPT: |
+        #!/bin/bash
+        echo "This is my reusable script."
+        echo "Input 1: $INPUT1"
+        echo "Input 2: $INPUT2"
 
 meta:
   bitrise.io:
