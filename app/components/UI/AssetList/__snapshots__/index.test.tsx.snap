@@ -7,6 +7,5 @@ exports[`AssetList should render correctly 1`] = `
       "padding": 20,
     }
   }
-  testID="add-searched-token-screen"
 />
 `;
