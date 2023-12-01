@@ -21,7 +21,6 @@ exports[`ImportPrivateKeySuccess should render correctly 1`] = `
         "flex": 1,
       }
     }
-    testID="first-incoming-transaction-screen"
   >
     <View
       style={
@@ -29,7 +28,6 @@ exports[`ImportPrivateKeySuccess should render correctly 1`] = `
           "alignItems": "flex-start",
         }
       }
-      testID="import-success-screen"
     >
       <TouchableOpacity
         onPress={[Function]}
@@ -42,7 +40,6 @@ exports[`ImportPrivateKeySuccess should render correctly 1`] = `
             "paddingTop": 20,
           }
         }
-        testID="import-close-button"
       >
         <Icon
           allowFontScaling={false}
