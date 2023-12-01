@@ -76,6 +76,7 @@ PODS:
     - FlipperKit/FlipperKitNetworkPlugin
   - fmt (6.2.1)
   - glog (0.3.5)
+  - GzipSwift (5.1.1)
   - libevent (2.1.12)
   - lottie-ios (3.4.1)
   - lottie-react-native (5.1.5):
@@ -574,6 +575,7 @@ DEPENDENCIES:
   - FlipperKit/FlipperKitUserDefaultsPlugin (= 0.125.0)
   - FlipperKit/SKIOSNetworkPlugin (= 0.125.0)
   - glog (from `../node_modules/react-native/third-party-podspecs/glog.podspec`)
+  - GzipSwift
   - lottie-ios (from `../node_modules/lottie-ios`)
   - lottie-react-native (from `../node_modules/lottie-react-native`)
   - OpenSSL-Universal (= 1.1.1100)
@@ -670,6 +672,7 @@ SPEC REPOS:
     - Flipper-RSocket
     - FlipperKit
     - fmt
+    - GzipSwift
     - libevent
     - MultiplatformBleAdapter
     - OpenSSL-Universal
@@ -867,10 +870,11 @@ SPEC CHECKSUMS:
   FlipperKit: cbdee19bdd4e7f05472a66ce290f1b729ba3cb86
   fmt: ff9d55029c625d3757ed641535fd4a75fedc7ce9
   glog: 04b94705f318337d7ead9e6d17c019bd9b1f6b1b
+  GzipSwift: 893f3e48e597a1a4f62fafcb6514220fcf8287fa
   libevent: 4049cae6c81cdb3654a443be001fb9bdceff7913
   lottie-ios: 016449b5d8be0c3dcbcfa0a9988469999cd04c5d
   lottie-react-native: 3e722c63015fdb9c27638b0a77969fc412067c18
-  MultiplatformBleAdapter: ea8bac405ec200d0ca9de0f89afef6f06fb2abbc
+  MultiplatformBleAdapter: b1fddd0d499b96b607e00f0faa8e60648343dc1d
   OpenSSL-Universal: ebc357f1e6bc71fa463ccb2fe676756aff50e88c
   Permission-BluetoothPeripheral: 247e379c9ecb4b1af2b87f73e4a15a00a5bc0c1f
   RCT-Folly: 424b8c9a7a0b9ab2886ffe9c3b041ef628fd4fb1
@@ -953,6 +957,6 @@ SPEC CHECKSUMS:
   Yoga: e71803b4c1fff832ccf9b92541e00f9b873119b9
   YogaKit: f782866e155069a2cca2517aafea43200b01fd5a
 
-PODFILE CHECKSUM: 3986b563747bbc266f8563f7b3cdaab2c4bfb80e
+PODFILE CHECKSUM: 0aa061c88654782ecb2dbabeadb5344bc448e03a
 
 COCOAPODS: 1.12.1

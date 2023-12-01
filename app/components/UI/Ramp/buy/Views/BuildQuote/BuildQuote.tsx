@@ -856,6 +856,7 @@ const BuildQuote = () => {
         dismiss={hideRegionModal as () => void}
         onRegionPress={handleRegionPress}
         location={screenLocation}
+        selectedRegion={selectedRegion}
         rampType={rampType}
       />
     </ScreenLayout>
