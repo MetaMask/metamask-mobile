@@ -102,7 +102,7 @@ describe('SecuritySettings', () => {
     expect(getByTestId(DELETE_METRICS_BUTTON)).toBeTruthy();
     expect(getByTestId(SECURITY_SETTINGS_DELETE_WALLET_BUTTON)).toBeTruthy();
     expect(getByTestId(BATCH_BALANCE_REQUESTS_SECTION)).toBeTruthy();
-    expect(SecurityPrivacyViewSelectorsIDs.INCOMING_TRANSACTIONS).toBeTruthy();
+    expect(getByTestId(THIRD_PARTY_SECTION)).toBeTruthy();
     expect(getByTestId(NFT_DISPLAY_MEDIA_MODE_SECTION)).toBeTruthy();
     expect(getByTestId(NFT_AUTO_DETECT_MODE_SECTION)).toBeTruthy();
     expect(getByTestId(IPFS_GATEWAY_SECTION)).toBeTruthy();
