@@ -17,7 +17,6 @@ import {
   REVEAL_PRIVATE_KEY_SECTION,
   SDK_SECTION,
   SECURITY_SETTINGS_DELETE_WALLET_BUTTON,
-  THIRD_PARTY_SECTION,
   TURN_ON_REMEMBER_ME,
 } from './SecuritySettings.constants';
 import { SecurityPrivacyViewSelectorsIDs } from '../../../../../e2e/selectors/Settings/SecurityAndPrivacy/SecurityPrivacyView.selectors';
