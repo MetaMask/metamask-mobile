@@ -563,7 +563,7 @@
     "revoked_all": "All accounts revoked.",
     "accounts_connected": "accounts connected.",
     "disconnected": "disconnected.",
-    "disconnected_all": "All accounts disconected."
+    "disconnected_all": "All accounts disconnected."
   },
   "connect_qr_hardware": {
     "title": "Connect a QR-based hardware wallet",
@@ -1166,7 +1166,7 @@
     "gas_education_2_ethereum": "Ethereum network.",
     "gas_education_2": "network.",
     "gas_education_3": "MetaMask does not profit from gas fees.",
-    "gas_education_4": "Gas fees fluctuate based on network traffic and transaction complexitity.",
+    "gas_education_4": "Gas fees fluctuate based on network traffic and transaction complexity.",
     "gas_education_learn_more": "Learn more about gas fees",
     "confusable_title": "Check the recipient address",
     "confusable_msg": "We have detected a confusable character in the ENS name. Check the ENS name to avoid a potential scam.",
@@ -1663,7 +1663,7 @@
   },
   "manual_backup_step_1": {
     "action": "Write down your Secret Recovery Phrase",
-    "info": "This is your Secret Recovery Phrase. Write it down on a paper and keep it in a safe place. You'll be asked to re-enter this phrase (in order) on the next step.",
+    "info": "This is your Secret Recovery Phrase. Write it down on paper and keep it in a safe place. You'll be asked to re-enter this phrase (in order) on the next step.",
     "continue": "Continue",
     "reveal": "Tap to reveal your Secret Recovery Phrase",
     "watching": "Make sure no one is watching your screen.",
@@ -2282,7 +2282,7 @@
       "approve_pending": "Approving {{sourceToken}} for swaps",
       "approve_confirmed": "{{sourceToken}} approved for swaps"
     },
-    "medium_selected_warning": "Swaps are time sensitive. “Medium” is not reccomended.",
+    "medium_selected_warning": "Swaps are time sensitive. “Medium” is not recommended.",
     "high_recommendation": "Swaps are typically time sensitive. “High” will help avoid potential losses due to changes in market conditions.",
     "recommended": "Recommended",
     "recommended_gas": "Recommended gas fee",
@@ -2311,7 +2311,7 @@
     "not_supported": "Deeplink not supported"
   },
   "error_screen": {
-    "title": "An error occured",
+    "title": "An error occurred",
     "subtitle": "Your information can't be shown. Don’t worry, your wallet and funds are safe.",
     "try_again_button": "Try again",
     "submit_ticket_1": "Please report this issue so we can fix it:",
@@ -2351,7 +2351,7 @@
   "switch_custom_network": {
     "title_existing_network": "This site would like to switch the network",
     "title_new_network": "New network added",
-    "switch_warning": "This will switch the selected network within MetaMask to a prevously added network:",
+    "switch_warning": "This will switch the selected network within MetaMask to a previously added network:",
     "available": "is now available in the network selector.",
     "cancel": "Cancel",
     "switch": "Switch Network"
@@ -2370,7 +2370,7 @@
     "details_title": "Network details",
     "cancel": "Cancel",
     "approve": "Approve",
-    "unrecognized_chain": "This custom network is not recongized",
+    "unrecognized_chain": "This custom network is not recognized",
     "invalid_chain": "The %{rpcUrl} for this Chain ID does not match the chainid.network listing",
     "alert_recommend": "We recommend you",
     "alert_verify": "verify the chain ID",
@@ -2392,12 +2392,12 @@
     "max_fee": "Max fee",
     "estimate": "Estimate",
     "recommended_gas_fee": "Recommended gas fee",
-    "swaps_warning": "Swaps are very time sensitive. “High” will help avoid potential loses due to changes in market conditions.",
+    "swaps_warning": "Swaps are very time sensitive. “High” will help avoid potential losses due to changes in market conditions.",
     "priority_fee_at_least_0_error": "Priority fee must be at least 1 GWEI",
     "learn_more": {
       "title": "How should I choose?",
       "intro": "Selecting the right gas fee depends on the type of transaction and how important it is to you.",
-      "aggressive_label": "Aggresive",
+      "aggressive_label": "Aggressive",
       "aggressive_text": "High probability, even in volatile markets. Use Aggressive to cover surges in network traffic due to things like popular NFT drops.",
       "market_label": "Market",
       "market_text": "Use Market for fast processing at current market price.",
@@ -2409,12 +2409,12 @@
     "submit": "Submit",
     "max_priority_fee_low": "Max Priority Fee is low for current network conditions",
     "max_priority_fee_high": "Max Priority Fee is higher than necessary",
-    "max_priority_fee_speed_up_low": "Max Priority Fee must be at least {{speed_up_floor_value}} GWEI (10% higher than intial transaction)",
-    "max_priority_fee_cancel_low": "Max Priority Fee must be at least {{cancel_value}} GWEI (50% higher than intial transaction)",
+    "max_priority_fee_speed_up_low": "Max Priority Fee must be at least {{speed_up_floor_value}} GWEI (10% higher than initial transaction)",
+    "max_priority_fee_cancel_low": "Max Priority Fee must be at least {{cancel_value}} GWEI (50% higher than initial transaction)",
     "max_fee_low": "Max Fee is low for current network conditions",
     "max_fee_high": "Max Fee is higher than necessary",
-    "max_fee_speed_up_low": "Max Fee must be at least {{speed_up_floor_value}} GWEI (10% higher than intial transaction)",
-    "max_fee_cancel_low": "Max Fee must be at least {{cancel_value}} GWEI (50% higher than intial transaction)",
+    "max_fee_speed_up_low": "Max Fee must be at least {{speed_up_floor_value}} GWEI (10% higher than initial transaction)",
+    "max_fee_cancel_low": "Max Fee must be at least {{cancel_value}} GWEI (50% higher than initial transaction)",
     "learn_more_gas_limit": "Gas limit is the maximum units of gas you are willing to use. Units of gas are a multiplier to “Max priority fee” and “Max fee”. ",
     "learn_more_max_priority_fee": "Max priority fee (aka “miner tip”) goes directly to miners and incentivizes them to prioritize your transaction. You’ll most often pay your max setting. ",
     "learn_more_max_fee": "The max fee is the most you’ll pay (base fee + priority fee). ",
@@ -2676,8 +2676,8 @@
     "ledger_disconnected": "Your device got disconnected",
     "ledger_disconnected_error": "The connection to your device has been lost. Please try again.",
     "unknown_error": "Unexpected error occurred.",
-    "unknown_error_message": "An unexpected error occured. Please try again.",
-    "error_occured": "An error occured",
+    "unknown_error_message": "An unexpected error occurred. Please try again.",
+    "error_occured": "An error occurred",
     "how_to_install_eth_app": "How to install the Ethereum app on a Ledger device",
     "ledger_account_count": "You are using 1 account from your Ledger with MetaMask Mobile.",
     "open_eth_app": "Please open the Ethereum app",
@@ -2692,7 +2692,7 @@
     "ledger_pending_confirmation_error": "There is a pending action on your Ledger. Please clear the action first then retry.",
     "not_supported": "Operation not supported",
     "not_supported_error": "Only version 4 of typed data signing is supported.",
-    "error_during_connection": "An unknown error occured",
+    "error_during_connection": "An unknown error occurred",
     "error_during_connection_message": "There's been a slight problem connecting your Ledger Nano X, tap 'Retry' below to give this another go. Sometimes this occurs due to the ETH app on your Ledger Nano X being open at the start of the pairing process with MetaMask Mobile.",
     "how_to_install_eth_webview_title": "How to install the Ethereum App",
     "nonce_too_low": "Nonce too low",
@@ -2724,7 +2724,7 @@
     "show_display_nft_media_content_2": "Display NFT media.",
     "show_display_nft_media_content_3": "Displaying NFT media and data exposes your IP address to OpenSea or other third parties. NFT autodetection relies on this feature, and won't be available when this is turned off.",
     "show_display_nft_media_content_4": "You can turn off Display NFT media in",
-    "show_display_nft_media_content_5": "Setttings > Security and privacy."
+    "show_display_nft_media_content_5": "Settings > Security and privacy."
   },
   "ipfs_gateway_banner": {
     "ipfs_gateway_banner_title": "IPFS gateway",
