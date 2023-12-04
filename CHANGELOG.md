@@ -1,6 +1,14 @@
 # Changelog
 
 ## Current Main Branch
+- [#7939](https://github.com/MetaMask/metamask-mobile/pull/7939): chore: build bump 1214 RC4
+- [#7945](https://github.com/MetaMask/metamask-mobile/pull/7945): chore: cherry pick #7607
+- [#7944](https://github.com/MetaMask/metamask-mobile/pull/7944): chore: cherry pick 7935
+- [#7898](https://github.com/MetaMask/metamask-mobile/pull/7898): fix: Cherry pick revert javascript disable on webview
+- [#7883](https://github.com/MetaMask/metamask-mobile/pull/7883): chore: cherry pick 7881
+- [#7884](https://github.com/MetaMask/metamask-mobile/pull/7884): chore: cherry-pick #7864
+- Merge branch 'main' into release/7.12.0
+- 7.12.0
 - [#7037](https://github.com/MetaMask/metamask-mobile/pull/7037): feat(off-ramp): add off-ramp feature
 - [#7860](https://github.com/MetaMask/metamask-mobile/pull/7860): refactor: Updated Toast story
 - [#7859](https://github.com/MetaMask/metamask-mobile/pull/7859): fix: microphone and camera on webview
