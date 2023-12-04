@@ -46,17 +46,11 @@ import {
   IconName,
   IconSize,
 } from '../../../component-library/components/Icons/Icon';
-import {
-  EDIT_BUTTON,
-  EDIT_CONTACT_BACK_BUTTON,
-  CONFIRM_TXN_EDIT_BUTTON,
-  SEND_BACK_BUTTON,
-  NAV_IOS_BACK,
-  FOX_ICON,
-  WALLET_SCAN_BUTTON,
-} from '../../../../wdio/screen-objects/testIDs/Common.testIds';
+import { EDIT_BUTTON } from '../../../../wdio/screen-objects/testIDs/Common.testIds';
 import Icon from '../../../component-library/components/Icons/Icon/Icon';
 import { SendLinkViewSelectorsIDs } from '../../../../e2e/selectors/SendLinkView.selectors';
+import { CommonSelectorsIDs } from '../../../../e2e/selectors/Common.selectors';
+import { WalletViewSelectorsIDs } from 'e2e/selectors/WalletView.selectors';
 
 const trackEvent = (event) => {
   InteractionManager.runAfterInteractions(() => {
@@ -290,7 +284,7 @@ export function getEditableOptions(title, navigation, route, themeColors) {
       <TouchableOpacity
         onPress={navigationPop}
         style={styles.backButton}
-        testID={EDIT_CONTACT_BACK_BUTTON}
+        testID={CommonSelectorsIDs.EDIT_CONTACT_BACK_BUTTON}
       >
         <IonicIcon
           name={Device.isAndroid() ? 'md-arrow-back' : 'ios-arrow-back'}
@@ -479,7 +473,7 @@ export function getTransactionOptionsTitle(
           // eslint-disable-next-line react/jsx-no-bind
           onPress={leftAction}
           style={styles.closeButton}
-          testID={CONFIRM_TXN_EDIT_BUTTON}
+          testID={CommonSelectorsIDs.CONFIRM_TXN_EDIT_BUTTON}
         >
           <Text
             style={
@@ -500,7 +494,7 @@ export function getTransactionOptionsTitle(
         <TouchableOpacity
           onPress={rightAction}
           style={styles.closeButton}
-          testID={SEND_BACK_BUTTON}
+          testID={CommonSelectorsIDs.SEND_BACK_BUTTON}
         >
           <Text style={innerStyles.headerButtonText}>{rightText}</Text>
         </TouchableOpacity>
@@ -862,7 +856,7 @@ export function getClosableNavigationOptions(
         <TouchableOpacity
           onPress={navigationPop}
           style={styles.closeButton}
-          testID={NAV_IOS_BACK}
+          testID={CommonSelectorsIDs.NAV_IOS_BACK}
         >
           <Text style={innerStyles.headerButtonText}>{backButtonText}</Text>
         </TouchableOpacity>
@@ -992,7 +986,7 @@ export function getWalletNavbarOptions(
         name={IconName.Fox}
         IconSize={IconSize.Xl}
         style={styles.fox}
-        testID={FOX_ICON}
+        testID={CommonSelectorsIDs.FOX_ICON}
       />
     ),
     headerRight: () => (
@@ -1002,7 +996,7 @@ export function getWalletNavbarOptions(
         iconName={IconName.Scan}
         style={styles.infoButton}
         size={IconSize.Xl}
-        testID={WALLET_SCAN_BUTTON}
+        testID={WalletViewSelectorsIDs.WALLET_SCAN_BUTTON}
       />
     ),
     headerStyle: innerStyles.headerStyle,

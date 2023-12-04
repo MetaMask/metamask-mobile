@@ -16,7 +16,6 @@ import Engine from '../../../core/Engine';
 import CollectibleMedia from '../CollectibleMedia';
 import AssetElement from '../AssetElement';
 import { ThemeContext, mockTheme } from '../../../util/theme';
-import { COLLECTIBLES } from '../../../../wdio/screen-objects/testIDs/Screens/CollectibleOverview.testIds.js';
 
 const createStyles = (colors) =>
   StyleSheet.create({
@@ -211,7 +210,7 @@ export default class Collectibles extends PureComponent {
     const styles = createStyles(colors);
 
     return (
-      <View style={styles.wrapper} testID={COLLECTIBLES}>
+      <View style={styles.wrapper} testID={'collectibles'}>
         {collectibles && collectibles.length
           ? this.renderCollectiblesList()
           : this.renderEmpty()}

@@ -72,11 +72,7 @@ import {
 import Routes from '../../../constants/navigation/Routes';
 import { scale } from 'react-native-size-matters';
 import generateTestId from '../../../../wdio/utils/generateTestId';
-import {
-  DRAWER_VIEW_LOCK_TEXT_ID,
-  DRAWER_SCREEN,
-} from '../../../../wdio/screen-objects/testIDs/Screens/DrawerView.testIds';
-
+import { DRAWER_VIEW_LOCK_TEXT_ID } from '../../../../wdio/screen-objects/testIDs/Screens/DrawerView.testIds';
 import {
   selectNetworkConfigurations,
   selectProviderConfig,
@@ -1036,7 +1032,7 @@ class DrawerView extends PureComponent {
     const accountName = isDefaultAccountName(name) && ens ? ens : name;
 
     return (
-      <View style={styles.wrapper} testID={DRAWER_SCREEN}>
+      <View style={styles.wrapper} testID={'drawer-screen'}>
         <ScrollView>
           <View style={styles.header}>
             <View style={styles.metamaskLogo}>

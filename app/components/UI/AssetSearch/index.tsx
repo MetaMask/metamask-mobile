@@ -9,10 +9,8 @@ import { useSelector } from 'react-redux';
 import { TokenListToken } from '@metamask/assets-controllers';
 import { useTheme } from '../../../util/theme';
 import generateTestId from '../../../../wdio/utils/generateTestId';
-import {
-  TOKEN_INPUT_BOX_ID,
-  ADD_SEARCHED_TOKEN,
-} from '../../../../wdio/screen-objects/testIDs/Screens/AssetSearch.testIds';
+import { TOKEN_INPUT_BOX_ID } from '../../../../wdio/screen-objects/testIDs/Screens/AssetSearch.testIds';
+import { TokenViewSelectors } from 'e2e/selectors/AddTokenView.selectors';
 
 import { selectTokenListArray } from '../../../selectors/tokenListController';
 
@@ -104,7 +102,10 @@ const AssetSearch = memo(({ onSearch, onFocus, onBlur }: Props) => {
   );
 
   return (
-    <View style={styles.searchSection} testID={ADD_SEARCHED_TOKEN}>
+    <View
+      style={styles.searchSection}
+      testID={TokenViewSelectors.ASSET_SEARCH_SCREEN_CONTAINER}
+    >
       <Icon name="search" size={22} style={styles.icon} />
       <TextInput
         style={[
