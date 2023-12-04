@@ -2,8 +2,8 @@ import Engine from '../core/Engine';
 import { BNToHex } from '../util/number';
 import EthQuery from 'ethjs-query';
 import Logger from '../util/Logger';
+import ExtendedKeyringTypes from '../../app/constants/keyringTypes';
 
-const HD_KEY_TREE = 'HD Key Tree';
 const HD_KEY_TREE_ERROR = 'MetamaskController - No HD Key Tree found';
 const ZERO_BALANCE = '0x0';
 const MAX = 20;
@@ -57,7 +57,7 @@ export default async () => {
 
   const { keyrings } = KeyringController.state;
   const filteredKeyrings = keyrings.filter(
-    (keyring) => keyring.type === HD_KEY_TREE,
+    (keyring) => keyring.type === ExtendedKeyringTypes.hd,
   );
   const primaryKeyring = filteredKeyrings[0];
   if (!primaryKeyring) throw new Error(HD_KEY_TREE_ERROR);

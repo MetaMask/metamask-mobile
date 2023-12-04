@@ -8,7 +8,6 @@ import { fontStyles } from '../../../styles/common';
 import Text from '../../Base/Text';
 import generateTestId from '../../../../wdio/utils/generateTestId';
 import { TOKEN_RESULTS_LIST_ID } from '../../../../wdio/screen-objects/testIDs/Screens/AssetSearch.testIds';
-import { AddListSelectorsIDs } from '../../../../e2e/selectors/Modals/AddList.selectors';
 
 const styles = StyleSheet.create({
   rowWrapper: {
@@ -63,14 +62,9 @@ export default class AssetList extends PureComponent {
     const { searchResults = [], handleSelectAsset, selectedAsset } = this.props;
 
     return (
-      <View style={styles.rowWrapper} testID={AddListSelectorsIDs.CONTAINER}>
+      <View style={styles.rowWrapper}>
         {searchResults.length > 0 ? (
-          <Text
-            style={styles.normalText}
-            testID={AddListSelectorsIDs.SECRET_TOKEN_TITLE}
-          >
-            {strings('token.select_token')}
-          </Text>
+          <Text style={styles.normalText}>{strings('token.select_token')}</Text>
         ) : null}
         {searchResults.length === 0 && this.props.searchQuery.length ? (
           <Text style={styles.normalText}>
