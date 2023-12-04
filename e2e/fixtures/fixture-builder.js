@@ -130,7 +130,7 @@ class FixtureBuilder {
                 chainId: '1',
               },
               networkDetails: {
-                isEIP1559Compatible: true,
+                EIPS: { 1559: false },
               },
             },
             PhishingController: {

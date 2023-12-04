@@ -72,7 +72,14 @@ class DeeplinkManager {
 
     if (chain_id) {
       const newNetworkType = getNetworkTypeById(chain_id);
-      NetworkController.setProviderType(newNetworkType);
+      try {
+        NetworkController.setProviderType(newNetworkType);
+      } catch (e) {
+        // setProviderType now throws an error if config type is rpc but
+        // is missing an rpc url or a chain Id.
+        // Good opportunity to improve the user experience
+        // and handle the error correctly
+      }
     }
 
     const uint256Number = Number(uint256);

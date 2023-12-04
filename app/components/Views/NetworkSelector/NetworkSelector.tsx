@@ -70,7 +70,14 @@ const NetworkSelector = () => {
       Engine.context;
 
     CurrencyRateController.setNativeCurrency('ETH');
-    NetworkController.setProviderType(type);
+    try {
+      NetworkController.setProviderType(type);
+    } catch (e) {
+      // setProviderType now throws an error if config type is rpc but
+      // is missing an rpc url or a chain Id.
+      // Good opportunity to improve the user experience
+      // and handle the error correctly
+    }
 
     setTimeout(async () => {
       await TransactionController.updateIncomingTransactions();
@@ -96,19 +103,26 @@ const NetworkSelector = () => {
     );
 
     if (entry) {
-      const [networkConfigurationId, networkConfiguration] = entry;
-      const { ticker, nickname } = networkConfiguration;
+      try {
+        const [networkConfigurationId, networkConfiguration] = entry;
+        const { ticker, nickname } = networkConfiguration;
 
-      CurrencyRateController.setNativeCurrency(ticker);
+        CurrencyRateController.setNativeCurrency(ticker);
 
-      NetworkController.setActiveNetwork(networkConfigurationId);
+        NetworkController.setActiveNetwork(networkConfigurationId);
 
-      sheetRef.current?.hide();
-      analyticsV2.trackEvent(MetaMetricsEvents.NETWORK_SWITCHED, {
-        chain_id: providerConfig.chainId,
-        from_network: providerConfig.type,
-        to_network: nickname,
-      });
+        sheetRef.current?.hide();
+        analyticsV2.trackEvent(MetaMetricsEvents.NETWORK_SWITCHED, {
+          chain_id: providerConfig.chainId,
+          from_network: providerConfig.type,
+          to_network: nickname,
+        });
+      } catch (e) {
+        // setActiveNetwork now throws an error if config type is rpc but
+        // is missing an rpc url or a chain Id.
+        // Good opportunity to improve the user experience
+        // and handle the error correctly
+      }
     }
   };
 
@@ -125,7 +139,7 @@ const NetworkSelector = () => {
         }}
         isSelected={
           chainId.toString() === providerConfig.chainId &&
-          !providerConfig.rpcTarget
+          !providerConfig.rpcUrl
         }
         onPress={() => onNetworkChange(MAINNET)}
         style={styles.networkCell}
@@ -170,7 +184,7 @@ const NetworkSelector = () => {
             }}
             isSelected={Boolean(
               chainId.toString() === providerConfig.chainId &&
-                providerConfig.rpcTarget,
+                providerConfig.rpcUrl,
             )}
             onPress={() => onSetRpcTarget(rpcUrl)}
             style={styles.networkCell}

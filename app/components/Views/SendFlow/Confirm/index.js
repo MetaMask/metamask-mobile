@@ -29,7 +29,7 @@ import {
 } from '../../../../util/transactions';
 import StyledButton from '../../../UI/StyledButton';
 import { WalletDevice } from '@metamask/transaction-controller';
-import { NetworksChainId } from '@metamask/controller-utils';
+import { ChainId } from '@metamask/controller-utils';
 import { GAS_ESTIMATE_TYPES } from '@metamask/gas-fee-controller';
 import {
   prepareTransaction,
@@ -600,7 +600,7 @@ class Confirm extends PureComponent {
       chainId,
     } = this.props;
     const { fromSelectedAddress } = this.state;
-    if (assetType === 'ERC721' && chainId !== NetworksChainId.mainnet) {
+    if (assetType === 'ERC721' && chainId !== ChainId.mainnet) {
       const { NftController } = Engine.context;
       removeFavoriteCollectible(fromSelectedAddress, chainId, selectedAsset);
       NftController.removeNft(selectedAsset.address, selectedAsset.tokenId);

@@ -15,7 +15,7 @@ import {
   LINEA_MAINNET,
 } from '../../../app/constants/network';
 import { NetworkSwitchErrorType } from '../../../app/constants/error';
-import { NetworksChainId, NetworkType } from '@metamask/controller-utils';
+import { ChainId, NetworkType } from '@metamask/controller-utils';
 import Engine from '../../core/Engine';
 import { toLowerCaseEquals } from '../general';
 import { fastSplit } from '../number';
@@ -181,17 +181,17 @@ export const getTestNetImageByChainId = (chainId) => {
  * A list of chain IDs for known testnets
  */
 const TESTNET_CHAIN_IDS = [
-  NetworksChainId[NetworkType.goerli],
-  NetworksChainId[NetworkType.sepolia],
-  NetworksChainId[NetworkType['linea-goerli']],
+  ChainId[NetworkType.goerli],
+  ChainId[NetworkType.sepolia],
+  ChainId[NetworkType['linea-goerli']],
 ];
 
 /**
  * A map of testnet chainId and its faucet link
  */
 export const TESTNET_FAUCETS = {
-  [NetworksChainId[NetworkType.sepolia]]: SEPOLIA_FAUCET,
-  [NetworksChainId[NetworkType['linea-goerli']]]: LINEA_FAUCET,
+  [ChainId[NetworkType.sepolia]]: SEPOLIA_FAUCET,
+  [ChainId[NetworkType['linea-goerli']]]: LINEA_FAUCET,
 };
 
 export const isTestNetworkWithFaucet = (chainId) =>

@@ -40,7 +40,7 @@ import {
 } from '../../../util/payment-link-generator';
 import Device from '../../../util/device';
 import currencySymbols from '../../../util/currency-symbols.json';
-import { NetworksChainId } from '@metamask/controller-utils';
+import { ChainId } from '@metamask/controller-utils';
 import { getTicker } from '../../../util/transactions';
 import { toLowerCaseEquals } from '../../../util/general';
 import { utils as ethersUtils } from 'ethers';
@@ -433,13 +433,13 @@ class PaymentRequest extends PureComponent {
 
     if (isTDSupportedForNetwork) {
       const defaults =
-        chainId === NetworksChainId.mainnet
+        chainId === ChainId.mainnet
           ? defaultAssets
           : [{ ...defaultEth, symbol: getTicker(ticker), name: '' }];
       results = this.state.searchInputValue ? this.state.results : defaults;
     } else if (
       //Check to see if it is not a test net ticker symbol
-      Object.values(NetworksChainId).find((value) => value === chainId) &&
+      Object.values(ChainId).find((value) => value === chainId) &&
       !(parseInt(chainId, 10) > 1 && parseInt(chainId, 10) < 6)
     ) {
       results = [defaultEth];

@@ -82,7 +82,7 @@ import {
   selectNetworkConfigurations,
   selectProviderType,
   selectTicker,
-  selectRpcTarget,
+  selectRpcUrl,
 } from '../../../selectors/networkController';
 import { selectTokenList } from '../../../selectors/tokenListController';
 import { selectTokensLength } from '../../../selectors/tokensController';
@@ -1235,7 +1235,7 @@ const mapStateToProps = (state) => ({
   tokensLength: selectTokensLength(state),
   accountsLength: selectAccountsLength(state),
   providerType: selectProviderType(state),
-  providerRpcTarget: selectRpcTarget(state),
+  providerRpcTarget: selectRpcUrl(state),
   primaryCurrency: state.settings.primaryCurrency,
   activeTabUrl: getActiveTabUrl(state),
   chainId: selectChainId(state),

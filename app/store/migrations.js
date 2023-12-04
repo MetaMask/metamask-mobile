@@ -1,6 +1,6 @@
 import { v1 as random, v4 } from 'uuid';
 import { isObject, hasProperty } from '@metamask/utils';
-import { NetworkType, NetworksChainId } from '@metamask/controller-utils';
+import { NetworkType, ChainId, toHex } from '@metamask/controller-utils';
 import { captureException } from '@sentry/react-native';
 import { mapValues } from 'lodash';
 import AppConstants from '../core/AppConstants';
@@ -80,7 +80,7 @@ export const migrations = {
   },
   3: (state) => {
     const provider = state.engine.backgroundState.NetworkController.provider;
-    const chainId = NetworksChainId[provider.type];
+    const chainId = ChainId[provider.type];
     // if chainId === '' is a rpc
     if (chainId) {
       state.engine.backgroundState.NetworkController.provider = {
@@ -102,7 +102,7 @@ export const migrations = {
       state.engine.backgroundState.NetworkController.provider = {
         ticker: 'ETH',
         type: GOERLI,
-        chainId: NetworksChainId.goerli,
+        chainId: ChainId.goerli,
       };
     }
     return state;
@@ -121,8 +121,8 @@ export const migrations = {
     Object.keys(allTokens).forEach((address) => {
       newAllTokens[address] = {};
       Object.keys(allTokens[address]).forEach((networkType) => {
-        if (NetworksChainId[networkType]) {
-          newAllTokens[address][NetworksChainId[networkType]] =
+        if (ChainId[networkType]) {
+          newAllTokens[address][ChainId[networkType]] =
             allTokens[address][networkType];
         } else {
           frequentRpcList.forEach(({ chainId }) => {
@@ -135,8 +135,8 @@ export const migrations = {
     Object.keys(allCollectibles).forEach((address) => {
       newAllCollectibles[address] = {};
       Object.keys(allCollectibles[address]).forEach((networkType) => {
-        if (NetworksChainId[networkType]) {
-          newAllCollectibles[address][NetworksChainId[networkType]] =
+        if (ChainId[networkType]) {
+          newAllCollectibles[address][ChainId[networkType]] =
             allCollectibles[address][networkType];
         } else {
           frequentRpcList.forEach(({ chainId }) => {
@@ -150,8 +150,8 @@ export const migrations = {
     Object.keys(allCollectibleContracts).forEach((address) => {
       newAllCollectibleContracts[address] = {};
       Object.keys(allCollectibleContracts[address]).forEach((networkType) => {
-        if (NetworksChainId[networkType]) {
-          newAllCollectibleContracts[address][NetworksChainId[networkType]] =
+        if (ChainId[networkType]) {
+          newAllCollectibleContracts[address][ChainId[networkType]] =
             allCollectibleContracts[address][networkType];
         } else {
           frequentRpcList.forEach(({ chainId }) => {
@@ -406,7 +406,7 @@ export const migrations = {
     // Deprecate rinkeby, ropsten and Kovan, any user that is on those we fallback to goerli
     if (chainId === '4' || chainId === '3' || chainId === '42') {
       state.engine.backgroundState.NetworkController.providerConfig = {
-        chainId: NetworksChainId.goerli,
+        chainId: ChainId.goerli,
         ticker: 'GoerliETH',
         type: GOERLI,
       };
@@ -867,6 +867,35 @@ export const migrations = {
     state.engine.backgroundState.TransactionController.submitHistory =
       submitHistory;
 
+    return state;
+  },
+  /**
+   * Converting chain id on decimal format to hexadecimal format
+   * decided here https://github.com/MetaMask/core/pull/1367
+   * @param {any} state - Redux state.
+   * @returns Migrated Redux state.
+   */
+  28: (state) => {
+    if (
+      state?.engine?.backgroundState?.NetworkController?.providerConfig?.chainId
+    ) {
+      const networkControllerChainId =
+        state.engine.backgroundState.NetworkController.providerConfig.chainId;
+
+      state.engine.backgroundState.NetworkController.providerConfig.chainId =
+        toHex(networkControllerChainId);
+    }
+
+    if (
+      state?.engine?.backgroundState?.NetworkController?.providerConfig
+        ?.rpcTarget
+    ) {
+      const networkControllerRpcTarget =
+        state.engine.backgroundState.NetworkController.providerConfig.rpcTarget;
+
+      state.engine.backgroundState.NetworkController.providerConfig.rpcUrl =
+        networkControllerRpcTarget;
+    }
     return state;
   },
   // If you are implementing a migration it will break the migration tests,

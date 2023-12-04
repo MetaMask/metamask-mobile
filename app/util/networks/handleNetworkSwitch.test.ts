@@ -45,7 +45,7 @@ function setupGetStateMock() {
                 chainId: '1',
               },
               networkDetails: {
-                isEIP1559Compatible: false,
+                EIPS: { 1559: false },
               },
             },
           },

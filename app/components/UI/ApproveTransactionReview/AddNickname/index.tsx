@@ -35,7 +35,7 @@ import {
   selectChainId,
   selectNetworkConfigurations,
   selectProviderType,
-  selectRpcTarget,
+  selectRpcUrl,
 } from '../../../../selectors/networkController';
 import { selectIdentities } from '../../../../selectors/preferencesController';
 import { ContractNickNameViewSelectorsIDs } from '../../../../../e2e/selectors/ContractNickNameView.selectors';
@@ -263,7 +263,7 @@ const AddNickname = (props: AddNicknameProps) => {
 
 const mapStateToProps = (state: any) => ({
   providerType: selectProviderType(state),
-  providerRpcTarget: selectRpcTarget(state),
+  providerRpcTarget: selectRpcUrl(state),
   providerChainId: selectChainId(state),
   addressBook: state.engine.backgroundState.AddressBookController.addressBook,
   identities: selectIdentities(state),

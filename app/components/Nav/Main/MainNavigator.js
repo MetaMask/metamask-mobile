@@ -5,7 +5,7 @@ import { createStackNavigator } from '@react-navigation/stack';
 import { useSelector } from 'react-redux';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import Browser from '../../Views/Browser';
-import { NetworksChainId } from '@metamask/controller-utils';
+import { ChainId } from '@metamask/controller-utils';
 import AddBookmark from '../../Views/AddBookmark';
 import SimpleWebview from '../../Views/SimpleWebview';
 import Settings from '../../Views/Settings';
@@ -333,7 +333,7 @@ const HomeTabs = () => {
 
   const chainId = useSelector((state) => {
     const providerConfig = selectProviderConfig(state);
-    return NetworksChainId[providerConfig.type];
+    return ChainId[providerConfig.type];
   });
 
   const amountOfBrowserOpenTabs = useSelector(

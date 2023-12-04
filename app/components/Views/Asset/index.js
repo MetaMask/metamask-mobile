@@ -32,7 +32,7 @@ import {
   selectChainId,
   selectNetworkId,
   selectNetworkConfigurations,
-  selectRpcTarget,
+  selectRpcUrl,
 } from '../../../selectors/networkController';
 import { selectTokens } from '../../../selectors/tokensController';
 import { sortTransactions } from '../../../util/activity';
@@ -589,7 +589,7 @@ const mapStateToProps = (state) => ({
   tokens: selectTokens(state),
   networkId: selectNetworkId(state),
   transactions: state.engine.backgroundState.TransactionController.transactions,
-  rpcTarget: selectRpcTarget(state),
+  rpcTarget: selectRpcUrl(state),
   networkConfigurations: selectNetworkConfigurations(state),
   isNetworkBuyNativeTokenSupported: isNetworkRampNativeTokenSupported(
     selectChainId(state),

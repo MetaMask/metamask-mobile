@@ -185,7 +185,14 @@ class NetworksSettings extends PureComponent {
       Engine.context;
 
     CurrencyRateController.setNativeCurrency('ETH');
-    NetworkController.setProviderType(MAINNET);
+    try {
+      NetworkController.setProviderType(MAINNET);
+    } catch (e) {
+      // setProviderType now throws an error if config type is rpc but
+      // is missing an rpc url or a chain Id.
+      // Good opportunity to improve the user experience
+      // and handle the error correctly
+    }
 
     setTimeout(async () => {
       await TransactionController.updateIncomingTransactions();
@@ -196,7 +203,7 @@ class NetworksSettings extends PureComponent {
     // Check if it's the selected network and then switch to mainnet first
     const { providerConfig } = this.props;
     if (
-      compareSanitizedUrl(providerConfig.rpcTarget, this.networkToRemove) &&
+      compareSanitizedUrl(providerConfig.rpcUrl, this.networkToRemove) &&
       providerConfig.type === RPC
     ) {
       this.switchToMainnet();

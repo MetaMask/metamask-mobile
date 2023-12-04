@@ -285,8 +285,15 @@ class Engine {
     };
     // @ts-expect-error Error might be caused by base controller version mismatch
     const networkController = new NetworkController(networkControllerOpts);
-    networkController.initializeProvider();
-
+    try {
+      networkController.initializeProvider();
+    } catch (e) {
+      // initializeProvider now throws an error if config type is rpc but
+      // is missing an rpc url or a chain Id.
+      // Good opportunity to do some logging into Sentry
+      // if this get called the mobile app is not working
+      // probably vault corruption error or state error
+    }
     const assetsContractController = new AssetsContractController({
       onPreferencesStateChange: (listener) =>
         preferencesController.subscribe(listener),
@@ -295,6 +302,7 @@ class Engine {
           AppConstants.NETWORK_STATE_CHANGE_EVENT,
           listener,
         ),
+      chainId: networkController.state.providerConfig.chainId,
     });
 
     const nftController = new NftController(
@@ -306,6 +314,8 @@ class Engine {
             AppConstants.NETWORK_STATE_CHANGE_EVENT,
             listener,
           ),
+        chainId: networkController.state.providerConfig.chainId,
+
         getERC721AssetName: assetsContractController.getERC721AssetName.bind(
           assetsContractController,
         ),
@@ -340,6 +350,7 @@ class Engine {
           AppConstants.NETWORK_STATE_CHANGE_EVENT,
           listener,
         ),
+      chainId: networkController.state.providerConfig.chainId,
       config: {
         provider: networkController.getProviderAndBlockTracker().provider,
         chainId: networkController.state.providerConfig.chainId,
@@ -365,7 +376,7 @@ class Engine {
       // @ts-expect-error Error might be caused by base controller version mismatch
       messenger: this.controllerMessenger.getRestricted({
         name: 'TokenListController',
-        allowedEvents: ['NetworkController:providerConfigChange'],
+        allowedEvents: ['NetworkController:stateChange'],
       }),
     });
     const currencyRateController = new CurrencyRateController({
@@ -381,6 +392,7 @@ class Engine {
       // @ts-expect-error Error might be caused by base controller version mismatch
       messenger: this.controllerMessenger.getRestricted({
         name: 'GasFeeController',
+        allowedEvents: ['NetworkController:stateChange'],
       }),
       getProvider: () =>
         networkController.getProviderAndBlockTracker().provider,
@@ -519,6 +531,7 @@ class Engine {
             AppConstants.NETWORK_STATE_CHANGE_EVENT,
             listener,
           ),
+        chainId: networkController.state.providerConfig.chainId,
         getOpenSeaApiKey: () => nftController.openSeaApiKey,
         addNft: nftController.addNft.bind(nftController),
         getNftState: () => nftController.state,
@@ -552,6 +565,7 @@ class Engine {
               AppConstants.NETWORK_STATE_CHANGE_EVENT,
               listener,
             ),
+          chainId: networkController.state.providerConfig.chainId,
         },
         {
           chainId: networkController.state.providerConfig.chainId,

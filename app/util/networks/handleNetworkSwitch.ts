@@ -39,11 +39,18 @@ const handleNetworkSwitch = (switchToChainId: string): string | undefined => {
   );
 
   if (entry) {
-    const [networkConfigurationId, networkConfiguration] = entry;
-    const { ticker, nickname } = networkConfiguration;
-    currencyRateController.setNativeCurrency(ticker);
-    networkController.setActiveNetwork(networkConfigurationId);
-    return nickname;
+    try {
+      const [networkConfigurationId, networkConfiguration] = entry;
+      const { ticker, nickname } = networkConfiguration;
+      currencyRateController.setNativeCurrency(ticker);
+      networkController.setActiveNetwork(networkConfigurationId);
+      return nickname;
+    } catch (e) {
+      // setActiveNetwork now throws an error if config type is rpc but
+      // is missing an rpc url or a chain Id.
+      // Good opportunity to improve the user experience
+      // and handle the error correctly
+    }
   }
 
   const networkType = getNetworkTypeById(switchToChainId);
@@ -51,7 +58,14 @@ const handleNetworkSwitch = (switchToChainId: string): string | undefined => {
   if (networkType) {
     currencyRateController.setNativeCurrency('ETH');
     // TODO: Align mobile and core types to remove this type cast
-    networkController.setProviderType(networkType as NetworkType);
+    try {
+      networkController.setProviderType(networkType as NetworkType);
+    } catch (e) {
+      // setProviderType now throws an error if config type is rpc but
+      // is missing an rpc url or a chain Id.
+      // Good opportunity to improve the user experience
+      // and handle the error correctly
+    }
     return networkType;
   }
 };

@@ -1,13 +1,10 @@
 import { InteractionManager } from 'react-native';
 import validUrl from 'valid-url';
-import { NetworksChainId } from '@metamask/controller-utils';
+import { ChainId, isSafeChainId } from '@metamask/controller-utils';
 import { jsonRpcRequest } from '../../util/jsonRpcRequest';
 import Engine from '../Engine';
 import { ethErrors } from 'eth-json-rpc-errors';
-import {
-  isPrefixedFormattedHexString,
-  isSafeChainId,
-} from '../../util/networks';
+import { isPrefixedFormattedHexString } from '../../util/networks';
 import URL from 'url-parse';
 import { MetaMetricsEvents } from '../../core/Analytics';
 import AnalyticsV2 from '../../util/analyticsV2';
@@ -108,17 +105,15 @@ const wallet_addEthereumChain = async ({
     );
   }
 
-  if (!isSafeChainId(parseInt(_chainId, 16))) {
+  if (!isSafeChainId(_chainId)) {
     throw ethErrors.rpc.invalidParams(
       `Invalid chain ID "${_chainId}": numerical value greater than max safe value. Received:\n${chainId}`,
     );
   }
+  // Now we operate with hexadecimal chain id, no neet for conversion
+  //  const chainIdDecimal = parseInt(_chainId, 16).toString(10);
 
-  const chainIdDecimal = parseInt(_chainId, 16).toString(10);
-
-  if (
-    Object.values(NetworksChainId).find((value) => value === chainIdDecimal)
-  ) {
+  if (Object.values(ChainId).find((value) => value === _chainId)) {
     throw ethErrors.rpc.invalidParams(
       `May not specify default MetaMask chain.`,
     );

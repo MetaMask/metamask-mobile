@@ -702,7 +702,7 @@ class DrawerView extends PureComponent {
       this.props;
     if (providerConfig.type === RPC) {
       const blockExplorer = findBlockExplorerForRpc(
-        providerConfig.rpcTarget,
+        providerConfig.rpcUrl,
         networkConfigurations,
       );
       const url = `${blockExplorer}/address/${selectedAddress}`;

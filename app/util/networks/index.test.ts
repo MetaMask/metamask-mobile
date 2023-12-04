@@ -1,4 +1,4 @@
-import { NetworksChainId, NetworkType } from '@metamask/controller-utils';
+import { ChainId, NetworkType } from '@metamask/controller-utils';
 import {
   isMainNet,
   isTestNet,
@@ -78,7 +78,7 @@ describe('network-utils', () => {
 
     for (const networkType of testnets) {
       it(`should return true if the given chain ID is for '${networkType}'`, () => {
-        expect(isTestNet(NetworksChainId[networkType])).toEqual(true);
+        expect(isTestNet(ChainId[networkType])).toEqual(true);
       });
     }
 
