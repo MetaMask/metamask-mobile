@@ -28,6 +28,11 @@ function switchNetwork({
         data: { msg: strings('send.warn_network_change') + networkName },
       }),
     );
+  } else {
+    throw new Error(
+      'Invalid Type: switchToChainId must be a string or number but was ' +
+        typeof switchToChainId,
+    );
   }
 }
 

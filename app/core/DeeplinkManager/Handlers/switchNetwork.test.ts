@@ -12,7 +12,7 @@ jest.mock('../../../actions/alert', () => ({
   showAlert: jest.fn(),
 }));
 
-describe('handleNetworkSwitch', () => {
+describe('switchNetwork', () => {
   let deeplinkManager: DeeplinkManager;
   const mockHandleNetworkSwitch = handleNetworkSwitch as jest.MockedFunction<
     typeof handleNetworkSwitch
@@ -44,13 +44,14 @@ describe('handleNetworkSwitch', () => {
     );
   });
 
-  it('should not dispatch an alert when switchToChainId is undefined', () => {
+  it('should throw an error when switchToChainId is undefined', () => {
     const switchToChainId = undefined;
-    mockHandleNetworkSwitch.mockReturnValue(undefined);
 
-    switchNetwork({ deeplinkManager, switchToChainId });
-
-    expect(deeplinkManager.dispatch).not.toHaveBeenCalled();
+    expect(() =>
+      switchNetwork({ deeplinkManager, switchToChainId }),
+    ).toThrowError(
+      'Invalid Type: switchToChainId must be a string or number but was undefined',
+    );
   });
 
   it('should not dispatch an alert for an invalid switchToChainId', () => {
