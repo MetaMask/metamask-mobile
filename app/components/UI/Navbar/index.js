@@ -50,7 +50,7 @@ import { EDIT_BUTTON } from '../../../../wdio/screen-objects/testIDs/Common.test
 import Icon from '../../../component-library/components/Icons/Icon/Icon';
 import { SendLinkViewSelectorsIDs } from '../../../../e2e/selectors/SendLinkView.selectors';
 import { CommonSelectorsIDs } from '../../../../e2e/selectors/Common.selectors';
-import { WalletViewSelectorsIDs } from 'e2e/selectors/WalletView.selectors';
+import { WalletViewSelectorsIDs } from '../../../../e2e/selectors/WalletView.selectors';
 
 const trackEvent = (event) => {
   InteractionManager.runAfterInteractions(() => {

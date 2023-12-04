@@ -8,7 +8,7 @@ import Icon from 'react-native-vector-icons/FontAwesome';
 import Device from '../../../util/device';
 import { mockTheme, ThemeContext } from '../../../util/theme';
 import { selectProviderConfig } from '../../../selectors/networkController';
-import { NAVBAR_TITLE_NETWORKS_TEXT } from '../../../../wdio/screen-objects/testIDs/Screens/WalletScreen-testIds.js';
+import { CommonSelectorsIDs } from '../../../../e2e/selectors/Common.selectors';
 
 const createStyles = (colors) =>
   StyleSheet.create({
@@ -153,7 +153,7 @@ class NavbarBrowserTitle extends PureComponent {
           <Text
             numberOfLines={1}
             style={styles.networkName}
-            testID={NAVBAR_TITLE_NETWORKS_TEXT}
+            testID={CommonSelectorsIDs.NAVBAR_TITLE_NETWORKS_TEXT}
           >
             {name}
           </Text>

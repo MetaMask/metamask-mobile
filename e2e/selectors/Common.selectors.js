@@ -13,6 +13,7 @@ export const CommonSelectorsIDs = {
   FOX_ICON: 'fox-icon',
   NAV_IOS_BACK: 'nav-ios-back',
   FOX_SCREEN: 'fox-screen',
+  NAVBAR_TITLE_NETWORKS_TEXT: 'navbar-title-networks',
 };
 
 export const CommonSelectorsText = {
