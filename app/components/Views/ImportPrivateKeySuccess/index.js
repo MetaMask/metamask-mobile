@@ -7,7 +7,6 @@ import {
   StyleSheet,
   InteractionManager,
   BackHandler,
-  Platform,
 } from 'react-native';
 import PropTypes from 'prop-types';
 import { fontStyles } from '../../../styles/common';
@@ -17,11 +16,8 @@ import { strings } from '../../../../locales/i18n';
 import Device from '../../../util/device';
 import { ScreenshotDeterrent } from '../../UI/ScreenshotDeterrent';
 import { ThemeContext, mockTheme } from '../../../util/theme';
-import generateTestId from '../../../../wdio/utils/generateTestId';
-import {
-  IMPORT_SUCESS_SCREEN_ID,
-  IMPORT_SUCESS_SCREEN_CLOSE_BUTTON_ID,
-} from '../../../../wdio/screen-objects/testIDs/Screens/ImportSuccessScreen.testIds';
+
+import { ImportPrivateKeySuccessScreenSelectorsIDs } from '../../../../e2e/selectors/ImportPrivateKeySuccessScreen.selectors';
 
 const createStyles = (colors) =>
   StyleSheet.create({
@@ -122,19 +118,19 @@ class ImportPrivateKeySuccess extends PureComponent {
         <ScrollView
           contentContainerStyle={styles.wrapper}
           style={styles.mainWrapper}
-          testID={'first-incoming-transaction-screen'}
         >
           <View
             style={styles.content}
-            {...generateTestId(Platform, IMPORT_SUCESS_SCREEN_ID)}
+            testID={
+              ImportPrivateKeySuccessScreenSelectorsIDs.IMPORT_SUCESS_SCREEN_ID
+            }
           >
             <TouchableOpacity
               onPress={this.dismiss}
               style={styles.navbarRightButton}
-              {...generateTestId(
-                Platform,
-                IMPORT_SUCESS_SCREEN_CLOSE_BUTTON_ID,
-              )}
+              testID={
+                ImportPrivateKeySuccessScreenSelectorsIDs.IMPORT_SUCESS_SCREEN_CLOSE_BUTTON_ID
+              }
             >
               <MaterialIcon name="close" size={15} style={styles.closeIcon} />
             </TouchableOpacity>
