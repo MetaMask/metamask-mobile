@@ -54,7 +54,9 @@ describe(
           await TabBarComponent.tapSettings();
           await SettingsView.tapSecurityAndPrivacy();
           await SecurityAndPrivacyView.scrollToChangePasswordView();
-          await SecurityAndPrivacyView.isChangePasswordSectionVisible();
+          await expect(
+            await SecurityAndPrivacyView.changePasswordSection,
+          ).toBeVisible();
           await SecurityAndPrivacyView.scrollToDeleteWalletButton();
           await SecurityAndPrivacyView.tapDeleteWalletButton();
 

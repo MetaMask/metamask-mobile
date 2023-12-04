@@ -89,7 +89,7 @@ describe('SecuritySettings', () => {
     );
     expect(getByText('Protect your wallet')).toBeTruthy();
     expect(
-      getByTestId(SecurityPrivacyViewSelectorsIDs.CHANGE_PASSWORD_TITLE),
+      getByTestId(SecurityPrivacyViewSelectorsIDs.CHANGE_PASSWORD_CONTAINER),
     ).toBeTruthy();
     expect(getByTestId(AUTO_LOCK_SECTION)).toBeTruthy();
     expect(getByTestId(LOGIN_OPTIONS)).toBeTruthy();
