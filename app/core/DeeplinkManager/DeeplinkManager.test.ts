@@ -10,7 +10,7 @@ jest.mock('./TransactionManager/approveTransaction');
 jest.mock('./Handlers/handleEthereumUrl');
 jest.mock('./Handlers/handleBrowserUrl');
 jest.mock('./ParseManager/parseDeeplink');
-jest.mock('./Handlers/switchNetworkAndShowAlert');
+jest.mock('./Handlers/switchNetwork');
 
 const mockNavigation = {
   navigate: jest.fn(),
