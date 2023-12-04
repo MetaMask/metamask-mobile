@@ -177,7 +177,6 @@ workflows:
                 envman add --key YARN_CACHE_DIR --value "$(yarn cache dir)"
           title: Get Yarn cache directory
       - yarn@0:
-          # run_if: '{{not (enveq "BITRISE_CACHE_HIT" "exact")}}'
           inputs:
             - command: setup
           title: Yarn Setup
@@ -193,7 +192,9 @@ workflows:
           title: Save cache dependencies 
           inputs:
           - key: '{{ .OS }}-{{ .Arch }}-node-modules-{{ checksum "yarn.lock" }}'
-          - paths: $YARN_CACHE_DIR
+          - paths: |-
+              node_modules
+              $YARN_CACHE_DIR
   code_setup_dev:
     steps:
       - script@1:
