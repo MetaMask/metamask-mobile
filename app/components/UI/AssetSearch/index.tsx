@@ -10,8 +10,7 @@ import { TokenListToken } from '@metamask/assets-controllers';
 import { useTheme } from '../../../util/theme';
 import generateTestId from '../../../../wdio/utils/generateTestId';
 import { TOKEN_INPUT_BOX_ID } from '../../../../wdio/screen-objects/testIDs/Screens/AssetSearch.testIds';
-import { TokenViewSelectors } from 'e2e/selectors/AddTokenView.selectors';
-
+import { TokenViewSelectors } from '../../../../e2e/selectors/AddTokenView.selectors';
 import { selectTokenListArray } from '../../../selectors/tokenListController';
 
 const createStyles = (colors: any) =>
