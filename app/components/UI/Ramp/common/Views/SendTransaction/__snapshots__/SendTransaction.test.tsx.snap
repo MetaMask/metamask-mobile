@@ -161,7 +161,6 @@ exports[`SendTransaction View renders correctly 1`] = `
                     "justifyContent": "center",
                   }
                 }
-                testID="navbar-title-text"
               >
                 <Text
                   numberOfLines={1}
@@ -974,7 +973,6 @@ exports[`SendTransaction View renders correctly for custom action payment method
                     "justifyContent": "center",
                   }
                 }
-                testID="navbar-title-text"
               >
                 <Text
                   numberOfLines={1}
@@ -1703,7 +1701,6 @@ exports[`SendTransaction View renders correctly for token 1`] = `
                     "justifyContent": "center",
                   }
                 }
-                testID="navbar-title-text"
               >
                 <Text
                   numberOfLines={1}
