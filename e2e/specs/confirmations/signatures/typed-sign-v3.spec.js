@@ -1,36 +1,31 @@
 'use strict';
-import Browser from '../../pages/Drawer/Browser';
-import TabBarComponent from '../../pages/TabBarComponent';
-import { loginToApp } from '../../viewHelper';
-import SigningModal from '../../pages/modals/SigningModal';
-import { TestDApp } from '../../pages/TestDApp';
-import FixtureBuilder from '../../fixtures/fixture-builder';
+import Browser from '../../../pages/Drawer/Browser';
+import TabBarComponent from '../../../pages/TabBarComponent';
+import { loginToApp } from '../../../viewHelper';
+import SigningModal from '../../../pages/modals/SigningModal';
+import { TestDApp } from '../../../pages/TestDApp';
+import FixtureBuilder from '../../../fixtures/fixture-builder';
 import {
   withFixtures,
   defaultGanacheOptions,
-} from '../../fixtures/fixture-helper';
-import { Smoke } from '../../tags';
-import TestHelpers from '../../helpers';
+} from '../../../fixtures/fixture-helper';
+import { Smoke } from '../../../tags';
+import TestHelpers from '../../../helpers';
 
 const MAX_ATTEMPTS = 3;
 
-describe(Smoke('Eth Sign'), () => {
+describe(Smoke('Typed Sign V3'), () => {
   beforeAll(async () => {
     jest.setTimeout(2500000);
     await TestHelpers.reverseServerPort();
   });
 
-  it('should sign eth_sign message', async () => {
+  it('should sign typed V3 message', async () => {
     await withFixtures(
       {
         dapp: true,
         fixture: new FixtureBuilder()
           .withGanacheNetwork()
-          .withPreferencesController({
-            disabledRpcMethodPreferences: {
-              eth_sign: true,
-            },
-          })
           .withPermissionControllerConnectedToTestDapp()
           .build(),
         restartDevice: true,
@@ -43,8 +38,8 @@ describe(Smoke('Eth Sign'), () => {
         await Browser.navigateToTestDApp();
 
         await TestHelpers.retry(MAX_ATTEMPTS, async () => {
-          await TestDApp.tapEthSignButton();
-          await SigningModal.isEthRequestVisible();
+          await TestDApp.tapTypedV3SignButton();
+          await SigningModal.isTypedRequestVisible();
           await SigningModal.tapSignButton();
           await SigningModal.isNotVisible();
         });
@@ -52,17 +47,12 @@ describe(Smoke('Eth Sign'), () => {
     );
   });
 
-  it('should cancel eth_sign message', async () => {
+  it('should cancel typed V3 message', async () => {
     await withFixtures(
       {
         dapp: true,
         fixture: new FixtureBuilder()
           .withGanacheNetwork()
-          .withPreferencesController({
-            disabledRpcMethodPreferences: {
-              eth_sign: true,
-            },
-          })
           .withPermissionControllerConnectedToTestDapp()
           .build(),
         restartDevice: true,
@@ -75,9 +65,9 @@ describe(Smoke('Eth Sign'), () => {
         await Browser.navigateToTestDApp();
 
         await TestHelpers.retry(MAX_ATTEMPTS, async () => {
-          await TestDApp.tapEthSignButton();
-          await SigningModal.isEthRequestVisible();
-          await SigningModal.tapCancelButton();
+          await TestDApp.tapTypedV3SignButton();
+          await SigningModal.isTypedRequestVisible();
+          await SigningModal.tapSignButton();
           await SigningModal.isNotVisible();
         });
       },
