@@ -35,7 +35,7 @@ interface Transaction {
   selectedAsset: SelectedAsset;
   symbol: string;
   to: string;
-  transaction: {
+  txParams: {
     data: string;
     from: string;
     gas: string;

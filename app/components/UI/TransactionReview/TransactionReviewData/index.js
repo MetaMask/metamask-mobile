@@ -128,7 +128,6 @@ class TransactionReviewData extends PureComponent {
       actionKey,
       toggleDataView,
     } = this.props;
-    console.log('>>>>>', this.props.transaction)
     const colors = this.context.colors || mockTheme.colors;
     const styles = createStyles(colors);
 

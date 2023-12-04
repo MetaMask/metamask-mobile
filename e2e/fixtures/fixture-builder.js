@@ -337,7 +337,7 @@ class FixtureBuilder {
         },
         transaction: {
           selectedAsset: {},
-          transaction: {},
+          txParams: {},
         },
         user: {
           loadingMsg: '',

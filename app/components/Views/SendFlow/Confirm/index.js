@@ -554,14 +554,14 @@ class Confirm extends PureComponent {
 
   prepareTransactionToSend = () => {
     const {
-      transactionState: { transaction },
+      transactionState: { txParams },
       showCustomNonce,
       gasEstimateType,
     } = this.props;
     const { fromSelectedAddress, legacyGasTransaction, EIP1559GasTransaction } =
       this.state;
     const { nonce } = this.props.transaction;
-    const transactionToSend = { ...transaction };
+    const transactionToSend = { ...txParams };
 
     if (gasEstimateType === GAS_ESTIMATE_TYPES.FEE_MARKET) {
       transactionToSend.gas = EIP1559GasTransaction.gasLimitHex;

@@ -120,7 +120,7 @@ import { ethErrors } from 'eth-rpc-errors';
 
 import { PPOM, ppomInit } from '../lib/ppom/PPOMView';
 import RNFSStorageBackend from '../lib/ppom/rnfs-storage-backend';
-import { getPermittedAccounts } from './Permissions';
+import { RestrictedMethods } from './Permissions/constants';
 
 const NON_EMPTY = 'NON_EMPTY';
 
@@ -473,6 +473,26 @@ class Engine {
       },
       unrestrictedMethods,
     });
+
+    const getPermittedAccounts = async (
+      hostname?: string,
+    ): Promise<string[]> => {
+      try {
+        const accountsWithLastUsed: any =
+          await permissionController.executeRestrictedMethod(
+            hostname ?? 'metamask',
+            RestrictedMethods.eth_accounts,
+          );
+        return accountsWithLastUsed.map(({ address }: { address: string }) =>
+          address.toLowerCase(),
+        );
+      } catch (error: any) {
+        if (error.code === ethErrors.provider.unauthorized) {
+          return [];
+        }
+        throw error;
+      }
+    };
 
     const controllers = [
       keyringController,
