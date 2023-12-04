@@ -6,7 +6,7 @@ import { AnyAction, Dispatch, Store } from 'redux';
 import Routes from '../../constants/navigation/Routes';
 import handleBrowserUrl from './Handlers/handleBrowserUrl';
 import handleEthereumUrl from './Handlers/handleEthereumUrl';
-import switchNetworkAndShowAlert from './Handlers/switchNetworkAndShowAlert';
+import switchNetwork from './Handlers/switchNetwork';
 import parseDeeplink from './ParseManager/parseDeeplink';
 import approveTransaction from './TransactionManager/approveTransaction';
 
@@ -39,7 +39,7 @@ class DeeplinkManager {
    * @param switchToChainId - Corresponding chain id for new network
    */
   _handleNetworkSwitch = (switchToChainId: `${number}` | undefined) =>
-    switchNetworkAndShowAlert({
+    switchNetwork({
       deeplinkManager: this,
       switchToChainId,
     });

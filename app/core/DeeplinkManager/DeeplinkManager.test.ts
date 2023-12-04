@@ -2,7 +2,7 @@ import { NavigationProp, ParamListBase } from '@react-navigation/native';
 import DeeplinkManager from './DeeplinkManager';
 import handleBrowserUrl from './Handlers/handleBrowserUrl';
 import handleEthereumUrl from './Handlers/handleEthereumUrl';
-import switchNetworkAndShowAlert from './Handlers/switchNetworkAndShowAlert';
+import switchNetwork from './Handlers/switchNetwork';
 import parseDeeplink from './ParseManager/parseDeeplink';
 import approveTransaction from './TransactionManager/approveTransaction';
 
@@ -45,7 +45,7 @@ describe('DeeplinkManager', () => {
   it('should handle network switch correctly', () => {
     const chainId = '1';
     deeplinkManager._handleNetworkSwitch(chainId);
-    expect(switchNetworkAndShowAlert).toHaveBeenCalledWith({
+    expect(switchNetwork).toHaveBeenCalledWith({
       deeplinkManager,
       switchToChainId: chainId,
     });
