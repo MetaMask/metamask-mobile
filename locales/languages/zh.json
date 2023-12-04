@@ -1,12 +1,14 @@
 {
   "blockaid_banner": {
     "approval_farming_description": "如果您批准此请求，因欺诈而恶名昭彰的第三方可能会拿走您的所有资产。",
-    "attribution": "安全建议提供商：",
+    "attribution": "技术支持：",
     "attribution_link_name": "Blockaid",
     "blur_farming_description": "如果您批准此请求，则有人可以窃取您列于Blur上的资产。",
     "deceptive_request_title": "此请求属欺骗性质",
     "failed_title": "此请求可能不安全",
     "failed_description": "由于出现错误，安全服务提供商未验证此请求。请谨慎操作。",
+    "loading_title": "此请求仍在模拟中。我们建议等待其完成。",
+    "loading_complete_title": "模拟已完成。继续操作前请查看此请求。",
     "malicious_domain_description": "您正在与恶意网域交互。如果您批准此请求，可能会遭受资产损失。",
     "other_description": "如果您批准此请求，可能会遭受资产损失。",
     "raw_signature_farming_description": "如果您批准此请求，可能会有资产损失。",
@@ -514,6 +516,7 @@
     "import_account": "导入账户",
     "connect_hardware": "连接硬件钱包",
     "imported": "已导入",
+    "qr_hardware": "QR 硬件",
     "remove_account_title": "删除账户",
     "remove_account_message": "是否确实想要删除此账户？",
     "no": "否",
@@ -537,7 +540,15 @@
     "address_balance_activity_permission": "查看地址、账户余额和活动",
     "suggest_transactions": "建议要批准的交易",
     "disconnect": "断开连接",
-    "disconnect_all_accounts": "断开所有账户的连接"
+    "disconnect_all_accounts": "断开所有账户的连接",
+    "deceptive_site_ahead": "前方为欺骗性网站",
+    "deceptive_site_desc": "您尝试访问的网站并不安全。攻击者可能会诱使您做一些危险的事情",
+    "learn_more": "了解详情",
+    "advisory_by": "建议由以太坊网络钓鱼探测器和PhishFort提供",
+    "potential_threat": "潜在威胁包括",
+    "fake_metamask": "MetaMask的伪造版本",
+    "srp_theft": "私钥助记词或密码被盗",
+    "malicious_transactions": "导致资产被盗的恶意交易"
   },
   "toast": {
     "connected_and_active": "已连接且处于活动状态。",
@@ -690,6 +701,7 @@
     "remove_network": "删除",
     "cancel_remove_network": "取消",
     "info_title": "MetaMask 简介",
+    "info_title_flask": "About MetaMask Flask",
     "experimental_title": "实验性",
     "experimental_desc": "WalletConnect 及更多...",
     "legal_title": "法律",
@@ -801,9 +813,9 @@
     "unkown_dapp": "去中心化应用（DAPP）名称不可用",
     "no_connections": "找不到连接"
   },
-  "sdk_return_to_app_modal":{
-    "title": "返回应用",
-    "description": "请返回应用程序以继续使用其服务。"
+  "sdk_return_to_app_modal": {
+    "title": "返回应用程序",
+    "description": "请返回应用程序继续使用其服务。"
   },
   "sdk_feedback_modal": {
     "ok": "确定",
@@ -892,6 +904,7 @@
   "asset_overview": {
     "send_button": "发送",
     "buy_button": "购买",
+    "sell_button": "卖出",
     "receive_button": "接收",
     "portfolio_button": "投资组合",
     "add_collectible_button": "添加",
@@ -906,6 +919,7 @@
     "for_help": "以寻求帮助。",
     "troubleshoot": "故障排除",
     "buy_description": "用现金购买加密货币",
+    "sell_description": "卖出加密货币换取现金",
     "swap_description": "代币之间的兑换",
     "send_description": "向任何账户发送加密货币",
     "receive_description": "接收加密货币",
@@ -995,7 +1009,6 @@
     "confirm": "确认"
   },
   "transaction": {
-    "hardware": "硬件",
     "alert": "警报",
     "amount": "数额",
     "next": "下一步",
@@ -1373,7 +1386,8 @@
     "you_can": "或者您可以",
     "add_network": "手动添加更多网络。",
     "select_network": "选择网络",
-    "show_test_networks": "显示测试网络"
+    "show_test_networks": "显示测试网络",
+    "deprecated_goerli": "由于以太坊协议的变化：Goerli 测试网络可能无法可靠工作，很快就会弃用。"
   },
   "select": {
     "cancel": "取消",
@@ -1732,7 +1746,10 @@
     "wallet_connect_dapps_cta": "查看会话",
     "network_not_supported": "不支持当前网络",
     "security_alerts": "安全警报",
+    "security_alerts_desc": "此功能通过本地审查您的交易和签名请求来提醒您注意恶意活动。在批准任何请求之前，请务必自行进行审慎调查。无法保证此功能能够检测到所有恶意活动。启用此功能即表示您同意提供商的使用条款。",
+    "select_provider": "选择您的首选提供商",
     "blockaid": "Blockaid",
+    "blockaid_desc": "隐私保护 - 不会与第三方分享任何数据。在以太坊主网上可用。",
     "switch_network": "请切换为 mainnet 或 sepolia"
   },
   "walletconnect_sessions": {
@@ -1874,14 +1891,39 @@
     }
   },
   "fiat_on_ramp_aggregator": {
+    "buy": "买入",
+    "sell": "卖出",
+    "orders": "订单",
+    "All": "所有",
+    "Buy": "买入",
+    "Sell": "卖出",
+    "Purchased": "已购买",
+    "Sold": "已卖出",
+    "empty_buy_orders_list": "您没有任何买入订单！",
+    "empty_sell_orders_list": "您没有任何卖出订单！",
+    "purchased_currency": "已购买 {{currency}}",
+    "sold_currency": "已卖出 {{currency}}",
+    "order_status_pending": "待定",
+    "order_status_processing": "处理中",
+    "order_status_completed": "已完成",
+    "order_status_failed": "失败",
+    "order_status_cancelled": "已取消",
+    "network_switcher": {
+      "title": "不支持的 {{rampType}} 网络",
+      "description": "要 {{rampType}} 加密货币，您需要切换到支持的网络",
+      "no_networks_found": "找不到支持的网络"
+    },
     "onboarding": {
       "what_to_expect": "将会发生什么",
       "quotes": "我们的加密货币买入功能汇合了来自集成供应商的报价，以便为您提供来自这些来源的报价；加密货币将会直接进入您的钱包，无需等待。",
+      "quotes_sell": "现在您可以直接在 MetaMask 中提现！在我们指导您的每一步的同时，从值得信赖的提供商处获得最新报价。",
       "benefits": "需要支付的燃料费更少，支持多种网络、代币和支付方式",
+      "benefits_sell": "现在从加密货币转换到您的本地货币比以往任何时候都容易。",
       "get_started": "开始使用"
     },
     "payment_method": {
       "payment_method": "支付方式",
+      "cash_destination": "现金目的地",
       "instant": "即时",
       "less_than": "少于",
       "minute": "分钟",
@@ -1893,9 +1935,14 @@
       "lowest_limit": "最低购买限度",
       "medium_limit": "中等购买限度",
       "highest_limit": "最高购买限度",
+      "lowest_sell_limit": "最低卖出限制",
+      "medium_sell_limit": "中等卖出限制",
+      "highest_sell_limit": "最高卖出限制",
       "continue_to_amount": "继续前往金额",
       "no_payment_methods_title": "{{regionName}}中没有付款方式",
+      "no_cash_destinations_title": "{{regionName}} 没有现金目的地",
       "no_payment_methods_description": "您所在的地区目前没有受支持的支付方式。请过段时间回来查看；我们会不断将支持扩展到新的地区。\n\n如果您是错误地选择了{{regionName}}，请点击下方的按钮，重置您的地区。",
+      "no_cash_destinations_description": "您所在的地区目前没有支持的现金目的地。请稍后查看；我们经常扩大对新地区的支持。\n\n如果您错误地选择了 {{regionName}}，请单击下面的按钮重设您的地区。",
       "reset_region": "重置地区"
     },
     "continue": "继续",
@@ -1905,9 +1952,13 @@
     "get_new_quotes": "获取新报价",
     "quotes_timeout": "报价超时",
     "request_new_quotes": "请重新请求报价，以获得最新的最佳价格。",
-    "amount_to_buy": "购买金额",
+    "amount_to_buy": "要买入的金额",
+    "amount_to_sell": "要卖出的金额",
     "want_to_buy": "您想购买",
+    "want_to_sell": "您想卖出",
+    "current_balance": "当前余额",
     "amount": "金额",
+    "send_cash_to": "将您的现金发送到",
     "get_quotes": "获取报价",
     "done": "完成",
     "fetching_quotes": "正在获取报价",
@@ -1918,6 +1969,7 @@
     "search_by_currency": "搜索货币",
     "update_payment_method": "更新付款方式",
     "select_payment_method": "选择付款方式",
+    "select_cash_destination": "选择现金的发送地区",
     "select_region_currency": "选择地区货币",
     "no_tokens_match": "没有符合“{{searchString}}”的代币",
     "no_currency_match": "没有符合“{{searchString}}”的货币",
@@ -1926,23 +1978,31 @@
     "continue_with": "继续使用{{provider}}",
     "minimum": "最低保证金为",
     "maximum": "最高保证金为",
+    "insufficient_balance": "此金额高于您的余额",
+    "enter_larger_amount": "输入更大的金额以继续",
+    "enter_smaller_amount": "输入较小的金额以继续",
     "try_again": "再试一次",
     "error": "错误",
     "something_went_wrong": "糟糕！出问题了",
     "report_this_issue": "报告此问题",
     "no_providers_available": "没有可用的提供商",
     "try_different_amount_to_buy_input": "尝试选择其他付款方式，或尝试增加或减少您想购买的金额！",
+    "try_different_amount_to_sell_input": "尝试选择不同的提现目的地，或者尝试增加或减少您想要卖出的金额！",
     "webview_received_error": "WebView收到错误状态代码：{{code}}",
     "no_tokens_available_title": "无可用代币",
     "no_tokens_available": "当前{{network}}上没有可用的代币，无法使用所选支付方式购买。",
+    "no_sell_tokens_available": "{{network}} 上当前没有可用于卖出所选现金目的地的代币。",
     "this_network": "此网络",
     "change_payment_method": "更改付款方式",
+    "change_cash_destination": "更改现金目的地",
     "try_different_region": "请尝试其他区域",
     "return_home": "返回主屏幕",
     "region": {
       "buy_crypto_tokens": "购买加密代币",
+      "sell_crypto_tokens": "卖出加密代币",
       "title": "选择您所在的地区",
       "description": "您可以使用的支付方式和代币取决于我们的第三方集成，并可能因您所在的地区和我们的集成提供的支持而不同。",
+      "sell_description": "现金目的地选项和代币可能因地区而异。",
       "search_by_country": "按国家搜索",
       "search_by_state": "按州搜索",
       "no_region_results": "没有与地区匹配的结果",
@@ -1951,7 +2011,7 @@
       "select_region_title": "选择您所在的地区",
       "select_country_registered": "选择您的卡在哪个国家/地区注册（而不是您所在地点）。",
       "unsupported": "不支持此地区",
-      "unsupported_description": "我们正在努力以尽快将覆盖范围扩大到您所在的地区。在这期间，请阅读我们的支持文章，了解您可以购买加密货币的其他方式。",
+      "unsupported_description": "我们正在努力以尽快将覆盖范围扩大到您所在的地区。在这期间，请阅读我们的支持文章，了解您可以 {{rampType}} 加密货币的其他方式。",
       "unsupported_link": "访问支持文章"
     },
     "order_details": {
@@ -1959,10 +2019,13 @@
       "successful": "订单下达成功！",
       "your": "您的",
       "available_in_account": "现已在您的账户中",
+      "delayed_bank_transfer": "需要几天时间现金才能出现在您的银行账户中。",
       "crypto": "加密货币",
       "failed": "订单下达失败",
       "cancelled": "订单已取消",
+      "pending": "订单待定",
       "failed_description": "出了点问题，{{provider}}无法完成您的订单。请重试或使用其他提供商。",
+      "continue_order_description": "要继续您的订单，您需要选择此页面底部的按钮。",
       "the_provider": "提供商",
       "processing": "订单正在处理",
       "processing_card_description": "使用信用卡/借记卡购买通常需要几分钟时间",
@@ -1970,8 +2033,10 @@
       "details": "订单详情",
       "via": "通过",
       "purchase_amount": "购买总额",
+      "amount_received_total": "收款金额合计",
       "etherscan": "查看完整详情",
-      "another_purchase": "进行另一次购买",
+      "start_new_order": "开始新订单",
+      "continue_order": "继续此订单",
       "questions": "有问题吗？",
       "contact_support": "联系支持人员",
       "support": "支持人员",
@@ -1979,11 +2044,22 @@
       "id": "订单ID",
       "date_and_time": "日期和时间",
       "payment_method": "支付方式",
+      "destination": "目的地",
       "token_amount": "代币金额",
+      "token_quantity_sold": "已卖出代币数量",
       "exchange_rate": "汇率",
       "total_fees": "总费用",
       "amount": "金额",
+      "value": "价值",
       "a_block_explorer": "区块浏览器"
+    },
+    "send_transaction": {
+      "sell_crypto": "卖出加密货币",
+      "send_description": "您将把您的 {{cryptocurrency}} 发送给{{provider}}，后者将把您的现金发送到{{paymentMethod}}",
+      "next": "下一步",
+      "hold_to_send": "等待发送",
+      "send": "发送",
+      "sent": "已发送！"
     }
   },
   "swaps": {
@@ -2076,7 +2152,6 @@
     "i_understand": "我理解",
     "quotes_expire_in": "报价到期时间：",
     "saving": "正在保存",
-    "using_best_quote": "使用最佳报价",
     "view_details": "查看详情",
     "estimated_gas_fee": "估算的燃料费",
     "max_gas_fee": "最大燃料费",
@@ -2089,10 +2164,6 @@
     "completed_swap": "兑换！",
     "metamask_swap_fee": "MetaMask Swap 费用",
     "fee_text": {
-      "get_the": "获取",
-      "best_price": "来自",
-      "from_the": "顶级流动性",
-      "top_liquidity": "首要流动性的最佳价格。",
       "fee_is_applied": "该报价中会自动计入一笔 {{fee}} 的费用。您支付该费用以换取使用 MetaMask 流动性提供商信息聚合软件的许可证。",
       "fee_is_not_applied": "MetaMask在此报价中并未包括额外费用。"
     },
@@ -2197,13 +2268,17 @@
     "ok": "确定"
   },
   "whats_new": {
-    "title": "了解新功能",
+    "title": "最新动态",
     "blockaid": {
       "title": "安全警报助您确保安全",
-      "description_1": "Blockaid提供的安全警报可以幫助您避开已知的欺诈，同时仍能保护自己的隐私。",
+      "description_1": "以太坊主网上 Blockaid 提供的安全提醒可以帮助您避开已知的欺诈，同时保护您的隐私。",
       "description_2": "在批准请求之前，必须自行作出审慎调查。",
-      "description_3": "如果您启用了OpenSea的安全警报，则我们已为您转到此功能。",
       "action_text": "启用安全警报"
+    },
+    "sell": {
+      "title": "兑现变得容易",
+      "description": "直接在 MetaMask 卖出您的加密货币！我们将帮助您从值得信赖的提供商处获取报价，以便您每次都能够以便捷、快速、安全的方式卖出您的加密货币。",
+      "action_text": "试试看吧"
     }
   },
   "invalid_network": {
@@ -2238,7 +2313,16 @@
     "unrecognized_chain": "此自定义网络未被识别",
     "invalid_chain": "该链 ID 的 %{rpcUrl} 与 chainid.network 列表不匹配",
     "alert_recommend": "我们建议您",
-    "alert_verify": "验证链 ID"
+    "alert_verify": "验证链 ID",
+    "warning_subtext_new": {
+      "1": "MetaMask 不会验证自定义网络，因此，请仅批准您信任的网络。",
+      "2": "了解更多有关网络安全风险和欺诈的信息。"
+    },
+    "invalid_rpc_url": "此网络 URL 与此链 ID 的已知提供商不匹配。",
+    "invalid_chain_token_decimals": "这个网络的小数似乎与其链 ID 不匹配。",
+    "unrecognized_chain_name": "这个网络的显示名称似乎与其链 ID 不匹配。",
+    "unrecognized_chain_ticker": "这个网络的符号似乎与其链 ID 不匹配。",
+    "unrecognized_chain_id": "我们无法识别此网络。请确保链 ID 正确无误，然后才继续。"
   },
   "media_player": {
     "loading": "正在加载...",
