@@ -165,7 +165,7 @@ export interface TransactionSharedProps {
     readableValue?: string;
     selectedAsset: Record<string, unknown>;
     symbol?: string;
-    transaction: {
+    txParams: {
       data?: string;
       from?: string;
       gas?: string;

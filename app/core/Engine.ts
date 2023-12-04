@@ -120,6 +120,7 @@ import { ethErrors } from 'eth-rpc-errors';
 
 import { PPOM, ppomInit } from '../lib/ppom/PPOMView';
 import RNFSStorageBackend from '../lib/ppom/rnfs-storage-backend';
+import { getPermittedAccounts } from './Permissions';
 
 const NON_EMPTY = 'NON_EMPTY';
 
@@ -448,6 +449,31 @@ class Engine {
       keyringBuilders: [qrKeyringBuilder],
     });
 
+    const permissionController = new PermissionController({
+      // @ts-expect-error Error might be caused by base controller version mismatch
+      messenger: this.controllerMessenger.getRestricted({
+        name: 'PermissionController',
+        allowedActions: [
+          `${approvalController.name}:addRequest`,
+          `${approvalController.name}:hasRequest`,
+          `${approvalController.name}:acceptRequest`,
+          `${approvalController.name}:rejectRequest`,
+        ],
+      }),
+      state: initialState.PermissionController,
+      caveatSpecifications: getCaveatSpecifications({ getIdentities }),
+      // @ts-expect-error Inferred permission specification type is incorrect, fix after migrating to TypeScript
+      permissionSpecifications: {
+        ...getPermissionSpecifications({
+          getAllAccounts: () => keyringController.getAccounts(),
+        }),
+        /*
+          ...this.getSnapPermissionSpecifications(),
+          */
+      },
+      unrestrictedMethods,
+    });
+
     const controllers = [
       keyringController,
       new AccountTrackerController({
@@ -577,6 +603,11 @@ class Engine {
           isResubmitEnabled: false,
         },
         provider: networkController.getProviderAndBlockTracker().provider,
+        disableHistory: true,
+        disableSendFlowHistory: true,
+        disableSwaps: true,
+        getPermittedAccounts: getPermittedAccounts.bind(permissionController),
+        hooks: {},
       }),
       new SwapsController(
         {
@@ -606,30 +637,7 @@ class Engine {
       ),
       gasFeeController,
       approvalController,
-      new PermissionController({
-        // @ts-expect-error Error might be caused by base controller version mismatch
-        messenger: this.controllerMessenger.getRestricted({
-          name: 'PermissionController',
-          allowedActions: [
-            `${approvalController.name}:addRequest`,
-            `${approvalController.name}:hasRequest`,
-            `${approvalController.name}:acceptRequest`,
-            `${approvalController.name}:rejectRequest`,
-          ],
-        }),
-        state: initialState.PermissionController,
-        caveatSpecifications: getCaveatSpecifications({ getIdentities }),
-        // @ts-expect-error Inferred permission specification type is incorrect, fix after migrating to TypeScript
-        permissionSpecifications: {
-          ...getPermissionSpecifications({
-            getAllAccounts: () => keyringController.getAccounts(),
-          }),
-          /*
-            ...this.getSnapPermissionSpecifications(),
-            */
-        },
-        unrestrictedMethods,
-      }),
+      permissionController,
       new SignatureController({
         // @ts-expect-error Error might be caused by base controller version mismatch
         messenger: this.controllerMessenger.getRestricted({

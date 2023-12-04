@@ -81,7 +81,7 @@ const transactionState = {
     name: 'Ether',
     symbol: 'ETH',
   },
-  transaction: {
+  txParams: {
     value: '0xde0b6b3a7640000',
     data: undefined,
   },

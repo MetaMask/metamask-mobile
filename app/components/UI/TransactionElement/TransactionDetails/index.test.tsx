@@ -21,7 +21,7 @@ describe('TransactionDetails', () => {
           transactionObject={{
             networkID: '1',
             status: 'confirmed',
-            transaction: {
+            txParams: {
               nonce: '',
             },
           }}

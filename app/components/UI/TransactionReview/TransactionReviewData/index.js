@@ -108,7 +108,7 @@ class TransactionReviewData extends PureComponent {
   handleCopyHex = () => {
     const {
       transaction: {
-        transaction: { data },
+        txParams: { data },
       },
     } = this.props;
     ClipboardManager.setString(data);
@@ -123,11 +123,12 @@ class TransactionReviewData extends PureComponent {
   render = () => {
     const {
       transaction: {
-        transaction: { data },
+        txParams: { data },
       },
       actionKey,
       toggleDataView,
     } = this.props;
+    console.log('>>>>>', this.props.transaction)
     const colors = this.context.colors || mockTheme.colors;
     const styles = createStyles(colors);
 

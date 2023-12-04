@@ -49,7 +49,7 @@ exports[`TransactionDetails should render correctly 1`] = `
       Object {
         "networkID": "1",
         "status": "confirmed",
-        "transaction": Object {
+        "txParams": Object {
           "nonce": "",
         },
       }

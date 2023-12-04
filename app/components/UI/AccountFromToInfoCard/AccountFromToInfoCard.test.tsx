@@ -86,7 +86,7 @@ jest.mock('react-redux', () => ({
 }));
 
 const transactionState: Transaction = {
-  transaction: { from: '0x0', to: '0x1' },
+  txParams: { from: '0x0', to: '0x1' },
   transactionTo: '0x1',
   selectedAsset: { isETH: true, address: '0x0', symbol: 'ETH', decimals: 8 },
   transactionToName: 'Account 2',
@@ -151,7 +151,7 @@ describe('AccountFromToInfoCard', () => {
         standard: 'ERC721',
         tokenId: '13764',
       },
-      transaction: {
+      txParams: {
         data: '0x23b872dd00000000000000000000000007be9763a718c0539017e2ab6fc42853b4aeeb6b000000000000000000000000f4e8263979a89dc357d7f9f79533febc7f3e287b00000000000000000000000000000000000000000000000000000000000035c4',
         from: '0x07Be9763a718C0539017E2Ab6fC42853b4aEeb6B',
         gas: '00',
@@ -172,7 +172,7 @@ describe('AccountFromToInfoCard', () => {
   it('should display ens name', async () => {
     const txState: Transaction = {
       ...transactionState,
-      transaction: { from: '0x0', to: '0x3' },
+      txParams: { from: '0x0', to: '0x3' },
       transactionTo: '0x3',
     };
     (ENSCache.cache as any) = {
@@ -206,7 +206,7 @@ describe('AccountFromToInfoCard', () => {
         symbol: 'TST',
       },
       to: '0x2f318c334780961fb129d2a6c30d0763d9a5c970',
-      transaction: {
+      txParams: {
         data: '0xa9059cbb0000000000000000000000002f318c334780961fb129d2a6c30d0763d9a5c9700000000000000000000000000000000000000000000000000000000000003a98',
         from: '0x1',
         to: '0x2f318c334780961fb129d2a6c30d0763d9a5c970',
@@ -235,8 +235,8 @@ describe('AccountFromToInfoCard', () => {
       const transaction = {
         ...ERC20Transaction,
         from: '0x0',
-        transaction: {
-          ...ERC20Transaction.transaction,
+        txParams: {
+          ...ERC20Transaction.txParams,
           from: '0x0',
         },
       };

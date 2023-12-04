@@ -31,7 +31,7 @@ const AccountFromToInfoCard = (props: AccountFromToInfoCardProps) => {
     layout = 'horizontal',
   } = props;
   const {
-    transaction: { from: rawFromAddress, data, to },
+    txParams: { from: rawFromAddress, data, to },
     transactionTo,
     transactionToName,
     transactionFromName,

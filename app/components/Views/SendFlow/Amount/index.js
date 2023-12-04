@@ -588,7 +588,7 @@ class Amount extends PureComponent {
       navigation,
       selectedAsset,
       setSelectedAsset,
-      transactionState: { transaction },
+      transactionState: { txParams },
       providerType,
       onConfirm,
     } = this.props;
@@ -635,7 +635,7 @@ class Amount extends PureComponent {
       }
     }
 
-    if (transaction.value !== undefined) {
+    if (txParams.value !== undefined) {
       this.updateTransaction(value);
     } else {
       await this.prepareTransaction(value);
@@ -743,29 +743,29 @@ class Amount extends PureComponent {
     const {
       prepareTransaction,
       selectedAsset,
-      transactionState: { transaction, transactionTo },
+      transactionState: { txParams, transactionTo },
     } = this.props;
 
     if (selectedAsset.isETH) {
-      transaction.data = undefined;
-      transaction.to = transactionTo;
-      transaction.value = BNToHex(toWei(value));
+      txParams.data = undefined;
+      txParams.to = transactionTo;
+      txParams.value = BNToHex(toWei(value));
     } else if (selectedAsset.tokenId) {
       const collectibleTransferTransactionProperties =
         this.getCollectibleTranferTransactionProperties();
-      transaction.data = collectibleTransferTransactionProperties.data;
-      transaction.to = collectibleTransferTransactionProperties.to;
-      transaction.value = collectibleTransferTransactionProperties.value;
+      txParams.data = collectibleTransferTransactionProperties.data;
+      txParams.to = collectibleTransferTransactionProperties.to;
+      txParams.value = collectibleTransferTransactionProperties.value;
     } else {
       const tokenAmount = toTokenMinimalUnit(value, selectedAsset.decimals);
-      transaction.data = generateTransferData('transfer', {
+      txParams.data = generateTransferData('transfer', {
         toAddress: transactionTo,
         amount: BNToHex(tokenAmount),
       });
-      transaction.to = selectedAsset.address;
-      transaction.value = '0x0';
+      txParams.to = selectedAsset.address;
+      txParams.value = '0x0';
     }
-    prepareTransaction(transaction);
+    prepareTransaction(txParams);
   };
 
   /**
@@ -826,7 +826,7 @@ class Amount extends PureComponent {
    */
   estimateGasLimit = async () => {
     const {
-      transaction: { from },
+      txParams: { from },
       transactionTo,
     } = this.props.transactionState;
     const { gas } = await getGasLimit({

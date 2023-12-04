@@ -99,7 +99,7 @@ function renderGwei(transaction) {
 function getTokenTransfer(args) {
   const {
     tx: {
-      transaction: { from, to, data, nonce },
+      txParams: { from, to, data, nonce },
     },
     conversionRate,
     currentCurrency,
@@ -268,7 +268,7 @@ function getCollectibleTransfer(args) {
 function decodeIncomingTransfer(args) {
   const {
     tx: {
-      transaction: { to, from, value },
+      txParams: { to, from, value },
       transferInformation: { symbol, decimals, contractAddress },
       hash,
     },
@@ -414,7 +414,7 @@ function decodeTransferFromTx(args) {
   const {
     tx: {
       transaction,
-      transaction: { gas, data, to },
+      txParams: { gas, data, to },
       hash,
     },
     collectibleContracts,
@@ -572,7 +572,7 @@ function decodeConfirmTx(args) {
   const {
     tx: {
       transaction,
-      transaction: { value, gas, from, to },
+      txParams: { value, gas, from, to },
       hash,
     },
     conversionRate,
@@ -674,7 +674,7 @@ function decodeSwapsTx(args) {
     tx: {
       id,
       transaction,
-      transaction: { gas, from, to },
+      txParams: { gas, from, to },
       hash,
     },
     tx,
@@ -865,7 +865,7 @@ export default async function decodeTransaction(args) {
   let transactionElement, transactionDetails;
 
   if (
-    tx.transaction.to?.toLowerCase() === getSwapsContractAddress(chainId) ||
+    tx.txParams.to?.toLowerCase() === getSwapsContractAddress(chainId) ||
     swapsTransactions[tx.id]
   ) {
     const [transactionElement, transactionDetails] = decodeSwapsTx({

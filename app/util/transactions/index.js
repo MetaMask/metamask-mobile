@@ -339,7 +339,7 @@ export async function isCollectibleAddress(address, tokenId) {
  * @returns {string} - Corresponding transaction action key
  */
 export async function getTransactionActionKey(transaction, chainId) {
-  const { transaction: { data, to } = {} } = transaction;
+  const { txParams: { data, to } = {} } = transaction;
   if (!to) return CONTRACT_METHOD_DEPLOY;
   if (to === getSwapsContractAddress(chainId))
     return SWAPS_TRANSACTION_ACTION_KEY;
@@ -373,6 +373,7 @@ export async function getTransactionActionKey(transaction, chainId) {
  */
 export async function getActionKey(tx, selectedAddress, ticker, chainId) {
   const actionKey = await getTransactionActionKey(tx, chainId);
+
   if (actionKey === SEND_ETHER_ACTION_KEY) {
     let currencySymbol = ticker;
 
@@ -385,12 +386,9 @@ export async function getActionKey(tx, selectedAddress, ticker, chainId) {
       }
       currencySymbol = tx.transferInformation.symbol;
     }
-
-    const incoming =
-      safeToChecksumAddress(tx.transaction.to) === selectedAddress;
+    const incoming = safeToChecksumAddress(tx.txParams.to) === selectedAddress;
     const selfSent =
-      incoming &&
-      safeToChecksumAddress(tx.transaction.from) === selectedAddress;
+      incoming && safeToChecksumAddress(tx.txParams.from) === selectedAddress;
     return incoming
       ? selfSent
         ? currencySymbol
@@ -507,7 +505,7 @@ export function addAccountTimeFlagFilter(
 
 export function getNormalizedTxState(state) {
   return state.transaction
-    ? { ...state.transaction, ...state.transaction.transaction }
+    ? { ...state.transaction, ...state.transaction.txParams }
     : undefined;
 }
 
@@ -870,9 +868,9 @@ export const parseTransactionEIP1559 = (
     conversionRate,
     currentCurrency,
     nativeCurrency,
-    transactionState: { selectedAsset, transaction: { value, data } } = {
+    transactionState: { selectedAsset, txParams: { value, data } } = {
       selectedAsset: {},
-      transaction: {},
+      txParams: {},
     },
     gasFeeEstimates,
   },
@@ -1196,9 +1194,9 @@ export const parseTransactionLegacy = (
     contractExchangeRates,
     conversionRate,
     currentCurrency,
-    transactionState: { selectedAsset, transaction: { value, data } } = {
+    transactionState: { selectedAsset, txParams: { value, data } } = {
       selectedAsset: '',
-      transaction: {},
+      txParams: {},
     },
     ticker,
     selectedGasFee,
@@ -1323,11 +1321,11 @@ export const parseTransactionLegacy = (
  */
 export function validateTransactionActionBalance(transaction, rate, accounts) {
   try {
-    const checksummedFrom = safeToChecksumAddress(transaction.transaction.from);
+    const checksummedFrom = safeToChecksumAddress(transaction.txParams.from);
     const balance = accounts[checksummedFrom].balance;
 
-    let gasPrice = transaction.transaction.gasPrice;
-    const transactionToCheck = transaction.transaction;
+    let gasPrice = transaction.txParams.gasPrice;
+    const transactionToCheck = transaction.txParams;
 
     if (isEIP1559Transaction(transactionToCheck)) {
       gasPrice = transactionToCheck.maxFeePerGas;
@@ -1337,8 +1335,8 @@ export function validateTransactionActionBalance(transaction, rate, accounts) {
       hexToBN(gasPrice)
         .mul(new BN(rate * 10))
         .div(new BN(10))
-        .mul(hexToBN(transaction.transaction.gas))
-        .add(hexToBN(transaction.transaction.value)),
+        .mul(hexToBN(transaction.txParams.gas))
+        .add(hexToBN(transaction.txParams.value)),
     );
   } catch (e) {
     return false;

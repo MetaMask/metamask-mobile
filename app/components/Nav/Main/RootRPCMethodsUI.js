@@ -114,8 +114,8 @@ const RootRPCMethodsUI = (props) => {
         const tokensReceived = swapsUtils.getSwapsTokensReceived(
           receipt,
           approvalReceipt,
-          transactionMeta?.transaction,
-          approvalTransaction?.transaction,
+          transactionMeta?.txParams,
+          approvalTransaction?.txParams,
           swapTransaction.destinationToken,
           ethAccountBalance,
           ethBalance,
@@ -226,18 +226,18 @@ const RootRPCMethodsUI = (props) => {
     async (transactionMeta) => {
       if (transactionMeta.origin === TransactionTypes.MMM) return;
 
-      const to = transactionMeta.transaction.to?.toLowerCase();
-      const { data } = transactionMeta.transaction;
+      const to = transactionMeta.txParams.to?.toLowerCase();
+      const { data } = transactionMeta.txParams;
 
       if (isSwapTransaction(data, transactionMeta.origin, to, props.chainId)) {
         autoSign(transactionMeta);
       } else {
         const {
-          transaction: { value, gas, gasPrice, data },
+          txParams: { value, gas, gasPrice, data },
         } = transactionMeta;
         const { AssetsContractController } = Engine.context;
-        transactionMeta.transaction.gas = hexToBN(gas);
-        transactionMeta.transaction.gasPrice = gasPrice && hexToBN(gasPrice);
+        transactionMeta.txParams.gas = hexToBN(gas);
+        transactionMeta.txParams.gasPrice = gasPrice && hexToBN(gasPrice);
 
         if (
           (value === '0x0' || !value) &&
@@ -276,11 +276,11 @@ const RootRPCMethodsUI = (props) => {
           const tokenAmount =
             tokenData && calcTokenAmount(tokenValue, asset.decimals).toFixed();
 
-          transactionMeta.transaction.value = hexToBN(
+          transactionMeta.txParams.value = hexToBN(
             getTokenValueParamAsHex(tokenData),
           );
-          transactionMeta.transaction.readableValue = tokenAmount;
-          transactionMeta.transaction.to = toAddress;
+          transactionMeta.txParams.readableValue = tokenAmount;
+          transactionMeta.txParams.to = toAddress;
 
           setTransactionObject({
             type: 'INDIVIDUAL_TOKEN_TRANSACTION',
@@ -288,19 +288,19 @@ const RootRPCMethodsUI = (props) => {
             id: transactionMeta.id,
             origin: transactionMeta.origin,
             securityAlertResponse: transactionMeta.securityAlertResponse,
-            ...transactionMeta.transaction,
+            ...transactionMeta.txParams,
           });
         } else {
-          transactionMeta.transaction.value = hexToBN(value);
-          transactionMeta.transaction.readableValue = fromWei(
-            transactionMeta.transaction.value,
+          transactionMeta.txParams.value = hexToBN(value);
+          transactionMeta.txParams.readableValue = fromWei(
+            transactionMeta.txParams.value,
           );
 
           setEtherTransaction({
             id: transactionMeta.id,
             origin: transactionMeta.origin,
             securityAlertResponse: transactionMeta.securityAlertResponse,
-            ...transactionMeta.transaction,
+            ...transactionMeta.txParams,
           });
         }
 

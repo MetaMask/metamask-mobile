@@ -164,7 +164,7 @@ describe('Amount', () => {
           name: 'Ether',
           symbol: 'ETH',
         },
-        transaction: {
+        txParams: {
           from: CURRENT_ACCOUNT,
         },
         transactionFromName: 'Account 1',
@@ -207,7 +207,7 @@ describe('Amount', () => {
           name: 'Ether',
           symbol: 'ETH',
         },
-        transaction: {
+        txParams: {
           from: CURRENT_ACCOUNT,
         },
         transactionFromName: 'Account 1',
@@ -266,7 +266,7 @@ describe('Amount', () => {
           name: 'Ether',
           symbol: 'ETH',
         },
-        transaction: {
+        txParams: {
           from: CURRENT_ACCOUNT,
         },
         transactionFromName: 'Account 1',
@@ -321,7 +321,7 @@ describe('Amount', () => {
           name: 'Ether',
           symbol: 'ETH',
         },
-        transaction: {
+        txParams: {
           from: CURRENT_ACCOUNT,
         },
         transactionFromName: 'Account 1',
@@ -368,7 +368,7 @@ describe('Amount', () => {
           isERC721: false,
           symbol: 'LINK',
         },
-        transaction: {
+        txParams: {
           from: CURRENT_ACCOUNT,
         },
         transactionFromName: 'Account 1',
@@ -415,7 +415,7 @@ describe('Amount', () => {
           name: 'Ether',
           symbol: 'ETH',
         },
-        transaction: {
+        txParams: {
           from: CURRENT_ACCOUNT,
         },
         transactionFromName: 'Account 1',
@@ -465,7 +465,7 @@ describe('Amount', () => {
           isERC721: false,
           symbol: 'LINK',
         },
-        transaction: {
+        txParams: {
           from: CURRENT_ACCOUNT,
         },
         transactionFromName: 'Account 1',
@@ -508,7 +508,7 @@ describe('Amount', () => {
           isERC721: false,
           symbol: 'LINK',
         },
-        transaction: {
+        txParams: {
           from: CURRENT_ACCOUNT,
         },
         transactionFromName: 'Account 1',
@@ -549,7 +549,7 @@ describe('Amount', () => {
           isERC721: false,
           symbol: 'LINK',
         },
-        transaction: {
+        txParams: {
           from: CURRENT_ACCOUNT,
         },
         transactionFromName: 'Account 1',
@@ -589,7 +589,7 @@ describe('Amount', () => {
           standard: 'ERC721',
           tokenId: '1850',
         },
-        transaction: {
+        txParams: {
           from: CURRENT_ACCOUNT,
         },
         transactionFromName: 'Account 1',

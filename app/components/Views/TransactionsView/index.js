@@ -118,9 +118,9 @@ const TransactionsView = ({
         const alreadyConfirmed = confirmedTxs.find(
           (tx) =>
             toLowerCaseEquals(
-              safeToChecksumAddress(tx.transaction.from),
+              safeToChecksumAddress(tx.txParams.from),
               selectedAddress,
-            ) && tx.transaction.nonce === nonce,
+            ) && tx.txParams.nonce === nonce,
         );
         if (alreadyConfirmed) {
           return false;

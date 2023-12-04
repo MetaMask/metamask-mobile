@@ -171,7 +171,7 @@ export const removeAccountsFromPermissions = async (addresses: string[]) => {
  * The active account is the first item in the returned array.
  */
 export const getPermittedAccounts = async (
-  hostname: string,
+  hostname?: string,
 ): Promise<string[]> => {
   try {
     const accountsWithLastUsed =
