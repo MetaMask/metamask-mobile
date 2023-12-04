@@ -99,7 +99,6 @@ import SkeletonText from '../Ramp/common/components/SkeletonText';
 import InfoModal from '../../../components/UI/Swaps/components/InfoModal';
 import TransactionBlockaidBanner from '../TransactionBlockaidBanner/TransactionBlockaidBanner';
 import { regex } from '../../../util/regex';
-import { ApproveModalSelectorsIDs } from '../../../../e2e/selectors/Modals/ApproveModal.selectors';
 
 const { ORIGIN_DEEPLINK, ORIGIN_QR_CODE } = AppConstants.DEEPLINKS;
 const POLLING_INTERVAL_ESTIMATED_L1_FEE = 30000;
@@ -785,10 +784,7 @@ class ApproveTransactionReview extends PureComponent {
 
     return (
       <>
-        <View
-          style={styles.section}
-          testID={ApproveModalSelectorsIDs.CONTAINER}
-        >
+        <View style={styles.section}>
           {from && (
             <ApproveTransactionHeader
               dontWatchAsset
@@ -825,11 +821,7 @@ class ApproveTransactionReview extends PureComponent {
                         onContactUsClicked={this.onContactUsClicked}
                       />
                     )}
-                    <Text
-                      variant={TextVariant.HeadingMD}
-                      style={styles.title}
-                      testID={ApproveModalSelectorsIDs.ALLOW_ACCESS}
-                    >
+                    <Text variant={TextVariant.HeadingMD} style={styles.title}>
                       {strings(
                         `spend_limit_edition.${
                           originIsDeeplink
@@ -1189,10 +1181,7 @@ class ApproveTransactionReview extends PureComponent {
     } = this.props;
     const styles = this.getStyles();
     return (
-      <View
-        style={styles.actionViewQRObject}
-        testID={ApproveModalSelectorsIDs.QR_DETAILS}
-      >
+      <View style={styles.actionViewQRObject}>
         <TransactionHeader
           currentPageInformation={{
             origin,

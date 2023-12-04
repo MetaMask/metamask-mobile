@@ -29,7 +29,6 @@ import {
 } from '../../../../wdio/screen-objects/testIDs/Screens/NFTImportScreen.testIds';
 import { selectChainId } from '../../../selectors/networkController';
 import { selectSelectedAddress } from '../../../selectors/preferencesController';
-import { AddCustomModalSelectorsIDs } from '../../../../e2e/selectors/Modals/AddCustomModal.selectors';
 
 const createStyles = (colors: any) =>
   StyleSheet.create({
@@ -220,8 +219,6 @@ const AddCustomCollectible = ({
       {...generateTestId(Platform, CUSTOM_TOKEN_CONTAINER_ID)}
     >
       <ActionView
-        cancelTestID={AddCustomModalSelectorsIDs.CANCEL_BUTTON}
-        confirmTestID={AddCustomModalSelectorsIDs.CONFIRM_BUTTON}
         cancelText={strings('add_asset.collectibles.cancel_add_collectible')}
         confirmText={strings('add_asset.collectibles.add_collectible')}
         onCancelPress={cancelAddCollectible}

@@ -36,7 +36,6 @@ import { selectProviderConfig } from '../../../selectors/networkController';
 import Routes from '../../../constants/navigation/Routes';
 import { MetaMetricsEvents } from '../../../core/Analytics';
 import Analytics from '../../../core/Analytics/Analytics';
-import { AccountOverviewSelectorsIDs } from '../../../../e2e/selectors/AccountOverview.selectors';
 
 const styles = StyleSheet.create({
   leftButton: {
@@ -159,11 +158,7 @@ const AccountRightButton = ({
   );
 
   return (
-    <TouchableOpacity
-      style={styles.leftButton}
-      onPress={handleButtonPress}
-      testID={AccountOverviewSelectorsIDs.ACCOUNT_BUTTON}
-    >
+    <TouchableOpacity style={styles.leftButton} onPress={handleButtonPress}>
       <TextInput style={styles.placeholderInput} ref={placeholderInputRef} />
       {selectedAddress ? (
         isNetworkVisible ? (
