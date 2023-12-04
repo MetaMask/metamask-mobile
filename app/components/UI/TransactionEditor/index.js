@@ -444,7 +444,10 @@ class TransactionEditor extends PureComponent {
    */
   handleUpdateAmount = async (amount, mounting = false) => {
     const {
-      transaction: { to, data, assetType, gas: gasLimit },
+      transaction: {
+        txParams: { to, data, gas: gasLimit },
+        assetType,
+      },
       transaction,
     } = this.props;
     // If ETH transaction, there is no need to generate new data
@@ -496,7 +499,9 @@ class TransactionEditor extends PureComponent {
    */
   handleDataGeneration = async (opts) => {
     const {
-      transaction: { from },
+      transaction: {
+        txParams: { from },
+      },
       transaction,
     } = this.props;
     const selectedAsset = opts.selectedAsset
@@ -595,7 +600,9 @@ class TransactionEditor extends PureComponent {
   validateToAddress = () => {
     let error;
     const {
-      transaction: { to },
+      transaction: {
+        txParams: { to },
+      },
       promptedFromApproval,
     } = this.props;
     // If it comes from a dapp it could be a contract deployment

@@ -121,7 +121,6 @@ const transactionReducer = (state = initialState, action) => {
       };
     }
     case 'SET_ETHER_TRANSACTION':
-      console.log('>>>>>> 1', action.transaction)
       return {
         ...state,
         symbol: 'ETH',

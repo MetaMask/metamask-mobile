@@ -121,6 +121,7 @@ import { ethErrors } from 'eth-rpc-errors';
 import { PPOM, ppomInit } from '../lib/ppom/PPOMView';
 import RNFSStorageBackend from '../lib/ppom/rnfs-storage-backend';
 import { RestrictedMethods } from './Permissions/constants';
+// import { getPermittedAccounts } from './Permissions';
 
 const NON_EMPTY = 'NON_EMPTY';
 
@@ -626,7 +627,7 @@ class Engine {
         disableHistory: true,
         disableSendFlowHistory: true,
         disableSwaps: true,
-        getPermittedAccounts: getPermittedAccounts.bind(permissionController),
+        getPermittedAccounts: getPermittedAccounts.bind(getPermittedAccounts),
         hooks: {},
       }),
       new SwapsController(
