@@ -1,12 +1,14 @@
 {
   "blockaid_banner": {
     "approval_farming_description": "Si aprueba esta solicitud, un tercero conocido por estafas podría quedarse con todos sus activos.",
-    "attribution": "Asesoramiento de seguridad por",
+    "attribution": "Impulsado por",
     "attribution_link_name": "Blockaid",
     "blur_farming_description": "Si aprueba esta solicitud, alguien puede robar sus activos enlistados en Blur.",
     "deceptive_request_title": "Esta es una solicitud engañosa",
     "failed_title": "Es posible que la solicitud no sea segura",
     "failed_description": "Debido a un error, el proveedor de seguridad no verificó esta solicitud. Proceda con precaución.",
+    "loading_title": "Esta solicitud todavía se está simulando. Recomendamos esperar a su finalización.",
+    "loading_complete_title": "Simulación completada. Revise esta solicitud antes de continuar.",
     "malicious_domain_description": "Está interactuando con un dominio malicioso. Si aprueba esta solicitud, podría perder sus activos.",
     "other_description": "Si aprueba esta solicitud, podría perder sus activos.",
     "raw_signature_farming_description": "Si aprueba esta solicitud, podría perder sus activos.",
@@ -514,6 +516,7 @@
     "import_account": "Importar una cuenta",
     "connect_hardware": "Conectar monedero físico",
     "imported": "Importado",
+    "qr_hardware": "Hardware QR",
     "remove_account_title": "Eliminación de la cuenta",
     "remove_account_message": "¿Está seguro de que quiere quitar esta cuenta?",
     "no": "No",
@@ -537,7 +540,15 @@
     "address_balance_activity_permission": "Ver dirección, saldo de cuenta y actividad",
     "suggest_transactions": "Sugerir transacciones para aprobar",
     "disconnect": "Desconectar",
-    "disconnect_all_accounts": "Desconectar todas las cuentas"
+    "disconnect_all_accounts": "Desconectar todas las cuentas",
+    "deceptive_site_ahead": "Sitio engañoso más adelante",
+    "deceptive_site_desc": "El sitio que intenta visitar no es seguro. Los atacantes pueden engañarlo para que haga algo peligroso.",
+    "learn_more": "Más información",
+    "advisory_by": "Aviso proporcionado por Ethereum Phishing Detector y PhishFort",
+    "potential_threat": "Las amenazas potenciales incluyen",
+    "fake_metamask": "Versiones falsas de MetaMask",
+    "srp_theft": "Robo de frase secreta de recuperación o contraseña",
+    "malicious_transactions": "Transacciones maliciosas que resultan en activos robados"
   },
   "toast": {
     "connected_and_active": "conectado y activo.",
@@ -690,6 +701,7 @@
     "remove_network": "Quitar",
     "cancel_remove_network": "Cancelar",
     "info_title": "Acerca de MetaMask",
+    "info_title_flask": "About MetaMask Flask",
     "experimental_title": "Experimental",
     "experimental_desc": "WalletConnect y más...",
     "legal_title": "Legal",
@@ -801,9 +813,9 @@
     "unkown_dapp": "Nombre de DAPP no disponible",
     "no_connections": "No se encontraron conexiones"
   },
-  "sdk_return_to_app_modal":{
+  "sdk_return_to_app_modal": {
     "title": "Volver a la aplicación",
-    "description": "Por favor, regrese a la aplicación para continuar utilizando sus servicios"
+    "description": "Regrese a la aplicación para continuar usando sus servicios."
   },
   "sdk_feedback_modal": {
     "ok": "Aceptar",
@@ -892,6 +904,7 @@
   "asset_overview": {
     "send_button": "Enviar",
     "buy_button": "Comprar",
+    "sell_button": "Vender",
     "receive_button": "Recibir",
     "portfolio_button": "Cartera",
     "add_collectible_button": "Agregar",
@@ -906,6 +919,7 @@
     "for_help": "a fin de obtener ayuda.",
     "troubleshoot": "Solucionar problemas",
     "buy_description": "Comprar criptomonedas con efectivo",
+    "sell_description": "Vender cripto por dinero en efectivo",
     "swap_description": "Cambiar entre tokens",
     "send_description": "Enviar criptomonedas a cualquier cuenta",
     "receive_description": "Recibir criptomonedas",
@@ -995,7 +1009,6 @@
     "confirm": "Confirmar"
   },
   "transaction": {
-    "hardware": "Hardware",
     "alert": "ALERTA",
     "amount": "Importe",
     "next": "Siguiente",
@@ -1373,7 +1386,8 @@
     "you_can": "O puede",
     "add_network": "agregar más redes manualmente.",
     "select_network": "Seleccionar una red",
-    "show_test_networks": "Mostrar redes de prueba"
+    "show_test_networks": "Mostrar redes de prueba",
+    "deprecated_goerli": "Debido a los cambios de protocolo de Ethereum: es posible que la red de prueba de Goerli no funcione de manera tan confiable y pronto quedará obsoleta."
   },
   "select": {
     "cancel": "Cancelar",
@@ -1732,7 +1746,10 @@
     "wallet_connect_dapps_cta": "VER SESIONES",
     "network_not_supported": "No se admite la red actual",
     "security_alerts": "Alertas de seguridad",
+    "security_alerts_desc": "Esta función le alerta sobre actividad maliciosa al revisar localmente sus solicitudes de transacción y firma. Haga siempre su propia diligencia debida antes de aprobar cualquier solicitud. No hay garantía de que esta función detecte toda la actividad maliciosa. Al activar esta función, acepta los términos de uso del proveedor.",
+    "select_provider": "Seleccione su proveedor preferido",
     "blockaid": "Blockaid",
+    "blockaid_desc": "Preservar la privacidad: no se comparte ningún dato con terceros. Disponible en la red principal de Ethereum.",
     "switch_network": "Cambie a la red principal o a Sepolia"
   },
   "walletconnect_sessions": {
@@ -1874,14 +1891,39 @@
     }
   },
   "fiat_on_ramp_aggregator": {
+    "buy": "comprar",
+    "sell": "vender",
+    "orders": "Órdenes",
+    "All": "Todo",
+    "Buy": "Comprar",
+    "Sell": "Vender",
+    "Purchased": "Comprado",
+    "Sold": "Vendido",
+    "empty_buy_orders_list": "No tiene órdenes de compra",
+    "empty_sell_orders_list": "No tiene órdenes de venta",
+    "purchased_currency": "{{currency}} comprado",
+    "sold_currency": "{{currency}} vendido",
+    "order_status_pending": "Pendiente",
+    "order_status_processing": "Procesando",
+    "order_status_completed": "Completado",
+    "order_status_failed": "Fallido",
+    "order_status_cancelled": "Cancelado",
+    "network_switcher": {
+      "title": "Red {{rampType}} no compatible",
+      "description": "Para {{rampType}} criptomonedas, deberá cambiar a una red compatible",
+      "no_networks_found": "No se encontraron redes compatibles"
+    },
     "onboarding": {
       "what_to_expect": "Qué esperar",
       "quotes": "Nuestra función de compra de criptomonedas agrega cotizaciones de proveedores integrados, proporcionando cotizaciones de esas fuentes para obtener criptomonedas directamente en su monedero sin período de espera.",
+      "quotes_sell": "¡Ahora puede cobrar directamente en MetaMask! Obtenga cotizaciones actualizadas de proveedores confiables mientras lo guiamos en cada paso del proceso.",
       "benefits": "Menos tarifas de gas para pagar y numerosas redes, tokens y métodos de pago compatibles",
+      "benefits_sell": "Convertir criptomonedas a su moneda local ahora es más fácil que nunca.",
       "get_started": "Empezar"
     },
     "payment_method": {
       "payment_method": "Método de pago",
+      "cash_destination": "Destino de efectivo",
       "instant": "Instantáneo",
       "less_than": "Menos de",
       "minute": "min",
@@ -1893,9 +1935,14 @@
       "lowest_limit": "menor límite de compra",
       "medium_limit": "límite medio de compra",
       "highest_limit": "mayor límite de compra",
+      "lowest_sell_limit": "menor límite de venta",
+      "medium_sell_limit": "límite medio de venta",
+      "highest_sell_limit": "mayor límite de venta",
       "continue_to_amount": "Continuar al monto",
       "no_payment_methods_title": "No hay métodos de pago en {{regionName}}",
+      "no_cash_destinations_title": "No hay destinos de efectivo en {{regionName}}",
       "no_payment_methods_description": "Actualmente no hay métodos de pago disponibles en su región. Por favor, vuelva a revisar pronto; ampliamos con frecuencia los servicios a nuevas regiones.\n\nSi ha seleccionado {{regionName}} por error, haga clic en el botón a continuación para restablecer su región.",
+      "no_cash_destinations_description": "Actualmente no hay destinos de efectivo admitidos en su región. Por favor, visítenos pronto; con frecuencia ampliamos el soporte a nuevas regiones.\n\nSi seleccionó {{regionName}} por error, haga clic en el botón a continuación para restablecer su región.",
       "reset_region": "Restablecer región"
     },
     "continue": "Continuar",
@@ -1906,8 +1953,12 @@
     "quotes_timeout": "Cotizaciones vencidas",
     "request_new_quotes": "Por favor, solicite cotizaciones nuevas para tener los costos más recientes.",
     "amount_to_buy": "Monto para comprar",
+    "amount_to_sell": "Monto para vender",
     "want_to_buy": "Quiere comprar",
+    "want_to_sell": "Quiere vender",
+    "current_balance": "Saldo actual",
     "amount": "Monto",
+    "send_cash_to": "Envíe su efectivo a",
     "get_quotes": "Obtener cotizaciones",
     "done": "Hecho",
     "fetching_quotes": "Obteniendo cotizaciones",
@@ -1918,6 +1969,7 @@
     "search_by_currency": "Buscar por moneda",
     "update_payment_method": "Actualizar método de pago",
     "select_payment_method": "Seleccionar método de pago",
+    "select_cash_destination": "Seleccione a dónde enviar su efectivo",
     "select_region_currency": "Seleccionar moneda de la región",
     "no_tokens_match": "Ningún token coincide con \"{{searchString}}\"",
     "no_currency_match": "Ninguna moneda coincide con \"{{searchString}}\"",
@@ -1926,23 +1978,31 @@
     "continue_with": "Continuar con {{provider}}",
     "minimum": "El depósito mínimo es de",
     "maximum": "El depósito máximo es",
+    "insufficient_balance": "Este monto es mayor que su saldo",
+    "enter_larger_amount": "Ingrese un monto mayor para continuar",
+    "enter_smaller_amount": "Ingrese una cantidad menor para continuar",
     "try_again": "Vuelva a intentarlo",
     "error": "Error",
     "something_went_wrong": "Lo sentimos, se produjo un error",
     "report_this_issue": "Informar sobre este problema",
     "no_providers_available": "No hay proveedores disponibles",
     "try_different_amount_to_buy_input": "¡Intente elegir otro método de pago o intente aumentar o reducir la cantidad que desea comprar!",
+    "try_different_amount_to_sell_input": "¡Intente elegir un destino de retiro de efectivo diferente o intente aumentar o reducir el monto que desea vender!",
     "webview_received_error": "WebView recibió un código de estado de error: {{code}}",
     "no_tokens_available_title": "No hay tokens disponibles",
     "no_tokens_available": "En este momento no hay tokens disponibles para comprar en {{network}} con el método de pago seleccionado.",
+    "no_sell_tokens_available": "Actualmente no hay tokens disponibles para vender en {{network}} con el destino de efectivo seleccionado.",
     "this_network": "esta red",
     "change_payment_method": "Cambiar el método de pago",
+    "change_cash_destination": "Cambiar destino de efectivo",
     "try_different_region": "Pruebe una región distinta",
     "return_home": "Volver a la pantalla de inicio",
     "region": {
       "buy_crypto_tokens": "Comprar tokens criptográficos",
+      "sell_crypto_tokens": "Vender tokens criptográficos",
       "title": "Seleccione su región",
       "description": "Los métodos de pago y los tokens disponibles para usted están determinados por nuestras integraciones de terceros y pueden variar según su región y el soporte de nuestras integraciones.",
+      "sell_description": "Las opciones de destino de efectivo y los tokens pueden variar según su región.",
       "search_by_country": "Buscar por país",
       "search_by_state": "Buscar por estado",
       "no_region_results": "No hay coincidencias de región",
@@ -1951,7 +2011,7 @@
       "select_region_title": "Seleccione su región",
       "select_country_registered": "Seleccione el país donde está registrada su tarjeta (independientemente de dónde se encuentre).",
       "unsupported": "Región no admitida",
-      "unsupported_description": "Estamos trabajando arduamente para expandir la cobertura a su región tan pronto como podamos. Mientras tanto, consulte nuestro artículo de soporte para conocer otras formas en las que puede comprar criptomonedas.",
+      "unsupported_description": "Estamos trabajando arduamente para ampliar la cobertura a su región lo antes posible. Mientras tanto, consulte nuestro artículo de soporte para conocer otras formas en las que puede {{rampType}} criptomonedas.",
       "unsupported_link": "Visite el artículo de soporte"
     },
     "order_details": {
@@ -1959,10 +2019,13 @@
       "successful": "¡Pedido exitoso!",
       "your": "Su",
       "available_in_account": "ya está disponible en su cuenta",
+      "delayed_bank_transfer": "Tardará unos días en ver el efectivo en su cuenta bancaria.",
       "crypto": "cripto",
       "failed": "Pedido fallido",
       "cancelled": "Orden cancelada",
+      "pending": "Órden pendiente",
       "failed_description": "Algo salió mal y {{provider}} no pudo completar su pedido. Vuelva a intentarlo o con otro proveedor.",
+      "continue_order_description": "Para continuar con su órden, deberá seleccionar el botón en la parte inferior de esta página.",
       "the_provider": "el proveedor",
       "processing": "Procesando el pedido",
       "processing_card_description": "Las compras con tarjeta de crédito/débito suelen tardar unos minutos",
@@ -1970,8 +2033,10 @@
       "details": "Detalles del pedido",
       "via": "mediante",
       "purchase_amount": "Monto total de la compra",
+      "amount_received_total": "Monto total recibido",
       "etherscan": "Ver detalles completos en",
-      "another_purchase": "Realizar otra compra",
+      "start_new_order": "Iniciar una nueva órden",
+      "continue_order": "Continuar con esta órden",
       "questions": "¿Preguntas?",
       "contact_support": "Contacte a soporte",
       "support": "Soporte",
@@ -1979,11 +2044,22 @@
       "id": "Identificador del pedido",
       "date_and_time": "Fecha y hora",
       "payment_method": "Método de pago",
+      "destination": "Destino",
       "token_amount": "Cantidad de tokens",
+      "token_quantity_sold": "Cantidad de tokens vendidos",
       "exchange_rate": "Tipo de cambio",
       "total_fees": "Tarifas totales",
       "amount": "Cantidad",
+      "value": "Valor",
       "a_block_explorer": "un explorador de bloques"
+    },
+    "send_transaction": {
+      "sell_crypto": "Vender cripto",
+      "send_description": "Enviará su {{cryptocurrency}} a {{provider}}, quien luego enviará su efectivo a {{paymentMethod}}",
+      "next": "Siguiente",
+      "hold_to_send": "Mantener para enviar",
+      "send": "Enviar",
+      "sent": "¡Enviado!"
     }
   },
   "swaps": {
@@ -2076,7 +2152,6 @@
     "i_understand": "Comprendo",
     "quotes_expire_in": "Las cotizaciones vencen en",
     "saving": "Ahorro",
-    "using_best_quote": "Uso de la mejor cotización",
     "view_details": "Ver detalles",
     "estimated_gas_fee": "Tarifa de gas estimada",
     "max_gas_fee": "Tarifa de gas máxima",
@@ -2089,10 +2164,6 @@
     "completed_swap": "Swap",
     "metamask_swap_fee": "Tarifa de intercambio de MetaMask",
     "fee_text": {
-      "get_the": "Obtenga",
-      "best_price": "el mejor precio",
-      "from_the": "de las",
-      "top_liquidity": "mejores fuentes de liquidez.",
       "fee_is_applied": "Una tarifa de {{fee}} se incluye automáticamente en esta cotización. Lo paga a cambio de una licencia para usar el software de agregación de información del proveedor de liquidez de MetaMask.",
       "fee_is_not_applied": "MetaMask no incluye una tarifa adicional en esta cotización."
     },
@@ -2197,13 +2268,17 @@
     "ok": "Aceptar"
   },
   "whats_new": {
-    "title": "Ver las novedades",
+    "title": "Novedades",
     "blockaid": {
       "title": "Manténgase seguro con alertas de seguridad",
-      "description_1": "Aléjese de las estafas conocidas mientras conserva su privacidad con las alertas de seguridad impulsadas por Blockaid.",
+      "description_1": "Evite las estafas conocidas mientras conserva su privacidad con las alertas de seguridad impulsadas por Blockaid en la red principal de Ethereum.",
       "description_2": "Siempre asegúrese de hacer su propia diligencia debida antes de aprobar cualquier solicitud.",
-      "description_3": "Si habilitó las alertas de seguridad de OpenSea, lo trasladamos a esta función.",
       "action_text": "Habilitar alertas de seguridad"
+    },
+    "sell": {
+      "title": "Cobrar es fácil",
+      "description": "¡Venda su cripto directamente en MetaMask! Lo ayudaremos a encontrar cotizaciones de proveedores confiables, para que pueda vender su cripto de manera accesible, rápida y segura, en todo momento.",
+      "action_text": "Inténtelo"
     }
   },
   "invalid_network": {
@@ -2238,7 +2313,16 @@
     "unrecognized_chain": "La red personalizada no se reconoce",
     "invalid_chain": "La %{rpcUrl} de este id. de cadena no coincide con la lista chainid.network",
     "alert_recommend": "Le recomendamos",
-    "alert_verify": "verificar el id. de cadena"
+    "alert_verify": "verificar el id. de cadena",
+    "warning_subtext_new": {
+      "1": "MetaMask no verifica redes personalizadas, por lo que solo apruebe las redes en las que confíe.",
+      "2": "Obtenga más información sobre los riesgos y estafas de seguridad en la red."
+    },
+    "invalid_rpc_url": "Esta URL de red no coincide con ningún proveedor conocido para esta ID de cadena.",
+    "invalid_chain_token_decimals": "Parece que el decimal de esta red no coincide con su ID de cadena.",
+    "unrecognized_chain_name": "Parece que el nombre para mostrar de esta red no coincide con su ID de cadena.",
+    "unrecognized_chain_ticker": "Parece que el símbolo de esta red no coincide con el ID de esta cadena.",
+    "unrecognized_chain_id": "No reconocemos esta red. Asegúrese de que el ID de cadena sea correcto antes de continuar."
   },
   "media_player": {
     "loading": "Cargando…",

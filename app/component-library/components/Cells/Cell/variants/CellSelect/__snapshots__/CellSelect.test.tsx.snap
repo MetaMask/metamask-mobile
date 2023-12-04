@@ -173,6 +173,7 @@ exports[`CellSelect should render default settings correctly 1`] = `
               "lineHeight": 24,
             }
           }
+          testID="cellbase-avatar-title"
         >
           Orangefox.eth
         </Text>
@@ -215,7 +216,7 @@ exports[`CellSelect should render default settings correctly 1`] = `
               "borderColor": "#BBC0C5",
               "borderRadius": 10,
               "borderWidth": 1,
-              "height": 20,
+              "height": 24,
               "justifyContent": "center",
               "marginTop": 4,
               "paddingHorizontal": 4,
@@ -226,7 +227,6 @@ exports[`CellSelect should render default settings correctly 1`] = `
             accessibilityRole="text"
             style={
               Object {
-                "bottom": 2,
                 "color": "#24272A",
                 "fontFamily": "Euclid Circular B",
                 "fontSize": 14,

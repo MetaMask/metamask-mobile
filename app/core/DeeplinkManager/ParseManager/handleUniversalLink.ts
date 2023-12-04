@@ -2,7 +2,7 @@ import { ACTIONS, PREFIXES, PROTOCOLS } from '../../../constants/deeplinks';
 import AppConstants from '../../AppConstants';
 import { Minimizer } from '../../NativeModules';
 import SDKConnect from '../../SDKConnect/SDKConnect';
-import handleDeeplink from '../../SDKConnect/handleDeeplink';
+import handleDeeplink from '../../SDKConnect/handlers/handleDeeplink';
 import DevLogger from '../../SDKConnect/utils/DevLogger';
 import WC2Manager from '../../WalletConnect/WalletConnectV2';
 import Logger from '../../../util/Logger';
