@@ -158,11 +158,7 @@ const AccountRightButton = ({
   );
 
   return (
-    <TouchableOpacity
-      style={styles.leftButton}
-      onPress={handleButtonPress}
-      testID={'navbar-account-button'}
-    >
+    <TouchableOpacity style={styles.leftButton} onPress={handleButtonPress}>
       <TextInput style={styles.placeholderInput} ref={placeholderInputRef} />
       {selectedAddress ? (
         isNetworkVisible ? (
