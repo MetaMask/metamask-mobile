@@ -74,7 +74,7 @@ import {
   PermissionControllerState,
 } from '@metamask/permission-controller';
 import SwapsController, { swapsUtils } from '@metamask/swaps-controller';
-import { PPOMController } from '@metamask/ppom-validator';
+import { PPOMController, PPOMState } from '@metamask/ppom-validator';
 import { MetaMaskKeyring as QRHardwareKeyring } from '@keystonehq/metamask-airgapped-keyring';
 import {
   LoggingController,
@@ -175,6 +175,7 @@ export interface EngineState {
   PermissionController: PermissionControllerState<Permissions>;
   ApprovalController: ApprovalControllerState;
   LoggingController: LoggingControllerState;
+  PPOMController: PPOMState;
 }
 
 /**
@@ -698,7 +699,9 @@ class Engine {
             ppomInit,
           },
           storageBackend: new RNFSStorageBackend('PPOMDB'),
-          securityAlertsEnabled: true,
+          securityAlertsEnabled:
+            initialState.PreferencesController?.securityAlertsEnabled ?? false,
+          state: initialState.PPOMController,
         });
         controllers.push(ppomController as any);
       } catch (e) {
