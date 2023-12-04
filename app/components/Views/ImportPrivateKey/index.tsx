@@ -5,7 +5,6 @@ import {
   TextInput,
   Text,
   View,
-  Platform,
   ActivityIndicator,
 } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
@@ -19,13 +18,7 @@ import Device from '../../../util/device';
 import { importAccountFromPrivateKey } from '../../../util/address';
 import { useAppTheme } from '../../../util/theme';
 import { createStyles } from './styles';
-import generateTestId from '../../../../wdio/utils/generateTestId';
-import {
-  IMPORT_ACCOUNT_SCREEN_ID,
-  IMPORT_PRIVATE_KEY_BUTTON_ID,
-  PRIVATE_KEY_INPUT_BOX_ID,
-  CLOSE_BUTTON_ON_IMPORT_ACCOUNT_SCREEN_ID,
-} from '../../../../wdio/screen-objects/testIDs/Screens/ImportAccountScreen.testIds';
+import { ImportAccountFromPrivateKeySelectorsIDs } from '../../../../e2e/selectors/ImportAccountFromPrivateKey.selectors';
 
 /**
  * View that's displayed the first time a user receives funds
@@ -126,22 +119,22 @@ const ImportPrivateKey = () => {
       <KeyboardAwareScrollView
         contentContainerStyle={styles.wrapper}
         style={styles.topOverlay}
-        testID={'first-incoming-transaction-screen'}
         resetScrollToCoords={{ x: 0, y: 0 }}
       >
         <View
           style={styles.content}
-          {...generateTestId(Platform, IMPORT_ACCOUNT_SCREEN_ID)}
+          testID={
+            ImportAccountFromPrivateKeySelectorsIDs.IMPORT_ACCOUNT_SCREEN_ID
+          }
         >
           <TouchableOpacity onPress={dismiss} style={styles.navbarRightButton}>
             <MaterialIcon
               name="close"
               size={15}
               style={styles.closeIcon}
-              {...generateTestId(
-                Platform,
-                CLOSE_BUTTON_ON_IMPORT_ACCOUNT_SCREEN_ID,
-              )}
+              testID={
+                ImportAccountFromPrivateKeySelectorsIDs.CLOSE_BUTTON_ON_IMPORT_ACCOUNT_SCREEN_ID
+              }
             />
           </TouchableOpacity>
           <View style={styles.top}>
@@ -172,7 +165,9 @@ const ImportPrivateKey = () => {
               multiline
               style={[styles.input, inputWidth ? { width: inputWidth } : {}]}
               onChangeText={setPrivateKey}
-              {...generateTestId(Platform, PRIVATE_KEY_INPUT_BOX_ID)}
+              testID={
+                ImportAccountFromPrivateKeySelectorsIDs.PRIVATE_KEY_INPUT_BOX_ID
+              }
               blurOnSubmit
               onSubmitEditing={() => goNext()}
               returnKeyType={'next'}
@@ -195,7 +190,9 @@ const ImportPrivateKey = () => {
             containerStyle={styles.button}
             type={'confirm'}
             onPress={() => goNext()}
-            {...generateTestId(Platform, IMPORT_PRIVATE_KEY_BUTTON_ID)}
+            testID={
+              ImportAccountFromPrivateKeySelectorsIDs.IMPORT_PRIVATE_KEY_BUTTON_ID
+            }
           >
             {loading ? (
               <ActivityIndicator size="small" color={colors.primary.inverse} />
