@@ -172,6 +172,7 @@ exports[`Cell should render CellDisplay given the type Display 1`] = `
             "lineHeight": 24,
           }
         }
+        testID="cellbase-avatar-title"
       >
         Orangefox.eth
       </Text>
@@ -214,7 +215,7 @@ exports[`Cell should render CellDisplay given the type Display 1`] = `
             "borderColor": "#BBC0C5",
             "borderRadius": 10,
             "borderWidth": 1,
-            "height": 20,
+            "height": 24,
             "justifyContent": "center",
             "marginTop": 4,
             "paddingHorizontal": 4,
@@ -225,7 +226,6 @@ exports[`Cell should render CellDisplay given the type Display 1`] = `
           accessibilityRole="text"
           style={
             Object {
-              "bottom": 2,
               "color": "#24272A",
               "fontFamily": "Euclid Circular B",
               "fontSize": 14,
@@ -453,6 +453,7 @@ exports[`Cell should render CellMultiSelect given the type MultiSelect 1`] = `
               "lineHeight": 24,
             }
           }
+          testID="cellbase-avatar-title"
         >
           Orangefox.eth
         </Text>
@@ -495,7 +496,7 @@ exports[`Cell should render CellMultiSelect given the type MultiSelect 1`] = `
               "borderColor": "#BBC0C5",
               "borderRadius": 10,
               "borderWidth": 1,
-              "height": 20,
+              "height": 24,
               "justifyContent": "center",
               "marginTop": 4,
               "paddingHorizontal": 4,
@@ -506,7 +507,6 @@ exports[`Cell should render CellMultiSelect given the type MultiSelect 1`] = `
             accessibilityRole="text"
             style={
               Object {
-                "bottom": 2,
                 "color": "#24272A",
                 "fontFamily": "Euclid Circular B",
                 "fontSize": 14,
@@ -698,6 +698,7 @@ exports[`Cell should render CellSelect given the type Select 1`] = `
               "lineHeight": 24,
             }
           }
+          testID="cellbase-avatar-title"
         >
           Orangefox.eth
         </Text>
@@ -740,7 +741,7 @@ exports[`Cell should render CellSelect given the type Select 1`] = `
               "borderColor": "#BBC0C5",
               "borderRadius": 10,
               "borderWidth": 1,
-              "height": 20,
+              "height": 24,
               "justifyContent": "center",
               "marginTop": 4,
               "paddingHorizontal": 4,
@@ -751,7 +752,6 @@ exports[`Cell should render CellSelect given the type Select 1`] = `
             accessibilityRole="text"
             style={
               Object {
-                "bottom": 2,
                 "color": "#24272A",
                 "fontFamily": "Euclid Circular B",
                 "fontSize": 14,

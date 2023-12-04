@@ -36,7 +36,10 @@ import { toLowerCaseEquals } from '../../../util/general';
 import { KEYSTONE_TX_CANCELED } from '../../../constants/error';
 import { MetaMetricsEvents } from '../../../core/Analytics';
 import AnalyticsV2 from '../../../util/analyticsV2';
-
+import {
+  getAddressAccountType,
+  isHardwareAccount,
+} from '../../../util/address';
 import {
   selectChainId,
   selectProviderType,
@@ -57,6 +60,9 @@ import TemplateConfirmationModal from '../../Approvals/TemplateConfirmationModal
 import { selectTokenList } from '../../../selectors/tokenListController';
 import { selectTokens } from '../../../selectors/tokensController';
 import { selectSelectedAddress } from '../../../selectors/preferencesController';
+import { getLedgerKeyring } from '../../../core/Ledger/Ledger';
+import { createLedgerTransactionModalNavDetails } from '../../UI/LedgerModals/LedgerTransactionModal';
+import ExtendedKeyringTypes from '../../../constants/keyringTypes';
 
 const hstInterface = new ethers.utils.Interface(abi);
 
@@ -147,7 +153,11 @@ const RootRPCMethodsUI = (props) => {
           tokensReceived,
           swapTransaction.destinationToken.decimals,
         );
-        const analyticsParams = { ...swapTransaction.analytics };
+
+        const analyticsParams = {
+          ...swapTransaction.analytics,
+          account_type: getAddressAccountType(transactionMeta.transaction.from),
+        };
         delete newSwapsTransactions[transactionMeta.id].analytics;
         delete newSwapsTransactions[transactionMeta.id].paramsForAnalytics;
 
@@ -203,7 +213,28 @@ const RootRPCMethodsUI = (props) => {
           },
         );
         await KeyringController.resetQRKeyringState();
-        Engine.acceptPendingApproval(transactionMeta.id);
+
+        const isLedgerAccount = isHardwareAccount(
+          transactionMeta.transaction.from,
+          [ExtendedKeyringTypes.ledger],
+        );
+
+        // For Ledger Accounts we handover the signing to the confirmation flow
+        if (isLedgerAccount) {
+          const ledgerKeyring = await getLedgerKeyring();
+
+          props.navigation.navigate(
+            ...createLedgerTransactionModalNavDetails({
+              transactionId: transactionMeta.id,
+              deviceId: ledgerKeyring.deviceId,
+              // eslint-disable-next-line no-empty-function
+              onConfirmationComplete: () => {},
+              type: 'signTransaction',
+            }),
+          );
+        } else {
+          Engine.acceptPendingApproval(transactionMeta.id);
+        }
       } catch (error) {
         if (!error?.message.startsWith(KEYSTONE_TX_CANCELED)) {
           Alert.alert(
@@ -219,7 +250,7 @@ const RootRPCMethodsUI = (props) => {
         }
       }
     },
-    [props.swapsTransactions, trackSwaps],
+    [props.navigation, props.swapsTransactions, trackSwaps],
   );
 
   const onUnapprovedTransaction = useCallback(

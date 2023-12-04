@@ -25,7 +25,7 @@ import Engine from './Engine';
 import { Minimizer } from './NativeModules';
 import DevLogger from './SDKConnect/utils/DevLogger';
 import WC2Manager from './WalletConnect/WalletConnectV2';
-import handleDeeplink from './SDKConnect/handleDeeplink';
+import handleDeeplink from './SDKConnect/handlers/handleDeeplink';
 import Logger from '../util/Logger';
 import { NavigationProp, ParamListBase } from '@react-navigation/native';
 import { AnyAction, Dispatch, Store } from 'redux';
