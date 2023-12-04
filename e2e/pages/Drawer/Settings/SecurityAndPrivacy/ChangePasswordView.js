@@ -1,6 +1,5 @@
 import TestHelpers from '../../../../helpers';
 import {
-  RESET_PASSWORD_INPUT_ID,
   RESET_PASSWORD_CONFIRM_INPUT_BOX_ID,
   RESET_PASSWORD_ANDROID_TERM_CHECKBOX_ID,
 } from '../../../../../wdio/screen-objects/testIDs/Screens/ChangePasswordScreensIDs.testIds';
@@ -18,7 +17,9 @@ class ChangePasswordView {
   }
 
   get passwordInput() {
-    return Matchers.getElementByID(RESET_PASSWORD_INPUT_ID);
+    return Matchers.getElementByID(
+      ChoosePasswordSelectorsIDs.NEW_PASSWORD_INPUT_ID,
+    );
   }
 
   get confirmPasswordInput() {
