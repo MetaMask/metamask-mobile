@@ -1,5 +1,5 @@
 /* eslint-disable @typescript-eslint/no-empty-function */
-import { Platform } from 'react-native';
+import Device from '../../../util/device';
 import { Minimizer } from '../../NativeModules';
 import { Connection } from '../Connection';
 import { RPC_METHODS } from '../SDKConnect.constants';
@@ -8,6 +8,7 @@ import { wait } from '../utils/wait.util';
 import handleBatchRpcResponse from './handleBatchRpcResponse';
 import handleSendMessage from './handleSendMessage'; // Adjust the import path as necessary
 
+jest.mock('../../../util/device');
 jest.mock('../utils/DevLogger');
 jest.mock('./handleBatchRpcResponse');
 jest.mock('../utils/wait.util');
@@ -34,11 +35,15 @@ describe('handleSendMessage', () => {
   const mockCanRedirect = jest.fn();
   const mockRpcQueueManagerGetId = jest.fn();
   const mockBatchRPCManagerGetById = jest.fn();
+  const mockNavigate = jest.fn();
 
   beforeEach(() => {
     jest.clearAllMocks();
 
     mockConnection = {
+      navigation: {
+        navigate: mockNavigate,
+      },
       remote: {
         sendMessage: mockSendMessage,
       },
@@ -54,6 +59,7 @@ describe('handleSendMessage', () => {
       trigger: '',
     } as unknown as Connection;
 
+    mockHandleBatchRpcResponse.mockResolvedValue(true);
     mockSendMessage.mockResolvedValue(true);
   });
 
@@ -135,6 +141,8 @@ describe('handleSendMessage', () => {
       mockRpcQueueManagerGetId.mockReturnValue('1');
 
       mockCanRedirect.mockReturnValue(true);
+
+      mockHandleBatchRpcResponse.mockResolvedValue(true);
     });
     it('should remove the message ID from the RPC queue', async () => {
       await handleSendMessage({
@@ -148,6 +156,7 @@ describe('handleSendMessage', () => {
 
       expect(mockRemove).toHaveBeenCalledWith('1');
     });
+
     it('should check if redirection is allowed for the method', async () => {
       await handleSendMessage({
         msg: {
@@ -159,7 +168,7 @@ describe('handleSendMessage', () => {
       });
 
       expect(mockCanRedirect).toHaveBeenCalledWith({
-        method: '1',
+        method: 'metamask_batch',
       });
     });
   });
@@ -192,6 +201,7 @@ describe('handleSendMessage', () => {
       beforeEach(() => {
         mockRpcQueueManagerGetId.mockReturnValue('1');
         mockCanRedirect.mockReturnValue(true);
+        mockConnection.trigger = 'deeplink';
       });
       it('should handle deeplink trigger', async () => {
         mockConnection.trigger = 'deeplink';
@@ -208,7 +218,7 @@ describe('handleSendMessage', () => {
         expect(mockMinimizer.goBack).toHaveBeenCalled();
       });
       it('should wait for specific methods', async () => {
-        mockRpcQueueManagerGetId.mockReturnValue('eth_requestAccounts');
+        mockRpcQueueManagerGetId.mockReturnValue(RPC_METHODS.METAMASK_BATCH);
 
         await handleSendMessage({
           msg: {
@@ -219,11 +229,16 @@ describe('handleSendMessage', () => {
           connection: mockConnection,
         });
 
-        expect(mockWait).toHaveBeenCalledWith(1000);
+        expect(mockWait).toHaveBeenCalledWith(1200);
       });
       it('should handle platform-specific behavior for iOS 17 and above', async () => {
-        Platform.OS = 'ios';
-        Platform.Version = '17';
+        const spyIsIos = jest.spyOn(Device, 'isIos');
+        spyIsIos.mockReturnValue(true);
+
+        jest.mock('react-native/Libraries/Utilities/Platform', () => ({
+          OS: 'ios',
+          Version: 17,
+        }));
 
         await handleSendMessage({
           msg: {
@@ -234,12 +249,9 @@ describe('handleSendMessage', () => {
           connection: mockConnection,
         });
 
-        expect(mockConnection.navigation?.navigate).toHaveBeenCalledWith(
-          'RootModalFlow',
-          {
-            screen: 'ReturnToDappModal',
-          },
-        );
+        expect(mockNavigate).toHaveBeenCalledWith('RootModalFlow', {
+          screen: 'ReturnToDappModal',
+        });
       });
     });
 
