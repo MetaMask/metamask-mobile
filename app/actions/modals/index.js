@@ -32,3 +32,10 @@ export function toggleInfoNetworkModal(show) {
     show,
   };
 }
+
+export function toggleSignModal(show) {
+  return {
+    type: 'TOGGLE_SIGN_MODAL',
+    show,
+  };
+}

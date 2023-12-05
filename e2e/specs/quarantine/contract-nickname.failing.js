@@ -118,9 +118,13 @@ describe('Adding Contract Nickname', () => {
   });
 
   it('should enable remember me', async () => {
-    await SecurityAndPrivacy.isRememberMeToggleOff();
+    await expect(await SecurityAndPrivacy.rememberMeToggle).toHaveToggleValue(
+      false,
+    );
     await SecurityAndPrivacy.tapTurnOnRememberMeToggle();
-    await SecurityAndPrivacy.isRememberMeToggleOn();
+    await expect(await SecurityAndPrivacy.rememberMeToggle).toHaveToggleValue(
+      true,
+    );
 
     await TestHelpers.delay(1500);
   });
@@ -134,6 +138,7 @@ describe('Adding Contract Nickname', () => {
     await LoginView.enterPassword(validAccount.password);
     await WalletView.isVisible();
   });
+
   it('should deep link to the approval modal', async () => {
     await TestHelpers.openDeepLink(APPROVAL_DEEPLINK_URL);
     await TestHelpers.delay(3000);

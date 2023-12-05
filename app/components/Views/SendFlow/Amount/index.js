@@ -99,13 +99,13 @@ import { selectContractBalances } from '../../../../selectors/tokenBalancesContr
 import { selectSelectedAddress } from '../../../../selectors/preferencesController';
 import { PREFIX_HEX_STRING } from '../../../../constants/transaction';
 import Routes from '../../../../constants/navigation/Routes';
-import { isNetworkBuyNativeTokenSupported } from '../../../UI/Ramp/utils';
 import { getRampNetworks } from '../../../../reducers/fiatOrders';
 import { swapsLivenessSelector } from '../../../../reducers/swaps';
 import { isSwapsAllowed } from '../../../../components/UI/Swaps/utils';
 import { swapsUtils } from '@metamask/swaps-controller';
 import { regex } from '../../../../util/regex';
 import { AmountViewSelectorsIDs } from '../../../../../e2e/selectors/SendFlow/AmountView.selectors';
+import { isNetworkRampNativeTokenSupported } from '../../../UI/Ramp/common/utils';
 
 const KEYBOARD_OFFSET = Device.isSmallDevice() ? 80 : 120;
 
@@ -1270,7 +1270,7 @@ class Amount extends PureComponent {
           location: 'insufficient_funds_warning',
           text: 'buy_more',
         });
-        navigation.navigate(Routes.FIAT_ON_RAMP_AGGREGATOR.ID);
+        navigation.navigate(Routes.RAMP.BUY);
       }
     };
 
@@ -1520,7 +1520,7 @@ const mapStateToProps = (state, ownProps) => ({
   transactionState: ownProps.transaction || state.transaction,
   selectedAsset: state.transaction.selectedAsset,
   isPaymentRequest: state.transaction.paymentRequest,
-  isNetworkBuyNativeTokenSupported: isNetworkBuyNativeTokenSupported(
+  isNetworkBuyNativeTokenSupported: isNetworkRampNativeTokenSupported(
     selectChainId(state),
     getRampNetworks(state),
   ),

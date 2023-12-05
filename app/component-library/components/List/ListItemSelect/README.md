@@ -1,5 +1,7 @@
 # ListItemSelect
 
+![ListItemSelect](./ListItemSelect.png)
+
 ListItemSelect is a wrapper component typically used for item selection scenarios.
 
 ## Props

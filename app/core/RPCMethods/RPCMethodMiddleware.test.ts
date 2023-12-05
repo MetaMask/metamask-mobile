@@ -62,6 +62,11 @@ jest.mock('../../store', () => ({
   },
 }));
 
+const mockStore = store as unknown as {
+  getState: jest.Mock;
+  dispatch: jest.Mock;
+};
+
 jest.mock('../Permissions', () => ({
   getPermittedAccounts: jest.fn(),
 }));
@@ -239,6 +244,7 @@ function setupGlobalState({
         },
       } as any,
     }));
+  mockStore.dispatch.mockImplementation((obj) => obj);
   if (addTransactionResult) {
     MockEngine.context.TransactionController.addTransaction.mockImplementation(
       async () => ({ result: addTransactionResult, transactionMeta: '123' }),
