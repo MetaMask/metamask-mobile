@@ -50,10 +50,6 @@ interface MessageSignProps {
    * Indicated whether or not the expanded message is shown
    */
   showExpandedMessage: boolean;
-  /**
-   * Object containing the security alert response
-   */
-  securityAlertResponse?: SecurityAlertResponse;
 }
 
 const createStyles = (colors: Colors) =>

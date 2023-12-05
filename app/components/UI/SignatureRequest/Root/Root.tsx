@@ -39,10 +39,6 @@ const Root = ({
     (reduxState: any) => reduxState.modals.signMessageModalVisible,
   );
 
-  const { securityAlertResponse } = useSelector(
-    (reduxState: any) => reduxState.signatureRequest,
-  );
-
   const toggleExpandedMessage = () =>
     setShowExpandedMessage(!showExpandedMessage);
 
@@ -78,7 +74,7 @@ const Root = ({
     >
       {approvalType === ApprovalTypes.PERSONAL_SIGN && (
         <PersonalSign
-          messageParams={{ ...messageParams, securityAlertResponse }}
+          messageParams={messageParams}
           onReject={onSignReject}
           onConfirm={onSignConfirm}
           currentPageInformation={currentPageMeta}
@@ -89,7 +85,7 @@ const Root = ({
       {approvalType === ApprovalTypes.ETH_SIGN_TYPED_DATA && (
         <TypedSign
           navigation={navigation}
-          messageParams={{ ...messageParams, securityAlertResponse }}
+          messageParams={messageParams}
           onReject={onSignReject}
           onConfirm={onSignConfirm}
           currentPageInformation={currentPageMeta}
@@ -100,7 +96,7 @@ const Root = ({
       {approvalType === ApprovalTypes.ETH_SIGN && (
         <MessageSign
           navigation={navigation}
-          messageParams={{ ...messageParams, securityAlertResponse }}
+          messageParams={messageParams}
           onReject={onSignReject}
           onConfirm={onSignConfirm}
           currentPageInformation={currentPageMeta}
