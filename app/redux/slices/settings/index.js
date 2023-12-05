@@ -1,4 +1,6 @@
-import AppConstants from '../../../AppConstants';
+import AppConstants from '../../../core/AppConstants';
+import { persistReducer } from 'redux-persist';
+import MigratedStorage from '../../storage/MigratedStorage';
 
 const initialState = {
   searchEngine: AppConstants.DEFAULT_SEARCH_ENGINE,
@@ -8,7 +10,7 @@ const initialState = {
   hideZeroBalanceTokens: false,
 };
 
-const settingsReducer = (state = initialState, action) => {
+const reducer = (state = initialState, action) => {
   switch (action.type) {
     case 'SET_SEARCH_ENGINE':
       return {
@@ -49,4 +51,12 @@ const settingsReducer = (state = initialState, action) => {
       return state;
   }
 };
+const settingsPersistConfig = {
+  key: 'settings',
+  blacklist: '',
+  storage: MigratedStorage,
+};
+
+const settingsReducer = persistReducer(settingsPersistConfig, reducer);
+
 export default settingsReducer;

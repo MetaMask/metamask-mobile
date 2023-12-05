@@ -1,10 +1,9 @@
-import Engine from '../../../Engine';
-import FilesystemStorage from 'redux-persist-filesystem-storage';
+import Engine from '../../../core/Engine';
 import { persistReducer } from 'redux-persist';
 import { combineReducers } from 'redux';
-import { createAction } from '@reduxjs/toolkit';
-import Logger from '../../../../util/Logger';
-import { Platform } from 'react-native';
+// import { createAction } from '@reduxjs/toolkit';
+// import Logger from '../../../util/Logger';
+// import { Platform } from 'react-native';
 import MigratedStorage from '../../storage/MigratedStorage';
 
 const controllerNames = [
@@ -117,15 +116,6 @@ const controllerReducer =
         return returnedState;
       }
       case `UPDATE_BG_STATE_${controllerName}`: {
-        // console.log('ACTION UPDATE ********', action);
-
-        // newState[controllerName] =
-        //   Engine.state[controllerName as keyof typeof Engine.state];
-        // // if (controllerName === 'NetworkController') {
-        // //   console.log('Update new State Value:', {
-        // //     ...Engine.state[controllerName as keyof typeof Engine.state],
-        // //   });
-        // // }
         return { ...Engine.state[controllerName as keyof typeof Engine.state] };
       }
       default:

@@ -3,51 +3,52 @@ import AsyncStorage from './async-storage-wrapper';
 import FilesystemStorage from 'redux-persist-filesystem-storage';
 import autoMergeLevel2 from 'redux-persist/lib/stateReconciler/autoMergeLevel2';
 import { RootState } from '../reducers';
+import MigratedStorage from '../redux/storage/MigratedStorage';
 import { migrations, version } from './migrations';
 import Logger from '../util/Logger';
 import Device from '../util/device';
 
 const TIMEOUT = 40000;
 
-const MigratedStorage = {
-  async getItem(key: string) {
-    try {
-      const res = await FilesystemStorage.getItem(key);
-      if (res) {
-        // Using new storage system
-        return res;
-      }
-    } catch {
-      //Fail silently
-    }
+// const MigratedStorage = {
+//   async getItem(key: string) {
+//     try {
+//       const res = await FilesystemStorage.getItem(key);
+//       if (res) {
+//         // Using new storage system
+//         return res;
+//       }
+//     } catch {
+//       //Fail silently
+//     }
 
-    // Using old storage system, should only happen once
-    try {
-      const res = await AsyncStorage.getItem(key);
-      if (res) {
-        // Using old storage system
-        return res;
-      }
-    } catch (error) {
-      Logger.error(error as Error, { message: 'Failed to run migration' });
-      throw new Error('Failed async storage storage fetch.');
-    }
-  },
-  async setItem(key: string, value: string) {
-    try {
-      return await FilesystemStorage.setItem(key, value, Device.isIos());
-    } catch (error) {
-      Logger.error(error as Error, { message: 'Failed to set item' });
-    }
-  },
-  async removeItem(key: string) {
-    try {
-      return await FilesystemStorage.removeItem(key);
-    } catch (error) {
-      Logger.error(error as Error, { message: 'Failed to remove item' });
-    }
-  },
-};
+//     // Using old storage system, should only happen once
+//     try {
+//       const res = await AsyncStorage.getItem(key);
+//       if (res) {
+//         // Using old storage system
+//         return res;
+//       }
+//     } catch (error) {
+//       Logger.error(error as Error, { message: 'Failed to run migration' });
+//       throw new Error('Failed async storage storage fetch.');
+//     }
+//   },
+//   async setItem(key: string, value: string) {
+//     try {
+//       return await FilesystemStorage.setItem(key, value, Device.isIos());
+//     } catch (error) {
+//       Logger.error(error as Error, { message: 'Failed to set item' });
+//     }
+//   },
+//   async removeItem(key: string) {
+//     try {
+//       return await FilesystemStorage.removeItem(key);
+//     } catch (error) {
+//       Logger.error(error as Error, { message: 'Failed to remove item' });
+//     }
+//   },
+// };
 
 const persistUserTransform = createTransform(
   // TODO: Add types for the 'user' slice

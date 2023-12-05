@@ -1,9 +1,9 @@
 import bookmarksReducer from './bookmarks';
 import browserReducer from './browser';
-import engineReducer, { controllerReducers } from '../core/redux/slices/engine';
+import engineReducer from '../redux/slices/engine';
 import privacyReducer from './privacy';
 import modalsReducer from './modals';
-import settingsReducer from '../core/redux/slices/settings';
+import settingsReducer from '../redux/slices/settings';
 import alertReducer from './alert';
 import transactionReducer from './transaction';
 import userReducer from './user';

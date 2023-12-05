@@ -1,6 +1,6 @@
 import FilesystemStorage from 'redux-persist-filesystem-storage';
 
-import Logger from '../../../util/Logger';
+import Logger from '../../util/Logger';
 import { Platform } from 'react-native';
 
 const MigratedStorage = {

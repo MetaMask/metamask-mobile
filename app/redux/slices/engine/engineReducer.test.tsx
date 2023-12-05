@@ -5,7 +5,7 @@ jest.mock('../../../Engine', () => ({
   state: {},
 }));
 // importing Engine after mocking to avoid global mock from overwriting its values
-import Engine from '../../../Engine';
+import Engine from '../../../core/Engine';
 
 describe('engineReducer', () => {
   it('should return the initial state in default', () => {
