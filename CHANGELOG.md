@@ -2,6 +2,11 @@
 
 ## Current Main Branch
 
+
+## 7.12.1 - Dec 5, 2023
+### Fixed
+- [#7991](https://github.com/MetaMask/metamask-mobile/pull/7991): fix: patch for token rates controller with coin gecko endpoint
+
 ## 7.12.0 - Dec 4, 2023
 ### Added
 - [#7037](https://github.com/MetaMask/metamask-mobile/pull/7037): feat(off-ramp): add off-ramp feature
