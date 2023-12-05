@@ -2069,7 +2069,9 @@
       "select_country_registered": "Select the country where your card is registered (regardless of where you are located).",
       "unsupported": "Region Not Supported",
       "unsupported_description": "We are working hard to expand coverage to your region as soon as we can. In the meantime, see our support article for other ways you may be able to {{rampType}} crypto.",
-      "unsupported_link": "Visit Support Article"
+      "unsupported_link": "Visit Support Article",
+      "popular_regions": "Popular Regions",
+      "regions": "Regions"
     },
     "order_details": {
       "details_main": "Order Details",
