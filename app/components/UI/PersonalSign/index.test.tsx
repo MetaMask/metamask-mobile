@@ -73,6 +73,7 @@ jest.mock('../../../util/analyticsV2');
 
 jest.mock('../../../util/address', () => ({
   getAddressAccountType: jest.fn().mockReturnValue('Metamask'),
+  isExternalHardwareAccount: jest.fn().mockReturnValue(false),
 }));
 
 function createWrapper({
