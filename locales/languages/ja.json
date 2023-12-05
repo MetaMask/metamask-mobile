@@ -2152,7 +2152,6 @@
     "i_understand": "理解しています",
     "quotes_expire_in": "クォートの期限切れまで残り",
     "saving": "保存中",
-    "using_best_quote": "最適なクォートを使用中",
     "view_details": "詳細を表示",
     "estimated_gas_fee": "ガス代の見積もり",
     "max_gas_fee": "最大ガス代",
@@ -2165,10 +2164,6 @@
     "completed_swap": "スワップ！",
     "metamask_swap_fee": "MetaMaskのスワップ手数料",
     "fee_text": {
-      "get_the": "トップの",
-      "best_price": "流動性",
-      "from_the": "供給源から",
-      "top_liquidity": "毎回最も有利な価格を利用。",
       "fee_is_applied": "このクォートには、{{fee}}の手数料が自動的に含まれています。この手数料は、MetaMaskの流動性プロバイダー情報集約ソフトウェアの使用ライセンスの代金として支払うものです。",
       "fee_is_not_applied": "MetaMaskはこのクォートに追加手数料を含めません。"
     },

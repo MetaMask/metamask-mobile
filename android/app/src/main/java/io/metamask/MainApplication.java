@@ -23,6 +23,7 @@ import android.database.CursorWindow;
 import java.lang.reflect.Field;
 
 import io.metamask.nativesdk.NativeSDKPackage;
+import io.metamask.nativeModules.RNTar.RNTarPackage;
 
 public class MainApplication extends Application implements ShareApplication, ReactApplication {
 
@@ -47,6 +48,7 @@ public class MainApplication extends Application implements ShareApplication, Re
 			packages.add(new RCTAnalyticsPackage());
       packages.add(new RCTMinimizerPackage());
       packages.add(new NativeSDKPackage());
+      packages.add(new RNTarPackage());
 
       return packages;
 		}

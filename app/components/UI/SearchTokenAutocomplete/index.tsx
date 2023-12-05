@@ -192,7 +192,7 @@ const SearchTokenAutocomplete = ({ navigation }: Props) => {
   ]);
 
   return (
-    <View style={styles.wrapper} testID={'search-token-screen'}>
+    <View style={styles.wrapper}>
       <ActionView
         cancelText={strings('add_asset.tokens.cancel_add_token')}
         confirmText={strings('add_asset.tokens.add_token')}

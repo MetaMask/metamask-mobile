@@ -245,6 +245,7 @@ const App = ({ userLoggedIn }) => {
   const triggerSetCurrentRoute = (route) => {
     dispatch(setCurrentRoute(route));
     if (route === 'Wallet' || route === 'BrowserView') {
+      setOnboarded(true);
       dispatch(setCurrentBottomNavRoute(route));
     }
   };

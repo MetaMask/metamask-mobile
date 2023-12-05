@@ -62,11 +62,9 @@ export default class AssetList extends PureComponent {
     const { searchResults = [], handleSelectAsset, selectedAsset } = this.props;
 
     return (
-      <View style={styles.rowWrapper} testID={'add-searched-token-screen'}>
+      <View style={styles.rowWrapper}>
         {searchResults.length > 0 ? (
-          <Text style={styles.normalText} testID={'select-token-title'}>
-            {strings('token.select_token')}
-          </Text>
+          <Text style={styles.normalText}>{strings('token.select_token')}</Text>
         ) : null}
         {searchResults.length === 0 && this.props.searchQuery.length ? (
           <Text style={styles.normalText}>

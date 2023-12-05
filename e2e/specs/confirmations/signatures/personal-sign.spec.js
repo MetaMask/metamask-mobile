@@ -1,20 +1,20 @@
 'use strict';
-import Browser from '../../pages/Drawer/Browser';
-import TabBarComponent from '../../pages/TabBarComponent';
-import { loginToApp } from '../../viewHelper';
-import SigningModal from '../../pages/modals/SigningModal';
-import { TestDApp } from '../../pages/TestDApp';
-import FixtureBuilder from '../../fixtures/fixture-builder';
+import Browser from '../../../pages/Drawer/Browser';
+import TabBarComponent from '../../../pages/TabBarComponent';
+import { loginToApp } from '../../../viewHelper';
+import SigningModal from '../../../pages/modals/SigningModal';
+import { TestDApp } from '../../../pages/TestDApp';
+import FixtureBuilder from '../../../fixtures/fixture-builder';
 import {
   withFixtures,
   defaultGanacheOptions,
-} from '../../fixtures/fixture-helper';
-import { Regression } from '../../tags';
-import TestHelpers from '../../helpers';
+} from '../../../fixtures/fixture-helper';
+import { Smoke } from '../../../tags';
+import TestHelpers from '../../../helpers';
 
 const MAX_ATTEMPTS = 3;
 
-describe(Regression('Personal Sign'), () => {
+describe(Smoke('Personal Sign'), () => {
   beforeAll(async () => {
     jest.setTimeout(2500000);
     await TestHelpers.reverseServerPort();

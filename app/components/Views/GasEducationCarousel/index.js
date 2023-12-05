@@ -245,13 +245,7 @@ const GasEducationCarousel = ({
     if (key === 1) {
       return (
         <View style={styles.tab}>
-          <Text
-            noMargin
-            bold
-            black
-            style={styles.title}
-            testID={`carousel-screen-${key}`}
-          >
+          <Text noMargin bold black style={styles.title}>
             {strings('fiat_on_ramp.gas_education_carousel.step_1.title', {
               ticker: getTicker(ticker),
             })}
@@ -283,13 +277,7 @@ const GasEducationCarousel = ({
     if (key === 2) {
       return (
         <View style={styles.tab}>
-          <Text
-            noMargin
-            bold
-            black
-            style={styles.title}
-            testID={`carousel-screen-${key}`}
-          >
+          <Text noMargin bold black style={styles.title}>
             {strings('fiat_on_ramp.gas_education_carousel.step_2.title')}
           </Text>
           <Text grey noMargin style={styles.subtitle}>
@@ -311,13 +299,7 @@ const GasEducationCarousel = ({
     if (key === 3) {
       return (
         <View style={styles.tab}>
-          <Text
-            noMargin
-            bold
-            black
-            style={styles.title}
-            testID={`carousel-screen-${key}`}
-          >
+          <Text noMargin bold black style={styles.title}>
             {strings('fiat_on_ramp.gas_education_carousel.step_3.title')}
           </Text>
           <Text noMargin bold style={styles.subheader}>
@@ -339,7 +321,7 @@ const GasEducationCarousel = ({
   };
 
   return (
-    <View style={baseStyles.flexGrow} testID={'gas-education-carousel-screen'}>
+    <View style={baseStyles.flexGrow}>
       <OnboardingScreenWithBg screen={'carousel'}>
         <ScrollView
           style={baseStyles.flexGrow}
@@ -361,7 +343,6 @@ const GasEducationCarousel = ({
                         source={carousel_images[index]}
                         style={[styles.carouselImage, styles[imgStyleKey]]}
                         resizeMethod={'auto'}
-                        testID={`carousel-${value}-image`}
                       />
                     </View>
                     <View style={baseStyles.flexGrow}>
@@ -372,7 +353,6 @@ const GasEducationCarousel = ({
                             <StyledButton
                               type={'confirm'}
                               onPress={onPresGetStarted}
-                              testID={'gas-education-fiat-on-ramp-start'}
                             >
                               {strings(
                                 'fiat_on_ramp.gas_education_carousel.step_3.cta',

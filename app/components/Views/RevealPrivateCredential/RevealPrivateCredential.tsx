@@ -51,15 +51,8 @@ import AppConstants from '../../../core/AppConstants';
 import { createStyles } from './styles';
 import { getNavigationOptionsTitle } from '../../../components/UI/Navbar';
 import generateTestId from '../../../../wdio/utils/generateTestId';
-import {
-  PASSWORD_INPUT_BOX_ID,
-  REVEAL_SECRET_RECOVERY_PHRASE_TOUCHABLE_BOX_ID,
-  SECRET_RECOVERY_PHRASE_CANCEL_BUTTON_ID,
-  SECRET_RECOVERY_PHRASE_CONTAINER_ID,
-  SECRET_RECOVERY_PHRASE_LONG_PRESS_BUTTON_ID,
-  SECRET_RECOVERY_PHRASE_NEXT_BUTTON_ID,
-  SECRET_RECOVERY_PHRASE_TEXT,
-} from '../../../../wdio/screen-objects/testIDs/Screens/RevelSecretRecoveryPhrase.testIds';
+import { RevealSeedViewSelectorsIDs } from '../../../../e2e/selectors/Settings/SecurityAndPrivacy/RevealSeedView.selectors';
+
 import { selectSelectedAddress } from '../../../selectors/preferencesController';
 
 const PRIVATE_KEY = 'private_key';
@@ -342,7 +335,7 @@ const RevealPrivateCredential = ({
             selectTextOnFocus
             style={styles.seedPhrase}
             editable={false}
-            {...generateTestId(Platform, SECRET_RECOVERY_PHRASE_TEXT)}
+            testID={RevealSeedViewSelectorsIDs.SECRET_RECOVERY_PHRASE_TEXT}
             placeholderTextColor={colors.text.muted}
             keyboardAppearance={themeAppearance}
           />
@@ -354,10 +347,9 @@ const RevealPrivateCredential = ({
               onPress={() =>
                 copyPrivateCredentialToClipboard(privCredentialName)
               }
-              {...generateTestId(
-                Platform,
-                REVEAL_SECRET_RECOVERY_PHRASE_TOUCHABLE_BOX_ID,
-              )}
+              testID={
+                RevealSeedViewSelectorsIDs.REVEAL_SECRET_RECOVERY_PHRASE_TOUCHABLE_BOX_ID
+              }
               style={styles.clipboardButton}
             />
           ) : null}
@@ -390,9 +382,12 @@ const RevealPrivateCredential = ({
         secureTextEntry
         onSubmitEditing={tryUnlock}
         keyboardAppearance={themeAppearance}
-        {...generateTestId(Platform, PASSWORD_INPUT_BOX_ID)}
+        testID={RevealSeedViewSelectorsIDs.PASSWORD_INPUT_BOX_ID}
       />
-      <Text style={styles.warningText} testID={'password-warning'}>
+      <Text
+        style={styles.warningText}
+        testID={RevealSeedViewSelectorsIDs.PASSWORD_WARNING_ID}
+      >
         {warningIncorrectPassword}
       </Text>
     </>
@@ -460,7 +455,7 @@ const RevealPrivateCredential = ({
             onLongPress={() => revealCredential(privCredentialName)}
             {...generateTestId(
               Platform,
-              SECRET_RECOVERY_PHRASE_LONG_PRESS_BUTTON_ID,
+              RevealSeedViewSelectorsIDs.SECRET_RECOVERY_PHRASE_LONG_PRESS_BUTTON_ID,
             )}
           />
         </>
@@ -520,7 +515,7 @@ const RevealPrivateCredential = ({
   return (
     <View
       style={[styles.wrapper]}
-      {...generateTestId(Platform, SECRET_RECOVERY_PHRASE_CONTAINER_ID)}
+      testID={RevealSeedViewSelectorsIDs.SECRET_RECOVERY_PHRASE_CONTAINER_ID}
     >
       <ActionView
         cancelText={
@@ -533,8 +528,12 @@ const RevealPrivateCredential = ({
         onConfirmPress={() => tryUnlock()}
         showConfirmButton={!unlocked}
         confirmDisabled={!passwordRequirementsMet(password)}
-        cancelTestID={SECRET_RECOVERY_PHRASE_CANCEL_BUTTON_ID}
-        confirmTestID={SECRET_RECOVERY_PHRASE_NEXT_BUTTON_ID}
+        cancelTestID={
+          RevealSeedViewSelectorsIDs.SECRET_RECOVERY_PHRASE_CANCEL_BUTTON_ID
+        }
+        confirmTestID={
+          RevealSeedViewSelectorsIDs.SECRET_RECOVERY_PHRASE_NEXT_BUTTON_ID
+        }
       >
         <>
           <View style={[styles.rowWrapper, styles.normalText]}>

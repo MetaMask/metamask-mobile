@@ -2152,7 +2152,6 @@
     "i_understand": "Je comprends",
     "quotes_expire_in": "Les cotations expirent dans",
     "saving": "Enregistrement",
-    "using_best_quote": "Utiliser la meilleure cotation",
     "view_details": "Voir les détails",
     "estimated_gas_fee": "Frais de gaz estimés",
     "max_gas_fee": "Frais de gaz maximums",
@@ -2165,10 +2164,6 @@
     "completed_swap": "Échanger !",
     "metamask_swap_fee": "Commission de swap MetaMask",
     "fee_text": {
-      "get_the": "Bénéficiez en permanence",
-      "best_price": "du meilleur prix",
-      "from_the": "auprès des",
-      "top_liquidity": "meilleures sources de liquidités.",
       "fee_is_applied": "Des frais de {{fee}} sont automatiquement ajoutés à ce devis. Ces frais vous sont facturés en échange d'une licence d'utilisation du logiciel d'agrégation d'informations sur les fournisseurs de liquidités de MetaMask.",
       "fee_is_not_applied": "MetaMask n’inclut pas de frais supplémentaires dans ce devis."
     },

@@ -1,6 +1,7 @@
 import React, { PureComponent } from 'react';
 import { View, Image, StyleSheet } from 'react-native';
 import { ThemeContext, mockTheme } from '../../../util/theme';
+import { CommonSelectorsIDs } from '../../../../e2e/selectors/Common.selectors';
 
 const createStyles = (colors) =>
   StyleSheet.create({
@@ -33,7 +34,7 @@ export default class FoxScreen extends PureComponent {
     const styles = createStyles(colors);
 
     return (
-      <View style={styles.wrapper} testID={'fox-screen'}>
+      <View style={styles.wrapper} testID={CommonSelectorsIDs.FOX_SCREEN}>
         <Image source={foxImage} style={styles.image} resizeMethod={'auto'} />
       </View>
     );

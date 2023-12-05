@@ -55,6 +55,8 @@ import {
   WALLET_SETUP_SCREEN_IMPORT_FROM_SEED_BUTTON_ID,
   WALLET_SETUP_CREATE_NEW_WALLET_BUTTON_ID,
 } from '../../../../wdio/screen-objects/testIDs/Screens/WalletSetupScreen.testIds';
+import { OnboardingSelectorIDs } from '../../../../e2e/selectors/Onboarding/Onboarding.selectors';
+
 import Routes from '../../../constants/navigation/Routes';
 import { selectAccounts } from '../../../selectors/accountTrackerController';
 
@@ -442,7 +444,10 @@ class Onboarding extends PureComponent {
     const styles = createStyles(colors);
 
     return (
-      <View style={baseStyles.flexGrow} testID={'onboarding-screen'}>
+      <View
+        style={baseStyles.flexGrow}
+        testID={OnboardingSelectorIDs.CONTAINER_ID}
+      >
         <OnboardingScreenWithBg screen={'c'}>
           <ScrollView
             style={baseStyles.flexGrow}

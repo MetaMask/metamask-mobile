@@ -2152,7 +2152,6 @@
     "i_understand": "Comprendo",
     "quotes_expire_in": "Las cotizaciones vencen en",
     "saving": "Ahorro",
-    "using_best_quote": "Uso de la mejor cotización",
     "view_details": "Ver detalles",
     "estimated_gas_fee": "Tarifa de gas estimada",
     "max_gas_fee": "Tarifa de gas máxima",
@@ -2165,10 +2164,6 @@
     "completed_swap": "Swap",
     "metamask_swap_fee": "Tarifa de intercambio de MetaMask",
     "fee_text": {
-      "get_the": "Obtenga",
-      "best_price": "el mejor precio",
-      "from_the": "de las",
-      "top_liquidity": "mejores fuentes de liquidez.",
       "fee_is_applied": "Una tarifa de {{fee}} se incluye automáticamente en esta cotización. Lo paga a cambio de una licencia para usar el software de agregación de información del proveedor de liquidez de MetaMask.",
       "fee_is_not_applied": "MetaMask no incluye una tarifa adicional en esta cotización."
     },

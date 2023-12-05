@@ -15,6 +15,7 @@ import {
 import StyledButton from '../../UI/StyledButton';
 import SDKSessionItem from './SDKSessionItem';
 import { ThemeTypography } from '@metamask/design-tokens/dist/js/typography';
+import { SDKSelectorsIDs } from '../../../../e2e/selectors/Settings/SDK.selectors';
 
 interface Props {
   navigation: StackNavigationProp<{
@@ -190,7 +191,10 @@ const SDKSessionsManager = (props: Props) => {
   );
 
   return (
-    <View style={styles.wrapper} testID={'sdk-session-manager'}>
+    <View
+      style={styles.wrapper}
+      testID={SDKSelectorsIDs.SESSION_MANAGER_CONTAINER}
+    >
       {connections.length + androidConnections.length > 0
         ? renderSDKSessions()
         : renderEmptyResult()}

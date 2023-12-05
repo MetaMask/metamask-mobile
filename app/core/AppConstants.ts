@@ -75,6 +75,9 @@ export default {
     CACHE_TOKENS_THRESHOLD: 5 * 60 * 1000,
     CACHE_TOP_ASSETS_THRESHOLD: 5 * 60 * 1000,
   },
+  BRIDGE: {
+    ACTIVE: true,
+  },
   MAX_SAFE_CHAIN_ID: 4503599627370476,
   URLS: {
     TERMS_AND_CONDITIONS: 'https://legal.consensys.io/metamask/terms-of-use/',

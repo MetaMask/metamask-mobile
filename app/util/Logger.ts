@@ -44,12 +44,12 @@ export class AsyncLogger {
   /**
    * console.error wrapper
    *
-   * @param {Error|string|object} error - error to be logged
+   * @param {Error|string|unknown} error - error to be logged
    * @param {string|object} extra - Extra error info
    * @returns - void
    */
   static async error(
-    error: Error | string,
+    error: Error | string | unknown,
     extra: ExtraInfo | string | any,
   ): Promise<void> {
     if (__DEV__) {
@@ -130,11 +130,14 @@ export default class Logger {
   /**
    * console.error wrapper
    *
-   * @param {Error|string|object} error - error to be logged
+   * @param {Error|string|unknown} error - error to be logged
    * @param {string|object} extra - Extra error info
    * @returns - void
    */
-  static error(error: Error | string, extra: ExtraInfo | string | any) {
+  static error(
+    error: Error | string | unknown,
+    extra: ExtraInfo | string | any,
+  ) {
     AsyncLogger.error(error, extra).catch(() => {
       // ignore error but avoid dangling promises
     });

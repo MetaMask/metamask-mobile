@@ -1,5 +1,5 @@
 import React from 'react';
-import { TouchableOpacity, StyleSheet, View, Platform } from 'react-native';
+import { TouchableOpacity, StyleSheet, View } from 'react-native';
 import PropTypes from 'prop-types';
 import { fontStyles, baseStyles } from '../../../../styles/common';
 import MaterialIcon from 'react-native-vector-icons/MaterialCommunityIcons';
@@ -9,8 +9,7 @@ import IonicIcon from 'react-native-vector-icons/Ionicons';
 import AntIcon from 'react-native-vector-icons/AntDesign';
 import Text from '../../../Base/Text';
 import { useTheme } from '../../../../util/theme';
-import generateTestId from '../../../../../wdio/utils/generateTestId';
-import { NOTIFICATION_TITLE } from '../../../../../wdio/screen-objects/testIDs/Components/Notification.testIds';
+import { CommonSelectorsIDs } from '../../../../../e2e/selectors/Common.selectors';
 
 const createStyles = (colors) =>
   StyleSheet.create({
@@ -168,7 +167,6 @@ const BaseNotification = ({
       <View style={styles.floatingBackground}>
         <TouchableOpacity
           style={styles.defaultFlashFloating}
-          testID={'press-notification-button'}
           onPress={onPress}
           activeOpacity={0.8}
         >
@@ -178,7 +176,7 @@ const BaseNotification = ({
           <View style={styles.flashLabel}>
             <Text
               style={styles.flashTitle}
-              {...generateTestId(Platform, NOTIFICATION_TITLE)}
+              testID={CommonSelectorsIDs.TOAST_NOTIFICATION_TITLE}
             >
               {!title ? getTitle(status, data) : title}
             </Text>

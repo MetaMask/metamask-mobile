@@ -102,7 +102,7 @@ class CollectibleView extends PureComponent {
     return (
       <SafeAreaView style={styles.root}>
         <ScrollView style={styles.wrapper} ref={this.scrollViewRef}>
-          <View style={styles.assetOverviewWrapper} testID={'asset'}>
+          <View style={styles.assetOverviewWrapper}>
             <CollectibleOverview
               navigation={navigation}
               collectible={collectible}

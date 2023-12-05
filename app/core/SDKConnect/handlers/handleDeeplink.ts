@@ -1,8 +1,8 @@
-import AppConstants from '../AppConstants';
-import SDKConnect from './SDKConnect';
-import DevLogger from './utils/DevLogger';
-import { waitForCondition } from './utils/wait.util';
-import Logger from '../../util/Logger';
+import AppConstants from '../../AppConstants';
+import SDKConnect from '../SDKConnect';
+import DevLogger from '../utils/DevLogger';
+import { waitForCondition } from '../utils/wait.util';
+import Logger from '../../../util/Logger';
 
 const QRCODE_PARAM_PATTERN = '&t=q';
 
@@ -91,7 +91,7 @@ const handleDeeplink = async ({
       });
     }
   } catch (error) {
-    Logger.error('Failed to connect to channel', error);
+    Logger.error(error, 'Failed to connect to channel');
   }
 };
 

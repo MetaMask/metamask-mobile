@@ -151,7 +151,6 @@ const SelectQRAccounts = (props: ISelectQRAccountsProps) => {
               onCheckColor={colors.background.default}
               onFillColor={colors.primary.default}
               onTintColor={colors.primary.default}
-              testID={'skip-backup-check'}
             />
             <AccountDetails
               index={item.index}

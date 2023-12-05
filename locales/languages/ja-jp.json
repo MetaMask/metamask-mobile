@@ -1436,7 +1436,6 @@
     "i_understand": "理解しました",
     "quotes_expire_in": "見積もりは期限が切れる",
     "saving": "セーブする",
-    "using_best_quote": "最良の見積もりを使用する",
     "view_details": "詳細の表示",
     "estimated_gas_fee": "推定のガス料金",
     "max_gas_fee": "ガス費の最大値",
@@ -1449,10 +1448,6 @@
     "completed_swap": "スワップ！",
     "metamask_swap_fee": "MetaMask スワップ手数料",
     "fee_text": {
-      "get_the": "トップレベルの",
-      "best_price": "流動性をもつ",
-      "from_the": "ソースから",
-      "top_liquidity": "ベストプライスを手に入れましょう。",
       "fee_is_applied": "見積には {{fee}}% の手数料が自動的に組み込まれ、MetaMask の将来の開発をサポートします。"
     },
     "enable": {

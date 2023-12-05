@@ -1543,7 +1543,7 @@ exports[`SecuritySettings should render correctly 1`] = `
             "marginTop": 50,
           }
         }
-        testID="third-party-section"
+        testID="incoming-transactions-section"
       >
         <Text
           style={

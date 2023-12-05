@@ -1436,7 +1436,6 @@
     "i_understand": "이해했습니다.",
     "quotes_expire_in": "견적 만료:",
     "saving": "저장 중",
-    "using_best_quote": "최고 견적을 사용 중",
     "view_details": "세부 정보 보기",
     "estimated_gas_fee": "예상 Gas 요금",
     "max_gas_fee": "최대 가스 요금",
@@ -1449,10 +1448,6 @@
     "completed_swap": "스왑!",
     "metamask_swap_fee": "MetaMask 스왑 수수료",
     "fee_text": {
-      "get_the": "언제나",
-      "best_price": "최고의",
-      "from_the": "유동성 소스에서",
-      "top_liquidity": "최고의 가격으로 이용하세요.",
       "fee_is_applied": "{{fee}}의 수수료는 각 견적에 자동으로 반영되며 MetaMask를 더욱 개선할 수 있도록 현재 진행 중인 개발에 사용됩니다."
     },
     "enable": {

@@ -2152,7 +2152,6 @@
     "i_understand": "견적은 다음 기간 전에 만료됨을",
     "quotes_expire_in": "이해합니다:",
     "saving": "저장",
-    "using_best_quote": "최고 견적 사용",
     "view_details": "세부 사항 확인",
     "estimated_gas_fee": "예상 가스비",
     "max_gas_fee": "최대 가스비",
@@ -2165,10 +2164,6 @@
     "completed_swap": "스와프!",
     "metamask_swap_fee": "MetaMask 스와프 수수료",
     "fee_text": {
-      "get_the": "최고의",
-      "best_price": "가격을",
-      "from_the": "다음의",
-      "top_liquidity": "최고 유동성 출처에서 매번 얻으세요.",
       "fee_is_applied": "{{fee}}의 수수료는 자동으로 각 견적에 반영됩니다. 이는 MetaMask의 유동성 공급자 정보 집계용 소프트웨어 사용 라이선스 비용입니다.",
       "fee_is_not_applied": "MetaMask에서는 이 견적에 추가 비용을 부과되지 않습니다."
     },

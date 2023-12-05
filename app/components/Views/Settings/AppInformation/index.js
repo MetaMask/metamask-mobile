@@ -21,6 +21,7 @@ import { strings } from '../../../../../locales/i18n';
 import { getNavigationOptionsTitle } from '../../../UI/Navbar';
 import AppConstants from '../../../../core/AppConstants';
 import { ThemeContext, mockTheme } from '../../../../util/theme';
+import { AboutMetaMaskSelectorsIDs } from '../../../../../e2e/selectors/Settings/AboutMetaMask.selectors';
 
 const IS_QA = process.env['METAMASK_ENVIRONMENT'] === 'qa';
 
@@ -174,7 +175,10 @@ export default class AppInformation extends PureComponent {
     const styles = createStyles(colors);
 
     return (
-      <SafeAreaView style={styles.wrapper} testID={'app-settings-screen'}>
+      <SafeAreaView
+        style={styles.wrapper}
+        testID={AboutMetaMaskSelectorsIDs.CONTAINER}
+      >
         <ScrollView contentContainerStyle={styles.wrapperContent}>
           <View style={styles.logoWrapper}>
             <Image

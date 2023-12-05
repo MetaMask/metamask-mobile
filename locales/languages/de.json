@@ -2152,7 +2152,6 @@
     "i_understand": "Ich verstehe",
     "quotes_expire_in": "Angebote laufen ab in",
     "saving": "Speichervorgang",
-    "using_best_quote": "Nutzen des besten Angebots",
     "view_details": "Detail ansehen",
     "estimated_gas_fee": "Geschätzte Gas-Gebühr",
     "max_gas_fee": "Maximale Gas-Gebühr",
@@ -2165,10 +2164,6 @@
     "completed_swap": "Tauschen!",
     "metamask_swap_fee": "MetaMask-Tauschgebühr",
     "fee_text": {
-      "get_the": "Sichern Sie sich den",
-      "best_price": "besten Preis",
-      "from_the": "von den",
-      "top_liquidity": "besten Liquiditätsquellen zu jeder Zeit.",
       "fee_is_applied": "Die Gebühr von {{fee}} ist automatisch in diesem Angebot enthalten. Sie zahlen sie als Gegenleistung für eine Lizenz zur Nutzung der Software von MetaMask zur Aggregation von Liquiditätsanbieterinformationen.",
       "fee_is_not_applied": "MetaMask berechnet in diesem Angebot keine zusätzliche Gebühr."
     },

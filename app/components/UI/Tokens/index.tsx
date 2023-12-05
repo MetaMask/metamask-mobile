@@ -291,7 +291,7 @@ const Tokens: React.FC<TokensI> = ({ tokens }) => {
           )}
         </BadgeWrapper>
 
-        <View style={styles.balances} testID={'balance'}>
+        <View style={styles.balances}>
           {/*
            * The name of the token must callback to the symbol
            * The reason for this is that the wallet_watchAsset doesn't return the name

@@ -2152,7 +2152,6 @@
     "i_understand": "Tôi hiểu",
     "quotes_expire_in": "Báo giá hết hạn sau",
     "saving": "Đang lưu",
-    "using_best_quote": "Dùng báo giá tốt nhất",
     "view_details": "Xem chi tiết",
     "estimated_gas_fee": "Phí gas ước tính",
     "max_gas_fee": "Phí gas tối đa",
@@ -2165,10 +2164,6 @@
     "completed_swap": "Vuốt!",
     "metamask_swap_fee": "Phí Hoán đổi của MetaMask",
     "fee_text": {
-      "get_the": "Nhận",
-      "best_price": "giá tốt nhất",
-      "from_the": "từ",
-      "top_liquidity": "các nguồn có tính thanh khoản cao nhất mọi lúc.",
       "fee_is_applied": "Khoản phí {{fee}} sẽ tự động được tính vào báo giá này. Bạn trả tiền để đổi lấy giấy phép sử dụng phần mềm tổng hợp thông tin từ nhà cung cấp thanh khoản của MetaMask.",
       "fee_is_not_applied": "MetaMask không bao gồm phụ phí trong báo giá này."
     },

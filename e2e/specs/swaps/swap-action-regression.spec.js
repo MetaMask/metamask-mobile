@@ -22,7 +22,7 @@ import { Regression } from '../../tags';
 const fixtureServer = new FixtureServer();
 
 describe(Regression('Multiple Swaps from Actions'), () => {
-  let swapOnboarded = false;
+  let swapOnboarded = true; // TODO: Set it to false once we show the onboarding page again.
   beforeAll(async () => {
     await TestHelpers.reverseServerPort();
     const fixture = new FixtureBuilder()
