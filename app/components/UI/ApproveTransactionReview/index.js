@@ -314,7 +314,7 @@ class ApproveTransactionReview extends PureComponent {
       const eth = new Eth(
         Engine.context.NetworkController.getProviderAndBlockTracker().provider,
       );
-      const result = fetchEstimatedMultiLayerL1Fee(eth, {
+      const result = await fetchEstimatedMultiLayerL1Fee(eth, {
         txParams: transaction.transaction,
         chainId,
       });
@@ -469,7 +469,7 @@ class ApproveTransactionReview extends PureComponent {
       },
     );
     if (isMultiLayerFeeNetwork(chainId)) {
-      await this.fetchEstimatedL1Fee();
+      this.fetchEstimatedL1Fee();
       intervalIdForEstimatedL1Fee = setInterval(
         this.fetchEstimatedL1Fee,
         POLLING_INTERVAL_ESTIMATED_L1_FEE,
