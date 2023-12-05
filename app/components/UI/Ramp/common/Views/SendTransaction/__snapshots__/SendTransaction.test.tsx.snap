@@ -208,7 +208,6 @@ exports[`SendTransaction View renders correctly 1`] = `
                         "fontWeight": "400",
                       }
                     }
-                    testID="navbar-title-networks"
                   >
                     Ethereum Main Network
                   </Text>
@@ -1020,7 +1019,6 @@ exports[`SendTransaction View renders correctly for custom action payment method
                         "fontWeight": "400",
                       }
                     }
-                    testID="navbar-title-networks"
                   >
                     Ethereum Main Network
                   </Text>
@@ -1748,7 +1746,6 @@ exports[`SendTransaction View renders correctly for token 1`] = `
                         "fontWeight": "400",
                       }
                     }
-                    testID="navbar-title-networks"
                   >
                     Ethereum Main Network
                   </Text>

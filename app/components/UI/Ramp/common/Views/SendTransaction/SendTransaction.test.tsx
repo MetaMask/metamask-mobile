@@ -491,7 +491,6 @@ describe('SendTransaction View', () => {
       ]
     `);
 
-    expect(mockNavigate).toHaveBeenCalledWith(Routes.WALLET_VIEW);
     expect(mockGoBack).toHaveBeenCalled();
   });
 

@@ -6,6 +6,9 @@ export const SecurityPrivacyViewSelectorsIDs = {
   METAMETRICS_SWITCH: 'metametrics-switch',
   REVEAL_SEED_BUTTON: 'reveal-seed-button',
   SECURITY_SETTINGS_SCROLL: 'security-settings-scrollview',
+  INCOMING_TRANSACTIONS: 'incoming-transactions-section',
+  BIOMETRICS_TOGGLE: 'biometrics-option',
+  DEVICE_PASSCODE_TOGGLE: 'DevicePasscodeOption',
 };
 
 export const SecurityPrivacyViewSelectorsText = {

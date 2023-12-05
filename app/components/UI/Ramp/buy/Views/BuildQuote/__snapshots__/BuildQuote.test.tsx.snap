@@ -208,7 +208,6 @@ exports[`BuildQuote View Crypto Currency Data renders a special error page if cr
                         "fontWeight": "400",
                       }
                     }
-                    testID="navbar-title-networks"
                   >
                     Ethereum Main Network
                   </Text>
@@ -941,7 +940,6 @@ exports[`BuildQuote View Crypto Currency Data renders a special error page if cr
                         "fontWeight": "400",
                       }
                     }
-                    testID="navbar-title-networks"
                   >
                     Ethereum Main Network
                   </Text>
@@ -1674,7 +1672,6 @@ exports[`BuildQuote View Crypto Currency Data renders an error page when there i
                         "fontWeight": "400",
                       }
                     }
-                    testID="navbar-title-networks"
                   >
                     Ethereum Main Network
                   </Text>
@@ -2378,7 +2375,6 @@ exports[`BuildQuote View Crypto Currency Data renders the loading page when cryp
                         "fontWeight": "400",
                       }
                     }
-                    testID="navbar-title-networks"
                   >
                     Ethereum Main Network
                   </Text>
@@ -3274,7 +3270,6 @@ exports[`BuildQuote View Fiat Currency Data renders an error page when there is 
                         "fontWeight": "400",
                       }
                     }
-                    testID="navbar-title-networks"
                   >
                     Ethereum Main Network
                   </Text>
@@ -3978,7 +3973,6 @@ exports[`BuildQuote View Fiat Currency Data renders the loading page when fiats 
                         "fontWeight": "400",
                       }
                     }
-                    testID="navbar-title-networks"
                   >
                     Ethereum Main Network
                   </Text>
@@ -4874,7 +4868,6 @@ exports[`BuildQuote View Payment Method Data renders an error page when there is
                         "fontWeight": "400",
                       }
                     }
-                    testID="navbar-title-networks"
                   >
                     Ethereum Main Network
                   </Text>
@@ -5578,7 +5571,6 @@ exports[`BuildQuote View Payment Method Data renders the loading page when payme
                         "fontWeight": "400",
                       }
                     }
-                    testID="navbar-title-networks"
                   >
                     Ethereum Main Network
                   </Text>
@@ -6474,7 +6466,6 @@ exports[`BuildQuote View Regions data renders an error page when there is a regi
                         "fontWeight": "400",
                       }
                     }
-                    testID="navbar-title-networks"
                   >
                     Ethereum Main Network
                   </Text>
@@ -7178,7 +7169,6 @@ exports[`BuildQuote View Regions data renders the loading page when regions are 
                         "fontWeight": "400",
                       }
                     }
-                    testID="navbar-title-networks"
                   >
                     Ethereum Main Network
                   </Text>
@@ -8074,7 +8064,6 @@ exports[`BuildQuote View renders correctly 1`] = `
                         "fontWeight": "400",
                       }
                     }
-                    testID="navbar-title-networks"
                   >
                     Ethereum Main Network
                   </Text>
@@ -11298,7 +11287,6 @@ exports[`BuildQuote View renders correctly 2`] = `
                         "fontWeight": "400",
                       }
                     }
-                    testID="navbar-title-networks"
                   >
                     Ethereum Main Network
                   </Text>
@@ -14469,7 +14457,6 @@ exports[`BuildQuote View renders correctly when sdkError is present 1`] = `
                         "fontWeight": "400",
                       }
                     }
-                    testID="navbar-title-networks"
                   >
                     Ethereum Main Network
                   </Text>
@@ -15173,7 +15160,6 @@ exports[`BuildQuote View renders correctly when sdkError is present 2`] = `
                         "fontWeight": "400",
                       }
                     }
-                    testID="navbar-title-networks"
                   >
                     Ethereum Main Network
                   </Text>
