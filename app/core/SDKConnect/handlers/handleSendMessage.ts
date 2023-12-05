@@ -38,7 +38,7 @@ export const handleSendMessage = async ({
       },
     });
 
-    // check if lastrpc or if an error occured during the chain
+    // check if lastrpc or if an error occurred during the chain
     if (!isLastRpcOrError) {
       // Only continue processing the message and goback if all rpcs in the batch have been handled
       DevLogger.log(
