@@ -1,5 +1,5 @@
 import bookmarksReducer from './bookmarks';
-import browserReducer from './browser';
+import browserReducer from '../redux/slices/browser';
 import engineReducer from '../redux/slices/engine';
 import privacyReducer from './privacy';
 import modalsReducer from './modals';

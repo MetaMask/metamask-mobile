@@ -1,4 +1,6 @@
-import AppConstants from '../../core/AppConstants';
+import AppConstants from '../../../core/AppConstants';
+import MigratedStorage from '../../storage/MigratedStorage';
+import { persistReducer } from 'redux-persist';
 
 const initialState = {
   history: [],
@@ -7,7 +9,7 @@ const initialState = {
   favicons: [],
   activeTab: null,
 };
-const browserReducer = (state = initialState, action) => {
+const reducer = (state = initialState, action) => {
   switch (action.type) {
     case 'ADD_TO_BROWSER_HISTORY':
       return {
@@ -72,4 +74,13 @@ const browserReducer = (state = initialState, action) => {
       return state;
   }
 };
+
+const browserPersistConfig = {
+  key: 'browser',
+  blacklist: '',
+  storage: MigratedStorage,
+};
+
+const browserReducer = persistReducer(browserPersistConfig, reducer);
+
 export default browserReducer;
