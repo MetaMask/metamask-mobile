@@ -1,7 +1,6 @@
 import PropTypes from 'prop-types';
 import React, { PureComponent } from 'react';
 import {
-  Platform,
   ScrollView,
   StyleSheet,
   Text,
@@ -43,7 +42,6 @@ import {
   AvatarVariant,
 } from '../../../../component-library/components/Avatars/Avatar';
 import AvatarNetwork from '../../../../component-library/components/Avatars/Avatar/variants/AvatarNetwork';
-import generateTestId from '../../../../../wdio/utils/generateTestId';
 import Routes from '../../../../constants/navigation/Routes';
 
 const createStyles = (colors) =>
@@ -248,7 +246,6 @@ class NetworksSettings extends PureComponent {
               onLongPress={() =>
                 isCustomRPC && this.showRemoveMenu(networkTypeOrRpcUrl)
               }
-              testID={'select-network'}
             >
               <View style={styles.network}>
                 {isCustomRPC ? (
@@ -464,11 +461,7 @@ class NetworksSettings extends PureComponent {
     const styles = createStyles(colors);
 
     return (
-      <View
-        style={styles.wrapper}
-        testID={NETWORK_SCREEN_ID}
-        {...generateTestId(Platform, NETWORK_SCREEN_ID)}
-      >
+      <View style={styles.wrapper} testID={NETWORK_SCREEN_ID}>
         <View style={styles.inputWrapper}>
           <Icon name="ios-search" size={20} color={colors.icon.default} />
           <TextInput
