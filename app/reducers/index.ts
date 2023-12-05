@@ -1,4 +1,4 @@
-import bookmarksReducer from './bookmarks';
+import bookmarksReducer from '../redux/slices/bookmarks';
 import browserReducer from '../redux/slices/browser';
 import engineReducer from '../redux/slices/engine';
 import privacyReducer from '../redux/slices/privacy';
@@ -69,7 +69,7 @@ const rootReducer = combineReducers<RootState, any>({
   collectibles: collectiblesReducer,
   engine: engineReducer as any, //done
   privacy: privacyReducer, //done
-  bookmarks: bookmarksReducer, // fix it
+  bookmarks: bookmarksReducer, // this broke it
   browser: browserReducer, //done
   modals: modalsReducer,
   settings: settingsReducer, //done
