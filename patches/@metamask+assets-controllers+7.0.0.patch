@@ -816,7 +816,7 @@ index e3f81e9..10994ef 100644
 +            return (0, controller_utils_1.handleFetch)(CoinGeckoApi.getTokenPriceURL(chainSlug, query), {
 +                headers: {
 +                    'Content-Type': 'application/json',
-+                    'X-CoinGecko-Source': this.coinGeckoHeader
++                    'X-Requested-With': this.coinGeckoHeader
 +                },
 +            });;
 +          });       
