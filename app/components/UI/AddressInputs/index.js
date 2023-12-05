@@ -363,7 +363,7 @@ export const AddressTo = (props) => {
               onBlur={onInputBlur}
               onSubmitEditing={onSubmit}
               value={toSelectedAddress}
-              {...generateTestId(Platform, SEND_ADDRESS_INPUT_FIELD)}
+              testID={SendViewSelectorsIDs.ADDRESS_INPUT}
               keyboardAppearance={themeAppearance}
             />
           </View>
@@ -468,6 +468,7 @@ export const AddressTo = (props) => {
                   onBlur={onInputBlur}
                   onSubmitEditing={onSubmit}
                   value={toAddressName}
+                  testID={SendViewSelectorsIDs.ADDRESS_INPUT}
                   keyboardAppearance={themeAppearance}
                 />
               ) : (
