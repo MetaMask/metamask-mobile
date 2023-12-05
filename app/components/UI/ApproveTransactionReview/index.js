@@ -507,7 +507,7 @@ class ApproveTransactionReview extends PureComponent {
     clearInterval(intervalIdForEstimatedL1Fee);
   };
 
-  getBlockaidMetricsParams = () => {
+  withBlockaidMetricsParams = () => {
     let blockaidParams = {};
 
     const { transaction } = this.props;
@@ -692,8 +692,8 @@ class ApproveTransactionReview extends PureComponent {
 
   onContactUsClicked = () => {
     const analyticsParams = {
-      ...this.getAnalyticsParams(true),
-      ...this.getBlockaidMetricsParams(),
+      ...this.getAnalyticsParams(),
+      ...this.withBlockaidMetricsParams(),
       external_link_clicked: 'security_alert_support_link',
     };
     AnalyticsV2.trackEvent(
@@ -1155,7 +1155,7 @@ class ApproveTransactionReview extends PureComponent {
     onCancel && onCancel();
     AnalyticsV2.trackEvent(MetaMetricsEvents.APPROVAL_PERMISSION_UPDATED, {
       ...this.getAnalyticsParams(),
-      ...this.getBlockaidMetricsParams(),
+      ...this.withBlockaidMetricsParams(),
     });
   };
 
@@ -1169,7 +1169,7 @@ class ApproveTransactionReview extends PureComponent {
     if (tokenStandard === ERC20 && !isReadyToApprove) {
       AnalyticsV2.trackEvent(MetaMetricsEvents.APPROVAL_PERMISSION_UPDATED, {
         ...this.getAnalyticsParams(),
-        ...this.getBlockaidMetricsParams(),
+        ...this.withBlockaidMetricsParams(),
       });
       return this.setState({ isReadyToApprove: true });
     }
