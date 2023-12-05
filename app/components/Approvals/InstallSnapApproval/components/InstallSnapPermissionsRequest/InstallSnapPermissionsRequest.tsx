@@ -26,7 +26,7 @@ import {
   SNAP_INSTALL_CANCEL,
   SNAP_INSTALL_PERMISSIONS_REQUEST,
   SNAP_INSTALL_PERMISSIONS_REQUEST_APPROVE,
-} from './InstallSnapPermissionRequest.constants';
+} from './InstallSnapPermissionsRequest.constants';
 
 const InstallSnapPermissionsRequest = ({
   approvalRequest,
