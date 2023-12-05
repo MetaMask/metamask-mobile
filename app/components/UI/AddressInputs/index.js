@@ -1,11 +1,5 @@
 import React from 'react';
-import {
-  StyleSheet,
-  View,
-  TextInput,
-  TouchableOpacity,
-  Platform,
-} from 'react-native';
+import { StyleSheet, View, TextInput, TouchableOpacity } from 'react-native';
 import { fontStyles, baseStyles } from '../../../styles/common';
 import AntIcon from 'react-native-vector-icons/AntDesign';
 import FontAwesome from 'react-native-vector-icons/FontAwesome';
@@ -20,8 +14,6 @@ import {
 import { strings } from '../../../../locales/i18n';
 import { hasZeroWidthPoints } from '../../../util/confusables';
 import { useTheme } from '../../../util/theme';
-import generateTestId from '../../../../wdio/utils/generateTestId';
-import { SEND_ADDRESS_INPUT_FIELD } from '../../../../wdio/screen-objects/testIDs/Screens/SendScreen.testIds';
 import AddToAddressBookWrapper from '../AddToAddressBookWrapper/AddToAddressBookWrapper';
 import { SendViewSelectorsIDs } from '../../../../e2e/selectors/SendView.selectors';
 import Text, {
