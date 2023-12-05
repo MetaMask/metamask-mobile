@@ -21,7 +21,6 @@ import { MetaMetricsEvents } from '../../../core/Analytics';
 import AnalyticsV2 from '../../../util/analyticsV2';
 import { useTheme } from '../../../util/theme';
 import createStyles from './styles';
-import { ManualBackUpStep2SelectorsIDs } from '../../../../e2e/selectors/Onboarding/ManualBackUpStep2.selectors';
 
 const ManualBackupStep2 = ({ navigation, seedphraseBackedUp, route }) => {
   const { colors } = useTheme();
@@ -73,7 +72,7 @@ const ManualBackupStep2 = ({ navigation, seedphraseBackedUp, route }) => {
 
   const selectWord = useCallback(
     (word, i) => {
-      let tempCurrentIndex = currentIndex;
+      let tempCurrentIndex;
       const tempWordsDict = wordsDict;
       const tempConfirmedWords = confirmedWords;
       if (wordsDict[`${word},${i}`].currentPosition !== undefined) {
@@ -228,17 +227,13 @@ const ManualBackupStep2 = ({ navigation, seedphraseBackedUp, route }) => {
         />
       </View>
       <ActionView
-        confirmTestID={ManualBackUpStep2SelectorsIDs.CONTINUE_BUTTON}
         confirmText={strings('manual_backup_step_2.complete')}
         onConfirmPress={goNext}
         confirmDisabled={!seedPhraseReady || !validateWords()}
         showCancelButton={false}
         confirmButtonMode={'confirm'}
       >
-        <View
-          style={styles.wrapper}
-          testID={ManualBackUpStep2SelectorsIDs.CONTAINER}
-        >
+        <View style={styles.wrapper}>
           <Text style={styles.action}>
             {strings('manual_backup_step_2.action')}
           </Text>

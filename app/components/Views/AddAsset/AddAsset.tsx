@@ -84,15 +84,9 @@ const AddAsset = () => {
             description={
               !displayNftMedia ? (
                 <>
-                  <Text
-                    variant={TextVariant.BodyMD}
-                    testID={AddAssetViewSelectorsIDs.ENABLE_DISPLAY_MEDIA}
-                  >
+                  <Text variant={TextVariant.BodyMD}>
                     {strings('wallet.display_nft_media_cta_new_1')}
-                    <Text
-                      variant={TextVariant.BodyMDBold}
-                      testID={AddAssetViewSelectorsIDs.ENABLE_DISPLAY_MEDIA}
-                    >
+                    <Text variant={TextVariant.BodyMDBold}>
                       {' '}
                       {strings('wallet.display_nft_media_cta_new_2')}
                     </Text>
@@ -137,7 +131,6 @@ const AddAsset = () => {
             chainId={chainId}
             navigation={navigation}
             tabLabel={strings('add_asset.custom_token')}
-            testID={AddAssetViewSelectorsIDs.TAB_ADD_CUSTOM_TOKEN}
             isTokenDetectionSupported={isTokenDetectionSupported}
           />
         </ScrollableTabView>

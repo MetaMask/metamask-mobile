@@ -1,12 +1,5 @@
 import React, { PureComponent } from 'react';
-import {
-  SafeAreaView,
-  Text,
-  TextInput,
-  View,
-  StyleSheet,
-  Platform,
-} from 'react-native';
+import { SafeAreaView, Text, TextInput, View, StyleSheet } from 'react-native';
 import PropTypes from 'prop-types';
 import { strings } from '../../../../locales/i18n';
 import { fontStyles } from '../../../styles/common';
@@ -14,7 +7,6 @@ import ActionView from '../../UI/ActionView';
 import { getNavigationOptionsTitle } from '../../UI/Navbar';
 import { ThemeContext, mockTheme } from '../../../util/theme';
 
-import generateTestId from '../../../../wdio/utils/generateTestId';
 import {
   FAVORITE_TITLE_EDIT_TEXT,
   ADD_BOOKMARKS_SCREEN_ID,
@@ -132,10 +124,7 @@ export default class AddBookmark extends PureComponent {
     const styles = createStyles(colors);
 
     return (
-      <SafeAreaView
-        style={styles.wrapper}
-        {...generateTestId(Platform, ADD_BOOKMARKS_SCREEN_ID)}
-      >
+      <SafeAreaView style={styles.wrapper} testID={ADD_BOOKMARKS_SCREEN_ID}>
         <ActionView
           cancelTestID={AddBookmarkViewSelectorsIDs.CANCEL_BUTTON}
           confirmTestID={AddBookmarkViewSelectorsIDs.CONFIRM_BUTTON}
@@ -155,7 +144,7 @@ export default class AddBookmark extends PureComponent {
                 placeholderTextColor={colors.text.muted}
                 value={this.state.title}
                 onChangeText={this.onTitleChange}
-                {...generateTestId(Platform, FAVORITE_TITLE_EDIT_TEXT)}
+                testID={FAVORITE_TITLE_EDIT_TEXT}
                 onSubmitEditing={this.jumpToUrl}
                 returnKeyType={'next'}
                 keyboardAppearance={themeAppearance}
@@ -171,7 +160,7 @@ export default class AddBookmark extends PureComponent {
                 placeholder={''}
                 value={this.state.url}
                 onChangeText={this.onUrlChange}
-                {...generateTestId(Platform, FAVORITE_URL_EDIT_TEXT)}
+                testID={FAVORITE_URL_EDIT_TEXT}
                 ref={this.urlInput}
                 onSubmitEditing={this.addToken}
                 returnKeyType={'done'}

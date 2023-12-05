@@ -11,10 +11,10 @@ exports[`AddBookmark should render correctly 1`] = `
   testID="add-bookmark-screen"
 >
   <ActionView
-    cancelTestID="add-bookmark-cancel-button"
+    cancelTestID=""
     cancelText="Cancel"
     confirmButtonMode="normal"
-    confirmTestID="add-bookmark-confirm-button"
+    confirmTestID=""
     confirmText="Add"
     confirmed={false}
     onCancelPress={[Function]}

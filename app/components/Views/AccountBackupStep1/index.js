@@ -8,7 +8,6 @@ import {
   StyleSheet,
   BackHandler,
   InteractionManager,
-  Platform,
 } from 'react-native';
 import PropTypes from 'prop-types';
 import { fontStyles } from '../../../styles/common';
@@ -32,9 +31,7 @@ import AnalyticsV2 from '../../../util/analyticsV2';
 
 import DefaultPreference from 'react-native-default-preference';
 import { useTheme } from '../../../util/theme';
-import generateTestId from '../../../../wdio/utils/generateTestId';
-import { ManualBackUpStep2SelectorsIDs } from '../../../../e2e/selectors/Onboarding/ManualBackUpStep2.selectors';
-import {ManualBackUpStep1SelectorsIDs} from "../../../../e2e/selectors/Onboarding/ManualBackUpStep1.selectors";
+import { ManualBackUpSelectorsIDs } from '../../../../e2e/selectors/Onboarding/ManualBackUp.selectors';
 
 const createStyles = (colors) =>
   StyleSheet.create({
@@ -215,12 +212,9 @@ const AccountBackupStep1 = (props) => {
       <ScrollView
         contentContainerStyle={styles.scrollviewWrapper}
         style={styles.mainWrapper}
-        testID={ManualBackUpStep1SelectorsIDs.CONTAINER}
+        testID={ManualBackUpSelectorsIDs.PROTECT_CONTAINER}
       >
-        <View
-          style={styles.wrapper}
-          {...generateTestId(Platform, ManualBackUpStep2SelectorsIDs.CONTAINER)}
-        >
+        <View style={styles.wrapper}>
           <OnboardingProgress steps={CHOOSE_PASSWORD_STEPS} currentStep={1} />
           <View style={styles.content}>
             <Text style={styles.title}>
@@ -250,10 +244,7 @@ const AccountBackupStep1 = (props) => {
                 >
                   <Text
                     style={styles.remindLaterText}
-                    {...generateTestId(
-                      Platform,
-                      ManualBackUpStep1SelectorsIDs.REMIND_ME_LATER_BUTTON_ID,
-                    )}
+                    testID={ManualBackUpSelectorsIDs.REMIND_ME_LATER_BUTTON}
                   >
                     {strings('account_backup_step_1.remind_me_later')}
                   </Text>
@@ -268,7 +259,6 @@ const AccountBackupStep1 = (props) => {
                 containerStyle={styles.button}
                 type={'confirm'}
                 onPress={goNext}
-                testID={ManualBackUpStep1SelectorsIDs.SUBMIT_BUTTON}
               >
                 {strings('account_backup_step_1.cta_text')}
               </StyledButton>

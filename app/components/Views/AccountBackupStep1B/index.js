@@ -26,8 +26,7 @@ import { MetaMetricsEvents } from '../../../core/Analytics';
 import AnalyticsV2 from '../../../util/analyticsV2';
 
 import { useTheme } from '../../../util/theme';
-import { ManualBackUpStep1SelectorsIDs } from '../../../../e2e/selectors/Onboarding/ManualBackUpStep1.selectors';
-import { ManualBackUpStep2SelectorsIDs } from '../../../../e2e/selectors/Onboarding/ManualBackUpStep2.selectors';
+import { ManualBackUpSelectorsIDs } from '../../../../e2e/selectors/Onboarding/ManualBackUp.selectors';
 
 const explain_backup_seedphrase = require('../../../images/explain-backup-seedphrase.png'); // eslint-disable-line
 
@@ -244,11 +243,10 @@ const AccountBackupStep1B = (props) => {
       <ScrollView
         contentContainerStyle={styles.scrollviewWrapper}
         style={styles.mainWrapper}
-        testID={ManualBackUpStep1SelectorsIDs.CONTAINER}
       >
         <View
           style={styles.wrapper}
-          testID={ManualBackUpStep2SelectorsIDs.CONTAINER}
+          testID={ManualBackUpSelectorsIDs.PROTECT_CONTAINER}
         >
           <OnboardingProgress steps={CHOOSE_PASSWORD_STEPS} currentStep={1} />
           <View style={styles.content}>
@@ -325,7 +323,6 @@ const AccountBackupStep1B = (props) => {
               containerStyle={styles.button}
               type={'confirm'}
               onPress={goNext}
-              testID={ManualBackUpStep1SelectorsIDs.SUBMIT_BUTTON}
             >
               {strings('account_backup_step_1B.cta_text')}
             </StyledButton>

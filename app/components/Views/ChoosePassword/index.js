@@ -9,7 +9,6 @@ import {
   StyleSheet,
   Image,
   InteractionManager,
-  Platform,
 } from 'react-native';
 import CheckBox from '@react-native-community/checkbox';
 import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view';
@@ -662,10 +661,7 @@ class ChoosePassword extends PureComponent {
                     secureTextEntry={secureTextEntry}
                     placeholder=""
                     placeholderTextColor={colors.text.muted}
-                    {...generateTestId(
-                      Platform,
-                      ChoosePasswordSelectorsIDs.NEW_PASSWORD_INPUT_ID,
-                    )}
+                    testID={ChoosePasswordSelectorsIDs.NEW_PASSWORD_INPUT_ID}
                     onSubmitEditing={this.jumpToConfirmPassword}
                     returnKeyType="next"
                     autoCapitalize="none"

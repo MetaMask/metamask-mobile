@@ -12,7 +12,6 @@ import { toggleCollectibleContractModal } from '../../../actions/modals';
 import { toLowerCaseEquals } from '../../../util/general';
 import { collectiblesSelector } from '../../../reducers/collectibles';
 import { ThemeContext, mockTheme } from '../../../util/theme';
-import {CollectibleModalSelectorsIDs} from "../../../../e2e/selectors/Modals/CollectibleModal.selectors";
 
 const createStyles = (colors) =>
   StyleSheet.create({
@@ -126,7 +125,7 @@ class Collectible extends PureComponent {
           }
           style={styles.wrapper}
         >
-          <View testID={CollectibleModalSelectorsIDs.CONTAINER}>
+          <View>
             <View style={styles.assetOverviewWrapper}>
               <CollectibleContractOverview
                 navigation={navigation}
