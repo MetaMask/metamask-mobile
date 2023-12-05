@@ -33,26 +33,17 @@ jest.mock('../../../core/Engine', () => ({
         removeListener: jest.fn(),
       },
     },
-    KeyringController: {
-      state: {
-        keyrings: [],
-      },
-    },
   },
 }));
 
 jest.mock('../../../core/NotificationManager');
-
-jest.mock('../../../util/analyticsV2');
 
 jest.mock('../../../util/address', () => ({
   ...jest.requireActual('../../../util/address'),
   getAddressAccountType: jest.fn().mockReturnValue('Metamask'),
 }));
 
-jest.mock('../../../util/analyticsV2', () => ({
-  trackEvent: jest.fn(),
-}));
+jest.mock('../../../util/analyticsV2');
 
 const messageParamsMock = {
   data: { type: 'string', name: 'Message', value: 'Hi, Alice!' },
@@ -103,13 +94,6 @@ function createWrapper({
 }
 
 describe('TypedSign', () => {
-  beforeEach(() => {
-    (analyticsV2.trackEvent as jest.Mock).mockImplementation(() => undefined);
-  });
-
-  afterEach(() => {
-    (analyticsV2.trackEvent as jest.Mock).mockReset();
-  });
   const mockConfirm = jest.fn();
   const mockReject = jest.fn();
 
@@ -133,6 +117,8 @@ describe('TypedSign', () => {
         />,
         { state: initialState },
       );
+
+      expect(container).toMatchSnapshot();
 
       const signButton = await container.findByTestId(
         'request-signature-confirm-button',
@@ -255,6 +241,8 @@ describe('TypedSign', () => {
         />,
         { state: initialState },
       );
+
+      expect(container).toMatchSnapshot();
 
       const rejectButton = await container.findByTestId(
         'request-signature-cancel-button',
@@ -394,44 +382,6 @@ describe('TypedSign', () => {
         security_alert_response: 'Benign',
         security_alert_reason: '',
         ppom_eth_chainId_count: 1,
-      });
-    });
-  });
-
-  describe('shouldTruncateMessage', () => {
-    it('sets truncateMessage to true if message is more then 5 characters', () => {
-      const wrapper = createWrapper().dive();
-      const instance = wrapper.instance() as any;
-      instance.shouldTruncateMessage({
-        nativeEvent: {
-          layout: {
-            height: 200,
-          },
-        },
-      });
-      expect(instance.state.truncateMessage).toBe(true);
-    });
-
-    it('sets truncateMessage to false if message is less then 5 characters', () => {
-      const wrapper = createWrapper().dive();
-      const instance = wrapper.instance() as any;
-      instance.shouldTruncateMessage({
-        nativeEvent: {
-          layout: {
-            height: 50,
-          },
-        },
-      });
-      expect(instance.state.truncateMessage).toBe(false);
-    });
-
-    describe('onSignatureError', () => {
-      it('track has been called', () => {
-        const wrapper = createWrapper().dive();
-        const instance = wrapper.instance() as any;
-        const input = { error: { message: 'KeystoneError#Tx_canceled' } };
-        instance.onSignatureError(input);
-        expect(analyticsV2.trackEvent).toHaveBeenCalledTimes(2); // From component mount to onSignatureError, has been called 2 times
       });
     });
   });

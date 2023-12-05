@@ -17,6 +17,7 @@ import {
   getAnalyticsParams,
   handleSignatureAction,
   removeSignatureErrorListener,
+  shouldTruncateMessage,
   showWalletConnectNotification,
   typedSign,
 } from '../../../util/confirmation/signatureUtils';
@@ -155,15 +156,9 @@ class TypedSign extends PureComponent {
     }
   };
 
-  shouldTruncateMessage = (e) => {
-    if (
-      (Device.isIos() && e.nativeEvent.layout.height > 70) ||
-      (Device.isAndroid() && e.nativeEvent.layout.height > 100)
-    ) {
-      this.setState({ truncateMessage: true });
-      return;
-    }
-    this.setState({ truncateMessage: false });
+  updateShouldTruncateMessage = (e) => {
+    const truncateMessage = shouldTruncateMessage(e);
+    this.setState({ truncateMessage });
   };
 
   getStyles = () => {
@@ -265,7 +260,7 @@ class TypedSign extends PureComponent {
       >
         <View
           style={messageWrapperStyles}
-          onLayout={truncateMessage ? null : this.shouldTruncateMessage}
+          onLayout={truncateMessage ? null : this.updateShouldTruncateMessage}
         >
           {this.renderTypedMessage()}
         </View>

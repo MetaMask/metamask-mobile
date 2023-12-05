@@ -10,6 +10,7 @@ import { strings } from '../../../locales/i18n';
 import { selectChainId } from '../../selectors/networkController';
 import { store } from '../../store';
 import { getBlockaidMetricsParams } from '../blockaid';
+import Device from '../device';
 
 export const typedSign = {
   V1: 'eth_signTypedData',
@@ -114,3 +115,14 @@ export const removeSignatureErrorListener = (metamaskId, onSignatureError) => {
     onSignatureError,
   );
 };
+
+export const shouldTruncateMessage = (e) => {
+  if (
+    (Device.isIos() && e.nativeEvent.layout.height > 70) ||
+    (Device.isAndroid() && e.nativeEvent.layout.height > 100)
+  ) {
+    return true;
+  }
+
+  return false;
+}
