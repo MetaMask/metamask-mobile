@@ -2,11 +2,6 @@ import React, { useMemo } from 'react';
 import { ScrollView, View } from 'react-native';
 import stylesheet from './InstallSnapPermissionRequest.styles';
 import { strings } from '../../../../../../locales/i18n';
-import {
-  SNAP_INSTALL_CANCEL,
-  SNAP_INSTALL_PERMISSIONS_REQUEST,
-  SNAP_INSTALL_PERMISSIONS_REQUEST_APPROVE,
-} from '../../../../../constants/test-ids';
 import SheetHeader from '../../../../../component-library/components/Sheet/SheetHeader';
 import Text, {
   TextVariant,
@@ -27,6 +22,11 @@ import { ButtonProps } from '../../../../../component-library/components/Buttons
 import { useStyles } from '../../../../hooks/useStyles';
 import { InstallSnapFlowProps } from '../../InstallSnapApproval.types';
 import { SnapPermissions } from '../../../../Views/Snaps/components/SnapPermissions';
+import {
+  SNAP_INSTALL_CANCEL,
+  SNAP_INSTALL_PERMISSIONS_REQUEST,
+  SNAP_INSTALL_PERMISSIONS_REQUEST_APPROVE,
+} from './InstallSnapPermissionRequest.constants';
 
 const InstallSnapPermissionsRequest = ({
   approvalRequest,

@@ -3,11 +3,6 @@ import { ImageSourcePropType, View } from 'react-native';
 import { InstallSnapFlowProps } from '../../InstallSnapApproval.types';
 import styleSheet from './InstallSnapConnectionRequest.styles';
 import { strings } from '../../../../../../locales/i18n';
-import {
-  SNAP_INSTALL_CANCEL,
-  SNAP_INSTALL_CONNECT,
-  SNAP_INSTALL_CONNECTION_REQUEST,
-} from '../../../../../constants/test-ids';
 import SheetHeader from '../../../../../component-library/components/Sheet/SheetHeader';
 import Text, {
   TextVariant,
@@ -28,6 +23,11 @@ import BottomSheetFooter, {
 } from '../../../../../component-library/components/BottomSheets/BottomSheetFooter';
 import { ButtonProps } from '../../../../../component-library/components/Buttons/Button/Button.types';
 import { useStyles } from '../../../../hooks/useStyles';
+import {
+  SNAP_INSTALL_CANCEL,
+  SNAP_INSTALL_CONNECT,
+  SNAP_INSTALL_CONNECTION_REQUEST,
+} from './InstallSnapConnectionRequest.constants';
 
 const InstallSnapConnectionRequest = ({
   approvalRequest,

@@ -2,10 +2,6 @@ import React, { useMemo } from 'react';
 import { View } from 'react-native';
 import stylesheet from './InstallSnapError.styles';
 import { strings } from '../../../../../../locales/i18n';
-import {
-  SNAP_INSTALL_ERROR,
-  SNAP_INSTALL_OK,
-} from '../../../../../constants/test-ids';
 import SheetHeader from '../../../../../component-library/components/Sheet/SheetHeader';
 import Text, {
   TextVariant,
@@ -29,6 +25,8 @@ import BottomSheetFooter, {
 import { ButtonProps } from '../../../../../component-library/components/Buttons/Button/Button.types';
 import { useStyles } from '../../../../hooks/useStyles';
 import { InstallSnapFlowProps } from '../../InstallSnapApproval.types';
+import { SNAP_INSTALL_OK } from '../../InstallSnapApproval.constants';
+import SNAP_INSTALL_ERROR from './InstallSnapError.constants';
 
 const InstallSnapError = ({
   approvalRequest,

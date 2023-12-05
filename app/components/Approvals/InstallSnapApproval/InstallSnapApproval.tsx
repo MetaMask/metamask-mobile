@@ -3,7 +3,6 @@ import ApprovalModal from '../ApprovalModal';
 import useApprovalRequest from '../../hooks/useApprovalRequest';
 import { ApprovalTypes } from '../../../core/RPCMethods/RPCMethodMiddleware';
 import Logger from '../../../util/Logger';
-import { SNAP_INSTALL_FLOW } from '../../../constants/test-ids';
 import { SnapInstallState } from './InstallSnapApproval.types';
 import {
   InstallSnapConnectionRequest,
@@ -11,6 +10,7 @@ import {
   InstallSnapPermissionsRequest,
   InstallSnapSuccess,
 } from './components';
+import SNAP_INSTALL_FLOW from './InstallSnapApproval.constants';
 
 const InstallSnapApproval = () => {
   const [installState, setInstallState] = useState<
