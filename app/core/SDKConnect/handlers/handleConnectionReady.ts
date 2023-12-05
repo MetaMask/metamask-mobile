@@ -9,9 +9,10 @@ import handleSendMessage from './handleSendMessage';
 
 import { ethErrors } from 'eth-rpc-errors';
 import Engine from '../../Engine';
-import { HOUR_IN_MS, approveHostProps } from '../SDKConnect';
+import { approveHostProps } from '../SDKConnect';
 import generateOTP from '../utils/generateOTP.util';
 import { setupBridge } from './setupBridge';
+import { HOUR_IN_MS } from '../SDKConnect.constants';
 
 export const handleConnectionReady = async ({
   originatorInfo,

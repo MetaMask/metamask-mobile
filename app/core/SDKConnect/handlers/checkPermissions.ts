@@ -1,6 +1,6 @@
 import { CommunicationLayerMessage } from '@metamask/sdk-communication-layer';
 import { Connection } from '../Connection';
-import { HOUR_IN_MS } from '../SDKConnect';
+import { HOUR_IN_MS } from '../SDKConnect.constants';
 import DevLogger from '../utils/DevLogger';
 import AppConstants from '../../AppConstants';
 import { ApprovalTypes } from '../../RPCMethods/RPCMethodMiddleware';

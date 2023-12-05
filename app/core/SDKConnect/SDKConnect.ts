@@ -21,19 +21,19 @@ import { NavigationContainerRef } from '@react-navigation/native';
 import { EventEmitter2 } from 'eventemitter2';
 import Routes from '../../../app/constants/navigation/Routes';
 import AndroidService from './AndroidSDK/AndroidService';
-import { Connection, ConnectionProps, RPC_METHODS } from './Connection';
+import { Connection, ConnectionProps } from './Connection';
 import RPCQueueManager from './RPCQueueManager';
+import {
+  CONNECTION_LOADING_EVENT,
+  DEFAULT_SESSION_TIMEOUT_MS,
+  TIMEOUT_PAUSE_CONNECTIONS,
+} from './SDKConnect.constants';
 import DevLogger from './utils/DevLogger';
 import {
   wait,
   waitForCondition,
   waitForKeychainUnlocked,
 } from './utils/wait.util';
-
-export const MIN_IN_MS = 1000 * 60;
-export const HOUR_IN_MS = MIN_IN_MS * 60;
-export const DAY_IN_MS = HOUR_IN_MS * 24;
-export const DEFAULT_SESSION_TIMEOUT_MS = 30 * DAY_IN_MS;
 
 export interface ConnectedSessions {
   [id: string]: Connection;
@@ -53,32 +53,7 @@ export interface approveHostProps {
   context?: string;
 }
 
-export const TIMEOUT_PAUSE_CONNECTIONS = 25000;
-
 export type SDKEventListener = (event: string) => void;
-
-export const CONNECTION_LOADING_EVENT = 'loading';
-
-export const METHODS_TO_REDIRECT: { [method: string]: boolean } = {
-  [RPC_METHODS.ETH_REQUESTACCOUNTS]: true,
-  [RPC_METHODS.ETH_SENDTRANSACTION]: true,
-  [RPC_METHODS.ETH_SIGNTRANSACTION]: true,
-  [RPC_METHODS.ETH_SIGN]: true,
-  [RPC_METHODS.PERSONAL_SIGN]: true,
-  [RPC_METHODS.ETH_SIGNTRANSACTION]: true,
-  [RPC_METHODS.ETH_SIGNTYPEDEATAV3]: true,
-  [RPC_METHODS.ETH_SIGNTYPEDEATAV4]: true,
-  [RPC_METHODS.WALLET_WATCHASSET]: true,
-  [RPC_METHODS.WALLET_ADDETHEREUMCHAIN]: true,
-  [RPC_METHODS.WALLET_SWITCHETHEREUMCHAIN]: true,
-  [RPC_METHODS.METAMASK_CONNECTSIGN]: true,
-  [RPC_METHODS.METAMASK_BATCH]: true,
-};
-
-export const METHODS_TO_DELAY: { [method: string]: boolean } = {
-  ...METHODS_TO_REDIRECT,
-  [RPC_METHODS.ETH_REQUESTACCOUNTS]: false,
-};
 
 export class SDKConnect extends EventEmitter2 {
   private static instance: SDKConnect;

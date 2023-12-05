@@ -1,4 +1,4 @@
-import { RPC_METHODS } from '../Connection';
+import { RPC_METHODS } from '../SDKConnect.constants';
 import DevLogger from '../utils/DevLogger';
 
 export const overwriteRPCWith = ({
