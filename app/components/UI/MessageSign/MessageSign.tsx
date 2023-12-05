@@ -140,7 +140,13 @@ const MessageSign = ({
 
   const confirmSignature = async () => {
     if (!isExternalHardwareAccount(messageParams.from)) {
-      await handleSignatureAction(onConfirm, messageParams, 'eth_sign', securityAlertResponse, true);
+      await handleSignatureAction(
+        onConfirm,
+        messageParams,
+        'eth_sign',
+        securityAlertResponse,
+        true,
+      );
     } else {
       navigation.navigate(
         ...(await createExternalSignModelNav(

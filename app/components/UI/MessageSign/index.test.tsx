@@ -19,9 +19,7 @@ jest.mock('../../../core/Engine', () => ({
   context: {
     SignatureController: {
       hub: {
-        on: jest.fn().mockImplementation((event: string, callback: any) => {
-          console.log('event context SignatureController on called with ', event);
-        }),
+        on: jest.fn(),
       },
     },
     KeyringController: {
@@ -106,8 +104,6 @@ function createWrapper({
 }
 
 describe('MessageSign', () => {
-  beforeAll(() => jest.spyOn(React, 'useEffect').mockImplementation(React.useLayoutEffect));
-
   it('should render correctly', () => {
     const wrapper = createWrapper();
     expect(wrapper).toMatchSnapshot();

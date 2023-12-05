@@ -125,4 +125,4 @@ export const shouldTruncateMessage = (e) => {
   }
 
   return false;
-}
+};
