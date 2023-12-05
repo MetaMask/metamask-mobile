@@ -1,9 +1,12 @@
+import MigratedStorage from '../../storage/MigratedStorage';
+import { persistReducer } from 'redux-persist';
+
 const initialState = {
   approvedHosts: {},
   revealSRPTimestamps: [],
 };
 
-const privacyReducer = (state = initialState, action) => {
+const reducer = (state = initialState, action) => {
   const newHosts = { ...state.approvedHosts };
   switch (action.type) {
     case 'APPROVE_HOST':
@@ -34,5 +37,13 @@ const privacyReducer = (state = initialState, action) => {
       return state;
   }
 };
+
+const privacyPersistConfig = {
+  key: 'privacy',
+  blacklist: '',
+  storage: MigratedStorage,
+};
+
+const privacyReducer = persistReducer(privacyPersistConfig, reducer);
 
 export default privacyReducer;

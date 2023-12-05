@@ -1,7 +1,7 @@
 import bookmarksReducer from './bookmarks';
 import browserReducer from '../redux/slices/browser';
 import engineReducer from '../redux/slices/engine';
-import privacyReducer from './privacy';
+import privacyReducer from '../redux/slices/privacy';
 import modalsReducer from './modals';
 import settingsReducer from '../redux/slices/settings';
 import alertReducer from './alert';
@@ -67,12 +67,12 @@ export interface RootState {
 // TypeScript reducers have invalid actions
 const rootReducer = combineReducers<RootState, any>({
   collectibles: collectiblesReducer,
-  engine: engineReducer as any,
-  privacy: privacyReducer,
-  bookmarks: bookmarksReducer,
-  browser: browserReducer,
+  engine: engineReducer as any, //done
+  privacy: privacyReducer, //done
+  bookmarks: bookmarksReducer, // fix it
+  browser: browserReducer, //done
   modals: modalsReducer,
-  settings: settingsReducer,
+  settings: settingsReducer, //done
   alert: alertReducer,
   transaction: transactionReducer,
   user: userReducer,
