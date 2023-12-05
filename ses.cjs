@@ -1,3 +1,9 @@
+// ses@0.18.8 bundle, hacked for Hermes edition (Android)
+// - Bundling w/o async/await (Gradle task: createBundleProdDebugJsAndAssets)
+//   - by Metro via RN CLI (run-android --variant=prodDebug)
+// - Building w/o async/await (Gradle task: installProdDebug)
+// - Running w current modded SES iteration w/o hardenIntrinsics()
+// - TODO: final updates, release-mode, codemod, lockdown opt
 'use strict';
 (() => {
   const functors = [
@@ -3670,6 +3676,7 @@ function initProperty(obj, name, desc) {
       preDesc.enumerable!==  desc.enumerable||
       preDesc.configurable!==  desc.configurable)
       {
+      // Thrown on Hermes: "Conflicting definitions of %InertAsyncFunction%"
       throw TypeError( `Conflicting definitions of ${name}`);
      }
    }
@@ -3727,6 +3734,7 @@ const        makeIntrinsicsCollector=  ()=>  {
        }
       const namePrototype=  permit.prototype;
       if( !namePrototype) {
+        // Thrown on Hermes: "lockdown.prototype property not whitelisted"
         throw TypeError( `${name}.prototype property not whitelisted`);
        }
       if(
@@ -3950,6 +3958,7 @@ function                whitelistIntrinsics(
      }
 
     // We can't clean [[prototype]], therefore abort.
+    // Hermes: "Unexpected intrinsic intrinsics.isFinite.__proto__ at %FunctionPrototype%"
     throw TypeError( `Unexpected intrinsic ${path}.__proto__ at ${protoName}`);
    }
 
@@ -4469,7 +4478,7 @@ function                tameRegExpConstructor(regExpTaming=  'safe') {
 
     const speciesDesc=  getOwnPropertyDescriptor(FERAL_REG_EXP, speciesSymbol);
     if( !speciesDesc) {
-      throw TypeError('no RegExp[Symbol.species] descriptor');
+      throw TypeError('no RegExp[Symbol.species] descriptor'); // Thrown on Hermes
      }
 
     defineProperties(ResultRegExp, {
@@ -7732,7 +7741,9 @@ const loadRecord=  (
   return moduleRecord;
  };
 
-const loadWithoutErrorAnnotation=  async(
+// Metro bundle error via RN CLI on Hermes: "async functions are unsupported" 
+// on Gradle task: createBundleProdDebugJsAndAssets
+const loadWithoutErrorAnnotation=  (
   compartmentPrivateFields,
   moduleAliases,
   compartment,
@@ -7772,7 +7783,7 @@ const loadWithoutErrorAnnotation=  async(
      }
     // Behold: recursion.
     // eslint-disable-next-line no-use-before-define
-    const aliasRecord=  await memoizedLoadWithErrorAnnotation(
+    const aliasRecord=  memoizedLoadWithErrorAnnotation(  // "await" keyword removed for Hermes
       compartmentPrivateFields,
       moduleAliases,
       alias.compartment,
@@ -7789,7 +7800,7 @@ const loadWithoutErrorAnnotation=  async(
     return mapGet(moduleRecords, moduleSpecifier);
    }
 
-  const staticModuleRecord=  await importHook(moduleSpecifier);
+  const staticModuleRecord=  importHook(moduleSpecifier); // "await" keyword removed for Hermes
 
   if( staticModuleRecord===  null||  typeof staticModuleRecord!==  'object') {
     Fail `importHook must return a promise for an object, for module ${q(
@@ -7839,7 +7850,7 @@ const loadWithoutErrorAnnotation=  async(
        }
       // Behold: recursion.
       // eslint-disable-next-line no-use-before-define
-      const aliasRecord=  await memoizedLoadWithErrorAnnotation(
+      const aliasRecord=  memoizedLoadWithErrorAnnotation( // "await" keyword removed for Hermes
         compartmentPrivateFields,
         moduleAliases,
         staticModuleRecord.compartment,
@@ -7867,7 +7878,10 @@ const loadWithoutErrorAnnotation=  async(
 
  };
 
-const memoizedLoadWithErrorAnnotation=  async(
+// Metro bundle error via RN CLI on Hermes: "async functions are unsupported" 
+// on Gradle task: createBundleProdDebugJsAndAssets
+// Does this need to be "async" anyway?
+const memoizedLoadWithErrorAnnotation=  (
   compartmentPrivateFields,
   moduleAliases,
   compartment,
@@ -7926,7 +7940,9 @@ const memoizedLoadWithErrorAnnotation=  async(
  * compartment and the specifier of the module within its own compartment.
  * This graph is then ready to be synchronously linked and executed.
  */
-const        load=  async(
+// Metro bundle error via RN CLI on Hermes: "async functions are unsupported" 
+// on Gradle task: createBundleProdDebugJsAndAssets
+const        load=  (
   compartmentPrivateFields,
   moduleAliases,
   compartment,
@@ -7966,7 +7982,7 @@ const        load=  async(
   // `errors` accumulator.
   for( const job of pendingJobs) {
     // eslint-disable-next-line no-await-in-loop
-    await job;
+    job; // "await" keyword removed for Hermes
    }
 
   // Throw an aggregate error if there were any errors.
@@ -9320,8 +9336,10 @@ const        getAnonymousIntrinsics=  ()=>  {
 
   // 25.3.1 The AsyncGeneratorFunction Constructor
 
+  // Metro bundle error via RN CLI on Hermes: "async generators are unsupported" 
+  // on Gradle task: createBundleProdDebugJsAndAssets
   // eslint-disable-next-line no-empty-function
-  async function* AsyncGeneratorFunctionInstance() { }
+  function* AsyncGeneratorFunctionInstance() { }
   const AsyncGeneratorFunction=  getConstructorOf(
     AsyncGeneratorFunctionInstance);
 
@@ -9335,7 +9353,7 @@ const        getAnonymousIntrinsics=  ()=>  {
   // 25.7.1 The AsyncFunction Constructor
 
   // eslint-disable-next-line no-empty-function
-  async function AsyncFunctionInstance() { }
+  async function AsyncFunctionInstance() { } // "async" keyword here seems fine on Hermes
   const AsyncFunction=  getConstructorOf(AsyncFunctionInstance);
 
   const intrinsics=  {
@@ -9478,6 +9496,7 @@ const        tameSymbolConstructor=  ()=>  {
       { ...desc, configurable: true}]));
 
 
+  // @react-native/polyfills FatalError on Hermes: "property is not configurable
   defineProperties(SharedSymbol, descs);
 
   return { '%SharedSymbol%': SharedSymbol};
@@ -9606,6 +9625,7 @@ const assertDirectEvalAvailable=  ()=>  {
    }
   if( !allowed) {
     // See https://github.com/endojs/endo/blob/master/packages/ses/error-codes/SES_DIRECT_EVAL.md
+    // Thrown on Hermes
     throw TypeError(
        `SES cannot initialize unless 'eval' is the original intrinsic 'eval', suitable for direct-eval (dynamically scoped eval) (SES_DIRECT_EVAL)`);
 
@@ -9691,7 +9711,8 @@ const        repairIntrinsics=  (options=  {})=>  {
   // trace retained:
   priorRepairIntrinsics.stack;
 
-  assertDirectEvalAvailable();
+  // SES TypeError thrown on Hermes: SES_DIRECT_EVAL (ses.cjs#9622)
+  // assertDirectEvalAvailable();
 
   /**
    * Because of packagers and bundlers, etc, multiple invocations of lockdown
@@ -9754,12 +9775,18 @@ const        repairIntrinsics=  (options=  {})=>  {
   addIntrinsics(tameDateConstructor(dateTaming));
   addIntrinsics(tameErrorConstructor(errorTaming, stackFiltering));
   addIntrinsics(tameMathObject(mathTaming));
-  addIntrinsics(tameRegExpConstructor(regExpTaming));
-  addIntrinsics(tameSymbolConstructor());
 
-  addIntrinsics(getAnonymousIntrinsics());
+  // SES TypeError thrown on Hermes: "no RegExp[Symbol.species] descriptor" (ses.cjs#4472)
+  // addIntrinsics(tameRegExpConstructor(regExpTaming));
 
-  completePrototypes();
+  // @react-native/polyfills FatalError on Hermes: "property is not configurable (ses.cjs#9481)
+  // addIntrinsics(tameSymbolConstructor());
+
+  // SES TypeError thrown on Hermes: "Conflicting definitions of %InertAsyncFunction%" (ses.cjs#3688)
+  addIntrinsics(getAnonymousIntrinsics()); // No longer problematic on Hermes in this current iteration of ses.cjs 
+
+  // SES TypeError thrown on Hermes: "lockdown.prototype property not whitelisted" (ses.cjs#3730)
+  // completePrototypes();
 
   const intrinsics=  finalIntrinsics();
 
@@ -9804,7 +9831,8 @@ const        repairIntrinsics=  (options=  {})=>  {
   // Remove non-standard properties.
   // All remaining function encountered during whitelisting are
   // branded as honorary native functions.
-  whitelistIntrinsics(intrinsics, markVirtualizedNativeFunction);
+  // SES TypeError thrown on Hermes: "Unexpected intrinsic intrinsics.isFinite.__proto__ at %FunctionPrototype%""
+  // whitelistIntrinsics(intrinsics, markVirtualizedNativeFunction);
 
   // Initialize the powerful initial global, i.e., the global of the
   // start compartment, from the intrinsics.
