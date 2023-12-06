@@ -9,7 +9,7 @@ import {
 import Eth from 'ethjs-query';
 import ActionView from '../../UI/ActionView';
 import PropTypes from 'prop-types';
-import { getApproveNavbar } from '../../UI/Navbar';
+import { getApproveNavbar } from '../Navbar';
 import { connect } from 'react-redux';
 import { getHost } from '../../../util/browser';
 import {
@@ -98,7 +98,7 @@ import { getRampNetworks } from '../../../reducers/fiatOrders';
 import SkeletonText from '../Ramp/common/components/SkeletonText';
 import InfoModal from '../../../components/UI/Swaps/components/InfoModal';
 import TransactionBlockaidBanner from '../TransactionBlockaidBanner/TransactionBlockaidBanner';
-import { regex } from '../../../../app/util/regex';
+import { regex } from '../../../util/regex';
 
 const { ORIGIN_DEEPLINK, ORIGIN_QR_CODE } = AppConstants.DEEPLINKS;
 const POLLING_INTERVAL_ESTIMATED_L1_FEE = 30000;
@@ -784,7 +784,7 @@ class ApproveTransactionReview extends PureComponent {
 
     return (
       <>
-        <View style={styles.section} testID={'approve-modal-test-id'}>
+        <View style={styles.section}>
           {from && (
             <ApproveTransactionHeader
               dontWatchAsset
@@ -821,11 +821,7 @@ class ApproveTransactionReview extends PureComponent {
                         onContactUsClicked={this.onContactUsClicked}
                       />
                     )}
-                    <Text
-                      variant={TextVariant.HeadingMD}
-                      style={styles.title}
-                      testID={'allow-access'}
-                    >
+                    <Text variant={TextVariant.HeadingMD} style={styles.title}>
                       {strings(
                         `spend_limit_edition.${
                           originIsDeeplink
@@ -1185,7 +1181,7 @@ class ApproveTransactionReview extends PureComponent {
     } = this.props;
     const styles = this.getStyles();
     return (
-      <View style={styles.actionViewQRObject} testID={'qr-details'}>
+      <View style={styles.actionViewQRObject}>
         <TransactionHeader
           currentPageInformation={{
             origin,
