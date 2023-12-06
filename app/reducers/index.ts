@@ -7,7 +7,7 @@ import settingsReducer from '../redux/slices/settings';
 import alertReducer from '../redux/slices/alert';
 import transactionReducer from './transaction';
 import userReducer from '../redux/slices/user';
-import wizardReducer from './wizard';
+import wizardReducer from '../redux/slices/wizard';
 import onboardingReducer from '../redux/slices/onboarding';
 import fiatOrders from './fiatOrders';
 import swapsReducer from './swaps';
@@ -76,7 +76,7 @@ const rootReducer = combineReducers<RootState, any>({
   alert: alertReducer, // done
   transaction: transactionReducer,
   user: userReducer, //done
-  wizard: wizardReducer,
+  wizard: wizardReducer, // done
   onboarding: onboardingReducer, // done
   notification: notificationReducer,
   signatureRequest: signatureRequestReducer,
