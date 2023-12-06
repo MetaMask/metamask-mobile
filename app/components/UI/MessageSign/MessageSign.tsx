@@ -17,7 +17,6 @@ import { Colors } from '../../../util/theme/models';
 import { isExternalHardwareAccount } from '../../../util/address';
 import createExternalSignModelNav from '../../../util/hardwareWallet/signatureUtils';
 import { SigningModalSelectorsIDs } from '../../../../e2e/selectors/Modals/SigningModal.selectors';
-import { SecurityAlertResponse } from '../BlockaidBanner/BlockaidBanner.types';
 import { useNavigation } from '@react-navigation/native';
 import Engine from '../../../core/Engine';
 
