@@ -22,10 +22,6 @@ import Engine from '../../../core/Engine';
 
 interface MessageSignProps {
   /**
-   * react-navigation object used for switching between screens
-   */
-  navigation: any;
-  /**
    * Callback triggered when this message signature is rejected
    */
   onReject: () => void;

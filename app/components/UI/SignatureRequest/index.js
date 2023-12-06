@@ -303,14 +303,13 @@ class SignatureRequest extends PureComponent {
   };
 
   onContactUsClicked = () => {
-    const { securityAlertResponse, fromAddress, type } = this.props;
+    const { fromAddress, type } = this.props;
     const analyticsParams = {
       ...getAnalyticsParams(
         {
           from: fromAddress,
         },
         type,
-        securityAlertResponse,
       ),
       external_link_clicked: 'security_alert_support_link',
     };
