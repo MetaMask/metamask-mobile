@@ -7,11 +7,6 @@ import ActionView from '../../UI/ActionView';
 import { getNavigationOptionsTitle } from '../../UI/Navbar';
 import { ThemeContext, mockTheme } from '../../../util/theme';
 
-import {
-  FAVORITE_TITLE_EDIT_TEXT,
-  ADD_BOOKMARKS_SCREEN_ID,
-  FAVORITE_URL_EDIT_TEXT,
-} from '../../../../wdio/screen-objects/testIDs/BrowserScreen/AddFavorite.testIds';
 import { AddBookmarkViewSelectorsIDs } from '../../../../e2e/selectors/AddBookmarkView.selectors';
 
 const createStyles = (colors) =>
@@ -124,7 +119,10 @@ export default class AddBookmark extends PureComponent {
     const styles = createStyles(colors);
 
     return (
-      <SafeAreaView style={styles.wrapper} testID={ADD_BOOKMARKS_SCREEN_ID}>
+      <SafeAreaView
+        style={styles.wrapper}
+        testID={AddBookmarkViewSelectorsIDs.CONTAINER}
+      >
         <ActionView
           cancelTestID={AddBookmarkViewSelectorsIDs.CANCEL_BUTTON}
           confirmTestID={AddBookmarkViewSelectorsIDs.CONFIRM_BUTTON}
@@ -144,7 +142,7 @@ export default class AddBookmark extends PureComponent {
                 placeholderTextColor={colors.text.muted}
                 value={this.state.title}
                 onChangeText={this.onTitleChange}
-                testID={FAVORITE_TITLE_EDIT_TEXT}
+                testID={AddBookmarkViewSelectorsIDs.BOOKMARK_TITLE}
                 onSubmitEditing={this.jumpToUrl}
                 returnKeyType={'next'}
                 keyboardAppearance={themeAppearance}
@@ -160,7 +158,7 @@ export default class AddBookmark extends PureComponent {
                 placeholder={''}
                 value={this.state.url}
                 onChangeText={this.onUrlChange}
-                testID={FAVORITE_URL_EDIT_TEXT}
+                testID={AddBookmarkViewSelectorsIDs.URL_TEXT}
                 ref={this.urlInput}
                 onSubmitEditing={this.addToken}
                 returnKeyType={'done'}
