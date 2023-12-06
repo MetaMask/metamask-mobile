@@ -40,7 +40,7 @@ const reducer = (state = initialState, action) => {
 
 const privacyPersistConfig = {
   key: 'privacy',
-  blacklist: '',
+  blacklist: [],
   storage: MigratedStorage,
 };
 

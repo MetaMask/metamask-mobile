@@ -77,7 +77,7 @@ const reducer = (state = initialState, action) => {
 
 const browserPersistConfig = {
   key: 'browser',
-  blacklist: '',
+  blacklist: [],
   storage: MigratedStorage,
 };
 

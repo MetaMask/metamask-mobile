@@ -1,3 +1,6 @@
+import MigratedStorage from '../../storage/MigratedStorage';
+import { persistReducer } from 'redux-persist';
+
 const initialState = {
   isVisible: false,
   autodismiss: null,
@@ -5,7 +8,7 @@ const initialState = {
   data: null,
 };
 
-const alertReducer = (state = initialState, action) => {
+const reducer = (state = initialState, action) => {
   switch (action.type) {
     case 'SHOW_ALERT':
       return {
@@ -25,4 +28,13 @@ const alertReducer = (state = initialState, action) => {
       return state;
   }
 };
+
+const alertPersistConfig = {
+  key: 'alert',
+  blacklist: [],
+  storage: MigratedStorage,
+};
+
+const alertReducer = persistReducer(alertPersistConfig, reducer);
+
 export default alertReducer;

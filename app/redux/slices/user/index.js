@@ -1,4 +1,6 @@
-import { AppThemeKey } from '../../util/theme/models';
+import { AppThemeKey } from '../../../util/theme/models';
+import MigratedStorage from '../../storage/MigratedStorage';
+import { persistReducer } from 'redux-persist';
 
 const initialState = {
   loadingMsg: '',
@@ -15,7 +17,7 @@ const initialState = {
   ambiguousAddressEntries: {},
 };
 
-const userReducer = (state = initialState, action) => {
+const reducer = (state = initialState, action) => {
   switch (action.type) {
     case 'LOGIN':
       return {
@@ -97,4 +99,13 @@ const userReducer = (state = initialState, action) => {
       return state;
   }
 };
+
+const userPersistConfig = {
+  key: 'user',
+  blacklist: [],
+  storage: MigratedStorage,
+};
+
+const userReducer = persistReducer(userPersistConfig, reducer);
+
 export default userReducer;

@@ -1,3 +1,6 @@
+// import MigratedStorage from '../../storage/MigratedStorage';
+// import { persistReducer } from 'redux-persist';
+
 const bookmarksReducer = (state = [], action) => {
   switch (action.type) {
     case 'ADD_BOOKMARK':
@@ -8,4 +11,13 @@ const bookmarksReducer = (state = [], action) => {
       return state;
   }
 };
+
+// const bookmarksPersistConfig = {
+//   key: 'bookmarks',
+//   blacklist: [],
+//   storage: MigratedStorage,
+// };
+
+// const bookmarksReducer = persistReducer(bookmarksPersistConfig, reducer);
+
 export default bookmarksReducer;

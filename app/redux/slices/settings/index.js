@@ -53,7 +53,7 @@ const reducer = (state = initialState, action) => {
 };
 const settingsPersistConfig = {
   key: 'settings',
-  blacklist: '',
+  blacklist: [],
   storage: MigratedStorage,
 };
 

@@ -64,7 +64,7 @@ const persistUserTransform = createTransform(
 const persistConfig = {
   key: 'root',
   version,
-  blacklist: ['onboarding', 'engine'],
+  blacklist: ['engine'],
   storage: MigratedStorage,
   transforms: [persistUserTransform],
   stateReconciler: autoMergeLevel2, // see "Merge Process" section for details.

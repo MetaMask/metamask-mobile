@@ -4,11 +4,11 @@ import engineReducer from '../redux/slices/engine';
 import privacyReducer from '../redux/slices/privacy';
 import modalsReducer from './modals';
 import settingsReducer from '../redux/slices/settings';
-import alertReducer from './alert';
+import alertReducer from '../redux/slices/alert';
 import transactionReducer from './transaction';
-import userReducer from './user';
+import userReducer from '../redux/slices/user';
 import wizardReducer from './wizard';
-import onboardingReducer from './onboarding';
+import onboardingReducer from '../redux/slices/onboarding';
 import fiatOrders from './fiatOrders';
 import swapsReducer from './swaps';
 import signatureRequestReducer from './signatureRequest';
@@ -69,15 +69,15 @@ const rootReducer = combineReducers<RootState, any>({
   collectibles: collectiblesReducer,
   engine: engineReducer as any, //done
   privacy: privacyReducer, //done
-  bookmarks: bookmarksReducer, // this broke it
+  bookmarks: bookmarksReducer, // attempting to define property on object that is not extensible
   browser: browserReducer, //done
   modals: modalsReducer,
   settings: settingsReducer, //done
-  alert: alertReducer,
+  alert: alertReducer, // done
   transaction: transactionReducer,
-  user: userReducer,
+  user: userReducer, //done
   wizard: wizardReducer,
-  onboarding: onboardingReducer,
+  onboarding: onboardingReducer, // done
   notification: notificationReducer,
   signatureRequest: signatureRequestReducer,
   swaps: swapsReducer,
