@@ -72,7 +72,7 @@ const ManualBackupStep2 = ({ navigation, seedphraseBackedUp, route }) => {
 
   const selectWord = useCallback(
     (word, i) => {
-      let tempCurrentIndex;
+      let tempCurrentIndex = currentIndex;
       const tempWordsDict = wordsDict;
       const tempConfirmedWords = confirmedWords;
       if (wordsDict[`${word},${i}`].currentPosition !== undefined) {
