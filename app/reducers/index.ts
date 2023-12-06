@@ -17,9 +17,9 @@ import infuraAvailabilityReducer from '../redux/slices/infuraAvailability';
 import collectiblesReducer from './collectibles';
 import navigationReducer from '../redux/slices/navigation';
 import networkOnboardReducer from '../redux/slices/networkSelector';
-import securityReducer from './security';
+import securityReducer from '../redux/slices/security';
 import { combineReducers, Reducer } from 'redux';
-import experimentalSettingsReducer from './experimentalSettings';
+import experimentalSettingsReducer from '../redux/slices/experimentalSettings';
 import { EngineState } from '../core/Engine';
 /**
  * Infer state from a reducer
@@ -79,7 +79,7 @@ const rootReducer = combineReducers<RootState, any>({
   wizard: wizardReducer, // done
   onboarding: onboardingReducer, // done
   notification: notificationReducer,
-  signatureRequest: signatureRequestReducer,
+  signatureRequest: signatureRequestReducer, // done
   swaps: swapsReducer,
   fiatOrders,
   infuraAvailability: infuraAvailabilityReducer, // done - redundant ?

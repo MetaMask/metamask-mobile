@@ -1,6 +1,8 @@
 /* eslint-disable @typescript-eslint/default-param-last */
-import { ActionType, Action } from '../../actions/security';
-import { SecuritySettingsState } from '../../actions/security/state';
+import { ActionType, Action } from '../../../actions/security';
+import { SecuritySettingsState } from '../../../actions/security/state';
+import MigratedStorage from '../../storage/MigratedStorage';
+import { persistReducer } from 'redux-persist';
 
 export const initialState: Readonly<SecuritySettingsState> = {
   allowLoginWithRememberMe: false,
@@ -9,7 +11,7 @@ export const initialState: Readonly<SecuritySettingsState> = {
   isAutomaticSecurityChecksModalOpen: false,
 };
 
-const securityReducer = (
+const reducer = (
   state: SecuritySettingsState = initialState,
   action: Action,
 ): SecuritySettingsState => {
@@ -38,5 +40,13 @@ const securityReducer = (
       return state;
   }
 };
+
+const securityConfig = {
+  key: 'security',
+  blacklist: [],
+  storage: MigratedStorage,
+};
+
+const securityReducer = persistReducer(securityConfig, reducer);
 
 export default securityReducer;

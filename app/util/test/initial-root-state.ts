@@ -1,7 +1,7 @@
 import type { RootState } from '../../reducers';
 import type { EngineState } from '../../core/Engine';
 import { initialState as initialFiatOrdersState } from '../../reducers/fiatOrders';
-import { initialState as initialSecurityState } from '../../reducers/security';
+import { initialState as initialSecurityState } from '../../redux/slices/security';
 import initialBackgroundState from './initial-background-state.json';
 
 // Cast because TypeScript is incorrectly inferring the type of this JSON object
