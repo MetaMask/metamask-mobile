@@ -2,10 +2,10 @@ import bookmarksReducer from '../redux/slices/bookmarks';
 import browserReducer from '../redux/slices/browser';
 import engineReducer from '../redux/slices/engine';
 import privacyReducer from '../redux/slices/privacy';
-import modalsReducer from './modals';
+import modalsReducer from '../redux/slices/modals';
 import settingsReducer from '../redux/slices/settings';
 import alertReducer from '../redux/slices/alert';
-import transactionReducer from './transaction';
+import transactionReducer from '../redux/slices/transaction';
 import userReducer from '../redux/slices/user';
 import wizardReducer from '../redux/slices/wizard';
 import onboardingReducer from '../redux/slices/onboarding';
@@ -71,7 +71,7 @@ const rootReducer = combineReducers<RootState, any>({
   privacy: privacyReducer, //done
   bookmarks: bookmarksReducer, // attempting to define property on object that is not extensible
   browser: browserReducer, //done
-  modals: modalsReducer,
+  modals: modalsReducer, // done
   settings: settingsReducer, //done
   alert: alertReducer, // done
   transaction: transactionReducer,
@@ -82,7 +82,7 @@ const rootReducer = combineReducers<RootState, any>({
   signatureRequest: signatureRequestReducer,
   swaps: swapsReducer,
   fiatOrders,
-  infuraAvailability: infuraAvailabilityReducer,
+  infuraAvailability: infuraAvailabilityReducer, // done - redundant ?
   navigation: navigationReducer,
   networkOnboarded: networkOnboardReducer, // done
   security: securityReducer,

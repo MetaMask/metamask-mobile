@@ -1,3 +1,6 @@
+import MigratedStorage from '../../storage/MigratedStorage';
+import { persistReducer } from 'redux-persist';
+
 const initialState = {
   networkModalVisible: false,
   shouldNetworkSwitchPopToWallet: true,
@@ -7,7 +10,7 @@ const initialState = {
   dappTransactionModalVisible: false,
 };
 
-const modalsReducer = (state = initialState, action) => {
+const reducer = (state = initialState, action) => {
   switch (action.type) {
     case 'TOGGLE_NETWORK_MODAL':
       return {
@@ -56,4 +59,13 @@ const modalsReducer = (state = initialState, action) => {
       return state;
   }
 };
+
+const modalsConfig = {
+  key: 'modals',
+  blacklist: [],
+  storage: MigratedStorage,
+};
+
+const modalsReducer = persistReducer(modalsConfig, reducer);
+
 export default modalsReducer;

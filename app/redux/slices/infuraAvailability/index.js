@@ -1,3 +1,6 @@
+import MigratedStorage from '../../storage/MigratedStorage';
+import { persistReducer } from 'redux-persist';
+
 const initialState = {
   isBlocked: false,
 };
@@ -9,7 +12,7 @@ export const INFURA_AVAILABILITY_NOT_BLOCKED =
 export const getInfuraBlockedSelector = (state) =>
   state.infuraAvailability?.isBlocked;
 
-const infuraAvailabilityReducer = (state = initialState, action) => {
+const reducer = (state = initialState, action) => {
   switch (action.type) {
     case INFURA_AVAILABILITY_BLOCKED:
       return {
@@ -25,4 +28,16 @@ const infuraAvailabilityReducer = (state = initialState, action) => {
       return state;
   }
 };
+
+const infuraAvailabilityConfig = {
+  key: 'infuraAvailability',
+  blacklist: [],
+  storage: MigratedStorage,
+};
+
+const infuraAvailabilityReducer = persistReducer(
+  infuraAvailabilityConfig,
+  reducer,
+);
+
 export default infuraAvailabilityReducer;
