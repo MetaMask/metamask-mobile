@@ -36,6 +36,7 @@ import { createStyles } from './styles';
 import { MetaMetricsEvents } from '../../../core/Analytics';
 import AnalyticsV2 from '../../../util/analyticsV2';
 import { Authentication } from '../../../core';
+import { ManualBackUpSelectorsIDs } from '../../../../e2e/selectors/Onboarding/ManualBackUp.selectors';
 
 /**
  * View that's shown during the second step of
@@ -169,7 +170,6 @@ const ManualBackupStep1 = ({ route, navigation, appTheme }) => {
           <View style={styles.viewButtonWrapper}>
             <StyledButton
               type={'onOverlay'}
-              testID={ManualBackUpStep1SelectorsIDs.VIEW_BUTTON}
               onPress={revealSeedPhrase}
               containerStyle={styles.viewButtonContainer}
             >
@@ -204,6 +204,7 @@ const ManualBackupStep1 = ({ route, navigation, appTheme }) => {
               onChangeText={onPasswordChange}
               secureTextEntry
               onSubmitEditing={tryUnlock}
+              testID={ManualBackUpSelectorsIDs.CONFIRM_PASSWORD_INPUT}
               keyboardAppearance={themeAppearance}
             />
             {warningIncorrectPassword && (
@@ -217,7 +218,7 @@ const ManualBackupStep1 = ({ route, navigation, appTheme }) => {
               containerStyle={styles.button}
               type={'confirm'}
               onPress={tryUnlock}
-              testID={ManualBackUpStep1SelectorsIDs.SUBMIT_BUTTON}
+              testID={ManualBackUpSelectorsIDs.SUBMIT_BUTTON}
             >
               {strings('manual_backup_step_1.confirm')}
             </StyledButton>
@@ -233,17 +234,13 @@ const ManualBackupStep1 = ({ route, navigation, appTheme }) => {
 
     return (
       <ActionView
-        confirmTestID={ManualBackUpStep1SelectorsIDs.CONTINUE_BUTTON}
         confirmText={strings('manual_backup_step_1.continue')}
         onConfirmPress={goNext}
         confirmDisabled={seedPhraseHidden}
         showCancelButton={false}
         confirmButtonMode={'confirm'}
       >
-        <View
-          style={styles.wrapper}
-          testID={ManualBackUpStep1SelectorsIDs.CONTAINER}
-        >
+        <View style={styles.wrapper}>
           <Text style={styles.action}>
             {strings('manual_backup_step_1.action')}
           </Text>
