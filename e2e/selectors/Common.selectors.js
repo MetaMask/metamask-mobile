@@ -7,6 +7,13 @@ export const CommonSelectorsIDs = {
   CANCEL_BUTTON: 'cancel-button',
   TOAST_NOTIFICATION_TITLE: 'notification-title',
   NOTIFICATION_CONFIRM_BUTTON: 'confirm-notification-button',
+  EDIT_CONTACT_BACK_BUTTON: 'edit-contact-back-button',
+  CONFIRM_TXN_EDIT_BUTTON: 'confirm-txn-edit-button',
+  SEND_BACK_BUTTON: 'send-back-button',
+  FOX_ICON: 'fox-icon',
+  NAV_IOS_BACK: 'nav-ios-back',
+  FOX_SCREEN: 'fox-screen',
+  NAVBAR_TITLE_NETWORKS_TEXT: 'navbar-title-networks',
 };
 
 export const CommonSelectorsText = {
