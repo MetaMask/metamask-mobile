@@ -109,9 +109,9 @@ const ExperimentalSettings = ({ navigation, route }: Props) => {
   const styles = createStyles(colors);
 
   useEffect(() => {
-    if(route?.params?.securityAlertsEnabled) {
-      setSecurityAlertsEnabled(route.params.securityAlertsEnabled);
-    }
+    // if(route?.params?.securityAlertsEnabled) {
+    //   setSecurityAlertsEnabled(route.params.securityAlertsEnabled);
+    // }
   }, [securityAlertsEnabled]);
 
   const toggleSecurityAlertsEnabled = () => {

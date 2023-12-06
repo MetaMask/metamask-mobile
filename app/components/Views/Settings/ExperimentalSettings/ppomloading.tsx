@@ -31,7 +31,9 @@ const PPOMLoading = ({ navigation, route }: any) => {
   const { PreferencesController } = Engine.context;
   const [securityAlertsEnabled, setSecurityAlertsEnabled] = useState(route.params.securityAlertsEnabled);
   const [fetchingPPOMDataInProgress, setFetchingPPOMDataInProgress] = useState(false);
+  const [intialisedBlockaid, setIntialisedBlockaid] = useState(true);
   const sheetRef = useRef<SheetBottomRef>(null);
+
 
   const cancelBlockaidInitialisation = () => {
     setSecurityAlertsEnabled(securityAlertsEnabled);
@@ -49,6 +51,7 @@ const PPOMLoading = ({ navigation, route }: any) => {
       });
     }
     setFetchingPPOMDataInProgress(true);
+    setIntialisedBlockaid(false);
    
     InteractionManager.runAfterInteractions(() => {
       AnalyticsV2.trackEvent(
@@ -80,12 +83,14 @@ const PPOMLoading = ({ navigation, route }: any) => {
   useEffect(() => {
     if(ppomInitialisationCompleted) {
       setFetchingPPOMDataInProgress(false);
+      setIntialisedBlockaid(false);
     }
   }, [ppomInitialisationCompleted]);
 
   return (
     <BottomSheet ref={sheetRef} isInteractable={false}>
-      <BlockaidLoadingIndicator title={'Before you proceed'} description={'To enable this feature we need to set up some security alert. This page will need to stay open while its being set up. This will take less than a minute to complete.'} />
+      {intialisedBlockaid && (<>
+        <BlockaidLoadingIndicator title={'Before you proceed'} description={'To enable this feature we need to set up some security alert. This page will need to stay open while its being set up. This will take less than a minute to complete.'} />
     <View style={{flexDirection: 'row', justifyContent: 'space-around', marginTop: 20}}>
 
     <Button
@@ -105,6 +110,10 @@ const PPOMLoading = ({ navigation, route }: any) => {
       style={{width: 150}}
     />
     </View>
+      </>)}
+      {fetchingPPOMDataInProgress && <BlockaidLoadingIndicator title={'Setting up security alerts'} description={'This will take less than a minute to complete.'} />} 
+      
+      {(!intialisedBlockaid && !fetchingPPOMDataInProgress) && <BlockaidLoadingIndicator title={'Setting up security alerts'} description={'This will take less than a minute to complete.'} />}
     </BottomSheet>
   );
 };
