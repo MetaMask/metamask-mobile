@@ -1,7 +1,8 @@
+import { strings } from '../../../../locales/i18n';
 import { showAlert } from '../../../actions/alert';
 import { handleNetworkSwitch } from '../../../util/networks';
+import DevLogger from '../../SDKConnect/utils/DevLogger';
 import DeeplinkManager from '../DeeplinkManager';
-import { strings } from '../../../../locales/i18n';
 
 function switchNetwork({
   deeplinkManager,
@@ -29,7 +30,7 @@ function switchNetwork({
       }),
     );
   } else {
-    throw new Error(
+    DevLogger.log(
       'Invalid Type: switchToChainId must be a string or number but was ' +
         typeof switchToChainId,
     );
