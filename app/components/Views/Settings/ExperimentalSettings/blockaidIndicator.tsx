@@ -78,25 +78,24 @@ const BlockaidIndicator = ({ navigation }: Props) => {
   }: BlockaidIndicatorProps) => (
     <View style={styles.blockaidWrapper}>
       <View style={styles.iconWrapper}>
-        <Icon
-          name={iconName}
-          size={IconSize.Xl}
-          color={iconColor}
-          style={styles.iconStyle}
-        />
+        <View style={styles.iconContainer}>
+          <Icon
+            name={iconName}
+            size={IconSize.Xl}
+            color={iconColor}
+            style={styles.iconStyle}
+          />
+        </View>
         {showCloseIcon && (
           <Pressable
+            style={styles.goBackIcon}
             onPress={goBackToExperimentalScreen}
-            style={styles.closeIcon}
           >
-            <Icon
-              name={IconName.Close}
-              size={IconSize.Md}
-              color={IconColor.Primary}
-            />
+            <Icon name={IconName.Close} color={IconColor.Alternative} />
           </Pressable>
         )}
       </View>
+
       <SheetHeader title={title} />
       <Text variant={TextVariant.BodyMD}>{description}</Text>
       {showButton && (
