@@ -598,7 +598,7 @@ index 8bb7c20..810d961 100644
       * Fetches a pairs of token address and native currency.
       *
 diff --git a/node_modules/@metamask/assets-controllers/dist/TokenRatesController.js b/node_modules/@metamask/assets-controllers/dist/TokenRatesController.js
-index e3f81e9..10994ef 100644
+index e3f81e9..357d4fc 100644
 --- a/node_modules/@metamask/assets-controllers/dist/TokenRatesController.js
 +++ b/node_modules/@metamask/assets-controllers/dist/TokenRatesController.js
 @@ -8,11 +8,30 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
@@ -756,8 +756,7 @@ index e3f81e9..10994ef 100644
 -     * TODO: Replace this with a method.
 -     *
 -     * @param _chainId - The current chain ID.
-+     * Stop polling.
-      */
+-     */
 -    set chainId(_chainId) {
 -        !this.disabled && (0, controller_utils_1.safelyExecute)(() => this.updateExchangeRates());
 -    }
@@ -770,7 +769,8 @@ index e3f81e9..10994ef 100644
 -     * TODO: Replace this with a method.
 -     *
 -     * @param tokens - List of tokens to track exchange rates for.
--     */
++     * Stop polling.
+      */
 -    set tokens(tokens) {
 -        this.tokenList = tokens;
 -        !this.disabled && (0, controller_utils_1.safelyExecute)(() => this.updateExchangeRates());
@@ -783,47 +783,39 @@ index e3f81e9..10994ef 100644
      }
      /**
       * Fetches a pairs of token address and native currency.
-@@ -148,11 +172,34 @@ class TokenRatesController extends base_controller_1.BaseController {
-      * @returns The exchange rates for the given pairs.
+@@ -149,9 +173,28 @@ class TokenRatesController extends base_controller_1.BaseController {
       */
      fetchExchangeRate(chainSlug, vsCurrency) {
--        return __awaiter(this, void 0, void 0, function* () {
+         return __awaiter(this, void 0, void 0, function* () {
 -            const tokenPairs = this.tokenList.map((token) => token.address).join(',');
 -            const query = `contract_addresses=${tokenPairs}&vs_currencies=${vsCurrency.toLowerCase()}`;
 -            return (0, controller_utils_1.handleFetch)(CoinGeckoApi.getTokenPriceURL(chainSlug, query));
--        });
 +            const tokenPairs = this.tokenList;
-+
-+            const tokenPairsChunks = (chunkSize) =>
-+            tokenPairs.reduce((resultArray, item, index) => {
-+              const chunkIndex = Math.floor(index / chunkSize);
-+              if (!resultArray[chunkIndex]) {
-+                resultArray[chunkIndex] = [];
-+              }
-+      
-+              resultArray[chunkIndex].push(item);
-+      
-+              return resultArray;
++            const tokenPairsChunks = (chunkSize) => tokenPairs.reduce((resultArray, item, index) => {
++                const chunkIndex = Math.floor(index / chunkSize);
++                if (!resultArray[chunkIndex]) {
++                    resultArray[chunkIndex] = [];
++                }
++                resultArray[chunkIndex].push(item);
++                return resultArray;
 +            }, []);
-+
-+      
-+          const tokensPairsChunks = tokenPairsChunks(20);
-+          
-+          return tokensPairsChunks.map((tokenPairsChunk) => {
-+            const query = `contract_addresses=${tokenPairsChunk.join(
-+              ',',
-+            )}&vs_currencies=${vsCurrency.toLowerCase()}`;
-+            return (0, controller_utils_1.handleFetch)(CoinGeckoApi.getTokenPriceURL(chainSlug, query), {
-+                headers: {
-+                    'Content-Type': 'application/json',
-+                    'X-Requested-With': this.coinGeckoHeader
-+                },
-+            });;
-+          });       
++            const tokensPairsChunks = tokenPairsChunks(20);
++            const results = [];
++            for (const tokenPairsChunk of tokensPairsChunks) {
++                const query = `contract_addresses=${tokenPairsChunk.join(',')}&vs_currencies=${vsCurrency.toLowerCase()}`;
++                const result = yield (0, controller_utils_1.handleFetch)(CoinGeckoApi.getTokenPriceURL(chainSlug, query), {
++                    headers: {
++                        'Content-Type': 'application/json',
++                        'X-Requested-With': this.coinGeckoHeader,
++                    },
++                });
++                results.push(result);
++            }
++            return results;
+         });
      }
      /**
-      * Checks if the current native currency is a supported vs currency to use
-@@ -210,12 +257,11 @@ class TokenRatesController extends base_controller_1.BaseController {
+@@ -210,12 +253,11 @@ class TokenRatesController extends base_controller_1.BaseController {
              const slug = yield this.getChainSlug();
              let newContractExchangeRates = {};
              if (!slug) {
@@ -839,7 +831,7 @@ index e3f81e9..10994ef 100644
                  const { nativeCurrency } = this.config;
                  newContractExchangeRates = yield this.fetchAndMapExchangeRates(nativeCurrency, slug);
              }
-@@ -237,14 +283,23 @@ class TokenRatesController extends base_controller_1.BaseController {
+@@ -237,14 +279,21 @@ class TokenRatesController extends base_controller_1.BaseController {
      fetchAndMapExchangeRates(nativeCurrency, slug) {
          return __awaiter(this, void 0, void 0, function* () {
              const contractExchangeRates = {};
@@ -859,9 +851,7 @@ index e3f81e9..10994ef 100644
 -                this.tokenList.forEach((token) => {
 -                    const price = prices[token.address.toLowerCase()];
 -                    contractExchangeRates[(0, controller_utils_1.toChecksumHexAddress)(token.address)] = price
-+                const res = yield Promise.all(
-+                    this.fetchExchangeRate(slug, nativeCurrency),
-+                  );
++                const res = yield this.fetchExchangeRate(slug, nativeCurrency);
 +                const prices = Object.assign({}, ...res);
 +                this.tokenList.forEach((tokenAddress) => {
 +                    const price = prices[tokenAddress.toLowerCase()];
@@ -869,7 +859,7 @@ index e3f81e9..10994ef 100644
                          ? price[nativeCurrency.toLowerCase()]
                          : 0;
                  });
-@@ -252,14 +307,14 @@ class TokenRatesController extends base_controller_1.BaseController {
+@@ -252,14 +301,14 @@ class TokenRatesController extends base_controller_1.BaseController {
              else {
                  // if native currency is not supported we need to use a fallback vsCurrency, get the exchange rates
                  // in token/fallback-currency format and convert them to expected token/nativeCurrency format.
@@ -883,11 +873,11 @@ index e3f81e9..10994ef 100644
                          { conversionRate: vsCurrencyToNativeCurrencyConversionRate },
                      ] = yield Promise.all([
 -                        this.fetchExchangeRate(slug, controller_utils_1.FALL_BACK_VS_CURRENCY),
-+                       Promise.all(this.fetchExchangeRate(slug, controller_utils_1.FALL_BACK_VS_CURRENCY)),
++                       this.fetchExchangeRate(slug, controller_utils_1.FALL_BACK_VS_CURRENCY),
                          (0, crypto_compare_1.fetchExchangeRate)(nativeCurrency, controller_utils_1.FALL_BACK_VS_CURRENCY, false),
                      ]);
                  }
-@@ -270,6 +325,7 @@ class TokenRatesController extends base_controller_1.BaseController {
+@@ -270,6 +319,7 @@ class TokenRatesController extends base_controller_1.BaseController {
                      }
                      throw error;
                  }
@@ -895,7 +885,7 @@ index e3f81e9..10994ef 100644
                  for (const [tokenAddress, conversion] of Object.entries(tokenExchangeRates)) {
                      const tokenToVsCurrencyConversionRate = conversion[controller_utils_1.FALL_BACK_VS_CURRENCY.toLowerCase()];
                      contractExchangeRates[(0, controller_utils_1.toChecksumHexAddress)(tokenAddress)] =
-@@ -282,5 +338,29 @@ class TokenRatesController extends base_controller_1.BaseController {
+@@ -282,5 +332,29 @@ class TokenRatesController extends base_controller_1.BaseController {
      }
  }
  exports.TokenRatesController = TokenRatesController;
