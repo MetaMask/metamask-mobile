@@ -12,6 +12,14 @@ const createStyles = (colors: Colors) =>
     blockaidWrapper: {
       marginHorizontal: 20,
     },
+    closeIcon: {
+      marginLeft: 'auto',
+    },
+    iconWrapper: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      alignSelf: 'center',
+    },
     iconStyle: {
       alignSelf: 'center',
       marginTop: 20,

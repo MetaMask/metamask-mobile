@@ -13,7 +13,7 @@ import StyledButton from '../../../UI/StyledButton';
 import SECURITY_ALERTS_TOGGLE_TEST_ID from './constants';
 import { isBlockaidFeatureEnabled } from '../../../../util/blockaid';
 import Routes from '../../../../constants/navigation/Routes';
-import { useSelector } from 'react-redux';
+import { useSelector, useDispatch } from 'react-redux';
 import { Props } from './ExperimentalSettings.types';
 import createStyles from './ExperimentalSettings.styles';
 import { selectIsSecurityAlertsEnabled } from '../../../../selectors/preferencesController';
@@ -24,6 +24,7 @@ import { useIsFocused } from '@react-navigation/native';
  */
 const ExperimentalSettings = ({ navigation, route }: Props) => {
   const { PreferencesController } = Engine.context;
+  const dispatch = useDispatch();
 
   const initialSecurityAlertsEnabled = useSelector(
     selectIsSecurityAlertsEnabled,
@@ -40,6 +41,10 @@ const ExperimentalSettings = ({ navigation, route }: Props) => {
   const toggleSecurityAlertsEnabled = () => {
     if (securityAlertsEnabled) {
       setSecurityAlertsEnabled(!securityAlertsEnabled);
+      dispatch({
+        type: 'SET_PPOM_INITIALIZATION_COMPLETED',
+        ppomInitializationCompleted: false,
+      });
       PreferencesController?.setSecurityAlertsEnabled(!securityAlertsEnabled);
     } else {
       navigation.navigate(Routes.MODAL.ROOT_MODAL_FLOW, {

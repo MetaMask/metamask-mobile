@@ -17,4 +17,5 @@ export interface BlockaidIndicatorProps {
   iconName: IconName;
   iconColor: string;
   showButton?: boolean;
+  showCloseIcon?: boolean;
 }

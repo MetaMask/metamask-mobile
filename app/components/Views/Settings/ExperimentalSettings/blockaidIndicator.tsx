@@ -1,5 +1,5 @@
 import React, { useRef, useEffect, useState } from 'react';
-import { View, InteractionManager } from 'react-native';
+import { View, InteractionManager, Pressable } from 'react-native';
 import SheetHeader from '../../../../component-library/components/Sheet/SheetHeader';
 import { SheetBottomRef } from '../../../../component-library/components/Sheet/SheetBottom';
 import Button from '../../../../component-library/components/Buttons/Button/Button';
@@ -42,7 +42,7 @@ const BlockaidIndicator = ({ navigation }: Props) => {
   const [intialisedBlockaid, setIntialisedBlockaid] = useState(true);
   const sheetRef = useRef<SheetBottomRef>(null);
 
-  const cancelBlockaidInitialisation = () => {
+  const goBackToExperimentalScreen = () => {
     navigation.navigate(Routes.SETTINGS.EXPERIMENTAL_SETTINGS);
   };
 
@@ -74,14 +74,29 @@ const BlockaidIndicator = ({ navigation }: Props) => {
     iconName,
     iconColor,
     showButton,
+    showCloseIcon,
   }: BlockaidIndicatorProps) => (
     <View style={styles.blockaidWrapper}>
-      <Icon
-        name={iconName}
-        size={IconSize.Xl}
-        color={iconColor}
-        style={styles.iconStyle}
-      />
+      <View style={styles.iconWrapper}>
+        <Icon
+          name={iconName}
+          size={IconSize.Xl}
+          color={iconColor}
+          style={styles.iconStyle}
+        />
+        {showCloseIcon && (
+          <Pressable
+            onPress={goBackToExperimentalScreen}
+            style={styles.closeIcon}
+          >
+            <Icon
+              name={IconName.Close}
+              size={IconSize.Md}
+              color={IconColor.Primary}
+            />
+          </Pressable>
+        )}
+      </View>
       <SheetHeader title={title} />
       <Text variant={TextVariant.BodyMD}>{description}</Text>
       {showButton && (
@@ -90,7 +105,7 @@ const BlockaidIndicator = ({ navigation }: Props) => {
             variant={ButtonVariants.Secondary}
             label={strings('blockaid_banner.cancel')}
             size={ButtonSize.Md}
-            onPress={cancelBlockaidInitialisation}
+            onPress={goBackToExperimentalScreen}
             width={ButtonWidthTypes.Auto}
             style={styles.buttonSize}
           />
@@ -113,8 +128,8 @@ const BlockaidIndicator = ({ navigation }: Props) => {
 
   useEffect(() => {
     if (ppomInitialisationCompleted) {
-      setFetchingPPOMDataInProgress(false);
       setIntialisedBlockaid(false);
+      setFetchingPPOMDataInProgress(false);
       setSheetInteractable(true);
     }
   }, [ppomInitialisationCompleted]);
@@ -140,14 +155,15 @@ const BlockaidIndicator = ({ navigation }: Props) => {
         />
       )}
 
-      {/* {!intialisedBlockaid && !fetchingPPOMDataInProgress && (
+      {!intialisedBlockaid && !fetchingPPOMDataInProgress && (
         <BlockaidLoadingIndicator
           title={strings('blockaid_banner.setup_complete')}
           description={strings('blockaid_banner.setup_complete_description')}
-          iconName={IconName.CopySuccess}
+          iconName={IconName.Check}
           iconColor={IconColor.Success}
+          showCloseIcon
         />
-      )} */}
+      )}
     </BottomSheet>
   );
 };
