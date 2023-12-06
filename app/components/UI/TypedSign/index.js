@@ -1,5 +1,6 @@
 import React, { PureComponent } from 'react';
 import PropTypes from 'prop-types';
+import { connect } from 'react-redux';
 import { StyleSheet, View, Text } from 'react-native';
 import { fontStyles } from '../../../styles/common';
 import SignatureRequest from '../SignatureRequest';
@@ -16,6 +17,7 @@ import {
   getAnalyticsParams,
   handleSignatureAction,
   removeSignatureErrorListener,
+  shouldTruncateMessage,
   showWalletConnectNotification,
   typedSign,
 } from '../../../util/confirmation/signatureUtils';
@@ -81,6 +83,10 @@ class TypedSign extends PureComponent {
      * Indicated whether or not the expanded message is shown
      */
     showExpandedMessage: PropTypes.bool,
+    /**
+     * Security alert response object
+     */
+    securityAlertResponse: PropTypes.object,
   };
 
   state = {
@@ -118,22 +124,30 @@ class TypedSign extends PureComponent {
   };
 
   rejectSignature = async () => {
-    const { messageParams, onReject } = this.props;
+    const { messageParams, onReject, securityAlertResponse } = this.props;
     await handleSignatureAction(
       onReject,
       messageParams,
       typedSign[messageParams.version],
+      securityAlertResponse,
       false,
     );
   };
 
   confirmSignature = async () => {
-    const { messageParams, onConfirm, onReject, navigation } = this.props;
+    const {
+      messageParams,
+      onConfirm,
+      onReject,
+      navigation,
+      securityAlertResponse,
+    } = this.props;
     if (!isExternalHardwareAccount(messageParams.from)) {
       await handleSignatureAction(
         onConfirm,
         messageParams,
         typedSign[messageParams.version],
+        securityAlertResponse,
         true,
       );
     } else {
@@ -148,15 +162,9 @@ class TypedSign extends PureComponent {
     }
   };
 
-  shouldTruncateMessage = (e) => {
-    if (
-      (Device.isIos() && e.nativeEvent.layout.height > 70) ||
-      (Device.isAndroid() && e.nativeEvent.layout.height > 100)
-    ) {
-      this.setState({ truncateMessage: true });
-      return;
-    }
-    this.setState({ truncateMessage: false });
+  updateShouldTruncateMessage = (e) => {
+    const truncateMessage = shouldTruncateMessage(e);
+    this.setState({ truncateMessage });
   };
 
   getStyles = () => {
@@ -258,7 +266,7 @@ class TypedSign extends PureComponent {
       >
         <View
           style={messageWrapperStyles}
-          onLayout={truncateMessage ? null : this.shouldTruncateMessage}
+          onLayout={truncateMessage ? null : this.updateShouldTruncateMessage}
         >
           {this.renderTypedMessage()}
         </View>
@@ -270,4 +278,8 @@ class TypedSign extends PureComponent {
 
 TypedSign.contextType = ThemeContext;
 
-export default TypedSign;
+const mapStateToProps = (state) => ({
+  securityAlertResponse: state.signatureRequest.securityAlertResponse,
+});
+
+export default connect(mapStateToProps)(TypedSign);
