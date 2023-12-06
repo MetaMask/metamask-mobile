@@ -10,6 +10,7 @@ import { strings } from '../../../locales/i18n';
 import { selectChainId } from '../../selectors/networkController';
 import { store } from '../../store';
 import { getBlockaidMetricsParams } from '../blockaid';
+import Device from '../device';
 
 export const typedSign = {
   V1: 'eth_signTypedData',
@@ -17,7 +18,11 @@ export const typedSign = {
   V4: 'eth_signTypedData_v4',
 };
 
-export const getAnalyticsParams = (messageParams, signType) => {
+export const getAnalyticsParams = (
+  messageParams,
+  signType,
+  securityAlertResponse,
+) => {
   try {
     const { currentPageInformation, meta } = messageParams;
     const pageInfo = meta || currentPageInformation || {};
@@ -26,9 +31,10 @@ export const getAnalyticsParams = (messageParams, signType) => {
 
     const url = pageInfo.url && new URL(pageInfo?.url);
 
-    const blockaidParams = getBlockaidMetricsParams(
-      messageParams.securityAlertResponse,
-    );
+    let blockaidParams = {};
+    if (securityAlertResponse) {
+      blockaidParams = getBlockaidMetricsParams(securityAlertResponse);
+    }
 
     return {
       account_type: getAddressAccountType(messageParams.from),
@@ -83,6 +89,7 @@ export const handleSignatureAction = async (
   onAction,
   messageParams,
   signType,
+  securityAlertResponse,
   confirmation,
 ) => {
   await onAction();
@@ -91,7 +98,7 @@ export const handleSignatureAction = async (
     confirmation
       ? MetaMetricsEvents.SIGNATURE_APPROVED
       : MetaMetricsEvents.SIGNATURE_REJECTED,
-    getAnalyticsParams(messageParams, signType),
+    getAnalyticsParams(messageParams, signType, securityAlertResponse, true),
   );
 };
 
@@ -107,4 +114,15 @@ export const removeSignatureErrorListener = (metamaskId, onSignatureError) => {
     `${metamaskId}:signError`,
     onSignatureError,
   );
+};
+
+export const shouldTruncateMessage = (e) => {
+  if (
+    (Device.isIos() && e.nativeEvent.layout.height > 70) ||
+    (Device.isAndroid() && e.nativeEvent.layout.height > 100)
+  ) {
+    return true;
+  }
+
+  return false;
 };
