@@ -12,7 +12,7 @@ import AndroidBackHandler from '../AndroidBackHandler';
 import Device from '../../../util/device';
 import AppConstants from '../../../core/AppConstants';
 import { connect } from 'react-redux';
-import { getInfuraBlockedSelector } from '../../../reducers/infuraAvailability';
+import { getInfuraBlockedSelector } from '../../../redux/slices/infuraAvailability';
 import { useTheme } from '../../../util/theme';
 
 const createStyles = (colors) =>

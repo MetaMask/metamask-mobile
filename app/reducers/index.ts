@@ -13,10 +13,10 @@ import fiatOrders from './fiatOrders';
 import swapsReducer from './swaps';
 import signatureRequestReducer from './signatureRequest';
 import notificationReducer from './notification';
-import infuraAvailabilityReducer from './infuraAvailability';
+import infuraAvailabilityReducer from '../redux/slices/infuraAvailability';
 import collectiblesReducer from './collectibles';
 import navigationReducer from './navigation';
-import networkOnboardReducer from './networkSelector';
+import networkOnboardReducer from '../redux/slices/networkSelector';
 import securityReducer from './security';
 import { combineReducers, Reducer } from 'redux';
 import experimentalSettingsReducer from './experimentalSettings';
@@ -84,7 +84,7 @@ const rootReducer = combineReducers<RootState, any>({
   fiatOrders,
   infuraAvailability: infuraAvailabilityReducer,
   navigation: navigationReducer,
-  networkOnboarded: networkOnboardReducer,
+  networkOnboarded: networkOnboardReducer, // done
   security: securityReducer,
   experimentalSettings: experimentalSettingsReducer,
 });
