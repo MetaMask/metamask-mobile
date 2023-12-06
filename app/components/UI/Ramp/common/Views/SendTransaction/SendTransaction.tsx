@@ -38,7 +38,7 @@ import {
   getOrderById,
   getProviderName,
   setFiatSellTxHash,
-} from '../../../../../../reducers/fiatOrders';
+} from '../../../../../../redux/slices/fiatOrders';
 import { getFiatOnRampAggNavbar } from '../../../../Navbar';
 import { useParams } from '../../../../../../util/navigation/navUtils';
 import {

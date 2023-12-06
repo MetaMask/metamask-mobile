@@ -9,12 +9,12 @@ import transactionReducer from '../redux/slices/transaction';
 import userReducer from '../redux/slices/user';
 import wizardReducer from '../redux/slices/wizard';
 import onboardingReducer from '../redux/slices/onboarding';
-import fiatOrders from './fiatOrders';
+import fiatOrders from '../redux/slices/fiatOrders';
 import swapsReducer from '../redux/slices/swaps';
 import signatureRequestReducer from '../redux/slices/signatureRequest';
-import notificationReducer from './notification';
+import notificationReducer from '../redux/slices/notification';
 import infuraAvailabilityReducer from '../redux/slices/infuraAvailability';
-import collectiblesReducer from './collectibles';
+import collectiblesReducer from '../redux/slices/collectibles';
 import navigationReducer from '../redux/slices/navigation';
 import networkOnboardReducer from '../redux/slices/networkSelector';
 import securityReducer from '../redux/slices/security';
@@ -80,13 +80,13 @@ const rootReducer = combineReducers<RootState, any>({
   onboarding: onboardingReducer, // done
   notification: notificationReducer,
   signatureRequest: signatureRequestReducer, // done
-  swaps: swapsReducer,
+  swaps: swapsReducer, // done
   fiatOrders,
   infuraAvailability: infuraAvailabilityReducer, // done - redundant ?
   navigation: navigationReducer, // done
   networkOnboarded: networkOnboardReducer, // done
-  security: securityReducer,
-  experimentalSettings: experimentalSettingsReducer,
+  security: securityReducer, // done
+  experimentalSettings: experimentalSettingsReducer, // done -> need to test on android - emulator is very slow on my side
 });
 
 export default rootReducer;

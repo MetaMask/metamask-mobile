@@ -11,7 +11,7 @@ import { connect } from 'react-redux';
 import collectiblesTransferInformation from '../../../util/collectibles-transfer';
 import { newAssetTransaction } from '../../../actions/transaction';
 import { toLowerCaseEquals } from '../../../util/general';
-import { collectiblesSelector } from '../../../reducers/collectibles';
+import { collectiblesSelector } from '../../../redux/slices/collectibles';
 import { ThemeContext, mockTheme } from '../../../util/theme';
 import { SEND_BUTTON_ID } from '../../../../wdio/screen-objects/testIDs/Screens/WalletView.testIds';
 import { WalletViewSelectorsIDs } from '../../../../e2e/selectors/WalletView.selectors';

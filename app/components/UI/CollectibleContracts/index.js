@@ -21,7 +21,7 @@ import {
   collectibleContractsSelector,
   collectiblesSelector,
   favoritesCollectiblesSelector,
-} from '../../../reducers/collectibles';
+} from '../../../redux/slices/collectibles';
 import { removeFavoriteCollectible } from '../../../actions/collectibles';
 import Text from '../../Base/Text';
 import AppConstants from '../../../core/AppConstants';

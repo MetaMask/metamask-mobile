@@ -50,7 +50,7 @@ import { isSwapsAllowed } from '../../UI/Swaps/utils';
 import Transactions from '../../UI/Transactions';
 import ActivityHeader from './ActivityHeader';
 import { isNetworkRampNativeTokenSupported } from '../../UI/Ramp/common/utils';
-import { getRampNetworks } from '../../../reducers/fiatOrders';
+import { getRampNetworks } from '../../../redux/slices/fiatOrders';
 import Device from '../../../util/device';
 import {
   selectConversionRate,

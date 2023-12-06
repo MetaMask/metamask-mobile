@@ -1,6 +1,6 @@
 import React from 'react';
 import OrderListItem from './OrderListItem';
-import { FiatOrder } from '../../../../../../reducers/fiatOrders';
+import { FiatOrder } from '../../../../../../redux/slices/fiatOrders';
 import renderWithProvider from '../../../../../../util/test/renderWithProvider';
 import {
   FIAT_ORDER_PROVIDERS,

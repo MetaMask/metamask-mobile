@@ -1,7 +1,7 @@
 import {
   ADD_FAVORITE_COLLECTIBLE,
   REMOVE_FAVORITE_COLLECTIBLE,
-} from '../../reducers/collectibles';
+} from '../../redux/slices/collectibles';
 
 export const addFavoriteCollectible = (
   selectedAddress,

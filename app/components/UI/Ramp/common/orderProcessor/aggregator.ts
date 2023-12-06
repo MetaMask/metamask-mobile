@@ -5,7 +5,7 @@ import {
   FIAT_ORDER_STATES,
 } from '../../../../../constants/on-ramp';
 import Logger from '../../../../../util/Logger';
-import { FiatOrder } from '../../../../../reducers/fiatOrders';
+import { FiatOrder } from '../../../../../redux/slices/fiatOrders';
 import AppConstants from '../../../../../core/AppConstants';
 import { ProcessorOptions } from '../..';
 import { isSellFiatOrder } from '../utils';

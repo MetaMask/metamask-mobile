@@ -34,7 +34,7 @@ import {
   addFavoriteCollectible,
   removeFavoriteCollectible,
 } from '../../../actions/collectibles';
-import { isCollectibleInFavoritesSelector } from '../../../reducers/collectibles';
+import { isCollectibleInFavoritesSelector } from '../../../redux/slices/collectibles';
 import Share from 'react-native-share';
 import {
   PanGestureHandler,

@@ -1,6 +1,6 @@
 /* eslint-disable @typescript-eslint/default-param-last */
-// import MigratedStorage from '../../storage/MigratedStorage';
-// import { persistReducer } from 'redux-persist';
+import MigratedStorage from '../../storage/MigratedStorage';
+import { persistReducer } from 'redux-persist';
 
 import {
   ActionType,
@@ -11,10 +11,7 @@ const initialState = {
   securityAlertsEnabled: false,
 };
 
-const experimentalSettingsReducer = (
-  state = initialState,
-  action: SetSecurityAlertsEnabled,
-) => {
+const reducer = (state = initialState, action: SetSecurityAlertsEnabled) => {
   switch (action.type) {
     case ActionType.SET_SECURITY_ALERTS_ENABLED:
       return {
@@ -26,12 +23,15 @@ const experimentalSettingsReducer = (
   }
 };
 
-// const experimentalSettingsConfig = {
-//   key: 'experimentalSettings',
-//   blacklist: [],
-//   storage: MigratedStorage,
-// };
+const experimentalSettingsConfig = {
+  key: 'experimentalSettings',
+  blacklist: [],
+  storage: MigratedStorage,
+};
 
-// const experimentalSettingsReducer = persistReducer(experimentalSettingsConfig, reducer);
+const experimentalSettingsReducer = persistReducer(
+  experimentalSettingsConfig,
+  reducer,
+);
 
 export default experimentalSettingsReducer;

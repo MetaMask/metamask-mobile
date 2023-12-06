@@ -15,7 +15,7 @@ import {
   toTokenMinimalUnit,
 } from '../../../../../util/number';
 import { RampType } from '../types';
-import { getOrders, FiatOrder } from '../../../../../reducers/fiatOrders';
+import { getOrders, FiatOrder } from '../../../../../redux/slices/fiatOrders';
 import { RootState } from '../../../../../reducers';
 
 const isOverAnHour = (minutes: number) => minutes > 59;

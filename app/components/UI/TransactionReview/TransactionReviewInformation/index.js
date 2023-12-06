@@ -58,7 +58,7 @@ import {
 import { selectContractExchangeRates } from '../../../../selectors/tokenRatesController';
 import { createBrowserNavDetails } from '../../../Views/Browser';
 import { isNetworkRampNativeTokenSupported } from '../../Ramp/common/utils';
-import { getRampNetworks } from '../../../../reducers/fiatOrders';
+import { getRampNetworks } from '../../../../redux/slices/fiatOrders';
 import Routes from '../../../../constants/navigation/Routes';
 
 const createStyles = (colors) =>

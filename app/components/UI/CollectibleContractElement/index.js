@@ -12,7 +12,7 @@ import ActionSheet from 'react-native-actionsheet';
 import { strings } from '../../../../locales/i18n';
 import Engine from '../../../core/Engine';
 import { removeFavoriteCollectible } from '../../../actions/collectibles';
-import { collectibleContractsSelector } from '../../../reducers/collectibles';
+import { collectibleContractsSelector } from '../../../redux/slices/collectibles';
 import { useTheme } from '../../../util/theme';
 import { selectChainId } from '../../../selectors/networkController';
 import { selectSelectedAddress } from '../../../selectors/preferencesController';

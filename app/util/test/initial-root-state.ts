@@ -1,6 +1,6 @@
 import type { RootState } from '../../reducers';
 import type { EngineState } from '../../core/Engine';
-import { initialState as initialFiatOrdersState } from '../../reducers/fiatOrders';
+import { initialState as initialFiatOrdersState } from '../../redux/slices/fiatOrders';
 import { initialState as initialSecurityState } from '../../redux/slices/security';
 import initialBackgroundState from './initial-background-state.json';
 

@@ -2,7 +2,7 @@ import { useSelector } from 'react-redux';
 import {
   chainIdSelector,
   getRampNetworks,
-} from '../../../../../reducers/fiatOrders';
+} from '../../../../../redux/slices/fiatOrders';
 import {
   isNetworkRampNativeTokenSupported,
   isNetworkRampSupported,

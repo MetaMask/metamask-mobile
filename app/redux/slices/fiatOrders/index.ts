@@ -1,12 +1,12 @@
 import { Order } from '@consensys/on-ramp-sdk';
 import { createSelector } from 'reselect';
-import { Region } from '../../components/UI/Ramp/common/types';
-import { selectChainId } from '../../selectors/networkController';
-import { selectSelectedAddress } from '../../selectors/preferencesController';
+import { Region } from '../../../components/UI/Ramp/common/types';
+import { selectChainId } from '../../../selectors/networkController';
+import { selectSelectedAddress } from '../../../selectors/preferencesController';
 import {
   FIAT_ORDER_PROVIDERS,
   FIAT_ORDER_STATES,
-} from '../../constants/on-ramp';
+} from '../../../constants/on-ramp';
 import {
   Action,
   ACTIONS,
@@ -14,8 +14,8 @@ import {
   FiatOrder,
   FiatOrdersState,
 } from './types';
-import type { RootState } from '../';
-import { isTestNet } from '../../util/networks';
+import type { RootState } from '../../../reducers';
+import { isTestNet } from '../../../util/networks';
 export type { FiatOrder } from './types';
 
 /** Action Creators */

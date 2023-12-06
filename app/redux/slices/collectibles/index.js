@@ -1,11 +1,11 @@
 import { createSelector } from 'reselect';
-import { selectChainId } from '../../selectors/networkController';
+import { selectChainId } from '../../../selectors/networkController';
 import {
   selectAllNftContracts,
   selectAllNfts,
-} from '../../selectors/nftController';
-import { selectSelectedAddress } from '../../selectors/preferencesController';
-import { compareTokenIds } from '../../util/tokens';
+} from '../../../selectors/nftController';
+import { selectSelectedAddress } from '../../../selectors/preferencesController';
+import { compareTokenIds } from '../../../util/tokens';
 
 const favoritesSelector = (state) => state.collectibles.favorites;
 

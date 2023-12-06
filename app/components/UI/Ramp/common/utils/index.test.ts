@@ -19,7 +19,7 @@ import {
   isSellOrder,
   isSellFiatOrder,
 } from '.';
-import { FiatOrder, RampType } from '../../../../../reducers/fiatOrders/types';
+import { FiatOrder, RampType } from '../../../../../redux/slices/fiatOrders/types';
 
 describe('timeToDescription', () => {
   it('should return a function', () => {

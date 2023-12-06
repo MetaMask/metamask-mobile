@@ -64,7 +64,7 @@ import {
 } from '../../../../selectors/preferencesController';
 import AddToAddressBookWrapper from '../../../UI/AddToAddressBookWrapper';
 import { isNetworkRampNativeTokenSupported } from '../../../UI/Ramp/common/utils';
-import { getRampNetworks } from '../../../../reducers/fiatOrders';
+import { getRampNetworks } from '../../../../redux/slices/fiatOrders';
 import SendFlowAddressFrom from '../AddressFrom';
 import SendFlowAddressTo from '../AddressTo';
 import { includes } from 'lodash';

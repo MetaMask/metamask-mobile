@@ -3,7 +3,7 @@ import { View, StyleSheet } from 'react-native';
 import ScrollableTabView from 'react-native-scrollable-tab-view';
 import { useSelector } from 'react-redux';
 import { useNavigation } from '@react-navigation/native';
-import { getHasOrders } from '../../../reducers/fiatOrders';
+import { getHasOrders } from '../../../redux/slices/fiatOrders';
 import { getTransactionsNavbarOptions } from '../../UI/Navbar';
 import TransactionsView from '../TransactionsView';
 import TabBar from '../../Base/TabBar';

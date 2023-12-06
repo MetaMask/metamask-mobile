@@ -58,7 +58,7 @@ import {
   doENSReverseLookup,
 } from '../../../util/ENSUtils';
 import ClipboardManager from '../../../core/ClipboardManager';
-import { collectiblesSelector } from '../../../reducers/collectibles';
+import { collectiblesSelector } from '../../../redux/slices/collectibles';
 import { getCurrentRoute } from '../../../redux/slices/navigation';
 import { ScrollView } from 'react-native-gesture-handler';
 import { isZero } from '../../../util/lodash';

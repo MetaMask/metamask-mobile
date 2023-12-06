@@ -42,9 +42,9 @@ import fiatOrderReducer, {
   setFiatSellTxHash,
   removeFiatSellTxHash,
 } from '.';
-import { FIAT_ORDER_PROVIDERS } from '../../constants/on-ramp';
+import { FIAT_ORDER_PROVIDERS } from '../../../constants/on-ramp';
 import { CustomIdData, Action, FiatOrder, Region } from './types';
-import initialRootState from '../../util/test/initial-root-state';
+import initialRootState from '../../../util/test/initial-root-state';
 
 const mockOrder1 = {
   id: 'test-id-1',

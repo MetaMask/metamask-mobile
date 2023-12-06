@@ -13,8 +13,8 @@ import { useRampSDK, SDK } from '../../common/sdk';
 import {
   addFiatCustomIdData,
   removeFiatCustomIdData,
-} from '../../../../../reducers/fiatOrders';
-import { CustomIdData } from '../../../../../reducers/fiatOrders/types';
+} from '../../../../../redux/slices/fiatOrders';
+import { CustomIdData } from '../../../../../redux/slices/fiatOrders/types';
 import {
   createNavigationDetails,
   useParams,

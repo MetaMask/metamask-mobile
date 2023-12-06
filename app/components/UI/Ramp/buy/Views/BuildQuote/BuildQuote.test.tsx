@@ -21,7 +21,7 @@ import useLimits from '../../hooks/useLimits';
 import useAddressBalance from '../../../../../hooks/useAddressBalance/useAddressBalance';
 import useBalance from '../../../common/hooks/useBalance';
 import { toTokenMinimalUnit } from '../../../../../../util/number';
-import { RampType } from '../../../../../../reducers/fiatOrders/types';
+import { RampType } from '../../../../../../redux/slices/fiatOrders/types';
 
 const getByRoleButton = (name?: string | RegExp) =>
   screen.getByRole('button', { name });

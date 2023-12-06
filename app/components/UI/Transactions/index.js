@@ -22,7 +22,7 @@ import Button, {
 import { NO_RPC_BLOCK_EXPLORER, RPC } from '../../../constants/network';
 import Engine from '../../../core/Engine';
 import NotificationManager from '../../../core/NotificationManager';
-import { collectibleContractsSelector } from '../../../reducers/collectibles';
+import { collectibleContractsSelector } from '../../../redux/slices/collectibles';
 import {
   selectChainId,
   selectNetworkConfigurations,

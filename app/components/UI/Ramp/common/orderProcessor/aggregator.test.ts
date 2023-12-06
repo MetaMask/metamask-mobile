@@ -1,5 +1,5 @@
 import { Order } from '@consensys/on-ramp-sdk';
-import { FiatOrder } from '../../../../../reducers/fiatOrders';
+import { FiatOrder } from '../../../../../redux/slices/fiatOrders';
 import {
   aggregatorOrderToFiatOrder,
   POLLING_FRECUENCY_IN_SECONDS,

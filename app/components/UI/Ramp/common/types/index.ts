@@ -1,5 +1,5 @@
-export type { Region } from '../../../../../reducers/fiatOrders/types';
-export { RampType } from '../../../../../reducers/fiatOrders/types';
+export type { Region } from '../../../../../redux/slices/fiatOrders/types';
+export { RampType } from '../../../../../redux/slices/fiatOrders/types';
 
 export enum PROVIDER_LINKS {
   HOMEPAGE = 'Homepage',
