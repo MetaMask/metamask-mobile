@@ -1,8 +1,5 @@
-// Third party dependencies.
-import React, { useRef, FC, useCallback, useEffect, useState } from 'react';
-import { Platform, View, InteractionManager, StyleSheet } from 'react-native';
-
-// External dependencies.
+import React, { useRef, useEffect, useState } from 'react';
+import { View, InteractionManager } from 'react-native';
 import SheetHeader from '../../../../component-library/components/Sheet/SheetHeader';
 import { SheetBottomRef } from '../../../../component-library/components/Sheet/SheetBottom';
 import Button from '../../../../component-library/components/Buttons/Button/Button';
@@ -18,7 +15,6 @@ import Icon, {
   IconName,
   IconColor,
 } from '../../../../component-library/components/Icons/Icon';
-import { useTheme } from '../../../../util/theme';
 import { useSelector, useDispatch } from 'react-redux';
 import AnalyticsV2 from '../../../../util/analyticsV2';
 import { MetaMetricsEvents } from '../../../../core/Analytics';
@@ -26,22 +22,13 @@ import Engine from '../../../../core/Engine';
 import Routes from '../../../../constants/navigation/Routes';
 import BottomSheet from '../../../../component-library/components/BottomSheets/BottomSheet';
 import { strings } from '../../../../../locales/i18n';
-import { PPOMLoadingProps, Props } from './types';
+import { BlockaidIndicatorProps, Props } from './ExperimentalSettings.types';
+import createStyles from './ExperimentalSettings.styles';
 
-const createStyles = (colors: any) =>
-  StyleSheet.create({
-    buttonWrapper: {
-      flexDirection: 'row',
-      justifyContent: 'space-around',
-      marginTop: 20,
-    },
-  });
-
-const PPOMLoading = ({ navigation, route }: Props) => {
+const BlockaidIndicator = ({ navigation, route }: Props) => {
   const dispatch = useDispatch();
   const { PreferencesController } = Engine.context;
-  const { colors } = useTheme();
-  const styles = createStyles(colors);
+  const styles = createStyles();
 
   const [securityAlertsEnabled, setSecurityAlertsEnabled] = useState(
     route.params.securityAlertsEnabled,
@@ -85,13 +72,13 @@ const PPOMLoading = ({ navigation, route }: Props) => {
     iconName,
     iconColor,
     showButton,
-  }: PPOMLoadingProps) => (
-    <View style={{ marginHorizontal: 20 }}>
+  }: BlockaidIndicatorProps) => (
+    <View style={styles.blockaidWrapper}>
       <Icon
         name={iconName}
         size={IconSize.Md}
         color={iconColor}
-        style={{ alignSelf: 'center', marginTop: 20 }}
+        style={styles.iconStyle}
       />
       <SheetHeader title={title} />
       <Text variant={TextVariant.BodyMD}>{description}</Text>
@@ -103,7 +90,7 @@ const PPOMLoading = ({ navigation, route }: Props) => {
             size={ButtonSize.Md}
             onPress={cancelBlockaidInitialisation}
             width={ButtonWidthTypes.Auto}
-            style={{ width: 150 }}
+            style={styles.buttonSize}
           />
           <Button
             variant={ButtonVariants.Primary}
@@ -111,7 +98,7 @@ const PPOMLoading = ({ navigation, route }: Props) => {
             size={ButtonSize.Md}
             onPress={continueBlockaidInitialisation}
             width={ButtonWidthTypes.Full}
-            style={{ width: 150 }}
+            style={styles.buttonSize}
           />
         </View>
       )}
@@ -162,4 +149,4 @@ const PPOMLoading = ({ navigation, route }: Props) => {
   );
 };
 
-export default PPOMLoading;
+export default BlockaidIndicator;

@@ -1,11 +1,8 @@
 import React, { FC, useCallback, useEffect, useState } from 'react';
-import { ScrollView, StyleSheet, Switch, View } from 'react-native';
+import { ScrollView, Switch, View } from 'react-native';
 import { strings } from '../../../../../locales/i18n';
 import Engine from '../../../../core/Engine';
-import {
-  colors as importedColors,
-  fontStyles,
-} from '../../../../styles/common';
+import { colors as importedColors } from '../../../../styles/common';
 import { useTheme } from '../../../../util/theme';
 import Text, {
   TextVariant,
@@ -16,72 +13,8 @@ import StyledButton from '../../../UI/StyledButton';
 import SECURITY_ALERTS_TOGGLE_TEST_ID from './constants';
 import { isBlockaidFeatureEnabled } from '../../../../util/blockaid';
 import Routes from '../../../../constants/navigation/Routes';
-import { Props } from './types';
-
-const createStyles = (colors: any) =>
-  StyleSheet.create({
-    wrapper: {
-      backgroundColor: colors.background.default,
-      flex: 1,
-      padding: 24,
-      paddingBottom: 48,
-    },
-    title: {
-      ...(fontStyles.normal as any),
-      lineHeight: 20,
-      paddingTop: 4,
-      marginTop: -4,
-    },
-    boldTitle: {
-      ...(fontStyles.bold as any),
-      marginTop: 18,
-      marginBottom: 18,
-    },
-    heading: {
-      ...fontStyles.normal,
-      marginTop: 18,
-    },
-    desc: {
-      lineHeight: 20,
-      marginTop: 12,
-    },
-    setting: {
-      marginVertical: 16,
-    },
-    clearHistoryConfirm: {
-      marginTop: 18,
-    },
-    switchElement: {
-      display: 'flex',
-      justifyContent: 'space-between',
-      flexDirection: 'row',
-      alignItems: 'center',
-      marginBottom: 5,
-    },
-    switch: {
-      alignSelf: 'flex-end',
-    },
-    modalView: {
-      alignItems: 'center',
-      flex: 1,
-      flexDirection: 'column',
-      justifyContent: 'center',
-      padding: 20,
-    },
-    modalText: {
-      ...fontStyles.normal,
-      fontSize: 18,
-      textAlign: 'center',
-      color: colors.text.default,
-    },
-    modalTitle: {
-      ...fontStyles.bold,
-      fontSize: 22,
-      textAlign: 'center',
-      marginBottom: 20,
-      color: colors.text.default,
-    },
-  });
+import { Props } from './ExperimentalSettings.types';
+import createStyles from './ExperimentalSettings.styles';
 
 /**
  * Main view for app Experimental Settings
@@ -106,7 +39,7 @@ const ExperimentalSettings = ({ navigation, route }: Props) => {
 
     if (!securityAlertsEnabled) {
       navigation.navigate(Routes.MODAL.ROOT_MODAL_FLOW, {
-        screen: Routes.SHEET.PPOMLoading,
+        screen: Routes.SHEET.BLOCKAID_INDICATOR,
         params: {
           securityAlertsEnabled: !securityAlertsEnabled,
         },

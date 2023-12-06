@@ -11,7 +11,7 @@ export interface Props {
   route: any;
 }
 
-export interface PPOMLoadingProps {
+export interface BlockaidIndicatorProps {
   title: string;
   description: string;
   iconName: IconName;
