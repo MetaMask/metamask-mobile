@@ -3,7 +3,7 @@
 import {
   ActionType,
   SetSecurityAlertsEnabled,
-  SetPpomInitializedCompleted
+  SetPpomInitializedCompleted,
 } from '../../actions/experimental';
 
 const initialState = {

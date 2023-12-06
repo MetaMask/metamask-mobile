@@ -552,10 +552,7 @@ const App = ({ userLoggedIn }) => {
         name={Routes.SHEET.RETURN_TO_DAPP_MODAL}
         component={ReturnToAppModal}
       />
-      <Stack.Screen
-        name={Routes.SHEET.PPOMLoading}
-        component={PPOMLoading}
-      />
+      <Stack.Screen name={Routes.SHEET.PPOMLoading} component={PPOMLoading} />
       <Stack.Screen
         name={Routes.SHEET.AMBIGUOUS_ADDRESS}
         component={AmbiguousAddressSheet}

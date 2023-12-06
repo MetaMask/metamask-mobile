@@ -1,10 +1,5 @@
 import React, { FC, useCallback, useEffect, useState } from 'react';
-import {
-  ScrollView,
-  StyleSheet,
-  Switch,
-  View,
-} from 'react-native';
+import { ScrollView, StyleSheet, Switch, View } from 'react-native';
 import { strings } from '../../../../../locales/i18n';
 import Engine from '../../../../core/Engine';
 import {
@@ -21,6 +16,7 @@ import StyledButton from '../../../UI/StyledButton';
 import SECURITY_ALERTS_TOGGLE_TEST_ID from './constants';
 import { isBlockaidFeatureEnabled } from '../../../../util/blockaid';
 import Routes from '../../../../constants/navigation/Routes';
+import { Props } from './types';
 
 const createStyles = (colors: any) =>
   StyleSheet.create({
@@ -87,23 +83,14 @@ const createStyles = (colors: any) =>
     },
   });
 
-interface Props {
-  /**
-	/* navigation object required to push new views
-	*/
-  navigation: any;
-  /**
-   * contains params that are passed in from navigation
-   */
-  route: any;
-}
-
 /**
  * Main view for app Experimental Settings
  */
 const ExperimentalSettings = ({ navigation, route }: Props) => {
   const { PreferencesController } = Engine.context;
-  const [securityAlertsEnabled, setSecurityAlertsEnabled] = useState(() => PreferencesController.state.securityAlertsEnabled);
+  const [securityAlertsEnabled, setSecurityAlertsEnabled] = useState(
+    () => PreferencesController.state.securityAlertsEnabled,
+  );
   const isFullScreenModal = route?.params?.isFullScreenModal;
   const { colors } = useTheme();
   const styles = createStyles(colors);
@@ -116,14 +103,14 @@ const ExperimentalSettings = ({ navigation, route }: Props) => {
 
   const toggleSecurityAlertsEnabled = () => {
     setSecurityAlertsEnabled(!securityAlertsEnabled);
-     
-    if(!securityAlertsEnabled) {
-    navigation.navigate(Routes.MODAL.ROOT_MODAL_FLOW, {
-      screen: Routes.SHEET.PPOMLoading,
-      params: {
-        securityAlertsEnabled: !securityAlertsEnabled,
-      },
-    })
+
+    if (!securityAlertsEnabled) {
+      navigation.navigate(Routes.MODAL.ROOT_MODAL_FLOW, {
+        screen: Routes.SHEET.PPOMLoading,
+        params: {
+          securityAlertsEnabled: !securityAlertsEnabled,
+        },
+      });
     }
   };
 
