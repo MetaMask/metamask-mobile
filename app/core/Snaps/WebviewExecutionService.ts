@@ -7,15 +7,7 @@ import {
   ExecutionServiceArgs,
 } from '@metamask/snaps-controllers';
 import snapsState from './SnapsState';
-// import SnapWebviewPostMessageStream from './SnapWebviewPostMessageStream';
 import SnapDuplex from './SnapDuplex';
-
-// const ObjectMultiplex = require('obj-multiplex');
-
-// type IframeExecutionEnvironmentServiceArgs = {
-//   iframeUrl: URL;
-// } & ExecutionServiceArgs;
-
 export default class WebviewExecutionService extends AbstractExecutionService<Window> {
   #snapDuplexMap: SnapDuplex[];
 
@@ -24,7 +16,6 @@ export default class WebviewExecutionService extends AbstractExecutionService<Wi
       messenger,
       setupSnapProvider,
     });
-    // this.iframeUrl = iframeUrl;
     this.#snapDuplexMap = {};
   }
 
@@ -32,8 +23,7 @@ export default class WebviewExecutionService extends AbstractExecutionService<Wi
     worker;
     stream: BasePostMessageStream;
   }> {
-    // eslint-disable-next-line no-console
-    console.log(
+    Logger.log(
       '[EXEC SERVICE LOG] WebviewExecutionService+_initEnvStream: Init env stream for job',
       jobId,
     );
@@ -55,9 +45,7 @@ export default class WebviewExecutionService extends AbstractExecutionService<Wi
   protected terminateJob(jobWrapper: Job<Window>): void {
     this.#snapDuplexMap[jobWrapper.id].destroy();
     delete this.#snapDuplexMap[jobWrapper.id];
-
-    // eslint-disable-next-line no-console
-    console.log(
+    Logger.log(
       '[EXEC SERVICE LOG] WebviewExecutionService+_terminate: Job',
       jobWrapper.id,
       'SnapDuplex destroyed',

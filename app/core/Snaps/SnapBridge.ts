@@ -97,8 +97,7 @@ export default class SnapBridge {
   }
 
   setupProviderConnection = () => {
-    // eslint-disable-next-line no-console
-    console.log('[SNAP BRIDGE LOG] Engine+setupProviderConnection');
+    Logger.log('[SNAP BRIDGE LOG] Engine+setupProviderConnection');
     const outStream = this.#mux.createStream('metamask-provider');
     const engine = this.setupProviderEngine();
     const providerStream = createEngineStream({ engine });

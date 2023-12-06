@@ -1,3 +1,4 @@
+import { SnapLocation } from '@metamask/snaps-controllers';
 import {
   SnapManifest,
   VirtualFile,
@@ -7,8 +8,6 @@ import {
   HttpSnapIdStruct,
 } from '@metamask/snaps-utils';
 import { assert, assertStruct } from '@metamask/utils';
-
-import { SnapLocation } from './location';
 
 export interface HttpOptions {
   /**

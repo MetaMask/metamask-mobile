@@ -79,8 +79,8 @@
         "version": 2,
         "name": "MetaMask",
         "lastUpdated": 0
-    }
-  ],
+      }
+    ],
     "whitelist": [],
     "hotlistLastFetched": 0,
     "stalelistLastFetched": 0
@@ -132,6 +132,7 @@
   "TransactionController": {
     "lastFetchedBlockNumbers": {},
     "methodData": {},
+    "submitHistory": [],
     "transactions": []
   },
   "SnapController":  {

@@ -1,4 +1,5 @@
 import { Duplex } from 'readable-stream';
+import Logger from '../../util/Logger';
 
 type StreamData = number | string | Record<string, unknown> | unknown[];
 
@@ -26,8 +27,7 @@ export default abstract class SnapDuplex extends Duplex {
   }
 
   protected _onData(data: StreamData): void {
-    // eslint-disable-next-line no-console
-    console.log(
+    Logger.log(
       '[SNAP DUPLEX LOG] SnapDuplex+_onData: Job',
       this._jobId,
       'read data',
