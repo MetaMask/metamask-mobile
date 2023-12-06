@@ -21,6 +21,7 @@ jest.mock('../../../core/NativeModules', () => ({
 describe('handleMetaMaskProtocol', () => {
   const mockParse = jest.fn();
   const mockHandleBuyCrypto = jest.fn();
+  const mockHandleSellCrypto = jest.fn();
   const mockHandleBrowserUrl = jest.fn();
   const mockConnectToChannel = jest.fn();
   const mockGetConnections = jest.fn();
@@ -37,6 +38,7 @@ describe('handleMetaMaskProtocol', () => {
   const instance = {
     parse: mockParse,
     _handleBuyCrypto: mockHandleBuyCrypto,
+    _handleSellCrypto: mockHandleSellCrypto,
     _handleBrowserUrl: mockHandleBrowserUrl,
   } as unknown as DeeplinkManager;
 
@@ -214,6 +216,25 @@ describe('handleMetaMaskProtocol', () => {
       });
 
       expect(mockHandleBuyCrypto).toHaveBeenCalled();
+    });
+  });
+
+  describe('when url start with ${PREFIXES.METAMASK}${ACTIONS.SELL_CRYPTO}', () => {
+    beforeEach(() => {
+      url = `${PREFIXES.METAMASK}${ACTIONS.SELL_CRYPTO}`;
+    });
+
+    it('should call _handleSellCrypto', () => {
+      handleMetaMaskDeeplink({
+        instance,
+        handled,
+        params,
+        url,
+        origin,
+        wcURL,
+      });
+
+      expect(mockHandleSellCrypto).toHaveBeenCalled();
     });
   });
 });
