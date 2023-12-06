@@ -13,39 +13,46 @@ import StyledButton from '../../../UI/StyledButton';
 import SECURITY_ALERTS_TOGGLE_TEST_ID from './constants';
 import { isBlockaidFeatureEnabled } from '../../../../util/blockaid';
 import Routes from '../../../../constants/navigation/Routes';
+import { useSelector } from 'react-redux';
 import { Props } from './ExperimentalSettings.types';
 import createStyles from './ExperimentalSettings.styles';
+import { selectIsSecurityAlertsEnabled } from '../../../../selectors/preferencesController';
+import { useIsFocused } from '@react-navigation/native';
 
 /**
  * Main view for app Experimental Settings
  */
 const ExperimentalSettings = ({ navigation, route }: Props) => {
   const { PreferencesController } = Engine.context;
-  const [securityAlertsEnabled, setSecurityAlertsEnabled] = useState(
-    () => PreferencesController.state.securityAlertsEnabled,
+
+  const initialSecurityAlertsEnabled = useSelector(
+    selectIsSecurityAlertsEnabled,
+  );
+  const [securityAlertsEnabled, setSecurityAlertsEnabled] = useState<any>(
+    initialSecurityAlertsEnabled,
   );
   const isFullScreenModal = route?.params?.isFullScreenModal;
+  const isFocused = useIsFocused();
+
   const { colors } = useTheme();
   const styles = createStyles(colors);
 
-  useEffect(() => {
-    // if(route?.params?.securityAlertsEnabled) {
-    //   setSecurityAlertsEnabled(route.params.securityAlertsEnabled);
-    // }
-  }, [securityAlertsEnabled]);
-
   const toggleSecurityAlertsEnabled = () => {
-    setSecurityAlertsEnabled(!securityAlertsEnabled);
-
-    if (!securityAlertsEnabled) {
+    if (securityAlertsEnabled) {
+      setSecurityAlertsEnabled(!securityAlertsEnabled);
+      PreferencesController?.setSecurityAlertsEnabled(!securityAlertsEnabled);
+    } else {
       navigation.navigate(Routes.MODAL.ROOT_MODAL_FLOW, {
         screen: Routes.SHEET.BLOCKAID_INDICATOR,
-        params: {
-          securityAlertsEnabled: !securityAlertsEnabled,
-        },
       });
     }
   };
+
+  useEffect(() => {
+    if (isFocused) {
+      setSecurityAlertsEnabled(initialSecurityAlertsEnabled);
+    }
+  }, [isFocused, initialSecurityAlertsEnabled]);
 
   useEffect(
     () => {

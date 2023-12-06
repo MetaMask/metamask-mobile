@@ -25,36 +25,36 @@ import { strings } from '../../../../../locales/i18n';
 import { BlockaidIndicatorProps, Props } from './ExperimentalSettings.types';
 import { useTheme } from '../../../../util/theme';
 import createStyles from './ExperimentalSettings.styles';
+import { selectIsSecurityAlertsEnabled } from '../../../../selectors/preferencesController';
 
-const BlockaidIndicator = ({ navigation, route }: Props) => {
+const BlockaidIndicator = ({ navigation }: Props) => {
   const dispatch = useDispatch();
   const { PreferencesController } = Engine.context;
   const { colors } = useTheme();
   const styles = createStyles(colors);
 
-  const [securityAlertsEnabled, setSecurityAlertsEnabled] = useState(
-    route.params.securityAlertsEnabled,
+  const initialSecurityAlertsEnabled = useSelector(
+    selectIsSecurityAlertsEnabled,
   );
   const [fetchingPPOMDataInProgress, setFetchingPPOMDataInProgress] =
     useState(false);
+  const [sheetInteractable, setSheetInteractable] = useState(true);
   const [intialisedBlockaid, setIntialisedBlockaid] = useState(true);
   const sheetRef = useRef<SheetBottomRef>(null);
 
   const cancelBlockaidInitialisation = () => {
-    setSecurityAlertsEnabled(securityAlertsEnabled);
-    navigation.navigate(Routes.SETTINGS.EXPERIMENTAL_SETTINGS, {
-      securityAlertsEnabled,
-    });
+    navigation.navigate(Routes.SETTINGS.EXPERIMENTAL_SETTINGS);
   };
 
   const continueBlockaidInitialisation = () => {
-    PreferencesController?.setSecurityAlertsEnabled(!securityAlertsEnabled);
-    if (securityAlertsEnabled) {
-      dispatch({
-        type: 'SET_PPOM_INITIALIZATION_COMPLETED',
-        ppomInitializationCompleted: false,
-      });
-    }
+    PreferencesController?.setSecurityAlertsEnabled(
+      !initialSecurityAlertsEnabled,
+    );
+    setSheetInteractable(false);
+    dispatch({
+      type: 'SET_PPOM_INITIALIZATION_COMPLETED',
+      ppomInitializationCompleted: false,
+    });
     setFetchingPPOMDataInProgress(true);
     setIntialisedBlockaid(false);
 
@@ -62,7 +62,7 @@ const BlockaidIndicator = ({ navigation, route }: Props) => {
       AnalyticsV2.trackEvent(
         MetaMetricsEvents.SETTINGS_EXPERIMENTAL_SECURITY_ALERTS_ENABLED,
         {
-          security_alerts_enabled: !securityAlertsEnabled,
+          security_alerts_enabled: !initialSecurityAlertsEnabled,
         },
       );
     });
@@ -78,7 +78,7 @@ const BlockaidIndicator = ({ navigation, route }: Props) => {
     <View style={styles.blockaidWrapper}>
       <Icon
         name={iconName}
-        size={IconSize.Md}
+        size={IconSize.Xl}
         color={iconColor}
         style={styles.iconStyle}
       />
@@ -115,11 +115,12 @@ const BlockaidIndicator = ({ navigation, route }: Props) => {
     if (ppomInitialisationCompleted) {
       setFetchingPPOMDataInProgress(false);
       setIntialisedBlockaid(false);
+      setSheetInteractable(true);
     }
   }, [ppomInitialisationCompleted]);
 
   return (
-    <BottomSheet ref={sheetRef} isInteractable={false}>
+    <BottomSheet ref={sheetRef} isInteractable={sheetInteractable}>
       {intialisedBlockaid && (
         <BlockaidLoadingIndicator
           title={strings('blockaid_banner.before_you_proceed')}
@@ -139,14 +140,14 @@ const BlockaidIndicator = ({ navigation, route }: Props) => {
         />
       )}
 
-      {!intialisedBlockaid && !fetchingPPOMDataInProgress && (
+      {/* {!intialisedBlockaid && !fetchingPPOMDataInProgress && (
         <BlockaidLoadingIndicator
           title={strings('blockaid_banner.setup_complete')}
           description={strings('blockaid_banner.setup_complete_description')}
           iconName={IconName.CopySuccess}
           iconColor={IconColor.Success}
         />
-      )}
+      )} */}
     </BottomSheet>
   );
 };
