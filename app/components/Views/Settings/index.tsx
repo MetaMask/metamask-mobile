@@ -38,7 +38,6 @@ const createStyles = (colors: Colors) =>
     wrapper: {
       backgroundColor: colors.background.default,
       flex: 1,
-      paddingLeft: 18,
       zIndex: 99999999999999,
     },
   });

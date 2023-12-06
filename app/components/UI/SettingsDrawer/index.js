@@ -1,59 +1,35 @@
 import React from 'react';
-import {
-  Text,
-  View,
-  StyleSheet,
-  TouchableOpacity,
-  Platform,
-} from 'react-native';
+import { View, StyleSheet, TouchableOpacity, Platform } from 'react-native';
 import PropTypes from 'prop-types';
 import { fontStyles } from '../../../styles/common';
-import Icon from 'react-native-vector-icons/FontAwesome';
 import SettingsNotification from '../SettingsNotification';
 import { strings } from '../../../../locales/i18n';
 import { useTheme } from '../../../util/theme';
 import generateTestId from '../../../../wdio/utils/generateTestId';
+import Icon, {
+  IconName,
+  IconSize,
+} from '../../../component-library/components/Icons/Icon';
+import ListItem from '../../../component-library/components/List/ListItem/ListItem';
+import ListItemColumn, {
+  WidthType,
+} from '../../../component-library/components/List/ListItemColumn';
+import Text, {
+  TextVariant,
+  TextColor,
+} from '../../../component-library/components/Texts/Text';
+import HelpText, {
+  HelpTextSeverity,
+} from '../../../component-library/components/Form/HelpText';
 
 const createStyles = (colors, titleColor) =>
   StyleSheet.create({
     root: {
       backgroundColor: colors.background.default,
-      borderBottomColor: colors.border.muted,
-      borderBottomWidth: 1,
-      flexDirection: 'row',
-      minHeight: 100,
-      paddingVertical: 18,
-    },
-    content: {
-      flex: 1,
-      justifyContent: 'center',
-    },
-    title: {
-      ...fontStyles.normal,
-      color: titleColor || colors.text.default,
-      fontSize: 20,
-      marginBottom: 8,
-    },
-    description: {
-      ...fontStyles.normal,
-      color: colors.text.alternative,
-      fontSize: 14,
-      lineHeight: 20,
-      paddingRight: 8,
+      padding: 16,
     },
     action: {
-      flex: 0,
-      paddingHorizontal: 16,
-      justifyContent: 'center',
-    },
-    icon: {
-      bottom: 8,
-      color: colors.icon.alternative,
-      left: 4,
-      position: 'relative',
-    },
-    noBorder: {
-      borderBottomWidth: 0,
+      paddingLeft: 16,
     },
     warning: {
       alignSelf: 'flex-start',
@@ -117,30 +93,34 @@ const SettingsDrawer = ({
 
   return (
     <TouchableOpacity onPress={onPress} {...generateTestId(Platform, testID)}>
-      <View style={noBorder ? [styles.root, styles.noBorder] : styles.root}>
-        <View style={styles.content}>
-          <Text style={styles.title}>{title}</Text>
-          {description && <Text style={styles.description}>{description}</Text>}
+      <ListItem style={styles.root} gap={16}>
+        <ListItemColumn widthType={WidthType.Fill}>
+          <Text variant={TextVariant.BodyLGMedium}>{title}</Text>
+          {description && (
+            <Text variant={TextVariant.BodyMD} color={TextColor.Alternative}>
+              {description}
+            </Text>
+          )}
           <View>
-            {warning ? (
-              <SettingsNotification
-                style={styles.warning}
-                isWarning
-                isNotification
-              >
-                <Text style={styles.menuItemWarningText}>
-                  {strings('drawer.settings_warning')}
-                </Text>
-              </SettingsNotification>
-            ) : null}
+            <SettingsNotification
+              style={styles.warning}
+              isWarning
+              isNotification
+            >
+              <HelpText>{strings('drawer.settings_warning')}</HelpText>
+            </SettingsNotification>
           </View>
-        </View>
+        </ListItemColumn>
         {renderArrowRight && (
-          <View style={styles.action}>
-            <Icon name="angle-right" size={36} style={styles.icon} />
-          </View>
+          <ListItemColumn>
+            <Icon
+              style={styles.action}
+              size={IconSize.Md}
+              name={IconName.ArrowRight}
+            />
+          </ListItemColumn>
         )}
-      </View>
+      </ListItem>
     </TouchableOpacity>
   );
 };
