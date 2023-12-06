@@ -872,7 +872,10 @@ const Settings: React.FC = () => {
     };
 
     return (
-      <View style={styles.setting} testID={'third-party-section'}>
+      <View
+        style={styles.setting}
+        testID={SecurityPrivacyViewSelectorsIDs.INCOMING_TRANSACTIONS}
+      >
         <Text variant={TextVariant.BodyLGMedium}>
           {strings('app_settings.incoming_transactions_title')}
         </Text>

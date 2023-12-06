@@ -26,7 +26,7 @@ const ChangePassword = () => {
   return (
     <View
       style={styles.setting}
-      testID={SecurityPrivacyViewSelectorsIDs.CHANGE_PASSWORD_TITLE}
+      testID={SecurityPrivacyViewSelectorsIDs.CHANGE_PASSWORD_CONTAINER}
     >
       <Text variant={TextVariant.BodyLGMedium}>
         {strings('password_reset.password_title')}
