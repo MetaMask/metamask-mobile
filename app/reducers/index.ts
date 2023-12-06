@@ -66,7 +66,7 @@ export interface RootState {
 // TODO: Fix the Action type. It's set to `any` now because some of the
 // TypeScript reducers have invalid actions
 const rootReducer = combineReducers<RootState, any>({
-  collectibles: collectiblesReducer,
+  collectibles: collectiblesReducer, // done
   engine: engineReducer as any, //done
   privacy: privacyReducer, //done
   bookmarks: bookmarksReducer, // attempting to define property on object that is not extensible
@@ -78,7 +78,7 @@ const rootReducer = combineReducers<RootState, any>({
   user: userReducer, //done
   wizard: wizardReducer, // done
   onboarding: onboardingReducer, // done
-  notification: notificationReducer,
+  notification: notificationReducer, // done
   signatureRequest: signatureRequestReducer, // done
   swaps: swapsReducer, // done
   fiatOrders,

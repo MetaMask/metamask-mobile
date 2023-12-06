@@ -17,6 +17,8 @@ import {
 import type { RootState } from '../../../reducers';
 import { isTestNet } from '../../../util/networks';
 export type { FiatOrder } from './types';
+import MigratedStorage from '../../storage/MigratedStorage';
+import { persistReducer } from 'redux-persist';
 
 /** Action Creators */
 
@@ -272,7 +274,7 @@ const findCustomIdIndex = (
   customOrderIds: CustomIdData[],
 ) => customOrderIds.findIndex((customOrderId) => customOrderId.id === id);
 
-const fiatOrderReducer: (
+const reducer: (
   state: FiatOrdersState | undefined,
   action: Action | Record<'type', null>,
 ) => FiatOrdersState = (state = initialState, action = { type: null }) => {
@@ -527,5 +529,13 @@ const fiatOrderReducer: (
     }
   }
 };
+
+const fiatOrderConfig = {
+  key: 'fiatOrder',
+  blacklist: [],
+  storage: MigratedStorage,
+};
+
+const fiatOrderReducer = persistReducer(fiatOrderConfig, reducer);
 
 export default fiatOrderReducer;
