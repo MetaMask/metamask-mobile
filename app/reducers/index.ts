@@ -11,11 +11,11 @@ import wizardReducer from '../redux/slices/wizard';
 import onboardingReducer from '../redux/slices/onboarding';
 import fiatOrders from './fiatOrders';
 import swapsReducer from './swaps';
-import signatureRequestReducer from './signatureRequest';
+import signatureRequestReducer from '../redux/slices/signatureRequest';
 import notificationReducer from './notification';
 import infuraAvailabilityReducer from '../redux/slices/infuraAvailability';
 import collectiblesReducer from './collectibles';
-import navigationReducer from './navigation';
+import navigationReducer from '../redux/slices/navigation';
 import networkOnboardReducer from '../redux/slices/networkSelector';
 import securityReducer from './security';
 import { combineReducers, Reducer } from 'redux';
@@ -74,7 +74,7 @@ const rootReducer = combineReducers<RootState, any>({
   modals: modalsReducer, // done
   settings: settingsReducer, //done
   alert: alertReducer, // done
-  transaction: transactionReducer,
+  transaction: transactionReducer, // done
   user: userReducer, //done
   wizard: wizardReducer, // done
   onboarding: onboardingReducer, // done
@@ -83,7 +83,7 @@ const rootReducer = combineReducers<RootState, any>({
   swaps: swapsReducer,
   fiatOrders,
   infuraAvailability: infuraAvailabilityReducer, // done - redundant ?
-  navigation: navigationReducer,
+  navigation: navigationReducer, // done
   networkOnboarded: networkOnboardReducer, // done
   security: securityReducer,
   experimentalSettings: experimentalSettingsReducer,

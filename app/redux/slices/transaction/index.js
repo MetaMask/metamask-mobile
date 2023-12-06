@@ -1,5 +1,9 @@
-import { REHYDRATE } from 'redux-persist';
-import { getTxData, getTxMeta } from '../../../util/transaction-reducer-helpers';
+import { REHYDRATE, persistReducer } from 'redux-persist';
+import {
+  getTxData,
+  getTxMeta,
+} from '../../../util/transaction-reducer-helpers';
+import MigratedStorage from '../../storage/MigratedStorage';
 
 const initialState = {
   ensRecipient: undefined,
@@ -44,7 +48,7 @@ const getAssetType = (selectedAsset) => {
   return assetType;
 };
 
-const transactionReducer = (state = initialState, action) => {
+const reducer = (state = initialState, action) => {
   switch (action.type) {
     case REHYDRATE:
       return {
@@ -164,4 +168,13 @@ const transactionReducer = (state = initialState, action) => {
       return state;
   }
 };
+
+const transactionPersistConfig = {
+  key: 'transaction',
+  blacklist: [],
+  storage: MigratedStorage,
+};
+
+const transactionReducer = persistReducer(transactionPersistConfig, reducer);
+
 export default transactionReducer;

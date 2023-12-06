@@ -1,4 +1,6 @@
-import { SecurityAlertResponse } from '../../components/UI/BlockaidBanner/BlockaidBanner.types';
+import { SecurityAlertResponse } from '../../../components/UI/BlockaidBanner/BlockaidBanner.types';
+import MigratedStorage from '../../storage/MigratedStorage';
+import { persistReducer } from 'redux-persist';
 
 interface StateType {
   securityAlertResponse?: SecurityAlertResponse;
@@ -13,7 +15,7 @@ const initialState: StateType = {
   securityAlertResponse: undefined,
 };
 
-const signatureRequestReducer = (
+const reducer = (
   state: StateType = initialState,
   action: ActionType = { type: 'NONE' },
 ) => {
@@ -26,4 +28,16 @@ const signatureRequestReducer = (
       return state;
   }
 };
+
+const signatureRequestPersistConfig = {
+  key: 'signatureRequest',
+  blacklist: [],
+  storage: MigratedStorage,
+};
+
+const signatureRequestReducer = persistReducer(
+  signatureRequestPersistConfig,
+  reducer,
+);
+
 export default signatureRequestReducer;

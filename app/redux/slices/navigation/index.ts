@@ -1,4 +1,10 @@
 /**
+ * @ deprecated: this reducer is being used in DrawerView but we no longer use that section of code form it
+ * reducer can be removed entirely
+ */
+import MigratedStorage from '../../storage/MigratedStorage';
+import { persistReducer } from 'redux-persist';
+/**
  * Constants
  */
 export const SET_CURRENT_ROUTE = 'SET_CURRENT_ROUTE';
@@ -17,7 +23,7 @@ const initialState: InitialState = {
   currentBottomNavRoute: 'Wallet',
 };
 
-const navigationReducer = (state = initialState, action: any = {}) => {
+const reducer = (state = initialState, action: any = {}) => {
   switch (action.type) {
     case SET_CURRENT_ROUTE:
       return {
@@ -38,7 +44,13 @@ const navigationReducer = (state = initialState, action: any = {}) => {
  * Selectors
  */
 export const getCurrentRoute = (state: any) => state.navigation.currentRoute;
-export const getCurrentBottomNavRoute = (state: any) =>
-  state.navigation.currentBottomNavRoute;
+
+const navigationConfig = {
+  key: 'navigation',
+  blacklist: [],
+  storage: MigratedStorage,
+};
+
+const navigationReducer = persistReducer(navigationConfig, reducer);
 
 export default navigationReducer;

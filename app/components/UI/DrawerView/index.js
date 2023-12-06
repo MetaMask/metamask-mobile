@@ -59,7 +59,7 @@ import {
 } from '../../../util/ENSUtils';
 import ClipboardManager from '../../../core/ClipboardManager';
 import { collectiblesSelector } from '../../../reducers/collectibles';
-import { getCurrentRoute } from '../../../reducers/navigation';
+import { getCurrentRoute } from '../../../redux/slices/navigation';
 import { ScrollView } from 'react-native-gesture-handler';
 import { isZero } from '../../../util/lodash';
 import { Authentication } from '../../../core/';
