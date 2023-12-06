@@ -63,9 +63,13 @@ const PersonalSign = ({
       const pageInfo = currentPageInformation || messageParams.meta;
       const url = new URL(pageInfo.url);
 
-      const blockaidParams = getBlockaidMetricsParams(
-        securityAlertResponse as SecurityAlertResponse,
-      );
+      let blockaidParams = {};
+
+      if (securityAlertResponse) {
+        blockaidParams = getBlockaidMetricsParams(
+          securityAlertResponse as SecurityAlertResponse,
+        );
+      }
 
       return {
         account_type: getAddressAccountType(messageParams.from),
@@ -79,13 +83,6 @@ const PersonalSign = ({
       return {};
     }
   }, [currentPageInformation, messageParams, securityAlertResponse]);
-
-  useEffect(() => {
-    AnalyticsV2.trackEvent(
-      MetaMetricsEvents.SIGNATURE_REQUESTED,
-      getAnalyticsParams(),
-    );
-  }, [getAnalyticsParams, securityAlertResponse]);
 
   useEffect(() => {
     const onSignatureError = ({ error }: { error: Error }) => {

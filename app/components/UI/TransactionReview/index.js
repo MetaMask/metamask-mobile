@@ -318,10 +318,6 @@ class TransactionReview extends PureComponent {
       [assetAmount, conversionRate, fiatValue] = this.getRenderValues()();
     }
 
-    const additionalParams = getBlockaidMetricsParams(
-      transaction?.securityAlertResponse,
-    );
-
     this.setState({
       actionKey,
       showHexData,
@@ -331,10 +327,7 @@ class TransactionReview extends PureComponent {
       approveTransaction,
     });
     InteractionManager.runAfterInteractions(() => {
-      AnalyticsV2.trackEvent(
-        MetaMetricsEvents.TRANSACTIONS_CONFIRM_STARTED,
-        additionalParams,
-      );
+      AnalyticsV2.trackEvent(MetaMetricsEvents.TRANSACTIONS_CONFIRM_STARTED);
     });
     if (isMultiLayerFeeNetwork(chainId)) {
       this.fetchEstimatedL1Fee();
@@ -348,7 +341,9 @@ class TransactionReview extends PureComponent {
   onContactUsClicked = () => {
     const { transaction } = this.props;
     const additionalParams = {
-      ...getBlockaidMetricsParams(transaction?.securityAlertResponse),
+      ...getBlockaidMetricsParams(
+        transaction?.currentTransactionSecurityAlertResponse,
+      ),
       external_link_clicked: 'security_alert_support_link',
     };
     AnalyticsV2.trackEvent(
