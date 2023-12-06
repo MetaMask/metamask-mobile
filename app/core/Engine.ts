@@ -702,6 +702,12 @@ class Engine {
           securityAlertsEnabled:
             initialState.PreferencesController?.securityAlertsEnabled ?? false,
           state: initialState.PPOMController,
+        ppomInitialisationCallback: () => {  
+          store.dispatch({
+            type: 'SET_PPOM_INITIALIZATION_COMPLETED',
+            ppomInitializationCompleted: true,
+          });
+        }
         });
         controllers.push(ppomController as any);
       } catch (e) {

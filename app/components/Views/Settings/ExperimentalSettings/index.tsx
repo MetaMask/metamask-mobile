@@ -1,6 +1,5 @@
 import React, { FC, useCallback, useEffect, useState } from 'react';
 import {
-  InteractionManager,
   ScrollView,
   StyleSheet,
   Switch,
@@ -21,8 +20,7 @@ import { getNavigationOptionsTitle } from '../../../UI/Navbar';
 import StyledButton from '../../../UI/StyledButton';
 import SECURITY_ALERTS_TOGGLE_TEST_ID from './constants';
 import { isBlockaidFeatureEnabled } from '../../../../util/blockaid';
-import AnalyticsV2 from '../../../../util/analyticsV2';
-import { MetaMetricsEvents } from '../../../../core/Analytics';
+import Routes from '../../../../constants/navigation/Routes';
 
 const createStyles = (colors: any) =>
   StyleSheet.create({
@@ -105,24 +103,28 @@ interface Props {
  */
 const ExperimentalSettings = ({ navigation, route }: Props) => {
   const { PreferencesController } = Engine.context;
-  const [securityAlertsEnabled, setSecurityAlertsEnabled] = useState(
-    () => PreferencesController.state.securityAlertsEnabled,
-  );
+  const [securityAlertsEnabled, setSecurityAlertsEnabled] = useState(() => PreferencesController.state.securityAlertsEnabled);
   const isFullScreenModal = route?.params?.isFullScreenModal;
   const { colors } = useTheme();
   const styles = createStyles(colors);
 
+  useEffect(() => {
+    if(route?.params?.securityAlertsEnabled) {
+      setSecurityAlertsEnabled(route.params.securityAlertsEnabled);
+    }
+  }, [securityAlertsEnabled]);
+
   const toggleSecurityAlertsEnabled = () => {
-    PreferencesController?.setSecurityAlertsEnabled(!securityAlertsEnabled);
     setSecurityAlertsEnabled(!securityAlertsEnabled);
-    InteractionManager.runAfterInteractions(() => {
-      AnalyticsV2.trackEvent(
-        MetaMetricsEvents.SETTINGS_EXPERIMENTAL_SECURITY_ALERTS_ENABLED,
-        {
-          security_alerts_enabled: !securityAlertsEnabled,
-        },
-      );
-    });
+     
+    if(!securityAlertsEnabled) {
+    navigation.navigate(Routes.MODAL.ROOT_MODAL_FLOW, {
+      screen: Routes.SHEET.PPOMLoading,
+      params: {
+        securityAlertsEnabled: !securityAlertsEnabled,
+      },
+    })
+    }
   };
 
   useEffect(

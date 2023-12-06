@@ -189,7 +189,7 @@
     "@metamask/network-controller": "^8.0.0",
     "@metamask/permission-controller": "^4.0.1",
     "@metamask/phishing-controller": "^5.0.0",
-    "@metamask/ppom-validator": "^0.13.0",
+    "@metamask/ppom-validator": "0.12.0",
     "@metamask/preferences-controller": "^4.0.0",
     "@metamask/scure-bip39": "^2.1.0",
     "@metamask/sdk-communication-layer": "^0.12.0",
