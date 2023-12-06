@@ -23,12 +23,14 @@ import Routes from '../../../../constants/navigation/Routes';
 import BottomSheet from '../../../../component-library/components/BottomSheets/BottomSheet';
 import { strings } from '../../../../../locales/i18n';
 import { BlockaidIndicatorProps, Props } from './ExperimentalSettings.types';
+import { useTheme } from '../../../../util/theme';
 import createStyles from './ExperimentalSettings.styles';
 
 const BlockaidIndicator = ({ navigation, route }: Props) => {
   const dispatch = useDispatch();
   const { PreferencesController } = Engine.context;
-  const styles = createStyles();
+  const { colors } = useTheme();
+  const styles = createStyles(colors);
 
   const [securityAlertsEnabled, setSecurityAlertsEnabled] = useState(
     route.params.securityAlertsEnabled,

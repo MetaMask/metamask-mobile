@@ -2,7 +2,7 @@ import { StyleSheet } from 'react-native';
 import { fontStyles } from '../../../../styles/common';
 import { Colors } from '../../../../util/theme/models';
 
-const createStyles = (colors?: Colors) =>
+const createStyles = (colors: Colors) =>
   StyleSheet.create({
     buttonWrapper: {
       flexDirection: 'row',

@@ -553,7 +553,7 @@ const App = ({ userLoggedIn }) => {
         component={ReturnToAppModal}
       />
       <Stack.Screen
-        name={Routes.SHEET.BlockaidIndicator}
+        name={Routes.SHEET.BLOCKAID_INDICATOR}
         component={BlockaidIndicator}
       />
       <Stack.Screen
