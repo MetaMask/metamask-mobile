@@ -8,6 +8,7 @@ import {
 } from '@metamask/snaps-controllers';
 import snapsState from './SnapsState';
 import SnapDuplex from './SnapDuplex';
+import Logger from '../../util/Logger';
 export default class WebviewExecutionService extends AbstractExecutionService<Window> {
   #snapDuplexMap: SnapDuplex[];
 
