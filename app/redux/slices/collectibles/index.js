@@ -6,6 +6,8 @@ import {
 } from '../../../selectors/nftController';
 import { selectSelectedAddress } from '../../../selectors/preferencesController';
 import { compareTokenIds } from '../../../util/tokens';
+import MigratedStorage from '../../storage/MigratedStorage';
+import { persistReducer } from 'redux-persist';
 
 const favoritesSelector = (state) => state.collectibles.favorites;
 
@@ -58,7 +60,7 @@ const initialState = {
   favorites: {},
 };
 
-const collectiblesFavoritesReducer = (state = initialState, action) => {
+const reducer = (state = initialState, action) => {
   switch (action.type) {
     case ADD_FAVORITE_COLLECTIBLE: {
       const { selectedAddress, chainId, collectible } = action;
@@ -116,5 +118,16 @@ const collectiblesFavoritesReducer = (state = initialState, action) => {
     }
   }
 };
+
+const collectiblesFavoritesConfig = {
+  key: 'collectiblesFavorites',
+  blacklist: [],
+  storage: MigratedStorage,
+};
+
+const collectiblesFavoritesReducer = persistReducer(
+  collectiblesFavoritesConfig,
+  reducer,
+);
 
 export default collectiblesFavoritesReducer;
