@@ -1,4 +1,7 @@
 import notificationTypes from '../../../util/notifications';
+import MigratedStorage from '../../storage/MigratedStorage';
+import { persistReducer } from 'redux-persist';
+
 const { TRANSACTION, SIMPLE } = notificationTypes;
 
 export const initialState = {
@@ -28,7 +31,7 @@ const dequeue = (notifications) => notifications.slice(1);
 export const currentNotificationSelector = (state) =>
   state?.notifications[0] || {};
 
-const notificationReducer = (state = initialState, action) => {
+const reducer = (state = initialState, action) => {
   const { notifications } = state;
   switch (action.type) {
     // make current notification isVisible props false
@@ -193,4 +196,13 @@ const notificationReducer = (state = initialState, action) => {
       return state;
   }
 };
+
+const notificationConfig = {
+  key: 'notification',
+  blacklist: [],
+  storage: MigratedStorage,
+};
+
+const notificationReducer = persistReducer(notificationConfig, reducer);
+
 export default notificationReducer;
