@@ -4,6 +4,7 @@ export const WalletViewSelectorsIDs = {
   WALLET_CONTAINER: 'wallet-screen',
   NETWORK_NAME: 'network-name',
   NFT_CONTAINER: 'collectible-name',
+  WALLET_SCAN_BUTTON: 'wallet-scan-button',
 };
 
 export const WalletViewSelectorsText = {
