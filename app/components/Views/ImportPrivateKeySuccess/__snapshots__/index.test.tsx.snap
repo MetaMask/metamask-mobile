@@ -21,7 +21,6 @@ exports[`ImportPrivateKeySuccess should render correctly 1`] = `
         "flex": 1,
       }
     }
-    testID="first-incoming-transaction-screen"
   >
     <View
       style={
