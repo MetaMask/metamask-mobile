@@ -1,9 +1,13 @@
 import React, { useCallback } from 'react';
-import { Platform, Switch, Text, View } from 'react-native';
+import { Platform, Switch, View } from 'react-native';
 import { mockTheme, useAppThemeFromContext } from '../../../util/theme';
 import { createStyles } from './styles';
 import { colors as importedColors } from '../../../styles/common';
 import generateTestId from '../../../../wdio/utils/generateTestId';
+import Text, {
+  TextColor,
+  TextVariant,
+} from '../../../component-library/components/Texts/Text';
 
 interface SecurityOptionsToggleProps {
   title: string;
@@ -27,7 +31,7 @@ const SecurityOptionToggle = ({
   disabled,
 }: SecurityOptionsToggleProps) => {
   const { colors } = useAppThemeFromContext() || mockTheme;
-  const styles = createStyles(colors);
+  const styles = createStyles();
 
   const handleOnValueChange = useCallback(
     (newValue: boolean) => {
@@ -37,8 +41,16 @@ const SecurityOptionToggle = ({
   );
   return (
     <View style={styles.setting}>
-      <Text style={styles.title}>{title}</Text>
-      {description ? <Text style={styles.desc}>{description}</Text> : null}
+      <Text variant={TextVariant.BodyLGMedium}>{title}</Text>
+      {description ? (
+        <Text
+          variant={TextVariant.BodyMD}
+          color={TextColor.Alternative}
+          style={styles.desc}
+        >
+          {description}
+        </Text>
+      ) : null}
       <View style={styles.switchElement}>
         <Switch
           value={value}

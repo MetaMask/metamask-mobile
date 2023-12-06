@@ -3,7 +3,6 @@ import React, { useCallback, useEffect, useRef, useState } from 'react';
 import {
   Alert,
   Switch,
-  Text,
   ScrollView,
   View,
   ActivityIndicator,
@@ -15,7 +14,6 @@ import AsyncStorage from '../../../../store/async-storage-wrapper';
 import { useDispatch, useSelector } from 'react-redux';
 import { MAINNET } from '../../../../constants/network';
 import ActionModal from '../../../UI/ActionModal';
-import StyledButton from '../../../UI/StyledButton';
 import { clearHistory } from '../../../../actions/browser';
 import { colors as importedColors } from '../../../../styles/common';
 import Logger from '../../../../util/Logger';
@@ -109,13 +107,24 @@ import images from 'images/image-icons';
 import { toHexadecimal } from '../../../../util/number';
 import { ETHERSCAN_SUPPORTED_NETWORKS } from '@metamask/transaction-controller/dist/constants';
 import { SecurityPrivacyViewSelectorsIDs } from '../../../../../e2e/selectors/Settings/SecurityAndPrivacy/SecurityPrivacyView.selectors';
+import Text, {
+  TextVariant,
+  TextColor,
+} from '../../../../component-library/components/Texts/Text';
+import Button, {
+  ButtonVariants,
+  ButtonSize,
+  ButtonWidthTypes,
+} from '../../../../component-library/components/Buttons/Button';
 
 const Heading: React.FC<HeadingProps> = ({ children, first }) => {
   const { colors } = useTheme();
   const styles = createStyles(colors);
   return (
     <View style={[styles.setting, first && styles.firstSetting]}>
-      <Text style={[styles.title, styles.heading]}>{children}</Text>
+      <Text variant={TextVariant.HeadingMD} style={styles.heading}>
+        {children}
+      </Text>
     </View>
   );
 };
@@ -372,19 +381,25 @@ const Settings: React.FC = () => {
 
   const renderSDKSettings = () => (
     <View style={[styles.setting, styles.firstSetting]} testID={SDK_SECTION}>
-      <Text style={styles.title}>
+      <Text variant={TextVariant.BodyLGMedium}>
         {strings('app_settings.manage_sdk_connections_title')}
       </Text>
-      <Text style={styles.desc}>
+      <Text
+        variant={TextVariant.BodyMD}
+        color={TextColor.Alternative}
+        style={styles.desc}
+      >
         {strings('app_settings.manage_sdk_connections_text')}
       </Text>
-      <StyledButton
-        type="normal"
-        containerStyle={styles.confirm}
-        onPress={goToSDKSessionManager}
-      >
-        {strings('app_settings.manage_sdk_connections_title')}
-      </StyledButton>
+      <View style={styles.accessory}>
+        <Button
+          variant={ButtonVariants.Secondary}
+          size={ButtonSize.Lg}
+          width={ButtonWidthTypes.Full}
+          label={strings('app_settings.manage_sdk_connections_title')}
+          onPress={goToSDKSessionManager}
+        />
+      </View>
     </View>
   );
 
@@ -394,20 +409,25 @@ const Settings: React.FC = () => {
 
   const renderClearBrowserHistorySection = () => (
     <View style={styles.setting} testID={CLEAR_BROWSER_HISTORY_SECTION}>
-      <Text style={styles.title}>
+      <Text variant={TextVariant.BodyLGMedium}>
         {strings('app_settings.clear_browser_history_desc')}
       </Text>
-      <Text style={styles.desc}>
+      <Text
+        variant={TextVariant.BodyMD}
+        color={TextColor.Alternative}
+        style={styles.desc}
+      >
         {strings('app_settings.clear_history_desc')}
       </Text>
-      <StyledButton
-        type="normal"
-        onPress={toggleClearBrowserHistoryModal}
-        disabled={browserHistory.length === 0}
-        containerStyle={styles.confirm}
-      >
-        {strings('app_settings.clear_browser_history_desc')}
-      </StyledButton>
+      <View style={styles.accessory}>
+        <Button
+          variant={ButtonVariants.Secondary}
+          size={ButtonSize.Lg}
+          width={ButtonWidthTypes.Full}
+          label={strings('app_settings.clear_browser_history_desc')}
+          onPress={toggleClearBrowserHistoryModal}
+        />
+      </View>
     </View>
   );
 
@@ -443,10 +463,14 @@ const Settings: React.FC = () => {
 
   const renderMetaMetricsSection = () => (
     <View style={styles.setting} testID={META_METRICS_SECTION}>
-      <Text style={styles.title}>
+      <Text variant={TextVariant.BodyLGMedium}>
         {strings('app_settings.metametrics_title')}
       </Text>
-      <Text style={styles.desc}>
+      <Text
+        variant={TextVariant.BodyMD}
+        color={TextColor.Alternative}
+        style={styles.desc}
+      >
         {strings('app_settings.metametrics_description')}
       </Text>
       <View style={styles.switchElement}>
@@ -477,10 +501,14 @@ const Settings: React.FC = () => {
 
   const renderMultiAccountBalancesSection = () => (
     <View style={styles.setting} testID={BATCH_BALANCE_REQUESTS_SECTION}>
-      <Text style={styles.title}>
+      <Text variant={TextVariant.BodyLGMedium}>
         {strings('app_settings.batch_balance_requests_title')}
       </Text>
-      <Text style={styles.desc}>
+      <Text
+        variant={TextVariant.BodyMD}
+        color={TextColor.Alternative}
+        style={styles.desc}
+      >
         {strings('app_settings.batch_balance_requests_description')}
       </Text>
       <View style={styles.switchElement}>
@@ -528,7 +556,7 @@ const Settings: React.FC = () => {
       onConfirmPress={clearBrowserHistory}
     >
       <View style={styles.modalView}>
-        <Text style={styles.modalTitle}>
+        <Text variant={TextVariant.HeadingMD} style={styles.modalTitle}>
           {strings('app_settings.clear_browser_history_modal_title')}
         </Text>
         <Text style={styles.modalText}>
@@ -555,10 +583,14 @@ const Settings: React.FC = () => {
   const renderDisplayNftMedia = useCallback(
     () => (
       <View style={styles.setting} testID={NFT_DISPLAY_MEDIA_MODE_SECTION}>
-        <Text style={styles.title}>
+        <Text variant={TextVariant.BodyLGMedium}>
           {strings('app_settings.display_nft_media')}
         </Text>
-        <Text style={styles.desc}>
+        <Text
+          variant={TextVariant.BodyMD}
+          color={TextColor.Alternative}
+          style={styles.desc}
+        >
           {strings('app_settings.display_nft_media_desc_new')}
         </Text>
         <View style={styles.switchElement}>
@@ -587,10 +619,14 @@ const Settings: React.FC = () => {
         testID={NFT_AUTO_DETECT_MODE_SECTION}
         ref={detectNftComponentRef}
       >
-        <Text style={styles.title}>
+        <Text variant={TextVariant.BodyLGMedium}>
           {strings('app_settings.nft_autodetect_mode')}
         </Text>
-        <Text style={styles.desc}>
+        <Text
+          variant={TextVariant.BodyMD}
+          color={TextColor.Alternative}
+          style={styles.desc}
+        >
           {strings('app_settings.autodetect_nft_desc')}
         </Text>
         <View style={styles.switchElement}>
@@ -623,11 +659,17 @@ const Settings: React.FC = () => {
 
   const renderIpfsGateway = () => (
     <View style={styles.setting} testID={IPFS_GATEWAY_SECTION}>
-      <Text style={styles.title}>{strings('app_settings.ipfs_gateway')}</Text>
-      <Text style={styles.desc}>
+      <Text variant={TextVariant.BodyLGMedium}>
+        {strings('app_settings.ipfs_gateway')}
+      </Text>
+      <Text
+        variant={TextVariant.BodyMD}
+        color={TextColor.Alternative}
+        style={styles.desc}
+      >
         {strings('app_settings.ipfs_gateway_content')}
       </Text>
-      <View style={styles.marginTop}>
+      <View style={styles.accessory}>
         <Switch
           value={isIpfsGatewayEnabled}
           onValueChange={setIsIpfsGatewayEnabled}
@@ -641,8 +683,12 @@ const Settings: React.FC = () => {
         />
       </View>
       {isIpfsGatewayEnabled && (
-        <>
-          <Text style={styles.desc}>
+        <View style={styles.accessory}>
+          <Text
+            variant={TextVariant.BodyMD}
+            color={TextColor.Alternative}
+            style={styles.desc}
+          >
             {strings('app_settings.ipfs_gateway_desc')}
           </Text>
           <View style={styles.picker}>
@@ -660,7 +706,7 @@ const Settings: React.FC = () => {
               </View>
             )}
           </View>
-        </>
+        </View>
       )}
     </View>
   );
@@ -827,17 +873,22 @@ const Settings: React.FC = () => {
 
     return (
       <View style={styles.setting} testID={'third-party-section'}>
-        <Text style={styles.title}>
+        <Text variant={TextVariant.BodyLGMedium}>
           {strings('app_settings.incoming_transactions_title')}
         </Text>
-        <Text style={styles.desc}>
+        <Text
+          variant={TextVariant.BodyMD}
+          color={TextColor.Alternative}
+          style={styles.desc}
+        >
           {strings('app_settings.incoming_transactions_content')}
         </Text>
-
-        {renderMainnet()}
-        {renderLineaMainnet()}
-        {renderRpcNetworks()}
-        {showTestNetworks && renderOtherNetworks()}
+        <View style={styles.accessory}>
+          {renderMainnet()}
+          {renderLineaMainnet()}
+          {renderRpcNetworks()}
+          {showTestNetworks && renderOtherNetworks()}
+        </View>
       </View>
     );
   };
