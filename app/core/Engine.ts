@@ -572,8 +572,7 @@ class Engine {
               requestData: { content, placeholder },
             }),
           showInAppNotification: (origin: string, args: NotificationArgs) => {
-            // eslint-disable-next-line no-console
-            console.log(
+            Logger.log(
               'Snaps/ showInAppNotification called with args: ',
               args,
               ' and origin: ',
@@ -623,8 +622,7 @@ class Engine {
     });
 
     this.setupSnapProvider = (snapId, connectionStream) => {
-      // eslint-disable-next-line no-console
-      console.log(
+      Logger.log(
         '[ENGINE LOG] Engine+setupSnapProvider: Setup stream for Snap',
         snapId,
       );
@@ -737,8 +735,7 @@ class Engine {
       messenger: snapControllerMessenger,
       // TO DO
       closeAllConnections: () =>
-        // eslint-disable-next-line no-console
-        console.log(
+        Logger.log(
           'TO DO: Create method to close all connections (Closes all connections for the given origin, and removes the references)',
         ),
       detectSnapLocation: (

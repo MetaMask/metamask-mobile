@@ -10,7 +10,7 @@ import {
   InstallSnapPermissionsRequest,
   InstallSnapSuccess,
 } from './components';
-import SNAP_INSTALL_FLOW from './InstallSnapApproval.constants';
+import { SNAP_INSTALL_FLOW } from './InstallSnapApproval.constants';
 
 const InstallSnapApproval = () => {
   const [installState, setInstallState] = useState<
@@ -28,7 +28,7 @@ const InstallSnapApproval = () => {
         setInstallState(SnapInstallState.Confirm);
       } else if (
         approvalRequest.type === ApprovalTypes.INSTALL_SNAP &&
-        approvalRequest.requestState.permissions
+        approvalRequest?.requestState?.permissions
       ) {
         setInstallState(SnapInstallState.AcceptPermissions);
       }
@@ -44,8 +44,8 @@ const InstallSnapApproval = () => {
   const onPermissionsConfirm = async () => {
     try {
       await onConfirm(undefined, {
-        ...approvalRequest.requestData,
-        permissions: approvalRequest.requestState.permissions,
+        ...approvalRequest?.requestData,
+        permissions: approvalRequest?.requestState?.permissions,
       });
       setInstallState(SnapInstallState.SnapInstalled);
     } catch (error) {
