@@ -2,6 +2,10 @@
 ignores:
   - '@metamask/oss-attribution-generator'
   - 'webpack-cli'
+  # Note: This is being used on a patch for TokenRatesController
+  # This dependency is not used on assets-controllers dependencies
+  # depcheck doesn't check the libraries used on patches
+  # this is the way we make sure it's being used
   - 'fast-deep-equal'
 
   # Note: Everything below this line should be removed after investigation
