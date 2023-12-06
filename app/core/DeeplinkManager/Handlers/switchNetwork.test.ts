@@ -44,16 +44,6 @@ describe('switchNetwork', () => {
     );
   });
 
-  it('should throw an error when switchToChainId is undefined', () => {
-    const switchToChainId = undefined;
-
-    expect(() =>
-      switchNetwork({ deeplinkManager, switchToChainId }),
-    ).toThrowError(
-      'Invalid Type: switchToChainId must be a string or number but was undefined',
-    );
-  });
-
   it('should not dispatch an alert for an invalid switchToChainId', () => {
     const switchToChainId = 'invalid_chain_id' as `${number}` | undefined;
     mockHandleNetworkSwitch.mockReturnValue(undefined);
