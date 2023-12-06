@@ -13,7 +13,7 @@ import {
   selectChainId,
   selectTicker,
 } from '../../../selectors/networkController';
-import { swapsLivenessSelector } from '../../../reducers/swaps';
+import { swapsLivenessSelector } from '../../../redux/slices/swaps';
 import { toggleReceiveModal } from '../../../actions/modals';
 import { isSwapsAllowed } from '../../../components/UI/Swaps/utils';
 import { useNavigation } from '@react-navigation/native';

@@ -10,7 +10,7 @@ import userReducer from '../redux/slices/user';
 import wizardReducer from '../redux/slices/wizard';
 import onboardingReducer from '../redux/slices/onboarding';
 import fiatOrders from './fiatOrders';
-import swapsReducer from './swaps';
+import swapsReducer from '../redux/slices/swaps';
 import signatureRequestReducer from '../redux/slices/signatureRequest';
 import notificationReducer from './notification';
 import infuraAvailabilityReducer from '../redux/slices/infuraAvailability';

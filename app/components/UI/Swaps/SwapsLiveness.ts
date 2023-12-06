@@ -7,7 +7,7 @@ import AppConstants from '../../../core/AppConstants';
 import {
   setSwapsLiveness,
   swapsLivenessSelector,
-} from '../../../reducers/swaps';
+} from '../../../redux/slices/swaps';
 import Device from '../../../util/device';
 import Logger from '../../../util/Logger';
 import useInterval from '../../hooks/useInterval';

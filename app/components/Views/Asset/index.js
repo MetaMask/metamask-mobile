@@ -27,7 +27,7 @@ import AppConstants from '../../../core/AppConstants';
 import {
   swapsLivenessSelector,
   swapsTokensObjectSelector,
-} from '../../../reducers/swaps';
+} from '../../../redux/slices/swaps';
 import {
   selectChainId,
   selectNetworkId,

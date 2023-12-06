@@ -38,7 +38,7 @@ import {
   swapsTokensSelector,
   swapsTokensWithBalanceSelector,
   swapsTopAssetsSelector,
-} from '../../../reducers/swaps';
+} from '../../../redux/slices/swaps';
 import Analytics from '../../../core/Analytics/Analytics';
 import Device from '../../../util/device';
 import Engine from '../../../core/Engine';

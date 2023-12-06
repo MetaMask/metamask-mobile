@@ -1,12 +1,14 @@
 import { createSelector } from 'reselect';
-import { isMainnetByChainId } from '../../util/networks';
-import { safeToChecksumAddress } from '../../util/address';
-import { toLowerCaseEquals } from '../../util/general';
-import Engine from '../../core/Engine';
-import { lte } from '../../util/lodash';
-import { selectChainId } from '../../selectors/networkController';
-import { selectTokens } from '../../selectors/tokensController';
-import { selectContractBalances } from '../../selectors/tokenBalancesController';
+import { isMainnetByChainId } from '../../../util/networks';
+import { safeToChecksumAddress } from '../../../util/address';
+import { toLowerCaseEquals } from '../../../util/general';
+import Engine from '../../../core/Engine';
+import { lte } from '../../../util/lodash';
+import { selectChainId } from '../../../selectors/networkController';
+import { selectTokens } from '../../../selectors/tokensController';
+import { selectContractBalances } from '../../../selectors/tokenBalancesController';
+import MigratedStorage from '../../storage/MigratedStorage';
+import { persistReducer } from 'redux-persist';
 
 // * Constants
 export const SWAPS_SET_LIVENESS = 'SWAPS_SET_LIVENESS';
@@ -201,7 +203,7 @@ export const initialState = {
   },
 };
 
-function swapsReducer(state = initialState, action) {
+function reducer(state = initialState, action) {
   switch (action.type) {
     case SWAPS_SET_LIVENESS: {
       const { live, chainId } = action.payload;
@@ -225,5 +227,13 @@ function swapsReducer(state = initialState, action) {
     }
   }
 }
+
+const swapsConfig = {
+  key: 'swaps',
+  blacklist: [],
+  storage: MigratedStorage,
+};
+
+const swapsReducer = persistReducer(swapsConfig, reducer);
 
 export default swapsReducer;
