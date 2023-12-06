@@ -172,7 +172,7 @@ const ManualBackupStep1 = ({ route, navigation, appTheme }) => {
           <View style={styles.viewButtonWrapper}>
             <StyledButton
               type={'onOverlay'}
-              testID={'view-button'}
+              testID={ManualBackUpStep1SelectorsIDs.VIEW_BUTTON}
               onPress={revealSeedPhrase}
               containerStyle={styles.viewButtonContainer}
             >
@@ -221,7 +221,7 @@ const ManualBackupStep1 = ({ route, navigation, appTheme }) => {
               containerStyle={styles.button}
               type={'confirm'}
               onPress={tryUnlock}
-              testID={'submit-button'}
+              testID={ManualBackUpStep1SelectorsIDs.SUBMIT_BUTTON}
             >
               {strings('manual_backup_step_1.confirm')}
             </StyledButton>
@@ -237,14 +237,17 @@ const ManualBackupStep1 = ({ route, navigation, appTheme }) => {
 
     return (
       <ActionView
-        confirmTestID={'manual-backup-step-1-continue-button'}
+        confirmTestID={ManualBackUpStep1SelectorsIDs.CONTINUE_BUTTON}
         confirmText={strings('manual_backup_step_1.continue')}
         onConfirmPress={goNext}
         confirmDisabled={seedPhraseHidden}
         showCancelButton={false}
         confirmButtonMode={'confirm'}
       >
-        <View style={styles.wrapper} testID={'manual_backup_step_1-screen'}>
+        <View
+          style={styles.wrapper}
+          testID={ManualBackUpStep1SelectorsIDs.CONTAINER}
+        >
           <Text style={styles.action}>
             {strings('manual_backup_step_1.action')}
           </Text>

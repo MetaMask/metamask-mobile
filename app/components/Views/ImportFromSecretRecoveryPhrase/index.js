@@ -53,16 +53,7 @@ import {
   PASSCODE_DISABLED,
 } from '../../../constants/storage';
 import Routes from '../../../constants/navigation/Routes';
-import generateTestId from '../../../../wdio/utils/generateTestId';
-import {
-  IMPORT_FROM_SEED_SCREEN_CONFIRM_PASSWORD_INPUT_ID,
-  IMPORT_FROM_SEED_SCREEN_SEED_PHRASE_INPUT_ID,
-  IMPORT_FROM_SEED_SCREEN_SUBMIT_BUTTON_ID,
-  IMPORT_FROM_SEED_SCREEN_TITLE_ID,
-  IMPORT_FROM_SEED_SCREEN_NEW_PASSWORD_INPUT_ID,
-  IMPORT_FROM_SEED_SCREEN_PASSWORD_STRENGTH_ID,
-  IMPORT_FROM_SEED_SCREEN_CONFIRM_PASSWORD_CHECK_ICON_ID,
-} from '../../../../wdio/screen-objects/testIDs/Screens/ImportFromSeedScreen.testIds';
+
 import createStyles from './styles';
 import { Authentication } from '../../../core';
 import AUTHENTICATION_TYPE from '../../../constants/userProperties';
@@ -72,6 +63,7 @@ import {
 } from '../../../util/authentication';
 import navigateTermsOfUse from '../../../util/termsOfUse/termsOfUse';
 import { ImportFromSeedSelectorsIDs } from '../../../../e2e/selectors/Onboarding/ImportFromSeed.selectors';
+import { ChoosePasswordSelectorsIDs } from '../../../../e2e/selectors/Onboarding/ChoosePassword.selectors';
 
 const MINIMUM_SUPPORTED_CLIPBOARD_VERSION = 9;
 
@@ -393,10 +385,9 @@ const ImportFromSecretRecoveryPhrase = ({
         containerStyle={inputWidth}
         inputContainerStyle={styles.padding}
         placeholder={strings('import_from_seed.seed_phrase_placeholder')}
-        {...generateTestId(
-          Platform,
-          IMPORT_FROM_SEED_SCREEN_SEED_PHRASE_INPUT_ID,
-        )}
+        testID={
+          ImportFromSeedSelectorsIDs.IMPORT_FROM_SEED_SCREEN_SEED_PHRASE_INPUT_ID
+        }
         placeholderTextColor={colors.text.muted}
         returnKeyType="next"
         autoCapitalize="none"
@@ -433,7 +424,7 @@ const ImportFromSecretRecoveryPhrase = ({
         <View testID={ImportFromSeedSelectorsIDs.CONTAINER_ID}>
           <Text
             style={styles.title}
-            {...generateTestId(Platform, IMPORT_FROM_SEED_SCREEN_TITLE_ID)}
+            testID={ImportFromSeedSelectorsIDs.IMPORT_FROM_SEED_SCREEN_TITLE_ID}
           >
             {strings('import_from_seed.title')}
           </Text>
@@ -516,11 +507,7 @@ const ImportFromSecretRecoveryPhrase = ({
             <OutlinedTextField
               style={styles.input}
               containerStyle={inputWidth}
-              {...generateTestId(
-                Platform,
-                IMPORT_FROM_SEED_SCREEN_NEW_PASSWORD_INPUT_ID,
-              )}
-              testID={'create-password-first-input-field'}
+              testID={ChoosePasswordSelectorsIDs.NEW_PASSWORD_INPUT_ID}
               placeholder={strings('import_from_seed.new_password')}
               placeholderTextColor={colors.text.muted}
               returnKeyType={'next'}
@@ -537,10 +524,9 @@ const ImportFromSecretRecoveryPhrase = ({
             {(password !== '' && (
               <Text
                 style={styles.passwordStrengthLabel}
-                {...generateTestId(
-                  Platform,
-                  IMPORT_FROM_SEED_SCREEN_PASSWORD_STRENGTH_ID,
-                )}
+                testID={
+                  ImportFromSeedSelectorsIDs.IMPORT_FROM_SEED_SCREEN_PASSWORD_STRENGTH_ID
+                }
               >
                 {strings('choose_password.password_strength')}
                 <Text style={styles[`strength_${passwordStrengthWord}`]}>
@@ -558,11 +544,7 @@ const ImportFromSecretRecoveryPhrase = ({
             <OutlinedTextField
               style={styles.input}
               containerStyle={inputWidth}
-              {...generateTestId(
-                Platform,
-                IMPORT_FROM_SEED_SCREEN_CONFIRM_PASSWORD_INPUT_ID,
-              )}
-              testID={'create-password-second-input-field'}
+              testID={ChoosePasswordSelectorsIDs.CONFIRM_PASSWORD_INPUT_ID}
               onChangeText={onPasswordConfirmChange}
               returnKeyType={'next'}
               autoCapitalize="none"
@@ -582,10 +564,9 @@ const ImportFromSecretRecoveryPhrase = ({
                   name="check"
                   size={12}
                   color={colors.success.default}
-                  {...generateTestId(
-                    Platform,
-                    IMPORT_FROM_SEED_SCREEN_CONFIRM_PASSWORD_CHECK_ICON_ID,
-                  )}
+                  testID={
+                    ImportFromSeedSelectorsIDs.IMPORT_FROM_SEED_SCREEN_CONFIRM_PASSWORD_CHECK_ICON_ID
+                  }
                 />
               ) : null}
             </View>
@@ -599,7 +580,12 @@ const ImportFromSecretRecoveryPhrase = ({
           {renderSwitch()}
 
           {!!error && (
-            <Text style={styles.errorMsg} testID={'invalid-seed-phrase'}>
+            <Text
+              style={styles.errorMsg}
+              testID={
+                ImportFromSeedSelectorsIDs.INVALID_SEED_PHRASE_PLACE_HOLDER_TEXT
+              }
+            >
               {error}
             </Text>
           )}
@@ -608,7 +594,9 @@ const ImportFromSecretRecoveryPhrase = ({
             <StyledButton
               type={'blue'}
               onPress={onPressImport}
-              testID={IMPORT_FROM_SEED_SCREEN_SUBMIT_BUTTON_ID}
+              testID={
+                ImportFromSeedSelectorsIDs.IMPORT_FROM_SEED_SCREEN_SUBMIT_BUTTON_ID
+              }
               disabled={!(password !== '' && password === confirmPassword)}
             >
               {loading ? (
