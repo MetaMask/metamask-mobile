@@ -42,6 +42,9 @@ import Button, {
 } from '../../../component-library/components/Buttons/Button';
 import { MAINNET } from '../../../constants/network';
 import Routes from '../../../constants/navigation/Routes';
+import generateDeviceAnalyticsMetaData, {
+  UserSettingsAnalyticsMetaData as generateUserSettingsAnalyticsMetaData,
+} from '../../../util/metrics';
 
 const createStyles = ({ colors }) =>
   StyleSheet.create({
@@ -263,6 +266,9 @@ class OptinMetrics extends PureComponent {
   onCancel = async () => {
     setTimeout(async () => {
       const metrics = await MetaMetrics.getInstance();
+      // if users refuses tracking, get rid of the stored events
+      // and never send them to Segment
+      // and disable analytics
       this.props.clearOnboardingEvents();
       await metrics.enable(false);
       Analytics.disableInstance();
@@ -278,12 +284,33 @@ class OptinMetrics extends PureComponent {
     const metrics = await MetaMetrics.getInstance();
     await metrics.enable();
     InteractionManager.runAfterInteractions(async () => {
+      // add traits to user for identification
+      // consolidate device and user settings traits
+      const consolidatedTraits = {
+        ...generateDeviceAnalyticsMetaData(),
+        ...generateUserSettingsAnalyticsMetaData(),
+      };
+      await metrics.addTraitsToUser(consolidatedTraits);
+
       // track onboarding events that were stored before user opted in
+      // only if the user eventually opts in.
       if (events && events.length) {
+        let delay = 0; // Initialize delay
+        const eventTrackingDelay = 200; // ms delay between each event
         events.forEach((eventArgs) => {
-          metrics.trackEvent(...eventArgs);
+          // delay each event to prevent them from
+          // being tracked with the same timestamp
+          // which would cause them to be grouped together
+          // by sentAt time in the Segment dashboard
+          // as precision is only to the milisecond
+          // and loop seems to runs faster than that
+          setTimeout(() => {
+            metrics.trackEvent(...eventArgs);
+          }, delay);
+          delay += eventTrackingDelay;
         });
       }
+
       this.props.clearOnboardingEvents();
 
       // track event for user opting in
