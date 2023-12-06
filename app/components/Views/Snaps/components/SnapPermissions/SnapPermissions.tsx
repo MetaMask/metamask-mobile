@@ -3,7 +3,6 @@ import { View } from 'react-native';
 import slip44 from '@metamask/slip44';
 import styleSheet from './SnapPermissions.styles';
 import type { SupportedCurve } from '@metamask/key-tree';
-import { SNAP_PERMISSIONS } from '../../../../../constants/test-ids';
 import { strings } from '../../../../../../locales/i18n';
 import Text, {
   TextVariant,
@@ -19,6 +18,7 @@ import { SnapPermissionCell } from '../SnapPermissionCell';
 import { RequestedPermissions } from '@metamask/permission-controller';
 import { RestrictedMethods } from '../../../../../core/Permissions/constants';
 import { EndowmentPermissions } from '../../../../../constants/permissions';
+import SNAP_PERMISSIONS from './SnapPermissions.contants';
 
 interface SnapPermissionsProps {
   permissions: RequestedPermissions;

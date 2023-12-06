@@ -72,13 +72,13 @@
   "PhishingController": {
     "phishingLists": [
       {
-      "allowlist": [],
-      "blocklist": [],
-      "fuzzylist": [],
-      "tolerance": 2,
-      "version": 2,
-      "name": "MetaMask",
-      "lastUpdated": 0
+        "allowlist": [],
+        "blocklist": [],
+        "fuzzylist": [],
+        "tolerance": 2,
+        "version": 2,
+        "name": "MetaMask",
+        "lastUpdated": 0
     }
   ],
     "whitelist": [],
