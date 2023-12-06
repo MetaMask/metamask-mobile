@@ -2,7 +2,6 @@ import PropTypes from 'prop-types';
 import React, { PureComponent } from 'react';
 import {
   StyleSheet,
-  Text,
   ScrollView,
   Switch,
   View,
@@ -38,6 +37,10 @@ import { selectCurrentCurrency } from '../../../../selectors/currencyRateControl
 import { selectSelectedAddress } from '../../../../selectors/preferencesController';
 // import { AppThemeKey } from '../../../../util/theme/models';
 // import StyledButton from '../../../UI/StyledButton';
+import Text, {
+  TextVariant,
+  TextColor,
+} from '../../../../component-library/components/Texts/Text';
 
 const diameter = 40;
 const spacing = 8;
@@ -64,35 +67,19 @@ const createStyles = (colors) =>
       padding: 24,
       zIndex: 99999999999999,
     },
-    title: {
-      ...fontStyles.normal,
-      color: colors.text.default,
-      fontSize: 20,
-      lineHeight: 20,
-      paddingTop: 4,
-      marginTop: -4,
-    },
     desc: {
-      ...fontStyles.normal,
-      color: colors.text.alternative,
-      fontSize: 14,
-      lineHeight: 20,
-      marginTop: 12,
+      marginTop: 8,
     },
-    marginTop: {
-      marginTop: 18,
+    accessory: {
+      marginTop: 16,
     },
     picker: {
       borderColor: colors.border.default,
       borderRadius: 5,
       borderWidth: 2,
-      marginTop: 16,
-    },
-    simplePicker: {
-      marginTop: 16,
     },
     setting: {
-      marginTop: 50,
+      marginTop: 30,
     },
     switch: {
       alignSelf: 'flex-start',
@@ -104,8 +91,6 @@ const createStyles = (colors) =>
       paddingBottom: 100,
     },
     identicon_container: {
-      marginVertical: 16,
-      display: 'flex',
       flexDirection: 'row',
     },
     identicon_row: {
@@ -284,7 +269,7 @@ class Settings extends PureComponent {
   //   return (
   //     <View style={styles.setting}>
   //       <View>
-  //         <Text style={styles.title}>
+  //         <Text variant={TextVariant.BodyMD} color={TextColor.Alternative}>
   //           {strings('app_settings.theme_title', {
   //             theme: strings(`app_settings.theme_${AppThemeKey[appTheme]}`),
   //           })}
@@ -314,30 +299,40 @@ class Settings extends PureComponent {
       <ScrollView style={styles.wrapper}>
         <View style={styles.inner}>
           <View style={[styles.setting, styles.firstSetting]}>
-            <Text style={styles.title}>
+            <Text variant={TextVariant.BodyLGMedium}>
               {strings('app_settings.conversion_title')}
             </Text>
-            <Text style={styles.desc}>
+            <Text
+              variant={TextVariant.BodyMD}
+              color={TextColor.Alternative}
+              style={styles.desc}
+            >
               {strings('app_settings.conversion_desc')}
             </Text>
-            <View style={styles.picker}>
-              <SelectComponent
-                selectedValue={currentCurrency}
-                onValueChange={this.selectCurrency}
-                label={strings('app_settings.current_conversion')}
-                options={infuraCurrencyOptions}
-              />
+            <View style={styles.accessory}>
+              <View style={styles.picker}>
+                <SelectComponent
+                  selectedValue={currentCurrency}
+                  onValueChange={this.selectCurrency}
+                  label={strings('app_settings.current_conversion')}
+                  options={infuraCurrencyOptions}
+                />
+              </View>
             </View>
           </View>
           <View style={styles.setting}>
-            <Text style={styles.title}>
+            <Text variant={TextVariant.BodyLGMedium}>
               {strings('app_settings.primary_currency_title')}
             </Text>
-            <Text style={styles.desc}>
+            <Text
+              variant={TextVariant.BodyMD}
+              color={TextColor.Alternative}
+              style={styles.desc}
+            >
               {strings('app_settings.primary_currency_desc')}
             </Text>
-            <View style={styles.simplePicker}>
-              {this.primaryCurrencyOptions && (
+            {this.primaryCurrencyOptions && (
+              <View style={styles.accessory}>
                 <PickComponent
                   pick={this.selectPrimaryCurrency}
                   textFirst={strings(
@@ -350,53 +345,69 @@ class Settings extends PureComponent {
                   valueSecond={'Fiat'}
                   selectedValue={primaryCurrency}
                 />
-              )}
-            </View>
+              </View>
+            )}
           </View>
           <View style={styles.setting}>
-            <Text style={styles.title}>
+            <Text variant={TextVariant.BodyLGMedium}>
               {strings('app_settings.current_language')}
             </Text>
-            <Text style={styles.desc}>
+            <Text
+              variant={TextVariant.BodyMD}
+              color={TextColor.Alternative}
+              style={styles.desc}
+            >
               {strings('app_settings.language_desc')}
             </Text>
-            <View style={styles.picker}>
-              {this.languageOptions && (
-                <SelectComponent
-                  selectedValue={this.state.currentLanguage}
-                  onValueChange={this.selectLanguage}
-                  label={strings('app_settings.current_language')}
-                  options={this.languageOptions}
-                />
-              )}
-            </View>
+            {this.languageOptions && (
+              <View style={styles.accessory}>
+                <View style={styles.picker}>
+                  <SelectComponent
+                    selectedValue={this.state.currentLanguage}
+                    onValueChange={this.selectLanguage}
+                    label={strings('app_settings.current_language')}
+                    options={this.languageOptions}
+                  />
+                </View>
+              </View>
+            )}
           </View>
           <View style={styles.setting}>
-            <Text style={styles.title}>
+            <Text variant={TextVariant.BodyLGMedium}>
               {strings('app_settings.search_engine')}
             </Text>
-            <Text style={styles.desc}>
+            <Text
+              variant={TextVariant.BodyMD}
+              color={TextColor.Alternative}
+              style={styles.desc}
+            >
               {strings('app_settings.engine_desc')}
             </Text>
-            <View style={styles.picker}>
-              {this.searchEngineOptions && (
-                <SelectComponent
-                  selectedValue={this.props.searchEngine}
-                  onValueChange={this.selectSearchEngine}
-                  label={strings('app_settings.search_engine')}
-                  options={this.searchEngineOptions}
-                />
-              )}
-            </View>
+            {this.searchEngineOptions && (
+              <View style={styles.accessory}>
+                <View style={styles.picker}>
+                  <SelectComponent
+                    selectedValue={this.props.searchEngine}
+                    onValueChange={this.selectSearchEngine}
+                    label={strings('app_settings.search_engine')}
+                    options={this.searchEngineOptions}
+                  />
+                </View>
+              </View>
+            )}
           </View>
           <View style={styles.setting}>
-            <Text style={styles.title}>
+            <Text variant={TextVariant.BodyLGMedium}>
               {strings('app_settings.hide_zero_balance_tokens_title')}
             </Text>
-            <Text style={styles.desc}>
+            <Text
+              variant={TextVariant.BodyMD}
+              color={TextColor.Alternative}
+              style={styles.desc}
+            >
               {strings('app_settings.hide_zero_balance_tokens_desc')}
             </Text>
-            <View style={styles.marginTop}>
+            <View style={styles.accessory}>
               <Switch
                 value={hideZeroBalanceTokens}
                 onValueChange={this.toggleHideZeroBalanceTokens}
@@ -411,52 +422,58 @@ class Settings extends PureComponent {
             </View>
           </View>
           <View style={styles.setting}>
-            <Text style={styles.title}>
+            <Text variant={TextVariant.BodyLGMedium}>
               {strings('app_settings.accounts_identicon_title')}
             </Text>
-            <Text style={styles.desc}>
+            <Text
+              variant={TextVariant.BodyMD}
+              color={TextColor.Alternative}
+              style={styles.desc}
+            >
               {strings('app_settings.accounts_identicon_desc')}
             </Text>
-            <View style={styles.identicon_container}>
-              <TouchableOpacity
-                onPress={() => setUseBlockieIcon(false)}
-                style={styles.identicon_row}
-              >
-                <View
-                  style={[styles.border, !useBlockieIcon && styles.selected]}
+            <View style={styles.accessory}>
+              <View style={styles.identicon_container}>
+                <TouchableOpacity
+                  onPress={() => setUseBlockieIcon(false)}
+                  style={styles.identicon_row}
                 >
-                  <Jazzicon size={diameter} address={selectedAddress} />
-                </View>
-                <Text
-                  style={[
-                    styles.identicon_type,
-                    !useBlockieIcon && styles.selected_text,
-                  ]}
+                  <View
+                    style={[styles.border, !useBlockieIcon && styles.selected]}
+                  >
+                    <Jazzicon size={diameter} address={selectedAddress} />
+                  </View>
+                  <Text
+                    style={[
+                      styles.identicon_type,
+                      !useBlockieIcon && styles.selected_text,
+                    ]}
+                  >
+                    {strings('app_settings.jazzicons')}
+                  </Text>
+                </TouchableOpacity>
+                <TouchableOpacity
+                  onPress={() => setUseBlockieIcon(true)}
+                  style={styles.identicon_row}
                 >
-                  {strings('app_settings.jazzicons')}
-                </Text>
-              </TouchableOpacity>
-              <TouchableOpacity
-                onPress={() => setUseBlockieIcon(true)}
-                style={styles.identicon_row}
-              >
-                <View
-                  style={[styles.border, useBlockieIcon && styles.selected]}
-                >
-                  <Image
-                    source={{ uri: toDataUrl(selectedAddress) }}
-                    style={styles.blockie}
-                  />
-                </View>
-                <Text
-                  style={[
-                    styles.identicon_type,
-                    useBlockieIcon && styles.selected_text,
-                  ]}
-                >
-                  {strings('app_settings.blockies')}
-                </Text>
-              </TouchableOpacity>
+                  <View
+                    style={[styles.border, useBlockieIcon && styles.selected]}
+                  >
+                    <Image
+                      source={{ uri: toDataUrl(selectedAddress) }}
+                      style={styles.blockie}
+                    />
+                  </View>
+                  <Text
+                    style={[
+                      styles.identicon_type,
+                      useBlockieIcon && styles.selected_text,
+                    ]}
+                  >
+                    {strings('app_settings.blockies')}
+                  </Text>
+                </TouchableOpacity>
+              </View>
             </View>
           </View>
           {/* {this.renderThemeSettingsSection()} */}
