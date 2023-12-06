@@ -48,7 +48,7 @@ export default class ContractApprovalModal {
     await TestHelpers.clearField(
       ContractApprovalModalSelectorsIDs.APPROVE_TOKEN_AMOUNT,
     );
-    await TestHelpers.typeText(
+    await TestHelpers.typeTextAndHideKeyboard(
       ContractApprovalModalSelectorsIDs.APPROVE_TOKEN_AMOUNT,
       amount + '\n',
     );
