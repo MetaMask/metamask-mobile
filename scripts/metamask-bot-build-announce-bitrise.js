@@ -15,6 +15,7 @@ async function start() {
     text: `NEW BUILDS AVAILABLE! Commit <https://github.com/MetaMask/metamask-mobile/commit/${BITRISE_GIT_COMMIT}|#${BITRISE_GIT_COMMIT_MESSAGE}>`,
     attachments: [
       {
+        // TODO: update with testflight link for Flask
         title_link: 'itms-beta://beta.itunes.apple.com/v1/app/1438144202',
         title: 'iOS',
         text: 'Install via TestFlight',

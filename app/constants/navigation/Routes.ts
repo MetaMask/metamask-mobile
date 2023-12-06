@@ -4,20 +4,34 @@ const Routes = {
   BROWSER_URL_MODAL: 'BrowserUrlModal',
   BROWSER_VIEW: 'BrowserView',
   SETTINGS_VIEW: 'SettingsView',
-  FIAT_ON_RAMP_AGGREGATOR: {
-    ID: 'FiatOnRampAggregator',
+  RAMP: {
+    ID: 'Ramp',
+    BUY: 'RampBuy',
+    SELL: 'RampSell',
     GET_STARTED: 'GetStarted',
     PAYMENT_METHOD: 'PaymentMethod',
     PAYMENT_METHOD_HAS_STARTED: 'PaymentMethodHasStarted',
-    AMOUNT_TO_BUY: 'AmountToBuy',
+    BUILD_QUOTE: 'BuildQuote',
     QUOTES: 'Quotes',
     CHECKOUT: 'Checkout',
     REGION: 'Region',
     REGION_HAS_STARTED: 'RegionHasStarted',
+    NETWORK_SWITCHER: 'BuyNetworkSwitcher',
     ORDER_DETAILS: 'OrderDetails',
-    SETTINGS: 'OnRampSettings',
-    ADD_ACTIVATION_KEY: 'OnrampAddActivationKey',
+    SEND_TRANSACTION: 'SendTransaction',
+    SETTINGS: 'RampSettings',
+    ADD_ACTIVATION_KEY: 'RampAddActivationKey',
   },
+  HW: {
+    CONNECT: 'ConnectHardwareWalletFlow',
+    SELECT_DEVICE: 'SelectHardwareWallet',
+    CONNECT_QR_DEVICE: 'ConnectQRHardwareFlow',
+    CONNECT_LEDGER: 'ConnectLedgerFlow',
+    LEDGER_ACCOUNT: 'LedgerAccountInfo',
+    LEDGER_CONNECT: 'LedgerConnect',
+  },
+  LEDGER_MESSAGE_SIGN_MODAL: 'LedgerMessageSignModal',
+  LEDGER_TRANSACTION_MODAL: 'LedgerTransactionModal',
   QR_SCANNER: 'QRScanner',
   TRANSACTIONS_VIEW: 'TransactionsView',
   MODAL: {
@@ -93,6 +107,11 @@ const Routes = {
   ADD_NETWORK: 'AddNetwork',
   SWAPS: 'Swaps',
   LOCK_SCREEN: 'LockScreen',
+  ///: BEGIN:ONLY_INCLUDE_IF(flask)
+  SNAPS: {
+    SNAPS_SETTINGS_LIST: 'SnapsSettingsList',
+  },
+  ///: END:ONLY_INCLUDE_IF
 };
 
 export default Routes;

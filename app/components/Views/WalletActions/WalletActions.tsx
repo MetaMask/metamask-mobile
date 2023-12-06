@@ -16,7 +16,9 @@ import {
 import { swapsLivenessSelector } from '../../../reducers/swaps';
 import { toggleReceiveModal } from '../../../actions/modals';
 import { isSwapsAllowed } from '../../../components/UI/Swaps/utils';
+import isBridgeAllowed from '../../UI/Bridge/utils/isBridgeAllowed';
 import { useNavigation } from '@react-navigation/native';
+import useGoToBridge from '../../../components/UI/Bridge/utils/useGoToBridge';
 import Routes from '../../../constants/navigation/Routes';
 import { MetaMetricsEvents } from '../../../core/Analytics';
 import Analytics from '../../../core/Analytics/Analytics';
@@ -32,24 +34,27 @@ import { AvatarSize } from '../../../component-library/components/Avatars/Avatar
 // Internal dependencies
 import styleSheet from './WalletActions.styles';
 import {
+  WALLET_BRIDGE,
   WALLET_BUY,
   WALLET_RECEIVE,
+  WALLET_SELL,
   WALLET_SEND,
   WALLET_SWAP,
 } from './WalletActions.constants';
-import useOnRampNetwork from '../../UI/Ramp/hooks/useOnRampNetwork';
+import useRampNetwork from '../../UI/Ramp/common/hooks/useRampNetwork';
 
 const WalletActions = () => {
   const { styles } = useStyles(styleSheet, {});
   const sheetRef = useRef<SheetBottomRef>(null);
   const { navigate } = useNavigation();
+  const goToBridge = useGoToBridge('TabBar');
 
   const chainId = useSelector(selectChainId);
   const ticker = useSelector(selectTicker);
   const swapsIsLive = useSelector(swapsLivenessSelector);
   const dispatch = useDispatch();
 
-  const [isNetworkBuySupported] = useOnRampNetwork();
+  const [isNetworkRampSupported] = useRampNetwork();
 
   const onReceive = () => {
     sheetRef.current?.hide(() => dispatch(toggleReceiveModal()));
@@ -66,16 +71,28 @@ const WalletActions = () => {
 
   const onBuy = () => {
     sheetRef.current?.hide(() => {
-      navigate(Routes.FIAT_ON_RAMP_AGGREGATOR.ID);
+      navigate(Routes.RAMP.BUY);
       Analytics.trackEventWithParameters(MetaMetricsEvents.BUY_BUTTON_CLICKED, {
         text: 'Buy',
-        tokenSymbol: '',
         location: 'TabBar',
-        chain_id: chainId,
+        chain_id_destination: chainId,
       });
     });
   };
 
+  const onSell = () => {
+    sheetRef.current?.hide(() => {
+      navigate(Routes.RAMP.SELL);
+      Analytics.trackEventWithParameters(
+        MetaMetricsEvents.SELL_BUTTON_CLICKED,
+        {
+          text: 'Sell',
+          location: 'TabBar',
+          chain_id_source: chainId,
+        },
+      );
+    });
+  };
   const onSend = () => {
     sheetRef.current?.hide(() => {
       navigate('SendFlowView');
@@ -113,9 +130,9 @@ const WalletActions = () => {
   };
 
   return (
-    <SheetBottom ref={sheetRef}>
+    <SheetBottom reservedMinOverlayHeight={150} ref={sheetRef}>
       <View style={styles.actionsContainer}>
-        {isNetworkBuySupported && (
+        {isNetworkRampSupported && (
           <WalletAction
             actionTitle={strings('asset_overview.buy_button')}
             actionDescription={strings('asset_overview.buy_description')}
@@ -124,6 +141,18 @@ const WalletActions = () => {
             onPress={onBuy}
             iconStyle={styles.icon}
             {...generateTestId(Platform, WALLET_BUY)}
+          />
+        )}
+
+        {isNetworkRampSupported && (
+          <WalletAction
+            actionTitle={strings('asset_overview.sell_button')}
+            actionDescription={strings('asset_overview.sell_description')}
+            iconName={IconName.Minus}
+            iconSize={AvatarSize.Md}
+            onPress={onSell}
+            iconStyle={styles.icon}
+            {...generateTestId(Platform, WALLET_SELL)}
           />
         )}
 
@@ -140,6 +169,18 @@ const WalletActions = () => {
               {...generateTestId(Platform, WALLET_SWAP)}
             />
           )}
+
+        {isBridgeAllowed(chainId) && (
+          <WalletAction
+            actionTitle={strings('asset_overview.bridge')}
+            actionDescription={strings('asset_overview.bridge_description')}
+            iconName={IconName.Bridge}
+            iconSize={AvatarSize.Md}
+            onPress={goToBridge}
+            iconStyle={styles.icon}
+            {...generateTestId(Platform, WALLET_BRIDGE)}
+          />
+        )}
         <WalletAction
           actionTitle={strings('asset_overview.send_button')}
           actionDescription={strings('asset_overview.send_description')}

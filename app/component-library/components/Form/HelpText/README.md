@@ -1,5 +1,7 @@
 # HelpText
 
+![HelpText](./HelpText.png)
+
 HelpText is a [Text](../../Texts/Text/Text.tsx) component, used as feedback text under a form field including error, success, warning or info messages.
 
 ## Props

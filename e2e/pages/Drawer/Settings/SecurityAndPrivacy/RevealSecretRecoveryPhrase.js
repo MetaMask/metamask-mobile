@@ -1,54 +1,39 @@
-import TestHelpers from '../../../../helpers';
-import {
-  PASSWORD_WARNING_ID,
-  REVEAL_SECRET_RECOVERY_PHRASE_TOUCHABLE_BOX_ID,
-  SECRET_RECOVERY_PHRASE_CONTAINER_ID,
-  SECRET_RECOVERY_PHRASE_TEXT,
-} from '../../../../../wdio/screen-objects/testIDs/Screens/RevelSecretRecoveryPhrase.testIds';
-import {
-  RevealSeedViewSelectorsIDs,
-  RevealSeedViewSelectorsText,
-} from '../../../../selectors/Settings/SecurityAndPrivacy/RevealSeedView.selectors';
+import { RevealSeedViewSelectorsIDs } from '../../../../selectors/Settings/SecurityAndPrivacy/RevealSeedView.selectors';
+import Matchers from '../../../../utils/Matchers';
+import Gestures from '../../../../utils/Gestures';
 
-export default class RevealSecretRecoveryPhrase {
-  static async enterPassword(password) {
-    await TestHelpers.typeTextAndHideKeyboard(
-      RevealSeedViewSelectorsIDs.PASSWORD_INPUT,
-      password,
+class RevealSecretRecoveryPhrase {
+  get container() {
+    return Matchers.getElementByID(
+      RevealSeedViewSelectorsIDs.SECRET_RECOVERY_PHRASE_CONTAINER_ID,
     );
   }
 
-  static async isVisible() {
-    await TestHelpers.checkIfVisible(SECRET_RECOVERY_PHRASE_CONTAINER_ID);
+  get passwordInput() {
+    return Matchers.getElementByID(RevealSeedViewSelectorsIDs.PASSWORD_INPUT);
   }
 
-  static async isNotVisible() {
-    await TestHelpers.checkIfNotVisible(SECRET_RECOVERY_PHRASE_CONTAINER_ID);
-  }
-
-  static async passwordWarningIsVisible() {
-    await TestHelpers.checkIfHasText(
-      PASSWORD_WARNING_ID,
-      RevealSeedViewSelectorsText.PASSWORD_WARNING,
+  get passwordWarning() {
+    return Matchers.getElementByID(
+      RevealSeedViewSelectorsIDs.PASSWORD_WARNING_ID,
     );
   }
 
-  static async passwordInputIsNotVisible() {
-    await TestHelpers.checkIfNotVisible(
-      RevealSeedViewSelectorsIDs.PASSWORD_INPUT,
+  get touchableBox() {
+    return Matchers.getElementByID(
+      RevealSeedViewSelectorsIDs.REVEAL_SECRET_RECOVERY_PHRASE_TOUCHABLE_BOX_ID,
     );
   }
 
-  static async isSecretRecoveryPhraseTouchableBoxVisible() {
-    await TestHelpers.checkIfVisible(
-      REVEAL_SECRET_RECOVERY_PHRASE_TOUCHABLE_BOX_ID,
+  get recoveryPhrase() {
+    return Matchers.getElementByText(
+      RevealSeedViewSelectorsIDs.SECRET_RECOVERY_PHRASE_TEXT,
     );
   }
 
-  static async isSecretRecoveryPhraseTextCorrect(Correct_Seed_Words) {
-    await TestHelpers.checkIfHasText(
-      SECRET_RECOVERY_PHRASE_TEXT,
-      Correct_Seed_Words,
-    );
+  async enterPassword(password) {
+    await Gestures.typeTextAndHideKeyboard(this.passwordInput, password);
   }
 }
+
+export default new RevealSecretRecoveryPhrase();

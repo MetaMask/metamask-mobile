@@ -72,6 +72,7 @@ import AppConstants from '../../../../core/AppConstants';
 import {
   getAddressAccountType,
   isQRHardwareAccount,
+  isHardwareAccount,
 } from '../../../../util/address';
 import { KEYSTONE_TX_CANCELED } from '../../../../constants/error';
 import { ThemeContext, mockTheme } from '../../../../util/theme';
@@ -99,10 +100,13 @@ import { selectAccounts } from '../../../../selectors/accountTrackerController';
 import { selectContractBalances } from '../../../../selectors/tokenBalancesController';
 import generateTestId from '../../../../../wdio/utils/generateTestId';
 import { COMFIRM_TXN_AMOUNT } from '../../../../../wdio/screen-objects/testIDs/Screens/TransactionConfirm.testIds';
-import { isNetworkBuyNativeTokenSupported } from '../../../UI/Ramp/utils';
+import { isNetworkRampNativeTokenSupported } from '../../../UI/Ramp/common/utils';
 import { getRampNetworks } from '../../../../reducers/fiatOrders';
 import CustomGasModal from '../../../UI/CustomGasModal';
 import { ConfirmViewSelectorsIDs } from '../../../../../e2e/selectors/SendFlow/ConfirmView.selectors';
+import ExtendedKeyringTypes from '../../../..//constants/keyringTypes';
+import { getLedgerKeyring } from '../../../../core/Ledger/Ledger';
+import { createLedgerTransactionModalNavDetails } from '../../../UI/LedgerModals/LedgerTransactionModal';
 
 const EDIT = 'edit';
 const EDIT_NONCE = 'edit_nonce';
@@ -661,6 +665,49 @@ class Confirm extends PureComponent {
     });
   };
 
+  onLedgerConfirmation = async (
+    approve,
+    result,
+    transactionMeta,
+    assetType,
+    gaParams,
+  ) => {
+    const { TransactionController } = Engine.context;
+    const { navigation } = this.props;
+    // Manual cancel from UI or rejected from ledger device.
+    try {
+      if (!approve) {
+        TransactionController.hub.removeAllListeners(
+          `${transactionMeta.id}:finished`,
+        );
+        TransactionController.cancelTransaction(transactionMeta.id);
+      } else {
+        await new Promise((resolve) => resolve(result));
+
+        if (transactionMeta.error) {
+          throw transactionMeta.error;
+        }
+
+        InteractionManager.runAfterInteractions(() => {
+          NotificationManager.watchSubmittedTransaction({
+            ...transactionMeta,
+            assetType,
+          });
+          this.checkRemoveCollectible();
+          AnalyticsV2.trackEvent(
+            MetaMetricsEvents.SEND_TRANSACTION_COMPLETED,
+            gaParams,
+          );
+          stopGasPolling();
+          resetTransaction();
+        });
+      }
+    } finally {
+      // Error handling derived to LedgerConfirmationModal component
+      navigation && navigation.dangerouslyGetParent()?.popToTop();
+    }
+  };
+
   onNext = async () => {
     const { TransactionController, KeyringController, ApprovalController } =
       Engine.context;
@@ -703,6 +750,33 @@ class Confirm extends PureComponent {
           deviceConfirmedOn: WalletDevice.MM_MOBILE,
           origin: TransactionTypes.MMM,
         });
+
+      const isLedgerAccount = isHardwareAccount(transaction.from, [
+        ExtendedKeyringTypes.ledger,
+      ]);
+
+      if (isLedgerAccount) {
+        const ledgerKeyring = await getLedgerKeyring();
+        this.setState({ transactionConfirmed: false });
+        // Approve transaction for ledger is called in the Confirmation Flow (modals) after user prompt
+        this.props.navigation.navigate(
+          ...createLedgerTransactionModalNavDetails({
+            transactionId: transactionMeta.id,
+            deviceId: ledgerKeyring.deviceId,
+            onConfirmationComplete: async (approve) =>
+              await this.onLedgerConfirmation(
+                approve,
+                result,
+                transactionMeta,
+                assetType,
+                this.getAnalyticsParams(),
+              ),
+            type: 'signTransaction',
+          }),
+        );
+        return;
+      }
+
       await KeyringController.resetQRKeyringState();
       await ApprovalController.accept(transactionMeta.id, undefined, {
         waitForResult: true,
@@ -862,7 +936,7 @@ class Confirm extends PureComponent {
   buyEth = () => {
     const { navigation } = this.props;
     try {
-      navigation.navigate('FiatOnRampAggregator');
+      navigation.navigate(Routes.RAMP.BUY);
     } catch (error) {
       Logger.error(error, 'Navigation: Error when navigating to buy ETH.');
     }
@@ -961,6 +1035,9 @@ class Confirm extends PureComponent {
       gasEstimateType === GAS_ESTIMATE_TYPES.FEE_MARKET ||
       gasEstimateType === GAS_ESTIMATE_TYPES.NONE;
     const isQRHardwareWalletDevice = isQRHardwareAccount(fromSelectedAddress);
+    const isLedgerAccount = isHardwareAccount(fromSelectedAddress, [
+      ExtendedKeyringTypes.ledger,
+    ]);
 
     const isTestNetwork = isTestNet(chainId);
 
@@ -1119,6 +1196,8 @@ class Confirm extends PureComponent {
               <ActivityIndicator size="small" color={colors.primary.inverse} />
             ) : isQRHardwareWalletDevice ? (
               strings('transaction.confirm_with_qr_hardware')
+            ) : isLedgerAccount ? (
+              strings('transaction.confirm_with_ledger_hardware')
             ) : (
               strings('transaction.send')
             )}
@@ -1153,7 +1232,7 @@ const mapStateToProps = (state) => ({
   gasEstimateType:
     state.engine.backgroundState.GasFeeController.gasEstimateType,
   isPaymentRequest: state.transaction.paymentRequest,
-  isNativeTokenBuySupported: isNetworkBuyNativeTokenSupported(
+  isNativeTokenBuySupported: isNetworkRampNativeTokenSupported(
     selectChainId(state),
     getRampNetworks(state),
   ),

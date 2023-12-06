@@ -137,8 +137,8 @@ android {
         applicationId "io.metamask"
         minSdkVersion rootProject.ext.minSdkVersion
         targetSdkVersion rootProject.ext.targetSdkVersion
-        versionCode 1187
-        versionName "7.10.0"
+        versionCode 1221
+        versionName "7.12.1"
         testBuildType System.getProperty('testBuildType', 'debug')
         missingDimensionStrategy 'react-native-camera', 'general'
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
@@ -152,25 +152,31 @@ android {
 	  }
 
 	  signingConfigs {
-		release {
-            storeFile file('../keystores/release.keystore')
-            storePassword System.getenv("BITRISEIO_ANDROID_KEYSTORE_PASSWORD")
-            keyAlias System.getenv("BITRISEIO_ANDROID_KEYSTORE_ALIAS")
-            keyPassword System.getenv("BITRISEIO_ANDROID_KEYSTORE_PRIVATE_KEY_PASSWORD")
-		}
-        qa {
-            storeFile file('../keystores/internalRelease.keystore')
-            storePassword System.getenv("BITRISEIO_ANDROID_QA_KEYSTORE_PASSWORD")
-            keyAlias System.getenv("BITRISEIO_ANDROID_QA_KEYSTORE_ALIAS")
-            keyPassword System.getenv("BITRISEIO_ANDROID_QA_KEYSTORE_PRIVATE_KEY_PASSWORD")
-        }
-	    debug {
-            storeFile file('debug.keystore')
-            storePassword 'android'
-            keyAlias 'androiddebugkey'
-            keyPassword 'android'
-        }
-	  }
+      release {
+        storeFile file('../keystores/release.keystore')
+        storePassword System.getenv("BITRISEIO_ANDROID_KEYSTORE_PASSWORD")
+        keyAlias System.getenv("BITRISEIO_ANDROID_KEYSTORE_ALIAS")
+        keyPassword System.getenv("BITRISEIO_ANDROID_KEYSTORE_PRIVATE_KEY_PASSWORD")
+      }
+      qa {
+        storeFile file('../keystores/internalRelease.keystore')
+        storePassword System.getenv("BITRISEIO_ANDROID_QA_KEYSTORE_PASSWORD")
+        keyAlias System.getenv("BITRISEIO_ANDROID_QA_KEYSTORE_ALIAS")
+        keyPassword System.getenv("BITRISEIO_ANDROID_QA_KEYSTORE_PRIVATE_KEY_PASSWORD")
+      }
+      debug {
+        storeFile file('debug.keystore')
+        storePassword 'android'
+        keyAlias 'androiddebugkey'
+        keyPassword 'android'
+      }
+      flask {
+        storeFile file('../keystores/flaskRelease.keystore')
+        storePassword System.getenv("BITRISEIO_ANDROID_FLASK_KEYSTORE_PASSWORD")
+        keyAlias System.getenv("BITRISEIO_ANDROID_FLASK_KEYSTORE_ALIAS")
+        keyPassword System.getenv("BITRISEIO_ANDROID_FLASK_KEYSTORE_PRIVATE_KEY_PASSWORD")
+      }
+    }
 
     splits {
         abi {
@@ -206,6 +212,12 @@ android {
             applicationId "io.metamask"
             signingConfig signingConfigs.release
           }
+          flask {
+            dimension "version"
+            applicationIdSuffix ".flask"
+            applicationId "io.metamask"
+            signingConfig signingConfigs.flask
+          }
     	  }
 
 	  buildTypes.each {
@@ -239,6 +251,10 @@ dependencies {
     implementation("com.facebook.react:react-android")
     implementation("androidx.swiperefreshlayout:swiperefreshlayout:1.0.0")
     implementation('com.mixpanel.android:mixpanel-android:5.+')
+    implementation 'org.apache.commons:commons-compress:1.22'
+    androidTestImplementation 'org.mockito:mockito-android:4.2.0'
+    androidTestImplementation 'androidx.test:core:1.5.0'
+    androidTestImplementation 'androidx.test:core-ktx:1.5.0'
     debugImplementation("com.facebook.flipper:flipper:${FLIPPER_VERSION}")
     debugImplementation("com.facebook.flipper:flipper-network-plugin:${FLIPPER_VERSION}") {
         exclude group:'com.squareup.okhttp3', module:'okhttp'
