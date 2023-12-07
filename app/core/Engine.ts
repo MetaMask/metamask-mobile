@@ -641,7 +641,6 @@ class Engine {
             setApprovedHosts: () => null,
             approveHost: () => null,
             // Mock URL
-            url: 'https://www.google.com',
             title: 'Snap',
             icon: null,
             isHomepage: false,
@@ -658,7 +657,7 @@ class Engine {
 
     // TODO - Require allow list for Main build and disable for flask builds. This value should be set by an env variable
     // See Extension: https://github.com/MetaMask/metamask-extension/blob/8488e7a2bc809b1ecba51fbb87ca2c934419a261/app/scripts/metamask-controller.js#L1127
-    const requireAllowlist = false;
+    const requireAllowlist = process.env.METAMASK_BUILD_TYPE === 'main';
 
     const snapsRegistryMessenger = this.controllerMessenger.getRestricted({
       name: 'SnapsRegistry',
@@ -671,17 +670,14 @@ class Engine {
       refetchOnAllowlistMiss: requireAllowlist,
       failOnUnavailableRegistry: requireAllowlist,
       url: {
-        registry: 'https://acl.execution.consensys.io/latest/registry.json',
-        signature: 'https://acl.execution.consensys.io/latest/signature.json',
+        registry: 'https://acl.execution.metamask.io/latest/registry.json',
+        signature: 'https://acl.execution.metamask.io/latest/signature.json',
       },
       publicKey:
         '0x025b65308f0f0fb8bc7f7ff87bfc296e0330eee5d3c1d1ee4a048b2fd6a86fa0a6',
     });
 
     this.snapExecutionService = new WebviewExecutionService({
-      // iframeUrl: new URL(
-      //   'https://metamask.github.io/iframe-execution-environment/0.11.0',
-      // ),
       messenger: this.controllerMessenger.getRestricted({
         name: 'ExecutionService',
       }),
@@ -729,15 +725,8 @@ class Engine {
     const snapController = new SnapController({
       environmentEndowmentPermissions: Object.values(EndowmentPermissions),
       featureFlags: { dappsCanUpdateSnaps: true },
-      checkBlockList: async (snapsToCheck) =>
-        checkSnapsBlockList(snapsToCheck, SNAP_BLOCKLIST),
       state: initialState.SnapController || {},
       messenger: snapControllerMessenger,
-      // TO DO
-      closeAllConnections: () =>
-        Logger.log(
-          'TO DO: Create method to close all connections (Closes all connections for the given origin, and removes the references)',
-        ),
       detectSnapLocation: (
         location: string | URL,
         options?: DetectSnapLocationOptions,
