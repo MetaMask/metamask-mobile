@@ -140,7 +140,7 @@ const BlockaidIndicator = ({ navigation }: Props) => {
           <View style={styles.iconWrapper}>
             <View style={styles.iconContainer}>
               <Icon
-                name={IconName.Check}
+                name={IconName.Confirmation}
                 size={IconSize.Xl}
                 color={IconColor.Success}
                 style={styles.iconStyle}

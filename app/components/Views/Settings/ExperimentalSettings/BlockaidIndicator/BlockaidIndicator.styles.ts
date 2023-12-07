@@ -9,6 +9,7 @@ const createStyles = () =>
     },
     blockaidWrapper: {
       marginHorizontal: 20,
+      marginBottom: 10,
     },
     iconWrapper: {
       flexDirection: 'row',
