@@ -8,6 +8,10 @@ import Enzyme from 'enzyme';
 
 Enzyme.configure({ adapter: new Adapter() });
 
+if (!global.performance) {
+  global.performance = {};
+}
+
 jest.mock('react-native', () => {
   const originalModule = jest.requireActual('react-native');
 
