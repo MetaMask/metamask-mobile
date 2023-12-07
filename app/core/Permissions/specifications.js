@@ -1,7 +1,7 @@
-///: BEGIN:ONLY_INCLUDE_IN(flask)
+///: BEGIN:ONLY_INCLUDE_IF(snaps)
 import { endowmentCaveatSpecifications as snapsEndowmentCaveatSpecifications } from '@metamask/snaps-controllers';
 import { caveatSpecifications as snapsCaveatsSpecifications } from '@metamask/snaps-rpc-methods';
-///: END:ONLY_INCLUDE_IN
+///: END:ONLY_INCLUDE_IF
 import {
   constructPermission,
   PermissionType,
@@ -69,10 +69,10 @@ export const getCaveatSpecifications = ({ getIdentities }) => ({
     validator: (caveat, _origin, _target) =>
       validateCaveatAccounts(caveat.value, getIdentities),
   },
-  ///: BEGIN:ONLY_INCLUDE_IN(flask)
+  ///: BEGIN:ONLY_INCLUDE_IF(snaps)
   ...snapsCaveatsSpecifications,
   ...snapsEndowmentCaveatSpecifications,
-  ///: END:ONLY_INCLUDE_IN
+  ///: END:ONLY_INCLUDE_IF
 });
 
 /**

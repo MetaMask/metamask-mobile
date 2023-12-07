@@ -63,9 +63,9 @@ import { selectSelectedAddress } from '../../../selectors/preferencesController'
 import { getLedgerKeyring } from '../../../core/Ledger/Ledger';
 import { createLedgerTransactionModalNavDetails } from '../../UI/LedgerModals/LedgerTransactionModal';
 import ExtendedKeyringTypes from '../../../constants/keyringTypes';
-///: BEGIN:ONLY_INCLUDE_IN(snaps)
+///: BEGIN:ONLY_INCLUDE_IF(snaps)
 import InstallSnapApproval from '../../Approvals/InstallSnapApproval';
-///: END:ONLY_INCLUDE_IN
+///: END:ONLY_INCLUDE_IF
 
 const hstInterface = new ethers.utils.Interface(abi);
 
@@ -404,11 +404,11 @@ const RootRPCMethodsUI = (props) => {
       <FlowLoaderModal />
       <TemplateConfirmationModal />
       {
-        ///: BEGIN:ONLY_INCLUDE_IN(snaps)
+        ///: BEGIN:ONLY_INCLUDE_IF(snaps)
       }
       <InstallSnapApproval />
       {
-        ///: END:ONLY_INCLUDE_IN
+        ///: END:ONLY_INCLUDE_IF
       }
     </React.Fragment>
   );

@@ -22,9 +22,9 @@ import {
   TokensController,
   TokensState,
 } from '@metamask/assets-controllers';
-///: BEGIN:ONLY_INCLUDE_IN(snaps)
+///: BEGIN:ONLY_INCLUDE_IF(snaps)
 import { AppState } from 'react-native';
-///: END:ONLY_INCLUDE_IN
+///: END:ONLY_INCLUDE_IF
 import {
   AddressBookController,
   AddressBookState,
@@ -37,9 +37,9 @@ import {
   KeyringControllerState,
   KeyringControllerActions,
   KeyringControllerEvents,
-  ///: BEGIN:ONLY_INCLUDE_IN(snaps)
+  ///: BEGIN:ONLY_INCLUDE_IF(snaps)
   KeyringTypes,
-  ///: END:ONLY_INCLUDE_IN
+  ///: END:ONLY_INCLUDE_IF
 } from '@metamask/keyring-controller';
 import {
   NetworkController,
@@ -78,15 +78,15 @@ import {
   PermissionControllerActions,
   PermissionControllerEvents,
   PermissionControllerState,
-  ///: BEGIN:ONLY_INCLUDE_IN(snaps)
+  ///: BEGIN:ONLY_INCLUDE_IF(snaps)
   SubjectMetadataController,
   SubjectMetadataControllerState,
   SubjectType,
-  ///: END:ONLY_INCLUDE_IN
+  ///: END:ONLY_INCLUDE_IF
 } from '@metamask/permission-controller';
 import SwapsController, { swapsUtils } from '@metamask/swaps-controller';
 import { PPOMController, PPOMState } from '@metamask/ppom-validator';
-///: BEGIN:ONLY_INCLUDE_IN(snaps)
+///: BEGIN:ONLY_INCLUDE_IF(snaps)
 import {
   JsonSnapsRegistry,
   SnapController,
@@ -96,7 +96,7 @@ import {
 } from '@metamask/snaps-controllers';
 import { EnumToUnion } from '@metamask/snaps-utils';
 import { DialogType, NotificationArgs } from '@metamask/snaps-rpc-methods';
-///: END:ONLY_INCLUDE_IN
+///: END:ONLY_INCLUDE_IF
 import { MetaMaskKeyring as QRHardwareKeyring } from '@keystonehq/metamask-airgapped-keyring';
 import {
   LoggingController,
@@ -121,14 +121,14 @@ import {
 } from '../util/number';
 import NotificationManager from './NotificationManager';
 import Logger from '../util/Logger';
-///: BEGIN:ONLY_INCLUDE_IN(snaps)
+///: BEGIN:ONLY_INCLUDE_IF(snaps)
 import { EndowmentPermissions } from '../constants/permissions';
 import { SNAP_BLOCKLIST, checkSnapsBlockList } from '../util/snaps';
-///: END:ONLY_INCLUDE_IN
+///: END:ONLY_INCLUDE_IF
 import { isZero } from '../util/lodash';
 import { MetaMetricsEvents } from './Analytics';
 import AnalyticsV2 from '../util/analyticsV2';
-///: BEGIN:ONLY_INCLUDE_IN(snaps)
+///: BEGIN:ONLY_INCLUDE_IF(snaps)
 import {
   SnapBridge,
   WebviewExecutionService,
@@ -139,7 +139,7 @@ import {
   DetectSnapLocationOptions,
 } from './Snaps';
 import { getRpcMethodMiddleware } from './RPCMethods/RPCMethodMiddleware';
-///: END:ONLY_INCLUDE_IN
+///: END:ONLY_INCLUDE_IF
 import { isBlockaidFeatureEnabled } from '../util/blockaid';
 import {
   getCaveatSpecifications,
@@ -210,13 +210,13 @@ export interface EngineState {
   TokensController: TokensState;
   TokenDetectionController: BaseState;
   NftDetectionController: BaseState;
-  ///: BEGIN:ONLY_INCLUDE_IN(snaps)
+  ///: BEGIN:ONLY_INCLUDE_IF(snaps)
   SnapController: SnapControllerState;
-  ///: END:ONLY_INCLUDE_IN
+  ///: END:ONLY_INCLUDE_IF
   PermissionController: PermissionControllerState<Permissions>;
-  ///: BEGIN:ONLY_INCLUDE_IN(snaps)
+  ///: BEGIN:ONLY_INCLUDE_IF(snaps)
   SubjectMetadataController: SubjectMetadataControllerState;
-  ///: END:ONLY_INCLUDE_IN
+  ///: END:ONLY_INCLUDE_IF
   ApprovalController: ApprovalControllerState;
   LoggingController: LoggingControllerState;
   PPOMController: PPOMState;
@@ -502,7 +502,7 @@ class Engine {
       keyringBuilders: [qrKeyringBuilder, ledgerKeyringBuilder],
     });
 
-    ///: BEGIN:ONLY_INCLUDE_IN(snaps)
+    ///: BEGIN:ONLY_INCLUDE_IF(snaps)
     /**
      * Gets the mnemonic of the user's primary keyring.
      */
@@ -582,7 +582,7 @@ class Engine {
         },
       ),
     });
-    ///: END:ONLY_INCLUDE_IN
+    ///: END:ONLY_INCLUDE_IF
 
     const permissionController = new PermissionController({
       messenger: this.controllerMessenger.getRestricted({
@@ -604,14 +604,14 @@ class Engine {
         ...getPermissionSpecifications({
           getAllAccounts: () => keyringController.getAccounts(),
         }),
-        ///: BEGIN:ONLY_INCLUDE_IN(snaps)
+        ///: BEGIN:ONLY_INCLUDE_IF(snaps)
         ...getSnapPermissionSpecifications(),
-        ///: END:ONLY_INCLUDE_IN
+        ///: END:ONLY_INCLUDE_IF
       },
       unrestrictedMethods,
     });
 
-    ///: BEGIN:ONLY_INCLUDE_IN(snaps)
+    ///: BEGIN:ONLY_INCLUDE_IF(snaps)
     const subjectMetadataController = new SubjectMetadataController({
       messenger: this.controllerMessenger.getRestricted({
         name: 'SubjectMetadataController',
@@ -753,7 +753,7 @@ class Engine {
         });
       },
     );
-    ///: END:ONLY_INCLUDE_IN
+    ///: END:ONLY_INCLUDE_IF
     const controllers = [
       keyringController,
       new AccountTrackerController({
@@ -949,10 +949,10 @@ class Engine {
         }),
         state: initialState.LoggingController,
       }),
-      ///: BEGIN:ONLY_INCLUDE_IN(snaps)
+      ///: BEGIN:ONLY_INCLUDE_IF(snaps)
       snapController,
       subjectMetadataController,
-      ///: END:ONLY_INCLUDE_IN
+      ///: END:ONLY_INCLUDE_IF
     ];
 
     if (isBlockaidFeatureEnabled()) {
@@ -1371,13 +1371,13 @@ export default {
       TokensController,
       TokenDetectionController,
       NftDetectionController,
-      ///: BEGIN:ONLY_INCLUDE_IN(snaps)
+      ///: BEGIN:ONLY_INCLUDE_IF(snaps)
       SnapController,
-      ///: END:ONLY_INCLUDE_IN
+      ///: END:ONLY_INCLUDE_IF
       PermissionController,
-      ///: BEGIN:ONLY_INCLUDE_IN(snaps)
+      ///: BEGIN:ONLY_INCLUDE_IF(snaps)
       SubjectMetadataController,
-      ///: END:ONLY_INCLUDE_IN
+      ///: END:ONLY_INCLUDE_IF
       ApprovalController,
       LoggingController,
     } = instance.datamodel.state;
@@ -1412,13 +1412,13 @@ export default {
       GasFeeController,
       TokenDetectionController,
       NftDetectionController,
-      ///: BEGIN:ONLY_INCLUDE_IN(flask)
+      ///: BEGIN:ONLY_INCLUDE_IF(snaps)
       SnapController,
-      ///: END:ONLY_INCLUDE_IN
+      ///: END:ONLY_INCLUDE_IF
       PermissionController,
-      ///: BEGIN:ONLY_INCLUDE_IN(flask)
+      ///: BEGIN:ONLY_INCLUDE_IF(snaps)
       SubjectMetadataController,
-      ///: END:ONLY_INCLUDE_IN
+      ///: END:ONLY_INCLUDE_IF
       ApprovalController,
       LoggingController,
     };
