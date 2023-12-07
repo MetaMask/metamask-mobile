@@ -1,8 +1,33 @@
 diff --git a/node_modules/react-native/Libraries/Core/InitializeCore.js b/node_modules/react-native/Libraries/Core/InitializeCore.js
-index 1379ffd..7438dad 100644
+index 1379ffd..e59f511 100644
 --- a/node_modules/react-native/Libraries/Core/InitializeCore.js
 +++ b/node_modules/react-native/Libraries/Core/InitializeCore.js
-@@ -27,23 +27,28 @@
+@@ -24,26 +24,53 @@
+
+ 'use strict';
+
++const Platform = require('../Utilities/Platform');
++
++const IS_LOCKDOWN_ENABLED = false; // Temporarily false until CI issues investigated and resolved
++
++if (IS_LOCKDOWN_ENABLED && Platform.OS === 'ios' && !global?.HermesInternal && !__DEV__) {
++  require('../../../../ses.cjs'); // ses@0.18.8
++  /**
++   * Without consoleTaming: 'unsafe' causes:
++   * - Attempting to define property on object that is not extensible.
++   * Without errorTrapping 'none' causes:
++   * - TypeError: undefined is not a function (near '...globalThis.process.on...')
++   * Without unhandledRejectionTrapping 'none' causes:
++   * - TypeError: globalThis.process.on is not a function. (In 'globalThis.process.on('unhandledRejection', h.unhandledRejectionHandler)', 'globalThis.process.on' is undefined)
++   * overrideTaming 'severe' is ideal (default override?)
++   * Nb: global.process is only partially shimmed, which confuses SES
++   * Nb: All are Unhandled JS Exceptions, since we call lockdown before setUpErrorHandling
++  */
++  repairIntrinsics({ consoleTaming: 'unsafe', errorTrapping: 'none', unhandledRejectionTrapping: 'none', overrideTaming: 'severe' });
++  require('reflect-metadata'); // Vetted shim required to fix: https://github.com/LavaMoat/docs/issues/26
++  hardenIntrinsics();
++}
++
  const start = Date.now();
 
  require('./setUpGlobals');
