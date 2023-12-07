@@ -32,6 +32,7 @@ import {
 ///: BEGIN:ONLY_INCLUDE_IF(flask)
 import { createSnapsSettingsListNavDetails } from '../Snaps/SnapsSettingsList/SnapsSettingsList';
 ///: END:ONLY_INCLUDE_IF
+import { TextColor } from '../../../component-library/components/Texts/Text';
 
 const createStyles = (colors: Colors) =>
   StyleSheet.create({
@@ -193,7 +194,7 @@ const Settings = () => {
         description={strings('app_settings.security_desc')}
         onPress={onPressSecurity}
         title={strings('app_settings.security_title')}
-        warning={!seedphraseBackedUp}
+        warning={!seedphraseBackedUp ? strings('drawer.settings_warning') : ''}
         testID={SECURITY_SETTINGS}
       />
       <SettingsDrawer
@@ -259,7 +260,7 @@ const Settings = () => {
         onPress={lock}
         renderArrowRight={false}
         testID={LOCK_SETTINGS}
-        titleColor={colors.primary.default}
+        titleColor={TextColor.Primary}
       />
     </ScrollView>
   );

@@ -47,10 +47,13 @@ import {
   IconSize,
 } from '../../../component-library/components/Icons/Icon';
 import { EDIT_BUTTON } from '../../../../wdio/screen-objects/testIDs/Common.testIds';
-import Icon from '../../../component-library/components/Icons/Icon/Icon';
 import { SendLinkViewSelectorsIDs } from '../../../../e2e/selectors/SendLinkView.selectors';
 import { CommonSelectorsIDs } from '../../../../e2e/selectors/Common.selectors';
 import { WalletViewSelectorsIDs } from '../../../../e2e/selectors/WalletView.selectors';
+import {
+  default as MorphText,
+  TextVariant,
+} from '../../../component-library/components/Texts/Text';
 
 const trackEvent = (event) => {
   InteractionManager.runAfterInteractions(() => {
@@ -117,8 +120,9 @@ const styles = StyleSheet.create({
     marginLeft: Device.isAndroid() ? 20 : 0,
   },
   fox: {
+    width: 24,
+    height: 24,
     marginLeft: 16,
-    marginTop: 8,
   },
 });
 
@@ -982,10 +986,10 @@ export function getWalletNavbarOptions(
       </View>
     ),
     headerLeft: () => (
-      <Icon
-        name={IconName.Fox}
-        IconSize={IconSize.Xl}
+      <Image
+        source={metamask_fox}
         style={styles.fox}
+        resizeMethod={'auto'}
         testID={CommonSelectorsIDs.FOX_ICON}
       />
     ),
@@ -1580,15 +1584,30 @@ export const getSettingsNavigationOptions = (title, themeColors) => {
       shadowColor: importedColors.transparent,
       elevation: 0,
     },
-    headerTitleStyle: {
-      fontSize: 20,
-      color: themeColors.text.default,
-      ...fontStyles.normal,
+    headerContainer: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      alignSelf: 'flex-start',
+      paddingHorizontal: 16,
+    },
+    metamaskLogo: {
+      width: 24,
+      height: 24,
+      marginRight: 8,
     },
   });
   return {
-    headerLeft: null,
-    headerTitle: <Text>{title}</Text>,
+    headerLeft: () => (
+      <View style={innerStyles.headerContainer}>
+        <Image
+          source={metamask_fox}
+          style={innerStyles.metamaskLogo}
+          resizeMethod={'auto'}
+        />
+        <MorphText variant={TextVariant.HeadingMD}>{title}</MorphText>
+      </View>
+    ),
+    headerTitle: null,
     ...innerStyles,
   };
 };
