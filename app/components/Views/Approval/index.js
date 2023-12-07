@@ -282,7 +282,7 @@ class Approval extends PureComponent {
     let blockaidParams = {};
 
     if (
-      transaction.id === transaction.currentTransactionSecurityAlertResponse.id
+      transaction.id === transaction.currentTransactionSecurityAlertResponse?.id
     ) {
       blockaidParams = getBlockaidMetricsParams(
         transaction.currentTransactionSecurityAlertResponse?.response,
