@@ -1,43 +1,44 @@
 import React, { useRef, useEffect, useState } from 'react';
 import { View, InteractionManager, Pressable } from 'react-native';
-import SheetHeader from '../../../../component-library/components/Sheet/SheetHeader';
-import { SheetBottomRef } from '../../../../component-library/components/Sheet/SheetBottom';
-import Button from '../../../../component-library/components/Buttons/Button/Button';
+import SheetHeader from '../../../../../component-library/components/Sheet/SheetHeader';
+import { SheetBottomRef } from '../../../../../component-library/components/Sheet/SheetBottom';
+import Button from '../../../../../component-library/components/Buttons/Button/Button';
 import {
   ButtonSize,
   ButtonVariants,
   ButtonWidthTypes,
-} from '../../../../component-library/components/Buttons/Button';
-import Text from '../../../../component-library/components/Texts/Text/Text';
-import { TextVariant } from '../../../../component-library/components/Texts/Text';
+} from '../../../../../component-library/components/Buttons/Button';
+import Text from '../../../../../component-library/components/Texts/Text/Text';
+import { TextVariant } from '../../../../../component-library/components/Texts/Text';
 import Icon, {
   IconSize,
   IconName,
   IconColor,
-} from '../../../../component-library/components/Icons/Icon';
+} from '../../../../../component-library/components/Icons/Icon';
 import { useSelector, useDispatch } from 'react-redux';
-import AnalyticsV2 from '../../../../util/analyticsV2';
-import { MetaMetricsEvents } from '../../../../core/Analytics';
-import Engine from '../../../../core/Engine';
-import Routes from '../../../../constants/navigation/Routes';
-import BottomSheet from '../../../../component-library/components/BottomSheets/BottomSheet';
-import { strings } from '../../../../../locales/i18n';
-import { Props } from './ExperimentalSettings.types';
-import { useTheme } from '../../../../util/theme';
-import createStyles from './ExperimentalSettings.styles';
-import { selectIsSecurityAlertsEnabled } from '../../../../selectors/preferencesController';
+import AnalyticsV2 from '../../../../../util/analyticsV2';
+import { MetaMetricsEvents } from '../../../../../core/Analytics';
+import Engine from '../../../../../core/Engine';
+import Routes from '../../../../../constants/navigation/Routes';
+import BottomSheet from '../../../../../component-library/components/BottomSheets/BottomSheet';
+import { strings } from '../../../../../../locales/i18n';
+import { Props } from './../ExperimentalSettings.types';
+import createStyles from './BlockaidIndicator.styles';
+import { selectIsSecurityAlertsEnabled } from '../../../../../selectors/preferencesController';
+
+enum Status {
+  Idle = 'IDLE',
+  Loading = 'LOADING',
+}
 
 const BlockaidIndicator = ({ navigation }: Props) => {
   const dispatch = useDispatch();
   const { PreferencesController } = Engine.context;
-  const { colors } = useTheme();
-  const styles = createStyles(colors);
+  const styles = createStyles();
 
   const securityAlertsEnabled = useSelector(selectIsSecurityAlertsEnabled);
-  const [fetchingPPOMDataInProgress, setFetchingPPOMDataInProgress] =
-    useState(false);
   const [sheetInteractable, setSheetInteractable] = useState(true);
-  const [intialisedBlockaid, setIntialisedBlockaid] = useState(true);
+  const [status, setStatus] = useState<Status>(Status.Idle);
   const sheetRef = useRef<SheetBottomRef>(null);
 
   const ppomInitialisationCompleted = useSelector(
@@ -46,13 +47,12 @@ const BlockaidIndicator = ({ navigation }: Props) => {
 
   useEffect(() => {
     if (ppomInitialisationCompleted) {
-      setIntialisedBlockaid(false);
-      setFetchingPPOMDataInProgress(false);
       setSheetInteractable(true);
     }
   }, [ppomInitialisationCompleted]);
 
   const goBackToExperimentalScreen = () => {
+    setStatus(Status.Idle);
     navigation.navigate(Routes.SETTINGS.EXPERIMENTAL_SETTINGS);
   };
 
@@ -63,8 +63,7 @@ const BlockaidIndicator = ({ navigation }: Props) => {
       type: 'SET_PPOM_INITIALIZATION_COMPLETED',
       ppomInitializationCompleted: false,
     });
-    setFetchingPPOMDataInProgress(true);
-    setIntialisedBlockaid(false);
+    setStatus(Status.Loading);
 
     InteractionManager.runAfterInteractions(() => {
       AnalyticsV2.trackEvent(
@@ -78,7 +77,7 @@ const BlockaidIndicator = ({ navigation }: Props) => {
 
   return (
     <BottomSheet ref={sheetRef} isInteractable={sheetInteractable}>
-      {intialisedBlockaid && (
+      {status === Status.Idle && (
         <View style={styles.blockaidWrapper}>
           <View style={styles.iconWrapper}>
             <View style={styles.iconContainer}>
@@ -116,7 +115,7 @@ const BlockaidIndicator = ({ navigation }: Props) => {
         </View>
       )}
 
-      {fetchingPPOMDataInProgress && (
+      {status === Status.Loading && !ppomInitialisationCompleted && (
         <View style={styles.blockaidWrapper}>
           <View style={styles.iconWrapper}>
             <View style={styles.iconContainer}>

@@ -88,7 +88,7 @@ import EthSignFriction from '../../../components/Views/Settings/AdvancedSettings
 import WalletActions from '../../Views/WalletActions';
 import NetworkSelector from '../../../components/Views/NetworkSelector';
 import ReturnToAppModal from '../../Views/ReturnToAppModal';
-import BlockaidIndicator from '../../Views/Settings/ExperimentalSettings/blockaidIndicator';
+import BlockaidIndicator from '../../Views/Settings/ExperimentalSettings/BlockaidIndicator';
 import EditAccountName from '../../Views/EditAccountName/EditAccountName';
 import WC2Manager, {
   isWC2Enabled,
