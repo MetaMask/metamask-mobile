@@ -17,7 +17,15 @@
     "does_not_look_right": "Something doesn’t look right?",
     "suspicious_request_title": "This is a suspicious request",
     "trade_order_farming_description": "If you approve this request, you might lose your assets.",
-    "transfer_farming_description": "If you approve this request, a third party known for scams will take all your assets."
+    "transfer_farming_description": "If you approve this request, a third party known for scams will take all your assets.",
+    "before_you_proceed": "Before you proceed",
+    "enable_blockaid_alerts": "To enable this feature we need to set up some security alert. This page will need to stay open while its being set up. This will take less than a minute to complete.",
+    "setting_up_alerts": "Setting up security alerts",
+    "setting_up_alerts_description": "We are going as fast as we can to set up security alerts. Hang in there, we are almost done.",
+    "setup_complete": "Set up complete",
+    "setup_complete_description": "Security alerts are ready to go. You can close this pageand start exploring your wallet",
+    "continue": "Continue",
+    "cancel": "Cancel"
   },
   "date": {
     "months": {
