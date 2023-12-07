@@ -654,8 +654,7 @@ class Engine {
       bridge.setupProviderConnection();
     };
 
-    const requireAllowlist =
-      process.env.METAMASK_BUILD_TYPE === 'main' ? true : undefined;
+    const requireAllowlist = process.env.METAMASK_BUILD_TYPE === 'main';
     const allowLocalSnaps = process.env.METAMASK_BUILD_TYPE === 'flask';
 
     const snapsRegistryMessenger = this.controllerMessenger.getRestricted({
