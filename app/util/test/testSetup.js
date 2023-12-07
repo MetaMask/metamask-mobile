@@ -295,7 +295,7 @@ afterEach(() => {
   global.gc && global.gc(true);
 });
 
-Object.defineProperties(globalThis, {
+Object.defineProperties(global, {
   performance: {
     writable: true,
   },
