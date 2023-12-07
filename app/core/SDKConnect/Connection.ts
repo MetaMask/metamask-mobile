@@ -14,18 +14,18 @@ import {
 } from '@metamask/sdk-communication-layer';
 import { NavigationContainerRef } from '@react-navigation/native';
 import { EventEmitter2 } from 'eventemitter2';
+import { Platform } from 'react-native';
+import Routes from '../../../app/constants/navigation/Routes';
+import Device from '../../util/device';
+import { Minimizer } from '../NativeModules';
 import BatchRPCManager from './BatchRPCManager';
 import RPCQueueManager from './RPCQueueManager';
 import { ApprovedHosts, approveHostProps } from './SDKConnect';
+import { CONNECTION_LOADING_EVENT } from './SDKConnect.constants';
 import { handleConnectionMessage } from './handlers/handleConnectionMessage';
 import handleConnectionReady from './handlers/handleConnectionReady';
 import DevLogger from './utils/DevLogger';
 import { waitForKeychainUnlocked } from './utils/wait.util';
-import Device from '../../util/device';
-import { Minimizer } from '../NativeModules';
-import { Platform } from 'react-native';
-import Routes from '../../../app/constants/navigation/Routes';
-import { CONNECTION_LOADING_EVENT, RPC_METHODS } from './SDKConnect.constants';
 
 export interface ConnectionProps {
   id: string;
@@ -44,26 +44,6 @@ export interface ConnectionProps {
 // eslint-disable-next-line
 const { version } = require('../../../package.json');
 
-export const METHODS_TO_REDIRECT: { [method: string]: boolean } = {
-  [RPC_METHODS.ETH_REQUESTACCOUNTS]: true,
-  [RPC_METHODS.ETH_SENDTRANSACTION]: true,
-  [RPC_METHODS.ETH_SIGNTRANSACTION]: true,
-  [RPC_METHODS.ETH_SIGN]: true,
-  [RPC_METHODS.PERSONAL_SIGN]: true,
-  [RPC_METHODS.ETH_SIGNTRANSACTION]: true,
-  [RPC_METHODS.ETH_SIGNTYPEDEATAV3]: true,
-  [RPC_METHODS.ETH_SIGNTYPEDEATAV4]: true,
-  [RPC_METHODS.WALLET_WATCHASSET]: true,
-  [RPC_METHODS.WALLET_ADDETHEREUMCHAIN]: true,
-  [RPC_METHODS.WALLET_SWITCHETHEREUMCHAIN]: true,
-  [RPC_METHODS.METAMASK_CONNECTSIGN]: true,
-  [RPC_METHODS.METAMASK_BATCH]: true,
-};
-
-export const METHODS_TO_DELAY: { [method: string]: boolean } = {
-  ...METHODS_TO_REDIRECT,
-  [RPC_METHODS.ETH_REQUESTACCOUNTS]: false,
-};
 export class Connection extends EventEmitter2 {
   channelId;
   remote: RemoteCommunication;
