@@ -1,4 +1,4 @@
-import React, { FC, useCallback, useEffect, useState } from 'react';
+import React, { FC, useCallback, useEffect } from 'react';
 import { ScrollView, Switch, View } from 'react-native';
 import { strings } from '../../../../../locales/i18n';
 import Engine from '../../../../core/Engine';
@@ -17,7 +17,6 @@ import { useSelector, useDispatch } from 'react-redux';
 import { Props } from './ExperimentalSettings.types';
 import createStyles from './ExperimentalSettings.styles';
 import { selectIsSecurityAlertsEnabled } from '../../../../selectors/preferencesController';
-import { useIsFocused } from '@react-navigation/native';
 
 /**
  * Main view for app Experimental Settings
@@ -26,21 +25,15 @@ const ExperimentalSettings = ({ navigation, route }: Props) => {
   const { PreferencesController } = Engine.context;
   const dispatch = useDispatch();
 
-  const initialSecurityAlertsEnabled = useSelector(
-    selectIsSecurityAlertsEnabled,
-  );
-  const [securityAlertsEnabled, setSecurityAlertsEnabled] = useState(
-    initialSecurityAlertsEnabled,
-  );
+  const securityAlertsEnabled = useSelector(selectIsSecurityAlertsEnabled);
+
   const isFullScreenModal = route?.params?.isFullScreenModal;
-  const isFocused = useIsFocused();
 
   const { colors } = useTheme();
   const styles = createStyles(colors);
 
   const toggleSecurityAlertsEnabled = () => {
     if (securityAlertsEnabled) {
-      setSecurityAlertsEnabled(!securityAlertsEnabled);
       dispatch({
         type: 'SET_PPOM_INITIALIZATION_COMPLETED',
         ppomInitializationCompleted: false,
@@ -52,12 +45,6 @@ const ExperimentalSettings = ({ navigation, route }: Props) => {
       });
     }
   };
-
-  useEffect(() => {
-    if (isFocused) {
-      setSecurityAlertsEnabled(initialSecurityAlertsEnabled);
-    }
-  }, [isFocused, initialSecurityAlertsEnabled]);
 
   useEffect(
     () => {
