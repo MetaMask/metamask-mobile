@@ -136,7 +136,6 @@
     "transactions": []
   },
   "SnapController":  {
-    "snapErrors": {},
     "snapStates": {},
     "snaps":  {}
   },
