@@ -66,27 +66,27 @@ export interface RootState {
 // TODO: Fix the Action type. It's set to `any` now because some of the
 // TypeScript reducers have invalid actions
 const rootReducer = combineReducers<RootState, any>({
-  collectibles: collectiblesReducer, // done
-  engine: engineReducer as any, //done
-  privacy: privacyReducer, //done
+  collectibles: collectiblesReducer,
+  engine: engineReducer as any,
+  privacy: privacyReducer,
   bookmarks: bookmarksReducer, // attempting to define property on object that is not extensible
-  browser: browserReducer, //done
-  modals: modalsReducer, // done
-  settings: settingsReducer, //done
-  alert: alertReducer, // done
-  transaction: transactionReducer, // done
-  user: userReducer, //done
-  wizard: wizardReducer, // done
-  onboarding: onboardingReducer, // done
-  notification: notificationReducer, // done
-  signatureRequest: signatureRequestReducer, // done
-  swaps: swapsReducer, // done
+  browser: browserReducer,
+  modals: modalsReducer,
+  settings: settingsReducer,
+  alert: alertReducer,
+  transaction: transactionReducer,
+  user: userReducer,
+  wizard: wizardReducer,
+  onboarding: onboardingReducer,
+  notification: notificationReducer,
+  signatureRequest: signatureRequestReducer,
+  swaps: swapsReducer,
   fiatOrders,
-  infuraAvailability: infuraAvailabilityReducer, // done - redundant ?
-  navigation: navigationReducer, // done
-  networkOnboarded: networkOnboardReducer, // done
-  security: securityReducer, // done
-  experimentalSettings: experimentalSettingsReducer, // done -> need to test on android - emulator is very slow on my side
+  infuraAvailability: infuraAvailabilityReducer,
+  navigation: navigationReducer,
+  networkOnboarded: networkOnboardReducer,
+  security: securityReducer,
+  experimentalSettings: experimentalSettingsReducer,
 });
 
 export default rootReducer;

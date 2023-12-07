@@ -102,7 +102,7 @@ const reducer = (state = initialState, action) => {
 
 const userPersistConfig = {
   key: 'user',
-  blacklist: [],
+  blacklist: ['initialScreen', 'isAuthChecked'],
   storage: MigratedStorage,
 };
 

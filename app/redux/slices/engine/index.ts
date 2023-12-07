@@ -141,6 +141,5 @@ export const controllerReducers = controllerNames.reduce(
 const engineReducer = combineReducers({
   backgroundState: combineReducers(controllerReducers),
 });
-// RECOVERY PHRASE: buzz pill embody elite name festival crystal pigeon grief memory allow blue
 
 export default engineReducer;
