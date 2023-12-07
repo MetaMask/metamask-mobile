@@ -187,10 +187,10 @@ index 290bd23..20d85e0 100644
      return inputConnection;
    }
 diff --git a/node_modules/react-native/jest/setup.js b/node_modules/react-native/jest/setup.js
-index 3738bd2..18422bb 100644
+index 3738bd2..1c9710b 100644
 --- a/node_modules/react-native/jest/setup.js
 +++ b/node_modules/react-native/jest/setup.js
-@@ -17,9 +17,12 @@ jest.requireActual('@react-native/polyfills/error-guard');
+@@ -17,9 +17,14 @@ jest.requireActual('@react-native/polyfills/error-guard');
  
  global.__DEV__ = true;
  
@@ -200,9 +200,11 @@ index 3738bd2..18422bb 100644
 +if (!global.performance) {
 +  global.performance = {}
 +}
-+Object.defineProperty(performance, 'now', { value: function () {
-+  return jest.fn(Date.now);
-+} });
++if (!global.performance.now) {
++  Object.defineProperty(global.performance, 'now', { value: function() {
++    return jest.fn(Date.now);
++  }})
++}
  
  global.regeneratorRuntime = jest.requireActual('regenerator-runtime/runtime');
  global.window = global;
