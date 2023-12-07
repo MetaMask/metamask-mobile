@@ -1,7 +1,6 @@
 ///: BEGIN:ONLY_INCLUDE_IF(snaps)
 export const EndowmentPermissions = Object.freeze({
   'endowment:network-access': 'endowment:network-access',
-  'endowment:long-running': 'endowment:long-running',
   'endowment:transaction-insight': 'endowment:transaction-insight',
   'endowment:cronjob': 'endowment:cronjob',
   'endowment:ethereum-provider': 'endowment:ethereum-provider',

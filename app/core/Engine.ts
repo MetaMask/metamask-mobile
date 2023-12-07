@@ -123,7 +123,6 @@ import NotificationManager from './NotificationManager';
 import Logger from '../util/Logger';
 ///: BEGIN:ONLY_INCLUDE_IF(snaps)
 import { EndowmentPermissions } from '../constants/permissions';
-import { SNAP_BLOCKLIST, checkSnapsBlockList } from '../util/snaps';
 ///: END:ONLY_INCLUDE_IF
 import { isZero } from '../util/lodash';
 import { MetaMetricsEvents } from './Analytics';

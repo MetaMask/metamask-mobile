@@ -6,8 +6,8 @@ export const RestrictedMethods = Object.freeze({
   eth_accounts: 'eth_accounts',
   ///: BEGIN:ONLY_INCLUDE_IF(snaps)
   // Snap Specific Restricted Methods
-  snap_confirm: 'snap_confirm',
   snap_notify: 'snap_notify',
+  snap_dialog: 'snap_dialog',
   snap_manageState: 'snap_manageState',
   snap_getBip32PublicKey: 'snap_getBip32PublicKey',
   snap_getBip32Entropy: 'snap_getBip32Entropy',

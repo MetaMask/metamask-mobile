@@ -370,14 +370,6 @@ export const getRpcMethodMiddleware = ({
             ?.then(resolve)
             .catch(reject);
         }),
-      ///: BEGIN:ONLY_INCLUDE_IF(snaps)
-      // SNAPS TEMPORAL METHODS
-      snap_confirm: () => {
-        // eslint-disable-next-line no-console
-        Logger.log('[RPCMethodsMiddleware LOG] snap_confirm executed');
-        res.result = {};
-      },
-      ///: END:ONLY_INCLUDE_IF
       eth_getTransactionByHash: async () => {
         res.result = await polyfillGasPrice('getTransactionByHash', req.params);
       },
@@ -493,8 +485,7 @@ export const getRpcMethodMiddleware = ({
         if (isMMSDK) {
           // Append origin to the request so it can be parsed in UI TransactionHeader
           DevLogger.log(
-            `SDK Transaction detected --- custom hostname -- ${hostname} --> ${
-              AppConstants.MM_SDK.SDK_REMOTE_ORIGIN + url.current
+            `SDK Transaction detected --- custom hostname -- ${hostname} --> ${AppConstants.MM_SDK.SDK_REMOTE_ORIGIN + url.current
             }`,
           );
           hostname = AppConstants.MM_SDK.SDK_REMOTE_ORIGIN + url.current;
