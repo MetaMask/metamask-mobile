@@ -654,9 +654,8 @@ class Engine {
       bridge.setupProviderConnection();
     };
 
-    // TODO - Require allow list for Main build and disable for flask builds. This value should be set by an env variable
-    // See Extension: https://github.com/MetaMask/metamask-extension/blob/8488e7a2bc809b1ecba51fbb87ca2c934419a261/app/scripts/metamask-controller.js#L1127
-    const requireAllowlist = process.env.METAMASK_BUILD_TYPE === 'main';
+    const requireAllowlist =
+      process.env.METAMASK_BUILD_TYPE === 'main' ? true : undefined;
 
     const snapsRegistryMessenger = this.controllerMessenger.getRestricted({
       name: 'SnapsRegistry',
@@ -723,7 +722,10 @@ class Engine {
 
     const snapController = new SnapController({
       environmentEndowmentPermissions: Object.values(EndowmentPermissions),
-      featureFlags: { dappsCanUpdateSnaps: true },
+      featureFlags: {
+        dappsCanUpdateSnaps: true,
+        requireAllowlist,
+      },
       state: initialState.SnapController || {},
       messenger: snapControllerMessenger,
       detectSnapLocation: (
