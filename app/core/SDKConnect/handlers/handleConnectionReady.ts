@@ -12,7 +12,7 @@ import Engine from '../../Engine';
 import { approveHostProps } from '../SDKConnect';
 import generateOTP from '../utils/generateOTP.util';
 import { setupBridge } from './setupBridge';
-import { HOUR_IN_MS } from '../SDKConnect.constants';
+import { HOUR_IN_MS } from '../SDKConnectConstants';
 
 export const handleConnectionReady = async ({
   originatorInfo,

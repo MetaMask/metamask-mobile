@@ -1,5 +1,5 @@
 import BatchRPCManager from '../BatchRPCManager';
-import { RPC_METHODS } from '../SDKConnect.constants';
+import { RPC_METHODS } from '../SDKConnectConstants';
 import handleCustomRpcCalls from './handleCustomRpcCalls';
 import overwriteRPCWith from './handleRpcOverwrite';
 

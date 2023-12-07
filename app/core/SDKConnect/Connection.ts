@@ -21,7 +21,7 @@ import { Minimizer } from '../NativeModules';
 import BatchRPCManager from './BatchRPCManager';
 import RPCQueueManager from './RPCQueueManager';
 import { ApprovedHosts, approveHostProps } from './SDKConnect';
-import { CONNECTION_LOADING_EVENT } from './SDKConnect.constants';
+import { CONNECTION_LOADING_EVENT } from './SDKConnectConstants';
 import { handleConnectionMessage } from './handlers/handleConnectionMessage';
 import handleConnectionReady from './handlers/handleConnectionReady';
 import DevLogger from './utils/DevLogger';

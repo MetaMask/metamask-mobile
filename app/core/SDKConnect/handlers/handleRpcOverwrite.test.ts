@@ -1,5 +1,5 @@
 import overwriteRPCWith from './handleRpcOverwrite';
-import { RPC_METHODS } from '../SDKConnect.constants';
+import { RPC_METHODS } from '../SDKConnectConstants';
 
 jest.mock('../utils/DevLogger');
 

@@ -27,7 +27,7 @@ import {
   CONNECTION_LOADING_EVENT,
   DEFAULT_SESSION_TIMEOUT_MS,
   TIMEOUT_PAUSE_CONNECTIONS,
-} from './SDKConnect.constants';
+} from './SDKConnectConstants';
 import DevLogger from './utils/DevLogger';
 import {
   wait,

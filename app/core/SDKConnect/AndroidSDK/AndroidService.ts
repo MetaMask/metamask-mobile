@@ -36,7 +36,7 @@ import {
   RPC_METHODS,
   DEFAULT_SESSION_TIMEOUT_MS,
   METHODS_TO_DELAY,
-} from '../SDKConnect.constants';
+} from '../SDKConnectConstants';
 import handleBatchRpcResponse from '../handlers/handleBatchRpcResponse';
 import handleCustomRpcCalls from '../handlers/handleCustomRpcCalls';
 import DevLogger from '../utils/DevLogger';

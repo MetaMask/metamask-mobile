@@ -2,7 +2,7 @@
 import Device from '../../../util/device';
 import { Minimizer } from '../../NativeModules';
 import { Connection } from '../Connection';
-import { RPC_METHODS } from '../SDKConnect.constants';
+import { RPC_METHODS } from '../SDKConnectConstants';
 import DevLogger from '../utils/DevLogger';
 import { wait } from '../utils/wait.util';
 import handleBatchRpcResponse from './handleBatchRpcResponse';
