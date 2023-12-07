@@ -20,7 +20,6 @@
 	<string>$(MARKETING_VERSION)</string>
 	<key>CFBundleSignature</key>
 	<string>????</string>
-<<<<<<< HEAD
 	<key>branch_universal_link_domains</key>
     <array>
 			<string>metamask.app.link</string>
@@ -28,8 +27,6 @@
 			<string>metamask.test.app.link</string>
 			<string>metamask-alternate.test.app.link</string>
     </array>
-=======
->>>>>>> 814c1c8d3 (Mobile snaps)
 	<key>CFBundleURLTypes</key>
 	<array>
 		<dict>
@@ -46,14 +43,6 @@
 	<string>$(CURRENT_PROJECT_VERSION)</string>
 	<key>ITSAppUsesNonExemptEncryption</key>
 	<false/>
-<<<<<<< HEAD
-=======
-	<key>LSApplicationQueriesSchemes</key>
-	<array>
-		<string>twitter</string>
-		<string>itms-apps</string>
-	</array>
->>>>>>> 814c1c8d3 (Mobile snaps)
 	<key>LSRequiresIPhoneOS</key>
 	<true/>
 	<key>NSAppTransportSecurity</key>
@@ -69,7 +58,6 @@
 			</dict>
 		</dict>
 	</dict>
-<<<<<<< HEAD
 	<key>NSBluetoothAlwaysUsageDescription</key>
 	<string>MetaMask needs Bluetooth access to connect to external devices.</string>
 	<key>NSBluetoothPeripheralUsageDescription</key>
@@ -78,10 +66,6 @@
 	<string>MetaMask needs camera access to scan QR codes</string>
 	<key>NSMicrophoneUsageDescription</key>
 	<string>MetaMask needs microphone access to record audio</string>
-=======
-	<key>NSCameraUsageDescription</key>
-	<string>MetaMask needs camera access to scan QR codes</string>
->>>>>>> 814c1c8d3 (Mobile snaps)
 	<key>NSFaceIDUsageDescription</key>
 	<string>$(PRODUCT_NAME) needs to authenticate</string>
 	<key>NSLocationWhenInUseUsageDescription</key>
@@ -144,39 +128,20 @@
 	<key>UIViewControllerBasedStatusBarAppearance</key>
 	<false/>
 	<key>branch_key</key>
-<<<<<<< HEAD
 		<dict>
 			<key>live</key>
 			<string>$(MM_BRANCH_KEY_LIVE)</string>
 			<key>test</key>
 			<string>$(MM_BRANCH_KEY_TEST)</string>
 		</dict>
-=======
-	<dict>
-		<key>live</key>
-		<string>$(MM_BRANCH_KEY_LIVE)</string>
-		<key>test</key>
-		<string>$(MM_BRANCH_KEY_TEST)</string>
-	</dict>
-	<key>branch_universal_link_domains</key>
-	<array>
-		<string>metamask.app.link</string>
-		<string>metamask-alternate.app.link</string>
-		<string>metamask.test.app.link</string>
-		<string>metamask-alternate.test.app.link</string>
-	</array>
->>>>>>> 814c1c8d3 (Mobile snaps)
 	<key>fox_code</key>
 	<string>$(MM_FOX_CODE)</string>
 	<key>mixpanel_token</key>
 	<string>$(MM_MIXPANEL_TOKEN)</string>
-<<<<<<< HEAD
 	<key>LSApplicationQueriesSchemes</key>
 	<array>
 		<string>twitter</string>
 		<string>itms-apps</string>
 	</array>
-=======
->>>>>>> 814c1c8d3 (Mobile snaps)
 </dict>
 </plist>

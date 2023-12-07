@@ -47,15 +47,9 @@ public class MainApplication extends Application implements ShareApplication, Re
 			packages.add(new PreventScreenshotPackage());
 			packages.add(new ReactVideoPackage());
 			packages.add(new RCTAnalyticsPackage());
-<<<<<<< HEAD
-      packages.add(new RCTMinimizerPackage());
-      packages.add(new NativeSDKPackage());
-      packages.add(new RNTarPackage());
-=======
       		packages.add(new RCTMinimizerPackage());
       		packages.add(new NativeSDKPackage());
-			packages.add(new RNTarPackage());
->>>>>>> 814c1c8d3 (Mobile snaps)
+      		packages.add(new RNTarPackage());
 
       return packages;
 		}

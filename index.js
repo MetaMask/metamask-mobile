@@ -17,11 +17,7 @@ import crypto from 'crypto'; // eslint-disable-line import/no-nodejs-modules, no
 require('react-native-browser-polyfill'); // eslint-disable-line import/no-commonjs
 
 import * as Sentry from '@sentry/react-native'; // eslint-disable-line import/no-namespace
-<<<<<<< HEAD
 import { setupSentry } from './app/util/sentry/utils';
-=======
-import { setupSentry } from './app/util/sentry/sentryUtils';
->>>>>>> 814c1c8d3 (Mobile snaps)
 setupSentry();
 
 import { AppRegistry, LogBox } from 'react-native';

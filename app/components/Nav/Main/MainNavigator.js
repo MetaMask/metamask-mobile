@@ -66,8 +66,6 @@ import BrowserUrlModal from '../../Views/BrowserUrlModal';
 ///: BEGIN:ONLY_INCLUDE_IF(flask)
 import { SnapsSettingsList } from '../../Views/Snaps/SnapsSettingsList';
 ///: END:ONLY_INCLUDE_IF
-import { SnapsSettingsList } from '../../Views/Snaps/SnapsSettingsList';
-import { SnapSettings } from '../../Views/Snaps/SnapSettings';
 import Routes from '../../../constants/navigation/Routes';
 import AnalyticsV2 from '../../../util/analyticsV2';
 import { MetaMetricsEvents } from '../../../core/Analytics';

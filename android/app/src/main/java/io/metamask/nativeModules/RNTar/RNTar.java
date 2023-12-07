@@ -95,7 +95,6 @@ public class RNTar extends ReactContextBaseJavaModule {
             // Create parent directories if they don't exist
             createDirectories(outputFile.getParent());
 
-<<<<<<< HEAD
             // Set up the output streams for writing the file
             try (FileOutputStream fos = new FileOutputStream(outputFile);
                  BufferedOutputStream dest = new BufferedOutputStream(fos)) {
@@ -109,21 +108,6 @@ public class RNTar extends ReactContextBaseJavaModule {
             }
           }
         }
-=======
-           // Set up the output streams for writing the file
-          try (FileOutputStream fos = new FileOutputStream(outputFile);
-            BufferedOutputStream dest = new BufferedOutputStream(fos)) {
-
-            // Read and write the file data as bytes
-            byte[] buffer = new byte[4096];
-            int length;
-            while ((length = tarInputStream.read(buffer)) != -1) {
-              dest.write(buffer, 0, length);
-            }
-          }
-        }
-        }
->>>>>>> 814c1c8d3 (Mobile snaps)
       }
       // Return the output directory path
       return new File(outputPath, "package").getAbsolutePath();

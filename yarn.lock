@@ -5210,7 +5210,7 @@
     image-to-base64 "^2.2.0"
     open "^8.2.0"
 
-"@scure/base@^1.1.3", "@scure/base@~1.1.0":
+"@scure/base@^1.0.0", "@scure/base@^1.1.1", "@scure/base@^1.1.3", "@scure/base@~1.1.0":
   version "1.1.3"
   resolved "https://registry.yarnpkg.com/@scure/base/-/base-1.1.3.tgz#8584115565228290a6c6c4961973e0903bb3df2f"
   integrity sha512-/+SgoRjLq7Xlf0CWuLHq2LUZeL/w65kfzAPG5NH9pcmBhs+nunQTn4gvdwgMTIXnt9b2C/1SeL2XiysZEyIC9Q==
@@ -8727,6 +8727,11 @@
   version "0.7.13"
   resolved "https://registry.yarnpkg.com/@xmldom/xmldom/-/xmldom-0.7.13.tgz#ff34942667a4e19a9f4a0996a76814daac364cf3"
   integrity sha512-lm2GW5PkosIzccsaZIz7tp8cPADSIlIHWDFTR1N0SzfinhhYgeIQjFMz4rYzanCScr3DqQLeomUDArp6MWKm+g==
+
+"@xstate/fsm@^2.0.0":
+  version "2.1.0"
+  resolved "https://registry.yarnpkg.com/@xstate/fsm/-/fsm-2.1.0.tgz#269f0bc411f3eac0dd04e55d51cbd07411a04f9a"
+  integrity sha512-oJlc0iD0qZvAM7If/KlyJyqUt7wVI8ocpsnlWzAPl97evguPbd+oJbRM9R4A1vYJffYH96+Bx44nLDE6qS8jQg==
 
 "@xtuc/ieee754@^1.2.0":
   version "1.2.0"

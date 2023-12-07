@@ -856,11 +856,7 @@ workflows:
           - content: |-
               #!/usr/bin/env bash
               node -v
-<<<<<<< HEAD
               METAMASK_BUILD_TYPE='flask' METAMASK_ENVIRONMENT='production' yarn build:ios:pre-flask
-=======
-              METAMASK_BUILD_TYPE=flask METAMASK_ENVIRONMENT='production' yarn build:ios:pre-flask
->>>>>>> 814c1c8d3 (Mobile snaps)
           title: iOS Sourcemaps & Build
           is_always_run: false
       - deploy-to-bitrise-io@2.2.3:
@@ -899,11 +895,7 @@ workflows:
             - source: $BITRISEIO_ANDROID_FLASK_KEYSTORE_URL_URL
             - destination: android/keystores/flaskRelease.keystore
       - restore-gradle-cache@1: {}
-<<<<<<< HEAD
       - install-missing-android-tools@3:
-=======
-      - install-missing-android-tools@2:
->>>>>>> 814c1c8d3 (Mobile snaps)
           inputs:
             - ndk_revision: $NDK_VERSION
             - gradlew_path: $PROJECT_LOCATION/gradlew
@@ -911,7 +903,6 @@ workflows:
           inputs:
             - content: |-
                 #!/usr/bin/env bash
-<<<<<<< HEAD
                 "${ANDROID_HOME}/tools/bin/sdkmanager" "cmake;3.22.1"
           title: Download cmake 3.22.1 with sdkmanager
           is_always_run: false
@@ -921,10 +912,6 @@ workflows:
                 #!/usr/bin/env bash
                 node -v
                 METAMASK_BUILD_TYPE='flask' METAMASK_ENVIRONMENT='production' yarn build:android:pre-release:bundle:flask
-=======
-                node -v
-                METAMASK_BUILD_TYPE=flask METAMASK_ENVIRONMENT='production' yarn build:android:pre-release:bundle:flask
->>>>>>> 814c1c8d3 (Mobile snaps)
           title: Build Android Pre-Release Bundle
           is_always_run: false
       - save-gradle-cache@1: {}

@@ -60,13 +60,10 @@ import TemplateConfirmationModal from '../../Approvals/TemplateConfirmationModal
 import { selectTokenList } from '../../../selectors/tokenListController';
 import { selectTokens } from '../../../selectors/tokensController';
 import { selectSelectedAddress } from '../../../selectors/preferencesController';
-<<<<<<< HEAD
 import { getLedgerKeyring } from '../../../core/Ledger/Ledger';
 import { createLedgerTransactionModalNavDetails } from '../../UI/LedgerModals/LedgerTransactionModal';
 import ExtendedKeyringTypes from '../../../constants/keyringTypes';
-=======
 import InstallSnapApproval from '../../Approvals/InstallSnapApproval';
->>>>>>> 814c1c8d3 (Mobile snaps)
 
 const hstInterface = new ethers.utils.Interface(abi);
 

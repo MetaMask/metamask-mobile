@@ -39,20 +39,12 @@
     "build:android:qa:e2e": "./scripts/build.sh android QAE2E",
     "build:android:checksum": "./scripts/checksum.sh",
     "build:android:checksum:qa": "./scripts/checksum.sh QA",
-<<<<<<< HEAD
     "build:android:checksum:flask": "export METAMASK_BUILD_TYPE='flask' && ./scripts/checksum.sh flask",
-=======
-    "build:android:checksum:flask": "./scripts/checksum.sh Flask",
->>>>>>> 814c1c8d3 (Mobile snaps)
     "build:android:checksum:verify": "shasum -a 512 -c sha512sums.txt",
     "build:android:pre-release": "./scripts/build.sh android release --pre",
     "build:android:pre-release:bundle": "GENERATE_BUNDLE=true ./scripts/build.sh android release --pre",
     "build:android:pre-release:bundle:qa": "GENERATE_BUNDLE=true ./scripts/build.sh android QA --pre",
-<<<<<<< HEAD
     "build:android:pre-release:bundle:flask": "export METAMASK_BUILD_TYPE='flask' && GENERATE_BUNDLE=true ./scripts/build.sh android flask --pre",
-=======
-    "build:android:pre-release:bundle:flask": "GENERATE_BUNDLE=true ./scripts/build.sh android Flask --pre",
->>>>>>> 814c1c8d3 (Mobile snaps)
     "build:ios:release": "./scripts/build.sh ios release",
     "build:ios:pre-flask": "export METAMASK_BUILD_TYPE='flask' && ./scripts/build.sh ios flask --pre",
     "build:ios:release:e2e": "./scripts/build.sh ios releaseE2E",
