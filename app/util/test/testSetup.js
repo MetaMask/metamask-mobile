@@ -8,11 +8,6 @@ import Enzyme from 'enzyme';
 
 Enzyme.configure({ adapter: new Adapter() });
 
-if (!global.performance) {
-  global.performance = {};
-}
-global.performance.now = jest.fn(Date.now);
-
 jest.mock('react-native', () => {
   const originalModule = jest.requireActual('react-native');
 
@@ -298,4 +293,10 @@ jest.mock(
 afterEach(() => {
   jest.restoreAllMocks();
   global.gc && global.gc(true);
+});
+
+Object.defineProperties(globalThis, {
+  performance: {
+    writable: true,
+  },
 });
