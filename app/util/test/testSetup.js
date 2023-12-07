@@ -294,9 +294,3 @@ afterEach(() => {
   jest.restoreAllMocks();
   global.gc && global.gc(true);
 });
-
-Object.defineProperties(global, {
-  performance: {
-    writable: true,
-  },
-});
