@@ -1,4 +1,4 @@
-import { METHODS_TO_REDIRECT } from './SDKConnect.constants';
+import { METHODS_TO_REDIRECT } from './SDKConnectConstants';
 import DevLogger from './utils/DevLogger';
 
 export class RPCQueueManager {

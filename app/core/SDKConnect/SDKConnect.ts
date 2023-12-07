@@ -24,7 +24,7 @@ import {
 } from './ConnectionManagement';
 import { init, postInit } from './InitializationManagement';
 import RPCQueueManager from './RPCQueueManager';
-import { DEFAULT_SESSION_TIMEOUT_MS } from './SDKConnect.constants';
+import { DEFAULT_SESSION_TIMEOUT_MS } from './SDKConnectConstants';
 import { pause, resume, unmount } from './SessionManagement';
 import {
   handleAppState,

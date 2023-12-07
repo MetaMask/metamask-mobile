@@ -7,7 +7,7 @@ import { Connection } from '../Connection';
 import checkPermissions from './checkPermissions';
 
 import Engine from '../../Engine';
-import { HOUR_IN_MS } from '../SDKConnect.constants';
+import { HOUR_IN_MS } from '../SDKConnectConstants';
 import { setupBridge } from './setupBridge';
 
 jest.mock('@metamask/approval-controller');
