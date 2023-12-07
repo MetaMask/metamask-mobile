@@ -20,7 +20,23 @@ const styleSheet = (params: {
   vars: RadioButtonStyleSheetVars;
 }) => {
   const { vars, theme } = params;
-  const { style, isChecked, isDisabled } = vars;
+  const { style, isChecked, isDisabled, isReadOnly, isDanger } = vars;
+  let iconColor;
+  let borderColor;
+
+  if (isReadOnly) {
+    iconColor = theme.colors.icon.alternative;
+    borderColor = theme.colors.background.default;
+  } else if (isDanger) {
+    iconColor = theme.colors.error.default;
+    borderColor = theme.colors.error.default;
+  } else if (isChecked) {
+    iconColor = theme.colors.primary.default;
+    borderColor = theme.colors.primary.default;
+  } else {
+    iconColor = theme.colors.background.default;
+    borderColor = theme.colors.border.default;
+  }
 
   return StyleSheet.create({
     base: Object.assign(
@@ -39,14 +55,12 @@ const styleSheet = (params: {
       borderRadius: 99,
       borderWidth: 2,
       backgroundColor: theme.colors.background.default,
-      borderColor: isChecked
-        ? theme.colors.primary.default
-        : theme.colors.border.default,
+      borderColor,
     },
     icon: {
       width: 12,
       height: 12,
-      backgroundColor: theme.colors.primary.default,
+      backgroundColor: iconColor,
       borderRadius: 99,
     },
     label: {

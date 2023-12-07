@@ -32,11 +32,29 @@ Optional prop to configure the disabled state.
 | :-------------------------------------------------- | :------------------------------------------------------ | :----------------------------------------------------- |
 | boolean                                             | No                                                     | false                                                 |
 
+### `isReadonly`
+
+Optional prop to configure the readonly state.
+
+| <span style="color:gray;font-size:14px">TYPE</span> | <span style="color:gray;font-size:14px">REQUIRED</span> | <span style="color:gray;font-size:14px">DEFAULT</span> |
+| :-------------------------------------------------- | :------------------------------------------------------ | :----------------------------------------------------- |
+| boolean                                             | No                                                     | false                                                 |
+
+### `isDanger`
+
+Optional prop to configure the readonly state.
+
+| <span style="color:gray;font-size:14px">TYPE</span> | <span style="color:gray;font-size:14px">REQUIRED</span> | <span style="color:gray;font-size:14px">DEFAULT</span> |
+| :-------------------------------------------------- | :------------------------------------------------------ | :----------------------------------------------------- |
+| boolean                                             | No                                                     | false                                                 |
+
 ## Usage
 
 ```javascript
 <RadioButton 
     label={SAMPLE_RadioButton_LABEL}
     isChecked
-    isDisabled/>;
+    isDisabled
+    isReadOnly
+    isDanger/>;
 ```

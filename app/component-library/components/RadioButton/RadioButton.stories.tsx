@@ -8,10 +8,19 @@ const RadioButtonMeta = {
   title: 'Component Library / RadioButton',
   component: RadioButtonComponent,
   argTypes: {
+    label: {
+      control: { type: 'text' },
+    },
     isChecked: {
       control: { type: 'boolean' },
     },
     isDisabled: {
+      control: { type: 'boolean' },
+    },
+    isReadOnly: {
+      control: { type: 'boolean' },
+    },
+    isDanger: {
       control: { type: 'boolean' },
     },
   },

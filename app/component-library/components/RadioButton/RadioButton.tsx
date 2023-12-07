@@ -22,16 +22,24 @@ const RadioButton = ({
   label,
   isChecked = false,
   isDisabled = false,
+  isReadOnly = false,
+  isDanger = false,
   ...props
 }: RadioButtonProps) => {
   const { styles } = useStyles(styleSheet, {
     style,
     isChecked,
     isDisabled,
+    isReadOnly,
+    isDanger,
   });
 
   return (
-    <TouchableOpacity style={styles.base} {...props} disabled={isDisabled}>
+    <TouchableOpacity
+      style={styles.base}
+      {...props}
+      disabled={isDisabled || isReadOnly}
+    >
       <View style={styles.radioButton} accessibilityRole="radio">
         {isChecked && (
           <View style={styles.icon} testID={RADIOBUTTON_ICON_TESTID} />

@@ -22,6 +22,14 @@ export interface RadioButtonProps extends TouchableOpacityProps {
    * Optional prop to configure the disabled state.
    */
   isDisabled?: boolean;
+  /**
+   * Optional prop to configure the readonly state.
+   */
+  isReadOnly?: boolean;
+  /**
+   * Optional prop to configure the danger state.
+   */
+  isDanger?: boolean;
 }
 
 /**
@@ -30,4 +38,6 @@ export interface RadioButtonProps extends TouchableOpacityProps {
 export type RadioButtonStyleSheetVars = Pick<RadioButtonProps, 'style'> & {
   isChecked: boolean;
   isDisabled: boolean;
+  isReadOnly: boolean;
+  isDanger: boolean;
 };
