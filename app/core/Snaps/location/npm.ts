@@ -44,7 +44,7 @@ export interface NpmOptions {
 }
 
 interface NpmMeta {
-  registry: string;
+  registry: URL;
   packageName: string;
   requestedRange: SemVerRange;
   version?: string;
@@ -204,7 +204,7 @@ export class NpmLocation implements SnapLocation {
 
     this.meta = {
       requestedRange,
-      registry: registry.toString(),
+      registry,
       packageName,
       fetch: fetchFunction,
     };
@@ -249,7 +249,7 @@ export class NpmLocation implements SnapLocation {
     return this.meta.version;
   }
 
-  get registry(): string {
+  get registry(): URL {
     return this.meta.registry;
   }
 
@@ -332,7 +332,7 @@ interface NPMTarBallData {
 async function fetchNpmTarball(
   packageName: string,
   versionRange: SemVerRange,
-  registryUrl: string,
+  registryUrl: URL,
   fetchFunction: typeof fetch,
 ): Promise<
   [
