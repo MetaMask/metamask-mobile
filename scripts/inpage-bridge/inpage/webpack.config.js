@@ -3,7 +3,7 @@ const path = require('path');
 const { readFileSync } = require('fs');
 
 const SVG_LOGO_PATH =
-  '../../../app/component-library/components/Icons/Icon/assets/fox.svg';
+  '../../../app/images/fox.svg';
 function getBuildIcon() {
   const svg = readFileSync(SVG_LOGO_PATH, 'utf8');
   return `data:image/svg+xml,${encodeURIComponent(svg)}`;
