@@ -91,11 +91,14 @@ import {
   JsonSnapsRegistry,
   SnapController,
   SnapControllerState,
+  SnapsRegistryState,
   buildSnapEndowmentSpecifications,
   buildSnapRestrictedMethodSpecifications,
 } from '@metamask/snaps-controllers';
 import { EnumToUnion } from '@metamask/snaps-utils';
 import { DialogType, NotificationArgs } from '@metamask/snaps-rpc-methods';
+// eslint-disable-next-line import/no-nodejs-modules
+import { Duplex } from 'stream';
 ///: END:ONLY_INCLUDE_IF
 import { MetaMaskKeyring as QRHardwareKeyring } from '@keystonehq/metamask-airgapped-keyring';
 import {
@@ -211,6 +214,7 @@ export interface EngineState {
   NftDetectionController: BaseState;
   ///: BEGIN:ONLY_INCLUDE_IF(snaps)
   SnapController: SnapControllerState;
+  SnapsRegistry: SnapsRegistryState;
   ///: END:ONLY_INCLUDE_IF
   PermissionController: PermissionControllerState<Permissions>;
   ///: BEGIN:ONLY_INCLUDE_IF(snaps)
@@ -620,7 +624,7 @@ class Engine {
       subjectCacheLimit: 100,
     });
 
-    this.setupSnapProvider = (snapId, connectionStream) => {
+    const setupSnapProvider = (snapId: string, connectionStream: Duplex) => {
       Logger.log(
         '[ENGINE LOG] Engine+setupSnapProvider: Setup stream for Snap',
         snapId,
@@ -639,15 +643,18 @@ class Engine {
             getApprovedHosts: () => null,
             setApprovedHosts: () => null,
             approveHost: () => null,
-            // Mock URL
-            title: 'Snap',
-            icon: null,
-            isHomepage: false,
-            fromHomepage: false,
+            title: { current: 'Snap' },
+            icon: { current: undefined },
+            isHomepage: () => false,
+            fromHomepage: { current: false },
             toggleUrlModal: () => null,
-            wizardScrollAdjusted: () => null,
+            wizardScrollAdjusted: { current: false },
             tabId: false,
             isWalletConnect: true,
+            isMMSDK: false,
+            url: { current: '' },
+            analytics: {},
+            injectHomePageScripts: () => null,
           }),
       });
 
@@ -679,7 +686,7 @@ class Engine {
       messenger: this.controllerMessenger.getRestricted({
         name: 'ExecutionService',
       }),
-      setupSnapProvider: this.setupSnapProvider.bind(this),
+      setupSnapProvider: setupSnapProvider.bind(this),
     });
 
     const snapControllerMessenger = this.controllerMessenger.getRestricted({
