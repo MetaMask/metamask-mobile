@@ -1,15 +1,15 @@
 import Gestures from '../helpers/Gestures';
 import Selectors from '../helpers/Selectors';
 import { I_UNDERSTAND_BUTTON_ID } from './testIDs/Screens/WalletSetupScreen.testIds';
-import { ManualBackUpSelectorsIDs } from '../../e2e/selectors/Onboarding/ManualBackUp.selectors';
+import { ManualBackUpStepsSelectorsIDs } from '../../e2e/selectors/Onboarding/ManualBackUpSteps.selectors';
 
 class ChangePasswordScreens {
   get passwordInput() {
-    return Selectors.getElementByPlatform(ManualBackUpSelectorsIDs.CONFIRM_PASSWORD_INPUT);
+    return Selectors.getElementByPlatform(ManualBackUpStepsSelectorsIDs.CONFIRM_PASSWORD_INPUT);
   }
 
   get confirmButton() {
-    return Selectors.getElementByPlatform(ManualBackUpSelectorsIDs.SUBMIT_BUTTON);
+    return Selectors.getElementByPlatform(ManualBackUpStepsSelectorsIDs.SUBMIT_BUTTON);
   }
 
   get termsAndConditionCheckBox() {

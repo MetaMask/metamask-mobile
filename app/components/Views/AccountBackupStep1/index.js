@@ -31,7 +31,7 @@ import AnalyticsV2 from '../../../util/analyticsV2';
 
 import DefaultPreference from 'react-native-default-preference';
 import { useTheme } from '../../../util/theme';
-import { ManualBackUpSelectorsIDs } from '../../../../e2e/selectors/Onboarding/ManualBackUp.selectors';
+import { ManualBackUpStepsSelectorsIDs } from '../../../../e2e/selectors/Onboarding/ManualBackUpSteps.selectors';
 
 const createStyles = (colors) =>
   StyleSheet.create({
@@ -212,7 +212,7 @@ const AccountBackupStep1 = (props) => {
       <ScrollView
         contentContainerStyle={styles.scrollviewWrapper}
         style={styles.mainWrapper}
-        testID={ManualBackUpSelectorsIDs.PROTECT_CONTAINER}
+        testID={ManualBackUpStepsSelectorsIDs.PROTECT_CONTAINER}
       >
         <View style={styles.wrapper}>
           <OnboardingProgress steps={CHOOSE_PASSWORD_STEPS} currentStep={1} />
@@ -244,7 +244,9 @@ const AccountBackupStep1 = (props) => {
                 >
                   <Text
                     style={styles.remindLaterText}
-                    testID={ManualBackUpSelectorsIDs.REMIND_ME_LATER_BUTTON}
+                    testID={
+                      ManualBackUpStepsSelectorsIDs.REMIND_ME_LATER_BUTTON
+                    }
                   >
                     {strings('account_backup_step_1.remind_me_later')}
                   </Text>

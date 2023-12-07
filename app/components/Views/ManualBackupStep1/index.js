@@ -36,7 +36,7 @@ import { createStyles } from './styles';
 import { MetaMetricsEvents } from '../../../core/Analytics';
 import AnalyticsV2 from '../../../util/analyticsV2';
 import { Authentication } from '../../../core';
-import { ManualBackUpSelectorsIDs } from '../../../../e2e/selectors/Onboarding/ManualBackUp.selectors';
+import { ManualBackUpStepsSelectorsIDs } from '../../../../e2e/selectors/Onboarding/ManualBackUpSteps.selectors';
 
 /**
  * View that's shown during the second step of
@@ -171,6 +171,7 @@ const ManualBackupStep1 = ({ route, navigation, appTheme }) => {
             <StyledButton
               type={'onOverlay'}
               onPress={revealSeedPhrase}
+              testID={ManualBackUpStepsSelectorsIDs.VIEW_BUTTON}
               containerStyle={styles.viewButtonContainer}
             >
               {strings('manual_backup_step_1.view')}
@@ -204,7 +205,7 @@ const ManualBackupStep1 = ({ route, navigation, appTheme }) => {
               onChangeText={onPasswordChange}
               secureTextEntry
               onSubmitEditing={tryUnlock}
-              testID={ManualBackUpSelectorsIDs.CONFIRM_PASSWORD_INPUT}
+              testID={ManualBackUpStepsSelectorsIDs.CONFIRM_PASSWORD_INPUT}
               keyboardAppearance={themeAppearance}
             />
             {warningIncorrectPassword && (
@@ -218,7 +219,7 @@ const ManualBackupStep1 = ({ route, navigation, appTheme }) => {
               containerStyle={styles.button}
               type={'confirm'}
               onPress={tryUnlock}
-              testID={ManualBackUpSelectorsIDs.SUBMIT_BUTTON}
+              testID={ManualBackUpStepsSelectorsIDs.SUBMIT_BUTTON}
             >
               {strings('manual_backup_step_1.confirm')}
             </StyledButton>
@@ -234,6 +235,7 @@ const ManualBackupStep1 = ({ route, navigation, appTheme }) => {
 
     return (
       <ActionView
+        confirmTestID={ManualBackUpStepsSelectorsIDs.CONTINUE_BUTTON}
         confirmText={strings('manual_backup_step_1.continue')}
         onConfirmPress={goNext}
         confirmDisabled={seedPhraseHidden}

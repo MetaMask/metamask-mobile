@@ -21,6 +21,7 @@ import { MetaMetricsEvents } from '../../../core/Analytics';
 import AnalyticsV2 from '../../../util/analyticsV2';
 import { useTheme } from '../../../util/theme';
 import createStyles from './styles';
+import { ManualBackUpStepsSelectorsIDs } from '../../../../e2e/selectors/Onboarding/ManualBackUpSteps.selectors';
 
 const ManualBackupStep2 = ({ navigation, seedphraseBackedUp, route }) => {
   const { colors } = useTheme();
@@ -227,13 +228,17 @@ const ManualBackupStep2 = ({ navigation, seedphraseBackedUp, route }) => {
         />
       </View>
       <ActionView
+        confirmTestID={ManualBackUpStepsSelectorsIDs.CONTINUE_BUTTON}
         confirmText={strings('manual_backup_step_2.complete')}
         onConfirmPress={goNext}
         confirmDisabled={!seedPhraseReady || !validateWords()}
         showCancelButton={false}
         confirmButtonMode={'confirm'}
       >
-        <View style={styles.wrapper}>
+        <View
+          style={styles.wrapper}
+          testID={ManualBackUpStepsSelectorsIDs.PROTECT_CONTAINER}
+        >
           <Text style={styles.action}>
             {strings('manual_backup_step_2.action')}
           </Text>

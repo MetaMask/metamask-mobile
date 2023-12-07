@@ -26,7 +26,7 @@ import { MetaMetricsEvents } from '../../../core/Analytics';
 import AnalyticsV2 from '../../../util/analyticsV2';
 
 import { useTheme } from '../../../util/theme';
-import { ManualBackUpSelectorsIDs } from '../../../../e2e/selectors/Onboarding/ManualBackUp.selectors';
+import { ManualBackUpStepsSelectorsIDs } from '../../../../e2e/selectors/Onboarding/ManualBackUpSteps.selectors';
 
 const explain_backup_seedphrase = require('../../../images/explain-backup-seedphrase.png'); // eslint-disable-line
 
@@ -246,7 +246,7 @@ const AccountBackupStep1B = (props) => {
       >
         <View
           style={styles.wrapper}
-          testID={ManualBackUpSelectorsIDs.PROTECT_CONTAINER}
+          testID={ManualBackUpStepsSelectorsIDs.PROTECT_CONTAINER}
         >
           <OnboardingProgress steps={CHOOSE_PASSWORD_STEPS} currentStep={1} />
           <View style={styles.content}>
