@@ -656,6 +656,7 @@ class Engine {
 
     const requireAllowlist =
       process.env.METAMASK_BUILD_TYPE === 'main' ? true : undefined;
+    const allowLocalSnaps = process.env.METAMASK_BUILD_TYPE === 'flask';
 
     const snapsRegistryMessenger = this.controllerMessenger.getRestricted({
       name: 'SnapsRegistry',
@@ -734,6 +735,7 @@ class Engine {
       ) =>
         detectSnapLocation(location, {
           ...options,
+          allowLocal: allowLocalSnaps,
           fetch: fetchFunction,
         }),
     });
