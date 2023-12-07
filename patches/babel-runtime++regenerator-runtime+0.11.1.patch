@@ -1,0 +1,16 @@
+diff --git a/node_modules/babel-runtime/node_modules/regenerator-runtime/runtime.js b/node_modules/babel-runtime/node_modules/regenerator-runtime/runtime.js
+index 22e7b00..6858604 100644
+--- a/node_modules/babel-runtime/node_modules/regenerator-runtime/runtime.js
++++ b/node_modules/babel-runtime/node_modules/regenerator-runtime/runtime.js
+@@ -414,9 +414,9 @@
+   // iterator prototype chain incorrectly implement this, causing the Generator
+   // object to not be returned from this call. This ensures that doesn't happen.
+   // See https://github.com/facebook/regenerator/issues/274 for more details.
+-  Gp[iteratorSymbol] = function() {
++  Object.defineProperty(Gp, iteratorSymbol, { value: function () {
+     return this;
+-  };
++  } });
+ 
+   Gp.toString = function() {
+     return "[object Generator]";
