@@ -3976,7 +3976,7 @@
     eth-phishing-detect "^1.2.0"
     punycode "^2.1.1"
 
-"@metamask/ppom-validator@0.13.0":
+"@metamask/ppom-validator@^0.13.0":
   version "0.13.0"
   resolved "https://registry.yarnpkg.com/@metamask/ppom-validator/-/ppom-validator-0.13.0.tgz#4d012b8b3b13f2cc5ec33406f6257d2a636a1580"
   integrity sha512-1T+aoawRZmCvwKOvuLJ05fUpCDtd4JK/RuQ8KJhc6wfnauSY0D7Bn6z+we8nWHjySw5UYW/72MifhHAWJZc02Q==
