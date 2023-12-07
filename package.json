@@ -205,7 +205,7 @@
     "@metamask/swappable-obj-proxy": "^2.1.0",
     "@metamask/swaps-controller": "^6.9.3",
     "@metamask/transaction-controller": "^5.0.0",
-    "@metamask/utils": "^5.0.2",
+    "@metamask/utils": "^8.1.0",
     "@ngraveio/bc-ur": "^1.1.6",
     "@react-native-async-storage/async-storage": "1.17.10",
     "@react-native-clipboard/clipboard": "1.8.4",

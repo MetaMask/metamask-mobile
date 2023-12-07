@@ -14,10 +14,10 @@ import {
   assertStruct,
   isObject,
   assertIsSemVerVersion,
-  SemVerRange,
   SemVerVersion,
   stringToBytes,
   bytesToString,
+  SemVerRange,
 } from '@metamask/utils';
 
 import { DetectSnapLocationOptions } from './location';
