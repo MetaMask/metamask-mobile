@@ -201,6 +201,10 @@
     "security_alert_title": "Peringatan Keamanan",
     "security_alert_desc": "Untuk melanjutkan, Anda harus mengaktifkan Kode Sandi atau metode autentikasi biometrik yang didukung perangkat Anda (FaceID, TouchID, atau Sidik Jari)"
   },
+  "connect_hardware": {
+    "title_select_hardware": "Hubungkan dompet perangkat keras",
+    "select_hardware": "Pilih dompet perangkat keras yang ingin digunakan"
+  },
   "enter_password": {
     "title": "Masukkan kata sandi Anda",
     "desc": "Masukkan kata sandi Anda untuk melanjutkan",
@@ -513,10 +517,10 @@
   },
   "accounts": {
     "create_new_account": "Buat akun baru",
+    "qr_hardware": "Perangkat keras QR",
     "import_account": "Impor akun",
     "connect_hardware": "Hubungkan dompet perangkat keras",
     "imported": "Diimpor",
-    "qr_hardware": "Perangkat keras QR",
     "remove_account_title": "Penghapusan akun",
     "remove_account_message": "Yakin ingin menghapus akun ini?",
     "no": "Tidak",
@@ -536,6 +540,7 @@
     "permissions": "Izin",
     "revoke": "Cabut",
     "revoke_all": "Cabut semua",
+    "ledger": "Ledger",
     "site_permission_to": "Situs ini memiliki izin untuk:",
     "address_balance_activity_permission": "Melihat alamat, saldo akun, dan aktivitas",
     "suggest_transactions": "Merekomendasikan transaksi untuk disetujui",
@@ -569,7 +574,7 @@
     "tutorial": "Tutorial",
     "description4": "Keystone (tutorial)",
     "description5": "1. Buka Keystone Anda",
-    "description6": "2. Ketuk Menu ···, lalu buka Sinkronkan >",
+    "description6": "2. Tap the ··· Menu, then go to Sync",
     "button_continue": "Lanjutkan",
     "hint_text": "Pindai dompet Keystone Anda ke ",
     "purpose_connect": "hubungkan",
@@ -701,7 +706,7 @@
     "remove_network": "Hapus",
     "cancel_remove_network": "Batal",
     "info_title": "Seputar MetaMask",
-    "info_title_flask": "About MetaMask Flask",
+    "info_title_flask": "Tentang MetaMask Flask",
     "experimental_title": "Eksperimental",
     "experimental_desc": "WalletConnect dan lainnya...",
     "legal_title": "Hukum",
@@ -801,7 +806,53 @@
     "autodetect_nft_desc": "Izinkan MetaMask menambahkan NFT yang Anda miliki menggunakan layanan pihak ketiga (seperti OpenSea). Autodeteksi NFT mengekspos alamat IP dan akun Anda ke layanan ini. Mengaktifkan fitur ini dapat mengaitkan alamat IP dengan alamat Ethereum Anda dan menampilkan NFT palsu yang di-airdrop oleh penipu. Anda dapat menambahkan token secara manual untuk menghindari risiko ini.",
     "incoming_transactions_title": "Tampilkan transaksi masuk",
     "incoming_transactions_content": "Ini bergantung pada jaringan yang Anda pilih yang akan mengekspos alamat Ethereum dan alamat IP Anda.",
-    "display_nft_media_desc_new": "Alamat IP dapat diketahui oleh OpenSea atau pihak ketiga lainnya saat Anda menampilkan media dan data NFT. Autodeteksi NFT mengandalkan fitur ini, dan tidak akan tersedia saat dinonaktifkan. Jika media NFT sepenuhnya disimpan di IPFS, maka masih dapat ditampilkan bahkan pada saat fitur ini dinonaktifkan."
+    "display_nft_media_desc_new": "Alamat IP dapat diketahui oleh OpenSea atau pihak ketiga lainnya saat Anda menampilkan media dan data NFT. Autodeteksi NFT mengandalkan fitur ini, dan tidak akan tersedia saat dinonaktifkan. Jika media NFT sepenuhnya disimpan di IPFS, maka masih dapat ditampilkan bahkan pada saat fitur ini dinonaktifkan.",
+    "snaps": {
+      "title": "Snap",
+      "description": "Tinjau dan kelola Snap",
+      "snap_settings": {
+        "remove_snap_section_title": "Hapus Snap",
+        "remove_snap_section_description": "Tindakan ini akan menghapus Snap, datanya, serta izin yang diberikan.",
+        "remove_button_label": "Hapus {{snapName}}"
+      },
+      "snap_details": {
+        "install_date": "Diinstal pada {{date}}",
+        "install_origin": "Instal Asal",
+        "enabled": "Diaktifkan",
+        "version": "Versi"
+      },
+      "snap_permissions": {
+        "approved_date": "Disetujui pada {{date}}",
+        "permission_section_title": "Izin",
+        "permission_requested_now": "Diminta sekarang",
+        "human_readable_permission_titles": {
+          "endowment:long-running": "Jalankan sepanjang waktu",
+          "endowment:network-access": "Akses internet",
+          "endowment:transaction-insight": "Tampilkan wawasan transaksi",
+          "endowment:cronjob": "Jadwalkan dan jalankan tindakan berkala",
+          "endowment:rpc": {
+            "snaps": "Izinkan Snap lain untuk terhubung langsung dengan Snap ini",
+            "dapps": "Izinkan dapp untuk terhubung langsung dengan Snap ini"
+          },
+          "snap_confirm": "Tampilkan dialog khusus",
+          "snap_manageState": "Simpan dan kelola data di perangkat",
+          "snap_notify": "Tampilkan notifikasi",
+          "snap_getBip32Entropy": "Kontrol akun dan aset {{protocol}}",
+          "snap_getBip32PublicKey": "Lihat kunci publik untuk {{protocol}}",
+          "snap_getBip44Entropy": "Kontrol akun dan aset {{protocol}}",
+          "snap_getEntropy": "Dapatkan kunci arbitrer unik untuk Snap ini",
+          "endowment:keyring": "endowment:keyring",
+          "wallet_snap": "Hubungkan ke {{otherSnapName}}",
+          "endowment:webassembly": "Mendukung WebAssembly",
+          "endowment:ethereum-provider": "Akses penyedia Ethereum",
+          "endowment:unknown": "Izin tidak dikenal",
+          "snap_getLocale": "Lihat bahasa pilihan",
+          "endowment:caveat:transaction-origin": "Lihat asal situs web yang mengirimkan transaksi",
+          "endowment:extend-runtime": "Perpanjang waktu pengoperasian",
+          "snap_dialog": "Tampilkan dialog khusus"
+        }
+      }
+    }
   },
   "sdk": {
     "disconnect_title": "Putuskan koneksi semua situs?",
@@ -910,6 +961,7 @@
     "add_collectible_button": "Tambahkan",
     "info": "Informasi",
     "swap": "Tukar",
+    "bridge": "Bridge",
     "description": "Deskripsi",
     "totalSupply": "Jumlah Pasokan",
     "address": "Alamat",
@@ -921,6 +973,7 @@
     "buy_description": "Beli kripto dengan uang tunai",
     "sell_description": "Jual kripto untuk dapat uang tunai",
     "swap_description": "Pertukaran antar token",
+    "bridge_description": "Transfer token antar jaringan",
     "send_description": "Kirim kripto ke akun mana pun",
     "receive_description": "Terima kripto",
     "chart_time_period": {
@@ -1020,6 +1073,7 @@
     "save": "Simpan",
     "speedup": "Percepat",
     "sign_with_keystone": "Masuk dengan Keystone",
+    "sign_with_ledger": "Tandatangani dengan Ledger",
     "from": "Dari",
     "gas_fee": "Biaya gas",
     "gas_fee_fast": "CEPAT",
@@ -1093,6 +1147,7 @@
     "not_enough_for_gas": "Anda memiliki 0 {{ticker}} di akun Anda untuk membayar biaya transaksi. Beli {{ticker}} atau setor dari rekening lain.",
     "send": "Kirim",
     "confirm_with_qr_hardware": "Konfirmasikan dengan Keystone",
+    "confirm_with_ledger_hardware": "Konfirmasikan dengan Ledger",
     "confirmed": "Dikonfirmasi",
     "pending": "Menunggu",
     "submitted": "Dikirim",
@@ -2012,7 +2067,9 @@
       "select_country_registered": "Pilih negara tempat kartu Anda terdaftar (terlepas dari lokasi Anda saat ini).",
       "unsupported": "Wilayah Tidak Didukung",
       "unsupported_description": "Kami bekerja keras untuk memperluas cakupan ke wilayah Anda sesegera mungkin. Sembari menunggu, lihat artikel dukungan kami untuk mengetahui cara lain yang dapat Anda lakukan untuk {{rampType}} kripto.",
-      "unsupported_link": "Kunjungi Artikel Dukungan"
+      "unsupported_link": "Kunjungi Artikel Dukungan",
+      "popular_regions": "Wilayah Populer",
+      "regions": "Wilayah"
     },
     "order_details": {
       "details_main": "Detail Pesanan",
@@ -2152,6 +2209,7 @@
     "i_understand": "Saya mengerti",
     "quotes_expire_in": "Kuotasi berakhir dalam",
     "saving": "Menyimpan",
+    "n_quotes": "{{numberOfQuotes}} kuotasi",
     "view_details": "Lihat detail",
     "estimated_gas_fee": "Estimasi biaya gas",
     "max_gas_fee": "Biaya gas maks",
@@ -2196,7 +2254,7 @@
     "quote_source_agg": {
       "1": "Kuotasi ini berasal dari",
       "2": "agregator",
-      "3": "yang menemukan harga terbaik dengan membagi order Anda di antara berbagai bursa terdesentralisasi."
+      "3": "yang membandingkan harga dan membagi order di antara berbagai bursa terdesentralisasi."
     },
     "quote_source_cnt": {
       "1": "Kuotasi ini berasal dari",
@@ -2637,7 +2695,12 @@
     "not_supported_error": "Hanya penandatanganan data yang diketik versi 4 yang didukung.",
     "error_during_connection": "Terjadi kesalahan tidak dikenal",
     "error_during_connection_message": "Ada sedikit masalah saat menghubungkan Ledger Nano X, ketuk 'Coba lagi' di bawah ini untuk mencobanya kembali. Terkadang hal ini terjadi karena aplikasi ETH di Ledger Nano X terbuka pada awal proses pemasangan dengan MetaMask Mobile.",
-    "how_to_install_eth_webview_title": "Cara menginstal Aplikasi Ethereum"
+    "how_to_install_eth_webview_title": "Cara menginstal Aplikasi Ethereum",
+    "nonce_too_low": "Nonce terlalu rendah",
+    "nonce_too_low_error": "Nonce yang ditetapkan terlalu rendah",
+    "ledger_beta_alert": "Mengaktifkan integrasi Ledger",
+    "ledger_beta_alert_description": "Anda telah menemukan fitur eksperimental! Dengan melanjutkan, Anda menyetujui bahwa penggunaan fitur eksperimental ini memiliki risiko yang ditanggung sendiri.",
+    "ledger_beta_cta": "Lanjutkan"
   },
   "account_actions": {
     "edit_name": "Edit nama akun",
