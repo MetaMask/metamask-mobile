@@ -3,7 +3,7 @@
 import {
   ActionType,
   SetSecurityAlertsEnabled,
-  SetPpomInitializedCompleted,
+  SetPPOMInitializedCompleted,
 } from '../../actions/experimental';
 
 const initialState = {
@@ -15,7 +15,7 @@ const experimentalSettingsReducer = (
   state = initialState,
   action: {
     securityAlertsEnabled: SetSecurityAlertsEnabled;
-    ppomInitializationCompleted: typeof SetPpomInitializedCompleted;
+    ppomInitializationCompleted: typeof SetPPOMInitializedCompleted;
     type: string;
   },
 ) => {

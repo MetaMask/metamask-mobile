@@ -11,7 +11,7 @@ export interface SetSecurityAlertsEnabled
   securityAlertsEnabled: boolean;
 }
 
-export function SetPpomInitializedCompleted(value: boolean) {
+export function SetPPOMInitializedCompleted(value: boolean) {
   return {
     type: ActionType.SET_PPOM_INITIALIZATION_COMPLETED,
     ppomInitializationCompleted: value,

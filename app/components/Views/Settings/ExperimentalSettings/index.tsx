@@ -29,7 +29,7 @@ const ExperimentalSettings = ({ navigation, route }: Props) => {
   const initialSecurityAlertsEnabled = useSelector(
     selectIsSecurityAlertsEnabled,
   );
-  const [securityAlertsEnabled, setSecurityAlertsEnabled] = useState<any>(
+  const [securityAlertsEnabled, setSecurityAlertsEnabled] = useState(
     initialSecurityAlertsEnabled,
   );
   const isFullScreenModal = route?.params?.isFullScreenModal;
