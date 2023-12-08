@@ -22,6 +22,7 @@ export enum ACTIONS {
   CONNECT = 'connect',
   ANDROID_SDK = 'bind',
   BUY_CRYPTO = 'buy-crypto',
+  SELL_CRYPTO = 'sell-crypto',
   EMPTY = '',
 }
 
@@ -36,5 +37,6 @@ export const PREFIXES = {
   [ACTIONS.CONNECT]: '',
   [ACTIONS.ANDROID_SDK]: '',
   [ACTIONS.BUY_CRYPTO]: '',
+  [ACTIONS.SELL_CRYPTO]: '',
   METAMASK: 'metamask://',
 };

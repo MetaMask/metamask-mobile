@@ -80,6 +80,8 @@ export function handleMetaMaskDeeplink({
       });
   } else if (url.startsWith(`${PREFIXES.METAMASK}${ACTIONS.BUY_CRYPTO}`)) {
     instance._handleBuyCrypto();
+  } else if (url.startsWith(`${PREFIXES.METAMASK}${ACTIONS.SELL_CRYPTO}`)) {
+    instance._handleSellCrypto();
   }
 }
 
