@@ -854,7 +854,12 @@
 
         }
       }
-    }
+    },
+    "privacy_browser_subheading": "Clear privacy or browser data",
+    "analytics_subheading": "Analytics",
+    "transactions_subheading": "Transactions",
+    "token_nft_ens_subheading": "Token, NFT, and ENS autodetection",
+    "security_check_subheading": "Security checks"
   },
   "sdk": {
     "disconnect_title": "Disconnect all sites?",
