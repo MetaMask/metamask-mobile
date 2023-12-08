@@ -26,7 +26,7 @@ Optional prop to configure the checked state.
 
 ### `isDisabled`
 
-Optional prop to configure the disabled state.
+Optional prop to configure the disabled state
 
 | <span style="color:gray;font-size:14px">TYPE</span> | <span style="color:gray;font-size:14px">REQUIRED</span> | <span style="color:gray;font-size:14px">DEFAULT</span> |
 | :-------------------------------------------------- | :------------------------------------------------------ | :----------------------------------------------------- |
