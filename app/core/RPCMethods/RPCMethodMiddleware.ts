@@ -485,7 +485,8 @@ export const getRpcMethodMiddleware = ({
         if (isMMSDK) {
           // Append origin to the request so it can be parsed in UI TransactionHeader
           DevLogger.log(
-            `SDK Transaction detected --- custom hostname -- ${hostname} --> ${AppConstants.MM_SDK.SDK_REMOTE_ORIGIN + url.current
+            `SDK Transaction detected --- custom hostname -- ${hostname} --> ${
+              AppConstants.MM_SDK.SDK_REMOTE_ORIGIN + url.current
             }`,
           );
           hostname = AppConstants.MM_SDK.SDK_REMOTE_ORIGIN + url.current;

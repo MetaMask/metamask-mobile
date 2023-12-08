@@ -274,31 +274,31 @@ class Engine {
    */
   context:
     | {
-        AccountTrackerController: AccountTrackerController;
-        AddressBookController: AddressBookController;
-        ApprovalController: ApprovalController;
-        AssetsContractController: AssetsContractController;
-        CurrencyRateController: CurrencyRateController;
-        GasFeeController: GasFeeController;
-        KeyringController: KeyringController;
-        LoggingController: LoggingController;
-        NetworkController: NetworkController;
-        NftController: NftController;
-        NftDetectionController: NftDetectionController;
-        // TODO: Fix permission types
-        PermissionController: PermissionController<any, any>;
-        PhishingController: PhishingController;
-        PreferencesController: PreferencesController;
-        PPOMController?: PPOMController;
-        TokenBalancesController: TokenBalancesController;
-        TokenListController: TokenListController;
-        TokenDetectionController: TokenDetectionController;
-        TokenRatesController: TokenRatesController;
-        TokensController: TokensController;
-        TransactionController: TransactionController;
-        SignatureController: SignatureController;
-        SwapsController: SwapsController;
-      }
+      AccountTrackerController: AccountTrackerController;
+      AddressBookController: AddressBookController;
+      ApprovalController: ApprovalController;
+      AssetsContractController: AssetsContractController;
+      CurrencyRateController: CurrencyRateController;
+      GasFeeController: GasFeeController;
+      KeyringController: KeyringController;
+      LoggingController: LoggingController;
+      NetworkController: NetworkController;
+      NftController: NftController;
+      NftDetectionController: NftDetectionController;
+      // TODO: Fix permission types
+      PermissionController: PermissionController<any, any>;
+      PhishingController: PhishingController;
+      PreferencesController: PreferencesController;
+      PPOMController?: PPOMController;
+      TokenBalancesController: TokenBalancesController;
+      TokenListController: TokenListController;
+      TokenDetectionController: TokenDetectionController;
+      TokenRatesController: TokenRatesController;
+      TokensController: TokensController;
+      TransactionController: TransactionController;
+      SignatureController: SignatureController;
+      SwapsController: SwapsController;
+    }
     | any;
   /**
    * The global controller messenger.
@@ -637,9 +637,11 @@ class Engine {
           `${approvalController.name}:hasRequest`,
           `${approvalController.name}:acceptRequest`,
           `${approvalController.name}:rejectRequest`,
+          ///: BEGIN:ONLY_INCLUDE_IF(snaps)
           `SnapController:getPermitted`,
           `SnapController:install`,
           `SubjectMetadataController:getSubjectMetadata`,
+          ///: END:ONLY_INCLUDE_IF
         ],
       }),
       state: initialState.PermissionController,
@@ -703,7 +705,7 @@ class Engine {
       bridge.setupProviderConnection();
     };
 
-    const requireAllowlist = process.env.METAMASK_BUILD_TYPE === 'main';
+    const requireAllowList = process.env.METAMASK_BUILD_TYPE === 'main';
     const allowLocalSnaps = process.env.METAMASK_BUILD_TYPE === 'flask';
 
     const snapsRegistryMessenger = this.controllerMessenger.getRestricted({
@@ -714,8 +716,8 @@ class Engine {
     const snapsRegistry = new JsonSnapsRegistry({
       state: initialState.SnapsRegistry,
       messenger: snapsRegistryMessenger,
-      refetchOnAllowlistMiss: requireAllowlist,
-      failOnUnavailableRegistry: requireAllowlist,
+      refetchOnAllowlistMiss: requireAllowList,
+      failOnUnavailableRegistry: requireAllowList,
       url: {
         registry: 'https://acl.execution.metamask.io/latest/registry.json',
         signature: 'https://acl.execution.metamask.io/latest/signature.json',
@@ -777,7 +779,7 @@ class Engine {
         dappsCanUpdateSnaps: true,
         // eslint-disable-next-line @typescript-eslint/ban-ts-comment
         // @ts-ignore
-        requireAllowlist,
+        requireAllowList,
       },
       state: initialState.SnapController || undefined,
       messenger: snapControllerMessenger as any,
@@ -918,7 +920,7 @@ class Engine {
 
             return Boolean(
               preferencesController?.state?.showIncomingTransactions?.[
-                currentHexChainId
+              currentHexChainId
               ],
             );
           },
@@ -1221,9 +1223,9 @@ class Engine {
             item.balance ||
             (item.address in tokenBalances
               ? renderFromTokenMinimalUnit(
-                  tokenBalances[item.address],
-                  item.decimals,
-                )
+                tokenBalances[item.address],
+                item.decimals,
+              )
               : undefined);
           const tokenBalanceFiat = balanceToFiatNumber(
             // TODO: Fix this by handling or eliminating the undefined case
