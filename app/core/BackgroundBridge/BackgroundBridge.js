@@ -26,6 +26,7 @@ import {
 import { store } from '../../store';
 ///: BEGIN:ONLY_INCLUDE_IF(snaps)
 import snapMethodMiddlewareBuilder from '../Snaps/SnapsMethodMiddleware';
+import { SubjectType } from '@metamask/permission-controller';
 ///: END:ONLY_INCLUDE_IF
 
 const createFilterMiddleware = require('eth-json-rpc-filters');
@@ -324,6 +325,7 @@ export class BackgroundBridge extends EventEmitter {
         Engine.context,
         Engine.controllerMessenger,
         origin,
+        SubjectType.Snap,
       ),
     );
     ///: END:ONLY_INCLUDE_IF

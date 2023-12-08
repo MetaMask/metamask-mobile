@@ -18,6 +18,7 @@ import { setupMultiplex } from '../../util/streams';
 import Logger from '../../util/Logger';
 import { getAllNetworks } from '../../util/networks';
 import snapMethodMiddlewareBuilder from './SnapsMethodMiddleware';
+import { SubjectType } from '@metamask/permission-controller';
 
 const ObjectMultiplex = require('@metamask/object-multiplex');
 const createFilterMiddleware = require('eth-json-rpc-filters');
@@ -47,8 +48,7 @@ export default class SnapBridge {
     connectionStream,
     getRPCMethodMiddleware,
   }: ISnapBridgeProps) {
-    // eslint-disable-next-line no-console
-    console.log(
+    Logger.log(
       '[SNAP BRIDGE LOG] Engine+setupSnapProvider: Setup bridge for Snap',
       snapId,
     );
@@ -141,7 +141,12 @@ export default class SnapBridge {
     const { PermissionController } = context;
 
     engine.push(
-      snapMethodMiddlewareBuilder(context, controllerMessenger, this.snapId),
+      snapMethodMiddlewareBuilder(
+        context,
+        controllerMessenger,
+        this.snapId,
+        SubjectType.Snap,
+      ),
     );
 
     engine.push(

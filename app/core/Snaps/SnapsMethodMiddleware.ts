@@ -1,5 +1,8 @@
 import { createSnapsMethodMiddleware } from '@metamask/snaps-rpc-methods';
-import { RequestedPermissions } from '@metamask/permission-controller';
+import {
+  RequestedPermissions,
+  SubjectType,
+} from '@metamask/permission-controller';
 
 // Snaps middleware
 /*
@@ -9,8 +12,9 @@ const snapMethodMiddlewareBuilder = (
   engineContext: any,
   controllerMessenger: any,
   origin: string,
+  subjectType: SubjectType,
 ) =>
-  createSnapsMethodMiddleware(true, {
+  createSnapsMethodMiddleware(subjectType === SubjectType.Snap, {
     getUnlockPromise: () => Promise.resolve(),
     getSnaps: controllerMessenger.call.bind(
       controllerMessenger,
