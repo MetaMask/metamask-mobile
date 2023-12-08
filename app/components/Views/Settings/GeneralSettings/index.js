@@ -67,6 +67,16 @@ const createStyles = (colors) =>
       padding: 24,
       zIndex: 99999999999999,
     },
+    titleContainer: {
+      flexDirection: 'row',
+      alignItems: 'center',
+    },
+    title: {
+      flex: 1,
+    },
+    toggle: {
+      marginLeft: 16,
+    },
     desc: {
       marginTop: 8,
     },
@@ -98,11 +108,8 @@ const createStyles = (colors) =>
       alignItems: 'center',
       flexDirection: 'row',
     },
-    identicon_type: {
-      ...fontStyles.bold,
-      fontSize: 14,
-      marginHorizontal: 10,
-      color: colors.text.default,
+    identiconText: {
+      marginLeft: 12,
     },
     blockie: {
       height: diameter,
@@ -121,9 +128,6 @@ const createStyles = (colors) =>
     },
     selected: {
       borderColor: colors.primary.default,
-    },
-    selected_text: {
-      color: colors.text.default,
     },
   });
 
@@ -397,9 +401,24 @@ class Settings extends PureComponent {
             )}
           </View>
           <View style={styles.setting}>
-            <Text variant={TextVariant.BodyLGMedium}>
-              {strings('app_settings.hide_zero_balance_tokens_title')}
-            </Text>
+            <View style={styles.titleContainer}>
+              <Text variant={TextVariant.BodyLGMedium} style={styles.title}>
+                {strings('app_settings.hide_zero_balance_tokens_title')}
+              </Text>
+              <View style={styles.toggle}>
+                <Switch
+                  value={hideZeroBalanceTokens}
+                  onValueChange={this.toggleHideZeroBalanceTokens}
+                  trackColor={{
+                    true: colors.primary.default,
+                    false: colors.border.muted,
+                  }}
+                  thumbColor={importedColors.white}
+                  style={styles.switch}
+                  ios_backgroundColor={colors.border.muted}
+                />
+              </View>
+            </View>
             <Text
               variant={TextVariant.BodyMD}
               color={TextColor.Alternative}
@@ -407,19 +426,6 @@ class Settings extends PureComponent {
             >
               {strings('app_settings.hide_zero_balance_tokens_desc')}
             </Text>
-            <View style={styles.accessory}>
-              <Switch
-                value={hideZeroBalanceTokens}
-                onValueChange={this.toggleHideZeroBalanceTokens}
-                trackColor={{
-                  true: colors.primary.default,
-                  false: colors.border.muted,
-                }}
-                thumbColor={importedColors.white}
-                style={styles.switch}
-                ios_backgroundColor={colors.border.muted}
-              />
-            </View>
           </View>
           <View style={styles.setting}>
             <Text variant={TextVariant.BodyLGMedium}>
@@ -443,12 +449,7 @@ class Settings extends PureComponent {
                   >
                     <Jazzicon size={diameter} address={selectedAddress} />
                   </View>
-                  <Text
-                    style={[
-                      styles.identicon_type,
-                      !useBlockieIcon && styles.selected_text,
-                    ]}
-                  >
+                  <Text style={styles.identiconText}>
                     {strings('app_settings.jazzicons')}
                   </Text>
                 </TouchableOpacity>
@@ -464,12 +465,7 @@ class Settings extends PureComponent {
                       style={styles.blockie}
                     />
                   </View>
-                  <Text
-                    style={[
-                      styles.identicon_type,
-                      useBlockieIcon && styles.selected_text,
-                    ]}
-                  >
+                  <Text style={styles.identiconText}>
                     {strings('app_settings.blockies')}
                   </Text>
                 </TouchableOpacity>
