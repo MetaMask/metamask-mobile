@@ -166,6 +166,7 @@ workflows:
           title: Install node and yarn
       - yarn@0:
           inputs:
+            - cache_local_deps: 'yes'
             - command: setup
           title: Yarn Setup
       - yarn@0:
@@ -181,7 +182,9 @@ workflows:
           inputs:
             # The Yarn cache is easier and safer to cache than `node_modules`, which could include
             # postinstall script modifications and could affect hoisting on subsequent installs.
-            - cache_paths: '$YARN_CACHE_DIR -> ./yarn.lock'
+            - cache_paths: |-
+                '$YARN_CACHE_DIR -> ./yarn.lock'
+                node_modules
   code_setup_dev:
     steps:
       - script@1:
@@ -342,8 +345,8 @@ workflows:
     before_run:
       - code_setup_dev
       - e2e_setup
-    after_run:
-      - _notify_failure_on_slack
+    # after_run:
+    #   - _notify_failure_on_slack
     steps:
       - restore-gradle-cache@1: {}
       - install-missing-android-tools@3:
@@ -364,7 +367,6 @@ workflows:
             - start_command_flags: '-read-only'
             - profile: pixel_5
       - wait-for-android-emulator@1: {}
-      - save-gradle-cache@1: {}
       - script@1: 
           title: Check native folder diff for Android
           inputs:
@@ -408,6 +410,10 @@ workflows:
           - key: 'android-ccache-{{if getenv "USE_MAIN_CCACHE" }}main{{else}}{{ checksum "android-diff.txt"}}{{end}}'
           - paths: |-
               ccache
+              android/app/build
+              app/core/InpageBridgeWeb3.js
+              scripts/inpage-bridge/dist
+      - save-gradle-cache@1: {}
       - custom-test-results-export@1:
           is_always_run: true
           is_skippable: true
@@ -445,8 +451,8 @@ workflows:
     before_run:
       - code_setup_dev
       - e2e_setup
-    after_run:
-      - _notify_failure_on_slack
+    # after_run:
+    #   - _notify_failure_on_slack
     steps:
       - certificate-and-profile-installer@1: {}
       - set-xcode-build-number@1:
