@@ -6,7 +6,7 @@
 
 ## Props
 
-This component extends [TouchableOpacityProps](https://reactnative.dev/docs/touchableopacity#props) from React Native's [TouchableOpacity](https://reactnative.dev/docs/touchableopacity) component.
+This component extends [TouchableOpacityProps](https://reactnative.dev/docs/touchableopacity#props) from React Native's [TouchableOpacity](https://reactnative.dev/docs/touchableopacity) component
 
 ### `label`
 
