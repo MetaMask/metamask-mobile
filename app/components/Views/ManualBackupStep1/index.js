@@ -242,7 +242,10 @@ const ManualBackupStep1 = ({ route, navigation, appTheme }) => {
         showCancelButton={false}
         confirmButtonMode={'confirm'}
       >
-        <View style={styles.wrapper}>
+        <View
+          style={styles.wrapper}
+          testID={ManualBackUpStepsSelectorsIDs.STEP_1_CONTAINER}
+        >
           <Text style={styles.action}>
             {strings('manual_backup_step_1.action')}
           </Text>
