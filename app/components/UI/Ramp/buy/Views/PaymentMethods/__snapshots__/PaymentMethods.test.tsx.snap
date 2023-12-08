@@ -122,7 +122,8 @@ exports[`PaymentMethods View renders correctly 1`] = `
                 onPress={[Function]}
                 style={
                   Object {
-                    "marginHorizontal": 16,
+                    "paddingHorizontal": 18,
+                    "paddingVertical": 8,
                   }
                 }
               >
@@ -234,7 +235,8 @@ exports[`PaymentMethods View renders correctly 1`] = `
                 onPress={[Function]}
                 style={
                   Object {
-                    "marginHorizontal": 16,
+                    "paddingHorizontal": 18,
+                    "paddingVertical": 8,
                   }
                 }
               >
@@ -2178,7 +2180,8 @@ exports[`PaymentMethods View renders correctly for sell 1`] = `
                 onPress={[Function]}
                 style={
                   Object {
-                    "marginHorizontal": 16,
+                    "paddingHorizontal": 18,
+                    "paddingVertical": 8,
                   }
                 }
               >
@@ -2290,7 +2293,8 @@ exports[`PaymentMethods View renders correctly for sell 1`] = `
                 onPress={[Function]}
                 style={
                   Object {
-                    "marginHorizontal": 16,
+                    "paddingHorizontal": 18,
+                    "paddingVertical": 8,
                   }
                 }
               >
@@ -4234,7 +4238,8 @@ exports[`PaymentMethods View renders correctly while loading 1`] = `
                 onPress={[Function]}
                 style={
                   Object {
-                    "marginHorizontal": 16,
+                    "paddingHorizontal": 18,
+                    "paddingVertical": 8,
                   }
                 }
               >
@@ -4346,7 +4351,8 @@ exports[`PaymentMethods View renders correctly while loading 1`] = `
                 onPress={[Function]}
                 style={
                   Object {
-                    "marginHorizontal": 16,
+                    "paddingHorizontal": 18,
+                    "paddingVertical": 8,
                   }
                 }
               >
@@ -5661,7 +5667,8 @@ exports[`PaymentMethods View renders correctly with empty data 1`] = `
                 onPress={[Function]}
                 style={
                   Object {
-                    "marginHorizontal": 16,
+                    "paddingHorizontal": 18,
+                    "paddingVertical": 8,
                   }
                 }
               >
@@ -5773,7 +5780,8 @@ exports[`PaymentMethods View renders correctly with empty data 1`] = `
                 onPress={[Function]}
                 style={
                   Object {
-                    "marginHorizontal": 16,
+                    "paddingHorizontal": 18,
+                    "paddingVertical": 8,
                   }
                 }
               >
@@ -6364,7 +6372,8 @@ exports[`PaymentMethods View renders correctly with empty data for sell 1`] = `
                 onPress={[Function]}
                 style={
                   Object {
-                    "marginHorizontal": 16,
+                    "paddingHorizontal": 18,
+                    "paddingVertical": 8,
                   }
                 }
               >
@@ -6476,7 +6485,8 @@ exports[`PaymentMethods View renders correctly with empty data for sell 1`] = `
                 onPress={[Function]}
                 style={
                   Object {
-                    "marginHorizontal": 16,
+                    "paddingHorizontal": 18,
+                    "paddingVertical": 8,
                   }
                 }
               >
@@ -7067,7 +7077,8 @@ exports[`PaymentMethods View renders correctly with error 1`] = `
                 onPress={[Function]}
                 style={
                   Object {
-                    "marginHorizontal": 16,
+                    "paddingHorizontal": 18,
+                    "paddingVertical": 8,
                   }
                 }
               >
@@ -7179,7 +7190,8 @@ exports[`PaymentMethods View renders correctly with error 1`] = `
                 onPress={[Function]}
                 style={
                   Object {
-                    "marginHorizontal": 16,
+                    "paddingHorizontal": 18,
+                    "paddingVertical": 8,
                   }
                 }
               >
@@ -7768,7 +7780,8 @@ exports[`PaymentMethods View renders correctly with null data 1`] = `
                 onPress={[Function]}
                 style={
                   Object {
-                    "marginHorizontal": 16,
+                    "paddingHorizontal": 18,
+                    "paddingVertical": 8,
                   }
                 }
               >
@@ -7880,7 +7893,8 @@ exports[`PaymentMethods View renders correctly with null data 1`] = `
                 onPress={[Function]}
                 style={
                   Object {
-                    "marginHorizontal": 16,
+                    "paddingHorizontal": 18,
+                    "paddingVertical": 8,
                   }
                 }
               >
@@ -9195,7 +9209,8 @@ exports[`PaymentMethods View renders correctly with payment method with disclaim
                 onPress={[Function]}
                 style={
                   Object {
-                    "marginHorizontal": 16,
+                    "paddingHorizontal": 18,
+                    "paddingVertical": 8,
                   }
                 }
               >
@@ -9307,7 +9322,8 @@ exports[`PaymentMethods View renders correctly with payment method with disclaim
                 onPress={[Function]}
                 style={
                   Object {
-                    "marginHorizontal": 16,
+                    "paddingHorizontal": 18,
+                    "paddingVertical": 8,
                   }
                 }
               >
@@ -11309,7 +11325,8 @@ exports[`PaymentMethods View renders correctly with sdkError 1`] = `
                 onPress={[Function]}
                 style={
                   Object {
-                    "marginHorizontal": 16,
+                    "paddingHorizontal": 18,
+                    "paddingVertical": 8,
                   }
                 }
               >
@@ -11421,7 +11438,8 @@ exports[`PaymentMethods View renders correctly with sdkError 1`] = `
                 onPress={[Function]}
                 style={
                   Object {
-                    "marginHorizontal": 16,
+                    "paddingHorizontal": 18,
+                    "paddingVertical": 8,
                   }
                 }
               >
@@ -12100,7 +12118,8 @@ exports[`PaymentMethods View renders correctly with show back button false 1`] =
                 onPress={[Function]}
                 style={
                   Object {
-                    "marginHorizontal": 16,
+                    "paddingHorizontal": 18,
+                    "paddingVertical": 8,
                   }
                 }
               >

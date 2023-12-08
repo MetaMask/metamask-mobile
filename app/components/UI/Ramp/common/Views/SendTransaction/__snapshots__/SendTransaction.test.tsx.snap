@@ -122,7 +122,8 @@ exports[`SendTransaction View renders correctly 1`] = `
                 onPress={[Function]}
                 style={
                   Object {
-                    "marginHorizontal": 16,
+                    "paddingHorizontal": 18,
+                    "paddingVertical": 8,
                   }
                 }
               >
@@ -932,7 +933,8 @@ exports[`SendTransaction View renders correctly for custom action payment method
                 onPress={[Function]}
                 style={
                   Object {
-                    "marginHorizontal": 16,
+                    "paddingHorizontal": 18,
+                    "paddingVertical": 8,
                   }
                 }
               >
@@ -1658,7 +1660,8 @@ exports[`SendTransaction View renders correctly for token 1`] = `
                 onPress={[Function]}
                 style={
                   Object {
-                    "marginHorizontal": 16,
+                    "paddingHorizontal": 18,
+                    "paddingVertical": 8,
                   }
                 }
               >

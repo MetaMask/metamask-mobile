@@ -122,7 +122,8 @@ exports[`BuildQuote View Crypto Currency Data renders a special error page if cr
                 onPress={[Function]}
                 style={
                   Object {
-                    "marginHorizontal": 16,
+                    "paddingHorizontal": 18,
+                    "paddingVertical": 8,
                   }
                 }
               >
@@ -234,7 +235,8 @@ exports[`BuildQuote View Crypto Currency Data renders a special error page if cr
                 onPress={[Function]}
                 style={
                   Object {
-                    "marginHorizontal": 16,
+                    "paddingHorizontal": 18,
+                    "paddingVertical": 8,
                   }
                 }
               >
@@ -852,7 +854,8 @@ exports[`BuildQuote View Crypto Currency Data renders a special error page if cr
                 onPress={[Function]}
                 style={
                   Object {
-                    "marginHorizontal": 16,
+                    "paddingHorizontal": 18,
+                    "paddingVertical": 8,
                   }
                 }
               >
@@ -964,7 +967,8 @@ exports[`BuildQuote View Crypto Currency Data renders a special error page if cr
                 onPress={[Function]}
                 style={
                   Object {
-                    "marginHorizontal": 16,
+                    "paddingHorizontal": 18,
+                    "paddingVertical": 8,
                   }
                 }
               >
@@ -1582,7 +1586,8 @@ exports[`BuildQuote View Crypto Currency Data renders an error page when there i
                 onPress={[Function]}
                 style={
                   Object {
-                    "marginHorizontal": 16,
+                    "paddingHorizontal": 18,
+                    "paddingVertical": 8,
                   }
                 }
               >
@@ -1694,7 +1699,8 @@ exports[`BuildQuote View Crypto Currency Data renders an error page when there i
                 onPress={[Function]}
                 style={
                   Object {
-                    "marginHorizontal": 16,
+                    "paddingHorizontal": 18,
+                    "paddingVertical": 8,
                   }
                 }
               >
@@ -2283,7 +2289,8 @@ exports[`BuildQuote View Crypto Currency Data renders the loading page when cryp
                 onPress={[Function]}
                 style={
                   Object {
-                    "marginHorizontal": 16,
+                    "paddingHorizontal": 18,
+                    "paddingVertical": 8,
                   }
                 }
               >
@@ -2395,7 +2402,8 @@ exports[`BuildQuote View Crypto Currency Data renders the loading page when cryp
                 onPress={[Function]}
                 style={
                   Object {
-                    "marginHorizontal": 16,
+                    "paddingHorizontal": 18,
+                    "paddingVertical": 8,
                   }
                 }
               >
@@ -3176,7 +3184,8 @@ exports[`BuildQuote View Fiat Currency Data renders an error page when there is 
                 onPress={[Function]}
                 style={
                   Object {
-                    "marginHorizontal": 16,
+                    "paddingHorizontal": 18,
+                    "paddingVertical": 8,
                   }
                 }
               >
@@ -3288,7 +3297,8 @@ exports[`BuildQuote View Fiat Currency Data renders an error page when there is 
                 onPress={[Function]}
                 style={
                   Object {
-                    "marginHorizontal": 16,
+                    "paddingHorizontal": 18,
+                    "paddingVertical": 8,
                   }
                 }
               >
@@ -3877,7 +3887,8 @@ exports[`BuildQuote View Fiat Currency Data renders the loading page when fiats 
                 onPress={[Function]}
                 style={
                   Object {
-                    "marginHorizontal": 16,
+                    "paddingHorizontal": 18,
+                    "paddingVertical": 8,
                   }
                 }
               >
@@ -3989,7 +4000,8 @@ exports[`BuildQuote View Fiat Currency Data renders the loading page when fiats 
                 onPress={[Function]}
                 style={
                   Object {
-                    "marginHorizontal": 16,
+                    "paddingHorizontal": 18,
+                    "paddingVertical": 8,
                   }
                 }
               >
@@ -4770,7 +4782,8 @@ exports[`BuildQuote View Payment Method Data renders an error page when there is
                 onPress={[Function]}
                 style={
                   Object {
-                    "marginHorizontal": 16,
+                    "paddingHorizontal": 18,
+                    "paddingVertical": 8,
                   }
                 }
               >
@@ -4882,7 +4895,8 @@ exports[`BuildQuote View Payment Method Data renders an error page when there is
                 onPress={[Function]}
                 style={
                   Object {
-                    "marginHorizontal": 16,
+                    "paddingHorizontal": 18,
+                    "paddingVertical": 8,
                   }
                 }
               >
@@ -5471,7 +5485,8 @@ exports[`BuildQuote View Payment Method Data renders the loading page when payme
                 onPress={[Function]}
                 style={
                   Object {
-                    "marginHorizontal": 16,
+                    "paddingHorizontal": 18,
+                    "paddingVertical": 8,
                   }
                 }
               >
@@ -5583,7 +5598,8 @@ exports[`BuildQuote View Payment Method Data renders the loading page when payme
                 onPress={[Function]}
                 style={
                   Object {
-                    "marginHorizontal": 16,
+                    "paddingHorizontal": 18,
+                    "paddingVertical": 8,
                   }
                 }
               >
@@ -6364,7 +6380,8 @@ exports[`BuildQuote View Regions data renders an error page when there is a regi
                 onPress={[Function]}
                 style={
                   Object {
-                    "marginHorizontal": 16,
+                    "paddingHorizontal": 18,
+                    "paddingVertical": 8,
                   }
                 }
               >
@@ -6476,7 +6493,8 @@ exports[`BuildQuote View Regions data renders an error page when there is a regi
                 onPress={[Function]}
                 style={
                   Object {
-                    "marginHorizontal": 16,
+                    "paddingHorizontal": 18,
+                    "paddingVertical": 8,
                   }
                 }
               >
@@ -7065,7 +7083,8 @@ exports[`BuildQuote View Regions data renders the loading page when regions are 
                 onPress={[Function]}
                 style={
                   Object {
-                    "marginHorizontal": 16,
+                    "paddingHorizontal": 18,
+                    "paddingVertical": 8,
                   }
                 }
               >
@@ -7177,7 +7196,8 @@ exports[`BuildQuote View Regions data renders the loading page when regions are 
                 onPress={[Function]}
                 style={
                   Object {
-                    "marginHorizontal": 16,
+                    "paddingHorizontal": 18,
+                    "paddingVertical": 8,
                   }
                 }
               >
@@ -7958,7 +7978,8 @@ exports[`BuildQuote View renders correctly 1`] = `
                 onPress={[Function]}
                 style={
                   Object {
-                    "marginHorizontal": 16,
+                    "paddingHorizontal": 18,
+                    "paddingVertical": 8,
                   }
                 }
               >
@@ -8070,7 +8091,8 @@ exports[`BuildQuote View renders correctly 1`] = `
                 onPress={[Function]}
                 style={
                   Object {
-                    "marginHorizontal": 16,
+                    "paddingHorizontal": 18,
+                    "paddingVertical": 8,
                   }
                 }
               >
@@ -11179,7 +11201,8 @@ exports[`BuildQuote View renders correctly 2`] = `
                 onPress={[Function]}
                 style={
                   Object {
-                    "marginHorizontal": 16,
+                    "paddingHorizontal": 18,
+                    "paddingVertical": 8,
                   }
                 }
               >
@@ -11291,7 +11314,8 @@ exports[`BuildQuote View renders correctly 2`] = `
                 onPress={[Function]}
                 style={
                   Object {
-                    "marginHorizontal": 16,
+                    "paddingHorizontal": 18,
+                    "paddingVertical": 8,
                   }
                 }
               >
@@ -14347,7 +14371,8 @@ exports[`BuildQuote View renders correctly when sdkError is present 1`] = `
                 onPress={[Function]}
                 style={
                   Object {
-                    "marginHorizontal": 16,
+                    "paddingHorizontal": 18,
+                    "paddingVertical": 8,
                   }
                 }
               >
@@ -14459,7 +14484,8 @@ exports[`BuildQuote View renders correctly when sdkError is present 1`] = `
                 onPress={[Function]}
                 style={
                   Object {
-                    "marginHorizontal": 16,
+                    "paddingHorizontal": 18,
+                    "paddingVertical": 8,
                   }
                 }
               >
@@ -15048,7 +15074,8 @@ exports[`BuildQuote View renders correctly when sdkError is present 2`] = `
                 onPress={[Function]}
                 style={
                   Object {
-                    "marginHorizontal": 16,
+                    "paddingHorizontal": 18,
+                    "paddingVertical": 8,
                   }
                 }
               >
@@ -15160,7 +15187,8 @@ exports[`BuildQuote View renders correctly when sdkError is present 2`] = `
                 onPress={[Function]}
                 style={
                   Object {
-                    "marginHorizontal": 16,
+                    "paddingHorizontal": 18,
+                    "paddingVertical": 8,
                   }
                 }
               >

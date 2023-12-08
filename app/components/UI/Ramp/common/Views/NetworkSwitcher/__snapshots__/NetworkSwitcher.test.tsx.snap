@@ -214,7 +214,8 @@ exports[`NetworkSwitcher View renders and dismisses network modal when pressing 
                 onPress={[Function]}
                 style={
                   Object {
-                    "marginHorizontal": 16,
+                    "paddingHorizontal": 18,
+                    "paddingVertical": 8,
                   }
                 }
               >
@@ -2324,7 +2325,8 @@ exports[`NetworkSwitcher View renders and dismisses network modal when pressing 
                 onPress={[Function]}
                 style={
                   Object {
-                    "marginHorizontal": 16,
+                    "paddingHorizontal": 18,
+                    "paddingVertical": 8,
                   }
                 }
               >
@@ -3478,7 +3480,8 @@ exports[`NetworkSwitcher View renders correctly 1`] = `
                 onPress={[Function]}
                 style={
                   Object {
-                    "marginHorizontal": 16,
+                    "paddingHorizontal": 18,
+                    "paddingVertical": 8,
                   }
                 }
               >
@@ -4632,7 +4635,8 @@ exports[`NetworkSwitcher View renders correctly 2`] = `
                 onPress={[Function]}
                 style={
                   Object {
-                    "marginHorizontal": 16,
+                    "paddingHorizontal": 18,
+                    "paddingVertical": 8,
                   }
                 }
               >
@@ -5786,7 +5790,8 @@ exports[`NetworkSwitcher View renders correctly while loading 1`] = `
                 onPress={[Function]}
                 style={
                   Object {
-                    "marginHorizontal": 16,
+                    "paddingHorizontal": 18,
+                    "paddingVertical": 8,
                   }
                 }
               >
@@ -7042,7 +7047,8 @@ exports[`NetworkSwitcher View renders correctly while loading 2`] = `
                 onPress={[Function]}
                 style={
                   Object {
-                    "marginHorizontal": 16,
+                    "paddingHorizontal": 18,
+                    "paddingVertical": 8,
                   }
                 }
               >
@@ -8298,7 +8304,8 @@ exports[`NetworkSwitcher View renders correctly with errors 1`] = `
                 onPress={[Function]}
                 style={
                   Object {
-                    "marginHorizontal": 16,
+                    "paddingHorizontal": 18,
+                    "paddingVertical": 8,
                   }
                 }
               >
@@ -8979,7 +8986,8 @@ exports[`NetworkSwitcher View renders correctly with errors 2`] = `
                 onPress={[Function]}
                 style={
                   Object {
-                    "marginHorizontal": 16,
+                    "paddingHorizontal": 18,
+                    "paddingVertical": 8,
                   }
                 }
               >
@@ -9660,7 +9668,8 @@ exports[`NetworkSwitcher View renders correctly with no data 1`] = `
                 onPress={[Function]}
                 style={
                   Object {
-                    "marginHorizontal": 16,
+                    "paddingHorizontal": 18,
+                    "paddingVertical": 8,
                   }
                 }
               >

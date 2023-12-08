@@ -120,7 +120,8 @@ exports[`Confirm should render correctly 1`] = `
                 onPress={[Function]}
                 style={
                   Object {
-                    "marginHorizontal": 16,
+                    "paddingHorizontal": 18,
+                    "paddingVertical": 8,
                   }
                 }
               >
@@ -230,7 +231,8 @@ exports[`Confirm should render correctly 1`] = `
                 onPress={[Function]}
                 style={
                   Object {
-                    "marginHorizontal": 16,
+                    "paddingHorizontal": 18,
+                    "paddingVertical": 8,
                   }
                 }
                 testID="send-cancel-button"

@@ -91,10 +91,13 @@ const styles = StyleSheet.create({
     paddingBottom: Device.isAndroid() ? 14 : 10,
   },
   backButton: {
-    marginHorizontal: Device.isAndroid() ? 20 : 16,
+    paddingLeft: Device.isAndroid() ? 22 : 18,
+    paddingRight: Device.isAndroid() ? 22 : 18,
+    marginTop: 5,
   },
   closeButton: {
-    marginHorizontal: Device.isAndroid() ? 20 : 16,
+    paddingHorizontal: Device.isAndroid() ? 22 : 18,
+    paddingVertical: Device.isAndroid() ? 14 : 8,
   },
   infoButton: {
     paddingRight: Device.isAndroid() ? 22 : 18,
@@ -192,6 +195,9 @@ export function getNavigationOptionsTitle(
       shadowColor: importedColors.transparent,
       elevation: 0,
     },
+    accessories: {
+      marginHorizontal: 16,
+    },
   });
 
   function navigationPop() {
@@ -208,7 +214,7 @@ export function getNavigationOptionsTitle(
           size={ButtonIconSizes.Lg}
           iconName={IconName.Close}
           onPress={navigationPop}
-          style={styles.closeButton}
+          style={innerStyles.accessories}
           {...generateTestId(Platform, NETWORK_SCREEN_CLOSE_ICON)}
         />
       ) : null,
@@ -218,7 +224,7 @@ export function getNavigationOptionsTitle(
           size={ButtonIconSizes.Lg}
           iconName={IconName.ArrowLeft}
           onPress={navigationPop}
-          style={styles.backButton}
+          style={innerStyles.accessories}
           {...generateTestId(Platform, NETWORK_BACK_ARROW_BUTTON_ID)}
         />
       ),
