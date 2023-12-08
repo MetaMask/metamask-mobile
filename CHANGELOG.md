@@ -1,6 +1,12 @@
 # Changelog
 
 ## Current Main Branch
+- bump version and updated changelog
+- [#8007](https://github.com/MetaMask/metamask-mobile/pull/8007): chore: update header key
+- [#8002](https://github.com/MetaMask/metamask-mobile/pull/8002): chore: Cherry-pick for solution in main to token rates
+- [#7977](https://github.com/MetaMask/metamask-mobile/pull/7977): chore: cherry-pick: test: Increase E2E test setup time (#7929)
+- [#7970](https://github.com/MetaMask/metamask-mobile/pull/7970): chore: cherry-pick: test: fix wallet test (#7966)
+- 7.12.1
 
 ## 7.12.1 - Dec 5, 2023
 ### Fixed @sethkfman
