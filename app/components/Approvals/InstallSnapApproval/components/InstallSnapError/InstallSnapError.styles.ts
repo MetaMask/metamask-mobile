@@ -1,3 +1,4 @@
+///: BEGIN:ONLY_INCLUDE_IF(snaps)
 import { StyleSheet } from 'react-native';
 import { Theme } from '../../../../../util/theme/models';
 import Device from '../../../../../util/device';
@@ -58,3 +59,4 @@ const styleSheet = (params: { theme: Theme }) => {
 };
 
 export default styleSheet;
+///: END:ONLY_INCLUDE_IF

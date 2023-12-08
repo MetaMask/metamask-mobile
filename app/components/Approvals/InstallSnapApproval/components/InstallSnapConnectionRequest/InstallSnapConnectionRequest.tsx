@@ -1,3 +1,4 @@
+///: BEGIN:ONLY_INCLUDE_IF(snaps)
 import React, { useMemo } from 'react';
 import { ImageSourcePropType, View } from 'react-native';
 import { InstallSnapFlowProps } from '../../InstallSnapApproval.types';
@@ -119,3 +120,4 @@ const InstallSnapConnectionRequest = ({
 };
 
 export default React.memo(InstallSnapConnectionRequest);
+///: END:ONLY_INCLUDE_IF

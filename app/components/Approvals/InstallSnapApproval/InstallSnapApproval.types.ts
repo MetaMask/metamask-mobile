@@ -1,3 +1,4 @@
+///: BEGIN:ONLY_INCLUDE_IF(snaps)
 interface InstallSnapFlowProps {
   approvalRequest: any;
   onConfirm: () => void;
@@ -15,3 +16,4 @@ export enum SnapInstallState {
 
 // eslint-disable-next-line import/prefer-default-export
 export type { InstallSnapFlowProps };
+///: END:ONLY_INCLUDE_IF

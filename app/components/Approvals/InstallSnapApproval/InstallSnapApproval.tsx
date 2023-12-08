@@ -1,3 +1,4 @@
+///: BEGIN:ONLY_INCLUDE_IF(snaps)
 import React, { useEffect, useState } from 'react';
 import ApprovalModal from '../ApprovalModal';
 import useApprovalRequest from '../../hooks/useApprovalRequest';
@@ -111,3 +112,4 @@ const InstallSnapApproval = () => {
 };
 
 export default InstallSnapApproval;
+///: END:ONLY_INCLUDE_IF

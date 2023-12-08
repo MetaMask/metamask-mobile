@@ -1,3 +1,4 @@
+///: BEGIN:ONLY_INCLUDE_IF(snaps)
 import React from 'react';
 import { render, fireEvent } from '@testing-library/react-native';
 import InstallSnapConnectionRequest from '../InstallSnapConnectionRequest';
@@ -5,7 +6,7 @@ import {
   SNAP_INSTALL_CANCEL,
   SNAP_INSTALL_CONNECT,
   SNAP_INSTALL_CONNECTION_REQUEST,
-} from '../../../../../../constants/test-ids';
+} from '../InstallSnapConnectionRequest.constants';
 
 describe('InstallSnapConnectionRequest', () => {
   const requestPermissionsData = {
@@ -94,3 +95,4 @@ describe('InstallSnapConnectionRequest', () => {
     expect(getByText(expectedUrl)).toBeTruthy();
   });
 });
+///: END:ONLY_INCLUDE_IF

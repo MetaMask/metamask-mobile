@@ -1,3 +1,4 @@
+///: BEGIN:ONLY_INCLUDE_IF(snaps)
 import React, { useRef } from 'react';
 import { View, ScrollView } from 'react-native';
 import WebView from 'react-native-webview';
@@ -60,3 +61,4 @@ const SnapsExecutionWebView = () => {
 };
 
 export default SnapsExecutionWebView;
+///: END:ONLY_INCLUDE_IF

@@ -1,3 +1,4 @@
+///: BEGIN:ONLY_INCLUDE_IF(snaps)
 import React, { useMemo } from 'react';
 import { View } from 'react-native';
 import stylesheet from './InstallSnapError.styles';
@@ -96,3 +97,4 @@ const InstallSnapError = ({
 };
 
 export default React.memo(InstallSnapError);
+///: END:ONLY_INCLUDE_IF

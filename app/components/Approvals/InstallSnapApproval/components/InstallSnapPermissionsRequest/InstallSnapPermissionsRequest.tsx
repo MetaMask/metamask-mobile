@@ -1,3 +1,4 @@
+///: BEGIN:ONLY_INCLUDE_IF(snaps)
 import React, { useMemo } from 'react';
 import { ScrollView, View } from 'react-native';
 import stylesheet from './InstallSnapPermissionRequest.styles';
@@ -102,3 +103,4 @@ const InstallSnapPermissionsRequest = ({
 };
 
 export default React.memo(InstallSnapPermissionsRequest);
+///: END:ONLY_INCLUDE_IF

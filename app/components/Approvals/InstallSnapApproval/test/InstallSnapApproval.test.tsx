@@ -1,16 +1,19 @@
+///: BEGIN:ONLY_INCLUDE_IF(snaps)
 import React from 'react';
 import { render, fireEvent, waitFor } from '@testing-library/react-native';
-import {
-  SNAP_INSTALL_CANCEL,
-  SNAP_INSTALL_CONNECTION_REQUEST,
-  SNAP_INSTALL_ERROR,
-  SNAP_INSTALL_PERMISSIONS_REQUEST,
-  SNAP_INSTALL_PERMISSIONS_REQUEST_APPROVE,
-  SNAP_INSTALL_SUCCESS,
-} from '../../../../constants/test-ids';
 import InstallSnapApproval from '../InstallSnapApproval';
 import { ApprovalRequest } from '@metamask/approval-controller';
 import useApprovalRequest from '../../../hooks/useApprovalRequest';
+import {
+  SNAP_INSTALL_CANCEL,
+  SNAP_INSTALL_CONNECTION_REQUEST,
+} from '../components/InstallSnapConnectionRequest/InstallSnapConnectionRequest.constants';
+import {
+  SNAP_INSTALL_PERMISSIONS_REQUEST,
+  SNAP_INSTALL_PERMISSIONS_REQUEST_APPROVE,
+} from '../components/InstallSnapPermissionsRequest/InstallSnapPermissionsRequest.constants';
+import SNAP_INSTALL_SUCCESS from '../components/InstallSnapSuccess/InstallSnapSuccess.constants';
+import SNAP_INSTALL_ERROR from '../components/InstallSnapError/InstallSnapError.constants';
 
 jest.mock('../../../hooks/useApprovalRequest');
 
@@ -191,3 +194,4 @@ describe('InstallSnapApprovalFlow', () => {
     expect(onReject).toHaveBeenCalledTimes(1);
   });
 });
+///: END:ONLY_INCLUDE_IF

@@ -1,10 +1,6 @@
+///: BEGIN:ONLY_INCLUDE_IF(snaps)
 import React from 'react';
 import SnapPermissions from '../SnapPermissions';
-import {
-  SNAP_PERMISSIONS_DATE,
-  SNAP_PERMISSIONS_TITLE,
-  SNAP_PERMISSION_CELL,
-} from '../../../../../../constants/test-ids';
 import { SnapPermissions as SnapPermissionsType } from '@metamask/snaps-utils';
 import {
   SubjectPermissions,
@@ -12,6 +8,11 @@ import {
   RequestedPermissions,
 } from '@metamask/permission-controller';
 import { render } from '@testing-library/react-native';
+import {
+  SNAP_PERMISSIONS_DATE,
+  SNAP_PERMISSIONS_TITLE,
+  SNAP_PERMISSION_CELL,
+} from '../../SnapPermissionCell/SnapPermissionCell.constants';
 
 describe('SnapPermissions', () => {
   const mockDate = 1684964145490;
@@ -1114,3 +1115,4 @@ describe('SnapPermissions', () => {
     expect(permissionCellDates[2].props.children).toBe(expectedDate);
   });
 });
+///: END:ONLY_INCLUDE_IF

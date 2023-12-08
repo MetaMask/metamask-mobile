@@ -1,8 +1,10 @@
+///: BEGIN:ONLY_INCLUDE_IF(snaps)
 import React from 'react';
 import { render } from '@testing-library/react-native';
-import { SemVerVersion, Snap, Status } from '@metamask/snaps-utils';
 import SnapElement from '../SnapElement';
-import { SNAP_ElEMENT } from '../../../../../../constants/test-ids';
+import { Snap, Status } from '@metamask/snaps-utils';
+import { SemVerVersion } from '@metamask/utils';
+import SNAP_ElEMENT from '../SnapElement.constants';
 
 const mockNavigate = jest.fn();
 jest.mock('@react-navigation/native', () => {
@@ -96,3 +98,4 @@ describe('SnapElement', () => {
     expect(cell.props.children.props.secondaryText).toEqual(mockSnap.id);
   });
 });
+///: END:ONLY_INCLUDE_IF

@@ -1,10 +1,9 @@
+///: BEGIN:ONLY_INCLUDE_IF(snaps)
 import React from 'react';
 import { render, fireEvent } from '@testing-library/react-native';
 import InstallSnapError from '../InstallSnapError';
-import {
-  SNAP_INSTALL_ERROR,
-  SNAP_INSTALL_OK,
-} from '../../../../../../constants/test-ids';
+import SNAP_INSTALL_ERROR from '../InstallSnapError.constants';
+import { SNAP_INSTALL_OK } from '../../../InstallSnapApproval.constants';
 
 describe('InstallSnapError', () => {
   const installSnapDataApprovalRequest = {
@@ -97,3 +96,4 @@ describe('InstallSnapError', () => {
     expect(getByText('Installation failed')).toBeTruthy();
   });
 });
+///: END:ONLY_INCLUDE_IF

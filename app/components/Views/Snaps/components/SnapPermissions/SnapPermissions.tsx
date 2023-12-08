@@ -1,3 +1,4 @@
+///: BEGIN:ONLY_INCLUDE_IF(snaps)
 import React, { useCallback, useMemo } from 'react';
 import { View } from 'react-native';
 import slip44 from '@metamask/slip44';
@@ -270,3 +271,4 @@ const SnapPermissions = ({
 };
 
 export default React.memo(SnapPermissions);
+///: END:ONLY_INCLUDE_IF

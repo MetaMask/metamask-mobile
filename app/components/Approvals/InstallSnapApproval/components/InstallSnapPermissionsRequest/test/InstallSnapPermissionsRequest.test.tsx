@@ -1,7 +1,8 @@
+///: BEGIN:ONLY_INCLUDE_IF(snaps)
 import React from 'react';
 import { render } from '@testing-library/react-native';
 import InstallSnapPermissionsRequest from '../InstallSnapPermissionsRequest';
-import { SNAP_PERMISSION_CELL } from '../../../../../../constants/test-ids';
+import { SNAP_PERMISSION_CELL } from '../../../../../Views/Snaps/components/SnapPermissionCell/SnapPermissionCell.constants';
 
 describe('InstallSnapPermissionsRequest', () => {
   const installSnapDataApprovalRequest = {
@@ -56,3 +57,4 @@ describe('InstallSnapPermissionsRequest', () => {
     expect(permissionCells).toHaveLength(3);
   });
 });
+///: END:ONLY_INCLUDE_IF

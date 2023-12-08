@@ -1,10 +1,9 @@
+///: BEGIN:ONLY_INCLUDE_IF(snaps)
 import React from 'react';
 import { render, fireEvent } from '@testing-library/react-native';
 import InstallSnapSuccess from '../InstallSnapSuccess';
-import {
-  SNAP_INSTALL_OK,
-  SNAP_INSTALL_SUCCESS,
-} from '../../../../../../constants/test-ids';
+import SNAP_INSTALL_SUCCESS from '../InstallSnapSuccess.constants';
+import { SNAP_INSTALL_OK } from '../../../InstallSnapApproval.constants';
 
 describe('InstallSnapSuccess', () => {
   const installSnapDataApprovalRequest = {
@@ -81,3 +80,4 @@ describe('InstallSnapSuccess', () => {
     expect(getByText(expectedSnapName)).toBeTruthy();
   });
 });
+///: END:ONLY_INCLUDE_IF

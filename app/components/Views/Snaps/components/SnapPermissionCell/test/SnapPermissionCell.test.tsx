@@ -1,3 +1,4 @@
+///: BEGIN:ONLY_INCLUDE_IF(snaps)
 import React from 'react';
 import { render } from '@testing-library/react-native';
 import SnapPermissionCell, {
@@ -7,7 +8,7 @@ import {
   SNAP_PERMISSIONS_DATE,
   SNAP_PERMISSIONS_TITLE,
   SNAP_PERMISSION_CELL,
-} from '../../../../../../constants/test-ids';
+} from '../SnapPermissionCell.constants';
 
 describe('SnapPermissionCell', () => {
   const defaultProps = {
@@ -63,3 +64,4 @@ describe('SnapPermissionCell', () => {
     expect(permissionDate.props.children).toEqual(expectedDate);
   });
 });
+///: END:ONLY_INCLUDE_IF

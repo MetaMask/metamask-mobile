@@ -1,3 +1,4 @@
+///: BEGIN:ONLY_INCLUDE_IF(snaps)
 import React, { useMemo } from 'react';
 import { View } from 'react-native';
 import stylesheet from './InstallSnapSuccess.styles';
@@ -89,3 +90,4 @@ const InstallSnapSuccess = ({
 };
 
 export default React.memo(InstallSnapSuccess);
+///: END:ONLY_INCLUDE_IF
