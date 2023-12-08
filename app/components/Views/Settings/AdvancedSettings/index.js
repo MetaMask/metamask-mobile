@@ -22,7 +22,6 @@ import Engine from '../../../../core/Engine';
 import {
   baseStyles,
   colors as importedColors,
-  fontStyles,
 } from '../../../../styles/common';
 import { getNavigationOptionsTitle } from '../../../UI/Navbar';
 import {
@@ -311,7 +310,10 @@ class AdvancedSettings extends PureComponent {
       return null;
     }
     return (
-      <View style={styles.setting} testID={'token-detection-section'}>
+      <View
+        style={styles.setting}
+        testID={AdvancedViewSelectorsIDs.TOKEN_DETECTION_TOGGLE}
+      >
         <View style={styles.titleContainer}>
           <Text variant={TextVariant.BodyLGMedium} style={styles.title}>
             {strings('app_settings.token_detection_title')}
