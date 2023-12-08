@@ -51,6 +51,10 @@ import {
 import {
   PhishingController,
   PhishingState,
+  ///: BEGIN:ONLY_INCLUDE_IF(snaps)
+  PhishingControllerActions,
+  PhishingControllerEvents,
+  ///: END:ONLY_INCLUDE_IF
 } from '@metamask/phishing-controller';
 import {
   PreferencesController,
@@ -80,6 +84,8 @@ import {
   PermissionControllerState,
   ///: BEGIN:ONLY_INCLUDE_IF(snaps)
   SubjectMetadataController,
+  SubjectMetadataControllerActions,
+  SubjectMetadataControllerEvents,
   SubjectMetadataControllerState,
   SubjectType,
   ///: END:ONLY_INCLUDE_IF
@@ -90,10 +96,12 @@ import { PPOMController, PPOMState } from '@metamask/ppom-validator';
 import {
   JsonSnapsRegistry,
   SnapController,
-  SnapControllerState,
   SnapsRegistryState,
+  SnapControllerEvents,
+  SnapControllerActions,
   buildSnapEndowmentSpecifications,
   buildSnapRestrictedMethodSpecifications,
+  PersistedSnapControllerState,
 } from '@metamask/snaps-controllers';
 import { EnumToUnion } from '@metamask/snaps-utils';
 import { DialogType, NotificationArgs } from '@metamask/snaps-rpc-methods';
@@ -179,7 +187,10 @@ type GlobalActions =
   | PermissionControllerActions
   | SignatureControllerActions
   | KeyringControllerActions
-  | LoggingControllerActions;
+  | LoggingControllerActions
+  | SnapControllerActions
+  | SubjectMetadataControllerActions
+  | PhishingControllerActions;
 type GlobalEvents =
   | ApprovalControllerEvents
   | CurrencyRateStateChange
@@ -188,7 +199,10 @@ type GlobalEvents =
   | NetworkControllerEvents
   | PermissionControllerEvents
   | SignatureControllerEvents
-  | KeyringControllerEvents;
+  | KeyringControllerEvents
+  | SnapControllerEvents
+  | SubjectMetadataControllerEvents
+  | PhishingControllerEvents;
 
 type PermissionsByRpcMethod = ReturnType<typeof getPermissionSpecifications>;
 type Permissions = PermissionsByRpcMethod[keyof PermissionsByRpcMethod];
@@ -213,7 +227,7 @@ export interface EngineState {
   TokenDetectionController: BaseState;
   NftDetectionController: BaseState;
   ///: BEGIN:ONLY_INCLUDE_IF(snaps)
-  SnapController: SnapControllerState;
+  SnapController: PersistedSnapControllerState;
   SnapsRegistry: SnapsRegistryState;
   ///: END:ONLY_INCLUDE_IF
   PermissionController: PermissionControllerState<Permissions>;
@@ -731,6 +745,8 @@ class Engine {
       environmentEndowmentPermissions: Object.values(EndowmentPermissions),
       featureFlags: {
         dappsCanUpdateSnaps: true,
+        // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+        // @ts-ignore
         requireAllowlist,
       },
       state: initialState.SnapController || {},
