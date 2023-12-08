@@ -1,10 +1,10 @@
 import { ConnectionStatus, EventType } from '@metamask/sdk-communication-layer';
+import Logger from '../../../util/Logger';
+import AppConstants from '../../AppConstants';
 import { Connection } from '../Connection';
 import SDKConnect from '../SDKConnect';
+import { CONNECTION_LOADING_EVENT } from '../SDKConnectConstants';
 import DevLogger from '../utils/DevLogger';
-import AppConstants from '../../AppConstants';
-import Logger from '../../../util/Logger';
-import { CONNECTION_LOADING_EVENT } from '../SDKConnect.constants';
 
 function watchConnection(connection: Connection, instance: SDKConnect) {
   connection.remote.on(

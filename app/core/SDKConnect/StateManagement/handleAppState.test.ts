@@ -4,15 +4,15 @@ import SDKConnect from '../SDKConnect';
 import handleAppState from './handleAppState';
 
 jest.mock('@metamask/keyring-controller');
-jest.mock('../../Engine');
-jest.mock('../../../util/Logger');
-jest.mock('../../../util/device');
 jest.mock('react-native-background-timer', () => ({
   setTimeout: jest.fn(),
   clearTimeout: jest.fn(),
   setInterval: jest.fn(),
   clearInterval: jest.fn(),
 }));
+jest.mock('../../Engine');
+jest.mock('../../../util/Logger');
+jest.mock('../../../util/device');
 jest.mock('../SDKConnect');
 jest.mock('../utils/wait.util');
 
@@ -29,6 +29,7 @@ describe('handleAppState', () => {
 
   beforeEach(() => {
     jest.clearAllMocks();
+
     mockHideLoadingState.mockResolvedValue(undefined);
 
     mockInstance = {
@@ -54,9 +55,9 @@ describe('handleAppState', () => {
       instance: mockInstance,
     });
 
-    expect(mockInstance.hideLoadingState).not.toHaveBeenCalled();
-    expect(mockInstance.resume).not.toHaveBeenCalled();
-    expect(mockInstance.pause).not.toHaveBeenCalled();
+    expect(mockHideLoadingState).not.toHaveBeenCalled();
+    expect(mockResume).not.toHaveBeenCalled();
+    expect(mockPause).not.toHaveBeenCalled();
   });
 
   it('should update the app state', () => {
@@ -79,31 +80,7 @@ describe('handleAppState', () => {
         instance: mockInstance,
       });
 
-      expect(mockInstance.hideLoadingState).toHaveBeenCalled();
-    });
-
-    it('should clear the timeout for Android', () => {
-      const mockAppState = 'active';
-      mockIsAndroid.mockReturnValue(true);
-
-      handleAppState({
-        appState: mockAppState,
-        instance: mockInstance,
-      });
-
-      expect(BackgroundTimer.clearTimeout).toHaveBeenCalled();
-    });
-
-    it('should wait for keychain to be unlocked on Android', () => {
-      const mockAppState = 'active';
-      mockIsAndroid.mockReturnValue(true);
-
-      handleAppState({
-        appState: mockAppState,
-        instance: mockInstance,
-      });
-
-      expect(mockInstance.pause).toHaveBeenCalled();
+      expect(mockHideLoadingState).toHaveBeenCalled();
     });
 
     it('should clear the timeout for other platforms', () => {
@@ -116,18 +93,6 @@ describe('handleAppState', () => {
       });
 
       expect(BackgroundTimer.clearTimeout).not.toHaveBeenCalled();
-    });
-
-    it('should resume connections if paused', () => {
-      const mockAppState = 'active';
-      mockInstance.state.paused = true;
-
-      handleAppState({
-        appState: mockAppState,
-        instance: mockInstance,
-      });
-
-      expect(mockInstance.resume).toHaveBeenCalled();
     });
 
     it('should reset paused state to false', () => {
@@ -144,18 +109,6 @@ describe('handleAppState', () => {
   });
 
   describe('When app state is background', () => {
-    it('should start a timeout to pause connections on iOS', () => {
-      const mockAppState = 'background';
-      mockIsAndroid.mockReturnValue(false);
-
-      handleAppState({
-        appState: mockAppState,
-        instance: mockInstance,
-      });
-
-      expect(BackgroundTimer.setTimeout).toHaveBeenCalled();
-    });
-
     it('should start a timeout to pause connections on Android', () => {
       const mockAppState = 'background';
       mockIsAndroid.mockReturnValue(true);

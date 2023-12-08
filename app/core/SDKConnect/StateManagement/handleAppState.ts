@@ -4,7 +4,7 @@ import Logger from '../../../util/Logger';
 import Device from '../../../util/device';
 import BackgroundTimer from 'react-native-background-timer';
 import SDKConnect from '../SDKConnect';
-import { TIMEOUT_PAUSE_CONNECTIONS } from '../SDKConnect.constants';
+import { TIMEOUT_PAUSE_CONNECTIONS } from '../SDKConnectConstants';
 import DevLogger from '../utils/DevLogger';
 import { wait, waitForKeychainUnlocked } from '../utils/wait.util';
 
@@ -38,11 +38,14 @@ async function handleAppState({
       if (instance.state.timeout) {
         BackgroundTimer.clearInterval(instance.state.timeout);
       }
+
       // Android cannot process deeplinks until keychain is unlocked and we want to process deeplinks first
       // so we wait for keychain to be unlocked before resuming connections.
+
       const keyringController = (
         Engine.context as { KeyringController: KeyringController }
       ).KeyringController;
+
       await waitForKeychainUnlocked({
         keyringController,
         context: 'handleAppState',

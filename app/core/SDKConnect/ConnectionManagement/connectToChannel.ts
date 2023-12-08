@@ -1,7 +1,7 @@
 import DefaultPreference from 'react-native-default-preference';
 import AppConstants from '../../AppConstants';
 import { Connection, ConnectionProps } from '../Connection';
-import { DEFAULT_SESSION_TIMEOUT_MS } from '../SDKConnect.constants';
+import { DEFAULT_SESSION_TIMEOUT_MS } from '../SDKConnectConstants';
 import DevLogger from '../utils/DevLogger';
 import { SDKConnect } from './../SDKConnect';
 
