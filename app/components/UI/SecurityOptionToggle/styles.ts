@@ -16,9 +16,6 @@ export const createStyles = () =>
     switchElement: {
       marginLeft: 16,
     },
-    setting: {
-      marginTop: 32,
-    },
     switch: {
       alignSelf: 'flex-start',
     },

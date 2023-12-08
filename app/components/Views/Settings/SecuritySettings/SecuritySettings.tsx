@@ -380,7 +380,7 @@ const Settings: React.FC = () => {
   };
 
   const renderSDKSettings = () => (
-    <View style={styles.setting} testID={SDK_SECTION}>
+    <View style={styles.halfSetting} testID={SDK_SECTION}>
       <Text variant={TextVariant.BodyLGMedium}>
         {strings('app_settings.manage_sdk_connections_title')}
       </Text>
@@ -462,7 +462,7 @@ const Settings: React.FC = () => {
   };
 
   const renderMetaMetricsSection = () => (
-    <View style={styles.setting} testID={META_METRICS_SECTION}>
+    <View style={styles.halfSetting} testID={META_METRICS_SECTION}>
       <View style={styles.titleContainer}>
         <Text variant={TextVariant.BodyLGMedium} style={styles.title}>
           {strings('app_settings.metametrics_title')}
@@ -502,7 +502,7 @@ const Settings: React.FC = () => {
   };
 
   const renderMultiAccountBalancesSection = () => (
-    <View style={styles.setting} testID={BATCH_BALANCE_REQUESTS_SECTION}>
+    <View style={styles.halfSetting} testID={BATCH_BALANCE_REQUESTS_SECTION}>
       <View style={styles.titleContainer}>
         <Text variant={TextVariant.BodyLGMedium} style={styles.title}>
           {strings('app_settings.batch_balance_requests_title')}
@@ -586,7 +586,7 @@ const Settings: React.FC = () => {
 
   const renderDisplayNftMedia = useCallback(
     () => (
-      <View style={styles.setting} testID={NFT_DISPLAY_MEDIA_MODE_SECTION}>
+      <View style={styles.halfSetting} testID={NFT_DISPLAY_MEDIA_MODE_SECTION}>
         <View style={styles.titleContainer}>
           <Text variant={TextVariant.BodyLGMedium} style={styles.title}>
             {strings('app_settings.display_nft_media')}
@@ -933,7 +933,9 @@ const Settings: React.FC = () => {
           onSignWithBiometricsOptionUpdated={onSingInWithBiometrics}
           onSignWithPasscodeOptionUpdated={onSignInWithPasscode}
         />
-        <RememberMeOptionSection />
+        <View style={styles.setting}>
+          <RememberMeOptionSection />
+        </View>
         <RevealPrivateKey />
         <Heading>{strings('app_settings.privacy_heading')}</Heading>
         <Text
@@ -974,7 +976,9 @@ const Settings: React.FC = () => {
         >
           {strings('app_settings.security_check_subheading')}
         </Text>
-        <AutomaticSecurityChecks />
+        <View style={styles.halfSetting}>
+          <AutomaticSecurityChecks />
+        </View>
         <Text
           variant={TextVariant.BodyLGMedium}
           color={TextColor.Alternative}

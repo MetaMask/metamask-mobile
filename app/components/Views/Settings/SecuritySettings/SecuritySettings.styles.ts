@@ -39,6 +39,9 @@ const createStyles = (colors: Colors) =>
     firstSetting: {
       marginTop: 0,
     },
+    halfSetting: {
+      marginTop: 16,
+    },
     modalView: {
       alignItems: 'center',
       flex: 1,

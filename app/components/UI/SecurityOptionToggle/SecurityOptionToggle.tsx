@@ -40,7 +40,7 @@ const SecurityOptionToggle = ({
     [onOptionUpdated],
   );
   return (
-    <View style={styles.setting}>
+    <View>
       <View style={styles.titleContainer}>
         <Text variant={TextVariant.BodyLGMedium} style={styles.title}>
           {title}
