@@ -42,7 +42,7 @@ Optional prop to configure the readonly state
 
 ### `isDanger`
 
-Optional prop to configure the readonly state.
+Optional prop to configure the danger state
 
 | <span style="color:gray;font-size:14px">TYPE</span> | <span style="color:gray;font-size:14px">REQUIRED</span> | <span style="color:gray;font-size:14px">DEFAULT</span> |
 | :-------------------------------------------------- | :------------------------------------------------------ | :----------------------------------------------------- |
