@@ -7,6 +7,7 @@ exports[`RadioButton should render correctly 1`] = `
     Object {
       "alignItems": "center",
       "flexDirection": "row",
+      "height": 24,
       "opacity": 1,
     }
   }
