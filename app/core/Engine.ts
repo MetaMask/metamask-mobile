@@ -176,6 +176,7 @@ const NON_EMPTY = 'NON_EMPTY';
 const encryptor = new Encryptor();
 let currentChainId: any;
 
+///: BEGIN:ONLY_INCLUDE_IF(snaps)
 // TODO remove these custom types when the PhishingController is to version >= 7.0.0
 interface MaybeUpdateState {
   type: `${PhishingController['name']}:maybeUpdateState`;
@@ -188,6 +189,20 @@ interface TestOrigin {
 }
 type PhishingControllerActions = MaybeUpdateState | TestOrigin;
 
+type SnapsGlobalActions =
+  | LoggingControllerActions
+  | SnapControllerActions
+  | SubjectMetadataControllerActions
+  | PhishingControllerActions
+  | SnapsAllowedActions;
+
+type SnapsGlobalEvents =
+  | KeyringControllerEvents
+  | SnapControllerEvents
+  | SubjectMetadataControllerEvents
+  | SnapsAllowedEvents;
+///: END:ONLY_INCLUDE_IF
+
 type GlobalActions =
   | ApprovalControllerActions
   | GetCurrencyRateState
@@ -196,12 +211,10 @@ type GlobalActions =
   | NetworkControllerActions
   | PermissionControllerActions
   | SignatureControllerActions
-  | KeyringControllerActions
-  | LoggingControllerActions
-  | SnapControllerActions
-  | SubjectMetadataControllerActions
-  | PhishingControllerActions
-  | SnapsAllowedActions;
+  ///: BEGIN:ONLY_INCLUDE_IF(snaps)
+  | SnapsGlobalActions
+  ///: END:ONLY_INCLUDE_IF
+  | KeyringControllerActions;
 type GlobalEvents =
   | ApprovalControllerEvents
   | CurrencyRateStateChange
@@ -209,11 +222,10 @@ type GlobalEvents =
   | TokenListStateChange
   | NetworkControllerEvents
   | PermissionControllerEvents
-  | SignatureControllerEvents
-  | KeyringControllerEvents
-  | SnapControllerEvents
-  | SubjectMetadataControllerEvents
-  | SnapsAllowedEvents;
+  ///: BEGIN:ONLY_INCLUDE_IF(snaps)
+  | SnapsGlobalEvents
+  ///: END:ONLY_INCLUDE_IF
+  | SignatureControllerEvents;
 
 type PermissionsByRpcMethod = ReturnType<typeof getPermissionSpecifications>;
 type Permissions = PermissionsByRpcMethod[keyof PermissionsByRpcMethod];
