@@ -71,6 +71,10 @@ class DeeplinkManager {
     this.navigation.navigate(Routes.RAMP.BUY);
   }
 
+  _handleSellCrypto() {
+    this.navigation.navigate(Routes.RAMP.SELL);
+  }
+
   parse(
     url: string,
     {
