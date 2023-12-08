@@ -122,8 +122,7 @@ exports[`OrderDetails renders a cancelled order 1`] = `
                 onPress={[Function]}
                 style={
                   Object {
-                    "paddingHorizontal": 18,
-                    "paddingVertical": 8,
+                    "marginHorizontal": 16,
                   }
                 }
               >
@@ -2061,8 +2060,7 @@ exports[`OrderDetails renders a completed order 1`] = `
                 onPress={[Function]}
                 style={
                   Object {
-                    "paddingHorizontal": 18,
-                    "paddingVertical": 8,
+                    "marginHorizontal": 16,
                   }
                 }
               >
@@ -4015,8 +4013,7 @@ exports[`OrderDetails renders a created order 1`] = `
                 onPress={[Function]}
                 style={
                   Object {
-                    "paddingHorizontal": 18,
-                    "paddingVertical": 8,
+                    "marginHorizontal": 16,
                   }
                 }
               >
@@ -5897,8 +5894,7 @@ exports[`OrderDetails renders a failed order 1`] = `
                 onPress={[Function]}
                 style={
                   Object {
-                    "paddingHorizontal": 18,
-                    "paddingVertical": 8,
+                    "marginHorizontal": 16,
                   }
                 }
               >
@@ -7836,8 +7832,7 @@ exports[`OrderDetails renders a pending order 1`] = `
                 onPress={[Function]}
                 style={
                   Object {
-                    "paddingHorizontal": 18,
-                    "paddingVertical": 8,
+                    "marginHorizontal": 16,
                   }
                 }
               >
@@ -9718,8 +9713,7 @@ exports[`OrderDetails renders an empty screen layout if there is no order 1`] = 
                 onPress={[Function]}
                 style={
                   Object {
-                    "paddingHorizontal": 18,
-                    "paddingVertical": 8,
+                    "marginHorizontal": 16,
                   }
                 }
               >
@@ -10157,8 +10151,7 @@ exports[`OrderDetails renders an error screen if a CREATED order cannot be polle
                 onPress={[Function]}
                 style={
                   Object {
-                    "paddingHorizontal": 18,
-                    "paddingVertical": 8,
+                    "marginHorizontal": 16,
                   }
                 }
               >
@@ -10837,8 +10830,7 @@ exports[`OrderDetails renders non-transacted orders 1`] = `
                 onPress={[Function]}
                 style={
                   Object {
-                    "paddingHorizontal": 18,
-                    "paddingVertical": 8,
+                    "marginHorizontal": 16,
                   }
                 }
               >
@@ -12830,8 +12822,7 @@ exports[`OrderDetails renders the support links if the provider has them 1`] = `
                 onPress={[Function]}
                 style={
                   Object {
-                    "paddingHorizontal": 18,
-                    "paddingVertical": 8,
+                    "marginHorizontal": 16,
                   }
                 }
               >
@@ -14892,8 +14883,7 @@ exports[`OrderDetails renders transacted orders that do not have timeDescription
                 onPress={[Function]}
                 style={
                   Object {
-                    "paddingHorizontal": 18,
-                    "paddingVertical": 8,
+                    "marginHorizontal": 16,
                   }
                 }
               >
@@ -16774,8 +16764,7 @@ exports[`OrderDetails renders transacted orders that have timeDescriptionPending
                 onPress={[Function]}
                 style={
                   Object {
-                    "paddingHorizontal": 18,
-                    "paddingVertical": 8,
+                    "marginHorizontal": 16,
                   }
                 }
               >

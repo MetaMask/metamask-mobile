@@ -212,8 +212,7 @@ exports[`Regions View renders correctly 1`] = `
                 onPress={[Function]}
                 style={
                   Object {
-                    "paddingHorizontal": 18,
-                    "paddingVertical": 8,
+                    "marginHorizontal": 16,
                   }
                 }
               >
@@ -1036,8 +1035,7 @@ exports[`Regions View renders correctly while loading 1`] = `
                 onPress={[Function]}
                 style={
                   Object {
-                    "paddingHorizontal": 18,
-                    "paddingVertical": 8,
+                    "marginHorizontal": 16,
                   }
                 }
               >
@@ -1642,8 +1640,7 @@ exports[`Regions View renders correctly with error 1`] = `
                 onPress={[Function]}
                 style={
                   Object {
-                    "paddingHorizontal": 18,
-                    "paddingVertical": 8,
+                    "marginHorizontal": 16,
                   }
                 }
               >
@@ -2322,8 +2319,7 @@ exports[`Regions View renders correctly with no data 1`] = `
                 onPress={[Function]}
                 style={
                   Object {
-                    "paddingHorizontal": 18,
-                    "paddingVertical": 8,
+                    "marginHorizontal": 16,
                   }
                 }
               >
@@ -2928,8 +2924,7 @@ exports[`Regions View renders correctly with sdkError 1`] = `
                 onPress={[Function]}
                 style={
                   Object {
-                    "paddingHorizontal": 18,
-                    "paddingVertical": 8,
+                    "marginHorizontal": 16,
                   }
                 }
               >
@@ -3608,8 +3603,7 @@ exports[`Regions View renders correctly with selectedRegion 1`] = `
                 onPress={[Function]}
                 style={
                   Object {
-                    "paddingHorizontal": 18,
-                    "paddingVertical": 8,
+                    "marginHorizontal": 16,
                   }
                 }
               >
@@ -4430,8 +4424,7 @@ exports[`Regions View renders correctly with unsupportedRegion 1`] = `
                 onPress={[Function]}
                 style={
                   Object {
-                    "paddingHorizontal": 18,
-                    "paddingVertical": 8,
+                    "marginHorizontal": 16,
                   }
                 }
               >
@@ -5628,8 +5621,7 @@ exports[`Regions View renders correctly with unsupportedRegion 2`] = `
                 onPress={[Function]}
                 style={
                   Object {
-                    "paddingHorizontal": 18,
-                    "paddingVertical": 8,
+                    "marginHorizontal": 16,
                   }
                 }
               >
@@ -6826,8 +6818,7 @@ exports[`Regions View renders regions modal when pressing select button 1`] = `
                 onPress={[Function]}
                 style={
                   Object {
-                    "paddingHorizontal": 18,
-                    "paddingVertical": 8,
+                    "marginHorizontal": 16,
                   }
                 }
               >

@@ -212,8 +212,7 @@ exports[`GetStarted renders correctly 1`] = `
                 onPress={[Function]}
                 style={
                   Object {
-                    "paddingHorizontal": 18,
-                    "paddingVertical": 8,
+                    "marginHorizontal": 16,
                   }
                 }
               >
@@ -881,8 +880,7 @@ exports[`GetStarted renders correctly 2`] = `
                 onPress={[Function]}
                 style={
                   Object {
-                    "paddingHorizontal": 18,
-                    "paddingVertical": 8,
+                    "marginHorizontal": 16,
                   }
                 }
               >
@@ -1550,8 +1548,7 @@ exports[`GetStarted renders correctly when getStarted is true 1`] = `
                 onPress={[Function]}
                 style={
                   Object {
-                    "paddingHorizontal": 18,
-                    "paddingVertical": 8,
+                    "marginHorizontal": 16,
                   }
                 }
               >
@@ -1989,8 +1986,7 @@ exports[`GetStarted renders correctly when sdkError is present 1`] = `
                 onPress={[Function]}
                 style={
                   Object {
-                    "paddingHorizontal": 18,
-                    "paddingVertical": 8,
+                    "marginHorizontal": 16,
                   }
                 }
               >
