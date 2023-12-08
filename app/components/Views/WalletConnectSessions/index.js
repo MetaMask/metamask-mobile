@@ -22,6 +22,7 @@ import PropTypes from 'prop-types';
 import WC2Manager, {
   isWC2Enabled,
 } from '../../../../app/core/WalletConnect/WalletConnectV2';
+import { ExperimentalSelectorsIDs } from '../../../../e2e/selectors/Settings/ExperimentalView.selectors';
 
 const createStyles = (colors) =>
   StyleSheet.create({
@@ -252,7 +253,7 @@ export default class WalletConnectSessions extends PureComponent {
     return (
       <SafeAreaView
         style={styles.wrapper}
-        testID={'wallet-connect-sessions-screen'}
+        testID={ExperimentalSelectorsIDs.CONTAINER}
       >
         <ScrollView
           style={styles.wrapper}
