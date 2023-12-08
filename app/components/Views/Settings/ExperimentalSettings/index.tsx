@@ -1,17 +1,8 @@
-import React, { FC, useCallback, useEffect, useState } from 'react';
-import {
-  InteractionManager,
-  ScrollView,
-  StyleSheet,
-  Switch,
-  View,
-} from 'react-native';
+import React, { FC, useCallback, useEffect } from 'react';
+import { ScrollView, Switch, View } from 'react-native';
 import { strings } from '../../../../../locales/i18n';
 import Engine from '../../../../core/Engine';
-import {
-  colors as importedColors,
-  fontStyles,
-} from '../../../../styles/common';
+import { colors as importedColors } from '../../../../styles/common';
 import { useTheme } from '../../../../util/theme';
 import Text, {
   TextVariant,
@@ -21,108 +12,38 @@ import { getNavigationOptionsTitle } from '../../../UI/Navbar';
 import StyledButton from '../../../UI/StyledButton';
 import SECURITY_ALERTS_TOGGLE_TEST_ID from './constants';
 import { isBlockaidFeatureEnabled } from '../../../../util/blockaid';
-import AnalyticsV2 from '../../../../util/analyticsV2';
-import { MetaMetricsEvents } from '../../../../core/Analytics';
-
-const createStyles = (colors: any) =>
-  StyleSheet.create({
-    wrapper: {
-      backgroundColor: colors.background.default,
-      flex: 1,
-      padding: 24,
-      paddingBottom: 48,
-    },
-    title: {
-      ...(fontStyles.normal as any),
-      lineHeight: 20,
-      paddingTop: 4,
-      marginTop: -4,
-    },
-    boldTitle: {
-      ...(fontStyles.bold as any),
-      marginTop: 18,
-      marginBottom: 18,
-    },
-    heading: {
-      ...fontStyles.normal,
-      marginTop: 18,
-    },
-    desc: {
-      lineHeight: 20,
-      marginTop: 12,
-    },
-    setting: {
-      marginVertical: 16,
-    },
-    clearHistoryConfirm: {
-      marginTop: 18,
-    },
-    switchElement: {
-      display: 'flex',
-      justifyContent: 'space-between',
-      flexDirection: 'row',
-      alignItems: 'center',
-      marginBottom: 5,
-    },
-    switch: {
-      alignSelf: 'flex-end',
-    },
-    modalView: {
-      alignItems: 'center',
-      flex: 1,
-      flexDirection: 'column',
-      justifyContent: 'center',
-      padding: 20,
-    },
-    modalText: {
-      ...fontStyles.normal,
-      fontSize: 18,
-      textAlign: 'center',
-      color: colors.text.default,
-    },
-    modalTitle: {
-      ...fontStyles.bold,
-      fontSize: 22,
-      textAlign: 'center',
-      marginBottom: 20,
-      color: colors.text.default,
-    },
-  });
-
-interface Props {
-  /**
-	/* navigation object required to push new views
-	*/
-  navigation: any;
-  /**
-   * contains params that are passed in from navigation
-   */
-  route: any;
-}
+import Routes from '../../../../constants/navigation/Routes';
+import { useSelector, useDispatch } from 'react-redux';
+import { Props } from './ExperimentalSettings.types';
+import createStyles from './ExperimentalSettings.styles';
+import { selectIsSecurityAlertsEnabled } from '../../../../selectors/preferencesController';
 
 /**
  * Main view for app Experimental Settings
  */
 const ExperimentalSettings = ({ navigation, route }: Props) => {
   const { PreferencesController } = Engine.context;
-  const [securityAlertsEnabled, setSecurityAlertsEnabled] = useState(
-    () => PreferencesController.state.securityAlertsEnabled,
-  );
+  const dispatch = useDispatch();
+
+  const securityAlertsEnabled = useSelector(selectIsSecurityAlertsEnabled);
+
   const isFullScreenModal = route?.params?.isFullScreenModal;
+
   const { colors } = useTheme();
   const styles = createStyles(colors);
 
   const toggleSecurityAlertsEnabled = () => {
-    PreferencesController?.setSecurityAlertsEnabled(!securityAlertsEnabled);
-    setSecurityAlertsEnabled(!securityAlertsEnabled);
-    InteractionManager.runAfterInteractions(() => {
-      AnalyticsV2.trackEvent(
-        MetaMetricsEvents.SETTINGS_EXPERIMENTAL_SECURITY_ALERTS_ENABLED,
-        {
-          security_alerts_enabled: !securityAlertsEnabled,
-        },
-      );
-    });
+    if (securityAlertsEnabled) {
+      dispatch({
+        type: 'SET_PPOM_INITIALIZATION_COMPLETED',
+        ppomInitializationCompleted: false,
+      });
+      PreferencesController?.setSecurityAlertsEnabled(!securityAlertsEnabled);
+    } else {
+      navigation.navigate(Routes.MODAL.ROOT_MODAL_FLOW, {
+        screen: Routes.SHEET.BLOCKAID_INDICATOR,
+      });
+    }
   };
 
   useEffect(
