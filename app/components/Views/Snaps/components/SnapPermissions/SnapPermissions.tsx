@@ -40,7 +40,9 @@ const SnapPermissions = ({
    * to retrieve.
    * @returns {string | undefined} The name of the protocol if found.
    */
-  const coinTypeToProtocolName = (coinType: number): string | undefined => {
+  const coinTypeToProtocolName = (
+    coinType: number | string,
+  ): string | undefined => {
     if (coinType === 1) {
       return 'Test Networks';
     }
@@ -49,7 +51,7 @@ const SnapPermissions = ({
 
   /**
    * Copy of getSnapDerivationPathName from extension
-   * source: https://github.com/MetaMask/metamask-extension/blob/49f8052b157374370ac71373708933c6e639944e/ui/helpers/utils/util.js#L548
+   * source: https://github.com/MetaMask/metamask-extension/blob/f37544d16cd24e85a7c36f0e067fa009f115083e/ui/helpers/utils/util.js#L588
    * @param {string[]} path
    * @param {string} curve
    * @returns {string | null}
@@ -63,7 +65,24 @@ const SnapPermissions = ({
         derivationPath.curve === curve &&
         lodash.isEqual(derivationPath.path, path),
     );
-    return pathMetadata?.name ?? null;
+
+    if (pathMetadata) {
+      return pathMetadata.name;
+    }
+
+    // If the curve is secp256k1 and the path is a valid BIP44 path
+    // we try looking for the network/protocol name in SLIP44
+    if (
+      curve === 'secp256k1' &&
+      path[0] === 'm' &&
+      path[1] === `44'` &&
+      path[2].endsWith(`'`)
+    ) {
+      const coinType = path[2].slice(0, -1);
+      return coinTypeToProtocolName(coinType) ?? null;
+    }
+
+    return null;
   };
 
   interface SnapPermissionData {
