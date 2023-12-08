@@ -743,12 +743,17 @@ workflows:
             - build_short_version_string: $VERSION_NAME
             - build_version: $VERSION_NUMBER
             - plist_path: $PROJECT_LOCATION_IOS/MetaMask/Info.plist
+      - script:          
+          inputs:
+            - content: |-
+                asdf install ruby $RUBY_VERSION
+                sudo gem install cocoapods
+          title: Ruby install
       - cocoapods-install@2: {}
       - script@1:
           inputs:
             - content: |-
                 #!/usr/bin/env bash
-                node -v
                 METAMASK_BUILD_TYPE='main' METAMASK_ENVIRONMENT='production' yarn build:ios:pre-release
           title: iOS Sourcemaps & Build
           is_always_run: false
@@ -785,6 +790,12 @@ workflows:
             - build_short_version_string: $VERSION_NAME
             - build_version: $VERSION_NUMBER
             - plist_path: $PROJECT_LOCATION_IOS/MetaMask/MetaMask-QA-Info.plist
+      - script:          
+          inputs:
+            - content: |-
+                asdf install ruby $RUBY_VERSION
+                sudo gem install cocoapods
+          title: Ruby install
       - cocoapods-install@2: {}
       - script@1:
           inputs:
@@ -850,6 +861,12 @@ workflows:
             - build_short_version_string: $FLASK_VERSION_NAME
             - build_version: $FLASK_VERSION_NUMBER
             - plist_path: $PROJECT_LOCATION_IOS/MetaMask/MetaMask-Flask-Info.plist
+      - script:          
+          inputs:
+            - content: |-
+                asdf install ruby $RUBY_VERSION
+                sudo gem install cocoapods
+          title: Ruby install
       - cocoapods-install@2: {}
       - script@1:
           inputs:
@@ -1014,7 +1031,9 @@ app:
     - opts:
         is_expand: false
       YARN_VERSION: 1.22.19
-
+    - opts:
+        is_expand: false
+      RUBY_VERSION: 3.0.3
 meta:
   bitrise.io:
     stack: osx-xcode-15.0.x
