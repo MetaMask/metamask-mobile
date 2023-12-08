@@ -362,6 +362,10 @@ workflows:
       after_run:
       - ios_e2e_test
   run_test_dir_confirmations_android:
+      meta:
+          bitrise.io:
+            stack: linux-docker-android-20.04
+            machine_type_id: elite-xl
       envs:
       - TEST_SUITE_DIR: 'e2e/specs/confirmations'
       after_run:
@@ -372,6 +376,10 @@ workflows:
       after_run:
       - ios_e2e_test
   run_test_dir_swaps_android:
+      meta:
+          bitrise.io:
+            stack: linux-docker-android-20.04
+            machine_type_id: elite-xl
       envs:
       - TEST_SUITE_DIR: 'e2e/specs/swaps'
       after_run:
@@ -382,6 +390,10 @@ workflows:
       after_run:
       - ios_e2e_test
   run_test_dir_permission_systems_android:
+      meta:
+          bitrise.io:
+            stack: linux-docker-android-20.04
+            machine_type_id: elite-xl
       envs:
       - TEST_SUITE_DIR: 'e2e/specs/permission-systems'
       after_run:
@@ -392,6 +404,10 @@ workflows:
       after_run:
       - ios_e2e_test
   run_test_dir_networks_android:
+      meta:
+          bitrise.io:
+            stack: linux-docker-android-20.04
+            machine_type_id: elite-xl
       envs:
       - TEST_SUITE_DIR: 'e2e/specs/networks'
       after_run:
