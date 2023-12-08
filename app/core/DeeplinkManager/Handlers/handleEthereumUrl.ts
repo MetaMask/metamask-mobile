@@ -44,6 +44,15 @@ async function handleEthereumUrl({
       }
       default: {
         if (ethUrl.parameters?.value) {
+          ethUrl.parameters.value = ethUrl.parameters.value.replace(
+            /(\d+)(?:\.(\d+))?(?:e\+(\d+))?/,
+            (_match, integerPart, _, exponent) => {
+              const zeroPadding = exponent
+                ? '0'.repeat(parseInt(exponent, 10))
+                : '';
+              return `${integerPart}${zeroPadding}`;
+            },
+          );
           deeplinkManager.navigation.navigate('SendView', {
             screen: 'Send',
             params: { txMeta: { ...txMeta, action: 'send-eth' } },
