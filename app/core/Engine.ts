@@ -240,11 +240,9 @@ export interface EngineState {
   ///: BEGIN:ONLY_INCLUDE_IF(snaps)
   SnapController: PersistedSnapControllerState;
   SnapsRegistry: SnapsRegistryState;
-  ///: END:ONLY_INCLUDE_IF
-  PermissionController: PermissionControllerState<Permissions>;
-  ///: BEGIN:ONLY_INCLUDE_IF(snaps)
   SubjectMetadataController: SubjectMetadataControllerState;
   ///: END:ONLY_INCLUDE_IF
+  PermissionController: PermissionControllerState<Permissions>;
   ApprovalController: ApprovalControllerState;
   LoggingController: LoggingControllerState;
   PPOMController: PPOMState;
@@ -1418,11 +1416,9 @@ export default {
       NftDetectionController,
       ///: BEGIN:ONLY_INCLUDE_IF(snaps)
       SnapController,
-      ///: END:ONLY_INCLUDE_IF
-      PermissionController,
-      ///: BEGIN:ONLY_INCLUDE_IF(snaps)
       SubjectMetadataController,
       ///: END:ONLY_INCLUDE_IF
+      PermissionController,
       ApprovalController,
       LoggingController,
     } = instance.datamodel.state;
@@ -1459,11 +1455,9 @@ export default {
       NftDetectionController,
       ///: BEGIN:ONLY_INCLUDE_IF(snaps)
       SnapController,
-      ///: END:ONLY_INCLUDE_IF
-      PermissionController,
-      ///: BEGIN:ONLY_INCLUDE_IF(snaps)
       SubjectMetadataController,
       ///: END:ONLY_INCLUDE_IF
+      PermissionController,
       ApprovalController,
       LoggingController,
     };
