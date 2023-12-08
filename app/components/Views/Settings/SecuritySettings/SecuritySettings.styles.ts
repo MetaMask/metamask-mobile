@@ -1,12 +1,12 @@
 import { StyleSheet } from 'react-native';
-import { fontStyles } from '../../../../styles/common';
 import { Colors } from '../../../../util/theme/models';
 
 const createStyles = (colors: Colors) =>
   StyleSheet.create({
     wrapper: {
       backgroundColor: colors.background.default,
-      padding: 24,
+      paddingHorizontal: 16,
+      paddingTop: 8,
       paddingBottom: 48,
     },
     heading: {
@@ -18,12 +18,23 @@ const createStyles = (colors: Colors) =>
     accessory: {
       marginTop: 16,
     },
+    transactionsContainer: {
+      marginTop: 24,
+      marginLeft: -16,
+      marginRight: -16,
+    },
+    titleContainer: {
+      flexDirection: 'row',
+      alignItems: 'center',
+    },
+    title: {
+      flex: 1,
+    },
     switchElement: {
-      marginTop: 16,
-      alignSelf: 'flex-start',
+      marginLeft: 16,
     },
     setting: {
-      marginTop: 30,
+      marginTop: 32,
     },
     firstSetting: {
       marginTop: 0,
@@ -67,6 +78,9 @@ const createStyles = (colors: Colors) =>
       alignSelf: 'flex-start',
     },
     cellBorder: { borderWidth: 0 },
+    subHeading: {
+      marginTop: 32,
+    },
   });
 
 export default createStyles;

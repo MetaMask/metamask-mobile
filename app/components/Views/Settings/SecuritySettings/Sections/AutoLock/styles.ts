@@ -7,7 +7,7 @@ export const styleSheet = (params: { theme: Theme }) => {
 
   return StyleSheet.create({
     setting: {
-      marginTop: 30,
+      marginTop: 32,
     },
     desc: {
       marginTop: 8,

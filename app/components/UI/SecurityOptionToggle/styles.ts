@@ -3,15 +3,21 @@ import { StyleSheet } from 'react-native';
 
 export const createStyles = () =>
   StyleSheet.create({
+    titleContainer: {
+      flexDirection: 'row',
+      alignItems: 'center',
+    },
+    title: {
+      flex: 1,
+    },
     desc: {
       marginTop: 8,
     },
     switchElement: {
-      marginTop: 16,
-      alignSelf: 'flex-start',
+      marginLeft: 16,
     },
     setting: {
-      marginTop: 30,
+      marginTop: 32,
     },
     switch: {
       alignSelf: 'flex-start',

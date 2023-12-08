@@ -12,7 +12,6 @@ import Text, {
 } from '../../../../../component-library/components/Texts/Text';
 import Button, {
   ButtonVariants,
-  ButtonColor,
   ButtonSize,
   ButtonWidthTypes,
 } from '../../../../../component-library/components/Buttons/Button';
@@ -20,7 +19,7 @@ import Button, {
 const createStyles = () =>
   StyleSheet.create({
     setting: {
-      marginTop: 30,
+      marginTop: 32,
     },
     desc: {
       marginTop: 8,

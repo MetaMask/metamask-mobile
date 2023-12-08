@@ -1,10 +1,9 @@
-import { fontStyles } from '../../../styles/common';
 import { StyleSheet } from 'react-native';
 
-const createStyles = (colors: any) =>
+const createStyles = () =>
   StyleSheet.create({
     setting: {
-      marginTop: 30,
+      marginTop: 32,
     },
     desc: {
       marginTop: 8,

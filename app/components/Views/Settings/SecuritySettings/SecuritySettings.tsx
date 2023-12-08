@@ -122,7 +122,7 @@ const Heading: React.FC<HeadingProps> = ({ children, first }) => {
   const styles = createStyles(colors);
   return (
     <View style={[styles.setting, first && styles.firstSetting]}>
-      <Text variant={TextVariant.HeadingMD} style={styles.heading}>
+      <Text variant={TextVariant.HeadingLG} style={styles.heading}>
         {children}
       </Text>
     </View>
@@ -380,7 +380,7 @@ const Settings: React.FC = () => {
   };
 
   const renderSDKSettings = () => (
-    <View style={[styles.setting, styles.firstSetting]} testID={SDK_SECTION}>
+    <View style={styles.setting} testID={SDK_SECTION}>
       <Text variant={TextVariant.BodyLGMedium}>
         {strings('app_settings.manage_sdk_connections_title')}
       </Text>
@@ -463,9 +463,25 @@ const Settings: React.FC = () => {
 
   const renderMetaMetricsSection = () => (
     <View style={styles.setting} testID={META_METRICS_SECTION}>
-      <Text variant={TextVariant.BodyLGMedium}>
-        {strings('app_settings.metametrics_title')}
-      </Text>
+      <View style={styles.titleContainer}>
+        <Text variant={TextVariant.BodyLGMedium} style={styles.title}>
+          {strings('app_settings.metametrics_title')}
+        </Text>
+        <View style={styles.switchElement}>
+          <Switch
+            value={analyticsEnabled}
+            onValueChange={toggleMetricsOptIn}
+            trackColor={{
+              true: colors.primary.default,
+              false: colors.border.muted,
+            }}
+            thumbColor={importedColors.white}
+            style={styles.switch}
+            ios_backgroundColor={colors.border.muted}
+            testID={SecurityPrivacyViewSelectorsIDs.METAMETRICS_SWITCH}
+          />
+        </View>
+      </View>
       <Text
         variant={TextVariant.BodyMD}
         color={TextColor.Alternative}
@@ -473,20 +489,6 @@ const Settings: React.FC = () => {
       >
         {strings('app_settings.metametrics_description')}
       </Text>
-      <View style={styles.switchElement}>
-        <Switch
-          value={analyticsEnabled}
-          onValueChange={toggleMetricsOptIn}
-          trackColor={{
-            true: colors.primary.default,
-            false: colors.border.muted,
-          }}
-          thumbColor={importedColors.white}
-          style={styles.switch}
-          ios_backgroundColor={colors.border.muted}
-          testID={SecurityPrivacyViewSelectorsIDs.METAMETRICS_SWITCH}
-        />
-      </View>
     </View>
   );
 
@@ -501,9 +503,28 @@ const Settings: React.FC = () => {
 
   const renderMultiAccountBalancesSection = () => (
     <View style={styles.setting} testID={BATCH_BALANCE_REQUESTS_SECTION}>
-      <Text variant={TextVariant.BodyLGMedium}>
-        {strings('app_settings.batch_balance_requests_title')}
-      </Text>
+      <View style={styles.titleContainer}>
+        <Text variant={TextVariant.BodyLGMedium} style={styles.title}>
+          {strings('app_settings.batch_balance_requests_title')}
+        </Text>
+        <View style={styles.switchElement}>
+          <Switch
+            value={isMultiAccountBalancesEnabled}
+            onValueChange={toggleIsMultiAccountBalancesEnabled}
+            trackColor={{
+              true: colors.primary.default,
+              false: colors.border.muted,
+            }}
+            thumbColor={importedColors.white}
+            style={styles.switch}
+            ios_backgroundColor={colors.border.muted}
+            {...generateTestId(
+              Platform,
+              SECURITY_PRIVACY_MULTI_ACCOUNT_BALANCES_TOGGLE_ID,
+            )}
+          />
+        </View>
+      </View>
       <Text
         variant={TextVariant.BodyMD}
         color={TextColor.Alternative}
@@ -511,23 +532,6 @@ const Settings: React.FC = () => {
       >
         {strings('app_settings.batch_balance_requests_description')}
       </Text>
-      <View style={styles.switchElement}>
-        <Switch
-          value={isMultiAccountBalancesEnabled}
-          onValueChange={toggleIsMultiAccountBalancesEnabled}
-          trackColor={{
-            true: colors.primary.default,
-            false: colors.border.muted,
-          }}
-          thumbColor={importedColors.white}
-          style={styles.switch}
-          ios_backgroundColor={colors.border.muted}
-          {...generateTestId(
-            Platform,
-            SECURITY_PRIVACY_MULTI_ACCOUNT_BALANCES_TOGGLE_ID,
-          )}
-        />
-      </View>
     </View>
   );
   const toggleEnableIncomingTransactions = (
@@ -583,9 +587,25 @@ const Settings: React.FC = () => {
   const renderDisplayNftMedia = useCallback(
     () => (
       <View style={styles.setting} testID={NFT_DISPLAY_MEDIA_MODE_SECTION}>
-        <Text variant={TextVariant.BodyLGMedium}>
-          {strings('app_settings.display_nft_media')}
-        </Text>
+        <View style={styles.titleContainer}>
+          <Text variant={TextVariant.BodyLGMedium} style={styles.title}>
+            {strings('app_settings.display_nft_media')}
+          </Text>
+          <View style={styles.switchElement}>
+            <Switch
+              value={displayNftMedia}
+              onValueChange={toggleDisplayNftMedia}
+              trackColor={{
+                true: colors.primary.default,
+                false: colors.border.muted,
+              }}
+              thumbColor={importedColors.white}
+              style={styles.switch}
+              ios_backgroundColor={colors.border.muted}
+              testID="display-nft-toggle"
+            />
+          </View>
+        </View>
         <Text
           variant={TextVariant.BodyMD}
           color={TextColor.Alternative}
@@ -593,20 +613,6 @@ const Settings: React.FC = () => {
         >
           {strings('app_settings.display_nft_media_desc_new')}
         </Text>
-        <View style={styles.switchElement}>
-          <Switch
-            value={displayNftMedia}
-            onValueChange={toggleDisplayNftMedia}
-            trackColor={{
-              true: colors.primary.default,
-              false: colors.border.muted,
-            }}
-            thumbColor={importedColors.white}
-            style={styles.switch}
-            ios_backgroundColor={colors.border.muted}
-            testID="display-nft-toggle"
-          />
-        </View>
       </View>
     ),
     [colors, styles, displayNftMedia],
@@ -619,9 +625,24 @@ const Settings: React.FC = () => {
         testID={NFT_AUTO_DETECT_MODE_SECTION}
         ref={detectNftComponentRef}
       >
-        <Text variant={TextVariant.BodyLGMedium}>
-          {strings('app_settings.nft_autodetect_mode')}
-        </Text>
+        <View style={styles.titleContainer}>
+          <Text variant={TextVariant.BodyLGMedium} style={styles.title}>
+            {strings('app_settings.nft_autodetect_mode')}
+          </Text>
+          <View style={styles.switchElement}>
+            <Switch
+              value={useNftDetection}
+              onValueChange={toggleNftAutodetect}
+              trackColor={{
+                true: colors.primary.default,
+                false: colors.border.muted,
+              }}
+              thumbColor={importedColors.white}
+              style={styles.switch}
+              ios_backgroundColor={colors.border.muted}
+            />
+          </View>
+        </View>
         <Text
           variant={TextVariant.BodyMD}
           color={TextColor.Alternative}
@@ -629,19 +650,6 @@ const Settings: React.FC = () => {
         >
           {strings('app_settings.autodetect_nft_desc')}
         </Text>
-        <View style={styles.switchElement}>
-          <Switch
-            value={useNftDetection}
-            onValueChange={toggleNftAutodetect}
-            trackColor={{
-              true: colors.primary.default,
-              false: colors.border.muted,
-            }}
-            thumbColor={importedColors.white}
-            style={styles.switch}
-            ios_backgroundColor={colors.border.muted}
-          />
-        </View>
       </View>
     ),
     [colors, styles, useNftDetection],
@@ -659,9 +667,24 @@ const Settings: React.FC = () => {
 
   const renderIpfsGateway = () => (
     <View style={styles.setting} testID={IPFS_GATEWAY_SECTION}>
-      <Text variant={TextVariant.BodyLGMedium}>
-        {strings('app_settings.ipfs_gateway')}
-      </Text>
+      <View style={styles.titleContainer}>
+        <Text variant={TextVariant.BodyLGMedium} style={styles.title}>
+          {strings('app_settings.ipfs_gateway')}
+        </Text>
+        <View style={styles.switchElement}>
+          <Switch
+            value={isIpfsGatewayEnabled}
+            onValueChange={setIsIpfsGatewayEnabled}
+            trackColor={{
+              true: colors.primary.default,
+              false: colors.border.muted,
+            }}
+            thumbColor={importedColors.white}
+            style={styles.switch}
+            ios_backgroundColor={colors.border.muted}
+          />
+        </View>
+      </View>
       <Text
         variant={TextVariant.BodyMD}
         color={TextColor.Alternative}
@@ -669,19 +692,6 @@ const Settings: React.FC = () => {
       >
         {strings('app_settings.ipfs_gateway_content')}
       </Text>
-      <View style={styles.accessory}>
-        <Switch
-          value={isIpfsGatewayEnabled}
-          onValueChange={setIsIpfsGatewayEnabled}
-          trackColor={{
-            true: colors.primary.default,
-            false: colors.border.muted,
-          }}
-          thumbColor={importedColors.white}
-          style={styles.switch}
-          ios_backgroundColor={colors.border.muted}
-        />
-      </View>
       {isIpfsGatewayEnabled && (
         <View style={styles.accessory}>
           <Text
@@ -886,7 +896,7 @@ const Settings: React.FC = () => {
         >
           {strings('app_settings.incoming_transactions_content')}
         </Text>
-        <View style={styles.accessory}>
+        <View style={styles.transactionsContainer}>
           {renderMainnet()}
           {renderLineaMainnet()}
           {renderRpcNetworks()}
@@ -926,20 +936,55 @@ const Settings: React.FC = () => {
         <RememberMeOptionSection />
         <RevealPrivateKey />
         <Heading>{strings('app_settings.privacy_heading')}</Heading>
+        <Text
+          variant={TextVariant.BodyLGMedium}
+          color={TextColor.Alternative}
+          style={{ ...styles.subHeading, ...styles.firstSetting }}
+        >
+          {strings('app_settings.privacy_browser_subheading')}
+        </Text>
         {renderSDKSettings()}
         <ClearPrivacy />
         {renderClearBrowserHistorySection()}
         <ClearCookiesSection />
-        {renderMetaMetricsSection()}
-        <DeleteMetaMetricsData />
-        <DeleteWalletData />
+        <Text
+          variant={TextVariant.BodyLGMedium}
+          color={TextColor.Alternative}
+          style={styles.subHeading}
+        >
+          {strings('app_settings.transactions_subheading')}
+        </Text>
         {renderMultiAccountBalancesSection()}
         {renderShowIncomingTransactions()}
         {renderHistoryModal()}
+        <Text
+          variant={TextVariant.BodyLGMedium}
+          color={TextColor.Alternative}
+          style={styles.subHeading}
+        >
+          {strings('app_settings.token_nft_ens_subheading')}
+        </Text>
         {renderDisplayNftMedia()}
         {isMainnet && renderAutoDetectNft()}
         {renderIpfsGateway()}
+        <Text
+          variant={TextVariant.BodyLGMedium}
+          color={TextColor.Alternative}
+          style={styles.subHeading}
+        >
+          {strings('app_settings.security_check_subheading')}
+        </Text>
         <AutomaticSecurityChecks />
+        <Text
+          variant={TextVariant.BodyLGMedium}
+          color={TextColor.Alternative}
+          style={styles.subHeading}
+        >
+          {strings('app_settings.analytics_subheading')}
+        </Text>
+        {renderMetaMetricsSection()}
+        <DeleteMetaMetricsData />
+        <DeleteWalletData />
         {renderHint()}
       </View>
     </ScrollView>

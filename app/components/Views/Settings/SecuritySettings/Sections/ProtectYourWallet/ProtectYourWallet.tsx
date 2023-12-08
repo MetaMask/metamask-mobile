@@ -1,7 +1,6 @@
-import React, { ReactElement } from 'react';
+import React from 'react';
 import { View, Linking, InteractionManager } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
-import Icon from 'react-native-vector-icons/FontAwesome';
 import Button, {
   ButtonSize,
   ButtonVariants,
@@ -11,7 +10,6 @@ import Text, {
   TextVariant,
   TextColor,
 } from '../../../../../../component-library/components/Texts/Text';
-import SettingsNotification from '../../../../../UI/SettingsNotification';
 import SeedPhraseVideo from '../../../../../UI/SeedPhraseVideo';
 import { MetaMetricsEvents } from '../../../../../../core/Analytics';
 import AnalyticsV2 from '../../../../../../util/analyticsV2';
@@ -21,6 +19,10 @@ import { LEARN_MORE_URL } from '../../../../../../constants/urls';
 import { SecurityPrivacyViewSelectorsIDs } from '../../../../../../../e2e/selectors/Settings/SecurityAndPrivacy/SecurityPrivacyView.selectors';
 import { createStyles } from './styles';
 import Routes from '../../../../../../constants/navigation/Routes';
+import Banner, {
+  BannerVariant,
+  BannerAlertSeverity,
+} from '../../../../../../component-library/components/Banners/Banner';
 
 interface IProtectYourWalletProps {
   srpBackedup: boolean;
@@ -36,10 +38,6 @@ const ProtectYourWallet = ({
   const { colors } = useTheme();
   const styles = createStyles(colors);
   const navigation = useNavigation();
-
-  const WarningIcon = (): ReactElement => (
-    <Icon size={16} color={colors.error.default} name="exclamation-triangle" />
-  );
 
   const openSRPQuiz = () => {
     navigation.navigate(Routes.MODAL.ROOT_MODAL_FLOW, {
@@ -60,18 +58,12 @@ const ProtectYourWallet = ({
 
   return (
     <View style={[styles.setting, styles.firstSetting]}>
-      <Text>
-        {!srpBackedup ? (
-          <>
-            <WarningIcon />{' '}
-          </>
-        ) : null}
-        <Text variant={TextVariant.BodyLGMedium}>
-          {strings('app_settings.protect_title')}
-        </Text>
+      <Text variant={TextVariant.BodyLGMedium}>
+        {strings('app_settings.protect_title')}
       </Text>
-
-      <SeedPhraseVideo onClose={onBack} />
+      <View style={styles.video}>
+        <SeedPhraseVideo onClose={onBack} />
+      </View>
 
       <Text
         variant={TextVariant.BodyMD}
@@ -92,36 +84,31 @@ const ProtectYourWallet = ({
           label={strings('app_settings.learn_more')}
         />
       )}
-
-      <SettingsNotification isWarning={!srpBackedup}>
-        {srpBackedup ? (
-          <Text
-            style={{
-              ...styles.warningText,
-              ...styles.warningTextGreen,
-            }}
-          >
-            {strings('app_settings.seedphrase_backed_up')}
-          </Text>
-        ) : (
-          <Text
-            style={{
-              ...styles.warningText,
-              ...styles.warningTextRed,
-            }}
-          >
-            {strings('app_settings.seedphrase_not_backed_up')}
-          </Text>
-        )}
-        {hintText && srpBackedup ? (
-          <Button
-            variant={ButtonVariants.Link}
-            style={styles.viewHint}
-            onPress={toggleHint}
-            label={strings('app_settings.view_hint')}
-          />
-        ) : null}
-      </SettingsNotification>
+      {srpBackedup ? (
+        <Banner
+          variant={BannerVariant.Alert}
+          severity={BannerAlertSeverity.Success}
+          title={strings('app_settings.seedphrase_backed_up')}
+          description={
+            hintText ? (
+              <Button
+                variant={ButtonVariants.Link}
+                style={styles.viewHint}
+                onPress={toggleHint}
+                label={strings('app_settings.view_hint')}
+              />
+            ) : null
+          }
+          style={styles.accessory}
+        />
+      ) : (
+        <Banner
+          variant={BannerVariant.Alert}
+          severity={BannerAlertSeverity.Error}
+          title={strings('app_settings.seedphrase_not_backed_up')}
+          style={styles.accessory}
+        />
+      )}
       {!srpBackedup ? (
         <Button
           label={strings('app_settings.back_up_now')}
@@ -129,7 +116,7 @@ const ProtectYourWallet = ({
           variant={ButtonVariants.Primary}
           size={ButtonSize.Lg}
           onPress={goToBackup}
-          style={styles.confirm}
+          style={styles.accessory}
         />
       ) : (
         <Button
@@ -138,7 +125,7 @@ const ProtectYourWallet = ({
           variant={ButtonVariants.Primary}
           size={ButtonSize.Lg}
           onPress={openSRPQuiz}
-          style={styles.confirm}
+          style={styles.accessory}
           testID={SecurityPrivacyViewSelectorsIDs.REVEAL_SEED_BUTTON}
         />
       )}

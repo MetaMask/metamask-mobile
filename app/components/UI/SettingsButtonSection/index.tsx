@@ -1,7 +1,6 @@
 import React, { ReactNode, useState } from 'react';
 import { View } from 'react-native';
 import ActionModal from '../ActionModal';
-import { useTheme } from '../../../util/theme';
 import createStyles from './styles';
 import Text, {
   TextVariant,
@@ -43,8 +42,7 @@ const SettingsButtonSection = ({
   testID,
 }: ISettingsButtonSectionProps) => {
   const [modalVisible, setModalVisible] = useState<boolean>(false);
-  const { colors } = useTheme();
-  const styles = createStyles(colors);
+  const styles = createStyles();
 
   const updateShowModalState = () => setModalVisible(!modalVisible);
   const onButtonPress = () => (onPress ? onPress() : updateShowModalState());

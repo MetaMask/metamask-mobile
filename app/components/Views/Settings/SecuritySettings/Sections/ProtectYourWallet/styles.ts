@@ -32,7 +32,10 @@ export const createStyles = (colors: any) =>
       ...fontStyles.bold,
       color: colors.primary.default,
     },
-    confirm: {
+    accessory: {
+      marginTop: 16,
+    },
+    video: {
       marginTop: 16,
     },
   });

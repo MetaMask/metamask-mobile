@@ -41,7 +41,26 @@ const SecurityOptionToggle = ({
   );
   return (
     <View style={styles.setting}>
-      <Text variant={TextVariant.BodyLGMedium}>{title}</Text>
+      <View style={styles.titleContainer}>
+        <Text variant={TextVariant.BodyLGMedium} style={styles.title}>
+          {title}
+        </Text>
+        <View style={styles.switchElement}>
+          <Switch
+            value={value}
+            onValueChange={(newValue: boolean) => handleOnValueChange(newValue)}
+            trackColor={{
+              true: colors.primary.default,
+              false: colors.border.muted,
+            }}
+            thumbColor={importedColors.white}
+            style={styles.switch}
+            ios_backgroundColor={colors.border.muted}
+            disabled={disabled}
+            {...generateTestId(Platform, testId)}
+          />
+        </View>
+      </View>
       {description ? (
         <Text
           variant={TextVariant.BodyMD}
@@ -51,21 +70,6 @@ const SecurityOptionToggle = ({
           {description}
         </Text>
       ) : null}
-      <View style={styles.switchElement}>
-        <Switch
-          value={value}
-          onValueChange={(newValue: boolean) => handleOnValueChange(newValue)}
-          trackColor={{
-            true: colors.primary.default,
-            false: colors.border.muted,
-          }}
-          thumbColor={importedColors.white}
-          style={styles.switch}
-          ios_backgroundColor={colors.border.muted}
-          disabled={disabled}
-          {...generateTestId(Platform, testId)}
-        />
-      </View>
     </View>
   );
 };

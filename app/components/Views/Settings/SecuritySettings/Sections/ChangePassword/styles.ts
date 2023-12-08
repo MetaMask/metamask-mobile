@@ -4,7 +4,7 @@ import { StyleSheet } from 'react-native';
 export const createStyles = () =>
   StyleSheet.create({
     setting: {
-      marginTop: 30,
+      marginTop: 32,
     },
     desc: {
       marginTop: 8,
