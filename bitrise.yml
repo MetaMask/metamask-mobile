@@ -360,7 +360,7 @@ workflows:
       envs:
       - TEST_SUITE_DIR: 'e2e/specs/confirmations'
       after_run:
-      - android_e2e_test
+      - ios_e2e_test
   run_test_dir_confirmations_android:
       envs:
       - TEST_SUITE_DIR: 'e2e/specs/confirmations'
