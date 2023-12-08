@@ -34,12 +34,14 @@ const convertFetchBlobResponseToResponse = async (
   return response;
 };
 
-export const fetchFunction = async (
-  inputRequest: RequestInfo,
+type FetchFN = typeof fetch;
+
+export const fetchFunction: FetchFN = async (
+  input: RequestInfo | URL,
 ): Promise<Response> => {
   const { config } = RNFetchBlob;
   const urlToFetch: string =
-    typeof inputRequest === 'string' ? inputRequest : inputRequest.url;
+    typeof input === 'string' ? input : input.toString();
   const response: FetchBlobResponse = await config({ fileCache: true }).fetch(
     'GET',
     urlToFetch,

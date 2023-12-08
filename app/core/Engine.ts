@@ -101,7 +101,7 @@ import {
   buildSnapRestrictedMethodSpecifications,
   PersistedSnapControllerState,
 } from '@metamask/snaps-controllers';
-import { EnumToUnion } from '@metamask/snaps-utils';
+import { EnumToUnion, Snap } from '@metamask/snaps-utils';
 import { DialogType, NotificationArgs } from '@metamask/snaps-rpc-methods';
 // eslint-disable-next-line import/no-nodejs-modules
 import { Duplex } from 'stream';
@@ -745,6 +745,8 @@ class Engine {
         `${snapsRegistry.name}:getMetadata`,
         `${snapsRegistry.name}:update`,
         'ExecutionService:executeSnap',
+        // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+        // @ts-ignore
         'ExecutionService:getRpcRequestHandler',
         'ExecutionService:terminateSnap',
         'ExecutionService:terminateAllSnaps',
@@ -761,7 +763,7 @@ class Engine {
         requireAllowlist,
       },
       state: initialState.SnapController || undefined,
-      messenger: snapControllerMessenger,
+      messenger: snapControllerMessenger as any,
       detectSnapLocation: (
         location: string | URL,
         options?: DetectSnapLocationOptions,
@@ -775,7 +777,7 @@ class Engine {
 
     this.controllerMessenger.subscribe(
       `${snapController.name}:snapAdded`,
-      (snap, svgIcon = null) => {
+      (snap: Snap, svgIcon = null) => {
         const {
           manifest: { proposedName },
           version,
