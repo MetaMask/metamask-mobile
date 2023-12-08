@@ -34,7 +34,7 @@ import {
   SEED_PHRASE_HINTS,
 } from '../../../../constants/storage';
 import HintModal from '../../../UI/HintModal';
-import { MetaMetricsEvents } from '../../../../core/Analytics';
+import { MetaMetrics, MetaMetricsEvents } from '../../../../core/Analytics';
 import AnalyticsV2, {
   trackErrorAsAnalytics,
 } from '../../../../util/analyticsV2';
@@ -109,6 +109,9 @@ import images from 'images/image-icons';
 import { toHexadecimal } from '../../../../util/number';
 import { ETHERSCAN_SUPPORTED_NETWORKS } from '@metamask/transaction-controller/dist/constants';
 import { SecurityPrivacyViewSelectorsIDs } from '../../../../../e2e/selectors/Settings/SecurityAndPrivacy/SecurityPrivacyView.selectors';
+import generateDeviceAnalyticsMetaData, {
+  UserSettingsAnalyticsMetaData as generateUserSettingsAnalyticsMetaData,
+} from '../../../../util/metrics';
 
 const Heading: React.FC<HeadingProps> = ({ children, first }) => {
   const { colors } = useTheme();
@@ -411,27 +414,40 @@ const Settings: React.FC = () => {
     </View>
   );
 
-  /**
-   * Track the event of opt in or opt out.
-   * @param AnalyticsOptionSelected - User selected option regarding the tracking of events
-   */
-  const trackOptInEvent = (AnalyticsOptionSelected: string) => {
-    InteractionManager.runAfterInteractions(async () => {
-      AnalyticsV2.trackEvent(MetaMetricsEvents.ANALYTICS_PREFERENCE_SELECTED, {
-        analytics_option_selected: AnalyticsOptionSelected,
-        updated_after_onboarding: true,
-      });
-    });
-  };
-
-  const toggleMetricsOptIn = (value: boolean) => {
-    if (value) {
+  const toggleMetricsOptIn = async (metricsEnabled: boolean) => {
+    const metrics = await MetaMetrics.getInstance();
+    if (metricsEnabled) {
       Analytics.enable();
 
+      const consolidatedTraits = {
+        ...generateDeviceAnalyticsMetaData(),
+        ...generateUserSettingsAnalyticsMetaData(),
+      };
+      await metrics.enable();
       setAnalyticsEnabled(true);
-      trackOptInEvent('Metrics Opt In');
+
+      InteractionManager.runAfterInteractions(async () => {
+        // Segment metrics optin tracking
+        await metrics.addTraitsToUser(consolidatedTraits);
+        metrics.trackEvent(
+          MetaMetricsEvents.ANALYTICS_PREFERENCE_SELECTED.category,
+          {
+            analytics_option_selected: 'Metrics Opt in',
+            updated_after_onboarding: true,
+          },
+        );
+        // Legacy metrics optin tracking
+        AnalyticsV2.trackEvent(
+          MetaMetricsEvents.ANALYTICS_PREFERENCE_SELECTED,
+          {
+            analytics_option_selected: 'Metrics Opt in',
+            updated_after_onboarding: true,
+          },
+        );
+      });
     } else {
-      trackOptInEvent('Metrics Opt Out');
+      await metrics.enable(false);
+      await metrics.reset();
       Analytics.disable();
       setAnalyticsEnabled(false);
       Alert.alert(

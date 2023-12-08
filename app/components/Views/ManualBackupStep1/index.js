@@ -4,7 +4,6 @@ import {
   View,
   SafeAreaView,
   ActivityIndicator,
-  InteractionManager,
   TextInput,
   KeyboardAvoidingView,
   Appearance,
@@ -34,9 +33,10 @@ import { uint8ArrayToMnemonic } from '../../../util/mnemonic';
 import { createStyles } from './styles';
 
 import { MetaMetricsEvents } from '../../../core/Analytics';
-import AnalyticsV2 from '../../../util/analyticsV2';
 import { Authentication } from '../../../core';
 import { ManualBackUpStep1SelectorsIDs } from '../../../../e2e/selectors/Onboarding/ManualBackUpStep1.selectors';
+import trackAfterInteractions from '../../../util/metrics/TrackAfterInteraction/trackAfterInteractions';
+import Logger from '../../../util/Logger';
 
 /**
  * View that's shown during the second step of
@@ -68,6 +68,12 @@ const ManualBackupStep1 = ({ route, navigation, appTheme }) => {
       password,
     );
     return uint8ArrayToMnemonic(uint8ArrayMnemonic, wordlist).split(' ');
+  };
+
+  const track = (event, properties) => {
+    trackAfterInteractions(event, properties).catch(() => {
+      Logger.log('ManualBackupStep1', `Failed to track ${event}`);
+    });
   };
 
   useEffect(() => {
@@ -109,9 +115,7 @@ const ManualBackupStep1 = ({ route, navigation, appTheme }) => {
 
   const revealSeedPhrase = () => {
     setSeedPhraseHidden(false);
-    InteractionManager.runAfterInteractions(() => {
-      AnalyticsV2.trackEvent(MetaMetricsEvents.WALLET_SECURITY_PHRASE_REVEALED);
-    });
+    track(MetaMetricsEvents.WALLET_SECURITY_PHRASE_REVEALED);
   };
 
   const tryUnlockWithPassword = async (password) => {

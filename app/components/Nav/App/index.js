@@ -100,6 +100,7 @@ import AsyncStorage from '../../../store/async-storage-wrapper';
 import ShowIpfsGatewaySheet from '../../Views/ShowIpfsGatewaySheet/ShowIpfsGatewaySheet';
 import ShowDisplayNftMediaSheet from '../../Views/ShowDisplayMediaNFTSheet/ShowDisplayNFTMediaSheet';
 import AmbiguousAddressSheet from '../../../../app/components/Views/Settings/Contacts/AmbiguousAddressSheet/AmbiguousAddressSheet';
+import MetaMetrics from '../../../core/Analytics/MetaMetrics';
 
 const clearStackNavigatorOptions = {
   headerShown: false,
@@ -354,6 +355,7 @@ const App = ({ userLoggedIn }) => {
 
   useEffect(() => {
     const initAnalytics = async () => {
+      await MetaMetrics.getInstance();
       await Analytics.init();
     };
 

@@ -7,7 +7,6 @@ import {
   SafeAreaView,
   StyleSheet,
   BackHandler,
-  InteractionManager,
   Platform,
 } from 'react-native';
 import PropTypes from 'prop-types';
@@ -28,7 +27,6 @@ import SeedPhraseVideo from '../../UI/SeedPhraseVideo';
 import { connect } from 'react-redux';
 import setOnboardingWizardStep from '../../../actions/wizard';
 import { MetaMetricsEvents } from '../../../core/Analytics';
-import AnalyticsV2 from '../../../util/analyticsV2';
 
 import DefaultPreference from 'react-native-default-preference';
 import { useTheme } from '../../../util/theme';
@@ -37,6 +35,8 @@ import {
   PROTECT_YOUR_WALLET_CONTAINER_ID,
   REMIND_LATER_BUTTON_ID,
 } from '../../../../wdio/screen-objects/testIDs/Screens/WalletSetupScreen.testIds';
+import trackAfterInteractions from '../../../util/metrics/TrackAfterInteraction/trackAfterInteractions';
+import Logger from '../../../util/Logger';
 const createStyles = (colors) =>
   StyleSheet.create({
     mainWrapper: {
@@ -132,6 +132,12 @@ const AccountBackupStep1 = (props) => {
   const { colors } = useTheme();
   const styles = createStyles(colors);
 
+  const track = (event, properties) => {
+    trackAfterInteractions(event, properties).catch(() => {
+      Logger.log('AccountBackupStep1', `Failed to track ${event}`);
+    });
+  };
+
   useEffect(() => {
     navigation.setOptions({
       ...getOnboardingNavbarOptions(
@@ -165,18 +171,14 @@ const AccountBackupStep1 = (props) => {
 
   const goNext = () => {
     props.navigation.navigate('AccountBackupStep1B', { ...props.route.params });
-    InteractionManager.runAfterInteractions(() => {
-      AnalyticsV2.trackEvent(MetaMetricsEvents.WALLET_SECURITY_STARTED);
-    });
+    track(MetaMetricsEvents.WALLET_SECURITY_STARTED);
   };
 
   const showRemindLater = () => {
     if (hasFunds) return;
 
     setRemindLaterModal(true);
-    InteractionManager.runAfterInteractions(() => {
-      AnalyticsV2.trackEvent(MetaMetricsEvents.WALLET_SECURITY_SKIP_INITIATED);
-    });
+    track(MetaMetricsEvents.WALLET_SECURITY_SKIP_INITIATED);
   };
 
   const toggleSkipCheckbox = () =>
@@ -194,9 +196,7 @@ const AccountBackupStep1 = (props) => {
 
   const skip = async () => {
     hideRemindLaterModal();
-    InteractionManager.runAfterInteractions(() => {
-      AnalyticsV2.trackEvent(MetaMetricsEvents.WALLET_SECURITY_SKIP_CONFIRMED);
-    });
+    track(MetaMetricsEvents.WALLET_SECURITY_SKIP_CONFIRMED);
     // Get onboarding wizard state
     const onboardingWizard = await DefaultPreference.get(ONBOARDING_WIZARD);
     if (onboardingWizard) {
