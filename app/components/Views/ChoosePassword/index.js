@@ -8,7 +8,6 @@ import {
   SafeAreaView,
   StyleSheet,
   Image,
-  InteractionManager,
   Platform,
 } from 'react-native';
 import CheckBox from '@react-native-community/checkbox';
@@ -55,7 +54,7 @@ import {
 } from '../../../util/password';
 
 import { CHOOSE_PASSWORD_STEPS } from '../../../constants/onboarding';
-import { MetaMetrics, MetaMetricsEvents } from '../../../core/Analytics';
+import { MetaMetricsEvents } from '../../../core/Analytics';
 import { Authentication } from '../../../core';
 import AUTHENTICATION_TYPE from '../../../constants/userProperties';
 import { ThemeContext, mockTheme } from '../../../util/theme';
@@ -65,6 +64,7 @@ import { LoginOptionsSwitch } from '../../UI/LoginOptionsSwitch';
 import generateTestId from '../../../../wdio/utils/generateTestId';
 import navigateTermsOfUse from '../../../util/termsOfUse/termsOfUse';
 import { ChoosePasswordSelectorsIDs } from '../../../../e2e/selectors/Onboarding/ChoosePassword.selectors';
+import trackAfterInteractions from '../../../util/metrics/TrackAfterInteraction/trackAfterInteractions';
 
 const createStyles = (colors) =>
   StyleSheet.create({
@@ -261,6 +261,12 @@ class ChoosePassword extends PureComponent {
   // Flag to know if password in keyring was set or not
   keyringControllerPasswordSet = false;
 
+  track = (event, properties) => {
+    trackAfterInteractions(event, properties).catch(() => {
+      Logger.log('ChoosePassword', `Failed to track ${event}`);
+    });
+  };
+
   updateNavBar = () => {
     const { route, navigation } = this.props;
     const colors = this.context.colors || mockTheme.colors;
@@ -339,10 +345,7 @@ class ChoosePassword extends PureComponent {
       Alert.alert('Error', strings('choose_password.password_dont_match'));
       return;
     }
-    InteractionManager.runAfterInteractions(async () => {
-      const metrics = await MetaMetrics.getInstance();
-      metrics.trackEvent(MetaMetricsEvents.WALLET_CREATION_ATTEMPTED.category);
-    });
+    this.track(MetaMetricsEvents.WALLET_CREATION_ATTEMPTED);
 
     try {
       this.setState({ loading: true });
@@ -369,15 +372,12 @@ class ChoosePassword extends PureComponent {
       this.props.setLockTime(AppConstants.DEFAULT_LOCK_TIMEOUT);
       this.setState({ loading: false });
       this.props.navigation.replace('AccountBackupStep1');
-      InteractionManager.runAfterInteractions(async () => {
-        const metrics = await MetaMetrics.getInstance();
-        metrics.trackEvent(MetaMetricsEvents.WALLET_CREATED.category, {
-          biometrics_enabled: Boolean(this.state.biometryType),
-        });
-        metrics.trackEvent(MetaMetricsEvents.WALLET_SETUP_COMPLETED.category, {
-          wallet_setup_type: 'new',
-          new_wallet: true,
-        });
+      this.track(MetaMetricsEvents.WALLET_CREATED, {
+        biometrics_enabled: Boolean(this.state.biometryType),
+      });
+      this.track(MetaMetricsEvents.WALLET_SETUP_COMPLETED, {
+        wallet_setup_type: 'new',
+        new_wallet: true,
       });
     } catch (error) {
       try {
@@ -400,12 +400,9 @@ class ChoosePassword extends PureComponent {
       } else {
         this.setState({ loading: false, error: error.toString() });
       }
-      InteractionManager.runAfterInteractions(async () => {
-        const metrics = await MetaMetrics.getInstance();
-        metrics.trackEvent(MetaMetricsEvents.WALLET_SETUP_FAILURE.category, {
-          wallet_setup_type: 'new',
-          error_type: error.toString(),
-        });
+      this.track(MetaMetricsEvents.WALLET_SETUP_FAILURE, {
+        wallet_setup_type: 'new',
+        error_type: error.toString(),
       });
     }
   };

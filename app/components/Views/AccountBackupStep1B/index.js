@@ -8,7 +8,6 @@ import {
   StyleSheet,
   Image,
   Dimensions,
-  InteractionManager,
 } from 'react-native';
 import PropTypes from 'prop-types';
 import Icon from 'react-native-vector-icons/FontAwesome';
@@ -22,9 +21,11 @@ import ActionModal from '../../UI/ActionModal';
 import SeedphraseModal from '../../UI/SeedphraseModal';
 import { getOnboardingNavbarOptions } from '../../UI/Navbar';
 import { CHOOSE_PASSWORD_STEPS } from '../../../constants/onboarding';
-import { MetaMetrics, MetaMetricsEvents } from '../../../core/Analytics';
+import { MetaMetricsEvents } from '../../../core/Analytics';
 
 import { useTheme } from '../../../util/theme';
+import trackAfterInteractions from '../../../util/metrics/TrackAfterInteraction/trackAfterInteractions';
+import Logger from '../../../util/Logger';
 
 const explain_backup_seedphrase = require('../../../images/explain-backup-seedphrase.png'); // eslint-disable-line
 
@@ -204,18 +205,19 @@ const AccountBackupStep1B = (props) => {
   const { colors } = useTheme();
   const styles = createStyles(colors);
 
+  const track = (event, properties) => {
+    trackAfterInteractions(event, properties).catch(() => {
+      Logger.log('AccountBackupStep1B', `Failed to track ${event}`);
+    });
+  };
+
   useEffect(() => {
     navigation.setOptions(getOnboardingNavbarOptions(route, {}, colors));
   }, [navigation, route, colors]);
 
   const goNext = () => {
     props.navigation.navigate('ManualBackupStep1', { ...props.route.params });
-    InteractionManager.runAfterInteractions(async () => {
-      const metrics = await MetaMetrics.getInstance();
-      metrics.trackEvent(
-        MetaMetricsEvents.WALLET_SECURITY_MANUAL_BACKUP_INITIATED.category,
-      );
-    });
+    track(MetaMetricsEvents.WALLET_SECURITY_MANUAL_BACKUP_INITIATED);
   };
 
   const learnMore = () => {

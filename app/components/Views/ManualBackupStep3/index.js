@@ -7,7 +7,6 @@ import {
   StyleSheet,
   Keyboard,
   TouchableOpacity,
-  InteractionManager,
 } from 'react-native';
 import { connect } from 'react-redux';
 import PropTypes from 'prop-types';
@@ -28,10 +27,12 @@ import {
   ONBOARDING_WIZARD,
   SEED_PHRASE_HINTS,
 } from '../../../constants/storage';
-import { MetaMetrics, MetaMetricsEvents } from '../../../core/Analytics';
+import { MetaMetricsEvents } from '../../../core/Analytics';
 import DefaultPreference from 'react-native-default-preference';
 import { ThemeContext, mockTheme } from '../../../util/theme';
 import { ManualBackUpStep3SelectorsIDs } from '../../../../e2e/selectors/Onboarding/ManualBackUpStep3.selectors';
+import trackAfterInteractions from '../../../util/metrics/TrackAfterInteraction/trackAfterInteractions';
+import Logger from '../../../util/Logger';
 
 const createStyles = (colors) =>
   StyleSheet.create({
@@ -117,6 +118,12 @@ class ManualBackupStep3 extends PureComponent {
     setOnboardingWizardStep: PropTypes.func,
   };
 
+  track = (event, properties) => {
+    trackAfterInteractions(event, properties).catch(() => {
+      Logger.log('ManualBackupStep3', `Failed to track ${event}`);
+    });
+  };
+
   updateNavBar = () => {
     const { navigation } = this.props;
     const colors = this.context.colors || mockTheme.colors;
@@ -138,10 +145,7 @@ class ManualBackupStep3 extends PureComponent {
     this.setState({
       hintText: manualBackup,
     });
-    InteractionManager.runAfterInteractions(async () => {
-      const metrics = await MetaMetrics.getInstance();
-      metrics.trackEvent(MetaMetricsEvents.WALLET_SECURITY_COMPLETED.category);
-    });
+    this.track(MetaMetricsEvents.WALLET_SECURITY_COMPLETED);
     BackHandler.addEventListener(HARDWARE_BACK_PRESS, hardwareBackPress);
   };
 
@@ -187,12 +191,7 @@ class ManualBackupStep3 extends PureComponent {
       SEED_PHRASE_HINTS,
       JSON.stringify({ ...parsedHints, manualBackup: hintText }),
     );
-    InteractionManager.runAfterInteractions(async () => {
-      const metrics = await MetaMetrics.getInstance();
-      metrics.trackEvent(
-        MetaMetricsEvents.WALLET_SECURITY_RECOVERY_HINT_SAVED.category,
-      );
-    });
+    this.track(MetaMetricsEvents.WALLET_SECURITY_RECOVERY_HINT_SAVED);
   };
 
   done = async () => {

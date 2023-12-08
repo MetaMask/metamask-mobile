@@ -7,10 +7,9 @@ import {
   StyleSheet,
   Image,
   Dimensions,
-  InteractionManager,
   Platform,
 } from 'react-native';
-import { MetaMetrics, MetaMetricsEvents } from '../../../core/Analytics';
+import { MetaMetricsEvents } from '../../../core/Analytics';
 import StyledButton from '../../UI/StyledButton';
 import { fontStyles, baseStyles } from '../../../styles/common';
 import { strings } from '../../../../locales/i18n';
@@ -25,6 +24,8 @@ import { ThemeContext, mockTheme } from '../../../util/theme';
 import { WELCOME_SCREEN_CAROUSEL_TITLE_ID } from '../../../../wdio/screen-objects/testIDs/Screens/WelcomeScreen.testIds';
 import { OnboardingCarouselSelectorIDs } from '../../../../e2e/selectors/Onboarding/OnboardingCarousel.selectors';
 import generateTestId from '../../../../wdio/utils/generateTestId';
+import trackAfterInteractions from '../../../util/metrics/TrackAfterInteraction/trackAfterInteractions';
+import Logger from '../../../util/Logger';
 const IMAGE_3_RATIO = 215 / 315;
 const IMAGE_2_RATIO = 222 / 239;
 const IMAGE_1_RATIO = 285 / 203;
@@ -141,13 +142,12 @@ class OnboardingCarousel extends PureComponent {
   };
 
   track = (event, properties) => {
-    InteractionManager.runAfterInteractions(async () => {
-      const metrics = await MetaMetrics.getInstance();
-      if (metrics.isEnabled()) {
-        metrics.trackEvent(event.category, properties);
-      } else {
-        this.props.saveOnboardingEvent(event.category);
-      }
+    trackAfterInteractions(
+      event,
+      properties,
+      this.props.saveOnboardingEvent,
+    ).catch(() => {
+      Logger.log('OnboardingCarousel', `Failed to track ${event}`);
     });
   };
 
