@@ -305,6 +305,13 @@ class Engine {
    */
   lastIncomingTxBlockInfo: any;
 
+  ///: BEGIN:ONLY_INCLUDE_IF(snaps)
+  /**
+   * Object that runs and manages the execution of Snaps
+   */
+  snapExecutionService: WebviewExecutionService;
+  ///: END:ONLY_INCLUDE_IF
+
   /**
    * Creates a CoreController instance
    */
@@ -776,8 +783,8 @@ class Engine {
     });
 
     this.controllerMessenger.subscribe(
-      `${snapController.name}:snapAdded`,
-      (snap: Snap, svgIcon = null) => {
+      'SnapController:snapAdded',
+      (snap: Snap, svgIcon: any = null) => {
         const {
           manifest: { proposedName },
           version,
