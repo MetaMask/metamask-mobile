@@ -116,10 +116,15 @@ stages:
       - android_e2e_build: {}
   run_smoke_e2e_ios_android_stage:
     workflows:
-      - run_test_dir_confirmations: {}
-      - run_test_dir_swaps: {}
-      - run_test_dir_permission_systems: {}
-      - run_test_dir_networks: {}
+      - run_test_dir_confirmations_ios: {}
+      - run_test_dir_confirmations_android: {}
+      - run_test_dir_swaps_ios: {}
+      - run_test_dir_swaps_android: {}
+      - run_test_dir_permission_systems_ios: {}
+      - run_test_dir_permission_systems_android: {}
+      - run_test_dir_networks_ios: {}
+      - run_test_dir_networks_android: {}
+
   build_regression_e2e_ios_android_stage:
     workflows:
       - ios_build_regression_tests: {}
@@ -351,29 +356,45 @@ workflows:
   ### This workflow uses a flag (TEST_SUITE) that defines the specific set of tests to be run.
   ## in this instance Regression. In future iterations we can rename to ios_test_suite_selection & android_test_suite_selection      
 
-  run_test_dir_confirmations:
+  run_test_dir_confirmations_ios:
       envs:
       - TEST_SUITE_DIR: 'e2e/specs/confirmations'
       after_run:
-      - ios_e2e_test
       - android_e2e_test
-  run_test_dir_swaps:
+  run_test_dir_confirmations_android:
+      envs:
+      - TEST_SUITE_DIR: 'e2e/specs/confirmations'
+      after_run:
+      - android_e2e_test
+  run_test_dir_swaps_ios:
       envs:
       - TEST_SUITE_DIR: 'e2e/specs/swaps'
       after_run:
       - ios_e2e_test
+  run_test_dir_swaps_android:
+      envs:
+      - TEST_SUITE_DIR: 'e2e/specs/swaps'
+      after_run:
       - android_e2e_test
-  run_test_dir_permission_systems:
+  run_test_dir_permission_systems_ios:
       envs:
       - TEST_SUITE_DIR: 'e2e/specs/permission-systems'
       after_run:
       - ios_e2e_test
+  run_test_dir_permission_systems_android:
+      envs:
+      - TEST_SUITE_DIR: 'e2e/specs/permission-systems'
+      after_run:
       - android_e2e_test
-  run_test_dir_networks:
+  run_test_dir_networks_ios:
       envs:
       - TEST_SUITE_DIR: 'e2e/specs/networks'
       after_run:
       - ios_e2e_test
+  run_test_dir_networks_android:
+      envs:
+      - TEST_SUITE_DIR: 'e2e/specs/networks'
+      after_run:
       - android_e2e_test
 
   ios_build_regression_tests:
