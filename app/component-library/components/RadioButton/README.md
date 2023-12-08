@@ -2,7 +2,7 @@
 
 ![RadioButton](./RadioButton.png)
 
-RadioButton is a graphical element that allows users to select one option from a set of choices.
+`RadioButton` is a graphical element that allows users to select one option from a set of choices
 
 ## Props
 
