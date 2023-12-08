@@ -51,10 +51,6 @@ import {
 import {
   PhishingController,
   PhishingState,
-  ///: BEGIN:ONLY_INCLUDE_IF(snaps)
-  PhishingControllerActions,
-  PhishingControllerEvents,
-  ///: END:ONLY_INCLUDE_IF
 } from '@metamask/phishing-controller';
 import {
   PreferencesController,
@@ -95,6 +91,8 @@ import { PPOMController, PPOMState } from '@metamask/ppom-validator';
 ///: BEGIN:ONLY_INCLUDE_IF(snaps)
 import {
   JsonSnapsRegistry,
+  AllowedActions as SnapsAllowedActions,
+  AllowedEvents as SnapsAllowedEvents,
   SnapController,
   SnapsRegistryState,
   SnapControllerEvents,
@@ -178,6 +176,18 @@ const NON_EMPTY = 'NON_EMPTY';
 const encryptor = new Encryptor();
 let currentChainId: any;
 
+// TODO remove these custom types when the PhishingController is to version >= 7.0.0
+interface MaybeUpdateState {
+  type: `${PhishingController['name']}:maybeUpdateState`;
+  handler: PhishingController['maybeUpdateState'];
+}
+
+interface TestOrigin {
+  type: `${PhishingController['name']}:testOrigin`;
+  handler: PhishingController['test'];
+}
+type PhishingControllerActions = MaybeUpdateState | TestOrigin;
+
 type GlobalActions =
   | ApprovalControllerActions
   | GetCurrencyRateState
@@ -190,7 +200,8 @@ type GlobalActions =
   | LoggingControllerActions
   | SnapControllerActions
   | SubjectMetadataControllerActions
-  | PhishingControllerActions;
+  | PhishingControllerActions
+  | SnapsAllowedActions;
 type GlobalEvents =
   | ApprovalControllerEvents
   | CurrencyRateStateChange
@@ -202,7 +213,7 @@ type GlobalEvents =
   | KeyringControllerEvents
   | SnapControllerEvents
   | SubjectMetadataControllerEvents
-  | PhishingControllerEvents;
+  | SnapsAllowedEvents;
 
 type PermissionsByRpcMethod = ReturnType<typeof getPermissionSpecifications>;
 type Permissions = PermissionsByRpcMethod[keyof PermissionsByRpcMethod];
@@ -749,7 +760,7 @@ class Engine {
         // @ts-ignore
         requireAllowlist,
       },
-      state: initialState.SnapController || {},
+      state: initialState.SnapController || undefined,
       messenger: snapControllerMessenger,
       detectSnapLocation: (
         location: string | URL,
