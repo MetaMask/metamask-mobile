@@ -173,7 +173,7 @@ describe('SnapPermissions', () => {
       curve: 'secp256k1',
     },
     {
-      path: ['m', `44'`, `397'`],
+      path: ['m', `44'`, `397'`, `0'`],
       curve: 'ed25519',
     },
     {
@@ -860,7 +860,7 @@ describe('SnapPermissions', () => {
       snapGetBip32EntropyTitle('Test BIP-32 Path (ed25519)'),
     );
     expect(permissionCellTitles[1].props.children).toBe(
-      snapGetBip32EntropyTitle('Test BIP-32 Path (secp256k1)'),
+      snapGetBip32EntropyTitle('Testnet'),
     );
     expect(permissionCellTitles[2].props.children).toBe(
       snapGetBip32EntropyTitle('Bitcoin Legacy'),
@@ -914,7 +914,7 @@ describe('SnapPermissions', () => {
       snapGetBip32EntropyTitle('NEAR Protocol'),
     );
     expect(permissionCellTitles[19].props.children).toBe(
-      snapGetBip32EntropyTitle('NEAR Protocol Testnet'),
+      snapGetBip32EntropyTitle('Testnet'),
     );
   });
 
@@ -930,11 +930,11 @@ describe('SnapPermissions', () => {
             value: [
               {
                 path: ['m', "44'", "0'", '0'],
-                curve: 'secp256k1',
+                curve: 'invalidCurve',
               },
               {
                 path: ['m', "44'", "0'", '3'],
-                curve: 'ed25519',
+                curve: 'invalidCurve',
               },
             ],
           },
@@ -950,11 +950,11 @@ describe('SnapPermissions', () => {
 
     expect(permissionCellTitles.length).toBe(2);
     expect(permissionCellTitles[0].props.children).toBe(
-      snapGetBip32EntropyTitle("m/44'/0'/0 (secp256k1)"),
+      snapGetBip32EntropyTitle("m/44'/0'/0 (invalidCurve)"),
     );
 
     expect(permissionCellTitles[1].props.children).toBe(
-      snapGetBip32EntropyTitle("m/44'/0'/3 (ed25519)"),
+      snapGetBip32EntropyTitle("m/44'/0'/3 (invalidCurve)"),
     );
   });
 
@@ -990,7 +990,7 @@ describe('SnapPermissions', () => {
 
     expect(permissionCellTitles.length).toBe(2);
     expect(permissionCellTitles[0].props.children).toBe(
-      snapGetBip32PublicKeyTitle("m/44'/0'/0 (secp256k1)"),
+      snapGetBip32PublicKeyTitle('Bitcoin'),
     );
 
     expect(permissionCellTitles[1].props.children).toBe(
@@ -1024,7 +1024,7 @@ describe('SnapPermissions', () => {
       snapGetBip32PublicKeyTitle('Test BIP-32 Path (ed25519)'),
     );
     expect(permissionCellTitles[1].props.children).toBe(
-      snapGetBip32PublicKeyTitle('Test BIP-32 Path (secp256k1)'),
+      snapGetBip32PublicKeyTitle('Testnet'),
     );
     expect(permissionCellTitles[2].props.children).toBe(
       snapGetBip32PublicKeyTitle('Bitcoin Legacy'),
@@ -1078,7 +1078,7 @@ describe('SnapPermissions', () => {
       snapGetBip32PublicKeyTitle('NEAR Protocol'),
     );
     expect(permissionCellTitles[19].props.children).toBe(
-      snapGetBip32PublicKeyTitle('NEAR Protocol Testnet'),
+      snapGetBip32PublicKeyTitle('Testnet'),
     );
   });
 
