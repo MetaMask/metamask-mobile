@@ -1900,16 +1900,6 @@
     "apple_pay_provider_total_label": "{{provider}} (μέσω MetaMask)",
     "buy_with": "Αγορά με",
     "plus_fee": "Συν μια χρέωση {{fee}}",
-    "notifications": {
-      "purchase_failed_title": "Η αγορά του {{currency}} απέτυχε! Προσπαθήστε ξανά, συγγνώμη για την ταλαιπωρία!",
-      "purchase_failed_description": "Επαληθεύστε τη μέθοδο πληρωμής και την υποστήριξη της κάρτας σας",
-      "purchase_cancelled_title": "Η αγορά σας ακυρώθηκε",
-      "purchase_cancelled_description": "Επαληθεύστε τη μέθοδο πληρωμής και την υποστήριξη της κάρτας σας",
-      "purchase_completed_title": "Η αγορά σας των {{amount}} {{currency}} ήταν επιτυχής!",
-      "purchase_completed_description": "Τα {{currency}} σας είναι τώρα διαθέσιμα",
-      "purchase_pending_title": "Επεξεργασία της αγοράς σας των {{currency}}",
-      "purchase_pending_description": "Θα πάρει μόνο λίγα λεπτά..."
-    },
     "date": "Ημερομηνία",
     "from": "Από",
     "to": "Προς",
@@ -2117,6 +2107,16 @@
       "hold_to_send": "Αναμονή για αποστολή",
       "send": "Αποστολή",
       "sent": "Εστάλη!"
+    },
+    "notifications": {
+      "purchase_failed_title": "Η αγορά του {{currency}} απέτυχε! Προσπαθήστε ξανά, συγγνώμη για την ταλαιπωρία!",
+      "purchase_failed_description": "Επαληθεύστε τη μέθοδο πληρωμής και την υποστήριξη της κάρτας σας",
+      "purchase_cancelled_title": "Η αγορά σας ακυρώθηκε",
+      "purchase_cancelled_description": "Επαληθεύστε τη μέθοδο πληρωμής και την υποστήριξη της κάρτας σας",
+      "purchase_completed_title": "Η αγορά σας των {{amount}} {{currency}} ήταν επιτυχής!",
+      "purchase_completed_description": "Τα {{currency}} σας είναι τώρα διαθέσιμα",
+      "purchase_pending_title": "Επεξεργασία της αγοράς σας των {{currency}}",
+      "purchase_pending_description": "Θα πάρει μόνο λίγα λεπτά..."
     }
   },
   "swaps": {

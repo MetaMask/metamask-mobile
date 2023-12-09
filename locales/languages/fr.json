@@ -1900,16 +1900,6 @@
     "apple_pay_provider_total_label": "{{provider}} (via MetaMask)",
     "buy_with": "Acheter avec",
     "plus_fee": "Plus frais de {{fee}}",
-    "notifications": {
-      "purchase_failed_title": "L’achat de {{currency}} a échoué ! Veuillez réessayer. Nous vous prions de nous excuser pour ce désagrément.",
-      "purchase_failed_description": "Vérifiez la prise en charge de votre méthode de paiement et votre carte",
-      "purchase_cancelled_title": "Votre achat a été annulé",
-      "purchase_cancelled_description": "Vérifiez la prise en charge de votre méthode de paiement et votre carte",
-      "purchase_completed_title": "Votre achat de {{amount}} {{currency}} est effectué !",
-      "purchase_completed_description": "Vos {{currency}} sont maintenant disponibles",
-      "purchase_pending_title": "Traitement de votre achat de {{currency}}",
-      "purchase_pending_description": "Cela ne devrait prendre que quelques minutes…"
-    },
     "date": "Date",
     "from": "De",
     "to": "À",
@@ -2117,6 +2107,16 @@
       "hold_to_send": "Appuyez longuement pour envoyer",
       "send": "Envoyer",
       "sent": "Envoyé !"
+    },
+    "notifications": {
+      "purchase_failed_title": "L’achat de {{currency}} a échoué ! Veuillez réessayer. Nous vous prions de nous excuser pour ce désagrément.",
+      "purchase_failed_description": "Vérifiez la prise en charge de votre méthode de paiement et votre carte",
+      "purchase_cancelled_title": "Votre achat a été annulé",
+      "purchase_cancelled_description": "Vérifiez la prise en charge de votre méthode de paiement et votre carte",
+      "purchase_completed_title": "Votre achat de {{amount}} {{currency}} est effectué !",
+      "purchase_completed_description": "Vos {{currency}} sont maintenant disponibles",
+      "purchase_pending_title": "Traitement de votre achat de {{currency}}",
+      "purchase_pending_description": "Cela ne devrait prendre que quelques minutes…"
     }
   },
   "swaps": {

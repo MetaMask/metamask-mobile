@@ -1900,16 +1900,6 @@
     "apple_pay_provider_total_label": "{{provider}} (via MetaMask)",
     "buy_with": "Comprar com",
     "plus_fee": "Mais uma taxa de {{fee}}",
-    "notifications": {
-      "purchase_failed_title": "Falha na compra de {{currency}}! Por favor, tente novamente. Pedimos desculpas pela inconveniência.",
-      "purchase_failed_description": "Verifique sua forma de pagamento e cartões aceitos",
-      "purchase_cancelled_title": "Sua compra foi cancelada",
-      "purchase_cancelled_description": "Verifique sua forma de pagamento e cartões aceitos",
-      "purchase_completed_title": "Sua compra de {{amount}} {{currency}} foi realizada com sucesso!",
-      "purchase_completed_description": "Sua {{currency}} está disponível agora",
-      "purchase_pending_title": "Processando sua compra de {{currency}}",
-      "purchase_pending_description": "Isso deve levar somente alguns minutos..."
-    },
     "date": "Data",
     "from": "De",
     "to": "Para",
@@ -2117,6 +2107,16 @@
       "hold_to_send": "Segure para enviar",
       "send": "Enviar",
       "sent": "Enviado!"
+    },
+    "notifications": {
+      "purchase_failed_title": "Falha na compra de {{currency}}! Por favor, tente novamente. Pedimos desculpas pela inconveniência.",
+      "purchase_failed_description": "Verifique sua forma de pagamento e cartões aceitos",
+      "purchase_cancelled_title": "Sua compra foi cancelada",
+      "purchase_cancelled_description": "Verifique sua forma de pagamento e cartões aceitos",
+      "purchase_completed_title": "Sua compra de {{amount}} {{currency}} foi realizada com sucesso!",
+      "purchase_completed_description": "Sua {{currency}} está disponível agora",
+      "purchase_pending_title": "Processando sua compra de {{currency}}",
+      "purchase_pending_description": "Isso deve levar somente alguns minutos..."
     }
   },
   "swaps": {
