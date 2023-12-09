@@ -1,7 +1,6 @@
 {
   "KeyringController": {
     "isUnlocked": false,
-    "keyringTypes": [],
     "keyrings": []
   },
   "LoggingController": {
