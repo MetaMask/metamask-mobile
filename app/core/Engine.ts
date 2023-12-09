@@ -274,31 +274,31 @@ class Engine {
    */
   context:
     | {
-      AccountTrackerController: AccountTrackerController;
-      AddressBookController: AddressBookController;
-      ApprovalController: ApprovalController;
-      AssetsContractController: AssetsContractController;
-      CurrencyRateController: CurrencyRateController;
-      GasFeeController: GasFeeController;
-      KeyringController: KeyringController;
-      LoggingController: LoggingController;
-      NetworkController: NetworkController;
-      NftController: NftController;
-      NftDetectionController: NftDetectionController;
-      // TODO: Fix permission types
-      PermissionController: PermissionController<any, any>;
-      PhishingController: PhishingController;
-      PreferencesController: PreferencesController;
-      PPOMController?: PPOMController;
-      TokenBalancesController: TokenBalancesController;
-      TokenListController: TokenListController;
-      TokenDetectionController: TokenDetectionController;
-      TokenRatesController: TokenRatesController;
-      TokensController: TokensController;
-      TransactionController: TransactionController;
-      SignatureController: SignatureController;
-      SwapsController: SwapsController;
-    }
+        AccountTrackerController: AccountTrackerController;
+        AddressBookController: AddressBookController;
+        ApprovalController: ApprovalController;
+        AssetsContractController: AssetsContractController;
+        CurrencyRateController: CurrencyRateController;
+        GasFeeController: GasFeeController;
+        KeyringController: KeyringController;
+        LoggingController: LoggingController;
+        NetworkController: NetworkController;
+        NftController: NftController;
+        NftDetectionController: NftDetectionController;
+        // TODO: Fix permission types
+        PermissionController: PermissionController<any, any>;
+        PhishingController: PhishingController;
+        PreferencesController: PreferencesController;
+        PPOMController?: PPOMController;
+        TokenBalancesController: TokenBalancesController;
+        TokenListController: TokenListController;
+        TokenDetectionController: TokenDetectionController;
+        TokenRatesController: TokenRatesController;
+        TokensController: TokensController;
+        TransactionController: TransactionController;
+        SignatureController: SignatureController;
+        SwapsController: SwapsController;
+      }
     | any;
   /**
    * The global controller messenger.
@@ -920,7 +920,7 @@ class Engine {
 
             return Boolean(
               preferencesController?.state?.showIncomingTransactions?.[
-              currentHexChainId
+                currentHexChainId
               ],
             );
           },
@@ -1223,9 +1223,9 @@ class Engine {
             item.balance ||
             (item.address in tokenBalances
               ? renderFromTokenMinimalUnit(
-                tokenBalances[item.address],
-                item.decimals,
-              )
+                  tokenBalances[item.address],
+                  item.decimals,
+                )
               : undefined);
           const tokenBalanceFiat = balanceToFiatNumber(
             // TODO: Fix this by handling or eliminating the undefined case

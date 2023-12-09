@@ -57,34 +57,34 @@ const SnapPermissions = ({
    * @param {string} curve
    * @returns {string | null}
    */
-  const getSnapDerivationPathName = (
-    path: SnapsDerivationPathType,
-    curve: SupportedCurve,
-  ) => {
-    const pathMetadata = SNAPS_DERIVATION_PATHS.find(
-      (derivationPath) =>
-        derivationPath.curve === curve &&
-        lodash.isEqual(derivationPath.path, path),
-    );
+  const getSnapDerivationPathName = useCallback(
+    (path: SnapsDerivationPathType, curve: SupportedCurve) => {
+      const pathMetadata = SNAPS_DERIVATION_PATHS.find(
+        (derivationPath) =>
+          derivationPath.curve === curve &&
+          lodash.isEqual(derivationPath.path, path),
+      );
 
-    if (pathMetadata) {
-      return pathMetadata.name;
-    }
+      if (pathMetadata) {
+        return pathMetadata.name;
+      }
 
-    // If the curve is secp256k1 and the path is a valid BIP44 path
-    // we try looking for the network/protocol name in SLIP44
-    if (
-      curve === 'secp256k1' &&
-      path[0] === 'm' &&
-      path[1] === `44'` &&
-      path[2].endsWith(`'`)
-    ) {
-      const coinType = path[2].slice(0, -1);
-      return coinTypeToProtocolName(coinType) ?? null;
-    }
+      // If the curve is secp256k1 and the path is a valid BIP44 path
+      // we try looking for the network/protocol name in SLIP44
+      if (
+        curve === 'secp256k1' &&
+        path[0] === 'm' &&
+        path[1] === `44'` &&
+        path[2].endsWith(`'`)
+      ) {
+        const coinType = path[2].slice(0, -1);
+        return coinTypeToProtocolName(coinType) ?? null;
+      }
 
-    return null;
-  };
+      return null;
+    },
+    [],
+  );
 
   interface SnapPermissionData {
     label: string;
@@ -182,7 +182,7 @@ const SnapPermissions = ({
       }
       return bip32Data;
     },
-    [],
+    [getSnapDerivationPathName],
   );
 
   /**
