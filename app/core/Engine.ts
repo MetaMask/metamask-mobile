@@ -190,14 +190,12 @@ interface TestOrigin {
 type PhishingControllerActions = MaybeUpdateState | TestOrigin;
 
 type SnapsGlobalActions =
-  | LoggingControllerActions
   | SnapControllerActions
   | SubjectMetadataControllerActions
   | PhishingControllerActions
   | SnapsAllowedActions;
 
 type SnapsGlobalEvents =
-  | KeyringControllerEvents
   | SnapControllerEvents
   | SubjectMetadataControllerEvents
   | SnapsAllowedEvents;
@@ -211,6 +209,7 @@ type GlobalActions =
   | NetworkControllerActions
   | PermissionControllerActions
   | SignatureControllerActions
+  | LoggingControllerActions
   ///: BEGIN:ONLY_INCLUDE_IF(snaps)
   | SnapsGlobalActions
   ///: END:ONLY_INCLUDE_IF
@@ -222,6 +221,7 @@ type GlobalEvents =
   | TokenListStateChange
   | NetworkControllerEvents
   | PermissionControllerEvents
+  | KeyringControllerEvents
   ///: BEGIN:ONLY_INCLUDE_IF(snaps)
   | SnapsGlobalEvents
   ///: END:ONLY_INCLUDE_IF
