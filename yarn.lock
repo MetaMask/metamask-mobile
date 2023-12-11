@@ -3645,6 +3645,14 @@
   resolved "https://registry.yarnpkg.com/@metamask/browser-passworder/-/browser-passworder-4.1.0.tgz#d515db2ffd69ecab813a688e2b7553f2766c5e79"
   integrity sha512-FBvah1mPte5HudQdkgqAh2+Zc75T9kYxey+dCtHIj9gKohkHDcIA1bTOPLk0bBH+6PnOzYNPG8devvH04GOmPA==
 
+"@metamask/build-utils@^1.0.0":
+  version "1.0.0"
+  resolved "https://registry.yarnpkg.com/@metamask/build-utils/-/build-utils-1.0.0.tgz#19918f803422b054e5fcf79f68910b02ec97a83c"
+  integrity sha512-orwpmPUmWzSacJhGyGp5Y4oXngMdxByUY/yHhO5SQwAS248OQhOny35SHNM69wPUWPuR9JwcU/KW236aOErImg==
+  dependencies:
+    "@metamask/utils" "^8.2.0"
+    "@types/eslint" "^8.44.7"
+
 "@metamask/composable-controller@^3.0.0":
   version "3.0.3"
   resolved "https://registry.yarnpkg.com/@metamask/composable-controller/-/composable-controller-3.0.3.tgz#9644a65c482996ee033eae34e169eb9713e4a33e"
@@ -4052,14 +4060,15 @@
     eth-phishing-detect "^1.2.0"
     punycode "^2.1.1"
 
-"@metamask/ppom-validator@^0.11.0":
-  version "0.11.0"
-  resolved "https://registry.yarnpkg.com/@metamask/ppom-validator/-/ppom-validator-0.11.0.tgz#4ffbaf602464a7a7fd9ad00fc1b117515f60683f"
-  integrity sha512-CayIrUeXAL+HHx9CZ3c1dGiG7Ib7yzkyjurpovPTiR7v2+5CPDzXHaXvV2ltRBrVMD5UznYxWq+lXrZ0uuwmsA==
+"@metamask/ppom-validator@^0.14.0":
+  version "0.14.0"
+  resolved "https://registry.yarnpkg.com/@metamask/ppom-validator/-/ppom-validator-0.14.0.tgz#7382999df38797233185c6c5d5f9c26eed9fa713"
+  integrity sha512-WrHvVqYTAsI78O1LdXQnZx58F8VOr/xLEgZoK8THUmCKa1cbh5gT67/UiqdkT7etrSiGhasE+cUr6co1XhGEPA==
   dependencies:
     "@metamask/base-controller" "^3.0.0"
     "@metamask/controller-utils" "^4.0.0"
     await-semaphore "^0.1.3"
+    crypto-js "^4.2.0"
     elliptic "^6.5.4"
     json-rpc-random-id "^1.0.1"
 
@@ -4232,15 +4241,17 @@
     semver "^7.3.8"
     superstruct "^1.0.3"
 
-"@metamask/utils@^8.0.0", "@metamask/utils@^8.1.0":
-  version "8.1.0"
-  resolved "https://registry.yarnpkg.com/@metamask/utils/-/utils-8.1.0.tgz#b8e73f5b4696b1b668cf5c1421daad140a3f98ac"
-  integrity sha512-sFNpzBKRicDgM2ZuU6vrPROlqNGm8/jDsjc5WrU1RzCkAMc4Xr3vUUf8p59uQ6B09etUWNb8d2GTCbISdmH/Ug==
+"@metamask/utils@^8.0.0", "@metamask/utils@^8.1.0", "@metamask/utils@^8.2.0":
+  version "8.2.1"
+  resolved "https://registry.yarnpkg.com/@metamask/utils/-/utils-8.2.1.tgz#2f8b60c3b3c49423ca9d15061bb797464440e385"
+  integrity sha512-dlnpow8r0YHDDL1xKCEwUoTGOAo9icdv+gaJG0EbgDnkD/BDqW2eH1XMtm9i7rPaiHWo/aLtcrh9WBhkCq/viw==
   dependencies:
-    "@ethereumjs/tx" "^4.1.2"
+    "@ethereumjs/tx" "^4.2.0"
     "@noble/hashes" "^1.3.1"
+    "@scure/base" "^1.1.3"
     "@types/debug" "^4.1.7"
     debug "^4.3.4"
+    pony-cause "^2.1.10"
     semver "^7.5.4"
     superstruct "^1.0.3"
 
@@ -6838,10 +6849,10 @@
   resolved "https://registry.yarnpkg.com/@types/eslint-visitor-keys/-/eslint-visitor-keys-1.0.0.tgz#1ee30d79544ca84d68d4b3cdb0af4f205663dd2d"
   integrity sha512-OCutwjDZ4aFS6PB1UZ988C4YgwlBHJd6wCeQqaLdmadZ/7e+w79+hbMUFC1QXDNCmdyoRfAFdm0RypzwR+Qpag==
 
-"@types/eslint@*":
-  version "8.44.2"
-  resolved "https://registry.yarnpkg.com/@types/eslint/-/eslint-8.44.2.tgz#0d21c505f98a89b8dd4d37fa162b09da6089199a"
-  integrity sha512-sdPRb9K6iL5XZOmBubg8yiFp5yS/JdUDQsq5e6h95km91MCYMuvp7mh1fjPEYUhvHepKpZOjnEaMBR4PxjWDzg==
+"@types/eslint@*", "@types/eslint@^8.44.7":
+  version "8.44.8"
+  resolved "https://registry.yarnpkg.com/@types/eslint/-/eslint-8.44.8.tgz#f4fe1dab9b3d3dd98082d4b9f80e59ab40f1261c"
+  integrity sha512-4K8GavROwhrYl2QXDXm0Rv9epkA8GBFu0EI+XrrnnuCl7u8CWBRusX7fXJfanhZTDWSAL24gDI/UqXyUM0Injw==
   dependencies:
     "@types/estree" "*"
     "@types/json-schema" "*"

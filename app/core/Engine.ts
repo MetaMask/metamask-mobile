@@ -552,26 +552,20 @@ class Engine {
         },
         { interval: 10000 },
       ),
-      new TokenRatesController(
-        {
-          onTokensStateChange: (listener) =>
-            tokensController.subscribe(listener),
-          onCurrencyRateStateChange: (listener) =>
-            this.controllerMessenger.subscribe(
-              `${currencyRateController.name}:stateChange`,
-              listener,
-            ),
-          onNetworkStateChange: (listener) =>
-            this.controllerMessenger.subscribe(
-              AppConstants.NETWORK_STATE_CHANGE_EVENT,
-              listener,
-            ),
-          chainId: networkController.state.providerConfig.chainId,
-        },
-        {
-          chainId: networkController.state.providerConfig.chainId,
-        },
-      ),
+      new TokenRatesController({
+        onTokensStateChange: (listener) => tokensController.subscribe(listener),
+        onNetworkStateChange: (listener) =>
+          this.controllerMessenger.subscribe(
+            AppConstants.NETWORK_STATE_CHANGE_EVENT,
+            listener,
+          ),
+        onPreferencesStateChange: (listener) =>
+          preferencesController.subscribe(listener),
+        chainId: networkController.state.providerConfig.chainId,
+        ticker: networkController.state.providerConfig.ticker ?? 'ETH',
+        selectedAddress: preferencesController.state.selectedAddress,
+        coinGeckoHeader: process.env.COIN_GECKO_HEADER as string,
+      }),
       new TransactionController({
         blockTracker:
           networkController.getProviderAndBlockTracker().blockTracker,
@@ -721,6 +715,12 @@ class Engine {
           securityAlertsEnabled:
             initialState.PreferencesController?.securityAlertsEnabled ?? false,
           state: initialState.PPOMController,
+          ppomInitialisationCallback: (): any => {
+            store.dispatch({
+              type: 'SET_PPOM_INITIALIZATION_COMPLETED',
+              ppomInitializationCompleted: true,
+            });
+          },
         });
         controllers.push(ppomController as any);
       } catch (e) {
@@ -823,12 +823,14 @@ class Engine {
       TokenDetectionController,
       TokenListController,
       TransactionController,
+      TokenRatesController,
     } = this.context;
 
     TokenListController.start();
     NftDetectionController.start();
     TokenDetectionController.start();
     TransactionController.startIncomingTransactionPolling();
+    TokenRatesController.start();
   }
 
   configureControllersOnNetworkChange() {
