@@ -522,7 +522,7 @@ workflows:
             node -v
             export METAMASK_ENVIRONMENT='local'
             export METAMASK_BUILD_TYPE='main'
-            IGNORE_BOXLOGS_DEVELOPMENT="true" FORCE_BUNDLING=true yarn test:e2e:android:bitrise:run --testNamePattern="$TEST_SUITE"
+            IGNORE_BOXLOGS_DEVELOPMENT="true" FORCE_BUNDLING=true yarn test:e2e:android:bitrise:run --testNamePattern="$TEST_SUITE_TAG"
     - custom-test-results-export@1:
         title: Export test results
         is_always_run: true
@@ -711,7 +711,7 @@ workflows:
                 node -v
                 export METAMASK_ENVIRONMENT='local'
                 export METAMASK_BUILD_TYPE='main'
-                IGNORE_BOXLOGS_DEVELOPMENT="true" FORCE_BUNDLING=true yarn test:e2e:ios:bitrise:run --testNamePattern="$TEST_SUITE"
+                IGNORE_BOXLOGS_DEVELOPMENT="true" FORCE_BUNDLING=true yarn test:e2e:ios:bitrise:run --testNamePattern="$TEST_SUITE_TAG"
           title: Run detox test
           is_always_run: false
       - custom-test-results-export@1:
