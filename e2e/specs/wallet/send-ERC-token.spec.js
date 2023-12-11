@@ -1,5 +1,5 @@
 'use strict';
-import { Smoke } from '../../tags';
+import { Smoke, SmokeCore } from '../../tags';
 import TestHelpers from '../../helpers';
 import WalletView from '../../pages/WalletView';
 import NetworkEducationModal from '../../pages/modals/NetworkEducationModal';
@@ -14,7 +14,7 @@ import TokenOverview from '../../pages/TokenOverview';
 const TOKEN_ADDRESS = '0x779877A7B0D9E8603169DdbD7836e478b4624789';
 const SEND_ADDRESS = '0xebe6CcB6B55e1d094d9c58980Bc10Fed69932cAb';
 
-describe(Smoke('Send ERC Token'), () => {
+describe(Smoke, SmokeCore('Send ERC Token'), () => {
   beforeAll(async () => {
     jest.setTimeout(150000);
     await device.launchApp();

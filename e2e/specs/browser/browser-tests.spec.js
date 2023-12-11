@@ -1,6 +1,6 @@
 'use strict';
 import TestHelpers from '../../helpers';
-import { Smoke } from '../../tags';
+import { Smoke, SmokeRest } from '../../tags';
 import Browser from '../../pages/Drawer/Browser';
 import { BROWSER_SCREEN_ID } from '../../../wdio/screen-objects/testIDs/BrowserScreen/BrowserScreen.testIds';
 import TabBarComponent from '../../pages/TabBarComponent';
@@ -19,7 +19,7 @@ const INVALID_URL = 'https://quackquakc.easq';
 const TEST_DAPP = 'https://metamask.github.io/test-dapp/';
 const fixtureServer = new FixtureServer();
 
-describe(Smoke('Browser Tests'), () => {
+describe(Smoke, SmokeRest('Browser Tests'), () => {
   beforeAll(async () => {
     await TestHelpers.reverseServerPort();
     const fixture = new FixtureBuilder().build();

@@ -1,6 +1,6 @@
 'use strict';
 
-import { Smoke } from '../../tags';
+import { Smoke, SmokeCore } from '../../tags';
 import TestHelpers from '../../helpers';
 import { loginToApp } from '../../viewHelper';
 import TabBarComponent from '../../pages/TabBarComponent';
@@ -13,7 +13,7 @@ import {
 import root from '../../../locales/languages/en.json';
 import { SMART_CONTRACTS } from '../../../app/util/test/smart-contracts';
 
-describe(Smoke('ERC721 tokens'), () => {
+describe(Smoke, SmokeCore('ERC721 tokens'), () => {
   const NFT_CONTRACT = SMART_CONTRACTS.NFTS;
   const SENT_COLLECTIBLE_MESSAGE_TEXT = root.transactions.sent_collectible;
   const WEBVIEW_TEST_DAPP_TRANSFER_FROM_BUTTON_ID = 'transferFromButton';
