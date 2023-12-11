@@ -62,11 +62,16 @@ import {
 import Routes from '../../../../../../constants/navigation/Routes';
 import { formatAmount } from '../../../common/utils';
 import { createQuotesNavDetails } from '../Quotes/Quotes';
-import { Region, ScreenLocation } from '../../../common/types';
+import { QuickAmount, Region, ScreenLocation } from '../../../common/types';
 import { useStyles } from '../../../../../../component-library/hooks';
 
 import styleSheet from './BuildQuote.styles';
-import { toTokenMinimalUnit } from '../../../../../../util/number';
+import {
+  toTokenMinimalUnit,
+  fromTokenMinimalUnitString,
+  renderFromTokenMinimalUnit,
+} from '../../../../../../util/number';
+import useGasPriceEstimation from '../../../common/hooks/useGasPriceEstimation';
 
 // TODO: Convert into typescript and correctly type
 const ListItem = BaseListItem as any;
@@ -175,6 +180,11 @@ const BuildQuote = () => {
   const { limits, isAmountBelowMinimum, isAmountAboveMaximum, isAmountValid } =
     useLimits();
 
+  const gasPriceEstimation = useGasPriceEstimation({
+    gasLimit: isBuy ? 0 : 21000,
+    estimateRange: 'high',
+  });
+
   const assetForBalance =
     selectedAsset && selectedAsset.address !== NATIVE_ADDRESS
       ? {
@@ -200,6 +210,11 @@ const BuildQuote = () => {
       : undefined,
   );
 
+  const maxSellAmount =
+    balanceBN && gasPriceEstimation
+      ? balanceBN?.sub(gasPriceEstimation.estimatedGasFee)
+      : null;
+
   const amountIsBelowMinimum = useMemo(
     () => isAmountBelowMinimum(amountNumber),
     [amountNumber, isAmountBelowMinimum],
@@ -214,6 +229,13 @@ const BuildQuote = () => {
     () => isAmountValid(amountNumber),
     [amountNumber, isAmountValid],
   );
+
+  const amountIsOverGas = useMemo(() => {
+    if (isBuy || !maxSellAmount) {
+      return false;
+    }
+    return Boolean(amountBNMinimalUnit?.gt(maxSellAmount));
+  }, [amountBNMinimalUnit, isBuy, maxSellAmount]);
 
   const hasInsufficientBalance = useMemo(() => {
     if (!balanceBN || !amountBNMinimalUnit) {
@@ -306,10 +328,38 @@ const BuildQuote = () => {
     [isSell, selectedAsset?.decimals],
   );
 
-  const handleQuickAmountPress = useCallback((value) => {
-    setAmount(`${value}`);
-    setAmountNumber(value);
-  }, []);
+  const handleQuickAmountPress = useCallback(
+    ({ value, isNative }: QuickAmount) => {
+      if (isBuy) {
+        setAmount(`${value}`);
+        setAmountNumber(value);
+      } else {
+        const percentage = value * 100;
+        const amountPercentage = balanceBN
+          ?.mul(new BN(percentage))
+          .div(new BN(100));
+
+        if (!amountPercentage) {
+          return;
+        }
+
+        let amountToSet = amountPercentage;
+
+        if (isNative && maxSellAmount && maxSellAmount.lt(amountPercentage)) {
+          amountToSet = maxSellAmount;
+        }
+
+        const newAmountString = fromTokenMinimalUnitString(
+          amountToSet.toString(10),
+          selectedAsset?.decimals ?? 18,
+        );
+        setAmountBNMinimalUnit(amountToSet);
+        setAmount(newAmountString);
+        setAmountNumber(Number(newAmountString));
+      }
+    },
+    [balanceBN, isBuy, maxSellAmount, selectedAsset?.decimals],
+  );
 
   const onKeypadLayout = useCallback((event) => {
     const { height } = event.nativeEvent.layout;
@@ -611,6 +661,27 @@ const BuildQuote = () => {
     displayAmount = `${amount} ${selectedAsset?.symbol}`;
   }
 
+  let quickAmounts = [];
+
+  if (isBuy) {
+    quickAmounts =
+      limits?.quickAmounts?.map((quickAmount) => ({
+        value: quickAmount,
+        label: currentFiatCurrency?.denomSymbol + quickAmount.toString(),
+      })) ?? [];
+  } else {
+    quickAmounts = [
+      { value: 0.25, label: '25%' },
+      { value: 0.5, label: '50%' },
+      { value: 0.75, label: '75%' },
+      {
+        value: 1,
+        label: strings('fiat_on_ramp_aggregator.max'),
+        isNative: selectedAsset?.address === NATIVE_ADDRESS,
+      },
+    ];
+  }
+
   return (
     <ScreenLayout>
       <ScreenLayout.Body>
@@ -681,11 +752,18 @@ const BuildQuote = () => {
                 isBuy ? currentFiatCurrency?.denomSymbol : undefined
               }
               amount={displayAmount}
-              highlightedError={!amountIsValid}
+              highlightedError={!amountIsValid || amountIsOverGas}
               currencyCode={isBuy ? currentFiatCurrency?.symbol : undefined}
               onPress={onAmountInputPress}
               onCurrencyPress={isBuy ? handleFiatSelectorPress : undefined}
             />
+            {amountIsValid && !hasInsufficientBalance && amountIsOverGas && (
+              <Row>
+                <Text red small>
+                  {strings('fiat_on_ramp_aggregator.enter_lower_gas_fees')}
+                </Text>
+              </Row>
+            )}
             {hasInsufficientBalance && (
               <Row>
                 <Text red small>
@@ -776,12 +854,7 @@ const BuildQuote = () => {
       >
         <QuickAmounts
           onAmountPress={handleQuickAmountPress}
-          amounts={
-            limits?.quickAmounts?.map((limit) => ({
-              value: limit,
-              label: currentFiatCurrency?.denomSymbol + limit.toString(),
-            })) || []
-          }
+          amounts={quickAmounts}
         />
         <Keypad
           value={amount}

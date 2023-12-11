@@ -54,7 +54,7 @@ interface RampQuoteRequested {
   currency_source: string;
   currency_destination: string;
   payment_method_id: string;
-  amount: number;
+  amount: number | string;
   location: ScreenLocation;
 }
 
@@ -82,7 +82,7 @@ interface OfframpCanceled extends RampCanceled {
 }
 
 interface RampQuotesReceived {
-  amount: number;
+  amount: number | string;
   currency_source: string;
   currency_destination: string;
   payment_method_id: string;
@@ -245,7 +245,7 @@ interface RampExternalLinkClicked {
 }
 
 interface RampQuoteError {
-  amount: number;
+  amount: number | string;
   currency_source: string;
   currency_destination: string;
   payment_method_id: string;

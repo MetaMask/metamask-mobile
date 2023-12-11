@@ -1,8 +1,14 @@
 import React, { useCallback } from 'react';
 import { ScrollView, StyleSheet, TouchableOpacity, View } from 'react-native';
+import Icon, {
+  IconName,
+  IconSize,
+  IconColor,
+} from '../../../../../component-library/components/Icons/Icon';
+import Text from '../../../../Base/Text';
 import { useTheme } from '../../../../../util/theme';
 import { Colors } from '../../../../../util/theme/models';
-import Text from '../../../../Base/Text';
+import { QuickAmount } from '../types';
 
 const INSET = 25;
 const createStyles = (colors: Colors) =>
@@ -18,27 +24,24 @@ const createStyles = (colors: Colors) =>
       marginRight: 5,
       minWidth: 78,
       padding: 7,
+      alignItems: 'center',
+      justifyContent: 'center',
     },
   });
 
 interface AmountProps {
-  label: string;
-  value: number;
-  onPress: (value: number) => any;
+  amount: QuickAmount;
+  onPress: (amount: QuickAmount) => any;
   disabled?: boolean;
 }
 
-const Amount: React.FC<AmountProps> = ({
-  label,
-  value,
-  onPress,
-  ...props
-}: AmountProps) => {
+const Amount = ({ amount, onPress, ...props }: AmountProps) => {
+  const { value, isNative, label } = amount;
   const { colors } = useTheme();
   const styles = createStyles(colors);
   const handlePress = useCallback(() => {
-    onPress(value);
-  }, [onPress, value]);
+    onPress(amount);
+  }, [onPress, amount]);
 
   return (
     <TouchableOpacity
@@ -49,6 +52,15 @@ const Amount: React.FC<AmountProps> = ({
       {...props}
     >
       <Text grey small centered noMargin>
+        {value === 1 && isNative ? (
+          <>
+            <Icon
+              name={IconName.ArrowDoubleRight}
+              color={IconColor.Alternative}
+              size={IconSize.Xs}
+            />{' '}
+          </>
+        ) : null}
         {label}
       </Text>
     </TouchableOpacity>
@@ -56,20 +68,17 @@ const Amount: React.FC<AmountProps> = ({
 };
 
 interface Props {
-  amounts: {
-    value: number;
-    label: string;
-  }[];
+  amounts: QuickAmount[];
   disabled?: boolean;
-  onAmountPress: (value: number) => any;
+  onAmountPress: (amount: QuickAmount) => any;
 }
 
-const QuickAmounts: React.FC<Props> = ({
+const QuickAmounts = ({
   amounts,
   onAmountPress,
   disabled,
   ...props
-}) => {
+}: Props) => {
   const { colors } = useTheme();
   const styles = createStyles(colors);
   return (
@@ -79,18 +88,15 @@ const QuickAmounts: React.FC<Props> = ({
         contentContainerStyle={{ paddingLeft: INSET, paddingRight: INSET }}
         showsHorizontalScrollIndicator={false}
       >
-        {amounts.map(
-          ({ label, value }: Props['amounts'][number], index: number) => (
-            <Amount
-              label={label}
-              value={value}
-              onPress={onAmountPress}
-              key={index}
-              disabled={disabled}
-              {...props}
-            />
-          ),
-        )}
+        {amounts.map((amount, index: number) => (
+          <Amount
+            amount={amount}
+            onPress={onAmountPress}
+            key={index}
+            disabled={disabled}
+            {...props}
+          />
+        ))}
       </ScrollView>
     </View>
   );

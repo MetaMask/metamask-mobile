@@ -2036,6 +2036,8 @@
     "insufficient_balance": "This amount is higher than your balance",
     "enter_larger_amount": "Enter a larger amount to continue",
     "enter_smaller_amount": "Enter a smaller amount to continue",
+    "enter_lower_gas_fees": "Enter a lower amount to pay for gas fees",
+    "max": "MAX",
     "try_again": "Try again",
     "error": "Error",
     "something_went_wrong": "Oops, something went wrong",
