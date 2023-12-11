@@ -574,6 +574,8 @@ class Engine {
         {
           encrypt: encryptor.encrypt.bind(encryptor),
           decrypt: encryptor.decrypt.bind(encryptor),
+          // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+          // @ts-ignore
           clearSnapState: this.controllerMessenger.call.bind(
             this.controllerMessenger,
             'SnapController:clearSnapState',
@@ -584,14 +586,20 @@ class Engine {
             this.controllerMessenger,
             'SnapController:get',
           ),
+          // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+          // @ts-ignore
           handleSnapRpcRequest: this.controllerMessenger.call.bind(
             this.controllerMessenger,
             'SnapController:handleRequest',
           ),
+          // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+          // @ts-ignore
           getSnapState: this.controllerMessenger.call.bind(
             this.controllerMessenger,
             'SnapController:getSnapState',
           ),
+          // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+          // @ts-ignore
           updateSnapState: this.controllerMessenger.call.bind(
             this.controllerMessenger,
             'SnapController:updateSnapState',
@@ -776,7 +784,6 @@ class Engine {
     const snapController = new SnapController({
       environmentEndowmentPermissions: Object.values(EndowmentPermissions),
       featureFlags: {
-        dappsCanUpdateSnaps: true,
         // eslint-disable-next-line @typescript-eslint/ban-ts-comment
         // @ts-ignore
         requireAllowList,
