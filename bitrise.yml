@@ -356,7 +356,7 @@ workflows:
 
   run_test_dir_confirmations_ios:
       envs:
-      - TEST_SUITE: 'SmokeConfirmations'
+      - TEST_SUITE_TAG: 'SmokeConfirmations'
       after_run:
       - ios_e2e_test
   run_test_dir_confirmations_android:
@@ -365,12 +365,12 @@ workflows:
             stack: linux-docker-android-20.04
             machine_type_id: elite-xl
       envs:
-      - TEST_SUITE: 'SmokeConfirmations'
+      - TEST_SUITE_TAG: 'SmokeConfirmations'
       after_run:
       - android_e2e_test
   run_test_dir_swaps_ios:
       envs:
-      - TEST_SUITE: 'SmokeSwaps'
+      - TEST_SUITE_TAG: 'SmokeSwaps'
       after_run:
       - ios_e2e_test
   run_test_dir_swaps_android:
@@ -379,12 +379,12 @@ workflows:
             stack: linux-docker-android-20.04
             machine_type_id: elite-xl
       envs:
-      - TEST_SUITE: 'SmokeSwaps'
+      - TEST_SUITE_TAG: 'SmokeSwaps'
       after_run:
       - android_e2e_test
   run_test_dir_permission_systems_ios:
       envs:
-      - TEST_SUITE: 'SmokeCore'
+      - TEST_SUITE_TAG: 'SmokeCore'
       after_run:
       - ios_e2e_test
   run_test_dir_permission_systems_android:
@@ -393,7 +393,7 @@ workflows:
             stack: linux-docker-android-20.04
             machine_type_id: elite-xl
       envs:
-      - TEST_SUITE: 'SmokeCore'
+      - TEST_SUITE_TAG: 'SmokeCore'
       after_run:
       - android_e2e_test
 
