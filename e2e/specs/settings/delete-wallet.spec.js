@@ -13,7 +13,8 @@ import FixtureBuilder from '../../fixtures/fixture-builder';
 import { withFixtures } from '../../fixtures/fixture-helper';
 
 describe(
-  Smoke, SmokeCore('Log in into the app, change password then delete wallet flow'),
+  Smoke,
+  SmokeCore('Log in into the app, change password then delete wallet flow'),
   () => {
     const PASSWORD = '123123123';
 
