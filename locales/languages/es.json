@@ -201,6 +201,10 @@
     "security_alert_title": "Alerta de seguridad",
     "security_alert_desc": "Para continuar, debe activar el código de acceso o cualquier método de autenticación biométrica compatible con su dispositivo (FaceID, TouchID o huella dactilar)"
   },
+  "connect_hardware": {
+    "title_select_hardware": "Conectar un monedero físico",
+    "select_hardware": "Seleccione un monedero físico que le gustaría usar"
+  },
   "enter_password": {
     "title": "Escribir la contraseña",
     "desc": "Escriba su contraseña para continuar",
@@ -513,10 +517,10 @@
   },
   "accounts": {
     "create_new_account": "Crear cuenta nueva",
+    "qr_hardware": "Hardware QR",
     "import_account": "Importar una cuenta",
     "connect_hardware": "Conectar monedero físico",
     "imported": "Importado",
-    "qr_hardware": "Hardware QR",
     "remove_account_title": "Eliminación de la cuenta",
     "remove_account_message": "¿Está seguro de que quiere quitar esta cuenta?",
     "no": "No",
@@ -536,6 +540,7 @@
     "permissions": "Permisos",
     "revoke": "Revocar",
     "revoke_all": "Revocar todo",
+    "ledger": "Ledger",
     "site_permission_to": "Este sitio tiene permiso para:",
     "address_balance_activity_permission": "Ver dirección, saldo de cuenta y actividad",
     "suggest_transactions": "Sugerir transacciones para aprobar",
@@ -569,7 +574,7 @@
     "tutorial": "Tutorial",
     "description4": "Monedero Keystone (tutorial)",
     "description5": "1. Desbloquee su monedero Keystone",
-    "description6": "2. Haga clic en ··· Menú, después vaya a Sincronizar >",
+    "description6": "2. Tap the ··· Menu, then go to Sync",
     "button_continue": "Continuar",
     "hint_text": "Escanee su monedero Keystone para ",
     "purpose_connect": "conectar",
@@ -701,7 +706,7 @@
     "remove_network": "Quitar",
     "cancel_remove_network": "Cancelar",
     "info_title": "Acerca de MetaMask",
-    "info_title_flask": "About MetaMask Flask",
+    "info_title_flask": "Acerca de MetaMask Flask",
     "experimental_title": "Experimental",
     "experimental_desc": "WalletConnect y más...",
     "legal_title": "Legal",
@@ -801,7 +806,53 @@
     "autodetect_nft_desc": "Permita que MetaMask agregue NFT de su propiedad mediante servicios de terceros (como OpenSea). La detección automática de NFT expone su IP y dirección de cuenta a estos servicios. Habilitar esta función podría asociar su dirección IP con su dirección de Ethereum y mostrar NFT enviados mediante airdrop por estafadores. Puede agregar tokens manualmente para evitar este riesgo.",
     "incoming_transactions_title": "Mostrar transacciones entrantes",
     "incoming_transactions_content": "Esto depende de la red que seleccione, la misma que expondrá su dirección Ethereum y su dirección IP.",
-    "display_nft_media_desc_new": "La visualización de medios y datos NFT expone su dirección IP a OpenSea o a otros terceros. La autodetección de NFT se basa en esta función y no estará disponible cuando esté desactivada. Si los medios NFT están completamente ubicados en IPFS, aún se pueden mostrar incluso cuando esta función está desactivada."
+    "display_nft_media_desc_new": "La visualización de medios y datos NFT expone su dirección IP a OpenSea o a otros terceros. La autodetección de NFT se basa en esta función y no estará disponible cuando esté desactivada. Si los medios NFT están completamente ubicados en IPFS, aún se pueden mostrar incluso cuando esta función está desactivada.",
+    "snaps": {
+      "title": "Snaps",
+      "description": "Revise y gestione sus snaps",
+      "snap_settings": {
+        "remove_snap_section_title": "Eliminar Snap",
+        "remove_snap_section_description": "Esta acción eliminará el snap, sus datos y revocará sus permisos otorgados.",
+        "remove_button_label": "Eliminar {{snapName}}"
+      },
+      "snap_details": {
+        "install_date": "Instalado el {{date}}",
+        "install_origin": "Origen de la instalación",
+        "enabled": "Activado",
+        "version": "Versión"
+      },
+      "snap_permissions": {
+        "approved_date": "Aprobada el {{date}}",
+        "permission_section_title": "Permisos",
+        "permission_requested_now": "Solicitado ahora",
+        "human_readable_permission_titles": {
+          "endowment:long-running": "Ejecutar indefinidamente",
+          "endowment:network-access": "Acceder a Internet",
+          "endowment:transaction-insight": "Mostrar perspectivas de transacciones",
+          "endowment:cronjob": "Programar y ejecutar acciones periódicas",
+          "endowment:rpc": {
+            "snaps": "Permitir que otras snaps se comuniquen directamente con este snap",
+            "dapps": "Permitir que dapps se comuniquen directamente con este snap"
+          },
+          "snap_confirm": "Mostrar diálogos personalizados",
+          "snap_manageState": "Almacene y administre datos en su dispositivo",
+          "snap_notify": "Mostrar notificaciones",
+          "snap_getBip32Entropy": "Controle sus cuentas y activos de {{protocol}}",
+          "snap_getBip32PublicKey": "Ver su clave pública para {{protocol}}",
+          "snap_getBip44Entropy": "Controle sus cuentas y activos de {{protocol}}",
+          "snap_getEntropy": "Obtenga claves arbitrarias únicas para este snap",
+          "endowment:keyring": "endowment:keyring",
+          "wallet_snap": "Conectar a {{otherSnapName}}",
+          "endowment:webassembly": "Soporte para WebAssembly",
+          "endowment:ethereum-provider": "Acceda al proveedor de Ethereum",
+          "endowment:unknown": "Permiso desconocido",
+          "snap_getLocale": "Vea su idioma preferido",
+          "endowment:caveat:transaction-origin": "Ver los orígenes de los sitios web que sugieren transacciones",
+          "endowment:extend-runtime": "Extender el tiempo de ejecución",
+          "snap_dialog": "Mostrar diálogos personalizados"
+        }
+      }
+    }
   },
   "sdk": {
     "disconnect_title": "¿Desconectar de todos los sitios?",
@@ -910,6 +961,7 @@
     "add_collectible_button": "Agregar",
     "info": "Información",
     "swap": "Intercambiar",
+    "bridge": "Bridge",
     "description": "Descripción",
     "totalSupply": "Suministro total",
     "address": "Dirección",
@@ -921,6 +973,7 @@
     "buy_description": "Comprar criptomonedas con efectivo",
     "sell_description": "Vender cripto por dinero en efectivo",
     "swap_description": "Cambiar entre tokens",
+    "bridge_description": "Transferir tokens entre redes",
     "send_description": "Enviar criptomonedas a cualquier cuenta",
     "receive_description": "Recibir criptomonedas",
     "chart_time_period": {
@@ -1020,6 +1073,7 @@
     "save": "Guardar",
     "speedup": "Acelerar",
     "sign_with_keystone": "Firme con su monedero Keystone",
+    "sign_with_ledger": "Firmar con Ledger",
     "from": "De",
     "gas_fee": "Tarifa de gas",
     "gas_fee_fast": "RÁPIDO",
@@ -1093,6 +1147,7 @@
     "not_enough_for_gas": "Tiene 0 {{ticker}} en su cuenta para pagar las tarifas de transacción. Compre algunos {{ticker}} o deposítelos desde otra cuenta.",
     "send": "Enviar",
     "confirm_with_qr_hardware": "Confirme con su cartera Keystone",
+    "confirm_with_ledger_hardware": "Confirmar con Ledger",
     "confirmed": "Confirmado",
     "pending": "Pendiente",
     "submitted": "Enviado",
@@ -1845,16 +1900,6 @@
     "apple_pay_provider_total_label": "{{provider}} (por medio de MetaMask)",
     "buy_with": "Comprar con",
     "plus_fee": "Más una tarifa de {{fee}}",
-    "notifications": {
-      "purchase_failed_title": "Error al comprar {{currency}}. Vuelva a intentarlo, lamentamos los inconvenientes.",
-      "purchase_failed_description": "Verifique su método de pago y las tarjetas admitidas",
-      "purchase_cancelled_title": "Se canceló la compra",
-      "purchase_cancelled_description": "Verifique su método de pago y las tarjetas admitidas",
-      "purchase_completed_title": "La compra de {{amount}} {{currency}} se completó correctamente.",
-      "purchase_completed_description": "Su {{currency}} ahora está disponible",
-      "purchase_pending_title": "Procesando su compra de {{currency}}",
-      "purchase_pending_description": "Solo tardará unos minutos…"
-    },
     "date": "Fecha",
     "from": "De",
     "to": "Para",
@@ -2012,7 +2057,9 @@
       "select_country_registered": "Seleccione el país donde está registrada su tarjeta (independientemente de dónde se encuentre).",
       "unsupported": "Región no admitida",
       "unsupported_description": "Estamos trabajando arduamente para ampliar la cobertura a su región lo antes posible. Mientras tanto, consulte nuestro artículo de soporte para conocer otras formas en las que puede {{rampType}} criptomonedas.",
-      "unsupported_link": "Visite el artículo de soporte"
+      "unsupported_link": "Visite el artículo de soporte",
+      "popular_regions": "Regiones populares",
+      "regions": "Regiones"
     },
     "order_details": {
       "details_main": "Detalles del pedido",
@@ -2060,6 +2107,16 @@
       "hold_to_send": "Mantener para enviar",
       "send": "Enviar",
       "sent": "¡Enviado!"
+    },
+    "notifications": {
+      "purchase_failed_title": "Error al comprar {{currency}}. Vuelva a intentarlo, lamentamos los inconvenientes.",
+      "purchase_failed_description": "Verifique su método de pago y las tarjetas admitidas",
+      "purchase_cancelled_title": "Se canceló la compra",
+      "purchase_cancelled_description": "Verifique su método de pago y las tarjetas admitidas",
+      "purchase_completed_title": "La compra de {{amount}} {{currency}} se completó correctamente.",
+      "purchase_completed_description": "Su {{currency}} ahora está disponible",
+      "purchase_pending_title": "Procesando su compra de {{currency}}",
+      "purchase_pending_description": "Solo tardará unos minutos…"
     }
   },
   "swaps": {
@@ -2152,6 +2209,7 @@
     "i_understand": "Comprendo",
     "quotes_expire_in": "Las cotizaciones vencen en",
     "saving": "Ahorro",
+    "n_quotes": "{{numberOfQuotes}} cotizaciones",
     "view_details": "Ver detalles",
     "estimated_gas_fee": "Tarifa de gas estimada",
     "max_gas_fee": "Tarifa de gas máxima",
@@ -2196,7 +2254,7 @@
     "quote_source_agg": {
       "1": "Esta cotización proviene de un",
       "2": "agregador",
-      "3": "que encuentra el mejor precio dividiendo el pedido entre diferentes cambios descentralizados."
+      "3": "que compara precios y divide su orden entre diferentes cambios descentralizados."
     },
     "quote_source_cnt": {
       "1": "Esta cotización proviene directamente de",
@@ -2637,7 +2695,12 @@
     "not_supported_error": "Solo se admite la versión 4 de la firma de datos escritos.",
     "error_during_connection": "Ocurrió un error desconocido",
     "error_during_connection_message": "Ha habido un pequeño problema al conectar su Ledger Nano X, pulse \"Reintentar\" a continuación para intentarlo de nuevo. A veces, esto ocurre debido a que la aplicación ETH de su Ledger Nano X está abierta al comienzo del proceso de emparejamiento con MetaMask Mobile.",
-    "how_to_install_eth_webview_title": "Cómo instalar la aplicación Ethereum"
+    "how_to_install_eth_webview_title": "Cómo instalar la aplicación Ethereum",
+    "nonce_too_low": "Nonce demasiado bajo",
+    "nonce_too_low_error": "El nonce establecido es demasiado bajo",
+    "ledger_beta_alert": "Habilitar integración a Ledger",
+    "ledger_beta_alert_description": "¡Ha encontrado una función experimental! Al continuar, acepta que está utilizando esta función experimental bajo su propio riesgo.",
+    "ledger_beta_cta": "Continuar"
   },
   "account_actions": {
     "edit_name": "Editar nombre de la cuenta",
