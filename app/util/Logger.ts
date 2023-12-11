@@ -18,7 +18,7 @@ interface ExtraInfo {
  * we will have flags to do different actions based on
  * the environment, for ex. log to a remote server if prod
  */
-export default class Logger {
+export class AsyncLogger {
   /**
    * console.log wrapper
    *
@@ -44,12 +44,12 @@ export default class Logger {
   /**
    * console.error wrapper
    *
-   * @param {Error|string|object} error - error to be logged
+   * @param {Error|string|unknown} error - error to be logged
    * @param {string|object} extra - Extra error info
    * @returns - void
    */
   static async error(
-    error: Error | string,
+    error: Error | string | unknown,
     extra: ExtraInfo | string | any,
   ): Promise<void> {
     if (__DEV__) {
@@ -111,5 +111,47 @@ export default class Logger {
     if (metricsOptIn === 'agreed') {
       captureMessage(JSON.stringify(args));
     }
+  }
+}
+
+export default class Logger {
+  /**
+   * console.log wrapper
+   *
+   * @param {object} args - data to be logged
+   * @returns - void
+   */
+  static log(...args: any[]) {
+    AsyncLogger.log(...args).catch(() => {
+      // ignore error but avoid dangling promises
+    });
+  }
+
+  /**
+   * console.error wrapper
+   *
+   * @param {Error|string|unknown} error - error to be logged
+   * @param {string|object} extra - Extra error info
+   * @returns - void
+   */
+  static error(
+    error: Error | string | unknown,
+    extra: ExtraInfo | string | any,
+  ) {
+    AsyncLogger.error(error, extra).catch(() => {
+      // ignore error but avoid dangling promises
+    });
+  }
+
+  /**
+   * captureMessage wrapper
+   *
+   * @param {object} args - data to be logged
+   * @returns - void
+   */
+  static message(...args: unknown[]) {
+    AsyncLogger.message(...args).catch(() => {
+      // ignore error but avoid dangling promises
+    });
   }
 }

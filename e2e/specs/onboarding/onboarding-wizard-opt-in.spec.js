@@ -17,6 +17,7 @@ import ProtectYourWalletModal from '../../pages/modals/ProtectYourWalletModal';
 import WhatsNewModal from '../../pages/modals/WhatsNewModal';
 import { acceptTermOfUse } from '../../viewHelper';
 import TabBarComponent from '../../pages/TabBarComponent';
+import CommonView from '../../pages/CommonView';
 
 const PASSWORD = '12345678';
 
@@ -95,23 +96,25 @@ describe(
       await TabBarComponent.tapSettings();
       await SettingsView.tapSecurityAndPrivacy();
       await SecurityAndPrivacy.scrollToMetaMetrics();
-      TestHelpers.delay(2000);
-      await SecurityAndPrivacy.isMetaMetricsToggleOn();
-      TestHelpers.delay(4500);
+      await TestHelpers.delay(2000);
+      await expect(
+        await SecurityAndPrivacy.metaMetricsToggle,
+      ).toHaveToggleValue(true);
     });
 
     it('should disable metametrics', async () => {
       await SecurityAndPrivacy.tapMetaMetricsToggle();
-      // await SecurityAndPrivacy.isMetaMetricsToggleOff();
-      TestHelpers.delay(1500);
-      await SecurityAndPrivacy.tapOKAlertButton();
-      await SecurityAndPrivacy.isMetaMetricsToggleOff();
+      await TestHelpers.delay(1500);
+      await CommonView.tapOkAlert();
+      await expect(
+        await SecurityAndPrivacy.metaMetricsToggle,
+      ).toHaveToggleValue(false);
     });
 
     it('should relaunch the app and log in', async () => {
       // Relaunch app
       await TestHelpers.relaunchApp();
-      TestHelpers.delay(4500);
+      await TestHelpers.delay(4500);
       await LoginView.isVisible();
       await LoginView.enterPassword(PASSWORD);
       await WalletView.isVisible();
@@ -133,7 +136,9 @@ describe(
       await TabBarComponent.tapSettings();
       await SettingsView.tapSecurityAndPrivacy();
       await SecurityAndPrivacy.scrollToMetaMetrics();
-      await SecurityAndPrivacy.isMetaMetricsToggleOff();
+      await expect(
+        await SecurityAndPrivacy.metaMetricsToggle,
+      ).toHaveToggleValue(false);
     });
   },
 );

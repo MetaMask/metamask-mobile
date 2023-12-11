@@ -88,7 +88,7 @@ export class SDKConnect extends EventEmitter2 {
 
   // Track init status to ensure connection recovery priority and prevent double initialization.
   private _initialized = false;
-  private _initializing = false;
+  private _initializing?: Promise<unknown>;
   private _postInitialized = false;
   private _postInitializing = false;
 
@@ -109,6 +109,7 @@ export class SDKConnect extends EventEmitter2 {
   private disabledHosts: ApprovedHosts = {};
   private rpcqueueManager = new RPCQueueManager();
   private appStateListener: NativeEventSubscription | undefined;
+  private socketServerUrl: string = AppConstants.MM_SDK.SERVER_URL; // Allow to customize different socket server url
 
   private SDKConnect() {
     // Keep empty to manage singleton
@@ -116,6 +117,7 @@ export class SDKConnect extends EventEmitter2 {
 
   public async connectToChannel({
     id,
+    trigger,
     otherPublicKey,
     origin,
     validUntil = Date.now() + DEFAULT_SESSION_TIMEOUT_MS,
@@ -124,7 +126,7 @@ export class SDKConnect extends EventEmitter2 {
     const isReady = existingConnection && this.connected[id].isReady;
 
     DevLogger.log(
-      `SDKConnect::connectToChannel id=${id} isReady=${isReady} existingConnection=${existingConnection}`,
+      `SDKConnect::connectToChannel id=${id} trigger=${trigger} isReady=${isReady} existingConnection=${existingConnection}`,
     );
 
     if (isReady) {
@@ -144,6 +146,7 @@ export class SDKConnect extends EventEmitter2 {
       await this.reconnect({
         channelId: id,
         initialConnection: false,
+        trigger,
         otherPublicKey:
           this.connected[id].remote.getKeyInfo()?.ecies.otherPubKey ?? '',
         context: 'connectToChannel',
@@ -171,8 +174,11 @@ export class SDKConnect extends EventEmitter2 {
 
     this.connected[id] = new Connection({
       ...this.connections[id],
+      socketServerUrl: this.socketServerUrl,
       initialConnection,
+      trigger,
       rpcQueueManager: this.rpcqueueManager,
+      navigation: this.navigation,
       updateOriginatorInfos: this.updateOriginatorInfos.bind(this),
       approveHost: this._approveHost.bind(this),
       disapprove: this.disapproveChannel.bind(this),
@@ -254,37 +260,41 @@ export class SDKConnect extends EventEmitter2 {
     channelId: string;
     loading: boolean;
   }) {
-    const keyringController = (
-      Engine.context as { KeyringController: KeyringController }
-    ).KeyringController;
-    await waitForKeychainUnlocked({
-      keyringController,
-      context: 'updateSDKLoadingState',
-    });
-
     if (loading === true) {
       this.sdkLoadingState[channelId] = true;
     } else {
       delete this.sdkLoadingState[channelId];
     }
 
-    const loadingSessions = Object.keys(this.sdkLoadingState).length;
-    if (loadingSessions > 0) {
+    const loadingSessionsLen = Object.keys(this.sdkLoadingState).length;
+    DevLogger.log(
+      `SDKConnect::updateSDKLoadingState channel=${channelId} loading=${loading} loadingSessions=${loadingSessionsLen}`,
+    );
+    if (loadingSessionsLen > 0) {
+      // Prevent loading state from showing if keychain is locked.
+      const keyringController = (
+        Engine.context as { KeyringController: KeyringController }
+      ).KeyringController;
+      await waitForKeychainUnlocked({
+        keyringController,
+        context: 'updateSDKLoadingState',
+      });
+
       this.navigation?.navigate(Routes.MODAL.ROOT_MODAL_FLOW, {
         screen: Routes.SHEET.SDK_LOADING,
       });
     } else {
-      const currentRoute = this.navigation?.getCurrentRoute()?.name;
-      if (currentRoute === Routes.SHEET.SDK_LOADING) {
-        this.navigation?.goBack();
-      }
+      await this.hideLoadingState();
     }
   }
 
   public async hideLoadingState() {
     this.sdkLoadingState = {};
     const currentRoute = this.navigation?.getCurrentRoute()?.name;
-    if (currentRoute === Routes.SHEET.SDK_LOADING) {
+    if (
+      currentRoute === Routes.SHEET.SDK_LOADING &&
+      this.navigation?.canGoBack()
+    ) {
       this.navigation?.goBack();
     }
   }
@@ -313,22 +323,29 @@ export class SDKConnect extends EventEmitter2 {
 
   public async resume({ channelId }: { channelId: string }) {
     const session = this.connected[channelId]?.remote;
+    const alreadyResumed = this.connected[channelId].isResumed ?? false;
 
     DevLogger.log(
-      `SDKConnect::resume channel=${channelId} session=${session} paused=${session.isPaused()} connected=${session?.isConnected()} connecting=${
+      `SDKConnect::resume channel=${channelId} alreadyResumed=${alreadyResumed} session=${session} paused=${session.isPaused()} connected=${session?.isConnected()} connecting=${
         this.connecting[channelId]
       }`,
     );
-    if (session && !session?.isConnected() && !this.connecting[channelId]) {
+    if (
+      session &&
+      !session?.isConnected() &&
+      !alreadyResumed &&
+      !this.connecting[channelId]
+    ) {
       this.connected[channelId].resume();
-      if (Platform.OS === 'android') {
-        // Some devices (especially android) need time to update socket status after resuming.
-        await wait(500); // at least 500ms
-      }
+      await wait(500); // Some devices (especially android) need time to update socket status after resuming.
       DevLogger.log(
         `SDKConnect::_handleAppState - done resuming - socket_connected=${this.connected[
           channelId
         ].remote.isConnected()}`,
+      );
+    } else {
+      DevLogger.log(
+        `SDKConnect::_handleAppState - SKIP - connection.resumed=${this.connected[channelId]?.isResumed}`,
       );
     }
   }
@@ -337,6 +354,7 @@ export class SDKConnect extends EventEmitter2 {
     channelId,
     otherPublicKey,
     initialConnection,
+    trigger,
     updateKey,
     context,
   }: {
@@ -344,9 +362,23 @@ export class SDKConnect extends EventEmitter2 {
     otherPublicKey: string;
     context?: string;
     updateKey?: boolean;
+    trigger?: ConnectionProps['trigger'];
     initialConnection: boolean;
   }) {
-    const existingConnection = this.connected[channelId];
+    const existingConnection: Connection | undefined =
+      this.connected[channelId];
+
+    // Check if already connected
+    if (existingConnection?.remote.isReady()) {
+      DevLogger.log(
+        `SDKConnect::reconnect[${context}] - already ready - ignore`,
+      );
+      if (trigger) {
+        this.connected[channelId].setTrigger('deeplink');
+      }
+
+      return;
+    }
 
     if (this.paused && updateKey) {
       this.connections[channelId].otherPublicKey = otherPublicKey;
@@ -357,10 +389,9 @@ export class SDKConnect extends EventEmitter2 {
             existingConnection !== undefined
           } - update otherPublicKey -  ${currentOtherPublicKey} --> ${otherPublicKey}`,
         );
-        // TODO re-enable after comm layer update.
-        // if (existingConnection) {
-        //   existingConnection.remote.setOtherPublicKey(otherPublicKey);
-        // }
+        if (existingConnection) {
+          existingConnection.remote.setOtherPublicKey(otherPublicKey);
+        }
       } else {
         DevLogger.log(
           `SDKConnect::reconnect[${context}] - same otherPublicKey`,
@@ -368,16 +399,20 @@ export class SDKConnect extends EventEmitter2 {
       }
     }
 
+    const wasPaused = existingConnection?.remote.isPaused();
     // Make sure the connection has resumed from pause before reconnecting.
     await waitForCondition({
       fn: () => !this.paused,
       context: 'reconnect_from_pause',
     });
+    if (wasPaused) {
+      DevLogger.log(`SDKConnect::reconnect[${context}] - not paused anymore`);
+    }
     const connecting = this.connecting[channelId] === true;
     const socketConnected = existingConnection?.remote.isConnected() ?? false;
 
     DevLogger.log(
-      `SDKConnect::reconnect[${context}] - channel=${channelId} paused=${
+      `SDKConnect::reconnect[${context}][${trigger}] - channel=${channelId} paused=${
         this.paused
       } connecting=${connecting} socketConnected=${socketConnected} existingConnection=${
         existingConnection !== undefined
@@ -387,8 +422,22 @@ export class SDKConnect extends EventEmitter2 {
 
     let interruptReason = '';
 
-    if (connecting) {
+    if (connecting && trigger !== 'deeplink') {
+      // Prioritize deeplinks -- interrup other connection attempts.
       interruptReason = 'already connecting';
+    } else if (connecting && trigger === 'deeplink') {
+      // Keep comment for future reference in case android issue re-surface
+      // special case on android where the socket was not updated
+      // if (Platform.OS === 'android') {
+      //   interruptReason = 'already connecting';
+      // } else {
+      //   console.warn(`Priotity to deeplink - overwrite previous connection`);
+      //   this.removeChannel(channelId, true);
+      // }
+
+      // This condition should not happen keeping it for debug purpose.
+      console.warn(`Priotity to deeplink - overwrite previous connection`);
+      this.removeChannel(channelId, true);
     }
 
     if (!this.connections[channelId]) {
@@ -406,6 +455,16 @@ export class SDKConnect extends EventEmitter2 {
       const connected = existingConnection?.remote.isConnected();
       const ready = existingConnection?.isReady;
       if (connected) {
+        if (trigger) {
+          this.connected[channelId].setTrigger(trigger);
+        }
+        DevLogger.log(
+          `SDKConnect::reconnect - already connected [connected] -- trigger updated to '${trigger}'`,
+        );
+        return;
+      }
+
+      if (ready) {
         DevLogger.log(
           `SDKConnect::reconnect - already connected [ready=${ready}] -- ignoring`,
         );
@@ -419,10 +478,13 @@ export class SDKConnect extends EventEmitter2 {
     this.connecting[channelId] = true;
     this.connected[channelId] = new Connection({
       ...connection,
+      socketServerUrl: this.socketServerUrl,
       otherPublicKey,
       reconnect: true,
+      trigger,
       initialConnection,
       rpcQueueManager: this.rpcqueueManager,
+      navigation: this.navigation,
       approveHost: this._approveHost.bind(this),
       disapprove: this.disapproveChannel.bind(this),
       getApprovedHosts: this.getApprovedHosts.bind(this),
@@ -461,6 +523,7 @@ export class SDKConnect extends EventEmitter2 {
           channelId,
           otherPublicKey: this.connections[channelId].otherPublicKey,
           initialConnection: false,
+          trigger: 'reconnect',
           context: 'reconnectAll',
         }).catch((err) => {
           Logger.log(
@@ -482,6 +545,10 @@ export class SDKConnect extends EventEmitter2 {
     if (this.paused) return;
 
     for (const id in this.connected) {
+      if (!this.connected[id].remote.isReady()) {
+        DevLogger.log(`SDKConnect::pause - SKIP - non active connection ${id}`);
+        continue;
+      }
       DevLogger.log(`SDKConnect::pause - pausing ${id}`);
       this.connected[id].pause();
       // check for paused status?
@@ -493,8 +560,6 @@ export class SDKConnect extends EventEmitter2 {
     }
     this.paused = true;
     this.connecting = {};
-
-    this.rpcqueueManager.reset();
   }
 
   public async bindAndroidSDK() {
@@ -502,12 +567,13 @@ export class SDKConnect extends EventEmitter2 {
       return;
     }
 
+    if (this.androidSDKBound) return;
+
     try {
-      // Always bind native module to client during deeplinks otherwise connection may have an invalid status
+      // Always bind native module to client as early as possible otherwise connection may have an invalid status
       await NativeModules.CommunicationClient.bindService();
       this.androidSDKBound = true;
     } catch (err) {
-      if (this.androidSDKBound) return;
       Logger.log(err, `SDKConnect::bindAndroiSDK failed`);
     }
   }
@@ -600,7 +666,6 @@ export class SDKConnect extends EventEmitter2 {
 
       delete this.connected[channelId];
       delete this.connections[channelId];
-      delete this.connecting[channelId];
       delete this.approvedHosts[
         AppConstants.MM_SDK.SDK_REMOTE_ORIGIN + channelId
       ];
@@ -620,6 +685,7 @@ export class SDKConnect extends EventEmitter2 {
         throw err;
       });
     }
+    delete this.connecting[channelId];
     this.emit('refresh');
   }
 
@@ -627,6 +693,9 @@ export class SDKConnect extends EventEmitter2 {
     for (const id in this.connections) {
       this.removeChannel(id, true);
     }
+
+    // Remove all android connections
+    await DefaultPreference.clear(AppConstants.MM_SDK.ANDROID_CONNECTIONS);
     // Also remove approved hosts that may have been skipped.
     this.approvedHosts = {};
     this.disabledHosts = {};
@@ -654,6 +723,19 @@ export class SDKConnect extends EventEmitter2 {
     const hostname = AppConstants.MM_SDK.SDK_REMOTE_ORIGIN + channelId;
     this.connections[channelId].lastAuthorized = 0;
     delete this.approvedHosts[hostname];
+  }
+
+  public getSockerServerUrl() {
+    return this.socketServerUrl;
+  }
+
+  public async setSocketServerUrl(url: string) {
+    try {
+      this.socketServerUrl = url;
+      await this.removeAll();
+    } catch (err) {
+      Logger.log(err, `SDKConnect::setSocketServerUrl - error `);
+    }
   }
 
   public async revalidateChannel({ channelId }: { channelId: string }) {
@@ -709,9 +791,33 @@ export class SDKConnect extends EventEmitter2 {
     DevLogger.log(`SDKConnect::_handleAppState appState=${appState}`);
     this.appState = appState;
     if (appState === 'active') {
+      // Close previous loading modal if any.
+      this.hideLoadingState().catch((err) => {
+        Logger.log(
+          err,
+          `SDKConnect::_handleAppState - can't hide loading state`,
+        );
+      });
+      DevLogger.log(
+        `SDKConnect::_handleAppState - resuming - paused=${this.paused}`,
+        this.timeout,
+      );
       if (Device.isAndroid()) {
-        if (this.timeout) BackgroundTimer.clearInterval(this.timeout);
-      } else if (this.timeout) clearTimeout(this.timeout);
+        if (this.timeout) {
+          BackgroundTimer.clearInterval(this.timeout);
+        }
+        // Android cannot process deeplinks until keychain is unlocked and we want to process deeplinks first
+        // so we wait for keychain to be unlocked before resuming connections.
+        const keyringController = (
+          Engine.context as { KeyringController: KeyringController }
+        ).KeyringController;
+        await waitForKeychainUnlocked({
+          keyringController,
+          context: 'handleAppState',
+        });
+      } else if (this.timeout) {
+        clearTimeout(this.timeout);
+      }
       this.timeout = undefined;
 
       if (this.paused) {
@@ -721,13 +827,14 @@ export class SDKConnect extends EventEmitter2 {
           console.warn(
             `SDKConnect::_handleAppState - resuming from pause - reset connecting status`,
           );
+          this.connecting = {};
         }
-        const connectCount = Object.keys(this.connected).length;
-        if (connectCount > 0) {
+        const connectedCount = Object.keys(this.connected).length;
+        if (connectedCount > 0) {
           // Add delay to pioritize reconnecting from deeplink because it contains the updated connection info (channel dapp public key)
-          await wait(1500);
+          await wait(2000);
           DevLogger.log(
-            `SDKConnect::_handleAppState - resuming ${connectCount} connections`,
+            `SDKConnect::_handleAppState - resuming ${connectedCount} connections`,
           );
           for (const id in this.connected) {
             try {
@@ -796,92 +903,102 @@ export class SDKConnect extends EventEmitter2 {
 
   public async init({
     navigation,
+    context,
   }: {
     checkUserLoggedIn: () => boolean;
     navigation: NavigationContainerRef;
+    context?: string;
   }) {
     if (this._initializing) {
       DevLogger.log(
-        `SDKConnect::init() -- already initializing -- wait for completion`,
+        `SDKConnect::init()[${context}] -- already initializing -- wait for completion`,
       );
-      // Wait for initialization to finish.
-      await waitForCondition({
-        fn: () => this._initialized,
-        context: 'init',
-      });
-      DevLogger.log(`SDKConnect::init() -- done waiting for initialization`);
-      return;
+      return await this._initializing;
     } else if (this._initialized) {
       DevLogger.log(
-        `SDKConnect::init() -- SKIP -- already initialized`,
+        `SDKConnect::init()[${context}] -- SKIP -- already initialized`,
         this.connections,
       );
       return;
     }
 
-    // Change _initializing status at the beginning to prevent double initialization during dev.
-    this._initializing = true;
-    this.navigation = navigation;
-    DevLogger.log(`SDKConnect::init() - starting`);
-
-    // Ignore initial call to _handleAppState since it is first initialization.
-    this.appState = 'active';
-
-    // When restarting from being killed, keyringController might be mistakenly restored on unlocked=true so we need to wait for it to get correct state.
-    await wait(1000);
-
     if (!this.androidSDKStarted && Platform.OS === 'android') {
+      DevLogger.log(`SDKConnect::init() - starting android service`);
       this.androidService = new AndroidService();
       this.androidSDKStarted = true;
     }
 
-    const [connectionsStorage, hostsStorage] = await Promise.all([
-      DefaultPreference.get(AppConstants.MM_SDK.SDK_CONNECTIONS),
-      DefaultPreference.get(AppConstants.MM_SDK.SDK_APPROVEDHOSTS),
-    ]);
+    const doAsyncInit = async () => {
+      this.navigation = navigation;
+      DevLogger.log(`SDKConnect::init()[${context}] - starting`);
 
-    if (connectionsStorage) {
-      this.connections = JSON.parse(connectionsStorage);
-      DevLogger.log(
-        `SDKConnect::init() - connections [${
-          Object.keys(this.connections).length
-        }]`,
-      );
-    }
+      // Ignore initial call to _handleAppState since it is first initialization.
+      this.appState = 'active';
 
-    if (hostsStorage) {
-      const uncheckedHosts = JSON.parse(hostsStorage) as ApprovedHosts;
-      // Check if the approved hosts haven't timed out.
-      const approvedHosts: ApprovedHosts = {};
-      let expiredCounter = 0;
-      for (const host in uncheckedHosts) {
-        const expirationTime = uncheckedHosts[host];
-        if (Date.now() < expirationTime) {
-          // Host is valid, add it to the list.
-          approvedHosts[host] = expirationTime;
-        } else {
-          expiredCounter += 1;
+      // When restarting from being killed, keyringController might be mistakenly restored on unlocked=true so we need to wait for it to get correct state.
+      await wait(1000);
+      DevLogger.log(`SDKConnect::init() - waited 1000ms - keep initializing`);
+
+      try {
+        DevLogger.log(`SDKConnect::init() - loading connections`);
+        // On Android the DefaultPreferences will start loading after the biometrics
+        const [connectionsStorage, hostsStorage] = await Promise.all([
+          DefaultPreference.get(AppConstants.MM_SDK.SDK_CONNECTIONS),
+          DefaultPreference.get(AppConstants.MM_SDK.SDK_APPROVEDHOSTS),
+        ]);
+
+        DevLogger.log(
+          `SDKConnect::init() - connectionsStorage=${connectionsStorage} hostsStorage=${hostsStorage}`,
+        );
+
+        if (connectionsStorage) {
+          this.connections = JSON.parse(connectionsStorage);
+          DevLogger.log(
+            `SDKConnect::init() - connections [${
+              Object.keys(this.connections).length
+            }]`,
+          );
         }
-      }
-      if (expiredCounter > 1) {
-        // Update the list of approved hosts excluding the expired ones.
-        DefaultPreference.set(
-          AppConstants.MM_SDK.SDK_APPROVEDHOSTS,
-          JSON.stringify(approvedHosts),
-        ).catch((err) => {
-          throw err;
-        });
-      }
-      this.approvedHosts = approvedHosts;
-      DevLogger.log(
-        `SDKConnect::init() - approvedHosts [${
-          Object.keys(this.approvedHosts).length
-        }]`,
-      );
-    }
 
-    DevLogger.log(`SDKConnect::init() - done`);
-    this._initialized = true;
+        if (hostsStorage) {
+          const uncheckedHosts = JSON.parse(hostsStorage) as ApprovedHosts;
+          // Check if the approved hosts haven't timed out.
+          const approvedHosts: ApprovedHosts = {};
+          let expiredCounter = 0;
+          for (const host in uncheckedHosts) {
+            const expirationTime = uncheckedHosts[host];
+            if (Date.now() < expirationTime) {
+              // Host is valid, add it to the list.
+              approvedHosts[host] = expirationTime;
+            } else {
+              expiredCounter += 1;
+            }
+          }
+          if (expiredCounter > 1) {
+            // Update the list of approved hosts excluding the expired ones.
+            await DefaultPreference.set(
+              AppConstants.MM_SDK.SDK_APPROVEDHOSTS,
+              JSON.stringify(approvedHosts),
+            );
+          }
+          this.approvedHosts = approvedHosts;
+          DevLogger.log(
+            `SDKConnect::init() - approvedHosts [${
+              Object.keys(this.approvedHosts).length
+            }]`,
+          );
+        }
+
+        DevLogger.log(`SDKConnect::init() - done`);
+        this._initialized = true;
+      } catch (err) {
+        Logger.log(err, `SDKConnect::init() - error loading connections`);
+      }
+    };
+
+    this._initializing = doAsyncInit();
+
+    return this._initializing;
   }
 
   async postInit() {
@@ -925,7 +1042,7 @@ export class SDKConnect extends EventEmitter2 {
     );
 
     // Add delay to pioritize reconnecting from deeplink because it contains the updated connection info (channel dapp public key)
-    await wait(2000);
+    await wait(3000);
     await this.reconnectAll();
 
     this._postInitialized = true;

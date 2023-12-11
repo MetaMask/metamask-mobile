@@ -5,6 +5,7 @@ import QuoteView from '../../pages/swaps/QuoteView';
 import SwapView from '../../pages/swaps/SwapView';
 import TabBarComponent from '../../pages/TabBarComponent';
 import ActivitiesView from '../../pages/ActivitiesView';
+import DetailsModal from '../../pages/modals/DetailsModal';
 import WalletActionsModal from '../../pages/modals/WalletActionsModal';
 import FixtureBuilder from '../../fixtures/fixture-builder';
 import {
@@ -17,13 +18,11 @@ import TestHelpers from '../../helpers';
 import FixtureServer from '../../fixtures/fixture-server';
 import { getFixturesServerPort } from '../../fixtures/utils';
 import { Regression } from '../../tags';
-import { TransactionDetailsModalSelectorsText } from '../../selectors/Modals/TransactionDetailsModal.selectors';
 
 const fixtureServer = new FixtureServer();
 
 describe(Regression('Multiple Swaps from Actions'), () => {
-  let swapOnboarded = false;
-  const transactionList = [];
+  let swapOnboarded = true; // TODO: Set it to false once we show the onboarding page again.
   beforeAll(async () => {
     await TestHelpers.reverseServerPort();
     const fixture = new FixtureBuilder()
@@ -83,31 +82,15 @@ describe(Regression('Multiple Swaps from Actions'), () => {
       await SwapView.tapIUnderstandPriceWarning();
       await SwapView.swipeToSwap();
       await SwapView.waitForSwapToComplete(sourceTokenSymbol, destTokenSymbol);
-
-      let transactionTitle = TransactionDetailsModalSelectorsText.TITLE;
-      transactionTitle = transactionTitle.replace(
-        '{{sourceToken}}',
+      await TabBarComponent.tapActivity();
+      await ActivitiesView.isVisible();
+      await ActivitiesView.tapOnSwapActivity(
         sourceTokenSymbol,
-      );
-      transactionTitle = transactionTitle.replace(
-        '{{destinationToken}}',
         destTokenSymbol,
       );
-
-      transactionList.push(transactionTitle);
+      await DetailsModal.isTitleVisible(sourceTokenSymbol, destTokenSymbol);
+      await DetailsModal.isStatusCorrect('Confirmed');
+      await DetailsModal.tapOnCloseIcon();
     },
   );
-
-  it('check that all the transcations appear as confirmed in the activity list', async () => {
-    let transactionIndex = 0;
-
-    await TabBarComponent.tapActivity();
-    await ActivitiesView.isVisible();
-
-    while (transactionList.length) {
-      const transaction = transactionList.pop();
-      await ActivitiesView.checkActivityTitle(transaction, transactionIndex);
-      await ActivitiesView.checkActivityStatus('Confirmed', transactionIndex++);
-    }
-  });
 });

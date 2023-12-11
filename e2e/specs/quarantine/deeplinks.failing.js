@@ -54,15 +54,19 @@ describe(Regression('Deep linking Tests'), () => {
     await SettingsView.tapSecurityAndPrivacy();
 
     await SecurityAndPrivacy.scrollToTurnOnRememberMe();
-    TestHelpers.delay(3000);
+    await TestHelpers.delay(3000);
   });
 
   it('should enable remember me', async () => {
-    await SecurityAndPrivacy.isRememberMeToggleOff();
+    await expect(await SecurityAndPrivacy.rememberMeToggle).toHaveToggleValue(
+      true,
+    );
     await SecurityAndPrivacy.tapTurnOnRememberMeToggle();
-    await SecurityAndPrivacy.isRememberMeToggleOn();
+    await expect(await SecurityAndPrivacy.rememberMeToggle).toHaveToggleValue(
+      false,
+    );
 
-    TestHelpers.delay(1500);
+    await TestHelpers.delay(1500);
   });
 
   it('should relaunch the app then enable remember me', async () => {

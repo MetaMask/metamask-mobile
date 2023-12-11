@@ -54,7 +54,9 @@ describe(
           await TabBarComponent.tapSettings();
           await SettingsView.tapSecurityAndPrivacy();
           await SecurityAndPrivacyView.scrollToChangePasswordView();
-          await SecurityAndPrivacyView.isChangePasswordSectionVisible();
+          await expect(
+            await SecurityAndPrivacyView.changePasswordSection,
+          ).toBeVisible();
           await SecurityAndPrivacyView.scrollToDeleteWalletButton();
           await SecurityAndPrivacyView.tapDeleteWalletButton();
 
@@ -64,7 +66,7 @@ describe(
           await DeleteWalletModal.tapDeleteMyWalletButton();
           await TestHelpers.delay(2000);
           await OnboardingView.isVisible();
-          await OnboardingView.deleteWalletToastisNotVisible();
+          await OnboardingView.deleteWalletToastIsNotVisible();
           await OnboardingView.tapCreateWallet();
 
           //Create new wallet

@@ -11,6 +11,7 @@ import { InteractionManager } from 'react-native';
 import AppConstants from '../../../core/AppConstants';
 import { strings } from '../../../../locales/i18n';
 import initialBackgroundState from '../../../util/test/initial-background-state.json';
+import analyticsV2 from '../../../util/analyticsV2';
 
 jest.mock('../../../core/Engine', () => ({
   acceptPendingApproval: jest.fn(),
@@ -21,11 +22,39 @@ jest.mock('../../../core/Engine', () => ({
         on: jest.fn(),
       },
     },
+    KeyringController: {
+      state: {
+        keyrings: [],
+      },
+    },
   },
 }));
 
 jest.mock('../../../core/NotificationManager', () => ({
   showSimpleNotification: jest.fn(),
+}));
+
+jest.mock('react-redux', () => ({
+  ...jest.requireActual('react-redux'),
+  useSelector: (callback: any) =>
+    callback({
+      signatureRequest: {
+        securityAlertResponse: {
+          description: '',
+          features: [],
+          providerRequestsCount: { eth_chainId: 1 },
+          reason: '',
+          result_type: 'Benign',
+        },
+      },
+    }),
+}));
+
+jest.mock('../../../util/analyticsV2');
+
+jest.mock('../../../util/address', () => ({
+  getAddressAccountType: jest.fn().mockReturnValue('Metamask'),
+  isExternalHardwareAccount: jest.fn(),
 }));
 
 jest.mock('@react-navigation/native');
@@ -59,7 +88,10 @@ function createWrapper({
   return shallow(
     <Provider store={store}>
       <MessageSign
-        currentPageInformation={{ title: 'title', url: 'url' }}
+        currentPageInformation={{
+          title: 'title',
+          url: 'http://localhost:8545',
+        }}
         messageParams={{ ...messageParamsMock, origin }}
         onConfirm={mockConfirm}
         onReject={mockReject}
@@ -142,6 +174,58 @@ describe('MessageSign', () => {
         duration: 5000,
         title: strings('notifications.wc_signed_rejected_title'),
         description: strings('notifications.wc_description'),
+      });
+    });
+  });
+
+  describe('trackEvent', () => {
+    it('tracks event for rejected requests', async () => {
+      const wrapper = createWrapper().dive();
+      await (wrapper.find(SignatureRequest).props() as any).onReject();
+
+      const rejectedMocks = (
+        analyticsV2.trackEvent as jest.Mock
+      ).mock.calls.filter((call) => call[0].category === 'Signature Rejected');
+
+      const mockCallsLength = rejectedMocks.length;
+
+      const lastMockCall = rejectedMocks[mockCallsLength - 1];
+
+      expect(lastMockCall[0]).toEqual({ category: 'Signature Rejected' });
+      expect(lastMockCall[1]).toEqual({
+        account_type: 'Metamask',
+        dapp_host_name: undefined,
+        chain_id: undefined,
+        signature_type: 'eth_sign',
+        security_alert_response: 'Benign',
+        security_alert_reason: '',
+        ppom_eth_chainId_count: 1,
+        version: undefined,
+      });
+    });
+
+    it('tracks event for approved requests', async () => {
+      const wrapper = createWrapper().dive();
+      await (wrapper.find(SignatureRequest).props() as any).onConfirm();
+
+      const signedMocks = (
+        analyticsV2.trackEvent as jest.Mock
+      ).mock.calls.filter((call) => call[0].category === 'Signature Approved');
+
+      const mockCallsLength = signedMocks.length;
+
+      const lastMockCall = signedMocks[mockCallsLength - 1];
+
+      expect(lastMockCall[0]).toEqual({ category: 'Signature Approved' });
+      expect(lastMockCall[1]).toEqual({
+        account_type: 'Metamask',
+        dapp_host_name: undefined,
+        chain_id: undefined,
+        signature_type: 'eth_sign',
+        security_alert_response: 'Benign',
+        security_alert_reason: '',
+        ppom_eth_chainId_count: 1,
+        version: undefined,
       });
     });
   });

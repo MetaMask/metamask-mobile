@@ -31,23 +31,21 @@ describe(
         await TabBarComponent.tapSettings();
         await SettingsView.tapSecurityAndPrivacy();
         await SecurityAndPrivacyView.scrollToChangePasswordView();
-        await SecurityAndPrivacyView.isChangePasswordSectionVisible();
+        await expect(
+          await SecurityAndPrivacyView.changePasswordSection,
+        ).toBeVisible();
 
         // should confirm password before changing it
         await SecurityAndPrivacyView.tapChangePasswordButton();
 
-        await ChangePasswordView.isVisible();
+        await expect(await ChangePasswordView.title).toBeVisible();
         await ChangePasswordView.typeInConfirmPasswordInputBox(PASSWORD);
 
         // should change the password
         const NEW_PASSWORD = '11111111';
         await ChangePasswordView.tapIUnderstandCheckBox();
-        await ChangePasswordView.enterPassword(NEW_PASSWORD);
+        await ChangePasswordView.typeInConfirmPasswordInputBox(NEW_PASSWORD);
         await ChangePasswordView.reEnterPassword(NEW_PASSWORD);
-
-        if ((await device.getPlatform) === 'ios') {
-          await ChangePasswordView.tapResetPasswordButton();
-        }
 
         // should lock wallet from Settings
         await device.disableSynchronization(); // because the SRP tutorial video prevents the test from moving forward

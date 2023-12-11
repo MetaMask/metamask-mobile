@@ -9,7 +9,6 @@ import {
   Image,
   InteractionManager,
   BackHandler,
-  Platform,
 } from 'react-native';
 import Text, {
   TextColor,
@@ -52,17 +51,7 @@ import { Authentication } from '../../../core';
 import AUTHENTICATION_TYPE from '../../../constants/userProperties';
 import { ThemeContext, mockTheme } from '../../../util/theme';
 import AnimatedFox from 'react-native-animated-fox';
-import {
-  LOGIN_PASSWORD_ERROR,
-  RESET_WALLET_ID,
-} from '../../../constants/test-ids';
 import { LoginOptionsSwitch } from '../../UI/LoginOptionsSwitch';
-import generateTestId from '../../../../wdio/utils/generateTestId';
-import {
-  LOGIN_VIEW_PASSWORD_INPUT_ID,
-  LOGIN_VIEW_TITLE_ID,
-  LOGIN_VIEW_UNLOCK_BUTTON_ID,
-} from '../../../../wdio/screen-objects/testIDs/Screens/LoginScreen.testIds';
 import { createRestoreWalletNavDetailsNested } from '../RestoreWallet/RestoreWallet';
 import { parseVaultValue } from '../../../util/validators';
 import { getVaultFromBackup } from '../../../core/BackupVault';
@@ -70,6 +59,7 @@ import { containsErrorMessage } from '../../../util/errorHandling';
 import { MetaMetricsEvents } from '../../../core/Analytics';
 import { selectSelectedAddress } from '../../../selectors/preferencesController';
 import { RevealSeedViewSelectorsIDs } from '../../../../e2e/selectors/Settings/SecurityAndPrivacy/RevealSeedView.selectors';
+import { LoginViewSelectors } from '../../../../e2e/selectors/LoginView.selectors';
 
 const deviceHeight = Device.getDeviceHeight();
 const breakPoint = deviceHeight < 700;
@@ -520,7 +510,7 @@ class Login extends PureComponent {
             style={styles.wrapper}
             resetScrollToCoords={{ x: 0, y: 0 }}
           >
-            <View testID={'login'} {...generateTestId(Platform, 'login')}>
+            <View testID={LoginViewSelectors.CONTAINER}>
               <View style={styles.foxWrapper}>
                 {Device.isAndroid() ? (
                   <Image
@@ -534,7 +524,7 @@ class Login extends PureComponent {
               </View>
               <Text
                 style={styles.title}
-                {...generateTestId(Platform, LOGIN_VIEW_TITLE_ID)}
+                testID={LoginViewSelectors.LOGIN_VIEW_TITLE_ID}
               >
                 {strings('login.title')}
               </Text>
@@ -550,7 +540,6 @@ class Login extends PureComponent {
                   placeholder={strings('login.password')}
                   placeholderTextColor={colors.text.muted}
                   testID={RevealSeedViewSelectorsIDs.PASSWORD_INPUT}
-                  {...generateTestId(Platform, LOGIN_VIEW_PASSWORD_INPUT_ID)}
                   returnKeyType={'done'}
                   autoCapitalize="none"
                   secureTextEntry
@@ -574,14 +563,16 @@ class Login extends PureComponent {
               {this.renderSwitch()}
 
               {!!this.state.error && (
-                <Text color={TextColor.Error} testID={LOGIN_PASSWORD_ERROR}>
+                <Text
+                  color={TextColor.Error}
+                  testID={LoginViewSelectors.PASSWORD_ERROR}
+                >
                   {this.state.error}
                 </Text>
               )}
               <View
                 style={styles.ctaWrapper}
-                testID={'log-in-button'}
-                {...generateTestId(Platform, LOGIN_VIEW_UNLOCK_BUTTON_ID)}
+                testID={LoginViewSelectors.LOGIN_BUTTON_ID}
               >
                 <StyledButton type={'confirm'} onPress={this.triggerLogIn}>
                   {this.state.loading ? (
@@ -605,8 +596,7 @@ class Login extends PureComponent {
                 <Button
                   style={styles.goBack}
                   onPress={this.toggleWarningModal}
-                  testID={RESET_WALLET_ID}
-                  {...generateTestId(Platform, RESET_WALLET_ID)}
+                  testID={LoginViewSelectors.RESET_WALLET}
                 >
                   {strings('login.reset_wallet')}
                 </Button>

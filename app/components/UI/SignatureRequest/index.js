@@ -1,29 +1,29 @@
-import React, { PureComponent } from 'react';
 import PropTypes from 'prop-types';
-import { StyleSheet, View, Text, TouchableOpacity } from 'react-native';
-import { fontStyles } from '../../../styles/common';
-import { getHost } from '../../../util/browser';
-import { strings } from '../../../../locales/i18n';
-import { connect } from 'react-redux';
-import AnalyticsV2 from '../../../util/analyticsV2';
+import React, { PureComponent } from 'react';
+import { StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import Ionicons from 'react-native-vector-icons/Ionicons';
-import WebsiteIcon from '../WebsiteIcon';
-import ActionView from '../ActionView';
-import AccountInfoCard from '../AccountInfoCard';
-import WarningMessage from '../../Views/SendFlow/WarningMessage';
-import Device from '../../../util/device';
-import { isBlockaidFeatureEnabled } from '../../../util/blockaid';
-import Analytics from '../../../core/Analytics/Analytics';
-import { MetaMetricsEvents } from '../../../core/Analytics';
-import { ThemeContext, mockTheme } from '../../../util/theme';
-import withQRHardwareAwareness from '../QRHardware/withQRHardwareAwareness';
-import QRSigningDetails from '../QRHardware/QRSigningDetails';
-import { selectProviderType } from '../../../selectors/networkController';
-import BlockaidBanner from '../BlockaidBanner/BlockaidBanner';
-import { getAnalyticsParams } from '../../../util/confirmation/signatureUtils';
+import { connect } from 'react-redux';
 import { SigningModalSelectorsIDs } from '../../../../e2e/selectors/Modals/SigningModal.selectors';
-import setSignatureRequestSecurityAlertResponse from '../../../actions/signatureRequest';
-import { store } from '../../../store';
+import { strings } from '../../../../locales/i18n';
+import ExtendedKeyringTypes from '../../../constants/keyringTypes';
+import { MetaMetricsEvents } from '../../../core/Analytics';
+import Analytics from '../../../core/Analytics/Analytics';
+import { selectProviderType } from '../../../selectors/networkController';
+import { fontStyles } from '../../../styles/common';
+import { isHardwareAccount } from '../../../util/address';
+import AnalyticsV2 from '../../../util/analyticsV2';
+import { isBlockaidFeatureEnabled } from '../../../util/blockaid';
+import { getHost } from '../../../util/browser';
+import { getAnalyticsParams } from '../../../util/confirmation/signatureUtils';
+import Device from '../../../util/device';
+import { ThemeContext, mockTheme } from '../../../util/theme';
+import WarningMessage from '../../Views/SendFlow/WarningMessage';
+import AccountInfoCard from '../AccountInfoCard';
+import ActionView from '../ActionView';
+import BlockaidBanner from '../BlockaidBanner/BlockaidBanner';
+import QRSigningDetails from '../QRHardware/QRSigningDetails';
+import withQRHardwareAwareness from '../QRHardware/withQRHardwareAwareness';
+import WebsiteIcon from '../WebsiteIcon';
 
 const createStyles = (colors) =>
   StyleSheet.create({
@@ -166,13 +166,13 @@ class SignatureRequest extends PureComponent {
     fromAddress: PropTypes.string,
     isSigningQRObject: PropTypes.bool,
     QRState: PropTypes.object,
+    /**
+     * A string that represents the selected address
+     */
+    selectedAddress: PropTypes.string,
     testID: PropTypes.string,
     securityAlertResponse: PropTypes.object,
   };
-
-  componentWillUnmount() {
-    store.dispatch(setSignatureRequestSecurityAlertResponse());
-  }
 
   /**
    * Calls trackCancelSignature and onReject callback
@@ -249,6 +249,7 @@ class SignatureRequest extends PureComponent {
     } = this.props;
     const styles = this.getStyles();
     const url = currentPageInformation.url;
+    const icon = currentPageInformation.icon;
     const title = getHost(url);
     const arrowIcon = truncateMessage ? this.renderArrowIcon() : null;
     return (
@@ -264,7 +265,12 @@ class SignatureRequest extends PureComponent {
           style={styles.children}
           onPress={truncateMessage ? toggleExpandedMessage : null}
         >
-          <WebsiteIcon style={styles.domainLogo} title={title} url={url} />
+          <WebsiteIcon
+            style={styles.domainLogo}
+            title={title}
+            url={url}
+            icon={icon}
+          />
           <View style={styles.messageColumn}>
             <Text style={styles.messageLabelText}>
               {strings('signature_request.message')}:
@@ -297,11 +303,10 @@ class SignatureRequest extends PureComponent {
   };
 
   onContactUsClicked = () => {
-    const { securityAlertResponse, fromAddress, type } = this.props;
+    const { fromAddress, type } = this.props;
     const analyticsParams = {
       ...getAnalyticsParams(
         {
-          securityAlertResponse,
           from: fromAddress,
         },
         type,
@@ -315,9 +320,14 @@ class SignatureRequest extends PureComponent {
   };
 
   renderSignatureRequest() {
-    const { securityAlertResponse, showWarning, type } = this.props;
+    const { securityAlertResponse, showWarning, type, selectedAddress } =
+      this.props;
     let expandedHeight;
     const styles = this.getStyles();
+
+    const isLedgerAccount = isHardwareAccount(selectedAddress, [
+      ExtendedKeyringTypes.ledger,
+    ]);
 
     if (Device.isMediumDevice()) {
       expandedHeight = styles.expandedHeight2;
@@ -331,7 +341,11 @@ class SignatureRequest extends PureComponent {
           cancelTestID={SigningModalSelectorsIDs.CANCEL_BUTTON}
           confirmTestID={SigningModalSelectorsIDs.SIGN_BUTTON}
           cancelText={strings('signature_request.cancel')}
-          confirmText={strings('signature_request.sign')}
+          confirmText={
+            isLedgerAccount
+              ? strings('ledger.sign_with_ledger')
+              : strings('signature_request.sign')
+          }
           onCancelPress={this.onReject}
           onConfirmPress={this.onConfirm}
           confirmButtonMode="sign"
@@ -393,6 +407,8 @@ class SignatureRequest extends PureComponent {
 }
 
 const mapStateToProps = (state) => ({
+  selectedAddress:
+    state.engine.backgroundState.PreferencesController.selectedAddress,
   networkType: selectProviderType(state),
   securityAlertResponse: state.signatureRequest.securityAlertResponse,
 });
