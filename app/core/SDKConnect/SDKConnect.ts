@@ -273,7 +273,7 @@ export class SDKConnect extends EventEmitter2 {
     }
   }
 
-  public async revalidateChannel({ channelId }: { channelId: string }) {
+  public revalidateChannel({ channelId }: { channelId: string }) {
     const hostname = AppConstants.MM_SDK.SDK_REMOTE_ORIGIN + channelId;
 
     this._approveHost({
