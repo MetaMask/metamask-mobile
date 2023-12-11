@@ -189,8 +189,8 @@ export class NpmLocation implements SnapLocation {
 
     assert(
       registry.pathname === '/' &&
-      registry.search === '' &&
-      registry.hash === '',
+        registry.search === '' &&
+        registry.hash === '',
     );
 
     assert(
@@ -420,16 +420,16 @@ async function fetchNpmTarball(
   };
   const icon: Uint8Array | undefined = locations.iconPath
     ? await readAndParseAt(
-      `${npmPackageDataLocation}/${locations.iconPath}`,
-    ).catch(() => undefined)
+        `${npmPackageDataLocation}/${locations.iconPath}`,
+      ).catch(() => undefined)
     : undefined;
 
   const iconData: NPMTarBallData | undefined =
     icon && locations.iconPath
       ? {
-        filePath: locations.iconPath,
-        data: icon,
-      }
+          filePath: locations.iconPath,
+          data: icon,
+        }
       : undefined;
 
   return [
