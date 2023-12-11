@@ -23,7 +23,7 @@ const ChangePassword = () => {
   return (
     <View
       style={styles.setting}
-      testID={SecurityPrivacyViewSelectorsIDs.CHANGE_PASSWORD_TITLE}
+      testID={SecurityPrivacyViewSelectorsIDs.CHANGE_PASSWORD_CONTAINER}
     >
       <Text style={styles.title}>
         {strings('password_reset.password_title')}

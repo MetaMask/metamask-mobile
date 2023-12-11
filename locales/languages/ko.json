@@ -201,6 +201,10 @@
     "security_alert_title": "보안 경고",
     "security_alert_desc": "계속하려면, 비밀번호를 켜거나 또는 회원님의 기기에서 지원되는 생체 인식 인증 방법을 켜야 합니다 (FaceID, TouchID 또는 지문)"
   },
+  "connect_hardware": {
+    "title_select_hardware": "하드웨어 지갑 연결",
+    "select_hardware": "사용하고자 하는 하드웨어 지갑을 선택하세요"
+  },
   "enter_password": {
     "title": "비밀번호를 입력하세요",
     "desc": "계속하려면 비밀번호를 입력하세요",
@@ -513,10 +517,10 @@
   },
   "accounts": {
     "create_new_account": "신규 계정 생성",
+    "qr_hardware": "QR 하드웨어",
     "import_account": "계정 가져오기",
     "connect_hardware": "하드웨어 지갑 연결",
     "imported": "가져옴",
-    "qr_hardware": "QR 하드웨어",
     "remove_account_title": "계정 제거",
     "remove_account_message": "해당 계정을 정말로 제거하시겠습니까?",
     "no": "아니오",
@@ -536,6 +540,7 @@
     "permissions": "권한",
     "revoke": "취소",
     "revoke_all": "모두 취소",
+    "ledger": "Ledger",
     "site_permission_to": "이 사이트가 보유한 권한:",
     "address_balance_activity_permission": "주소, 계정 잔액, 활동 보기",
     "suggest_transactions": "승인할 트랜잭션 추천",
@@ -569,7 +574,7 @@
     "tutorial": "튜토리얼",
     "description4": "Keystone(튜토리얼)",
     "description5": "1. 키스톤 잠금 해제",
-    "description6": "2. ··· 메뉴 클릭 후 동기화 >",
+    "description6": "2. Tap the ··· Menu, then go to Sync",
     "button_continue": "계속",
     "hint_text": "키스톤 지갑 스캔을 통해 ",
     "purpose_connect": "연결",
@@ -701,7 +706,7 @@
     "remove_network": "제거",
     "cancel_remove_network": "취소",
     "info_title": "MetaMask 소개",
-    "info_title_flask": "About MetaMask Flask",
+    "info_title_flask": "MetaMask Flask 소개",
     "experimental_title": "실험적",
     "experimental_desc": "지갑 연결 및 기타...",
     "legal_title": "법률",
@@ -801,7 +806,53 @@
     "autodetect_nft_desc": "MetaMask가 타사 서비스(예: OpenSea)를 이용하여 회원님의 NFT를 추가할 수 있도록 합니다. NFT를 자동 감지하면 이러한 서비스에 IP와 계정 주소가 노출됩니다. 이 기능을 켜면 IP 주소가 이더리움 주소와 연결되고 사기꾼이 에어드랍한 가짜 NFT가 표시될 수 있습니다. 이러한 위험을 피하기 위해 수동으로 토큰을 추가할 수 있습니다.",
     "incoming_transactions_title": "수신 트랜잭션 표시",
     "incoming_transactions_content": "IP 주소이는 선택한 네트워크에 따라 달라지며, 네트워크에는 이더리움 주소와 IP 주소가 노출됩니다.",
-    "display_nft_media_desc_new": "NFT 미디어와 데이터를 표시하면 IP 주소가 OpenSea나 기타 제삼자에게 노출될 수 있습니다. NFT 자동 감지는 이 기능을 이용하기 때문에 이 기능이 꺼져 있는 경우 사용할 수 없습니다. NFT 미디어가 IPFS에 완전히 자리를 잡으면 이 기능이 꺼져 있어도 계속 표시될 수 있습니다."
+    "display_nft_media_desc_new": "NFT 미디어와 데이터를 표시하면 IP 주소가 OpenSea나 기타 제삼자에게 노출될 수 있습니다. NFT 자동 감지는 이 기능을 이용하기 때문에 이 기능이 꺼져 있는 경우 사용할 수 없습니다. NFT 미디어가 IPFS에 완전히 자리를 잡으면 이 기능이 꺼져 있어도 계속 표시될 수 있습니다.",
+    "snaps": {
+      "title": "Snap",
+      "description": "Snap 개요 및 관리",
+      "snap_settings": {
+        "remove_snap_section_title": "Snap 제거",
+        "remove_snap_section_description": "이렇게 하면 Snap과 데이터가 삭제되고 허용된 권한이 취소됩니다.",
+        "remove_button_label": "{{snapName}} 제거"
+      },
+      "snap_details": {
+        "install_date": "{{date}}에 설치됨",
+        "install_origin": "Origin 설치",
+        "enabled": "활성화됨",
+        "version": "버전"
+      },
+      "snap_permissions": {
+        "approved_date": "{{date}}에 승인됨",
+        "permission_section_title": "권한",
+        "permission_requested_now": "지금 요청됨",
+        "human_readable_permission_titles": {
+          "endowment:long-running": "무제한 실행",
+          "endowment:network-access": "인터넷 액세스",
+          "endowment:transaction-insight": "트랜잭션 인사이트 표시",
+          "endowment:cronjob": "정기 작업 예약 및 실행",
+          "endowment:rpc": {
+            "snaps": "다른 Snap에서 이 Snap과 직접 커뮤니케이션하도록 허용합니다",
+            "dapps": "디앱에서 이 Snap과 직접 커뮤니케이션하도록 허용합니다"
+          },
+          "snap_confirm": "사용자 지정 대화 상자 표시",
+          "snap_manageState": "기기에 데이터를 보관하고 관리합니다",
+          "snap_notify": "알림 표시",
+          "snap_getBip32Entropy": "{{protocol}} 계정과 자산을 관리합니다",
+          "snap_getBip32PublicKey": "{{protocol}}에 대한 공개 키 보기",
+          "snap_getBip44Entropy": "{{protocol}} 계정과 자산을 관리합니다",
+          "snap_getEntropy": "이 Snap에 대해 고유한 키를 임의로 파생합니다",
+          "endowment:keyring": "소유:keyring",
+          "wallet_snap": "{{otherSnapName}}에 연결",
+          "endowment:webassembly": "WebAssembly 지원",
+          "endowment:ethereum-provider": "이더리움 공급자에 액세스",
+          "endowment:unknown": "알 수 없는 권한",
+          "snap_getLocale": "원하는 언어 보기",
+          "endowment:caveat:transaction-origin": "트랜잭션을 추천하는 웹사이트 출처 보기",
+          "endowment:extend-runtime": "실행 시간 연장",
+          "snap_dialog": "사용자 지정 대화 상자 표시"
+        }
+      }
+    }
   },
   "sdk": {
     "disconnect_title": "모든 사이트를 연결 해제할까요?",
@@ -910,6 +961,7 @@
     "add_collectible_button": "추가",
     "info": "정보",
     "swap": "스와프",
+    "bridge": "브릿지",
     "description": "설명",
     "totalSupply": "총 공급",
     "address": "주소",
@@ -921,6 +973,7 @@
     "buy_description": "현금으로 암호화폐 구입",
     "sell_description": "암호화폐를 현금에 매도",
     "swap_description": "토큰 간 교환",
+    "bridge_description": "네트워크간 토큰 전송",
     "send_description": "원하는 계정에 암호화폐 보내기",
     "receive_description": "암호화폐 수령",
     "chart_time_period": {
@@ -1020,6 +1073,7 @@
     "save": "저장",
     "speedup": "속도 향상",
     "sign_with_keystone": "키스톤으로 로그인",
+    "sign_with_ledger": "Ledger로 로그인",
     "from": "보내는 사람",
     "gas_fee": "가스비",
     "gas_fee_fast": "빠름",
@@ -1093,6 +1147,7 @@
     "not_enough_for_gas": "트랜잭션 수수료 지불이 필요한 {{ticker}} 0건 있습니다. 추가로 {{ticker}}(을)를 구매하거나 다른 계정에 예금하세요.",
     "send": "보내기",
     "confirm_with_qr_hardware": "키스톤으로 컨펌",
+    "confirm_with_ledger_hardware": "Ledger로 확인",
     "confirmed": "컨펌",
     "pending": "대기 중",
     "submitted": "제출",
@@ -1845,16 +1900,6 @@
     "apple_pay_provider_total_label": "{{provider}} (MetaMask 경유)",
     "buy_with": "다음으로 구매:",
     "plus_fee": "수수료 {{fee}} 추가",
-    "notifications": {
-      "purchase_failed_title": "{{currency}} 구매에 실패했습니다! 다시 시도하세요. 불편을 드려 죄송합니다!",
-      "purchase_failed_description": "결제 방법 및 카드 지원 여부를 확인하세요",
-      "purchase_cancelled_title": "구매가 취소되었습니다",
-      "purchase_cancelled_description": "결제 방법 및 카드 지원 여부를 확인하세요",
-      "purchase_completed_title": "{{amount}} {{currency}} 구매에 실패했습니다!",
-      "purchase_completed_description": "{{currency}} 이용이 불가능합니다",
-      "purchase_pending_title": "{{currency}} 구매 처리 중",
-      "purchase_pending_description": "몇 분 정도 소요됩니다..."
-    },
     "date": "날짜",
     "from": "보내는 사람",
     "to": "수신:",
@@ -2012,7 +2057,9 @@
       "select_country_registered": "현재 거주지와 상관없이 카드를 등록한 국가를 선택하세요.",
       "unsupported": "지원되지 않는 지역입니다",
       "unsupported_description": "고객님이 계신 지역으로 지원 범위를 확대하기 위해 최대한 노력하고 있습니다. 그 동안 암호화폐를 {{rampType}}할 수 있는 다른 방법에 대해서는 도움말을 참고하세요.",
-      "unsupported_link": "고객 지원 문서"
+      "unsupported_link": "고객 지원 문서",
+      "popular_regions": "인기 지역",
+      "regions": "지역"
     },
     "order_details": {
       "details_main": "주문 세부 정보",
@@ -2060,6 +2107,16 @@
       "hold_to_send": "길게 눌러 전송",
       "send": "전송",
       "sent": "전송 완료!"
+    },
+    "notifications": {
+      "purchase_failed_title": "{{currency}} 구매에 실패했습니다! 다시 시도하세요. 불편을 드려 죄송합니다!",
+      "purchase_failed_description": "결제 방법 및 카드 지원 여부를 확인하세요",
+      "purchase_cancelled_title": "구매가 취소되었습니다",
+      "purchase_cancelled_description": "결제 방법 및 카드 지원 여부를 확인하세요",
+      "purchase_completed_title": "{{amount}} {{currency}} 구매에 실패했습니다!",
+      "purchase_completed_description": "{{currency}} 이용이 불가능합니다",
+      "purchase_pending_title": "{{currency}} 구매 처리 중",
+      "purchase_pending_description": "몇 분 정도 소요됩니다..."
     }
   },
   "swaps": {
@@ -2152,6 +2209,7 @@
     "i_understand": "견적은 다음 기간 전에 만료됨을",
     "quotes_expire_in": "이해합니다:",
     "saving": "저장",
+    "n_quotes": "견적 {{numberOfQuotes}}건",
     "view_details": "세부 사항 확인",
     "estimated_gas_fee": "예상 가스비",
     "max_gas_fee": "최대 가스비",
@@ -2196,7 +2254,7 @@
     "quote_source_agg": {
       "1": "이 견적은 다음에서 제공됩니다:",
       "2": "집계소",
-      "3": "집계소는 서로 다른 탈중앙화 거래소에 회원님의 주문을 나눠 최고의 가격을 찾습니다."
+      "3": "가격을 비교하고 여러 탈중앙화 거래소로 주문을 분할합니다."
     },
     "quote_source_cnt": {
       "1": "이 견적은 다음에서 직접 제공됩니다:",
@@ -2637,7 +2695,12 @@
     "not_supported_error": "입력한 데이터의 버전 4만 지원됩니다.",
     "error_during_connection": "알 수 없는 오류 발생",
     "error_during_connection_message": "Ledger Nano X를 연결하는 데 약간의 문제가 발생했습니다. 다시 시도하려면 아래의 '재시도'를 탭하세요. 이는 가끔 모바일 MetaMask의 페어링을 시작할 때 Ledger Nano X에서 ETH 앱이 열려 있기 때문에 발생합니다.",
-    "how_to_install_eth_webview_title": "이더리움 앱 설치 방법"
+    "how_to_install_eth_webview_title": "이더리움 앱 설치 방법",
+    "nonce_too_low": "논스가 너무 낮습니다",
+    "nonce_too_low_error": "설정한 논스가 너무 낮습니다",
+    "ledger_beta_alert": "Ledger 통합 활성화",
+    "ledger_beta_alert_description": "실험적 기능입니다! 계속하면 실험적 기능을 사용하는 데 따른 위험 부담에 동의하는 것이 됩니다.",
+    "ledger_beta_cta": "계속"
   },
   "account_actions": {
     "edit_name": "계정 이름 편집",
