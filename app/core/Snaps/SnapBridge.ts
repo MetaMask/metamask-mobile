@@ -1,3 +1,4 @@
+///: BEGIN:ONLY_INCLUDE_IF(snaps)
 /* eslint-disable import/no-commonjs */
 /* eslint-disable @typescript-eslint/no-require-imports */
 /* eslint-disable @typescript-eslint/no-var-requires */
@@ -238,3 +239,4 @@ export default class SnapBridge {
     return result;
   }
 }
+///: END:ONLY_INCLUDE_IF

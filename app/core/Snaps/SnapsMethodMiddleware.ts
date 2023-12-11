@@ -1,3 +1,4 @@
+///: BEGIN:ONLY_INCLUDE_IF(snaps)
 import { createSnapsMethodMiddleware } from '@metamask/snaps-rpc-methods';
 import {
   RequestedPermissions,
@@ -38,3 +39,4 @@ const snapMethodMiddlewareBuilder = (
   });
 
 export default snapMethodMiddlewareBuilder;
+///: END:ONLY_INCLUDE_IF

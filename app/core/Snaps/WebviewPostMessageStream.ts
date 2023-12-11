@@ -1,3 +1,4 @@
+///: BEGIN:ONLY_INCLUDE_IF(snaps)
 // eslint-disable-next-line @typescript-eslint/ban-ts-comment
 // @ts-nocheck
 import {
@@ -79,3 +80,4 @@ export default class WebviewPostMessageStream extends BasePostMessageStream {
     console.log('[WebviewPostMessageStream LOG]: Destroy stream');
   }
 }
+///: END:ONLY_INCLUDE_IF

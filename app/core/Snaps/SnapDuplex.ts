@@ -1,3 +1,4 @@
+///: BEGIN:ONLY_INCLUDE_IF(snaps)
 import { Duplex } from 'readable-stream';
 import Logger from '../../util/Logger';
 
@@ -5,6 +6,8 @@ type StreamData = number | string | Record<string, unknown> | unknown[];
 
 export interface PostMessageEvent {
   origin: string;
+  // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+  // @ts-ignore This type is used inside the browser, so it's not available in react native
   source: typeof window;
 }
 
@@ -67,3 +70,4 @@ export default abstract class SnapDuplex extends Duplex {
     this._stream.destroy();
   }
 }
+///: END:ONLY_INCLUDE_IF

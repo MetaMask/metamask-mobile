@@ -1,3 +1,4 @@
+///: BEGIN:ONLY_INCLUDE_IF(snaps)
 // eslint-disable-next-line @typescript-eslint/ban-ts-comment
 // @ts-nocheck
 import { BasePostMessageStream } from '@metamask/post-message-stream';
@@ -59,3 +60,4 @@ export default class SnapWebviewPostMessageStream extends BasePostMessageStream 
     this.destroyed = true;
   }
 }
+///: END:ONLY_INCLUDE_IF
