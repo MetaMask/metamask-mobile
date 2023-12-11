@@ -42,7 +42,7 @@ pipelines:
   release_e2e_pipeline:
     stages:
       - run_e2e_ios_android_stage: {}
-      # - run_regression_e2e_ios_android_stage: {} Enable whenever regression tests are running successfully. 
+      # - run_regression_e2e_ios_android_stage: {} Enable whenever regression tests are running successfully.
       - notify: {}
   #PR_e2e_verfication (build ios & android), run iOS (smoke), emulator Android
   pr_smoke_e2e_pipeline:
@@ -60,7 +60,7 @@ pipelines:
       - deploy_flask_build_release: {}
       - release_notify: {}
 
- #PR_e2e_verfication (build ios & android), run iOS (regression), emulator Android
+  #PR_e2e_verfication (build ios & android), run iOS (regression), emulator Android
   pr_regression_e2e_pipeline:
     stages:
       - run_regression_e2e_ios_android_stage: {}
@@ -124,13 +124,13 @@ stages:
       - release_announcing_stores: {}
   create_build_flask_release:
     workflows:
-    - build_android_flask_release: {}
-    - build_ios_flask_release: {}
+      - build_android_flask_release: {}
+      - build_ios_flask_release: {}
   deploy_flask_build_release:
     workflows:
       - deploy_android_to_store:
           envs:
-            - MM_ANDROID_PACKAGE_NAME: "io.metamask.flask"
+            - MM_ANDROID_PACKAGE_NAME: 'io.metamask.flask'
       - deploy_ios_to_store:
 
 workflows:
@@ -313,23 +313,23 @@ workflows:
           title: All Tests Passed
           is_always_run: false
   # E2E Steps
-  
+
   ### This workflow uses a flag (TEST_SUITE) that defines the specific set of tests to be run.
-  ## in this instance Regression. In future iterations we can rename to ios_test_suite_selection & android_test_suite_selection      
+  ## in this instance Regression. In future iterations we can rename to ios_test_suite_selection & android_test_suite_selection
   ios_run_regression_tests:
     envs:
-    - TEST_SUITE: 'Regression'
+      - TEST_SUITE: 'Regression'
     after_run:
-    - ios_e2e_test
+      - ios_e2e_test
   android_run_regression_tests:
     meta:
       bitrise.io:
         stack: linux-docker-android-20.04
         machine_type_id: elite-xl
     envs:
-    - TEST_SUITE: 'Regression'
+      - TEST_SUITE: 'Regression'
     after_run:
-    - android_e2e_test
+      - android_e2e_test
 
   e2e_setup:
     steps:
@@ -853,10 +853,10 @@ workflows:
       - cocoapods-install@2: {}
       - script@1:
           inputs:
-          - content: |-
-              #!/usr/bin/env bash
-              node -v
-              METAMASK_BUILD_TYPE='flask' METAMASK_ENVIRONMENT='production' yarn build:ios:pre-flask
+            - content: |-
+                #!/usr/bin/env bash
+                node -v
+                METAMASK_BUILD_TYPE='flask' METAMASK_ENVIRONMENT='production' yarn build:ios:pre-flask
           title: iOS Sourcemaps & Build
           is_always_run: false
       - deploy-to-bitrise-io@2.2.3:
@@ -992,7 +992,7 @@ app:
       VERSION_NAME: 7.13.0
     - opts:
         is_expand: false
-      VERSION_NUMBER: 1222
+      VERSION_NUMBER: 1226
     - opts:
         is_expand: false
       FLASK_VERSION_NAME: 7.13.0
@@ -1030,4 +1030,3 @@ trigger_map:
     pipeline: create_qa_builds_pipeline
   - tag: 'dev-e2e-*'
     pipeline: pr_smoke_e2e_pipeline
-
