@@ -1,6 +1,6 @@
 import DefaultPreference from 'react-native-default-preference';
 import AppConstants from '../../AppConstants';
-import { Connection, ConnectionProps } from '../Connection';
+import { Connection, ConnectionProps } from '../Connection/Connection';
 import { DEFAULT_SESSION_TIMEOUT_MS } from '../SDKConnectConstants';
 import { SDKConnect } from './../SDKConnect';
 import connectToChannel from './connectToChannel';

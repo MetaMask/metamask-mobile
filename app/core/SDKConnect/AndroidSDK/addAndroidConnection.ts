@@ -1,4 +1,4 @@
-import { ConnectionProps } from '../Connection';
+import { ConnectionProps } from '../Connection/Connection';
 import SDKConnect from '../SDKConnect';
 import DevLogger from '../utils/DevLogger';
 import DefaultPreference from 'react-native-default-preference';

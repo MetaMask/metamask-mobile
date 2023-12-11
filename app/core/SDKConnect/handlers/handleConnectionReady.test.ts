@@ -3,7 +3,7 @@ import handleConnectionReady from './handleConnectionReady';
 import { ApprovalController } from '@metamask/approval-controller';
 import { OriginatorInfo } from '@metamask/sdk-communication-layer';
 import AppConstants from '../../../../app/core/AppConstants';
-import { Connection } from '../Connection';
+import { Connection } from '../Connection/Connection';
 import checkPermissions from './checkPermissions';
 
 import Engine from '../../Engine';

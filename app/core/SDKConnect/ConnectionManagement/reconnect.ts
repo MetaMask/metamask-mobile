@@ -1,4 +1,4 @@
-import { Connection, ConnectionProps } from '../Connection';
+import { Connection, ConnectionProps } from '../Connection/Connection';
 import SDKConnect from '../SDKConnect';
 import DevLogger from '../utils/DevLogger';
 import { waitForCondition } from '../utils/wait.util';

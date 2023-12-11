@@ -2,7 +2,7 @@ import { ApprovalController } from '@metamask/approval-controller';
 import { MessageType, OriginatorInfo } from '@metamask/sdk-communication-layer';
 import AppConstants from '../../../../app/core/AppConstants';
 import Logger from '../../../util/Logger';
-import { Connection } from '../Connection';
+import { Connection } from '../Connection/Connection';
 import DevLogger from '../utils/DevLogger';
 import checkPermissions from './checkPermissions';
 import handleSendMessage from './handleSendMessage';

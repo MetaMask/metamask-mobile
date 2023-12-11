@@ -1,6 +1,6 @@
 import { ConnectionStatus, EventType } from '@metamask/sdk-communication-layer';
 import AppConstants from '../../AppConstants';
-import { Connection } from '../Connection';
+import { Connection } from '../Connection/Connection';
 import SDKConnect from '../SDKConnect';
 import watchConnection from './watchConnection';
 

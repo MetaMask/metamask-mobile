@@ -2,7 +2,7 @@ import { OriginatorInfo } from '@metamask/sdk-communication-layer';
 import { PROTOCOLS } from '../../../constants/deeplinks';
 import AppConstants from '../../AppConstants';
 import BackgroundBridge from '../../BackgroundBridge/BackgroundBridge';
-import { Connection } from '../Connection';
+import { Connection } from '../Connection/Connection';
 import DevLogger from '../utils/DevLogger';
 import setupBridge from './setupBridge';
 

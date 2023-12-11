@@ -1,11 +1,8 @@
-import Logger from '../../util/Logger';
-import AppConstants from '../AppConstants';
-import BackgroundBridge from '../BackgroundBridge/BackgroundBridge';
-import Engine from '../Engine';
+import Logger from '../../../util/Logger';
+import AppConstants from '../../AppConstants';
+import BackgroundBridge from '../../BackgroundBridge/BackgroundBridge';
 
-import { KeyringController } from '@metamask/keyring-controller';
 import {
-  CommunicationLayerMessage,
   CommunicationLayerPreference,
   EventType,
   MessageType,
@@ -14,18 +11,15 @@ import {
 } from '@metamask/sdk-communication-layer';
 import { NavigationContainerRef } from '@react-navigation/native';
 import { EventEmitter2 } from 'eventemitter2';
-import { Platform } from 'react-native';
-import Routes from '../../../app/constants/navigation/Routes';
-import Device from '../../util/device';
-import { Minimizer } from '../NativeModules';
-import BatchRPCManager from './BatchRPCManager';
-import RPCQueueManager from './RPCQueueManager';
-import { ApprovedHosts, approveHostProps } from './SDKConnect';
-import { CONNECTION_LOADING_EVENT } from './SDKConnectConstants';
-import { handleConnectionMessage } from './handlers/handleConnectionMessage';
-import handleConnectionReady from './handlers/handleConnectionReady';
-import DevLogger from './utils/DevLogger';
-import { waitForKeychainUnlocked } from './utils/wait.util';
+import BatchRPCManager from '../BatchRPCManager';
+import RPCQueueManager from '../RPCQueueManager';
+import { ApprovedHosts, approveHostProps } from '../SDKConnect';
+import { CONNECTION_LOADING_EVENT } from '../SDKConnectConstants';
+import DevLogger from '../utils/DevLogger';
+import handleClientsConnected from './EventListenersHandlers/handleClientsConnected';
+import handleClientsDisconnected from './EventListenersHandlers/handleClientsDisconnected';
+import handleClientsReady from './EventListenersHandlers/handleClientsReady';
+import handleReceivedMessage from './EventListenersHandlers/handleReceivedMessage';
 
 export interface ConnectionProps {
   id: string;
@@ -200,123 +194,29 @@ export class Connection extends EventEmitter2 {
       },
     });
 
-    this.remote.on(EventType.CLIENTS_CONNECTED, async () => {
-      DevLogger.log(
-        `Connection::CLIENTS_CONNECTED id=${this.channelId} receivedDisconnect=${this.receivedDisconnect} origin=${this.origin}`,
-      );
-      this.setLoading(true);
-      this.receivedDisconnect = false;
+    this.remote.on(EventType.CLIENTS_CONNECTED, handleClientsConnected(this));
 
-      try {
-        // Auto hide 3seconds after keychain has unlocked if 'ready' wasn't received
-        const keyringController = (
-          Engine.context as { KeyringController: KeyringController }
-        ).KeyringController;
-        await waitForKeychainUnlocked({ keyringController });
-        setTimeout(() => {
-          if (this._loading) {
-            DevLogger.log(
-              `Connection::CLIENTS_CONNECTED auto-hide loading after 4s`,
-            );
-            this.setLoading(false);
-          }
-        }, 4000);
-      } catch (error) {
-        Logger.log(
-          error as Error,
-          `Connection::CLIENTS_CONNECTED error while waiting for keychain to be unlocked`,
-        );
-      }
-    });
-
-    this.remote.on(EventType.CLIENTS_DISCONNECTED, () => {
-      this.setLoading(false);
-      DevLogger.log(
-        `Connection::CLIENTS_DISCONNECTED id=${
-          this.channelId
-        } paused=${this.remote.isPaused()} ready=${this.isReady} origin=${
-          this.origin
-        }`,
-      );
-      // Disapprove a given host everytime there is a disconnection to prevent hijacking.
-      if (!this.remote.isPaused()) {
-        // don't disapprove on deeplink
-        if (this.origin !== AppConstants.DEEPLINKS.ORIGIN_DEEPLINK) {
-          disapprove(this.channelId);
-        }
-        this.initialConnection = false;
-        this.otps = undefined;
-      }
-
-      // detect interruption of connection (can happen on mobile browser ios) - We need to warm the user to redo the connection.
-      if (!this.receivedClientsReady && !this.remote.isPaused()) {
-        // SOCKET CONNECTION WAS INTERRUPTED
-        console.warn(
-          `Connected::clients_disconnected dApp connection disconnected before ready`,
-        );
-        // Terminate to prevent bypassing initial approval when auto-reconnect on deeplink.
-        this.disconnect({ terminate: true, context: 'CLIENTS_DISCONNECTED' });
-      }
-
-      this.receivedDisconnect = true;
-      // Reset connection state
-      this.isReady = false;
-      this.receivedClientsReady = false;
-      DevLogger.log(
-        `Connection::CLIENTS_DISCONNECTED id=${this.channelId} switch isReady ==> false`,
-      );
-    });
+    this.remote.on(
+      EventType.CLIENTS_DISCONNECTED,
+      handleClientsDisconnected({
+        instance: this,
+        disapprove,
+      }),
+    );
 
     this.remote.on(
       EventType.CLIENTS_READY,
-      async (clientsReadyMsg: { originatorInfo: OriginatorInfo }) => {
-        try {
-          await handleConnectionReady({
-            originatorInfo: clientsReadyMsg.originatorInfo,
-            engine: Engine,
-            updateOriginatorInfos,
-            approveHost,
-            onError: (error) => {
-              Logger.error(error, '');
-              // Redirect on deeplinks
-              if (this.trigger === 'deeplink') {
-                // Check for iOS 17 and above to use a custom modal, as Minimizer.goBack() is incompatible with these versions
-                if (
-                  Device.isIos() &&
-                  parseInt(Platform.Version as string) >= 17
-                ) {
-                  this.navigation?.navigate(Routes.MODAL.ROOT_MODAL_FLOW, {
-                    screen: Routes.SHEET.RETURN_TO_DAPP_MODAL,
-                  });
-                } else {
-                  Minimizer.goBack();
-                }
-              }
-            },
-            disapprove,
-            connection: this,
-          });
-        } catch (error) {
-          DevLogger.log(`Connection::CLIENTS_READY error`, error);
-          // Send error message to user
-        }
-      },
+      handleClientsReady({
+        instance: this,
+        disapprove,
+        updateOriginatorInfos,
+        approveHost,
+      }),
     );
 
     this.remote.on(
       EventType.MESSAGE,
-      async (message: CommunicationLayerMessage) => {
-        try {
-          await handleConnectionMessage({
-            message,
-            engine: Engine,
-            connection: this,
-          });
-        } catch (error) {
-          Logger.error(error as Error, 'Connection not initialized');
-          throw error;
-        }
-      },
+      handleReceivedMessage({ instance: this }),
     );
   }
 

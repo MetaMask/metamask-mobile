@@ -1,4 +1,4 @@
-import { Connection } from '../Connection';
+import { Connection } from '../Connection/Connection';
 import SDKConnect from '../SDKConnect';
 import { waitForCondition } from '../utils/wait.util';
 import reconnect from './reconnect';
