@@ -281,13 +281,9 @@ class MetaMetrics implements IMetaMetrics {
   public static async getInstance(): Promise<IMetaMetrics> {
     if (!this.instance) {
       const config = {
-        writeKey: (__DEV__
-          ? process.env.SEGMENT_DEV_WRITE_KEY
-          : process.env.SEGMENT_PROD_WRITE_KEY) as string,
+        writeKey: process.env.SEGMENT_WRITE_KEY as string,
+        proxy: process.env.SEGMENT_PROXY_URL as string,
         debug: __DEV__,
-        proxy: __DEV__
-          ? process.env.SEGMENT_DEV_PROXY_URL
-          : process.env.SEGMENT_PROD_PROXY_URL,
         anonymousId: METAMETRICS_ANONYMOUS_ID,
       };
       this.instance = new MetaMetrics(createClient(config));
