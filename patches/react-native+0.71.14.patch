@@ -1,14 +1,16 @@
 diff --git a/node_modules/react-native/Libraries/Core/InitializeCore.js b/node_modules/react-native/Libraries/Core/InitializeCore.js
-index 1379ffd..d1a2b3f 100644
+index 1379ffd..e59f511 100644
 --- a/node_modules/react-native/Libraries/Core/InitializeCore.js
 +++ b/node_modules/react-native/Libraries/Core/InitializeCore.js
-@@ -24,26 +24,51 @@
+@@ -24,26 +24,53 @@
 
  'use strict';
 
 +const Platform = require('../Utilities/Platform');
 +
-+if (Platform.OS === 'ios' && !global?.HermesInternal && !__DEV__) {
++const IS_LOCKDOWN_ENABLED = false; // Temporarily false until CI issues investigated and resolved
++
++if (IS_LOCKDOWN_ENABLED && Platform.OS === 'ios' && !global?.HermesInternal && !__DEV__) {
 +  require('../../../../ses.cjs'); // ses@0.18.8
 +  /**
 +   * Without consoleTaming: 'unsafe' causes:
