@@ -386,7 +386,7 @@ workflows:
           inputs:
             - content: |-
                 #!/usr/bin/env bash
-                ./scripts/cache/setup-cache.sh
+                ./scripts/cache/setup-ccache.sh
                 if [ "$TEST_SUITE" = "Regression" ]; then
                   TEST_SUITE="Regression"
                 else
@@ -490,7 +490,7 @@ workflows:
           inputs:
             - content: |-
                 #!/usr/bin/env bash
-                ./scripts/cache/setup-cache.sh
+                ./scripts/cache/setup-ccache.sh
                 if [ "$TEST_SUITE" = "Regression" ]; then
                   TEST_SUITE="Regression"
                 else
