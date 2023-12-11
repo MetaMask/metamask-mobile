@@ -30,6 +30,7 @@ exports[`ListItemMultiSelect should render snapshot correctly 1`] = `
         Object {
           "alignItems": "center",
           "flexDirection": "row",
+          "height": 24,
           "marginRight": -8,
           "opacity": 1,
         }
