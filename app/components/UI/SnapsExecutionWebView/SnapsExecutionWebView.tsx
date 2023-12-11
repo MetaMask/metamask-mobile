@@ -38,8 +38,8 @@ const SnapsExecutionWebView = () => {
 
   const envURI = {
     prod: 'https://gantunesr.github.io/mobile-execution-environment/',
-    localIOS: 'http://localhost:3001/mobile-execution-environment',
-    localAndroid: 'http://10.0.2.2:3001/mobile-execution-environment',
+    //localIOS: 'http://localhost:3001/mobile-execution-environment',
+    // localAndroid: 'http://10.0.2.2:3001/mobile-execution-environment',
   };
 
   return (
