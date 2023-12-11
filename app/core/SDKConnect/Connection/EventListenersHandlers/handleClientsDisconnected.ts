@@ -1,5 +1,4 @@
 import AppConstants from '../../../AppConstants';
-
 import DevLogger from '../../utils/DevLogger';
 import { Connection } from '../Connection';
 

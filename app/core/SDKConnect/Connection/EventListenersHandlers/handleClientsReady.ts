@@ -1,10 +1,9 @@
-import Logger from '../../../../util/Logger';
-import Engine from '../../../Engine';
-
 import { OriginatorInfo } from '@metamask/sdk-communication-layer';
 import { Platform } from 'react-native';
 import Routes from '../../../../constants/navigation/Routes';
+import Logger from '../../../../util/Logger';
 import Device from '../../../../util/device';
+import Engine from '../../../Engine';
 import { Minimizer } from '../../../NativeModules';
 import { approveHostProps } from '../../SDKConnect';
 import handleConnectionReady from '../../handlers/handleConnectionReady';

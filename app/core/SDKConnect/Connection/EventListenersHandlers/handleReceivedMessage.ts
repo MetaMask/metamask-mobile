@@ -1,7 +1,6 @@
+import { CommunicationLayerMessage } from '@metamask/sdk-communication-layer';
 import Logger from '../../../../util/Logger';
 import Engine from '../../../Engine';
-
-import { CommunicationLayerMessage } from '@metamask/sdk-communication-layer';
 import { handleConnectionMessage } from '../../handlers/handleConnectionMessage';
 import { Connection } from '../Connection';
 

@@ -1,25 +1,32 @@
-import Logger from '../../../util/Logger';
-import AppConstants from '../../AppConstants';
-import BackgroundBridge from '../../BackgroundBridge/BackgroundBridge';
-
 import {
   CommunicationLayerPreference,
   EventType,
-  MessageType,
   OriginatorInfo,
   RemoteCommunication,
 } from '@metamask/sdk-communication-layer';
 import { NavigationContainerRef } from '@react-navigation/native';
 import { EventEmitter2 } from 'eventemitter2';
+import AppConstants from '../../AppConstants';
+import BackgroundBridge from '../../BackgroundBridge/BackgroundBridge';
 import BatchRPCManager from '../BatchRPCManager';
 import RPCQueueManager from '../RPCQueueManager';
 import { ApprovedHosts, approveHostProps } from '../SDKConnect';
 import { CONNECTION_LOADING_EVENT } from '../SDKConnectConstants';
 import DevLogger from '../utils/DevLogger';
-import handleClientsConnected from './EventListenersHandlers/handleClientsConnected';
-import handleClientsDisconnected from './EventListenersHandlers/handleClientsDisconnected';
-import handleClientsReady from './EventListenersHandlers/handleClientsReady';
-import handleReceivedMessage from './EventListenersHandlers/handleReceivedMessage';
+import sendAuthorized from './Auth/sendAuthorized';
+import {
+  connect,
+  disconnect,
+  pause,
+  removeConnection,
+  resume,
+} from './ConnectionLifecycle';
+import {
+  handleClientsConnected,
+  handleClientsDisconnected,
+  handleClientsReady,
+  handleReceivedMessage,
+} from './EventListenersHandlers';
 
 export interface ConnectionProps {
   id: string;
@@ -138,6 +145,7 @@ export class Connection extends EventEmitter2 {
     }) => void;
   }) {
     super();
+
     this.origin = origin;
     this.trigger = trigger;
     this.channelId = id;
@@ -153,6 +161,7 @@ export class Connection extends EventEmitter2 {
     this.rpcQueueManager = rpcQueueManager;
     // batchRPCManager should be contained to current connection
     this.batchRPCManager = new BatchRPCManager(id);
+
     this.approveHost = approveHost;
     this.getApprovedHosts = getApprovedHosts;
     this.disapprove = disapprove;
@@ -221,28 +230,11 @@ export class Connection extends EventEmitter2 {
   }
 
   public connect({ withKeyExchange }: { withKeyExchange: boolean }) {
-    DevLogger.log(
-      `Connection::connect() withKeyExchange=${withKeyExchange} id=${this.channelId}`,
-    );
-    this.remote.connectToChannel(this.channelId, withKeyExchange);
-    this.receivedDisconnect = false;
-    this.setLoading(true);
+    return connect({ instance: this, withKeyExchange });
   }
 
   sendAuthorized(force?: boolean) {
-    if (this.authorizedSent && force !== true) {
-      // Prevent double sending authorized event.
-      return;
-    }
-
-    this.remote
-      .sendMessage({ type: MessageType.AUTHORIZED })
-      .then(() => {
-        this.authorizedSent = true;
-      })
-      .catch((err) => {
-        Logger.log(err, `sendAuthorized() failed to send 'authorized'`);
-      });
+    return sendAuthorized({ instance: this, force });
   }
 
   setLoading(loading: boolean) {
@@ -258,15 +250,11 @@ export class Connection extends EventEmitter2 {
   }
 
   pause() {
-    this.remote.pause();
-    this.isResumed = false;
+    return pause({ instance: this });
   }
 
   resume() {
-    DevLogger.log(`Connection::resume() id=${this.channelId}`);
-    this.remote.resume();
-    this.isResumed = true;
-    this.setLoading(false);
+    return resume({ instance: this });
   }
 
   setTrigger(trigger: ConnectionProps['trigger']) {
@@ -277,20 +265,7 @@ export class Connection extends EventEmitter2 {
   }
 
   disconnect({ terminate, context }: { terminate: boolean; context?: string }) {
-    DevLogger.log(
-      `Connection::disconnect() context=${context} id=${this.channelId} terminate=${terminate}`,
-    );
-    this.receivedClientsReady = false;
-    if (terminate) {
-      this.remote
-        .sendMessage({
-          type: MessageType.TERMINATE,
-        })
-        .catch((err) => {
-          Logger.log(err, `Connection failed to send terminate`);
-        });
-    }
-    this.remote.disconnect();
+    return disconnect({ instance: this, terminate, context });
   }
 
   removeConnection({
@@ -300,15 +275,6 @@ export class Connection extends EventEmitter2 {
     terminate: boolean;
     context?: string;
   }) {
-    this.isReady = false;
-    this.lastAuthorized = 0;
-    this.authorizedSent = false;
-    DevLogger.log(
-      `Connection::removeConnection() context=${context} id=${this.channelId}`,
-    );
-    this.disapprove(this.channelId);
-    this.disconnect({ terminate, context: 'Connection::removeConnection' });
-    this.backgroundBridge?.onDisconnect();
-    this.setLoading(false);
+    return removeConnection({ instance: this, terminate, context });
   }
 }
