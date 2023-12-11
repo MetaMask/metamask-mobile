@@ -1,12 +1,14 @@
 {
   "blockaid_banner": {
     "approval_farming_description": "このリクエストを承認すると、詐欺が判明しているサードパーティに資産をすべて奪われる可能性があります。",
-    "attribution": "セキュリティアドバイスの提供元:",
+    "attribution": "提供元:",
     "attribution_link_name": "Blockaid",
     "blur_farming_description": "このリクエストを承認すると、Blurに登録されている資産を誰かに盗まれる可能性があります。",
     "deceptive_request_title": "これは虚偽のリクエストです",
     "failed_title": "リクエストが安全でない可能性があります",
     "failed_description": "エラーが発生したため、このリクエストはセキュリティプロバイダーにより確認されませんでした。慎重に進めてください。",
+    "loading_title": "この要求は現在シミュレーション中です。完了を待つことをお勧めします。",
+    "loading_complete_title": "シミュレーションが完了しました。進める前にこの要求を確認してください。",
     "malicious_domain_description": "悪質なドメインとやり取りしています。このリクエストを承認すると、資産を失う可能性があります。",
     "other_description": "このリクエストを承認すると、資産を失う可能性があります。",
     "raw_signature_farming_description": "このリクエストを承認すると、資産を失う可能性があります。",
@@ -198,6 +200,10 @@
     "clean_vault_error": "ストレージの制限に達したためMetaMaskでエラーが発生しました。ローカルデータが破損しています。MetaMaskを再インストールして、シークレットリカバリーフレーズで復元してください。",
     "security_alert_title": "セキュリティアラート",
     "security_alert_desc": "先に進むには、パスコードもしくはデバイスが対応している生体認証方法 (FaceID、TouchID、または指紋) をオンにする必要があります"
+  },
+  "connect_hardware": {
+    "title_select_hardware": "ハードウェアウォレットの接続",
+    "select_hardware": "使用するハードウェアウォレットを選択してください"
   },
   "enter_password": {
     "title": "パスワードを入力してください",
@@ -511,6 +517,7 @@
   },
   "accounts": {
     "create_new_account": "新規アカウントの作成",
+    "qr_hardware": "QRハードウェア",
     "import_account": "アカウントのインポート",
     "connect_hardware": "ハードウェアウォレットの接続",
     "imported": "インポートされました",
@@ -533,11 +540,20 @@
     "permissions": "許可",
     "revoke": "取り消す",
     "revoke_all": "すべて取り消す",
+    "ledger": "Ledger",
     "site_permission_to": "このサイトには次のアクセス許可があります:",
     "address_balance_activity_permission": "アドレス、アカウント残高、アクティビティの表示",
     "suggest_transactions": "承認するトランザクションの提案",
     "disconnect": "接続解除",
-    "disconnect_all_accounts": "すべてのアカウントの接続を解除"
+    "disconnect_all_accounts": "すべてのアカウントの接続を解除",
+    "deceptive_site_ahead": "偽装サイトにアクセスしようとしています",
+    "deceptive_site_desc": "アクセスしようとしているサイトは安全ではありません。攻撃者が危険な行為に誘導しようとする可能性があります。",
+    "learn_more": "詳細",
+    "advisory_by": "イーサリアムフィッシング検知システムとPhishFortからの忠告",
+    "potential_threat": "潜在的な脅威には次のものが含まれます",
+    "fake_metamask": "MetaMaskの偽バージョン",
+    "srp_theft": "シークレットリカバリーフレーズまたはパスワードの窃取",
+    "malicious_transactions": "資産の窃取に繋がる悪質なトランザクション"
   },
   "toast": {
     "connected_and_active": "接続済みかつ有効です。",
@@ -558,7 +574,7 @@
     "tutorial": "チュートリアル",
     "description4": "Keystone (チュートリアル)",
     "description5": "1. Keystoneのロックを解除します",
-    "description6": "2. 「···」メニューをタップして、「同期」に移動します >",
+    "description6": "2. Tap the ··· Menu, then go to Sync",
     "button_continue": "続行",
     "hint_text": "Keystoneウォレットをスキャンして ",
     "purpose_connect": "接続",
@@ -690,6 +706,7 @@
     "remove_network": "削除",
     "cancel_remove_network": "キャンセル",
     "info_title": "MetaMaskについて",
+    "info_title_flask": "MetaMask Flaskについて",
     "experimental_title": "試験運用",
     "experimental_desc": "WalletConnectなど...",
     "legal_title": "法的情報",
@@ -789,7 +806,53 @@
     "autodetect_nft_desc": "MetaMaskが、サードパーティサービス (例: OpenSea) を使って、ユーザーが所有するNFTを追加することを許可します。NFTの自動検出機能を利用すると、ユーザーのIPとアカウントアドレスがこれらのサービスに公開されます。この機能を有効にした場合、ユーザーのIPアドレスとイーサリアムアドレスが紐付けられ、詐欺師によりエアドロップされた偽のNFTが表示される可能性があります。このリスクを回避するため、手動でトークンを追加することもできます。",
     "incoming_transactions_title": "受信トランザクションを表示",
     "incoming_transactions_content": "これは、ユーザーの選択するネットワークに依存し、イーサリアムアドレスおよびIPアドレスが公開されます。",
-    "display_nft_media_desc_new": "NFTのメディアとデータを表示した場合、IPアドレスがOpenSeaをはじめとするサードパーティに公開されます。NFTの自動検出はこの機能に依存しており、無効にすると利用できなくなります。NFTメディアがIPFSに完全に保管されている場合は、この機能が無効になっていても表示されます。"
+    "display_nft_media_desc_new": "NFTのメディアとデータを表示した場合、IPアドレスがOpenSeaをはじめとするサードパーティに公開されます。NFTの自動検出はこの機能に依存しており、無効にすると利用できなくなります。NFTメディアがIPFSに完全に保管されている場合は、この機能が無効になっていても表示されます。",
+    "snaps": {
+      "title": "Snap",
+      "description": "Snapの概要と管理",
+      "snap_settings": {
+        "remove_snap_section_title": "Snapの削除",
+        "remove_snap_section_description": "この操作により、Snapとそのデータが削除され、与えられたアクセス許可が取り消されます。",
+        "remove_button_label": "{{snapName}}を削除"
+      },
+      "snap_details": {
+        "install_date": "{{date}}にインストール",
+        "install_origin": "インストール元",
+        "enabled": "有効",
+        "version": "バージョン"
+      },
+      "snap_permissions": {
+        "approved_date": "{{date}}に承認",
+        "permission_section_title": "アクセス許可",
+        "permission_requested_now": "現在リクエスト中",
+        "human_readable_permission_titles": {
+          "endowment:long-running": "無期限で実行",
+          "endowment:network-access": "インターネットへのアクセス",
+          "endowment:transaction-insight": "トランザクションインサイトの表示",
+          "endowment:cronjob": "定期的なアクションのスケジュール設定と実行",
+          "endowment:rpc": {
+            "snaps": "他のSnapがこのSnapと直接やり取りできるようにします",
+            "dapps": "DAppがこのSnapと直接やり取りできるようにします"
+          },
+          "snap_confirm": "カスタムダイアログの表示",
+          "snap_manageState": "デバイスへのデータの保存と管理",
+          "snap_notify": "通知の表示",
+          "snap_getBip32Entropy": "{{protocol}}アカウントとアセットのコントロール",
+          "snap_getBip32PublicKey": "{{protocol}}の公開鍵の表示",
+          "snap_getBip44Entropy": "{{protocol}}アカウントとアセットのコントロール",
+          "snap_getEntropy": "このSnapに固有の任意のキーの導出",
+          "endowment:keyring": "endowment:keyring",
+          "wallet_snap": "{{otherSnapName}}への接続",
+          "endowment:webassembly": "WebAssemblyのサポート",
+          "endowment:ethereum-provider": "イーサリアムプロバイダーへのアクセス",
+          "endowment:unknown": "不明なアクセス許可",
+          "snap_getLocale": "言語設定の表示",
+          "endowment:caveat:transaction-origin": "トランザクションを提案しているWebサイトの提供元の確認",
+          "endowment:extend-runtime": "ランタイムの延長",
+          "snap_dialog": "カスタムダイアログの表示"
+        }
+      }
+    }
   },
   "sdk": {
     "disconnect_title": "すべてのサイトとの接続を解除しますか？",
@@ -801,9 +864,9 @@
     "unkown_dapp": "DApp名が利用できません",
     "no_connections": "接続が見つかりません"
   },
-  "sdk_return_to_app_modal":{
+  "sdk_return_to_app_modal": {
     "title": "アプリに戻る",
-    "description": "サービスを続けて利用するためにアプリに戻ってください。"
+    "description": "サービスの使用を続けるには、アプリに戻ってください。"
   },
   "sdk_feedback_modal": {
     "ok": "OK",
@@ -892,11 +955,13 @@
   "asset_overview": {
     "send_button": "送信",
     "buy_button": "購入",
+    "sell_button": "売却",
     "receive_button": "受取",
     "portfolio_button": "Portfolio",
     "add_collectible_button": "追加",
     "info": "情報",
     "swap": "スワップ",
+    "bridge": "ブリッジ",
     "description": "説明",
     "totalSupply": "合計供給量",
     "address": "アドレス",
@@ -906,7 +971,9 @@
     "for_help": "をご覧ください。",
     "troubleshoot": "トラブルシューティング",
     "buy_description": "現金で仮想通貨を購入します",
+    "sell_description": "仮想通貨を売って現金化します",
     "swap_description": "トークン同士を交換します",
+    "bridge_description": "ネットワーク間でトークンを転送します",
     "send_description": "仮想通貨を任意のアカウントに送金します",
     "receive_description": "仮想通貨を受け取ります",
     "chart_time_period": {
@@ -995,7 +1062,6 @@
     "confirm": "確定"
   },
   "transaction": {
-    "hardware": "ハードウェア",
     "alert": "アラート",
     "amount": "金額",
     "next": "次へ",
@@ -1007,6 +1073,7 @@
     "save": "保存",
     "speedup": "高速化",
     "sign_with_keystone": "Keystoneで署名",
+    "sign_with_ledger": "Ledgerで署名",
     "from": "送信元",
     "gas_fee": "ガス代",
     "gas_fee_fast": "高速",
@@ -1080,6 +1147,7 @@
     "not_enough_for_gas": "トランザクション手数料を支払うための{{ticker}}がアカウントにありません。{{ticker}}を購入するか、別のアカウントから入金してください。",
     "send": "送信",
     "confirm_with_qr_hardware": "Keystoneで確認",
+    "confirm_with_ledger_hardware": "Ledgerで確定",
     "confirmed": "確定済み",
     "pending": "保留中",
     "submitted": "送信済み",
@@ -1373,7 +1441,8 @@
     "you_can": "または",
     "add_network": "他のネットワークを手動で追加できます。",
     "select_network": "ネットワークを選択",
-    "show_test_networks": "テストネットワークを表示"
+    "show_test_networks": "テストネットワークを表示",
+    "deprecated_goerli": "イーサリアムのプロトコルの変更により、Goerliテストネットワークは安定して動作しない可能性があり、近日中に非推奨になります。"
   },
   "select": {
     "cancel": "キャンセル",
@@ -1732,7 +1801,10 @@
     "wallet_connect_dapps_cta": "セッションを表示",
     "network_not_supported": "現在のネットワークはサポートされていません",
     "security_alerts": "セキュリティアラート",
+    "security_alerts_desc": "この機能は、トランザクションと署名要求をローカルで確認することで、悪質な行為に関するアラートを発します。要求を承認する前に、必ず独自のデューデリジェンスを行ってください。この機能がすべての悪質な行為を検出するという保証はありません。この機能を有効にすることで、プロバイダーの利用規約に同意したものとみなされます。",
+    "select_provider": "希望のプロバイダーを選択してください",
     "blockaid": "Blockaid",
+    "blockaid_desc": "プライバシー保護 - サードパーティとデータは一切共有されません。イーサリアムメインネットで利用可能。",
     "switch_network": "メインネットまたはSepoliaに切り替えてください"
   },
   "walletconnect_sessions": {
@@ -1828,16 +1900,6 @@
     "apple_pay_provider_total_label": "{{provider}} (MetaMask経由)",
     "buy_with": "購入方法:",
     "plus_fee": "プラス{{fee}}の手数料",
-    "notifications": {
-      "purchase_failed_title": "{{currency}}の購入に失敗しました。もう一度お試しください。ご不便をおかけし申し訳ございません。",
-      "purchase_failed_description": "支払方法とカード対応を確認",
-      "purchase_cancelled_title": "購入がキャンセルされました",
-      "purchase_cancelled_description": "支払方法とカード対応を確認",
-      "purchase_completed_title": "{{amount}}{{currency}}の購入が完了しました。",
-      "purchase_completed_description": "{{currency}}が利用可能になりました",
-      "purchase_pending_title": "{{currency}}の購入を処理中です",
-      "purchase_pending_description": "数分で完了します..."
-    },
     "date": "日付",
     "from": "送信元",
     "to": "送信先",
@@ -1874,14 +1936,39 @@
     }
   },
   "fiat_on_ramp_aggregator": {
+    "buy": "購入",
+    "sell": "売却",
+    "orders": "注文",
+    "All": "すべて",
+    "Buy": "購入",
+    "Sell": "売却",
+    "Purchased": "購入しました",
+    "Sold": "売却しました",
+    "empty_buy_orders_list": "購入注文がありません",
+    "empty_sell_orders_list": "売却注文がありません",
+    "purchased_currency": "{{currency}}を購入しました",
+    "sold_currency": "{{currency}}を売却しました",
+    "order_status_pending": "保留中",
+    "order_status_processing": "処理中",
+    "order_status_completed": "完了",
+    "order_status_failed": "失敗",
+    "order_status_cancelled": "キャンセル済み",
+    "network_switcher": {
+      "title": "サポートされていない{{rampType}}ネットワーク",
+      "description": "仮想通貨を{{rampType}}するには、サポートされているネットワークに切り替える必要があります",
+      "no_networks_found": "サポートされているネットワークが見つかりませんでした"
+    },
     "onboarding": {
       "what_to_expect": "今後の流れ",
       "quotes": "当社の仮想通貨購入機能は提携ベンダーからクォートを集め、それらのソースからのクォートを提供し、待ち時間なしで直接ウォレットに仮想通貨を入金します。",
+      "quotes_sell": "MetaMaskで直接キャッシュアウトできるようになりました！画面上の詳しい案内に従って、信頼できるプロバイダーから最新のクォートを入手できます。",
       "benefits": "ガス代が安く、数々のネットワーク、トークン、支払方法がサポートされています",
+      "benefits_sell": "仮想通貨から現地通貨へのオフランプが今まで以上に簡単になりました。",
       "get_started": "開始"
     },
     "payment_method": {
       "payment_method": "支払方法",
+      "cash_destination": "現金の送金先",
       "instant": "即時",
       "less_than": "<",
       "minute": "分",
@@ -1893,9 +1980,14 @@
       "lowest_limit": "最も低い限度額",
       "medium_limit": "中くらいの限度額",
       "highest_limit": "最も高い限度額",
+      "lowest_sell_limit": "最も低い売却限度額",
+      "medium_sell_limit": "中くらいの売却限度額",
+      "highest_sell_limit": "最も高い売却限度額",
       "continue_to_amount": "金額に進む",
       "no_payment_methods_title": "{{regionName}}で使用できる支払方法がありません",
+      "no_cash_destinations_title": "{{regionName}}に現金の送金先がありません",
       "no_payment_methods_description": "現在この地域でサポートされている支払方法がありません。新しいサポート対象地域を頻繁に拡大していますので、近いうちにもう一度ご確認ください。\n\n{{regionName}}を誤って選択した場合は、下のボタンをクリックして地域をリセットしてください。",
+      "no_cash_destinations_description": "現在この地域でサポートされている現金の送金先がありません。新しいサポート対象地域を頻繁に拡大していますので、近いうちにもう一度ご確認ください。\n\n{{regionName}}を誤って選択した場合は、下のボタンをクリックして地域をリセットしてください。",
       "reset_region": "地域をリセット"
     },
     "continue": "続行",
@@ -1906,8 +1998,12 @@
     "quotes_timeout": "クォートのタイムアウト",
     "request_new_quotes": "最も有利な最新のレートを入手できるよう、新しいクォートをリクエストしてください",
     "amount_to_buy": "購入額",
+    "amount_to_sell": "売却額",
     "want_to_buy": "購入希望",
+    "want_to_sell": "購入希望",
+    "current_balance": "現在の残高",
     "amount": "金額",
+    "send_cash_to": "現金の送金先",
     "get_quotes": "クォートを入手",
     "done": "完了",
     "fetching_quotes": "クォートを取得中",
@@ -1918,6 +2014,7 @@
     "search_by_currency": "通貨を検索",
     "update_payment_method": "支払方法を更新",
     "select_payment_method": "支払方法を選択",
+    "select_cash_destination": "現金の送金先を選択してください",
     "select_region_currency": "地域の通貨を選択",
     "no_tokens_match": "「{{searchString}}」に一致するトークンがありません",
     "no_currency_match": "「{{searchString}}」に一致する通貨がありません",
@@ -1926,23 +2023,31 @@
     "continue_with": "{{provider}}で続行",
     "minimum": "最低入金額は",
     "maximum": "最高入金額は",
+    "insufficient_balance": "この金額は残高を超えています",
+    "enter_larger_amount": "続行するにはより大きな金額を入力してください",
+    "enter_smaller_amount": "続行するにはより小さな金額を入力してください",
     "try_again": "もう一度やり直してください",
     "error": "エラー",
     "something_went_wrong": "何か問題が発生しました",
     "report_this_issue": "この問題を報告する",
     "no_providers_available": "利用可能なプロバイダーがありません",
     "try_different_amount_to_buy_input": "別の支払方法を選ぶか、購入希望額を増減させてみてください！",
+    "try_different_amount_to_sell_input": "別のキャッシュアウト先を選択するか、売却希望額を増減させてみてください！",
     "webview_received_error": "WebViewがエラーステータスコード {{code}} を受信しました",
     "no_tokens_available_title": "利用可能なトークンがありません",
     "no_tokens_available": "現在{{network}}に選択した支払方法で購入可能なトークンがありません。",
+    "no_sell_tokens_available": "{{network}}上に現在、選択した現金の送金先で売却可能なトークンがありません。",
     "this_network": "このネットワーク",
     "change_payment_method": "支払方法を変更",
+    "change_cash_destination": "現金の送金先を変更してください",
     "try_different_region": "他の地域を試す",
     "return_home": "ホーム画面に戻る",
     "region": {
       "buy_crypto_tokens": "クリプトトークンを購入",
+      "sell_crypto_tokens": "クリプトトークンを売却",
       "title": "地域を選択してください",
       "description": "支払方法と利用可能なトークンは、サードパーティ提携プロバイダーにより決定され、地域や提携プロバイダーのサポート状況により異なる可能性があります。",
+      "sell_description": "現金の送金先オプションとトークンは、地域によって異なる場合があります。",
       "search_by_country": "国で検索",
       "search_by_state": "州で検索",
       "no_region_results": "一致する地域がありません",
@@ -1951,18 +2056,23 @@
       "select_region_title": "地域を選択してください",
       "select_country_registered": "カードが登録されている国を選択してください (現在位置とは関係ありません)。",
       "unsupported": "地域がサポートされていません",
-      "unsupported_description": "お客様の地域もなるべく早くサポートできるよう一生懸命取り組んでおります。さしあたり、他の仮想通貨の購入方法に関するサポート記事をご覧ください。",
-      "unsupported_link": "サポート記事にアクセス"
+      "unsupported_description": "お客様の地域もなるべく早くサポートできるよう一生懸命取り組んでおります。さしあたり、他の仮想通貨の{{rampType}}方法に関するサポート記事をご覧ください。",
+      "unsupported_link": "サポート記事にアクセス",
+      "popular_regions": "人気の地域",
+      "regions": "地域"
     },
     "order_details": {
       "details_main": "注文詳細",
       "successful": "注文成功！",
       "your": "お客様の",
       "available_in_account": "がアカウントで利用可能になりました",
+      "delayed_bank_transfer": "銀行口座で現金を確認できるまでに数日かかる可能性があります。",
       "crypto": "仮想通貨",
       "failed": "注文失敗",
       "cancelled": "注文がキャンセルされました",
+      "pending": "注文保留中",
       "failed_description": "問題が発生し、{{provider}}で注文を完了させることができませんでした。もう一度試すか、別のプロバイダーをご利用ください。",
+      "continue_order_description": "注文を続けるには、このページの最下部にあるボタンを選択する必要があります。",
       "the_provider": "プロバイダー",
       "processing": "注文を処理中",
       "processing_card_description": "デビット・クレジットでの購入には通常数分かかります",
@@ -1970,8 +2080,10 @@
       "details": "注文詳細",
       "via": "方法:",
       "purchase_amount": "合計購入額",
+      "amount_received_total": "合計受取額",
       "etherscan": "完全な詳細を表示:",
-      "another_purchase": "別の購入を行う",
+      "start_new_order": "新規注文を開始",
+      "continue_order": "この注文を続行",
       "questions": "ご質問がございますか？",
       "contact_support": "サポートへのお問い合わせ",
       "support": "サポート",
@@ -1979,11 +2091,32 @@
       "id": "注文ID",
       "date_and_time": "日付と時刻",
       "payment_method": "支払方法",
+      "destination": "送金先",
       "token_amount": "トークンの金額",
+      "token_quantity_sold": "売却トークン数",
       "exchange_rate": "為替レート",
       "total_fees": "手数料合計",
       "amount": "金額",
+      "value": "価値",
       "a_block_explorer": "ブロックエクスプローラー"
+    },
+    "send_transaction": {
+      "sell_crypto": "仮想通貨を売却",
+      "send_description": "{{cryptocurrency}}を{{provider}}に送金し、そこから{{paymentMethod}}に現金が送金されます",
+      "next": "次へ",
+      "hold_to_send": "長押しして送信",
+      "send": "送信",
+      "sent": "送信しました！"
+    },
+    "notifications": {
+      "purchase_failed_title": "{{currency}}の購入に失敗しました。もう一度お試しください。ご不便をおかけし申し訳ございません。",
+      "purchase_failed_description": "支払方法とカード対応を確認",
+      "purchase_cancelled_title": "購入がキャンセルされました",
+      "purchase_cancelled_description": "支払方法とカード対応を確認",
+      "purchase_completed_title": "{{amount}}{{currency}}の購入が完了しました。",
+      "purchase_completed_description": "{{currency}}が利用可能になりました",
+      "purchase_pending_title": "{{currency}}の購入を処理中です",
+      "purchase_pending_description": "数分で完了します..."
     }
   },
   "swaps": {
@@ -2076,7 +2209,7 @@
     "i_understand": "理解しています",
     "quotes_expire_in": "クォートの期限切れまで残り",
     "saving": "保存中",
-    "using_best_quote": "最適なクォートを使用中",
+    "n_quotes": "{{numberOfQuotes}}件のクォート",
     "view_details": "詳細を表示",
     "estimated_gas_fee": "ガス代の見積もり",
     "max_gas_fee": "最大ガス代",
@@ -2089,10 +2222,6 @@
     "completed_swap": "スワップ！",
     "metamask_swap_fee": "MetaMaskのスワップ手数料",
     "fee_text": {
-      "get_the": "トップの",
-      "best_price": "流動性",
-      "from_the": "供給源から",
-      "top_liquidity": "毎回最も有利な価格を利用。",
       "fee_is_applied": "このクォートには、{{fee}}の手数料が自動的に含まれています。この手数料は、MetaMaskの流動性プロバイダー情報集約ソフトウェアの使用ライセンスの代金として支払うものです。",
       "fee_is_not_applied": "MetaMaskはこのクォートに追加手数料を含めません。"
     },
@@ -2125,7 +2254,7 @@
     "quote_source_agg": {
       "1": "このクォートは",
       "2": "アグリゲーターから提供されています。",
-      "3": "アグリゲーターは注文を異なる分散型取引所間で分割し、最も有利な価格を見つけます。"
+      "3": "価格を比較し、異なる分散型取引所に注文を分散させます。"
     },
     "quote_source_cnt": {
       "1": "このクォートは直接",
@@ -2197,13 +2326,17 @@
     "ok": "OK"
   },
   "whats_new": {
-    "title": "新機能をご覧ください",
+    "title": "新機能",
     "blockaid": {
       "title": "セキュリティアラートで安全を確保",
-      "description_1": "Blockaidによるセキュリティアラートを使用して、プライバシーを守りつつ既知の詐欺を回避しましょう。",
+      "description_1": "イーサリアムメインネットで、Blockaidによるセキュリティアラートを使用して、プライバシーを守りつつ既知の詐欺を回避しましょう。",
       "description_2": "要求を承認する前に、必ず独自のデューデリジェンスを行ってください。",
-      "description_3": "OpenSeaのセキュリティアラートを有効にしていた場合、この機能に移行されました。",
       "action_text": "セキュリティアラートを有効にする"
+    },
+    "sell": {
+      "title": "キャッシュアウトが簡単になりました",
+      "description": "MetaMaskで直接仮想通貨を売却！信頼できるプロバイダーからのクォートを取得して、毎回簡単・迅速・安全に仮想通貨を売却できます。",
+      "action_text": "お試しください"
     }
   },
   "invalid_network": {
@@ -2238,7 +2371,16 @@
     "unrecognized_chain": "このカスタムネットワークは認識されていません",
     "invalid_chain": "このチェーンIDの%{rpcUrl}は、chainid.networkの情報と一致していません",
     "alert_recommend": "チェーンIDを確認することを",
-    "alert_verify": "お勧めします"
+    "alert_verify": "お勧めします",
+    "warning_subtext_new": {
+      "1": "MetaMaskはカスタムネットワークの検証を行わないため、信頼できるネットワークだけを承認してください。",
+      "2": "ネットワークのセキュリティリスクと詐欺に関する詳細をご覧ください。"
+    },
+    "invalid_rpc_url": "このネットワークURLは、このチェーンIDの既知のプロバイダーと一致しません。",
+    "invalid_chain_token_decimals": "このネットワークの小数桁数はチェーンIDと一致していないようです。",
+    "unrecognized_chain_name": "このネットワークの表示名はチェーンIDと一致していないようです。",
+    "unrecognized_chain_ticker": "このネットワークのシンボルはこのチェーンIDと一致していないようです。",
+    "unrecognized_chain_id": "このネットワークを認識できません。続行する前に、チェーンIDが正しいことを確認してください。"
   },
   "media_player": {
     "loading": "読み込み中...",
@@ -2553,7 +2695,12 @@
     "not_supported_error": "型付きデータ署名のバージョン4のみがサポートされています。",
     "error_during_connection": "不明なエラーが発生しました",
     "error_during_connection_message": "Ledger Nano Xへの接続中に若干の問題が発生しました。下の「再試行」をタップして、もう一度お試しください。この問題は、Ledger Nano XのETHアプリが、MetaMask Mobileとのペアリングプロセスの開始時に開いているのが原因で起こることがあります。",
-    "how_to_install_eth_webview_title": "イーサリアムアプリのインストール方法"
+    "how_to_install_eth_webview_title": "イーサリアムアプリのインストール方法",
+    "nonce_too_low": "ナンスが低すぎます",
+    "nonce_too_low_error": "設定されたナンスが低すぎます",
+    "ledger_beta_alert": "Ledgerの統合を有効にしています",
+    "ledger_beta_alert_description": "試験運用の機能を発見しました！続行することで、この試験運用の機能を自己リスクで使用することに同意したものとみなされます。",
+    "ledger_beta_cta": "続行"
   },
   "account_actions": {
     "edit_name": "アカウント名を編集",

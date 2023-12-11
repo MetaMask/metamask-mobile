@@ -29,6 +29,9 @@ import {
   REQUEST_SETTINGS,
   SECURITY_SETTINGS,
 } from '../../../../wdio/screen-objects/testIDs/Screens/Settings.testIds';
+///: BEGIN:ONLY_INCLUDE_IF(flask)
+import { createSnapsSettingsListNavDetails } from '../Snaps/SnapsSettingsList/SnapsSettingsList';
+///: END:ONLY_INCLUDE_IF
 
 const createStyles = (colors: Colors) =>
   StyleSheet.create({
@@ -114,6 +117,12 @@ const Settings = () => {
     });
   };
 
+  ///: BEGIN:ONLY_INCLUDE_IF(flask)
+  const onPressSnaps = () => {
+    navigation.navigate(...createSnapsSettingsListNavDetails());
+  };
+  ///: END:ONLY_INCLUDE_IF
+
   const submitFeedback = () => {
     trackEvent(MetaMetricsEvents.NAVIGATION_TAPS_SEND_FEEDBACK);
     goToBrowserUrl(
@@ -167,6 +176,12 @@ const Settings = () => {
     trackEvent(MetaMetricsEvents.NAVIGATION_TAPS_LOGOUT);
   };
 
+  let aboutMetaMaskTitle = strings('app_settings.info_title');
+
+  ///: BEGIN:ONLY_INCLUDE_IF(flask)
+  aboutMetaMaskTitle = strings('app_settings.info_title_flask');
+  ///: END:ONLY_INCLUDE_IF
+
   return (
     <ScrollView style={styles.wrapper}>
       <SettingsDrawer
@@ -200,6 +215,17 @@ const Settings = () => {
         onPress={onPressNetworks}
         testID={NETWORKS_SETTINGS}
       />
+      {
+        ///: BEGIN:ONLY_INCLUDE_IF(flask)
+      }
+      <SettingsDrawer
+        title={strings('app_settings.snaps.title')}
+        description={strings('app_settings.snaps.description')}
+        onPress={onPressSnaps}
+      />
+      {
+        ///: END:ONLY_INCLUDE_IF
+      }
       <SettingsDrawer
         title={strings('app_settings.fiat_on_ramp.title')}
         description={strings('app_settings.fiat_on_ramp.description')}
@@ -213,7 +239,7 @@ const Settings = () => {
         testID={EXPERIMENTAL_SETTINGS}
       />
       <SettingsDrawer
-        title={strings('app_settings.info_title')}
+        title={aboutMetaMaskTitle}
         onPress={onPressInfo}
         testID={ABOUT_METAMASK_SETTINGS}
       />

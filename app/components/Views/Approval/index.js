@@ -22,6 +22,7 @@ import {
   getAddressAccountType,
   isQRHardwareAccount,
   safeToChecksumAddress,
+  isHardwareAccount,
 } from '../../../util/address';
 import { WALLET_CONNECT_ORIGIN } from '../../../util/walletconnect';
 import Logger from '../../../util/Logger';
@@ -29,6 +30,7 @@ import AnalyticsV2 from '../../../util/analyticsV2';
 import { GAS_ESTIMATE_TYPES } from '@metamask/gas-fee-controller';
 import { KEYSTONE_TX_CANCELED } from '../../../constants/error';
 import { ThemeContext, mockTheme } from '../../../util/theme';
+import { createLedgerTransactionModalNavDetails } from '../../UI/LedgerModals/LedgerTransactionModal';
 import {
   TX_CANCELLED,
   TX_CONFIRMED,
@@ -42,6 +44,9 @@ import {
 } from '../../../selectors/networkController';
 import { selectSelectedAddress } from '../../../selectors/preferencesController';
 import { ethErrors } from 'eth-rpc-errors';
+import { getLedgerKeyring } from '../../../core/Ledger/Ledger';
+import ExtendedKeyringTypes from '../../../constants/keyringTypes';
+import { getBlockaidMetricsParams } from '../../../util/blockaid';
 
 const REVIEW = 'review';
 const EDIT = 'edit';
@@ -271,10 +276,32 @@ class Approval extends PureComponent {
     };
   };
 
-  getAnalyticsParams = ({ gasEstimateType, gasSelected } = {}) => {
+  getBlockaidMetricsParams = () => {
+    const { transaction } = this.props;
+
+    let blockaidParams = {};
+
+    if (
+      transaction.id === transaction.currentTransactionSecurityAlertResponse?.id
+    ) {
+      blockaidParams = getBlockaidMetricsParams(
+        transaction.currentTransactionSecurityAlertResponse?.response,
+      );
+    }
+
+    return blockaidParams;
+  };
+
+  getAnalyticsParams = ({
+    gasEstimateType,
+    gasSelected,
+    withBlockaid,
+  } = {}) => {
     try {
       const { chainId, transaction, selectedAddress } = this.props;
       const { selectedAsset } = transaction;
+      const blockaidParams = {};
+
       return {
         account_type: getAddressAccountType(selectedAddress),
         dapp_host_name: transaction?.origin,
@@ -289,6 +316,7 @@ class Approval extends PureComponent {
           : this.originIsWalletConnect
           ? AppConstants.REQUEST_SOURCES.WC
           : AppConstants.REQUEST_SOURCES.IN_APP_BROWSER,
+        ...blockaidParams,
       };
     } catch (error) {
       return {};
@@ -322,10 +350,40 @@ class Approval extends PureComponent {
     this.props.hideModal();
     this.state.mode === REVIEW && this.trackOnCancel();
     this.showWalletConnectNotification();
-    AnalyticsV2.trackEvent(
-      MetaMetricsEvents.DAPP_TRANSACTION_CANCELLED,
-      this.getAnalyticsParams(),
-    );
+    AnalyticsV2.trackEvent(MetaMetricsEvents.DAPP_TRANSACTION_CANCELLED, {
+      ...this.getAnalyticsParams(),
+      ...this.getBlockaidMetricsParams(),
+    });
+  };
+
+  onLedgerConfirmation = (approve, transactionId, gaParams) => {
+    const { TransactionController } = Engine.context;
+    try {
+      //manual cancel from UI when transaction is awaiting from ledger confirmation
+      if (!approve) {
+        //cancelTransaction will change transaction status to reject and throw error from event listener
+        //component is being unmounted, error will be unhandled, hence remove listener before cancel
+        TransactionController.hub.removeAllListeners(
+          `${transactionId}:finished`,
+        );
+
+        TransactionController.cancelTransaction(transactionId);
+
+        this.showWalletConnectNotification();
+
+        AnalyticsV2.trackEvent(
+          MetaMetricsEvents.DAPP_TRANSACTION_CANCELLED,
+          gaParams,
+        );
+      } else {
+        this.showWalletConnectNotification(true);
+      }
+    } finally {
+      AnalyticsV2.trackEvent(
+        MetaMetricsEvents.DAPP_TRANSACTION_COMPLETED,
+        gaParams,
+      );
+    }
   };
 
   /**
@@ -351,7 +409,12 @@ class Approval extends PureComponent {
       transaction.nonce = undefined;
     }
 
+    const isLedgerAccount = isHardwareAccount(transaction.from, [
+      ExtendedKeyringTypes.ledger,
+    ]);
+
     this.setState({ transactionConfirmed: true });
+
     try {
       if (assetType === 'ETH') {
         transaction = this.prepareTransaction({
@@ -372,8 +435,10 @@ class Approval extends PureComponent {
         `${transaction.id}:finished`,
         (transactionMeta) => {
           if (transactionMeta.status === 'submitted') {
-            this.setState({ transactionHandled: true });
-            this.props.hideModal();
+            if (!isLedgerAccount) {
+              this.setState({ transactionHandled: true });
+              this.props.hideModal();
+            }
             NotificationManager.watchSubmittedTransaction({
               ...transactionMeta,
               assetType: transaction.assetType,
@@ -388,6 +453,29 @@ class Approval extends PureComponent {
       const updatedTx = { ...fullTx, transaction };
       await TransactionController.updateTransaction(updatedTx);
       await KeyringController.resetQRKeyringState();
+
+      // For Ledger Accounts we handover the signing to the confirmation flow
+      if (isLedgerAccount) {
+        const ledgerKeyring = await getLedgerKeyring();
+        this.setState({ transactionHandled: true });
+        this.setState({ transactionConfirmed: false });
+
+        this.props.navigation.navigate(
+          ...createLedgerTransactionModalNavDetails({
+            transactionId: transaction.id,
+            deviceId: ledgerKeyring.deviceId,
+            onConfirmationComplete: (approve) =>
+              this.onLedgerConfirmation(
+                approve,
+                transaction.id,
+                this.getAnalyticsParams({ gasEstimateType, gasSelected }),
+              ),
+            type: 'signTransaction',
+          }),
+        );
+        this.props.hideModal();
+        return;
+      }
       await ApprovalController.accept(transaction.id, undefined, {
         waitForResult: true,
       });
@@ -412,10 +500,13 @@ class Approval extends PureComponent {
       }
       this.setState({ transactionHandled: false });
     }
-    AnalyticsV2.trackEvent(
-      MetaMetricsEvents.DAPP_TRANSACTION_COMPLETED,
-      this.getAnalyticsParams({ gasEstimateType, gasSelected }),
-    );
+    AnalyticsV2.trackEvent(MetaMetricsEvents.DAPP_TRANSACTION_COMPLETED, {
+      ...this.getAnalyticsParams({
+        gasEstimateType,
+        gasSelected,
+      }),
+      ...this.getBlockaidMetricsParams(),
+    });
     this.setState({ transactionConfirmed: false });
   };
 

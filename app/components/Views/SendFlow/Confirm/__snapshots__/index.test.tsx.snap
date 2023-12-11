@@ -159,7 +159,6 @@ exports[`Confirm should render correctly 1`] = `
                     "justifyContent": "center",
                   }
                 }
-                testID="navbar-title-text"
               >
                 <Text
                   numberOfLines={1}
@@ -207,7 +206,6 @@ exports[`Confirm should render correctly 1`] = `
                         "fontWeight": "400",
                       }
                     }
-                    testID="navbar-title-networks"
                   >
                     Ethereum Main Network
                   </Text>
@@ -470,45 +468,16 @@ exports[`Confirm should render correctly 1`] = `
                             }
                           >
                             <Text
+                              accessibilityRole="text"
                               style={
-                                Array [
-                                  Object {
-                                    "color": "#24272A",
-                                    "fontFamily": "EuclidCircularB-Regular",
-                                    "fontSize": 30,
-                                    "fontWeight": "400",
-                                    "marginVertical": 2,
-                                  },
-                                  undefined,
-                                  undefined,
-                                  undefined,
-                                  undefined,
-                                  undefined,
-                                  undefined,
-                                  undefined,
-                                  undefined,
-                                  undefined,
-                                  undefined,
-                                  undefined,
-                                  undefined,
-                                  undefined,
-                                  undefined,
-                                  undefined,
-                                  undefined,
-                                  undefined,
-                                  undefined,
-                                  undefined,
-                                  undefined,
-                                  undefined,
-                                  undefined,
-                                  undefined,
-                                  Object {
-                                    "color": "#24272A",
-                                    "fontFamily": "EuclidCircularB-Regular",
-                                    "fontSize": 16,
-                                    "fontWeight": "400",
-                                  },
-                                ]
+                                Object {
+                                  "color": "#24272A",
+                                  "fontFamily": "EuclidCircularB-Regular",
+                                  "fontSize": 16,
+                                  "fontWeight": "400",
+                                  "letterSpacing": 0,
+                                  "lineHeight": 22,
+                                }
                               }
                             >
                               From:
@@ -625,88 +594,30 @@ exports[`Confirm should render correctly 1`] = `
                                 }
                               >
                                 <Text
+                                  accessibilityRole="text"
                                   style={
-                                    Array [
-                                      Object {
-                                        "color": "#24272A",
-                                        "fontFamily": "EuclidCircularB-Regular",
-                                        "fontSize": 30,
-                                        "fontWeight": "400",
-                                        "marginVertical": 2,
-                                      },
-                                      undefined,
-                                      undefined,
-                                      undefined,
-                                      undefined,
-                                      undefined,
-                                      undefined,
-                                      undefined,
-                                      undefined,
-                                      undefined,
-                                      undefined,
-                                      undefined,
-                                      undefined,
-                                      undefined,
-                                      undefined,
-                                      undefined,
-                                      undefined,
-                                      undefined,
-                                      undefined,
-                                      undefined,
-                                      undefined,
-                                      undefined,
-                                      undefined,
-                                      undefined,
-                                      Object {
-                                        "color": "#24272A",
-                                        "fontFamily": "EuclidCircularB-Regular",
-                                        "fontSize": 14,
-                                        "fontWeight": "400",
-                                      },
-                                    ]
+                                    Object {
+                                      "color": "#24272A",
+                                      "fontFamily": "EuclidCircularB-Regular",
+                                      "fontSize": 14,
+                                      "fontWeight": "400",
+                                      "letterSpacing": 0,
+                                      "lineHeight": 22,
+                                    }
                                   }
                                 />
                               </View>
                               <Text
+                                accessibilityRole="text"
                                 style={
-                                  Array [
-                                    Object {
-                                      "color": "#24272A",
-                                      "fontFamily": "EuclidCircularB-Regular",
-                                      "fontSize": 30,
-                                      "fontWeight": "400",
-                                      "marginVertical": 2,
-                                    },
-                                    undefined,
-                                    undefined,
-                                    undefined,
-                                    undefined,
-                                    undefined,
-                                    undefined,
-                                    undefined,
-                                    undefined,
-                                    undefined,
-                                    undefined,
-                                    undefined,
-                                    undefined,
-                                    undefined,
-                                    undefined,
-                                    undefined,
-                                    undefined,
-                                    undefined,
-                                    undefined,
-                                    undefined,
-                                    undefined,
-                                    undefined,
-                                    undefined,
-                                    undefined,
-                                    Object {
-                                      "color": "#535A61",
-                                      "fontFamily": "EuclidCircularB-Regular",
-                                      "fontSize": 12,
-                                      "fontWeight": "400",
-                                    },
-                                  ]
+                                  Object {
+                                    "color": "#535A61",
+                                    "fontFamily": "EuclidCircularB-Regular",
+                                    "fontSize": 12,
+                                    "fontWeight": "400",
+                                    "letterSpacing": 0,
+                                    "lineHeight": 22,
+                                  }
                                 }
                               >
                                 Balance: 0
@@ -738,45 +649,16 @@ exports[`Confirm should render correctly 1`] = `
                             }
                           >
                             <Text
+                              accessibilityRole="text"
                               style={
-                                Array [
-                                  Object {
-                                    "color": "#24272A",
-                                    "fontFamily": "EuclidCircularB-Regular",
-                                    "fontSize": 30,
-                                    "fontWeight": "400",
-                                    "marginVertical": 2,
-                                  },
-                                  undefined,
-                                  undefined,
-                                  undefined,
-                                  undefined,
-                                  undefined,
-                                  undefined,
-                                  undefined,
-                                  undefined,
-                                  undefined,
-                                  undefined,
-                                  undefined,
-                                  undefined,
-                                  undefined,
-                                  undefined,
-                                  undefined,
-                                  undefined,
-                                  undefined,
-                                  undefined,
-                                  undefined,
-                                  undefined,
-                                  undefined,
-                                  undefined,
-                                  undefined,
-                                  Object {
-                                    "color": "#24272A",
-                                    "fontFamily": "EuclidCircularB-Regular",
-                                    "fontSize": 16,
-                                    "fontWeight": "400",
-                                  },
-                                ]
+                                Object {
+                                  "color": "#24272A",
+                                  "fontFamily": "EuclidCircularB-Regular",
+                                  "fontSize": 16,
+                                  "fontWeight": "400",
+                                  "letterSpacing": 0,
+                                  "lineHeight": 22,
+                                }
                               }
                             >
                               To:
@@ -903,46 +785,17 @@ exports[`Confirm should render correctly 1`] = `
                                       }
                                     >
                                       <Text
+                                        accessibilityRole="text"
                                         numberOfLines={1}
                                         style={
-                                          Array [
-                                            Object {
-                                              "color": "#24272A",
-                                              "fontFamily": "EuclidCircularB-Regular",
-                                              "fontSize": 30,
-                                              "fontWeight": "400",
-                                              "marginVertical": 2,
-                                            },
-                                            undefined,
-                                            undefined,
-                                            undefined,
-                                            undefined,
-                                            undefined,
-                                            undefined,
-                                            undefined,
-                                            undefined,
-                                            undefined,
-                                            undefined,
-                                            undefined,
-                                            undefined,
-                                            undefined,
-                                            undefined,
-                                            undefined,
-                                            undefined,
-                                            undefined,
-                                            undefined,
-                                            undefined,
-                                            undefined,
-                                            undefined,
-                                            undefined,
-                                            undefined,
-                                            Object {
-                                              "color": "#24272A",
-                                              "fontFamily": "EuclidCircularB-Regular",
-                                              "fontSize": 14,
-                                              "fontWeight": "400",
-                                            },
-                                          ]
+                                          Object {
+                                            "color": "#24272A",
+                                            "fontFamily": "EuclidCircularB-Regular",
+                                            "fontSize": 14,
+                                            "fontWeight": "400",
+                                            "letterSpacing": 0,
+                                            "lineHeight": 22,
+                                          }
                                         }
                                       >
                                         0xe64d...920A
