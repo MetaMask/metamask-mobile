@@ -10,24 +10,19 @@ const createStyles = (colors: Colors) =>
       padding: 24,
       paddingBottom: 48,
     },
-    title: {
-      ...(fontStyles.normal as any),
-      lineHeight: 20,
-      paddingTop: 4,
-      marginTop: -4,
-    },
     boldTitle: {
       ...(fontStyles.bold as any),
       marginTop: 18,
       marginBottom: 18,
     },
     heading: {
-      ...fontStyles.normal,
-      marginTop: 18,
+      marginTop: 16,
     },
     desc: {
-      lineHeight: 20,
-      marginTop: 12,
+      marginTop: 8,
+    },
+    accessory: {
+      marginTop: 16,
     },
     setting: {
       marginVertical: 16,

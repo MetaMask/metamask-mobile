@@ -9,7 +9,6 @@ import Text, {
   TextColor,
 } from '../../../../component-library/components/Texts/Text';
 import { getNavigationOptionsTitle } from '../../../UI/Navbar';
-import StyledButton from '../../../UI/StyledButton';
 import SECURITY_ALERTS_TOGGLE_TEST_ID from './constants';
 import { isBlockaidFeatureEnabled } from '../../../../util/blockaid';
 import Routes from '../../../../constants/navigation/Routes';
@@ -17,6 +16,11 @@ import { useSelector, useDispatch } from 'react-redux';
 import { Props } from './ExperimentalSettings.types';
 import createStyles from './ExperimentalSettings.styles';
 import { selectIsSecurityAlertsEnabled } from '../../../../selectors/preferencesController';
+import Button, {
+  ButtonVariants,
+  ButtonSize,
+  ButtonWidthTypes,
+} from '../../../../component-library/components/Buttons/Button';
 
 /**
  * Main view for app Experimental Settings
@@ -68,11 +72,7 @@ const ExperimentalSettings = ({ navigation, route }: Props) => {
 
   const WalletConnectSettings: FC = () => (
     <>
-      <Text
-        color={TextColor.Default}
-        variant={TextVariant.HeadingMD}
-        style={styles.title}
-      >
+      <Text color={TextColor.Default} variant={TextVariant.BodyLGMedium}>
         {strings('experimental_settings.wallet_connect_dapps')}
       </Text>
       <Text
@@ -82,13 +82,13 @@ const ExperimentalSettings = ({ navigation, route }: Props) => {
       >
         {strings('experimental_settings.wallet_connect_dapps_desc')}
       </Text>
-      <StyledButton
-        type="normal"
+      <Button
+        variant={ButtonVariants.Secondary}
+        label={strings('experimental_settings.wallet_connect_dapps_cta')}
         onPress={goToWalletConnectSessions}
-        containerStyle={styles.clearHistoryConfirm}
-      >
-        {strings('experimental_settings.wallet_connect_dapps_cta')}
-      </StyledButton>
+        width={ButtonWidthTypes.Full}
+        style={styles.accessory}
+      />
     </>
   );
 
@@ -119,7 +119,7 @@ const ExperimentalSettings = ({ navigation, route }: Props) => {
       </View>
       <Text
         color={TextColor.Default}
-        variant={TextVariant.HeadingSM}
+        variant={TextVariant.BodyLGMedium}
         style={styles.boldTitle}
       >
         {strings('experimental_settings.select_provider')}
@@ -159,7 +159,8 @@ const ExperimentalSettings = ({ navigation, route }: Props) => {
   return (
     <ScrollView style={styles.wrapper}>
       <WalletConnectSettings />
-      {isBlockaidFeatureEnabled() && <BlockaidSettings />}
+      <BlockaidSettings />
+      {/* {isBlockaidFeatureEnabled() && <BlockaidSettings />} */}
     </ScrollView>
   );
 };
