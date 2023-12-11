@@ -4037,14 +4037,15 @@
     eth-phishing-detect "^1.2.0"
     punycode "^2.1.1"
 
-"@metamask/ppom-validator@^0.11.0":
-  version "0.11.0"
-  resolved "https://registry.yarnpkg.com/@metamask/ppom-validator/-/ppom-validator-0.11.0.tgz#4ffbaf602464a7a7fd9ad00fc1b117515f60683f"
-  integrity sha512-CayIrUeXAL+HHx9CZ3c1dGiG7Ib7yzkyjurpovPTiR7v2+5CPDzXHaXvV2ltRBrVMD5UznYxWq+lXrZ0uuwmsA==
+"@metamask/ppom-validator@^0.14.0":
+  version "0.14.0"
+  resolved "https://registry.yarnpkg.com/@metamask/ppom-validator/-/ppom-validator-0.14.0.tgz#7382999df38797233185c6c5d5f9c26eed9fa713"
+  integrity sha512-WrHvVqYTAsI78O1LdXQnZx58F8VOr/xLEgZoK8THUmCKa1cbh5gT67/UiqdkT7etrSiGhasE+cUr6co1XhGEPA==
   dependencies:
     "@metamask/base-controller" "^3.0.0"
     "@metamask/controller-utils" "^4.0.0"
     await-semaphore "^0.1.3"
+    crypto-js "^4.2.0"
     elliptic "^6.5.4"
     json-rpc-random-id "^1.0.1"
 

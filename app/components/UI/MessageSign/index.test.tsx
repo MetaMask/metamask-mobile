@@ -30,19 +30,34 @@ jest.mock('../../../core/Engine', () => ({
   },
 }));
 
-jest.mock('../../../util/address', () => ({
-  isExternalHardwareAccount: jest.fn(),
-}));
-
 jest.mock('../../../core/NotificationManager', () => ({
   showSimpleNotification: jest.fn(),
 }));
 
-jest.mock('@react-navigation/native');
-
-jest.mock('../../../util/analyticsV2', () => ({
-  trackEvent: jest.fn(),
+jest.mock('react-redux', () => ({
+  ...jest.requireActual('react-redux'),
+  useSelector: (callback: any) =>
+    callback({
+      signatureRequest: {
+        securityAlertResponse: {
+          description: '',
+          features: [],
+          providerRequestsCount: { eth_chainId: 1 },
+          reason: '',
+          result_type: 'Benign',
+        },
+      },
+    }),
 }));
+
+jest.mock('../../../util/analyticsV2');
+
+jest.mock('../../../util/address', () => ({
+  getAddressAccountType: jest.fn().mockReturnValue('Metamask'),
+  isExternalHardwareAccount: jest.fn(),
+}));
+
+jest.mock('@react-navigation/native');
 
 const messageParamsMock = {
   data: 'message',
@@ -73,7 +88,10 @@ function createWrapper({
   return shallow(
     <Provider store={store}>
       <MessageSign
-        currentPageInformation={{ title: 'title', url: 'url' }}
+        currentPageInformation={{
+          title: 'title',
+          url: 'http://localhost:8545',
+        }}
         messageParams={{ ...messageParamsMock, origin }}
         onConfirm={mockConfirm}
         onReject={mockReject}
@@ -86,14 +104,6 @@ function createWrapper({
 }
 
 describe('MessageSign', () => {
-  beforeEach(() => {
-    (analyticsV2.trackEvent as jest.Mock).mockImplementation(() => undefined);
-  });
-
-  afterEach(() => {
-    (analyticsV2.trackEvent as jest.Mock).mockReset();
-  });
-
   it('should render correctly', () => {
     const wrapper = createWrapper();
     expect(wrapper).toMatchSnapshot();
@@ -168,92 +178,55 @@ describe('MessageSign', () => {
     });
   });
 
-  describe('componentDidMount', () => {
-    it('adds listeners', () => {
-      const origin = 'origin';
-      const mockConfirm = jest.fn();
-      const mockReject = jest.fn();
-
-      shallow(
-        <Provider store={store}>
-          <MessageSign
-            currentPageInformation={{ title: 'title', url: 'url' }}
-            messageParams={{ ...messageParamsMock, origin }}
-            onConfirm={mockConfirm}
-            onReject={mockReject}
-            toggleExpandedMessage={jest.fn()}
-            showExpandedMessage={false}
-            navigation={navigation}
-          />
-        </Provider>,
-      );
-      expect(Engine.context.SignatureController.hub.on).toHaveBeenCalledTimes(
-        1,
-      );
-      expect(Engine.context.SignatureController.hub.on).toHaveBeenCalledWith(
-        'TestMessageId:signError',
-        expect.any(Function),
-      );
-    });
-  });
-
-  describe('unmount', () => {
-    it('removes listeners', () => {
-      const origin = 'origin';
-      const mockConfirm = jest.fn();
-      const mockReject = jest.fn();
-
-      const wrapper = shallow(
-        <Provider store={store}>
-          <MessageSign
-            currentPageInformation={{ title: 'title', url: 'url' }}
-            messageParams={{ ...messageParamsMock, origin }}
-            onConfirm={mockConfirm}
-            onReject={mockReject}
-            toggleExpandedMessage={jest.fn()}
-            showExpandedMessage={false}
-            navigation={navigation}
-          />
-        </Provider>,
-      );
-      wrapper.unmount();
-      expect(Engine.context.SignatureController.hub.on).toHaveBeenCalledTimes(
-        1,
-      );
-      expect(Engine.context.SignatureController.hub.on).toHaveBeenCalledWith(
-        'TestMessageId:signError',
-        expect.any(Function),
-      );
-    });
-  });
-
-  describe('shouldTruncateMessage', () => {
-    it('sets truncateMessage to true if message is more then 5 characters', () => {
+  describe('trackEvent', () => {
+    it('tracks event for rejected requests', async () => {
       const wrapper = createWrapper().dive();
-      const instance = wrapper.instance() as any;
-      instance.shouldTruncateMessage({
-        nativeEvent: { lines: 'teste123' },
+      await (wrapper.find(SignatureRequest).props() as any).onReject();
+
+      const rejectedMocks = (
+        analyticsV2.trackEvent as jest.Mock
+      ).mock.calls.filter((call) => call[0].category === 'Signature Rejected');
+
+      const mockCallsLength = rejectedMocks.length;
+
+      const lastMockCall = rejectedMocks[mockCallsLength - 1];
+
+      expect(lastMockCall[0]).toEqual({ category: 'Signature Rejected' });
+      expect(lastMockCall[1]).toEqual({
+        account_type: 'Metamask',
+        dapp_host_name: undefined,
+        chain_id: undefined,
+        signature_type: 'eth_sign',
+        security_alert_response: 'Benign',
+        security_alert_reason: '',
+        ppom_eth_chainId_count: 1,
+        version: undefined,
       });
-      expect(instance.state.truncateMessage).toBe(true);
     });
 
-    it('sets truncateMessage to false if message is less then 5 characters', () => {
+    it('tracks event for approved requests', async () => {
       const wrapper = createWrapper().dive();
-      const instance = wrapper.instance() as any;
-      instance.shouldTruncateMessage({
-        nativeEvent: { lines: 'test' },
+      await (wrapper.find(SignatureRequest).props() as any).onConfirm();
+
+      const signedMocks = (
+        analyticsV2.trackEvent as jest.Mock
+      ).mock.calls.filter((call) => call[0].category === 'Signature Approved');
+
+      const mockCallsLength = signedMocks.length;
+
+      const lastMockCall = signedMocks[mockCallsLength - 1];
+
+      expect(lastMockCall[0]).toEqual({ category: 'Signature Approved' });
+      expect(lastMockCall[1]).toEqual({
+        account_type: 'Metamask',
+        dapp_host_name: undefined,
+        chain_id: undefined,
+        signature_type: 'eth_sign',
+        security_alert_response: 'Benign',
+        security_alert_reason: '',
+        ppom_eth_chainId_count: 1,
+        version: undefined,
       });
-      expect(instance.state.truncateMessage).toBe(false);
-    });
-  });
-
-  describe('onSignatureError', () => {
-    it('track has been called', () => {
-      const wrapper = createWrapper().dive();
-      const instance = wrapper.instance() as any;
-      const input = { error: { message: 'KeystoneError#Tx_canceled' } };
-      instance.onSignatureError(input);
-      expect(analyticsV2.trackEvent).toHaveBeenCalledTimes(2); // From component mount to onSignatureError, has been called 2 times
     });
   });
 });
