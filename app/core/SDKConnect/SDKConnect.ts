@@ -310,7 +310,6 @@ export class SDKConnect extends EventEmitter2 {
     navigation,
     context,
   }: {
-    checkUserLoggedIn: () => boolean;
     navigation: NavigationContainerRef;
     context?: string;
   }) {
