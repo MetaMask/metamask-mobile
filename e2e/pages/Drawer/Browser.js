@@ -8,7 +8,6 @@ import {
   SEARCH_BUTTON,
   NAVBAR_TITLE_NETWORK,
   ANDROID_BROWSER_WEBVIEW_ID,
-  ACCOUNT_BUTTON,
 } from '../../../wdio/screen-objects/testIDs/BrowserScreen/BrowserScreen.testIds';
 import { URL_INPUT_BOX_ID } from '../../../wdio/screen-objects/testIDs/BrowserScreen/AddressBar.testIds';
 import {
@@ -26,6 +25,7 @@ import {
   BrowserViewSelectorsText,
 } from '../../selectors/BrowserView.selectors';
 import { CommonSelectorsText } from '../../selectors/Common.selectors';
+import { AccountOverviewSelectorsIDs } from '../../selectors/AccountOverview.selectors';
 
 const TEST_DAPP = 'https://metamask.github.io/test-dapp/';
 
@@ -60,7 +60,7 @@ export default class Browser {
     if (device.getPlatform() === 'android') {
       await TestHelpers.delay(3000); // to wait until toast notifcation disappears
       await TestHelpers.tapByDescendentTestID(
-        ACCOUNT_BUTTON,
+        AccountOverviewSelectorsIDs.ACCOUNT_BUTTON,
         BrowserViewSelectorsIDs.AVATAR_IMAGE,
       );
     } else {
