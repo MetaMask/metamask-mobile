@@ -167,7 +167,7 @@ workflows:
       - yarn@0:
           inputs:
             - cache_local_deps: 'yes'
-            - command: setup
+            - command: setup:ci
           title: Yarn Setup
       - yarn@0:
           title: Lint
