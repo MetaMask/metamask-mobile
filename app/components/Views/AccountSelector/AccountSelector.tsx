@@ -1,5 +1,11 @@
 // Third party dependencies.
-import React, { Fragment, useCallback, useRef, useState } from 'react';
+import React, {
+  Fragment,
+  useCallback,
+  useEffect,
+  useRef,
+  useState,
+} from 'react';
 import { InteractionManager, Platform, View } from 'react-native';
 
 // External dependencies.
@@ -31,17 +37,30 @@ import {
   AccountSelectorScreens,
 } from './AccountSelector.types';
 import styles from './AccountSelector.styles';
+import { useDispatch, useSelector } from 'react-redux';
+import { setReloadAccounts } from '../../../actions/accounts';
+import { RootState } from '../../../reducers';
 
 const AccountSelector = ({ route }: AccountSelectorProps) => {
+  const dispatch = useDispatch();
   const { onSelectAccount, checkBalanceError } = route.params || {};
+
+  const { reloadAccounts } = useSelector((state: RootState) => state.accounts);
   const Engine = UntypedEngine as any;
   const sheetRef = useRef<SheetBottomRef>(null);
   const { accounts, ensByAccountAddress } = useAccounts({
     checkBalanceError,
+    isLoading: reloadAccounts,
   });
   const [screen, setScreen] = useState<AccountSelectorScreens>(
     AccountSelectorScreens.AccountSelector,
   );
+
+  useEffect(() => {
+    if (reloadAccounts) {
+      dispatch(setReloadAccounts(false));
+    }
+  }, [dispatch, reloadAccounts]);
 
   const _onSelectAccount = useCallback(
     (address: string) => {

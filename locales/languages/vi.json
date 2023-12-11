@@ -201,6 +201,10 @@
     "security_alert_title": "Cảnh báo bảo mật",
     "security_alert_desc": "Để tiếp tục, bạn cần bật Mật mã hoặc bất kỳ phương thức xác thực sinh trắc học nào được hỗ trợ trong thiết bị của bạn (FaceID, TouchID hoặc Vân tay)"
   },
+  "connect_hardware": {
+    "title_select_hardware": "Kết nối ví cứng",
+    "select_hardware": "Chọn ví cứng mà bạn muốn sử dụng"
+  },
   "enter_password": {
     "title": "Nhập mật khẩu của bạn",
     "desc": "Vui lòng nhập mật khẩu của bạn để tiếp tục",
@@ -513,6 +517,7 @@
   },
   "accounts": {
     "create_new_account": "Tạo tài khoản mới",
+    "qr_hardware": "Ví cứng QR",
     "import_account": "Nhập tài khoản",
     "connect_hardware": "Kết nối với ví cứng",
     "imported": "Đã nhập",
@@ -536,6 +541,7 @@
     "permissions": "Quyền",
     "revoke": "Thu hồi",
     "revoke_all": "Thu hồi tất cả",
+    "ledger": "Ledger",
     "site_permission_to": "Trang web này có quyền:",
     "address_balance_activity_permission": "Xem địa chỉ, số dư tài khoản và hoạt động",
     "suggest_transactions": "Đề xuất các giao dịch cần chấp thuận",
@@ -569,7 +575,7 @@
     "tutorial": "Hướng dẫn",
     "description4": "Keystone (hướng dẫn)",
     "description5": "1. Mở khóa Keystone",
-    "description6": "2. Chạm vào Trình đơn ···, sau đó chuyển đến Đồng bộ >",
+    "description6": "2. Tap the ··· Menu, then go to Sync",
     "button_continue": "Tiếp tục",
     "hint_text": "Quét ví Keystone của bạn để ",
     "purpose_connect": "kết nối",
@@ -701,7 +707,7 @@
     "remove_network": "Gỡ bỏ",
     "cancel_remove_network": "Hủy",
     "info_title": "Giới thiệu về MetaMask",
-    "info_title_flask": "About MetaMask Flask",
+    "info_title_flask": "Giới thiệu về MetaMask Flask",
     "experimental_title": "Thử nghiệm",
     "experimental_desc": "WalletConnect và hơn thế nữa...",
     "legal_title": "Pháp lý",
@@ -801,7 +807,53 @@
     "autodetect_nft_desc": "Cho phép MetaMask thêm các NFT mà bạn sở hữu bằng cách sử dụng dịch vụ của bên thứ ba (như OpenSea). Tính năng Tự động phát hiện NFT sẽ làm lộ địa chỉ IP và tài khoản của bạn với các dịch vụ này. Việc bật tính năng này có thể liên kết địa chỉ IP của bạn với địa chỉ Ethereum của bạn và hiển thị các NFT giả do những kẻ lừa đảo phát tán. Bạn có thể thêm token theo cách thủ công để tránh rủi ro này.",
     "incoming_transactions_title": "Hiển thị các giao dịch đến",
     "incoming_transactions_content": "Điều này phụ thuộc vào mạng bạn chọn, mạng đó sẽ có quyền tiết lộ địa chỉ Ethereum và địa chỉ IP của bạn.",
-    "display_nft_media_desc_new": "Việc hiển thị dữ liệu và phương tiện NFT sẽ làm lộ địa chỉ IP của bạn với OpenSea hoặc các bên thứ ba khác. Tính năng Tự động phát hiện NFT hoạt động dựa trên tính năng này và sẽ không khả dụng khi bị tắt. Nếu phương tiện NFT được đặt hoàn toàn trên IPFS, nó vẫn có thể được hiển thị ngay cả khi tính năng này bị tắt."
+    "display_nft_media_desc_new": "Việc hiển thị dữ liệu và phương tiện NFT sẽ làm lộ địa chỉ IP của bạn với OpenSea hoặc các bên thứ ba khác. Tính năng Tự động phát hiện NFT hoạt động dựa trên tính năng này và sẽ không khả dụng khi bị tắt. Nếu phương tiện NFT được đặt hoàn toàn trên IPFS, nó vẫn có thể được hiển thị ngay cả khi tính năng này bị tắt.",
+    "snaps": {
+      "title": "Snap",
+      "description": "Tổng quan và quản lý Snap của bạn",
+      "snap_settings": {
+        "remove_snap_section_title": "Xóa Snap",
+        "remove_snap_section_description": "Hành động này sẽ xóa Snap, cũng như dữ liệu và các quyền đã cấp của Snap đó.",
+        "remove_button_label": "Xóa {{snapName}}"
+      },
+      "snap_details": {
+        "install_date": "Đã cài đặt vào {{date}}",
+        "install_origin": "Nguồn cài đặt",
+        "enabled": "Đã bật",
+        "version": "Phiên bản"
+      },
+      "snap_permissions": {
+        "approved_date": "Đã duyệt vào {{date}}",
+        "permission_section_title": "Quyền",
+        "permission_requested_now": "Đã yêu cầu ngay",
+        "human_readable_permission_titles": {
+          "endowment:long-running": "Chạy không giới hạn",
+          "endowment:network-access": "Truy cập Internet",
+          "endowment:transaction-insight": "Hiển thị thông tin chuyên sâu về giao dịch",
+          "endowment:cronjob": "Lên lịch và thực hiện các hành động theo định kỳ",
+          "endowment:rpc": {
+            "snaps": "Cho phép các Snap khác giao tiếp trực tiếp với Snap này",
+            "dapps": "Cho phép các dapp giao tiếp trực tiếp với Snap này"
+          },
+          "snap_confirm": "Hiển thị hộp thoại tùy chỉnh",
+          "snap_manageState": "Lưu trữ và quản lý dữ liệu trong thiết bị của bạn",
+          "snap_notify": "Hiển thị thông báo",
+          "snap_getBip32Entropy": "Kiểm soát các tài khoản và tài sản {{protocol}} của bạn",
+          "snap_getBip32PublicKey": "Xem khóa công khai của bạn cho {{protocol}}",
+          "snap_getBip44Entropy": "Kiểm soát các tài khoản và tài sản {{protocol}} của bạn",
+          "snap_getEntropy": "Lấy các khóa tùy ý duy nhất cho Snap này",
+          "endowment:keyring": "endowment:keyring",
+          "wallet_snap": "Kết nối với {{otherSnapName}}",
+          "endowment:webassembly": "Hỗ trợ dành cho WebAssembly",
+          "endowment:ethereum-provider": "Truy cập nhà cung cấp Ethereum",
+          "endowment:unknown": "Quyền không xác định",
+          "snap_getLocale": "Xem ngôn ngữ ưa thích của bạn",
+          "endowment:caveat:transaction-origin": "Xem nguồn gốc của các trang web đề xuất giao dịch",
+          "endowment:extend-runtime": "Kéo dài thời gian thực hiện",
+          "snap_dialog": "Hiển thị hộp thoại tùy chỉnh"
+        }
+      }
+    }
   },
   "sdk": {
     "disconnect_title": "Ngắt kết nối tất cả các trang web?",
@@ -910,6 +962,7 @@
     "add_collectible_button": "Thêm",
     "info": "Thông tin",
     "swap": "Hoán đổi",
+    "bridge": "Cầu nối",
     "description": "Mô tả",
     "totalSupply": "Tổng cung",
     "address": "Địa chỉ",
@@ -921,6 +974,7 @@
     "buy_description": "Mua tiền mã hóa bằng tiền",
     "sell_description": "Bán tiền mã hóa lấy tiền mặt",
     "swap_description": "Chuyển đổi giữa các token",
+    "bridge_description": "Chuyển token giữa các mạng",
     "send_description": "Gửi tiền mã hóa đến bất kỳ tài khoản nào",
     "receive_description": "Nhận tiền mã hóa",
     "chart_time_period": {
@@ -1020,6 +1074,7 @@
     "save": "Lưu",
     "speedup": "Tăng tốc",
     "sign_with_keystone": "Ký bằng Keystone",
+    "sign_with_ledger": "Ký bằng Ledger",
     "from": "Từ",
     "gas_fee": "Phí gas",
     "gas_fee_fast": "NHANH",
@@ -1093,6 +1148,7 @@
     "not_enough_for_gas": "Bạn có 0 {{ticker}} trong tài khoản để trả phí giao dịch. Mua {{ticker}} hoặc nạp từ tài khoản khác.",
     "send": "Gửi",
     "confirm_with_qr_hardware": "Xác nhận bằng Keystone",
+    "confirm_with_ledger_hardware": "Xác nhận bằng Ledger",
     "confirmed": "Đã xác nhận",
     "pending": "Đang chờ",
     "submitted": "Đã gửi",
@@ -1845,16 +1901,6 @@
     "apple_pay_provider_total_label": "{{provider}} (thông qua MetaMask)",
     "buy_with": "Mua bằng",
     "plus_fee": "Cộng phí {{fee}}",
-    "notifications": {
-      "purchase_failed_title": "Giao dịch mua {{currency}} đã thất bại! Vui lòng thử lại, rất tiếc vì sự bất tiện này!",
-      "purchase_failed_description": "Xác minh phương thức thanh toán và hỗ trợ thẻ của bạn",
-      "purchase_cancelled_title": "Giao dịch mua của bạn đã bị hủy",
-      "purchase_cancelled_description": "Xác minh phương thức thanh toán và hỗ trợ thẻ của bạn",
-      "purchase_completed_title": "Giao dịch mua {{amount}} {{currency}} của bạn đã thành công!",
-      "purchase_completed_description": "{{currency}} của bạn giờ đã sẵn sàng",
-      "purchase_pending_title": "Đang xử lý giao dịch mua {{currency}} của bạn",
-      "purchase_pending_description": "Quá trình này chỉ mất vài phút..."
-    },
     "date": "Ngày",
     "from": "Từ",
     "to": "Đến",
@@ -2012,7 +2058,9 @@
       "select_country_registered": "Chọn quốc gia nơi bạn đăng ký thẻ (bất kể bạn đang ở đâu).",
       "unsupported": "Khu vực không được hỗ trợ",
       "unsupported_description": "Chúng tôi đang nỗ lực để mở rộng phạm vi phủ sóng đến khu vực của bạn sớm nhất có thể. Trong thời gian chờ đợi, hãy xem bài viết hỗ trợ của chúng tôi để biết các cách khác để {{rampType}} tiền mã hóa.",
-      "unsupported_link": "Truy cập bài viết hỗ trợ"
+      "unsupported_link": "Truy cập bài viết hỗ trợ",
+      "popular_regions": "Khu vực phổ biến",
+      "regions": "Khu vực"
     },
     "order_details": {
       "details_main": "Chi tiết về lệnh",
@@ -2060,6 +2108,16 @@
       "hold_to_send": "Giữ để gửi",
       "send": "Gửi",
       "sent": "Đã gửi!"
+    },
+    "notifications": {
+      "purchase_failed_title": "Giao dịch mua {{currency}} đã thất bại! Vui lòng thử lại, rất tiếc vì sự bất tiện này!",
+      "purchase_failed_description": "Xác minh phương thức thanh toán và hỗ trợ thẻ của bạn",
+      "purchase_cancelled_title": "Giao dịch mua của bạn đã bị hủy",
+      "purchase_cancelled_description": "Xác minh phương thức thanh toán và hỗ trợ thẻ của bạn",
+      "purchase_completed_title": "Giao dịch mua {{amount}} {{currency}} của bạn đã thành công!",
+      "purchase_completed_description": "{{currency}} của bạn giờ đã sẵn sàng",
+      "purchase_pending_title": "Đang xử lý giao dịch mua {{currency}} của bạn",
+      "purchase_pending_description": "Quá trình này chỉ mất vài phút..."
     }
   },
   "swaps": {
@@ -2152,7 +2210,7 @@
     "i_understand": "Tôi hiểu",
     "quotes_expire_in": "Báo giá hết hạn sau",
     "saving": "Đang lưu",
-    "using_best_quote": "Dùng báo giá tốt nhất",
+    "n_quotes": "{{numberOfQuotes}} báo giá",
     "view_details": "Xem chi tiết",
     "estimated_gas_fee": "Phí gas ước tính",
     "max_gas_fee": "Phí gas tối đa",
@@ -2165,10 +2223,6 @@
     "completed_swap": "Vuốt!",
     "metamask_swap_fee": "Phí Hoán đổi của MetaMask",
     "fee_text": {
-      "get_the": "Nhận",
-      "best_price": "giá tốt nhất",
-      "from_the": "từ",
-      "top_liquidity": "các nguồn có tính thanh khoản cao nhất mọi lúc.",
       "fee_is_applied": "Khoản phí {{fee}} sẽ tự động được tính vào báo giá này. Bạn trả tiền để đổi lấy giấy phép sử dụng phần mềm tổng hợp thông tin từ nhà cung cấp thanh khoản của MetaMask.",
       "fee_is_not_applied": "MetaMask không bao gồm phụ phí trong báo giá này."
     },
@@ -2201,7 +2255,7 @@
     "quote_source_agg": {
       "1": "Báo giá này được cung cấp từ một",
       "2": "đơn vị tổng hợp thanh khoản",
-      "3": "tìm giá tốt nhất bằng cách chia nhỏ lệnh của bạn giữa các sàn giao dịch phi tập trung khác nhau."
+      "3": "so sánh giá và chia nhỏ lệnh của bạn giữa các sàn giao dịch phi tập trung khác nhau."
     },
     "quote_source_cnt": {
       "1": "Báo giá này được cung cấp trực tiếp từ một",
@@ -2642,7 +2696,12 @@
     "not_supported_error": "Chỉ hỗ trợ phiên bản 4 của ký dữ liệu đã nhập.",
     "error_during_connection": "Đã xảy ra lỗi không xác định",
     "error_during_connection_message": "Đã xảy ra một sự cố nhỏ khi kết nối với Ledger Nano X của bạn, nhấn 'Thử lại' bên dưới để tiếp tục. Đôi khi sự cố này xảy ra do bạn đang mở ứng dụng ETH trên Ledger Nano X khi bắt đầu quá trình ghép nối với MetaMask Di động.",
-    "how_to_install_eth_webview_title": "Cách cài đặt Ứng dụng Ethereum"
+    "how_to_install_eth_webview_title": "Cách cài đặt Ứng dụng Ethereum",
+    "nonce_too_low": "Số nonce quá thấp",
+    "nonce_too_low_error": "Số nonce đã đặt quá thấp",
+    "ledger_beta_alert": "Đang bật tích hợp Ledger",
+    "ledger_beta_alert_description": "Bạn đã tìm thấy một tính năng thử nghiệm! Nếu tiếp tục, bạn chấp nhận rằng bạn sẽ tự chịu rủi ro khi sử dụng tính năng thử nghiệm này.",
+    "ledger_beta_cta": "Tiếp tục"
   },
   "account_actions": {
     "edit_name": "Chỉnh sửa tên tài khoản",
