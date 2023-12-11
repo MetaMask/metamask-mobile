@@ -189,8 +189,8 @@ export class NpmLocation implements SnapLocation {
 
     assert(
       registry.pathname === '/' &&
-        registry.search === '' &&
-        registry.hash === '',
+      registry.search === '' &&
+      registry.hash === '',
     );
 
     assert(
@@ -343,7 +343,7 @@ async function fetchNpmTarball(
     string,
   ]
 > {
-  const urlToFetch = new URL(packageName, registryUrl).toString();
+  const urlToFetch = new URL(packageName, registryUrl.toString()).toString();
   const packageMetadata = await (await fetchFunction(urlToFetch)).json();
 
   if (!isObject(packageMetadata)) {
@@ -379,7 +379,7 @@ async function fetchNpmTarball(
   }
 
   // Override the tarball hostname/protocol with registryUrl hostname/protocol
-  const newRegistryUrl = new URL(registryUrl);
+  const newRegistryUrl = new URL(registryUrl.toString());
   const newTarballUrl = new URL(tarballUrlString.toString());
   newTarballUrl.hostname = newRegistryUrl.hostname;
   newTarballUrl.protocol = newRegistryUrl.protocol;
@@ -420,16 +420,16 @@ async function fetchNpmTarball(
   };
   const icon: Uint8Array | undefined = locations.iconPath
     ? await readAndParseAt(
-        `${npmPackageDataLocation}/${locations.iconPath}`,
-      ).catch(() => undefined)
+      `${npmPackageDataLocation}/${locations.iconPath}`,
+    ).catch(() => undefined)
     : undefined;
 
   const iconData: NPMTarBallData | undefined =
     icon && locations.iconPath
       ? {
-          filePath: locations.iconPath,
-          data: icon,
-        }
+        filePath: locations.iconPath,
+        data: icon,
+      }
       : undefined;
 
   return [
