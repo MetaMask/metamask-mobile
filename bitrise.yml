@@ -393,7 +393,7 @@ workflows:
             stack: linux-docker-android-20.04
             machine_type_id: elite-xl
       envs:
-      - TEST_SUITE_DIR: 'e2e/specs/permission-systems'
+      - TEST_SUITE: 'SmokeCore'
       after_run:
       - android_e2e_test
 
