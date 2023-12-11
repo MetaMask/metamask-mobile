@@ -23,8 +23,7 @@ export function detectSnapLocation(
 ): SnapLocation {
   const allowHttp = opts?.allowHttp ?? false;
   const allowLocal = opts?.allowLocal ?? false;
-  const root = new URL(location);
-
+  const root = location instanceof URL ? location : new URL(location);
   switch (root.protocol) {
     case 'npm:':
       return new NpmLocation(root, opts);
