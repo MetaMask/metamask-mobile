@@ -364,13 +364,12 @@ workflows:
             - start_command_flags: '-read-only'
             - profile: pixel_5
       - wait-for-android-emulator@1: {}
-      - save-gradle-cache@1: {}
       - script@1: 
           title: Check native folder diff for Android
           inputs:
             - content: |-
                 #!/usr/bin/env bash
-                ./scripts/check-native-folders-diff.sh android android-diff.txt
+                ./scripts/cache/set-cache-envs.sh android
       - script@1: 
           title: Install CCache & symlink 
           inputs:
@@ -382,14 +381,12 @@ workflows:
           title: Restore CCache
           run_if: '{{not (enveq "SKIP_CCACHE_RESTORE" "true")}}'
           inputs:
-          - key: 'android-ccache-{{if getenv "USE_MAIN_CCACHE" }}main{{else}}{{ checksum "android-diff.txt"}}{{end}}'
+          - key: 'android-ccache-{{if getenv "USE_MAIN_CCACHE" }}main{{else}}{{ getenv "CCACHE_KEY" }}{{end}}'
       - script@1:
           inputs:
             - content: |-
                 #!/usr/bin/env bash
-                ccache --set-config cache_dir=$(pwd)/ccache
-                source ./ccache.conf
-                ccache -p
+                ./scripts/cache/setup-cache.sh
                 if [ "$TEST_SUITE" = "Regression" ]; then
                   TEST_SUITE="Regression"
                 else
@@ -405,9 +402,10 @@ workflows:
           title: Save CCache
           run_if: '{{not (enveq "SKIP_CCACHE_UPLOAD" "true")}}'
           inputs:
-          - key: 'android-ccache-{{if getenv "USE_MAIN_CCACHE" }}main{{else}}{{ checksum "android-diff.txt"}}{{end}}'
+          - key: 'android-ccache-{{if getenv "USE_MAIN_CCACHE" }}main{{else}}{{ getenv "CCACHE_KEY" }}{{end}}'
           - paths: |-
               ccache
+      - save-gradle-cache@1: {}
       - custom-test-results-export@1:
           is_always_run: true
           is_skippable: true
@@ -470,7 +468,7 @@ workflows:
           inputs:
             - content: |-
                 #!/usr/bin/env bash
-                ./scripts/check-native-folders-diff.sh ios ios-diff.txt
+                ./scripts/cache/set-cache-envs.sh ios
       - script@1: 
           title: Install CCache & symlink 
           inputs:
@@ -487,15 +485,12 @@ workflows:
           title: Restore CCache
           run_if: '{{not (enveq "SKIP_CCACHE_RESTORE" "true")}}'
           inputs:
-          - key: 'ios-ccache-{{if getenv "USE_MAIN_CCACHE" }}main{{else}}{{ checksum "ios-diff.txt"}}{{end}}'
+          - key: 'ios-ccache-{{if getenv "USE_MAIN_CCACHE" }}main{{else}}{{ getenv "CCACHE_KEY" }}{{end}}'
       - script@1:
           inputs:
             - content: |-
                 #!/usr/bin/env bash
-                ccache --config-path $(pwd)/ccache.conf
-                ccache --set-config cache_dir=$(pwd)/ccache
-                source ./ccache.conf
-                ccache -p
+                ./scripts/cache/setup-cache.sh
                 if [ "$TEST_SUITE" = "Regression" ]; then
                   TEST_SUITE="Regression"
                 else
@@ -511,7 +506,7 @@ workflows:
           title: Save CCache
           run_if: '{{not (enveq "SKIP_CCACHE_UPLOAD" "true")}}'
           inputs:
-          - key: 'ios-ccache-{{if getenv "USE_MAIN_CCACHE" }}main{{else}}{{ checksum "ios-diff.txt"}}{{end}}'
+          - key: 'ios-ccache-{{if getenv "USE_MAIN_CCACHE" }}main{{else}}{{ getenv "CCACHE_KEY" }}{{end}}'
           - paths: |-
               ccache
       - custom-test-results-export@1:

@@ -1,8 +1,7 @@
 # Script to leverage the usage of ccache in the pipeline
-# Check differences for a given folder and output file
-check_folder_diff() {
+# Check differences for a given folder and save the checksum as CCACHE_KEY
+set_cache_envs() {
   local folder="$1"
-  local output_file="$2"
   local current_branch=$(git rev-parse --abbrev-ref HEAD)
 
   if [ "$current_branch" = "main" ]; then
@@ -23,20 +22,20 @@ check_folder_diff() {
       envman add --key SKIP_CCACHE_UPLOAD --value true
       envman add --key USE_MAIN_CCACHE --value true
     else
-      # If there are differences, write them to the output file
-      echo "$differences" > $output_file
-      echo "Differences written to $output_file"
+      # Generate a checksum for the differences and set it as CCACHE_KEY
+      local checksum=$(echo "$differences" | sha512sum | awk '{print $1}')
+      envman add --key CCACHE_KEY --value "$checksum"
+      echo "Checksum (CCACHE_KEY) set to $checksum"
     fi
   fi
 }
 
-# Check if both folder_to_check and output_file_path are provided
-if [ -z "$1" ] || [ -z "$2" ]; then
-  echo "Error: Missing arguments. Please provide both folder_to_check and output_file_path."
-  echo "Example: $0 ios ios-diff.txt"
+# Check if both folder_to_check is provided
+if [ -z "$1" ]; then
+  echo "Error: Missing argument. Please provide folder_to_check."
+  echo "Example: $0 ios"
 else
-  # Check differences for the specified folder and write to the specified output file
+  # Check differences for the specified folder and set the checksum
   folder_to_check="$1"
-  output_file_path="$2"
-  check_folder_diff "$folder_to_check" "$output_file_path"
+  set_cache_envs "$folder_to_check"
 fi
