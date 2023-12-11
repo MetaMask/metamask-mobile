@@ -122,8 +122,6 @@ stages:
       - run_test_dir_swaps_android: {}
       - run_test_dir_permission_systems_ios: {}
       - run_test_dir_permission_systems_android: {}
-      - run_test_dir_networks_ios: {}
-      - run_test_dir_networks_android: {}
 
   build_regression_e2e_ios_android_stage:
     workflows:
@@ -358,7 +356,7 @@ workflows:
 
   run_test_dir_confirmations_ios:
       envs:
-      - TEST_SUITE_DIR: 'e2e/specs/confirmations'
+      - TEST_SUITE: 'SmokeConfirmations'
       after_run:
       - ios_e2e_test
   run_test_dir_confirmations_android:
@@ -367,12 +365,12 @@ workflows:
             stack: linux-docker-android-20.04
             machine_type_id: elite-xl
       envs:
-      - TEST_SUITE_DIR: 'e2e/specs/confirmations'
+      - TEST_SUITE: 'SmokeConfirmations'
       after_run:
       - android_e2e_test
   run_test_dir_swaps_ios:
       envs:
-      - TEST_SUITE_DIR: 'e2e/specs/swaps'
+      - TEST_SUITE: 'SmokeSwaps'
       after_run:
       - ios_e2e_test
   run_test_dir_swaps_android:
@@ -381,12 +379,12 @@ workflows:
             stack: linux-docker-android-20.04
             machine_type_id: elite-xl
       envs:
-      - TEST_SUITE_DIR: 'e2e/specs/swaps'
+      - TEST_SUITE: 'SmokeSwaps'
       after_run:
       - android_e2e_test
   run_test_dir_permission_systems_ios:
       envs:
-      - TEST_SUITE_DIR: 'e2e/specs/permission-systems'
+      - TEST_SUITE: 'SmokeCore'
       after_run:
       - ios_e2e_test
   run_test_dir_permission_systems_android:
@@ -396,20 +394,6 @@ workflows:
             machine_type_id: elite-xl
       envs:
       - TEST_SUITE_DIR: 'e2e/specs/permission-systems'
-      after_run:
-      - android_e2e_test
-  run_test_dir_networks_ios:
-      envs:
-      - TEST_SUITE_DIR: 'e2e/specs/networks'
-      after_run:
-      - ios_e2e_test
-  run_test_dir_networks_android:
-      meta:
-          bitrise.io:
-            stack: linux-docker-android-20.04
-            machine_type_id: elite-xl
-      envs:
-      - TEST_SUITE_DIR: 'e2e/specs/networks'
       after_run:
       - android_e2e_test
 
@@ -538,7 +522,7 @@ workflows:
             node -v
             export METAMASK_ENVIRONMENT='local'
             export METAMASK_BUILD_TYPE='main'
-            IGNORE_BOXLOGS_DEVELOPMENT="true" FORCE_BUNDLING=true yarn test:e2e:android:bitrise:run "$TEST_SUITE_DIR"
+            IGNORE_BOXLOGS_DEVELOPMENT="true" FORCE_BUNDLING=true yarn test:e2e:android:bitrise:run --testNamePattern="$TEST_SUITE"
     - custom-test-results-export@1:
         title: Export test results
         is_always_run: true

@@ -17,11 +17,11 @@ import Networks from '../../resources/networks.json';
 import TestHelpers from '../../helpers';
 import FixtureServer from '../../fixtures/fixture-server';
 import { getFixturesServerPort } from '../../fixtures/utils';
-import { Smoke, SmokeCore } from '../../tags';
+import { Smoke, SmokeSwaps } from '../../tags';
 
 const fixtureServer = new FixtureServer();
 
-describe(Smoke, SmokeCore('Swap from Actions'), () => {
+describe(Smoke, SmokeSwaps('Swap from Actions'), () => {
   let swapOnboarded = true; // TODO: Set it to false once we show the onboarding page again.
   beforeAll(async () => {
     await TestHelpers.reverseServerPort();
