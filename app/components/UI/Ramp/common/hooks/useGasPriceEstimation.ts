@@ -1,7 +1,7 @@
 import { useEffect, useRef } from 'react';
 import { useSelector } from 'react-redux';
+import { GAS_ESTIMATE_TYPES } from '@metamask/gas-fee-controller';
 import { BN } from 'ethereumjs-util';
-import { GasFeeEstimates } from '@metamask/gas-fee-controller';
 import Engine from '../../../../../core/Engine';
 import { RootState } from '../../../../../reducers';
 import { decGWEIToHexWEI } from '../../../../../util/conversions';
@@ -15,13 +15,8 @@ function useGasPriceEstimation({
 }) {
   const pollTokenRef = useRef(null);
 
-  const gasFeeEstimates = useSelector(
-    (state: RootState) =>
-      state.engine.backgroundState.GasFeeController.gasFeeEstimates,
-  );
-  const gasFeeType = useSelector(
-    (state: RootState) =>
-      state.engine.backgroundState.GasFeeController.gasEstimateType,
+  const gasFeeControllerState = useSelector(
+    (state: RootState) => state.engine.backgroundState.GasFeeController,
   );
 
   useEffect(() => {
@@ -41,19 +36,29 @@ function useGasPriceEstimation({
     };
   }, [gasLimit]);
 
-  if (gasLimit === 0 || gasFeeType !== 'fee-market') {
+  if (
+    gasLimit === 0 ||
+    gasFeeControllerState.gasEstimateType === GAS_ESTIMATE_TYPES.NONE
+  ) {
     return null;
   }
 
-  const suggestedMaxFeePerGas = (gasFeeEstimates as GasFeeEstimates)[
-    estimateRange
-  ].suggestedMaxFeePerGas;
-  const weiSuggestedMaxFeePerGas = new BN(
-    decGWEIToHexWEI(suggestedMaxFeePerGas) as string,
-    'hex',
-  );
+  let gasPrice;
 
-  const estimatedGasFee = weiSuggestedMaxFeePerGas.muln(gasLimit);
+  if (gasFeeControllerState.gasEstimateType === GAS_ESTIMATE_TYPES.FEE_MARKET) {
+    gasPrice =
+      gasFeeControllerState.gasFeeEstimates[estimateRange]
+        .suggestedMaxFeePerGas;
+  } else if (
+    gasFeeControllerState.gasEstimateType === GAS_ESTIMATE_TYPES.LEGACY
+  ) {
+    gasPrice = gasFeeControllerState.gasFeeEstimates[estimateRange];
+  } else {
+    gasPrice = gasFeeControllerState.gasFeeEstimates.gasPrice;
+  }
+
+  const weiGasPrice = new BN(decGWEIToHexWEI(gasPrice) as string, 'hex');
+  const estimatedGasFee = weiGasPrice.muln(gasLimit);
 
   return {
     estimatedGasFee,
