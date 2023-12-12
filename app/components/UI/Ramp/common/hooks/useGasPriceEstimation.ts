@@ -1,6 +1,10 @@
 import { useEffect, useRef } from 'react';
 import { useSelector } from 'react-redux';
-import { GAS_ESTIMATE_TYPES } from '@metamask/gas-fee-controller';
+import {
+  GAS_ESTIMATE_TYPES,
+  type GasFeeController as GasFeeControllerType,
+} from '@metamask/gas-fee-controller';
+
 import { BN } from 'ethereumjs-util';
 import Engine from '../../../../../core/Engine';
 import { RootState } from '../../../../../reducers';
@@ -10,10 +14,10 @@ function useGasPriceEstimation({
   gasLimit = 21000,
   estimateRange = 'medium',
 }: {
-  gasLimit: number;
+  gasLimit?: number;
   estimateRange?: 'low' | 'medium' | 'high';
 }) {
-  const pollTokenRef = useRef(null);
+  const pollTokenRef = useRef<string>();
 
   const gasFeeControllerState = useSelector(
     (state: RootState) => state.engine.backgroundState.GasFeeController,
@@ -21,7 +25,8 @@ function useGasPriceEstimation({
 
   useEffect(() => {
     if (gasLimit === 0) return;
-    const { GasFeeController } = Engine.context;
+    const { GasFeeController }: { GasFeeController: GasFeeControllerType } =
+      Engine.context;
     async function polling() {
       const newPollToken =
         await GasFeeController.getGasFeeEstimatesAndStartPolling(
@@ -31,8 +36,12 @@ function useGasPriceEstimation({
     }
     polling();
     return () => {
-      GasFeeController.stopPolling(pollTokenRef.current);
-      pollTokenRef.current = null;
+      if (!pollTokenRef.current) {
+        GasFeeController.stopPolling();
+      } else {
+        GasFeeController.disconnectPoller(pollTokenRef.current);
+        pollTokenRef.current = undefined;
+      }
     };
   }, [gasLimit]);
 
