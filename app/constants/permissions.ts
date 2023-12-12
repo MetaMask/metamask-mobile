@@ -1,3 +1,4 @@
+/* eslint-disable import/prefer-default-export */
 ///: BEGIN:ONLY_INCLUDE_IF(snaps)
 export const EndowmentPermissions = Object.freeze({
   'endowment:network-access': 'endowment:network-access',
