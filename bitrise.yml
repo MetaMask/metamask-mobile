@@ -392,10 +392,6 @@ workflows:
       - _notify_failure_on_slack
     steps:
       - restore-gradle-cache@1: {}
-      - restore-cache@1:
-          title: Restore cache build
-          inputs:
-            - key: apk-cache-{{ .CommitHash }}
       - install-missing-android-tools@3:
           inputs:
             - ndk_version: $NDK_VERSION
@@ -425,6 +421,10 @@ workflows:
           run_if: '{{not (enveq "SKIP_CCACHE_RESTORE" "true")}}'
           inputs:
             - key: 'android-ccache-{{if getenv "USE_MAIN_CCACHE" }}main{{else}}{{ getenv "CCACHE_KEY" }}{{end}}'
+      - restore-cache@1:
+          title: Restore cache build
+          inputs:
+            - key: apk-cache-{{ .CommitHash }}
       - script@1:
           title: Run detox build
           run_if: '{{not (enveq "BITRISE_CACHE_HIT" "exact")}}'
