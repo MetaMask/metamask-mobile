@@ -31,22 +31,27 @@ pipelines:
   #Run E2E test suite for iOS only
   run_e2e_ios_pipeline:
     stages:
+      - build_e2e_ios_stage: {}
       - run_e2e_ios_stage: {}
       - notify: {}
   #Run E2E test suite for Android only
   run_e2e_android_pipeline:
     stages:
-      - run_e2e_android_stage: {} #runs android detox E2E
+      - build_e2e_android_stage: {} #builds android detox E2E
+      - run_e2e_android_stage: {} #runs android detox test E2E
       - notify: {}
   #PR_e2e_verfication (build ios & android), run iOS (smoke), emulator Android
   release_e2e_pipeline:
     stages:
+      - build_e2e_ios_android_stage: {}
       - run_e2e_ios_android_stage: {}
+      # - build_regression_e2e_ios_android_stage: {} Enable whenever regression tests are running successfully.
       # - run_regression_e2e_ios_android_stage: {} Enable whenever regression tests are running successfully. 
       - notify: {}
   #PR_e2e_verfication (build ios & android), run iOS (smoke), emulator Android
   pr_smoke_e2e_pipeline:
     stages:
+      - build_smoke_e2e_ios_android_stage: {}
       - run_smoke_e2e_ios_android_stage: {}
       - notify: {}
   # Pipeline for Flask
@@ -63,10 +68,11 @@ pipelines:
  #PR_e2e_verfication (build ios & android), run iOS (regression), emulator Android
   pr_regression_e2e_pipeline:
     stages:
+      - build_regression_e2e_ios_android_stage: {}
       - run_regression_e2e_ios_android_stage: {}
       - notify: {}
 
-#Stages refrence workflows. Those workflows cannot but utility "_this-is-a-utility"
+#Stages reference workflows. Those workflows cannot but utility "_this-is-a-utility"
 stages:
   create_build_release:
     workflows:
@@ -98,13 +104,24 @@ stages:
   create_build_qa_ios:
     workflows:
       - build_ios_qa: {}
+  build_e2e_ios_stage:
+    workflows:
+      - ios_e2e_build: {}
   run_e2e_ios_stage:
     workflows:
       - ios_e2e_test: {}
+  build_smoke_e2e_ios_android_stage:
+    workflows:
+      - ios_e2e_build: {}
+      - android_e2e_build: {}
   run_smoke_e2e_ios_android_stage:
     workflows:
       - ios_e2e_test: {}
       - android_e2e_test: {}
+  build_regression_e2e_ios_android_stage:
+    workflows:
+      - ios_build_regression_tests: {}
+      - android_build_regression_tests: {}
   run_regression_e2e_ios_android_stage:
     workflows:
       - ios_run_regression_tests: {}
@@ -113,9 +130,17 @@ stages:
     workflows:
       - ios_e2e_test: {}
       - android_e2e_test: {}
+  build_e2e_ios_android_stage:
+    workflows:
+      - ios_e2e_build: {}
+      - android_e2e_build: {}
+  build_e2e_android_stage:
+    workflows:
+      - android_e2e_build: {}
   run_e2e_android_stage:
     workflows:
       - android_e2e_test: {}
+
   notify:
     workflows:
       - notify_success_on_slack: {}
@@ -143,6 +168,7 @@ workflows:
   code_setup:
     before_run:
       - setup
+      - prep_environment
     steps:
       - script@1:
           inputs:
@@ -150,7 +176,37 @@ workflows:
                 #!/usr/bin/env bash
                 envman add --key YARN_CACHE_DIR --value "$(yarn cache dir)"
           title: Get Yarn cache directory
-      - cache-pull@2: {}
+      - yarn@0:
+          inputs:
+            - command: setup
+          title: Yarn Setup
+      - yarn@0:
+          title: Lint
+          inputs:
+            - command: lint
+      - yarn@0:
+          inputs:
+            - command: audit:ci
+          title: Audit Dependencies
+      - save-cache@1:
+          title: Save cache dependencies 
+          inputs:
+          - key: '{{ .OS }}-{{ .Arch }}-node-modules-{{ checksum "yarn.lock" }}'
+          - paths: |-
+              node_modules
+              $YARN_CACHE_DIR
+  code_setup_dev:
+    steps:
+      - script@1:
+          title: Generate `.npmrc` file for preview builds
+          inputs:
+            - content: |
+                #!/bin/bash
+                printf '%s\n\n%s' '@metamask:registry=https://npm.pkg.github.com' "//npm.pkg.github.com/:_authToken=${PACKAGE_READ_TOKEN}" > .npmrc
+    after_run:
+      - code_setup
+  prep_environment:
+    steps:
       - script@1:
           inputs:
             - content: |-
@@ -164,34 +220,10 @@ workflows:
                 asdf install yarn "$YARN_VERSION"
                 asdf global yarn "$YARN_VERSION"
           title: Install node and yarn
-      - yarn@0:
+      - restore-cache@1:
+          title: Restore cache dependencies
           inputs:
-            - command: setup
-          title: Yarn Setup
-      - yarn@0:
-          title: Lint
-          inputs:
-            - command: lint
-      - yarn@0:
-          inputs:
-            - command: audit:ci
-          title: Audit Dependencies
-      - cache-push@2:
-          # Manual cache path needed here because the `yarn` step only caches for the `install` command
-          inputs:
-            # The Yarn cache is easier and safer to cache than `node_modules`, which could include
-            # postinstall script modifications and could affect hoisting on subsequent installs.
-            - cache_paths: '$YARN_CACHE_DIR -> ./yarn.lock'
-  code_setup_dev:
-    steps:
-      - script@1:
-          title: Generate `.npmrc` file for preview builds
-          inputs:
-            - content: |
-                #!/bin/bash
-                printf '%s\n\n%s' '@metamask:registry=https://npm.pkg.github.com' "//npm.pkg.github.com/:_authToken=${PACKAGE_READ_TOKEN}" > .npmrc
-    after_run:
-      - code_setup
+          - key: '{{ .OS }}-{{ .Arch }}-node-modules-{{ checksum "yarn.lock" }}'
 
   # Notifications utility workflows
   # Provides values for commit or branch message and path depending on commit env setup initialised or not
@@ -316,11 +348,25 @@ workflows:
   
   ### This workflow uses a flag (TEST_SUITE) that defines the specific set of tests to be run.
   ## in this instance Regression. In future iterations we can rename to ios_test_suite_selection & android_test_suite_selection      
+  ios_build_regression_tests:
+    envs:
+    - TEST_SUITE: 'Regression'
+    after_run:
+    - ios_e2e_build
   ios_run_regression_tests:
     envs:
     - TEST_SUITE: 'Regression'
     after_run:
     - ios_e2e_test
+  android_build_regression_tests:
+    meta:
+      bitrise.io:
+        stack: linux-docker-android-20.04
+        machine_type_id: elite-xl
+    envs:
+    - TEST_SUITE: 'Regression'
+    after_run:
+    - android_e2e_build
   android_run_regression_tests:
     meta:
       bitrise.io:
@@ -338,88 +384,138 @@ workflows:
             - cache_local_deps: 'yes'
             - command: global add detox-cli
           title: Detox - Install CLI
-  android_e2e_test:
+  android_e2e_build:
     before_run:
-      - code_setup_dev
-      - e2e_setup
+    - code_setup_dev
+    - e2e_setup
     after_run:
-      - _notify_failure_on_slack
+    - _notify_failure_on_slack
     steps:
-      - restore-gradle-cache@1: {}
-      - install-missing-android-tools@3:
-          inputs:
-            - ndk_version: $NDK_VERSION
-            - gradlew_path: $PROJECT_LOCATION/gradlew
-      - script@1:
-          inputs:
-            - content: |-
-                #!/usr/bin/env bash
-                "${ANDROID_HOME}/tools/bin/sdkmanager" "cmake;3.22.1"
-          title: Download cmake 3.22.1 with sdkmanager
-          is_always_run: false
-      - avd-manager@1:
-          inputs:
-            - api_level: '30'
-            - create_command_flags: '--sdcard 8192M'
-            - start_command_flags: '-read-only'
-            - profile: pixel_5
-      - wait-for-android-emulator@1: {}
-      - save-gradle-cache@1: {}
-      - script@1:
-          inputs:
-            - content: |-
-                #!/usr/bin/env bash
-                if [ "$TEST_SUITE" = "Regression" ]; then
-                  TEST_SUITE="Regression"
-                else
-                  TEST_SUITE="Smoke"
-                fi
-                node -v
-                export METAMASK_ENVIRONMENT='local'
-                export METAMASK_BUILD_TYPE='main'
-                IGNORE_BOXLOGS_DEVELOPMENT="true" FORCE_BUNDLING=true yarn test:e2e:android:bitrise:debug --testNamePattern="$TEST_SUITE"
-          title: Detox Build & Test
-          is_always_run: false
-      - custom-test-results-export@1:
-          is_always_run: true
-          is_skippable: true
-          title: Export test results
-          inputs:
-            - base_path: $BITRISE_SOURCE_DIR/e2e/reports/
-            - test_name: E2E Tests
-            - search_pattern: $BITRISE_SOURCE_DIR/e2e/reports/junit.xml
-      - deploy-to-bitrise-io@2.2.3:
-          is_always_run: true
-          is_skippable: true
-          title: Deploy test report files
-      - script@1:
-          is_always_run: true
-          run_if: .IsBuildFailed
-          title: Copy screenshot files
-          inputs:
-            - content: |-
-                #!/usr/bin/env bash
-                set -ex
-                cp -r "$BITRISE_SOURCE_DIR/artifacts/screenshots"  "$BITRISE_DEPLOY_DIR"
-      - deploy-to-bitrise-io@2.3:
-          is_always_run: true
-          run_if: .IsBuildFailed
-          title: Deploy test screenshots
-          inputs:
-            - deploy_path: $BITRISE_DEPLOY_DIR
-            - is_compress: true
-            - zip_name: 'E2E_Android_Failure_Screenshots'
+    - restore-gradle-cache@1: {}
+    - restore-cache@1:
+        title: Restore cache build
+        inputs:
+        - key: apk-cache-{{ .CommitHash }}
+    - install-missing-android-tools@3:
+        inputs:
+        - ndk_version: $NDK_VERSION
+        - gradlew_path: $PROJECT_LOCATION/gradlew
+    - script@1:
+        title: Download cmake 3.22.1 with sdkmanager
+        is_always_run: false
+        inputs:
+        - content: |-
+            #!/usr/bin/env bash
+            "${ANDROID_HOME}/tools/bin/sdkmanager" "cmake;3.22.1"
+    - save-gradle-cache@1: {}
+    - script@1:
+        title: Run detox build
+        run_if: '{{not (enveq "BITRISE_CACHE_HIT" "exact")}}'
+        is_always_run: false
+        inputs:
+        - content: |-
+            #!/usr/bin/env bash
+            if [ "$TEST_SUITE" = "Regression" ]; then
+              TEST_SUITE="Regression"
+            else
+              TEST_SUITE="Smoke"
+            fi
+            node -v
+            export METAMASK_ENVIRONMENT='local'
+            export METAMASK_BUILD_TYPE='main'
+            IGNORE_BOXLOGS_DEVELOPMENT="true" FORCE_BUNDLING=true yarn test:e2e:android:bitrise:build --testNamePattern="$TEST_SUITE"
+    - save-cache@1:
+        title: Save cache build
+        inputs:
+        - key: apk-cache-{{ .CommitHash }}
+        - paths: android/app/build/outputs
     meta:
       bitrise.io:
-        stack: linux-docker-android-20.04
         machine_type_id: elite-xl
-  ios_e2e_test:
+        stack: linux-docker-android-20.04
+  android_e2e_test:
+    before_run:
+    - setup
+    - prep_environment
+    - e2e_setup
+    after_run:
+    - _notify_failure_on_slack
+    steps:
+    - restore-gradle-cache@1: {}
+    - restore-cache@1:
+        title: Restore cache build
+        inputs:
+        - key: apk-cache-{{ .CommitHash }}
+    - script@1:
+        title: Download cmake 3.22.1 with sdkmanager
+        is_always_run: false
+        inputs:
+        - content: |-
+            #!/usr/bin/env bash
+            "${ANDROID_HOME}/tools/bin/sdkmanager" "cmake;3.22.1"
+    - avd-manager@1:
+        inputs:
+        - api_level: "30"
+        - create_command_flags: --sdcard 8192M
+        - start_command_flags: -read-only
+        - profile: pixel_5
+    - wait-for-android-emulator@1: {}
+    - script@1:
+        title: Run detox test
+        is_always_run: false
+        inputs:
+        - content: |-
+            #!/usr/bin/env bash
+            if [ "$TEST_SUITE" = "Regression" ]; then
+              TEST_SUITE="Regression"
+            else
+              TEST_SUITE="Smoke"
+            fi
+            node -v
+            export METAMASK_ENVIRONMENT='local'
+            export METAMASK_BUILD_TYPE='main'
+            IGNORE_BOXLOGS_DEVELOPMENT="true" FORCE_BUNDLING=true yarn test:e2e:android:bitrise:run --testNamePattern="$TEST_SUITE"
+    - custom-test-results-export@1:
+        title: Export test results
+        is_always_run: true
+        is_skippable: true
+        inputs:
+        - base_path: $BITRISE_SOURCE_DIR/e2e/reports/
+        - test_name: E2E Tests
+        - search_pattern: $BITRISE_SOURCE_DIR/e2e/reports/junit.xml
+    - deploy-to-bitrise-io@2.2.3:
+        title: Deploy test report files
+        is_always_run: true
+        is_skippable: true
+    - script@1:
+        title: Copy screenshot files
+        is_always_run: true
+        run_if: .IsBuildFailed
+        inputs:
+        - content: |-
+            #!/usr/bin/env bash
+            set -ex
+            cp -r "$BITRISE_SOURCE_DIR/artifacts/screenshots"  "$BITRISE_DEPLOY_DIR"
+    - deploy-to-bitrise-io@2.3:
+        title: Deploy test screenshots
+        is_always_run: true
+        run_if: .IsBuildFailed
+        inputs:
+        - deploy_path: $BITRISE_DEPLOY_DIR
+        - is_compress: true
+        - zip_name: E2E_Android_Failure_Screenshots
+    meta:
+      bitrise.io:
+        machine_type_id: elite-xl
+        stack: linux-docker-android-20.04
+  ios_e2e_build:
     before_run:
       - code_setup_dev
       - e2e_setup
     after_run:
       - _notify_failure_on_slack
     steps:
+      - restore-cocoapods-cache@1: {}
       - certificate-and-profile-installer@1: {}
       - set-xcode-build-number@1:
           inputs:
@@ -436,7 +532,62 @@ workflows:
                 sudo gem install cocoapods
           title: Set Env Path for caching deps & Ruby install
       - cocoapods-install@2:
+          run_if: '{{not (enveq "BITRISE_CACHE_HIT" "exact")}}'
           is_always_run: false
+      - save-cocoapods-cache@1: {}
+      - restore-cache@1:
+          title: Restore cache build
+          inputs:
+          - key: ipa-cache-{{ .CommitHash }}
+      - script@1:
+          run_if: '{{not (enveq "BITRISE_CACHE_HIT" "exact")}}'
+          inputs:
+            - content: |-
+                #!/usr/bin/env bash
+                if [ "$TEST_SUITE" = "Regression" ]; then
+                  TEST_SUITE="Regression"
+                else
+                  TEST_SUITE="Smoke"
+                fi
+                node -v
+                export METAMASK_ENVIRONMENT='local'
+                export METAMASK_BUILD_TYPE='main'
+                IGNORE_BOXLOGS_DEVELOPMENT="true" FORCE_BUNDLING=true yarn test:e2e:ios:bitrise:build --testNamePattern="$TEST_SUITE"
+          title: Run detox build
+          is_always_run: false
+      - save-cache@1:
+          title: Save cache build
+          inputs:
+          - key: ipa-cache-{{ .CommitHash }}
+          - paths: |-
+              ios/build/Build
+              ../Library/Detox/ios
+  ios_e2e_test:
+    before_run:
+      - setup
+      - prep_environment
+      - e2e_setup
+    after_run:
+      - _notify_failure_on_slack
+    steps:
+      - restore-cache@1:
+          title: Restore cache build
+          inputs:
+          - key: ipa-cache-{{ .CommitHash }}
+      - restore-cocoapods-cache@1: {}
+      - certificate-and-profile-installer@1: {}
+      - set-xcode-build-number@1:
+          inputs:
+            - build_short_version_string: $VERSION_NAME
+            - plist_path: $PROJECT_LOCATION_IOS/MetaMask/Info.plist
+      - script:
+          inputs:
+            - content: |-
+                # Add cache directory to environment variable
+                envman add --key BREW_APPLESIMUTILS --value "$(brew --cellar)/applesimutils"
+                envman add --key BREW_OPT_APPLESIMUTILS --value "/usr/local/opt/applesimutils"
+                brew tap wix/brew
+          title: Set Env Path for caching deps
       - script@1:
           inputs:
             - content: |-
@@ -449,8 +600,8 @@ workflows:
                 node -v
                 export METAMASK_ENVIRONMENT='local'
                 export METAMASK_BUILD_TYPE='main'
-                IGNORE_BOXLOGS_DEVELOPMENT="true" FORCE_BUNDLING=true yarn test:e2e:ios:debug --testNamePattern="$TEST_SUITE"
-          title: Detox Build & Test
+                IGNORE_BOXLOGS_DEVELOPMENT="true" FORCE_BUNDLING=true yarn test:e2e:ios:bitrise:run --testNamePattern="$TEST_SUITE"
+          title: Run detox test
           is_always_run: false
       - custom-test-results-export@1:
           is_always_run: true
