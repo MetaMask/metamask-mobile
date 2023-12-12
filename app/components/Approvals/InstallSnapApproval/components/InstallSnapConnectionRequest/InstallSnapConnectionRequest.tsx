@@ -32,21 +32,14 @@ import {
 
 const InstallSnapConnectionRequest = ({
   approvalRequest,
+  snapName,
   onConfirm,
   onCancel,
 }: Pick<
   InstallSnapFlowProps,
-  'approvalRequest' | 'onConfirm' | 'onCancel'
+  'approvalRequest' | 'onConfirm' | 'onCancel' | 'snapName'
 >) => {
   const { styles } = useStyles(styleSheet, {});
-
-  const snapName: string | null =
-    Object.keys(
-      approvalRequest?.requestData?.permissions?.wallet_snap?.caveats?.find(
-        (c: { type: string; value: Record<string, any> }) =>
-          c.type === 'snapIds',
-      )?.value ?? {},
-    )[0] || null;
 
   const origin = useMemo(
     () => approvalRequest.origin,
@@ -102,7 +95,7 @@ const InstallSnapConnectionRequest = ({
         <Cell
           style={styles.snapCell}
           variant={CellVariant.Display}
-          title={snapName ?? ''}
+          title={snapName}
           avatarProps={{
             variant: AvatarVariant.Icon,
             name: IconName.Snaps,

@@ -30,19 +30,11 @@ import { SNAP_INSTALL_OK } from '../../InstallSnapApproval.constants';
 import SNAP_INSTALL_ERROR from './InstallSnapError.constants';
 
 const InstallSnapError = ({
-  approvalRequest,
   onConfirm,
   error,
-}: Pick<InstallSnapFlowProps, 'approvalRequest' | 'onConfirm' | 'error'>) => {
+  snapName,
+}: Pick<InstallSnapFlowProps, 'onConfirm' | 'error' | 'snapName'>) => {
   const { styles } = useStyles(styleSheet, {});
-
-  const snapName = useMemo(() => {
-    const colonIndex = approvalRequest.requestData.snapId.indexOf(':');
-    if (colonIndex !== -1) {
-      return approvalRequest.requestData.snapId.substring(colonIndex + 1);
-    }
-    return approvalRequest.requestData.snapId;
-  }, [approvalRequest.requestData.snapId]);
 
   const okButtonProps: ButtonProps = {
     variant: ButtonVariants.Primary,

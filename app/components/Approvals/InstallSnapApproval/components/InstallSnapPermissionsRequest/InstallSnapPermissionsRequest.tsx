@@ -33,16 +33,9 @@ const InstallSnapPermissionsRequest = ({
   approvalRequest,
   onConfirm,
   onCancel,
+  snapName,
 }: InstallSnapFlowProps) => {
   const { styles } = useStyles(styleSheet, {});
-  const snapName = useMemo(() => {
-    const colonIndex = approvalRequest.requestData.snapId.indexOf(':');
-    if (colonIndex !== -1) {
-      return approvalRequest.requestData.snapId.substring(colonIndex + 1);
-    }
-    return approvalRequest.requestData.snapId;
-  }, [approvalRequest.requestData.snapId]);
-
   const origin = useMemo(
     () => approvalRequest.origin,
     [approvalRequest.origin],

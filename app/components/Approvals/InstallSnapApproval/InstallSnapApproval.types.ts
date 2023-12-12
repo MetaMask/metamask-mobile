@@ -1,6 +1,7 @@
 ///: BEGIN:ONLY_INCLUDE_IF(snaps)
 interface InstallSnapFlowProps {
   approvalRequest: any;
+  snapName: string;
   onConfirm: () => void;
   onCancel: () => void;
   chainId?: string;

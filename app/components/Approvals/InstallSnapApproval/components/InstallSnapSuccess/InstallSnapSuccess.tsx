@@ -1,5 +1,5 @@
 ///: BEGIN:ONLY_INCLUDE_IF(snaps)
-import React, { useMemo } from 'react';
+import React from 'react';
 import { View } from 'react-native';
 import styleSheet from '../../InstallSnapApproval.styles';
 import { strings } from '../../../../../../locales/i18n';
@@ -30,18 +30,10 @@ import { SNAP_INSTALL_OK } from '../../InstallSnapApproval.constants';
 import SNAP_INSTALL_SUCCESS from './InstallSnapSuccess.constants';
 
 const InstallSnapSuccess = ({
-  approvalRequest,
   onConfirm,
-}: Pick<InstallSnapFlowProps, 'approvalRequest' | 'onConfirm'>) => {
+  snapName,
+}: Pick<InstallSnapFlowProps, 'onConfirm' | 'snapName'>) => {
   const { styles } = useStyles(styleSheet, {});
-
-  const snapName = useMemo(() => {
-    const colonIndex = approvalRequest.requestData.snapId.indexOf(':');
-    if (colonIndex !== -1) {
-      return approvalRequest.requestData.snapId.substring(colonIndex + 1);
-    }
-    return approvalRequest.requestData.snapId;
-  }, [approvalRequest.requestData.snapId]);
 
   const okButtonProps: ButtonProps = {
     variant: ButtonVariants.Primary,
