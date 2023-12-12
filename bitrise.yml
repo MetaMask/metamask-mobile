@@ -112,16 +112,16 @@ stages:
       - ios_e2e_test: {}
   build_smoke_e2e_ios_android_stage:
     workflows:
+      - ios_e2e_build: {}
+      - android_e2e_build: {}
+  run_smoke_e2e_ios_android_stage:
+    workflows:
       - run_test_dir_confirmations_ios: {}
       - run_test_dir_confirmations_android: {}
       - run_test_dir_swaps_ios: {}
       - run_test_dir_swaps_android: {}
       - run_test_dir_permission_systems_ios: {}
       - run_test_dir_permission_systems_android: {}
-  run_smoke_e2e_ios_android_stage:
-    workflows:
-      - ios_e2e_test: {}
-      - android_e2e_test: {}
   build_regression_e2e_ios_android_stage:
     workflows:
       - ios_build_regression_tests: {}
