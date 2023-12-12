@@ -514,6 +514,9 @@ workflows:
         inputs:
         - content: |-
             #!/usr/bin/env bash
+            if [[ "$TEST_SUITE" == *"smoke"* ]]; then
+              TEST_SUITE="$TEST_SUITE"
+            fi
             if [ "$TEST_SUITE" = "Regression" ]; then
               TEST_SUITE="Regression"
             else
@@ -640,6 +643,9 @@ workflows:
           inputs:
             - content: |-
                 #!/usr/bin/env bash
+                if [[ "$TEST_SUITE" == *"smoke"* ]]; then
+                TEST_SUITE="$TEST_SUITE"
+                fi
                 if [ "$TEST_SUITE" = "Regression" ]; then
                   TEST_SUITE="Regression"
                 else
