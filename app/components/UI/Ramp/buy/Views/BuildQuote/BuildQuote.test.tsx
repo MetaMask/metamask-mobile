@@ -11,6 +11,7 @@ import initialBackgroundState from '../../../../../../util/test/initial-backgrou
 import useCryptoCurrencies from '../../hooks/useCryptoCurrencies';
 import useFiatCurrencies from '../../hooks/useFiatCurrencies';
 import usePaymentMethods from '../../hooks/usePaymentMethods';
+import useGasPriceEstimation from '../../../common/hooks/useGasPriceEstimation';
 import {
   mockCryptoCurrenciesData,
   mockFiatCurrenciesData,
@@ -194,6 +195,16 @@ const mockUseBalanceValues = {
 
 jest.mock('../../../common/hooks/useBalance', () =>
   jest.fn(() => mockUseBalanceValues),
+);
+
+const mockUseGasPriceEstimationInitialValue: ReturnType<
+  typeof useGasPriceEstimation
+> = null;
+
+const mockUseGasPriceEstimationValue = mockUseGasPriceEstimationInitialValue;
+
+jest.mock('../../../common/hooks/useGasPriceEstimation', () =>
+  jest.fn(() => mockUseGasPriceEstimationValue),
 );
 
 const mockSetSelectedRegion = jest.fn();

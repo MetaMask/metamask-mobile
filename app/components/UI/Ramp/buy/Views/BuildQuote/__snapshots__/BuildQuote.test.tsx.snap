@@ -9720,9 +9720,11 @@ exports[`BuildQuote View renders correctly 1`] = `
                                   onPress={[Function]}
                                   style={
                                     Object {
+                                      "alignItems": "center",
                                       "borderColor": "#BBC0C5",
                                       "borderRadius": 999,
                                       "borderWidth": 1,
+                                      "justifyContent": "center",
                                       "marginRight": 5,
                                       "minWidth": 78,
                                       "padding": 7,
@@ -9783,9 +9785,11 @@ exports[`BuildQuote View renders correctly 1`] = `
                                   onPress={[Function]}
                                   style={
                                     Object {
+                                      "alignItems": "center",
                                       "borderColor": "#BBC0C5",
                                       "borderRadius": 999,
                                       "borderWidth": 1,
+                                      "justifyContent": "center",
                                       "marginRight": 5,
                                       "minWidth": 78,
                                       "padding": 7,
@@ -9846,9 +9850,11 @@ exports[`BuildQuote View renders correctly 1`] = `
                                   onPress={[Function]}
                                   style={
                                     Object {
+                                      "alignItems": "center",
                                       "borderColor": "#BBC0C5",
                                       "borderRadius": 999,
                                       "borderWidth": 1,
+                                      "justifyContent": "center",
                                       "marginRight": 5,
                                       "minWidth": 78,
                                       "padding": 7,
@@ -12890,9 +12896,11 @@ exports[`BuildQuote View renders correctly 2`] = `
                                   onPress={[Function]}
                                   style={
                                     Object {
+                                      "alignItems": "center",
                                       "borderColor": "#BBC0C5",
                                       "borderRadius": 999,
                                       "borderWidth": 1,
+                                      "justifyContent": "center",
                                       "marginRight": 5,
                                       "minWidth": 78,
                                       "padding": 7,
@@ -12944,7 +12952,7 @@ exports[`BuildQuote View renders correctly 2`] = `
                                       ]
                                     }
                                   >
-                                    $100
+                                    25%
                                   </Text>
                                 </TouchableOpacity>
                                 <TouchableOpacity
@@ -12953,9 +12961,11 @@ exports[`BuildQuote View renders correctly 2`] = `
                                   onPress={[Function]}
                                   style={
                                     Object {
+                                      "alignItems": "center",
                                       "borderColor": "#BBC0C5",
                                       "borderRadius": 999,
                                       "borderWidth": 1,
+                                      "justifyContent": "center",
                                       "marginRight": 5,
                                       "minWidth": 78,
                                       "padding": 7,
@@ -13007,7 +13017,7 @@ exports[`BuildQuote View renders correctly 2`] = `
                                       ]
                                     }
                                   >
-                                    $500
+                                    50%
                                   </Text>
                                 </TouchableOpacity>
                                 <TouchableOpacity
@@ -13016,9 +13026,11 @@ exports[`BuildQuote View renders correctly 2`] = `
                                   onPress={[Function]}
                                   style={
                                     Object {
+                                      "alignItems": "center",
                                       "borderColor": "#BBC0C5",
                                       "borderRadius": 999,
                                       "borderWidth": 1,
+                                      "justifyContent": "center",
                                       "marginRight": 5,
                                       "minWidth": 78,
                                       "padding": 7,
@@ -13070,7 +13082,72 @@ exports[`BuildQuote View renders correctly 2`] = `
                                       ]
                                     }
                                   >
-                                    $1000
+                                    75%
+                                  </Text>
+                                </TouchableOpacity>
+                                <TouchableOpacity
+                                  accessibilityRole="button"
+                                  accessible={true}
+                                  onPress={[Function]}
+                                  style={
+                                    Object {
+                                      "alignItems": "center",
+                                      "borderColor": "#BBC0C5",
+                                      "borderRadius": 999,
+                                      "borderWidth": 1,
+                                      "justifyContent": "center",
+                                      "marginRight": 5,
+                                      "minWidth": 78,
+                                      "padding": 7,
+                                    }
+                                  }
+                                >
+                                  <Text
+                                    style={
+                                      Array [
+                                        Object {
+                                          "color": "#24272A",
+                                          "fontFamily": "EuclidCircularB-Regular",
+                                          "fontSize": 30,
+                                          "fontWeight": "400",
+                                          "marginVertical": 2,
+                                        },
+                                        Object {
+                                          "textAlign": "center",
+                                        },
+                                        undefined,
+                                        undefined,
+                                        undefined,
+                                        undefined,
+                                        undefined,
+                                        Object {
+                                          "color": "#535A61",
+                                        },
+                                        undefined,
+                                        undefined,
+                                        undefined,
+                                        undefined,
+                                        undefined,
+                                        undefined,
+                                        Object {
+                                          "fontSize": 12,
+                                        },
+                                        undefined,
+                                        undefined,
+                                        undefined,
+                                        undefined,
+                                        undefined,
+                                        undefined,
+                                        undefined,
+                                        undefined,
+                                        Object {
+                                          "marginVertical": 0,
+                                        },
+                                        undefined,
+                                      ]
+                                    }
+                                  >
+                                    MAX
                                   </Text>
                                 </TouchableOpacity>
                               </View>
