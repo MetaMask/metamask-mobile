@@ -14,21 +14,18 @@ import {
 } from '@metamask/sdk-communication-layer';
 import { NavigationContainerRef } from '@react-navigation/native';
 import { EventEmitter2 } from 'eventemitter2';
+import { Platform } from 'react-native';
+import Routes from '../../../app/constants/navigation/Routes';
+import Device from '../../util/device';
+import { Minimizer } from '../NativeModules';
 import BatchRPCManager from './BatchRPCManager';
 import RPCQueueManager from './RPCQueueManager';
-import {
-  ApprovedHosts,
-  CONNECTION_LOADING_EVENT,
-  approveHostProps,
-} from './SDKConnect';
+import { ApprovedHosts, approveHostProps } from './SDKConnect';
+import { CONNECTION_LOADING_EVENT } from './SDKConnectConstants';
 import { handleConnectionMessage } from './handlers/handleConnectionMessage';
 import handleConnectionReady from './handlers/handleConnectionReady';
 import DevLogger from './utils/DevLogger';
 import { waitForKeychainUnlocked } from './utils/wait.util';
-import Device from '../../util/device';
-import { Minimizer } from '../NativeModules';
-import { Platform } from 'react-native';
-import Routes from '../../../app/constants/navigation/Routes';
 
 export interface ConnectionProps {
   id: string;
@@ -47,25 +44,6 @@ export interface ConnectionProps {
 // eslint-disable-next-line
 const { version } = require('../../../package.json');
 
-export const RPC_METHODS = {
-  METAMASK_GETPROVIDERSTATE: 'metamask_getProviderState',
-  METAMASK_CONNECTSIGN: 'metamask_connectSign',
-  METAMASK_CONNECTWITH: 'metamask_connectWith',
-  METAMASK_BATCH: 'metamask_batch',
-  PERSONAL_SIGN: 'personal_sign',
-  ETH_SIGN: 'eth_sign',
-  ETH_REQUESTACCOUNTS: 'eth_requestAccounts',
-  ETH_SENDTRANSACTION: 'eth_sendTransaction',
-  ETH_SIGNTRANSACTION: 'eth_signTransaction',
-  ETH_SIGNTYPEDEATA: 'eth_signTypedData',
-  ETH_SIGNTYPEDEATAV3: 'eth_signTypedData_v3',
-  ETH_SIGNTYPEDEATAV4: 'eth_signTypedData_v4',
-  WALLET_WATCHASSET: 'wallet_watchAsset',
-  WALLET_ADDETHEREUMCHAIN: 'wallet_addEthereumChain',
-  WALLET_SWITCHETHEREUMCHAIN: 'wallet_switchEthereumChain',
-  ETH_ACCOUNTS: 'eth_accounts',
-  ETH_CHAINID: 'eth_chainId',
-};
 export class Connection extends EventEmitter2 {
   channelId;
   remote: RemoteCommunication;
