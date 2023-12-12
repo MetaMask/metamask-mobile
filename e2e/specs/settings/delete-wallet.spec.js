@@ -1,6 +1,6 @@
 'use strict';
 import TestHelpers from '../../helpers';
-import { Smoke, SmokeCore } from '../../tags';
+import { SmokeCore } from '../../tags';
 import OnboardingView from '../../pages/Onboarding/OnboardingView';
 import LoginView from '../../pages/LoginView';
 import SettingsView from '../../pages/Drawer/Settings/SettingsView';
@@ -13,7 +13,6 @@ import FixtureBuilder from '../../fixtures/fixture-builder';
 import { withFixtures } from '../../fixtures/fixture-helper';
 
 describe(
-  Smoke,
   SmokeCore('Log in into the app, change password then delete wallet flow'),
   () => {
     const PASSWORD = '123123123';
