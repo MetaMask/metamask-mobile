@@ -1,8 +1,5 @@
 import { REHYDRATE } from 'redux-persist';
-import {
-  getTxData,
-  getTxMeta,
-} from '../../util/transaction-reducer-helpers';
+import { getTxData, getTxMeta } from '../../util/transaction-reducer-helpers';
 
 const initialState = {
   ensRecipient: undefined,
@@ -167,5 +164,4 @@ const transactionReducer = (state = initialState, action) => {
       return state;
   }
 };
-
 export default transactionReducer;

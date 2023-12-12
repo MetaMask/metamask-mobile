@@ -25,5 +25,4 @@ const infuraAvailabilityReducer = (state = initialState, action) => {
       return state;
   }
 };
-
 export default infuraAvailabilityReducer;

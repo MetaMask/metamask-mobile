@@ -19,5 +19,4 @@ const onboardingWizardReducer = (state = initialState, action) => {
       return state;
   }
 };
-
 export default onboardingWizardReducer;

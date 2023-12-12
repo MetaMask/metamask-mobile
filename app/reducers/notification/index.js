@@ -1,5 +1,4 @@
 import notificationTypes from '../../util/notifications';
-
 const { TRANSACTION, SIMPLE } = notificationTypes;
 
 export const initialState = {
@@ -194,5 +193,4 @@ const notificationReducer = (state = initialState, action) => {
       return state;
   }
 };
-
 export default notificationReducer;

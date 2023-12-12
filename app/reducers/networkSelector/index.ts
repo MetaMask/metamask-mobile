@@ -19,7 +19,6 @@ export const initialState = {
  */
 
 function networkOnboardReducer(
-  // eslint-disable-next-line @typescript-eslint/default-param-last
   state = initialState,
   action: {
     nativeToken: string;
@@ -29,6 +28,14 @@ function networkOnboardReducer(
     showNetworkOnboarding: boolean;
     type: string;
     payload: any;
+  } = {
+    nativeToken: '',
+    networkType: '',
+    networkUrl: '',
+    networkStatus: false,
+    showNetworkOnboarding: false,
+    type: '',
+    payload: undefined,
   },
 ) {
   switch (action.type) {
@@ -53,15 +60,16 @@ function networkOnboardReducer(
     case 'NETWORK_ONBOARDED':
       return {
         ...state,
-        networkOnboardedState: {
-          [action.payload]: true,
-          ...state.networkOnboardedState,
-        },
+
         networkState: {
           showNetworkOnboarding: false,
           nativeToken: '',
           networkType: '',
           networkUrl: '',
+        },
+        networkOnboardedState: {
+          [action.payload]: true,
+          ...state.networkOnboardedState,
         },
       };
     default:

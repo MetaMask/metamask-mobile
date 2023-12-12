@@ -20,10 +20,7 @@ import {
   renderFromTokenMinimalUnit,
   toTokenMinimalUnit,
 } from '../../../../../util/number';
-import {
-  FiatOrder,
-  getProviderName,
-} from '../../../../../reducers/fiatOrders';
+import { FiatOrder, getProviderName } from '../../../../../reducers/fiatOrders';
 import useBlockExplorer from '../../../Swaps/utils/useBlockExplorer';
 import Spinner from '../../../AnimatedSpinner';
 import useAnalytics from '../hooks/useAnalytics';

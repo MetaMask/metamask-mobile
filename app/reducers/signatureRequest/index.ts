@@ -26,5 +26,4 @@ const signatureRequestReducer = (
       return state;
   }
 };
-
 export default signatureRequestReducer;

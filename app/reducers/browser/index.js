@@ -72,5 +72,4 @@ const browserReducer = (state = initialState, action) => {
       return state;
   }
 };
-
 export default browserReducer;

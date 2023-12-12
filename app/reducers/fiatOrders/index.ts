@@ -14,7 +14,7 @@ import {
   FiatOrder,
   FiatOrdersState,
 } from './types';
-import type { RootState } from '..';
+import type { RootState } from '../';
 import { isTestNet } from '../../util/networks';
 export type { FiatOrder } from './types';
 

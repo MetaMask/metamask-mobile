@@ -21,10 +21,7 @@ import Text, {
 } from '../../../../../../component-library/components/Texts/Text';
 
 import { FIAT_ORDER_PROVIDERS } from '../../../../../../constants/on-ramp';
-import {
-  FiatOrder,
-  getOrders,
-} from '../../../../../../reducers/fiatOrders';
+import { FiatOrder, getOrders } from '../../../../../../reducers/fiatOrders';
 import { strings } from '../../../../../../../locales/i18n';
 import { useTheme } from '../../../../../../util/theme';
 
