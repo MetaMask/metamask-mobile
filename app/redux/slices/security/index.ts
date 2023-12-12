@@ -3,12 +3,17 @@ import { ActionType, Action } from '../../../actions/security';
 import { SecuritySettingsState } from '../../../actions/security/state';
 import MigratedStorage from '../../storage/MigratedStorage';
 import { persistReducer } from 'redux-persist';
+import { PersistPartial } from 'redux-persist/es/persistReducer';
 
-export const initialState: Readonly<SecuritySettingsState> = {
+export const initialState: Readonly<SecuritySettingsState> & PersistPartial = {
   allowLoginWithRememberMe: false,
   automaticSecurityChecksEnabled: false,
   hasUserSelectedAutomaticSecurityCheckOption: false,
   isAutomaticSecurityChecksModalOpen: false,
+  _persist: {
+    version: 0,
+    rehydrated: false,
+  },
 };
 
 const reducer = (

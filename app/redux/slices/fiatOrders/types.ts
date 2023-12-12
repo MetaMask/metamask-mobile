@@ -28,6 +28,8 @@ import {
   FIAT_ORDER_PROVIDERS,
   FIAT_ORDER_STATES,
 } from '../../../constants/on-ramp';
+import { PersistState } from 'redux-persist/es/types';
+import { PersistPartial } from 'redux-persist/es/persistReducer';
 
 interface WyreOrder {
   order: Record<string, unknown>;
@@ -74,6 +76,17 @@ export interface ActivationKey {
   key: string;
   active: boolean;
 }
+export interface FiatOrderStatePersisted extends PersistPartial {
+  orders: FiatOrder[];
+  customOrderIds: CustomIdData[];
+  networks: AggregatorNetwork[];
+  selectedRegionAgg: Country | null;
+  selectedPaymentMethodAgg: string | null;
+  getStartedAgg: boolean;
+  getStartedSell: boolean;
+  authenticationUrls: string[];
+  activationKeys: ActivationKey[];
+}
 export interface FiatOrdersState {
   orders: FiatOrder[];
   customOrderIds: CustomIdData[];
@@ -84,6 +97,7 @@ export interface FiatOrdersState {
   getStartedSell: boolean;
   authenticationUrls: string[];
   activationKeys: ActivationKey[];
+  // _persist: PersistState;
 }
 
 export const ACTIONS = {

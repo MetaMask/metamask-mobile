@@ -9,7 +9,7 @@ const TIMEOUT = 40000;
 const persistConfig = {
   key: 'root',
   version,
-  whitelist: [],
+  whitelist: ['bookmarks'],
   storage: MigratedStorage,
   stateReconciler: autoMergeLevel2, // see "Merge Process" section for details.
   migrate: createMigrate(migrations, { debug: false }),

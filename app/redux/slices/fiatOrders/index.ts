@@ -19,6 +19,7 @@ import { isTestNet } from '../../../util/networks';
 export type { FiatOrder } from './types';
 import MigratedStorage from '../../storage/MigratedStorage';
 import { persistReducer } from 'redux-persist';
+import { PersistPartial } from 'redux-persist/es/persistReducer';
 
 /** Action Creators */
 
@@ -250,7 +251,7 @@ export const networkShortNameSelector = createSelector(
   },
 );
 
-export const initialState: FiatOrdersState = {
+export const initialState: FiatOrdersState & PersistPartial = {
   orders: [],
   customOrderIds: [],
   networks: [],
@@ -260,6 +261,10 @@ export const initialState: FiatOrdersState = {
   getStartedSell: false,
   authenticationUrls: [],
   activationKeys: [],
+  _persist: {
+    version: 0,
+    rehydrated: false,
+  },
 };
 
 const findOrderIndex = (

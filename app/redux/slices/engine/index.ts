@@ -1,6 +1,6 @@
 import Engine from '../../../core/Engine';
 import { persistReducer } from 'redux-persist';
-import { combineReducers } from 'redux';
+import { combineReducers, Reducer } from 'redux';
 // import { createAction } from '@reduxjs/toolkit';
 // import Logger from '../../../util/Logger';
 // import { Platform } from 'react-native';
@@ -72,22 +72,6 @@ const controllerNames = [
   },
 ];
 
-// Create an action to initialize the background state
-// export const initBgState = (controllerName: string) =>
-//   createAction(`INIT_BG_STATE_${controllerName}`, (key) => ({
-//     payload: key,
-//   }));
-
-// Create an action to update the background state
-// export const updateBgState = createAction('UPDATE_BG_STATE', (key) => ({
-//   payload: key,
-// }));
-
-// export const updateBgState = (controllerName: string) =>
-//   createAction(`UPDATE_BG_STATE_${controllerName}`, (key) => ({
-//     payload: key,
-//   }));
-
 const controllerPersistConfig = (controllerName: any, denyList?: string[]) => ({
   key: controllerName,
   blacklist: denyList,
@@ -135,7 +119,7 @@ export const controllerReducers = controllerNames.reduce(
     output[name] = reducer;
     return output;
   },
-  {},
+  {} as Record<string, Reducer<any, any>>,
 );
 
 const engineReducer = combineReducers({

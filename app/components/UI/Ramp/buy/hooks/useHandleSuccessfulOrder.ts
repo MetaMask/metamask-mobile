@@ -8,7 +8,10 @@ import { protectWalletModalVisible } from '../../../../../actions/user';
 import { NATIVE_ADDRESS } from '../../../../../constants/on-ramp';
 import Engine from '../../../../../core/Engine';
 import NotificationManager from '../../../../../core/NotificationManager';
-import { addFiatOrder, FiatOrder } from '../../../../../redux/slices/fiatOrders';
+import {
+  addFiatOrder,
+  FiatOrder,
+} from '../../../../../redux/slices/fiatOrders';
 import { toLowerCaseEquals } from '../../../../../util/general';
 import useThunkDispatch from '../../../../hooks/useThunkDispatch';
 import { useRampSDK } from '../../common/sdk';
