@@ -521,6 +521,7 @@
     "import_account": "Mag-import ng account",
     "connect_hardware": "Ikonekta ang wallet na hardware",
     "imported": "Na-import",
+    "qr_hardware": "QR hardware",
     "remove_account_title": "Pag-alis ng account",
     "remove_account_message": "Gusto mo ba talagang alisin ang account na ito?",
     "no": "Hindi",
