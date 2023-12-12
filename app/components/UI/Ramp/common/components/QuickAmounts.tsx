@@ -24,7 +24,7 @@ const createStyles = (colors: Colors) =>
       marginRight: 5,
       minWidth: 78,
       padding: 7,
-      alignItems: 'center',
+      flexDirection: 'row',
       justifyContent: 'center',
     },
   });
@@ -51,16 +51,14 @@ const Amount = ({ amount, onPress, ...props }: AmountProps) => {
       accessible
       {...props}
     >
+      {value === 1 && isNative ? (
+        <Icon
+          name={IconName.Sparkle}
+          color={IconColor.Alternative}
+          size={IconSize.Sm}
+        />
+      ) : null}
       <Text grey small centered noMargin>
-        {value === 1 && isNative ? (
-          <>
-            <Icon
-              name={IconName.ArrowDoubleRight}
-              color={IconColor.Alternative}
-              size={IconSize.Xs}
-            />{' '}
-          </>
-        ) : null}
         {label}
       </Text>
     </TouchableOpacity>

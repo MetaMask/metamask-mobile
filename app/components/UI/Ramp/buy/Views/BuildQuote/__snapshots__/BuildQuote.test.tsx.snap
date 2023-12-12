@@ -9720,10 +9720,10 @@ exports[`BuildQuote View renders correctly 1`] = `
                                   onPress={[Function]}
                                   style={
                                     Object {
-                                      "alignItems": "center",
                                       "borderColor": "#BBC0C5",
                                       "borderRadius": 999,
                                       "borderWidth": 1,
+                                      "flexDirection": "row",
                                       "justifyContent": "center",
                                       "marginRight": 5,
                                       "minWidth": 78,
@@ -9785,10 +9785,10 @@ exports[`BuildQuote View renders correctly 1`] = `
                                   onPress={[Function]}
                                   style={
                                     Object {
-                                      "alignItems": "center",
                                       "borderColor": "#BBC0C5",
                                       "borderRadius": 999,
                                       "borderWidth": 1,
+                                      "flexDirection": "row",
                                       "justifyContent": "center",
                                       "marginRight": 5,
                                       "minWidth": 78,
@@ -9850,10 +9850,10 @@ exports[`BuildQuote View renders correctly 1`] = `
                                   onPress={[Function]}
                                   style={
                                     Object {
-                                      "alignItems": "center",
                                       "borderColor": "#BBC0C5",
                                       "borderRadius": 999,
                                       "borderWidth": 1,
+                                      "flexDirection": "row",
                                       "justifyContent": "center",
                                       "marginRight": 5,
                                       "minWidth": 78,
@@ -12896,10 +12896,10 @@ exports[`BuildQuote View renders correctly 2`] = `
                                   onPress={[Function]}
                                   style={
                                     Object {
-                                      "alignItems": "center",
                                       "borderColor": "#BBC0C5",
                                       "borderRadius": 999,
                                       "borderWidth": 1,
+                                      "flexDirection": "row",
                                       "justifyContent": "center",
                                       "marginRight": 5,
                                       "minWidth": 78,
@@ -12961,10 +12961,10 @@ exports[`BuildQuote View renders correctly 2`] = `
                                   onPress={[Function]}
                                   style={
                                     Object {
-                                      "alignItems": "center",
                                       "borderColor": "#BBC0C5",
                                       "borderRadius": 999,
                                       "borderWidth": 1,
+                                      "flexDirection": "row",
                                       "justifyContent": "center",
                                       "marginRight": 5,
                                       "minWidth": 78,
@@ -13026,10 +13026,10 @@ exports[`BuildQuote View renders correctly 2`] = `
                                   onPress={[Function]}
                                   style={
                                     Object {
-                                      "alignItems": "center",
                                       "borderColor": "#BBC0C5",
                                       "borderRadius": 999,
                                       "borderWidth": 1,
+                                      "flexDirection": "row",
                                       "justifyContent": "center",
                                       "marginRight": 5,
                                       "minWidth": 78,
@@ -13091,10 +13091,10 @@ exports[`BuildQuote View renders correctly 2`] = `
                                   onPress={[Function]}
                                   style={
                                     Object {
-                                      "alignItems": "center",
                                       "borderColor": "#BBC0C5",
                                       "borderRadius": 999,
                                       "borderWidth": 1,
+                                      "flexDirection": "row",
                                       "justifyContent": "center",
                                       "marginRight": 5,
                                       "minWidth": 78,
