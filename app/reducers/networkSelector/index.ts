@@ -60,7 +60,6 @@ function networkOnboardReducer(
     case 'NETWORK_ONBOARDED':
       return {
         ...state,
-
         networkState: {
           showNetworkOnboarding: false,
           nativeToken: '',

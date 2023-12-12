@@ -28,6 +28,7 @@ import {
   FIAT_ORDER_PROVIDERS,
   FIAT_ORDER_STATES,
 } from '../../constants/on-ramp';
+
 interface WyreOrder {
   order: Record<string, unknown>;
   transfer: Record<string, unknown>;
