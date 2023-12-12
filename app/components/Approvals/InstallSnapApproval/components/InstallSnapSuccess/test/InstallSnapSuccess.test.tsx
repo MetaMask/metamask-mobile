@@ -6,39 +6,6 @@ import SNAP_INSTALL_SUCCESS from '../InstallSnapSuccess.constants';
 import { SNAP_INSTALL_OK } from '../../../InstallSnapApproval.constants';
 
 describe('InstallSnapSuccess', () => {
-  const installSnapDataApprovalRequest = {
-    id: '-pRxqpl57ssM5nc31C9_9',
-    origin: 'tss.ac',
-    type: 'wallet_installSnap',
-    time: 1699045159224,
-    requestData: {
-      metadata: {
-        id: '-pRxqpl57ssM5nc31C9_9',
-        origin: 'npm:@lavamoat/tss-snap',
-        dappOrigin: 'tss.ac',
-      },
-      snapId: 'npm:@lavamoat/tss-snap',
-    },
-    requestState: {
-      loading: false,
-      permissions: {
-        snap_manageState: {},
-        'endowment:rpc': {
-          caveats: [
-            {
-              type: 'rpcOrigin',
-              value: {
-                dapps: true,
-                snaps: true,
-              },
-            },
-          ],
-        },
-      },
-    },
-    expectsResult: false,
-  };
-
   const onConfirm = jest.fn();
 
   afterEach(() => {

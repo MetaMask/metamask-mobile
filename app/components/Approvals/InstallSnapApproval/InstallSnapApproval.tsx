@@ -1,5 +1,5 @@
 ///: BEGIN:ONLY_INCLUDE_IF(snaps)
-import React, { useEffect, useState, useMemo } from 'react';
+import React, { useEffect, useState } from 'react';
 import ApprovalModal from '../ApprovalModal';
 import useApprovalRequest from '../../hooks/useApprovalRequest';
 import { ApprovalTypes } from '../../../core/RPCMethods/RPCMethodMiddleware';
@@ -38,6 +38,26 @@ const InstallSnapApproval = () => {
     }
   }, [approvalRequest]);
 
+  const getSnapName = (request: any): string => {
+    // We first look for the name inside the snapId approvalRequest data
+    const snapId = request?.requestData?.snapId;
+    if (typeof snapId === 'string') {
+      const colonIndex = snapId.indexOf(':');
+      if (colonIndex !== -1) {
+        return snapId.substring(colonIndex + 1);
+      }
+    }
+    // If there is no snapId present in the approvalRequest data, we look for the name inside the snapIds caveat
+    const snapIdsCaveat =
+      request?.requestData?.permissions?.wallet_snap?.caveats?.find(
+        (c: any) => c.type === 'snapIds',
+      );
+    // return an empty string if we can't find the snap name in the approvalRequest data
+    return snapIdsCaveat?.value ? Object.keys(snapIdsCaveat.value)[0] : '';
+  };
+
+  if (!approvalRequest) return null;
+
   const onInstallSnapFinished = () => {
     setIsFinished(true);
   };
@@ -59,28 +79,9 @@ const InstallSnapApproval = () => {
     }
   };
 
-  const snapName = useMemo(() => {
-    if (!approvalRequest) return '';
-    // First, try to get the snapName from the approvalRequest data if it is there.
-    const colonIndex = approvalRequest?.requestData.snapId.indexOf(':');
-    if (colonIndex !== -1) {
-      return approvalRequest?.requestData.snapId.substring(colonIndex + 1);
-    }
-
-    // If the above isn't found, then try to get the snap name from caveats
-    const snapIdsCaveat =
-      approvalRequest?.requestData?.permissions?.wallet_snap?.caveats?.find(
-        (c: any) => c.type === 'snapIds',
-      );
-    const snapNameFromCaveats = snapIdsCaveat?.value
-      ? Object.keys(snapIdsCaveat.value)[0]
-      : '';
-
-    // Return snap name from caveats or an empty string if not found
-    return snapNameFromCaveats;
-  }, [approvalRequest]);
-
   if (!approvalRequest) return null;
+
+  const snapName = getSnapName(approvalRequest);
 
   const renderModalContent = () => {
     switch (installState) {
