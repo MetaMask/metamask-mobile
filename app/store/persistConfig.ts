@@ -20,7 +20,7 @@ const persistUserTransform = createTransform(
 const persistConfig = {
   key: 'root',
   version,
-  blacklist: ['engine'],
+  blacklist: ['onboarding', 'rpcEvents', 'accounts', 'engine'],
   storage: MigratedStorage,
   transforms: [persistUserTransform],
   stateReconciler: autoMergeLevel2, // see "Merge Process" section for details.

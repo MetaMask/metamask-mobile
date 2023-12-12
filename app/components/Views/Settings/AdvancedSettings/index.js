@@ -315,7 +315,10 @@ class AdvancedSettings extends PureComponent {
       return null;
     }
     return (
-      <View style={styles.setting} testID={'token-detection-section'}>
+      <View
+        style={styles.setting}
+        testID={AdvancedViewSelectorsIDs.TOKEN_DETECTION_TOGGLE}
+      >
         <Text style={styles.title}>
           {strings('app_settings.token_detection_title')}
         </Text>

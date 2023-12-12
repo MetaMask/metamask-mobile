@@ -20,6 +20,7 @@ module.exports = (async () => {
           inlineRequires: true,
         },
       }),
+      resetCache: true,
       babelTransformerPath: require.resolve('./metro.transform.js'),
       assetPlugins: ['react-native-svg-asset-plugin'],
       svgAssetPlugin: {
