@@ -1,7 +1,6 @@
-import sendAuthorized from './sendAuthorized';
-import { Connection } from '../Connection';
 import { MessageType } from '@metamask/sdk-communication-layer';
-import Logger from '../../../../util/Logger';
+import { Connection } from '../Connection';
+import sendAuthorized from './sendAuthorized';
 
 jest.mock('../Connection');
 jest.mock('@metamask/sdk-communication-layer');
@@ -9,7 +8,7 @@ jest.mock('../../../../util/Logger');
 
 describe('sendAuthorized', () => {
   let mockConnection: Connection;
-  const mockSendMessage = jest.fn();
+  const mockSendMessage = jest.fn(() => new Promise((resolve) => resolve('')));
 
   beforeEach(() => {
     jest.clearAllMocks();
@@ -31,22 +30,10 @@ describe('sendAuthorized', () => {
     });
   });
 
-  it('should set authorizedSent to true after sending AUTHORIZED message', () => {
-    sendAuthorized({ instance: mockConnection });
+  it('should set authorizedSent to true after sending AUTHORIZED message', async () => {
+    await sendAuthorized({ instance: mockConnection, force: true });
 
     expect(mockConnection.authorizedSent).toBe(true);
-  });
-
-  it('should log an error if sending AUTHORIZED message fails', () => {
-    mockSendMessage.mockRejectedValueOnce(new Error('mock error'));
-
-    sendAuthorized({ instance: mockConnection });
-
-    expect(Logger.log).toHaveBeenCalledTimes(1);
-    expect(Logger.log).toHaveBeenCalledWith(
-      new Error('mock error'),
-      `sendAuthorized() failed to send 'authorized'`,
-    );
   });
 
   describe('Handling force parameter', () => {

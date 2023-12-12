@@ -27,7 +27,7 @@ describe('connect', () => {
 
     expect(DevLogger.log).toHaveBeenCalledTimes(1);
     expect(DevLogger.log).toHaveBeenCalledWith(
-      `Connection::connect() id=${mockConnection.channelId} withKeyExchange=true`,
+      `Connection::connect() withKeyExchange=true id=testChannelId`,
     );
   });
 
@@ -37,9 +37,7 @@ describe('connect', () => {
     expect(mockConnectToChannel).toHaveBeenCalledTimes(1);
     expect(mockConnectToChannel).toHaveBeenCalledWith(
       mockConnection.channelId,
-      {
-        plaintext: false,
-      },
+      true,
     );
   });
 
@@ -65,9 +63,7 @@ describe('connect', () => {
       expect(mockConnectToChannel).toHaveBeenCalledTimes(1);
       expect(mockConnectToChannel).toHaveBeenCalledWith(
         mockConnection.channelId,
-        {
-          plaintext: false,
-        },
+        true,
       );
     });
   });
@@ -79,9 +75,7 @@ describe('connect', () => {
       expect(mockConnectToChannel).toHaveBeenCalledTimes(1);
       expect(mockConnectToChannel).toHaveBeenCalledWith(
         mockConnection.channelId,
-        {
-          plaintext: true,
-        },
+        false,
       );
     });
   });
