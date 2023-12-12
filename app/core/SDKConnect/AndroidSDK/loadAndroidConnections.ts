@@ -1,5 +1,5 @@
 import AppConstants from '../../../core/AppConstants';
-import { ConnectionProps } from '../Connection/Connection';
+import { ConnectionProps } from '../Connection';
 import DefaultPreference from 'react-native-default-preference';
 import DevLogger from '../utils/DevLogger';
 

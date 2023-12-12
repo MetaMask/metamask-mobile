@@ -3,7 +3,7 @@ import { AndroidClient } from '../AndroidSDK/android-sdk-types';
 import RPCQueueManager from '../RPCQueueManager';
 import { SDKConnect } from '../SDKConnect';
 import DevLogger from './DevLogger';
-import { Connection } from '../Connection/Connection';
+import { Connection } from '../Connection';
 
 export const MAX_QUEUE_LOOP = Infinity;
 export const wait = (ms: number) =>

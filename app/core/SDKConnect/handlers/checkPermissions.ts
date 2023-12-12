@@ -1,5 +1,5 @@
 import { CommunicationLayerMessage } from '@metamask/sdk-communication-layer';
-import { Connection } from '../Connection/Connection';
+import { Connection } from '../Connection';
 import { HOUR_IN_MS } from '../SDKConnectConstants';
 import DevLogger from '../utils/DevLogger';
 import AppConstants from '../../AppConstants';

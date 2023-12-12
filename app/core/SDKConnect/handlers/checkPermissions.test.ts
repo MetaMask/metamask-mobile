@@ -2,7 +2,7 @@
 import { ApprovalController } from '@metamask/approval-controller';
 import { PreferencesController } from '@metamask/preferences-controller';
 import Engine from '../../Engine';
-import { Connection } from '../Connection/Connection';
+import { Connection } from '../Connection';
 import checkPermissions from './checkPermissions';
 jest.mock('../Connection', () => ({
   RPC_METHODS: jest.requireActual('../Connection').RPC_METHODS,

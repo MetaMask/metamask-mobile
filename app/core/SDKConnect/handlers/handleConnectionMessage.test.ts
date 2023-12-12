@@ -7,7 +7,7 @@ import {
   MessageType,
 } from '@metamask/sdk-communication-layer';
 import Engine from '../../Engine';
-import { Connection } from '../Connection/Connection';
+import { Connection } from '../Connection';
 import DevLogger from '../utils/DevLogger';
 import {
   waitForConnectionReadiness,

@@ -1,6 +1,6 @@
 import DefaultPreference from 'react-native-default-preference';
 import AppConstants from '../../../core/AppConstants';
-import { ConnectionProps } from '../Connection/Connection';
+import { ConnectionProps } from '../Connection';
 import SDKConnect from '../SDKConnect';
 import addAndroidConnection from './addAndroidConnection';
 

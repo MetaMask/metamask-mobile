@@ -5,7 +5,7 @@ import addAndroidConnection from './AndroidSDK/addAndroidConnection';
 import bindAndroidSDK from './AndroidSDK/bindAndroidSDK';
 import loadAndroidConnections from './AndroidSDK/loadAndroidConnections';
 import removeAndroidConnection from './AndroidSDK/removeAndroidConnection';
-import { Connection, ConnectionProps } from './Connection/Connection';
+import { Connection, ConnectionProps } from './Connection';
 import {
   approveHost,
   connectToChannel,

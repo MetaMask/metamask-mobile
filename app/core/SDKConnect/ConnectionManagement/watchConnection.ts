@@ -1,7 +1,7 @@
 import { ConnectionStatus, EventType } from '@metamask/sdk-communication-layer';
 import Logger from '../../../util/Logger';
 import AppConstants from '../../AppConstants';
-import { Connection } from '../Connection/Connection';
+import { Connection } from '../Connection';
 import SDKConnect from '../SDKConnect';
 import { CONNECTION_LOADING_EVENT } from '../SDKConnectConstants';
 import DevLogger from '../utils/DevLogger';
