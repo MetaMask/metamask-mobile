@@ -2,7 +2,7 @@
 import React, { useMemo } from 'react';
 import { ImageSourcePropType, View } from 'react-native';
 import { InstallSnapFlowProps } from '../../InstallSnapApproval.types';
-import styleSheet from './InstallSnapConnectionRequest.styles';
+import styleSheet from '../../InstallSnapApproval.styles';
 import { strings } from '../../../../../../locales/i18n';
 import SheetHeader from '../../../../../component-library/components/Sheet/SheetHeader';
 import Text, {

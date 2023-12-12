@@ -1,7 +1,7 @@
 ///: BEGIN:ONLY_INCLUDE_IF(snaps)
 import React, { useMemo } from 'react';
 import { View } from 'react-native';
-import stylesheet from './InstallSnapSuccess.styles';
+import styleSheet from '../../InstallSnapApproval.styles';
 import { strings } from '../../../../../../locales/i18n';
 import SheetHeader from '../../../../../component-library/components/Sheet/SheetHeader';
 import Text, {
@@ -33,7 +33,7 @@ const InstallSnapSuccess = ({
   approvalRequest,
   onConfirm,
 }: Pick<InstallSnapFlowProps, 'approvalRequest' | 'onConfirm'>) => {
-  const { styles } = useStyles(stylesheet, {});
+  const { styles } = useStyles(styleSheet, {});
 
   const snapName = useMemo(() => {
     const colonIndex = approvalRequest.requestData.snapId.indexOf(':');
