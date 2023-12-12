@@ -112,8 +112,12 @@ stages:
       - ios_e2e_test: {}
   build_smoke_e2e_ios_android_stage:
     workflows:
-      - ios_e2e_build: {}
-      - android_e2e_build: {}
+      - run_test_dir_confirmations_ios: {}
+      - run_test_dir_confirmations_android: {}
+      - run_test_dir_swaps_ios: {}
+      - run_test_dir_swaps_android: {}
+      - run_test_dir_permission_systems_ios: {}
+      - run_test_dir_permission_systems_android: {}
   run_smoke_e2e_ios_android_stage:
     workflows:
       - ios_e2e_test: {}
@@ -376,6 +380,50 @@ workflows:
     - TEST_SUITE: 'Regression'
     after_run:
     - android_e2e_test
+
+### Seperating workflows so they run concurrently during smoke runs
+  run_test_dir_confirmations_ios:
+      envs:
+      - TEST_SUITE: 'SmokeConfirmations'
+      after_run:
+      - ios_e2e_test
+  run_test_dir_confirmations_android:
+      meta:
+          bitrise.io:
+            stack: linux-docker-android-20.04
+            machine_type_id: elite-xl
+      envs:
+      - TEST_SUITE: 'SmokeConfirmations'
+      after_run:
+      - android_e2e_test
+  run_test_dir_swaps_ios:
+      envs:
+      - TEST_SUITE: 'SmokeSwaps'
+      after_run:
+      - ios_e2e_test
+  run_test_dir_swaps_android:
+      meta:
+          bitrise.io:
+            stack: linux-docker-android-20.04
+            machine_type_id: elite-xl
+      envs:
+      - TEST_SUITE: 'SmokeSwaps'
+      after_run:
+      - android_e2e_test
+  run_test_dir_permission_systems_ios:
+      envs:
+      - TEST_SUITE: 'SmokeCore'
+      after_run:
+      - ios_e2e_test
+  run_test_dir_permission_systems_android:
+      meta:
+          bitrise.io:
+            stack: linux-docker-android-20.04
+            machine_type_id: elite-xl
+      envs:
+      - TEST_SUITE: 'SmokeCore'
+      after_run:
+      - android_e2e_test
 
   e2e_setup:
     steps:
