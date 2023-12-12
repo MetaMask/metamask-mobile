@@ -22,7 +22,7 @@ import {
 import {
   FiatOrder,
   RampType,
-} from '../../../../../redux/slices/fiatOrders/types';
+} from '../../../../../reducers/fiatOrders/types';
 
 describe('timeToDescription', () => {
   it('should return a function', () => {

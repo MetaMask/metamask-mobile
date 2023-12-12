@@ -13,7 +13,7 @@ import {
   addFiatCustomIdData,
   FiatOrder,
   removeFiatCustomIdData,
-} from '../../../../../redux/slices/fiatOrders';
+} from '../../../../../reducers/fiatOrders';
 import { setLockTime } from '../../../../../actions/settings';
 import Logger from '../../../../../util/Logger';
 import useHandleSuccessfulOrder from './useHandleSuccessfulOrder';

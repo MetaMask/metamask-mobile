@@ -11,7 +11,7 @@ import NotificationManager from '../../../../../core/NotificationManager';
 import {
   addFiatOrder,
   FiatOrder,
-} from '../../../../../redux/slices/fiatOrders';
+} from '../../../../../reducers/fiatOrders';
 import { toLowerCaseEquals } from '../../../../../util/general';
 import useThunkDispatch from '../../../../hooks/useThunkDispatch';
 import { useRampSDK } from '../../common/sdk';

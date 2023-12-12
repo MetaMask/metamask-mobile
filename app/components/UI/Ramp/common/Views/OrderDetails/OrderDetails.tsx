@@ -14,7 +14,7 @@ import StyledButton from '../../../../StyledButton';
 import {
   getOrderById,
   updateFiatOrder,
-} from '../../../../../../redux/slices/fiatOrders';
+} from '../../../../../../reducers/fiatOrders';
 import { strings } from '../../../../../../../locales/i18n';
 import { getFiatOnRampAggNavbar } from '../../../../Navbar';
 import Routes from '../../../../../../constants/navigation/Routes';

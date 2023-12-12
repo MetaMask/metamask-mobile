@@ -73,7 +73,7 @@ import AppConstants from '../../../../core/AppConstants';
 import {
   collectibleContractsSelector,
   collectiblesSelector,
-} from '../../../../redux/slices/collectibles';
+} from '../../../../reducers/collectibles';
 import { gte } from '../../../../util/lodash';
 import { ThemeContext, mockTheme } from '../../../../util/theme';
 import Alert, { AlertType } from '../../../../components/Base/Alert';

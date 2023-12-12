@@ -21,7 +21,7 @@ import {
   getAuthenticationUrls,
   removeAuthenticationUrl,
   getOrderById,
-} from '../../../redux/slices/fiatOrders';
+} from '../../../reducers/fiatOrders';
 import useInterval from '../../hooks/useInterval';
 import useThunkDispatch, { ThunkAction } from '../../hooks/useThunkDispatch';
 import processOrder from './common/orderProcessor';
@@ -29,7 +29,7 @@ import processCustomOrderIdData from './common/orderProcessor/customOrderId';
 import { aggregatorOrderToFiatOrder } from './common/orderProcessor/aggregator';
 import { trackEvent } from './common/hooks/useAnalytics';
 import { AnalyticsEvents } from './common/types';
-import { CustomIdData } from '../../../redux/slices/fiatOrders/types';
+import { CustomIdData } from '../../../reducers/fiatOrders/types';
 import { callbackBaseUrl } from './common/sdk';
 import useFetchRampNetworks from './common/hooks/useFetchRampNetworks';
 import { stateHasOrder } from './common/utils';

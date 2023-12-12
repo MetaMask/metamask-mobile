@@ -7,7 +7,7 @@ import BaseListItem from '../../../../../Base/ListItem';
 import {
   FiatOrder,
   getProviderName,
-} from '../../../../../../redux/slices/fiatOrders';
+} from '../../../../../../reducers/fiatOrders';
 import { strings } from '../../../../../../../locales/i18n';
 import { toDateFormat } from '../../../../../../util/date';
 import { addCurrencySymbol, renderFiat } from '../../../../../../util/number';

@@ -4,7 +4,7 @@ import { act, fireEvent, screen, waitFor } from '@testing-library/react-native';
 import { renderScreen } from '../../../../../../util/test/renderWithProvider';
 import OrderDetails from './OrderDetails';
 import initialBackgroundState from '../../../../../../util/test/initial-background-state.json';
-import { FiatOrder } from '../../../../../../redux/slices/fiatOrders';
+import { FiatOrder } from '../../../../../../reducers/fiatOrders';
 import {
   FIAT_ORDER_PROVIDERS,
   FIAT_ORDER_STATES,

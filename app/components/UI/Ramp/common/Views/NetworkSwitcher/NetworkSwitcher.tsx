@@ -24,7 +24,7 @@ import useFetchRampNetworks from '../../hooks/useFetchRampNetworks';
 import useRampNetwork from '../../hooks/useRampNetwork';
 import useRampNetworksDetail from '../../hooks/useRampNetworksDetail';
 import useAnalytics from '../../hooks/useAnalytics';
-import { getRampNetworks } from '../../../../../../redux/slices/fiatOrders';
+import { getRampNetworks } from '../../../../../../reducers/fiatOrders';
 import { useRampSDK } from '../../sdk';
 import { isNetworkRampSupported } from '../../utils';
 

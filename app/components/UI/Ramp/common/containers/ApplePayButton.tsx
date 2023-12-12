@@ -4,7 +4,7 @@ import { QuoteResponse } from '@consensys/on-ramp-sdk';
 import {
   addAuthenticationUrl,
   FiatOrder,
-} from '../../../../../redux/slices/fiatOrders';
+} from '../../../../../reducers/fiatOrders';
 import ApplePayButtonComponent from '../components/ApplePayButton';
 import useApplePay, { ABORTED } from '../../buy/hooks/useApplePay';
 import Logger from '../../../../../util/Logger';

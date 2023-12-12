@@ -1,6 +1,6 @@
 import { ProcessorOptions } from '../..';
 import { FIAT_ORDER_PROVIDERS } from '../../../../../constants/on-ramp';
-import { FiatOrder } from '../../../../../redux/slices/fiatOrders';
+import { FiatOrder } from '../../../../../reducers/fiatOrders';
 import Logger from '../../../../../util/Logger';
 import { processAggregatorOrder } from './aggregator';
 

@@ -27,7 +27,7 @@ import AppConstants from '../../../core/AppConstants';
 import {
   swapsLivenessSelector,
   swapsTokensObjectSelector,
-} from '../../../redux/slices/swaps';
+} from '../../../reducers/swaps';
 import {
   selectChainId,
   selectNetworkId,
@@ -50,7 +50,7 @@ import { isSwapsAllowed } from '../../UI/Swaps/utils';
 import Transactions from '../../UI/Transactions';
 import ActivityHeader from './ActivityHeader';
 import { isNetworkRampNativeTokenSupported } from '../../UI/Ramp/common/utils';
-import { getRampNetworks } from '../../../redux/slices/fiatOrders';
+import { getRampNetworks } from '../../../reducers/fiatOrders';
 import Device from '../../../util/device';
 import {
   selectConversionRate,

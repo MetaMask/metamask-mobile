@@ -24,7 +24,7 @@ import { FIAT_ORDER_PROVIDERS } from '../../../../../../constants/on-ramp';
 import {
   FiatOrder,
   getOrders,
-} from '../../../../../../redux/slices/fiatOrders';
+} from '../../../../../../reducers/fiatOrders';
 import { strings } from '../../../../../../../locales/i18n';
 import { useTheme } from '../../../../../../util/theme';
 

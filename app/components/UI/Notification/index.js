@@ -9,7 +9,7 @@ import {
 import notificationTypes from '../../../util/notifications';
 import TransactionNotification from './TransactionNotification';
 import SimpleNotification from './SimpleNotification';
-import { currentNotificationSelector } from '../../../redux/slices/notification';
+import { currentNotificationSelector } from '../../../reducers/notification';
 
 import { findRouteNameFromNavigatorState } from '../../../util/general';
 import usePrevious from '../../hooks/usePrevious';

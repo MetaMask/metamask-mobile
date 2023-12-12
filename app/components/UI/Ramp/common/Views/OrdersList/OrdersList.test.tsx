@@ -5,7 +5,7 @@ import {
   FIAT_ORDER_STATES,
 } from '../../../../../../constants/on-ramp';
 import renderWithProvider from '../../../../../../util/test/renderWithProvider';
-import { FiatOrder } from '../../../../../../redux/slices/fiatOrders';
+import { FiatOrder } from '../../../../../../reducers/fiatOrders';
 import initialBackgroundState from '../../../../../../util/test/initial-background-state.json';
 import { fireEvent, screen } from '@testing-library/react-native';
 

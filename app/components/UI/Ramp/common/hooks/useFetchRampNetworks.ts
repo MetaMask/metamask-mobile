@@ -4,7 +4,7 @@ import { SDK } from '../sdk';
 import {
   chainIdSelector,
   updateOnRampNetworks,
-} from '../../../../../redux/slices/fiatOrders';
+} from '../../../../../reducers/fiatOrders';
 import Logger from '../../../../../util/Logger';
 
 /**

@@ -3,7 +3,7 @@ import { OrderOrderTypeEnum } from '@consensys/on-ramp-sdk/dist/API';
 import processOrder from '.';
 import Logger from '../../../../../util/Logger';
 import { processAggregatorOrder } from './aggregator';
-import { FiatOrder } from '../../../../../redux/slices/fiatOrders/types';
+import { FiatOrder } from '../../../../../reducers/fiatOrders/types';
 import { FIAT_ORDER_PROVIDERS } from '../../../../../constants/on-ramp';
 
 const mockOrder1 = {

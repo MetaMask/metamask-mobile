@@ -1,25 +1,25 @@
-import bookmarksReducer from '../redux/slices/bookmarks';
-import browserReducer from '../redux/slices/browser';
+import bookmarksReducer from './bookmarks';
+import browserReducer from './browser';
 import engineReducer from '../redux/slices/engine';
-import privacyReducer from '../redux/slices/privacy';
-import modalsReducer from '../redux/slices/modals';
-import settingsReducer from '../redux/slices/settings';
-import alertReducer from '../redux/slices/alert';
-import transactionReducer from '../redux/slices/transaction';
-import userReducer from '../redux/slices/user';
-import wizardReducer from '../redux/slices/wizard';
-import onboardingReducer from '../redux/slices/onboarding';
-import fiatOrders from '../redux/slices/fiatOrders';
-import swapsReducer from '../redux/slices/swaps';
-import signatureRequestReducer from '../redux/slices/signatureRequest';
-import notificationReducer from '../redux/slices/notification';
-import infuraAvailabilityReducer from '../redux/slices/infuraAvailability';
-import collectiblesReducer from '../redux/slices/collectibles';
-import navigationReducer from '../redux/slices/navigation';
-import networkOnboardReducer from '../redux/slices/networkSelector';
-import securityReducer from '../redux/slices/security';
+import privacyReducer from './privacy';
+import modalsReducer from './modals';
+import settingsReducer from './settings';
+import alertReducer from './alert';
+import transactionReducer from './transaction';
+import userReducer from './user';
+import wizardReducer from './wizard';
+import onboardingReducer from './onboarding';
+import fiatOrders from './fiatOrders';
+import swapsReducer from './swaps';
+import signatureRequestReducer from './signatureRequest';
+import notificationReducer from './notification';
+import infuraAvailabilityReducer from './infuraAvailability';
+import collectiblesReducer from './collectibles';
+import navigationReducer from './navigation';
+import networkOnboardReducer from './networkSelector';
+import securityReducer from './security';
 import { combineReducers, Reducer } from 'redux';
-import experimentalSettingsReducer from '../redux/slices/experimentalSettings';
+import experimentalSettingsReducer from './experimentalSettings';
 import { EngineState } from '../core/Engine';
 /**
  * Infer state from a reducer
@@ -69,7 +69,7 @@ const rootReducer = combineReducers<RootState, any>({
   collectibles: collectiblesReducer,
   engine: engineReducer as any,
   privacy: privacyReducer,
-  bookmarks: bookmarksReducer, // attempting to define property on object that is not extensible
+  bookmarks: bookmarksReducer,
   browser: browserReducer,
   modals: modalsReducer,
   settings: settingsReducer,

@@ -29,7 +29,7 @@ import {
   networkShortNameSelector,
   fiatOrdersGetStartedSell,
   setFiatOrdersGetStartedSell,
-} from '../../../../../redux/slices/fiatOrders';
+} from '../../../../../reducers/fiatOrders';
 import { RampType, Region } from '../types';
 
 import I18n, { I18nEvents } from '../../../../../../locales/i18n';

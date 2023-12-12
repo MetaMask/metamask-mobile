@@ -10,7 +10,7 @@ import { RampSDK } from '../../sdk';
 import Routes from '../../../../../../constants/navigation/Routes';
 import initialBackgroundState from '../../../../../../util/test/initial-background-state.json';
 import Engine from '../../../../../../core/Engine';
-import { RampType } from '../../../../../../redux/slices/fiatOrders/types';
+import { RampType } from '../../../../../../reducers/fiatOrders/types';
 
 const mockedRampNetworksValues: AggregatorNetwork[] = [
   {

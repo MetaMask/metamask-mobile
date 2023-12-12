@@ -5,7 +5,7 @@ import {
   getActivationKeys,
   removeActivationKey,
   updateActivationKey,
-} from '../../../../../redux/slices/fiatOrders';
+} from '../../../../../reducers/fiatOrders';
 import { SDK } from '../sdk';
 
 interface Options {

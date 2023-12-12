@@ -100,7 +100,7 @@ import { selectContractBalances } from '../../../../selectors/tokenBalancesContr
 import generateTestId from '../../../../../wdio/utils/generateTestId';
 import { COMFIRM_TXN_AMOUNT } from '../../../../../wdio/screen-objects/testIDs/Screens/TransactionConfirm.testIds';
 import { isNetworkRampNativeTokenSupported } from '../../../UI/Ramp/common/utils';
-import { getRampNetworks } from '../../../../redux/slices/fiatOrders';
+import { getRampNetworks } from '../../../../reducers/fiatOrders';
 import CustomGasModal from '../../../UI/CustomGasModal';
 import { ConfirmViewSelectorsIDs } from '../../../../../e2e/selectors/SendFlow/ConfirmView.selectors';
 

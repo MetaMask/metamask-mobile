@@ -43,7 +43,7 @@ import {
 } from '../../../selectors/networkController';
 import { isNetworkRampSupported } from '../Ramp/common/utils';
 import { selectSelectedAddress } from '../../../selectors/preferencesController';
-import { getRampNetworks } from '../../../redux/slices/fiatOrders';
+import { getRampNetworks } from '../../../reducers/fiatOrders';
 import { RequestPaymentModalSelectorsIDs } from '../../../../e2e/selectors/Modals/RequestPaymentModal.selectors';
 
 const createStyles = (colors) =>

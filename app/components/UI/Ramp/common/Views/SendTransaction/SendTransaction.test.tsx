@@ -1,7 +1,7 @@
 import React from 'react';
 import { act, fireEvent, screen } from '@testing-library/react-native';
 import { SellOrder } from '@consensys/on-ramp-sdk/dist/API';
-import { FiatOrder } from '../../../../../../redux/slices/fiatOrders';
+import { FiatOrder } from '../../../../../../reducers/fiatOrders';
 import Routes from '../../../../../../constants/navigation/Routes';
 import { renderScreen } from '../../../../../../util/test/renderWithProvider';
 import initialBackgroundState from '../../../../../../util/test/initial-background-state.json';

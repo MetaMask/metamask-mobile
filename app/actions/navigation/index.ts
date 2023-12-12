@@ -2,7 +2,7 @@
 import {
   SET_CURRENT_ROUTE,
   SET_CURRENT_BOTTOM_NAV_ROUTE,
-} from '../../redux/slices/navigation';
+} from '../../reducers/navigation';
 
 /**
  * Action Creators
