@@ -713,7 +713,7 @@ class Engine {
       bridge.setupProviderConnection();
     };
 
-    const requireAllowList = process.env.METAMASK_BUILD_TYPE === 'main';
+    const requireAllowlist = process.env.METAMASK_BUILD_TYPE === 'main';
     const allowLocalSnaps = process.env.METAMASK_BUILD_TYPE === 'flask';
 
     const snapsRegistryMessenger = this.controllerMessenger.getRestricted({
@@ -724,8 +724,8 @@ class Engine {
     const snapsRegistry = new JsonSnapsRegistry({
       state: initialState.SnapsRegistry,
       messenger: snapsRegistryMessenger,
-      refetchOnAllowlistMiss: requireAllowList,
-      failOnUnavailableRegistry: requireAllowList,
+      refetchOnAllowlistMiss: requireAllowlist,
+      failOnUnavailableRegistry: requireAllowlist,
       url: {
         registry: 'https://acl.execution.metamask.io/latest/registry.json',
         signature: 'https://acl.execution.metamask.io/latest/signature.json',
@@ -772,9 +772,6 @@ class Engine {
         `${snapsRegistry.name}:getMetadata`,
         `${snapsRegistry.name}:update`,
         'ExecutionService:executeSnap',
-        // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-        // @ts-ignore
-        'ExecutionService:getRpcRequestHandler',
         'ExecutionService:terminateSnap',
         'ExecutionService:terminateAllSnaps',
         'ExecutionService:handleRpcRequest',
@@ -786,7 +783,7 @@ class Engine {
       featureFlags: {
         // eslint-disable-next-line @typescript-eslint/ban-ts-comment
         // @ts-ignore
-        requireAllowList,
+        requireAllowlist,
       },
       state: initialState.SnapController || undefined,
       messenger: snapControllerMessenger as any,
