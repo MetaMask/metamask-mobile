@@ -116,17 +116,8 @@ stages:
       - android_e2e_build: {}
   run_smoke_e2e_ios_android_stage:
     workflows:
-      - run_test_dir_confirmations_ios: {}
-      - run_test_dir_confirmations_android: {}
-      - run_test_dir_swaps_ios: {}
-      - run_test_dir_swaps_android: {}
-      - run_test_dir_permission_systems_ios: {}
-      - run_test_dir_permission_systems_android: {}
-
-  build_regression_e2e_ios_android_stage:
-    workflows:
-      - ios_build_regression_tests: {}
-      - android_build_regression_tests: {}
+      - ios_e2e_test: {}
+      - android_e2e_test: {}
   run_regression_e2e_ios_android_stage:
     workflows:
       - ios_run_regression_tests: {}
@@ -353,55 +344,6 @@ workflows:
   
   ### This workflow uses a flag (TEST_SUITE) that defines the specific set of tests to be run.
   ## in this instance Regression. In future iterations we can rename to ios_test_suite_selection & android_test_suite_selection      
-
-  run_test_dir_confirmations_ios:
-      envs:
-      - TEST_SUITE_TAG: 'SmokeConfirmations'
-      after_run:
-      - ios_e2e_test
-  run_test_dir_confirmations_android:
-      meta:
-          bitrise.io:
-            stack: linux-docker-android-20.04
-            machine_type_id: elite-xl
-      envs:
-      - TEST_SUITE_TAG: 'SmokeConfirmations'
-      after_run:
-      - android_e2e_test
-  run_test_dir_swaps_ios:
-      envs:
-      - TEST_SUITE_TAG: 'SmokeSwaps'
-      after_run:
-      - ios_e2e_test
-  run_test_dir_swaps_android:
-      meta:
-          bitrise.io:
-            stack: linux-docker-android-20.04
-            machine_type_id: elite-xl
-      envs:
-      - TEST_SUITE_TAG: 'SmokeSwaps'
-      after_run:
-      - android_e2e_test
-  run_test_dir_permission_systems_ios:
-      envs:
-      - TEST_SUITE_TAG: 'SmokeCore'
-      after_run:
-      - ios_e2e_test
-  run_test_dir_permission_systems_android:
-      meta:
-          bitrise.io:
-            stack: linux-docker-android-20.04
-            machine_type_id: elite-xl
-      envs:
-      - TEST_SUITE_TAG: 'SmokeCore'
-      after_run:
-      - android_e2e_test
-
-  ios_build_regression_tests:
-    envs:
-    - TEST_SUITE: 'Regression'
-    after_run:
-    - ios_e2e_build
   ios_run_regression_tests:
     envs:
     - TEST_SUITE: 'Regression'
@@ -439,187 +381,75 @@ workflows:
     after_run:
     - _notify_failure_on_slack
     steps:
-    - restore-gradle-cache@1: {}
-    - restore-cache@1:
-        title: Restore cache build
-        inputs:
-        - key: apk-cache-{{ .CommitHash }}
-    - install-missing-android-tools@3:
-        inputs:
-        - ndk_version: $NDK_VERSION
-        - gradlew_path: $PROJECT_LOCATION/gradlew
-    - script@1:
-        title: Download cmake 3.22.1 with sdkmanager
-        is_always_run: false
-        inputs:
-        - content: |-
-            #!/usr/bin/env bash
-            "${ANDROID_HOME}/tools/bin/sdkmanager" "cmake;3.22.1"
-    - save-gradle-cache@1: {}
-    - script@1:
-        title: Run detox build
-        run_if: '{{not (enveq "BITRISE_CACHE_HIT" "exact")}}'
-        is_always_run: false
-        inputs:
-        - content: |-
-            #!/usr/bin/env bash
-            if [ "$TEST_SUITE" = "Regression" ]; then
-              TEST_SUITE="Regression"
-            else
-              TEST_SUITE="Smoke"
-            fi
-            node -v
-            export METAMASK_ENVIRONMENT='local'
-            export METAMASK_BUILD_TYPE='main'
-            IGNORE_BOXLOGS_DEVELOPMENT="true" FORCE_BUNDLING=true yarn test:e2e:android:bitrise:build
-    - save-cache@1:
-        title: Save cache build
-        inputs:
-        - key: apk-cache-{{ .CommitHash }}
-        - paths: android/app/build/outputs
+      - restore-gradle-cache@1: {}
+      - install-missing-android-tools@3:
+          inputs:
+            - ndk_version: $NDK_VERSION
+            - gradlew_path: $PROJECT_LOCATION/gradlew
+      - script@1:
+          inputs:
+            - content: |-
+                #!/usr/bin/env bash
+                "${ANDROID_HOME}/tools/bin/sdkmanager" "cmake;3.22.1"
+          title: Download cmake 3.22.1 with sdkmanager
+          is_always_run: false
+      - avd-manager@1:
+          inputs:
+            - api_level: '30'
+            - create_command_flags: '--sdcard 8192M'
+            - start_command_flags: '-read-only'
+            - profile: pixel_5
+      - wait-for-android-emulator@1: {}
+      - save-gradle-cache@1: {}
+      - script@1:
+          inputs:
+            - content: |-
+                #!/usr/bin/env bash
+                if [ "$TEST_SUITE" = "Regression" ]; then
+                  TEST_SUITE="Regression"
+                else
+                  TEST_SUITE="Smoke"
+                fi
+                node -v
+                export METAMASK_ENVIRONMENT='local'
+                export METAMASK_BUILD_TYPE='main'
+                IGNORE_BOXLOGS_DEVELOPMENT="true" FORCE_BUNDLING=true yarn test:e2e:android:bitrise:debug --testNamePattern="$TEST_SUITE"
+          title: Detox Build & Test
+          is_always_run: false
+      - custom-test-results-export@1:
+          is_always_run: true
+          is_skippable: true
+          title: Export test results
+          inputs:
+            - base_path: $BITRISE_SOURCE_DIR/e2e/reports/
+            - test_name: E2E Tests
+            - search_pattern: $BITRISE_SOURCE_DIR/e2e/reports/junit.xml
+      - deploy-to-bitrise-io@2.2.3:
+          is_always_run: true
+          is_skippable: true
+          title: Deploy test report files
+      - script@1:
+          is_always_run: true
+          run_if: .IsBuildFailed
+          title: Copy screenshot files
+          inputs:
+            - content: |-
+                #!/usr/bin/env bash
+                set -ex
+                cp -r "$BITRISE_SOURCE_DIR/artifacts/screenshots"  "$BITRISE_DEPLOY_DIR"
+      - deploy-to-bitrise-io@2.3:
+          is_always_run: true
+          run_if: .IsBuildFailed
+          title: Deploy test screenshots
+          inputs:
+            - deploy_path: $BITRISE_DEPLOY_DIR
+            - is_compress: true
+            - zip_name: 'E2E_Android_Failure_Screenshots'
     meta:
       bitrise.io:
-        machine_type_id: elite-xl
         stack: linux-docker-android-20.04
-  android_e2e_test:
-    before_run:
-    - setup
-    - prep_environment
-    - e2e_setup
-    after_run:
-    - _notify_failure_on_slack
-    steps:
-    - restore-gradle-cache@1: {}
-    - restore-cache@1:
-        title: Restore cache build
-        inputs:
-        - key: apk-cache-{{ .CommitHash }}
-    - script@1:
-        title: Download cmake 3.22.1 with sdkmanager
-        is_always_run: false
-        inputs:
-        - content: |-
-            #!/usr/bin/env bash
-            "${ANDROID_HOME}/tools/bin/sdkmanager" "cmake;3.22.1"
-    - avd-manager@1:
-        inputs:
-        - api_level: "30"
-        - create_command_flags: --sdcard 8192M
-        - start_command_flags: -read-only
-        - profile: pixel_5
-    - wait-for-android-emulator@1: {}
-    - script@1:
-        title: Run detox test
-        is_always_run: false
-        inputs:
-        - content: |-
-            #!/usr/bin/env bash
-            if [ "$TEST_SUITE" = "Regression" ]; then
-              TEST_SUITE="Regression"
-            else
-              TEST_SUITE="Smoke"
-            fi
-            node -v
-            export METAMASK_ENVIRONMENT='local'
-            export METAMASK_BUILD_TYPE='main'
-            IGNORE_BOXLOGS_DEVELOPMENT="true" FORCE_BUNDLING=true yarn test:e2e:android:bitrise:run --testNamePattern="$TEST_SUITE_TAG"
-    - custom-test-results-export@1:
-        title: Export test results
-        is_always_run: true
-        is_skippable: true
-        inputs:
-        - base_path: $BITRISE_SOURCE_DIR/e2e/reports/
-        - test_name: E2E Tests
-        - search_pattern: $BITRISE_SOURCE_DIR/e2e/reports/junit.xml
-    - deploy-to-bitrise-io@2.2.3:
-        title: Deploy test report files
-        is_always_run: true
-        is_skippable: true
-    - script@1:
-        title: Copy screenshot files
-        is_always_run: true
-        run_if: .IsBuildFailed
-        inputs:
-        - content: |-
-            #!/usr/bin/env bash
-            set -ex
-            cp -r "$BITRISE_SOURCE_DIR/artifacts/screenshots"  "$BITRISE_DEPLOY_DIR"
-  # android_e2e_test_1:
-  #   before_run:
-  #   - setup
-  #   - prep_environment
-  #   - e2e_setup
-  #   after_run:
-  #   - _notify_failure_on_slack
-  #   steps:
-  #   - restore-gradle-cache@1: {}
-  #   - restore-cache@1:
-  #       title: Restore cache build
-  #       inputs:
-  #       - key: apk-cache-{{ .CommitHash }}
-  #   - script@1:
-  #       title: Download cmake 3.22.1 with sdkmanager
-  #       is_always_run: false
-  #       inputs:
-  #       - content: |-
-  #           #!/usr/bin/env bash
-  #           "${ANDROID_HOME}/tools/bin/sdkmanager" "cmake;3.22.1"
-  #   - avd-manager@1:
-  #       inputs:
-  #       - api_level: "30"
-  #       - create_command_flags: --sdcard 8192M
-  #       - start_command_flags: -read-only
-  #       - profile: pixel_5
-  #   - wait-for-android-emulator@1: {}
-  #   - script@1:
-  #       title: Run detox test
-  #       is_always_run: false
-  #       inputs:
-  #       - content: |-
-  #           #!/usr/bin/env bash
-  #           if [ "$TEST_SUITE" = "Regression" ]; then
-  #             TEST_SUITE="Regression"
-  #           else
-  #             TEST_SUITE="Smoke"
-  #           fi
-  #           node -v
-  #           export METAMASK_ENVIRONMENT='local'
-  #           export METAMASK_BUILD_TYPE='main'
-  #           IGNORE_BOXLOGS_DEVELOPMENT="true" FORCE_BUNDLING=true yarn test:e2e:android:bitrise:run e2e/specs/confirmations
-  #   - custom-test-results-export@1:
-  #       title: Export test results
-  #       is_always_run: true
-  #       is_skippable: true
-  #       inputs:
-  #       - base_path: $BITRISE_SOURCE_DIR/e2e/reports/
-  #       - test_name: E2E Tests
-  #       - search_pattern: $BITRISE_SOURCE_DIR/e2e/reports/junit.xml
-  #   - deploy-to-bitrise-io@2.2.3:
-  #       title: Deploy test report files
-  #       is_always_run: true
-  #       is_skippable: true
-  #   - script@1:
-  #       title: Copy screenshot files
-  #       is_always_run: true
-  #       run_if: .IsBuildFailed
-  #       inputs:
-  #       - content: |-
-  #           #!/usr/bin/env bash
-  #           set -ex
-  #           cp -r "$BITRISE_SOURCE_DIR/artifacts/screenshots"  "$BITRISE_DEPLOY_DIR"
-  #   - deploy-to-bitrise-io@2.3:
-  #       title: Deploy test screenshots
-  #       is_always_run: true
-  #       run_if: .IsBuildFailed
-  #       inputs:
-  #       - deploy_path: $BITRISE_DEPLOY_DIR
-  #       - is_compress: true
-  #       - zip_name: E2E_Android_Failure_Screenshots
-  #   meta:
-  #     bitrise.io:
-  #       machine_type_id: elite-xl
-  #       stack: linux-docker-android-20.04
-  ios_e2e_build:
+        machine_type_id: elite-xl
+  ios_e2e_test:
     before_run:
       - code_setup_dev
       - e2e_setup
@@ -663,56 +493,8 @@ workflows:
                 node -v
                 export METAMASK_ENVIRONMENT='local'
                 export METAMASK_BUILD_TYPE='main'
-                IGNORE_BOXLOGS_DEVELOPMENT="true" FORCE_BUNDLING=true yarn test:e2e:ios:bitrise:build
-          title: Run detox build
-          is_always_run: false
-      - save-cache@1:
-          title: Save cache build
-          inputs:
-          - key: ipa-cache-{{ .CommitHash }}
-          - paths: |-
-              ios/build/Build
-              ../Library/Detox/ios
-  ios_e2e_test:
-    before_run:
-      - setup
-      - prep_environment
-      - e2e_setup
-    after_run:
-      - _notify_failure_on_slack
-    steps:
-      - restore-cache@1:
-          title: Restore cache build
-          inputs:
-          - key: ipa-cache-{{ .CommitHash }}
-      - restore-cocoapods-cache@1: {}
-      - certificate-and-profile-installer@1: {}
-      - set-xcode-build-number@1:
-          inputs:
-            - build_short_version_string: $VERSION_NAME
-            - plist_path: $PROJECT_LOCATION_IOS/MetaMask/Info.plist
-      - script:
-          inputs:
-            - content: |-
-                # Add cache directory to environment variable
-                envman add --key BREW_APPLESIMUTILS --value "$(brew --cellar)/applesimutils"
-                envman add --key BREW_OPT_APPLESIMUTILS --value "/usr/local/opt/applesimutils"
-                brew tap wix/brew
-          title: Set Env Path for caching deps
-      - script@1:
-          inputs:
-            - content: |-
-                #!/usr/bin/env bash
-                if [ "$TEST_SUITE" = "Regression" ]; then
-                  TEST_SUITE="Regression"
-                else
-                  TEST_SUITE="Smoke"
-                fi
-                node -v
-                export METAMASK_ENVIRONMENT='local'
-                export METAMASK_BUILD_TYPE='main'
-                IGNORE_BOXLOGS_DEVELOPMENT="true" FORCE_BUNDLING=true yarn test:e2e:ios:bitrise:run --testNamePattern="$TEST_SUITE_TAG"
-          title: Run detox test
+                IGNORE_BOXLOGS_DEVELOPMENT="true" FORCE_BUNDLING=true yarn test:e2e:ios:debug --testNamePattern="$TEST_SUITE"
+          title: Detox Build & Test
           is_always_run: false
       - custom-test-results-export@1:
           is_always_run: true
@@ -1321,10 +1103,10 @@ app:
       PROJECT_LOCATION_IOS: ios
     - opts:
         is_expand: false
-      VERSION_NAME: 7.12.0
+      VERSION_NAME: 7.12.1
     - opts:
         is_expand: false
-      VERSION_NUMBER: 1214
+      VERSION_NUMBER: 1221
     - opts:
         is_expand: false
       FLASK_VERSION_NAME: 0.0.4
