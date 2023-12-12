@@ -22,6 +22,7 @@ jest.mock('../../../core/NativeModules', () => ({
 describe('handleUniversalLinks', () => {
   const mockParse = jest.fn();
   const mockHandleBuyCrypto = jest.fn();
+  const mockHandleSellCrypto = jest.fn();
   const mockHandleBrowserUrl = jest.fn();
   const mockConnectToChannel = jest.fn();
   const mockGetConnections = jest.fn();
@@ -37,6 +38,7 @@ describe('handleUniversalLinks', () => {
   const instance = {
     parse: mockParse,
     _handleBuyCrypto: mockHandleBuyCrypto,
+    _handleSellCrypto: mockHandleSellCrypto,
     _handleBrowserUrl: mockHandleBrowserUrl,
   } as unknown as DeeplinkManager;
 
@@ -306,8 +308,32 @@ describe('handleUniversalLinks', () => {
     });
   });
 
+  describe('ACTIONS.SELL_CRYPTO', () => {
+    it('should call instance._handleSellCrypto if action is ACTIONS.SELL_CRYPTO', () => {
+      urlObj = {
+        hostname: AppConstants.MM_UNIVERSAL_LINK_HOST,
+        pathname: `/${ACTIONS.SELL_CRYPTO}/additional/path`,
+        href: 'test-href',
+      } as ReturnType<typeof extractURLParams>['urlObj'];
+
+      handleUniversalLink({
+        instance,
+        handled,
+        urlObj,
+        params,
+        browserCallBack: mockBrowserCallBack,
+        origin,
+        wcURL,
+        url,
+      });
+
+      expect(handled).toHaveBeenCalled();
+      expect(mockHandleSellCrypto).toHaveBeenCalledTimes(1);
+    });
+  });
+
   describe('default condition', () => {
-    it('should call instance._handleBrowserUrl if action is not ACTIONS.BUY_CRYPTO', () => {
+    it('should call instance._handleBrowserUrl if action is not ACTIONS.BUY_CRYPTO or ACTIONS.SELL_CRYPTO', () => {
       urlObj = {
         hostname: AppConstants.MM_UNIVERSAL_LINK_HOST,
         pathname: `/other-action/additional/path`,
