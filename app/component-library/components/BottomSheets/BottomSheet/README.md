@@ -1,5 +1,7 @@
 # BottomSheet
 
+![BottomSheet](./BottomSheet.png)
+
 BottomSheet is a sheet component typically used when we need content that slides up from the bottom. This is a wrapper component that your screens utilize and **is meant to be used with [React Navigation](https://reactnavigation.org/)** as an action sheet.
 
 ## Props

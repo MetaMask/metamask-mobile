@@ -8,7 +8,6 @@ import {
   SEARCH_BUTTON,
   NAVBAR_TITLE_NETWORK,
   ANDROID_BROWSER_WEBVIEW_ID,
-  ACCOUNT_BUTTON,
 } from '../../../wdio/screen-objects/testIDs/BrowserScreen/BrowserScreen.testIds';
 import { URL_INPUT_BOX_ID } from '../../../wdio/screen-objects/testIDs/BrowserScreen/AddressBar.testIds';
 import {
@@ -26,6 +25,7 @@ import {
   BrowserViewSelectorsText,
 } from '../../selectors/BrowserView.selectors';
 import { CommonSelectorsText } from '../../selectors/Common.selectors';
+import { AccountOverviewSelectorsIDs } from '../../selectors/AccountOverview.selectors';
 
 const TEST_DAPP = 'https://metamask.github.io/test-dapp/';
 
@@ -50,8 +50,7 @@ export default class Browser {
   }
 
   static async tapOpenNewTabButton() {
-    await TestHelpers.checkIfExists(MULTI_TAB_ADD_BUTTON);
-    await TestHelpers.tap(MULTI_TAB_ADD_BUTTON);
+    await TestHelpers.waitAndTap(MULTI_TAB_ADD_BUTTON);
   }
   static async tapNetworkAvatarButtonOnBrowser() {
     await TestHelpers.waitAndTap(BrowserViewSelectorsIDs.AVATAR_IMAGE);
@@ -61,7 +60,7 @@ export default class Browser {
     if (device.getPlatform() === 'android') {
       await TestHelpers.delay(3000); // to wait until toast notifcation disappears
       await TestHelpers.tapByDescendentTestID(
-        ACCOUNT_BUTTON,
+        AccountOverviewSelectorsIDs.ACCOUNT_BUTTON,
         BrowserViewSelectorsIDs.AVATAR_IMAGE,
       );
     } else {
@@ -217,9 +216,8 @@ export default class Browser {
   }
 
   static async navigateToTestDApp() {
-    await Browser.tapUrlInputBox();
-    await Browser.navigateToURL(TEST_DAPP_LOCAL_URL);
-    await TestHelpers.delay(3000);
+    await this.tapUrlInputBox();
+    await this.navigateToURL(TEST_DAPP_LOCAL_URL);
   }
 
   static async isURLBarTextTestDapp() {

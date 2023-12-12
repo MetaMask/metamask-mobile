@@ -25,11 +25,8 @@ import AnalyticsV2 from '../../../util/analyticsV2';
 import DefaultPreference from 'react-native-default-preference';
 import { METRICS_OPT_IN } from '../../../constants/storage';
 import { ThemeContext, mockTheme } from '../../../util/theme';
-import {
-  WELCOME_SCREEN_CAROUSEL_TITLE_ID,
-  WELCOME_SCREEN_GET_STARTED_BUTTON_ID,
-  WELCOME_SCREEN_CAROUSEL_CONTAINER_ID,
-} from '../../../../wdio/screen-objects/testIDs/Screens/WelcomeScreen.testIds';
+import { WELCOME_SCREEN_CAROUSEL_TITLE_ID } from '../../../../wdio/screen-objects/testIDs/Screens/WelcomeScreen.testIds';
+import { OnboardingCarouselSelectorIDs } from '../../../../e2e/selectors/Onboarding/OnboardingCarousel.selectors';
 import generateTestId from '../../../../wdio/utils/generateTestId';
 const IMAGE_3_RATIO = 215 / 315;
 const IMAGE_2_RATIO = 222 / 239;
@@ -197,7 +194,7 @@ class OnboardingCarousel extends PureComponent {
     return (
       <View
         style={baseStyles.flexGrow}
-        testID={'onboarding-carouselcarousel-screen--screen'}
+        testID={OnboardingCarouselSelectorIDs.CONTAINER_ID}
       >
         <OnboardingScreenWithBg screen={'carousel'}>
           <ScrollView
@@ -206,10 +203,9 @@ class OnboardingCarousel extends PureComponent {
           >
             <View
               style={styles.wrapper}
-              {...generateTestId(
-                Platform,
-                WELCOME_SCREEN_CAROUSEL_CONTAINER_ID,
-              )}
+              testID={
+                OnboardingCarouselSelectorIDs.WELCOME_SCREEN_CAROUSEL_CONTAINER_ID
+              }
             >
               <ScrollableTabView
                 style={styles.scrollTabs}
@@ -263,7 +259,9 @@ class OnboardingCarousel extends PureComponent {
           </ScrollView>
           <View
             style={styles.ctas}
-            testID={WELCOME_SCREEN_GET_STARTED_BUTTON_ID}
+            testID={
+              OnboardingCarouselSelectorIDs.WELCOME_SCREEN_GET_STARTED_BUTTON_ID
+            }
           >
             <View style={styles.ctaWrapper}>
               <StyledButton type={'normal'} onPress={this.onPressGetStarted}>

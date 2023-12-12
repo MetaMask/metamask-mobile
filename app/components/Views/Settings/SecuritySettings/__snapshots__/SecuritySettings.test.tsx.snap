@@ -1543,7 +1543,7 @@ exports[`SecuritySettings should render correctly 1`] = `
             "marginTop": 50,
           }
         }
-        testID="third-party-section"
+        testID="incoming-transactions-section"
       >
         <Text
           style={
@@ -1656,6 +1656,7 @@ exports[`SecuritySettings should render correctly 1`] = `
                     "lineHeight": 24,
                   }
                 }
+                testID="cellbase-avatar-title"
               >
                 Ethereum Main Network
               </Text>
@@ -1795,6 +1796,7 @@ exports[`SecuritySettings should render correctly 1`] = `
                     "lineHeight": 24,
                   }
                 }
+                testID="cellbase-avatar-title"
               >
                 Linea Main Network
               </Text>
