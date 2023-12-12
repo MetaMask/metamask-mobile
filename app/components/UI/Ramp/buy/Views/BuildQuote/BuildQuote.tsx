@@ -69,7 +69,6 @@ import styleSheet from './BuildQuote.styles';
 import {
   toTokenMinimalUnit,
   fromTokenMinimalUnitString,
-  renderFromTokenMinimalUnit,
 } from '../../../../../../util/number';
 import useGasPriceEstimation from '../../../common/hooks/useGasPriceEstimation';
 
@@ -329,7 +328,7 @@ const BuildQuote = () => {
   );
 
   const handleQuickAmountPress = useCallback(
-    ({ value, isNative }: QuickAmount) => {
+    ({ value }: QuickAmount) => {
       if (isBuy) {
         setAmount(`${value}`);
         setAmountNumber(value);
@@ -345,7 +344,11 @@ const BuildQuote = () => {
 
         let amountToSet = amountPercentage;
 
-        if (isNative && maxSellAmount && maxSellAmount.lt(amountPercentage)) {
+        if (
+          selectedAsset?.address === NATIVE_ADDRESS &&
+          maxSellAmount &&
+          maxSellAmount.lt(amountPercentage)
+        ) {
           amountToSet = maxSellAmount;
         }
 
@@ -358,7 +361,13 @@ const BuildQuote = () => {
         setAmountNumber(Number(newAmountString));
       }
     },
-    [balanceBN, isBuy, maxSellAmount, selectedAsset?.decimals],
+    [
+      balanceBN,
+      isBuy,
+      maxSellAmount,
+      selectedAsset?.address,
+      selectedAsset?.decimals,
+    ],
   );
 
   const onKeypadLayout = useCallback((event) => {
@@ -661,7 +670,7 @@ const BuildQuote = () => {
     displayAmount = `${amount} ${selectedAsset?.symbol}`;
   }
 
-  let quickAmounts = [];
+  let quickAmounts: QuickAmount[] = [];
 
   if (isBuy) {
     quickAmounts =
@@ -669,7 +678,7 @@ const BuildQuote = () => {
         value: quickAmount,
         label: currentFiatCurrency?.denomSymbol + quickAmount.toString(),
       })) ?? [];
-  } else {
+  } else if (balanceBN) {
     quickAmounts = [
       { value: 0.25, label: '25%' },
       { value: 0.5, label: '50%' },
