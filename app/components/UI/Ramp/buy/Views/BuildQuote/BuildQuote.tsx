@@ -472,7 +472,7 @@ const BuildQuote = () => {
     if (selectedAsset && currentFiatCurrency) {
       navigation.navigate(
         ...createQuotesNavDetails({
-          amount: amountNumber,
+          amount: isBuy ? amountNumber : amount,
           asset: selectedAsset,
           fiatCurrency: currentFiatCurrency,
         }),
@@ -502,6 +502,7 @@ const BuildQuote = () => {
     }
   }, [
     screenLocation,
+    amount,
     amountNumber,
     currentFiatCurrency,
     isBuy,

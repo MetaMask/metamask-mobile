@@ -816,7 +816,7 @@ describe('BuildQuote View', () => {
     fireEvent.press(submitBtn);
 
     expect(mockNavigate).toHaveBeenCalledWith(Routes.RAMP.QUOTES, {
-      amount: VALID_AMOUNT,
+      amount: validAmount,
       asset: mockUseRampSDKValues.selectedAsset,
       fiatCurrency: mockUseFiatCurrenciesValues.currentFiatCurrency,
     });
