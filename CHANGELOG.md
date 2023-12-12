@@ -2,6 +2,9 @@
 
 ## Current Main Branch
 
+## 7.12.2 - Dec 8, 2023
+### Fixed 
+- [#8057](https://github.com/MetaMask/metamask-mobile/pull/8057): fix: Disable SES on iOS 
 
 ## 7.12.1 - Dec 5, 2023
 ### Fixed
