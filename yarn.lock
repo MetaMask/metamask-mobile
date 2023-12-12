@@ -1298,10 +1298,10 @@
     buffer "^6.0.3"
     ethereumjs-util "^7.1.5"
 
-"@consensys/on-ramp-sdk@1.25.6-beta":
-  version "1.25.6-beta"
-  resolved "https://registry.yarnpkg.com/@consensys/on-ramp-sdk/-/on-ramp-sdk-1.25.6-beta.tgz#ae7733b749c4f79ad2056ffe37f44fb5bb7098d5"
-  integrity sha512-/PVvl1H/DGsbjGBQ6WHvebRDDnujzlcpqkjiXMqFcnEPyfr7+z7K8BSdc9DrSdcvLiR3z7r7f1NySaKri6qqgg==
+"@consensys/on-ramp-sdk@1.25.6":
+  version "1.25.6"
+  resolved "https://registry.yarnpkg.com/@consensys/on-ramp-sdk/-/on-ramp-sdk-1.25.6.tgz#bf61b7e4a037a7fecf9c80b456d5407351f44df1"
+  integrity sha512-Od6c7+DcFAfH1M2d0076QEEUvj+Vdf6PiOsN3sTx/3QBvmSLqP4bICs4vq00K7XlR13QBMaGBRF2DKjO8D9fOw==
   dependencies:
     async "^3.2.3"
     axios "^0.27.0"
