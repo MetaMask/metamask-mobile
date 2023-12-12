@@ -116,12 +116,12 @@ stages:
       - android_e2e_build: {}
   run_smoke_e2e_ios_android_stage:
     workflows:
-      - run_test_dir_confirmations_ios: {}
-      - run_test_dir_confirmations_android: {}
-      - run_test_dir_swaps_ios: {}
-      - run_test_dir_swaps_android: {}
-      - run_test_dir_permission_systems_ios: {}
-      - run_test_dir_permission_systems_android: {}
+      - run_tag_confirmations_ios: {}
+      - run_tag_smoke_confirmations_android: {}
+      - run_tag_smoke_swaps_ios: {}
+      - run_tag_smoke_swaps_android: {}
+      - run_tag_smoke_core_ios: {}
+      - run_tag_smoke_core_android: {}
   build_regression_e2e_ios_android_stage:
     workflows:
       - ios_build_regression_tests: {}
@@ -382,12 +382,12 @@ workflows:
     - android_e2e_test
 
 ### Seperating workflows so they run concurrently during smoke runs
-  run_test_dir_confirmations_ios:
+  run_tag_confirmations_ios:
       envs:
       - TEST_SUITE: 'SmokeConfirmations'
       after_run:
       - ios_e2e_test
-  run_test_dir_confirmations_android:
+  run_tag_smoke_confirmations_android:
       meta:
           bitrise.io:
             stack: linux-docker-android-20.04
@@ -396,12 +396,12 @@ workflows:
       - TEST_SUITE: 'SmokeConfirmations'
       after_run:
       - android_e2e_test
-  run_test_dir_swaps_ios:
+  run_tag_smoke_swaps_ios:
       envs:
       - TEST_SUITE: 'SmokeSwaps'
       after_run:
       - ios_e2e_test
-  run_test_dir_swaps_android:
+  run_tag_smoke_swaps_android:
       meta:
           bitrise.io:
             stack: linux-docker-android-20.04
@@ -410,12 +410,12 @@ workflows:
       - TEST_SUITE: 'SmokeSwaps'
       after_run:
       - android_e2e_test
-  run_test_dir_permission_systems_ios:
+  run_tag_smoke_core_ios:
       envs:
       - TEST_SUITE: 'SmokeCore'
       after_run:
       - ios_e2e_test
-  run_test_dir_permission_systems_android:
+  run_tag_smoke_core_android:
       meta:
           bitrise.io:
             stack: linux-docker-android-20.04
