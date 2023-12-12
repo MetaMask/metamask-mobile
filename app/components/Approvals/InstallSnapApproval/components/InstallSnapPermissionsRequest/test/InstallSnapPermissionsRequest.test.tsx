@@ -48,6 +48,7 @@ describe('InstallSnapPermissionsRequest', () => {
   it('renders the correct number of permission cells', () => {
     const { getAllByTestId } = render(
       <InstallSnapPermissionsRequest
+        snapName="@lavamoat/tss-snap"
         approvalRequest={installSnapDataApprovalRequest}
         onConfirm={onConfirm}
         onCancel={onCancel}

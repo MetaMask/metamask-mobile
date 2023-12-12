@@ -60,6 +60,7 @@ const InstallSnapApproval = () => {
   };
 
   const snapName = useMemo(() => {
+    if (!approvalRequest) return '';
     // First, try to get the snapName from the approvalRequest data if it is there.
     const colonIndex = approvalRequest?.requestData.snapId.indexOf(':');
     if (colonIndex !== -1) {
@@ -77,10 +78,7 @@ const InstallSnapApproval = () => {
 
     // Return snap name from caveats or an empty string if not found
     return snapNameFromCaveats;
-  }, [
-    approvalRequest?.requestData.snapId,
-    approvalRequest?.requestData?.permissions?.wallet_snap?.caveats,
-  ]);
+  }, [approvalRequest]);
 
   if (!approvalRequest) return null;
 

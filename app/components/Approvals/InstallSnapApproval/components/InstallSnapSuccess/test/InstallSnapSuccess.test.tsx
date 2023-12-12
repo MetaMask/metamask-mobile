@@ -48,7 +48,7 @@ describe('InstallSnapSuccess', () => {
   it('renders correctly', () => {
     const { getByTestId } = render(
       <InstallSnapSuccess
-        approvalRequest={installSnapDataApprovalRequest}
+        snapName="@lavamoat/tss-snap"
         onConfirm={onConfirm}
       />,
     );
@@ -59,7 +59,7 @@ describe('InstallSnapSuccess', () => {
   it('calls onConfirm when the OK button is pressed', () => {
     const { getByTestId } = render(
       <InstallSnapSuccess
-        approvalRequest={installSnapDataApprovalRequest}
+        snapName="@lavamoat/tss-snap"
         onConfirm={onConfirm}
       />,
     );
@@ -71,7 +71,7 @@ describe('InstallSnapSuccess', () => {
   it('displays the correct snap name', () => {
     const { getByText } = render(
       <InstallSnapSuccess
-        approvalRequest={installSnapDataApprovalRequest}
+        snapName="@lavamoat/tss-snap"
         onConfirm={onConfirm}
       />,
     );

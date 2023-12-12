@@ -51,6 +51,7 @@ describe('InstallSnapConnectionRequest', () => {
         approvalRequest={requestPermissionsData}
         onConfirm={onConfirm}
         onCancel={onCancel}
+        snapName="@metamask/bip32-example-snap"
       />,
     );
     expect(getByTestId(SNAP_INSTALL_CONNECTION_REQUEST)).toBeDefined();
@@ -62,6 +63,7 @@ describe('InstallSnapConnectionRequest', () => {
         approvalRequest={requestPermissionsData}
         onConfirm={onConfirm}
         onCancel={onCancel}
+        snapName="@metamask/bip32-example-snap"
       />,
     );
 
@@ -75,6 +77,7 @@ describe('InstallSnapConnectionRequest', () => {
         approvalRequest={requestPermissionsData}
         onConfirm={onConfirm}
         onCancel={onCancel}
+        snapName="@metamask/bip32-example-snap"
       />,
     );
 
@@ -88,6 +91,7 @@ describe('InstallSnapConnectionRequest', () => {
         approvalRequest={requestPermissionsData}
         onConfirm={onConfirm}
         onCancel={onCancel}
+        snapName="@metamask/bip32-example-snap"
       />,
     );
 
