@@ -2,33 +2,29 @@
 // eslint-disable-next-line @typescript-eslint/ban-ts-comment
 // @ts-nocheck
 import {
-  BasePostMessageStream,
   Job,
   AbstractExecutionService,
   ExecutionServiceArgs,
 } from '@metamask/snaps-controllers';
 import snapsState from './SnapsState';
 import SnapDuplex from './SnapDuplex';
-import Logger from '../../util/Logger';
+
+import { BasePostMessageStream } from '@metamask/post-message-stream';
 export default class WebviewExecutionService extends AbstractExecutionService<Window> {
-  #snapDuplexMap: SnapDuplex[];
+  #snapDuplexMap: Map<string, SnapDuplex>;
 
   constructor({ messenger, setupSnapProvider }: ExecutionServiceArgs) {
     super({
       messenger,
       setupSnapProvider,
     });
-    this.#snapDuplexMap = {};
+    this.#snapDuplexMap = new Map();
   }
 
   protected async initEnvStream(jobId: string): Promise<{
-    worker;
+    worker: any;
     stream: BasePostMessageStream;
   }> {
-    Logger.log(
-      '[EXEC SERVICE LOG] WebviewExecutionService+_initEnvStream: Init env stream for job',
-      jobId,
-    );
     const iframeWindow = snapsState.webview;
     const stream = snapsState.stream;
 
@@ -39,19 +35,17 @@ export default class WebviewExecutionService extends AbstractExecutionService<Wi
       jobId,
     });
 
-    this.#snapDuplexMap[jobId] = snapStream;
+    this.#snapDuplexMap.set(jobId, snapStream);
 
     return { worker: iframeWindow, stream: snapStream };
   }
 
   protected terminateJob(jobWrapper: Job<Window>): void {
-    this.#snapDuplexMap[jobWrapper.id].destroy();
-    delete this.#snapDuplexMap[jobWrapper.id];
-    Logger.log(
-      '[EXEC SERVICE LOG] WebviewExecutionService+_terminate: Job',
-      jobWrapper.id,
-      'SnapDuplex destroyed',
-    );
+    const snapDuplex = this.#snapDuplexMap.get(jobWrapper.id);
+    if (snapDuplex) {
+      snapDuplex.destroy();
+      this.#snapDuplexMap.delete(jobWrapper.id);
+    }
   }
 }
 ///: END:ONLY_INCLUDE_IF
