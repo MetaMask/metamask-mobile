@@ -201,6 +201,10 @@
     "security_alert_title": "Güvenlik Uyarısı",
     "security_alert_desc": "İlerlemek için Parolayı veya cihazınızda desteklenen herhangi bir biyometrik kimlik doğrulama yöntemini (FaceID, TouchID veya Parmak İzi) açmanız gereklidir"
   },
+  "connect_hardware": {
+    "title_select_hardware": "Bir donanım cüzdanı bağlayın",
+    "select_hardware": "Kullanmak istediğiniz donanım cüzdanını seçin"
+  },
   "enter_password": {
     "title": "Şifrenizi girin",
     "desc": "Devam etmek için lütfen şifrenizi girin",
@@ -513,6 +517,7 @@
   },
   "accounts": {
     "create_new_account": "Yeni hesap oluştur",
+    "qr_hardware": "QR donanımı",
     "import_account": "Bir hesabı içe aktar",
     "connect_hardware": "Donanım cüzdanı bağla",
     "imported": "İçe aktarıldı",
@@ -536,6 +541,7 @@
     "permissions": "İzinler",
     "revoke": "İptal et",
     "revoke_all": "Tümünü iptal et",
+    "ledger": "Ledger",
     "site_permission_to": "Bu sitenin şunları yapmaya izni vardır:",
     "address_balance_activity_permission": "Adres, hesap bakiyesi ve aktiviteyi görme",
     "suggest_transactions": "Onaylanacak işlemleri önerme",
@@ -569,7 +575,7 @@
     "tutorial": "Öğretici",
     "description4": "Temel (öğretici)",
     "description5": "1. Kilit Taşınızı Açın",
-    "description6": "2. ··· Menüsüne tıklayın, daha sonra Senkronize et sekmesine gidin >",
+    "description6": "2. Tap the ··· Menu, then go to Sync",
     "button_continue": "Devam",
     "hint_text": "İşlemi onaylamak için ",
     "purpose_connect": "bağlan",
@@ -701,7 +707,7 @@
     "remove_network": "Kaldır",
     "cancel_remove_network": "İptal",
     "info_title": "MetaMask Hakkında",
-    "info_title_flask": "About MetaMask Flask",
+    "info_title_flask": "MetaMask Flask Hakkında",
     "experimental_title": "Deneysel",
     "experimental_desc": "WalletConnect ve daha fazlası...",
     "legal_title": "Hukuki",
@@ -801,7 +807,53 @@
     "autodetect_nft_desc": "MetaMask'in üçüncü taraf hizmetleri (OpenSea) kullanarak size ait olan NFT'leri eklemesine izin verin. NFT'leri otomatik algılama, IP adresinizi ve hesap adresinizi bu hizmetlere ifşa eder. Bu özelliğin etkinleştirilmesi IP adresinizi Ethereum adresinizle ilişkilendirebilir ve dolandırıcılar tarafından airdrop'u gerçekleştirilen sahte NFT'leri gösterebilir. Bu riski önlemek için token'leri elle ekleyebilirsiniz.",
     "incoming_transactions_title": "Gelen işlemleri göster",
     "incoming_transactions_content": "Bu, Ethereum adresinizi ve IP adresinizi ifşa edecek olan seçtiğiniz ağa dayalıdır.",
-    "display_nft_media_desc_new": "NFT medyasını ve verilerini görüntülemek, IP adresinizin OpenSea veya diğer üçüncü taraflarla paylaşılmasına neden olabilir. NFT otomatik algılama bu özelliğe dayanır ve kapatıldığında kullanılamaz. NFT medyası tamamen IPFS'de bulunuyorsa bu özellik kapalı olduğunda bile görüntülenmeye devam edebilir."
+    "display_nft_media_desc_new": "NFT medyasını ve verilerini görüntülemek, IP adresinizin OpenSea veya diğer üçüncü taraflarla paylaşılmasına neden olabilir. NFT otomatik algılama bu özelliğe dayanır ve kapatıldığında kullanılamaz. NFT medyası tamamen IPFS'de bulunuyorsa bu özellik kapalı olduğunda bile görüntülenmeye devam edebilir.",
+    "snaps": {
+      "title": "Snap'ler",
+      "description": "Snap'leriniz için genel bakış ve yönetim",
+      "snap_settings": {
+        "remove_snap_section_title": "Snap'i kaldır",
+        "remove_snap_section_description": "Bu eylem snap'i, verilerini ve verilen izinlerini siler.",
+        "remove_button_label": "{{snapName}} adlı snap'i kaldır"
+      },
+      "snap_details": {
+        "install_date": "{{date}} tarihinde yüklendi",
+        "install_origin": "Kökeni yükle",
+        "enabled": "Etkinleştirildi",
+        "version": "Sürüm"
+      },
+      "snap_permissions": {
+        "approved_date": "{{date}} tarihinde onaylandı",
+        "permission_section_title": "İzinler",
+        "permission_requested_now": "Şimdi talep edildi",
+        "human_readable_permission_titles": {
+          "endowment:long-running": "Süresiz çalıştır",
+          "endowment:network-access": "İnternet erişimi",
+          "endowment:transaction-insight": "İşlem içgörülerini görüntüle",
+          "endowment:cronjob": "Periyodik eylemleri planla ve çalıştır",
+          "endowment:rpc": {
+            "snaps": "Diğer snap'lerin doğrudan bu snap ile iletişim kurmasına izin ver",
+            "dapps": "Merkeziyetsiz uygulamaların doğrudan bu snap ile iletişim kurmasına izin ver"
+          },
+          "snap_confirm": "Özel iletişim kutuları göster",
+          "snap_manageState": "Verilerinizi cihazınızda saklayın ve yönetin",
+          "snap_notify": "Bildirimleri göster",
+          "snap_getBip32Entropy": "{{protocol}} hesaplarınızı ve varlıklarınızı kontrol et",
+          "snap_getBip32PublicKey": "{{protocol}} için genel anahtarınızı görüntüle",
+          "snap_getBip44Entropy": "{{protocol}} hesaplarınızı ve varlıklarınızı kontrol et",
+          "snap_getEntropy": "Bu snap için eşsiz rastgele anahtarları türet",
+          "endowment:keyring": "endowment:keyring",
+          "wallet_snap": "{{otherSnapName}} adlı snap'e bağlan",
+          "endowment:webassembly": "WebAssembly desteği",
+          "endowment:ethereum-provider": "Ethereum sağlayıcısına erişim sağla",
+          "endowment:unknown": "Bilinmeyen izin",
+          "snap_getLocale": "Tercih ettiğiniz dili görüntüle",
+          "endowment:caveat:transaction-origin": "İşlem öneren web sitelerinin kökenlerini gör",
+          "endowment:extend-runtime": "Çalışma süresini uzat",
+          "snap_dialog": "Özel iletişim kutuları görüntüle"
+        }
+      }
+    }
   },
   "sdk": {
     "disconnect_title": "Tüm sitelerin bağlantısı kesilsin mi?",
@@ -910,6 +962,7 @@
     "add_collectible_button": "Ekle",
     "info": "Bilgi",
     "swap": "Kaydır",
+    "bridge": "Köprü",
     "description": "Açıklama",
     "totalSupply": "Toplam Arz",
     "address": "Adres",
@@ -921,6 +974,7 @@
     "buy_description": "Nakit ile kripto satın alın",
     "sell_description": "Nakit karşılığında kripto sat",
     "swap_description": "Tokenler arasında swap gerçekleştirin",
+    "bridge_description": "Farklı ağlar arasında token transfer et",
     "send_description": "Dilediğin hesaba kripto gönderin",
     "receive_description": "Kripto alın",
     "chart_time_period": {
@@ -1020,6 +1074,7 @@
     "save": "Kaydet",
     "speedup": "Hızlandır",
     "sign_with_keystone": "Kilit Taşıyla Oturum Açın",
+    "sign_with_ledger": "Ledger ile oturum aç",
     "from": "Kimden",
     "gas_fee": "Gaz ücreti",
     "gas_fee_fast": "HIZLI",
@@ -1093,6 +1148,7 @@
     "not_enough_for_gas": "Hesabınızda işlem ücretlerini ödemek için 0 {{ticker}} bulunuyor. Bir miktar {{ticker}} satın alın veya başka bir hesaptan yatırın.",
     "send": "Gönder",
     "confirm_with_qr_hardware": "Kilit Taşıyla Onaylayın",
+    "confirm_with_ledger_hardware": "Ledger ile onayla",
     "confirmed": "Onaylandı",
     "pending": "Bekliyor",
     "submitted": "Gönderildi",
@@ -1845,16 +1901,6 @@
     "apple_pay_provider_total_label": "{{provider}}(MetaMask ile)",
     "buy_with": "Şununla satın al:",
     "plus_fee": "Artı {{fee}} ücret",
-    "notifications": {
-      "purchase_failed_title": "{{currency}} satın alma işlemi başarısız oldu! Lütfen tekrar deneyin, verdiğimiz rahatsızlıktan dolayı özür dileriz!",
-      "purchase_failed_description": "Ödeme yöntemini ve kart desteğini doğrula",
-      "purchase_cancelled_title": "Satın alma işleminiz iptal edildi",
-      "purchase_cancelled_description": "Ödeme yöntemini ve kart desteğini doğrula",
-      "purchase_completed_title": "{{amount}} {{currency}} satın alma işleminiz başarılı oldu!",
-      "purchase_completed_description": "{{currency}} para biriminiz şimdi kullanılabilir",
-      "purchase_pending_title": "{{currency}} satın alma işleminiz gerçekleşiyor",
-      "purchase_pending_description": "Bu işlem birkaç dakika sürecektir..."
-    },
     "date": "Tarih",
     "from": "Kimden",
     "to": "Kime",
@@ -2012,7 +2058,9 @@
       "select_country_registered": "Kartının kayıtlı olduğu ülkeyi seç (bulunduğun yere bakılmaksızın).",
       "unsupported": "Bölge Desteklenmiyor",
       "unsupported_description": "Mümkün olan en kısa süre içinde bölgenizi de kapsamak için çok çalışıyoruz. Bu sırada, kripto {{rampType}} için diğer yolları öğrenmek üzere destek makalemize bakın.",
-      "unsupported_link": "Destek Makalesini Ziyaret Et"
+      "unsupported_link": "Destek Makalesini Ziyaret Et",
+      "popular_regions": "Popüler Bölgeler",
+      "regions": "Bölgeler"
     },
     "order_details": {
       "details_main": "Emir Bilgileri",
@@ -2060,6 +2108,16 @@
       "hold_to_send": "Göndermek için tut",
       "send": "Gönder",
       "sent": "Gönderildi!"
+    },
+    "notifications": {
+      "purchase_failed_title": "{{currency}} satın alma işlemi başarısız oldu! Lütfen tekrar deneyin, verdiğimiz rahatsızlıktan dolayı özür dileriz!",
+      "purchase_failed_description": "Ödeme yöntemini ve kart desteğini doğrula",
+      "purchase_cancelled_title": "Satın alma işleminiz iptal edildi",
+      "purchase_cancelled_description": "Ödeme yöntemini ve kart desteğini doğrula",
+      "purchase_completed_title": "{{amount}} {{currency}} satın alma işleminiz başarılı oldu!",
+      "purchase_completed_description": "{{currency}} para biriminiz şimdi kullanılabilir",
+      "purchase_pending_title": "{{currency}} satın alma işleminiz gerçekleşiyor",
+      "purchase_pending_description": "Bu işlem birkaç dakika sürecektir..."
     }
   },
   "swaps": {
@@ -2152,6 +2210,7 @@
     "i_understand": "Anlıyorum",
     "quotes_expire_in": "Tekliflerin bitmesine kalan süre:",
     "saving": "Kaydediliyor",
+    "n_quotes": "{{numberOfQuotes}} teklif",
     "view_details": "Ayrıntıları görüntüle",
     "estimated_gas_fee": "Tahmini gaz ücreti",
     "max_gas_fee": "Maks. gaz ücreti",
@@ -2196,7 +2255,7 @@
     "quote_source_agg": {
       "1": "Bu teklif",
       "2": "emrinizi farklı merkeziyetsiz borsalar arasında bölerek en iyi fiyatı bulan bir toplayıcıdan",
-      "3": "gelir."
+      "3": "farklı merkeziyetsiz borsalar arasında fiyatları karşılaştırır ve emrinizi böler."
     },
     "quote_source_cnt": {
       "1": "Bu teklif doğrudan",
@@ -2637,7 +2696,12 @@
     "not_supported_error": "Girilen veri imzalama işleminde sadece sürüm 4 desteklenmektedir.",
     "error_during_connection": "Bilinmeyen bir hata oluştu",
     "error_during_connection_message": "Ledger Nano X cihazınıza bağlanırken küçük bir sorun oluştu, bunu tekrar denemek için aşağıdaki \"Tekrar Dene\" düğmesine dokunun. Bazen MetaMask Mobil ile eşleştirme sürecinin başlangıcında Ledger Nano X cihazında ETH uygulamasının açık olması nedeniyle bu durum meydana gelir.",
-    "how_to_install_eth_webview_title": "Ethereum uygulaması nasıl yüklenir?"
+    "how_to_install_eth_webview_title": "Ethereum uygulaması nasıl yüklenir?",
+    "nonce_too_low": "Nonce çok düşük",
+    "nonce_too_low_error": "Ayarlanan nonce çok düşük",
+    "ledger_beta_alert": "Ledger entegrasyonu etkinleştiriliyor",
+    "ledger_beta_alert_description": "Deneysel bir özellik buldunuz! Devam ederek deneysel özelliği riski kendinize ait olacak şekilde kullandığınızı kabul edersiniz.",
+    "ledger_beta_cta": "Devam Et"
   },
   "account_actions": {
     "edit_name": "Hesap adını düzenleyin",
