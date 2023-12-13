@@ -35,28 +35,19 @@ const SnapDetails = ({ snap }: SnapDetailsProps) => {
   const { colors } = theme;
   const [enabled, setEnabled] = useState<boolean>(snap.enabled);
 
-  const enableSnap = useCallback(async () => {
-    const { SnapController } = Engine.context;
-    await SnapController.enableSnap(snap.id);
-  }, [snap.id]);
+  const toggleSnap = useCallback(
+    (enable) => {
+      const { SnapController } = Engine.context;
 
-  const disableSnap = useCallback(async () => {
-    const { SnapController } = Engine.context;
-    await SnapController.disableSnap(snap.id);
-  }, [snap.id]);
+      if (!SnapController) return;
 
-  const handleOnValueChange = useCallback(
-    (newValue) => {
-      setEnabled(newValue);
-      if (newValue) {
-        enableSnap();
-      } else {
-        disableSnap();
-      }
+      enable
+        ? SnapController.enableSnap(snap.id)
+        : SnapController.disableSnap(snap.id);
+      setEnabled(enable);
     },
-    [disableSnap, enableSnap],
+    [snap.id],
   );
-
   const snapInstalledDate: string = useMemo(
     () =>
       strings('app_settings.snaps.snap_details.install_date', {
@@ -87,7 +78,7 @@ const SnapDetails = ({ snap }: SnapDetailsProps) => {
             true: colors.primary.default,
             false: colors.border.muted,
           }}
-          onValueChange={handleOnValueChange}
+          onValueChange={toggleSnap}
           ios_backgroundColor={colors.border.muted}
         />
       </View>
