@@ -11,6 +11,7 @@ import wizardReducer from './wizard';
 import onboardingReducer from './onboarding';
 import fiatOrders from './fiatOrders';
 import swapsReducer from './swaps';
+import navigationReducer from './navigation';
 import signatureRequestReducer from './signatureRequest';
 import notificationReducer from './notification';
 import infuraAvailabilityReducer from './infuraAvailability';
@@ -82,6 +83,7 @@ const rootReducer = combineReducers<RootState, any>({
   wizard: wizardReducer,
   onboarding: onboardingReducer,
   notification: notificationReducer,
+  navigation: navigationReducer,
   signatureRequest: signatureRequestReducer,
   swaps: swapsReducer,
   fiatOrders,
