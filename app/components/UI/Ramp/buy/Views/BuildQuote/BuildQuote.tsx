@@ -76,6 +76,7 @@ import useGasPriceEstimation from '../../../common/hooks/useGasPriceEstimation';
 const ListItem = BaseListItem as any;
 const SelectorButton = BaseSelectorButton as any;
 
+const TRANSFER_GAS_LIMIT = 21000;
 interface BuildQuoteParams {
   showBack?: boolean;
 }
@@ -180,7 +181,8 @@ const BuildQuote = () => {
     useLimits();
 
   const gasPriceEstimation = useGasPriceEstimation({
-    gasLimit: isBuy ? 0 : 21000,
+    // 0 is set when buying since there's no transaction involved
+    gasLimit: isBuy ? 0 : TRANSFER_GAS_LIMIT,
     estimateRange: 'high',
   });
 
@@ -863,6 +865,7 @@ const BuildQuote = () => {
         onLayout={onKeypadLayout}
       >
         <QuickAmounts
+          isBuy={isBuy}
           onAmountPress={handleQuickAmountPress}
           amounts={quickAmounts}
         />

@@ -10,13 +10,26 @@ import Engine from '../../../../../core/Engine';
 import { RootState } from '../../../../../reducers';
 import { decGWEIToHexWEI } from '../../../../../util/conversions';
 
-function useGasPriceEstimation({
-  gasLimit = 21000,
-  estimateRange = 'medium',
-}: {
+const defaultGasLimit = 21000;
+
+interface Options {
   gasLimit?: number;
   estimateRange?: 'low' | 'medium' | 'high';
-}) {
+}
+
+/**
+ * Returns the estimated gas fee for a transaction.
+ * Returns null if the gas limit is 0 or if the gas fee controller has no estimates.
+ *
+ * @param options - The options object
+ * @param options.gasLimit - The gas limit for the transaction, defaults to 21_000
+ * @param options.estimateRange - The range to use for the estimation, defaults to 'medium'
+ * @returns The estimated gas fee in estimatedGasFee property as BN or null
+ */
+function useGasPriceEstimation({
+  gasLimit = defaultGasLimit,
+  estimateRange = 'medium',
+}: Options) {
   const pollTokenRef = useRef<string>();
 
   const gasFeeControllerState = useSelector(

@@ -32,10 +32,11 @@ const createStyles = (colors: Colors) =>
 interface AmountProps {
   amount: QuickAmount;
   onPress: (amount: QuickAmount) => any;
+  isBuy: boolean;
   disabled?: boolean;
 }
 
-const Amount = ({ amount, onPress, ...props }: AmountProps) => {
+const Amount = ({ amount, onPress, isBuy, ...props }: AmountProps) => {
   const { value, isNative, label } = amount;
   const { colors } = useTheme();
   const styles = createStyles(colors);
@@ -51,7 +52,11 @@ const Amount = ({ amount, onPress, ...props }: AmountProps) => {
       accessible
       {...props}
     >
-      {value === 1 && isNative ? (
+      {/*
+        We need to show the sparkle icon only when the value is 1 (100%) and is native token
+        to account for the gas estimation
+      */}
+      {!isBuy && value === 1 && isNative ? (
         <Icon
           name={IconName.Sparkle}
           color={IconColor.Alternative}
@@ -67,6 +72,7 @@ const Amount = ({ amount, onPress, ...props }: AmountProps) => {
 
 interface Props {
   amounts: QuickAmount[];
+  isBuy: boolean;
   disabled?: boolean;
   onAmountPress: (amount: QuickAmount) => any;
 }
@@ -74,6 +80,7 @@ interface Props {
 const QuickAmounts = ({
   amounts,
   onAmountPress,
+  isBuy,
   disabled,
   ...props
 }: Props) => {
@@ -88,6 +95,7 @@ const QuickAmounts = ({
       >
         {amounts.map((amount, index: number) => (
           <Amount
+            isBuy={isBuy}
             amount={amount}
             onPress={onAmountPress}
             key={index}
