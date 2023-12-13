@@ -1,3 +1,4 @@
+///: BEGIN:ONLY_INCLUDE_IF(snaps)
 import React from 'react';
 import { render } from '@testing-library/react-native';
 import SnapDescription from '../SnapDescription';
@@ -20,3 +21,4 @@ describe('SnapDescription', () => {
     expect(description.props.children).toBe('Test snap description');
   });
 });
+///: END:ONLY_INCLUDE_IF

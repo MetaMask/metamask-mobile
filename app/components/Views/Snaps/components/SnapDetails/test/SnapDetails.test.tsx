@@ -1,3 +1,4 @@
+///: BEGIN:ONLY_INCLUDE_IF(snaps)
 import React from 'react';
 import { render, fireEvent } from '@testing-library/react-native';
 import { Snap, Status } from '@metamask/snaps-utils';
@@ -143,3 +144,4 @@ describe('SnapDetails', () => {
     expect(switchElement.props.value).toEqual(true);
   });
 });
+///: END:ONLY_INCLUDE_IF

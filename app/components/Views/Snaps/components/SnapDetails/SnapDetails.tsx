@@ -1,3 +1,4 @@
+///: BEGIN:ONLY_INCLUDE_IF(snaps)
 import React, { useCallback, useMemo, useState } from 'react';
 import { View, Switch } from 'react-native';
 
@@ -120,3 +121,4 @@ const SnapDetails = ({ snap }: SnapDetailsProps) => {
 };
 
 export default React.memo(SnapDetails);
+///: END:ONLY_INCLUDE_IF
