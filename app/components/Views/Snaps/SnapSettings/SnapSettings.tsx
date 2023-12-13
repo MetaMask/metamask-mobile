@@ -1,3 +1,4 @@
+///: BEGIN:ONLY_INCLUDE_IF(snaps)
 import React, { useCallback, useEffect } from 'react';
 import { View, ScrollView, SafeAreaView } from 'react-native';
 
@@ -115,3 +116,4 @@ const SnapSettings = () => {
 };
 
 export default React.memo(SnapSettings);
+///: END:ONLY_INCLUDE_IF

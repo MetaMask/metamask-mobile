@@ -1,3 +1,4 @@
+///: BEGIN:ONLY_INCLUDE_IF(snaps)
 import { StyleSheet } from 'react-native';
 
 const styleSheet = () =>
@@ -18,3 +19,4 @@ const styleSheet = () =>
   });
 
 export default styleSheet;
+///: END:ONLY_INCLUDE_IF

@@ -1,3 +1,4 @@
+///: BEGIN:ONLY_INCLUDE_IF(snaps)
 import React from 'react';
 import { fireEvent, waitFor } from '@testing-library/react-native';
 import { Status } from '@metamask/snaps-utils';
@@ -221,3 +222,4 @@ describe('SnapSettings', () => {
     });
   });
 });
+///: END:ONLY_INCLUDE_IF

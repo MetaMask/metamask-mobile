@@ -1,3 +1,4 @@
+///: BEGIN:ONLY_INCLUDE_IF(snaps)
 import React from 'react';
 import { render } from '@testing-library/react-native';
 import SnapVersionBadge from '../SnapVersionTag';
@@ -18,3 +19,4 @@ describe('SnapVersionBadge', () => {
     expect(versionBadgeValue.props.children).toBe('v2.3.13');
   });
 });
+///: END:ONLY_INCLUDE_IF
