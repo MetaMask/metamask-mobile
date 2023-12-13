@@ -384,7 +384,7 @@ workflows:
 ### Seperating workflows so they run concurrently during smoke runs
   run_tag_confirmations_ios:
       envs:
-      - TEST_SUITE_TAG: 'SmokeConfirmations'
+      - TEST_SUITE_TAG: '.*SmokeConfirmations.*'
       after_run:
       - ios_e2e_test
   run_tag_smoke_confirmations_android:
@@ -393,12 +393,12 @@ workflows:
             stack: linux-docker-android-20.04
             machine_type_id: elite-xl
       envs:
-      - TEST_SUITE_TAG: 'SmokeConfirmations'
+      - TEST_SUITE_TAG: '.*SmokeConfirmations.*'
       after_run:
       - android_e2e_test
   run_tag_smoke_swaps_ios:
       envs:
-      - TEST_SUITE_TAG: 'SmokeSwaps'
+      - TEST_SUITE_TAG: '.*SmokeSwaps.*'
       after_run:
       - ios_e2e_test
   run_tag_smoke_swaps_android:
@@ -407,12 +407,12 @@ workflows:
             stack: linux-docker-android-20.04
             machine_type_id: elite-xl
       envs:
-      - TEST_SUITE_TAG: 'SmokeSwaps'
+      - TEST_SUITE_TAG: '.*SmokeSwaps.*'
       after_run:
       - android_e2e_test
   run_tag_smoke_core_ios:
       envs:
-      - TEST_SUITE_TAG: 'SmokeCore'
+      - TEST_SUITE_TAG: '.*SmokeCore.*'
       after_run:
       - ios_e2e_test
   run_tag_smoke_core_android:
@@ -421,7 +421,7 @@ workflows:
             stack: linux-docker-android-20.04
             machine_type_id: elite-xl
       envs:
-      - TEST_SUITE_TAG: 'SmokeCore'
+      - TEST_SUITE_TAG: '.*SmokeCore.*'
       after_run:
       - android_e2e_test
 
