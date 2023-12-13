@@ -462,13 +462,14 @@ buildAndroid() {
 }
 
 buildAndroidRunE2E(){
-	prebuild_android
-	if [ -e $ANDROID_ENV_FILE ]
-	then
-		source $ANDROID_ENV_FILE
-	fi
-	cd android && ./gradlew assembleProdDebug app:assembleAndroidTest -DtestBuildType=debug && cd ..
+    prebuild_android
+    if [ -e $ANDROID_ENV_FILE ]
+    then
+        source $ANDROID_ENV_FILE
+    fi
+    cd android && ./gradlew assembleProdDebug app:assembleAndroidTest -DtestBuildType=debug --parallel
 }
+
 
 buildIos() {
 	echo "Build iOS $MODE started..."
