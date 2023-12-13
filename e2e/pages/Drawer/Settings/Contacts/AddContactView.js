@@ -16,7 +16,7 @@ class AddContactView {
   }
 
   get addButton() {
-    return Matchers.getElementByLabel(AddContactViewSelectorsIDs.ADD_BUTTON);
+    return Matchers.getElementByID(AddContactViewSelectorsIDs.ADD_BUTTON);
   }
 
   get labelEditButton() {
@@ -77,7 +77,7 @@ class AddContactView {
       await DeleteAccountModal.tapDeleteButton();
     } else {
       await Gestures.waitAndTap(this.labelDeleteButton);
-      await DeleteAccountModal.tapDeleteButton();
+      await DeleteAccountModal.tapLabelDeleteButton();
     }
   }
 

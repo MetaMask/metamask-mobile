@@ -17,6 +17,10 @@ class DeleteAccountModal {
   async tapDeleteButton() {
     await Gestures.waitAndTap(this.deleteButton);
   }
+
+  async tapLabelDeleteButton() {
+    await Gestures.waitAndTap(this.deleteButton);
+  }
 }
 
 export default new DeleteAccountModal();
