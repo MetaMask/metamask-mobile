@@ -75,6 +75,16 @@ class EngineService {
         name: 'ApprovalController',
         key: `${engine.context.ApprovalController.name}:stateChange`,
       },
+      ///: BEGIN:ONLY_INCLUDE_IF(snaps)
+      {
+        name: 'SnapController',
+        key: `${engine.context.SnapController.name}:stateChange`,
+      },
+      {
+        name: 'subjectMetadataController',
+        key: `${engine.context.SubjectMetadataController.name}:stateChange`,
+      },
+      ///: END:ONLY_INCLUDE_IF
       {
         name: 'PermissionController',
         key: `${engine.context.PermissionController.name}:stateChange`,
