@@ -12,6 +12,7 @@ import {
   InstallSnapSuccess,
 } from './components';
 import { SNAP_INSTALL_FLOW } from './InstallSnapApproval.constants';
+import { ApprovalRequest } from '@metamask/approval-controller';
 
 const InstallSnapApproval = () => {
   const [installState, setInstallState] = useState<
@@ -38,7 +39,7 @@ const InstallSnapApproval = () => {
     }
   }, [approvalRequest]);
 
-  const getSnapName = (request: any): string => {
+  const getSnapName = (request: ApprovalRequest<any>): string => {
     // We first look for the name inside the snapId approvalRequest data
     const snapId = request?.requestData?.snapId;
     if (typeof snapId === 'string') {
