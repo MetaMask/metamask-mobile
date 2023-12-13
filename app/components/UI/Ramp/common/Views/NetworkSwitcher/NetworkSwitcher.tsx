@@ -2,7 +2,7 @@ import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import { useNavigation } from '@react-navigation/native';
 import { RefreshControl, TouchableOpacity, View } from 'react-native';
 import { ScrollView } from 'react-native-gesture-handler';
-import { NetworksChainId, NetworkType } from '@metamask/controller-utils';
+import { ChainId, NetworkType } from '@metamask/controller-utils';
 import { useSelector } from 'react-redux';
 
 import LoadingNetworksSkeleton from './LoadingNetworksSkeleton';
@@ -65,8 +65,8 @@ function NetworkSwitcher() {
     supportedNetworks.forEach(({ chainId: supportedChainId, active }) => {
       const currentChainId = `${supportedChainId}`;
       if (
-        currentChainId === NetworksChainId['linea-mainnet'] ||
-        currentChainId === NetworksChainId.mainnet ||
+        currentChainId === ChainId['linea-mainnet'] ||
+        currentChainId === ChainId.mainnet ||
         !active
       ) {
         return;
@@ -227,10 +227,7 @@ function NetworkSwitcher() {
               <LoadingNetworksSkeleton />
             ) : (
               <>
-                {isNetworkRampSupported(
-                  NetworksChainId.mainnet,
-                  supportedNetworks,
-                ) ? (
+                {isNetworkRampSupported(ChainId.mainnet, supportedNetworks) ? (
                   <TouchableOpacity
                     style={customNetworkStyle.popularNetwork}
                     onPress={() => switchToMainnet('mainnet')}
@@ -253,7 +250,7 @@ function NetworkSwitcher() {
                   </TouchableOpacity>
                 ) : null}
                 {isNetworkRampSupported(
-                  NetworksChainId['linea-mainnet'],
+                  ChainId['linea-mainnet'],
                   supportedNetworks,
                 ) ? (
                   <TouchableOpacity

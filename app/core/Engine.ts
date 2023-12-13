@@ -275,7 +275,7 @@ class Engine {
       state: initialState.NetworkController,
       messenger: this.controllerMessenger.getRestricted({
         name: 'NetworkController',
-        allowedEvents: [],
+        allowedEvents: ['NetworkController:networkDidChange'],
         allowedActions: [],
       }),
       // Metrics event tracking is handled in this repository instead

@@ -19,7 +19,6 @@ import { strings } from '../../../../../../locales/i18n';
 import Networks, {
   isprivateConnection,
   getAllNetworks,
-  isSafeChainId,
   getIsNetworkOnboarded,
 } from '../../../../../util/networks';
 import { getEtherscanBaseUrl } from '../../../../../util/etherscan';
@@ -80,6 +79,7 @@ import {
 } from '../../../../../selectors/networkController';
 import { regex } from '../../../../../../app/util/regex';
 import { NetworksViewSelectorsIDs } from '../../../../../../e2e/selectors/Settings/NetworksView.selectors';
+import { isSafeChainId } from '@metamask/controller-utils';
 
 const createStyles = (colors) =>
   StyleSheet.create({
@@ -531,14 +531,14 @@ class NetworkSettings extends PureComponent {
 
     if (this.validateRpcUrl() && isNetworkExists.length === 0) {
       const url = new URL(rpcUrl);
-      const decimalChainId = this.getDecimalChainId(chainId);
+
       !isprivateConnection(url.hostname) && url.set('protocol', 'https:');
       CurrencyRateController.setNativeCurrency(ticker);
       // Remove trailing slashes
       NetworkController.upsertNetworkConfiguration(
         {
           rpcUrl: url.href,
-          chainId: decimalChainId,
+          chainId,
           ticker,
           nickname,
           rpcPrefs: {
@@ -570,7 +570,7 @@ class NetworkSettings extends PureComponent {
       }
 
       const analyticsParamsAdd = {
-        chain_id: decimalChainId,
+        chain_id: chainId,
         source: 'Custom network form',
         symbol: ticker,
       };
@@ -787,7 +787,7 @@ class NetworkSettings extends PureComponent {
     const { navigation, networkConfigurations, providerConfig } = this.props;
     const { rpcUrl } = this.state;
     if (
-      compareSanitizedUrl(rpcUrl, providerConfig.rpcTarget) &&
+      compareSanitizedUrl(rpcUrl, providerConfig.rpcUrl) &&
       providerConfig.type === RPC
     ) {
       this.switchToMainnet();

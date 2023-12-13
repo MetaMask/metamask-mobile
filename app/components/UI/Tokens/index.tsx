@@ -141,7 +141,7 @@ const Tokens: React.FC<TokensI> = ({ tokens }) => {
     InteractionManager.runAfterInteractions(() => {
       AnalyticsV2.trackEvent(MetaMetricsEvents.TOKEN_IMPORT_CLICKED, {
         source: 'manual',
-        chain_id: getDecimalChainId(chainId),
+        chain_id: chainId,
       });
       setIsAddTokenEnabled(true);
     });
@@ -329,7 +329,7 @@ const Tokens: React.FC<TokensI> = ({ tokens }) => {
     InteractionManager.runAfterInteractions(() => {
       AnalyticsV2.trackEvent(MetaMetricsEvents.TOKEN_IMPORT_CLICKED, {
         source: 'detected',
-        chain_id: getDecimalChainId(chainId),
+        chain_id: chainId,
         tokens: detectedTokens.map(
           (token) => `${token.symbol} - ${token.address}`,
         ),
@@ -514,7 +514,7 @@ const Tokens: React.FC<TokensI> = ({ tokens }) => {
           token_standard: 'ERC20',
           asset_type: 'token',
           tokens: [`${symbol} - ${tokenAddress}`],
-          chain_id: getDecimalChainId(chainId),
+          chain_id: chainId,
         }),
       );
     } catch (err) {

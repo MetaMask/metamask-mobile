@@ -61,7 +61,6 @@ const wallet_switchEthereumChain = async ({
 
   const networkConfigurations = selectNetworkConfigurations(store.getState());
   const existingNetworkDefault = getDefaultNetworkByChainId(chainIdDecimal);
-  console.log('ENTER networkConfigurations', networkConfigurations);
   const existingEntry = Object.entries(networkConfigurations).find(
     ([, networkConfiguration]) =>
       networkConfiguration.chainId === chainIdDecimal,

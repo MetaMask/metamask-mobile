@@ -126,7 +126,7 @@ const DetectedTokens = () => {
                 AnalyticsV2.trackEvent(MetaMetricsEvents.TOKEN_ADDED, {
                   token_address: address,
                   token_symbol: symbol,
-                  chain_id: getDecimalChainId(chainId),
+                  chain_id: chainId,
                   source: 'detected',
                 }),
               ),
@@ -157,7 +157,7 @@ const DetectedTokens = () => {
         token_standard: 'ERC20',
         asset_type: 'token',
         tokens: detectedTokensForAnalytics,
-        chain_id: getDecimalChainId(chainId),
+        chain_id: chainId,
       }),
     );
   };
@@ -252,7 +252,7 @@ const DetectedTokens = () => {
     AnalyticsV2.trackEvent(MetaMetricsEvents.TOKEN_IMPORT_CANCELED, {
       source: 'detected',
       tokens: detectedTokensForAnalytics,
-      chain_id: getDecimalChainId(chainId),
+      chain_id: chainId,
     });
   };
 

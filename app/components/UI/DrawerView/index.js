@@ -758,10 +758,10 @@ class DrawerView extends PureComponent {
     const { networkConfigurations } = this.props;
     if (providerType === RPC) {
       const {
-        providerConfig: { rpcTarget },
+        providerConfig: { rpcUrl },
       } = this.props;
       const blockExplorer = findBlockExplorerForRpc(
-        rpcTarget,
+        rpcUrl,
         networkConfigurations,
       );
       if (blockExplorer) {
@@ -846,12 +846,12 @@ class DrawerView extends PureComponent {
 
   getSections = () => {
     const {
-      providerConfig: { type, rpcTarget },
+      providerConfig: { type, rpcUrl },
       networkConfigurations,
     } = this.props;
     let blockExplorer, blockExplorerName;
     if (type === RPC) {
-      blockExplorer = findBlockExplorerForRpc(rpcTarget, networkConfigurations);
+      blockExplorer = findBlockExplorerForRpc(rpcUrl, networkConfigurations);
       blockExplorerName = getBlockExplorerName(blockExplorer);
     }
     return [

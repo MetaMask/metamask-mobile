@@ -153,12 +153,11 @@ const NetworkModals = (props: NetworkProps) => {
   const closeModal = () => {
     const { NetworkController } = Engine.context;
     const url = new URLPARSE(rpcUrl);
-    const decimalChainId = getDecimalChainId(chainId);
     !isprivateConnection(url.hostname) && url.set('protocol', 'https:');
     NetworkController.upsertNetworkConfiguration(
       {
         rpcUrl: url.href,
-        chainId: decimalChainId,
+        chainId,
         ticker,
         nickname,
         rpcPrefs: { blockExplorerUrl },
@@ -176,13 +175,12 @@ const NetworkModals = (props: NetworkProps) => {
   const switchNetwork = () => {
     const { NetworkController, CurrencyRateController } = Engine.context;
     const url = new URLPARSE(rpcUrl);
-    const decimalChainId = getDecimalChainId(chainId);
     CurrencyRateController.setNativeCurrency(ticker);
     !isprivateConnection(url.hostname) && url.set('protocol', 'https:');
     NetworkController.upsertNetworkConfiguration(
       {
         rpcUrl: url.href,
-        chainId: decimalChainId,
+        chainId,
         ticker,
         nickname,
         rpcPrefs: { blockExplorerUrl },
@@ -197,7 +195,7 @@ const NetworkModals = (props: NetworkProps) => {
     );
 
     const analyticsParamsAdd = {
-      chain_id: decimalChainId,
+      chain_id: chainId,
       source: 'Popular network list',
       symbol: ticker,
     };

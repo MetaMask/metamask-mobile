@@ -183,7 +183,7 @@ const AssetDetails = (props: Props) => {
                 token_standard: 'ERC20',
                 asset_type: 'token',
                 tokens: [`${symbol} - ${address}`],
-                chain_id: getDecimalChainId(chainId),
+                chain_id: chainId,
               });
             } catch (err) {
               Logger.log(err, 'AssetDetails: Failed to hide token!');

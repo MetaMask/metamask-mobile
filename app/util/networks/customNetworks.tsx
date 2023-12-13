@@ -4,7 +4,7 @@ const infuraProjectId = InfuraKey === 'null' ? '' : InfuraKey;
 
 const PopularList = [
   {
-    chainId: '43114',
+    chainId: '0xa86a',
     nickname: 'Avalanche Mainnet C-Chain',
     rpcUrl: 'https://api.avax.network/ext/bc/C/rpc',
     ticker: 'AVAX',
@@ -16,7 +16,7 @@ const PopularList = [
     },
   },
   {
-    chainId: '42161',
+    chainId: '0xa4b1',
     nickname: 'Arbitrum One',
     rpcUrl: `https://arbitrum-mainnet.infura.io/v3/${infuraProjectId}`,
     ticker: 'ETH',
@@ -27,7 +27,7 @@ const PopularList = [
     },
   },
   {
-    chainId: '56',
+    chainId: '0x38',
     nickname: 'BNB Smart Chain',
     rpcUrl: 'https://bsc-dataseed1.binance.org',
     ticker: 'BNB',
@@ -51,7 +51,7 @@ const PopularList = [
     },
   },
   {
-    chainId: '1666600000',
+    chainId: '0x63564c40',
     nickname: 'Harmony Mainnet Shard 0',
     rpcUrl: 'https://api.harmony.one/',
     ticker: 'ONE',
@@ -63,7 +63,7 @@ const PopularList = [
     },
   },
   {
-    chainId: '10',
+    chainId: '0xa',
     nickname: 'Optimism',
     rpcUrl: `https://optimism-mainnet.infura.io/v3/${infuraProjectId}`,
     ticker: 'ETH',
@@ -74,7 +74,7 @@ const PopularList = [
     },
   },
   {
-    chainId: '137',
+    chainId: '0x89',
     nickname: 'Polygon Mainnet',
     rpcUrl: `https://polygon-mainnet.infura.io/v3/${infuraProjectId}`,
     ticker: 'MATIC',
@@ -85,7 +85,7 @@ const PopularList = [
     },
   },
   {
-    chainId: '11297108109',
+    chainId: '0x2a15c308d',
     nickname: 'Palm',
     rpcUrl: `https://palm-mainnet.infura.io/v3/${infuraProjectId}`,
     ticker: 'PALM',

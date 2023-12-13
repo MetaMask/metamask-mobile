@@ -201,13 +201,13 @@ class TransactionDetails extends PureComponent {
 
   componentDidMount = () => {
     const {
-      providerConfig: { rpcTarget, type },
+      providerConfig: { rpcUrl, type },
       networkConfigurations,
     } = this.props;
     let blockExplorer;
     if (type === RPC) {
       blockExplorer =
-        findBlockExplorerForRpc(rpcTarget, networkConfigurations) ||
+        findBlockExplorerForRpc(rpcUrl, networkConfigurations) ||
         NO_RPC_BLOCK_EXPLORER;
     }
     this.setState({ rpcBlockExplorer: blockExplorer });
