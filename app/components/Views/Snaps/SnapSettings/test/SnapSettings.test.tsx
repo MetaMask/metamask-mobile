@@ -1,19 +1,18 @@
 import React from 'react';
 import { fireEvent, waitFor } from '@testing-library/react-native';
-import { SemVerVersion, Status } from '@metamask/snaps-utils';
+import { Status } from '@metamask/snaps-utils';
 import SnapSettings from '../SnapSettings';
-import {
-  SNAP_DETAILS_CELL,
-  SNAP_PERMISSIONS,
-  SNAP_PERMISSION_CELL,
-  SNAP_SETTINGS_REMOVE_BUTTON,
-} from '../../../../../constants/test-ids';
 import Engine from '../../../../../core/Engine';
 import renderWithProvider from '../../../../../util/test/renderWithProvider';
 import {
   PermissionConstraint,
   SubjectPermissions,
 } from '@metamask/permission-controller';
+import { SemVerVersion } from '@metamask/utils';
+import SNAP_SETTINGS_REMOVE_BUTTON from '../SnapSettings.constants';
+import { SNAP_DETAILS_CELL } from '../../components/SnapDetails/SnapDetails.constants';
+import SNAP_PERMISSIONS from '../../components/SnapPermissions/SnapPermissions.contants';
+import { SNAP_PERMISSION_CELL } from '../../components/SnapPermissionCell/SnapPermissionCell.constants';
 
 jest.mock('../../../../../core/Engine', () => ({
   context: {
