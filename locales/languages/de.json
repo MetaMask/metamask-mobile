@@ -521,6 +521,7 @@
     "import_account": "Ein Konto importieren",
     "connect_hardware": "Hardware-Wallet verknüpfen",
     "imported": "Importiert",
+    "qr_hardware": "QR-Hardware",
     "remove_account_title": "Kontoentfernung",
     "remove_account_message": "Möchten Sie dieses Konto wirklich entfernen?",
     "no": "Nein",
