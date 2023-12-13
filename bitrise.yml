@@ -384,7 +384,7 @@ workflows:
 ### Seperating workflows so they run concurrently during smoke runs
   run_tag_confirmations_ios:
       envs:
-      - TEST_SUITE: 'SmokeConfirmations'
+      - TEST_SUITE_TAG: 'SmokeConfirmations'
       after_run:
       - ios_e2e_test
   run_tag_smoke_confirmations_android:
@@ -393,12 +393,12 @@ workflows:
             stack: linux-docker-android-20.04
             machine_type_id: elite-xl
       envs:
-      - TEST_SUITE: 'SmokeConfirmations'
+      - TEST_SUITE_TAG: 'SmokeConfirmations'
       after_run:
       - android_e2e_test
   run_tag_smoke_swaps_ios:
       envs:
-      - TEST_SUITE: 'SmokeSwaps'
+      - TEST_SUITE_TAG: 'SmokeSwaps'
       after_run:
       - ios_e2e_test
   run_tag_smoke_swaps_android:
@@ -407,12 +407,12 @@ workflows:
             stack: linux-docker-android-20.04
             machine_type_id: elite-xl
       envs:
-      - TEST_SUITE: 'SmokeSwaps'
+      - TEST_SUITE_TAG: 'SmokeSwaps'
       after_run:
       - android_e2e_test
   run_tag_smoke_core_ios:
       envs:
-      - TEST_SUITE: 'SmokeCore'
+      - TEST_SUITE_TAG: 'SmokeCore'
       after_run:
       - ios_e2e_test
   run_tag_smoke_core_android:
@@ -421,7 +421,7 @@ workflows:
             stack: linux-docker-android-20.04
             machine_type_id: elite-xl
       envs:
-      - TEST_SUITE: 'SmokeCore'
+      - TEST_SUITE_TAG: 'SmokeCore'
       after_run:
       - android_e2e_test
 
@@ -471,7 +471,7 @@ workflows:
             node -v
             export METAMASK_ENVIRONMENT='local'
             export METAMASK_BUILD_TYPE='main'
-            IGNORE_BOXLOGS_DEVELOPMENT="true" FORCE_BUNDLING=true yarn test:e2e:android:bitrise:build --testNamePattern="$TEST_SUITE"
+            IGNORE_BOXLOGS_DEVELOPMENT="true" FORCE_BUNDLING=true yarn test:e2e:android:bitrise:build
     - save-cache@1:
         title: Save cache build
         inputs:
@@ -514,13 +514,14 @@ workflows:
         inputs:
         - content: |-
             #!/usr/bin/env bash
-            if [[ "$TEST_SUITE" == *"smoke"* ]]; then
-              TEST_SUITE="$TEST_SUITE"
-            fi
             if [ "$TEST_SUITE" = "Regression" ]; then
               TEST_SUITE="Regression"
             else
               TEST_SUITE="Smoke"
+            fi
+            if [ -n "$TEST_SUITE_TAG" ]; then
+            echo "TEST_SUITE_TAG value is: $TEST_SUITE_TAG"
+              TEST_SUITE=$TEST_SUITE_TAG
             fi
             node -v
             export METAMASK_ENVIRONMENT='local'
@@ -603,7 +604,7 @@ workflows:
                 node -v
                 export METAMASK_ENVIRONMENT='local'
                 export METAMASK_BUILD_TYPE='main'
-                IGNORE_BOXLOGS_DEVELOPMENT="true" FORCE_BUNDLING=true yarn test:e2e:ios:bitrise:build --testNamePattern="$TEST_SUITE"
+                IGNORE_BOXLOGS_DEVELOPMENT="true" FORCE_BUNDLING=true yarn test:e2e:ios:bitrise:build
           title: Run detox build
           is_always_run: false
       - save-cache@1:
@@ -643,13 +644,14 @@ workflows:
           inputs:
             - content: |-
                 #!/usr/bin/env bash
-                if [[ "$TEST_SUITE" == *"smoke"* ]]; then
-                TEST_SUITE="$TEST_SUITE"
-                fi
                 if [ "$TEST_SUITE" = "Regression" ]; then
                   TEST_SUITE="Regression"
                 else
                   TEST_SUITE="Smoke"
+                fi
+                if [ -n "$TEST_SUITE_TAG" ]; then
+                echo "TEST_SUITE_TAG value is: $TEST_SUITE_TAG"
+                TEST_SUITE=$TEST_SUITE_TAG
                 fi
                 node -v
                 export METAMASK_ENVIRONMENT='local'
