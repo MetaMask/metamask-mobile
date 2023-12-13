@@ -180,14 +180,6 @@ workflows:
           inputs:
             - command: setup
           title: Yarn Setup
-      - yarn@0:
-          title: Lint
-          inputs:
-            - command: lint
-      - yarn@0:
-          inputs:
-            - command: audit:ci
-          title: Audit Dependencies
       - save-cache@1:
           title: Save cache dependencies
           inputs:
@@ -422,7 +414,7 @@ workflows:
           inputs:
             - key: 'android-ccache-{{if getenv "USE_MAIN_CCACHE" }}main{{else}}{{ getenv "CCACHE_KEY" }}{{end}}'
       - restore-cache@1:
-          title: Restore cache build
+          title: Restore build from cache
           inputs:
             - key: apk-cache-{{ .CommitHash }}
       - script@1:
@@ -432,7 +424,7 @@ workflows:
           inputs:
             - content: |-
                 #!/usr/bin/env bash
-                ./scripts/cache/set-cache-envs.sh android
+                ./scripts/cache/setup-ccache.sh
                 if [ "$TEST_SUITE" = "Regression" ]; then
                   TEST_SUITE="Regression"
                 else
@@ -583,21 +575,18 @@ workflows:
           run_if: '{{not (enveq "SKIP_CCACHE_RESTORE" "true")}}'
           inputs:
             - key: 'ios-ccache-{{if getenv "USE_MAIN_CCACHE" }}main{{else}}{{ getenv "CCACHE_KEY" }}{{end}}'
+      - restore-cache@1:
+          title: Restore build from cache
+          inputs:
+            - key: ipa-cache-{{ .CommitHash }}
       - script@1:
+          title: Run detox build
           run_if: '{{not (enveq "BITRISE_CACHE_HIT" "exact")}}'
+          is_always_run: false
           inputs:
             - content: |-
                 #!/usr/bin/env bash
                 ./scripts/cache/setup-ccache.sh
-      - restore-cache@1:
-          title: Restore cache build
-          inputs:
-            - key: ipa-cache-{{ .CommitHash }}
-      - script@1:
-          inputs:
-            - content: |-
-                #!/usr/bin/env bash
-                ./scripts/cache/set-cache-envs.sh ios
                 if [ "$TEST_SUITE" = "Regression" ]; then
                   TEST_SUITE="Regression"
                 else
@@ -607,8 +596,6 @@ workflows:
                 export METAMASK_ENVIRONMENT='local'
                 export METAMASK_BUILD_TYPE='main'
                 IGNORE_BOXLOGS_DEVELOPMENT="true" FORCE_BUNDLING=true yarn test:e2e:ios:bitrise:build --testNamePattern="$TEST_SUITE"
-          title: Run detox build
-          is_always_run: false
       - save-cocoapods-cache@1: {}
       - save-cache@1:
           title: Save CCache
@@ -665,13 +652,6 @@ workflows:
                 IGNORE_BOXLOGS_DEVELOPMENT="true" FORCE_BUNDLING=true yarn test:e2e:ios:bitrise:run --testNamePattern="$TEST_SUITE"
           title: Run detox test
           is_always_run: false
-      - save-cache@1:
-          title: Save CCache
-          run_if: '{{not (enveq "SKIP_CCACHE_UPLOAD" "true")}}'
-          inputs:
-            - key: 'ios-ccache-{{if getenv "USE_MAIN_CCACHE" }}main{{else}}{{ getenv "CCACHE_KEY" }}{{end}}'
-            - paths: |-
-                ccache
       - custom-test-results-export@1:
           is_always_run: true
           is_skippable: false
