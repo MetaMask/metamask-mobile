@@ -112,11 +112,11 @@ stages:
       - ios_e2e_test: {}
   build_smoke_e2e_ios_android_stage:
     workflows:
-      - ios_e2e_build: {}
+      # - ios_e2e_build: {}
       - android_e2e_build: {}
   run_smoke_e2e_ios_android_stage:
     workflows:
-      - ios_e2e_test: {}
+      # - ios_e2e_test: {}
       - android_e2e_test: {}
   build_regression_e2e_ios_android_stage:
     workflows:
@@ -170,6 +170,10 @@ workflows:
       - setup
       - prep_environment
     steps:
+      - restore-cache@1:
+          title: Restore dependencies from cache
+          inputs:
+            - key: '{{ .OS }}-{{ .Arch }}-node-modules-{{ checksum "yarn.lock" }}'
       - script@1:
           inputs:
             - content: |-
@@ -177,9 +181,15 @@ workflows:
                 envman add --key YARN_CACHE_DIR --value "$(yarn cache dir)"
           title: Get Yarn cache directory
       - yarn@0:
+          # run_if: '{{not (enveq "BITRISE_CACHE_HIT" "exact")}}'
           inputs:
             - command: setup
           title: Yarn Setup
+      # - yarn@0:
+      #     run_if: '{{ eq (getenv "BITRISE_CACHE_HIT") "exact" }}'
+      #     inputs:
+      #       - command: setup:ci
+      #     title: Yarn Setup CI with cached dependencies
       - save-cache@1:
           title: Save cache dependencies
           inputs:
@@ -187,6 +197,9 @@ workflows:
             - paths: |-
                 node_modules
                 $YARN_CACHE_DIR
+                scripts/inpage-bridge/dist
+                android/app/src/main/assets/InpageBridgeWeb3.js
+                app/core/InpageBridgeWeb3.js
   code_setup_dev:
     steps:
       - script@1:
