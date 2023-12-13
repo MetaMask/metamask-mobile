@@ -412,7 +412,7 @@ workflows:
           title: Restore CCache
           run_if: '{{not (enveq "SKIP_CCACHE_RESTORE" "true")}}'
           inputs:
-            - key: 'android-ccache-{{if getenv "USE_MAIN_CCACHE" }}main{{else}}{{ getenv "CCACHE_KEY" }}{{end}}'
+            - key: '{{ getenv "CCACHE_KEY" }}'
       - restore-cache@1:
           title: Restore build from cache
           inputs:
@@ -439,7 +439,7 @@ workflows:
           title: Save CCache
           run_if: '{{not (enveq "SKIP_CCACHE_UPLOAD" "true")}}'
           inputs:
-            - key: 'android-ccache-{{if getenv "USE_MAIN_CCACHE" }}main{{else}}{{ getenv "CCACHE_KEY" }}{{end}}'
+            - key: '{{ getenv "CCACHE_KEY" }}'
             - paths: |-
                 ccache
       - save-cache@1:
@@ -574,7 +574,7 @@ workflows:
           title: Restore CCache
           run_if: '{{not (enveq "SKIP_CCACHE_RESTORE" "true")}}'
           inputs:
-            - key: 'ios-ccache-{{if getenv "USE_MAIN_CCACHE" }}main{{else}}{{ getenv "CCACHE_KEY" }}{{end}}'
+            - key: '{{ getenv "CCACHE_KEY" }}'
       - restore-cache@1:
           title: Restore build from cache
           inputs:
@@ -601,7 +601,7 @@ workflows:
           title: Save CCache
           run_if: '{{not (enveq "SKIP_CCACHE_UPLOAD" "true")}}'
           inputs:
-            - key: 'ios-ccache-{{if getenv "USE_MAIN_CCACHE" }}main{{else}}{{ getenv "CCACHE_KEY" }}{{end}}'
+            - key: '{{ getenv "CCACHE_KEY" }}'
             - paths: |-
                 ccache
       - save-cache@1:

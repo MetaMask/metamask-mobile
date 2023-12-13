@@ -3,6 +3,7 @@
 set_cache_envs() {
   local folder="$1"
   local current_branch=$(git rev-parse --abbrev-ref HEAD)
+  local prefix_ccache_key="ccache-$folder"
 
   if [ "$current_branch" = "main" ]; then
     # If on main branch, skip cache restore but save it for future runs
@@ -20,12 +21,13 @@ set_cache_envs() {
       # If no differences, use the main cache and skip cache upload
       echo "No differences detected, we will use main cache"
       envman add --key SKIP_CCACHE_UPLOAD --value true
-      envman add --key USE_MAIN_CCACHE --value true
+      envman add --key CCACHE_KEY --value "$prefix_ccache_key-main"
+      echo "Checksum (CCACHE_KEY) set to $prefix_ccache_key-main"
     else
       # Generate a checksum for the differences and set it as CCACHE_KEY
       local checksum=$(echo "$differences" | sha512sum | awk '{print $1}')
-      envman add --key CCACHE_KEY --value "$checksum"
-      echo "Checksum (CCACHE_KEY) set to $checksum"
+      envman add --key CCACHE_KEY --value "$prefix_ccache_key-$checksum"
+      echo "Checksum (CCACHE_KEY) set to $prefix_ccache_key-$checksum"
     fi
   fi
 }
