@@ -15,6 +15,7 @@ const readAndParseFile = async (path: string) => {
     return data;
   } catch (error) {
     Logger.log(SNAPS_FETCH_LOG_TAG, 'readAndParseFile error', error);
+    throw error;
   }
 };
 

@@ -52,8 +52,6 @@ export default class WebviewPostMessageStream extends BasePostMessageStream {
     this._targetWindow = targetWindow;
     this._onMessage = this._onMessage.bind(this);
 
-    //this._targetWindow.onMessage = this._onMessage;
-
     setTimeout(() => this._handshake(), 0);
   }
 
@@ -76,8 +74,7 @@ export default class WebviewPostMessageStream extends BasePostMessageStream {
 
   destroy(): void {
     // Do nothing
-    // eslint-disable-next-line no-console
-    console.log('[WebviewPostMessageStream LOG]: Destroy stream');
+    // we do not want to kill the stream that communicates with the execution environment
   }
 }
 ///: END:ONLY_INCLUDE_IF

@@ -30,19 +30,6 @@ const { RNTar } = NativeModules;
 
 const DEFAULT_NPM_REGISTRY = 'https://registry.npmjs.org';
 
-export interface NpmOptions {
-  /**
-   * @default DEFAULT_REQUESTED_SNAP_VERSION
-   */
-  versionRange?: SemVerRange;
-  /**
-   * Whether to allow custom NPM registries outside of {@link DEFAULT_NPM_REGISTRY}.
-   *
-   * @default false
-   */
-  allowCustomRegistries?: boolean;
-}
-
 interface NpmMeta {
   registry: URL;
   packageName: string;
