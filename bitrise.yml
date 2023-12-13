@@ -463,15 +463,9 @@ workflows:
         inputs:
         - content: |-
             #!/usr/bin/env bash
-            if [ "$TEST_SUITE" = "Regression" ]; then
-              TEST_SUITE="Regression"
-            else
-              TEST_SUITE="Smoke"
-            fi
-            node -v
             export METAMASK_ENVIRONMENT='local'
             export METAMASK_BUILD_TYPE='main'
-            IGNORE_BOXLOGS_DEVELOPMENT="true" FORCE_BUNDLING=true yarn test:e2e:android:bitrise:build
+            IGNORE_BOXLOGS_DEVELOPMENT="true" FORCE_BUNDLING=true yarn detox build -c android.emu.debug
     - save-cache@1:
         title: Save cache build
         inputs:
