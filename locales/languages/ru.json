@@ -521,6 +521,7 @@
     "import_account": "Импортировать счет",
     "connect_hardware": "Подключить аппаратный кошелек",
     "imported": "Импортирован",
+    "qr_hardware": "QR-оборудование",
     "remove_account_title": "Удаление счета",
     "remove_account_message": "Вы действительно хотите удалить этот счет?",
     "no": "Нет",
