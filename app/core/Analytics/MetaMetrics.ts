@@ -4,26 +4,31 @@ import {
   JsonMap,
   UserTraits,
 } from '@segment/analytics-react-native';
-// import axios from 'axios';
+import axios from 'axios';
 import DefaultPreference from 'react-native-default-preference';
 import Logger from '../../util/Logger';
 import {
   AGREED,
   ANALYTICS_DATA_DELETION_DATE,
+  ANALYTICS_DATA_RECORDED,
   DENIED,
   METAMETRICS_ID,
-  METAMETRICS_SEGMENT_REGULATION_ID,
+  METAMETRICS_DELETION_REGULATION_ID,
   METRICS_OPT_IN,
   MIXPANEL_METAMETRICS_ID,
 } from '../../constants/storage';
 
 import {
   DataDeleteResponseStatus,
+  DataDeleteStatus,
+  IDeleteRegulationResponse,
+  IDeleteRegulationStatusResponse,
   IMetaMetrics,
   ISegmentClient,
 } from './MetaMetrics.types';
 import {
   METAMETRICS_ANONYMOUS_ID,
+  SEGMENT_REGULATIONS_ENDPOINT,
   // SEGMENT_REGULATIONS_ENDPOINT,
 } from './MetaMetrics.constants';
 import { v4 as uuidv4 } from 'uuid';
@@ -80,6 +85,12 @@ class MetaMetrics implements IMetaMetrics {
   private segmentClient: ISegmentClient | undefined;
   private enabled = false; // default to disabled
 
+  // data deletion related variables
+  //TODO explain what this is exactly as it is imported from legacy
+  private dataRecorded = false;
+  private deleteRegulationId: string | undefined;
+  private deleteRegulationDate: string | undefined;
+
   protected constructor(segmentClient: ISegmentClient) {
     this.segmentClient = segmentClient;
   }
@@ -96,6 +107,69 @@ class MetaMetrics implements IMetaMetrics {
     if (__DEV__)
       Logger.log(`Current MetaMatrics enable state: ${this.enabled}`);
     return this.enabled;
+  };
+
+  //TODO comment
+  #getIsDataRecordedFromPrefs = async (): Promise<boolean> =>
+    (await DefaultPreference.get(ANALYTICS_DATA_RECORDED)) === 'true';
+
+  //TODO comment
+  #getDeleteRegulationDateFromPrefs = async (): Promise<string> =>
+    await DefaultPreference.get(ANALYTICS_DATA_DELETION_DATE);
+
+  //TODO comment
+  #getDeleteRegulationIdFromPrefs = async (): Promise<string> =>
+    await DefaultPreference.get(METAMETRICS_DELETION_REGULATION_ID);
+
+  //TODO comment
+  #setIsDataRecorded = async (isDataRecorded = false): Promise<void> => {
+    this.dataRecorded = isDataRecorded;
+    await DefaultPreference.set(
+      ANALYTICS_DATA_RECORDED,
+      String(isDataRecorded),
+    );
+  };
+
+  /**
+   * set and store Segment's data deletion regulation ID.
+   *
+   * @param deleteRegulationId - data deletion regulation ID returned by Segment delete API or undefined if no regulation in progress.
+   */
+  #setDeleteRegulationId = async (
+    deleteRegulationId: string,
+  ): Promise<void> => {
+    this.deleteRegulationId = deleteRegulationId;
+    await DefaultPreference.set(
+      METAMETRICS_DELETION_REGULATION_ID,
+      deleteRegulationId,
+    );
+  };
+
+  /**
+   * clear Segment's data deletion regulation ID in instance and storage.
+   *
+   */
+  #clearDeleteRegulationId = async (): Promise<void> => {
+    this.deleteRegulationId = undefined;
+    await DefaultPreference.clear(METAMETRICS_DELETION_REGULATION_ID);
+  };
+
+  /**
+   * set and store the delete regulation request creation date
+   */
+  #setDeleteRegulationCreationDate = async (): Promise<void> => {
+    const currentDate = new Date();
+    const day = currentDate.getUTCDate();
+    const month = currentDate.getUTCMonth() + 1;
+    const year = currentDate.getUTCFullYear();
+
+    // format the date in the format DD/MM/YYYY
+    const deletionDate = `${day}/${month}/${year}`;
+
+    this.deleteRegulationDate = deletionDate;
+
+    // similar to the one used in the legacy Analytics
+    await DefaultPreference.set(ANALYTICS_DATA_DELETION_DATE, deletionDate);
   };
 
   /**
@@ -189,33 +263,13 @@ class MetaMetrics implements IMetaMetrics {
     await DefaultPreference.set(METRICS_OPT_IN, enabled ? AGREED : DENIED);
   };
 
-  /**
-   * store the "request to create a delete regulation" creation date
-   */
-  #storeDeleteRegulationCreationDate = async (): Promise<void> => {
-    const currentDate = new Date();
-    const day = currentDate.getUTCDate();
-    const month = currentDate.getUTCMonth() + 1;
-    const year = currentDate.getUTCFullYear();
-
-    // store the date in the format DD/MM/YYYY
-    // similar to the one used in the legacy Analytics
-    await DefaultPreference.set(
-      ANALYTICS_DATA_DELETION_DATE,
-      `${day}/${month}/${year}`,
-    );
-  };
-
-  /**
-   * store Segment's Regulation ID.
-   *
-   * @param regulationId - Segment's Regulation ID.
-   */
-  #storeDeleteRegulationId = async (regulationId: string): Promise<void> => {
-    await DefaultPreference.set(
-      METAMETRICS_SEGMENT_REGULATION_ID,
-      regulationId,
-    );
+  // TODO remove segmentToken once the new segment proxy is in place
+  #getSegmentApiHeaders = () => {
+    const segmentToken = process.env.SEGMENT_DELETE_API_BEARER_TOKEN;
+    return {
+      'Content-Type': 'application/vnd.segment.v1+json',
+      Authorization: `Bearer ${segmentToken}`,
+    };
   };
 
   /**
@@ -232,43 +286,77 @@ class MetaMetrics implements IMetaMetrics {
    * Check Segment documentation for more information.
    * https://segment.com/docs/privacy/user-deletion-and-suppression/
    */
-  #createDeleteRegulation = async (): Promise<{
-    status: string;
-    error?: string;
-  }> => ({
-    status: DataDeleteResponseStatus.error,
-    error: 'Analytics Deletion Task Error',
-  });
-  // => {
-  //   const segmentToken = process.env.SEGMENT_DELETION_API_KEY;
-  //   const regulationType = 'DELETE_ONLY';
-  //   try {
-  //     const response = await axios({
-  //       url: SEGMENT_REGULATIONS_ENDPOINT,
-  //       method: 'POST',
-  //       headers: {
-  //         'Content-Type': 'application/vnd.segment.v1alpha+json',
-  //         Authorization: `Bearer ${segmentToken}`,
-  //       },
-  //       data: JSON.stringify({
-  //         regulationType,
-  //         subjectType: 'USER_ID',
-  //         subjectIds: [this.metametricsId],
-  //       }),
-  //     });
-  //     const { data } = response as any;
-  //     const { regulateId } = data;
-  //     await this.#storeDeleteRegulationId(regulateId);
-  //     await this.#storeDeleteRegulationCreationDate();
-  //     return { status: DataDeleteResponseStatus.ok };
-  //   } catch (error: any) {
-  //     Logger.error(error, 'Analytics Deletion Task Error');
-  //     return {
-  //       status: DataDeleteResponseStatus.error,
-  //       error: 'Analytics Deletion Task Error',
-  //     };
-  //   }
-  // };
+  #createDataDeletionTask = async (): Promise<IDeleteRegulationResponse> => {
+    const segmentSourceId = process.env.SEGMENT_DELETE_API_SOURCE_ID;
+    const regulationType = 'DELETE_ONLY';
+    try {
+      const response = await axios({
+        url: `${SEGMENT_REGULATIONS_ENDPOINT}/regulations/sources/${segmentSourceId}`,
+        method: 'POST',
+        headers: this.#getSegmentApiHeaders(),
+        data: JSON.stringify({
+          regulationType,
+          subjectType: 'USER_ID',
+          subjectIds: [this.metametricsId],
+        }),
+      });
+      const { data } = response as any;
+      const { regulateId } = data;
+
+      await this.#setDeleteRegulationId(regulateId);
+      await this.#setDeleteRegulationCreationDate();
+      await this.#setIsDataRecorded(false);
+
+      return { status: DataDeleteResponseStatus.ok };
+    } catch (error: any) {
+      Logger.error(error, 'Analytics Deletion Task Error');
+      return {
+        status: DataDeleteResponseStatus.error,
+        error: 'Analytics Deletion Task Error',
+      };
+    }
+  };
+
+  /**
+   * Check a Deletion Task using Segment API
+   * @see https://docs.segmentapis.com/tag/Deletion-and-Suppression#operation/getRegulation
+   *
+   * @returns promise for Object indicating the status of the deletion request
+   */
+  #checkDataDeletionTaskStatus =
+    async (): Promise<IDeleteRegulationStatusResponse> => {
+      if (!this.deleteRegulationId) {
+        return {
+          status: DataDeleteResponseStatus.error,
+          dataDeleteStatus: DataDeleteStatus.unknown,
+        };
+      }
+
+      try {
+        const response = await axios({
+          url: `${SEGMENT_REGULATIONS_ENDPOINT}/regulations/${this.deleteRegulationId}`,
+          method: 'GET',
+          headers: this.#getSegmentApiHeaders(),
+        });
+
+        const { data } = response as any;
+        const status = data?.regulation?.overallStatus;
+
+        await this.#setIsDataRecorded(false);
+        await this.#clearDeleteRegulationId();
+
+        return {
+          status: DataDeleteResponseStatus.ok,
+          dataDeleteStatus: status,
+        };
+      } catch (error: any) {
+        Logger.error(error, 'Analytics Deletion Task Check Error');
+        return {
+          status: DataDeleteResponseStatus.error,
+          dataDeleteStatus: DataDeleteStatus.unknown,
+        };
+      }
+    };
 
   /**
    * get an instance of the MetaMetrics system
@@ -291,6 +379,13 @@ class MetaMetrics implements IMetaMetrics {
       this.instance.enabled = await this.instance.#isMetaMetricsEnabled();
       // get the user unique id when initializing
       this.instance.metametricsId = await this.instance.#getMetaMetricsId();
+      // TODO explain what this is exactly as it is imported from legacy
+      this.instance.deleteRegulationId =
+        await this.instance.#getDeleteRegulationIdFromPrefs();
+      this.instance.deleteRegulationDate =
+        await this.instance.#getDeleteRegulationDateFromPrefs();
+      this.instance.dataRecorded =
+        await this.instance.#getIsDataRecordedFromPrefs();
     }
     return this.instance;
   }
@@ -385,13 +480,19 @@ class MetaMetrics implements IMetaMetrics {
    * @returns Promise containing the status of the request.
    * Await this method to ensure the request is completed.
    */
-  createDeleteRegulation = async (): Promise<{
-    status: string;
-    error?: string;
-  }> => this.#createDeleteRegulation();
+  createDataDeletionTask = async (): Promise<IDeleteRegulationResponse> =>
+    this.#createDataDeletionTask();
 
-  getDeleteRegulationCreationDate = async (): Promise<string | undefined> =>
-    await DefaultPreference.get(ANALYTICS_DATA_DELETION_DATE);
+  checkDataDeletionTaskStatus =
+    async (): Promise<IDeleteRegulationStatusResponse> =>
+      this.#checkDataDeletionTaskStatus();
+
+  getDeleteRegulationCreationDate = (): string | undefined =>
+    this.deleteRegulationDate;
+
+  getDeleteRegulationId = (): string | undefined => this.deleteRegulationId;
+
+  isDataRecorded = (): boolean => this.dataRecorded;
 }
 
 export default MetaMetrics;

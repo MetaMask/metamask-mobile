@@ -75,12 +75,15 @@ export interface IMetaMetrics {
    * delete user's data from Segment and all related
    * destinations.
    */
-  createDeleteRegulation(): Promise<{
-    status: string;
-    error?: string;
-  }>;
+  createDataDeletionTask(): Promise<IDeleteRegulationResponse>;
 
-  getDeleteRegulationCreationDate(): Promise<string | undefined>;
+  checkDataDeletionTaskStatus(): Promise<IDeleteRegulationStatusResponse>;
+
+  getDeleteRegulationCreationDate(): string | undefined;
+
+  getDeleteRegulationId(): string | undefined;
+
+  isDataRecorded(): boolean;
 }
 
 /**
@@ -111,4 +114,14 @@ export enum DataDeleteStatus {
 export enum DataDeleteResponseStatus {
   ok = 'ok',
   error = 'error',
+}
+
+export interface IDeleteRegulationResponse {
+  status: DataDeleteResponseStatus;
+  error?: string;
+}
+
+export interface IDeleteRegulationStatusResponse {
+  status: DataDeleteResponseStatus;
+  dataDeleteStatus: DataDeleteStatus;
 }

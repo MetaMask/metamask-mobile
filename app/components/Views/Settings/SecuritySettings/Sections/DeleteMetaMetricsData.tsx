@@ -1,19 +1,20 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useCallback, useEffect, useState } from 'react';
 import { Alert, Linking, Platform, StyleSheet, Text } from 'react-native';
 import Analytics from '../../../../../core/Analytics/Analytics';
-import { MetaMetricsEvents } from '../../../../../core/Analytics';
 import {
-  DataDeleteStatus,
   DataDeleteResponseStatus,
-} from '../../../../../core/Analytics/MetaMetrics.types';
+  DataDeleteStatus,
+  MetaMetrics,
+  MetaMetricsEvents,
+} from '../../../../../core/Analytics';
 import { useTheme } from '../../../../../util/theme';
 import SettingsButtonSection from '../../../../UI/SettingsButtonSection';
 import { strings } from '../../../../../../locales/i18n';
 import { fontStyles } from '../../../../../styles/common';
 import { CONSENSYS_PRIVACY_POLICY } from '../../../../../constants/urls';
 import Logger from '../../../../../util/Logger';
-import AnalyticsV2 from '../../../../../util/analyticsV2';
 import { getBrand, getDeviceId } from 'react-native-device-info';
+import { IMetaMetrics } from '../../../../../core/Analytics/MetaMetrics.types';
 
 const createStyles = (colors: any) =>
   StyleSheet.create({
@@ -37,9 +38,7 @@ const DeleteMetaMetricsData = () => {
   const { colors } = useTheme();
   const styles = createStyles(colors);
 
-  const [hasCollectedData, setHasCollectedData] = useState<boolean>(
-    Analytics.checkEnabled() || Analytics.getIsDataRecorded(),
-  );
+  const [hasCollectedData, setHasCollectedData] = useState(true);
   const [dataDeleteStatus, setDataDeleteStatus] = useState<DataDeleteStatus>(
     DataDeleteStatus.unknown,
   );
@@ -69,26 +68,42 @@ const DeleteMetaMetricsData = () => {
     );
   };
 
-  const trackDataDeletionRequest = async () => {
-    const deviceOS = Platform.OS;
-    const deviceOSVersion = Platform.Version;
-    const deviceBrand = await getBrand();
-    const deviceId = await getDeviceId();
-    AnalyticsV2.trackEvent(MetaMetricsEvents.ANALYTICS_REQUEST_DATA_DELETION, {
-      os: deviceOS,
-      os_version: deviceOSVersion,
-      device_model: `${deviceBrand} ${deviceId}`,
+  const trackDataDeletionRequest = () => {
+    MetaMetrics.getInstance().then((metrics) => {
+      metrics.trackEvent(
+        MetaMetricsEvents.ANALYTICS_REQUEST_DATA_DELETION.category,
+        {
+          os: Platform.OS,
+          os_version: Platform.Version,
+          device_model: `${getBrand()} ${getDeviceId()}`,
+        },
+      );
     });
+  };
+
+  const deleteMixpanelMetaMetrics = async () =>
+    await Analytics.createDataDeletionTask();
+
+  const deleteSegmentMetaMetrics = async () => {
+    const metrics = await MetaMetrics.getInstance();
+    const deleteResponse = await metrics.createDataDeletionTask();
+    const deleteDate = await metrics.getDeleteRegulationCreationDate();
+    return { status: deleteResponse.status, date: deleteDate };
   };
 
   const deleteMetaMetrics = async () => {
     try {
-      const response = await Analytics.createDataDeletionTask();
-      if (response.status === DataDeleteResponseStatus.ok) {
+      const mixpanelResponse = await deleteMixpanelMetaMetrics();
+      const segmentResponse = await deleteSegmentMetaMetrics();
+
+      if (
+        mixpanelResponse.status === DataDeleteResponseStatus.ok &&
+        segmentResponse.status === DataDeleteResponseStatus.ok
+      ) {
         setDataDeleteStatus(DataDeleteStatus.pending);
         setHasCollectedData(false);
-        setDeletionTaskDate(Analytics.getDeletionTaskDate());
-        await trackDataDeletionRequest();
+        setDeletionTaskDate(segmentResponse.date);
+        trackDataDeletionRequest();
       } else {
         showDeleteTaskError();
       }
@@ -98,28 +113,29 @@ const DeleteMetaMetricsData = () => {
     }
   };
 
-  const checkDataDeleteStatus = useCallback(async () => {
-    try {
-      const response = await Analytics.checkStatusDataDeletionTask();
-      setDataDeleteStatus(response.DataDeleteStatus);
-    } catch (error: any) {
-      Logger.log('Error checkDataDeleteStatus -', error);
-    }
-  }, []);
-
   useEffect(() => {
-    const checkStatus = async () => {
-      const deletionTaskId = Analytics.getDeletionTaskId();
-      if (deletionTaskId) {
-        await checkDataDeleteStatus();
-        setDeletionTaskDate(Analytics.getDeletionTaskDate());
+    const checkDataDeleteStatus = async (metrics: IMetaMetrics) => {
+      try {
+        const dataDeletionTaskStatus =
+          await metrics.checkDataDeletionTaskStatus();
+        return dataDeletionTaskStatus.dataDeleteStatus;
+      } catch (error: any) {
+        Logger.log('Error checkDataDeleteStatus -', error);
+        return DataDeleteStatus.unknown;
       }
     };
 
-    setHasCollectedData(Analytics.getIsDataRecorded() || enableDeleteData());
-
+    const checkStatus = async () => {
+      const metrics = await MetaMetrics.getInstance();
+      const deleteRegulationId = metrics.getDeleteRegulationId();
+      if (deleteRegulationId) {
+        setDataDeleteStatus(await checkDataDeleteStatus(metrics));
+        setDeletionTaskDate(metrics.getDeleteRegulationCreationDate());
+        setHasCollectedData(metrics.isDataRecorded() || enableDeleteData());
+      }
+    };
     checkStatus();
-  }, [checkDataDeleteStatus, enableDeleteData, dataDeleteStatus]);
+  }, [enableDeleteData, dataDeleteStatus]);
 
   const openPrivacyPolicy = () => Linking.openURL(CONSENSYS_PRIVACY_POLICY);
 
