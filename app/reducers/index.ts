@@ -15,7 +15,6 @@ import signatureRequestReducer from './signatureRequest';
 import notificationReducer from './notification';
 import infuraAvailabilityReducer from './infuraAvailability';
 import collectiblesReducer from './collectibles';
-import navigationReducer from './navigation';
 import networkOnboardReducer from './networkSelector';
 import securityReducer from './security';
 import { combineReducers, Reducer } from 'redux';
@@ -87,7 +86,6 @@ const rootReducer = combineReducers<RootState, any>({
   swaps: swapsReducer,
   fiatOrders,
   infuraAvailability: infuraAvailabilityReducer,
-  navigation: navigationReducer,
   networkOnboarded: networkOnboardReducer,
   security: securityReducer,
   experimentalSettings: experimentalSettingsReducer,

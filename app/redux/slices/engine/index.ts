@@ -1,9 +1,6 @@
 import Engine from '../../../core/Engine';
 import { persistReducer } from 'redux-persist';
 import { combineReducers, Reducer } from 'redux';
-// import { createAction } from '@reduxjs/toolkit';
-// import Logger from '../../../util/Logger';
-// import { Platform } from 'react-native';
 import MigratedStorage from '../../storage/MigratedStorage';
 
 const controllerNames = [
@@ -26,7 +23,7 @@ const controllerNames = [
   {
     name: 'PhishingController',
     initialState: {},
-    denyList: ['phishing', 'whitelist'],
+    blacklist: ['phishing', 'whitelist'],
   },
   { name: 'PreferencesController', initialState: {} },
   { name: 'TokenBalancesController', initialState: {} },
@@ -35,7 +32,7 @@ const controllerNames = [
   {
     name: 'SwapsController',
     initialState: {},
-    denyList: [
+    blacklist: [
       'aggregatorMetadata',
       'aggregatorMetadataLastFetched',
       'chainCache',
@@ -48,7 +45,7 @@ const controllerNames = [
   {
     name: 'TokenListController',
     initialState: {},
-    denyList: ['tokenList, tokensChainCache'],
+    blacklist: ['tokenList, tokensChainCache'],
   },
   {
     name: 'CurrencyRateController',
@@ -72,9 +69,12 @@ const controllerNames = [
   },
 ];
 
-const controllerPersistConfig = (controllerName: any, denyList?: string[]) => ({
+const controllerPersistConfig = (
+  controllerName: any,
+  blacklist?: string[],
+) => ({
   key: controllerName,
-  blacklist: denyList,
+  blacklist,
   storage: MigratedStorage,
 });
 
@@ -109,10 +109,10 @@ const controllerReducer =
 
 export const controllerReducers = controllerNames.reduce(
   (output, controllerConfig) => {
-    const { name, initialState, denyList = [] } = controllerConfig;
+    const { name, initialState, blacklist = [] } = controllerConfig;
 
     const reducer = persistReducer(
-      controllerPersistConfig(name, denyList),
+      controllerPersistConfig(name, blacklist),
       controllerReducer({ controllerName: name, initialState }),
     );
 

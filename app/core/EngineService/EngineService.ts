@@ -13,10 +13,8 @@ interface InitializeEngineResult {
   error?: string;
 }
 
-// const UPDATE_BG_STATE_KEY = 'UPDATE_BG_STATE';
 const UPDATE_BG_STATE_KEY = (controllerName: string) =>
   `UPDATE_BG_STATE_${controllerName}`;
-// const INIT_BG_STATE_KEY = 'INIT_BG_STATE';
 const INIT_BG_STATE_KEY = (controllerName: string) =>
   `INIT_BG_STATE_${controllerName}`;
 class EngineService {
@@ -118,7 +116,6 @@ class EngineService {
       if (key) {
         engine.controllerMessenger.subscribe(key, update_bg_state_cb);
       } else {
-        //why this else?
         engine.context[name].subscribe(update_bg_state_cb);
       }
     });

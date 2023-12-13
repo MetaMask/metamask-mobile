@@ -59,7 +59,6 @@ import {
 } from '../../../util/ENSUtils';
 import ClipboardManager from '../../../core/ClipboardManager';
 import { collectiblesSelector } from '../../../reducers/collectibles';
-import { getCurrentRoute } from '../../../reducers/navigation';
 import { ScrollView } from 'react-native-gesture-handler';
 import { isZero } from '../../../util/lodash';
 import { Authentication } from '../../../core/';
@@ -427,10 +426,7 @@ class DrawerView extends PureComponent {
      * Callback to close drawer
      */
     onCloseDrawer: PropTypes.func,
-    /**
-     * Latest navigation route
-     */
-    currentRoute: PropTypes.string,
+
     /**
      * handles action for onboarding to a network
      */
@@ -1001,7 +997,6 @@ class DrawerView extends PureComponent {
       selectedAddress,
       currentCurrency,
       seedphraseBackedUp,
-      currentRoute,
       navigation,
       infoNetworkModalVisible,
     } = this.props;
@@ -1118,81 +1113,6 @@ class DrawerView extends PureComponent {
               </View>
             </StyledButton>
           </View>
-          <View style={styles.menu}>
-            {this.getSections().map(
-              (section, i) =>
-                section?.length > 0 && (
-                  <View
-                    key={`section_${i}`}
-                    style={[
-                      styles.menuSection,
-                      i === 0 ? styles.noTopBorder : null,
-                    ]}
-                  >
-                    {section
-                      .filter((item) => {
-                        if (!item) return undefined;
-                        const { name = undefined } = item;
-                        if (
-                          name &&
-                          name.toLowerCase().indexOf('etherscan') !== -1
-                        ) {
-                          const type = providerConfig?.type;
-                          return (
-                            (type && this.hasBlockExplorer(type)) || undefined
-                          );
-                        }
-                        return true;
-                      })
-                      .map((item, j) => (
-                        <TouchableOpacity
-                          key={`item_${i}_${j}`}
-                          style={[
-                            styles.menuItem,
-                            item.routeNames &&
-                            item.routeNames.includes(currentRoute)
-                              ? styles.selectedRoute
-                              : null,
-                          ]}
-                          ref={
-                            item.name === strings('drawer.browser') &&
-                            this.browserSectionRef
-                          }
-                          onPress={() => item.action()} // eslint-disable-line
-                        >
-                          {item.icon
-                            ? item.routeNames &&
-                              item.routeNames.includes(currentRoute)
-                              ? item.selectedIcon
-                              : item.icon
-                            : null}
-                          <Text
-                            style={[
-                              styles.menuItemName,
-                              !item.icon ? styles.noIcon : null,
-                              item.routeNames &&
-                              item.routeNames.includes(currentRoute)
-                                ? styles.selectedName
-                                : null,
-                            ]}
-                            {...generateTestId(Platform, item.testID)}
-                            numberOfLines={1}
-                          >
-                            {item.name}
-                          </Text>
-                          {!seedphraseBackedUp && item.warning ? (
-                            <SettingsNotification isNotification isWarning>
-                              <Text style={styles.menuItemWarningText}>
-                                {item.warning}
-                              </Text>
-                            </SettingsNotification>
-                          ) : null}
-                        </TouchableOpacity>
-                      ))}
-                  </View>
-                ),
-            )}
-          </View>
         </ScrollView>
 
         <Modal
@@ -1253,7 +1173,6 @@ const mapStateToProps = (state) => ({
   tokenBalances: selectContractBalances(state),
   collectibles: collectiblesSelector(state),
   seedphraseBackedUp: state.user.seedphraseBackedUp,
-  currentRoute: getCurrentRoute(state),
   switchedNetwork: state.networkOnboarded.switchedNetwork,
 });
 

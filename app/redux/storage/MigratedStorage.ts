@@ -20,7 +20,9 @@ const MigratedStorage = {
     try {
       return await FilesystemStorage.setItem(key, value, Platform.OS === 'ios');
     } catch (error) {
-      Logger.error(error as Error, { message: 'Failed to set item' });
+      Logger.error(error as Error, {
+        message: `Failed to set persisted key ${key}`,
+      });
     }
   },
   async removeItem(key: string) {
