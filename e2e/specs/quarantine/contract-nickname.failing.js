@@ -11,7 +11,6 @@ import WalletView from '../../pages/WalletView';
 import EnableAutomaticSecurityChecksView from '../../pages/EnableAutomaticSecurityChecksView';
 import LoginView from '../../pages/LoginView';
 
-import AddContactView from '../../pages/Drawer/Settings/Contacts/AddContactView';
 import ContactsView from '../../pages/Drawer/Settings/Contacts/ContactsView';
 import SettingsView from '../../pages/Drawer/Settings/SettingsView';
 
@@ -27,6 +26,7 @@ import Accounts from '../../../wdio/helpers/Accounts';
 import TabBarComponent from '../../pages/TabBarComponent';
 import WalletActionsModal from '../../pages/modals/WalletActionsModal';
 import ContractApprovalModal from '../../pages/modals/ContractApprovalModal';
+import CommonView from '../../pages/CommonView';
 
 describe('Adding Contract Nickname', () => {
   const APPROVAL_DEEPLINK_URL =
@@ -181,13 +181,13 @@ describe('Adding Contract Nickname', () => {
     await TabBarComponent.tapSettings();
     await SettingsView.tapContacts();
 
-    await ContactsView.isVisible();
-    await ContactsView.isContactAliasVisible('Ace');
+    await expect(await ContactsView.container).toBeVisible();
+    await expect(await ContactsView.aceContact).toBeVisible();
   });
 
   it('should return to the send view', async () => {
     // Open Drawer
-    await AddContactView.tapBackButton();
+    await CommonView.tapBackButton();
     await SettingsView.tapCloseButton();
 
     await TabBarComponent.tapActions();

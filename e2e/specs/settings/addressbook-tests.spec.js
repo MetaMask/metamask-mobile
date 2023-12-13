@@ -17,6 +17,8 @@ import {
 import TestHelpers from '../../helpers';
 import FixtureServer from '../../fixtures/fixture-server';
 import { getFixturesServerPort } from '../../fixtures/utils';
+import CommonView from '../../pages/CommonView';
+import messages from '../../../locales/languages/en.json';
 
 const INVALID_ADDRESS = '0xB8B4EE5B1b693971eB60bDa15211570df2dB221L';
 const TETHER_ADDRESS = '0xdac17f958d2ee523a2206206994597c13d831ec7';
@@ -76,55 +78,57 @@ describe(Smoke('Addressbook Tests'), () => {
     await SendView.tapCancelButton();
     await TabBarComponent.tapSettings();
     await SettingsView.tapContacts();
-    await ContactsView.isVisible();
-    await ContactsView.isContactAliasVisible('Myth');
+    await expect(await ContactsView.container).toBeVisible();
+    await expect(await ContactsView.mythContact).toBeVisible();
   });
 
   it('should add an address via the contacts view', async () => {
     await ContactsView.tapAddContactButton();
-    await AddContactView.isVisible();
+    await expect(await AddContactView.container).toBeVisible();
     await AddContactView.typeInName('Ibrahim');
     // Input invalid address
     await AddContactView.typeInAddress(INVALID_ADDRESS);
-    await AddContactView.isErrorMessageVisible();
-    await AddContactView.isErrorMessageTextCorrect();
+    await expect(await CommonView.errorMessage).toBeVisible();
+    await expect(await CommonView.errorMessage).toHaveText(
+      messages.transaction.invalid_address,
+    );
     await AddContactView.clearAddressInputBox();
     await AddContactView.typeInAddress('ibrahim.team.mask.eth');
     await AddContactView.typeInMemo(MEMO);
     await AddContactView.tapAddContactButton();
-    await ContactsView.isVisible(); // Check that we are on the contacts screen
-    await ContactsView.isContactAliasVisible('Ibrahim'); // Check that Ibrahim address is saved in the address book
+    await expect(await ContactsView.container).toBeVisible();
+    await expect(await ContactsView.ibrahimContact).toBeVisible(); // Check that Ibrahim address is saved in the address book
   });
 
   it('should edit a contact', async () => {
-    await ContactsView.tapOnAlias('Myth'); // Tap on Myth address
+    await ContactsView.tapMythContact();
     await AddContactView.tapEditButton();
     await AddContactView.typeInName('Moon'); // Change name from Myth to Moon
     await AddContactView.tapEditContactCTA();
 
     // because tapping edit contact is slow to load on bitrise
     try {
-      await ContactsView.isVisible();
+      await expect(await ContactsView.container).toBeVisible();
     } catch {
       await AddContactView.tapEditContactCTA();
-      await ContactsView.isVisible();
+      await expect(await ContactsView.container).toBeVisible();
     }
-    await ContactsView.isContactAliasVisible('Moon'); // Check that Ibrahim address is saved in the address book
-    await ContactsView.isContactAliasNotVisible('Myth'); // Ensure Myth is not visible
+    await expect(await ContactsView.moonContact).toBeVisible(); // Check that Ibrahim address is saved in the address book
+    await expect(await ContactsView.mythContact).not.toBeVisible(); // Ensure Myth is not visible
   });
 
   it('should remove a contact', async () => {
     // Tap on Moon address
-    await ContactsView.tapOnAlias('Moon'); // Tap on Myth address
+    await ContactsView.tapMoonContact(); // Tap on Myth address
     // Tap on edit
     await AddContactView.tapEditButton();
     await AddContactView.tapDeleteContactCTA();
-    await ContactsView.isContactAliasNotVisible('Moon');
+    await expect(await ContactsView.moonContact).not.toBeVisible();
   });
 
   it('should go back to send flow to validate newly added address is displayed', async () => {
     // tap on the back arrow
-    await AddContactView.tapBackButton();
+    await CommonView.tapBackButton();
     await TabBarComponent.tapWallet();
     await TabBarComponent.tapActions();
     await WalletActionsModal.tapSendButton();
