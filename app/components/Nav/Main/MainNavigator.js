@@ -63,7 +63,7 @@ import OrderDetails from '../../UI/Ramp/common/Views/OrderDetails';
 import SendTransaction from '../../UI/Ramp/common/Views/SendTransaction';
 import TabBar from '../../../component-library/components/Navigation/TabBar';
 import BrowserUrlModal from '../../Views/BrowserUrlModal';
-///: BEGIN:ONLY_INCLUDE_IF(flask)
+///: BEGIN:ONLY_INCLUDE_IF(snaps)
 import { SnapsSettingsList } from '../../Views/Snaps/SnapsSettingsList';
 ///: END:ONLY_INCLUDE_IF
 import Routes from '../../../constants/navigation/Routes';
@@ -207,7 +207,7 @@ const BrowserFlow = () => (
 
 export const DrawerContext = React.createContext({ drawerRef: null });
 
-///: BEGIN:ONLY_INCLUDE_IF(flask)
+///: BEGIN:ONLY_INCLUDE_IF(snaps)
 const SnapsSettingsStack = () => (
   <Stack.Navigator>
     <Stack.Screen
@@ -312,7 +312,7 @@ const SettingsFlow = () => (
       options={EnterPasswordSimple.navigationOptions}
     />
     {
-      ///: BEGIN:ONLY_INCLUDE_IF(flask)
+      ///: BEGIN:ONLY_INCLUDE_IF(snaps)
     }
     <Stack.Screen
       name={Routes.SNAPS.SNAPS_SETTINGS_LIST}

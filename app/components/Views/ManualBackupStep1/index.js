@@ -34,9 +34,9 @@ import { createStyles } from './styles';
 
 import { MetaMetricsEvents } from '../../../core/Analytics';
 import { Authentication } from '../../../core';
-import { ManualBackUpStep1SelectorsIDs } from '../../../../e2e/selectors/Onboarding/ManualBackUpStep1.selectors';
 import trackAfterInteractions from '../../../util/metrics/TrackAfterInteraction/trackAfterInteractions';
 import Logger from '../../../util/Logger';
+import { ManualBackUpStepsSelectorsIDs } from '../../../../e2e/selectors/Onboarding/ManualBackUpSteps.selectors';
 
 /**
  * View that's shown during the second step of
@@ -174,8 +174,8 @@ const ManualBackupStep1 = ({ route, navigation, appTheme }) => {
           <View style={styles.viewButtonWrapper}>
             <StyledButton
               type={'onOverlay'}
-              testID={ManualBackUpStep1SelectorsIDs.VIEW_BUTTON}
               onPress={revealSeedPhrase}
+              testID={ManualBackUpStepsSelectorsIDs.VIEW_BUTTON}
               containerStyle={styles.viewButtonContainer}
             >
               {strings('manual_backup_step_1.view')}
@@ -209,7 +209,7 @@ const ManualBackupStep1 = ({ route, navigation, appTheme }) => {
               onChangeText={onPasswordChange}
               secureTextEntry
               onSubmitEditing={tryUnlock}
-              testID={ManualBackUpStep1SelectorsIDs.CONFIRM_PASSWORD_INPUT}
+              testID={ManualBackUpStepsSelectorsIDs.CONFIRM_PASSWORD_INPUT}
               keyboardAppearance={themeAppearance}
             />
             {warningIncorrectPassword && (
@@ -223,7 +223,7 @@ const ManualBackupStep1 = ({ route, navigation, appTheme }) => {
               containerStyle={styles.button}
               type={'confirm'}
               onPress={tryUnlock}
-              testID={ManualBackUpStep1SelectorsIDs.SUBMIT_BUTTON}
+              testID={ManualBackUpStepsSelectorsIDs.SUBMIT_BUTTON}
             >
               {strings('manual_backup_step_1.confirm')}
             </StyledButton>
@@ -239,7 +239,7 @@ const ManualBackupStep1 = ({ route, navigation, appTheme }) => {
 
     return (
       <ActionView
-        confirmTestID={ManualBackUpStep1SelectorsIDs.CONTINUE_BUTTON}
+        confirmTestID={ManualBackUpStepsSelectorsIDs.CONTINUE_BUTTON}
         confirmText={strings('manual_backup_step_1.continue')}
         onConfirmPress={goNext}
         confirmDisabled={seedPhraseHidden}
@@ -248,7 +248,7 @@ const ManualBackupStep1 = ({ route, navigation, appTheme }) => {
       >
         <View
           style={styles.wrapper}
-          testID={ManualBackUpStep1SelectorsIDs.CONTAINER}
+          testID={ManualBackUpStepsSelectorsIDs.STEP_1_CONTAINER}
         >
           <Text style={styles.action}>
             {strings('manual_backup_step_1.action')}
