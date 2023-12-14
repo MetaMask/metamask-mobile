@@ -25,6 +25,9 @@ export const DEFAULT_SELECTBUTTON_DESCRIPTION_TEXTCOLOR = TextColor.Alternative;
 export const DEFAULT_SELECTBUTTON_CARETICON_ICONNAME = IconName.ArrowDown;
 export const DEFAULT_SELECTBUTTON_CARETICON_ICONCOLOR = IconColor.Default;
 
+// Test IDs
+export const SELECTBUTTON_TESTID = 'selectbutton';
+
 // Mappings
 export const CARETICON_ICONSIZE_BY_SELECTBUTTONSIZE: CaretIconIconSizeBySelectButtonSize =
   {

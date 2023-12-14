@@ -35,10 +35,6 @@ export interface SelectButtonProps extends SelectButtonBaseProps {
    */
   size?: SelectButtonSize;
   /**
-   * Optional prop to configure the disabled state.
-   */
-  isDisabled?: boolean;
-  /**
    * Optional prop to configure the danger state.
    */
   isDanger?: boolean;

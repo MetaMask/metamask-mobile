@@ -1,24 +1,15 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
-exports[`SelectButton should render snapshot correctly 1`] = `
+exports[`SelectButtonBase should render snapshot correctly 1`] = `
 <TouchableOpacity
   accessibilityRole="button"
   activeOpacity={1}
   style={
     Object {
       "alignItems": "center",
-      "backgroundColor": "#FFFFFF",
-      "borderColor": "#BBC0C5",
-      "borderRadius": 8,
-      "borderWidth": 1,
       "flexDirection": "row",
-      "minHeight": 40,
-      "opacity": 1,
-      "paddingHorizontal": 16,
-      "paddingVertical": 8,
     }
   }
-  testID="selectbutton"
 >
   <View
     accessibilityRole="none"
@@ -45,10 +36,10 @@ exports[`SelectButton should render snapshot correctly 1`] = `
         style={
           Object {
             "backgroundColor": "#FFFFFF",
-            "borderRadius": 12,
-            "height": 24,
+            "borderRadius": 16,
+            "height": 32,
             "overflow": "hidden",
-            "width": 24,
+            "width": 32,
           }
         }
       >
@@ -60,19 +51,19 @@ exports[`SelectButton should render snapshot correctly 1`] = `
               },
               Object {
                 "backgroundColor": "#F1D702",
-                "borderRadius": 12,
-                "height": 24,
-                "width": 24,
+                "borderRadius": 16,
+                "height": 32,
+                "width": 32,
               },
               undefined,
             ]
           }
         >
           <RNSVGSvgView
-            bbHeight={24}
-            bbWidth={24}
+            bbHeight={32}
+            bbWidth={32}
             focusable={false}
-            height={24}
+            height={32}
             style={
               Array [
                 Object {
@@ -81,25 +72,25 @@ exports[`SelectButton should render snapshot correctly 1`] = `
                 },
                 Object {
                   "flex": 0,
-                  "height": 24,
-                  "width": 24,
+                  "height": 32,
+                  "width": 32,
                 },
               ]
             }
-            width={24}
+            width={32}
           >
             <RNSVGGroup>
               <RNSVGRect
                 fill={4278401629}
-                height={24}
+                height={32}
                 matrix={
                   Array [
                     0.9865721616069695,
                     0.16332596224162158,
                     -0.16332596224162158,
                     0.9865721616069695,
-                    3.349598756225685,
-                    -4.337570675625569,
+                    4.46613167496758,
+                    -5.783427567500757,
                   ]
                 }
                 propList={
@@ -107,21 +98,21 @@ exports[`SelectButton should render snapshot correctly 1`] = `
                     "fill",
                   ]
                 }
-                width={24}
+                width={32}
                 x={0}
                 y={0}
               />
               <RNSVGRect
                 fill={4293653248}
-                height={24}
+                height={32}
                 matrix={
                   Array [
                     -0.9510565162951535,
                     0.3090169943749475,
                     -0.3090169943749475,
                     -0.9510565162951535,
-                    42.74838974245424,
-                    21.62565363691613,
+                    56.99785298993899,
+                    28.83420484922151,
                   ]
                 }
                 propList={
@@ -129,21 +120,21 @@ exports[`SelectButton should render snapshot correctly 1`] = `
                     "fill",
                   ]
                 }
-                width={24}
+                width={32}
                 x={0}
                 y={0}
               />
               <RNSVGRect
                 fill={4291236897}
-                height={24}
+                height={32}
                 matrix={
                   Array [
                     -0.9438009515832294,
                     0.3305143927132231,
                     -0.3305143927132231,
                     -0.9438009515832294,
-                    44.121229500740455,
-                    30.154597020156785,
+                    58.82830600098727,
+                    40.20612936020905,
                   ]
                 }
                 propList={
@@ -151,7 +142,7 @@ exports[`SelectButton should render snapshot correctly 1`] = `
                     "fill",
                   ]
                 }
-                width={24}
+                width={32}
                 x={0}
                 y={0}
               />
@@ -164,7 +155,7 @@ exports[`SelectButton should render snapshot correctly 1`] = `
       accessible={false}
       style={
         Object {
-          "width": 8,
+          "width": 16,
         }
       }
       testID="listitem-gap"
@@ -190,7 +181,7 @@ exports[`SelectButton should render snapshot correctly 1`] = `
           }
         }
       >
-        Sample SelectButton label
+        Sample SelectValue label
       </Text>
       <Text
         accessibilityRole="text"
@@ -206,22 +197,22 @@ exports[`SelectButton should render snapshot correctly 1`] = `
           }
         }
       >
-        Sample SelectButton description
+        Sample SelectValue description
       </Text>
     </View>
   </View>
   <View>
     <SvgMock
       color="#24272A"
-      height={16}
+      height={20}
       name="ArrowDown"
       style={
         Object {
-          "height": 16,
-          "width": 16,
+          "height": 20,
+          "width": 20,
         }
       }
-      width={16}
+      width={20}
     />
   </View>
 </TouchableOpacity>

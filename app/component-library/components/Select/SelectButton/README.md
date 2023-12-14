@@ -1,14 +1,14 @@
 # SelectButton
 
-SelectButton is a trigger component, used as part of the SelectWrapper or Select component.
+SelectButton is a trigger component, used as part of the SelectWrapper or Select component
 
 ## Props
 
-This component extends [SelectButtonBaseProps](./foundation/SelectButtonBase.types.ts) from the [SelectButtonBase](./foundation/SelectButtonBase.tsx) component.
+This component extends [SelectButtonBaseProps](./foundation/SelectButtonBase.types.ts) from the [SelectButtonBase](./foundation/SelectButtonBase.tsx) component
 
 ### `size`
 
-Optional enum to select between SelectButton sizes.
+Optional enum to select between SelectButton sizes
 
 | <span style="color:gray;font-size:14px">TYPE</span> | <span style="color:gray;font-size:14px">REQUIRED</span> | <span style="color:gray;font-size:14px">DEFAULT</span> |
 | :-------------------------------------------------- | :------------------------------------------------------ | :----------------------------------------------------- |
@@ -16,7 +16,7 @@ Optional enum to select between SelectButton sizes.
 
 ### `isDisabled`
 
-Optional prop to configure the disabled state.
+Optional prop to configure the disabled state
 
 | <span style="color:gray;font-size:14px">TYPE</span> | <span style="color:gray;font-size:14px">REQUIRED</span> | <span style="color:gray;font-size:14px">DEFAULT</span> |
 | :-------------------------------------------------- | :------------------------------------------------------ | :----------------------------------------------------- |
@@ -24,7 +24,7 @@ Optional prop to configure the disabled state.
 
 ### `isDanger`
 
-Optional prop to configure the danger state.
+Optional prop to configure the danger state
 
 | <span style="color:gray;font-size:14px">TYPE</span> | <span style="color:gray;font-size:14px">REQUIRED</span> | <span style="color:gray;font-size:14px">DEFAULT</span> |
 | :-------------------------------------------------- | :------------------------------------------------------ | :----------------------------------------------------- |
@@ -32,7 +32,7 @@ Optional prop to configure the danger state.
 
 ### `iconEl`
 
-Optional prop for the start Icon Element.
+Optional prop for the start Icon Element
 
 | <span style="color:gray;font-size:14px">TYPE</span> | <span style="color:gray;font-size:14px">REQUIRED</span> |
 | :-------------------------------------------------- | :------------------------------------------------------ |
@@ -40,7 +40,7 @@ Optional prop for the start Icon Element.
 
 ### `iconProps`
 
-Optional prop for the start Icon Element.
+Optional prop for the start Icon Element
 
 | <span style="color:gray;font-size:14px">TYPE</span> | <span style="color:gray;font-size:14px">REQUIRED</span> |
 | :-------------------------------------------------- | :------------------------------------------------------ |
@@ -48,7 +48,7 @@ Optional prop for the start Icon Element.
 
 ### `label`
 
-Optional prop for the label of SelectValue.
+Optional prop for the label of SelectValue
 
 | <span style="color:gray;font-size:14px">TYPE</span> | <span style="color:gray;font-size:14px">REQUIRED</span> |
 | :-------------------------------------------------- | :------------------------------------------------------ |
@@ -56,7 +56,7 @@ Optional prop for the label of SelectValue.
 
 ### `description`
 
-Optional description below the label.
+Optional description below the label
 
 | <span style="color:gray;font-size:14px">TYPE</span> | <span style="color:gray;font-size:14px">REQUIRED</span> |
 | :-------------------------------------------------- | :------------------------------------------------------ |
@@ -66,7 +66,7 @@ Optional description below the label.
 
 ### `caretIconEl`
 
-Optional enum to replace the caret Icon.
+Optional enum to replace the caret Icon
 
 | <span style="color:gray;font-size:14px">TYPE</span> | <span style="color:gray;font-size:14px">REQUIRED</span> |
 | :-------------------------------------------------- | :------------------------------------------------------ |
@@ -74,7 +74,7 @@ Optional enum to replace the caret Icon.
 
 ### `startAccessory`
 
-Optional content to be displayed before the info section.
+Optional content to be displayed before the info section
 
 | <span style="color:gray;font-size:14px">TYPE</span> | <span style="color:gray;font-size:14px">REQUIRED</span> |
 | :-------------------------------------------------- | :------------------------------------------------------ |
@@ -82,7 +82,7 @@ Optional content to be displayed before the info section.
 
 ### `children`
 
-Optional content to be displayed in the info section.
+Optional content to be displayed in the info section
 
 | <span style="color:gray;font-size:14px">TYPE</span> | <span style="color:gray;font-size:14px">REQUIRED</span> |
 | :-------------------------------------------------- | :------------------------------------------------------ |
@@ -90,7 +90,7 @@ Optional content to be displayed in the info section.
 
 ### `endAccessory`
 
-Optional content to be displayed after the info section.
+Optional content to be displayed after the info section
 
 | <span style="color:gray;font-size:14px">TYPE</span> | <span style="color:gray;font-size:14px">REQUIRED</span> |
 | :-------------------------------------------------- | :------------------------------------------------------ |

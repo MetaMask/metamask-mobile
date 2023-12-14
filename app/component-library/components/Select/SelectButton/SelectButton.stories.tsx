@@ -16,23 +16,18 @@ const SelectButtonStoryMeta = {
       control: {
         type: 'select',
       },
-      defaultValue: SAMPLE_SELECTBUTTON_PROPS.size,
     },
     label: {
       control: { type: 'text' },
-      defaultValue: SAMPLE_SELECTBUTTON_PROPS.label,
     },
     description: {
       control: { type: 'text' },
-      defaultValue: SAMPLE_SELECTBUTTON_PROPS.description,
     },
     isDisabled: {
       control: { type: 'boolean' },
-      defaultValue: SAMPLE_SELECTBUTTON_PROPS.isDisabled,
     },
     isDanger: {
       control: { type: 'boolean' },
-      defaultValue: SAMPLE_SELECTBUTTON_PROPS.isDanger,
     },
   },
 };
@@ -40,6 +35,13 @@ const SelectButtonStoryMeta = {
 export default SelectButtonStoryMeta;
 
 export const SelectButton = {
+  args: {
+    size: SAMPLE_SELECTBUTTON_PROPS.size,
+    label: SAMPLE_SELECTBUTTON_PROPS.label,
+    description: SAMPLE_SELECTBUTTON_PROPS.description,
+    isDisabled: SAMPLE_SELECTBUTTON_PROPS.isDisabled,
+    isDanger: SAMPLE_SELECTBUTTON_PROPS.isDanger,
+  },
   render: (args: any) => (
     <SelectButtonComponent
       {...args}

@@ -24,6 +24,7 @@ const SelectButtonBase: React.FC<SelectButtonBaseProps> = ({
   gap,
   verticalAlignment,
   caretIconEl,
+  isDisabled,
   ...touchableOpacityProps
 }) => {
   const { styles } = useStyles(styleSheet, { style });
@@ -32,6 +33,8 @@ const SelectButtonBase: React.FC<SelectButtonBaseProps> = ({
       style={styles.base}
       activeOpacity={1}
       {...touchableOpacityProps}
+      disabled={isDisabled}
+      accessibilityRole="button"
     >
       <SelectValue
         style={styles.value}

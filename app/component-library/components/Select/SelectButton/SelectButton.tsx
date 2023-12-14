@@ -20,6 +20,7 @@ import {
   DEFAULT_SELECTBUTTON_CARETICON_ICONCOLOR,
   CARETICON_ICONSIZE_BY_SELECTBUTTONSIZE,
   STARTICON_ICONSIZE_BY_SELECTBUTTONSIZE,
+  SELECTBUTTON_TESTID,
 } from './SelectButton.constants';
 
 const SelectButton: React.FC<SelectButtonProps> = ({
@@ -73,6 +74,7 @@ const SelectButton: React.FC<SelectButtonProps> = ({
       }
       disabled={isDisabled}
       startAccessory={renderStartAccessory()}
+      testID={SELECTBUTTON_TESTID}
       {...props}
     />
   );
