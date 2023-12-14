@@ -7,7 +7,6 @@ import {
   StyleSheet,
   Text,
   InteractionManager,
-  Platform,
 } from 'react-native';
 import PropTypes from 'prop-types';
 import { connect } from 'react-redux';
@@ -28,7 +27,6 @@ import { strings } from '../../../../locales/i18n';
 import Modal from 'react-native-modal';
 import {
   toggleInfoNetworkModal,
-  toggleNetworkModal,
   toggleReceiveModal,
 } from '../../../actions/modals';
 import { showAlert } from '../../../actions/alert';
@@ -49,7 +47,6 @@ import { getEther } from '../../../util/transactions';
 import { newAssetTransaction } from '../../../actions/transaction';
 import { protectWalletModalVisible } from '../../../actions/user';
 import DeeplinkManager from '../../../core/DeeplinkManager/SharedDeeplinkManager';
-import SettingsNotification from '../SettingsNotification';
 import { RPC } from '../../../constants/network';
 import { findRouteNameFromNavigatorState } from '../../../util/general';
 import AnalyticsV2 from '../../../util/analyticsV2';
@@ -70,7 +67,6 @@ import {
 } from '../../../actions/onboardNetwork';
 import Routes from '../../../constants/navigation/Routes';
 import { scale } from 'react-native-size-matters';
-import generateTestId from '../../../../wdio/utils/generateTestId';
 import { DRAWER_VIEW_LOCK_TEXT_ID } from '../../../../wdio/screen-objects/testIDs/Screens/DrawerView.testIds';
 import {
   selectNetworkConfigurations,
@@ -362,10 +358,6 @@ class DrawerView extends PureComponent {
      */
     keyrings: PropTypes.array,
     /**
-     * Action that toggles the network modal
-     */
-    toggleNetworkModal: PropTypes.func,
-    /**
      * Action that toggles the receive modal
      */
     toggleReceiveModal: PropTypes.func,
@@ -373,10 +365,6 @@ class DrawerView extends PureComponent {
      * Action that shows the global alert
      */
     showAlert: PropTypes.func.isRequired,
-    /**
-     * Boolean that determines the status of the networks modal
-     */
-    networkModalVisible: PropTypes.bool.isRequired,
     /**
      * Boolean that determines the status of the receive modal
      */
@@ -389,10 +377,6 @@ class DrawerView extends PureComponent {
      * Boolean that determines if the user has set a password before
      */
     passwordSet: PropTypes.bool,
-    /**
-     * Wizard onboarding state
-     */
-    wizard: PropTypes.object,
     /**
      * Current provider ticker
      */
@@ -431,10 +415,6 @@ class DrawerView extends PureComponent {
      * handles action for onboarding to a network
      */
     onboardNetworkAction: PropTypes.func,
-    /**
-     * returns switched network state
-     */
-    switchedNetwork: PropTypes.object,
     /**
      * updates when network is switched
      */
@@ -1163,21 +1143,17 @@ const mapStateToProps = (state) => ({
   networkConfigurations: selectNetworkConfigurations(state),
   currentCurrency: selectCurrentCurrency(state),
   keyrings: state.engine.backgroundState.KeyringController.keyrings,
-  networkModalVisible: state.modals.networkModalVisible,
   receiveModalVisible: state.modals.receiveModalVisible,
   infoNetworkModalVisible: state.modals.infoNetworkModalVisible,
   passwordSet: state.user.passwordSet,
-  wizard: state.wizard,
   ticker: selectTicker(state),
   tokens: selectTokens(state),
   tokenBalances: selectContractBalances(state),
   collectibles: collectiblesSelector(state),
   seedphraseBackedUp: state.user.seedphraseBackedUp,
-  switchedNetwork: state.networkOnboarded.switchedNetwork,
 });
 
 const mapDispatchToProps = (dispatch) => ({
-  toggleNetworkModal: () => dispatch(toggleNetworkModal()),
   toggleReceiveModal: () => dispatch(toggleReceiveModal()),
   showAlert: (config) => dispatch(showAlert(config)),
   newAssetTransaction: (selectedAsset) =>

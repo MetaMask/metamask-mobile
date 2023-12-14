@@ -1,4 +1,14 @@
-import engineReducer, { initBgState, updateBgState } from '.';
+// TODO: Adapt tests when RTK is reintroduced for engine
+import engineReducer from '.';
+import { createAction } from '@reduxjs/toolkit';
+
+// Create an action to initialize the background state
+export const initBgState = createAction('INIT_BG_STATE');
+
+// Create an action to update the background state
+export const updateBgState = createAction('UPDATE_BG_STATE', (key) => ({
+  payload: key,
+}));
 
 jest.mock('../../../Engine', () => ({
   init: () => jest.requireActual('../../../Engine').default.init({}),

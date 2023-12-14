@@ -17,17 +17,44 @@ const persistUserTransform = createTransform(
   { whitelist: ['user'] },
 );
 
-const persistConfig = {
-  key: 'root',
+interface PersistConfig {
+  key: string;
+  version?: number;
+  blacklist?: string[];
+  transforms?: any[];
+  stateReconciler?: any;
+  migrate?: any;
+  timeout?: number;
+  writeFailHandler?: (error: Error) => void;
+}
+
+const createPersistConfig = ({
+  key,
+  blacklist,
+  transforms,
+  migrate,
+  timeout,
+  writeFailHandler,
+}: PersistConfig) => ({
+  key,
   version,
-  blacklist: ['onboarding', 'rpcEvents', 'accounts', 'engine'],
-  storage: MigratedStorage,
-  transforms: [persistUserTransform],
+  blacklist,
+  storage: MigratedStorage(key),
+  transforms,
   stateReconciler: autoMergeLevel2, // see "Merge Process" section for details.
+  migrate,
+  timeout,
+  writeFailHandler,
+});
+
+export const rootPersistConfig = createPersistConfig({
+  key: 'root',
+  blacklist: ['onboarding', 'rpcEvents', 'accounts', 'engine'],
+  transforms: [persistUserTransform],
   migrate: createMigrate(migrations, { debug: false }),
   timeout: TIMEOUT,
   writeFailHandler: (error: Error) =>
     Logger.error(error, { message: 'Error persisting data' }), // Log error if saving state fails
-};
+});
 
-export default persistConfig;
+export default createPersistConfig;

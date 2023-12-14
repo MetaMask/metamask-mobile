@@ -1,19 +1,19 @@
 import FilesystemStorage from 'redux-persist-filesystem-storage';
-
 import Logger from '../../util/Logger';
 import { Platform } from 'react-native';
 
-const MigratedStorage = {
+const createMigratedStorage = (reducerName: string) => ({
   async getItem(key: string) {
     try {
       const res = await FilesystemStorage.getItem(key);
       if (res) {
-        // Using new storage system
+        // Using the new storage system
         return res;
       }
     } catch (error) {
-      Logger.error(error as Error, { message: 'Failed to run migration' });
-      throw new Error('Failed Filesystem Storage fetch.');
+      Logger.error(error as Error, {
+        message: `Failed to get persisted key: ${reducerName}`,
+      });
     }
   },
   async setItem(key: string, value: string) {
@@ -21,7 +21,7 @@ const MigratedStorage = {
       return await FilesystemStorage.setItem(key, value, Platform.OS === 'ios');
     } catch (error) {
       Logger.error(error as Error, {
-        message: `Failed to set persisted key ${key}`,
+        message: `Failed to get persisted key: ${reducerName}`,
       });
     }
   },
@@ -29,9 +29,11 @@ const MigratedStorage = {
     try {
       return await FilesystemStorage.removeItem(key);
     } catch (error) {
-      Logger.error(error as Error, { message: 'Failed to remove item' });
+      Logger.error(error as Error, {
+        message: `Failed to get persisted key: ${reducerName}`,
+      });
     }
   },
-};
+});
 
-export default MigratedStorage;
+export default createMigratedStorage;

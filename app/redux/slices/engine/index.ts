@@ -1,7 +1,7 @@
 import Engine from '../../../core/Engine';
 import { persistReducer } from 'redux-persist';
 import { combineReducers, Reducer } from 'redux';
-import MigratedStorage from '../../storage/MigratedStorage';
+import createPersistConfig from '../../../store/persistConfig';
 
 const controllerNames = [
   { name: 'AccountTrackerController', initialState: {} },
@@ -69,15 +69,6 @@ const controllerNames = [
   },
 ];
 
-const controllerPersistConfig = (
-  controllerName: any,
-  blacklist?: string[],
-) => ({
-  key: controllerName,
-  blacklist,
-  storage: MigratedStorage,
-});
-
 const controllerReducer =
   ({
     controllerName,
@@ -112,7 +103,7 @@ export const controllerReducers = controllerNames.reduce(
     const { name, initialState, blacklist = [] } = controllerConfig;
 
     const reducer = persistReducer(
-      controllerPersistConfig(name, blacklist),
+      createPersistConfig({ key: name, blacklist }),
       controllerReducer({ controllerName: name, initialState }),
     );
 
@@ -126,4 +117,13 @@ const engineReducer = combineReducers({
   backgroundState: combineReducers(controllerReducers),
 });
 
+/**
+ * Engine Reducer
+ *
+ * Note: This reducer is not yet using RTK (Redux Toolkit) slice.
+ *
+ * @param {object} state - The current state.
+ * @param {object} action - The dispatched action.
+ * @returns {object} - new state.
+ */
 export default engineReducer;
