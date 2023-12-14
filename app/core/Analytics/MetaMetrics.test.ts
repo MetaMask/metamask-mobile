@@ -337,7 +337,7 @@ describe('MetaMetrics', () => {
         const metaMetrics = await TestMetaMetrics.getInstance();
         (axios as jest.MockedFunction<typeof axios>).mockResolvedValue({
           status: 200,
-          data: { regulateId: 'TWV0YU1hc2t1c2Vzbm9wb2ludCE' },
+          data: { data: { regulateId: 'TWV0YU1hc2t1c2Vzbm9wb2ludCE' } },
         } as AxiosResponse<any>);
 
         const result = await metaMetrics.createDataDeletionTask();
@@ -466,26 +466,28 @@ describe('MetaMetrics', () => {
         (axios as jest.MockedFunction<typeof axios>).mockResolvedValue({
           status: 200,
           data: {
-            regulation: {
-              id: 'TWV0YU1hc2t1c2Vzbm9wb2ludCE',
-              workspaceId: 'TWV0YUZveA',
-              overallStatus: 'RUNNING',
-              createdAt: '2023-12-11T01:23:45.123456Z',
-              streamStatus: [
-                {
-                  id: 'RXRoZXJldW1SdWxleiE',
-                  destinationStatus: [
-                    {
-                      name: 'Segment',
-                      id: 'segment',
-                      status: 'RUNNING',
-                      errString: '',
-                      errCode: 0,
-                      finishedAt: null,
-                    },
-                  ],
-                },
-              ],
+            data: {
+              regulation: {
+                id: 'TWV0YU1hc2t1c2Vzbm9wb2ludCE',
+                workspaceId: 'TWV0YUZveA',
+                overallStatus: 'RUNNING',
+                createdAt: '2023-12-11T01:23:45.123456Z',
+                streamStatus: [
+                  {
+                    id: 'RXRoZXJldW1SdWxleiE',
+                    destinationStatus: [
+                      {
+                        name: 'Segment',
+                        id: 'segment',
+                        status: 'RUNNING',
+                        errString: '',
+                        errCode: 0,
+                        finishedAt: null,
+                      },
+                    ],
+                  },
+                ],
+              },
             },
           },
         } as AxiosResponse<any>);
