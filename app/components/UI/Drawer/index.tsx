@@ -87,8 +87,6 @@ const Drawer = forwardRef<DrawerRef, Props>((props, ref) => {
       if (prevNetwork.current) {
         // Network switched has occured
         // Check if network has been onboarded.
-        console.log('ENTER network onboardingstate', networkOnboardingState);
-
         const networkOnboarded = getIsNetworkOnboarded(
           chainId,
           networkOnboardingState,
