@@ -315,7 +315,7 @@ exports[`AddAsset component renders correctly 1`] = `
                   null,
                 ]
               }
-              testID="add-custom-asset-cancel-button"
+              testID=""
             >
               <Text
                 style={
@@ -378,7 +378,7 @@ exports[`AddAsset component renders correctly 1`] = `
                   },
                 ]
               }
-              testID="add-custom-asset-confirm-button"
+              testID=""
             >
               <Text
                 style={
