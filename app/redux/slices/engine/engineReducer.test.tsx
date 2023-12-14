@@ -77,9 +77,9 @@ describe('engineReducer', () => {
       updateBgState({ key }),
     );
     console.log(
-      'I WANT SLEEP: ',
+      'Engine STATE: ',
       Engine.state,
-      'BACKGROUNDA:',
+      'Engine BKSTATE:',
       engineBackgroundState,
       'EQUAL:',
       {
