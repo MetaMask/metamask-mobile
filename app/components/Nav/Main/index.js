@@ -109,7 +109,7 @@ const Main = (props) => {
 
   useEffect(() => {
     const { TransactionController } = Engine.context;
-    const currentHexChainId = addHexPrefix(toHexadecimal(props.chainId));
+    const currentHexChainId = props.chainId;
 
     if (props.showIncomingTransactionsNetworks[currentHexChainId]) {
       TransactionController.startIncomingTransactionPolling();
