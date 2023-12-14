@@ -67,9 +67,8 @@ const DeleteMetaMetricsData = () => {
    */
   const enableDeleteData = useCallback(
     () =>
-      !(
-        dataDeleteStatus in
-        [DataDeleteStatus.initialized, DataDeleteStatus.running]
+      ![DataDeleteStatus.initialized, DataDeleteStatus.running].includes(
+        dataDeleteStatus,
       ),
     [dataDeleteStatus],
   );
