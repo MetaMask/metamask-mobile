@@ -521,6 +521,7 @@
     "import_account": "导入账户",
     "connect_hardware": "连接硬件钱包",
     "imported": "已导入",
+    "qr_hardware": "QR 硬件",
     "remove_account_title": "删除账户",
     "remove_account_message": "是否确实想要删除此账户？",
     "no": "否",

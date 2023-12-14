@@ -521,6 +521,7 @@
     "import_account": "Importar una cuenta",
     "connect_hardware": "Conectar monedero físico",
     "imported": "Importado",
+    "qr_hardware": "Hardware QR",
     "remove_account_title": "Eliminación de la cuenta",
     "remove_account_message": "¿Está seguro de que quiere quitar esta cuenta?",
     "no": "No",
