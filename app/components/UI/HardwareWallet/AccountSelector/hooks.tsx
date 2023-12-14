@@ -14,29 +14,37 @@ export interface AccountBalances {
 }
 
 export const useAccountsBalance = (accounts: IAccount[]) => {
+  // TODO: trackedAccounts can be infinity large,
+  // hence it is better to use a bloom filter to verify the false positive result
+  // and increment a number to for increase the size of the bloom filter
   const [trackedAccounts, setTrackedAccounts] = useState<AccountBalances>({});
   const AccountTrackerController = useMemo(
     () => (Engine.context as any).AccountTrackerController,
     [],
   );
 
-  useEffect(() => {
-    const unTrackedAccounts: string[] = [];
-    accounts.forEach((account) => {
-      if (!trackedAccounts[account.address]) {
-        unTrackedAccounts.push(account.address);
+  useEffect(
+    () => {
+      const unTrackedAccounts: string[] = [];
+      accounts.forEach((account) => {
+        if (!trackedAccounts[account.address]) {
+          unTrackedAccounts.push(account.address);
+        }
+      });
+      if (unTrackedAccounts.length > 0) {
+        AccountTrackerController.syncBalanceWithAddresses(
+          unTrackedAccounts,
+        ).then((_trackedAccounts: AccountBalances) => {
+          setTrackedAccounts({
+            ...trackedAccounts,
+            ..._trackedAccounts,
+          });
+        });
       }
-    });
-    if (unTrackedAccounts.length > 0) {
-      AccountTrackerController.syncBalanceWithAddresses(unTrackedAccounts).then(
-        (_trackedAccounts: AccountBalances) => {
-          setTrackedAccounts(
-            Object.assign({}, trackedAccounts, _trackedAccounts),
-          );
-        },
-      );
-    }
-  }, [AccountTrackerController, accounts, trackedAccounts]);
+    },
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [AccountTrackerController, accounts],
+  );
 
   return trackedAccounts;
 };
