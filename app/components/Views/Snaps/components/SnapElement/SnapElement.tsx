@@ -13,9 +13,16 @@ import { Snap } from '@metamask/snaps-utils';
 import stylesheet from './SnapElement.styles';
 import { useStyles } from '../../../../../component-library/hooks';
 import SNAP_ElEMENT from './SnapElement.constants';
+import { useNavigation } from '@react-navigation/native';
+import { createSnapSettingsNavDetails } from '../../SnapSettings/SnapSettings';
 
 const SnapElement = (snap: Snap) => {
   const { styles } = useStyles(stylesheet, {});
+  const { navigate } = useNavigation();
+
+  const onPress = () => {
+    navigate(...createSnapSettingsNavDetails({ snap }));
+  };
 
   return (
     <Cell
@@ -24,6 +31,7 @@ const SnapElement = (snap: Snap) => {
       variant={CellVariant.Display}
       title={snap.manifest.proposedName}
       secondaryText={snap.id}
+      onPress={onPress}
       avatarProps={{
         variant: AvatarVariant.Icon,
         name: IconName.Snaps,
