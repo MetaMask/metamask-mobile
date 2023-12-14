@@ -14,6 +14,11 @@ export default class WebviewExecutionService extends AbstractExecutionService<Wi
   #snapDuplexMap: Map<string, SnapDuplex>;
 
   constructor({ messenger, setupSnapProvider }: ExecutionServiceArgs) {
+    console.log(
+      'SNAPS: WebviewExecutionService called with args:',
+      messenger,
+      setupSnapProvider,
+    );
     super({
       messenger,
       setupSnapProvider,
@@ -25,6 +30,7 @@ export default class WebviewExecutionService extends AbstractExecutionService<Wi
     worker: any;
     stream: BasePostMessageStream;
   }> {
+    console.log('SNAPS: initEnvStream called with jobId:', jobId);
     const iframeWindow = snapsState.webview;
     const stream = snapsState.stream;
 

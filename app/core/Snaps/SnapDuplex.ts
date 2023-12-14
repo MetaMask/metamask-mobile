@@ -19,6 +19,7 @@ export default abstract class SnapDuplex extends Duplex {
   private _jobId: string;
 
   constructor({ stream, jobId }: { stream: any; jobId: string }) {
+    console.log('SNAPS: SnapDuplex called with args:', stream, jobId);
     super({
       objectMode: true,
     });

@@ -13,6 +13,7 @@ const SnapsExecutionWebView = () => {
   const webviewRef = useRef();
 
   const setWebviewPostMessage = () => {
+    console.log('SNAPS: setWebviewPostMessage called');
     stream = new WebviewPostMessageStream({
       name: 'rnside',
       target: 'webview',
@@ -34,10 +35,12 @@ const SnapsExecutionWebView = () => {
 
   const messageFromWebview = (data: any) => {
     stream?._onMessage(data);
+    console.log('SNAPS: messageFromWebview called with data: ' + data);
   };
 
   const envURI = {
     prod: 'https://gantunesr.github.io/mobile-execution-environment/',
+    new: 'https://jonathansoufer.github.io/',
     //localIOS: 'http://localhost:3001/mobile-execution-environment',
     // localAndroid: 'http://10.0.2.2:3001/mobile-execution-environment',
   };
@@ -48,7 +51,7 @@ const SnapsExecutionWebView = () => {
         <WebView
           ref={webviewRef}
           source={{
-            uri: envURI.prod,
+            uri: envURI.new,
           }}
           onMessage={messageFromWebview}
           onLoadEnd={setWebviewPostMessage}
