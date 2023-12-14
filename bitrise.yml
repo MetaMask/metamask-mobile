@@ -382,7 +382,7 @@ workflows:
     - android_e2e_test
 
 ### Seperating workflows so they run concurrently during smoke runs
-  run_tag_confirmations_ios:
+  run_tag_smoke_confirmations_ios:
       envs:
       - TEST_SUITE_TAG: '.*SmokeConfirmations.*'
       after_run:
