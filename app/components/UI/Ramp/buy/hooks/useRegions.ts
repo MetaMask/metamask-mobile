@@ -57,14 +57,18 @@ export default function useRegions() {
       setSelectedRegion(null);
       setUnsupportedRegion(updatedRegion);
       redirectToRegion();
-    } else if (
-      (isBuy && !updatedRegion.support.buy) ||
-      (isSell && !updatedRegion.support.sell)
-    ) {
-      setUnsupportedRegion(updatedRegion);
-      redirectToRegion();
-    } else if (!isEqual(updatedRegion, selectedRegion)) {
-      setSelectedRegion(updatedRegion);
+    } else {
+      if (!isEqual(updatedRegion, selectedRegion)) {
+        setSelectedRegion(updatedRegion);
+      }
+
+      if (
+        (isBuy && !updatedRegion.support.buy) ||
+        (isSell && !updatedRegion.support.sell)
+      ) {
+        setUnsupportedRegion(updatedRegion);
+        redirectToRegion();
+      }
     }
   }, [
     updatedRegion,
