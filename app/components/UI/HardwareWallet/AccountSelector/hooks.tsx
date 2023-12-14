@@ -14,9 +14,6 @@ export interface AccountBalances {
 }
 
 export const useAccountsBalance = (accounts: IAccount[]) => {
-  // TODO: trackedAccounts can be infinity large,
-  // hence it is better to use a bloom filter to verify the false positive result
-  // and increment a number to for increase the size of the bloom filter
   const [trackedAccounts, setTrackedAccounts] = useState<AccountBalances>({});
   const AccountTrackerController = useMemo(
     () => (Engine.context as any).AccountTrackerController,
