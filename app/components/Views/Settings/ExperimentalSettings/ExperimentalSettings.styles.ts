@@ -10,11 +10,6 @@ const createStyles = (colors: Colors) =>
       padding: 24,
       paddingBottom: 48,
     },
-    boldTitle: {
-      ...(fontStyles.bold as any),
-      marginTop: 18,
-      marginBottom: 18,
-    },
     heading: {
       marginTop: 16,
     },
@@ -35,7 +30,6 @@ const createStyles = (colors: Colors) =>
       justifyContent: 'space-between',
       flexDirection: 'row',
       alignItems: 'center',
-      marginBottom: 5,
     },
     switch: {
       alignSelf: 'flex-end',

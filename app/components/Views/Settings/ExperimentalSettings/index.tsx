@@ -102,11 +102,7 @@ const ExperimentalSettings = ({ navigation, route }: Props) => {
         {strings('app_settings.security_heading')}
       </Text>
       <View style={styles.setting}>
-        <Text
-          color={TextColor.Default}
-          variant={TextVariant.HeadingMD}
-          style={styles.title}
-        >
+        <Text color={TextColor.Default} variant={TextVariant.BodyLGMedium}>
           {strings('experimental_settings.security_alerts')}
         </Text>
         <Text
@@ -117,19 +113,8 @@ const ExperimentalSettings = ({ navigation, route }: Props) => {
           {strings('experimental_settings.security_alerts_desc')}
         </Text>
       </View>
-      <Text
-        color={TextColor.Default}
-        variant={TextVariant.BodyLGMedium}
-        style={styles.boldTitle}
-      >
-        {strings('experimental_settings.select_provider')}
-      </Text>
       <View style={styles.switchElement}>
-        <Text
-          color={TextColor.Default}
-          variant={TextVariant.HeadingSMRegular}
-          style={styles.title}
-        >
+        <Text color={TextColor.Default} variant={TextVariant.BodyLGMedium}>
           {strings('experimental_settings.blockaid')}
         </Text>
         <Switch
@@ -149,7 +134,7 @@ const ExperimentalSettings = ({ navigation, route }: Props) => {
       <Text
         color={TextColor.Alternative}
         variant={TextVariant.BodyMD}
-        style={styles.title}
+        style={styles.desc}
       >
         {strings('experimental_settings.blockaid_desc')}
       </Text>
