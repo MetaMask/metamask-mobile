@@ -14,7 +14,6 @@ import { SelectOptionProps } from './SelectOption.types';
 
 const SelectOption: React.FC<SelectOptionProps> = ({
   style,
-  children,
   isSelected,
   isDisabled,
   gap = 12,
@@ -32,6 +31,7 @@ const SelectOption: React.FC<SelectOptionProps> = ({
       verticalAlignment={verticalAlignment}
       isSelected={isSelected}
       isDisabled={isDisabled}
+      accessibilityRole="menuitem"
     >
       <SelectValue {...props} />
     </ListItemSelect>

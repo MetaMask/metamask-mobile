@@ -1,6 +1,6 @@
 # SelectOption
 
-SelectOption is a selectable option used in the SelectMenu and is part of the Select component.
+SelectOption is a selectable option used in the SelectMenu and is part of the Select component
 
 ## Props
 
@@ -8,7 +8,7 @@ This component extends [SelectValueProps](../SelectValue/SelectValue.types.ts) a
 
 ### `iconEl`
 
-Optional prop to replace the start Icon Element.
+Optional prop to replace the start Icon Element
 
 | <span style="color:gray;font-size:14px">TYPE</span> | <span style="color:gray;font-size:14px">REQUIRED</span> |
 | :-------------------------------------------------- | :------------------------------------------------------ |
@@ -16,7 +16,7 @@ Optional prop to replace the start Icon Element.
 
 ### `iconProps`
 
-Optional prop for the start Icon Element.
+Optional prop for the start Icon Element
 
 | <span style="color:gray;font-size:14px">TYPE</span> | <span style="color:gray;font-size:14px">REQUIRED</span> |
 | :-------------------------------------------------- | :------------------------------------------------------ |
@@ -24,7 +24,7 @@ Optional prop for the start Icon Element.
 
 ### `label`
 
-Optional prop for the label of SelectOption.
+Optional prop for the label of SelectOption
 
 | <span style="color:gray;font-size:14px">TYPE</span> | <span style="color:gray;font-size:14px">REQUIRED</span> |
 | :-------------------------------------------------- | :------------------------------------------------------ |
@@ -32,7 +32,7 @@ Optional prop for the label of SelectOption.
 
 ### `description`
 
-Optional description below the label.
+Optional description below the label
 
 | <span style="color:gray;font-size:14px">TYPE</span> | <span style="color:gray;font-size:14px">REQUIRED</span> |
 | :-------------------------------------------------- | :------------------------------------------------------ |
@@ -40,7 +40,7 @@ Optional description below the label.
 
 ### `isSelected`
 
-Optional prop to determine if the item is selected.
+Optional prop to determine if the item is selected
 
 | <span style="color:gray;font-size:14px">TYPE</span> | <span style="color:gray;font-size:14px">REQUIRED</span> | <span style="color:gray;font-size:14px">DEFAULT</span> |
 | :-------------------------------------------------- | :------------------------------------------------------ | :----------------------------------------------------- |
@@ -48,7 +48,7 @@ Optional prop to determine if the item is selected.
 
 ### `isDisabled`
 
-Optional prop to determine if the item is disabled.
+Optional prop to determine if the item is disabled
 
 | <span style="color:gray;font-size:14px">TYPE</span> | <span style="color:gray;font-size:14px">REQUIRED</span> | <span style="color:gray;font-size:14px">DEFAULT</span> |
 | :-------------------------------------------------- | :------------------------------------------------------ | :----------------------------------------------------- |
@@ -58,7 +58,7 @@ Optional prop to determine if the item is disabled.
 
 ### `startAccessory`
 
-Optional content to be displayed before the info section.
+Optional content to be displayed before the info section
 
 | <span style="color:gray;font-size:14px">TYPE</span> | <span style="color:gray;font-size:14px">REQUIRED</span> |
 | :-------------------------------------------------- | :------------------------------------------------------ |
@@ -66,7 +66,7 @@ Optional content to be displayed before the info section.
 
 ### `children`
 
-Optional content to be displayed in the info section.
+Optional content to be displayed in the info section
 
 | <span style="color:gray;font-size:14px">TYPE</span> | <span style="color:gray;font-size:14px">REQUIRED</span> |
 | :-------------------------------------------------- | :------------------------------------------------------ |
@@ -74,7 +74,7 @@ Optional content to be displayed in the info section.
 
 ### `endAccessory`
 
-Optional content to be displayed after the info section.
+Optional content to be displayed after the info section
 
 | <span style="color:gray;font-size:14px">TYPE</span> | <span style="color:gray;font-size:14px">REQUIRED</span> |
 | :-------------------------------------------------- | :------------------------------------------------------ |
@@ -82,7 +82,7 @@ Optional content to be displayed after the info section.
 
 ### `gap`
 
-Optional prop to configure the gap between items inside the ListItem.
+Optional prop to configure the gap between items inside the ListItem
 
 | <span style="color:gray;font-size:14px">TYPE</span> | <span style="color:gray;font-size:14px">REQUIRED</span> | <span style="color:gray;font-size:14px">DEFAULT</span> |
 | :-------------------------------------------------- | :------------------------------------------------------ | :----------------------------------------------------- |
@@ -90,7 +90,7 @@ Optional prop to configure the gap between items inside the ListItem.
 
 ### `verticalAlignment`
 
-Optional prop to configure the vertical alignment between items inside the ListItem.
+Optional prop to configure the vertical alignment between items inside the ListItem
 
 | <span style="color:gray;font-size:14px">TYPE</span> | <span style="color:gray;font-size:14px">REQUIRED</span> | <span style="color:gray;font-size:14px">DEFAULT</span> |
 | :-------------------------------------------------- | :------------------------------------------------------ | :----------------------------------------------------- |

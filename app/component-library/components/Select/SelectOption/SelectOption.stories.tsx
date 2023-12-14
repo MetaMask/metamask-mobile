@@ -12,19 +12,15 @@ const SelectOptionStoryMeta = {
   argTypes: {
     label: {
       control: { type: 'text' },
-      defaultValue: SAMPLE_SELECTOPTION_PROPS.label,
     },
     description: {
       control: { type: 'text' },
-      defaultValue: SAMPLE_SELECTOPTION_PROPS.description,
     },
     isSelected: {
       control: { type: 'boolean' },
-      defaultValue: SAMPLE_SELECTOPTION_PROPS.isSelected,
     },
     isDisabled: {
       control: { type: 'boolean' },
-      defaultValue: SAMPLE_SELECTOPTION_PROPS.isDisabled,
     },
   },
 };
@@ -32,6 +28,12 @@ const SelectOptionStoryMeta = {
 export default SelectOptionStoryMeta;
 
 export const SelectOption = {
+  args: {
+    label: SAMPLE_SELECTOPTION_PROPS.label,
+    description: SAMPLE_SELECTOPTION_PROPS.description,
+    isSelected: SAMPLE_SELECTOPTION_PROPS.isSelected,
+    isDisabled: SAMPLE_SELECTOPTION_PROPS.isDisabled,
+  },
   render: (args: any) => (
     <SelectOptionComponent
       {...args}
