@@ -521,6 +521,7 @@
     "import_account": "계정 가져오기",
     "connect_hardware": "하드웨어 지갑 연결",
     "imported": "가져옴",
+    "qr_hardware": "QR 하드웨어",
     "remove_account_title": "계정 제거",
     "remove_account_message": "해당 계정을 정말로 제거하시겠습니까?",
     "no": "아니오",
@@ -1900,16 +1901,6 @@
     "apple_pay_provider_total_label": "{{provider}} (MetaMask 경유)",
     "buy_with": "다음으로 구매:",
     "plus_fee": "수수료 {{fee}} 추가",
-    "notifications": {
-      "purchase_failed_title": "{{currency}} 구매에 실패했습니다! 다시 시도하세요. 불편을 드려 죄송합니다!",
-      "purchase_failed_description": "결제 방법 및 카드 지원 여부를 확인하세요",
-      "purchase_cancelled_title": "구매가 취소되었습니다",
-      "purchase_cancelled_description": "결제 방법 및 카드 지원 여부를 확인하세요",
-      "purchase_completed_title": "{{amount}} {{currency}} 구매에 실패했습니다!",
-      "purchase_completed_description": "{{currency}} 이용이 불가능합니다",
-      "purchase_pending_title": "{{currency}} 구매 처리 중",
-      "purchase_pending_description": "몇 분 정도 소요됩니다..."
-    },
     "date": "날짜",
     "from": "보내는 사람",
     "to": "수신:",
@@ -2117,6 +2108,16 @@
       "hold_to_send": "길게 눌러 전송",
       "send": "전송",
       "sent": "전송 완료!"
+    },
+    "notifications": {
+      "purchase_failed_title": "{{currency}} 구매에 실패했습니다! 다시 시도하세요. 불편을 드려 죄송합니다!",
+      "purchase_failed_description": "결제 방법 및 카드 지원 여부를 확인하세요",
+      "purchase_cancelled_title": "구매가 취소되었습니다",
+      "purchase_cancelled_description": "결제 방법 및 카드 지원 여부를 확인하세요",
+      "purchase_completed_title": "{{amount}} {{currency}} 구매에 실패했습니다!",
+      "purchase_completed_description": "{{currency}} 이용이 불가능합니다",
+      "purchase_pending_title": "{{currency}} 구매 처리 중",
+      "purchase_pending_description": "몇 분 정도 소요됩니다..."
     }
   },
   "swaps": {

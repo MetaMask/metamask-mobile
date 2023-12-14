@@ -29,7 +29,7 @@ import {
   REQUEST_SETTINGS,
   SECURITY_SETTINGS,
 } from '../../../../wdio/screen-objects/testIDs/Screens/Settings.testIds';
-///: BEGIN:ONLY_INCLUDE_IF(flask)
+///: BEGIN:ONLY_INCLUDE_IF(snaps)
 import { createSnapsSettingsListNavDetails } from '../Snaps/SnapsSettingsList/SnapsSettingsList';
 ///: END:ONLY_INCLUDE_IF
 import { TextColor } from '../../../component-library/components/Texts/Text';
@@ -117,7 +117,7 @@ const Settings = () => {
     });
   };
 
-  ///: BEGIN:ONLY_INCLUDE_IF(flask)
+  ///: BEGIN:ONLY_INCLUDE_IF(snaps)
   const onPressSnaps = () => {
     navigation.navigate(...createSnapsSettingsListNavDetails());
   };
@@ -216,7 +216,7 @@ const Settings = () => {
         testID={NETWORKS_SETTINGS}
       />
       {
-        ///: BEGIN:ONLY_INCLUDE_IF(flask)
+        ///: BEGIN:ONLY_INCLUDE_IF(snaps)
       }
       <SettingsDrawer
         title={strings('app_settings.snaps.title')}

@@ -75,6 +75,7 @@ import Graph from './assets/graph.svg';
 import Hardware from './assets/hardware.svg';
 import Heart from './assets/heart.svg';
 import Hierarchy from './assets/hierarchy.svg';
+import Home2 from './assets/home-2.svg';
 import Home from './assets/home.svg';
 import Import from './assets/import.svg';
 import Info from './assets/info.svg';
@@ -103,7 +104,9 @@ import NotificationCircle from './assets/notification-circle.svg';
 import Notification from './assets/notification.svg';
 import PasswordCheck from './assets/password-check.svg';
 import People from './assets/people.svg';
+import Plant from './assets/plant.svg';
 import Plug from './assets/plug.svg';
+import PlusAndMinus from './assets/plus-and-minus.svg';
 import ProgrammingArrows from './assets/programming-arrows.svg';
 import QrCode from './assets/qr-code.svg';
 import Question from './assets/question.svg';
@@ -131,7 +134,9 @@ import Share from './assets/share.svg';
 import Slash from './assets/slash.svg';
 import SnapsMobile from './assets/snaps-mobile.svg';
 import SnapsPlus from './assets/snaps-plus.svg';
+import SnapsRound from './assets/snaps-round.svg';
 import Snaps from './assets/snaps.svg';
+import Sparkle from './assets/sparkle.svg';
 import Speedometer from './assets/speedometer.svg';
 import Square from './assets/square.svg';
 import Star from './assets/star.svg';
@@ -141,6 +146,7 @@ import SwapVertival from './assets/swap-vertival.svg';
 import Tag from './assets/tag.svg';
 import Tilde from './assets/tilde.svg';
 import Timer from './assets/timer.svg';
+import Tint from './assets/tint.svg';
 import Trash from './assets/trash.svg';
 import TrendDown from './assets/trend-down.svg';
 import TrendUp from './assets/trend-up.svg';
@@ -237,6 +243,7 @@ export const assetByIconName: AssetByIconName = {
   [IconName.Hardware]: Hardware,
   [IconName.Heart]: Heart,
   [IconName.Hierarchy]: Hierarchy,
+  [IconName.Home2]: Home2,
   [IconName.Home]: Home,
   [IconName.Import]: Import,
   [IconName.Info]: Info,
@@ -265,7 +272,9 @@ export const assetByIconName: AssetByIconName = {
   [IconName.Notification]: Notification,
   [IconName.PasswordCheck]: PasswordCheck,
   [IconName.People]: People,
+  [IconName.Plant]: Plant,
   [IconName.Plug]: Plug,
+  [IconName.PlusAndMinus]: PlusAndMinus,
   [IconName.ProgrammingArrows]: ProgrammingArrows,
   [IconName.QrCode]: QrCode,
   [IconName.Question]: Question,
@@ -293,7 +302,9 @@ export const assetByIconName: AssetByIconName = {
   [IconName.Slash]: Slash,
   [IconName.SnapsMobile]: SnapsMobile,
   [IconName.SnapsPlus]: SnapsPlus,
+  [IconName.SnapsRound]: SnapsRound,
   [IconName.Snaps]: Snaps,
+  [IconName.Sparkle]: Sparkle,
   [IconName.Speedometer]: Speedometer,
   [IconName.Square]: Square,
   [IconName.Star]: Star,
@@ -303,6 +314,7 @@ export const assetByIconName: AssetByIconName = {
   [IconName.Tag]: Tag,
   [IconName.Tilde]: Tilde,
   [IconName.Timer]: Timer,
+  [IconName.Tint]: Tint,
   [IconName.Trash]: Trash,
   [IconName.TrendDown]: TrendDown,
   [IconName.TrendUp]: TrendUp,

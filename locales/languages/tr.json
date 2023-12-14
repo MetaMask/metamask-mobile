@@ -521,6 +521,7 @@
     "import_account": "Bir hesabı içe aktar",
     "connect_hardware": "Donanım cüzdanı bağla",
     "imported": "İçe aktarıldı",
+    "qr_hardware": "QR donanımı",
     "remove_account_title": "Hesap kaldırma",
     "remove_account_message": "Bu hesabı gerçekten kaldırmak istiyor musunuz?",
     "no": "Hayır",
@@ -1900,16 +1901,6 @@
     "apple_pay_provider_total_label": "{{provider}}(MetaMask ile)",
     "buy_with": "Şununla satın al:",
     "plus_fee": "Artı {{fee}} ücret",
-    "notifications": {
-      "purchase_failed_title": "{{currency}} satın alma işlemi başarısız oldu! Lütfen tekrar deneyin, verdiğimiz rahatsızlıktan dolayı özür dileriz!",
-      "purchase_failed_description": "Ödeme yöntemini ve kart desteğini doğrula",
-      "purchase_cancelled_title": "Satın alma işleminiz iptal edildi",
-      "purchase_cancelled_description": "Ödeme yöntemini ve kart desteğini doğrula",
-      "purchase_completed_title": "{{amount}} {{currency}} satın alma işleminiz başarılı oldu!",
-      "purchase_completed_description": "{{currency}} para biriminiz şimdi kullanılabilir",
-      "purchase_pending_title": "{{currency}} satın alma işleminiz gerçekleşiyor",
-      "purchase_pending_description": "Bu işlem birkaç dakika sürecektir..."
-    },
     "date": "Tarih",
     "from": "Kimden",
     "to": "Kime",
@@ -2117,6 +2108,16 @@
       "hold_to_send": "Göndermek için tut",
       "send": "Gönder",
       "sent": "Gönderildi!"
+    },
+    "notifications": {
+      "purchase_failed_title": "{{currency}} satın alma işlemi başarısız oldu! Lütfen tekrar deneyin, verdiğimiz rahatsızlıktan dolayı özür dileriz!",
+      "purchase_failed_description": "Ödeme yöntemini ve kart desteğini doğrula",
+      "purchase_cancelled_title": "Satın alma işleminiz iptal edildi",
+      "purchase_cancelled_description": "Ödeme yöntemini ve kart desteğini doğrula",
+      "purchase_completed_title": "{{amount}} {{currency}} satın alma işleminiz başarılı oldu!",
+      "purchase_completed_description": "{{currency}} para biriminiz şimdi kullanılabilir",
+      "purchase_pending_title": "{{currency}} satın alma işleminiz gerçekleşiyor",
+      "purchase_pending_description": "Bu işlem birkaç dakika sürecektir..."
     }
   },
   "swaps": {
