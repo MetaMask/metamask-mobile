@@ -1,3 +1,4 @@
+///: BEGIN:ONLY_INCLUDE_IF(snaps)
 import { NpmLocation, NpmOptions } from './npm';
 import {
   HttpLocation,
@@ -42,3 +43,4 @@ export function detectSnapLocation(
       );
   }
 }
+///: END:ONLY_INCLUDE_IF
