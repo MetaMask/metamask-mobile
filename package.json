@@ -139,7 +139,7 @@
     "@metamask/contract-metadata": "^2.1.0",
     "@metamask/controller-utils": "^3.4.0",
     "@metamask/approval-controller": "3.4.0",
-    "@exodus/react-native-payments/validator": "^13.7.0",
+    "react-native-payments/validator": "^13.7.0",
     "react-devtools-core": "4.28.4",
     "**/got": "^11.8.5",
     "**/qs": "6.10.3",
