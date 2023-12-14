@@ -23,7 +23,7 @@
     "setting_up_alerts": "Setting up security alerts",
     "setting_up_alerts_description": "We are going as fast as we can to set up security alerts. Hang in there, we are almost done.",
     "setup_complete": "Set up complete",
-    "setup_complete_description": "Security alerts are ready to go. You can close this pageand start exploring your wallet",
+    "setup_complete_description": "Security alerts are ready to go. You can close this page and start exploring your wallet",
     "continue": "Continue",
     "cancel": "Cancel"
   },
@@ -2755,5 +2755,17 @@
     "ipfs_gateway_content2": "You can turn off IPFS resolution in",
     "ipfs_gateway_content3": "Settings > Security and privacy",
     "ipfs_gateway_content4": "at any time"
+  },
+  "install_snap": {
+    "title": "Connection request",
+    "description": "{{origin}} wants to download and connect with {{snap}}. Make sure you trust the authors before you proceed.",
+    "permissions_request_title": "Permissions request",
+    "permissions_request_description": "{{origin}} wants to install {{snap}}, which is requesting the following permissions.",
+    "approve_permissions": "Approve",
+    "installed": "Installed",
+    "install_successful": "{{snap}} was successfully installed.",
+    "okay_action": "OK",
+    "error_title": "Install failed",
+    "error_description": "Installation of {{snap}} failed."
   }
 }
