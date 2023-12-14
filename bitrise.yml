@@ -1143,7 +1143,7 @@ app:
       VERSION_NAME: 7.12.2
     - opts:
         is_expand: false
-      VERSION_NUMBER: 1226
+      VERSION_NUMBER: 1227
     - opts:
         is_expand: false
       FLASK_VERSION_NAME: 0.0.4
