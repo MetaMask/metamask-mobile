@@ -41,7 +41,7 @@ const DeleteMetaMetricsData = () => {
    * if the app has tracked data since the asked
    * for metametrics data deletion.
    */
-  const [hasCollectedData, setHasCollectedData] = useState(false);
+  const [hasCollectedData, setHasCollectedData] = useState(true);
 
   /** dataDeleteStatus is used to determine
    * if the data deletion task has been initialized
