@@ -322,6 +322,7 @@
     "react-native-material-textfield": "0.16.1",
     "react-native-modal": "^12.1.0",
     "react-native-os": "^1.2.6",
+    "react-native-payments": "https://github.com/wachunei/react-native-payments#a6076f93f31c9ee5f2591e8a2c4b0132715e4b9d",
     "react-native-permissions": "^3.7.2",
     "react-native-progress": "3.5.0",
     "react-native-push-notification": "git+https://github.com/MetaMask/react-native-push-notification.git#975e0e6757c40e3dce2d1b6dd3d66fc91127ac4c",
