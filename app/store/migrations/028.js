@@ -28,6 +28,9 @@ export default function migrate(state) {
 
     state.engine.backgroundState.NetworkController.providerConfig.rpcUrl =
       networkControllerRpcTarget;
+
+    delete state.engine.backgroundState.NetworkController.providerConfig
+      .rpcTarget;
   }
   // Validating if the networks were already onboarded
   if (state?.networkOnboarded?.networkOnboardedState) {
