@@ -181,15 +181,15 @@ workflows:
                 envman add --key YARN_CACHE_DIR --value "$(yarn cache dir)"
           title: Get Yarn cache directory
       - yarn@0:
-          # run_if: '{{not (enveq "BITRISE_CACHE_HIT" "exact")}}'
+          title: Yarn Setup
+          run_if: '{{not (enveq "BITRISE_CACHE_HIT" "exact")}}'
           inputs:
             - command: setup
-          title: Yarn Setup
-      # - yarn@0:
-      #     run_if: '{{ eq (getenv "BITRISE_CACHE_HIT") "exact" }}'
-      #     inputs:
-      #       - command: setup:ci
-      #     title: Yarn Setup CI with cached dependencies
+      - yarn@0:
+          title: Yarn Setup CI with cached dependencies
+          run_if: '{{ eq (getenv "BITRISE_CACHE_HIT") "exact" }}'
+          inputs:
+            - command: setup:ci
       - save-cache@1:
           title: Save cache dependencies
           inputs:
@@ -198,7 +198,6 @@ workflows:
                 node_modules
                 $YARN_CACHE_DIR
                 scripts/inpage-bridge/dist
-                android/app/src/main/assets/InpageBridgeWeb3.js
                 app/core/InpageBridgeWeb3.js
   code_setup_dev:
     steps:
