@@ -106,7 +106,6 @@ import Networks, {
   getNetworkImageSource,
 } from '../../../../util/networks';
 import images from 'images/image-icons';
-import { toHexadecimal } from '../../../../util/number';
 import { ETHERSCAN_SUPPORTED_NETWORKS } from '@metamask/transaction-controller/dist/constants';
 import { SecurityPrivacyViewSelectorsIDs } from '../../../../../e2e/selectors/Settings/SecurityAndPrivacy/SecurityPrivacyView.selectors';
 

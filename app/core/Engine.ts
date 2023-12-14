@@ -94,8 +94,6 @@ import {
   renderFromTokenMinimalUnit,
   balanceToFiatNumber,
   weiToFiatNumber,
-  toHexadecimal,
-  addHexPrefix,
 } from '../util/number';
 import NotificationManager from './NotificationManager';
 import Logger from '../util/Logger';
@@ -574,9 +572,8 @@ class Engine {
         incomingTransactions: {
           apiKey: process.env.MM_ETHERSCAN_KEY,
           isEnabled: () => {
-            const currentHexChainId = addHexPrefix(
-              toHexadecimal(networkController.state.providerConfig.chainId),
-            );
+            const currentHexChainId =
+              networkController.state.providerConfig.chainId;
 
             return Boolean(
               preferencesController?.state?.showIncomingTransactions?.[
@@ -660,8 +657,7 @@ class Engine {
             preferencesController.state?.disabledRpcMethodPreferences?.eth_sign,
           ),
         getAllState: () => store.getState(),
-        getCurrentChainId: () =>
-          toHexadecimal(networkController.state.providerConfig.chainId),
+        getCurrentChainId: () => networkController.state.providerConfig.chainId,
         keyringController: {
           signMessage: keyringController.signMessage.bind(keyringController),
           signPersonalMessage:
@@ -693,7 +689,7 @@ class Engine {
     if (isBlockaidFeatureEnabled()) {
       try {
         const ppomController = new PPOMController({
-          chainId: addHexPrefix(networkController.state.providerConfig.chainId),
+          chainId: networkController.state.providerConfig.chainId,
           blockaidPublicKey: process.env.BLOCKAID_PUBLIC_KEY as string,
           cdnBaseUrl: process.env.BLOCKAID_FILE_CDN as string,
           messenger: this.controllerMessenger.getRestricted({
