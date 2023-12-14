@@ -581,11 +581,13 @@
     "purpose_connect": "bağlan",
     "purpose_sign": "kilit cüzdanınızı okutun",
     "select_accounts": "Hesap Seç",
+    "please_wait": "Lütfen bekleyin"
+  },
+  "account_selector": {
     "prev": "ÖNCEKİ",
     "next": "SONRAKİ",
     "unlock": "Kilidini Aç",
-    "forget": "Bu cihazı unut",
-    "please_wait": "Lütfen bekleyin"
+    "forget": "Bu cihazı unut"
   },
   "app_settings": {
     "title": "Ayarlar",

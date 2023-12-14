@@ -581,11 +581,13 @@
     "purpose_connect": "接続",
     "purpose_sign": "トランザクションを確定",
     "select_accounts": "アカウントを選択してください",
+    "please_wait": "お待ちください"
+  },
+  "account_selector": {
     "prev": "前へ",
     "next": "次へ",
     "unlock": "ロックを解除",
-    "forget": "このデバイスの登録を解除",
-    "please_wait": "お待ちください"
+    "forget": "このデバイスの登録を解除"
   },
   "app_settings": {
     "title": "設定",

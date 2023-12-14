@@ -1,47 +1,18 @@
 import React from 'react';
-import { View, Text, StyleSheet } from 'react-native';
+import { View, Text } from 'react-native';
 import Icon from 'react-native-vector-icons/EvilIcons';
-import Device from '../../../../util/device';
 import { renderFromWei } from '../../../../util/number';
 import { useTheme } from '../../../../util/theme';
-import { fontStyles } from '../../../../styles/common';
 import EthereumAddress from '../../../UI/EthereumAddress';
+import { createStyle } from './styles';
 
-interface IAccountDetailsProps {
+export interface IAccountDetailsProps {
   index: number;
   address: string;
   balance: string;
   ticker: string | undefined;
   toBlockExplorer: (address: string) => void;
 }
-
-const createStyle = (colors: any) =>
-  StyleSheet.create({
-    rowContainer: {
-      flex: 1,
-      height: 65,
-      flexDirection: 'row',
-      justifyContent: 'space-between',
-      paddingLeft: Device.isIphoneX() ? 20 : 10,
-    },
-    accountDetails: {
-      justifyContent: 'flex-start',
-    },
-    linkIcon: {
-      height: '100%',
-      fontSize: 36,
-      textAlignVertical: 'center',
-    },
-    index: {
-      fontSize: 20,
-      color: colors.text.default,
-      ...fontStyles.normal,
-    },
-    information: {
-      color: colors.text.alternative,
-      ...fontStyles.normal,
-    },
-  });
 
 const AccountDetails = (props: IAccountDetailsProps) => {
   const { colors } = useTheme();

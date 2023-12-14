@@ -581,11 +581,13 @@
     "purpose_connect": "verbinden",
     "purpose_sign": "die Transaktion zu bestätigen",
     "select_accounts": "Ein Konto auswählen",
+    "please_wait": "Bitte warten"
+  },
+  "account_selector": {
     "prev": "ZURÜCK",
     "next": "WEITER",
     "unlock": "Entsperren",
-    "forget": "Dieses Gerät entfernen",
-    "please_wait": "Bitte warten"
+    "forget": "Dieses Gerät entfernen"
   },
   "app_settings": {
     "title": "Einstellungen",

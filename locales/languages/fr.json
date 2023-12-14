@@ -581,11 +581,13 @@
     "purpose_connect": "connexion",
     "purpose_sign": "confirmer la transaction",
     "select_accounts": "Sélectionner un compte",
+    "please_wait": "Veuillez patienter"
+  },
+  "account_selector": {
     "prev": "PRÉC",
     "next": "SUIVANT",
     "unlock": "Déverrouiller",
-    "forget": "Oublier cet appareil",
-    "please_wait": "Veuillez patienter"
+    "forget": "Oublier cet appareil"
   },
   "app_settings": {
     "title": "Paramètres",

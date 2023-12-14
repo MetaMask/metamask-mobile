@@ -581,11 +581,13 @@
     "purpose_connect": "kumonekta",
     "purpose_sign": "kumpirmahin ang transaksyon",
     "select_accounts": "Pumili ng Account",
+    "please_wait": "Mangyaring maghintay"
+  },
+  "account_selector": {
     "prev": "NAKARAAN",
     "next": "SUSUNOD",
     "unlock": "I-unlock",
-    "forget": "Kalimutan ang device na ito",
-    "please_wait": "Mangyaring maghintay"
+    "forget": "Kalimutan ang device na ito"
   },
   "app_settings": {
     "title": "Mga Setting",

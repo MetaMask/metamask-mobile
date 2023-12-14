@@ -589,11 +589,13 @@
     "purpose_connect": "connect",
     "purpose_sign": "confirm the transaction",
     "select_accounts": "Select an Account",
+    "please_wait": "Please wait"
+  },
+  "account_selector": {
     "prev": "PREV",
     "next": "NEXT",
     "unlock": "Unlock",
-    "forget": "Forget this device",
-    "please_wait": "Please wait"
+    "forget": "Forget this device"
   },
   "app_settings": {
     "title": "Settings",

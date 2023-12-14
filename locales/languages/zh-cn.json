@@ -370,11 +370,13 @@
     "purpose_connect": "connect",
     "purpose_sign": "confirm the transaction",
     "select_accounts": "Select an Account",
-    "prev": "PREV",
-    "next": "NEXT",
-    "unlock": "Unlock",
-    "forget": "Forget this device",
     "please_wait": "Please wait"
+  },
+  "account_selector": {
+    "prev": "上一步",
+    "next": "下一步",
+    "unlock": "登录",
+    "forget": "忽略此设备"
   },
   "app_settings": {
     "title": "设置",

@@ -581,11 +581,13 @@
     "purpose_connect": "कनेक्ट",
     "purpose_sign": "लेनदेन की पुष्टि करें",
     "select_accounts": "किसी खाते का चयन करें",
+    "please_wait": "कृपया प्रतीक्षा करें"
+  },
+  "account_selector": {
     "prev": "पिछला",
     "next": "अगला",
     "unlock": "अनलॉक करें",
-    "forget": "इस डिवाइस को भूल जाएं",
-    "please_wait": "कृपया प्रतीक्षा करें"
+    "forget": "इस डिवाइस को भूल जाएं"
   },
   "app_settings": {
     "title": "सेटिंग",
