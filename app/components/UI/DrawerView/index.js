@@ -976,7 +976,6 @@ class DrawerView extends PureComponent {
       identities,
       selectedAddress,
       currentCurrency,
-      seedphraseBackedUp,
       navigation,
       infoNetworkModalVisible,
     } = this.props;
