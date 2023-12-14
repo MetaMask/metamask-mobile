@@ -26,6 +26,7 @@ import { MetaMetricsEvents } from '../../../core/Analytics';
 import { useTheme } from '../../../util/theme';
 import trackAfterInteractions from '../../../util/metrics/TrackAfterInteraction/trackAfterInteractions';
 import Logger from '../../../util/Logger';
+import { ManualBackUpStepsSelectorsIDs } from '../../../../e2e/selectors/Onboarding/ManualBackUpSteps.selectors';
 
 const explain_backup_seedphrase = require('../../../images/explain-backup-seedphrase.png'); // eslint-disable-line
 
@@ -244,9 +245,11 @@ const AccountBackupStep1B = (props) => {
       <ScrollView
         contentContainerStyle={styles.scrollviewWrapper}
         style={styles.mainWrapper}
-        testID={'account-backup-step-1-screen'}
       >
-        <View style={styles.wrapper} testID={'protect-your-account-screen'}>
+        <View
+          style={styles.wrapper}
+          testID={ManualBackUpStepsSelectorsIDs.PROTECT_CONTAINER}
+        >
           <OnboardingProgress steps={CHOOSE_PASSWORD_STEPS} currentStep={1} />
           <View style={styles.content}>
             <Text style={styles.titleIcon}>🔒</Text>
@@ -322,7 +325,6 @@ const AccountBackupStep1B = (props) => {
               containerStyle={styles.button}
               type={'confirm'}
               onPress={goNext}
-              testID={'submit-button'}
             >
               {strings('account_backup_step_1B.cta_text')}
             </StyledButton>

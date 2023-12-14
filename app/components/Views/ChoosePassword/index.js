@@ -8,7 +8,6 @@ import {
   SafeAreaView,
   StyleSheet,
   Image,
-  Platform,
 } from 'react-native';
 import CheckBox from '@react-native-community/checkbox';
 import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view';
@@ -61,7 +60,6 @@ import { ThemeContext, mockTheme } from '../../../util/theme';
 import AnimatedFox from 'react-native-animated-fox';
 
 import { LoginOptionsSwitch } from '../../UI/LoginOptionsSwitch';
-import generateTestId from '../../../../wdio/utils/generateTestId';
 import navigateTermsOfUse from '../../../util/termsOfUse/termsOfUse';
 import { ChoosePasswordSelectorsIDs } from '../../../../e2e/selectors/Onboarding/ChoosePassword.selectors';
 import trackAfterInteractions from '../../../util/metrics/TrackAfterInteraction/trackAfterInteractions';
@@ -620,7 +618,7 @@ class ChoosePassword extends PureComponent {
             </Text>
           </View>
         ) : (
-          <View style={styles.wrapper} testID={'choose-password-screen'}>
+          <View style={styles.wrapper}>
             <OnboardingProgress steps={CHOOSE_PASSWORD_STEPS} />
             <KeyboardAwareScrollView
               style={styles.scrollableWrapper}
@@ -661,10 +659,7 @@ class ChoosePassword extends PureComponent {
                     secureTextEntry={secureTextEntry}
                     placeholder=""
                     placeholderTextColor={colors.text.muted}
-                    {...generateTestId(
-                      Platform,
-                      ChoosePasswordSelectorsIDs.NEW_PASSWORD_INPUT_ID,
-                    )}
+                    testID={ChoosePasswordSelectorsIDs.NEW_PASSWORD_INPUT_ID}
                     onSubmitEditing={this.jumpToConfirmPassword}
                     returnKeyType="next"
                     autoCapitalize="none"
@@ -779,7 +774,7 @@ class ChoosePassword extends PureComponent {
                 <StyledButton
                   type={'blue'}
                   onPress={this.onPressCreate}
-                  testID={'submit-button'}
+                  testID={ChoosePasswordSelectorsIDs.SUBMIT_BUTTON_ID}
                   disabled={!canSubmit}
                 >
                   {strings('choose_password.create_button')}
