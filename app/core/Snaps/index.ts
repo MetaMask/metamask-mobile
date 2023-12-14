@@ -1,3 +1,4 @@
+///: BEGIN:ONLY_INCLUDE_IF(snaps)
 import SnapBridge from './SnapBridge';
 import SnapDuplex from './SnapDuplex';
 import WebviewExecutionService from './WebviewExecutionService';
@@ -27,3 +28,4 @@ export {
   detectSnapLocation,
 };
 export type { DetectSnapLocationOptions };
+///: END:ONLY_INCLUDE_IF
