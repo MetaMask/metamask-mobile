@@ -65,6 +65,7 @@ import TabBar from '../../../component-library/components/Navigation/TabBar';
 import BrowserUrlModal from '../../Views/BrowserUrlModal';
 ///: BEGIN:ONLY_INCLUDE_IF(snaps)
 import { SnapsSettingsList } from '../../Views/Snaps/SnapsSettingsList';
+import { SnapSettings } from '../../Views/Snaps/SnapSettings';
 ///: END:ONLY_INCLUDE_IF
 import Routes from '../../../constants/navigation/Routes';
 import AnalyticsV2 from '../../../util/analyticsV2';
@@ -214,6 +215,11 @@ const SnapsSettingsStack = () => (
       name={Routes.SNAPS.SNAPS_SETTINGS_LIST}
       component={SnapsSettingsList}
       options={SnapsSettingsList.navigationOptions}
+    />
+    <Stack.Screen
+      name={Routes.SNAPS.SNAP_SETTINGS}
+      component={SnapSettings}
+      options={SnapSettings.navigationOptions}
     />
   </Stack.Navigator>
 );
