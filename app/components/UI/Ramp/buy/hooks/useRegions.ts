@@ -1,5 +1,6 @@
-import { useNavigation, useRoute } from '@react-navigation/native';
 import { useCallback, useEffect, useMemo } from 'react';
+import { useNavigation, useRoute } from '@react-navigation/native';
+import { isEqual } from 'lodash';
 import Routes from '../../../../../constants/navigation/Routes';
 import { useRampSDK } from '../../common/sdk';
 import { Region } from '../../common/types';
@@ -50,17 +51,20 @@ export default function useRegions() {
   }, [navigation, route.name]);
 
   useEffect(() => {
-    if (updatedRegion?.unsupported) {
+    if (!updatedRegion) return;
+
+    if (updatedRegion.unsupported) {
       setSelectedRegion(null);
       setUnsupportedRegion(updatedRegion);
       redirectToRegion();
     } else if (
-      updatedRegion &&
-      ((isBuy && !updatedRegion.support.buy) ||
-        (isSell && !updatedRegion.support.sell))
+      (isBuy && !updatedRegion.support.buy) ||
+      (isSell && !updatedRegion.support.sell)
     ) {
       setUnsupportedRegion(updatedRegion);
       redirectToRegion();
+    } else if (!isEqual(updatedRegion, selectedRegion)) {
+      setSelectedRegion(updatedRegion);
     }
   }, [
     updatedRegion,
@@ -71,6 +75,7 @@ export default function useRegions() {
     redirectToRegion,
     isBuy,
     isSell,
+    selectedRegion,
   ]);
 
   const clearUnsupportedRegion = useCallback(
