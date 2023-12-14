@@ -521,6 +521,7 @@
     "import_account": "アカウントのインポート",
     "connect_hardware": "ハードウェアウォレットの接続",
     "imported": "インポートされました",
+    "qr_hardware": "QRハードウェア",
     "remove_account_title": "アカウントの削除",
     "remove_account_message": "このアカウントを削除してよろしいですか？",
     "no": "いいえ",
@@ -1900,16 +1901,6 @@
     "apple_pay_provider_total_label": "{{provider}} (MetaMask経由)",
     "buy_with": "購入方法:",
     "plus_fee": "プラス{{fee}}の手数料",
-    "notifications": {
-      "purchase_failed_title": "{{currency}}の購入に失敗しました。もう一度お試しください。ご不便をおかけし申し訳ございません。",
-      "purchase_failed_description": "支払方法とカード対応を確認",
-      "purchase_cancelled_title": "購入がキャンセルされました",
-      "purchase_cancelled_description": "支払方法とカード対応を確認",
-      "purchase_completed_title": "{{amount}}{{currency}}の購入が完了しました。",
-      "purchase_completed_description": "{{currency}}が利用可能になりました",
-      "purchase_pending_title": "{{currency}}の購入を処理中です",
-      "purchase_pending_description": "数分で完了します..."
-    },
     "date": "日付",
     "from": "送信元",
     "to": "送信先",
@@ -2117,6 +2108,16 @@
       "hold_to_send": "長押しして送信",
       "send": "送信",
       "sent": "送信しました！"
+    },
+    "notifications": {
+      "purchase_failed_title": "{{currency}}の購入に失敗しました。もう一度お試しください。ご不便をおかけし申し訳ございません。",
+      "purchase_failed_description": "支払方法とカード対応を確認",
+      "purchase_cancelled_title": "購入がキャンセルされました",
+      "purchase_cancelled_description": "支払方法とカード対応を確認",
+      "purchase_completed_title": "{{amount}}{{currency}}の購入が完了しました。",
+      "purchase_completed_description": "{{currency}}が利用可能になりました",
+      "purchase_pending_title": "{{currency}}の購入を処理中です",
+      "purchase_pending_description": "数分で完了します..."
     }
   },
   "swaps": {

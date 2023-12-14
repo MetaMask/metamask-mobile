@@ -521,6 +521,7 @@
     "import_account": "Importar una cuenta",
     "connect_hardware": "Conectar monedero físico",
     "imported": "Importado",
+    "qr_hardware": "Hardware QR",
     "remove_account_title": "Eliminación de la cuenta",
     "remove_account_message": "¿Está seguro de que quiere quitar esta cuenta?",
     "no": "No",
@@ -1900,16 +1901,6 @@
     "apple_pay_provider_total_label": "{{provider}} (por medio de MetaMask)",
     "buy_with": "Comprar con",
     "plus_fee": "Más una tarifa de {{fee}}",
-    "notifications": {
-      "purchase_failed_title": "Error al comprar {{currency}}. Vuelva a intentarlo, lamentamos los inconvenientes.",
-      "purchase_failed_description": "Verifique su método de pago y las tarjetas admitidas",
-      "purchase_cancelled_title": "Se canceló la compra",
-      "purchase_cancelled_description": "Verifique su método de pago y las tarjetas admitidas",
-      "purchase_completed_title": "La compra de {{amount}} {{currency}} se completó correctamente.",
-      "purchase_completed_description": "Su {{currency}} ahora está disponible",
-      "purchase_pending_title": "Procesando su compra de {{currency}}",
-      "purchase_pending_description": "Solo tardará unos minutos…"
-    },
     "date": "Fecha",
     "from": "De",
     "to": "Para",
@@ -2117,6 +2108,16 @@
       "hold_to_send": "Mantener para enviar",
       "send": "Enviar",
       "sent": "¡Enviado!"
+    },
+    "notifications": {
+      "purchase_failed_title": "Error al comprar {{currency}}. Vuelva a intentarlo, lamentamos los inconvenientes.",
+      "purchase_failed_description": "Verifique su método de pago y las tarjetas admitidas",
+      "purchase_cancelled_title": "Se canceló la compra",
+      "purchase_cancelled_description": "Verifique su método de pago y las tarjetas admitidas",
+      "purchase_completed_title": "La compra de {{amount}} {{currency}} se completó correctamente.",
+      "purchase_completed_description": "Su {{currency}} ahora está disponible",
+      "purchase_pending_title": "Procesando su compra de {{currency}}",
+      "purchase_pending_description": "Solo tardará unos minutos…"
     }
   },
   "swaps": {

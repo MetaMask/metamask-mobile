@@ -99,6 +99,12 @@ describe('DeeplinkManager', () => {
     deeplinkManager._handleBuyCrypto();
     expect(mockNavigation.navigate).toHaveBeenCalledWith('RampBuy');
   });
+
+  it('should handle sell crypto action correctly', () => {
+    deeplinkManager._handleSellCrypto();
+    expect(mockNavigation.navigate).toHaveBeenCalledWith('RampSell');
+  });
+
   it('should parse deeplinks correctly', () => {
     const url = 'http://example.com';
     const browserCallBack = jest.fn();

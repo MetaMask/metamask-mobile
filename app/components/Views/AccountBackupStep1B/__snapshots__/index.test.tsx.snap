@@ -21,7 +21,6 @@ exports[`AccountBackupStep1B should render correctly 1`] = `
         "flex": 1,
       }
     }
-    testID="account-backup-step-1-screen"
   >
     <View
       style={
@@ -359,7 +358,6 @@ exports[`AccountBackupStep1B should render correctly 1`] = `
               "opacity": 0.6,
             }
           }
-          testID="submit-button"
           type="confirm"
         >
           Start
