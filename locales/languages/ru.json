@@ -521,6 +521,7 @@
     "import_account": "Импортировать счет",
     "connect_hardware": "Подключить аппаратный кошелек",
     "imported": "Импортирован",
+    "qr_hardware": "QR-оборудование",
     "remove_account_title": "Удаление счета",
     "remove_account_message": "Вы действительно хотите удалить этот счет?",
     "no": "Нет",
@@ -1900,16 +1901,6 @@
     "apple_pay_provider_total_label": "{{provider}} (через MetaMask)",
     "buy_with": "Купить с помощью",
     "plus_fee": "Плюс комиссия {{fee}} ",
-    "notifications": {
-      "purchase_failed_title": "Не удалось купить {{currency}}! Попробуйте еще раз, извините за неудобства!",
-      "purchase_failed_description": "Подтвердите метод платежа и поддержку карты",
-      "purchase_cancelled_title": "Ваша покупка отменена",
-      "purchase_cancelled_description": "Подтвердите метод платежа и поддержку карты",
-      "purchase_completed_title": "Ваша покупка {{amount}} {{currency}} успешно выполнена!",
-      "purchase_completed_description": "Ваши {{currency}} уже доступны",
-      "purchase_pending_title": "Обработка вашей покупки {{currency}}",
-      "purchase_pending_description": "Это должно занять всего несколько минут..."
-    },
     "date": "Дата",
     "from": "От",
     "to": "В адрес",
@@ -2117,6 +2108,16 @@
       "hold_to_send": "Удерживайте, чтобы отправить",
       "send": "Отправить",
       "sent": "Отправлено!"
+    },
+    "notifications": {
+      "purchase_failed_title": "Не удалось купить {{currency}}! Попробуйте еще раз, извините за неудобства!",
+      "purchase_failed_description": "Подтвердите метод платежа и поддержку карты",
+      "purchase_cancelled_title": "Ваша покупка отменена",
+      "purchase_cancelled_description": "Подтвердите метод платежа и поддержку карты",
+      "purchase_completed_title": "Ваша покупка {{amount}} {{currency}} успешно выполнена!",
+      "purchase_completed_description": "Ваши {{currency}} уже доступны",
+      "purchase_pending_title": "Обработка вашей покупки {{currency}}",
+      "purchase_pending_description": "Это должно занять всего несколько минут..."
     }
   },
   "swaps": {

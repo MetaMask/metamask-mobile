@@ -134,6 +134,13 @@
     "submitHistory": [],
     "transactions": []
   },
+  "SnapController":  {
+    "snapStates": {},
+    "snaps":  {}
+  },
+  "SubjectMetadataController":  {
+    "subjectMetadata":  {}
+  },
   "SwapsController": {
     "quotes": {},
     "quoteValues": {},

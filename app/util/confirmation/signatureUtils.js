@@ -98,7 +98,7 @@ export const handleSignatureAction = async (
     confirmation
       ? MetaMetricsEvents.SIGNATURE_APPROVED
       : MetaMetricsEvents.SIGNATURE_REJECTED,
-    getAnalyticsParams(messageParams, signType, securityAlertResponse, true),
+    getAnalyticsParams(messageParams, signType, securityAlertResponse),
   );
 };
 

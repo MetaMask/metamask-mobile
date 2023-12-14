@@ -7,7 +7,6 @@ import {
   TouchableWithoutFeedback,
   NativeSyntheticEvent,
   NativeScrollEvent,
-  Platform,
 } from 'react-native';
 import { strings } from '../../../../locales/i18n';
 import Device from '../../../util/device';
@@ -32,7 +31,6 @@ import { whatsNewList } from './';
 import { Colors } from '../../../util/theme/models';
 import { WhatsNewModalSelectorsIDs } from '../../../../e2e/selectors/Modals/WhatsNewModal.selectors';
 import { ScrollView } from 'react-native-gesture-handler';
-import generateTestId from '../../../../wdio/utils/generateTestId';
 import { useNavigation } from '@react-navigation/native';
 
 const modalMargin = 24;
@@ -221,7 +219,7 @@ const WhatsNewModal = () => {
         <TouchableOpacity
           onPress={() => dismissModal()}
           hitSlop={{ top: 10, left: 10, bottom: 10, right: 10 }}
-          {...generateTestId(Platform, WhatsNewModalSelectorsIDs.CLOSE_BUTTON)}
+          testID={WhatsNewModalSelectorsIDs.CLOSE_BUTTON}
         >
           <Icon
             name={IconName.Close}
@@ -264,10 +262,7 @@ const WhatsNewModal = () => {
       style={styles.screen}
       onDismiss={recordSeenModal}
     >
-      <View
-        style={styles.modal}
-        {...generateTestId(Platform, WhatsNewModalSelectorsIDs.CONTAINER)}
-      >
+      <View style={styles.modal} testID={WhatsNewModalSelectorsIDs.CONTAINER}>
         <View style={styles.bodyContainer}>
           {renderHeader()}
           <View style={styles.slideContent}>

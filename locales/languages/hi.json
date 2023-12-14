@@ -521,6 +521,7 @@
     "import_account": "एक खाता इम्पोर्ट करें",
     "connect_hardware": "हार्डवेयर वॉलेट कनेक्ट करें",
     "imported": "इम्पोर्ट किया गया",
+    "qr_hardware": "QR हार्डवेयर",
     "remove_account_title": "अकाउंट हटाया जाना",
     "remove_account_message": "क्या आप वास्तव में इस अकाउंट को हटाना चाहते हैं?",
     "no": "नहीं",
@@ -1900,16 +1901,6 @@
     "apple_pay_provider_total_label": "{{provider}} (के माध्यम से MetaMask)",
     "buy_with": "के साथ खरीदें",
     "plus_fee": "साथ ही एक {{fee}} शुल्क",
-    "notifications": {
-      "purchase_failed_title": "{{currency}} की खरीद असफल हुई! कृपया फिर से कोशिश करें, असुविधा के लिए खेद है।",
-      "purchase_failed_description": "अपनी भुगतान विधि और कार्ड समर्थन को सत्यापित करें",
-      "purchase_cancelled_title": "आपकी खरीद रद्द कर दी गई थी",
-      "purchase_cancelled_description": "अपनी भुगतान विधि और कार्ड समर्थन को सत्यापित करें",
-      "purchase_completed_title": "{{amount}} {{currency}}  की आपकी खरीद सफलतापूर्ण थी!",
-      "purchase_completed_description": "आपकी {{currency}} अभी उपलब्ध है",
-      "purchase_pending_title": "{{currency}} की आपकी खरीद संसाधित की जा रही है",
-      "purchase_pending_description": "इसमें केवल कुछ मिनटों का समय लगना चाहिए"
-    },
     "date": "तिथि",
     "from": "से",
     "to": "को",
@@ -2117,6 +2108,16 @@
       "hold_to_send": "भेजने के लिए होल्ड करें",
       "send": "भेजें",
       "sent": "भेजा गया!"
+    },
+    "notifications": {
+      "purchase_failed_title": "{{currency}} की खरीद असफल हुई! कृपया फिर से कोशिश करें, असुविधा के लिए खेद है।",
+      "purchase_failed_description": "अपनी भुगतान विधि और कार्ड समर्थन को सत्यापित करें",
+      "purchase_cancelled_title": "आपकी खरीद रद्द कर दी गई थी",
+      "purchase_cancelled_description": "अपनी भुगतान विधि और कार्ड समर्थन को सत्यापित करें",
+      "purchase_completed_title": "{{amount}} {{currency}}  की आपकी खरीद सफलतापूर्ण थी!",
+      "purchase_completed_description": "आपकी {{currency}} अभी उपलब्ध है",
+      "purchase_pending_title": "{{currency}} की आपकी खरीद संसाधित की जा रही है",
+      "purchase_pending_description": "इसमें केवल कुछ मिनटों का समय लगना चाहिए"
     }
   },
   "swaps": {

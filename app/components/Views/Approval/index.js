@@ -282,7 +282,7 @@ class Approval extends PureComponent {
     let blockaidParams = {};
 
     if (
-      transaction.id === transaction.currentTransactionSecurityAlertResponse.id
+      transaction.id === transaction.currentTransactionSecurityAlertResponse?.id
     ) {
       blockaidParams = getBlockaidMetricsParams(
         transaction.currentTransactionSecurityAlertResponse?.response,
@@ -292,15 +292,10 @@ class Approval extends PureComponent {
     return blockaidParams;
   };
 
-  getAnalyticsParams = ({
-    gasEstimateType,
-    gasSelected,
-    withBlockaid,
-  } = {}) => {
+  getAnalyticsParams = ({ gasEstimateType, gasSelected } = {}) => {
     try {
       const { chainId, transaction, selectedAddress } = this.props;
       const { selectedAsset } = transaction;
-      const blockaidParams = {};
 
       return {
         account_type: getAddressAccountType(selectedAddress),
@@ -316,7 +311,6 @@ class Approval extends PureComponent {
           : this.originIsWalletConnect
           ? AppConstants.REQUEST_SOURCES.WC
           : AppConstants.REQUEST_SOURCES.IN_APP_BROWSER,
-        ...blockaidParams,
       };
     } catch (error) {
       return {};
