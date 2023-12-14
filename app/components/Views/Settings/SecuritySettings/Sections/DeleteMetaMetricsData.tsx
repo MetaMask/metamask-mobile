@@ -1,6 +1,5 @@
 import React, { useCallback, useEffect, useState } from 'react';
 import { Alert, Linking, Platform, StyleSheet, Text } from 'react-native';
-import Analytics from '../../../../../core/Analytics/Analytics';
 import {
   DataDeleteResponseStatus,
   DataDeleteStatus,
@@ -38,23 +37,42 @@ const DeleteMetaMetricsData = () => {
   const { colors } = useTheme();
   const styles = createStyles(colors);
 
-  const [hasCollectedData, setHasCollectedData] = useState(true);
+  /** hasCollectedData is used to determine
+   * if the app has tracked data since the asked
+   * for metametrics data deletion.
+   */
+  const [hasCollectedData, setHasCollectedData] = useState(false);
+
+  /** dataDeleteStatus is used to determine
+   * if the data deletion task has been initialized
+   * or is running or is in a unknown state.
+   */
   const [dataDeleteStatus, setDataDeleteStatus] = useState<DataDeleteStatus>(
     DataDeleteStatus.unknown,
   );
+
+  /** deletionTaskDate is used to determine
+   * the date of the latest metametrics data
+   * deletion request.
+   */
   const [deletionTaskDate, setDeletionTaskDate] = useState<
     string | undefined
   >();
 
-  const enableDeleteData = useCallback(() => {
-    switch (dataDeleteStatus) {
-      case DataDeleteStatus.pending:
-      case DataDeleteStatus.started:
-        return false;
-      default:
-        return true;
-    }
-  }, [dataDeleteStatus]);
+  /** enableDeleteData is used to determine
+   * if the delete metametrics button should be
+   * enabled.
+   * It is enabled when no initialized or running
+   * data deletion task is found for the user.
+   */
+  const enableDeleteData = useCallback(
+    () =>
+      !(
+        dataDeleteStatus in
+        [DataDeleteStatus.initialized, DataDeleteStatus.running]
+      ),
+    [dataDeleteStatus],
+  );
 
   const showDeleteTaskError = () => {
     Alert.alert(
@@ -81,28 +99,16 @@ const DeleteMetaMetricsData = () => {
     });
   };
 
-  const deleteMixpanelMetaMetrics = async () =>
-    await Analytics.createDataDeletionTask();
-
-  const deleteSegmentMetaMetrics = async () => {
-    const metrics = await MetaMetrics.getInstance();
-    const deleteResponse = await metrics.createDataDeletionTask();
-    const deleteDate = await metrics.getDeleteRegulationCreationDate();
-    return { status: deleteResponse.status, date: deleteDate };
-  };
-
   const deleteMetaMetrics = async () => {
     try {
-      const mixpanelResponse = await deleteMixpanelMetaMetrics();
-      const segmentResponse = await deleteSegmentMetaMetrics();
+      const metrics = await MetaMetrics.getInstance();
+      const deleteResponse = await metrics.createDataDeletionTask();
+      const deleteDate = metrics.getDeleteRegulationCreationDate();
 
-      if (
-        mixpanelResponse.status === DataDeleteResponseStatus.ok &&
-        segmentResponse.status === DataDeleteResponseStatus.ok
-      ) {
-        setDataDeleteStatus(DataDeleteStatus.pending);
+      if (deleteResponse.status === DataDeleteResponseStatus.ok) {
+        setDataDeleteStatus(DataDeleteStatus.initialized);
         setHasCollectedData(false);
-        setDeletionTaskDate(segmentResponse.date);
+        setDeletionTaskDate(deleteDate);
         trackDataDeletionRequest();
       } else {
         showDeleteTaskError();
@@ -113,6 +119,10 @@ const DeleteMetaMetricsData = () => {
     }
   };
 
+  /** Check data deletion task status
+   * when enableDeleteData and dataDeleteStatus
+   * are updated.
+   */
   useEffect(() => {
     const checkDataDeleteStatus = async (metrics: IMetaMetrics) => {
       try {
@@ -132,6 +142,9 @@ const DeleteMetaMetricsData = () => {
         setDataDeleteStatus(await checkDataDeleteStatus(metrics));
         setDeletionTaskDate(metrics.getDeleteRegulationCreationDate());
         setHasCollectedData(metrics.isDataRecorded() || enableDeleteData());
+      } else {
+        setDataDeleteStatus(DataDeleteStatus.unknown);
+        setDeletionTaskDate(undefined);
       }
     };
     checkStatus();

@@ -99,12 +99,16 @@ export interface IMetaMetricsEvent {
 
 /**
  * deletion task possible status
+ * @see https://docs.segmentapis.com/tag/Deletion-and-Suppression#operation/getRegulation
  */
 export enum DataDeleteStatus {
-  pending = 'PENDING',
-  started = 'STARTED',
-  success = 'SUCCESS',
-  failure = 'FAILURE',
+  failed = 'FAILED',
+  finished = 'FINISHED',
+  initialized = 'INITIALIZED',
+  invalid = 'INVALID',
+  notSupported = 'NOT_SUPPORTED',
+  partialSuccess = 'PARTIAL_SUCCESS',
+  running = 'RUNNING',
   unknown = 'UNKNOWN',
 }
 

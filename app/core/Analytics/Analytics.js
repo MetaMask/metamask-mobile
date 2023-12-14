@@ -55,11 +55,6 @@ class Analytics {
   dataDeletionTaskId;
 
   /**
-   * Date the deletion task was created
-   */
-  dataDeletionDate;
-
-  /**
    * Persist current Metrics OptIn flag in user preferences datastore
    */
   _storeMetricsOptInPreference = async () => {
@@ -440,19 +435,6 @@ class Analytics {
       anonymously,
     });
   };
-
-  /**
-   * Creates a deletion task to delete all data, including events and user profile data, for the user specified by mixpanelUserId
-   *
-   * @param {string} compliance - CCPA or GDPR compliance
-   */
-  createDataDeletionTask(compliance = 'GDPR') {
-    return this._createDataDeletionTask(compliance);
-  }
-
-  checkStatusDataDeletionTask() {
-    return this._checkStatusDataDeletionTask();
-  }
 }
 
 let instance;
@@ -494,9 +476,6 @@ export default {
   getDistinctId() {
     return instance && instance.getDistinctId();
   },
-  getDeletionTaskId() {
-    return instance && instance.dataDeletionTaskId;
-  },
   trackEvent(event, anonymously) {
     return instance && instance.trackEvent(event, anonymously);
   },
@@ -519,8 +498,5 @@ export default {
     } catch (e) {
       // Do nothing
     }
-  },
-  createDataDeletionTask(compliance) {
-    return instance && instance.createDataDeletionTask(compliance);
   },
 };

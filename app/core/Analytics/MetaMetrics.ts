@@ -29,7 +29,6 @@ import {
 import {
   METAMETRICS_ANONYMOUS_ID,
   SEGMENT_REGULATIONS_ENDPOINT,
-  // SEGMENT_REGULATIONS_ENDPOINT,
 } from './MetaMetrics.constants';
 import { v4 as uuidv4 } from 'uuid';
 
@@ -78,27 +77,71 @@ import { v4 as uuidv4 } from 'uuid';
  * @see METAMETRICS_ANONYMOUS_ID
  */
 class MetaMetrics implements IMetaMetrics {
-  // Singleton instance
-  protected static instance: MetaMetrics | null;
-
-  private metametricsId: string | undefined;
-  private segmentClient: ISegmentClient | undefined;
-  private enabled = false; // default to disabled
-
-  // data deletion related variables
-  //TODO explain what this is exactly as it is imported from legacy
-  private dataRecorded = false;
-  private deleteRegulationId: string | undefined;
-  private deleteRegulationDate: string | undefined;
-
+  /**
+   * protected constructor to prevent direct instanciation.
+   * use {@link getInstance} instead.
+   * @protected
+   * @param segmentClient - Segment client instance.
+   */
   protected constructor(segmentClient: ISegmentClient) {
     this.segmentClient = segmentClient;
   }
 
   /**
+   * Singleton instance of the MetaMetrics class.
+   * the value is protected to prevent direct access
+   * but allows to access it from a child class for testing
+   * @protected
+   */
+  protected static instance: MetaMetrics | null;
+
+  /**
+   * Segment SDK client instance.
+   * The MetaMetrics class is a wrapper around the Segment SDK.
+   * @private
+   */
+  private segmentClient: ISegmentClient | undefined;
+
+  /**
+   * Random ID used for tracking events
+   * this id lives in the device and is used to identify the events
+   * it's generated when the user enables MetaMetrics for the first time
+   * @private
+   */
+  private metametricsId: string | undefined;
+
+  /**
+   * indicates if MetaMetrics is enabled or disabled
+   * MetaMetrics is disabled by default, user has to explicitly opt-in
+   * @private
+   */
+  private enabled = false;
+
+  /**
+   * indicates if data has been recorded since the last deletion request
+   * @private
+   */
+  private dataRecorded = false;
+
+  /**
+   * Segment's data deletion regulation ID
+   * this is the id returned by the Segment delete API
+   * that allows to check the status of the deletion request
+   * @private
+   */
+  private deleteRegulationId: string | undefined;
+
+  /**
+   * Segment's data deletion regulation creation date
+   * this is the date when the deletion request was created
+   * @private
+   */
+  private deleteRegulationDate: string | undefined;
+
+  /**
    * retrieve state of metrics from the preference.
    * Defaults to disabled if not explicitely enabled.
-   *
+   * @private
    * @returns Promise containing the enabled state.
    */
   #isMetaMetricsEnabled = async (): Promise<boolean> => {
@@ -109,19 +152,32 @@ class MetaMetrics implements IMetaMetrics {
     return this.enabled;
   };
 
-  //TODO comment
+  /**
+   * retrieve the analytics recording status from the preference.
+   * @private
+   */
   #getIsDataRecordedFromPrefs = async (): Promise<boolean> =>
     (await DefaultPreference.get(ANALYTICS_DATA_RECORDED)) === 'true';
 
-  //TODO comment
+  /**
+   * retrieve the analytics deletion request date from the preference.
+   * @private
+   */
   #getDeleteRegulationDateFromPrefs = async (): Promise<string> =>
     await DefaultPreference.get(ANALYTICS_DATA_DELETION_DATE);
 
-  //TODO comment
+  /**
+   * retrieve the analytics deletion regulation id from the preference.
+   * @private
+   */
   #getDeleteRegulationIdFromPrefs = async (): Promise<string> =>
     await DefaultPreference.get(METAMETRICS_DELETION_REGULATION_ID);
 
-  //TODO comment
+  /**
+   * persist the analytics recording status
+   * @private
+   * @param isDataRecorded - analytics recording status
+   */
   #setIsDataRecorded = async (isDataRecorded = false): Promise<void> => {
     this.dataRecorded = isDataRecorded;
     await DefaultPreference.set(
@@ -132,7 +188,7 @@ class MetaMetrics implements IMetaMetrics {
 
   /**
    * set and store Segment's data deletion regulation ID.
-   *
+   * @private
    * @param deleteRegulationId - data deletion regulation ID returned by Segment delete API or undefined if no regulation in progress.
    */
   #setDeleteRegulationId = async (
@@ -143,15 +199,6 @@ class MetaMetrics implements IMetaMetrics {
       METAMETRICS_DELETION_REGULATION_ID,
       deleteRegulationId,
     );
-  };
-
-  /**
-   * clear Segment's data deletion regulation ID in instance and storage.
-   *
-   */
-  #clearDeleteRegulationId = async (): Promise<void> => {
-    this.deleteRegulationId = undefined;
-    await DefaultPreference.clear(METAMETRICS_DELETION_REGULATION_ID);
   };
 
   /**
@@ -181,10 +228,12 @@ class MetaMetrics implements IMetaMetrics {
   #getMetaMetricsId = async (): Promise<string> => {
     // Important: this ID is used to identify the user in Segment and should be kept in
     // preferences: no reset unless explicitelu asked for.
-    // If user later anables MetaMetrics,
+    // If user later enables MetaMetrics,
     // this same ID should be retrieved from preferences and reused.
 
     // look for a legacy ID from MixPanel integration and use it
+    // this should be kept for retrocompatibility and preserving the user ID
+    // in the new metametrics system
     this.metametricsId = await DefaultPreference.get(MIXPANEL_METAMETRICS_ID);
     if (this.metametricsId) {
       await DefaultPreference.set(METAMETRICS_ID, this.metametricsId);
@@ -204,7 +253,7 @@ class MetaMetrics implements IMetaMetrics {
   };
 
   /**
-   * reset the analytics user ID and Sgment SDK state.
+   * reset the analytics user ID and Segment SDK state.
    */
   #resetMetaMetricsId = async (): Promise<void> => {
     await DefaultPreference.set(METAMETRICS_ID, '');
@@ -244,8 +293,13 @@ class MetaMetrics implements IMetaMetrics {
    * @param event - Analytics event name.
    * @param properties - Object containing any event relevant traits or properties (optional).
    */
-  #trackEvent = (event: string, properties: JsonMap): void =>
+  #trackEvent = (event: string, properties: JsonMap): void => {
     this.segmentClient?.track(event, properties);
+    !this.dataRecorded &&
+      this.#setIsDataRecorded(true).catch((error) => {
+        Logger.error(error, 'Analytics Data Record Error');
+      });
+  };
 
   /**
    * clear the internal state of the library for the current user and group.
@@ -263,28 +317,15 @@ class MetaMetrics implements IMetaMetrics {
     await DefaultPreference.set(METRICS_OPT_IN, enabled ? AGREED : DENIED);
   };
 
-  // TODO remove segmentToken once the new segment proxy is in place
-  #getSegmentApiHeaders = () => {
-    const segmentToken = process.env.SEGMENT_DELETE_API_BEARER_TOKEN;
-    return {
-      'Content-Type': 'application/vnd.segment.v1+json',
-      Authorization: `Bearer ${segmentToken}`,
-    };
-  };
-
-  /**
-   * TODO: this is a temporary placeholder implementation.
-   * This #createSegmentDeleteRegulation method is currently not testable
-   * because Segment delete endpoint proxy is not ready to use.
-   * The implementation is mock tested.
-   * Real work on this delete feature will be done in a next PR in this batch.
-   */
+  #getSegmentApiHeaders = () => ({
+    'Content-Type': 'application/vnd.segment.v1+json',
+  });
 
   /**
    * generate a new delete regulation for the user.
    * This is necessary to respect the GDPR and CCPA regulations.
-   * Check Segment documentation for more information.
-   * https://segment.com/docs/privacy/user-deletion-and-suppression/
+   *
+   * @see https://segment.com/docs/privacy/user-deletion-and-suppression/
    */
   #createDataDeletionTask = async (): Promise<IDeleteRegulationResponse> => {
     const segmentSourceId = process.env.SEGMENT_DELETE_API_SOURCE_ID;
@@ -301,11 +342,10 @@ class MetaMetrics implements IMetaMetrics {
         }),
       });
       const { data } = response as any;
-      const { regulateId } = data;
 
-      await this.#setDeleteRegulationId(regulateId);
-      await this.#setDeleteRegulationCreationDate();
-      await this.#setIsDataRecorded(false);
+      await this.#setDeleteRegulationId(data?.data?.regulateId);
+      await this.#setDeleteRegulationCreationDate(); // set to current date
+      await this.#setIsDataRecorded(false); // indicate no data recorded since request
 
       return { status: DataDeleteResponseStatus.ok };
     } catch (error: any) {
@@ -319,12 +359,16 @@ class MetaMetrics implements IMetaMetrics {
 
   /**
    * Check a Deletion Task using Segment API
-   * @see https://docs.segmentapis.com/tag/Deletion-and-Suppression#operation/getRegulation
    *
    * @returns promise for Object indicating the status of the deletion request
+   *
+   * @see https://docs.segmentapis.com/tag/Deletion-and-Suppression#operation/getRegulation
    */
   #checkDataDeletionTaskStatus =
     async (): Promise<IDeleteRegulationStatusResponse> => {
+      // if no delete regulation id, return unknown status
+      // regulation id is set when creating a new delete regulation
+
       if (!this.deleteRegulationId) {
         return {
           status: DataDeleteResponseStatus.error,
@@ -340,10 +384,7 @@ class MetaMetrics implements IMetaMetrics {
         });
 
         const { data } = response as any;
-        const status = data?.regulation?.overallStatus;
-
-        await this.#setIsDataRecorded(false);
-        await this.#clearDeleteRegulationId();
+        const status = data?.data?.regulation?.overallStatus;
 
         return {
           status: DataDeleteResponseStatus.ok,
@@ -379,7 +420,6 @@ class MetaMetrics implements IMetaMetrics {
       this.instance.enabled = await this.instance.#isMetaMetricsEnabled();
       // get the user unique id when initializing
       this.instance.metametricsId = await this.instance.#getMetaMetricsId();
-      // TODO explain what this is exactly as it is imported from legacy
       this.instance.deleteRegulationId =
         await this.instance.#getDeleteRegulationIdFromPrefs();
       this.instance.deleteRegulationDate =
@@ -475,23 +515,46 @@ class MetaMetrics implements IMetaMetrics {
   /**
    * create a new delete regulation for the user.
    * This is necessary to respect the GDPR and CCPA regulations.
-   * Check Segment documentation for more information.
-   * https://segment.com/docs/privacy/user-deletion-and-suppression/
+   *
    * @returns Promise containing the status of the request.
-   * Await this method to ensure the request is completed.
+   *
+   * @see https://segment.com/docs/privacy/user-deletion-and-suppression/
+   * @see https://docs.segmentapis.com/tag/Deletion-and-Suppression#operation/createSourceRegulation
    */
   createDataDeletionTask = async (): Promise<IDeleteRegulationResponse> =>
     this.#createDataDeletionTask();
 
+  /**
+   * check the latest delete regulation status.
+   *
+   * @returns Promise containing the status of the request.
+   *
+   * @see https://docs.segmentapis.com/tag/Deletion-and-Suppression#operation/getRegulation
+   */
   checkDataDeletionTaskStatus =
     async (): Promise<IDeleteRegulationStatusResponse> =>
       this.#checkDataDeletionTaskStatus();
 
+  /**
+   * get the latest delete regulation request date.
+   *
+   * @returns the date as a DD/MM/YYYY string.
+   */
   getDeleteRegulationCreationDate = (): string | undefined =>
     this.deleteRegulationDate;
 
+  /**
+   * get the latest delete regulation request id.
+   *
+   * @returns the id string.
+   */
   getDeleteRegulationId = (): string | undefined => this.deleteRegulationId;
 
+  /**
+   * indicates if data has been recorded since the last deletion request.
+   *
+   * @returns true if data has been recorded since the last deletion request.
+   */
   isDataRecorded = (): boolean => this.dataRecorded;
 }
 
