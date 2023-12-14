@@ -91,6 +91,8 @@ function handleUniversalLink({
       instance.parse(deeplinkUrl, { browserCallBack, origin });
     } else if (action === ACTIONS.BUY_CRYPTO) {
       instance._handleBuyCrypto();
+    } else if (action === ACTIONS.SELL_CRYPTO) {
+      instance._handleSellCrypto();
     } else {
       // If it's our universal link or Apple store deep link don't open it in the browser
       if (

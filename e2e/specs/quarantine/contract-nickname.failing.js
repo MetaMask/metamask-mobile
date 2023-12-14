@@ -90,7 +90,7 @@ describe('Adding Contract Nickname', () => {
     await TestHelpers.delay(2500);
     try {
       await WhatsNewModal.isVisible();
-      await WhatsNewModal.tapGotItButton();
+      await WhatsNewModal.tapCloseButton();
     } catch {
       //
     }

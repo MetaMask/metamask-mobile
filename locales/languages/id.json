@@ -521,6 +521,7 @@
     "import_account": "Impor akun",
     "connect_hardware": "Hubungkan dompet perangkat keras",
     "imported": "Diimpor",
+    "qr_hardware": "Perangkat keras QR",
     "remove_account_title": "Penghapusan akun",
     "remove_account_message": "Yakin ingin menghapus akun ini?",
     "no": "Tidak",
@@ -1900,16 +1901,6 @@
     "apple_pay_provider_total_label": "{{provider}} (melalui MetaMask)",
     "buy_with": "Beli dengan",
     "plus_fee": "Ditambah biaya {{fee}}",
-    "notifications": {
-      "purchase_failed_title": "Pembelian {{currency}} gagal! Silakan coba lagi. Mohon maaf atas ketidaknyamanan yang timbul!",
-      "purchase_failed_description": "Verifikasikan metode pembayaran dan dukungan kartu",
-      "purchase_cancelled_title": "Pembelian Anda dibatalkan",
-      "purchase_cancelled_description": "Verifikasikan metode pembayaran dan dukungan kartu",
-      "purchase_completed_title": "Pembelian {{amount}} {{currency}} berhasil!",
-      "purchase_completed_description": "{{currency}} Anda kini telah tersedia",
-      "purchase_pending_title": "Memproses pembelian {{currency}} Anda",
-      "purchase_pending_description": "Hanya perlu beberapa menit..."
-    },
     "date": "Tanggal",
     "from": "Dari",
     "to": "Ke",
@@ -2117,6 +2108,16 @@
       "hold_to_send": "Tahan untuk mengirim",
       "send": "Kirim",
       "sent": "Terkirim!"
+    },
+    "notifications": {
+      "purchase_failed_title": "Pembelian {{currency}} gagal! Silakan coba lagi. Mohon maaf atas ketidaknyamanan yang timbul!",
+      "purchase_failed_description": "Verifikasikan metode pembayaran dan dukungan kartu",
+      "purchase_cancelled_title": "Pembelian Anda dibatalkan",
+      "purchase_cancelled_description": "Verifikasikan metode pembayaran dan dukungan kartu",
+      "purchase_completed_title": "Pembelian {{amount}} {{currency}} berhasil!",
+      "purchase_completed_description": "{{currency}} Anda kini telah tersedia",
+      "purchase_pending_title": "Memproses pembelian {{currency}} Anda",
+      "purchase_pending_description": "Hanya perlu beberapa menit..."
     }
   },
   "swaps": {

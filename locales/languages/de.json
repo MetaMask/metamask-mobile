@@ -521,6 +521,7 @@
     "import_account": "Ein Konto importieren",
     "connect_hardware": "Hardware-Wallet verknüpfen",
     "imported": "Importiert",
+    "qr_hardware": "QR-Hardware",
     "remove_account_title": "Kontoentfernung",
     "remove_account_message": "Möchten Sie dieses Konto wirklich entfernen?",
     "no": "Nein",
@@ -1900,16 +1901,6 @@
     "apple_pay_provider_total_label": "{{provider}} (per MetaMask)",
     "buy_with": "Kaufen mit",
     "plus_fee": "Zuzüglich einer {{fee}}-Gebühr",
-    "notifications": {
-      "purchase_failed_title": "Der Kauf von {{currency}} ist fehlgeschlagen! Bitte versuchen Sie es erneut. Wir entschuldigen uns für die Umstände!",
-      "purchase_failed_description": "Verifizieren Sie Ihre Zahlungsmethode und Kartensupport.",
-      "purchase_cancelled_title": "Ihr Kauf wurde storniert.",
-      "purchase_cancelled_description": "Verifizieren Sie Ihre Zahlungsmethode und Kartensupport.",
-      "purchase_completed_title": "Ihr Kauf im Wert von {{amount}} {{currency}} war erfolgreich!",
-      "purchase_completed_description": "Ihre {{currency}} steht jetzt zur Verfügung.",
-      "purchase_pending_title": "Der Kauf von {{currency}} wird bearbeitet.",
-      "purchase_pending_description": "Dies sollte nur ein paar Minuten dauern ..."
-    },
     "date": "Datum",
     "from": "Von",
     "to": "Bis",
@@ -2117,6 +2108,16 @@
       "hold_to_send": "Zum Senden halten",
       "send": "Senden",
       "sent": "Gesendet!"
+    },
+    "notifications": {
+      "purchase_failed_title": "Der Kauf von {{currency}} ist fehlgeschlagen! Bitte versuchen Sie es erneut. Wir entschuldigen uns für die Umstände!",
+      "purchase_failed_description": "Verifizieren Sie Ihre Zahlungsmethode und Kartensupport.",
+      "purchase_cancelled_title": "Ihr Kauf wurde storniert.",
+      "purchase_cancelled_description": "Verifizieren Sie Ihre Zahlungsmethode und Kartensupport.",
+      "purchase_completed_title": "Ihr Kauf im Wert von {{amount}} {{currency}} war erfolgreich!",
+      "purchase_completed_description": "Ihre {{currency}} steht jetzt zur Verfügung.",
+      "purchase_pending_title": "Der Kauf von {{currency}} wird bearbeitet.",
+      "purchase_pending_description": "Dies sollte nur ein paar Minuten dauern ..."
     }
   },
   "swaps": {
