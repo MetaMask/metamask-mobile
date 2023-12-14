@@ -185,11 +185,11 @@ workflows:
           run_if: '{{not (enveq "BITRISE_CACHE_HIT" "exact")}}'
           inputs:
             - command: setup
-      - yarn@0:
-          title: Yarn Setup CI with cached dependencies
-          run_if: '{{ eq (getenv "BITRISE_CACHE_HIT") "exact" }}'
-          inputs:
-            - command: setup:ci
+      # - yarn@0:
+      #     title: Yarn Setup CI with cached dependencies
+      #     run_if: '{{ eq (getenv "BITRISE_CACHE_HIT") "exact" }}'
+      #     inputs:
+      #       - command: setup:ci
       - save-cache@1:
           title: Save cache dependencies
           inputs:
@@ -199,6 +199,8 @@ workflows:
                 $YARN_CACHE_DIR
                 scripts/inpage-bridge/dist
                 app/core/InpageBridgeWeb3.js
+                ppom/node_modules
+                ppom/dist
   code_setup_dev:
     steps:
       - script@1:
