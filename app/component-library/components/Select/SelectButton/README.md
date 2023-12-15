@@ -8,7 +8,7 @@ This component extends [SelectButtonBaseProps](./foundation/SelectButtonBase.typ
 
 ### `size`
 
-Optional enum to select between SelectButton sizes
+Optional enum to select between `SelectButton` sizes
 
 | <span style="color:gray;font-size:14px">TYPE</span> | <span style="color:gray;font-size:14px">REQUIRED</span> | <span style="color:gray;font-size:14px">DEFAULT</span> |
 | :-------------------------------------------------- | :------------------------------------------------------ | :----------------------------------------------------- |
