@@ -2,6 +2,7 @@
 
 exports[`SelectOption should render snapshot correctly 1`] = `
 <TouchableOpacity
+  accessibilityRole="menuitem"
   disabled={false}
   style={
     Object {
