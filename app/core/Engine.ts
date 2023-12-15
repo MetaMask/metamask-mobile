@@ -87,7 +87,12 @@ import {
   ///: END:ONLY_INCLUDE_IF
 } from '@metamask/permission-controller';
 import SwapsController, { swapsUtils } from '@metamask/swaps-controller';
-import { PPOMController, PPOMState } from '@metamask/ppom-validator';
+import {
+  PPOMController,
+  PPOMControllerEvents,
+  PPOMInitialisationStatusType,
+  PPOMState,
+} from '@metamask/ppom-validator';
 ///: BEGIN:ONLY_INCLUDE_IF(snaps)
 import {
   JsonSnapsRegistry,
@@ -170,6 +175,7 @@ import RNFSStorageBackend from '../lib/ppom/rnfs-storage-backend';
 import { isHardwareAccount } from '../util/address';
 import { ledgerSignTypedMessage } from './Ledger/Ledger';
 import ExtendedKeyringTypes from '../constants/keyringTypes';
+import { UpdatePPOMInitializationStatus } from '../actions/experimental';
 
 const NON_EMPTY = 'NON_EMPTY';
 
@@ -225,7 +231,8 @@ type GlobalEvents =
   ///: BEGIN:ONLY_INCLUDE_IF(snaps)
   | SnapsGlobalEvents
   ///: END:ONLY_INCLUDE_IF
-  | SignatureControllerEvents;
+  | SignatureControllerEvents
+  | PPOMControllerEvents;
 
 type PermissionsByRpcMethod = ReturnType<typeof getPermissionSpecifications>;
 type Permissions = PermissionsByRpcMethod[keyof PermissionsByRpcMethod];
@@ -1024,12 +1031,8 @@ class Engine {
           cdnBaseUrl: process.env.BLOCKAID_FILE_CDN as string,
           messenger: this.controllerMessenger.getRestricted({
             name: 'PPOMController',
+            allowedEvents: ['NetworkController:stateChange'],
           }),
-          onNetworkChange: (listener) =>
-            this.controllerMessenger.subscribe(
-              AppConstants.NETWORK_STATE_CHANGE_EVENT,
-              listener,
-            ),
           onPreferencesChange: (listener) =>
             preferencesController.subscribe(listener),
           provider: networkController.getProviderAndBlockTracker().provider,
@@ -1041,14 +1044,16 @@ class Engine {
           securityAlertsEnabled:
             initialState.PreferencesController?.securityAlertsEnabled ?? false,
           state: initialState.PPOMController,
-          ppomInitialisationCallback: (): any => {
-            store.dispatch({
-              type: 'SET_PPOM_INITIALIZATION_COMPLETED',
-              ppomInitializationCompleted: true,
-            });
-          },
         });
         controllers.push(ppomController as any);
+        this.controllerMessenger.subscribe(
+          AppConstants.PPOM_INITIALISATION_STATE_CHANGE_EVENT,
+          (ppomInitializationStatus: PPOMInitialisationStatusType) => {
+            store.dispatch(
+              UpdatePPOMInitializationStatus(ppomInitializationStatus),
+            );
+          },
+        );
       } catch (e) {
         Logger.log(`Error initializing PPOMController: ${e}`);
         return;
