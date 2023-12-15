@@ -258,7 +258,7 @@ export const BrowserTab = (props) => {
   const [progress, setProgress] = useState(0);
   const [initialUrl, setInitialUrl] = useState('');
   const [firstUrlLoaded, setFirstUrlLoaded] = useState(false);
-  const [error, setError] = useState(null);
+  const [error, setError] = useState(false);
   const [showOptions, setShowOptions] = useState(false);
   const [entryScriptWeb3, setEntryScriptWeb3] = useState(null);
   const [showPhishingModal, setShowPhishingModal] = useState(false);
@@ -883,12 +883,12 @@ export const BrowserTab = (props) => {
     setProgress(progress);
   };
 
-  const onLoad = ({ nativeEvent }) => {
+  /*   const onLoad = ({ nativeEvent }) => {
     //For iOS url on the navigation bar should only update upon load.
     if (Device.isIos()) {
       changeUrl(nativeEvent);
     }
-  };
+  }; */
 
   /**
    * When website finished loading
@@ -898,13 +898,6 @@ export const BrowserTab = (props) => {
     if (nativeEvent.loading) {
       return;
     }
-    // Use URL to produce real url. This should be the actual website that the user is viewing.
-    const urlObj = new URL(nativeEvent.url);
-    const { origin, pathname = '', query = '' } = urlObj;
-    const realUrl = `${origin}${pathname}${query}`;
-    // Update navigation bar address with title of loaded url.
-    changeUrl({ ...nativeEvent, url: realUrl, icon: favicon });
-    changeAddressBar({ ...nativeEvent, url: realUrl, icon: favicon });
   };
 
   /**
@@ -1031,25 +1024,13 @@ export const BrowserTab = (props) => {
    * Website started to load
    */
   const onLoadStart = async ({ nativeEvent }) => {
-    const { hostname } = new URL(nativeEvent.url);
-
-    if (
-      nativeEvent.url !== url.current &&
-      nativeEvent.loading &&
-      nativeEvent.navigationType === 'backforward'
-    ) {
-      changeAddressBar({ ...nativeEvent });
-    }
-
-    setError(false);
-
-    changeUrl(nativeEvent);
-    sendActiveAccount();
-
-    icon.current = null;
-    if (isHomepage(nativeEvent.url)) {
-      injectHomePageScripts();
-    }
+    // Use URL to produce real url. This should be the actual website that the user is viewing.
+    const {
+      origin,
+      pathname = '',
+      query = '',
+      hostname,
+    } = new URL(nativeEvent.url);
 
     // Reset the previous bridges
     backgroundBridges.current.length &&
@@ -1061,8 +1042,21 @@ export const BrowserTab = (props) => {
       return false;
     }
 
+    const realUrl = `${origin}${pathname}${query}`;
+    if (nativeEvent.url !== url.current) {
+      // Update navigation bar address with title of loaded url.
+      changeUrl({ ...nativeEvent, url: realUrl, icon: favicon });
+      changeAddressBar({ ...nativeEvent, url: realUrl, icon: favicon });
+    }
+
+    sendActiveAccount();
+
+    icon.current = null;
+    if (isHomepage(nativeEvent.url)) {
+      injectHomePageScripts();
+    }
+
     backgroundBridges.current = [];
-    const origin = new URL(nativeEvent.url).origin;
     initializeBackgroundBridge(origin, true);
   };
 
@@ -1488,7 +1482,6 @@ export const BrowserTab = (props) => {
                 injectedJavaScriptBeforeContentLoaded={entryScriptWeb3}
                 style={styles.webview}
                 onLoadStart={onLoadStart}
-                onLoad={onLoad}
                 onLoadEnd={onLoadEnd}
                 onLoadProgress={onLoadProgress}
                 onMessage={onMessage}
