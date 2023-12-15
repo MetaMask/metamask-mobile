@@ -492,7 +492,7 @@ index 4ed4990..df0524b 100644
                          }
                      }
 diff --git a/node_modules/@metamask/assets-controllers/dist/TokenRatesController.d.ts b/node_modules/@metamask/assets-controllers/dist/TokenRatesController.d.ts
-index 8bb7c20..810d961 100644
+index 8bb7c20..4ebc108 100644
 --- a/node_modules/@metamask/assets-controllers/dist/TokenRatesController.d.ts
 +++ b/node_modules/@metamask/assets-controllers/dist/TokenRatesController.d.ts
 @@ -1,7 +1,8 @@
@@ -541,7 +541,7 @@ index 8bb7c20..810d961 100644
      private handle?;
      private tokenList;
      private supportedChains;
-@@ -88,41 +101,32 @@ export declare class TokenRatesController extends BaseController<TokenRatesConfi
+@@ -88,41 +101,31 @@ export declare class TokenRatesController extends BaseController<TokenRatesConfi
       * Creates a TokenRatesController instance.
       *
       * @param options - The controller options.
@@ -560,7 +560,6 @@ index 8bb7c20..810d961 100644
 +        chainId: string;
 +        ticker: string;
 +        selectedAddress: string;
-+        coinGeckoHeader: string;
 +        onPreferencesStateChange: (listener: (preferencesState: PreferencesState) => void) => void;
          onTokensStateChange: (listener: (tokensState: TokensState) => void) => void;
 -        onCurrencyRateStateChange: (listener: (currencyRateState: CurrencyRateState) => void) => void;
