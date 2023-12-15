@@ -581,10 +581,6 @@
     "purpose_connect": "连接",
     "purpose_sign": "确认交易",
     "select_accounts": "选择账户",
-    "prev": "上一步",
-    "next": "下一步",
-    "unlock": "登录",
-    "forget": "忽略此设备",
     "please_wait": "请稍候"
   },
   "account_selector": {
