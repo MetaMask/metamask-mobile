@@ -883,6 +883,8 @@ export const BrowserTab = (props) => {
     setProgress(progress);
   };
 
+  // We need to be sure we can remove this property https://github.com/react-native-webview/react-native-webview/issues/2970
+  // We should check if this is fixed on the newest versions of react-native-webview
   const onLoad = ({ nativeEvent }) => {
     //For iOS url on the navigation bar should only update upon load.
     if (Device.isIos()) {
