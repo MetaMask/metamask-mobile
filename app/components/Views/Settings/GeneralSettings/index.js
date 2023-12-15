@@ -18,10 +18,7 @@ import I18n, {
 } from '../../../../../locales/i18n';
 import SelectComponent from '../../../UI/SelectComponent';
 import infuraCurrencies from '../../../../util/infura-conversion.json';
-import {
-  fontStyles,
-  colors as importedColors,
-} from '../../../../styles/common';
+import { colors as importedColors } from '../../../../styles/common';
 import { getNavigationOptionsTitle } from '../../../UI/Navbar';
 import {
   setSearchEngine,
@@ -36,7 +33,6 @@ import { ThemeContext, mockTheme } from '../../../../util/theme';
 import { selectCurrentCurrency } from '../../../../selectors/currencyRateController';
 import { selectSelectedAddress } from '../../../../selectors/preferencesController';
 // import { AppThemeKey } from '../../../../util/theme/models';
-// import StyledButton from '../../../UI/StyledButton';
 import Text, {
   TextVariant,
   TextColor,

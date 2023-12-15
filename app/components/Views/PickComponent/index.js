@@ -1,7 +1,7 @@
 import React, { PureComponent } from 'react';
 import PropTypes from 'prop-types';
 import { StyleSheet, View } from 'react-native';
-import { baseStyles, fontStyles } from '../../../styles/common';
+import { baseStyles } from '../../../styles/common';
 import { ThemeContext, mockTheme } from '../../../util/theme';
 import RadioButton from '../../../component-library/components/RadioButton/RadioButton';
 
