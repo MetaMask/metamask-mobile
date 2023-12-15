@@ -883,12 +883,15 @@ export const BrowserTab = (props) => {
     setProgress(progress);
   };
 
-  /*   const onLoad = ({ nativeEvent }) => {
+  const onLoad = ({ nativeEvent }) => {
     //For iOS url on the navigation bar should only update upon load.
     if (Device.isIos()) {
-      changeUrl(nativeEvent);
+      const { origin, pathname = '', query = '' } = new URL(nativeEvent.url);
+      const realUrl = `${origin}${pathname}${query}`;
+      changeUrl({ ...nativeEvent, url: realUrl, icon: favicon });
+      changeAddressBar({ ...nativeEvent, url: realUrl, icon: favicon });
     }
-  }; */
+  };
 
   /**
    * When website finished loading
@@ -1482,6 +1485,7 @@ export const BrowserTab = (props) => {
                 injectedJavaScriptBeforeContentLoaded={entryScriptWeb3}
                 style={styles.webview}
                 onLoadStart={onLoadStart}
+                onLoad={onLoad}
                 onLoadEnd={onLoadEnd}
                 onLoadProgress={onLoadProgress}
                 onMessage={onMessage}
