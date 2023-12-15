@@ -38,7 +38,6 @@ const useBluetoothDevices = (
       //     ).subscribe({
       //       next: (e: any) => {
       //         const deviceFound = devices[e?.descriptor.id];
-
       //         if (e.type === 'add' && !deviceFound) {
       //           setDevices((prevValues) => ({
       //             ...prevValues,
