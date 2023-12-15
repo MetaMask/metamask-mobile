@@ -514,6 +514,7 @@ class Engine {
           ),
         getOpenSeaApiKey: () => nftController.openSeaApiKey,
         addNft: nftController.addNft.bind(nftController),
+        getNftApi: nftController.getNftApi.bind(nftController),
         getNftState: () => nftController.state,
       }),
       currencyRateController,
