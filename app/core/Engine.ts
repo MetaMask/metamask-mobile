@@ -908,7 +908,6 @@ class Engine {
         chainId: networkController.state.providerConfig.chainId,
         ticker: networkController.state.providerConfig.ticker ?? 'ETH',
         selectedAddress: preferencesController.state.selectedAddress,
-        coinGeckoHeader: process.env.COIN_GECKO_HEADER as string,
       }),
       new TransactionController({
         blockTracker:
