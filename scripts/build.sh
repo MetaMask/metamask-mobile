@@ -212,7 +212,7 @@ buildIosSimulatorFlask(){
 
 buildIosSimulatorE2E(){
 	prebuild_ios
-	cd ios && xcodebuild -workspace MetaMask.xcworkspace -scheme MetaMask -configuration Debug -sdk iphonesimulator -derivedDataPath build
+	cd ios && CC=clang CXX=clang CLANG=clang CLANGPLUSPLUS=clang++ LD=clang LDPLUSPLUS=clang++ xcodebuild -workspace MetaMask.xcworkspace -scheme MetaMask -configuration Debug -sdk iphonesimulator -derivedDataPath build
 }
 
 buildIosQASimulatorE2E(){
@@ -467,7 +467,7 @@ buildAndroidRunE2E(){
 	then
 		source $ANDROID_ENV_FILE
 	fi
-	cd android && ./gradlew assembleProdDebug app:assembleAndroidTest -DtestBuildType=debug && cd ..
+	cd android && ./gradlew assembleProdDebug app:assembleAndroidTest -DtestBuildType=debug -x app:createBundleQaDebugJsAndAssets -x app:createBundleFlaskDebugJsAndAssets --build-cache --parallel && cd ..
 }
 
 buildIos() {
