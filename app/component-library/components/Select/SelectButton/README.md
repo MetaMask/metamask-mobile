@@ -48,7 +48,7 @@ Optional prop for the start Icon Element
 
 ### `label`
 
-Optional prop for the label of SelectValue
+Optional prop for the label of `SelectValue`
 
 | <span style="color:gray;font-size:14px">TYPE</span> | <span style="color:gray;font-size:14px">REQUIRED</span> |
 | :-------------------------------------------------- | :------------------------------------------------------ |
