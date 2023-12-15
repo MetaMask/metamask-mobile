@@ -52,8 +52,8 @@ const SelectButton: React.FC<SelectButtonProps> = ({
     } else if (iconProps) {
       accessory = (
         <Avatar
-          {...iconProps}
           size={STARTICON_ICONSIZE_BY_SELECTBUTTONSIZE[size]}
+          {...iconProps}
         />
       );
     }
