@@ -8,7 +8,6 @@ import {
   ActivityIndicator,
 } from 'react-native';
 import { StackActions, useNavigation } from '@react-navigation/native';
-// import { Device as NanoDevice } from '@ledgerhq/react-native-hw-transport-ble/lib/types';
 import { useDispatch } from 'react-redux';
 import { strings } from '../../../../locales/i18n';
 import Engine from '../../../core/Engine';

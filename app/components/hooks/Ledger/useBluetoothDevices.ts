@@ -1,6 +1,6 @@
 /* eslint-disable @typescript-eslint/no-unused-vars */
 import { useEffect, useState } from 'react';
-import { Observable, Observer, Subscription } from 'rxjs';
+import { Observer, Subscription } from 'rxjs';
 
 export interface BluetoothDevice {
   id: string;
@@ -23,36 +23,12 @@ const useBluetoothDevices = (
   hasBluetoothPermissions: boolean,
   bluetoothOn: boolean,
 ) => {
-  const [devices, setDevices] = useState<Record<string, BluetoothDevice>>({});
-  const [deviceScanError, setDeviceScanError] = useState<boolean>(false);
+  const [devices] = useState<Record<string, BluetoothDevice>>({});
+  const [deviceScanError] = useState<boolean>(false);
 
   // Initiate scanning and pairing if bluetooth is enabled
   useEffect(() => {
     let subscription: Subscription;
-
-    if (hasBluetoothPermissions && bluetoothOn) {
-      // import('@ledgerhq/react-native-hw-transport-ble').then(
-      //   (bluetoothInterface: any) => {
-      //     subscription = new Observable(
-      //       bluetoothInterface.default.listen,
-      //     ).subscribe({
-      //       next: (e: any) => {
-      //         const deviceFound = devices[e?.descriptor.id];
-      //         if (e.type === 'add' && !deviceFound) {
-      //           setDevices((prevValues) => ({
-      //             ...prevValues,
-      //             [e.descriptor.id]: e.descriptor,
-      //           }));
-      //           setDeviceScanError(false);
-      //         }
-      //       },
-      //       error: (_error) => {
-      //         setDeviceScanError(true);
-      //       },
-      //     });
-      //   },
-      // );
-    }
 
     return () => {
       subscription?.unsubscribe();

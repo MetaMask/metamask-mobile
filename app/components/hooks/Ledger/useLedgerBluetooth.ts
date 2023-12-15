@@ -6,7 +6,6 @@ import {
   openEthereumAppOnLedger,
   closeRunningAppOnLedger,
 } from '../../../core/Ledger/Ledger';
-// import type BleTransport from '@ledgerhq/react-native-hw-transport-ble';
 
 export enum LedgerCommunicationErrors {
   LedgerDisconnected = 'LedgerDisconnected',
