@@ -42,7 +42,7 @@ import ButtonIcon, {
   ButtonIconSizes,
   ButtonIconVariants,
 } from '../../../component-library/components/Buttons/ButtonIcon';
-import Icon, {
+import {
   IconName,
   IconSize,
 } from '../../../component-library/components/Icons/Icon';
