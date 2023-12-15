@@ -54,10 +54,6 @@ import {
 } from '../../../component-library/components/Texts/Text';
 import { CommonSelectorsIDs } from '../../../../e2e/selectors/Common.selectors';
 import { WalletViewSelectorsIDs } from '../../../../e2e/selectors/WalletView.selectors';
-import {
-  default as MorphText,
-  TextVariant,
-} from '../../../component-library/components/Texts/Text';
 
 const trackEvent = (event) => {
   InteractionManager.runAfterInteractions(() => {
