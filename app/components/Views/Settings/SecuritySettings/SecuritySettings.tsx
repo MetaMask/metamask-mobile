@@ -426,6 +426,7 @@ const Settings: React.FC = () => {
           width={ButtonWidthTypes.Full}
           label={strings('app_settings.clear_browser_history_desc')}
           onPress={toggleClearBrowserHistoryModal}
+          isDisabled={browserHistory.length === 0}
         />
       </View>
     </View>

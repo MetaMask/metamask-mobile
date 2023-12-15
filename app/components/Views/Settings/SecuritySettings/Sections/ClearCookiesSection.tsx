@@ -103,6 +103,7 @@ const ClearCookiesSection = () => {
             width={ButtonWidthTypes.Full}
             label={strings('app_settings.clear_browser_cookies_desc')}
             onPress={toggleClearCookiesModal}
+            isDisabled={!hasCookies}
           />
         </View>
       </View>
