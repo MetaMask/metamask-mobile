@@ -170,10 +170,6 @@ workflows:
       - setup
       - prep_environment
     steps:
-      - restore-cache@2:
-          title: Restore dependencies from cache
-          inputs:
-            - key: '{{ .OS }}-{{ .Arch }}-node-modules-{{ checksum "yarn.lock" }}'
       - script@1:
           inputs:
             - content: |-
@@ -216,7 +212,7 @@ workflows:
                 asdf install yarn "$YARN_VERSION"
                 asdf global yarn "$YARN_VERSION"
           title: Install node and yarn
-      - restore-cache@2:
+      - restore-cache@1:
           title: Restore cache dependencies
           inputs:
             - key: '{{ .OS }}-{{ .Arch }}-node-modules-{{ checksum "yarn.lock" }}'
@@ -387,7 +383,7 @@ workflows:
     after_run:
       - _notify_failure_on_slack
     steps:
-      - restore-gradle-cache@2: {}
+      - restore-gradle-cache@1: {}
       - install-missing-android-tools@3:
           inputs:
             - ndk_version: $NDK_VERSION
@@ -412,12 +408,12 @@ workflows:
                 #!/usr/bin/env bash
                 sudo apt update
                 sudo apt install ccache
-      - restore-cache@2:
+      - restore-cache@1:
           title: Restore CCache
           run_if: '{{not (enveq "SKIP_CCACHE_RESTORE" "true")}}'
           inputs:
             - key: 'android-ccache-{{if getenv "USE_MAIN_CCACHE" }}main{{else}}{{ getenv "CCACHE_KEY" }}{{end}}'
-      - restore-cache@2:
+      - restore-cache@1:
           title: Restore build from cache
           inputs:
             - key: apk-cache-{{ .CommitHash }}
@@ -463,8 +459,8 @@ workflows:
     after_run:
       - _notify_failure_on_slack
     steps:
-      - restore-gradle-cache@2: {}
-      - restore-cache@2:
+      - restore-gradle-cache@1: {}
+      - restore-cache@1:
           title: Restore cache build
           inputs:
             - key: apk-cache-{{ .CommitHash }}
@@ -574,12 +570,12 @@ workflows:
                 ln -s $(which ccache) /usr/local/bin/c++
                 ln -s $(which ccache) /usr/local/bin/clang
                 ln -s $(which ccache) /usr/local/bin/clang++
-      - restore-cache@2:
+      - restore-cache@1:
           title: Restore CCache
           run_if: '{{not (enveq "SKIP_CCACHE_RESTORE" "true")}}'
           inputs:
             - key: 'ios-ccache-{{if getenv "USE_MAIN_CCACHE" }}main{{else}}{{ getenv "CCACHE_KEY" }}{{end}}'
-      - restore-cache@2:
+      - restore-cache@1:
           title: Restore build from cache
           inputs:
             - key: ipa-cache-{{ .CommitHash }}
@@ -623,7 +619,7 @@ workflows:
     after_run:
       - _notify_failure_on_slack
     steps:
-      - restore-cache@2:
+      - restore-cache@1:
           title: Restore cache build
           inputs:
             - key: ipa-cache-{{ .CommitHash }}
