@@ -66,7 +66,7 @@ Optional description below the label
 
 ### `caretIconEl`
 
-Optional enum to replace the caret Icon
+Optional enum to replace the caret `Icon`
 
 | <span style="color:gray;font-size:14px">TYPE</span> | <span style="color:gray;font-size:14px">REQUIRED</span> |
 | :-------------------------------------------------- | :------------------------------------------------------ |
