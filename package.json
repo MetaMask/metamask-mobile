@@ -165,7 +165,6 @@
     "react-native-ble-plx": "3.1.1"
   },
   "dependencies": {
-    "@consensys/ledgerhq-metamask-keyring": "^0.0.5",
     "@consensys/on-ramp-sdk": "1.25.4",
     "@eth-optimism/contracts": "0.0.0-2021919175625",
     "@ethereumjs/common": "^2.3.1",
@@ -175,7 +174,6 @@
     "@keystonehq/bc-ur-registry-eth": "^0.7.7",
     "@keystonehq/metamask-airgapped-keyring": "^0.3.0",
     "@keystonehq/ur-decoder": "^0.6.1",
-    "@ledgerhq/react-native-hw-transport-ble": "^6.29.5",
     "@metamask/address-book-controller": "^2.0.0",
     "@metamask/approval-controller": "^3.4.0",
     "@metamask/assets-controllers": "^7.0.0",

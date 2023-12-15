@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-unused-vars */
 import { useEffect, useState } from 'react';
 import { Observable, Observer, Subscription } from 'rxjs';
 
@@ -30,28 +31,28 @@ const useBluetoothDevices = (
     let subscription: Subscription;
 
     if (hasBluetoothPermissions && bluetoothOn) {
-      import('@ledgerhq/react-native-hw-transport-ble').then(
-        (bluetoothInterface: any) => {
-          subscription = new Observable(
-            bluetoothInterface.default.listen,
-          ).subscribe({
-            next: (e: any) => {
-              const deviceFound = devices[e?.descriptor.id];
+      // import('@ledgerhq/react-native-hw-transport-ble').then(
+      //   (bluetoothInterface: any) => {
+      //     subscription = new Observable(
+      //       bluetoothInterface.default.listen,
+      //     ).subscribe({
+      //       next: (e: any) => {
+      //         const deviceFound = devices[e?.descriptor.id];
 
-              if (e.type === 'add' && !deviceFound) {
-                setDevices((prevValues) => ({
-                  ...prevValues,
-                  [e.descriptor.id]: e.descriptor,
-                }));
-                setDeviceScanError(false);
-              }
-            },
-            error: (_error) => {
-              setDeviceScanError(true);
-            },
-          });
-        },
-      );
+      //         if (e.type === 'add' && !deviceFound) {
+      //           setDevices((prevValues) => ({
+      //             ...prevValues,
+      //             [e.descriptor.id]: e.descriptor,
+      //           }));
+      //           setDeviceScanError(false);
+      //         }
+      //       },
+      //       error: (_error) => {
+      //         setDeviceScanError(true);
+      //       },
+      //     });
+      //   },
+      // );
     }
 
     return () => {
