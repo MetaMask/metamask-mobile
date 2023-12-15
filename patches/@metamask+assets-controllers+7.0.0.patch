@@ -598,7 +598,7 @@ index 8bb7c20..810d961 100644
       * Fetches a pairs of token address and native currency.
       *
 diff --git a/node_modules/@metamask/assets-controllers/dist/TokenRatesController.js b/node_modules/@metamask/assets-controllers/dist/TokenRatesController.js
-index e3f81e9..82c3dc0 100644
+index e3f81e9..36ccb26 100644
 --- a/node_modules/@metamask/assets-controllers/dist/TokenRatesController.js
 +++ b/node_modules/@metamask/assets-controllers/dist/TokenRatesController.js
 @@ -8,38 +8,387 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
@@ -990,7 +990,7 @@ index e3f81e9..82c3dc0 100644
 +    1284: 'moonbeam',
 +    1285: 'moonriver',
 +    8453: 'base',
-+    8545: 'shiden network',
++    336: 'shiden network',
 +    10000: 'smartbch',
 +    42161: 'arbitrum-one',
 +    42220: 'celo',
