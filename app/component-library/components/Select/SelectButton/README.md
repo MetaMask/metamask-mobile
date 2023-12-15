@@ -1,6 +1,6 @@
 # SelectButton
 
-SelectButton is a trigger component, used as part of the SelectWrapper or Select component
+`SelectButton` is a trigger component, used as part of the `SelectWrapper` or `Select` component
 
 ## Props
 
