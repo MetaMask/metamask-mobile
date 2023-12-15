@@ -42,7 +42,6 @@ function AddActivationKey() {
         navigation,
         false,
         colors,
-        false,
       ),
     );
   }, [colors, navigation]);
