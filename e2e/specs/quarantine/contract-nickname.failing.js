@@ -182,7 +182,7 @@ describe('Adding Contract Nickname', () => {
     await SettingsView.tapContacts();
 
     await expect(await ContactsView.container).toBeVisible();
-    await expect(await ContactsView.aceContact).toBeVisible();
+    await ContactsView.isContactAliasVisible('Ace');
   });
 
   it('should return to the send view', async () => {

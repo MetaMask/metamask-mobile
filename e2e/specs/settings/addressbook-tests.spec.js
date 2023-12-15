@@ -79,7 +79,7 @@ describe(Smoke('Addressbook Tests'), () => {
     await TabBarComponent.tapSettings();
     await SettingsView.tapContacts();
     await expect(await ContactsView.container).toBeVisible();
-    await expect(await ContactsView.mythContact).toBeVisible();
+    await ContactsView.isContactAliasVisible('Myth');
   });
 
   it('should add an address via the contacts view', async () => {
@@ -97,11 +97,11 @@ describe(Smoke('Addressbook Tests'), () => {
     await AddContactView.typeInMemo(MEMO);
     await AddContactView.tapAddContactButton();
     await expect(await ContactsView.container).toBeVisible();
-    await expect(await ContactsView.ibrahimContact).toBeVisible(); // Check that Ibrahim address is saved in the address book
+    await ContactsView.isContactAliasVisible('Ibrahim'); // Check that Ibrahim address is saved in the address book
   });
 
   it('should edit a contact', async () => {
-    await ContactsView.tapMythContact();
+    await ContactsView.tapOnAlias('Myth'); // Tap on Myth address
     await AddContactView.tapEditButton();
     await AddContactView.typeInName('Moon'); // Change name from Myth to Moon
     await AddContactView.tapEditContactCTA();
@@ -113,17 +113,17 @@ describe(Smoke('Addressbook Tests'), () => {
       await AddContactView.tapEditContactCTA();
       await expect(await ContactsView.container).toBeVisible();
     }
-    await expect(await ContactsView.moonContact).toBeVisible(); // Check that Ibrahim address is saved in the address book
-    await expect(await ContactsView.mythContact).not.toBeVisible(); // Ensure Myth is not visible
+    await ContactsView.isContactAliasVisible('Moon'); // Check that Ibrahim address is saved in the address book
+    await ContactsView.isContactAliasNotVisible('Myth'); // Ensure Myth is not visible
   });
 
   it('should remove a contact', async () => {
     // Tap on Moon address
-    await ContactsView.tapMoonContact(); // Tap on Myth address
+    await ContactsView.tapOnAlias('Moon'); // Tap on Myth address
     // Tap on edit
     await AddContactView.tapEditButton();
     await AddContactView.tapDeleteContactCTA();
-    await expect(await ContactsView.moonContact).not.toBeVisible();
+    await ContactsView.isContactAliasNotVisible('Moon');
   });
 
   it('should go back to send flow to validate newly added address is displayed', async () => {
