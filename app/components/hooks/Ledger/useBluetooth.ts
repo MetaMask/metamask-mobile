@@ -1,6 +1,4 @@
-/* eslint-disable @typescript-eslint/no-unused-vars */
 import { useState, useEffect } from 'react';
-import { State } from 'react-native-ble-plx';
 import { Subscription } from 'rxjs';
 
 const useBluetooth = (hasBluetoothPermissions: boolean) => {
