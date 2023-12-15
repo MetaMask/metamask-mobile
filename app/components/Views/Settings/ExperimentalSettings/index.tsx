@@ -84,6 +84,7 @@ const ExperimentalSettings = ({ navigation, route }: Props) => {
       </Text>
       <Button
         variant={ButtonVariants.Secondary}
+        size={ButtonSize.Lg}
         label={strings('experimental_settings.wallet_connect_dapps_cta')}
         onPress={goToWalletConnectSessions}
         width={ButtonWidthTypes.Full}
@@ -145,7 +146,7 @@ const ExperimentalSettings = ({ navigation, route }: Props) => {
     <ScrollView style={styles.wrapper}>
       <WalletConnectSettings />
       <BlockaidSettings />
-      {/* {isBlockaidFeatureEnabled() && <BlockaidSettings />} */}
+      {isBlockaidFeatureEnabled() && <BlockaidSettings />}
     </ScrollView>
   );
 };
