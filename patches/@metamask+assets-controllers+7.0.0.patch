@@ -597,7 +597,7 @@ index 8bb7c20..4ebc108 100644
       * Fetches a pairs of token address and native currency.
       *
 diff --git a/node_modules/@metamask/assets-controllers/dist/TokenRatesController.js b/node_modules/@metamask/assets-controllers/dist/TokenRatesController.js
-index e3f81e9..36ccb26 100644
+index e3f81e9..e05b1b8 100644
 --- a/node_modules/@metamask/assets-controllers/dist/TokenRatesController.js
 +++ b/node_modules/@metamask/assets-controllers/dist/TokenRatesController.js
 @@ -8,38 +8,387 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
@@ -1229,7 +1229,7 @@ index e3f81e9..36ccb26 100644
 +                resultArray[chunkIndex].push(item);
 +                return resultArray;
 +            }, []);
-+            const tokensPairsChunks = tokenPairsChunks(20);
++            const tokensPairsChunks = tokenPairsChunks(100);
 +            const results = [];
 +            for (const tokenPairsChunk of tokensPairsChunks) {
 +                const query = `tokenAddresses=${tokenPairsChunk.join(',')}&vsCurrency=${vsCurrency.toLowerCase()}`;
