@@ -1,6 +1,6 @@
 # SelectOption
 
-SelectOption is a selectable option used in the SelectMenu and is part of the Select component
+`SelectOption` is a selectable option used in the SelectMenu and is part of the Select component
 
 ## Props
 
