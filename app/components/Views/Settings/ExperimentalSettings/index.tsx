@@ -145,7 +145,6 @@ const ExperimentalSettings = ({ navigation, route }: Props) => {
   return (
     <ScrollView style={styles.wrapper}>
       <WalletConnectSettings />
-      <BlockaidSettings />
       {isBlockaidFeatureEnabled() && <BlockaidSettings />}
     </ScrollView>
   );
