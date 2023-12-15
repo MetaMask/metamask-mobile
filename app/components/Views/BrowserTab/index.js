@@ -1485,7 +1485,7 @@ export const BrowserTab = (props) => {
                   <WebviewError error={error} returnHome={returnHome} />
                 )}
                 source={{ uri: initialUrl }}
-                injectedJavaScriptBeforeContentLoaded={entryScriptWeb3}
+                injectedJavaScriptBeforeContentLoaded={`window.self.document.addEventListener("DOMContentLoaded", function() {${entryScriptWeb3}});`}
                 style={styles.webview}
                 onLoadStart={onLoadStart}
                 onLoad={onLoad}
