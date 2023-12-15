@@ -6,7 +6,7 @@ import { useTheme } from '../../../../util/theme';
 import EthereumAddress from '../../../UI/EthereumAddress';
 import { createStyle } from './styles';
 
-export interface IAccountDetailsProps {
+interface IAccountDetailsProps {
   index: number;
   address: string;
   balance: string;
