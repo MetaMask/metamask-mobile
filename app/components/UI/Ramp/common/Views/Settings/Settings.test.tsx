@@ -1,4 +1,3 @@
-// Test the settings view
 import React from 'react';
 import { fireEvent, screen } from '@testing-library/react-native';
 import Settings from './Settings';
@@ -147,6 +146,107 @@ describe('Settings', () => {
       });
       fireEvent.press(resetRegionButton);
       expect(mockSetSelectedRegion).toHaveBeenCalledWith(null);
+    });
+  });
+
+  describe('Activation Keys', () => {
+    beforeEach(() => {
+      mockUseRampSDKValues = {
+        ...mockuseRampSDKInitialValues,
+        isInternalBuild: true,
+      };
+    });
+
+    it('renders correctly when is loading', () => {
+      mockUseActivationKeysValues = {
+        ...mockUseActivationKeysInitialValues,
+        isLoadingKeys: true,
+      };
+
+      render(Settings);
+      expect(screen.toJSON()).toMatchSnapshot();
+      const addActivationKeyButton = screen.getByRole('button', {
+        name: 'Add Activation Key',
+      });
+      const [removeActivationKeyButton] = screen.getAllByRole('button', {
+        name: 'Delete Activation Key',
+      });
+      const [switchButton] = screen.getAllByRole('switch');
+
+      expect(addActivationKeyButton.props.disabled).toBe(true);
+      expect(removeActivationKeyButton.props.disabled).toBe(true);
+      expect(switchButton.props.disabled).toBe(true);
+    });
+
+    it('renders correctly when there are no keys', () => {
+      mockUseActivationKeysValues = {
+        ...mockUseActivationKeysInitialValues,
+        activationKeys: [],
+      };
+      render(Settings);
+      expect(screen.toJSON()).toMatchSnapshot();
+    });
+
+    it('navigates to add activation key when pressing add new key', () => {
+      render(Settings);
+      const addActivationKeyButton = screen.getByRole('button', {
+        name: 'Add Activation Key',
+      });
+      fireEvent.press(addActivationKeyButton);
+      expect(mockNavigate).toHaveBeenCalledWith(
+        Routes.RAMP.ADD_ACTIVATION_KEY,
+        {
+          onSubmit: expect.any(Function),
+        },
+      );
+    });
+
+    it('calls addActivationKey when navigated view calls onSubmit', () => {
+      const testKey = 'example-test-key';
+      mockNavigate.mockImplementationOnce((_route, { onSubmit }) => {
+        onSubmit(testKey);
+      });
+      render(Settings);
+      const addActivationKeyButton = screen.getByRole('button', {
+        name: 'Add Activation Key',
+      });
+      fireEvent.press(addActivationKeyButton);
+      expect(mockAddActivationKey).toHaveBeenCalledWith(testKey);
+    });
+
+    it('updates the activation key value when pressing the switch', () => {
+      const testActivationKey = {
+        ...mockUseActivationKeysInitialValues.activationKeys[0],
+        active: false,
+      };
+      mockUseActivationKeysValues = {
+        ...mockUseActivationKeysInitialValues,
+        activationKeys: [testActivationKey],
+      };
+      render(Settings);
+      const switchButton = screen.getByRole('switch');
+      fireEvent(switchButton, 'onValueChange');
+      expect(mockUpdateActivationKey).toHaveBeenCalledWith(
+        testActivationKey.key,
+        !testActivationKey.active,
+      );
+    });
+
+    it('calls removeActivationKey when pressing remove icon', () => {
+      const testActivationKey = {
+        ...mockUseActivationKeysInitialValues.activationKeys[0],
+        active: false,
+      };
+      mockUseActivationKeysValues = {
+        ...mockUseActivationKeysInitialValues,
+        activationKeys: [testActivationKey],
+      };
+      render(Settings);
+      const removeActivationKeyButton = screen.getByRole('button', {
+        name: 'Delete Activation Key',
+      });
+      fireEvent.press(removeActivationKeyButton);
+      expect(mockRemoveActivationKey).toHaveBeenCalledWith('testKey1');
     });
   });
 });
