@@ -950,7 +950,6 @@ class Engine {
           },
           updateTransactions: true,
         },
-        // @ts-expect-error Error might be caused by base controller version mismatch
         messenger: this.controllerMessenger.getRestricted({
           name: 'TransactionController',
           allowedActions: [`${approvalController.name}:addRequest`],
