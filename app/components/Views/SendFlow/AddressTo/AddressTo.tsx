@@ -8,7 +8,7 @@ import { strings } from '../../../../../locales/i18n';
 import { showAlert } from '../../../../actions/alert';
 import { NetworkSwitchErrorType } from '../../../../constants/error';
 import Routes from '../../../../constants/navigation/Routes';
-import { handleNetworkSwitch } from '../../../../util/networks';
+import handleNetworkSwitch from '../../../../util/networks/handleNetworkSwitch';
 import { AddressTo } from '../../../UI/AddressInputs';
 import { createQRScannerNavDetails } from '../../QRScanner';
 import { SFAddressToProps } from './AddressTo.types';

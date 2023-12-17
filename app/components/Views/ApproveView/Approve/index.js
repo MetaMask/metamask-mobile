@@ -13,7 +13,7 @@ import ApproveTransactionReview from '../../../UI/ApproveTransactionReview';
 import AddNickname from '../../../UI/ApproveTransactionReview/AddNickname';
 import Modal from 'react-native-modal';
 import { strings } from '../../../../../locales/i18n';
-import { getNetworkNonce } from '../../../../util/networks';
+import getNetworkNonce from '../../../../util/networks/getNetworkNonce';
 import Analytics from '../../../../core/Analytics/Analytics';
 import {
   setTransactionObject,

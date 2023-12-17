@@ -20,7 +20,7 @@ import { getSendFlowTitle } from '../../../UI/Navbar';
 import StyledButton from '../../../UI/StyledButton';
 import { MetaMetricsEvents } from '../../../../core/Analytics';
 import AnalyticsV2 from '../../../../util/analyticsV2';
-import { handleNetworkSwitch } from '../../../../util/networks';
+import handleNetworkSwitch from '../../../../util/networks/handleNetworkSwitch';
 import {
   isENS,
   isValidHexAddress,

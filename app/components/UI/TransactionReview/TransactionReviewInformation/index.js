@@ -33,10 +33,10 @@ import Analytics from '../../../../core/Analytics/Analytics';
 import { MetaMetricsEvents } from '../../../../core/Analytics';
 import {
   TESTNET_FAUCETS,
-  getNetworkNonce,
   isTestNet,
   isTestNetworkWithFaucet,
 } from '../../../../util/networks';
+import getNetworkNonce from '../../../../util/networks/getNetworkNonce';
 import CustomNonceModal from '../../../UI/CustomNonceModal';
 import { setNonce, setProposedNonce } from '../../../../actions/transaction';
 import TransactionReviewEIP1559 from '../TransactionReviewEIP1559';

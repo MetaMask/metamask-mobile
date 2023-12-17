@@ -53,13 +53,13 @@ import { MetaMetricsEvents } from '../../../../core/Analytics';
 import { shallowEqual, renderShortText } from '../../../../util/general';
 import {
   isTestNet,
-  getNetworkNonce,
   isMainnetByChainId,
   isMultiLayerFeeNetwork,
   fetchEstimatedMultiLayerL1Fee,
   TESTNET_FAUCETS,
   isTestNetworkWithFaucet,
 } from '../../../../util/networks';
+import getNetworkNonce from '../../../../util/networks/getNetworkNonce';
 import Text from '../../../Base/Text';
 import AnalyticsV2 from '../../../../util/analyticsV2';
 import { addHexPrefix } from 'ethereumjs-util';

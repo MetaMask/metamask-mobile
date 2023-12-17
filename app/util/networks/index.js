@@ -16,14 +16,10 @@ import {
 } from '../../../app/constants/network';
 import { NetworkSwitchErrorType } from '../../../app/constants/error';
 import { NetworksChainId, NetworkType } from '@metamask/controller-utils';
-import Engine from '../../core/Engine';
 import { toLowerCaseEquals } from '../general';
 import { fastSplit } from '../number';
 import { buildUnserializedTransaction } from '../transactions/optimismTransaction';
-import handleNetworkSwitch from './handleNetworkSwitch';
 import { regex } from '../../../app/util/regex';
-
-export { handleNetworkSwitch };
 
 /* eslint-disable */
 const ethLogo = require('../../images/eth-logo-new.png');
@@ -327,18 +323,6 @@ export function isPrefixedFormattedHexString(value) {
   }
   return regex.prefixedFormattedHexString.test(value);
 }
-
-export const getNetworkNonce = async ({ from }) => {
-  const { TransactionController } = Engine.context;
-
-  const { nextNonce, releaseLock } = await TransactionController.getNonceLock(
-    from,
-  );
-
-  releaseLock();
-
-  return nextNonce;
-};
 
 export function blockTagParamIndex(payload) {
   switch (payload.method) {

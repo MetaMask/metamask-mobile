@@ -1,6 +1,6 @@
 import { strings } from '../../../../locales/i18n';
 import { showAlert } from '../../../actions/alert';
-import { handleNetworkSwitch } from '../../../util/networks';
+import handleNetworkSwitch from '../../../util/networks/handleNetworkSwitch';
 import DevLogger from '../../SDKConnect/utils/DevLogger';
 import DeeplinkManager from '../DeeplinkManager';
 
