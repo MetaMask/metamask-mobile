@@ -1,6 +1,30 @@
 import getNetworkNonce from './getNetworkNonce';
 import Engine from '../../core/Engine';
 
+jest.mock('./../../core/Engine', () => ({
+  context: {
+    CurrencyRateController: {
+      setNativeCurrency: () => jest.fn(),
+      setLocked: () => jest.fn(),
+    },
+    NetworkController: {
+      setActiveNetwork: () => jest.fn(),
+      setProviderType: () => jest.fn(),
+      state: {
+        providerConfig: {
+          chainId: '3',
+        },
+      },
+    },
+    PreferencesController: {
+      state: {},
+    },
+    TransactionController: {
+      getNonceLock: jest.fn(),
+    },
+  },
+}));
+
 describe('getNetworkNonce', () => {
   const nonceMock = 123;
   const fromMock = '0x123';

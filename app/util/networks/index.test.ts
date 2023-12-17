@@ -19,30 +19,6 @@ import {
 } from '../../../app/constants/network';
 import { NetworkSwitchErrorType } from '../../../app/constants/error';
 
-jest.mock('./../../core/Engine', () => ({
-  context: {
-    CurrencyRateController: {
-      setNativeCurrency: () => jest.fn(),
-      setLocked: () => jest.fn(),
-    },
-    NetworkController: {
-      setActiveNetwork: () => jest.fn(),
-      setProviderType: () => jest.fn(),
-      state: {
-        providerConfig: {
-          chainId: '3',
-        },
-      },
-    },
-    PreferencesController: {
-      state: {},
-    },
-    TransactionController: {
-      getNonceLock: jest.fn(),
-    },
-  },
-}));
-
 describe('network-utils', () => {
   describe('getAllNetworks', () => {
     const allNetworks = getAllNetworks();

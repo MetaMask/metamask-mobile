@@ -4,9 +4,7 @@ import { showAlert } from '../../../actions/alert';
 import { strings } from '../../../../locales/i18n';
 import handleNetworkSwitch from '../../../util/networks/handleNetworkSwitch';
 
-jest.mock('../../../util/networks', () => ({
-  handleNetworkSwitch: jest.fn(),
-}));
+jest.mock('../../../util/networks/handleNetworkSwitch', () => jest.fn());
 
 jest.mock('../../../actions/alert', () => ({
   showAlert: jest.fn(),
