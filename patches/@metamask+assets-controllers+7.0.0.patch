@@ -492,13 +492,12 @@ index 4ed4990..df0524b 100644
                          }
                      }
 diff --git a/node_modules/@metamask/assets-controllers/dist/TokenRatesController.d.ts b/node_modules/@metamask/assets-controllers/dist/TokenRatesController.d.ts
-index 8bb7c20..7259cfb 100644
+index 8bb7c20..d0dfdee 100644
 --- a/node_modules/@metamask/assets-controllers/dist/TokenRatesController.d.ts
 +++ b/node_modules/@metamask/assets-controllers/dist/TokenRatesController.d.ts
-@@ -1,28 +1,9 @@
+@@ -1,28 +1,8 @@
 -import { BaseController, BaseConfig, BaseState } from '@metamask/base-controller';
-+import { BaseControllerV1 } from '@metamask/base-controller';
-+import type { BaseConfig, BaseState } from '@metamask/base-controller';
++import type { BaseConfig, BaseController, BaseState } from '@metamask/base-controller';
  import type { NetworkState } from '@metamask/network-controller';
 +import type { PreferencesState } from '@metamask/preferences-controller';
 +import type { AbstractTokenPricesService } from './token-prices-service/abstract-token-prices-service';
@@ -528,7 +527,7 @@ index 8bb7c20..7259cfb 100644
  /**
   * @type Token
   *
-@@ -40,6 +21,7 @@ export interface Token {
+@@ -40,6 +20,7 @@ export interface Token {
      image?: string;
      balanceError?: unknown;
      isERC721?: boolean;
@@ -536,7 +535,7 @@ index 8bb7c20..7259cfb 100644
  }
  /**
   * @type TokenRatesConfig
-@@ -55,7 +37,17 @@ export interface TokenRatesConfig extends BaseConfig {
+@@ -55,7 +36,17 @@ export interface TokenRatesConfig extends BaseConfig {
      interval: number;
      nativeCurrency: string;
      chainId: string;
@@ -555,7 +554,7 @@ index 8bb7c20..7259cfb 100644
      threshold: number;
  }
  interface ContractExchangeRates {
-@@ -65,21 +57,20 @@ interface ContractExchangeRates {
+@@ -65,21 +56,20 @@ interface ContractExchangeRates {
   * @type TokenRatesState
   *
   * Token rates controller state
@@ -572,8 +571,7 @@ index 8bb7c20..7259cfb 100644
   * Controller that passively polls on a set interval for token-to-fiat exchange rates
   * for tokens stored in the TokensController
   */
--export declare class TokenRatesController extends BaseController<TokenRatesConfig, TokenRatesState> {
-+export declare class TokenRatesController extends BaseControllerV1<TokenRatesConfig, TokenRatesState> {
+ export declare class TokenRatesController extends BaseController<TokenRatesConfig, TokenRatesState> {
 +    #private;
      private handle?;
 -    private tokenList;
@@ -582,7 +580,7 @@ index 8bb7c20..7259cfb 100644
      /**
       * Name of this controller used during composition
       */
-@@ -88,81 +79,41 @@ export declare class TokenRatesController extends BaseController<TokenRatesConfi
+@@ -88,81 +78,41 @@ export declare class TokenRatesController extends BaseController<TokenRatesConfi
       * Creates a TokenRatesController instance.
       *
       * @param options - The controller options.
