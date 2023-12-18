@@ -445,7 +445,7 @@
     "babel-plugin-transform-inline-environment-variables": "^0.4.4",
     "babel-plugin-transform-remove-console": "6.9.4",
     "browserstack-local": "^1.5.1",
-    "chromedriver": "^99.0.0",
+    "chromedriver": "^120.0.0",
     "depcheck": "^1.4.7",
     "detox": "^20.11.4",
     "dotenv": "^16.0.3",
