@@ -21,7 +21,7 @@ const createMigratedStorage = (reducerName: string) => ({
       return await FilesystemStorage.setItem(key, value, Platform.OS === 'ios');
     } catch (error) {
       Logger.error(error as Error, {
-        message: `Failed to get persisted ${key}: ${reducerName}`,
+        message: `Failed to set persisted ${key}: ${reducerName}`,
       });
     }
   },
@@ -30,7 +30,7 @@ const createMigratedStorage = (reducerName: string) => ({
       return await FilesystemStorage.removeItem(key);
     } catch (error) {
       Logger.error(error as Error, {
-        message: `Failed to get persisted ${key}: ${reducerName}`,
+        message: `Failed to remove persisted ${key}: ${reducerName}`,
       });
     }
   },
