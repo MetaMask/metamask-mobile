@@ -8,6 +8,8 @@ import Text, {
   TextVariant,
   TextColor,
 } from '../../../../component-library/components/Texts/Text';
+import AnalyticsV2 from '../../../../util/analyticsV2';
+import { MetaMetricsEvents } from '../../../../core/Analytics';
 import { getNavigationOptionsTitle } from '../../../UI/Navbar';
 import StyledButton from '../../../UI/StyledButton';
 import SECURITY_ALERTS_TOGGLE_TEST_ID from './constants';
@@ -39,6 +41,12 @@ const ExperimentalSettings = ({ navigation, route }: Props) => {
         ppomInitializationCompleted: false,
       });
       PreferencesController?.setSecurityAlertsEnabled(!securityAlertsEnabled);
+      AnalyticsV2.trackEvent(
+        MetaMetricsEvents.SETTINGS_EXPERIMENTAL_SECURITY_ALERTS_ENABLED,
+        {
+          security_alerts_enabled: false,
+        },
+      );
     } else {
       navigation.navigate(Routes.MODAL.ROOT_MODAL_FLOW, {
         screen: Routes.SHEET.BLOCKAID_INDICATOR,
