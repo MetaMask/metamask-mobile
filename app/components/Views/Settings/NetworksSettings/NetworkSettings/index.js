@@ -83,6 +83,10 @@ import { NetworksViewSelectorsIDs } from '../../../../../../e2e/selectors/Settin
 
 const createStyles = (colors) =>
   StyleSheet.create({
+    base: {
+      flex: 1,
+      paddingHorizontal: 16,
+    },
     wrapper: {
       backgroundColor: colors.background.default,
       flex: 1,
@@ -214,6 +218,7 @@ const createStyles = (colors) =>
 const allNetworks = getAllNetworks();
 const allNetworksblockExplorerUrl = (networkName) =>
   `https://${networkName}.infura.io/v3/`;
+
 /**
  * Main view for app configurations
  */
@@ -1077,41 +1082,41 @@ class NetworkSettings extends PureComponent {
           {networkTypeOrRpcUrl ? (
             this.customNetwork(networkTypeOrRpcUrl)
           ) : (
-            <ScrollableTabView
-              tabBarTextStyle={styles.tabLabelStyle}
-              renderTabBar={this.renderTabBar}
-              ref={(tabView) => {
-                this.tabView = tabView;
-              }}
-            >
-              <View
-                tabLabel={strings('app_settings.popular').toUpperCase()}
-                key={AppConstants.ADD_CUSTOM_NETWORK_POPULAR_TAB_ID}
-                style={styles.networksWrapper}
-                testID={POPULAR_NETWORKS_TAB_ID}
+            <View style={styles.base}>
+              <ScrollableTabView
+                tabBarTextStyle={styles.tabLabelStyle}
+                renderTabBar={this.renderTabBar}
+                ref={(tabView) => {
+                  this.tabView = tabView;
+                }}
               >
-                <CustomNetwork
-                  isNetworkModalVisible={this.state.showPopularNetworkModal}
-                  closeNetworkModal={this.onCancel}
-                  selectedNetwork={this.state.popularNetwork}
-                  toggleWarningModal={this.toggleWarningModal}
-                  showNetworkModal={this.showNetworkModal}
-                  switchTab={this.tabView}
-                  shouldNetworkSwitchPopToWallet={
-                    shouldNetworkSwitchPopToWallet
-                  }
-                />
-              </View>
-              <View
-                tabLabel={strings(
-                  'app_settings.custom_network_name',
-                ).toUpperCase()}
-                key={AppConstants.ADD_CUSTOM_NETWORK_CUSTOM_TAB_ID}
-                testID={CUSTOM_NETWORKS_TAB_ID}
-              >
-                {this.customNetwork()}
-              </View>
-            </ScrollableTabView>
+                <View
+                  tabLabel={strings('app_settings.popular')}
+                  key={AppConstants.ADD_CUSTOM_NETWORK_POPULAR_TAB_ID}
+                  style={styles.networksWrapper}
+                  testID={POPULAR_NETWORKS_TAB_ID}
+                >
+                  <CustomNetwork
+                    isNetworkModalVisible={this.state.showPopularNetworkModal}
+                    closeNetworkModal={this.onCancel}
+                    selectedNetwork={this.state.popularNetwork}
+                    toggleWarningModal={this.toggleWarningModal}
+                    showNetworkModal={this.showNetworkModal}
+                    switchTab={this.tabView}
+                    shouldNetworkSwitchPopToWallet={
+                      shouldNetworkSwitchPopToWallet
+                    }
+                  />
+                </View>
+                <View
+                  tabLabel={strings('app_settings.custom_network_name')}
+                  key={AppConstants.ADD_CUSTOM_NETWORK_CUSTOM_TAB_ID}
+                  testID={CUSTOM_NETWORKS_TAB_ID}
+                >
+                  {this.customNetwork()}
+                </View>
+              </ScrollableTabView>
+            </View>
           )}
         </KeyboardAwareScrollView>
         {this.state.showWarningModal ? (

@@ -6,6 +6,10 @@ const styleSheet = (params: { theme: Theme }) => {
   const { theme } = params;
   const { colors } = theme;
   return StyleSheet.create({
+    base: {
+      flex: 1,
+      paddingHorizontal: 16,
+    },
     wrapper: {
       flex: 1,
       backgroundColor: colors.background.default,
@@ -28,6 +32,7 @@ const styleSheet = (params: { theme: Theme }) => {
     textStyle: {
       fontSize: 16,
       letterSpacing: 0.5,
+      textTransform: 'capitalize',
       ...fontStyles.bold,
     },
   });

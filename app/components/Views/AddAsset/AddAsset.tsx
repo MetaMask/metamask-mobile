@@ -120,20 +120,22 @@ const AddAsset = () => {
         </View>
       )}
       {assetType === 'token' ? (
-        <ScrollableTabView key={chainId} renderTabBar={renderTabBar}>
-          {isTokenDetectionSupported && (
-            <SearchTokenAutocomplete
+        <View style={styles.base}>
+          <ScrollableTabView key={chainId} renderTabBar={renderTabBar}>
+            {isTokenDetectionSupported && (
+              <SearchTokenAutocomplete
+                navigation={navigation}
+                tabLabel={strings('add_asset.search_token')}
+              />
+            )}
+            <AddCustomToken
+              chainId={chainId}
               navigation={navigation}
-              tabLabel={strings('add_asset.search_token')}
+              tabLabel={strings('add_asset.custom_token')}
+              isTokenDetectionSupported={isTokenDetectionSupported}
             />
-          )}
-          <AddCustomToken
-            chainId={chainId}
-            navigation={navigation}
-            tabLabel={strings('add_asset.custom_token')}
-            isTokenDetectionSupported={isTokenDetectionSupported}
-          />
-        </ScrollableTabView>
+          </ScrollableTabView>
+        </View>
       ) : (
         <AddCustomCollectible
           navigation={navigation}
