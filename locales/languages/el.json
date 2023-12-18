@@ -521,6 +521,7 @@
     "import_account": "Εισαγωγή λογαριασμού",
     "connect_hardware": "Σύνδεση πορτοφολιού υλικού",
     "imported": "Έγινε εισαγωγή",
+    "qr_hardware": "Υλικό QR",
     "remove_account_title": "Αφαίρεση λογαριασμού",
     "remove_account_message": "Θέλετε σίγουρα να αφαιρέσετε αυτόν τον λογαριασμό;",
     "no": "Όχι",
