@@ -850,10 +850,10 @@ app:
       PROJECT_LOCATION_IOS: ios
     - opts:
         is_expand: false
-      VERSION_NAME: 7.12.3
+      VERSION_NAME: 7.12.4
     - opts:
         is_expand: false
-      VERSION_NUMBER: 1230
+      VERSION_NUMBER: 1232
     - opts:
         is_expand: false
       ANDROID_APK_LINK: ''
