@@ -31,6 +31,10 @@ const createStyles = () =>
     buttonSize: {
       width: 150,
     },
+
+    wideButtonSize: {
+      width: '100%',
+    },
   });
 
 export default createStyles;

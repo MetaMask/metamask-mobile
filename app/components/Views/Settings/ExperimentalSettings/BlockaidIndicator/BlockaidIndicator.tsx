@@ -40,6 +40,7 @@ const BlockaidIndicator = ({ navigation }: Props) => {
   const styles = createStyles();
 
   const securityAlertsEnabled = useSelector(selectIsSecurityAlertsEnabled);
+  const [failureCount, setFailureCount] = useState(0);
   const [sheetInteractable, setSheetInteractable] = useState(true);
   const [status, setStatus] = useState<Status>(Status.Idle);
   const sheetRef = useRef<SheetBottomRef>(null);
@@ -53,6 +54,7 @@ const BlockaidIndicator = ({ navigation }: Props) => {
       setSheetInteractable(true);
       if (ppomInitialisationStatus === PPOMInitialisationStatus.FAIL) {
         PreferencesController?.setSecurityAlertsEnabled(false);
+        setFailureCount(failureCount + 1);
       }
       if (ppomInitialisationStatus === PPOMInitialisationStatus.SUCCESS) {
         InteractionManager.runAfterInteractions(() => {
@@ -65,7 +67,8 @@ const BlockaidIndicator = ({ navigation }: Props) => {
         });
       }
     }
-  }, [ppomInitialisationStatus, PreferencesController]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [ppomInitialisationStatus]);
 
   const goBackToExperimentalScreen = () => {
     dispatch(UpdatePPOMInitializationStatus());
@@ -79,6 +82,8 @@ const BlockaidIndicator = ({ navigation }: Props) => {
     setSheetInteractable(false);
     setStatus(Status.Loading);
   };
+
+  const multiFailures = failureCount >= 3;
 
   return (
     <BottomSheet ref={sheetRef} isInteractable={sheetInteractable}>
@@ -183,25 +188,40 @@ const BlockaidIndicator = ({ navigation }: Props) => {
 
           <SheetHeader title={strings('blockaid_banner.failed')} />
           <Text variant={TextVariant.BodyMD}>
-            {strings('blockaid_banner.setup_failed')}
+            {multiFailures
+              ? strings('blockaid_banner.setup_multiple_filures')
+              : strings('blockaid_banner.setup_failed')}
           </Text>
           <View style={styles.buttonWrapper}>
-            <Button
-              variant={ButtonVariants.Secondary}
-              label={strings('blockaid_banner.cancel')}
-              size={ButtonSize.Md}
-              onPress={goBackToExperimentalScreen}
-              width={ButtonWidthTypes.Auto}
-              style={styles.buttonSize}
-            />
-            <Button
-              variant={ButtonVariants.Primary}
-              label={strings('blockaid_banner.try_again')}
-              size={ButtonSize.Md}
-              onPress={continueBlockaidInitialisation}
-              width={ButtonWidthTypes.Full}
-              style={styles.buttonSize}
-            />
+            {multiFailures ? (
+              <Button
+                variant={ButtonVariants.Primary}
+                label={strings('blockaid_banner.got_it')}
+                size={ButtonSize.Lg}
+                onPress={goBackToExperimentalScreen}
+                width={ButtonWidthTypes.Full}
+                style={styles.wideButtonSize}
+              />
+            ) : (
+              <>
+                <Button
+                  variant={ButtonVariants.Secondary}
+                  label={strings('blockaid_banner.cancel')}
+                  size={ButtonSize.Md}
+                  onPress={goBackToExperimentalScreen}
+                  width={ButtonWidthTypes.Auto}
+                  style={styles.buttonSize}
+                />
+                <Button
+                  variant={ButtonVariants.Primary}
+                  label={strings('blockaid_banner.try_again')}
+                  size={ButtonSize.Md}
+                  onPress={continueBlockaidInitialisation}
+                  width={ButtonWidthTypes.Full}
+                  style={styles.buttonSize}
+                />
+              </>
+            )}
           </View>
         </View>
       )}
