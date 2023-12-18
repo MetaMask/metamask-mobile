@@ -4,27 +4,22 @@ import {
   AddContactViewSelectorsText,
 } from '../../../../selectors/Settings/Contacts/AddContactView.selectors';
 import Gestures from '../../../../utils/Gestures';
-import DeleteAccountModal from './DeleteAccountModal';
 
 class AddContactView {
   get container() {
     return Matchers.getElementByID(AddContactViewSelectorsIDs.CONTAINER);
   }
 
-  get labelAddButton() {
-    return Matchers.getElementByLabel(AddContactViewSelectorsIDs.ADD_BUTTON);
-  }
-
   get addButton() {
-    return Matchers.getElementByID(AddContactViewSelectorsIDs.ADD_BUTTON);
-  }
-
-  get labelEditButton() {
-    return Matchers.getElementByLabel(AddContactViewSelectorsText.EDIT_BUTTON);
+    return device.getPlatform() === 'ios'
+      ? Matchers.getElementByID(AddContactViewSelectorsIDs.ADD_BUTTON)
+      : Matchers.getElementByLabel(AddContactViewSelectorsIDs.ADD_BUTTON);
   }
 
   get editButton() {
-    return Matchers.getElementByID(AddContactViewSelectorsIDs.EDIT_BUTTON);
+    return device.getPlatform() === 'ios'
+      ? Matchers.getElementByID(AddContactViewSelectorsIDs.EDIT_BUTTON)
+      : Matchers.getElementByLabel(AddContactViewSelectorsText.EDIT_BUTTON);
   }
 
   get editContact() {
@@ -32,11 +27,9 @@ class AddContactView {
   }
 
   get deleteButton() {
-    return Matchers.getElementByID(AddContactViewSelectorsIDs.DELETE_BUTTON);
-  }
-
-  get labelDeleteButton() {
-    return Matchers.getElementByLabel(AddContactViewSelectorsIDs.DELETE_BUTTON);
+    return device.getPlatform() === 'ios'
+      ? Matchers.getElementByID(AddContactViewSelectorsIDs.DELETE_BUTTON)
+      : Matchers.getElementByLabel(AddContactViewSelectorsIDs.DELETE_BUTTON);
   }
 
   get nameInput() {
@@ -52,19 +45,11 @@ class AddContactView {
   }
 
   async tapAddContactButton() {
-    if (device.getPlatform() === 'android') {
-      await Gestures.waitAndTap(this.labelAddButton);
-    } else {
-      await Gestures.waitAndTap(this.addButton);
-    }
+    await Gestures.waitAndTap(this.addButton);
   }
 
   async tapEditButton() {
-    if (device.getPlatform() === 'android') {
-      await Gestures.waitAndTap(this.labelEditButton);
-    } else {
-      await Gestures.waitAndTap(this.editButton);
-    }
+    await Gestures.waitAndTap(this.editButton);
   }
 
   async tapEditContactCTA() {
@@ -72,13 +57,7 @@ class AddContactView {
   }
 
   async tapDeleteContactCTA() {
-    if (device.getPlatform() === 'ios') {
-      await Gestures.waitAndTap(this.deleteButton);
-      await DeleteAccountModal.tapDeleteButton();
-    } else {
-      await Gestures.waitAndTap(this.labelDeleteButton);
-      await DeleteAccountModal.tapLabelDeleteButton();
-    }
+    await Gestures.waitAndTap(this.deleteButton);
   }
 
   async typeInName(name) {

@@ -19,6 +19,7 @@ import FixtureServer from '../../fixtures/fixture-server';
 import { getFixturesServerPort } from '../../fixtures/utils';
 import CommonView from '../../pages/CommonView';
 import messages from '../../../locales/languages/en.json';
+import DeleteContactModal from '../../pages/modals/DeleteContactModal';
 
 const INVALID_ADDRESS = '0xB8B4EE5B1b693971eB60bDa15211570df2dB221L';
 const TETHER_ADDRESS = '0xdac17f958d2ee523a2206206994597c13d831ec7';
@@ -123,6 +124,8 @@ describe(Smoke('Addressbook Tests'), () => {
     // Tap on edit
     await AddContactView.tapEditButton();
     await AddContactView.tapDeleteContactCTA();
+    await expect(await DeleteContactModal.title).toBeVisible();
+    await DeleteContactModal.tapDeleteButton();
     await ContactsView.isContactAliasNotVisible('Moon');
   });
 

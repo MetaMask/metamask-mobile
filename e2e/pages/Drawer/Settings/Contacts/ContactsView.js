@@ -8,12 +8,10 @@ class ContactsView {
     return Matchers.getElementByID(ContactsViewSelectorIDs.CONTAINER);
   }
 
-  get labelAddButton() {
-    return Matchers.getElementByLabel(ContactsViewSelectorIDs.ADD_BUTTON);
-  }
-
   get addButton() {
-    return Matchers.getElementByID(ContactsViewSelectorIDs.ADD_BUTTON);
+    return device.getPlatform() === 'ios'
+      ? Matchers.getElementByID(ContactsViewSelectorIDs.ADD_BUTTON)
+      : Matchers.getElementByLabel(ContactsViewSelectorIDs.ADD_BUTTON);
   }
 
   async tapOnAlias(alias) {
@@ -22,11 +20,7 @@ class ContactsView {
   }
 
   async tapAddContactButton() {
-    if (device.getPlatform() === 'android') {
-      await Gestures.waitAndTap(this.labelAddButton);
-    } else {
-      await Gestures.waitAndTap(this.addButton);
-    }
+    await Gestures.waitAndTap(this.addButton);
   }
 
   async isContactAliasVisible(alias) {
