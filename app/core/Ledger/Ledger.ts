@@ -3,11 +3,27 @@ import {
   KeyringController,
   SignTypedDataVersion,
 } from '@metamask/keyring-controller';
-import type BleTransport from '@ledgerhq/react-native-hw-transport-ble';
-import LedgerKeyring, {
-  SerializationOptions,
-} from '@consensys/ledgerhq-metamask-keyring';
 import ExtendedKeyringTypes from '../../constants/keyringTypes';
+
+interface SerializationOptions {
+  vault: any;
+  keyrings: any[];
+  isUnlocked: boolean;
+  encryptionKey: string;
+  encryptionSalt: string;
+}
+
+interface LedgerKeyring {
+  setTransport: (transport: any, deviceId: string) => void;
+  getAppAndVersion: () => Promise<{ appName: string }>;
+  getDefaultAccount: () => Promise<string>;
+  openEthApp: () => Promise<void>;
+  quitApp: () => Promise<void>;
+  forgetDevice: () => void;
+  deserialize: (keyringSerialized: SerializationOptions) => void;
+  deviceId: string;
+  getName: () => string;
+}
 
 /**
  * Get EthKeyringController from KeyringController
@@ -89,7 +105,7 @@ export const restoreLedgerKeyring = async (
  * @returns The name of the currently open application on the device
  */
 export const connectLedgerHardware = async (
-  transport: BleTransport,
+  transport: any,
   deviceId: string,
 ): Promise<string> => {
   const keyring = await getLedgerKeyring();
