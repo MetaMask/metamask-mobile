@@ -4,6 +4,7 @@ import { ParseOutput, parse } from 'eth-url-parser';
 import { Alert } from 'react-native';
 import { strings } from '../../../../locales/i18n';
 import DeeplinkManager from '../DeeplinkManager';
+import formattedDeeplinkParsedValue from '../../../util/formattedDeeplinkParsedValue';
 
 async function handleEthereumUrl({
   deeplinkManager,
@@ -44,14 +45,8 @@ async function handleEthereumUrl({
       }
       default: {
         if (ethUrl.parameters?.value) {
-          ethUrl.parameters.value = ethUrl.parameters.value.replace(
-            /(\d+)(?:\.(\d+))?(?:e\+(\d+))?/,
-            (_match, integerPart, _, exponent) => {
-              const zeroPadding = exponent
-                ? '0'.repeat(parseInt(exponent, 10))
-                : '';
-              return `${integerPart}${zeroPadding}`;
-            },
+          ethUrl.parameters.value = formattedDeeplinkParsedValue(
+            ethUrl.parameters.value,
           );
           deeplinkManager.navigation.navigate('SendView', {
             screen: 'Send',
