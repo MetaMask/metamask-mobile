@@ -913,6 +913,7 @@ class Engine {
         ticker: networkController.state.providerConfig.ticker ?? 'ETH',
         selectedAddress: preferencesController.state.selectedAddress,
         tokenPricesService: codefiTokenApiV2,
+        interval: 30 * 60 * 1000,
       }),
       new TransactionController({
         blockTracker:
