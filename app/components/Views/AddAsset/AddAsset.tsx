@@ -63,16 +63,34 @@ const AddAsset = () => {
     });
   };
 
-  const renderTabBar = () => (
-    <DefaultTabBar
-      underlineStyle={styles.tabUnderlineStyle}
-      activeTextColor={colors.primary.default}
-      inactiveTextColor={colors.text.alternative}
-      backgroundColor={colors.background.default}
-      tabStyle={styles.tabStyle}
-      textStyle={styles.textStyle}
-      style={styles.tabBar}
-    />
+  const renderTabBar = useCallback(
+    (args) => {
+      if (args.activeTab === 0) {
+        return (
+          <DefaultTabBar
+            underlineStyle={styles.tabUnderlineStyleSearch}
+            activeTextColor={colors.primary.default}
+            inactiveTextColor={colors.text.default}
+            backgroundColor={colors.background.default}
+            tabStyle={styles.tabStyle}
+            textStyle={styles.textStyle}
+            style={styles.tabBar}
+          />
+        );
+      }
+      return (
+        <DefaultTabBar
+          underlineStyle={styles.tabUnderlineStyleCustomToken}
+          activeTextColor={colors.primary.default}
+          inactiveTextColor={colors.text.default}
+          backgroundColor={colors.background.default}
+          tabStyle={styles.tabStyle}
+          textStyle={styles.textStyle}
+          style={styles.tabBar}
+        />
+      );
+    },
+    [styles, colors],
   );
 
   return (

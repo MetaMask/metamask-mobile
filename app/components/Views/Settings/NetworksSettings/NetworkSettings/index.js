@@ -8,6 +8,7 @@ import {
   SafeAreaView,
   Linking,
   Platform,
+  Dimensions,
 } from 'react-native';
 import { connect } from 'react-redux';
 import {
@@ -80,6 +81,8 @@ import {
 } from '../../../../../selectors/networkController';
 import { regex } from '../../../../../../app/util/regex';
 import { NetworksViewSelectorsIDs } from '../../../../../../e2e/selectors/Settings/NetworksView.selectors';
+
+const screenWidth = Dimensions.get('window').width;
 
 const createStyles = (colors) =>
   StyleSheet.create({
@@ -163,9 +166,17 @@ const createStyles = (colors) =>
       justifyContent: 'space-between',
       marginVertical: 12,
     },
-    tabUnderlineStyle: {
+    tabUnderlineStylePopular: {
       height: 2,
       backgroundColor: colors.primary.default,
+      marginLeft: 16,
+      width: screenWidth / 2,
+    },
+    tabUnderlineStyleCustomNetwork: {
+      height: 2,
+      backgroundColor: colors.primary.default,
+      marginLeft: -16,
+      width: screenWidth / 2,
     },
     tabStyle: {
       paddingVertical: 8,
@@ -214,6 +225,7 @@ const createStyles = (colors) =>
 const allNetworks = getAllNetworks();
 const allNetworksblockExplorerUrl = (networkName) =>
   `https://${networkName}.infura.io/v3/`;
+
 /**
  * Main view for app configurations
  */
@@ -1045,17 +1057,31 @@ class NetworkSettings extends PureComponent {
 
   goToLearnMore = () => Linking.openURL(strings('networks.learn_more_url'));
 
-  renderTabBar = () => {
+  renderTabBar = (args) => {
     const colors = this.context.colors || mockTheme.colors;
     const styles = createStyles(colors);
+    if (args.activeTab === 0) {
+      return (
+        <DefaultTabBar
+          underlineStyle={styles.tabUnderlineStylePopular}
+          activeTextColor={colors.primary.default}
+          inactiveTextColor={colors.text.default}
+          backgroundColor={colors.background.default}
+          tabStyle={styles.tabStyle}
+          textStyle={styles.textStyle}
+          style={styles.tabBar}
+        />
+      );
+    }
     return (
       <DefaultTabBar
-        underlineStyle={styles.tabUnderlineStyle}
+        underlineStyle={styles.tabUnderlineStyleCustomNetwork}
         activeTextColor={colors.primary.default}
-        inactiveTextColor={colors.text.muted}
+        inactiveTextColor={colors.text.default}
         backgroundColor={colors.background.default}
         tabStyle={styles.tabStyle}
         textStyle={styles.textStyle}
+        style={styles.tabBar}
       />
     );
   };

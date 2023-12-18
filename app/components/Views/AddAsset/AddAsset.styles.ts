@@ -1,6 +1,8 @@
-import { StyleSheet } from 'react-native';
+import { Dimensions, StyleSheet } from 'react-native';
 import { Theme } from '../../../util/theme/models';
 import { fontStyles } from '../../../styles/common';
+
+const screenWidth = Dimensions.get('window').width;
 
 const styleSheet = (params: { theme: Theme }) => {
   const { theme } = params;
@@ -15,9 +17,17 @@ const styleSheet = (params: { theme: Theme }) => {
       marginTop: 10,
       paddingHorizontal: 16,
     },
-    tabUnderlineStyle: {
+    tabUnderlineStyleSearch: {
       height: 2,
       backgroundColor: colors.primary.default,
+      marginLeft: 16,
+      width: screenWidth / 2,
+    },
+    tabUnderlineStyleCustomToken: {
+      height: 2,
+      backgroundColor: colors.primary.default,
+      marginLeft: -16,
+      width: screenWidth / 2,
     },
     tabBar: {
       borderColor: colors.border.muted,

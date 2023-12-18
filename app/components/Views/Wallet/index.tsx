@@ -5,6 +5,7 @@ import {
   StyleSheet,
   View,
   TextStyle,
+  Dimensions,
 } from 'react-native';
 import { Theme } from '@metamask/design-tokens';
 import { useSelector } from 'react-redux';
@@ -45,6 +46,8 @@ import {
 import { selectAccounts } from '../../../selectors/accountTrackerController';
 import { selectSelectedAddress } from '../../../selectors/preferencesController';
 
+const screenWidth = Dimensions.get('window').width;
+
 const createStyles = ({ colors, typography }: Theme) =>
   StyleSheet.create({
     wrapper: {
@@ -52,9 +55,17 @@ const createStyles = ({ colors, typography }: Theme) =>
       backgroundColor: colors.background.default,
     },
     walletAccount: { marginTop: 28 },
-    tabUnderlineStyle: {
+    tabUnderlineStyleTokens: {
       height: 2,
       backgroundColor: colors.primary.default,
+      marginLeft: 16,
+      width: screenWidth / 2,
+    },
+    tabUnderlineStyleNfts: {
+      height: 2,
+      backgroundColor: colors.primary.default,
+      marginLeft: -16,
+      width: screenWidth / 2,
     },
     tabStyle: {
       paddingBottom: 0,
@@ -201,17 +212,32 @@ const Wallet = ({ navigation }: any) => {
   }, [navigation, themeColors, networkName, networkImageSource, onTitlePress]);
 
   const renderTabBar = useCallback(
-    () => (
-      <DefaultTabBar
-        underlineStyle={styles.tabUnderlineStyle}
-        activeTextColor={colors.primary.default}
-        inactiveTextColor={colors.text.default}
-        backgroundColor={colors.background.default}
-        tabStyle={styles.tabStyle}
-        textStyle={styles.textStyle}
-        style={styles.tabBar}
-      />
-    ),
+    (args) => {
+      if (args.activeTab === 0) {
+        return (
+          <DefaultTabBar
+            underlineStyle={styles.tabUnderlineStyleTokens}
+            activeTextColor={colors.primary.default}
+            inactiveTextColor={colors.text.default}
+            backgroundColor={colors.background.default}
+            tabStyle={styles.tabStyle}
+            textStyle={styles.textStyle}
+            style={styles.tabBar}
+          />
+        );
+      }
+      return (
+        <DefaultTabBar
+          underlineStyle={styles.tabUnderlineStyleNfts}
+          activeTextColor={colors.primary.default}
+          inactiveTextColor={colors.text.default}
+          backgroundColor={colors.background.default}
+          tabStyle={styles.tabStyle}
+          textStyle={styles.textStyle}
+          style={styles.tabBar}
+        />
+      );
+    },
     [styles, colors],
   );
 
