@@ -1836,14 +1836,6 @@
     "@ethereumjs/common" "^2.0.0"
     ethereumjs-util "^7.0.7"
 
-"@ethereumjs/tx@3.5.1":
-  version "3.5.1"
-  resolved "https://registry.yarnpkg.com/@ethereumjs/tx/-/tx-3.5.1.tgz#8d941b83a602b4a89949c879615f7ea9a90e6671"
-  integrity sha512-xzDrTiu4sqZXUcaBxJ4n4W5FrppwxLxZB4ZDGVLtxSQR4lVuOnFR6RcUHdg1mpUhAPVrmnzLJpxaeXnPxIyhWA==
-  dependencies:
-    "@ethereumjs/common" "^2.6.3"
-    ethereumjs-util "^7.1.4"
-
 "@ethereumjs/tx@^3.2.1", "@ethereumjs/tx@^3.3.0", "@ethereumjs/tx@^3.5.2":
   version "3.5.2"
   resolved "https://registry.yarnpkg.com/@ethereumjs/tx/-/tx-3.5.2.tgz#197b9b6299582ad84f9527ca961466fce2296c1c"
