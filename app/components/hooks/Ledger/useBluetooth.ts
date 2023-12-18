@@ -3,7 +3,7 @@ import { Subscription } from 'rxjs';
 
 const useBluetooth = (hasBluetoothPermissions: boolean) => {
   const bluetoothOn = false;
-  const bluetoothConnectionError = false;
+  const bluetoothConnectionError = undefined;
 
   // Monitoring for the BLE adapter to be turned on
   useEffect(() => {
