@@ -1,5 +1,5 @@
 diff --git a/node_modules/@metamask/keyring-controller/dist/KeyringController.d.ts b/node_modules/@metamask/keyring-controller/dist/KeyringController.d.ts
-index a05f2a9..7e6b3a6 100644
+index a05f2a9..1291081 100644
 --- a/node_modules/@metamask/keyring-controller/dist/KeyringController.d.ts
 +++ b/node_modules/@metamask/keyring-controller/dist/KeyringController.d.ts
 @@ -1,4 +1,5 @@
@@ -28,6 +28,19 @@ index a05f2a9..7e6b3a6 100644
      /**
       * Adds a new account to the default (first) HD seed phrase keyring.
       *
+@@ -407,7 +421,10 @@ export declare class KeyringController extends BaseControllerV2<typeof name, Key
+     }[]>;
+     unlockQRHardwareWalletAccount(index: number): Promise<void>;
+     getAccountKeyringType(account: string): Promise<string>;
+-    forgetQRDevice(): Promise<void>;
++    forgetQRDevice(): Promise<{
++        removedAccounts: string[];
++        remainingAccounts: string[];
++    }>;
+ }
+ export default KeyringController;
+ //# sourceMappingURL=KeyringController.d.ts.map
+\ No newline at end of file
 diff --git a/node_modules/@metamask/keyring-controller/dist/KeyringController.js b/node_modules/@metamask/keyring-controller/dist/KeyringController.js
 index c4dd1d0..75d5848 100644
 --- a/node_modules/@metamask/keyring-controller/dist/KeyringController.js
