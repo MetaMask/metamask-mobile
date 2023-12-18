@@ -408,6 +408,38 @@ index 6a14075..fc7842e 100644
                      });
                  }
                  return newNfts;
+diff --git a/node_modules/@metamask/assets-controllers/dist/NftDetectionController.d.ts b/node_modules/@metamask/assets-controllers/dist/NftDetectionController.d.ts
+index 20d65ab..c26f596 100644
+--- a/node_modules/@metamask/assets-controllers/dist/NftDetectionController.d.ts
++++ b/node_modules/@metamask/assets-controllers/dist/NftDetectionController.d.ts
+@@ -127,6 +127,7 @@ export declare class NftDetectionController extends BaseController<NftDetectionC
+     name: string;
+     private getOpenSeaApiKey;
+     private addNft;
++    private getNftApi;
+     private getNftState;
+     /**
+      * Creates an NftDetectionController instance.
+@@ -137,16 +138,18 @@ export declare class NftDetectionController extends BaseController<NftDetectionC
+      * @param options.onNetworkStateChange - Allows subscribing to network controller state changes.
+      * @param options.getOpenSeaApiKey - Gets the OpenSea API key, if one is set.
+      * @param options.addNft - Add an NFT.
++     * @param options.getNftApi - Gets the URL to fetch an NFT from OpenSea.
+      * @param options.getNftState - Gets the current state of the Assets controller.
+      * @param config - Initial options used to configure this controller.
+      * @param state - Initial state to set on this controller.
+      */
+-    constructor({ onPreferencesStateChange, onNetworkStateChange, getOpenSeaApiKey, addNft, getNftState, }: {
++    constructor({ onPreferencesStateChange, onNetworkStateChange, getOpenSeaApiKey, addNft, getNftApi, getNftState, }: {
+         onNftsStateChange: (listener: (nftsState: NftState) => void) => void;
+         onPreferencesStateChange: (listener: (preferencesState: PreferencesState) => void) => void;
+         onNetworkStateChange: (listener: (networkState: NetworkState) => void) => void;
+         getOpenSeaApiKey: () => string | undefined;
+         addNft: NftController['addNft'];
++        getNftApi: NftController['getNftApi'];
+         getNftState: () => NftState;
+     }, config?: Partial<NftDetectionConfig>, state?: Partial<BaseState>);
+     /**
 diff --git a/node_modules/@metamask/assets-controllers/dist/NftDetectionController.js b/node_modules/@metamask/assets-controllers/dist/NftDetectionController.js
 index 1f234ca..cfa84bf 100644
 --- a/node_modules/@metamask/assets-controllers/dist/NftDetectionController.js
