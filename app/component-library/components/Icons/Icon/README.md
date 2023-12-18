@@ -1,5 +1,7 @@
 # Icon
 
+![Icon](./Icon.png)
+
 Icon is a component which is used to render icons from our icon set.
 
 ## Props

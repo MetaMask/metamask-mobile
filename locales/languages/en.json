@@ -17,7 +17,15 @@
     "does_not_look_right": "Something doesn’t look right?",
     "suspicious_request_title": "This is a suspicious request",
     "trade_order_farming_description": "If you approve this request, you might lose your assets.",
-    "transfer_farming_description": "If you approve this request, a third party known for scams will take all your assets."
+    "transfer_farming_description": "If you approve this request, a third party known for scams will take all your assets.",
+    "before_you_proceed": "Before you proceed",
+    "enable_blockaid_alerts": "To enable this feature we need to set up some security alert. This page will need to stay open while its being set up. This will take less than a minute to complete.",
+    "setting_up_alerts": "Setting up security alerts",
+    "setting_up_alerts_description": "We are going as fast as we can to set up security alerts. Hang in there, we are almost done.",
+    "setup_complete": "Set up complete",
+    "setup_complete_description": "Security alerts are ready to go. You can close this page and start exploring your wallet",
+    "continue": "Continue",
+    "cancel": "Cancel"
   },
   "date": {
     "months": {
@@ -200,6 +208,10 @@
     "clean_vault_error": "MetaMask encountered an error due to reaching a storage limit. The local data has been corrupted. Please reinstall MetaMask and restore with your Secret Recovery Phrase.",
     "security_alert_title": "Security Alert",
     "security_alert_desc": "In order to proceed, you need to turn Passcode on or any biometrics authentication method supported in your device (FaceID, TouchID or Fingerprint)"
+  },
+  "connect_hardware": {
+    "title_select_hardware": "Connect a hardware wallet",
+    "select_hardware": "Select a hardware wallet you'd like to use"
   },
   "enter_password": {
     "title": "Enter your password",
@@ -513,6 +525,7 @@
   },
   "accounts": {
     "create_new_account": "Create a new account",
+    "qr_hardware": "QR hardware",
     "import_account": "Import an account",
     "connect_hardware": "Connect hardware wallet",
     "imported": "Imported",
@@ -536,6 +549,7 @@
     "permissions": "Permissions",
     "revoke": "Revoke",
     "revoke_all": "Revoke all",
+    "ledger": "Ledger",
     "site_permission_to": "This site has permission to:",
     "address_balance_activity_permission": "See address, account balance, and activity",
     "suggest_transactions": "Suggest transactions to approve",
@@ -569,7 +583,7 @@
     "tutorial": "Tutorial",
     "description4": "Keystone (tutorial)",
     "description5": "1. Unlock your Keystone",
-    "description6": "2. Tap the ··· Menu, then go to Sync >",
+    "description6": "2. Tap the ··· Menu, then go to Sync",
     "button_continue": "Continue",
     "hint_text": "Scan your Keystone wallet to ",
     "purpose_connect": "connect",
@@ -701,6 +715,7 @@
     "remove_network": "Remove",
     "cancel_remove_network": "Cancel",
     "info_title": "About MetaMask",
+    "info_title_flask": "About MetaMask Flask",
     "experimental_title": "Experimental",
     "experimental_desc": "WalletConnect & more...",
     "legal_title": "Legal",
@@ -800,7 +815,54 @@
     "autodetect_nft_desc": "Let MetaMask add NFTs you own using third-party services (like OpenSea). Autodetecting NFTs exposes your IP and account address to these services. Enabling this feature could associate your IP address with your Ethereum address and display fake NFTs airdropped by scammers. You can add tokens manually to avoid this risk.",
     "incoming_transactions_title": "Show incoming transactions",
     "incoming_transactions_content": "This relies on the network you select which will expose your Ethereum address and your IP address.",
-    "display_nft_media_desc_new": "Displaying NFT media and data exposes your IP address to OpenSea or other third parties. NFT autodetection relies on this feature, and won't be available when turned off. If NFT media is fully located on IPFS, it can still be displayed even when this feature is turned off."
+    "display_nft_media_desc_new": "Displaying NFT media and data exposes your IP address to OpenSea or other third parties. NFT autodetection relies on this feature, and won't be available when turned off. If NFT media is fully located on IPFS, it can still be displayed even when this feature is turned off.",
+    "snaps": {
+      "title": "Snaps",
+      "description": "Overview and manage your snaps",
+      "snap_settings": {
+        "remove_snap_section_title": "Remove Snap", 
+        "remove_snap_section_description": "This action will delete the snap, its data, and its granted permissions.",
+        "remove_button_label": "Remove {{snapName}}"
+      },
+      "snap_details": {
+        "install_date": "Installed on {{date}}",
+        "install_origin": "Install Origin",
+        "enabled": "Enabled",
+        "version": "Version"
+      },
+      "snap_permissions": {
+        "approved_date": "Approved on {{date}}",
+        "permission_section_title": "Permissions",
+        "permission_requested_now": "Requested now",
+        "human_readable_permission_titles": {
+          "endowment:long-running": "Run indefinitely",
+          "endowment:network-access": "Access the internet",
+          "endowment:transaction-insight": "Display transaction insights",
+          "endowment:cronjob": "Schedule and run periodic actions",
+          "endowment:rpc": {
+            "snaps": "Allow other snaps to communicate directly with this snap",
+            "dapps": "Allow dapps to communicate directly with this snap"
+          },
+          "snap_confirm": "Display custom dialogs",
+          "snap_manageState": "Store and manage data on your device",
+          "snap_notify": "Show notifications",
+          "snap_getBip32Entropy": "Control your {{protocol}} accounts and assets",
+          "snap_getBip32PublicKey": "View your public key for {{protocol}}",
+          "snap_getBip44Entropy": "Control your {{protocol}} accounts and assets",
+          "snap_getEntropy": "Derive arbitrary keys unique to this snap",
+          "endowment:keyring": "endowment:keyring",
+          "wallet_snap": "Connect to {{otherSnapName}}",
+          "endowment:webassembly": "Support for WebAssembly",
+          "endowment:ethereum-provider": "Access the Ethereum provider",
+          "endowment:unknown": "Unknown permission",
+          "snap_getLocale": "See your preferred language",
+          "endowment:caveat:transaction-origin": "See the origins of websites that suggest transactions",
+          "endowment:extend-runtime": "Extend runtime",
+          "snap_dialog": "Display custom dialogs"
+
+        }
+      }
+    }
   },
   "sdk": {
     "disconnect_title": "Disconnect all sites?",
@@ -909,6 +971,7 @@
     "add_collectible_button": "Add",
     "info": "Info",
     "swap": "Swap",
+    "bridge": "Bridge",
     "description": "Description",
     "totalSupply": "Total Supply",
     "address": "Address",
@@ -920,6 +983,7 @@
     "buy_description": "Buy crypto with cash",
     "sell_description": "Sell crypto for cash",
     "swap_description": "Exchange between tokens",
+    "bridge_description": "Transfer tokens between networks",
     "send_description": "Send crypto to any account",
     "receive_description": "Receive crypto",
     "chart_time_period": {
@@ -1019,6 +1083,7 @@
     "save": "Save",
     "speedup": "Speed up",
     "sign_with_keystone": "Sign with Keystone",
+    "sign_with_ledger": "Sign with Ledger",
     "from": "From",
     "gas_fee": "Gas fee",
     "gas_fee_fast": "FAST",
@@ -1092,6 +1157,7 @@
     "not_enough_for_gas": "You have 0 {{ticker}} in your account to pay for transaction fees. Buy some {{ticker}} or deposit from another account.",
     "send": "Send",
     "confirm_with_qr_hardware": "Confirm with Keystone",
+    "confirm_with_ledger_hardware": "Confirm with Ledger",
     "confirmed": "Confirmed",
     "pending": "Pending",
     "submitted": "Submitted",
@@ -1844,16 +1910,6 @@
     "apple_pay_provider_total_label": "{{provider}} (via MetaMask)",
     "buy_with": "Buy with",
     "plus_fee": "Plus a {{fee}} fee",
-    "notifications": {
-      "purchase_failed_title": "Purchase of {{currency}} has failed! Please try again, sorry for the inconvenience!",
-      "purchase_failed_description": "Verify your payment method and card support",
-      "purchase_cancelled_title": "Your purchase was cancelled",
-      "purchase_cancelled_description": "Verify your payment method and card support",
-      "purchase_completed_title": "Your purchase of {{amount}} {{currency}} was successful!",
-      "purchase_completed_description": "Your {{currency}} is now available",
-      "purchase_pending_title": "Processing your purchase of {{currency}}",
-      "purchase_pending_description": "This should only take a few minutes..."
-    },
     "date": "Date",
     "from": "From",
     "to": "To",
@@ -2011,7 +2067,9 @@
       "select_country_registered": "Select the country where your card is registered (regardless of where you are located).",
       "unsupported": "Region Not Supported",
       "unsupported_description": "We are working hard to expand coverage to your region as soon as we can. In the meantime, see our support article for other ways you may be able to {{rampType}} crypto.",
-      "unsupported_link": "Visit Support Article"
+      "unsupported_link": "Visit Support Article",
+      "popular_regions": "Popular Regions",
+      "regions": "Regions"
     },
     "order_details": {
       "details_main": "Order Details",
@@ -2059,6 +2117,24 @@
       "hold_to_send": "Hold to send",
       "send": "Send",
       "sent": "Sent!"
+    },
+    "notifications": {
+      "purchase_failed_title": "Purchase of {{currency}} has failed! Please try again, sorry for the inconvenience!",
+      "purchase_failed_description": "Verify your payment method and card support",
+      "purchase_cancelled_title": "Your purchase was cancelled",
+      "purchase_cancelled_description": "Verify your payment method and card support",
+      "purchase_completed_title": "Your purchase of {{amount}} {{currency}} was successful!",
+      "purchase_completed_description": "Your {{currency}} is now available",
+      "purchase_pending_title": "Processing your purchase of {{currency}}",
+      "purchase_pending_description": "This should only take a few minutes...",
+      "sale_failed_title": "Order failed",
+      "sale_failed_description": "Your order couldn´t be completed.",
+      "sale_cancelled_title": "Order cancelled",
+      "sale_cancelled_description": "Your order couldn´t be completed.",
+      "sale_completed_title": "Order completed",
+      "sale_completed_description": "Your order was successful!.",
+      "sale_pending_title": "{{currency}} sale processing",
+      "sale_pending_description": "Your order is now being processed."
     }
   },
   "swaps": {
@@ -2151,7 +2227,7 @@
     "i_understand": "I understand",
     "quotes_expire_in": "Quotes expire in",
     "saving": "Saving",
-    "using_best_quote": "Using the best quote",
+    "n_quotes": "{{numberOfQuotes}} quotes",
     "view_details": "View details",
     "estimated_gas_fee": "Estimated gas fee",
     "max_gas_fee": "Max gas fee",
@@ -2164,10 +2240,6 @@
     "completed_swap": "Swap!",
     "metamask_swap_fee": "MetaMask Swap fee",
     "fee_text": {
-      "get_the": "Get the",
-      "best_price": "best price",
-      "from_the": "from the",
-      "top_liquidity": "top liquidity sources every time.",
       "fee_is_applied": "The fee of {{fee}} is automatically factored into this quote. You pay it in exchange for a license to use MetaMask's liquidity provider information aggregation software.",
       "fee_is_not_applied": "MetaMask does not include an additional fee in this quote."
     },
@@ -2200,7 +2272,7 @@
     "quote_source_agg": {
       "1": "This quote comes from an",
       "2": "aggregator",
-      "3": "which finds the best price by splitting your order between different decentralized exchanges."
+      "3": "which compares prices and splits your order between different decentralized exchanges."
     },
     "quote_source_cnt": {
       "1": "This quote comes directly from a",
@@ -2638,7 +2710,12 @@
     "not_supported_error": "Only version 4 of typed data signing is supported.",
     "error_during_connection": "An unknown error occured",
     "error_during_connection_message": "There's been a slight problem connecting your Ledger Nano X, tap 'Retry' below to give this another go. Sometimes this occurs due to the ETH app on your Ledger Nano X being open at the start of the pairing process with MetaMask Mobile.",
-    "how_to_install_eth_webview_title": "How to install the Ethereum App"
+    "how_to_install_eth_webview_title": "How to install the Ethereum App",
+    "nonce_too_low": "Nonce too low",
+    "nonce_too_low_error": "The set nonce is too low",
+    "ledger_beta_alert": "Enabling Ledger integration",
+    "ledger_beta_alert_description": "You've found an experimental feature! By continuing you accept you're using this experimental feature at your own risk.",
+    "ledger_beta_cta": "Continue"
   },
   "account_actions": {
     "edit_name": "Edit account name",
@@ -2678,5 +2755,17 @@
     "ipfs_gateway_content2": "You can turn off IPFS resolution in",
     "ipfs_gateway_content3": "Settings > Security and privacy",
     "ipfs_gateway_content4": "at any time"
+  },
+  "install_snap": {
+    "title": "Connection request",
+    "description": "{{origin}} wants to download and connect with {{snap}}. Make sure you trust the authors before you proceed.",
+    "permissions_request_title": "Permissions request",
+    "permissions_request_description": "{{origin}} wants to install {{snap}}, which is requesting the following permissions.",
+    "approve_permissions": "Approve",
+    "installed": "Installed",
+    "install_successful": "{{snap}} was successfully installed.",
+    "okay_action": "OK",
+    "error_title": "Install failed",
+    "error_description": "Installation of {{snap}} failed."
   }
 }

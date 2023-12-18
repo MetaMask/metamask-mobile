@@ -22,6 +22,16 @@ const Routes = {
     SETTINGS: 'RampSettings',
     ADD_ACTIVATION_KEY: 'RampAddActivationKey',
   },
+  HW: {
+    CONNECT: 'ConnectHardwareWalletFlow',
+    SELECT_DEVICE: 'SelectHardwareWallet',
+    CONNECT_QR_DEVICE: 'ConnectQRHardwareFlow',
+    CONNECT_LEDGER: 'ConnectLedgerFlow',
+    LEDGER_ACCOUNT: 'LedgerAccountInfo',
+    LEDGER_CONNECT: 'LedgerConnect',
+  },
+  LEDGER_MESSAGE_SIGN_MODAL: 'LedgerMessageSignModal',
+  LEDGER_TRANSACTION_MODAL: 'LedgerTransactionModal',
   QR_SCANNER: 'QRScanner',
   TRANSACTIONS_VIEW: 'TransactionsView',
   MODAL: {
@@ -71,6 +81,7 @@ const Routes = {
     ACCOUNT_PERMISSIONS: 'AccountPermissions',
     NETWORK_SELECTOR: 'NetworkSelector',
     RETURN_TO_DAPP_MODAL: 'ReturnToDappModal',
+    BLOCKAID_INDICATOR: 'BlockaidIndicator',
     ACCOUNT_ACTIONS: 'AccountActions',
     ETH_SIGN_FRICTION: 'SettingsAdvancedEthSignFriction',
     SHOW_IPFS: 'ShowIpfs',
@@ -97,6 +108,12 @@ const Routes = {
   ADD_NETWORK: 'AddNetwork',
   SWAPS: 'Swaps',
   LOCK_SCREEN: 'LockScreen',
+  ///: BEGIN:ONLY_INCLUDE_IF(snaps)
+  SNAPS: {
+    SNAPS_SETTINGS_LIST: 'SnapsSettingsList',
+    SNAP_SETTINGS: 'SnapSettings',
+  },
+  ///: END:ONLY_INCLUDE_IF
 };
 
 export default Routes;

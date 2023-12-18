@@ -3,21 +3,32 @@
 import {
   ActionType,
   SetSecurityAlertsEnabled,
+  SetPPOMInitializedCompleted,
 } from '../../actions/experimental';
 
 const initialState = {
   securityAlertsEnabled: false,
+  ppomInitializationCompleted: false,
 };
 
 const experimentalSettingsReducer = (
   state = initialState,
-  action: SetSecurityAlertsEnabled,
+  action: {
+    securityAlertsEnabled: SetSecurityAlertsEnabled;
+    ppomInitializationCompleted: typeof SetPPOMInitializedCompleted;
+    type: string;
+  },
 ) => {
   switch (action.type) {
     case ActionType.SET_SECURITY_ALERTS_ENABLED:
       return {
         ...state,
         securityAlertsEnabled: action.securityAlertsEnabled,
+      };
+    case ActionType.SET_PPOM_INITIALIZATION_COMPLETED:
+      return {
+        ...state,
+        ppomInitializationCompleted: action.ppomInitializationCompleted,
       };
     default:
       return state;

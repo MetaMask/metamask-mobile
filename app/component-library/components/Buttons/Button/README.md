@@ -1,5 +1,7 @@
 # Button
 
+![Button](./Button.png)
+
 Buttons allow users to take actions, and make choices, with a single tap.
 This component is a union component, which consists of [ButtonLink](./variants/ButtonLink/ButtonLink.tsx), [ButtonPrimary](./variants/ButtonPrimary/ButtonPrimary.tsx), and [ButtonSecondary](./variants/ButtonSecondary/ButtonSecondary.tsx).
 

@@ -46,3 +46,10 @@ export function setUseBlockieIcon(useBlockieIcon) {
     useBlockieIcon,
   };
 }
+
+export function setLedgerBetaEnabled(ledgerBetaEnabled) {
+  return {
+    type: 'SET_LEDGER_BETA_ENABLED',
+    ledgerBetaEnabled,
+  };
+}

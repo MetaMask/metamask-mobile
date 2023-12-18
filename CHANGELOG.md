@@ -10,7 +10,6 @@
 ### Fixed 
 - [#8057](https://github.com/MetaMask/metamask-mobile/pull/8057): fix: Disable SES on iOS 
 
-
 ## 7.12.1 - Dec 5, 2023
 ### Fixed 
 - [#7991](https://github.com/MetaMask/metamask-mobile/pull/7991): fix: patch for token rates controller with coin gecko endpoint
