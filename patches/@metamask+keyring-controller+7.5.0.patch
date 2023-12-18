@@ -42,7 +42,7 @@ index a05f2a9..1291081 100644
  //# sourceMappingURL=KeyringController.d.ts.map
 \ No newline at end of file
 diff --git a/node_modules/@metamask/keyring-controller/dist/KeyringController.js b/node_modules/@metamask/keyring-controller/dist/KeyringController.js
-index c4dd1d0..75d5848 100644
+index c4dd1d0..ddc4155 100644
 --- a/node_modules/@metamask/keyring-controller/dist/KeyringController.js
 +++ b/node_modules/@metamask/keyring-controller/dist/KeyringController.js
 @@ -154,6 +154,21 @@ class KeyringController extends base_controller_1.BaseControllerV2 {
@@ -67,7 +67,7 @@ index c4dd1d0..75d5848 100644
      /**
       * Adds a new account to the default (first) HD seed phrase keyring.
       *
-@@ -745,13 +760,21 @@ class KeyringController extends base_controller_1.BaseControllerV2 {
+@@ -745,13 +760,23 @@ class KeyringController extends base_controller_1.BaseControllerV2 {
      }
      forgetQRDevice() {
          return __awaiter(this, void 0, void 0, function* () {
@@ -76,8 +76,10 @@ index c4dd1d0..75d5848 100644
 +             * This patch addresses an issue regarding the forget device functionality. It
 +             * improves the logic  to correctly remove the QR accounts and update the
 +             * identities as needed.
++             * 
++             * Solved in https://github.com/MetaMask/core/pull/3641
 +             * ===============================================================================
-+            */
++             */
              const keyring = yield this.getOrAddQRKeyring();
 +            const allAccounts = (yield __classPrivateFieldGet(this, _KeyringController_keyring, "f").getAccounts());
              keyring.forgetDevice();
