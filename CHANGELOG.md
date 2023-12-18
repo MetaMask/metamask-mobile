@@ -63,6 +63,9 @@
 - [#7881](https://github.com/MetaMask/metamask-mobile/pull/7881): fix: 7862 invalid address error
 - [#7864](https://github.com/MetaMask/metamask-mobile/pull/7864): feat(ramp): sell what's new modal content
 
+## 7.12.2 - Dec 8, 2023
+### Fixed 
+- [#8057](https://github.com/MetaMask/metamask-mobile/pull/8057): fix: Disable SES on iOS 
 
 ## 7.12.1 - Dec 5, 2023
 ### Fixed
