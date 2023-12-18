@@ -110,6 +110,22 @@ index 332c87d..b634fde 100644
      /**
       * Enumerate assets assigned to an owner.
       *
+diff --git a/node_modules/@metamask/assets-controllers/dist/NftController.d.ts b/node_modules/@metamask/assets-controllers/dist/NftController.d.ts
+index a71d8f0..0353e90 100644
+--- a/node_modules/@metamask/assets-controllers/dist/NftController.d.ts
++++ b/node_modules/@metamask/assets-controllers/dist/NftController.d.ts
+@@ -140,7 +140,10 @@ export interface NftState extends BaseState {
+  */
+ export declare class NftController extends BaseController<NftConfig, NftState> {
+     private mutex;
+-    private getNftApi;
++    getNftApi({ contractAddress, tokenId, }: {
++        contractAddress: string;
++        tokenId: string;
++    }): string;
+     private getNftContractInformationApi;
+     /**
+      * Helper method to update nested state for allNfts and allNftContracts.
 diff --git a/node_modules/@metamask/assets-controllers/dist/NftController.js b/node_modules/@metamask/assets-controllers/dist/NftController.js
 index 6a14075..fc7842e 100644
 --- a/node_modules/@metamask/assets-controllers/dist/NftController.js
