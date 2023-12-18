@@ -1,14 +1,21 @@
 diff --git a/node_modules/react-native-svg/src/xml.tsx b/node_modules/react-native-svg/src/xml.tsx
-index 828f104..9eaf82a 100644
+index 828f104..db726a9 100644
 --- a/node_modules/react-native-svg/src/xml.tsx
 +++ b/node_modules/react-native-svg/src/xml.tsx
-@@ -123,21 +123,32 @@ export function SvgXml(props: XmlProps) {
+@@ -123,21 +123,39 @@ export function SvgXml(props: XmlProps) {
  }
  
  export async function fetchText(uri: string) {
 -  const response = await fetch(uri);
 -  return await response.text();
 +	const response = await fetch(uri);
++  // This is a temporary fix for dapps with bad metadata icon urls
++  // Remove this once we replace WebsiteIcon with AvatarFavicon component
++  const excludeList = ['text/html', ''];
++  const contentType = response.headers.get('content-type') || '';
++  if (excludeList.includes(contentType)) {
++    throw new Error(`Fetching ${uri} resulted in invalid content-type ${contentType}`);
++  }
 +	if (!response.ok) {
 +		throw new Error('Image not found');
 +	}
