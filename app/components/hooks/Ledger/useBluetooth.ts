@@ -1,9 +1,9 @@
-import { useState, useEffect } from 'react';
+import { useEffect } from 'react';
 import { Subscription } from 'rxjs';
 
 const useBluetooth = (hasBluetoothPermissions: boolean) => {
-  const [bluetoothOn] = useState(false);
-  const [bluetoothConnectionError] = useState<boolean>();
+  const bluetoothOn = false;
+  const bluetoothConnectionError = false;
 
   // Monitoring for the BLE adapter to be turned on
   useEffect(() => {

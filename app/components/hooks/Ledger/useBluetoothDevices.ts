@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect } from 'react';
 import { Observer, Subscription } from 'rxjs';
 
 export interface BluetoothDevice {
@@ -22,8 +22,8 @@ const useBluetoothDevices = (
   hasBluetoothPermissions: boolean,
   bluetoothOn: boolean,
 ) => {
-  const [devices] = useState<Record<string, BluetoothDevice>>({});
-  const [deviceScanError] = useState<boolean>(false);
+  const devices = {};
+  const deviceScanError = false;
 
   // Initiate scanning and pairing if bluetooth is enabled
   useEffect(() => {
