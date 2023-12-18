@@ -63,12 +63,16 @@
 - [#7881](https://github.com/MetaMask/metamask-mobile/pull/7881): fix: 7862 invalid address error
 - [#7864](https://github.com/MetaMask/metamask-mobile/pull/7864): feat(ramp): sell what's new modal content
 
+## 7.12.3 - Dec 18, 2023
+### Fixed 
+- [#8102](https://github.com/MetaMask/metamask-mobile/pull/8102): fix: prevent bad svg urls in react-native-svg
+
 ## 7.12.2 - Dec 8, 2023
 ### Fixed 
 - [#8057](https://github.com/MetaMask/metamask-mobile/pull/8057): fix: Disable SES on iOS 
 
 ## 7.12.1 - Dec 5, 2023
-### Fixed
+### Fixed 
 - [#7991](https://github.com/MetaMask/metamask-mobile/pull/7991): fix: patch for token rates controller with coin gecko endpoint
 
 ## 7.12.0 - Dec 4, 2023
