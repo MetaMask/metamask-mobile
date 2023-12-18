@@ -36,10 +36,7 @@ import { toLowerCaseEquals } from '../../../util/general';
 import { KEYSTONE_TX_CANCELED } from '../../../constants/error';
 import { MetaMetricsEvents } from '../../../core/Analytics';
 import AnalyticsV2 from '../../../util/analyticsV2';
-import {
-  getAddressAccountType,
-  isHardwareAccount,
-} from '../../../util/address';
+import { getAddressAccountType } from '../../../util/address';
 import {
   selectChainId,
   selectProviderType,
@@ -60,9 +57,9 @@ import TemplateConfirmationModal from '../../Approvals/TemplateConfirmationModal
 import { selectTokenList } from '../../../selectors/tokenListController';
 import { selectTokens } from '../../../selectors/tokensController';
 import { selectSelectedAddress } from '../../../selectors/preferencesController';
-import { getLedgerKeyring } from '../../../core/Ledger/Ledger';
-import { createLedgerTransactionModalNavDetails } from '../../UI/LedgerModals/LedgerTransactionModal';
-import ExtendedKeyringTypes from '../../../constants/keyringTypes';
+///: BEGIN:ONLY_INCLUDE_IF(snaps)
+import InstallSnapApproval from '../../Approvals/InstallSnapApproval';
+///: END:ONLY_INCLUDE_IF
 
 const hstInterface = new ethers.utils.Interface(abi);
 
@@ -214,27 +211,7 @@ const RootRPCMethodsUI = (props) => {
         );
         await KeyringController.resetQRKeyringState();
 
-        const isLedgerAccount = isHardwareAccount(
-          transactionMeta.transaction.from,
-          [ExtendedKeyringTypes.ledger],
-        );
-
-        // For Ledger Accounts we handover the signing to the confirmation flow
-        if (isLedgerAccount) {
-          const ledgerKeyring = await getLedgerKeyring();
-
-          props.navigation.navigate(
-            ...createLedgerTransactionModalNavDetails({
-              transactionId: transactionMeta.id,
-              deviceId: ledgerKeyring.deviceId,
-              // eslint-disable-next-line no-empty-function
-              onConfirmationComplete: () => {},
-              type: 'signTransaction',
-            }),
-          );
-        } else {
-          Engine.acceptPendingApproval(transactionMeta.id);
-        }
+        Engine.acceptPendingApproval(transactionMeta.id);
       } catch (error) {
         if (!error?.message.startsWith(KEYSTONE_TX_CANCELED)) {
           Alert.alert(
@@ -250,7 +227,7 @@ const RootRPCMethodsUI = (props) => {
         }
       }
     },
-    [props.navigation, props.swapsTransactions, trackSwaps],
+    [props.swapsTransactions, trackSwaps],
   );
 
   const onUnapprovedTransaction = useCallback(
