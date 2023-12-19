@@ -19,9 +19,12 @@ import {
   isSellOrder,
   isSellFiatOrder,
   getNotificationDetails,
+  stateHasOrder,
 } from '.';
 import { FIAT_ORDER_STATES } from '../../../../../constants/on-ramp';
 import { FiatOrder, RampType } from '../../../../../reducers/fiatOrders/types';
+import { getOrders } from '../../../../../reducers/fiatOrders';
+import type { RootState } from '../../../../../reducers';
 
 describe('timeToDescription', () => {
   it('should return a function', () => {
@@ -450,5 +453,31 @@ describe('getNotificationDetails', () => {
       state: FIAT_ORDER_STATES.CREATED,
     });
     expect(createdDetails).toMatchInlineSnapshot(`null`);
+  });
+});
+
+jest.mock('../../../../../reducers/fiatOrders', () => ({
+  getOrders: jest.fn(),
+}));
+
+describe('stateHasOrder', () => {
+  it('should return true if state has order', () => {
+    (getOrders as jest.MockedFunction<typeof getOrders>).mockReturnValueOnce([
+      { id: '1' },
+      { id: '2' },
+      { id: '3' },
+    ] as FiatOrder[]);
+    expect(stateHasOrder({} as RootState, { id: '1' } as FiatOrder)).toBe(true);
+  });
+
+  it('should return false if state does not have the order', () => {
+    (getOrders as jest.MockedFunction<typeof getOrders>).mockReturnValueOnce([
+      { id: '1' },
+      { id: '2' },
+      { id: '3' },
+    ] as FiatOrder[]);
+    expect(stateHasOrder({} as RootState, { id: '4' } as FiatOrder)).toBe(
+      false,
+    );
   });
 });
