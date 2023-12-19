@@ -1683,7 +1683,7 @@ index 1b69903..d45fe80 100644
  /**
   * Check if token detection is enabled for certain networks.
 diff --git a/node_modules/@metamask/assets-controllers/dist/assetsUtil.js b/node_modules/@metamask/assets-controllers/dist/assetsUtil.js
-index 4b54e82..4cb845e 100644
+index 4b54e82..6aafed6 100644
 --- a/node_modules/@metamask/assets-controllers/dist/assetsUtil.js
 +++ b/node_modules/@metamask/assets-controllers/dist/assetsUtil.js
 @@ -120,6 +120,7 @@ var SupportedTokenDetectionNetworks;
@@ -1694,10 +1694,86 @@ index 4b54e82..4cb845e 100644
  })(SupportedTokenDetectionNetworks = exports.SupportedTokenDetectionNetworks || (exports.SupportedTokenDetectionNetworks = {}));
  /**
   * Check if token detection is enabled for certain networks.
-@@ -225,4 +226,50 @@ function ethersBigNumberToBN(bigNumber) {
+@@ -225,4 +226,126 @@ function ethersBigNumberToBN(bigNumber) {
      return new ethereumjs_util_1.BN((0, ethereumjs_util_1.stripHexPrefix)(bigNumber.toHexString()), 'hex');
  }
  exports.ethersBigNumberToBN = ethersBigNumberToBN;
++/**
++ * Maps an OpenSea V2 NFT to the V1 schema.
++ * @param nft - The V2 NFT to map.
++ * @returns The NFT in the V1 schema.
++ */
++function mapOpenSeaNftV2ToV1(nft) {
++    return {
++        token_id: nft.identifier,
++        num_sales: null,
++        background_color: null,
++        image_url: nft.image_url,
++        image_preview_url: null,
++        image_thumbnail_url: null,
++        image_original_url: null,
++        animation_url: null,
++        animation_original_url: null,
++        name: nft.name,
++        description: nft.description,
++        external_link: null,
++        asset_contract: {
++            address: nft.contract,
++            asset_contract_type: null,
++            created_date: null,
++            schema_name: nft.token_standard.toUpperCase(),
++            symbol: null,
++            total_supply: null,
++            description: nft.description,
++            external_link: null,
++            collection: {
++                name: nft.collection,
++                image_url: null,
++            },
++        },
++        creator: {
++            user: { username: '' },
++            profile_img_url: '',
++            address: '',
++        },
++        last_sale: null,
++    };
++}
++exports.mapOpenSeaNftV2ToV1 = mapOpenSeaNftV2ToV1;
++/**
++ * Maps an OpenSea V2 detailed NFT to the V1 schema.
++ * @param nft - The V2 detailed NFT to map.
++ * @returns The NFT in the V1 schema.
++ */
++function mapOpenSeaDetailedNftV2ToV1(nft) {
++    const mapped = mapOpenSeaNftV2ToV1(nft);
++    return Object.assign(Object.assign({}, mapped), { animation_url: nft.animation_url, creator: Object.assign(Object.assign({}, mapped.creator), { address: nft.creator }) });
++}
++exports.mapOpenSeaDetailedNftV2ToV1 = mapOpenSeaDetailedNftV2ToV1;
++/**
++ * Maps an OpenSea V2 contract to the V1 schema.
++ * @param contract - The v2 contract data.
++ * @param collection - The v2 collection data.
++ * @returns The contract in the v1 schema.
++ */
++function mapOpenSeaContractV2ToV1(contract, collection) {
++    var _a, _b, _c;
++    return {
++        address: contract.address,
++        asset_contract_type: null,
++        created_date: null,
++        schema_name: contract.contract_standard.toUpperCase(),
++        symbol: null,
++        total_supply: contract.supply.toString(),
++        description: (_a = collection === null || collection === void 0 ? void 0 : collection.description) !== null && _a !== void 0 ? _a : null,
++        external_link: (_b = collection === null || collection === void 0 ? void 0 : collection.project_url) !== null && _b !== void 0 ? _b : null,
++        collection: {
++            name: (_c = collection === null || collection === void 0 ? void 0 : collection.name) !== null && _c !== void 0 ? _c : contract.name,
++            image_url: collection === null || collection === void 0 ? void 0 : collection.image_url,
++        },
++    };
++}
++exports.mapOpenSeaContractV2ToV1 = mapOpenSeaContractV2ToV1;
 +/**
 + * Partitions a list of values into groups that are at most `batchSize` in
 + * length.
