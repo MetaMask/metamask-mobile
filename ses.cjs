@@ -9387,17 +9387,6 @@ const        getAnonymousIntrinsics=  ()=>  {
 
    }
 
-  if( globalThis.AsyncIterator) {
-    intrinsics['%AsyncIteratorHelperPrototype%']=  getPrototypeOf(
-      // eslint-disable-next-line @endo/no-polymorphic-call
-      globalThis.AsyncIterator.from([]).take(0));
-
-    intrinsics['%WrapForValidAsyncIteratorPrototype%']=  getPrototypeOf(
-      // eslint-disable-next-line @endo/no-polymorphic-call
-      globalThis.AsyncIterator.from({ next() { }}));
-
-   }
-
   return intrinsics;
  };$h‍_once.getAnonymousIntrinsics(getAnonymousIntrinsics);
 })()
