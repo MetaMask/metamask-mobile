@@ -1,5 +1,5 @@
 import React, { useRef, useEffect, useState } from 'react';
-import { View, InteractionManager, Pressable } from 'react-native';
+import { View, Pressable } from 'react-native';
 import { PPOMInitialisationStatus } from '@metamask/ppom-validator';
 
 import SheetHeader from '../../../../../component-library/components/Sheet/SheetHeader';
