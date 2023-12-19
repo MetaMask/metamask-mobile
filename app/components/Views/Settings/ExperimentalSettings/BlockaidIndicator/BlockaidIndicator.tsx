@@ -189,7 +189,7 @@ const BlockaidIndicator = ({ navigation }: Props) => {
           <SheetHeader title={strings('blockaid_banner.failed')} />
           <Text variant={TextVariant.BodyMD}>
             {multiFailures
-              ? strings('blockaid_banner.setup_multiple_filures')
+              ? strings('blockaid_banner.setup_multiple_failures')
               : strings('blockaid_banner.setup_failed')}
           </Text>
           <View style={styles.buttonWrapper}>
