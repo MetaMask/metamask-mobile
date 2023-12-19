@@ -683,7 +683,7 @@ index 8bb7c20..d0dfdee 100644
  //# sourceMappingURL=TokenRatesController.d.ts.map
 \ No newline at end of file
 diff --git a/node_modules/@metamask/assets-controllers/dist/TokenRatesController.js b/node_modules/@metamask/assets-controllers/dist/TokenRatesController.js
-index e3f81e9..d74eba3 100644
+index e3f81e9..8f6a719 100644
 --- a/node_modules/@metamask/assets-controllers/dist/TokenRatesController.js
 +++ b/node_modules/@metamask/assets-controllers/dist/TokenRatesController.js
 @@ -8,37 +8,61 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
@@ -922,7 +922,7 @@ index e3f81e9..d74eba3 100644
 +            if (this.config.chainId !== chainId ||
 +                this.config.nativeCurrency !== ticker) {
 +                this.update({ contractExchangeRates: {} });
-+                this.configure({ chainId, nativeCurrency: ticker });
++                this.configure({ chainId, nativeCurrency: ticker ?? 'ETH' });
 +                if (__classPrivateFieldGet(this, _TokenRatesController_pollState, "f") === PollState.Active) {
 +                    yield this.updateExchangeRates();
 +                }
