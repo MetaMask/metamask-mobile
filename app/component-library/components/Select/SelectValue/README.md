@@ -95,7 +95,7 @@ Optional content to be displayed after the info section.
     endAccessory={SAMPLE_ENDACCESSORY_EL}
 />
 
-// Custom info section
+// Custom info session
 <SelectValue>
     {SAMPLE_CHILDREN}
 </SelectValue>

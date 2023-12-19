@@ -88,6 +88,7 @@ const getStories = () => {
     "./app/component-library/components/Pickers/PickerNetwork/PickerNetwork.stories.tsx": require("../app/component-library/components/Pickers/PickerNetwork/PickerNetwork.stories.tsx"),
     "./app/component-library/components/RadioButton/RadioButton.stories.tsx": require("../app/component-library/components/RadioButton/RadioButton.stories.tsx"),
     "./app/component-library/components/Select/SelectOption/SelectOption.stories.tsx": require("../app/component-library/components/Select/SelectOption/SelectOption.stories.tsx"),
+    "./app/component-library/components/Select/SelectButton/SelectButton.stories.tsx": require("../app/component-library/components/Select/SelectButton/SelectButton.stories.tsx"),
     "./app/component-library/components/Select/SelectValue/SelectValue.stories.tsx": require("../app/component-library/components/Select/SelectValue/SelectValue.stories.tsx"),
     "./app/component-library/components/Sheet/SheetBottom/SheetBottom.stories.tsx": require("../app/component-library/components/Sheet/SheetBottom/SheetBottom.stories.tsx"),
     "./app/component-library/components/Sheet/SheetHeader/SheetHeader.stories.tsx": require("../app/component-library/components/Sheet/SheetHeader/SheetHeader.stories.tsx"),
