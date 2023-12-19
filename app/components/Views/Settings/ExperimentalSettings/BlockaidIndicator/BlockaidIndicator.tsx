@@ -69,7 +69,7 @@ const BlockaidIndicator = ({ navigation }: Props) => {
       AnalyticsV2.trackEvent(
         MetaMetricsEvents.SETTINGS_EXPERIMENTAL_SECURITY_ALERTS_ENABLED,
         {
-          security_alerts_enabled: !securityAlertsEnabled,
+          security_alerts_enabled: true,
         },
       );
     });
