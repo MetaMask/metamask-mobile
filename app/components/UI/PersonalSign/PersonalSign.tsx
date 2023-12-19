@@ -4,7 +4,6 @@ import { View, Text, InteractionManager } from 'react-native';
 import Engine from '../../../core/Engine';
 import SignatureRequest from '../SignatureRequest';
 import ExpandedMessage from '../SignatureRequest/ExpandedMessage';
-import { hexToText } from '@metamask/controller-utils';
 import NotificationManager from '../../../core/NotificationManager';
 import { strings } from '../../../../locales/i18n';
 import { WALLET_CONNECT_ORIGIN } from '../../../util/walletconnect';
@@ -13,6 +12,7 @@ import AnalyticsV2 from '../../../util/analyticsV2';
 import {
   getAddressAccountType,
   isExternalHardwareAccount,
+  stripHexPrefix,
 } from '../../../util/address';
 import sanitizeString from '../../../util/string';
 import { KEYSTONE_TX_CANCELED } from '../../../constants/error';
@@ -28,6 +28,25 @@ import { store } from '../../../store';
 import { getBlockaidMetricsParams } from '../../../util/blockaid';
 import { SecurityAlertResponse } from '../BlockaidBanner/BlockaidBanner.types';
 import { SigningModalSelectorsIDs } from '../../../../e2e/selectors/Modals/SigningModal.selectors';
+import Logger from '../../../util/Logger';
+
+/**
+ * Converts a hexadecimal string to a utf8 string.
+ * If the hexadecimal string is 32 bytes long, it is assumed to be a hash and returned as is.
+ *
+ * @param {string} hex - Hexadecimal string to convert
+ * @returns {string} - The utf8 equivalent or the original hexadecimal string.
+ */
+function msgHexToText(hex: string): string {
+  try {
+    const stripped = stripHexPrefix(hex);
+    const buff = Buffer.from(stripped, 'hex');
+    return buff.length === 32 ? hex : buff.toString('utf8');
+  } catch (e) {
+    Logger.log(e);
+    return hex;
+  }
+}
 
 /**
  * Component that supports personal_sign
@@ -161,7 +180,7 @@ const PersonalSign = ({
   };
 
   const renderMessageText = () => {
-    const textChild = sanitizeString(hexToText(messageParams.data))
+    const textChild = sanitizeString(msgHexToText(messageParams.data))
       .split('\n')
       .map((line: string, i: number) => (
         <Text
