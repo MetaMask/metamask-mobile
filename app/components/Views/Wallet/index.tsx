@@ -62,6 +62,7 @@ const createStyles = ({ colors, typography }: Theme) =>
     },
     tabStyle: {
       paddingBottom: 0,
+      paddingVertical: 8,
     },
     tabBar: {
       borderColor: colors.background.default,

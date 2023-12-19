@@ -28,12 +28,14 @@ const styleSheet = (params: { theme: Theme }) => {
     },
     tabStyle: {
       paddingBottom: 0,
+      paddingVertical: 8,
     },
     textStyle: {
-      fontSize: 16,
-      letterSpacing: 0.5,
+      fontSize: 14,
+      fontWeight: 500,
+      lineHeight: 22,
       textTransform: 'capitalize',
-      ...fontStyles.bold,
+      ...fontStyles.normal,
     },
   });
 };
