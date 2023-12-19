@@ -1,5 +1,6 @@
 import React, { FC, useCallback, useEffect } from 'react';
 import { ScrollView, Switch, View } from 'react-native';
+
 import { strings } from '../../../../../locales/i18n';
 import Engine from '../../../../core/Engine';
 import { colors as importedColors } from '../../../../styles/common';
@@ -8,6 +9,9 @@ import Text, {
   TextVariant,
   TextColor,
 } from '../../../../component-library/components/Texts/Text';
+import { UpdatePPOMInitializationStatus } from '../../../../actions/experimental';
+import AnalyticsV2 from '../../../../util/analyticsV2';
+import { MetaMetricsEvents } from '../../../../core/Analytics';
 import { getNavigationOptionsTitle } from '../../../UI/Navbar';
 import StyledButton from '../../../UI/StyledButton';
 import SECURITY_ALERTS_TOGGLE_TEST_ID from './constants';
@@ -34,10 +38,6 @@ const ExperimentalSettings = ({ navigation, route }: Props) => {
 
   const toggleSecurityAlertsEnabled = () => {
     if (securityAlertsEnabled) {
-      dispatch({
-        type: 'SET_PPOM_INITIALIZATION_COMPLETED',
-        ppomInitializationCompleted: false,
-      });
       PreferencesController?.setSecurityAlertsEnabled(!securityAlertsEnabled);
     } else {
       navigation.navigate(Routes.MODAL.ROOT_MODAL_FLOW, {
@@ -45,6 +45,10 @@ const ExperimentalSettings = ({ navigation, route }: Props) => {
       });
     }
   };
+
+  useEffect(() => {
+    dispatch(UpdatePPOMInitializationStatus());
+  }, [dispatch]);
 
   useEffect(
     () => {

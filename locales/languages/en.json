@@ -23,9 +23,14 @@
     "setting_up_alerts": "Setting up security alerts",
     "setting_up_alerts_description": "We are going as fast as we can to set up security alerts. Hang in there, we are almost done.",
     "setup_complete": "Set up complete",
-    "setup_complete_description": "Security alerts are ready to go. You can close this pageand start exploring your wallet",
+    "setup_failed": "We could not finish setting up the security alerts. Check your internet connection and try again.",
+    "setup_multiple_failures": "Your internet connection isn’t stable right now, so we couldn’t set up security alerts. Please try again when your connection is restored.",
+    "setup_complete_description": "Security alerts are ready to go. You can close this page and start exploring your wallet",
     "continue": "Continue",
-    "cancel": "Cancel"
+    "cancel": "Cancel",
+    "got_it": "Got it",
+    "try_again": "Try Again",
+    "failed": "Something went wrong"
   },
   "date": {
     "months": {
