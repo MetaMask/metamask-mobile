@@ -23,7 +23,7 @@ const controllerNames = [
   {
     name: 'PhishingController',
     initialState: {},
-    blacklist: ['phishing', 'whitelist'],
+    denyList: ['phishing', 'whitelist'],
   },
   { name: 'PreferencesController', initialState: {} },
   { name: 'TokenBalancesController', initialState: {} },
@@ -32,7 +32,7 @@ const controllerNames = [
   {
     name: 'SwapsController',
     initialState: {},
-    blacklist: [
+    denyList: [
       'aggregatorMetadata',
       'aggregatorMetadataLastFetched',
       'chainCache',
@@ -45,7 +45,7 @@ const controllerNames = [
   {
     name: 'TokenListController',
     initialState: {},
-    blacklist: ['tokenList, tokensChainCache'],
+    denyList: ['tokenList, tokensChainCache'],
   },
   {
     name: 'CurrencyRateController',
@@ -100,10 +100,10 @@ const controllerReducer =
 
 export const controllerReducers = controllerNames.reduce(
   (output, controllerConfig) => {
-    const { name, initialState, blacklist = [] } = controllerConfig;
+    const { name, initialState, denyList = [] } = controllerConfig;
 
     const reducer = persistReducer(
-      createPersistConfig({ key: name, blacklist }),
+      createPersistConfig({ key: name, blacklist: denyList }),
       controllerReducer({ controllerName: name, initialState }),
     );
 
