@@ -1,0 +1,228 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`SelectButton should render snapshot correctly 1`] = `
+<TouchableOpacity
+  accessibilityRole="button"
+  activeOpacity={1}
+  style={
+    Object {
+      "alignItems": "center",
+      "backgroundColor": "#FFFFFF",
+      "borderColor": "#BBC0C5",
+      "borderRadius": 8,
+      "borderWidth": 1,
+      "flexDirection": "row",
+      "minHeight": 40,
+      "opacity": 1,
+      "paddingHorizontal": 16,
+      "paddingVertical": 8,
+    }
+  }
+  testID="selectbutton"
+>
+  <View
+    accessibilityRole="none"
+    accessible={true}
+    style={
+      Object {
+        "alignItems": "center",
+        "flex": 1,
+        "flexDirection": "row",
+        "marginRight": 8,
+        "padding": 0,
+      }
+    }
+  >
+    <View
+      style={
+        Object {
+          "flex": -1,
+        }
+      }
+      testID="listitemcolumn"
+    >
+      <View
+        style={
+          Object {
+            "backgroundColor": "#FFFFFF",
+            "borderRadius": 16,
+            "height": 32,
+            "overflow": "hidden",
+            "width": 32,
+          }
+        }
+      >
+        <View
+          style={
+            Array [
+              Object {
+                "overflow": "hidden",
+              },
+              Object {
+                "backgroundColor": "#F1D702",
+                "borderRadius": 16,
+                "height": 32,
+                "width": 32,
+              },
+              undefined,
+            ]
+          }
+        >
+          <RNSVGSvgView
+            bbHeight={32}
+            bbWidth={32}
+            focusable={false}
+            height={32}
+            style={
+              Array [
+                Object {
+                  "backgroundColor": "transparent",
+                  "borderWidth": 0,
+                },
+                Object {
+                  "flex": 0,
+                  "height": 32,
+                  "width": 32,
+                },
+              ]
+            }
+            width={32}
+          >
+            <RNSVGGroup>
+              <RNSVGRect
+                fill={4278401629}
+                height={32}
+                matrix={
+                  Array [
+                    0.9865721616069695,
+                    0.16332596224162158,
+                    -0.16332596224162158,
+                    0.9865721616069695,
+                    4.46613167496758,
+                    -5.783427567500757,
+                  ]
+                }
+                propList={
+                  Array [
+                    "fill",
+                  ]
+                }
+                width={32}
+                x={0}
+                y={0}
+              />
+              <RNSVGRect
+                fill={4293653248}
+                height={32}
+                matrix={
+                  Array [
+                    -0.9510565162951535,
+                    0.3090169943749475,
+                    -0.3090169943749475,
+                    -0.9510565162951535,
+                    56.99785298993899,
+                    28.83420484922151,
+                  ]
+                }
+                propList={
+                  Array [
+                    "fill",
+                  ]
+                }
+                width={32}
+                x={0}
+                y={0}
+              />
+              <RNSVGRect
+                fill={4291236897}
+                height={32}
+                matrix={
+                  Array [
+                    -0.9438009515832294,
+                    0.3305143927132231,
+                    -0.3305143927132231,
+                    -0.9438009515832294,
+                    58.82830600098727,
+                    40.20612936020905,
+                  ]
+                }
+                propList={
+                  Array [
+                    "fill",
+                  ]
+                }
+                width={32}
+                x={0}
+                y={0}
+              />
+            </RNSVGGroup>
+          </RNSVGSvgView>
+        </View>
+      </View>
+    </View>
+    <View
+      accessible={false}
+      style={
+        Object {
+          "width": 8,
+        }
+      }
+      testID="listitem-gap"
+    />
+    <View
+      style={
+        Object {
+          "flex": 1,
+        }
+      }
+      testID="listitemcolumn"
+    >
+      <Text
+        accessibilityRole="text"
+        style={
+          Object {
+            "color": "#24272A",
+            "fontFamily": "Euclid Circular B",
+            "fontSize": 14,
+            "fontWeight": "400",
+            "letterSpacing": 0,
+            "lineHeight": 22,
+          }
+        }
+      >
+        Sample SelectButton label
+      </Text>
+      <Text
+        accessibilityRole="text"
+        numberOfLines={1}
+        style={
+          Object {
+            "color": "#535A61",
+            "fontFamily": "Euclid Circular B",
+            "fontSize": 12,
+            "fontWeight": "400",
+            "letterSpacing": 0,
+            "lineHeight": 20,
+          }
+        }
+      >
+        Sample SelectButton description
+      </Text>
+    </View>
+  </View>
+  <View>
+    <SvgMock
+      color="#24272A"
+      height={16}
+      name="ArrowDown"
+      style={
+        Object {
+          "height": 16,
+          "width": 16,
+        }
+      }
+      width={16}
+    />
+  </View>
+</TouchableOpacity>
+`;

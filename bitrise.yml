@@ -1189,10 +1189,10 @@ app:
       PROJECT_LOCATION_IOS: ios
     - opts:
         is_expand: false
-      VERSION_NAME: 7.12.2
+      VERSION_NAME: 7.12.3
     - opts:
         is_expand: false
-      VERSION_NUMBER: 1224
+      VERSION_NUMBER: 1230
     - opts:
         is_expand: false
       FLASK_VERSION_NAME: 0.0.4
