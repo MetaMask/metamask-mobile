@@ -96,7 +96,7 @@ class EngineService {
     if (isBlockaidFeatureEnabled()) {
       controllers.push({
         name: 'PPOMController',
-        key: `${engine.context.PPOMController.name}:stateChange`,
+        key: AppConstants.PPOM_INITIALISATION_STATE_CHANGE_EVENT,
       });
     }
 
