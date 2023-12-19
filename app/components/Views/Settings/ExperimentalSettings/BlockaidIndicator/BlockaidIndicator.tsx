@@ -57,14 +57,12 @@ const BlockaidIndicator = ({ navigation }: Props) => {
         setFailureCount(failureCount + 1);
       }
       if (ppomInitialisationStatus === PPOMInitialisationStatus.SUCCESS) {
-        InteractionManager.runAfterInteractions(() => {
-          AnalyticsV2.trackEvent(
-            MetaMetricsEvents.SETTINGS_EXPERIMENTAL_SECURITY_ALERTS_ENABLED,
-            {
-              security_alerts_enabled: true,
-            },
-          );
-        });
+        AnalyticsV2.trackEvent(
+          MetaMetricsEvents.SETTINGS_EXPERIMENTAL_SECURITY_ALERTS_ENABLED,
+          {
+            security_alerts_enabled: true,
+          },
+        );
       }
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
