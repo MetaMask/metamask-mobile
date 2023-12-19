@@ -117,7 +117,6 @@ import {
   LoggingControllerState,
   LoggingControllerActions,
 } from '@metamask/logging-controller';
-import LedgerKeyring from '@consensys/ledgerhq-metamask-keyring';
 import Encryptor from './Encryptor';
 import {
   isMainnetByChainId,
@@ -520,9 +519,6 @@ class Engine {
     const qrKeyringBuilder = () => new QRHardwareKeyring();
     qrKeyringBuilder.type = QRHardwareKeyring.type;
 
-    const ledgerKeyringBuilder = () => new LedgerKeyring();
-    ledgerKeyringBuilder.type = LedgerKeyring.type;
-
     const keyringController = new KeyringController({
       removeIdentity: preferencesController.removeIdentity.bind(
         preferencesController,
@@ -551,7 +547,7 @@ class Engine {
         allowedActions: ['KeyringController:getState'],
       }),
       state: initialKeyringState || initialState.KeyringController,
-      keyringBuilders: [qrKeyringBuilder, ledgerKeyringBuilder],
+      keyringBuilders: [qrKeyringBuilder],
     });
 
     ///: BEGIN:ONLY_INCLUDE_IF(snaps)
@@ -886,6 +882,7 @@ class Engine {
           ),
         getOpenSeaApiKey: () => nftController.openSeaApiKey,
         addNft: nftController.addNft.bind(nftController),
+        getNftApi: nftController.getNftApi.bind(nftController),
         getNftState: () => nftController.state,
       }),
       currencyRateController,

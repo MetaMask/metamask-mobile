@@ -621,9 +621,9 @@
     "autolock_after_minutes": "After {{time}} minutes",
     "reveal_seed_words": "Reveal Seed Words",
     "reset_account": "Reset Account",
-    "state_logs_button": "DOWNLOAD STATE LOGS",
+    "state_logs_button": "Download State Logs",
     "reveal_seed_words_button": "REVEAL SEED WORDS",
-    "reset_account_button": "RESET ACCOUNT",
+    "reset_account_button": "Reset Account",
     "reset_account_confirm_button": "Yes, reset",
     "reset_account_cancel_button": "Cancel",
     "reset_account_modal_title": "Reset Account?",
@@ -677,8 +677,8 @@
     "toggleEthSignModalTitle": "Use at your own risk",
     "toggleEthSignModalEnable": "Enable",
     "toggleEthSignModalLearnMore": "Learn more.",
-    "toggleEthSignOff": "OFF (Recommended)",
-    "toggleEthSignOn": "ON (Not recommended)",
+    "toggleEthSignOff": "(Recommended)",
+    "toggleEthSignOn": "(Not recommended)",
     "toggleEthSignContinueButton": "Continue",
     "toggleEthSignEnableButton": "Enable",
     "show_custom_nonce": "Customize transaction nonce",
@@ -867,7 +867,12 @@
 
         }
       }
-    }
+    },
+    "privacy_browser_subheading": "Clear privacy or browser data",
+    "analytics_subheading": "Analytics",
+    "transactions_subheading": "Transactions",
+    "token_nft_ens_subheading": "Token, NFT, and ENS autodetection",
+    "security_check_subheading": "Security checks"
   },
   "sdk": {
     "disconnect_title": "Disconnect all sites?",
@@ -1813,7 +1818,7 @@
   "experimental_settings": {
     "wallet_connect_dapps": "WalletConnect Sessions",
     "wallet_connect_dapps_desc": "View the list of active WalletConnect sessions",
-    "wallet_connect_dapps_cta": "VIEW SESSIONS",
+    "wallet_connect_dapps_cta": "View sessions",
     "network_not_supported": "Current network not supported",
     "security_alerts": "Security alerts",
     "security_alerts_desc": "This feature alerts you to malicious activity by locally reviewing your transaction and signature requests. Always do your own due diligence before approving any requests. There's no guarantee that this feature will detect all malicious activity. By enabling this feature you agree to the provider's terms of use.",
