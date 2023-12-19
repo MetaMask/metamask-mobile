@@ -1,5 +1,6 @@
 import React, { FC, useCallback, useEffect } from 'react';
 import { ScrollView, Switch, View } from 'react-native';
+
 import { strings } from '../../../../../locales/i18n';
 import Engine from '../../../../core/Engine';
 import { colors as importedColors } from '../../../../styles/common';
@@ -8,6 +9,7 @@ import Text, {
   TextVariant,
   TextColor,
 } from '../../../../component-library/components/Texts/Text';
+import { UpdatePPOMInitializationStatus } from '../../../../actions/experimental';
 import AnalyticsV2 from '../../../../util/analyticsV2';
 import { MetaMetricsEvents } from '../../../../core/Analytics';
 import { getNavigationOptionsTitle } from '../../../UI/Navbar';
@@ -40,10 +42,6 @@ const ExperimentalSettings = ({ navigation, route }: Props) => {
 
   const toggleSecurityAlertsEnabled = () => {
     if (securityAlertsEnabled) {
-      dispatch({
-        type: 'SET_PPOM_INITIALIZATION_COMPLETED',
-        ppomInitializationCompleted: false,
-      });
       PreferencesController?.setSecurityAlertsEnabled(!securityAlertsEnabled);
       AnalyticsV2.trackEvent(
         MetaMetricsEvents.SETTINGS_EXPERIMENTAL_SECURITY_ALERTS_ENABLED,
@@ -57,6 +55,10 @@ const ExperimentalSettings = ({ navigation, route }: Props) => {
       });
     }
   };
+
+  useEffect(() => {
+    dispatch(UpdatePPOMInitializationStatus());
+  }, [dispatch]);
 
   useEffect(
     () => {
