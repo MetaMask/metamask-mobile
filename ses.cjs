@@ -9361,16 +9361,9 @@ const        getAnonymousIntrinsics=  ()=>  {
 
   const Generator=  GeneratorFunction.prototype;
 
-  // 25.7.1 The AsyncFunction Constructor
-
-  // eslint-disable-next-line no-empty-function
-  async function AsyncFunctionInstance() { }
-  const AsyncFunction=  getConstructorOf(AsyncFunctionInstance);
-
   const intrinsics=  {
     '%InertFunction%': InertFunction,
     '%ArrayIteratorPrototype%': ArrayIteratorPrototype,
-    '%InertAsyncFunction%': AsyncFunction,
     '%Generator%': Generator,
     '%InertGeneratorFunction%': GeneratorFunction,
     '%IteratorPrototype%': IteratorPrototype,
