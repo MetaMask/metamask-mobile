@@ -19,8 +19,6 @@ class Port extends EventEmitter {
     const js = this._isMainFrame
       ? JS_POST_MESSAGE_TO_PROVIDER(msg, origin)
       : JS_IFRAME_POST_MESSAGE_TO_PROVIDER(msg, origin);
-    console.log('Post js', js);
-    console.log('this._window', this._window);
     this._window?.injectJavaScript(js);
   };
 }
