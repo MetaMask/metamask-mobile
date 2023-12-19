@@ -5,7 +5,7 @@ exports[`BlockaidIndicator should render correctly 1`] = `
   <View
     collapsable={false}
     forwardedRef={[Function]}
-    style={{}}
+    style={Object {}}
   >
     <View
       style={
@@ -201,7 +201,7 @@ exports[`BlockaidIndicator should render correctly if PPOM initialisation failed
   <View
     collapsable={false}
     forwardedRef={[Function]}
-    style={{}}
+    style={Object {}}
   >
     <View
       style={
