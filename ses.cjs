@@ -7775,7 +7775,7 @@ const loadRecord=  (
   return moduleRecord;
  };
 
-const loadWithoutErrorAnnotation=  async(
+const loadWithoutErrorAnnotation=  (
   compartmentPrivateFields,
   moduleAliases,
   compartment,
@@ -7815,99 +7815,101 @@ const loadWithoutErrorAnnotation=  async(
      }
     // Behold: recursion.
     // eslint-disable-next-line no-use-before-define
-    const aliasRecord=  await memoizedLoadWithErrorAnnotation(
+    return memoizedLoadWithErrorAnnotation(
       compartmentPrivateFields,
       moduleAliases,
       alias.compartment,
       alias.specifier,
       pendingJobs,
       moduleLoads,
-      errors);
-
-    mapSet(moduleRecords, moduleSpecifier, aliasRecord);
-    return aliasRecord;
+      errors).
+      then((aliasRecord)=>{
+      mapSet(moduleRecords, moduleSpecifier, aliasRecord);
+      return aliasRecord;
+     });
    }
 
   if( mapHas(moduleRecords, moduleSpecifier)) {
-    return mapGet(moduleRecords, moduleSpecifier);
+    return Promise.resolve(mapGet(moduleRecords, moduleSpecifier));
    }
 
-  const staticModuleRecord=  await importHook(moduleSpecifier);
+  return importHook(moduleSpecifier).then((staticModuleRecord)=>{
+    if( staticModuleRecord===  null||  typeof staticModuleRecord!==  'object') {
+      Fail `importHook must return a promise for an object, for module ${q(
+        moduleSpecifier)
+        } in compartment ${q(compartment.name)}`;
+     }
 
-  if( staticModuleRecord===  null||  typeof staticModuleRecord!==  'object') {
-    Fail `importHook must return a promise for an object, for module ${q(
-      moduleSpecifier)
-      } in compartment ${q(compartment.name)}`;
-   }
+    // check if record is a RedirectStaticModuleInterface
+    if( staticModuleRecord.specifier!==  undefined) {
+      // check if this redirect with an explicit record
+      if( staticModuleRecord.record!==  undefined) {
+        // ensure expected record shape
+        if( staticModuleRecord.compartment!==  undefined) {
+          throw TypeError(
+            'Cannot redirect to an explicit record with a specified compartment');
 
-  // check if record is a RedirectStaticModuleInterface
-  if( staticModuleRecord.specifier!==  undefined) {
-    // check if this redirect with an explicit record
-    if( staticModuleRecord.record!==  undefined) {
-      // ensure expected record shape
+         }
+        const {
+          compartment: aliasCompartment=  compartment,
+          specifier: aliasSpecifier=  moduleSpecifier,
+          record: aliasModuleRecord,
+          importMeta}=
+            staticModuleRecord;
+
+        const aliasRecord=  loadRecord(
+          compartmentPrivateFields,
+          moduleAliases,
+          aliasCompartment,
+          aliasSpecifier,
+          aliasModuleRecord,
+          pendingJobs,
+          moduleLoads,
+          errors,
+          importMeta);
+
+        mapSet(moduleRecords, moduleSpecifier, aliasRecord);
+        return aliasRecord;
+       }
+
+      // check if this redirect with an explicit compartment
       if( staticModuleRecord.compartment!==  undefined) {
-        throw TypeError(
-          'Cannot redirect to an explicit record with a specified compartment');
+        // ensure expected record shape
+        if( staticModuleRecord.importMeta!==  undefined) {
+          throw TypeError(
+            'Cannot redirect to an implicit record with a specified importMeta');
 
+         }
+        // Behold: recursion.
+        // eslint-disable-next-line no-use-before-define
+        return memoizedLoadWithErrorAnnotation(
+          compartmentPrivateFields,
+          moduleAliases,
+          staticModuleRecord.compartment,
+          staticModuleRecord.specifier,
+          pendingJobs,
+          moduleLoads,
+          errors).
+          then((aliasRecord)=>{
+          mapSet(moduleRecords, moduleSpecifier, aliasRecord);
+          return aliasRecord;
+         });
        }
-      const {
-        compartment: aliasCompartment=  compartment,
-        specifier: aliasSpecifier=  moduleSpecifier,
-        record: aliasModuleRecord,
-        importMeta}=
-          staticModuleRecord;
 
-      const aliasRecord=  loadRecord(
-        compartmentPrivateFields,
-        moduleAliases,
-        aliasCompartment,
-        aliasSpecifier,
-        aliasModuleRecord,
-        pendingJobs,
-        moduleLoads,
-        errors,
-        importMeta);
-
-      mapSet(moduleRecords, moduleSpecifier, aliasRecord);
-      return aliasRecord;
+      throw TypeError('Unnexpected RedirectStaticModuleInterface record shape');
      }
 
-    // check if this redirect with an explicit compartment
-    if( staticModuleRecord.compartment!==  undefined) {
-      // ensure expected record shape
-      if( staticModuleRecord.importMeta!==  undefined) {
-        throw TypeError(
-          'Cannot redirect to an implicit record with a specified importMeta');
+    return loadRecord(
+      compartmentPrivateFields,
+      moduleAliases,
+      compartment,
+      moduleSpecifier,
+      staticModuleRecord,
+      pendingJobs,
+      moduleLoads,
+      errors);
 
-       }
-      // Behold: recursion.
-      // eslint-disable-next-line no-use-before-define
-      const aliasRecord=  await memoizedLoadWithErrorAnnotation(
-        compartmentPrivateFields,
-        moduleAliases,
-        staticModuleRecord.compartment,
-        staticModuleRecord.specifier,
-        pendingJobs,
-        moduleLoads,
-        errors);
-
-      mapSet(moduleRecords, moduleSpecifier, aliasRecord);
-      return aliasRecord;
-     }
-
-    throw TypeError('Unnexpected RedirectStaticModuleInterface record shape');
-   }
-
-  return loadRecord(
-    compartmentPrivateFields,
-    moduleAliases,
-    compartment,
-    moduleSpecifier,
-    staticModuleRecord,
-    pendingJobs,
-    moduleLoads,
-    errors);
-
+   });
  };
 
 const memoizedLoadWithErrorAnnotation=  async(
