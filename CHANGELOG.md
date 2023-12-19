@@ -1,23 +1,24 @@
 # Changelog
 
 ## Current Main Branch
-- [#8057](https://github.com/MetaMask/metamask-mobile/pull/8057): fix: Disable SES on iOS
-- updated changelog
-- 7.12.2
-- bump version and updated changelog
-- [#8007](https://github.com/MetaMask/metamask-mobile/pull/8007): chore: update header key
-- [#8002](https://github.com/MetaMask/metamask-mobile/pull/8002): chore: Cherry-pick for solution in main to token rates
-- [#7977](https://github.com/MetaMask/metamask-mobile/pull/7977): chore: cherry-pick: test: Increase E2E test setup time (#7929)
-- [#7970](https://github.com/MetaMask/metamask-mobile/pull/7970): chore: cherry-pick: test: fix wallet test (#7966)
-- 7.12.1
+
+## 7.12.4 - Dec 19, 2023
+### Added
+- [#8156](https://github.com/MetaMask/metamask-mobile/pull/8156): feat: migrate to latest Token rates controller
+
+### Fixed 
+- [#8155](https://github.com/MetaMask/metamask-mobile/pull/8155): fix: OpenSea V1 -> V2 patch
+
+## 7.12.3 - Dec 18, 2023
+### Fixed 
+- [#8102](https://github.com/MetaMask/metamask-mobile/pull/8102): fix: prevent bad svg urls in react-native-svg
 
 ## 7.12.2 - Dec 8, 2023
 ### Fixed 
 - [#8057](https://github.com/MetaMask/metamask-mobile/pull/8057): fix: Disable SES on iOS 
 
-
 ## 7.12.1 - Dec 5, 2023
-### Fixed 
+### Fixed
 - [#7991](https://github.com/MetaMask/metamask-mobile/pull/7991): fix: patch for token rates controller with coin gecko endpoint
 
 ## 7.12.0 - Dec 4, 2023
