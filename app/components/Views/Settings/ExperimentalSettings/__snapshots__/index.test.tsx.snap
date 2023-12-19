@@ -18,13 +18,11 @@ Array [
         style={
           Object {
             "color": "#24272A",
-            "fontFamily": "EuclidCircularB-Regular",
-            "fontSize": 18,
-            "fontWeight": "400",
+            "fontFamily": "Euclid Circular B",
+            "fontSize": 16,
+            "fontWeight": "500",
             "letterSpacing": 0,
-            "lineHeight": 20,
-            "marginTop": -4,
-            "paddingTop": 4,
+            "lineHeight": 24,
           }
         }
       >
@@ -39,66 +37,49 @@ Array [
             "fontSize": 14,
             "fontWeight": "400",
             "letterSpacing": 0,
-            "lineHeight": 20,
-            "marginTop": 12,
+            "lineHeight": 22,
+            "marginTop": 8,
           }
         }
       >
         View the list of active WalletConnect sessions
       </Text>
       <TouchableOpacity
-        accessibilityRole="button"
-        accessible={true}
-        activeOpacity={0.2}
+        activeOpacity={1}
         onPress={[Function]}
+        onPressIn={[Function]}
+        onPressOut={[Function]}
         style={
-          Array [
-            Array [
-              Object {
-                "borderRadius": 100,
-                "justifyContent": "center",
-                "padding": 15,
-              },
-              Object {
-                "backgroundColor": "#FFFFFF",
-                "borderColor": "#0376C9",
-                "borderWidth": 1,
-              },
-              Object {
-                "marginTop": 18,
-              },
-            ],
-            null,
-          ]
+          Object {
+            "alignItems": "center",
+            "alignSelf": "stretch",
+            "backgroundColor": "transparent",
+            "borderColor": "#0376C9",
+            "borderRadius": 24,
+            "borderWidth": 1,
+            "flexDirection": "row",
+            "height": 48,
+            "justifyContent": "center",
+            "marginTop": 16,
+            "paddingHorizontal": 16,
+          }
         }
+        variant="Secondary"
       >
         <Text
+          accessibilityRole="text"
           style={
-            Array [
-              Object {
-                "color": "#007aff",
-                "fontSize": 17,
-                "fontWeight": "500",
-                "textAlign": "center",
-              },
-              null,
-              Array [
-                Object {
-                  "fontFamily": "EuclidCircularB-Bold",
-                  "fontSize": 14,
-                  "fontWeight": "600",
-                  "textAlign": "center",
-                },
-                Object {
-                  "color": "#0376C9",
-                },
-                undefined,
-              ],
-              null,
-            ]
+            Object {
+              "color": "#0376C9",
+              "fontFamily": "Euclid Circular B",
+              "fontSize": 14,
+              "fontWeight": "400",
+              "letterSpacing": 0,
+              "lineHeight": 22,
+            }
           }
         >
-          VIEW SESSIONS
+          View sessions
         </Text>
       </TouchableOpacity>
       <Text
@@ -106,12 +87,12 @@ Array [
         style={
           Object {
             "color": "#24272A",
-            "fontFamily": "EuclidCircularB-Regular",
+            "fontFamily": "Euclid Circular B",
             "fontSize": 24,
-            "fontWeight": "400",
+            "fontWeight": "700",
             "letterSpacing": 0,
             "lineHeight": 32,
-            "marginTop": 18,
+            "marginTop": 16,
           }
         }
       >
@@ -129,13 +110,11 @@ Array [
           style={
             Object {
               "color": "#24272A",
-              "fontFamily": "EuclidCircularB-Regular",
-              "fontSize": 18,
-              "fontWeight": "400",
+              "fontFamily": "Euclid Circular B",
+              "fontSize": 16,
+              "fontWeight": "500",
               "letterSpacing": 0,
-              "lineHeight": 20,
-              "marginTop": -4,
-              "paddingTop": 4,
+              "lineHeight": 24,
             }
           }
         >
@@ -150,31 +129,14 @@ Array [
               "fontSize": 14,
               "fontWeight": "400",
               "letterSpacing": 0,
-              "lineHeight": 20,
-              "marginTop": 12,
+              "lineHeight": 22,
+              "marginTop": 8,
             }
           }
         >
           This feature alerts you to malicious activity by locally reviewing your transaction and signature requests. Always do your own due diligence before approving any requests. There's no guarantee that this feature will detect all malicious activity. By enabling this feature you agree to the provider's terms of use.
         </Text>
       </View>
-      <Text
-        accessibilityRole="text"
-        style={
-          Object {
-            "color": "#24272A",
-            "fontFamily": "EuclidCircularB-Bold",
-            "fontSize": 16,
-            "fontWeight": "600",
-            "letterSpacing": 0,
-            "lineHeight": 24,
-            "marginBottom": 18,
-            "marginTop": 18,
-          }
-        }
-      >
-        Select your preferred provider
-      </Text>
       <View
         style={
           Object {
@@ -182,7 +144,6 @@ Array [
             "display": "flex",
             "flexDirection": "row",
             "justifyContent": "space-between",
-            "marginBottom": 5,
           }
         }
       >
@@ -191,13 +152,11 @@ Array [
           style={
             Object {
               "color": "#24272A",
-              "fontFamily": "EuclidCircularB-Regular",
+              "fontFamily": "Euclid Circular B",
               "fontSize": 16,
-              "fontWeight": "400",
+              "fontWeight": "500",
               "letterSpacing": 0,
-              "lineHeight": 20,
-              "marginTop": -4,
-              "paddingTop": 4,
+              "lineHeight": 24,
             }
           }
         >
@@ -237,13 +196,12 @@ Array [
         style={
           Object {
             "color": "#535A61",
-            "fontFamily": "EuclidCircularB-Regular",
+            "fontFamily": "Euclid Circular B",
             "fontSize": 14,
             "fontWeight": "400",
             "letterSpacing": 0,
-            "lineHeight": 20,
-            "marginTop": -4,
-            "paddingTop": 4,
+            "lineHeight": 22,
+            "marginTop": 8,
           }
         }
       >
@@ -273,13 +231,11 @@ Array [
         style={
           Object {
             "color": "#24272A",
-            "fontFamily": "EuclidCircularB-Regular",
-            "fontSize": 18,
-            "fontWeight": "400",
+            "fontFamily": "Euclid Circular B",
+            "fontSize": 16,
+            "fontWeight": "500",
             "letterSpacing": 0,
-            "lineHeight": 20,
-            "marginTop": -4,
-            "paddingTop": 4,
+            "lineHeight": 24,
           }
         }
       >
@@ -294,66 +250,49 @@ Array [
             "fontSize": 14,
             "fontWeight": "400",
             "letterSpacing": 0,
-            "lineHeight": 20,
-            "marginTop": 12,
+            "lineHeight": 22,
+            "marginTop": 8,
           }
         }
       >
         View the list of active WalletConnect sessions
       </Text>
       <TouchableOpacity
-        accessibilityRole="button"
-        accessible={true}
-        activeOpacity={0.2}
+        activeOpacity={1}
         onPress={[Function]}
+        onPressIn={[Function]}
+        onPressOut={[Function]}
         style={
-          Array [
-            Array [
-              Object {
-                "borderRadius": 100,
-                "justifyContent": "center",
-                "padding": 15,
-              },
-              Object {
-                "backgroundColor": "#FFFFFF",
-                "borderColor": "#0376C9",
-                "borderWidth": 1,
-              },
-              Object {
-                "marginTop": 18,
-              },
-            ],
-            null,
-          ]
+          Object {
+            "alignItems": "center",
+            "alignSelf": "stretch",
+            "backgroundColor": "transparent",
+            "borderColor": "#0376C9",
+            "borderRadius": 24,
+            "borderWidth": 1,
+            "flexDirection": "row",
+            "height": 48,
+            "justifyContent": "center",
+            "marginTop": 16,
+            "paddingHorizontal": 16,
+          }
         }
+        variant="Secondary"
       >
         <Text
+          accessibilityRole="text"
           style={
-            Array [
-              Object {
-                "color": "#007aff",
-                "fontSize": 17,
-                "fontWeight": "500",
-                "textAlign": "center",
-              },
-              null,
-              Array [
-                Object {
-                  "fontFamily": "EuclidCircularB-Bold",
-                  "fontSize": 14,
-                  "fontWeight": "600",
-                  "textAlign": "center",
-                },
-                Object {
-                  "color": "#0376C9",
-                },
-                undefined,
-              ],
-              null,
-            ]
+            Object {
+              "color": "#0376C9",
+              "fontFamily": "Euclid Circular B",
+              "fontSize": 14,
+              "fontWeight": "400",
+              "letterSpacing": 0,
+              "lineHeight": 22,
+            }
           }
         >
-          VIEW SESSIONS
+          View sessions
         </Text>
       </TouchableOpacity>
       <Text
@@ -361,12 +300,12 @@ Array [
         style={
           Object {
             "color": "#24272A",
-            "fontFamily": "EuclidCircularB-Regular",
+            "fontFamily": "Euclid Circular B",
             "fontSize": 24,
-            "fontWeight": "400",
+            "fontWeight": "700",
             "letterSpacing": 0,
             "lineHeight": 32,
-            "marginTop": 18,
+            "marginTop": 16,
           }
         }
       >
@@ -384,13 +323,11 @@ Array [
           style={
             Object {
               "color": "#24272A",
-              "fontFamily": "EuclidCircularB-Regular",
-              "fontSize": 18,
-              "fontWeight": "400",
+              "fontFamily": "Euclid Circular B",
+              "fontSize": 16,
+              "fontWeight": "500",
               "letterSpacing": 0,
-              "lineHeight": 20,
-              "marginTop": -4,
-              "paddingTop": 4,
+              "lineHeight": 24,
             }
           }
         >
@@ -405,31 +342,14 @@ Array [
               "fontSize": 14,
               "fontWeight": "400",
               "letterSpacing": 0,
-              "lineHeight": 20,
-              "marginTop": 12,
+              "lineHeight": 22,
+              "marginTop": 8,
             }
           }
         >
           This feature alerts you to malicious activity by locally reviewing your transaction and signature requests. Always do your own due diligence before approving any requests. There's no guarantee that this feature will detect all malicious activity. By enabling this feature you agree to the provider's terms of use.
         </Text>
       </View>
-      <Text
-        accessibilityRole="text"
-        style={
-          Object {
-            "color": "#24272A",
-            "fontFamily": "EuclidCircularB-Bold",
-            "fontSize": 16,
-            "fontWeight": "600",
-            "letterSpacing": 0,
-            "lineHeight": 24,
-            "marginBottom": 18,
-            "marginTop": 18,
-          }
-        }
-      >
-        Select your preferred provider
-      </Text>
       <View
         style={
           Object {
@@ -437,7 +357,6 @@ Array [
             "display": "flex",
             "flexDirection": "row",
             "justifyContent": "space-between",
-            "marginBottom": 5,
           }
         }
       >
@@ -446,13 +365,11 @@ Array [
           style={
             Object {
               "color": "#24272A",
-              "fontFamily": "EuclidCircularB-Regular",
+              "fontFamily": "Euclid Circular B",
               "fontSize": 16,
-              "fontWeight": "400",
+              "fontWeight": "500",
               "letterSpacing": 0,
-              "lineHeight": 20,
-              "marginTop": -4,
-              "paddingTop": 4,
+              "lineHeight": 24,
             }
           }
         >
@@ -492,13 +409,12 @@ Array [
         style={
           Object {
             "color": "#535A61",
-            "fontFamily": "EuclidCircularB-Regular",
+            "fontFamily": "Euclid Circular B",
             "fontSize": 14,
             "fontWeight": "400",
             "letterSpacing": 0,
-            "lineHeight": 20,
-            "marginTop": -4,
-            "paddingTop": 4,
+            "lineHeight": 22,
+            "marginTop": 8,
           }
         }
       >
