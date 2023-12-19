@@ -7663,7 +7663,7 @@ function                tameErrorConstructor(
 })()
 ,
 // === functors[38] ===
-({   imports: $h‍_imports,   liveVar: $h‍_live,   onceVar: $h‍_once,   importMeta: $h‍____meta, }) => (function () {   let ReferenceError,TypeError,Map,Set,arrayJoin,arrayMap,arrayPush,create,freeze,mapGet,mapHas,mapSet,setAdd,promiseCatch,promiseThen,values,weakmapGet,assert;$h‍_imports([["./commons.js", [["ReferenceError", [$h‍_a => (ReferenceError = $h‍_a)]],["TypeError", [$h‍_a => (TypeError = $h‍_a)]],["Map", [$h‍_a => (Map = $h‍_a)]],["Set", [$h‍_a => (Set = $h‍_a)]],["arrayJoin", [$h‍_a => (arrayJoin = $h‍_a)]],["arrayMap", [$h‍_a => (arrayMap = $h‍_a)]],["arrayPush", [$h‍_a => (arrayPush = $h‍_a)]],["create", [$h‍_a => (create = $h‍_a)]],["freeze", [$h‍_a => (freeze = $h‍_a)]],["mapGet", [$h‍_a => (mapGet = $h‍_a)]],["mapHas", [$h‍_a => (mapHas = $h‍_a)]],["mapSet", [$h‍_a => (mapSet = $h‍_a)]],["setAdd", [$h‍_a => (setAdd = $h‍_a)]],["promiseCatch", [$h‍_a => (promiseCatch = $h‍_a)]],["promiseThen", [$h‍_a => (promiseThen = $h‍_a)]],["values", [$h‍_a => (values = $h‍_a)]],["weakmapGet", [$h‍_a => (weakmapGet = $h‍_a)]]]],["./error/assert.js", [["assert", [$h‍_a => (assert = $h‍_a)]]]]]);   
+({   imports: $h‍_imports,   liveVar: $h‍_live,   onceVar: $h‍_once,   importMeta: $h‍____meta, }) => (function () {   let ReferenceError,TypeError,Map,Set,arrayJoin,arrayMap,arrayPush,create,freeze,mapGet,mapHas,mapSet,setAdd,promiseThen,values,weakmapGet,assert;$h‍_imports([["./commons.js", [["ReferenceError", [$h‍_a => (ReferenceError = $h‍_a)]],["TypeError", [$h‍_a => (TypeError = $h‍_a)]],["Map", [$h‍_a => (Map = $h‍_a)]],["Set", [$h‍_a => (Set = $h‍_a)]],["arrayJoin", [$h‍_a => (arrayJoin = $h‍_a)]],["arrayMap", [$h‍_a => (arrayMap = $h‍_a)]],["arrayPush", [$h‍_a => (arrayPush = $h‍_a)]],["create", [$h‍_a => (create = $h‍_a)]],["freeze", [$h‍_a => (freeze = $h‍_a)]],["mapGet", [$h‍_a => (mapGet = $h‍_a)]],["mapHas", [$h‍_a => (mapHas = $h‍_a)]],["mapSet", [$h‍_a => (mapSet = $h‍_a)]],["setAdd", [$h‍_a => (setAdd = $h‍_a)]],["promiseThen", [$h‍_a => (promiseThen = $h‍_a)]],["values", [$h‍_a => (values = $h‍_a)]],["weakmapGet", [$h‍_a => (weakmapGet = $h‍_a)]]]],["./error/assert.js", [["assert", [$h‍_a => (assert = $h‍_a)]]]]]);   
 
 
 
@@ -7912,7 +7912,7 @@ const loadWithoutErrorAnnotation=  (
    });
  };
 
-const memoizedLoadWithErrorAnnotation=  async(
+const memoizedLoadWithErrorAnnotation=  (
   compartmentPrivateFields,
   moduleAliases,
   compartment,
@@ -7934,30 +7934,28 @@ const memoizedLoadWithErrorAnnotation=  async(
    }
   let moduleLoading=  mapGet(compartmentLoading, moduleSpecifier);
   if( moduleLoading!==  undefined) {
-    return moduleLoading;
+    return Promise.resolve(moduleLoading);
    }
 
-  moduleLoading=  promiseCatch(
-    loadWithoutErrorAnnotation(
-      compartmentPrivateFields,
-      moduleAliases,
-      compartment,
-      moduleSpecifier,
-      pendingJobs,
-      moduleLoads,
-      errors),
+  moduleLoading=  loadWithoutErrorAnnotation(
+    compartmentPrivateFields,
+    moduleAliases,
+    compartment,
+    moduleSpecifier,
+    pendingJobs,
+    moduleLoads,
+    errors).
 
-    (error)=>{
-      // eslint-disable-next-line @endo/no-polymorphic-call
-      assert.note(
-        error,
-        d `${error.message}, loading ${q(moduleSpecifier)} in compartment ${q(
-          compartmentName)
-          }`);
+   catch((error)=>{
+    // eslint-disable-next-line @endo/no-polymorphic-call
+    assert.note(
+      error,
+      d `${error.message}, loading ${q(moduleSpecifier)} in compartment ${q(
+        compartmentName)
+        }`);
 
-      throw error;
-     });
-
+    throw error;
+   });
 
   mapSet(compartmentLoading, moduleSpecifier, moduleLoading);
 
