@@ -237,6 +237,7 @@
     "base-64": "1.0.0",
     "bignumber.js": "^9.0.1",
     "buffer": "5.2.1",
+    "cockatiel": "^3.1.1",
     "compare-versions": "^3.6.0",
     "content-hash": "2.5.2",
     "crypto-js": "^4.2.0",
@@ -367,8 +368,7 @@
     "uuid": "^8.3.2",
     "valid-url": "1.0.9",
     "vm-browserify": "1.1.2",
-    "zxcvbn": "4.4.2",
-    "cockatiel": "^3.1.1"
+    "zxcvbn": "4.4.2"
   },
   "devDependencies": {
     "@actions/core": "^1.10.0",
