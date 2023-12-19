@@ -2,13 +2,13 @@ import React from 'react';
 import configureMockStore from 'redux-mock-store';
 import { Provider } from 'react-redux';
 import { render } from '@testing-library/react-native';
-import { shallow } from 'enzyme';
 import initialBackgroundState from '../../../../util/test/initial-background-state.json';
 
 import { ThemeContext, mockTheme } from '../../../../util/theme';
 
 import Root from '.';
 import { ApprovalTypes } from '../../../../core/RPCMethods/RPCMethodMiddleware';
+import { shallow } from 'enzyme';
 
 jest.mock('react-native-keyboard-aware-scroll-view', () => {
   const KeyboardAwareScrollView = jest.requireActual('react-native').ScrollView;

@@ -47,7 +47,7 @@ import {
   selectSelectedAddress,
 } from '../../../selectors/preferencesController';
 import { createAccountSelectorNavDetails } from '../../Views/AccountSelector';
-import { regex } from '../../../../app/util/regex';
+import { regex } from '../../../util/regex';
 import Text, {
   TextVariant,
 } from '../../../component-library/components/Texts/Text';
@@ -363,7 +363,6 @@ class AccountOverview extends PureComponent {
           keyboardShouldPersistTaps={'never'}
           style={styles.scrollView}
           contentContainerStyle={styles.wrapper}
-          testID={'account-overview'}
         >
           <View style={styles.info} ref={this.mainView}>
             <TouchableOpacity

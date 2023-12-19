@@ -8,13 +8,8 @@ import {
   SEARCH_BUTTON,
   NAVBAR_TITLE_NETWORK,
   ANDROID_BROWSER_WEBVIEW_ID,
-  ACCOUNT_BUTTON,
 } from '../../../wdio/screen-objects/testIDs/BrowserScreen/BrowserScreen.testIds';
 import { URL_INPUT_BOX_ID } from '../../../wdio/screen-objects/testIDs/BrowserScreen/AddressBar.testIds';
-import {
-  ADD_BOOKMARKS_SCREEN_ID,
-  ADD_BOOKMARKS_BUTTON_ID,
-} from '../../../wdio/screen-objects/testIDs/BrowserScreen/AddFavorite.testIds';
 import { NOTIFICATION_TITLE } from '../../../wdio/screen-objects/testIDs/Components/Notification.testIds';
 import {
   testDappConnectButtonCooridinates,
@@ -26,6 +21,8 @@ import {
   BrowserViewSelectorsText,
 } from '../../selectors/BrowserView.selectors';
 import { CommonSelectorsText } from '../../selectors/Common.selectors';
+import { AccountOverviewSelectorsIDs } from '../../selectors/AccountOverview.selectors';
+import { AddBookmarkViewSelectorsIDs } from '../../selectors/AddBookmarkView.selectors';
 
 const TEST_DAPP = 'https://metamask.github.io/test-dapp/';
 
@@ -60,7 +57,7 @@ export default class Browser {
     if (device.getPlatform() === 'android') {
       await TestHelpers.delay(3000); // to wait until toast notifcation disappears
       await TestHelpers.tapByDescendentTestID(
-        ACCOUNT_BUTTON,
+        AccountOverviewSelectorsIDs.ACCOUNT_BUTTON,
         BrowserViewSelectorsIDs.AVATAR_IMAGE,
       );
     } else {
@@ -74,9 +71,11 @@ export default class Browser {
 
   static async tapAddBookmarksButton() {
     if (device.getPlatform() === 'android') {
-      await TestHelpers.waitAndTapByLabel(ADD_BOOKMARKS_BUTTON_ID);
+      await TestHelpers.waitAndTapByLabel(
+        AddBookmarkViewSelectorsIDs.CONFIRM_BUTTON,
+      );
     } else {
-      await TestHelpers.waitAndTap(ADD_BOOKMARKS_BUTTON_ID);
+      await TestHelpers.waitAndTap(AddBookmarkViewSelectorsIDs.CONFIRM_BUTTON);
     }
   }
   static async tapHomeButton() {
@@ -188,11 +187,11 @@ export default class Browser {
   }
 
   static async isAddBookmarkScreenVisible() {
-    await TestHelpers.checkIfVisible(ADD_BOOKMARKS_SCREEN_ID);
+    await TestHelpers.checkIfVisible(AddBookmarkViewSelectorsIDs.CONTAINER);
   }
 
   static async isAddBookmarkScreenNotVisible() {
-    await TestHelpers.checkIfNotVisible(ADD_BOOKMARKS_SCREEN_ID);
+    await TestHelpers.checkIfNotVisible(AddBookmarkViewSelectorsIDs.CONTAINER);
   }
 
   static async isBackToSafetyButtonVisible() {
