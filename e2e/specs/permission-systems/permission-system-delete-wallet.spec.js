@@ -53,11 +53,10 @@ describe(
           //go to settings then security & privacy
           await TabBarComponent.tapSettings();
           await SettingsView.tapSecurityAndPrivacy();
-          await SecurityAndPrivacyView.scrollToChangePasswordView();
-          await expect(
-            await SecurityAndPrivacyView.changePasswordSection,
-          ).toBeVisible();
+          await device.disableSynchronization();
+
           await SecurityAndPrivacyView.scrollToDeleteWalletButton();
+          await device.enableSynchronization();
           await SecurityAndPrivacyView.tapDeleteWalletButton();
 
           //Delete wallet

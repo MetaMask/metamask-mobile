@@ -447,7 +447,7 @@
     "browserstack-local": "^1.5.1",
     "chromedriver": "^99.0.0",
     "depcheck": "^1.4.7",
-    "detox": "^20.11.4",
+    "detox": "^20.14.3",
     "dotenv": "^16.0.3",
     "enzyme": "3.9.0",
     "enzyme-adapter-react-16": "1.10.0",

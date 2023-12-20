@@ -8,7 +8,7 @@ module.exports = {
     jest: {
       setupTimeout: 220000,
     },
-    retries: 2,
+    retries: process.env.CI ? 2 : 1,
   },
   
   artifacts: {
@@ -68,7 +68,7 @@ module.exports = {
     'android.emulator': {
       type: 'android.emulator',
       device: {
-        avdName: 'Pixel_5_API_30',
+        avdName: 'Pixel_6_API_34',
       },
     },
   },

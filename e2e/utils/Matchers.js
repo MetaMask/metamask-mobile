@@ -74,6 +74,11 @@ class Matchers {
   static async getElementByXPath(xpath) {
     return web.element(by.web.xpath(xpath));
   }
+
+  // This is method does not create an element but instead it creates only a matcher. The purpose here is not to use this matcher to perform any actions.
+  static async getIdentifier(identifier) {
+    return by.id(identifier);
+  }
 }
 
 export default Matchers;
