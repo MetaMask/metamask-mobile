@@ -73,6 +73,16 @@ class EngineService {
         name: 'ApprovalController',
         key: `${engine.context.ApprovalController.name}:stateChange`,
       },
+      ///: BEGIN:ONLY_INCLUDE_IF(snaps)
+      {
+        name: 'SnapController',
+        key: `${engine.context.SnapController.name}:stateChange`,
+      },
+      {
+        name: 'subjectMetadataController',
+        key: `${engine.context.SubjectMetadataController.name}:stateChange`,
+      },
+      ///: END:ONLY_INCLUDE_IF
       {
         name: 'PermissionController',
         key: `${engine.context.PermissionController.name}:stateChange`,
@@ -86,7 +96,7 @@ class EngineService {
     if (isBlockaidFeatureEnabled()) {
       controllers.push({
         name: 'PPOMController',
-        key: `${engine.context.PPOMController.name}:stateChange`,
+        key: AppConstants.PPOM_INITIALISATION_STATE_CHANGE_EVENT,
       });
     }
 
