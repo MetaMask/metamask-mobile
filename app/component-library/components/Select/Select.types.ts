@@ -2,9 +2,9 @@
 import { ViewProps } from 'react-native';
 
 /**
- * TextInput component props.
+ * Select component props.
  */
-export interface TextInputProps extends ViewProps {
+export interface SelectProps extends ViewProps {
   /**
    * Content to wrap to display.
    */

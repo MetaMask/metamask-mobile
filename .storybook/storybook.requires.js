@@ -90,6 +90,7 @@ const getStories = () => {
     "./app/component-library/components/Select/SelectButton/SelectButton.stories.tsx": require("../app/component-library/components/Select/SelectButton/SelectButton.stories.tsx"),
     "./app/component-library/components/Select/SelectHeader/SelectHeader.stories.tsx": require("../app/component-library/components/Select/SelectHeader/SelectHeader.stories.tsx"),
     "./app/component-library/components/Select/SelectOption/SelectOption.stories.tsx": require("../app/component-library/components/Select/SelectOption/SelectOption.stories.tsx"),
+    "./app/component-library/components/Select/SelectOptionsList/SelectOptionsList.stories.tsx": require("../app/component-library/components/Select/SelectOptionsList/SelectOptionsList.stories.tsx"),
     "./app/component-library/components/Select/SelectValue/SelectValue.stories.tsx": require("../app/component-library/components/Select/SelectValue/SelectValue.stories.tsx"),
     "./app/component-library/components/Select/SelectWrapper/SelectWrapper.stories.tsx": require("../app/component-library/components/Select/SelectWrapper/SelectWrapper.stories.tsx"),
     "./app/component-library/components/Sheet/SheetBottom/SheetBottom.stories.tsx": require("../app/component-library/components/Sheet/SheetBottom/SheetBottom.stories.tsx"),
