@@ -17,7 +17,20 @@
     "does_not_look_right": "Something doesn’t look right?",
     "suspicious_request_title": "This is a suspicious request",
     "trade_order_farming_description": "If you approve this request, you might lose your assets.",
-    "transfer_farming_description": "If you approve this request, a third party known for scams will take all your assets."
+    "transfer_farming_description": "If you approve this request, a third party known for scams will take all your assets.",
+    "before_you_proceed": "Before you proceed",
+    "enable_blockaid_alerts": "To enable this feature we need to set up some security alert. This page will need to stay open while its being set up. This will take less than a minute to complete.",
+    "setting_up_alerts": "Setting up security alerts",
+    "setting_up_alerts_description": "We are going as fast as we can to set up security alerts. Hang in there, we are almost done.",
+    "setup_complete": "Set up complete",
+    "setup_failed": "We could not finish setting up the security alerts. Check your internet connection and try again.",
+    "setup_multiple_failures": "Your internet connection isn’t stable right now, so we couldn’t set up security alerts. Please try again when your connection is restored.",
+    "setup_complete_description": "Security alerts are ready to go. You can close this page and start exploring your wallet",
+    "continue": "Continue",
+    "cancel": "Cancel",
+    "got_it": "Got it",
+    "try_again": "Try Again",
+    "failed": "Something went wrong"
   },
   "date": {
     "months": {
@@ -575,7 +588,7 @@
     "tutorial": "Tutorial",
     "description4": "Keystone (tutorial)",
     "description5": "1. Unlock your Keystone",
-    "description6": "2. Tap the ··· Menu, then go to Sync >",
+    "description6": "2. Tap the ··· Menu, then go to Sync",
     "button_continue": "Continue",
     "hint_text": "Scan your Keystone wallet to ",
     "purpose_connect": "connect",
@@ -608,9 +621,9 @@
     "autolock_after_minutes": "After {{time}} minutes",
     "reveal_seed_words": "Reveal Seed Words",
     "reset_account": "Reset Account",
-    "state_logs_button": "DOWNLOAD STATE LOGS",
+    "state_logs_button": "Download State Logs",
     "reveal_seed_words_button": "REVEAL SEED WORDS",
-    "reset_account_button": "RESET ACCOUNT",
+    "reset_account_button": "Reset Account",
     "reset_account_confirm_button": "Yes, reset",
     "reset_account_cancel_button": "Cancel",
     "reset_account_modal_title": "Reset Account?",
@@ -664,8 +677,8 @@
     "toggleEthSignModalTitle": "Use at your own risk",
     "toggleEthSignModalEnable": "Enable",
     "toggleEthSignModalLearnMore": "Learn more.",
-    "toggleEthSignOff": "OFF (Recommended)",
-    "toggleEthSignOn": "ON (Not recommended)",
+    "toggleEthSignOff": "(Recommended)",
+    "toggleEthSignOn": "(Not recommended)",
     "toggleEthSignContinueButton": "Continue",
     "toggleEthSignEnableButton": "Enable",
     "show_custom_nonce": "Customize transaction nonce",
@@ -854,7 +867,12 @@
 
         }
       }
-    }
+    },
+    "privacy_browser_subheading": "Clear privacy or browser data",
+    "analytics_subheading": "Analytics",
+    "transactions_subheading": "Transactions",
+    "token_nft_ens_subheading": "Token, NFT, and ENS autodetection",
+    "security_check_subheading": "Security checks"
   },
   "sdk": {
     "disconnect_title": "Disconnect all sites?",
@@ -1801,7 +1819,7 @@
   "experimental_settings": {
     "wallet_connect_dapps": "WalletConnect Sessions",
     "wallet_connect_dapps_desc": "View the list of active WalletConnect sessions",
-    "wallet_connect_dapps_cta": "VIEW SESSIONS",
+    "wallet_connect_dapps_cta": "View sessions",
     "network_not_supported": "Current network not supported",
     "security_alerts": "Security alerts",
     "security_alerts_desc": "This feature alerts you to malicious activity by locally reviewing your transaction and signature requests. Always do your own due diligence before approving any requests. There's no guarantee that this feature will detect all malicious activity. By enabling this feature you agree to the provider's terms of use.",
@@ -1903,16 +1921,6 @@
     "apple_pay_provider_total_label": "{{provider}} (via MetaMask)",
     "buy_with": "Buy with",
     "plus_fee": "Plus a {{fee}} fee",
-    "notifications": {
-      "purchase_failed_title": "Purchase of {{currency}} has failed! Please try again, sorry for the inconvenience!",
-      "purchase_failed_description": "Verify your payment method and card support",
-      "purchase_cancelled_title": "Your purchase was cancelled",
-      "purchase_cancelled_description": "Verify your payment method and card support",
-      "purchase_completed_title": "Your purchase of {{amount}} {{currency}} was successful!",
-      "purchase_completed_description": "Your {{currency}} is now available",
-      "purchase_pending_title": "Processing your purchase of {{currency}}",
-      "purchase_pending_description": "This should only take a few minutes..."
-    },
     "date": "Date",
     "from": "From",
     "to": "To",
@@ -2120,6 +2128,24 @@
       "hold_to_send": "Hold to send",
       "send": "Send",
       "sent": "Sent!"
+    },
+    "notifications": {
+      "purchase_failed_title": "Purchase of {{currency}} has failed! Please try again, sorry for the inconvenience!",
+      "purchase_failed_description": "Verify your payment method and card support",
+      "purchase_cancelled_title": "Your purchase was cancelled",
+      "purchase_cancelled_description": "Verify your payment method and card support",
+      "purchase_completed_title": "Your purchase of {{amount}} {{currency}} was successful!",
+      "purchase_completed_description": "Your {{currency}} is now available",
+      "purchase_pending_title": "Processing your purchase of {{currency}}",
+      "purchase_pending_description": "This should only take a few minutes...",
+      "sale_failed_title": "Order failed",
+      "sale_failed_description": "Your order couldn´t be completed.",
+      "sale_cancelled_title": "Order cancelled",
+      "sale_cancelled_description": "Your order couldn´t be completed.",
+      "sale_completed_title": "Order completed",
+      "sale_completed_description": "Your order was successful!.",
+      "sale_pending_title": "{{currency}} sale processing",
+      "sale_pending_description": "Your order is now being processed."
     }
   },
   "swaps": {
@@ -2740,5 +2766,17 @@
     "ipfs_gateway_content2": "You can turn off IPFS resolution in",
     "ipfs_gateway_content3": "Settings > Security and privacy",
     "ipfs_gateway_content4": "at any time"
+  },
+  "install_snap": {
+    "title": "Connection request",
+    "description": "{{origin}} wants to download and connect with {{snap}}. Make sure you trust the authors before you proceed.",
+    "permissions_request_title": "Permissions request",
+    "permissions_request_description": "{{origin}} wants to install {{snap}}, which is requesting the following permissions.",
+    "approve_permissions": "Approve",
+    "installed": "Installed",
+    "install_successful": "{{snap}} was successfully installed.",
+    "okay_action": "OK",
+    "error_title": "Install failed",
+    "error_description": "Installation of {{snap}} failed."
   }
 }

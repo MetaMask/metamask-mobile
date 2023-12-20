@@ -1,9 +1,16 @@
 import React, { ReactNode, useState } from 'react';
-import { Text, View } from 'react-native';
-import StyledButton from '../StyledButton';
+import { View } from 'react-native';
 import ActionModal from '../ActionModal';
-import { useTheme } from '../../../util/theme';
 import createStyles from './styles';
+import Text, {
+  TextVariant,
+  TextColor,
+} from '../../../component-library/components/Texts/Text';
+import Button, {
+  ButtonVariants,
+  ButtonSize,
+  ButtonWidthTypes,
+} from '../../../component-library/components/Buttons/Button';
 
 interface ISettingsButtonSectionProps {
   sectionTitle: string;
@@ -35,8 +42,7 @@ const SettingsButtonSection = ({
   testID,
 }: ISettingsButtonSectionProps) => {
   const [modalVisible, setModalVisible] = useState<boolean>(false);
-  const { colors } = useTheme();
-  const styles = createStyles(colors);
+  const styles = createStyles();
 
   const updateShowModalState = () => setModalVisible(!modalVisible);
   const onButtonPress = () => (onPress ? onPress() : updateShowModalState());
@@ -48,17 +54,25 @@ const SettingsButtonSection = ({
   return (
     <>
       <View style={styles.setting}>
-        <Text style={styles.title}>{sectionTitle}</Text>
-        <Text style={styles.desc}>{descriptionText}</Text>
-        <StyledButton
-          type="normal"
-          onPress={onButtonPress}
-          containerStyle={styles.confirmButton}
-          disabled={buttonDisabled}
-          testID={testID}
+        <Text variant={TextVariant.BodyLGMedium}>{sectionTitle}</Text>
+        <Text
+          variant={TextVariant.BodyMD}
+          color={TextColor.Alternative}
+          style={styles.desc}
         >
-          {sectionButtonText}
-        </StyledButton>
+          {descriptionText}
+        </Text>
+        <View style={styles.accessory}>
+          <Button
+            variant={ButtonVariants.Secondary}
+            size={ButtonSize.Lg}
+            width={ButtonWidthTypes.Full}
+            onPress={onButtonPress}
+            isDisabled={buttonDisabled}
+            testID={testID}
+            label={sectionButtonText}
+          />
+        </View>
       </View>
       {needsModal ? (
         <ActionModal
@@ -70,7 +84,9 @@ const SettingsButtonSection = ({
           onConfirmPress={onModalConfirmPress}
         >
           <View style={styles.modalView}>
-            <Text style={styles.modalTitle}>{modalTitleText}</Text>
+            <Text variant={TextVariant.HeadingMD} style={styles.modalTitle}>
+              {modalTitleText}
+            </Text>
             <Text style={styles.modalText}>{modalDescriptionText}</Text>
           </View>
         </ActionModal>
