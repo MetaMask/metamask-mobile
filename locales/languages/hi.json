@@ -1,12 +1,14 @@
 {
   "blockaid_banner": {
     "approval_farming_description": "यदि आप इस अनुरोध को स्वीकार करते हैं, तो स्कैम के लिए मशहूर कोई तृतीय पक्ष आपके सारे एसेट चुरा सकती है।",
-    "attribution": "की ओर से सुरक्षा सलाह",
+    "attribution": "के द्वारा पावर्ड",
     "attribution_link_name": "Blockaid",
     "blur_farming_description": "यदि आप इस अनुरोध को स्वीकार करते हैं, तो कोई Blur पर लिस्टेड आपके सारे एसेट चुरा सकता है।",
     "deceptive_request_title": "इस अनुरोध को धोखेबाजी के उद्देश्य से भेजा गया है",
     "failed_title": "हो सकता है कि अनुरोध सुरक्षित न हो",
     "failed_description": "कोई समस्या होने के कारण, इस अनुरोध को सिक्यूरिटी प्रोवाइडर द्वारा सत्यापित नहीं किया गया। सावधानी से आगे बढ़ें।",
+    "loading_title": "इस अनुरोध को अभी भी सिम्युलेटेड किया जा रहा है। हमारा सुझाव है कि इसके पूरा होने तक प्रतीक्षा करें।",
+    "loading_complete_title": "सिमुलेशन पूरा हुआ। आगे बढ़ने से पहले इस अनुरोध की समीक्षा करें।",
     "malicious_domain_description": "आप एक बुरी नीयत वाले डोमेन से इंटरैक्ट कर रहे हैं। यदि आप इस अनुरोध को स्वीकार करते हैं, तो आप अपने सारे एसेट गंवा सकते हैं।",
     "other_description": "यदि आप इस अनुरोध को स्वीकार करते हैं, तो आप अपने सारे एसेट गंवा सकते हैं।",
     "raw_signature_farming_description": "यदि आप इस अनुरोध को स्वीकार करते हैं, तो आप अपने सारे एसेट गंवा सकते हैं।",
@@ -198,6 +200,10 @@
     "clean_vault_error": "एक संग्रहण की सीमा पर पहुंचने की वजह से MetaMask का सामना एक त्रुटि से हुआ। स्थानीय डेटा अनुपयोगी हो गया है। कृपया MetaMask को फिर से स्थापित करें और अपने सीक्रेट रिकवरी फ्रेज के साथ बहाल करें।",
     "security_alert_title": "सुरक्षा चेतावनी",
     "security_alert_desc": "आगे बढ़ने के लिए, आपको पासकोड ऑन करना होगा या आपके डिवाइस में सपोर्ट करने वाली किसी भी बायोमेट्रिक्स प्रमाणीकरण विधि (फेसआईडी, टचआईडी या फ़िंगरप्रिंट) को चालू करना होगा।"
+  },
+  "connect_hardware": {
+    "title_select_hardware": "किसी hardware wallet को कनेक्ट करें",
+    "select_hardware": "किसी hardware wallet को चुनें जिसे आप इस्तेमाल करना चाहेंगे"
   },
   "enter_password": {
     "title": "अपना पासवर्ड दर्ज करें",
@@ -511,9 +517,11 @@
   },
   "accounts": {
     "create_new_account": "नया खाता बनाएं",
+    "qr_hardware": "QR हार्डवेयर",
     "import_account": "एक खाता इम्पोर्ट करें",
     "connect_hardware": "हार्डवेयर वॉलेट कनेक्ट करें",
     "imported": "इम्पोर्ट किया गया",
+    "qr_hardware": "QR हार्डवेयर",
     "remove_account_title": "अकाउंट हटाया जाना",
     "remove_account_message": "क्या आप वास्तव में इस अकाउंट को हटाना चाहते हैं?",
     "no": "नहीं",
@@ -533,11 +541,20 @@
     "permissions": "अनुमतियां",
     "revoke": "निरस्त करें",
     "revoke_all": "सभी निरस्त करें",
+    "ledger": "Ledger",
     "site_permission_to": "इस साइट को यह अनुमति है कि:",
     "address_balance_activity_permission": "पता, अकाउंट बैलेंस और गतिविधि को देखना",
     "suggest_transactions": "स्वीकृत करने के लिए लेनदेन का सुझाव देना",
     "disconnect": "डिसकनेक्ट करें",
-    "disconnect_all_accounts": "सभी खाते डिसकनेक्ट करें"
+    "disconnect_all_accounts": "सभी खाते डिसकनेक्ट करें",
+    "deceptive_site_ahead": "आगे धोखाधड़ी करने वाली साइट मौजूद है",
+    "deceptive_site_desc": "आप जिस साइट पर जाना चाह रहे हैं वह सुरक्षित नहीं है। हमला करने वाले आपको कुछ खतरनाक काम करने के लिए उकसा सकते हैं।",
+    "learn_more": "ज़्यादा जानें",
+    "advisory_by": "Ethereum Phishing Detector और PhishFort द्वारा दी गई एडवाइज़री",
+    "potential_threat": "बड़े ख़तरों में शामिल हैं",
+    "fake_metamask": "MetaMask के नकली वर्जन",
+    "srp_theft": "सीक्रेट रिकवरी फ्रेज़ या पासवर्ड की चोरी",
+    "malicious_transactions": "बुरी नीयत वाले ट्रांसेक्शन जिनके कारण एसेट चोरी हो जाते हैं"
   },
   "toast": {
     "connected_and_active": "कनेक्ट किया हुआ और सक्रिय।",
@@ -558,7 +575,7 @@
     "tutorial": "ट्यूटोरियल",
     "description4": "कीस्टोन (ट्यूटोरियल)",
     "description5": "1. अपना कीस्टोन अनलॉक करें",
-    "description6": "2..... मेन्यू पर टैप करें, फिर सिंक पर जाएं >",
+    "description6": "2. Tap the ··· Menu, then go to Sync",
     "button_continue": "जारी रखें",
     "hint_text": "अपना कीस्टोन वॉलेट स्कैन करें ",
     "purpose_connect": "कनेक्ट",
@@ -690,6 +707,7 @@
     "remove_network": "हटाएं",
     "cancel_remove_network": "रद्द करें",
     "info_title": "MetaMask के बारे में",
+    "info_title_flask": "MetaMask Flask के बारे में",
     "experimental_title": "प्रायोगिक",
     "experimental_desc": "वॉलेटकनेक्ट और अधिक...",
     "legal_title": "कानूनी",
@@ -789,7 +807,53 @@
     "autodetect_nft_desc": "MetaMask को थर्ड पार्टी सर्विसेज़ (जैसे OpenSea) का उपयोग करके आपके NFTs जोड़ने दें। NFTs को ऑटोडिटेक्ट करने से आपका आईपी और अकाउंट एड्रेस इन सेवाओं के सामने आ जाता है। इस फ़ीचर को इनेबल करने से आपका आईपी ​​एड्रेस आपके Ethereum एड्रेस के साथ जुड़ सकता है और धोखाधड़ी करने वाले लोगों द्वारा एयरड्रॉप किए गए नकली NFTs दिख सकते हैं। आप मैन्युअल तरीके से टोकन जोड़कर इस ख़तरे से बच सकते हैं।",
     "incoming_transactions_title": "आने वाले ट्रांजेक्शन दिखाएं",
     "incoming_transactions_content": "यह आपके द्वारा चुने गए नेटवर्क पर निर्भर करता है जो आपके Ethereum एड्रेस और आपके आईपी ​​एड्रेस को एक्स्पोज़ कर देगा।",
-    "display_nft_media_desc_new": "NFT मीडिया और डेटा दिखाने से आपका आईपी एड्रेस OpenSea या अन्य थर्ड पार्टी के सामने आ जाता है। NFT ऑटोडिटेक्शन की सुविधा इस फ़ीचर पर निर्भर करती है और इस फ़ीचर को बंद किए जाने पर उपलब्ध नहीं रहेगी। अगर NFT मीडिया पूरी तरह से IPFS पर स्थित है, तो इस फ़ीचर को बंद किए जाने पर भी इसे दिखाया जा सकता है।"
+    "display_nft_media_desc_new": "NFT मीडिया और डेटा दिखाने से आपका आईपी एड्रेस OpenSea या अन्य थर्ड पार्टी के सामने आ जाता है। NFT ऑटोडिटेक्शन की सुविधा इस फ़ीचर पर निर्भर करती है और इस फ़ीचर को बंद किए जाने पर उपलब्ध नहीं रहेगी। अगर NFT मीडिया पूरी तरह से IPFS पर स्थित है, तो इस फ़ीचर को बंद किए जाने पर भी इसे दिखाया जा सकता है।",
+    "snaps": {
+      "title": "Snaps",
+      "description": "अपने Snaps को ओवरव्यू करें और उन्हें मैनेज करें",
+      "snap_settings": {
+        "remove_snap_section_title": "Snap हटाएं",
+        "remove_snap_section_description": "ये कदम Snap और उसके डेटा को और उसके द्वारा दी गई अनुमतियों को हटा देगा।",
+        "remove_button_label": "{{snapName}} हटाएं"
+      },
+      "snap_details": {
+        "install_date": "{{date}} को इंस्टॉल किया गया",
+        "install_origin": "ओरिजिन इंस्टॉल करें",
+        "enabled": "चालू किया गया",
+        "version": "वर्शन"
+      },
+      "snap_permissions": {
+        "approved_date": "{{date}} को एप्रूव किया गया",
+        "permission_section_title": "अनुमतियां",
+        "permission_requested_now": "अब रिक्वेस्ट किया गया",
+        "human_readable_permission_titles": {
+          "endowment:long-running": "अनिश्चित काल तक चलाएं",
+          "endowment:network-access": "इंटरनेट एक्सेस करें",
+          "endowment:transaction-insight": "ट्रांसेक्शन अंतर्दृष्टि दिखाएं",
+          "endowment:cronjob": "समय-समय पर होने वाले एक्शनों को शेड्यूल करें और चलाएं।",
+          "endowment:rpc": {
+            "snaps": "अन्य Snap को इस Snap के साथ सीधे कम्यूनिकेट करने दें",
+            "dapps": "Dapps को इस Snap से सीधे कम्यूनिकेट करने दें"
+          },
+          "snap_confirm": "कस्टम डायलॉग्स दिखाएं",
+          "snap_manageState": "अपने डिवाइस पर डेटा स्टोर और मैनेज करें",
+          "snap_notify": "नोटीफिकेशंस दिखाएं",
+          "snap_getBip32Entropy": "अपने {{protocol}} अकाउंट्स और एसेट्स को कंट्रोल करें।",
+          "snap_getBip32PublicKey": "{{protocol}} के लिए अपनी पब्लिक की (key) देखें",
+          "snap_getBip44Entropy": "अपने {{protocol}} अकाउंट्स और एसेट्स को कंट्रोल करें।",
+          "snap_getEntropy": "इस Snap के लिए unique arbitrary कीज़ डिराइव करें।",
+          "endowment:keyring": "endowment:keyring",
+          "wallet_snap": "{{otherSnapName}} से कनेक्ट करें",
+          "endowment:webassembly": "WebAssembly के लिए सपोर्ट",
+          "endowment:ethereum-provider": "Ethereum प्रोवाइडर को ऐक्सेस करें",
+          "endowment:unknown": "अज्ञात अनुमतियां",
+          "snap_getLocale": "अपनी पसंदीदा भाषा देखें",
+          "endowment:caveat:transaction-origin": "ट्रांसेक्शन का सुझाव देने वाली वेबसाइटों के सोर्स देखें",
+          "endowment:extend-runtime": "रनटाइम बढ़ाएं",
+          "snap_dialog": "कस्टम डायलॉग्स दिखाएं"
+        }
+      }
+    }
   },
   "sdk": {
     "disconnect_title": "सभी साइटों को डिसकनेक्ट करें?",
@@ -800,6 +864,10 @@
     "loading": "MetaMask से कनेक्ट हो रहा है...",
     "unkown_dapp": "DAPP नाम उपलब्ध नहीं है",
     "no_connections": "कोई कनेक्शन नहीं मिला"
+  },
+  "sdk_return_to_app_modal": {
+    "title": "ऐप पर लौटें",
+    "description": "कृपया उनकी सेवाओं का उपयोग जारी रखने के लिए ऐप पर लौटें।"
   },
   "sdk_feedback_modal": {
     "ok": "ठीक है",
@@ -888,11 +956,13 @@
   "asset_overview": {
     "send_button": "भेजें",
     "buy_button": "खरीदें",
+    "sell_button": "बेचें",
     "receive_button": "प्राप्त करें",
     "portfolio_button": "पोर्टफोलियो",
     "add_collectible_button": "जोड़ें",
     "info": "जानकारी",
     "swap": "स्वैप",
+    "bridge": "ब्रिज",
     "description": "विवरण",
     "totalSupply": "कुल आपूर्ति",
     "address": "पता",
@@ -902,7 +972,9 @@
     "for_help": "मदद के लिए।",
     "troubleshoot": "ट्रबलशूट",
     "buy_description": "नकद के साथ क्रिप्टो खरीदें",
+    "sell_description": "कैश के लिए क्रिप्टो बेचें",
     "swap_description": "टोकन के बीच विनिमय",
+    "bridge_description": "अलग-अलग नेटवर्कों के बीच टोकन ट्रांसफर करें",
     "send_description": "किसी भी खाते में क्रिप्टो भेजें",
     "receive_description": "क्रिप्टो प्राप्त करें",
     "chart_time_period": {
@@ -991,7 +1063,6 @@
     "confirm": "पुष्टि करें"
   },
   "transaction": {
-    "hardware": "हार्डवेयर",
     "alert": "सावधान",
     "amount": "रकम",
     "next": "अगला",
@@ -1003,6 +1074,7 @@
     "save": "सहेजें",
     "speedup": "गति बढ़ाएं",
     "sign_with_keystone": "कीस्टोन के साथ साइन करें",
+    "sign_with_ledger": "Ledger के साथ साइन करें",
     "from": "से",
     "gas_fee": "गैस शुल्क",
     "gas_fee_fast": "तेज",
@@ -1076,6 +1148,7 @@
     "not_enough_for_gas": "लेन-देन के शुल्क के भुगतान के लिए आपके पास 0 {{ticker}} आपके अकाउंट में है। कुछ {{ticker}} खरीदें या दूसरे अकाउंट में जमा करें।",
     "send": "भेजें",
     "confirm_with_qr_hardware": "कीस्टोन के साथ पुष्टि करें",
+    "confirm_with_ledger_hardware": "Ledger से कन्फर्म करें",
     "confirmed": "पुष्ट हुआ",
     "pending": "विचाराधीन",
     "submitted": "सबमिट किया गया",
@@ -1369,7 +1442,8 @@
     "you_can": "या आप",
     "add_network": "मैन्युअल रूप से अधिक नेटवर्क जोड़ें।",
     "select_network": "एक नेटवर्क चुनें",
-    "show_test_networks": "परीक्षण नेटवर्क दिखाएं"
+    "show_test_networks": "परीक्षण नेटवर्क दिखाएं",
+    "deprecated_goerli": "Ethereum के प्रोटोकॉल परिवर्तनों के कारण: Goerli परीक्षण नेटवर्क विश्वसनीय रूप से काम नहीं कर सकता है और जल्द ही बंद हो जाएगा।"
   },
   "select": {
     "cancel": "रद्द करें",
@@ -1728,10 +1802,10 @@
     "wallet_connect_dapps_cta": "सत्र देखें",
     "network_not_supported": "वर्तमान नेटवर्क समर्थन नहीं करता",
     "security_alerts": "सुरक्षा चेतावनियाँ",
-    "security_alerts_desc": "यह सुविधा आपके लेनदेन और सिग्नेचर रिक्वेस्ट का लोकल रिव्यु करके आपको बुरी नीयत वाली गतिविधि के प्रति अलर्ट करता है। जो थर्ड पार्टी यह सर्विस देते हैं उनके साथ आपका डेटा शेयर नहीं किया जाता है। किसी भी रिक्वेस्ट को मंजूरी देने से पहले हमेशा पूरी जांच-पड़ताल ज़रूर करें। इस बात की कोई गारंटी नहीं है कि इस सुविधा के माध्यम से बुरी नीयत से की गई सभी गतिविधि का पता लगाया जा सकेगा।",
-    "select_providers": "प्रदाताओं को चुनें:",
+    "security_alerts_desc": "यह सुविधा स्थानीय रूप से आपके ट्रांसेक्शन और हस्ताक्षर अनुरोधों की समीक्षा करके आपको बुरी नीयत वाली गतिविधि के प्रति एलर्ट करती है। किसी भी अनुरोध को मंजूरी देने से पहले हमेशा पूरी जांच-पड़ताल ज़रूर करें। इस बात की कोई गारंटी नहीं है कि यह सुविधा सभी बुरी नीयत वाली गतिविधि का पता लगा लेगी। इस सुविधा को सक्षम करके आप प्रदाता की उपयोग की शर्तों से सहमत होते हैं।",
+    "select_provider": "अपना पसंदीदा प्रदाता चुनें",
     "blockaid": "Blockaid",
-    "moreProviders": "और प्रदाता जल्द ही आ रहे हैं",
+    "blockaid_desc": "गोपनीयता संरक्षण - कोई भी डेटा थर्ड पार्टी के साथ साझा नहीं किया जाता है। Ethereum Mainnet पर उपलब्ध है।",
     "switch_network": "कृपया Mainnet या sepolia पर बदलें"
   },
   "walletconnect_sessions": {
@@ -1827,16 +1901,6 @@
     "apple_pay_provider_total_label": "{{provider}} (के माध्यम से MetaMask)",
     "buy_with": "के साथ खरीदें",
     "plus_fee": "साथ ही एक {{fee}} शुल्क",
-    "notifications": {
-      "purchase_failed_title": "{{currency}} की खरीद असफल हुई! कृपया फिर से कोशिश करें, असुविधा के लिए खेद है।",
-      "purchase_failed_description": "अपनी भुगतान विधि और कार्ड समर्थन को सत्यापित करें",
-      "purchase_cancelled_title": "आपकी खरीद रद्द कर दी गई थी",
-      "purchase_cancelled_description": "अपनी भुगतान विधि और कार्ड समर्थन को सत्यापित करें",
-      "purchase_completed_title": "{{amount}} {{currency}}  की आपकी खरीद सफलतापूर्ण थी!",
-      "purchase_completed_description": "आपकी {{currency}} अभी उपलब्ध है",
-      "purchase_pending_title": "{{currency}} की आपकी खरीद संसाधित की जा रही है",
-      "purchase_pending_description": "इसमें केवल कुछ मिनटों का समय लगना चाहिए"
-    },
     "date": "तिथि",
     "from": "से",
     "to": "को",
@@ -1873,14 +1937,39 @@
     }
   },
   "fiat_on_ramp_aggregator": {
+    "buy": "खरीदें",
+    "sell": "बेचें",
+    "orders": "ऑर्डर",
+    "All": "सभी",
+    "Buy": "खरीदें",
+    "Sell": "बेचें",
+    "Purchased": "खरीदा गया",
+    "Sold": "बेचा गया",
+    "empty_buy_orders_list": "आपके पास कोई खरीद की ऑर्डर नहीं है",
+    "empty_sell_orders_list": "आपके पास कोई बेचने की ऑर्डर नहीं है",
+    "purchased_currency": "{{currency}} खरीदा गया",
+    "sold_currency": "{{currency}} बेचा गया",
+    "order_status_pending": "अभी पूरा नहीं हुआ",
+    "order_status_processing": "प्रोसेस हो रहा है",
+    "order_status_completed": "पूरा किया गया",
+    "order_status_failed": "नहीं हो पाया",
+    "order_status_cancelled": "कैंसिल किया गया",
+    "network_switcher": {
+      "title": "असमर्थित {{rampType}} नेटवर्क",
+      "description": "{{rampType}} क्रिप्टो के लिए, आपको एक सपोर्ट किए गए नेटवर्क पर स्विच करना होगा",
+      "no_networks_found": "कोई सपोर्ट किया गया नेटवर्क नहीं मिला"
+    },
     "onboarding": {
       "what_to_expect": "क्या उम्मीद करें",
       "quotes": "हमारा 'क्रिप्टो खरीदें' फ़ीचर, इंटीग्रेटेड वेंडरों से उद्धरण इकट्ठा करता है और इन सोर्सेज़ से मिले उद्धरण उपलब्ध कराता है, ताकि बिना किसी इंतज़ार के आप सीधे अपने वॉलेट में क्रिप्टो प्राप्त कर सकें।",
+      "quotes_sell": "अब आप सीधे MetaMask से पैसा निकाल सकते/ती हैं! विश्वसनीय प्रदाताओं से नवीनतम उद्धरण प्राप्त करें और हम हर कदम पर आपका मार्गदर्शन करेंगे।",
       "benefits": "कम गैस फीस देनी पड़ती है, और कई नेटवर्क, टोकन और पेमेंट के तरीकों को सपोर्ट करता है",
+      "benefits_sell": "क्रिप्टो से आपकी स्थानीय मुद्रा तक ऑफ-रैंपिंग अब पहले से कहीं ज्यादा आसान है।",
       "get_started": "शुरू करें"
     },
     "payment_method": {
       "payment_method": "भुगतान विधि",
+      "cash_destination": "कैश गंतव्य",
       "instant": "तुरंत",
       "less_than": "से कम",
       "minute": "मिनट",
@@ -1892,9 +1981,14 @@
       "lowest_limit": "न्यूनतम खरीद सीमा",
       "medium_limit": "मध्यम खरीद सीमा",
       "highest_limit": "उच्चतम खरीद सीमा",
+      "lowest_sell_limit": "सबसे कम विक्रय सीमा",
+      "medium_sell_limit": "मध्यम विक्रय सीमा",
+      "highest_sell_limit": "उच्चतम विक्रय सीमा",
       "continue_to_amount": "राशि जारी रखें",
       "no_payment_methods_title": "{{regionName}} में कोई भुगतान मेथड नहीं है",
+      "no_cash_destinations_title": "{{regionName}} में कोई कैश गंतव्य नहीं",
       "no_payment_methods_description": "आपके क्षेत्र में वर्तमान में कोई सपोर्टेड भुगतान मेथड नहीं हैं। कृपया जल्द ही जांच करें; हम अक्सर नए क्षेत्रों के लिए सपोर्ट बढ़ा रहे हैं।\n\nयदि आपने गलती से {{regionName}} चुन लिया है, तो अपने क्षेत्र को रीसेट करने के लिए नीचे दिए गए बटन पर क्लिक करें।",
+      "no_cash_destinations_description": "आपके क्षेत्र में वर्तमान में कोई सपोर्ट किया गाय कैश गंतव्य नहीं है। कृपया शीघ्र चेक करें; हम लगातार नए क्षेत्रों में सपोर्ट बढ़ा रहे हैं।\n\n\nयदि आपने गलती से {{regionName}} चुना है, तो अपना क्षेत्र रीसेट करने के लिए नीचे दिए गए बटन पर क्लिक करें।",
       "reset_region": "क्षेत्र को रीसेट करें"
     },
     "continue": "जारी रखें",
@@ -1904,9 +1998,13 @@
     "get_new_quotes": "नए उद्धरण प्राप्त करें",
     "quotes_timeout": "उद्धरण समयबाह्य",
     "request_new_quotes": "नवीनतम सर्वोत्तम दर प्राप्त करने के लिए कृपया नए उद्धरणों का रिक्वेस्ट करें।",
-    "amount_to_buy": "खरीदने हेतु राशि",
+    "amount_to_buy": "खरीदने के लिए राशि",
+    "amount_to_sell": "बेचने के लिए राशि",
     "want_to_buy": "आप खरीदना चाहते हैं",
+    "want_to_sell": "आप बेचना चाहते/ती हैं",
+    "current_balance": "वर्तमान बैलेंस",
     "amount": "राशि",
+    "send_cash_to": "अपना कैश यहां भेजें",
     "get_quotes": "उद्धरण प्राप्त करें",
     "done": "पूर्ण",
     "fetching_quotes": "उद्धरण प्राप्त करना",
@@ -1917,6 +2015,7 @@
     "search_by_currency": "एक मुद्रा खोजें",
     "update_payment_method": "भुगतान विधि अपडेट करें",
     "select_payment_method": "भुगतान विधि चुनें",
+    "select_cash_destination": "चुनें कि आपको अपना कैश कहां भेजना है",
     "select_region_currency": "क्षेत्र मुद्रा चुनें",
     "no_tokens_match": "कोई टोकन \"{{searchString}}\" से मेल नहीं खाता",
     "no_currency_match": "कोई भी मुद्रा “{{searchString}}” से मेल नहीं खाती",
@@ -1925,23 +2024,31 @@
     "continue_with": "{{provider}} के साथ जारी रखें",
     "minimum": "न्यूनतम जमा राशि है",
     "maximum": "अधिकतम जमा राशि है",
+    "insufficient_balance": "यह राशि आपकी शेष बैलेंस से अधिक है",
+    "enter_larger_amount": "जारी रखने के लिए बड़ी राशि दर्ज करें",
+    "enter_smaller_amount": "जारी रखने के लिए छोटी राशि दर्ज करें",
     "try_again": "पुनः प्रयास करें",
     "error": "त्रुटि",
     "something_went_wrong": "ओह, कुछ गलत हो गया है",
     "report_this_issue": "इस मुद्दे की रिपोर्ट करें",
     "no_providers_available": "कोई प्रदाता उपलब्ध नहीं है",
     "try_different_amount_to_buy_input": "एक अलग भुगतान विधि चुनने का प्रयास करें या उस राशि को बढ़ाने या घटाने का प्रयास करें जिसे आप खरीदना चाहते हैं!",
+    "try_different_amount_to_sell_input": "एक अलग कैश आउट गंतव्य चुनने का प्रयास करें या उस राशि को बढ़ाने या घटाने का प्रयास करें जिसे आप बेचना चाहते/ती हैं!",
     "webview_received_error": "WebView को त्रुटि का स्टेटस कोड प्राप्त हुआ: {{code}}",
     "no_tokens_available_title": "कोई टोकन उपलब्ध नहीं है",
     "no_tokens_available": "चयनित भुगतान विधि के साथ {{network}} पर खरीदने के लिए फिलहाल कोई टोकन उपलब्ध नहीं हैं।",
+    "no_sell_tokens_available": "चयनित कैश गंतव्य के साथ {{network}} पर बेचने के लिए वर्तमान में कोई टोकन उपलब्ध नहीं है।",
     "this_network": "यह नेटवर्क",
     "change_payment_method": "भुगतान का तरीका बदलें",
+    "change_cash_destination": "कैश गंतव्य बदलें",
     "try_different_region": "कोई दूसरा क्षेत्र आज़माएं",
     "return_home": "होम स्क्रीन पर लौटें",
     "region": {
       "buy_crypto_tokens": "क्रिप्टो टोकन खरीदें",
+      "sell_crypto_tokens": "क्रिप्टो टोकन बेचें",
       "title": "अपना क्षेत्र चुनें",
       "description": "आपके लिए उपलब्ध भुगतान विधियों और टोकन को हमारे तृतीय-पक्ष समेकित प्रदाताओं द्वारा निर्धारित किया जाता है और आपके क्षेत्र और हमारे समेकित प्रदाताओं द्वारा सहयोग के आधार पर भिन्न-भिन्न हो सकते हैं।",
+      "sell_description": "आपके क्षेत्र के आधार पर कैश गंतव्य विकल्प और टोकन भिन्न हो सकते हैं।",
       "search_by_country": "देश के अनुसार खोजें",
       "search_by_state": "राज्य के अनुसार खोजें",
       "no_region_results": "किसी क्षेत्र से मिलान नहीं हुआ",
@@ -1950,18 +2057,23 @@
       "select_region_title": "अपना क्षेत्र चुनें",
       "select_country_registered": "उस देश का चयन करें जहां आपका कार्ड पंजीकृत है (चाहे आप कहीं भी स्थित हों)।",
       "unsupported": "इस क्षेत्र हेतु सुविधा उपलब्ध नहीं है",
-      "unsupported_description": "हम यथाशीघ्र आपके क्षेत्र तक कवरेज का विस्तार करने हेतु अथक प्रयास कर रहे हैं। तब तक, उन अन्य तरीकों हेतु हमारा सहायक लेख देखें जिनसे आप शायद क्रिप्टो खरीद पाएं।",
-      "unsupported_link": "सहायक लेख पर जाएं"
+      "unsupported_description": "हम यथाशीघ्र आपके क्षेत्र में कवरेज का विस्तार करने के लिए कड़ी मेहनत कर रहे हैं। इस बीच, अन्य तरीकों के लिए हमारा सपोर्ट आर्टिकल देखें जिनसे आप {{rampType}} क्रिप्टो करने में सक्षम हो सकते हैं।",
+      "unsupported_link": "सहायक लेख पर जाएं",
+      "popular_regions": "लोकप्रिय जगहें",
+      "regions": "जगहें"
     },
     "order_details": {
       "details_main": "ऑर्डर का विवरण",
       "successful": "ऑर्डर सफल!",
       "your": "आपका",
       "available_in_account": "अब आपके खाते में उपलब्ध है",
+      "delayed_bank_transfer": "आपके बैंक अकाउंट में कैश आने में कुछ दिन लग सकते हैं।",
       "crypto": "क्रिप्टो",
       "failed": "ऑर्डर विफल",
       "cancelled": "ऑर्डर रद्द किया गया",
+      "pending": "ऑर्डर अभी पूरा नहीं हुआ",
       "failed_description": "कुछ गलत हो गया, और {{provider}} आपके ऑर्डर को पूरा नहीं कर पाया। कृपया पुन: प्रयास करें या किसी अन्य प्रदाता के साथ प्रयास करें।",
+      "continue_order_description": "अपना ऑर्डर जारी रखने के लिए, आपको इस पृष्ठ के नीचे बटन का चयन करना होगा।",
       "the_provider": "प्रदाता",
       "processing": "ऑर्डर प्रसंस्करण",
       "processing_card_description": "क्रेडिट/डेबिट खरीदारी में आमतौर पर कुछ मिनट लगते हैं",
@@ -1969,8 +2081,10 @@
       "details": "ऑर्डर का विवरण",
       "via": "के जरिए",
       "purchase_amount": "कुल खरीद राशि",
+      "amount_received_total": "कुल प्राप्त किया गया राशि",
       "etherscan": "पूर्ण विवरण देखें",
-      "another_purchase": "कुछ और खरीदें",
+      "start_new_order": "नया ऑर्डर प्रारंभ करें",
+      "continue_order": "इस ऑर्डर को जारी रखें",
       "questions": "प्रश्न?",
       "contact_support": "सहयोग टीम से संपर्क करें",
       "support": "सहायता",
@@ -1978,11 +2092,32 @@
       "id": "ऑर्डर आयडी",
       "date_and_time": "दिनांक और समय",
       "payment_method": "भुगतान का तरीका",
+      "destination": "गंतव्य",
       "token_amount": "टोकन राशि",
+      "token_quantity_sold": "बेची गई टोकन की मात्रा",
       "exchange_rate": "विनिमय दर",
       "total_fees": "कुल शुल्क",
       "amount": "रकम",
+      "value": "वैल्यू",
       "a_block_explorer": "एक ब्लॉक एक्सप्लोरर"
+    },
+    "send_transaction": {
+      "sell_crypto": "क्रिप्टो बेचें",
+      "send_description": "आप अपनी {{cryptocurrency}} को {{provider}} को भेजेंगे जो फिर आपकी कैश को {{paymentMethod}} को भेज देगा।",
+      "next": "आगे",
+      "hold_to_send": "भेजने के लिए होल्ड करें",
+      "send": "भेजें",
+      "sent": "भेजा गया!"
+    },
+    "notifications": {
+      "purchase_failed_title": "{{currency}} की खरीद असफल हुई! कृपया फिर से कोशिश करें, असुविधा के लिए खेद है।",
+      "purchase_failed_description": "अपनी भुगतान विधि और कार्ड समर्थन को सत्यापित करें",
+      "purchase_cancelled_title": "आपकी खरीद रद्द कर दी गई थी",
+      "purchase_cancelled_description": "अपनी भुगतान विधि और कार्ड समर्थन को सत्यापित करें",
+      "purchase_completed_title": "{{amount}} {{currency}}  की आपकी खरीद सफलतापूर्ण थी!",
+      "purchase_completed_description": "आपकी {{currency}} अभी उपलब्ध है",
+      "purchase_pending_title": "{{currency}} की आपकी खरीद संसाधित की जा रही है",
+      "purchase_pending_description": "इसमें केवल कुछ मिनटों का समय लगना चाहिए"
     }
   },
   "swaps": {
@@ -2075,7 +2210,7 @@
     "i_understand": "मैं समझता हूं",
     "quotes_expire_in": "उद्धरणों की समय सीमा समाप्त होती है",
     "saving": "बचत",
-    "using_best_quote": "सबसे बढ़िया उद्धरण का उपयोग कर रहे हैं",
+    "n_quotes": "{{numberOfQuotes}} कोटेशन्स",
     "view_details": "विवरण देखें",
     "estimated_gas_fee": "अनुमानित गैस शुल्क",
     "max_gas_fee": "अधिकतम गैस शुल्क",
@@ -2088,10 +2223,6 @@
     "completed_swap": "स्वैप!",
     "metamask_swap_fee": "MetaMask स्वैप शुल्क",
     "fee_text": {
-      "get_the": "पाएं",
-      "best_price": "सबसे अच्छी कीमत",
-      "from_the": "से",
-      "top_liquidity": "हर समय शीर्ष चल-निधि स्रोत।",
       "fee_is_applied": "एक शुल्क {{fee}} स्वचालित रूप से इस उद्धरण में समाविष्ट हो जाता है।आप इसे MetaMask's के तरलता प्रदाता सूचना एकत्रीकरण सॉफ़्टवेयर का उपयोग करने के लिए लाइसेंस के बदले में भुगतान करते हैं।",
       "fee_is_not_applied": "MetaMask इस ऑफ़र में कोई अतिरिक्त शुल्क शामिल नहीं करता है।"
     },
@@ -2124,7 +2255,7 @@
     "quote_source_agg": {
       "1": "यह उद्धरण आता है ",
       "2": "समूहक से",
-      "3": "जो आपके आदेश को विभिन्न विकेन्द्रीकृत विनियमों में विभाजित करके सबसे अच्छी कीमत ढ़ूढ़ लेता है।"
+      "3": "जो कीमतों की तुलना करता है और आपके ऑर्डर को अलग-अलग डीसेंट्रलाइज्ड एक्सचेंजों के बीच स्प्लिट करता है।"
     },
     "quote_source_cnt": {
       "1": "यह उद्धरण सीधे आता है",
@@ -2196,13 +2327,17 @@
     "ok": "ठीक है"
   },
   "whats_new": {
-    "title": "देखे क्या नया है",
+    "title": "नया क्या है",
     "blockaid": {
       "title": "सुरक्षा चेतावनियों के माध्यम से सुरक्षित रहें",
-      "description_1": "Blockaid द्वारा पावर्ड सुरक्षा चेतावनी के माध्यम से अपनी गोपनीयता बनाए रखते हुए जाने-पहचाने घोटालों से बचें।",
+      "description_1": "Ethereum Mainnet पर Blockaid द्वारा संचालित सुरक्षा अलर्ट के साथ अपनी गोपनीयता बनाए रखते हुए ज्ञात स्कैम से दूर रहें।",
       "description_2": "किसी भी रिक्वेस्ट को मंजूरी देने से पहले हमेशा पूरी जांच-पड़ताल ज़रूर करें।",
-      "description_3": "अगर आपने OpenSea से सुरक्षा चेतावनी को इनेबल किया हुआ है, तो हम आपको यह सुविधा उपलब्ध करा चुके हैं।",
       "action_text": "सुरक्षा चेतावनियों को इनेबल करें"
+    },
+    "sell": {
+      "title": "पैसे निकालना आसान कर दिया गया",
+      "description": "अपना क्रिप्टो सीधे MetaMask में बेचें! हम आपको भरोसेमंद प्रोवाइडर्स से कोटेशन पाने में मदद करेंगे, ताकि आप हर बार अपने क्रिप्टो को एक्सेस किए जा सकने वाले, तेज़ और सुरक्षित तरीके से बेच सकें।",
+      "action_text": "इसे आज़माकर देखें"
     }
   },
   "invalid_network": {
@@ -2237,7 +2372,16 @@
     "unrecognized_chain": "यह कस्टम नेटवर्क मान्यता प्राप्त नहीं है",
     "invalid_chain": "इस चेन ID के लिए %{rpcUrl} chainid.network सूचीकरण से मेल नहीं खाता है",
     "alert_recommend": "हम अनुशंसा करते हैं कि आप",
-    "alert_verify": "चेन ID को सत्यापित करें"
+    "alert_verify": "चेन ID को सत्यापित करें",
+    "warning_subtext_new": {
+      "1": "MetaMask कस्टम नेटवर्क को वेरीफाई नहीं करता है, इसलिए केवल उन नेटवर्क को एप्रूव करें जिन पर आप भरोसा करते हैं।",
+      "2": "नेटवर्क सुरक्षा से संबंधित खतरों और स्कैम के बारे में ज़्यादा जानकारी पाएं।"
+    },
+    "invalid_rpc_url": "यह नेटवर्क URL इस चेन ID के लिए जाने-पहचाने प्रोवाइडर से मेल नहीं खाता है।",
+    "invalid_chain_token_decimals": "ऐसा लगता है कि इस नेटवर्क का दशमलव (decimal) इसकी चेन ID से मेल नहीं खाता है।",
+    "unrecognized_chain_name": "ऐसा लगता है कि इस नेटवर्क का डिस्प्ले नेम इसकी चेन ID से मेल नहीं खाता है।",
+    "unrecognized_chain_ticker": "ऐसा लगता है कि इस नेटवर्क का सिंबल इसकी चेन ID से मेल नहीं खाता है।",
+    "unrecognized_chain_id": "हम इस नेटवर्क को नहीं पहचानते। आगे बढ़ने से पहले, अच्छे से जांच-परख लें कि चेन ID सही है भी या नहीं।"
   },
   "media_player": {
     "loading": "लोड हो रहा है...",
@@ -2552,7 +2696,12 @@
     "not_supported_error": "टाइप किए गए डेटा साइनिंग का केवल संस्करण 4 समर्थित है।",
     "error_during_connection": "अज्ञात गड़बड़ी हुई",
     "error_during_connection_message": "आपके Ledger Nano X को जोड़ने में थोड़ी समस्या हुई है, इसे फिर से करने के लिए नीचे 'फिर कोशिश करें' पर टैप करें। कभी-कभी MetaMask मोबाइल के साथ जोड़ने की प्रक्रिया की शुरुआत में आपके Ledger Nano X पर ETH ऐप के खुले होने के कारण ऐसा होता है।",
-    "how_to_install_eth_webview_title": "Ethereum ऐप कैसे इंस्टॉल करें"
+    "how_to_install_eth_webview_title": "Ethereum ऐप कैसे इंस्टॉल करें",
+    "nonce_too_low": "Nonce बहुत कम है",
+    "nonce_too_low_error": "सेट किया हुआ nonce बहुत कम है",
+    "ledger_beta_alert": "Ledger इंटीग्रेशन को चालू किया जा रहा है",
+    "ledger_beta_alert_description": "आपको एक एक्सपेरिमेंटल सुविधा मिल गई है! जारी रखकर आप स्वीकार करते हैं कि आप इस एक्सपेरिमेंटल सुविधा का उपयोग अपने जोखिम पर कर रहे हैं।",
+    "ledger_beta_cta": "जारी रखें"
   },
   "account_actions": {
     "edit_name": "खाते का नाम संपादित करें",

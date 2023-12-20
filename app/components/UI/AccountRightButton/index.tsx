@@ -21,7 +21,7 @@ import AvatarAccount, {
 } from '../../../component-library/components/Avatars/Avatar/variants/AvatarAccount';
 import { AccountRightButtonProps } from './AccountRightButton.types';
 import Avatar, {
-  AvatarVariants,
+  AvatarVariant,
   AvatarSize,
 } from '../../../component-library/components/Avatars/Avatar';
 import {
@@ -36,6 +36,7 @@ import { selectProviderConfig } from '../../../selectors/networkController';
 import Routes from '../../../constants/navigation/Routes';
 import { MetaMetricsEvents } from '../../../core/Analytics';
 import Analytics from '../../../core/Analytics/Analytics';
+import { AccountOverviewSelectorsIDs } from '../../../../e2e/selectors/AccountOverview.selectors';
 
 const styles = StyleSheet.create({
   leftButton: {
@@ -161,7 +162,7 @@ const AccountRightButton = ({
     <TouchableOpacity
       style={styles.leftButton}
       onPress={handleButtonPress}
-      testID={'navbar-account-button'}
+      testID={AccountOverviewSelectorsIDs.ACCOUNT_BUTTON}
     >
       <TextInput style={styles.placeholderInput} ref={placeholderInputRef} />
       {selectedAddress ? (
@@ -182,7 +183,7 @@ const AccountRightButton = ({
         )
       ) : (
         <Avatar
-          variant={AvatarVariants.Network}
+          variant={AvatarVariant.Network}
           size={AvatarSize.Md}
           name={networkName}
           imageSource={networkImageSource}

@@ -3,15 +3,17 @@ import PropTypes from 'prop-types';
 import {
   Alert,
   ActivityIndicator,
-  Text,
   View,
   SafeAreaView,
   StyleSheet,
   Image,
   InteractionManager,
   BackHandler,
-  Platform,
 } from 'react-native';
+import Text, {
+  TextColor,
+  TextVariant,
+} from '../../../component-library/components/Texts/Text';
 import AsyncStorage from '../../../store/async-storage-wrapper';
 import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view';
 import Button from 'react-native-button';
@@ -49,23 +51,15 @@ import { Authentication } from '../../../core';
 import AUTHENTICATION_TYPE from '../../../constants/userProperties';
 import { ThemeContext, mockTheme } from '../../../util/theme';
 import AnimatedFox from 'react-native-animated-fox';
-import {
-  LOGIN_PASSWORD_ERROR,
-  RESET_WALLET_ID,
-} from '../../../constants/test-ids';
 import { LoginOptionsSwitch } from '../../UI/LoginOptionsSwitch';
-import generateTestId from '../../../../wdio/utils/generateTestId';
-import {
-  LOGIN_VIEW_PASSWORD_INPUT_ID,
-  LOGIN_VIEW_TITLE_ID,
-  LOGIN_VIEW_UNLOCK_BUTTON_ID,
-} from '../../../../wdio/screen-objects/testIDs/Screens/LoginScreen.testIds';
 import { createRestoreWalletNavDetailsNested } from '../RestoreWallet/RestoreWallet';
 import { parseVaultValue } from '../../../util/validators';
 import { getVaultFromBackup } from '../../../core/BackupVault';
 import { containsErrorMessage } from '../../../util/errorHandling';
 import { MetaMetricsEvents } from '../../../core/Analytics';
 import { selectSelectedAddress } from '../../../selectors/preferencesController';
+import { RevealSeedViewSelectorsIDs } from '../../../../e2e/selectors/Settings/SecurityAndPrivacy/RevealSeedView.selectors';
+import { LoginViewSelectors } from '../../../../e2e/selectors/LoginView.selectors';
 
 const deviceHeight = Device.getDeviceHeight();
 const breakPoint = deviceHeight < 700;
@@ -94,6 +88,7 @@ const createStyles = (colors) =>
     },
     title: {
       fontSize: Device.isAndroid() ? 30 : 35,
+      lineHeight: Device.isAndroid() ? 35 : 40,
       marginTop: 20,
       marginBottom: 20,
       color: colors.text.default,
@@ -107,21 +102,13 @@ const createStyles = (colors) =>
       flexDirection: 'column',
     },
     label: {
-      color: colors.text.default,
-      fontSize: 16,
       marginBottom: 12,
-      ...fontStyles.normal,
     },
     ctaWrapper: {
       marginTop: 20,
     },
     footer: {
       marginVertical: 40,
-    },
-    errorMsg: {
-      color: colors.error.default,
-      ...fontStyles.normal,
-      lineHeight: 20,
     },
     goBack: {
       marginVertical: 14,
@@ -154,10 +141,6 @@ const createStyles = (colors) =>
       alignSelf: 'center',
       justifyContent: 'center',
       textAlign: 'center',
-      ...fontStyles.normal,
-      fontSize: 16,
-      lineHeight: 24,
-      color: colors.text.default,
     },
     areYouSure: {
       width: '100%',
@@ -527,7 +510,7 @@ class Login extends PureComponent {
             style={styles.wrapper}
             resetScrollToCoords={{ x: 0, y: 0 }}
           >
-            <View testID={'login'} {...generateTestId(Platform, 'login')}>
+            <View testID={LoginViewSelectors.CONTAINER}>
               <View style={styles.foxWrapper}>
                 {Device.isAndroid() ? (
                   <Image
@@ -541,18 +524,22 @@ class Login extends PureComponent {
               </View>
               <Text
                 style={styles.title}
-                {...generateTestId(Platform, LOGIN_VIEW_TITLE_ID)}
+                testID={LoginViewSelectors.LOGIN_VIEW_TITLE_ID}
               >
                 {strings('login.title')}
               </Text>
               <View style={styles.field}>
-                <Text style={styles.label}>{strings('login.password')}</Text>
+                <Text
+                  variant={TextVariant.HeadingSMRegular}
+                  style={styles.label}
+                >
+                  {strings('login.password')}
+                </Text>
                 <OutlinedTextField
                   style={styles.input}
                   placeholder={strings('login.password')}
                   placeholderTextColor={colors.text.muted}
-                  testID={'login-password-input'}
-                  {...generateTestId(Platform, LOGIN_VIEW_PASSWORD_INPUT_ID)}
+                  testID={RevealSeedViewSelectorsIDs.PASSWORD_INPUT}
                   returnKeyType={'done'}
                   autoCapitalize="none"
                   secureTextEntry
@@ -576,14 +563,16 @@ class Login extends PureComponent {
               {this.renderSwitch()}
 
               {!!this.state.error && (
-                <Text style={styles.errorMsg} testID={LOGIN_PASSWORD_ERROR}>
+                <Text
+                  color={TextColor.Error}
+                  testID={LoginViewSelectors.PASSWORD_ERROR}
+                >
                   {this.state.error}
                 </Text>
               )}
               <View
                 style={styles.ctaWrapper}
-                testID={'log-in-button'}
-                {...generateTestId(Platform, LOGIN_VIEW_UNLOCK_BUTTON_ID)}
+                testID={LoginViewSelectors.LOGIN_BUTTON_ID}
               >
                 <StyledButton type={'confirm'} onPress={this.triggerLogIn}>
                   {this.state.loading ? (
@@ -598,12 +587,16 @@ class Login extends PureComponent {
               </View>
 
               <View style={styles.footer}>
-                <Text style={styles.cant}>{strings('login.go_back')}</Text>
+                <Text
+                  variant={TextVariant.HeadingSMRegular}
+                  style={styles.cant}
+                >
+                  {strings('login.go_back')}
+                </Text>
                 <Button
                   style={styles.goBack}
                   onPress={this.toggleWarningModal}
-                  testID={RESET_WALLET_ID}
-                  {...generateTestId(Platform, RESET_WALLET_ID)}
+                  testID={LoginViewSelectors.RESET_WALLET}
                 >
                   {strings('login.reset_wallet')}
                 </Button>

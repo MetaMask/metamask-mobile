@@ -77,7 +77,10 @@ import { decGWEIToHexWEI } from '../../../util/conversions';
 import FadeAnimationView from '../FadeAnimationView';
 import Logger from '../../../util/Logger';
 import { useTheme } from '../../../util/theme';
-import { isQRHardwareAccount } from '../../../util/address';
+import {
+  getAddressAccountType,
+  isHardwareAccount,
+} from '../../../util/address';
 import {
   selectChainId,
   selectTicker,
@@ -90,6 +93,7 @@ import { selectAccounts } from '../../../selectors/accountTrackerController';
 import { selectContractBalances } from '../../../selectors/tokenBalancesController';
 import { selectSelectedAddress } from '../../../selectors/preferencesController';
 import { resetTransaction, setRecipient } from '../../../actions/transaction';
+import Routes from '../../../constants/navigation/Routes';
 import {
   SWAP_QUOTE_SUMMARY,
   SWAP_GAS_FEE,
@@ -855,9 +859,10 @@ function SwapsQuotesView({
   );
 
   const startSwapAnalytics = useCallback(
-    (selectedQuote) => {
+    (selectedQuote, selectedAddress) => {
       InteractionManager.runAfterInteractions(() => {
         const parameters = {
+          account_type: getAddressAccountType(selectedAddress),
           token_from: sourceToken.symbol,
           token_from_amount: fromTokenMinimalUnitString(
             sourceAmount,
@@ -961,7 +966,7 @@ function SwapsQuotesView({
       TransactionController,
       newSwapsTransactions,
       approvalTransactionMetaId,
-      isHardwareAccount,
+      isHardwareAddress,
     ) => {
       try {
         resetTransaction();
@@ -994,7 +999,7 @@ function SwapsQuotesView({
             16,
           ).toString(10),
         };
-        if (isHardwareAccount) {
+        if (isHardwareAddress) {
           TransactionController.hub.once(
             `${transactionMeta.id}:finished`,
             (transactionMeta) => {
@@ -1003,7 +1008,7 @@ function SwapsQuotesView({
                   TransactionController,
                   newSwapsTransactions,
                   approvalTransactionMetaId,
-                  isHardwareAccount,
+                  isHardwareAddress,
                 );
               }
             },
@@ -1031,9 +1036,9 @@ function SwapsQuotesView({
       return;
     }
 
-    const isHardwareAccount = isQRHardwareAccount(selectedAddress);
+    const isHardwareAddress = isHardwareAccount(selectedAddress);
 
-    startSwapAnalytics(selectedQuote);
+    startSwapAnalytics(selectedQuote, selectedAddress);
 
     const { TransactionController } = Engine.context;
     const newSwapsTransactions =
@@ -1045,10 +1050,10 @@ function SwapsQuotesView({
         TransactionController,
         newSwapsTransactions,
         approvalTransactionMetaId,
-        isHardwareAccount,
+        isHardwareAddress,
       );
 
-      if (isHardwareAccount) {
+      if (isHardwareAddress) {
         navigation.dangerouslyGetParent()?.pop();
         return;
       }
@@ -1058,7 +1063,7 @@ function SwapsQuotesView({
       TransactionController,
       newSwapsTransactions,
       approvalTransactionMetaId,
-      isHardwareAccount,
+      isHardwareAddress,
     );
 
     navigation.dangerouslyGetParent()?.pop();
@@ -1322,7 +1327,7 @@ function SwapsQuotesView({
 
   const buyEth = useCallback(() => {
     try {
-      navigation.navigate('FiatOnRampAggregator');
+      navigation.navigate(Routes.RAMP.BUY);
     } catch (error) {
       Logger.error(error, 'Navigation: Error when navigating to buy ETH.');
     }
@@ -1936,9 +1941,9 @@ function SwapsQuotesView({
               savings={isSaving}
             >
               <QuotesSummary.HeaderText style={styles.bestQuoteText} bold>
-                {isSaving
-                  ? strings('swaps.savings')
-                  : strings('swaps.using_best_quote')}
+                {`${strings('swaps.n_quotes', {
+                  numberOfQuotes: allQuotes.length,
+                })} `}
               </QuotesSummary.HeaderText>
               {allQuotes.length > 1 && (
                 <TouchableOpacity
@@ -2102,14 +2107,14 @@ function SwapsQuotesView({
                         {primaryCurrency === 'ETH'
                           ? ` ${renderFromWei(
                               toWei(selectedQuoteValue?.maxEthFee || '0x0'),
-                          )} ${getTicker(ticker)}` // eslint-disable-line
+                            )} ${getTicker(ticker)}` // eslint-disable-line
                           : ` ${
                               weiToFiat(
                                 toWei(selectedQuoteValue?.maxEthFee),
                                 conversionRate,
                                 currentCurrency,
                               ) || '' // eslint-disable-next-line
-                          }`}
+                            }`}
                       </Text>
                     </FadeAnimationView>
                   </>
@@ -2213,10 +2218,6 @@ function SwapsQuotesView({
         title={strings('swaps.metamask_swap_fee')}
         body={
           <Text style={styles.text}>
-            {strings('swaps.fee_text.get_the')}{' '}
-            <Text bold>{strings('swaps.fee_text.best_price')}</Text>{' '}
-            {strings('swaps.fee_text.from_the')}{' '}
-            <Text bold>{strings('swaps.fee_text.top_liquidity')}</Text>{' '}
             {selectedQuote && selectedQuote?.fee > 0
               ? strings('swaps.fee_text.fee_is_applied', {
                   fee: `${selectedQuote.fee}%`,

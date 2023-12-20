@@ -11,6 +11,20 @@ import { createAccountSelectorNavDetails } from '../../../components/Views/Accou
 import WalletAccount from './WalletAccount';
 import initialBackgroundState from '../../../util/test/initial-background-state.json';
 
+jest.mock('../../../core/Engine', () => ({
+  context: {
+    KeyringController: {
+      state: {
+        keyrings: [
+          {
+            accounts: ['0xC4955C0d639D99699Bfd7Ec54d9FaFEe40e4D272'],
+          },
+        ],
+      },
+    },
+  },
+}));
+
 const mockInitialState = {
   settings: {
     useBlockieIcon: false,
@@ -19,8 +33,10 @@ const mockInitialState = {
     backgroundState: {
       ...initialBackgroundState,
       PreferencesController: {
-        selectedAddress: '0x',
-        identities: { '0x': { name: 'Account 1' } },
+        selectedAddress: '0xC4955C0d639D99699Bfd7Ec54d9FaFEe40e4D272',
+        identities: {
+          '0xC4955C0d639D99699Bfd7Ec54d9FaFEe40e4D272': { name: 'Account 1' },
+        },
       },
     },
   },

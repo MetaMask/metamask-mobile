@@ -3,7 +3,6 @@ import PropTypes from 'prop-types';
 import {
   ActivityIndicator,
   BackHandler,
-  Text,
   View,
   ScrollView,
   StyleSheet,
@@ -13,6 +12,9 @@ import {
   Animated,
   Easing,
 } from 'react-native';
+import Text, {
+  TextVariant,
+} from '../../../component-library/components/Texts/Text';
 import AsyncStorage from '../../../store/async-storage-wrapper';
 import StyledButton from '../../UI/StyledButton';
 import {
@@ -53,6 +55,8 @@ import {
   WALLET_SETUP_SCREEN_IMPORT_FROM_SEED_BUTTON_ID,
   WALLET_SETUP_CREATE_NEW_WALLET_BUTTON_ID,
 } from '../../../../wdio/screen-objects/testIDs/Screens/WalletSetupScreen.testIds';
+import { OnboardingSelectorIDs } from '../../../../e2e/selectors/Onboarding/Onboarding.selectors';
+
 import Routes from '../../../constants/navigation/Routes';
 import { selectAccounts } from '../../../selectors/accountTrackerController';
 
@@ -77,9 +81,6 @@ const createStyles = (colors) =>
       height: Device.isIos() ? 90 : 45,
     },
     title: {
-      fontSize: 24,
-      color: colors.text.default,
-      ...fontStyles.bold,
       textAlign: 'center',
     },
     ctas: {
@@ -96,12 +97,8 @@ const createStyles = (colors) =>
       ...fontStyles.normal,
     },
     buttonDescription: {
-      ...fontStyles.normal,
-      fontSize: 14,
       textAlign: 'center',
       marginBottom: 16,
-      color: colors.text.default,
-      lineHeight: 20,
     },
     importWrapper: {
       marginVertical: 24,
@@ -121,10 +118,7 @@ const createStyles = (colors) =>
     },
     loadingText: {
       marginTop: 30,
-      fontSize: 14,
       textAlign: 'center',
-      color: colors.text.default,
-      ...fontStyles.normal,
     },
     modalTypeView: {
       position: 'absolute',
@@ -379,6 +373,7 @@ class Onboarding extends PureComponent {
     return (
       <View style={styles.ctas}>
         <Text
+          variant={TextVariant.HeadingLG}
           style={styles.title}
           {...generateTestId(Platform, WALLET_SETUP_SCREEN_TITLE_ID)}
         >
@@ -449,7 +444,10 @@ class Onboarding extends PureComponent {
     const styles = createStyles(colors);
 
     return (
-      <View style={baseStyles.flexGrow} testID={'onboarding-screen'}>
+      <View
+        style={baseStyles.flexGrow}
+        testID={OnboardingSelectorIDs.CONTAINER_ID}
+      >
         <OnboardingScreenWithBg screen={'c'}>
           <ScrollView
             style={baseStyles.flexGrow}

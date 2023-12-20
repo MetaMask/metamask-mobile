@@ -5,8 +5,9 @@ exports[`SecuritySettings should render correctly 1`] = `
   style={
     Object {
       "backgroundColor": "#FFFFFF",
-      "padding": 24,
       "paddingBottom": 48,
+      "paddingHorizontal": 16,
+      "paddingTop": 8,
     }
   }
   testID="security-settings-scrollview"
@@ -23,42 +24,7 @@ exports[`SecuritySettings should render correctly 1`] = `
         style={
           Array [
             Object {
-              "marginTop": 50,
-            },
-            Object {
-              "marginTop": 0,
-            },
-          ]
-        }
-      >
-        <Text
-          style={
-            Array [
-              Object {
-                "color": "#24272A",
-                "fontFamily": "EuclidCircularB-Regular",
-                "fontSize": 20,
-                "fontWeight": "400",
-                "lineHeight": 20,
-                "marginTop": -4,
-                "paddingTop": 4,
-              },
-              Object {
-                "fontSize": 24,
-                "lineHeight": 30,
-                "marginBottom": 24,
-              },
-            ]
-          }
-        >
-          Security
-        </Text>
-      </View>
-      <View
-        style={
-          Array [
-            Object {
-              "marginTop": 50,
+              "marginTop": 32,
             },
             Object {
               "marginTop": 0,
@@ -71,157 +37,165 @@ exports[`SecuritySettings should render correctly 1`] = `
           style={
             Object {
               "color": "#24272A",
-              "fontFamily": "EuclidCircularB-Regular",
-              "fontSize": 20,
-              "fontWeight": "400",
+              "fontFamily": "Euclid Circular B",
+              "fontSize": 24,
+              "fontWeight": "700",
               "letterSpacing": 0,
-              "lineHeight": 20,
-              "marginBottom": 10,
-              "marginTop": -4,
-              "paddingTop": 4,
+              "lineHeight": 32,
+              "marginBottom": 24,
             }
           }
         >
-          <Text
-            allowFontScaling={false}
-            style={
-              Array [
-                Object {
-                  "color": "#D73847",
-                  "fontSize": 16,
-                },
-                undefined,
-                Object {
-                  "fontFamily": "FontAwesome",
-                  "fontStyle": "normal",
-                  "fontWeight": "normal",
-                },
-                Object {},
-              ]
+          Security
+        </Text>
+      </View>
+      <View
+        style={
+          Array [
+            Object {
+              "marginTop": 30,
+            },
+            Object {
+              "marginTop": 0,
+            },
+          ]
+        }
+      >
+        <Text
+          accessibilityRole="text"
+          style={
+            Object {
+              "color": "#24272A",
+              "fontFamily": "Euclid Circular B",
+              "fontSize": 16,
+              "fontWeight": "500",
+              "letterSpacing": 0,
+              "lineHeight": 24,
             }
-          >
-            
-          </Text>
-           
-          <Text
-            accessibilityRole="text"
-            style={
-              Object {
-                "color": "#24272A",
-                "fontFamily": "EuclidCircularB-Regular",
-                "fontSize": 20,
-                "fontWeight": "400",
-                "letterSpacing": 0,
-                "lineHeight": 20,
-                "marginBottom": 10,
-                "marginTop": -4,
-                "paddingTop": 4,
-              }
-            }
-          >
-            Protect your wallet
-          </Text>
+          }
+        >
+          Protect your wallet
         </Text>
         <View
           style={
             Object {
-              "height": 240,
-              "width": "100%",
+              "marginTop": 16,
             }
           }
-        />
+        >
+          <View
+            style={
+              Object {
+                "height": 240,
+                "width": "100%",
+              }
+            }
+          />
+        </View>
         <Text
           accessibilityRole="text"
           style={
             Object {
               "color": "#535A61",
-              "fontFamily": "EuclidCircularB-Regular",
+              "fontFamily": "Euclid Circular B",
               "fontSize": 14,
               "fontWeight": "400",
               "letterSpacing": 0,
-              "lineHeight": 20,
-              "marginTop": 12,
+              "lineHeight": 22,
+              "marginTop": 8,
             }
           }
         >
           This is your wallet’s 12 word phrase. This phrase can be used to take control of all your current and future accounts, including the ability to send away funds in your wallet. Keep this phrase stored safely, DO NOT share it with anyone. MetaMask cannot help you recover this key.
         </Text>
-        <TouchableOpacity
+        <Text
+          accessibilityRole="text"
           onPress={[Function]}
+          onPressIn={[Function]}
+          onPressOut={[Function]}
+          style={
+            Object {
+              "backgroundColor": "transparent",
+              "color": "#24272A",
+            }
+          }
+          suppressHighlighting={true}
         >
           <Text
             accessibilityRole="text"
             style={
               Object {
                 "color": "#0376C9",
-                "fontFamily": "EuclidCircularB-Regular",
+                "fontFamily": "Euclid Circular B",
                 "fontSize": 14,
-                "fontWeight": "400",
-                "letterSpacing": 0,
-                "lineHeight": 20,
-              }
-            }
-          >
-            Learn more.
-          </Text>
-        </TouchableOpacity>
-        <View
-          style={
-            Array [
-              Object {
-                "alignItems": "center",
-                "borderRadius": 10,
-                "display": "flex",
-                "flexDirection": "row",
-                "justifyContent": "center",
-                "marginTop": 10,
-                "padding": 12,
-                "width": "100%",
-              },
-              Object {
-                "backgroundColor": "#D7384719",
-              },
-            ]
-          }
-        >
-          <Text
-            allowFontScaling={false}
-            style={
-              Array [
-                Object {
-                  "color": "#D73847",
-                  "fontSize": 16,
-                },
-                Object {
-                  "marginRight": 4,
-                },
-                Object {
-                  "fontFamily": "FontAwesome",
-                  "fontStyle": "normal",
-                  "fontWeight": "normal",
-                },
-                Object {},
-              ]
-            }
-          >
-            
-          </Text>
-          <Text
-            accessibilityRole="text"
-            style={
-              Object {
-                "color": "#24272A",
-                "flex": 1,
-                "fontFamily": "EuclidCircularB-Regular",
-                "fontSize": 12,
                 "fontWeight": "400",
                 "letterSpacing": 0,
                 "lineHeight": 22,
               }
             }
           >
-            Important! Secret Recovery Phrase not backed up
+            Learn more.
           </Text>
+        </Text>
+        <View
+          style={
+            Object {
+              "backgroundColor": "#D7384719",
+              "borderColor": "#D73847",
+              "borderLeftWidth": 4,
+              "borderRadius": 4,
+              "flexDirection": "row",
+              "marginTop": 16,
+              "padding": 12,
+              "paddingLeft": 8,
+            }
+          }
+          testID="banneralert"
+          variant="Alert"
+        >
+          <View
+            style={
+              Object {
+                "marginRight": 8,
+              }
+            }
+          >
+            <SvgMock
+              color="#D73847"
+              height={24}
+              name="Danger"
+              style={
+                Object {
+                  "height": 24,
+                  "width": 24,
+                }
+              }
+              width={24}
+            />
+          </View>
+          <View
+            style={
+              Object {
+                "flex": 1,
+              }
+            }
+          >
+            <Text
+              accessibilityRole="text"
+              style={
+                Object {
+                  "color": "#24272A",
+                  "fontFamily": "Euclid Circular B",
+                  "fontSize": 16,
+                  "fontWeight": "500",
+                  "letterSpacing": 0,
+                  "lineHeight": 24,
+                }
+              }
+            >
+              Important! Secret Recovery Phrase not backed up
+            </Text>
+          </View>
         </View>
         <TouchableOpacity
           activeOpacity={1}
@@ -237,9 +211,8 @@ exports[`SecuritySettings should render correctly 1`] = `
               "flexDirection": "row",
               "height": 48,
               "justifyContent": "center",
-              "marginTop": 18,
+              "marginTop": 16,
               "paddingHorizontal": 16,
-              "width": "100%",
             }
           }
           variant="Primary"
@@ -264,7 +237,7 @@ exports[`SecuritySettings should render correctly 1`] = `
       <View
         style={
           Object {
-            "marginTop": 50,
+            "marginTop": 32,
           }
         }
         testID="change-password-section"
@@ -274,13 +247,11 @@ exports[`SecuritySettings should render correctly 1`] = `
           style={
             Object {
               "color": "#24272A",
-              "fontFamily": "EuclidCircularB-Regular",
-              "fontSize": 20,
-              "fontWeight": "400",
+              "fontFamily": "Euclid Circular B",
+              "fontSize": 16,
+              "fontWeight": "500",
               "letterSpacing": 0,
-              "lineHeight": 20,
-              "marginTop": -4,
-              "paddingTop": 4,
+              "lineHeight": 24,
             }
           }
         >
@@ -291,12 +262,12 @@ exports[`SecuritySettings should render correctly 1`] = `
           style={
             Object {
               "color": "#535A61",
-              "fontFamily": "EuclidCircularB-Regular",
+              "fontFamily": "Euclid Circular B",
               "fontSize": 14,
               "fontWeight": "400",
               "letterSpacing": 0,
-              "lineHeight": 20,
-              "marginTop": 12,
+              "lineHeight": 22,
+              "marginTop": 8,
             }
           }
         >
@@ -310,20 +281,19 @@ exports[`SecuritySettings should render correctly 1`] = `
           style={
             Object {
               "alignItems": "center",
-              "alignSelf": "flex-start",
+              "alignSelf": "stretch",
               "backgroundColor": "transparent",
               "borderColor": "#0376C9",
-              "borderRadius": 20,
+              "borderRadius": 24,
               "borderWidth": 1,
               "flexDirection": "row",
-              "height": 40,
+              "height": 48,
               "justifyContent": "center",
-              "marginTop": 18,
+              "marginTop": 16,
               "paddingHorizontal": 16,
-              "width": "100%",
             }
           }
-          testID="change-password-button-id"
+          testID="change-password-button"
           variant="Secondary"
         >
           <Text
@@ -346,7 +316,7 @@ exports[`SecuritySettings should render correctly 1`] = `
       <View
         style={
           Object {
-            "marginTop": 50,
+            "marginTop": 32,
           }
         }
         testID="auto-lock-section"
@@ -356,13 +326,11 @@ exports[`SecuritySettings should render correctly 1`] = `
           style={
             Object {
               "color": "#24272A",
-              "fontFamily": "EuclidCircularB-Regular",
-              "fontSize": 20,
-              "fontWeight": "400",
+              "fontFamily": "Euclid Circular B",
+              "fontSize": 16,
+              "fontWeight": "500",
               "letterSpacing": 0,
-              "lineHeight": 20,
-              "marginTop": -4,
-              "paddingTop": 4,
+              "lineHeight": 24,
             }
           }
         >
@@ -373,12 +341,12 @@ exports[`SecuritySettings should render correctly 1`] = `
           style={
             Object {
               "color": "#535A61",
-              "fontFamily": "EuclidCircularB-Regular",
+              "fontFamily": "Euclid Circular B",
               "fontSize": 14,
               "fontWeight": "400",
               "letterSpacing": 0,
-              "lineHeight": 20,
-              "marginTop": 12,
+              "lineHeight": 22,
+              "marginTop": 8,
             }
           }
         >
@@ -499,81 +467,94 @@ exports[`SecuritySettings should render correctly 1`] = `
       <View
         style={
           Object {
-            "marginTop": 50,
+            "marginTop": 32,
           }
         }
       >
-        <Text
-          style={
-            Object {
-              "color": "#24272A",
-              "fontFamily": "EuclidCircularB-Regular",
-              "fontSize": 20,
-              "fontWeight": "400",
-              "lineHeight": 20,
-              "marginTop": -4,
-              "paddingTop": 4,
-            }
-          }
-        >
-          Turn on Remember me
-        </Text>
-        <Text
-          style={
-            Object {
-              "color": "#535A61",
-              "fontFamily": "EuclidCircularB-Regular",
-              "fontSize": 14,
-              "fontWeight": "400",
-              "lineHeight": 20,
-              "marginTop": 12,
-            }
-          }
-        >
-          When Remember me is on, anyone with access to your phone can access your MetaMask account.
-        </Text>
-        <View
-          style={
-            Object {
-              "alignSelf": "flex-start",
-              "marginTop": 18,
-            }
-          }
-        >
-          <RCTSwitch
-            accessibilityRole="switch"
-            onChange={[Function]}
-            onResponderTerminationRequest={[Function]}
-            onStartShouldSetResponder={[Function]}
-            onTintColor="#0376C9"
+        <View>
+          <View
             style={
-              Array [
-                Object {
-                  "height": 31,
-                  "width": 51,
-                },
-                Array [
-                  Object {
-                    "alignSelf": "flex-start",
-                  },
-                  Object {
-                    "backgroundColor": "#D6D9DC",
-                    "borderRadius": 16,
-                  },
-                ],
-              ]
+              Object {
+                "alignItems": "center",
+                "flexDirection": "row",
+              }
             }
-            testID="turn-on-remember-me"
-            thumbTintColor="#FFFFFF"
-            tintColor="#D6D9DC"
-            value={true}
-          />
+          >
+            <Text
+              accessibilityRole="text"
+              style={
+                Object {
+                  "color": "#24272A",
+                  "flex": 1,
+                  "fontFamily": "Euclid Circular B",
+                  "fontSize": 16,
+                  "fontWeight": "500",
+                  "letterSpacing": 0,
+                  "lineHeight": 24,
+                }
+              }
+            >
+              Turn on Remember me
+            </Text>
+            <View
+              style={
+                Object {
+                  "marginLeft": 16,
+                }
+              }
+            >
+              <RCTSwitch
+                accessibilityRole="switch"
+                onChange={[Function]}
+                onResponderTerminationRequest={[Function]}
+                onStartShouldSetResponder={[Function]}
+                onTintColor="#0376C9"
+                style={
+                  Array [
+                    Object {
+                      "height": 31,
+                      "width": 51,
+                    },
+                    Array [
+                      Object {
+                        "alignSelf": "flex-start",
+                      },
+                      Object {
+                        "backgroundColor": "#D6D9DC",
+                        "borderRadius": 16,
+                      },
+                    ],
+                  ]
+                }
+                testID="turn-on-remember-me"
+                thumbTintColor="#FFFFFF"
+                tintColor="#D6D9DC"
+                value={true}
+              />
+            </View>
+          </View>
+          <Text
+            accessibilityRole="text"
+            style={
+              Object {
+                "color": "#535A61",
+                "fontFamily": "Euclid Circular B",
+                "fontSize": 14,
+                "fontWeight": "400",
+                "letterSpacing": 0,
+                "lineHeight": 22,
+                "marginTop": 8,
+              }
+            }
+          >
+            When Remember me is on, anyone with access to your phone can access your MetaMask account.
+          </Text>
         </View>
       </View>
       <View
         style={
           Object {
-            "marginTop": 50,
+            "marginTop": 32,
           }
         }
         testID="reveal-private-key-section"
@@ -583,13 +564,11 @@ exports[`SecuritySettings should render correctly 1`] = `
           style={
             Object {
               "color": "#24272A",
-              "fontFamily": "EuclidCircularB-Regular",
-              "fontSize": 20,
-              "fontWeight": "400",
+              "fontFamily": "Euclid Circular B",
+              "fontSize": 16,
+              "fontWeight": "500",
               "letterSpacing": 0,
-              "lineHeight": 20,
-              "marginTop": -4,
-              "paddingTop": 4,
+              "lineHeight": 24,
             }
           }
         >
@@ -600,12 +579,12 @@ exports[`SecuritySettings should render correctly 1`] = `
           style={
             Object {
               "color": "#535A61",
-              "fontFamily": "EuclidCircularB-Regular",
+              "fontFamily": "Euclid Circular B",
               "fontSize": 14,
               "fontWeight": "400",
               "letterSpacing": 0,
-              "lineHeight": 20,
-              "marginTop": 12,
+              "lineHeight": 22,
+              "marginTop": 8,
             }
           }
         >
@@ -619,15 +598,14 @@ exports[`SecuritySettings should render correctly 1`] = `
           style={
             Object {
               "alignItems": "center",
-              "alignSelf": "flex-start",
+              "alignSelf": "stretch",
               "backgroundColor": "#0376C9",
-              "borderRadius": 20,
+              "borderRadius": 24,
               "flexDirection": "row",
-              "height": 40,
+              "height": 48,
               "justifyContent": "center",
-              "marginTop": 18,
+              "marginTop": 16,
               "paddingHorizontal": 16,
-              "width": "100%",
             }
           }
           variant="Primary"
@@ -653,138 +631,135 @@ exports[`SecuritySettings should render correctly 1`] = `
         style={
           Array [
             Object {
-              "marginTop": 50,
+              "marginTop": 32,
             },
             undefined,
           ]
         }
       >
         <Text
+          accessibilityRole="text"
           style={
-            Array [
-              Object {
-                "color": "#24272A",
-                "fontFamily": "EuclidCircularB-Regular",
-                "fontSize": 20,
-                "fontWeight": "400",
-                "lineHeight": 20,
-                "marginTop": -4,
-                "paddingTop": 4,
-              },
-              Object {
-                "fontSize": 24,
-                "lineHeight": 30,
-                "marginBottom": 24,
-              },
-            ]
+            Object {
+              "color": "#24272A",
+              "fontFamily": "Euclid Circular B",
+              "fontSize": 24,
+              "fontWeight": "700",
+              "letterSpacing": 0,
+              "lineHeight": 32,
+              "marginBottom": 24,
+            }
           }
         >
           Privacy
         </Text>
       </View>
+      <Text
+        accessibilityRole="text"
+        style={
+          Object {
+            "color": "#535A61",
+            "fontFamily": "Euclid Circular B",
+            "fontSize": 16,
+            "fontWeight": "500",
+            "letterSpacing": 0,
+            "lineHeight": 24,
+            "marginTop": 0,
+          }
+        }
+      >
+        Clear privacy or browser data
+      </Text>
       <View
         style={
-          Array [
-            Object {
-              "marginTop": 50,
-            },
-            Object {
-              "marginTop": 0,
-            },
-          ]
+          Object {
+            "marginTop": 16,
+          }
         }
         testID="sdk-section"
       >
         <Text
+          accessibilityRole="text"
           style={
             Object {
               "color": "#24272A",
-              "fontFamily": "EuclidCircularB-Regular",
-              "fontSize": 20,
-              "fontWeight": "400",
-              "lineHeight": 20,
-              "marginTop": -4,
-              "paddingTop": 4,
+              "fontFamily": "Euclid Circular B",
+              "fontSize": 16,
+              "fontWeight": "500",
+              "letterSpacing": 0,
+              "lineHeight": 24,
             }
           }
         >
           Manage connections
         </Text>
         <Text
+          accessibilityRole="text"
           style={
             Object {
               "color": "#535A61",
-              "fontFamily": "EuclidCircularB-Regular",
+              "fontFamily": "Euclid Circular B",
               "fontSize": 14,
               "fontWeight": "400",
-              "lineHeight": 20,
-              "marginTop": 12,
+              "letterSpacing": 0,
+              "lineHeight": 22,
+              "marginTop": 8,
             }
           }
         >
           Remove connections to sites and/or MetaMask SDK.
         </Text>
-        <TouchableOpacity
-          accessibilityRole="button"
-          accessible={true}
-          activeOpacity={0.2}
-          onPress={[Function]}
+        <View
           style={
-            Array [
-              Array [
-                Object {
-                  "borderRadius": 100,
-                  "justifyContent": "center",
-                  "padding": 15,
-                },
-                Object {
-                  "backgroundColor": "#FFFFFF",
-                  "borderColor": "#0376C9",
-                  "borderWidth": 1,
-                },
-                Object {
-                  "marginTop": 18,
-                },
-              ],
-              null,
-            ]
+            Object {
+              "marginTop": 16,
+            }
           }
         >
-          <Text
+          <TouchableOpacity
+            activeOpacity={1}
+            onPress={[Function]}
+            onPressIn={[Function]}
+            onPressOut={[Function]}
             style={
-              Array [
-                Object {
-                  "color": "#007aff",
-                  "fontSize": 17,
-                  "fontWeight": "500",
-                  "textAlign": "center",
-                },
-                null,
-                Array [
-                  Object {
-                    "fontFamily": "EuclidCircularB-Bold",
-                    "fontSize": 14,
-                    "fontWeight": "600",
-                    "textAlign": "center",
-                  },
-                  Object {
-                    "color": "#0376C9",
-                  },
-                  undefined,
-                ],
-                null,
-              ]
+              Object {
+                "alignItems": "center",
+                "alignSelf": "stretch",
+                "backgroundColor": "transparent",
+                "borderColor": "#0376C9",
+                "borderRadius": 24,
+                "borderWidth": 1,
+                "flexDirection": "row",
+                "height": 48,
+                "justifyContent": "center",
+                "paddingHorizontal": 16,
+              }
             }
+            variant="Secondary"
           >
-            Manage connections
-          </Text>
-        </TouchableOpacity>
+            <Text
+              accessibilityRole="text"
+              style={
+                Object {
+                  "color": "#0376C9",
+                  "fontFamily": "Euclid Circular B",
+                  "fontSize": 14,
+                  "fontWeight": "400",
+                  "letterSpacing": 0,
+                  "lineHeight": 22,
+                }
+              }
+            >
+              Manage connections
+            </Text>
+          </TouchableOpacity>
+        </View>
       </View>
       <View
         style={
           Array [
             Object {
-              "marginTop": 50,
+              "marginTop": 32,
             },
           ]
         }
@@ -795,13 +770,11 @@ exports[`SecuritySettings should render correctly 1`] = `
           style={
             Object {
               "color": "#24272A",
-              "fontFamily": "EuclidCircularB-Regular",
-              "fontSize": 20,
-              "fontWeight": "400",
+              "fontFamily": "Euclid Circular B",
+              "fontSize": 16,
+              "fontWeight": "500",
               "letterSpacing": 0,
-              "lineHeight": 20,
-              "marginTop": -4,
-              "paddingTop": 4,
+              "lineHeight": 24,
             }
           }
         >
@@ -812,73 +785,62 @@ exports[`SecuritySettings should render correctly 1`] = `
           style={
             Object {
               "color": "#535A61",
-              "fontFamily": "EuclidCircularB-Regular",
+              "fontFamily": "Euclid Circular B",
               "fontSize": 14,
               "fontWeight": "400",
               "letterSpacing": 0,
-              "lineHeight": 20,
-              "marginTop": 12,
+              "lineHeight": 22,
+              "marginTop": 8,
             }
           }
         >
           Clear privacy data so all websites must request access to view account information again.
         </Text>
-        <TouchableOpacity
-          accessibilityRole="button"
-          accessible={true}
-          activeOpacity={0.2}
-          onPress={[Function]}
+        <View
           style={
-            Array [
-              Array [
-                Object {
-                  "borderRadius": 100,
-                  "justifyContent": "center",
-                  "padding": 15,
-                },
-                Object {
-                  "backgroundColor": "#FFFFFF",
-                  "borderColor": "#0376C9",
-                  "borderWidth": 1,
-                },
-                Object {
-                  "marginTop": 18,
-                  "width": "100%",
-                },
-              ],
-              null,
-            ]
+            Object {
+              "marginTop": 16,
+            }
           }
         >
-          <Text
+          <TouchableOpacity
+            activeOpacity={1}
+            onPress={[Function]}
+            onPressIn={[Function]}
+            onPressOut={[Function]}
             style={
-              Array [
-                Object {
-                  "color": "#007aff",
-                  "fontSize": 17,
-                  "fontWeight": "500",
-                  "textAlign": "center",
-                },
-                null,
-                Array [
-                  Object {
-                    "fontFamily": "EuclidCircularB-Bold",
-                    "fontSize": 14,
-                    "fontWeight": "600",
-                    "textAlign": "center",
-                  },
-                  Object {
-                    "color": "#0376C9",
-                  },
-                  undefined,
-                ],
-                null,
-              ]
+              Object {
+                "alignItems": "center",
+                "alignSelf": "stretch",
+                "backgroundColor": "transparent",
+                "borderColor": "#0376C9",
+                "borderRadius": 24,
+                "borderWidth": 1,
+                "flexDirection": "row",
+                "height": 48,
+                "justifyContent": "center",
+                "paddingHorizontal": 16,
+              }
             }
+            variant="Secondary"
           >
-            Clear privacy data
-          </Text>
-        </TouchableOpacity>
+            <Text
+              accessibilityRole="text"
+              style={
+                Object {
+                  "color": "#0376C9",
+                  "fontFamily": "Euclid Circular B",
+                  "fontSize": 14,
+                  "fontWeight": "400",
+                  "letterSpacing": 0,
+                  "lineHeight": 22,
+                }
+              }
+            >
+              Clear privacy data
+            </Text>
+          </TouchableOpacity>
+        </View>
         <Modal
           animationType="none"
           deviceHeight={null}
@@ -912,431 +874,176 @@ exports[`SecuritySettings should render correctly 1`] = `
       <View
         style={
           Object {
-            "marginTop": 50,
+            "marginTop": 32,
           }
         }
         testID="clear-browser-history-section"
       >
         <Text
+          accessibilityRole="text"
           style={
             Object {
               "color": "#24272A",
-              "fontFamily": "EuclidCircularB-Regular",
-              "fontSize": 20,
-              "fontWeight": "400",
-              "lineHeight": 20,
-              "marginTop": -4,
-              "paddingTop": 4,
+              "fontFamily": "Euclid Circular B",
+              "fontSize": 16,
+              "fontWeight": "500",
+              "letterSpacing": 0,
+              "lineHeight": 24,
             }
           }
         >
           Clear browser history
         </Text>
         <Text
+          accessibilityRole="text"
           style={
             Object {
               "color": "#535A61",
-              "fontFamily": "EuclidCircularB-Regular",
+              "fontFamily": "Euclid Circular B",
               "fontSize": 14,
               "fontWeight": "400",
-              "lineHeight": 20,
-              "marginTop": 12,
+              "letterSpacing": 0,
+              "lineHeight": 22,
+              "marginTop": 8,
             }
           }
         >
           Choose this option to clear your entire browsing history.
         </Text>
-        <TouchableOpacity
-          accessibilityRole="button"
-          accessible={true}
-          activeOpacity={1}
-          disabled={true}
+        <View
           style={
-            Array [
-              Array [
-                Object {
-                  "borderRadius": 100,
-                  "justifyContent": "center",
-                  "padding": 15,
-                },
-                Object {
-                  "backgroundColor": "#FFFFFF",
-                  "borderColor": "#0376C9",
-                  "borderWidth": 1,
-                },
-                Object {
-                  "marginTop": 18,
-                },
-              ],
-              Object {
-                "opacity": 0.6,
-              },
-            ]
+            Object {
+              "marginTop": 16,
+            }
           }
         >
-          <Text
+          <TouchableOpacity
+            activeOpacity={1}
+            disabled={true}
+            onPress={[Function]}
+            onPressIn={[Function]}
+            onPressOut={[Function]}
             style={
-              Array [
-                Object {
-                  "color": "#007aff",
-                  "fontSize": 17,
-                  "fontWeight": "500",
-                  "textAlign": "center",
-                },
-                Object {
-                  "color": "#dcdcdc",
-                },
-                Array [
-                  Object {
-                    "fontFamily": "EuclidCircularB-Bold",
-                    "fontSize": 14,
-                    "fontWeight": "600",
-                    "textAlign": "center",
-                  },
-                  Object {
-                    "color": "#0376C9",
-                  },
-                  undefined,
-                ],
-                Object {
-                  "opacity": 0.6,
-                },
-              ]
+              Object {
+                "alignItems": "center",
+                "alignSelf": "stretch",
+                "backgroundColor": "transparent",
+                "borderColor": "#0376C9",
+                "borderRadius": 24,
+                "borderWidth": 1,
+                "flexDirection": "row",
+                "height": 48,
+                "justifyContent": "center",
+                "opacity": 0.5,
+                "paddingHorizontal": 16,
+              }
             }
+            variant="Secondary"
           >
-            Clear browser history
-          </Text>
-        </TouchableOpacity>
+            <Text
+              accessibilityRole="text"
+              style={
+                Object {
+                  "color": "#0376C9",
+                  "fontFamily": "Euclid Circular B",
+                  "fontSize": 14,
+                  "fontWeight": "400",
+                  "letterSpacing": 0,
+                  "lineHeight": 22,
+                }
+              }
+            >
+              Clear browser history
+            </Text>
+          </TouchableOpacity>
+        </View>
       </View>
       <View
         style={
           Object {
-            "marginTop": 50,
+            "marginTop": 32,
           }
         }
         testID="clear-cookies-section"
       >
         <Text
+          accessibilityRole="text"
           style={
             Object {
               "color": "#24272A",
-              "fontFamily": "EuclidCircularB-Regular",
-              "fontSize": 20,
-              "fontWeight": "400",
-              "lineHeight": 20,
-              "marginTop": -4,
-              "paddingTop": 4,
+              "fontFamily": "Euclid Circular B",
+              "fontSize": 16,
+              "fontWeight": "500",
+              "letterSpacing": 0,
+              "lineHeight": 24,
             }
           }
         >
           Clear browser cookies
         </Text>
         <Text
+          accessibilityRole="text"
           style={
             Object {
               "color": "#535A61",
-              "fontFamily": "EuclidCircularB-Regular",
+              "fontFamily": "Euclid Circular B",
               "fontSize": 14,
               "fontWeight": "400",
-              "lineHeight": 20,
-              "marginTop": 12,
+              "letterSpacing": 0,
+              "lineHeight": 22,
+              "marginTop": 8,
             }
           }
         >
           Choose this option to clear your browser's cookies.
         </Text>
-        <TouchableOpacity
-          accessibilityRole="button"
-          accessible={true}
-          activeOpacity={1}
-          disabled={true}
-          style={
-            Array [
-              Array [
-                Object {
-                  "borderRadius": 100,
-                  "justifyContent": "center",
-                  "padding": 15,
-                },
-                Object {
-                  "backgroundColor": "#FFFFFF",
-                  "borderColor": "#0376C9",
-                  "borderWidth": 1,
-                },
-                Object {
-                  "marginTop": 18,
-                },
-              ],
-              Object {
-                "opacity": 0.6,
-              },
-            ]
-          }
-        >
-          <Text
-            style={
-              Array [
-                Object {
-                  "color": "#007aff",
-                  "fontSize": 17,
-                  "fontWeight": "500",
-                  "textAlign": "center",
-                },
-                Object {
-                  "color": "#dcdcdc",
-                },
-                Array [
-                  Object {
-                    "fontFamily": "EuclidCircularB-Bold",
-                    "fontSize": 14,
-                    "fontWeight": "600",
-                    "textAlign": "center",
-                  },
-                  Object {
-                    "color": "#0376C9",
-                  },
-                  undefined,
-                ],
-                Object {
-                  "opacity": 0.6,
-                },
-              ]
-            }
-          >
-            Clear browser cookies
-          </Text>
-        </TouchableOpacity>
-      </View>
-      <Modal
-        animationType="none"
-        deviceHeight={null}
-        deviceWidth={null}
-        hardwareAccelerated={false}
-        hideModalContentWhileAnimating={false}
-        onBackdropPress={[Function]}
-        onModalHide={[Function]}
-        onModalWillHide={[Function]}
-        onModalWillShow={[Function]}
-        onRequestClose={[Function]}
-        onSwipeComplete={[Function]}
-        panResponderThreshold={4}
-        scrollHorizontal={false}
-        scrollOffset={0}
-        scrollOffsetMax={0}
-        scrollTo={null}
-        statusBarTranslucent={false}
-        supportedOrientations={
-          Array [
-            "portrait",
-            "landscape",
-          ]
-        }
-        swipeDirection="down"
-        swipeThreshold={100}
-        transparent={true}
-        visible={false}
-      />
-      <View
-        style={
-          Object {
-            "marginTop": 50,
-          }
-        }
-        testID="metametrics-section"
-      >
-        <Text
-          style={
-            Object {
-              "color": "#24272A",
-              "fontFamily": "EuclidCircularB-Regular",
-              "fontSize": 20,
-              "fontWeight": "400",
-              "lineHeight": 20,
-              "marginTop": -4,
-              "paddingTop": 4,
-            }
-          }
-        >
-          Participate in MetaMetrics
-        </Text>
-        <Text
-          style={
-            Object {
-              "color": "#535A61",
-              "fontFamily": "EuclidCircularB-Regular",
-              "fontSize": 14,
-              "fontWeight": "400",
-              "lineHeight": 20,
-              "marginTop": 12,
-            }
-          }
-        >
-          Participate in MetaMetrics to help us make MetaMask better.
-        </Text>
         <View
           style={
             Object {
-              "alignSelf": "flex-start",
-              "marginTop": 18,
+              "marginTop": 16,
             }
           }
         >
-          <RCTSwitch
-            accessibilityRole="switch"
-            onChange={[Function]}
-            onResponderTerminationRequest={[Function]}
-            onStartShouldSetResponder={[Function]}
-            onTintColor="#0376C9"
-            style={
-              Array [
-                Object {
-                  "height": 31,
-                  "width": 51,
-                },
-                Array [
-                  Object {
-                    "alignSelf": "flex-start",
-                  },
-                  Object {
-                    "backgroundColor": "#D6D9DC",
-                    "borderRadius": 16,
-                  },
-                ],
-              ]
-            }
-            testID="metametrics-switch"
-            thumbTintColor="#FFFFFF"
-            tintColor="#D6D9DC"
-            value={false}
-          />
-        </View>
-      </View>
-      <View
-        style={
-          Object {
-            "marginTop": 50,
-          }
-        }
-      >
-        <Text
-          style={
-            Object {
-              "color": "#24272A",
-              "fontFamily": "EuclidCircularB-Regular",
-              "fontSize": 20,
-              "fontWeight": "400",
-              "lineHeight": 20,
-              "marginTop": -4,
-              "paddingTop": 4,
-            }
-          }
-        >
-          Delete MetaMetrics data
-        </Text>
-        <Text
-          style={
-            Object {
-              "color": "#535A61",
-              "fontFamily": "EuclidCircularB-Regular",
-              "fontSize": 14,
-              "fontWeight": "400",
-              "lineHeight": 20,
-              "marginTop": 12,
-            }
-          }
-        >
-          <Text>
-            This will delete historical MetaMetrics data associated with your wallet.
-          </Text>
-           
-          <Text
-            style={
-              Array [
-                Object {
-                  "color": "#24272A",
-                  "fontFamily": "EuclidCircularB-Bold",
-                  "fontWeight": "600",
-                },
-              ]
-            }
-          >
-            MetaMetrics data is anonymized usage and diagnostic data.
-          </Text>
-           
-          <Text>
-            Your wallet and accounts will remain exactly as they are now after this data has been deleted. This process may take up to 60 days. View the
-          </Text>
-           
-          <Text
+          <TouchableOpacity
+            activeOpacity={1}
+            disabled={true}
             onPress={[Function]}
+            onPressIn={[Function]}
+            onPressOut={[Function]}
             style={
-              Array [
+              Object {
+                "alignItems": "center",
+                "alignSelf": "stretch",
+                "backgroundColor": "transparent",
+                "borderColor": "#0376C9",
+                "borderRadius": 24,
+                "borderWidth": 1,
+                "flexDirection": "row",
+                "height": 48,
+                "justifyContent": "center",
+                "opacity": 0.5,
+                "paddingHorizontal": 16,
+              }
+            }
+            variant="Secondary"
+          >
+            <Text
+              accessibilityRole="text"
+              style={
                 Object {
                   "color": "#0376C9",
-                },
-              ]
-            }
-          >
-            ConsenSys Privacy Policy.
-          </Text>
-        </Text>
-        <TouchableOpacity
-          accessibilityRole="button"
-          accessible={true}
-          activeOpacity={0.2}
-          disabled={false}
-          onPress={[Function]}
-          style={
-            Array [
-              Array [
-                Object {
-                  "borderRadius": 100,
-                  "justifyContent": "center",
-                  "padding": 15,
-                },
-                Object {
-                  "backgroundColor": "#FFFFFF",
-                  "borderColor": "#0376C9",
-                  "borderWidth": 1,
-                },
-                Object {
-                  "marginTop": 18,
-                },
-              ],
-              null,
-            ]
-          }
-          testID="delete-metrics-button"
-        >
-          <Text
-            style={
-              Array [
-                Object {
-                  "color": "#007aff",
-                  "fontSize": 17,
-                  "fontWeight": "500",
-                  "textAlign": "center",
-                },
-                null,
-                Array [
-                  Object {
-                    "fontFamily": "EuclidCircularB-Bold",
-                    "fontSize": 14,
-                    "fontWeight": "600",
-                    "textAlign": "center",
-                  },
-                  Object {
-                    "color": "#0376C9",
-                  },
-                  undefined,
-                ],
-                null,
-              ]
-            }
-          >
-            Delete MetaMetrics data
-          </Text>
-        </TouchableOpacity>
+                  "fontFamily": "Euclid Circular B",
+                  "fontSize": 14,
+                  "fontWeight": "400",
+                  "letterSpacing": 0,
+                  "lineHeight": 22,
+                }
+              }
+            >
+              Clear browser cookies
+            </Text>
+          </TouchableOpacity>
+        </View>
       </View>
       <Modal
         animationType="none"
@@ -1367,473 +1074,437 @@ exports[`SecuritySettings should render correctly 1`] = `
         transparent={true}
         visible={false}
       />
-      <View
+      <Text
+        accessibilityRole="text"
         style={
           Object {
-            "marginTop": 50,
+            "color": "#535A61",
+            "fontFamily": "Euclid Circular B",
+            "fontSize": 16,
+            "fontWeight": "500",
+            "letterSpacing": 0,
+            "lineHeight": 24,
+            "marginTop": 32,
           }
         }
       >
-        <Text
-          style={
-            Object {
-              "color": "#24272A",
-              "fontFamily": "EuclidCircularB-Regular",
-              "fontSize": 20,
-              "fontWeight": "400",
-              "lineHeight": 20,
-              "marginTop": -4,
-              "paddingTop": 4,
-            }
-          }
-        >
-          Delete wallet
-        </Text>
-        <Text
-          style={
-            Object {
-              "color": "#535A61",
-              "fontFamily": "EuclidCircularB-Regular",
-              "fontSize": 14,
-              "fontWeight": "400",
-              "lineHeight": 20,
-              "marginTop": 12,
-            }
-          }
-        >
-          <Text>
-            This will remove all wallet related data from your device. Your accounts exist on the blockchain and are not related to MetaMask. You can always recover your accounts using your Secret Recovery Phrase.
-          </Text>
-        </Text>
-        <TouchableOpacity
-          accessibilityRole="button"
-          accessible={true}
-          activeOpacity={0.2}
-          onPress={[Function]}
-          style={
-            Array [
-              Array [
-                Object {
-                  "borderRadius": 100,
-                  "justifyContent": "center",
-                  "padding": 15,
-                },
-                Object {
-                  "backgroundColor": "#FFFFFF",
-                  "borderColor": "#0376C9",
-                  "borderWidth": 1,
-                },
-                Object {
-                  "marginTop": 18,
-                },
-              ],
-              null,
-            ]
-          }
-          testID="security-settings-delete-wallet-buttons"
-        >
-          <Text
-            style={
-              Array [
-                Object {
-                  "color": "#007aff",
-                  "fontSize": 17,
-                  "fontWeight": "500",
-                  "textAlign": "center",
-                },
-                null,
-                Array [
-                  Object {
-                    "fontFamily": "EuclidCircularB-Bold",
-                    "fontSize": 14,
-                    "fontWeight": "600",
-                    "textAlign": "center",
-                  },
-                  Object {
-                    "color": "#0376C9",
-                  },
-                  undefined,
-                ],
-                null,
-              ]
-            }
-          >
-            Delete wallet
-          </Text>
-        </TouchableOpacity>
-      </View>
+        Transactions
+      </Text>
       <View
         style={
           Object {
-            "marginTop": 50,
+            "marginTop": 16,
           }
         }
         testID="batch-balance-requests-section"
       >
-        <Text
+        <View
           style={
             Object {
-              "color": "#24272A",
-              "fontFamily": "EuclidCircularB-Regular",
-              "fontSize": 20,
-              "fontWeight": "400",
-              "lineHeight": 20,
-              "marginTop": -4,
-              "paddingTop": 4,
+              "alignItems": "center",
+              "flexDirection": "row",
             }
           }
         >
-          Batch account balance requests
-        </Text>
+          <Text
+            accessibilityRole="text"
+            style={
+              Object {
+                "color": "#24272A",
+                "flex": 1,
+                "fontFamily": "Euclid Circular B",
+                "fontSize": 16,
+                "fontWeight": "500",
+                "letterSpacing": 0,
+                "lineHeight": 24,
+              }
+            }
+          >
+            Batch account balance requests
+          </Text>
+          <View
+            style={
+              Object {
+                "marginLeft": 16,
+              }
+            }
+          >
+            <RCTSwitch
+              accessibilityRole="switch"
+              onChange={[Function]}
+              onResponderTerminationRequest={[Function]}
+              onStartShouldSetResponder={[Function]}
+              onTintColor="#0376C9"
+              style={
+                Array [
+                  Object {
+                    "height": 31,
+                    "width": 51,
+                  },
+                  Array [
+                    Object {
+                      "alignSelf": "flex-start",
+                    },
+                    Object {
+                      "backgroundColor": "#D6D9DC",
+                      "borderRadius": 16,
+                    },
+                  ],
+                ]
+              }
+              testID="security-settings-multi-account-balances-switch"
+              thumbTintColor="#FFFFFF"
+              tintColor="#D6D9DC"
+              value={true}
+            />
+          </View>
+        </View>
         <Text
+          accessibilityRole="text"
           style={
             Object {
               "color": "#535A61",
-              "fontFamily": "EuclidCircularB-Regular",
+              "fontFamily": "Euclid Circular B",
               "fontSize": 14,
               "fontWeight": "400",
-              "lineHeight": 20,
-              "marginTop": 12,
+              "letterSpacing": 0,
+              "lineHeight": 22,
+              "marginTop": 8,
             }
           }
         >
           We batch accounts and query Infura to responsively show your balances. If you turn this off, only active accounts will be queried. Some dApps won’t work unless you connect your wallet.
         </Text>
-        <View
-          style={
-            Object {
-              "alignSelf": "flex-start",
-              "marginTop": 18,
-            }
-          }
-        >
-          <RCTSwitch
-            accessibilityRole="switch"
-            onChange={[Function]}
-            onResponderTerminationRequest={[Function]}
-            onStartShouldSetResponder={[Function]}
-            onTintColor="#0376C9"
-            style={
-              Array [
-                Object {
-                  "height": 31,
-                  "width": 51,
-                },
-                Array [
-                  Object {
-                    "alignSelf": "flex-start",
-                  },
-                  Object {
-                    "backgroundColor": "#D6D9DC",
-                    "borderRadius": 16,
-                  },
-                ],
-              ]
-            }
-            testID="security-settings-multi-account-balances-switch"
-            thumbTintColor="#FFFFFF"
-            tintColor="#D6D9DC"
-            value={true}
-          />
-        </View>
       </View>
       <View
         style={
           Object {
-            "marginTop": 50,
+            "marginTop": 32,
           }
         }
-        testID="third-party-section"
+        testID="incoming-transactions-section"
       >
         <Text
+          accessibilityRole="text"
           style={
             Object {
               "color": "#24272A",
-              "fontFamily": "EuclidCircularB-Regular",
-              "fontSize": 20,
-              "fontWeight": "400",
-              "lineHeight": 20,
-              "marginTop": -4,
-              "paddingTop": 4,
+              "fontFamily": "Euclid Circular B",
+              "fontSize": 16,
+              "fontWeight": "500",
+              "letterSpacing": 0,
+              "lineHeight": 24,
             }
           }
         >
           Show incoming transactions
         </Text>
         <Text
+          accessibilityRole="text"
           style={
             Object {
               "color": "#535A61",
-              "fontFamily": "EuclidCircularB-Regular",
+              "fontFamily": "Euclid Circular B",
               "fontSize": 14,
               "fontWeight": "400",
-              "lineHeight": 20,
-              "marginTop": 12,
+              "letterSpacing": 0,
+              "lineHeight": 22,
+              "marginTop": 8,
             }
           }
         >
           This relies on the network you select which will expose your Ethereum address and your IP address.
         </Text>
-        <TouchableOpacity
+        <View
           style={
             Object {
-              "backgroundColor": "#FFFFFF",
-              "borderColor": "#BBC0C5",
-              "borderRadius": 4,
-              "borderWidth": 0,
-              "padding": 16,
+              "marginLeft": -16,
+              "marginRight": -16,
+              "marginTop": 24,
             }
           }
-          testID="cell-display"
-          variant="Display"
         >
-          <View
-            style={
+          <TouchableOpacity
+            avatarProps={
               Object {
-                "flexDirection": "row",
+                "imageSource": Object {
+                  "uri": "MockImage",
+                },
+                "name": "Ethereum Main Network",
+                "variant": "Network",
               }
             }
+            secondaryText="etherscan.io"
+            style={
+              Object {
+                "backgroundColor": "#FFFFFF",
+                "borderColor": "#BBC0C5",
+                "borderRadius": 4,
+                "borderWidth": 0,
+                "padding": 16,
+              }
+            }
+            testID="celldisplay"
+            title="Ethereum Main Network"
           >
             <View
               style={
                 Object {
-                  "backgroundColor": "#FFFFFF",
-                  "borderRadius": 16,
-                  "height": 32,
-                  "marginRight": 16,
-                  "overflow": "hidden",
-                  "width": 32,
+                  "flexDirection": "row",
                 }
               }
             >
-              <Image
-                onError={[Function]}
-                resizeMode="contain"
-                source={
-                  Object {
-                    "uri": "MockImage",
-                  }
-                }
+              <View
                 style={
                   Object {
-                    "flex": 1,
-                    "height": undefined,
-                    "width": undefined,
+                    "backgroundColor": "#FFFFFF",
+                    "borderRadius": 16,
+                    "height": 32,
+                    "marginRight": 16,
+                    "overflow": "hidden",
+                    "width": 32,
                   }
                 }
-                testID="network-avatar-image"
-              />
-            </View>
-            <View
-              style={
-                Object {
-                  "alignItems": "flex-start",
-                  "flex": 1,
-                }
-              }
-            >
-              <Text
-                accessibilityRole="text"
-                numberOfLines={1}
-                style={
-                  Object {
-                    "color": "#24272A",
-                    "fontFamily": "Euclid Circular B",
-                    "fontSize": 16,
-                    "fontWeight": "400",
-                    "letterSpacing": 0,
-                    "lineHeight": 24,
-                  }
-                }
-                testID="cell-title"
+                testID="cellbase-avatar"
               >
-                Ethereum Main Network
-              </Text>
-              <Text
-                accessibilityRole="text"
-                numberOfLines={1}
-                style={
-                  Object {
-                    "color": "#535A61",
-                    "fontFamily": "Euclid Circular B",
-                    "fontSize": 14,
-                    "fontWeight": "400",
-                    "letterSpacing": 0,
-                    "lineHeight": 22,
-                  }
-                }
-                testID="cell-secondary-text"
-              >
-                etherscan.io
-              </Text>
-            </View>
-            <View
-              style={
-                Object {
-                  "marginLeft": 16,
-                }
-              }
-            >
-              <RCTSwitch
-                accessibilityRole="switch"
-                onChange={[Function]}
-                onResponderTerminationRequest={[Function]}
-                onStartShouldSetResponder={[Function]}
-                onTintColor="#0376C9"
-                style={
-                  Array [
+                <Image
+                  onError={[Function]}
+                  resizeMode="contain"
+                  source={
                     Object {
-                      "height": 31,
-                      "width": 51,
-                    },
+                      "uri": "MockImage",
+                    }
+                  }
+                  style={
+                    Object {
+                      "flex": 1,
+                      "height": undefined,
+                      "width": undefined,
+                    }
+                  }
+                  testID="network-avatar-image"
+                />
+              </View>
+              <View
+                style={
+                  Object {
+                    "alignItems": "flex-start",
+                    "flex": 1,
+                  }
+                }
+              >
+                <Text
+                  accessibilityRole="text"
+                  numberOfLines={1}
+                  style={
+                    Object {
+                      "color": "#24272A",
+                      "fontFamily": "Euclid Circular B",
+                      "fontSize": 16,
+                      "fontWeight": "400",
+                      "letterSpacing": 0,
+                      "lineHeight": 24,
+                    }
+                  }
+                  testID="cellbase-avatar-title"
+                >
+                  Ethereum Main Network
+                </Text>
+                <Text
+                  accessibilityRole="text"
+                  numberOfLines={1}
+                  style={
+                    Object {
+                      "color": "#535A61",
+                      "fontFamily": "Euclid Circular B",
+                      "fontSize": 14,
+                      "fontWeight": "400",
+                      "letterSpacing": 0,
+                      "lineHeight": 22,
+                    }
+                  }
+                >
+                  etherscan.io
+                </Text>
+              </View>
+              <View
+                style={
+                  Object {
+                    "marginLeft": 16,
+                  }
+                }
+              >
+                <RCTSwitch
+                  accessibilityRole="switch"
+                  onChange={[Function]}
+                  onResponderTerminationRequest={[Function]}
+                  onStartShouldSetResponder={[Function]}
+                  onTintColor="#0376C9"
+                  style={
                     Array [
                       Object {
-                        "alignSelf": "flex-start",
+                        "height": 31,
+                        "width": 51,
                       },
-                      Object {
-                        "backgroundColor": "#D6D9DC",
-                        "borderRadius": 16,
-                      },
-                    ],
-                  ]
-                }
-                thumbTintColor="#FFFFFF"
-                tintColor="#D6D9DC"
-                value={true}
-              />
+                      Array [
+                        Object {
+                          "alignSelf": "flex-start",
+                        },
+                        Object {
+                          "backgroundColor": "#D6D9DC",
+                          "borderRadius": 16,
+                        },
+                      ],
+                    ]
+                  }
+                  thumbTintColor="#FFFFFF"
+                  tintColor="#D6D9DC"
+                  value={true}
+                />
+              </View>
             </View>
-          </View>
-        </TouchableOpacity>
-        <TouchableOpacity
-          style={
-            Object {
-              "backgroundColor": "#FFFFFF",
-              "borderColor": "#BBC0C5",
-              "borderRadius": 4,
-              "borderWidth": 0,
-              "padding": 16,
-            }
-          }
-          testID="cell-display"
-          variant="Display"
-        >
-          <View
-            style={
+          </TouchableOpacity>
+          <TouchableOpacity
+            avatarProps={
               Object {
-                "flexDirection": "row",
+                "imageSource": Object {
+                  "uri": "MockImage",
+                },
+                "name": "Linea Main Network",
+                "variant": "Network",
               }
             }
+            secondaryText="lineascan.build"
+            style={
+              Object {
+                "backgroundColor": "#FFFFFF",
+                "borderColor": "#BBC0C5",
+                "borderRadius": 4,
+                "borderWidth": 0,
+                "padding": 16,
+              }
+            }
+            testID="celldisplay"
+            title="Linea Main Network"
           >
             <View
               style={
                 Object {
-                  "backgroundColor": "#FFFFFF",
-                  "borderRadius": 16,
-                  "height": 32,
-                  "marginRight": 16,
-                  "overflow": "hidden",
-                  "width": 32,
+                  "flexDirection": "row",
                 }
               }
             >
-              <Image
-                onError={[Function]}
-                resizeMode="contain"
-                source={
-                  Object {
-                    "uri": "MockImage",
-                  }
-                }
+              <View
                 style={
                   Object {
-                    "flex": 1,
-                    "height": undefined,
-                    "width": undefined,
+                    "backgroundColor": "#FFFFFF",
+                    "borderRadius": 16,
+                    "height": 32,
+                    "marginRight": 16,
+                    "overflow": "hidden",
+                    "width": 32,
                   }
                 }
-                testID="network-avatar-image"
-              />
-            </View>
-            <View
-              style={
-                Object {
-                  "alignItems": "flex-start",
-                  "flex": 1,
-                }
-              }
-            >
-              <Text
-                accessibilityRole="text"
-                numberOfLines={1}
-                style={
-                  Object {
-                    "color": "#24272A",
-                    "fontFamily": "Euclid Circular B",
-                    "fontSize": 16,
-                    "fontWeight": "400",
-                    "letterSpacing": 0,
-                    "lineHeight": 24,
-                  }
-                }
-                testID="cell-title"
+                testID="cellbase-avatar"
               >
-                Linea Main Network
-              </Text>
-              <Text
-                accessibilityRole="text"
-                numberOfLines={1}
-                style={
-                  Object {
-                    "color": "#535A61",
-                    "fontFamily": "Euclid Circular B",
-                    "fontSize": 14,
-                    "fontWeight": "400",
-                    "letterSpacing": 0,
-                    "lineHeight": 22,
-                  }
-                }
-                testID="cell-secondary-text"
-              >
-                lineascan.build
-              </Text>
-            </View>
-            <View
-              style={
-                Object {
-                  "marginLeft": 16,
-                }
-              }
-            >
-              <RCTSwitch
-                accessibilityRole="switch"
-                onChange={[Function]}
-                onResponderTerminationRequest={[Function]}
-                onStartShouldSetResponder={[Function]}
-                onTintColor="#0376C9"
-                style={
-                  Array [
+                <Image
+                  onError={[Function]}
+                  resizeMode="contain"
+                  source={
                     Object {
-                      "height": 31,
-                      "width": 51,
-                    },
+                      "uri": "MockImage",
+                    }
+                  }
+                  style={
+                    Object {
+                      "flex": 1,
+                      "height": undefined,
+                      "width": undefined,
+                    }
+                  }
+                  testID="network-avatar-image"
+                />
+              </View>
+              <View
+                style={
+                  Object {
+                    "alignItems": "flex-start",
+                    "flex": 1,
+                  }
+                }
+              >
+                <Text
+                  accessibilityRole="text"
+                  numberOfLines={1}
+                  style={
+                    Object {
+                      "color": "#24272A",
+                      "fontFamily": "Euclid Circular B",
+                      "fontSize": 16,
+                      "fontWeight": "400",
+                      "letterSpacing": 0,
+                      "lineHeight": 24,
+                    }
+                  }
+                  testID="cellbase-avatar-title"
+                >
+                  Linea Main Network
+                </Text>
+                <Text
+                  accessibilityRole="text"
+                  numberOfLines={1}
+                  style={
+                    Object {
+                      "color": "#535A61",
+                      "fontFamily": "Euclid Circular B",
+                      "fontSize": 14,
+                      "fontWeight": "400",
+                      "letterSpacing": 0,
+                      "lineHeight": 22,
+                    }
+                  }
+                >
+                  lineascan.build
+                </Text>
+              </View>
+              <View
+                style={
+                  Object {
+                    "marginLeft": 16,
+                  }
+                }
+              >
+                <RCTSwitch
+                  accessibilityRole="switch"
+                  onChange={[Function]}
+                  onResponderTerminationRequest={[Function]}
+                  onStartShouldSetResponder={[Function]}
+                  onTintColor="#0376C9"
+                  style={
                     Array [
                       Object {
-                        "alignSelf": "flex-start",
+                        "height": 31,
+                        "width": 51,
                       },
-                      Object {
-                        "backgroundColor": "#D6D9DC",
-                        "borderRadius": 16,
-                      },
-                    ],
-                  ]
-                }
-                thumbTintColor="#FFFFFF"
-                tintColor="#D6D9DC"
-                value={true}
-              />
+                      Array [
+                        Object {
+                          "alignSelf": "flex-start",
+                        },
+                        Object {
+                          "backgroundColor": "#D6D9DC",
+                          "borderRadius": 16,
+                        },
+                      ],
+                    ]
+                  }
+                  thumbTintColor="#FFFFFF"
+                  tintColor="#D6D9DC"
+                  value={true}
+                />
+              </View>
             </View>
-          </View>
-        </TouchableOpacity>
+          </TouchableOpacity>
+        </View>
       </View>
       <Modal
         animationType="none"
@@ -1864,187 +1535,272 @@ exports[`SecuritySettings should render correctly 1`] = `
         transparent={true}
         visible={false}
       />
+      <Text
+        accessibilityRole="text"
+        style={
+          Object {
+            "color": "#535A61",
+            "fontFamily": "Euclid Circular B",
+            "fontSize": 16,
+            "fontWeight": "500",
+            "letterSpacing": 0,
+            "lineHeight": 24,
+            "marginTop": 32,
+          }
+        }
+      >
+        Token, NFT, and ENS autodetection
+      </Text>
       <View
         style={
           Object {
-            "marginTop": 50,
+            "marginTop": 16,
           }
         }
         testID="nft-display-media-mode-section"
       >
-        <Text
+        <View
           style={
             Object {
-              "color": "#24272A",
-              "fontFamily": "EuclidCircularB-Regular",
-              "fontSize": 20,
-              "fontWeight": "400",
-              "lineHeight": 20,
-              "marginTop": -4,
-              "paddingTop": 4,
+              "alignItems": "center",
+              "flexDirection": "row",
             }
           }
         >
-          Display NFT Media
-        </Text>
+          <Text
+            accessibilityRole="text"
+            style={
+              Object {
+                "color": "#24272A",
+                "flex": 1,
+                "fontFamily": "Euclid Circular B",
+                "fontSize": 16,
+                "fontWeight": "500",
+                "letterSpacing": 0,
+                "lineHeight": 24,
+              }
+            }
+          >
+            Display NFT Media
+          </Text>
+          <View
+            style={
+              Object {
+                "marginLeft": 16,
+              }
+            }
+          >
+            <RCTSwitch
+              accessibilityRole="switch"
+              onChange={[Function]}
+              onResponderTerminationRequest={[Function]}
+              onStartShouldSetResponder={[Function]}
+              onTintColor="#0376C9"
+              style={
+                Array [
+                  Object {
+                    "height": 31,
+                    "width": 51,
+                  },
+                  Array [
+                    Object {
+                      "alignSelf": "flex-start",
+                    },
+                    Object {
+                      "backgroundColor": "#D6D9DC",
+                      "borderRadius": 16,
+                    },
+                  ],
+                ]
+              }
+              testID="display-nft-toggle"
+              thumbTintColor="#FFFFFF"
+              tintColor="#D6D9DC"
+              value={true}
+            />
+          </View>
+        </View>
         <Text
+          accessibilityRole="text"
           style={
             Object {
               "color": "#535A61",
-              "fontFamily": "EuclidCircularB-Regular",
+              "fontFamily": "Euclid Circular B",
               "fontSize": 14,
               "fontWeight": "400",
-              "lineHeight": 20,
-              "marginTop": 12,
+              "letterSpacing": 0,
+              "lineHeight": 22,
+              "marginTop": 8,
             }
           }
         >
           Displaying NFT media and data exposes your IP address to OpenSea or other third parties. NFT autodetection relies on this feature, and won't be available when turned off. If NFT media is fully located on IPFS, it can still be displayed even when this feature is turned off.
         </Text>
-        <View
-          style={
-            Object {
-              "alignSelf": "flex-start",
-              "marginTop": 18,
-            }
-          }
-        >
-          <RCTSwitch
-            accessibilityRole="switch"
-            onChange={[Function]}
-            onResponderTerminationRequest={[Function]}
-            onStartShouldSetResponder={[Function]}
-            onTintColor="#0376C9"
-            style={
-              Array [
-                Object {
-                  "height": 31,
-                  "width": 51,
-                },
-                Array [
-                  Object {
-                    "alignSelf": "flex-start",
-                  },
-                  Object {
-                    "backgroundColor": "#D6D9DC",
-                    "borderRadius": 16,
-                  },
-                ],
-              ]
-            }
-            testID="display-nft-toggle"
-            thumbTintColor="#FFFFFF"
-            tintColor="#D6D9DC"
-            value={true}
-          />
-        </View>
       </View>
       <View
         style={
           Object {
-            "marginTop": 50,
+            "marginTop": 32,
           }
         }
         testID="nft-opensea-autodetect-mode-section"
       >
-        <Text
+        <View
           style={
             Object {
-              "color": "#24272A",
-              "fontFamily": "EuclidCircularB-Regular",
-              "fontSize": 20,
-              "fontWeight": "400",
-              "lineHeight": 20,
-              "marginTop": -4,
-              "paddingTop": 4,
+              "alignItems": "center",
+              "flexDirection": "row",
             }
           }
         >
-          Autodetect NFTs
-        </Text>
+          <Text
+            accessibilityRole="text"
+            style={
+              Object {
+                "color": "#24272A",
+                "flex": 1,
+                "fontFamily": "Euclid Circular B",
+                "fontSize": 16,
+                "fontWeight": "500",
+                "letterSpacing": 0,
+                "lineHeight": 24,
+              }
+            }
+          >
+            Autodetect NFTs
+          </Text>
+          <View
+            style={
+              Object {
+                "marginLeft": 16,
+              }
+            }
+          >
+            <RCTSwitch
+              accessibilityRole="switch"
+              onChange={[Function]}
+              onResponderTerminationRequest={[Function]}
+              onStartShouldSetResponder={[Function]}
+              onTintColor="#0376C9"
+              style={
+                Array [
+                  Object {
+                    "height": 31,
+                    "width": 51,
+                  },
+                  Array [
+                    Object {
+                      "alignSelf": "flex-start",
+                    },
+                    Object {
+                      "backgroundColor": "#D6D9DC",
+                      "borderRadius": 16,
+                    },
+                  ],
+                ]
+              }
+              thumbTintColor="#FFFFFF"
+              tintColor="#D6D9DC"
+              value={false}
+            />
+          </View>
+        </View>
         <Text
+          accessibilityRole="text"
           style={
             Object {
               "color": "#535A61",
-              "fontFamily": "EuclidCircularB-Regular",
+              "fontFamily": "Euclid Circular B",
               "fontSize": 14,
               "fontWeight": "400",
-              "lineHeight": 20,
-              "marginTop": 12,
+              "letterSpacing": 0,
+              "lineHeight": 22,
+              "marginTop": 8,
             }
           }
         >
           Let MetaMask add NFTs you own using third-party services (like OpenSea). Autodetecting NFTs exposes your IP and account address to these services. Enabling this feature could associate your IP address with your Ethereum address and display fake NFTs airdropped by scammers. You can add tokens manually to avoid this risk.
         </Text>
-        <View
-          style={
-            Object {
-              "alignSelf": "flex-start",
-              "marginTop": 18,
-            }
-          }
-        >
-          <RCTSwitch
-            accessibilityRole="switch"
-            onChange={[Function]}
-            onResponderTerminationRequest={[Function]}
-            onStartShouldSetResponder={[Function]}
-            onTintColor="#0376C9"
-            style={
-              Array [
-                Object {
-                  "height": 31,
-                  "width": 51,
-                },
-                Array [
-                  Object {
-                    "alignSelf": "flex-start",
-                  },
-                  Object {
-                    "backgroundColor": "#D6D9DC",
-                    "borderRadius": 16,
-                  },
-                ],
-              ]
-            }
-            thumbTintColor="#FFFFFF"
-            tintColor="#D6D9DC"
-            value={false}
-          />
-        </View>
       </View>
       <View
         style={
           Object {
-            "marginTop": 50,
+            "marginTop": 32,
           }
         }
         testID="ipfs-gateway-section"
       >
-        <Text
+        <View
           style={
             Object {
-              "color": "#24272A",
-              "fontFamily": "EuclidCircularB-Regular",
-              "fontSize": 20,
-              "fontWeight": "400",
-              "lineHeight": 20,
-              "marginTop": -4,
-              "paddingTop": 4,
+              "alignItems": "center",
+              "flexDirection": "row",
             }
           }
         >
-          IPFS Gateway
-        </Text>
+          <Text
+            accessibilityRole="text"
+            style={
+              Object {
+                "color": "#24272A",
+                "flex": 1,
+                "fontFamily": "Euclid Circular B",
+                "fontSize": 16,
+                "fontWeight": "500",
+                "letterSpacing": 0,
+                "lineHeight": 24,
+              }
+            }
+          >
+            IPFS Gateway
+          </Text>
+          <View
+            style={
+              Object {
+                "marginLeft": 16,
+              }
+            }
+          >
+            <RCTSwitch
+              accessibilityRole="switch"
+              onChange={[Function]}
+              onResponderTerminationRequest={[Function]}
+              onStartShouldSetResponder={[Function]}
+              onTintColor="#0376C9"
+              style={
+                Array [
+                  Object {
+                    "height": 31,
+                    "width": 51,
+                  },
+                  Array [
+                    Object {
+                      "alignSelf": "flex-start",
+                    },
+                    Object {
+                      "backgroundColor": "#D6D9DC",
+                      "borderRadius": 16,
+                    },
+                  ],
+                ]
+              }
+              thumbTintColor="#FFFFFF"
+              tintColor="#D6D9DC"
+              value={true}
+            />
+          </View>
+        </View>
         <Text
+          accessibilityRole="text"
           style={
             Object {
               "color": "#535A61",
-              "fontFamily": "EuclidCircularB-Regular",
+              "fontFamily": "Euclid Circular B",
               "fontSize": 14,
               "fontWeight": "400",
-              "lineHeight": 20,
-              "marginTop": 12,
+              "letterSpacing": 0,
+              "lineHeight": 22,
+              "marginTop": 8,
             }
           }
         >
@@ -2053,140 +1809,524 @@ exports[`SecuritySettings should render correctly 1`] = `
         <View
           style={
             Object {
-              "marginTop": 18,
-            }
-          }
-        >
-          <RCTSwitch
-            accessibilityRole="switch"
-            onChange={[Function]}
-            onResponderTerminationRequest={[Function]}
-            onStartShouldSetResponder={[Function]}
-            onTintColor="#0376C9"
-            style={
-              Array [
-                Object {
-                  "height": 31,
-                  "width": 51,
-                },
-                Array [
-                  Object {
-                    "alignSelf": "flex-start",
-                  },
-                  Object {
-                    "backgroundColor": "#D6D9DC",
-                    "borderRadius": 16,
-                  },
-                ],
-              ]
-            }
-            thumbTintColor="#FFFFFF"
-            tintColor="#D6D9DC"
-            value={true}
-          />
-        </View>
-        <Text
-          style={
-            Object {
-              "color": "#535A61",
-              "fontFamily": "EuclidCircularB-Regular",
-              "fontSize": 14,
-              "fontWeight": "400",
-              "lineHeight": 20,
-              "marginTop": 12,
-            }
-          }
-        >
-          Choose your preferred IPFS gateway.
-        </Text>
-        <View
-          style={
-            Object {
-              "borderColor": "#BBC0C5",
-              "borderRadius": 5,
-              "borderWidth": 2,
               "marginTop": 16,
             }
           }
         >
-          <View>
-            <ActivityIndicator
-              size="small"
+          <Text
+            accessibilityRole="text"
+            style={
+              Object {
+                "color": "#535A61",
+                "fontFamily": "Euclid Circular B",
+                "fontSize": 14,
+                "fontWeight": "400",
+                "letterSpacing": 0,
+                "lineHeight": 22,
+                "marginTop": 8,
+              }
+            }
+          >
+            Choose your preferred IPFS gateway.
+          </Text>
+          <View
+            style={
+              Object {
+                "borderColor": "#BBC0C5",
+                "borderRadius": 5,
+                "borderWidth": 2,
+                "marginTop": 16,
+              }
+            }
+          >
+            <View>
+              <ActivityIndicator
+                size="small"
+              />
+            </View>
+          </View>
+        </View>
+      </View>
+      <Text
+        accessibilityRole="text"
+        style={
+          Object {
+            "color": "#535A61",
+            "fontFamily": "Euclid Circular B",
+            "fontSize": 16,
+            "fontWeight": "500",
+            "letterSpacing": 0,
+            "lineHeight": 24,
+            "marginTop": 32,
+          }
+        }
+      >
+        Security checks
+      </Text>
+      <View
+        style={
+          Object {
+            "marginTop": 16,
+          }
+        }
+      >
+        <View>
+          <View
+            style={
+              Object {
+                "alignItems": "center",
+                "flexDirection": "row",
+              }
+            }
+          >
+            <Text
+              accessibilityRole="text"
+              style={
+                Object {
+                  "color": "#24272A",
+                  "flex": 1,
+                  "fontFamily": "Euclid Circular B",
+                  "fontSize": 16,
+                  "fontWeight": "500",
+                  "letterSpacing": 0,
+                  "lineHeight": 24,
+                }
+              }
+            >
+              Automatic security checks
+            </Text>
+            <View
+              style={
+                Object {
+                  "marginLeft": 16,
+                }
+              }
+            >
+              <RCTSwitch
+                accessibilityRole="switch"
+                onChange={[Function]}
+                onResponderTerminationRequest={[Function]}
+                onStartShouldSetResponder={[Function]}
+                onTintColor="#0376C9"
+                style={
+                  Array [
+                    Object {
+                      "height": 31,
+                      "width": 51,
+                    },
+                    Array [
+                      Object {
+                        "alignSelf": "flex-start",
+                      },
+                      Object {
+                        "backgroundColor": "#D6D9DC",
+                        "borderRadius": 16,
+                      },
+                    ],
+                  ]
+                }
+                thumbTintColor="#FFFFFF"
+                tintColor="#D6D9DC"
+                value={false}
+              />
+            </View>
+          </View>
+          <Text
+            accessibilityRole="text"
+            style={
+              Object {
+                "color": "#535A61",
+                "fontFamily": "Euclid Circular B",
+                "fontSize": 14,
+                "fontWeight": "400",
+                "letterSpacing": 0,
+                "lineHeight": 22,
+                "marginTop": 8,
+              }
+            }
+          >
+            Automatically checking for updates may expose your IP address to GitHub servers. This only indicates that your IP address is using MetaMask. No other information or account addresses are exposed.
+          </Text>
+        </View>
+      </View>
+      <Text
+        accessibilityRole="text"
+        style={
+          Object {
+            "color": "#535A61",
+            "fontFamily": "Euclid Circular B",
+            "fontSize": 16,
+            "fontWeight": "500",
+            "letterSpacing": 0,
+            "lineHeight": 24,
+            "marginTop": 32,
+          }
+        }
+      >
+        Analytics
+      </Text>
+      <View
+        style={
+          Object {
+            "marginTop": 16,
+          }
+        }
+        testID="metametrics-section"
+      >
+        <View
+          style={
+            Object {
+              "alignItems": "center",
+              "flexDirection": "row",
+            }
+          }
+        >
+          <Text
+            accessibilityRole="text"
+            style={
+              Object {
+                "color": "#24272A",
+                "flex": 1,
+                "fontFamily": "Euclid Circular B",
+                "fontSize": 16,
+                "fontWeight": "500",
+                "letterSpacing": 0,
+                "lineHeight": 24,
+              }
+            }
+          >
+            Participate in MetaMetrics
+          </Text>
+          <View
+            style={
+              Object {
+                "marginLeft": 16,
+              }
+            }
+          >
+            <RCTSwitch
+              accessibilityRole="switch"
+              onChange={[Function]}
+              onResponderTerminationRequest={[Function]}
+              onStartShouldSetResponder={[Function]}
+              onTintColor="#0376C9"
+              style={
+                Array [
+                  Object {
+                    "height": 31,
+                    "width": 51,
+                  },
+                  Array [
+                    Object {
+                      "alignSelf": "flex-start",
+                    },
+                    Object {
+                      "backgroundColor": "#D6D9DC",
+                      "borderRadius": 16,
+                    },
+                  ],
+                ]
+              }
+              testID="metametrics-switch"
+              thumbTintColor="#FFFFFF"
+              tintColor="#D6D9DC"
+              value={false}
             />
           </View>
         </View>
+        <Text
+          accessibilityRole="text"
+          style={
+            Object {
+              "color": "#535A61",
+              "fontFamily": "Euclid Circular B",
+              "fontSize": 14,
+              "fontWeight": "400",
+              "letterSpacing": 0,
+              "lineHeight": 22,
+              "marginTop": 8,
+            }
+          }
+        >
+          Participate in MetaMetrics to help us make MetaMask better.
+        </Text>
       </View>
       <View
         style={
           Object {
-            "marginTop": 50,
+            "marginTop": 32,
           }
         }
       >
         <Text
+          accessibilityRole="text"
           style={
             Object {
               "color": "#24272A",
-              "fontFamily": "EuclidCircularB-Regular",
-              "fontSize": 20,
-              "fontWeight": "400",
-              "lineHeight": 20,
-              "marginTop": -4,
-              "paddingTop": 4,
+              "fontFamily": "Euclid Circular B",
+              "fontSize": 16,
+              "fontWeight": "500",
+              "letterSpacing": 0,
+              "lineHeight": 24,
             }
           }
         >
-          Automatic security checks
+          Delete MetaMetrics data
         </Text>
         <Text
+          accessibilityRole="text"
           style={
             Object {
               "color": "#535A61",
-              "fontFamily": "EuclidCircularB-Regular",
+              "fontFamily": "Euclid Circular B",
               "fontSize": 14,
               "fontWeight": "400",
-              "lineHeight": 20,
-              "marginTop": 12,
+              "letterSpacing": 0,
+              "lineHeight": 22,
+              "marginTop": 8,
             }
           }
         >
-          Automatically checking for updates may expose your IP address to GitHub servers. This only indicates that your IP address is using MetaMask. No other information or account addresses are exposed.
+          <Text
+            accessibilityRole="text"
+            style={
+              Object {
+                "color": "#535A61",
+                "fontFamily": "Euclid Circular B",
+                "fontSize": 14,
+                "fontWeight": "400",
+                "letterSpacing": 0,
+                "lineHeight": 22,
+              }
+            }
+          >
+            This will delete historical MetaMetrics data associated with your wallet.
+          </Text>
+           
+          <Text
+            accessibilityRole="text"
+            style={
+              Object {
+                "color": "#535A61",
+                "fontFamily": "Euclid Circular B",
+                "fontSize": 14,
+                "fontWeight": "700",
+                "letterSpacing": 0,
+                "lineHeight": 22,
+              }
+            }
+          >
+            MetaMetrics data is anonymized usage and diagnostic data.
+          </Text>
+           
+          <Text
+            accessibilityRole="text"
+            style={
+              Object {
+                "color": "#535A61",
+                "fontFamily": "Euclid Circular B",
+                "fontSize": 14,
+                "fontWeight": "400",
+                "letterSpacing": 0,
+                "lineHeight": 22,
+              }
+            }
+          >
+            Your wallet and accounts will remain exactly as they are now after this data has been deleted. This process may take up to 60 days. View the
+          </Text>
+           
+          <Text
+            accessibilityRole="text"
+            onPress={[Function]}
+            onPressIn={[Function]}
+            onPressOut={[Function]}
+            style={
+              Object {
+                "backgroundColor": "transparent",
+                "color": "#24272A",
+              }
+            }
+            suppressHighlighting={true}
+          >
+            <Text
+              accessibilityRole="text"
+              style={
+                Object {
+                  "color": "#0376C9",
+                  "fontFamily": "Euclid Circular B",
+                  "fontSize": 14,
+                  "fontWeight": "400",
+                  "letterSpacing": 0,
+                  "lineHeight": 22,
+                }
+              }
+            >
+              ConsenSys Privacy Policy.
+            </Text>
+          </Text>
         </Text>
         <View
           style={
             Object {
-              "alignSelf": "flex-start",
-              "marginTop": 18,
+              "marginTop": 16,
             }
           }
         >
-          <RCTSwitch
-            accessibilityRole="switch"
-            onChange={[Function]}
-            onResponderTerminationRequest={[Function]}
-            onStartShouldSetResponder={[Function]}
-            onTintColor="#0376C9"
+          <TouchableOpacity
+            activeOpacity={1}
+            disabled={false}
+            onPress={[Function]}
+            onPressIn={[Function]}
+            onPressOut={[Function]}
             style={
-              Array [
-                Object {
-                  "height": 31,
-                  "width": 51,
-                },
-                Array [
-                  Object {
-                    "alignSelf": "flex-start",
-                  },
-                  Object {
-                    "backgroundColor": "#D6D9DC",
-                    "borderRadius": 16,
-                  },
-                ],
-              ]
+              Object {
+                "alignItems": "center",
+                "alignSelf": "stretch",
+                "backgroundColor": "transparent",
+                "borderColor": "#0376C9",
+                "borderRadius": 24,
+                "borderWidth": 1,
+                "flexDirection": "row",
+                "height": 48,
+                "justifyContent": "center",
+                "paddingHorizontal": 16,
+              }
             }
-            thumbTintColor="#FFFFFF"
-            tintColor="#D6D9DC"
-            value={false}
-          />
+            testID="delete-metrics-button"
+            variant="Secondary"
+          >
+            <Text
+              accessibilityRole="text"
+              style={
+                Object {
+                  "color": "#0376C9",
+                  "fontFamily": "Euclid Circular B",
+                  "fontSize": 14,
+                  "fontWeight": "400",
+                  "letterSpacing": 0,
+                  "lineHeight": 22,
+                }
+              }
+            >
+              Delete MetaMetrics data
+            </Text>
+          </TouchableOpacity>
+        </View>
+      </View>
+      <Modal
+        animationType="none"
+        deviceHeight={null}
+        deviceWidth={null}
+        hardwareAccelerated={false}
+        hideModalContentWhileAnimating={false}
+        onBackdropPress={[Function]}
+        onModalHide={[Function]}
+        onModalWillHide={[Function]}
+        onModalWillShow={[Function]}
+        onRequestClose={[Function]}
+        onSwipeComplete={[Function]}
+        panResponderThreshold={4}
+        scrollHorizontal={false}
+        scrollOffset={0}
+        scrollOffsetMax={0}
+        scrollTo={null}
+        statusBarTranslucent={false}
+        supportedOrientations={
+          Array [
+            "portrait",
+            "landscape",
+          ]
+        }
+        swipeDirection="down"
+        swipeThreshold={100}
+        transparent={true}
+        visible={false}
+      />
+      <View
+        style={
+          Object {
+            "marginTop": 32,
+          }
+        }
+      >
+        <Text
+          accessibilityRole="text"
+          style={
+            Object {
+              "color": "#24272A",
+              "fontFamily": "Euclid Circular B",
+              "fontSize": 16,
+              "fontWeight": "500",
+              "letterSpacing": 0,
+              "lineHeight": 24,
+            }
+          }
+        >
+          Delete wallet
+        </Text>
+        <Text
+          accessibilityRole="text"
+          style={
+            Object {
+              "color": "#535A61",
+              "fontFamily": "Euclid Circular B",
+              "fontSize": 14,
+              "fontWeight": "400",
+              "letterSpacing": 0,
+              "lineHeight": 22,
+              "marginTop": 8,
+            }
+          }
+        >
+          <Text>
+            This will remove all wallet related data from your device. Your accounts exist on the blockchain and are not related to MetaMask. You can always recover your accounts using your Secret Recovery Phrase.
+          </Text>
+        </Text>
+        <View
+          style={
+            Object {
+              "marginTop": 16,
+            }
+          }
+        >
+          <TouchableOpacity
+            activeOpacity={1}
+            onPress={[Function]}
+            onPressIn={[Function]}
+            onPressOut={[Function]}
+            style={
+              Object {
+                "alignItems": "center",
+                "alignSelf": "stretch",
+                "backgroundColor": "transparent",
+                "borderColor": "#0376C9",
+                "borderRadius": 24,
+                "borderWidth": 1,
+                "flexDirection": "row",
+                "height": 48,
+                "justifyContent": "center",
+                "paddingHorizontal": 16,
+              }
+            }
+            testID="security-settings-delete-wallet-buttons"
+            variant="Secondary"
+          >
+            <Text
+              accessibilityRole="text"
+              style={
+                Object {
+                  "color": "#0376C9",
+                  "fontFamily": "Euclid Circular B",
+                  "fontSize": 14,
+                  "fontWeight": "400",
+                  "letterSpacing": 0,
+                  "lineHeight": 22,
+                }
+              }
+            >
+              Delete wallet
+            </Text>
+          </TouchableOpacity>
         </View>
       </View>
       <Modal

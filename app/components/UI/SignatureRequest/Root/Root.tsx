@@ -1,13 +1,16 @@
 import Modal from 'react-native-modal';
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { StyleSheet } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
+import setSignatureRequestSecurityAlertResponse from '../../../../actions/signatureRequest';
+import { store } from '../../../../store';
 import { useTheme } from '../../../../util/theme';
 import MessageSign from '../../../UI/MessageSign';
 import PersonalSign from '../../../UI/PersonalSign';
 import TypedSign from '../../../UI/TypedSign';
 import { MessageParams } from '../types';
 import { ApprovalTypes } from '../../../../core/RPCMethods/RPCMethodMiddleware';
+import { useSelector } from 'react-redux';
 
 interface RootProps {
   messageParams?: MessageParams;
@@ -32,13 +35,23 @@ const Root = ({
   const navigation = useNavigation();
   const { colors } = useTheme();
   const [showExpandedMessage, setShowExpandedMessage] = useState(false);
+  const visibility = useSelector(
+    (reduxState: any) => reduxState.modals.signMessageModalVisible,
+  );
 
   const toggleExpandedMessage = () =>
     setShowExpandedMessage(!showExpandedMessage);
 
   const currentPageMeta = messageParams?.meta;
 
-  if (!messageParams || !currentPageMeta || !approvalType) {
+  useEffect(() => {
+    store.dispatch(setSignatureRequestSecurityAlertResponse());
+    return () => {
+      store.dispatch(setSignatureRequestSecurityAlertResponse());
+    };
+  }, []);
+
+  if (!messageParams || !currentPageMeta || !approvalType || !visibility) {
     return null;
   }
 
@@ -82,7 +95,6 @@ const Root = ({
       )}
       {approvalType === ApprovalTypes.ETH_SIGN && (
         <MessageSign
-          navigation={navigation}
           messageParams={messageParams}
           onReject={onSignReject}
           onConfirm={onSignConfirm}

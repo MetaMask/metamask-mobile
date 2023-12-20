@@ -4,6 +4,10 @@ exports[`BlockaidBanner should not render if resultType is benign 1`] = `null`;
 
 exports[`BlockaidBanner should not render if securityAlertResponse is undefined 1`] = `null`;
 
+exports[`BlockaidBanner should not render if user has not enabled blockaid 1`] = `null`;
+
+exports[`BlockaidBanner should not render if user is not on mainnet 1`] = `null`;
+
 exports[`BlockaidBanner should render correctly 1`] = `
 <View
   securityAlertResponse={
@@ -138,7 +142,7 @@ exports[`BlockaidBanner should render correctly 1`] = `
         <SvgMock
           color="#0376C9"
           height={16}
-          name="ArrowUp"
+          name="ArrowDown"
           style={
             Object {
               "height": 16,
@@ -209,7 +213,7 @@ exports[`BlockaidBanner should render correctly 1`] = `
             }
           }
         >
-          Security advice by
+          Powered by
         </Text>
       </View>
       <View
@@ -378,7 +382,7 @@ exports[`BlockaidBanner should render correctly with list attack details 1`] = `
         <SvgMock
           color="#0376C9"
           height={16}
-          name="ArrowUp"
+          name="ArrowDown"
           style={
             Object {
               "height": 16,
@@ -449,7 +453,7 @@ exports[`BlockaidBanner should render correctly with list attack details 1`] = `
             }
           }
         >
-          Security advice by
+          Powered by
         </Text>
       </View>
       <View
@@ -618,7 +622,7 @@ exports[`BlockaidBanner should render correctly with reason "raw_signature_farmi
         <SvgMock
           color="#0376C9"
           height={16}
-          name="ArrowUp"
+          name="ArrowDown"
           style={
             Object {
               "height": 16,
@@ -689,7 +693,7 @@ exports[`BlockaidBanner should render correctly with reason "raw_signature_farmi
             }
           }
         >
-          Security advice by
+          Powered by
         </Text>
       </View>
       <View
@@ -724,78 +728,93 @@ exports[`BlockaidBanner should render correctly with reason "raw_signature_farmi
 </View>
 `;
 
+exports[`BlockaidBanner should render loader if reason is requestInProgress 1`] = `null`;
+
 exports[`BlockaidBanner should render normal banner alert if resultType is failed 1`] = `
 <View
+  collapsable={false}
+  forwardedRef={[Function]}
   style={
     Object {
-      "backgroundColor": "#FFD33D19",
-      "borderColor": "#F66A0A",
-      "borderLeftWidth": 4,
-      "borderRadius": 4,
-      "flexDirection": "row",
-      "padding": 12,
-      "paddingLeft": 8,
+      "marginBottom": 20,
+      "marginLeft": 10,
+      "marginRight": 10,
+      "marginTop": 10,
     }
   }
-  testID="banneralert"
 >
   <View
     style={
       Object {
-        "marginRight": 8,
+        "backgroundColor": "#FFD33D19",
+        "borderColor": "#F66A0A",
+        "borderLeftWidth": 4,
+        "borderRadius": 4,
+        "flexDirection": "row",
+        "padding": 12,
+        "paddingLeft": 8,
       }
     }
+    testID="banneralert"
   >
-    <SvgMock
-      color="#F66A0A"
-      height={24}
-      name="Danger"
+    <View
       style={
         Object {
-          "height": 24,
-          "width": 24,
-        }
-      }
-      width={24}
-    />
-  </View>
-  <View
-    style={
-      Object {
-        "flex": 1,
-      }
-    }
-  >
-    <Text
-      accessibilityRole="text"
-      style={
-        Object {
-          "color": "#24272A",
-          "fontFamily": "Euclid Circular B",
-          "fontSize": 16,
-          "fontWeight": "500",
-          "letterSpacing": 0,
-          "lineHeight": 24,
+          "marginRight": 8,
         }
       }
     >
-      This is a suspicious request
-    </Text>
-    <Text
-      accessibilityRole="text"
+      <SvgMock
+        color="#F66A0A"
+        height={24}
+        name="Danger"
+        style={
+          Object {
+            "height": 24,
+            "width": 24,
+          }
+        }
+        width={24}
+      />
+    </View>
+    <View
       style={
         Object {
-          "color": "#24272A",
-          "fontFamily": "Euclid Circular B",
-          "fontSize": 14,
-          "fontWeight": "400",
-          "letterSpacing": 0,
-          "lineHeight": 22,
+          "flex": 1,
         }
       }
     >
-      If you approve this request, you might lose your assets.
-    </Text>
+      <Text
+        accessibilityRole="text"
+        style={
+          Object {
+            "color": "#24272A",
+            "fontFamily": "Euclid Circular B",
+            "fontSize": 16,
+            "fontWeight": "500",
+            "letterSpacing": 0,
+            "lineHeight": 24,
+          }
+        }
+      >
+        Request may not be safe
+      </Text>
+      <Text
+        accessibilityRole="text"
+        style={
+          Object {
+            "color": "#24272A",
+            "fontFamily": "Euclid Circular B",
+            "fontSize": 14,
+            "fontWeight": "400",
+            "letterSpacing": 0,
+            "lineHeight": 22,
+          }
+        }
+      >
+        Because of an error, this request was not verified by the security provider. Proceed with caution.
+      </Text>
+    </View>
   </View>
 </View>
 `;
@@ -934,7 +953,7 @@ exports[`BlockaidBanner should render something does not look right with contact
         <SvgMock
           color="#0376C9"
           height={16}
-          name="ArrowUp"
+          name="ArrowDown"
           style={
             Object {
               "height": 16,
@@ -1005,7 +1024,7 @@ exports[`BlockaidBanner should render something does not look right with contact
             }
           }
         >
-          Security advice by
+          Powered by
         </Text>
       </View>
       <View

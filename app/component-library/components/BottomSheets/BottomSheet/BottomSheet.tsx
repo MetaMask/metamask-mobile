@@ -31,7 +31,17 @@ import BottomSheetDialog, {
 } from './foundation/BottomSheetDialog';
 
 const BottomSheet = forwardRef<BottomSheetRef, BottomSheetProps>(
-  ({ children, onClose, isInteractable = true, ...props }, ref) => {
+  (
+    {
+      children,
+      onClose,
+      isInteractable = true,
+      shouldNavigateBack = true,
+      isFlexible = false,
+      ...props
+    },
+    ref,
+  ) => {
     const postCallback = useRef<BottomSheetPostCallback>();
     const bottomSheetDialogRef = useRef<BottomSheetDialogRef>(null);
     const { bottom: screenBottomPadding } = useSafeAreaInsets();
@@ -42,10 +52,10 @@ const BottomSheet = forwardRef<BottomSheetRef, BottomSheetProps>(
     const navigation = useNavigation();
 
     const onHidden = useCallback(() => {
-      navigation.goBack();
+      shouldNavigateBack && navigation.goBack();
       onClose?.(!!postCallback.current);
       postCallback.current?.();
-    }, [navigation, onClose]);
+    }, [navigation, onClose, shouldNavigateBack]);
 
     // Dismiss the sheet when Android back button is pressed.
     useEffect(() => {
@@ -78,13 +88,14 @@ const BottomSheet = forwardRef<BottomSheetRef, BottomSheetProps>(
         <BottomSheetOverlay
           disabled={!isInteractable}
           onPress={() => {
-            bottomSheetDialogRef.current?.closeDialog();
+            isInteractable && bottomSheetDialogRef.current?.closeDialog();
           }}
         />
         <BottomSheetDialog
           isInteractable={isInteractable}
           onDismissed={onHidden}
           ref={bottomSheetDialogRef}
+          isFlexible={isFlexible}
         >
           {children}
         </BottomSheetDialog>

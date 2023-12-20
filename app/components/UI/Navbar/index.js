@@ -20,7 +20,7 @@ import MaterialCommunityIcon from 'react-native-vector-icons/MaterialCommunityIc
 import { scale } from 'react-native-size-matters';
 import { strings } from '../../../../locales/i18n';
 import AppConstants from '../../../core/AppConstants';
-import DeeplinkManager from '../../../core/DeeplinkManager';
+import DeeplinkManager from '../../../core/DeeplinkManager/SharedDeeplinkManager';
 import Analytics from '../../../core/Analytics/Analytics';
 import { MetaMetricsEvents } from '../../../core/Analytics';
 import { importAccountFromPrivateKey } from '../../../util/address';
@@ -36,21 +36,24 @@ import {
 } from '../../../../wdio/screen-objects/testIDs/Screens/NetworksScreen.testids';
 import { SEND_CANCEL_BUTTON } from '../../../../wdio/screen-objects/testIDs/Screens/SendScreen.testIds';
 import { ASSET_BACK_BUTTON } from '../../../../wdio/screen-objects/testIDs/Screens/TokenOverviewScreen.testIds';
-import {
-  PAYMENT_REQUEST_CLOSE_BUTTON,
-  REQUEST_SEARCH_RESULTS_BACK_BUTTON,
-} from '../../../../wdio/screen-objects/testIDs/Screens/RequestToken.testIds';
+import { REQUEST_SEARCH_RESULTS_BACK_BUTTON } from '../../../../wdio/screen-objects/testIDs/Screens/RequestToken.testIds';
 import { BACK_BUTTON_SIMPLE_WEBVIEW } from '../../../../wdio/screen-objects/testIDs/Components/SimpleWebView.testIds';
 import ButtonIcon, {
   ButtonIconSizes,
   ButtonIconVariants,
 } from '../../../component-library/components/Buttons/ButtonIcon';
-import {
+import Icon, {
   IconName,
   IconSize,
 } from '../../../component-library/components/Icons/Icon';
 import { EDIT_BUTTON } from '../../../../wdio/screen-objects/testIDs/Common.testIds';
-import Icon from '../../../component-library/components/Icons/Icon/Icon';
+import { SendLinkViewSelectorsIDs } from '../../../../e2e/selectors/SendLinkView.selectors';
+import {
+  default as MorphText,
+  TextVariant,
+} from '../../../component-library/components/Texts/Text';
+import { CommonSelectorsIDs } from '../../../../e2e/selectors/Common.selectors';
+import { WalletViewSelectorsIDs } from '../../../../e2e/selectors/WalletView.selectors';
 
 const trackEvent = (event) => {
   InteractionManager.runAfterInteractions(() => {
@@ -184,21 +187,16 @@ export function getNavigationOptionsTitle(
   navigation,
   isFullScreenModal,
   themeColors,
-  navigationPopEvent,
+  navigationPopEvent = undefined,
 ) {
   const innerStyles = StyleSheet.create({
-    headerTitleStyle: {
-      fontSize: 20,
-      color: themeColors.text.default,
-      ...fontStyles.normal,
-    },
-    headerIcon: {
-      color: themeColors.primary.default,
-    },
     headerStyle: {
       backgroundColor: themeColors.background.default,
       shadowColor: importedColors.transparent,
       elevation: 0,
+    },
+    accessories: {
+      marginHorizontal: 16,
     },
   });
 
@@ -209,34 +207,29 @@ export function getNavigationOptionsTitle(
 
   return {
     title,
-    headerTitleStyle: innerStyles.headerTitleStyle,
+    headerTitle: <MorphText variant={TextVariant.HeadingMD}>{title}</MorphText>,
     headerRight: () =>
       isFullScreenModal ? (
-        <TouchableOpacity onPress={navigationPop} style={styles.closeButton}>
-          <IonicIcon
-            name={'ios-close'}
-            size={38}
-            style={[innerStyles.headerIcon, styles.backIconIOS]}
-            {...generateTestId(Platform, NETWORK_SCREEN_CLOSE_ICON)}
-          />
-        </TouchableOpacity>
+        <ButtonIcon
+          size={ButtonIconSizes.Lg}
+          iconName={IconName.Close}
+          onPress={navigationPop}
+          style={innerStyles.accessories}
+          {...generateTestId(Platform, NETWORK_SCREEN_CLOSE_ICON)}
+        />
       ) : null,
     headerLeft: () =>
       isFullScreenModal ? null : (
-        <TouchableOpacity
+        <ButtonIcon
+          size={ButtonIconSizes.Lg}
+          iconName={IconName.ArrowLeft}
           onPress={navigationPop}
-          style={styles.backButton}
+          style={innerStyles.accessories}
           {...generateTestId(Platform, NETWORK_BACK_ARROW_BUTTON_ID)}
-        >
-          <IonicIcon
-            name={Device.isAndroid() ? 'md-arrow-back' : 'ios-arrow-back'}
-            size={Device.isAndroid() ? 24 : 28}
-            style={innerStyles.headerIcon}
-          />
-        </TouchableOpacity>
+        />
       ),
-    headerStyle: innerStyles.headerStyle,
     headerTintColor: themeColors.primary.default,
+    ...innerStyles,
   };
 }
 
@@ -284,7 +277,7 @@ export function getEditableOptions(title, navigation, route, themeColors) {
       <TouchableOpacity
         onPress={navigationPop}
         style={styles.backButton}
-        testID={'edit-contact-back-button'}
+        testID={CommonSelectorsIDs.EDIT_CONTACT_BACK_BUTTON}
       >
         <IonicIcon
           name={Device.isAndroid() ? 'md-arrow-back' : 'ios-arrow-back'}
@@ -410,7 +403,10 @@ export function getPaymentRequestSuccessOptionsTitle(navigation, themeColors) {
         // eslint-disable-next-line react/jsx-no-bind
         onPress={() => navigation.pop()}
         style={styles.closeButton}
-        {...generateTestId(Platform, PAYMENT_REQUEST_CLOSE_BUTTON)}
+        {...generateTestId(
+          Platform,
+          SendLinkViewSelectorsIDs.CLOSE_SEND_LINK_VIEW_BUTTON,
+        )}
       >
         <IonicIcon
           name="ios-close"
@@ -470,7 +466,7 @@ export function getTransactionOptionsTitle(
           // eslint-disable-next-line react/jsx-no-bind
           onPress={leftAction}
           style={styles.closeButton}
-          testID={'confirm-txn-edit-button'}
+          testID={CommonSelectorsIDs.CONFIRM_TXN_EDIT_BUTTON}
         >
           <Text
             style={
@@ -491,7 +487,7 @@ export function getTransactionOptionsTitle(
         <TouchableOpacity
           onPress={rightAction}
           style={styles.closeButton}
-          testID={'send-back-button'}
+          testID={CommonSelectorsIDs.SEND_BACK_BUTTON}
         >
           <Text style={innerStyles.headerButtonText}>{rightText}</Text>
         </TouchableOpacity>
@@ -853,7 +849,7 @@ export function getClosableNavigationOptions(
         <TouchableOpacity
           onPress={navigationPop}
           style={styles.closeButton}
-          testID={'nav-ios-back'}
+          testID={CommonSelectorsIDs.NAV_IOS_BACK}
         >
           <Text style={innerStyles.headerButtonText}>{backButtonText}</Text>
         </TouchableOpacity>
@@ -983,7 +979,7 @@ export function getWalletNavbarOptions(
         name={IconName.Fox}
         IconSize={IconSize.Xl}
         style={styles.fox}
-        testID="fox-icon"
+        testID={CommonSelectorsIDs.FOX_ICON}
       />
     ),
     headerRight: () => (
@@ -993,7 +989,7 @@ export function getWalletNavbarOptions(
         iconName={IconName.Scan}
         style={styles.infoButton}
         size={IconSize.Xl}
-        testID="wallet-scan-button"
+        testID={WalletViewSelectorsIDs.WALLET_SCAN_BUTTON}
       />
     ),
     headerStyle: innerStyles.headerStyle,
@@ -1457,7 +1453,7 @@ export function getSwapsQuotesNavbar(navigation, route, themeColors) {
 
 export function getFiatOnRampAggNavbar(
   navigation,
-  { title, showBack = true } = {},
+  { title, showBack = true, showCancel = true } = {},
   themeColors,
   onCancel,
 ) {
@@ -1518,19 +1514,24 @@ export function getFiatOnRampAggNavbar(
         </TouchableOpacity>
       );
     },
-    headerRight: () => (
-      <TouchableOpacity
-        onPress={() => {
-          navigation.dangerouslyGetParent()?.pop();
-          onCancel?.();
-        }}
-        style={styles.closeButton}
-        accessibilityRole="button"
-        accessible
-      >
-        <Text style={innerStyles.headerButtonText}>{navigationCancelText}</Text>
-      </TouchableOpacity>
-    ),
+    headerRight: () => {
+      if (!showCancel) return <View />;
+      return (
+        <TouchableOpacity
+          onPress={() => {
+            navigation.dangerouslyGetParent()?.pop();
+            onCancel?.();
+          }}
+          style={styles.closeButton}
+          accessibilityRole="button"
+          accessible
+        >
+          <Text style={innerStyles.headerButtonText}>
+            {navigationCancelText}
+          </Text>
+        </TouchableOpacity>
+      );
+    },
     headerStyle: innerStyles.headerStyle,
     headerTitleStyle: innerStyles.headerTitleStyle,
   };

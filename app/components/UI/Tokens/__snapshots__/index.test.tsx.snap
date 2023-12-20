@@ -664,7 +664,6 @@ exports[`Tokens should hide zero balance tokens when setting is on 1`] = `
                                     "marginLeft": 20,
                                   }
                                 }
-                                testID="balance"
                               >
                                 <Text
                                   accessibilityRole="text"
@@ -755,6 +754,7 @@ exports[`Tokens should hide zero balance tokens when setting is on 1`] = `
                                         "width": 32,
                                       }
                                     }
+                                    variant="Token"
                                   >
                                     <Image
                                       onError={[Function]}
@@ -855,7 +855,6 @@ exports[`Tokens should hide zero balance tokens when setting is on 1`] = `
                                     "marginLeft": 20,
                                   }
                                 }
-                                testID="balance"
                               >
                                 <Text
                                   accessibilityRole="text"
@@ -1660,7 +1659,6 @@ exports[`Tokens should render correctly 1`] = `
                                     "marginLeft": 20,
                                   }
                                 }
-                                testID="balance"
                               >
                                 <Text
                                   accessibilityRole="text"
@@ -1751,6 +1749,7 @@ exports[`Tokens should render correctly 1`] = `
                                         "width": 32,
                                       }
                                     }
+                                    variant="Token"
                                   >
                                     <Image
                                       onError={[Function]}
@@ -1851,7 +1850,6 @@ exports[`Tokens should render correctly 1`] = `
                                     "marginLeft": 20,
                                   }
                                 }
-                                testID="balance"
                               >
                                 <Text
                                   accessibilityRole="text"
@@ -2664,7 +2662,6 @@ exports[`Tokens should show all balance tokens when hideZeroBalanceTokens settin
                                     "marginLeft": 20,
                                   }
                                 }
-                                testID="balance"
                               >
                                 <Text
                                   accessibilityRole="text"
@@ -2755,6 +2752,7 @@ exports[`Tokens should show all balance tokens when hideZeroBalanceTokens settin
                                         "width": 32,
                                       }
                                     }
+                                    variant="Token"
                                   >
                                     <Image
                                       onError={[Function]}
@@ -2855,7 +2853,6 @@ exports[`Tokens should show all balance tokens when hideZeroBalanceTokens settin
                                     "marginLeft": 20,
                                   }
                                 }
-                                testID="balance"
                               >
                                 <Text
                                   accessibilityRole="text"
@@ -2946,6 +2943,7 @@ exports[`Tokens should show all balance tokens when hideZeroBalanceTokens settin
                                         "width": 32,
                                       }
                                     }
+                                    variant="Token"
                                   >
                                     <Image
                                       onError={[Function]}
@@ -3046,7 +3044,6 @@ exports[`Tokens should show all balance tokens when hideZeroBalanceTokens settin
                                     "marginLeft": 20,
                                   }
                                 }
-                                testID="balance"
                               >
                                 <Text
                                   accessibilityRole="text"

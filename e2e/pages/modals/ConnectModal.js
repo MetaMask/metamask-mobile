@@ -1,53 +1,61 @@
 import TestHelpers from '../../helpers';
 import {
-  ACCOUNT_APROVAL_MODAL_CONTAINER_ID,
-  CANCEL_BUTTON_ID,
-  CONNECT_BUTTON_ID,
-} from '../../../app/constants/test-ids';
-import messages from '../../../locales/languages/en.json';
-
-const CONNECT_MULTIPLE_ACCOUNTS_STRING =
-  messages.accounts.connect_multiple_accounts;
-
-const CONNECT_MULTIPLE_ACCOUNTS_IMPORT_ACCOUNT_TEXT =
-  messages.account_actions.add_account_or_hardware_wallet;
-
-const SELECT_ALL_TEXT = messages.accounts.select_all;
+  ConnectAccountModalSelectorsIDs,
+  ConnectAccountModalSelectorsText,
+} from '../../selectors/Modals/ConnectAccountModal.selectors';
+import { CommonSelectorsIDs } from '../../selectors/Common.selectors';
 
 export default class ConnectModal {
   static async tapCancelButton() {
-    await TestHelpers.tap(CANCEL_BUTTON_ID);
+    await TestHelpers.tap(CommonSelectorsIDs.CANCEL_BUTTON);
   }
 
   static async tapConnectButton() {
-    await TestHelpers.tap(CONNECT_BUTTON_ID);
+    await TestHelpers.tap(CommonSelectorsIDs.CONNECT_BUTTON);
   }
 
   static async tapConnectMultipleAccountsButton() {
-    await TestHelpers.tapByText(CONNECT_MULTIPLE_ACCOUNTS_STRING);
+    await TestHelpers.tapByText(
+      ConnectAccountModalSelectorsText.CONNECT_ACCOUNTS,
+    );
   }
 
   static async tapImportAccountButton() {
-    await TestHelpers.tapByText(CONNECT_MULTIPLE_ACCOUNTS_IMPORT_ACCOUNT_TEXT);
+    await TestHelpers.tapByText(
+      ConnectAccountModalSelectorsText.IMPORT_ACCOUNT,
+    );
   }
 
   static async tapImportAccountOrHWButton() {
-    await TestHelpers.tapByText(CONNECT_MULTIPLE_ACCOUNTS_IMPORT_ACCOUNT_TEXT);
+    await TestHelpers.tapByText(
+      ConnectAccountModalSelectorsText.IMPORT_ACCOUNT,
+    );
   }
 
   static async tapSelectAllButton() {
-    await TestHelpers.tapByText(SELECT_ALL_TEXT);
+    await TestHelpers.tapByText(ConnectAccountModalSelectorsText.SELECT_ALL);
   }
 
   static async tapAccountConnectMultiSelectButton() {
-    await TestHelpers.tap('multiconnect-connect-button');
+    await TestHelpers.tap(ConnectAccountModalSelectorsIDs.SELECT_MULTI_BUTTON);
   }
 
   static async isVisible() {
-    await TestHelpers.checkIfVisible(ACCOUNT_APROVAL_MODAL_CONTAINER_ID);
+    await TestHelpers.checkIfVisible(ConnectAccountModalSelectorsIDs.CONTAINER);
   }
 
   static async isNotVisible() {
-    await TestHelpers.checkIfNotVisible(ACCOUNT_APROVAL_MODAL_CONTAINER_ID);
+    await TestHelpers.checkIfNotVisible(
+      ConnectAccountModalSelectorsIDs.CONTAINER,
+    );
+  }
+
+  static async scrollToBottomOfModal() {
+    await TestHelpers.swipe(
+      ConnectAccountModalSelectorsIDs.CONTAINER,
+      'down',
+      'slow',
+    );
+    await TestHelpers.delay(1000);
   }
 }

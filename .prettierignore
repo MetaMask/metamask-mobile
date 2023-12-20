@@ -9,3 +9,12 @@ node_modules
 CHANGELOG.md
 # Ignore auto generated file used for react-native-storybook-loader
 /storybook/storyLoader.js
+wdio
+wdio.conf.js
+scripts
+.detoxrc.js
+.prettierignore
+locales
+.storybook
+/ppom
+app/lib/ppom/ppom.html.js

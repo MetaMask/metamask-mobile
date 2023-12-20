@@ -3,7 +3,7 @@ import React, { Component, RefObject } from 'react';
 import { View, StyleSheet } from 'react-native';
 import { WebView } from 'react-native-webview';
 
-import Logger from '../../util/Logger.js';
+import Logger from '../../util/Logger';
 import asyncInvoke from './invoke-lib';
 // eslint-disable-next-line @typescript-eslint/ban-ts-comment
 // @ts-ignore
@@ -18,6 +18,7 @@ const styles = StyleSheet.create({
 });
 
 let invoke: any;
+let invokeResolve: any = null;
 
 const convertFilesToBase64 = (files: any[][]) =>
   files.map(([key, value]) => {
@@ -62,6 +63,12 @@ export const PPOM = {
 };
 
 export const ppomInit = async () => {
+  if (!invoke) {
+    await new Promise((resolve) => {
+      invokeResolve = resolve;
+    });
+  }
+
   await invoke.bindAsync('ppomInit')();
 };
 
@@ -88,6 +95,11 @@ export class PPOMView extends Component {
 
   finishedLoading() {
     invoke = this.invoke;
+
+    if (invokeResolve) {
+      invokeResolve();
+      invokeResolve = null;
+    }
   }
 
   render() {

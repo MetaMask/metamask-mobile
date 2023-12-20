@@ -147,11 +147,6 @@ const Wallet = ({ navigation }: any) => {
   }, [navigate, providerConfig.chainId]);
   const { colors: themeColors } = useTheme();
 
-  useEffect(() => {
-    const { TokenRatesController } = Engine.context;
-    TokenRatesController.poll();
-  }, [tokens]);
-
   /**
    * Check to see if we need to show What's New modal
    */
@@ -255,7 +250,6 @@ const Wallet = ({ navigation }: any) => {
     } else {
       assets = tokens;
     }
-
     return (
       <View style={styles.wrapper}>
         <WalletAccount style={styles.walletAccount} ref={walletRef} />
@@ -297,7 +291,6 @@ const Wallet = ({ navigation }: any) => {
     tokens,
     styles,
   ]);
-
   const renderLoader = useCallback(
     () => (
       <View style={styles.loader}>

@@ -219,8 +219,6 @@ const AddCustomCollectible = ({
       {...generateTestId(Platform, CUSTOM_TOKEN_CONTAINER_ID)}
     >
       <ActionView
-        cancelTestID={'add-custom-asset-cancel-button'}
-        confirmTestID={'add-custom-asset-confirm-button'}
         cancelText={strings('add_asset.collectibles.cancel_add_collectible')}
         confirmText={strings('add_asset.collectibles.add_collectible')}
         onCancelPress={cancelAddCollectible}

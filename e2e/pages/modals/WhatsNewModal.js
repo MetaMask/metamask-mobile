@@ -1,24 +1,16 @@
 import TestHelpers from '../../helpers';
-import {
-  WHATS_NEW_MODAL_CLOSE_BUTTON_ID,
-  WHATS_NEW_MODAL_CONTAINER_ID,
-  WHATS_NEW_MODAL_GOT_IT_BUTTON_ID,
-} from '../../../app/constants/test-ids';
+import { WhatsNewModalSelectorsIDs } from '../../selectors/Modals/WhatsNewModal.selectors';
 
 export default class WhatsNewModal {
-  static async tapGotItButton() {
-    await TestHelpers.tap(WHATS_NEW_MODAL_GOT_IT_BUTTON_ID);
-  }
-
   static async tapCloseButton() {
-    await TestHelpers.tap(WHATS_NEW_MODAL_CLOSE_BUTTON_ID);
+    await TestHelpers.tap(WhatsNewModalSelectorsIDs.CLOSE_BUTTON);
   }
 
   static async isVisible() {
-    await TestHelpers.checkIfVisible(WHATS_NEW_MODAL_CONTAINER_ID);
+    await TestHelpers.checkIfVisible(WhatsNewModalSelectorsIDs.CONTAINER);
   }
 
   static async isNotVisible() {
-    await TestHelpers.checkIfNotVisible(WHATS_NEW_MODAL_CONTAINER_ID);
+    await TestHelpers.checkIfNotVisible(WhatsNewModalSelectorsIDs.CONTAINER);
   }
 }

@@ -1,20 +1,19 @@
 import TestHelpers from '../helpers';
-
-const CONTRACT_ADD_NICKNAME_CONTAINER_ID = 'contract-nickname-view';
-const CONTRACT_ADD_NICKNAME_INPUT_BOX_ID = 'contract-name-input';
-const CONFIRM_BUTTON_ID = 'nickname.save_nickname';
+import { ContractNickNameViewSelectorsIDs } from '../selectors/ContractNickNameView.selectors';
 
 export default class ContractNickNameView {
   static async typeContractNickName(nickName) {
     if (device.getPlatform() === 'android') {
       await TestHelpers.replaceTextInField(
-        CONTRACT_ADD_NICKNAME_INPUT_BOX_ID,
+        ContractNickNameViewSelectorsIDs.NAME_INPUT,
         nickName,
       );
-      await element(by.id(CONTRACT_ADD_NICKNAME_INPUT_BOX_ID)).tapReturnKey();
+      await element(
+        by.id(ContractNickNameViewSelectorsIDs.NAME_INPUT),
+      ).tapReturnKey();
     } else {
       await TestHelpers.typeTextAndHideKeyboard(
-        CONTRACT_ADD_NICKNAME_INPUT_BOX_ID,
+        ContractNickNameViewSelectorsIDs.NAME_INPUT,
         nickName,
       );
     }
@@ -22,21 +21,21 @@ export default class ContractNickNameView {
 
   static async clearNickName() {
     await TestHelpers.replaceTextInField(
-      CONTRACT_ADD_NICKNAME_INPUT_BOX_ID,
+      ContractNickNameViewSelectorsIDs.NAME_INPUT,
       '',
     );
   }
 
   static async tapConfirmButton() {
-    await TestHelpers.waitAndTap(CONFIRM_BUTTON_ID);
+    await TestHelpers.waitAndTap(
+      ContractNickNameViewSelectorsIDs.CONFIRM_BUTTON,
+    );
   }
 
   static async isVisible() {
-    await TestHelpers.checkIfVisible(CONTRACT_ADD_NICKNAME_CONTAINER_ID);
-  }
-
-  static async isNotVisible() {
-    await TestHelpers.checkIfNotVisible(CONTRACT_ADD_NICKNAME_CONTAINER_ID);
+    await TestHelpers.checkIfVisible(
+      ContractNickNameViewSelectorsIDs.CONTAINER,
+    );
   }
 
   static async isContractNickNameInInputBoxVisible(nickName) {

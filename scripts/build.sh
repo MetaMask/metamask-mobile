@@ -14,7 +14,6 @@ JS_ENV_FILE=".js.env"
 ANDROID_ENV_FILE=".android.env"
 IOS_ENV_FILE=".ios.env"
 
-
 envFileMissing() {
 	FILE="$1"
 	echo "'$FILE' is missing, you'll need to add it to the root of the project."
@@ -106,6 +105,34 @@ checkParameters(){
 	fi
 }
 
+remapEnvVariable() {
+    # Get the old and new variable names
+    old_var_name=$1
+    new_var_name=$2
+
+    # Check if the old variable exists
+    if [ -z "${!old_var_name}" ]; then
+        echo "Error: $old_var_name does not exist in the environment."
+        return 1
+    fi
+
+    # Remap the variable
+    export $new_var_name="${!old_var_name}"
+
+    unset $old_var_name
+
+    echo "Successfully remapped $old_var_name to $new_var_name."
+}
+
+remapFlaskEnvVariables() {
+	# remap flask env variables to match what the app expects
+
+	echo "Remapping flask env variable names to match production"
+	# ios.env/android.env variables
+	remapEnvVariable "MM_FLASK_MIXPANEL_TOKEN" "MM_MIXPANEL_TOKEN"
+}
+
+
 
 prebuild(){
 	# Import provider
@@ -118,6 +145,7 @@ prebuild(){
 			source $JS_ENV_FILE
 		fi
 	fi
+  WATCHER_PORT=${WATCHER_PORT:-8081}
 }
 
 prebuild_ios(){
@@ -151,34 +179,45 @@ prebuild_android(){
 
 buildAndroidRun(){
 	prebuild_android
-	react-native run-android --variant=prodDebug --active-arch-only
+	react-native run-android --port=$WATCHER_PORT --variant=prodDebug --active-arch-only
 }
 
 buildAndroidRunQA(){
 	prebuild_android
-	react-native run-android --variant=qaDebug --active-arch-only
+	react-native run-android --port=$WATCHER_PORT --variant=qaDebug --active-arch-only
+}
+
+buildAndroidRunFlask(){
+	prebuild_android
+	react-native run-android --port=$WATCHER_PORT --variant=flaskDebug --active-arch-only
 }
 
 buildIosSimulator(){
 	prebuild_ios
-	SIM="${IOS_SIMULATOR:-"iPhone 12 Pro"}"
-	react-native run-ios --simulator "$SIM"
+	SIM="${IOS_SIMULATOR:-"iPhone 13 Pro"}"
+	react-native run-ios --port=$WATCHER_PORT --simulator "$SIM"
 }
 
 buildIosSimulatorQA(){
 	prebuild_ios
-	SIM="${IOS_SIMULATOR:-"iPhone 12 Pro"}"
-	react-native run-ios --simulator "$SIM" --scheme "MetaMask-QA"
+	SIM="${IOS_SIMULATOR:-"iPhone 13 Pro"}"
+	react-native run-ios --port=$WATCHER_PORT --simulator "$SIM" --scheme "MetaMask-QA"
+}
+
+buildIosSimulatorFlask(){
+	prebuild_ios
+	SIM="${IOS_SIMULATOR:-"iPhone 13 Pro"}"
+	react-native run-ios --port=$WATCHER_PORT --simulator "$SIM" --scheme "MetaMask-Flask"
 }
 
 buildIosSimulatorE2E(){
 	prebuild_ios
-	cd ios && xcodebuild -workspace MetaMask.xcworkspace -scheme MetaMask -configuration Debug  -sdk iphonesimulator -derivedDataPath build
+	cd ios && CC=clang CXX=clang CLANG=clang CLANGPLUSPLUS=clang++ LD=clang LDPLUSPLUS=clang++ xcodebuild -workspace MetaMask.xcworkspace -scheme MetaMask -configuration Debug -sdk iphonesimulator -derivedDataPath build
 }
 
 buildIosQASimulatorE2E(){
 	prebuild_ios
-	cd ios && xcodebuild -workspace MetaMask.xcworkspace -scheme MetaMask-QA -configuration Debug  -sdk iphonesimulator -derivedDataPath build
+	cd ios && xcodebuild -workspace MetaMask.xcworkspace -scheme MetaMask-QA -configuration Debug -sdk iphonesimulator -derivedDataPath build
 }
 
 runIosE2E(){
@@ -187,12 +226,17 @@ runIosE2E(){
 
 buildIosDevice(){
 	prebuild_ios
-	react-native run-ios --device
+	react-native run-ios --port=$WATCHER_PORT --device
 }
 
 buildIosDeviceQA(){
 	prebuild_ios
-	react-native run-ios --device --scheme "MetaMask-QA"
+	react-native run-ios --port=$WATCHER_PORT --device --scheme "MetaMask-QA"
+}
+
+buildIosDeviceFlask(){
+	prebuild_ios
+	react-native run-ios --device --scheme "MetaMask-Flask"
 }
 
 generateArchivePackages() {
@@ -200,6 +244,8 @@ generateArchivePackages() {
 
   if [ "$scheme" = "MetaMask-QA" ] ; then
     exportOptionsPlist="MetaMask/IosExportOptionsMetaMaskQARelease.plist"
+  elif [ "$scheme" = "MetaMask-Flask" ] ; then
+    exportOptionsPlist="MetaMask/IosExportOptionsMetaMaskFlaskRelease.plist"
   else
     exportOptionsPlist="MetaMask/IosExportOptionsMetaMaskRelease.plist"
   fi
@@ -228,7 +274,31 @@ buildIosRelease(){
 		if [ ! -f "ios/release.xcconfig" ] ; then
 			echo "$IOS_ENV" | tr "|" "\n" > ios/release.xcconfig
 		fi
-		./node_modules/.bin/react-native run-ios  --configuration Release --simulator "iPhone 12 Pro"
+		./node_modules/.bin/react-native run-ios --configuration Release --simulator "iPhone 13 Pro"
+	fi
+}
+
+buildIosFlaskRelease(){
+	# remap flask env variables to match what the app expects
+	remapFlaskEnvVariables
+
+	prebuild_ios
+
+	# Replace release.xcconfig with ENV vars
+	if [ "$PRE_RELEASE" = true ] ; then
+		echo "Setting up env vars...";
+		echo "$IOS_ENV" | tr "|" "\n" > $IOS_ENV_FILE
+		echo "Build started..."
+		brew install watchman
+		cd ios
+		generateArchivePackages "MetaMask-Flask"
+		# Generate sourcemaps
+		yarn sourcemaps:ios
+	else
+		if [ ! -f "ios/release.xcconfig" ] ; then
+			echo "$IOS_ENV" | tr "|" "\n" > ios/release.xcconfig
+		fi
+		./node_modules/.bin/react-native run-ios --scheme "MetaMask-Flask"  --configuration Release --simulator "iPhone 13 Pro"
 	fi
 }
 
@@ -273,7 +343,7 @@ buildIosQA(){
 		if [ ! -f "ios/release.xcconfig" ] ; then
 			echo "$IOS_ENV" | tr "|" "\n" > ios/release.xcconfig
 		fi
-		./node_modules/.bin/react-native run-ios --scheme MetaMask-QA  --configuration Release --simulator "iPhone 12 Pro"
+		./node_modules/.bin/react-native run-ios --scheme MetaMask-QA--configuration Release --simulator "iPhone 13 Pro"
 	fi
 }
 
@@ -285,7 +355,7 @@ buildAndroidQA(){
 
 	prebuild_android
 	# Generate APK
-	cd android && ./gradlew assembleQaRelease --no-daemon --max-workers 2
+	cd android && ./gradlew assembleQaRelease -x app:createBundleFlaskDebugJsAndAssets --no-daemon --max-workers 2
 
 	# GENERATE BUNDLE
 	if [ "$GENERATE_BUNDLE" = true ] ; then
@@ -311,7 +381,7 @@ buildAndroidRelease(){
 	prebuild_android
 
 	# GENERATE APK
-	cd android && ./gradlew assembleProdRelease --no-daemon --max-workers 2
+	cd android && ./gradlew assembleProdRelease -x app:createBundleFlaskDebugJsAndAssets --no-daemon --max-workers 2
 
 	# GENERATE BUNDLE
 	if [ "$GENERATE_BUNDLE" = true ] ; then
@@ -330,19 +400,50 @@ buildAndroidRelease(){
 	fi
 }
 
+buildAndroidFlaskRelease(){
+	# remap flask env variables to match what the app expects
+	remapFlaskEnvVariables
+	
+	if [ "$PRE_RELEASE" = false ] ; then
+		adb uninstall io.metamask.flask || true
+	fi
+	prebuild_android
+
+	# GENERATE APK
+	cd android && ./gradlew assembleFlaskRelease -x app:createBundleQaDebugJsAndAssets --no-daemon --max-workers 2
+
+	# GENERATE BUNDLE
+	if [ "$GENERATE_BUNDLE" = true ] ; then
+		./gradlew bundleFlaskRelease
+	fi
+
+	if [ "$PRE_RELEASE" = true ] ; then
+		# Generate sourcemaps
+		yarn sourcemaps:android
+		# Generate checksum
+		yarn build:android:checksum:flask
+	fi
+
+	if [ "$PRE_RELEASE" = false ] ; then
+		adb install app/build/outputs/apk/flask/release/app-flask-release.apk
+	fi
+}
+
 buildAndroidReleaseE2E(){
 	prebuild_android
-	cd android && ./gradlew assembleProdRelease app:assembleProdReleaseAndroidTest -PminSdkVersion=26 -DtestBuildType=release
+	cd android && ./gradlew assembleProdRelease app:assembleProdReleaseAndroidTest -PminSdkVersion=26 -DtestBuildType=release -x app:createBundleFlaskDebugJsAndAssets
 }
 
 buildAndroidQAE2E(){
 	prebuild_android
-	cd android && ./gradlew assembleQaRelease app:assembleQaReleaseAndroidTest -PminSdkVersion=26 -DtestBuildType=release
+	cd android && ./gradlew assembleQaRelease app:assembleQaReleaseAndroidTest -PminSdkVersion=26 -DtestBuildType=release -x app:createBundleFlaskDebugJsAndAssets
 }
 
 buildAndroid() {
 	if [ "$MODE" == "release" ] ; then
 		buildAndroidRelease
+	elif [ "$MODE" == "flask" ] ; then
+		buildAndroidFlaskRelease
 	elif [ "$MODE" == "QA" ] ; then
 		buildAndroidQA
 	elif [ "$MODE" == "releaseE2E" ] ; then
@@ -353,6 +454,8 @@ buildAndroid() {
 		buildAndroidRunE2E
 	elif [ "$MODE" == "qaDebug" ] ; then
 		buildAndroidRunQA
+	elif [ "$MODE" == "flaskDebug" ] ; then
+		buildAndroidRunFlask
 	else
 		buildAndroidRun
 	fi
@@ -364,13 +467,15 @@ buildAndroidRunE2E(){
 	then
 		source $ANDROID_ENV_FILE
 	fi
-	cd android && ./gradlew assembleProdDebug app:assembleAndroidTest -DtestBuildType=debug && cd ..
+	cd android && ./gradlew assembleProdDebug app:assembleAndroidTest -DtestBuildType=debug -x app:createBundleQaDebugJsAndAssets -x app:createBundleFlaskDebugJsAndAssets --build-cache --parallel && cd ..
 }
 
 buildIos() {
 	echo "Build iOS $MODE started..."
 	if [ "$MODE" == "release" ] ; then
 		buildIosRelease
+	elif [ "$MODE" == "flask" ] ; then
+		buildIosFlaskRelease
 	elif [ "$MODE" == "releaseE2E" ] ; then
 		buildIosReleaseE2E
   elif [ "$MODE" == "debugE2E" ] ; then
@@ -385,6 +490,12 @@ buildIos() {
 		else
 			buildIosSimulatorQA
 		fi
+	elif [ "$MODE" == "flaskDebug" ] ; then
+		if [ "$RUN_DEVICE" = true ] ; then
+			buildIosDeviceFlask
+		else
+			buildIosSimulatorFlask
+		fi
 	else
 		if [ "$RUN_DEVICE" = true ] ; then
 			buildIosDevice
@@ -396,13 +507,14 @@ buildIos() {
 
 startWatcher() {
 	source $JS_ENV_FILE
+  WATCHER_PORT=${WATCHER_PORT:-8081}
 	yarn --ignore-engines build:static-logos
 	if [ "$MODE" == "clean" ]; then
 		watchman watch-del-all
 		rm -rf $TMPDIR/metro-cache
-		react-native start -- --reset-cache
+		react-native start --port=$WATCHER_PORT -- --reset-cache
 	else
-		react-native start
+		react-native start --port=$WATCHER_PORT
 	fi
 }
 
@@ -430,23 +542,28 @@ checkAuthToken() {
 checkParameters "$@"
 
 printTitle
-if [ "$MODE" == "release" ] || [ "$MODE" == "releaseE2E" ] || [ "$MODE" == "QA" ] || [ "$MODE" == "QAE2E" ]; then
+if [ "$MODE" == "releaseE2E" ] || [ "$MODE" == "QA" ] || [ "$MODE" == "QAE2E" ]; then
+	echo "DEBUG SENTRY PROPS"
+	checkAuthToken 'sentry.debug.properties'
+	export SENTRY_PROPERTIES="${REPO_ROOT_DIR}/sentry.debug.properties"
+elif [ "$MODE" == "release" ] || [ "$MODE" == "flask" ]; then
+	echo "RELEASE SENTRY PROPS"
+	checkAuthToken 'sentry.release.properties'
+	export SENTRY_PROPERTIES="${REPO_ROOT_DIR}/sentry.release.properties"
+fi
 
- 	if [ "$PRE_RELEASE" = false ]; then
-		echo "RELEASE SENTRY PROPS"
- 		checkAuthToken 'sentry.release.properties'
- 		export SENTRY_PROPERTIES="${REPO_ROOT_DIR}/sentry.release.properties"
- 	else
-	 	echo "DEBUG SENTRY PROPS"
- 		checkAuthToken 'sentry.debug.properties'
- 		export SENTRY_PROPERTIES="${REPO_ROOT_DIR}/sentry.debug.properties"
- 	fi
+if [ -z "$METAMASK_BUILD_TYPE" ]; then
+	printError "Missing METAMASK_BUILD_TYPE; set to 'main' for a standard release, or 'flask' for a canary flask release. The default value is 'main'."
+	exit 1
+else
+    echo "METAMASK_BUILD_TYPE is set to: $METAMASK_BUILD_TYPE"
+fi
 
-
-	if [ -z "$METAMASK_ENVIRONMENT" ]; then
-		printError "Missing METAMASK_ENVIRONMENT; set to 'production' for a production release, 'prerelease' for a pre-release, or 'local' otherwise"
-		exit 1
-	fi
+if [ -z "$METAMASK_ENVIRONMENT" ]; then
+	printError "Missing METAMASK_ENVIRONMENT; set to 'production' for a production release, 'prerelease' for a pre-release, or 'local' otherwise"
+	exit 1
+else
+    echo "METAMASK_ENVIRONMENT is set to: $METAMASK_ENVIRONMENT"
 fi
 
 if [ "$PLATFORM" == "ios" ]; then

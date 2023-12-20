@@ -23,14 +23,12 @@ import { RootState } from 'app/reducers';
 
 jest.mock('../Engine', () => ({
   context: {
-    NetworkController: {
-      state: {},
-    },
     PreferencesController: {
       state: {},
     },
     TransactionController: {
       addTransaction: jest.fn(),
+      updateSecurityAlertResponse: jest.fn(),
     },
     SignatureController: {
       newUnsignedMessage: jest.fn(),
@@ -40,6 +38,11 @@ jest.mock('../Engine', () => ({
     PermissionController: {
       requestPermissions: jest.fn(),
       getPermissions: jest.fn(),
+    },
+    NetworkController: {
+      state: {
+        providerConfig: { chainId: '1' },
+      },
     },
   },
 }));
@@ -55,8 +58,14 @@ const MockEngine = Engine as Omit<typeof Engine, 'context'> & {
 jest.mock('../../store', () => ({
   store: {
     getState: jest.fn(),
+    dispatch: jest.fn(),
   },
 }));
+
+const mockStore = store as unknown as {
+  getState: jest.Mock;
+  dispatch: jest.Mock;
+};
 
 jest.mock('../Permissions', () => ({
   getPermittedAccounts: jest.fn(),
@@ -232,9 +241,10 @@ function setupGlobalState({
         },
       } as any,
     }));
+  mockStore.dispatch.mockImplementation((obj) => obj);
   if (addTransactionResult) {
     MockEngine.context.TransactionController.addTransaction.mockImplementation(
-      async () => ({ result: addTransactionResult }),
+      async () => ({ result: addTransactionResult, transactionMeta: '123' }),
     );
   }
   if (permittedAccounts) {

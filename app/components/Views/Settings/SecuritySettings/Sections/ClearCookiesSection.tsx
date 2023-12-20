@@ -1,37 +1,31 @@
 import CookieManager from '@react-native-cookies/cookies';
 import React, { useEffect, useState } from 'react';
-import { StyleSheet, Text, View } from 'react-native';
+import { StyleSheet, View } from 'react-native';
 import { strings } from '../../../../../../locales/i18n';
-import { CLEAR_COOKIES_SECTION } from '../../../../../constants/test-ids';
-import { fontStyles } from '../../../../../styles/common';
 import Device from '../../../../../util/device';
 import Logger from '../../../../../util/Logger';
-import { mockTheme, useAppThemeFromContext } from '../../../../../util/theme';
 import ActionModal from '../../../../UI/ActionModal';
-import StyledButton from '../../../../UI/StyledButton';
+import { ClearCookiesSectionSelectorsIDs } from '../../../../../../e2e/selectors/Settings/SecurityAndPrivacy/ClearCookiesSection.selectors';
+import Text, {
+  TextVariant,
+  TextColor,
+} from '../../../../../component-library/components/Texts/Text';
+import Button, {
+  ButtonVariants,
+  ButtonSize,
+  ButtonWidthTypes,
+} from '../../../../../component-library/components/Buttons/Button';
 
-const createStyles = (colors: any) =>
+const createStyles = () =>
   StyleSheet.create({
     setting: {
-      marginTop: 50,
-    },
-    title: {
-      ...fontStyles.normal,
-      color: colors.text.default,
-      fontSize: 20,
-      lineHeight: 20,
-      paddingTop: 4,
-      marginTop: -4,
+      marginTop: 32,
     },
     desc: {
-      ...fontStyles.normal,
-      color: colors.text.alternative,
-      fontSize: 14,
-      lineHeight: 20,
-      marginTop: 12,
+      marginTop: 8,
     },
-    confirm: {
-      marginTop: 18,
+    accessory: {
+      marginTop: 16,
     },
     modalView: {
       alignItems: 'center',
@@ -41,25 +35,18 @@ const createStyles = (colors: any) =>
       padding: 20,
     },
     modalTitle: {
-      ...fontStyles.bold,
-      fontSize: 22,
       textAlign: 'center',
       marginBottom: 20,
-      color: colors.text.default,
     },
     modalText: {
-      ...fontStyles.normal,
-      fontSize: 18,
       textAlign: 'center',
-      color: colors.text.default,
     },
   });
 
 const ClearCookiesSection = () => {
   const [cookiesModalVisible, setCookiesModalVisible] = useState(false);
   const [hasCookies, setHasCookies] = useState(false);
-  const { colors } = useAppThemeFromContext() || mockTheme;
-  const styles = createStyles(colors);
+  const styles = createStyles();
 
   useEffect(() => {
     const run = async () => {
@@ -95,21 +82,30 @@ const ClearCookiesSection = () => {
 
   return (
     <>
-      <View style={styles.setting} testID={CLEAR_COOKIES_SECTION}>
-        <Text style={styles.title}>
+      <View
+        style={styles.setting}
+        testID={ClearCookiesSectionSelectorsIDs.CONTAINER}
+      >
+        <Text variant={TextVariant.BodyLGMedium}>
           {strings('app_settings.clear_browser_cookies_desc')}
         </Text>
-        <Text style={styles.desc}>
+        <Text
+          variant={TextVariant.BodyMD}
+          color={TextColor.Alternative}
+          style={styles.desc}
+        >
           {strings('app_settings.clear_cookies_desc')}
         </Text>
-        <StyledButton
-          type="normal"
-          onPress={toggleClearCookiesModal}
-          disabled={!hasCookies}
-          containerStyle={styles.confirm}
-        >
-          {strings('app_settings.clear_browser_cookies_desc')}
-        </StyledButton>
+        <View style={styles.accessory}>
+          <Button
+            size={ButtonSize.Lg}
+            variant={ButtonVariants.Secondary}
+            width={ButtonWidthTypes.Full}
+            label={strings('app_settings.clear_browser_cookies_desc')}
+            onPress={toggleClearCookiesModal}
+            isDisabled={!hasCookies}
+          />
+        </View>
       </View>
       <ActionModal
         modalVisible={cookiesModalVisible}
@@ -120,7 +116,7 @@ const ClearCookiesSection = () => {
         onConfirmPress={clearCookies}
       >
         <View style={styles.modalView}>
-          <Text style={styles.modalTitle}>
+          <Text variant={TextVariant.HeadingMD} style={styles.modalTitle}>
             {strings('app_settings.clear_cookies_modal_title')}
           </Text>
           <Text style={styles.modalText}>

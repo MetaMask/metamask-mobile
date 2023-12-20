@@ -25,13 +25,13 @@ import Main from '../Main';
 import OptinMetrics from '../../UI/OptinMetrics';
 import MetaMaskAnimation from '../../UI/MetaMaskAnimation';
 import SimpleWebview from '../../Views/SimpleWebview';
-import SharedDeeplinkManager from '../../../core/DeeplinkManager';
+import SharedDeeplinkManager from '../../../core/DeeplinkManager/SharedDeeplinkManager';
 import Engine from '../../../core/Engine';
 import branch from 'react-native-branch';
 import AppConstants from '../../../core/AppConstants';
 import Logger from '../../../util/Logger';
 import { trackErrorAsAnalytics } from '../../../util/analyticsV2';
-import { routingInstrumentation } from '../../../util/sentryUtils';
+import { routingInstrumentation } from '../../../util/sentry/utils';
 import Analytics from '../../../core/Analytics/Analytics';
 import { connect, useDispatch } from 'react-redux';
 import {
@@ -68,6 +68,9 @@ import AssetOptions from '../../Views/AssetOptions';
 import ImportPrivateKey from '../../Views/ImportPrivateKey';
 import ImportPrivateKeySuccess from '../../Views/ImportPrivateKeySuccess';
 import ConnectQRHardware from '../../Views/ConnectQRHardware';
+import SelectHardwareWallet from '../../Views/ConnectHardware/SelectHardware';
+import LedgerAccountInfo from '../../Views/LedgerAccountInfo';
+import LedgerConnect from '../../Views/LedgerConnect';
 import { AUTHENTICATION_APP_TRIGGERED_AUTH_NO_CREDENTIALS } from '../../../constants/error';
 import { UpdateNeeded } from '../../../components/UI/UpdateNeeded';
 import { EnableAutomaticSecurityChecksModal } from '../../../components/UI/EnableAutomaticSecurityChecksModal';
@@ -78,10 +81,14 @@ import WalletRestored from '../../Views/RestoreWallet/WalletRestored';
 import WalletResetNeeded from '../../Views/RestoreWallet/WalletResetNeeded';
 import SDKLoadingModal from '../../Views/SDKLoadingModal/SDKLoadingModal';
 import SDKFeedbackModal from '../../Views/SDKFeedbackModal/SDKFeedbackModal';
+import LedgerMessageSignModal from '../../UI/LedgerModals/LedgerMessageSignModal';
+import LedgerTransactionModal from '../../UI/LedgerModals/LedgerTransactionModal';
 import AccountActions from '../../../components/Views/AccountActions';
 import EthSignFriction from '../../../components/Views/Settings/AdvancedSettings/EthSignFriction';
 import WalletActions from '../../Views/WalletActions';
 import NetworkSelector from '../../../components/Views/NetworkSelector';
+import ReturnToAppModal from '../../Views/ReturnToAppModal';
+import BlockaidIndicator from '../../Views/Settings/ExperimentalSettings/BlockaidIndicator';
 import EditAccountName from '../../Views/EditAccountName/EditAccountName';
 import WC2Manager, {
   isWC2Enabled,
@@ -233,10 +240,13 @@ const App = ({ userLoggedIn }) => {
   const { toastRef } = useContext(ToastContext);
   const dispatch = useDispatch();
   const sdkInit = useRef(false);
+  const sdkPostInit = useRef(false);
+  const [postInitReady, setPostInitReady] = useState(false);
   const [onboarded, setOnboarded] = useState(false);
   const triggerSetCurrentRoute = (route) => {
     dispatch(setCurrentRoute(route));
     if (route === 'Wallet' || route === 'BrowserView') {
+      setOnboarded(true);
       dispatch(setCurrentBottomNavRoute(route));
     }
   };
@@ -275,7 +285,9 @@ const App = ({ userLoggedIn }) => {
         animationNameRef?.current?.play();
       }
     };
-    appTriggeredAuth();
+    appTriggeredAuth().catch((error) => {
+      Logger.error(error, 'App: Error in appTriggeredAuth');
+    });
   }, [navigator]);
 
   const handleDeeplink = useCallback(({ error, params, uri }) => {
@@ -285,13 +297,9 @@ const App = ({ userLoggedIn }) => {
     const deeplink = params?.['+non_branch_link'] || uri || null;
     try {
       if (deeplink) {
-        const { KeyringController } = Engine.context;
-        const isUnlocked = KeyringController.isUnlocked();
-        isUnlocked
-          ? SharedDeeplinkManager.parse(deeplink, {
-              origin: AppConstants.DEEPLINKS.ORIGIN_DEEPLINK,
-            })
-          : SharedDeeplinkManager.setDeeplink(deeplink);
+        SharedDeeplinkManager.parse(deeplink, {
+          origin: AppConstants.DEEPLINKS.ORIGIN_DEEPLINK,
+        });
       }
     } catch (e) {
       Logger.error(e, `Deeplink: Error parsing deeplink`);
@@ -333,8 +341,8 @@ const App = ({ userLoggedIn }) => {
           const { error } = opts;
 
           if (error) {
+            // Log error for analytics and continue handling deeplink
             Logger.error('Error from Branch: ' + error);
-            return;
           }
 
           handleDeeplink(opts);
@@ -349,21 +357,51 @@ const App = ({ userLoggedIn }) => {
       await Analytics.init();
     };
 
-    initAnalytics();
+    initAnalytics().catch((err) => {
+      Logger.error(err, 'Error initializing analytics');
+    });
   }, []);
 
   useEffect(() => {
-    if (navigator?.getCurrentRoute && !sdkInit.current && onboarded) {
-      SDKConnect.getInstance()
-        .init({ navigation: navigator })
-        .then(() => {
+    // Init SDKConnect only if the navigator is ready, user is onboarded, and SDK is not initialized.
+    async function initSDKConnect() {
+      if (navigator?.getCurrentRoute && onboarded && !sdkInit.current) {
+        try {
+          const sdkConnect = SDKConnect.getInstance();
+          await sdkConnect.init({ navigation: navigator, context: 'Nav/App' });
+          setPostInitReady(true);
           sdkInit.current = true;
-        })
-        .catch((err) => {
+        } catch (err) {
           console.error(`Cannot initialize SDKConnect`, err);
-        });
+        }
+      }
     }
+    initSDKConnect().catch((err) => {
+      Logger.error(err, 'Error initializing SDKConnect');
+    });
   }, [navigator, onboarded]);
+
+  useEffect(() => {
+    // Handle post-init process separately.
+    async function handlePostInit() {
+      if (
+        sdkInit.current &&
+        !sdkPostInit.current &&
+        postInitReady &&
+        userLoggedIn
+      ) {
+        try {
+          await SDKConnect.getInstance().postInit();
+          sdkPostInit.current = true;
+        } catch (err) {
+          console.error(`Cannot postInit SDKConnect`, err);
+        }
+      }
+    }
+    handlePostInit().catch((err) => {
+      Logger.error(err, 'Error postInit SDKConnect');
+    });
+  }, [userLoggedIn, postInitReady]);
 
   useEffect(() => {
     if (isWC2Enabled) {
@@ -383,7 +421,9 @@ const App = ({ userLoggedIn }) => {
       setRoute(route);
     }
 
-    checkExisting();
+    checkExisting().catch((error) => {
+      Logger.error(error, 'Error checking existing user');
+    });
     /* eslint-disable react-hooks/exhaustive-deps */
   }, []);
 
@@ -414,7 +454,9 @@ const App = ({ userLoggedIn }) => {
       }
     }
 
-    startApp();
+    startApp().catch((error) => {
+      Logger.error(error, 'Error starting app');
+    });
   }, []);
 
   const setNavigatorRef = (ref) => {
@@ -507,6 +549,14 @@ const App = ({ userLoggedIn }) => {
         component={NetworkSelector}
       />
       <Stack.Screen
+        name={Routes.SHEET.RETURN_TO_DAPP_MODAL}
+        component={ReturnToAppModal}
+      />
+      <Stack.Screen
+        name={Routes.SHEET.BLOCKAID_INDICATOR}
+        component={BlockaidIndicator}
+      />
+      <Stack.Screen
         name={Routes.SHEET.AMBIGUOUS_ADDRESS}
         component={AmbiguousAddressSheet}
       />
@@ -576,6 +626,23 @@ const App = ({ userLoggedIn }) => {
       }}
     >
       <Stack.Screen name="ConnectQRHardware" component={ConnectQRHardware} />
+    </Stack.Navigator>
+  );
+
+  const LedgerConnectFlow = () => (
+    <Stack.Navigator initialRouteName={Routes.HW.LEDGER_CONNECT}>
+      <Stack.Screen name={Routes.HW.LEDGER_CONNECT} component={LedgerConnect} />
+    </Stack.Navigator>
+  );
+
+  const ConnectHardwareWalletFlow = () => (
+    <Stack.Navigator name="ConnectHardwareWallet">
+      <Stack.Screen
+        name={Routes.HW.SELECT_DEVICE}
+        component={SelectHardwareWallet}
+        options={SelectHardwareWallet.navigationOptions}
+      />
+      <Stack.Screen name="LedgerAccountInfo" component={LedgerAccountInfo} />
     </Stack.Navigator>
   );
 
@@ -659,6 +726,40 @@ const App = ({ userLoggedIn }) => {
               name="ConnectQRHardwareFlow"
               component={ConnectQRHardwareFlow}
               options={{ animationEnabled: true }}
+            />
+            <Stack.Screen
+              name={Routes.HW.CONNECT_LEDGER}
+              component={LedgerConnectFlow}
+            />
+            <Stack.Screen
+              name={Routes.HW.CONNECT}
+              component={ConnectHardwareWalletFlow}
+            />
+            <Stack.Screen
+              options={{
+                //Refer to - https://reactnavigation.org/docs/stack-navigator/#animations
+                cardStyle: { backgroundColor: importedColors.transparent },
+                cardStyleInterpolator: () => ({
+                  overlayStyle: {
+                    opacity: 0,
+                  },
+                }),
+              }}
+              name={Routes.LEDGER_TRANSACTION_MODAL}
+              component={LedgerTransactionModal}
+            />
+            <Stack.Screen
+              options={{
+                //Refer to - https://reactnavigation.org/docs/stack-navigator/#animations
+                cardStyle: { backgroundColor: importedColors.transparent },
+                cardStyleInterpolator: () => ({
+                  overlayStyle: {
+                    opacity: 0,
+                  },
+                }),
+              }}
+              name={Routes.LEDGER_MESSAGE_SIGN_MODAL}
+              component={LedgerMessageSignModal}
             />
             <Stack.Screen
               name="EditAccountName"

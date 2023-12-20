@@ -26,7 +26,6 @@ import WebviewProgressBar from '../../UI/WebviewProgressBar';
 import { baseStyles, fontStyles } from '../../../styles/common';
 import Logger from '../../../util/Logger';
 import onUrlSubmit, {
-  getHost,
   prefixUrlWithProtocol,
   isTLD,
   protocolAllowList,
@@ -89,6 +88,7 @@ import {
   selectIsIpfsGatewayEnabled,
   selectSelectedAddress,
 } from '../../../selectors/preferencesController';
+import useFavicon from '../../hooks/useFavicon/useFavicon';
 import { IPFS_GATEWAY_DISABLED_ERROR } from './constants';
 import Banner from '../../../component-library/components/Banners/Banner/Banner';
 import {
@@ -100,6 +100,7 @@ import CLText from '../../../component-library/components/Texts/Text/Text';
 import { TextVariant } from '../../../component-library/components/Texts/Text';
 import { regex } from '../../../../app/util/regex';
 import { selectChainId } from '../../../selectors/networkController';
+import { BrowserViewSelectorsIDs } from '../../../../e2e/selectors/BrowserView.selectors';
 
 const { HOMEPAGE_URL, NOTIFICATION_NAMES } = AppConstants;
 const HOMEPAGE_HOST = new URL(HOMEPAGE_URL)?.hostname;
@@ -287,6 +288,7 @@ export const BrowserTab = (props) => {
 
   const { colors, shadows } = useTheme();
   const styles = createStyles(colors, shadows);
+  const favicon = useFavicon(url.current);
 
   /**
    * Is the current tab the active tab
@@ -900,8 +902,6 @@ export const BrowserTab = (props) => {
     const urlObj = new URL(nativeEvent.url);
     const { origin, pathname = '', query = '' } = urlObj;
     const realUrl = `${origin}${pathname}${query}`;
-    // Generate favicon.
-    const favicon = `https://api.faviconkit.com/${getHost(realUrl)}/50`;
     // Update navigation bar address with title of loaded url.
     changeUrl({ ...nativeEvent, url: realUrl, icon: favicon });
     changeAddressBar({ ...nativeEvent, url: realUrl, icon: favicon });
@@ -1206,9 +1206,7 @@ export const BrowserTab = (props) => {
               contentDescription: `Launch ${name || url} on MetaMask`,
               keywords: [name.split(' '), url, 'dapp'],
               thumbnail: {
-                uri:
-                  icon.current ||
-                  `https://api.faviconkit.com/${getHost(url)}/256`,
+                uri: icon.current || favicon,
               },
             };
             try {
@@ -1500,7 +1498,7 @@ export const BrowserTab = (props) => {
                 javascriptEnabled
                 allowsInlineMediaPlayback
                 useWebkit
-                testID={'browser-webview'}
+                testID={BrowserViewSelectorsIDs.ANDROID_CONTAINER}
                 applicationNameForUserAgent={'WebView MetaMaskMobile'}
                 onFileDownload={handleOnFileDownload}
               />

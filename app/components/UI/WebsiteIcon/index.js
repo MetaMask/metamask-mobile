@@ -5,6 +5,10 @@ import FadeIn from 'react-native-fade-in-image';
 import { fontStyles } from '../../../styles/common';
 import { getHost } from '../../../util/browser';
 import { ThemeContext, mockTheme } from '../../../util/theme';
+import withFaviconAwareness from '../../hooks/useFavicon/withFaviconAwareness';
+import { isNumber } from 'lodash';
+import { isFaviconSVG } from '../../../util/favicon';
+import { SvgUri } from 'react-native-svg/src/xml';
 
 const createStyles = (colors) =>
   StyleSheet.create({
@@ -28,7 +32,7 @@ const createStyles = (colors) =>
 /**
  * View that renders a website logo depending of the context
  */
-export default class WebsiteIcon extends PureComponent {
+class WebsiteIcon extends PureComponent {
   static propTypes = {
     /**
      * Style object for image
@@ -58,19 +62,17 @@ export default class WebsiteIcon extends PureComponent {
     /**
      * Icon image to use, this substitutes getting the icon from the url
      */
-    icon: PropTypes.string,
+    icon: PropTypes.oneOfType([PropTypes.string, PropTypes.object]),
+
+    /**
+     * Favicon source to use, this substitutes getting the icon from the url
+     * This is populated by the withFaviconAwareness HOC
+     */
+    faviconSource: PropTypes.string,
   };
 
   state = {
     renderIconUrlError: false,
-  };
-
-  /**
-   * Get image url from favicon api
-   */
-  getIconUrl = (url) => {
-    const iconUrl = `https://api.faviconkit.com/${getHost(url)}/50`;
-    return iconUrl;
   };
 
   /**
@@ -82,20 +84,35 @@ export default class WebsiteIcon extends PureComponent {
 
   render = () => {
     const { renderIconUrlError } = this.state;
-    const { viewStyle, style, textStyle, transparent, url, icon } = this.props;
+    const {
+      viewStyle,
+      style,
+      textStyle,
+      transparent,
+      url,
+      icon,
+      faviconSource,
+    } = this.props;
     const colors = this.context.colors || mockTheme.colors;
     const styles = createStyles(colors);
-    const apiLogoUrl = { uri: icon || this.getIconUrl(url) };
+    // apiLogoUrl is the url of the icon to be rendered, but it's populated
+    // from the icon prop, if it exists, or from the faviconSource prop
+    // that is provided by the withFaviconAwareness HOC for useFavicon hook.
+
+    const apiLogoUrl = {
+      uri: (typeof icon === 'string' ? icon : icon?.uri) || faviconSource,
+    };
+
     let title = this.props.title;
 
     if (title !== undefined) {
       title =
         typeof this.props.title === 'string'
-          ? this.props.title.substr(0, 1)
-          : getHost(url).substr(0, 1);
+          ? this.props.title.substring(0, 1)
+          : getHost(url).substring(0, 1);
     }
 
-    if (renderIconUrlError && title) {
+    if (title && (!apiLogoUrl?.uri || renderIconUrlError)) {
       return (
         <View style={viewStyle}>
           <View style={[styles.fallback, style]}>
@@ -105,24 +122,42 @@ export default class WebsiteIcon extends PureComponent {
       );
     }
 
+    let imageSVG;
+
+    if (apiLogoUrl && !isNumber(apiLogoUrl) && 'uri' in apiLogoUrl) {
+      imageSVG = isFaviconSVG(apiLogoUrl);
+    }
+
     return (
       <View style={viewStyle}>
-        <FadeIn
-          placeholderStyle={{
-            backgroundColor: transparent
-              ? colors.transparent
-              : colors.background.alternative,
-          }}
-        >
-          <Image
-            source={apiLogoUrl}
+        {imageSVG ? (
+          <SvgUri
+            uri={imageSVG}
+            width={style.width}
+            height={style.height}
             style={style}
             onError={this.onRenderIconUrlError}
           />
-        </FadeIn>
+        ) : (
+          <FadeIn
+            placeholderStyle={{
+              backgroundColor: transparent
+                ? colors.transparent
+                : colors.background.alternative,
+            }}
+          >
+            <Image
+              source={apiLogoUrl}
+              style={style}
+              onError={this.onRenderIconUrlError}
+            />
+          </FadeIn>
+        )}
       </View>
     );
   };
 }
 
 WebsiteIcon.contextType = ThemeContext;
+
+export default withFaviconAwareness(WebsiteIcon);

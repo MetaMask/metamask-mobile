@@ -14,107 +14,86 @@ Array [
   >
     <View>
       <Text
+        accessibilityRole="text"
         style={
           Object {
             "color": "#24272A",
-            "fontFamily": "EuclidCircularB-Regular",
-            "fontSize": 20,
-            "fontWeight": "400",
-            "lineHeight": 20,
-            "marginTop": -4,
-            "paddingTop": 4,
+            "fontFamily": "Euclid Circular B",
+            "fontSize": 16,
+            "fontWeight": "500",
+            "letterSpacing": 0,
+            "lineHeight": 24,
           }
         }
       >
         WalletConnect Sessions
       </Text>
       <Text
+        accessibilityRole="text"
         style={
           Object {
             "color": "#535A61",
-            "fontFamily": "EuclidCircularB-Regular",
+            "fontFamily": "Euclid Circular B",
             "fontSize": 14,
             "fontWeight": "400",
-            "lineHeight": 20,
-            "marginTop": 12,
+            "letterSpacing": 0,
+            "lineHeight": 22,
+            "marginTop": 8,
           }
         }
       >
         View the list of active WalletConnect sessions
       </Text>
       <TouchableOpacity
-        accessibilityRole="button"
-        accessible={true}
-        activeOpacity={0.2}
+        activeOpacity={1}
         onPress={[Function]}
+        onPressIn={[Function]}
+        onPressOut={[Function]}
         style={
-          Array [
-            Array [
-              Object {
-                "borderRadius": 100,
-                "justifyContent": "center",
-                "padding": 15,
-              },
-              Object {
-                "backgroundColor": "#FFFFFF",
-                "borderColor": "#0376C9",
-                "borderWidth": 1,
-              },
-              Object {
-                "marginTop": 18,
-              },
-            ],
-            null,
-          ]
+          Object {
+            "alignItems": "center",
+            "alignSelf": "stretch",
+            "backgroundColor": "transparent",
+            "borderColor": "#0376C9",
+            "borderRadius": 24,
+            "borderWidth": 1,
+            "flexDirection": "row",
+            "height": 48,
+            "justifyContent": "center",
+            "marginTop": 16,
+            "paddingHorizontal": 16,
+          }
         }
+        variant="Secondary"
       >
         <Text
+          accessibilityRole="text"
           style={
-            Array [
-              Object {
-                "color": "#007aff",
-                "fontSize": 17,
-                "fontWeight": "500",
-                "textAlign": "center",
-              },
-              null,
-              Array [
-                Object {
-                  "fontFamily": "EuclidCircularB-Bold",
-                  "fontSize": 14,
-                  "fontWeight": "600",
-                  "textAlign": "center",
-                },
-                Object {
-                  "color": "#0376C9",
-                },
-                undefined,
-              ],
-              null,
-            ]
+            Object {
+              "color": "#0376C9",
+              "fontFamily": "Euclid Circular B",
+              "fontSize": 14,
+              "fontWeight": "400",
+              "letterSpacing": 0,
+              "lineHeight": 22,
+            }
           }
         >
-          VIEW SESSIONS
+          View sessions
         </Text>
       </TouchableOpacity>
       <Text
+        accessibilityRole="text"
         style={
-          Array [
-            Object {
-              "color": "#24272A",
-              "fontFamily": "EuclidCircularB-Regular",
-              "fontSize": 20,
-              "fontWeight": "400",
-              "lineHeight": 20,
-              "marginTop": -4,
-              "paddingTop": 4,
-            },
-            Object {
-              "fontSize": 24,
-              "lineHeight": 20,
-              "marginTop": 18,
-            },
-          ]
+          Object {
+            "color": "#24272A",
+            "fontFamily": "Euclid Circular B",
+            "fontSize": 24,
+            "fontWeight": "700",
+            "letterSpacing": 0,
+            "lineHeight": 32,
+            "marginTop": 16,
+          }
         }
       >
         Security
@@ -122,66 +101,46 @@ Array [
       <View
         style={
           Object {
-            "marginVertical": 18,
+            "marginVertical": 16,
           }
         }
       >
         <Text
+          accessibilityRole="text"
           style={
             Object {
               "color": "#24272A",
-              "fontFamily": "EuclidCircularB-Regular",
-              "fontSize": 20,
-              "fontWeight": "400",
-              "lineHeight": 20,
-              "marginTop": -4,
-              "paddingTop": 4,
+              "fontFamily": "Euclid Circular B",
+              "fontSize": 16,
+              "fontWeight": "500",
+              "letterSpacing": 0,
+              "lineHeight": 24,
             }
           }
         >
           Security alerts
         </Text>
         <Text
+          accessibilityRole="text"
           style={
             Object {
               "color": "#535A61",
-              "fontFamily": "EuclidCircularB-Regular",
+              "fontFamily": "Euclid Circular B",
               "fontSize": 14,
               "fontWeight": "400",
-              "lineHeight": 20,
-              "marginTop": 12,
+              "letterSpacing": 0,
+              "lineHeight": 22,
+              "marginTop": 8,
             }
           }
         >
-          This feature alerts you to malicious activity by locally reviewing your transactions and signature requests. Your data isn't shared with the third parties providing this service. Always do your own due diligence before approving any requests. There’s no guarantee that this feature will detect all malicious activity.
-        </Text>
-        <Text
-          style={
-            Array [
-              Object {
-                "color": "#24272A",
-                "fontFamily": "EuclidCircularB-Regular",
-                "fontSize": 20,
-                "fontWeight": "400",
-                "lineHeight": 20,
-                "marginTop": -4,
-                "paddingTop": 4,
-              },
-              Object {
-                "fontFamily": "EuclidCircularB-Bold",
-                "fontWeight": "600",
-                "marginBottom": 18,
-                "marginTop": 18,
-              },
-            ]
-          }
-        >
-          Select providers
+          This feature alerts you to malicious activity by locally reviewing your transaction and signature requests. Always do your own due diligence before approving any requests. There's no guarantee that this feature will detect all malicious activity. By enabling this feature you agree to the provider's terms of use.
         </Text>
       </View>
       <View
         style={
           Object {
+            "alignItems": "center",
             "display": "flex",
             "flexDirection": "row",
             "justifyContent": "space-between",
@@ -189,21 +148,16 @@ Array [
         }
       >
         <Text
+          accessibilityRole="text"
           style={
-            Array [
-              Object {
-                "alignSelf": "flex-start",
-              },
-              Object {
-                "color": "#24272A",
-                "fontFamily": "EuclidCircularB-Regular",
-                "fontSize": 20,
-                "fontWeight": "400",
-                "lineHeight": 20,
-                "marginTop": -4,
-                "paddingTop": 4,
-              },
-            ]
+            Object {
+              "color": "#24272A",
+              "fontFamily": "Euclid Circular B",
+              "fontSize": 16,
+              "fontWeight": "500",
+              "letterSpacing": 0,
+              "lineHeight": 24,
+            }
           }
         >
           Blockaid
@@ -238,26 +192,20 @@ Array [
         />
       </View>
       <Text
+        accessibilityRole="text"
         style={
-          Array [
-            Object {
-              "color": "#24272A",
-              "fontFamily": "EuclidCircularB-Regular",
-              "fontSize": 20,
-              "fontWeight": "400",
-              "lineHeight": 20,
-              "marginTop": -4,
-              "paddingTop": 4,
-            },
-            Object {
-              "color": "#BBC0C5",
-              "fontFamily": "EuclidCircularB-Regular",
-              "fontWeight": "400",
-            },
-          ]
+          Object {
+            "color": "#535A61",
+            "fontFamily": "Euclid Circular B",
+            "fontSize": 14,
+            "fontWeight": "400",
+            "letterSpacing": 0,
+            "lineHeight": 22,
+            "marginTop": 8,
+          }
         }
       >
-        More providers coming soon
+        Privacy preserving - no data is shared with third parties. Available on Ethereum Mainnet.
       </Text>
     </View>
   </RCTScrollView>,
@@ -279,107 +227,86 @@ Array [
   >
     <View>
       <Text
+        accessibilityRole="text"
         style={
           Object {
             "color": "#24272A",
-            "fontFamily": "EuclidCircularB-Regular",
-            "fontSize": 20,
-            "fontWeight": "400",
-            "lineHeight": 20,
-            "marginTop": -4,
-            "paddingTop": 4,
+            "fontFamily": "Euclid Circular B",
+            "fontSize": 16,
+            "fontWeight": "500",
+            "letterSpacing": 0,
+            "lineHeight": 24,
           }
         }
       >
         WalletConnect Sessions
       </Text>
       <Text
+        accessibilityRole="text"
         style={
           Object {
             "color": "#535A61",
-            "fontFamily": "EuclidCircularB-Regular",
+            "fontFamily": "Euclid Circular B",
             "fontSize": 14,
             "fontWeight": "400",
-            "lineHeight": 20,
-            "marginTop": 12,
+            "letterSpacing": 0,
+            "lineHeight": 22,
+            "marginTop": 8,
           }
         }
       >
         View the list of active WalletConnect sessions
       </Text>
       <TouchableOpacity
-        accessibilityRole="button"
-        accessible={true}
-        activeOpacity={0.2}
+        activeOpacity={1}
         onPress={[Function]}
+        onPressIn={[Function]}
+        onPressOut={[Function]}
         style={
-          Array [
-            Array [
-              Object {
-                "borderRadius": 100,
-                "justifyContent": "center",
-                "padding": 15,
-              },
-              Object {
-                "backgroundColor": "#FFFFFF",
-                "borderColor": "#0376C9",
-                "borderWidth": 1,
-              },
-              Object {
-                "marginTop": 18,
-              },
-            ],
-            null,
-          ]
+          Object {
+            "alignItems": "center",
+            "alignSelf": "stretch",
+            "backgroundColor": "transparent",
+            "borderColor": "#0376C9",
+            "borderRadius": 24,
+            "borderWidth": 1,
+            "flexDirection": "row",
+            "height": 48,
+            "justifyContent": "center",
+            "marginTop": 16,
+            "paddingHorizontal": 16,
+          }
         }
+        variant="Secondary"
       >
         <Text
+          accessibilityRole="text"
           style={
-            Array [
-              Object {
-                "color": "#007aff",
-                "fontSize": 17,
-                "fontWeight": "500",
-                "textAlign": "center",
-              },
-              null,
-              Array [
-                Object {
-                  "fontFamily": "EuclidCircularB-Bold",
-                  "fontSize": 14,
-                  "fontWeight": "600",
-                  "textAlign": "center",
-                },
-                Object {
-                  "color": "#0376C9",
-                },
-                undefined,
-              ],
-              null,
-            ]
+            Object {
+              "color": "#0376C9",
+              "fontFamily": "Euclid Circular B",
+              "fontSize": 14,
+              "fontWeight": "400",
+              "letterSpacing": 0,
+              "lineHeight": 22,
+            }
           }
         >
-          VIEW SESSIONS
+          View sessions
         </Text>
       </TouchableOpacity>
       <Text
+        accessibilityRole="text"
         style={
-          Array [
-            Object {
-              "color": "#24272A",
-              "fontFamily": "EuclidCircularB-Regular",
-              "fontSize": 20,
-              "fontWeight": "400",
-              "lineHeight": 20,
-              "marginTop": -4,
-              "paddingTop": 4,
-            },
-            Object {
-              "fontSize": 24,
-              "lineHeight": 20,
-              "marginTop": 18,
-            },
-          ]
+          Object {
+            "color": "#24272A",
+            "fontFamily": "Euclid Circular B",
+            "fontSize": 24,
+            "fontWeight": "700",
+            "letterSpacing": 0,
+            "lineHeight": 32,
+            "marginTop": 16,
+          }
         }
       >
         Security
@@ -387,66 +314,46 @@ Array [
       <View
         style={
           Object {
-            "marginVertical": 18,
+            "marginVertical": 16,
           }
         }
       >
         <Text
+          accessibilityRole="text"
           style={
             Object {
               "color": "#24272A",
-              "fontFamily": "EuclidCircularB-Regular",
-              "fontSize": 20,
-              "fontWeight": "400",
-              "lineHeight": 20,
-              "marginTop": -4,
-              "paddingTop": 4,
+              "fontFamily": "Euclid Circular B",
+              "fontSize": 16,
+              "fontWeight": "500",
+              "letterSpacing": 0,
+              "lineHeight": 24,
             }
           }
         >
           Security alerts
         </Text>
         <Text
+          accessibilityRole="text"
           style={
             Object {
               "color": "#535A61",
-              "fontFamily": "EuclidCircularB-Regular",
+              "fontFamily": "Euclid Circular B",
               "fontSize": 14,
               "fontWeight": "400",
-              "lineHeight": 20,
-              "marginTop": 12,
+              "letterSpacing": 0,
+              "lineHeight": 22,
+              "marginTop": 8,
             }
           }
         >
-          This feature alerts you to malicious activity by locally reviewing your transactions and signature requests. Your data isn't shared with the third parties providing this service. Always do your own due diligence before approving any requests. There’s no guarantee that this feature will detect all malicious activity.
-        </Text>
-        <Text
-          style={
-            Array [
-              Object {
-                "color": "#24272A",
-                "fontFamily": "EuclidCircularB-Regular",
-                "fontSize": 20,
-                "fontWeight": "400",
-                "lineHeight": 20,
-                "marginTop": -4,
-                "paddingTop": 4,
-              },
-              Object {
-                "fontFamily": "EuclidCircularB-Bold",
-                "fontWeight": "600",
-                "marginBottom": 18,
-                "marginTop": 18,
-              },
-            ]
-          }
-        >
-          Select providers
+          This feature alerts you to malicious activity by locally reviewing your transaction and signature requests. Always do your own due diligence before approving any requests. There's no guarantee that this feature will detect all malicious activity. By enabling this feature you agree to the provider's terms of use.
         </Text>
       </View>
       <View
         style={
           Object {
+            "alignItems": "center",
             "display": "flex",
             "flexDirection": "row",
             "justifyContent": "space-between",
@@ -454,21 +361,16 @@ Array [
         }
       >
         <Text
+          accessibilityRole="text"
           style={
-            Array [
-              Object {
-                "alignSelf": "flex-start",
-              },
-              Object {
-                "color": "#24272A",
-                "fontFamily": "EuclidCircularB-Regular",
-                "fontSize": 20,
-                "fontWeight": "400",
-                "lineHeight": 20,
-                "marginTop": -4,
-                "paddingTop": 4,
-              },
-            ]
+            Object {
+              "color": "#24272A",
+              "fontFamily": "Euclid Circular B",
+              "fontSize": 16,
+              "fontWeight": "500",
+              "letterSpacing": 0,
+              "lineHeight": 24,
+            }
           }
         >
           Blockaid
@@ -503,26 +405,20 @@ Array [
         />
       </View>
       <Text
+        accessibilityRole="text"
         style={
-          Array [
-            Object {
-              "color": "#24272A",
-              "fontFamily": "EuclidCircularB-Regular",
-              "fontSize": 20,
-              "fontWeight": "400",
-              "lineHeight": 20,
-              "marginTop": -4,
-              "paddingTop": 4,
-            },
-            Object {
-              "color": "#BBC0C5",
-              "fontFamily": "EuclidCircularB-Regular",
-              "fontWeight": "400",
-            },
-          ]
+          Object {
+            "color": "#535A61",
+            "fontFamily": "Euclid Circular B",
+            "fontSize": 14,
+            "fontWeight": "400",
+            "letterSpacing": 0,
+            "lineHeight": 22,
+            "marginTop": 8,
+          }
         }
       >
-        More providers coming soon
+        Privacy preserving - no data is shared with third parties. Available on Ethereum Mainnet.
       </Text>
     </View>
   </RCTScrollView>,

@@ -31,7 +31,8 @@ import {
 } from '../../../selectors/networkController';
 import { selectTokensByAddress } from '../../../selectors/tokensController';
 import { baseStyles, fontStyles } from '../../../styles/common';
-import { isQRHardwareAccount } from '../../../util/address';
+import { isHardwareAccount } from '../../../util/address';
+import { createLedgerTransactionModalNavDetails } from '../../UI/LedgerModals/LedgerTransactionModal';
 import Device from '../../../util/device';
 import Logger from '../../../util/Logger';
 import {
@@ -60,6 +61,14 @@ import {
 import { selectContractExchangeRates } from '../../../selectors/tokenRatesController';
 import { selectAccounts } from '../../../selectors/accountTrackerController';
 import { selectSelectedAddress } from '../../../selectors/preferencesController';
+import {
+  TransactionError,
+  CancelTransactionError,
+  SpeedupTransactionError,
+} from '../../../core/Transaction/TransactionError';
+import { getLedgerKeyring } from '../../../core/Ledger/Ledger';
+import ExtendedKeyringTypes from '../../../constants/keyringTypes';
+import { TOKEN_OVERVIEW_TXN_SCREEN } from '../../../../wdio/screen-objects/testIDs/Screens/TokenOverviewScreen.testIds';
 
 const createStyles = (colors, typography) =>
   StyleSheet.create({
@@ -210,6 +219,7 @@ class Transactions extends PureComponent {
     rpcBlockExplorer: undefined,
     errorMsg: undefined,
     isQRHardwareAccount: false,
+    isLedgerAccount: false,
   };
 
   existingGas = null;
@@ -228,7 +238,7 @@ class Transactions extends PureComponent {
       this.props.onRefSet && this.props.onRefSet(this.flatList);
     }, 100);
     this.setState({
-      isQRHardwareAccount: isQRHardwareAccount(this.props.selectedAddress),
+      isQRHardwareAccount: isHardwareAccount(this.props.selectedAddress),
     });
   };
 
@@ -249,6 +259,14 @@ class Transactions extends PureComponent {
     }
 
     this.setState({ rpcBlockExplorer: blockExplorer });
+    this.setState({
+      isQRHardwareAccount: isHardwareAccount(this.props.selectedAddress, [
+        ExtendedKeyringTypes.qr,
+      ]),
+      isLedgerAccount: isHardwareAccount(this.props.selectedAddress, [
+        ExtendedKeyringTypes.ledger,
+      ]),
+    });
   };
 
   componentDidUpdate() {
@@ -469,10 +487,10 @@ class Transactions extends PureComponent {
 
   handleSpeedUpTransactionFailure = (e) => {
     const speedUpTxId = this.speedUpTxId;
+    const message = e instanceof TransactionError ? e.message : undefined;
     Logger.error(e, { message: `speedUpTransaction failed `, speedUpTxId });
-    InteractionManager.runAfterInteractions(this.toggleRetry(e));
+    InteractionManager.runAfterInteractions(this.toggleRetry(message));
     this.setState({
-      errorMsg: e.message,
       speedUp1559IsOpen: false,
       speedUpIsOpen: false,
     });
@@ -480,10 +498,10 @@ class Transactions extends PureComponent {
 
   handleCancelTransactionFailure = (e) => {
     const cancelTxId = this.cancelTxId;
+    const message = e instanceof TransactionError ? e.message : undefined;
     Logger.error(e, { message: `cancelTransaction failed `, cancelTxId });
-    InteractionManager.runAfterInteractions(this.toggleRetry(e));
+    InteractionManager.runAfterInteractions(this.toggleRetry(message));
     this.setState({
-      errorMsg: e.message,
       cancel1559IsOpen: false,
       cancelIsOpen: false,
     });
@@ -491,13 +509,34 @@ class Transactions extends PureComponent {
 
   speedUpTransaction = async (transactionObject) => {
     try {
-      await Engine.context.TransactionController.speedUpTransaction(
-        this.speedUpTxId,
-        transactionObject?.suggestedMaxFeePerGasHex && {
-          maxFeePerGas: `0x${transactionObject?.suggestedMaxFeePerGasHex}`,
-          maxPriorityFeePerGas: `0x${transactionObject?.suggestedMaxPriorityFeePerGasHex}`,
-        },
-      );
+      if (transactionObject?.error) {
+        throw new SpeedupTransactionError(transactionObject.error);
+      }
+
+      const isLedgerAccount = isHardwareAccount(this.props.selectedAddress, [
+        ExtendedKeyringTypes.ledger,
+      ]);
+
+      if (isLedgerAccount) {
+        await this.signLedgerTransaction({
+          id: this.speedUpTxId,
+          replacementParams: {
+            type: 'speedUp',
+            eip1559GasFee: {
+              maxFeePerGas: `0x${transactionObject?.suggestedMaxFeePerGasHex}`,
+              maxPriorityFeePerGas: `0x${transactionObject?.suggestedMaxPriorityFeePerGasHex}`,
+            },
+          },
+        });
+      } else {
+        await Engine.context.TransactionController.speedUpTransaction(
+          this.speedUpTxId,
+          transactionObject?.suggestedMaxFeePerGasHex && {
+            maxFeePerGas: `0x${transactionObject?.suggestedMaxFeePerGasHex}`,
+            maxPriorityFeePerGas: `0x${transactionObject?.suggestedMaxPriorityFeePerGasHex}`,
+          },
+        );
+      }
       this.onSpeedUpCompleted();
     } catch (e) {
       this.handleSpeedUpTransactionFailure(e);
@@ -510,6 +549,29 @@ class Transactions extends PureComponent {
     await ApprovalController.accept(tx.id, undefined, { waitForResult: true });
   };
 
+  signLedgerTransaction = async (transaction) => {
+    const ledgerKeyring = await getLedgerKeyring();
+
+    const onConfirmation = (isComplete) => {
+      if (isComplete) {
+        transaction.speedUpParams &&
+        transaction.speedUpParams?.type === 'SpeedUp'
+          ? this.onSpeedUpCompleted()
+          : this.onCancelCompleted();
+      }
+    };
+
+    this.props.navigation.navigate(
+      ...createLedgerTransactionModalNavDetails({
+        transactionId: transaction.id,
+        deviceId: ledgerKeyring.deviceId,
+        onConfirmationComplete: onConfirmation,
+        type: 'signTransaction',
+        replacementParams: transaction?.replacementParams,
+      }),
+    );
+  };
+
   cancelUnsignedQRTransaction = async (tx) => {
     await Engine.context.ApprovalController.reject(
       tx.id,
@@ -519,13 +581,34 @@ class Transactions extends PureComponent {
 
   cancelTransaction = async (transactionObject) => {
     try {
-      await Engine.context.TransactionController.stopTransaction(
-        this.cancelTxId,
-        transactionObject?.suggestedMaxFeePerGasHex && {
-          maxFeePerGas: `0x${transactionObject?.suggestedMaxFeePerGasHex}`,
-          maxPriorityFeePerGas: `0x${transactionObject?.suggestedMaxPriorityFeePerGasHex}`,
-        },
-      );
+      if (transactionObject?.error) {
+        throw new CancelTransactionError(transactionObject.error);
+      }
+
+      const isLedgerAccount = isHardwareAccount(this.props.selectedAddress, [
+        ExtendedKeyringTypes.ledger,
+      ]);
+
+      if (isLedgerAccount) {
+        await this.signLedgerTransaction({
+          id: this.cancelTxId,
+          replacementParams: {
+            type: 'cancel',
+            eip1559GasFee: {
+              maxFeePerGas: `0x${transactionObject?.suggestedMaxFeePerGasHex}`,
+              maxPriorityFeePerGas: `0x${transactionObject?.suggestedMaxPriorityFeePerGasHex}`,
+            },
+          },
+        });
+      } else {
+        await Engine.context.TransactionController.stopTransaction(
+          this.cancelTxId,
+          transactionObject?.suggestedMaxFeePerGasHex && {
+            maxFeePerGas: `0x${transactionObject?.suggestedMaxFeePerGasHex}`,
+            maxPriorityFeePerGas: `0x${transactionObject?.suggestedMaxPriorityFeePerGasHex}`,
+          },
+        );
+      }
       this.onCancelCompleted();
     } catch (e) {
       this.handleCancelTransactionFailure(e);
@@ -539,10 +622,11 @@ class Transactions extends PureComponent {
       assetSymbol={this.props.assetSymbol}
       onSpeedUpAction={this.onSpeedUpAction}
       isQRHardwareAccount={this.state.isQRHardwareAccount}
+      isLedgerAccount={this.state.isLedgerAccount}
       signQRTransaction={this.signQRTransaction}
+      signLedgerTransaction={this.signLedgerTransaction}
       cancelUnsignedQRTransaction={this.cancelUnsignedQRTransaction}
       onCancelAction={this.onCancelAction}
-      testID={'txn-item'}
       onPressItem={this.toggleDetailsView}
       selectedAddress={this.props.selectedAddress}
       tokens={this.props.tokens}
@@ -678,7 +762,7 @@ class Transactions extends PureComponent {
     };
 
     return (
-      <View style={styles.wrapper} testID={'transactions-screen'}>
+      <View style={styles.wrapper}>
         <PriceChartContext.Consumer>
           {({ isChartBeingTouched }) => (
             <FlatList
@@ -743,9 +827,10 @@ class Transactions extends PureComponent {
         )}
 
         <RetryModal
-          onCancelPress={this.toggleRetry}
+          onCancelPress={() => this.toggleRetry(undefined)}
           onConfirmPress={this.retry}
           retryIsOpen={this.state.retryIsOpen}
+          errorMsg={this.state.errorMsg}
         />
       </View>
     );
@@ -757,7 +842,7 @@ class Transactions extends PureComponent {
 
     return (
       <PriceChartProvider>
-        <View style={styles.wrapper} testID={'txn-screen'}>
+        <View style={styles.wrapper} testID={TOKEN_OVERVIEW_TXN_SCREEN}>
           {!this.state.ready || this.props.loading
             ? this.renderLoader()
             : this.renderList()}

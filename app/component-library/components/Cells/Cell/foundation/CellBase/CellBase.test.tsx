@@ -1,150 +1,83 @@
 // Third party dependencies.
 import React from 'react';
-import { shallow } from 'enzyme';
-
-// External dependencies.
-import {
-  TEST_AVATAR_PROPS,
-  TEST_CELL_TITLE,
-  TEST_CELL_SECONDARY_TEXT,
-  TEST_CELL_TERTIARY_TEXT,
-  TEST_TAG_LABEL_TEXT,
-} from '../../Cell.constants';
+import { render } from '@testing-library/react-native';
 
 // Internal dependencies.
 import CellBase from './CellBase';
 import {
-  CELL_AVATAR_TEST_ID,
-  CELL_TITLE_TEST_ID,
-  CELL_SECONDARY_TEXT_TEST_ID,
-  CELL_TERTIARY_TEXT_TEST_ID,
-  CELL_TAG_LABEL_TEST_ID,
+  SAMPLE_CELLBASE_AVATARPROPS,
+  SAMPLE_CELLBASE_TITLE,
+  SAMPLE_CELLBASE_SECONDARYTEXT,
+  SAMPLE_CELLBASE_TERTIARY_TEXT,
+  SAMPLE_CELLBASE_TAGLABEL,
 } from './CellBase.constants';
-
-describe('CellBase - Snapshot', () => {
-  it('should render default settings correctly', () => {
-    const wrapper = shallow(
-      <CellBase avatarProps={TEST_AVATAR_PROPS} title={TEST_CELL_TITLE} />,
-    );
-    expect(wrapper).toMatchSnapshot();
-  });
-  it('should render secondaryText when given', () => {
-    const wrapper = shallow(
-      <CellBase
-        avatarProps={TEST_AVATAR_PROPS}
-        title={TEST_CELL_TITLE}
-        secondaryText={TEST_CELL_SECONDARY_TEXT}
-      />,
-    );
-    expect(wrapper).toMatchSnapshot();
-  });
-  it('should render tertiaryText when given', () => {
-    const wrapper = shallow(
-      <CellBase
-        avatarProps={TEST_AVATAR_PROPS}
-        title={TEST_CELL_TITLE}
-        tertiaryText={TEST_CELL_TERTIARY_TEXT}
-      />,
-    );
-    expect(wrapper).toMatchSnapshot();
-  });
-  it('should render label when given', () => {
-    const wrapper = shallow(
-      <CellBase
-        avatarProps={TEST_AVATAR_PROPS}
-        title={TEST_CELL_TITLE}
-        tagLabel={TEST_TAG_LABEL_TEXT}
-      />,
-    );
-    expect(wrapper).toMatchSnapshot();
-  });
-});
+import { CellModalSelectorsIDs } from '../../../../../../../e2e/selectors/Modals/CellModal.selectors';
 
 describe('CellBase', () => {
+  it('should render default settings correctly', () => {
+    const wrapper = render(
+      <CellBase
+        avatarProps={SAMPLE_CELLBASE_AVATARPROPS}
+        title={SAMPLE_CELLBASE_TITLE}
+        secondaryText={SAMPLE_CELLBASE_SECONDARYTEXT}
+        tertiaryText={SAMPLE_CELLBASE_TERTIARY_TEXT}
+        tagLabel={SAMPLE_CELLBASE_TAGLABEL}
+      />,
+    );
+    expect(wrapper).toMatchSnapshot();
+  });
   it('should render Avatar', () => {
-    const wrapper = shallow(
-      <CellBase avatarProps={TEST_AVATAR_PROPS} title={TEST_CELL_TITLE} />,
-    );
-    const avatarComponent = wrapper.findWhere(
-      (node) => node.prop('testID') === CELL_AVATAR_TEST_ID,
-    );
-    expect(avatarComponent.exists()).toBe(true);
-  });
-  it('should render the given title', () => {
-    const wrapper = shallow(
-      <CellBase avatarProps={TEST_AVATAR_PROPS} title={TEST_CELL_TITLE} />,
-    );
-    const titleElement = wrapper.findWhere(
-      (node) => node.prop('testID') === CELL_TITLE_TEST_ID,
-    );
-    expect(titleElement.props().children).toBe(TEST_CELL_TITLE);
-  });
-  it('should render the given secondaryText', () => {
-    const wrapper = shallow(
+    const { queryByTestId } = render(
       <CellBase
-        avatarProps={TEST_AVATAR_PROPS}
-        title={TEST_CELL_TITLE}
-        secondaryText={TEST_CELL_SECONDARY_TEXT}
+        avatarProps={SAMPLE_CELLBASE_AVATARPROPS}
+        title={SAMPLE_CELLBASE_TITLE}
       />,
     );
-    const secondaryTextElement = wrapper.findWhere(
-      (node) => node.prop('testID') === CELL_SECONDARY_TEXT_TEST_ID,
-    );
-    expect(secondaryTextElement.props().children).toBe(
-      TEST_CELL_SECONDARY_TEXT,
-    );
+    expect(queryByTestId(CellModalSelectorsIDs.BASE_AVATAR)).not.toBe(null);
   });
-  it('should not render secondaryText if not given', () => {
-    const wrapper = shallow(
-      <CellBase avatarProps={TEST_AVATAR_PROPS} title={TEST_CELL_TITLE} />,
-    );
-    const secondaryTextElement = wrapper.findWhere(
-      (node) => node.prop('testID') === CELL_SECONDARY_TEXT_TEST_ID,
-    );
-    expect(secondaryTextElement.exists()).toBe(false);
-  });
-  it('should render the given tertiaryText', () => {
-    const wrapper = shallow(
+
+  it('should render the given title', async () => {
+    const wrapper = render(
       <CellBase
-        avatarProps={TEST_AVATAR_PROPS}
-        title={TEST_CELL_TITLE}
-        tertiaryText={TEST_CELL_TERTIARY_TEXT}
+        avatarProps={SAMPLE_CELLBASE_AVATARPROPS}
+        title={SAMPLE_CELLBASE_TITLE}
       />,
     );
-    const tertiaryTextElement = wrapper.findWhere(
-      (node) => node.prop('testID') === CELL_TERTIARY_TEXT_TEST_ID,
-    );
-    expect(tertiaryTextElement.props().children).toBe(TEST_CELL_TERTIARY_TEXT);
+    expect(await wrapper.findByText(SAMPLE_CELLBASE_TITLE)).toBeDefined();
   });
-  it('should not render tertiaryText if not given', () => {
-    const wrapper = shallow(
-      <CellBase avatarProps={TEST_AVATAR_PROPS} title={TEST_CELL_TITLE} />,
-    );
-    const tertiaryTextElement = wrapper.findWhere(
-      (node) => node.prop('testID') === CELL_TERTIARY_TEXT_TEST_ID,
-    );
-    expect(tertiaryTextElement.exists()).toBe(false);
-  });
-  it('should render tag with given label', () => {
-    const wrapper = shallow(
+
+  it('should render the given secondaryText', async () => {
+    const wrapper = render(
       <CellBase
-        avatarProps={TEST_AVATAR_PROPS}
-        title={TEST_CELL_TITLE}
-        tagLabel={TEST_TAG_LABEL_TEXT}
+        avatarProps={SAMPLE_CELLBASE_AVATARPROPS}
+        title={SAMPLE_CELLBASE_TITLE}
+        secondaryText={SAMPLE_CELLBASE_SECONDARYTEXT}
       />,
     );
-    const tagComponent = wrapper.findWhere(
-      (node) => node.prop('testID') === CELL_TAG_LABEL_TEST_ID,
-    );
-    expect(tagComponent.exists()).toBe(true);
+    expect(
+      await wrapper.findByText(SAMPLE_CELLBASE_SECONDARYTEXT),
+    ).toBeDefined();
   });
-  it('should not render tag without given label', () => {
-    const wrapper = shallow(
-      <CellBase avatarProps={TEST_AVATAR_PROPS} title={TEST_CELL_TITLE} />,
+  it('should render the given tertiaryText', async () => {
+    const wrapper = render(
+      <CellBase
+        avatarProps={SAMPLE_CELLBASE_AVATARPROPS}
+        title={SAMPLE_CELLBASE_TITLE}
+        tertiaryText={SAMPLE_CELLBASE_TERTIARY_TEXT}
+      />,
     );
-    const tagComponent = wrapper.findWhere(
-      (node) => node.prop('testID') === CELL_TAG_LABEL_TEST_ID,
+    expect(
+      await wrapper.findByText(SAMPLE_CELLBASE_TERTIARY_TEXT),
+    ).toBeDefined();
+  });
+  it('should render tag with given label', async () => {
+    const wrapper = render(
+      <CellBase
+        avatarProps={SAMPLE_CELLBASE_AVATARPROPS}
+        title={SAMPLE_CELLBASE_TITLE}
+        tagLabel={SAMPLE_CELLBASE_TAGLABEL}
+      />,
     );
-    expect(tagComponent.exists()).toBe(false);
+    expect(await wrapper.findByText(SAMPLE_CELLBASE_TAGLABEL)).toBeDefined();
   });
 });

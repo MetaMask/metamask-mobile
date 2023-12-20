@@ -1,5 +1,7 @@
 # osx
 .DS_Store
+# don't save asdf tools-version config as nvm is prioritized.
+.tool-versions
 
 # xcode
 build/
@@ -106,3 +108,7 @@ e2e/reports
 # ppom
 ppom/node_modules
 ppom/dist
+
+
+# ccache
+ccache

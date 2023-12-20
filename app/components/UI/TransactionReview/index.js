@@ -65,7 +65,7 @@ import { selectTokens } from '../../../selectors/tokensController';
 import { selectContractExchangeRates } from '../../../selectors/tokenRatesController';
 import ApproveTransactionHeader from '../ApproveTransactionHeader';
 import AppConstants from '../../../core/AppConstants';
-import BlockaidBanner from '../BlockaidBanner/BlockaidBanner';
+import TransactionBlockaidBanner from '../TransactionBlockaidBanner/TransactionBlockaidBanner';
 
 const POLLING_INTERVAL_ESTIMATED_L1_FEE = 30000;
 
@@ -185,7 +185,7 @@ class TransactionReview extends PureComponent {
     /**
      * Error blockaid transaction execution, undefined value signifies no error.
      */
-    error: PropTypes.oneOf[(PropTypes.bool, PropTypes.string)],
+    error: PropTypes.oneOfType([PropTypes.string, PropTypes.bool]),
     /**
      * Whether or not basic gas estimates have been fetched
      */
@@ -318,10 +318,6 @@ class TransactionReview extends PureComponent {
       [assetAmount, conversionRate, fiatValue] = this.getRenderValues()();
     }
 
-    const additionalParams = getBlockaidMetricsParams(
-      transaction?.securityAlertResponse,
-    );
-
     this.setState({
       actionKey,
       showHexData,
@@ -331,10 +327,7 @@ class TransactionReview extends PureComponent {
       approveTransaction,
     });
     InteractionManager.runAfterInteractions(() => {
-      AnalyticsV2.trackEvent(
-        MetaMetricsEvents.TRANSACTIONS_CONFIRM_STARTED,
-        additionalParams,
-      );
+      AnalyticsV2.trackEvent(MetaMetricsEvents.TRANSACTIONS_CONFIRM_STARTED);
     });
     if (isMultiLayerFeeNetwork(chainId)) {
       this.fetchEstimatedL1Fee();
@@ -348,7 +341,9 @@ class TransactionReview extends PureComponent {
   onContactUsClicked = () => {
     const { transaction } = this.props;
     const additionalParams = {
-      ...getBlockaidMetricsParams(transaction?.securityAlertResponse),
+      ...getBlockaidMetricsParams(
+        transaction?.currentTransactionSecurityAlertResponse,
+      ),
       external_link_clicked: 'security_alert_support_link',
     };
     AnalyticsV2.trackEvent(
@@ -475,9 +470,10 @@ class TransactionReview extends PureComponent {
       gasSelected,
       chainId,
       transaction,
-      transaction: { to, origin, from, ensRecipient, securityAlertResponse },
+      transaction: { to, origin, from, ensRecipient, id: transactionId },
       error,
     } = this.props;
+
     const {
       actionKey,
       assetAmount,
@@ -523,8 +519,8 @@ class TransactionReview extends PureComponent {
                     onStartShouldSetResponder={() => true}
                   >
                     {isBlockaidFeatureEnabled() && (
-                      <BlockaidBanner
-                        securityAlertResponse={securityAlertResponse}
+                      <TransactionBlockaidBanner
+                        transactionId={transactionId}
                         style={styles.blockaidWarning}
                         onContactUsClicked={this.onContactUsClicked}
                       />

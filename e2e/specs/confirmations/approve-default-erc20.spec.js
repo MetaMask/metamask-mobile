@@ -1,5 +1,5 @@
 'use strict';
-import { Regression } from '../../tags';
+import { Smoke } from '../../tags';
 import TestHelpers from '../../helpers';
 import { loginToApp } from '../../viewHelper';
 import FixtureBuilder from '../../fixtures/fixture-builder';
@@ -11,13 +11,13 @@ import TabBarComponent from '../../pages/TabBarComponent';
 import { TestDApp } from '../../pages/TestDApp';
 import { SMART_CONTRACTS } from '../../../app/util/test/smart-contracts';
 import root from '../../../locales/languages/en.json';
-import ApprovalModal from '../../pages/modals/ApprovalModal';
+import { ContractApprovalModalSelectorsIDs } from '../../selectors/Modals/ContractApprovalModal.selectors';
 
 const HST_CONTRACT = SMART_CONTRACTS.HST;
 const WEBVIEW_TEST_DAPP_APPROVE_TOKENS_BUTTON_ID = 'approveTokens';
 const EXPECTED_TOKEN_AMOUNT = '7';
 
-describe(Regression('ERC20 tokens'), () => {
+describe(Smoke('ERC20 tokens'), () => {
   beforeAll(async () => {
     jest.setTimeout(170000);
     if (device.getPlatform() === 'android') {
@@ -52,11 +52,14 @@ describe(Regression('ERC20 tokens'), () => {
         });
 
         // Assert the default token amount is shown
-
-        await TestHelpers.checkIfExists(ApprovalModal.APPROVE_TOKEN_AMOUNT);
+        await TestHelpers.checkIfExists(
+          ContractApprovalModalSelectorsIDs.APPROVE_TOKEN_AMOUNT,
+        );
 
         await expect(
-          element(by.id(ApprovalModal.APPROVE_TOKEN_AMOUNT)),
+          element(
+            by.id(ContractApprovalModalSelectorsIDs.APPROVE_TOKEN_AMOUNT),
+          ),
         ).toHaveText(EXPECTED_TOKEN_AMOUNT);
 
         // Tap next button

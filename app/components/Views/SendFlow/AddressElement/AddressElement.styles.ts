@@ -1,5 +1,5 @@
-import { Colors } from '../../../../util/theme/models';
 import { StyleSheet } from 'react-native';
+import { Colors } from '../../../../util/theme/models';
 
 const styleSheet = (colors: Colors) =>
   StyleSheet.create({
@@ -20,6 +20,19 @@ const styleSheet = (colors: Colors) =>
     },
     addressTextAddress: {
       color: colors.text.alternative,
+    },
+    accountNameLabelText: {
+      marginLeft: 4,
+      paddingHorizontal: 8,
+      color: colors.text.alternative,
+      borderWidth: 1,
+      borderRadius: 8,
+      borderColor: colors.border.default,
+    },
+    accountNameLabel: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      justifyContent: 'flex-start',
     },
     warningIconWrapper: {
       padding: 4,

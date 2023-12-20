@@ -8,10 +8,8 @@ import React, {
   useState,
 } from 'react';
 import { useSelector } from 'react-redux';
-import { ImageSourcePropType } from 'react-native';
 import { isEqual } from 'lodash';
 import { useNavigation } from '@react-navigation/native';
-
 // External dependencies.
 import SheetBottom, {
   SheetBottomRef,
@@ -34,8 +32,11 @@ import { getActiveTabUrl } from '../../../util/transactions';
 import { getUrlObj, prefixUrlWithProtocol } from '../../../util/browser';
 import { strings } from '../../../../locales/i18n';
 import { AvatarAccountType } from '../../../component-library/components/Avatars/Avatar/variants/AvatarAccount';
-import { safeToChecksumAddress } from '../../../util/address';
-import USER_INTENT from '../../../constants/permissions';
+import {
+  getAddressAccountType,
+  safeToChecksumAddress,
+} from '../../../util/address';
+import { USER_INTENT } from '../../../constants/permissions';
 import { selectAccountsLength } from '../../../selectors/accountTrackerController';
 import {
   selectIdentities,
@@ -50,6 +51,7 @@ import {
 import AccountConnectSingle from './AccountConnectSingle';
 import AccountConnectSingleSelector from './AccountConnectSingleSelector';
 import AccountConnectMultiSelector from './AccountConnectMultiSelector';
+import useFavicon from '../../hooks/useFavicon/useFavicon';
 import URLParse from 'url-parse';
 
 const AccountConnect = (props: AccountConnectProps) => {
@@ -80,6 +82,9 @@ const AccountConnect = (props: AccountConnectProps) => {
       : AvatarAccountType.JazzIcon,
   );
   const origin: string = useSelector(getActiveTabUrl, isEqual);
+
+  const faviconSource = useFavicon(origin);
+
   const hostname = hostInfo.metadata.origin;
   const urlWithProtocol = prefixUrlWithProtocol(hostname);
 
@@ -92,14 +97,6 @@ const AccountConnect = (props: AccountConnectProps) => {
   );
 
   const accountsLength = useSelector(selectAccountsLength);
-
-  /**
-   * Get image url from favicon api.
-   */
-  const favicon: ImageSourcePropType = useMemo(() => {
-    const iconUrl = `https://api.faviconkit.com/${hostname}/50`;
-    return { uri: iconUrl };
-  }, [hostname]);
 
   // Refreshes selected addresses based on the addition and removal of accounts.
   useEffect(() => {
@@ -154,6 +151,7 @@ const AccountConnect = (props: AccountConnectProps) => {
       AnalyticsV2.trackEvent(MetaMetricsEvents.CONNECT_REQUEST_COMPLETED, {
         number_of_accounts: accountsLength,
         number_of_accounts_connected: connectedAccountLength,
+        account_type: getAddressAccountType(activeAddress),
         source: 'in-app browser',
       });
       let labelOptions: ToastOptions['labelOptions'] = [];
@@ -314,7 +312,7 @@ const AccountConnect = (props: AccountConnectProps) => {
         onUserAction={setUserIntent}
         defaultSelectedAccount={defaultSelectedAccount}
         isLoading={isLoading}
-        favicon={favicon}
+        favicon={faviconSource}
         secureIcon={secureIcon}
         urlWithProtocol={urlWithProtocol}
       />
@@ -326,7 +324,7 @@ const AccountConnect = (props: AccountConnectProps) => {
     isLoading,
     setScreen,
     setSelectedAddresses,
-    favicon,
+    faviconSource,
     secureIcon,
     urlWithProtocol,
     setUserIntent,
@@ -363,7 +361,7 @@ const AccountConnect = (props: AccountConnectProps) => {
         selectedAddresses={selectedAddresses}
         onSelectAddress={setSelectedAddresses}
         isLoading={isLoading}
-        favicon={favicon}
+        favicon={faviconSource}
         secureIcon={secureIcon}
         urlWithProtocol={urlWithProtocol}
         onUserAction={setUserIntent}
@@ -377,7 +375,7 @@ const AccountConnect = (props: AccountConnectProps) => {
       setSelectedAddresses,
       isLoading,
       setUserIntent,
-      favicon,
+      faviconSource,
       urlWithProtocol,
       secureIcon,
     ],

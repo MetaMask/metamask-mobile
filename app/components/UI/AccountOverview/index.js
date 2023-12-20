@@ -5,7 +5,6 @@ import {
   Platform,
   ScrollView,
   StyleSheet,
-  Text,
   TextInput,
   TouchableOpacity,
   View,
@@ -29,7 +28,10 @@ import {
   doENSReverseLookup,
   isDefaultAccountName,
 } from '../../../util/ENSUtils';
-import { isQRHardwareAccount, renderAccountName } from '../../../util/address';
+import {
+  getLabelTextByAddress,
+  renderAccountName,
+} from '../../../util/address';
 import Device from '../../../util/device';
 import { ThemeContext, mockTheme } from '../../../util/theme';
 import EthereumAddress from '../EthereumAddress';
@@ -45,7 +47,10 @@ import {
   selectSelectedAddress,
 } from '../../../selectors/preferencesController';
 import { createAccountSelectorNavDetails } from '../../Views/AccountSelector';
-import { regex } from '../../../../app/util/regex';
+import { regex } from '../../../util/regex';
+import Text, {
+  TextVariant,
+} from '../../../component-library/components/Texts/Text';
 
 const createStyles = (colors) =>
   StyleSheet.create({
@@ -91,8 +96,6 @@ const createStyles = (colors) =>
       borderRadius: 14,
     },
     tagText: {
-      fontSize: 12,
-      ...fontStyles.bold,
       minWidth: 32,
       textAlign: 'center',
       color: colors.text.default,
@@ -351,7 +354,7 @@ class AccountOverview extends PureComponent {
     if (!address) return null;
     const { accountLabelEditable, accountLabel, ens } = this.state;
 
-    const isQRHardwareWalletAccount = isQRHardwareAccount(address);
+    const accountLabelTag = getLabelTextByAddress(address);
 
     return (
       <View ref={this.scrollViewContainer} collapsable={false}>
@@ -360,7 +363,6 @@ class AccountOverview extends PureComponent {
           keyboardShouldPersistTaps={'never'}
           style={styles.scrollView}
           contentContainerStyle={styles.wrapper}
-          testID={'account-overview'}
         >
           <View style={styles.info} ref={this.mainView}>
             <TouchableOpacity
@@ -427,10 +429,13 @@ class AccountOverview extends PureComponent {
                       {isDefaultAccountName(name) && ens ? ens : name}
                     </Text>
                   </TouchableOpacity>
-                  {isQRHardwareWalletAccount && (
+                  {accountLabelTag && (
                     <View style={styles.tag}>
-                      <Text style={styles.tagText}>
-                        {strings('transaction.hardware')}
+                      <Text
+                        variant={TextVariant.BodySMBold}
+                        style={styles.tagText}
+                      >
+                        {strings(accountLabelTag)}
                       </Text>
                     </View>
                   )}

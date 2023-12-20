@@ -1,20 +1,20 @@
 import UntypedEngine from '../Engine';
 import AppConstants from '../AppConstants';
 import { getVaultFromBackup } from '../BackupVault';
+import { isBlockaidFeatureEnabled } from '../../util/blockaid';
 import { store as importedStore } from '../../store';
 import {
   NO_VAULT_IN_BACKUP_ERROR,
   VAULT_CREATION_ERROR,
 } from '../../constants/error';
-import { isBlockaidFeatureEnabled } from '../../util/blockaid';
-
-const UPDATE_BG_STATE_KEY = 'UPDATE_BG_STATE';
-const INIT_BG_STATE_KEY = 'INIT_BG_STATE';
 
 interface InitializeEngineResult {
   success: boolean;
   error?: string;
 }
+
+const UPDATE_BG_STATE_KEY = 'UPDATE_BG_STATE';
+const INIT_BG_STATE_KEY = 'INIT_BG_STATE';
 class EngineService {
   private engineInitialized = false;
 
@@ -73,6 +73,16 @@ class EngineService {
         name: 'ApprovalController',
         key: `${engine.context.ApprovalController.name}:stateChange`,
       },
+      ///: BEGIN:ONLY_INCLUDE_IF(snaps)
+      {
+        name: 'SnapController',
+        key: `${engine.context.SnapController.name}:stateChange`,
+      },
+      {
+        name: 'subjectMetadataController',
+        key: `${engine.context.SubjectMetadataController.name}:stateChange`,
+      },
+      ///: END:ONLY_INCLUDE_IF
       {
         name: 'PermissionController',
         key: `${engine.context.PermissionController.name}:stateChange`,
@@ -86,7 +96,7 @@ class EngineService {
     if (isBlockaidFeatureEnabled()) {
       controllers.push({
         name: 'PPOMController',
-        key: `${engine.context.PPOMController.name}:stateChange`,
+        key: AppConstants.PPOM_INITIALISATION_STATE_CHANGE_EVENT,
       });
     }
 
@@ -99,8 +109,9 @@ class EngineService {
 
     controllers.forEach((controller) => {
       const { name, key = undefined } = controller;
-      const update_bg_state_cb = () =>
-        store.dispatch({ type: UPDATE_BG_STATE_KEY, key: name });
+      const update_bg_state_cb = () => {
+        store.dispatch({ type: UPDATE_BG_STATE_KEY, payload: { key: name } });
+      };
       if (key) {
         engine.controllerMessenger.subscribe(key, update_bg_state_cb);
       } else {

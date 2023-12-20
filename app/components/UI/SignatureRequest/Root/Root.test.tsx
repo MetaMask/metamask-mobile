@@ -2,18 +2,13 @@ import React from 'react';
 import configureMockStore from 'redux-mock-store';
 import { Provider } from 'react-redux';
 import { render } from '@testing-library/react-native';
-import { shallow } from 'enzyme';
 import initialBackgroundState from '../../../../util/test/initial-background-state.json';
 
 import { ThemeContext, mockTheme } from '../../../../util/theme';
 
 import Root from '.';
 import { ApprovalTypes } from '../../../../core/RPCMethods/RPCMethodMiddleware';
-
-jest.mock('../../../../util/address', () => ({
-  ...jest.requireActual('../../../../util/address'),
-  renderAccountName: jest.fn(),
-}));
+import { shallow } from 'enzyme';
 
 jest.mock('react-native-keyboard-aware-scroll-view', () => {
   const KeyboardAwareScrollView = jest.requireActual('react-native').ScrollView;
@@ -28,6 +23,9 @@ jest.mock('../../../../core/Engine', () => ({
       getQRKeyringState: jest.fn(() =>
         Promise.resolve({ subscribe: jest.fn(), unsubscribe: jest.fn() }),
       ),
+      state: {
+        keyrings: [],
+      },
     },
     SignatureController: {
       hub: {
@@ -50,7 +48,7 @@ const messageParamsMock = {
   meta: {
     url: 'https://metamask.github.io/test-dapp/',
     title: 'E2E Test Dapp',
-    icon: 'https://api.faviconkit.com/metamask.github.io/50',
+    icon: 'https://metamask.github.io/test-dapp/metamask-fox.svg',
     analytics: {
       request_source: 'In-App-Browser',
       request_platform: 'Test-Platform',
@@ -62,22 +60,26 @@ const messageParamsMock = {
 
 const mockStore = configureMockStore();
 const initialState = {
+  modals: {
+    signMessageModalVisible: false,
+  },
   settings: {},
+  signatureRequest: {},
   engine: {
     backgroundState: {
       ...initialBackgroundState,
       AccountTrackerController: {
         accounts: {
-          '0x0': {
+          '0xC4955C0d639D99699Bfd7Ec54d9FaFEe40e4D272': {
             balance: 200,
           },
         },
       },
       PreferencesController: {
-        selectedAddress: '0x0',
+        selectedAddress: '0xC4955C0d639D99699Bfd7Ec54d9FaFEe40e4D272',
         identities: {
-          '0x0': {
-            address: '0x0',
+          '0xC4955C0d639D99699Bfd7Ec54d9FaFEe40e4D272': {
+            address: '0xC4955C0d639D99699Bfd7Ec54d9FaFEe40e4D272',
             name: 'Account 1',
           },
         },
@@ -85,6 +87,11 @@ const initialState = {
       CurrencyRateController: {
         conversionRate: 10,
         currentCurrency: 'usd',
+      },
+      NetworkController: {
+        providerConfig: {
+          chainId: '1',
+        },
       },
     },
   },
@@ -94,12 +101,16 @@ const store = mockStore(initialState);
 describe('Root', () => {
   it('should render correctly', () => {
     const wrapper = shallow(
-      <Root
-        messageParams={undefined}
-        approvalType={undefined}
-        onSignConfirm={() => undefined}
-        onSignReject={() => undefined}
-      />,
+      <Provider store={store}>
+        <ThemeContext.Provider value={mockTheme}>
+          <Root
+            messageParams={undefined}
+            approvalType={undefined}
+            onSignConfirm={() => undefined}
+            onSignReject={() => undefined}
+          />
+        </ThemeContext.Provider>
+      </Provider>,
     );
     expect(wrapper).toMatchSnapshot();
   });

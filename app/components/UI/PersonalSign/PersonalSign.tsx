@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useCallback } from 'react';
+import { useSelector } from 'react-redux';
 import { View, Text, InteractionManager } from 'react-native';
 import Engine from '../../../core/Engine';
 import SignatureRequest from '../SignatureRequest';
@@ -9,18 +10,24 @@ import { strings } from '../../../../locales/i18n';
 import { WALLET_CONNECT_ORIGIN } from '../../../util/walletconnect';
 import { MetaMetricsEvents } from '../../../core/Analytics';
 import AnalyticsV2 from '../../../util/analyticsV2';
-import { getAddressAccountType } from '../../../util/address';
+import {
+  getAddressAccountType,
+  isExternalHardwareAccount,
+} from '../../../util/address';
 import sanitizeString from '../../../util/string';
 import { KEYSTONE_TX_CANCELED } from '../../../constants/error';
 import { useTheme } from '../../../util/theme';
 import { PersonalSignProps } from './types';
 import { useNavigation } from '@react-navigation/native';
 import createStyles from './styles';
+
 import AppConstants from '../../../core/AppConstants';
+import createExternalSignModelNav from '../../../util/hardwareWallet/signatureUtils';
 import { selectChainId } from '../../../selectors/networkController';
 import { store } from '../../../store';
 import { getBlockaidMetricsParams } from '../../../util/blockaid';
 import { SecurityAlertResponse } from '../BlockaidBanner/BlockaidBanner.types';
+import { SigningModalSelectorsIDs } from '../../../../e2e/selectors/Modals/SigningModal.selectors';
 
 /**
  * Component that supports personal_sign
@@ -35,6 +42,9 @@ const PersonalSign = ({
 }: PersonalSignProps) => {
   const navigation = useNavigation();
   const [truncateMessage, setTruncateMessage] = useState<boolean>(false);
+  const { securityAlertResponse } = useSelector(
+    (reduxState: any) => reduxState.signatureRequest,
+  );
 
   const { colors }: any = useTheme();
   const styles = createStyles(colors);
@@ -53,9 +63,13 @@ const PersonalSign = ({
       const pageInfo = currentPageInformation || messageParams.meta;
       const url = new URL(pageInfo.url);
 
-      const blockaidParams = getBlockaidMetricsParams(
-        messageParams.securityAlertResponse as SecurityAlertResponse,
-      );
+      let blockaidParams = {};
+
+      if (securityAlertResponse) {
+        blockaidParams = getBlockaidMetricsParams(
+          securityAlertResponse as SecurityAlertResponse,
+        );
+      }
 
       return {
         account_type: getAddressAccountType(messageParams.from),
@@ -68,14 +82,7 @@ const PersonalSign = ({
     } catch (error) {
       return {};
     }
-  }, [currentPageInformation, messageParams]);
-
-  useEffect(() => {
-    AnalyticsV2.trackEvent(
-      MetaMetricsEvents.SIGNATURE_REQUESTED,
-      getAnalyticsParams(),
-    );
-  }, [getAnalyticsParams, messageParams.securityAlertResponse]);
+  }, [currentPageInformation, messageParams, securityAlertResponse]);
 
   useEffect(() => {
     const onSignatureError = ({ error }: { error: Error }) => {
@@ -126,12 +133,23 @@ const PersonalSign = ({
   };
 
   const confirmSignature = async () => {
-    await onConfirm();
-    showWalletConnectNotification(true);
-    AnalyticsV2.trackEvent(
-      MetaMetricsEvents.SIGNATURE_APPROVED,
-      getAnalyticsParams(),
-    );
+    if (!isExternalHardwareAccount(messageParams.from)) {
+      await onConfirm();
+      showWalletConnectNotification(true);
+      AnalyticsV2.trackEvent(
+        MetaMetricsEvents.SIGNATURE_APPROVED,
+        getAnalyticsParams(),
+      );
+    } else {
+      navigation.navigate(
+        ...(await createExternalSignModelNav(
+          onReject,
+          onConfirm,
+          messageParams,
+          'personal_sign',
+        )),
+      );
+    }
   };
 
   const shouldTruncateMessage = (e: any) => {
@@ -198,8 +216,7 @@ const PersonalSign = ({
       truncateMessage={truncateMessage}
       type="personal_sign"
       fromAddress={messageParams.from}
-      securityAlertResponse={messageParams.securityAlertResponse}
-      testID={'personal-signature-request'}
+      testID={SigningModalSelectorsIDs.PERSONAL_REQUEST}
     >
       <View style={styles.messageWrapper}>{renderMessageText()}</View>
     </SignatureRequest>

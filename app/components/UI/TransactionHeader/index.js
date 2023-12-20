@@ -145,7 +145,7 @@ const TransactionHeader = (props) => {
   const renderTopIcon = () => {
     const { currentEnsName, icon, origin } = props.currentPageInformation;
     let url = props.currentPageInformation.url;
-    if (originIsDeeplink) {
+    if (originIsDeeplink && !icon) {
       return (
         <View style={styles.deeplinkIconContainer}>
           <FontAwesome
@@ -170,7 +170,7 @@ const TransactionHeader = (props) => {
         viewStyle={styles.assetLogo}
         title={iconTitle}
         url={currentEnsName || url}
-        icon={icon}
+        icon={typeof icon === 'string' ? icon : icon?.uri}
       />
     );
   };

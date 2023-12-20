@@ -27,7 +27,10 @@ const initialRootState: RootState = {
   navigation: undefined,
   networkOnboarded: undefined,
   security: initialSecurityState,
+  signatureRequest: undefined,
   experimentalSettings: undefined,
+  rpcEvents: undefined,
+  accounts: undefined,
 };
 
 export default initialRootState;

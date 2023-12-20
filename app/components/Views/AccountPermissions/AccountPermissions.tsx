@@ -8,7 +8,6 @@ import React, {
   useState,
 } from 'react';
 import { useSelector } from 'react-redux';
-import { ImageSourcePropType } from 'react-native';
 import { isEqual } from 'lodash';
 import { useNavigation } from '@react-navigation/native';
 
@@ -48,7 +47,8 @@ import {
 } from './AccountPermissions.types';
 import AccountPermissionsConnected from './AccountPermissionsConnected';
 import AccountPermissionsRevoke from './AccountPermissionsRevoke';
-import USER_INTENT from '../../../constants/permissions';
+import { USER_INTENT } from '../../../constants/permissions';
+import useFavicon from '../../hooks/useFavicon/useFavicon';
 import URLParse from 'url-parse';
 
 const AccountPermissions = (props: AccountPermissionsProps) => {
@@ -72,6 +72,7 @@ const AccountPermissions = (props: AccountPermissionsProps) => {
   );
 
   const origin: string = useSelector(getActiveTabUrl, isEqual);
+  const faviconSource = useFavicon(origin);
   // TODO - Once we can pass metadata to permission system, pass origin instead of hostname into this component.
   // const hostname = useMemo(() => new URL(origin).hostname, [origin]);
   const secureIcon = useMemo(
@@ -83,13 +84,6 @@ const AccountPermissions = (props: AccountPermissionsProps) => {
   );
 
   const urlWithProtocol = prefixUrlWithProtocol(hostname);
-  /**
-   * Get image url from favicon api.
-   */
-  const favicon: ImageSourcePropType = useMemo(() => {
-    const iconUrl = `https://api.faviconkit.com/${hostname}/50`;
-    return { uri: iconUrl };
-  }, [hostname]);
 
   const { toastRef } = useContext(ToastContext);
   const [isLoading, setIsLoading] = useState(false);
@@ -320,7 +314,7 @@ const AccountPermissions = (props: AccountPermissionsProps) => {
         accounts={accountsFilteredByPermissions.permitted}
         ensByAccountAddress={ensByAccountAddress}
         selectedAddresses={[activeAddress]}
-        favicon={favicon}
+        favicon={faviconSource}
         hostname={hostname}
         urlWithProtocol={urlWithProtocol}
         secureIcon={secureIcon}
@@ -335,7 +329,7 @@ const AccountPermissions = (props: AccountPermissionsProps) => {
       setSelectedAddresses,
       setPermissionsScreen,
       hideSheet,
-      favicon,
+      faviconSource,
       hostname,
       urlWithProtocol,
       secureIcon,
@@ -352,7 +346,7 @@ const AccountPermissions = (props: AccountPermissionsProps) => {
         onSelectAddress={setSelectedAddresses}
         isLoading={isLoading}
         onUserAction={setUserIntent}
-        favicon={favicon}
+        favicon={faviconSource}
         urlWithProtocol={urlWithProtocol}
         secureIcon={secureIcon}
         isAutoScrollEnabled={false}
@@ -365,7 +359,7 @@ const AccountPermissions = (props: AccountPermissionsProps) => {
       isLoading,
       accountsFilteredByPermissions,
       setUserIntent,
-      favicon,
+      faviconSource,
       urlWithProtocol,
       secureIcon,
     ],
@@ -379,7 +373,7 @@ const AccountPermissions = (props: AccountPermissionsProps) => {
         ensByAccountAddress={ensByAccountAddress}
         permittedAddresses={permittedAccountsByHostname}
         isLoading={isLoading}
-        favicon={favicon}
+        favicon={faviconSource}
         urlWithProtocol={urlWithProtocol}
         hostname={hostname}
         secureIcon={secureIcon}
@@ -392,7 +386,7 @@ const AccountPermissions = (props: AccountPermissionsProps) => {
       permittedAccountsByHostname,
       accountsFilteredByPermissions,
       setPermissionsScreen,
-      favicon,
+      faviconSource,
       hostname,
       urlWithProtocol,
       secureIcon,
