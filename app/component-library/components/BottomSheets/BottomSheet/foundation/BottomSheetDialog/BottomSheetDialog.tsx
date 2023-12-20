@@ -78,8 +78,8 @@ const BottomSheetDialog = forwardRef<
     }, [onShown]);
 
     const onHidden = useCallback(() => {
-      onOpened?.();
-    }, [onOpened]);
+      onDismissed?.();
+    }, [onDismissed]);
 
     const closeDialog = () => {
       currentYOffset.value = withTiming(

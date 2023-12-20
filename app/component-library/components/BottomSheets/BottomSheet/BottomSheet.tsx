@@ -54,14 +54,14 @@ const BottomSheet = forwardRef<BottomSheetRef, BottomSheetProps>(
     const navigation = useNavigation();
 
     const onShown = useCallback(() => {
-      onOpen?.(!!onShownCallback.current);
+      onOpen?.();
       onShownCallback.current?.();
     }, [onOpen]);
 
     const onHidden = useCallback(() => {
-      shouldNavigateBack && navigation.goBack();
-      onClose?.(!!onHiddenCallback.current);
       onHiddenCallback.current?.();
+      onClose?.(!!onHiddenCallback.current);
+      shouldNavigateBack && navigation.goBack();
     }, [navigation, onClose, shouldNavigateBack]);
 
     // Dismiss the sheet when Android back button is pressed.

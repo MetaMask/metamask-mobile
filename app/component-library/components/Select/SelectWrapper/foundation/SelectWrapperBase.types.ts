@@ -19,5 +19,5 @@ export interface SelectWrapperBaseProps extends ViewProps {
   /**
    * Optional enum to control props for the BottomSheet
    */
-  bottomSheetProps?: BottomSheetProps;
+  bottomSheetProps?: Omit<BottomSheetProps, 'children'>;
 }
