@@ -107,6 +107,7 @@ exports[`BackupAlert should render correctly 1`] = `
         >
           <TouchableOpacity
             onPress={[Function]}
+            testID="protect-your-wallet-button"
           >
             <Text
               style={

@@ -3,6 +3,7 @@ import React from 'react';
 import BackupAlert from '.';
 import renderWithProvider from '../../../util/test/renderWithProvider';
 import Engine from '../../../core/Engine';
+import { fireEvent } from '@testing-library/react-native';
 
 const mockEngine = Engine;
 
@@ -40,5 +41,19 @@ describe('BackupAlert', () => {
       },
     );
     expect(toJSON()).toMatchSnapshot();
+  });
+
+  it('navigates to backup flow when right button is pressed', () => {
+    const { getByTestId } = renderWithProvider(
+      <BackupAlert navigation={mockNavigation} onDismiss={() => null} />,
+      {
+        state: initialState,
+      },
+    );
+    const rightButton = getByTestId('protect-your-wallet-button');
+    fireEvent.press(rightButton);
+    expect(mockNavigation.navigate).toHaveBeenCalledWith('SetPasswordFlow', {
+      screen: 'AccountBackupStep1',
+    });
   });
 });

@@ -24,6 +24,7 @@ import {
 import styleSheet from './BackupAlert.styles';
 import { useStyles } from '../../../component-library/hooks';
 import { BackupAlertI } from './BackupAlert.types';
+import { PROTECT_WALLET_BUTTON } from './BackupAlert.constants';
 
 const BROWSER_ROUTE = 'BrowserView';
 
@@ -123,6 +124,7 @@ const BackupAlert = ({ navigation, onDismiss }: BackupAlertI) => {
           {...generateTestId(Platform, SECURE_WALLET_BACKUP_ALERT_MODAL)}
         >
           <View style={styles.backupAlertIconWrapper}>
+            {/* We need a icon on our component library to use icon component*/}
             <EvilIcons name="bell" style={styles.backupAlertIcon} />
           </View>
           <View style={baseStyles.flexGrow}>
@@ -130,7 +132,10 @@ const BackupAlert = ({ navigation, onDismiss }: BackupAlertI) => {
               {strings('backup_alert.title')}
             </Text>
             <View style={styles.buttonsWrapper}>
-              <TouchableOpacity onPress={goToBackupFlow}>
+              <TouchableOpacity
+                onPress={goToBackupFlow}
+                testID={PROTECT_WALLET_BUTTON}
+              >
                 <Text style={[styles.backupAlertMessage, fontStyles.bold]}>
                   {strings('backup_alert.right_button')}
                 </Text>
