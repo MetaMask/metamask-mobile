@@ -7969,7 +7969,7 @@ const memoizedLoadWithErrorAnnotation=  (
  * compartment and the specifier of the module within its own compartment.
  * This graph is then ready to be synchronously linked and executed.
  */
-const        load=  async(
+const        load=  (
   compartmentPrivateFields,
   moduleAliases,
   compartment,
@@ -8009,7 +8009,7 @@ const        load=  async(
   // `errors` accumulator.
   for( const job of pendingJobs) {
     // eslint-disable-next-line no-await-in-loop
-    await job;
+    job;
    }
 
   // Throw an aggregate error if there were any errors.
@@ -9703,7 +9703,7 @@ const        repairIntrinsics=  (options=  {})=>  {
   // trace retained:
   priorRepairIntrinsics.stack;
 
-  assertDirectEvalAvailable();
+  // assertDirectEvalAvailable();
 
   /**
    * Because of packagers and bundlers, etc, multiple invocations of lockdown
@@ -9766,12 +9766,12 @@ const        repairIntrinsics=  (options=  {})=>  {
   addIntrinsics(tameDateConstructor(dateTaming));
   addIntrinsics(tameErrorConstructor(errorTaming, stackFiltering));
   addIntrinsics(tameMathObject(mathTaming));
-  addIntrinsics(tameRegExpConstructor(regExpTaming));
-  addIntrinsics(tameSymbolConstructor());
+  // addIntrinsics(tameRegExpConstructor(regExpTaming));
+  // addIntrinsics(tameSymbolConstructor());
 
   addIntrinsics(getAnonymousIntrinsics());
 
-  completePrototypes();
+  // completePrototypes();
 
   const intrinsics=  finalIntrinsics();
 
@@ -9816,7 +9816,7 @@ const        repairIntrinsics=  (options=  {})=>  {
   // Remove non-standard properties.
   // All remaining function encountered during whitelisting are
   // branded as honorary native functions.
-  whitelistIntrinsics(intrinsics, markVirtualizedNativeFunction);
+  // whitelistIntrinsics(intrinsics, markVirtualizedNativeFunction);
 
   // Initialize the powerful initial global, i.e., the global of the
   // start compartment, from the intrinsics.
@@ -9882,19 +9882,20 @@ const        repairIntrinsics=  (options=  {})=>  {
 
     // Finally register and optionally freeze all the intrinsics. This
     // must be the operation that modifies the intrinsics.
-    tamedHarden(intrinsics);
+    // tamedHarden(intrinsics); // Causing app infinite loading
 
-    // Harden evaluators
-    tamedHarden(globalThis.Function);
-    tamedHarden(globalThis.eval);
-    // @ts-ignore Compartment does exist on globalThis
-    tamedHarden(globalThis.Compartment);
+    // // Harden evaluators
+    // Taming globals below causes: Uncaught TypeError: Cannot assign to read-only property 'toString', js engine: hermes
+    // tamedHarden(globalThis.Function);
+    // tamedHarden(globalThis.eval); // Still needed for Hermes?
+    // // @ts-ignore Compartment does exist on globalThis
+    // tamedHarden(globalThis.Compartment); // Still needed for Hermes?
 
-    // Harden Symbol and properties for initialGlobalPropertyNames in the host realm
-    tamedHarden(globalThis.Symbol);
-    for( const prop of getOwnPropertyNames(initialGlobalPropertyNames)) {
-      tamedHarden(globalThis[prop]);
-     }
+    // // Harden Symbol and properties for initialGlobalPropertyNames in the host realm
+    // tamedHarden(globalThis.Symbol);
+    // for( const prop of getOwnPropertyNames(initialGlobalPropertyNames)) {
+    //   tamedHarden(globalThis[prop]); // Uncaught TypeError: Cannot assign to read-only property 'constructor', js engine: hermes
+    //  }
 
     return tamedHarden;
    };

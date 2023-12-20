@@ -18,6 +18,8 @@ import { AppRegistry, LogBox } from 'react-native';
 import Root from './app/components/Views/Root';
 import { name } from './app.json';
 
+// Object.defineProperty(Object.prototype, 'test', { value: true });
+
 // List of warnings that we're ignoring
 LogBox.ignoreLogs([
   '{}',
