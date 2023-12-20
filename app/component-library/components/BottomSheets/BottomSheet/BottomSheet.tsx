@@ -34,6 +34,7 @@ const BottomSheet = forwardRef<BottomSheetRef, BottomSheetProps>(
   (
     {
       children,
+      onOpen,
       onClose,
       isInteractable = true,
       shouldNavigateBack = true,
@@ -42,7 +43,8 @@ const BottomSheet = forwardRef<BottomSheetRef, BottomSheetProps>(
     },
     ref,
   ) => {
-    const postCallback = useRef<BottomSheetPostCallback>();
+    const onHiddenCallback = useRef<BottomSheetPostCallback>();
+    const onShownCallback = useRef<BottomSheetPostCallback>();
     const bottomSheetDialogRef = useRef<BottomSheetDialogRef>(null);
     const { bottom: screenBottomPadding } = useSafeAreaInsets();
     const { styles } = useStyles(styleSheet, {
@@ -51,10 +53,15 @@ const BottomSheet = forwardRef<BottomSheetRef, BottomSheetProps>(
     const { y: frameY } = useSafeAreaFrame();
     const navigation = useNavigation();
 
+    const onShown = useCallback(() => {
+      onOpen?.(!!onShownCallback.current);
+      onShownCallback.current?.();
+    }, [onOpen]);
+
     const onHidden = useCallback(() => {
       shouldNavigateBack && navigation.goBack();
-      onClose?.(!!postCallback.current);
-      postCallback.current?.();
+      onClose?.(!!onHiddenCallback.current);
+      onHiddenCallback.current?.();
     }, [navigation, onClose, shouldNavigateBack]);
 
     // Dismiss the sheet when Android back button is pressed.
@@ -70,8 +77,12 @@ const BottomSheet = forwardRef<BottomSheetRef, BottomSheetProps>(
     }, [onHidden, isInteractable]);
 
     useImperativeHandle(ref, () => ({
+      show: (callback) => {
+        onShownCallback.current = callback;
+        bottomSheetDialogRef.current?.openDialog();
+      },
       hide: (callback) => {
-        postCallback.current = callback;
+        onHiddenCallback.current = callback;
         bottomSheetDialogRef.current?.closeDialog();
       },
     }));
@@ -93,6 +104,7 @@ const BottomSheet = forwardRef<BottomSheetRef, BottomSheetProps>(
         />
         <BottomSheetDialog
           isInteractable={isInteractable}
+          onShown={onShown}
           onDismissed={onHidden}
           ref={bottomSheetDialogRef}
           isFlexible={isFlexible}

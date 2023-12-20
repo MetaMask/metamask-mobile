@@ -49,6 +49,7 @@ const BottomSheetDialog = forwardRef<
       children,
       isFullscreen = false,
       isInteractable = true,
+      onShown,
       onDismissed,
       isFlexible = false,
       ...props
@@ -72,9 +73,13 @@ const BottomSheetDialog = forwardRef<
     const sheetHeight = useSharedValue(screenHeight);
     const isMounted = useRef(false);
 
+    const onOpened = useCallback(() => {
+      onShown?.();
+    }, [onShown]);
+
     const onHidden = useCallback(() => {
-      onDismissed?.();
-    }, [onDismissed]);
+      onOpened?.();
+    }, [onOpened]);
 
     const closeDialog = () => {
       currentYOffset.value = withTiming(
@@ -152,11 +157,15 @@ const BottomSheetDialog = forwardRef<
     });
 
     // Animate in sheet on initial render.
-    const show = () => {
+    const openDialog = () => {
       currentYOffset.value = sheetHeight.value;
-      currentYOffset.value = withTiming(visibleYOffset.value, {
-        duration: DEFAULT_BOTTOMSHEETDIALOG_DISPLAY_DURATION,
-      });
+      currentYOffset.value = withTiming(
+        visibleYOffset.value,
+        {
+          duration: DEFAULT_BOTTOMSHEETDIALOG_DISPLAY_DURATION,
+        },
+        () => runOnJS(onOpened)(),
+      );
     };
 
     const debouncedHide = useMemo(
@@ -179,7 +188,7 @@ const BottomSheetDialog = forwardRef<
       sheetHeight.value = height;
       if (!isMounted.current) {
         isMounted.current = true;
-        show();
+        openDialog();
       }
     };
 
@@ -198,6 +207,7 @@ const BottomSheetDialog = forwardRef<
     );
 
     useImperativeHandle(ref, () => ({
+      openDialog,
       closeDialog,
     }));
 
