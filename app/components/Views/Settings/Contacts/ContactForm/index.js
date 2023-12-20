@@ -31,17 +31,9 @@ import {
 } from '../../../../../constants/error';
 import Routes from '../../../../../constants/navigation/Routes';
 import { createQRScannerNavDetails } from '../../../QRScanner';
-import generateTestId from '../../../../../../wdio/utils/generateTestId';
 import { selectChainId } from '../../../../../selectors/networkController';
 import { selectIdentities } from '../../../../../selectors/preferencesController';
-import {
-  ADD_CONTACT_ADD_BUTTON,
-  ADD_CONTACT_ADDRESS_INPUT,
-  ADD_CONTACT_DELETE_BUTTON,
-  ADD_CONTACT_MEMO_INPUT,
-  ADD_CONTACT_NAME_INPUT,
-  ADD_CONTACTS_CONTAINER_ID,
-} from '../../../../../../wdio/screen-objects/testIDs/Screens/AddContact.testIds';
+import { AddContactViewSelectorsIDs } from '../../../../../../e2e/selectors/Settings/Contacts/AddContactView.selectors';
 
 const createStyles = (colors) =>
   StyleSheet.create({
@@ -348,7 +340,7 @@ class ContactForm extends PureComponent {
     return (
       <SafeAreaView
         style={styles.wrapper}
-        {...generateTestId(Platform, ADD_CONTACTS_CONTAINER_ID)}
+        testID={AddContactViewSelectorsIDs.CONTAINER}
       >
         <KeyboardAwareScrollView style={styles.informationWrapper}>
           <View style={styles.scrollWrapper}>
@@ -369,7 +361,7 @@ class ContactForm extends PureComponent {
               ]}
               value={name}
               onSubmitEditing={this.jumpToAddressInput}
-              {...generateTestId(Platform, ADD_CONTACT_NAME_INPUT)}
+              testID={AddContactViewSelectorsIDs.NAME_INPUT}
               keyboardAppearance={themeAppearance}
             />
 
@@ -394,7 +386,7 @@ class ContactForm extends PureComponent {
                   value={toEnsName || address}
                   ref={this.addressInput}
                   onSubmitEditing={this.jumpToMemoInput}
-                  {...generateTestId(Platform, ADD_CONTACT_ADDRESS_INPUT)}
+                  testID={AddContactViewSelectorsIDs.ADDRESS_INPUT}
                   keyboardAppearance={themeAppearance}
                 />
                 {toEnsName && toEnsAddress && (
@@ -440,7 +432,7 @@ class ContactForm extends PureComponent {
                   ]}
                   value={memo}
                   ref={this.memoInput}
-                  {...generateTestId(Platform, ADD_CONTACT_MEMO_INPUT)}
+                  testID={AddContactViewSelectorsIDs.MEMO_INPUT}
                   keyboardAppearance={themeAppearance}
                 />
               </View>
@@ -463,7 +455,7 @@ class ContactForm extends PureComponent {
                     type={'confirm'}
                     disabled={!addressReady || !name || !!addressError}
                     onPress={this.saveContact}
-                    testID={ADD_CONTACT_ADD_BUTTON}
+                    testID={AddContactViewSelectorsIDs.ADD_BUTTON}
                   >
                     {strings(`address_book.${mode}_contact`)}
                   </StyledButton>
@@ -475,7 +467,7 @@ class ContactForm extends PureComponent {
                       type={'warning-empty'}
                       disabled={!addressReady || !name || !!addressError}
                       onPress={this.onDelete}
-                      testID={ADD_CONTACT_DELETE_BUTTON}
+                      testID={AddContactViewSelectorsIDs.DELETE_BUTTON}
                     >
                       {strings(`address_book.delete`)}
                     </StyledButton>
