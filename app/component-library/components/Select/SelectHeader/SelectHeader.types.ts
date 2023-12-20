@@ -4,7 +4,7 @@ import { HeaderBaseProps } from '../../HeaderBase/HeaderBase.types';
 /**
  * SelectHeader component props.
  */
-export interface SelectHeaderProps extends HeaderBaseProps {
+export interface SelectHeaderProps extends Partial<HeaderBaseProps> {
   /**
    * Optional prop for the title of the SelectHeader
    */

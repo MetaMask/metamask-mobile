@@ -4,6 +4,9 @@ import { StyleSheet, ViewStyle } from 'react-native';
 // External dependencies.
 import { Theme } from '../../../../../util/theme/models';
 
+// Internal dependencies.
+import { SelectMenuBaseStyleSheetVars } from './SelectMenuBase.types';
+
 /**
  * Style sheet function for SelectValueBase component.
  *
@@ -12,7 +15,10 @@ import { Theme } from '../../../../../util/theme/models';
  * @param params.vars Inputs that the style sheet depends on.
  * @returns StyleSheet object.
  */
-const styleSheet = (params: { theme: Theme; vars: any }) => {
+const styleSheet = (params: {
+  theme: Theme;
+  vars: SelectMenuBaseStyleSheetVars;
+}) => {
   const { vars } = params;
   const { style } = vars;
   return StyleSheet.create({

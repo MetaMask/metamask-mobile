@@ -20,9 +20,7 @@ const ListSearchableBase: React.FC<ListSearchableBaseProps> = ({
   return (
     <View style={styles.base}>
       {searchInputEl && searchInputEl}
-      {filteredListEl && (
-        <View style={styles.filteredList}>{filteredListEl}</View>
-      )}
+      {filteredListEl && filteredListEl}
     </View>
   );
 };

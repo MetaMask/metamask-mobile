@@ -5,7 +5,8 @@ import { SelectOptionProps } from '../SelectOption/SelectOption.types';
 /**
  * SelectOptionsList component props.
  */
-export interface SelectOptionsListProps extends ListSearchableProps {
+export interface SelectOptionsListProps
+  extends Omit<ListSearchableProps, 'renderFilteredList'> {
   /**
    * Optional enum to replace the filtered list.
    */

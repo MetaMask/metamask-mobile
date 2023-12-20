@@ -89,6 +89,7 @@ const getStories = () => {
     "./app/component-library/components/RadioButton/RadioButton.stories.tsx": require("../app/component-library/components/RadioButton/RadioButton.stories.tsx"),
     "./app/component-library/components/Select/SelectButton/SelectButton.stories.tsx": require("../app/component-library/components/Select/SelectButton/SelectButton.stories.tsx"),
     "./app/component-library/components/Select/SelectHeader/SelectHeader.stories.tsx": require("../app/component-library/components/Select/SelectHeader/SelectHeader.stories.tsx"),
+    "./app/component-library/components/Select/SelectMenu/SelectMenu.stories.tsx": require("../app/component-library/components/Select/SelectMenu/SelectMenu.stories.tsx"),
     "./app/component-library/components/Select/SelectOption/SelectOption.stories.tsx": require("../app/component-library/components/Select/SelectOption/SelectOption.stories.tsx"),
     "./app/component-library/components/Select/SelectOptionsList/SelectOptionsList.stories.tsx": require("../app/component-library/components/Select/SelectOptionsList/SelectOptionsList.stories.tsx"),
     "./app/component-library/components/Select/SelectValue/SelectValue.stories.tsx": require("../app/component-library/components/Select/SelectValue/SelectValue.stories.tsx"),
