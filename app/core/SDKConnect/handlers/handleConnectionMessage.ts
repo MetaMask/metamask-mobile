@@ -53,6 +53,7 @@ export const handleConnectionMessage = async ({
   const keyringController = (
     engine.context as { KeyringController: KeyringController }
   ).KeyringController;
+
   await waitForKeychainUnlocked({
     keyringController,
     context: 'connection::on_message',

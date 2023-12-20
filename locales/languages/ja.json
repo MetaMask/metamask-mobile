@@ -201,6 +201,10 @@
     "security_alert_title": "セキュリティアラート",
     "security_alert_desc": "先に進むには、パスコードもしくはデバイスが対応している生体認証方法 (FaceID、TouchID、または指紋) をオンにする必要があります"
   },
+  "connect_hardware": {
+    "title_select_hardware": "ハードウェアウォレットの接続",
+    "select_hardware": "使用するハードウェアウォレットを選択してください"
+  },
   "enter_password": {
     "title": "パスワードを入力してください",
     "desc": "先に進むにはパスワードを入力してください",
@@ -513,6 +517,7 @@
   },
   "accounts": {
     "create_new_account": "新規アカウントの作成",
+    "qr_hardware": "QRハードウェア",
     "import_account": "アカウントのインポート",
     "connect_hardware": "ハードウェアウォレットの接続",
     "imported": "インポートされました",
@@ -536,6 +541,7 @@
     "permissions": "許可",
     "revoke": "取り消す",
     "revoke_all": "すべて取り消す",
+    "ledger": "Ledger",
     "site_permission_to": "このサイトには次のアクセス許可があります:",
     "address_balance_activity_permission": "アドレス、アカウント残高、アクティビティの表示",
     "suggest_transactions": "承認するトランザクションの提案",
@@ -569,7 +575,7 @@
     "tutorial": "チュートリアル",
     "description4": "Keystone (チュートリアル)",
     "description5": "1. Keystoneのロックを解除します",
-    "description6": "2. 「···」メニューをタップして、「同期」に移動します >",
+    "description6": "2. Tap the ··· Menu, then go to Sync",
     "button_continue": "続行",
     "hint_text": "Keystoneウォレットをスキャンして ",
     "purpose_connect": "接続",
@@ -701,7 +707,7 @@
     "remove_network": "削除",
     "cancel_remove_network": "キャンセル",
     "info_title": "MetaMaskについて",
-    "info_title_flask": "About MetaMask Flask",
+    "info_title_flask": "MetaMask Flaskについて",
     "experimental_title": "試験運用",
     "experimental_desc": "WalletConnectなど...",
     "legal_title": "法的情報",
@@ -801,7 +807,53 @@
     "autodetect_nft_desc": "MetaMaskが、サードパーティサービス (例: OpenSea) を使って、ユーザーが所有するNFTを追加することを許可します。NFTの自動検出機能を利用すると、ユーザーのIPとアカウントアドレスがこれらのサービスに公開されます。この機能を有効にした場合、ユーザーのIPアドレスとイーサリアムアドレスが紐付けられ、詐欺師によりエアドロップされた偽のNFTが表示される可能性があります。このリスクを回避するため、手動でトークンを追加することもできます。",
     "incoming_transactions_title": "受信トランザクションを表示",
     "incoming_transactions_content": "これは、ユーザーの選択するネットワークに依存し、イーサリアムアドレスおよびIPアドレスが公開されます。",
-    "display_nft_media_desc_new": "NFTのメディアとデータを表示した場合、IPアドレスがOpenSeaをはじめとするサードパーティに公開されます。NFTの自動検出はこの機能に依存しており、無効にすると利用できなくなります。NFTメディアがIPFSに完全に保管されている場合は、この機能が無効になっていても表示されます。"
+    "display_nft_media_desc_new": "NFTのメディアとデータを表示した場合、IPアドレスがOpenSeaをはじめとするサードパーティに公開されます。NFTの自動検出はこの機能に依存しており、無効にすると利用できなくなります。NFTメディアがIPFSに完全に保管されている場合は、この機能が無効になっていても表示されます。",
+    "snaps": {
+      "title": "Snap",
+      "description": "Snapの概要と管理",
+      "snap_settings": {
+        "remove_snap_section_title": "Snapの削除",
+        "remove_snap_section_description": "この操作により、Snapとそのデータが削除され、与えられたアクセス許可が取り消されます。",
+        "remove_button_label": "{{snapName}}を削除"
+      },
+      "snap_details": {
+        "install_date": "{{date}}にインストール",
+        "install_origin": "インストール元",
+        "enabled": "有効",
+        "version": "バージョン"
+      },
+      "snap_permissions": {
+        "approved_date": "{{date}}に承認",
+        "permission_section_title": "アクセス許可",
+        "permission_requested_now": "現在リクエスト中",
+        "human_readable_permission_titles": {
+          "endowment:long-running": "無期限で実行",
+          "endowment:network-access": "インターネットへのアクセス",
+          "endowment:transaction-insight": "トランザクションインサイトの表示",
+          "endowment:cronjob": "定期的なアクションのスケジュール設定と実行",
+          "endowment:rpc": {
+            "snaps": "他のSnapがこのSnapと直接やり取りできるようにします",
+            "dapps": "DAppがこのSnapと直接やり取りできるようにします"
+          },
+          "snap_confirm": "カスタムダイアログの表示",
+          "snap_manageState": "デバイスへのデータの保存と管理",
+          "snap_notify": "通知の表示",
+          "snap_getBip32Entropy": "{{protocol}}アカウントとアセットのコントロール",
+          "snap_getBip32PublicKey": "{{protocol}}の公開鍵の表示",
+          "snap_getBip44Entropy": "{{protocol}}アカウントとアセットのコントロール",
+          "snap_getEntropy": "このSnapに固有の任意のキーの導出",
+          "endowment:keyring": "endowment:keyring",
+          "wallet_snap": "{{otherSnapName}}への接続",
+          "endowment:webassembly": "WebAssemblyのサポート",
+          "endowment:ethereum-provider": "イーサリアムプロバイダーへのアクセス",
+          "endowment:unknown": "不明なアクセス許可",
+          "snap_getLocale": "言語設定の表示",
+          "endowment:caveat:transaction-origin": "トランザクションを提案しているWebサイトの提供元の確認",
+          "endowment:extend-runtime": "ランタイムの延長",
+          "snap_dialog": "カスタムダイアログの表示"
+        }
+      }
+    }
   },
   "sdk": {
     "disconnect_title": "すべてのサイトとの接続を解除しますか？",
@@ -910,6 +962,7 @@
     "add_collectible_button": "追加",
     "info": "情報",
     "swap": "スワップ",
+    "bridge": "ブリッジ",
     "description": "説明",
     "totalSupply": "合計供給量",
     "address": "アドレス",
@@ -921,6 +974,7 @@
     "buy_description": "現金で仮想通貨を購入します",
     "sell_description": "仮想通貨を売って現金化します",
     "swap_description": "トークン同士を交換します",
+    "bridge_description": "ネットワーク間でトークンを転送します",
     "send_description": "仮想通貨を任意のアカウントに送金します",
     "receive_description": "仮想通貨を受け取ります",
     "chart_time_period": {
@@ -1020,6 +1074,7 @@
     "save": "保存",
     "speedup": "高速化",
     "sign_with_keystone": "Keystoneで署名",
+    "sign_with_ledger": "Ledgerで署名",
     "from": "送信元",
     "gas_fee": "ガス代",
     "gas_fee_fast": "高速",
@@ -1093,6 +1148,7 @@
     "not_enough_for_gas": "トランザクション手数料を支払うための{{ticker}}がアカウントにありません。{{ticker}}を購入するか、別のアカウントから入金してください。",
     "send": "送信",
     "confirm_with_qr_hardware": "Keystoneで確認",
+    "confirm_with_ledger_hardware": "Ledgerで確定",
     "confirmed": "確定済み",
     "pending": "保留中",
     "submitted": "送信済み",
@@ -1845,16 +1901,6 @@
     "apple_pay_provider_total_label": "{{provider}} (MetaMask経由)",
     "buy_with": "購入方法:",
     "plus_fee": "プラス{{fee}}の手数料",
-    "notifications": {
-      "purchase_failed_title": "{{currency}}の購入に失敗しました。もう一度お試しください。ご不便をおかけし申し訳ございません。",
-      "purchase_failed_description": "支払方法とカード対応を確認",
-      "purchase_cancelled_title": "購入がキャンセルされました",
-      "purchase_cancelled_description": "支払方法とカード対応を確認",
-      "purchase_completed_title": "{{amount}}{{currency}}の購入が完了しました。",
-      "purchase_completed_description": "{{currency}}が利用可能になりました",
-      "purchase_pending_title": "{{currency}}の購入を処理中です",
-      "purchase_pending_description": "数分で完了します..."
-    },
     "date": "日付",
     "from": "送信元",
     "to": "送信先",
@@ -2012,7 +2058,9 @@
       "select_country_registered": "カードが登録されている国を選択してください (現在位置とは関係ありません)。",
       "unsupported": "地域がサポートされていません",
       "unsupported_description": "お客様の地域もなるべく早くサポートできるよう一生懸命取り組んでおります。さしあたり、他の仮想通貨の{{rampType}}方法に関するサポート記事をご覧ください。",
-      "unsupported_link": "サポート記事にアクセス"
+      "unsupported_link": "サポート記事にアクセス",
+      "popular_regions": "人気の地域",
+      "regions": "地域"
     },
     "order_details": {
       "details_main": "注文詳細",
@@ -2060,6 +2108,16 @@
       "hold_to_send": "長押しして送信",
       "send": "送信",
       "sent": "送信しました！"
+    },
+    "notifications": {
+      "purchase_failed_title": "{{currency}}の購入に失敗しました。もう一度お試しください。ご不便をおかけし申し訳ございません。",
+      "purchase_failed_description": "支払方法とカード対応を確認",
+      "purchase_cancelled_title": "購入がキャンセルされました",
+      "purchase_cancelled_description": "支払方法とカード対応を確認",
+      "purchase_completed_title": "{{amount}}{{currency}}の購入が完了しました。",
+      "purchase_completed_description": "{{currency}}が利用可能になりました",
+      "purchase_pending_title": "{{currency}}の購入を処理中です",
+      "purchase_pending_description": "数分で完了します..."
     }
   },
   "swaps": {
@@ -2152,6 +2210,7 @@
     "i_understand": "理解しています",
     "quotes_expire_in": "クォートの期限切れまで残り",
     "saving": "保存中",
+    "n_quotes": "{{numberOfQuotes}}件のクォート",
     "view_details": "詳細を表示",
     "estimated_gas_fee": "ガス代の見積もり",
     "max_gas_fee": "最大ガス代",
@@ -2196,7 +2255,7 @@
     "quote_source_agg": {
       "1": "このクォートは",
       "2": "アグリゲーターから提供されています。",
-      "3": "アグリゲーターは注文を異なる分散型取引所間で分割し、最も有利な価格を見つけます。"
+      "3": "価格を比較し、異なる分散型取引所に注文を分散させます。"
     },
     "quote_source_cnt": {
       "1": "このクォートは直接",
@@ -2637,7 +2696,12 @@
     "not_supported_error": "型付きデータ署名のバージョン4のみがサポートされています。",
     "error_during_connection": "不明なエラーが発生しました",
     "error_during_connection_message": "Ledger Nano Xへの接続中に若干の問題が発生しました。下の「再試行」をタップして、もう一度お試しください。この問題は、Ledger Nano XのETHアプリが、MetaMask Mobileとのペアリングプロセスの開始時に開いているのが原因で起こることがあります。",
-    "how_to_install_eth_webview_title": "イーサリアムアプリのインストール方法"
+    "how_to_install_eth_webview_title": "イーサリアムアプリのインストール方法",
+    "nonce_too_low": "ナンスが低すぎます",
+    "nonce_too_low_error": "設定されたナンスが低すぎます",
+    "ledger_beta_alert": "Ledgerの統合を有効にしています",
+    "ledger_beta_alert_description": "試験運用の機能を発見しました！続行することで、この試験運用の機能を自己リスクで使用することに同意したものとみなされます。",
+    "ledger_beta_cta": "続行"
   },
   "account_actions": {
     "edit_name": "アカウント名を編集",

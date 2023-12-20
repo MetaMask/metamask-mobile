@@ -110,11 +110,46 @@ index 332c87d..b634fde 100644
      /**
       * Enumerate assets assigned to an owner.
       *
+diff --git a/node_modules/@metamask/assets-controllers/dist/NftController.d.ts b/node_modules/@metamask/assets-controllers/dist/NftController.d.ts
+index a71d8f0..0353e90 100644
+--- a/node_modules/@metamask/assets-controllers/dist/NftController.d.ts
++++ b/node_modules/@metamask/assets-controllers/dist/NftController.d.ts
+@@ -140,7 +140,10 @@ export interface NftState extends BaseState {
+  */
+ export declare class NftController extends BaseController<NftConfig, NftState> {
+     private mutex;
+-    private getNftApi;
++    getNftApi({ contractAddress, tokenId, }: {
++        contractAddress: string;
++        tokenId: string;
++    }): string;
+     private getNftContractInformationApi;
+     /**
+      * Helper method to update nested state for allNfts and allNftContracts.
 diff --git a/node_modules/@metamask/assets-controllers/dist/NftController.js b/node_modules/@metamask/assets-controllers/dist/NftController.js
-index 6a14075..c2662fb 100644
+index 6a14075..fc7842e 100644
 --- a/node_modules/@metamask/assets-controllers/dist/NftController.js
 +++ b/node_modules/@metamask/assets-controllers/dist/NftController.js
-@@ -55,8 +55,9 @@ class NftController extends base_controller_1.BaseController {
+@@ -9,13 +9,17 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
+     });
+ };
+ Object.defineProperty(exports, "__esModule", { value: true });
+-exports.NftController = void 0;
++exports.NftController = exports.OpenSeaV2ChainIds = void 0;
+ const events_1 = require("events");
+ const ethereumjs_util_1 = require("ethereumjs-util");
+ const async_mutex_1 = require("async-mutex");
+ const base_controller_1 = require("@metamask/base-controller");
+ const controller_utils_1 = require("@metamask/controller-utils");
+ const assetsUtil_1 = require("./assetsUtil");
++var OpenSeaV2ChainIds;
++(function (OpenSeaV2ChainIds) {
++    OpenSeaV2ChainIds["ethereum"] = "ethereum";
++})(OpenSeaV2ChainIds = exports.OpenSeaV2ChainIds || (exports.OpenSeaV2ChainIds = {}));
+ const ALL_NFTS_STATE_KEY = 'allNfts';
+ const ALL_NFTS_CONTRACTS_STATE_KEY = 'allNftContracts';
+ /**
+@@ -55,8 +59,9 @@ class NftController extends base_controller_1.BaseController {
              selectedAddress: '',
              chainId: '',
              ipfsGateway: controller_utils_1.IPFS_DEFAULT_GATEWAY_URL,
@@ -125,7 +160,7 @@ index 6a14075..c2662fb 100644
          };
          this.defaultState = {
              allNftContracts: {},
-@@ -71,23 +72,19 @@ class NftController extends base_controller_1.BaseController {
+@@ -71,23 +76,22 @@ class NftController extends base_controller_1.BaseController {
          this.getERC1155BalanceOf = getERC1155BalanceOf;
          this.getERC1155TokenURI = getERC1155TokenURI;
          this.onNftAdded = onNftAdded;
@@ -143,25 +178,29 @@ index 6a14075..c2662fb 100644
 -        return useProxy
 -            ? `${controller_utils_1.OPENSEA_PROXY_URL}/asset/${contractAddress}/${tokenId}`
 -            : `${controller_utils_1.OPENSEA_API_URL}/asset/${contractAddress}/${tokenId}`;
-+    getNftApi({ contractAddress, tokenId }) {
-+        return `${controller_utils_1.OPENSEA_PROXY_URL}/asset/${contractAddress}/${tokenId}`;
++    getNftApi({ contractAddress, tokenId, }) {
++        return `${controller_utils_1.OPENSEA_PROXY_URL}/chain/${OpenSeaV2ChainIds.ethereum}/contract/${contractAddress}/nfts/${tokenId}`;
      }
 -    getNftContractInformationApi({ contractAddress, useProxy, }) {
 -        return useProxy
 -            ? `${controller_utils_1.OPENSEA_PROXY_URL}/asset_contract/${contractAddress}`
 -            : `${controller_utils_1.OPENSEA_API_URL}/asset_contract/${contractAddress}`;
-+    getNftContractInformationApi({ contractAddress }) {
-+        return  `${controller_utils_1.OPENSEA_PROXY_URL}/asset_contract/${contractAddress}`;
++    getNftContractInformationApi({ contractAddress, }) {
++        return `${controller_utils_1.OPENSEA_PROXY_URL}/chain/${OpenSeaV2ChainIds.ethereum}/contract/${contractAddress}`;
++    }
++    getNftCollectionInformationApi({ collectionSlug, }) {
++        return `${controller_utils_1.OPENSEA_PROXY_URL}/collections/${collectionSlug}`;
      }
      /**
       * Helper method to update nested state for allNfts and allNftContracts.
-@@ -119,29 +116,15 @@ class NftController extends base_controller_1.BaseController {
+@@ -119,31 +123,17 @@ class NftController extends base_controller_1.BaseController {
       */
      getNftInformationFromApi(contractAddress, tokenId) {
          return __awaiter(this, void 0, void 0, function* () {
 +            try{
              // Attempt to fetch the data with the proxy
-             let nftInformation = yield (0, controller_utils_1.fetchWithErrorHandling)({
+-            let nftInformation = yield (0, controller_utils_1.fetchWithErrorHandling)({
++            const nftInformation = yield (0, controller_utils_1.fetchWithErrorHandling)({
                  url: this.getNftApi({
                      contractAddress,
                      tokenId,
@@ -185,9 +224,19 @@ index 6a14075..c2662fb 100644
 -            }
 +
              // if we were still unable to fetch the data we return out the default/null of `NftMetadata`
-             if (!nftInformation) {
+-            if (!nftInformation) {
++            if (!(nftInformation === null || nftInformation === void 0 ? void 0 : nftInformation.nft)) {
                  return {
-@@ -159,6 +142,15 @@ class NftController extends base_controller_1.BaseController {
+                     name: null,
+                     description: null,
+@@ -153,12 +143,21 @@ class NftController extends base_controller_1.BaseController {
+             }
+             // if we've reached this point, we have successfully fetched some data for nftInformation
+             // now we reconfigure the data to conform to the `NftMetadata` type for storage.
+-            const { num_sales, background_color, image_url, image_preview_url, image_thumbnail_url, image_original_url, animation_url, animation_original_url, name, description, external_link, creator, last_sale, asset_contract: { schema_name }, } = nftInformation;
++            const { num_sales, background_color, image_url, image_preview_url, image_thumbnail_url, image_original_url, animation_url, animation_original_url, name, description, external_link, creator, last_sale, asset_contract: { schema_name }, } = (0, assetsUtil_1.mapOpenSeaDetailedNftV2ToV1)(nftInformation.nft);;
+             /* istanbul ignore next */
+             const nftMetadata = Object.assign({}, { name: name || null }, { description: description || null }, { image: image_url || null }, creator && { creator }, num_sales && { numberOfSales: num_sales }, background_color && { backgroundColor: background_color }, image_preview_url && { imagePreview: image_preview_url }, image_thumbnail_url && { imageThumbnail: image_thumbnail_url }, image_original_url && { imageOriginal: image_original_url }, animation_url && { animation: animation_url }, animation_original_url && {
                  animationOriginal: animation_original_url,
              }, external_link && { externalLink: external_link }, last_sale && { lastSale: last_sale }, schema_name && { standard: schema_name });
              return nftMetadata;
@@ -203,7 +252,7 @@ index 6a14075..c2662fb 100644
          });
      }
      /**
-@@ -170,13 +162,49 @@ class NftController extends base_controller_1.BaseController {
+@@ -170,13 +169,49 @@ class NftController extends base_controller_1.BaseController {
       */
      getNftInformationFromTokenURI(contractAddress, tokenId) {
          return __awaiter(this, void 0, void 0, function* () {
@@ -256,7 +305,7 @@ index 6a14075..c2662fb 100644
              try {
                  const object = yield (0, controller_utils_1.handleFetch)(tokenURI);
                  // TODO: Check image_url existence. This is not part of EIP721 nor EIP1155
-@@ -189,6 +217,7 @@ class NftController extends base_controller_1.BaseController {
+@@ -189,6 +224,7 @@ class NftController extends base_controller_1.BaseController {
                      description: object.description,
                      standard,
                      favorite: false,
@@ -264,7 +313,7 @@ index 6a14075..c2662fb 100644
                  };
              }
              catch (_a) {
-@@ -198,6 +227,8 @@ class NftController extends base_controller_1.BaseController {
+@@ -198,6 +234,8 @@ class NftController extends base_controller_1.BaseController {
                      description: null,
                      standard: standard || null,
                      favorite: false,
@@ -273,7 +322,7 @@ index 6a14075..c2662fb 100644
                  };
              }
          });
-@@ -255,12 +286,25 @@ class NftController extends base_controller_1.BaseController {
+@@ -255,12 +293,25 @@ class NftController extends base_controller_1.BaseController {
                  return yield this.getNftInformationFromTokenURI(contractAddress, tokenId);
              }));
              let openSeaMetadata;
@@ -301,7 +350,7 @@ index 6a14075..c2662fb 100644
          });
      }
      /**
-@@ -272,34 +316,15 @@ class NftController extends base_controller_1.BaseController {
+@@ -272,33 +323,20 @@ class NftController extends base_controller_1.BaseController {
      getNftContractInformationFromApi(contractAddress) {
          return __awaiter(this, void 0, void 0, function* () {
              /* istanbul ignore if */
@@ -312,10 +361,11 @@ index 6a14075..c2662fb 100644
 -                    useProxy: true,
                  }),
              });
-             // if we successfully fetched return the fetched data immediately
+-            // if we successfully fetched return the fetched data immediately
++            // If we successfully fetched the contract
              if (apiNftContractObject) {
-                 return apiNftContractObject;
-             }
+-                return apiNftContractObject;
+-            }
 -            // if we were unsuccessful in fetching from the API and an OpenSea API key is present
 -            // attempt to refetch directly against the OpenSea API and if successful return the data immediately
 -            if (this.openSeaApiKey) {
@@ -323,21 +373,25 @@ index 6a14075..c2662fb 100644
 -                    url: this.getNftContractInformationApi({
 -                        contractAddress,
 -                        useProxy: false,
--                    }),
++                // Then fetch some additional details from the collection
++                const collection = yield (0, controller_utils_1.fetchWithErrorHandling)({
++                    url: this.getNftCollectionInformationApi({
++                        collectionSlug: apiNftContractObject.collection,
+                     }),
 -                    options: {
 -                        headers: { 'X-API-KEY': this.openSeaApiKey },
 -                    },
 -                    // catch 403 errors (in case API key is down we don't want to blow up)
 -                    errorCodesToCatch: [403],
--                });
+                 });
 -                if (apiNftContractObject) {
 -                    return apiNftContractObject;
 -                }
--            }
++                return (0, assetsUtil_1.mapOpenSeaContractV2ToV1)(apiNftContractObject, collection);
+             }
              // If we've reached this point we were unable to fetch data from either the proxy or opensea so we return
              // the default/null of ApiNftContract
-             return {
-@@ -347,7 +372,7 @@ class NftController extends base_controller_1.BaseController {
+@@ -347,7 +385,7 @@ class NftController extends base_controller_1.BaseController {
                  return yield this.getNftContractInformationFromContract(contractAddress);
              }));
              let openSeaContractData;
@@ -346,7 +400,7 @@ index 6a14075..c2662fb 100644
                  openSeaContractData = yield (0, controller_utils_1.safelyExecute)(() => __awaiter(this, void 0, void 0, function* () {
                      return yield this.getNftContractInformationFromApi(contractAddress);
                  }));
-@@ -428,6 +453,7 @@ class NftController extends base_controller_1.BaseController {
+@@ -428,6 +466,7 @@ class NftController extends base_controller_1.BaseController {
                          tokenId: tokenId.toString(),
                          standard: nftMetadata.standard,
                          source: detection ? 'detected' : 'custom',
@@ -354,12 +408,92 @@ index 6a14075..c2662fb 100644
                      });
                  }
                  return newNfts;
+diff --git a/node_modules/@metamask/assets-controllers/dist/NftDetectionController.d.ts b/node_modules/@metamask/assets-controllers/dist/NftDetectionController.d.ts
+index 20d65ab..c26f596 100644
+--- a/node_modules/@metamask/assets-controllers/dist/NftDetectionController.d.ts
++++ b/node_modules/@metamask/assets-controllers/dist/NftDetectionController.d.ts
+@@ -127,6 +127,7 @@ export declare class NftDetectionController extends BaseController<NftDetectionC
+     name: string;
+     private getOpenSeaApiKey;
+     private addNft;
++    private getNftApi;
+     private getNftState;
+     /**
+      * Creates an NftDetectionController instance.
+@@ -137,16 +138,18 @@ export declare class NftDetectionController extends BaseController<NftDetectionC
+      * @param options.onNetworkStateChange - Allows subscribing to network controller state changes.
+      * @param options.getOpenSeaApiKey - Gets the OpenSea API key, if one is set.
+      * @param options.addNft - Add an NFT.
++     * @param options.getNftApi - Gets the URL to fetch an NFT from OpenSea.
+      * @param options.getNftState - Gets the current state of the Assets controller.
+      * @param config - Initial options used to configure this controller.
+      * @param state - Initial state to set on this controller.
+      */
+-    constructor({ onPreferencesStateChange, onNetworkStateChange, getOpenSeaApiKey, addNft, getNftState, }: {
++    constructor({ onPreferencesStateChange, onNetworkStateChange, getOpenSeaApiKey, addNft, getNftApi, getNftState, }: {
+         onNftsStateChange: (listener: (nftsState: NftState) => void) => void;
+         onPreferencesStateChange: (listener: (preferencesState: PreferencesState) => void) => void;
+         onNetworkStateChange: (listener: (networkState: NetworkState) => void) => void;
+         getOpenSeaApiKey: () => string | undefined;
+         addNft: NftController['addNft'];
++        getNftApi: NftController['getNftApi'];
+         getNftState: () => NftState;
+     }, config?: Partial<NftDetectionConfig>, state?: Partial<BaseState>);
+     /**
 diff --git a/node_modules/@metamask/assets-controllers/dist/NftDetectionController.js b/node_modules/@metamask/assets-controllers/dist/NftDetectionController.js
-index 1f234ca..ef2b7e7 100644
+index 1f234ca..cfa84bf 100644
 --- a/node_modules/@metamask/assets-controllers/dist/NftDetectionController.js
 +++ b/node_modules/@metamask/assets-controllers/dist/NftDetectionController.js
-@@ -94,19 +94,6 @@ class NftDetectionController extends base_controller_1.BaseController {
-                     url: this.getOwnerNftApi({ address, offset, useProxy: true }),
+@@ -12,6 +12,8 @@ Object.defineProperty(exports, "__esModule", { value: true });
+ exports.NftDetectionController = void 0;
+ const base_controller_1 = require("@metamask/base-controller");
+ const controller_utils_1 = require("@metamask/controller-utils");
++const assetsUtil_1 = require("./assetsUtil");
++const NftController_1 = require("./NftController");
+ const DEFAULT_INTERVAL = 180000;
+ /**
+  * Controller that passively polls on a set interval for NFT auto detection
+@@ -26,11 +28,12 @@ class NftDetectionController extends base_controller_1.BaseController {
+      * @param options.onNetworkStateChange - Allows subscribing to network controller state changes.
+      * @param options.getOpenSeaApiKey - Gets the OpenSea API key, if one is set.
+      * @param options.addNft - Add an NFT.
++     * @param options.getNftApi - Gets the URL to fetch an NFT from OpenSea.
+      * @param options.getNftState - Gets the current state of the Assets controller.
+      * @param config - Initial options used to configure this controller.
+      * @param state - Initial state to set on this controller.
+      */
+-    constructor({ onPreferencesStateChange, onNetworkStateChange, getOpenSeaApiKey, addNft, getNftState, }, config, state) {
++    constructor({ onPreferencesStateChange, onNetworkStateChange, getOpenSeaApiKey, addNft, getNftApi, getNftState, }, config, state) {
+         super(config, state);
+         /**
+          * Name of this controller used during composition
+@@ -74,47 +77,40 @@ class NftDetectionController extends base_controller_1.BaseController {
+         });
+         this.getOpenSeaApiKey = getOpenSeaApiKey;
+         this.addNft = addNft;
++        this.getNftApi = getNftApi;
+     }
+-    getOwnerNftApi({ address, offset, useProxy, }) {
+-        return useProxy
+-            ? `${controller_utils_1.OPENSEA_PROXY_URL}/assets?owner=${address}&offset=${offset}&limit=50`
+-            : `${controller_utils_1.OPENSEA_API_URL}/assets?owner=${address}&offset=${offset}&limit=50`;
++    getOwnerNftApi({ address, next, }) {
++        return `${controller_utils_1.OPENSEA_PROXY_URL}/chain/${NftController_1.OpenSeaV2ChainIds.ethereum}/account/${address}/nfts?limit=200&next=${next !== null && next !== void 0 ? next : ''}`;
+     }
+     getOwnerNfts(address) {
+-        var _a;
+         return __awaiter(this, void 0, void 0, function* () {
+             let nftApiResponse;
+             let nfts = [];
+-            const openSeaApiKey = this.getOpenSeaApiKey();
+-            let offset = 0;
+-            let pagingFinish = false;
+-            /* istanbul ignore if */
++            let next;
+             do {
+                 nftApiResponse = yield (0, controller_utils_1.fetchWithErrorHandling)({
+-                    url: this.getOwnerNftApi({ address, offset, useProxy: true }),
++                    url: this.getOwnerNftApi({ address, next }),
                      timeout: 15000,
                  });
 -                if (openSeaApiKey && !nftApiResponse) {
@@ -378,6 +512,30 @@ index 1f234ca..ef2b7e7 100644
                  if (!nftApiResponse) {
                      return nfts;
                  }
+-                ((_a = nftApiResponse === null || nftApiResponse === void 0 ? void 0 : nftApiResponse.assets) === null || _a === void 0 ? void 0 : _a.length) !== 0
+-                    ? (nfts = [...nfts, ...nftApiResponse.assets])
+-                    : (pagingFinish = true);
+-                offset += 50;
+-            } while (!pagingFinish);
++                const newNfts = yield Promise.all(nftApiResponse.nfts.map((nftV2) => __awaiter(this, void 0, void 0, function* () {
++                    var _a, _b;
++                    const nftV1 = (0, assetsUtil_1.mapOpenSeaNftV2ToV1)(nftV2);
++                    // If the image hasn't been processed into OpenSea's CDN, the image_url will be null.
++                    // Try fetching the NFT individually, which returns the original image url from metadata if available.
++                    if (!nftV1.image_url && nftV2.metadata_url) {
++                        const nftDetails = yield (0, controller_utils_1.safelyExecute)(() => (0, controller_utils_1.timeoutFetch)(this.getNftApi({
++                            contractAddress: nftV2.contract,
++                            tokenId: nftV2.identifier,
++                        }), undefined, 1000).then((r) => r.json()));
++                        nftV1.image_original_url = (_b = (_a = nftDetails === null || nftDetails === void 0 ? void 0 : nftDetails.nft) === null || _a === void 0 ? void 0 : _a.image_url) !== null && _b !== void 0 ? _b : null;
++                    }
++                    return nftV1;
++                })));
++                nfts = [...nfts, ...newNfts];
++            } while ((next = nftApiResponse.next));
+             return nfts;
+         });
+     }
 diff --git a/node_modules/@metamask/assets-controllers/dist/Standards/ERC20Standard.js b/node_modules/@metamask/assets-controllers/dist/Standards/ERC20Standard.js
 index 9ddbc28..b9f309a 100644
 --- a/node_modules/@metamask/assets-controllers/dist/Standards/ERC20Standard.js
@@ -492,180 +650,440 @@ index 4ed4990..df0524b 100644
                          }
                      }
 diff --git a/node_modules/@metamask/assets-controllers/dist/TokenRatesController.d.ts b/node_modules/@metamask/assets-controllers/dist/TokenRatesController.d.ts
-index 8bb7c20..f6f43f2 100644
+index 8bb7c20..810d961 100644
 --- a/node_modules/@metamask/assets-controllers/dist/TokenRatesController.d.ts
 +++ b/node_modules/@metamask/assets-controllers/dist/TokenRatesController.d.ts
-@@ -57,6 +57,7 @@ export interface TokenRatesConfig extends BaseConfig {
+@@ -1,7 +1,8 @@
+-import { BaseController, BaseConfig, BaseState } from '@metamask/base-controller';
++import type { BaseConfig, BaseState } from '@metamask/base-controller';
++import { BaseController } from '@metamask/base-controller';
+ import type { NetworkState } from '@metamask/network-controller';
++import type { PreferencesState } from '@metamask/preferences-controller';
+ import type { TokensState } from './TokensController';
+-import type { CurrencyRateState } from './CurrencyRateController';
+ /**
+  * @type CoinGeckoResponse
+  *
+@@ -40,6 +41,7 @@ export interface Token {
+     image?: string;
+     balanceError?: unknown;
+     isERC721?: boolean;
++    name?: string;
+ }
+ /**
+  * @type TokenRatesConfig
+@@ -55,7 +57,17 @@ export interface TokenRatesConfig extends BaseConfig {
+     interval: number;
+     nativeCurrency: string;
      chainId: string;
-     tokens: Token[];
+-    tokens: Token[];
++    selectedAddress: string;
++    allTokens: {
++        [chainId: string]: {
++            [key: string]: Token[];
++        };
++    };
++    allDetectedTokens: {
++        [chainId: string]: {
++            [key: string]: Token[];
++        };
++    };
      threshold: number;
-+    previousNativeCurrency: string;
  }
  interface ContractExchangeRates {
-     [address: string]: number | undefined;
-@@ -148,8 +149,11 @@ export declare class TokenRatesController extends BaseController<TokenRatesConfi
-     getChainSlug(): Promise<string | null>;
-     /**
-      * Updates exchange rates for all tokens.
-+     *
-+     * @param forceFetch - Force a currency rate update, even when the
-+     * native currency has not recently changed.
+@@ -76,6 +88,7 @@ export interface TokenRatesState extends BaseState {
+  * for tokens stored in the TokensController
+  */
+ export declare class TokenRatesController extends BaseController<TokenRatesConfig, TokenRatesState> {
++    #private;
+     private handle?;
+     private tokenList;
+     private supportedChains;
+@@ -88,41 +101,32 @@ export declare class TokenRatesController extends BaseController<TokenRatesConfi
+      * Creates a TokenRatesController instance.
+      *
+      * @param options - The controller options.
++     * @param options.chainId - The chain ID of the current network.
++     * @param options.ticker - The ticker for the current network.
++     * @param options.selectedAddress - The current selected address.
++     * @param options.onPreferencesStateChange - Allows subscribing to preference controller state changes.
+      * @param options.onTokensStateChange - Allows subscribing to token controller state changes.
+-     * @param options.onCurrencyRateStateChange - Allows subscribing to currency rate controller state changes.
+      * @param options.onNetworkStateChange - Allows subscribing to network state changes.
+      * @param config - Initial options used to configure this controller.
+      * @param state - Initial state to set on this controller.
       */
--    updateExchangeRates(): Promise<void>;
-+    updateExchangeRates(forceFetch?: boolean): Promise<void>;
+-    constructor({ onTokensStateChange, onCurrencyRateStateChange, onNetworkStateChange, }: {
++    constructor({ chainId: initialChainId, ticker: initialTicker, selectedAddress: initialSelectedAddress, onPreferencesStateChange, onTokensStateChange, onNetworkStateChange, }: {
++        chainId: string;
++        ticker: string;
++        selectedAddress: string;
++        coinGeckoHeader: string;
++        onPreferencesStateChange: (listener: (preferencesState: PreferencesState) => void) => void;
+         onTokensStateChange: (listener: (tokensState: TokensState) => void) => void;
+-        onCurrencyRateStateChange: (listener: (currencyRateState: CurrencyRateState) => void) => void;
+         onNetworkStateChange: (listener: (networkState: NetworkState) => void) => void;
+     }, config?: Partial<TokenRatesConfig>, state?: Partial<TokenRatesState>);
      /**
-      * Checks if the active network's native currency is supported by the coingecko API.
-      * If supported, it fetches and maps contractExchange rates to a format to be consumed by the UI.
+-     * Sets a new polling interval.
+-     *
+-     * @param interval - Polling interval used to fetch new token rates.
++     * Start (or restart) polling.
+      */
+-    poll(interval?: number): Promise<void>;
++    start(): Promise<void>;
+     /**
+-     * Sets a new chainId.
+-     *
+-     * TODO: Replace this with a method.
+-     *
+-     * @param _chainId - The current chain ID.
+-     */
+-    set chainId(_chainId: string);
+-    get chainId(): string;
+-    /**
+-     * Sets a new token list to track prices.
+-     *
+-     * TODO: Replace this with a method.
+-     *
+-     * @param tokens - List of tokens to track exchange rates for.
++     * Stop polling.
+      */
+-    set tokens(tokens: Token[]);
+-    get tokens(): Token[];
++    stop(): void;
+     /**
+      * Fetches a pairs of token address and native currency.
+      *
 diff --git a/node_modules/@metamask/assets-controllers/dist/TokenRatesController.js b/node_modules/@metamask/assets-controllers/dist/TokenRatesController.js
-index e3f81e9..b8e07f6 100644
+index e3f81e9..c8cb97d 100644
 --- a/node_modules/@metamask/assets-controllers/dist/TokenRatesController.js
 +++ b/node_modules/@metamask/assets-controllers/dist/TokenRatesController.js
-@@ -1,4 +1,11 @@
- "use strict";
-+// PATCH NOTES:
-+// This patch is based upon the core branch `assets-controllers-v7-token-rate-controller-patch`
-+// It includes the following changes:
-+// - Prevent unnecessary fetch calls
-+//  - Fetch calls are currently limited to one per polling cycle, or upon a change in native currency.
-+// - Clear conversion rates immediately when an update starts, before waiting for the result
-+// - Clear conversion rates upon update failure
- var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, generator) {
-     function adopt(value) { return value instanceof P ? value : new P(function (resolve) { resolve(value); }); }
-     return new (P || (P = Promise))(function (resolve, reject) {
-@@ -77,6 +84,7 @@ class TokenRatesController extends base_controller_1.BaseController {
-             chainId: '',
-             tokens: [],
+@@ -8,11 +8,30 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
+         step((generator = generator.apply(thisArg, _arguments || [])).next());
+     });
+ };
++var __classPrivateFieldGet = (this && this.__classPrivateFieldGet) || function (receiver, state, kind, f) {
++    if (kind === "a" && !f) throw new TypeError("Private accessor was defined without a getter");
++    if (typeof state === "function" ? receiver !== state || !f : !state.has(receiver)) throw new TypeError("Cannot read private member from an object whose class did not declare it");
++    return kind === "m" ? f : kind === "a" ? f.call(receiver) : f ? f.value : state.get(receiver);
++};
++var __classPrivateFieldSet = (this && this.__classPrivateFieldSet) || function (receiver, state, value, kind, f) {
++    if (kind === "m") throw new TypeError("Private method is not writable");
++    if (kind === "a" && !f) throw new TypeError("Private accessor was defined without a setter");
++    if (typeof state === "function" ? receiver !== state || !f : !state.has(receiver)) throw new TypeError("Cannot write private member to an object whose class did not declare it");
++    return (kind === "a" ? f.call(receiver, value) : f ? f.value = value : state.set(receiver, value)), value;
++};
++var _TokenRatesController_instances, _TokenRatesController_pollState, _TokenRatesController_updateTokenList, _TokenRatesController_stopPoll, _TokenRatesController_poll;
+ Object.defineProperty(exports, "__esModule", { value: true });
+ exports.TokenRatesController = void 0;
+ const base_controller_1 = require("@metamask/base-controller");
+ const controller_utils_1 = require("@metamask/controller-utils");
+ const crypto_compare_1 = require("./crypto-compare");
++const fast_deep_equal_1 = __importDefault(require("fast-deep-equal"));
++var PollState;
++(function (PollState) {
++    PollState["Active"] = "Active";
++    PollState["Inactive"] = "Inactive";
++})(PollState || (PollState = {}));
++
+ const CoinGeckoApi = {
+     BASE_URL: 'https://api.coingecko.com/api/v3',
+     getTokenPriceURL(chainSlug, query) {
+@@ -49,15 +68,20 @@ class TokenRatesController extends base_controller_1.BaseController {
+      * Creates a TokenRatesController instance.
+      *
+      * @param options - The controller options.
++     * @param options.chainId - The chain ID of the current network.
++     * @param options.ticker - The ticker for the current network.
++     * @param options.selectedAddress - The current selected address.
++     * @param options.onPreferencesStateChange - Allows subscribing to preference controller state changes.
+      * @param options.onTokensStateChange - Allows subscribing to token controller state changes.
+-     * @param options.onCurrencyRateStateChange - Allows subscribing to currency rate controller state changes.
+      * @param options.onNetworkStateChange - Allows subscribing to network state changes.
+      * @param config - Initial options used to configure this controller.
+      * @param state - Initial state to set on this controller.
+      */
+-    constructor({ onTokensStateChange, onCurrencyRateStateChange, onNetworkStateChange, }, config, state) {
++    constructor({ chainId: initialChainId, ticker: initialTicker, selectedAddress: initialSelectedAddress, onPreferencesStateChange, onTokensStateChange, onNetworkStateChange, coinGeckoHeader}, config, state) {
+         super(config, state);
++        _TokenRatesController_instances.add(this);
+         this.tokenList = [];
++        this.coinGeckoHeader = coinGeckoHeader;
+         this.supportedChains = {
+             timestamp: 0,
+             data: null,
+@@ -66,16 +90,19 @@ class TokenRatesController extends base_controller_1.BaseController {
+             timestamp: 0,
+             data: [],
+         };
++        _TokenRatesController_pollState.set(this, PollState.Inactive);
+         /**
+          * Name of this controller used during composition
+          */
+         this.name = 'TokenRatesController';
+         this.defaultConfig = {
+             disabled: false,
+-            interval: 3 * 60 * 1000,
+-            nativeCurrency: 'eth',
+-            chainId: '',
+-            tokens: [],
++            interval: 30 * 60 * 1000,
++            nativeCurrency: initialTicker,
++            chainId: initialChainId,
++            selectedAddress: initialSelectedAddress,
++            allTokens: {},
++            allDetectedTokens: {},
              threshold: 6 * 60 * 60 * 1000,
-+            previousNativeCurrency: '',
          };
          this.defaultState = {
-             contractExchangeRates: {},
-@@ -93,7 +101,6 @@ class TokenRatesController extends base_controller_1.BaseController {
-         });
-         onNetworkStateChange(({ providerConfig }) => {
-             const { chainId } = providerConfig;
+@@ -85,60 +112,57 @@ class TokenRatesController extends base_controller_1.BaseController {
+         if (config === null || config === void 0 ? void 0 : config.disabled) {
+             this.configure({ disabled: true }, false, false);
+         }
+-        onTokensStateChange(({ tokens, detectedTokens }) => {
+-            this.configure({ tokens: [...tokens, ...detectedTokens] });
+-        });
+-        onCurrencyRateStateChange((currencyRateState) => {
+-            this.configure({ nativeCurrency: currencyRateState.nativeCurrency });
+-        });
+-        onNetworkStateChange(({ providerConfig }) => {
+-            const { chainId } = providerConfig;
 -            this.update({ contractExchangeRates: {} });
-             this.configure({ chainId });
-         });
-         this.poll();
-@@ -107,7 +114,7 @@ class TokenRatesController extends base_controller_1.BaseController {
+-            this.configure({ chainId });
+-        });
+-        this.poll();
++        __classPrivateFieldGet(this, _TokenRatesController_instances, "m", _TokenRatesController_updateTokenList).call(this);
++        onPreferencesStateChange(({ selectedAddress }) => __awaiter(this, void 0, void 0, function* () {
++            if (this.config.selectedAddress !== selectedAddress) {
++                this.configure({ selectedAddress });
++              const isEqual =  __classPrivateFieldGet(this, _TokenRatesController_instances, "m", _TokenRatesController_updateTokenList).call(this);
++                if (__classPrivateFieldGet(this, _TokenRatesController_pollState, "f") === PollState.Active && !isEqual) {
++                    yield this.updateExchangeRates();
++                }
++            }
++        }));
++        onTokensStateChange(({ allTokens, allDetectedTokens }) => __awaiter(this, void 0, void 0, function* () {
++            // These two state properties are assumed to be immutable
++            if (this.config.allTokens !== allTokens ||
++                this.config.allDetectedTokens !== allDetectedTokens) {
++                this.configure({ allTokens, allDetectedTokens });
++                const isEqual = __classPrivateFieldGet(this, _TokenRatesController_instances, "m", _TokenRatesController_updateTokenList).call(this);
++                if (__classPrivateFieldGet(this, _TokenRatesController_pollState, "f") === PollState.Active && !isEqual) {
++                    yield this.updateExchangeRates();
++                }
++            }
++        }));
++        onNetworkStateChange(({ providerConfig }) => __awaiter(this, void 0, void 0, function* () {
++            const { chainId, ticker } = providerConfig;
++            if (this.config.chainId !== chainId ||
++                this.config.nativeCurrency !== ticker) {
++                this.update({ contractExchangeRates: {} });
++                this.configure({ chainId, nativeCurrency: ticker ?? 'ETH' });
++                const isEqual = __classPrivateFieldGet(this, _TokenRatesController_instances, "m", _TokenRatesController_updateTokenList).call(this);
++                if (__classPrivateFieldGet(this, _TokenRatesController_pollState, "f") === PollState.Active && !isEqual) {
++                    yield this.updateExchangeRates();
++                }
++            }
++        }));
+     }
++
+     /**
+-     * Sets a new polling interval.
+-     *
+-     * @param interval - Polling interval used to fetch new token rates.
++     * Start (or restart) polling.
+      */
+-    poll(interval) {
++    start() {
          return __awaiter(this, void 0, void 0, function* () {
-             interval && this.configure({ interval }, false, false);
-             this.handle && clearTimeout(this.handle);
+-            interval && this.configure({ interval }, false, false);
+-            this.handle && clearTimeout(this.handle);
 -            yield (0, controller_utils_1.safelyExecute)(() => this.updateExchangeRates());
-+            yield (0, controller_utils_1.safelyExecute)(() => this.updateExchangeRates(true));
-             this.handle = setTimeout(() => {
-                 this.poll(this.config.interval);
-             }, this.config.interval);
-@@ -201,8 +208,11 @@ class TokenRatesController extends base_controller_1.BaseController {
+-            this.handle = setTimeout(() => {
+-                this.poll(this.config.interval);
+-            }, this.config.interval);
++            __classPrivateFieldGet(this, _TokenRatesController_instances, "m", _TokenRatesController_stopPoll).call(this);
++            __classPrivateFieldSet(this, _TokenRatesController_pollState, PollState.Active, "f");
++            yield __classPrivateFieldGet(this, _TokenRatesController_instances, "m", _TokenRatesController_poll).call(this);
+         });
      }
      /**
-      * Updates exchange rates for all tokens.
-+     *
-+     * @param forceFetch - Force a currency rate update, even when the
-+     * native currency has not recently changed.
+-     * Sets a new chainId.
+-     *
+-     * TODO: Replace this with a method.
+-     *
+-     * @param _chainId - The current chain ID.
++     * Stop polling.
       */
--    updateExchangeRates() {
-+    updateExchangeRates(forceFetch = false) {
-         return __awaiter(this, void 0, void 0, function* () {
-             if (this.tokenList.length === 0 || this.disabled) {
-                 return;
-@@ -217,7 +227,13 @@ class TokenRatesController extends base_controller_1.BaseController {
-             }
-             else {
+-    set chainId(_chainId) {
+-        !this.disabled && (0, controller_utils_1.safelyExecute)(() => this.updateExchangeRates());
+-    }
+-    get chainId() {
+-        throw new Error('Property only used for setting');
+-    }
+-    /**
+-     * Sets a new token list to track prices.
+-     *
+-     * TODO: Replace this with a method.
+-     *
+-     * @param tokens - List of tokens to track exchange rates for.
+-     */
+-    set tokens(tokens) {
+-        this.tokenList = tokens;
+-        !this.disabled && (0, controller_utils_1.safelyExecute)(() => this.updateExchangeRates());
+-    }
+-    get tokens() {
+-        throw new Error('Property only used for setting');
++    stop() {
++        __classPrivateFieldGet(this, _TokenRatesController_instances, "m", _TokenRatesController_stopPoll).call(this);
++        __classPrivateFieldSet(this, _TokenRatesController_pollState, PollState.Inactive, "f");
+     }
+     /**
+      * Fetches a pairs of token address and native currency.
+@@ -148,11 +172,34 @@ class TokenRatesController extends base_controller_1.BaseController {
+      * @returns The exchange rates for the given pairs.
+      */
+     fetchExchangeRate(chainSlug, vsCurrency) {
+-        return __awaiter(this, void 0, void 0, function* () {
+-            const tokenPairs = this.tokenList.map((token) => token.address).join(',');
+-            const query = `contract_addresses=${tokenPairs}&vs_currencies=${vsCurrency.toLowerCase()}`;
+-            return (0, controller_utils_1.handleFetch)(CoinGeckoApi.getTokenPriceURL(chainSlug, query));
+-        });
++            const tokenPairs = this.tokenList;
++
++            const tokenPairsChunks = (chunkSize) =>
++            tokenPairs.reduce((resultArray, item, index) => {
++              const chunkIndex = Math.floor(index / chunkSize);
++              if (!resultArray[chunkIndex]) {
++                resultArray[chunkIndex] = [];
++              }
++      
++              resultArray[chunkIndex].push(item);
++      
++              return resultArray;
++            }, []);
++
++      
++          const tokensPairsChunks = tokenPairsChunks(20);
++          
++          return tokensPairsChunks.map((tokenPairsChunk) => {
++            const query = `contract_addresses=${tokenPairsChunk.join(
++              ',',
++            )}&vs_currencies=${vsCurrency.toLowerCase()}`;
++            return (0, controller_utils_1.handleFetch)(CoinGeckoApi.getTokenPriceURL(chainSlug, query), {
++                headers: {
++                    'Content-Type': 'application/json',
++                    'X-Requested-With': this.coinGeckoHeader
++                },
++            });;
++          });       
+     }
+     /**
+      * Checks if the current native currency is a supported vs currency to use
+@@ -210,12 +257,11 @@ class TokenRatesController extends base_controller_1.BaseController {
+             const slug = yield this.getChainSlug();
+             let newContractExchangeRates = {};
+             if (!slug) {
+-                this.tokenList.forEach((token) => {
+-                    const address = (0, controller_utils_1.toChecksumHexAddress)(token.address);
++                this.tokenList.forEach((tokenAddress) => {
++                    const address = (0, controller_utils_1.toChecksumHexAddress)(tokenAddress);
+                     newContractExchangeRates[address] = undefined;
+                 });
+-            }
+-            else {
++            } else {
                  const { nativeCurrency } = this.config;
--                newContractExchangeRates = yield this.fetchAndMapExchangeRates(nativeCurrency, slug);
-+                // Only fetch if native curency is different or when forced (used in polling)
-+                if (this.config.previousNativeCurrency !== nativeCurrency || forceFetch) {
-+                    newContractExchangeRates = yield this.fetchAndMapExchangeRates(nativeCurrency, slug);
-+                }
-+                else {
-+                    newContractExchangeRates = this.state.contractExchangeRates;
-+                }
+                 newContractExchangeRates = yield this.fetchAndMapExchangeRates(nativeCurrency, slug);
              }
-             this.update({ contractExchangeRates: newContractExchangeRates });
-         });
-@@ -236,46 +252,47 @@ class TokenRatesController extends base_controller_1.BaseController {
-      */
+@@ -237,14 +283,23 @@ class TokenRatesController extends base_controller_1.BaseController {
      fetchAndMapExchangeRates(nativeCurrency, slug) {
          return __awaiter(this, void 0, void 0, function* () {
-+            // Clear exchange rates before fetching new ones.
-+            this.update({ contractExchangeRates: {} });
-+            // Set new native currency to prevent this method from being called multiple times
-+            this.configure({ previousNativeCurrency: nativeCurrency });
              const contractExchangeRates = {};
 -            // check if native currency is supported as a vs_currency by the API
 -            const nativeCurrencySupported = yield this.checkIsSupportedVsCurrency(nativeCurrency);
--            if (nativeCurrencySupported) {
--                // If it is we can do a simple fetch against the CoinGecko API
++            if(this.tokenList.length === 0){ 
++                return contractExchangeRates;
++            }
++
++            const nativeCurrencySupported = yield this.checkIsSupportedVsCurrency(
++                nativeCurrency,
++              );
++    
+             if (nativeCurrencySupported) {
+                 // If it is we can do a simple fetch against the CoinGecko API
 -                const prices = yield this.fetchExchangeRate(slug, nativeCurrency);
 -                this.tokenList.forEach((token) => {
 -                    const price = prices[token.address.toLowerCase()];
 -                    contractExchangeRates[(0, controller_utils_1.toChecksumHexAddress)(token.address)] = price
--                        ? price[nativeCurrency.toLowerCase()]
--                        : 0;
--                });
--            }
--            else {
--                // if native currency is not supported we need to use a fallback vsCurrency, get the exchange rates
--                // in token/fallback-currency format and convert them to expected token/nativeCurrency format.
++                const res = yield Promise.all(
++                    this.fetchExchangeRate(slug, nativeCurrency),
++                  );
++                const prices = Object.assign({}, ...res);
++                this.tokenList.forEach((tokenAddress) => {
++                    const price = prices[tokenAddress.toLowerCase()];
++                    contractExchangeRates[(0, controller_utils_1.toChecksumHexAddress)(tokenAddress)] = price
+                         ? price[nativeCurrency.toLowerCase()]
+                         : 0;
+                 });
+@@ -252,14 +307,14 @@ class TokenRatesController extends base_controller_1.BaseController {
+             else {
+                 // if native currency is not supported we need to use a fallback vsCurrency, get the exchange rates
+                 // in token/fallback-currency format and convert them to expected token/nativeCurrency format.
 -                let tokenExchangeRates;
--                let vsCurrencyToNativeCurrencyConversionRate = 0;
--                try {
--                    [
++                let tokenExchangeRatesResponse;
+                 let vsCurrencyToNativeCurrencyConversionRate = 0;
+                 try {
+                     [
 -                        tokenExchangeRates,
--                        { conversionRate: vsCurrencyToNativeCurrencyConversionRate },
--                    ] = yield Promise.all([
-+            try {
-+                // check if native currency is supported as a vs_currency by the API
-+                const nativeCurrencySupported = yield this.checkIsSupportedVsCurrency(nativeCurrency);
-+                if (nativeCurrencySupported) {
-+                    // If it is we can do a simple fetch against the CoinGecko API
-+                    const prices = yield this.fetchExchangeRate(slug, nativeCurrency);
-+                    this.tokenList.forEach((token) => {
-+                        const price = prices[token.address.toLowerCase()];
-+                        contractExchangeRates[(0, controller_utils_1.toChecksumHexAddress)(token.address)] = price
-+                            ? price[nativeCurrency.toLowerCase()]
-+                            : 0;
-+                    });
-+                }
-+                else {
-+                    // if native currency is not supported we need to use a fallback vsCurrency, get the exchange rates
-+                    // in token/fallback-currency format and convert them to expected token/nativeCurrency format.
-+                    const [tokenExchangeRates, { conversionRate: vsCurrencyToNativeCurrencyConversionRate = 0 },] = yield Promise.all([
-                         this.fetchExchangeRate(slug, controller_utils_1.FALL_BACK_VS_CURRENCY),
++                        tokenExchangeRatesResponse,
+                         { conversionRate: vsCurrencyToNativeCurrencyConversionRate },
+                     ] = yield Promise.all([
+-                        this.fetchExchangeRate(slug, controller_utils_1.FALL_BACK_VS_CURRENCY),
++                       Promise.all(this.fetchExchangeRate(slug, controller_utils_1.FALL_BACK_VS_CURRENCY)),
                          (0, crypto_compare_1.fetchExchangeRate)(nativeCurrency, controller_utils_1.FALL_BACK_VS_CURRENCY, false),
                      ]);
--                }
--                catch (error) {
--                    if (error instanceof Error &&
--                        error.message.includes('market does not exist for this coin pair')) {
--                        return {};
-+                    for (const [tokenAddress, conversion] of Object.entries(tokenExchangeRates)) {
-+                        const tokenToVsCurrencyConversionRate = conversion[controller_utils_1.FALL_BACK_VS_CURRENCY.toLowerCase()];
-+                        contractExchangeRates[(0, controller_utils_1.toChecksumHexAddress)(tokenAddress)] =
-+                            tokenToVsCurrencyConversionRate *
-+                                vsCurrencyToNativeCurrencyConversionRate;
+                 }
+@@ -270,6 +325,7 @@ class TokenRatesController extends base_controller_1.BaseController {
                      }
--                    throw error;
+                     throw error;
                  }
--                for (const [tokenAddress, conversion] of Object.entries(tokenExchangeRates)) {
--                    const tokenToVsCurrencyConversionRate = conversion[controller_utils_1.FALL_BACK_VS_CURRENCY.toLowerCase()];
--                    contractExchangeRates[(0, controller_utils_1.toChecksumHexAddress)(tokenAddress)] =
--                        tokenToVsCurrencyConversionRate *
--                            vsCurrencyToNativeCurrencyConversionRate;
-+            }
-+            catch (error) {
-+                // If there is an error catched we clean the state
-+                this.update({ contractExchangeRates: {} });
-+                if (error instanceof Error &&
-+                    error.message.includes('market does not exist for this coin pair')) {
-+                    return {};
-                 }
-+                throw error;
-             }
-             return contractExchangeRates;
-         });
++                const tokenExchangeRates = Object.assign({}, ...tokenExchangeRatesResponse);
+                 for (const [tokenAddress, conversion] of Object.entries(tokenExchangeRates)) {
+                     const tokenToVsCurrencyConversionRate = conversion[controller_utils_1.FALL_BACK_VS_CURRENCY.toLowerCase()];
+                     contractExchangeRates[(0, controller_utils_1.toChecksumHexAddress)(tokenAddress)] =
+@@ -282,5 +338,29 @@ class TokenRatesController extends base_controller_1.BaseController {
+     }
+ }
+ exports.TokenRatesController = TokenRatesController;
++_TokenRatesController_pollState = new WeakMap(), _TokenRatesController_instances = new WeakSet(), _TokenRatesController_updateTokenList = function _TokenRatesController_updateTokenList() {
++    var _a, _b;
++    const { allTokens, allDetectedTokens } = this.config;
++    const oldTokenList = this.tokenList;
++    const tokens = ((_a = allTokens[this.config.chainId]) === null || _a === void 0 ? void 0 : _a[this.config.selectedAddress]) || [];
++    const detectedTokens = ((_b = allDetectedTokens[this.config.chainId]) === null || _b === void 0 ? void 0 : _b[this.config.selectedAddress]) ||
++        [];
++    const newTokenList = [...tokens, ...detectedTokens].map((token) => token.address);
++    this.tokenList = newTokenList;
++    return (0, fast_deep_equal_1.default)(oldTokenList, newTokenList);
++}, _TokenRatesController_stopPoll = function _TokenRatesController_stopPoll() {
++    if (this.handle) {
++        clearTimeout(this.handle);
++    }
++}, _TokenRatesController_poll = function _TokenRatesController_poll() {
++    return __awaiter(this, void 0, void 0, function* () {
++        yield (0, controller_utils_1.safelyExecute)(() => this.updateExchangeRates());
++        // Poll using recursive `setTimeout` instead of `setInterval` so that
++        // requests don't stack if they take longer than the polling interval
++        this.handle = setTimeout(() => {
++            __classPrivateFieldGet(this, _TokenRatesController_instances, "m", _TokenRatesController_poll).call(this);
++        }, this.config.interval);
++    });
++};
+ exports.default = TokenRatesController;
+ //# sourceMappingURL=TokenRatesController.js.map
+\ No newline at end of file
 diff --git a/node_modules/@metamask/assets-controllers/dist/TokensController.js b/node_modules/@metamask/assets-controllers/dist/TokensController.js
 index 0e03b88..bd7ddbd 100644
 --- a/node_modules/@metamask/assets-controllers/dist/TokensController.js
@@ -976,7 +1394,7 @@ index 1b69903..d45fe80 100644
  /**
   * Check if token detection is enabled for certain networks.
 diff --git a/node_modules/@metamask/assets-controllers/dist/assetsUtil.js b/node_modules/@metamask/assets-controllers/dist/assetsUtil.js
-index 4b54e82..2322286 100644
+index 4b54e82..f03a880 100644
 --- a/node_modules/@metamask/assets-controllers/dist/assetsUtil.js
 +++ b/node_modules/@metamask/assets-controllers/dist/assetsUtil.js
 @@ -120,6 +120,7 @@ var SupportedTokenDetectionNetworks;
@@ -987,3 +1405,85 @@ index 4b54e82..2322286 100644
  })(SupportedTokenDetectionNetworks = exports.SupportedTokenDetectionNetworks || (exports.SupportedTokenDetectionNetworks = {}));
  /**
   * Check if token detection is enabled for certain networks.
+@@ -225,4 +226,80 @@ function ethersBigNumberToBN(bigNumber) {
+     return new ethereumjs_util_1.BN((0, ethereumjs_util_1.stripHexPrefix)(bigNumber.toHexString()), 'hex');
+ }
+ exports.ethersBigNumberToBN = ethersBigNumberToBN;
++/**
++ * Maps an OpenSea V2 NFT to the V1 schema.
++ * @param nft - The V2 NFT to map.
++ * @returns The NFT in the V1 schema.
++ */
++function mapOpenSeaNftV2ToV1(nft) {
++    return {
++        token_id: nft.identifier,
++        num_sales: null,
++        background_color: null,
++        image_url: nft.image_url,
++        image_preview_url: null,
++        image_thumbnail_url: null,
++        image_original_url: null,
++        animation_url: null,
++        animation_original_url: null,
++        name: nft.name,
++        description: nft.description,
++        external_link: null,
++        asset_contract: {
++            address: nft.contract,
++            asset_contract_type: null,
++            created_date: null,
++            schema_name: nft.token_standard.toUpperCase(),
++            symbol: null,
++            total_supply: null,
++            description: nft.description,
++            external_link: null,
++            collection: {
++                name: nft.collection,
++                image_url: null,
++            },
++        },
++        creator: {
++            user: { username: '' },
++            profile_img_url: '',
++            address: '',
++        },
++        last_sale: null,
++    };
++}
++exports.mapOpenSeaNftV2ToV1 = mapOpenSeaNftV2ToV1;
++/**
++ * Maps an OpenSea V2 detailed NFT to the V1 schema.
++ * @param nft - The V2 detailed NFT to map.
++ * @returns The NFT in the V1 schema.
++ */
++function mapOpenSeaDetailedNftV2ToV1(nft) {
++    const mapped = mapOpenSeaNftV2ToV1(nft);
++    return Object.assign(Object.assign({}, mapped), { animation_url: nft.animation_url, creator: Object.assign(Object.assign({}, mapped.creator), { address: nft.creator }) });
++}
++exports.mapOpenSeaDetailedNftV2ToV1 = mapOpenSeaDetailedNftV2ToV1;
++/**
++ * Maps an OpenSea V2 contract to the V1 schema.
++ * @param contract - The v2 contract data.
++ * @param collection - The v2 collection data.
++ * @returns The contract in the v1 schema.
++ */
++function mapOpenSeaContractV2ToV1(contract, collection) {
++    var _a, _b, _c;
++    return {
++        address: contract.address,
++        asset_contract_type: null,
++        created_date: null,
++        schema_name: contract.contract_standard.toUpperCase(),
++        symbol: null,
++        total_supply: contract.supply.toString(),
++        description: (_a = collection === null || collection === void 0 ? void 0 : collection.description) !== null && _a !== void 0 ? _a : null,
++        external_link: (_b = collection === null || collection === void 0 ? void 0 : collection.project_url) !== null && _b !== void 0 ? _b : null,
++        collection: {
++            name: (_c = collection === null || collection === void 0 ? void 0 : collection.name) !== null && _c !== void 0 ? _c : contract.name,
++            image_url: collection === null || collection === void 0 ? void 0 : collection.image_url,
++        },
++    };
++}
++exports.mapOpenSeaContractV2ToV1 = mapOpenSeaContractV2ToV1;
+ //# sourceMappingURL=assetsUtil.js.map
+\ No newline at end of file

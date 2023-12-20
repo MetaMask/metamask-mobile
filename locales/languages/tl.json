@@ -201,6 +201,10 @@
     "security_alert_title": "Panseguridad na Alerto",
     "security_alert_desc": "Upang magpatuloy, kailangan mong i-on ang Passcode o anumang paraan ng pag-authenticate ng biometrics na sinusuportahan sa iyong device (FaceID, TouchID o Fingerprint)"
   },
+  "connect_hardware": {
+    "title_select_hardware": "Magkonekta ng wallet na hardware",
+    "select_hardware": "Pumili ng wallet na hardware na gusto mong gamitin"
+  },
   "enter_password": {
     "title": "Ilagay ang iyong password",
     "desc": "Pakilagay ang iyong password para magpatuloy",
@@ -513,6 +517,7 @@
   },
   "accounts": {
     "create_new_account": "Gumawa ng bagong account",
+    "qr_hardware": "QR hardware",
     "import_account": "Mag-import ng account",
     "connect_hardware": "Ikonekta ang wallet na hardware",
     "imported": "Na-import",
@@ -536,6 +541,7 @@
     "permissions": "Mga Pahintulot",
     "revoke": "Ipawalang-bisa",
     "revoke_all": "Ipawalang-bisa lahat",
+    "ledger": "Ledger",
     "site_permission_to": "Ang site na ito ay may pahintulot na:",
     "address_balance_activity_permission": "Tingnan ang address, balanse ng account, at aktibidad",
     "suggest_transactions": "Magmungkahi ng mga transaksyong aaprubahan",
@@ -569,7 +575,7 @@
     "tutorial": "Pagtuturo",
     "description4": "Keystone (pagtuturo)",
     "description5": "1. I-unlock ang iyong Keystone",
-    "description6": "2. Pindutin ang ··· Menu, pagkatapos ay pumunta sa Sync >",
+    "description6": "2. Tap the ··· Menu, then go to Sync",
     "button_continue": "Magpatuloy",
     "hint_text": "I-scan ang iyong Keystone wallet sa ",
     "purpose_connect": "kumonekta",
@@ -701,7 +707,7 @@
     "remove_network": "Alisin",
     "cancel_remove_network": "Kanselahin",
     "info_title": "Tungkol sa MetaMask",
-    "info_title_flask": "About MetaMask Flask",
+    "info_title_flask": "Tungkol sa MetaMask Flask",
     "experimental_title": "Eksperimental",
     "experimental_desc": "WalletConnect at higit pa...",
     "legal_title": "Ligal",
@@ -801,7 +807,53 @@
     "autodetect_nft_desc": "Hayaan ang MetaMask na magdagdag ng mga NFT na iyong pag-aari gamit ang mga third-party na (tulad ng OpenSea). Ang awtomatikong pagtuklas ng mga NFT ay naglalantad sa iyong IP at address ng account sa mga serbisyong ito. Ang pagpapagana sa tampok na ito ay maaaring mag-ugnay sa iyong IP sa iyong Ethereum address at magpakita ng pekeng NFT na in-airdrop ng mga manloloko. Maaari kang magdagdag ng token sa manwal na paraan para iwasan ang panganib na ito.",
     "incoming_transactions_title": "Ipakita ang mga papasok na transaksyon",
     "incoming_transactions_content": "Umaasa ito sa network na iyong pinili na maglalantad sa iyong Ethereum address at IP address.",
-    "display_nft_media_desc_new": "Ang pag-display ng NFT media at datos ay naglalantad sa iyong IP address sa OpenSeas o iba pang third party. Ang auto-detection ng NFT ay nakaasa sa tampok na ito, at hindi ito available kapag naka-off. Kung ang NFT media ay lubos na matatagpuan sa IPFS, maaari pa ring itong i-display kapag ang tampok na ito ay naka-off."
+    "display_nft_media_desc_new": "Ang pag-display ng NFT media at datos ay naglalantad sa iyong IP address sa OpenSeas o iba pang third party. Ang auto-detection ng NFT ay nakaasa sa tampok na ito, at hindi ito available kapag naka-off. Kung ang NFT media ay lubos na matatagpuan sa IPFS, maaari pa ring itong i-display kapag ang tampok na ito ay naka-off.",
+    "snaps": {
+      "title": "Mga Snap",
+      "description": "Overview and manage your snaps",
+      "snap_settings": {
+        "remove_snap_section_title": "Alisin ang Snap",
+        "remove_snap_section_description": "Idi-delete ng aksyong ito ang snap, ang data nito, at ang mga ipinagkaloob na pahintulot nito.",
+        "remove_button_label": "Alisin ang {{snapName}}"
+      },
+      "snap_details": {
+        "install_date": "Na-install noong {{date}}",
+        "install_origin": "Install Origin",
+        "enabled": "Enabled",
+        "version": "Bersyon"
+      },
+      "snap_permissions": {
+        "approved_date": "Inaprubahan noong {{date}}",
+        "permission_section_title": "Mga Pahintulot",
+        "permission_requested_now": "Requested now",
+        "human_readable_permission_titles": {
+          "endowment:long-running": "Run indefinitely",
+          "endowment:network-access": "I-access ang internet",
+          "endowment:transaction-insight": "Magpakita ng mga insight sa transaksyon",
+          "endowment:cronjob": "Mag-iskedyul at magpatakbo ng mga pana-panahong aksyon",
+          "endowment:rpc": {
+            "snaps": "Payagan ang ibang mga snap na direktang makipag-ugnayan sa snap na ito",
+            "dapps": "Payagan ang mga dapp na direktang makipag-ugnayan sa snap na ito"
+          },
+          "snap_confirm": "Magpakita ng mga custom na dialog",
+          "snap_manageState": "Mag-imbak at mamahala ng data sa iyong device",
+          "snap_notify": "Magpakita ng mga notipikasyon",
+          "snap_getBip32Entropy": "Kontrolin ang iyong mga {{protocol}} account at asset",
+          "snap_getBip32PublicKey": "Tingnan ang iyong pampublikong key para sa {{protocol}}",
+          "snap_getBip44Entropy": "Kontrolin ang iyong mga {{protocol}} account at asset",
+          "snap_getEntropy": "Humango ng mga arbitrary key na natatangi sa snap na ito",
+          "endowment:keyring": "endowment:keyring",
+          "wallet_snap": "Kumonekta sa {{otherSnapName}}",
+          "endowment:webassembly": "Suporta para sa WebAssembly",
+          "endowment:ethereum-provider": "I-access ang Ethereum provider",
+          "endowment:unknown": "Hindi kilalang pahintulot",
+          "snap_getLocale": "Tingnan ang iyong mas gustong wika",
+          "endowment:caveat:transaction-origin": "Tingnan ang mga pinagmulan ng mga website na nagmumungkahi ng mga transaksyon",
+          "endowment:extend-runtime": "Pahabain ang runtime",
+          "snap_dialog": "Magpakita ng mga custom na dialog"
+        }
+      }
+    }
   },
   "sdk": {
     "disconnect_title": "Idiskonekta ang lahat ng site?",
@@ -910,6 +962,7 @@
     "add_collectible_button": "Magdagdag",
     "info": "Impormasyon",
     "swap": "I-swap",
+    "bridge": "Bridge",
     "description": "Deskripsyon",
     "totalSupply": "Kabuuang Supply",
     "address": "Address",
@@ -921,6 +974,7 @@
     "buy_description": "Bumili ng crypto gamit ang cash",
     "sell_description": "Magbenta ng crypto para sa pera",
     "swap_description": "Palitan sa pagitan ng mga token",
+    "bridge_description": "Maglipat ng mga token sa pagitan ng mga network",
     "send_description": "Magpadala ng crypto sa anumang account",
     "receive_description": "Tumanggap ng crypto",
     "chart_time_period": {
@@ -1020,6 +1074,7 @@
     "save": "I-save",
     "speedup": "Pabilisin",
     "sign_with_keystone": "Pumirma gamit ang Keystone",
+    "sign_with_ledger": "Pumirma gamit ang Ledger",
     "from": "Mula kay/sa",
     "gas_fee": "Bayad sa gas",
     "gas_fee_fast": "MABILIS",
@@ -1093,6 +1148,7 @@
     "not_enough_for_gas": "Mayroon kang 0 {{ticker}} sa iyong account para bayaran ang mga transaksyon. Bumili ng {{ticker}} o magdeposito mula sa ibang account.",
     "send": "Magpadala",
     "confirm_with_qr_hardware": "Kumpirmahin gamit ang Keystone",
+    "confirm_with_ledger_hardware": "Kumpirmahin gamit ang Ledger",
     "confirmed": "Nakumpirma",
     "pending": "Nakabinbin",
     "submitted": "Naisumite",
@@ -1845,16 +1901,6 @@
     "apple_pay_provider_total_label": "{{provider}} (gamit ang MetaMask)",
     "buy_with": "Bumili gamit ang",
     "plus_fee": "At dagdag na bayarin na {{fee}}",
-    "notifications": {
-      "purchase_failed_title": "Nabigo ang pagbili ng {{currency}}! Pakisubukan ulit, pasensya na sa abala!",
-      "purchase_failed_description": "I-verify ang iyong paraan ng pagbabayad at suporta sa card",
-      "purchase_cancelled_title": "Nakansela ang iyong pagbili",
-      "purchase_cancelled_description": "I-verify ang iyong paraan ng pagbabayad at suporta sa card",
-      "purchase_completed_title": "Matagumpay ang pagbili mo ng {{amount}} {{currency}}!",
-      "purchase_completed_description": "Available na ang {{currency}}",
-      "purchase_pending_title": "Pinoproseso ang pagbili mo ng {{currency}}",
-      "purchase_pending_description": "Ilang minuto lang ang aabutin nito..."
-    },
     "date": "Petsa",
     "from": "Mula kay/sa",
     "to": "Para kay/sa",
@@ -2012,7 +2058,9 @@
       "select_country_registered": "Piliin ang bansa kung saan nakarehistro ang iyong card (saan ka man nakatira).",
       "unsupported": "Hindi Sinusuportahan ang Rehiyon",
       "unsupported_description": "Nagsusumikap kaming palawigin ang saklaw sa iyong rehiyon sa lalong madaling panahon. Pansamantala, tingnan ang aming artikulo ng suporta para sa iba pang mga paraan na maaari kang {{rampType}} ng crypto.",
-      "unsupported_link": "Bisitahin ang Artikulo ng Suporta"
+      "unsupported_link": "Bisitahin ang Artikulo ng Suporta",
+      "popular_regions": "Mga Sikat na Rehiyon",
+      "regions": "Mga Rehiyon"
     },
     "order_details": {
       "details_main": "Mga Detalye ng Order",
@@ -2060,6 +2108,16 @@
       "hold_to_send": "Pindutin nang matagal para ipadala",
       "send": "Ipadala",
       "sent": "Naipadala!"
+    },
+    "notifications": {
+      "purchase_failed_title": "Nabigo ang pagbili ng {{currency}}! Pakisubukan ulit, pasensya na sa abala!",
+      "purchase_failed_description": "I-verify ang iyong paraan ng pagbabayad at suporta sa card",
+      "purchase_cancelled_title": "Nakansela ang iyong pagbili",
+      "purchase_cancelled_description": "I-verify ang iyong paraan ng pagbabayad at suporta sa card",
+      "purchase_completed_title": "Matagumpay ang pagbili mo ng {{amount}} {{currency}}!",
+      "purchase_completed_description": "Available na ang {{currency}}",
+      "purchase_pending_title": "Pinoproseso ang pagbili mo ng {{currency}}",
+      "purchase_pending_description": "Ilang minuto lang ang aabutin nito..."
     }
   },
   "swaps": {
@@ -2152,6 +2210,7 @@
     "i_understand": "Nauunawaan ko",
     "quotes_expire_in": "Mag-e-expire ang mga quote sa",
     "saving": "Nagse-save",
+    "n_quotes": "{{numberOfQuotes}} (na) quote",
     "view_details": "Tingnan ang mga detalye",
     "estimated_gas_fee": "Tinantyang bayad sa gas",
     "max_gas_fee": "Pinakamataas na bayad sa gas",
@@ -2196,7 +2255,7 @@
     "quote_source_agg": {
       "1": "Ang quote na ito ay nanggaling sa",
       "2": "aggregator",
-      "3": "na naghahanap ng pinakasulit na presyo sa pamamagitan ng paghati ng iyong order sa iba't ibang decentralized exchange."
+      "3": "which compares prices and splits your order between different decentralized exchanges."
     },
     "quote_source_cnt": {
       "1": "Ang quote na ito ay direktang nagmula sa isang",
@@ -2637,7 +2696,12 @@
     "not_supported_error": "Ang bersyon 4 lamang ng naka-type na pagpirma ng data ang sinusuportahan.",
     "error_during_connection": "May naganap na hindi kilalang error",
     "error_during_connection_message": "Nagkaroon ng kaunting problema sa pagkonekta sa iyong Ledger Nano X, i-tap ang 'Subukang muli' sa ibaba upang subukan ito. Minsan nangyayari ito dahil sa pagiging bukas ng ETH app sa iyong Ledger Nano X sa simula ng proseso ng pagpapares sa MetaMask Mobile.",
-    "how_to_install_eth_webview_title": "Paano i-install ang App ng Ethereum"
+    "how_to_install_eth_webview_title": "Paano i-install ang App ng Ethereum",
+    "nonce_too_low": "Masyadong mababa ang nonce",
+    "nonce_too_low_error": "Masyadong mababa ang itinakdang nonce",
+    "ledger_beta_alert": "Enabling Ledger integration",
+    "ledger_beta_alert_description": "You've found an experimental feature! By continuing you accept you're using this experimental feature at your own risk.",
+    "ledger_beta_cta": "Magpatuloy"
   },
   "account_actions": {
     "edit_name": "I-edit ang pangalan ng account",

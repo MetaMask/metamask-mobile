@@ -1,9 +1,3 @@
-// Importing SES (0.18.7+) here then calling lockdown causes:
-// https://github.com/LavaMoat/docs/issues/24
-
-// Importing the SES (0.18.7) lockdown shim here then calling lockdown causes:
-// https://github.com/LavaMoat/docs/issues/27
-
 import './shim.js';
 
 // Needed to polyfill random number generation.
