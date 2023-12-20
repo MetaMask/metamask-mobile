@@ -2,7 +2,6 @@ import {
   SECURITY_PRIVACY_REMEMBER_ME_TOGGLE,
   SECURITY_PRIVACY_DELETE_WALLET_BUTTON,
 } from '../../../../../wdio/screen-objects/testIDs/Screens/SecurityPrivacy.testIds';
-import { CommonSelectorsIDs } from '../../../../selectors/Common.selectors';
 import {
   SecurityPrivacyViewSelectorsIDs,
   SecurityPrivacyViewSelectorsText,
@@ -31,10 +30,6 @@ class SecurityAndPrivacy {
     return device.getPlatform() === 'ios'
       ? Matchers.getElementByID(SECURITY_PRIVACY_DELETE_WALLET_BUTTON)
       : Matchers.getElementByLabel(SECURITY_PRIVACY_DELETE_WALLET_BUTTON);
-  }
-
-  get backButton() {
-    return Matchers.getElementByID(CommonSelectorsIDs.BACK_ARROW_BUTTON);
   }
 
   get metaMetricsToggle() {
@@ -88,10 +83,6 @@ class SecurityAndPrivacy {
 
   async tapDeleteWalletButton() {
     await Gestures.waitAndTap(this.deleteWalletButton);
-  }
-
-  async tapBackButton() {
-    await Gestures.waitAndTap(this.backButton);
   }
 
   async scrollToChangePasswordView() {

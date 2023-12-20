@@ -76,7 +76,7 @@ class Gestures {
   /**
    * Clear the text field of an element identified by ID.
    *
-   * @param {Detox.IndexableNativeElement} elementID - ID of the element to clear
+   * @param {Promise<Detox.IndexableNativeElement>} elementID - ID of the element to clear
    */
   static async clearField(elementID) {
     const element = await elementID;
