@@ -1683,7 +1683,7 @@ index 1b69903..d45fe80 100644
  /**
   * Check if token detection is enabled for certain networks.
 diff --git a/node_modules/@metamask/assets-controllers/dist/assetsUtil.js b/node_modules/@metamask/assets-controllers/dist/assetsUtil.js
-index 4b54e82..a1aac08 100644
+index 4b54e82..ecd2fdf 100644
 --- a/node_modules/@metamask/assets-controllers/dist/assetsUtil.js
 +++ b/node_modules/@metamask/assets-controllers/dist/assetsUtil.js
 @@ -120,6 +120,7 @@ var SupportedTokenDetectionNetworks;
@@ -1805,18 +1805,18 @@ index 4b54e82..a1aac08 100644
 + * @returns The contract in the v1 schema.
 + */
 +function mapOpenSeaContractV2ToV1(contract, collection) {
-+    var _a, _b, _c;
++    var _a, _b, _c, _d, _e, _f, _g;
 +    return {
 +        address: contract.address,
 +        asset_contract_type: null,
 +        created_date: null,
 +        schema_name: contract.contract_standard.toUpperCase(),
 +        symbol: null,
-+        total_supply: contract.supply.toString(),
-+        description: (_a = collection === null || collection === void 0 ? void 0 : collection.description) !== null && _a !== void 0 ? _a : null,
-+        external_link: (_b = collection === null || collection === void 0 ? void 0 : collection.project_url) !== null && _b !== void 0 ? _b : null,
++        total_supply: (_d = (_b = (_a = collection === null || collection === void 0 ? void 0 : collection.total_supply) === null || _a === void 0 ? void 0 : _a.toString()) !== null && _b !== void 0 ? _b : (_c = contract.total_supply) === null || _c === void 0 ? void 0 : _c.toString()) !== null && _d !== void 0 ? _d : null,
++        description: (_e = collection === null || collection === void 0 ? void 0 : collection.description) !== null && _e !== void 0 ? _e : null,
++        external_link: (_f = collection === null || collection === void 0 ? void 0 : collection.project_url) !== null && _f !== void 0 ? _f : null,
 +        collection: {
-+            name: (_c = collection === null || collection === void 0 ? void 0 : collection.name) !== null && _c !== void 0 ? _c : contract.name,
++            name: (_g = collection === null || collection === void 0 ? void 0 : collection.name) !== null && _g !== void 0 ? _g : contract.name,
 +            image_url: collection === null || collection === void 0 ? void 0 : collection.image_url,
 +        },
 +    };
