@@ -17,7 +17,6 @@ const Select: React.FC<SelectProps> = ({
   placeholder,
   value,
   selectButtonProps,
-  isBottomSheetOpen,
   bottomSheetProps,
   title,
   description,
@@ -34,7 +33,6 @@ const Select: React.FC<SelectProps> = ({
       style={styles.base}
       value={value}
       selectButtonProps={selectButtonProps}
-      isBottomSheetOpen={isBottomSheetOpen}
       bottomSheetProps={bottomSheetProps}
       {...props}
     >
