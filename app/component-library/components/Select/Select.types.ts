@@ -1,12 +1,8 @@
-// Third party dependencies.
-import { ViewProps } from 'react-native';
+// External dependencies.
+import { SelectWrapperProps } from './SelectWrapper/SelectWrapper.types';
+import { SelectMenuProps } from './SelectMenu/SelectMenu.types';
 
 /**
  * Select component props.
  */
-export interface SelectProps extends ViewProps {
-  /**
-   * Content to wrap to display.
-   */
-  children?: React.ReactNode;
-}
+export interface SelectProps extends SelectWrapperProps, SelectMenuProps {}

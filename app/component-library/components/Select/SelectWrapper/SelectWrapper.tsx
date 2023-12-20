@@ -41,7 +41,6 @@ const SelectWrapper: React.FC<SelectWrapperProps> = ({
       onMenuOpen();
       selectButtonProps?.onPress?.(event);
     };
-
     return (
       <SelectButton
         {...selectButtonContent}

@@ -87,6 +87,7 @@ const getStories = () => {
     "./app/component-library/components/Pickers/PickerAccount/PickerAccount.stories.tsx": require("../app/component-library/components/Pickers/PickerAccount/PickerAccount.stories.tsx"),
     "./app/component-library/components/Pickers/PickerNetwork/PickerNetwork.stories.tsx": require("../app/component-library/components/Pickers/PickerNetwork/PickerNetwork.stories.tsx"),
     "./app/component-library/components/RadioButton/RadioButton.stories.tsx": require("../app/component-library/components/RadioButton/RadioButton.stories.tsx"),
+    "./app/component-library/components/Select/Select.stories.tsx": require("../app/component-library/components/Select/Select.stories.tsx"),
     "./app/component-library/components/Select/SelectButton/SelectButton.stories.tsx": require("../app/component-library/components/Select/SelectButton/SelectButton.stories.tsx"),
     "./app/component-library/components/Select/SelectHeader/SelectHeader.stories.tsx": require("../app/component-library/components/Select/SelectHeader/SelectHeader.stories.tsx"),
     "./app/component-library/components/Select/SelectMenu/SelectMenu.stories.tsx": require("../app/component-library/components/Select/SelectMenu/SelectMenu.stories.tsx"),

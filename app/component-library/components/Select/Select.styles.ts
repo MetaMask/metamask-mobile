@@ -16,13 +16,7 @@ const styleSheet = (params: { theme: Theme; vars: any }) => {
   const { vars } = params;
   const { style } = vars;
   return StyleSheet.create({
-    base: Object.assign(
-      {
-        flexDirection: 'row',
-        margin: -8,
-      } as ViewStyle,
-      style,
-    ) as ViewStyle,
+    base: Object.assign({} as ViewStyle, style) as ViewStyle,
   });
 };
 
