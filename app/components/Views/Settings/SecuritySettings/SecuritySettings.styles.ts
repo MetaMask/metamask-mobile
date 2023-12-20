@@ -1,46 +1,46 @@
 import { StyleSheet } from 'react-native';
-import { fontStyles } from '../../../../styles/common';
 import { Colors } from '../../../../util/theme/models';
 
 const createStyles = (colors: Colors) =>
   StyleSheet.create({
     wrapper: {
       backgroundColor: colors.background.default,
-      padding: 24,
+      paddingHorizontal: 16,
+      paddingTop: 8,
       paddingBottom: 48,
     },
-    title: {
-      ...fontStyles.normal,
-      color: colors.text.default,
-      fontSize: 20,
-      lineHeight: 20,
-      paddingTop: 4,
-      marginTop: -4,
-    },
     heading: {
-      fontSize: 24,
-      lineHeight: 30,
       marginBottom: 24,
     },
     desc: {
-      ...fontStyles.normal,
-      color: colors.text.alternative,
-      fontSize: 14,
-      lineHeight: 20,
-      marginTop: 12,
+      marginTop: 8,
     },
-    marginTop: {
-      marginTop: 18,
+    accessory: {
+      marginTop: 16,
+    },
+    transactionsContainer: {
+      marginTop: 24,
+      marginLeft: -16,
+      marginRight: -16,
+    },
+    titleContainer: {
+      flexDirection: 'row',
+      alignItems: 'center',
+    },
+    title: {
+      flex: 1,
     },
     switchElement: {
-      marginTop: 18,
-      alignSelf: 'flex-start',
+      marginLeft: 16,
     },
     setting: {
-      marginTop: 50,
+      marginTop: 32,
     },
     firstSetting: {
       marginTop: 0,
+    },
+    halfSetting: {
+      marginTop: 16,
     },
     modalView: {
       alignItems: 'center',
@@ -50,20 +50,11 @@ const createStyles = (colors: Colors) =>
       padding: 20,
     },
     modalText: {
-      ...fontStyles.normal,
-      fontSize: 18,
       textAlign: 'center',
-      color: colors.text.default,
     },
     modalTitle: {
-      ...fontStyles.bold,
-      fontSize: 22,
       textAlign: 'center',
       marginBottom: 20,
-      color: colors.text.default,
-    },
-    confirm: {
-      marginTop: 18,
     },
     protect: {
       flexDirection: 'row',
@@ -90,6 +81,9 @@ const createStyles = (colors: Colors) =>
       alignSelf: 'flex-start',
     },
     cellBorder: { borderWidth: 0 },
+    subHeading: {
+      marginTop: 32,
+    },
   });
 
 export default createStyles;

@@ -1,6 +1,6 @@
 {
   "name": "metamask",
-  "version": "7.12.2",
+  "version": "7.12.3",
   "private": true,
   "scripts": {
     "audit:ci": "./scripts/yarn-audit.sh",
@@ -191,7 +191,7 @@
     "@metamask/permission-controller": "^4.0.1",
     "@metamask/phishing-controller": "^5.0.0",
     "@metamask/post-message-stream": "7.0.0",
-    "@metamask/ppom-validator": "^0.15.0",
+    "@metamask/ppom-validator": "^0.16.0",
     "@metamask/preferences-controller": "^4.0.0",
     "@metamask/scure-bip39": "^2.1.0",
     "@metamask/sdk-communication-layer": "^0.12.0",
