@@ -1574,30 +1574,10 @@ export const getSettingsNavigationOptions = (title, themeColors) => {
       shadowColor: importedColors.transparent,
       elevation: 0,
     },
-    headerContainer: {
-      flexDirection: 'row',
-      alignItems: 'center',
-      alignSelf: 'flex-start',
-      paddingHorizontal: 16,
-    },
-    metamaskLogo: {
-      width: 24,
-      height: 24,
-      marginRight: 8,
-    },
   });
   return {
-    headerLeft: () => (
-      <View style={innerStyles.headerContainer}>
-        <Image
-          source={metamask_fox}
-          style={innerStyles.metamaskLogo}
-          resizeMethod={'auto'}
-        />
-        <MorphText variant={TextVariant.HeadingMD}>{title}</MorphText>
-      </View>
-    ),
-    headerTitle: null,
+    headerLeft: null,
+    headerTitle: <MorphText variant={TextVariant.HeadingMD}>{title}</MorphText>,
     ...innerStyles,
   };
 };
