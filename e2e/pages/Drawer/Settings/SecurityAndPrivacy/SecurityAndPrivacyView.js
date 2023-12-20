@@ -10,20 +10,10 @@ import Matchers from '../../../../utils/Matchers';
 import Gestures from '../../../../utils/Gestures';
 
 class SecurityAndPrivacy {
-  get container() {
-    return Matchers.getElementByID(
-      SecurityPrivacyViewSelectorsIDs.CHANGE_PASSWORD_CONTAINER,
-    );
-  }
-
   get changePasswordButton() {
     return Matchers.getElementByID(
       SecurityPrivacyViewSelectorsIDs.CHANGE_PASSWORD_BUTTON,
     );
-  }
-
-  get deleteWalletButtonLabel() {
-    return Matchers.getElementByLabel(SECURITY_PRIVACY_DELETE_WALLET_BUTTON);
   }
 
   get deleteWalletButton() {

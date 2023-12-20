@@ -11,7 +11,7 @@ import TabBarComponent from '../../pages/TabBarComponent';
 import SkipAccountSecurityModal from '../../pages/modals/SkipAccountSecurityModal';
 import ConnectedAccountsModal from '../../pages/modals/ConnectedAccountsModal';
 import DeleteWalletModal from '../../pages/modals/DeleteWalletModal';
-import SecurityAndPrivacyView from '../../pages/Drawer/Settings/SecurityAndPrivacy/SecurityAndPrivacyView';
+import LoginView from '../../pages/LoginView';
 import NetworkListModal from '../../pages/modals/NetworkListModal';
 import { loginToApp } from '../../viewHelper';
 import FixtureBuilder from '../../fixtures/fixture-builder';
@@ -52,12 +52,14 @@ describe(
 
           //go to settings then security & privacy
           await TabBarComponent.tapSettings();
-          await SettingsView.tapSecurityAndPrivacy();
-          await device.disableSynchronization();
+          await SettingsView.tapLock();
+          await SettingsView.tapYesAlertButton();
+          await LoginView.isVisible();
 
-          await SecurityAndPrivacyView.scrollToDeleteWalletButton();
-          await device.enableSynchronization();
-          await SecurityAndPrivacyView.tapDeleteWalletButton();
+          // should tap reset wallet button
+          await LoginView.tapResetWalletButton();
+
+          await DeleteWalletModal.isVisible();
 
           //Delete wallet
           await DeleteWalletModal.tapIUnderstandButton();

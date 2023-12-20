@@ -158,22 +158,22 @@ class Gestures {
    *
    * @param {Promise<Detox.IndexableNativeElement>} destinationElementID - ID of the element to scroll up to
    * @param {number} scrollIdentifier - The identifier (by.id) NOT elementID (element(by.id)). Keep this distinction in mind. If you pass in an elementID this method would not work as intended
-   * @param {Detox.Direction} direction - Direction of the scroll (up, down, left, right)
-   */
+   * @param {Detox.Direction} direction - Direction of the scroll (up, down, left, right). The default is down.
+   * @param {number} [scrollAmount=350] - The amount to scroll (default is 350). Optional parameter.   */
   static async scrollToElement(
     destinationElementID,
     scrollIdentifier,
     direction = 'down',
+    scrollAmount = 350,
   ) {
-    const desntionElement = await destinationElementID;
-    const Elements = await scrollIdentifier;
-    await waitFor(desntionElement)
+    const destinationElement = await destinationElementID;
+    const scrollableElement = await scrollIdentifier;
+
+    await waitFor(destinationElement)
       .toBeVisible()
-      .whileElement(Elements)
-      .scroll(350, direction);
+      .whileElement(scrollableElement)
+      .scroll(scrollAmount, direction);
   }
 }
-
-// }
 
 export default Gestures;
