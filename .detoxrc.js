@@ -8,7 +8,7 @@ module.exports = {
     jest: {
       setupTimeout: 220000,
     },
-    retries: process.env.CI ? 2 : 1,
+    retries: 2,
   },
   
   artifacts: {
