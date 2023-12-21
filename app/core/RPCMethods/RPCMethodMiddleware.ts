@@ -347,12 +347,20 @@ export const getRpcMethodMiddleware = ({
           throw ethErrors.rpc.invalidParams('This address does not exist');
         }
 
-        validateParams(from, ['amount', 'chainId', 'token_address'], 'from');
+        // This condition is only needed until we support multiple source tokens swap
+        if (from.length > 1) {
+          throw ethErrors.rpc.invalidParams(
+            'Currently we de not support multiple tokens swap',
+          );
+        }
+
+        validateParams(from[0], ['amount', 'chainId', 'token_address'], 'from');
         validateParams(to, ['token_address', 'chainId'], 'to');
 
         const chainId = selectChainId(store.getState());
 
-        if (from.chainId !== to.chainId) {
+        //  This verification is not needed when we support cross chain swaps
+        if (from[0].chainId !== to.chainId) {
           throw ethErrors.rpc.invalidParams(
             'ChainId value is not consistent between from and to',
           );
@@ -370,14 +378,15 @@ export const getRpcMethodMiddleware = ({
           );
         }
 
+        // This condition will only lives until we can do cross chain swaps
         if (
-          chainId !== parseInt(from.chainId, 16).toString() ||
+          chainId !== parseInt(from[0].chainId, 16).toString() ||
           chainId !== parseInt(to.chainId, 16).toString()
         ) {
           // Switch chain id to chain nickname if it exists, if doesn't show the chain id
           Alert.alert(
             `This chain is not selected, please switch to this chain id ${parseInt(
-              from.chainId,
+              from[0].chainId,
               16,
             )}`,
           );
@@ -393,13 +402,13 @@ export const getRpcMethodMiddleware = ({
           return;
         }
 
-        const decimalWei = parseInt(from.amount, 16);
+        const decimalWei = parseInt(from[0].amount, 16);
         const tokenAmount = fromWei(decimalWei);
 
         navigation.navigate('Swaps', {
           screen: 'SwapsAmountView',
           params: {
-            sourceToken: from.token_address,
+            sourceToken: from[0].token_address,
             destinationToken: to.token_address,
             amount: tokenAmount,
           },
