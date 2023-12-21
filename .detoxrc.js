@@ -8,7 +8,6 @@ module.exports = {
     jest: {
       setupTimeout: 220000,
     },
-    retries: 1,
   },
   
   artifacts: {
