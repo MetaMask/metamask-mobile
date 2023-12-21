@@ -1,29 +1,15 @@
 /* eslint-disable import/prefer-default-export */
-import { fontStyles } from '../../../../../../styles/common';
 import { StyleSheet } from 'react-native';
 
-export const createStyles = (colors: any) =>
+export const createStyles = () =>
   StyleSheet.create({
     setting: {
-      marginTop: 50,
-    },
-    title: {
-      ...fontStyles.normal,
-      color: colors.text.default,
-      fontSize: 20,
-      lineHeight: 20,
-      paddingTop: 4,
-      marginTop: -4,
+      marginTop: 32,
     },
     desc: {
-      ...fontStyles.normal,
-      color: colors.text.alternative,
-      fontSize: 14,
-      lineHeight: 20,
-      marginTop: 12,
+      marginTop: 8,
     },
     confirm: {
-      marginTop: 18,
-      width: '100%',
+      marginTop: 16,
     },
   });
