@@ -1,5 +1,5 @@
 'use strict';
-import { Smoke } from '../../tags';
+import { SmokeCore } from '../../tags';
 import SendView from '../../pages/SendView';
 import SettingsView from '../../pages/Drawer/Settings/SettingsView';
 import ContactsView from '../../pages/Drawer/Settings/Contacts/ContactsView';
@@ -17,6 +17,9 @@ import {
 import TestHelpers from '../../helpers';
 import FixtureServer from '../../fixtures/fixture-server';
 import { getFixturesServerPort } from '../../fixtures/utils';
+import CommonView from '../../pages/CommonView';
+import messages from '../../../locales/languages/en.json';
+import DeleteContactModal from '../../pages/modals/DeleteContactModal';
 
 const INVALID_ADDRESS = '0xB8B4EE5B1b693971eB60bDa15211570df2dB221L';
 const TETHER_ADDRESS = '0xdac17f958d2ee523a2206206994597c13d831ec7';
@@ -24,7 +27,7 @@ const MYTH_ADDRESS = '0x1FDb169Ef12954F20A15852980e1F0C122BfC1D6';
 const MEMO = 'Test adding ENS';
 const fixtureServer = new FixtureServer();
 
-describe(Smoke('Addressbook Tests'), () => {
+describe(SmokeCore('Addressbook Tests'), () => {
   beforeAll(async () => {
     await TestHelpers.reverseServerPort();
     const fixture = new FixtureBuilder().build();
@@ -76,23 +79,25 @@ describe(Smoke('Addressbook Tests'), () => {
     await SendView.tapCancelButton();
     await TabBarComponent.tapSettings();
     await SettingsView.tapContacts();
-    await ContactsView.isVisible();
+    await expect(await ContactsView.container).toBeVisible();
     await ContactsView.isContactAliasVisible('Myth');
   });
 
   it('should add an address via the contacts view', async () => {
     await ContactsView.tapAddContactButton();
-    await AddContactView.isVisible();
+    await expect(await AddContactView.container).toBeVisible();
     await AddContactView.typeInName('Ibrahim');
     // Input invalid address
     await AddContactView.typeInAddress(INVALID_ADDRESS);
-    await AddContactView.isErrorMessageVisible();
-    await AddContactView.isErrorMessageTextCorrect();
+    await expect(await CommonView.errorMessage).toBeVisible();
+    await expect(await CommonView.errorMessage).toHaveText(
+      messages.transaction.invalid_address,
+    );
     await AddContactView.clearAddressInputBox();
     await AddContactView.typeInAddress('ibrahim.team.mask.eth');
     await AddContactView.typeInMemo(MEMO);
     await AddContactView.tapAddContactButton();
-    await ContactsView.isVisible(); // Check that we are on the contacts screen
+    await expect(await ContactsView.container).toBeVisible();
     await ContactsView.isContactAliasVisible('Ibrahim'); // Check that Ibrahim address is saved in the address book
   });
 
@@ -104,10 +109,10 @@ describe(Smoke('Addressbook Tests'), () => {
 
     // because tapping edit contact is slow to load on bitrise
     try {
-      await ContactsView.isVisible();
+      await expect(await ContactsView.container).toBeVisible();
     } catch {
       await AddContactView.tapEditContactCTA();
-      await ContactsView.isVisible();
+      await expect(await ContactsView.container).toBeVisible();
     }
     await ContactsView.isContactAliasVisible('Moon'); // Check that Ibrahim address is saved in the address book
     await ContactsView.isContactAliasNotVisible('Myth'); // Ensure Myth is not visible
@@ -119,12 +124,14 @@ describe(Smoke('Addressbook Tests'), () => {
     // Tap on edit
     await AddContactView.tapEditButton();
     await AddContactView.tapDeleteContactCTA();
+    await expect(await DeleteContactModal.title).toBeVisible();
+    await DeleteContactModal.tapDeleteButton();
     await ContactsView.isContactAliasNotVisible('Moon');
   });
 
   it('should go back to send flow to validate newly added address is displayed', async () => {
     // tap on the back arrow
-    await AddContactView.tapBackButton();
+    await CommonView.tapBackButton();
     await TabBarComponent.tapWallet();
     await TabBarComponent.tapActions();
     await WalletActionsModal.tapSendButton();
