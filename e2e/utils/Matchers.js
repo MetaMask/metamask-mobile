@@ -76,9 +76,21 @@ class Matchers {
     return web.element(by.web.xpath(xpath));
   }
 
-  // This is method does not create an element but instead it creates only a matcher. The purpose here is not to use this matcher to perform any actions.
-  static async getIdentifier(identifier) {
-    return by.id(identifier);
+  /**
+ * Creates a Detox matcher for identifying an element by its ID.
+ *
+ * @param {string} selectorString - The selector string for identifying the element
+ * @returns {Matcher} A Detox matcher that identifies elements by the specified ID.
+ *
+ * @description
+ * This method does not create an element but instead generates only a matcher.
+ * The purpose is to create a matcher that can be used for identification purposes,
+ * without performing any actions on the element.
+ *
+
+ */
+  static async getIdentifier(selectorString) {
+    return by.id(selectorString);
   }
 }
 
