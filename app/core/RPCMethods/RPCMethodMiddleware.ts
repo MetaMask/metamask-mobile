@@ -36,6 +36,10 @@ import {
   selectProviderConfig,
   selectProviderType,
 } from '../../selectors/networkController';
+import {
+  selectIdentities,
+  selectSelectedAddress,
+} from '../../selectors/preferencesController';
 import { setEventStageError, setEventStage } from '../../actions/rpcEvents';
 import { isWhitelistedRPC, RPCStageTypes } from '../../reducers/rpcEvents';
 import { regex } from '../../../app/util/regex';
@@ -330,7 +334,19 @@ export const getRpcMethodMiddleware = ({
 
     const rpcMethods: any = {
       wallet_swap: async () => {
-        const { from, to } = req.params[0];
+        const { from, to, user_address } = req.params[0];
+        const identities = selectIdentities(store.getState());
+        const selectedAddress = selectSelectedAddress(store.getState());
+        const dappConnectedAccount = Object.keys(identities).find(
+          (address) =>
+            safeToChecksumAddress(address) ===
+            safeToChecksumAddress(user_address),
+        );
+
+        if (!dappConnectedAccount) {
+          throw ethErrors.rpc.invalidParams('This address does not exist');
+        }
+
         validateParams(from, ['amount', 'chainId', 'token_address'], 'from');
         validateParams(to, ['token_address', 'chainId'], 'to');
 
@@ -339,6 +355,18 @@ export const getRpcMethodMiddleware = ({
         if (from.chainId !== to.chainId) {
           throw ethErrors.rpc.invalidParams(
             'ChainId value is not consistent between from and to',
+          );
+        }
+
+        const checksummedDappConnectedAccount =
+          safeToChecksumAddress(dappConnectedAccount);
+
+        if (
+          safeToChecksumAddress(selectedAddress) !==
+          checksummedDappConnectedAccount
+        ) {
+          Engine.context.PreferencesController.setSelectedAddress(
+            checksummedDappConnectedAccount,
           );
         }
 
