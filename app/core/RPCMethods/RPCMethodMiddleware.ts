@@ -378,19 +378,21 @@ export const getRpcMethodMiddleware = ({
           );
         }
 
-        // This condition will only lives until we can do cross chain swaps
         if (
           chainId !== parseInt(from[0].chainId, 16).toString() ||
           chainId !== parseInt(to.chainId, 16).toString()
         ) {
-          // Switch chain id to chain nickname if it exists, if doesn't show the chain id
-          Alert.alert(
-            `This chain is not selected, please switch to this chain id ${parseInt(
-              from[0].chainId,
-              16,
-            )}`,
-          );
-          return;
+          await RPCMethods.wallet_switchEthereumChain({
+            req: {
+              params: [{ chainId: from[0].chainId }],
+            },
+            res,
+            requestUserApproval,
+            analytics: {
+              request_source: getSource(),
+              request_platform: analytics?.platform,
+            },
+          });
         }
         // switch to the chain id asked from the dapp
         // validate if swaps is enable on that network
