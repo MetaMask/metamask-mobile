@@ -92,6 +92,13 @@ export class TestDApp {
     );
 
     if (device.getPlatform() === 'android') {
+      await TestHelpers.swipe(
+        BrowserViewSelectorsIDs.ANDROID_CONTAINER,
+        'down',
+        'slow',
+        0.1,
+      );
+
       await TestHelpers.waitForWebElementToBeVisibleById(buttonId, 5000);
       await TestHelpers.tapWebviewElement(buttonId);
     } else {
