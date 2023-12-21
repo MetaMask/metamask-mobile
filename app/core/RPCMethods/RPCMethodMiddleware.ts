@@ -333,7 +333,7 @@ export const getRpcMethodMiddleware = ({
       permissionRpcMethods.handlers;
 
     const rpcMethods: any = {
-      wallet_swap: async () => {
+      wallet_swapAsset: async () => {
         const { from, to, user_address } = req.params[0];
         const identities = selectIdentities(store.getState());
         const selectedAddress = selectSelectedAddress(store.getState());

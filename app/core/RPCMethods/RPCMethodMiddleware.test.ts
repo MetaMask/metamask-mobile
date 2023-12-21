@@ -1154,7 +1154,7 @@ describe('getRpcMethodMiddleware', () => {
       expect(spy).toBeCalledTimes(1);
     });
   });
-  describe('wallet_swap', () => {
+  describe('wallet_swapAsset', () => {
     it('should throw error if chainId is not consistent between from and to', async () => {
       const middleware = getRpcMethodMiddleware({
         ...getMinimalOptions(),
@@ -1163,7 +1163,7 @@ describe('getRpcMethodMiddleware', () => {
       const request = {
         jsonrpc,
         id: 1,
-        method: 'wallet_swap',
+        method: 'wallet_swapAsset',
         params: [
           {
             from: {
@@ -1195,7 +1195,7 @@ describe('getRpcMethodMiddleware', () => {
       const request = {
         jsonrpc,
         id: 1,
-        method: 'wallet_swap',
+        method: 'wallet_swapAsset',
         params: [
           {
             from: {
@@ -1256,7 +1256,7 @@ describe('getRpcMethodMiddleware', () => {
       const request = {
         jsonrpc,
         id: 1,
-        method: 'wallet_swap',
+        method: 'wallet_swapAsset',
         params: [
           {
             from: {
