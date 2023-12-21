@@ -77,6 +77,7 @@ import SwapsController, { swapsUtils } from '@metamask/swaps-controller';
 import {
   PPOMController,
   PPOMControllerEvents,
+  PPOMInitialisationStatusType,
   PPOMState,
 } from '@metamask/ppom-validator';
 import { MetaMaskKeyring as QRHardwareKeyring } from '@keystonehq/metamask-airgapped-keyring';
