@@ -39,6 +39,12 @@ const ExperimentalSettings = ({ navigation, route }: Props) => {
   const toggleSecurityAlertsEnabled = () => {
     if (securityAlertsEnabled) {
       PreferencesController?.setSecurityAlertsEnabled(!securityAlertsEnabled);
+      AnalyticsV2.trackEvent(
+        MetaMetricsEvents.SETTINGS_EXPERIMENTAL_SECURITY_ALERTS_ENABLED,
+        {
+          security_alerts_enabled: false,
+        },
+      );
     } else {
       navigation.navigate(Routes.MODAL.ROOT_MODAL_FLOW, {
         screen: Routes.SHEET.BLOCKAID_INDICATOR,
