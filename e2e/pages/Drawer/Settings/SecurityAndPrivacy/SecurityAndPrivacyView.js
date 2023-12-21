@@ -1,4 +1,3 @@
-import TestHelpers from '../../../../helpers';
 import {
   SECURITY_PRIVACY_REMEMBER_ME_TOGGLE,
   SECURITY_PRIVACY_DELETE_WALLET_BUTTON,
@@ -11,29 +10,26 @@ import Matchers from '../../../../utils/Matchers';
 import Gestures from '../../../../utils/Gestures';
 
 class SecurityAndPrivacy {
-  get container() {
-    return Matchers.getElementByID(
-      SecurityPrivacyViewSelectorsIDs.CHANGE_PASSWORD_CONTAINER,
-    );
-  }
-
   get changePasswordButton() {
     return Matchers.getElementByID(
       SecurityPrivacyViewSelectorsIDs.CHANGE_PASSWORD_BUTTON,
     );
   }
 
-  get deleteWalletButtonLabel() {
-    return Matchers.getElementByLabel(SECURITY_PRIVACY_DELETE_WALLET_BUTTON);
-  }
-
-  get deleteWalletButtonID() {
-    return Matchers.getElementByID(SECURITY_PRIVACY_DELETE_WALLET_BUTTON);
+  get deleteWalletButton() {
+    return device.getPlatform() === 'ios'
+      ? Matchers.getElementByID(SECURITY_PRIVACY_DELETE_WALLET_BUTTON)
+      : Matchers.getElementByLabel(SECURITY_PRIVACY_DELETE_WALLET_BUTTON);
   }
 
   get metaMetricsToggle() {
     return Matchers.getElementByID(
       SecurityPrivacyViewSelectorsIDs.METAMETRICS_SWITCH,
+    );
+  }
+  get scrollViewIdentifier() {
+    return Matchers.getIdentifier(
+      SecurityPrivacyViewSelectorsIDs.SECURITY_SETTINGS_SCROLL,
     );
   }
 
@@ -76,66 +72,35 @@ class SecurityAndPrivacy {
   }
 
   async tapDeleteWalletButton() {
-    if (device.getPlatform() === 'android') {
-      await Gestures.waitAndTap(this.deleteWalletButtonLabel);
-    } else {
-      await Gestures.waitAndTap(this.deleteWalletButtonID);
-    }
+    await Gestures.waitAndTap(this.deleteWalletButton);
   }
 
   async scrollToChangePasswordView() {
-    // Scroll to the bottom
-    if (device.getPlatform() === 'android') {
-      await Gestures.swipe(this.securitySettingsScroll, 'up', 'slow');
-      await TestHelpers.delay(1000);
-    } else {
-      await Gestures.swipe(this.container, 'up', 'slow', 0.2);
-    }
+    await Gestures.scrollToElement(
+      this.changePasswordButton,
+      this.scrollViewIdentifier,
+    );
   }
 
   async scrollToDeleteWalletButton() {
-    // Scroll to the bottom
-    await Gestures.swipe(this.securitySettingsScroll, 'up', 'fast', 0.6);
-    await TestHelpers.delay(1500);
-
-    if (device.getPlatform() === 'android') {
-      await Gestures.swipe(this.securitySettingsScroll, 'up', 'slow', 0.7);
-      await TestHelpers.delay(3500);
-    } else {
-      await Gestures.swipe(this.securitySettingsScroll, 'up', 'fast', 0.6);
-      await TestHelpers.delay(3500);
-    }
+    await Gestures.scrollToElement(
+      this.deleteWalletButton,
+      this.scrollViewIdentifier,
+    );
   }
 
   async scrollToTurnOnRememberMe() {
-    // Scroll to the bottom
-    if (device.getPlatform() === 'android') {
-      await Gestures.swipe(this.securitySettingsScroll, 'up', 'slow');
-      await TestHelpers.delay(1000);
-    } else {
-      await Gestures.swipe(this.container, 'up', 'slow', 0.6);
-    }
-    //await TestHelpers.swipe(PRIVACY_MODE_SECTION_ID, 'up', 'fast');
+    await Gestures.scrollToElement(
+      this.rememberMeToggle,
+      this.scrollViewIdentifier,
+    );
   }
 
   async scrollToMetaMetrics() {
-    await Gestures.swipe(this.backUpNow, 'up', 'fast', 0.6);
-    await TestHelpers.delay(1500);
-
-    if (device.getPlatform() === 'android') {
-      await Gestures.swipeAtIndex(this.privacyHeader, 'up', 'slow');
-
-      await Gestures.swipeAtIndex(
-        this.clearBrowserCookiesButton,
-        'up',
-        'slow',
-        0.5,
-      );
-
-      await TestHelpers.delay(1000);
-    } else {
-      await Gestures.swipeAtIndex(this.privacyHeader, 'up', 'slow');
-    }
+    await Gestures.scrollToElement(
+      this.metaMetricsToggle,
+      this.scrollViewIdentifier,
+    );
   }
 
   async tapMetaMetricsToggle() {
