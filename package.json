@@ -1,6 +1,6 @@
 {
   "name": "metamask",
-  "version": "7.12.3",
+  "version": "7.12.4",
   "private": true,
   "scripts": {
     "audit:ci": "./scripts/yarn-audit.sh",
@@ -368,7 +368,8 @@
     "uuid": "^8.3.2",
     "valid-url": "1.0.9",
     "vm-browserify": "1.1.2",
-    "zxcvbn": "4.4.2"
+    "zxcvbn": "4.4.2",
+    "cockatiel": "^3.1.1"
   },
   "devDependencies": {
     "@actions/core": "^1.10.0",
