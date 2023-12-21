@@ -1,5 +1,5 @@
 'use strict';
-import { Smoke } from '../../tags';
+import { SmokeCore } from '../../tags';
 import SendLinkView from '../../pages/SendLinkView';
 import RequestPaymentView from '../../pages/RequestPaymentView';
 import TabBarComponent from '../../pages/TabBarComponent';
@@ -21,7 +21,7 @@ import FixtureServer from '../../fixtures/fixture-server';
 const SAI_CONTRACT_ADDRESS = '0x89d24a6b4ccb1b6faa2625fe562bdd9a23260359';
 const fixtureServer = new FixtureServer();
 
-describe(Smoke('Request Token Flow with Unprotected Wallet'), () => {
+describe(SmokeCore('Request Token Flow with Unprotected Wallet'), () => {
   beforeAll(async () => {
     await TestHelpers.reverseServerPort();
     const fixture = new FixtureBuilder().build();
