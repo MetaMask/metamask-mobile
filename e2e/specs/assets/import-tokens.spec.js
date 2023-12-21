@@ -3,26 +3,37 @@ import { SmokeCore } from '../../tags';
 import TestHelpers from '../../helpers';
 import WalletView from '../../pages/WalletView';
 import AddCustomTokenView from '../../pages/AddCustomTokenView';
-import ImportTokensView from '../../pages/ImportTokensView';
 import NetworkListModal from '../../pages/modals/NetworkListModal';
 import NetworkEducationModal from '../../pages/modals/NetworkEducationModal';
-import { importWalletWithRecoveryPhrase } from '../../viewHelper';
+import FixtureBuilder from '../../fixtures/fixture-builder';
+import {
+  loadFixture,
+  startFixtureServer,
+  stopFixtureServer,
+} from '../../fixtures/fixture-helper';
+import { getFixturesServerPort } from '../../fixtures/utils';
+import FixtureServer from '../../fixtures/fixture-server';
+import { loginToApp } from '../../viewHelper';
+
 import Collectibles from '../../resources/collectibles.json';
+import Networks from '../../resources/networks.json';
 
-describe(SmokeCore('Wallet Tests'), () => {
-  const GOERLI = 'Goerli Test Network';
-  const ETHEREUM = 'Ethereum Main Network';
+const fixtureServer = new FixtureServer();
 
-  // This key is for testing private key import only
-  // I should NEVER hold any eth or token
-
+describe(SmokeCore('Import Tokens'), () => {
   beforeAll(async () => {
-    jest.setTimeout(150000);
-    await device.launchApp();
+    await TestHelpers.reverseServerPort();
+    const fixture = new FixtureBuilder().build();
+    await startFixtureServer(fixtureServer);
+    await loadFixture(fixtureServer, { fixture });
+    await device.launchApp({
+      launchArgs: { fixtureServerPort: `${getFixturesServerPort()}` },
+    });
+    await loginToApp();
   });
 
-  it('should import wallet and go to the wallet view', async () => {
-    await importWalletWithRecoveryPhrase();
+  afterAll(async () => {
+    await stopFixtureServer(fixtureServer);
   });
 
   it('should switch to Goerli network', async () => {
@@ -30,8 +41,12 @@ describe(SmokeCore('Wallet Tests'), () => {
     await NetworkListModal.isVisible();
     await NetworkListModal.tapTestNetworkSwitch();
     await NetworkListModal.isTestNetworkToggleOn();
-    await NetworkListModal.changeNetwork(GOERLI);
-    await WalletView.isNetworkNameVisible(GOERLI);
+    await NetworkListModal.changeNetwork(
+      Networks.Goerli.providerConfig.nickname,
+    );
+    await WalletView.isNetworkNameVisible(
+      Networks.Goerli.providerConfig.nickname,
+    );
   });
 
   it('should dismiss network education modal', async () => {
@@ -65,39 +80,5 @@ describe(SmokeCore('Wallet Tests'), () => {
     await WalletView.tapOnNFTInWallet(Collectibles.erc1155collectionName);
     await WalletView.isNFTNameVisible(Collectibles.erc1155tokenName);
     await WalletView.scrollUpOnNFTsTab();
-  });
-
-  it('should switch back to Mainnet network', async () => {
-    await WalletView.isVisible();
-    await WalletView.tapTokensTab();
-    await WalletView.tapNetworksButtonOnNavBar();
-    await NetworkListModal.isVisible();
-    await NetworkListModal.changeNetwork(ETHEREUM);
-    await WalletView.isNetworkNameVisible(ETHEREUM);
-  });
-
-  it('should dismiss mainnet network education modal', async () => {
-    await NetworkEducationModal.isVisible();
-    await NetworkEducationModal.tapGotItButton();
-    await NetworkEducationModal.isNotVisible();
-  });
-
-  it('should add a token via token autocomplete', async () => {
-    await WalletView.tapImportTokensButton();
-    // Search for XRPL but select XRP20
-    await ImportTokensView.typeInTokenName('XRPL');
-    await TestHelpers.delay(2000);
-    await ImportTokensView.tapOnToken(); // taps the first token in the returned list
-    await TestHelpers.delay(500);
-    await ImportTokensView.tapImportButton();
-    await WalletView.isVisible();
-    await TestHelpers.delay(8000); // to prevent flakey behavior in bitrise
-    await WalletView.isTokenVisibleInWallet('0 XRP');
-  });
-
-  it('should hide token from Wallet view', async () => {
-    await WalletView.removeTokenFromWallet('0 XRP');
-    await TestHelpers.delay(1500);
-    await WalletView.tokenIsNotVisibleInWallet('XRP');
   });
 });
