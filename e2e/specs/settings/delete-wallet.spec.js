@@ -1,6 +1,6 @@
 'use strict';
 import TestHelpers from '../../helpers';
-import { Smoke } from '../../tags';
+import { SmokeCore } from '../../tags';
 import OnboardingView from '../../pages/Onboarding/OnboardingView';
 import LoginView from '../../pages/LoginView';
 import SettingsView from '../../pages/Drawer/Settings/SettingsView';
@@ -11,9 +11,10 @@ import { loginToApp } from '../../viewHelper';
 import TabBarComponent from '../../pages/TabBarComponent';
 import FixtureBuilder from '../../fixtures/fixture-builder';
 import { withFixtures } from '../../fixtures/fixture-helper';
+import CommonView from '../../pages/CommonView';
 
 describe(
-  Smoke('Log in into the app, change password then delete wallet flow'),
+  SmokeCore('Log in into the app, change password then delete wallet flow'),
   () => {
     const PASSWORD = '123123123';
 
@@ -49,7 +50,7 @@ describe(
 
         // should lock wallet from Settings
         await device.disableSynchronization(); // because the SRP tutorial video prevents the test from moving forward
-        await SecurityAndPrivacyView.tapBackButton();
+        await CommonView.tapBackButton();
         await device.enableSynchronization();
         await SettingsView.tapLock();
         await SettingsView.tapYesAlertButton();

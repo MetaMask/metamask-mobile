@@ -18,10 +18,11 @@ class Matchers {
    * Get element by text.
    *
    * @param {string} text - Match elements with the specified text
-   * @return {Promise<Detox.IndexableNativeElement>} - Resolves to the located element
+   * @param {number} index - Index of the element (default: 0)
+   * @return {Promise<Detox.NativeElement>} - Resolves to the located element
    */
-  static async getElementByText(text) {
-    return element(by.text(text));
+  static async getElementByText(text, index = 0) {
+    return element(by.text(text)).atIndex(index);
   }
 
   /**
