@@ -522,6 +522,8 @@ PODS:
     - Sentry/HybridSDK (= 8.9.3)
   - RNShare (7.3.7):
     - React-Core
+  - RNShareMenu (6.0.0):
+    - React
   - RNSVG (12.1.1):
     - React
   - RNVectorIcons (6.4.2):
@@ -645,6 +647,7 @@ DEPENDENCIES:
   - RNSensors (from `../node_modules/react-native-sensors`)
   - "RNSentry (from `../node_modules/@sentry/react-native`)"
   - RNShare (from `../node_modules/react-native-share`)
+  - RNShareMenu (from `../node_modules/react-native-share-menu`)
   - RNSVG (from `../node_modules/react-native-svg`)
   - RNVectorIcons (from `../node_modules/react-native-vector-icons`)
   - "segment-analytics-react-native (from `../node_modules/@segment/analytics-react-native`)"
@@ -829,6 +832,8 @@ EXTERNAL SOURCES:
     :path: "../node_modules/@sentry/react-native"
   RNShare:
     :path: "../node_modules/react-native-share"
+  RNShareMenu:
+    :path: "../node_modules/react-native-share-menu"
   RNSVG:
     :path: "../node_modules/react-native-svg"
   RNVectorIcons:
@@ -935,6 +940,7 @@ SPEC CHECKSUMS:
   RNSensors: c363d486c879e181905dea84a2535e49af1c2d25
   RNSentry: 221d8c3f0bf0d951e9ecc89d3e42ee97aab9d7c0
   RNShare: f116bbb04f310c665ca483d0bd1e88cf59b3b334
+  RNShareMenu: cb9dac548c8bf147d06f0bf07296ad51ea9f5fc3
   RNSVG: 551acb6562324b1d52a4e0758f7ca0ec234e278f
   RNVectorIcons: 6607bd3a30291d0edb56f9bbe7ae411ee2b928b0
   segment-analytics-react-native: bd1f13ea95bad2313a9c7130da032af0e9a6da60
@@ -946,6 +952,6 @@ SPEC CHECKSUMS:
   Yoga: e71803b4c1fff832ccf9b92541e00f9b873119b9
   YogaKit: f782866e155069a2cca2517aafea43200b01fd5a
 
-PODFILE CHECKSUM: 0aa061c88654782ecb2dbabeadb5344bc448e03a
+PODFILE CHECKSUM: 18b10c823009f7d31c9d84f608cf0de06f7a1aaf
 
 COCOAPODS: 1.12.1

@@ -152,7 +152,11 @@
 		DC6A024F56DD43E1A83B47B1 /* Roboto-MediumItalic.ttf in Resources */ = {isa = PBXBuildFile; fileRef = D5FF0FF1DFB74B3C8BB99E09 /* Roboto-MediumItalic.ttf */; };
 		DDB2D8FF8BDA806A38D61B1B /* libPods-MetaMask-QA.a in Frameworks */ = {isa = PBXBuildFile; fileRef = E0B857D61941CE8A3F59C662 /* libPods-MetaMask-QA.a */; };
 		E34DE917F6FC4438A6E88402 /* EuclidCircularB-BoldItalic.otf in Resources */ = {isa = PBXBuildFile; fileRef = 13EE4910D3BD408A8FCCA5D7 /* EuclidCircularB-BoldItalic.otf */; };
+		E746B248A6448F0F673A242D /* libPods-OpenWithMetaMask.a in Frameworks */ = {isa = PBXBuildFile; fileRef = BA4BB3D3F8B96A79D987F122 /* libPods-OpenWithMetaMask.a */; };
 		EF65C42EA15B4774B1947A12 /* Roboto-Medium.ttf in Resources */ = {isa = PBXBuildFile; fileRef = C752564A28B44392AEE16BD5 /* Roboto-Medium.ttf */; };
+		F2AFCE6D2B34B05D00222D4D /* MainInterface.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = F2AFCE6B2B34B05D00222D4D /* MainInterface.storyboard */; };
+		F2AFCE712B34B05D00222D4D /* OpenWithMetaMask.appex in Embed Foundation Extensions */ = {isa = PBXBuildFile; fileRef = F2AFCE672B34B05D00222D4D /* OpenWithMetaMask.appex */; settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
+		F2AFCE7C2B34B0F200222D4D /* ShareViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = F2AFCE7B2B34B0F200222D4D /* ShareViewController.swift */; };
 		F961A37228105CF9007442B5 /* LinkPresentation.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = F961A36A28105CF9007442B5 /* LinkPresentation.framework */; settings = {ATTRIBUTES = (Weak, ); }; };
 		FF0F3B13A5354C41913F766D /* EuclidCircularB-Bold.otf in Resources */ = {isa = PBXBuildFile; fileRef = 67FBD519E04742E0AF191782 /* EuclidCircularB-Bold.otf */; };
 /* End PBXBuildFile section */
@@ -242,6 +246,13 @@
 			remoteGlobalIDString = E298D0511C73D1B800589D22;
 			remoteInfo = Branch;
 		};
+		F2AFCE6F2B34B05D00222D4D /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 83CBB9F71A601CBA00E9B192 /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = F2AFCE662B34B05D00222D4D;
+			remoteInfo = OpenWithMetaMask;
+		};
 /* End PBXContainerItemProxy section */
 
 /* Begin PBXCopyFilesBuildPhase section */
@@ -279,6 +290,17 @@
 				B339FF32289ABD70001B89FB /* Branch.framework in Embed Frameworks */,
 			);
 			name = "Embed Frameworks";
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		F2AFCE722B34B05D00222D4D /* Embed Foundation Extensions */ = {
+			isa = PBXCopyFilesBuildPhase;
+			buildActionMask = 2147483647;
+			dstPath = "";
+			dstSubfolderSpec = 13;
+			files = (
+				F2AFCE712B34B05D00222D4D /* OpenWithMetaMask.appex in Embed Foundation Extensions */,
+			);
+			name = "Embed Foundation Extensions";
 			runOnlyForDeploymentPostprocessing = 0;
 		};
 /* End PBXCopyFilesBuildPhase section */
@@ -324,6 +346,7 @@
 		4444176409EB42CB93AB03C5 /* SimpleLineIcons.ttf */ = {isa = PBXFileReference; explicitFileType = undefined; fileEncoding = 9; includeInIndex = 0; lastKnownFileType = unknown; name = SimpleLineIcons.ttf; path = "../node_modules/react-native-vector-icons/Fonts/SimpleLineIcons.ttf"; sourceTree = "<group>"; };
 		459C4774EB724F2D8E12F088 /* Roboto-Regular.ttf */ = {isa = PBXFileReference; explicitFileType = undefined; fileEncoding = 9; includeInIndex = 0; lastKnownFileType = unknown; name = "Roboto-Regular.ttf"; path = "../app/fonts/Roboto-Regular.ttf"; sourceTree = "<group>"; };
 		4A2D27104599412CA00C35EF /* Ionicons.ttf */ = {isa = PBXFileReference; explicitFileType = undefined; fileEncoding = 9; includeInIndex = 0; lastKnownFileType = unknown; name = Ionicons.ttf; path = "../node_modules/react-native-vector-icons/Fonts/Ionicons.ttf"; sourceTree = "<group>"; };
+		571524EEB8A8430CEDE3A450 /* Pods-OpenWithMetaMask.release.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-OpenWithMetaMask.release.xcconfig"; path = "Target Support Files/Pods-OpenWithMetaMask/Pods-OpenWithMetaMask.release.xcconfig"; sourceTree = "<group>"; };
 		57C103F40F394637B5A886FC /* FontAwesome5_Brands.ttf */ = {isa = PBXFileReference; explicitFileType = undefined; fileEncoding = 9; includeInIndex = 0; lastKnownFileType = unknown; name = FontAwesome5_Brands.ttf; path = "../node_modules/react-native-vector-icons/Fonts/FontAwesome5_Brands.ttf"; sourceTree = "<group>"; };
 		58572D81B5D54ED79A16A16D /* EuclidCircularB-RegularItalic.otf */ = {isa = PBXFileReference; explicitFileType = undefined; fileEncoding = 9; includeInIndex = 0; lastKnownFileType = unknown; name = "EuclidCircularB-RegularItalic.otf"; path = "../app/fonts/EuclidCircularB-RegularItalic.otf"; sourceTree = "<group>"; };
 		5B6B5F6E5C0A886D11EF7F6F /* Pods-MetaMask.release.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-MetaMask.release.xcconfig"; path = "Target Support Files/Pods-MetaMask/Pods-MetaMask.release.xcconfig"; sourceTree = "<group>"; };
@@ -347,7 +370,9 @@
 		B0EF7FA827BD16EA00D48B4E /* ThemeColors.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = ThemeColors.xcassets; sourceTree = "<group>"; };
 		B339FEA72899852C001B89FB /* MetaMask-QA-Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; name = "MetaMask-QA-Info.plist"; path = "MetaMask/MetaMask-QA-Info.plist"; sourceTree = "<group>"; };
 		B339FF39289ABD70001B89FB /* MetaMask-QA.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = "MetaMask-QA.app"; sourceTree = BUILT_PRODUCTS_DIR; };
+		BA4BB3D3F8B96A79D987F122 /* libPods-OpenWithMetaMask.a */ = {isa = PBXFileReference; explicitFileType = archive.ar; includeInIndex = 0; path = "libPods-OpenWithMetaMask.a"; sourceTree = BUILT_PRODUCTS_DIR; };
 		BB8BA2D3C0354D6090B56A8A /* Roboto-Light.ttf */ = {isa = PBXFileReference; explicitFileType = undefined; fileEncoding = 9; includeInIndex = 0; lastKnownFileType = unknown; name = "Roboto-Light.ttf"; path = "../app/fonts/Roboto-Light.ttf"; sourceTree = "<group>"; };
+		BD70997BE83927DF772D652A /* Pods-OpenWithMetaMask.debug.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-OpenWithMetaMask.debug.xcconfig"; path = "Target Support Files/Pods-OpenWithMetaMask/Pods-OpenWithMetaMask.debug.xcconfig"; sourceTree = "<group>"; };
 		BF485CDA047B4D52852B87F5 /* EvilIcons.ttf */ = {isa = PBXFileReference; explicitFileType = undefined; fileEncoding = 9; includeInIndex = 0; lastKnownFileType = unknown; name = EvilIcons.ttf; path = "../node_modules/react-native-vector-icons/Fonts/EvilIcons.ttf"; sourceTree = "<group>"; };
 		C752564A28B44392AEE16BD5 /* Roboto-Medium.ttf */ = {isa = PBXFileReference; explicitFileType = undefined; fileEncoding = 9; includeInIndex = 0; lastKnownFileType = unknown; name = "Roboto-Medium.ttf"; path = "../app/fonts/Roboto-Medium.ttf"; sourceTree = "<group>"; };
 		C9FD3FB1258A41A5A0546C83 /* Roboto-BoldItalic.ttf */ = {isa = PBXFileReference; explicitFileType = undefined; fileEncoding = 9; includeInIndex = 0; lastKnownFileType = unknown; name = "Roboto-BoldItalic.ttf"; path = "../app/fonts/Roboto-BoldItalic.ttf"; sourceTree = "<group>"; };
@@ -367,6 +392,12 @@
 		E9629905BA1940ADA4189921 /* Feather.ttf */ = {isa = PBXFileReference; explicitFileType = undefined; fileEncoding = 9; includeInIndex = 0; lastKnownFileType = unknown; name = Feather.ttf; path = "../node_modules/react-native-vector-icons/Fonts/Feather.ttf"; sourceTree = "<group>"; };
 		EBC2B6371CD846D28B9FAADF /* FontAwesome5_Regular.ttf */ = {isa = PBXFileReference; explicitFileType = undefined; fileEncoding = 9; includeInIndex = 0; lastKnownFileType = unknown; name = FontAwesome5_Regular.ttf; path = "../node_modules/react-native-vector-icons/Fonts/FontAwesome5_Regular.ttf"; sourceTree = "<group>"; };
 		EF1C01B7F08047F9B8ADCFBA /* config.json */ = {isa = PBXFileReference; explicitFileType = undefined; fileEncoding = 9; includeInIndex = 0; lastKnownFileType = unknown; name = config.json; path = ../app/fonts/config.json; sourceTree = "<group>"; };
+		F2AFCE672B34B05D00222D4D /* OpenWithMetaMask.appex */ = {isa = PBXFileReference; explicitFileType = "wrapper.app-extension"; includeInIndex = 0; path = OpenWithMetaMask.appex; sourceTree = BUILT_PRODUCTS_DIR; };
+		F2AFCE6C2B34B05D00222D4D /* Base */ = {isa = PBXFileReference; lastKnownFileType = file.storyboard; name = Base; path = Base.lproj/MainInterface.storyboard; sourceTree = "<group>"; };
+		F2AFCE6E2B34B05D00222D4D /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
+		F2AFCE7A2B34B0F100222D4D /* OpenWithMetaMask-Bridging-Header.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = "OpenWithMetaMask-Bridging-Header.h"; sourceTree = "<group>"; };
+		F2AFCE7B2B34B0F200222D4D /* ShareViewController.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; name = ShareViewController.swift; path = "../../node_modules/react-native-share-menu/ios/ShareViewController.swift"; sourceTree = "<group>"; };
+		F2AFCE862B34BB9000222D4D /* OpenWithMetaMask.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = OpenWithMetaMask.entitlements; sourceTree = "<group>"; };
 		F562CA6B28AA4A67AA29B61C /* MaterialIcons.ttf */ = {isa = PBXFileReference; explicitFileType = undefined; fileEncoding = 9; includeInIndex = 0; lastKnownFileType = unknown; name = MaterialIcons.ttf; path = "../node_modules/react-native-vector-icons/Fonts/MaterialIcons.ttf"; sourceTree = "<group>"; };
 		F564570593ED4F3FB10BD348 /* EuclidCircularB-Regular.otf */ = {isa = PBXFileReference; explicitFileType = undefined; fileEncoding = 9; includeInIndex = 0; lastKnownFileType = unknown; name = "EuclidCircularB-Regular.otf"; path = "../app/fonts/EuclidCircularB-Regular.otf"; sourceTree = "<group>"; };
 		F79EAC4A7BF74E458277AFA4 /* EuclidCircularB-LightItalic.otf */ = {isa = PBXFileReference; explicitFileType = undefined; fileEncoding = 9; includeInIndex = 0; lastKnownFileType = unknown; name = "EuclidCircularB-LightItalic.otf"; path = "../app/fonts/EuclidCircularB-LightItalic.otf"; sourceTree = "<group>"; };
@@ -416,6 +447,14 @@
 				B339FF0B289ABD70001B89FB /* Mixpanel.framework in Frameworks */,
 				B339FF0C289ABD70001B89FB /* Branch.framework in Frameworks */,
 				DDB2D8FF8BDA806A38D61B1B /* libPods-MetaMask-QA.a in Frameworks */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		F2AFCE642B34B05D00222D4D /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				E746B248A6448F0F673A242D /* libPods-OpenWithMetaMask.a in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -519,6 +558,7 @@
 				E0B857D61941CE8A3F59C662 /* libPods-MetaMask-QA.a */,
 				FA078AF57878ABB05D063C8F /* libPods-MetaMask-Flask.a */,
 				CC4BA1B4AFA5C6EA75133110 /* libPods-MetaMask.a */,
+				BA4BB3D3F8B96A79D987F122 /* libPods-OpenWithMetaMask.a */,
 			);
 			name = Frameworks;
 			sourceTree = "<group>";
@@ -607,6 +647,7 @@
 				13B07FAE1A68108700A75B9A /* MetaMask */,
 				832341AE1AAA6A7D00B99B32 /* Libraries */,
 				00E356EF1AD99517003FC87E /* MetaMaskTests */,
+				F2AFCE682B34B05D00222D4D /* OpenWithMetaMask */,
 				83CBBA001A601CBA00E9B192 /* Products */,
 				2D16E6871FA4F8E400B85C8A /* Frameworks */,
 				4A27949D046C4516B9653BBB /* Resources */,
@@ -625,6 +666,7 @@
 				13B07F961A680F5B00A75B9A /* MetaMask.app */,
 				B339FF39289ABD70001B89FB /* MetaMask-QA.app */,
 				2EF282922B0FF86900D7B4B1 /* MetaMask-Flask.app */,
+				F2AFCE672B34B05D00222D4D /* OpenWithMetaMask.appex */,
 			);
 			name = Products;
 			sourceTree = "<group>";
@@ -638,6 +680,8 @@
 				5D89472CA15F3091AE95E296 /* Pods-MetaMask-QA.release.xcconfig */,
 				1B3D5DF5831949FE98EDCB6D /* Pods-MetaMask-Flask.debug.xcconfig */,
 				1A00E5D287314FBFECB220E4 /* Pods-MetaMask-Flask.release.xcconfig */,
+				BD70997BE83927DF772D652A /* Pods-OpenWithMetaMask.debug.xcconfig */,
+				571524EEB8A8430CEDE3A450 /* Pods-OpenWithMetaMask.release.xcconfig */,
 			);
 			path = Pods;
 			sourceTree = "<group>";
@@ -660,6 +704,18 @@
 			name = RCTScreenshotDetect;
 			sourceTree = "<group>";
 		};
+		F2AFCE682B34B05D00222D4D /* OpenWithMetaMask */ = {
+			isa = PBXGroup;
+			children = (
+				F2AFCE862B34BB9000222D4D /* OpenWithMetaMask.entitlements */,
+				F2AFCE7B2B34B0F200222D4D /* ShareViewController.swift */,
+				F2AFCE6B2B34B05D00222D4D /* MainInterface.storyboard */,
+				F2AFCE6E2B34B05D00222D4D /* Info.plist */,
+				F2AFCE7A2B34B0F100222D4D /* OpenWithMetaMask-Bridging-Header.h */,
+			);
+			path = OpenWithMetaMask;
+			sourceTree = "<group>";
+		};
 /* End PBXGroup section */
 
 /* Begin PBXNativeTarget section */
@@ -676,12 +732,14 @@
 				15ACCA0022655C3A0063978B /* Embed Frameworks */,
 				802588CED3FC487A5D5263F0 /* [CP] Copy Pods Resources */,
 				C77EFC60F19570875F8DB3BD /* [CP] Embed Pods Frameworks */,
+				F2AFCE722B34B05D00222D4D /* Embed Foundation Extensions */,
 			);
 			buildRules = (
 			);
 			dependencies = (
 				15F7796122A1B7B500B1DF8C /* PBXTargetDependency */,
 				153F84CD2319B8FD00C19B63 /* PBXTargetDependency */,
+				F2AFCE702B34B05D00222D4D /* PBXTargetDependency */,
 			);
 			name = MetaMask;
 			productName = "Hello World";
@@ -738,12 +796,32 @@
 			productReference = B339FF39289ABD70001B89FB /* MetaMask-QA.app */;
 			productType = "com.apple.product-type.application";
 		};
+		F2AFCE662B34B05D00222D4D /* OpenWithMetaMask */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = F2AFCE792B34B05D00222D4D /* Build configuration list for PBXNativeTarget "OpenWithMetaMask" */;
+			buildPhases = (
+				8F831ABF0134E677F1CE52AE /* [CP] Check Pods Manifest.lock */,
+				F2AFCE632B34B05D00222D4D /* Sources */,
+				F2AFCE642B34B05D00222D4D /* Frameworks */,
+				F2AFCE652B34B05D00222D4D /* Resources */,
+				98D143A7B2F251D0A03B097A /* [CP] Copy Pods Resources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+			);
+			name = OpenWithMetaMask;
+			productName = OpenWithMetaMask;
+			productReference = F2AFCE672B34B05D00222D4D /* OpenWithMetaMask.appex */;
+			productType = "com.apple.product-type.app-extension";
+		};
 /* End PBXNativeTarget section */
 
 /* Begin PBXProject section */
 		83CBB9F71A601CBA00E9B192 /* Project object */ = {
 			isa = PBXProject;
 			attributes = {
+				LastSwiftUpdateCheck = 1500;
 				LastUpgradeCheck = 1010;
 				ORGANIZATIONNAME = MetaMask;
 				TargetAttributes = {
@@ -759,6 +837,10 @@
 								enabled = 1;
 							};
 						};
+					};
+					F2AFCE662B34B05D00222D4D = {
+						CreatedOnToolsVersion = 15.0.1;
+						LastSwiftMigration = 1500;
 					};
 				};
 			};
@@ -793,6 +875,7 @@
 				13B07F861A680F5B00A75B9A /* MetaMask */,
 				B339FEF8289ABD70001B89FB /* MetaMask-QA */,
 				2EF282522B0FF86900D7B4B1 /* MetaMask-Flask */,
+				F2AFCE662B34B05D00222D4D /* OpenWithMetaMask */,
 			);
 		};
 /* End PBXProject section */
@@ -955,6 +1038,14 @@
 				B339FF2C289ABD70001B89FB /* EuclidCircularB-RegularItalic.otf in Resources */,
 				B339FF2D289ABD70001B89FB /* EuclidCircularB-Semibold.otf in Resources */,
 				B339FF2E289ABD70001B89FB /* EuclidCircularB-SemiboldItalic.otf in Resources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		F2AFCE652B34B05D00222D4D /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				F2AFCE6D2B34B05D00222D4D /* MainInterface.storyboard in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -1143,6 +1234,45 @@
 			shellScript = "\"${PODS_ROOT}/Target Support Files/Pods-MetaMask-QA/Pods-MetaMask-QA-resources.sh\"\n";
 			showEnvVarsInLog = 0;
 		};
+		8F831ABF0134E677F1CE52AE /* [CP] Check Pods Manifest.lock */ = {
+			isa = PBXShellScriptBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			inputFileListPaths = (
+			);
+			inputPaths = (
+				"${PODS_PODFILE_DIR_PATH}/Podfile.lock",
+				"${PODS_ROOT}/Manifest.lock",
+			);
+			name = "[CP] Check Pods Manifest.lock";
+			outputFileListPaths = (
+			);
+			outputPaths = (
+				"$(DERIVED_FILE_DIR)/Pods-OpenWithMetaMask-checkManifestLockResult.txt",
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+			shellPath = /bin/sh;
+			shellScript = "diff \"${PODS_PODFILE_DIR_PATH}/Podfile.lock\" \"${PODS_ROOT}/Manifest.lock\" > /dev/null\nif [ $? != 0 ] ; then\n    # print error to STDERR\n    echo \"error: The sandbox is not in sync with the Podfile.lock. Run 'pod install' or update your CocoaPods installation.\" >&2\n    exit 1\nfi\n# This output is used by Xcode 'outputs' to avoid re-running this script phase.\necho \"SUCCESS\" > \"${SCRIPT_OUTPUT_FILE_0}\"\n";
+			showEnvVarsInLog = 0;
+		};
+		98D143A7B2F251D0A03B097A /* [CP] Copy Pods Resources */ = {
+			isa = PBXShellScriptBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			inputFileListPaths = (
+				"${PODS_ROOT}/Target Support Files/Pods-OpenWithMetaMask/Pods-OpenWithMetaMask-resources-${CONFIGURATION}-input-files.xcfilelist",
+			);
+			name = "[CP] Copy Pods Resources";
+			outputFileListPaths = (
+				"${PODS_ROOT}/Target Support Files/Pods-OpenWithMetaMask/Pods-OpenWithMetaMask-resources-${CONFIGURATION}-output-files.xcfilelist",
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+			shellPath = /bin/sh;
+			shellScript = "\"${PODS_ROOT}/Target Support Files/Pods-OpenWithMetaMask/Pods-OpenWithMetaMask-resources.sh\"\n";
+			showEnvVarsInLog = 0;
+		};
 		99E9B9D94E374E1799EFBA99 /* [CP] Check Pods Manifest.lock */ = {
 			isa = PBXShellScriptBuildPhase;
 			buildActionMask = 2147483647;
@@ -1285,6 +1415,14 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
+		F2AFCE632B34B05D00222D4D /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				F2AFCE7C2B34B0F200222D4D /* ShareViewController.swift in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 /* End PBXSourcesBuildPhase section */
 
 /* Begin PBXTargetDependency section */
@@ -1318,6 +1456,11 @@
 			name = Branch;
 			targetProxy = B339FEFE289ABD70001B89FB /* PBXContainerItemProxy */;
 		};
+		F2AFCE702B34B05D00222D4D /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = F2AFCE662B34B05D00222D4D /* OpenWithMetaMask */;
+			targetProxy = F2AFCE6F2B34B05D00222D4D /* PBXContainerItemProxy */;
+		};
 /* End PBXTargetDependency section */
 
 /* Begin PBXVariantGroup section */
@@ -1330,6 +1473,14 @@
 			path = MetaMask;
 			sourceTree = "<group>";
 		};
+		F2AFCE6B2B34B05D00222D4D /* MainInterface.storyboard */ = {
+			isa = PBXVariantGroup;
+			children = (
+				F2AFCE6C2B34B05D00222D4D /* Base */,
+			);
+			name = MainInterface.storyboard;
+			sourceTree = "<group>";
+		};
 /* End PBXVariantGroup section */
 
 /* Begin XCBuildConfiguration section */
@@ -1337,6 +1488,7 @@
 			isa = XCBuildConfiguration;
 			baseConfigurationReference = 2D38A4BA1190B57818AFF2BC /* Pods-MetaMask.debug.xcconfig */;
 			buildSettings = {
+				ALWAYS_EMBED_SWIFT_STANDARD_LIBRARIES = YES;
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				ASSETCATALOG_COMPILER_OPTIMIZATION = time;
 				CLANG_ENABLE_MODULES = YES;
@@ -1400,6 +1552,7 @@
 			isa = XCBuildConfiguration;
 			baseConfigurationReference = 5B6B5F6E5C0A886D11EF7F6F /* Pods-MetaMask.release.xcconfig */;
 			buildSettings = {
+				ALWAYS_EMBED_SWIFT_STANDARD_LIBRARIES = YES;
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				ASSETCATALOG_COMPILER_OPTIMIZATION = time;
 				CLANG_ENABLE_MODULES = YES;
@@ -1625,11 +1778,7 @@
 				IPHONEOS_DEPLOYMENT_TARGET = 11.0;
 				MTL_ENABLE_DEBUG_INFO = YES;
 				ONLY_ACTIVE_ARCH = YES;
-				OTHER_LDFLAGS = (
-					"$(inherited)",
-					"-Wl",
-					"-ld_classic",
-				);
+				OTHER_LDFLAGS = "$(inherited)";
 				REACT_NATIVE_PATH = "${PODS_ROOT}/../../node_modules/react-native";
 				SDKROOT = iphoneos;
 			};
@@ -1671,11 +1820,7 @@
 				GCC_WARN_UNUSED_VARIABLE = YES;
 				IPHONEOS_DEPLOYMENT_TARGET = 11.0;
 				MTL_ENABLE_DEBUG_INFO = NO;
-				OTHER_LDFLAGS = (
-					"$(inherited)",
-					"-Wl",
-					"-ld_classic",
-				);
+				OTHER_LDFLAGS = "$(inherited)";
 				REACT_NATIVE_PATH = "${PODS_ROOT}/../../node_modules/react-native";
 				SDKROOT = iphoneos;
 				VALIDATE_PRODUCT = YES;
@@ -1822,6 +1967,125 @@
 			};
 			name = Release;
 		};
+		F2AFCE732B34B05D00222D4D /* Debug */ = {
+			isa = XCBuildConfiguration;
+			baseConfigurationReference = BD70997BE83927DF772D652A /* Pods-OpenWithMetaMask.debug.xcconfig */;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_GENERATE_SWIFT_ASSET_SYMBOL_EXTENSIONS = YES;
+				CLANG_ANALYZER_NONNULL = YES;
+				CLANG_ANALYZER_NUMBER_OBJECT_CONVERSION = YES_AGGRESSIVE;
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++20";
+				CLANG_ENABLE_MODULES = YES;
+				CLANG_ENABLE_OBJC_WEAK = YES;
+				CLANG_WARN_BLOCK_CAPTURE_AUTORELEASING = YES;
+				CLANG_WARN_COMMA = YES;
+				CLANG_WARN_DEPRECATED_OBJC_IMPLEMENTATIONS = YES;
+				CLANG_WARN_DOCUMENTATION_COMMENTS = YES;
+				CLANG_WARN_INFINITE_RECURSION = YES;
+				CLANG_WARN_NON_LITERAL_NULL_CONVERSION = YES;
+				CLANG_WARN_OBJC_IMPLICIT_RETAIN_SELF = YES;
+				CLANG_WARN_OBJC_LITERAL_CONVERSION = YES;
+				CLANG_WARN_QUOTED_INCLUDE_IN_FRAMEWORK_HEADER = YES;
+				CLANG_WARN_RANGE_LOOP_ANALYSIS = YES;
+				CLANG_WARN_STRICT_PROTOTYPES = YES;
+				CLANG_WARN_SUSPICIOUS_MOVE = YES;
+				CLANG_WARN_UNGUARDED_AVAILABILITY = YES_AGGRESSIVE;
+				CODE_SIGN_ENTITLEMENTS = OpenWithMetaMask/OpenWithMetaMask.entitlements;
+				CODE_SIGN_IDENTITY = "iPhone Developer";
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DEBUG_INFORMATION_FORMAT = dwarf;
+				DEVELOPMENT_TEAM = 48XVW22RCG;
+				ENABLE_USER_SCRIPT_SANDBOXING = YES;
+				GCC_C_LANGUAGE_STANDARD = gnu17;
+				GCC_NO_COMMON_BLOCKS = YES;
+				GCC_PREPROCESSOR_DEFINITIONS = (
+					"DEBUG=1",
+					"$(inherited)",
+				);
+				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_FILE = OpenWithMetaMask/Info.plist;
+				INFOPLIST_KEY_CFBundleDisplayName = OpenWithMetaMask;
+				INFOPLIST_KEY_NSHumanReadableCopyright = "Copyright © 2023 MetaMask. All rights reserved.";
+				IPHONEOS_DEPLOYMENT_TARGET = 12.0;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+					"@executable_path/../../Frameworks",
+				);
+				LOCALIZATION_PREFERS_STRING_CATALOGS = YES;
+				MARKETING_VERSION = 1.0;
+				MTL_ENABLE_DEBUG_INFO = INCLUDE_SOURCE;
+				MTL_FAST_MATH = YES;
+				PRODUCT_BUNDLE_IDENTIFIER = io.metamask.MetaMask.OpenWithMetaMask;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SKIP_INSTALL = YES;
+				SWIFT_ACTIVE_COMPILATION_CONDITIONS = "DEBUG $(inherited)";
+				SWIFT_EMIT_LOC_STRINGS = YES;
+				SWIFT_OBJC_BRIDGING_HEADER = "OpenWithMetaMask/OpenWithMetaMask-Bridging-Header.h";
+				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+			};
+			name = Debug;
+		};
+		F2AFCE742B34B05D00222D4D /* Release */ = {
+			isa = XCBuildConfiguration;
+			baseConfigurationReference = 571524EEB8A8430CEDE3A450 /* Pods-OpenWithMetaMask.release.xcconfig */;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_GENERATE_SWIFT_ASSET_SYMBOL_EXTENSIONS = YES;
+				CLANG_ANALYZER_NONNULL = YES;
+				CLANG_ANALYZER_NUMBER_OBJECT_CONVERSION = YES_AGGRESSIVE;
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++20";
+				CLANG_ENABLE_MODULES = YES;
+				CLANG_ENABLE_OBJC_WEAK = YES;
+				CLANG_WARN_BLOCK_CAPTURE_AUTORELEASING = YES;
+				CLANG_WARN_COMMA = YES;
+				CLANG_WARN_DEPRECATED_OBJC_IMPLEMENTATIONS = YES;
+				CLANG_WARN_DOCUMENTATION_COMMENTS = YES;
+				CLANG_WARN_INFINITE_RECURSION = YES;
+				CLANG_WARN_NON_LITERAL_NULL_CONVERSION = YES;
+				CLANG_WARN_OBJC_IMPLICIT_RETAIN_SELF = YES;
+				CLANG_WARN_OBJC_LITERAL_CONVERSION = YES;
+				CLANG_WARN_QUOTED_INCLUDE_IN_FRAMEWORK_HEADER = YES;
+				CLANG_WARN_RANGE_LOOP_ANALYSIS = YES;
+				CLANG_WARN_STRICT_PROTOTYPES = YES;
+				CLANG_WARN_SUSPICIOUS_MOVE = YES;
+				CLANG_WARN_UNGUARDED_AVAILABILITY = YES_AGGRESSIVE;
+				CODE_SIGN_ENTITLEMENTS = OpenWithMetaMask/OpenWithMetaMask.entitlements;
+				CODE_SIGN_IDENTITY = "iPhone Distribution";
+				CODE_SIGN_STYLE = Automatic;
+				COPY_PHASE_STRIP = NO;
+				CURRENT_PROJECT_VERSION = 1;
+				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
+				DEVELOPMENT_TEAM = 48XVW22RCG;
+				ENABLE_USER_SCRIPT_SANDBOXING = YES;
+				GCC_C_LANGUAGE_STANDARD = gnu17;
+				GCC_NO_COMMON_BLOCKS = YES;
+				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_FILE = OpenWithMetaMask/Info.plist;
+				INFOPLIST_KEY_CFBundleDisplayName = OpenWithMetaMask;
+				INFOPLIST_KEY_NSHumanReadableCopyright = "Copyright © 2023 MetaMask. All rights reserved.";
+				IPHONEOS_DEPLOYMENT_TARGET = 12.0;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+					"@executable_path/../../Frameworks",
+				);
+				LOCALIZATION_PREFERS_STRING_CATALOGS = YES;
+				MARKETING_VERSION = 1.0;
+				MTL_FAST_MATH = YES;
+				PRODUCT_BUNDLE_IDENTIFIER = io.metamask.MetaMask.OpenWithMetaMask;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SKIP_INSTALL = YES;
+				SWIFT_COMPILATION_MODE = wholemodule;
+				SWIFT_EMIT_LOC_STRINGS = YES;
+				SWIFT_OBJC_BRIDGING_HEADER = "OpenWithMetaMask/OpenWithMetaMask-Bridging-Header.h";
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+			};
+			name = Release;
+		};
 /* End XCBuildConfiguration section */
 
 /* Begin XCConfigurationList section */
@@ -1857,6 +2121,15 @@
 			buildConfigurations = (
 				B339FF37289ABD70001B89FB /* Debug */,
 				B339FF38289ABD70001B89FB /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Debug;
+		};
+		F2AFCE792B34B05D00222D4D /* Build configuration list for PBXNativeTarget "OpenWithMetaMask" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				F2AFCE732B34B05D00222D4D /* Debug */,
+				F2AFCE742B34B05D00222D4D /* Release */,
 			);
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Debug;

@@ -14,6 +14,7 @@
 #import <FlipperKitReactPlugin/FlipperKitReactPlugin.h>
 #import <FlipperKitUserDefaultsPlugin/FKUserDefaultsPlugin.h>
 #import <SKIOSNetworkPlugin/SKIOSNetworkAdapter.h>
+#import <RNShareMenu/ShareMenuManager.h>
 #endif
 #endif
 
@@ -81,9 +82,17 @@
   #endif
 }
 
-- (BOOL)application:(UIApplication *)app openURL:(NSURL *)url options:(NSDictionary<UIApplicationOpenURLOptionsKey,id> *)options
-{
-  return [RNBranch application:app openURL:url options:options];
+- (BOOL)application:(UIApplication *)app openURL:(NSURL *)url options:(NSDictionary<UIApplicationOpenURLOptionsKey,id> *)options {
+    // Check if the URL is intended for react-native-share-menu
+    if ([url.absoluteString hasPrefix:@"open_with_metamask"]) {
+        return [ShareMenuManager application:app openURL:url options:options];
+    }
+    // Check if the URL is intended for RNBranch
+    else if ([RNBranch application:app openURL:url options:options]) {
+        return YES;
+    }
+    // Handle other cases or return NO if not applicable
+    return NO;
 }
 
 - (BOOL)application:(UIApplication *)application continueUserActivity:(NSUserActivity *)userActivity restorationHandler:(void (^)(NSArray<id<UIUserActivityRestoring>> * _Nullable))restorationHandler {

@@ -30,6 +30,15 @@
 	<key>CFBundleURLTypes</key>
 	<array>
 		<dict>
+			<key>CFBundleTypeRole</key>
+			<string>Editor</string>
+			<key>CFBundleURLSchemes</key>
+			<array>
+				<string>open_with_metamask</string>
+				<!-- This url scheme doesn't contain :// at the end - E.G. "mycustomscheme"-->
+			</array>
+    	</dict>
+		<dict>
 			<key>CFBundleURLSchemes</key>
 			<array>
 				<string>ethereum</string>
