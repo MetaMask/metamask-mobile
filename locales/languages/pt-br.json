@@ -1323,14 +1323,6 @@
     "wyre_total_label": "Wyre (via MetaMask)",
     "buy_with": "Comprar com",
     "plus_fee": "Mais uma taxa de {{fee}}",
-    "notifications": {
-      "purchase_failed_title": "Falha na compra de {{currency}}! Tente novamente. Desculpe-nos pela inconveniência!",
-      "purchase_cancelled_title": "Sua compra foi cancelada",
-      "purchase_completed_title": "Tudo certo com sua compra de {{amount}} {{currency}}!",
-      "purchase_completed_description": "Seu(sua) {{currency}} já está disponível",
-      "purchase_pending_title": "Processando sua compra de {{currency}}",
-      "purchase_pending_description": "Deve demorar apenas alguns minutos..."
-    },
     "date": "Data",
     "from": "De",
     "to": "Até",
@@ -1364,6 +1356,16 @@
         "subtitle_5": "e ver quanto gas ela custa.",
         "cta": "Prossiga para comprar {{ticker}}"
       }
+    }
+  },
+  "fiat_on_ramp_aggregator": {
+    "notifications": {
+      "purchase_failed_title": "Falha na compra de {{currency}}! Tente novamente. Desculpe-nos pela inconveniência!",
+      "purchase_cancelled_title": "Sua compra foi cancelada",
+      "purchase_completed_title": "Tudo certo com sua compra de {{amount}} {{currency}}!",
+      "purchase_completed_description": "Seu(sua) {{currency}} já está disponível",
+      "purchase_pending_title": "Processando sua compra de {{currency}}",
+      "purchase_pending_description": "Deve demorar apenas alguns minutos..."
     }
   },
   "swaps": {
@@ -1436,7 +1438,6 @@
     "i_understand": "Eu entendo",
     "quotes_expire_in": "Cotações expiram em",
     "saving": "Salvando",
-    "using_best_quote": "Usando a melhor cotação",
     "view_details": "Exibir detalhes",
     "estimated_gas_fee": "Taxa estimada de gas",
     "max_gas_fee": "Taxa máxima de gas",
@@ -1449,10 +1450,6 @@
     "completed_swap": "Swap!",
     "metamask_swap_fee": "Taxa de Swap do MetaMask",
     "fee_text": {
-      "get_the": "Obtenha o",
-      "best_price": "melhor preço",
-      "from_the": "das",
-      "top_liquidity": "principais fontes de liquidez todas as vezes.",
       "fee_is_applied": "Uma taxa de {{fee}} é automaticamente levada em conta em cada cotação, o que é compatível com o desenvolvimento contínuo para deixar o MetaMask ainda melhor."
     },
     "enable": {

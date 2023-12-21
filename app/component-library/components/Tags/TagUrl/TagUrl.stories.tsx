@@ -1,30 +1,38 @@
-/* eslint-disable react-native/no-inline-styles, no-console */
-
-// Third party dependencies.
+/* eslint-disable no-console */
+/* eslint-disable react-native/no-inline-styles */
+/* eslint-disable react/display-name */
+// External dependencies.
 import React from 'react';
 import { View } from 'react-native';
-import { storiesOf } from '@storybook/react-native';
 
 // Internal dependencies.
-import TagUrl from './TagUrl';
-import { TEST_IMAGE_SOURCE, TEST_LABEL } from './TagUrl.constants';
+import { default as TagUrlComponent } from './TagUrl';
+import { SAMPLE_TAGURL_PROPS } from './TagUrl.constants';
 
-storiesOf('Component Library / TagUrl', module)
-  .addDecorator((getStory) => getStory())
-  .add('With Cta', () => (
+const TagUrlMeta = {
+  title: 'Component Library / Tags',
+  component: TagUrlComponent,
+  argTypes: {
+    label: {
+      control: { type: 'text' },
+      defaultValue: SAMPLE_TAGURL_PROPS.label,
+    },
+    ctaLabel: {
+      control: { type: 'text' },
+      defaultValue: SAMPLE_TAGURL_PROPS.cta?.label,
+    },
+  },
+};
+export default TagUrlMeta;
+
+export const TagUrl = {
+  render: ({ label, ctaLabel }: any) => (
     <View style={{ alignItems: 'flex-start' }}>
-      <TagUrl
-        imageSource={TEST_IMAGE_SOURCE}
-        label={TEST_LABEL}
-        cta={{
-          label: 'Permissions',
-          onPress: () => console.log("I'm clicked!"),
-        }}
+      <TagUrlComponent
+        label={label}
+        imageSource={SAMPLE_TAGURL_PROPS.imageSource}
+        cta={{ label: ctaLabel, onPress: () => console.log('CTA pressed') }}
       />
     </View>
-  ))
-  .add('Without Cta', () => (
-    <View style={{ alignItems: 'flex-start' }}>
-      <TagUrl imageSource={TEST_IMAGE_SOURCE} label={TEST_LABEL} />
-    </View>
-  ));
+  ),
+};

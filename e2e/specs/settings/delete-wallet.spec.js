@@ -11,6 +11,7 @@ import { loginToApp } from '../../viewHelper';
 import TabBarComponent from '../../pages/TabBarComponent';
 import FixtureBuilder from '../../fixtures/fixture-builder';
 import { withFixtures } from '../../fixtures/fixture-helper';
+import CommonView from '../../pages/CommonView';
 
 describe(
   Smoke('Log in into the app, change password then delete wallet flow'),
@@ -31,23 +32,25 @@ describe(
         await TabBarComponent.tapSettings();
         await SettingsView.tapSecurityAndPrivacy();
         await SecurityAndPrivacyView.scrollToChangePasswordView();
-        await SecurityAndPrivacyView.isChangePasswordSectionVisible();
+        await expect(
+          await SecurityAndPrivacyView.changePasswordSection,
+        ).toBeVisible();
 
         // should confirm password before changing it
         await SecurityAndPrivacyView.tapChangePasswordButton();
 
-        await ChangePasswordView.isVisible();
+        await expect(await ChangePasswordView.title).toBeVisible();
         await ChangePasswordView.typeInConfirmPasswordInputBox(PASSWORD);
 
         // should change the password
         const NEW_PASSWORD = '11111111';
         await ChangePasswordView.tapIUnderstandCheckBox();
-        await ChangePasswordView.enterPassword(NEW_PASSWORD);
+        await ChangePasswordView.typeInConfirmPasswordInputBox(NEW_PASSWORD);
         await ChangePasswordView.reEnterPassword(NEW_PASSWORD);
 
         // should lock wallet from Settings
         await device.disableSynchronization(); // because the SRP tutorial video prevents the test from moving forward
-        await SecurityAndPrivacyView.tapBackButton();
+        await CommonView.tapBackButton();
         await device.enableSynchronization();
         await SettingsView.tapLock();
         await SettingsView.tapYesAlertButton();

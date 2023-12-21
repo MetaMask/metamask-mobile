@@ -161,7 +161,6 @@ exports[`PaymentMethods View renders correctly 1`] = `
                     "justifyContent": "center",
                   }
                 }
-                testID="navbar-title-text"
               >
                 <Text
                   numberOfLines={1}
@@ -209,7 +208,6 @@ exports[`PaymentMethods View renders correctly 1`] = `
                         "fontWeight": "400",
                       }
                     }
-                    testID="navbar-title-networks"
                   >
                     Ethereum Main Network
                   </Text>
@@ -2221,7 +2219,6 @@ exports[`PaymentMethods View renders correctly for sell 1`] = `
                     "justifyContent": "center",
                   }
                 }
-                testID="navbar-title-text"
               >
                 <Text
                   numberOfLines={1}
@@ -2269,7 +2266,6 @@ exports[`PaymentMethods View renders correctly for sell 1`] = `
                         "fontWeight": "400",
                       }
                     }
-                    testID="navbar-title-networks"
                   >
                     Ethereum Main Network
                   </Text>
@@ -4281,7 +4277,6 @@ exports[`PaymentMethods View renders correctly while loading 1`] = `
                     "justifyContent": "center",
                   }
                 }
-                testID="navbar-title-text"
               >
                 <Text
                   numberOfLines={1}
@@ -4329,7 +4324,6 @@ exports[`PaymentMethods View renders correctly while loading 1`] = `
                         "fontWeight": "400",
                       }
                     }
-                    testID="navbar-title-networks"
                   >
                     Ethereum Main Network
                   </Text>
@@ -5712,7 +5706,6 @@ exports[`PaymentMethods View renders correctly with empty data 1`] = `
                     "justifyContent": "center",
                   }
                 }
-                testID="navbar-title-text"
               >
                 <Text
                   numberOfLines={1}
@@ -5760,7 +5753,6 @@ exports[`PaymentMethods View renders correctly with empty data 1`] = `
                         "fontWeight": "400",
                       }
                     }
-                    testID="navbar-title-networks"
                   >
                     Ethereum Main Network
                   </Text>
@@ -6419,7 +6411,6 @@ exports[`PaymentMethods View renders correctly with empty data for sell 1`] = `
                     "justifyContent": "center",
                   }
                 }
-                testID="navbar-title-text"
               >
                 <Text
                   numberOfLines={1}
@@ -6467,7 +6458,6 @@ exports[`PaymentMethods View renders correctly with empty data for sell 1`] = `
                         "fontWeight": "400",
                       }
                     }
-                    testID="navbar-title-networks"
                   >
                     Ethereum Main Network
                   </Text>
@@ -7126,7 +7116,6 @@ exports[`PaymentMethods View renders correctly with error 1`] = `
                     "justifyContent": "center",
                   }
                 }
-                testID="navbar-title-text"
               >
                 <Text
                   numberOfLines={1}
@@ -7174,7 +7163,6 @@ exports[`PaymentMethods View renders correctly with error 1`] = `
                         "fontWeight": "400",
                       }
                     }
-                    testID="navbar-title-networks"
                   >
                     Ethereum Main Network
                   </Text>
@@ -7831,7 +7819,6 @@ exports[`PaymentMethods View renders correctly with null data 1`] = `
                     "justifyContent": "center",
                   }
                 }
-                testID="navbar-title-text"
               >
                 <Text
                   numberOfLines={1}
@@ -7879,7 +7866,6 @@ exports[`PaymentMethods View renders correctly with null data 1`] = `
                         "fontWeight": "400",
                       }
                     }
-                    testID="navbar-title-networks"
                   >
                     Ethereum Main Network
                   </Text>
@@ -9262,7 +9248,6 @@ exports[`PaymentMethods View renders correctly with payment method with disclaim
                     "justifyContent": "center",
                   }
                 }
-                testID="navbar-title-text"
               >
                 <Text
                   numberOfLines={1}
@@ -9310,7 +9295,6 @@ exports[`PaymentMethods View renders correctly with payment method with disclaim
                         "fontWeight": "400",
                       }
                     }
-                    testID="navbar-title-networks"
                   >
                     Ethereum Main Network
                   </Text>
@@ -11380,7 +11364,6 @@ exports[`PaymentMethods View renders correctly with sdkError 1`] = `
                     "justifyContent": "center",
                   }
                 }
-                testID="navbar-title-text"
               >
                 <Text
                   numberOfLines={1}
@@ -11428,7 +11411,6 @@ exports[`PaymentMethods View renders correctly with sdkError 1`] = `
                         "fontWeight": "400",
                       }
                     }
-                    testID="navbar-title-networks"
                   >
                     Ethereum Main Network
                   </Text>
@@ -12062,7 +12044,6 @@ exports[`PaymentMethods View renders correctly with show back button false 1`] =
                     "justifyContent": "center",
                   }
                 }
-                testID="navbar-title-text"
               >
                 <Text
                   numberOfLines={1}
@@ -12110,7 +12091,6 @@ exports[`PaymentMethods View renders correctly with show back button false 1`] =
                         "fontWeight": "400",
                       }
                     }
-                    testID="navbar-title-networks"
                   >
                     Ethereum Main Network
                   </Text>

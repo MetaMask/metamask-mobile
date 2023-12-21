@@ -3,116 +3,130 @@ import {
   SECURITY_PRIVACY_REMEMBER_ME_TOGGLE,
   SECURITY_PRIVACY_DELETE_WALLET_BUTTON,
 } from '../../../../../wdio/screen-objects/testIDs/Screens/SecurityPrivacy.testIds';
-import { CommonSelectorsIDs } from '../../../../selectors/Common.selectors';
 import {
   SecurityPrivacyViewSelectorsIDs,
   SecurityPrivacyViewSelectorsText,
 } from '../../../../selectors/Settings/SecurityAndPrivacy/SecurityPrivacyView.selectors';
+import Matchers from '../../../../utils/Matchers';
+import Gestures from '../../../../utils/Gestures';
 
-export default class SecurityAndPrivacy {
-  static async tapChangePasswordButton() {
-    await TestHelpers.tap(
+class SecurityAndPrivacy {
+  get container() {
+    return Matchers.getElementByID(
+      SecurityPrivacyViewSelectorsIDs.CHANGE_PASSWORD_CONTAINER,
+    );
+  }
+
+  get changePasswordButton() {
+    return Matchers.getElementByID(
       SecurityPrivacyViewSelectorsIDs.CHANGE_PASSWORD_BUTTON,
     );
   }
-  static async tapDeleteWalletButton() {
-    if (device.getPlatform() === 'android') {
-      await TestHelpers.waitAndTapByLabel(
-        SECURITY_PRIVACY_DELETE_WALLET_BUTTON,
-      );
-    } else {
-      await TestHelpers.waitAndTap(SECURITY_PRIVACY_DELETE_WALLET_BUTTON);
-    }
-  }
-  static async tapBackButton() {
-    await TestHelpers.tap(CommonSelectorsIDs.BACK_ARROW_BUTTON);
+
+  get deleteWalletButtonLabel() {
+    return Matchers.getElementByLabel(SECURITY_PRIVACY_DELETE_WALLET_BUTTON);
   }
 
-  static async scrollToChangePasswordView() {
-    // Scroll to the bottom
+  get deleteWalletButtonID() {
+    return Matchers.getElementByID(SECURITY_PRIVACY_DELETE_WALLET_BUTTON);
+  }
+
+  get metaMetricsToggle() {
+    return Matchers.getElementByID(
+      SecurityPrivacyViewSelectorsIDs.METAMETRICS_SWITCH,
+    );
+  }
+
+  get rememberMeToggle() {
+    return Matchers.getElementByID(SECURITY_PRIVACY_REMEMBER_ME_TOGGLE);
+  }
+
+  get changePasswordSection() {
+    return Matchers.getElementByID(
+      SecurityPrivacyViewSelectorsIDs.CHANGE_PASSWORD_CONTAINER,
+    );
+  }
+
+  get securitySettingsScroll() {
+    return Matchers.getElementByID(
+      SecurityPrivacyViewSelectorsIDs.SECURITY_SETTINGS_SCROLL,
+    );
+  }
+
+  get backUpNow() {
+    return Matchers.getElementByText(
+      SecurityPrivacyViewSelectorsText.BACK_UP_NOW,
+    );
+  }
+
+  get privacyHeader() {
+    return Matchers.getElementByText(
+      SecurityPrivacyViewSelectorsText.PRIVACY_HEADING,
+    );
+  }
+
+  get clearBrowserCookiesButton() {
+    return Matchers.getElementByText(
+      SecurityPrivacyViewSelectorsText.CLEAR_BROWSER_COOKIES,
+    );
+  }
+
+  async tapChangePasswordButton() {
+    await Gestures.waitAndTap(this.changePasswordButton);
+  }
+
+  async tapDeleteWalletButton() {
     if (device.getPlatform() === 'android') {
-      await TestHelpers.swipe(
-        SecurityPrivacyViewSelectorsIDs.SECURITY_SETTINGS_SCROLL,
-        'up',
-        'slow',
-      );
-      await TestHelpers.delay(1000);
+      await Gestures.waitAndTap(this.deleteWalletButtonLabel);
     } else {
-      await TestHelpers.swipe(
-        SecurityPrivacyViewSelectorsIDs.CHANGE_PASSWORD_TITLE,
-        'up',
-        'slow',
-        0.2,
-      );
+      await Gestures.waitAndTap(this.deleteWalletButtonID);
     }
   }
-  static async scrollToDeleteWalletButton() {
+
+  async scrollToChangePasswordView() {
     // Scroll to the bottom
-    await TestHelpers.swipe(
-      SecurityPrivacyViewSelectorsIDs.SECURITY_SETTINGS_SCROLL,
-      'up',
-      'fast',
-      0.6,
-    );
+    if (device.getPlatform() === 'android') {
+      await Gestures.swipe(this.securitySettingsScroll, 'up', 'slow');
+      await TestHelpers.delay(1000);
+    } else {
+      await Gestures.swipe(this.container, 'up', 'slow', 0.2);
+    }
+  }
+
+  async scrollToDeleteWalletButton() {
+    // Scroll to the bottom
+    await Gestures.swipe(this.securitySettingsScroll, 'up', 'fast', 0.6);
     await TestHelpers.delay(1500);
 
     if (device.getPlatform() === 'android') {
-      await TestHelpers.swipe(
-        SecurityPrivacyViewSelectorsIDs.SECURITY_SETTINGS_SCROLL,
-        'up',
-        'slow',
-        0.7,
-      );
+      await Gestures.swipe(this.securitySettingsScroll, 'up', 'slow', 0.7);
       await TestHelpers.delay(3500);
     } else {
-      await TestHelpers.swipe(
-        SecurityPrivacyViewSelectorsIDs.SECURITY_SETTINGS_SCROLL,
-        'up',
-        'fast',
-        0.6,
-      );
+      await Gestures.swipe(this.securitySettingsScroll, 'up', 'fast', 0.6);
       await TestHelpers.delay(3500);
     }
   }
 
-  static async scrollToTurnOnRememberMe() {
+  async scrollToTurnOnRememberMe() {
     // Scroll to the bottom
     if (device.getPlatform() === 'android') {
-      await TestHelpers.swipe(
-        SecurityPrivacyViewSelectorsIDs.SECURITY_SETTINGS_SCROLL,
-        'up',
-        'slow',
-      );
+      await Gestures.swipe(this.securitySettingsScroll, 'up', 'slow');
       await TestHelpers.delay(1000);
     } else {
-      await TestHelpers.swipe(
-        SecurityPrivacyViewSelectorsIDs.CHANGE_PASSWORD_TITLE,
-        'up',
-        'slow',
-        0.6,
-      );
+      await Gestures.swipe(this.container, 'up', 'slow', 0.6);
     }
     //await TestHelpers.swipe(PRIVACY_MODE_SECTION_ID, 'up', 'fast');
   }
 
-  static async scrollToMetaMetrics() {
-    await TestHelpers.swipeByText(
-      SecurityPrivacyViewSelectorsText.BACK_UP_NOW,
-      'up',
-      'fast',
-      0.6,
-    );
+  async scrollToMetaMetrics() {
+    await Gestures.swipe(this.backUpNow, 'up', 'fast', 0.6);
     await TestHelpers.delay(1500);
 
     if (device.getPlatform() === 'android') {
-      await TestHelpers.swipeByText(
-        SecurityPrivacyViewSelectorsText.PRIVACY_HEADING,
-        'up',
-        'slow',
-      );
+      await Gestures.swipeAtIndex(this.privacyHeader, 'up', 'slow');
 
-      await TestHelpers.swipeByText(
-        SecurityPrivacyViewSelectorsText.CLEAR_BROWSER_COOKIES,
+      await Gestures.swipeAtIndex(
+        this.clearBrowserCookiesButton,
         'up',
         'slow',
         0.5,
@@ -120,49 +134,17 @@ export default class SecurityAndPrivacy {
 
       await TestHelpers.delay(1000);
     } else {
-      await TestHelpers.swipeByText(
-        SecurityPrivacyViewSelectorsText.PRIVACY_HEADING,
-        'up',
-        'slow',
-      );
+      await Gestures.swipeAtIndex(this.privacyHeader, 'up', 'slow');
     }
   }
 
-  static async tapOKAlertButton() {
-    await TestHelpers.tapAlertWithButton('OK');
+  async tapMetaMetricsToggle() {
+    await Gestures.waitAndTap(this.metaMetricsToggle);
   }
 
-  static async tapMetaMetricsToggle() {
-    await TestHelpers.tap(SecurityPrivacyViewSelectorsIDs.METAMETRICS_SWITCH);
-  }
-
-  static async tapTurnOnRememberMeToggle() {
-    await TestHelpers.tap(SECURITY_PRIVACY_REMEMBER_ME_TOGGLE);
-  }
-
-  static async isMetaMetricsToggleOn() {
-    await TestHelpers.checkIfToggleIsOn(
-      SecurityPrivacyViewSelectorsIDs.METAMETRICS_SWITCH,
-    );
-  }
-
-  static async isMetaMetricsToggleOff() {
-    await TestHelpers.checkIfToggleIsOff(
-      SecurityPrivacyViewSelectorsIDs.METAMETRICS_SWITCH,
-    );
-  }
-
-  static async isRememberMeToggleOn() {
-    await TestHelpers.checkIfToggleIsOn(SECURITY_PRIVACY_REMEMBER_ME_TOGGLE);
-  }
-
-  static async isRememberMeToggleOff() {
-    await TestHelpers.checkIfToggleIsOff(SECURITY_PRIVACY_REMEMBER_ME_TOGGLE);
-  }
-
-  static async isChangePasswordSectionVisible() {
-    await TestHelpers.checkIfVisible(
-      SecurityPrivacyViewSelectorsIDs.CHANGE_PASSWORD_TITLE,
-    );
+  async tapTurnOnRememberMeToggle() {
+    await Gestures.waitAndTap(this.rememberMeToggle);
   }
 }
+
+export default new SecurityAndPrivacy();
