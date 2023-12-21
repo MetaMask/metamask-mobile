@@ -1,8 +1,5 @@
 import Engine from '../Engine';
-import {
-  KeyringController,
-  SignTypedDataVersion,
-} from '@metamask/keyring-controller';
+import { SignTypedDataVersion } from '@metamask/keyring-controller';
 import ExtendedKeyringTypes from '../../constants/keyringTypes';
 
 // Mock interface for the SerializationOptions
