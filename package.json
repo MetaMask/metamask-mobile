@@ -182,6 +182,7 @@
     "@metamask/controller-utils": "^3.4.0",
     "@metamask/design-tokens": "^1.12.0",
     "@metamask/eth-sig-util": "^4.0.1",
+    "@metamask/eth-snap-keyring": "^2.1.1",
     "@metamask/etherscan-link": "^2.0.0",
     "@metamask/gas-fee-controller": "^5.0.0",
     "@metamask/key-tree": "^9.0.0",
