@@ -96,7 +96,7 @@ export class TestDApp {
         BrowserViewSelectorsIDs.ANDROID_CONTAINER,
         'down',
         'slow',
-        0.1,
+        0.4,
       );
 
       await TestHelpers.waitForWebElementToBeVisibleById(buttonId, 5000);
