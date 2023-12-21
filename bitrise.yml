@@ -1051,13 +1051,6 @@ workflows:
             - build_short_version_string: $FLASK_VERSION_NAME
             - build_version: $FLASK_VERSION_NUMBER
             - plist_path: $PROJECT_LOCATION_IOS/MetaMask/MetaMask-Flask-Info.plist
-      - script:          
-          inputs:
-            - content: |-
-                asdf install ruby $RUBY_VERSION
-                sudo gem install cocoapods
-          title: Ruby install
-      - cocoapods-install@2: {}
       - script@1:
           inputs:
             - content: |-
