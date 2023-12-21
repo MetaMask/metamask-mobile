@@ -555,12 +555,7 @@ workflows:
                 envman add --key BREW_APPLESIMUTILS --value "$(brew --cellar)/applesimutils"
                 envman add --key BREW_OPT_APPLESIMUTILS --value "/usr/local/opt/applesimutils"
                 brew tap wix/brew
-                asdf install ruby 3.0.3
-                sudo gem install cocoapods
-          title: Set Env Path for caching deps & Ruby install
-      - cocoapods-install@2:
-          run_if: '{{not (enveq "BITRISE_CACHE_HIT" "exact")}}'
-          is_always_run: false
+          title: Set Env Path for caching deps
       - script@1:
           title: Check native folder diff for iOS
           inputs:
@@ -952,13 +947,6 @@ workflows:
             - build_short_version_string: $VERSION_NAME
             - build_version: $VERSION_NUMBER
             - plist_path: $PROJECT_LOCATION_IOS/MetaMask/Info.plist
-      - script:          
-          inputs:
-            - content: |-
-                asdf install ruby $RUBY_VERSION
-                sudo gem install cocoapods
-          title: Ruby install
-      - cocoapods-install@2: {}
       - script@1:
           inputs:
             - content: |-
@@ -999,13 +987,6 @@ workflows:
             - build_short_version_string: $VERSION_NAME
             - build_version: $VERSION_NUMBER
             - plist_path: $PROJECT_LOCATION_IOS/MetaMask/MetaMask-QA-Info.plist
-      - script:          
-          inputs:
-            - content: |-
-                asdf install ruby $RUBY_VERSION
-                sudo gem install cocoapods
-          title: Ruby install
-      - cocoapods-install@2: {}
       - script@1:
           inputs:
             - content: |-
@@ -1240,9 +1221,6 @@ app:
     - opts:
         is_expand: false
       YARN_VERSION: 1.22.19
-    - opts:
-        is_expand: false
-      RUBY_VERSION: 3.0.3
 meta:
   bitrise.io:
     stack: osx-xcode-15.0.x
