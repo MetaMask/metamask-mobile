@@ -1323,14 +1323,6 @@
     "wyre_total_label": "Wyre(MetaMask 이용)",
     "buy_with": "구매 수단",
     "plus_fee": "+ {{fee}} 수수료",
-    "notifications": {
-      "purchase_failed_title": "{{currency}} 구매에 실패했습니다! 다시 시도하세요. 불편을 끼쳐 죄송합니다!",
-      "purchase_cancelled_title": "구매가 취소되었습니다.",
-      "purchase_completed_title": "{{amount}} {{currency}} 구매에 성공했습니다!",
-      "purchase_completed_description": "현재 {{currency}} 사용 가능",
-      "purchase_pending_title": "{{currency}} 구매 진행 중",
-      "purchase_pending_description": "이 작업에는 몇 분만 소요됩니다..."
-    },
     "date": "날짜",
     "from": "발신",
     "to": "수신",
@@ -1364,6 +1356,16 @@
         "subtitle_5": "가스 비용이 얼마나 드는지 확인하는 것입니다.",
         "cta": "계속 {{ticker}}를 구매하고"
       }
+    }
+  },
+  "fiat_on_ramp_aggregator": {
+    "notifications": {
+      "purchase_failed_title": "{{currency}} 구매에 실패했습니다! 다시 시도하세요. 불편을 끼쳐 죄송합니다!",
+      "purchase_cancelled_title": "구매가 취소되었습니다.",
+      "purchase_completed_title": "{{amount}} {{currency}} 구매에 성공했습니다!",
+      "purchase_completed_description": "현재 {{currency}} 사용 가능",
+      "purchase_pending_title": "{{currency}} 구매 진행 중",
+      "purchase_pending_description": "이 작업에는 몇 분만 소요됩니다..."
     }
   },
   "swaps": {
@@ -1436,7 +1438,6 @@
     "i_understand": "이해했습니다.",
     "quotes_expire_in": "견적 만료:",
     "saving": "저장 중",
-    "using_best_quote": "최고 견적을 사용 중",
     "view_details": "세부 정보 보기",
     "estimated_gas_fee": "예상 Gas 요금",
     "max_gas_fee": "최대 가스 요금",
@@ -1449,10 +1450,6 @@
     "completed_swap": "스왑!",
     "metamask_swap_fee": "MetaMask 스왑 수수료",
     "fee_text": {
-      "get_the": "언제나",
-      "best_price": "최고의",
-      "from_the": "유동성 소스에서",
-      "top_liquidity": "최고의 가격으로 이용하세요.",
       "fee_is_applied": "{{fee}}의 수수료는 각 견적에 자동으로 반영되며 MetaMask를 더욱 개선할 수 있도록 현재 진행 중인 개발에 사용됩니다."
     },
     "enable": {

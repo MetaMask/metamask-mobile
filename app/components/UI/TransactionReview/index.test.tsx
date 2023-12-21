@@ -227,10 +227,15 @@ describe('TransactionReview', () => {
     fireEvent.press(await getByText('Contact Us'));
 
     expect(trackEventSypy).toHaveBeenCalledTimes(1);
-    expect(blockaidMetricsParamsSpy).toHaveBeenCalledTimes(2);
-    expect(blockaidMetricsParamsSpy).toHaveBeenCalledWith(
-      securityAlertResponse,
-    );
+    expect(blockaidMetricsParamsSpy).toHaveBeenCalledTimes(1);
+    expect(blockaidMetricsParamsSpy).toHaveBeenCalledWith({
+      id: '123',
+      response: {
+        providerRequestsCount: {},
+        reason: 'blur_farming',
+        result_type: 'Malicious',
+      },
+    });
   });
 
   it('should have enabled confirm button if from account has balance', async () => {

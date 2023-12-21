@@ -88,25 +88,19 @@ exports[`CustomSpendCap should match snapshot 1`] = `
         />
       </View>
     </View>
-    <TouchableOpacity
-      activeOpacity={1}
+    <Text
+      accessibilityRole="text"
       onPress={[Function]}
       onPressIn={[Function]}
       onPressOut={[Function]}
       style={
         Object {
-          "alignItems": "center",
-          "alignSelf": "flex-start",
           "backgroundColor": "transparent",
-          "borderRadius": 0,
-          "flexDirection": "row",
-          "height": "auto",
-          "justifyContent": "center",
-          "paddingHorizontal": 0,
+          "color": "#24272A",
         }
       }
+      suppressHighlighting={true}
       textVariant="sBodyMD"
-      variant="Link"
     >
       <Text
         accessibilityRole="text"
@@ -123,7 +117,7 @@ exports[`CustomSpendCap should match snapshot 1`] = `
       >
         Use site suggestion
       </Text>
-    </TouchableOpacity>
+    </Text>
   </View>
   <View
     style={
@@ -225,24 +219,18 @@ exports[`CustomSpendCap should match snapshot 1`] = `
     >
       This allows the third party to spend all your token balance until it reaches the cap or you revoke the spending cap. If this is not intended, consider setting a lower spending cap.
        
-      <TouchableOpacity
-        activeOpacity={1}
+      <Text
+        accessibilityRole="text"
         onPress={[Function]}
         onPressIn={[Function]}
         onPressOut={[Function]}
         style={
           Object {
-            "alignItems": "center",
-            "alignSelf": "flex-start",
             "backgroundColor": "transparent",
-            "borderRadius": 0,
-            "flexDirection": "row",
-            "height": "auto",
-            "justifyContent": "center",
-            "paddingHorizontal": 0,
+            "color": "#24272A",
           }
         }
-        variant="Link"
+        suppressHighlighting={true}
       >
         <Text
           accessibilityRole="text"
@@ -259,7 +247,7 @@ exports[`CustomSpendCap should match snapshot 1`] = `
         >
           Learn more
         </Text>
-      </TouchableOpacity>
+      </Text>
     </Text>
   </View>
 </View>

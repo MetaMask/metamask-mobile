@@ -36,7 +36,7 @@ import { toLowerCaseEquals } from '../../../util/general';
 import { KEYSTONE_TX_CANCELED } from '../../../constants/error';
 import { MetaMetricsEvents } from '../../../core/Analytics';
 import AnalyticsV2 from '../../../util/analyticsV2';
-
+import { getAddressAccountType } from '../../../util/address';
 import {
   selectChainId,
   selectProviderType,
@@ -147,7 +147,11 @@ const RootRPCMethodsUI = (props) => {
           tokensReceived,
           swapTransaction.destinationToken.decimals,
         );
-        const analyticsParams = { ...swapTransaction.analytics };
+
+        const analyticsParams = {
+          ...swapTransaction.analytics,
+          account_type: getAddressAccountType(transactionMeta.transaction.from),
+        };
         delete newSwapsTransactions[transactionMeta.id].analytics;
         delete newSwapsTransactions[transactionMeta.id].paramsForAnalytics;
 
@@ -203,6 +207,7 @@ const RootRPCMethodsUI = (props) => {
           },
         );
         await KeyringController.resetQRKeyringState();
+
         Engine.acceptPendingApproval(transactionMeta.id);
       } catch (error) {
         if (!error?.message.startsWith(KEYSTONE_TX_CANCELED)) {

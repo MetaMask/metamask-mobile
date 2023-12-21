@@ -1,13 +1,12 @@
 import React, { PureComponent } from 'react';
-import { View, StyleSheet, Platform } from 'react-native';
+import { View, StyleSheet } from 'react-native';
 import PropTypes from 'prop-types';
 import { strings } from '../../../../locales/i18n';
 import StyledButton from '../StyledButton'; // eslint-disable-line  import/no-unresolved
 import AssetIcon from '../AssetIcon';
 import { fontStyles } from '../../../styles/common';
 import Text from '../../Base/Text';
-import generateTestId from '../../../../wdio/utils/generateTestId';
-import { TOKEN_RESULTS_LIST_ID } from '../../../../wdio/screen-objects/testIDs/Screens/AssetSearch.testIds';
+import { ImportTokenViewSelectorsIDs } from '../../../../e2e/selectors/ImportTokenView.selectors';
 
 const styles = StyleSheet.create({
   rowWrapper: {
@@ -62,11 +61,9 @@ export default class AssetList extends PureComponent {
     const { searchResults = [], handleSelectAsset, selectedAsset } = this.props;
 
     return (
-      <View style={styles.rowWrapper} testID={'add-searched-token-screen'}>
+      <View style={styles.rowWrapper}>
         {searchResults.length > 0 ? (
-          <Text style={styles.normalText} testID={'select-token-title'}>
-            {strings('token.select_token')}
-          </Text>
+          <Text style={styles.normalText}>{strings('token.select_token')}</Text>
         ) : null}
         {searchResults.length === 0 && this.props.searchQuery.length ? (
           <Text style={styles.normalText}>
@@ -83,7 +80,7 @@ export default class AssetList extends PureComponent {
               containerStyle={styles.item}
               onPress={() => handleSelectAsset(searchResults[i])} // eslint-disable-line
               key={i}
-              {...generateTestId(Platform, TOKEN_RESULTS_LIST_ID)}
+              testID={ImportTokenViewSelectorsIDs.CONTAINER}
             >
               <View style={styles.assetListElement}>
                 <AssetIcon address={address} logo={iconUrl} />

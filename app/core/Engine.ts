@@ -75,7 +75,7 @@ import {
   PermissionControllerState,
 } from '@metamask/permission-controller';
 import SwapsController, { swapsUtils } from '@metamask/swaps-controller';
-import { PPOMController } from '@metamask/ppom-validator';
+import { PPOMController, PPOMState } from '@metamask/ppom-validator';
 import { MetaMaskKeyring as QRHardwareKeyring } from '@keystonehq/metamask-airgapped-keyring';
 import {
   LoggingController,
@@ -121,6 +121,9 @@ import { ethErrors } from 'eth-rpc-errors';
 
 import { PPOM, ppomInit } from '../lib/ppom/PPOMView';
 import RNFSStorageBackend from '../lib/ppom/rnfs-storage-backend';
+import { isHardwareAccount } from '../util/address';
+import { ledgerSignTypedMessage } from './Ledger/Ledger';
+import ExtendedKeyringTypes from '../constants/keyringTypes';
 
 const NON_EMPTY = 'NON_EMPTY';
 
@@ -172,6 +175,7 @@ export interface EngineState {
   PermissionController: PermissionControllerState<Permissions>;
   ApprovalController: ApprovalControllerState;
   LoggingController: LoggingControllerState;
+  PPOMController: PPOMState;
 }
 
 /**
@@ -650,11 +654,20 @@ class Engine {
           signMessage: keyringController.signMessage.bind(keyringController),
           signPersonalMessage:
             keyringController.signPersonalMessage.bind(keyringController),
-          signTypedMessage: (msgParams, { version }) =>
-            keyringController.signTypedMessage(
+          signTypedMessage: (msgParams, { version }) => {
+            if (
+              isHardwareAccount(msgParams.from, [ExtendedKeyringTypes.ledger])
+            ) {
+              return ledgerSignTypedMessage(
+                msgParams,
+                version as SignTypedDataVersion,
+              );
+            }
+            return keyringController.signTypedMessage(
               msgParams,
               version as SignTypedDataVersion,
-            ),
+            );
+          },
         },
       }),
       new LoggingController({
@@ -687,7 +700,15 @@ class Engine {
             ppomInit,
           },
           storageBackend: new RNFSStorageBackend('PPOMDB'),
-          securityAlertsEnabled: true,
+          securityAlertsEnabled:
+            initialState.PreferencesController?.securityAlertsEnabled ?? false,
+          state: initialState.PPOMController,
+          ppomInitialisationCallback: (): any => {
+            store.dispatch({
+              type: 'SET_PPOM_INITIALIZATION_COMPLETED',
+              ppomInitializationCompleted: true,
+            });
+          },
         });
         controllers.push(ppomController as any);
       } catch (e) {
