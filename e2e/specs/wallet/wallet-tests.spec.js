@@ -1,5 +1,5 @@
 'use strict';
-import { Smoke } from '../../tags';
+import { SmokeCore } from '../../tags';
 import TestHelpers from '../../helpers';
 import WalletView from '../../pages/WalletView';
 import AddCustomTokenView from '../../pages/AddCustomTokenView';
@@ -9,7 +9,7 @@ import NetworkEducationModal from '../../pages/modals/NetworkEducationModal';
 import { importWalletWithRecoveryPhrase } from '../../viewHelper';
 import Collectibles from '../../resources/collectibles.json';
 
-describe(Smoke('Wallet Tests'), () => {
+describe(SmokeCore('Wallet Tests'), () => {
   const GOERLI = 'Goerli Test Network';
   const ETHEREUM = 'Ethereum Main Network';
 
