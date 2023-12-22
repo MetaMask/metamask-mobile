@@ -14,6 +14,7 @@
 #import <FlipperKitReactPlugin/FlipperKitReactPlugin.h>
 #import <FlipperKitUserDefaultsPlugin/FKUserDefaultsPlugin.h>
 #import <SKIOSNetworkPlugin/SKIOSNetworkAdapter.h>
+#import <RNShareMenu/ShareMenuManager.h>
 #endif
 #endif
 
@@ -67,6 +68,13 @@
   return YES;
 }
 
+- (BOOL)application:(UIApplication *)app
+        openURL:(NSURL *)url
+        options:(NSDictionary<UIApplicationOpenURLOptionsKey,id> *)options
+{
+  return [ShareMenuManager application:app openURL:url options:options];
+}
+
 - (void) initializeFlipper:(UIApplication *)application {
   #if DEBUG
   #ifdef FB_SONARKIT_ENABLED
@@ -81,10 +89,10 @@
   #endif
 }
 
-- (BOOL)application:(UIApplication *)app openURL:(NSURL *)url options:(NSDictionary<UIApplicationOpenURLOptionsKey,id> *)options
-{
-  return [RNBranch application:app openURL:url options:options];
-}
+//- (BOOL)application:(UIApplication *)app openURL:(NSURL *)url options:(NSDictionary<UIApplicationOpenURLOptionsKey,id> *)options
+//{
+//  return [RNBranch application:app openURL:url options:options];
+//}
 
 - (BOOL)application:(UIApplication *)application continueUserActivity:(NSUserActivity *)userActivity restorationHandler:(void (^)(NSArray<id<UIUserActivityRestoring>> * _Nullable))restorationHandler {
   return [RNBranch continueUserActivity:userActivity];

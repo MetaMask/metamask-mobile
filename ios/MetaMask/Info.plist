@@ -27,6 +27,12 @@
 			<string>metamask.test.app.link</string>
 			<string>metamask-alternate.test.app.link</string>
     </array>
+	<key>CFBundleTypeRole</key>
+	<string>Editor</string>
+	<key>CFBundleURLSchemes</key>
+	<array>
+		<string>metamask-share://</string>
+	</array>
 	<key>CFBundleURLTypes</key>
 	<array>
 		<dict>
