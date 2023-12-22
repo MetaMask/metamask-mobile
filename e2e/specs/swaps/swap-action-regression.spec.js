@@ -44,10 +44,9 @@ describe(Regression('Multiple Swaps from Actions'), () => {
   beforeEach(async () => {
     jest.setTimeout(150000);
   });
-  // ${'1'}   | ${'ETH'}          | ${'WETH'}
-
   it.each`
     quantity | sourceTokenSymbol | destTokenSymbol
+    ${'1'}   | ${'ETH'}          | ${'WETH'}
     ${'1'}   | ${'WETH'}         | ${'ETH'}
     ${'1'}   | ${'USDC'}         | ${'ETH'}
   `(
