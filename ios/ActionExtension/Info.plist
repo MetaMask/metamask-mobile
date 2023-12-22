@@ -8,11 +8,21 @@
 		<dict>
 			<key>NSExtensionActivationRule</key>
 			<string>TRUEPREDICATE</string>
+			<key>NSExtensionServiceAllowsFinderPreviewItem</key>
+			<true/>
+			<key>NSExtensionServiceAllowsTouchBarItem</key>
+			<true/>
+			<key>NSExtensionServiceFinderPreviewIconName</key>
+			<string>NSActionTemplate</string>
+			<key>NSExtensionServiceTouchBarBezelColorName</key>
+			<string>TouchBarBezel</string>
+			<key>NSExtensionServiceTouchBarIconName</key>
+			<string>NSActionTemplate</string>
 		</dict>
 		<key>NSExtensionMainStoryboard</key>
 		<string>MainInterface</string>
 		<key>NSExtensionPointIdentifier</key>
-		<string>com.apple.share-services</string>
+		<string>com.apple.ui-services</string>
 	</dict>
 </dict>
 </plist>
