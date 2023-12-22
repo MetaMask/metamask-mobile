@@ -117,7 +117,10 @@ export default class TestHelpers {
 
   static async tapWebviewElement(elementId) {
     // this method only words on android: https://wix.github.io/Detox/docs/api/webviews/
-    return web.element(by.web.id(elementId)).tap();
+    return web
+      .element(by.web.id(elementId))
+      .atIndex(index || 0)
+      .tap();
   }
 
   static async swipe(elementId, direction, speed, percentage, xStart, yStart) {
