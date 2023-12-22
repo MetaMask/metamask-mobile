@@ -1,6 +1,31 @@
 # Changelog
 
 ## Current Main Branch
+- [#8178](https://github.com/MetaMask/metamask-mobile/pull/8178): chore: build bump to 1233
+- [#8175](https://github.com/MetaMask/metamask-mobile/pull/8175): fix: OpenSea supply -> total_supply
+- [#8155](https://github.com/MetaMask/metamask-mobile/pull/8155): fix: OpenSea V1 -> V2 patch
+- updated changelog
+- [#8156](https://github.com/MetaMask/metamask-mobile/pull/8156): feat: migrate to latest Token rates controller to release 7.12.4
+- 7.12.4
+- [#8134](https://github.com/MetaMask/metamask-mobile/pull/8134): chore: fix: prevent bad svg urls in react-native-svg (#8102)
+- 7.12.3
+- [#8057](https://github.com/MetaMask/metamask-mobile/pull/8057): fix: Disable SES on iOS
+- updated changelog
+- 7.12.2
+- bump version and updated changelog
+- [#8007](https://github.com/MetaMask/metamask-mobile/pull/8007): chore: update header key
+- [#8002](https://github.com/MetaMask/metamask-mobile/pull/8002): chore: Cherry-pick for solution in main to token rates
+- [#7977](https://github.com/MetaMask/metamask-mobile/pull/7977): chore: cherry-pick: test: Increase E2E test setup time (#7929)
+- [#7970](https://github.com/MetaMask/metamask-mobile/pull/7970): chore: cherry-pick: test: fix wallet test (#7966)
+- 7.12.1
+- [#7939](https://github.com/MetaMask/metamask-mobile/pull/7939): chore: build bump 1214 RC4
+- [#7945](https://github.com/MetaMask/metamask-mobile/pull/7945): chore: cherry pick #7607
+- [#7944](https://github.com/MetaMask/metamask-mobile/pull/7944): chore: cherry pick 7935
+- [#7898](https://github.com/MetaMask/metamask-mobile/pull/7898): fix: Cherry pick revert javascript disable on webview
+- [#7883](https://github.com/MetaMask/metamask-mobile/pull/7883): chore: cherry pick 7881
+- [#7884](https://github.com/MetaMask/metamask-mobile/pull/7884): chore: cherry-pick #7864
+- Merge branch 'main' into release/7.12.0
+- 7.12.0
 
 ## 7.12.4 - Dec 19, 2023
 ### Added
