@@ -118,10 +118,10 @@ stages:
     workflows:
       - run_tag_smoke_confirmations_ios: {}
       - run_tag_smoke_confirmations_android: {}
-      # - run_tag_smoke_swaps_ios: {}
-      # - run_tag_smoke_swaps_android: {}
-      # - run_tag_smoke_core_ios: {}
-      # - run_tag_smoke_core_android: {}
+      - run_tag_smoke_swaps_ios: {}
+      - run_tag_smoke_swaps_android: {}
+      - run_tag_smoke_core_ios: {}
+      - run_tag_smoke_core_android: {}
   build_regression_e2e_ios_android_stage:
     workflows:
       - ios_build_regression_tests: {}
@@ -1284,6 +1284,4 @@ trigger_map:
   - tag: 'qa-*'
     pipeline: create_qa_builds_pipeline
   - tag: 'dev-e2e-*'
-    pipeline: pr_smoke_e2e_pipeline
-  - push_branch: detox/create-additional-subfolders
     pipeline: pr_smoke_e2e_pipeline
