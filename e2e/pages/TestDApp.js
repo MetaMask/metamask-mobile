@@ -98,8 +98,8 @@ export class TestDApp {
         'slow',
         0.4,
       );
-
-      await TestHelpers.waitForWebElementToBeVisibleById(buttonId, 5000);
+      await TestHelpers.delay(5000);
+      // await TestHelpers.waitForWebElementToBeVisibleById(buttonId, 5000);
       await TestHelpers.tapWebviewElement(buttonId);
     } else {
       await TestHelpers.delay(5000);
