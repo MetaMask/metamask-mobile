@@ -12,6 +12,7 @@ import TabBarComponent from '../../pages/TabBarComponent';
 import FixtureBuilder from '../../fixtures/fixture-builder';
 import { withFixtures } from '../../fixtures/fixture-helper';
 import CommonView from '../../pages/CommonView';
+import Assertions from '../../utils/Assertions';
 
 describe(
   SmokeCore('Log in into the app, change password then delete wallet flow'),
@@ -32,14 +33,14 @@ describe(
         await TabBarComponent.tapSettings();
         await SettingsView.tapSecurityAndPrivacy();
         await SecurityAndPrivacyView.scrollToChangePasswordView();
-        await expect(
-          await SecurityAndPrivacyView.changePasswordSection,
-        ).toBeVisible();
+        await Assertions.checkIfVisible(
+          SecurityAndPrivacyView.changePasswordSection,
+        );
 
         // should confirm password before changing it
         await SecurityAndPrivacyView.tapChangePasswordButton();
 
-        await expect(await ChangePasswordView.title).toBeVisible();
+        await Assertions.checkIfVisible(ChangePasswordView.title);
         await ChangePasswordView.typeInConfirmPasswordInputBox(PASSWORD);
 
         // should change the password
