@@ -1,5 +1,5 @@
 'use strict';
-import { Smoke } from '../../tags';
+import { SmokeConfirmations } from '../../tags';
 import TestHelpers from '../../helpers';
 import { loginToApp } from '../../viewHelper';
 import FixtureBuilder from '../../fixtures/fixture-builder';
@@ -16,7 +16,7 @@ import ContractApprovalModal from '../../pages/modals/ContractApprovalModal';
 const HST_CONTRACT = SMART_CONTRACTS.HST;
 const WEBVIEW_TEST_DAPP_APPROVE_TOKENS_BUTTON_ID = 'approveTokens';
 
-describe(Smoke('ERC20 tokens'), () => {
+describe(SmokeConfirmations('ERC20 tokens'), () => {
   beforeAll(async () => {
     jest.setTimeout(170000);
     if (device.getPlatform() === 'android') {
@@ -51,7 +51,8 @@ describe(Smoke('ERC20 tokens'), () => {
         });
 
         //Input custom token amount
-        await ContractApprovalModal.clearAndInputCustomAmount('2');
+        await ContractApprovalModal.clearInput();
+        await ContractApprovalModal.inputCustomAmount('2');
 
         // Assert that custom token amount is shown
         await ContractApprovalModal.isTokenAmountVisible('2');

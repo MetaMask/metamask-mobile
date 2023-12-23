@@ -41,16 +41,12 @@ export default class ContractApprovalModal {
     );
   }
 
-  static async clearAndInputCustomAmount(amount) {
+  static async clearInput() {
     await TestHelpers.checkIfExists(
       ContractApprovalModalSelectorsIDs.APPROVE_TOKEN_AMOUNT,
     );
     await TestHelpers.clearField(
       ContractApprovalModalSelectorsIDs.APPROVE_TOKEN_AMOUNT,
-    );
-    await TestHelpers.typeTextAndHideKeyboard(
-      ContractApprovalModalSelectorsIDs.APPROVE_TOKEN_AMOUNT,
-      amount + '\n',
     );
   }
 
