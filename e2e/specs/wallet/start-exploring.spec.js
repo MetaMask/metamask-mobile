@@ -13,6 +13,7 @@ import SkipAccountSecurityModal from '../../pages/modals/SkipAccountSecurityModa
 import OnboardingWizardModal from '../../pages/modals/OnboardingWizardModal';
 import WhatsNewModal from '../../pages/modals/WhatsNewModal';
 import { acceptTermOfUse } from '../../viewHelper';
+import Assertions from '../../utils/Assertions';
 
 const ACCOUNT = 'Test Account One';
 const PASSWORD = '12345678';
@@ -25,31 +26,25 @@ describe(SmokeCore('Start Exploring'), () => {
 
   it('should show the onboarding screen', async () => {
     // Check that we are on the onboarding carousel screen
-    await OnboardingCarouselView.isVisible();
-    await OnboardingCarouselView.isMetaMaskWelcomeTextVisible();
-    await OnboardingCarouselView.isWelcomeToMetaMaskImageVisible();
-    // Swipe left
+    await Assertions.checkIfVisible(OnboardingCarouselView.container);
+    await Assertions.checkIfVisible(OnboardingCarouselView.titleOne);
+    await Assertions.checkIfVisible(OnboardingCarouselView.imageOne);
     await OnboardingCarouselView.swipeCarousel();
-    await OnboardingCarouselView.isManageYourDigitalTextVisible();
-    // Check that title of screen 2 is correct
-    await OnboardingCarouselView.isManageYourDigitalTextVisible();
-    await OnboardingCarouselView.isManageYourDigitalImageVisible();
-    // Swipe left
+    await Assertions.checkIfVisible(OnboardingCarouselView.titleTwo);
+    await Assertions.checkIfVisible(OnboardingCarouselView.imageTwo);
     await OnboardingCarouselView.swipeCarousel();
-    // Check that title of screen 3 is correct
-    await OnboardingCarouselView.isYourGatewayToWeb3TextVisible();
-    await OnboardingCarouselView.isYourGatewayToWeb3ImageVisible();
-    // Check that Get started CTA is visible & tap it
+    await Assertions.checkIfVisible(OnboardingCarouselView.titleThree);
+    await Assertions.checkIfVisible(OnboardingCarouselView.imageThree);
     await OnboardingCarouselView.tapOnGetStartedButton();
-    await OnboardingView.isVisible();
+    await Assertions.checkIfVisible(OnboardingView.container);
   });
 
   it('should be able to opt-out of the onboarding-wizard', async () => {
     await OnboardingView.tapCreateWallet();
-    await MetaMetricsOptIn.isVisible();
+    await Assertions.checkIfVisible(MetaMetricsOptIn.container);
     await MetaMetricsOptIn.tapNoThanksButton();
     await acceptTermOfUse();
-    await CreatePasswordView.isVisible();
+    await Assertions.checkIfVisible(CreatePasswordView.container);
   });
 
   it('should be able to create a new wallet', async () => {
@@ -61,7 +56,7 @@ describe(SmokeCore('Start Exploring'), () => {
 
   it('Should skip backup check', async () => {
     // Check that we are on the Secure your wallet screen
-    await ProtectYourWalletView.isVisible();
+    await Assertions.checkIfVisible(ProtectYourWalletView.container);
     await ProtectYourWalletView.tapOnRemindMeLaterButton();
     await SkipAccountSecurityModal.tapIUnderstandCheckBox();
     await SkipAccountSecurityModal.tapSkipButton();

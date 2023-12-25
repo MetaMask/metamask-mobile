@@ -18,6 +18,8 @@ import FixtureBuilder from '../../fixtures/fixture-builder';
 import { withFixtures } from '../../fixtures/fixture-helper';
 import MetaMetricsOptIn from '../../pages/Onboarding/MetaMetricsOptInView';
 import ProtectYourWalletModal from '../../pages/modals/ProtectYourWalletModal';
+import Assertions from '../../utils/Assertions';
+import CommonView from '../../pages/CommonView';
 
 const PASSWORD = '12345678';
 
@@ -66,19 +68,20 @@ describe(
           await DeleteWalletModal.typeDeleteInInputBox();
           await DeleteWalletModal.tapDeleteMyWalletButton();
           await TestHelpers.delay(2000);
-          await OnboardingView.isVisible();
-          await OnboardingView.deleteWalletToastIsNotVisible();
+          await Assertions.checkIfVisible(OnboardingView.container);
+          await Assertions.checkIfVisible(CommonView.toast);
+          await Assertions.checkIfNotVisible(CommonView.toast);
           await OnboardingView.tapCreateWallet();
 
           //Create new wallet
-          await MetaMetricsOptIn.isVisible();
+          await Assertions.checkIfVisible(MetaMetricsOptIn.container);
           await MetaMetricsOptIn.tapAgreeButton();
-          await CreatePasswordView.isVisible();
+          await Assertions.checkIfVisible(CreatePasswordView.container);
           await CreatePasswordView.enterPassword(PASSWORD);
           await CreatePasswordView.reEnterPassword(PASSWORD);
           await CreatePasswordView.tapIUnderstandCheckBox();
           await CreatePasswordView.tapCreatePasswordButton();
-          await ProtectYourWalletView.isVisible();
+          await Assertions.checkIfVisible(ProtectYourWalletView.container);
           await ProtectYourWalletView.tapOnRemindMeLaterButton();
           await SkipAccountSecurityModal.tapIUnderstandCheckBox();
           await SkipAccountSecurityModal.tapSkipButton();

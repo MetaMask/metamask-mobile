@@ -33,10 +33,10 @@ describe(
     it('should be able to opt-in of the onboarding-wizard', async () => {
       await OnboardingCarouselView.tapOnGetStartedButton();
       await OnboardingView.tapCreateWallet();
-      await MetaMetricsOptIn.isVisible();
+      await Assertions.checkIfVisible(MetaMetricsOptIn.container);
       await MetaMetricsOptIn.tapAgreeButton();
       await acceptTermOfUse();
-      await CreatePasswordView.isVisible();
+      await Assertions.checkIfVisible(CreatePasswordView.container);
     });
 
     it('should be able to create a new wallet', async () => {
@@ -48,7 +48,7 @@ describe(
 
     it('Should skip backup check', async () => {
       // Check that we are on the Secure your wallet screen
-      await ProtectYourWalletView.isVisible();
+      await Assertions.checkIfVisible(ProtectYourWalletView.container);
       await ProtectYourWalletView.tapOnRemindMeLaterButton();
       await SkipAccountSecurityModal.tapIUnderstandCheckBox();
       await SkipAccountSecurityModal.tapSkipButton();
