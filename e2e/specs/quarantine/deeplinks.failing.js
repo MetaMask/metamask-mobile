@@ -18,6 +18,7 @@ import WalletView from '../../pages/WalletView';
 import { importWalletWithRecoveryPhrase } from '../../viewHelper';
 import Accounts from '../../../wdio/helpers/Accounts';
 import TabBarComponent from '../../pages/TabBarComponent';
+import Assertions from '../../utils/Assertions';
 
 const BINANCE_RPC_URL = 'https://bsc-dataseed1.binance.org';
 
@@ -58,15 +59,9 @@ describe(Regression('Deep linking Tests'), () => {
   });
 
   it('should enable remember me', async () => {
-    await expect(await SecurityAndPrivacy.rememberMeToggle).toHaveToggleValue(
-      true,
-    );
+    await Assertions.checkIfToggleIsOn(SecurityAndPrivacy.rememberMeToggle);
     await SecurityAndPrivacy.tapTurnOnRememberMeToggle();
-    await expect(await SecurityAndPrivacy.rememberMeToggle).toHaveToggleValue(
-      false,
-    );
-
-    await TestHelpers.delay(1500);
+    await Assertions.checkIfToggleIsOff(SecurityAndPrivacy.rememberMeToggle);
   });
 
   it('should relaunch the app then enable remember me', async () => {
