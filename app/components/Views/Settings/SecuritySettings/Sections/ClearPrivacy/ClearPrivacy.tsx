@@ -2,12 +2,19 @@ import React, { useState } from 'react';
 import { View } from 'react-native';
 import { styleSheet } from './styles';
 import Engine from '../../../../../../core/Engine';
-import StyledButton from '../../../../../UI/StyledButton';
-import Text from '../../../../../../component-library/components/Texts/Text';
+import Text, {
+  TextVariant,
+  TextColor,
+} from '../../../../../../component-library/components/Texts/Text';
 import { useStyles } from '../../../../../../component-library/hooks';
 import ActionModal from '../../../../../UI/ActionModal';
 import { strings } from '../../../../../../../locales/i18n';
 import { CLEAR_PRIVACY_SECTION } from '../../SecuritySettings.constants';
+import Button, {
+  ButtonSize,
+  ButtonVariants,
+  ButtonWidthTypes,
+} from '../../../../../../component-library/components/Buttons/Button';
 
 const ClearPrivacy = () => {
   const { styles } = useStyles(styleSheet, {});
@@ -30,7 +37,7 @@ const ClearPrivacy = () => {
       onConfirmPress={clearApprovals}
     >
       <View style={styles.modalView}>
-        <Text style={styles.modalTitle}>
+        <Text variant={TextVariant.HeadingMD} style={styles.modalTitle}>
           {strings('app_settings.clear_approvals_modal_title')}
         </Text>
         <Text style={styles.modalText}>
@@ -42,19 +49,25 @@ const ClearPrivacy = () => {
 
   return (
     <View style={[styles.setting]} testID={CLEAR_PRIVACY_SECTION}>
-      <Text style={styles.title}>
+      <Text variant={TextVariant.BodyLGMedium}>
         {strings('app_settings.clear_privacy_title')}
       </Text>
-      <Text style={styles.desc}>
+      <Text
+        variant={TextVariant.BodyMD}
+        color={TextColor.Alternative}
+        style={styles.desc}
+      >
         {strings('app_settings.clear_privacy_desc')}
       </Text>
-      <StyledButton
-        type="normal"
-        onPress={() => setModalVisible(true)}
-        containerStyle={styles.confirm}
-      >
-        {strings('app_settings.clear_privacy_title')}
-      </StyledButton>
+      <View style={styles.accessory}>
+        <Button
+          variant={ButtonVariants.Secondary}
+          size={ButtonSize.Lg}
+          width={ButtonWidthTypes.Full}
+          label={strings('app_settings.clear_privacy_title')}
+          onPress={() => setModalVisible(true)}
+        />
+      </View>
       {approvalModal()}
     </View>
   );

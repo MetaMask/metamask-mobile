@@ -20,7 +20,7 @@ import { parse } from 'eth-url-parser';
 import { colors as importedColors } from '../../../styles/common';
 import { isValidAddress } from 'ethereumjs-util';
 import { strings } from '../../../../locales/i18n';
-import SharedDeeplinkManager from '../../../core/DeeplinkManager';
+import SharedDeeplinkManager from '../../../core/DeeplinkManager/SharedDeeplinkManager';
 import AppConstants from '../../../core/AppConstants';
 import {
   failedSeedPhraseRequirements,
@@ -210,6 +210,7 @@ const QRScanner = () => {
           origin: AppConstants.DEEPLINKS.ORIGIN_QR_CODE,
           // TODO: Check is pop is still valid.
           onHandled: () => (navigation as any).pop(2),
+          browserCallBack: () => null,
         });
 
         if (handledByDeeplink) {

@@ -1,22 +1,18 @@
 import Selectors from '../../helpers/Selectors';
-import {
-  ADD_BOOKMARKS_SCREEN_ID,
-  FAVORITE_TITLE_EDIT_TEXT,
-  FAVORITE_URL_EDIT_TEXT,
-} from '../testIDs/BrowserScreen/AddFavorite.testIds';
 import Gestures from '../../helpers/Gestures';
+import { AddBookmarkViewSelectorsIDs } from '../../../e2e/selectors/AddBookmarkView.selectors';
 
 class AddFavoriteScreen {
   get screen() {
-    return Selectors.getElementByPlatform(ADD_BOOKMARKS_SCREEN_ID);
+    return Selectors.getElementByPlatform(AddBookmarkViewSelectorsIDs.CONTAINER);
   }
 
   get titleEditText() {
-    return Selectors.getElementByPlatform(FAVORITE_TITLE_EDIT_TEXT);
+    return Selectors.getElementByPlatform(AddBookmarkViewSelectorsIDs.BOOKMARK_TITLE);
   }
 
   get urlEditText() {
-    return Selectors.getElementByPlatform(FAVORITE_URL_EDIT_TEXT);
+    return Selectors.getElementByPlatform(AddBookmarkViewSelectorsIDs.URL_TEXT);
   }
 
   get addButton() {

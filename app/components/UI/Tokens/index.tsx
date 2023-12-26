@@ -401,7 +401,7 @@ const Tokens: React.FC<TokensI> = ({ tokens }) => {
         TokenDetectionController.detectTokens(),
         AccountTrackerController.refresh(),
         CurrencyRateController.start(),
-        TokenRatesController.poll(),
+        TokenRatesController.updateExchangeRates(),
       ];
       await Promise.all(actions);
       setRefreshing(false);

@@ -274,6 +274,7 @@ exports[`Cell should render CellMultiSelect given the type MultiSelect 1`] = `
         Object {
           "alignItems": "center",
           "flexDirection": "row",
+          "height": 24,
           "marginRight": -8,
           "opacity": 1,
         }

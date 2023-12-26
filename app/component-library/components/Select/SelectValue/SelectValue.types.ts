@@ -12,7 +12,7 @@ import { SelectValueBaseProps } from './foundation/SelectValueBase.types';
  */
 export interface SelectValueProps extends SelectValueBaseProps {
   /**
-   * Optional prop for the start Icon Element.
+   * Optional prop to replace the start Icon Element.
    */
   iconEl?: ReactElement<AvatarProps>;
   /**

@@ -1,4 +1,4 @@
-import BackgroundBridge from 'app/core/BackgroundBridge/BackgroundBridge';
+import BackgroundBridge from '../../BackgroundBridge/BackgroundBridge';
 import BatchRPCManager, { BatchRPCState } from '../BatchRPCManager';
 import DevLogger from '../utils/DevLogger';
 import { wait } from '../utils/wait.util';
@@ -17,7 +17,7 @@ export const handleBatchRpcResponse = async ({
   msg: any;
 }): Promise<boolean> => {
   const isLastRpc = chainRpcs.index === chainRpcs.rpcs.length - 1;
-  const hasError = msg?.data?.error;
+  const hasError = !!msg?.data?.error;
   const origRpcId = parseInt(chainRpcs.baseId);
   const result = chainRpcs.rpcs
     .filter((rpc) => rpc.response !== undefined)

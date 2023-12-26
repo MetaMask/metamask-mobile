@@ -1,16 +1,14 @@
 import TestHelpers from '../../helpers';
-import { ProtectWallet } from '../../selectors/Onboarding/ProtectWallet.selectors';
+import { ManualBackUpStepsSelectorsIDs } from '../../selectors/Onboarding/ManualBackUpSteps.selectors';
 
 export default class ProtectYourWalletView {
   static async tapOnRemindMeLaterButton() {
-    await TestHelpers.tap(ProtectWallet.REMIND_ME_LATER_BUTTON_ID);
+    await TestHelpers.tap(ManualBackUpStepsSelectorsIDs.REMIND_ME_LATER_BUTTON);
   }
 
   static async isVisible() {
-    await TestHelpers.checkIfVisible(ProtectWallet.CONTAINER_ID);
-  }
-
-  static async isNotVisible() {
-    await TestHelpers.checkIfNotVisible(ProtectWallet.CONTAINER_ID);
+    await TestHelpers.checkIfVisible(
+      ManualBackUpStepsSelectorsIDs.PROTECT_CONTAINER,
+    );
   }
 }

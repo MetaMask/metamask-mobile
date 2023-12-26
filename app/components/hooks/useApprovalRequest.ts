@@ -16,12 +16,15 @@ const useApprovalRequest = () => {
   const pageMeta = approvalRequest?.requestData?.pageMeta ?? {};
 
   const onConfirm = useCallback(
-    async (opts?: Parameters<typeof Engine.acceptPendingApproval>[2]) => {
+    async (
+      opts?: Parameters<typeof Engine.acceptPendingApproval>[2],
+      value?: Parameters<typeof Engine.acceptPendingApproval>[1],
+    ) => {
       if (!approvalRequest) return;
 
       await Engine.acceptPendingApproval(
         approvalRequest.id,
-        approvalRequest.requestData,
+        { ...approvalRequest.requestData, ...(value || {}) },
         opts,
       );
     },

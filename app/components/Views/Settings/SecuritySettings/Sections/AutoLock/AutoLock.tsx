@@ -5,7 +5,10 @@ import AUTO_LOCK_OPTIONS, { AUTO_LOCK_SECTION } from './constants';
 import { setLockTime } from '../../../../../../actions/settings';
 import { useStyles } from '../../../../../../component-library/hooks';
 import SelectComponent from '../../../../../UI/SelectComponent';
-import Text from '../../../../../../component-library/components/Texts/Text';
+import Text, {
+  TextVariant,
+  TextColor,
+} from '../../../../../../component-library/components/Texts/Text';
 import { strings } from '../../../../../../../locales/i18n';
 import styleSheet from './styles';
 
@@ -21,8 +24,16 @@ const AutoLock = () => {
 
   return (
     <View style={styles.setting} testID={AUTO_LOCK_SECTION}>
-      <Text style={styles.title}>{strings('app_settings.auto_lock')}</Text>
-      <Text style={styles.desc}>{strings('app_settings.auto_lock_desc')}</Text>
+      <Text variant={TextVariant.BodyLGMedium}>
+        {strings('app_settings.auto_lock')}
+      </Text>
+      <Text
+        variant={TextVariant.BodyMD}
+        color={TextColor.Alternative}
+        style={styles.desc}
+      >
+        {strings('app_settings.auto_lock_desc')}
+      </Text>
       <View style={styles.picker}>
         <SelectComponent
           selectedValue={lockTime.toString()}

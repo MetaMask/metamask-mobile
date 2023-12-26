@@ -1,5 +1,5 @@
 'use strict';
-import { Smoke } from '../../tags';
+import { SmokeCore } from '../../tags';
 import TestHelpers from '../../helpers';
 import OnboardingView from '../../pages/Onboarding/OnboardingView';
 import OnboardingCarouselView from '../../pages/Onboarding/OnboardingCarouselView';
@@ -17,7 +17,7 @@ import { acceptTermOfUse } from '../../viewHelper';
 const ACCOUNT = 'Test Account One';
 const PASSWORD = '12345678';
 
-describe(Smoke('Start Exploring'), () => {
+describe(SmokeCore('Start Exploring'), () => {
   beforeAll(async () => {
     jest.setTimeout(150000);
     await device.launchApp();

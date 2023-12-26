@@ -88,7 +88,7 @@ const BottomSheet = forwardRef<BottomSheetRef, BottomSheetProps>(
         <BottomSheetOverlay
           disabled={!isInteractable}
           onPress={() => {
-            bottomSheetDialogRef.current?.closeDialog();
+            isInteractable && bottomSheetDialogRef.current?.closeDialog();
           }}
         />
         <BottomSheetDialog

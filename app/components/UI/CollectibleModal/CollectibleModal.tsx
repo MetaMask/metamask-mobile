@@ -45,7 +45,9 @@ const CollectibleModal = () => {
   const handleUpdateCollectible = useCallback(() => {
     if (isIpfsGatewatEnabled || displayNftMedia) {
       const newUpdatedCollectible = collectibles.find(
-        (nft: Collectible) => nft.address === collectible.address,
+        (nft: Collectible) =>
+          nft.address === collectible.address &&
+          nft.tokenId === collectible.tokenId,
       );
 
       if (newUpdatedCollectible) {
@@ -96,7 +98,6 @@ const CollectibleModal = () => {
     () => ({ ...collectible, ...updatedCollectible, contractName }),
     [collectible, contractName, updatedCollectible],
   );
-
   return (
     <ReusableModal ref={modalRef} style={styles.bottomModal}>
       <>

@@ -18,10 +18,11 @@ class Matchers {
    * Get element by text.
    *
    * @param {string} text - Match elements with the specified text
-   * @return {Promise<Detox.IndexableNativeElement>} - Resolves to the located element
+   * @param {number} index - Index of the element (default: 0)
+   * @return {Promise<Detox.NativeElement>} - Resolves to the located element
    */
-  static async getElementByText(text) {
-    return element(by.text(text));
+  static async getElementByText(text, index = 0) {
+    return element(by.text(text)).atIndex(index);
   }
 
   /**
@@ -73,6 +74,23 @@ class Matchers {
    */
   static async getElementByXPath(xpath) {
     return web.element(by.web.xpath(xpath));
+  }
+
+  /**
+ * Creates a Detox matcher for identifying an element by its ID.
+ *
+ * @param {string} selectorString - The selector string for identifying the element
+ * @returns {Matcher} A Detox matcher that identifies elements by the specified ID.
+ *
+ * @description
+ * This method does not create an element but instead generates only a matcher.
+ * The purpose is to create a matcher that can be used for identification purposes,
+ * without performing any actions on the element.
+ *
+
+ */
+  static async getIdentifier(selectorString) {
+    return by.id(selectorString);
   }
 }
 

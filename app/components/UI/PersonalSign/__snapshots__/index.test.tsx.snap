@@ -5,7 +5,7 @@ exports[`PersonalSign should render correctly 1`] = `
   currentPageInformation={
     Object {
       "title": "title",
-      "url": "url",
+      "url": "http://localhost:8545",
     }
   }
   messageParams={

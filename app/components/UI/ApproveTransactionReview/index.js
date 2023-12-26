@@ -9,7 +9,7 @@ import {
 import Eth from 'ethjs-query';
 import ActionView from '../../UI/ActionView';
 import PropTypes from 'prop-types';
-import { getApproveNavbar } from '../../UI/Navbar';
+import { getApproveNavbar } from '../Navbar';
 import { connect } from 'react-redux';
 import { getHost } from '../../../util/browser';
 import {
@@ -98,7 +98,7 @@ import { getRampNetworks } from '../../../reducers/fiatOrders';
 import SkeletonText from '../Ramp/common/components/SkeletonText';
 import InfoModal from '../../../components/UI/Swaps/components/InfoModal';
 import TransactionBlockaidBanner from '../TransactionBlockaidBanner/TransactionBlockaidBanner';
-import { regex } from '../../../../app/util/regex';
+import { regex } from '../../../util/regex';
 
 const { ORIGIN_DEEPLINK, ORIGIN_QR_CODE } = AppConstants.DEEPLINKS;
 const POLLING_INTERVAL_ESTIMATED_L1_FEE = 30000;
@@ -507,6 +507,21 @@ class ApproveTransactionReview extends PureComponent {
     clearInterval(intervalIdForEstimatedL1Fee);
   };
 
+  withBlockaidMetricsParams = () => {
+    let blockaidParams = {};
+
+    const { transaction } = this.props;
+    if (
+      transaction.id === transaction.currentTransactionSecurityAlertResponse?.id
+    ) {
+      blockaidParams = getBlockaidMetricsParams(
+        transaction.currentTransactionSecurityAlertResponse?.response,
+      );
+    }
+
+    return blockaidParams;
+  };
+
   getAnalyticsParams = () => {
     try {
       const { chainId, transaction, onSetAnalyticsParams } = this.props;
@@ -519,7 +534,7 @@ class ApproveTransactionReview extends PureComponent {
         transaction?.origin,
       );
       const unlimited = encodedHexAmount === UINT256_HEX_MAX_VALUE;
-      let params = {
+      const params = {
         account_type: getAddressAccountType(transaction?.from),
         dapp_host_name: transaction?.origin,
         chain_id: chainId,
@@ -535,15 +550,6 @@ class ApproveTransactionReview extends PureComponent {
           : this.originIsWalletConnect
           ? AppConstants.REQUEST_SOURCES.WC
           : AppConstants.REQUEST_SOURCES.IN_APP_BROWSER,
-      };
-
-      const blockaidParams = getBlockaidMetricsParams(
-        transaction.securityAlertResponse,
-      );
-
-      params = {
-        ...params,
-        ...blockaidParams,
       };
       // Send analytics params to parent component so it's available when cancelling and confirming
       onSetAnalyticsParams && onSetAnalyticsParams(params);
@@ -687,6 +693,7 @@ class ApproveTransactionReview extends PureComponent {
   onContactUsClicked = () => {
     const analyticsParams = {
       ...this.getAnalyticsParams(),
+      ...this.withBlockaidMetricsParams(),
       external_link_clicked: 'security_alert_support_link',
     };
     AnalyticsV2.trackEvent(
@@ -740,6 +747,7 @@ class ApproveTransactionReview extends PureComponent {
       isNativeTokenBuySupported,
       isGasEstimateStatusIn,
     } = this.props;
+
     const styles = this.getStyles();
     const isTestNetwork = isTestNet(chainId);
 
@@ -784,7 +792,7 @@ class ApproveTransactionReview extends PureComponent {
 
     return (
       <>
-        <View style={styles.section} testID={'approve-modal-test-id'}>
+        <View style={styles.section}>
           {from && (
             <ApproveTransactionHeader
               dontWatchAsset
@@ -821,11 +829,7 @@ class ApproveTransactionReview extends PureComponent {
                         onContactUsClicked={this.onContactUsClicked}
                       />
                     )}
-                    <Text
-                      variant={TextVariant.HeadingMD}
-                      style={styles.title}
-                      testID={'allow-access'}
-                    >
+                    <Text variant={TextVariant.HeadingMD} style={styles.title}>
                       {strings(
                         `spend_limit_edition.${
                           originIsDeeplink
@@ -1145,6 +1149,10 @@ class ApproveTransactionReview extends PureComponent {
   onCancelPress = () => {
     const { onCancel } = this.props;
     onCancel && onCancel();
+    AnalyticsV2.trackEvent(MetaMetricsEvents.APPROVAL_PERMISSION_UPDATED, {
+      ...this.getAnalyticsParams(),
+      ...this.withBlockaidMetricsParams(),
+    });
   };
 
   onConfirmPress = () => {
@@ -1155,10 +1163,10 @@ class ApproveTransactionReview extends PureComponent {
     const { onConfirm } = this.props;
 
     if (tokenStandard === ERC20 && !isReadyToApprove) {
-      AnalyticsV2.trackEvent(
-        MetaMetricsEvents.APPROVAL_PERMISSION_UPDATED,
-        this.getAnalyticsParams(),
-      );
+      AnalyticsV2.trackEvent(MetaMetricsEvents.APPROVAL_PERMISSION_UPDATED, {
+        ...this.getAnalyticsParams(),
+        ...this.withBlockaidMetricsParams(),
+      });
       return this.setState({ isReadyToApprove: true });
     }
 
@@ -1185,7 +1193,7 @@ class ApproveTransactionReview extends PureComponent {
     } = this.props;
     const styles = this.getStyles();
     return (
-      <View style={styles.actionViewQRObject} testID={'qr-details'}>
+      <View style={styles.actionViewQRObject}>
         <TransactionHeader
           currentPageInformation={{
             origin,

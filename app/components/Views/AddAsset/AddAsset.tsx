@@ -26,7 +26,7 @@ import styleSheet from './AddAsset.styles';
 import { AddAssetParams } from './AddAsset.types';
 import Routes from '../../../constants/navigation/Routes';
 import { NFT_TITLE, TOKEN, TOKEN_TITLE } from './AddAsset.constants';
-
+import { AddAssetViewSelectorsIDs } from '../../../../e2e/selectors/AddAssetView.selectors';
 const AddAsset = () => {
   const navigation = useNavigation();
   const { assetType, collectibleContract } = useParams<AddAssetParams>();
@@ -84,15 +84,9 @@ const AddAsset = () => {
             description={
               !displayNftMedia ? (
                 <>
-                  <Text
-                    variant={TextVariant.BodyMD}
-                    testID="enable-display-media-text"
-                  >
+                  <Text variant={TextVariant.BodyMD}>
                     {strings('wallet.display_nft_media_cta_new_1')}
-                    <Text
-                      variant={TextVariant.BodyMDBold}
-                      testID="enable-display-media-text"
-                    >
+                    <Text variant={TextVariant.BodyMDBold}>
                       {' '}
                       {strings('wallet.display_nft_media_cta_new_2')}
                     </Text>
@@ -101,7 +95,7 @@ const AddAsset = () => {
               ) : (
                 <Text
                   variant={TextVariant.BodyMD}
-                  testID="warning-display-media-enabled-text"
+                  testID={AddAssetViewSelectorsIDs.WARNING_ENABLE_DISPLAY_MEDIA}
                 >
                   {strings('wallet.display_media_nft_warning')}
                 </Text>
@@ -137,7 +131,6 @@ const AddAsset = () => {
             chainId={chainId}
             navigation={navigation}
             tabLabel={strings('add_asset.custom_token')}
-            testID={'tab-add-custom-token'}
             isTokenDetectionSupported={isTokenDetectionSupported}
           />
         </ScrollableTabView>

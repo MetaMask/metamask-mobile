@@ -28,7 +28,7 @@ import { formatAddress, getLabelTextByAddress } from '../../../../util/address';
 import { AccountConnectScreens } from '../AccountConnect.types';
 
 // Internal dependencies.
-import USER_INTENT from '../../../../constants/permissions';
+import { USER_INTENT } from '../../../../constants/permissions';
 import styleSheet from './AccountConnectSingle.styles';
 import { AccountConnectSingleProps } from './AccountConnectSingle.types';
 

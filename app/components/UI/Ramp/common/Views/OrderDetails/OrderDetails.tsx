@@ -32,6 +32,8 @@ import {
 import { RootState } from '../../../../../../reducers';
 import { FIAT_ORDER_STATES } from '../../../../../../constants/on-ramp';
 import ErrorView from '../../components/ErrorView';
+import useInterval from '../../../../../hooks/useInterval';
+import AppConstants from '../../../../../../core/AppConstants';
 
 interface OrderDetailsParams {
   orderId?: string;
@@ -59,6 +61,7 @@ const OrderDetails = () => {
   const dispatchThunk = useThunkDispatch();
 
   const [isRefreshing, setIsRefreshing] = useState(false);
+  const [isRefreshingInterval, setIsRefreshingInterval] = useState(false);
 
   useEffect(() => {
     navigation.setOptions(
@@ -139,25 +142,36 @@ const OrderDetails = () => {
     [dispatch],
   );
 
-  const handleOnRefresh = useCallback(async () => {
-    if (!order) return;
-    try {
-      setError(null);
-      setIsRefreshing(true);
-      await processFiatOrder(order, dispatchUpdateFiatOrder, dispatchThunk, {
-        forced: true,
-      });
-    } catch (fetchError) {
-      Logger.error(fetchError as Error, {
-        message: 'FiatOrders::OrderDetails error while processing order',
-        order,
-      });
-      setError((fetchError as Error).message || 'An error as occurred');
-    } finally {
-      setIsLoading(false);
-      setIsRefreshing(false);
-    }
-  }, [dispatchThunk, dispatchUpdateFiatOrder, order]);
+  const handleOnRefresh = useCallback(
+    async ({ fromInterval }: { fromInterval?: boolean } = {}) => {
+      if (!order) return;
+      try {
+        setError(null);
+        if (fromInterval) {
+          setIsRefreshingInterval(true);
+        } else {
+          setIsRefreshing(true);
+        }
+        await processFiatOrder(order, dispatchUpdateFiatOrder, dispatchThunk, {
+          forced: true,
+        });
+      } catch (fetchError) {
+        Logger.error(fetchError as Error, {
+          message: 'FiatOrders::OrderDetails error while processing order',
+          order,
+        });
+        setError((fetchError as Error).message || 'An error as occurred');
+      } finally {
+        if (fromInterval) {
+          setIsRefreshingInterval(false);
+        } else {
+          setIsLoading(false);
+          setIsRefreshing(false);
+        }
+      }
+    },
+    [dispatchThunk, dispatchUpdateFiatOrder, order],
+  );
 
   useEffect(() => {
     if (order?.state === FIAT_ORDER_STATES.CREATED) {
@@ -175,6 +189,19 @@ const OrderDetails = () => {
         : Routes.RAMP.SELL,
     );
   }, [navigation, order?.orderType]);
+
+  useInterval(
+    () => {
+      handleOnRefresh({ fromInterval: true });
+    },
+    !isLoading &&
+      !isRefreshingInterval &&
+      order &&
+      order.state === FIAT_ORDER_STATES.CREATED &&
+      order.sellTxHash
+      ? AppConstants.FIAT_ORDERS.POLLING_FREQUENCY
+      : null,
+  );
 
   if (!order) {
     return <ScreenLayout />;

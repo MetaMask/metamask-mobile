@@ -296,13 +296,16 @@ class WalletConnect2Session {
 
         const id = trx.transactionMeta.id;
         const reqObject = {
+          id: requestEvent.id,
           jsonrpc: '2.0',
-          method: 'eth_sendTransaction',
+          method,
+          origin,
           params: [
             {
               from: methodParams[0].from,
               to: methodParams[0].to,
-              value: methodParams[0].value,
+              value: methodParams[0]?.value,
+              data: methodParams[0]?.data,
             },
           ],
         };

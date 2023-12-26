@@ -1,92 +1,80 @@
-import TestHelpers from '../../../../helpers';
-
-import { EDIT_BUTTON } from '../../../../../wdio/screen-objects/testIDs/Common.testIds';
+import Matchers from '../../../../utils/Matchers';
 import {
-  ADD_CONTACT_ADD_BUTTON,
-  ADD_CONTACT_ADDRESS_INPUT,
-  ADD_CONTACT_DELETE_BUTTON,
-  ADD_CONTACT_MEMO_INPUT,
-  ADD_CONTACT_NAME_INPUT,
-  ADD_CONTACTS_CONTAINER_ID,
-} from '../../../../../wdio/screen-objects/testIDs/Screens/AddContact.testIds';
-import { DELETE_CONTACT_MODAL_DELETE_BUTTON } from '../../../../../wdio/screen-objects/testIDs/Components/DeleteContactModal.testIds';
-import { CommonSelectorsIDs } from '../../../../selectors/Common.selectors';
+  AddContactViewSelectorsIDs,
+  AddContactViewSelectorsText,
+} from '../../../../selectors/Settings/Contacts/AddContactView.selectors';
+import Gestures from '../../../../utils/Gestures';
 
-export default class AddContactView {
-  static async tapAddContactButton() {
-    if (device.getPlatform() === 'android') {
-      await TestHelpers.waitAndTapByLabel(ADD_CONTACT_ADD_BUTTON);
-      await TestHelpers.delay(700);
-    } else {
-      await TestHelpers.waitAndTap(ADD_CONTACT_ADD_BUTTON);
-    }
+class AddContactView {
+  get container() {
+    return Matchers.getElementByID(AddContactViewSelectorsIDs.CONTAINER);
   }
 
-  static async tapEditButton() {
-    if (device.getPlatform() === 'android') {
-      await TestHelpers.waitAndTapByLabel('Edit');
-    } else {
-      await TestHelpers.waitAndTap(EDIT_BUTTON);
-    }
+  get addButton() {
+    return device.getPlatform() === 'ios'
+      ? Matchers.getElementByID(AddContactViewSelectorsIDs.ADD_BUTTON)
+      : Matchers.getElementByLabel(AddContactViewSelectorsIDs.ADD_BUTTON);
   }
 
-  static async tapEditContactCTA() {
-    await TestHelpers.waitAndTapByLabel('Edit contact'); // edit CTA button after you make changes to a contact
+  get editButton() {
+    return device.getPlatform() === 'ios'
+      ? Matchers.getElementByID(AddContactViewSelectorsIDs.EDIT_BUTTON)
+      : Matchers.getElementByLabel(AddContactViewSelectorsText.EDIT_BUTTON);
   }
 
-  static async tapBackButton() {
-    await TestHelpers.waitAndTap(CommonSelectorsIDs.BACK_ARROW_BUTTON);
+  get editContact() {
+    return Matchers.getElementByText(AddContactViewSelectorsText.EDIT_CONTACT);
   }
 
-  static async tapDeleteContactCTA() {
-    if (device.getPlatform() === 'ios') {
-      await TestHelpers.waitAndTap(ADD_CONTACT_DELETE_BUTTON);
-      await TestHelpers.tapByText(DELETE_CONTACT_MODAL_DELETE_BUTTON, 1);
-    } else {
-      await TestHelpers.waitAndTapByLabel(ADD_CONTACT_DELETE_BUTTON);
-      await TestHelpers.waitAndTapByLabel(DELETE_CONTACT_MODAL_DELETE_BUTTON);
-    }
+  get deleteButton() {
+    return device.getPlatform() === 'ios'
+      ? Matchers.getElementByID(AddContactViewSelectorsIDs.DELETE_BUTTON)
+      : Matchers.getElementByLabel(AddContactViewSelectorsIDs.DELETE_BUTTON);
   }
 
-  static async typeInName(name) {
-    if (device.getPlatform() === 'android') {
-      await TestHelpers.replaceTextInField(ADD_CONTACT_NAME_INPUT, name);
-      await element(by.id(ADD_CONTACT_NAME_INPUT)).tapReturnKey();
-    } else {
-      await TestHelpers.replaceTextInField(ADD_CONTACT_NAME_INPUT, name);
-    }
+  get nameInput() {
+    return Matchers.getElementByID(AddContactViewSelectorsIDs.NAME_INPUT);
   }
 
-  static async typeInMemo(memo) {
-    await TestHelpers.replaceTextInField(ADD_CONTACT_MEMO_INPUT, memo);
+  get memoInput() {
+    return Matchers.getElementByID(AddContactViewSelectorsIDs.MEMO_INPUT);
   }
 
-  static async typeInAddress(address) {
-    await TestHelpers.replaceTextInField(ADD_CONTACT_ADDRESS_INPUT, address);
+  get addressInput() {
+    return Matchers.getElementByID(AddContactViewSelectorsIDs.ADDRESS_INPUT);
   }
 
-  static async clearAddressInputBox() {
-    await TestHelpers.clearField(ADD_CONTACT_ADDRESS_INPUT);
+  async tapAddContactButton() {
+    await Gestures.waitAndTap(this.addButton);
   }
 
-  // Assertions
-
-  static async isVisible() {
-    await TestHelpers.checkIfVisible(ADD_CONTACTS_CONTAINER_ID);
+  async tapEditButton() {
+    await Gestures.waitAndTap(this.editButton);
   }
 
-  static async isNotVisible() {
-    await TestHelpers.checkIfNotVisible(ADD_CONTACTS_CONTAINER_ID);
+  async tapEditContactCTA() {
+    await Gestures.waitAndTap(this.editContact); // edit CTA button after you make changes to a contact
   }
 
-  static async isErrorMessageVisible() {
-    await TestHelpers.checkIfVisible(CommonSelectorsIDs.ERROR_MESSAGE);
+  async tapDeleteContactCTA() {
+    await Gestures.waitAndTap(this.deleteButton);
   }
 
-  static async isErrorMessageTextCorrect() {
-    await TestHelpers.checkIfElementHasString(
-      CommonSelectorsIDs.ERROR_MESSAGE,
-      'Invalid address',
-    );
+  async typeInName(name) {
+    await Gestures.replaceTextInField(this.nameInput, name);
+  }
+
+  async typeInMemo(memo) {
+    await Gestures.replaceTextInField(this.memoInput, memo);
+  }
+
+  async typeInAddress(address) {
+    await Gestures.replaceTextInField(this.addressInput, address);
+  }
+
+  async clearAddressInputBox() {
+    await Gestures.clearField(this.addressInput);
   }
 }
+
+export default new AddContactView();

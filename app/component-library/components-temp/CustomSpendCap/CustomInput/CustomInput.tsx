@@ -66,7 +66,7 @@ const CustomInput = ({
         {!isEditDisabled ? (
           <TextInput
             testID={CUSTOM_SPEND_CAP_INPUT_INPUT_ID}
-            multiline
+            multiline={false}
             onChangeText={onChangeValueText}
             value={value}
             placeholder={strings(

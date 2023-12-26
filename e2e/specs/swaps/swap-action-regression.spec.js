@@ -78,7 +78,6 @@ describe(Regression('Multiple Swaps from Actions'), () => {
         await QuoteView.checkMaxSlippage('Max slippage 0%');
       }
       await QuoteView.tapOnGetQuotes();
-      await SwapView.isVisible();
       await SwapView.tapIUnderstandPriceWarning();
       await SwapView.swipeToSwap();
       await SwapView.waitForSwapToComplete(sourceTokenSymbol, destTokenSymbol);

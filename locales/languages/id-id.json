@@ -1323,14 +1323,6 @@
     "wyre_total_label": "Wyre (melalui MetaMask)",
     "buy_with": "Beli dengan",
     "plus_fee": "Plus biaya {{fee}}",
-    "notifications": {
-      "purchase_failed_title": "Pembelian {{currency}} gagal! Silakan coba lagi, maaf atas ketidaknyamanannya!",
-      "purchase_cancelled_title": "Pembelian Anda dibatalkan",
-      "purchase_completed_title": "Pembelian {{amount}} {{currency}} Anda berhasil!",
-      "purchase_completed_description": "{{currency}} kini tersedia",
-      "purchase_pending_title": "Memproses pembelian {{currency}} Anda",
-      "purchase_pending_description": "Ini cuma perlu beberapa menit..."
-    },
     "date": "Tanggal",
     "from": "Dari",
     "to": "Untuk",
@@ -1364,6 +1356,16 @@
         "subtitle_5": "dan lihat berapa biayanya.",
         "cta": "Lanjutkan membeli {{ticker}}"
       }
+    }
+  },
+  "fiat_on_ramp_aggregator": {
+    "notifications": {
+      "purchase_failed_title": "Pembelian {{currency}} gagal! Silakan coba lagi, maaf atas ketidaknyamanannya!",
+      "purchase_cancelled_title": "Pembelian Anda dibatalkan",
+      "purchase_completed_title": "Pembelian {{amount}} {{currency}} Anda berhasil!",
+      "purchase_completed_description": "{{currency}} kini tersedia",
+      "purchase_pending_title": "Memproses pembelian {{currency}} Anda",
+      "purchase_pending_description": "Ini cuma perlu beberapa menit..."
     }
   },
   "swaps": {

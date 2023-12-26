@@ -95,7 +95,6 @@ const Root = ({
       )}
       {approvalType === ApprovalTypes.ETH_SIGN && (
         <MessageSign
-          navigation={navigation}
           messageParams={messageParams}
           onReject={onSignReject}
           onConfirm={onSignConfirm}

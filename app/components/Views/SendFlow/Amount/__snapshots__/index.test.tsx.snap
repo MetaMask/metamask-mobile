@@ -7790,7 +7790,6 @@ exports[`Amount should show an error message if balance is insufficient 1`] = `
                                       undefined,
                                     ]
                                   }
-                                  testID="error-message-warning"
                                 >
                                   <View>
                                     <Text
@@ -7841,6 +7840,7 @@ exports[`Amount should show an error message if balance is insufficient 1`] = `
                                           ],
                                         ]
                                       }
+                                      testID="error-message-warning"
                                     >
                                       Insufficient funds
                                     </Text>

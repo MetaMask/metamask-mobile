@@ -46,7 +46,7 @@ export default class ConnectedAccountsModal {
   }
 
   static async scrollToBottomOfModal() {
-    await TestHelpers.swipe(CONNECTED_ACCOUNTS_MODAL_CONTAINER, 'down', 'slow');
+    await TestHelpers.swipe(CONNECTED_ACCOUNTS_MODAL_CONTAINER, 'down', 'fast');
     await TestHelpers.delay(1000);
   }
 

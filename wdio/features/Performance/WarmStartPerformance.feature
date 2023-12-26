@@ -7,6 +7,7 @@ Feature: Measure the app launch times for warm starts
     And I have imported my wallet
     And I tap No Thanks on the Enable security check screen
     And I tap No thanks on the onboarding welcome tutorial
+    And I close the Whats New modal
     And I am on the wallet view
     When I navigate to the browser
     And I navigate to "https://app.sushi.com/swap"

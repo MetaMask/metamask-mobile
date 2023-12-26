@@ -8,7 +8,6 @@ import {
   StyleSheet,
   BackHandler,
   InteractionManager,
-  Platform,
 } from 'react-native';
 import PropTypes from 'prop-types';
 import { fontStyles } from '../../../styles/common';
@@ -32,11 +31,8 @@ import AnalyticsV2 from '../../../util/analyticsV2';
 
 import DefaultPreference from 'react-native-default-preference';
 import { useTheme } from '../../../util/theme';
-import generateTestId from '../../../../wdio/utils/generateTestId';
-import {
-  PROTECT_YOUR_WALLET_CONTAINER_ID,
-  REMIND_LATER_BUTTON_ID,
-} from '../../../../wdio/screen-objects/testIDs/Screens/WalletSetupScreen.testIds';
+import { ManualBackUpStepsSelectorsIDs } from '../../../../e2e/selectors/Onboarding/ManualBackUpSteps.selectors';
+
 const createStyles = (colors) =>
   StyleSheet.create({
     mainWrapper: {
@@ -216,12 +212,9 @@ const AccountBackupStep1 = (props) => {
       <ScrollView
         contentContainerStyle={styles.scrollviewWrapper}
         style={styles.mainWrapper}
-        testID={'account-backup-step-1-screen'}
+        testID={ManualBackUpStepsSelectorsIDs.PROTECT_CONTAINER}
       >
-        <View
-          style={styles.wrapper}
-          {...generateTestId(Platform, PROTECT_YOUR_WALLET_CONTAINER_ID)}
-        >
+        <View style={styles.wrapper}>
           <OnboardingProgress steps={CHOOSE_PASSWORD_STEPS} currentStep={1} />
           <View style={styles.content}>
             <Text style={styles.title}>
@@ -251,7 +244,9 @@ const AccountBackupStep1 = (props) => {
                 >
                   <Text
                     style={styles.remindLaterText}
-                    {...generateTestId(Platform, REMIND_LATER_BUTTON_ID)}
+                    testID={
+                      ManualBackUpStepsSelectorsIDs.REMIND_ME_LATER_BUTTON
+                    }
                   >
                     {strings('account_backup_step_1.remind_me_later')}
                   </Text>
@@ -266,7 +261,6 @@ const AccountBackupStep1 = (props) => {
                 containerStyle={styles.button}
                 type={'confirm'}
                 onPress={goNext}
-                testID={'submit-button'}
               >
                 {strings('account_backup_step_1.cta_text')}
               </StyledButton>

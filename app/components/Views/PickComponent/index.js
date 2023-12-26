@@ -1,8 +1,9 @@
 import React, { PureComponent } from 'react';
 import PropTypes from 'prop-types';
-import { StyleSheet, View, Text, TouchableOpacity } from 'react-native';
-import { baseStyles, fontStyles } from '../../../styles/common';
+import { StyleSheet, View } from 'react-native';
+import { baseStyles } from '../../../styles/common';
 import { ThemeContext, mockTheme } from '../../../util/theme';
+import RadioButton from '../../../component-library/components/RadioButton/RadioButton';
 
 const createStyles = (colors) =>
   StyleSheet.create({
@@ -10,36 +11,8 @@ const createStyles = (colors) =>
       ...baseStyles.flexGrow,
       flexDirection: 'row',
     },
-    circle: {
-      width: 12,
-      height: 12,
-      borderRadius: 12 / 2,
-      backgroundColor: colors.background.default,
-      opacity: 1,
-      margin: 2,
-      borderWidth: 2,
-      borderColor: colors.border.default,
-      marginRight: 6,
-    },
     option: {
       flex: 1,
-    },
-    touchableOption: {
-      flex: 1,
-      flexDirection: 'row',
-    },
-    optionText: {
-      ...fontStyles.normal,
-      color: colors.text.default,
-    },
-    selectedCircle: {
-      width: 12,
-      height: 12,
-      borderRadius: 12 / 2,
-      backgroundColor: colors.primary.default,
-      opacity: 1,
-      margin: 2,
-      marginRight: 6,
     },
   });
 
@@ -93,34 +66,18 @@ export default class PickComponent extends PureComponent {
     return (
       <View style={styles.root}>
         <View style={styles.option}>
-          <TouchableOpacity
+          <RadioButton
             onPress={this.pickFirst}
-            style={styles.touchableOption}
-          >
-            <View
-              style={
-                selectedValue === valueFirst
-                  ? styles.selectedCircle
-                  : styles.circle
-              }
-            />
-            <Text style={styles.optionText}>{textFirst}</Text>
-          </TouchableOpacity>
+            isChecked={selectedValue === valueFirst}
+            label={textFirst}
+          />
         </View>
         <View style={styles.option}>
-          <TouchableOpacity
+          <RadioButton
             onPress={this.pickSecond}
-            style={styles.touchableOption}
-          >
-            <View
-              style={
-                selectedValue === valueSecond
-                  ? styles.selectedCircle
-                  : styles.circle
-              }
-            />
-            <Text style={styles.optionText}>{textSecond}</Text>
-          </TouchableOpacity>
+            isChecked={selectedValue === valueSecond}
+            label={textSecond}
+          />
         </View>
       </View>
     );
