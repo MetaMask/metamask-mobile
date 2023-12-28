@@ -1,7 +1,7 @@
 import TestHelpers from '../helpers';
 import { testDappConnectButtonCooridinates } from '../viewHelper';
 import ConnectModal from './modals/ConnectModal';
-import Browser from './Drawer/Browser';
+import Browser from './Browser';
 import root from '../../locales/languages/en.json';
 import { getLocalTestDappPort } from '../fixtures/utils';
 import { BrowserViewSelectorsIDs } from '../selectors/BrowserView.selectors';
