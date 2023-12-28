@@ -8,7 +8,7 @@ import CreatePasswordView from '../../pages/Onboarding/CreatePasswordView';
 import MetaMetricsOptIn from '../../pages/Onboarding/MetaMetricsOptInView';
 import WalletView from '../../pages/WalletView';
 import EnableAutomaticSecurityChecksView from '../../pages/EnableAutomaticSecurityChecksView';
-import Browser from '../../pages/Drawer/Browser';
+import Browser from '../../pages/Browser';
 import SkipAccountSecurityModal from '../../pages/modals/SkipAccountSecurityModal';
 import OnboardingWizardModal from '../../pages/modals/OnboardingWizardModal';
 import WhatsNewModal from '../../pages/modals/WhatsNewModal';
