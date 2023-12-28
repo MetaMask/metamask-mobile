@@ -18,6 +18,7 @@ import WhatsNewModal from '../../pages/modals/WhatsNewModal';
 import { acceptTermOfUse } from '../../viewHelper';
 import TabBarComponent from '../../pages/TabBarComponent';
 import CommonView from '../../pages/CommonView';
+import Assertions from '../../utils/Assertions';
 
 const PASSWORD = '12345678';
 
@@ -97,18 +98,14 @@ describe(
       await SettingsView.tapSecurityAndPrivacy();
       await SecurityAndPrivacy.scrollToMetaMetrics();
       await TestHelpers.delay(2000);
-      await expect(
-        await SecurityAndPrivacy.metaMetricsToggle,
-      ).toHaveToggleValue(true);
+      await Assertions.checkIfToggleIsOn(SecurityAndPrivacy.metaMetricsToggle);
     });
 
     it('should disable metametrics', async () => {
       await SecurityAndPrivacy.tapMetaMetricsToggle();
       await TestHelpers.delay(1500);
       await CommonView.tapOkAlert();
-      await expect(
-        await SecurityAndPrivacy.metaMetricsToggle,
-      ).toHaveToggleValue(false);
+      await Assertions.checkIfToggleIsOff(SecurityAndPrivacy.metaMetricsToggle);
     });
 
     it('should relaunch the app and log in', async () => {
@@ -136,9 +133,7 @@ describe(
       await TabBarComponent.tapSettings();
       await SettingsView.tapSecurityAndPrivacy();
       await SecurityAndPrivacy.scrollToMetaMetrics();
-      await expect(
-        await SecurityAndPrivacy.metaMetricsToggle,
-      ).toHaveToggleValue(false);
+      await Assertions.checkIfToggleIsOff(SecurityAndPrivacy.metaMetricsToggle);
     });
   },
 );

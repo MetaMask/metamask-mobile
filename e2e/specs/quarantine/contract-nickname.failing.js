@@ -27,6 +27,7 @@ import TabBarComponent from '../../pages/TabBarComponent';
 import WalletActionsModal from '../../pages/modals/WalletActionsModal';
 import ContractApprovalModal from '../../pages/modals/ContractApprovalModal';
 import CommonView from '../../pages/CommonView';
+import Assertions from '../../utils/Assertions';
 
 describe('Adding Contract Nickname', () => {
   const APPROVAL_DEEPLINK_URL =
@@ -118,13 +119,9 @@ describe('Adding Contract Nickname', () => {
   });
 
   it('should enable remember me', async () => {
-    await expect(await SecurityAndPrivacy.rememberMeToggle).toHaveToggleValue(
-      false,
-    );
+    await Assertions.checkIfToggleIsOff(SecurityAndPrivacy.rememberMeToggle);
     await SecurityAndPrivacy.tapTurnOnRememberMeToggle();
-    await expect(await SecurityAndPrivacy.rememberMeToggle).toHaveToggleValue(
-      true,
-    );
+    await Assertions.checkIfToggleIsOn(SecurityAndPrivacy.rememberMeToggle);
 
     await TestHelpers.delay(1500);
   });
@@ -181,7 +178,7 @@ describe('Adding Contract Nickname', () => {
     await TabBarComponent.tapSettings();
     await SettingsView.tapContacts();
 
-    await expect(await ContactsView.container).toBeVisible();
+    await Assertions.checkIfVisible(ContactsView.container);
     await ContactsView.isContactAliasVisible('Ace');
   });
 
