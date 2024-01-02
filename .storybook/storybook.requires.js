@@ -97,6 +97,7 @@ const getStories = () => {
     "./app/component-library/components/Select/SelectWrapper/SelectWrapper.stories.tsx": require("../app/component-library/components/Select/SelectWrapper/SelectWrapper.stories.tsx"),
     "./app/component-library/components/Sheet/SheetBottom/SheetBottom.stories.tsx": require("../app/component-library/components/Sheet/SheetBottom/SheetBottom.stories.tsx"),
     "./app/component-library/components/Sheet/SheetHeader/SheetHeader.stories.tsx": require("../app/component-library/components/Sheet/SheetHeader/SheetHeader.stories.tsx"),
+    "./app/component-library/components/Skeleton/Skeleton.stories.tsx": require("../app/component-library/components/Skeleton/Skeleton.stories.tsx"),
     "./app/component-library/components/Tags/Tag/Tag.stories.tsx": require("../app/component-library/components/Tags/Tag/Tag.stories.tsx"),
     "./app/component-library/components/Tags/TagUrl/TagUrl.stories.tsx": require("../app/component-library/components/Tags/TagUrl/TagUrl.stories.tsx"),
     "./app/component-library/components/Texts/Text/Text.stories.tsx": require("../app/component-library/components/Texts/Text/Text.stories.tsx"),
