@@ -84,7 +84,6 @@ import { NetworksViewSelectorsIDs } from '../../../../../../e2e/selectors/Settin
 const createStyles = (colors) =>
   StyleSheet.create({
     base: {
-      flex: 1,
       paddingHorizontal: 16,
     },
     wrapper: {
@@ -1050,18 +1049,22 @@ class NetworkSettings extends PureComponent {
 
   goToLearnMore = () => Linking.openURL(strings('networks.learn_more_url'));
 
-  renderTabBar = () => {
+  renderTabBar = (props) => {
     const colors = this.context.colors || mockTheme.colors;
     const styles = createStyles(colors);
     return (
-      <DefaultTabBar
-        underlineStyle={styles.tabUnderlineStyle}
-        activeTextColor={colors.primary.default}
-        inactiveTextColor={colors.text.muted}
-        backgroundColor={colors.background.default}
-        tabStyle={styles.tabStyle}
-        textStyle={styles.textStyle}
-      />
+      <View style={styles.base}>
+        <DefaultTabBar
+          underlineStyle={styles.tabUnderlineStyle}
+          activeTextColor={colors.primary.default}
+          inactiveTextColor={colors.text.muted}
+          backgroundColor={colors.background.default}
+          tabStyle={styles.tabStyle}
+          tabPadding={16}
+          textStyle={styles.textStyle}
+          {...props}
+        />
+      </View>
     );
   };
 
@@ -1082,41 +1085,39 @@ class NetworkSettings extends PureComponent {
           {networkTypeOrRpcUrl ? (
             this.customNetwork(networkTypeOrRpcUrl)
           ) : (
-            <View style={styles.base}>
-              <ScrollableTabView
-                tabBarTextStyle={styles.tabLabelStyle}
-                renderTabBar={this.renderTabBar}
-                ref={(tabView) => {
-                  this.tabView = tabView;
-                }}
+            <ScrollableTabView
+              tabBarTextStyle={styles.tabLabelStyle}
+              renderTabBar={this.renderTabBar}
+              ref={(tabView) => {
+                this.tabView = tabView;
+              }}
+            >
+              <View
+                tabLabel={strings('app_settings.popular').toUpperCase()}
+                key={AppConstants.ADD_CUSTOM_NETWORK_POPULAR_TAB_ID}
+                style={styles.networksWrapper}
+                testID={POPULAR_NETWORKS_TAB_ID}
               >
-                <View
-                  tabLabel={strings('app_settings.popular')}
-                  key={AppConstants.ADD_CUSTOM_NETWORK_POPULAR_TAB_ID}
-                  style={styles.networksWrapper}
-                  testID={POPULAR_NETWORKS_TAB_ID}
-                >
-                  <CustomNetwork
-                    isNetworkModalVisible={this.state.showPopularNetworkModal}
-                    closeNetworkModal={this.onCancel}
-                    selectedNetwork={this.state.popularNetwork}
-                    toggleWarningModal={this.toggleWarningModal}
-                    showNetworkModal={this.showNetworkModal}
-                    switchTab={this.tabView}
-                    shouldNetworkSwitchPopToWallet={
-                      shouldNetworkSwitchPopToWallet
-                    }
-                  />
-                </View>
-                <View
-                  tabLabel={strings('app_settings.custom_network_name')}
-                  key={AppConstants.ADD_CUSTOM_NETWORK_CUSTOM_TAB_ID}
-                  testID={CUSTOM_NETWORKS_TAB_ID}
-                >
-                  {this.customNetwork()}
-                </View>
-              </ScrollableTabView>
-            </View>
+                <CustomNetwork
+                  isNetworkModalVisible={this.state.showPopularNetworkModal}
+                  closeNetworkModal={this.onCancel}
+                  selectedNetwork={this.state.popularNetwork}
+                  toggleWarningModal={this.toggleWarningModal}
+                  showNetworkModal={this.showNetworkModal}
+                  switchTab={this.tabView}
+                  shouldNetworkSwitchPopToWallet={
+                    shouldNetworkSwitchPopToWallet
+                  }
+                />
+              </View>
+              <View
+                tabLabel={strings('app_settings.custom_network_name')}
+                key={AppConstants.ADD_CUSTOM_NETWORK_CUSTOM_TAB_ID}
+                testID={CUSTOM_NETWORKS_TAB_ID}
+              >
+                {this.customNetwork()}
+              </View>
+            </ScrollableTabView>
           )}
         </KeyboardAwareScrollView>
         {this.state.showWarningModal ? (

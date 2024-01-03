@@ -48,7 +48,6 @@ import { selectSelectedAddress } from '../../../selectors/preferencesController'
 const createStyles = ({ colors, typography }: Theme) =>
   StyleSheet.create({
     base: {
-      flex: 1,
       paddingHorizontal: 16,
     },
     wrapper: {
@@ -206,16 +205,20 @@ const Wallet = ({ navigation }: any) => {
   }, [navigation, themeColors, networkName, networkImageSource, onTitlePress]);
 
   const renderTabBar = useCallback(
-    () => (
-      <DefaultTabBar
-        underlineStyle={styles.tabUnderlineStyle}
-        activeTextColor={colors.primary.default}
-        inactiveTextColor={colors.text.default}
-        backgroundColor={colors.background.default}
-        tabStyle={styles.tabStyle}
-        textStyle={styles.textStyle}
-        style={styles.tabBar}
-      />
+    (props) => (
+      <View style={styles.base}>
+        <DefaultTabBar
+          underlineStyle={styles.tabUnderlineStyle}
+          activeTextColor={colors.primary.default}
+          inactiveTextColor={colors.text.default}
+          backgroundColor={colors.background.default}
+          tabStyle={styles.tabStyle}
+          textStyle={styles.textStyle}
+          tabPadding={16}
+          style={styles.tabBar}
+          {...props}
+        />
+      </View>
     ),
     [styles, colors],
   );
@@ -259,31 +262,31 @@ const Wallet = ({ navigation }: any) => {
       <View style={styles.wrapper}>
         <WalletAccount style={styles.walletAccount} ref={walletRef} />
 
-        <View style={styles.base}>
-          <ScrollableTabView
-            renderTabBar={renderTabBar}
-            // eslint-disable-next-line react/jsx-no-bind
-            onChangeTab={onChangeTab}
-          >
-            <Tokens
-              tabLabel={strings('wallet.tokens')}
-              key={'tokens-tab'}
-              navigation={navigation}
-              // TODO - Consolidate into the correct type.
-              // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-              // @ts-ignore
-              tokens={assets}
-            />
-            <CollectibleContracts
-              // TODO - Extend component to support injected tabLabel prop.
-              // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-              // @ts-ignore
-              tabLabel={strings('wallet.collectibles')}
-              key={'nfts-tab'}
-              navigation={navigation}
-            />
-          </ScrollableTabView>
-        </View>
+        <ScrollableTabView
+          renderTabBar={renderTabBar}
+          // eslint-disable-next-line react/jsx-no-bind
+          onChangeTab={onChangeTab}
+        >
+          <Tokens
+            tabLabel={strings('wallet.tokens')}
+            key={'tokens-tab'}
+            navigation={navigation}
+            // TODO - Consolidate into the correct type.
+            // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+            // @ts-ignore
+            tokens={assets}
+          />
+          <CollectibleContracts
+            // TODO - Extend component to support injected tabLabel prop.
+            // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+            // @ts-ignore
+            tabLabel={strings('wallet.collectibles')}
+            key={'nfts-tab'}
+            navigation={navigation}
+          />
+          {/* </View> */}
+        </ScrollableTabView>
+        {/* </View> */}
       </View>
     );
   }, [

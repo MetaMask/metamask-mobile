@@ -1,13 +1,11 @@
 import { StyleSheet } from 'react-native';
 import { Theme } from '../../../util/theme/models';
-import { fontStyles } from '../../../styles/common';
 
 const styleSheet = (params: { theme: Theme }) => {
   const { theme } = params;
   const { colors } = theme;
   return StyleSheet.create({
     base: {
-      flex: 1,
       paddingHorizontal: 16,
     },
     wrapper: {
@@ -31,11 +29,9 @@ const styleSheet = (params: { theme: Theme }) => {
       paddingVertical: 8,
     },
     textStyle: {
-      fontSize: 14,
-      fontWeight: 500,
-      lineHeight: 22,
       textTransform: 'capitalize',
-      ...fontStyles.normal,
+      ...params.theme.typography.sBodyMD,
+      fontWeight: '500',
     },
   });
 };

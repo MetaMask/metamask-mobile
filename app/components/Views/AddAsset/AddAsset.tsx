@@ -63,16 +63,20 @@ const AddAsset = () => {
     });
   };
 
-  const renderTabBar = () => (
-    <DefaultTabBar
-      underlineStyle={styles.tabUnderlineStyle}
-      activeTextColor={colors.primary.default}
-      inactiveTextColor={colors.text.alternative}
-      backgroundColor={colors.background.default}
-      tabStyle={styles.tabStyle}
-      textStyle={styles.textStyle}
-      style={styles.tabBar}
-    />
+  const renderTabBar = (props) => (
+    <View style={styles.base}>
+      <DefaultTabBar
+        underlineStyle={styles.tabUnderlineStyle}
+        activeTextColor={colors.primary.default}
+        inactiveTextColor={colors.text.alternative}
+        backgroundColor={colors.background.default}
+        tabStyle={styles.tabStyle}
+        textStyle={styles.textStyle}
+        tabPadding={32}
+        style={styles.tabBar}
+        {...props}
+      />
+    </View>
   );
 
   return (
@@ -120,22 +124,20 @@ const AddAsset = () => {
         </View>
       )}
       {assetType === 'token' ? (
-        <View style={styles.base}>
-          <ScrollableTabView key={chainId} renderTabBar={renderTabBar}>
-            {isTokenDetectionSupported && (
-              <SearchTokenAutocomplete
-                navigation={navigation}
-                tabLabel={strings('add_asset.search_token')}
-              />
-            )}
-            <AddCustomToken
-              chainId={chainId}
+        <ScrollableTabView key={chainId} renderTabBar={renderTabBar}>
+          {isTokenDetectionSupported && (
+            <SearchTokenAutocomplete
               navigation={navigation}
-              tabLabel={strings('add_asset.custom_token')}
-              isTokenDetectionSupported={isTokenDetectionSupported}
+              tabLabel={strings('add_asset.search_token')}
             />
-          </ScrollableTabView>
-        </View>
+          )}
+          <AddCustomToken
+            chainId={chainId}
+            navigation={navigation}
+            tabLabel={strings('add_asset.custom_token')}
+            isTokenDetectionSupported={isTokenDetectionSupported}
+          />
+        </ScrollableTabView>
       ) : (
         <AddCustomCollectible
           navigation={navigation}
