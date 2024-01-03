@@ -61,41 +61,4 @@ describe(SmokeCore('Import NFT'), () => {
     await WalletView.isNFTNameVisible(Collectibles.erc1155tokenName);
     await WalletView.scrollUpOnNFTsTab();
   });
-<<<<<<< HEAD:e2e/specs/wallet/wallet-tests.spec.js
-
-  it('should switch back to Mainnet network', async () => {
-    await WalletView.isVisible();
-    await WalletView.tapTokensTab();
-    await WalletView.tapNetworksButtonOnNavBar();
-    await NetworkListModal.isVisible();
-    await NetworkListModal.changeNetwork(ETHEREUM);
-    await WalletView.isNetworkNameVisible(ETHEREUM);
-  });
-
-  it('should dismiss mainnet network education modal', async () => {
-    await NetworkEducationModal.isVisible();
-    await NetworkEducationModal.tapGotItButton();
-    await NetworkEducationModal.isNotVisible();
-  });
-
-  it('should add a token via token autocomplete', async () => {
-    await WalletView.tapImportTokensButton();
-    // Search for XRPL but select XRP20
-    await ImportTokensView.typeInTokenName('XRPL');
-    await TestHelpers.delay(2000);
-    await ImportTokensView.tapOnToken(); // taps the first token in the returned list
-    await TestHelpers.delay(500);
-    await ImportTokensView.tapImportButton();
-    await WalletView.isVisible();
-    await TestHelpers.delay(8000); // to prevent flakey behavior in bitrise
-    await WalletView.isTokenVisibleInWallet('0 XRP');
-  });
-
-  it('should hide token from Wallet view', async () => {
-    await WalletView.removeTokenFromWallet('0 XRP');
-    await TestHelpers.delay(1500);
-    await WalletView.tokenIsNotVisibleInWallet('XRP');
-  });
-=======
->>>>>>> main:e2e/specs/assets/import-nft.spec.js
 });
