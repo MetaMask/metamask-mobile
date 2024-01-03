@@ -36,7 +36,7 @@ import { createStyles } from './styles';
 import { MetaMetricsEvents } from '../../../core/Analytics';
 import AnalyticsV2 from '../../../util/analyticsV2';
 import { Authentication } from '../../../core';
-import { ManualBackUpStep1SelectorsIDs } from '../../../../e2e/selectors/Onboarding/ManualBackUpStep1.selectors';
+import { ManualBackUpStepsSelectorsIDs } from '../../../../e2e/selectors/Onboarding/ManualBackUpSteps.selectors';
 
 /**
  * View that's shown during the second step of
@@ -170,8 +170,8 @@ const ManualBackupStep1 = ({ route, navigation, appTheme }) => {
           <View style={styles.viewButtonWrapper}>
             <StyledButton
               type={'onOverlay'}
-              testID={'view-button'}
               onPress={revealSeedPhrase}
+              testID={ManualBackUpStepsSelectorsIDs.VIEW_BUTTON}
               containerStyle={styles.viewButtonContainer}
             >
               {strings('manual_backup_step_1.view')}
@@ -205,7 +205,7 @@ const ManualBackupStep1 = ({ route, navigation, appTheme }) => {
               onChangeText={onPasswordChange}
               secureTextEntry
               onSubmitEditing={tryUnlock}
-              testID={ManualBackUpStep1SelectorsIDs.CONFIRM_PASSWORD_INPUT}
+              testID={ManualBackUpStepsSelectorsIDs.CONFIRM_PASSWORD_INPUT}
               keyboardAppearance={themeAppearance}
             />
             {warningIncorrectPassword && (
@@ -219,7 +219,7 @@ const ManualBackupStep1 = ({ route, navigation, appTheme }) => {
               containerStyle={styles.button}
               type={'confirm'}
               onPress={tryUnlock}
-              testID={'submit-button'}
+              testID={ManualBackUpStepsSelectorsIDs.SUBMIT_BUTTON}
             >
               {strings('manual_backup_step_1.confirm')}
             </StyledButton>
@@ -235,14 +235,17 @@ const ManualBackupStep1 = ({ route, navigation, appTheme }) => {
 
     return (
       <ActionView
-        confirmTestID={'manual-backup-step-1-continue-button'}
+        confirmTestID={ManualBackUpStepsSelectorsIDs.CONTINUE_BUTTON}
         confirmText={strings('manual_backup_step_1.continue')}
         onConfirmPress={goNext}
         confirmDisabled={seedPhraseHidden}
         showCancelButton={false}
         confirmButtonMode={'confirm'}
       >
-        <View style={styles.wrapper} testID={'manual_backup_step_1-screen'}>
+        <View
+          style={styles.wrapper}
+          testID={ManualBackUpStepsSelectorsIDs.STEP_1_CONTAINER}
+        >
           <Text style={styles.action}>
             {strings('manual_backup_step_1.action')}
           </Text>

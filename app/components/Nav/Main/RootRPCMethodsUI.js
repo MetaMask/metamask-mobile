@@ -36,7 +36,7 @@ import { toLowerCaseEquals } from '../../../util/general';
 import { KEYSTONE_TX_CANCELED } from '../../../constants/error';
 import { MetaMetricsEvents } from '../../../core/Analytics';
 import AnalyticsV2 from '../../../util/analyticsV2';
-
+import { getAddressAccountType } from '../../../util/address';
 import {
   selectChainId,
   selectProviderType,
@@ -57,6 +57,9 @@ import TemplateConfirmationModal from '../../Approvals/TemplateConfirmationModal
 import { selectTokenList } from '../../../selectors/tokenListController';
 import { selectTokens } from '../../../selectors/tokensController';
 import { selectSelectedAddress } from '../../../selectors/preferencesController';
+///: BEGIN:ONLY_INCLUDE_IF(snaps)
+import InstallSnapApproval from '../../Approvals/InstallSnapApproval';
+///: END:ONLY_INCLUDE_IF
 
 const hstInterface = new ethers.utils.Interface(abi);
 
@@ -147,7 +150,11 @@ const RootRPCMethodsUI = (props) => {
           tokensReceived,
           swapTransaction.destinationToken.decimals,
         );
-        const analyticsParams = { ...swapTransaction.analytics };
+
+        const analyticsParams = {
+          ...swapTransaction.analytics,
+          account_type: getAddressAccountType(transactionMeta.transaction.from),
+        };
         delete newSwapsTransactions[transactionMeta.id].analytics;
         delete newSwapsTransactions[transactionMeta.id].paramsForAnalytics;
 
@@ -203,6 +210,7 @@ const RootRPCMethodsUI = (props) => {
           },
         );
         await KeyringController.resetQRKeyringState();
+
         Engine.acceptPendingApproval(transactionMeta.id);
       } catch (error) {
         if (!error?.message.startsWith(KEYSTONE_TX_CANCELED)) {
@@ -369,6 +377,13 @@ const RootRPCMethodsUI = (props) => {
       <PermissionApproval navigation={props.navigation} />
       <FlowLoaderModal />
       <TemplateConfirmationModal />
+      {
+        ///: BEGIN:ONLY_INCLUDE_IF(snaps)
+      }
+      <InstallSnapApproval />
+      {
+        ///: END:ONLY_INCLUDE_IF
+      }
     </React.Fragment>
   );
 };

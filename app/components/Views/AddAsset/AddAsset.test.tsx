@@ -2,6 +2,7 @@ import React from 'react';
 import renderWithProvider from '../../../util/test/renderWithProvider';
 import initialBackgroundState from '../../../util/test/initial-background-state.json';
 import AddAsset from './AddAsset';
+import { AddAssetViewSelectorsIDs } from '../../../../e2e/selectors/AddAssetView.selectors';
 
 const mockNavigate = jest.fn();
 const mockSetOptions = jest.fn();
@@ -57,6 +58,8 @@ describe('AddAsset component', () => {
       state: initialState,
     });
 
-    expect(getByTestId('warning-display-media-enabled-text')).toBeDefined();
+    expect(
+      getByTestId(AddAssetViewSelectorsIDs.WARNING_ENABLE_DISPLAY_MEDIA),
+    ).toBeDefined();
   });
 });

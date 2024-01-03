@@ -5,13 +5,13 @@ import OnboardingView from '../../pages/Onboarding/OnboardingView';
 import ProtectYourWalletView from '../../pages/Onboarding/ProtectYourWalletView';
 import CreatePasswordView from '../../pages/Onboarding/CreatePasswordView';
 import WalletView from '../../pages/WalletView';
-import Browser from '../../pages/Drawer/Browser';
-import SettingsView from '../../pages/Drawer/Settings/SettingsView';
+import Browser from '../../pages/Browser';
+import SettingsView from '../../pages/Settings/SettingsView';
 import TabBarComponent from '../../pages/TabBarComponent';
 import SkipAccountSecurityModal from '../../pages/modals/SkipAccountSecurityModal';
 import ConnectedAccountsModal from '../../pages/modals/ConnectedAccountsModal';
 import DeleteWalletModal from '../../pages/modals/DeleteWalletModal';
-import SecurityAndPrivacyView from '../../pages/Drawer/Settings/SecurityAndPrivacy/SecurityAndPrivacyView';
+import LoginView from '../../pages/LoginView';
 import NetworkListModal from '../../pages/modals/NetworkListModal';
 import { loginToApp } from '../../viewHelper';
 import FixtureBuilder from '../../fixtures/fixture-builder';
@@ -52,11 +52,14 @@ describe(
 
           //go to settings then security & privacy
           await TabBarComponent.tapSettings();
-          await SettingsView.tapSecurityAndPrivacy();
-          await SecurityAndPrivacyView.scrollToChangePasswordView();
-          await SecurityAndPrivacyView.isChangePasswordSectionVisible();
-          await SecurityAndPrivacyView.scrollToDeleteWalletButton();
-          await SecurityAndPrivacyView.tapDeleteWalletButton();
+          await SettingsView.tapLock();
+          await SettingsView.tapYesAlertButton();
+          await LoginView.isVisible();
+
+          // should tap reset wallet button
+          await LoginView.tapResetWalletButton();
+
+          await DeleteWalletModal.isVisible();
 
           //Delete wallet
           await DeleteWalletModal.tapIUnderstandButton();

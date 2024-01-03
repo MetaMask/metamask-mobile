@@ -5,6 +5,7 @@ import {
 } from '../../../wdio/screen-objects/testIDs/Components/ConnectedAccountsModal.testIds';
 import { ConnectedAccountModalSelectorsText } from '../../selectors/Modals/ConnectedAccountModal.selectors';
 import { CommonSelectorsIDs } from '../../selectors/Common.selectors';
+import { ConnectedAccountsSelectorsIDs } from '../../selectors/Modals/ConnectedAccounts.selectors';
 
 export default class ConnectedAccountsModal {
   static async tapPermissionsButton() {
@@ -45,7 +46,13 @@ export default class ConnectedAccountsModal {
   }
 
   static async scrollToBottomOfModal() {
-    await TestHelpers.swipe(CONNECTED_ACCOUNTS_MODAL_CONTAINER, 'down', 'slow');
+    await TestHelpers.swipe(CONNECTED_ACCOUNTS_MODAL_CONTAINER, 'down', 'fast');
     await TestHelpers.delay(1000);
+  }
+
+  static async tapConnectMoreAccountsButton() {
+    await TestHelpers.waitAndTap(
+      ConnectedAccountsSelectorsIDs.CONNECT_ACCOUNTS_BUTTON,
+    );
   }
 }

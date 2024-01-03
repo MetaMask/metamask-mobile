@@ -1,12 +1,5 @@
 import React, { PureComponent } from 'react';
-import {
-  SafeAreaView,
-  Text,
-  TextInput,
-  View,
-  StyleSheet,
-  Platform,
-} from 'react-native';
+import { SafeAreaView, Text, TextInput, View, StyleSheet } from 'react-native';
 import PropTypes from 'prop-types';
 import { strings } from '../../../../locales/i18n';
 import { fontStyles } from '../../../styles/common';
@@ -14,12 +7,7 @@ import ActionView from '../../UI/ActionView';
 import { getNavigationOptionsTitle } from '../../UI/Navbar';
 import { ThemeContext, mockTheme } from '../../../util/theme';
 
-import generateTestId from '../../../../wdio/utils/generateTestId';
-import {
-  FAVORITE_TITLE_EDIT_TEXT,
-  ADD_BOOKMARKS_SCREEN_ID,
-  FAVORITE_URL_EDIT_TEXT,
-} from '../../../../wdio/screen-objects/testIDs/BrowserScreen/AddFavorite.testIds';
+import { AddBookmarkViewSelectorsIDs } from '../../../../e2e/selectors/AddBookmarkView.selectors';
 
 const createStyles = (colors) =>
   StyleSheet.create({
@@ -133,11 +121,11 @@ export default class AddBookmark extends PureComponent {
     return (
       <SafeAreaView
         style={styles.wrapper}
-        {...generateTestId(Platform, ADD_BOOKMARKS_SCREEN_ID)}
+        testID={AddBookmarkViewSelectorsIDs.CONTAINER}
       >
         <ActionView
-          cancelTestID={'add-bookmark-cancel-button'}
-          confirmTestID={'add-bookmark-confirm-button'}
+          cancelTestID={AddBookmarkViewSelectorsIDs.CANCEL_BUTTON}
+          confirmTestID={AddBookmarkViewSelectorsIDs.CONFIRM_BUTTON}
           cancelText={strings('add_favorite.cancel_button')}
           confirmText={strings('add_favorite.add_button')}
           onCancelPress={this.cancelAddBookmark}
@@ -154,7 +142,7 @@ export default class AddBookmark extends PureComponent {
                 placeholderTextColor={colors.text.muted}
                 value={this.state.title}
                 onChangeText={this.onTitleChange}
-                {...generateTestId(Platform, FAVORITE_TITLE_EDIT_TEXT)}
+                testID={AddBookmarkViewSelectorsIDs.BOOKMARK_TITLE}
                 onSubmitEditing={this.jumpToUrl}
                 returnKeyType={'next'}
                 keyboardAppearance={themeAppearance}
@@ -170,7 +158,7 @@ export default class AddBookmark extends PureComponent {
                 placeholder={''}
                 value={this.state.url}
                 onChangeText={this.onUrlChange}
-                {...generateTestId(Platform, FAVORITE_URL_EDIT_TEXT)}
+                testID={AddBookmarkViewSelectorsIDs.URL_TEXT}
                 ref={this.urlInput}
                 onSubmitEditing={this.addToken}
                 returnKeyType={'done'}
