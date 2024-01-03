@@ -10,7 +10,7 @@ import { SAMPLE_VALUELISTITEM_PROPS } from '../../ValueList/ValueListItem/ValueL
 import { default as DropdownComponent } from './Dropdown';
 
 const DropdownStoryMeta = {
-  title: 'Component Library / Dropdown',
+  title: 'Component Library / Selectables / Dropdown',
   component: DropdownComponent,
   argTypes: {
     title: {

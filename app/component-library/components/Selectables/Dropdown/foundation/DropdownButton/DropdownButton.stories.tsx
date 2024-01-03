@@ -8,7 +8,7 @@ import { DropdownButtonSize } from './DropdownButton.types';
 import { SAMPLE_DROPDOWNBUTTON_PROPS } from './DropdownButton.constants';
 
 const DropdownButtonStoryMeta = {
-  title: 'Component Library / Dropdown',
+  title: 'Component Library / Selectables / Dropdown',
   component: DropdownButtonComponent,
   argTypes: {
     size: {

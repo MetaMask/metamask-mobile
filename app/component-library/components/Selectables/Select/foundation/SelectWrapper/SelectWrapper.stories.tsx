@@ -10,7 +10,7 @@ import { SAMPLE_VALUELISTITEM_PROPS } from '../../../../ValueList/ValueListItem/
 import { default as SelectWrapperComponent } from './SelectWrapper';
 
 const SelectWrapperStoryMeta = {
-  title: 'Component Library / Select',
+  title: 'Component Library / Selectables / Select',
   component: SelectWrapperComponent,
   argTypes: {
     placeholder: {
