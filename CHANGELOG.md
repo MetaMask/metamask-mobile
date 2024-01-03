@@ -3,14 +3,11 @@
 ## Current Main Branch
 
 ## 7.12.5 - Jan 4, 2024
-### Fixed
-- [#7886](https://github.com/MetaMask/metamask-mobile/pull/7886): fix: Fix eth_signTypedData signatures containing 0x
-
-## 7.12.4 - Dec 19, 2023
 ### Added
 - [#8156](https://github.com/MetaMask/metamask-mobile/pull/8156): feat: migrate to latest Token rates controller
 
-### Fixed 
+### Fixed
+- [#7886](https://github.com/MetaMask/metamask-mobile/pull/7886): fix: Fix eth_signTypedData signatures containing 0x
 - [#8155](https://github.com/MetaMask/metamask-mobile/pull/8155): fix: OpenSea V1 -> V2 patch
 
 ## 7.12.3 - Dec 18, 2023
