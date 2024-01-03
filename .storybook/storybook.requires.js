@@ -87,14 +87,9 @@ const getStories = () => {
     "./app/component-library/components/Pickers/PickerAccount/PickerAccount.stories.tsx": require("../app/component-library/components/Pickers/PickerAccount/PickerAccount.stories.tsx"),
     "./app/component-library/components/Pickers/PickerNetwork/PickerNetwork.stories.tsx": require("../app/component-library/components/Pickers/PickerNetwork/PickerNetwork.stories.tsx"),
     "./app/component-library/components/RadioButton/RadioButton.stories.tsx": require("../app/component-library/components/RadioButton/RadioButton.stories.tsx"),
-    "./app/component-library/components/Select/Select.stories.tsx": require("../app/component-library/components/Select/Select.stories.tsx"),
-    "./app/component-library/components/Select/SelectButton/SelectButton.stories.tsx": require("../app/component-library/components/Select/SelectButton/SelectButton.stories.tsx"),
-    "./app/component-library/components/Select/SelectHeader/SelectHeader.stories.tsx": require("../app/component-library/components/Select/SelectHeader/SelectHeader.stories.tsx"),
-    "./app/component-library/components/Select/SelectMenu/SelectMenu.stories.tsx": require("../app/component-library/components/Select/SelectMenu/SelectMenu.stories.tsx"),
-    "./app/component-library/components/Select/SelectOption/SelectOption.stories.tsx": require("../app/component-library/components/Select/SelectOption/SelectOption.stories.tsx"),
-    "./app/component-library/components/Select/SelectOptionsList/SelectOptionsList.stories.tsx": require("../app/component-library/components/Select/SelectOptionsList/SelectOptionsList.stories.tsx"),
-    "./app/component-library/components/Select/SelectValue/SelectValue.stories.tsx": require("../app/component-library/components/Select/SelectValue/SelectValue.stories.tsx"),
-    "./app/component-library/components/Select/SelectWrapper/SelectWrapper.stories.tsx": require("../app/component-library/components/Select/SelectWrapper/SelectWrapper.stories.tsx"),
+    "./app/component-library/components/Selectables/Select/foundation/SelectButton/SelectButton.stories.tsx": require("../app/component-library/components/Selectables/Select/foundation/SelectButton/SelectButton.stories.tsx"),
+    "./app/component-library/components/Selectables/Select/foundation/SelectWrapper/SelectWrapper.stories.tsx": require("../app/component-library/components/Selectables/Select/foundation/SelectWrapper/SelectWrapper.stories.tsx"),
+    "./app/component-library/components/Selectables/Select/Select.stories.tsx": require("../app/component-library/components/Selectables/Select/Select.stories.tsx"),
     "./app/component-library/components/Sheet/SheetBottom/SheetBottom.stories.tsx": require("../app/component-library/components/Sheet/SheetBottom/SheetBottom.stories.tsx"),
     "./app/component-library/components/Sheet/SheetHeader/SheetHeader.stories.tsx": require("../app/component-library/components/Sheet/SheetHeader/SheetHeader.stories.tsx"),
     "./app/component-library/components/Skeleton/Skeleton.stories.tsx": require("../app/component-library/components/Skeleton/Skeleton.stories.tsx"),
@@ -103,6 +98,8 @@ const getStories = () => {
     "./app/component-library/components/Texts/Text/Text.stories.tsx": require("../app/component-library/components/Texts/Text/Text.stories.tsx"),
     "./app/component-library/components/Texts/TextWithPrefixIcon/TextWithPrefixIcon.stories.tsx": require("../app/component-library/components/Texts/TextWithPrefixIcon/TextWithPrefixIcon.stories.tsx"),
     "./app/component-library/components/Toast/Toast.stories.tsx": require("../app/component-library/components/Toast/Toast.stories.tsx"),
+    "./app/component-library/components/ValueList/ValueList.stories.tsx": require("../app/component-library/components/ValueList/ValueList.stories.tsx"),
+    "./app/component-library/components/ValueList/ValueListItem/ValueListItem.stories.tsx": require("../app/component-library/components/ValueList/ValueListItem/ValueListItem.stories.tsx"),
   };
 };
 
