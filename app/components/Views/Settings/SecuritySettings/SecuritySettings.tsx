@@ -3,7 +3,6 @@ import React, { useCallback, useEffect, useRef, useState } from 'react';
 import {
   Alert,
   Switch,
-  Text,
   ScrollView,
   View,
   ActivityIndicator,
@@ -15,7 +14,6 @@ import AsyncStorage from '../../../../store/async-storage-wrapper';
 import { useDispatch, useSelector } from 'react-redux';
 import { MAINNET } from '../../../../constants/network';
 import ActionModal from '../../../UI/ActionModal';
-import StyledButton from '../../../UI/StyledButton';
 import { clearHistory } from '../../../../actions/browser';
 import { colors as importedColors } from '../../../../styles/common';
 import Logger from '../../../../util/Logger';
@@ -112,13 +110,24 @@ import { SecurityPrivacyViewSelectorsIDs } from '../../../../../e2e/selectors/Se
 import generateDeviceAnalyticsMetaData, {
   UserSettingsAnalyticsMetaData as generateUserSettingsAnalyticsMetaData,
 } from '../../../../util/metrics';
+import Text, {
+  TextVariant,
+  TextColor,
+} from '../../../../component-library/components/Texts/Text';
+import Button, {
+  ButtonVariants,
+  ButtonSize,
+  ButtonWidthTypes,
+} from '../../../../component-library/components/Buttons/Button';
 
 const Heading: React.FC<HeadingProps> = ({ children, first }) => {
   const { colors } = useTheme();
   const styles = createStyles(colors);
   return (
     <View style={[styles.setting, first && styles.firstSetting]}>
-      <Text style={[styles.title, styles.heading]}>{children}</Text>
+      <Text variant={TextVariant.HeadingLG} style={styles.heading}>
+        {children}
+      </Text>
     </View>
   );
 };
@@ -374,20 +383,26 @@ const Settings: React.FC = () => {
   };
 
   const renderSDKSettings = () => (
-    <View style={[styles.setting, styles.firstSetting]} testID={SDK_SECTION}>
-      <Text style={styles.title}>
+    <View style={styles.halfSetting} testID={SDK_SECTION}>
+      <Text variant={TextVariant.BodyLGMedium}>
         {strings('app_settings.manage_sdk_connections_title')}
       </Text>
-      <Text style={styles.desc}>
+      <Text
+        variant={TextVariant.BodyMD}
+        color={TextColor.Alternative}
+        style={styles.desc}
+      >
         {strings('app_settings.manage_sdk_connections_text')}
       </Text>
-      <StyledButton
-        type="normal"
-        containerStyle={styles.confirm}
-        onPress={goToSDKSessionManager}
-      >
-        {strings('app_settings.manage_sdk_connections_title')}
-      </StyledButton>
+      <View style={styles.accessory}>
+        <Button
+          variant={ButtonVariants.Secondary}
+          size={ButtonSize.Lg}
+          width={ButtonWidthTypes.Full}
+          label={strings('app_settings.manage_sdk_connections_title')}
+          onPress={goToSDKSessionManager}
+        />
+      </View>
     </View>
   );
 
@@ -397,20 +412,26 @@ const Settings: React.FC = () => {
 
   const renderClearBrowserHistorySection = () => (
     <View style={styles.setting} testID={CLEAR_BROWSER_HISTORY_SECTION}>
-      <Text style={styles.title}>
+      <Text variant={TextVariant.BodyLGMedium}>
         {strings('app_settings.clear_browser_history_desc')}
       </Text>
-      <Text style={styles.desc}>
+      <Text
+        variant={TextVariant.BodyMD}
+        color={TextColor.Alternative}
+        style={styles.desc}
+      >
         {strings('app_settings.clear_history_desc')}
       </Text>
-      <StyledButton
-        type="normal"
-        onPress={toggleClearBrowserHistoryModal}
-        disabled={browserHistory.length === 0}
-        containerStyle={styles.confirm}
-      >
-        {strings('app_settings.clear_browser_history_desc')}
-      </StyledButton>
+      <View style={styles.accessory}>
+        <Button
+          variant={ButtonVariants.Secondary}
+          size={ButtonSize.Lg}
+          width={ButtonWidthTypes.Full}
+          label={strings('app_settings.clear_browser_history_desc')}
+          onPress={toggleClearBrowserHistoryModal}
+          isDisabled={browserHistory.length === 0}
+        />
+      </View>
     </View>
   );
 
@@ -458,27 +479,33 @@ const Settings: React.FC = () => {
   };
 
   const renderMetaMetricsSection = () => (
-    <View style={styles.setting} testID={META_METRICS_SECTION}>
-      <Text style={styles.title}>
-        {strings('app_settings.metametrics_title')}
-      </Text>
-      <Text style={styles.desc}>
+    <View style={styles.halfSetting} testID={META_METRICS_SECTION}>
+      <View style={styles.titleContainer}>
+        <Text variant={TextVariant.BodyLGMedium} style={styles.title}>
+          {strings('app_settings.metametrics_title')}
+        </Text>
+        <View style={styles.switchElement}>
+          <Switch
+            value={analyticsEnabled}
+            onValueChange={toggleMetricsOptIn}
+            trackColor={{
+              true: colors.primary.default,
+              false: colors.border.muted,
+            }}
+            thumbColor={importedColors.white}
+            style={styles.switch}
+            ios_backgroundColor={colors.border.muted}
+            testID={SecurityPrivacyViewSelectorsIDs.METAMETRICS_SWITCH}
+          />
+        </View>
+      </View>
+      <Text
+        variant={TextVariant.BodyMD}
+        color={TextColor.Alternative}
+        style={styles.desc}
+      >
         {strings('app_settings.metametrics_description')}
       </Text>
-      <View style={styles.switchElement}>
-        <Switch
-          value={analyticsEnabled}
-          onValueChange={toggleMetricsOptIn}
-          trackColor={{
-            true: colors.primary.default,
-            false: colors.border.muted,
-          }}
-          thumbColor={importedColors.white}
-          style={styles.switch}
-          ios_backgroundColor={colors.border.muted}
-          testID={SecurityPrivacyViewSelectorsIDs.METAMETRICS_SWITCH}
-        />
-      </View>
     </View>
   );
 
@@ -492,30 +519,36 @@ const Settings: React.FC = () => {
   };
 
   const renderMultiAccountBalancesSection = () => (
-    <View style={styles.setting} testID={BATCH_BALANCE_REQUESTS_SECTION}>
-      <Text style={styles.title}>
-        {strings('app_settings.batch_balance_requests_title')}
-      </Text>
-      <Text style={styles.desc}>
+    <View style={styles.halfSetting} testID={BATCH_BALANCE_REQUESTS_SECTION}>
+      <View style={styles.titleContainer}>
+        <Text variant={TextVariant.BodyLGMedium} style={styles.title}>
+          {strings('app_settings.batch_balance_requests_title')}
+        </Text>
+        <View style={styles.switchElement}>
+          <Switch
+            value={isMultiAccountBalancesEnabled}
+            onValueChange={toggleIsMultiAccountBalancesEnabled}
+            trackColor={{
+              true: colors.primary.default,
+              false: colors.border.muted,
+            }}
+            thumbColor={importedColors.white}
+            style={styles.switch}
+            ios_backgroundColor={colors.border.muted}
+            {...generateTestId(
+              Platform,
+              SECURITY_PRIVACY_MULTI_ACCOUNT_BALANCES_TOGGLE_ID,
+            )}
+          />
+        </View>
+      </View>
+      <Text
+        variant={TextVariant.BodyMD}
+        color={TextColor.Alternative}
+        style={styles.desc}
+      >
         {strings('app_settings.batch_balance_requests_description')}
       </Text>
-      <View style={styles.switchElement}>
-        <Switch
-          value={isMultiAccountBalancesEnabled}
-          onValueChange={toggleIsMultiAccountBalancesEnabled}
-          trackColor={{
-            true: colors.primary.default,
-            false: colors.border.muted,
-          }}
-          thumbColor={importedColors.white}
-          style={styles.switch}
-          ios_backgroundColor={colors.border.muted}
-          {...generateTestId(
-            Platform,
-            SECURITY_PRIVACY_MULTI_ACCOUNT_BALANCES_TOGGLE_ID,
-          )}
-        />
-      </View>
     </View>
   );
   const toggleEnableIncomingTransactions = (
@@ -544,7 +577,7 @@ const Settings: React.FC = () => {
       onConfirmPress={clearBrowserHistory}
     >
       <View style={styles.modalView}>
-        <Text style={styles.modalTitle}>
+        <Text variant={TextVariant.HeadingMD} style={styles.modalTitle}>
           {strings('app_settings.clear_browser_history_modal_title')}
         </Text>
         <Text style={styles.modalText}>
@@ -570,27 +603,33 @@ const Settings: React.FC = () => {
 
   const renderDisplayNftMedia = useCallback(
     () => (
-      <View style={styles.setting} testID={NFT_DISPLAY_MEDIA_MODE_SECTION}>
-        <Text style={styles.title}>
-          {strings('app_settings.display_nft_media')}
-        </Text>
-        <Text style={styles.desc}>
+      <View style={styles.halfSetting} testID={NFT_DISPLAY_MEDIA_MODE_SECTION}>
+        <View style={styles.titleContainer}>
+          <Text variant={TextVariant.BodyLGMedium} style={styles.title}>
+            {strings('app_settings.display_nft_media')}
+          </Text>
+          <View style={styles.switchElement}>
+            <Switch
+              value={displayNftMedia}
+              onValueChange={toggleDisplayNftMedia}
+              trackColor={{
+                true: colors.primary.default,
+                false: colors.border.muted,
+              }}
+              thumbColor={importedColors.white}
+              style={styles.switch}
+              ios_backgroundColor={colors.border.muted}
+              testID="display-nft-toggle"
+            />
+          </View>
+        </View>
+        <Text
+          variant={TextVariant.BodyMD}
+          color={TextColor.Alternative}
+          style={styles.desc}
+        >
           {strings('app_settings.display_nft_media_desc_new')}
         </Text>
-        <View style={styles.switchElement}>
-          <Switch
-            value={displayNftMedia}
-            onValueChange={toggleDisplayNftMedia}
-            trackColor={{
-              true: colors.primary.default,
-              false: colors.border.muted,
-            }}
-            thumbColor={importedColors.white}
-            style={styles.switch}
-            ios_backgroundColor={colors.border.muted}
-            testID="display-nft-toggle"
-          />
-        </View>
       </View>
     ),
     [colors, styles, displayNftMedia],
@@ -603,25 +642,31 @@ const Settings: React.FC = () => {
         testID={NFT_AUTO_DETECT_MODE_SECTION}
         ref={detectNftComponentRef}
       >
-        <Text style={styles.title}>
-          {strings('app_settings.nft_autodetect_mode')}
-        </Text>
-        <Text style={styles.desc}>
+        <View style={styles.titleContainer}>
+          <Text variant={TextVariant.BodyLGMedium} style={styles.title}>
+            {strings('app_settings.nft_autodetect_mode')}
+          </Text>
+          <View style={styles.switchElement}>
+            <Switch
+              value={useNftDetection}
+              onValueChange={toggleNftAutodetect}
+              trackColor={{
+                true: colors.primary.default,
+                false: colors.border.muted,
+              }}
+              thumbColor={importedColors.white}
+              style={styles.switch}
+              ios_backgroundColor={colors.border.muted}
+            />
+          </View>
+        </View>
+        <Text
+          variant={TextVariant.BodyMD}
+          color={TextColor.Alternative}
+          style={styles.desc}
+        >
           {strings('app_settings.autodetect_nft_desc')}
         </Text>
-        <View style={styles.switchElement}>
-          <Switch
-            value={useNftDetection}
-            onValueChange={toggleNftAutodetect}
-            trackColor={{
-              true: colors.primary.default,
-              false: colors.border.muted,
-            }}
-            thumbColor={importedColors.white}
-            style={styles.switch}
-            ios_backgroundColor={colors.border.muted}
-          />
-        </View>
       </View>
     ),
     [colors, styles, useNftDetection],
@@ -639,26 +684,38 @@ const Settings: React.FC = () => {
 
   const renderIpfsGateway = () => (
     <View style={styles.setting} testID={IPFS_GATEWAY_SECTION}>
-      <Text style={styles.title}>{strings('app_settings.ipfs_gateway')}</Text>
-      <Text style={styles.desc}>
+      <View style={styles.titleContainer}>
+        <Text variant={TextVariant.BodyLGMedium} style={styles.title}>
+          {strings('app_settings.ipfs_gateway')}
+        </Text>
+        <View style={styles.switchElement}>
+          <Switch
+            value={isIpfsGatewayEnabled}
+            onValueChange={setIsIpfsGatewayEnabled}
+            trackColor={{
+              true: colors.primary.default,
+              false: colors.border.muted,
+            }}
+            thumbColor={importedColors.white}
+            style={styles.switch}
+            ios_backgroundColor={colors.border.muted}
+          />
+        </View>
+      </View>
+      <Text
+        variant={TextVariant.BodyMD}
+        color={TextColor.Alternative}
+        style={styles.desc}
+      >
         {strings('app_settings.ipfs_gateway_content')}
       </Text>
-      <View style={styles.marginTop}>
-        <Switch
-          value={isIpfsGatewayEnabled}
-          onValueChange={setIsIpfsGatewayEnabled}
-          trackColor={{
-            true: colors.primary.default,
-            false: colors.border.muted,
-          }}
-          thumbColor={importedColors.white}
-          style={styles.switch}
-          ios_backgroundColor={colors.border.muted}
-        />
-      </View>
       {isIpfsGatewayEnabled && (
-        <>
-          <Text style={styles.desc}>
+        <View style={styles.accessory}>
+          <Text
+            variant={TextVariant.BodyMD}
+            color={TextColor.Alternative}
+            style={styles.desc}
+          >
             {strings('app_settings.ipfs_gateway_desc')}
           </Text>
           <View style={styles.picker}>
@@ -676,7 +733,7 @@ const Settings: React.FC = () => {
               </View>
             )}
           </View>
-        </>
+        </View>
       )}
     </View>
   );
@@ -846,17 +903,22 @@ const Settings: React.FC = () => {
         style={styles.setting}
         testID={SecurityPrivacyViewSelectorsIDs.INCOMING_TRANSACTIONS}
       >
-        <Text style={styles.title}>
+        <Text variant={TextVariant.BodyLGMedium}>
           {strings('app_settings.incoming_transactions_title')}
         </Text>
-        <Text style={styles.desc}>
+        <Text
+          variant={TextVariant.BodyMD}
+          color={TextColor.Alternative}
+          style={styles.desc}
+        >
           {strings('app_settings.incoming_transactions_content')}
         </Text>
-
-        {renderMainnet()}
-        {renderLineaMainnet()}
-        {renderRpcNetworks()}
-        {showTestNetworks && renderOtherNetworks()}
+        <View style={styles.transactionsContainer}>
+          {renderMainnet()}
+          {renderLineaMainnet()}
+          {renderRpcNetworks()}
+          {showTestNetworks && renderOtherNetworks()}
+        </View>
       </View>
     );
   };
@@ -888,23 +950,62 @@ const Settings: React.FC = () => {
           onSignWithBiometricsOptionUpdated={onSingInWithBiometrics}
           onSignWithPasscodeOptionUpdated={onSignInWithPasscode}
         />
-        <RememberMeOptionSection />
+        <View style={styles.setting}>
+          <RememberMeOptionSection />
+        </View>
         <RevealPrivateKey />
         <Heading>{strings('app_settings.privacy_heading')}</Heading>
+        <Text
+          variant={TextVariant.BodyLGMedium}
+          color={TextColor.Alternative}
+          style={{ ...styles.subHeading, ...styles.firstSetting }}
+        >
+          {strings('app_settings.privacy_browser_subheading')}
+        </Text>
         {renderSDKSettings()}
         <ClearPrivacy />
         {renderClearBrowserHistorySection()}
         <ClearCookiesSection />
-        {renderMetaMetricsSection()}
-        <DeleteMetaMetricsData />
-        <DeleteWalletData />
+        <Text
+          variant={TextVariant.BodyLGMedium}
+          color={TextColor.Alternative}
+          style={styles.subHeading}
+        >
+          {strings('app_settings.transactions_subheading')}
+        </Text>
         {renderMultiAccountBalancesSection()}
         {renderShowIncomingTransactions()}
         {renderHistoryModal()}
+        <Text
+          variant={TextVariant.BodyLGMedium}
+          color={TextColor.Alternative}
+          style={styles.subHeading}
+        >
+          {strings('app_settings.token_nft_ens_subheading')}
+        </Text>
         {renderDisplayNftMedia()}
         {isMainnet && renderAutoDetectNft()}
         {renderIpfsGateway()}
-        <AutomaticSecurityChecks />
+        <Text
+          variant={TextVariant.BodyLGMedium}
+          color={TextColor.Alternative}
+          style={styles.subHeading}
+        >
+          {strings('app_settings.security_check_subheading')}
+        </Text>
+        <View style={styles.halfSetting}>
+          <AutomaticSecurityChecks />
+        </View>
+        <Text
+          variant={TextVariant.BodyLGMedium}
+          color={TextColor.Alternative}
+          style={styles.subHeading}
+        >
+          {strings('app_settings.analytics_subheading')}
+        </Text>
+        {renderMetaMetricsSection()}
+        <DeleteMetaMetricsData />
+        <DeleteWalletData />
         {renderHint()}
       </View>
     </ScrollView>
