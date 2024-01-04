@@ -1,11 +1,15 @@
 // Third party dependencies.
-import { ViewProps } from 'react-native';
+import React from 'react';
+import { ViewProps, ImageSourcePropType } from 'react-native';
+import { SvgProps } from 'react-native-svg';
 
 /**
  * Asset stored by logo name
  */
 export type AssetByCryptoLogoName = {
-  [key in CryptoLogoName]: string;
+  [key in CryptoLogoName]:
+    | React.FC<SvgProps & { name: string }>
+    | ImageSourcePropType;
 };
 
 /**
@@ -21,11 +25,6 @@ export interface CryptoLogoProps extends ViewProps {
    */
   name: CryptoLogoName;
 }
-
-/**
- * Style sheet input parameters.
- */
-export type CryptoLogoStyleSheetVars = Pick<CryptoLogoProps, 'style' | 'size'>;
 
 // DO NOT EDIT
 ///////////////////////////////////////////////////////

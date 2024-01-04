@@ -20,6 +20,14 @@ const blacklistedLogos = {
   'USDx.svg': true,
 };
 
+function toPascalCase(str) {
+  // Split the string into words
+  const words = str.match(/[a-z]+|[A-Z][a-z]*|[0-9]+|[A-Z]+(?=[A-Z][a-z]|\b)/g);
+
+  // Capitalize the first letter of each word and join them together
+  return words.map(word => word.charAt(0).toUpperCase() + word.slice(1).toLowerCase()).join('');
+}
+
 const main = async () => {
   const cmKeys = Object.keys(contractMetadata);
   const numberOfAssets = cmKeys.length;
@@ -62,7 +70,7 @@ const main = async () => {
     `\nimport { AssetByCryptoLogoName, CryptoLogoName } from './CryptoLogo.types';`,
   );
   await fs.appendFileSync(imageModulesPath, `\n\nexport default {`);
-  await fs.appendFileSync(dsImageModulesPath, `\n\nexport const assetByCryptoLogoName: AssetByCryptoLogoName = {`);
+  let objectListContent = `\n\nexport const assetByCryptoLogoName: AssetByCryptoLogoName = {`;
 
   let typesContentToWrite = '';
   const typesFileContent = fs.readFileSync(typesFilePath, {
@@ -78,12 +86,12 @@ const main = async () => {
 
   typesContentToWrite += '\n\n/**\n * CryptoLogo names\n */\nexport enum CryptoLogoName {';
   const logoList = [];
-
   for (let i = 0; i < cmKeys.length; i++) {
     const address = cmKeys[i];
     const token = contractMetadata[address];
     const isBlacklisted = blacklistedLogos[token.logo];
     const logoName = token.logo.replace(/\.[^/.]+$/, '');
+    const svgLogoName = `Svg${toPascalCase(logoName)}`;
 
     if (logoList.indexOf(logoName) === -1) {
       await fs.appendFileSync(
@@ -94,26 +102,32 @@ const main = async () => {
           token.logo
         }'),`,
       );
-      await fs.appendFileSync(
-        dsImageModulesPath,
-        `\n  ${isBlacklisted ? '//' : ''}[CryptoLogoName['${
-          logoName
-        }']]: require('metamask/node_modules/@metamask/contract-metadata/images/${
-          token.logo
-        }'),`,
-      );
       if (!isBlacklisted) {
         typesContentToWrite += `\n  '${logoName}' = '${logoName}',`;
+
+        await fs.appendFileSync(
+          dsImageModulesPath,
+          `\n// @ts-ignore\nimport ${svgLogoName} from 'metamask/node_modules/@metamask/contract-metadata/images/${
+            token.logo
+          }';`,
+        );
+
+        objectListContent += `\n  [CryptoLogoName['${
+          logoName
+        }']]: ${
+          svgLogoName
+        },`;
       }
       logoList.push(logoName);
     }
   }
 
   typesContentToWrite += '\n}\n';
+  objectListContent += '\n};\n';
   await fs.writeFileSync(typesFilePath, typesContentToWrite);
   await fs.appendFileSync(imageModulesPath, '\n};\n');
   console.log(`✅ Images module generated at - ${imageModulesPath}`);
-  await fs.appendFileSync(dsImageModulesPath, '\n};\n');
+  await fs.appendFileSync(dsImageModulesPath, objectListContent);
   console.log(`✅ Images module generated at - ${dsImageModulesPath}`);
 
   // Generate package.json for absolute import

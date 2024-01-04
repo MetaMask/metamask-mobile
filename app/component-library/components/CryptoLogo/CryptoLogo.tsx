@@ -1,27 +1,20 @@
-/* eslint-disable react/prop-types */
+/* eslint-disable react/prop-types, react/jsx-pascal-case */
 
 // Third party dependencies.
 import React from 'react';
-import { Image, View, ImageSourcePropType } from 'react-native';
-
-// External dependencies.
-import { useStyles } from '../../hooks';
 
 // Internal dependencies.
-import styleSheet from './CryptoLogo.styles';
 import { CryptoLogoProps } from './CryptoLogo.types';
 import { assetByCryptoLogoName } from './CryptoLogo.assets';
-
-const CryptoLogo: React.FC<CryptoLogoProps> = ({ style, name, size }) => {
-  const { styles } = useStyles(styleSheet, { style, size });
+const CryptoLogo: React.FC<CryptoLogoProps> = ({ name, size }) => {
+  const SVG = assetByCryptoLogoName[name] as React.ElementType;
   return (
-    <View style={styles.base}>
-      <Image
-        source={assetByCryptoLogoName[name] as ImageSourcePropType}
-        style={styles.image}
-        resizeMode={'contain'}
-      />
-    </View>
+    <SVG
+      width={Number(size)}
+      height={Number(size)}
+      viewBox={'0 0 250 250'}
+      name={name}
+    />
   );
 };
 
