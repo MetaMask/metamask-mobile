@@ -96,6 +96,7 @@ export const unlockLedgerDefaultAccount = async (): Promise<{
   balance: string;
 }> => {
   const keyringController = Engine.context.KeyringController;
+  const preferencesController = Engine.context.PreferencesController;
   const keyring = await getLedgerKeyring();
   const oldAccounts = await keyringController.getAccounts();
   await keyringController.addNewAccountForKeyring(keyring);
@@ -108,7 +109,7 @@ export const unlockLedgerDefaultAccount = async (): Promise<{
         // The first ledger account is always returned.
         keyringController.setAccountLabel(address, `${keyring.getName()} 1`);
       }
-      keyringController.setSelectedAddress(address);
+      preferencesController.setSelectedAddress(address);
     }
   });
   await keyringController.persistAllKeyrings();
@@ -141,11 +142,12 @@ export const closeRunningAppOnLedger = async (): Promise<void> => {
  */
 export const forgetLedger = async (): Promise<void> => {
   const keyringController = Engine.context.KeyringController;
+  const preferencesController = Engine.context.PreferencesController;
   const keyring = await getLedgerKeyring();
   keyring.forgetDevice();
 
   const accounts: string[] = await keyringController.getAccounts();
-  keyringController.setSelectedAddress(accounts[0]);
+  preferencesController.setSelectedAddress(accounts[0]);
 
   await keyringController.persistAllKeyrings();
 };
