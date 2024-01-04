@@ -106,6 +106,22 @@ function rewriteReport(report) {
   return report;
 }
 
+/**
+ * This function excludes events from being logged in the performance portion of the app.
+ * @param {*} event - to be logged
+ * @returns event or null
+ */
+function excludeEvents(event) {
+  //Modfiy or drop event here
+  if (event?.transaction === 'Route Change') {
+    //Route change is dropped because is does not reflect a screen we can action on.
+    //Don't send the event to Sentry
+    return null;
+  }
+
+  return event;
+}
+
 function sanitizeUrlsFromErrorMessages(report) {
   rewriteErrorMessages(report, (errorMessage) => {
     const urlsInMessage = errorMessage.match(regex.sanitizeUrl);
@@ -190,6 +206,7 @@ export function setupSentry() {
       tracesSampleRate: 0.05,
       beforeSend: (report) => rewriteReport(report),
       beforeBreadcrumb: (breadcrumb) => rewriteBreadcrumb(breadcrumb),
+      beforeSendTransaction: (event) => excludeEvents(event),
     });
   };
   init();
