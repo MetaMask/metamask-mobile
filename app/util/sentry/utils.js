@@ -206,7 +206,7 @@ export function setupSentry() {
       tracesSampleRate: 0.05,
       beforeSend: (report) => rewriteReport(report),
       beforeBreadcrumb: (breadcrumb) => rewriteBreadcrumb(breadcrumb),
-      beforeSendTransaction: (event) => excludeEvents(event), //test
+      beforeSendTransaction: (event) => excludeEvents(event),
     });
   };
   init();
