@@ -32,6 +32,16 @@ class Gestures {
    * Wait for an element to be visible and then tap it.
    *
    * @param {Promise<Detox.IndexableNativeElement>} elementID - ID of the element to tap
+   */
+  static async tap(elementID) {
+    const element = await elementID;
+    await element.tap();
+  }
+
+  /**
+   * Wait for an element to be visible and then tap it.
+   *
+   * @param {Promise<Detox.IndexableNativeElement>} elementID - ID of the element to tap
    * @param {number} index - Index of the element (default: 0)
    * @param {number} timeout - Timeout for waiting (default: 8000ms)
    */
@@ -66,7 +76,7 @@ class Gestures {
   /**
    * Clear the text field of an element identified by ID.
    *
-   * @param {Detox.IndexableNativeElement} elementID - ID of the element to clear
+   * @param {Promise<Detox.IndexableNativeElement>} elementID - ID of the element to clear
    */
   static async clearField(elementID) {
     const element = await elementID;
@@ -85,7 +95,7 @@ class Gestures {
     if (device.getPlatform() === 'android') {
       await this.clearField(element);
     }
-    await this.typeText(element, text + '\n');
+    await element.typeText(text + '\n');
   }
 
   /**
@@ -104,8 +114,8 @@ class Gestures {
    * Swipe on an element identified by ID.
    *
    * @param {Promise<Detox.IndexableNativeElement>} elementID - ID of the element to swipe on
-   * @param {Direction} direction - Direction of the swipe - left | right | top | bottom | up | down
-   * @param {Speed} [speed] - Speed of the swipe (fast, slow)
+   * @param {Detox.Direction} direction - Direction of the swipe - left | right | top | bottom | up | down
+   * @param {Detox.Speed} [speed] - Speed of the swipe (fast, slow)
    * @param {number} [percentage] - Percentage of the swipe (0 to 1)
    * @param {number} [xStart] - X-coordinate to start the swipe
    * @param {number} [yStart] - Y-coordinate to start the swipe
@@ -117,16 +127,52 @@ class Gestures {
   }
 
   /**
-   * Scroll up to an element identified by ID.
+   * Swipe on an element identified by ID.
    *
-   * @param {Promise<Detox.IndexableNativeElement>} elementID - ID of the element to scroll up to
-   * @param {number} distance - Distance to scroll
-   * @param {Direction} direction - Direction of the scroll (up, down, left, right)
+   * @param {Promise<Detox.IndexableNativeElement>} elementID - ID of the element to swipe on
+   * @param {Detox.Direction} direction - Direction of the swipe - left | right | top | bottom | up | down
+   * @param {Detox.Speed} [speed] - Speed of the swipe (fast, slow)
+   * @param {number} [percentage] - Percentage of the swipe (0 to 1)
+   * @param {number} [xStart] - X-coordinate to start the swipe
+   * @param {number} [yStart] - Y-coordinate to start the swipe
+   * @param {number} index - Index of the element (default 0)
    */
-  static async scrollUpTo(elementID, distance, direction) {
+  static async swipeAtIndex(
+    elementID,
+    direction,
+    speed,
+    percentage,
+    xStart,
+    yStart,
+    index = 0,
+  ) {
     const element = await elementID;
 
-    await element.scroll(distance, direction);
+    await element
+      .atIndex(index)
+      .swipe(direction, speed, percentage, xStart, yStart);
+  }
+
+  /**
+   * Dynamically Scrolls to an element identified by ID.
+   *
+   * @param {Promise<Detox.IndexableNativeElement>} destinationElementID - ID of the element to scroll up to
+   * @param {number} scrollIdentifier - The identifier (by.id) NOT elementID (element(by.id)). Keep this distinction in mind. If you pass in an elementID this method would not work as intended
+   * @param {Detox.Direction} direction - Direction of the scroll (up, down, left, right). The default is down.
+   * @param {number} [scrollAmount=350] - The amount to scroll (default is 350). Optional parameter.   */
+  static async scrollToElement(
+    destinationElementID,
+    scrollIdentifier,
+    direction = 'down',
+    scrollAmount = 350,
+  ) {
+    const destinationElement = await destinationElementID;
+    const scrollableElement = await scrollIdentifier;
+
+    await waitFor(destinationElement)
+      .toBeVisible()
+      .whileElement(scrollableElement)
+      .scroll(scrollAmount, direction);
   }
 }
 

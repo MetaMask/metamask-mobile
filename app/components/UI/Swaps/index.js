@@ -52,7 +52,6 @@ import {
 } from './utils';
 import { getSwapsAmountNavbar } from '../Navbar';
 
-import Onboarding from './components/Onboarding';
 import useModalHandler from '../../Base/hooks/useModalHandler';
 import Text from '../../Base/Text';
 import Keypad from '../../Base/Keypad';
@@ -209,6 +208,8 @@ function SwapsAmountView({
 
   const explorer = useBlockExplorer(providerConfig, networkConfigurations);
   const initialSource = route.params?.sourceToken ?? SWAPS_NATIVE_ADDRESS;
+  const initialDestination = route.params?.destinationToken;
+
   const [amount, setAmount] = useState('0');
   const [slippage, setSlippage] = useState(AppConstants.SWAPS.DEFAULT_SLIPPAGE);
   const [isInitialLoadingTokens, setInitialLoadingTokens] = useState(false);
@@ -220,13 +221,18 @@ function SwapsAmountView({
       ),
     ),
   );
+  const [isDestinationSet, setIsDestinationSet] = useState(false);
 
   const [sourceToken, setSourceToken] = useState(() =>
     swapsTokens?.find((token) =>
       toLowerCaseEquals(token.address, initialSource),
     ),
   );
-  const [destinationToken, setDestinationToken] = useState(null);
+  const [destinationToken, setDestinationToken] = useState(
+    swapsTokens?.find((token) =>
+      toLowerCaseEquals(token.address, initialDestination),
+    ),
+  );
   const [hasDismissedTokenAlert, setHasDismissedTokenAlert] = useState(true);
   const [contractBalance, setContractBalance] = useState(null);
   const [contractBalanceAsUnits, setContractBalanceAsUnits] = useState(
@@ -345,14 +351,15 @@ function SwapsAmountView({
     })();
   }, [swapsControllerTokens, swapsTokens]);
 
+  const canSetAnInitialSourceToken =
+    !isSourceSet &&
+    initialSource &&
+    swapsControllerTokens &&
+    swapsTokens?.length > 0 &&
+    !sourceToken;
+
   useEffect(() => {
-    if (
-      !isSourceSet &&
-      initialSource &&
-      swapsControllerTokens &&
-      swapsTokens?.length > 0 &&
-      !sourceToken
-    ) {
+    if (canSetAnInitialSourceToken) {
       setIsSourceSet(true);
       setSourceToken(
         swapsTokens.find((token) =>
@@ -360,13 +367,25 @@ function SwapsAmountView({
         ),
       );
     }
-  }, [
-    initialSource,
-    isSourceSet,
-    sourceToken,
-    swapsControllerTokens,
-    swapsTokens,
-  ]);
+  }, [canSetAnInitialSourceToken, initialSource, swapsTokens]);
+
+  const canSetAnInitialTokenDestination =
+    !isDestinationSet &&
+    initialDestination &&
+    swapsControllerTokens &&
+    swapsTokens?.length > 0 &&
+    !destinationToken;
+
+  useEffect(() => {
+    if (canSetAnInitialTokenDestination) {
+      setIsDestinationSet(true);
+      setDestinationToken(
+        swapsTokens.find((token) =>
+          toLowerCaseEquals(token.address, initialDestination),
+        ),
+      );
+    }
+  }, [canSetAnInitialTokenDestination, initialDestination, swapsTokens]);
 
   useEffect(() => {
     setHasDismissedTokenAlert(false);
@@ -648,17 +667,6 @@ function SwapsAmountView({
 
   const disabledView =
     !destinationTokenHasEnoughOcurrances && !hasDismissedTokenAlert;
-
-  if (!userHasOnboarded) {
-    return (
-      <ScreenView
-        style={styles.container}
-        contentContainerStyle={styles.screen}
-      >
-        <Onboarding setHasOnboarded={setHasOnboarded} />
-      </ScreenView>
-    );
-  }
 
   return (
     <ScreenView

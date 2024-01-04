@@ -11,15 +11,14 @@ import WalletView from '../../pages/WalletView';
 import EnableAutomaticSecurityChecksView from '../../pages/EnableAutomaticSecurityChecksView';
 import LoginView from '../../pages/LoginView';
 
-import AddContactView from '../../pages/Drawer/Settings/Contacts/AddContactView';
-import ContactsView from '../../pages/Drawer/Settings/Contacts/ContactsView';
-import SettingsView from '../../pages/Drawer/Settings/SettingsView';
+import ContactsView from '../../pages/Settings/Contacts/ContactsView';
+import SettingsView from '../../pages/Settings/SettingsView';
 
 import NetworkListModal from '../../pages/modals/NetworkListModal';
 import OnboardingWizardModal from '../../pages/modals/OnboardingWizardModal';
 import NetworkEducationModal from '../../pages/modals/NetworkEducationModal';
 import WhatsNewModal from '../../pages/modals/WhatsNewModal';
-import SecurityAndPrivacy from '../../pages/Drawer/Settings/SecurityAndPrivacy/SecurityAndPrivacyView';
+import SecurityAndPrivacy from '../../pages/Settings/SecurityAndPrivacy/SecurityAndPrivacyView';
 
 import TestHelpers from '../../helpers';
 import { acceptTermOfUse } from '../../viewHelper';
@@ -27,6 +26,8 @@ import Accounts from '../../../wdio/helpers/Accounts';
 import TabBarComponent from '../../pages/TabBarComponent';
 import WalletActionsModal from '../../pages/modals/WalletActionsModal';
 import ContractApprovalModal from '../../pages/modals/ContractApprovalModal';
+import CommonView from '../../pages/CommonView';
+import Assertions from '../../utils/Assertions';
 
 describe('Adding Contract Nickname', () => {
   const APPROVAL_DEEPLINK_URL =
@@ -90,7 +91,7 @@ describe('Adding Contract Nickname', () => {
     await TestHelpers.delay(2500);
     try {
       await WhatsNewModal.isVisible();
-      await WhatsNewModal.tapGotItButton();
+      await WhatsNewModal.tapCloseButton();
     } catch {
       //
     }
@@ -118,9 +119,9 @@ describe('Adding Contract Nickname', () => {
   });
 
   it('should enable remember me', async () => {
-    await SecurityAndPrivacy.isRememberMeToggleOff();
+    await Assertions.checkIfToggleIsOff(SecurityAndPrivacy.rememberMeToggle);
     await SecurityAndPrivacy.tapTurnOnRememberMeToggle();
-    await SecurityAndPrivacy.isRememberMeToggleOn();
+    await Assertions.checkIfToggleIsOn(SecurityAndPrivacy.rememberMeToggle);
 
     await TestHelpers.delay(1500);
   });
@@ -134,6 +135,7 @@ describe('Adding Contract Nickname', () => {
     await LoginView.enterPassword(validAccount.password);
     await WalletView.isVisible();
   });
+
   it('should deep link to the approval modal', async () => {
     await TestHelpers.openDeepLink(APPROVAL_DEEPLINK_URL);
     await TestHelpers.delay(3000);
@@ -176,13 +178,13 @@ describe('Adding Contract Nickname', () => {
     await TabBarComponent.tapSettings();
     await SettingsView.tapContacts();
 
-    await ContactsView.isVisible();
+    await Assertions.checkIfVisible(ContactsView.container);
     await ContactsView.isContactAliasVisible('Ace');
   });
 
   it('should return to the send view', async () => {
     // Open Drawer
-    await AddContactView.tapBackButton();
+    await CommonView.tapBackButton();
     await SettingsView.tapCloseButton();
 
     await TabBarComponent.tapActions();

@@ -44,6 +44,7 @@
       }
     },
     "storageMetadata": [],
+    "versionFileETag": "",
     "versionInfo": []
   },
 
@@ -126,13 +127,21 @@
     "contractBalances": {}
   },
   "TokenRatesController": {
-    "contractExchangeRates": {}
+    "contractExchangeRates": {},
+    "contractExchangeRatesByChainId": {}
   },
   "TransactionController": {
     "lastFetchedBlockNumbers": {},
     "methodData": {},
     "submitHistory": [],
     "transactions": []
+  },
+  "SnapController":  {
+    "snapStates": {},
+    "snaps":  {}
+  },
+  "SubjectMetadataController":  {
+    "subjectMetadata":  {}
   },
   "SwapsController": {
     "quotes": {},

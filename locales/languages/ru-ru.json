@@ -1323,14 +1323,6 @@
     "wyre_total_label": "Wyre (через MetaMask)",
     "buy_with": "Купить с",
     "plus_fee": "Плюс {{fee}} комиссия",
-    "notifications": {
-      "purchase_failed_title": "Покупка {{currency}} не удалась! Попробуйте еще раз, извините за неудобства!",
-      "purchase_cancelled_title": "Ваша покупка была отменена",
-      "purchase_completed_title": "Ваша покупка {{amount}} {{currency}} была успешной!",
-      "purchase_completed_description": "Ваши {{currency}} теперь доступны",
-      "purchase_pending_title": "Обработка вашей покупки {{currency}}",
-      "purchase_pending_description": "Это займет всего несколько минут..."
-    },
     "date": "Дата",
     "from": "От",
     "to": "Адресат",
@@ -1364,6 +1356,16 @@
         "subtitle_5": "и посмотреть, сколько стоит газ.",
         "cta": "Продолжить к приобретение {{ticker}}"
       }
+    }
+  },
+  "fiat_on_ramp_aggregator": {
+    "notifications": {
+      "purchase_failed_title": "Покупка {{currency}} не удалась! Попробуйте еще раз, извините за неудобства!",
+      "purchase_cancelled_title": "Ваша покупка была отменена",
+      "purchase_completed_title": "Ваша покупка {{amount}} {{currency}} была успешной!",
+      "purchase_completed_description": "Ваши {{currency}} теперь доступны",
+      "purchase_pending_title": "Обработка вашей покупки {{currency}}",
+      "purchase_pending_description": "Это займет всего несколько минут..."
     }
   },
   "swaps": {
@@ -1436,7 +1438,6 @@
     "i_understand": "Я понимаю",
     "quotes_expire_in": "Срок действия котировок истекает через",
     "saving": "Сохранение",
-    "using_best_quote": "Используется лучшая котировка",
     "view_details": "Просмотр деталей",
     "estimated_gas_fee": "Ориентировочная плата за газ",
     "max_gas_fee": "Максимальная плата за газ",
@@ -1449,10 +1450,6 @@
     "completed_swap": "Обменять!",
     "metamask_swap_fee": "Комиссия за своп в MetaMask",
     "fee_text": {
-      "get_the": "Получайте",
-      "best_price": "лучшую цену",
-      "from_the": "из",
-      "top_liquidity": "лучших источников ликвидности.",
       "fee_is_applied": "Комиссия в размере {{fee}} автоматически включается в каждую котировку на поддержку текущих разработок, чтобы сделать MetaMask еще лучше."
     },
     "enable": {
