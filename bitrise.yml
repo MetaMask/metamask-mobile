@@ -191,16 +191,6 @@ workflows:
             - paths: |-
                 node_modules
                 $YARN_CACHE_DIR
-  code_setup_dev:
-    steps:
-      - script@1:
-          title: Generate `.npmrc` file for preview builds
-          inputs:
-            - content: |
-                #!/bin/bash
-                printf '%s\n\n%s' '@metamask:registry=https://npm.pkg.github.com' "//npm.pkg.github.com/:_authToken=${PACKAGE_READ_TOKEN}" > .npmrc
-    after_run:
-      - code_setup
   prep_environment:
     steps:
       - script@1:
@@ -426,7 +416,7 @@ workflows:
           title: Detox - Install CLI
   android_e2e_build:
     before_run:
-      - code_setup_dev
+      - code_setup
       - e2e_setup
     after_run:
       - _notify_failure_on_slack
@@ -579,7 +569,7 @@ workflows:
         stack: linux-docker-android-20.04
   ios_e2e_build:
     before_run:
-      - code_setup_dev
+      - code_setup
       - e2e_setup
     after_run:
       - _notify_failure_on_slack
@@ -826,7 +816,7 @@ workflows:
         machine_type_id: elite-xl
   build_android_qa:
     before_run:
-      - code_setup_dev
+      - code_setup
     after_run:
       - _upload_apk_to_browserstack
       - _notify_failure_on_slack
@@ -1029,7 +1019,7 @@ workflows:
           title: Deploy Source Map
   build_ios_qa:
     before_run:
-      - code_setup_dev
+      - code_setup
     after_run:
       - _upload_ipa_to_browserstack
       - _notify_failure_on_slack
