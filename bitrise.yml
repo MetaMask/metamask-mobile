@@ -70,6 +70,7 @@ pipelines:
     stages:
       - build_regression_e2e_ios_android_stage: {}
       - run_regression_e2e_ios_android_stage: {}
+      - run_smoke_e2e_ios_android_stage: {}
       - notify: {}
 
 #Stages reference workflows. Those workflows cannot but utility "_this-is-a-utility"
@@ -130,6 +131,7 @@ stages:
     workflows:
       - ios_run_regression_tests: {}
       - android_run_regression_tests: {}
+      - run_smoke_e2e_ios_android_stage: {}
   run_e2e_ios_android_stage:
     workflows:
       - ios_e2e_test: {}
