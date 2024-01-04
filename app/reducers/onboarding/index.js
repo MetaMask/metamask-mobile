@@ -1,5 +1,6 @@
 const initialState = {
   events: [],
+  strategy: undefined,
 };
 
 /**
@@ -17,6 +18,11 @@ const onboardingReducer = (state = initialState, action) => {
       return {
         ...state,
         events: [],
+      };
+    case 'SET_STRATEGY':
+      return {
+        ...state,
+        strategy: action.strategy,
       };
     default:
       return state;

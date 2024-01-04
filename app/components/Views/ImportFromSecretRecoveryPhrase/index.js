@@ -11,7 +11,7 @@ import {
   InteractionManager,
   Platform,
 } from 'react-native';
-import { connect } from 'react-redux';
+import { connect, useSelector } from 'react-redux';
 import AsyncStorage from '../../../store/async-storage-wrapper';
 import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view';
 import zxcvbn from 'zxcvbn';
@@ -25,8 +25,8 @@ import {
   failedSeedPhraseRequirements,
   isValidMnemonic,
   parseSeedPhrase,
-  parseVaultValue,
 } from '../../../util/validators';
+import { onboardingStrategy } from '../Onboarding/constants';
 import Logger from '../../../util/Logger';
 import {
   getPasswordStrengthWord,
@@ -65,6 +65,7 @@ import {
 import navigateTermsOfUse from '../../../util/termsOfUse/termsOfUse';
 import { ImportFromSeedSelectorsIDs } from '../../../../e2e/selectors/Onboarding/ImportFromSeed.selectors';
 import { ChoosePasswordSelectorsIDs } from '../../../../e2e/selectors/Onboarding/ChoosePassword.selectors';
+import { KeyringTypes } from '@metamask/keyring-controller';
 
 const MINIMUM_SUPPORTED_CLIPBOARD_VERSION = 9;
 
@@ -91,7 +92,7 @@ const ImportFromSecretRecoveryPhrase = ({
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
   const [passwordStrength, setPasswordStrength] = useState();
-  const [seed, setSeed] = useState('');
+  const [secret, setSecret] = useState(undefined);
   const [biometryType, setBiometryType] = useState(null);
   const [rememberMe, setRememberMe] = useState(false);
   const [secureTextEntry, setSecureTextEntry] = useState(true);
@@ -101,6 +102,8 @@ const ImportFromSecretRecoveryPhrase = ({
   const [seedphraseInputFocused, setSeedphraseInputFocused] = useState(false);
   const [inputWidth, setInputWidth] = useState({ width: '99%' });
   const [hideSeedPhraseInput, setHideSeedPhraseInput] = useState(true);
+
+  const strategy = useSelector((state) => state.onboarding.strategy);
 
   const passwordInput = React.createRef();
   const confirmPasswordInput = React.createRef();
@@ -178,11 +181,6 @@ const ImportFromSecretRecoveryPhrase = ({
   };
 
   const onPressImport = async () => {
-    const vaultSeed = await parseVaultValue(password, seed);
-    const parsedSeed = parseSeedPhrase(vaultSeed || seed);
-    //Set the seed state with a valid parsed seed phrase (handle vault scenario)
-    setSeed(parsedSeed);
-
     if (loading) return;
     InteractionManager.runAfterInteractions(() => {
       AnalyticsV2.trackEvent(MetaMetricsEvents.WALLET_IMPORT_ATTEMPTED);
@@ -194,10 +192,15 @@ const ImportFromSecretRecoveryPhrase = ({
       error = strings('import_from_seed.password_dont_match');
     }
 
-    if (failedSeedPhraseRequirements(parsedSeed)) {
-      error = strings('import_from_seed.seed_phrase_requirements');
-    } else if (!isValidMnemonic(parsedSeed)) {
-      error = strings('import_from_seed.invalid_seed_phrase');
+    if (onboardingStrategy === onboardingStrategy.seedPhrase) {
+      const parsedSeed = parseSeedPhrase(secret);
+      //Set the seed state with a valid parsed seed phrase (handle vault scenario)
+      setSecret(parsedSeed);
+      if (failedSeedPhraseRequirements(parsedSeed)) {
+        error = strings('import_from_seed.seed_phrase_requirements');
+      } else if (!isValidMnemonic(parsedSeed)) {
+        error = strings('import_from_seed.invalid_seed_phrase');
+      }
     }
 
     if (error) {
@@ -216,17 +219,37 @@ const ImportFromSecretRecoveryPhrase = ({
           rememberMe,
         );
 
+        const getKeyring = () => {
+          switch (strategy) {
+            case onboardingStrategy.seedPhrase:
+              return {
+                type: KeyringTypes.hd,
+                opts: {
+                  mnemonic: secret,
+                  numberOfAccounts: 1,
+                },
+              };
+            case onboardingStrategy.privateKey:
+              return {
+                type: KeyringTypes.simple,
+                opts: [secret],
+              };
+          }
+        };
+
+        const keyring = getKeyring();
+
         try {
           await Authentication.newWalletAndRestore(
             password,
             authData,
-            parsedSeed,
+            keyring,
             true,
           );
         } catch (err) {
           // retry faceID if the user cancels the
           if (Device.isIos && err.toString() === IOS_REJECTED_BIOMETRICS_ERROR)
-            await handleRejectedOsBiometricPrompt(parsedSeed);
+            await handleRejectedOsBiometricPrompt(keyring);
         }
         // Get onboarding wizard state
         const onboardingWizard = await DefaultPreference.get(ONBOARDING_WIZARD);
@@ -275,7 +298,7 @@ const ImportFromSecretRecoveryPhrase = ({
     }
   };
 
-  const clearSecretRecoveryPhrase = async (seed) => {
+  const clearSecret = async (secret) => {
     // get clipboard contents
     const clipboardContents = await Clipboard.getString();
     const parsedClipboardContents = parseSeedPhrase(clipboardContents);
@@ -284,20 +307,20 @@ const ImportFromSecretRecoveryPhrase = ({
       !failedSeedPhraseRequirements(parsedClipboardContents) &&
       isValidMnemonic(parsedClipboardContents) &&
       // only clear clipboard if the seed phrase entered matches what's in the clipboard
-      parseSeedPhrase(seed) === parsedClipboardContents
+      parseSeedPhrase(secret) === parsedClipboardContents
     ) {
       await Clipboard.clearString();
     }
   };
 
-  const onSeedWordsChange = useCallback(async (seed) => {
-    setSeed(seed);
+  const onSecretChange = useCallback(async (secret) => {
+    setSecret(secret);
     // Only clear on android since iOS will notify users when we getString()
     if (Device.isAndroid()) {
       const androidOSVersion = parseInt(Platform.constants.Release, 10);
       // This conditional is necessary to avoid an error in Android 8.1.0 or lower
       if (androidOSVersion >= MINIMUM_SUPPORTED_CLIPBOARD_VERSION) {
-        await clearSecretRecoveryPhrase(seed);
+        await clearSecret(secret);
       }
     }
   }, []);
@@ -355,7 +378,7 @@ const ImportFromSecretRecoveryPhrase = ({
     navigation.navigate(Routes.QR_SCANNER, {
       onScanSuccess: ({ seed = undefined }) => {
         if (seed) {
-          setSeed(seed);
+          setSecret(seed);
         } else {
           Alert.alert(
             strings('import_from_seed.invalid_qr_code_title'),
@@ -372,13 +395,40 @@ const ImportFromSecretRecoveryPhrase = ({
 
   const passwordStrengthWord = getPasswordStrengthWord(passwordStrength);
 
+  const title = useCallback(() => {
+    switch (strategy) {
+      case onboardingStrategy.seedPhrase:
+        return strings('import_from_seed.title');
+      case onboardingStrategy.privateKey:
+        return 'Import from Private Key';
+    }
+  }, [strategy]);
+
+  const secretInputTitle = useCallback(() => {
+    switch (strategy) {
+      case onboardingStrategy.seedPhrase:
+        return strings('choose_password.seed_phrase');
+      case onboardingStrategy.privateKey:
+        return 'Private Key';
+    }
+  }, [strategy]);
+
+  const secretInputPlaceholder = useCallback(() => {
+    switch (strategy) {
+      case onboardingStrategy.seedPhrase:
+        return strings('import_from_seed.seed_phrase_placeholder');
+      case onboardingStrategy.privateKey:
+        return 'Enter your Private Key';
+    }
+  }, [strategy]);
+
   const hiddenSRPInput = useCallback(
     () => (
       <OutlinedTextField
         style={styles.input}
         containerStyle={inputWidth}
         inputContainerStyle={styles.padding}
-        placeholder={strings('import_from_seed.seed_phrase_placeholder')}
+        placeholder={secretInputPlaceholder()}
         testID={
           ImportFromSeedSelectorsIDs.IMPORT_FROM_SEED_SCREEN_SEED_PHRASE_INPUT_ID
         }
@@ -386,8 +436,8 @@ const ImportFromSecretRecoveryPhrase = ({
         returnKeyType="next"
         autoCapitalize="none"
         secureTextEntry={hideSeedPhraseInput}
-        onChangeText={onSeedWordsChange}
-        value={seed}
+        onChangeText={onSecretChange}
+        value={secret}
         baseColor={colors.border.default}
         tintColor={colors.primary.default}
         onSubmitEditing={jumpToPassword}
@@ -401,8 +451,9 @@ const ImportFromSecretRecoveryPhrase = ({
       hideSeedPhraseInput,
       inputWidth,
       jumpToPassword,
-      onSeedWordsChange,
-      seed,
+      onSecretChange,
+      secret,
+      secretInputPlaceholder,
       styles.input,
       styles.padding,
       themeAppearance,
@@ -420,13 +471,11 @@ const ImportFromSecretRecoveryPhrase = ({
             style={styles.title}
             testID={ImportFromSeedSelectorsIDs.IMPORT_FROM_SEED_SCREEN_TITLE_ID}
           >
-            {strings('import_from_seed.title')}
+            {title()}
           </Text>
           <View style={styles.fieldRow}>
             <View style={styles.fieldCol}>
-              <Text style={styles.label}>
-                {strings('choose_password.seed_phrase')}
-              </Text>
+              <Text style={styles.label}>{secretInputTitle()}</Text>
             </View>
             <View style={[styles.fieldCol, styles.fieldColRight]}>
               <TouchableOpacity onPress={toggleHideSeedPhraseInput}>
@@ -442,7 +491,7 @@ const ImportFromSecretRecoveryPhrase = ({
             hiddenSRPInput()
           ) : (
             <TextInput
-              value={seed}
+              value={secret}
               numberOfLines={3}
               style={[
                 styles.seedPhrase,
@@ -451,9 +500,9 @@ const ImportFromSecretRecoveryPhrase = ({
               ]}
               secureTextEntry
               multiline={!hideSeedPhraseInput}
-              placeholder={strings('import_from_seed.seed_phrase_placeholder')}
+              placeholder={secretInputPlaceholder()}
               placeholderTextColor={colors.text.muted}
-              onChangeText={onSeedWordsChange}
+              onChangeText={onSecretChange}
               blurOnSubmit
               onSubmitEditing={jumpToPassword}
               returnKeyType="next"

@@ -10,6 +10,7 @@ import {
   Image,
   InteractionManager,
 } from 'react-native';
+import { KeyringTypes } from '@metamask/keyring-controller';
 import CheckBox from '@react-native-community/checkbox';
 import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view';
 import Text, {
@@ -353,7 +354,9 @@ class ChoosePassword extends PureComponent {
 
       if (previous_screen === ONBOARDING) {
         try {
-          await Authentication.newWalletAndKeychain(password, authType);
+          await Authentication.newWalletAndKeychain(password, authType, {
+            type: KeyringTypes.hd,
+          });
         } catch (error) {
           if (Device.isIos) await this.handleRejectedOsBiometricPrompt();
         }
@@ -419,6 +422,9 @@ class ChoosePassword extends PureComponent {
       await Authentication.newWalletAndKeychain(
         this.state.password,
         newAuthData,
+        {
+          type: KeyringTypes.hd,
+        },
       );
     } catch (err) {
       throw Error(strings('choose_password.disable_biometric_error'));

@@ -18,3 +18,11 @@ export function clearOnboardingEvents() {
     type: 'CLEAR_EVENTS',
   };
 }
+
+export function setOnboardingStrategy(strategy) {
+  console.log({ strategy });
+  return {
+    type: 'SET_STRATEGY',
+    strategy,
+  };
+}

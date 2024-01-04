@@ -1,3 +1,4 @@
+/* eslint-disable react-native/no-color-literals */
 import React, { PureComponent } from 'react';
 import PropTypes from 'prop-types';
 import {
@@ -12,8 +13,10 @@ import {
   Animated,
   Easing,
 } from 'react-native';
+
 import Text, {
   TextVariant,
+  TextColor,
 } from '../../../component-library/components/Texts/Text';
 import AsyncStorage from '../../../store/async-storage-wrapper';
 import StyledButton from '../../UI/StyledButton';
@@ -28,7 +31,10 @@ import Button from 'react-native-button';
 import { connect } from 'react-redux';
 import FadeOutOverlay from '../../UI/FadeOutOverlay';
 import Analytics from '../../../core/Analytics/Analytics';
-import { saveOnboardingEvent } from '../../../actions/onboarding';
+import {
+  saveOnboardingEvent,
+  setOnboardingStrategy,
+} from '../../../actions/onboarding';
 import {
   getTransparentBackOnboardingNavbarOptions,
   getTransparentOnboardingNavbarOptions,
@@ -59,6 +65,7 @@ import { OnboardingSelectorIDs } from '../../../../e2e/selectors/Onboarding/Onbo
 
 import Routes from '../../../constants/navigation/Routes';
 import { selectAccounts } from '../../../selectors/accountTrackerController';
+import { onboardingStrategy } from './constants';
 
 const createStyles = (colors) =>
   StyleSheet.create({
@@ -133,6 +140,33 @@ const createStyles = (colors) =>
       flexDirection: 'row',
       alignItems: 'flex-end',
     },
+    // Card style
+    card: {
+      container: {
+        width: '100%',
+        height: 50,
+        flexDirection: 'row',
+      },
+      logoContainer: {
+        flex: 1,
+        height: '100%',
+        borderColor: 'blue',
+        borderWidth: 1,
+      },
+      contentContainer: {
+        flex: 4,
+        marginVertical: '1%',
+        marginHorizontal: 2,
+      },
+      buttonContainer: {
+        flex: 2,
+        height: '100%',
+        justifyContent: 'center',
+      },
+      button: {
+        height: 22,
+      },
+    },
   });
 
 /**
@@ -172,6 +206,7 @@ class Onboarding extends PureComponent {
      * Object that represents the current route info like params passed to it
      */
     route: PropTypes.object,
+    setOnboardingStrategy: PropTypes.func,
   };
 
   notificationAnimated = new Animated.Value(100);
@@ -304,7 +339,7 @@ class Onboarding extends PureComponent {
     this.handleExistingUser(action);
   };
 
-  onPressImport = () => {
+  onPressImportSecret = () => {
     const action = async () => {
       const metricsOptIn = await DefaultPreference.get(METRICS_OPT_IN);
       if (metricsOptIn) {
@@ -366,6 +401,26 @@ class Onboarding extends PureComponent {
     );
   };
 
+  renderCard = ({ title, description, label }) => {
+    const colors = this.context.colors || mockTheme.colors;
+    const styles = createStyles(colors);
+    const { card } = styles;
+
+    return (
+      <View style={card.container}>
+        <View style={card.logoContainer}></View>
+        <View style={card.contentContainer}>
+          <Text variant={TextVariant.BodySM} color={TextColor.Default}>
+            {title}
+          </Text>
+          <Text variant={TextVariant.BodySM} color={TextColor.Alternative}>
+            {description}
+          </Text>
+        </View>
+      </View>
+    );
+  };
+
   renderContent() {
     const colors = this.context.colors || mockTheme.colors;
     const styles = createStyles(colors);
@@ -391,7 +446,24 @@ class Onboarding extends PureComponent {
           <View style={styles.buttonWrapper}>
             <StyledButton
               type={'normal'}
-              onPress={this.onPressImport}
+              onPress={() => {
+                const { setOnboardingStrategy } = this.props;
+                this.onPressImportSecret();
+                setOnboardingStrategy(onboardingStrategy.privateKey);
+              }}
+              testID={WALLET_SETUP_SCREEN_IMPORT_FROM_SEED_BUTTON_ID}
+            >
+              Import a private key
+            </StyledButton>
+          </View>
+          <View style={styles.buttonWrapper}>
+            <StyledButton
+              type={'normal'}
+              onPress={() => {
+                const { setOnboardingStrategy } = this.props;
+                this.onPressImportSecret();
+                setOnboardingStrategy(onboardingStrategy.seedPhrase);
+              }}
               testID={WALLET_SETUP_SCREEN_IMPORT_FROM_SEED_BUTTON_ID}
             >
               {strings('import_wallet.import_from_seed_button')}
@@ -399,13 +471,31 @@ class Onboarding extends PureComponent {
           </View>
           <View style={styles.buttonWrapper}>
             <StyledButton
-              type={'blue'}
+              type={'normal'}
+              onPress={() => {
+                const { setOnboardingStrategy } = this.props;
+                this.onPressImportSecret();
+                setOnboardingStrategy(onboardingStrategy.seedPhrase);
+              }}
+              testID={WALLET_SETUP_SCREEN_IMPORT_FROM_SEED_BUTTON_ID}
+            >
+              Connect a QR hardware wallet
+            </StyledButton>
+          </View>
+          <View style={styles.buttonWrapper}>
+            <StyledButton
+              type={'normal'}
               onPress={this.onPressCreate}
               testID={WALLET_SETUP_CREATE_NEW_WALLET_BUTTON_ID}
             >
               {strings('onboarding.start_exploring_now')}
             </StyledButton>
           </View>
+          {/* {this.renderCard({
+            title: 'Import an account',
+            description: 'Import an account from a private key or SRP',
+            label: 'View',
+          })} */}
         </View>
       </View>
     );
@@ -506,6 +596,8 @@ const mapDispatchToProps = (dispatch) => ({
   setLoading: (msg) => dispatch(loadingSet(msg)),
   unsetLoading: () => dispatch(loadingUnset()),
   saveOnboardingEvent: (event) => dispatch(saveOnboardingEvent(event)),
+  setOnboardingStrategy: (strategy) =>
+    dispatch(setOnboardingStrategy(strategy)),
 });
 
 export default connect(mapStateToProps, mapDispatchToProps)(Onboarding);

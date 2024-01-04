@@ -1,3 +1,4 @@
+import { KeyringTypes } from '@metamask/keyring-controller';
 import SecureKeychain from '../SecureKeychain';
 import Engine from '../Engine';
 import { recreateVaultWithSamePassword } from '../Vault';
@@ -129,27 +130,36 @@ class AuthenticationService {
    */
   private newWalletVaultAndRestore = async (
     password: string,
-    parsedSeed: string,
+    keyring: {
+      type: KeyringTypes;
+      opts?: unknown;
+    },
     clearEngine: boolean,
   ): Promise<void> => {
     // Restore vault with user entered password
     const { KeyringController }: any = Engine.context;
     if (clearEngine) await Engine.resetState();
-    await KeyringController.createNewVaultAndRestore(password, parsedSeed);
+    // await KeyringController.createNewVaultAndRestore(password, parsedSeed);
+    console.log({ keyring });
+    await KeyringController.createNewVaultWithKeyring(password, keyring);
     password = this.wipeSensitiveData();
-    parsedSeed = this.wipeSensitiveData();
+    // parsedSeed = this.wipeSensitiveData();
   };
 
   /**
    * This method creates a new wallet with all new data
    * @param password - password provided by user, biometric, pincode
    */
-  private createWalletVaultAndKeychain = async (
+  private createWalletVaultWithKeyring = async (
     password: string,
+    keyring: {
+      type: KeyringTypes;
+      opts?: unknown;
+    },
   ): Promise<void> => {
     const { KeyringController }: any = Engine.context;
     await Engine.resetState();
-    await KeyringController.createNewVaultAndKeychain(password);
+    await KeyringController.createNewVaultWithKeyring(password, keyring);
     password = this.wipeSensitiveData();
   };
 
@@ -345,9 +355,13 @@ class AuthenticationService {
   newWalletAndKeychain = async (
     password: string,
     authData: AuthData,
+    keyring: {
+      type: KeyringTypes;
+      opts?: unknown;
+    },
   ): Promise<void> => {
     try {
-      await this.createWalletVaultAndKeychain(password);
+      await this.createWalletVaultWithKeyring(password, keyring);
       await this.storePassword(password, authData?.currentAuthType);
       await AsyncStorage.setItem(EXISTING_USER, TRUE);
       await AsyncStorage.removeItem(SEED_PHRASE_HINTS);
@@ -374,11 +388,14 @@ class AuthenticationService {
   newWalletAndRestore = async (
     password: string,
     authData: AuthData,
-    parsedSeed: string,
+    keyring: {
+      type: KeyringTypes;
+      opts?: unknown;
+    },
     clearEngine: boolean,
   ): Promise<void> => {
     try {
-      await this.newWalletVaultAndRestore(password, parsedSeed, clearEngine);
+      await this.newWalletVaultAndRestore(password, keyring, clearEngine);
       await this.storePassword(password, authData.currentAuthType);
       await AsyncStorage.setItem(EXISTING_USER, TRUE);
       await AsyncStorage.removeItem(SEED_PHRASE_HINTS);
@@ -393,7 +410,10 @@ class AuthenticationService {
       );
     }
     password = this.wipeSensitiveData();
-    parsedSeed = this.wipeSensitiveData();
+    keyring = {
+      type: keyring.type,
+      opts: undefined,
+    };
   };
 
   /**
