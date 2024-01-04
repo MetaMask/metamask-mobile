@@ -1,6 +1,6 @@
 {
   "name": "metamask",
-  "version": "7.12.3",
+  "version": "7.12.5",
   "private": true,
   "scripts": {
     "audit:ci": "./scripts/yarn-audit.sh",
@@ -237,6 +237,7 @@
     "base-64": "1.0.0",
     "bignumber.js": "^9.0.1",
     "buffer": "5.2.1",
+    "cockatiel": "^3.1.1",
     "compare-versions": "^3.6.0",
     "content-hash": "2.5.2",
     "crypto-js": "^4.2.0",
@@ -367,7 +368,8 @@
     "uuid": "^8.3.2",
     "valid-url": "1.0.9",
     "vm-browserify": "1.1.2",
-    "zxcvbn": "4.4.2"
+    "zxcvbn": "4.4.2",
+    "cockatiel": "^3.1.1"
   },
   "devDependencies": {
     "@actions/core": "^1.10.0",
@@ -447,7 +449,7 @@
     "browserstack-local": "^1.5.1",
     "chromedriver": "^99.0.0",
     "depcheck": "^1.4.7",
-    "detox": "^20.11.4",
+    "detox": "^20.14.3",
     "dotenv": "^16.0.3",
     "enzyme": "3.9.0",
     "enzyme-adapter-react-16": "1.10.0",

@@ -5,6 +5,7 @@ export const ContractApprovalModalSelectorsText = {
   EDIT_NICKNAME: messages.nickname.edit_nickname,
   APPROVE: messages.transactions.tx_review_approve,
   REJECT: messages.transaction.reject,
+  NEXT: messages.transaction.next,
 };
 
 export const ContractApprovalModalSelectorsIDs = {
