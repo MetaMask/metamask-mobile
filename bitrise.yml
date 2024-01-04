@@ -116,8 +116,12 @@ stages:
       - android_e2e_build: {}
   run_smoke_e2e_ios_android_stage:
     workflows:
-      - ios_e2e_test: {}
-      - android_e2e_test: {}
+      - run_tag_smoke_confirmations_ios: {}
+      - run_tag_smoke_confirmations_android: {}
+      - run_tag_smoke_swaps_ios: {}
+      - run_tag_smoke_swaps_android: {}
+      - run_tag_smoke_core_ios: {}
+      - run_tag_smoke_core_android: {}
   build_regression_e2e_ios_android_stage:
     workflows:
       - ios_build_regression_tests: {}
@@ -378,6 +382,50 @@ workflows:
     after_run:
       - android_e2e_test
 
+### Seperating workflows so they run concurrently during smoke runs
+  run_tag_smoke_confirmations_ios:
+      envs:
+      - TEST_SUITE_TAG: '.*SmokeConfirmations.*'
+      after_run:
+      - ios_e2e_test
+  run_tag_smoke_confirmations_android:
+      meta:
+          bitrise.io:
+            stack: linux-docker-android-20.04
+            machine_type_id: elite-xl
+      envs:
+      - TEST_SUITE_TAG: '.*SmokeConfirmations.*'
+      after_run:
+      - android_e2e_test
+  run_tag_smoke_swaps_ios:
+      envs:
+      - TEST_SUITE_TAG: '.*SmokeSwaps.*'
+      after_run:
+      - ios_e2e_test
+  run_tag_smoke_swaps_android:
+      meta:
+          bitrise.io:
+            stack: linux-docker-android-20.04
+            machine_type_id: elite-xl
+      envs:
+      - TEST_SUITE_TAG: '.*SmokeSwaps.*'
+      after_run:
+      - android_e2e_test
+  run_tag_smoke_core_ios:
+      envs:
+      - TEST_SUITE_TAG: '.*SmokeCore.*'
+      after_run:
+      - ios_e2e_test
+  run_tag_smoke_core_android:
+      meta:
+          bitrise.io:
+            stack: linux-docker-android-20.04
+            machine_type_id: elite-xl
+      envs:
+      - TEST_SUITE_TAG: '.*SmokeCore.*'
+      after_run:
+      - android_e2e_test
+
   e2e_setup:
     steps:
       - yarn@:
@@ -442,7 +490,7 @@ workflows:
                 node -v
                 export METAMASK_ENVIRONMENT='local'
                 export METAMASK_BUILD_TYPE='main'
-                IGNORE_BOXLOGS_DEVELOPMENT="true" FORCE_BUNDLING=true yarn test:e2e:android:bitrise:build --testNamePattern="$TEST_SUITE"
+                IGNORE_BOXLOGS_DEVELOPMENT="true" FORCE_BUNDLING=true yarn test:e2e:android:bitrise:build
       - save-gradle-cache@1: {}
       - save-cache@1:
           title: Save CCache
@@ -494,11 +542,14 @@ workflows:
             - content: |-
                 #!/usr/bin/env bash
                 if [ "$TEST_SUITE" = "Regression" ]; then
-                  TEST_SUITE="Regression"
+                TEST_SUITE="Regression"
                 else
-                  TEST_SUITE="Smoke"
+                TEST_SUITE="Smoke"
                 fi
-                node -v
+                if [ -n "$TEST_SUITE_TAG" ]; then
+                echo "TEST_SUITE_TAG value is: $TEST_SUITE_TAG"
+                TEST_SUITE=$TEST_SUITE_TAG
+                fi
                 export METAMASK_ENVIRONMENT='local'
                 export METAMASK_BUILD_TYPE='main'
                 IGNORE_BOXLOGS_DEVELOPMENT="true" FORCE_BUNDLING=true yarn test:e2e:android:bitrise:run --testNamePattern="$TEST_SUITE"
@@ -599,7 +650,7 @@ workflows:
                 node -v
                 export METAMASK_ENVIRONMENT='local'
                 export METAMASK_BUILD_TYPE='main'
-                IGNORE_BOXLOGS_DEVELOPMENT="true" FORCE_BUNDLING=true yarn test:e2e:ios:bitrise:build --testNamePattern="$TEST_SUITE"
+                IGNORE_BOXLOGS_DEVELOPMENT="true" FORCE_BUNDLING=true yarn test:e2e:ios:bitrise:build
       - save-cocoapods-cache@1: {}
       - save-cache@1:
           title: Save CCache
@@ -649,6 +700,10 @@ workflows:
                   TEST_SUITE="Regression"
                 else
                   TEST_SUITE="Smoke"
+                fi
+                if [ -n "$TEST_SUITE_TAG" ]; then
+                echo "TEST_SUITE_TAG value is: $TEST_SUITE_TAG"
+                TEST_SUITE=$TEST_SUITE_TAG
                 fi
                 node -v
                 export METAMASK_ENVIRONMENT='local'
@@ -1189,10 +1244,10 @@ app:
       PROJECT_LOCATION_IOS: ios
     - opts:
         is_expand: false
-      VERSION_NAME: 7.12.3
+      VERSION_NAME: 7.12.4
     - opts:
         is_expand: false
-      VERSION_NUMBER: 1230
+      VERSION_NUMBER: 1233
     - opts:
         is_expand: false
       FLASK_VERSION_NAME: 0.0.4
