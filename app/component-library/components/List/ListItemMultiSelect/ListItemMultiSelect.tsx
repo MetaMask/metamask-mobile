@@ -1,8 +1,8 @@
 /* eslint-disable react/prop-types */
 
 // Third party dependencies.
-import React from 'react';
-import { TouchableOpacity, View } from 'react-native';
+import React, { useState } from 'react';
+import { TouchableOpacity, View, GestureResponderEvent } from 'react-native';
 
 // External dependencies.
 import Checkbox from '../../Checkbox';
@@ -20,21 +20,28 @@ const ListItemMultiSelect: React.FC<ListItemMultiSelectProps> = ({
   isDisabled = false,
   children,
   gap = DEFAULT_LISTITEMMULTISELECT_GAP,
+  onPress,
   ...props
 }) => {
   const { styles } = useStyles(styleSheet, { style, gap, isDisabled });
+  const [isChecked, setIsChecked] = useState(isSelected);
   const { hitSlop, ...listItemProps } = props;
+  const onPressHandler = (event: GestureResponderEvent) => {
+    onPress?.(event);
+    setIsChecked(!isChecked);
+  };
   return (
-    <TouchableOpacity style={styles.base} disabled={isDisabled} {...props}>
+    <TouchableOpacity
+      style={styles.base}
+      disabled={isDisabled}
+      onPress={onPressHandler}
+      {...props}
+    >
       <ListItem gap={gap} style={styles.listItem} {...listItemProps}>
-        <Checkbox
-          style={styles.checkbox}
-          isChecked={isSelected}
-          onPressIn={props.onPress}
-        />
+        <Checkbox style={styles.checkbox} isChecked={isChecked} />
         {children}
       </ListItem>
-      {isSelected && (
+      {isChecked && (
         <View style={styles.underlay} accessibilityRole="checkbox" accessible />
       )}
     </TouchableOpacity>

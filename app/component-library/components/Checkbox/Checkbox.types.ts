@@ -7,10 +7,6 @@ import { TouchableOpacityProps } from 'react-native';
  */
 export interface CheckboxProps extends TouchableOpacityProps {
   /**
-   * Optional function to trigger when pressing the checkbox.
-   */
-  onPress?: () => void;
-  /**
    * Optional label for the Checkbox.
    */
   label?: string | React.ReactNode;
