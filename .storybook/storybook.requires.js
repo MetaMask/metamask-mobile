@@ -101,6 +101,8 @@ const getStories = () => {
     "./app/component-library/components/Texts/Text/Text.stories.tsx": require("../app/component-library/components/Texts/Text/Text.stories.tsx"),
     "./app/component-library/components/Texts/TextWithPrefixIcon/TextWithPrefixIcon.stories.tsx": require("../app/component-library/components/Texts/TextWithPrefixIcon/TextWithPrefixIcon.stories.tsx"),
     "./app/component-library/components/Toast/Toast.stories.tsx": require("../app/component-library/components/Toast/Toast.stories.tsx"),
+    "./app/component-library/components/Tokens/TokenIcon/TokenIcon.stories.tsx": require("../app/component-library/components/Tokens/TokenIcon/TokenIcon.stories.tsx"),
+    "./app/component-library/components/Tokens/TokenListItem/TokenListItem.stories.tsx": require("../app/component-library/components/Tokens/TokenListItem/TokenListItem.stories.tsx"),
     "./app/component-library/components/ValueList/ValueList.stories.tsx": require("../app/component-library/components/ValueList/ValueList.stories.tsx"),
     "./app/component-library/components/ValueList/ValueListItem/ValueListItem.stories.tsx": require("../app/component-library/components/ValueList/ValueListItem/ValueListItem.stories.tsx"),
   };

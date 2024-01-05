@@ -5,7 +5,7 @@ import { StyleSheet, ViewStyle } from 'react-native';
 import { Theme } from '../../../../util/theme/models';
 
 /**
- * Style sheet function for TextInput component.
+ * Style sheet function for TokenList component.
  *
  * @param params Style sheet params.
  * @param params.theme App theme from ThemeContext.

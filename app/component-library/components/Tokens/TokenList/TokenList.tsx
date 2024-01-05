@@ -8,12 +8,12 @@ import { View } from 'react-native';
 import { useStyles } from '../../../hooks';
 
 // Internal dependencies.
-import styleSheet from './TextInput.styles';
-import { TextInputProps } from './TextInput.types';
+import styleSheet from './TokenList.styles';
+import { TokenListProps } from './TokenList.types';
 
-const TextInput: React.FC<TextInputProps> = ({ style, children }) => {
+const TokenList: React.FC<TokenListProps> = ({ style, children }) => {
   const { styles } = useStyles(styleSheet, { style });
   return <View style={styles.base}>{children}</View>;
 };
 
-export default TextInput;
+export default TokenList;
