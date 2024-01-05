@@ -2,7 +2,7 @@
 
 set -o pipefail
 
-readonly __DIRNAME__="$( cd "${BASH_SOURCE[0]%/*}" && pwd )"
+readonly __DIRNAME__="$(cd "${BASH_SOURCE[0]%/*}" && pwd)"
 readonly REPO_ROOT_DIR="$(dirname "${__DIRNAME__}")"
 
 PLATFORM=$1
@@ -15,239 +15,230 @@ ANDROID_ENV_FILE=".android.env"
 IOS_ENV_FILE=".ios.env"
 
 envFileMissing() {
-	FILE="$1"
-	echo "'$FILE' is missing, you'll need to add it to the root of the project."
-	echo "For convenience you can rename '$FILE.example' and fill in the parameters."
-	echo ""
-	exit 1
+  FILE="$1"
+  echo "'$FILE' is missing, you'll need to add it to the root of the project."
+  echo "For convenience you can rename '$FILE.example' and fill in the parameters."
+  echo ""
+  exit 1
 }
 
 displayHelp() {
-	echo ''
-	echo "Usage: $0 {platform} ${--device}" >&2
-	echo ''
-	echo "Platform is required. Can be android or ios"
-	echo ''
-	echo "Mode is required. Can be debug or release"
-	echo ''
-	echo "Target is optional and valid for iOS only"
-	echo ''
-	echo "examples: $0 ios debug"
-	echo ''
-	echo "          $0 ios debug --device"
-	echo ''
-	echo "          $0 android debug"
-	echo ''
-	echo "          $0 android release"
-	echo ''
-	exit 1
+  echo ''
+  echo "Usage: $0 {platform} ${--device}" >&2
+  echo ''
+  echo "Platform is required. Can be android or ios"
+  echo ''
+  echo "Mode is required. Can be debug or release"
+  echo ''
+  echo "Target is optional and valid for iOS only"
+  echo ''
+  echo "examples: $0 ios debug"
+  echo ''
+  echo "          $0 ios debug --device"
+  echo ''
+  echo "          $0 android debug"
+  echo ''
+  echo "          $0 android release"
+  echo ''
+  exit 1
 }
 
-printTitle(){
-	echo ''
-	echo '-------------------------------------------'
-	echo ''
-	echo "  🚀 BUILDING $PLATFORM in $MODE mode $TARGET" | tr [a-z] [A-Z]
-	echo ''
-	echo '-------------------------------------------'
-	echo ''
+printTitle() {
+  echo ''
+  echo '-------------------------------------------'
+  echo ''
+  echo "  🚀 BUILDING $PLATFORM in $MODE mode $TARGET" | tr [a-z] [A-Z]
+  echo ''
+  echo '-------------------------------------------'
+  echo ''
 }
 
-
-printError(){
-	ERROR_ICON=$'\342\235\214'
-	echo ''
-	echo "  $ERROR_ICON   $1"
-	echo ''
+printError() {
+  ERROR_ICON=$'\342\235\214'
+  echo ''
+  echo "  $ERROR_ICON   $1"
+  echo ''
 }
 
-checkParameters(){
-	if [ "$#" -eq  "0" ]
-	then
-		printError 'Platform is a required parameter'
-		displayHelp
-		exit 0;
-	elif [ "$1"  == "--help" ]
-	then
-		displayHelp
-		exit 0;
-	elif [ "$1" == "-h" ]
-	then
-		displayHelp
-		exit 0;
-	elif [ -z "$1" ]
-	then
-		displayHelp
-		exit 0;
-	elif [ -z "$1" ]
-	then
-		printError 'No platform supplied'
-		displayHelp
-		exit 0;
-	fi
+checkParameters() {
+  if [ "$#" -eq "0" ]; then
+    printError 'Platform is a required parameter'
+    displayHelp
+    exit 0
+  elif [ "$1" == "--help" ]; then
+    displayHelp
+    exit 0
+  elif [ "$1" == "-h" ]; then
+    displayHelp
+    exit 0
+  elif [ -z "$1" ]; then
+    displayHelp
+    exit 0
+  elif [ -z "$1" ]; then
+    printError 'No platform supplied'
+    displayHelp
+    exit 0
+  fi
 
-	if [[ $# -gt 2 ]] ; then
-		if [ "$3"  == "--device" ] ; then
-			RUN_DEVICE=true
+  if [[ $# -gt 2 ]]; then
+    if [ "$3" == "--device" ]; then
+      RUN_DEVICE=true
 
-		   if [ "$#" -gt  "3" ] ; then
-				printError "Incorrect number of arguments"
-				displayHelp
-				exit 0;
-			fi
-		elif [ "$3"  == "--pre" ] ; then
-			PRE_RELEASE=true
-		else
-			printError "Unknown argument: $4"
-			displayHelp
-			exit 0;
-		fi
-	fi
+      if [ "$#" -gt "3" ]; then
+        printError "Incorrect number of arguments"
+        displayHelp
+        exit 0
+      fi
+    elif [ "$3" == "--pre" ]; then
+      PRE_RELEASE=true
+    else
+      printError "Unknown argument: $4"
+      displayHelp
+      exit 0
+    fi
+  fi
 }
 
 remapEnvVariable() {
-    # Get the old and new variable names
-    old_var_name=$1
-    new_var_name=$2
+  # Get the old and new variable names
+  old_var_name=$1
+  new_var_name=$2
 
-    # Check if the old variable exists
-    if [ -z "${!old_var_name}" ]; then
-        echo "Error: $old_var_name does not exist in the environment."
-        return 1
-    fi
+  # Check if the old variable exists
+  if [ -z "${!old_var_name}" ]; then
+    echo "Error: $old_var_name does not exist in the environment."
+    return 1
+  fi
 
-    # Remap the variable
-    export $new_var_name="${!old_var_name}"
+  # Remap the variable
+  export $new_var_name="${!old_var_name}"
 
-    unset $old_var_name
+  unset $old_var_name
 
-    echo "Successfully remapped $old_var_name to $new_var_name."
+  echo "Successfully remapped $old_var_name to $new_var_name."
 }
 
 remapFlaskEnvVariables() {
-	# remap flask env variables to match what the app expects
+  # remap flask env variables to match what the app expects
 
-	echo "Remapping flask env variable names to match production"
-	# ios.env/android.env variables
-	remapEnvVariable "MM_FLASK_MIXPANEL_TOKEN" "MM_MIXPANEL_TOKEN"
+  echo "Remapping flask env variable names to match production"
+  # ios.env/android.env variables
+  remapEnvVariable "MM_FLASK_MIXPANEL_TOKEN" "MM_MIXPANEL_TOKEN"
 }
 
-loadJSEnv(){
-	# Load JS specific env variables
-	if [ "$PRE_RELEASE" = false ] ; then
-		if [ -e $JS_ENV_FILE ]
-		then
-			source $JS_ENV_FILE
-		fi
-	fi
-	# Disable auto Sentry file upload by default
-	export SENTRY_DISABLE_AUTO_UPLOAD=${SENTRY_DISABLE_AUTO_UPLOAD:-"true"}
+loadJSEnv() {
+  # Load JS specific env variables
+  if [ "$PRE_RELEASE" = false ]; then
+    if [ -e $JS_ENV_FILE ]; then
+      source $JS_ENV_FILE
+    fi
+  fi
+  # Disable auto Sentry file upload by default
+  export SENTRY_DISABLE_AUTO_UPLOAD=${SENTRY_DISABLE_AUTO_UPLOAD:-"true"}
 }
 
-
-prebuild(){
-	# Import provider
-	yarn --ignore-engines build:static-logos
+prebuild() {
+  # Import provider
+  yarn --ignore-engines build:static-logos
 
   WATCHER_PORT=${WATCHER_PORT:-8081}
 }
 
-prebuild_ios(){
-	prebuild
-	# Generate xcconfig files for CircleCI
-	if [ "$PRE_RELEASE" = true ] ; then
-		echo "" > ios/debug.xcconfig
-		echo "" > ios/release.xcconfig
-	fi
-	# Required to install mixpanel dep
-	git submodule update --init --recursive
-	unset PREFIX
+prebuild_ios() {
+  prebuild
+  # Generate xcconfig files for CircleCI
+  if [ "$PRE_RELEASE" = true ]; then
+    echo "" >ios/debug.xcconfig
+    echo "" >ios/release.xcconfig
+  fi
+  # Required to install mixpanel dep
+  git submodule update --init --recursive
+  unset PREFIX
 }
 
-prebuild_android(){
-	adb kill-server
-	adb start-server
-	prebuild
-	# Copy JS files for injection
-	yes | cp -rf app/core/InpageBridgeWeb3.js android/app/src/main/assets/.
-	# Copy fonts with iconset
-	yes | cp -rf ./app/fonts/Metamask.ttf ./android/app/src/main/assets/fonts/Metamask.ttf
+prebuild_android() {
+  adb kill-server
+  adb start-server
+  prebuild
+  # Copy JS files for injection
+  yes | cp -rf app/core/InpageBridgeWeb3.js android/app/src/main/assets/.
+  # Copy fonts with iconset
+  yes | cp -rf ./app/fonts/Metamask.ttf ./android/app/src/main/assets/fonts/Metamask.ttf
 
-	if [ "$PRE_RELEASE" = false ] ; then
-		if [ -e $ANDROID_ENV_FILE ]
-		then
-			source $ANDROID_ENV_FILE
-		fi
-	fi
+  if [ "$PRE_RELEASE" = false ]; then
+    if [ -e $ANDROID_ENV_FILE ]; then
+      source $ANDROID_ENV_FILE
+    fi
+  fi
 }
 
-buildAndroidRun(){
-	prebuild_android
-	react-native run-android --port=$WATCHER_PORT --variant=prodDebug --active-arch-only
+buildAndroidRun() {
+  prebuild_android
+  react-native run-android --port=$WATCHER_PORT --variant=prodDebug --active-arch-only
 }
 
-buildAndroidRunQA(){
-	prebuild_android
-	react-native run-android --port=$WATCHER_PORT --variant=qaDebug --active-arch-only
+buildAndroidRunQA() {
+  prebuild_android
+  react-native run-android --port=$WATCHER_PORT --variant=qaDebug --active-arch-only
 }
 
-buildAndroidRunFlask(){
-	prebuild_android
-	react-native run-android --port=$WATCHER_PORT --variant=flaskDebug --active-arch-only
+buildAndroidRunFlask() {
+  prebuild_android
+  react-native run-android --port=$WATCHER_PORT --variant=flaskDebug --active-arch-only
 }
 
-buildIosSimulator(){
-	prebuild_ios
-	react-native run-ios --port=$WATCHER_PORT
+buildIosSimulator() {
+  prebuild_ios
+  react-native run-ios --port=$WATCHER_PORT
 }
 
-buildIosSimulatorQA(){
-	prebuild_ios
-	SIM="${IOS_SIMULATOR:-"iPhone 13 Pro"}"
-	react-native run-ios --port=$WATCHER_PORT --simulator "$SIM" --scheme "MetaMask-QA"
+buildIosSimulatorQA() {
+  prebuild_ios
+  SIM="${IOS_SIMULATOR:-"iPhone 13 Pro"}"
+  react-native run-ios --port=$WATCHER_PORT --simulator "$SIM" --scheme "MetaMask-QA"
 }
 
-buildIosSimulatorFlask(){
-	prebuild_ios
-	SIM="${IOS_SIMULATOR:-"iPhone 13 Pro"}"
-	react-native run-ios --port=$WATCHER_PORT --simulator "$SIM" --scheme "MetaMask-Flask"
+buildIosSimulatorFlask() {
+  prebuild_ios
+  SIM="${IOS_SIMULATOR:-"iPhone 13 Pro"}"
+  react-native run-ios --port=$WATCHER_PORT --simulator "$SIM" --scheme "MetaMask-Flask"
 }
 
-buildIosSimulatorE2E(){
-	prebuild_ios
-	cd ios && CC=clang CXX=clang CLANG=clang CLANGPLUSPLUS=clang++ LD=clang LDPLUSPLUS=clang++ xcodebuild -workspace MetaMask.xcworkspace -scheme MetaMask -configuration Debug -sdk iphonesimulator -derivedDataPath build
+buildIosSimulatorE2E() {
+  prebuild_ios
+  cd ios && CC=clang CXX=clang CLANG=clang CLANGPLUSPLUS=clang++ LD=clang LDPLUSPLUS=clang++ xcodebuild -workspace MetaMask.xcworkspace -scheme MetaMask -configuration Debug -sdk iphonesimulator -derivedDataPath build
 }
 
-buildIosQASimulatorE2E(){
-	prebuild_ios
-	cd ios && xcodebuild -workspace MetaMask.xcworkspace -scheme MetaMask-QA -configuration Debug -sdk iphonesimulator -derivedDataPath build
+buildIosQASimulatorE2E() {
+  prebuild_ios
+  cd ios && xcodebuild -workspace MetaMask.xcworkspace -scheme MetaMask-QA -configuration Debug -sdk iphonesimulator -derivedDataPath build
 }
 
-runIosE2E(){
+runIosE2E() {
   cd e2e && yarn ios:debug
 }
 
-buildIosDevice(){
-	prebuild_ios
-	react-native run-ios --port=$WATCHER_PORT --device
+buildIosDevice() {
+  prebuild_ios
+  react-native run-ios --port=$WATCHER_PORT --device
 }
 
-buildIosDeviceQA(){
-	prebuild_ios
-	react-native run-ios --port=$WATCHER_PORT --device --scheme "MetaMask-QA"
+buildIosDeviceQA() {
+  prebuild_ios
+  react-native run-ios --port=$WATCHER_PORT --device --scheme "MetaMask-QA"
 }
 
-buildIosDeviceFlask(){
-	prebuild_ios
-	react-native run-ios --device --scheme "MetaMask-Flask"
+buildIosDeviceFlask() {
+  prebuild_ios
+  react-native run-ios --device --scheme "MetaMask-Flask"
 }
 
 generateArchivePackages() {
   scheme="$1"
 
-  if [ "$scheme" = "MetaMask-QA" ] ; then
+  if [ "$scheme" = "MetaMask-QA" ]; then
     exportOptionsPlist="MetaMask/IosExportOptionsMetaMaskQARelease.plist"
-  elif [ "$scheme" = "MetaMask-Flask" ] ; then
+  elif [ "$scheme" = "MetaMask-Flask" ]; then
     exportOptionsPlist="MetaMask/IosExportOptionsMetaMaskFlaskRelease.plist"
   else
     exportOptionsPlist="MetaMask/IosExportOptionsMetaMaskRelease.plist"
@@ -255,329 +246,331 @@ generateArchivePackages() {
 
   echo "exportOptionsPlist: $exportOptionsPlist"
   echo "Generating archive packages for $scheme"
-	xcodebuild -workspace MetaMask.xcworkspace -scheme $scheme -configuration Release COMIPLER_INDEX_STORE_ENABLE=NO archive -archivePath build/$scheme.xcarchive -destination generic/platform=ios
+  xcodebuild -workspace MetaMask.xcworkspace -scheme $scheme -configuration Release COMIPLER_INDEX_STORE_ENABLE=NO archive -archivePath build/$scheme.xcarchive -destination generic/platform=ios
   echo "Generating ipa for $scheme"
   xcodebuild -exportArchive -archivePath build/$scheme.xcarchive -exportPath build/output -exportOptionsPlist $exportOptionsPlist
 }
 
-buildIosRelease(){
-	# Enable Sentry to auto upload source maps and debug symbols
-	export SENTRY_DISABLE_AUTO_UPLOAD="false"
-	prebuild_ios
+buildIosRelease() {
+  # Enable Sentry to auto upload source maps and debug symbols
+  export SENTRY_DISABLE_AUTO_UPLOAD="false"
+  prebuild_ios
 
-	# Replace release.xcconfig with ENV vars
-	if [ "$PRE_RELEASE" = true ] ; then
-		echo "Setting up env vars...";
-		echo "$IOS_ENV" | tr "|" "\n" > $IOS_ENV_FILE
-		echo "Build started..."
-		brew install watchman
-		cd ios
-		generateArchivePackages "MetaMask"
-	else
-		if [ ! -f "ios/release.xcconfig" ] ; then
-			echo "$IOS_ENV" | tr "|" "\n" > ios/release.xcconfig
-		fi
-		./node_modules/.bin/react-native run-ios --configuration Release --simulator "iPhone 13 Pro"
-	fi
+  # Replace release.xcconfig with ENV vars
+  if [ "$PRE_RELEASE" = true ]; then
+    echo "Setting up env vars..."
+    echo "$IOS_ENV" | tr "|" "\n" >$IOS_ENV_FILE
+    echo "Build started..."
+    brew install watchman
+    cd ios
+    generateArchivePackages "MetaMask"
+  else
+    if [ ! -f "ios/release.xcconfig" ]; then
+      echo "$IOS_ENV" | tr "|" "\n" >ios/release.xcconfig
+    fi
+    ./node_modules/.bin/react-native run-ios --configuration Release --simulator "iPhone 13 Pro"
+  fi
 }
 
-buildIosFlaskRelease(){
-	# remap flask env variables to match what the app expects
-	remapFlaskEnvVariables
+buildIosFlaskRelease() {
+  # remap flask env variables to match what the app expects
+  remapFlaskEnvVariables
 
-	prebuild_ios
+  prebuild_ios
 
-	# Replace release.xcconfig with ENV vars
-	if [ "$PRE_RELEASE" = true ] ; then
-		echo "Setting up env vars...";
-		echo "$IOS_ENV" | tr "|" "\n" > $IOS_ENV_FILE
-		echo "Build started..."
-		brew install watchman
-		cd ios
-		generateArchivePackages "MetaMask-Flask"
-	else
-		if [ ! -f "ios/release.xcconfig" ] ; then
-			echo "$IOS_ENV" | tr "|" "\n" > ios/release.xcconfig
-		fi
-		./node_modules/.bin/react-native run-ios --scheme "MetaMask-Flask"  --configuration Release --simulator "iPhone 13 Pro"
-	fi
+  # Replace release.xcconfig with ENV vars
+  if [ "$PRE_RELEASE" = true ]; then
+    echo "Setting up env vars..."
+    echo "$IOS_ENV" | tr "|" "\n" >$IOS_ENV_FILE
+    echo "Build started..."
+    brew install watchman
+    cd ios
+    generateArchivePackages "MetaMask-Flask"
+  else
+    if [ ! -f "ios/release.xcconfig" ]; then
+      echo "$IOS_ENV" | tr "|" "\n" >ios/release.xcconfig
+    fi
+    ./node_modules/.bin/react-native run-ios --scheme "MetaMask-Flask" --configuration Release --simulator "iPhone 13 Pro"
+  fi
 }
 
-buildIosReleaseE2E(){
-	prebuild_ios
+buildIosReleaseE2E() {
+  prebuild_ios
 
-	# Replace release.xcconfig with ENV vars
-	if [ "$PRE_RELEASE" = true ] ; then
-		echo "Setting up env vars...";
-		echo "$IOS_ENV" | tr "|" "\n" > $IOS_ENV_FILE
-		echo "Pre-release E2E Build started..."
-		brew install watchman
-		cd ios
-		generateArchivePackages "MetaMask"
-	else
-		echo "Release E2E Build started..."
-		if [ ! -f "ios/release.xcconfig" ] ; then
-			echo "$IOS_ENV" | tr "|" "\n" > ios/release.xcconfig
-		fi
-		cd ios && xcodebuild -workspace MetaMask.xcworkspace -scheme MetaMask -configuration Release -sdk iphonesimulator -derivedDataPath build
-	fi
+  # Replace release.xcconfig with ENV vars
+  if [ "$PRE_RELEASE" = true ]; then
+    echo "Setting up env vars..."
+    echo "$IOS_ENV" | tr "|" "\n" >$IOS_ENV_FILE
+    echo "Pre-release E2E Build started..."
+    brew install watchman
+    cd ios
+    generateArchivePackages "MetaMask"
+  else
+    echo "Release E2E Build started..."
+    if [ ! -f "ios/release.xcconfig" ]; then
+      echo "$IOS_ENV" | tr "|" "\n" >ios/release.xcconfig
+    fi
+    cd ios && xcodebuild -workspace MetaMask.xcworkspace -scheme MetaMask -configuration Release -sdk iphonesimulator -derivedDataPath build
+  fi
 }
 
-buildIosQA(){
-	prebuild_ios
+buildIosQA() {
+  prebuild_ios
 
-  	echo "Start QA build..."
+  echo "Start QA build..."
 
-	# Replace release.xcconfig with ENV vars
-	if [ "$PRE_RELEASE" = true ] ; then
-		echo "Setting up env vars...";
+  # Replace release.xcconfig with ENV vars
+  if [ "$PRE_RELEASE" = true ]; then
+    echo "Setting up env vars..."
     echo "$IOS_ENV"
-		echo "$IOS_ENV" | tr "|" "\n" > $IOS_ENV_FILE
-		echo "Build started..."
-		brew install watchman
-		cd ios
-		generateArchivePackages "MetaMask-QA"
-	else
-		if [ ! -f "ios/release.xcconfig" ] ; then
-			echo "$IOS_ENV" | tr "|" "\n" > ios/release.xcconfig
-		fi
-		./node_modules/.bin/react-native run-ios --scheme MetaMask-QA--configuration Release --simulator "iPhone 13 Pro"
-	fi
+    echo "$IOS_ENV" | tr "|" "\n" >$IOS_ENV_FILE
+    echo "Build started..."
+    brew install watchman
+    cd ios
+    generateArchivePackages "MetaMask-QA"
+  else
+    if [ ! -f "ios/release.xcconfig" ]; then
+      echo "$IOS_ENV" | tr "|" "\n" >ios/release.xcconfig
+    fi
+    ./node_modules/.bin/react-native run-ios --scheme MetaMask-QA--configuration Release --simulator "iPhone 13 Pro"
+  fi
 }
 
+buildAndroidQA() {
+  if [ "$PRE_RELEASE" = false ]; then
+    adb uninstall io.metamask.qa
+  fi
 
-buildAndroidQA(){
-	if [ "$PRE_RELEASE" = false ] ; then
-		adb uninstall io.metamask.qa
-	fi
+  prebuild_android
 
-	prebuild_android
+  # Generate APK
+  cd android && ./gradlew assembleQaRelease -x app:createBundleFlaskDebugJsAndAssets --no-daemon --max-workers 2
 
-	# Generate APK
-	cd android && ./gradlew assembleQaRelease -x app:createBundleFlaskDebugJsAndAssets --no-daemon --max-workers 2
+  # GENERATE BUNDLE
+  if [ "$GENERATE_BUNDLE" = true ]; then
+    ./gradlew bundleQaRelease
+  fi
 
-	# GENERATE BUNDLE
-	if [ "$GENERATE_BUNDLE" = true ] ; then
-		./gradlew bundleQaRelease
-	fi
+  if [ "$PRE_RELEASE" = true ]; then
+    # Generate checksum
+    yarn build:android:checksum:qa
+  fi
 
-	if [ "$PRE_RELEASE" = true ] ; then
-		# Generate checksum
-		yarn build:android:checksum:qa
-	fi
-
-	 if [ "$PRE_RELEASE" = false ] ; then
-	 	adb install app/build/outputs/apk/qa/release/app-qa-release.apk
-	 fi
+  if [ "$PRE_RELEASE" = false ]; then
+    adb install app/build/outputs/apk/qa/release/app-qa-release.apk
+  fi
 }
 
-buildAndroidRelease(){
-	if [ "$PRE_RELEASE" = false ] ; then
-		adb uninstall io.metamask || true
-	fi
+buildAndroidRelease() {
+  if [ "$PRE_RELEASE" = false ]; then
+    adb uninstall io.metamask || true
+  fi
 
-	# Enable Sentry to auto upload source maps and debug symbols
-	export SENTRY_DISABLE_AUTO_UPLOAD="false"
-	prebuild_android
+  # Enable Sentry to auto upload source maps and debug symbols
+  export SENTRY_DISABLE_AUTO_UPLOAD="false"
+  prebuild_android
 
-	# GENERATE APK
-	cd android && ./gradlew assembleProdRelease -x app:createBundleFlaskDebugJsAndAssets --no-daemon --max-workers 2
+  # GENERATE APK
+  cd android && ./gradlew assembleProdRelease -x app:createBundleFlaskDebugJsAndAssets --no-daemon --max-workers 2
 
-	# GENERATE BUNDLE
-	if [ "$GENERATE_BUNDLE" = true ] ; then
-		./gradlew bundleProdRelease
-	fi
+  # GENERATE BUNDLE
+  if [ "$GENERATE_BUNDLE" = true ]; then
+    ./gradlew bundleProdRelease
+  fi
 
-	if [ "$PRE_RELEASE" = true ] ; then
-		# Generate checksum
-		yarn build:android:checksum
-	fi
+  if [ "$PRE_RELEASE" = true ]; then
+    # Generate checksum
+    yarn build:android:checksum
+  fi
 
-	if [ "$PRE_RELEASE" = false ] ; then
-		adb install app/build/outputs/apk/prod/release/app-prod-release.apk
-	fi
+  if [ "$PRE_RELEASE" = false ]; then
+    adb install app/build/outputs/apk/prod/release/app-prod-release.apk
+  fi
 }
 
-buildAndroidFlaskRelease(){
-	# remap flask env variables to match what the app expects
-	remapFlaskEnvVariables
+buildAndroidFlaskRelease() {
+  # remap flask env variables to match what the app expects
+  remapFlaskEnvVariables
 
-	if [ "$PRE_RELEASE" = false ] ; then
-		adb uninstall io.metamask.flask || true
-	fi
-	prebuild_android
+  if [ "$PRE_RELEASE" = false ]; then
+    adb uninstall io.metamask.flask || true
+  fi
+  prebuild_android
 
-	# GENERATE APK
-	cd android && ./gradlew assembleFlaskRelease -x app:createBundleQaDebugJsAndAssets --no-daemon --max-workers 2
+  if [ "$PRE_RELEASE" = false ]; then
+    adb uninstall io.metamask.flask || true
+  fi
+  prebuild_android
 
-	# GENERATE BUNDLE
-	if [ "$GENERATE_BUNDLE" = true ] ; then
-		./gradlew bundleFlaskRelease
-	fi
+  # GENERATE APK
+  cd android && ./gradlew assembleFlaskRelease -x app:createBundleQaDebugJsAndAssets --no-daemon --max-workers 2
 
-	if [ "$PRE_RELEASE" = true ] ; then
-		# Generate checksum
-		yarn build:android:checksum:flask
-	fi
+  # GENERATE BUNDLE
+  if [ "$GENERATE_BUNDLE" = true ]; then
+    ./gradlew bundleFlaskRelease
+  fi
 
-	if [ "$PRE_RELEASE" = false ] ; then
-		adb install app/build/outputs/apk/flask/release/app-flask-release.apk
-	fi
+  if [ "$PRE_RELEASE" = true ]; then
+    # Generate checksum
+    yarn build:android:checksum:flask
+  fi
+
+  if [ "$PRE_RELEASE" = false ]; then
+    adb install app/build/outputs/apk/flask/release/app-flask-release.apk
+  fi
 }
 
-buildAndroidReleaseE2E(){
-	prebuild_android
-	cd android && ./gradlew assembleProdRelease app:assembleProdReleaseAndroidTest -PminSdkVersion=26 -DtestBuildType=release -x app:createBundleFlaskDebugJsAndAssets
+buildAndroidReleaseE2E() {
+  prebuild_android
+  cd android && ./gradlew assembleProdRelease app:assembleProdReleaseAndroidTest -PminSdkVersion=26 -DtestBuildType=release -x app:createBundleFlaskDebugJsAndAssets
 }
 
-buildAndroidQAE2E(){
-	prebuild_android
-	cd android && ./gradlew assembleQaRelease app:assembleQaReleaseAndroidTest -PminSdkVersion=26 -DtestBuildType=release -x app:createBundleFlaskDebugJsAndAssets
+buildAndroidQAE2E() {
+  prebuild_android
+  cd android && ./gradlew assembleQaRelease app:assembleQaReleaseAndroidTest -PminSdkVersion=26 -DtestBuildType=release -x app:createBundleFlaskDebugJsAndAssets
 }
 
 buildAndroid() {
-	if [ "$MODE" == "release" ] ; then
-		buildAndroidRelease
-	elif [ "$MODE" == "flask" ] ; then
-		buildAndroidFlaskRelease
-	elif [ "$MODE" == "QA" ] ; then
-		buildAndroidQA
-	elif [ "$MODE" == "releaseE2E" ] ; then
-		buildAndroidReleaseE2E
-	elif [ "$MODE" == "QAE2E" ] ; then
-		buildAndroidQAE2E
-  elif [ "$MODE" == "debugE2E" ] ; then
-		buildAndroidRunE2E
-	elif [ "$MODE" == "qaDebug" ] ; then
-		buildAndroidRunQA
-	elif [ "$MODE" == "flaskDebug" ] ; then
-		buildAndroidRunFlask
-	else
-		buildAndroidRun
-	fi
+  if [ "$MODE" == "release" ]; then
+    buildAndroidRelease
+  elif [ "$MODE" == "flask" ]; then
+    buildAndroidFlaskRelease
+  elif [ "$MODE" == "QA" ]; then
+    buildAndroidQA
+  elif [ "$MODE" == "releaseE2E" ]; then
+    buildAndroidReleaseE2E
+  elif [ "$MODE" == "QAE2E" ]; then
+    buildAndroidQAE2E
+  elif [ "$MODE" == "debugE2E" ]; then
+    buildAndroidRunE2E
+  elif [ "$MODE" == "qaDebug" ]; then
+    buildAndroidRunQA
+  elif [ "$MODE" == "flaskDebug" ]; then
+    buildAndroidRunFlask
+  else
+    buildAndroidRun
+  fi
 }
 
-buildAndroidRunE2E(){
-	prebuild_android
-	if [ -e $ANDROID_ENV_FILE ]
-	then
-		source $ANDROID_ENV_FILE
-	fi
-	cd android && ./gradlew assembleProdDebug app:assembleAndroidTest -DtestBuildType=debug -x app:createBundleQaDebugJsAndAssets -x app:createBundleFlaskDebugJsAndAssets --build-cache --parallel && cd ..
+buildAndroidRunE2E() {
+  prebuild_android
+  if [ -e $ANDROID_ENV_FILE ]; then
+    source $ANDROID_ENV_FILE
+  fi
+  cd android && ./gradlew assembleProdDebug app:assembleAndroidTest -DtestBuildType=debug -x app:createBundleQaDebugJsAndAssets -x app:createBundleFlaskDebugJsAndAssets --build-cache --parallel && cd ..
 }
 
 buildIos() {
-	echo "Build iOS $MODE started..."
-	if [ "$MODE" == "release" ] ; then
-		buildIosRelease
-	elif [ "$MODE" == "flask" ] ; then
-		buildIosFlaskRelease
-	elif [ "$MODE" == "releaseE2E" ] ; then
-		buildIosReleaseE2E
-  elif [ "$MODE" == "debugE2E" ] ; then
-		buildIosSimulatorE2E
-  elif [ "$MODE" == "qadebugE2E" ] ; then
-		buildIosQASimulatorE2E
-	elif [ "$MODE" == "QA" ] ; then
-		buildIosQA
-	elif [ "$MODE" == "qaDebug" ] ; then
-		if [ "$RUN_DEVICE" = true ] ; then
-			buildIosDeviceQA
-		else
-			buildIosSimulatorQA
-		fi
-	elif [ "$MODE" == "flaskDebug" ] ; then
-		if [ "$RUN_DEVICE" = true ] ; then
-			buildIosDeviceFlask
-		else
-			buildIosSimulatorFlask
-		fi
-	else
-		if [ "$RUN_DEVICE" = true ] ; then
-			buildIosDevice
-		else
-			buildIosSimulator
-		fi
-	fi
+  echo "Build iOS $MODE started..."
+  if [ "$MODE" == "release" ]; then
+    buildIosRelease
+  elif [ "$MODE" == "flask" ]; then
+    buildIosFlaskRelease
+  elif [ "$MODE" == "releaseE2E" ]; then
+    buildIosReleaseE2E
+  elif [ "$MODE" == "debugE2E" ]; then
+    buildIosSimulatorE2E
+  elif [ "$MODE" == "qadebugE2E" ]; then
+    buildIosQASimulatorE2E
+  elif [ "$MODE" == "QA" ]; then
+    buildIosQA
+  elif [ "$MODE" == "qaDebug" ]; then
+    if [ "$RUN_DEVICE" = true ]; then
+      buildIosDeviceQA
+    else
+      buildIosSimulatorQA
+    fi
+  elif [ "$MODE" == "flaskDebug" ]; then
+    if [ "$RUN_DEVICE" = true ]; then
+      buildIosDeviceFlask
+    else
+      buildIosSimulatorFlask
+    fi
+  else
+    if [ "$RUN_DEVICE" = true ]; then
+      buildIosDevice
+    else
+      buildIosSimulator
+    fi
+  fi
 }
 
 startWatcher() {
-	source $JS_ENV_FILE
+  source $JS_ENV_FILE
   WATCHER_PORT=${WATCHER_PORT:-8081}
-	yarn --ignore-engines build:static-logos
-	if [ "$MODE" == "clean" ]; then
-		watchman watch-del-all
-		rm -rf $TMPDIR/metro-cache
-		react-native start --port=$WATCHER_PORT -- --reset-cache
-	else
-		react-native start --port=$WATCHER_PORT
-	fi
+  yarn --ignore-engines build:static-logos
+  if [ "$MODE" == "clean" ]; then
+    watchman watch-del-all
+    rm -rf $TMPDIR/metro-cache
+    react-native start --port=$WATCHER_PORT -- --reset-cache
+  else
+    react-native start --port=$WATCHER_PORT
+  fi
 }
 
 checkAuthToken() {
-	local propertiesFileName="$1"
+  local propertiesFileName="$1"
 
-	if [ -n "${MM_SENTRY_AUTH_TOKEN}" ]; then
-		sed -i'' -e "s/auth.token.*/auth.token=${MM_SENTRY_AUTH_TOKEN}/" "./${propertiesFileName}";
-	elif ! grep -qE '^auth.token=[[:alnum:]]+$' "./${propertiesFileName}"; then
-		printError "Missing auth token in '${propertiesFileName}'; add the token, or set it as MM_SENTRY_AUTH_TOKEN"
-		exit 1
-	fi
+  if [ -n "${MM_SENTRY_AUTH_TOKEN}" ]; then
+    sed -i'' -e "s/auth.token.*/auth.token=${MM_SENTRY_AUTH_TOKEN}/" "./${propertiesFileName}"
+  elif ! grep -qE '^auth.token=[[:alnum:]]+$' "./${propertiesFileName}"; then
+    printError "Missing auth token in '${propertiesFileName}'; add the token, or set it as MM_SENTRY_AUTH_TOKEN"
+    exit 1
+  fi
 
-	if [ ! -e "./${propertiesFileName}" ]; then
-		if [ -n "${MM_SENTRY_AUTH_TOKEN}" ]; then
-			cp "./${propertiesFileName}.example" "./${propertiesFileName}"
-			sed -i'' -e "s/auth.token.*/auth.token=${MM_SENTRY_AUTH_TOKEN}/" "./${propertiesFileName}";
-		else
-			printError "Missing '${propertiesFileName}' file (see '${propertiesFileName}.example' or set MM_SENTRY_AUTH_TOKEN to generate)"
-			exit 1
-		fi
-	fi
+  if [ ! -e "./${propertiesFileName}" ]; then
+    if [ -n "${MM_SENTRY_AUTH_TOKEN}" ]; then
+      cp "./${propertiesFileName}.example" "./${propertiesFileName}"
+      sed -i'' -e "s/auth.token.*/auth.token=${MM_SENTRY_AUTH_TOKEN}/" "./${propertiesFileName}"
+    else
+      printError "Missing '${propertiesFileName}' file (see '${propertiesFileName}.example' or set MM_SENTRY_AUTH_TOKEN to generate)"
+      exit 1
+    fi
+  fi
 }
 
 checkParameters "$@"
 
-
 printTitle
 loadJSEnv
 if [ "$MODE" == "releaseE2E" ] || [ "$MODE" == "QA" ] || [ "$MODE" == "QAE2E" ]; then
-	echo "DEBUG SENTRY PROPS"
-	checkAuthToken 'sentry.debug.properties'
-	export SENTRY_PROPERTIES="${REPO_ROOT_DIR}/sentry.debug.properties"
+  echo "DEBUG SENTRY PROPS"
+  checkAuthToken 'sentry.debug.properties'
+  export SENTRY_PROPERTIES="${REPO_ROOT_DIR}/sentry.debug.properties"
 elif [ "$MODE" == "release" ] || [ "$MODE" == "flask" ]; then
-	echo "RELEASE SENTRY PROPS"
-	checkAuthToken 'sentry.release.properties'
-	export SENTRY_PROPERTIES="${REPO_ROOT_DIR}/sentry.release.properties"
+  echo "RELEASE SENTRY PROPS"
+  checkAuthToken 'sentry.release.properties'
+  export SENTRY_PROPERTIES="${REPO_ROOT_DIR}/sentry.release.properties"
 fi
 
 if [ -z "$METAMASK_BUILD_TYPE" ]; then
-	printError "Missing METAMASK_BUILD_TYPE; set to 'main' for a standard release, or 'flask' for a canary flask release. The default value is 'main'."
-	exit 1
+  printError "Missing METAMASK_BUILD_TYPE; set to 'main' for a standard release, or 'flask' for a canary flask release. The default value is 'main'."
+  exit 1
 else
-    echo "METAMASK_BUILD_TYPE is set to: $METAMASK_BUILD_TYPE"
+  echo "METAMASK_BUILD_TYPE is set to: $METAMASK_BUILD_TYPE"
 fi
 
 if [ -z "$METAMASK_ENVIRONMENT" ]; then
-	printError "Missing METAMASK_ENVIRONMENT; set to 'production' for a production release, 'prerelease' for a pre-release, or 'local' otherwise"
-	exit 1
+  printError "Missing METAMASK_ENVIRONMENT; set to 'production' for a production release, 'prerelease' for a pre-release, or 'local' otherwise"
+  exit 1
 else
-    echo "METAMASK_ENVIRONMENT is set to: $METAMASK_ENVIRONMENT"
+  echo "METAMASK_ENVIRONMENT is set to: $METAMASK_ENVIRONMENT"
 fi
 
 if [ "$PLATFORM" == "ios" ]; then
-	# we don't care about env file in CI
-	if [ -f "$IOS_ENV_FILE" ] || [ "$CI" = true ]; then
-		buildIos
-	else
-		envFileMissing $IOS_ENV_FILE
-	fi
+  # we don't care about env file in CI
+  if [ -f "$IOS_ENV_FILE" ] || [ "$CI" = true ]; then
+    buildIos
+  else
+    envFileMissing $IOS_ENV_FILE
+  fi
 elif [ "$PLATFORM" == "watcher" ]; then
-	startWatcher
+  startWatcher
 else
-	# we don't care about env file in CI
-	if [ -f "$ANDROID_ENV_FILE" ] || [ "$CI" = true ]; then
-		buildAndroid
-	else
-		envFileMissing $ANDROID_ENV_FILE
-	fi
+  # we don't care about env file in CI
+  if [ -f "$ANDROID_ENV_FILE" ] || [ "$CI" = true ]; then
+    buildAndroid
+  else
+    envFileMissing $ANDROID_ENV_FILE
+  fi
 fi

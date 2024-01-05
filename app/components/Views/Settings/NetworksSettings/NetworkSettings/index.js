@@ -69,6 +69,8 @@ import { updateIncomingTransactions } from '../../../../../util/transaction-cont
 import { withMetricsAwareness } from '../../../../../components/hooks/useMetrics';
 import { CHAIN_IDS } from '@metamask/transaction-controller/dist/constants';
 import Routes from '../../../../../constants/navigation/Routes';
+import { selectUseSafeChainsListValidation } from '../../../../../../app/selectors/preferencesController';
+import axios from 'axios';
 
 const createStyles = (colors) =>
   StyleSheet.create({
@@ -102,6 +104,14 @@ const createStyles = (colors) =>
       padding: 10,
       color: colors.text.default,
     },
+    inputWithError: {
+      ...fontStyles.normal,
+      borderColor: colors.error.default,
+      borderRadius: 5,
+      borderWidth: 1,
+      padding: 10,
+      color: colors.text.default,
+    },
     warningText: {
       ...fontStyles.normal,
       color: colors.error.default,
@@ -120,6 +130,9 @@ const createStyles = (colors) =>
       color: colors.text.default,
       ...fontStyles.bold,
     },
+    link: {
+      color: colors.primary.default,
+    },
     title: {
       fontSize: 20,
       paddingVertical: 12,
@@ -127,6 +140,12 @@ const createStyles = (colors) =>
       ...fontStyles.bold,
     },
     desc: {
+      fontSize: 14,
+      color: colors.text.default,
+      ...fontStyles.normal,
+    },
+    inlineWarning: {
+      paddingVertical: 8,
       fontSize: 14,
       color: colors.text.default,
       ...fontStyles.normal,
@@ -239,6 +258,11 @@ class NetworkSettings extends PureComponent {
      * Metrics injected by withMetricsAwareness HOC
      */
     metrics: PropTypes.object,
+
+    /**
+     * Checks if network is valid
+     */
+    useSafeChainsListValidation: PropTypes.bool,
   };
 
   state = {
@@ -262,6 +286,7 @@ class NetworkSettings extends PureComponent {
     popularNetwork: {},
     showWarningModal: false,
     showNetworkDetailsModal: false,
+    matchedChain: null,
   };
 
   inputRpcURL = React.createRef();
@@ -353,6 +378,20 @@ class NetworkSettings extends PureComponent {
     } else {
       this.setState({ addMode: true });
     }
+
+    axios
+      .get('https://chainid.network/chains.json')
+      .then(({ data: safeChainsList }) => {
+        const matchedChain = safeChainsList.find(
+          (network) => network.networkId === parseInt(chainId),
+        );
+        this.setState({
+          matchedChain,
+        });
+        this.validateSymbol(ticker);
+        this.validateName(nickname);
+      });
+
     setTimeout(() => {
       this.setState({
         inputWidth: { width: '100%' },
@@ -677,6 +716,46 @@ class NetworkSettings extends PureComponent {
   };
 
   /**
+   * Validates that symbol match with the chainId, setting a warningSymbol if is invalid
+   */
+  validateSymbol = async () => {
+    const { ticker, matchedChain } = this.state;
+    const { useSafeChainsListValidation } = this.props;
+
+    if (!useSafeChainsListValidation) {
+      return;
+    }
+
+    const symbol = matchedChain?.nativeCurrency?.symbol ?? null;
+
+    const symbolToUse = symbol === ticker ? undefined : symbol;
+
+    this.setState({
+      warningSymbol: symbolToUse,
+    });
+  };
+
+  /**
+   * Validates that name match with the chainId, setting a warningName if is invalid
+   */
+  validateName = async () => {
+    const { matchedChain, nickname } = this.state;
+    const { useSafeChainsListValidation } = this.props;
+
+    if (!useSafeChainsListValidation) {
+      return;
+    }
+
+    const name = matchedChain?.chain ?? null;
+
+    const nameToUse = name === nickname ? undefined : name;
+
+    this.setState({
+      warningName: nameToUse,
+    });
+  };
+
+  /**
    * Allows to identify if any element of the form changed, in order to enable add or save button
    */
   getCurrentState = () => {
@@ -740,6 +819,8 @@ class NetworkSettings extends PureComponent {
       validatedRpcURL: false,
       warningRpcUrl: undefined,
       warningChainId: undefined,
+      warningSymbol: undefined,
+      warningName: undefined,
     });
     this.getCurrentState();
   };
@@ -838,6 +919,7 @@ class NetworkSettings extends PureComponent {
       warningRpcUrl,
       warningChainId,
       warningSymbol,
+      warningName,
       enableAction,
       inputWidth,
     } = this.state;
@@ -864,6 +946,19 @@ class NetworkSettings extends PureComponent {
       inputWidth,
       isCustomMainnet ? styles.onboardingInput : undefined,
     ];
+
+    const inputErrorNameStyle = [
+      warningName ? styles.inputWithError : styles.input,
+      inputWidth,
+      isCustomMainnet ? styles.onboardingInput : undefined,
+    ];
+
+    const inputErrorSymbolStyle = [
+      warningSymbol ? styles.inputWithError : styles.input,
+      inputWidth,
+      isCustomMainnet ? styles.onboardingInput : undefined,
+    ];
+
     const isRPCEditable = isCustomMainnet || editable;
     const isActionDisabled =
       !enableAction ||
@@ -915,7 +1010,7 @@ class NetworkSettings extends PureComponent {
               {strings('app_settings.network_name_label')}
             </Text>
             <TextInput
-              style={inputStyle}
+              style={inputErrorNameStyle}
               autoCapitalize={'none'}
               autoCorrect={false}
               value={nickname}
@@ -923,10 +1018,30 @@ class NetworkSettings extends PureComponent {
               onChangeText={this.onNicknameChange}
               placeholder={strings('app_settings.network_name_placeholder')}
               placeholderTextColor={colors.text.muted}
+              onBlur={this.validateName}
               onSubmitEditing={this.jumpToRpcURL}
               testID={NetworksViewSelectorsIDs.NETWORK_NAME_INPUT}
               keyboardAppearance={themeAppearance}
             />
+            {warningName ? (
+              <View>
+                <Text style={styles.inlineWarning}>
+                  {strings('wallet.chain_id_currently_used')}{' '}
+                  <Text
+                    style={styles.link}
+                    onPress={() => {
+                      this.onNicknameChange(warningName);
+                      this.setState({
+                        warningName: undefined,
+                      });
+                    }}
+                  >
+                    {warningName}
+                  </Text>{' '}
+                  {strings('asset_details.network').toLowerCase()}
+                </Text>
+              </View>
+            ) : null}
             <Text style={styles.label}>
               {strings('app_settings.network_rpc_url_label')}
             </Text>
@@ -984,19 +1099,40 @@ class NetworkSettings extends PureComponent {
             </Text>
             <TextInput
               ref={this.inputSymbol}
-              style={inputStyle}
+              style={inputErrorSymbolStyle}
               autoCapitalize={'none'}
               autoCorrect={false}
               value={ticker}
               editable={editable}
               onChangeText={this.onTickerChange}
               onBlur={this.validateSymbol}
-              placeholder={strings('app_settings.network_symbol_label')}
+              placeholder={strings('app_settings.network_symbol_placeholder')}
               placeholderTextColor={colors.text.muted}
               onSubmitEditing={this.jumpBlockExplorerURL}
               testID={NetworksViewSelectorsIDs.NETWORKS_SYMBOL_INPUT}
               keyboardAppearance={themeAppearance}
             />
+            {warningSymbol ? (
+              <View>
+                <Text style={styles.inlineWarning}>
+                  {strings('wallet.network_with_chain_id')} {chainId}{' '}
+                  {strings('wallet.use_the_currency_symbol')}{' '}
+                  <Text
+                    style={styles.link}
+                    onPress={() => {
+                      this.onTickerChange(warningSymbol);
+                      this.setState({
+                        warningSymbol: undefined,
+                      });
+                    }}
+                  >
+                    {`(${warningSymbol})`}
+                  </Text>
+                  {'. '}
+                  {strings('wallet.use_correct_symbol')}
+                </Text>
+              </View>
+            ) : null}
 
             {warningSymbol ? (
               <View style={styles.warningContainer}>
@@ -1230,6 +1366,7 @@ const mapStateToProps = (state) => ({
   providerConfig: selectProviderConfig(state),
   networkConfigurations: selectNetworkConfigurations(state),
   networkOnboardedState: state.networkOnboarded.networkOnboardedState,
+  useSafeChainsListValidation: selectUseSafeChainsListValidation(state),
 });
 
 export default connect(

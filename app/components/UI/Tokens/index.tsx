@@ -7,6 +7,7 @@ import {
   FlatList,
   RefreshControl,
 } from 'react-native';
+import Modal from 'react-native-modal';
 import { useSelector } from 'react-redux';
 import ActionSheet from 'react-native-actionsheet';
 import { strings } from '../../../../locales/i18n';
@@ -69,7 +70,11 @@ import SkeletonText from '../Ramp/components/SkeletonText';
 import Routes from '../../../constants/navigation/Routes';
 import { TOKEN_BALANCE_LOADING, TOKEN_RATE_UNDEFINED } from './constants';
 import AppConstants from '../../../core/AppConstants';
-import { IconName } from '../../../component-library/components/Icons/Icon';
+import {
+  IconColor,
+  IconName,
+  IconSize,
+} from '../../../component-library/components/Icons/Icon';
 
 import {
   PORTFOLIO_BUTTON,
@@ -89,6 +94,13 @@ import { selectContractExchangeRates } from '../../../selectors/tokenRatesContro
 import { selectUseTokenDetection } from '../../../selectors/preferencesController';
 import { regex } from '../../../../app/util/regex';
 import { useMetrics } from '../../../components/hooks/useMetrics';
+import useIsOriginalNativeTokenSymbol from '../../UI/Ramp/hooks/useIsOriginalNativeTokenSymbol';
+import ButtonIcon, {
+  ButtonIconVariants,
+} from '../../../../app/component-library/components/Buttons/ButtonIcon';
+import Box from '../../UI/Ramp/components/Box';
+import ButtonSecondary from '../../../../app/component-library/components/Buttons/Button/variants/ButtonSecondary';
+import SheetHeader from '../../../../app/component-library/components/Sheet/SheetHeader';
 
 const Tokens: React.FC<TokensI> = ({ tokens }) => {
   const { colors } = useTheme();
@@ -99,6 +111,7 @@ const Tokens: React.FC<TokensI> = ({ tokens }) => {
   const [isAddTokenEnabled, setIsAddTokenEnabled] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
 
+  const [showScamWarningModal, setShowScamWarningModal] = useState(false);
   const [isNetworkRampSupported, isNativeTokenRampSupported] = useRampNetwork();
 
   const actionSheet = useRef<ActionSheet>();
@@ -107,6 +120,7 @@ const Tokens: React.FC<TokensI> = ({ tokens }) => {
     const providerConfig = selectProviderConfig(state);
     return getNetworkNameFromProviderConfig(providerConfig);
   });
+  const { type, rpcTarget } = useSelector(selectProviderConfig);
   const chainId = useSelector(selectChainId);
   const ticker = useSelector(selectTicker);
   const currentCurrency = useSelector(selectCurrentCurrency);
@@ -123,6 +137,12 @@ const Tokens: React.FC<TokensI> = ({ tokens }) => {
   const isTokenDetectionEnabled = useSelector(selectUseTokenDetection);
   const browserTabs = useSelector((state: any) => state.browser.tabs);
 
+  const isOriginalNativeTokenSymbol = useIsOriginalNativeTokenSymbol(
+    chainId,
+    ticker,
+    type,
+  );
+
   const renderEmpty = () => (
     <View style={styles.emptyView}>
       <Text style={styles.text}>{strings('wallet.no_tokens')}</Text>
@@ -134,6 +154,65 @@ const Tokens: React.FC<TokensI> = ({ tokens }) => {
       ...token,
     });
   };
+
+  const goToNetworkEdit = () => {
+    navigation.navigate(Routes.ADD_NETWORK, {
+      network: rpcTarget,
+    });
+
+    setShowScamWarningModal(false);
+  };
+
+  const renderScamWarningIcon = (asset) => {
+    if (!isOriginalNativeTokenSymbol && asset.isETH) {
+      return (
+        <ButtonIcon
+          iconName={IconName.Danger}
+          onPressIn={(e) => {
+            e.preventDefault();
+            e.stopPropagation();
+            setShowScamWarningModal(true);
+          }}
+          variant={ButtonIconVariants.Primary}
+          size={IconSize.Xl}
+          iconColorOverride={IconColor.Error}
+        />
+      );
+    }
+    return null;
+  };
+
+  const renderScamWarningModal = () => (
+    <Modal
+      isVisible={showScamWarningModal}
+      onBackdropPress={() => setShowScamWarningModal(false)}
+      onSwipeComplete={() => setShowScamWarningModal(false)}
+      swipeDirection="down"
+      propagateSwipe
+      avoidKeyboard
+      style={styles.bottomModal}
+      backdropColor={colors.overlay.default}
+      backdropOpacity={1}
+    >
+      <Box style={styles.box}>
+        <View style={styles.notch} />
+        <SheetHeader title={'This is a potential scam'} />
+
+        <Box style={styles.boxContent}>
+          <Text>
+            {`This network doesn't match its associated chain ID or name. Many popular tokens use the name ${ticker}, making it a target for scams. Scammers may trick you into sending them more valuable currency in return. Verify everything before you continue.`}
+          </Text>
+        </Box>
+        <Box style={styles.boxContent}>
+          <ButtonSecondary
+            label={'Edit network details'}
+            onPress={goToNetworkEdit}
+            style={styles.editNetworkButton}
+          />
+        </Box>
+      </Box>
+    </Modal>
+  );
 
   const goToAddToken = () => {
     setIsAddTokenEnabled(false);
@@ -233,9 +312,21 @@ const Tokens: React.FC<TokensI> = ({ tokens }) => {
     if (primaryCurrency === 'ETH') {
       mainBalance = balanceValueFormatted;
       secondaryBalance = balanceFiat;
+      if (asset.isETH) {
+        mainBalance = balanceValueFormatted;
+        secondaryBalance = isOriginalNativeTokenSymbol ? balanceFiat : null;
+      }
     } else {
       mainBalance = !balanceFiat ? balanceValueFormatted : balanceFiat;
       secondaryBalance = !balanceFiat ? balanceFiat : balanceValueFormatted;
+      if (asset.isETH) {
+        mainBalance = !balanceFiat
+          ? balanceValueFormatted
+          : isOriginalNativeTokenSymbol
+          ? balanceFiat
+          : null;
+        secondaryBalance = !balanceFiat ? balanceFiat : balanceValueFormatted;
+      }
     }
 
     if (asset?.balanceError) {
@@ -310,6 +401,9 @@ const Tokens: React.FC<TokensI> = ({ tokens }) => {
             )}
           </Text>
         </View>
+
+        {renderScamWarningIcon(asset)}
+        {renderScamWarningModal()}
       </AssetElement>
     );
   };
