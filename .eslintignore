@@ -13,4 +13,5 @@ CHANGELOG.md
 wdio
 /app/util/test/testSetup.js
 /app/lib/ppom/ppom.html.js
+/app/lib/ppom/blockaid-version.js
 /ppom

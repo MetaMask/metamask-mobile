@@ -12,6 +12,8 @@ exports[`BlockaidBanner should render correctly 1`] = `
 <View
   securityAlertResponse={
     Object {
+      "block": 123,
+      "chainId": "0x1",
       "features": Array [
         "We found attack vectors in this request",
         "This request shows a fake token name and icon.",
@@ -20,6 +22,7 @@ exports[`BlockaidBanner should render correctly 1`] = `
         "Operator is untrusted according to previous activity",
       ],
       "reason": "approval_farming",
+      "req": Object {},
       "result_type": "Warning",
     }
   }
@@ -252,6 +255,8 @@ exports[`BlockaidBanner should render correctly with list attack details 1`] = `
 <View
   securityAlertResponse={
     Object {
+      "block": 123,
+      "chainId": "0x1",
       "features": Array [
         "We found attack vectors in this request",
         "This request shows a fake token name and icon.",
@@ -260,6 +265,7 @@ exports[`BlockaidBanner should render correctly with list attack details 1`] = `
         "Operator is untrusted according to previous activity",
       ],
       "reason": "approval_farming",
+      "req": Object {},
       "result_type": "Malicious",
     }
   }
@@ -492,6 +498,8 @@ exports[`BlockaidBanner should render correctly with reason "raw_signature_farmi
 <View
   securityAlertResponse={
     Object {
+      "block": 123,
+      "chainId": "0x1",
       "features": Array [
         "We found attack vectors in this request",
         "This request shows a fake token name and icon.",
@@ -500,6 +508,7 @@ exports[`BlockaidBanner should render correctly with reason "raw_signature_farmi
         "Operator is untrusted according to previous activity",
       ],
       "reason": "raw_signature_farming",
+      "req": Object {},
       "result_type": "Malicious",
     }
   }
@@ -823,6 +832,8 @@ exports[`BlockaidBanner should render something does not look right with contact
 <View
   securityAlertResponse={
     Object {
+      "block": 123,
+      "chainId": "0x1",
       "features": Array [
         "We found attack vectors in this request",
         "This request shows a fake token name and icon.",
@@ -831,6 +842,7 @@ exports[`BlockaidBanner should render something does not look right with contact
         "Operator is untrusted according to previous activity",
       ],
       "reason": "approval_farming",
+      "req": Object {},
       "result_type": "Malicious",
     }
   }

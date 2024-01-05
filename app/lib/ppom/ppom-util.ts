@@ -1,14 +1,11 @@
-import Logger from '../../util/Logger';
-import Engine from '../../core/Engine';
-import { isBlockaidFeatureEnabled } from '../../util/blockaid';
-import { isMainnetByChainId } from '../../util/networks';
-import {
-  Reason,
-  ResultType,
-} from '../../components/UI/BlockaidBanner/BlockaidBanner.types';
-import { store } from '../../store';
 import setSignatureRequestSecurityAlertResponse from '../../actions/signatureRequest';
 import { setTransactionSecurityAlertResponse } from '../../actions/transaction';
+import { Reason, ResultType } from '../../components/UI/BlockaidBanner/BlockaidBanner.types';
+import Engine from '../../core/Engine';
+import { store } from '../../store';
+import { isBlockaidFeatureEnabled } from '../../util/blockaid';
+import Logger from '../../util/Logger';
+import { isMainnetByChainId } from '../../util/networks';
 
 const ConfirmationMethods = Object.freeze([
   'eth_sendRawTransaction',
@@ -73,6 +70,11 @@ const validateRequest = async (req: any, transactionId?: string) => {
       securityAlertResponse = await ppomController.usePPOM((ppom: any) =>
         ppom.validateJsonRpc(req),
       );
+      securityAlertResponse = {
+        ...securityAlertResponse,
+        req,
+        chainId: currentChainId,
+      };
     }
   } catch (e) {
     Logger.log(`Error validating JSON RPC using PPOM: ${e}`);

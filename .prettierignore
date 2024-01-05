@@ -18,3 +18,4 @@ locales
 .storybook
 /ppom
 app/lib/ppom/ppom.html.js
+/app/lib/ppom/blockaid-version.js

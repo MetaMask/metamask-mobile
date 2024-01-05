@@ -173,6 +173,7 @@
     "@keystonehq/bc-ur-registry-eth": "^0.7.7",
     "@keystonehq/metamask-airgapped-keyring": "^0.3.0",
     "@keystonehq/ur-decoder": "^0.6.1",
+    "@klarna/react-native-zlib": "^1.0.1",
     "@metamask/address-book-controller": "^2.0.0",
     "@metamask/approval-controller": "^3.4.0",
     "@metamask/assets-controllers": "^7.0.0",
@@ -309,6 +310,7 @@
     "react-native-fs": "^2.16.6",
     "react-native-gesture-handler": "^1.10.3",
     "react-native-get-random-values": "^1.8.0",
+    "react-native-gzip": "^1.1.0",
     "react-native-i18n": "2.0.15",
     "react-native-in-app-review": "^3.2.3",
     "react-native-inappbrowser-reborn": "^3.7.0",
@@ -349,6 +351,7 @@
     "react-native-webview": "11.13.0",
     "react-native-webview-invoke": "^0.6.2",
     "react-redux": "7.2.4",
+    "react-zlib-js": "^1.0.5",
     "readable-stream": "2.3.7",
     "redux": "4.1.1",
     "redux-mock-store": "1.5.4",
@@ -368,8 +371,7 @@
     "uuid": "^8.3.2",
     "valid-url": "1.0.9",
     "vm-browserify": "1.1.2",
-    "zxcvbn": "4.4.2",
-    "cockatiel": "^3.1.1"
+    "zxcvbn": "4.4.2"
   },
   "devDependencies": {
     "@actions/core": "^1.10.0",
