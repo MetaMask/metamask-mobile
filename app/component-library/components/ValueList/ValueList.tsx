@@ -1,7 +1,8 @@
 /* eslint-disable react/prop-types */
 
 // Third party dependencies.
-import React from 'react';
+import React, { useState } from 'react';
+import { GestureResponderEvent } from 'react-native';
 
 // External dependencies.
 import List from '../List/List';
@@ -9,7 +10,7 @@ import { ValueListItemProps } from './ValueListItem/ValueListItem.types';
 import ValueListItem from './ValueListItem/ValueListItem';
 
 // Internal dependencies.
-import { ValueListProps } from './ValueList.types';
+import { ValueListProps, ValueListVariant } from './ValueList.types';
 import { DEFAULT_VALUELIST_VARIANT } from './ValueList.constants';
 
 const ValueList: React.FC<ValueListProps> = ({
@@ -19,11 +20,29 @@ const ValueList: React.FC<ValueListProps> = ({
   isSearchable,
   ...props
 }) => {
+  const [selectedItem, setSelectedItem] = useState<ValueListItemProps | null>(
+    null,
+  );
+
   const renderValueListItem = (valueOptions: ValueListItemProps[]) => (
     <>
-      {valueOptions.map((optionProps, index) => (
-        <ValueListItem key={index} variant={variant} {...optionProps} />
-      ))}
+      {valueOptions.map((optionProps, index) => {
+        const onPressHandler = (event: GestureResponderEvent) => {
+          optionProps.onPress?.(event);
+          if (variant === ValueListVariant.Select) {
+            setSelectedItem(optionProps);
+          }
+        };
+        return (
+          <ValueListItem
+            key={index}
+            variant={variant}
+            onPress={onPressHandler}
+            isSelected={optionProps === selectedItem}
+            {...optionProps}
+          />
+        );
+      })}
     </>
   );
 

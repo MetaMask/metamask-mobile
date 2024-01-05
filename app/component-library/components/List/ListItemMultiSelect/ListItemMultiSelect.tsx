@@ -24,8 +24,8 @@ const ListItemMultiSelect: React.FC<ListItemMultiSelectProps> = ({
   ...props
 }) => {
   const { styles } = useStyles(styleSheet, { style, gap, isDisabled });
-  const [isChecked, setIsChecked] = useState(isSelected);
   const { hitSlop, ...listItemProps } = props;
+  const [isChecked, setIsChecked] = useState(isSelected);
   const onPressHandler = (event: GestureResponderEvent) => {
     onPress?.(event);
     setIsChecked(!isChecked);

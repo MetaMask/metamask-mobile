@@ -1,8 +1,8 @@
 /* eslint-disable react/prop-types */
 
 // Third party dependencies.
-import React, { useState } from 'react';
-import { TouchableOpacity, View, GestureResponderEvent } from 'react-native';
+import React from 'react';
+import { TouchableOpacity, View } from 'react-native';
 
 // External dependencies.
 import { useStyles } from '../../../hooks';
@@ -19,28 +19,25 @@ const ListItemSelect: React.FC<ListItemSelectProps> = ({
   isDisabled = false,
   children,
   onPress,
+  onLongPress,
   gap = DEFAULT_SELECTITEM_GAP,
   verticalAlignment,
   ...props
 }) => {
   const { styles } = useStyles(styleSheet, { style, isDisabled });
-  const [isChecked, setIsChecked] = useState(isSelected);
-  const onPressHandler = (event: GestureResponderEvent) => {
-    onPress?.(event);
-    setIsChecked(!isChecked);
-  };
 
   return (
     <TouchableOpacity
       style={styles.base}
       disabled={isDisabled}
-      onPress={onPressHandler}
+      onPress={onPress}
+      onLongPress={onLongPress}
       {...props}
     >
       <ListItem gap={gap} style={styles.listItem}>
         {children}
       </ListItem>
-      {isChecked && (
+      {isSelected && (
         <View style={styles.underlay} accessibilityRole="checkbox" accessible>
           <View style={styles.underlayBar} />
         </View>

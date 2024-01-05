@@ -7,6 +7,7 @@ import React from 'react';
 import { useStyles } from '../../../../hooks';
 import SelectableHeader from '../SelectableHeader/SelectableHeader';
 import ValueList from '../../../ValueList/ValueList';
+import { ValueListVariant } from '../../../ValueList/ValueList.types';
 
 // Internal dependencies.
 import styleSheet from './SelectableMenu.styles';
@@ -23,6 +24,7 @@ const SelectableMenu: React.FC<SelectableMenuProps> = ({
   filterCallback,
   textFieldSearchProps,
   isSearchable,
+  isMultiSelect = false,
   ...props
 }) => {
   const { styles } = useStyles(styleSheet, {
@@ -46,6 +48,9 @@ const SelectableMenu: React.FC<SelectableMenuProps> = ({
         filterCallback={filterCallback}
         textFieldSearchProps={textFieldSearchProps}
         isSearchable={isSearchable}
+        variant={
+          isMultiSelect ? ValueListVariant.MultiSelect : ValueListVariant.Select
+        }
       />
     </SelectableMenuBase>
   );

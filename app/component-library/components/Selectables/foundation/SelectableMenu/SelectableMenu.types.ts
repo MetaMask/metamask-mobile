@@ -11,7 +11,12 @@ import { SelectableMenuBaseProps } from './foundation/SelectableMenuBase.types';
 export interface SelectableMenuProps
   extends SelectableMenuBaseProps,
     Omit<SelectableHeaderProps, 'children'>,
-    ValueListProps {}
+    ValueListProps {
+  /**
+   * Optional boolean that indicates if list should be used as multi select.
+   */
+  isMultiSelect?: boolean;
+}
 
 /**
  * Style sheet SelectableMenu parameters.
