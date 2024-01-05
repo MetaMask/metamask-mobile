@@ -398,6 +398,7 @@
     "logout_to_import_seed": "You need to log out first in order to import a Secret Recovery Phrase.",
     "ready_to_explore": "Ready to start exploring blockchain applications?",
     "unable_to_load": "Unable to load balance",
+    "unable_to_find_conversion_rate": "unable to find conversion rate",
     "display_nft_media_desc": "To import an NFT, turn on Display NFT media in Settings > Security and privacy.",
     "display_nft_media_cta": "Turn on Display NFT media",
     "display_media_nft_warning": "Displaying NFT media and data may expose your IP address to centralized servers. Only import an NFT if you understand the risks involved.",
@@ -825,7 +826,7 @@
       "title": "Snaps",
       "description": "Overview and manage your snaps",
       "snap_settings": {
-        "remove_snap_section_title": "Remove Snap", 
+        "remove_snap_section_title": "Remove Snap",
         "remove_snap_section_description": "This action will delete the snap, its data, and its granted permissions.",
         "remove_button_label": "Remove {{snapName}}"
       },
