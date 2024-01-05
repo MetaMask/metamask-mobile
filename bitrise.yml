@@ -116,8 +116,12 @@ stages:
       - android_e2e_build: {}
   run_smoke_e2e_ios_android_stage:
     workflows:
-      - ios_e2e_test: {}
-      - android_e2e_test: {}
+      - run_tag_smoke_confirmations_ios: {}
+      - run_tag_smoke_confirmations_android: {}
+      - run_tag_smoke_swaps_ios: {}
+      - run_tag_smoke_swaps_android: {}
+      - run_tag_smoke_core_ios: {}
+      - run_tag_smoke_core_android: {}
   build_regression_e2e_ios_android_stage:
     workflows:
       - ios_build_regression_tests: {}
@@ -180,6 +184,7 @@ workflows:
           inputs:
             - command: setup
           title: Yarn Setup
+      # Manual cache path needed here because the `yarn` step only caches for the `install` command
       - save-cache@1:
           title: Save cache dependencies
           inputs:
@@ -187,16 +192,6 @@ workflows:
             - paths: |-
                 node_modules
                 $YARN_CACHE_DIR
-  code_setup_dev:
-    steps:
-      - script@1:
-          title: Generate `.npmrc` file for preview builds
-          inputs:
-            - content: |
-                #!/bin/bash
-                printf '%s\n\n%s' '@metamask:registry=https://npm.pkg.github.com' "//npm.pkg.github.com/:_authToken=${PACKAGE_READ_TOKEN}" > .npmrc
-    after_run:
-      - code_setup
   prep_environment:
     steps:
       - script@1:
@@ -369,6 +364,50 @@ workflows:
     after_run:
       - android_e2e_test
 
+### Seperating workflows so they run concurrently during smoke runs
+  run_tag_smoke_confirmations_ios:
+      envs:
+      - TEST_SUITE_TAG: '.*SmokeConfirmations.*'
+      after_run:
+      - ios_e2e_test
+  run_tag_smoke_confirmations_android:
+      meta:
+          bitrise.io:
+            stack: linux-docker-android-20.04
+            machine_type_id: elite-xl
+      envs:
+      - TEST_SUITE_TAG: '.*SmokeConfirmations.*'
+      after_run:
+      - android_e2e_test
+  run_tag_smoke_swaps_ios:
+      envs:
+      - TEST_SUITE_TAG: '.*SmokeSwaps.*'
+      after_run:
+      - ios_e2e_test
+  run_tag_smoke_swaps_android:
+      meta:
+          bitrise.io:
+            stack: linux-docker-android-20.04
+            machine_type_id: elite-xl
+      envs:
+      - TEST_SUITE_TAG: '.*SmokeSwaps.*'
+      after_run:
+      - android_e2e_test
+  run_tag_smoke_core_ios:
+      envs:
+      - TEST_SUITE_TAG: '.*SmokeCore.*'
+      after_run:
+      - ios_e2e_test
+  run_tag_smoke_core_android:
+      meta:
+          bitrise.io:
+            stack: linux-docker-android-20.04
+            machine_type_id: elite-xl
+      envs:
+      - TEST_SUITE_TAG: '.*SmokeCore.*'
+      after_run:
+      - android_e2e_test
+
   e2e_setup:
     steps:
       - yarn@:
@@ -378,7 +417,7 @@ workflows:
           title: Detox - Install CLI
   android_e2e_build:
     before_run:
-      - code_setup_dev
+      - code_setup
       - e2e_setup
     after_run:
       - _notify_failure_on_slack
@@ -433,7 +472,7 @@ workflows:
                 node -v
                 export METAMASK_ENVIRONMENT='local'
                 export METAMASK_BUILD_TYPE='main'
-                IGNORE_BOXLOGS_DEVELOPMENT="true" FORCE_BUNDLING=true yarn test:e2e:android:bitrise:build --testNamePattern="$TEST_SUITE"
+                IGNORE_BOXLOGS_DEVELOPMENT="true" FORCE_BUNDLING=true yarn test:e2e:android:bitrise:build
       - save-gradle-cache@1: {}
       - save-cache@1:
           title: Save CCache
@@ -485,11 +524,14 @@ workflows:
             - content: |-
                 #!/usr/bin/env bash
                 if [ "$TEST_SUITE" = "Regression" ]; then
-                  TEST_SUITE="Regression"
+                TEST_SUITE="Regression"
                 else
-                  TEST_SUITE="Smoke"
+                TEST_SUITE="Smoke"
                 fi
-                node -v
+                if [ -n "$TEST_SUITE_TAG" ]; then
+                echo "TEST_SUITE_TAG value is: $TEST_SUITE_TAG"
+                TEST_SUITE=$TEST_SUITE_TAG
+                fi
                 export METAMASK_ENVIRONMENT='local'
                 export METAMASK_BUILD_TYPE='main'
                 IGNORE_BOXLOGS_DEVELOPMENT="true" FORCE_BUNDLING=true yarn test:e2e:android:bitrise:run --testNamePattern="$TEST_SUITE"
@@ -528,7 +570,7 @@ workflows:
         stack: linux-docker-android-20.04
   ios_e2e_build:
     before_run:
-      - code_setup_dev
+      - code_setup
       - e2e_setup
     after_run:
       - _notify_failure_on_slack
@@ -546,12 +588,7 @@ workflows:
                 envman add --key BREW_APPLESIMUTILS --value "$(brew --cellar)/applesimutils"
                 envman add --key BREW_OPT_APPLESIMUTILS --value "/usr/local/opt/applesimutils"
                 brew tap wix/brew
-                asdf install ruby 3.0.3
-                sudo gem install cocoapods
-          title: Set Env Path for caching deps & Ruby install
-      - cocoapods-install@2:
-          run_if: '{{not (enveq "BITRISE_CACHE_HIT" "exact")}}'
-          is_always_run: false
+          title: Set Env Path for caching deps
       - script@1:
           title: Check native folder diff for iOS
           inputs:
@@ -595,7 +632,7 @@ workflows:
                 node -v
                 export METAMASK_ENVIRONMENT='local'
                 export METAMASK_BUILD_TYPE='main'
-                IGNORE_BOXLOGS_DEVELOPMENT="true" FORCE_BUNDLING=true yarn test:e2e:ios:bitrise:build --testNamePattern="$TEST_SUITE"
+                IGNORE_BOXLOGS_DEVELOPMENT="true" FORCE_BUNDLING=true yarn test:e2e:ios:bitrise:build
       - save-cocoapods-cache@1: {}
       - save-cache@1:
           title: Save CCache
@@ -645,6 +682,10 @@ workflows:
                   TEST_SUITE="Regression"
                 else
                   TEST_SUITE="Smoke"
+                fi
+                if [ -n "$TEST_SUITE_TAG" ]; then
+                echo "TEST_SUITE_TAG value is: $TEST_SUITE_TAG"
+                TEST_SUITE=$TEST_SUITE_TAG
                 fi
                 node -v
                 export METAMASK_ENVIRONMENT='local'
@@ -771,7 +812,7 @@ workflows:
         machine_type_id: elite-xl
   build_android_qa:
     before_run:
-      - code_setup_dev
+      - code_setup
     after_run:
       - _upload_apk_to_browserstack
       - _notify_failure_on_slack
@@ -943,12 +984,10 @@ workflows:
             - build_short_version_string: $VERSION_NAME
             - build_version: $VERSION_NUMBER
             - plist_path: $PROJECT_LOCATION_IOS/MetaMask/Info.plist
-      - cocoapods-install@2: {}
       - script@1:
           inputs:
             - content: |-
                 #!/usr/bin/env bash
-                node -v
                 METAMASK_BUILD_TYPE='main' METAMASK_ENVIRONMENT='production' yarn build:ios:pre-release
           title: iOS Sourcemaps & Build
           is_always_run: false
@@ -974,7 +1013,7 @@ workflows:
           title: Deploy Source Map
   build_ios_qa:
     before_run:
-      - code_setup_dev
+      - code_setup
     after_run:
       - _upload_ipa_to_browserstack
       - _notify_failure_on_slack
@@ -985,7 +1024,6 @@ workflows:
             - build_short_version_string: $VERSION_NAME
             - build_version: $VERSION_NUMBER
             - plist_path: $PROJECT_LOCATION_IOS/MetaMask/MetaMask-QA-Info.plist
-      - cocoapods-install@2: {}
       - script@1:
           inputs:
             - content: |-
@@ -1050,7 +1088,6 @@ workflows:
             - build_short_version_string: $FLASK_VERSION_NAME
             - build_version: $FLASK_VERSION_NUMBER
             - plist_path: $PROJECT_LOCATION_IOS/MetaMask/MetaMask-Flask-Info.plist
-      - cocoapods-install@2: {}
       - script@1:
           inputs:
             - content: |-
@@ -1189,10 +1226,10 @@ app:
       PROJECT_LOCATION_IOS: ios
     - opts:
         is_expand: false
-      VERSION_NAME: 7.12.3
+      VERSION_NAME: 7.12.5
     - opts:
         is_expand: false
-      VERSION_NUMBER: 1230
+      VERSION_NUMBER: 1235
     - opts:
         is_expand: false
       FLASK_VERSION_NAME: 0.0.4
@@ -1214,7 +1251,6 @@ app:
     - opts:
         is_expand: false
       YARN_VERSION: 1.22.19
-
 meta:
   bitrise.io:
     stack: osx-xcode-15.0.x
