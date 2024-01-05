@@ -20,11 +20,12 @@ export interface ValueListProps extends Omit<ListProps, 'renderFilteredList'> {
    */
   variant?: ValueListVariant;
   /**
-   * Optional enum to replace the filtered list.
+   * Optional props for the list of options
    */
   options?: ValueListItemProps[];
   /**
    * Optional prop to control how the options are filtered.
    */
   filterCallback?: (valueListItemProps: ValueListItemProps) => boolean;
+  ListItemComponent?: React.FunctionComponent<any>;
 }

@@ -1,12 +1,10 @@
-// Third party dependencies.
-import { ViewProps } from 'react-native';
+// External dependencies.
+import { TokenListItemProps } from '../TokenListItem/TokenListItem.types';
+import { ValueListProps } from '../../ValueList/ValueList.types';
 
 /**
  * TokenList component props.
  */
-export interface TokenListProps extends ViewProps {
-  /**
-   * Content to wrap to display.
-   */
-  children?: React.ReactNode;
+export interface TokenListProps extends ValueListProps {
+  options: TokenListItemProps[];
 }

@@ -2,18 +2,16 @@
 
 // Third party dependencies.
 import React from 'react';
-import { View } from 'react-native';
 
 // External dependencies.
-import { useStyles } from '../../../hooks';
+import TokenListItem from '../TokenListItem/TokenListItem';
+import ValueList from '../../ValueList/ValueList';
 
 // Internal dependencies.
-import styleSheet from './TokenList.styles';
 import { TokenListProps } from './TokenList.types';
 
-const TokenList: React.FC<TokenListProps> = ({ style, children }) => {
-  const { styles } = useStyles(styleSheet, { style });
-  return <View style={styles.base}>{children}</View>;
-};
+const TokenList: React.FC<TokenListProps> = ({ options, ...props }) => (
+  <ValueList options={options} ListItemComponent={TokenListItem} {...props} />
+);
 
 export default TokenList;

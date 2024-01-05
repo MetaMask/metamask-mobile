@@ -38,7 +38,11 @@ const ListItemMultiSelect: React.FC<ListItemMultiSelectProps> = ({
       {...props}
     >
       <ListItem gap={gap} style={styles.listItem} {...listItemProps}>
-        <Checkbox style={styles.checkbox} isChecked={isChecked} />
+        <Checkbox
+          style={styles.checkbox}
+          isChecked={isChecked}
+          onPress={onPressHandler}
+        />
         {children}
       </ListItem>
       {isChecked && (
