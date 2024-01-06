@@ -1,13 +1,13 @@
 import {
   SECURITY_PRIVACY_REMEMBER_ME_TOGGLE,
   SECURITY_PRIVACY_DELETE_WALLET_BUTTON,
-} from '../../../../../wdio/screen-objects/testIDs/Screens/SecurityPrivacy.testIds';
+} from '../../../../wdio/screen-objects/testIDs/Screens/SecurityPrivacy.testIds';
 import {
   SecurityPrivacyViewSelectorsIDs,
   SecurityPrivacyViewSelectorsText,
-} from '../../../../selectors/Settings/SecurityAndPrivacy/SecurityPrivacyView.selectors';
-import Matchers from '../../../../utils/Matchers';
-import Gestures from '../../../../utils/Gestures';
+} from '../../../selectors/Settings/SecurityAndPrivacy/SecurityPrivacyView.selectors';
+import Matchers from '../../../utils/Matchers';
+import Gestures from '../../../utils/Gestures';
 
 class SecurityAndPrivacy {
   get changePasswordButton() {

@@ -1,5 +1,5 @@
 'use strict';
-import Browser from '../../../pages/Drawer/Browser';
+import Browser from '../../../pages/Browser';
 import TabBarComponent from '../../../pages/TabBarComponent';
 import { loginToApp } from '../../../viewHelper';
 import SigningModal from '../../../pages/modals/SigningModal';

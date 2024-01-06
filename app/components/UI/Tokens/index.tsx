@@ -244,7 +244,7 @@ const Tokens: React.FC<TokensI> = ({ tokens }) => {
 
     if (balanceFiat === TOKEN_RATE_UNDEFINED) {
       mainBalance = balanceValueFormatted;
-      secondaryBalance = strings('wallet.unable_to_load');
+      secondaryBalance = strings('wallet.unable_to_find_conversion_rate');
     }
 
     asset = { ...asset, balanceFiat };

@@ -1,9 +1,9 @@
-import Matchers from '../../../../utils/Matchers';
+import Matchers from '../../../utils/Matchers';
 import {
   AddContactViewSelectorsIDs,
   AddContactViewSelectorsText,
-} from '../../../../selectors/Settings/Contacts/AddContactView.selectors';
-import Gestures from '../../../../utils/Gestures';
+} from '../../../selectors/Settings/Contacts/AddContactView.selectors';
+import Gestures from '../../../utils/Gestures';
 
 class AddContactView {
   get container() {

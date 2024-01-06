@@ -14,7 +14,7 @@ Feature: Onboarding Import Wallet
     Then Terms of Use is displayed
     When I agree to terms
     Then Terms of Use is not displayed
-    And "Import from seed" is displayed
+    And "Import from Secret Recovery Phrase" is displayed
 
   Scenario Outline: Password Strength
     When I type <password> in new password field

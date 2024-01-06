@@ -1,7 +1,7 @@
-import TestHelpers from '../../../../helpers';
-import { ContactsViewSelectorIDs } from '../../../../selectors/Settings/Contacts/ContacsView.selectors';
-import Matchers from '../../../../utils/Matchers';
-import Gestures from '../../../../utils/Gestures';
+import TestHelpers from '../../../helpers';
+import { ContactsViewSelectorIDs } from '../../../selectors/Settings/Contacts/ContacsView.selectors';
+import Matchers from '../../../utils/Matchers';
+import Gestures from '../../../utils/Gestures';
 
 class ContactsView {
   get container() {

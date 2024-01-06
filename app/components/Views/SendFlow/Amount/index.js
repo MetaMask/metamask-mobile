@@ -84,6 +84,7 @@ import {
 } from '../../../../../wdio/screen-objects/testIDs/Screens/AmountScreen.testIds.js';
 import generateTestId from '../../../../../wdio/utils/generateTestId';
 import {
+  selectChainId,
   selectProviderType,
   selectTicker,
 } from '../../../../selectors/networkController';
@@ -98,8 +99,13 @@ import { selectContractBalances } from '../../../../selectors/tokenBalancesContr
 import { selectSelectedAddress } from '../../../../selectors/preferencesController';
 import { PREFIX_HEX_STRING } from '../../../../constants/transaction';
 import Routes from '../../../../constants/navigation/Routes';
+import { getRampNetworks } from '../../../../reducers/fiatOrders';
+import { swapsLivenessSelector } from '../../../../reducers/swaps';
+import { isSwapsAllowed } from '../../../../components/UI/Swaps/utils';
+import { swapsUtils } from '@metamask/swaps-controller';
 import { regex } from '../../../../util/regex';
 import { AmountViewSelectorsIDs } from '../../../../../e2e/selectors/SendFlow/AmountView.selectors';
+import { isNetworkRampNativeTokenSupported } from '../../../UI/Ramp/common/utils';
 
 const KEYBOARD_OFFSET = Device.isSmallDevice() ? 80 : 120;
 
@@ -285,6 +291,18 @@ const createStyles = (colors) =>
     errorMessageWrapper: {
       marginVertical: 16,
     },
+    errorBuyWrapper: {
+      marginHorizontal: 24,
+      marginTop: 12,
+      paddingHorizontal: 10,
+      paddingVertical: 6,
+      backgroundColor: colors.error.muted,
+      borderColor: colors.error.default,
+      borderRadius: 8,
+      borderWidth: 1,
+      justifyContent: 'center',
+      alignItems: 'center',
+    },
     CollectibleMedia: {
       width: 120,
       height: 120,
@@ -338,6 +356,18 @@ const createStyles = (colors) =>
     warningContainer: {
       marginTop: 20,
       marginHorizontal: 20,
+    },
+    swapOrBuyButton: { width: '100%', marginTop: 16 },
+    error: {
+      color: colors.text.default,
+      fontSize: 12,
+      lineHeight: 16,
+      ...fontStyles.normal,
+      textAlign: 'center',
+    },
+    underline: {
+      textDecorationLine: 'underline',
+      ...fontStyles.bold,
     },
   });
 
@@ -434,6 +464,18 @@ class Amount extends PureComponent {
      * Resets transaction state
      */
     resetTransaction: PropTypes.func,
+    /**
+     * Boolean that indicates if the network supports buy
+     */
+    isNetworkBuyNativeTokenSupported: PropTypes.bool,
+    /**
+     * Boolean that indicates if the swap is live
+     */
+    swapsIsLive: PropTypes.bool,
+    /**
+     * String that indicates the current chain id
+     */
+    chainId: PropTypes.string,
   };
 
   state = {
@@ -1188,10 +1230,49 @@ class Amount extends PureComponent {
       internalPrimaryCurrencyIsCrypto,
       currentBalance,
     } = this.state;
-    const { currentCurrency } = this.props;
+    const {
+      currentCurrency,
+      selectedAsset,
+      navigation,
+      isNetworkBuyNativeTokenSupported,
+      swapsIsLive,
+      chainId,
+    } = this.props;
     const colors = this.context.colors || mockTheme.colors;
     const themeAppearance = this.context.themeAppearance || 'light';
     const styles = createStyles(colors);
+    const navigateToSwap = () => {
+      navigation.replace('Swaps', {
+        screen: 'SwapsAmountView',
+        params: {
+          sourceToken: swapsUtils.NATIVE_SWAPS_TOKEN_ADDRESS,
+          destinationToken: selectedAsset.address,
+        },
+      });
+    };
+
+    const isSwappable =
+      !selectedAsset.isETH &&
+      AppConstants.SWAPS.ACTIVE &&
+      swapsIsLive &&
+      isSwapsAllowed(chainId) &&
+      amountError === strings('transaction.insufficient');
+
+    const navigateToBuyOrSwaps = () => {
+      if (isSwappable) {
+        Analytics.trackEventWithParameters(MetaMetricsEvents.LINK_CLICKED, {
+          location: 'insufficient_funds_warning',
+          text: 'swap_tokens',
+        });
+        navigateToSwap();
+      } else if (isNetworkBuyNativeTokenSupported && selectedAsset.isETH) {
+        Analytics.trackEventWithParameters(MetaMetricsEvents.LINK_CLICKED, {
+          location: 'insufficient_funds_warning',
+          text: 'buy_more',
+        });
+        navigation.navigate(Routes.RAMP.BUY);
+      }
+    };
 
     return (
       <View>
@@ -1255,7 +1336,23 @@ class Amount extends PureComponent {
             style={styles.errorMessageWrapper}
             {...generateTestId(Platform, AmountViewSelectorsIDs.AMOUNT_ERROR)}
           >
-            <ErrorMessage errorMessage={amountError} />
+            <TouchableOpacity
+              onPress={navigateToBuyOrSwaps}
+              style={styles.errorBuyWrapper}
+            >
+              <Text style={styles.error}>{amountError}</Text>
+              {isNetworkBuyNativeTokenSupported && selectedAsset.isETH && (
+                <Text style={[styles.error, styles.underline]}>
+                  {strings('transaction.buy_more')}
+                </Text>
+              )}
+
+              {isSwappable && (
+                <Text style={[styles.error, styles.underline]}>
+                  {strings('transaction.swap_tokens')}
+                </Text>
+              )}
+            </TouchableOpacity>
           </View>
         )}
       </View>
@@ -1423,6 +1520,12 @@ const mapStateToProps = (state, ownProps) => ({
   transactionState: ownProps.transaction || state.transaction,
   selectedAsset: state.transaction.selectedAsset,
   isPaymentRequest: state.transaction.paymentRequest,
+  isNetworkBuyNativeTokenSupported: isNetworkRampNativeTokenSupported(
+    selectChainId(state),
+    getRampNetworks(state),
+  ),
+  swapsIsLive: swapsLivenessSelector(state),
+  chainId: selectChainId(state),
 });
 
 const mapDispatchToProps = (dispatch) => ({
