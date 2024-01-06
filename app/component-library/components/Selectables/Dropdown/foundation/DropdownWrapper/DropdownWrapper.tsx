@@ -34,7 +34,7 @@ const DropdownWrapper: React.FC<DropdownWrapperProps> = ({
 
   const renderTriggerEl = () => {
     const DropdownButtonContent: ValueListItemProps = value || {
-      description: placeholder,
+      label: placeholder,
     };
 
     const onPressDropdownButton = (event: GestureResponderEvent) => {

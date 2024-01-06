@@ -26,6 +26,7 @@ const Dropdown: React.FC<DropdownProps> = ({
   filterCallback,
   textFieldSearchProps,
   isSearchable,
+  SkinComponent,
   ...props
 }) => {
   const { styles } = useStyles(styleSheet, { style });
@@ -35,6 +36,7 @@ const Dropdown: React.FC<DropdownProps> = ({
       value={value}
       dropdownButtonProps={dropdownButtonProps}
       bottomSheetProps={bottomSheetProps}
+      placeholder={placeholder}
       {...props}
     >
       <SelectableMenu
@@ -46,6 +48,7 @@ const Dropdown: React.FC<DropdownProps> = ({
         filterCallback={filterCallback}
         textFieldSearchProps={textFieldSearchProps}
         isSearchable={isSearchable}
+        SkinComponent={SkinComponent}
       />
     </DropdownWrapper>
   );

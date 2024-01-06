@@ -28,7 +28,8 @@ export type StartIconIconSizeByDropdownButtonSize = {
 /**
  * DropdownButton component props.
  */
-export interface DropdownButtonProps extends SelectableButtonProps {
+export interface DropdownButtonProps
+  extends Omit<SelectableButtonProps, 'description'> {
   /**
    * Optional enum to select between DropdownButton sizes.
    * @default Md
