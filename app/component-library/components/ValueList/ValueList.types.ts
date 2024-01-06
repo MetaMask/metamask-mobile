@@ -27,4 +27,5 @@ export interface ValueListProps extends Omit<ListProps, 'renderFilteredList'> {
    * Optional prop to control how the options are filtered.
    */
   filterCallback?: (valueListItemProps: ValueListItemProps) => boolean;
+  SkinComponent?: React.FunctionComponent<any>;
 }

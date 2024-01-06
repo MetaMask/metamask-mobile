@@ -25,6 +25,7 @@ const SelectableMenu: React.FC<SelectableMenuProps> = ({
   textFieldSearchProps,
   isSearchable,
   isMultiSelect = false,
+  SkinComponent,
   ...props
 }) => {
   const { styles } = useStyles(styleSheet, {
@@ -51,6 +52,7 @@ const SelectableMenu: React.FC<SelectableMenuProps> = ({
         variant={
           isMultiSelect ? ValueListVariant.MultiSelect : ValueListVariant.Select
         }
+        SkinComponent={SkinComponent}
       />
     </SelectableMenuBase>
   );

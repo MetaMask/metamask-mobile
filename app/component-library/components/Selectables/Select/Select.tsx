@@ -26,6 +26,7 @@ const Select: React.FC<SelectProps> = ({
   filterCallback,
   textFieldSearchProps,
   isSearchable,
+  SkinComponent,
   ...props
 }) => {
   const { styles } = useStyles(styleSheet, { style });
@@ -47,6 +48,7 @@ const Select: React.FC<SelectProps> = ({
         filterCallback={filterCallback}
         textFieldSearchProps={textFieldSearchProps}
         isSearchable={isSearchable}
+        SkinComponent={SkinComponent}
       />
     </SelectWrapper>
   );

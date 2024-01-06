@@ -2,10 +2,10 @@
 import { StyleSheet, ViewStyle } from 'react-native';
 
 // External dependencies.
-import { Theme } from '../../../../../../../util/theme/models';
+import { Theme } from '../../../../../util/theme/models';
 
 /**
- * Style sheet function for SelectButtonBase component.
+ * Style sheet function for SelectableButton component.
  *
  * @param params Style sheet params.
  * @param params.theme App theme from ThemeContext.

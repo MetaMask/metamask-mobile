@@ -3,7 +3,7 @@ import { IconSize } from '../../../../Icons/Icon';
 import { AvatarSize } from '../../../../Avatars/Avatar';
 
 // Internal dependencies.
-import { SelectButtonBaseProps } from './foundation/SelectButtonBase.types';
+import { SelectableButtonProps } from '../../../foundation/SelectableButton/SelectableButton.types';
 
 /**
  * SelectButton sizes
@@ -28,7 +28,7 @@ export type StartIconIconSizeBySelectButtonSize = {
 /**
  * SelectButton component props.
  */
-export interface SelectButtonProps extends SelectButtonBaseProps {
+export interface SelectButtonProps extends SelectableButtonProps {
   /**
    * Optional enum to select between SelectButton sizes.
    * @default Md

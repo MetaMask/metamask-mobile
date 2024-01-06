@@ -17,16 +17,6 @@ const styleSheet = (params: { theme: Theme; vars: any }) => {
   const { style } = vars;
   return StyleSheet.create({
     base: Object.assign({} as ViewStyle, style) as ViewStyle,
-    labelContainer: {
-      flexDirection: 'row',
-      alignItems: 'center',
-    },
-    stakeContainer: {
-      marginLeft: 4,
-    },
-    endAccessory: {
-      alignItems: 'flex-end',
-    },
   });
 };
 

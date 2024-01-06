@@ -11,7 +11,7 @@ import Avatar from '../../../../Avatars/Avatar/Avatar';
 // Internal dependencies.
 import styleSheet from './SelectButton.styles';
 import { SelectButtonProps } from './SelectButton.types';
-import SelectButtonBase from './foundation/SelectButtonBase';
+import SelectableButton from '../../../foundation/SelectableButton/SelectableButton';
 import {
   DEFAULT_SELECTBUTTON_GAP,
   DEFAULT_SELECTBUTTON_VERTICALALIGNMENT,
@@ -61,7 +61,7 @@ const SelectButton: React.FC<SelectButtonProps> = ({
   };
 
   return (
-    <SelectButtonBase
+    <SelectableButton
       style={styles.base}
       gap={gap}
       verticalAlignment={verticalAlignment}

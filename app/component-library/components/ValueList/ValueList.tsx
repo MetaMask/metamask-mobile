@@ -18,6 +18,7 @@ const ValueList: React.FC<ValueListProps> = ({
   options = [],
   filterCallback,
   isSearchable,
+  SkinComponent,
   ...props
 }) => {
   const [selectedItem, setSelectedItem] = useState<ValueListItemProps | null>(
@@ -33,8 +34,9 @@ const ValueList: React.FC<ValueListProps> = ({
             setSelectedItem(optionProps);
           }
         };
+        const RenderingComponent = SkinComponent || ValueListItem;
         return (
-          <ValueListItem
+          <RenderingComponent
             key={index}
             variant={variant}
             onPress={onPressHandler}

@@ -7,11 +7,11 @@ import React from 'react';
 import { useStyles } from '../../../../../hooks';
 import Icon from '../../../../Icons/Icon/Icon';
 import Avatar from '../../../../Avatars/Avatar/Avatar';
+import SelectableButton from '../../../foundation/SelectableButton/SelectableButton';
 
 // Internal dependencies.
 import styleSheet from './DropdownButton.styles';
 import { DropdownButtonProps } from './DropdownButton.types';
-import DropdownButtonBase from './foundation/DropdownButtonBase';
 import {
   DEFAULT_DROPDOWNBUTTON_GAP,
   DEFAULT_DROPDOWNBUTTON_VERTICALALIGNMENT,
@@ -61,7 +61,7 @@ const DropdownButton: React.FC<DropdownButtonProps> = ({
   };
 
   return (
-    <DropdownButtonBase
+    <SelectableButton
       style={styles.base}
       gap={gap}
       verticalAlignment={verticalAlignment}

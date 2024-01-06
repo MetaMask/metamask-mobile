@@ -5,15 +5,15 @@ import React from 'react';
 import { View, TouchableOpacity } from 'react-native';
 
 // External dependencies.
-import { useStyles } from '../../../../../../hooks';
-import ValueListItem from '../../../../../ValueList/ValueListItem/ValueListItem';
-import { ValueListVariant } from '../../../../../ValueList/ValueList.types';
+import { useStyles } from '../../../../hooks';
+import ValueListItem from '../../../ValueList/ValueListItem/ValueListItem';
+import { ValueListVariant } from '../../../ValueList/ValueList.types';
 
 // Internal dependencies.
-import styleSheet from './SelectButtonBase.styles';
-import { SelectButtonBaseProps } from './SelectButtonBase.types';
+import styleSheet from './SelectableButton.styles';
+import { SelectableButtonProps } from './SelectableButton.types';
 
-const SelectButtonBase: React.FC<SelectButtonBaseProps> = ({
+const SelectableButton: React.FC<SelectableButtonProps> = ({
   style,
   iconEl,
   iconProps,
@@ -26,9 +26,11 @@ const SelectButtonBase: React.FC<SelectButtonBaseProps> = ({
   verticalAlignment,
   caretIconEl,
   isDisabled,
+  SkinComponent,
   ...touchableOpacityProps
 }) => {
   const { styles } = useStyles(styleSheet, { style });
+  const RenderingComponent = SkinComponent || ValueListItem;
   return (
     <TouchableOpacity
       style={styles.base}
@@ -36,7 +38,7 @@ const SelectButtonBase: React.FC<SelectButtonBaseProps> = ({
       disabled={isDisabled}
       accessibilityRole="button"
     >
-      <ValueListItem
+      <RenderingComponent
         style={styles.value}
         iconEl={iconEl}
         iconProps={iconProps}
@@ -49,10 +51,10 @@ const SelectButtonBase: React.FC<SelectButtonBaseProps> = ({
         variant={ValueListVariant.Display}
       >
         {children}
-      </ValueListItem>
+      </RenderingComponent>
       <View>{caretIconEl}</View>
     </TouchableOpacity>
   );
 };
 
-export default SelectButtonBase;
+export default SelectableButton;
