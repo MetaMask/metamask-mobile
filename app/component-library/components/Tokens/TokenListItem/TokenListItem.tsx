@@ -85,5 +85,4 @@ const TokenListItem: React.FC<TokenListItemProps> = ({
     />
   );
 };
-
 export default TokenListItem;

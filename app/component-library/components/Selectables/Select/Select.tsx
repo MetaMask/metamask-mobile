@@ -35,6 +35,7 @@ const Select: React.FC<SelectProps> = ({
       value={value}
       selectButtonProps={selectButtonProps}
       bottomSheetProps={bottomSheetProps}
+      placeholder={placeholder}
       {...props}
     >
       <SelectableMenu

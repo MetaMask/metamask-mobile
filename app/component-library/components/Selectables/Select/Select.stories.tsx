@@ -13,6 +13,9 @@ const SelectStoryMeta = {
   title: 'Component Library / Selectables / Select',
   component: SelectComponent,
   argTypes: {
+    placeholder: {
+      control: { type: 'text' },
+    },
     title: {
       control: { type: 'text' },
     },

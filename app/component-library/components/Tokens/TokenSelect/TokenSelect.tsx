@@ -6,18 +6,23 @@ import { View } from 'react-native';
 
 // External dependencies.
 import { useStyles } from '../../../hooks';
-import ValueList from '../../ValueList/ValueList';
 import { ValueListItemProps } from '../../ValueList/ValueListItem/ValueListItem.types';
 import { TokenListItemProps } from '../TokenListItem/TokenListItem.types';
 import TokenIcon from '../TokenIcon/TokenIcon';
 import Text, { TextVariant, TextColor } from '../../Texts/Text';
 import Icon, { IconName, IconColor, IconSize } from '../../Icons/Icon';
+import Select from '../../Selectables/Select/Select';
 
 // Internal dependencies.
-import styleSheet from './TokenList.styles';
-import { TokenListProps } from './TokenList.types';
+import styleSheet from './TokenSelect.styles';
+import { TokenSelectProps } from './TokenSelect.types';
 
-const TokenList: React.FC<TokenListProps> = ({ style, options, ...props }) => {
+const TokenSelect: React.FC<TokenSelectProps> = ({
+  style,
+  value,
+  options,
+  ...props
+}) => {
   const { styles } = useStyles(styleSheet, { style });
   const convertTokenPropsToValueProps = (
     option: TokenListItemProps,
@@ -74,7 +79,15 @@ const TokenList: React.FC<TokenListProps> = ({ style, options, ...props }) => {
     (option: TokenListItemProps): ValueListItemProps =>
       convertTokenPropsToValueProps(option),
   );
-  return <ValueList options={convertedOptions} {...props} />;
+  const convertedValue = value ? convertTokenPropsToValueProps(value) : {};
+  return (
+    <Select
+      style={styles.base}
+      options={convertedOptions}
+      value={value && convertedValue}
+      {...props}
+    />
+  );
 };
 
-export default TokenList;
+export default TokenSelect;
