@@ -185,7 +185,7 @@
     "@metamask/etherscan-link": "^2.0.0",
     "@metamask/gas-fee-controller": "^5.0.0",
     "@metamask/key-tree": "^9.0.0",
-    "@metamask/keyring-controller": "^7.5.0",
+    "@metamask/keyring-controller": "^8.1.0",
     "@metamask/logging-controller": "^1.0.1",
     "@metamask/network-controller": "^8.0.0",
     "@metamask/permission-controller": "^4.0.1",

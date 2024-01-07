@@ -3513,6 +3513,14 @@
     "@metamask/utils" "^8.2.0"
     immer "^9.0.6"
 
+"@metamask/base-controller@^4.0.1":
+  version "4.0.1"
+  resolved "https://registry.yarnpkg.com/@metamask/base-controller/-/base-controller-4.0.1.tgz#3bb3117bdfdfcf8fa5058f13c7dcb10ac6fe7436"
+  integrity sha512-t1DXcDHaFmx23XSMcz3nHP+ru4vvZmc07eVGYBC5o/4lzKdKq2PZy6XFw5noLtm7XOf3KO1ItXWikUAy1cEe5w==
+  dependencies:
+    "@metamask/utils" "^8.2.0"
+    immer "^9.0.6"
+
 "@metamask/browser-passworder@^4.1.0":
   version "4.3.0"
   resolved "https://registry.yarnpkg.com/@metamask/browser-passworder/-/browser-passworder-4.3.0.tgz#62c200750efcea864bd31d685120331859e1ab1e"
@@ -3540,7 +3548,7 @@
   resolved "https://registry.yarnpkg.com/@metamask/contract-metadata/-/contract-metadata-2.2.0.tgz#277764d0d56e37180ae7644a9d11eb96295b36fc"
   integrity sha512-SM6A4C7vXNbVpgMTX67kfW8QWvu3eSXxMZlY5PqZBTkvri1s9zgQ0uwRkK5r2VXNEoVmXCDnnEX/tX5EzzgNUQ==
 
-"@metamask/controller-utils@^3.0.0", "@metamask/controller-utils@^3.4.0", "@metamask/controller-utils@^4.0.0", "@metamask/controller-utils@^4.3.2", "@metamask/controller-utils@^5.0.1", "@metamask/controller-utils@^5.0.2", "@metamask/controller-utils@^6.0.0", "@metamask/controller-utils@^6.1.0":
+"@metamask/controller-utils@^3.0.0", "@metamask/controller-utils@^3.4.0", "@metamask/controller-utils@^4.0.0", "@metamask/controller-utils@^4.3.2", "@metamask/controller-utils@^5.0.1", "@metamask/controller-utils@^5.0.2", "@metamask/controller-utils@^6.0.0", "@metamask/controller-utils@^6.1.0", "@metamask/controller-utils@^8.0.1":
   version "3.4.0"
   resolved "https://registry.yarnpkg.com/@metamask/controller-utils/-/controller-utils-3.4.0.tgz#3714799a3e2648cd758272612578238749e3e11b"
   integrity sha512-/++y7qXUd9+aRzOklypfzmehO87QVKndlJXsbLRk36W5L5DJo4lrR2pd/IBbwbWEhFJWHhlfbMD+T+gEBvIftw==
@@ -3719,7 +3727,7 @@
     tweetnacl "^1.0.3"
     tweetnacl-util "^0.15.1"
 
-"@metamask/eth-sig-util@^7.0.0":
+"@metamask/eth-sig-util@^7.0.0", "@metamask/eth-sig-util@^7.0.1":
   version "7.0.1"
   resolved "https://registry.yarnpkg.com/@metamask/eth-sig-util/-/eth-sig-util-7.0.1.tgz#ad3227d6120f15f9293478de7dd9685a5c329586"
   integrity sha512-59GSrMyFH2fPfu7nKeIQdZ150zxXNNhAQIUaFRUW+MGtVA4w/ONbiQobcRBLi+jQProfIyss51G8pfLPcQ0ylg==
@@ -3783,17 +3791,17 @@
     "@noble/secp256k1" "^1.5.5"
     "@scure/base" "^1.0.0"
 
-"@metamask/keyring-controller@^7.5.0":
-  version "7.5.0"
-  resolved "https://registry.yarnpkg.com/@metamask/keyring-controller/-/keyring-controller-7.5.0.tgz#7c168a0ffe884aaefb37529643ae1bf2a6071828"
-  integrity sha512-bmVOEQYrSjb/GwRbcHNCOaDn3KeBFrgMv/wLlIVlrYT8tXRA0ZsGTFyt60aaPX4IqYj0Z8vGKb9K/hhsPpYxZg==
+"@metamask/keyring-controller@^8.1.0":
+  version "8.1.0"
+  resolved "https://registry.yarnpkg.com/@metamask/keyring-controller/-/keyring-controller-8.1.0.tgz#e8c9a9a4e4689492b1a4e440ece321a9eea3d279"
+  integrity sha512-b5T2tULBoYjuc/xeP7JxsVPo2zABJsTR3JkboKUkcptL72qGHgMix1eQgPeU4msMHrDC4hc5Bgc8ZD2PxtjzEw==
   dependencies:
     "@keystonehq/metamask-airgapped-keyring" "^0.13.1"
-    "@metamask/base-controller" "^3.2.1"
+    "@metamask/base-controller" "^3.2.3"
     "@metamask/eth-keyring-controller" "^13.0.1"
-    "@metamask/message-manager" "^7.3.2"
-    "@metamask/preferences-controller" "^4.4.0"
-    "@metamask/utils" "^6.2.0"
+    "@metamask/message-manager" "^7.3.5"
+    "@metamask/preferences-controller" "^4.4.3"
+    "@metamask/utils" "^8.1.0"
     async-mutex "^0.2.6"
     ethereumjs-util "^7.0.10"
     ethereumjs-wallet "^1.0.1"
@@ -3808,7 +3816,7 @@
     "@metamask/controller-utils" "^4.3.2"
     uuid "^8.3.2"
 
-"@metamask/message-manager@^7.0.0", "@metamask/message-manager@^7.3.2":
+"@metamask/message-manager@^7.0.0":
   version "7.3.6"
   resolved "https://registry.yarnpkg.com/@metamask/message-manager/-/message-manager-7.3.6.tgz#86034d11e695d26da1dbbfc736449301eef2644c"
   integrity sha512-Nz6tSvu64mIKV2VupOWlQD6s3AxJU+dovsg6m3dVjTZkxNu5cSfDV4LhLgeVXEk4RQgWk7BHX1wUndC6bJF9xA==
@@ -3816,6 +3824,20 @@
     "@metamask/base-controller" "^4.0.0"
     "@metamask/controller-utils" "^6.0.0"
     "@metamask/eth-sig-util" "^7.0.0"
+    "@metamask/utils" "^8.2.0"
+    "@types/uuid" "^8.3.0"
+    ethereumjs-util "^7.0.10"
+    jsonschema "^1.2.4"
+    uuid "^8.3.2"
+
+"@metamask/message-manager@^7.3.5":
+  version "7.3.7"
+  resolved "https://registry.yarnpkg.com/@metamask/message-manager/-/message-manager-7.3.7.tgz#fff3c4f0896c93990f33689cb9fc8f286b512f33"
+  integrity sha512-O0XbSL/OIIm5N+FTDwD+HW7PtW2OhgAUgcIkfouhLFhq7K25p4VuSx7YG4L3DRdkZ2VMXM9LT+9yhE4EU+cuDw==
+  dependencies:
+    "@metamask/base-controller" "^4.0.1"
+    "@metamask/controller-utils" "^8.0.1"
+    "@metamask/eth-sig-util" "^7.0.1"
     "@metamask/utils" "^8.2.0"
     "@types/uuid" "^8.3.0"
     ethereumjs-util "^7.0.10"
@@ -3980,7 +4002,7 @@
     elliptic "^6.5.4"
     json-rpc-random-id "^1.0.1"
 
-"@metamask/preferences-controller@^3.0.0", "@metamask/preferences-controller@^4.0.0", "@metamask/preferences-controller@^4.4.0":
+"@metamask/preferences-controller@^3.0.0", "@metamask/preferences-controller@^4.0.0", "@metamask/preferences-controller@^4.4.3":
   version "4.4.3"
   resolved "https://registry.yarnpkg.com/@metamask/preferences-controller/-/preferences-controller-4.4.3.tgz#f0f05793370892d2d7bc9b07e685583a1f4d80c9"
   integrity sha512-ftDRfOEgRrQqFyfZEQk9AVD1YMdP54NvtiBCrlqAG4hiFgBXQbQTcyl0i/jR/cfki8hYMuH1gPdId14CCAJbDQ==
