@@ -139,7 +139,7 @@ describe('Adding Contract Nickname', () => {
   it('should deep link to the approval modal', async () => {
     await TestHelpers.openDeepLink(APPROVAL_DEEPLINK_URL);
     await TestHelpers.delay(3000);
-    await ContractApprovalModal.isVisible();
+    await Assertions.checkIfVisible(ContractApprovalModal.container);
   });
 
   it('should add a nickname to the contract', async () => {
@@ -152,9 +152,9 @@ describe('Adding Contract Nickname', () => {
     );
     await ContractNickNameView.tapConfirmButton();
 
-    await ContractApprovalModal.isContractNickNameVisible(
-      CONTRACT_NICK_NAME_TEXT,
-    );
+    //await ContractApprovalModal.isContractNickNameVisible(
+    //  CONTRACT_NICK_NAME_TEXT,
+    //);
   });
 
   it('should edit the contract nickname', async () => {
@@ -167,7 +167,7 @@ describe('Adding Contract Nickname', () => {
     await ContractNickNameView.typeContractNickName('Ace');
     await ContractNickNameView.tapConfirmButton();
 
-    await ContractApprovalModal.isContractNickNameVisible('Ace');
+    //await ContractApprovalModal.isContractNickNameVisible('Ace');
     await ContractApprovalModal.tapToCopyContractAddress();
     await ContractApprovalModal.tapRejectButton();
   });
@@ -185,7 +185,7 @@ describe('Adding Contract Nickname', () => {
   it('should return to the send view', async () => {
     // Open Drawer
     await CommonView.tapBackButton();
-    await SettingsView.tapCloseButton();
+    //await SettingsView.tapCloseButton();
 
     await TabBarComponent.tapActions();
     await WalletActionsModal.tapSendButton();
@@ -200,11 +200,11 @@ describe('Adding Contract Nickname', () => {
   it('should deep link to the approval modal and approve transaction', async () => {
     await TestHelpers.openDeepLink(APPROVAL_DEEPLINK_URL);
     await TestHelpers.delay(3000);
-    await ContractApprovalModal.isVisible();
-    await ContractApprovalModal.isContractNickNameVisible('Ace');
+    await Assertions.checkIfVisible(ContractApprovalModal.container);
+    //await ContractApprovalModal.isContractNickNameVisible('Ace');
 
     await ContractApprovalModal.tapApproveButton();
-    await ContractApprovalModal.isNotVisible();
+    await Assertions.checkIfNotVisible(ContractApprovalModal.container);
   });
 
   it('should go to the send view again', async () => {

@@ -1,6 +1,6 @@
 // Third party dependencies.
 import React, { useCallback, useContext, useMemo } from 'react';
-import { View, Platform } from 'react-native';
+import { View } from 'react-native';
 import { useSelector } from 'react-redux';
 import { useNavigation } from '@react-navigation/native';
 import { ProviderConfig } from '@metamask/network-controller';
@@ -25,14 +25,9 @@ import {
 import getAccountNameWithENS from '../../../../util/accounts';
 import AnalyticsV2 from '../../../../util/analyticsV2';
 import { MetaMetricsEvents } from '../../../../core/Analytics';
-import {
-  CONNECTED_ACCOUNTS_MODAL_CONTAINER,
-  CONNECTED_ACCOUNTS_MODAL_NETWORK_PICKER_ID,
-} from '../../../../../wdio/screen-objects/testIDs/Components/ConnectedAccountsModal.testIds';
-import generateTestId from '../../../../../wdio/utils/generateTestId';
 import Routes from '../../../../constants/navigation/Routes';
 import { selectProviderConfig } from '../../../../selectors/networkController';
-import { ConnectedAccountsSelectorsIDs } from '../../../../../e2e/selectors/Modals/ConnectedAccounts.selectors';
+import { ConnectedAccountsSelectorsIDs } from '../../../../../e2e/selectors/Modals/ConnectedAccountModal.selectors';
 
 // Internal dependencies.
 import { AccountPermissionsConnectedProps } from './AccountPermissionsConnected.types';
@@ -146,7 +141,7 @@ const AccountPermissionsConnected = ({
       <SheetHeader title={strings('accounts.connected_accounts_title')} />
       <View
         style={styles.body}
-        {...generateTestId(Platform, CONNECTED_ACCOUNTS_MODAL_CONTAINER)}
+        testID={ConnectedAccountsSelectorsIDs.CONTAINER}
       >
         <TagUrl
           imageSource={favicon}
@@ -162,10 +157,7 @@ const AccountPermissionsConnected = ({
           imageSource={networkImageSource}
           onPress={switchNetwork}
           style={styles.networkPicker}
-          {...generateTestId(
-            Platform,
-            CONNECTED_ACCOUNTS_MODAL_NETWORK_PICKER_ID,
-          )}
+          testID={ConnectedAccountsSelectorsIDs.NETWORK_PICKER}
         />
       </View>
       <AccountSelectorList

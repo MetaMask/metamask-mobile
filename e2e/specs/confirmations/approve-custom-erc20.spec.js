@@ -12,6 +12,7 @@ import { TestDApp } from '../../pages/TestDApp';
 import { SMART_CONTRACTS } from '../../../app/util/test/smart-contracts';
 import root from '../../../locales/languages/en.json';
 import ContractApprovalModal from '../../pages/modals/ContractApprovalModal';
+import Assertions from '../../utils/Assertions';
 
 const HST_CONTRACT = SMART_CONTRACTS.HST;
 const WEBVIEW_TEST_DAPP_APPROVE_TOKENS_BUTTON_ID = 'approveTokens';
@@ -55,7 +56,10 @@ describe(SmokeConfirmations('ERC20 tokens'), () => {
         await ContractApprovalModal.inputCustomAmount('2');
 
         // Assert that custom token amount is shown
-        await ContractApprovalModal.isTokenAmountVisible('2');
+        await Assertions.checkIfHasText(
+          ContractApprovalModal.approveTokenAmount,
+          '2',
+        );
 
         // Tap next button
         await ContractApprovalModal.tapNextButton();

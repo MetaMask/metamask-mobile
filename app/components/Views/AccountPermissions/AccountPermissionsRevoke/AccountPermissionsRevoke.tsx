@@ -1,6 +1,6 @@
 // Third party dependencies.
 import React, { useCallback, useContext } from 'react';
-import { Platform, View } from 'react-native';
+import { View } from 'react-native';
 
 // External dependencies.
 import SheetActions from '../../../../component-library/components-temp/SheetActions';
@@ -32,15 +32,11 @@ import { selectAccountsLength } from '../../../../selectors/accountTrackerContro
 import { AccountPermissionsRevokeProps } from './AccountPermissionsRevoke.types';
 import styleSheet from './AccountPermissionsRevoke.styles';
 import { useSelector } from 'react-redux';
-import generateTestId from '../../../../../wdio/utils/generateTestId';
-import {
-  CONNECTED_ACCOUNTS_MODAL_DISCONNECT_ALL_BUTTON_ID,
-  CONNECTED_ACCOUNTS_MODAL_REVOKE_BUTTON_ID,
-} from '../../../../../wdio/screen-objects/testIDs/Components/ConnectedAccountsModal.testIds';
 import { IconName } from '../../../../component-library/components/Icons/Icon';
 import Avatar from '../../../../component-library/components/Avatars/Avatar/Avatar';
 import { AvatarVariant } from '../../../../component-library/components/Avatars/Avatar';
 import { selectNetworkConfigurations } from '../../../../selectors/networkController';
+import { ConnectedAccountsSelectorsIDs } from '../../../../../e2e/selectors/Modals/ConnectedAccountModal.selectors';
 
 const AccountPermissionsRevoke = ({
   ensByAccountAddress,
@@ -91,10 +87,7 @@ const AccountPermissionsRevoke = ({
     () => (
       <View
         style={styles.sheetActionContainer}
-        {...generateTestId(
-          Platform,
-          CONNECTED_ACCOUNTS_MODAL_DISCONNECT_ALL_BUTTON_ID,
-        )}
+        testID={ConnectedAccountsSelectorsIDs.DISCONNECT_ALL_BUTTON}
       >
         <SheetActions
           actions={[
@@ -198,10 +191,7 @@ const AccountPermissionsRevoke = ({
             label={strings('accounts.disconnect')}
             size={ButtonSize.Sm}
             style={styles.disconnectButton}
-            {...generateTestId(
-              Platform,
-              CONNECTED_ACCOUNTS_MODAL_REVOKE_BUTTON_ID,
-            )}
+            testID={ConnectedAccountsSelectorsIDs.DISCONNECT_ALL_BUTTON}
           />
         )}
         isSelectionDisabled

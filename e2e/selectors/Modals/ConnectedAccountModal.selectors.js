@@ -6,3 +6,10 @@ export const ConnectedAccountModalSelectorsText = {
   DISCONNECT_ALL: messages.accounts.disconnect_all_accounts,
   IMPORTED: messages.accounts.imported,
 };
+
+export const ConnectedAccountsSelectorsIDs = {
+  CONNECT_ACCOUNTS_BUTTON: 'connect-accounts-buttons',
+  CONTAINER: 'accounts-connected-modal-container',
+  NETWORK_PICKER: 'accounts-connected-network-picker',
+  DISCONNECT_ALL_BUTTON: 'accounts-connected-revoke-button',
+};
