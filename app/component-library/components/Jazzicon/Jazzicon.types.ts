@@ -16,6 +16,4 @@ export interface JazziconProps extends ViewProps {
 /**
  * Style sheet input parameters.
  */
-export type JazziconStyleSheetVars = Pick<JazziconProps, 'style'> & {
-  size: number;
-};
+export type JazziconStyleSheetVars = Pick<JazziconProps, 'style' | 'size'>;

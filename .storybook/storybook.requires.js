@@ -55,6 +55,7 @@ const getStories = () => {
     "./app/component-library/components/Banners/Banner/Banner.stories.tsx": require("../app/component-library/components/Banners/Banner/Banner.stories.tsx"),
     "./app/component-library/components/Banners/Banner/variants/BannerAlert/BannerAlert.stories.tsx": require("../app/component-library/components/Banners/Banner/variants/BannerAlert/BannerAlert.stories.tsx"),
     "./app/component-library/components/Banners/Banner/variants/BannerTip/BannerTip.stories.tsx": require("../app/component-library/components/Banners/Banner/variants/BannerTip/BannerTip.stories.tsx"),
+    "./app/component-library/components/Blockies/Blockies.stories.tsx": require("../app/component-library/components/Blockies/Blockies.stories.tsx"),
     "./app/component-library/components/BottomSheets/BottomSheet/BottomSheet.stories.tsx": require("../app/component-library/components/BottomSheets/BottomSheet/BottomSheet.stories.tsx"),
     "./app/component-library/components/BottomSheets/BottomSheetFooter/BottomSheetFooter.stories.tsx": require("../app/component-library/components/BottomSheets/BottomSheetFooter/BottomSheetFooter.stories.tsx"),
     "./app/component-library/components/BottomSheets/BottomSheetHeader/BottomSheetHeader.stories.tsx": require("../app/component-library/components/BottomSheets/BottomSheetHeader/BottomSheetHeader.stories.tsx"),
