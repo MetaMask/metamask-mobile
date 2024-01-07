@@ -76,6 +76,7 @@ const getStories = () => {
     "./app/component-library/components/Form/TextFieldSearch/TextFieldSearch.stories.tsx": require("../app/component-library/components/Form/TextFieldSearch/TextFieldSearch.stories.tsx"),
     "./app/component-library/components/HeaderBase/HeaderBase.stories.tsx": require("../app/component-library/components/HeaderBase/HeaderBase.stories.tsx"),
     "./app/component-library/components/Icons/Icon/Icon.stories.tsx": require("../app/component-library/components/Icons/Icon/Icon.stories.tsx"),
+    "./app/component-library/components/Jazzicon/Jazzicon.stories.tsx": require("../app/component-library/components/Jazzicon/Jazzicon.stories.tsx"),
     "./app/component-library/components/List/ListItem/ListItem.stories.tsx": require("../app/component-library/components/List/ListItem/ListItem.stories.tsx"),
     "./app/component-library/components/List/ListItemMultiSelect/ListItemMultiSelect.stories.tsx": require("../app/component-library/components/List/ListItemMultiSelect/ListItemMultiSelect.stories.tsx"),
     "./app/component-library/components/List/ListItemSelect/ListItemSelect.stories.tsx": require("../app/component-library/components/List/ListItemSelect/ListItemSelect.stories.tsx"),
