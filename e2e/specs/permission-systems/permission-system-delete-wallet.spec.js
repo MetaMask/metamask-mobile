@@ -18,6 +18,7 @@ import FixtureBuilder from '../../fixtures/fixture-builder';
 import { withFixtures } from '../../fixtures/fixture-helper';
 import MetaMetricsOptIn from '../../pages/Onboarding/MetaMetricsOptInView';
 import ProtectYourWalletModal from '../../pages/modals/ProtectYourWalletModal';
+import Assertions from '../../utils/Assertions';
 
 const PASSWORD = '12345678';
 
@@ -59,7 +60,7 @@ describe(
           // should tap reset wallet button
           await LoginView.tapResetWalletButton();
 
-          await DeleteWalletModal.isVisible();
+          await Assertions.checkIfVisible(DeleteWalletModal.container);
 
           //Delete wallet
           await DeleteWalletModal.tapIUnderstandButton();
