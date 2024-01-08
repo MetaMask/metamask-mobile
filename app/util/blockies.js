@@ -289,6 +289,13 @@
     return [Math.round(r * 255), Math.round(g * 255), Math.round(b * 255), 255];
   }
 
+  function hexToRgb(hex) {
+    const result = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(hex);
+    return result
+      ? [parseInt(result[1], 16), parseInt(result[2], 16), parseInt(result[3], 16), 255] 
+      : null;
+  }
+
   // The random number is a js implementation of the Xorshift PRNG
   const randseed = new Array(4); // Xorshift: [x, y, z, w] 32 bit values
 
@@ -371,21 +378,20 @@
     );
   }
 
-  function toDataUrl(address) {
+  function toDataUrl(address, colors) {
     const cache = Blockies.cache[address];
     if (address && cache) {
       return cache;
     }
-
     const opts = buildOpts({ seed: address.toLowerCase() });
 
     const imageData = createImageData(opts.size);
     const width = Math.sqrt(imageData.length);
 
     const p = new PNG(opts.size * opts.scale, opts.size * opts.scale, 3);
-    const bgcolor = p.color(...hsl2rgb(...opts.bgcolor));
-    const color = p.color(...hsl2rgb(...opts.color));
-    const spotcolor = p.color(...hsl2rgb(...opts.spotcolor));
+    const bgcolor = colors?.bgcolor ? (p.color(...hexToRgb(colors.bgcolor))) : p.color(...hsl2rgb(...opts.bgcolor));
+    const color = colors?.color ? (p.color(...hexToRgb(colors.spotcolor))) : p.color(...hsl2rgb(...opts.color));
+    const spotcolor = colors?.spotcolor ? (p.color(...hexToRgb(colors.spotcolor))) : p.color(...hsl2rgb(...opts.spotcolor));
 
     for (let i = 0; i < imageData.length; i++) {
       const row = Math.floor(i / width);

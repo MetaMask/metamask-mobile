@@ -7,6 +7,7 @@ export const DEFAULT_JAZZICON_COLORS: string[] = [
   '#F66A0A', // orange-500
   '#FFD33D', // yellow-500
   '#8B45B6', // purple-500
+  '#CFB5F0', // violet-500
 ];
 export const DEFAULT_JAZZICON_WOBBLE = 30;
 export const DEFAULT_JAZZICON_SHAPECOUNT = 3;
