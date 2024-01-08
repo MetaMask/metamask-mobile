@@ -1,41 +1,15 @@
-diff --git a/node_modules/@metamask/controller-utils/dist/constants.d.ts b/node_modules/@metamask/controller-utils/dist/constants.d.ts
-index dd0be20..874c4cd 100644
---- a/node_modules/@metamask/controller-utils/dist/constants.d.ts
-+++ b/node_modules/@metamask/controller-utils/dist/constants.d.ts
-@@ -1,4 +1,5 @@
- import { NetworkType, NetworksTicker, NetworkId } from './types';
-+export declare const MAINNET = 'mainnet';
- export declare const RPC = "rpc";
- export declare const FALL_BACK_VS_CURRENCY = "ETH";
- export declare const IPFS_DEFAULT_GATEWAY_URL = "https://cloudflare-ipfs.com/ipfs/";
 diff --git a/node_modules/@metamask/controller-utils/dist/constants.js b/node_modules/@metamask/controller-utils/dist/constants.js
-index 90ede0b..5eedb16 100644
+index 90ede0b..648018e 100644
 --- a/node_modules/@metamask/controller-utils/dist/constants.js
 +++ b/node_modules/@metamask/controller-utils/dist/constants.js
-@@ -2,6 +2,9 @@
- Object.defineProperty(exports, "__esModule", { value: true });
- exports.NETWORK_ID_TO_ETHERS_NETWORK_NAME_MAP = exports.ApprovalType = exports.ORIGIN_METAMASK = exports.OPENSEA_TEST_API_URL = exports.OPENSEA_API_URL = exports.OPENSEA_PROXY_URL = exports.BUILT_IN_NETWORKS = exports.TESTNET_TICKER_SYMBOLS = exports.ASSET_TYPES = exports.GWEI = exports.ERC1155_TOKEN_RECEIVER_INTERFACE_ID = exports.ERC1155_METADATA_URI_INTERFACE_ID = exports.ERC1155_INTERFACE_ID = exports.ERC721_ENUMERABLE_INTERFACE_ID = exports.ERC721_METADATA_INTERFACE_ID = exports.ERC721_INTERFACE_ID = exports.ERC20 = exports.ERC1155 = exports.ERC721 = exports.MAX_SAFE_CHAIN_ID = exports.GANACHE_CHAIN_ID = exports.IPFS_DEFAULT_GATEWAY_URL = exports.FALL_BACK_VS_CURRENCY = exports.RPC = void 0;
- const types_1 = require("./types");
-+// PATCH: Restore `MAINNET` constant, which was removed in v3.1.0
-+// We need this patch until there are no remaining dependencies on <v3.1.0
-+exports.MAINNET = 'mainnet';
- exports.RPC = 'rpc';
- exports.FALL_BACK_VS_CURRENCY = 'ETH';
- exports.IPFS_DEFAULT_GATEWAY_URL = 'https://cloudflare-ipfs.com/ipfs/';
-@@ -39,6 +42,16 @@ exports.TESTNET_TICKER_SYMBOLS = {
-     SEPOLIA: 'SepoliaETH',
-     LINEA_GOERLI: 'LineaETH',
+@@ -85,9 +85,7 @@ exports.BUILT_IN_NETWORKS = {
+     },
  };
-+
-+// PATCH: Restore `TESTNET_NETWORK_TYPE_TO_TICKER_SYMBOL` constant, which was removed in v3.1.0
-+// We need this patch until there are no remaining dependencies on <v3.1.0
-+exports.TESTNET_NETWORK_TYPE_TO_TICKER_SYMBOL = {
-+    goerli: 'GoerliETH',
-+    sepolia: 'SepoliaETH',
-+    mainnet: '',
-+    rpc: '',
-+    localhost: '',
-+};
+ // APIs
+-exports.OPENSEA_PROXY_URL = 'https://proxy.metafi.codefi.network/opensea/v1/api/v1';
+-exports.OPENSEA_API_URL = 'https://api.opensea.io/api/v1';
+-exports.OPENSEA_TEST_API_URL = 'https://testnets-api.opensea.io/api/v1';
++exports.OPENSEA_PROXY_URL = 'https://proxy.metafi.codefi.network/opensea/v1/api/v2';
+ // Default origin for controllers
+ exports.ORIGIN_METAMASK = 'metamask';
  /**
-  * Map of all build-in Infura networks to their network, ticker and chain IDs.
-  */

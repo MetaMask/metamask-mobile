@@ -43,5 +43,41 @@ export default function migrate(state) {
     }
     state.networkOnboarded.networkOnboardedState = newNetworkOnboardedState;
   }
+
+  // Addressing networkDetails property change (this still needs unit test)
+  if (state?.engine?.backgroundState?.NetworkController?.networkDetails) {
+    const isEIP1559Compatible =
+      state?.engine?.backgroundState?.NetworkController?.networkDetails
+        ?.isEIP1559Compatible;
+
+    if (isEIP1559Compatible) {
+      state.engine.backgroundState.NetworkController.networkDetails = {
+        EIPS: {
+          1559: true,
+        },
+      };
+    } else {
+      state.engine.backgroundState.NetworkController.networkDetails = {
+        EIPS: {
+          1559: false,
+        },
+      };
+    }
+
+    delete state.engine.backgroundState.NetworkController.networkDetails
+      .isEIP1559Compatible;
+  }
+  // Addressing networkConfigurations chainId property change to ehxadecimal (this still needs unit test)
+  if (
+    state?.engine?.backgroundState?.NetworkController?.networkConfigurations
+  ) {
+    Object.values(
+      state?.engine?.backgroundState?.NetworkController?.networkConfigurations,
+    ).forEach((networkConfiguration) => {
+      const newHexChainId = toHex(networkConfiguration.chainId);
+      networkConfiguration.chainId = newHexChainId;
+    });
+  }
+
   return state;
 }

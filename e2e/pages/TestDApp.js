@@ -1,7 +1,7 @@
 import TestHelpers from '../helpers';
 import { testDappConnectButtonCooridinates } from '../viewHelper';
 import ConnectModal from './modals/ConnectModal';
-import Browser from './Drawer/Browser';
+import Browser from './Browser';
 import root from '../../locales/languages/en.json';
 import { getLocalTestDappPort } from '../fixtures/utils';
 import { BrowserViewSelectorsIDs } from '../selectors/BrowserView.selectors';
@@ -92,8 +92,10 @@ export class TestDApp {
     );
 
     if (device.getPlatform() === 'android') {
-      await TestHelpers.waitForWebElementToBeVisibleById(buttonId, 5000);
-      await TestHelpers.tapWebviewElement(buttonId);
+      await TestHelpers.tapAtPoint(
+        BrowserViewSelectorsIDs.ANDROID_CONTAINER,
+        BUTTON_RELATIVE_PONT,
+      );
     } else {
       await TestHelpers.delay(5000);
       await TestHelpers.tapAtPoint(

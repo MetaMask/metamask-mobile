@@ -127,7 +127,8 @@
     "contractBalances": {}
   },
   "TokenRatesController": {
-    "contractExchangeRates": {}
+    "contractExchangeRates": {},
+    "contractExchangeRatesByChainId": {}
   },
   "TransactionController": {
     "lastFetchedBlockNumbers": {},
