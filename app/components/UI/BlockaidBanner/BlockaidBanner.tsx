@@ -112,7 +112,7 @@ const BlockaidBanner = (bannerProps: BlockaidBannerProps) => {
     const { result_type, reason, features, block, req, chainId } =
       securityAlertResponse;
 
-    if (!req) {
+    if (!req || !chainId) {
       return;
     }
 
