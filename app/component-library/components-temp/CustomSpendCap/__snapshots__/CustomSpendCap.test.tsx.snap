@@ -152,7 +152,7 @@ exports[`CustomSpendCap should match snapshot 1`] = `
       >
         <TextInput
           keyboardType="numeric"
-          multiline={true}
+          multiline={false}
           onChangeText={[Function]}
           placeholder="Enter a number here"
           style={

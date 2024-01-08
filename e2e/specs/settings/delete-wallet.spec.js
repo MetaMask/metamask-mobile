@@ -3,15 +3,16 @@ import TestHelpers from '../../helpers';
 import { SmokeCore } from '../../tags';
 import OnboardingView from '../../pages/Onboarding/OnboardingView';
 import LoginView from '../../pages/LoginView';
-import SettingsView from '../../pages/Drawer/Settings/SettingsView';
-import SecurityAndPrivacyView from '../../pages/Drawer/Settings/SecurityAndPrivacy/SecurityAndPrivacyView';
-import ChangePasswordView from '../../pages/Drawer/Settings/SecurityAndPrivacy/ChangePasswordView';
+import SettingsView from '../../pages/Settings/SettingsView';
+import SecurityAndPrivacyView from '../../pages/Settings/SecurityAndPrivacy/SecurityAndPrivacyView';
+import ChangePasswordView from '../../pages/Settings/SecurityAndPrivacy/ChangePasswordView';
 import DeleteWalletModal from '../../pages/modals/DeleteWalletModal';
 import { loginToApp } from '../../viewHelper';
 import TabBarComponent from '../../pages/TabBarComponent';
 import FixtureBuilder from '../../fixtures/fixture-builder';
 import { withFixtures } from '../../fixtures/fixture-helper';
 import CommonView from '../../pages/CommonView';
+import Assertions from '../../utils/Assertions';
 
 describe(
   SmokeCore('Log in into the app, change password then delete wallet flow'),
@@ -32,14 +33,14 @@ describe(
         await TabBarComponent.tapSettings();
         await SettingsView.tapSecurityAndPrivacy();
         await SecurityAndPrivacyView.scrollToChangePasswordView();
-        await expect(
-          await SecurityAndPrivacyView.changePasswordSection,
-        ).toBeVisible();
+        await Assertions.checkIfVisible(
+          SecurityAndPrivacyView.changePasswordSection,
+        );
 
         // should confirm password before changing it
         await SecurityAndPrivacyView.tapChangePasswordButton();
 
-        await expect(await ChangePasswordView.title).toBeVisible();
+        await Assertions.checkIfVisible(ChangePasswordView.title);
         await ChangePasswordView.typeInConfirmPasswordInputBox(PASSWORD);
 
         // should change the password
