@@ -79,6 +79,9 @@ tests
 # editor
 .vscode
 
+# Bundler
+/vendor
+
 # CocoaPods
 /ios/Pods/
 

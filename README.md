@@ -39,10 +39,12 @@ The code is built using React-Native and running code locally requires a Mac or 
 -   Install the shared [React Native dependencies](https://reactnative.dev/docs/environment-setup#installing-dependencies) (`React Native CLI`, _not_ `Expo CLI`)
     -   XCode version `15.0.1` or below
 
--   Install [cocoapods](https://guides.cocoapods.org/using/getting-started.html) by running:
+-   Install Ruby using [rbenv](https://github.com/rbenv/rbenv)
+
+-   Install Ruby gems by running:
 
     ```bash
-    sudo gem install cocoapods -v 1.12.1
+    bundler install
     ```
 
 -   Install [Python](https://www.python.org/downloads/) **version ^3.10**

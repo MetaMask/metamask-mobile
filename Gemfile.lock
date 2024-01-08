@@ -86,14 +86,14 @@ GEM
       rexml (~> 3.2.4)
 
 PLATFORMS
-  arm64-darwin-22
-  x86_64-linux
+  ruby
 
 DEPENDENCIES
-  cocoapods (>= 1.11.3)
+  activesupport (>= 6.1.7.3, < 7.1.0)
+  cocoapods (~> 1.12)
 
 RUBY VERSION
-   ruby 3.0.0p0
+   ruby 3.1.4p223
 
 BUNDLED WITH
    2.2.3
