@@ -10,6 +10,7 @@ export interface BlockiesProps extends ImageProps {
    */
   accountAddress: string;
   size: number;
+  colors?: string[];
 }
 
 /**

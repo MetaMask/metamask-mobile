@@ -18,6 +18,7 @@ const Blockies: React.FC<BlockiesProps> = ({
   size = 50,
 }) => {
   const { styles } = useStyles(styleSheet, { style, size });
+
   return (
     <Image source={{ uri: toDataUrl(accountAddress) }} style={styles.base} />
   );
