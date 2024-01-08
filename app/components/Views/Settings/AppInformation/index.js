@@ -190,6 +190,7 @@ export default class AppInformation extends PureComponent {
             {IS_QA ? (
               <Text style={styles.branchInfo}>
                 {`Branch: ${process.env['GIT_BRANCH']}`}
+                {`Commit Hash: ${process.env['GIT_COMMIT']}`}
               </Text>
             ) : null}
           </View>
