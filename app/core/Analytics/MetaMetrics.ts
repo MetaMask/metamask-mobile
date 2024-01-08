@@ -27,6 +27,7 @@ import {
   // SEGMENT_REGULATIONS_ENDPOINT,
 } from './MetaMetrics.constants';
 import { v4 as uuidv4 } from 'uuid';
+import { Config } from '@segment/analytics-react-native/lib/typescript/src/types';
 
 /**
  * MetaMetrics using Segment as the analytics provider.
@@ -35,21 +36,21 @@ import { v4 as uuidv4 } from 'uuid';
  * ## Base tracking usage
  * ```
  * const metrics = await MetaMetrics.getInstance();
- * metrics.trackEvent('event_name', { property: 'value' });
+ * metrics?.trackEvent('event_name', { property: 'value' });
  * ```
  *
  * ## Enabling MetaMetrics
  * Enable the metrics when user agrees (optin or settings).
  * ```
  * const metrics = await MetaMetrics.getInstance();
- * await metrics.enable();
+ * await metrics?.enable();
  *```
  *
  * ## Disabling MetaMetrics
  * Disable the metrics when user refuses (optout or settings).
  * ```
  * const metrics = await MetaMetrics.getInstance();
- * await metrics.enable(false);
+ * await metrics?.enable(false);
  * ```
  *
  * ## Identify user
@@ -57,7 +58,7 @@ import { v4 as uuidv4 } from 'uuid';
  * Until you identify the user, all events will be associated to this anonymous ID.
  * ```
  * const metrics = await MetaMetrics.getInstance();
- * metrics.addTraitsToUser({ property: 'value' });
+ * metrics?.addTraitsToUser({ property: 'value' });
  * ```
  *
  * This will associate the user to a new generated unique ID and all future events will be associated to this user.
@@ -67,7 +68,7 @@ import { v4 as uuidv4 } from 'uuid';
  * This will revert the user to the anonymous ID and generate a new unique ID.
  * ```
  * const metrics = await MetaMetrics.getInstance();
- * metrics.reset();
+ * metrics?.reset();
  * ```
  *
  * @see METAMETRICS_ANONYMOUS_ID
@@ -278,21 +279,26 @@ class MetaMetrics implements IMetaMetrics {
    * const metrics = await MetaMetrics.getInstance();
    * ```
    */
-  public static async getInstance(): Promise<IMetaMetrics> {
-    if (!this.instance) {
-      const config = {
-        writeKey: process.env.SEGMENT_WRITE_KEY as string,
-        proxy: process.env.SEGMENT_PROXY_URL as string,
-        debug: __DEV__,
-        anonymousId: METAMETRICS_ANONYMOUS_ID,
-      };
-      this.instance = new MetaMetrics(createClient(config));
-      // get the user metrics preference when initializing
-      this.instance.enabled = await this.instance.#isMetaMetricsEnabled();
-      // get the user unique id when initializing
-      this.instance.metametricsId = await this.instance.#getMetaMetricsId();
+  public static async getInstance(): Promise<IMetaMetrics | null> {
+    try {
+      if (!this.instance) {
+        const config: Config = {
+          writeKey: process.env.SEGMENT_WRITE_KEY as string,
+          proxy: process.env.SEGMENT_PROXY_URL as string,
+          debug: __DEV__,
+          anonymousId: METAMETRICS_ANONYMOUS_ID,
+        };
+        this.instance = new MetaMetrics(createClient(config));
+        // get the user metrics preference when initializing
+        this.instance.enabled = await this.instance.#isMetaMetricsEnabled();
+        // get the user unique id when initializing
+        this.instance.metametricsId = await this.instance.#getMetaMetricsId();
+      }
+      return this.instance;
+    } catch (error) {
+      Logger.error('Error getting MetaMetrics instance:', error);
+      return null; // return null in case of an error
     }
-    return this.instance;
   }
 
   /**

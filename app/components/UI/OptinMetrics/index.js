@@ -270,7 +270,7 @@ class OptinMetrics extends PureComponent {
       // and never send them to Segment
       // and disable analytics
       this.props.clearOnboardingEvents();
-      await metrics.enable(false);
+      await metrics?.enable(false);
       Analytics.disableInstance();
     }, 200);
     this.continue();
@@ -282,7 +282,7 @@ class OptinMetrics extends PureComponent {
   onConfirm = async () => {
     const { events } = this.props;
     const metrics = await MetaMetrics.getInstance();
-    await metrics.enable();
+    await metrics?.enable();
     InteractionManager.runAfterInteractions(async () => {
       // add traits to user for identification
       // consolidate device and user settings traits
@@ -290,7 +290,7 @@ class OptinMetrics extends PureComponent {
         ...generateDeviceAnalyticsMetaData(),
         ...generateUserSettingsAnalyticsMetaData(),
       };
-      await metrics.addTraitsToUser(consolidatedTraits);
+      await metrics?.addTraitsToUser(consolidatedTraits);
 
       // track onboarding events that were stored before user opted in
       // only if the user eventually opts in.
@@ -305,7 +305,7 @@ class OptinMetrics extends PureComponent {
           // as precision is only to the milisecond
           // and loop seems to runs faster than that
           setTimeout(() => {
-            metrics.trackEvent(...eventArgs);
+            metrics?.trackEvent(...eventArgs);
           }, delay);
           delay += eventTrackingDelay;
         });
@@ -314,7 +314,7 @@ class OptinMetrics extends PureComponent {
       this.props.clearOnboardingEvents();
 
       // track event for user opting in
-      metrics.trackEvent(
+      metrics?.trackEvent(
         MetaMetricsEvents.ANALYTICS_PREFERENCE_SELECTED.category,
         {
           analytics_option_selected: 'Metrics Opt In',

@@ -282,7 +282,7 @@ class Onboarding extends PureComponent {
   onPressCreate = () => {
     const action = async () => {
       const metrics = await MetaMetrics.getInstance();
-      if (metrics.isEnabled()) {
+      if (metrics?.isEnabled()) {
         this.props.navigation.navigate('ChoosePassword', {
           [PREVIOUS_SCREEN]: ONBOARDING,
         });
@@ -304,7 +304,7 @@ class Onboarding extends PureComponent {
   onPressImport = () => {
     const action = async () => {
       const metrics = await MetaMetrics.getInstance();
-      if (metrics.isEnabled()) {
+      if (metrics?.isEnabled()) {
         this.props.navigation.push(
           Routes.ONBOARDING.IMPORT_FROM_SECRET_RECOVERY_PHRASE,
         );
@@ -326,8 +326,8 @@ class Onboarding extends PureComponent {
   track = (event) => {
     InteractionManager.runAfterInteractions(async () => {
       const metrics = await MetaMetrics.getInstance();
-      if (metrics.isEnabled()) {
-        metrics.trackEvent(event.category);
+      if (metrics?.isEnabled()) {
+        metrics?.trackEvent(event.category);
       } else {
         this.props.saveOnboardingEvent(event.category);
       }

@@ -1,3 +1,15 @@
+diff --git a/node_modules/@segment/analytics-react-native/lib/typescript/src/types.d.ts b/node_modules/@segment/analytics-react-native/lib/typescript/src/types.d.ts
+index a258c27..442ba56 100644
+--- a/node_modules/@segment/analytics-react-native/lib/typescript/src/types.d.ts
++++ b/node_modules/@segment/analytics-react-native/lib/typescript/src/types.d.ts
+@@ -121,6 +121,7 @@ export declare type Config = {
+     proxy?: string;
+     cdnProxy?: string;
+     errorHandler?: (error: SegmentError) => void;
++    anonymousId?: string;
+ };
+ export declare type ClientMethods = {
+     screen: (name: string, properties?: JsonMap) => Promise<void>;
 diff --git a/node_modules/@segment/analytics-react-native/src/analytics.ts b/node_modules/@segment/analytics-react-native/src/analytics.ts
 index 79cc609..fff7c9b 100644
 --- a/node_modules/@segment/analytics-react-native/src/analytics.ts

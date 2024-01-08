@@ -444,13 +444,13 @@ const Settings: React.FC = () => {
         ...generateDeviceAnalyticsMetaData(),
         ...generateUserSettingsAnalyticsMetaData(),
       };
-      await metrics.enable();
+      await metrics?.enable();
       setAnalyticsEnabled(true);
 
       InteractionManager.runAfterInteractions(async () => {
         // Segment metrics optin tracking
-        await metrics.addTraitsToUser(consolidatedTraits);
-        metrics.trackEvent(
+        await metrics?.addTraitsToUser(consolidatedTraits);
+        metrics?.trackEvent(
           MetaMetricsEvents.ANALYTICS_PREFERENCE_SELECTED.category,
           {
             analytics_option_selected: 'Metrics Opt in',
@@ -467,8 +467,8 @@ const Settings: React.FC = () => {
         );
       });
     } else {
-      await metrics.enable(false);
-      await metrics.reset();
+      await metrics?.enable(false);
+      await metrics?.reset();
       Analytics.disable();
       setAnalyticsEnabled(false);
       Alert.alert(
