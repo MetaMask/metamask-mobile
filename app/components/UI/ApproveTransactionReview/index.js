@@ -65,6 +65,7 @@ import {
   isMainnetByChainId,
   TESTNET_FAUCETS,
   isTestNetworkWithFaucet,
+  getDecimalChainId,
 } from '../../../util/networks';
 import CustomSpendCap from '../../../component-library/components-temp/CustomSpendCap';
 import IonicIcon from 'react-native-vector-icons/Ionicons';
@@ -537,7 +538,7 @@ class ApproveTransactionReview extends PureComponent {
       const params = {
         account_type: getAddressAccountType(transaction?.from),
         dapp_host_name: transaction?.origin,
-        chain_id: chainId,
+        chain_id: getDecimalChainId(chainId),
         active_currency: { value: tokenSymbol, anonymous: true },
         number_tokens_requested: {
           value: originalApproveAmount,

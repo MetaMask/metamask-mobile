@@ -1,6 +1,7 @@
 import Engine from '../Engine';
 import { ethErrors } from 'eth-json-rpc-errors';
 import {
+  getDecimalChainId,
   getDefaultNetworkByChainId,
   isPrefixedFormattedHexString,
 } from '../../util/networks';
@@ -79,7 +80,7 @@ const wallet_switchEthereumChain = async ({
 
     let requestData;
     let analyticsParams = {
-      chain_id: _chainId,
+      chain_id: getDecimalChainId(_chainId),
       source: 'Switch Network API',
       ...analytics,
     };

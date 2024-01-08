@@ -28,6 +28,7 @@ import { store } from '../../../store';
 import { getBlockaidMetricsParams } from '../../../util/blockaid';
 import { SecurityAlertResponse } from '../BlockaidBanner/BlockaidBanner.types';
 import { SigningModalSelectorsIDs } from '../../../../e2e/selectors/Modals/SigningModal.selectors';
+import { getDecimalChainId } from '../../../util/networks';
 
 /**
  * Component that supports personal_sign
@@ -74,7 +75,7 @@ const PersonalSign = ({
       return {
         account_type: getAddressAccountType(messageParams.from),
         dapp_host_name: url?.host,
-        chain_id: chainId,
+        chain_id: getDecimalChainId(chainId),
         signature_type: 'personal_sign',
         ...pageInfo?.analytics,
         ...blockaidParams,

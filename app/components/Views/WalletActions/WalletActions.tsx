@@ -42,6 +42,7 @@ import {
   WALLET_SWAP,
 } from './WalletActions.constants';
 import useRampNetwork from '../../UI/Ramp/common/hooks/useRampNetwork';
+import { getDecimalChainId } from '../../../util/networks';
 
 const WalletActions = () => {
   const { styles } = useStyles(styleSheet, {});
@@ -64,7 +65,7 @@ const WalletActions = () => {
         text: 'Receive',
         tokenSymbol: '',
         location: 'TabBar',
-        chain_id: chainId,
+        chain_id: getDecimalChainId(chainId),
       },
     );
   };
@@ -75,7 +76,7 @@ const WalletActions = () => {
       Analytics.trackEventWithParameters(MetaMetricsEvents.BUY_BUTTON_CLICKED, {
         text: 'Buy',
         location: 'TabBar',
-        chain_id_destination: chainId,
+        chain_id_destination: getDecimalChainId(chainId),
       });
     });
   };
@@ -88,7 +89,7 @@ const WalletActions = () => {
         {
           text: 'Sell',
           location: 'TabBar',
-          chain_id_source: chainId,
+          chain_id_source: getDecimalChainId(chainId),
         },
       );
     });
@@ -103,7 +104,7 @@ const WalletActions = () => {
           text: 'Send',
           tokenSymbol: '',
           location: 'TabBar',
-          chain_id: chainId,
+          chain_id: getDecimalChainId(chainId),
         },
       );
     });
@@ -123,7 +124,7 @@ const WalletActions = () => {
           text: 'Swap',
           tokenSymbol: '',
           location: 'TabBar',
-          chain_id: chainId,
+          chain_id: getDecimalChainId(chainId),
         },
       );
     });

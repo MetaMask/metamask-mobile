@@ -53,6 +53,7 @@ import { NATIVE_ADDRESS } from '../../../../../../constants/on-ramp';
 import { safeToChecksumAddress } from '../../../../../../util/address';
 import { generateTransferData } from '../../../../../../util/transactions';
 import useAnalytics from '../../hooks/useAnalytics';
+import { getDecimalChainId } from '../../../../../../util/networks';
 
 interface SendTransactionParams {
   orderId?: string;
@@ -92,7 +93,9 @@ function SendTransaction() {
   const transactionAnalyticsPayload = useMemo(
     () => ({
       crypto_amount: orderData?.cryptoAmount,
-      chain_id_source: orderData?.cryptoCurrency.network.chainId,
+      chain_id_source: getDecimalChainId(
+        orderData?.cryptoCurrency.network.chainId,
+      ),
       fiat_out: orderData?.fiatAmount,
       payment_method_id: orderData?.paymentMethod.id,
       currency_source: orderData?.cryptoCurrency.symbol,

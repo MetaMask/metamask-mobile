@@ -4,7 +4,10 @@ import { ChainId, isSafeChainId, toHex } from '@metamask/controller-utils';
 import { jsonRpcRequest } from '../../util/jsonRpcRequest';
 import Engine from '../Engine';
 import { ethErrors } from 'eth-json-rpc-errors';
-import { isPrefixedFormattedHexString } from '../../util/networks';
+import {
+  getDecimalChainId,
+  isPrefixedFormattedHexString,
+} from '../../util/networks';
 import URL from 'url-parse';
 import { MetaMetricsEvents } from '../../core/Analytics';
 import AnalyticsV2 from '../../util/analyticsV2';
@@ -131,7 +134,7 @@ const wallet_addEthereumChain = async ({
     }
 
     const analyticsParams = {
-      chain_id: _chainId,
+      chain_id: getDecimalChainId(_chainId),
       source: 'Custom Network API',
       symbol: networkConfiguration.ticker,
       ...analytics,
@@ -279,7 +282,7 @@ const wallet_addEthereumChain = async ({
   requestData.alerts = alerts;
 
   const analyticsParamsAdd = {
-    chain_id: _chainId,
+    chain_id: getDecimalChainId(_chainId),
     source: 'Custom Network API',
     symbol: ticker,
     ...analytics,

@@ -32,6 +32,7 @@ import { callbackBaseUrl } from './common/sdk';
 import useFetchRampNetworks from './common/hooks/useFetchRampNetworks';
 import { getNotificationDetails, stateHasOrder } from './common/utils';
 import Routes from '../../../constants/navigation/Routes';
+import { getDecimalChainId } from '../../../util/networks';
 
 const POLLING_FREQUENCY = AppConstants.FIAT_ORDERS.POLLING_FREQUENCY;
 
@@ -76,7 +77,7 @@ export const getAggregatorAnalyticsPayload = (
       currency_destination: fiatOrder.cryptocurrency,
       order_type: fiatOrder.orderType,
       payment_method_id: (fiatOrder.data as Order)?.paymentMethod?.id,
-      chain_id_destination: fiatOrder.network,
+      chain_id_destination: getDecimalChainId(fiatOrder.network),
       provider_onramp: (fiatOrder.data as Order)?.provider?.name,
     };
   } else {
@@ -86,7 +87,7 @@ export const getAggregatorAnalyticsPayload = (
       currency_destination: fiatOrder.currency,
       order_type: fiatOrder.orderType,
       payment_method_id: (fiatOrder.data as Order)?.paymentMethod?.id,
-      chain_id_source: fiatOrder.network,
+      chain_id_source: getDecimalChainId(fiatOrder.network),
       provider_offramp: (fiatOrder.data as Order)?.provider?.name,
     };
   }

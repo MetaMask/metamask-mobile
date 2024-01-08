@@ -45,6 +45,7 @@ import { isNetworkRampSupported } from '../Ramp/common/utils';
 import { selectSelectedAddress } from '../../../selectors/preferencesController';
 import { getRampNetworks } from '../../../reducers/fiatOrders';
 import { RequestPaymentModalSelectorsIDs } from '../../../../e2e/selectors/Modals/RequestPaymentModal.selectors';
+import { getDecimalChainId } from '../../../util/networks';
 
 const createStyles = (colors) =>
   StyleSheet.create({
@@ -199,7 +200,7 @@ class ReceiveRequest extends PureComponent {
           {
             text: 'Buy Native Token',
             location: 'Receive Modal',
-            chain_id_destination: this.props.chainId,
+            chain_id_destination: getDecimalChainId(this.props.chainId),
           },
         );
       });

@@ -14,6 +14,7 @@ import useAnalytics from '../../../common/hooks/useAnalytics';
 import useRampNetwork from '../../../common/hooks/useRampNetwork';
 import styles from './GetStarted.styles';
 import useRegions from '../../hooks/useRegions';
+import { getDecimalChainId } from '../../../../../../util/networks';
 
 /* eslint-disable import/no-commonjs, @typescript-eslint/no-var-requires, @typescript-eslint/no-require-imports */
 const getStartedIcon = require('../../../common/components/images/WalletInfo.png');
@@ -32,12 +33,12 @@ const GetStarted: React.FC = () => {
     if (isBuy) {
       trackEvent('ONRAMP_CANCELED', {
         location: 'Get Started Screen',
-        chain_id_destination: selectedChainId,
+        chain_id_destination: getDecimalChainId(selectedChainId),
       });
     } else {
       trackEvent('OFFRAMP_CANCELED', {
         location: 'Get Started Screen',
-        chain_id_source: selectedChainId,
+        chain_id_source: getDecimalChainId(selectedChainId),
       });
     }
   }, [isBuy, selectedChainId, trackEvent]);

@@ -67,6 +67,7 @@ import { useStyles } from '../../../../../../component-library/hooks';
 
 import styleSheet from './BuildQuote.styles';
 import { toTokenMinimalUnit } from '../../../../../../util/number';
+import { getDecimalChainId } from '../../../../../../util/networks';
 
 // TODO: Convert into typescript and correctly type
 const ListItem = BaseListItem as any;
@@ -232,12 +233,12 @@ const BuildQuote = () => {
     if (isBuy) {
       trackEvent('ONRAMP_CANCELED', {
         location: screenLocation,
-        chain_id_destination: selectedChainId,
+        chain_id_destination: getDecimalChainId(selectedChainId),
       });
     } else {
       trackEvent('OFFRAMP_CANCELED', {
         location: screenLocation,
-        chain_id_source: selectedChainId,
+        chain_id_source: getDecimalChainId(selectedChainId),
       });
     }
   }, [screenLocation, isBuy, selectedChainId, trackEvent]);
@@ -430,14 +431,14 @@ const BuildQuote = () => {
           ...analyticsPayload,
           currency_source: currentFiatCurrency.symbol,
           currency_destination: selectedAsset.symbol,
-          chain_id_destination: selectedChainId,
+          chain_id_destination: getDecimalChainId(selectedChainId),
         });
       } else {
         trackEvent('OFFRAMP_QUOTES_REQUESTED', {
           ...analyticsPayload,
           currency_destination: currentFiatCurrency.symbol,
           currency_source: selectedAsset.symbol,
-          chain_id_source: selectedChainId,
+          chain_id_source: getDecimalChainId(selectedChainId),
         });
       }
     }

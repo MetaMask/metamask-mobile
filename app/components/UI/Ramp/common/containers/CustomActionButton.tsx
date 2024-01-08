@@ -10,6 +10,7 @@ import useAnalytics from '../hooks/useAnalytics';
 import useInAppBrowser from '../../buy/hooks/useInAppBrowser';
 import Logger from '../../../../../util/Logger';
 import { createCheckoutNavDetails } from '../../buy/Views/Checkout';
+import { getDecimalChainId } from '../../../../../util/networks';
 
 interface Props {
   customAction: PaymentCustomAction;
@@ -69,7 +70,7 @@ const CustomActionButton: React.FC<
           currency_source: fiatSymbol,
           currency_destination: selectedAsset?.symbol as string,
           provider_onramp: provider.provider.name,
-          chain_id_destination: selectedChainId as string,
+          chain_id_destination: getDecimalChainId(selectedChainId) as string,
         });
       } else {
         trackEvent('OFFRAMP_DIRECT_PROVIDER_CLICKED', {
@@ -77,7 +78,7 @@ const CustomActionButton: React.FC<
           currency_destination: fiatSymbol,
           currency_source: selectedAsset?.symbol as string,
           provider_offramp: provider.provider.name,
-          chain_id_source: selectedChainId as string,
+          chain_id_source: getDecimalChainId(selectedChainId) as string,
         });
       }
 

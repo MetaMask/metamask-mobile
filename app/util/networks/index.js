@@ -4,7 +4,6 @@ import EthContract from 'ethjs-contract';
 import { getContractFactory } from '@eth-optimism/contracts/dist/contract-defs';
 import { predeploys } from '@eth-optimism/contracts/dist/predeploys';
 import networksWithImages from 'images/image-icons';
-import AppConstants from '../../core/AppConstants';
 import {
   GOERLI,
   MAINNET,

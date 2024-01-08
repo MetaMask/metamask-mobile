@@ -8,6 +8,7 @@ import { selectChainId } from '../../../../selectors/networkController';
 
 import type { BrowserTab } from '../../Tokens/types';
 import type { BrowserParams } from '../../../../components/Views/Browser/Browser.types';
+import { getDecimalChainId } from '../../../../util/networks';
 
 const BRIDGE_URL = `${AppConstants.PORTFOLIO_URL}/bridge`;
 
@@ -46,7 +47,7 @@ export default function useGoToBridge(location: string) {
     Analytics.trackEventWithParameters(MetaMetricsEvents.BRIDGE_LINK_CLICKED, {
       bridgeUrl: BRIDGE_URL,
       location,
-      chain_id_source: chainId,
+      chain_id_source: getDecimalChainId(chainId),
       token_address_source: address,
     });
   };

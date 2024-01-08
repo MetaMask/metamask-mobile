@@ -20,7 +20,10 @@ import { getSendFlowTitle } from '../../../UI/Navbar';
 import StyledButton from '../../../UI/StyledButton';
 import { MetaMetricsEvents } from '../../../../core/Analytics';
 import AnalyticsV2 from '../../../../util/analyticsV2';
-import { handleNetworkSwitch } from '../../../../util/networks';
+import {
+  getDecimalChainId,
+  handleNetworkSwitch,
+} from '../../../../util/networks';
 import {
   isENS,
   isValidHexAddress,
@@ -269,7 +272,7 @@ class SendFlow extends PureComponent {
           break;
         default:
           alertMessage = strings('send.network_not_found_description', {
-            chain_id: chainId,
+            chain_id: getDecimalChainId(chainId),
           });
       }
       Alert.alert(strings('send.network_not_found_title'), alertMessage);
@@ -423,7 +426,7 @@ class SendFlow extends PureComponent {
       AnalyticsV2.trackEvent(
         MetaMetricsEvents.SEND_FLOW_SELECT_DUPLICATE_ADDRESS,
         {
-          chain_id: this.props.chainId,
+          chain_id: getDecimalChainId(this.props.chainId),
         },
       );
     }

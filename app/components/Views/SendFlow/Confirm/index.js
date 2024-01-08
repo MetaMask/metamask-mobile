@@ -59,6 +59,7 @@ import {
   fetchEstimatedMultiLayerL1Fee,
   TESTNET_FAUCETS,
   isTestNetworkWithFaucet,
+  getDecimalChainId,
 } from '../../../../util/networks';
 import Text from '../../../Base/Text';
 import AnalyticsV2 from '../../../../util/analyticsV2';
@@ -265,7 +266,7 @@ class Confirm extends PureComponent {
       return {
         active_currency: { value: selectedAsset?.symbol, anonymous: true },
         account_type: getAddressAccountType(fromSelectedAddress),
-        chain_id: chainId,
+        chain_id: getDecimalChainId(chainId),
         gas_estimate_type: gasEstimateType,
         gas_mode: gasSelected ? 'Basic' : 'Advanced',
         speed_set: gasSelected || undefined,

@@ -141,7 +141,7 @@ const Tokens: React.FC<TokensI> = ({ tokens }) => {
     InteractionManager.runAfterInteractions(() => {
       AnalyticsV2.trackEvent(MetaMetricsEvents.TOKEN_IMPORT_CLICKED, {
         source: 'manual',
-        chain_id: chainId,
+        chain_id: getDecimalChainId(chainId),
       });
       setIsAddTokenEnabled(true);
     });
@@ -319,7 +319,7 @@ const Tokens: React.FC<TokensI> = ({ tokens }) => {
       Analytics.trackEventWithParameters(MetaMetricsEvents.BUY_BUTTON_CLICKED, {
         text: 'Buy Native Token',
         location: 'Home Screen',
-        chain_id_destination: chainId,
+        chain_id_destination: getDecimalChainId(chainId),
       });
     });
   };
@@ -329,7 +329,7 @@ const Tokens: React.FC<TokensI> = ({ tokens }) => {
     InteractionManager.runAfterInteractions(() => {
       AnalyticsV2.trackEvent(MetaMetricsEvents.TOKEN_IMPORT_CLICKED, {
         source: 'detected',
-        chain_id: chainId,
+        chain_id: getDecimalChainId(chainId),
         tokens: detectedTokens.map(
           (token) => `${token.symbol} - ${token.address}`,
         ),
@@ -514,7 +514,7 @@ const Tokens: React.FC<TokensI> = ({ tokens }) => {
           token_standard: 'ERC20',
           asset_type: 'token',
           tokens: [`${symbol} - ${tokenAddress}`],
-          chain_id: chainId,
+          chain_id: getDecimalChainId(chainId),
         }),
       );
     } catch (err) {

@@ -195,7 +195,7 @@ const NetworkModals = (props: NetworkProps) => {
     );
 
     const analyticsParamsAdd = {
-      chain_id: chainId,
+      chain_id: getDecimalChainId(chainId),
       source: 'Popular network list',
       symbol: ticker,
     };

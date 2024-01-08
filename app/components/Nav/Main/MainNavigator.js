@@ -80,6 +80,7 @@ import isUrl from 'is-url';
 import SDKSessionsManager from '../../Views/SDKSessionsManager/SDKSessionsManager';
 import URL from 'url-parse';
 import Logger from '../../../util/Logger';
+import { getDecimalChainId } from '../../../util/networks';
 
 const Stack = createStackNavigator();
 const Tab = createBottomTabNavigator();
@@ -373,7 +374,7 @@ const HomeTabs = () => {
       callback: () => {
         AnalyticsV2.trackEvent(MetaMetricsEvents.WALLET_OPENED, {
           number_of_accounts: accountsLength,
-          chain_id: chainId,
+          chain_id: getDecimalChainId(chainId),
         });
       },
       rootScreenName: Routes.WALLET_VIEW,
@@ -387,7 +388,7 @@ const HomeTabs = () => {
       callback: () => {
         AnalyticsV2.trackEvent(MetaMetricsEvents.BROWSER_OPENED, {
           number_of_accounts: accountsLength,
-          chain_id: chainId,
+          chain_id: getDecimalChainId(chainId),
           source: 'Navigation Tab',
           active_connected_dapp: activeConnectedDapp,
           number_of_open_tabs: amountOfBrowserOpenTabs,

@@ -19,6 +19,7 @@ import {
   hasBlockExplorer,
   findBlockExplorerForRpc,
   getBlockExplorerName,
+  getDecimalChainId,
 } from '../../../util/networks';
 import Identicon from '../Identicon';
 import StyledButton from '../StyledButton';
@@ -609,7 +610,7 @@ class DrawerView extends PureComponent {
     const { providerConfig } = this.props;
     AnalyticsV2.trackEvent(MetaMetricsEvents.BROWSER_OPENED, {
       source: 'In-app Navigation',
-      chain_id: providerConfig.chainId,
+      chain_id: getDecimalChainId(providerConfig.chainId),
     });
   };
 

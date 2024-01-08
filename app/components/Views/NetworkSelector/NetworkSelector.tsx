@@ -25,6 +25,7 @@ import { selectShowTestNetworks } from '../../../selectors/preferencesController
 import Networks, {
   compareRpcUrls,
   getAllNetworks,
+  getDecimalChainId,
   getNetworkImageSource,
   isTestNet,
 } from '../../../util/networks';
@@ -86,7 +87,7 @@ const NetworkSelector = () => {
     sheetRef.current?.hide();
 
     analyticsV2.trackEvent(MetaMetricsEvents.NETWORK_SWITCHED, {
-      chain_id: providerConfig.chainId,
+      chain_id: getDecimalChainId(providerConfig.chainId),
       from_network:
         providerConfig.type === 'rpc'
           ? providerConfig.nickname
@@ -113,7 +114,7 @@ const NetworkSelector = () => {
 
         sheetRef.current?.hide();
         analyticsV2.trackEvent(MetaMetricsEvents.NETWORK_SWITCHED, {
-          chain_id: providerConfig.chainId,
+          chain_id: getDecimalChainId(providerConfig.chainId),
           from_network: providerConfig.type,
           to_network: nickname,
         });
