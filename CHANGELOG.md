@@ -2,6 +2,21 @@
 
 ## Current Main Branch
 
+## 7.12.5 - Jan 4, 2024
+### Added
+- [#8156](https://github.com/MetaMask/metamask-mobile/pull/8156): feat: migrate to latest Token rates controller
+
+### Fixed
+- [#7886](https://github.com/MetaMask/metamask-mobile/pull/7886): fix: Fix eth_signTypedData signatures containing 0x
+- [#8155](https://github.com/MetaMask/metamask-mobile/pull/8155): fix: OpenSea V1 -> V2 patch
+
+## 7.12.3 - Dec 18, 2023
+### Fixed 
+- [#8102](https://github.com/MetaMask/metamask-mobile/pull/8102): fix: prevent bad svg urls in react-native-svg
+
+## 7.12.2 - Dec 8, 2023
+### Fixed 
+- [#8057](https://github.com/MetaMask/metamask-mobile/pull/8057): fix: Disable SES on iOS 
 
 ## 7.12.1 - Dec 5, 2023
 ### Fixed

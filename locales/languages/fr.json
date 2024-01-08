@@ -521,6 +521,7 @@
     "import_account": "Importer un compte",
     "connect_hardware": "Connecter un portefeuille matériel",
     "imported": "Importés",
+    "qr_hardware": "Matériel QR",
     "remove_account_title": "Suppression du compte",
     "remove_account_message": "Souhaitez-vous vraiment supprimer ce compte ?",
     "no": "Non",

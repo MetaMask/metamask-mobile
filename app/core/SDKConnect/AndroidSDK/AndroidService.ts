@@ -24,11 +24,7 @@ import {
 } from '../utils/wait.util';
 
 import BackgroundBridge from '../../BackgroundBridge/BackgroundBridge';
-import {
-  DEFAULT_SESSION_TIMEOUT_MS,
-  METHODS_TO_DELAY,
-  SDKConnect,
-} from '../SDKConnect';
+import { SDKConnect } from '../SDKConnect';
 
 import { KeyringController } from '@metamask/keyring-controller';
 
@@ -36,7 +32,11 @@ import { ApprovalController } from '@metamask/approval-controller';
 import { PreferencesController } from '@metamask/preferences-controller';
 import { PROTOCOLS } from '../../../constants/deeplinks';
 import BatchRPCManager from '../BatchRPCManager';
-import { RPC_METHODS } from '../Connection';
+import {
+  RPC_METHODS,
+  DEFAULT_SESSION_TIMEOUT_MS,
+  METHODS_TO_DELAY,
+} from '../SDKConnectConstants';
 import handleBatchRpcResponse from '../handlers/handleBatchRpcResponse';
 import handleCustomRpcCalls from '../handlers/handleCustomRpcCalls';
 import DevLogger from '../utils/DevLogger';

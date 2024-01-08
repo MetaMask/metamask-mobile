@@ -23,9 +23,14 @@
     "setting_up_alerts": "Setting up security alerts",
     "setting_up_alerts_description": "We are going as fast as we can to set up security alerts. Hang in there, we are almost done.",
     "setup_complete": "Set up complete",
-    "setup_complete_description": "Security alerts are ready to go. You can close this pageand start exploring your wallet",
+    "setup_failed": "We could not finish setting up the security alerts. Check your internet connection and try again.",
+    "setup_multiple_failures": "Your internet connection isn’t stable right now, so we couldn’t set up security alerts. Please try again when your connection is restored.",
+    "setup_complete_description": "Security alerts are ready to go. You can close this page and start exploring your wallet",
     "continue": "Continue",
-    "cancel": "Cancel"
+    "cancel": "Cancel",
+    "got_it": "Got it",
+    "try_again": "Try Again",
+    "failed": "Something went wrong"
   },
   "date": {
     "months": {
@@ -274,7 +279,7 @@
     "successfully_changed": "Your password has been successfully changed"
   },
   "import_from_seed": {
-    "title": "Import from seed",
+    "title": "Import from Secret Recovery Phrase",
     "seed_phrase_placeholder": "Enter your Secret Recovery Phrase",
     "new_password": "New Password",
     "confirm_password": "Confirm password",
@@ -393,6 +398,7 @@
     "logout_to_import_seed": "You need to log out first in order to import a Secret Recovery Phrase.",
     "ready_to_explore": "Ready to start exploring blockchain applications?",
     "unable_to_load": "Unable to load balance",
+    "unable_to_find_conversion_rate": "unable to find conversion rate",
     "display_nft_media_desc": "To import an NFT, turn on Display NFT media in Settings > Security and privacy.",
     "display_nft_media_cta": "Turn on Display NFT media",
     "display_media_nft_warning": "Displaying NFT media and data may expose your IP address to centralized servers. Only import an NFT if you understand the risks involved.",
@@ -616,9 +622,9 @@
     "autolock_after_minutes": "After {{time}} minutes",
     "reveal_seed_words": "Reveal Seed Words",
     "reset_account": "Reset Account",
-    "state_logs_button": "DOWNLOAD STATE LOGS",
+    "state_logs_button": "Download State Logs",
     "reveal_seed_words_button": "REVEAL SEED WORDS",
-    "reset_account_button": "RESET ACCOUNT",
+    "reset_account_button": "Reset Account",
     "reset_account_confirm_button": "Yes, reset",
     "reset_account_cancel_button": "Cancel",
     "reset_account_modal_title": "Reset Account?",
@@ -672,8 +678,8 @@
     "toggleEthSignModalTitle": "Use at your own risk",
     "toggleEthSignModalEnable": "Enable",
     "toggleEthSignModalLearnMore": "Learn more.",
-    "toggleEthSignOff": "OFF (Recommended)",
-    "toggleEthSignOn": "ON (Not recommended)",
+    "toggleEthSignOff": "(Recommended)",
+    "toggleEthSignOn": "(Not recommended)",
     "toggleEthSignContinueButton": "Continue",
     "toggleEthSignEnableButton": "Enable",
     "show_custom_nonce": "Customize transaction nonce",
@@ -820,7 +826,7 @@
       "title": "Snaps",
       "description": "Overview and manage your snaps",
       "snap_settings": {
-        "remove_snap_section_title": "Remove Snap", 
+        "remove_snap_section_title": "Remove Snap",
         "remove_snap_section_description": "This action will delete the snap, its data, and its granted permissions.",
         "remove_button_label": "Remove {{snapName}}"
       },
@@ -862,7 +868,12 @@
 
         }
       }
-    }
+    },
+    "privacy_browser_subheading": "Clear privacy or browser data",
+    "analytics_subheading": "Analytics",
+    "transactions_subheading": "Transactions",
+    "token_nft_ens_subheading": "Token, NFT, and ENS autodetection",
+    "security_check_subheading": "Security checks"
   },
   "sdk": {
     "disconnect_title": "Disconnect all sites?",
@@ -1193,7 +1204,8 @@
     "fiat_conversion_not_available": "Fiat conversions are not available at this moment",
     "hex_data_copied": "Hex data copied to clipboard",
     "invalid_recipient": "Invalid recipient",
-    "invalid_recipient_description": "Check the address and make sure it's valid"
+    "invalid_recipient_description": "Check the address and make sure it's valid",
+    "swap_tokens": "Swap tokens"
   },
   "custom_gas": {
     "total": "Total",
@@ -1808,7 +1820,7 @@
   "experimental_settings": {
     "wallet_connect_dapps": "WalletConnect Sessions",
     "wallet_connect_dapps_desc": "View the list of active WalletConnect sessions",
-    "wallet_connect_dapps_cta": "VIEW SESSIONS",
+    "wallet_connect_dapps_cta": "View sessions",
     "network_not_supported": "Current network not supported",
     "security_alerts": "Security alerts",
     "security_alerts_desc": "This feature alerts you to malicious activity by locally reviewing your transaction and signature requests. Always do your own due diligence before approving any requests. There's no guarantee that this feature will detect all malicious activity. By enabling this feature you agree to the provider's terms of use.",
@@ -2755,5 +2767,17 @@
     "ipfs_gateway_content2": "You can turn off IPFS resolution in",
     "ipfs_gateway_content3": "Settings > Security and privacy",
     "ipfs_gateway_content4": "at any time"
+  },
+  "install_snap": {
+    "title": "Connection request",
+    "description": "{{origin}} wants to download and connect with {{snap}}. Make sure you trust the authors before you proceed.",
+    "permissions_request_title": "Permissions request",
+    "permissions_request_description": "{{origin}} wants to install {{snap}}, which is requesting the following permissions.",
+    "approve_permissions": "Approve",
+    "installed": "Installed",
+    "install_successful": "{{snap}} was successfully installed.",
+    "okay_action": "OK",
+    "error_title": "Install failed",
+    "error_description": "Installation of {{snap}} failed."
   }
 }
