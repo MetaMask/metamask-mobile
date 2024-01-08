@@ -1,13 +1,14 @@
 diff --git a/node_modules/@metamask/keyring-controller/dist/KeyringController.d.ts b/node_modules/@metamask/keyring-controller/dist/KeyringController.d.ts
-index dff777b..a61b5ed 100644
+index a05f2a9..1291081 100644
 --- a/node_modules/@metamask/keyring-controller/dist/KeyringController.d.ts
 +++ b/node_modules/@metamask/keyring-controller/dist/KeyringController.d.ts
-@@ -1,3 +1,4 @@
+@@ -1,4 +1,5 @@
+ import type { TxData, TypedTransaction } from '@ethereumjs/tx';
 +import { KeyringController as EthKeyringController } from '@metamask/eth-keyring-controller';
- import { MetaMaskKeyring as QRKeyring, IKeyringState as IQRKeyringState } from '@keystonehq/metamask-airgapped-keyring';
- import { BaseControllerV2, RestrictedControllerMessenger } from '@metamask/base-controller';
- import { PreferencesController } from '@metamask/preferences-controller';
-@@ -141,6 +142,18 @@ export declare class KeyringController extends BaseControllerV2<typeof name, Key
+ import { type MetaMaskKeyring as QRKeyring, type IKeyringState as IQRKeyringState } from '@keystonehq/metamask-airgapped-keyring';
+ import type { RestrictedControllerMessenger } from '@metamask/base-controller';
+ import { BaseControllerV2 } from '@metamask/base-controller';
+@@ -167,6 +168,19 @@ export declare class KeyringController extends BaseControllerV2<typeof name, Key
       * @param opts.state - Initial state to set on this controller.
       */
      constructor({ removeIdentity, syncIdentities, updateIdentities, setSelectedAddress, setAccountLabel, encryptor, keyringBuilders, cacheEncryptionKey, messenger, state, }: KeyringControllerOptions);
@@ -20,16 +21,17 @@ index dff777b..a61b5ed 100644
 +     * ===============================================================================
 +     */
 +    /**
-+      * Gets the internal keyring controller.
-+    */
++     * Gets the internal keyring controller.
++     */
 +    getEthKeyringController(): typeof EthKeyringController;
++
      /**
       * Adds a new account to the default (first) HD seed phrase keyring.
       *
-@@ -342,7 +355,10 @@ export declare class KeyringController extends BaseControllerV2<typeof name, Key
+@@ -407,7 +421,10 @@ export declare class KeyringController extends BaseControllerV2<typeof name, Key
      }[]>;
      unlockQRHardwareWalletAccount(index: number): Promise<void>;
-     getAccountKeyringType(account: string): Promise<KeyringTypes>;
+     getAccountKeyringType(account: string): Promise<string>;
 -    forgetQRDevice(): Promise<void>;
 +    forgetQRDevice(): Promise<{
 +        removedAccounts: string[];
@@ -38,14 +40,16 @@ index dff777b..a61b5ed 100644
  }
  export default KeyringController;
  //# sourceMappingURL=KeyringController.d.ts.map
+\ No newline at end of file
 diff --git a/node_modules/@metamask/keyring-controller/dist/KeyringController.js b/node_modules/@metamask/keyring-controller/dist/KeyringController.js
-index c905cc0..16f35e4 100644
+index c4dd1d0..ddc4155 100644
 --- a/node_modules/@metamask/keyring-controller/dist/KeyringController.js
 +++ b/node_modules/@metamask/keyring-controller/dist/KeyringController.js
-@@ -139,6 +139,19 @@ class KeyringController extends base_controller_1.BaseControllerV2 {
-         this.setSelectedAddress = setSelectedAddress;
+@@ -154,6 +154,21 @@ class KeyringController extends base_controller_1.BaseControllerV2 {
          this.setAccountLabel = setAccountLabel;
+         __classPrivateFieldGet(this, _KeyringController_instances, "m", _KeyringController_registerMessageHandlers).call(this);
      }
++    
 +    /**
 +     * ============================== PATCH INFORMATION ==============================
 +     * This patch was added for ledger integration. It adds a new method to the
@@ -54,25 +58,28 @@ index c905cc0..16f35e4 100644
 +     * ===============================================================================
 +     */
 +    /**
-+      * Gets the internal keyring controller.
-+    */
++     * Gets the internal keyring controller.
++     */
 +    getEthKeyringController() {
 +        return __classPrivateFieldGet(this, _KeyringController_keyring, "f");
 +    }
++
      /**
       * Adds a new account to the default (first) HD seed phrase keyring.
       *
-@@ -678,13 +691,21 @@ class KeyringController extends base_controller_1.BaseControllerV2 {
+@@ -745,13 +760,23 @@ class KeyringController extends base_controller_1.BaseControllerV2 {
      }
      forgetQRDevice() {
          return __awaiter(this, void 0, void 0, function* () {
 +            /**
-+              * ============================== PATCH INFORMATION ==============================
-+              * This patch addresses an issue regarding the forget device functionality. It
-+              * improves the logic  to correctly remove the QR accounts and update the
-+              * identities as needed.
-+              * ===============================================================================
-+            */
++             * ============================== PATCH INFORMATION ==============================
++             * This patch addresses an issue regarding the forget device functionality. It
++             * improves the logic  to correctly remove the QR accounts and update the
++             * identities as needed.
++             * 
++             * Solved in https://github.com/MetaMask/core/pull/3641
++             * ===============================================================================
++             */
              const keyring = yield this.getOrAddQRKeyring();
 +            const allAccounts = (yield __classPrivateFieldGet(this, _KeyringController_keyring, "f").getAccounts());
              keyring.forgetDevice();
