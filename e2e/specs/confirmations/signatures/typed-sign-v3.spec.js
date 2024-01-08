@@ -1,5 +1,5 @@
 'use strict';
-import Browser from '../../../pages/Drawer/Browser';
+import Browser from '../../../pages/Browser';
 import TabBarComponent from '../../../pages/TabBarComponent';
 import { loginToApp } from '../../../viewHelper';
 import SigningModal from '../../../pages/modals/SigningModal';
@@ -9,12 +9,12 @@ import {
   withFixtures,
   defaultGanacheOptions,
 } from '../../../fixtures/fixture-helper';
-import { Smoke } from '../../../tags';
+import { SmokeConfirmations } from '../../../tags';
 import TestHelpers from '../../../helpers';
 
 const MAX_ATTEMPTS = 3;
 
-describe(Smoke('Typed Sign V3'), () => {
+describe(SmokeConfirmations('Typed Sign V3'), () => {
   beforeAll(async () => {
     jest.setTimeout(2500000);
     await TestHelpers.reverseServerPort();

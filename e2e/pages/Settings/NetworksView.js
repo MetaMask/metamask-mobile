@@ -1,4 +1,4 @@
-import TestHelpers from '../../../helpers';
+import TestHelpers from '../../helpers';
 import {
   INPUT_NETWORK_NAME,
   INPUT_RPC_URL_FIELD,
@@ -7,11 +7,11 @@ import {
   RPC_WARNING_BANNER_ID,
   NETWORK_SCREEN_ID,
   CUSTOM_NETWORK_NAME_NETWORK_LIST,
-} from '../../../../wdio/screen-objects/testIDs/Screens/NetworksScreen.testids';
+} from '../../../wdio/screen-objects/testIDs/Screens/NetworksScreen.testids';
 import {
   NetworksViewSelectorsIDs,
   NetworkViewSelectorsText,
-} from '../../../selectors/Settings/NetworksView.selectors';
+} from '../../selectors/Settings/NetworksView.selectors';
 
 export default class NetworkView {
   static async tapAddNetworkButton() {
