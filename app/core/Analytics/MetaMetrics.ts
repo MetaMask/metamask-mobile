@@ -4,7 +4,7 @@ import {
   JsonMap,
   UserTraits,
 } from '@segment/analytics-react-native';
-import axios from 'axios';
+import axios, { AxiosHeaderValue } from 'axios';
 import DefaultPreference from 'react-native-default-preference';
 import Logger from '../../util/Logger';
 import {
@@ -78,71 +78,80 @@ import { v4 as uuidv4 } from 'uuid';
  */
 class MetaMetrics implements IMetaMetrics {
   /**
-   * protected constructor to prevent direct instanciation.
-   * use {@link getInstance} instead.
+   * Protected constructor to prevent direct instantiation
+   *
+   * Use {@link getInstance} instead
+   *
    * @protected
-   * @param segmentClient - Segment client instance.
+   * @param segmentClient - Segment client instance
    */
   protected constructor(segmentClient: ISegmentClient) {
     this.segmentClient = segmentClient;
   }
 
   /**
-   * Singleton instance of the MetaMetrics class.
-   * the value is protected to prevent direct access
+   * Singleton instance of the MetaMetrics class
+   *
+   * The value is protected to prevent direct access
    * but allows to access it from a child class for testing
    * @protected
    */
   protected static instance: MetaMetrics | null;
 
   /**
-   * Segment SDK client instance.
-   * The MetaMetrics class is a wrapper around the Segment SDK.
+   * Segment SDK client instance
+   *
+   * The MetaMetrics class is a wrapper around the Segment SDK
    * @private
    */
   private segmentClient: ISegmentClient | undefined;
 
   /**
    * Random ID used for tracking events
-   * this id lives in the device and is used to identify the events
-   * it's generated when the user enables MetaMetrics for the first time
+   *
+   * ID stored in the device and is used to identify the events
+   * It's generated when the user enables MetaMetrics for the first time
    * @private
    */
   private metametricsId: string | undefined;
 
   /**
-   * indicates if MetaMetrics is enabled or disabled
+   * Indicate if MetaMetrics is enabled or disabled
+   *
    * MetaMetrics is disabled by default, user has to explicitly opt-in
    * @private
    */
   private enabled = false;
 
   /**
-   * indicates if data has been recorded since the last deletion request
+   * Indicate if data has been recorded since the last deletion request
    * @private
    */
   private dataRecorded = false;
 
   /**
    * Segment's data deletion regulation ID
-   * this is the id returned by the Segment delete API
-   * that allows to check the status of the deletion request
+   *
+   * The ID returned by the Segment delete API
+   * which allows to check the status of the deletion request
    * @private
    */
   private deleteRegulationId: string | undefined;
 
   /**
    * Segment's data deletion regulation creation date
-   * this is the date when the deletion request was created
+   *
+   * The date when the deletion request was created
    * @private
    */
   private deleteRegulationDate: string | undefined;
 
   /**
-   * retrieve state of metrics from the preference.
-   * Defaults to disabled if not explicitely enabled.
+   * Retrieve state of metrics from the preference
+   *
+   * Defaults to disabled if not explicitely enabled
    * @private
-   * @returns Promise containing the enabled state.
+   * @returns Promise containing the enabled state
    */
   #isMetaMetricsEnabled = async (): Promise<boolean> => {
     const enabledPref = await DefaultPreference.get(METRICS_OPT_IN);
@@ -153,28 +162,28 @@ class MetaMetrics implements IMetaMetrics {
   };
 
   /**
-   * retrieve the analytics recording status from the preference.
+   * Retrieve the analytics recording status from the preference
    * @private
    */
   #getIsDataRecordedFromPrefs = async (): Promise<boolean> =>
     (await DefaultPreference.get(ANALYTICS_DATA_RECORDED)) === 'true';
 
   /**
-   * retrieve the analytics deletion request date from the preference.
+   * Retrieve the analytics deletion request date from the preference
    * @private
    */
   #getDeleteRegulationDateFromPrefs = async (): Promise<string> =>
     await DefaultPreference.get(ANALYTICS_DATA_DELETION_DATE);
 
   /**
-   * retrieve the analytics deletion regulation id from the preference.
+   * Retrieve the analytics deletion regulation ID from the preference
    * @private
    */
   #getDeleteRegulationIdFromPrefs = async (): Promise<string> =>
     await DefaultPreference.get(METAMETRICS_DELETION_REGULATION_ID);
 
   /**
-   * persist the analytics recording status
+   * Persist the analytics recording status
    * @private
    * @param isDataRecorded - analytics recording status
    */
@@ -187,9 +196,10 @@ class MetaMetrics implements IMetaMetrics {
   };
 
   /**
-   * set and store Segment's data deletion regulation ID.
+   * Set and store Segment's data deletion regulation ID
    * @private
-   * @param deleteRegulationId - data deletion regulation ID returned by Segment delete API or undefined if no regulation in progress.
+   * @param deleteRegulationId - data deletion regulation ID returned by Segment
+   * delete API or undefined if no regulation in progress
    */
   #setDeleteRegulationId = async (
     deleteRegulationId: string,
@@ -202,7 +212,7 @@ class MetaMetrics implements IMetaMetrics {
   };
 
   /**
-   * set and store the delete regulation request creation date
+   * Set and store the delete regulation request creation date
    */
   #setDeleteRegulationCreationDate = async (): Promise<void> => {
     const currentDate = new Date();
@@ -220,10 +230,11 @@ class MetaMetrics implements IMetaMetrics {
   };
 
   /**
-   * retrieve the analytics user ID.
-   * Generates a new one if none is found.
+   * Retrieve the analytics user ID from references
    *
-   * @returns Promise containing the user ID.
+   * Generates a new ID if none is found
+   *
+   * @returns Promise containing the user ID
    */
   #getMetaMetricsId = async (): Promise<string> => {
     // Important: this ID is used to identify the user in Segment and should be kept in
@@ -232,7 +243,7 @@ class MetaMetrics implements IMetaMetrics {
     // this same ID should be retrieved from preferences and reused.
 
     // look for a legacy ID from MixPanel integration and use it
-    // this should be kept for retrocompatibility and preserving the user ID
+    // this should be kept for backwards compatibility and preserving the user ID
     // in the new metametrics system
     this.metametricsId = await DefaultPreference.get(MIXPANEL_METAMETRICS_ID);
     if (this.metametricsId) {
@@ -253,7 +264,7 @@ class MetaMetrics implements IMetaMetrics {
   };
 
   /**
-   * reset the analytics user ID and Segment SDK state.
+   * Reset the analytics user ID and Segment SDK state
    */
   #resetMetaMetricsId = async (): Promise<void> => {
     await DefaultPreference.set(METAMETRICS_ID, '');
@@ -261,37 +272,37 @@ class MetaMetrics implements IMetaMetrics {
   };
 
   /**
-   * associate traits or properties to an user.
-   * Check Segment documentation for more information.
-   * https://segment.com/docs/connections/sources/catalog/libraries/mobile/react-native/#identify
+   * Associate traits or properties to an user
    *
-   * Here we we only take traits as parameter as we want to keep the user ID controlled by the class.
+   * It only takes traits as parameter as we want to keep the user ID controlled by the class
    *
-   * @param userTraits - Object containing user relevant traits or properties (optional).
+   * @param userTraits - Object containing user relevant traits or properties (optional)
+   *
+   * @see https://segment.com/docs/connections/sources/catalog/libraries/mobile/react-native/#identify
    */
   #identify = async (userTraits: UserTraits): Promise<void> => {
     this.segmentClient?.identify(this.metametricsId, userTraits);
   };
 
   /**
-   * associate a user to a specific group.
-   * Check Segment documentation for more information.
-   * https://segment.com/docs/connections/sources/catalog/libraries/mobile/react-native/#group
+   * Associate a user to a specific group
    *
    * @param groupId - Group ID to associate user
-   * @param groupTraits - Object containing group relevant traits or properties (optional).
+   * @param groupTraits - Object containing group relevant traits or properties (optional)
+   *
+   * @see https://segment.com/docs/connections/sources/catalog/libraries/mobile/react-native/#group
    */
   #group = (groupId: string, groupTraits?: GroupTraits): void => {
     this.segmentClient?.group(groupId, groupTraits);
   };
 
   /**
-   * track an analytics event.
-   * Check Segment documentation for more information.
-   * https://segment.com/docs/connections/sources/catalog/libraries/mobile/react-native/#track
+   * Track an analytics event
    *
-   * @param event - Analytics event name.
-   * @param properties - Object containing any event relevant traits or properties (optional).
+   * @param event - Analytics event name
+   * @param properties - Object containing any event relevant traits or properties (optional)
+   *
+   * @see https://segment.com/docs/connections/sources/catalog/libraries/mobile/react-native/#track
    */
   #trackEvent = (event: string, properties: JsonMap): void => {
     this.segmentClient?.track(event, properties);
@@ -302,28 +313,36 @@ class MetaMetrics implements IMetaMetrics {
   };
 
   /**
-   * clear the internal state of the library for the current user and group.
-   * https://segment.com/docs/connections/sources/catalog/libraries/mobile/react-native/#reset
+   * Clear the internal state of the library for the current user and group
+   *
+   * @see https://segment.com/docs/connections/sources/catalog/libraries/mobile/react-native/#reset
    */
   #reset = (): void => {
     this.segmentClient?.reset(true);
   };
 
   /**
-   * update the user analytics preference and
-   * store in DefaultPreference.
+   * Update the user analytics preference and
+   * store in DefaultPreference
+   *
+   * @param enabled - Boolean indicating if opts-in ({@link AGREED}) or opts-out ({@link DENIED})
    */
   #storeMetricsOptInPreference = async (enabled: boolean) => {
     await DefaultPreference.set(METRICS_OPT_IN, enabled ? AGREED : DENIED);
   };
 
-  #getSegmentApiHeaders = () => ({
+  /**
+   * Get the Segment API HTTP headers
+   * @private
+   */
+  #getSegmentApiHeaders = (): { [key: string]: AxiosHeaderValue } => ({
     'Content-Type': 'application/vnd.segment.v1+json',
   });
 
   /**
-   * generate a new delete regulation for the user.
-   * This is necessary to respect the GDPR and CCPA regulations.
+   * Generate a new delete regulation for the user
+   *
+   * This is necessary to respect the GDPR and CCPA regulations
    *
    * @see https://segment.com/docs/privacy/user-deletion-and-suppression/
    */
@@ -361,7 +380,6 @@ class MetaMetrics implements IMetaMetrics {
    * Check a Deletion Task using Segment API
    *
    * @returns promise for Object indicating the status of the deletion request
-   *
    * @see https://docs.segmentapis.com/tag/Deletion-and-Suppression#operation/getRegulation
    */
   #checkDataDeletionTaskStatus =
@@ -388,7 +406,7 @@ class MetaMetrics implements IMetaMetrics {
 
         return {
           status: DataDeleteResponseStatus.ok,
-          dataDeleteStatus: status,
+          dataDeleteStatus: status || DataDeleteStatus.unknown,
         };
       } catch (error: any) {
         Logger.error(error, 'Analytics Deletion Task Check Error');
@@ -400,12 +418,12 @@ class MetaMetrics implements IMetaMetrics {
     };
 
   /**
-   * get an instance of the MetaMetrics system
+   * Get an instance of the MetaMetrics system
+   *
+   * Await this method to ensure the instance is ready
+   *
+   * @example const metrics = await MetaMetrics.getInstance();
    * @returns Promise containing the MetaMetrics instance.
-   * Await this method to ensure the instance is ready.
-   * ```
-   * const metrics = await MetaMetrics.getInstance();
-   * ```
    */
   public static async getInstance(): Promise<IMetaMetrics> {
     if (!this.instance) {
@@ -431,8 +449,9 @@ class MetaMetrics implements IMetaMetrics {
   }
 
   /**
-   * enable or disable MetaMetrics
-   * @param enable - Boolean indicating if MetaMetrics should be enabled or disabled.
+   * Enable or disable MetaMetrics
+   *
+   * @param enable - Boolean indicating if MetaMetrics should be enabled or disabled
    */
   enable = async (enable = true): Promise<void> => {
     this.enabled = enable;
@@ -440,16 +459,22 @@ class MetaMetrics implements IMetaMetrics {
   };
 
   /**
-   * check if MetaMetrics is enabled
-   * @returns Boolean indicating if MetaMetrics is enabled or disabled.
+   * Check if MetaMetrics is enabled
+   *
+   * @returns Boolean indicating if MetaMetrics is enabled or disabled
    */
   isEnabled() {
     return this.enabled;
   }
 
   /**
-   * add traits to the user and identify them
-   * @param userTraits
+   * Add traits to the user and identify them
+   *
+   * @param userTraits list of traits to add to the user
+   *
+   * @remarks method can be called multiple times,
+   * new traits are sent with the underlying identification call to Segment
+   * and user traits are updated with the latest ones
    */
   addTraitsToUser = (userTraits: UserTraits): Promise<void> => {
     if (this.enabled) {
@@ -459,9 +484,10 @@ class MetaMetrics implements IMetaMetrics {
   };
 
   /**
-   * add an user to a specific group
-   * @param groupId
-   * @param groupTraits
+   * Add a user to a specific group
+   *
+   * @param groupId - Any unique string to associate user with
+   * @param groupTraits - group relevant traits or properties (optional)
    */
   group = (groupId: string, groupTraits?: GroupTraits): Promise<void> => {
     if (this.enabled) {
@@ -471,11 +497,12 @@ class MetaMetrics implements IMetaMetrics {
   };
 
   /**
-   * track an anonymous event
+   * Track an anonymous event
    *
-   * This will track the event twice: once with the anonymous ID and once with the user ID.
-   * The anynomous has properties set so you can know what but not who.
-   * The non-anonymous has no properties so you can know who but not what.
+   * This will track the event twice: once with the anonymous ID and once with the user ID
+   *
+   * - The anynomous event has properties set so you can know *what* but not *who*
+   * - The non-anonymous event has no properties so you can know *who* but not *what*
    *
    * @param event
    * @param properties
@@ -488,7 +515,8 @@ class MetaMetrics implements IMetaMetrics {
   }
 
   /**
-   * track an event - the regular way
+   * Track an event - the regular way
+   *
    * @param event
    * @param properties
    */
@@ -499,7 +527,7 @@ class MetaMetrics implements IMetaMetrics {
   };
 
   /**
-   * clear the internal state of the library for the current user and reset the user ID.
+   * Clear the internal state of the library for the current user and reset the user ID
    */
   reset = async (): Promise<void> => {
     this.#reset();
@@ -507,16 +535,19 @@ class MetaMetrics implements IMetaMetrics {
   };
 
   /**
-   * forces the Segment SDK to flush all events in the queue.
-   * This will send all events to Segment without waiting for the queue to be full or the timeout to be reached.
+   * Forces the Segment SDK to flush all events in the queue
+   *
+   * This will send all events to Segment without waiting for
+   * the queue to be full or the timeout to be reached
    */
   flush = async (): Promise<void> => this.segmentClient?.flush();
 
   /**
-   * create a new delete regulation for the user.
-   * This is necessary to respect the GDPR and CCPA regulations.
+   * Create a new delete regulation for the user
    *
-   * @returns Promise containing the status of the request.
+   * @remarks This is necessary to respect the GDPR and CCPA regulations
+   *
+   * @returns Promise containing the status of the request
    *
    * @see https://segment.com/docs/privacy/user-deletion-and-suppression/
    * @see https://docs.segmentapis.com/tag/Deletion-and-Suppression#operation/createSourceRegulation
@@ -525,9 +556,9 @@ class MetaMetrics implements IMetaMetrics {
     this.#createDataDeletionTask();
 
   /**
-   * check the latest delete regulation status.
+   * Check the latest delete regulation status
    *
-   * @returns Promise containing the status of the request.
+   * @returns Promise containing the status of the request
    *
    * @see https://docs.segmentapis.com/tag/Deletion-and-Suppression#operation/getRegulation
    */
@@ -536,24 +567,24 @@ class MetaMetrics implements IMetaMetrics {
       this.#checkDataDeletionTaskStatus();
 
   /**
-   * get the latest delete regulation request date.
+   * Get the latest delete regulation request date
    *
-   * @returns the date as a DD/MM/YYYY string.
+   * @returns the date as a DD/MM/YYYY string
    */
   getDeleteRegulationCreationDate = (): string | undefined =>
     this.deleteRegulationDate;
 
   /**
-   * get the latest delete regulation request id.
+   * Get the latest delete regulation request id
    *
-   * @returns the id string.
+   * @returns the id string
    */
   getDeleteRegulationId = (): string | undefined => this.deleteRegulationId;
 
   /**
-   * indicates if data has been recorded since the last deletion request.
+   * Indicate if events have been recorded since the last deletion request
    *
-   * @returns true if data has been recorded since the last deletion request.
+   * @returns true if events have been recorded since the last deletion request
    */
   isDataRecorded = (): boolean => this.dataRecorded;
 }
