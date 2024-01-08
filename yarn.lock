@@ -3505,15 +3505,7 @@
     "@metamask/utils" "^8.1.0"
     immer "^9.0.6"
 
-"@metamask/base-controller@^4.0.0":
-  version "4.0.0"
-  resolved "https://registry.yarnpkg.com/@metamask/base-controller/-/base-controller-4.0.0.tgz#f3b86923a8a4f7bf5a35f3e3f165c0c25ca7cc40"
-  integrity sha512-ajG/1vXt3USkxEoYQd8aTckXqgMiuD4StRziTxXt0p5ROkKRZOp9luhwYrW/EBLJtdNEYXLAK5864q9okfRJHQ==
-  dependencies:
-    "@metamask/utils" "^8.2.0"
-    immer "^9.0.6"
-
-"@metamask/base-controller@^4.0.1":
+"@metamask/base-controller@^4.0.0", "@metamask/base-controller@^4.0.1":
   version "4.0.1"
   resolved "https://registry.yarnpkg.com/@metamask/base-controller/-/base-controller-4.0.1.tgz#3bb3117bdfdfcf8fa5058f13c7dcb10ac6fe7436"
   integrity sha512-t1DXcDHaFmx23XSMcz3nHP+ru4vvZmc07eVGYBC5o/4lzKdKq2PZy6XFw5noLtm7XOf3KO1ItXWikUAy1cEe5w==
@@ -3816,21 +3808,7 @@
     "@metamask/controller-utils" "^4.3.2"
     uuid "^8.3.2"
 
-"@metamask/message-manager@^7.0.0":
-  version "7.3.6"
-  resolved "https://registry.yarnpkg.com/@metamask/message-manager/-/message-manager-7.3.6.tgz#86034d11e695d26da1dbbfc736449301eef2644c"
-  integrity sha512-Nz6tSvu64mIKV2VupOWlQD6s3AxJU+dovsg6m3dVjTZkxNu5cSfDV4LhLgeVXEk4RQgWk7BHX1wUndC6bJF9xA==
-  dependencies:
-    "@metamask/base-controller" "^4.0.0"
-    "@metamask/controller-utils" "^6.0.0"
-    "@metamask/eth-sig-util" "^7.0.0"
-    "@metamask/utils" "^8.2.0"
-    "@types/uuid" "^8.3.0"
-    ethereumjs-util "^7.0.10"
-    jsonschema "^1.2.4"
-    uuid "^8.3.2"
-
-"@metamask/message-manager@^7.3.5":
+"@metamask/message-manager@^7.0.0", "@metamask/message-manager@^7.3.5":
   version "7.3.7"
   resolved "https://registry.yarnpkg.com/@metamask/message-manager/-/message-manager-7.3.7.tgz#fff3c4f0896c93990f33689cb9fc8f286b512f33"
   integrity sha512-O0XbSL/OIIm5N+FTDwD+HW7PtW2OhgAUgcIkfouhLFhq7K25p4VuSx7YG4L3DRdkZ2VMXM9LT+9yhE4EU+cuDw==
