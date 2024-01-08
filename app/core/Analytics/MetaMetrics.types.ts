@@ -77,9 +77,9 @@ export interface IMetaMetrics {
    */
   createDataDeletionTask(): Promise<IDeleteRegulationResponse>;
 
-  checkDataDeletionTaskStatus(): Promise<IDeleteRegulationStatusResponse>;
+  checkDataDeleteStatus(): Promise<IDeleteRegulationStatus>;
 
-  getDeleteRegulationCreationDate(): string | undefined;
+  getDeleteRegulationCreationDate(): DataDeleteDate;
 
   getDeleteRegulationId(): string | undefined;
 
@@ -128,4 +128,13 @@ export interface IDeleteRegulationResponse {
 export interface IDeleteRegulationStatusResponse {
   status: DataDeleteResponseStatus;
   dataDeleteStatus: DataDeleteStatus;
+}
+
+export type DataDeleteDate = string | undefined;
+export type DataDeleteRegulationId = string | undefined;
+
+export interface IDeleteRegulationStatus {
+  deletionRequestDate?: DataDeleteDate;
+  hasCollectedDataSinceDeletionRequest: boolean;
+  dataDeletionRequestStatus: DataDeleteStatus;
 }

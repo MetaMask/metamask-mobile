@@ -19,9 +19,12 @@ import {
 } from '../../constants/storage';
 
 import {
+  DataDeleteDate,
+  DataDeleteRegulationId,
   DataDeleteResponseStatus,
   DataDeleteStatus,
   IDeleteRegulationResponse,
+  IDeleteRegulationStatus,
   IDeleteRegulationStatusResponse,
   IMetaMetrics,
   ISegmentClient,
@@ -136,7 +139,7 @@ class MetaMetrics implements IMetaMetrics {
    * which allows to check the status of the deletion request
    * @private
    */
-  private deleteRegulationId: string | undefined;
+  private deleteRegulationId: DataDeleteRegulationId;
 
   /**
    * Segment's data deletion regulation creation date
@@ -144,7 +147,7 @@ class MetaMetrics implements IMetaMetrics {
    * The date when the deletion request was created
    * @private
    */
-  private deleteRegulationDate: string | undefined;
+  private deleteRegulationDate: DataDeleteDate;
 
   /**
    * Retrieve state of metrics from the preference
@@ -557,14 +560,31 @@ class MetaMetrics implements IMetaMetrics {
 
   /**
    * Check the latest delete regulation status
-   *
-   * @returns Promise containing the status of the request
-   *
-   * @see https://docs.segmentapis.com/tag/Deletion-and-Suppression#operation/getRegulation
+   * @returns Promise containing the date, delete status and collected data flag
    */
-  checkDataDeletionTaskStatus =
-    async (): Promise<IDeleteRegulationStatusResponse> =>
-      this.#checkDataDeletionTaskStatus();
+  checkDataDeleteStatus = async (): Promise<IDeleteRegulationStatus> => {
+    const status: IDeleteRegulationStatus = {
+      deletionRequestDate: undefined,
+      dataDeletionRequestStatus: DataDeleteStatus.unknown,
+      hasCollectedDataSinceDeletionRequest: false,
+    };
+
+    if (this.deleteRegulationId) {
+      try {
+        const dataDeletionTaskStatus =
+          await this.#checkDataDeletionTaskStatus();
+        status.dataDeletionRequestStatus =
+          dataDeletionTaskStatus.dataDeleteStatus;
+      } catch (error: any) {
+        Logger.log('Error checkDataDeleteStatus -', error);
+        status.dataDeletionRequestStatus = DataDeleteStatus.unknown;
+      }
+
+      status.deletionRequestDate = this.deleteRegulationDate;
+      status.hasCollectedDataSinceDeletionRequest = this.dataRecorded;
+    }
+    return status;
+  };
 
   /**
    * Get the latest delete regulation request date

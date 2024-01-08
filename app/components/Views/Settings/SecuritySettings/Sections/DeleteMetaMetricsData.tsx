@@ -19,8 +19,7 @@ import Button, {
   ButtonVariants,
   ButtonSize,
 } from '../../../../../component-library/components/Buttons/Button';
-
-import { IMetaMetrics } from '../../../../../core/Analytics/MetaMetrics.types';
+import { DataDeleteDate } from '../../../../../core/Analytics/MetaMetrics.types';
 
 const DeleteMetaMetricsData = () => {
   /** hasCollectedData is used to determine
@@ -41,9 +40,7 @@ const DeleteMetaMetricsData = () => {
    * the date of the latest metametrics data
    * deletion request.
    */
-  const [deletionTaskDate, setDeletionTaskDate] = useState<
-    string | undefined
-  >();
+  const [deletionTaskDate, setDeletionTaskDate] = useState<DataDeleteDate>();
 
   /** enableDeleteData is used to determine
    * if the delete metametrics button should be
@@ -71,17 +68,16 @@ const DeleteMetaMetricsData = () => {
     );
   };
 
-  const trackDataDeletionRequest = () => {
-    MetaMetrics.getInstance().then((metrics) => {
-      metrics.trackEvent(
-        MetaMetricsEvents.ANALYTICS_REQUEST_DATA_DELETION.category,
-        {
-          os: Platform.OS,
-          os_version: Platform.Version,
-          device_model: `${getBrand()} ${getDeviceId()}`,
-        },
-      );
-    });
+  const trackDataDeletionRequest = async () => {
+    const metrics = await MetaMetrics.getInstance();
+    metrics.trackEvent(
+      MetaMetricsEvents.ANALYTICS_REQUEST_DATA_DELETION.category,
+      {
+        os: Platform.OS,
+        os_version: Platform.Version,
+        device_model: `${getBrand()} ${getDeviceId()}`,
+      },
+    );
   };
 
   const deleteMetaMetrics = async () => {
@@ -94,7 +90,7 @@ const DeleteMetaMetricsData = () => {
         setDataDeleteStatus(DataDeleteStatus.initialized);
         setHasCollectedData(false);
         setDeletionTaskDate(deleteDate);
-        trackDataDeletionRequest();
+        await trackDataDeletionRequest();
       } else {
         showDeleteTaskError();
       }
@@ -104,36 +100,25 @@ const DeleteMetaMetricsData = () => {
     }
   };
 
-  /** Check data deletion task status
-   * when enableDeleteData and dataDeleteStatus
-   * are updated.
+  /**
+   * Update UI on mount based on MetaMetrics deletion status
    */
   useEffect(() => {
-    const checkDataDeleteStatus = async (metrics: IMetaMetrics) => {
-      try {
-        const dataDeletionTaskStatus =
-          await metrics.checkDataDeletionTaskStatus();
-        return dataDeletionTaskStatus.dataDeleteStatus;
-      } catch (error: any) {
-        Logger.log('Error checkDataDeleteStatus -', error);
-        return DataDeleteStatus.unknown;
-      }
-    };
-
-    const checkStatus = async () => {
+    const checkInitialStatus = async () => {
       const metrics = await MetaMetrics.getInstance();
-      const deleteRegulationId = metrics.getDeleteRegulationId();
-      if (deleteRegulationId) {
-        setDataDeleteStatus(await checkDataDeleteStatus(metrics));
-        setDeletionTaskDate(metrics.getDeleteRegulationCreationDate());
-        setHasCollectedData(metrics.isDataRecorded() || enableDeleteData());
-      } else {
-        setDataDeleteStatus(DataDeleteStatus.unknown);
-        setDeletionTaskDate(undefined);
-      }
+      const {
+        dataDeletionRequestStatus,
+        deletionRequestDate,
+        hasCollectedDataSinceDeletionRequest,
+      } = await metrics.checkDataDeleteStatus();
+      setDataDeleteStatus(dataDeletionRequestStatus);
+      setDeletionTaskDate(deletionRequestDate);
+      setHasCollectedData(
+        hasCollectedDataSinceDeletionRequest || enableDeleteData(),
+      );
     };
-    checkStatus();
-  }, [enableDeleteData, dataDeleteStatus]);
+    checkInitialStatus();
+  }, [enableDeleteData]);
 
   const openPrivacyPolicy = () => Linking.openURL(CONSENSYS_PRIVACY_POLICY);
 

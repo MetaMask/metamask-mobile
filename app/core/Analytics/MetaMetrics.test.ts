@@ -459,9 +459,17 @@ describe('MetaMetrics', () => {
 
     describe('check request', () => {
       it('data deletion task check succeeds', async () => {
-        DefaultPreference.get = jest
-          .fn()
-          .mockResolvedValue('TWV0YU1hc2t1c2Vzbm9wb2ludCE');
+        DefaultPreference.get = jest.fn((key) => {
+          switch (key) {
+            case METAMETRICS_DELETION_REGULATION_ID:
+              return Promise.resolve('TWV0YU1hc2t1c2Vzbm9wb2ludCE');
+            case ANALYTICS_DATA_DELETION_DATE:
+              return Promise.resolve('11/12/2023');
+            default:
+              return Promise.resolve('');
+          }
+        });
+
         const metaMetrics = await TestMetaMetrics.getInstance();
         (axios as jest.MockedFunction<typeof axios>).mockResolvedValue({
           status: 200,
@@ -492,29 +500,33 @@ describe('MetaMetrics', () => {
           },
         } as AxiosResponse<any>);
 
-        const result = await metaMetrics.checkDataDeletionTaskStatus();
+        const {
+          hasCollectedDataSinceDeletionRequest,
+          deletionRequestDate,
+          dataDeletionRequestStatus,
+        } = await metaMetrics.checkDataDeleteStatus();
 
-        expect(metaMetrics.isDataRecorded()).toBeFalsy();
-        expect(result).toEqual({
-          status: DataDeleteResponseStatus.ok,
-          dataDeleteStatus: 'RUNNING',
-        });
+        expect(hasCollectedDataSinceDeletionRequest).toBeFalsy();
+        expect(dataDeletionRequestStatus).toEqual(DataDeleteStatus.running);
+        expect(deletionRequestDate).toEqual('11/12/2023');
       });
 
       it('data deletion task check fails without METAMETRICS_DELETION_REGULATION_ID', async () => {
         DefaultPreference.get = jest.fn().mockResolvedValue(undefined);
         const metaMetrics = await TestMetaMetrics.getInstance();
 
-        const result = await metaMetrics.checkDataDeletionTaskStatus();
+        const {
+          hasCollectedDataSinceDeletionRequest,
+          deletionRequestDate,
+          dataDeletionRequestStatus,
+        } = await metaMetrics.checkDataDeleteStatus();
 
         expect(
           axios as jest.MockedFunction<typeof axios>,
         ).not.toHaveBeenCalled();
-        expect(metaMetrics.isDataRecorded()).toBeFalsy();
-        expect(result).toEqual({
-          status: DataDeleteResponseStatus.error,
-          dataDeleteStatus: DataDeleteStatus.unknown,
-        });
+        expect(hasCollectedDataSinceDeletionRequest).toBeFalsy();
+        expect(dataDeletionRequestStatus).toEqual(DataDeleteStatus.unknown);
+        expect(deletionRequestDate).toBeUndefined();
       });
     });
   });
