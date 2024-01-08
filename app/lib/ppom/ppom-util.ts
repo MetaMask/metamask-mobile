@@ -1,6 +1,9 @@
 import setSignatureRequestSecurityAlertResponse from '../../actions/signatureRequest';
 import { setTransactionSecurityAlertResponse } from '../../actions/transaction';
-import { Reason, ResultType } from '../../components/UI/BlockaidBanner/BlockaidBanner.types';
+import {
+  Reason,
+  ResultType,
+} from '../../components/UI/BlockaidBanner/BlockaidBanner.types';
 import Engine from '../../core/Engine';
 import { store } from '../../store';
 import { isBlockaidFeatureEnabled } from '../../util/blockaid';

@@ -35,7 +35,7 @@ export interface SecurityAlertResponse {
   features?: (string | Record<string, string>)[];
   result_type: ResultType;
   providerRequestsCount?: Record<string, number>;
-  block: number;
+  block?: number;
   chainId?: string;
   req?: Record<string, unknown>;
 }
