@@ -17,6 +17,10 @@ export interface ListBaseProps extends ViewProps {
    * Optional enum to replace the bottomAccessory.
    */
   bottomAccessory?: React.ReactNode;
+  /**
+   * Boolean for the whether the list is searchable
+   */
+  isSearchable?: boolean;
 }
 
 /**

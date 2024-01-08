@@ -47,6 +47,7 @@ const DropdownButton: React.FC<DropdownButtonProps> = ({
       accessory = startAccessory;
     } else if (iconEl) {
       accessory = React.cloneElement(iconEl, {
+        ...iconEl.props,
         size: STARTICON_ICONSIZE_BY_DROPDOWNBUTTONSIZE[size],
       });
     } else if (iconProps) {

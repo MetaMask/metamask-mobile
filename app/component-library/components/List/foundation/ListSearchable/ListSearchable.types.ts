@@ -2,7 +2,7 @@
 import { TextFieldSearchProps } from '../../../Form/TextFieldSearch/TextFieldSearch.types';
 
 // Internal dependencies.
-import { ListBaseProps } from '../../foundation/ListBase.types';
+import { ListBaseProps } from '../ListBase.types';
 
 /**
  * ListSearchable component props.
@@ -16,5 +16,8 @@ export interface ListSearchableProps
   /**
    * Enum to replace the filtered list.
    */
-  renderFilteredListCallback: (searchText: string) => JSX.Element;
+  renderFilteredListCallback: (
+    searchText: string,
+    options: any[],
+  ) => JSX.Element;
 }

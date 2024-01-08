@@ -8,7 +8,7 @@ import TextFieldSearch from '../../../Form/TextFieldSearch/TextFieldSearch';
 
 // Internal dependencies.
 import { ListSearchableProps } from './ListSearchable.types';
-import ListBase from '../../foundation/ListBase';
+import ListBase from '../ListBase';
 
 const ListSearchable: React.FC<ListSearchableProps> = ({
   textFieldSearchProps,

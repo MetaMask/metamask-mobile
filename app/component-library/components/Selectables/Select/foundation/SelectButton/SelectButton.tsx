@@ -47,6 +47,7 @@ const SelectButton: React.FC<SelectButtonProps> = ({
       accessory = startAccessory;
     } else if (iconEl) {
       accessory = React.cloneElement(iconEl, {
+        ...iconEl.props,
         size: STARTICON_ICONSIZE_BY_SELECTBUTTONSIZE[size],
       });
     } else if (iconProps) {

@@ -6,7 +6,7 @@ import React from 'react';
 // Internal dependencies.
 import { ListProps } from './List.types';
 import ListBase from './foundation/ListBase';
-import ListSearchable from './variants/ListSearchable/ListSearchable';
+import ListSearchable from './foundation/ListSearchable/ListSearchable';
 
 const List: React.FC<ListProps> = ({
   isSearchable = false,
