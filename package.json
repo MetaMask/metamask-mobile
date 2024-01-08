@@ -103,7 +103,7 @@
   "lint-staged": {
     "*.{js,jsx,ts,tsx}": [
       "prettier --write",
-      "eslint"
+      "eslint --config .eslintrc-precommit.js"
     ],
     "*.json": [
       "prettier --write"
