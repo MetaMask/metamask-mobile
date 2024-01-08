@@ -81,6 +81,7 @@ const getStories = () => {
     "./app/component-library/components/List/ListItem/ListItem.stories.tsx": require("../app/component-library/components/List/ListItem/ListItem.stories.tsx"),
     "./app/component-library/components/List/ListItemMultiSelect/ListItemMultiSelect.stories.tsx": require("../app/component-library/components/List/ListItemMultiSelect/ListItemMultiSelect.stories.tsx"),
     "./app/component-library/components/List/ListItemSelect/ListItemSelect.stories.tsx": require("../app/component-library/components/List/ListItemSelect/ListItemSelect.stories.tsx"),
+    "./app/component-library/components/List/variants/ListMultiSelect/ListMultiSelect.stories.tsx": require("../app/component-library/components/List/variants/ListMultiSelect/ListMultiSelect.stories.tsx"),
     "./app/component-library/components/List/variants/ListSelect/ListSelect.stories.tsx": require("../app/component-library/components/List/variants/ListSelect/ListSelect.stories.tsx"),
     "./app/component-library/components/Modals/ModalConfirmation/ModalConfirmation.stories.tsx": require("../app/component-library/components/Modals/ModalConfirmation/ModalConfirmation.stories.tsx"),
     "./app/component-library/components/Modals/ModalMandatory/ModalMandatory.stories.tsx": require("../app/component-library/components/Modals/ModalMandatory/ModalMandatory.stories.tsx"),
