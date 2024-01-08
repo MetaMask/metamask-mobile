@@ -311,6 +311,9 @@ class MetaMetrics implements IMetaMetrics {
     this.segmentClient?.track(event, properties);
     !this.dataRecorded &&
       this.#setIsDataRecorded(true).catch((error) => {
+        // here we don't want to handle the error, there's nothing we can do
+        // so we just catch and log it async and do not await for return
+        // as this must not block the event tracking
         Logger.error(error, 'Analytics Data Record Error');
       });
   };
