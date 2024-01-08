@@ -3318,11 +3318,6 @@
     "@ngraveio/bc-ur" "^1.1.6"
     typescript "^4.6.2"
 
-"@klarna/react-native-zlib@^1.0.1":
-  version "1.0.1"
-  resolved "https://registry.yarnpkg.com/@klarna/react-native-zlib/-/react-native-zlib-1.0.1.tgz#802ec623f119dafc9f61e2e8cdfe17e3417d1adb"
-  integrity sha512-pwk1njHMMKrUUYcKLaSwglJRkE6LqgcF+Fz4W5zrCeCpp6d2EEkMrLzPXmNVTijbC8PXMJetV00+jmLDq+i6tA==
-
 "@lavamoat/aa@^3.1.1":
   version "3.1.2"
   resolved "https://registry.yarnpkg.com/@lavamoat/aa/-/aa-3.1.2.tgz#3e2c0bbff791204bb4dabe96c2486b0c910e1897"
@@ -22943,11 +22938,6 @@ react-transition-group@^4.3.0:
     dom-helpers "^5.0.1"
     loose-envify "^1.4.0"
     prop-types "^15.6.2"
-
-react-zlib-js@^1.0.5:
-  version "1.0.5"
-  resolved "https://registry.yarnpkg.com/react-zlib-js/-/react-zlib-js-1.0.5.tgz#7bb433e1a4ae53a8e6f361b3d36166baf5bbc60f"
-  integrity sha512-TLcPdmqhIl+ylwOwlfm1WUuI7NVvhAv3L74d1AabhjyaAbmLOROTA/Q4EQ/UMCFCOjIkVim9fT3UZOQSFk/mlA==
 
 react@18.2.0:
   version "18.2.0"
