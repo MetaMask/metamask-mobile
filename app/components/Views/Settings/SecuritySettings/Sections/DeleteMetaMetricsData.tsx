@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { Alert, Linking, Platform } from 'react-native';
 import {
   DataDeleteResponseStatus,
@@ -19,7 +19,10 @@ import Button, {
   ButtonVariants,
   ButtonSize,
 } from '../../../../../component-library/components/Buttons/Button';
-import { DataDeleteDate } from '../../../../../core/Analytics/MetaMetrics.types';
+import {
+  DataDeleteDate,
+  IMetaMetrics,
+} from '../../../../../core/Analytics/MetaMetrics.types';
 
 const DeleteMetaMetricsData = () => {
   /** hasCollectedData is used to determine
@@ -56,6 +59,8 @@ const DeleteMetaMetricsData = () => {
     [dataDeleteStatus],
   );
 
+  const metricsRef = useRef<IMetaMetrics | undefined>();
+
   const showDeleteTaskError = () => {
     Alert.alert(
       strings('app_settings.delete_metrics_error_title'),
@@ -69,8 +74,7 @@ const DeleteMetaMetricsData = () => {
   };
 
   const trackDataDeletionRequest = async () => {
-    const metrics = await MetaMetrics.getInstance();
-    metrics.trackEvent(
+    metricsRef.current?.trackEvent(
       MetaMetricsEvents.ANALYTICS_REQUEST_DATA_DELETION.category,
       {
         os: Platform.OS,
@@ -82,11 +86,10 @@ const DeleteMetaMetricsData = () => {
 
   const deleteMetaMetrics = async () => {
     try {
-      const metrics = await MetaMetrics.getInstance();
-      const deleteResponse = await metrics.createDataDeletionTask();
-      const deleteDate = metrics.getDeleteRegulationCreationDate();
+      const deleteResponse = await metricsRef.current?.createDataDeletionTask();
+      const deleteDate = metricsRef.current?.getDeleteRegulationCreationDate();
 
-      if (deleteResponse.status === DataDeleteResponseStatus.ok) {
+      if (DataDeleteResponseStatus.ok === deleteResponse?.status) {
         setDataDeleteStatus(DataDeleteStatus.initialized);
         setHasCollectedData(false);
         setDeletionTaskDate(deleteDate);
@@ -106,11 +109,15 @@ const DeleteMetaMetricsData = () => {
   useEffect(() => {
     const checkInitialStatus = async () => {
       const metrics = await MetaMetrics.getInstance();
+      if (!metrics) {
+        return;
+      }
+      metricsRef.current = metrics;
       const {
         dataDeletionRequestStatus,
         deletionRequestDate,
         hasCollectedDataSinceDeletionRequest,
-      } = await metrics.checkDataDeleteStatus();
+      } = await metrics?.checkDataDeleteStatus();
       setDataDeleteStatus(dataDeletionRequestStatus);
       setDeletionTaskDate(deletionRequestDate);
       setHasCollectedData(
