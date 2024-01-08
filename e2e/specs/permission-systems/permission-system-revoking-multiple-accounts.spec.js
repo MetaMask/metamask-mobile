@@ -13,6 +13,7 @@ import { loginToApp } from '../../viewHelper';
 import NetworkListModal from '../../pages/modals/NetworkListModal';
 import FixtureBuilder from '../../fixtures/fixture-builder';
 import { withFixtures } from '../../fixtures/fixture-helper';
+import Assertions from '../../utils/Assertions';
 
 const SUSHI_SWAP = 'https://app.sushi.com/swap';
 const SUSHI_SWAP_SHORT_HAND_URL = 'app.sushi.com';
@@ -68,14 +69,14 @@ describe('Connecting to multiple dapps and revoking permission on one but stayin
         await Browser.isRevokeAllAccountToastVisible();
         await Browser.tapNetworkAvatarButtonOnBrowser();
         await ConnectedAccountsModal.isNotVisible();
-        await NetworkListModal.isVisible();
+        await Assertions.checkIfVisible(NetworkListModal.networkScroll);
         await NetworkListModal.swipeToDismissModal();
-        await NetworkListModal.isNotVisible();
+        await Assertions.checkIfNotVisible(NetworkListModal.networkScroll);
         await TestHelpers.delay(3500);
         await Browser.tapOpenAllTabsButton();
         await TestHelpers.tapByText(SUSHI_SWAP_SHORT_HAND_URL);
         await Browser.tapNetworkAvatarButtonOnBrowserWhileAccountIsConnectedToDapp();
-        await NetworkListModal.isVisible();
+        await Assertions.checkIfVisible(NetworkListModal.networkScroll);
       },
     );
   });

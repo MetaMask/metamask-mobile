@@ -17,6 +17,7 @@ import Accounts from '../../../wdio/helpers/Accounts';
 
 import { importWalletWithRecoveryPhrase } from '../../viewHelper';
 import AddAccountModal from '../../pages/modals/AddAccountModal';
+import Assertions from '../../utils/Assertions';
 
 const SEPOLIA = 'Sepolia Test Network';
 
@@ -68,16 +69,15 @@ describe(
     it('should switch to Sepolia', async () => {
       await Browser.tapNetworkAvatarButtonOnBrowserWhileAccountIsConnectedToDapp();
       await ConnectedAccountsModal.tapNetworksPicker();
-      await NetworkListModal.isVisible();
-      await TestHelpers.delay(2000);
+      await Assertions.checkIfVisible(NetworkListModal.networkScroll);
       await NetworkListModal.tapTestNetworkSwitch();
       await NetworkListModal.changeNetwork(SEPOLIA);
     });
 
     it('should dismiss the network education modal', async () => {
-      await NetworkEducationModal.isVisible();
+      await Assertions.checkIfVisible(NetworkEducationModal.container);
       await NetworkEducationModal.tapGotItButton();
-      await NetworkEducationModal.isNotVisible();
+      await Assertions.checkIfNotVisible(NetworkEducationModal.container);
     });
 
     it('should set the imported account as primary account', async () => {

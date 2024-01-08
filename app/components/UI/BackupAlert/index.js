@@ -5,7 +5,6 @@ import {
   View,
   TouchableOpacity,
   InteractionManager,
-  Platform,
 } from 'react-native';
 import PropTypes from 'prop-types';
 import EvilIcons from 'react-native-vector-icons/EvilIcons';
@@ -18,13 +17,9 @@ import { backUpSeedphraseAlertNotVisible } from '../../../actions/user';
 import { findRouteNameFromNavigatorState } from '../../../util/general';
 import { MetaMetricsEvents } from '../../../core/Analytics';
 import AnalyticsV2 from '../../../util/analyticsV2';
-import generateTestId from '../../../../wdio/utils/generateTestId';
-import {
-  NOTIFICATION_REMIND_ME_LATER_BUTTON_ID,
-  SECURE_WALLET_BACKUP_ALERT_MODAL,
-} from '../../../../wdio/screen-objects/testIDs/Screens/WalletView.testIds';
 
 import { ThemeContext, mockTheme } from '../../../util/theme';
+import { ProtectWalletModalSelectorsIDs } from '../../../../e2e/selectors/Modals/ProtectWalletModal.selectors';
 
 const BROWSER_ROUTE = 'BrowserView';
 
@@ -214,7 +209,7 @@ class BackupAlert extends PureComponent {
         <View style={styles.backupAlertWrapper}>
           <View
             style={styles.touchableView}
-            {...generateTestId(Platform, SECURE_WALLET_BACKUP_ALERT_MODAL)}
+            testID={ProtectWalletModalSelectorsIDs.COLLAPSED_WALLET_MODAL}
           >
             <View style={styles.backupAlertIconWrapper}>
               <EvilIcons name="bell" style={styles.backupAlertIcon} />
@@ -235,10 +230,9 @@ class BackupAlert extends PureComponent {
                 >
                   <Text
                     style={styles.backupAlertMessage}
-                    {...generateTestId(
-                      Platform,
-                      NOTIFICATION_REMIND_ME_LATER_BUTTON_ID,
-                    )}
+                    testID={
+                      ProtectWalletModalSelectorsIDs.REMIND_ME_LATER_BUTTON
+                    }
                   >
                     {strings('backup_alert.left_button')}
                   </Text>

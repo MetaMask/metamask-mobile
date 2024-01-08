@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import PropTypes from 'prop-types';
 import { connect } from 'react-redux';
-import { Platform, StyleSheet, Text, View } from 'react-native';
+import { StyleSheet, Text, View } from 'react-native';
 import Coachmark from '../Coachmark';
 import setOnboardingWizardStep from '../../../../actions/wizard';
 import { strings } from '../../../../../locales/i18n';
@@ -14,8 +14,7 @@ import {
 import AnalyticsV2 from '../../../../util/analyticsV2';
 import { useTheme } from '../../../../util/theme';
 import Routes from '../../../../constants/navigation/Routes';
-import generateTestId from '../../../../../wdio/utils/generateTestId';
-import { ONBOARDING_WIZARD_SIXTH_STEP_CONTENT_ID } from '../../../../../wdio/screen-objects/testIDs/Components/OnboardingWizard.testIds';
+import { OnboardingWizardModalSelectorsIDs } from '../../../../../e2e/selectors/Modals/OnboardingWizardModal.selectors';
 
 const styles = StyleSheet.create({
   main: {
@@ -79,7 +78,7 @@ const Step6 = (props) => {
     <View style={dynamicOnboardingStyles.contentContainer}>
       <Text
         style={dynamicOnboardingStyles.content}
-        {...generateTestId(Platform, ONBOARDING_WIZARD_SIXTH_STEP_CONTENT_ID)}
+        testID={OnboardingWizardModalSelectorsIDs.STEP_SIX_CONTAINER}
       >
         {strings('onboarding_wizard_new.step6.content1')}
       </Text>

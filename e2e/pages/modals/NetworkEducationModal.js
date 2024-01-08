@@ -1,40 +1,42 @@
-import TestHelpers from '../../helpers';
 import {
-  NETWORK_EDUCATION_MODAL_CONTAINER_ID,
-  NETWORK_EDUCATION_MODAL_CLOSE_BUTTON_ID,
-  NETWORK_EDUCATION_MODAL_NETWORK_NAME_ID,
-} from '../../../wdio/screen-objects/testIDs/Components/NetworkEducationModalTestIds';
-import { NetworkEducationModalSelectorsText } from '../../selectors/Modals/NetworkEducationModal.selectors';
+  NetworkEducationModalSelectorsIDs,
+  NetworkEducationModalSelectorsText,
+} from '../../selectors/Modals/NetworkEducationModal.selectors';
+import Matchers from '../../utils/Matchers';
+import Gestures from '../../utils/Gestures';
 
-export default class NetworkEducationModal {
-  static async tapGotItButton() {
-    if (device.getPlatform() === 'ios') {
-      await TestHelpers.waitAndTap(NETWORK_EDUCATION_MODAL_CLOSE_BUTTON_ID);
-    } else {
-      await TestHelpers.waitAndTapByLabel(
-        NETWORK_EDUCATION_MODAL_CLOSE_BUTTON_ID,
-      );
-    }
+class NetworkEducationModal {
+  get container() {
+    return Matchers.getElementByID(NetworkEducationModalSelectorsIDs.CONTAINER);
   }
 
-  static async tapManuallyAddTokenLink() {
-    await TestHelpers.tapByText(NetworkEducationModalSelectorsText.ADD_TOKEN);
+  get closeButton() {
+    return device.getPlatform() === 'ios'
+      ? Matchers.getElementByID(NetworkEducationModalSelectorsIDs.CLOSE_BUTTON)
+      : Matchers.getElementByLabel(
+          NetworkEducationModalSelectorsIDs.CLOSE_BUTTON,
+        );
   }
 
-  static async isNetworkNameCorrect(networkName) {
-    await TestHelpers.checkIfElementHasString(
-      NETWORK_EDUCATION_MODAL_NETWORK_NAME_ID,
-      networkName,
+  get addToken() {
+    return Matchers.getElementByText(
+      NetworkEducationModalSelectorsText.ADD_TOKEN,
     );
   }
 
-  static async isVisible() {
-    if (device.getPlatform() === 'ios') {
-      await TestHelpers.checkIfVisible(NETWORK_EDUCATION_MODAL_CONTAINER_ID);
-    }
+  get networkName() {
+    return Matchers.getElementByID(
+      NetworkEducationModalSelectorsIDs.NETWORK_NAME,
+    );
   }
 
-  static async isNotVisible() {
-    await TestHelpers.checkIfNotVisible(NETWORK_EDUCATION_MODAL_CONTAINER_ID);
+  async tapGotItButton() {
+    await Gestures.waitAndTap(this.closeButton);
+  }
+
+  async tapManualAddTokenLink() {
+    await Gestures.waitAndTap(this.addToken);
   }
 }
+
+export default new NetworkEducationModal();

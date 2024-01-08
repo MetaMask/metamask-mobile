@@ -24,6 +24,7 @@ import TermsOfUseModal from './pages/modals/TermsOfUseModal';
 import TabBarComponent from './pages/TabBarComponent';
 import LoginView from './pages/LoginView';
 import { getGanachePort } from './fixtures/utils';
+import Assertions from './utils/Assertions';
 
 const GOERLI = 'Goerli Test Network';
 
@@ -69,9 +70,9 @@ export const importWalletWithRecoveryPhrase = async () => {
   // dealing with flakiness on bitrise.
   await TestHelpers.delay(1000);
   try {
-    await OnboardingWizardModal.isVisible();
+    await Assertions.checkIfVisible(OnboardingWizardModal.stepOneContainer);
     await OnboardingWizardModal.tapNoThanksButton();
-    await OnboardingWizardModal.isNotVisible();
+    await Assertions.checkIfNotVisible(OnboardingWizardModal.stepOneContainer);
   } catch {
     //
   }
@@ -122,9 +123,9 @@ export const CreateNewWallet = async () => {
   // dealing with flakiness on bitrise.
   await TestHelpers.delay(1000);
   try {
-    await OnboardingWizardModal.isVisible();
+    await Assertions.checkIfVisible(OnboardingWizardModal.stepOneContainer);
     await OnboardingWizardModal.tapNoThanksButton();
-    await OnboardingWizardModal.isNotVisible();
+    await Assertions.checkIfNotVisible(OnboardingWizardModal.stepOneContainer);
   } catch {
     //
   }
@@ -140,11 +141,8 @@ export const CreateNewWallet = async () => {
   }
 
   // Dismissing the protect your wallet modal
-  await ProtectYourWalletModal.isCollapsedBackUpYourWalletModalVisible();
-  await TestHelpers.delay(1000);
-
+  await Assertions.checkIfVisible(ProtectYourWalletModal.collapseWalletModal);
   await ProtectYourWalletModal.tapRemindMeLaterButton();
-
   await SkipAccountSecurityModal.tapIUnderstandCheckBox();
   await SkipAccountSecurityModal.tapSkipButton();
 };
@@ -169,16 +167,19 @@ export const addLocalhostNetwork = async () => {
   }
   await TestHelpers.delay(3000);
 
-  await NetworkEducationModal.isVisible();
-  await NetworkEducationModal.isNetworkNameCorrect('Localhost');
+  await Assertions.checkIfVisible(NetworkEducationModal.container);
+  await Assertions.checkIfElementToHaveText(
+    NetworkEducationModal.networkName,
+    'Localhost',
+  );
   await NetworkEducationModal.tapGotItButton();
-  await NetworkEducationModal.isNotVisible();
+  await Assertions.checkIfNotVisible(NetworkEducationModal.container);
 };
 
 export const switchToGoreliNetwork = async () => {
   await WalletView.tapNetworksButtonOnNavBar();
   await NetworkListModal.tapTestNetworkSwitch();
-  await NetworkListModal.isTestNetworkToggleOn();
+  await Assertions.checkIfToggleIsOn(NetworkListModal.testSwitch);
   await NetworkListModal.changeNetwork(GOERLI);
   await WalletView.isNetworkNameVisible(GOERLI);
   await NetworkEducationModal.tapGotItButton();

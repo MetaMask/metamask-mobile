@@ -16,6 +16,7 @@ import {
 } from '../../fixtures/fixture-helper';
 import { getFixturesServerPort } from '../../fixtures/utils';
 import FixtureServer from '../../fixtures/fixture-server';
+import Assertions from '../../utils/Assertions';
 
 const fixtureServer = new FixtureServer();
 const GORELI = 'Goerli Test Network';
@@ -70,39 +71,45 @@ describe(Regression('Custom RPC Tests'), () => {
   });
 
   it('should dismiss network education modal', async () => {
-    await NetworkEducationModal.isVisible();
-    await NetworkEducationModal.isNetworkNameCorrect('Xdai');
+    await Assertions.checkIfVisible(NetworkEducationModal.container);
+    await Assertions.checkIfElementToHaveText(
+      NetworkEducationModal.networkName,
+      'Xdai',
+    );
     await NetworkEducationModal.tapGotItButton();
-    await NetworkEducationModal.isNotVisible();
+    await Assertions.checkIfNotVisible(NetworkEducationModal.container);
   });
 
   it('should validate that xDai is added to network list', async () => {
     // Tap to prompt network list
     await WalletView.tapNetworksButtonOnNavBar();
-    await NetworkListModal.isVisible();
-    await NetworkListModal.isNetworkNameVisibleInListOfNetworks('xDai');
+    await Assertions.checkIfVisible(NetworkListModal.networkScroll);
+    await Assertions.checkIfTextIsDisplayed('xDai');
   });
 
   it('should switch to Goreli then dismiss the network education modal', async () => {
-    await NetworkListModal.isTestNetworkToggleOn();
+    await Assertions.checkIfToggleIsOn(NetworkListModal.testSwitch);
     await NetworkListModal.changeNetwork(GORELI);
-    await NetworkEducationModal.isVisible();
-    await NetworkEducationModal.isNetworkNameCorrect('Goreli Test Network');
+    await Assertions.checkIfVisible(NetworkEducationModal.container);
+    await Assertions.checkIfElementToHaveText(
+      NetworkEducationModal.networkName,
+      GORELI,
+    );
     await NetworkEducationModal.tapGotItButton();
-    await NetworkEducationModal.isNotVisible();
+    await Assertions.checkIfNotVisible(NetworkEducationModal.container);
     await WalletView.isVisible();
   });
 
   it('should switch back to xDAI', async () => {
     await WalletView.isNetworkNameVisible(GORELI);
     await WalletView.tapNetworksButtonOnNavBar();
-    await NetworkListModal.isVisible();
+    await Assertions.checkIfVisible(NetworkListModal.networkScroll);
     await NetworkListModal.scrollToBottomOfNetworkList();
     // Change to back to xDai Network
     await NetworkListModal.changeNetwork('xDai');
     await WalletView.isVisible();
     await WalletView.isNetworkNameVisible('xDai');
-    await NetworkEducationModal.isNotVisible();
+    await Assertions.checkIfNotVisible(NetworkEducationModal.container);
   });
 
   it('should go to settings networks and remove xDai network', async () => {

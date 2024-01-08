@@ -18,6 +18,7 @@ import FixtureBuilder from '../../fixtures/fixture-builder';
 import { withFixtures } from '../../fixtures/fixture-helper';
 import MetaMetricsOptIn from '../../pages/Onboarding/MetaMetricsOptInView';
 import ProtectYourWalletModal from '../../pages/modals/ProtectYourWalletModal';
+import Assertions from '../../utils/Assertions';
 
 const PASSWORD = '12345678';
 
@@ -47,7 +48,7 @@ describe(
           await Browser.navigateToTestDApp();
           await Browser.tapNetworkAvatarButtonOnBrowserWhileAccountIsConnectedToDapp();
           await ConnectedAccountsModal.isVisible();
-          await NetworkListModal.isNotVisible();
+          await Assertions.checkIfVisible(NetworkListModal.networkScroll);
           await ConnectedAccountsModal.scrollToBottomOfModal();
 
           //go to settings then security & privacy
@@ -92,7 +93,7 @@ describe(
           await Browser.isVisible();
           await Browser.tapNetworkAvatarButtonOnBrowser();
           await ConnectedAccountsModal.isNotVisible();
-          await NetworkListModal.isVisible();
+          await Assertions.checkIfVisible(NetworkListModal.networkScroll);
         },
       );
     });

@@ -7,6 +7,7 @@ import NetworkListModal from '../../pages/modals/NetworkListModal';
 import NetworkEducationModal from '../../pages/modals/NetworkEducationModal';
 import { importWalletWithRecoveryPhrase } from '../../viewHelper';
 import Collectibles from '../../resources/collectibles.json';
+import Assertions from '../../utils/Assertions';
 
 describe(SmokeCore('Import NFT'), () => {
   const GOERLI = 'Goerli Test Network';
@@ -22,17 +23,17 @@ describe(SmokeCore('Import NFT'), () => {
 
   it('should switch to Goerli network', async () => {
     await WalletView.tapNetworksButtonOnNavBar();
-    await NetworkListModal.isVisible();
+    await Assertions.checkIfVisible(NetworkListModal.networkScroll);
     await NetworkListModal.tapTestNetworkSwitch();
-    await NetworkListModal.isTestNetworkToggleOn();
+    await Assertions.checkIfToggleIsOn(NetworkListModal.testSwitch);
     await NetworkListModal.changeNetwork(GOERLI);
     await WalletView.isNetworkNameVisible(GOERLI);
   });
 
   it('should dismiss network education modal', async () => {
-    await NetworkEducationModal.isVisible();
+    await Assertions.checkIfVisible(NetworkEducationModal.container);
     await NetworkEducationModal.tapGotItButton();
-    await NetworkEducationModal.isNotVisible();
+    await Assertions.checkIfNotVisible(NetworkEducationModal.container);
   });
 
   it('should add a collectible', async () => {

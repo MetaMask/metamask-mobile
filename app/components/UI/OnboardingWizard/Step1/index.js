@@ -1,13 +1,7 @@
 import React, { PureComponent } from 'react';
 import PropTypes from 'prop-types';
 import { connect } from 'react-redux';
-import {
-  View,
-  Text,
-  StyleSheet,
-  InteractionManager,
-  Platform,
-} from 'react-native';
+import { View, Text, StyleSheet, InteractionManager } from 'react-native';
 import Coachmark from '../Coachmark';
 import Device from '../../../../util/device';
 import setOnboardingWizardStep from '../../../../actions/wizard';
@@ -20,8 +14,7 @@ import {
 import AnalyticsV2 from '../../../../util/analyticsV2';
 
 import { ThemeContext, mockTheme } from '../../../../util/theme';
-import generateTestId from '../../../../../wdio/utils/generateTestId';
-import { ONBOARDING_WIZARD_STEP_1_CONTAINER_ID } from '../../../../../wdio/screen-objects/testIDs/Components/OnboardingWizard.testIds';
+import { OnboardingWizardModalSelectorsIDs } from '../../../../../e2e/selectors/Modals/OnboardingWizardModal.selectors';
 
 const styles = StyleSheet.create({
   main: {
@@ -93,7 +86,7 @@ class Step1 extends PureComponent {
     return (
       <View
         style={styles.main}
-        {...generateTestId(Platform, ONBOARDING_WIZARD_STEP_1_CONTAINER_ID)}
+        testID={OnboardingWizardModalSelectorsIDs.STEP_ONE_CONTAINER}
       >
         <View style={styles.coachmarkContainer}>
           <Coachmark
