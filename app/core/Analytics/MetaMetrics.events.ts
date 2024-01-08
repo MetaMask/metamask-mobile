@@ -85,6 +85,9 @@ enum EVENT_NAME {
   // Portfolio
   PORTFOLIO_LINK_CLICKED = 'Portfolio Link Clicked',
 
+  // Link redirects
+  LINK_CLICKED = 'Link Clicked',
+
   // On-ramp [LEGACY]
   ONRAMP_OPENED = 'On-ramp Opened',
   ONRAMP_CLOSED = 'On-ramp Closed',
@@ -455,6 +458,7 @@ const events = {
   ),
 
   PORTFOLIO_LINK_CLICKED: generateOpt(EVENT_NAME.PORTFOLIO_LINK_CLICKED),
+  LINK_CLICKED: generateOpt(EVENT_NAME.LINK_CLICKED),
   WALLET_SECURITY_STARTED: generateOpt(EVENT_NAME.WALLET_SECURITY_STARTED),
   WALLET_SECURITY_MANUAL_BACKUP_INITIATED: generateOpt(
     EVENT_NAME.WALLET_SECURITY_MANUAL_BACKUP_INITIATED,

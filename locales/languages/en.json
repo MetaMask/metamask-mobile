@@ -23,9 +23,14 @@
     "setting_up_alerts": "Setting up security alerts",
     "setting_up_alerts_description": "We are going as fast as we can to set up security alerts. Hang in there, we are almost done.",
     "setup_complete": "Set up complete",
+    "setup_failed": "We could not finish setting up the security alerts. Check your internet connection and try again.",
+    "setup_multiple_failures": "Your internet connection isn’t stable right now, so we couldn’t set up security alerts. Please try again when your connection is restored.",
     "setup_complete_description": "Security alerts are ready to go. You can close this page and start exploring your wallet",
     "continue": "Continue",
-    "cancel": "Cancel"
+    "cancel": "Cancel",
+    "got_it": "Got it",
+    "try_again": "Try Again",
+    "failed": "Something went wrong"
   },
   "date": {
     "months": {
@@ -274,7 +279,7 @@
     "successfully_changed": "Your password has been successfully changed"
   },
   "import_from_seed": {
-    "title": "Import from seed",
+    "title": "Import from Secret Recovery Phrase",
     "seed_phrase_placeholder": "Enter your Secret Recovery Phrase",
     "new_password": "New Password",
     "confirm_password": "Confirm password",
@@ -393,6 +398,7 @@
     "logout_to_import_seed": "You need to log out first in order to import a Secret Recovery Phrase.",
     "ready_to_explore": "Ready to start exploring blockchain applications?",
     "unable_to_load": "Unable to load balance",
+    "unable_to_find_conversion_rate": "unable to find conversion rate",
     "display_nft_media_desc": "To import an NFT, turn on Display NFT media in Settings > Security and privacy.",
     "display_nft_media_cta": "Turn on Display NFT media",
     "display_media_nft_warning": "Displaying NFT media and data may expose your IP address to centralized servers. Only import an NFT if you understand the risks involved.",
@@ -820,7 +826,7 @@
       "title": "Snaps",
       "description": "Overview and manage your snaps",
       "snap_settings": {
-        "remove_snap_section_title": "Remove Snap", 
+        "remove_snap_section_title": "Remove Snap",
         "remove_snap_section_description": "This action will delete the snap, its data, and its granted permissions.",
         "remove_button_label": "Remove {{snapName}}"
       },
@@ -1198,7 +1204,8 @@
     "fiat_conversion_not_available": "Fiat conversions are not available at this moment",
     "hex_data_copied": "Hex data copied to clipboard",
     "invalid_recipient": "Invalid recipient",
-    "invalid_recipient_description": "Check the address and make sure it's valid"
+    "invalid_recipient_description": "Check the address and make sure it's valid",
+    "swap_tokens": "Swap tokens"
   },
   "custom_gas": {
     "total": "Total",
