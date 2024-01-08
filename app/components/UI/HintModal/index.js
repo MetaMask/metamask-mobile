@@ -1,48 +1,47 @@
 import PropTypes from 'prop-types';
 import {
-  Text,
   View,
   StyleSheet,
-  TouchableOpacity,
   TouchableWithoutFeedback,
   TextInput,
 } from 'react-native';
 import React from 'react';
 import ActionModal from '../../UI/ActionModal';
-import Icon from 'react-native-vector-icons/Octicons';
 import { strings } from '../../../../locales/i18n';
-import { fontStyles } from '../../../styles/common';
 import { useTheme } from '../../../util/theme';
+import Text, {
+  TextVariant,
+  TextColor,
+} from '../../../component-library/components/Texts/Text';
+import ButtonIcon, {
+  ButtonIconSizes,
+} from '../../../component-library/components/Buttons/ButtonIcon';
+import { IconName } from '../../../component-library/components/Icons/Icon';
 
 const createStyles = (colors) =>
   StyleSheet.create({
     hintWrapper: {
-      alignSelf: 'center',
+      flex: 1,
       backgroundColor: colors.background.default,
       borderRadius: 16,
       padding: 24,
     },
     hintHeader: {
       flexDirection: 'row',
-      justifyContent: 'space-between',
       alignItems: 'center',
       marginBottom: 16,
     },
+    balancingSpace: {
+      width: 24,
+    },
     recovery: {
-      fontSize: 18,
-      ...fontStyles.bold,
-      color: colors.text.default,
+      flex: 1,
+      textAlign: 'center',
     },
     leaveHint: {
-      fontSize: 14,
-      ...fontStyles.normal,
-      color: colors.text.default,
       marginBottom: 16,
     },
     noSeedphrase: {
-      fontSize: 14,
-      ...fontStyles.normal,
-      color: colors.error.default,
       marginBottom: 16,
     },
     hintInput: {
@@ -52,9 +51,6 @@ const createStyles = (colors) =>
       padding: 16,
       minHeight: 76,
       paddingTop: 16,
-      color: colors.text.default,
-    },
-    dismissButton: {
       color: colors.text.default,
     },
   });
@@ -82,17 +78,24 @@ const HintModal = ({
       <TouchableWithoutFeedback onPress={onRequestClose} accessible={false}>
         <View style={styles.hintWrapper}>
           <View style={styles.hintHeader}>
-            <Text style={styles.recovery}>
+            <View style={styles.balancingSpace} />
+            <Text variant={TextVariant.HeadingMD} style={styles.recovery}>
               {strings('manual_backup_step_3.recovery_hint')}
             </Text>
-            <TouchableOpacity onPress={onCancel}>
-              <Icon name="x" size={16} style={styles.dismissButton} />
-            </TouchableOpacity>
+            <ButtonIcon
+              size={ButtonIconSizes.Sm}
+              iconName={IconName.Close}
+              onPress={onCancel}
+            />
           </View>
-          <Text style={styles.leaveHint}>
+          <Text variant={TextVariant.BodyMD} style={styles.leaveHint}>
             {strings('manual_backup_step_3.leave_hint')}
           </Text>
-          <Text style={styles.noSeedphrase}>
+          <Text
+            variant={TextVariant.BodyMD}
+            style={styles.noSeedphrase}
+            color={TextColor.Error}
+          >
             {strings('manual_backup_step_3.no_seedphrase')}
           </Text>
           <TextInput
