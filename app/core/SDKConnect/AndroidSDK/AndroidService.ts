@@ -227,12 +227,6 @@ export default class AndroidService extends EventEmitter2 {
       Engine.context as { ApprovalController: ApprovalController }
     ).ApprovalController;
 
-    Logger.log(
-      `Mpendulo::Originator title + icon: `,
-      originatorInfo?.title,
-      originatorInfo?.icon,
-    );
-
     const approvalRequest = {
       origin: AppConstants.MM_SDK.ANDROID_SDK,
       type: ApprovalTypes.CONNECT_ACCOUNTS,
