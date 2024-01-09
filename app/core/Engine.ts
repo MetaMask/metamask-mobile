@@ -378,7 +378,6 @@ class Engine {
         // noop
       },
     };
-    // @ts-expect-error Error might be caused by base controller version mismatch
     const networkController = new NetworkController(networkControllerOpts);
     try {
       networkController.initializeProvider();
@@ -450,7 +449,6 @@ class Engine {
         provider: networkController.getProviderAndBlockTracker().provider,
         chainId: networkController.state.providerConfig.chainId,
       },
-      // @ts-expect-error Error might be caused by base controller version mismatch
       messenger: this.controllerMessenger.getRestricted({
         name: 'TokensController',
         allowedActions: [`${approvalController.name}:addRequest`],
@@ -468,14 +466,12 @@ class Engine {
           AppConstants.NETWORK_STATE_CHANGE_EVENT,
           listener,
         ),
-      // @ts-expect-error Error might be caused by base controller version mismatch
       messenger: this.controllerMessenger.getRestricted({
         name: 'TokenListController',
         allowedEvents: ['NetworkController:stateChange'],
       }),
     });
     const currencyRateController = new CurrencyRateController({
-      // @ts-expect-error Error might be caused by base controller version mismatch
       messenger: this.controllerMessenger.getRestricted({
         name: 'CurrencyRateController',
       }),
@@ -498,7 +494,6 @@ class Engine {
         ),
       getCurrentNetworkEIP1559Compatibility: async () =>
         await networkController.getEIP1559Compatibility(),
-      // @ts-expect-error Incompatible string types, fixed in upcoming version
       getChainId: () => networkController.state.providerConfig.chainId,
       getCurrentNetworkLegacyGasAPICompatibility: () => {
         const chainId = networkController.state.providerConfig.chainId;
@@ -941,7 +936,6 @@ class Engine {
           isEnabled: () => {
             const currentHexChainId =
               networkController.state.providerConfig.chainId;
-
             return Boolean(
               preferencesController?.state?.showIncomingTransactions?.[
                 currentHexChainId
