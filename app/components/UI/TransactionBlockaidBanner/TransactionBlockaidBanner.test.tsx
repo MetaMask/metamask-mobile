@@ -11,6 +11,10 @@ jest.mock('../../../util/blockaid', () => ({
   isBlockaidFeatureEnabled: jest.fn().mockReturnValue(true),
 }));
 
+jest.mock('react-native-gzip', () => ({
+  deflate: (val: any) => val,
+}));
+
 const mockState = {
   engine: {
     backgroundState: {
