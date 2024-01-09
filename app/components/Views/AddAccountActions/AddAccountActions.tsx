@@ -1,6 +1,6 @@
 // Third party dependencies.
 import React, { Fragment, useCallback, useState } from 'react';
-import { Platform, View } from 'react-native';
+import { View } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 
 // External dependencies.
