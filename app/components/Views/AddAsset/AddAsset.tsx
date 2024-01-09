@@ -63,16 +63,20 @@ const AddAsset = () => {
     });
   };
 
-  const renderTabBar = () => (
-    <DefaultTabBar
-      underlineStyle={styles.tabUnderlineStyle}
-      activeTextColor={colors.primary.default}
-      inactiveTextColor={colors.text.alternative}
-      backgroundColor={colors.background.default}
-      tabStyle={styles.tabStyle}
-      textStyle={styles.textStyle}
-      style={styles.tabBar}
-    />
+  const renderTabBar = (props) => (
+    <View style={styles.base}>
+      <DefaultTabBar
+        underlineStyle={styles.tabUnderlineStyle}
+        activeTextColor={colors.primary.default}
+        inactiveTextColor={colors.text.alternative}
+        backgroundColor={colors.background.default}
+        tabStyle={styles.tabStyle}
+        textStyle={styles.textStyle}
+        tabPadding={32}
+        style={styles.tabBar}
+        {...props}
+      />
+    </View>
   );
 
   return (

@@ -802,7 +802,7 @@
     "manage_sdk_connections_title": "Manage connections",
     "manage_sdk_connections_text": "Remove connections to sites and/or MetaMask SDK.",
     "fiat_on_ramp": {
-      "title": "Buy Crypto",
+      "title": "Buy & Sell Crypto",
       "description": "Region & more...",
       "current_region": "Current Region",
       "reset_region": "Reset Region",
