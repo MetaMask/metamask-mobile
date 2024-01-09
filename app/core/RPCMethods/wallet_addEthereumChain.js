@@ -237,6 +237,7 @@ const wallet_addEthereumChain = async ({
   const safeChainsListRequest = await fetch(
     'https://chainid.network/chains.json',
   );
+
   const safeChainsList = await safeChainsListRequest.json();
   const matchedChain = safeChainsList.find(
     (chain) => chain.chainId.toString() === chainIdDecimal,

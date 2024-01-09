@@ -827,6 +827,7 @@
     "request_feature": "Request a feature",
     "contact_support": "Contact support",
     "display_nft_media": "Display NFT Media",
+    "use_safe_chains_list_validation": "Network details check",
     "display_nft_media_desc": "Displaying NFT media and data exposes your IP address to OpenSea or other third parties. NFT autodetection relies on this feature, and won't be available when this is turned off.",
     "autodetect_nft_desc": "Let MetaMask add NFTs you own using third-party services (like OpenSea). Autodetecting NFTs exposes your IP and account address to these services. Enabling this feature could associate your IP address with your Ethereum address and display fake NFTs airdropped by scammers. You can add tokens manually to avoid this risk.",
     "incoming_transactions_title": "Show incoming transactions",

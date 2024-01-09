@@ -63,6 +63,7 @@ import {
   selectUseNftDetection,
   selectShowIncomingTransactionNetworks,
   selectShowTestNetworks,
+  selectUseSafeChainsListValidation,
 } from '../../../../selectors/preferencesController';
 import {
   SECURITY_PRIVACY_MULTI_ACCOUNT_BALANCES_TOGGLE_ID,
@@ -94,6 +95,7 @@ import {
   NFT_DISPLAY_MEDIA_MODE_SECTION,
   PASSCODE_CHOICE_STRING,
   SDK_SECTION,
+  USE_SAFE_CHAINS_LIST_VALIDATION,
 } from './SecuritySettings.constants';
 import Cell from '../../../..//component-library/components/Cells/Cell/Cell';
 import { CellVariant } from '../../../../component-library/components/Cells/Cell';
@@ -156,6 +158,10 @@ const Settings: React.FC = () => {
   );
   const networkConfigurations = useSelector(selectNetworkConfigurations);
   const displayNftMedia = useSelector(selectDisplayNftMedia);
+  const useSafeChainsListValidation = useSelector(
+    selectUseSafeChainsListValidation,
+  );
+
   const useNftDetection = useSelector(selectUseNftDetection);
 
   const seedphraseBackedUp = useSelector(
@@ -577,6 +583,12 @@ const Settings: React.FC = () => {
     if (!value) PreferencesController?.setUseNftDetection(value);
   };
 
+  const toggleUseSafeChainsListValidation = (value: boolean) => {
+    const { PreferencesController } = Engine.context;
+    PreferencesController?.setUseSafeChainsListValidation(value);
+    if (!value) PreferencesController?.setUseSafeChainsListValidation(value);
+  };
+
   const toggleNftAutodetect = (value: boolean) => {
     const { PreferencesController } = Engine.context;
     if (value) {
@@ -617,6 +629,40 @@ const Settings: React.FC = () => {
       </View>
     ),
     [colors, styles, displayNftMedia, theme],
+  );
+
+  const renderUseSafeChainsListValidation = useCallback(
+    () => (
+      <View style={styles.halfSetting} testID={USE_SAFE_CHAINS_LIST_VALIDATION}>
+        <View style={styles.titleContainer}>
+          <Text variant={TextVariant.BodyLGMedium} style={styles.title}>
+            {strings('app_settings.use_safe_chains_list_validation')}
+          </Text>
+          <View style={styles.switchElement}>
+            <Switch
+              value={useSafeChainsListValidation}
+              onValueChange={toggleUseSafeChainsListValidation}
+              trackColor={{
+                true: colors.primary.default,
+                false: colors.border.muted,
+              }}
+              thumbColor={importedColors.white}
+              style={styles.switch}
+              ios_backgroundColor={colors.border.muted}
+              testID="display-use-safe-list-validation"
+            />
+          </View>
+        </View>
+        <Text
+          variant={TextVariant.BodyMD}
+          color={TextColor.Alternative}
+          style={styles.desc}
+        >
+          {strings('app_settings.use_safe_chains_list_validation_desc')}
+        </Text>
+      </View>
+    ),
+    [colors, styles, useSafeChainsListValidation],
   );
 
   const renderAutoDetectNft = useCallback(
@@ -950,6 +996,15 @@ const Settings: React.FC = () => {
         <ClearPrivacy />
         {renderClearBrowserHistorySection()}
         <ClearCookiesSection />
+
+        <Text
+          variant={TextVariant.BodyLGMedium}
+          color={TextColor.Alternative}
+          style={styles.subHeading}
+        >
+          {strings('app_settings.network_provider')}
+        </Text>
+        {renderUseSafeChainsListValidation()}
         <Text
           variant={TextVariant.BodyLGMedium}
           color={TextColor.Alternative}
