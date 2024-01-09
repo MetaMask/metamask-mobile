@@ -25,9 +25,8 @@ import {
 } from '../../../../../core/Analytics/MetaMetrics.types';
 
 const DeleteMetaMetricsData = () => {
-  /** hasCollectedData is used to determine
-   * if the app has tracked data since the asked
-   * for metametrics data deletion.
+  /** hasCollectedData indicates if the app tracked data
+   * since the last data deletion request
    */
   const [hasCollectedData, setHasCollectedData] = useState(true);
 
