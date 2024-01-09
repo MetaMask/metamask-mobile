@@ -59,6 +59,10 @@ jest.mock('@react-navigation/compat', () => {
   };
 });
 
+jest.mock('react-native-gzip', () => ({
+  deflate: (val: any) => val,
+}));
+
 const mockState = {
   engine: {
     backgroundState: {
