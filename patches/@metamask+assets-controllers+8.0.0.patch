@@ -833,10 +833,10 @@ index 480ecaf..7259cfb 100644
  //# sourceMappingURL=TokenRatesController.d.ts.map
 \ No newline at end of file
 diff --git a/node_modules/@metamask/assets-controllers/dist/TokenRatesController.js b/node_modules/@metamask/assets-controllers/dist/TokenRatesController.js
-index 4e60e4d..5ef94db 100644
+index 4e60e4d..dedd986 100644
 --- a/node_modules/@metamask/assets-controllers/dist/TokenRatesController.js
 +++ b/node_modules/@metamask/assets-controllers/dist/TokenRatesController.js
-@@ -8,280 +8,322 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
+@@ -8,280 +8,321 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
          step((generator = generator.apply(thisArg, _arguments || [])).next());
      });
  };
@@ -1201,10 +1201,9 @@ index 4e60e4d..5ef94db 100644
 +            const { promise: inProgressUpdate, resolve: updateSucceeded, reject: updateFailed, } = createDeferredPromise({ suppressUnhandledRejection: true });
 +            __classPrivateFieldGet(this, _TokenRatesController_inProcessExchangeRateUpdates, "f")[updateKey] = inProgressUpdate;
 +            try {
-+               const decimalChainId = controller_utils_1.convertHexToDecimal(chainId).toString();
 +                const newContractExchangeRates = yield __classPrivateFieldGet(this, _TokenRatesController_instances, "m", _TokenRatesController_fetchAndMapExchangeRates).call(this, {
 +                    tokenAddresses,
-+                    chainId: decimalChainId,
++                    chainId,
 +                    nativeCurrency,
 +                });
 +                const existingContractExchangeRates = this.state.contractExchangeRates;
@@ -1323,7 +1322,7 @@ index 4e60e4d..5ef94db 100644
 +        const [contractExchangeRates, fallbackCurrencyToNativeCurrencyConversionRate,] = yield Promise.all([
 +            __classPrivateFieldGet(this, _TokenRatesController_instances, "m", _TokenRatesController_fetchAndMapExchangeRatesForSupportedNativeCurrency).call(this, {
 +                tokenAddresses,
-+                chainId:  controller_utils_1.convertHexToDecimal(this.config.chainId).toString(),
++                chainId:  this.config.chainId,
 +                nativeCurrency: controller_utils_1.FALL_BACK_VS_CURRENCY,
 +            }),
 +            getCurrencyConversionRate({
@@ -1852,10 +1851,10 @@ index 0000000..dee2179
 \ No newline at end of file
 diff --git a/node_modules/@metamask/assets-controllers/dist/token-prices-service/codefi-v2.js b/node_modules/@metamask/assets-controllers/dist/token-prices-service/codefi-v2.js
 new file mode 100644
-index 0000000..4bd72c6
+index 0000000..086994c
 --- /dev/null
 +++ b/node_modules/@metamask/assets-controllers/dist/token-prices-service/codefi-v2.js
-@@ -0,0 +1,325 @@
+@@ -0,0 +1,326 @@
 +"use strict";
 +var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, generator) {
 +    function adopt(value) { return value instanceof P ? value : new P(function (resolve) { resolve(value); }); }
@@ -1881,6 +1880,7 @@ index 0000000..4bd72c6
 +Object.defineProperty(exports, "__esModule", { value: true });
 +exports.CodefiTokenPricesServiceV2 = exports.SUPPORTED_CHAIN_IDS = exports.SUPPORTED_CURRENCIES = void 0;
 +const controller_utils_1 = require("@metamask/controller-utils");
++const { hexToNumber } = require("@metamask/utils");
 +const cockatiel_1 = require("cockatiel");
 +/**
 + * The list of currencies that can be supplied as the `vsCurrency` parameter to
@@ -2016,71 +2016,70 @@ index 0000000..4bd72c6
 + * chain IDs in other places).
 + */
 +exports.SUPPORTED_CHAIN_IDS = [
-+    // Ethereum Mainnet
-+    '1',
-+    // OP Mainnet
-+    '10',
-+    // Cronos Mainnet
-+    '25',
-+    // BNB Smart Chain Mainnet
-+    '56',
-+    // Syscoin Mainnet
-+    '57',
-+    // OKXChain Mainnet
-+    '66',
-+    // Hoo Smart Chain
-+    '70',
-+    // Meter Mainnet
-+    '82',
-+    // TomoChain
-+    '88',
-+    // Gnosis
-+    '100',
-+    // Velas EVM Mainnet
-+    '106',
-+    // Fuse Mainnet
-+    '122',
-+    // Huobi ECO Chain Mainnet
-+    '128',
-+    // Polygon Mainnet
-+    '137',
-+    // Fantom Opera
-+    '250',
-+    // Boba Network
-+    '288',
-+    // KCC Mainnet
-+    '321',
-+    // zkSync Era Mainnet
-+    '328',
-+    // Theta Mainnet
-+    '361',
-+    // Metis Andromeda Mainnet
-+    '1088',
-+    // Moonbeam
-+    '1284',
-+    // Moonriver
-+    '1285',
-+    // Base
-+    '8453',
-+    // Shiden
-+    // NOTE: This is the wrong chain ID, this should be '336'
-+    '336',
-+    // Smart Bitcoin Cash
-+    '10000',
-+    // Arbitrum One
-+    '42161',
-+    // Celo Mainnet
-+    '42220',
-+    // Oasis Emerald
-+    '42294',
-+    // Avalanche C-Chain
-+    '43114',
-+    // Polis Mainnet
-+    '535824',
-+    // Aurora Mainnet
-+    '1313161554',
-+    // Harmony Mainnet Shard 0
-+    '1666600000',
++   // Ethereum Mainnet
++  '0x1',
++  // OP Mainnet
++  '0xa',
++  // Cronos Mainnet
++  '0x19',
++  // BNB Smart Chain Mainnet
++  '0x38',
++  // Syscoin Mainnet
++  '0x39',
++  // OKXChain Mainnet
++  '0x42',
++  // Hoo Smart Chain
++  '0x46',
++  // Meter Mainnet
++  '0x52',
++  // TomoChain
++  '0x58',
++  // Gnosis
++  '0x64',
++  // Velas EVM Mainnet
++  '0x6a',
++  // Fuse Mainnet
++  '0x7a',
++  // Huobi ECO Chain Mainnet
++  '0x80',
++  // Polygon Mainnet
++  '0x89',
++  // Fantom Opera
++  '0xfa',
++  // Boba Network
++  '0x120',
++  // KCC Mainnet
++  '0x141',
++  // zkSync Era Mainnet
++  '0x144',
++  // Theta Mainnet
++  '0x169',
++  // Metis Andromeda Mainnet
++  '0x440',
++  // Moonbeam
++  '0x504',
++  // Moonriver
++  '0x505',
++  // Base
++  '0x2105',
++  // Shiden
++  '0x150',
++  // Smart Bitcoin Cash
++  '0x2710',
++  // Arbitrum One
++  '0xa4b1',
++  // Celo Mainnet
++  '0xa4ec',
++  // Oasis Emerald
++  '0xa516',
++  // Avalanche C-Chain
++  '0xa86a',
++  // Polis Mainnet
++  '0x518af',
++  // Aurora Mainnet
++  '0x4e454152',
++  // Harmony Mainnet Shard 0
++  '0x63564c40',
 +];
 +/**
 + * All requests to V2 of the Price API start with this.
@@ -2130,7 +2129,8 @@ index 0000000..4bd72c6
 +     */
 +    fetchTokenPrices({ chainId, tokenAddresses, currency, }) {
 +        return __awaiter(this, void 0, void 0, function* () {
-+            const url = new URL(`${BASE_URL}/chains/${chainId}/spot-prices`);
++            const chainIdAsNumber = hexToNumber(chainId);
++            const url = new URL(`${BASE_URL}/chains/${chainIdAsNumber}/spot-prices`);
 +            url.searchParams.append('tokenAddresses', tokenAddresses.join(','));
 +            url.searchParams.append('vsCurrency', currency);
 +            const pricesByCurrencyByTokenAddress = yield __classPrivateFieldGet(this, _CodefiTokenPricesServiceV2_tokenPricePolicy, "f").execute(() => (0, controller_utils_1.handleFetch)(url));
