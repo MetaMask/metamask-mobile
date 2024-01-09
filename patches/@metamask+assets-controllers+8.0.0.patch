@@ -1371,7 +1371,7 @@ index 4e60e4d..5ef94db 100644
  //# sourceMappingURL=TokenRatesController.js.map
 \ No newline at end of file
 diff --git a/node_modules/@metamask/assets-controllers/dist/TokensController.js b/node_modules/@metamask/assets-controllers/dist/TokensController.js
-index e630b79..730d466 100644
+index e630b79..9ffa6ea 100644
 --- a/node_modules/@metamask/assets-controllers/dist/TokensController.js
 +++ b/node_modules/@metamask/assets-controllers/dist/TokensController.js
 @@ -43,8 +43,9 @@ class TokensController extends base_controller_1.BaseController {
@@ -1475,10 +1475,11 @@ index e630b79..730d466 100644
      /**
       * Detects whether or not a token is ERC-721 compatible.
       *
-@@ -427,6 +450,17 @@ class TokensController extends base_controller_1.BaseController {
+@@ -426,7 +449,17 @@ class TokensController extends base_controller_1.BaseController {
+             };
              (0, assetsUtil_1.validateTokenToWatch)(asset);
              yield this._requestApproval(suggestedAssetMeta);
-             yield this.addToken(asset.address, asset.symbol, asset.decimals, asset.image, suggestedAssetMeta.interactingAddress);
+-            yield this.addToken(asset.address, asset.symbol, asset.decimals, asset.image, suggestedAssetMeta.interactingAddress);
 +            let name;
 +            try{
 +                name = yield this.getERC20TokenName(address);
