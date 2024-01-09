@@ -20,6 +20,10 @@ export interface BottomSheetDialogProps extends ViewProps {
    */
   isInteractable?: boolean;
   /**
+   * Optional callback that gets triggered when sheet is open.
+   */
+  onShown?: () => void;
+  /**
    * Optional callback that gets triggered when sheet is dismissed.
    */
   onDismissed?: () => void;
@@ -30,6 +34,7 @@ export interface BottomSheetDialogProps extends ViewProps {
 }
 
 export interface BottomSheetDialogRef {
+  openDialog: (callback?: () => void) => void;
   closeDialog: (callback?: () => void) => void;
 }
 

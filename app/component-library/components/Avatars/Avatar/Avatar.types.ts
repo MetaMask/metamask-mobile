@@ -44,6 +44,7 @@ export type AvatarProps = (
    * Variant of Avatar
    */
   variant: AvatarVariant;
+  isLoading?: boolean;
 };
 
 /**

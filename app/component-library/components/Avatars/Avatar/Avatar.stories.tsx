@@ -10,7 +10,7 @@ import { SAMPLE_AVATARNETWORK_PROPS } from './variants/AvatarNetwork/AvatarNetwo
 import { SAMPLE_AVATARTOKEN_PROPS } from './variants/AvatarToken/AvatarToken.constants';
 
 // Internal dependencies.
-import { AvatarVariant } from './Avatar.types';
+import { AvatarVariant, AvatarSize } from './Avatar.types';
 import { default as AvatarComponent } from './Avatar';
 
 const AvatarMeta = {
@@ -22,50 +22,40 @@ const AvatarMeta = {
       control: {
         type: 'select',
       },
-      defaultValue: AvatarVariant.Account,
+    },
+    size: {
+      options: AvatarSize,
+      control: {
+        type: 'select',
+      },
+    },
+    isLoading: {
+      control: {
+        type: 'boolean',
+      },
     },
   },
 };
 export default AvatarMeta;
 
 export const Avatar = {
+  args: {
+    variant: AvatarVariant.Account,
+    size: AvatarSize.Md,
+    isLoading: false,
+  },
   render: (args: { variant: AvatarVariant }) => {
     switch (args.variant) {
       case AvatarVariant.Account:
-        return (
-          <AvatarComponent
-            variant={AvatarVariant.Account}
-            {...SAMPLE_AVATARACCOUNT_PROPS}
-          />
-        );
+        return <AvatarComponent {...SAMPLE_AVATARACCOUNT_PROPS} {...args} />;
       case AvatarVariant.Favicon:
-        return (
-          <AvatarComponent
-            variant={AvatarVariant.Favicon}
-            {...SAMPLE_AVATARFAVICON_PROPS}
-          />
-        );
+        return <AvatarComponent {...SAMPLE_AVATARFAVICON_PROPS} {...args} />;
       case AvatarVariant.Icon:
-        return (
-          <AvatarComponent
-            variant={AvatarVariant.Icon}
-            {...SAMPLE_AVATARICON_PROPS}
-          />
-        );
+        return <AvatarComponent {...SAMPLE_AVATARICON_PROPS} {...args} />;
       case AvatarVariant.Network:
-        return (
-          <AvatarComponent
-            variant={AvatarVariant.Network}
-            {...SAMPLE_AVATARNETWORK_PROPS}
-          />
-        );
+        return <AvatarComponent {...SAMPLE_AVATARNETWORK_PROPS} {...args} />;
       case AvatarVariant.Token:
-        return (
-          <AvatarComponent
-            variant={AvatarVariant.Token}
-            {...SAMPLE_AVATARTOKEN_PROPS}
-          />
-        );
+        return <AvatarComponent {...SAMPLE_AVATARTOKEN_PROPS} {...args} />;
       default:
         throw new Error('Invalid Avatar Variant');
     }

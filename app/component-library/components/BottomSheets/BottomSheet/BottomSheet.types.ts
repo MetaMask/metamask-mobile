@@ -9,6 +9,10 @@ export interface BottomSheetProps extends ViewProps {
    */
   children: React.ReactNode;
   /**
+   * Optional callback that gets triggered when sheet is shown.
+   */
+  onOpen?: () => void;
+  /**
    * Optional callback that gets triggered when sheet is dismissed.
    */
   onClose?: (hasPendingAction: boolean) => void;
@@ -31,5 +35,6 @@ export interface BottomSheetProps extends ViewProps {
 export type BottomSheetPostCallback = () => void;
 
 export interface BottomSheetRef {
+  show: (callback?: BottomSheetPostCallback) => void;
   hide: (callback?: BottomSheetPostCallback) => void;
 }

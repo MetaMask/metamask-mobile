@@ -12,22 +12,26 @@ import AvatarNetwork from './variants/AvatarNetwork';
 import { AvatarNetworkProps } from './variants/AvatarNetwork/AvatarNetwork.types';
 import AvatarToken from './variants/AvatarToken';
 import { AvatarTokenProps } from './variants/AvatarToken/AvatarToken.types';
+import AvatarSkeleton from './foundation/AvatarSkeleton/AvatarSkeleton';
 
 // Internal dependencies.
 import { AvatarProps, AvatarVariant } from './Avatar.types';
 
-const Avatar = ({ variant, ...props }: AvatarProps) => {
+const Avatar = ({ variant, isLoading, size, ...props }: AvatarProps) => {
+  if (isLoading) {
+    return <AvatarSkeleton size={size} />;
+  }
   switch (variant) {
     case AvatarVariant.Account:
-      return <AvatarAccount {...(props as AvatarAccountProps)} />;
+      return <AvatarAccount size={size} {...(props as AvatarAccountProps)} />;
     case AvatarVariant.Favicon:
-      return <AvatarFavicon {...(props as AvatarFaviconProps)} />;
+      return <AvatarFavicon size={size} {...(props as AvatarFaviconProps)} />;
     case AvatarVariant.Icon:
-      return <AvatarIcon {...(props as AvatarIconProps)} />;
+      return <AvatarIcon size={size} {...(props as AvatarIconProps)} />;
     case AvatarVariant.Network:
-      return <AvatarNetwork {...(props as AvatarNetworkProps)} />;
+      return <AvatarNetwork size={size} {...(props as AvatarNetworkProps)} />;
     case AvatarVariant.Token:
-      return <AvatarToken {...(props as AvatarTokenProps)} />;
+      return <AvatarToken size={size} {...(props as AvatarTokenProps)} />;
     default:
       throw new Error('Invalid Avatar Variant');
   }
