@@ -161,7 +161,8 @@
     "crypto-js": "4.2.0",
     "browserify-sign": "4.2.2",
     "@metamask/preferences-controller": "^4.0.0",
-    "axios": "1.6.0"
+    "axios": "1.6.0",
+    "follow-redirects": "1.15.4"
   },
   "dependencies": {
     "@consensys/on-ramp-sdk": "1.25.4",
