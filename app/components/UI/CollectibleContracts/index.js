@@ -106,7 +106,9 @@ const CollectibleContracts = ({
   useNftDetection,
   isIpfsGatewayEnabled,
 }) => {
-  const collectibles = allCollectibles.filter((singleCollectible) => singleCollectible.isCurrentlyOwned === true)
+  const collectibles = allCollectibles.filter(
+    (singleCollectible) => singleCollectible.isCurrentlyOwned === true,
+  );
   const { colors } = useTheme();
   const styles = createStyles(colors);
   const [isAddNFTEnabled, setIsAddNFTEnabled] = useState(true);
@@ -305,8 +307,11 @@ const CollectibleContracts = ({
   const onRefresh = useCallback(async () => {
     requestAnimationFrame(async () => {
       setRefreshing(true);
-      const { NftDetectionController, NftController} = Engine.context;
-      const actions = [NftDetectionController.detectNfts(), NftController.checkAndUpdateAllNftsOwnershipStatus()];
+      const { NftDetectionController, NftController } = Engine.context;
+      const actions = [
+        NftDetectionController.detectNfts(),
+        NftController.checkAndUpdateAllNftsOwnershipStatus(),
+      ];
       await Promise.all(actions);
       setRefreshing(false);
     });
