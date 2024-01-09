@@ -5,7 +5,7 @@ import React from 'react';
 
 // External dependencies.
 import { useStyles } from '../../../../../hooks';
-import ListItemSelect from '../../../../List/ListItemSelect';
+import BaseListItemSelect from '../../../../../base-components/ListItem/BaseListItemSelect';
 import CellBase from '../../foundation/CellBase';
 
 // Internal dependencies.
@@ -27,7 +27,7 @@ const CellSelect = ({
   const { styles } = useStyles(styleSheet, { style });
 
   return (
-    <ListItemSelect
+    <BaseListItemSelect
       isSelected={isSelected}
       style={styles.base}
       testID={CellModalSelectorsIDs.SELECT}
@@ -43,7 +43,7 @@ const CellSelect = ({
       >
         {children}
       </CellBase>
-    </ListItemSelect>
+    </BaseListItemSelect>
   );
 };
 

@@ -2,12 +2,12 @@
 import { ImageSourcePropType } from 'react-native';
 
 // External dependencies.
-import { ValueListItemProps } from '../../ValueList/ValueListItem/ValueListItem.types';
+import { ListItemProps } from '../../ListItem/ListItem/ListItem.types';
 
 /**
  * TokenListItem component props.
  */
-export interface TokenListItemProps extends ValueListItemProps {
+export interface TokenListItemProps extends ListItemProps {
   primaryAmount: string;
   secondaryAmount?: string;
   tokenSymbol: string;

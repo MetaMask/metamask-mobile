@@ -5,7 +5,7 @@ import React from 'react';
 
 // External dependencies.
 import { useStyles } from '../../../../../hooks';
-import ListItemMultiSelect from '../../../../List/ListItemMultiSelect';
+import BaseListItemMultiSelect from '../../../../../base-components/ListItem/BaseListItemMultiSelect';
 import CellBase from '../../foundation/CellBase';
 import { CellModalSelectorsIDs } from '../../../../../../../e2e/selectors/Modals/CellModal.selectors';
 
@@ -27,7 +27,7 @@ const CellMultiSelect = ({
   const { styles } = useStyles(styleSheet, { style });
 
   return (
-    <ListItemMultiSelect
+    <BaseListItemMultiSelect
       isSelected={isSelected}
       style={styles.base}
       testID={CellModalSelectorsIDs.MULTISELECT}
@@ -43,7 +43,7 @@ const CellMultiSelect = ({
       >
         {children}
       </CellBase>
-    </ListItemMultiSelect>
+    </BaseListItemMultiSelect>
   );
 };
 
