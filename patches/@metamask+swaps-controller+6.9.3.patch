@@ -1,0 +1,27 @@
+diff --git a/node_modules/@metamask/swaps-controller/dist/constants.d.ts b/node_modules/@metamask/swaps-controller/dist/constants.d.ts
+index 99f1c9c..0158f72 100644
+--- a/node_modules/@metamask/swaps-controller/dist/constants.d.ts
++++ b/node_modules/@metamask/swaps-controller/dist/constants.d.ts
+@@ -1,13 +1,13 @@
+ import { SwapsToken } from './swapsInterfaces';
+-export declare const ETH_CHAIN_ID = "1";
+-export declare const BSC_CHAIN_ID = "56";
+-export declare const POLYGON_CHAIN_ID = "137";
+-export declare const AVALANCHE_CHAIN_ID = "43114";
+-export declare const ARBITRUM_CHAIN_ID = "42161";
+-export declare const OPTIMISM_CHAIN_ID = "10";
+-export declare const ZKSYNC_ERA_CHAIN_ID = "324";
+-export declare const LINEA_CHAIN_ID = "59144";
+-export declare const SWAPS_TESTNET_CHAIN_ID = "1337";
++export declare const ETH_CHAIN_ID = "0x1";
++export declare const BSC_CHAIN_ID = "0x38";
++export declare const POLYGON_CHAIN_ID = "0x89";
++export declare const AVALANCHE_CHAIN_ID = "0xa86a";
++export declare const ARBITRUM_CHAIN_ID = "0xa4ad";
++export declare const OPTIMISM_CHAIN_ID = "0xa";
++export declare const ZKSYNC_ERA_CHAIN_ID = "0x144";
++export declare const LINEA_CHAIN_ID = "0xe780";
++export declare const SWAPS_TESTNET_CHAIN_ID = "0x539";
+ export declare const CHAIN_ID_TO_NAME_MAP: {
+     [key: string]: string;
+ };
