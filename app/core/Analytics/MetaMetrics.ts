@@ -36,21 +36,21 @@ import { Config } from '@segment/analytics-react-native/lib/typescript/src/types
  * ## Base tracking usage
  * ```
  * const metrics = await MetaMetrics.getInstance();
- * metrics?.trackEvent('event_name', { property: 'value' });
+ * metrics.trackEvent('event_name', { property: 'value' });
  * ```
  *
  * ## Enabling MetaMetrics
  * Enable the metrics when user agrees (optin or settings).
  * ```
  * const metrics = await MetaMetrics.getInstance();
- * await metrics?.enable();
+ * await metrics.enable();
  *```
  *
  * ## Disabling MetaMetrics
  * Disable the metrics when user refuses (optout or settings).
  * ```
  * const metrics = await MetaMetrics.getInstance();
- * await metrics?.enable(false);
+ * await metrics.enable(false);
  * ```
  *
  * ## Identify user
@@ -58,7 +58,7 @@ import { Config } from '@segment/analytics-react-native/lib/typescript/src/types
  * Until you identify the user, all events will be associated to this anonymous ID.
  * ```
  * const metrics = await MetaMetrics.getInstance();
- * metrics?.addTraitsToUser({ property: 'value' });
+ * metrics.addTraitsToUser({ property: 'value' });
  * ```
  *
  * This will associate the user to a new generated unique ID and all future events will be associated to this user.
@@ -68,7 +68,7 @@ import { Config } from '@segment/analytics-react-native/lib/typescript/src/types
  * This will revert the user to the anonymous ID and generate a new unique ID.
  * ```
  * const metrics = await MetaMetrics.getInstance();
- * metrics?.reset();
+ * metrics.reset();
  * ```
  *
  * @see METAMETRICS_ANONYMOUS_ID
@@ -92,11 +92,16 @@ class MetaMetrics implements IMetaMetrics {
    * @returns Promise containing the enabled state.
    */
   #isMetaMetricsEnabled = async (): Promise<boolean> => {
-    const enabledPref = await DefaultPreference.get(METRICS_OPT_IN);
-    this.enabled = AGREED === enabledPref;
-    if (__DEV__)
-      Logger.log(`Current MetaMatrics enable state: ${this.enabled}`);
-    return this.enabled;
+    try {
+      const enabledPref = await DefaultPreference.get(METRICS_OPT_IN);
+      this.enabled = AGREED === enabledPref;
+      if (__DEV__)
+        Logger.log(`Current MetaMatrics enable state: ${this.enabled}`);
+      return this.enabled;
+    } catch (error: any) {
+      Logger.error(error, 'Error retrieving MetaMetrics enable state');
+    }
+    return false;
   };
 
   /**
@@ -111,31 +116,40 @@ class MetaMetrics implements IMetaMetrics {
     // If user later anables MetaMetrics,
     // this same ID should be retrieved from preferences and reused.
 
-    // look for a legacy ID from MixPanel integration and use it
-    this.metametricsId = await DefaultPreference.get(MIXPANEL_METAMETRICS_ID);
-    if (this.metametricsId) {
-      await DefaultPreference.set(METAMETRICS_ID, this.metametricsId);
+    try {
+      // look for a legacy ID from MixPanel integration and use it
+      this.metametricsId = await DefaultPreference.get(MIXPANEL_METAMETRICS_ID);
+      if (this.metametricsId) {
+        await DefaultPreference.set(METAMETRICS_ID, this.metametricsId);
+        return this.metametricsId;
+      }
+
+      // look for a new Metametics ID and use it or generate a new one
+      this.metametricsId = await DefaultPreference.get(METAMETRICS_ID);
+      if (!this.metametricsId) {
+        // keep the id format compatible with MixPanel but base it on a UUIDv4
+        this.metametricsId = uuidv4();
+        await DefaultPreference.set(METAMETRICS_ID, this.metametricsId);
+      }
+
+      if (__DEV__) Logger.log(`Current MetaMatrics ID: ${this.metametricsId}`);
       return this.metametricsId;
+    } catch (error: any) {
+      Logger.error(error, 'Error retrieving MetaMetrics ID');
+      return METAMETRICS_ANONYMOUS_ID;
     }
-
-    // look for a new Metametics ID and use it or generate a new one
-    this.metametricsId = await DefaultPreference.get(METAMETRICS_ID);
-    if (!this.metametricsId) {
-      // keep the id format compatible with MixPanel but base it on a UUIDv4
-      this.metametricsId = uuidv4();
-      await DefaultPreference.set(METAMETRICS_ID, this.metametricsId);
-    }
-
-    if (__DEV__) Logger.log(`Current MetaMatrics ID: ${this.metametricsId}`);
-    return this.metametricsId;
   };
 
   /**
    * reset the analytics user ID and Sgment SDK state.
    */
   #resetMetaMetricsId = async (): Promise<void> => {
-    await DefaultPreference.set(METAMETRICS_ID, '');
-    this.metametricsId = await this.#getMetaMetricsId();
+    try {
+      await DefaultPreference.set(METAMETRICS_ID, '');
+      this.metametricsId = await this.#getMetaMetricsId();
+    } catch (error: any) {
+      Logger.error(error, 'Error resetting MetaMetrics ID');
+    }
   };
 
   /**
@@ -187,7 +201,11 @@ class MetaMetrics implements IMetaMetrics {
    * store in DefaultPreference.
    */
   #storeMetricsOptInPreference = async (enabled: boolean) => {
-    await DefaultPreference.set(METRICS_OPT_IN, enabled ? AGREED : DENIED);
+    try {
+      await DefaultPreference.set(METRICS_OPT_IN, enabled ? AGREED : DENIED);
+    } catch (error: any) {
+      Logger.error(error, 'Error storing MetaMetrics enable state');
+    }
   };
 
   /**
@@ -201,10 +219,14 @@ class MetaMetrics implements IMetaMetrics {
 
     // store the date in the format DD/MM/YYYY
     // similar to the one used in the legacy Analytics
-    await DefaultPreference.set(
-      ANALYTICS_DATA_DELETION_DATE,
-      `${day}/${month}/${year}`,
-    );
+    try {
+      await DefaultPreference.set(
+        ANALYTICS_DATA_DELETION_DATE,
+        `${day}/${month}/${year}`,
+      );
+    } catch (error: any) {
+      Logger.error(error, 'Error storing MetaMetrics deletion date');
+    }
   };
 
   /**
@@ -213,10 +235,14 @@ class MetaMetrics implements IMetaMetrics {
    * @param regulationId - Segment's Regulation ID.
    */
   #storeDeleteRegulationId = async (regulationId: string): Promise<void> => {
-    await DefaultPreference.set(
-      METAMETRICS_SEGMENT_REGULATION_ID,
-      regulationId,
-    );
+    try {
+      await DefaultPreference.set(
+        METAMETRICS_SEGMENT_REGULATION_ID,
+        regulationId,
+      );
+    } catch (error: any) {
+      Logger.error(error, 'Error storing MetaMetrics Regulation ID');
+    }
   };
 
   /**
@@ -279,26 +305,21 @@ class MetaMetrics implements IMetaMetrics {
    * const metrics = await MetaMetrics.getInstance();
    * ```
    */
-  public static async getInstance(): Promise<IMetaMetrics | null> {
-    try {
-      if (!this.instance) {
-        const config: Config = {
-          writeKey: process.env.SEGMENT_WRITE_KEY as string,
-          proxy: process.env.SEGMENT_PROXY_URL as string,
-          debug: __DEV__,
-          anonymousId: METAMETRICS_ANONYMOUS_ID,
-        };
-        this.instance = new MetaMetrics(createClient(config));
-        // get the user metrics preference when initializing
-        this.instance.enabled = await this.instance.#isMetaMetricsEnabled();
-        // get the user unique id when initializing
-        this.instance.metametricsId = await this.instance.#getMetaMetricsId();
-      }
-      return this.instance;
-    } catch (error) {
-      Logger.error('Error getting MetaMetrics instance:', error);
-      return null; // return null in case of an error
+  public static async getInstance(): Promise<IMetaMetrics> {
+    if (!this.instance) {
+      const config: Config = {
+        writeKey: process.env.SEGMENT_WRITE_KEY as string,
+        proxy: process.env.SEGMENT_PROXY_URL as string,
+        debug: __DEV__,
+        anonymousId: METAMETRICS_ANONYMOUS_ID,
+      };
+      this.instance = new MetaMetrics(createClient(config));
+      // get the user metrics preference when initializing
+      this.instance.enabled = await this.instance.#isMetaMetricsEnabled();
+      // get the user unique id when initializing
+      this.instance.metametricsId = await this.instance.#getMetaMetricsId();
     }
+    return this.instance;
   }
 
   /**
@@ -396,8 +417,13 @@ class MetaMetrics implements IMetaMetrics {
     error?: string;
   }> => this.#createDeleteRegulation();
 
-  getDeleteRegulationCreationDate = async (): Promise<string | undefined> =>
-    await DefaultPreference.get(ANALYTICS_DATA_DELETION_DATE);
+  getDeleteRegulationCreationDate = async (): Promise<string | undefined> => {
+    try {
+      return await DefaultPreference.get(ANALYTICS_DATA_DELETION_DATE);
+    } catch (error: any) {
+      Logger.error(error, 'Error retrieving MetaMetrics deletion date');
+    }
+  };
 }
 
 export default MetaMetrics;
