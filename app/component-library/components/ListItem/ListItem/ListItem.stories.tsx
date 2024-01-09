@@ -7,7 +7,7 @@ import { default as ListItemComponent } from './ListItem';
 import { SAMPLE_LISTITEM_PROPS } from './ListItem.constants';
 
 const ListItemStoryMeta = {
-  title: 'Component Library / ValueList',
+  title: 'Component Library / ListItem',
   component: ListItemComponent,
   argTypes: {
     label: {

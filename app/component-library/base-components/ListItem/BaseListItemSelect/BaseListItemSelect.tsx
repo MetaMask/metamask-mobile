@@ -6,7 +6,7 @@ import { TouchableOpacity, View } from 'react-native';
 
 // External dependencies.
 import { useStyles } from '../../../hooks';
-import BaseListItem from '../BaseListItem/BaseListItem';
+import BaseListItemBase from '../BaseListItem/foundation/BaseListItemBase';
 
 // Internal dependencies.
 import styleSheet from './BaseListItemSelect.styles';
@@ -34,9 +34,9 @@ const BaseListItemSelect: React.FC<BaseListItemSelectProps> = ({
       onLongPress={onLongPress}
       {...props}
     >
-      <BaseListItem gap={gap} style={styles.listItem}>
+      <BaseListItemBase gap={gap} style={styles.listItem}>
         {children}
-      </BaseListItem>
+      </BaseListItemBase>
       {isSelected && (
         <View style={styles.underlay} accessibilityRole="checkbox" accessible>
           <View style={styles.underlayBar} />

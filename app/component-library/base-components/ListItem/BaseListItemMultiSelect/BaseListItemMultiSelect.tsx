@@ -7,7 +7,7 @@ import { TouchableOpacity, View, GestureResponderEvent } from 'react-native';
 // External dependencies.
 import Checkbox from '../../../components/Checkbox';
 import { useStyles } from '../../../hooks';
-import BaseListItem from '../BaseListItem/BaseListItem';
+import BaseListItemBase from '../BaseListItem/foundation/BaseListItemBase';
 
 // Internal dependencies.
 import styleSheet from './BaseListItemMultiSelect.styles';
@@ -37,14 +37,14 @@ const BaseListItemMultiSelect: React.FC<BaseListItemMultiSelectProps> = ({
       onPress={onPressHandler}
       {...props}
     >
-      <BaseListItem gap={gap} style={styles.listItem} {...listItemProps}>
+      <BaseListItemBase gap={gap} style={styles.listItem} {...listItemProps}>
         <Checkbox
           style={styles.checkbox}
           isChecked={isChecked}
           onPress={onPressHandler}
         />
         {children}
-      </BaseListItem>
+      </BaseListItemBase>
       {isChecked && (
         <View style={styles.underlay} accessibilityRole="checkbox" accessible />
       )}
