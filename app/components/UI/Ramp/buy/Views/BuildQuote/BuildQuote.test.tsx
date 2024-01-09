@@ -198,17 +198,6 @@ jest.mock('../../../common/hooks/useBalance', () =>
   jest.fn(() => mockUseBalanceValues),
 );
 
-const mockUseGasPriceEstimationInitialValue: ReturnType<
-  typeof useGasPriceEstimation
-> = null;
-
-let mockUseGasPriceEstimationValue: ReturnType<typeof useGasPriceEstimation> =
-  mockUseGasPriceEstimationInitialValue;
-
-jest.mock('../../../common/hooks/useGasPriceEstimation', () =>
-  jest.fn(() => mockUseGasPriceEstimationValue),
-);
-
 const mockSetSelectedRegion = jest.fn();
 const mockSetSelectedPaymentMethodId = jest.fn();
 const mockSetSelectedAsset = jest.fn();
@@ -244,6 +233,22 @@ let mockUseParamsValues: {
 } = {
   showBack: undefined,
 };
+
+const mockUseGasPriceEstimationInitialValue: ReturnType<
+  typeof useGasPriceEstimation
+> = {
+  estimatedGasFee: toTokenMinimalUnit(
+    '0.01',
+    mockUseRampSDKInitialValues.selectedAsset?.decimals || 18,
+  ) as BN,
+};
+
+let mockUseGasPriceEstimationValue: ReturnType<typeof useGasPriceEstimation> =
+  mockUseGasPriceEstimationInitialValue;
+
+jest.mock('../../../common/hooks/useGasPriceEstimation', () =>
+  jest.fn(() => mockUseGasPriceEstimationValue),
+);
 
 jest.mock('../../../../../../util/navigation/navUtils', () => ({
   ...jest.requireActual('../../../../../../util/navigation/navUtils'),
@@ -284,6 +289,9 @@ describe('BuildQuote View', () => {
     };
     mockUseParamsValues = {
       showBack: undefined,
+    };
+    mockUseGasPriceEstimationValue = {
+      ...mockUseGasPriceEstimationInitialValue,
     };
   });
 

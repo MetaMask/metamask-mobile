@@ -240,7 +240,7 @@ const BuildQuote = () => {
 
   const hasInsufficientBalance = useMemo(() => {
     if (!balanceBN || !amountBNMinimalUnit) {
-      return null;
+      return false;
     }
     return balanceBN.lt(amountBNMinimalUnit);
   }, [balanceBN, amountBNMinimalUnit]);
@@ -681,7 +681,7 @@ const BuildQuote = () => {
         value: quickAmount,
         label: currentFiatCurrency?.denomSymbol + quickAmount.toString(),
       })) ?? [];
-  } else if (balanceBN) {
+  } else if (balanceBN && !balanceBN.isZero() && maxSellAmount?.gt(new BN(0))) {
     quickAmounts = [
       { value: 0.25, label: '25%' },
       { value: 0.5, label: '50%' },
@@ -764,18 +764,23 @@ const BuildQuote = () => {
                 isBuy ? currentFiatCurrency?.denomSymbol : undefined
               }
               amount={displayAmount}
-              highlightedError={!amountIsValid || amountIsOverGas}
+              highlightedError={
+                amountNumber > 0 && (!amountIsValid || amountIsOverGas)
+              }
               currencyCode={isBuy ? currentFiatCurrency?.symbol : undefined}
               onPress={onAmountInputPress}
               onCurrencyPress={isBuy ? handleFiatSelectorPress : undefined}
             />
-            {amountIsValid && !hasInsufficientBalance && amountIsOverGas && (
-              <Row>
-                <Text red small>
-                  {strings('fiat_on_ramp_aggregator.enter_lower_gas_fees')}
-                </Text>
-              </Row>
-            )}
+            {amountNumber > 0 &&
+              amountIsValid &&
+              !hasInsufficientBalance &&
+              amountIsOverGas && (
+                <Row>
+                  <Text red small>
+                    {strings('fiat_on_ramp_aggregator.enter_lower_gas_fees')}
+                  </Text>
+                </Row>
+              )}
             {hasInsufficientBalance && (
               <Row>
                 <Text red small>
