@@ -203,9 +203,7 @@ class OnboardingCarousel extends PureComponent {
           >
             <View
               style={styles.wrapper}
-              testID={
-                OnboardingCarouselSelectorIDs.WELCOME_SCREEN_CAROUSEL_CONTAINER_ID
-              }
+              testID={OnboardingCarouselSelectorIDs.CAROUSEL_CONTAINER_ID}
             >
               <ScrollableTabView
                 style={styles.scrollTabs}
@@ -259,9 +257,7 @@ class OnboardingCarousel extends PureComponent {
           </ScrollView>
           <View
             style={styles.ctas}
-            testID={
-              OnboardingCarouselSelectorIDs.WELCOME_SCREEN_GET_STARTED_BUTTON_ID
-            }
+            testID={OnboardingCarouselSelectorIDs.GET_STARTED_BUTTON_ID}
           >
             <View style={styles.ctaWrapper}>
               <StyledButton type={'normal'} onPress={this.onPressGetStarted}>
