@@ -118,7 +118,7 @@ const clearStackNavigatorOptions = {
 const Stack = createStackNavigator();
 /**
  * Stack navigator responsible for the onboarding process
- * Create Wallet, Import from Seed and Sync
+ * Create Wallet and Import from Secret Recovery Phrase
  */
 const OnboardingNav = () => (
   <Stack.Navigator initialRouteName="OnboardingCarousel">
