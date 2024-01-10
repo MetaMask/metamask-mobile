@@ -569,7 +569,7 @@ class MetaMetrics implements IMetaMetrics {
     const status: IDeleteRegulationStatus = {
       deletionRequestDate: undefined,
       dataDeletionRequestStatus: DataDeleteStatus.unknown,
-      hasCollectedDataSinceDeletionRequest: false,
+      hasCollectedDataSinceDeletionRequest: true,
     };
 
     if (this.deleteRegulationId) {

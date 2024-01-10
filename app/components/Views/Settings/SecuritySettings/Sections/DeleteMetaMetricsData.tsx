@@ -1,8 +1,7 @@
-import React, { useState, useEffect, useCallback, useRef } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { Alert, Linking, Platform } from 'react-native';
 import {
   DataDeleteResponseStatus,
-  DataDeleteStatus,
   MetaMetrics,
   MetaMetricsEvents,
 } from '../../../../../core/Analytics';
@@ -30,33 +29,11 @@ const DeleteMetaMetricsData = () => {
    */
   const [hasCollectedData, setHasCollectedData] = useState(true);
 
-  /** dataDeleteStatus is used to determine
-   * if the data deletion task has been initialized
-   * or is running or is in a unknown state.
-   */
-  const [dataDeleteStatus, setDataDeleteStatus] = useState<DataDeleteStatus>(
-    DataDeleteStatus.unknown,
-  );
-
   /** deletionTaskDate is used to determine
    * the date of the latest metametrics data
    * deletion request.
    */
   const [deletionTaskDate, setDeletionTaskDate] = useState<DataDeleteDate>();
-
-  /** enableDeleteData is used to determine
-   * if the delete metametrics button should be
-   * enabled.
-   * It is enabled when no initialized or running
-   * data deletion task is found for the user.
-   */
-  const enableDeleteData = useCallback(
-    () =>
-      ![DataDeleteStatus.initialized, DataDeleteStatus.running].includes(
-        dataDeleteStatus,
-      ),
-    [dataDeleteStatus],
-  );
 
   const metricsRef = useRef<IMetaMetrics | undefined>();
 
@@ -89,7 +66,6 @@ const DeleteMetaMetricsData = () => {
       const deleteDate = metricsRef.current?.getDeleteRegulationCreationDate();
 
       if (DataDeleteResponseStatus.ok === deleteResponse?.status) {
-        setDataDeleteStatus(DataDeleteStatus.initialized);
         setHasCollectedData(false);
         setDeletionTaskDate(deleteDate);
         await trackDataDeletionRequest();
@@ -112,19 +88,13 @@ const DeleteMetaMetricsData = () => {
         return;
       }
       metricsRef.current = metrics;
-      const {
-        dataDeletionRequestStatus,
-        deletionRequestDate,
-        hasCollectedDataSinceDeletionRequest,
-      } = await metrics?.checkDataDeleteStatus();
-      setDataDeleteStatus(dataDeletionRequestStatus);
+      const { deletionRequestDate, hasCollectedDataSinceDeletionRequest } =
+        await metrics?.checkDataDeleteStatus();
       setDeletionTaskDate(deletionRequestDate);
-      setHasCollectedData(
-        hasCollectedDataSinceDeletionRequest || enableDeleteData(),
-      );
+      setHasCollectedData(hasCollectedDataSinceDeletionRequest);
     };
     checkInitialStatus();
-  }, [enableDeleteData]);
+  }, []);
 
   const openPrivacyPolicy = () => Linking.openURL(CONSENSYS_PRIVACY_POLICY);
 
