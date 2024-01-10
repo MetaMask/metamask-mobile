@@ -1827,6 +1827,7 @@
     "select_provider": "Select your preferred provider",
     "blockaid": "Blockaid",
     "blockaid_desc": "Privacy preserving - no data is shared with third parties. Available on Ethereum Mainnet.",
+    "restricted_to_mainnet": "The feature can be enabled only if the user is on Ethereum Mainnet.",
     "switch_network": "Please switch to mainnet or sepolia"
   },
   "walletconnect_sessions": {
