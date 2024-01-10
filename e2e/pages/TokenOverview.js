@@ -30,7 +30,7 @@ export default class TokenOverview {
   }
 
   static async scrollOnScreen() {
-    await TestHelpers.swipe(TOKEN_OVERVIEW_TXN_SCREEN, 'up', 'slow', 0.3);
+    await TestHelpers.swipe(TOKEN_PRICE, 'up', 'fast', 0.6);
   }
 
   static async tapBackButton() {
