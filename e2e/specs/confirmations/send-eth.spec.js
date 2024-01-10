@@ -1,6 +1,6 @@
 'use strict';
 
-import { Smoke } from '../../tags';
+import { SmokeConfirmations } from '../../tags';
 import TestHelpers from '../../helpers';
 
 import AmountView from '../../pages/AmountView';
@@ -17,7 +17,7 @@ import {
 } from '../../fixtures/fixture-helper';
 import { SMART_CONTRACTS } from '../../../app/util/test/smart-contracts';
 
-describe(Smoke('Send ETH'), () => {
+describe(SmokeConfirmations('Send ETH'), () => {
   const TOKEN_NAME = root.unit.eth;
   const AMOUNT = '0.12345';
 

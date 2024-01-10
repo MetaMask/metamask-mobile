@@ -1,12 +1,12 @@
-import TestHelpers from '../../../helpers';
+import TestHelpers from '../../helpers';
 import {
   CONTACTS_SETTINGS,
   GENERAL_SETTINGS,
   LOCK_SETTINGS,
   NETWORKS_SETTINGS,
   SECURITY_SETTINGS,
-} from '../../../../wdio/screen-objects/testIDs/Screens/Settings.testIds';
-import { SettingsViewSelectorsText } from '../../../selectors/Settings/SettingsView.selectors';
+} from '../../../wdio/screen-objects/testIDs/Screens/Settings.testIds';
+import { SettingsViewSelectorsText } from '../../selectors/Settings/SettingsView.selectors';
 
 export default class SettingsView {
   static async tapGeneral() {

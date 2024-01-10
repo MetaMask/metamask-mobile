@@ -21,6 +21,7 @@ import {
   TokenRatesState,
   TokensController,
   TokensState,
+  CodefiTokenPricesServiceV2,
 } from '@metamask/assets-controllers';
 ///: BEGIN:ONLY_INCLUDE_IF(snaps)
 import { AppState } from 'react-native';
@@ -547,6 +548,7 @@ class Engine {
         allowedActions: ['KeyringController:getState'],
       }),
       state: initialKeyringState || initialState.KeyringController,
+      // @ts-expect-error To Do: Update the type of QRHardwareKeyring to Keyring<Json>
       keyringBuilders: [qrKeyringBuilder],
     });
 
@@ -818,6 +820,9 @@ class Engine {
       },
     );
     ///: END:ONLY_INCLUDE_IF
+
+    const codefiTokenApiV2 = new CodefiTokenPricesServiceV2();
+
     const controllers = [
       keyringController,
       new AccountTrackerController({
@@ -912,7 +917,8 @@ class Engine {
         chainId: networkController.state.providerConfig.chainId,
         ticker: networkController.state.providerConfig.ticker ?? 'ETH',
         selectedAddress: preferencesController.state.selectedAddress,
-        coinGeckoHeader: process.env.COIN_GECKO_HEADER as string,
+        tokenPricesService: codefiTokenApiV2,
+        interval: 30 * 60 * 1000,
       }),
       new TransactionController({
         blockTracker:

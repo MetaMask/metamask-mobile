@@ -1,13 +1,13 @@
-import TestHelpers from '../../../../helpers';
+import TestHelpers from '../../../helpers';
 import {
   RESET_PASSWORD_CONFIRM_INPUT_BOX_ID,
   RESET_PASSWORD_ANDROID_TERM_CHECKBOX_ID,
-} from '../../../../../wdio/screen-objects/testIDs/Screens/ChangePasswordScreensIDs.testIds';
-import { ChoosePasswordSelectorsIDs } from '../../../../selectors/Onboarding/ChoosePassword.selectors';
-import { ChangePasswordViewSelectorsText } from '../../../../selectors/Settings/SecurityAndPrivacy/ChangePasswordView.selectors';
+} from '../../../../wdio/screen-objects/testIDs/Screens/ChangePasswordScreensIDs.testIds';
+import { ChoosePasswordSelectorsIDs } from '../../../selectors/Onboarding/ChoosePassword.selectors';
+import { ChangePasswordViewSelectorsText } from '../../../selectors/Settings/SecurityAndPrivacy/ChangePasswordView.selectors';
 
-import Matchers from '../../../../utils/Matchers';
-import Gestures from '../../../../utils/Gestures';
+import Matchers from '../../../utils/Matchers';
+import Gestures from '../../../utils/Gestures';
 
 class ChangePasswordView {
   get title() {

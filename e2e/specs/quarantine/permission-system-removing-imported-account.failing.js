@@ -5,7 +5,7 @@ import WalletView from '../../pages/WalletView';
 import ImportAccountView from '../../pages/ImportAccountView';
 import TabBarComponent from '../../pages/TabBarComponent';
 
-import Browser from '../../pages/Drawer/Browser';
+import Browser from '../../pages/Browser';
 import AccountListView from '../../pages/AccountListView';
 
 import ConnectModal from '../../pages/modals/ConnectModal';

@@ -1,5 +1,5 @@
-import TestHelpers from '../../../helpers';
-import { AdvancedViewSelectorsIDs } from '../../../selectors/Settings/AdvancedView.selectors';
+import TestHelpers from '../../helpers';
+import { AdvancedViewSelectorsIDs } from '../../selectors/Settings/AdvancedView.selectors';
 
 export default class AdvancedSettingsView {
   static async tapEthSignSwitch() {

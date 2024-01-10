@@ -1,5 +1,5 @@
-import TestHelpers from '../../helpers';
-import { MULTI_TAB_ADD_BUTTON } from '../../../wdio/screen-objects/testIDs/BrowserScreen/MultiTab.testIds';
+import TestHelpers from '../helpers';
+import { MULTI_TAB_ADD_BUTTON } from '../../wdio/screen-objects/testIDs/BrowserScreen/MultiTab.testIds';
 import {
   BROWSER_SCREEN_ID,
   HOME_BUTTON,
@@ -8,21 +8,21 @@ import {
   SEARCH_BUTTON,
   NAVBAR_TITLE_NETWORK,
   ANDROID_BROWSER_WEBVIEW_ID,
-} from '../../../wdio/screen-objects/testIDs/BrowserScreen/BrowserScreen.testIds';
-import { URL_INPUT_BOX_ID } from '../../../wdio/screen-objects/testIDs/BrowserScreen/AddressBar.testIds';
-import { NOTIFICATION_TITLE } from '../../../wdio/screen-objects/testIDs/Components/Notification.testIds';
+} from '../../wdio/screen-objects/testIDs/BrowserScreen/BrowserScreen.testIds';
+import { URL_INPUT_BOX_ID } from '../../wdio/screen-objects/testIDs/BrowserScreen/AddressBar.testIds';
+import { NOTIFICATION_TITLE } from '../../wdio/screen-objects/testIDs/Components/Notification.testIds';
 import {
   testDappConnectButtonCooridinates,
   testDappSendEIP1559ButtonCoordinates,
-} from '../../viewHelper';
-import { TEST_DAPP_LOCAL_URL } from '../TestDApp';
+} from '../viewHelper';
+import { TEST_DAPP_LOCAL_URL } from './TestDApp';
 import {
   BrowserViewSelectorsIDs,
   BrowserViewSelectorsText,
-} from '../../selectors/BrowserView.selectors';
-import { CommonSelectorsText } from '../../selectors/Common.selectors';
-import { AccountOverviewSelectorsIDs } from '../../selectors/AccountOverview.selectors';
-import { AddBookmarkViewSelectorsIDs } from '../../selectors/AddBookmarkView.selectors';
+} from '../selectors/BrowserView.selectors';
+import { CommonSelectorsText } from '../selectors/Common.selectors';
+import { AccountOverviewSelectorsIDs } from '../selectors/AccountOverview.selectors';
+import { AddBookmarkViewSelectorsIDs } from '../selectors/AddBookmarkView.selectors';
 
 const TEST_DAPP = 'https://metamask.github.io/test-dapp/';
 
