@@ -139,8 +139,7 @@ const NetworkSelector = () => {
           imageSource: images.ETHEREUM,
         }}
         isSelected={
-          chainId.toString() === providerConfig.chainId &&
-          !providerConfig.rpcUrl
+          chainId === providerConfig.chainId && !providerConfig.rpcUrl
         }
         onPress={() => onNetworkChange(MAINNET)}
         style={styles.networkCell}
@@ -159,7 +158,7 @@ const NetworkSelector = () => {
           name: lineaMainnetName,
           imageSource: images['LINEA-MAINNET'],
         }}
-        isSelected={chainId.toString() === providerConfig.chainId}
+        isSelected={chainId === providerConfig.chainId}
         onPress={() => onNetworkChange(LINEA_MAINNET)}
       />
     );
@@ -184,8 +183,7 @@ const NetworkSelector = () => {
               imageSource: image,
             }}
             isSelected={Boolean(
-              chainId.toString() === providerConfig.chainId &&
-                providerConfig.rpcUrl,
+              chainId === providerConfig.chainId && providerConfig.rpcUrl,
             )}
             onPress={() => onSetRpcTarget(rpcUrl)}
             style={styles.networkCell}
@@ -210,7 +208,7 @@ const NetworkSelector = () => {
             name,
             imageSource,
           }}
-          isSelected={chainId.toString() === providerConfig.chainId}
+          isSelected={chainId === providerConfig.chainId}
           onPress={() => onNetworkChange(networkType)}
           style={styles.networkCell}
         />

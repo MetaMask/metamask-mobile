@@ -13,7 +13,7 @@ import {
 import { recoverPersonalSignature } from '@metamask/eth-sig-util';
 import RPCMethods from './index.js';
 import { RPC } from '../../constants/network';
-import { ChainId, NetworkType } from '@metamask/controller-utils';
+import { ChainId, NetworkType, toHex } from '@metamask/controller-utils';
 import { permissionRpcMethods } from '@metamask/permission-controller';
 import Networks, {
   blockTagParamIndex,
@@ -399,7 +399,7 @@ export const getRpcMethodMiddleware = ({
         }
 
         if (chainId && !chainId.startsWith('0x')) {
-          chainId = `0x${parseInt(chainId, 10).toString(16)}`;
+          chainId = toHex(chainId);
         }
 
         res.result = chainId;

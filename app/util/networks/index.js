@@ -53,8 +53,7 @@ const NetworkList = {
     name: 'Ethereum Main Network',
     shortName: 'Ethereum',
     networkId: 1,
-    chainId: 1,
-    hexChainId: '0x1',
+    chainId: '0x1',
     color: '#3cc29e',
     networkType: 'mainnet',
     imageSource: ethLogo,
@@ -63,8 +62,7 @@ const NetworkList = {
     name: 'Linea Main Network',
     shortName: 'Linea',
     networkId: 59144,
-    chainId: 59144,
-    hexChainId: '0xe708',
+    chainId: '0xe708',
     color: '#121212',
     networkType: 'linea-mainnet',
     imageSource: lineaMainnetLogo,
@@ -73,8 +71,7 @@ const NetworkList = {
     name: 'Goerli Test Network',
     shortName: 'Goerli',
     networkId: 5,
-    chainId: 5,
-    hexChainId: '0x5',
+    chainId: '0x5',
     color: '#3099f2',
     networkType: 'goerli',
     imageSource: goerliLogo,
@@ -83,8 +80,7 @@ const NetworkList = {
     name: 'Sepolia Test Network',
     shortName: 'Sepolia',
     networkId: 11155111,
-    chainId: 11155111,
-    hexChainId: '0xaa36a7',
+    chainId: '0xaa36a7',
     color: '#cfb5f0',
     networkType: 'sepolia',
     imageSource: sepoliaLogo,
@@ -93,8 +89,7 @@ const NetworkList = {
     name: 'Linea Goerli Test Network',
     shortName: 'Linea Goerli',
     networkId: 59140,
-    chainId: 59140,
-    hexChainId: '0xe704',
+    chainId: '0xe704',
     color: '#61dfff',
     networkType: 'linea-goerli',
     imageSource: lineaGoerliLogo,
@@ -128,7 +123,7 @@ export const isDefaultMainnet = (networkType) => networkType === MAINNET;
  * @param {string} chainId - The chain ID to check.
  * @returns True if the chain ID is Ethereum Mainnet, false otherwise.
  */
-export const isMainNet = (chainId) => chainId === String(1);
+export const isMainNet = (chainId) => chainId === '0x1';
 
 export const isLineaMainnet = (networkType) => networkType === LINEA_MAINNET;
 
@@ -226,7 +221,7 @@ export function getDefaultNetworkByChainId(hexChainId) {
   let returnNetwork;
 
   getAllNetworks().forEach((type) => {
-    if (toLowerCaseEquals(String(NetworkList[type].hexChainId), hexChainId)) {
+    if (toLowerCaseEquals(String(NetworkList[type].chainId), hexChainId)) {
       returnNetwork = NetworkList[type];
     }
   });

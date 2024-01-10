@@ -39,7 +39,7 @@ const PopularList = [
     },
   },
   {
-    chainId: '250',
+    chainId: '0xfa',
     nickname: 'Fantom Opera',
     rpcUrl: 'https://rpc.ftm.tools/',
     ticker: 'FTM',
