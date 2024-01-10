@@ -399,9 +399,10 @@ export const getRpcMethodMiddleware = ({
         }
 
         if (chainId && !chainId.startsWith('0x')) {
-          // Convert to hex
-          res.result = `0x${parseInt(chainId, 10).toString(16)}`;
+          chainId = `0x${parseInt(chainId, 10).toString(16)}`;
         }
+
+        res.result = chainId;
       },
       eth_hashrate: () => {
         res.result = '0x00';
