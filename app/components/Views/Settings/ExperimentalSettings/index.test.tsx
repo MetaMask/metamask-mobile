@@ -40,6 +40,13 @@ jest.mock('../../../../core/Engine', () => ({
       setSecurityAlertsEnabled: () => undefined,
     },
   },
+  NetworkController: {
+    state: {
+      providerConfig: {
+        chainId: 1,
+      },
+    },
+  },
 }));
 
 const store = mockStore(initialState);
