@@ -524,7 +524,7 @@ describe('MetaMetrics', () => {
         expect(
           axios as jest.MockedFunction<typeof axios>,
         ).not.toHaveBeenCalled();
-        expect(hasCollectedDataSinceDeletionRequest).toBeFalsy();
+        expect(hasCollectedDataSinceDeletionRequest).toBeTruthy();
         expect(dataDeletionRequestStatus).toEqual(DataDeleteStatus.unknown);
         expect(deletionRequestDate).toBeUndefined();
       });
