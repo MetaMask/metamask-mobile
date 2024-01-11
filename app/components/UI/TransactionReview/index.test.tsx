@@ -232,9 +232,9 @@ describe('TransactionReview', () => {
       await queryByTestId(FALSE_POSITIVE_REPOST_LINE_TEST_ID),
     ).toBeDefined();
     expect(await queryByText('Something doesn’t look right?')).toBeDefined();
-    expect(await queryByText('Contact Us')).toBeDefined();
+    expect(await queryByText('Report an issue')).toBeDefined();
 
-    fireEvent.press(await getByText('Contact Us'));
+    fireEvent.press(await getByText('Report an issue'));
 
     expect(trackEventSypy).toHaveBeenCalledTimes(1);
     expect(blockaidMetricsParamsSpy).toHaveBeenCalledTimes(1);
