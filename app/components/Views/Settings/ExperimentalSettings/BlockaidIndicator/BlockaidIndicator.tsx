@@ -1,5 +1,7 @@
 import React, { useRef, useEffect, useState } from 'react';
-import { View, InteractionManager, Pressable } from 'react-native';
+import { View, Pressable } from 'react-native';
+import { PPOMInitialisationStatus } from '@metamask/ppom-validator';
+
 import SheetHeader from '../../../../../component-library/components/Sheet/SheetHeader';
 import { SheetBottomRef } from '../../../../../component-library/components/Sheet/SheetBottom';
 import Button from '../../../../../component-library/components/Buttons/Button/Button';
@@ -10,6 +12,7 @@ import {
 } from '../../../../../component-library/components/Buttons/Button';
 import Text from '../../../../../component-library/components/Texts/Text/Text';
 import { TextVariant } from '../../../../../component-library/components/Texts/Text';
+import { UpdatePPOMInitializationStatus } from '../../../../../actions/experimental';
 import Icon, {
   IconSize,
   IconName,
@@ -37,43 +40,48 @@ const BlockaidIndicator = ({ navigation }: Props) => {
   const styles = createStyles();
 
   const securityAlertsEnabled = useSelector(selectIsSecurityAlertsEnabled);
+  const [failureCount, setFailureCount] = useState(0);
   const [sheetInteractable, setSheetInteractable] = useState(true);
   const [status, setStatus] = useState<Status>(Status.Idle);
   const sheetRef = useRef<SheetBottomRef>(null);
 
-  const ppomInitialisationCompleted = useSelector(
-    (state: any) => state.experimentalSettings.ppomInitializationCompleted,
+  const ppomInitialisationStatus = useSelector(
+    (state: any) => state.experimentalSettings.ppomInitialisationStatus,
   );
 
   useEffect(() => {
-    if (ppomInitialisationCompleted) {
+    if (ppomInitialisationStatus) {
       setSheetInteractable(true);
+      if (ppomInitialisationStatus === PPOMInitialisationStatus.FAIL) {
+        PreferencesController?.setSecurityAlertsEnabled(false);
+        setFailureCount(failureCount + 1);
+      }
+      if (ppomInitialisationStatus === PPOMInitialisationStatus.SUCCESS) {
+        AnalyticsV2.trackEvent(
+          MetaMetricsEvents.SETTINGS_EXPERIMENTAL_SECURITY_ALERTS_ENABLED,
+          {
+            security_alerts_enabled: true,
+          },
+        );
+      }
     }
-  }, [ppomInitialisationCompleted]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [ppomInitialisationStatus]);
 
   const goBackToExperimentalScreen = () => {
+    dispatch(UpdatePPOMInitializationStatus());
     setStatus(Status.Idle);
     navigation.navigate(Routes.SETTINGS.EXPERIMENTAL_SETTINGS);
   };
 
   const continueBlockaidInitialisation = () => {
+    dispatch(UpdatePPOMInitializationStatus());
     PreferencesController?.setSecurityAlertsEnabled(!securityAlertsEnabled);
     setSheetInteractable(false);
-    dispatch({
-      type: 'SET_PPOM_INITIALIZATION_COMPLETED',
-      ppomInitializationCompleted: false,
-    });
     setStatus(Status.Loading);
-
-    InteractionManager.runAfterInteractions(() => {
-      AnalyticsV2.trackEvent(
-        MetaMetricsEvents.SETTINGS_EXPERIMENTAL_SECURITY_ALERTS_ENABLED,
-        {
-          security_alerts_enabled: !securityAlertsEnabled,
-        },
-      );
-    });
   };
+
+  const multiFailures = failureCount >= 3;
 
   return (
     <BottomSheet ref={sheetRef} isInteractable={sheetInteractable}>
@@ -115,27 +123,29 @@ const BlockaidIndicator = ({ navigation }: Props) => {
         </View>
       )}
 
-      {status === Status.Loading && !ppomInitialisationCompleted && (
-        <View style={styles.blockaidWrapper}>
-          <View style={styles.iconWrapper}>
-            <View style={styles.iconContainer}>
-              <Icon
-                name={IconName.Setting}
-                size={IconSize.Xl}
-                color={IconColor.Primary}
-                style={styles.iconStyle}
-              />
+      {status === Status.Loading &&
+        ppomInitialisationStatus !== PPOMInitialisationStatus.SUCCESS &&
+        ppomInitialisationStatus !== PPOMInitialisationStatus.FAIL && (
+          <View style={styles.blockaidWrapper}>
+            <View style={styles.iconWrapper}>
+              <View style={styles.iconContainer}>
+                <Icon
+                  name={IconName.Setting}
+                  size={IconSize.Xl}
+                  color={IconColor.Primary}
+                  style={styles.iconStyle}
+                />
+              </View>
             </View>
+
+            <SheetHeader title={strings('blockaid_banner.setting_up_alerts')} />
+            <Text variant={TextVariant.BodyMD}>
+              {strings('blockaid_banner.setting_up_alerts_description')}
+            </Text>
           </View>
+        )}
 
-          <SheetHeader title={strings('blockaid_banner.setting_up_alerts')} />
-          <Text variant={TextVariant.BodyMD}>
-            {strings('blockaid_banner.setting_up_alerts_description')}
-          </Text>
-        </View>
-      )}
-
-      {ppomInitialisationCompleted && (
+      {ppomInitialisationStatus === PPOMInitialisationStatus.SUCCESS && (
         <View style={styles.blockaidWrapper}>
           <View style={styles.iconWrapper}>
             <View style={styles.iconContainer}>
@@ -158,6 +168,59 @@ const BlockaidIndicator = ({ navigation }: Props) => {
           <Text variant={TextVariant.BodyMD}>
             {strings('blockaid_banner.setup_complete_description')}
           </Text>
+        </View>
+      )}
+
+      {ppomInitialisationStatus === PPOMInitialisationStatus.FAIL && (
+        <View style={styles.blockaidWrapper}>
+          <View style={styles.iconWrapper}>
+            <View style={styles.iconContainer}>
+              <Icon
+                name={IconName.Danger}
+                size={IconSize.Xl}
+                color={IconColor.Error}
+                style={styles.iconStyle}
+              />
+            </View>
+          </View>
+
+          <SheetHeader title={strings('blockaid_banner.failed')} />
+          <Text variant={TextVariant.BodyMD}>
+            {multiFailures
+              ? strings('blockaid_banner.setup_multiple_failures')
+              : strings('blockaid_banner.setup_failed')}
+          </Text>
+          <View style={styles.buttonWrapper}>
+            {multiFailures ? (
+              <Button
+                variant={ButtonVariants.Primary}
+                label={strings('blockaid_banner.got_it')}
+                size={ButtonSize.Lg}
+                onPress={goBackToExperimentalScreen}
+                width={ButtonWidthTypes.Full}
+                style={styles.wideButtonSize}
+              />
+            ) : (
+              <>
+                <Button
+                  variant={ButtonVariants.Secondary}
+                  label={strings('blockaid_banner.cancel')}
+                  size={ButtonSize.Md}
+                  onPress={goBackToExperimentalScreen}
+                  width={ButtonWidthTypes.Auto}
+                  style={styles.buttonSize}
+                />
+                <Button
+                  variant={ButtonVariants.Primary}
+                  label={strings('blockaid_banner.try_again')}
+                  size={ButtonSize.Md}
+                  onPress={continueBlockaidInitialisation}
+                  width={ButtonWidthTypes.Full}
+                  style={styles.buttonSize}
+                />
+              </>
+            )}
+          </View>
         </View>
       )}
     </BottomSheet>
