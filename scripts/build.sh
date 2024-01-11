@@ -551,12 +551,23 @@ elif [ "$MODE" == "release" ] || [ "$MODE" == "flask" ]; then
 fi
 
 # set some defaults
-METAMASK_BUILD_TYPE='main'
-METAMASK_ENVIRONMENT='local'
-GIT_COMMIT="$(git rev-parse --short HEAD)"
-GIT_BRANCH="$(git branch --show-current)"
-export GIT_COMMIT
-export GIT_BRANCH
+if [ -z "$METAMASK_BUILD_TYPE" ]; then
+  METAMASK_BUILD_TYPE='main'
+fi
+
+if [ -z "$METAMASK_ENVIRONMENT" ]; then
+  METAMASK_ENVIRONMENT='local'
+fi
+
+if [ -z "$GIT_COMMIT" ]; then
+  GIT_COMMIT="$(git rev-parse --short HEAD)"
+  export GIT_COMMIT
+fi
+
+if [ -z "$GIT_BRANCH" ]; then
+  GIT_BRANCH="$(git branch --show-current)"
+  export GIT_BRANCH
+fi
 
 if [ -z "$METAMASK_BUILD_TYPE" ]; then
 	printError "Missing METAMASK_BUILD_TYPE; set to 'main' for a standard release, or 'flask' for a canary flask release. The default value is 'main'."
