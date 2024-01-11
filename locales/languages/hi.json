@@ -17,7 +17,20 @@
     "does_not_look_right": "कुछ तो गड़बड़ है?",
     "suspicious_request_title": "इस अनुरोध पर एकदम से भरोसा नहीं किया जा सकता",
     "trade_order_farming_description": "यदि आप इस अनुरोध को स्वीकार करते हैं, तो आप अपने सारे एसेट गंवा सकते हैं।",
-    "transfer_farming_description": "यदि आप इस अनुरोध को स्वीकार करते हैं, तो स्कैम के लिए मशहूर कोई तृतीय पक्ष आपके सारे एसेट चुरा सकती है।"
+    "transfer_farming_description": "यदि आप इस अनुरोध को स्वीकार करते हैं, तो स्कैम के लिए मशहूर कोई तृतीय पक्ष आपके सारे एसेट चुरा सकती है।",
+    "before_you_proceed": "इससे पहले कि आप आगे बढ़ें",
+    "enable_blockaid_alerts": "इस सुविधा को चालू करने के लिए हमें कुछ सुरक्षा एलर्ट सेट करने की आवश्यकता है। सेटअप के दौरान इस पेज को खुला रहना होगा। इसे पूरा होने में एक मिनट से भी कम समय लगेगा।",
+    "setting_up_alerts": "सुरक्षा एलर्ट सेट करना",
+    "setting_up_alerts_description": "हम सुरक्षा एलर्ट को सेट करने के लिए पूरी तेज़ी से काम कर रहे हैं। थोड़ा रुकें, हम लगभग पूरा कर चुके हैं।",
+    "setup_complete": "सेटअप पूरा हुआ",
+    "setup_failed": "हम सुरक्षा एलर्ट के सेटअप को पूरा नहीं कर सके। अपना इंटरनेट कनेक्शन चेक करें और फिर से प्रयास करें।",
+    "setup_multiple_failures": "आपका इंटरनेट कनेक्शन अभी स्थिर नहीं है, इसलिए हम सुरक्षा एलर्ट सेटअप नहीं कर सके। कृपया आपके कनेक्शन के रिस्टोर होने पर फिर से प्रयास करें।",
+    "setup_complete_description": "सुरक्षा एलर्ट अब तैयार हैं। आप इस पेज को बंद कर सकते हैं और अपने वॉलेट को देखना शुरू कर सकते हैं",
+    "continue": "जारी रखें",
+    "cancel": "कैंसिल करें",
+    "got_it": "समझ गए",
+    "try_again": "फिर से कोशिश करें",
+    "failed": "कुछ गलत हो गया"
   },
   "date": {
     "months": {
@@ -266,7 +279,7 @@
     "successfully_changed": "आपका पासवर्ड सफलतापूर्वक बदल दिया गया है"
   },
   "import_from_seed": {
-    "title": "सीड से इम्पोर्ट करें",
+    "title": "सीक्रेट रिकवरी फ्रेज़ से इंपोर्ट करें",
     "seed_phrase_placeholder": "अपना सीक्रेट रिकवरी फ्रेज दर्ज करें",
     "new_password": "नया पासवर्ड",
     "confirm_password": "पासवर्ड की पुष्टि करें",
@@ -385,6 +398,7 @@
     "logout_to_import_seed": "सीक्रेट रिकवरी फ्रेज को इम्पोर्ट करने के लिए आपको पहले लॉगआउट होने की जरुरत है।",
     "ready_to_explore": "ब्लॉकचेन एप्लिकेशन को एक्सप्लोर करना शुरु करने के लिए तैयार हैं?",
     "unable_to_load": "बैलेंस लोड करने में असमर्थ है",
+    "unable_to_find_conversion_rate": "कन्वर्शन रेट नहीं मिल पाया",
     "display_nft_media_desc": "किसी भी NFT को इम्पोर्ट करने के लिए, सेटिंग्स > सुरक्षा और गोपनीयता में 'NFT मीडिया दिखाएं' को चालू करें।",
     "display_nft_media_cta": "'NFT मीडिया दिखाएं' को चालू करें",
     "display_media_nft_warning": "NFT मीडिया और डेटा को दिखाने से आपका आईपी ​​एड्रेस सेंट्रलाइज़्ड सर्वरों के सामने आ सकता है। NFT को सिर्फ तभी इम्पोर्ट करें जब आप इससे जुड़े खतरों को समझते हों।",
@@ -521,7 +535,6 @@
     "import_account": "एक खाता इम्पोर्ट करें",
     "connect_hardware": "हार्डवेयर वॉलेट कनेक्ट करें",
     "imported": "इम्पोर्ट किया गया",
-    "qr_hardware": "QR हार्डवेयर",
     "remove_account_title": "अकाउंट हटाया जाना",
     "remove_account_message": "क्या आप वास्तव में इस अकाउंट को हटाना चाहते हैं?",
     "no": "नहीं",
@@ -575,7 +588,7 @@
     "tutorial": "ट्यूटोरियल",
     "description4": "कीस्टोन (ट्यूटोरियल)",
     "description5": "1. अपना कीस्टोन अनलॉक करें",
-    "description6": "2. Tap the ··· Menu, then go to Sync",
+    "description6": "2. मेनू पर टैप करें, इसके बाद सिंक पर जाएं",
     "button_continue": "जारी रखें",
     "hint_text": "अपना कीस्टोन वॉलेट स्कैन करें ",
     "purpose_connect": "कनेक्ट",
@@ -608,9 +621,9 @@
     "autolock_after_minutes": "{{time}} मिनट के बाद",
     "reveal_seed_words": "सीड शब्दों को प्रकट करें",
     "reset_account": "अकाउंट को रिसेट करें",
-    "state_logs_button": "स्टेट लॉग को डाउनलोड करें",
+    "state_logs_button": "स्टेट लॉग्स डाउनलोड करें",
     "reveal_seed_words_button": "सीड शब्दों को प्रकट करें",
-    "reset_account_button": "अकाउंट को रिसेट करें",
+    "reset_account_button": "अकाउंट रीसेट करें",
     "reset_account_confirm_button": "हां, रिसेट करें",
     "reset_account_cancel_button": "रद्द करें",
     "reset_account_modal_title": "अकाउंट रिसेट करें?",
@@ -664,8 +677,8 @@
     "toggleEthSignModalTitle": "अपने जोखिम पर उपयोग करें",
     "toggleEthSignModalEnable": "सक्षम करें",
     "toggleEthSignModalLearnMore": "अधिक जानें।",
-    "toggleEthSignOff": "बंद (अनुशंसित)",
-    "toggleEthSignOn": "चालू (अनुशंसित नहीं)",
+    "toggleEthSignOff": "(इसकी सलाह दी जाती है)",
+    "toggleEthSignOn": "(इसकी सलाह नहीं दी जाती है)",
     "toggleEthSignContinueButton": "जारी रखें",
     "toggleEthSignEnableButton": "सक्षम करें",
     "show_custom_nonce": "लेन-देन नॉन्स (nonce) को कस्टमाइज करें",
@@ -788,7 +801,7 @@
     "manage_sdk_connections_title": "कनेक्शन्स प्रबंधित करें",
     "manage_sdk_connections_text": "साइटों और/या MetaMask SDK से कनेक्शन्स हटाएं",
     "fiat_on_ramp": {
-      "title": "क्रिप्टो खरीदें",
+      "title": "क्रिप्टो खरीदें और बेचें",
       "description": "क्षेत्र & और अधिक...",
       "current_region": "वर्तमान क्षेत्र",
       "reset_region": "क्षेत्र रीसेट करें",
@@ -853,7 +866,12 @@
           "snap_dialog": "कस्टम डायलॉग्स दिखाएं"
         }
       }
-    }
+    },
+    "privacy_browser_subheading": "गोपनीयता या ब्राउज़र डेटा हटाएं",
+    "analytics_subheading": "एनालिटिक्स",
+    "transactions_subheading": "ट्रांसेक्शन्स",
+    "token_nft_ens_subheading": "टोकन, NFT और ENS ऑटो-डिटेक्शन",
+    "security_check_subheading": "सुरक्षा जाँचें"
   },
   "sdk": {
     "disconnect_title": "सभी साइटों को डिसकनेक्ट करें?",
@@ -1184,7 +1202,8 @@
     "fiat_conversion_not_available": "फिएट रूपांतरण इस समय उपलब्ध नहीं हैं",
     "hex_data_copied": "Hex डेटा क्लिपबोर्ड पर कॉपी किया गया",
     "invalid_recipient": "अवैध प्राप्तकर्ता",
-    "invalid_recipient_description": "पते की जांच करें और सुनिश्चित करें कि वह मान्य है"
+    "invalid_recipient_description": "पते की जांच करें और सुनिश्चित करें कि वह मान्य है",
+    "swap_tokens": "टोकन स्वैप करें"
   },
   "custom_gas": {
     "total": "कुल",
@@ -1799,13 +1818,14 @@
   "experimental_settings": {
     "wallet_connect_dapps": "वॉलेटकनेक्ट सत्र",
     "wallet_connect_dapps_desc": "सक्रिय वॉलेटकनेक्ट सत्रों की सूची देखें",
-    "wallet_connect_dapps_cta": "सत्र देखें",
+    "wallet_connect_dapps_cta": "सेशन देखें",
     "network_not_supported": "वर्तमान नेटवर्क समर्थन नहीं करता",
     "security_alerts": "सुरक्षा चेतावनियाँ",
     "security_alerts_desc": "यह सुविधा स्थानीय रूप से आपके ट्रांसेक्शन और हस्ताक्षर अनुरोधों की समीक्षा करके आपको बुरी नीयत वाली गतिविधि के प्रति एलर्ट करती है। किसी भी अनुरोध को मंजूरी देने से पहले हमेशा पूरी जांच-पड़ताल ज़रूर करें। इस बात की कोई गारंटी नहीं है कि यह सुविधा सभी बुरी नीयत वाली गतिविधि का पता लगा लेगी। इस सुविधा को सक्षम करके आप प्रदाता की उपयोग की शर्तों से सहमत होते हैं।",
     "select_provider": "अपना पसंदीदा प्रदाता चुनें",
     "blockaid": "Blockaid",
-    "blockaid_desc": "गोपनीयता संरक्षण - कोई भी डेटा थर्ड पार्टी के साथ साझा नहीं किया जाता है। Ethereum Mainnet पर उपलब्ध है।",
+    "blockaid_desc": "Privacy preserving - no data is shared with third parties.",
+    "available_on_eth_mainet": "Available on Ethereum Mainnet.",
     "switch_network": "कृपया Mainnet या sepolia पर बदलें"
   },
   "walletconnect_sessions": {
@@ -2027,6 +2047,8 @@
     "insufficient_balance": "यह राशि आपकी शेष बैलेंस से अधिक है",
     "enter_larger_amount": "जारी रखने के लिए बड़ी राशि दर्ज करें",
     "enter_smaller_amount": "जारी रखने के लिए छोटी राशि दर्ज करें",
+    "enter_lower_gas_fees": "Enter a lower amount to pay for gas fees",
+    "max": "MAX",
     "try_again": "पुनः प्रयास करें",
     "error": "त्रुटि",
     "something_went_wrong": "ओह, कुछ गलत हो गया है",
@@ -2110,14 +2132,22 @@
       "sent": "भेजा गया!"
     },
     "notifications": {
-      "purchase_failed_title": "{{currency}} की खरीद असफल हुई! कृपया फिर से कोशिश करें, असुविधा के लिए खेद है।",
-      "purchase_failed_description": "अपनी भुगतान विधि और कार्ड समर्थन को सत्यापित करें",
-      "purchase_cancelled_title": "आपकी खरीद रद्द कर दी गई थी",
-      "purchase_cancelled_description": "अपनी भुगतान विधि और कार्ड समर्थन को सत्यापित करें",
-      "purchase_completed_title": "{{amount}} {{currency}}  की आपकी खरीद सफलतापूर्ण थी!",
-      "purchase_completed_description": "आपकी {{currency}} अभी उपलब्ध है",
-      "purchase_pending_title": "{{currency}} की आपकी खरीद संसाधित की जा रही है",
-      "purchase_pending_description": "इसमें केवल कुछ मिनटों का समय लगना चाहिए"
+      "purchase_failed_title": "{{currency}} खरीदी नहीं जा सकी! कृपया फिर से कोशिश करें, असुविधा के लिए खेद है!",
+      "purchase_failed_description": "अपने पेमेंट के तरीके और कार्ड सपोर्ट को वेरीफाई करें",
+      "purchase_cancelled_title": "आपकी खरीद कैंसिल कर दी गई थी",
+      "purchase_cancelled_description": "अपने पेमेंट के तरीके और कार्ड सपोर्ट को वेरीफाई करें",
+      "purchase_completed_title": "{{amount}} {{currency}} की आपकी खरीद सफल रही!",
+      "purchase_completed_description": "आपकी {{currency}} अब उपलब्ध है",
+      "purchase_pending_title": "{{currency}} की आपकी खरीद प्रोसेस की जा रही है",
+      "purchase_pending_description": "इसमें केवल कुछ मिनटों का समय लगना चाहिए...",
+      "sale_failed_title": "ऑर्डर नहीं हो पाया",
+      "sale_failed_description": "आपका ऑर्डर पूरा नहीं हो सका।",
+      "sale_cancelled_title": "ऑर्डर कैंसिल किया गया",
+      "sale_cancelled_description": "आपका ऑर्डर पूरा नहीं हो सका।",
+      "sale_completed_title": "ऑर्डर पूरा हो गया",
+      "sale_completed_description": "आपका ऑर्डर सही से हो गया!",
+      "sale_pending_title": "{{currency}} सेल प्रोसेस हो रही है",
+      "sale_pending_description": "आपके ऑर्डर को अब प्रोसेस किया जा रहा है।"
     }
   },
   "swaps": {
@@ -2741,5 +2771,17 @@
     "ipfs_gateway_content2": "आप IPFS रिज़ॉल्यूशन को बंद कर सकते हैं",
     "ipfs_gateway_content3": "सेटिंग्स में > सुरक्षा और गोपनीयता",
     "ipfs_gateway_content4": "किसी भी समय"
+  },
+  "install_snap": {
+    "title": "कनेक्शन के लिए अनुरोध",
+    "description": "{{origin}} {{snap}} को डाउनलोड करना चाहता है और उससे कनेक्ट करना चाहता है। आगे बढ़ने से पहले पक्का कर लें कि आप ऑथर्स पर भरोसा करते हैं।",
+    "permissions_request_title": "अनुमति के लिए अनुरोध",
+    "permissions_request_description": "{{origin}} {{snap}} को इंस्टॉल करना चाहता है, जो नीचे बताई अनुमतियों के लिए अनुरोध कर रहा है।",
+    "approve_permissions": "एप्रूव करें",
+    "installed": "इंस्टॉल किया गया",
+    "install_successful": "{{snap}} सही से इंस्टॉल किया गया",
+    "okay_action": "ठीक है",
+    "error_title": "इंस्टॉल नहीं हो पाया",
+    "error_description": "{{snap}} का इंस्टॉलेशन नहीं हो पाया।"
   }
 }
