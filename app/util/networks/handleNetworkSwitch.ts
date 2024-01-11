@@ -1,5 +1,5 @@
 import { CurrencyRateController } from '@metamask/assets-controllers';
-import { NetworkType } from '@metamask/controller-utils';
+import { InfuraNetworkType } from '@metamask/controller-utils';
 import { NetworkController } from '@metamask/network-controller';
 import { getNetworkTypeById } from './index';
 import Engine from '../../core/Engine';
@@ -59,7 +59,7 @@ const handleNetworkSwitch = (switchToChainId: string): string | undefined => {
     currencyRateController.setNativeCurrency('ETH');
     // TODO: Align mobile and core types to remove this type cast
     try {
-      networkController.setProviderType(networkType as NetworkType);
+      networkController.setProviderType(networkType as InfuraNetworkType);
     } catch (e) {
       // setProviderType now throws an error if config type is rpc but
       // is missing an rpc url or a chain Id.

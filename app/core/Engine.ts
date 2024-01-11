@@ -385,7 +385,7 @@ class Engine {
       // initializeProvider now throws an error if config type is rpc but
       // is missing an rpc url or a chain Id.
       // Good opportunity to do some logging into Sentry
-      // if this get called the mobile app is not working
+      // if this catch block get called the mobile app is not working
       // probably vault corruption error or state error
     }
     const assetsContractController = new AssetsContractController({
@@ -486,6 +486,7 @@ class Engine {
         allowedEvents: ['NetworkController:stateChange'],
       }),
       getProvider: () =>
+        // @ts-expect-error at this point in time the provider will be defined by the `networkController.initializeProvider`
         networkController.getProviderAndBlockTracker().provider,
       onNetworkStateChange: (listener) =>
         this.controllerMessenger.subscribe(
@@ -927,6 +928,7 @@ class Engine {
         interval: 30 * 60 * 1000,
       }),
       new TransactionController({
+        // @ts-expect-error at this point in time the provider will be defined by the `networkController.initializeProvider`
         blockTracker:
           networkController.getProviderAndBlockTracker().blockTracker,
         getNetworkState: () => networkController.state,
