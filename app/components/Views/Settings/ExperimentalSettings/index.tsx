@@ -159,7 +159,7 @@ const ExperimentalSettings = ({ navigation, route }: Props) => {
         variant={TextVariant.BodyMD}
         style={styles.desc}
       >
-        {strings('experimental_settings.restricted_to_mainnet')}
+        {strings('experimental_settings.available_on_eth_mainet')}
       </Text>
     </>
   );
