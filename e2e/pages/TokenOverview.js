@@ -6,7 +6,6 @@ import {
   TOKEN_OVERVIEW_RECEIVE_BUTTON,
   TOKEN_OVERVIEW_BUY_BUTTON,
   TOKEN_OVERVIEW_SWAP_BUTTON,
-  TOKEN_OVERVIEW_TXN_SCREEN,
   ASSET_BACK_BUTTON,
 } from '../../wdio/screen-objects/testIDs/Screens/TokenOverviewScreen.testIds';
 import messages from '../../locales/languages/en.json';
