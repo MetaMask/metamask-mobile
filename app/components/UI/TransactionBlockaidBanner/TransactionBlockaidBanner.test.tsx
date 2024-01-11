@@ -28,6 +28,9 @@ const mockState = {
       response: {
         result_type: ResultType.Warning,
         reason: Reason.approvalFarming,
+        block: 123,
+        req: {},
+        chainId: '0x1',
       },
     },
   },
@@ -64,6 +67,9 @@ describe('TransactionBlockaidBanner', () => {
             response: {
               result_type: ResultType.Warning,
               reason: Reason.approvalFarming,
+              block: 123,
+              req: {},
+              chainId: '0x1',
             },
           },
         },
