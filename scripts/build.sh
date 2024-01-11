@@ -552,6 +552,14 @@ elif [ "$MODE" == "release" ] || [ "$MODE" == "flask" ]; then
 	export SENTRY_PROPERTIES="${REPO_ROOT_DIR}/sentry.release.properties"
 fi
 
+# set some defaults
+METAMASK_BUILD_TYPE='main'
+METAMASK_ENVIRONMENT='local'
+GIT_COMMIT="$(git rev-parse --short HEAD)"
+GIT_BRANCH="$(git branch --show-current)"
+export GIT_COMMIT
+export GIT_BRANCH
+
 if [ -z "$METAMASK_BUILD_TYPE" ]; then
 	printError "Missing METAMASK_BUILD_TYPE; set to 'main' for a standard release, or 'flask' for a canary flask release. The default value is 'main'."
 	exit 1
