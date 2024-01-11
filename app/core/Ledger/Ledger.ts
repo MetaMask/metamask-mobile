@@ -1,13 +1,10 @@
-import Engine from '../Engine';
-import {
-  KeyringController,
-  SignTypedDataVersion,
-} from '@metamask/keyring-controller';
-import type BleTransport from '@ledgerhq/react-native-hw-transport-ble';
 import LedgerKeyring, {
   SerializationOptions,
 } from '@consensys/ledgerhq-metamask-keyring';
+import type BleTransport from '@ledgerhq/react-native-hw-transport-ble';
+import { SignTypedDataVersion } from '@metamask/keyring-controller';
 import ExtendedKeyringTypes from '../../constants/keyringTypes';
+import Engine from '../Engine';
 
 /**
  * Get EthKeyringController from KeyringController
@@ -15,7 +12,7 @@ import ExtendedKeyringTypes from '../../constants/keyringTypes';
  * @returns The EthKeyringController
  */
 const getEthKeyringController = () => {
-  const keyringController: KeyringController = Engine.context.KeyringController;
+  const keyringController = Engine.context.KeyringController;
   return keyringController.getEthKeyringController();
 };
 
