@@ -2,7 +2,7 @@ import React, { useEffect, useState, useCallback, useRef } from 'react';
 import PropTypes from 'prop-types';
 import { StyleSheet, View, TouchableOpacity, Alert } from 'react-native';
 import { connect } from 'react-redux';
-import { colors as importedColors, fontStyles } from '../../../styles/common';
+import { fontStyles } from '../../../styles/common';
 import CollectibleMedia from '../CollectibleMedia';
 import Device from '../../../util/device';
 import Text from '../../Base/Text';
@@ -17,7 +17,8 @@ import { selectSelectedAddress } from '../../../selectors/preferencesController'
 import Icon, {
   IconName,
   IconColor,
-} from '../../component-library/components/Icons/Icon';
+  IconSize,
+} from '../../../component-library/components/Icons/Icon';
 
 const DEVICE_WIDTH = Device.getDeviceWidth();
 const COLLECTIBLE_WIDTH = (DEVICE_WIDTH - 30 - 16) / 3;
@@ -206,7 +207,7 @@ function CollectibleContractElement({
         <View style={styles.verticalAlignedContainer}>
           <Icon
             name={
-              collectiblesVisible ? IconName.Arrow2Down : IconName.Arrow2Right
+              collectiblesVisible ? IconName.ArrowDown : IconName.ArrowRight
             }
             size={IconSize.Xs}
             color={IconColor.Default}
@@ -228,7 +229,7 @@ function CollectibleContractElement({
               <Icon
                 name={IconName.Star}
                 color={IconColor.Alternative}
-                size={IconColor.Lg}
+                size={IconSize.Lg}
               />
             </View>
           )}
