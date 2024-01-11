@@ -129,7 +129,5 @@ describe('CollectibleContracts', () => {
 
     expect(ownedNft).toBeTruthy();
     expect(nonOwnedNft).toBeNull();
-
-    expect(true).toBe(true);
   });
 });
