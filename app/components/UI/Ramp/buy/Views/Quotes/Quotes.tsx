@@ -49,7 +49,7 @@ import { isBuyQuote, isBuyQuotes, isSellQuotes } from '../../../common/utils';
 import { getDecimalChainId } from '../../../../../../util/networks';
 
 export interface QuotesParams {
-  amount: number;
+  amount: number | string;
   asset: CryptoCurrency;
   fiatCurrency: FiatCurrency;
 }
