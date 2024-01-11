@@ -881,7 +881,7 @@ index 4e60e4d..dedd986 100644
 + * The maximum number of token addresses that should be sent to the Price API in
 + * a single request.
 + */
-+const TOKEN_PRICES_BATCH_SIZE = 100;
++const TOKEN_PRICES_BATCH_SIZE = 30;
 +/**
 + * Uses the CryptoCompare API to fetch the exchange rate between one currency
 + * and another, i.e., the multiplier to apply the amount of one currency in
@@ -1301,7 +1301,7 @@ index 4e60e4d..dedd986 100644
 +}, _TokenRatesController_fetchAndMapExchangeRatesForSupportedNativeCurrency = function _TokenRatesController_fetchAndMapExchangeRatesForSupportedNativeCurrency({ tokenAddresses, chainId, nativeCurrency, }) {
 +    return __awaiter(this, void 0, void 0, function* () {
 +        const tokenPricesByTokenAddress = yield (0, assetsUtil_1.reduceInBatchesSerially)({
-+            values: tokenAddresses,
++            values: [...tokenAddresses].sort(),
 +            batchSize: TOKEN_PRICES_BATCH_SIZE,
 +            eachBatch: (allTokenPricesByTokenAddress, batch) => __awaiter(this, void 0, void 0, function* () {
 +                const tokenPricesByTokenAddressForBatch = yield __classPrivateFieldGet(this, _TokenRatesController_tokenPricesService, "f").fetchTokenPrices({

@@ -175,12 +175,12 @@ describe(Regression('Deep linking Tests'), () => {
     await TestHelpers.openDeepLink(DAPP_DEEPLINK_URL);
     await TestHelpers.delay(4500);
 
-    await ConnectModal.isVisible();
+    await Assertions.checkIfVisible(ConnectModal.container);
     await ConnectModal.tapConnectButton();
 
     await TestHelpers.checkIfElementWithTextIsVisible('app.sushi.com', 0);
 
     await Browser.isVisible();
-    await ConnectModal.isNotVisible();
+    await Assertions.checkIfNotVisible(ConnectModal.container);
   });
 });

@@ -411,6 +411,7 @@ const HomeTabs = () => {
         AnalyticsV2.trackEvent(MetaMetricsEvents.NAVIGATION_TAPS_SETTINGS);
       },
       rootScreenName: Routes.SETTINGS_VIEW,
+      unmountOnBlur: true,
     },
   };
 
