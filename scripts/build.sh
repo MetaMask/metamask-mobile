@@ -161,8 +161,6 @@ prebuild_ios(){
 }
 
 prebuild_android(){
-	adb kill-server
-	adb start-server
 	prebuild
 	# Copy JS files for injection
 	yes | cp -rf app/core/InpageBridgeWeb3.js android/app/src/main/assets/.
@@ -403,7 +401,7 @@ buildAndroidRelease(){
 buildAndroidFlaskRelease(){
 	# remap flask env variables to match what the app expects
 	remapFlaskEnvVariables
-	
+
 	if [ "$PRE_RELEASE" = false ] ; then
 		adb uninstall io.metamask.flask || true
 	fi
