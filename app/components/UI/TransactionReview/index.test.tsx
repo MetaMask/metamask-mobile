@@ -175,6 +175,9 @@ describe('TransactionReview', () => {
       result_type: 'Malicious',
       reason: 'blur_farming',
       providerRequestsCount: {},
+      block: 123,
+      chainId: '0x1',
+      req: {},
     };
     const trackEventSypy = jest
       .spyOn(analyticsV2, 'trackEvent')
