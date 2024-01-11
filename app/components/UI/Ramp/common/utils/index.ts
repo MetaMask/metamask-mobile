@@ -17,6 +17,8 @@ import {
 import { RampType } from '../types';
 import { getOrders, FiatOrder } from '../../../../../reducers/fiatOrders';
 import { RootState } from '../../../../../reducers';
+import { FIAT_ORDER_STATES } from '../../../../../constants/on-ramp';
+import { strings } from '../../../../../../locales/i18n';
 
 const isOverAnHour = (minutes: number) => minutes > 59;
 
@@ -204,3 +206,133 @@ export function isSellOrder(order: Order): order is SellOrder {
 export function isSellFiatOrder(order: FiatOrder): order is FiatOrder {
   return order.orderType === OrderOrderTypeEnum.Sell;
 }
+
+const NOTIFICATION_DURATION = 5000;
+
+const baseNotificationDetails = {
+  duration: NOTIFICATION_DURATION,
+};
+
+/**
+ * @param {FiatOrder} fiatOrder
+ */
+export const getNotificationDetails = (fiatOrder: FiatOrder) => {
+  switch (fiatOrder.state) {
+    case FIAT_ORDER_STATES.FAILED: {
+      if (fiatOrder.orderType === OrderOrderTypeEnum.Buy) {
+        return {
+          ...baseNotificationDetails,
+          title: strings(
+            'fiat_on_ramp_aggregator.notifications.purchase_failed_title',
+            {
+              currency: fiatOrder.cryptocurrency,
+            },
+          ),
+          description: strings(
+            'fiat_on_ramp_aggregator.notifications.purchase_failed_description',
+          ),
+          status: 'error',
+        };
+      }
+      return {
+        ...baseNotificationDetails,
+        title: strings(
+          'fiat_on_ramp_aggregator.notifications.sale_failed_title',
+        ),
+        description: strings(
+          'fiat_on_ramp_aggregator.notifications.sale_failed_description',
+        ),
+        status: 'error',
+      };
+    }
+    case FIAT_ORDER_STATES.CANCELLED: {
+      if (fiatOrder.orderType === OrderOrderTypeEnum.Buy) {
+        return {
+          ...baseNotificationDetails,
+          title: strings(
+            'fiat_on_ramp_aggregator.notifications.purchase_cancelled_title',
+          ),
+          description: strings(
+            'fiat_on_ramp_aggregator.notifications.purchase_cancelled_description',
+          ),
+          status: 'cancelled',
+        };
+      }
+      return {
+        ...baseNotificationDetails,
+        title: strings(
+          'fiat_on_ramp_aggregator.notifications.sale_cancelled_title',
+        ),
+        description: strings(
+          'fiat_on_ramp_aggregator.notifications.sale_cancelled_description',
+        ),
+        status: 'cancelled',
+      };
+    }
+    case FIAT_ORDER_STATES.COMPLETED: {
+      if (fiatOrder.orderType === OrderOrderTypeEnum.Buy) {
+        return {
+          ...baseNotificationDetails,
+          title: strings(
+            'fiat_on_ramp_aggregator.notifications.purchase_completed_title',
+            {
+              amount: renderNumber(String(fiatOrder.cryptoAmount)),
+              currency: fiatOrder.cryptocurrency,
+            },
+          ),
+          description: strings(
+            'fiat_on_ramp_aggregator.notifications.purchase_completed_description',
+            {
+              currency: fiatOrder.cryptocurrency,
+            },
+          ),
+          status: 'success',
+        };
+      }
+      return {
+        ...baseNotificationDetails,
+        title: strings(
+          'fiat_on_ramp_aggregator.notifications.sale_completed_title',
+        ),
+        description: strings(
+          'fiat_on_ramp_aggregator.notifications.sale_completed_description',
+        ),
+        status: 'success',
+      };
+    }
+    case FIAT_ORDER_STATES.CREATED: {
+      return null;
+    }
+    case FIAT_ORDER_STATES.PENDING:
+    default: {
+      if (fiatOrder.orderType === OrderOrderTypeEnum.Buy) {
+        return {
+          ...baseNotificationDetails,
+          title: strings(
+            'fiat_on_ramp_aggregator.notifications.purchase_pending_title',
+            {
+              currency: fiatOrder.cryptocurrency,
+            },
+          ),
+          description: strings(
+            'fiat_on_ramp_aggregator.notifications.purchase_pending_description',
+          ),
+          status: 'pending',
+        };
+      }
+      return {
+        ...baseNotificationDetails,
+        title: strings(
+          'fiat_on_ramp_aggregator.notifications.sale_pending_title',
+          {
+            currency: fiatOrder.cryptocurrency,
+          },
+        ),
+        description: strings(
+          'fiat_on_ramp_aggregator.notifications.sale_pending_description',
+        ),
+        status: 'pending',
+      };
+    }
+  }
+};

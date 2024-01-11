@@ -1,29 +1,82 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
-exports[`MessageSign should render correctly 1`] = `
-<MessageSign
+exports[`MessageSign ExpandedMessage should render ExpandedMessage correctly 1`] = `
+<div
   currentPageInformation={
     Object {
       "title": "title",
-      "url": "url",
+      "url": "http://localhost:8545",
     }
   }
-  messageParams={
+  renderMessage={[Function]}
+  testID="ExpandedMessage"
+  toggleExpandedMessage={[MockFunction]}
+>
+  <span>
+    ExpandedMessage Component
+  </span>
+</div>
+`;
+
+exports[`MessageSign ExpandedMessage should render Message text correctly 1`] = `
+<Text
+  style={
     Object {
-      "data": "message",
-      "from": "0x0",
-      "metamaskId": "TestMessageId",
-      "origin": "example.com",
+      "color": "#24272A",
+      "fontFamily": "EuclidCircularB-Regular",
+      "fontSize": 14,
+      "fontWeight": "400",
+      "textAlign": "center",
     }
   }
+>
+  message
+</Text>
+`;
+
+exports[`MessageSign SignatureRequest should render correctly 1`] = `
+<div
+  currentPageInformation={
+    Object {
+      "title": "title",
+      "url": "http://localhost:8545",
+    }
+  }
+  fromAddress="0xE413f7dB07f9B93936189867588B1440D823e651"
   navigation={
     Object {
       "navigate": [MockFunction],
     }
   }
-  onConfirm={[MockFunction]}
-  onReject={[MockFunction]}
+  onConfirm={[Function]}
+  onReject={[Function]}
   showExpandedMessage={false}
+  showWarning={true}
+  testID="SignatureRequest"
   toggleExpandedMessage={[MockFunction]}
-/>
+  truncateMessage={false}
+  type="eth_sign"
+>
+  <span>
+    SignatureRequest Component
+  </span>
+  <View
+    style={
+      Object {
+        "marginBottom": 4,
+      }
+    }
+  >
+    <Text
+      onTextLayout={[Function]}
+      style={
+        Object {
+          "color": "#24272A",
+        }
+      }
+    >
+      message
+    </Text>
+  </View>
+</div>
 `;

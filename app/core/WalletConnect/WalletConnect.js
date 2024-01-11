@@ -193,13 +193,15 @@ class WalletConnect {
 
               const id = trx.transactionMeta.id;
               const reqObject = {
+                id: payload.id,
                 jsonrpc: '2.0',
-                method: 'eth_sendTransaction',
+                method: payload.method,
                 params: [
                   {
                     from: payload.params[0].from,
                     to: payload.params[0].to,
-                    value: payload.params[0].value,
+                    value: payload.params[0]?.value,
+                    data: payload.params[0]?.data,
                   },
                 ],
               };

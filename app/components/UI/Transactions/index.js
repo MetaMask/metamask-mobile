@@ -68,6 +68,7 @@ import {
 } from '../../../core/Transaction/TransactionError';
 import { getLedgerKeyring } from '../../../core/Ledger/Ledger';
 import ExtendedKeyringTypes from '../../../constants/keyringTypes';
+import { TOKEN_OVERVIEW_TXN_SCREEN } from '../../../../wdio/screen-objects/testIDs/Screens/TokenOverviewScreen.testIds';
 
 const createStyles = (colors, typography) =>
   StyleSheet.create({
@@ -626,7 +627,6 @@ class Transactions extends PureComponent {
       signLedgerTransaction={this.signLedgerTransaction}
       cancelUnsignedQRTransaction={this.cancelUnsignedQRTransaction}
       onCancelAction={this.onCancelAction}
-      testID={'txn-item'}
       onPressItem={this.toggleDetailsView}
       selectedAddress={this.props.selectedAddress}
       tokens={this.props.tokens}
@@ -762,7 +762,7 @@ class Transactions extends PureComponent {
     };
 
     return (
-      <View style={styles.wrapper} testID={'transactions-screen'}>
+      <View style={styles.wrapper}>
         <PriceChartContext.Consumer>
           {({ isChartBeingTouched }) => (
             <FlatList
@@ -842,7 +842,7 @@ class Transactions extends PureComponent {
 
     return (
       <PriceChartProvider>
-        <View style={styles.wrapper} testID={'txn-screen'}>
+        <View style={styles.wrapper} testID={TOKEN_OVERVIEW_TXN_SCREEN}>
           {!this.state.ready || this.props.loading
             ? this.renderLoader()
             : this.renderList()}

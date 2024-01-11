@@ -8,7 +8,6 @@ import {
   ActivityIndicator,
 } from 'react-native';
 import { StackActions, useNavigation } from '@react-navigation/native';
-import { Device as NanoDevice } from '@ledgerhq/react-native-hw-transport-ble/lib/types';
 import { useDispatch } from 'react-redux';
 import { strings } from '../../../../locales/i18n';
 import Engine from '../../../core/Engine';
@@ -113,7 +112,7 @@ const LedgerConnect = () => {
   const { colors } = useAppThemeFromContext() ?? mockTheme;
   const navigation = useNavigation();
   const styles = useMemo(() => createStyles(colors), [colors]);
-  const [selectedDevice, setSelectedDevice] = useState<NanoDevice>(null);
+  const [selectedDevice, setSelectedDevice] = useState<any>(null);
   const [errorDetail, setErrorDetails] = useState<LedgerConnectionErrorProps>();
   const [loading, setLoading] = useState(false);
   const [retryTimes, setRetryTimes] = useState(0);

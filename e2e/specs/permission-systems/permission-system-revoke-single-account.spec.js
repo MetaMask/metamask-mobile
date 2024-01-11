@@ -1,7 +1,7 @@
 'use strict';
 import TestHelpers from '../../helpers';
-import { Smoke } from '../../tags';
-import Browser from '../../pages/Drawer/Browser';
+import { SmokeCore } from '../../tags';
+import Browser from '../../pages/Browser';
 import TabBarComponent from '../../pages/TabBarComponent';
 import NetworkListModal from '../../pages/modals/NetworkListModal';
 import ConnectedAccountsModal from '../../pages/modals/ConnectedAccountsModal';
@@ -9,7 +9,7 @@ import FixtureBuilder from '../../fixtures/fixture-builder';
 import { withFixtures } from '../../fixtures/fixture-helper';
 import { loginToApp } from '../../viewHelper';
 
-describe(Smoke('Revoke Single Account after connecting to a dapp'), () => {
+describe(SmokeCore('Revoke Single Account after connecting to a dapp'), () => {
   beforeAll(async () => {
     jest.setTimeout(150000);
     await TestHelpers.reverseServerPort();

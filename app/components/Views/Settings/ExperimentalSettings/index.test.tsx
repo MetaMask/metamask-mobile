@@ -39,16 +39,12 @@ jest.mock('../../../../core/Engine', () => ({
       },
       setSecurityAlertsEnabled: () => undefined,
     },
-  },
-}));
-
-jest.mock('../../../../core/Engine', () => ({
-  context: {
-    PreferencesController: {
+    NetworkController: {
       state: {
-        securityAlertsEnabled: false,
+        providerConfig: {
+          chainId: 1,
+        },
       },
-      setSecurityAlertsEnabled: () => undefined,
     },
   },
 }));

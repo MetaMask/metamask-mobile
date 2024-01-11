@@ -6,18 +6,19 @@ import ConnectModal from '../../pages/modals/ConnectModal';
 import NetworkApprovalModal from '../../pages/modals/NetworkApprovalModal';
 import NetworkAddedModal from '../../pages/modals/NetworkAddedModal';
 
-import Browser from '../../pages/Drawer/Browser';
-import NetworkView from '../../pages/Drawer/Settings/NetworksView';
-import SettingsView from '../../pages/Drawer/Settings/SettingsView';
+import Browser from '../../pages/Browser';
+import NetworkView from '../../pages/Settings/NetworksView';
+import SettingsView from '../../pages/Settings/SettingsView';
 import LoginView from '../../pages/LoginView';
 import TransactionConfirmationView from '../../pages/TransactionConfirmView';
 
-import SecurityAndPrivacy from '../../pages/Drawer/Settings/SecurityAndPrivacy/SecurityAndPrivacyView';
+import SecurityAndPrivacy from '../../pages/Settings/SecurityAndPrivacy/SecurityAndPrivacyView';
 
 import WalletView from '../../pages/WalletView';
 import { importWalletWithRecoveryPhrase } from '../../viewHelper';
 import Accounts from '../../../wdio/helpers/Accounts';
 import TabBarComponent from '../../pages/TabBarComponent';
+import Assertions from '../../utils/Assertions';
 
 const BINANCE_RPC_URL = 'https://bsc-dataseed1.binance.org';
 
@@ -58,11 +59,9 @@ describe(Regression('Deep linking Tests'), () => {
   });
 
   it('should enable remember me', async () => {
-    await SecurityAndPrivacy.isRememberMeToggleOff();
+    await Assertions.checkIfToggleIsOn(SecurityAndPrivacy.rememberMeToggle);
     await SecurityAndPrivacy.tapTurnOnRememberMeToggle();
-    await SecurityAndPrivacy.isRememberMeToggleOn();
-
-    await TestHelpers.delay(1500);
+    await Assertions.checkIfToggleIsOff(SecurityAndPrivacy.rememberMeToggle);
   });
 
   it('should relaunch the app then enable remember me', async () => {
