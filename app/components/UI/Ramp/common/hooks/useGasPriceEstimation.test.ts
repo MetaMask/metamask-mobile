@@ -29,7 +29,6 @@ const mockInitialState = {
 
 function setGasFeeControllerState(
   GasFeeState: DeepPartial<GasFeeState>,
-
   initialState = mockInitialState,
 ) {
   return merge({}, initialState, {
@@ -40,6 +39,8 @@ function setGasFeeControllerState(
     },
   });
 }
+
+const gWeiToWeiConversionRate = 1e9;
 
 describe('useGasPriceEstimation', () => {
   it('should return null if gasLimit is 0', async () => {
@@ -106,194 +107,216 @@ describe('useGasPriceEstimation', () => {
   });
 
   it('should default to 21000 as gasLimit', async () => {
+    const gasPrice = 2;
+    const defaultGasLimit = 21000;
     const { result } = renderHookWithProvider(
       () => useGasPriceEstimation({ estimateRange: 'low' }),
       {
         state: setGasFeeControllerState({
           gasEstimateType: 'eth_gasPrice',
           gasFeeEstimates: {
-            gasPrice: '2',
+            gasPrice: `${gasPrice}`,
           },
         }),
       },
     );
     expect(result.current?.estimatedGasFee.toString(10)).toEqual(
-      `${21000 * 2 * 1e9}`,
+      `${defaultGasLimit * gasPrice * gWeiToWeiConversionRate}`,
     );
   });
 
   describe('gasEstimateType is "fee-market"', () => {
-    it('should return gasPrice if gasEstimateType is "fee-market" without estimateRange', async () => {
+    it('should return gasPrice if gasEstimateType is "fee-market" using medium estimate range if not provided', async () => {
+      const gasLimit = 21000;
+      const lowSuggestedMaxFeePerGas = 1;
+      const mediumSuggestedMaxFeePerGas = 2;
+      const highSuggestedMaxFeePerGas = 3;
       const { result } = renderHookWithProvider(
-        () => useGasPriceEstimation({ gasLimit: 21000 }),
+        () => useGasPriceEstimation({ gasLimit }),
         {
           state: setGasFeeControllerState({
             gasEstimateType: 'fee-market',
             gasFeeEstimates: {
               low: {
-                suggestedMaxFeePerGas: '1',
+                suggestedMaxFeePerGas: `${lowSuggestedMaxFeePerGas}`,
               },
               medium: {
-                suggestedMaxFeePerGas: '2',
+                suggestedMaxFeePerGas: `${mediumSuggestedMaxFeePerGas}`,
               },
               high: {
-                suggestedMaxFeePerGas: '3',
+                suggestedMaxFeePerGas: `${highSuggestedMaxFeePerGas}`,
               },
             },
           }),
         },
       );
       expect(result.current?.estimatedGasFee.toString(10)).toEqual(
-        `${21000 * 2 * 1e9}`,
+        `${gasLimit * mediumSuggestedMaxFeePerGas * gWeiToWeiConversionRate}`,
       );
     });
 
     it('should return gasPrice if gasEstimateType is "fee-market" with estimateRange low', async () => {
+      const gasLimit = 20000;
+      const lowSuggestedMaxFeePerGas = 1;
       const { result } = renderHookWithProvider(
-        () => useGasPriceEstimation({ gasLimit: 20000, estimateRange: 'low' }),
+        () => useGasPriceEstimation({ gasLimit, estimateRange: 'low' }),
         {
           state: setGasFeeControllerState({
             gasEstimateType: 'fee-market',
             gasFeeEstimates: {
               low: {
-                suggestedMaxFeePerGas: '1',
+                suggestedMaxFeePerGas: `${lowSuggestedMaxFeePerGas}`,
               },
             },
           }),
         },
       );
       expect(result.current?.estimatedGasFee.toString(10)).toEqual(
-        `${20000 * 1 * 1e9}`,
+        `${gasLimit * lowSuggestedMaxFeePerGas * gWeiToWeiConversionRate}`,
       );
     });
     it('should return gasPrice if gasEstimateType is "fee-market" with estimateRange medium', async () => {
+      const gasLimit = 20000;
+      const mediumSuggestedMaxFeePerGas = 2;
       const { result } = renderHookWithProvider(
-        () =>
-          useGasPriceEstimation({ gasLimit: 20000, estimateRange: 'medium' }),
+        () => useGasPriceEstimation({ gasLimit, estimateRange: 'medium' }),
         {
           state: setGasFeeControllerState({
             gasEstimateType: 'fee-market',
             gasFeeEstimates: {
               medium: {
-                suggestedMaxFeePerGas: '2',
+                suggestedMaxFeePerGas: `${mediumSuggestedMaxFeePerGas}`,
               },
             },
           }),
         },
       );
       expect(result.current?.estimatedGasFee.toString(10)).toEqual(
-        `${20000 * 2 * 1e9}`,
+        `${gasLimit * mediumSuggestedMaxFeePerGas * gWeiToWeiConversionRate}`,
       );
     });
 
     it('should return gasPrice if gasEstimateType is "fee-market" with estimateRange high', async () => {
+      const gasLimit = 20000;
+      const highSuggestedMaxFeePerGas = 3;
       const { result } = renderHookWithProvider(
-        () => useGasPriceEstimation({ gasLimit: 20000, estimateRange: 'high' }),
+        () => useGasPriceEstimation({ gasLimit, estimateRange: 'high' }),
         {
           state: setGasFeeControllerState({
             gasEstimateType: 'fee-market',
             gasFeeEstimates: {
               high: {
-                suggestedMaxFeePerGas: '3',
+                suggestedMaxFeePerGas: `${highSuggestedMaxFeePerGas}`,
               },
             },
           }),
         },
       );
       expect(result.current?.estimatedGasFee.toString(10)).toEqual(
-        `${20000 * 3 * 1e9}`,
+        `${gasLimit * highSuggestedMaxFeePerGas * gWeiToWeiConversionRate}`,
       );
     });
   });
 
   describe('gasEstimateType is "legacy"', () => {
-    it('should return gasPrice if gasEstimateType is "legacy" without estimateRange', async () => {
+    it('should return gasPrice if gasEstimateType is "legacy" using medium estimate range if not provided', async () => {
+      const gasLimit = 1000;
+      const lowGasPrice = 1;
+      const mediumGasPrice = 2;
+      const highGasPrice = 3;
       const { result } = renderHookWithProvider(
-        () => useGasPriceEstimation({ gasLimit: 1000 }),
+        () => useGasPriceEstimation({ gasLimit }),
         {
           state: setGasFeeControllerState({
             gasEstimateType: 'legacy',
             gasFeeEstimates: {
-              low: '1',
-              medium: '2',
-              high: '3',
+              low: `${lowGasPrice}`,
+              medium: `${mediumGasPrice}`,
+              high: `${highGasPrice}`,
             },
           }),
         },
       );
       expect(result.current?.estimatedGasFee.toString(10)).toEqual(
-        `${1000 * 2 * 1e9}`,
+        `${gasLimit * mediumGasPrice * gWeiToWeiConversionRate}`,
       );
     });
 
     it('should return gasPrice if gasEstimateType is "legacy" with estimateRange low', async () => {
+      const gasLimit = 1000;
+      const lowGasPrice = 1;
       const { result } = renderHookWithProvider(
         () => useGasPriceEstimation({ gasLimit: 1000, estimateRange: 'low' }),
         {
           state: setGasFeeControllerState({
             gasEstimateType: 'legacy',
             gasFeeEstimates: {
-              low: '1',
+              low: `${lowGasPrice}`,
             },
           }),
         },
       );
       expect(result.current?.estimatedGasFee.toString(10)).toEqual(
-        `${1000 * 1 * 1e9}`,
+        `${gasLimit * lowGasPrice * gWeiToWeiConversionRate}`,
       );
     });
 
     it('should return gasPrice if gasEstimateType is "legacy" with estimateRange medium', async () => {
+      const gasLimit = 1000;
+      const mediumGasPrice = 2;
       const { result } = renderHookWithProvider(
-        () =>
-          useGasPriceEstimation({ gasLimit: 1000, estimateRange: 'medium' }),
+        () => useGasPriceEstimation({ gasLimit, estimateRange: 'medium' }),
         {
           state: setGasFeeControllerState({
             gasEstimateType: 'legacy',
             gasFeeEstimates: {
-              medium: '2',
+              medium: `${mediumGasPrice}`,
             },
           }),
         },
       );
       expect(result.current?.estimatedGasFee.toString(10)).toEqual(
-        `${1000 * 2 * 1e9}`,
+        `${gasLimit * mediumGasPrice * gWeiToWeiConversionRate}`,
       );
     });
 
     it('should return gasPrice if gasEstimateType is "legacy" with estimateRange high', async () => {
+      const gasLimit = 1000;
+      const highGasPrice = 3;
       const { result } = renderHookWithProvider(
-        () => useGasPriceEstimation({ gasLimit: 1000, estimateRange: 'high' }),
+        () => useGasPriceEstimation({ gasLimit, estimateRange: 'high' }),
         {
           state: setGasFeeControllerState({
             gasEstimateType: 'legacy',
             gasFeeEstimates: {
-              high: '3',
+              high: `${highGasPrice}`,
             },
           }),
         },
       );
       expect(result.current?.estimatedGasFee.toString(10)).toEqual(
-        `${1000 * 3 * 1e9}`,
+        `${gasLimit * highGasPrice * gWeiToWeiConversionRate}`,
       );
     });
   });
 
   describe('gasEstimateType is "eth_gasPrice"', () => {
     it('should return gasPrice if gasEstimateType is "eth_gasPrice" without estimateRange', async () => {
+      const gasLimit = 1000;
+      const gasPrice = 2;
       const { result } = renderHookWithProvider(
-        () => useGasPriceEstimation({ gasLimit: 1000 }),
+        () => useGasPriceEstimation({ gasLimit }),
         {
           state: setGasFeeControllerState({
             gasEstimateType: 'eth_gasPrice',
             gasFeeEstimates: {
-              gasPrice: '2',
+              gasPrice: `${gasPrice}`,
             },
           }),
         },
       );
       expect(result.current?.estimatedGasFee.toString(10)).toEqual(
-        `${1000 * 2 * 1e9}`,
+        `${gasLimit * gasPrice * gWeiToWeiConversionRate}`,
       );
     });
   });
