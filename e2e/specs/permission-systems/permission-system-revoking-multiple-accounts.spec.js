@@ -1,7 +1,7 @@
 'use strict';
 import TestHelpers from '../../helpers';
 
-import Browser from '../../pages/Drawer/Browser';
+import Browser from '../../pages/Browser';
 
 import AccountListView from '../../pages/AccountListView';
 import TabBarComponent from '../../pages/TabBarComponent';

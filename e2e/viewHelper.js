@@ -5,11 +5,11 @@ import ImportWalletView from './pages/Onboarding/ImportWalletView';
 import MetaMetricsOptIn from './pages/Onboarding/MetaMetricsOptInView';
 import NetworkEducationModal from './pages/modals/NetworkEducationModal';
 import NetworkListModal from './pages/modals/NetworkListModal';
-import NetworkView from './pages/Drawer/Settings/NetworksView';
+import NetworkView from './pages/Settings/NetworksView';
 import OnboardingView from './pages/Onboarding/OnboardingView';
 import OnboardingCarouselView from './pages/Onboarding/OnboardingCarouselView';
 import OnboardingWizardModal from './pages/modals/OnboardingWizardModal';
-import SettingsView from './pages/Drawer/Settings/SettingsView';
+import SettingsView from './pages/Settings/SettingsView';
 import WalletView from './pages/WalletView';
 import WhatsNewModal from './pages/modals/WhatsNewModal';
 import Accounts from '../wdio/helpers/Accounts';
@@ -24,6 +24,7 @@ import TermsOfUseModal from './pages/modals/TermsOfUseModal';
 import TabBarComponent from './pages/TabBarComponent';
 import LoginView from './pages/LoginView';
 import { getGanachePort } from './fixtures/utils';
+import Assertions from './utils/Assertions';
 
 const GOERLI = 'Goerli Test Network';
 
@@ -47,7 +48,7 @@ export const acceptTermOfUse = async () => {
 
 export const importWalletWithRecoveryPhrase = async () => {
   // tap on import seed phrase button
-  await OnboardingCarouselView.isVisible();
+  await Assertions.checkIfVisible(OnboardingCarouselView.container);
   await OnboardingCarouselView.tapOnGetStartedButton();
   await OnboardingView.tapImportWalletFromSeedPhrase();
 
@@ -90,22 +91,21 @@ export const CreateNewWallet = async () => {
   //'should create new wallet'
 
   // tap on import seed phrase button
-  await OnboardingCarouselView.isGetStartedButtonVisible();
   await OnboardingCarouselView.tapOnGetStartedButton();
   await OnboardingView.tapCreateWallet();
 
-  await MetaMetricsOptIn.isVisible();
+  await Assertions.checkIfVisible(MetaMetricsOptIn.container);
   await MetaMetricsOptIn.tapAgreeButton();
   await acceptTermOfUse();
 
-  await CreatePasswordView.isVisible();
+  await Assertions.checkIfVisible(CreatePasswordView.container);
   await CreatePasswordView.tapIUnderstandCheckBox();
   await CreatePasswordView.enterPassword(validAccount.password);
   await CreatePasswordView.reEnterPassword(validAccount.password);
   // await CreatePasswordView.tapCreatePasswordButton();
 
   // Check that we are on the Secure your wallet screen
-  await ProtectYourWalletView.isVisible();
+  await Assertions.checkIfVisible(ProtectYourWalletView.container);
   await ProtectYourWalletView.tapOnRemindMeLaterButton();
   await device.disableSynchronization();
   await SkipAccountSecurityModal.tapIUnderstandCheckBox();
@@ -190,4 +190,11 @@ export const loginToApp = async () => {
   await LoginView.enterPassword(PASSWORD);
 
   await WalletView.isVisible();
+  await TestHelpers.delay(2500);
+  try {
+    await WhatsNewModal.isVisible();
+    await WhatsNewModal.tapCloseButton();
+  } catch {
+    //
+  }
 };

@@ -85,6 +85,9 @@ enum EVENT_NAME {
   // Portfolio
   PORTFOLIO_LINK_CLICKED = 'Portfolio Link Clicked',
 
+  // Link redirects
+  LINK_CLICKED = 'Link Clicked',
+
   // On-ramp [LEGACY]
   ONRAMP_OPENED = 'On-ramp Opened',
   ONRAMP_CLOSED = 'On-ramp Closed',
@@ -271,6 +274,9 @@ enum EVENT_NAME {
   EDIT_SPEND_LIMIT_OPENED = 'Edit Spend Limit Opened',
   TOKEN_IMPORTED = 'Custom Token Imported',
 
+  // Bridge
+  BRIDGE_LINK_CLICKED = 'Bridge Linked Clicked',
+
   // Force Upgrade | Automatic Security Checks
   FORCE_UPGRADE_UPDATE_NEEDED_PROMPT_VIEWED = 'Force Upgrade Update Needed Prompt Viewed',
   FORCE_UPGRADE_UPDATE_TO_THE_LATEST_VERSION_CLICKED = 'Force Upgrade Clicked Update to Latest Version',
@@ -381,6 +387,7 @@ enum ACTIONS {
   // Swaps
   QUOTE = 'Quote',
   SWAP = 'Swap',
+  BRIDGE = 'Bridge',
   PERMISSION_NEW_ACCOUNT = 'Connected new account(s)',
   PERMISSION_REVOKE_ACCOUNT = 'Revoked account(s)',
   ADVANCED_SETTINGS_ETH_SIGN_FRICTION_FIRST_STEP = 'eth_sign_checkbox_seen',
@@ -451,6 +458,7 @@ const events = {
   ),
 
   PORTFOLIO_LINK_CLICKED: generateOpt(EVENT_NAME.PORTFOLIO_LINK_CLICKED),
+  LINK_CLICKED: generateOpt(EVENT_NAME.LINK_CLICKED),
   WALLET_SECURITY_STARTED: generateOpt(EVENT_NAME.WALLET_SECURITY_STARTED),
   WALLET_SECURITY_MANUAL_BACKUP_INITIATED: generateOpt(
     EVENT_NAME.WALLET_SECURITY_MANUAL_BACKUP_INITIATED,
@@ -905,6 +913,7 @@ enum DESCRIPTION {
   PAYMENTS_SELECTS_DEBIT_OR_ACH = 'Selects debit card or bank account as payment method',
   PAYMENTS_SELECTS_APPLE_PAY = 'Selects Apple Pay as payment method',
   SWAPS = 'Swaps',
+  BRIDGE = 'Bridge',
 }
 
 const legacyMetaMetricsEvents = {
@@ -1361,6 +1370,11 @@ const legacyMetaMetricsEvents = {
     EVENT_NAME.TOKEN_IMPORTED,
     ACTIONS.SWAP,
     DESCRIPTION.SWAPS,
+  ),
+  BRIDGE_LINK_CLICKED: generateOpt(
+    EVENT_NAME.BRIDGE_LINK_CLICKED,
+    ACTIONS.BRIDGE,
+    DESCRIPTION.BRIDGE,
   ),
 };
 

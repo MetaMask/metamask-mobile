@@ -14,7 +14,7 @@ import Button, {
   ButtonWidthTypes,
 } from '../../../../component-library/components/Buttons/Button';
 import AccountSelectorList from '../../../UI/AccountSelectorList';
-import USER_INTENT from '../../../../constants/permissions';
+import { USER_INTENT } from '../../../../constants/permissions';
 import generateTestId from '../../../../../wdio/utils/generateTestId';
 import { ACCOUNT_APPROVAL_SELECT_ALL_BUTTON } from '../../../../../wdio/screen-objects/testIDs/Components/AccountApprovalModal.testIds';
 

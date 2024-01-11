@@ -7,6 +7,7 @@ import { GestureResponderEvent } from 'react-native';
 import Text from '../../../../Texts/Text';
 import { useStyles } from '../../../../../hooks';
 import Button from '../../foundation/ButtonBase';
+import { ButtonSize } from '../../Button.types';
 
 // Internal dependencies.
 import { ButtonLinkProps } from './ButtonLink.types';
@@ -71,15 +72,30 @@ const ButtonLink: React.FC<ButtonLinkProps> = ({
     );
 
   return (
-    <Button
-      style={styles.base}
-      label={renderLabel()}
-      labelColor={getLabelColor()}
-      onPressIn={triggerOnPressedIn}
-      onPressOut={triggerOnPressedOut}
-      size={size}
-      {...props}
-    />
+    <>
+      {size === ButtonSize.Auto ? (
+        <Text
+          style={styles.base}
+          suppressHighlighting
+          onPressIn={triggerOnPressedIn}
+          onPressOut={triggerOnPressedOut}
+          accessibilityRole="link"
+          {...props}
+        >
+          {renderLabel()}
+        </Text>
+      ) : (
+        <Button
+          style={styles.base}
+          label={renderLabel()}
+          labelColor={getLabelColor()}
+          onPressIn={triggerOnPressedIn}
+          onPressOut={triggerOnPressedOut}
+          size={size}
+          {...props}
+        />
+      )}
+    </>
   );
 };
 

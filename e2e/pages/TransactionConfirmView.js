@@ -2,7 +2,7 @@ import TestHelpers from '../helpers';
 import {
   COMFIRM_TXN_AMOUNT,
   CONFIRM_TRANSACTION_BUTTON_ID,
-  NAVBAR_TITLE_TEXT,
+  NAVBAR_TITLE_NETWORKS_TEXT,
   TRANSACTION_VIEW_CONTAINER_ID,
 } from '../../wdio/screen-objects/testIDs/Screens/TransactionConfirm.testIds';
 import { ESTIMATED_FEE_TEST_ID } from '../../wdio/screen-objects/testIDs/Screens/TransactionSummaryScreen.testIds.js';
@@ -81,6 +81,6 @@ export default class TransactionConfirmationView {
   }
 
   static async isNetworkNameVisible(text) {
-    await TestHelpers.checkIfElementHasString(NAVBAR_TITLE_TEXT, text);
+    await TestHelpers.checkIfElementHasString(NAVBAR_TITLE_NETWORKS_TEXT, text);
   }
 }

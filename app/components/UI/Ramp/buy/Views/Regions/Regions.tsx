@@ -237,6 +237,7 @@ const RegionsView = () => {
         dismiss={hideRegionModal as () => void}
         onRegionPress={handleRegionPress}
         location={'Region Screen'}
+        selectedRegion={selectedRegion}
         rampType={rampType}
       />
     </ScreenLayout>

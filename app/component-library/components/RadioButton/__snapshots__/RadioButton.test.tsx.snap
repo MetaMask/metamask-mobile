@@ -1,0 +1,31 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`RadioButton should render correctly 1`] = `
+<TouchableOpacity
+  disabled={false}
+  style={
+    Object {
+      "alignItems": "center",
+      "flexDirection": "row",
+      "height": 24,
+      "opacity": 1,
+    }
+  }
+>
+  <View
+    accessibilityRole="radio"
+    style={
+      Object {
+        "alignItems": "center",
+        "backgroundColor": "#FFFFFF",
+        "borderColor": "#BBC0C5",
+        "borderRadius": 99,
+        "borderWidth": 2,
+        "height": 20,
+        "justifyContent": "center",
+        "width": 20,
+      }
+    }
+  />
+</TouchableOpacity>
+`;

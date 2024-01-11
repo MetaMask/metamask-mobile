@@ -82,24 +82,18 @@ exports[`BannerTip should render default settings correctly 1`] = `
     >
       Sample Banner Tip Description
     </Text>
-    <TouchableOpacity
-      activeOpacity={1}
+    <Text
+      accessibilityRole="text"
       onPress={[Function]}
       onPressIn={[Function]}
       onPressOut={[Function]}
       style={
         Object {
-          "alignItems": "center",
-          "alignSelf": "flex-start",
           "backgroundColor": "transparent",
-          "borderRadius": 0,
-          "flexDirection": "row",
-          "height": "auto",
-          "justifyContent": "center",
-          "paddingHorizontal": 0,
+          "color": "#24272A",
         }
       }
-      variant="Link"
+      suppressHighlighting={true}
     >
       <Text
         accessibilityRole="text"
@@ -116,7 +110,7 @@ exports[`BannerTip should render default settings correctly 1`] = `
       >
         Sample Action Button Label
       </Text>
-    </TouchableOpacity>
+    </Text>
   </View>
   <View
     style={

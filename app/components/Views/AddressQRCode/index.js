@@ -143,7 +143,6 @@ class AddressQRCode extends PureComponent {
           <TouchableOpacity
             style={styles.closeIcon}
             onPress={this.closeQrModal}
-            testID={'close-qr-modal'}
           >
             <IonicIcon
               name={'ios-close'}
@@ -164,9 +163,7 @@ class AddressQRCode extends PureComponent {
               {strings('receive_request.public_address_qr_code')}
             </Text>
             <TouchableOpacity onPress={this.copyAccountToClipboard}>
-              <Text style={styles.address} testID={'public-address-input'}>
-                {this.processAddress()}
-              </Text>
+              <Text style={styles.address}>{this.processAddress()}</Text>
             </TouchableOpacity>
           </View>
         </View>

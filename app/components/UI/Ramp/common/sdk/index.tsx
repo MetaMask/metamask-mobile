@@ -193,9 +193,12 @@ export const RampSDKProvider = ({
   const isBuy = rampType === RampType.BUY;
   const isSell = rampType === RampType.SELL;
 
+  useEffect(() => {
+    setSelectedRegion(INITIAL_SELECTED_REGION);
+  }, [INITIAL_SELECTED_REGION]);
+
   const setSelectedRegionCallback = useCallback(
     (region: Region | null) => {
-      setSelectedRegion(region);
       dispatch(setFiatOrdersRegionAGG(region));
     },
     [dispatch],

@@ -5,6 +5,7 @@ export const BrowserViewSelectorsIDs = {
   AVATAR_IMAGE: 'network-avatar-image',
   DAPP_EIP1559_BUTTON: 'sendEIP1559Button',
   DAPP_CONNECT_BUTTON: 'connectButton',
+  URL_INPUT: 'browser-url-bar',
 };
 
 export const BrowserViewSelectorsText = {
