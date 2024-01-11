@@ -43,7 +43,7 @@ function setGasFeeControllerState(
 
 describe('useGasPriceEstimation', () => {
   it('should return null if gasLimit is 0', async () => {
-  // gasLimit is 0 when the Build Quote view is used by the Buy flow instead of the sell flow.
+    // gasLimit is 0 when the Build Quote view is used by the Buy flow instead of the sell flow.
     const { result } = renderHookWithProvider(
       () =>
         useGasPriceEstimation({

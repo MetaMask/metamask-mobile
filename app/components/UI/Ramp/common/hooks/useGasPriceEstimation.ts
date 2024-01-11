@@ -22,7 +22,8 @@ interface Options {
  * Returns null if the gas limit is 0 or if the gas fee controller has no estimates.
  *
  * @param options - The options object
- * @param options.gasLimit - The gas limit for the transaction, defaults to 21_000
+ * @param options.gasLimit - The gas limit for the transaction, defaults to 21_000. If 0 is passed,
+ * it returns null, used in the buy flow
  * @param options.estimateRange - The range to use for the estimation, defaults to 'medium'
  * @returns The estimated gas fee in estimatedGasFee property as BN or null
  */
