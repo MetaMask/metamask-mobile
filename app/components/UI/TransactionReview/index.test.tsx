@@ -128,6 +128,9 @@ jest.mock('react-redux', () => {
     result_type: 'Malicious',
     reason: 'blur_farming',
     providerRequestsCount: {},
+    block: 123,
+    req: {},
+    chainId: '0x1',
   };
   return {
     ...jest.requireActual('react-redux'),
@@ -176,8 +179,8 @@ describe('TransactionReview', () => {
       reason: 'blur_farming',
       providerRequestsCount: {},
       block: 123,
-      chainId: '0x1',
       req: {},
+      chainId: '0x1',
     };
     const trackEventSypy = jest
       .spyOn(analyticsV2, 'trackEvent')
@@ -241,6 +244,9 @@ describe('TransactionReview', () => {
         providerRequestsCount: {},
         reason: 'blur_farming',
         result_type: 'Malicious',
+        block: 123,
+        req: {},
+        chainId: '0x1',
       },
     });
   });
