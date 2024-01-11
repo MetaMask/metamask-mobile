@@ -22,7 +22,7 @@ export const mockTheme = {
   themeAppearance: 'light' as AppThemeKey.light,
   typography: lightTheme.typography,
   shadows: lightTheme.shadows,
-  brandColors: brandColors,
+  brandColors,
 };
 
 export const ThemeContext = React.createContext<any>(undefined);
