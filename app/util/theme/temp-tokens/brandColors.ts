@@ -1,3 +1,7 @@
+/*eslint no-useless-computed-key: "error"*/
+/* eslint-disable no-useless-computed-key */
+/* eslint-disable import/prefer-default-export */
+
 import { BrandColors } from './brandColors.types';
 
 /**
@@ -12,3 +16,5 @@ export const brandColors: BrandColors = {
     ['000']: '#000000',
   },
 };
+
+export default brandColors;

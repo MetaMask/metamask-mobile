@@ -1,1 +1,1 @@
-export { brandColors } from './brandColors';
+export { default } from './brandColors';

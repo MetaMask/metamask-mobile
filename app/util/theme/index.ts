@@ -7,11 +7,11 @@ import {
   Platform,
 } from 'react-native';
 import { throttle } from 'lodash';
-import { AppThemeKey, Theme, BrandColors } from './models';
+import { AppThemeKey, Theme } from './models';
 import { useSelector } from 'react-redux';
 import { lightTheme, darkTheme } from '@metamask/design-tokens';
 import Device from '../device';
-import { brandColors } from './temp-tokens';
+import brandColors from './temp-tokens/brandColors';
 
 /**
  * This is needed to make our unit tests pass since Enzyme doesn't support contextType
