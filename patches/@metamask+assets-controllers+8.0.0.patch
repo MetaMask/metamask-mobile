@@ -833,7 +833,7 @@ index 480ecaf..7259cfb 100644
  //# sourceMappingURL=TokenRatesController.d.ts.map
 \ No newline at end of file
 diff --git a/node_modules/@metamask/assets-controllers/dist/TokenRatesController.js b/node_modules/@metamask/assets-controllers/dist/TokenRatesController.js
-index 4e60e4d..dedd986 100644
+index 4e60e4d..980690c 100644
 --- a/node_modules/@metamask/assets-controllers/dist/TokenRatesController.js
 +++ b/node_modules/@metamask/assets-controllers/dist/TokenRatesController.js
 @@ -8,280 +8,321 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
@@ -1370,7 +1370,7 @@ index 4e60e4d..dedd986 100644
  //# sourceMappingURL=TokenRatesController.js.map
 \ No newline at end of file
 diff --git a/node_modules/@metamask/assets-controllers/dist/TokensController.js b/node_modules/@metamask/assets-controllers/dist/TokensController.js
-index e630b79..9ffa6ea 100644
+index e630b79..0d67362 100644
 --- a/node_modules/@metamask/assets-controllers/dist/TokensController.js
 +++ b/node_modules/@metamask/assets-controllers/dist/TokensController.js
 @@ -43,8 +43,9 @@ class TokensController extends base_controller_1.BaseController {
@@ -1481,7 +1481,7 @@ index e630b79..9ffa6ea 100644
 -            yield this.addToken(asset.address, asset.symbol, asset.decimals, asset.image, suggestedAssetMeta.interactingAddress);
 +            let name;
 +            try{
-+                name = yield this.getERC20TokenName(address);
++                name = yield this.getERC20TokenName(asset.address);
 +            } catch (error) {
 +                name = undefined;
 +            }

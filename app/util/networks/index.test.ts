@@ -62,7 +62,7 @@ describe('network-utils', () => {
 
   describe('isMainNet', () => {
     it(`should return true if the given chain ID is Ethereum Mainnet`, () => {
-      expect(isMainNet('1')).toEqual(true);
+      expect(isMainNet('0x1')).toEqual(true);
     });
     it(`should return false if the selected network is not Ethereum Mainnet`, () => {
       expect(isMainNet('42')).toEqual(false);
