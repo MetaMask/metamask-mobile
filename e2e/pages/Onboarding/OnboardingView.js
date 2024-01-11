@@ -1,35 +1,31 @@
-import { WALLET_SETUP_CREATE_NEW_WALLET_BUTTON_ID } from '../../../wdio/screen-objects/testIDs/Screens/WalletSetupScreen.testIds';
-import TestHelpers from '../../helpers';
-import { NOTIFICATION_TITLE } from '../../../wdio/screen-objects/testIDs/Components/Notification.testIds';
 import { OnboardingSelectorIDs } from '../../selectors/Onboarding/Onboarding.selectors';
+import Matchers from '../../utils/Matchers';
+import Gestures from '../../utils/Gestures';
 
-export default class OnboardingView {
-  static async tapCreateWallet() {
-    if (device.getPlatform() === 'android') {
-      await TestHelpers.waitAndTapByLabel(
-        WALLET_SETUP_CREATE_NEW_WALLET_BUTTON_ID,
-      );
-    } else {
-      await TestHelpers.waitAndTap(WALLET_SETUP_CREATE_NEW_WALLET_BUTTON_ID);
-    }
+class OnboardingView {
+  get container() {
+    return Matchers.getElementByID(OnboardingSelectorIDs.CONTAINER_ID);
   }
 
-  static async tapImportWalletFromSeedPhrase() {
-    if (device.getPlatform() === 'android') {
-      await TestHelpers.waitAndTapByLabel(
-        OnboardingSelectorIDs.IMPORT_FROM_SEED_BUTTON_ID,
-      );
-    } else {
-      await TestHelpers.tap(OnboardingSelectorIDs.IMPORT_FROM_SEED_BUTTON_ID);
-    }
+  get importSeedButton() {
+    return device.getPlatform() === 'android'
+      ? Matchers.getElementByLabel(OnboardingSelectorIDs.IMPORT_SEED_BUTTON)
+      : Matchers.getElementByID(OnboardingSelectorIDs.IMPORT_SEED_BUTTON);
   }
 
-  static async isVisible() {
-    await TestHelpers.checkIfVisible(OnboardingSelectorIDs.CONTAINER_ID);
+  get newWalletButton() {
+    return device.getPlatform() === 'android'
+      ? Matchers.getElementByLabel(OnboardingSelectorIDs.NEW_WALLET_BUTTON)
+      : Matchers.getElementByID(OnboardingSelectorIDs.NEW_WALLET_BUTTON);
   }
 
-  static async deleteWalletToastIsNotVisible() {
-    await TestHelpers.checkIfVisible(NOTIFICATION_TITLE);
-    await TestHelpers.checkIfNotVisible(NOTIFICATION_TITLE);
+  async tapCreateWallet() {
+    await Gestures.waitAndTap(this.newWalletButton);
+  }
+
+  async tapImportWalletFromSeedPhrase() {
+    await Gestures.waitAndTap(this.importSeedButton);
   }
 }
+
+export default new OnboardingView();

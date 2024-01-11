@@ -379,9 +379,7 @@ const ImportFromSecretRecoveryPhrase = ({
         containerStyle={inputWidth}
         inputContainerStyle={styles.padding}
         placeholder={strings('import_from_seed.seed_phrase_placeholder')}
-        testID={
-          ImportFromSeedSelectorsIDs.IMPORT_FROM_SEED_SCREEN_SEED_PHRASE_INPUT_ID
-        }
+        testID={ImportFromSeedSelectorsIDs.SEED_PHRASE_INPUT_ID}
         placeholderTextColor={colors.text.muted}
         returnKeyType="next"
         autoCapitalize="none"
@@ -418,7 +416,7 @@ const ImportFromSecretRecoveryPhrase = ({
         <View testID={ImportFromSeedSelectorsIDs.CONTAINER_ID}>
           <Text
             style={styles.title}
-            testID={ImportFromSeedSelectorsIDs.IMPORT_FROM_SEED_SCREEN_TITLE_ID}
+            testID={ImportFromSeedSelectorsIDs.SCREEN_TITLE_ID}
           >
             {strings('import_from_seed.title')}
           </Text>
@@ -518,9 +516,7 @@ const ImportFromSecretRecoveryPhrase = ({
             {(password !== '' && (
               <Text
                 style={styles.passwordStrengthLabel}
-                testID={
-                  ImportFromSeedSelectorsIDs.IMPORT_FROM_SEED_SCREEN_PASSWORD_STRENGTH_ID
-                }
+                testID={ImportFromSeedSelectorsIDs.PASSWORD_STRENGTH_ID}
               >
                 {strings('choose_password.password_strength')}
                 <Text style={styles[`strength_${passwordStrengthWord}`]}>
@@ -559,7 +555,7 @@ const ImportFromSecretRecoveryPhrase = ({
                   size={12}
                   color={colors.success.default}
                   testID={
-                    ImportFromSeedSelectorsIDs.IMPORT_FROM_SEED_SCREEN_CONFIRM_PASSWORD_CHECK_ICON_ID
+                    ImportFromSeedSelectorsIDs.CONFIRM_PASSWORD_CHECK_ICON_ID
                   }
                 />
               ) : null}
@@ -588,9 +584,7 @@ const ImportFromSecretRecoveryPhrase = ({
             <StyledButton
               type={'blue'}
               onPress={onPressImport}
-              testID={
-                ImportFromSeedSelectorsIDs.IMPORT_FROM_SEED_SCREEN_SUBMIT_BUTTON_ID
-              }
+              testID={ImportFromSeedSelectorsIDs.SUBMIT_BUTTON_ID}
               disabled={!(password !== '' && password === confirmPassword)}
             >
               {loading ? (
