@@ -187,13 +187,14 @@ export default class AppInformation extends PureComponent {
               resizeMethod={'auto'}
             />
             <Text style={styles.versionInfo}>{this.state.appInfo}</Text>
-            {IS_PROD_ENV ? null : (<>
-              <Text style={styles.branchInfo}>
-                {`Branch: ${process.env['GIT_BRANCH']}`}
-              </Text>
-              <Text style={styles.branchInfo}>
-                {`Commit Hash: ${process.env['GIT_COMMIT']}`}
-              </Text>
+            {IS_PROD_ENV ? null : (
+              <>
+                <Text style={styles.branchInfo}>
+                  {`Branch: ${process.env['GIT_BRANCH']}`}
+                </Text>
+                <Text style={styles.branchInfo}>
+                  {`Commit Hash: ${process.env['GIT_COMMIT']}`}
+                </Text>
               </>
             )}
           </View>
