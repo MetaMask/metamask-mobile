@@ -48,17 +48,17 @@ describe('Adding Contract Nickname', () => {
   });
 
   it('should import via seed phrase and validate in settings', async () => {
-    await OnboardingCarouselView.isVisible();
+    await Assertions.checkIfVisible(OnboardingCarouselView.container);
     await OnboardingCarouselView.tapOnGetStartedButton();
 
-    await OnboardingView.isVisible();
+    await Assertions.checkIfVisible(OnboardingView.container);
     await OnboardingView.tapImportWalletFromSeedPhrase();
 
-    await MetaMetricsOptIn.isVisible();
+    await Assertions.checkIfVisible(MetaMetricsOptIn.container);
     await MetaMetricsOptIn.tapAgreeButton();
 
     await acceptTermOfUse();
-    await ImportWalletView.isVisible();
+    await Assertions.checkIfVisible(ImportWalletView.container);
   });
 
   it('should attempt to import wallet with invalid secret recovery phrase', async () => {
