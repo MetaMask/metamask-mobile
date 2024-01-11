@@ -151,10 +151,6 @@ describe('Adding Contract Nickname', () => {
       CONTRACT_NICK_NAME_TEXT,
     );
     await ContractNickNameView.tapConfirmButton();
-
-    //await ContractApprovalModal.isContractNickNameVisible(
-    //  CONTRACT_NICK_NAME_TEXT,
-    //);
   });
 
   it('should edit the contract nickname', async () => {
@@ -167,7 +163,6 @@ describe('Adding Contract Nickname', () => {
     await ContractNickNameView.typeContractNickName('Ace');
     await ContractNickNameView.tapConfirmButton();
 
-    //await ContractApprovalModal.isContractNickNameVisible('Ace');
     await ContractApprovalModal.tapToCopyContractAddress();
     await ContractApprovalModal.tapRejectButton();
   });
@@ -185,7 +180,6 @@ describe('Adding Contract Nickname', () => {
   it('should return to the send view', async () => {
     // Open Drawer
     await CommonView.tapBackButton();
-    //await SettingsView.tapCloseButton();
 
     await TabBarComponent.tapActions();
     await WalletActionsModal.tapSendButton();
@@ -201,7 +195,6 @@ describe('Adding Contract Nickname', () => {
     await TestHelpers.openDeepLink(APPROVAL_DEEPLINK_URL);
     await TestHelpers.delay(3000);
     await Assertions.checkIfVisible(ContractApprovalModal.container);
-    //await ContractApprovalModal.isContractNickNameVisible('Ace');
 
     await ContractApprovalModal.tapApproveButton();
     await Assertions.checkIfNotVisible(ContractApprovalModal.container);

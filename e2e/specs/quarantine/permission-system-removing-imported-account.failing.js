@@ -83,7 +83,6 @@ describe(
 
     it('should set the imported account as primary account', async () => {
       await TestHelpers.delay(1500);
-      //await ConnectedAccountsModal.tapToSetAsPrimaryAccount();
     });
 
     it('should navigate to wallet view', async () => {
