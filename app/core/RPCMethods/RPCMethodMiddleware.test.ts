@@ -753,7 +753,7 @@ describe('getRpcMethodMiddleware', () => {
 
     it('skips account validation if the account is missing from the transaction parameters', async () => {
       // Downcast needed here because `from` is required by this type
-      const mockTransactionParameters = { chainId: '0x1' } as Transaction;
+      const mockTransactionParameters = { chainId: '0x1' };
       setupGlobalState({
         addTransactionResult: Promise.resolve('fake-hash'),
         // Set minimal network controller state to support validation
