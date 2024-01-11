@@ -7,7 +7,7 @@ export interface BrandColors {
   };
   black: {
     /**
-     * {string} white['000']
+     * {string} black['000']
      */
     ['000']: string;
   };
