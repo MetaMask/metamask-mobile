@@ -22,14 +22,6 @@ class NetworkApprovalModal {
   async tapApproveButton() {
     await Gestures.waitAndTap(this.approvedButton);
   }
-
-  //static async isChainIDVisible(chainID) {
-  //  await TestHelpers.checkIfElementWithTextIsVisible(chainID);
-  //}
-
-  //static async isNetworkURLVisible(networkURL) {
-  //  await TestHelpers.checkIfElementWithTextIsVisible(networkURL);
-  //}
 }
 
 export default new NetworkApprovalModal();

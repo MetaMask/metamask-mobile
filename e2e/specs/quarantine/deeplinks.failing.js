@@ -103,15 +103,11 @@ describe(Regression('Deep linking Tests'), () => {
       NetworkApprovalModal.displayName,
       'BNB Smart Chain',
     );
-    //await NetworkApprovalModal.isNetworkURLVisible(BINANCE_RPC_URL);
-    //await NetworkApprovalModal.isChainIDVisible('56');
     await NetworkApprovalModal.tapApproveButton();
 
     await Assertions.checkIfVisible(NetworkAddedModal.switchNetwork);
     await NetworkAddedModal.tapCloseButton();
     await NetworkView.isRpcViewVisible();
-
-    //await WalletView.isVisible();
   });
 
   it('should add polygon network', async () => {
@@ -122,7 +118,6 @@ describe(Regression('Deep linking Tests'), () => {
       NetworkApprovalModal.displayName,
       'Polygon Mainnet',
     );
-    //await NetworkApprovalModal.isChainIDVisible('137');
 
     await NetworkApprovalModal.tapApproveButton();
     await TestHelpers.delay(1000);
