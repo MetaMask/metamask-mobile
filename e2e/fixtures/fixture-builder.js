@@ -292,7 +292,7 @@ class FixtureBuilder {
               usedGasEstimate: null,
               usedCustomGas: null,
               chainCache: {
-                1: {
+                '0x1': {
                   aggregatorMetadata: null,
                   tokens: null,
                   topAssets: null,
@@ -383,7 +383,7 @@ class FixtureBuilder {
           notifications: [],
         },
         swaps: {
-          1: {
+          '0x1': {
             isLive: true,
           },
           isLive: true,
