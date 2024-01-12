@@ -23,7 +23,7 @@ const mockInitialState = {
       },
       AddressBookController: {
         addressBook: {
-          1: {
+          '0x1': {
             '0x1': {
               address: '0x1',
               name: 'Account 2',
