@@ -72,7 +72,7 @@ jest.mock('@react-navigation/native', () => {
 
 const mockUseRampSDKInitialValues: Partial<RampSDK> = {
   selectedPaymentMethodId: '/payment-methods/test-payment-method',
-  selectedChainId: '1',
+  selectedChainId: '0x1',
   appConfig: {
     POLLING_CYCLES: 2,
     POLLING_INTERVAL: 10000,

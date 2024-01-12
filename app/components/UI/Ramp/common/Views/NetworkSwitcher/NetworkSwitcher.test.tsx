@@ -86,7 +86,7 @@ function render(Component: React.ComponentType, chainId?: string) {
               },
               networkConfigurations: {
                 networkId1: {
-                  chainId: '137',
+                  chainId: '0x89',
                   nickname: 'Polygon Mainnet',
                   rpcPrefs: { blockExplorerUrl: 'https://polygonscan.com' },
                   rpcUrl:
@@ -170,7 +170,7 @@ jest.mock('../../hooks/useRampNetworksDetail', () =>
 );
 
 const mockuseRampSDKInitialValues: Partial<RampSDK> = {
-  selectedChainId: '56',
+  selectedChainId: '0x38',
   isBuy: true,
   isSell: false,
   rampType: RampType.BUY,
