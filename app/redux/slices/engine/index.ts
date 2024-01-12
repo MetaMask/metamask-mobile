@@ -29,6 +29,7 @@ const controllerNames = [
   { name: 'TokenBalancesController', initialState: {} },
   { name: 'TokenRatesController', initialState: {} },
   { name: 'TransactionController', initialState: {} },
+  { name: 'SnapController', initialState: {} },
   {
     name: 'SwapsController',
     initialState: {},

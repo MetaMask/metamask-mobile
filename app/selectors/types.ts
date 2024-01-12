@@ -20,6 +20,7 @@ import { TransactionState } from '@metamask/transaction-controller';
 import { GasFeeController } from '@metamask/gas-fee-controller';
 import { PPOMState } from '@metamask/ppom-validator';
 import { ApprovalControllerState } from '@metamask/approval-controller';
+import { SnapController } from '@metamask/snaps-controllers';
 
 export interface EngineState {
   engine: {
@@ -39,6 +40,7 @@ export interface EngineState {
       TokenRatesController: TokenRatesState;
       TransactionController: TransactionState;
       SwapsController: SwapsController;
+      SnapController: SnapController;
       GasFeeController: GasFeeController;
       TokensController: TokensState;
       TokenDetectionController: TokenDetectionController;
