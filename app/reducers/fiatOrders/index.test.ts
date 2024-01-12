@@ -665,7 +665,7 @@ describe('selectors', () => {
         },
       });
 
-      expect(chainIdSelector(state)).toBe('56');
+      expect(chainIdSelector(state)).toBe('0x38');
     });
   });
 
