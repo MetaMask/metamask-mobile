@@ -20,6 +20,11 @@ const mockNetworkInfo = {
   icon: 'test-icon',
 };
 
+jest.mock('react-redux', () => ({
+  ...jest.requireActual('react-redux'),
+  useSelector: jest.fn().mockImplementation(() => true),
+}));
+
 describe('NetworkVerificationInfo', () => {
   it('renders correctly', () => {
     const { toJSON } = render(

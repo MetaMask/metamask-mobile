@@ -950,10 +950,73 @@ exports[`NetworkSwitcher View renders and dismisses network modal when pressing 
                                           "backgroundColor": "#FFFFFF",
                                           "borderRadius": 10,
                                           "padding": 20,
+                                          "paddingTop": 4,
                                         }
                                       }
                                     >
                                       <View>
+                                        <View
+                                          style={
+                                            Object {
+                                              "alignItems": "center",
+                                              "alignSelf": "stretch",
+                                              "padding": 4,
+                                            }
+                                          }
+                                        >
+                                          <View
+                                            style={
+                                              Object {
+                                                "backgroundColor": "#D6D9DC",
+                                                "borderRadius": 2,
+                                                "height": 4,
+                                                "width": 40,
+                                              }
+                                            }
+                                          />
+                                        </View>
+                                        <Text
+                                          style={
+                                            Array [
+                                              false,
+                                              undefined,
+                                              undefined,
+                                              undefined,
+                                              undefined,
+                                              undefined,
+                                              undefined,
+                                              undefined,
+                                              undefined,
+                                              undefined,
+                                              undefined,
+                                              undefined,
+                                              undefined,
+                                              undefined,
+                                              undefined,
+                                              undefined,
+                                              undefined,
+                                              undefined,
+                                              undefined,
+                                              undefined,
+                                              undefined,
+                                              undefined,
+                                              undefined,
+                                              undefined,
+                                              Object {
+                                                "color": "#24272A",
+                                                "fontFamily": "EuclidCircularB-Bold",
+                                                "fontSize": 18,
+                                                "fontWeight": "600",
+                                                "lineHeight": 34,
+                                                "marginVertical": 10,
+                                                "paddingHorizontal": 16,
+                                                "textAlign": "center",
+                                              },
+                                            ]
+                                          }
+                                        >
+                                          Add custom network
+                                        </Text>
                                         <View
                                           style={
                                             Object {
@@ -1016,48 +1079,6 @@ exports[`NetworkSwitcher View renders and dismisses network modal when pressing 
                                         <Text
                                           style={
                                             Array [
-                                              false,
-                                              undefined,
-                                              undefined,
-                                              undefined,
-                                              undefined,
-                                              undefined,
-                                              undefined,
-                                              undefined,
-                                              undefined,
-                                              undefined,
-                                              undefined,
-                                              undefined,
-                                              undefined,
-                                              undefined,
-                                              undefined,
-                                              undefined,
-                                              undefined,
-                                              undefined,
-                                              undefined,
-                                              undefined,
-                                              undefined,
-                                              undefined,
-                                              undefined,
-                                              undefined,
-                                              Object {
-                                                "color": "#24272A",
-                                                "fontFamily": "EuclidCircularB-Bold",
-                                                "fontSize": 18,
-                                                "fontWeight": "600",
-                                                "lineHeight": 34,
-                                                "marginVertical": 10,
-                                                "paddingHorizontal": 16,
-                                                "textAlign": "center",
-                                              },
-                                            ]
-                                          }
-                                        >
-                                          Want to add this network?
-                                        </Text>
-                                        <Text
-                                          style={
-                                            Array [
                                               Object {
                                                 "color": "#24272A",
                                                 "fontFamily": "EuclidCircularB-Regular",
@@ -1112,82 +1133,6 @@ exports[`NetworkSwitcher View renders and dismisses network modal when pressing 
                                                 "textAlign": "center",
                                               },
                                               undefined,
-                                              Object {
-                                                "fontFamily": "EuclidCircularB-Bold",
-                                                "fontWeight": "600",
-                                              },
-                                              undefined,
-                                              undefined,
-                                              undefined,
-                                              undefined,
-                                              undefined,
-                                              undefined,
-                                              undefined,
-                                              undefined,
-                                              undefined,
-                                              undefined,
-                                              undefined,
-                                              undefined,
-                                              undefined,
-                                              undefined,
-                                              undefined,
-                                              undefined,
-                                              undefined,
-                                              undefined,
-                                              undefined,
-                                              undefined,
-                                              undefined,
-                                            ]
-                                          }
-                                        >
-                                          MetaMask does not endorse custom networks or their security.
-                                          <View
-                                            style={
-                                              Object {
-                                                "paddingHorizontal": 3,
-                                              }
-                                            }
-                                          >
-                                            <Text
-                                              allowFontScaling={false}
-                                              onPress={[Function]}
-                                              style={
-                                                Array [
-                                                  Object {
-                                                    "color": undefined,
-                                                    "fontSize": 12,
-                                                  },
-                                                  Object {
-                                                    "color": "#24272A",
-                                                    "fontSize": 12,
-                                                  },
-                                                  Object {
-                                                    "fontFamily": "FontAwesome",
-                                                    "fontStyle": "normal",
-                                                    "fontWeight": "normal",
-                                                  },
-                                                  Object {},
-                                                ]
-                                              }
-                                            >
-                                              
-                                            </Text>
-                                          </View>
-                                        </Text>
-                                        <Text
-                                          style={
-                                            Array [
-                                              Object {
-                                                "color": "#24272A",
-                                                "fontFamily": "EuclidCircularB-Regular",
-                                                "fontSize": 30,
-                                                "fontWeight": "400",
-                                                "marginVertical": 2,
-                                              },
-                                              Object {
-                                                "textAlign": "center",
-                                              },
-                                              undefined,
                                               undefined,
                                               undefined,
                                               undefined,
@@ -1225,7 +1170,9 @@ exports[`NetworkSwitcher View renders and dismisses network modal when pressing 
                                                   "fontWeight": "400",
                                                   "marginVertical": 2,
                                                 },
-                                                undefined,
+                                                Object {
+                                                  "textAlign": "center",
+                                                },
                                                 undefined,
                                                 undefined,
                                                 undefined,
@@ -1252,8 +1199,7 @@ exports[`NetworkSwitcher View renders and dismisses network modal when pressing 
                                               ]
                                             }
                                           >
-                                            Learn about
-                                             
+                                            MetaMask does not endorse custom networks or their security.
                                           </Text>
                                           <Text
                                             onPress={[Function]}
@@ -1295,6 +1241,7 @@ exports[`NetworkSwitcher View renders and dismisses network modal when pressing 
                                               ]
                                             }
                                           >
+                                            Learn about 
                                             scams and network security risks
                                           </Text>
                                         </Text>
