@@ -127,7 +127,7 @@ class FixtureBuilder {
               isCustomNetwork: false,
               providerConfig: {
                 type: 'mainnet',
-                chainId: '1',
+                chainId: '0x1',
               },
               networkDetails: {
                 EIPS: { 1559: false },
