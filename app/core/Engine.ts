@@ -480,7 +480,6 @@ class Engine {
     currencyRateController.start();
 
     const gasFeeController = new GasFeeController({
-      // @ts-expect-error Error might be caused by base controller version mismatch
       messenger: this.controllerMessenger.getRestricted({
         name: 'GasFeeController',
         allowedEvents: ['NetworkController:stateChange'],
@@ -955,6 +954,7 @@ class Engine {
             AppConstants.NETWORK_STATE_CHANGE_EVENT,
             listener,
           ),
+        // @ts-expect-error at this point in time the provider will be defined by the `networkController.initializeProvider`
         provider: networkController.getProviderAndBlockTracker().provider,
       }),
       new SwapsController(

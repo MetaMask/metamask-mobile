@@ -636,13 +636,13 @@ index 4ed4990..9af95c1 100644
                          }
                      }
 diff --git a/node_modules/@metamask/assets-controllers/dist/TokenRatesController.d.ts b/node_modules/@metamask/assets-controllers/dist/TokenRatesController.d.ts
-index 480ecaf..7259cfb 100644
+index 480ecaf..15aafd7 100644
 --- a/node_modules/@metamask/assets-controllers/dist/TokenRatesController.d.ts
 +++ b/node_modules/@metamask/assets-controllers/dist/TokenRatesController.d.ts
 @@ -1,29 +1,9 @@
 -import type { Hex } from '@metamask/utils';
 -import { BaseController, BaseConfig, BaseState } from '@metamask/base-controller';
-+import { BaseControllerV1 } from '@metamask/base-controller';
++import { BaseController } from '@metamask/base-controller';
 +import type { BaseConfig, BaseState } from '@metamask/base-controller';
  import type { NetworkState } from '@metamask/network-controller';
 +import type { PreferencesState } from '@metamask/preferences-controller';
@@ -719,8 +719,7 @@ index 480ecaf..7259cfb 100644
   * Controller that passively polls on a set interval for token-to-fiat exchange rates
   * for tokens stored in the TokensController
   */
--export declare class TokenRatesController extends BaseController<TokenRatesConfig, TokenRatesState> {
-+export declare class TokenRatesController extends BaseControllerV1<TokenRatesConfig, TokenRatesState> {
+ export declare class TokenRatesController extends BaseController<TokenRatesConfig, TokenRatesState> {
 +    #private;
      private handle?;
 -    private tokenList;

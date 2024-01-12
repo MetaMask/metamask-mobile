@@ -3651,7 +3651,7 @@
     "@metamask/scure-bip39" "^2.0.3"
     ethereum-cryptography "^1.1.2"
 
-"@metamask/eth-json-rpc-infura@^8.0.0", "@metamask/eth-json-rpc-infura@^8.1.0", "@metamask/eth-json-rpc-infura@^8.1.1":
+"@metamask/eth-json-rpc-infura@^8.0.0", "@metamask/eth-json-rpc-infura@^8.1.0":
   version "8.1.1"
   resolved "https://registry.yarnpkg.com/@metamask/eth-json-rpc-infura/-/eth-json-rpc-infura-8.1.1.tgz#e877284634fb0727b347575115c74dc9ddd4400c"
   integrity sha512-Ey05VRIMqvF845+pbJeptPm4RrzwHSfmT3QiJfQGWLG4yKdkhvlgOJ7xxYxqbdvPIywA5qCLI7Kszk0gAbWiKA==
@@ -3673,7 +3673,7 @@
     "@metamask/utils" "^8.1.0"
     node-fetch "^2.6.7"
 
-"@metamask/eth-json-rpc-middleware@^11.0.0", "@metamask/eth-json-rpc-middleware@^11.0.2":
+"@metamask/eth-json-rpc-middleware@^11.0.0":
   version "11.0.2"
   resolved "https://registry.yarnpkg.com/@metamask/eth-json-rpc-middleware/-/eth-json-rpc-middleware-11.0.2.tgz#85e6639f5d159a3277d13609dea9f12ebfb5b4e8"
   integrity sha512-/HqtuK/6E8sIJmzg0O3Ey5JsgK6O/VbDqg5R9thHFQMi9EtKXnnZFc8Blir7IOQraGVJFiZQIKZMHRTNQRyreg==
@@ -3821,17 +3821,18 @@
     bn.js "4.11.6"
     number-to-bn "1.7.0"
 
-"@metamask/gas-fee-controller@^6.0.0":
-  version "6.1.2"
-  resolved "https://registry.yarnpkg.com/@metamask/gas-fee-controller/-/gas-fee-controller-6.1.2.tgz#b7a9a611e15a8914636a05411d18686bd554ddf3"
-  integrity sha512-NN1Hlmq5u/q2jIJxuGpPwDQaCIZCnKv+v3SghXajmFSAMYC1REgfay/VITI1A0Drfv3dQ8gHlYll2hAK+lu5oQ==
+"@metamask/gas-fee-controller@6.0.0":
+  version "6.0.0"
+  resolved "https://registry.yarnpkg.com/@metamask/gas-fee-controller/-/gas-fee-controller-6.0.0.tgz#a0fc8233284708cd7924517ca7b4a7624dfe5c42"
+  integrity sha512-B01j41B89hWAGUhJBQAvojuYre10Ef7nlMGrd8dxjW+6BE82hR6BkwOHDWd2evonVUQQuhyekbBl3BjCgzzOUg==
   dependencies:
-    "@metamask/base-controller" "^3.2.1"
-    "@metamask/controller-utils" "^4.3.2"
-    "@metamask/eth-query" "^3.0.1"
-    "@metamask/network-controller" "^12.1.2"
-    "@metamask/utils" "^6.2.0"
+    "@metamask/base-controller" "^3.0.0"
+    "@metamask/controller-utils" "^4.0.0"
+    "@metamask/network-controller" "^9.0.0"
+    "@metamask/utils" "^5.0.2"
     "@types/uuid" "^8.3.0"
+    babel-runtime "^6.26.0"
+    eth-query "^2.1.2"
     ethereumjs-util "^7.0.10"
     ethjs-unit "^0.1.6"
     immer "^9.0.6"
@@ -3923,26 +3924,6 @@
     babel-runtime "^6.26.0"
     eth-block-tracker "^7.0.1"
     eth-query "^2.1.2"
-    eth-rpc-errors "^4.0.2"
-    immer "^9.0.6"
-    json-rpc-engine "^6.1.0"
-    uuid "^8.3.2"
-
-"@metamask/network-controller@^12.1.2":
-  version "12.2.0"
-  resolved "https://registry.yarnpkg.com/@metamask/network-controller/-/network-controller-12.2.0.tgz#679d81e009cfd2b9fdaf884267d7a11b535f1922"
-  integrity sha512-MBsEOy8htQtN46s/pbmEPsfe+UyOe3aUGTeswG0Iy0qGKyqu+uEx/nhydaLpMHFlOLbboPWtUmnPRLFE9pQDEA==
-  dependencies:
-    "@metamask/base-controller" "^3.2.1"
-    "@metamask/controller-utils" "^4.3.2"
-    "@metamask/eth-json-rpc-infura" "^8.1.1"
-    "@metamask/eth-json-rpc-middleware" "^11.0.2"
-    "@metamask/eth-json-rpc-provider" "^1.0.0"
-    "@metamask/eth-query" "^3.0.1"
-    "@metamask/swappable-obj-proxy" "^2.1.0"
-    "@metamask/utils" "^6.2.0"
-    async-mutex "^0.2.6"
-    eth-block-tracker "^7.0.1"
     eth-rpc-errors "^4.0.2"
     immer "^9.0.6"
     json-rpc-engine "^6.1.0"
