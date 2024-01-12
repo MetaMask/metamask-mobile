@@ -170,6 +170,7 @@ function CollectibleContractElement({
         <View
           key={collectible.address + collectible.tokenId}
           styles={styles.collectibleBox}
+          testID={`collectible-${collectible.name}-${collectible.tokenId}`}
         >
           <TouchableOpacity onPress={onPress} onLongPress={onLongPress}>
             <View style={index === 1 ? styles.collectibleInTheMiddle : {}}>
