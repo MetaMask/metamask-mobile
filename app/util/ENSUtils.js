@@ -45,13 +45,11 @@ const CHAIN_ID_TO_NETWORK_ID = {
  */
 export function getCachedENSName(address, chainId) {
   const networkHasEnsSupport = ENS_SUPPORTED_CHAIN_IDS.includes(chainId);
-
   if (!networkHasEnsSupport) {
     return undefined;
   }
 
-  const networkId = CHAIN_ID_TO_NETWORK_ID[chainId];
-  const cacheEntry = ENSCache.cache[networkId + address];
+  const cacheEntry = ENSCache.cache[chainId + address];
   return cacheEntry?.name;
 }
 
