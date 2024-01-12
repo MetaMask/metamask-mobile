@@ -576,6 +576,9 @@ workflows:
       - _notify_failure_on_slack
     steps:
       - restore-cocoapods-cache@1: {}
+      # - cocoapods-install@2:
+      #     run_if: '{{not (enveq "BITRISE_CACHE_HIT" "exact")}}'
+      #     is_always_run: false
       - certificate-and-profile-installer@1: {}
       - set-xcode-build-number@1:
           inputs:
