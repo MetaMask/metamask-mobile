@@ -1,7 +1,7 @@
 import { useRampSDK } from '../../common/sdk';
 import useSDKMethod from '../../common/hooks/useSDKMethod';
 
-function useQuotes(amount: number) {
+function useQuotes(amount: number | string) {
   const {
     selectedPaymentMethodId,
     selectedRegion,

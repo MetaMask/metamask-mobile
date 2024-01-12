@@ -11,6 +11,7 @@ import initialBackgroundState from '../../../../../../util/test/initial-backgrou
 import useCryptoCurrencies from '../../hooks/useCryptoCurrencies';
 import useFiatCurrencies from '../../hooks/useFiatCurrencies';
 import usePaymentMethods from '../../hooks/usePaymentMethods';
+import useGasPriceEstimation from '../../../common/hooks/useGasPriceEstimation';
 import {
   mockCryptoCurrenciesData,
   mockFiatCurrenciesData,
@@ -22,6 +23,7 @@ import useAddressBalance from '../../../../../hooks/useAddressBalance/useAddress
 import useBalance from '../../../common/hooks/useBalance';
 import { toTokenMinimalUnit } from '../../../../../../util/number';
 import { RampType } from '../../../../../../reducers/fiatOrders/types';
+import { NATIVE_ADDRESS } from '../../../../../../constants/on-ramp';
 
 const getByRoleButton = (name?: string | RegExp) =>
   screen.getByRole('button', { name });
@@ -188,7 +190,7 @@ const mockUseBalanceInitialValue: Partial<ReturnType<typeof useBalance>> = {
   balanceBN: toTokenMinimalUnit('5.36385', 18) as BN,
 };
 
-const mockUseBalanceValues = {
+let mockUseBalanceValues: Partial<ReturnType<typeof useBalance>> = {
   ...mockUseBalanceInitialValue,
 };
 
@@ -232,6 +234,22 @@ let mockUseParamsValues: {
   showBack: undefined,
 };
 
+const mockUseGasPriceEstimationInitialValue: ReturnType<
+  typeof useGasPriceEstimation
+> = {
+  estimatedGasFee: toTokenMinimalUnit(
+    '0.01',
+    mockUseRampSDKInitialValues.selectedAsset?.decimals || 18,
+  ) as BN,
+};
+
+let mockUseGasPriceEstimationValue: ReturnType<typeof useGasPriceEstimation> =
+  mockUseGasPriceEstimationInitialValue;
+
+jest.mock('../../../common/hooks/useGasPriceEstimation', () =>
+  jest.fn(() => mockUseGasPriceEstimationValue),
+);
+
 jest.mock('../../../../../../util/navigation/navUtils', () => ({
   ...jest.requireActual('../../../../../../util/navigation/navUtils'),
   useParams: jest.fn(() => mockUseParamsValues),
@@ -271,6 +289,9 @@ describe('BuildQuote View', () => {
     };
     mockUseParamsValues = {
       showBack: undefined,
+    };
+    mockUseGasPriceEstimationValue = {
+      ...mockUseGasPriceEstimationInitialValue,
     };
   });
 
@@ -599,13 +620,6 @@ describe('BuildQuote View', () => {
     beforeEach(() => {
       mockUseRampSDKValues.isBuy = false;
       mockUseRampSDKValues.isSell = true;
-      mockUseLimitsValues = {
-        ...mockUseLimitsInitialValues,
-        limits: {
-          ...(mockUseLimitsInitialValues.limits as Limits),
-          quickAmounts: undefined,
-        },
-      };
     });
 
     it('updates the amount input', async () => {
@@ -661,6 +675,95 @@ describe('BuildQuote View', () => {
       expect(
         screen.getByText('This amount is higher than your balance'),
       ).toBeTruthy();
+    });
+
+    it('updates the amount input with quick amount buttons', async () => {
+      render(BuildQuote);
+      const initialAmount = '0';
+
+      mockUseBalanceValues.balanceBN = toTokenMinimalUnit(
+        '1',
+        mockUseRampSDKValues.selectedAsset?.decimals || 18,
+      ) as BN;
+      const symbol = mockUseRampSDKValues.selectedAsset?.symbol;
+      fireEvent.press(getByRoleButton(`${initialAmount} ${symbol}`));
+      fireEvent.press(getByRoleButton('25%'));
+      expect(getByRoleButton(`0.25 ${symbol}`)).toBeTruthy();
+
+      fireEvent.press(getByRoleButton(`0.25 ${symbol}`));
+      fireEvent.press(getByRoleButton('MAX'));
+      expect(getByRoleButton(`1 ${symbol}`)).toBeTruthy();
+    });
+
+    it('updates the amount input up to the max considering gas for native asset', async () => {
+      render(BuildQuote);
+      const initialAmount = '0';
+      const quickAmount = 'MAX';
+      mockUseRampSDKValues = {
+        ...mockUseRampSDKInitialValues,
+        isBuy: false,
+        isSell: true,
+        selectedAsset: {
+          ...mockCryptoCurrenciesData[0],
+          address: NATIVE_ADDRESS,
+        },
+      };
+
+      mockUseBalanceValues = {
+        balance: '1',
+        balanceFiat: '$1.00',
+        balanceBN: toTokenMinimalUnit(
+          '1',
+          mockUseRampSDKValues.selectedAsset?.decimals || 18,
+        ) as BN,
+      };
+      mockUseGasPriceEstimationValue = {
+        estimatedGasFee: toTokenMinimalUnit(
+          '0.27',
+          mockUseRampSDKValues.selectedAsset?.decimals || 18,
+        ) as BN,
+      };
+      const symbol = mockUseRampSDKValues.selectedAsset?.symbol;
+      fireEvent.press(getByRoleButton(`${initialAmount} ${symbol}`));
+      fireEvent.press(getByRoleButton(quickAmount));
+      expect(getByRoleButton(`0.73 ${symbol}`)).toBeTruthy();
+    });
+
+    it('updates the amount input up to the percentage considering gas', async () => {
+      render(BuildQuote);
+      const initialAmount = '0';
+      mockUseRampSDKValues = {
+        ...mockUseRampSDKInitialValues,
+        isBuy: false,
+        isSell: true,
+        selectedAsset: {
+          ...mockCryptoCurrenciesData[0],
+          address: NATIVE_ADDRESS,
+        },
+      };
+
+      mockUseBalanceValues = {
+        balance: '1',
+        balanceFiat: '$1.00',
+        balanceBN: toTokenMinimalUnit(
+          '1',
+          mockUseRampSDKValues.selectedAsset?.decimals || 18,
+        ) as BN,
+      };
+      mockUseGasPriceEstimationValue = {
+        estimatedGasFee: toTokenMinimalUnit(
+          '0.27',
+          mockUseRampSDKValues.selectedAsset?.decimals || 18,
+        ) as BN,
+      };
+      const symbol = mockUseRampSDKValues.selectedAsset?.symbol;
+      fireEvent.press(getByRoleButton(`${initialAmount} ${symbol}`));
+      fireEvent.press(getByRoleButton('75%'));
+      expect(getByRoleButton(`0.73 ${symbol}`)).toBeTruthy();
+
+      fireEvent.press(getByRoleButton(`0.73 ${symbol}`));
+      fireEvent.press(getByRoleButton('50%'));
+      expect(getByRoleButton(`0.5 ${symbol}`)).toBeTruthy();
     });
   });
 
@@ -721,7 +824,7 @@ describe('BuildQuote View', () => {
     fireEvent.press(submitBtn);
 
     expect(mockNavigate).toHaveBeenCalledWith(Routes.RAMP.QUOTES, {
-      amount: VALID_AMOUNT,
+      amount: validAmount,
       asset: mockUseRampSDKValues.selectedAsset,
       fiatCurrency: mockUseFiatCurrenciesValues.currentFiatCurrency,
     });

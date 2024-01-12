@@ -432,7 +432,9 @@ export default class AndroidService extends EventEmitter2 {
           title: {
             current: clientInfo.originatorInfo?.title,
           },
-          icon: { current: undefined },
+          icon: {
+            current: clientInfo.originatorInfo?.icon,
+          },
           // Bookmarks
           isHomepage: () => false,
           // Show autocomplete

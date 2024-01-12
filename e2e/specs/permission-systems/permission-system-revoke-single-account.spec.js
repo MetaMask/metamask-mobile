@@ -8,6 +8,7 @@ import ConnectedAccountsModal from '../../pages/modals/ConnectedAccountsModal';
 import FixtureBuilder from '../../fixtures/fixture-builder';
 import { withFixtures } from '../../fixtures/fixture-helper';
 import { loginToApp } from '../../viewHelper';
+import Assertions from '../../utils/Assertions';
 
 describe(SmokeCore('Revoke Single Account after connecting to a dapp'), () => {
   beforeAll(async () => {
@@ -36,7 +37,7 @@ describe(SmokeCore('Revoke Single Account after connecting to a dapp'), () => {
 
         await TestHelpers.delay(5500);
         await Browser.tapNetworkAvatarButtonOnBrowser();
-        await ConnectedAccountsModal.isNotVisible();
+        await Assertions.checkIfNotVisible(ConnectedAccountsModal.container);
         await NetworkListModal.isVisible();
       },
     );

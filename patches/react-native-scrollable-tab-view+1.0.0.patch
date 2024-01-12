@@ -1,3 +1,79 @@
+diff --git a/node_modules/react-native-scrollable-tab-view/DefaultTabBar.js b/node_modules/react-native-scrollable-tab-view/DefaultTabBar.js
+index 4cb92de..38dc97e 100644
+--- a/node_modules/react-native-scrollable-tab-view/DefaultTabBar.js
++++ b/node_modules/react-native-scrollable-tab-view/DefaultTabBar.js
+@@ -57,11 +57,13 @@ const DefaultTabBar = createReactClass({
+   },
+ 
+   render() {
+-    const containerWidth = this.props.containerWidth;
++    const containerWidth = this.props.containerWidth ;
+     const numberOfTabs = this.props.tabs.length;
++
++    const tabPadding = this.props.tabPadding || 0;
+     const tabUnderlineStyle = {
+       position: 'absolute',
+-      width: containerWidth / numberOfTabs,
++      width: containerWidth / numberOfTabs - tabPadding,
+       height: 4,
+       backgroundColor: 'navy',
+       bottom: 0,
+@@ -69,32 +71,37 @@ const DefaultTabBar = createReactClass({
+ 
+     const translateX = this.props.scrollValue.interpolate({
+       inputRange: [0, 1],
+-      outputRange: [0,  containerWidth / numberOfTabs],
++      outputRange: [0,  containerWidth / numberOfTabs - tabPadding],
++
+     });
+     return (
+-      <View style={[styles.tabs, {backgroundColor: this.props.backgroundColor, }, this.props.style, ]}>
+-        {this.props.tabs.map((name, page) => {
+-          const isTabActive = this.props.activeTab === page;
+-          const renderTab = this.props.renderTab || this.renderTab;
+-          return renderTab(name, page, isTabActive, this.props.goToPage);
+-        })}
+-        <Animated.View
+-          style={[
+-            tabUnderlineStyle,
+-            {
+-              transform: [
+-                { translateX },
+-              ]
+-            },
+-            this.props.underlineStyle,
+-          ]}
+-        />
++        <View style={[styles.tabs, {backgroundColor: this.props.backgroundColor, }, this.props.style, ]}>
++          {this.props.tabs.map((name, page) => {
++            const isTabActive = this.props.activeTab === page;
++            const renderTab = this.props.renderTab || this.renderTab;
++            return renderTab(name, page, isTabActive, this.props.goToPage);
++          })}
++          <Animated.View
++            style={[
++              tabUnderlineStyle,
++              {
++                transform: [
++                  { translateX },
++                ]
++              },
++              this.props.underlineStyle,
++            ]}
++          />
+       </View>
+     );
+   },
+ });
+ 
+ const styles = StyleSheet.create({
++  base: {
++    flex: 1,
++    paddingHorizontal: 16,
++  },
+   tab: {
+     flex: 1,
+     alignItems: 'center',
 diff --git a/node_modules/react-native-scrollable-tab-view/index.js b/node_modules/react-native-scrollable-tab-view/index.js
 index 82e53c5..e1680b2 100644
 --- a/node_modules/react-native-scrollable-tab-view/index.js

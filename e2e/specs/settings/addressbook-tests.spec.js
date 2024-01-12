@@ -68,7 +68,7 @@ describe(SmokeCore('Addressbook Tests'), () => {
 
   it('should add a new address to address book via send flow', async () => {
     await SendView.tapAddAddressToAddressBook();
-    await AddAddressModal.isVisible();
+    await Assertions.checkIfVisible(AddAddressModal.container);
     await AddAddressModal.typeInAlias('Myth');
     await AddAddressModal.tapTitle();
     await AddAddressModal.tapSaveButton();

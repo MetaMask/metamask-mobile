@@ -66,8 +66,7 @@ describe(
         await DeleteWalletModal.tapIUnderstandButton();
         await DeleteWalletModal.typeDeleteInInputBox();
         await DeleteWalletModal.tapDeleteMyWalletButton();
-        await TestHelpers.delay(2000);
-        await OnboardingView.isVisible();
+        await Assertions.checkIfVisible(OnboardingView.container);
       });
     });
   },

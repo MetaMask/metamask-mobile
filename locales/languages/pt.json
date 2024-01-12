@@ -17,7 +17,20 @@
     "does_not_look_right": "Alguma coisa não parece certa?",
     "suspicious_request_title": "Essa solicitação é suspeita",
     "trade_order_farming_description": "Se você aprovar essa solicitação, poderá perder seus ativos.",
-    "transfer_farming_description": "Se você aprovar essa solicitação, algum terceiro conhecido por aplicar golpes tomará todos os seus ativos."
+    "transfer_farming_description": "Se você aprovar essa solicitação, algum terceiro conhecido por aplicar golpes tomará todos os seus ativos.",
+    "before_you_proceed": "Antes de continuar",
+    "enable_blockaid_alerts": "Para ativar esse recurso, precisamos configurar alguns alertas de segurança. Esta página precisa continuar aberta enquanto é configurada. Isso levará menos de um minuto para terminar.",
+    "setting_up_alerts": "Configurando alertas de segurança",
+    "setting_up_alerts_description": "Estamos indo o mais rápido possível para configurar os alertas de segurança. Aguente firme, estamos quase terminando.",
+    "setup_complete": "Configuração concluída",
+    "setup_failed": "Não foi possível terminar de configurar os alertas de segurança. Verifique sua conexão de internet e tente outra vez.",
+    "setup_multiple_failures": "Como sua conexão de internet não está estável no momento, não conseguimos configurar alertas de segurança. Por favor, volte a tentar quando restaurar sua conexão.",
+    "setup_complete_description": "Os alertas de segurança estão prontos. Você pode fechar esta página e começar a explorar sua carteira",
+    "continue": "Continuar",
+    "cancel": "Cancelar",
+    "got_it": "Entendi",
+    "try_again": "Tentar novamente",
+    "failed": "Ocorreu algum erro"
   },
   "date": {
     "months": {
@@ -266,7 +279,7 @@
     "successfully_changed": "Sua senha foi alterada com sucesso"
   },
   "import_from_seed": {
-    "title": "Importar de semente",
+    "title": "Importar da Frase de Recuperação Secreta",
     "seed_phrase_placeholder": "Insira sua Frase de Recuperação Secreta",
     "new_password": "Nova senha",
     "confirm_password": "Confirmar senha",
@@ -385,6 +398,7 @@
     "logout_to_import_seed": "Primeiro você precisa sair para importar uma Frase de Recuperação Secreta.",
     "ready_to_explore": "Pronto para começar a explorar aplicativos que usam blockchain?",
     "unable_to_load": "Não foi possível carregar o saldo",
+    "unable_to_find_conversion_rate": "não foi possível localizar a taxa de conversão",
     "display_nft_media_desc": "Para importar um NFT, ative Exibir mídias de NFTs em Configurações > Segurança e Privacidade.",
     "display_nft_media_cta": "Ativar Exibir mídias de NFTs",
     "display_media_nft_warning": "Exibir mídias e dados de NFTs pode expor seu endereço IP a servidores centralizados. Importe NFTs somente se você entende os riscos envolvidos.",
@@ -521,7 +535,6 @@
     "import_account": "Importar uma conta",
     "connect_hardware": "Conectar carteira de hardware",
     "imported": "Importadas",
-    "qr_hardware": "Hardware com QR",
     "remove_account_title": "Remoção da conta",
     "remove_account_message": "Tem certeza de que deseja remover esta conta?",
     "no": "Não",
@@ -575,7 +588,7 @@
     "tutorial": "Tutorial",
     "description4": "Keystone (tutorial)",
     "description5": "1. Desbloqueie sua Keystone",
-    "description6": "2. Tap the ··· Menu, then go to Sync",
+    "description6": "2. Toque no Menu ···, depois vá até Sincronizar",
     "button_continue": "Continuar",
     "hint_text": "Leia sua carteira Keystone para ",
     "purpose_connect": "conectar",
@@ -608,9 +621,9 @@
     "autolock_after_minutes": "Depois de {{time}} minutos",
     "reveal_seed_words": "Revelar palavras-semente",
     "reset_account": "Redefinir conta",
-    "state_logs_button": "BAIXAR LOGS DE ESTADO",
+    "state_logs_button": "Baixar logs de estado",
     "reveal_seed_words_button": "REVELAR PALAVRAS-SEMENTE",
-    "reset_account_button": "REDEFINIR CONTA",
+    "reset_account_button": "Redefinir conta",
     "reset_account_confirm_button": "Sim, redefinir",
     "reset_account_cancel_button": "Cancelar",
     "reset_account_modal_title": "Redefinir a conta?",
@@ -664,8 +677,8 @@
     "toggleEthSignModalTitle": "Use por sua conta e risco",
     "toggleEthSignModalEnable": "Ativar",
     "toggleEthSignModalLearnMore": "Saiba mais.",
-    "toggleEthSignOff": "DESLIGADO (recomendado)",
-    "toggleEthSignOn": "LIGADO (não recomendado)",
+    "toggleEthSignOff": "(Recomendado)",
+    "toggleEthSignOn": "(Não recomendado)",
     "toggleEthSignContinueButton": "Continuar",
     "toggleEthSignEnableButton": "Ativar",
     "show_custom_nonce": "Personalizar o nonce da transação",
@@ -788,7 +801,7 @@
     "manage_sdk_connections_title": "Gerenciar conexões",
     "manage_sdk_connections_text": "Remover as conexões com os sites e/ou SDK da MetaMask.",
     "fiat_on_ramp": {
-      "title": "Comprar criptomoedas",
+      "title": "Compre e venda criptomoedas",
       "description": "Região e mais...",
       "current_region": "Região atual",
       "reset_region": "Redefinir região",
@@ -853,7 +866,12 @@
           "snap_dialog": "Exibir diálogos personalizados"
         }
       }
-    }
+    },
+    "privacy_browser_subheading": "Limpar dados de privacidade ou do navegador",
+    "analytics_subheading": "Análises",
+    "transactions_subheading": "Transações",
+    "token_nft_ens_subheading": "Detecção automática de tokens, NFTs e ENS",
+    "security_check_subheading": "Verificações de segurança"
   },
   "sdk": {
     "disconnect_title": "Desconectar todos os sites?",
@@ -1184,7 +1202,8 @@
     "fiat_conversion_not_available": "Conversões de moeda fiduciária não estão disponíveis no momento",
     "hex_data_copied": "Dados hexa copiados para a área de transferência",
     "invalid_recipient": "Destinatário inválido",
-    "invalid_recipient_description": "Verifique o endereço e certifique-se de que ele é válido"
+    "invalid_recipient_description": "Verifique o endereço e certifique-se de que ele é válido",
+    "swap_tokens": "Trocar tokens"
   },
   "custom_gas": {
     "total": "Total",
@@ -1799,13 +1818,14 @@
   "experimental_settings": {
     "wallet_connect_dapps": "Sessões WalletConnect",
     "wallet_connect_dapps_desc": "Veja a lista de sessões WalletConnect ativas",
-    "wallet_connect_dapps_cta": "VER SESSÕES",
+    "wallet_connect_dapps_cta": "Ver sessões",
     "network_not_supported": "Rede atual não compatível",
     "security_alerts": "Alertas de segurança",
     "security_alerts_desc": "Esse recurso alerta sobre atividades mal-intencionadas por meio da análise local de solicitações de transações e assinaturas. Sempre realize sua própria devida diligência antes de aprovar solicitações. Não há garantia de que esse recurso detectará toda e qualquer atividade mal-intencionada. Ao ativar esse recurso, você concorda com os termos de uso do provedor.",
     "select_provider": "Selecione seu provedor de preferência",
     "blockaid": "Blockaid",
-    "blockaid_desc": "Privacidade resguardada: nenhum dado é compartilhado com terceiros. Disponível na Mainnet da Ethereum.",
+    "blockaid_desc": "Privacy preserving - no data is shared with third parties.",
+    "available_on_eth_mainet": "Available on Ethereum Mainnet.",
     "switch_network": "Alterne para a Mainnet ou Sepolia"
   },
   "walletconnect_sessions": {
@@ -2027,6 +2047,8 @@
     "insufficient_balance": "Esse valor é superior ao seu saldo",
     "enter_larger_amount": "Insira um valor maior para continuar",
     "enter_smaller_amount": "Insira um valor menor para continuar",
+    "enter_lower_gas_fees": "Enter a lower amount to pay for gas fees",
+    "max": "MAX",
     "try_again": "Tente novamente",
     "error": "Erro",
     "something_went_wrong": "Ops, algo deu errado",
@@ -2110,14 +2132,22 @@
       "sent": "Enviado!"
     },
     "notifications": {
-      "purchase_failed_title": "Falha na compra de {{currency}}! Por favor, tente novamente. Pedimos desculpas pela inconveniência.",
-      "purchase_failed_description": "Verifique sua forma de pagamento e cartões aceitos",
+      "purchase_failed_title": "Falha na compra de {{currency}}! Tente outra vez. Desculpe-nos a inconveniência!",
+      "purchase_failed_description": "Verifique seu método de pagamento e cartões aceitos",
       "purchase_cancelled_title": "Sua compra foi cancelada",
-      "purchase_cancelled_description": "Verifique sua forma de pagamento e cartões aceitos",
-      "purchase_completed_title": "Sua compra de {{amount}} {{currency}} foi realizada com sucesso!",
-      "purchase_completed_description": "Sua {{currency}} está disponível agora",
+      "purchase_cancelled_description": "Verifique seu método de pagamento e cartões aceitos",
+      "purchase_completed_title": "Sua compra de {{amount}} {{currency}} foi bem-sucedida!",
+      "purchase_completed_description": "Seu {{currency}} já está disponível",
       "purchase_pending_title": "Processando sua compra de {{currency}}",
-      "purchase_pending_description": "Isso deve levar somente alguns minutos..."
+      "purchase_pending_description": "Isso deve levar apenas alguns minutos...",
+      "sale_failed_title": "Falha na ordem",
+      "sale_failed_description": "Sua ordem não pôde ser concluída.",
+      "sale_cancelled_title": "Ordem cancelada",
+      "sale_cancelled_description": "Sua ordem não pôde ser concluída.",
+      "sale_completed_title": "Ordem concluída",
+      "sale_completed_description": "Sua ordem foi bem-sucedida!",
+      "sale_pending_title": "Processando venda de {{currency}}",
+      "sale_pending_description": "Sua ordem está sendo processada."
     }
   },
   "swaps": {
@@ -2741,5 +2771,17 @@
     "ipfs_gateway_content2": "Você pode desativar a resolução de IPFS em",
     "ipfs_gateway_content3": "Configurações > Segurança e Privacidade",
     "ipfs_gateway_content4": "a qualquer momento"
+  },
+  "install_snap": {
+    "title": "Solicitação de conexão",
+    "description": "{{origin}} deseja baixar e se conectar a {{snap}}. Certifique-se de que você confia nos autores antes de prosseguir.",
+    "permissions_request_title": "Solicitação de permissões",
+    "permissions_request_description": "{{origin}} deseja instalar {{snap}}, que está solicitando as permissões a seguir.",
+    "approve_permissions": "Aprovar",
+    "installed": "Instalado",
+    "install_successful": "{{snap}} foi instalado com sucesso.",
+    "okay_action": "OK",
+    "error_title": "Falha na instalação",
+    "error_description": "Ocorreu uma falha na instalação de {{snap}}."
   }
 }

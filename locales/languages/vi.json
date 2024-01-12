@@ -17,7 +17,20 @@
     "does_not_look_right": "Có gì đó không ổn?",
     "suspicious_request_title": "Đây là một yêu cầu đáng ngờ",
     "trade_order_farming_description": "Nếu bạn chấp thuận yêu cầu này, bạn có thể mất tài sản của mình.",
-    "transfer_farming_description": "Nếu bạn chấp thuận yêu cầu này, một bên thứ ba nổi tiếng là lừa đảo sẽ lấy hết tài sản của bạn."
+    "transfer_farming_description": "Nếu bạn chấp thuận yêu cầu này, một bên thứ ba nổi tiếng là lừa đảo sẽ lấy hết tài sản của bạn.",
+    "before_you_proceed": "Trước khi bạn tiếp tục",
+    "enable_blockaid_alerts": "Để kích hoạt tính năng này, chúng tôi cần thiết lập một số cảnh báo bảo mật. Phải luôn mở trang này trong suốt quá trình thiết lập. Quá trình này sẽ mất chưa đến một phút để hoàn thành.",
+    "setting_up_alerts": "Đang thiết lập cảnh báo bảo mật",
+    "setting_up_alerts_description": "Chúng tôi sẽ thiết lập cảnh báo bảo mật trong thời gian nhanh nhất có thể. Vui lòng chờ đợi, chúng tôi gần xong rồi.",
+    "setup_complete": "Đã thiết lập xong",
+    "setup_failed": "Chúng tôi không thể hoàn tất việc thiết lập cảnh báo bảo mật. Vui lòng kiểm tra kết nối Internet của bạn và thử lại.",
+    "setup_multiple_failures": "Kết nối Internet của bạn hiện không ổn định, nên chúng tôi không thể thiết lập cảnh báo bảo mật. Vui lòng thử lại khi kết nối của bạn được khôi phục.",
+    "setup_complete_description": "Cảnh báo bảo mật đã sẵn sàng hoạt động. Bạn có thể đóng trang này và bắt đầu khám phá ví của mình",
+    "continue": "Tiếp tục",
+    "cancel": "Hủy",
+    "got_it": "Đã hiểu",
+    "try_again": "Thử lại",
+    "failed": "Đã xảy ra sự cố"
   },
   "date": {
     "months": {
@@ -266,7 +279,7 @@
     "successfully_changed": "Mật khẩu của bạn đã được đổi thành công"
   },
   "import_from_seed": {
-    "title": "Nhập từ cụm từ khôi phục",
+    "title": "Nhập từ Cụm từ khôi phục bí mật",
     "seed_phrase_placeholder": "Nhập Cụm từ khôi phục bí mật của bạn",
     "new_password": "Mật khẩu mới",
     "confirm_password": "Xác nhận mật khẩu",
@@ -385,6 +398,7 @@
     "logout_to_import_seed": "Bạn cần đăng xuất trước để có thể nhập Cụm từ khôi phục bí mật.",
     "ready_to_explore": "Bạn sẵn sàng bắt đầu khám phá các ứng dụng chuỗi khối chưa?",
     "unable_to_load": "Không thể tải số dư",
+    "unable_to_find_conversion_rate": "không tìm được tỷ lệ chuyển đổi",
     "display_nft_media_desc": "Để nhập NFT, hãy bật Hiển thị phương tiện NFT trong Cài đặt > Bảo mật và quyền riêng tư.",
     "display_nft_media_cta": "Bật Hiển thị phương tiện NFT",
     "display_media_nft_warning": "Việc hiển thị dữ liệu và phương tiện NFT có thể làm lộ địa chỉ IP của bạn với các máy chủ tập trung. Chỉ nhập NFT nếu bạn hiểu rõ những rủi ro đi kèm.",
@@ -521,7 +535,6 @@
     "import_account": "Nhập tài khoản",
     "connect_hardware": "Kết nối với ví cứng",
     "imported": "Đã nhập",
-    "qr_hardware": "Ví cứng QR",
     "remove_account_title": "Đã gỡ bỏ tài khoản",
     "remove_account_message": "Bạn có thật sự muốn gỡ bỏ tài khoản này?",
     "no": "Không",
@@ -575,7 +588,7 @@
     "tutorial": "Hướng dẫn",
     "description4": "Keystone (hướng dẫn)",
     "description5": "1. Mở khóa Keystone",
-    "description6": "2. Tap the ··· Menu, then go to Sync",
+    "description6": "2. Nhấn vào Trình đơn ···, sau đó chuyển đến Đồng bộ",
     "button_continue": "Tiếp tục",
     "hint_text": "Quét ví Keystone của bạn để ",
     "purpose_connect": "kết nối",
@@ -608,9 +621,9 @@
     "autolock_after_minutes": "Sau {{time}} phút",
     "reveal_seed_words": "Tiết lộ Cụm từ khôi phục bí mật",
     "reset_account": "Đặt lại tài khoản",
-    "state_logs_button": "TẢI NHẬT KÝ TRẠNG THÁI XUỐNG",
+    "state_logs_button": "Tải xuống nhật ký trạng thái",
     "reveal_seed_words_button": "HIỂN THỊ CỤM TỪ KHÔI PHỤC BÍ MẬT",
-    "reset_account_button": "ĐẶT LẠI TÀI KHOẢN",
+    "reset_account_button": "Đặt lại tài khoản",
     "reset_account_confirm_button": "Có, đặt lại",
     "reset_account_cancel_button": "Hủy",
     "reset_account_modal_title": "Đặt lại tài khoản?",
@@ -664,8 +677,8 @@
     "toggleEthSignModalTitle": "Bạn tự chịu rủi ro khi sử dụng",
     "toggleEthSignModalEnable": "Bật",
     "toggleEthSignModalLearnMore": "Tìm hiểu thêm.",
-    "toggleEthSignOff": "TẮT (Khuyến khích)",
-    "toggleEthSignOn": "BẬT (Không khuyến khích)",
+    "toggleEthSignOff": "(Khuyến khích)",
+    "toggleEthSignOn": "(Không khuyến khích)",
     "toggleEthSignContinueButton": "Tiếp tục",
     "toggleEthSignEnableButton": "Bật",
     "show_custom_nonce": "Tùy chỉnh số nonce của giao dịch",
@@ -788,7 +801,7 @@
     "manage_sdk_connections_title": "Quản lý kết nối",
     "manage_sdk_connections_text": "Xóa kết nối với các trang web và/hoặc MetaMask SDK.",
     "fiat_on_ramp": {
-      "title": "Mua Tiền mã hóa",
+      "title": "Mua và Bán Tiền mã hóa",
       "description": "Khu vực & khác...",
       "current_region": "Khu vực hiện tại",
       "reset_region": "Đặt lại Khu vực",
@@ -853,7 +866,12 @@
           "snap_dialog": "Hiển thị hộp thoại tùy chỉnh"
         }
       }
-    }
+    },
+    "privacy_browser_subheading": "Xóa dữ liệu về quyền riêng tư hoặc dữ liệu trình duyệt",
+    "analytics_subheading": "Phân tích",
+    "transactions_subheading": "Giao dịch",
+    "token_nft_ens_subheading": "Tự động phát hiện Token, NFT và ENS",
+    "security_check_subheading": "Kiểm tra bảo mật"
   },
   "sdk": {
     "disconnect_title": "Ngắt kết nối tất cả các trang web?",
@@ -1184,7 +1202,8 @@
     "fiat_conversion_not_available": "Quy đổi pháp định hiện không khả dụng",
     "hex_data_copied": "Đã sao chép dữ liệu thập lục phân vào bộ nhớ đệm",
     "invalid_recipient": "Người nhận không hợp lệ",
-    "invalid_recipient_description": "Kiểm tra địa chỉ và đảm bảo địa chỉ hợp lệ"
+    "invalid_recipient_description": "Kiểm tra địa chỉ và đảm bảo địa chỉ hợp lệ",
+    "swap_tokens": "Hoán đổi token"
   },
   "custom_gas": {
     "total": "Tổng",
@@ -1799,13 +1818,14 @@
   "experimental_settings": {
     "wallet_connect_dapps": "Phiên WalletConnect",
     "wallet_connect_dapps_desc": "Xem danh sách các phiên WalletConnect đang hoạt động",
-    "wallet_connect_dapps_cta": "XEM PHIÊN",
+    "wallet_connect_dapps_cta": "Xem phiên",
     "network_not_supported": "Không hỗ trợ mạng hiện tại",
     "security_alerts": "Cảnh báo bảo mật",
     "security_alerts_desc": "Tính năng này sẽ cảnh báo bạn về hoạt động độc hại bằng cách xem xét cục bộ các yêu cầu giao dịch và chữ ký của bạn. Hãy luôn tự mình thực hiện quy trình thẩm định trước khi chấp thuận bất kỳ yêu cầu nào. Không có gì đảm bảo rằng tính năng này sẽ phát hiện được tất cả các hoạt động độc hại. Bằng cách bật tính năng này, bạn đồng ý với các điều khoản sử dụng của nhà cung cấp.",
     "select_provider": "Chọn nhà cung cấp ưu tiên của bạn",
     "blockaid": "Blockaid",
-    "blockaid_desc": "Bảo vệ quyền riêng tư - không chia sẻ dữ liệu với bên thứ ba. Có sẵn trên Ethereum Mainnet.",
+    "blockaid_desc": "Privacy preserving - no data is shared with third parties.",
+    "available_on_eth_mainet": "Available on Ethereum Mainnet.",
     "switch_network": "Vui lòng chuyển qua mạng chính hoặc sepolia"
   },
   "walletconnect_sessions": {
@@ -2027,6 +2047,8 @@
     "insufficient_balance": "Số tiền này cao hơn số dư của bạn",
     "enter_larger_amount": "Nhập số tiền lớn hơn để tiếp tục",
     "enter_smaller_amount": "Nhập số tiền nhỏ hơn để tiếp tục",
+    "enter_lower_gas_fees": "Enter a lower amount to pay for gas fees",
+    "max": "MAX",
     "try_again": "Thử lại",
     "error": "Lỗi",
     "something_went_wrong": "Rất tiếc, đã xảy ra lỗi",
@@ -2110,14 +2132,22 @@
       "sent": "Đã gửi!"
     },
     "notifications": {
-      "purchase_failed_title": "Giao dịch mua {{currency}} đã thất bại! Vui lòng thử lại, rất tiếc vì sự bất tiện này!",
+      "purchase_failed_title": "Mua {{currency}} không thành công! Vui lòng thử lại, chúng tôi chân thành xin lỗi vì sự bất tiện này!",
       "purchase_failed_description": "Xác minh phương thức thanh toán và hỗ trợ thẻ của bạn",
       "purchase_cancelled_title": "Giao dịch mua của bạn đã bị hủy",
       "purchase_cancelled_description": "Xác minh phương thức thanh toán và hỗ trợ thẻ của bạn",
-      "purchase_completed_title": "Giao dịch mua {{amount}} {{currency}} của bạn đã thành công!",
-      "purchase_completed_description": "{{currency}} của bạn giờ đã sẵn sàng",
+      "purchase_completed_title": "Bạn đã mua {{amount}} {{currency}} thành công!",
+      "purchase_completed_description": "{{currency}} của bạn hiện đã có sẵn",
       "purchase_pending_title": "Đang xử lý giao dịch mua {{currency}} của bạn",
-      "purchase_pending_description": "Quá trình này chỉ mất vài phút..."
+      "purchase_pending_description": "Quá trình này chỉ mất vài phút...",
+      "sale_failed_title": "Đặt lệnh không thành công",
+      "sale_failed_description": "Không thể hoàn tất lệnh của bạn.",
+      "sale_cancelled_title": "Lệnh đã bị hủy",
+      "sale_cancelled_description": "Không thể hoàn tất lệnh của bạn.",
+      "sale_completed_title": "Lệnh đã hoàn tất",
+      "sale_completed_description": "Lệnh của bạn đã thành công!.",
+      "sale_pending_title": "Đang xử lý lệnh bán {{currency}}",
+      "sale_pending_description": "Lệnh của bạn hiện đang được xử lý."
     }
   },
   "swaps": {
@@ -2741,5 +2771,17 @@
     "ipfs_gateway_content2": "Bạn có thể tắt độ phân giải IPFS trong",
     "ipfs_gateway_content3": "Cài đặt > Bảo mật và quyền riêng tư",
     "ipfs_gateway_content4": "bất cứ lúc nào"
+  },
+  "install_snap": {
+    "title": "Yêu cầu kết nối",
+    "description": "{{origin}} muốn tải xuống và kết nối với {{snap}}. Đảm bảo bạn tin tưởng các tác giả trước khi tiếp tục.",
+    "permissions_request_title": "Yêu cầu cấp quyền",
+    "permissions_request_description": "{{origin}} muốn cài đặt {{snap}}, điều này sẽ yêu cầu các quyền sau.",
+    "approve_permissions": "Chấp thuận",
+    "installed": "Đã cài đặt",
+    "install_successful": "{{snap}} đã được cài đặt thành công.",
+    "okay_action": "OK",
+    "error_title": "Cài đặt thất bại",
+    "error_description": "Cài đặt {{snap}} thất bại."
   }
 }

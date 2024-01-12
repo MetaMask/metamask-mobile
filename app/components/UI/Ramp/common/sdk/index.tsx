@@ -116,7 +116,7 @@ interface ProviderProps<T> {
 }
 
 export const callbackBaseUrl = isDevelopment
-  ? 'https://on-ramp.metaswap-dev.codefi.network/regions/fake-callback'
+  ? 'https://on-ramp.uat-api.cx.metamask.io/regions/fake-callback'
   : 'https://on-ramp-content.metaswap.codefi.network/regions/fake-callback';
 
 export const callbackBaseDeeplink = 'metamask://';

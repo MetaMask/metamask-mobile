@@ -17,7 +17,20 @@
     "does_not_look_right": "Что-то выглядит не так?",
     "suspicious_request_title": "Это подозрительный запрос",
     "trade_order_farming_description": "Если вы одобрите этот запрос, вы можете потерять свои активы.",
-    "transfer_farming_description": "Если вы одобрите этот запрос, третья сторона, известная мошенничеством, похитит все ваши активы."
+    "transfer_farming_description": "Если вы одобрите этот запрос, третья сторона, известная мошенничеством, похитит все ваши активы.",
+    "before_you_proceed": "Прежде чем вы продолжите",
+    "enable_blockaid_alerts": "Чтобы включить эту функцию, нам нужно настроить предупреждение безопасности. Эта страница должна оставаться открытой во время ее настройки. Это займет меньше минуты.",
+    "setting_up_alerts": "Настройка оповещений безопасности",
+    "setting_up_alerts_description": "Мы делаем все возможное, чтобы настроить оповещения безопасности. Подождите, мы почти закончили.",
+    "setup_complete": "Настройка завершена",
+    "setup_failed": "Нам не удалось завершить настройку предупреждений безопасности. Проверьте подключение к Интернету и повторите попытку.",
+    "setup_multiple_failures": "Ваше интернет-соединение сейчас нестабильно, поэтому мы не смогли настроить оповещения системы безопасности. Повторите попытку, когда соединение будет восстановлено.",
+    "setup_complete_description": "Оповещения безопасности готовы к работе. Вы можете закрыть эту страницу и начать изучать свой кошелек",
+    "continue": "Продолжить",
+    "cancel": "Отмена",
+    "got_it": "Понятно",
+    "try_again": "Повторить попытку",
+    "failed": "Что-то пошло не так"
   },
   "date": {
     "months": {
@@ -266,7 +279,7 @@
     "successfully_changed": "Ваш пароль успешно изменен"
   },
   "import_from_seed": {
-    "title": "Импорт из сида",
+    "title": "Импорт из секретной фразы для восстановления",
     "seed_phrase_placeholder": "Введите свою секретную фразу для восстановления",
     "new_password": "Новый пароль",
     "confirm_password": "Подтвердить пароль",
@@ -385,6 +398,7 @@
     "logout_to_import_seed": "Для импорта секретной фразы для восстановления вам сначала нужно выйти из системы.",
     "ready_to_explore": "Готовы приступить к изучению приложений блокчейна?",
     "unable_to_load": "Не удалось загрузить баланс",
+    "unable_to_find_conversion_rate": "не удалось найти обменный курс",
     "display_nft_media_desc": "Чтобы импортировать NFT, включите параметр «Отображение носителя NFT» в меню «Настройки» > «Безопасность и конфиденциальность».",
     "display_nft_media_cta": "Включите отображение носителя NFT",
     "display_media_nft_warning": "Отображение носителей и данных NFT может раскрыть ваш IP-адрес централизованным серверам. Импортируйте NFT только в том случае, если вы понимаете связанные с этим риски.",
@@ -521,7 +535,6 @@
     "import_account": "Импортировать счет",
     "connect_hardware": "Подключить аппаратный кошелек",
     "imported": "Импортирован",
-    "qr_hardware": "QR-оборудование",
     "remove_account_title": "Удаление счета",
     "remove_account_message": "Вы действительно хотите удалить этот счет?",
     "no": "Нет",
@@ -575,7 +588,7 @@
     "tutorial": "Руководство",
     "description4": "Keystone (руководство)",
     "description5": "1. Разблокируйте свой Keystone",
-    "description6": "2. Tap the ··· Menu, then go to Sync",
+    "description6": "2. Нажмите на ··· Меню, затем перейдите к «Синхронизировать»",
     "button_continue": "Продолжить",
     "hint_text": "Отсканируйте свой кошелек Keystone, чтобы",
     "purpose_connect": "подключиться",
@@ -608,9 +621,9 @@
     "autolock_after_minutes": "Через {{time}} минут(-ы)",
     "reveal_seed_words": "Показать сид-слова",
     "reset_account": "Сбросить счет",
-    "state_logs_button": "СКАЧАТЬ ЖУРНАЛЫ СОСТОЯНИЯ",
+    "state_logs_button": "Скачать журналы состояния",
     "reveal_seed_words_button": "ПОКАЗАТЬ СИД-СЛОВА",
-    "reset_account_button": "СБРОСИТЬ СЧЕТ",
+    "reset_account_button": "Сбросить счет",
     "reset_account_confirm_button": "Да, сбросить",
     "reset_account_cancel_button": "Отмена",
     "reset_account_modal_title": "Сбросить счет?",
@@ -664,8 +677,8 @@
     "toggleEthSignModalTitle": "Используйте на свой риск",
     "toggleEthSignModalEnable": "Включить",
     "toggleEthSignModalLearnMore": "Подробнее.",
-    "toggleEthSignOff": "ВЫКЛ. (рекомендуется)",
-    "toggleEthSignOn": "ВКЛ. (не рекомендуется)",
+    "toggleEthSignOff": "(Рекомендуется)",
+    "toggleEthSignOn": "(Не рекомендуется)",
     "toggleEthSignContinueButton": "Продолжить",
     "toggleEthSignEnableButton": "Включить",
     "show_custom_nonce": "Настроить одноразовый номер транзакции",
@@ -788,7 +801,7 @@
     "manage_sdk_connections_title": "Управление подключениями",
     "manage_sdk_connections_text": "Удалите подключения к сайтам и/или MetaMask SDK.",
     "fiat_on_ramp": {
-      "title": "Купить криптовалюту",
+      "title": "Покупайте и продавайте криптовалюту",
       "description": "Регион и прочее...",
       "current_region": "Текущий регион",
       "reset_region": "Сбросить регион",
@@ -853,7 +866,12 @@
           "snap_dialog": "Отображение пользовательских диалогов"
         }
       }
-    }
+    },
+    "privacy_browser_subheading": "Очистите конфиденциальные данные или данные браузера",
+    "analytics_subheading": "Аналитика",
+    "transactions_subheading": "Транзакции",
+    "token_nft_ens_subheading": "Автоопределение токенов, NFT и ENS",
+    "security_check_subheading": "Проверки безопасности"
   },
   "sdk": {
     "disconnect_title": "Отключить все сайты?",
@@ -1184,7 +1202,8 @@
     "fiat_conversion_not_available": "Конвертация фиатных денег в данный момент недоступна",
     "hex_data_copied": "Шестнадцатеричные данные скопированы в буфер обмена",
     "invalid_recipient": "Недействительный получатель",
-    "invalid_recipient_description": "Проверьте адрес и убедитесь, что он действителен"
+    "invalid_recipient_description": "Проверьте адрес и убедитесь, что он действителен",
+    "swap_tokens": "Обменять токены"
   },
   "custom_gas": {
     "total": "Итого",
@@ -1799,13 +1818,14 @@
   "experimental_settings": {
     "wallet_connect_dapps": "Сеансы WalletConnect",
     "wallet_connect_dapps_desc": "Просмотр списка активных сеансов WalletConnect",
-    "wallet_connect_dapps_cta": "ПРОСМОТР СЕАНСОВ",
+    "wallet_connect_dapps_cta": "Просмотр сеансов",
     "network_not_supported": "Текущая сеть не поддерживается",
     "security_alerts": "Оповещения безопасности",
     "security_alerts_desc": "Эта функция предупреждает вас о вредоносной активности, проверяя запросы транзакций и подписей локально. Всегда проводите комплексную проверку перед утверждением каких-либо запросов. Нет никакой гарантии, что эта функция обнаружит всю вредоносную активность. Включая эту функцию, вы соглашаетесь с условиями использования поставщика.",
     "select_provider": "Выберите предпочитаемого поставщика",
     "blockaid": "Blockaid",
-    "blockaid_desc": "Сохранение конфиденциальности – никакие данные не передаются третьим сторонам. Доступно в мейн-нете Ethereum.",
+    "blockaid_desc": "Privacy preserving - no data is shared with third parties.",
+    "available_on_eth_mainet": "Available on Ethereum Mainnet.",
     "switch_network": "Переключитесь на мейн-нет или Sepolia"
   },
   "walletconnect_sessions": {
@@ -2027,6 +2047,8 @@
     "insufficient_balance": "Эта сумма превышает ваш баланс",
     "enter_larger_amount": "Введите большую сумму, чтобы продолжить",
     "enter_smaller_amount": "Введите меньшую сумму, чтобы продолжить",
+    "enter_lower_gas_fees": "Enter a lower amount to pay for gas fees",
+    "max": "MAX",
     "try_again": "Повторить попытку",
     "error": "Ошибка",
     "something_went_wrong": "Ой, что-то пошло не так",
@@ -2111,13 +2133,21 @@
     },
     "notifications": {
       "purchase_failed_title": "Не удалось купить {{currency}}! Попробуйте еще раз, извините за неудобства!",
-      "purchase_failed_description": "Подтвердите метод платежа и поддержку карты",
+      "purchase_failed_description": "Проверьте способ платежа и поддержку карты",
       "purchase_cancelled_title": "Ваша покупка отменена",
-      "purchase_cancelled_description": "Подтвердите метод платежа и поддержку карты",
+      "purchase_cancelled_description": "Проверьте способ платежа и поддержку карты",
       "purchase_completed_title": "Ваша покупка {{amount}} {{currency}} успешно выполнена!",
-      "purchase_completed_description": "Ваши {{currency}} уже доступны",
-      "purchase_pending_title": "Обработка вашей покупки {{currency}}",
-      "purchase_pending_description": "Это должно занять всего несколько минут..."
+      "purchase_completed_description": "Ваша {{currency}} уже доступна",
+      "purchase_pending_title": "Обработка вашей покупки {{currency}}...",
+      "purchase_pending_description": "Это должно занять всего несколько минут...",
+      "sale_failed_title": "Ошибка ордера",
+      "sale_failed_description": "Не удалось выполнить ваш ордер.",
+      "sale_cancelled_title": "Ордер отменен",
+      "sale_cancelled_description": "Не удалось выполнить ваш ордер.",
+      "sale_completed_title": "Ордер выполнен",
+      "sale_completed_description": "Ваш ордер успешно выполнен!",
+      "sale_pending_title": "Купля-продажа {{currency}} обрабатывается",
+      "sale_pending_description": "Ваш ордер обрабатывается."
     }
   },
   "swaps": {
@@ -2741,5 +2771,17 @@
     "ipfs_gateway_content2": "Вы можете отключить разрешение IPFS в разделе",
     "ipfs_gateway_content3": "Настройки > Безопасность и конфиденциальность",
     "ipfs_gateway_content4": "в любое время"
+  },
+  "install_snap": {
+    "title": "Запрос подключения",
+    "description": "{{origin}} хочет загрузить и подключиться к {{snap}}. Прежде чем продолжить, убедитесь, что вы доверяете авторам.",
+    "permissions_request_title": "Запрос разрешений",
+    "permissions_request_description": "{{origin}} хочет установить {{snap}}, который запрашивает следующие разрешения.",
+    "approve_permissions": "Одобрить",
+    "installed": "Установлено",
+    "install_successful": "{{snap}} успешно установлен.",
+    "okay_action": "ОК",
+    "error_title": "Ошибка установки",
+    "error_description": "Не удалось установить {{snap}}."
   }
 }

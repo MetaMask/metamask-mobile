@@ -17,7 +17,20 @@
     "does_not_look_right": "Κάτι δεν φαίνεται σωστό;",
     "suspicious_request_title": "Πρόκειται για ύποπτο αίτημα",
     "trade_order_farming_description": "Εάν εγκρίνετε αυτό το αίτημα, ενδέχεται να χάσετε τα περιουσιακά σας στοιχεία.",
-    "transfer_farming_description": "Εάν εγκρίνετε αυτό το αίτημα, ένας τρίτος που είναι γνωστός για απάτες θα πάρει όλα τα περιουσιακά σας στοιχεία."
+    "transfer_farming_description": "Εάν εγκρίνετε αυτό το αίτημα, ένας τρίτος που είναι γνωστός για απάτες θα πάρει όλα τα περιουσιακά σας στοιχεία.",
+    "before_you_proceed": "Προτού προχωρήσετε",
+    "enable_blockaid_alerts": "Για να ενεργοποιήσουμε αυτή τη λειτουργία πρέπει να ρυθμίσουμε κάποια ειδοποίηση ασφαλείας. Αυτή η σελίδα θα πρέπει να παραμείνει ανοιχτή όσο θα κάνουμε ρυθμίσεις. Η διαδικασία θα διαρκέσει λιγότερο από ένα λεπτό.",
+    "setting_up_alerts": "Ρυθμίσεις ειδοποιήσεων ασφαλείας",
+    "setting_up_alerts_description": "Κάνουμε όσο πιο γρήγορα μπορούμε για να ρυθμίσουμε τις ειδοποιήσεις ασφαλείας. Κάντε υπομονή, σχεδόν τελειώσαμε.",
+    "setup_complete": "Ολοκλήρωση ρυθμίσεων",
+    "setup_failed": "Δεν μπορέσαμε να ολοκληρώσουμε τη ρύθμιση των ειδοποιήσεων ασφαλείας. Ελέγξτε τη σύνδεσή σας στο διαδίκτυο και προσπαθήστε ξανά.",
+    "setup_multiple_failures": "Η σύνδεσή σας στο διαδίκτυο δεν είναι σταθερή αυτή τη στιγμή, οπότε δεν μπορέσαμε να ρυθμίσουμε τις ειδοποιήσεις ασφαλείας. Προσπαθήστε ξανά όταν αποκατασταθεί η σύνδεσή σας.",
+    "setup_complete_description": "Οι ειδοποιήσεις ασφαλείας είναι έτοιμες. Μπορείτε να κλείσετε αυτή τη σελίδα και να αρχίσετε να εξερευνάτε το πορτοφόλι σας",
+    "continue": "Συνέχεια",
+    "cancel": "Ακύρωση",
+    "got_it": "Εντάξει",
+    "try_again": "Προσπαθήστε ξανά",
+    "failed": "Κάτι πήγε στραβά"
   },
   "date": {
     "months": {
@@ -266,7 +279,7 @@
     "successfully_changed": "Ο κωδικός πρόσβασής σας άλλαξε με επιτυχία"
   },
   "import_from_seed": {
-    "title": "Εισαγωγή από μυστική φράση (seed)",
+    "title": "Εισαγωγή από Μυστική Φράση Ανάκτησης",
     "seed_phrase_placeholder": "Εισαγάγετε την Μυστική Φράση Ανάκτησης",
     "new_password": "Νέος κωδικός πρόσβασης",
     "confirm_password": "Επιβεβαίωση κωδικού πρόσβασης",
@@ -385,6 +398,7 @@
     "logout_to_import_seed": "Πρέπει να αποσυνδεθείτε πρώτα για να εισαγάγετε μια Μυστική Φράση Ανάκτησης.",
     "ready_to_explore": "Έτοιμοι να εξερευνήσετε τις εφαρμογές του blockchain;",
     "unable_to_load": "Δεν είναι δυνατή η φόρτωση του υπολοίπου",
+    "unable_to_find_conversion_rate": "δεν είναι δυνατή η εύρεση της τιμής μετατροπής",
     "display_nft_media_desc": "Για να εισαγάγετε ένα NFT, ενεργοποιήστε την επιλογή «Προβολή μέσων των NFT» στις Ρυθμίσεις > Ασφάλεια και απόρρητο.",
     "display_nft_media_cta": "Ενεργοποιήστε την «Προβολή μέσων των NFT»",
     "display_media_nft_warning": "Η εμφάνιση μέσων και δεδομένων των NFT ενδέχεται να εκθέσει τη διεύθυνση IP σας σε κεντρικούς διακομιστές. Εισαγάγετε ένα NFT μόνο αν κατανοείτε τους κινδύνους που συνεπάγονται.",
@@ -521,7 +535,6 @@
     "import_account": "Εισαγωγή λογαριασμού",
     "connect_hardware": "Σύνδεση πορτοφολιού υλικού",
     "imported": "Έγινε εισαγωγή",
-    "qr_hardware": "Υλικό QR",
     "remove_account_title": "Αφαίρεση λογαριασμού",
     "remove_account_message": "Θέλετε σίγουρα να αφαιρέσετε αυτόν τον λογαριασμό;",
     "no": "Όχι",
@@ -575,7 +588,7 @@
     "tutorial": "Εκμάθηση",
     "description4": "Keystone (εκμάθηση)",
     "description5": "1. Ξεκλειδώστε το Keystone σας",
-    "description6": "2. Tap the ··· Menu, then go to Sync",
+    "description6": "2. Πατήστε στο --- Μενού και, στη συνέχεια, μεταβείτε στην επιλογή Συγχρονισμός",
     "button_continue": "Συνέχεια",
     "hint_text": "Σαρώστε το Keystone πορτοφόλι σας για να ",
     "purpose_connect": "συνδεθείτε",
@@ -608,9 +621,9 @@
     "autolock_after_minutes": "Μετά από {{time}} λεπτά",
     "reveal_seed_words": "ΑΠΟΚΑΛΥΨΗ ΤΗΣ ΜΥΣΤΙΚΗΣ ΦΡΑΣΗΣ",
     "reset_account": "Επαναφορά λογαριασμού",
-    "state_logs_button": "ΛΗΨΗ ΑΡΧΕΙΩΝ ΚΑΤΑΓΡΑΦΗΣ ΚΑΤΑΣΤΑΣΗΣ",
+    "state_logs_button": "Λήψη αρχείων καταγραφής",
     "reveal_seed_words_button": "ΑΠΟΚΑΛΥΨΗ ΤΗΣ ΜΥΣΤΙΚΗΣ ΦΡΑΣΗΣ",
-    "reset_account_button": "ΕΠΑΝΑΦΟΡΑ ΛΟΓΑΡΙΑΣΜΟΎ",
+    "reset_account_button": "Επαναφορά λογαριασμού",
     "reset_account_confirm_button": "Ναι, επαναφορά",
     "reset_account_cancel_button": "Άκυρο",
     "reset_account_modal_title": "Επαναφορά Λογαριασμού;",
@@ -664,8 +677,8 @@
     "toggleEthSignModalTitle": "Χρησιμοποιήστε το με δική σας ευθύνη",
     "toggleEthSignModalEnable": "Ενεργοποίηση",
     "toggleEthSignModalLearnMore": "Μάθετε περισσότερα.",
-    "toggleEthSignOff": "ΑΝΕΝΕΡΓΟ (συνιστάται)",
-    "toggleEthSignOn": "ΕΝΕΡΓΟ (δεν συνιστάται)",
+    "toggleEthSignOff": "(Συνιστάται)",
+    "toggleEthSignOn": "(Δεν συνιστάται)",
     "toggleEthSignContinueButton": "Συνέχεια",
     "toggleEthSignEnableButton": "Ενεργοποίηση",
     "show_custom_nonce": "Προσαρμογή συναλλαγής nonce",
@@ -788,7 +801,7 @@
     "manage_sdk_connections_title": "Διαχείριση συνδέσεων",
     "manage_sdk_connections_text": "Αφαιρέστε τις συνδέσεις σε ιστότοπους ή/και το MetaMask SDK.",
     "fiat_on_ramp": {
-      "title": "Αγοράστε Κρυπτονομίσματα",
+      "title": "Αγορά & πώληση κρυπτονομισμάτων",
       "description": "Περιοχή & άλλα...",
       "current_region": "Τρέχουσα Περιοχή",
       "reset_region": "Επαναφορά Περιοχής",
@@ -853,7 +866,12 @@
           "snap_dialog": "Εμφάνιση προσαρμοσμένων διαλόγων"
         }
       }
-    }
+    },
+    "privacy_browser_subheading": "Εκκαθάριση δεδομένων απορρήτου ή προγράμματος περιήγησης",
+    "analytics_subheading": "Αναλυτικά στοιχεία",
+    "transactions_subheading": "Συναλλαγές",
+    "token_nft_ens_subheading": "Αυτόματος εντοπισμός Tokens, NFS και ENS",
+    "security_check_subheading": "Έλεγχοι ασφαλείας"
   },
   "sdk": {
     "disconnect_title": "Αποσύνδεση όλων των ιστότοπων;",
@@ -1184,7 +1202,8 @@
     "fiat_conversion_not_available": "Οι μετατροπές σε παραστατικά χρήματα δεν είναι διαθέσιμες αυτή τη στιγμή",
     "hex_data_copied": "Τα δεκαεξαδικά δεδομένα αντιγράφηκαν στο πρόχειρο",
     "invalid_recipient": "Μη έγκυρος παραλήπτης",
-    "invalid_recipient_description": "Ελέγξτε τη διεύθυνση και βεβαιωθείτε ότι είναι έγκυρη"
+    "invalid_recipient_description": "Ελέγξτε τη διεύθυνση και βεβαιωθείτε ότι είναι έγκυρη",
+    "swap_tokens": "Ανταλλαγή tokens"
   },
   "custom_gas": {
     "total": "Σύνολο",
@@ -1799,13 +1818,14 @@
   "experimental_settings": {
     "wallet_connect_dapps": "Συνεδρίες WalletConnect",
     "wallet_connect_dapps_desc": "Προβολή της λίστας των ενεργών συνεδριών στο WalletConnect",
-    "wallet_connect_dapps_cta": "ΠΡΟΒΟΛΗ ΣΥΝΕΔΡΙΩΝ",
+    "wallet_connect_dapps_cta": "Προβολή συνεδριών",
     "network_not_supported": "Το τρέχον δίκτυο δεν υποστηρίζεται",
     "security_alerts": "Ειδοποιήσεις ασφαλείας",
     "security_alerts_desc": "Αυτή η λειτουργία σας ειδοποιεί για κακόβουλη δραστηριότητα, ελέγχοντας τοπικά τα αιτήματα συναλλαγών και υπογραφών σας. Κάνετε πάντα τη δική σας ενδελεχή έρευνα πριν εγκρίνετε οποιαδήποτε αιτήματα. Δεν υπάρχει καμία εγγύηση ότι αυτή η λειτουργία θα ανιχνεύσει όλες τις κακόβουλες δραστηριότητες. Ενεργοποιώντας αυτή τη λειτουργία, συμφωνείτε με τους όρους χρήσης του παρόχου.",
     "select_provider": "Επιλέξτε τον πάροχο που προτιμάτε",
     "blockaid": "Blockaid",
-    "blockaid_desc": "Διαφύλαξη του απορρήτου - δεν κοινοποιούνται δεδομένα σε τρίτους. Διαθέσιμο στο κύριο δίκτυο του Ethereum.",
+    "blockaid_desc": "Privacy preserving - no data is shared with third parties.",
+    "available_on_eth_mainet": "Available on Ethereum Mainnet.",
     "switch_network": "Παρακαλούμε μεταβείτε στο mainnet ή το sepolia"
   },
   "walletconnect_sessions": {
@@ -2027,6 +2047,8 @@
     "insufficient_balance": "Το ποσό αυτό είναι μεγαλύτερο από το υπόλοιπό σας",
     "enter_larger_amount": "Πληκτρολογήστε μεγαλύτερο ποσό για να συνεχίσετε",
     "enter_smaller_amount": "Πληκτρολογήστε μικρότερο ποσό για να συνεχίσετε",
+    "enter_lower_gas_fees": "Enter a lower amount to pay for gas fees",
+    "max": "MAX",
     "try_again": "Προσπαθήστε ξανά",
     "error": "Σφάλμα",
     "something_went_wrong": "Ωχ, κάτι πήγε στραβά",
@@ -2110,14 +2132,22 @@
       "sent": "Εστάλη!"
     },
     "notifications": {
-      "purchase_failed_title": "Η αγορά του {{currency}} απέτυχε! Προσπαθήστε ξανά, συγγνώμη για την ταλαιπωρία!",
+      "purchase_failed_title": "Η αγορά των {{currency}} απέτυχε! Προσπαθήστε ξανά, συγγνώμη για την αναστάτωση!",
       "purchase_failed_description": "Επαληθεύστε τη μέθοδο πληρωμής και την υποστήριξη της κάρτας σας",
       "purchase_cancelled_title": "Η αγορά σας ακυρώθηκε",
       "purchase_cancelled_description": "Επαληθεύστε τη μέθοδο πληρωμής και την υποστήριξη της κάρτας σας",
-      "purchase_completed_title": "Η αγορά σας των {{amount}} {{currency}} ήταν επιτυχής!",
-      "purchase_completed_description": "Τα {{currency}} σας είναι τώρα διαθέσιμα",
+      "purchase_completed_title": "Η αγορά {{amount}} {{currency}} ήταν επιτυχής!",
+      "purchase_completed_description": "Τα {{currency}} είναι τώρα διαθέσιμα",
       "purchase_pending_title": "Επεξεργασία της αγοράς σας των {{currency}}",
-      "purchase_pending_description": "Θα πάρει μόνο λίγα λεπτά..."
+      "purchase_pending_description": "Αυτό θα διαρκέσει μόνο λίγα λεπτά...",
+      "sale_failed_title": "Η παραγγελία απέτυχε",
+      "sale_failed_description": "Η παραγγελία σας δεν μπόρεσε να ολοκληρωθεί.",
+      "sale_cancelled_title": "Ακύρωση παραγγελίας",
+      "sale_cancelled_description": "Η παραγγελία σας δεν μπόρεσε να ολοκληρωθεί.",
+      "sale_completed_title": "Ολοκλήρωση παραγγελίας",
+      "sale_completed_description": "Η παραγγελία σας ήταν επιτυχής!.",
+      "sale_pending_title": "Επεξεργασία πώλησης {{currency}}",
+      "sale_pending_description": "Η παραγγελία σας βρίσκεται τώρα υπό επεξεργασία."
     }
   },
   "swaps": {
@@ -2741,5 +2771,17 @@
     "ipfs_gateway_content2": "Μπορείτε να απενεργοποιήσετε την ανάλυση IPFS στις",
     "ipfs_gateway_content3": "Ρυθμίσεις > Ασφάλεια και απόρρητο",
     "ipfs_gateway_content4": "ανά πάσα στιγμή"
+  },
+  "install_snap": {
+    "title": "Αίτημα σύνδεσης",
+    "description": "Το {{origin}} θέλει να κατεβάσει και να συνδεθεί με το {{snap}}. Βεβαιωθείτε ότι εμπιστεύεστε τους συντάκτες πριν προχωρήσετε.",
+    "permissions_request_title": "Αίτημα αδειών",
+    "permissions_request_description": "Το {{origin}} θέλει να εγκαταστήσει το {{snap}}, το οποίο ζητά τις ακόλουθες άδειες.",
+    "approve_permissions": "Έγκριση",
+    "installed": "Εγκατεστημένο",
+    "install_successful": "Το {{snap}} εγκαταστάθηκε με επιτυχία.",
+    "okay_action": "Εντάξει",
+    "error_title": "Η εγκατάσταση απέτυχε",
+    "error_description": "Η εγκατάσταση του {{snap}} απέτυχε."
   }
 }

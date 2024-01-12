@@ -8,7 +8,6 @@ import {
   StyleSheet,
   Image,
   InteractionManager,
-  Platform,
   Animated,
   Easing,
 } from 'react-native';
@@ -48,13 +47,6 @@ import DefaultPreference from 'react-native-default-preference';
 import { Authentication } from '../../../core';
 import { ThemeContext, mockTheme } from '../../../util/theme';
 import AnimatedFox from 'react-native-animated-fox';
-import generateTestId from '../../../../wdio/utils/generateTestId';
-import {
-  WALLET_SETUP_SCREEN_TITLE_ID,
-  WALLET_SETUP_SCREEN_DESCRIPTION_ID,
-  WALLET_SETUP_SCREEN_IMPORT_FROM_SEED_BUTTON_ID,
-  WALLET_SETUP_CREATE_NEW_WALLET_BUTTON_ID,
-} from '../../../../wdio/screen-objects/testIDs/Screens/WalletSetupScreen.testIds';
 import { OnboardingSelectorIDs } from '../../../../e2e/selectors/Onboarding/Onboarding.selectors';
 
 import Routes from '../../../constants/navigation/Routes';
@@ -375,14 +367,14 @@ class Onboarding extends PureComponent {
         <Text
           variant={TextVariant.HeadingLG}
           style={styles.title}
-          {...generateTestId(Platform, WALLET_SETUP_SCREEN_TITLE_ID)}
+          testID={OnboardingSelectorIDs.SCREEN_TITLE}
         >
           {strings('onboarding.title')}
         </Text>
         <View style={styles.importWrapper}>
           <Text
             style={styles.buttonDescription}
-            {...generateTestId(Platform, WALLET_SETUP_SCREEN_DESCRIPTION_ID)}
+            testID={OnboardingSelectorIDs.SCREEN_DESCRIPTION}
           >
             {strings('onboarding.import')}
           </Text>
@@ -392,7 +384,7 @@ class Onboarding extends PureComponent {
             <StyledButton
               type={'normal'}
               onPress={this.onPressImport}
-              testID={WALLET_SETUP_SCREEN_IMPORT_FROM_SEED_BUTTON_ID}
+              testID={OnboardingSelectorIDs.IMPORT_SEED_BUTTON}
             >
               {strings('import_wallet.import_from_seed_button')}
             </StyledButton>
@@ -401,7 +393,7 @@ class Onboarding extends PureComponent {
             <StyledButton
               type={'blue'}
               onPress={this.onPressCreate}
-              testID={WALLET_SETUP_CREATE_NEW_WALLET_BUTTON_ID}
+              testID={OnboardingSelectorIDs.NEW_WALLET_BUTTON}
             >
               {strings('onboarding.start_exploring_now')}
             </StyledButton>

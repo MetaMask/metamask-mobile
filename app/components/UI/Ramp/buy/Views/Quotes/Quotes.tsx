@@ -48,7 +48,7 @@ import Timer from './Timer';
 import { isBuyQuote, isBuyQuotes, isSellQuotes } from '../../../common/utils';
 
 export interface QuotesParams {
-  amount: number;
+  amount: number | string;
   asset: CryptoCurrency;
   fiatCurrency: FiatCurrency;
 }

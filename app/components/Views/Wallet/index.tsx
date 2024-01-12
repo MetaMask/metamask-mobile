@@ -47,6 +47,9 @@ import { selectSelectedAddress } from '../../../selectors/preferencesController'
 
 const createStyles = ({ colors, typography }: Theme) =>
   StyleSheet.create({
+    base: {
+      paddingHorizontal: 16,
+    },
     wrapper: {
       flex: 1,
       backgroundColor: colors.background.default,
@@ -58,6 +61,7 @@ const createStyles = ({ colors, typography }: Theme) =>
     },
     tabStyle: {
       paddingBottom: 0,
+      paddingVertical: 8,
     },
     tabBar: {
       borderColor: colors.background.default,
@@ -201,16 +205,20 @@ const Wallet = ({ navigation }: any) => {
   }, [navigation, themeColors, networkName, networkImageSource, onTitlePress]);
 
   const renderTabBar = useCallback(
-    () => (
-      <DefaultTabBar
-        underlineStyle={styles.tabUnderlineStyle}
-        activeTextColor={colors.primary.default}
-        inactiveTextColor={colors.text.default}
-        backgroundColor={colors.background.default}
-        tabStyle={styles.tabStyle}
-        textStyle={styles.textStyle}
-        style={styles.tabBar}
-      />
+    (props) => (
+      <View style={styles.base}>
+        <DefaultTabBar
+          underlineStyle={styles.tabUnderlineStyle}
+          activeTextColor={colors.primary.default}
+          inactiveTextColor={colors.text.default}
+          backgroundColor={colors.background.default}
+          tabStyle={styles.tabStyle}
+          textStyle={styles.textStyle}
+          tabPadding={16}
+          style={styles.tabBar}
+          {...props}
+        />
+      </View>
     ),
     [styles, colors],
   );
@@ -276,7 +284,9 @@ const Wallet = ({ navigation }: any) => {
             key={'nfts-tab'}
             navigation={navigation}
           />
+          {/* </View> */}
         </ScrollableTabView>
+        {/* </View> */}
       </View>
     );
   }, [

@@ -164,6 +164,7 @@ Array [
         </Text>
         <RCTSwitch
           accessibilityRole="switch"
+          disabled={false}
           onChange={[Function]}
           onResponderTerminationRequest={[Function]}
           onStartShouldSetResponder={[Function]}
@@ -205,7 +206,23 @@ Array [
           }
         }
       >
-        Privacy preserving - no data is shared with third parties. Available on Ethereum Mainnet.
+        Privacy preserving - no data is shared with third parties.
+      </Text>
+      <Text
+        accessibilityRole="text"
+        style={
+          Object {
+            "color": "#535A61",
+            "fontFamily": "Euclid Circular B",
+            "fontSize": 14,
+            "fontWeight": "400",
+            "letterSpacing": 0,
+            "lineHeight": 22,
+            "marginTop": 8,
+          }
+        }
+      >
+        Available on Ethereum Mainnet.
       </Text>
     </View>
   </RCTScrollView>,
@@ -377,6 +394,7 @@ Array [
         </Text>
         <RCTSwitch
           accessibilityRole="switch"
+          disabled={false}
           onChange={[Function]}
           onResponderTerminationRequest={[Function]}
           onStartShouldSetResponder={[Function]}
@@ -418,7 +436,23 @@ Array [
           }
         }
       >
-        Privacy preserving - no data is shared with third parties. Available on Ethereum Mainnet.
+        Privacy preserving - no data is shared with third parties.
+      </Text>
+      <Text
+        accessibilityRole="text"
+        style={
+          Object {
+            "color": "#535A61",
+            "fontFamily": "Euclid Circular B",
+            "fontSize": 14,
+            "fontWeight": "400",
+            "letterSpacing": 0,
+            "lineHeight": 22,
+            "marginTop": 8,
+          }
+        }
+      >
+        Available on Ethereum Mainnet.
       </Text>
     </View>
   </RCTScrollView>,

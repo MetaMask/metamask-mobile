@@ -1,48 +1,55 @@
-import TestHelpers from '../../helpers';
-
 import { ChoosePasswordSelectorsIDs } from '../../selectors/Onboarding/ChoosePassword.selectors';
+import Matchers from '../../utils/Matchers';
+import Gestures from '../../utils/Gestures';
 
-export default class CreatePasswordView {
-  static async enterPassword(password) {
-    await TestHelpers.typeTextAndHideKeyboard(
+class CreatePasswordView {
+  get container() {
+    return Matchers.getElementByID(ChoosePasswordSelectorsIDs.CONTAINER_ID);
+  }
+
+  get newPasswordInput() {
+    return Matchers.getElementByID(
       ChoosePasswordSelectorsIDs.NEW_PASSWORD_INPUT_ID,
-      password,
     );
   }
 
-  static async reEnterPassword(password) {
-    await TestHelpers.typeTextAndHideKeyboard(
+  get confirmPasswordInput() {
+    return Matchers.getElementByID(
       ChoosePasswordSelectorsIDs.CONFIRM_PASSWORD_INPUT_ID,
-      password,
     );
   }
 
-  static async tapIUnderstandCheckBox() {
-    if (device.getPlatform() === 'ios') {
-      await TestHelpers.tap(
-        ChoosePasswordSelectorsIDs.IOS_I_UNDERSTAND_BUTTON_ID,
-      );
-    } else {
-      // Tap by the I understand text
-      await TestHelpers.delay(2000);
-      await TestHelpers.tap(
-        ChoosePasswordSelectorsIDs.ANDROID_I_UNDERSTAND_BUTTON_ID,
-      );
-    }
+  get iUnderstandCheckbox() {
+    return device.getPlatform() === 'ios'
+      ? Matchers.getElementByID(
+          ChoosePasswordSelectorsIDs.IOS_I_UNDERSTAND_BUTTON_ID,
+        )
+      : Matchers.getElementByID(
+          ChoosePasswordSelectorsIDs.ANDROID_I_UNDERSTAND_BUTTON_ID,
+        );
   }
 
-  static async tapCreatePasswordButton() {
-    if (device.getPlatform() === 'ios') {
-      await TestHelpers.waitAndTap(ChoosePasswordSelectorsIDs.SUBMIT_BUTTON_ID);
-    } else {
-      await TestHelpers.waitAndTapByLabel(
-        ChoosePasswordSelectorsIDs.SUBMIT_BUTTON_ID,
-      );
-    }
+  get submitButton() {
+    return device.getPlatform() === 'ios'
+      ? Matchers.getElementByID(ChoosePasswordSelectorsIDs.SUBMIT_BUTTON_ID)
+      : Matchers.getElementByLabel(ChoosePasswordSelectorsIDs.SUBMIT_BUTTON_ID);
   }
 
-  // Assertions
-  static async isVisible() {
-    await TestHelpers.checkIfVisible(ChoosePasswordSelectorsIDs.CONTAINER_ID);
+  async enterPassword(password) {
+    await Gestures.typeTextAndHideKeyboard(this.newPasswordInput, password);
+  }
+
+  async reEnterPassword(password) {
+    await Gestures.typeTextAndHideKeyboard(this.confirmPasswordInput, password);
+  }
+
+  async tapIUnderstandCheckBox() {
+    await Gestures.waitAndTap(this.iUnderstandCheckbox);
+  }
+
+  async tapCreatePasswordButton() {
+    await Gestures.waitAndTap(this.submitButton);
   }
 }
+
+export default new CreatePasswordView();

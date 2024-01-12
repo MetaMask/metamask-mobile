@@ -83,6 +83,9 @@ import { NetworksViewSelectorsIDs } from '../../../../../../e2e/selectors/Settin
 
 const createStyles = (colors) =>
   StyleSheet.create({
+    base: {
+      paddingHorizontal: 16,
+    },
     wrapper: {
       backgroundColor: colors.background.default,
       flex: 1,
@@ -214,6 +217,7 @@ const createStyles = (colors) =>
 const allNetworks = getAllNetworks();
 const allNetworksblockExplorerUrl = (networkName) =>
   `https://${networkName}.infura.io/v3/`;
+
 /**
  * Main view for app configurations
  */
@@ -1045,18 +1049,22 @@ class NetworkSettings extends PureComponent {
 
   goToLearnMore = () => Linking.openURL(strings('networks.learn_more_url'));
 
-  renderTabBar = () => {
+  renderTabBar = (props) => {
     const colors = this.context.colors || mockTheme.colors;
     const styles = createStyles(colors);
     return (
-      <DefaultTabBar
-        underlineStyle={styles.tabUnderlineStyle}
-        activeTextColor={colors.primary.default}
-        inactiveTextColor={colors.text.muted}
-        backgroundColor={colors.background.default}
-        tabStyle={styles.tabStyle}
-        textStyle={styles.textStyle}
-      />
+      <View style={styles.base}>
+        <DefaultTabBar
+          underlineStyle={styles.tabUnderlineStyle}
+          activeTextColor={colors.primary.default}
+          inactiveTextColor={colors.text.muted}
+          backgroundColor={colors.background.default}
+          tabStyle={styles.tabStyle}
+          tabPadding={16}
+          textStyle={styles.textStyle}
+          {...props}
+        />
+      </View>
     );
   };
 
@@ -1103,9 +1111,7 @@ class NetworkSettings extends PureComponent {
                 />
               </View>
               <View
-                tabLabel={strings(
-                  'app_settings.custom_network_name',
-                ).toUpperCase()}
+                tabLabel={strings('app_settings.custom_network_name')}
                 key={AppConstants.ADD_CUSTOM_NETWORK_CUSTOM_TAB_ID}
                 testID={CUSTOM_NETWORKS_TAB_ID}
               >

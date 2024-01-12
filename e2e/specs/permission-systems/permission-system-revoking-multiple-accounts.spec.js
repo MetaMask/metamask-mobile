@@ -13,6 +13,7 @@ import { loginToApp } from '../../viewHelper';
 import NetworkListModal from '../../pages/modals/NetworkListModal';
 import FixtureBuilder from '../../fixtures/fixture-builder';
 import { withFixtures } from '../../fixtures/fixture-helper';
+import Assertions from '../../utils/Assertions';
 
 const SUSHI_SWAP = 'https://app.sushi.com/swap';
 const SUSHI_SWAP_SHORT_HAND_URL = 'app.sushi.com';
@@ -41,7 +42,7 @@ describe('Connecting to multiple dapps and revoking permission on one but stayin
         // should connect to sushi swap dapp
         await Browser.tapUrlInputBox();
         await Browser.navigateToURL(SUSHI_SWAP);
-        await ConnectModal.isVisible();
+        await Assertions.checkIfVisible(ConnectModal.container);
         await ConnectModal.scrollToBottomOfModal();
         await Browser.isAccountToastVisible('Account 1');
 
@@ -51,7 +52,7 @@ describe('Connecting to multiple dapps and revoking permission on one but stayin
         await Browser.navigateToTestDApp();
         await Browser.isAccountToastVisible('Account 1');
         await Browser.tapNetworkAvatarButtonOnBrowserWhileAccountIsConnectedToDapp();
-        await ConnectedAccountsModal.isVisible();
+        await Assertions.checkIfVisible(ConnectedAccountsModal.container);
         await ConnectedAccountsModal.tapConnectMoreAccountsButton();
         await TestHelpers.delay(1000);
         await AccountListView.tapAddAccountButton();
@@ -67,7 +68,7 @@ describe('Connecting to multiple dapps and revoking permission on one but stayin
         await ConnectedAccountsModal.tapDisconnectAllButton();
         await Browser.isRevokeAllAccountToastVisible();
         await Browser.tapNetworkAvatarButtonOnBrowser();
-        await ConnectedAccountsModal.isNotVisible();
+        await Assertions.checkIfNotVisible(ConnectedAccountsModal.container);
         await NetworkListModal.isVisible();
         await NetworkListModal.swipeToDismissModal();
         await NetworkListModal.isNotVisible();

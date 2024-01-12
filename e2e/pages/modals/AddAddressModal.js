@@ -1,45 +1,39 @@
-import TestHelpers from '../../helpers';
-import {
-  ADDRESS_ALIAS_SAVE_BUTTON_ID,
-  ADDRESS_ALIAS_TITLE_ID,
-} from '../../../wdio/screen-objects/testIDs/Screens/AddressBook.testids';
 import { AddAddressModalSelectorsIDs } from '../../selectors/Modals/AddAddressModal.selectors';
+import Matchers from '../../utils/Matchers';
+import Gestures from '../../utils/Gestures';
 
-export default class AddAddressModal {
-  static async typeInAlias(name) {
-    if (device.getPlatform() === 'android') {
-      await TestHelpers.replaceTextInField(
-        AddAddressModalSelectorsIDs.ENTER_ALIAS_INPUT,
-        name,
-      );
-      await element(
-        by.id(AddAddressModalSelectorsIDs.ENTER_ALIAS_INPUT),
-      ).tapReturnKey();
-    } else {
-      await TestHelpers.typeTextAndHideKeyboard(
-        AddAddressModalSelectorsIDs.ENTER_ALIAS_INPUT,
-        name,
-      );
-    }
+class AddAddressModal {
+  get container() {
+    return Matchers.getElementByID(AddAddressModalSelectorsIDs.CONTAINER);
   }
 
-  static async tapSaveButton() {
-    if (device.getPlatform() === 'android') {
-      await TestHelpers.waitAndTapByLabel(ADDRESS_ALIAS_SAVE_BUTTON_ID);
-    } else {
-      await TestHelpers.waitAndTap(ADDRESS_ALIAS_SAVE_BUTTON_ID);
-    }
+  get aliasInput() {
+    return Matchers.getElementByID(
+      AddAddressModalSelectorsIDs.ENTER_ALIAS_INPUT,
+    );
   }
 
-  static async tapTitle() {
-    await TestHelpers.waitAndTap(ADDRESS_ALIAS_TITLE_ID);
+  get saveButton() {
+    return device.getPlatform() === 'android'
+      ? Matchers.getElementByLabel(AddAddressModalSelectorsIDs.SAVE_BUTTON)
+      : Matchers.getElementByID(AddAddressModalSelectorsIDs.SAVE_BUTTON);
   }
 
-  static async isVisible() {
-    await TestHelpers.checkIfVisible(AddAddressModalSelectorsIDs.CONTAINER);
+  get title() {
+    return Matchers.getElementByID(AddAddressModalSelectorsIDs.TITLE);
   }
 
-  static async isNotVisible() {
-    await TestHelpers.checkIfNotVisible(AddAddressModalSelectorsIDs.CONTAINER);
+  async typeInAlias(name) {
+    await Gestures.typeTextAndHideKeyboard(this.aliasInput, name);
+  }
+
+  async tapSaveButton() {
+    await Gestures.waitAndTap(this.saveButton);
+  }
+
+  async tapTitle() {
+    await Gestures.waitAndTap(this.title);
   }
 }
+
+export default new AddAddressModal();

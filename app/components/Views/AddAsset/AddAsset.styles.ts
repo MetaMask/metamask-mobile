@@ -1,11 +1,13 @@
 import { StyleSheet } from 'react-native';
 import { Theme } from '../../../util/theme/models';
-import { fontStyles } from '../../../styles/common';
 
 const styleSheet = (params: { theme: Theme }) => {
   const { theme } = params;
   const { colors } = theme;
   return StyleSheet.create({
+    base: {
+      paddingHorizontal: 16,
+    },
     wrapper: {
       flex: 1,
       backgroundColor: colors.background.default,
@@ -24,11 +26,12 @@ const styleSheet = (params: { theme: Theme }) => {
     },
     tabStyle: {
       paddingBottom: 0,
+      paddingVertical: 8,
     },
     textStyle: {
-      fontSize: 16,
-      letterSpacing: 0.5,
-      ...fontStyles.bold,
+      textTransform: 'capitalize',
+      ...params.theme.typography.sBodyMD,
+      fontWeight: '500',
     },
   });
 };

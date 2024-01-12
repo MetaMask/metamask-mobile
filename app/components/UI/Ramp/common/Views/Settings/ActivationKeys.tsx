@@ -91,6 +91,9 @@ function ActivationKeys() {
             </ListItem.Body>
             <ListItem.Amounts>
               <TouchableOpacity
+                accessible
+                accessibilityRole="button"
+                accessibilityLabel="Delete Activation Key"
                 disabled={isLoadingKeys}
                 onPress={() => removeActivationKey(activationKey.key)}
                 hitSlop={{ top: 20, bottom: 20, left: 20, right: 20 }}

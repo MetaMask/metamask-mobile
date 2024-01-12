@@ -8,8 +8,6 @@ declare module 'react-native-fade-in-image';
 
 declare module 'react-native-minimizer';
 
-declare module '@react-native-community/checkbox';
-
 declare module 'react-native-scrollable-tab-view/DefaultTabBar' {
   const content: React.FC<any>;
   export default content;

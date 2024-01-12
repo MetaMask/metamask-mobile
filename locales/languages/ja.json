@@ -17,7 +17,20 @@
     "does_not_look_right": "おかしな点がありますか？",
     "suspicious_request_title": "これは不審なリクエストです",
     "trade_order_farming_description": "このリクエストを承認すると、資産を失う可能性があります。",
-    "transfer_farming_description": "このリクエストを承認すると、詐欺が判明しているサードパーティに資産をすべて奪われます。"
+    "transfer_farming_description": "このリクエストを承認すると、詐欺が判明しているサードパーティに資産をすべて奪われます。",
+    "before_you_proceed": "続ける前に",
+    "enable_blockaid_alerts": "この機能を有効にするには、セキュリティアラートの設定が必要です。設定の間、このページは開いたままにしておく必要があります。この作業は1分未満で完了します。",
+    "setting_up_alerts": "セキュリティアラートを設定中",
+    "setting_up_alerts_description": "セキュリティアラートの設定を早急に行っています。あと少しだけお待ちください。",
+    "setup_complete": "設定完了",
+    "setup_failed": "セキュリティアラートの設定を完了できませんでした。インターネット接続を確認してもう一度お試しください。",
+    "setup_multiple_failures": "現在インターネット接続が安定していないため、セキュリティアラートを設定できませんでした。接続が回復してからもう一度お試しください。",
+    "setup_complete_description": "セキュリティアラートの準備ができました。このページを閉じてウォレットの使用を開始できます",
+    "continue": "続行",
+    "cancel": "キャンセル",
+    "got_it": "了解",
+    "try_again": "再試行",
+    "failed": "問題が発生しました"
   },
   "date": {
     "months": {
@@ -266,7 +279,7 @@
     "successfully_changed": "パスワードが変更されました"
   },
   "import_from_seed": {
-    "title": "シードからインポート",
+    "title": "シークレットリカバリーフレーズからインポート",
     "seed_phrase_placeholder": "シークレットリカバリーフレーズを入力してください",
     "new_password": "新しいパスワード",
     "confirm_password": "パスワードの確認",
@@ -385,6 +398,7 @@
     "logout_to_import_seed": "シークレットリカバリーフレーズをインポートするには、まずログアウトが必要です。",
     "ready_to_explore": "ブロックチェーンアプリケーションを使い始める準備は整いましたか？",
     "unable_to_load": "残高を読み込めません",
+    "unable_to_find_conversion_rate": "換算レートが見つかりません",
     "display_nft_media_desc": "NFTをインポートするには、「設定」>「セキュリティとプライバシー」で「NFTメディアの表示」 をオンにします。",
     "display_nft_media_cta": "NFTメディアの表示をオンにする",
     "display_media_nft_warning": "NFTのメディアとデータを表示した場合、IPアドレスが集中型のサーバーに公開される可能性があります。関連するリスクを理解できている場合のみ、NFTをインポートしてください。",
@@ -521,7 +535,6 @@
     "import_account": "アカウントのインポート",
     "connect_hardware": "ハードウェアウォレットの接続",
     "imported": "インポートされました",
-    "qr_hardware": "QRハードウェア",
     "remove_account_title": "アカウントの削除",
     "remove_account_message": "このアカウントを削除してよろしいですか？",
     "no": "いいえ",
@@ -575,7 +588,7 @@
     "tutorial": "チュートリアル",
     "description4": "Keystone (チュートリアル)",
     "description5": "1. Keystoneのロックを解除します",
-    "description6": "2. Tap the ··· Menu, then go to Sync",
+    "description6": "2. 「···」メニューをタップして、「同期」に移動します",
     "button_continue": "続行",
     "hint_text": "Keystoneウォレットをスキャンして ",
     "purpose_connect": "接続",
@@ -608,7 +621,7 @@
     "autolock_after_minutes": "{{time}}分後",
     "reveal_seed_words": "シードワードを確認",
     "reset_account": "アカウントをリセット",
-    "state_logs_button": "ステートログをダウンロード",
+    "state_logs_button": "ダウンロードステートログ",
     "reveal_seed_words_button": "シードワードを確認",
     "reset_account_button": "アカウントをリセット",
     "reset_account_confirm_button": "はい、リセットします",
@@ -664,8 +677,8 @@
     "toggleEthSignModalTitle": "自己責任でご利用ください",
     "toggleEthSignModalEnable": "有効にする",
     "toggleEthSignModalLearnMore": "詳細。",
-    "toggleEthSignOff": "オフ (推奨)",
-    "toggleEthSignOn": "オン (非推奨)",
+    "toggleEthSignOff": "(推奨)",
+    "toggleEthSignOn": "(非推奨)",
     "toggleEthSignContinueButton": "続行",
     "toggleEthSignEnableButton": "有効にする",
     "show_custom_nonce": "トランザクションナンスをカスタマイズ",
@@ -788,7 +801,7 @@
     "manage_sdk_connections_title": "接続の管理",
     "manage_sdk_connections_text": "サイトやMetaMask SDKへの接続を削除します。",
     "fiat_on_ramp": {
-      "title": "仮想通貨を購入",
+      "title": "仮想通貨の売買",
       "description": "地域、その他...",
       "current_region": "現在の地域",
       "reset_region": "地域をリセット",
@@ -853,7 +866,12 @@
           "snap_dialog": "カスタムダイアログの表示"
         }
       }
-    }
+    },
+    "privacy_browser_subheading": "プライバシーまたはブラウザデータを消去してください",
+    "analytics_subheading": "分析",
+    "transactions_subheading": "トランザクション",
+    "token_nft_ens_subheading": "トークン、NFT、ENSの自動検出",
+    "security_check_subheading": "セキュリティチェック"
   },
   "sdk": {
     "disconnect_title": "すべてのサイトとの接続を解除しますか？",
@@ -1184,7 +1202,8 @@
     "fiat_conversion_not_available": "法定通貨への換算は現在利用できません",
     "hex_data_copied": "16進データがクリップボードにコピーされました",
     "invalid_recipient": "無効な受取人",
-    "invalid_recipient_description": "アドレスが有効であることを確認してください"
+    "invalid_recipient_description": "アドレスが有効であることを確認してください",
+    "swap_tokens": "トークンをスワップ"
   },
   "custom_gas": {
     "total": "合計",
@@ -1805,7 +1824,8 @@
     "security_alerts_desc": "この機能は、トランザクションと署名要求をローカルで確認することで、悪質な行為に関するアラートを発します。要求を承認する前に、必ず独自のデューデリジェンスを行ってください。この機能がすべての悪質な行為を検出するという保証はありません。この機能を有効にすることで、プロバイダーの利用規約に同意したものとみなされます。",
     "select_provider": "希望のプロバイダーを選択してください",
     "blockaid": "Blockaid",
-    "blockaid_desc": "プライバシー保護 - サードパーティとデータは一切共有されません。イーサリアムメインネットで利用可能。",
+    "blockaid_desc": "Privacy preserving - no data is shared with third parties.",
+    "available_on_eth_mainet": "Available on Ethereum Mainnet.",
     "switch_network": "メインネットまたはSepoliaに切り替えてください"
   },
   "walletconnect_sessions": {
@@ -2027,6 +2047,8 @@
     "insufficient_balance": "この金額は残高を超えています",
     "enter_larger_amount": "続行するにはより大きな金額を入力してください",
     "enter_smaller_amount": "続行するにはより小さな金額を入力してください",
+    "enter_lower_gas_fees": "Enter a lower amount to pay for gas fees",
+    "max": "MAX",
     "try_again": "もう一度やり直してください",
     "error": "エラー",
     "something_went_wrong": "何か問題が発生しました",
@@ -2111,13 +2133,21 @@
     },
     "notifications": {
       "purchase_failed_title": "{{currency}}の購入に失敗しました。もう一度お試しください。ご不便をおかけし申し訳ございません。",
-      "purchase_failed_description": "支払方法とカード対応を確認",
+      "purchase_failed_description": "支払方法とカードの対応状況を確認してください",
       "purchase_cancelled_title": "購入がキャンセルされました",
-      "purchase_cancelled_description": "支払方法とカード対応を確認",
-      "purchase_completed_title": "{{amount}}{{currency}}の購入が完了しました。",
+      "purchase_cancelled_description": "支払方法とカードの対応状況を確認してください",
+      "purchase_completed_title": "{{amount}}{{currency}}の購入が完了しました",
       "purchase_completed_description": "{{currency}}が利用可能になりました",
       "purchase_pending_title": "{{currency}}の購入を処理中です",
-      "purchase_pending_description": "数分で完了します..."
+      "purchase_pending_description": "数分で完了します...",
+      "sale_failed_title": "注文に失敗しました",
+      "sale_failed_description": "注文を完了できませんでした。",
+      "sale_cancelled_title": "注文がキャンセルされました",
+      "sale_cancelled_description": "注文を完了できませんでした。",
+      "sale_completed_title": "注文が完了しました",
+      "sale_completed_description": "注文に成功しました。",
+      "sale_pending_title": "{{currency}}の売却を処理しています",
+      "sale_pending_description": "ただ今注文を処理しています。"
     }
   },
   "swaps": {
@@ -2700,7 +2730,7 @@
     "nonce_too_low": "ナンスが低すぎます",
     "nonce_too_low_error": "設定されたナンスが低すぎます",
     "ledger_beta_alert": "Ledgerの統合を有効にしています",
-    "ledger_beta_alert_description": "試験運用の機能を発見しました！続行することで、この試験運用の機能を自己リスクで使用することに同意したものとみなされます。",
+    "ledger_beta_alert_description": "試験運用の機能を発見しました！続行することで、この試験運用の機能を自己責任で使用することに同意したものとみなされます。",
     "ledger_beta_cta": "続行"
   },
   "account_actions": {
@@ -2741,5 +2771,17 @@
     "ipfs_gateway_content2": "IPFSの解決は、",
     "ipfs_gateway_content3": "「設定」>「セキュリティとプライバシー」で",
     "ipfs_gateway_content4": "いつでもオフにできます。"
+  },
+  "install_snap": {
+    "title": "接続の要求",
+    "description": "{{origin}}が{{snap}}のダウンロードと接続を要求しています。進める前に、作成者が信頼できることを確認してください。",
+    "permissions_request_title": "アクセス許可の要求",
+    "permissions_request_description": "{{origin}}が{{snap}}のインストールを要求していて、このSnapは次のアクセス許可を要求しています。",
+    "approve_permissions": "承認",
+    "installed": "インストール完了",
+    "install_successful": "{{snap}}がインストールされました。",
+    "okay_action": "OK",
+    "error_title": "インストールに失敗しました",
+    "error_description": "{{snap}}のインストールに失敗しました。"
   }
 }

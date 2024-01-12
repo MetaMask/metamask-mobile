@@ -1,14 +1,17 @@
-import TestHelpers from '../../helpers';
-import {
-  ADD_ACCOUNT_NEW_ACCOUNT_BUTTON,
-  ADD_ACCOUNT_IMPORT_ACCOUNT_BUTTON,
-} from '../../../wdio/screen-objects/testIDs/Components/AddAccountModal.testIds';
+import { AddAccountModalSelectorsIDs } from '../../selectors/Modals/AddAccountModal.selectors';
+import Matchers from '../../utils/Matchers';
+import Gestures from '../../utils/Gestures';
 
-export default class AddAccountModal {
-  static async tapAddNewAccount() {
-    await TestHelpers.waitAndTap(ADD_ACCOUNT_NEW_ACCOUNT_BUTTON);
+class AddAccountModal {
+  get importAccountButton() {
+    return Matchers.getElementByID(
+      AddAccountModalSelectorsIDs.IMPORT_ACCOUNT_BUTTON,
+    );
   }
-  static async tapImportAccount() {
-    await TestHelpers.waitAndTap(ADD_ACCOUNT_IMPORT_ACCOUNT_BUTTON);
+
+  async tapImportAccount() {
+    await Gestures.waitAndTap(this.importAccountButton);
   }
 }
+
+export default new AddAccountModal();
