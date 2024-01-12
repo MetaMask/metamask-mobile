@@ -303,6 +303,9 @@ const NetworkModals = (props: NetworkProps) => {
 
               <Text>
                 {strings('networks.network_select_confirm_use_safe_check')}
+                <Text bold>
+                  {strings('networks.network_settings_security_privacy')}
+                </Text>{' '}
               </Text>
 
               <View style={styles.actionContainer}>

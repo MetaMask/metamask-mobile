@@ -54,6 +54,9 @@ const styleSheet = (params: { theme: Theme }) => {
     textCentred: {
       textAlign: 'center',
     },
+    boldText: {
+      ...fontStyles.bold,
+    },
     networkSection: { marginBottom: 16 },
     nestedScrollContent: { paddingBottom: 24 },
   });

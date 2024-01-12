@@ -52,6 +52,8 @@ const NetworkVerificationInfo = ({
     selectUseSafeChainsListValidation,
   );
   const [showCheckNetwork, setShowCheckNetwork] = React.useState(false);
+  const [alerts, setAlerts] = React.useState(customNetworkInformation.alerts);
+
   const showCheckNetworkModal = () => setShowCheckNetwork(!showCheckNetwork);
 
   const toggleUseSafeChainsListValidation = (value: boolean) => {
@@ -139,13 +141,16 @@ const NetworkVerificationInfo = ({
   };
 
   const renderAlerts = useCallback(() => {
-    if (!customNetworkInformation.alerts.length) return null;
-    return customNetworkInformation.alerts.map(
-      (networkAlert: {
-        alertError: string;
-        alertSeverity: BannerAlertSeverity;
-        alertOrigin: string;
-      }) => (
+    if (!alerts.length) return null;
+    return alerts.map(
+      (
+        networkAlert: {
+          alertError: string;
+          alertSeverity: BannerAlertSeverity;
+          alertOrigin: string;
+        },
+        index,
+      ) => (
         <Banner
           variant={BannerVariant.Alert}
           severity={networkAlert.alertSeverity}
@@ -153,10 +158,15 @@ const NetworkVerificationInfo = ({
           testID={CommonSelectorsIDs.ERROR_MESSAGE}
           style={styles.textSection}
           key={networkAlert.alertOrigin}
+          onClose={() => {
+            const newAlerts = [...alerts];
+            newAlerts.splice(index, 1);
+            setAlerts(newAlerts);
+          }}
         />
       ),
     );
-  }, [customNetworkInformation.alerts, styles.textSection]);
+  }, [alerts, styles.textSection]);
 
   return showCheckNetwork ? (
     <View>
@@ -168,7 +178,12 @@ const NetworkVerificationInfo = ({
           {strings('app_settings.use_safe_chains_list_validation_desc')}
         </Text>
 
-        <Text>{strings('networks.network_select_confirm_use_safe_check')}</Text>
+        <Text>
+          {strings('networks.network_select_confirm_use_safe_check')}{' '}
+          <Text style={styles.boldText}>
+            {strings('networks.network_settings_security_privacy')}
+          </Text>
+        </Text>
       </View>
 
       <BottomSheetFooter

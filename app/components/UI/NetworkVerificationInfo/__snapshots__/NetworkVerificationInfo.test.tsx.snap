@@ -192,6 +192,46 @@ exports[`NetworkVerificationInfo renders correctly 1`] = `
             It looks like this network's display name doesn't match its chain ID.
           </Text>
         </View>
+        <View
+          style={
+            Object {
+              "marginLeft": 12,
+            }
+          }
+        >
+          <TouchableOpacity
+            accessible={true}
+            activeOpacity={1}
+            disabled={false}
+            onPress={[Function]}
+            onPressIn={[Function]}
+            onPressOut={[Function]}
+            style={
+              Object {
+                "alignItems": "center",
+                "borderRadius": 8,
+                "height": 24,
+                "justifyContent": "center",
+                "opacity": 1,
+                "width": 24,
+              }
+            }
+            testID="banner-close-button-icon"
+          >
+            <SvgMock
+              color="#24272A"
+              height={16}
+              name="Close"
+              style={
+                Object {
+                  "height": 16,
+                  "width": 16,
+                }
+              }
+              width={16}
+            />
+          </TouchableOpacity>
+        </View>
       </View>
       <Text
         accessibilityRole="text"
