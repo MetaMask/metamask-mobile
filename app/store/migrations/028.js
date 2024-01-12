@@ -79,5 +79,10 @@ export default function migrate(state) {
     });
   }
 
+  // CREATE A MIGRATION FOR state.swaps, initial state key chain id changed for hexadecimal - https://github.com/MetaMask/metamask-mobile/blob/0000000000000000000000000000000000000000:/app/reducers/swaps/index.js#L195
+  // Create a migration for address book controller, chain id identifier changed for hexadecimal
+  // Create a migration for swaps controller chain cache now is on hexadecimal format
+  // Create a migration for NftController allNfts, allNftsContracts chain Id now is on hexadecimal format
+
   return state;
 }
