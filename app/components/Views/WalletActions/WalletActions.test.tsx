@@ -32,7 +32,7 @@ const mockInitialState = {
     backgroundState: {
       ...initialBackgroundState,
       NetworkController: {
-        providerConfig: { type: 'mainnet', chainId: '1', ticker: 'ETH' },
+        providerConfig: { type: 'mainnet', chainId: '0x1', ticker: 'ETH' },
       },
     },
   },

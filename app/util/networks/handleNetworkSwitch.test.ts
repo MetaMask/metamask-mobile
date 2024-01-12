@@ -1,5 +1,5 @@
 import Engine from '../../core/Engine';
-import { NETWORKS_CHAIN_ID, SEPOLIA } from '../../constants/network';
+import { SEPOLIA } from '../../constants/network';
 import { store } from '../../store';
 import handleNetworkSwitch from './handleNetworkSwitch';
 

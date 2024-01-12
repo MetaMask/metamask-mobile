@@ -14,7 +14,7 @@ jest.mock('../../../util/blockaid', () => ({
 const mockState = {
   engine: {
     backgroundState: {
-      NetworkController: { providerConfig: { chainId: '1' } },
+      NetworkController: { providerConfig: { chainId: '0x1' } },
       PreferencesController: { securityAlertsEnabled: true },
     },
   },

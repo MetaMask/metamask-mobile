@@ -55,7 +55,7 @@ const initialState = {
           type: 'mainnet',
           nickname: 'Ethereum mainnet',
           ticket: 'eth',
-          chainId: '1',
+          chainId: '0x1',
         },
         networkConfigurations: {
           networkId1: {
@@ -160,7 +160,7 @@ describe('Network Selector', () => {
               type: 'mainnet',
               nickname: 'Goerli mainnet',
               ticket: 'eth',
-              chainId: '5',
+              chainId: '0x5',
             },
           },
         },

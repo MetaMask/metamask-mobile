@@ -32,7 +32,7 @@ jest.mock('./../../core/Engine', () => ({
       setProviderType: () => jest.fn(),
       state: {
         providerConfig: {
-          chainId: '3',
+          chainId: '0x3',
         },
       },
     },

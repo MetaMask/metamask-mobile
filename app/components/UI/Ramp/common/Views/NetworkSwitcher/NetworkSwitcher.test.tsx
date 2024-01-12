@@ -80,7 +80,7 @@ function render(Component: React.ComponentType, chainId?: string) {
             NetworkController: {
               ...initialBackgroundState.NetworkController,
               providerConfig: {
-                chainId: chainId ?? '56',
+                chainId: chainId ?? '0x38',
                 ticker: 'BNB',
                 nickname: 'BNB Smart Chain',
               },
