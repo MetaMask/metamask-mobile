@@ -3,13 +3,13 @@ export interface BrandColors {
     /**
      * {string} white['000']
      */
-    ['000']: string;
+    '000': string;
   };
   black: {
     /**
      * {string} black['000']
      */
-    ['000']: string;
+    '000': string;
   };
 }
 export default BrandColors;
