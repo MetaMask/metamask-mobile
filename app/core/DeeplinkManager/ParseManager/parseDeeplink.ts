@@ -3,11 +3,11 @@ import SDKConnect from '../../../core/SDKConnect/SDKConnect';
 import Logger from '../../../util/Logger';
 import DevLogger from '../../SDKConnect/utils/DevLogger';
 import DeeplinkManager from '../DeeplinkManager';
+import connectWithWC from './connectWithWC';
 import extractURLParams from './extractURLParams';
 import handleDappUrl from './handleDappUrl';
 import handleMetaMaskDeeplink from './handleMetaMaskDeeplink';
 import handleUniversalLink from './handleUniversalLink';
-import connectWithWC from './connectWithWC';
 
 function parseDeeplink({
   deeplinkManager: instance,
@@ -19,7 +19,7 @@ function parseDeeplink({
   deeplinkManager: DeeplinkManager;
   url: string;
   origin: string;
-  browserCallBack: (url: string) => void;
+  browserCallBack?: (url: string) => void;
   onHandled?: () => void;
 }) {
   const { urlObj, params } = extractURLParams(url);

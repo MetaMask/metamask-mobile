@@ -210,7 +210,6 @@ const QRScanner = () => {
           origin: AppConstants.DEEPLINKS.ORIGIN_QR_CODE,
           // TODO: Check is pop is still valid.
           onHandled: () => (navigation as any).pop(2),
-          browserCallBack: () => null,
         });
 
         if (handledByDeeplink) {
