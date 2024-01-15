@@ -19,7 +19,7 @@ function parseDeeplink({
   deeplinkManager: DeeplinkManager;
   url: string;
   origin: string;
-  browserCallBack: (url: string) => void;
+  browserCallBack?: (url: string) => void;
   onHandled?: () => void;
 }) {
   const { urlObj, params } = extractURLParams(url);
