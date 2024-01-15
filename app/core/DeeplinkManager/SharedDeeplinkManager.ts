@@ -26,7 +26,7 @@ const SharedDeeplinkManager = {
   parse: (
     url: string,
     args: {
-      browserCallBack: (url: string) => void;
+      browserCallBack?: (url: string) => void;
       origin: string;
       onHandled?: () => void;
     },
