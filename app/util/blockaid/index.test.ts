@@ -4,11 +4,33 @@ import {
   ResultType,
   SecurityAlertResponse,
 } from '../../components/UI/BlockaidBanner/BlockaidBanner.types';
+// eslint-disable-next-line import/no-namespace
+import * as NetworkControllerMock from '../../selectors/networkController';
 
 describe('getBlockaidMetricsParams', () => {
-  it('should return empty object when securityAlertResponse is not defined', () => {
+  beforeEach(() => {
+    jest.spyOn(NetworkControllerMock, 'selectChainId').mockReturnValue('1');
+  });
+
+  afterEach(() => {
+    jest.clearAllMocks();
+  });
+
+  it('returns "NotApplicable" when securityAlertResponse is not defined', () => {
     const result = getBlockaidMetricsParams(undefined);
-    expect(result).toStrictEqual({});
+    expect(result).toStrictEqual({
+      security_alert_reason: 'NotApplicable',
+      security_alert_response: 'NotApplicable',
+    });
+  });
+
+  it('returns "NotApplicable" when chain id is not in supported chain ids list', () => {
+    jest.spyOn(NetworkControllerMock, 'selectChainId').mockReturnValue('10');
+    const result = getBlockaidMetricsParams(undefined);
+    expect(result).toStrictEqual({
+      security_alert_reason: 'NotApplicable',
+      security_alert_response: 'NotApplicable',
+    });
   });
 
   it('should return additionalParams object when securityAlertResponse defined', () => {
