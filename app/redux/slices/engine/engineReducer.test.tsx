@@ -26,6 +26,7 @@ const backgroundState = {
   PhishingController: {},
   PreferencesController: {},
   SwapsController: {},
+  SnapController: {},
   TokenBalancesController: {},
   TokenDetectionController: {},
   TokenListController: {},
