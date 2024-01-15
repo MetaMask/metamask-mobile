@@ -33,7 +33,7 @@ describe('getBlockaidMetricsParams', () => {
     });
   });
 
-  it('should return additionalParams object when securityAlertResponse defined', () => {
+  it('should return additionalParams object when securityAlertResponse is defined', () => {
     const securityAlertResponse: SecurityAlertResponse = {
       result_type: ResultType.Malicious,
       reason: Reason.notApplicable,

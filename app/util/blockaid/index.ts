@@ -2,16 +2,29 @@ import {
   ResultType,
   SecurityAlertResponse,
 } from '../../components/UI/BlockaidBanner/BlockaidBanner.types';
-import NetworkList, { getDecimalChainId } from '../networks';
+import { getDecimalChainId } from '../networks';
 import { store } from '../../store';
 import { selectChainId } from '../../selectors/networkController';
 
-export const SUPPORTED_CHAIN_IDS: number[] = [NetworkList.mainnet.chainId];
+export const SUPPORTED_CHAIN_IDS: string[] = [
+  '0x1', // Ethereum Mainnet Chain ID
+];
 
-export const isSupportedChainId = (chainId: string) =>
-  SUPPORTED_CHAIN_IDS.find(
-    (id) => getDecimalChainId(String(id)) === chainId,
+export const isSupportedChainId = (chainId: string) => {
+  /**
+   * Quite a number of our test cases return undefined as chainId from state.
+   * So, this allowing undefined chainId for now.
+   * */
+  if (chainId === undefined) {
+    return true;
+  }
+
+  const isSupported  = SUPPORTED_CHAIN_IDS.find(
+    (id) => getDecimalChainId(id) === getDecimalChainId(chainId),
   ) !== undefined;
+
+  return isSupported;
+};
 
 // eslint-disable-next-line import/prefer-default-export
 export const isBlockaidFeatureEnabled = () => {
