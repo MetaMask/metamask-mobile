@@ -9,7 +9,7 @@ function handleBrowserUrl({
 }: {
   deeplinkManager: DeeplinkManager;
   url: string;
-  callback: (url: string) => void;
+  callback?: (url: string) => void;
 }) {
   const handle = InteractionManager.runAfterInteractions(() => {
     if (callback) {
