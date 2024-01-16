@@ -343,6 +343,11 @@ class AdvancedSettings extends PureComponent {
     );
   };
 
+  toggleSmartTransactions = (detectionStatus) => {
+    const { PreferencesController } = Engine.context;
+    PreferencesController.setSmartTransactionsEnabled(detectionStatus);
+  };
+
   render = () => {
     const {
       showHexData,
@@ -528,6 +533,33 @@ class AdvancedSettings extends PureComponent {
                 label={strings('app_settings.state_logs_button')}
                 style={styles.accessory}
               />
+            </View>
+            <View style={styles.setting}>
+              <View style={styles.titleContainer}>
+                <Text variant={TextVariant.BodyLGMedium} style={styles.title}>
+                  Smart Transactions
+                </Text>
+                <View style={styles.toggle}>
+                  <Switch
+                    value={showHexData}
+                    onValueChange={this.toggleSmartTransactions}
+                    trackColor={{
+                      true: colors.primary.default,
+                      false: colors.border.muted,
+                    }}
+                    thumbColor={importedColors.white}
+                    style={styles.switch}
+                    ios_backgroundColor={colors.border.muted}
+                  />
+                </View>
+              </View>
+              <Text
+                variant={TextVariant.BodyMD}
+                color={TextColor.Alternative}
+                style={styles.desc}
+              >
+                Something about smart tx
+              </Text>
             </View>
           </View>
         </KeyboardAwareScrollView>
