@@ -112,7 +112,11 @@ const DeleteMetaMetricsData = (props: DeleteMetaMetricsDataProps) => {
       deletionRequestDate,
       dataDeletionRequestStatus,
       hasCollectedDataSinceDeletionRequest,
-    } = await metrics?.checkDataDeleteStatus();
+    } = (await metrics?.checkDataDeleteStatus()) ?? {
+      deletionRequestDate: undefined,
+      dataDeletionRequestStatus: DataDeleteStatus.unknown,
+      hasCollectedDataSinceDeletionRequest: false,
+    };
 
     setDataTrackedSinceLastDeletion(hasCollectedDataSinceDeletionRequest);
     setDeletionTaskDate(deletionRequestDate);
