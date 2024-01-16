@@ -45,7 +45,10 @@ function watchConnection(connection: Connection, instance: SDKConnect) {
           );
         });
       // Force terminate connection since it was disabled (do not remember)
-      instance.removeChannel(connection.channelId, true);
+      instance.removeChannel({
+        channelId: connection.channelId,
+        sendTerminate: true,
+      });
     }
   });
 
