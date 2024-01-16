@@ -6,10 +6,11 @@ import {
 } from '../../components/UI/BlockaidBanner/BlockaidBanner.types';
 // eslint-disable-next-line import/no-namespace
 import * as NetworkControllerMock from '../../selectors/networkController';
+import { NETWORKS_CHAIN_ID } from '../../constants/network';
 
 describe('getBlockaidMetricsParams', () => {
   beforeEach(() => {
-    jest.spyOn(NetworkControllerMock, 'selectChainId').mockReturnValue('1');
+    jest.spyOn(NetworkControllerMock, 'selectChainId').mockReturnValue(NETWORKS_CHAIN_ID.MAINNET);
   });
 
   afterEach(() => {

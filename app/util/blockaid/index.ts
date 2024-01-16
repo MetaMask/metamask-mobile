@@ -5,9 +5,10 @@ import {
 import { getDecimalChainId } from '../networks';
 import { store } from '../../store';
 import { selectChainId } from '../../selectors/networkController';
+import { NETWORKS_CHAIN_ID } from '../../constants/network';
 
 export const SUPPORTED_CHAIN_IDS: string[] = [
-  '0x1', // Ethereum Mainnet Chain ID
+  NETWORKS_CHAIN_ID.MAINNET, // Ethereum Mainnet Chain ID
 ];
 
 export const isSupportedChainId = (chainId: string) => {
