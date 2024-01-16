@@ -1,7 +1,13 @@
 import { renderHook } from '@testing-library/react-hooks';
-import useIsDataDeletionAvailable from './useIsDataDeletionAvailable'; // adjust the path as needed
-import { DataDeleteStatus } from '../../../../../core/Analytics'; // adjust the path as needed
+import useIsDataDeletionAvailable from './useIsDataDeletionAvailable';
+import { DataDeleteStatus } from '../../../../../core/Analytics';
 
+/**
+ * This test suite goal is to check that all the possible cases of the
+ * deletion process are covered.
+ * It also checks that the display value is correct for each case.
+ * It also serves as a documentation of the deletion settings display logic.
+ */
 describe('useDataDeletion', () => {
   const isDeletionPossible = (
     dataDeletionTaskStatus: DataDeleteStatus,

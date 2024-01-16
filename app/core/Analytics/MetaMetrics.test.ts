@@ -188,6 +188,23 @@ describe('MetaMetrics', () => {
       const { segmentMockClient } = global as any;
       expect(segmentMockClient.track).not.toHaveBeenCalled();
     });
+
+    it('tracks event without updating dataRecorded status', async () => {
+      const metaMetrics = await TestMetaMetrics.getInstance();
+      await metaMetrics.enable();
+      const event = 'event1';
+      const properties = { prop1: 'value1' };
+
+      metaMetrics.trackEvent(event, properties, false);
+
+      expect(DefaultPreference.get).toHaveBeenCalledWith(METRICS_OPT_IN);
+      const { segmentMockClient } = global as any;
+      expect(segmentMockClient.track).toHaveBeenCalledWith(event, {
+        anonymous: false,
+        ...properties,
+      });
+      expect(metaMetrics.isDataRecorded()).toBeFalsy();
+    });
   });
 
   describe('Grouping', () => {
@@ -524,7 +541,7 @@ describe('MetaMetrics', () => {
         expect(
           axios as jest.MockedFunction<typeof axios>,
         ).not.toHaveBeenCalled();
-        expect(hasCollectedDataSinceDeletionRequest).toBeTruthy();
+        expect(hasCollectedDataSinceDeletionRequest).toBeFalsy();
         expect(dataDeletionRequestStatus).toEqual(DataDeleteStatus.unknown);
         expect(deletionRequestDate).toBeUndefined();
       });
