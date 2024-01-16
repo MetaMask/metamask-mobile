@@ -1268,4 +1268,4 @@ trigger_map:
     pipeline: pr_smoke_e2e_pipeline
   - pull_request_source_branch: '*'
     pull_request_target_branch: 'main'
-    pipeline: pr_smoke_e2e_pipeline
+    pipeline: pr_smoke_e2e_pipeline #test 
