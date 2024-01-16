@@ -997,6 +997,7 @@ class NetworkSettings extends PureComponent {
                       testID={NetworksViewSelectorsIDs.ADD_NETWORKS_BUTTON}
                       style={styles.button}
                       label={strings('app_settings.network_save')}
+                      isDisabled={isActionDisabled}
                     />
                   </View>
                 ) : (
