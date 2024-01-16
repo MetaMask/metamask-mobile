@@ -1,9 +1,19 @@
 import { toHex } from '@metamask/controller-utils';
+import { regex } from '../../../app/util/regex';
+
+import { isHexString } from 'ethereumjs-util';
 
 /**
  * Converting chain id on decimal format to hexadecimal format
  * Replacing rpcTarget property for the rpcUrl new property on providerConfig
  * Converting keys of networkOnboardedState for hexadecimal for not repeat showing the new network modal
+ * Addressing networkDetails property change
+ * Addressing networkConfigurations chainId property change to ehxadecimal
+ * Swaps on the state initial state key chain id changed for hexadecimal
+ * Address book controller chain id identifier changed for hexadecimal
+ * Swaps controller chain cache property now is on hexadecimal format
+ * NftController allNfts, allNftsContracts chain Id now is on hexadecimal format
+ * Transaction Controller transactions object chain id property to hexadecimal
  * decided here https://github.com/MetaMask/core/pull/1367
  * @param {any} state - Redux state.
  * @returns Migrated Redux state.
@@ -44,7 +54,7 @@ export default function migrate(state) {
     state.networkOnboarded.networkOnboardedState = newNetworkOnboardedState;
   }
 
-  // Addressing networkDetails property change (this still needs unit test)
+  // Addressing networkDetails property change
   if (state?.engine?.backgroundState?.NetworkController?.networkDetails) {
     const isEIP1559Compatible =
       state?.engine?.backgroundState?.NetworkController?.networkDetails
@@ -67,7 +77,7 @@ export default function migrate(state) {
     delete state.engine.backgroundState.NetworkController.networkDetails
       .isEIP1559Compatible;
   }
-  // Addressing networkConfigurations chainId property change to ehxadecimal (this still needs unit test)
+  // Addressing networkConfigurations chainId property change to hexadecimal
   if (
     state?.engine?.backgroundState?.NetworkController?.networkConfigurations
   ) {
@@ -79,10 +89,120 @@ export default function migrate(state) {
     });
   }
 
-  // CREATE A MIGRATION FOR state.swaps, initial state key chain id changed for hexadecimal - https://github.com/MetaMask/metamask-mobile/blob/0000000000000000000000000000000000000000:/app/reducers/swaps/index.js#L195
-  // Create a migration for address book controller, chain id identifier changed for hexadecimal
-  // Create a migration for swaps controller chain cache now is on hexadecimal format
-  // Create a migration for NftController allNfts, allNftsContracts chain Id now is on hexadecimal format
+  // Swaps on the state initial state key chain id changed for hexadecimal
+  if (state?.swaps) {
+    Object.keys(state?.swaps).forEach((key) => {
+      // To match keys that are composed entirely of digits
+      if (regex.decimalStringMigrations.test(key)) {
+        const hexadecimalChainId = toHex(key);
+        state.swaps = {
+          ...state.swaps,
+          [hexadecimalChainId]: state.swaps[key],
+        };
+        delete state.swaps[key];
+      }
+    });
+  }
 
+  // Address book controller chain id identifier changed for hexadecimal
+  if (state?.engine?.backgroundState?.AddressBookController?.addressBook) {
+    const addressBook =
+      state?.engine?.backgroundState?.AddressBookController?.addressBook;
+    Object.keys(addressBook).forEach((chainId) => {
+      if (!isHexString(chainId)) {
+        const hexChainId = toHex(chainId);
+        const newAddressBook = { [hexChainId]: {} };
+        let newAddress = {};
+        Object.keys(addressBook[chainId]).forEach((address) => {
+          newAddress = addressBook[chainId][address];
+          newAddress.chainId = toHex(
+            state?.engine?.backgroundState?.AddressBookController?.addressBook[
+              chainId
+            ][address].chainId,
+          );
+
+          newAddressBook[hexChainId][address] = newAddress;
+        });
+        state.engine.backgroundState.AddressBookController.addressBook[
+          hexChainId
+        ] = newAddressBook[hexChainId];
+        delete state.engine.backgroundState.AddressBookController.addressBook[
+          chainId
+        ];
+      }
+    });
+  }
+  // Swaps controller chain cache property now is on hexadecimal format
+  if (state?.engine?.backgroundState?.SwapsController?.chainCache) {
+    Object.keys(
+      state.engine.backgroundState.SwapsController.chainCache,
+    ).forEach((chainId) => {
+      if (!isHexString(chainId)) {
+        const hexChainId = toHex(chainId);
+        state.engine.backgroundState.SwapsController.chainCache[hexChainId] =
+          state.engine.backgroundState.SwapsController.chainCache[chainId];
+        delete state.engine.backgroundState.SwapsController.chainCache[chainId];
+      }
+    });
+  }
+  // NftController allNfts, allNftsContracts chain Id now is on hexadecimal format
+  if (state?.engine?.backgroundState?.NftController?.allNftContracts) {
+    const allNftContracts =
+      state.engine.backgroundState.NftController.allNftContracts;
+    Object.keys(
+      state.engine.backgroundState.NftController.allNftContracts,
+    ).forEach((nftContractsAddress) => {
+      Object.keys(allNftContracts[nftContractsAddress]).forEach((chainId) => {
+        if (!isHexString(chainId)) {
+          const hexChainId = toHex(chainId);
+          state.engine.backgroundState.NftController.allNftContracts[
+            nftContractsAddress
+          ][hexChainId] =
+            state.engine.backgroundState.NftController.allNftContracts[
+              nftContractsAddress
+            ][chainId];
+
+          delete state.engine.backgroundState.NftController.allNftContracts[
+            nftContractsAddress
+          ][chainId];
+        }
+      });
+    });
+  }
+  if (state?.engine?.backgroundState?.NftController?.allNfts) {
+    const allNfts = state.engine.backgroundState.NftController.allNfts;
+    Object.keys(state.engine.backgroundState.NftController.allNfts).forEach(
+      (allNftsByAddress) => {
+        Object.keys(allNfts[allNftsByAddress]).forEach((chainId) => {
+          if (!isHexString(chainId)) {
+            const hexChainId = toHex(chainId);
+            state.engine.backgroundState.NftController.allNfts[
+              allNftsByAddress
+            ][hexChainId] =
+              state.engine.backgroundState.NftController.allNfts[
+                allNftsByAddress
+              ][chainId];
+
+            delete state.engine.backgroundState.NftController.allNfts[
+              allNftsByAddress
+            ][chainId];
+          }
+        });
+      },
+    );
+  }
+
+  // Transaction Controller transactions object chain id property to hexadecimal
+  if (state?.engine?.backgroundState?.TransactionController?.transactions) {
+    state.engine.backgroundState.TransactionController.transactions.forEach(
+      (transaction, index) => {
+        if (!isHexString(transaction?.chainId)) {
+          state.engine.backgroundState.TransactionController.transactions[
+            index
+          ].chainId = toHex(transaction.chainId);
+        }
+      },
+    );
+  }
   return state;
 }
