@@ -99,15 +99,16 @@ export default class AndroidService extends EventEmitter2 {
         );
       }
     } catch (err) {
-      // Ignore
+      console.error(`AndroidService::setupEventListeners error`, err);
     }
+
+    this.restorePreviousConnections();
 
     this.setupOnClientsConnectedListener();
     this.setupOnMessageReceivedListener();
 
     // Bind native module to client
     await SDKConnect.getInstance().bindAndroidSDK();
-    this.restorePreviousConnections();
   }
 
   private setupOnClientsConnectedListener() {
@@ -150,7 +151,10 @@ export default class AndroidService extends EventEmitter2 {
 
         try {
           if (!this.connectedClients?.[clientInfo.clientId]) {
-            DevLogger.log(`AndroidService::clients_connected - new client`);
+            DevLogger.log(
+              `AndroidService::clients_connected - new client ${clientInfo.clientId}}`,
+              this.connectedClients,
+            );
             // Ask for account permissions
             await this.checkPermission({
               originatorInfo: clientInfo.originatorInfo,
@@ -460,6 +464,20 @@ export default class AndroidService extends EventEmitter2 {
     this.bridgeByClientId[clientInfo.clientId] = bridge;
   }
 
+  async removeConnection(channelId: string) {
+    try {
+      if (this.connectedClients[channelId]) {
+        DevLogger.log(
+          `AndroidService::remove client ${channelId} exists --- remove bridge`,
+        );
+        delete this.bridgeByClientId[channelId];
+      }
+      delete this.connectedClients[channelId];
+    } catch (err) {
+      Logger.log(err, `AndroidService::remove error`);
+    }
+  }
+
   async sendMessage(message: any, forceRedirect?: boolean) {
     const id = message?.data?.id;
     this.communicationClient.sendMessage(JSON.stringify(message));
@@ -507,29 +525,23 @@ export default class AndroidService extends EventEmitter2 {
       return;
     }
 
-    const needsRedirect = this.rpcQueueManager.canRedirect({
-      method: rpcMethod,
-    });
-
-    if (needsRedirect || forceRedirect === true) {
-      try {
-        if (METHODS_TO_DELAY[rpcMethod]) {
-          // Add delay to see the feedback modal
-          await wait(1000);
-        }
-
-        if (!this.rpcQueueManager.isEmpty()) {
-          DevLogger.log(
-            `Connection::sendMessage NOT empty --- skip goBack()`,
-            this.rpcQueueManager.get(),
-          );
-          return;
-        }
-
-        Minimizer.goBack();
-      } catch (error) {
-        Logger.log(error, `AndroidService:: error waiting for empty rpc queue`);
+    try {
+      if (METHODS_TO_DELAY[rpcMethod]) {
+        // Add delay to see the feedback modal
+        await wait(1000);
       }
+
+      if (!this.rpcQueueManager.isEmpty()) {
+        DevLogger.log(
+          `Connection::sendMessage NOT empty --- skip goBack()`,
+          this.rpcQueueManager.get(),
+        );
+        return;
+      }
+
+      Minimizer.goBack();
+    } catch (error) {
+      Logger.log(error, `AndroidService:: error waiting for empty rpc queue`);
     }
   }
 }

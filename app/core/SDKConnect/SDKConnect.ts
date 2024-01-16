@@ -235,8 +235,21 @@ export class SDKConnect extends EventEmitter2 {
     return invalidateChannel({ channelId, instance: this });
   }
 
-  public removeChannel(channelId: string, sendTerminate?: boolean) {
-    return removeChannel({ channelId, sendTerminate, instance: this });
+  public removeChannel({
+    channelId,
+    sendTerminate,
+    emitRefresh,
+  }: {
+    channelId: string;
+    sendTerminate?: boolean;
+    emitRefresh?: boolean;
+  }) {
+    return removeChannel({
+      channelId,
+      sendTerminate,
+      instance: this,
+      emitRefresh,
+    });
   }
 
   public async removeAll() {

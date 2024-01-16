@@ -4,7 +4,19 @@ import SDKConnect from '../SDKConnect';
 
 async function removeAll(instance: SDKConnect) {
   for (const id in instance.state.connections) {
-    instance.removeChannel(id, true);
+    instance.removeChannel({
+      channelId: id,
+      sendTerminate: true,
+      emitRefresh: false,
+    });
+  }
+
+  for (const id in await instance.loadAndroidConnections()) {
+    instance.removeChannel({
+      channelId: id,
+      sendTerminate: true,
+      emitRefresh: false,
+    });
   }
 
   // Remove all android connections
@@ -20,6 +32,9 @@ async function removeAll(instance: SDKConnect) {
 
   await DefaultPreference.clear(AppConstants.MM_SDK.SDK_CONNECTIONS);
   await DefaultPreference.clear(AppConstants.MM_SDK.SDK_APPROVEDHOSTS);
+
+  // Delayed ui refresh
+  setTimeout(() => instance.emit('refresh'), 100);
 }
 
 export default removeAll;
