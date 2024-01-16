@@ -20,7 +20,7 @@ import Icon from '../../../component-library/components/Icons/Icon/Icon';
 import Text from '../../../component-library/components/Texts/Text/Text';
 import { useStyles } from '../../../component-library/hooks/useStyles';
 import { isBlockaidFeatureEnabled } from '../../../util/blockaid';
-import { NETWORK_NAMES } from '../../../constants/network';
+import { NETWORKS_CHAIN_ID } from '../../../constants/network';
 import {
   ATTRIBUTION_LINE_TEST_ID,
   FALSE_POSITIVE_REPOST_LINE_TEST_ID,
@@ -42,6 +42,15 @@ import {
 import { isMainnetByChainId } from '../../../util/networks';
 import { selectIsSecurityAlertsEnabled } from '../../../selectors/preferencesController';
 import BlockaidVersionInfo from '../../../lib/ppom/blockaid-version';
+
+const BLOCKAID_SUPPORTED_NETWORK_NAMES = {
+  [NETWORKS_CHAIN_ID.MAINNET]: 'Ethereum Mainnet',
+  [NETWORKS_CHAIN_ID.BSC]: 'Binance Smart Chain',
+  [NETWORKS_CHAIN_ID.OPTIMISM]: 'Optimism',
+  [NETWORKS_CHAIN_ID.POLYGON]: 'Polygon',
+  [NETWORKS_CHAIN_ID.ARBITRUM]: 'Arbitrum',
+  [NETWORKS_CHAIN_ID.LINEA_MAINNET]: 'Linea',
+};
 
 const getReportUrl = (encodedData: string) =>
   `${FALSE_POSITIVE_REPORT_BASE_URL}?data=${encodeURIComponent(
@@ -121,7 +130,7 @@ const BlockaidBanner = (bannerProps: BlockaidBannerProps) => {
       jsonRpcMethod: req.method,
       jsonRpcParams: JSON.stringify(req.params),
       blockNumber: block,
-      chain: NETWORK_NAMES[chainId],
+      chain: BLOCKAID_SUPPORTED_NETWORK_NAMES[chainId],
       classification: reason,
       resultType: result_type,
       reproduce: JSON.stringify(features),

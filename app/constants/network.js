@@ -32,13 +32,3 @@ export const NETWORKS_CHAIN_ID = {
   LINEA_MAINNET: '59144',
   ZKSYNC_ERA: '324',
 };
-
-export const NETWORK_NAMES = {
-  [NETWORKS_CHAIN_ID.MAINNET]: 'Ethereum Mainnet',
-  [NETWORKS_CHAIN_ID.BSC]: 'Binance Smart Chain',
-  [NETWORKS_CHAIN_ID.OPTIMISM]: 'Optimism',
-  [NETWORKS_CHAIN_ID.POLYGON]: 'Polygon',
-  [NETWORKS_CHAIN_ID.AVALANCHE]: 'Avalance',
-  [NETWORKS_CHAIN_ID.ARBITRUM]: 'Arbitrum',
-  [NETWORKS_CHAIN_ID.LINEA_MAINNET]: 'Linea',
-};
