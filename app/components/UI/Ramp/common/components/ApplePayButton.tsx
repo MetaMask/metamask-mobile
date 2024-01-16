@@ -1,6 +1,5 @@
 import React from 'react';
 import { Image, StyleSheet } from 'react-native';
-import { colors as importedColors } from '../../../../../styles/common';
 import { useAssetFromTheme } from '../../../../../util/theme';
 import Text from '../../../../Base/Text';
 import StyledButton from '../../../StyledButton';
@@ -24,13 +23,13 @@ const styles = StyleSheet.create({
 });
 
 const applePayButtonStylesLight = StyleSheet.create({
-  applePayButtonText: { color: importedColors.white },
-  applePayButton: { backgroundColor: importedColors.black },
+  applePayButtonText: { color: '#FFFFFF' },
+  applePayButton: { backgroundColor: '#000000' },
 });
 
 const applePayButtonStylesDark = StyleSheet.create({
-  applePayButtonText: { color: importedColors.black },
-  applePayButton: { backgroundColor: importedColors.white },
+  applePayButtonText: { color: '#000000' },
+  applePayButton: { backgroundColor: '#FFFFFF' },
 });
 
 const ApplePay = ({ disabled }: { disabled?: boolean }) => {
