@@ -36,12 +36,14 @@ interface DeleteMetaMetricsDataProps {
  *   Given the app is installed and setup
  *   And user goes into settings / security & privacy
  *   And no deletion request has been done before
- *   And user sees text "explanation of how delete data works"
+ *   And "Delete Metametrics data" section text is "This will delete historical
+ *     MetaMetrics data associated with your wallet.[...] View the ConsenSys Privacy Policy."
  *
  *   When user touches the "delete metametrics" button
  *   And approves deletion
  *
- *   Then text changes to "you initiated this action on [current date]"
+ *   Then "Delete Metametrics data" section text changes to "You initiated this action on [current date].
+ *     This process can take up to 60 days. View the ConsenSys Privacy Policy."
  *   And "delete metametrics" button is now disabled
  *   And user still continues to be tracked or not depending on opt-out statusbut
  *   And the tracking strategy is not changed by the deletion action
@@ -54,7 +56,8 @@ interface DeleteMetaMetricsDataProps {
  *   When user comes back to settings / security & privacy
  *   And users scrolls down to the delete metametrics section
  *
- *   Then user see text "explanation of how delete data works"
+ *   Then "Delete Metametrics data" section text is "This will delete historical
+ *     MetaMetrics data associated with your wallet.[...] View the ConsenSys Privacy Policy."
  *   And user can click the "delete metametrics" button again
  *
  * Feature: opted-out user is back on MetaMetrics settings screen after deletion
@@ -65,7 +68,8 @@ interface DeleteMetaMetricsDataProps {
  *   When user comes back to settings / security & privacy
  *   And users scrolls down to the delete metametrics section
  *
- *   Then user see text "you initiated this action on [current date]"
+ *   Then "Delete Metametrics data" section text is "You initiated this action on [current date].
+ *     This process can take up to 60 days. View the ConsenSys Privacy Policy."
  *   And "delete metametrics" button is disabled
  *   And user can NOT click the "delete metametrics" button again until data deletion task is finished
  * ```
