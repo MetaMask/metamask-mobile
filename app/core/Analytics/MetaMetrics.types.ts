@@ -51,17 +51,27 @@ export interface IMetaMetrics {
    */
   group(groupId: string, groupTraits?: GroupTraits): void;
   /**
-   * track an anonymous event
-   * @param event
-   * @param properties
+   * track an anonymous event, providing only anonymousId
+   * @param event - Analytics event name
+   * @param properties - Object containing any event relevant traits or properties (optional)
+   * @param saveDataRecording - param to skip saving the data recording flag (optional)
    */
-  trackAnonymousEvent(event: string, properties?: JsonMap): void;
+  trackAnonymousEvent(
+    event: string,
+    properties?: JsonMap,
+    saveDataRecording?: boolean,
+  ): void;
   /**
    * track an event
-   * @param event
-   * @param properties
+   * @param event - Analytics event name
+   * @param properties - Object containing any event relevant traits or properties (optional)
+   * @param saveDataRecording - param to skip saving the data recording flag (optional)
    */
-  trackEvent(event: string, properties?: JsonMap): void;
+  trackEvent(
+    event: string,
+    properties?: JsonMap,
+    saveDataRecording?: boolean,
+  ): void;
   /**
    * clear the internal state of the library for the current user and group.
    */

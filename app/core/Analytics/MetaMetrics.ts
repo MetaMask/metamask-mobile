@@ -304,12 +304,17 @@ class MetaMetrics implements IMetaMetrics {
    *
    * @param event - Analytics event name
    * @param properties - Object containing any event relevant traits or properties (optional)
-   *
+   * @param saveDataRecording - param to skip saving the data recording flag (optional)
    * @see https://segment.com/docs/connections/sources/catalog/libraries/mobile/react-native/#track
    */
-  #trackEvent = (event: string, properties: JsonMap): void => {
+  #trackEvent = (
+    event: string,
+    properties: JsonMap,
+    saveDataRecording = true,
+  ): void => {
     this.segmentClient?.track(event, properties);
-    !this.dataRecorded &&
+    saveDataRecording &&
+      !this.dataRecorded &&
       this.#setIsDataRecorded(true).catch((error) => {
         // here we don't want to handle the error, there's nothing we can do
         // so we just catch and log it async and do not await for return
@@ -510,25 +515,43 @@ class MetaMetrics implements IMetaMetrics {
    * - The anynomous event has properties set so you can know *what* but not *who*
    * - The non-anonymous event has no properties so you can know *who* but not *what*
    *
-   * @param event
-   * @param properties
+   * @param event - Analytics event name
+   * @param properties - Object containing any event relevant traits or properties (optional)
+   * @param saveDataRecording - param to skip saving the data recording flag (optional)
    */
-  trackAnonymousEvent(event: string, properties: JsonMap = {}): void {
+  trackAnonymousEvent(
+    event: string,
+    properties: JsonMap = {},
+    saveDataRecording = true,
+  ): void {
     if (this.enabled) {
-      this.#trackEvent(event, { anonymous: true, ...properties });
-      this.#trackEvent(event, { anonymous: true });
+      this.#trackEvent(
+        event,
+        { anonymous: true, ...properties },
+        saveDataRecording,
+      );
+      this.#trackEvent(event, { anonymous: true }, saveDataRecording);
     }
   }
 
   /**
    * Track an event - the regular way
    *
-   * @param event
-   * @param properties
+   * @param event - Analytics event name
+   * @param properties - Object containing any event relevant traits or properties (optional)
+   * @param saveDataRecording - param to skip saving the data recording flag (optional)
    */
-  trackEvent = (event: string, properties: JsonMap = {}): void => {
+  trackEvent = (
+    event: string,
+    properties: JsonMap = {},
+    saveDataRecording = true,
+  ): void => {
     if (this.enabled) {
-      this.#trackEvent(event, { anonymous: false, ...properties });
+      this.#trackEvent(
+        event,
+        { anonymous: false, ...properties },
+        saveDataRecording,
+      );
     }
   };
 

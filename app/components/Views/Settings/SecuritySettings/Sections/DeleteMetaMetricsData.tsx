@@ -1,7 +1,8 @@
-import React, {useState, useEffect, useRef, useCallback} from 'react';
+import React, { useCallback, useEffect, useRef, useState } from 'react';
 import { Alert, Linking, Platform } from 'react-native';
 import {
-  DataDeleteResponseStatus, DataDeleteStatus,
+  DataDeleteResponseStatus,
+  DataDeleteStatus,
   MetaMetrics,
   MetaMetricsEvents,
 } from '../../../../../core/Analytics';
@@ -11,21 +12,22 @@ import { CONSENSYS_PRIVACY_POLICY } from '../../../../../constants/urls';
 import Logger from '../../../../../util/Logger';
 import { getBrand, getDeviceId } from 'react-native-device-info';
 import Text, {
-  TextVariant,
   TextColor,
+  TextVariant,
 } from '../../../../../component-library/components/Texts/Text';
 import Button, {
-  ButtonVariants,
   ButtonSize,
+  ButtonVariants,
 } from '../../../../../component-library/components/Buttons/Button';
 import {
   DataDeleteDate,
   IMetaMetrics,
 } from '../../../../../core/Analytics/MetaMetrics.types';
+import useIsDataDeletionAvailable from './useIsDataDeletionAvailable';
 
-type DeleteMetaMetricsDataProps = {
+interface DeleteMetaMetricsDataProps {
   metricsOptin: boolean;
-};
+}
 
 /**
  * Explanation of the deletion process:
@@ -69,80 +71,53 @@ type DeleteMetaMetricsDataProps = {
  * ```
  */
 const DeleteMetaMetricsData = (props: DeleteMetaMetricsDataProps) => {
-
-  const { metricsOptin } = props;
-  /** dataDeletionTaskStatus is used to determine the satus of the last deletion task.
-   * if non, status is `DataDeleteStatus.unknown`
+  /** metricsOptin prop is used to update the component when the user toggles the opt-in switch
+   * We don't need the value to determine if the deletion button should be enabled or not
+   * but we need to track the switch change to update the component.
    */
-  const [dataDeletionTaskStatus, setDataDeletionTaskStatus] = useState<DataDeleteStatus>(DataDeleteStatus.unknown);
+  const { metricsOptin } = props;
+
+  /** dataDeletionTaskStatus is used to determine the satus of the last deletion task.
+   * if none, status is `DataDeleteStatus.unknown`
+   */
+  const [dataDeletionTaskStatus, setDataDeletionTaskStatus] =
+    useState<DataDeleteStatus>(DataDeleteStatus.unknown);
 
   /** deletionTaskDate is used to determine the date of the latest metametrics data deletion request.
    */
   const [deletionTaskDate, setDeletionTaskDate] = useState<DataDeleteDate>();
 
-  const [dataTrackedSinceLastDeletion, setDataTrackedSinceLastDeletion] = useState(false);
+  /** dataTrackedSinceLastDeletion is used to determine if metametrics has collected data since the last deletion request.
+   */
+  const [dataTrackedSinceLastDeletion, setDataTrackedSinceLastDeletion] =
+    useState(false);
 
   /** metametricsRef is used to store the metametrics instance as it's used multiple times in the component.
    */
   const metricsRef = useRef<IMetaMetrics | undefined>();
 
+  const { isDataDeletionAvailable } = useIsDataDeletionAvailable(
+    dataDeletionTaskStatus,
+    dataTrackedSinceLastDeletion,
+  );
 
-  /** isDateletionAvailable is used to determine if the user can delete their data.
-   * if true, the user will see the explanation text and the delete button.
-   * if false, the user will see a text with the date of the last deletion task and button will be disabled.
-   */
-  const isDataDeletionAvailable = useCallback(() => {
-
-    const inProgress = [DataDeleteStatus.initialized, DataDeleteStatus.running].includes(dataDeletionTaskStatus);
-
-    /**
-     * possible cases are:
-     *     (userOptedIn == true && dataTrackedSinceLastDeletion == true && inProgress == false) == true //user is on settings before any deletion
-     *     (userOptedIn == true && dataTrackedSinceLastDeletion == false && inProgress == true) ==  false //on settings just after successful deletion
-     *     (userOptedIn == true && dataTrackedSinceLastDeletion == true && inProgress == true) ==  true//back on the settings screen after succesful deletion
-     *     (userOptedIn == true && dataTrackedSinceLastDeletion == true && inProgress == false) ==  true //just after deletion request but failure
-     *
-     *    (userOptedIn == false && dataTrackedSinceLastDeletion == false && inProgress == false) == true //user is on settings before any deletion
-     *     (userOptedIn == false && dataTrackedSinceLastDeletion == false && inProgress == true) ==  false //on settings just after successful deletion
-     *     (userOptedIn == false && dataTrackedSinceLastDeletion == false && inProgress == true) ==  false//back on the settings screen after succesful deletion
-     *     (userOptedIn == false && dataTrackedSinceLastDeletion == false && inProgress == false) ==  true //just after deletion request but failure
-     *
-     * here is an expression that matches all the cases that should return false:
-     * !(inProgress &&
-     *       (
-     *         userOptedIn && dataTrackedSinceLastDeletion
-     *         || !userOptedIn && dataTrackedSinceLastDeletion
-     *         || !userOptedIn && !dataTrackedSinceLastDeletion
-     *       )
-     *     );
-     *
-     * and the final expression is the following equivalent simplified expression:
-     */
-
-    const isDataDeletionAvailable = !(!dataTrackedSinceLastDeletion && inProgress);
-    console.debug('isDataDeletionAvailable', `metricsOptin:${metricsOptin}`, `dataTrackedSinceLastDeletion:${dataTrackedSinceLastDeletion}`, `inProgress:${inProgress}`, `isDataDeletionAvailable:${isDataDeletionAvailable}`);
-
-    return isDataDeletionAvailable;
-
-  }, [dataDeletionTaskStatus, metricsOptin, dataTrackedSinceLastDeletion]);
-
-  const checkInitialStatus = useCallback (async () => {
+  const checkInitialStatus = useCallback(async () => {
     const metrics = await MetaMetrics.getInstance();
     if (!metrics) {
       return;
     }
     metricsRef.current = metrics;
 
-    const { deletionRequestDate, dataDeletionRequestStatus, hasCollectedDataSinceDeletionRequest } =
-      await metrics?.checkDataDeleteStatus();
-
-    console.debug('checkInitialStatus', `deletionRequestDate:${deletionRequestDate}`, `dataDeletionRequestStatus:${dataDeletionRequestStatus}`, `hasCollectedDataSinceDeletionRequest:${hasCollectedDataSinceDeletionRequest}`)
+    const {
+      deletionRequestDate,
+      dataDeletionRequestStatus,
+      hasCollectedDataSinceDeletionRequest,
+    } = await metrics?.checkDataDeleteStatus();
 
     setDataTrackedSinceLastDeletion(hasCollectedDataSinceDeletionRequest);
     setDeletionTaskDate(deletionRequestDate);
     setDataDeletionTaskStatus(dataDeletionRequestStatus);
   }, []);
-
 
   const showDeleteTaskError = () => {
     Alert.alert(
@@ -164,6 +139,7 @@ const DeleteMetaMetricsData = (props: DeleteMetaMetricsDataProps) => {
         os_version: Platform.Version,
         device_model: `${getBrand()} ${getDeviceId()}`,
       },
+      false,
     );
   };
 
@@ -187,8 +163,15 @@ const DeleteMetaMetricsData = (props: DeleteMetaMetricsDataProps) => {
    * Update UI on mount based on MetaMetrics deletion status
    */
   useEffect(() => {
+    // if the user is opted-in, a track event is sent to MetaMetrics
+    // in order to make sure this is taken into account as soon as possible
+    // we set the dataTrackedSinceLastDeletion to true
+    // if optin is true and false if optin is false,
+    // meaning the user has been tracked since the last deletion according to the switch value.
+    // Then we check the initial status that may override this value
+    setDataTrackedSinceLastDeletion(metricsOptin);
     checkInitialStatus();
-  }, []);
+  }, [metricsOptin, checkInitialStatus]);
 
   const openPrivacyPolicy = () => Linking.openURL(CONSENSYS_PRIVACY_POLICY);
 
