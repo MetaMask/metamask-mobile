@@ -110,6 +110,16 @@ const NetworkList = {
 
 const NetworkListKeys = Object.keys(NetworkList);
 
+export const SUPPORTED_CHAIN_IDS = [
+  NETWORKS_CHAIN_ID.MAINNET,
+  NETWORKS_CHAIN_ID.BSC,
+  NETWORKS_CHAIN_ID.POLYGON,
+  NETWORKS_CHAIN_ID.ARBITRUM,
+  NETWORKS_CHAIN_ID.OPTIMISM,
+  NETWORKS_CHAIN_ID.AVALANCHE,
+  NETWORKS_CHAIN_ID.LINEA_MAINNET,
+];
+
 export default NetworkList;
 
 export const getAllNetworks = () =>

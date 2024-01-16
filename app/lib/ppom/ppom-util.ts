@@ -1,7 +1,7 @@
 import Logger from '../../util/Logger';
 import Engine from '../../core/Engine';
 import { isBlockaidFeatureEnabled } from '../../util/blockaid';
-import { isMainnetByChainId } from '../../util/networks';
+import { SUPPORTED_CHAIN_IDS, isMainnetByChainId } from '../../util/networks';
 import {
   Reason,
   ResultType,
@@ -46,7 +46,8 @@ const validateRequest = async (req: any, transactionId?: string) => {
     !isBlockaidFeatureEnabled() ||
     !PreferencesController.state.securityAlertsEnabled ||
     !ConfirmationMethods.includes(req.method) ||
-    !isMainnetByChainId(currentChainId)
+    SUPPORTED_CHAIN_IDS.includes(currentChainId)
+    // !isMainnetByChainId(currentChainId)
   ) {
     return;
   }
