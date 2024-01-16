@@ -1,7 +1,6 @@
 import Modal from 'react-native-modal';
-import React from 'react';
-import { View, StyleSheet, Linking, Platform } from 'react-native';
-import StyledButton from '../StyledButton';
+import React, { useCallback, useEffect } from 'react';
+import { View, StyleSheet } from 'react-native';
 import { fontStyles } from '../../../styles/common';
 import { strings } from '../../../../locales/i18n';
 import Text from '../../Base/Text';
@@ -13,22 +12,17 @@ import getDecimalChainId from '../../../util/networks/getDecimalChainId';
 import URLPARSE from 'url-parse';
 import scaling from '../../../util/scaling';
 import { isWebUri } from 'valid-url';
-import InfoModal from '../Swaps/components/InfoModal';
-import ImageIcons from '../../UI/ImageIcon';
 import { useDispatch, useSelector } from 'react-redux';
 import { MetaMetricsEvents } from '../../../core/Analytics';
-import { BannerVariant } from '../../../component-library/components/Banners/Banner';
+import { BannerAlertSeverity } from '../../../component-library/components/Banners/Banner';
 import {
   ButtonSize,
   ButtonVariants,
 } from '../../../component-library/components/Buttons/Button';
-import { TextVariant } from '../../../component-library/components/Texts/Text';
-import Banner from '../../../component-library/components/Banners/Banner/Banner';
 import AnalyticsV2 from '../../../util/analyticsV2';
 
 import { useTheme } from '../../../util/theme';
 import { networkSwitched } from '../../../actions/onboardNetwork';
-import generateTestId from '../../../../wdio/utils/generateTestId';
 import { NetworkApprovalModalSelectorsIDs } from '../../../../e2e/selectors/Modals/NetworkApprovalModal.selectors';
 import type { ThemeColors } from '@metamask/design-tokens/dist/types/js/themes/types';
 import { selectUseSafeChainsListValidation } from '../../../selectors/preferencesController';
@@ -36,9 +30,17 @@ import BottomSheetFooter, {
   ButtonsAlignment,
 } from '../../../component-library/components/BottomSheets/BottomSheetFooter';
 import { ButtonProps } from '../../../component-library/components/Buttons/Button/Button.types';
+import checkSafeNetwork from '../../../core/SDKConnect/utils/networkChecker.util';
+import NetworkVerificationInfo from '../NetworkVerificationInfo';
 
 const createStyles = (colors: ThemeColors) =>
   StyleSheet.create({
+    root: {
+      backgroundColor: colors.background.default,
+      paddingHorizontal: 0,
+      maxHeight: '85%',
+      paddingBottom: 20,
+    },
     bottomModal: {
       justifyContent: 'flex-end',
       margin: 0,
@@ -50,32 +52,9 @@ const createStyles = (colors: ThemeColors) =>
     modalContainer: {
       borderRadius: 10,
       backgroundColor: colors.background.default,
-      padding: 20,
+      padding: 4,
       paddingTop: 4,
-    },
-    buttonView: {
-      flexDirection: 'row',
-      paddingVertical: 16,
-    },
-    button: {
-      flex: 1,
-    },
-    cancel: {
-      marginRight: 8,
-      borderColor: colors.text.muted,
-      borderWidth: 1,
-    },
-    confirm: {
-      marginLeft: 8,
-    },
-    networkInformation: {
-      flexDirection: 'row',
-      justifyContent: 'flex-start',
-      borderWidth: 1,
-      borderColor: colors.text.muted,
-      borderRadius: 10,
-      padding: 16,
-      marginBottom: 10,
+      maxHeight: '80%',
     },
     title: {
       ...fontStyles.bold,
@@ -89,33 +68,10 @@ const createStyles = (colors: ThemeColors) =>
     bottomSpace: {
       marginBottom: 10,
     },
-    nameWrapper: {
-      backgroundColor: colors.background.alternative,
-      marginRight: '15%',
-      marginLeft: '15%',
-      paddingVertical: 5,
-      borderRadius: 40,
-      justifyContent: 'center',
-      alignItems: 'center',
-      flexDirection: 'row',
-    },
-    infoIconContainer: {
-      paddingHorizontal: 3,
-    },
-    infoIcon: {
-      fontSize: 12,
-      color: colors.icon.default,
-    },
     actionContainer: {
       flex: 0,
       paddingVertical: 16,
       justifyContent: 'center',
-    },
-    popularNetworkImage: {
-      width: 20,
-      height: 20,
-      marginRight: 10,
-      borderRadius: 10,
     },
     notch: {
       width: 40,
@@ -127,6 +83,22 @@ const createStyles = (colors: ThemeColors) =>
       alignSelf: 'stretch',
       padding: 4,
       alignItems: 'center',
+    },
+    textSection: {
+      marginBottom: 8,
+    },
+    accountCardWrapper: {
+      borderWidth: 1,
+      borderColor: colors.border.default,
+      borderRadius: 10,
+      padding: 16,
+      marginVertical: 16,
+      maxHeight: '70%',
+    },
+    nestedScrollContent: { paddingBottom: 24 },
+    networkSection: { marginBottom: 16 },
+    textCentred: {
+      textAlign: 'center',
     },
   });
 
@@ -157,10 +129,17 @@ const NetworkModals = (props: NetworkProps) => {
   } = props;
 
   const [showDetails, setShowDetails] = React.useState(false);
-  const [showInfo, setShowInfo] = React.useState(false);
   const [networkAdded, setNetworkAdded] = React.useState(false);
   const [showCheckNetwork, setShowCheckNetwork] = React.useState(false);
+  const [alerts, setAlerts] = React.useState<
+    {
+      alertError: string;
+      alertSeverity: BannerAlertSeverity;
+      alertOrigin: string;
+    }[]
+  >([]);
 
+  const isCustomNetwork = true;
   const showDetailsModal = () => setShowDetails(!showDetails);
   const showCheckNetworkModal = () => setShowCheckNetwork(!showCheckNetwork);
 
@@ -209,9 +188,32 @@ const NetworkModals = (props: NetworkProps) => {
     selectUseSafeChainsListValidation,
   );
 
-  const showToolTip = () => setShowInfo(!showInfo);
+  const customNetworkInformation = {
+    chainId,
+    blockExplorerUrl,
+    chainName: nickname,
+    rpcUrl,
+    icon: imageUrl,
+    ticker,
+    alerts,
+  };
 
-  const goToLink = () => Linking.openURL(strings('networks.security_link'));
+  const checkNetwork = useCallback(async () => {
+    if (useSafeChainsListValidation) {
+      const alertsNetwork = await checkSafeNetwork(
+        chainId,
+        rpcUrl,
+        nickname,
+        ticker,
+      );
+
+      setAlerts(alertsNetwork);
+    }
+  }, [chainId, rpcUrl, nickname, ticker, useSafeChainsListValidation]);
+
+  useEffect(() => {
+    checkNetwork();
+  }, [checkNetwork]);
 
   const closeModal = () => {
     const { NetworkController } = Engine.context;
@@ -287,7 +289,6 @@ const NetworkModals = (props: NetworkProps) => {
       backdropOpacity={0.7}
       animationInTiming={600}
       animationOutTiming={600}
-      swipeDirection={'down'}
       propagateSwipe
     >
       <View style={styles.modalContainer}>
@@ -333,97 +334,17 @@ const NetworkModals = (props: NetworkProps) => {
           />
         ) : (
           <View>
-            {showInfo && (
-              <InfoModal
-                isVisible
-                toggleModal={showToolTip}
-                message={strings('networks.provider')}
-              />
-            )}
             <View style={styles.notchWrapper}>
               <View style={styles.notch} />
             </View>
-            <Text reset style={styles.title}>
-              {strings('networks.add_custom_network')}
-            </Text>
-            <View
-              style={styles.nameWrapper}
-              {...generateTestId(
-                Platform,
-                NetworkApprovalModalSelectorsIDs.CONTAINER,
-              )}
-            >
-              <ImageIcons image={imageUrl} style={styles.popularNetworkImage} />
-              <Text black>{nickname}</Text>
-            </View>
-            <Text centered style={styles.bottomSpace}>
-              {strings('networks.network_infomation')}
-            </Text>
 
-            {!useSafeChainsListValidation ? (
-              <View style={styles.alertBar}>
-                <Banner
-                  variant={BannerVariant.Alert}
-                  description={strings('wallet.network_check_validation_desc')}
-                  actionButtonProps={{
-                    variant: ButtonVariants.Link,
-                    label: strings('wallet.turn_on_network_check_cta'),
-                    onPress: () => showCheckNetworkModal(),
-                    textVariant: TextVariant.BodyMD,
-                  }}
-                />
-              </View>
-            ) : null}
-            <Text centered style={styles.bottomSpace}>
-              <Text centered>{strings('networks.network_endorsement')}</Text>
-
-              <Text link onPress={goToLink}>
-                {strings('networks.learn_about') + ' '}
-                {strings('networks.network_risk')}
-              </Text>
-            </Text>
-            <View style={styles.networkInformation}>
-              <View>
-                <Text black>{strings('networks.network_display_name')}</Text>
-                <Text
-                  bold
-                  black
-                  style={styles.bottomSpace}
-                  testID={NetworkApprovalModalSelectorsIDs.DISPLAY_NAME}
-                >
-                  {nickname}
-                </Text>
-                <Text black>{strings('networks.network_chain_id')}</Text>
-                <Text bold black style={styles.bottomSpace}>
-                  {chainId}
-                </Text>
-                <Text black>{strings('networks.network_rpc_url')}</Text>
-                <Text bold black style={styles.bottomSpace}>
-                  {formattedRpcUrl || rpcUrl}
-                </Text>
-              </View>
-            </View>
-            <Text onPress={showDetailsModal} centered link bold>
-              {strings('networks.view_details')}
-            </Text>
-            <View style={styles.buttonView}>
-              <StyledButton
-                type={'cancel'}
-                onPress={onClose}
-                containerStyle={[styles.button, styles.cancel]}
-                testID={NetworkApprovalModalSelectorsIDs.CANCEL_BUTTON}
-              >
-                <Text centered>{strings('networks.cancel')}</Text>
-              </StyledButton>
-              <StyledButton
-                type={'confirm'}
-                onPress={addNetwork}
-                containerStyle={[styles.button, styles.confirm]}
-                testID={NetworkApprovalModalSelectorsIDs.APPROVE_BUTTON}
-                disabled={!validateRpcUrl(rpcUrl)}
-              >
-                {strings('networks.approve')}
-              </StyledButton>
+            <View style={styles.root}>
+              <NetworkVerificationInfo
+                customNetworkInformation={customNetworkInformation}
+                onReject={onClose}
+                onConfirm={addNetwork}
+                isCustomNetwork={isCustomNetwork}
+              />
             </View>
           </View>
         )}

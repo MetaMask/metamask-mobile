@@ -31,6 +31,12 @@ import BottomSheetFooter, {
 } from '../../../component-library/components/BottomSheets/BottomSheetFooter';
 import BottomSheetHeader from '../../../component-library/components/BottomSheets/BottomSheetHeader';
 
+interface Alert {
+  alertError: string;
+  alertSeverity: BannerAlertSeverity;
+  alertOrigin: string;
+}
+
 /**
  * NetworkVerificationInfo component
  */
@@ -38,10 +44,12 @@ const NetworkVerificationInfo = ({
   customNetworkInformation,
   onReject,
   onConfirm,
+  isCustomNetwork = false,
 }: {
   customNetworkInformation: CustomNetworkInformation;
   onReject: () => void;
   onConfirm: () => void;
+  isCustomNetwork?: boolean;
 }) => {
   const [networkInfoMaxHeight, setNetworkInfoMaxHeight] = useState<
     number | null
@@ -52,8 +60,8 @@ const NetworkVerificationInfo = ({
     selectUseSafeChainsListValidation,
   );
   const [showCheckNetwork, setShowCheckNetwork] = React.useState(false);
-  const [alerts, setAlerts] = React.useState(customNetworkInformation.alerts);
-
+  const { alerts: alertsFromProps } = customNetworkInformation;
+  const [alerts, setAlerts] = React.useState<Alert[]>(alertsFromProps);
   const showCheckNetworkModal = () => setShowCheckNetwork(!showCheckNetwork);
 
   const toggleUseSafeChainsListValidation = (value: boolean) => {
@@ -124,10 +132,7 @@ const NetworkVerificationInfo = ({
         <View style={styles.alertBar}>
           <Banner
             variant={BannerVariant.Alert}
-            description={
-              strings('wallet.network_details_check') +
-              strings('wallet.network_check_validation_desc')
-            }
+            description={strings('wallet.network_check_validation_desc')}
             actionButtonProps={{
               variant: ButtonVariants.Link,
               label: strings('wallet.turn_on_network_check_cta'),
@@ -138,9 +143,11 @@ const NetworkVerificationInfo = ({
         </View>
       );
     }
+    return null;
   };
 
   const renderAlerts = useCallback(() => {
+    if (!useSafeChainsListValidation) return null;
     if (!alerts.length) return null;
     return alerts.map(
       (
@@ -166,7 +173,7 @@ const NetworkVerificationInfo = ({
         />
       ),
     );
-  }, [alerts, styles.textSection]);
+  }, [alerts, styles.textSection, useSafeChainsListValidation]);
 
   return showCheckNetwork ? (
     <View>
@@ -213,7 +220,9 @@ const NetworkVerificationInfo = ({
     <View>
       <BottomSheetHeader>
         <Text variant={TextVariant.HeadingMD}>
-          {strings('add_custom_network.title')}
+          {isCustomNetwork
+            ? strings('networks.add_custom_network')
+            : strings('app_settings.network_add_network')}
         </Text>
       </BottomSheetHeader>
       <ScrollView style={styles.root}>

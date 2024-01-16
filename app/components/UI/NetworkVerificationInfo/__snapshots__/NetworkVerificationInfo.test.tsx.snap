@@ -46,7 +46,7 @@ exports[`NetworkVerificationInfo renders correctly 1`] = `
           }
         }
       >
-        Allow this site to add a network?
+        Add Network
       </Text>
     </View>
     <View
