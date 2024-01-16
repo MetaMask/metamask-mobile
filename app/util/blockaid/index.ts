@@ -13,15 +13,17 @@ export const SUPPORTED_CHAIN_IDS: string[] = [
 export const isSupportedChainId = (chainId: string) => {
   /**
    * Quite a number of our test cases return undefined as chainId from state.
-   * So, this allowing undefined chainId for now.
+   * In such cases, the tests don't really care about the chainId.
+   * So, this treats undefined chainId as mainnet for now.
    * */
   if (chainId === undefined) {
     return true;
   }
 
-  const isSupported  = SUPPORTED_CHAIN_IDS.find(
-    (id) => getDecimalChainId(id) === getDecimalChainId(chainId),
-  ) !== undefined;
+  const isSupported =
+    SUPPORTED_CHAIN_IDS.find(
+      (id) => getDecimalChainId(id) === getDecimalChainId(chainId),
+    ) !== undefined;
 
   return isSupported;
 };
