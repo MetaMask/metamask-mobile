@@ -468,7 +468,6 @@ const Settings: React.FC = () => {
       });
     } else {
       await metrics.enable(false);
-      await metrics.reset();
       Analytics.disable();
       setAnalyticsEnabled(false);
       Alert.alert(
@@ -1004,7 +1003,7 @@ const Settings: React.FC = () => {
           {strings('app_settings.analytics_subheading')}
         </Text>
         {renderMetaMetricsSection()}
-        <DeleteMetaMetricsData />
+        <DeleteMetaMetricsData metricsOptin={analyticsEnabled} />
         <DeleteWalletData />
         {renderHint()}
       </View>
