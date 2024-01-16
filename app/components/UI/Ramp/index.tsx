@@ -226,19 +226,25 @@ function FiatOrders() {
 
   const dispatchAddFiatOrder = useCallback(
     (order: FiatOrder) => {
-      dispatch(addFiatOrder(order));
-      if (order.orderType === OrderOrderTypeEnum.Sell) {
-        navigation.navigate(Routes.TRANSACTIONS_VIEW, {
-          screen: Routes.RAMP.ORDER_DETAILS,
-          initial: false,
-          params: {
-            orderId: order.id,
-            redirectToSendTransaction: true,
-          },
-        });
-      }
+      dispatchThunk((_dispatch, getState) => {
+        const state = getState();
+        if (stateHasOrder(state, order)) {
+          return;
+        }
+        _dispatch(addFiatOrder(order));
+        if (order.orderType === OrderOrderTypeEnum.Sell) {
+          navigation.navigate(Routes.TRANSACTIONS_VIEW, {
+            screen: Routes.RAMP.ORDER_DETAILS,
+            initial: false,
+            params: {
+              orderId: order.id,
+              redirectToSendTransaction: true,
+            },
+          });
+        }
+      });
     },
-    [dispatch, navigation],
+    [dispatchThunk, navigation],
   );
   const dispatchUpdateFiatOrder = useCallback(
     (order: FiatOrder) => dispatch(updateFiatOrder(order)),
