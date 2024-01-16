@@ -20,10 +20,9 @@ export const isSupportedChainId = (chainId: string) => {
     return true;
   }
 
-  const isSupported =
-    SUPPORTED_CHAIN_IDS.find(
-      (id) => getDecimalChainId(id) === getDecimalChainId(chainId),
-    ) !== undefined;
+  const isSupported = SUPPORTED_CHAIN_IDS.some(
+    (id) => getDecimalChainId(id) === getDecimalChainId(chainId),
+  );
 
   return isSupported;
 };
