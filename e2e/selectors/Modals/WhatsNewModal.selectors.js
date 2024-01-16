@@ -2,5 +2,4 @@
 export const WhatsNewModalSelectorsIDs = {
   CLOSE_BUTTON: 'whats-new-modal-close-button',
   CONTAINER: 'whats-new-modal-container',
-  GOT_IT_BUTTON: 'whats-new-modal-got-it-button',
 };

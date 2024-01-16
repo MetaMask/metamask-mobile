@@ -7,8 +7,6 @@ import { OrderOrderTypeEnum } from '@consensys/on-ramp-sdk/dist/API';
 import WebView from 'react-native-webview';
 import AppConstants from '../../../core/AppConstants';
 import NotificationManager from '../../../core/NotificationManager';
-import { strings } from '../../../../locales/i18n';
-import { renderNumber } from '../../../util/number';
 import { FIAT_ORDER_STATES } from '../../../constants/on-ramp';
 import {
   FiatOrder,
@@ -32,15 +30,10 @@ import { AnalyticsEvents } from './common/types';
 import { CustomIdData } from '../../../reducers/fiatOrders/types';
 import { callbackBaseUrl } from './common/sdk';
 import useFetchRampNetworks from './common/hooks/useFetchRampNetworks';
-import { stateHasOrder } from './common/utils';
+import { getNotificationDetails, stateHasOrder } from './common/utils';
 import Routes from '../../../constants/navigation/Routes';
 
 const POLLING_FREQUENCY = AppConstants.FIAT_ORDERS.POLLING_FREQUENCY;
-const NOTIFICATION_DURATION = 5000;
-
-const baseNotificationDetails = {
-  duration: NOTIFICATION_DURATION,
-};
 
 /**
  * @param {FiatOrder} fiatOrder
@@ -140,67 +133,6 @@ export const getAggregatorAnalyticsPayload = (
     case FIAT_ORDER_STATES.PENDING:
     default: {
       return [null, null];
-    }
-  }
-};
-/**
- * @param {FiatOrder} fiatOrder
- */
-export const getNotificationDetails = (fiatOrder: FiatOrder) => {
-  switch (fiatOrder.state) {
-    case FIAT_ORDER_STATES.FAILED: {
-      return {
-        ...baseNotificationDetails,
-        title: strings('fiat_on_ramp.notifications.purchase_failed_title', {
-          currency: fiatOrder.cryptocurrency,
-        }),
-        description: strings(
-          'fiat_on_ramp.notifications.purchase_failed_description',
-        ),
-        status: 'error',
-      };
-    }
-    case FIAT_ORDER_STATES.CANCELLED: {
-      return {
-        ...baseNotificationDetails,
-        title: strings('fiat_on_ramp.notifications.purchase_cancelled_title'),
-        description: strings(
-          'fiat_on_ramp.notifications.purchase_cancelled_description',
-        ),
-        status: 'cancelled',
-      };
-    }
-    case FIAT_ORDER_STATES.COMPLETED: {
-      return {
-        ...baseNotificationDetails,
-        title: strings('fiat_on_ramp.notifications.purchase_completed_title', {
-          amount: renderNumber(String(fiatOrder.cryptoAmount)),
-          currency: fiatOrder.cryptocurrency,
-        }),
-        description: strings(
-          'fiat_on_ramp.notifications.purchase_completed_description',
-          {
-            currency: fiatOrder.cryptocurrency,
-          },
-        ),
-        status: 'success',
-      };
-    }
-    case FIAT_ORDER_STATES.CREATED: {
-      return null;
-    }
-    case FIAT_ORDER_STATES.PENDING:
-    default: {
-      return {
-        ...baseNotificationDetails,
-        title: strings('fiat_on_ramp.notifications.purchase_pending_title', {
-          currency: fiatOrder.cryptocurrency,
-        }),
-        description: strings(
-          'fiat_on_ramp.notifications.purchase_pending_description',
-        ),
-        status: 'pending',
-      };
     }
   }
 };

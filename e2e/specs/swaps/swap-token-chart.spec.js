@@ -21,7 +21,7 @@ import { Regression } from '../../tags';
 const fixtureServer = new FixtureServer();
 
 describe(Regression('Swap from Token view'), () => {
-  const swapOnboarded = false;
+  const swapOnboarded = true; // TODO: Set it to false once we show the onboarding page again.
   beforeAll(async () => {
     await TestHelpers.reverseServerPort();
     const fixture = new FixtureBuilder()
@@ -61,7 +61,6 @@ describe(Regression('Swap from Token view'), () => {
     await SwapView.isVisible();
     await SwapView.tapIUnderstandPriceWarning();
     await SwapView.swipeToSwap();
-    await TestHelpers.delay(5000);
     await SwapView.waitForSwapToComplete('USDC', 'DAI');
   });
 });

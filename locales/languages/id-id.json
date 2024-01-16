@@ -1323,14 +1323,6 @@
     "wyre_total_label": "Wyre (melalui MetaMask)",
     "buy_with": "Beli dengan",
     "plus_fee": "Plus biaya {{fee}}",
-    "notifications": {
-      "purchase_failed_title": "Pembelian {{currency}} gagal! Silakan coba lagi, maaf atas ketidaknyamanannya!",
-      "purchase_cancelled_title": "Pembelian Anda dibatalkan",
-      "purchase_completed_title": "Pembelian {{amount}} {{currency}} Anda berhasil!",
-      "purchase_completed_description": "{{currency}} kini tersedia",
-      "purchase_pending_title": "Memproses pembelian {{currency}} Anda",
-      "purchase_pending_description": "Ini cuma perlu beberapa menit..."
-    },
     "date": "Tanggal",
     "from": "Dari",
     "to": "Untuk",
@@ -1364,6 +1356,16 @@
         "subtitle_5": "dan lihat berapa biayanya.",
         "cta": "Lanjutkan membeli {{ticker}}"
       }
+    }
+  },
+  "fiat_on_ramp_aggregator": {
+    "notifications": {
+      "purchase_failed_title": "Pembelian {{currency}} gagal! Silakan coba lagi, maaf atas ketidaknyamanannya!",
+      "purchase_cancelled_title": "Pembelian Anda dibatalkan",
+      "purchase_completed_title": "Pembelian {{amount}} {{currency}} Anda berhasil!",
+      "purchase_completed_description": "{{currency}} kini tersedia",
+      "purchase_pending_title": "Memproses pembelian {{currency}} Anda",
+      "purchase_pending_description": "Ini cuma perlu beberapa menit..."
     }
   },
   "swaps": {
@@ -1436,7 +1438,6 @@
     "i_understand": "Saya paham",
     "quotes_expire_in": "Kuota kedaluwarsa dalam",
     "saving": "Menyimpan",
-    "using_best_quote": "Menggunakan kuota terbaik",
     "view_details": "Lihat detail",
     "estimated_gas_fee": "Biaya jaringan yang diperkirakan",
     "max_gas_fee": "Biaya jaringan maksimum",
@@ -1449,10 +1450,6 @@
     "completed_swap": "Tukar!",
     "metamask_swap_fee": "Biaya Penukaran MetaMask",
     "fee_text": {
-      "get_the": "Dapatkan",
-      "best_price": "harga terbaik",
-      "from_the": "dari",
-      "top_liquidity": "sumber likuiditas teratas setiap saat.",
       "fee_is_applied": "Biaya sebesar {{fee}} secara otomatis diperhitungkan ke dalam setiap kuota, yang mendukung pengembangan berkelanjutan untuk membuat MetaMask lebih baik lagi."
     },
     "enable": {

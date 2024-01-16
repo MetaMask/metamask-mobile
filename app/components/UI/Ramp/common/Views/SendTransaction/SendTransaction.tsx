@@ -53,7 +53,6 @@ import { NATIVE_ADDRESS } from '../../../../../../constants/on-ramp';
 import { safeToChecksumAddress } from '../../../../../../util/address';
 import { generateTransferData } from '../../../../../../util/transactions';
 import useAnalytics from '../../hooks/useAnalytics';
-import Routes from '../../../../../../constants/navigation/Routes';
 
 interface SendTransactionParams {
   orderId?: string;
@@ -158,7 +157,6 @@ function SendTransaction() {
           'OFFRAMP_SEND_TRANSACTION_CONFIRMED',
           transactionAnalyticsPayload,
         );
-        navigation.navigate(Routes.WALLET_VIEW);
       }
     } catch (error) {
       trackEvent(

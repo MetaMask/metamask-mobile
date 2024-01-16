@@ -1,5 +1,7 @@
 # BottomSheetFooter
 
+![BottomSheetFooter](./BottomSheetFooter.png)
+
 BottomSheetFooter is a Footer component specifically used for BottomSheets.
 
 ## Props

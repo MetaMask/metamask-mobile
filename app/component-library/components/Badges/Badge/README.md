@@ -1,5 +1,8 @@
 # Badge
 
+![BadgeNetwork](./variants/BadgeNetwork/BadgeNetwork.png)
+![BadgeStatus](./variants/BadgeStatus/BadgeStatus.png)
+
 Badge is a union component, which currently only consist of [BadgeNetwork](./variants/BadgeNetwork/BadgeNetwork.tsx)
 
 ## Common Props

@@ -17,7 +17,20 @@
     "does_not_look_right": "Bir şeyler doğru görünmüyor mu?",
     "suspicious_request_title": "Bu, şüheli bir taleptir",
     "trade_order_farming_description": "Bu talebi onaylarsanız varlıklarınızı kaybedebilirsiniz.",
-    "transfer_farming_description": "Bu talebi onaylarsanız dolandırıcılıkla bilinen üçüncü bir taraf tüm varlıklarınızı çalar."
+    "transfer_farming_description": "Bu talebi onaylarsanız dolandırıcılıkla bilinen üçüncü bir taraf tüm varlıklarınızı çalar.",
+    "before_you_proceed": "Devam etmeden önce",
+    "enable_blockaid_alerts": "Bu özelliği etkinleştirmek için bazı güvenlik uyarılarının kurulumunun yapılması gerekiyor. Kurulum yapılırken bu sayfanın açık kalması gerekecek. Bu işlemin tamamlanması bir dakikadan az sürecektir.",
+    "setting_up_alerts": "Güvenlik uyarılarının kurulumu yapılıyor",
+    "setting_up_alerts_description": "Güvenlik uyarlarının kurulumunu yapmak için elimizden geldiğince hızlı ilerliyoruz. Pes etmeyin, bitmek üzere.",
+    "setup_complete": "Kurulum tamamlandı",
+    "setup_failed": "Güvenlik uyarılarının ayarlanmasını tamamlayamadık. İnternet bağlantınızı kontrol edip tekrar deneyin.",
+    "setup_multiple_failures": "İnternet bağlantınız şu anda stabil olmadığından güvenlik uyarılarını ayarlayamadık. Lütfen bağlantınız stabil hale gelince tekrar deneyin.",
+    "setup_complete_description": "Güvenlik uyarıları hazır. Bu sayfayı kapatıp cüzdanınızı keşfetmeye devam edebilirsiniz",
+    "continue": "Devam",
+    "cancel": "İptal",
+    "got_it": "Anladım",
+    "try_again": "Tekrar Dene",
+    "failed": "Bir şeyler ters gitti"
   },
   "date": {
     "months": {
@@ -201,6 +214,10 @@
     "security_alert_title": "Güvenlik Uyarısı",
     "security_alert_desc": "İlerlemek için Parolayı veya cihazınızda desteklenen herhangi bir biyometrik kimlik doğrulama yöntemini (FaceID, TouchID veya Parmak İzi) açmanız gereklidir"
   },
+  "connect_hardware": {
+    "title_select_hardware": "Bir donanım cüzdanı bağlayın",
+    "select_hardware": "Kullanmak istediğiniz donanım cüzdanını seçin"
+  },
   "enter_password": {
     "title": "Şifrenizi girin",
     "desc": "Devam etmek için lütfen şifrenizi girin",
@@ -262,7 +279,7 @@
     "successfully_changed": "Şifreniz başarılı bir şekilde değiştirildi"
   },
   "import_from_seed": {
-    "title": "Seed'den aktar",
+    "title": "Gizli Kurtarma İfadesinden içe aktar",
     "seed_phrase_placeholder": "Gizli Kurtarma İfadenizi girin",
     "new_password": "Yeni Şifre",
     "confirm_password": "Şifreyi onayla",
@@ -381,6 +398,7 @@
     "logout_to_import_seed": "Bir Gizli Kurtarma İfadesini içe aktarmak için önce oturumu kapatmanız gerekiyor.",
     "ready_to_explore": "Blokzinciri uygulamalarını keşfetmeye başlamak için hazır mısınız?",
     "unable_to_load": "Bakiye yüklenmedi",
+    "unable_to_find_conversion_rate": "dönüştürme oranı bulunamıyor",
     "display_nft_media_desc": "Bir NFT'yi içe aktarmak için Ayarlar > Güvenlik ve gizlilik kısmında NFT medyasını göster seçeneğini açın.",
     "display_nft_media_cta": "NFT medyasını göster seçeneğini açın",
     "display_media_nft_warning": "NFT medyasını ve verilerini göstermek IP adresinizi merkezi sunuculara ifşa edebilir. Sadece mevcut riskleri anlıyorsanız NFT'yi içe aktarın.",
@@ -513,10 +531,10 @@
   },
   "accounts": {
     "create_new_account": "Yeni hesap oluştur",
+    "qr_hardware": "QR donanımı",
     "import_account": "Bir hesabı içe aktar",
     "connect_hardware": "Donanım cüzdanı bağla",
     "imported": "İçe aktarıldı",
-    "qr_hardware": "QR donanımı",
     "remove_account_title": "Hesap kaldırma",
     "remove_account_message": "Bu hesabı gerçekten kaldırmak istiyor musunuz?",
     "no": "Hayır",
@@ -536,6 +554,7 @@
     "permissions": "İzinler",
     "revoke": "İptal et",
     "revoke_all": "Tümünü iptal et",
+    "ledger": "Ledger",
     "site_permission_to": "Bu sitenin şunları yapmaya izni vardır:",
     "address_balance_activity_permission": "Adres, hesap bakiyesi ve aktiviteyi görme",
     "suggest_transactions": "Onaylanacak işlemleri önerme",
@@ -569,7 +588,7 @@
     "tutorial": "Öğretici",
     "description4": "Temel (öğretici)",
     "description5": "1. Kilit Taşınızı Açın",
-    "description6": "2. ··· Menüsüne tıklayın, daha sonra Senkronize et sekmesine gidin >",
+    "description6": "2. ··· Menüsüne dokunun, ardından Senkronize Et sekmesine gidin",
     "button_continue": "Devam",
     "hint_text": "İşlemi onaylamak için ",
     "purpose_connect": "bağlan",
@@ -602,9 +621,9 @@
     "autolock_after_minutes": "{{time}} dakika sonra",
     "reveal_seed_words": "Seed Sözcüklerini Göster",
     "reset_account": "Hesabı Sıfırla",
-    "state_logs_button": "DURUM GÜNLÜKLERİNİ İNDİR",
+    "state_logs_button": "Durum Günlüklerini İndir",
     "reveal_seed_words_button": "SEED SÖZCÜKLERİNİ GÖSTER",
-    "reset_account_button": "HESABI SIFIRLA",
+    "reset_account_button": "Hesabı Sıfırla",
     "reset_account_confirm_button": "Evet, sıfırla",
     "reset_account_cancel_button": "İptal",
     "reset_account_modal_title": "Hesabı Sıfırla?",
@@ -658,8 +677,8 @@
     "toggleEthSignModalTitle": "Kullanım riski size aittir",
     "toggleEthSignModalEnable": "Etkinleştir",
     "toggleEthSignModalLearnMore": "Daha fazla bilgi edinin.",
-    "toggleEthSignOff": "Kapalı (Önerilir)",
-    "toggleEthSignOn": "Açık (Önerilmez)",
+    "toggleEthSignOff": "(Önerilir)",
+    "toggleEthSignOn": "(Önerilmez)",
     "toggleEthSignContinueButton": "Devam Et",
     "toggleEthSignEnableButton": "Etkinleştir",
     "show_custom_nonce": "İşlem nonce numarasını kişiselleştir",
@@ -701,7 +720,7 @@
     "remove_network": "Kaldır",
     "cancel_remove_network": "İptal",
     "info_title": "MetaMask Hakkında",
-    "info_title_flask": "About MetaMask Flask",
+    "info_title_flask": "MetaMask Flask Hakkında",
     "experimental_title": "Deneysel",
     "experimental_desc": "WalletConnect ve daha fazlası...",
     "legal_title": "Hukuki",
@@ -782,7 +801,7 @@
     "manage_sdk_connections_title": "Bağlantıları yönet",
     "manage_sdk_connections_text": "Sitelere ve/veya MetaMask SDK bağlantılarını kaldırın.",
     "fiat_on_ramp": {
-      "title": "Kripto Satın Al",
+      "title": "Kripto Al ve Sat",
       "description": "Bölge ve daha fazlası...",
       "current_region": "Mevcut Bölge",
       "reset_region": "Bölgeyi Sıfırla",
@@ -801,7 +820,58 @@
     "autodetect_nft_desc": "MetaMask'in üçüncü taraf hizmetleri (OpenSea) kullanarak size ait olan NFT'leri eklemesine izin verin. NFT'leri otomatik algılama, IP adresinizi ve hesap adresinizi bu hizmetlere ifşa eder. Bu özelliğin etkinleştirilmesi IP adresinizi Ethereum adresinizle ilişkilendirebilir ve dolandırıcılar tarafından airdrop'u gerçekleştirilen sahte NFT'leri gösterebilir. Bu riski önlemek için token'leri elle ekleyebilirsiniz.",
     "incoming_transactions_title": "Gelen işlemleri göster",
     "incoming_transactions_content": "Bu, Ethereum adresinizi ve IP adresinizi ifşa edecek olan seçtiğiniz ağa dayalıdır.",
-    "display_nft_media_desc_new": "NFT medyasını ve verilerini görüntülemek, IP adresinizin OpenSea veya diğer üçüncü taraflarla paylaşılmasına neden olabilir. NFT otomatik algılama bu özelliğe dayanır ve kapatıldığında kullanılamaz. NFT medyası tamamen IPFS'de bulunuyorsa bu özellik kapalı olduğunda bile görüntülenmeye devam edebilir."
+    "display_nft_media_desc_new": "NFT medyasını ve verilerini görüntülemek, IP adresinizin OpenSea veya diğer üçüncü taraflarla paylaşılmasına neden olabilir. NFT otomatik algılama bu özelliğe dayanır ve kapatıldığında kullanılamaz. NFT medyası tamamen IPFS'de bulunuyorsa bu özellik kapalı olduğunda bile görüntülenmeye devam edebilir.",
+    "snaps": {
+      "title": "Snap'ler",
+      "description": "Snap'leriniz için genel bakış ve yönetim",
+      "snap_settings": {
+        "remove_snap_section_title": "Snap'i kaldır",
+        "remove_snap_section_description": "Bu eylem snap'i, verilerini ve verilen izinlerini siler.",
+        "remove_button_label": "{{snapName}} adlı snap'i kaldır"
+      },
+      "snap_details": {
+        "install_date": "{{date}} tarihinde yüklendi",
+        "install_origin": "Kökeni yükle",
+        "enabled": "Etkinleştirildi",
+        "version": "Sürüm"
+      },
+      "snap_permissions": {
+        "approved_date": "{{date}} tarihinde onaylandı",
+        "permission_section_title": "İzinler",
+        "permission_requested_now": "Şimdi talep edildi",
+        "human_readable_permission_titles": {
+          "endowment:long-running": "Süresiz çalıştır",
+          "endowment:network-access": "İnternet erişimi",
+          "endowment:transaction-insight": "İşlem içgörülerini görüntüle",
+          "endowment:cronjob": "Periyodik eylemleri planla ve çalıştır",
+          "endowment:rpc": {
+            "snaps": "Diğer snap'lerin doğrudan bu snap ile iletişim kurmasına izin ver",
+            "dapps": "Merkeziyetsiz uygulamaların doğrudan bu snap ile iletişim kurmasına izin ver"
+          },
+          "snap_confirm": "Özel iletişim kutuları göster",
+          "snap_manageState": "Verilerinizi cihazınızda saklayın ve yönetin",
+          "snap_notify": "Bildirimleri göster",
+          "snap_getBip32Entropy": "{{protocol}} hesaplarınızı ve varlıklarınızı kontrol et",
+          "snap_getBip32PublicKey": "{{protocol}} için genel anahtarınızı görüntüle",
+          "snap_getBip44Entropy": "{{protocol}} hesaplarınızı ve varlıklarınızı kontrol et",
+          "snap_getEntropy": "Bu snap için eşsiz rastgele anahtarları türet",
+          "endowment:keyring": "endowment:keyring",
+          "wallet_snap": "{{otherSnapName}} adlı snap'e bağlan",
+          "endowment:webassembly": "WebAssembly desteği",
+          "endowment:ethereum-provider": "Ethereum sağlayıcısına erişim sağla",
+          "endowment:unknown": "Bilinmeyen izin",
+          "snap_getLocale": "Tercih ettiğiniz dili görüntüle",
+          "endowment:caveat:transaction-origin": "İşlem öneren web sitelerinin kökenlerini gör",
+          "endowment:extend-runtime": "Çalışma süresini uzat",
+          "snap_dialog": "Özel iletişim kutuları görüntüle"
+        }
+      }
+    },
+    "privacy_browser_subheading": "Gizlilik veya tarayıcı verilerini temizle",
+    "analytics_subheading": "Analitikler",
+    "transactions_subheading": "İşlemler",
+    "token_nft_ens_subheading": "Token, NFT ve ENS otomatik algılama",
+    "security_check_subheading": "Güvenlik kontrolleri"
   },
   "sdk": {
     "disconnect_title": "Tüm sitelerin bağlantısı kesilsin mi?",
@@ -910,6 +980,7 @@
     "add_collectible_button": "Ekle",
     "info": "Bilgi",
     "swap": "Kaydır",
+    "bridge": "Köprü",
     "description": "Açıklama",
     "totalSupply": "Toplam Arz",
     "address": "Adres",
@@ -921,6 +992,7 @@
     "buy_description": "Nakit ile kripto satın alın",
     "sell_description": "Nakit karşılığında kripto sat",
     "swap_description": "Tokenler arasında swap gerçekleştirin",
+    "bridge_description": "Farklı ağlar arasında token transfer et",
     "send_description": "Dilediğin hesaba kripto gönderin",
     "receive_description": "Kripto alın",
     "chart_time_period": {
@@ -1020,6 +1092,7 @@
     "save": "Kaydet",
     "speedup": "Hızlandır",
     "sign_with_keystone": "Kilit Taşıyla Oturum Açın",
+    "sign_with_ledger": "Ledger ile oturum aç",
     "from": "Kimden",
     "gas_fee": "Gaz ücreti",
     "gas_fee_fast": "HIZLI",
@@ -1093,6 +1166,7 @@
     "not_enough_for_gas": "Hesabınızda işlem ücretlerini ödemek için 0 {{ticker}} bulunuyor. Bir miktar {{ticker}} satın alın veya başka bir hesaptan yatırın.",
     "send": "Gönder",
     "confirm_with_qr_hardware": "Kilit Taşıyla Onaylayın",
+    "confirm_with_ledger_hardware": "Ledger ile onayla",
     "confirmed": "Onaylandı",
     "pending": "Bekliyor",
     "submitted": "Gönderildi",
@@ -1128,7 +1202,8 @@
     "fiat_conversion_not_available": "Fiat para dönüştürmeleri şu anda kullanılmıyor",
     "hex_data_copied": "On altılı veriler panoya kopyalandı",
     "invalid_recipient": "Alıcı geçersiz",
-    "invalid_recipient_description": "Adresi kontrol edin ve geçerli olduğundan emin olun"
+    "invalid_recipient_description": "Adresi kontrol edin ve geçerli olduğundan emin olun",
+    "swap_tokens": "Token swap işlemi yapın"
   },
   "custom_gas": {
     "total": "Toplam",
@@ -1743,13 +1818,14 @@
   "experimental_settings": {
     "wallet_connect_dapps": "WalletConnect Oturumları",
     "wallet_connect_dapps_desc": "Aktif WalletConnect oturumlarının listesini görüntüle",
-    "wallet_connect_dapps_cta": "OTURUMLARI GÖRÜNTÜLE",
+    "wallet_connect_dapps_cta": "Oturumları görüntüle",
     "network_not_supported": "Geçerli ağ desteklenmiyor",
     "security_alerts": "Güvenlik uyarıları",
     "security_alerts_desc": "Bu özellik, işlem ve imza taleplerinizi yerel bir şekilde incelerken gizliliğinizi koruyarak Ethereum Ana Ağındaki kötü amaçlı faaliyetlere karşı sizi uyarır. Verileriniz, bu hizmeti sunan üçüncü taraf ile paylaşılmaz. Talepleri onaylamadan önce her zaman gereken özeni kendiniz gösterin. Bu özelliğin tüm kötü amaçlı faaliyetleri algılayacağına dair herhangi bir garanti bulunmamaktadır.",
     "select_provider": "Tercih ettiğiniz sağlayıcıyı seçin",
     "blockaid": "Blockaid",
-    "blockaid_desc": "Gizliliği koruma - üçüncü taraflarla hiçbir veri paylaşılmaz. Ethereum Ana Ağında mevcuttur.",
+    "blockaid_desc": "Privacy preserving - no data is shared with third parties.",
+    "available_on_eth_mainet": "Available on Ethereum Mainnet.",
     "switch_network": "Lütfen ana ağa veya sepolia ağına geçin"
   },
   "walletconnect_sessions": {
@@ -1845,16 +1921,6 @@
     "apple_pay_provider_total_label": "{{provider}}(MetaMask ile)",
     "buy_with": "Şununla satın al:",
     "plus_fee": "Artı {{fee}} ücret",
-    "notifications": {
-      "purchase_failed_title": "{{currency}} satın alma işlemi başarısız oldu! Lütfen tekrar deneyin, verdiğimiz rahatsızlıktan dolayı özür dileriz!",
-      "purchase_failed_description": "Ödeme yöntemini ve kart desteğini doğrula",
-      "purchase_cancelled_title": "Satın alma işleminiz iptal edildi",
-      "purchase_cancelled_description": "Ödeme yöntemini ve kart desteğini doğrula",
-      "purchase_completed_title": "{{amount}} {{currency}} satın alma işleminiz başarılı oldu!",
-      "purchase_completed_description": "{{currency}} para biriminiz şimdi kullanılabilir",
-      "purchase_pending_title": "{{currency}} satın alma işleminiz gerçekleşiyor",
-      "purchase_pending_description": "Bu işlem birkaç dakika sürecektir..."
-    },
     "date": "Tarih",
     "from": "Kimden",
     "to": "Kime",
@@ -1981,6 +2047,8 @@
     "insufficient_balance": "Bu tutar bakiyenizden yüksek",
     "enter_larger_amount": "Devam etmek için daha büyük bir tutar girin",
     "enter_smaller_amount": "Devam etmek için daha küçük bir tutar girin",
+    "enter_lower_gas_fees": "Enter a lower amount to pay for gas fees",
+    "max": "MAX",
     "try_again": "Tekrar dene",
     "error": "Hata",
     "something_went_wrong": "Hay aksi, bir şeyler ters gitti",
@@ -2012,7 +2080,9 @@
       "select_country_registered": "Kartının kayıtlı olduğu ülkeyi seç (bulunduğun yere bakılmaksızın).",
       "unsupported": "Bölge Desteklenmiyor",
       "unsupported_description": "Mümkün olan en kısa süre içinde bölgenizi de kapsamak için çok çalışıyoruz. Bu sırada, kripto {{rampType}} için diğer yolları öğrenmek üzere destek makalemize bakın.",
-      "unsupported_link": "Destek Makalesini Ziyaret Et"
+      "unsupported_link": "Destek Makalesini Ziyaret Et",
+      "popular_regions": "Popüler Bölgeler",
+      "regions": "Bölgeler"
     },
     "order_details": {
       "details_main": "Emir Bilgileri",
@@ -2060,6 +2130,24 @@
       "hold_to_send": "Göndermek için tut",
       "send": "Gönder",
       "sent": "Gönderildi!"
+    },
+    "notifications": {
+      "purchase_failed_title": "{{currency}} satın alma işlemi başarısız oldu! Lütfen tekrar deneyin, verdiğimiz rahatsızlıktan dolayı özür dileriz!",
+      "purchase_failed_description": "Ödeme yöntemini ve kart desteğini doğrula",
+      "purchase_cancelled_title": "Satın alma işleminiz iptal edildi",
+      "purchase_cancelled_description": "Ödeme yöntemini ve kart desteğini doğrula",
+      "purchase_completed_title": "{{amount}} {{currency}} satın alma işleminiz başarılı oldu!",
+      "purchase_completed_description": "{{currency}} para biriminiz artık kullanılabilir",
+      "purchase_pending_title": "{{currency}} satın alma işleminiz gerçekleşiyor",
+      "purchase_pending_description": "Bu işlem sadece birkaç dakika sürecektir...",
+      "sale_failed_title": "Emir başarısız oldu",
+      "sale_failed_description": "Emriniz tamamlanamadı.",
+      "sale_cancelled_title": "Emir iptal edildi",
+      "sale_cancelled_description": "Emriniz tamamlanamadı.",
+      "sale_completed_title": "Emir tamamlandı",
+      "sale_completed_description": "Emriniz başarılı oldu.",
+      "sale_pending_title": "{{currency}} satışı gerçekleştiriliyor",
+      "sale_pending_description": "Emriniz şu anda gerçekleştiriliyor."
     }
   },
   "swaps": {
@@ -2152,7 +2240,7 @@
     "i_understand": "Anlıyorum",
     "quotes_expire_in": "Tekliflerin bitmesine kalan süre:",
     "saving": "Kaydediliyor",
-    "using_best_quote": "En iyi teklif kullanılıyor",
+    "n_quotes": "{{numberOfQuotes}} teklif",
     "view_details": "Ayrıntıları görüntüle",
     "estimated_gas_fee": "Tahmini gaz ücreti",
     "max_gas_fee": "Maks. gaz ücreti",
@@ -2165,10 +2253,6 @@
     "completed_swap": "Swap gerçekleştir!",
     "metamask_swap_fee": "MetaMask Swap ücreti",
     "fee_text": {
-      "get_the": "Tüm zamanların en iyi likidite",
-      "best_price": "kaynaklarından",
-      "from_the": "en iyi fiyatı",
-      "top_liquidity": "al.",
       "fee_is_applied": "Bu teklife otomatik olarak {{fee}} ücret dahil edilmiştir. MetaMask'in likidite sağlayıcı bilgilerinin toplandığı yazılımı kullanma lisansı karşılığında ödersiniz.",
       "fee_is_not_applied": "MetaMask bu teklife ek bir ücret eklemez."
     },
@@ -2201,7 +2285,7 @@
     "quote_source_agg": {
       "1": "Bu teklif",
       "2": "emrinizi farklı merkeziyetsiz borsalar arasında bölerek en iyi fiyatı bulan bir toplayıcıdan",
-      "3": "gelir."
+      "3": "farklı merkeziyetsiz borsalar arasında fiyatları karşılaştırır ve emrinizi böler."
     },
     "quote_source_cnt": {
       "1": "Bu teklif doğrudan",
@@ -2642,7 +2726,12 @@
     "not_supported_error": "Girilen veri imzalama işleminde sadece sürüm 4 desteklenmektedir.",
     "error_during_connection": "Bilinmeyen bir hata oluştu",
     "error_during_connection_message": "Ledger Nano X cihazınıza bağlanırken küçük bir sorun oluştu, bunu tekrar denemek için aşağıdaki \"Tekrar Dene\" düğmesine dokunun. Bazen MetaMask Mobil ile eşleştirme sürecinin başlangıcında Ledger Nano X cihazında ETH uygulamasının açık olması nedeniyle bu durum meydana gelir.",
-    "how_to_install_eth_webview_title": "Ethereum uygulaması nasıl yüklenir?"
+    "how_to_install_eth_webview_title": "Ethereum uygulaması nasıl yüklenir?",
+    "nonce_too_low": "Nonce çok düşük",
+    "nonce_too_low_error": "Ayarlanan nonce çok düşük",
+    "ledger_beta_alert": "Ledger entegrasyonu etkinleştiriliyor",
+    "ledger_beta_alert_description": "Deneysel bir özellik buldunuz! Devam ederek deneysel özelliği riski kendinize ait olacak şekilde kullandığınızı kabul edersiniz.",
+    "ledger_beta_cta": "Devam Et"
   },
   "account_actions": {
     "edit_name": "Hesap adını düzenleyin",
@@ -2682,5 +2771,17 @@
     "ipfs_gateway_content2": "IPFS çözünürlüğünü dilediğiniz zaman",
     "ipfs_gateway_content3": "Ayarlar > Güvenlik ve gizlilik",
     "ipfs_gateway_content4": "menüsünden kapatabilirsiniz"
+  },
+  "install_snap": {
+    "title": "Bağlantı talebi",
+    "description": "{{origin}}, {{snap}} adlı snap'i indirerek bağlanmak istiyor. İlerlemeden önce yazarlarına güvendiğinizden emin olun.",
+    "permissions_request_title": "İzin talebi",
+    "permissions_request_description": "{{origin}}, {{snap}} adlı snap'i yüklemek istiyor ve bu snap aşağıdaki izinleri talep ediyor.",
+    "approve_permissions": "Onayla",
+    "installed": "Yüklendi",
+    "install_successful": "{{snap}} başarıyla yüklendi.",
+    "okay_action": "Tamam",
+    "error_title": "Yükleme başarısız oldu",
+    "error_description": "{{snap}} yüklemesi başarısız oldu."
   }
 }

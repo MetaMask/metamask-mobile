@@ -17,7 +17,20 @@
     "does_not_look_right": "有什么不对劲吗？",
     "suspicious_request_title": "此请求很可疑",
     "trade_order_farming_description": "如果您批准此请求，可能会遭受资产损失。",
-    "transfer_farming_description": "如果您批准此请求，因欺诈而恶名昭彰的第三方会拿走您的所有资产。"
+    "transfer_farming_description": "如果您批准此请求，因欺诈而恶名昭彰的第三方会拿走您的所有资产。",
+    "before_you_proceed": "继续之前",
+    "enable_blockaid_alerts": "要启用此功能，我们需要设置一些安全提醒。此页面在设置过程中需要保持打开状态。此操作需要不到一分钟即可完成。",
+    "setting_up_alerts": "设置安全提醒",
+    "setting_up_alerts_description": "我们正以最快速度设置安全提醒。请稍候，很快即将完成。",
+    "setup_complete": "设置完成",
+    "setup_failed": "我们无法完成安全提醒的设置。请检查您的互联网连接，然后重试。",
+    "setup_multiple_failures": "您的互联网连接目前不稳定，因此我们无法设置安全提醒。请在恢复连接后重试。",
+    "setup_complete_description": "安全提醒已准备就绪。您可以关闭此页面并开始浏览您的钱包",
+    "continue": "继续",
+    "cancel": "取消",
+    "got_it": "知道了",
+    "try_again": "请重试",
+    "failed": "出错了"
   },
   "date": {
     "months": {
@@ -201,6 +214,10 @@
     "security_alert_title": "安全警报",
     "security_alert_desc": "要继续，您需要开启密码或设备支持的任何生物特征身份验证方法（FaceID、TouchID 或指纹）"
   },
+  "connect_hardware": {
+    "title_select_hardware": "连接硬件钱包",
+    "select_hardware": "选择希望使用的硬件钱包"
+  },
   "enter_password": {
     "title": "输入您的密码",
     "desc": "请输入您的密码以便继续",
@@ -262,7 +279,7 @@
     "successfully_changed": "您的密码已成功更改"
   },
   "import_from_seed": {
-    "title": "从助记词导入",
+    "title": "从私钥助记词导入",
     "seed_phrase_placeholder": "在此输入您的助记词",
     "new_password": "新密码",
     "confirm_password": "确认密码",
@@ -381,6 +398,7 @@
     "logout_to_import_seed": "您需要先注销，然后才能导入私钥助记词。",
     "ready_to_explore": "准备开始探索区块链应用？",
     "unable_to_load": "无法载入余额",
+    "unable_to_find_conversion_rate": "无法找到兑换率",
     "display_nft_media_desc": "要导入NFT，请在“设置>安全和隐私”中打开“显示NFT媒体”。",
     "display_nft_media_cta": "打开“显示NFT媒体”",
     "display_media_nft_warning": "显示NFT媒体和数据可能会导致您的IP地址被中心化服务器获悉。仅当您了解相关风险时才可导入NFT。",
@@ -513,10 +531,10 @@
   },
   "accounts": {
     "create_new_account": "创建新账户",
+    "qr_hardware": "QR 硬件",
     "import_account": "导入账户",
     "connect_hardware": "连接硬件钱包",
     "imported": "已导入",
-    "qr_hardware": "QR 硬件",
     "remove_account_title": "删除账户",
     "remove_account_message": "是否确实想要删除此账户？",
     "no": "否",
@@ -536,6 +554,7 @@
     "permissions": "权限",
     "revoke": "撤销",
     "revoke_all": "全部撤销",
+    "ledger": "Ledger",
     "site_permission_to": "此网站有权：",
     "address_balance_activity_permission": "查看地址、账户余额和活动",
     "suggest_transactions": "建议要批准的交易",
@@ -569,7 +588,7 @@
     "tutorial": "教程",
     "description4": "Keystone（教程）",
     "description5": "1. 解锁您的Keystone",
-    "description6": "2. 点击 ··· 菜单，然后进入同步 >",
+    "description6": "2. 点击 … 菜单，然后进入同步",
     "button_continue": "继续",
     "hint_text": "扫描您的Keystone钱包以",
     "purpose_connect": "连接",
@@ -602,9 +621,9 @@
     "autolock_after_minutes": "{{time}} 分钟后",
     "reveal_seed_words": "显示助记词",
     "reset_account": "重置账户",
-    "state_logs_button": "下载状态日志",
+    "state_logs_button": "下载状态记录",
     "reveal_seed_words_button": "显示助记词",
-    "reset_account_button": "重置账户",
+    "reset_account_button": "重设账户",
     "reset_account_confirm_button": "是，重置",
     "reset_account_cancel_button": "取消",
     "reset_account_modal_title": "重置账户？",
@@ -658,8 +677,8 @@
     "toggleEthSignModalTitle": "使用风险自负",
     "toggleEthSignModalEnable": "启用",
     "toggleEthSignModalLearnMore": "了解更多。",
-    "toggleEthSignOff": "关闭（推荐）",
-    "toggleEthSignOn": "开启（不推荐）",
+    "toggleEthSignOff": "（建议）",
+    "toggleEthSignOn": "（不建议）",
     "toggleEthSignContinueButton": "继续",
     "toggleEthSignEnableButton": "启用",
     "show_custom_nonce": "自定义交易 nonce",
@@ -701,7 +720,7 @@
     "remove_network": "删除",
     "cancel_remove_network": "取消",
     "info_title": "MetaMask 简介",
-    "info_title_flask": "About MetaMask Flask",
+    "info_title_flask": "关于 MetaMask Flask",
     "experimental_title": "实验性",
     "experimental_desc": "WalletConnect 及更多...",
     "legal_title": "法律",
@@ -782,7 +801,7 @@
     "manage_sdk_connections_title": "管理连接",
     "manage_sdk_connections_text": "删除与网站和/或MetaMask SDK的连接。",
     "fiat_on_ramp": {
-      "title": "购买加密货币",
+      "title": "买卖加密货币",
       "description": "地区及其他......",
       "current_region": "当前地区",
       "reset_region": "重置地区",
@@ -801,7 +820,58 @@
     "autodetect_nft_desc": "让MetaMask使用第三方服务（如OpenSea）来添加您所拥有的NFT。打开自动检测NFT功能后，这些服务就可以获悉您的IP地址和账户地址。启用此功能可能会将您的IP地址与以太坊地址关联起来，并显示骗子空投的虚假NFT。您可以手动添加代币以避免此风险。",
     "incoming_transactions_title": "显示传入的交易",
     "incoming_transactions_content": "这取决于您选择的网络（如该网络会公开您的以太坊地址和IP地址）。",
-    "display_nft_media_desc_new": "显示NFT媒体和数据，会导致您的IP地址被OpenSea或其他第三方获悉。NFT自动检测依赖于此功能，此功能关闭后即不可用。如果NFT媒体是完全位于IPFS上，则即使关闭此功能，该NFT媒体仍然可以显示。"
+    "display_nft_media_desc_new": "显示NFT媒体和数据，会导致您的IP地址被OpenSea或其他第三方获悉。NFT自动检测依赖于此功能，此功能关闭后即不可用。如果NFT媒体是完全位于IPFS上，则即使关闭此功能，该NFT媒体仍然可以显示。",
+    "snaps": {
+      "title": "Snap",
+      "description": "查看和管理 Snap",
+      "snap_settings": {
+        "remove_snap_section_title": "去除 Snap",
+        "remove_snap_section_description": "此操作将会删除 Snap 及其数据，并撤销您获授予的许可。",
+        "remove_button_label": "去除 {{snapName}}"
+      },
+      "snap_details": {
+        "install_date": "于{{date}}安装",
+        "install_origin": "安装源",
+        "enabled": "已启用",
+        "version": "版本"
+      },
+      "snap_permissions": {
+        "approved_date": "于{{date}}批准",
+        "permission_section_title": "许可",
+        "permission_requested_now": "立即请求",
+        "human_readable_permission_titles": {
+          "endowment:long-running": "无限期运行",
+          "endowment:network-access": "访问互联网",
+          "endowment:transaction-insight": "显示交易洞察",
+          "endowment:cronjob": "规划并执行定期操作",
+          "endowment:rpc": {
+            "snaps": "允许其他 Snap 直接与此 Snap 通信",
+            "dapps": "允许去中心化应用直接与此 Snap 通信"
+          },
+          "snap_confirm": "显示自定义对话",
+          "snap_manageState": "在您的设备上存储和管理数据",
+          "snap_notify": "显示通知",
+          "snap_getBip32Entropy": "控制您的 {{protocol}} 账户和资产",
+          "snap_getBip32PublicKey": "查看 {{protocol}} 的公钥",
+          "snap_getBip44Entropy": "控制您的 {{protocol}} 账户和资产",
+          "snap_getEntropy": "衍生特定于此 Snap 的随机密钥",
+          "endowment:keyring": "endowment:keyring",
+          "wallet_snap": "连接 {{otherSnapName}}",
+          "endowment:webassembly": "支持 WebAssembly",
+          "endowment:ethereum-provider": "访问以太坊提供商",
+          "endowment:unknown": "未知许可",
+          "snap_getLocale": "查看您的首选语言",
+          "endowment:caveat:transaction-origin": "查看建议交易的网站来源",
+          "endowment:extend-runtime": "延长运行时间",
+          "snap_dialog": "显示自定义对话"
+        }
+      }
+    },
+    "privacy_browser_subheading": "清除隐私或浏览器数据",
+    "analytics_subheading": "分析",
+    "transactions_subheading": "交易",
+    "token_nft_ens_subheading": "代币、NFT 和 ENS（Ethereum 域名服务）自动检测",
+    "security_check_subheading": "安全检查"
   },
   "sdk": {
     "disconnect_title": "要断开所有网站的连接吗?",
@@ -910,6 +980,7 @@
     "add_collectible_button": "添加",
     "info": "信息",
     "swap": "兑换",
+    "bridge": "跨链桥",
     "description": "描述",
     "totalSupply": "总供给量",
     "address": "地址",
@@ -921,6 +992,7 @@
     "buy_description": "用现金购买加密货币",
     "sell_description": "卖出加密货币换取现金",
     "swap_description": "代币之间的兑换",
+    "bridge_description": "在不同网络间传送代币",
     "send_description": "向任何账户发送加密货币",
     "receive_description": "接收加密货币",
     "chart_time_period": {
@@ -1020,6 +1092,7 @@
     "save": "保存",
     "speedup": "加速",
     "sign_with_keystone": "使用Keystone签署",
+    "sign_with_ledger": "使用 Ledger 签名",
     "from": "自",
     "gas_fee": "燃料费",
     "gas_fee_fast": "快",
@@ -1093,6 +1166,7 @@
     "not_enough_for_gas": "您的账户中有 0 {{ticker}} 可用于支付交易费用。购买一些 {{ticker}} 或保证金，从其他账户存入。",
     "send": "发送",
     "confirm_with_qr_hardware": "使用Keystone确认",
+    "confirm_with_ledger_hardware": "使用 Ledger 确认",
     "confirmed": "已确认",
     "pending": "待定",
     "submitted": "已提交",
@@ -1128,7 +1202,8 @@
     "fiat_conversion_not_available": "目前不提供法币兑换",
     "hex_data_copied": "十六进制数据已复制到剪贴板",
     "invalid_recipient": "收件人无效",
-    "invalid_recipient_description": "请检查地址，确保其为有效地址"
+    "invalid_recipient_description": "请检查地址，确保其为有效地址",
+    "swap_tokens": "兑换代币"
   },
   "custom_gas": {
     "total": "总计",
@@ -1749,7 +1824,8 @@
     "security_alerts_desc": "此功能通过本地审查您的交易和签名请求来提醒您注意恶意活动。在批准任何请求之前，请务必自行进行审慎调查。无法保证此功能能够检测到所有恶意活动。启用此功能即表示您同意提供商的使用条款。",
     "select_provider": "选择您的首选提供商",
     "blockaid": "Blockaid",
-    "blockaid_desc": "隐私保护 - 不会与第三方分享任何数据。在以太坊主网上可用。",
+    "blockaid_desc": "Privacy preserving - no data is shared with third parties.",
+    "available_on_eth_mainet": "Available on Ethereum Mainnet.",
     "switch_network": "请切换为 mainnet 或 sepolia"
   },
   "walletconnect_sessions": {
@@ -1845,16 +1921,6 @@
     "apple_pay_provider_total_label": "{{provider}}（通过 MetaMask）",
     "buy_with": "购买时使用",
     "plus_fee": "加上 {{fee}} 费",
-    "notifications": {
-      "purchase_failed_title": "购买 {{currency}} 失败！请重试，抱歉给您带来不便！",
-      "purchase_failed_description": "验证您的支付方式和卡支持",
-      "purchase_cancelled_title": "您的购买已取消",
-      "purchase_cancelled_description": "验证您的支付方式和卡支持",
-      "purchase_completed_title": "您已成功购买 {{amount}} {{currency}}！",
-      "purchase_completed_description": "您的 {{currency}} 现在可用",
-      "purchase_pending_title": "正在处理您的 {{currency}} 购买",
-      "purchase_pending_description": "您的存款正在进行"
-    },
     "date": "日期",
     "from": "自",
     "to": "至",
@@ -1981,6 +2047,8 @@
     "insufficient_balance": "此金额高于您的余额",
     "enter_larger_amount": "输入更大的金额以继续",
     "enter_smaller_amount": "输入较小的金额以继续",
+    "enter_lower_gas_fees": "Enter a lower amount to pay for gas fees",
+    "max": "MAX",
     "try_again": "再试一次",
     "error": "错误",
     "something_went_wrong": "糟糕！出问题了",
@@ -2012,7 +2080,9 @@
       "select_country_registered": "选择您的卡在哪个国家/地区注册（而不是您所在地点）。",
       "unsupported": "不支持此地区",
       "unsupported_description": "我们正在努力以尽快将覆盖范围扩大到您所在的地区。在这期间，请阅读我们的支持文章，了解您可以 {{rampType}} 加密货币的其他方式。",
-      "unsupported_link": "访问支持文章"
+      "unsupported_link": "访问支持文章",
+      "popular_regions": "热门地区",
+      "regions": "地区"
     },
     "order_details": {
       "details_main": "订单详情",
@@ -2060,6 +2130,24 @@
       "hold_to_send": "等待发送",
       "send": "发送",
       "sent": "已发送！"
+    },
+    "notifications": {
+      "purchase_failed_title": "购买 {{currency}} 失败！请重试，抱歉给您带来不便！",
+      "purchase_failed_description": "验证您的支付方式和卡支持",
+      "purchase_cancelled_title": "您的购买已取消",
+      "purchase_cancelled_description": "验证您的支付方式和卡支持",
+      "purchase_completed_title": "您已成功购买 {{amount}} {{currency}}！",
+      "purchase_completed_description": "您的 {{currency}} 现在可用",
+      "purchase_pending_title": "正在处理您的 {{currency}} 购买",
+      "purchase_pending_description": "应该只需几分钟…",
+      "sale_failed_title": "订单下达失败",
+      "sale_failed_description": "您的订单无法完成。",
+      "sale_cancelled_title": "订单已取消",
+      "sale_cancelled_description": "您的订单无法完成。",
+      "sale_completed_title": "订单已完成",
+      "sale_completed_description": "您的订单已成功！",
+      "sale_pending_title": "正在处理{{currency}}的卖出",
+      "sale_pending_description": "您的订单正在处理中。"
     }
   },
   "swaps": {
@@ -2152,7 +2240,7 @@
     "i_understand": "我理解",
     "quotes_expire_in": "报价到期时间：",
     "saving": "正在保存",
-    "using_best_quote": "使用最佳报价",
+    "n_quotes": "{{numberOfQuotes}} 出价",
     "view_details": "查看详情",
     "estimated_gas_fee": "估算的燃料费",
     "max_gas_fee": "最大燃料费",
@@ -2165,10 +2253,6 @@
     "completed_swap": "兑换！",
     "metamask_swap_fee": "MetaMask Swap 费用",
     "fee_text": {
-      "get_the": "获取",
-      "best_price": "来自",
-      "from_the": "顶级流动性",
-      "top_liquidity": "首要流动性的最佳价格。",
       "fee_is_applied": "该报价中会自动计入一笔 {{fee}} 的费用。您支付该费用以换取使用 MetaMask 流动性提供商信息聚合软件的许可证。",
       "fee_is_not_applied": "MetaMask在此报价中并未包括额外费用。"
     },
@@ -2201,7 +2285,7 @@
     "quote_source_agg": {
       "1": "这个报价来自于一个",
       "2": "聚合器，",
-      "3": "它通过在不同的去中心化交易所之间分割您的订单，来寻找最佳价格。"
+      "3": "在不同的去中心化交易所之间比较价格并分割您的订单。"
     },
     "quote_source_cnt": {
       "1": "这个报价直接来自于一个",
@@ -2642,7 +2726,12 @@
     "not_supported_error": "仅支持类型化数据签名的版本4。",
     "error_during_connection": "发生未知错误",
     "error_during_connection_message": "连接Ledger Nano X时出现小问题，请在下方点击“重试”，再试一次。有时，这是因为在和MetaMask Mobile进行配对的过程开始时，Ledger Nano X上的以太坊应用程序处于打开状态。",
-    "how_to_install_eth_webview_title": "如何安装以太坊应用程序"
+    "how_to_install_eth_webview_title": "如何安装以太坊应用程序",
+    "nonce_too_low": "唯一交易标识号安全性过低",
+    "nonce_too_low_error": "设置的唯一交易标识号安全性过低",
+    "ledger_beta_alert": "启用 Ledger 集成",
+    "ledger_beta_alert_description": "您发现了一个实验性功能！继续即表示接受使用此实验性功能的风险由您自行承担。",
+    "ledger_beta_cta": "继续"
   },
   "account_actions": {
     "edit_name": "编辑账户名",
@@ -2682,5 +2771,17 @@
     "ipfs_gateway_content2": "您可以随时在",
     "ipfs_gateway_content3": "“设置 > 安全和隐私”中",
     "ipfs_gateway_content4": "关闭 IPFS 解析"
+  },
+  "install_snap": {
+    "title": "连接请求",
+    "description": "{{origin}}想要下载并连接{{snap}}。继续之前，请确保您信任作者。",
+    "permissions_request_title": "许可请求",
+    "permissions_request_description": "{{origin}}想要安装{{snap}}，这是在请求以下许可。",
+    "approve_permissions": "批准",
+    "installed": "已安装",
+    "install_successful": "{{snap}}已成功安装。",
+    "okay_action": "确定",
+    "error_title": "安装失败",
+    "error_description": "{{snap}}安装失败。"
   }
 }

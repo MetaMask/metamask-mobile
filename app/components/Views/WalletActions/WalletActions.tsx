@@ -16,7 +16,9 @@ import {
 import { swapsLivenessSelector } from '../../../reducers/swaps';
 import { toggleReceiveModal } from '../../../actions/modals';
 import { isSwapsAllowed } from '../../../components/UI/Swaps/utils';
+import isBridgeAllowed from '../../UI/Bridge/utils/isBridgeAllowed';
 import { useNavigation } from '@react-navigation/native';
+import useGoToBridge from '../../../components/UI/Bridge/utils/useGoToBridge';
 import Routes from '../../../constants/navigation/Routes';
 import { MetaMetricsEvents } from '../../../core/Analytics';
 import Analytics from '../../../core/Analytics/Analytics';
@@ -32,6 +34,7 @@ import { AvatarSize } from '../../../component-library/components/Avatars/Avatar
 // Internal dependencies
 import styleSheet from './WalletActions.styles';
 import {
+  WALLET_BRIDGE,
   WALLET_BUY,
   WALLET_RECEIVE,
   WALLET_SELL,
@@ -44,6 +47,7 @@ const WalletActions = () => {
   const { styles } = useStyles(styleSheet, {});
   const sheetRef = useRef<SheetBottomRef>(null);
   const { navigate } = useNavigation();
+  const goToBridge = useGoToBridge('TabBar');
 
   const chainId = useSelector(selectChainId);
   const ticker = useSelector(selectTicker);
@@ -126,7 +130,7 @@ const WalletActions = () => {
   };
 
   return (
-    <SheetBottom ref={sheetRef}>
+    <SheetBottom reservedMinOverlayHeight={150} ref={sheetRef}>
       <View style={styles.actionsContainer}>
         {isNetworkRampSupported && (
           <WalletAction
@@ -165,6 +169,18 @@ const WalletActions = () => {
               {...generateTestId(Platform, WALLET_SWAP)}
             />
           )}
+
+        {isBridgeAllowed(chainId) && (
+          <WalletAction
+            actionTitle={strings('asset_overview.bridge')}
+            actionDescription={strings('asset_overview.bridge_description')}
+            iconName={IconName.Bridge}
+            iconSize={AvatarSize.Md}
+            onPress={goToBridge}
+            iconStyle={styles.icon}
+            {...generateTestId(Platform, WALLET_BRIDGE)}
+          />
+        )}
         <WalletAction
           actionTitle={strings('asset_overview.send_button')}
           actionDescription={strings('asset_overview.send_description')}

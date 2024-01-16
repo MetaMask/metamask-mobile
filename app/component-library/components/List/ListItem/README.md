@@ -1,5 +1,7 @@
 # ListItem
 
+![ListItem](./ListItem.png)
+
 ListItem is a wrapper component used to display an individual item within a list.
 
 ## Props

@@ -2,18 +2,15 @@
 /* eslint @typescript-eslint/no-require-imports: "off" */
 
 import React from 'react';
-import { View, Text, StyleSheet, Image, ScrollView } from 'react-native';
+import { View, Text, Image, ScrollView } from 'react-native';
 import { strings } from '../../../../../locales/i18n';
 import {
   KEYSTONE_LEARN_MORE,
   KEYSTONE_SUPPORT,
   KEYSTONE_SUPPORT_VIDEO,
 } from '../../../../constants/urls';
-import {
-  fontStyles,
-  colors as importedColors,
-} from '../../../../styles/common';
 import { useTheme } from '../../../../util/theme';
+import { createStyles } from './styles';
 import StyledButton from '../../../UI/StyledButton';
 
 interface IConnectQRInstructionProps {
@@ -22,76 +19,8 @@ interface IConnectQRInstructionProps {
   renderAlert: () => Element;
 }
 
-const connectQRHardwareImg = require('images/connect-qr-hardware.png'); // eslint-disable-line import/no-commonjs
-
-const createStyles = (colors: any) =>
-  StyleSheet.create({
-    wrapper: {
-      flex: 1,
-      width: '100%',
-      alignItems: 'center',
-    },
-    container: {
-      flexDirection: 'column',
-      alignItems: 'center',
-      paddingHorizontal: 32,
-    },
-    scrollWrapper: {
-      width: '100%',
-    },
-    title: {
-      width: '100%',
-      marginTop: 40,
-      fontSize: 24,
-      marginBottom: 20,
-      ...fontStyles.normal,
-      color: colors.text.alternative,
-    },
-    textContainer: {
-      width: '100%',
-      marginTop: 20,
-    },
-    text: {
-      fontSize: 14,
-      marginBottom: 24,
-      ...fontStyles.normal,
-      color: colors.text.alternative,
-    },
-    link: {
-      color: colors.primary.default,
-      ...fontStyles.bold,
-    },
-    bottom: {
-      alignItems: 'center',
-      height: 80,
-      justifyContent: 'space-between',
-    },
-    button: {
-      padding: 5,
-      paddingHorizontal: '30%',
-    },
-    buttonText: {
-      color: importedColors.white,
-      ...fontStyles.normal,
-    },
-    image: {
-      width: 300,
-      height: 120,
-      marginTop: 40,
-      marginBottom: 40,
-    },
-    keystone: {
-      height: 48,
-      fontSize: 24,
-    },
-    buttonGroup: {
-      display: 'flex',
-      flexDirection: 'row',
-    },
-    linkMarginRight: {
-      marginRight: 16,
-    },
-  });
+// eslint-disable-next-line import/no-commonjs
+const connectQRHardwareImg = require('images/connect-qr-hardware.png');
 
 const ConnectQRInstruction = (props: IConnectQRInstructionProps) => {
   const { onConnect, renderAlert, navigation } = props;

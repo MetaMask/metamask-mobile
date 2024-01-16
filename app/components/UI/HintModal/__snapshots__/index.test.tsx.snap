@@ -24,9 +24,9 @@ exports[`HintModal should render correctly 1`] = `
     <View
       style={
         Object {
-          "alignSelf": "center",
           "backgroundColor": "#FFFFFF",
           "borderRadius": 16,
+          "flex": 1,
           "padding": 24,
         }
       }
@@ -36,61 +36,52 @@ exports[`HintModal should render correctly 1`] = `
           Object {
             "alignItems": "center",
             "flexDirection": "row",
-            "justifyContent": "space-between",
             "marginBottom": 16,
           }
         }
       >
+        <View
+          style={
+            Object {
+              "width": 24,
+            }
+          }
+        />
         <Text
           style={
             Object {
-              "color": "#24272A",
-              "fontFamily": "EuclidCircularB-Bold",
-              "fontSize": 18,
-              "fontWeight": "600",
+              "flex": 1,
+              "textAlign": "center",
             }
           }
+          variant="sHeadingMD"
         >
           Recovery hint
         </Text>
-        <TouchableOpacity
+        <ButtonIcon
+          iconName="Close"
           onPress={[Function]}
-        >
-          <Icon
-            allowFontScaling={false}
-            name="x"
-            size={16}
-            style={
-              Object {
-                "color": "#24272A",
-              }
-            }
-          />
-        </TouchableOpacity>
+          size="24"
+        />
       </View>
       <Text
         style={
           Object {
-            "color": "#24272A",
-            "fontFamily": "EuclidCircularB-Regular",
-            "fontSize": 14,
-            "fontWeight": "400",
             "marginBottom": 16,
           }
         }
+        variant="sBodyMD"
       >
         Leave yourself a hint. Write the location / where you saved it to remind yourself how you can access it. This information does not leave your device.
       </Text>
       <Text
+        color="Error"
         style={
           Object {
-            "color": "#D73847",
-            "fontFamily": "EuclidCircularB-Regular",
-            "fontSize": 14,
-            "fontWeight": "400",
             "marginBottom": 16,
           }
         }
+        variant="sBodyMD"
       >
         Do not use this to write your Secret Recovery Phrase.
       </Text>

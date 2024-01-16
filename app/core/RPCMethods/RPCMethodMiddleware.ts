@@ -35,6 +35,8 @@ import {
   selectProviderConfig,
   selectProviderType,
 } from '../../selectors/networkController';
+import { setEventStageError, setEventStage } from '../../actions/rpcEvents';
+import { isWhitelistedRPC, RPCStageTypes } from '../../reducers/rpcEvents';
 import { regex } from '../../../app/util/regex';
 import Logger from '../../../app/util/Logger';
 import DevLogger from '../SDKConnect/utils/DevLogger';
@@ -57,6 +59,10 @@ export enum ApprovalTypes {
   TRANSACTION = 'transaction',
   RESULT_ERROR = 'result_error',
   RESULT_SUCCESS = 'result_success',
+  ///: BEGIN:ONLY_INCLUDE_IF(snaps)
+  INSTALL_SNAP = 'wallet_installSnap',
+  UPDATE_SNAP = 'wallet_updateSnap',
+  ///: END:ONLY_INCLUDE_IF
 }
 
 export interface RPCMethodsMiddleParameters {
@@ -888,6 +894,19 @@ export const getRpcMethodMiddleware = ({
     if (!rpcMethods[req.method]) {
       return next();
     }
-    await rpcMethods[req.method]();
+
+    const isWhiteListedMethod = isWhitelistedRPC(req.method);
+
+    try {
+      isWhiteListedMethod &&
+        store.dispatch(setEventStage(req.method, RPCStageTypes.REQUEST_SEND));
+      await rpcMethods[req.method]();
+
+      isWhiteListedMethod &&
+        store.dispatch(setEventStage(req.method, RPCStageTypes.COMPLETE));
+    } catch (e) {
+      isWhiteListedMethod && store.dispatch(setEventStageError(req.method, e));
+      throw e;
+    }
   });
 export default getRpcMethodMiddleware;

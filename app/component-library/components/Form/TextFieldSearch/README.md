@@ -1,5 +1,7 @@
 # TextFieldSearch
 
+![TextFieldSearch](./TextFieldSearch.png)
+
 TextFieldSearch is an input component that allows users to enter text to search.
 ## Props
 

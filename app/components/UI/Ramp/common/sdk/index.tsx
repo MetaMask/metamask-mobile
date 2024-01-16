@@ -116,7 +116,7 @@ interface ProviderProps<T> {
 }
 
 export const callbackBaseUrl = isDevelopment
-  ? 'https://on-ramp.metaswap-dev.codefi.network/regions/fake-callback'
+  ? 'https://on-ramp.uat-api.cx.metamask.io/regions/fake-callback'
   : 'https://on-ramp-content.metaswap.codefi.network/regions/fake-callback';
 
 export const callbackBaseDeeplink = 'metamask://';
@@ -193,9 +193,12 @@ export const RampSDKProvider = ({
   const isBuy = rampType === RampType.BUY;
   const isSell = rampType === RampType.SELL;
 
+  useEffect(() => {
+    setSelectedRegion(INITIAL_SELECTED_REGION);
+  }, [INITIAL_SELECTED_REGION]);
+
   const setSelectedRegionCallback = useCallback(
     (region: Region | null) => {
-      setSelectedRegion(region);
       dispatch(setFiatOrdersRegionAGG(region));
     },
     [dispatch],

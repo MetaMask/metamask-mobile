@@ -2,20 +2,13 @@ import React, { PureComponent } from 'react';
 import PropTypes from 'prop-types';
 import { connect } from 'react-redux';
 import { scale } from 'react-native-size-matters';
-import {
-  TouchableOpacity,
-  View,
-  StyleSheet,
-  Text,
-  Platform,
-} from 'react-native';
+import { TouchableOpacity, View, StyleSheet, Text } from 'react-native';
 import { fontStyles, colors as importedColors } from '../../../styles/common';
 import Networks from '../../../util/networks';
 import { strings } from '../../../../locales/i18n';
 import Device from '../../../util/device';
 import { ThemeContext, mockTheme } from '../../../util/theme';
 import { NAVBAR_TITLE_NETWORKS_TEXT } from '../../../../wdio/screen-objects/testIDs/Screens/WalletScreen-testIds';
-import generateTestId from '../../../../wdio/utils/generateTestId';
 import Routes from '../../../constants/navigation/Routes';
 import { MetaMetricsEvents } from '../../../core/Analytics';
 import Analytics from '../../../core/Analytics/Analytics';
@@ -135,7 +128,6 @@ class NavbarTitle extends PureComponent {
         onPress={this.openNetworkList}
         style={styles.wrapper}
         activeOpacity={this.props.disableNetwork ? 1 : 0.2}
-        testID={'navbar-title-text'}
       >
         {title ? (
           <Text numberOfLines={1} style={styles.title}>
@@ -152,7 +144,7 @@ class NavbarTitle extends PureComponent {
           <Text
             numberOfLines={1}
             style={styles.networkName}
-            {...generateTestId(Platform, NAVBAR_TITLE_NETWORKS_TEXT)}
+            testID={NAVBAR_TITLE_NETWORKS_TEXT}
           >
             {name}
           </Text>
