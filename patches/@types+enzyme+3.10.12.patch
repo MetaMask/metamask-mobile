@@ -1,0 +1,275 @@
+diff --git a/node_modules/@types/enzyme/index.d.ts b/node_modules/@types/enzyme/index.d.ts
+index a342305..dc64904 100755
+--- a/node_modules/@types/enzyme/index.d.ts
++++ b/node_modules/@types/enzyme/index.d.ts
+@@ -25,11 +25,29 @@ import {
+     SVGAttributes as ReactSVGAttributes,
+ } from 'react';
+ 
++/**
++ * @deprecated Enzyme is being deprecated for this project.
++ * Please update your code to use React Testing Library instead.
++ * You can find documentation for migrating to RTL at
++ * {@link https://testing-library.com/docs/react-testing-library/migrate-from-enzyme/}.
++ */
+ export type HTMLAttributes = ReactHTMLAttributes<{}> & ReactSVGAttributes<{}>;
+ 
++/**
++ * @deprecated Enzyme is being deprecated for this project.
++ * Please update your code to use React Testing Library instead.
++ * You can find documentation for migrating to RTL at
++ * {@link https://testing-library.com/docs/react-testing-library/migrate-from-enzyme/}.
++ */
+ export class ElementClass extends Component<any, any> {}
+ 
+-/* These are purposefully stripped down versions of React.ComponentClass and React.FunctionComponent.
++/**
++ * @deprecated Enzyme is being deprecated for this project.
++ * Please update your code to use React Testing Library instead.
++ * You can find documentation for migrating to RTL at
++ * {@link https://testing-library.com/docs/react-testing-library/migrate-from-enzyme/}.
++ * 
++ * These are purposefully stripped down versions of React.ComponentClass and React.FunctionComponent.
+  * The optional static properties on them break overload ordering for wrapper methods if they're not
+  * all specified in the implementation. TS chooses the EnzymePropSelector overload and loses the generics
+  */
+@@ -37,11 +55,29 @@ export interface ComponentClass<Props> {
+     new (props: Props, context?: any): Component<Props>;
+ }
+ 
++/**
++ * @deprecated Enzyme is being deprecated for this project.
++ * Please update your code to use React Testing Library instead.
++ * You can find documentation for migrating to RTL at
++ * {@link https://testing-library.com/docs/react-testing-library/migrate-from-enzyme/}.
++ */
+ export type FunctionComponent<Props> = (props: Props, context?: any) => JSX.Element | null;
+ 
++/**
++ * @deprecated Enzyme is being deprecated for this project.
++ * Please update your code to use React Testing Library instead.
++ * You can find documentation for migrating to RTL at
++ * {@link https://testing-library.com/docs/react-testing-library/migrate-from-enzyme/}.
++ */
+ export type ComponentType<Props> = ComponentClass<Props> | FunctionComponent<Props>;
+ 
++
+ /**
++ * @deprecated Enzyme is being deprecated for this project.
++ * Please update your code to use React Testing Library instead.
++ * You can find documentation for migrating to RTL at
++ * {@link https://testing-library.com/docs/react-testing-library/migrate-from-enzyme/}.
++ *
+  * Many methods in Enzyme's API accept a selector as an argument. Selectors in Enzyme can fall into one of the
+  * following three categories:
+  *
+@@ -54,10 +90,29 @@ export type ComponentType<Props> = ComponentClass<Props> | FunctionComponent<Pro
+ export interface EnzymePropSelector {
+     [key: string]: any;
+ }
++
++/**
++ * @deprecated Enzyme is being deprecated for this project.
++ * Please update your code to use React Testing Library instead.
++ * You can find documentation for migrating to RTL at
++ * {@link https://testing-library.com/docs/react-testing-library/migrate-from-enzyme/}.
++ */
+ export type EnzymeSelector = string | FunctionComponent<any> | ComponentClass<any> | EnzymePropSelector;
+ 
++/**
++ * @deprecated Enzyme is being deprecated for this project.
++ * Please update your code to use React Testing Library instead.
++ * You can find documentation for migrating to RTL at
++ * {@link https://testing-library.com/docs/react-testing-library/migrate-from-enzyme/}.
++ */
+ export type Intercepter<T> = (intercepter: T) => void;
+ 
++/**
++ * @deprecated Enzyme is being deprecated for this project.
++ * Please update your code to use React Testing Library instead.
++ * You can find documentation for migrating to RTL at
++ * {@link https://testing-library.com/docs/react-testing-library/migrate-from-enzyme/}.
++ */
+ export interface CommonWrapper<P = {}, S = {}, C = Component<P, S>> {
+     /**
+      * Returns a new wrapper with only the nodes of the current wrapper that, when passed into the provided predicate function, return true.
+@@ -394,9 +449,28 @@ export interface CommonWrapper<P = {}, S = {}, C = Component<P, S>> {
+     length: number;
+ }
+ 
++/**
++ * @deprecated Enzyme is being deprecated for this project.
++ * Please update your code to use React Testing Library instead.
++ * You can find documentation for migrating to RTL at
++ * {@link https://testing-library.com/docs/react-testing-library/migrate-from-enzyme/}.
++ */
+ export type Parameters<T> = T extends (...args: infer A) => any ? A : never;
+ 
++/**
++ * @deprecated Enzyme is being deprecated for this project.
++ * Please update your code to use React Testing Library instead.
++ * You can find documentation for migrating to RTL at
++ * {@link https://testing-library.com/docs/react-testing-library/migrate-from-enzyme/}.
++ */
+ export interface ShallowWrapper<P = {}, S = {}, C = Component> extends CommonWrapper<P, S, C> {}
++
++/**
++ * @deprecated Enzyme is being deprecated for this project.
++ * Please update your code to use React Testing Library instead.
++ * You can find documentation for migrating to RTL at
++ * {@link https://testing-library.com/docs/react-testing-library/migrate-from-enzyme/}.
++ */
+ export class ShallowWrapper<P = {}, S = {}, C = Component> {
+     constructor(nodes: JSX.Element[] | JSX.Element, root?: ShallowWrapper<any, any>, options?: ShallowRendererProps);
+     shallow(options?: ShallowRendererProps): ShallowWrapper<P, S>;
+@@ -502,7 +576,20 @@ export class ShallowWrapper<P = {}, S = {}, C = Component> {
+     getWrappingComponent: () => ShallowWrapper;
+ }
+ 
++/**
++ * @deprecated Enzyme is being deprecated for this project.
++ * Please update your code to use React Testing Library instead.
++ * You can find documentation for migrating to RTL at
++ * {@link https://testing-library.com/docs/react-testing-library/migrate-from-enzyme/}.
++ */
+ export interface ReactWrapper<P = {}, S = {}, C = Component> extends CommonWrapper<P, S, C> {}
++
++/**
++ * @deprecated Enzyme is being deprecated for this project.
++ * Please update your code to use React Testing Library instead.
++ * You can find documentation for migrating to RTL at
++ * {@link https://testing-library.com/docs/react-testing-library/migrate-from-enzyme/}.
++ */
+ export class ReactWrapper<P = {}, S = {}, C = Component> {
+     constructor(nodes: JSX.Element | JSX.Element[], root?: ReactWrapper<any, any>, options?: MountRendererProps);
+ 
+@@ -617,6 +704,12 @@ export class ReactWrapper<P = {}, S = {}, C = Component> {
+     getWrappingComponent: () => ReactWrapper;
+ }
+ 
++/**
++ * @deprecated Enzyme is being deprecated for this project.
++ * Please update your code to use React Testing Library instead.
++ * You can find documentation for migrating to RTL at
++ * {@link https://testing-library.com/docs/react-testing-library/migrate-from-enzyme/}.
++ */
+ export interface Lifecycles {
+     componentDidUpdate?: {
+         onSetState: boolean;
+@@ -632,6 +725,12 @@ export interface Lifecycles {
+     [lifecycleName: string]: any;
+ }
+ 
++/**
++ * @deprecated Enzyme is being deprecated for this project.
++ * Please update your code to use React Testing Library instead.
++ * You can find documentation for migrating to RTL at
++ * {@link https://testing-library.com/docs/react-testing-library/migrate-from-enzyme/}.
++ */
+ export interface ShallowRendererProps {
+     // See https://github.com/airbnb/enzyme/blob/enzyme@3.10.0/docs/api/shallow.md#arguments
+     /**
+@@ -682,6 +781,12 @@ export interface ShallowRendererProps {
+     PROVIDER_VALUES?: any;
+ }
+ 
++/**
++ * @deprecated Enzyme is being deprecated for this project.
++ * Please update your code to use React Testing Library instead.
++ * You can find documentation for migrating to RTL at
++ * {@link https://testing-library.com/docs/react-testing-library/migrate-from-enzyme/}.
++ */
+ export interface MountRendererProps {
+     /**
+      * Context to be passed into the component
+@@ -709,6 +814,11 @@ export interface MountRendererProps {
+ }
+ 
+ /**
++ * @deprecated Enzyme is being deprecated for this project.
++ * Please update your code to use React Testing Library instead.
++ * You can find documentation for migrating to RTL at
++ * {@link https://testing-library.com/docs/react-testing-library/migrate-from-enzyme/}.
++ *
+  * Shallow rendering is useful to constrain yourself to testing a component as a unit, and to ensure that
+  * your tests aren't indirectly asserting on behavior of child components.
+  */
+@@ -716,30 +826,77 @@ export function shallow<C extends Component, P = C['props'], S = C['state']>(
+     node: ReactElement<P>,
+     options?: ShallowRendererProps,
+ ): ShallowWrapper<P, S, C>;
++/**
++ * @deprecated Enzyme is being deprecated for this project.
++ * Please update your code to use React Testing Library instead.
++ * You can find documentation for migrating to RTL at
++ * {@link https://testing-library.com/docs/react-testing-library/migrate-from-enzyme/}.
++ */
+ export function shallow<P>(node: ReactElement<P>, options?: ShallowRendererProps): ShallowWrapper<P, any>;
++/**
++ * @deprecated Enzyme is being deprecated for this project.
++ * Please update your code to use React Testing Library instead.
++ * You can find documentation for migrating to RTL at
++ * {@link https://testing-library.com/docs/react-testing-library/migrate-from-enzyme/}.
++ */
+ export function shallow<P, S>(node: ReactElement<P>, options?: ShallowRendererProps): ShallowWrapper<P, S>;
+ 
+ /**
++ * @deprecated Enzyme is being deprecated for this project.
++ * Please update your code to use React Testing Library instead.
++ * You can find documentation for migrating to RTL at
++ * {@link https://testing-library.com/docs/react-testing-library/migrate-from-enzyme/}.
++ *
+  * Mounts and renders a react component into the document and provides a testing wrapper around it.
+  */
+ export function mount<C extends Component, P = C['props'], S = C['state']>(
+     node: ReactElement<P>,
+     options?: MountRendererProps,
+ ): ReactWrapper<P, S, C>;
++/**
++ * @deprecated Enzyme is being deprecated for this project.
++ * Please update your code to use React Testing Library instead.
++ * You can find documentation for migrating to RTL at
++ * {@link https://testing-library.com/docs/react-testing-library/migrate-from-enzyme/}.
++ */
+ export function mount<P>(node: ReactElement<P>, options?: MountRendererProps): ReactWrapper<P, any>;
++/**
++ * @deprecated Enzyme is being deprecated for this project.
++ * Please update your code to use React Testing Library instead.
++ * You can find documentation for migrating to RTL at
++ * {@link https://testing-library.com/docs/react-testing-library/migrate-from-enzyme/}.
++ */
+ export function mount<P, S>(node: ReactElement<P>, options?: MountRendererProps): ReactWrapper<P, S>;
+ 
+ /**
++ * @deprecated Enzyme is being deprecated for this project.
++ * Please update your code to use React Testing Library instead.
++ * You can find documentation for migrating to RTL at
++ * {@link https://testing-library.com/docs/react-testing-library/migrate-from-enzyme/}.
++ *
+  * Render react components to static HTML and analyze the resulting HTML structure.
+  */
+ export function render<P, S>(node: ReactElement<P>, options?: any): cheerio.Cheerio;
+ 
+-// See https://github.com/airbnb/enzyme/blob/v3.10.0/packages/enzyme/src/EnzymeAdapter.js
++/**
++ * @deprecated Enzyme is being deprecated for this project.
++ * Please update your code to use React Testing Library instead.
++ * You can find documentation for migrating to RTL at
++ * {@link https://testing-library.com/docs/react-testing-library/migrate-from-enzyme/}.
++ * 
++ * See 
++ * {@link https://github.com/airbnb/enzyme/blob/v3.10.0/packages/enzyme/src/EnzymeAdapter.js}
++ */
+ export class EnzymeAdapter {
+     wrapWithWrappingComponent?: ((node: ReactElement, options?: ShallowRendererProps) => any) | undefined;
+ }
+ 
+ /**
++ * @deprecated Enzyme is being deprecated for this project.
++ * Please update your code to use React Testing Library instead.
++ * You can find documentation for migrating to RTL at
++ * {@link https://testing-library.com/docs/react-testing-library/migrate-from-enzyme/}.
++ *
+  * Configure enzyme to use the correct adapter for the react version
+  * This is enabling the Enzyme configuration with adapters in TS
+  */

@@ -17,7 +17,20 @@
     "does_not_look_right": "무언가 잘못되었나요?",
     "suspicious_request_title": "의심스러운 요청입니다",
     "trade_order_farming_description": "이 요청을 승인하면, 자산을 잃을 수 있습니다.",
-    "transfer_farming_description": "이 요청을 승인하면 스캠을 목적으로 하는 타사가 회원님의 자산을 모두 가져가게 됩니다."
+    "transfer_farming_description": "이 요청을 승인하면 스캠을 목적으로 하는 타사가 회원님의 자산을 모두 가져가게 됩니다.",
+    "before_you_proceed": "사전 유의 사항",
+    "enable_blockaid_alerts": "이 기능을 활성화하려면 몇 가지 보안 경고를 설정해야 합니다. 설정하는 동안 이 페이지는 열려 있어야 합니다. 완료하는 데 1분도 소요되지 않습니다.",
+    "setting_up_alerts": "보안 경고 설정하기",
+    "setting_up_alerts_description": "보안 경고를 설정하는 작업을 최대한 빠르게 진행하고 있습니다. 잠시만 기다리세요. 거의 다 끝났습니다.",
+    "setup_complete": "설정 완료",
+    "setup_failed": "보안 알림 설정을 완료할 수 없습니다. 인터넷 연결을 확인하고 다시 시도하세요.",
+    "setup_multiple_failures": "현재 인터넷 연결이 안정적이지 않아 보안 알림을 설정할 수 없습니다. 연결이 안정화되면 다시 시도하세요.",
+    "setup_complete_description": "보안 경고를 사용할 준비가 되었습니다. 이 페이지를 닫고 지갑을 탐색하시면 됩니다.",
+    "continue": "계속",
+    "cancel": "취소",
+    "got_it": "확인",
+    "try_again": "다시 시도",
+    "failed": "문제가 발생했습니다"
   },
   "date": {
     "months": {
@@ -266,7 +279,7 @@
     "successfully_changed": "암호가 성공적으로 변경되었습니다"
   },
   "import_from_seed": {
-    "title": "시드에서 가져오기",
+    "title": "비밀복구구문에서 가져오기",
     "seed_phrase_placeholder": "비밀복구구문을 입력하세요",
     "new_password": "신규 비밀번호",
     "confirm_password": "비밀번호 컨펌",
@@ -385,6 +398,7 @@
     "logout_to_import_seed": "비밀복구구문을 가져오려면 먼저 로그아웃해야 합니다.",
     "ready_to_explore": "블록 체인 애플리케이션 탐색을 시작할 준비가 되셨습니까?",
     "unable_to_load": "잔고를 가져올 수 없습니다",
+    "unable_to_find_conversion_rate": "환율을 찾을 수 없습니다",
     "display_nft_media_desc": "NFT를 가져오려면 설정 > 보안 및 개인정보에서 NFT 미디어 표시를 켜세요.",
     "display_nft_media_cta": "NFT 미디어 표시 켜기",
     "display_media_nft_warning": "NFT 미디어와 데이터를 표시하면 IP 주소가 중앙 서버에 노출될 수 있습니다. 관련 위험을 이해하고 있는 경우에만 NFT를 가져오세요.",
@@ -521,7 +535,6 @@
     "import_account": "계정 가져오기",
     "connect_hardware": "하드웨어 지갑 연결",
     "imported": "가져옴",
-    "qr_hardware": "QR 하드웨어",
     "remove_account_title": "계정 제거",
     "remove_account_message": "해당 계정을 정말로 제거하시겠습니까?",
     "no": "아니오",
@@ -575,7 +588,7 @@
     "tutorial": "튜토리얼",
     "description4": "Keystone(튜토리얼)",
     "description5": "1. 키스톤 잠금 해제",
-    "description6": "2. Tap the ··· Menu, then go to Sync",
+    "description6": "2. ··· 메뉴를 누른 후 동기화로 이동",
     "button_continue": "계속",
     "hint_text": "키스톤 지갑 스캔을 통해 ",
     "purpose_connect": "연결",
@@ -664,8 +677,8 @@
     "toggleEthSignModalTitle": "위험을 감수하고 사용하세요",
     "toggleEthSignModalEnable": "활성화",
     "toggleEthSignModalLearnMore": "자세히 알아보세요.",
-    "toggleEthSignOff": "끄기(권장 사항)",
-    "toggleEthSignOn": "켜기(비권장 사항)",
+    "toggleEthSignOff": "(권장 사항)",
+    "toggleEthSignOn": "(권장하지 않음)",
     "toggleEthSignContinueButton": "계속",
     "toggleEthSignEnableButton": "활성화",
     "show_custom_nonce": "트랜잭션 논스(nonce) 사용자 지정",
@@ -788,7 +801,7 @@
     "manage_sdk_connections_title": "연결 관리",
     "manage_sdk_connections_text": "사이트 및/또는 MetaMask SDK 연결 제거",
     "fiat_on_ramp": {
-      "title": "암호화폐 구매",
+      "title": "암호화폐 매수 및 매도",
       "description": "지역 & 더 보기...",
       "current_region": "현재 지역",
       "reset_region": "지역 재설정",
@@ -853,7 +866,12 @@
           "snap_dialog": "사용자 지정 대화 상자 표시"
         }
       }
-    }
+    },
+    "privacy_browser_subheading": "개인정보 또는 브라우저 데이터 삭제",
+    "analytics_subheading": "분석",
+    "transactions_subheading": "트랜잭션",
+    "token_nft_ens_subheading": "토큰, NFT 및 ENS 자동 감지",
+    "security_check_subheading": "보안 점검"
   },
   "sdk": {
     "disconnect_title": "모든 사이트를 연결 해제할까요?",
@@ -1184,7 +1202,8 @@
     "fiat_conversion_not_available": "현재 명목 화폐 환율을 사용할 수 없습니다.",
     "hex_data_copied": "헥스 데이터를 클립보드에 복사했습니다",
     "invalid_recipient": "잘못된 수신자",
-    "invalid_recipient_description": "주소가 올바른지 확인하세요"
+    "invalid_recipient_description": "주소가 올바른지 확인하세요",
+    "swap_tokens": "토큰 스왑"
   },
   "custom_gas": {
     "total": "총합",
@@ -1799,13 +1818,14 @@
   "experimental_settings": {
     "wallet_connect_dapps": "지갑 연결 세션",
     "wallet_connect_dapps_desc": "활성화된 지갑 연결 세션 목록을 확인하세요",
-    "wallet_connect_dapps_cta": "세션 확인",
+    "wallet_connect_dapps_cta": "세션 보기",
     "network_not_supported": "현재 네트워크는 지원하지 않음",
     "security_alerts": "보안 경고",
     "security_alerts_desc": "이 기능은 거래 및 서명 요청을 로컬에서 검토하여 악의적인 활동이 있는 경우 경고합니다. 요청을 승인하기 전에 항상 직접 검토하세요. 이 기능이 모든 악성 활동 탐지를 보장하지는 않습니다. 이 기능을 활성화하면 제공 업체의 이용 약관에 동의하는 것이 됩니다.",
     "select_provider": "선호하는 공급업체 선택",
     "blockaid": "Blockaid",
-    "blockaid_desc": "개인정보 보호 - 제삼자와 데이터를 공유하지 않습니다. 이더리움 메인넷에서 사용할 수 있습니다.",
+    "blockaid_desc": "Privacy preserving - no data is shared with third parties.",
+    "available_on_eth_mainet": "Available on Ethereum Mainnet.",
     "switch_network": "메인넷이나 세폴리아로 전환하세요"
   },
   "walletconnect_sessions": {
@@ -2027,6 +2047,8 @@
     "insufficient_balance": "잔액이 부족합니다",
     "enter_larger_amount": "계속하려면 더 많은 금액을 입력하세요",
     "enter_smaller_amount": "계속하려면 더 적은 금액을 입력하세요",
+    "enter_lower_gas_fees": "Enter a lower amount to pay for gas fees",
+    "max": "MAX",
     "try_again": "다시 시도하세요",
     "error": "오류",
     "something_went_wrong": "죄송합니다, 오류가 발생했습니다.",
@@ -2110,14 +2132,22 @@
       "sent": "전송 완료!"
     },
     "notifications": {
-      "purchase_failed_title": "{{currency}} 구매에 실패했습니다! 다시 시도하세요. 불편을 드려 죄송합니다!",
-      "purchase_failed_description": "결제 방법 및 카드 지원 여부를 확인하세요",
-      "purchase_cancelled_title": "구매가 취소되었습니다",
-      "purchase_cancelled_description": "결제 방법 및 카드 지원 여부를 확인하세요",
-      "purchase_completed_title": "{{amount}} {{currency}} 구매에 실패했습니다!",
-      "purchase_completed_description": "{{currency}} 이용이 불가능합니다",
-      "purchase_pending_title": "{{currency}} 구매 처리 중",
-      "purchase_pending_description": "몇 분 정도 소요됩니다..."
+      "purchase_failed_title": "{{currency}} 매수에 실패했습니다! 다시 시도하세요. 불편을 드려 죄송합니다!",
+      "purchase_failed_description": "회원님의 결제 수단 및 카드를 지원하는지 확인하세요",
+      "purchase_cancelled_title": "매수 주문이 취소되었습니다",
+      "purchase_cancelled_description": "회원님의 결제 수단 및 카드를 지원하는지 확인하세요",
+      "purchase_completed_title": "{{amount}} {{currency}} 매수에 성공했습니다!",
+      "purchase_completed_description": "{{currency}}을(를) 사용할 수 있습니다",
+      "purchase_pending_title": "{{currency}} 매수 처리 중",
+      "purchase_pending_description": "몇 분 정도 소요됩니다...",
+      "sale_failed_title": "주문 실패",
+      "sale_failed_description": "주문을 완료할 수 없습니다.",
+      "sale_cancelled_title": "주문 취소됨",
+      "sale_cancelled_description": "주문을 완료할 수 없습니다.",
+      "sale_completed_title": "주문 완료",
+      "sale_completed_description": "주문에 성공했습니다!",
+      "sale_pending_title": "{{currency}} 매도 처리 중",
+      "sale_pending_description": "주문이 처리 중입니다."
     }
   },
   "swaps": {
@@ -2741,5 +2771,17 @@
     "ipfs_gateway_content2": "언제든지 설정 > 보안 및 개인정보에서",
     "ipfs_gateway_content3": "IPFS 레졸루션을",
     "ipfs_gateway_content4": "비활성화할 수 있습니다"
+  },
+  "install_snap": {
+    "title": "연결 요청",
+    "description": "{{origin}}에서 {{snap}} Snap을 다운로드하고 연결하려고 합니다. 계속하기 전에 신뢰할 수 있는 개발자인지 확인하세요.",
+    "permissions_request_title": "승인 요청",
+    "permissions_request_description": "{{origin}}에서 {{snap}} Snap을 설치하기 위하여 다음 권한을 요청합니다.",
+    "approve_permissions": "승인",
+    "installed": "설치됨",
+    "install_successful": "{{snap}} Snap이 설치되었습니다.",
+    "okay_action": "확인",
+    "error_title": "설치 실패",
+    "error_description": "{{snap}} 설치에 실패했습니다."
   }
 }
