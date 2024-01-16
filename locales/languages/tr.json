@@ -17,7 +17,20 @@
     "does_not_look_right": "Bir şeyler doğru görünmüyor mu?",
     "suspicious_request_title": "Bu, şüheli bir taleptir",
     "trade_order_farming_description": "Bu talebi onaylarsanız varlıklarınızı kaybedebilirsiniz.",
-    "transfer_farming_description": "Bu talebi onaylarsanız dolandırıcılıkla bilinen üçüncü bir taraf tüm varlıklarınızı çalar."
+    "transfer_farming_description": "Bu talebi onaylarsanız dolandırıcılıkla bilinen üçüncü bir taraf tüm varlıklarınızı çalar.",
+    "before_you_proceed": "Devam etmeden önce",
+    "enable_blockaid_alerts": "Bu özelliği etkinleştirmek için bazı güvenlik uyarılarının kurulumunun yapılması gerekiyor. Kurulum yapılırken bu sayfanın açık kalması gerekecek. Bu işlemin tamamlanması bir dakikadan az sürecektir.",
+    "setting_up_alerts": "Güvenlik uyarılarının kurulumu yapılıyor",
+    "setting_up_alerts_description": "Güvenlik uyarlarının kurulumunu yapmak için elimizden geldiğince hızlı ilerliyoruz. Pes etmeyin, bitmek üzere.",
+    "setup_complete": "Kurulum tamamlandı",
+    "setup_failed": "Güvenlik uyarılarının ayarlanmasını tamamlayamadık. İnternet bağlantınızı kontrol edip tekrar deneyin.",
+    "setup_multiple_failures": "İnternet bağlantınız şu anda stabil olmadığından güvenlik uyarılarını ayarlayamadık. Lütfen bağlantınız stabil hale gelince tekrar deneyin.",
+    "setup_complete_description": "Güvenlik uyarıları hazır. Bu sayfayı kapatıp cüzdanınızı keşfetmeye devam edebilirsiniz",
+    "continue": "Devam",
+    "cancel": "İptal",
+    "got_it": "Anladım",
+    "try_again": "Tekrar Dene",
+    "failed": "Bir şeyler ters gitti"
   },
   "date": {
     "months": {
@@ -266,7 +279,7 @@
     "successfully_changed": "Şifreniz başarılı bir şekilde değiştirildi"
   },
   "import_from_seed": {
-    "title": "Seed'den aktar",
+    "title": "Gizli Kurtarma İfadesinden içe aktar",
     "seed_phrase_placeholder": "Gizli Kurtarma İfadenizi girin",
     "new_password": "Yeni Şifre",
     "confirm_password": "Şifreyi onayla",
@@ -385,6 +398,7 @@
     "logout_to_import_seed": "Bir Gizli Kurtarma İfadesini içe aktarmak için önce oturumu kapatmanız gerekiyor.",
     "ready_to_explore": "Blokzinciri uygulamalarını keşfetmeye başlamak için hazır mısınız?",
     "unable_to_load": "Bakiye yüklenmedi",
+    "unable_to_find_conversion_rate": "dönüştürme oranı bulunamıyor",
     "display_nft_media_desc": "Bir NFT'yi içe aktarmak için Ayarlar > Güvenlik ve gizlilik kısmında NFT medyasını göster seçeneğini açın.",
     "display_nft_media_cta": "NFT medyasını göster seçeneğini açın",
     "display_media_nft_warning": "NFT medyasını ve verilerini göstermek IP adresinizi merkezi sunuculara ifşa edebilir. Sadece mevcut riskleri anlıyorsanız NFT'yi içe aktarın.",
@@ -521,7 +535,6 @@
     "import_account": "Bir hesabı içe aktar",
     "connect_hardware": "Donanım cüzdanı bağla",
     "imported": "İçe aktarıldı",
-    "qr_hardware": "QR donanımı",
     "remove_account_title": "Hesap kaldırma",
     "remove_account_message": "Bu hesabı gerçekten kaldırmak istiyor musunuz?",
     "no": "Hayır",
@@ -575,7 +588,7 @@
     "tutorial": "Öğretici",
     "description4": "Temel (öğretici)",
     "description5": "1. Kilit Taşınızı Açın",
-    "description6": "2. Tap the ··· Menu, then go to Sync",
+    "description6": "2. ··· Menüsüne dokunun, ardından Senkronize Et sekmesine gidin",
     "button_continue": "Devam",
     "hint_text": "İşlemi onaylamak için ",
     "purpose_connect": "bağlan",
@@ -608,9 +621,9 @@
     "autolock_after_minutes": "{{time}} dakika sonra",
     "reveal_seed_words": "Seed Sözcüklerini Göster",
     "reset_account": "Hesabı Sıfırla",
-    "state_logs_button": "DURUM GÜNLÜKLERİNİ İNDİR",
+    "state_logs_button": "Durum Günlüklerini İndir",
     "reveal_seed_words_button": "SEED SÖZCÜKLERİNİ GÖSTER",
-    "reset_account_button": "HESABI SIFIRLA",
+    "reset_account_button": "Hesabı Sıfırla",
     "reset_account_confirm_button": "Evet, sıfırla",
     "reset_account_cancel_button": "İptal",
     "reset_account_modal_title": "Hesabı Sıfırla?",
@@ -664,8 +677,8 @@
     "toggleEthSignModalTitle": "Kullanım riski size aittir",
     "toggleEthSignModalEnable": "Etkinleştir",
     "toggleEthSignModalLearnMore": "Daha fazla bilgi edinin.",
-    "toggleEthSignOff": "Kapalı (Önerilir)",
-    "toggleEthSignOn": "Açık (Önerilmez)",
+    "toggleEthSignOff": "(Önerilir)",
+    "toggleEthSignOn": "(Önerilmez)",
     "toggleEthSignContinueButton": "Devam Et",
     "toggleEthSignEnableButton": "Etkinleştir",
     "show_custom_nonce": "İşlem nonce numarasını kişiselleştir",
@@ -788,7 +801,7 @@
     "manage_sdk_connections_title": "Bağlantıları yönet",
     "manage_sdk_connections_text": "Sitelere ve/veya MetaMask SDK bağlantılarını kaldırın.",
     "fiat_on_ramp": {
-      "title": "Kripto Satın Al",
+      "title": "Kripto Al ve Sat",
       "description": "Bölge ve daha fazlası...",
       "current_region": "Mevcut Bölge",
       "reset_region": "Bölgeyi Sıfırla",
@@ -853,7 +866,12 @@
           "snap_dialog": "Özel iletişim kutuları görüntüle"
         }
       }
-    }
+    },
+    "privacy_browser_subheading": "Gizlilik veya tarayıcı verilerini temizle",
+    "analytics_subheading": "Analitikler",
+    "transactions_subheading": "İşlemler",
+    "token_nft_ens_subheading": "Token, NFT ve ENS otomatik algılama",
+    "security_check_subheading": "Güvenlik kontrolleri"
   },
   "sdk": {
     "disconnect_title": "Tüm sitelerin bağlantısı kesilsin mi?",
@@ -1184,7 +1202,8 @@
     "fiat_conversion_not_available": "Fiat para dönüştürmeleri şu anda kullanılmıyor",
     "hex_data_copied": "On altılı veriler panoya kopyalandı",
     "invalid_recipient": "Alıcı geçersiz",
-    "invalid_recipient_description": "Adresi kontrol edin ve geçerli olduğundan emin olun"
+    "invalid_recipient_description": "Adresi kontrol edin ve geçerli olduğundan emin olun",
+    "swap_tokens": "Token swap işlemi yapın"
   },
   "custom_gas": {
     "total": "Toplam",
@@ -1799,13 +1818,14 @@
   "experimental_settings": {
     "wallet_connect_dapps": "WalletConnect Oturumları",
     "wallet_connect_dapps_desc": "Aktif WalletConnect oturumlarının listesini görüntüle",
-    "wallet_connect_dapps_cta": "OTURUMLARI GÖRÜNTÜLE",
+    "wallet_connect_dapps_cta": "Oturumları görüntüle",
     "network_not_supported": "Geçerli ağ desteklenmiyor",
     "security_alerts": "Güvenlik uyarıları",
     "security_alerts_desc": "Bu özellik, işlem ve imza taleplerinizi yerel bir şekilde incelerken gizliliğinizi koruyarak Ethereum Ana Ağındaki kötü amaçlı faaliyetlere karşı sizi uyarır. Verileriniz, bu hizmeti sunan üçüncü taraf ile paylaşılmaz. Talepleri onaylamadan önce her zaman gereken özeni kendiniz gösterin. Bu özelliğin tüm kötü amaçlı faaliyetleri algılayacağına dair herhangi bir garanti bulunmamaktadır.",
     "select_provider": "Tercih ettiğiniz sağlayıcıyı seçin",
     "blockaid": "Blockaid",
-    "blockaid_desc": "Gizliliği koruma - üçüncü taraflarla hiçbir veri paylaşılmaz. Ethereum Ana Ağında mevcuttur.",
+    "blockaid_desc": "Privacy preserving - no data is shared with third parties.",
+    "available_on_eth_mainet": "Available on Ethereum Mainnet.",
     "switch_network": "Lütfen ana ağa veya sepolia ağına geçin"
   },
   "walletconnect_sessions": {
@@ -2027,6 +2047,8 @@
     "insufficient_balance": "Bu tutar bakiyenizden yüksek",
     "enter_larger_amount": "Devam etmek için daha büyük bir tutar girin",
     "enter_smaller_amount": "Devam etmek için daha küçük bir tutar girin",
+    "enter_lower_gas_fees": "Enter a lower amount to pay for gas fees",
+    "max": "MAX",
     "try_again": "Tekrar dene",
     "error": "Hata",
     "something_went_wrong": "Hay aksi, bir şeyler ters gitti",
@@ -2115,9 +2137,17 @@
       "purchase_cancelled_title": "Satın alma işleminiz iptal edildi",
       "purchase_cancelled_description": "Ödeme yöntemini ve kart desteğini doğrula",
       "purchase_completed_title": "{{amount}} {{currency}} satın alma işleminiz başarılı oldu!",
-      "purchase_completed_description": "{{currency}} para biriminiz şimdi kullanılabilir",
+      "purchase_completed_description": "{{currency}} para biriminiz artık kullanılabilir",
       "purchase_pending_title": "{{currency}} satın alma işleminiz gerçekleşiyor",
-      "purchase_pending_description": "Bu işlem birkaç dakika sürecektir..."
+      "purchase_pending_description": "Bu işlem sadece birkaç dakika sürecektir...",
+      "sale_failed_title": "Emir başarısız oldu",
+      "sale_failed_description": "Emriniz tamamlanamadı.",
+      "sale_cancelled_title": "Emir iptal edildi",
+      "sale_cancelled_description": "Emriniz tamamlanamadı.",
+      "sale_completed_title": "Emir tamamlandı",
+      "sale_completed_description": "Emriniz başarılı oldu.",
+      "sale_pending_title": "{{currency}} satışı gerçekleştiriliyor",
+      "sale_pending_description": "Emriniz şu anda gerçekleştiriliyor."
     }
   },
   "swaps": {
@@ -2741,5 +2771,17 @@
     "ipfs_gateway_content2": "IPFS çözünürlüğünü dilediğiniz zaman",
     "ipfs_gateway_content3": "Ayarlar > Güvenlik ve gizlilik",
     "ipfs_gateway_content4": "menüsünden kapatabilirsiniz"
+  },
+  "install_snap": {
+    "title": "Bağlantı talebi",
+    "description": "{{origin}}, {{snap}} adlı snap'i indirerek bağlanmak istiyor. İlerlemeden önce yazarlarına güvendiğinizden emin olun.",
+    "permissions_request_title": "İzin talebi",
+    "permissions_request_description": "{{origin}}, {{snap}} adlı snap'i yüklemek istiyor ve bu snap aşağıdaki izinleri talep ediyor.",
+    "approve_permissions": "Onayla",
+    "installed": "Yüklendi",
+    "install_successful": "{{snap}} başarıyla yüklendi.",
+    "okay_action": "Tamam",
+    "error_title": "Yükleme başarısız oldu",
+    "error_description": "{{snap}} yüklemesi başarısız oldu."
   }
 }
