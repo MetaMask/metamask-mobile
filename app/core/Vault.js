@@ -3,6 +3,9 @@ import Logger from '../util/Logger';
 import { syncPrefs, syncAccounts } from '../util/sync';
 import { KeyringTypes } from '@metamask/keyring-controller';
 
+/**
+ * Recreates the QR keyring if it exists.
+ */
 export const restoreQRKeyring = async () => {
   const { KeyringController } = Engine.context;
   const qrKeyring = (
