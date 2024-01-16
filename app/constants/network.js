@@ -31,4 +31,5 @@ export const NETWORKS_CHAIN_ID = {
   GOERLI: '5',
   LINEA_MAINNET: '59144',
   ZKSYNC_ERA: '324',
+  AVALANCHE: '0xa86a',
 };

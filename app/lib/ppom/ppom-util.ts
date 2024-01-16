@@ -8,7 +8,7 @@ import Engine from '../../core/Engine';
 import { store } from '../../store';
 import { isBlockaidFeatureEnabled } from '../../util/blockaid';
 import Logger from '../../util/Logger';
-import { isMainnetByChainId } from '../../util/networks';
+import { isMainnetByChainId, SUPPORTED_CHAIN_IDS } from '../../util/networks';
 
 const ConfirmationMethods = Object.freeze([
   'eth_sendRawTransaction',
@@ -46,7 +46,8 @@ const validateRequest = async (req: any, transactionId?: string) => {
     !isBlockaidFeatureEnabled() ||
     !PreferencesController.state.securityAlertsEnabled ||
     !ConfirmationMethods.includes(req.method) ||
-    !isMainnetByChainId(currentChainId)
+    SUPPORTED_CHAIN_IDS.includes(currentChainId)
+    // !isMainnetByChainId(currentChainId)
   ) {
     return;
   }
