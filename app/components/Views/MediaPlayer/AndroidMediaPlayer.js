@@ -121,7 +121,7 @@ const createStyles = (colors) =>
       height: 4,
       width: '100%',
       borderRadius: 2,
-      backgroundColor: importedColors.white,
+      backgroundColor: theme.brandColors.white['000'],
     },
     seekbarPermanentFill: {
       width: '100%',
@@ -137,6 +137,7 @@ const createStyles = (colors) =>
       top: 14,
       height: 14,
       width: 14,
+      backgroundColor: theme.brandColors.white['000'],
     },
     actionButton: {
       width: 44,
@@ -484,13 +485,7 @@ export default function VideoPlayer({
           style={[styles.seekbarHandle, { left: seekerPosition }]}
           pointerEvents={'none'}
         >
-          <View
-            style={[
-              styles.seekbarCircle,
-              { backgroundColor: importedColors.white },
-            ]}
-            pointerEvents={'none'}
-          />
+          <View style={styles.seekbarCircle} pointerEvents={'none'} />
         </View>
       </View>
     ),
