@@ -1,7 +1,7 @@
 import * as core from '@actions/core';
 import { context, getOctokit } from '@actions/github';
 import { GitHub } from '@actions/github/lib/utils';
-import { externalContributorLabel } from './shared/label';
+import { externalContributorLabel, E2ELabel, e2eLabels } from './shared/label';
 import { Labelable } from './shared/labelable';
 import { retrievePullRequest } from './shared/pull-request';
 
@@ -40,8 +40,6 @@ async function main(): Promise<void> {
   const pullRequestLabels =
     pullRequest.labels?.map((labelObject) => labelObject?.name) || [];
 
-    const e2eLabels = ['Run Smoke E2E', 'No E2E Smoke Needed']
-
   const preventMergeLabels = [
     'needs-qa',
     "QA'd but questions",
@@ -56,13 +54,10 @@ async function main(): Promise<void> {
 
   // Check pull request has at least required QA label and team label
   for (const label of pullRequestLabels) {
-
     // Check for mandatory team label
     if (label.startsWith('team-') || label === externalContributorLabel.name) {
       console.log(`PR contains a team label as expected: ${label}`);
-      core.setFailed(
-        `No team labels found on the PR. ${errorDescription}`,
-      );
+      core.setFailed(`No team labels found on the PR. ${errorDescription}`);
       process.exit(1);
     }
 
@@ -75,10 +70,8 @@ async function main(): Promise<void> {
     }
 
     // Check for mandatory E2E label
-    if (e2eLabels.includes(label)) {
-      core.setFailed(
-        `No E2E labels found on the PR. ${errorDescription}`,
-      );
+    if (e2eLabels.includes(label as E2ELabel)) {
+      core.setFailed(`No E2E labels found on the PR. ${errorDescription}`);
       process.exit(1);
     }
   }
