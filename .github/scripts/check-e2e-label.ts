@@ -35,12 +35,13 @@ async function main(): Promise<void> {
   const octokit: InstanceType<typeof GitHub> = getOctokit(githubToken);
 
   const {
-    data: { body: prBody },
+    data: { body: prBody, labels },
   } = await octokit.rest.pulls.get({
     owner,
     repo,
     pull_number: prNumber,
   });
+  const prLabels = labels.map((label) => label.name);
 
   const updateCIFlagOnBody = (includeSkipFlag: boolean) => {
     let bodyText = prBody || '';
@@ -53,7 +54,7 @@ async function main(): Promise<void> {
   };
 
   const getLabelToRemove = (activeLabel: E2ELabel) => {
-    let labelToRemove: string;
+    let labelToRemove: E2ELabel;
     if (activeLabel === E2ELabel.RUN_SMOKE_E2E_LABEL) {
       labelToRemove = E2ELabel.NO_E2E_SMOKE_NEEDED;
     } else {
@@ -73,13 +74,14 @@ async function main(): Promise<void> {
       let bodyText = updateCIFlagOnBody(
         prLabel === E2ELabel.NO_E2E_SMOKE_NEEDED,
       );
-
-      await octokit.rest.issues.removeLabel({
-        owner,
-        repo,
-        issue_number: prNumber,
-        name: labelToRemove,
-      });
+      if (prLabels.includes(labelToRemove)) {
+        await octokit.rest.issues.removeLabel({
+          owner,
+          repo,
+          issue_number: prNumber,
+          name: labelToRemove,
+        });
+      }
       await octokit.rest.pulls.update({
         owner,
         repo,
