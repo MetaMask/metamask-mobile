@@ -40,6 +40,8 @@ async function main(): Promise<void> {
   const pullRequestLabels =
     pullRequest.labels?.map((labelObject) => labelObject?.name) || [];
 
+    const e2eLabels = ['Run Smoke E2E', 'No E2E Smoke Needed']
+
   const preventMergeLabels = [
     'needs-qa',
     "QA'd but questions",
@@ -49,31 +51,35 @@ async function main(): Promise<void> {
     'stale',
     'DO-NOT-MERGE',
   ];
-  let hasTeamLabel = false;
+
+  const errorDescription = `Please make sure the PR is appropriately labeled before merging it.\n\nSee labeling guidelines for more detail: https://github.com/MetaMask/metamask-mobile/blob/main/.github/guidelines/LABELING_GUIDELINES.md`;
 
   // Check pull request has at least required QA label and team label
   for (const label of pullRequestLabels) {
+
+    // Check for mandatory team label
     if (label.startsWith('team-') || label === externalContributorLabel.name) {
       console.log(`PR contains a team label as expected: ${label}`);
-      hasTeamLabel = true;
+      core.setFailed(
+        `No team labels found on the PR. ${errorDescription}`,
+      );
+      process.exit(1);
     }
+
+    // Check for labels that prevent merge
     if (preventMergeLabels.includes(label)) {
       core.setFailed(
         `PR cannot be merged because it still contains this label: ${label}`,
       );
       process.exit(1);
     }
-    if (hasTeamLabel) {
-      return;
+
+    // Check for mandatory E2E label
+    if (e2eLabels.includes(label)) {
+      core.setFailed(
+        `No E2E labels found on the PR. ${errorDescription}`,
+      );
+      process.exit(1);
     }
   }
-
-  // Otherwise, throw an arror to prevent from merging
-  let errorMessage = '';
-  if (!hasTeamLabel) {
-    errorMessage += 'No team labels found on the PR. ';
-  }
-  errorMessage += `Please make sure the PR is appropriately labeled before merging it.\n\nSee labeling guidelines for more detail: https://github.com/MetaMask/metamask-mobile/blob/main/.github/guidelines/LABELING_GUIDELINES.md`;
-  core.setFailed(errorMessage);
-  process.exit(1);
 }
