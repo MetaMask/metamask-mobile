@@ -1,4 +1,9 @@
 /** @type {Detox.DetoxConfig} */
+
+const { getAvailableAVDs } = require('./e2e/setEmulator');
+
+const avdList = getAvailableAVDs();
+
 module.exports = {
   testRunner: {
     args: {
@@ -35,7 +40,7 @@ module.exports = {
     },
     // because e2e run on debug mode in bitrise
     'android.emu.bitrise.debug': {
-      device: 'android.bitrise.emulator',
+      device: 'android.emulator',
       app: 'android.bitrise.debug',
     },
 
@@ -68,7 +73,7 @@ module.exports = {
     'android.emulator': {
       type: 'android.emulator',
       device: {
-        avdName: 'Pixel_5_API_30',
+        avdName: avdList[0],
       },
     },
   },
