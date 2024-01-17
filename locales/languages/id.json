@@ -17,7 +17,20 @@
     "does_not_look_right": "Ada yang tidak beres?",
     "suspicious_request_title": "Ini adalah permintaan yang mencurigakan",
     "trade_order_farming_description": "Jika Anda menyetujui permintaan ini, aset Anda kemungkinan akan hilang.",
-    "transfer_farming_description": "Jika Anda menyetujui permintaan ini, pihak ketiga yang terdeteksi melakukan penipuan akan mengambil semua aset Anda."
+    "transfer_farming_description": "Jika Anda menyetujui permintaan ini, pihak ketiga yang terdeteksi melakukan penipuan akan mengambil semua aset Anda.",
+    "before_you_proceed": "Sebelum melanjutkan",
+    "enable_blockaid_alerts": "Untuk mengaktifkan fitur ini, kami perlu mengatur peringatan keamanan. Halaman ini harus tetap terbuka selagi diatur. Diperlukan waktu kurang dari satu menit untuk menyelesaikannya.",
+    "setting_up_alerts": "Mengatur peringatan keamanan",
+    "setting_up_alerts_description": "Kami akan mengatur peringatan keamanan secepat mungkin. Tunggulah sebentar, kami hampir selesai.",
+    "setup_complete": "Pengaturan selesai",
+    "setup_failed": "Kami tidak dapat menyelesaikan pengaturan peringatan keamanan. Periksa koneksi internet dan coba lagi.",
+    "setup_multiple_failures": "Koneksi internet saat ini tidak stabil, jadi kami tidak dapat mengatur peringatan keamanan. Coba lagi saat koneksi sudah pulih.",
+    "setup_complete_description": "Peringatan keamanan siap digunakan. Anda dapat menutup halaman ini dan mulai menjelajahi dompet",
+    "continue": "Lanjutkan",
+    "cancel": "Batal",
+    "got_it": "Mengerti",
+    "try_again": "Coba Lagi",
+    "failed": "Terjadi kesalahan"
   },
   "date": {
     "months": {
@@ -266,7 +279,7 @@
     "successfully_changed": "Kata sandi Anda berhasil diubah"
   },
   "import_from_seed": {
-    "title": "Impor dari seed",
+    "title": "Impor dari Frasa Pemulihan Rahasia",
     "seed_phrase_placeholder": "Masukkan Frasa Pemulihan Rahasia",
     "new_password": "Kata Sandi Baru",
     "confirm_password": "Konfirmasikan kata sandi",
@@ -385,6 +398,7 @@
     "logout_to_import_seed": "Anda harus keluar terlebih dulu untuk mengimpor Frasa Pemulihan Rahasia.",
     "ready_to_explore": "Sudah siap menjelajahi aplikasi blockchain?",
     "unable_to_load": "Tidak dapat memuat saldo",
+    "unable_to_find_conversion_rate": "tidak dapat menemukan tarif konversi",
     "display_nft_media_desc": "Untuk mengimpor NFT, aktifkan Tampilkan media NFT di Pengaturan > Keamanan dan privasi.",
     "display_nft_media_cta": "Aktifkan Tampilkan media NFT",
     "display_media_nft_warning": "Menampilkan media dan data NFT dapat mengekspos alamat IP ke server terpusat. Impor NFT hanya jika Anda memahami risiko yang terlibat.",
@@ -521,7 +535,6 @@
     "import_account": "Impor akun",
     "connect_hardware": "Hubungkan dompet perangkat keras",
     "imported": "Diimpor",
-    "qr_hardware": "Perangkat keras QR",
     "remove_account_title": "Penghapusan akun",
     "remove_account_message": "Yakin ingin menghapus akun ini?",
     "no": "Tidak",
@@ -575,7 +588,7 @@
     "tutorial": "Tutorial",
     "description4": "Keystone (tutorial)",
     "description5": "1. Buka Keystone Anda",
-    "description6": "2. Tap the ··· Menu, then go to Sync",
+    "description6": "2. Ketuk Menu ···, lalu buka Sinkronisasi",
     "button_continue": "Lanjutkan",
     "hint_text": "Pindai dompet Keystone Anda ke ",
     "purpose_connect": "hubungkan",
@@ -608,9 +621,9 @@
     "autolock_after_minutes": "Setelah {{time}} menit",
     "reveal_seed_words": "Ungkap Frasa Seed",
     "reset_account": "Reset Akun",
-    "state_logs_button": "UNDUH LOG STATUS",
+    "state_logs_button": "Unduh Log State",
     "reveal_seed_words_button": "UNGKAP FRASA SEED",
-    "reset_account_button": "RESET AKUN",
+    "reset_account_button": "Reset Akun",
     "reset_account_confirm_button": "Ya, reset",
     "reset_account_cancel_button": "Batal",
     "reset_account_modal_title": "Reset Akun?",
@@ -664,8 +677,8 @@
     "toggleEthSignModalTitle": "Gunakan dengan risiko Anda sendiri",
     "toggleEthSignModalEnable": "Aktifkan",
     "toggleEthSignModalLearnMore": "Selengkapnya.",
-    "toggleEthSignOff": "NONAKTIF (Disarankan)",
-    "toggleEthSignOn": "AKTIF (Tidak disarankan)",
+    "toggleEthSignOff": "(Direkomendasikan)",
+    "toggleEthSignOn": "(Tidak direkomendasikan)",
     "toggleEthSignContinueButton": "Lanjutkan",
     "toggleEthSignEnableButton": "Aktifkan",
     "show_custom_nonce": "Sesuaikan nonce transaksi",
@@ -788,7 +801,7 @@
     "manage_sdk_connections_title": "Kelola koneksi",
     "manage_sdk_connections_text": "Hapus koneksi ke situs dan/atau MetaMask SDK.",
     "fiat_on_ramp": {
-      "title": "Beli Kripto",
+      "title": "Beli & Jual Kripto",
       "description": "Wilayah dan lainnya...",
       "current_region": "Wilayah Saat Ini",
       "reset_region": "Reset Wilayah",
@@ -853,7 +866,12 @@
           "snap_dialog": "Tampilkan dialog khusus"
         }
       }
-    }
+    },
+    "privacy_browser_subheading": "Hapus data privasi atau browser",
+    "analytics_subheading": "Analitis",
+    "transactions_subheading": "Transaksi",
+    "token_nft_ens_subheading": "Autodeteksi Token, NFT, dan ENS",
+    "security_check_subheading": "Pemeriksaan keamanan"
   },
   "sdk": {
     "disconnect_title": "Putuskan koneksi semua situs?",
@@ -1184,7 +1202,8 @@
     "fiat_conversion_not_available": "Konversi fiat tidak tersedia untuk saat ini",
     "hex_data_copied": "Data hex disalin ke papan klip",
     "invalid_recipient": "Penerima tidak valid",
-    "invalid_recipient_description": "Periksa alamatnya dan pastikan sudah valid"
+    "invalid_recipient_description": "Periksa alamatnya dan pastikan sudah valid",
+    "swap_tokens": "Tukar token"
   },
   "custom_gas": {
     "total": "Total",
@@ -1799,13 +1818,14 @@
   "experimental_settings": {
     "wallet_connect_dapps": "Sesi WalletConnect",
     "wallet_connect_dapps_desc": "Lihat daftar sesi WalletConnect aktif",
-    "wallet_connect_dapps_cta": "LIHAT SESI",
+    "wallet_connect_dapps_cta": "Lihat sesi",
     "network_not_supported": "Tidak mendukung jaringan saat ini",
     "security_alerts": "Peringatan keamanan",
     "security_alerts_desc": "Fitur ini memperingatkan Anda tentang aktivitas berbahaya dengan meninjau permintaan transaksi dan tanda tangan secara lokal. Selalu lakukan uji tuntas sendiri sebelum menyetujui permintaan apa pun. Tidak ada jaminan bahwa fitur ini akan mendeteksi semua aktivitas berbahaya. Dengan mengaktifkan fitur ini, Anda menyetujui persyaratan penggunaan penyedia.",
     "select_provider": "Pilih penyedia favorit Anda",
     "blockaid": "Blockaid",
-    "blockaid_desc": "Menjaga privasi - tidak ada data yang dibagikan kepada pihak ketiga. Tersedia di Mainnet Ethereum.",
+    "blockaid_desc": "Privacy preserving - no data is shared with third parties.",
+    "available_on_eth_mainet": "Available on Ethereum Mainnet.",
     "switch_network": "Harap beralih ke mainnet atau sepolia"
   },
   "walletconnect_sessions": {
@@ -2027,6 +2047,8 @@
     "insufficient_balance": "Jumlah ini lebih tinggi dari saldo Anda",
     "enter_larger_amount": "Masukkan jumlah yang lebih besar untuk melanjutkan",
     "enter_smaller_amount": "Masukkan jumlah yang lebih kecil untuk melanjutkan",
+    "enter_lower_gas_fees": "Enter a lower amount to pay for gas fees",
+    "max": "MAX",
     "try_again": "Coba lagi",
     "error": "Galat",
     "something_went_wrong": "Ups! Terjadi kesalahan",
@@ -2110,14 +2132,22 @@
       "sent": "Terkirim!"
     },
     "notifications": {
-      "purchase_failed_title": "Pembelian {{currency}} gagal! Silakan coba lagi. Mohon maaf atas ketidaknyamanan yang timbul!",
+      "purchase_failed_title": "Pembelian {{currency}} gagal! Harap coba lagi. Mohon maaf atas ketidaknyamanan yang timbul!",
       "purchase_failed_description": "Verifikasikan metode pembayaran dan dukungan kartu",
-      "purchase_cancelled_title": "Pembelian Anda dibatalkan",
+      "purchase_cancelled_title": "Pembelian dibatalkan",
       "purchase_cancelled_description": "Verifikasikan metode pembayaran dan dukungan kartu",
-      "purchase_completed_title": "Pembelian {{amount}} {{currency}} berhasil!",
-      "purchase_completed_description": "{{currency}} Anda kini telah tersedia",
-      "purchase_pending_title": "Memproses pembelian {{currency}} Anda",
-      "purchase_pending_description": "Hanya perlu beberapa menit..."
+      "purchase_completed_title": "Pembelian senilai {{amount}} {{currency}} berhasil!",
+      "purchase_completed_description": "{{currency}} kini telah tersedia",
+      "purchase_pending_title": "Memproses pembelian {{currency}}",
+      "purchase_pending_description": "Hanya perlu beberapa menit...",
+      "sale_failed_title": "Pesanan gagal",
+      "sale_failed_description": "Pesanan tidak dapat diselesaikan.",
+      "sale_cancelled_title": "Pesanan dibatalkan",
+      "sale_cancelled_description": "Pesanan tidak dapat diselesaikan.",
+      "sale_completed_title": "Pesanan selesai",
+      "sale_completed_description": "Pesanan berhasil!.",
+      "sale_pending_title": "Pemrosesan penjualan {{currency}}",
+      "sale_pending_description": "Pesanan sedang diproses."
     }
   },
   "swaps": {
@@ -2741,5 +2771,17 @@
     "ipfs_gateway_content2": "Anda dapat menonaktifkan resolusi IPFS di",
     "ipfs_gateway_content3": "Pengaturan > Keamanan dan privasi",
     "ipfs_gateway_content4": "kapan saja"
+  },
+  "install_snap": {
+    "title": "Permintaan koneksi",
+    "description": "{{origin}} ingin mengunduh dan terhubung dengan {{snap}}. Pastikan Anda memercayai pembuatnya sebelum melanjutkan.",
+    "permissions_request_title": "Permintaan izin",
+    "permissions_request_description": "{{origin}} ingin menginstal {{snap}}, yang meminta izin berikut.",
+    "approve_permissions": "Setujui",
+    "installed": "Diinstal",
+    "install_successful": "{{snap}} berhasil diinstal.",
+    "okay_action": "Oke",
+    "error_title": "Gagal diinstal",
+    "error_description": "Instalasi {{snap}} gagal."
   }
 }
