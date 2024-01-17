@@ -26,6 +26,7 @@ import URL from 'url-parse';
 import parseWalletConnectUri from './wc-utils';
 import { store } from '../../store';
 import { selectChainId } from '../../selectors/networkController';
+import ppomUtil from '../../../app/lib/ppom/ppom-util';
 
 const hub = new EventEmitter();
 let connectors = [];
@@ -180,14 +181,34 @@ class WalletConnect {
                 hostname: payloadHostname,
               });
 
-              const hash = await (
-                await TransactionController.addTransaction(payload.params[0], {
+              const trx = await TransactionController.addTransaction(
+                payload.params[0],
+                {
                   deviceConfirmedOn: WalletDevice.MM_MOBILE,
                   origin: this.url.current
                     ? WALLET_CONNECT_ORIGIN + this.url.current
                     : undefined,
-                })
-              ).result;
+                },
+              );
+
+              const id = trx.transactionMeta.id;
+              const reqObject = {
+                id: payload.id,
+                jsonrpc: '2.0',
+                method: payload.method,
+                params: [
+                  {
+                    from: payload.params[0].from,
+                    to: payload.params[0].to,
+                    value: payload.params[0]?.value,
+                    data: payload.params[0]?.data,
+                  },
+                ],
+              };
+
+              ppomUtil.validateRequest(reqObject, id);
+
+              const hash = await trx.result;
               this.approveRequest({
                 id: payload.id,
                 result: hash,

@@ -1,6 +1,6 @@
 import { Order } from '@consensys/on-ramp-sdk';
 import { createSelector } from 'reselect';
-import { Region } from '../../components/UI/Ramp/types';
+import { Region } from '../../components/UI/Ramp/common/types';
 import { selectChainId } from '../../selectors/networkController';
 import { selectSelectedAddress } from '../../selectors/preferencesController';
 import {
@@ -15,6 +15,7 @@ import {
   FiatOrdersState,
 } from './types';
 import type { RootState } from '../';
+import { isTestNet } from '../../util/networks';
 export type { FiatOrder } from './types';
 
 /** Action Creators */
@@ -46,6 +47,10 @@ export const setFiatOrdersPaymentMethodAGG = (
 });
 export const setFiatOrdersGetStartedAGG = (getStartedFlag: boolean) => ({
   type: ACTIONS.FIAT_SET_GETSTARTED_AGG,
+  payload: getStartedFlag,
+});
+export const setFiatOrdersGetStartedSell = (getStartedFlag: boolean) => ({
+  type: ACTIONS.FIAT_SET_GETSTARTED_SELL,
   payload: getStartedFlag,
 });
 export const addFiatCustomIdData = (customIdData: CustomIdData) => ({
@@ -89,6 +94,16 @@ export const updateOnRampNetworks = (
 ) => ({
   type: ACTIONS.FIAT_UPDATE_NETWORKS,
   payload: networks,
+});
+
+export const setFiatSellTxHash = (orderId: string, txHash: string) => ({
+  type: ACTIONS.FIAT_SET_SELL_TX_HASH,
+  payload: { orderId, txHash },
+});
+
+export const removeFiatSellTxHash = (orderId: string) => ({
+  type: ACTIONS.FIAT_REMOVE_SELL_TX_HASH,
+  payload: orderId,
 });
 
 /**
@@ -145,6 +160,10 @@ export const fiatOrdersGetStartedAgg: (
   state: RootState,
 ) => FiatOrdersState['getStartedAgg'] = (state: RootState) =>
   state.fiatOrders.getStartedAgg;
+export const fiatOrdersGetStartedSell: (
+  state: RootState,
+) => FiatOrdersState['getStartedSell'] = (state: RootState) =>
+  state.fiatOrders.getStartedSell;
 
 export const getOrders = createSelector(
   ordersSelector,
@@ -155,7 +174,7 @@ export const getOrders = createSelector(
       (order) =>
         !order.excludeFromPurchases &&
         order.account === selectedAddress &&
-        Number(order.network) === Number(chainId),
+        (isTestNet(chainId) || Number(order.network) === Number(chainId)),
     ),
 );
 
@@ -236,6 +255,7 @@ export const initialState: FiatOrdersState = {
   selectedRegionAgg: null,
   selectedPaymentMethodAgg: null,
   getStartedAgg: false,
+  getStartedSell: false,
   authenticationUrls: [],
   activationKeys: [],
 };
@@ -308,6 +328,12 @@ const fiatOrderReducer: (
       return {
         ...state,
         getStartedAgg: action.payload,
+      };
+    }
+    case ACTIONS.FIAT_SET_GETSTARTED_SELL: {
+      return {
+        ...state,
+        getStartedSell: action.payload,
       };
     }
     case ACTIONS.FIAT_SET_REGION_AGG: {
@@ -455,6 +481,44 @@ const fiatOrderReducer: (
       return {
         ...state,
         networks: action.payload,
+      };
+    }
+    case ACTIONS.FIAT_SET_SELL_TX_HASH: {
+      const { orderId, txHash } = action.payload;
+      const orders = state.orders;
+      const index = orders.findIndex((order) => order.id === orderId);
+      if (index === -1) {
+        return state;
+      }
+      return {
+        ...state,
+        orders: [
+          ...orders.slice(0, index),
+          {
+            ...orders[index],
+            sellTxHash: txHash,
+          },
+          ...orders.slice(index + 1),
+        ],
+      };
+    }
+    case ACTIONS.FIAT_REMOVE_SELL_TX_HASH: {
+      const orderId = action.payload;
+      const orders = state.orders;
+      const index = orders.findIndex((order) => order.id === orderId);
+      if (index === -1) {
+        return state;
+      }
+      return {
+        ...state,
+        orders: [
+          ...orders.slice(0, index),
+          {
+            ...orders[index],
+            sellTxHash: undefined,
+          },
+          ...orders.slice(index + 1),
+        ],
       };
     }
 

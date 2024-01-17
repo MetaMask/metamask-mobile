@@ -72,3 +72,6 @@ export const ADD_CUSTOM_NETWORK_ARTCILE =
 
 export const GOERLI_DEPRECATED_ARTICLE =
   'https://github.com/eth-clients/goerli#goerli-goerlitzer-testnet';
+
+export const LEDGER_SUPPORT_LINK =
+  'https://support.ledger.com/hc/en-us/articles/360009576554-Ethereum-ETH-?docs=true';

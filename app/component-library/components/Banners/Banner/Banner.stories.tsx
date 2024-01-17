@@ -1,54 +1,41 @@
-/* eslint-disable no-console */
-
+/* eslint-disable react/display-name */
 // Third party dependencies.
 import React from 'react';
-import { select } from '@storybook/addon-knobs';
-import { storiesOf } from '@storybook/react-native';
 
 // External dependencies.
-import { storybookPropsGroupID } from '../../../constants/storybook.constants';
-import BannerAlertStory, {
-  getBannerAlertStoryProps,
-} from './variants/BannerAlert/BannerAlert.stories';
-import BannerTipStory, {
-  getBannerTipStoryProps,
-} from './variants/BannerTip/BannerTip.stories';
+import { SAMPLE_BANNERALERT_PROPS } from './variants/BannerAlert/BannerAlert.constants';
+import { SAMPLE_BANNERTIP_PROPS } from './variants/BannerTip/BannerTip.constants';
 
 // Internal dependencies.
-import { BannerVariant, BannerProps } from './Banner.types';
-import Banner from './Banner';
-import { DEFAULT_BANNER_VARIANT } from './Banner.constants';
+import { BannerVariant } from './Banner.types';
+import { default as BannerComponent } from './Banner';
 
-export const getBannerStoryProps = (): BannerProps => {
-  let bannerProps: BannerProps;
-
-  const bannerVariantsSelector = select(
-    'variant',
-    BannerVariant,
-    DEFAULT_BANNER_VARIANT,
-    storybookPropsGroupID,
-  );
-  switch (bannerVariantsSelector) {
-    case BannerVariant.Alert:
-      bannerProps = {
-        variant: BannerVariant.Alert,
-        ...getBannerAlertStoryProps(),
-      };
-      break;
-    case BannerVariant.Tip:
-      bannerProps = {
-        variant: BannerVariant.Tip,
-        ...getBannerTipStoryProps(),
-      };
-      break;
-  }
-  return bannerProps;
+const BannerMeta = {
+  title: 'Component Library / Banners',
+  component: BannerComponent,
+  argTypes: {
+    variant: {
+      options: BannerVariant,
+      control: {
+        type: 'select',
+      },
+      defaultValue: BannerVariant.Alert,
+    },
+  },
 };
-const BannerStory = () => <Banner {...getBannerStoryProps()} />;
+export default BannerMeta;
 
-storiesOf('Component Library / Banners', module)
-  .add('Banner', BannerStory)
-  .add('Variants / BannerAlert', BannerAlertStory)
-  .add('Variants / BannerTip', BannerTipStory);
-
-export default BannerStory;
+export const Banner = {
+  render: (args: { variant: BannerVariant }) =>
+    args.variant === BannerVariant.Alert ? (
+      <BannerComponent
+        variant={BannerVariant.Alert}
+        {...SAMPLE_BANNERALERT_PROPS}
+      />
+    ) : (
+      <BannerComponent
+        variant={BannerVariant.Tip}
+        {...SAMPLE_BANNERTIP_PROPS}
+      />
+    ),
+};

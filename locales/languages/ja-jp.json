@@ -1323,14 +1323,6 @@
     "wyre_total_label": "Wyre (MetaMask経由)",
     "buy_with": "購入手段",
     "plus_fee": "および {{fee}} の手数料",
-    "notifications": {
-      "purchase_failed_title": "{{currency}} の購入に失敗しました。お手数をおかけして申し訳ありませんが、もう一度実行してください。",
-      "purchase_cancelled_title": "購入はキャンセルされました",
-      "purchase_completed_title": "{{amount}} {{currency}} の購入に成功しました",
-      "purchase_completed_description": "{{currency}} が利用可能になりました",
-      "purchase_pending_title": "{{currency}} の購入を処理しています",
-      "purchase_pending_description": "この処理には数分かかります。"
-    },
     "date": "日付",
     "from": "送金元",
     "to": "送金先",
@@ -1364,6 +1356,16 @@
         "subtitle_5": "いくらかかるかを確認することです。",
         "cta": "{{ticker}} の購入に進む"
       }
+    }
+  },
+  "fiat_on_ramp_aggregator": {
+    "notifications": {
+      "purchase_failed_title": "{{currency}} の購入に失敗しました。お手数をおかけして申し訳ありませんが、もう一度実行してください。",
+      "purchase_cancelled_title": "購入はキャンセルされました",
+      "purchase_completed_title": "{{amount}} {{currency}} の購入に成功しました",
+      "purchase_completed_description": "{{currency}} が利用可能になりました",
+      "purchase_pending_title": "{{currency}} の購入を処理しています",
+      "purchase_pending_description": "この処理には数分かかります。"
     }
   },
   "swaps": {
@@ -1436,7 +1438,6 @@
     "i_understand": "理解しました",
     "quotes_expire_in": "見積もりは期限が切れる",
     "saving": "セーブする",
-    "using_best_quote": "最良の見積もりを使用する",
     "view_details": "詳細の表示",
     "estimated_gas_fee": "推定のガス料金",
     "max_gas_fee": "ガス費の最大値",
@@ -1449,10 +1450,6 @@
     "completed_swap": "スワップ！",
     "metamask_swap_fee": "MetaMask スワップ手数料",
     "fee_text": {
-      "get_the": "トップレベルの",
-      "best_price": "流動性をもつ",
-      "from_the": "ソースから",
-      "top_liquidity": "ベストプライスを手に入れましょう。",
       "fee_is_applied": "見積には {{fee}}% の手数料が自動的に組み込まれ、MetaMask の将来の開発をサポートします。"
     },
     "enable": {

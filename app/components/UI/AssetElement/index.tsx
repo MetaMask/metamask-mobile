@@ -4,7 +4,7 @@ import { TouchableOpacity, StyleSheet, Platform } from 'react-native';
 import Text, {
   TextVariant,
 } from '../../../component-library/components/Texts/Text';
-import SkeletonText from '../Ramp/components/SkeletonText';
+import SkeletonText from '../Ramp/common/components/SkeletonText';
 import { TokenI } from '../Tokens/types';
 import generateTestId from '../../../../wdio/utils/generateTestId';
 import { getAssetTestId } from '../../../../wdio/screen-objects/testIDs/Screens/WalletView.testIds';

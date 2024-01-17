@@ -481,6 +481,7 @@ exports[`Network Selector renders correctly 1`] = `
                                         "width": 32,
                                       }
                                     }
+                                    testID="cellbase-avatar"
                                   >
                                     <Image
                                       onError={[Function]}
@@ -521,6 +522,7 @@ exports[`Network Selector renders correctly 1`] = `
                                           "lineHeight": 24,
                                         }
                                       }
+                                      testID="cellbase-avatar-title"
                                     >
                                       Ethereum Main Network
                                     </Text>
@@ -598,6 +600,7 @@ exports[`Network Selector renders correctly 1`] = `
                                         "width": 32,
                                       }
                                     }
+                                    testID="cellbase-avatar"
                                   >
                                     <Image
                                       onError={[Function]}
@@ -638,6 +641,7 @@ exports[`Network Selector renders correctly 1`] = `
                                           "lineHeight": 24,
                                         }
                                       }
+                                      testID="cellbase-avatar-title"
                                     >
                                       Linea Main Network
                                     </Text>
@@ -690,6 +694,7 @@ exports[`Network Selector renders correctly 1`] = `
                                         "width": 32,
                                       }
                                     }
+                                    testID="cellbase-avatar"
                                   >
                                     <Image
                                       onError={[Function]}
@@ -732,6 +737,7 @@ exports[`Network Selector renders correctly 1`] = `
                                           "lineHeight": 24,
                                         }
                                       }
+                                      testID="cellbase-avatar-title"
                                     >
                                       Avalanche Mainnet C-Chain
                                     </Text>
@@ -784,6 +790,7 @@ exports[`Network Selector renders correctly 1`] = `
                                         "width": 32,
                                       }
                                     }
+                                    testID="cellbase-avatar"
                                   >
                                     <Image
                                       onError={[Function]}
@@ -826,6 +833,7 @@ exports[`Network Selector renders correctly 1`] = `
                                           "lineHeight": 24,
                                         }
                                       }
+                                      testID="cellbase-avatar-title"
                                     >
                                       Polygon Mainnet
                                     </Text>
@@ -878,6 +886,7 @@ exports[`Network Selector renders correctly 1`] = `
                                         "width": 32,
                                       }
                                     }
+                                    testID="cellbase-avatar"
                                   >
                                     <Image
                                       onError={[Function]}
@@ -920,6 +929,7 @@ exports[`Network Selector renders correctly 1`] = `
                                           "lineHeight": 24,
                                         }
                                       }
+                                      testID="cellbase-avatar-title"
                                     >
                                       Optimism
                                     </Text>
@@ -975,6 +985,7 @@ exports[`Network Selector renders correctly 1`] = `
                                         "width": 32,
                                       }
                                     }
+                                    testID="cellbase-avatar"
                                   >
                                     <Text
                                       accessibilityRole="text"
@@ -1013,6 +1024,7 @@ exports[`Network Selector renders correctly 1`] = `
                                           "lineHeight": 24,
                                         }
                                       }
+                                      testID="cellbase-avatar-title"
                                     >
                                       Gnosis Chain
                                     </Text>

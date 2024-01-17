@@ -4,11 +4,11 @@ import { WhatsNewModalSelectorsIDs } from "../../../e2e/selectors/Modals/WhatsNe
 
 class WhatsNewModal {
   get container() {
-    return Selectors.getElementByPlatform(WhatsNewModalSelectorsIDs.CONTAINER);
+    return Selectors.getXpathElementByResourceId(WhatsNewModalSelectorsIDs.CONTAINER);
   }
 
   get closeButton() {
-    return Selectors.getElementByPlatform(WhatsNewModalSelectorsIDs.CLOSE_BUTTON);
+    return Selectors.getXpathElementByResourceId(WhatsNewModalSelectorsIDs.CLOSE_BUTTON);
   }
 
   async waitForDisplay() {

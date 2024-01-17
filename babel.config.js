@@ -11,4 +11,6 @@ module.exports = {
       plugins: ['transform-remove-console'],
     },
   },
+  comments: false,
+  compact: true,
 };

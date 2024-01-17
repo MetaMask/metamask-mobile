@@ -12,18 +12,18 @@ import { useStyles } from '../../../hooks';
 import { ButtonIconProps, ButtonIconVariants } from './ButtonIcon.types';
 import stylesheet from './ButtonIcon.styles';
 import {
-  DEFAULT_BUTTON_ICON_SIZE,
-  DEFAULT_BUTTON_ICON_VARIANTS,
-  ICON_SIZE_BY_BUTTON_ICON_SIZE,
+  DEFAULT_BUTTONICON_SIZE,
+  DEFAULT_BUTTONICON_VARIANTS,
+  ICONSIZE_BY_BUTTONICONSIZE,
 } from './ButtonIcon.constants';
 
 const ButtonIcon = ({
   iconName,
-  variant = DEFAULT_BUTTON_ICON_VARIANTS,
+  variant = DEFAULT_BUTTONICON_VARIANTS,
   onPressIn,
   onPressOut,
   style,
-  size = DEFAULT_BUTTON_ICON_SIZE,
+  size = DEFAULT_BUTTONICON_SIZE,
   iconColorOverride = undefined,
   isDisabled = false,
   ...props
@@ -78,7 +78,7 @@ const ButtonIcon = ({
     >
       <Icon
         name={iconName}
-        size={ICON_SIZE_BY_BUTTON_ICON_SIZE[size]}
+        size={ICONSIZE_BY_BUTTONICONSIZE[size]}
         color={iconColorOverride || iconColor}
       />
     </TouchableOpacity>

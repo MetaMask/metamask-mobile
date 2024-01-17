@@ -1,8 +1,12 @@
 {
   "KeyringController": {
     "isUnlocked": false,
-    "keyringTypes": [],
-    "keyrings": []
+    "keyrings": [],
+    "vault": {
+      "cipher": "mock-cipher",
+      "iv": "mock-iv",
+      "lib": "original"
+    }
   },
   "LoggingController": {
     "logs": {}
@@ -44,6 +48,7 @@
       }
     },
     "storageMetadata": [],
+    "versionFileETag": "",
     "versionInfo": []
   },
 
@@ -69,16 +74,17 @@
     "networkStatus": "unknown"
   },
   "PhishingController": {
-    "phishingLists": [{
-      "allowlist": [],
-      "blocklist": [],
-      "fuzzylist": [],
-      "tolerance": 2,
-      "version": 2,
-      "name": "MetaMask",
-      "lastUpdated": 0
-    }
-  ],
+    "phishingLists": [
+      {
+        "allowlist": [],
+        "blocklist": [],
+        "fuzzylist": [],
+        "tolerance": 2,
+        "version": 2,
+        "name": "MetaMask",
+        "lastUpdated": 0
+      }
+    ],
     "whitelist": [],
     "hotlistLastFetched": 0,
     "stalelistLastFetched": 0
@@ -125,12 +131,21 @@
     "contractBalances": {}
   },
   "TokenRatesController": {
-    "contractExchangeRates": {}
+    "contractExchangeRates": {},
+    "contractExchangeRatesByChainId": {}
   },
   "TransactionController": {
     "lastFetchedBlockNumbers": {},
     "methodData": {},
+    "submitHistory": [],
     "transactions": []
+  },
+  "SnapController":  {
+    "snapStates": {},
+    "snaps":  {}
+  },
+  "SubjectMetadataController":  {
+    "subjectMetadata":  {}
   },
   "SwapsController": {
     "quotes": {},

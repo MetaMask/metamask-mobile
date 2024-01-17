@@ -5,13 +5,13 @@ exports[`PersonalSign should render correctly 1`] = `
   currentPageInformation={
     Object {
       "title": "title",
-      "url": "url",
+      "url": "http://localhost:8545",
     }
   }
   messageParams={
     Object {
       "data": "message",
-      "from": "0x0",
+      "from": "0xC4955C0d639D99699Bfd7Ec54d9FaFEe40e4D272",
       "metamaskId": "id",
       "origin": "origin",
     }

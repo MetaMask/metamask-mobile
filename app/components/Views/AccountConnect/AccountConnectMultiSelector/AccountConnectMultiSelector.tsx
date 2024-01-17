@@ -14,7 +14,7 @@ import Button, {
   ButtonWidthTypes,
 } from '../../../../component-library/components/Buttons/Button';
 import AccountSelectorList from '../../../UI/AccountSelectorList';
-import USER_INTENT from '../../../../constants/permissions';
+import { USER_INTENT } from '../../../../constants/permissions';
 import generateTestId from '../../../../../wdio/utils/generateTestId';
 import { ACCOUNT_APPROVAL_SELECT_ALL_BUTTON } from '../../../../../wdio/screen-objects/testIDs/Components/AccountApprovalModal.testIds';
 
@@ -26,6 +26,7 @@ import {
 } from './AccountConnectMultiSelector.types';
 import AddAccountActions from '../../AddAccountActions';
 import { ACCOUNT_LIST_ADD_BUTTON_ID } from '../../../../../wdio/screen-objects/testIDs/Components/AccountListComponent.testIds';
+import { ConnectAccountModalSelectorsIDs } from '../../../../../e2e/selectors/Modals/ConnectAccountModal.selectors';
 
 const AccountConnectMultiSelector = ({
   accounts,
@@ -131,7 +132,10 @@ const AccountConnectMultiSelector = ({
             ...(isConnectDisabled && styles.disabled),
           }}
           disabled={isConnectDisabled}
-          {...generateTestId(Platform, 'multiconnect-connect-button')}
+          {...generateTestId(
+            Platform,
+            ConnectAccountModalSelectorsIDs.SELECT_MULTI_BUTTON,
+          )}
         />
       </View>
     );

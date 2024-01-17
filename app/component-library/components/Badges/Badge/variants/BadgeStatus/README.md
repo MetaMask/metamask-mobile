@@ -1,18 +1,12 @@
 # BadgeStatus
 
+![BadgeStatus](./BadgeStatus.png)
+
 BadgeStatus is used on top of an element to display status information. **This component is not meant to be used by itself**. It is used by [BadgeWrapper](../BadgeWrapper/BadgeWrapper.tsx), which can render this component as a badge.
 
 ## Props
 
 This component extends [BadgeBaseProps](../../foundation/BadgeBase/BadgeBase.types.ts).
-
-### `variant`
-
-Optional prop to control the variant of badge.
-
-| <span style="color:gray;font-size:14px">TYPE</span> | <span style="color:gray;font-size:14px">REQUIRED</span> |
-| :-------------------------------------------------- | :------------------------------------------------------ |
-| [BadgeVariant.Status](../../Badge.types.ts)                                           | Yes                                                     |
 
 ### `state`
 

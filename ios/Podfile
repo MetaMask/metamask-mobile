@@ -86,6 +86,7 @@ def common_target_logic
    # Comment the next line if you don't want to use dynamic frameworks
   # use_frameworks!
 	pod 'Permission-BluetoothPeripheral', :path => '../node_modules/react-native-permissions/ios/BluetoothPeripheral'
+  pod 'GzipSwift'
 end
 
 target 'MetaMask' do
@@ -94,6 +95,10 @@ end
 
 target 'MetaMask-QA' do
   common_target_logic
+end
+
+target 'MetaMask-Flask' do
+	common_target_logic
 end
 
 post_install do |installer|

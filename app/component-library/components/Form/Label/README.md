@@ -1,5 +1,7 @@
 # Label
 
+![Label](./Label.png)
+
 Label is a [Text](../../Texts/Text/Text.tsx) component, used to describe the purpose of form field.
 
 ## Props

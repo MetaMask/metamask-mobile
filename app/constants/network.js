@@ -21,6 +21,7 @@ export const NETWORKS_CHAIN_ID = {
   BSC: '56',
   POLYGON: '137',
   FANTOM: '250',
+  BASE: '8453',
   ARBITRUM: '42161',
   AVAXCCHAIN: '43114',
   CELO: '42220',

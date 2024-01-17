@@ -2,13 +2,13 @@ import React from 'react';
 import configureMockStore from 'redux-mock-store';
 import { Provider } from 'react-redux';
 import { render } from '@testing-library/react-native';
-import { shallow } from 'enzyme';
 import initialBackgroundState from '../../../../util/test/initial-background-state.json';
 
 import { ThemeContext, mockTheme } from '../../../../util/theme';
 
 import Root from '.';
 import { ApprovalTypes } from '../../../../core/RPCMethods/RPCMethodMiddleware';
+import { shallow } from 'enzyme';
 
 jest.mock('react-native-keyboard-aware-scroll-view', () => {
   const KeyboardAwareScrollView = jest.requireActual('react-native').ScrollView;
@@ -60,6 +60,9 @@ const messageParamsMock = {
 
 const mockStore = configureMockStore();
 const initialState = {
+  modals: {
+    signMessageModalVisible: false,
+  },
   settings: {},
   signatureRequest: {},
   engine: {
@@ -98,12 +101,16 @@ const store = mockStore(initialState);
 describe('Root', () => {
   it('should render correctly', () => {
     const wrapper = shallow(
-      <Root
-        messageParams={undefined}
-        approvalType={undefined}
-        onSignConfirm={() => undefined}
-        onSignReject={() => undefined}
-      />,
+      <Provider store={store}>
+        <ThemeContext.Provider value={mockTheme}>
+          <Root
+            messageParams={undefined}
+            approvalType={undefined}
+            onSignConfirm={() => undefined}
+            onSignReject={() => undefined}
+          />
+        </ThemeContext.Provider>
+      </Provider>,
     );
     expect(wrapper).toMatchSnapshot();
   });

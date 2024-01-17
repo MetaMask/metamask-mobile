@@ -50,7 +50,10 @@ const AccountBase = ({
         <View style={styles.accountNameLabel}>
           <Text variant={TextVariant.BodyMDBold}>{accountName}</Text>
           {accountTypeLabel && (
-            <Text style={styles.accountNameLabelText}>
+            <Text
+              variant={TextVariant.BodySM}
+              style={styles.accountNameLabelText}
+            >
               {strings(accountTypeLabel)}
             </Text>
           )}

@@ -20,45 +20,16 @@ exports[`SendFlowAddressTo should render correctly 1`] = `
     }
   >
     <Text
+      accessibilityRole="text"
       style={
-        Array [
-          Object {
-            "color": "#24272A",
-            "fontFamily": "EuclidCircularB-Regular",
-            "fontSize": 30,
-            "fontWeight": "400",
-            "marginVertical": 2,
-          },
-          undefined,
-          undefined,
-          undefined,
-          undefined,
-          undefined,
-          undefined,
-          undefined,
-          undefined,
-          undefined,
-          undefined,
-          undefined,
-          undefined,
-          undefined,
-          undefined,
-          undefined,
-          undefined,
-          undefined,
-          undefined,
-          undefined,
-          undefined,
-          undefined,
-          undefined,
-          undefined,
-          Object {
-            "color": "#24272A",
-            "fontFamily": "EuclidCircularB-Regular",
-            "fontSize": 16,
-            "fontWeight": "400",
-          },
-        ]
+        Object {
+          "color": "#24272A",
+          "fontFamily": "EuclidCircularB-Regular",
+          "fontSize": 16,
+          "fontWeight": "400",
+          "letterSpacing": 0,
+          "lineHeight": 22,
+        }
       }
     >
       To:

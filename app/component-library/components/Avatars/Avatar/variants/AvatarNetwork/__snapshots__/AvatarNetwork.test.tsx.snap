@@ -2,7 +2,7 @@
 
 exports[`AvatarNetwork should render correctly 1`] = `
 <AvatarBase
-  size="48"
+  size="32"
   style={Object {}}
 >
   <Image

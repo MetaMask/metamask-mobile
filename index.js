@@ -1,9 +1,3 @@
-// Importing SES (0.18.7+) here then calling lockdown causes:
-// https://github.com/LavaMoat/docs/issues/24
-
-// Importing the SES (0.18.7) lockdown shim here then calling lockdown causes:
-// https://github.com/LavaMoat/docs/issues/27
-
 import './shim.js';
 
 // Needed to polyfill random number generation.
@@ -17,7 +11,7 @@ import crypto from 'crypto'; // eslint-disable-line import/no-nodejs-modules, no
 require('react-native-browser-polyfill'); // eslint-disable-line import/no-commonjs
 
 import * as Sentry from '@sentry/react-native'; // eslint-disable-line import/no-namespace
-import { setupSentry } from './app/util/sentryUtils';
+import { setupSentry } from './app/util/sentry/utils';
 setupSentry();
 
 import { AppRegistry, LogBox } from 'react-native';

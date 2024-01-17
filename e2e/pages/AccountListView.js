@@ -4,12 +4,13 @@ import {
   ACCOUNT_LIST_ID,
   ACCOUNT_LIST_ADD_BUTTON_ID,
 } from '../../wdio/screen-objects/testIDs/Components/AccountListComponent.testIds';
-import { CommonSelectorsIDs } from '../selectors/Common.selectors';
-import { AccountListViewSelectors } from '../selectors/AccountListView.selectors';
+import { CellModalSelectorsIDs } from '../selectors/Modals/CellModal.selectors';
+import { AccountListViewSelectorsText } from '../selectors/AccountListView.selectors';
+import { ConnectAccountModalSelectorsIDs } from '../selectors/Modals/ConnectAccountModal.selectors';
 
 export default class AccountListView {
-  static async tapNewAccount2() {
-    await TestHelpers.tapItemAtIndex(CommonSelectorsIDs.CELLMULTISELECT, 1);
+  static async tapAccountIndex(index) {
+    await TestHelpers.tapItemAtIndex(CellModalSelectorsIDs.MULTISELECT, index);
   }
 
   static async tapAddAccountButton() {
@@ -17,15 +18,15 @@ export default class AccountListView {
   }
 
   static async tapImportAccountButton() {
-    await TestHelpers.tapByText(AccountListViewSelectors.IMPORT_ACCOUNT);
+    await TestHelpers.tapByText(AccountListViewSelectorsText.IMPORT_ACCOUNT);
   }
 
   static async tapCreateAccountButton() {
-    await TestHelpers.tapByText(AccountListViewSelectors.CREATE_ACCOUNT);
+    await TestHelpers.tapByText(AccountListViewSelectorsText.CREATE_ACCOUNT);
   }
 
   static async longPressImportedAccount() {
-    await TestHelpers.tapAndLongPressAtIndex(CommonSelectorsIDs.CELLSELECT, 1);
+    await TestHelpers.tapAndLongPressAtIndex(CellModalSelectorsIDs.SELECT, 1);
   }
   static async swipeToDimssAccountsModal() {
     if (device.getPlatform() === 'android') {
@@ -37,7 +38,7 @@ export default class AccountListView {
 
   static async tapYesToRemoveImportedAccountAlertButton() {
     await TestHelpers.tapAlertWithButton(
-      AccountListViewSelectors.REMOVE_IMPORTED_ACCOUNT,
+      AccountListViewSelectorsText.REMOVE_IMPORTED_ACCOUNT,
     );
   }
 
@@ -45,13 +46,19 @@ export default class AccountListView {
     await TestHelpers.checkIfVisible(ACCOUNT_LIST_ID);
   }
 
-  static async isNewAccountNameVisible() {
-    if (device.getPlatform() === 'android') {
-      await TestHelpers.checkIfElementWithTextIsVisible('Account 2');
-    }
+  static async isAccount2VisibleAtIndex(index) {
+    await expect(
+      element(by.id(CellModalSelectorsIDs.BASE_TITLE)).atIndex(index),
+    ).toHaveText('Account 2');
   }
 
   static async accountNameNotVisible() {
     await TestHelpers.checkIfElementWithTextIsNotVisible('Account 2');
+  }
+
+  static async connectAccountsButton() {
+    await TestHelpers.waitAndTap(
+      ConnectAccountModalSelectorsIDs.SELECT_MULTI_BUTTON,
+    );
   }
 }

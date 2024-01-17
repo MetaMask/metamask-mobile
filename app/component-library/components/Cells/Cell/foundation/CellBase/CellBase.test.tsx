@@ -10,8 +10,8 @@ import {
   SAMPLE_CELLBASE_SECONDARYTEXT,
   SAMPLE_CELLBASE_TERTIARY_TEXT,
   SAMPLE_CELLBASE_TAGLABEL,
-  CELLBASE_AVATAR_TEST_ID,
 } from './CellBase.constants';
+import { CellModalSelectorsIDs } from '../../../../../../../e2e/selectors/Modals/CellModal.selectors';
 
 describe('CellBase', () => {
   it('should render default settings correctly', () => {
@@ -33,7 +33,7 @@ describe('CellBase', () => {
         title={SAMPLE_CELLBASE_TITLE}
       />,
     );
-    expect(queryByTestId(CELLBASE_AVATAR_TEST_ID)).not.toBe(null);
+    expect(queryByTestId(CellModalSelectorsIDs.BASE_AVATAR)).not.toBe(null);
   });
 
   it('should render the given title', async () => {

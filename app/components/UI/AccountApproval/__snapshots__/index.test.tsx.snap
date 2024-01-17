@@ -251,10 +251,11 @@ exports[`AccountApproval should render correctly 1`] = `
           }
         >
           <Text
+            accessibilityRole="text"
             numberOfLines={1}
             style={
-              Array [
-                Object {
+              Object {
+                "0": Object {
                   "color": "#24272A",
                   "fontFamily": "EuclidCircularB-Bold",
                   "fontSize": 16,
@@ -262,23 +263,36 @@ exports[`AccountApproval should render correctly 1`] = `
                   "marginRight": 2,
                   "maxWidth": "45%",
                 },
-                undefined,
-              ]
+                "1": undefined,
+                "color": "#24272A",
+                "fontFamily": "Euclid Circular B",
+                "fontSize": 14,
+                "fontWeight": "400",
+                "letterSpacing": 0,
+                "lineHeight": 22,
+              }
             }
           />
           <Text
+            accessibilityRole="text"
             numberOfLines={1}
             style={
-              Array [
-                Object {
+              Object {
+                "0": Object {
                   "color": "#24272A",
                   "flexGrow": 1,
                   "fontFamily": "EuclidCircularB-Bold",
                   "fontSize": 16,
                   "fontWeight": "600",
                 },
-                undefined,
-              ]
+                "1": undefined,
+                "color": "#24272A",
+                "fontFamily": "Euclid Circular B",
+                "fontSize": 14,
+                "fontWeight": "400",
+                "letterSpacing": 0,
+                "lineHeight": 22,
+              }
             }
           >
             (
@@ -286,18 +300,25 @@ exports[`AccountApproval should render correctly 1`] = `
           </Text>
         </View>
         <Text
+          accessibilityRole="text"
           numberOfLines={1}
           style={
-            Array [
-              Object {
+            Object {
+              "0": Object {
                 "alignSelf": "flex-start",
                 "color": "#24272A",
                 "fontFamily": "EuclidCircularB-Regular",
                 "fontSize": 14,
                 "fontWeight": "100",
               },
-              undefined,
-            ]
+              "1": undefined,
+              "color": "#24272A",
+              "fontFamily": "Euclid Circular B",
+              "fontSize": 14,
+              "fontWeight": "400",
+              "letterSpacing": 0,
+              "lineHeight": 22,
+            }
           }
         >
           Balance:

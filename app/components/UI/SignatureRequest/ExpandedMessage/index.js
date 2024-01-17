@@ -92,6 +92,7 @@ export default class ExpandedMessage extends PureComponent {
     const { currentPageInformation, renderMessage, toggleExpandedMessage } =
       this.props;
     const url = currentPageInformation.url;
+    const icon = currentPageInformation.icon;
     const title = getHost(url);
     const colors = this.context.colors || mockTheme.colors;
     const styles = createStyles(colors);
@@ -113,7 +114,12 @@ export default class ExpandedMessage extends PureComponent {
           <View style={styles.iconHidden} />
         </TouchableOpacity>
         <View style={styles.messageIntroWrapper}>
-          <WebsiteIcon style={styles.domainLogo} title={title} url={url} />
+          <WebsiteIcon
+            style={styles.domainLogo}
+            title={title}
+            url={url}
+            icon={icon}
+          />
           <Text style={styles.messageFromLabel}>
             {strings('signature_request.message_from')} {title}
           </Text>

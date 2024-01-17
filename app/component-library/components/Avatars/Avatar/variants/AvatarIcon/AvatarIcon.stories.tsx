@@ -1,35 +1,45 @@
-// Third party dependencies.
-import React from 'react';
-import { select } from '@storybook/addon-knobs';
-
+/* eslint-disable react/display-name */
 // External dependencies.
-import { storybookPropsGroupID } from '../../../../../constants/storybook.constants';
 import { AvatarSize } from '../../Avatar.types';
-import { IconName } from '../../../../Icons/Icon';
+import { IconName, IconColor } from '../../../../Icons/Icon';
 
 // Internal dependencies.
-import AvatarIcon from './AvatarIcon';
-import { AvatarIconProps } from './AvatarIcon.types';
+import { default as AvatarIconComponent } from './AvatarIcon';
+import { SAMPLE_AVATARICON_PROPS } from './AvatarIcon.constants';
 
-export const getAvatarIconStoryProps = (): AvatarIconProps => {
-  const sizeSelector = select(
-    'size',
-    AvatarSize,
-    AvatarSize.Md,
-    storybookPropsGroupID,
-  );
-  const iconNameSelector = select(
-    'name',
-    IconName,
-    IconName.Lock,
-    storybookPropsGroupID,
-  );
-
-  return {
-    size: sizeSelector,
-    name: iconNameSelector,
-  };
+const AvatarIconMeta = {
+  title: 'Component Library / Avatars',
+  component: AvatarIconComponent,
+  argTypes: {
+    size: {
+      options: AvatarSize,
+      control: {
+        type: 'select',
+      },
+      defaultValue: SAMPLE_AVATARICON_PROPS.size,
+    },
+    name: {
+      options: IconName,
+      control: {
+        type: 'select',
+      },
+      defaultValue: SAMPLE_AVATARICON_PROPS.name,
+    },
+    iconColor: {
+      options: IconColor,
+      control: {
+        type: 'select',
+      },
+      defaultValue: SAMPLE_AVATARICON_PROPS.iconColor,
+    },
+    backgroundColor: {
+      control: {
+        type: 'color',
+      },
+      defaultValue: SAMPLE_AVATARICON_PROPS.backgroundColor,
+    },
+  },
 };
-const AvatarIconStory = () => <AvatarIcon {...getAvatarIconStoryProps()} />;
+export default AvatarIconMeta;
 
-export default AvatarIconStory;
+export const AvatarIcon = {};

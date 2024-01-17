@@ -1,5 +1,5 @@
 diff --git a/node_modules/@metamask/controller-utils/dist/constants.d.ts b/node_modules/@metamask/controller-utils/dist/constants.d.ts
-index c8e8769..00e617f 100644
+index c8e8769..188da8f 100644
 --- a/node_modules/@metamask/controller-utils/dist/constants.d.ts
 +++ b/node_modules/@metamask/controller-utils/dist/constants.d.ts
 @@ -1,4 +1,7 @@
@@ -32,7 +32,7 @@ index c8e8769..00e617f 100644
 +        readonly chainId: NetworksChainId["linea-goerli"];
 +        readonly ticker: NetworksTicker["linea-goerli"];
 +        readonly rpcPrefs: {
-+            readonly blockExplorerUrl: "https://explorer.goerli.linea.build";
++            readonly blockExplorerUrl: "https://goerli.lineascan.build";
 +        };
 +    };
 +    readonly "linea-mainnet": {
@@ -46,7 +46,7 @@ index c8e8769..00e617f 100644
          readonly chainId: NetworksChainId.localhost;
          readonly blockExplorerUrl: undefined;
 diff --git a/node_modules/@metamask/controller-utils/dist/constants.js b/node_modules/@metamask/controller-utils/dist/constants.js
-index 7bef0e7..92c4143 100644
+index 7bef0e7..7f6199f 100644
 --- a/node_modules/@metamask/controller-utils/dist/constants.js
 +++ b/node_modules/@metamask/controller-utils/dist/constants.js
 @@ -2,6 +2,9 @@
@@ -84,7 +84,7 @@ index 7bef0e7..92c4143 100644
 +        chainId: types_1.NetworksChainId["linea-goerli"],
 +        ticker: types_1.NetworksTicker["linea-goerli"],
 +        rpcPrefs: {
-+            blockExplorerUrl: 'https://explorer.goerli.linea.build',
++            blockExplorerUrl: 'https://goerli.lineascan.build',
 +        },
 +    },
 +    [types_1.NetworkType["linea-mainnet"]]: {
@@ -97,7 +97,18 @@ index 7bef0e7..92c4143 100644
      [types_1.NetworkType.localhost]: {
          chainId: types_1.NetworksChainId.localhost,
          blockExplorerUrl: undefined,
-@@ -107,5 +134,7 @@ exports.NETWORK_ID_TO_ETHERS_NETWORK_NAME_MAP = {
+@@ -74,9 +101,7 @@ exports.BUILT_IN_NETWORKS = {
+     },
+ };
+ // APIs
+-exports.OPENSEA_PROXY_URL = 'https://proxy.metafi.codefi.network/opensea/v1/api/v1';
+-exports.OPENSEA_API_URL = 'https://api.opensea.io/api/v1';
+-exports.OPENSEA_TEST_API_URL = 'https://testnets-api.opensea.io/api/v1';
++exports.OPENSEA_PROXY_URL = 'https://proxy.metafi.codefi.network/opensea/v1/api/v2';
+ // Default origin for controllers
+ exports.ORIGIN_METAMASK = 'metamask';
+ /**
+@@ -107,5 +132,7 @@ exports.NETWORK_ID_TO_ETHERS_NETWORK_NAME_MAP = {
      [types_1.NetworkId.goerli]: types_1.NetworkType.goerli,
      [types_1.NetworkId.sepolia]: types_1.NetworkType.sepolia,
      [types_1.NetworkId.mainnet]: types_1.NetworkType.mainnet,
@@ -105,6 +116,7 @@ index 7bef0e7..92c4143 100644
 +    [types_1.NetworkId["linea-mainnet"]]: types_1.NetworkType["linea-mainnet"],
  };
  //# sourceMappingURL=constants.js.map
+\ No newline at end of file
 diff --git a/node_modules/@metamask/controller-utils/dist/types.d.ts b/node_modules/@metamask/controller-utils/dist/types.d.ts
 index 014dbb9..e7f7934 100644
 --- a/node_modules/@metamask/controller-utils/dist/types.d.ts

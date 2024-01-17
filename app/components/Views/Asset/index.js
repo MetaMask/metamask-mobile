@@ -49,7 +49,7 @@ import { getNetworkNavbarOptions } from '../../UI/Navbar';
 import { isSwapsAllowed } from '../../UI/Swaps/utils';
 import Transactions from '../../UI/Transactions';
 import ActivityHeader from './ActivityHeader';
-import { isNetworkBuyNativeTokenSupported } from '../../UI/Ramp/utils';
+import { isNetworkRampNativeTokenSupported } from '../../UI/Ramp/common/utils';
 import { getRampNetworks } from '../../../reducers/fiatOrders';
 import Device from '../../../util/device';
 import {
@@ -475,7 +475,7 @@ class Asset extends PureComponent {
       asset.isETH || asset.address?.toLowerCase() in this.props.swapsTokens;
 
     const onBuy = () => {
-      navigation.navigate(Routes.FIAT_ON_RAMP_AGGREGATOR.ID);
+      navigation.navigate(Routes.RAMP.BUY);
       InteractionManager.runAfterInteractions(() => {
         Analytics.trackEventWithParameters(
           MetaMetricsEvents.BUY_BUTTON_CLICKED,
@@ -591,7 +591,7 @@ const mapStateToProps = (state) => ({
   transactions: state.engine.backgroundState.TransactionController.transactions,
   rpcTarget: selectRpcTarget(state),
   networkConfigurations: selectNetworkConfigurations(state),
-  isNetworkBuyNativeTokenSupported: isNetworkBuyNativeTokenSupported(
+  isNetworkBuyNativeTokenSupported: isNetworkRampNativeTokenSupported(
     selectChainId(state),
     getRampNetworks(state),
   ),

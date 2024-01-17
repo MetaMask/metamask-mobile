@@ -3,7 +3,7 @@ import React from 'react';
 import { View } from 'react-native';
 
 // External dependencies.
-import Badge from '../Badge/Badge';
+import Badge, { BadgeVariant } from '../Badge';
 import { SAMPLE_BADGENETWORK_PROPS } from '../Badge/variants/BadgeNetwork/BadgeNetwork.constants';
 import { mockTheme } from '../../../../util/theme';
 import Text, { TextVariant } from '../../Texts/Text';
@@ -27,7 +27,9 @@ export const DEFAULT_BADGEWRAPPER_BADGEPOSITION = BadgePosition.TopRight;
 export const SAMPLE_BADGEWRAPPER_PROPS: BadgeWrapperProps = {
   anchorElementShape: DEFAULT_BADGEWRAPPER_BADGEANCHORELEMENTSHAPE,
   badgePosition: DEFAULT_BADGEWRAPPER_BADGEPOSITION,
-  badgeElement: <Badge {...SAMPLE_BADGENETWORK_PROPS} />,
+  badgeElement: (
+    <Badge variant={BadgeVariant.Network} {...SAMPLE_BADGENETWORK_PROPS} />
+  ),
   children: (
     <View
       // eslint-disable-next-line react-native/no-inline-styles
