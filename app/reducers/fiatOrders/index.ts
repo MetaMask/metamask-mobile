@@ -16,6 +16,7 @@ import {
 } from './types';
 import type { RootState } from '../';
 import { getDecimalChainId, isTestNet } from '../../util/networks';
+import { toHex } from '@metamask/controller-utils';
 
 export type { FiatOrder } from './types';
 
@@ -174,7 +175,8 @@ export const getOrders = createSelector(
       (order) =>
         !order.excludeFromPurchases &&
         order.account === selectedAddress &&
-        (isTestNet(chainId) || Number(order.network) === Number(chainId)),
+        (isTestNet(toHex(chainId)) ||
+          Number(order.network) === Number(chainId)),
     ),
 );
 
