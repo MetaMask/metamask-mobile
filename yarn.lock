@@ -12767,7 +12767,7 @@ detox@^20.16.0:
     serialize-error "^8.0.1"
     shell-quote "^1.7.2"
     signal-exit "^3.0.3"
-    stream-json "^1.7.4"
+    stream-json "^1.7.5"
     strip-ansi "^6.0.1"
     telnet-client "1.2.8"
     tempfile "^2.0.0"
@@ -24664,13 +24664,6 @@ stream-combiner@~0.0.4:
   integrity sha512-rT00SPnTVyRsaSz5zgSPma/aHSOic5U1prhYdRy5HS2kTZviFpmDgzilbtsJsxiroqACmayynDN/9VzIbX5DOw==
   dependencies:
     duplexer "~0.1.1"
-
-stream-json@^1.7.4:
-  version "1.7.5"
-  resolved "https://registry.yarnpkg.com/stream-json/-/stream-json-1.7.5.tgz#2ff0563011f22cea4f6a28dbfc0344a53c761fe4"
-  integrity sha512-NSkoVduGakxZ8a+pTPUlcGEeAGQpWL9rKJhOFCV+J/QtdQUEU5vtBgVg6eJXn8JB8RZvpbJWZGvXkhz70MLWoA==
-  dependencies:
-    stream-chain "^2.2.5"
 
 stream-json@^1.7.5:
   version "1.8.0"
