@@ -18,7 +18,10 @@ import Text from '../../../../app/component-library/components/Texts/Text';
 import AvatarFavicon from '../../../../app/component-library/components/Avatars/Avatar/variants/AvatarFavicon';
 
 interface SDKSessionViewProps {
-  connection: ConnectionProps;
+  connection: {
+    id: ConnectionProps['id'];
+    originatorInfo?: ConnectionProps['originatorInfo'];
+  };
   connected?: boolean;
   onDisconnect: (channelId: string) => void;
 }

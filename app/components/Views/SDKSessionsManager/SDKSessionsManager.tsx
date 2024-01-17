@@ -14,6 +14,8 @@ import SDKSessionItem from './SDKSessionItem';
 import { ThemeTypography } from '@metamask/design-tokens/dist/js/typography';
 import { SDKSelectorsIDs } from '../../../../e2e/selectors/Settings/SDK.selectors';
 import { ConnectionProps } from '../../../core/SDKConnect/Connection';
+import { AndroidClient } from '../../../core/SDKConnect/AndroidSDK/android-sdk-types';
+import DevLogger from '../../../core/SDKConnect/utils/DevLogger';
 
 interface Props {
   navigation: StackNavigationProp<{
@@ -71,9 +73,9 @@ const SDKSessionsManager = (props: Props) => {
   const styles = createStyles(colors, typography, safeAreaInsets);
   const [connections, setConnections] = useState<ConnectionProps[]>([]);
   const [connectedIds, setConnectedIds] = useState<string[]>([]);
-  const [androidConnections, setAndroidConnections] = useState<
-    ConnectionProps[]
-  >([]);
+  const [androidConnections, setAndroidConnections] = useState<AndroidClient[]>(
+    [],
+  );
 
   const toggleClearMMSDKConnectionModal = () => {
     setShowClearMMSDKConnectionsModal((show) => !show);
@@ -97,9 +99,11 @@ const SDKSessionsManager = (props: Props) => {
       const connectionsList = Object.values(_connections);
 
       try {
-        const _androidConnections = await sdk.loadAndroidConnections();
-        const androidConnectionsList = Object.values(_androidConnections);
-        setAndroidConnections(androidConnectionsList);
+        const _androidConnections = sdk.getAndroidConnections() ?? [];
+        DevLogger.log(
+          `found ${_androidConnections.length} android connections`,
+        );
+        setAndroidConnections(_androidConnections);
       } catch (error) {
         console.error('Failed to load Android connections:', error);
       }
@@ -174,11 +178,14 @@ const SDKSessionsManager = (props: Props) => {
         ))}
         {androidConnections.map((androidSession, _index) => (
           <SDKSessionItem
-            key={androidSession.id}
-            connection={androidSession}
-            connected
+            key={`${_index}_${androidSession.clientId}`}
+            connection={{
+              id: androidSession.clientId,
+              originatorInfo: androidSession.originatorInfo,
+            }}
+            connected={androidSession.connected}
             onDisconnect={(channelId: string) => {
-              sdk.removeAndroidConnection(channelId);
+              onDisconnect(channelId);
             }}
           />
         ))}
