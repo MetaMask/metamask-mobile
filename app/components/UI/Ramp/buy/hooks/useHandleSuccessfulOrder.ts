@@ -57,13 +57,6 @@ function useHandleSuccessfulOrder() {
     dispatch(protectWalletModalVisible());
   }, [dispatch]);
 
-  const handleAddFiatOrder = useCallback(
-    (order) => {
-      dispatch(addFiatOrder(order));
-    },
-    [dispatch],
-  );
-
   const handleSuccessfulOrder = useCallback(
     async (
       order: FiatOrder,
@@ -76,12 +69,12 @@ function useHandleSuccessfulOrder() {
       // @ts-expect-error navigation prop mismatch
       navigation.dangerouslyGetParent()?.pop();
 
-      dispatchThunk((_, getState) => {
+      dispatchThunk((_dispatch, getState) => {
         const state = getState();
         if (stateHasOrder(state, order)) {
           return;
         }
-        handleAddFiatOrder(order);
+        _dispatch(addFiatOrder(order));
         const notificationDetails = getNotificationDetails(order);
         if (notificationDetails) {
           NotificationManager.showSimpleNotification(notificationDetails);
@@ -128,7 +121,6 @@ function useHandleSuccessfulOrder() {
       accounts,
       addTokenToTokensController,
       dispatchThunk,
-      handleAddFiatOrder,
       handleDispatchUserWalletProtection,
       navigation,
       selectedAddress,
