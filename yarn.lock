@@ -4111,10 +4111,10 @@
     "@metamask/utils" "^5.0.0"
     readable-stream "3.6.2"
 
-"@metamask/ppom-validator@^0.18.0":
-  version "0.18.0"
-  resolved "https://registry.yarnpkg.com/@metamask/ppom-validator/-/ppom-validator-0.18.0.tgz#b54037df54720ebb8015de166ac3c559cbd53120"
-  integrity sha512-WNDW1Iw2Upqz37fvvp+QuBitP4PLe6KSTIioMltIFAYMhmLkFWGwmrmO8d5324bpAczarT5HFoM6dUOM4DrScw==
+"@metamask/ppom-validator@0.20.0":
+  version "0.20.0"
+  resolved "https://registry.yarnpkg.com/@metamask/ppom-validator/-/ppom-validator-0.20.0.tgz#60807161d9f3728c4418b812c156081dd363b6ba"
+  integrity sha512-EJf3J68xDxEmDoMMTSDACrdktHwZTcrzKP+HueFlQKsmEv930z+wl7zsc1mXTp2xpaDaHi8l0aqj/EwDhclK8A==
   dependencies:
     "@metamask/base-controller" "^3.0.0"
     "@metamask/controller-utils" "^8.0.1"
@@ -27536,7 +27536,11 @@ zxcvbn@4.4.2:
   version "4.4.2"
   resolved "https://registry.yarnpkg.com/zxcvbn/-/zxcvbn-4.4.2.tgz#28ec17cf09743edcab056ddd8b1b06262cc73c30"
 <<<<<<< HEAD
+<<<<<<< HEAD
   integrity sha1-KOwXzwl0PtyrBW3dixsGJizHPDA=
 =======
   integrity sha1-KOwXzwl0PtyrBW3dixsGJizHPDA=
 >>>>>>> 820c6733f (revert package change)
+=======
+  integrity sha1-KOwXzwl0PtyrBW3dixsGJizHPDA=
+>>>>>>> 732cf343a (update ppom validator)
