@@ -1,4 +1,3 @@
-///: BEGIN:ONLY_INCLUDE_IF(snaps)
 import React from 'react';
 import SnapPermissions from '../SnapPermissions';
 import { SnapPermissions as SnapPermissionsType } from '@metamask/snaps-utils';
@@ -1115,4 +1114,3 @@ describe('SnapPermissions', () => {
     expect(permissionCellDates[2].props.children).toBe(expectedDate);
   });
 });
-///: END:ONLY_INCLUDE_IF

@@ -111,6 +111,7 @@ const Routes = {
   ///: BEGIN:ONLY_INCLUDE_IF(snaps)
   SNAPS: {
     SNAPS_SETTINGS_LIST: 'SnapsSettingsList',
+    SNAP_SETTINGS: 'SnapSettings',
   },
   ///: END:ONLY_INCLUDE_IF
 };

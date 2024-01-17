@@ -1,3 +1,4 @@
+///: BEGIN:ONLY_INCLUDE_IF(snaps)
 import {
   createSnapManifest,
   DEFAULT_REQUESTED_SNAP_VERSION,
@@ -427,3 +428,4 @@ async function fetchNpmTarball(
     npmPackageDataLocation,
   ];
 }
+///: END:ONLY_INCLUDE_IF

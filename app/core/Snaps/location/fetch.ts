@@ -1,3 +1,4 @@
+///: BEGIN:ONLY_INCLUDE_IF(snaps)
 /* eslint-disable import/prefer-default-export */
 import RNFetchBlob, { FetchBlobResponse } from 'rn-fetch-blob';
 import Logger from '../../../util/Logger';
@@ -49,3 +50,4 @@ export const fetchFunction: FetchFN = async (
   );
   return await convertFetchBlobResponseToResponse(response);
 };
+///: END:ONLY_INCLUDE_IF

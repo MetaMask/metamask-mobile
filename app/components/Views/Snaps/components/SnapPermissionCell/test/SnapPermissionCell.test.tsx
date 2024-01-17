@@ -1,4 +1,3 @@
-///: BEGIN:ONLY_INCLUDE_IF(snaps)
 import React from 'react';
 import { render } from '@testing-library/react-native';
 import SnapPermissionCell, {
@@ -64,4 +63,3 @@ describe('SnapPermissionCell', () => {
     expect(permissionDate.props.children).toEqual(expectedDate);
   });
 });
-///: END:ONLY_INCLUDE_IF

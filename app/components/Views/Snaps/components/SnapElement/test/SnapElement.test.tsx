@@ -1,4 +1,3 @@
-///: BEGIN:ONLY_INCLUDE_IF(snaps)
 import React from 'react';
 import { render } from '@testing-library/react-native';
 import SnapElement from '../SnapElement';
@@ -98,4 +97,3 @@ describe('SnapElement', () => {
     expect(cell.props.children.props.secondaryText).toEqual(mockSnap.id);
   });
 });
-///: END:ONLY_INCLUDE_IF
