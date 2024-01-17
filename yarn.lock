@@ -12767,7 +12767,7 @@ detox@^20.16.0:
     serialize-error "^8.0.1"
     shell-quote "^1.7.2"
     signal-exit "^3.0.3"
-    stream-json "^1.7.5"
+    stream-json "^1.7.4"
     strip-ansi "^6.0.1"
     telnet-client "1.2.8"
     tempfile "^2.0.0"
