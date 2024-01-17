@@ -1,7 +1,10 @@
 import { toHex } from '@metamask/controller-utils';
 import { regex } from '../../../app/util/regex';
 
+//@ts-expect-error - This error is expected, but ethereumjs-util exports this function
 import { isHexString } from 'ethereumjs-util';
+import { NetworkConfiguration } from '@metamask/network-controller';
+import { Transaction } from '@metamask/transaction-controller';
 
 /**
  * Converting chain id on decimal format to hexadecimal format
@@ -18,7 +21,7 @@ import { isHexString } from 'ethereumjs-util';
  * @param {any} state - Redux state.
  * @returns Migrated Redux state.
  */
-export default function migrate(state) {
+export default function migrate(state: any) {
   // Chaning chain id to hexadecimal chain Id on the networks already on the local state
   if (
     state?.engine?.backgroundState?.NetworkController?.providerConfig?.chainId
@@ -45,7 +48,9 @@ export default function migrate(state) {
   // Validating if the networks were already onboarded
   if (state?.networkOnboarded?.networkOnboardedState) {
     const networkOnboardedState = state.networkOnboarded.networkOnboardedState;
-    const newNetworkOnboardedState = {};
+    const newNetworkOnboardedState: {
+      [key: string]: (typeof networkOnboardedState)[string];
+    } = {};
 
     for (const chainId in networkOnboardedState) {
       const hexChainId = toHex(chainId);
@@ -81,9 +86,9 @@ export default function migrate(state) {
   if (
     state?.engine?.backgroundState?.NetworkController?.networkConfigurations
   ) {
-    Object.values(
+    Object.values<NetworkConfiguration>(
       state?.engine?.backgroundState?.NetworkController?.networkConfigurations,
-    ).forEach((networkConfiguration) => {
+    ).forEach((networkConfiguration: NetworkConfiguration) => {
       const newHexChainId = toHex(networkConfiguration.chainId);
       networkConfiguration.chainId = newHexChainId;
     });
@@ -111,8 +116,12 @@ export default function migrate(state) {
     Object.keys(addressBook).forEach((chainId) => {
       if (!isHexString(chainId)) {
         const hexChainId = toHex(chainId);
-        const newAddressBook = { [hexChainId]: {} };
-        let newAddress = {};
+        const newAddressBook: {
+          [key: string]: (typeof addressBook)[string];
+        } = { [hexChainId]: {} };
+        let newAddress: {
+          [key: string]: (typeof addressBook)[string];
+        } = {};
         Object.keys(addressBook[chainId]).forEach((address) => {
           newAddress = addressBook[chainId][address];
           newAddress.chainId = toHex(
@@ -195,11 +204,11 @@ export default function migrate(state) {
   // Transaction Controller transactions object chain id property to hexadecimal
   if (state?.engine?.backgroundState?.TransactionController?.transactions) {
     state.engine.backgroundState.TransactionController.transactions.forEach(
-      (transaction, index) => {
+      (transaction: Transaction, index: number) => {
         if (!isHexString(transaction?.chainId)) {
           state.engine.backgroundState.TransactionController.transactions[
             index
-          ].chainId = toHex(transaction.chainId);
+          ].chainId = toHex(transaction.chainId as string);
         }
       },
     );
