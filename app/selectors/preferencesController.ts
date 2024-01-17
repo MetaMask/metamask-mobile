@@ -47,6 +47,7 @@ export const selectDisabledRpcMethodPreferences = createSelector(
     preferencesControllerState.disabledRpcMethodPreferences,
 );
 
+// isMultiAccountBalancesEnabled is a patched property - ref patches/@metamask+preferences-controller+2.1.0.patch
 export const selectIsMultiAccountBalancesEnabled = createSelector(
   selectPreferencesControllerState,
   (preferencesControllerState: PreferencesState) =>
@@ -57,6 +58,7 @@ export const selectIsMultiAccountBalancesEnabled = createSelector(
     ).isMultiAccountBalancesEnabled,
 );
 
+// showTestNetworks is a patched property - ref patches/@metamask+preferences-controller+2.1.0.patch
 export const selectShowTestNetworks = createSelector(
   selectPreferencesControllerState,
   (preferencesControllerState: PreferencesState) =>
