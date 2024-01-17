@@ -26,6 +26,9 @@ git cherry-pick "${COMMIT_HASH_TO_CHERRY_PICK}"
 git push --set-upstream origin "${PR_BRANCH_NAME}"
 git checkout fix/cherry-pick-node-version
 
+echo PR_BRANCH_NAME "${PR_BRANCH_NAME}"
+echo BASE_PR_BRANCH_NAME "${BASE_PR_BRANCH_NAME}"
+git status
 gh pr create \
   --draft \
   --title "${PR_TITLE}" \
