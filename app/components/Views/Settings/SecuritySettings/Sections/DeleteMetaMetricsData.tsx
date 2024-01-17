@@ -1,8 +1,7 @@
-import React, { useCallback, useEffect, useRef, useState } from 'react';
+import React, { useCallback, useEffect, useRef } from 'react';
 import { Alert, Linking, Platform } from 'react-native';
 import {
   DataDeleteResponseStatus,
-  DataDeleteStatus,
   MetaMetrics,
   MetaMetricsEvents,
 } from '../../../../../core/Analytics';
@@ -19,11 +18,8 @@ import Button, {
   ButtonSize,
   ButtonVariants,
 } from '../../../../../component-library/components/Buttons/Button';
-import {
-  DataDeleteDate,
-  IMetaMetrics,
-} from '../../../../../core/Analytics/MetaMetrics.types';
-import useIsDataDeletionAvailable from './useIsDataDeletionAvailable';
+import { IMetaMetrics } from '../../../../../core/Analytics/MetaMetrics.types';
+import useDataDeletion from './useDataDeletion';
 
 interface DeleteMetaMetricsDataProps {
   metricsOptin: boolean;
@@ -81,29 +77,17 @@ const DeleteMetaMetricsData = (props: DeleteMetaMetricsDataProps) => {
    */
   const { metricsOptin } = props;
 
-  /** dataDeletionTaskStatus is used to determine the satus of the last deletion task.
-   * if none, status is `DataDeleteStatus.unknown`
-   */
-  const [dataDeletionTaskStatus, setDataDeletionTaskStatus] =
-    useState<DataDeleteStatus>(DataDeleteStatus.unknown);
-
-  /** deletionTaskDate is used to determine the date of the latest metametrics data deletion request.
-   */
-  const [deletionTaskDate, setDeletionTaskDate] = useState<DataDeleteDate>();
-
-  /** dataTrackedSinceLastDeletion is used to determine if metametrics has collected data since the last deletion request.
-   */
-  const [dataTrackedSinceLastDeletion, setDataTrackedSinceLastDeletion] =
-    useState(false);
-
   /** metametricsRef is used to store the metametrics instance as it's used multiple times in the component.
    */
   const metricsRef = useRef<IMetaMetrics | undefined>();
 
-  const { isDataDeletionAvailable } = useIsDataDeletionAvailable(
-    dataDeletionTaskStatus,
-    dataTrackedSinceLastDeletion,
-  );
+  const {
+    isDataDeletionAvailable,
+    deletionTaskDate,
+    setDataDeletionTaskStatus,
+    setDeletionTaskDate,
+    setDataTrackedSinceLastDeletion,
+  } = useDataDeletion();
 
   const checkInitialStatus = useCallback(async () => {
     const metrics = await MetaMetrics.getInstance();
@@ -116,16 +100,16 @@ const DeleteMetaMetricsData = (props: DeleteMetaMetricsDataProps) => {
       deletionRequestDate,
       dataDeletionRequestStatus,
       hasCollectedDataSinceDeletionRequest,
-    } = (await metrics?.checkDataDeleteStatus()) ?? {
-      deletionRequestDate: undefined,
-      dataDeletionRequestStatus: DataDeleteStatus.unknown,
-      hasCollectedDataSinceDeletionRequest: false,
-    };
+    } = await metrics.checkDataDeleteStatus();
 
     setDataTrackedSinceLastDeletion(hasCollectedDataSinceDeletionRequest);
     setDeletionTaskDate(deletionRequestDate);
     setDataDeletionTaskStatus(dataDeletionRequestStatus);
-  }, []);
+  }, [
+    setDataTrackedSinceLastDeletion,
+    setDeletionTaskDate,
+    setDataDeletionTaskStatus,
+  ]);
 
   const showDeleteTaskError = () => {
     Alert.alert(
@@ -139,7 +123,7 @@ const DeleteMetaMetricsData = (props: DeleteMetaMetricsDataProps) => {
     );
   };
 
-  const trackDataDeletionRequest = async () => {
+  const trackDataDeletionRequest = () => {
     metricsRef.current?.trackEvent(
       MetaMetricsEvents.ANALYTICS_REQUEST_DATA_DELETION.category,
       {
@@ -179,7 +163,7 @@ const DeleteMetaMetricsData = (props: DeleteMetaMetricsDataProps) => {
     // Then we check the initial status that may override this value
     setDataTrackedSinceLastDeletion(metricsOptin);
     checkInitialStatus();
-  }, [metricsOptin, checkInitialStatus]);
+  }, [metricsOptin, checkInitialStatus, setDataTrackedSinceLastDeletion]);
 
   const openPrivacyPolicy = () => Linking.openURL(CONSENSYS_PRIVACY_POLICY);
 
