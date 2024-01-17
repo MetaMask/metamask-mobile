@@ -6,16 +6,15 @@ import { strings } from '../../../../locales/i18n';
 import { useTheme } from '../../../util/theme';
 
 import { ThemeColors } from '@metamask/design-tokens/dist/js/themes/types';
+import { ThemeTypography } from '@metamask/design-tokens/dist/js/typography';
+import { SDKSelectorsIDs } from '../../../../e2e/selectors/Settings/SDK.selectors';
 import ActionModal from '../../../components/UI/ActionModal';
 import { getNavigationOptionsTitle } from '../../../components/UI/Navbar';
+import { AndroidClient } from '../../../core/SDKConnect/AndroidSDK/android-sdk-types';
+import { ConnectionProps } from '../../../core/SDKConnect/Connection';
 import { SDKConnect } from '../../../core/SDKConnect/SDKConnect';
 import StyledButton from '../../UI/StyledButton';
 import SDKSessionItem from './SDKSessionItem';
-import { ThemeTypography } from '@metamask/design-tokens/dist/js/typography';
-import { SDKSelectorsIDs } from '../../../../e2e/selectors/Settings/SDK.selectors';
-import { ConnectionProps } from '../../../core/SDKConnect/Connection';
-import { AndroidClient } from '../../../core/SDKConnect/AndroidSDK/android-sdk-types';
-import DevLogger from '../../../core/SDKConnect/utils/DevLogger';
 
 interface Props {
   navigation: StackNavigationProp<{
@@ -100,9 +99,6 @@ const SDKSessionsManager = (props: Props) => {
 
       try {
         const _androidConnections = sdk.getAndroidConnections() ?? [];
-        DevLogger.log(
-          `found ${_androidConnections.length} android connections`,
-        );
         setAndroidConnections(_androidConnections);
       } catch (error) {
         console.error('Failed to load Android connections:', error);

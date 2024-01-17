@@ -350,7 +350,7 @@ export default class AndroidService extends EventEmitter2 {
           try {
             // Ask users permissions again - it probably means the channel was removed
             await this.checkPermission({
-              originatorInfo: this.connections[sessionId].originatorInfo,
+              originatorInfo: this.connections[sessionId]?.originatorInfo ?? {},
               channelId: sessionId,
             });
 
