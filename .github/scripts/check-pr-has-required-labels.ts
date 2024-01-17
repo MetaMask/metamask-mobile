@@ -5,30 +5,28 @@ import { externalContributorLabel, E2ELabel, e2eLabels } from './shared/label';
 import { Labelable } from './shared/labelable';
 import { retrievePullRequest } from './shared/pull-request';
 
-main().catch((error: Error): void => {
-  console.error(error);
-  process.exit(1);
-});
+main().catch((error: Error): void => core.setFailed(error));
 
 async function main(): Promise<void> {
   // "GITHUB_TOKEN" is an automatically generated, repository-specific access token provided by GitHub Actions.
   const githubToken = process.env.GITHUB_TOKEN;
+  // Retrieve pull request info from context
+  const pullRequestRepoOwner = context.repo.owner;
+  const pullRequestRepoName = context.repo.repo;
+  const pullRequestNumber = context.payload.pull_request?.number;
+
   if (!githubToken) {
     core.setFailed('GITHUB_TOKEN not found');
     process.exit(1);
   }
 
-  // Initialise octokit, required to call Github GraphQL API
-  const octokit: InstanceType<typeof GitHub> = getOctokit(githubToken);
-
-  // Retrieve pull request info from context
-  const pullRequestRepoOwner = context.repo.owner;
-  const pullRequestRepoName = context.repo.repo;
-  const pullRequestNumber = context.payload.pull_request?.number;
   if (!pullRequestNumber) {
     core.setFailed('Pull request number not found');
-    process.exit(1);
+    return;
   }
+
+  // Initialise octokit, required to call Github GraphQL API
+  const octokit: InstanceType<typeof GitHub> = getOctokit(githubToken);
 
   // Retrieve pull request labels
   const pullRequest: Labelable = await retrievePullRequest(
@@ -50,29 +48,45 @@ async function main(): Promise<void> {
     'DO-NOT-MERGE',
   ];
 
-  const errorDescription = `Please make sure the PR is appropriately labeled before merging it.\n\nSee labeling guidelines for more detail: https://github.com/MetaMask/metamask-mobile/blob/main/.github/guidelines/LABELING_GUIDELINES.md`;
+  let hasTeamLabel = false;
+  let hasE2ELabel = false;
+  let hasPreventMergeLabel = false;
+  let preventMergeLabel = '';
 
-  // Check pull request has at least required QA label and team label
   for (const label of pullRequestLabels) {
     // Check for mandatory team label
     if (label.startsWith('team-') || label === externalContributorLabel.name) {
-      console.log(`PR contains a team label as expected: ${label}`);
-      core.setFailed(`No team labels found on the PR. ${errorDescription}`);
-      process.exit(1);
-    }
-
-    // Check for labels that prevent merge
-    if (preventMergeLabels.includes(label)) {
-      core.setFailed(
-        `PR cannot be merged because it still contains this label: ${label}`,
-      );
-      process.exit(1);
+      hasTeamLabel = true;
+      continue;
     }
 
     // Check for mandatory E2E label
     if (e2eLabels.includes(label as E2ELabel)) {
-      core.setFailed(`No E2E labels found on the PR. ${errorDescription}`);
-      process.exit(1);
+      hasE2ELabel = true;
+      continue;
+    }
+
+    // Check for labels that prevent merge
+    if (preventMergeLabels.includes(label)) {
+      hasPreventMergeLabel = true;
+      preventMergeLabel = label;
+      continue;
     }
   }
+
+  let errorMessage = '';
+  let errorDescription = `Please make sure the PR is appropriately labeled before merging it.\n\nSee labeling guidelines for more detail: https://github.com/MetaMask/metamask-mobile/blob/main/.github/guidelines/LABELING_GUIDELINES.md`;
+
+  if (!hasTeamLabel) {
+    errorMessage = `No team labels found on the PR.`;
+  } else if (!hasE2ELabel) {
+    errorMessage = `No E2E labels found on the PR.`;
+  } else if (hasPreventMergeLabel) {
+    errorMessage = `PR cannot be merged because it still contains this label: ${preventMergeLabel}.`;
+  }
+  if (!errorMessage) {
+    return;
+  }
+
+  core.setFailed(`${errorMessage} ${errorDescription}`);
 }
