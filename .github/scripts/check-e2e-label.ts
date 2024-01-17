@@ -3,7 +3,7 @@ import { context, getOctokit } from '@actions/github';
 import { GitHub } from '@actions/github/lib/utils';
 import { E2ELabel, e2eLabels } from './shared/label';
 
-const BITRISE_SKIP_CI_FLAG = '[skip ci]';
+const BITRISE_SKIP_CI_FLAG = 'Bitrise CI Flag. DO NOT EDIT\n[skip ci]';
 const BITRISE_SKIP_CI_REGEX = new RegExp(BITRISE_SKIP_CI_FLAG, 'g');
 
 enum PullRequestTriggerType {
@@ -46,9 +46,8 @@ async function main(): Promise<void> {
   const updateCIFlagOnBody = (includeSkipFlag: boolean) => {
     let bodyText = prBody || '';
     bodyText = bodyText.replace(BITRISE_SKIP_CI_REGEX, '');
-    bodyText = bodyText.trim();
     if (includeSkipFlag) {
-      bodyText = `${bodyText}\n\n${BITRISE_SKIP_CI_FLAG}`;
+      bodyText = `${bodyText}${BITRISE_SKIP_CI_FLAG}`;
     }
     return bodyText;
   };
