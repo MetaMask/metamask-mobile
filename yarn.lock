@@ -12737,7 +12737,7 @@ detect-node-es@^1.1.0:
   resolved "https://registry.yarnpkg.com/detect-node-es/-/detect-node-es-1.1.0.tgz#163acdf643330caa0b4cd7c21e7ee7755d6fa493"
   integrity sha512-ypdmJU/TbBby2Dxibuv7ZLW3Bs1QEmM7nHjEANfohJLvE0XVujisn1qPJcZxg+qDucsr+bP6fLD1rPS3AhJ7EQ==
 
-detox@^20.15.0:
+detox@^20.16.0:
   version "20.16.0"
   resolved "https://registry.yarnpkg.com/detox/-/detox-20.16.0.tgz#b1eccea726f699b28aa33c86e0c76c1d53b7bf0e"
   integrity sha512-3gxIHdXW7uBGvZgN6/A2WakJO0Ocbw1nmTDMP4AUNDs7LWntZi8oEJI5/drOqianGog8lftOTGpFN94PpRlY6g==
