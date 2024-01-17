@@ -575,7 +575,7 @@ workflows:
     after_run:
       - _notify_failure_on_slack
     steps:
-      - restore-cocoapods-cache@1: {}
+      - restore-cocoapods-cache@2: {}
       - certificate-and-profile-installer@1: {}
       - set-xcode-build-number@1:
           inputs:
@@ -589,6 +589,9 @@ workflows:
                 envman add --key BREW_OPT_APPLESIMUTILS --value "/usr/local/opt/applesimutils"
                 brew tap wix/brew
           title: Set Env Path for caching deps
+      - cocoapods-install@2:
+          run_if: '{{not (enveq "BITRISE_CACHE_HIT" "exact")}}'
+          is_always_run: false
       - script@1:
           title: Check native folder diff for iOS
           inputs:
