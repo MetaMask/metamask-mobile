@@ -62,9 +62,6 @@ export const getBlockaidMetricsParams = (
         additionalParams[metricKey] = providerRequestsCount[key];
       });
     }
-  } else {
-    additionalParams.security_alert_response = 'NotApplicable';
-    additionalParams.security_alert_reason = 'NotApplicable';
   }
 
   return additionalParams;

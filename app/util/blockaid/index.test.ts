@@ -10,28 +10,24 @@ import { NETWORKS_CHAIN_ID } from '../../constants/network';
 
 describe('getBlockaidMetricsParams', () => {
   beforeEach(() => {
-    jest.spyOn(NetworkControllerMock, 'selectChainId').mockReturnValue(NETWORKS_CHAIN_ID.MAINNET);
+    jest
+      .spyOn(NetworkControllerMock, 'selectChainId')
+      .mockReturnValue(NETWORKS_CHAIN_ID.MAINNET);
   });
 
   afterEach(() => {
     jest.clearAllMocks();
   });
 
-  it('returns "NotApplicable" when securityAlertResponse is not defined', () => {
+  it('returns empty object when securityAlertResponse is not defined', () => {
     const result = getBlockaidMetricsParams(undefined);
-    expect(result).toStrictEqual({
-      security_alert_reason: 'NotApplicable',
-      security_alert_response: 'NotApplicable',
-    });
+    expect(result).toStrictEqual({});
   });
 
-  it('returns "NotApplicable" when chain id is not in supported chain ids list', () => {
+  it('returns enpty object when chain id is not in supported chain ids list', () => {
     jest.spyOn(NetworkControllerMock, 'selectChainId').mockReturnValue('10');
     const result = getBlockaidMetricsParams(undefined);
-    expect(result).toStrictEqual({
-      security_alert_reason: 'NotApplicable',
-      security_alert_response: 'NotApplicable',
-    });
+    expect(result).toStrictEqual({});
   });
 
   it('should return additionalParams object when securityAlertResponse is defined', () => {
