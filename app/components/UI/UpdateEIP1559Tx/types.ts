@@ -1,3 +1,4 @@
+import { GAS_ESTIMATE_TYPES_OPTIONS } from '../../../types/gas';
 import BigNumber from 'bignumber.js';
 
 export interface UpdateEIP1559Props {
@@ -20,7 +21,7 @@ export interface UpdateEIP1559Props {
   /**
    * Estimate type returned by the gas fee controller, can be market-fee, legacy or eth_gasPrice
    */
-  gasEstimateType: string;
+  gasEstimateType: GAS_ESTIMATE_TYPES_OPTIONS;
   /**
    * A string that represents the selected address
    */
@@ -32,7 +33,7 @@ export interface UpdateEIP1559Props {
   /**
    * Current provider ticker
    */
-  ticker: string;
+  ticker?: string;
   /**
    * The max fee and max priorty fee selected tx
    */

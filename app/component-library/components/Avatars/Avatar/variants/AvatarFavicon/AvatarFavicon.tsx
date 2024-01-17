@@ -62,6 +62,8 @@ const AvatarFavicon = ({
         height="100%"
         uri={svgSource}
         style={styles.image}
+        // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+        // @ts-ignore
         onError={onSvgError}
       />
     ) : null;

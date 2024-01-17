@@ -39,7 +39,21 @@ const initialState = {
       CurrencyRateController: {
         conversionRate: 10,
         currentCurrency: 'usd',
+        nativeCurrency: 'ETH',
       },
+    },
+  },
+  transaction: {
+    selectedAsset: {
+      address: '',
+      isETH: true,
+      logo: '../images/eth-logo-new.png',
+      name: 'Ether',
+      symbol: 'ETH',
+    },
+    transaction: {
+      value: '0xde0b6b3a7640000',
+      data: undefined,
     },
   },
 };
@@ -58,13 +72,14 @@ const transactionReview = {
   isAnimating: false,
   gasEstimationReady: false,
   legacy: false,
-  gasSelected: '',
+  gasSelected: null,
   gasObject: {
     suggestedMaxFeePerGas: '',
     suggestedMaxPriorityFeePerGas: '',
   },
   updateTransactionState: undefined,
   onlyGas: false,
+  gasObjectLegacy: {},
 };
 
 describe('TransactionReviewEIP1559', () => {
