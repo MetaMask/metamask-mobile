@@ -54,6 +54,7 @@ import { safeToChecksumAddress } from '../../../../../../util/address';
 import { generateTransferData } from '../../../../../../util/transactions';
 import useAnalytics from '../../hooks/useAnalytics';
 import { getDecimalChainId } from '../../../../../../util/networks';
+import { toHex } from '@metamask/controller-utils';
 
 interface SendTransactionParams {
   orderId?: string;
@@ -129,7 +130,7 @@ function SendTransaction() {
         from: safeToChecksumAddress(orderData.walletAddress) as string,
         to: safeToChecksumAddress(orderData.depositWallet),
         value: amount,
-        chainId: orderData.cryptoCurrency.network.chainId,
+        chainId: toHex(orderData.cryptoCurrency.network.chainId),
       };
     } else {
       transactionParams = {

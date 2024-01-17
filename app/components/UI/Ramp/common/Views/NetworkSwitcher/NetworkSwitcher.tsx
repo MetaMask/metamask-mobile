@@ -36,7 +36,6 @@ import { strings } from '../../../../../../../locales/i18n';
 import Routes from '../../../../../../constants/navigation/Routes';
 
 import PopularList from '../../../../../../util/networks/customNetworks';
-import { getDecimalChainId } from '../../../../../../util/networks';
 
 function NetworkSwitcher() {
   const navigation = useNavigation();
@@ -97,12 +96,12 @@ function NetworkSwitcher() {
     if (isBuy) {
       trackEvent('ONRAMP_CANCELED', {
         location: 'Network Switcher Screen',
-        chain_id_destination: getDecimalChainId(selectedChainId),
+        chain_id_destination: selectedChainId,
       });
     } else {
       trackEvent('OFFRAMP_CANCELED', {
         location: 'Network Switcher Screen',
-        chain_id_source: getDecimalChainId(selectedChainId),
+        chain_id_source: selectedChainId,
       });
     }
   }, [isBuy, selectedChainId, trackEvent]);

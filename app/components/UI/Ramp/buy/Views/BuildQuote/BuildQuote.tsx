@@ -66,7 +66,6 @@ import { QuickAmount, Region, ScreenLocation } from '../../../common/types';
 import { useStyles } from '../../../../../../component-library/hooks';
 
 import styleSheet from './BuildQuote.styles';
-import { getDecimalChainId } from '../../../../../../util/networks';
 import {
   toTokenMinimalUnit,
   fromTokenMinimalUnitString,
@@ -256,12 +255,12 @@ const BuildQuote = () => {
     if (isBuy) {
       trackEvent('ONRAMP_CANCELED', {
         location: screenLocation,
-        chain_id_destination: getDecimalChainId(selectedChainId),
+        chain_id_destination: selectedChainId,
       });
     } else {
       trackEvent('OFFRAMP_CANCELED', {
         location: screenLocation,
-        chain_id_source: getDecimalChainId(selectedChainId),
+        chain_id_source: selectedChainId,
       });
     }
   }, [screenLocation, isBuy, selectedChainId, trackEvent]);
@@ -492,14 +491,14 @@ const BuildQuote = () => {
           ...analyticsPayload,
           currency_source: currentFiatCurrency.symbol,
           currency_destination: selectedAsset.symbol,
-          chain_id_destination: getDecimalChainId(selectedChainId),
+          chain_id_destination: selectedChainId,
         });
       } else {
         trackEvent('OFFRAMP_QUOTES_REQUESTED', {
           ...analyticsPayload,
           currency_destination: currentFiatCurrency.symbol,
           currency_source: selectedAsset.symbol,
-          chain_id_source: getDecimalChainId(selectedChainId),
+          chain_id_source: selectedChainId,
         });
       }
     }

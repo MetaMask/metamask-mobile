@@ -34,7 +34,6 @@ import { FIAT_ORDER_STATES } from '../../../../../../constants/on-ramp';
 import ErrorView from '../../components/ErrorView';
 import useInterval from '../../../../../hooks/useInterval';
 import AppConstants from '../../../../../../core/AppConstants';
-import { getDecimalChainId } from '../../../../../../util/networks';
 
 interface OrderDetailsParams {
   orderId?: string;
@@ -121,7 +120,7 @@ const OrderDetails = () => {
           currency_destination: cryptocurrency,
           currency_source: currency,
           provider_onramp: providerName,
-          chain_id_destination: getDecimalChainId(network),
+          chain_id_destination: network,
         });
       } else {
         trackEvent('OFFRAMP_PURCHASE_DETAILS_VIEWED', {
@@ -129,7 +128,7 @@ const OrderDetails = () => {
           currency_source: cryptocurrency,
           currency_destination: currency,
           provider_offramp: providerName,
-          chain_id_source: getDecimalChainId(network),
+          chain_id_source: network,
         });
       }
     }

@@ -18,7 +18,6 @@ import { setLockTime } from '../../../../../actions/settings';
 import Logger from '../../../../../util/Logger';
 import useHandleSuccessfulOrder from './useHandleSuccessfulOrder';
 import Device from '../../../../../util/device';
-import { getDecimalChainId } from '../../../../../util/networks';
 
 export default function useInAppBrowser() {
   const {
@@ -69,7 +68,7 @@ export default function useInAppBrowser() {
           if (result.type !== 'success' || !result.url) {
             trackEvent('ONRAMP_PURCHASE_CANCELLED', {
               amount: amount as number,
-              chain_id_destination: getDecimalChainId(selectedChainId),
+              chain_id_destination: selectedChainId,
               currency_destination: isBuy
                 ? (selectedAsset?.symbol as string)
                 : (fiatSymbol as string),

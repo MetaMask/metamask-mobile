@@ -28,7 +28,6 @@ import { useRampSDK } from '../../../common/sdk';
 import { Region } from '../../../common/types';
 import useAnalytics from '../../../common/hooks/useAnalytics';
 import useRegions from '../../hooks/useRegions';
-import { getDecimalChainId } from '../../../../../../util/networks';
 
 // TODO: Convert into typescript and correctly type
 const ListItem = BaseListItem as any;
@@ -67,12 +66,12 @@ const RegionsView = () => {
     if (isBuy) {
       trackEvent('ONRAMP_CANCELED', {
         location: 'Region Screen',
-        chain_id_destination: getDecimalChainId(selectedChainId),
+        chain_id_destination: selectedChainId,
       });
     } else {
       trackEvent('OFFRAMP_CANCELED', {
         location: 'Region Screen',
-        chain_id_source: getDecimalChainId(selectedChainId),
+        chain_id_source: selectedChainId,
       });
     }
   }, [isBuy, selectedChainId, trackEvent]);

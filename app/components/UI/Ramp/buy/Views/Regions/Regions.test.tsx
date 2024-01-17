@@ -34,7 +34,7 @@ const mockUseRampSDKInitialValues: Partial<RampSDK> = {
   setSelectedRegion: mockSetSelectedRegion,
   setSelectedFiatCurrencyId: mockSetSelectedCurrency,
   sdkError: undefined,
-  selectedChainId: '0x1',
+  selectedChainId: '1',
   rampType: RampType.BUY,
   isBuy: true,
   isSell: false,

@@ -46,7 +46,6 @@ import { PROVIDER_LINKS, ScreenLocation } from '../../../common/types';
 import Logger from '../../../../../../util/Logger';
 import Timer from './Timer';
 import { isBuyQuote, isBuyQuotes, isSellQuotes } from '../../../common/utils';
-import { getDecimalChainId } from '../../../../../../util/networks';
 
 export interface QuotesParams {
   amount: number | string;
@@ -129,13 +128,13 @@ function Quotes() {
     if (isBuy) {
       trackEvent('ONRAMP_CANCELED', {
         location: 'Quotes Screen',
-        chain_id_destination: getDecimalChainId(selectedChainId),
+        chain_id_destination: selectedChainId,
         results_count: filteredQuotes.length,
       });
     } else {
       trackEvent('OFFRAMP_CANCELED', {
         location: 'Quotes Screen',
-        chain_id_source: getDecimalChainId(selectedChainId),
+        chain_id_source: selectedChainId,
         results_count: filteredQuotes.length,
       });
     }
@@ -159,14 +158,14 @@ function Quotes() {
         ...payload,
         currency_source: params.fiatCurrency?.symbol,
         currency_destination: params.asset?.symbol,
-        chain_id_destination: getDecimalChainId(selectedChainId),
+        chain_id_destination: selectedChainId,
       });
     } else {
       trackEvent('OFFRAMP_QUOTES_REQUESTED', {
         ...payload,
         currency_destination: params.fiatCurrency?.symbol,
         currency_source: params.asset?.symbol,
-        chain_id_source: getDecimalChainId(selectedChainId),
+        chain_id_source: selectedChainId,
       });
     }
   }, [
@@ -236,7 +235,7 @@ function Quotes() {
             currency_destination: params.asset?.symbol,
             provider_onramp: quote.provider.name,
             crypto_out: quote.amountOut ?? 0,
-            chain_id_destination: getDecimalChainId(selectedChainId),
+            chain_id_destination: selectedChainId,
           });
         } else {
           trackEvent('OFFRAMP_PROVIDER_SELECTED', {
@@ -245,7 +244,7 @@ function Quotes() {
             currency_source: params.asset?.symbol,
             provider_offramp: quote.provider.name,
             fiat_out: quote.amountOut ?? 0,
-            chain_id_source: getDecimalChainId(selectedChainId),
+            chain_id_source: selectedChainId,
           });
         }
 
@@ -432,7 +431,7 @@ function Quotes() {
             currency_source: params.fiatCurrency?.symbol,
             currency_destination: params.asset?.symbol,
             average_crypto_out: averageOut,
-            chain_id_destination: getDecimalChainId(selectedChainId),
+            chain_id_destination: selectedChainId,
             provider_onramp_list: providerList,
             provider_onramp_first: providerFirst,
             provider_onramp_last: providerLast,
@@ -443,7 +442,7 @@ function Quotes() {
             currency_destination: params.fiatCurrency?.symbol,
             currency_source: params.asset?.symbol,
             average_fiat_out: averageOut,
-            chain_id_source: getDecimalChainId(selectedChainId),
+            chain_id_source: selectedChainId,
             provider_offramp_list: providerList,
             provider_offramp_first: providerFirst,
             provider_offramp_last: providerLast,
@@ -465,7 +464,7 @@ function Quotes() {
               currency_source: params.fiatCurrency?.symbol,
               currency_destination: params.asset?.symbol,
               provider_onramp: quoteError.provider.name,
-              chain_id_destination: getDecimalChainId(selectedChainId),
+              chain_id_destination: selectedChainId,
             });
           } else {
             trackEvent('OFFRAMP_QUOTE_ERROR', {
@@ -473,7 +472,7 @@ function Quotes() {
               currency_destination: params.fiatCurrency?.symbol,
               currency_source: params.asset?.symbol,
               provider_offramp: quoteError.provider.name,
-              chain_id_source: getDecimalChainId(selectedChainId),
+              chain_id_source: selectedChainId,
             });
           }
         });

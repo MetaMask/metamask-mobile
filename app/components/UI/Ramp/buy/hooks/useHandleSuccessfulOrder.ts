@@ -17,7 +17,6 @@ import useAnalytics from '../../common/hooks/useAnalytics';
 import { hexToBN } from '../../../../../util/number';
 import { selectAccounts } from '../../../../../selectors/accountTrackerController';
 import Routes from '../../../../../constants/navigation/Routes';
-import { getDecimalChainId } from '../../../../../util/networks';
 
 function useHandleSuccessfulOrder() {
   const { selectedChainId, selectedAddress } = useRampSDK();
@@ -98,7 +97,7 @@ function useHandleSuccessfulOrder() {
           trackEvent('OFFRAMP_PURCHASE_SUBMITTED', {
             ...payload,
             provider_offramp: (order?.data as Order)?.provider?.name,
-            chain_id_source: getDecimalChainId(selectedChainId),
+            chain_id_source: selectedChainId,
             currency_source: (order?.data as Order)?.cryptoCurrency.symbol,
             currency_destination: (order?.data as Order)?.fiatCurrency.symbol,
           });
@@ -114,7 +113,7 @@ function useHandleSuccessfulOrder() {
           trackEvent('ONRAMP_PURCHASE_SUBMITTED', {
             ...payload,
             provider_onramp: (order?.data as Order)?.provider?.name,
-            chain_id_destination: getDecimalChainId(selectedChainId),
+            chain_id_destination: selectedChainId,
             has_zero_currency_destination_balance: false,
             has_zero_native_balance: accounts[selectedAddress]?.balance
               ? (hexToBN(accounts[selectedAddress].balance) as any)?.isZero?.()

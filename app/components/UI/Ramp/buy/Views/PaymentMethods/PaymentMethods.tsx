@@ -27,7 +27,6 @@ import {
 } from '../../../../../../util/navigation/navUtils';
 
 import { createBuildQuoteNavDetails } from '../BuildQuote/BuildQuote';
-import { getDecimalChainId } from '../../../../../../util/networks';
 
 interface PaymentMethodsParams {
   showBack?: boolean;
@@ -64,12 +63,12 @@ const PaymentMethods = () => {
     if (isBuy) {
       trackEvent('ONRAMP_CANCELED', {
         location: 'Payment Method Screen',
-        chain_id_destination: getDecimalChainId(selectedChainId),
+        chain_id_destination: selectedChainId,
       });
     } else {
       trackEvent('OFFRAMP_CANCELED', {
         location: 'Payment Method Screen',
-        chain_id_source: getDecimalChainId(selectedChainId),
+        chain_id_source: selectedChainId,
       });
     }
   }, [isBuy, selectedChainId, trackEvent]);

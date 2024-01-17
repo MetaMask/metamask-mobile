@@ -28,7 +28,6 @@ import useAnalytics from '../../common/hooks/useAnalytics';
 import { strings } from '../../../../../../locales/i18n';
 import Routes from '../../../../../constants/navigation/Routes';
 import useHandleSuccessfulOrder from '../hooks/useHandleSuccessfulOrder';
-import { getDecimalChainId } from '../../../../../util/networks';
 
 interface CheckoutParams {
   url: string;
@@ -60,13 +59,13 @@ const CheckoutWebView = () => {
     if (isBuy) {
       trackEvent('ONRAMP_CANCELED', {
         location: 'Provider Webview',
-        chain_id_destination: getDecimalChainId(selectedChainId),
+        chain_id_destination: selectedChainId,
         provider_onramp: provider.name,
       });
     } else {
       trackEvent('OFFRAMP_CANCELED', {
         location: 'Provider Webview',
-        chain_id_source: getDecimalChainId(selectedChainId),
+        chain_id_source: selectedChainId,
         provider_offramp: provider.name,
       });
     }

@@ -144,8 +144,7 @@ const ordersSelector = (state: RootState) =>
   (state.fiatOrders.orders as FiatOrdersState['orders']) || [];
 export const chainIdSelector: (state: RootState) => string = (
   state: RootState,
-) => selectChainId(state);
-
+) => getDecimalChainId(selectChainId(state));
 export const selectedAddressSelector: (state: RootState) => string = (
   state: RootState,
 ) => selectSelectedAddress(state);
@@ -175,8 +174,7 @@ export const getOrders = createSelector(
       (order) =>
         !order.excludeFromPurchases &&
         order.account === selectedAddress &&
-        (isTestNet(chainId) ||
-          Number(order.network) === Number(getDecimalChainId(chainId))),
+        (isTestNet(chainId) || Number(order.network) === Number(chainId)),
     ),
 );
 
@@ -188,7 +186,7 @@ export const getPendingOrders = createSelector(
     orders.filter(
       (order) =>
         order.account === selectedAddress &&
-        Number(order.network) === Number(getDecimalChainId(chainId)) &&
+        Number(order.network) === Number(chainId) &&
         order.state === FIAT_ORDER_STATES.PENDING,
     ),
 );
@@ -206,7 +204,7 @@ export const getCustomOrderIds = createSelector(
     customOrderIds.filter(
       (customOrderId) =>
         customOrderId.account === selectedAddress &&
-        Number(customOrderId.chainId) === Number(getDecimalChainId(chainId)),
+        Number(customOrderId.chainId) === Number(chainId),
     ),
 );
 
@@ -244,8 +242,7 @@ export const networkShortNameSelector = createSelector(
   (chainId, networks) => {
     const network = networks.find(
       (aggregatorNetwork) =>
-        Number(aggregatorNetwork.chainId) ===
-        Number(getDecimalChainId(chainId)),
+        Number(aggregatorNetwork.chainId) === Number(chainId),
     );
 
     return network?.shortName;

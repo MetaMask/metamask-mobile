@@ -61,7 +61,7 @@ const mockSetSelectedPaymentMethodId = jest.fn();
 const mockUseRampSDKInitialValues: Partial<RampSDK> = {
   setSelectedRegion: mockSetSelectedRegion,
   setSelectedPaymentMethodId: mockSetSelectedPaymentMethodId,
-  selectedChainId: '0x1',
+  selectedChainId: '1',
   sdkError: undefined,
   rampType: RampType.BUY,
   isBuy: true,
