@@ -24,12 +24,12 @@ jobs:
           ref: main
           fetch-depth: 0
           token: ${{ secrets.BUG_REPORT_TOKEN }}
-      # - name: Get Node.js version
-      #   id: nvm
-      #   run: echo "NODE_VERSION=$(cat .nvmrc)" >> "$GITHUB_OUTPUT"
-      # - uses: actions/setup-node@v3
-      #   with:
-      #     node-version: ${{ steps.nvm.outputs.NODE_VERSION }}
+      - name: Get Node.js version
+        id: nvm
+        run: echo "NODE_VERSION=$(cat .nvmrc)" >> "$GITHUB_OUTPUT"
+      - uses: actions/setup-node@v3
+        with:
+          node-version: ${{ steps.nvm.outputs.NODE_VERSION }}
       - name: Create Cherry Pick PR
         id: create-cherry-pick-pr
         shell: bash
