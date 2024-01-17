@@ -1270,42 +1270,33 @@ export const parseTransactionLegacy = (
       conversionRate,
       currentCurrency,
     );
-  } else {
+  } else if (data) {
     const { address, symbol = 'ERC20', decimals } = selectedAsset;
+    const [, , rawAmount] = decodeTransferData('transfer', data);
+    const rawAmountString = parseInt(rawAmount, 16).toLocaleString('fullwide', {
+      useGrouping: false,
+    });
+    const transferValue = renderFromTokenMinimalUnit(rawAmountString, decimals);
+    const transactionValue = `${transferValue} ${symbol}`;
+    const exchangeRate = contractExchangeRates[address];
+    const transactionFeeFiatNumber = weiToFiatNumber(
+      weiTransactionFee,
+      conversionRate,
+    );
 
-    if (data) {
-      const [, , rawAmount] = decodeTransferData('transfer', data);
-      const rawAmountString = parseInt(rawAmount, 16).toLocaleString(
-        'fullwide',
-        {
-          useGrouping: false,
-        },
-      );
-      const transferValue = renderFromTokenMinimalUnit(
-        rawAmountString,
-        decimals,
-      );
-      const transactionValue = `${transferValue} ${symbol}`;
-      const exchangeRate = contractExchangeRates[address];
-      const transactionFeeFiatNumber = weiToFiatNumber(
-        weiTransactionFee,
-        conversionRate,
-      );
-
-      const transactionValueFiatNumber = balanceToFiatNumber(
-        transferValue,
-        conversionRate,
-        exchangeRate,
-      );
-      transactionTotalAmount = `${transactionValue} + ${renderFromWei(
-        weiTransactionFee,
-      )} ${parsedTicker}`;
-      transactionTotalAmountFiat = renderFiatAddition(
-        transactionValueFiatNumber,
-        transactionFeeFiatNumber,
-        currentCurrency,
-      );
-    }
+    const transactionValueFiatNumber = balanceToFiatNumber(
+      transferValue,
+      conversionRate,
+      exchangeRate,
+    );
+    transactionTotalAmount = `${transactionValue} + ${renderFromWei(
+      weiTransactionFee,
+    )} ${parsedTicker}`;
+    transactionTotalAmountFiat = renderFiatAddition(
+      transactionValueFiatNumber,
+      transactionFeeFiatNumber,
+      currentCurrency,
+    );
   }
 
   return {
