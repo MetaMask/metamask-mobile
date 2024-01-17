@@ -21,7 +21,7 @@ jobs:
     steps:
       - uses: actions/checkout@v3
         with:
-          ref: ${{ github.event.inputs.base-branch }}
+          ref: ${{ vars.GITHUB_REF }}
           fetch-depth: 0
           token: ${{ secrets.BUG_REPORT_TOKEN }}
       - name: Get Node.js version
