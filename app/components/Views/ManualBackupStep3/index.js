@@ -32,7 +32,7 @@ import { MetaMetricsEvents } from '../../../core/Analytics';
 import AnalyticsV2 from '../../../util/analyticsV2';
 import DefaultPreference from 'react-native-default-preference';
 import { ThemeContext, mockTheme } from '../../../util/theme';
-import { ManualBackUpStep3SelectorsIDs } from '../../../../e2e/selectors/Onboarding/ManualBackUpStep3.selectors';
+import { ManualBackUpStepsSelectorsIDs } from '../../../../e2e/selectors/Onboarding/ManualBackUpSteps.selectors';
 
 const createStyles = (colors) =>
   StyleSheet.create({
@@ -236,7 +236,7 @@ class ManualBackupStep3 extends PureComponent {
           </View>
         ) : null}
         <ActionView
-          confirmTestID={ManualBackUpStep3SelectorsIDs.DONE_BUTTON}
+          confirmTestID={ManualBackUpStepsSelectorsIDs.DONE_BUTTON}
           confirmText={strings('manual_backup_step_3.done')}
           onConfirmPress={this.done}
           showCancelButton={false}

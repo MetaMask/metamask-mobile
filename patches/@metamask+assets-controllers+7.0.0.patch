@@ -841,7 +841,7 @@ index 8bb7c20..d0dfdee 100644
  //# sourceMappingURL=TokenRatesController.d.ts.map
 \ No newline at end of file
 diff --git a/node_modules/@metamask/assets-controllers/dist/TokenRatesController.js b/node_modules/@metamask/assets-controllers/dist/TokenRatesController.js
-index e3f81e9..8f6a719 100644
+index e3f81e9..4368f85 100644
 --- a/node_modules/@metamask/assets-controllers/dist/TokenRatesController.js
 +++ b/node_modules/@metamask/assets-controllers/dist/TokenRatesController.js
 @@ -8,37 +8,61 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
@@ -889,7 +889,7 @@ index e3f81e9..8f6a719 100644
 + * The maximum number of token addresses that should be sent to the Price API in
 + * a single request.
 + */
-+const TOKEN_PRICES_BATCH_SIZE = 100;
++const TOKEN_PRICES_BATCH_SIZE = 30;
 +/**
 + * Uses the CryptoCompare API to fetch the exchange rate between one currency
 + * and another, i.e., the multiplier to apply the amount of one currency in
@@ -1305,7 +1305,7 @@ index e3f81e9..8f6a719 100644
 +}, _TokenRatesController_fetchAndMapExchangeRatesForSupportedNativeCurrency = function _TokenRatesController_fetchAndMapExchangeRatesForSupportedNativeCurrency({ tokenAddresses, chainId, nativeCurrency, }) {
 +    return __awaiter(this, void 0, void 0, function* () {
 +        const tokenPricesByTokenAddress = yield (0, assetsUtil_1.reduceInBatchesSerially)({
-+            values: tokenAddresses,
++            values: [...tokenAddresses].sort(),
 +            batchSize: TOKEN_PRICES_BATCH_SIZE,
 +            eachBatch: (allTokenPricesByTokenAddress, batch) => __awaiter(this, void 0, void 0, function* () {
 +                const tokenPricesByTokenAddressForBatch = yield __classPrivateFieldGet(this, _TokenRatesController_tokenPricesService, "f").fetchTokenPrices({

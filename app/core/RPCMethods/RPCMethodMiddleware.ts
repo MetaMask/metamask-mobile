@@ -59,6 +59,10 @@ export enum ApprovalTypes {
   TRANSACTION = 'transaction',
   RESULT_ERROR = 'result_error',
   RESULT_SUCCESS = 'result_success',
+  ///: BEGIN:ONLY_INCLUDE_IF(snaps)
+  INSTALL_SNAP = 'wallet_installSnap',
+  UPDATE_SNAP = 'wallet_updateSnap',
+  ///: END:ONLY_INCLUDE_IF
 }
 
 export interface RPCMethodsMiddleParameters {
@@ -427,7 +431,7 @@ export const getRpcMethodMiddleware = ({
           res.result = [selectedAddress];
         } else if (isMMSDK) {
           try {
-            const approved = getApprovedHosts()[hostname];
+            const approved = getApprovedHosts(hostname)[hostname];
 
             if (!approved) {
               // Prompts user approval UI in RootRPCMethodsUI.js.
