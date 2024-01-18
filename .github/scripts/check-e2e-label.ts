@@ -4,7 +4,6 @@ import { GitHub } from '@actions/github/lib/utils';
 import { E2ELabel, e2eLabels } from './shared/label';
 
 const BITRISE_SKIP_CI_FLAG = '[skip ci]';
-const BITRISE_SKIP_CI_REGEX = new RegExp(BITRISE_SKIP_CI_FLAG, 'g');
 
 enum PullRequestTriggerType {
   Labeled = 'labeled',
@@ -45,7 +44,7 @@ async function main(): Promise<void> {
 
   const updateCIFlagOnBody = (includeSkipFlag: boolean) => {
     let bodyText = prBody || '';
-    bodyText = bodyText.replace(BITRISE_SKIP_CI_REGEX, '');
+    bodyText = bodyText.replace(BITRISE_SKIP_CI_FLAG, '');
     if (includeSkipFlag) {
       bodyText = `${bodyText}\n${BITRISE_SKIP_CI_FLAG}`;
     }
