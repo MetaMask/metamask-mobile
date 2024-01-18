@@ -3650,14 +3650,6 @@
     "@metamask/utils" "^8.2.0"
     immer "^9.0.6"
 
-"@metamask/base-controller@^4.0.1":
-  version "4.1.0"
-  resolved "https://registry.yarnpkg.com/@metamask/base-controller/-/base-controller-4.1.0.tgz#afddff1551b675ff240ae58ae841e389edadfa39"
-  integrity sha512-dr7CUdeh+7qt4G0iSSf6ue57OlrPHow9IiLTkdyCpIhpfd0UAYr5Q4uk+sT84VBl7VLIyy8x0z5blEA2LHY1Cg==
-  dependencies:
-    "@metamask/utils" "^8.2.0"
-    immer "^9.0.6"
-
 "@metamask/browser-passworder@^4.1.0":
   version "4.3.0"
   resolved "https://registry.yarnpkg.com/@metamask/browser-passworder/-/browser-passworder-4.3.0.tgz#62c200750efcea864bd31d685120331859e1ab1e"
@@ -4238,8 +4230,8 @@
   resolved "https://registry.yarnpkg.com/@metamask/preferences-controller/-/preferences-controller-4.4.3.tgz#f0f05793370892d2d7bc9b07e685583a1f4d80c9"
   integrity sha512-ftDRfOEgRrQqFyfZEQk9AVD1YMdP54NvtiBCrlqAG4hiFgBXQbQTcyl0i/jR/cfki8hYMuH1gPdId14CCAJbDQ==
   dependencies:
-    "@metamask/base-controller" "^4.0.1"
-    "@metamask/controller-utils" "^8.0.1"
+    "@metamask/base-controller" "^3.2.3"
+    "@metamask/controller-utils" "^5.0.2"
 
 "@metamask/providers@^13.1.0":
   version "13.1.0"
