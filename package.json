@@ -581,13 +581,7 @@
       "husky": false,
       "react-native-inappbrowser-reborn": false,
       "react-native-svg-asset-plugin>sharp": true,
-      "ts-node>@swc/core": false,
-      "@eth-optimism/contracts>@eth-optimism/core-utils": false,
-      "@keystonehq/bc-ur-registry-eth>hdkey>secp256k1": false,
-      "@metamask/sdk-communication-layer>bufferutil": false,
-      "@metamask/sdk-communication-layer>utf-8-validate": false,
-      "@storybook/builder-webpack5>@storybook/core-common>esbuild": false,
-      "ganache>@trufflesuite/uws-js-unofficial>bufferutil": false
+      "ts-node>@swc/core": false
     }
   }
 }
