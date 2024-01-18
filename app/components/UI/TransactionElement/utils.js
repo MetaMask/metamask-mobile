@@ -34,6 +34,7 @@ import { isSwapsNativeAsset } from '../Swaps/utils';
 import { toLowerCaseEquals } from '../../../util/general';
 import Engine from '../../../core/Engine';
 import { isEIP1559Transaction } from '@metamask/transaction-controller';
+import { convertHexToDecimal } from '@metamask/controller-utils';
 
 const { getSwapsContractAddress } = swapsUtils;
 
@@ -281,7 +282,7 @@ export function decodeIncomingTransfer(args) {
     selectedAddress,
   } = args;
 
-  const decimalAmount = parseInt(value, 16).toString();
+  const decimalAmount = convertHexToDecimal(value);
   const amount = toBN(decimalAmount);
   const token = { symbol, decimals, address: contractAddress };
 
