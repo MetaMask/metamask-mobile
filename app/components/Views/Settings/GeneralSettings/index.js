@@ -18,7 +18,6 @@ import I18n, {
 } from '../../../../../locales/i18n';
 import SelectComponent from '../../../UI/SelectComponent';
 import infuraCurrencies from '../../../../util/infura-conversion.json';
-import { colors as importedColors } from '../../../../styles/common';
 import { getNavigationOptionsTitle } from '../../../UI/Navbar';
 import {
   setSearchEngine,
@@ -37,6 +36,7 @@ import Text, {
   TextVariant,
   TextColor,
 } from '../../../../component-library/components/Texts/Text';
+import { useTheme } from '../../../../util/theme';
 
 const diameter = 40;
 const spacing = 8;
@@ -292,7 +292,8 @@ class Settings extends PureComponent {
       selectedAddress,
       hideZeroBalanceTokens,
     } = this.props;
-    const colors = this.context.colors || mockTheme.colors;
+    const theme = useTheme();
+    const { colors } = theme;
     const styles = createStyles(colors);
 
     return (
@@ -409,7 +410,7 @@ class Settings extends PureComponent {
                     true: colors.primary.default,
                     false: colors.border.muted,
                   }}
-                  thumbColor={importedColors.white}
+                  thumbColor={theme.brandColors.white['000']}
                   style={styles.switch}
                   ios_backgroundColor={colors.border.muted}
                 />

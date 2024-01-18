@@ -130,7 +130,8 @@ const Heading: React.FC<HeadingProps> = ({ children, first }) => {
 };
 
 const Settings: React.FC = () => {
-  const { colors } = useTheme();
+  const theme = useTheme();
+  const { colors } = theme;
   const styles = createStyles(colors);
   const navigation = useNavigation();
   const params = useParams<SecuritySettingsParams>();
@@ -476,7 +477,7 @@ const Settings: React.FC = () => {
               true: colors.primary.default,
               false: colors.border.muted,
             }}
-            thumbColor={importedColors.white}
+            thumbColor={theme.brandColors.white['000']}
             style={styles.switch}
             ios_backgroundColor={colors.border.muted}
             testID={SecurityPrivacyViewSelectorsIDs.METAMETRICS_SWITCH}
@@ -516,7 +517,7 @@ const Settings: React.FC = () => {
               true: colors.primary.default,
               false: colors.border.muted,
             }}
-            thumbColor={importedColors.white}
+            thumbColor={theme.brandColors.white['000']}
             style={styles.switch}
             ios_backgroundColor={colors.border.muted}
             {...generateTestId(
@@ -600,7 +601,7 @@ const Settings: React.FC = () => {
                 true: colors.primary.default,
                 false: colors.border.muted,
               }}
-              thumbColor={importedColors.white}
+              thumbColor={theme.brandColors.white['000']}
               style={styles.switch}
               ios_backgroundColor={colors.border.muted}
               testID="display-nft-toggle"
@@ -638,7 +639,7 @@ const Settings: React.FC = () => {
                 true: colors.primary.default,
                 false: colors.border.muted,
               }}
-              thumbColor={importedColors.white}
+              thumbColor={theme.brandColors.white['000']}
               style={styles.switch}
               ios_backgroundColor={colors.border.muted}
             />
@@ -680,7 +681,7 @@ const Settings: React.FC = () => {
               true: colors.primary.default,
               false: colors.border.muted,
             }}
-            thumbColor={importedColors.white}
+            thumbColor={theme.brandColors.white['000']}
             style={styles.switch}
             ios_backgroundColor={colors.border.muted}
           />
@@ -759,7 +760,7 @@ const Settings: React.FC = () => {
               true: colors.primary.default,
               false: colors.border.muted,
             }}
-            thumbColor={importedColors.white}
+            thumbColor={theme.brandColors.white['000']}
             style={styles.switch}
             ios_backgroundColor={colors.border.muted}
           />
@@ -791,7 +792,7 @@ const Settings: React.FC = () => {
               true: colors.primary.default,
               false: colors.border.muted,
             }}
-            thumbColor={importedColors.white}
+            thumbColor={theme.brandColors.white['000']}
             style={styles.switch}
             ios_backgroundColor={colors.border.muted}
           />
@@ -834,7 +835,7 @@ const Settings: React.FC = () => {
                   true: colors.primary.default,
                   false: colors.border.muted,
                 }}
-                thumbColor={importedColors.white}
+                thumbColor={theme.brandColors.white['000']}
                 style={styles.switch}
                 ios_backgroundColor={colors.border.muted}
               />
@@ -873,7 +874,7 @@ const Settings: React.FC = () => {
                 true: colors.primary.default,
                 false: colors.border.muted,
               }}
-              thumbColor={importedColors.white}
+              thumbColor={theme.brandColors.white['000']}
               style={styles.switch}
               ios_backgroundColor={colors.border.muted}
             />
