@@ -15,7 +15,6 @@ import { MetaMetricsEvents } from '../../../../core/Analytics';
 import { getNavigationOptionsTitle } from '../../../UI/Navbar';
 import SECURITY_ALERTS_TOGGLE_TEST_ID from './constants';
 import { isBlockaidFeatureEnabled } from '../../../../util/blockaid';
-import { SUPPORTED_CHAIN_IDS } from '../../../../util/networks';
 import Routes from '../../../../constants/navigation/Routes';
 import { useSelector, useDispatch } from 'react-redux';
 import { Props } from './ExperimentalSettings.types';
@@ -31,8 +30,7 @@ import Button, {
  * Main view for app Experimental Settings
  */
 const ExperimentalSettings = ({ navigation, route }: Props) => {
-  const { PreferencesController, NetworkController } = Engine.context;
-  const currentChainId = NetworkController.state.providerConfig.chainId;
+  const { PreferencesController } = Engine.context;
 
   const dispatch = useDispatch();
 
@@ -142,7 +140,6 @@ const ExperimentalSettings = ({ navigation, route }: Props) => {
           style={styles.switch}
           ios_backgroundColor={colors.border.muted}
           testID={SECURITY_ALERTS_TOGGLE_TEST_ID}
-          disabled={!SUPPORTED_CHAIN_IDS.includes(currentChainId)}
         />
       </View>
 
