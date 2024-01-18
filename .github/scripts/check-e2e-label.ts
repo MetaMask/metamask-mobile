@@ -45,9 +45,12 @@ async function main(): Promise<void> {
   const updateCIFlagOnBody = (includeSkipFlag: boolean) => {
     let bodyText = prBody || '';
     bodyText = bodyText.replace(BITRISE_SKIP_CI_FLAG, '');
+    let logs = `Removing ${BITRISE_SKIP_CI_FLAG} flag`;
     if (includeSkipFlag) {
       bodyText = `${bodyText}\n${BITRISE_SKIP_CI_FLAG}`;
+      logs = `Adding ${BITRISE_SKIP_CI_FLAG} flag`;
     }
+    console.log(logs);
     return bodyText;
   };
 
@@ -73,6 +76,7 @@ async function main(): Promise<void> {
         prLabel === E2ELabel.NO_E2E_SMOKE_NEEDED,
       );
       if (prLabels.includes(labelToRemove)) {
+        console.log(`Removing label: ${labelToRemove}`);
         await octokit.rest.issues.removeLabel({
           owner,
           repo,
