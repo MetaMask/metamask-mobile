@@ -135,7 +135,7 @@ const AnimatedQRScannerModal = (props: AnimatedQRScannerProps) => {
         </Text>
       </Text>
     ),
-    [purpose],
+    [purpose, styles],
   );
 
   const onError = useCallback(

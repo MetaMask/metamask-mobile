@@ -1,6 +1,6 @@
 /* eslint-disable import/prefer-default-export */
 import { StyleSheet } from 'react-native';
-import { fontStyles, colors as importedColors } from '../../../styles/common';
+import { fontStyles } from '../../../styles/common';
 import { Theme } from '../../../util/theme/models';
 
 export const createStyles = (theme: Theme) =>
