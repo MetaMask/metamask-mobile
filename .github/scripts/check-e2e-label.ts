@@ -103,6 +103,7 @@ async function main(): Promise<void> {
    */
   const handleUnlabeledAction = async () => {
     try {
+      // Add Bitrise CI Flag on PR body
       let bodyText = updateCIFlagOnBody(true);
       await octokit.rest.pulls.update({
         owner,
