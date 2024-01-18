@@ -1,8 +1,17 @@
-/** @type {Detox.DetoxConfig} */
+const { execSync } = require('child_process');
 
-const { getAvailableAVDs } = require('./e2e/setEmulator');
+const getAvailableAVDs = () => {
+  try {
+    // Run the command to list available AVDs
+    const output = execSync('emulator -list-avds').toString();
 
-const avdList = getAvailableAVDs();
+    // Parse the output and return an array of AVD names
+    return output.trim().split('\n');
+  } catch (error) {
+    console.error('Error retrieving AVD list:', error.message);
+    return [];
+  }
+};
 
 module.exports = {
   testRunner: {
@@ -73,7 +82,7 @@ module.exports = {
     'android.emulator': {
       type: 'android.emulator',
       device: {
-        avdName: avdList[0],
+        avdName: getAvailableAVDs()[0],
       },
     },
   },
