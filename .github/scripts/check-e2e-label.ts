@@ -44,7 +44,8 @@ async function main(): Promise<void> {
 
   const updateCIFlagOnBody = (includeSkipFlag: boolean) => {
     let bodyText = prBody || '';
-    bodyText = bodyText.replace(BITRISE_SKIP_CI_FLAG, '');
+    const bitriseFlagText = `${BITRISE_FLAG_PREFIX}${BITRISE_SKIP_CI_FLAG}`;
+    bodyText = bodyText.replace(bitriseFlagText, BITRISE_FLAG_PREFIX);
     let message = `Removing ${BITRISE_SKIP_CI_FLAG} flag.`;
     if (includeSkipFlag) {
       bodyText = bodyText.replace(
