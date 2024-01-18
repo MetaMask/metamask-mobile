@@ -18,6 +18,7 @@ index 323a8e8..8fa1856 100644
      isIpfsGatewayEnabled: boolean;
 +    securityAlertsEnabled: boolean;
 +    showIncomingTransactions: {[hexChainId: string]: boolean};
++    smartTransactionsEnabled: boolean;
  }
  /**
   * Controller that stores shared settings and exposes convenience methods
@@ -122,7 +123,8 @@ index 1a98ab0..a31d967 100644
 +                                [ETHERSCAN_SUPPORTED_CHAIN_IDS.MOONBEAM_TESTNET]: true,
 +                                [ETHERSCAN_SUPPORTED_CHAIN_IDS.MOONRIVER]: true,
 +                                [ETHERSCAN_SUPPORTED_CHAIN_IDS.GNOSIS]: true,
-+                              }
++                              },
++            smartTransactionsEnabled: false,
          };
          this.initialize();
      }
@@ -188,6 +190,16 @@ index 1a98ab0..a31d967 100644
 +              },
 +            });
 +        }
++    /**
++     * A setter for the user to enable smart transactions
++     *
++     * @param smartTransactionsEnabled - true to enable smart transactions
++     */
++    setSmartTransactionsEnabled(smartTransactionsEnabled) {
++        this.update((state) => {
++        state.smartTransactionsEnabled = smartTransactionsEnabled;
++        });
++    }
  }
 +exports.ETHERSCAN_SUPPORTED_CHAIN_IDS = ETHERSCAN_SUPPORTED_CHAIN_IDS;
  exports.PreferencesController = PreferencesController;
