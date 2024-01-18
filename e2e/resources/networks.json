@@ -2,7 +2,7 @@
   "Goerli": {
     "providerConfig": {
       "type": "mainnet",
-      "chainId": "5",
+      "chainId": "0x5",
       "rpcUrl": "https://goerli.infura.io/v3/",
       "nickname": "Goerli Test Network",
       "ticker": "GoerliETH"
@@ -11,7 +11,7 @@
   "Avalanche": {
     "providerConfig": {
       "type": "rpc",
-      "chainId": "43114",
+      "chainId": "0xa86a",
       "rpcUrl": "https://api.avax.network/ext/bc/C/rpc",
       "nickname": "Avalanche Mainnet C-Chain",
       "ticker": "AVAX"
@@ -20,7 +20,7 @@
   "Arbitrum": {
     "providerConfig": {
       "type": "rpc",
-      "chainId": "42161",
+      "chainId": "0xa4b1",
       "rpcUrl": "https://arbitrum-mainnet.infura.io/v3/{{InfuraProjectID}}",
       "nickname": "Arbitrum One",
       "ticker": "ETH"
@@ -29,7 +29,7 @@
   "Optimism": {
     "providerConfig": {
       "type": "rpc",
-      "chainId": "10",
+      "chainId": "0xa",
       "rpcUrl": "https://optimism-mainnet.infura.io/v3/{{InfuraProjectID}}",
       "nickname": "Optimism",
       "ticker": "ETH"
@@ -38,7 +38,7 @@
   "Polygon": {
     "providerConfig": {
       "type": "rpc",
-      "chainId": "137",
+      "chainId": "0x89",
       "rpcUrl": "https://polygon-mainnet.infura.io/v3/{{InfuraProjectID}}",
       "nickname": "Polygon Mainnet",
       "ticker": "MATIC"
@@ -47,7 +47,7 @@
   "BNB": {
     "providerConfig": {
       "type": "rpc",
-      "chainId": "56",
+      "chainId": "0x38",
       "rpcUrl": "https://bsc-dataseed.binance.org/",
       "nickname": "BNB Smart Chain",
       "ticker": "BNB"
@@ -57,7 +57,7 @@
     "isCustomNetwork": true,
     "providerConfig": {
       "type": "rpc",
-      "chainId": "1",
+      "chainId": "0x1",
       "rpcUrl": "https://rpc.tenderly.co/fork/e3a0948b-a9df-46be-a45b-afa572ea62ee",
       "nickname": "Tenderly",
       "ticker": "ETH"
