@@ -112,7 +112,7 @@ function rewriteReport(report) {
  * @returns {(event|null)}
  */
 function excludeEvents(event) {
-  //Modfiy or drop event here
+  //Modify or drop event here
   if (event?.transaction === 'Route Change') {
     //Route change is dropped because is does not reflect a screen we can action on.
     //Don't send the event to Sentry
