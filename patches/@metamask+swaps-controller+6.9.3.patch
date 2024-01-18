@@ -77,17 +77,20 @@ index 9d8a521..3fc2a1f 100644
      [exports.ETH_CHAIN_ID]: 'ethereum',
      [exports.BSC_CHAIN_ID]: 'bsc',
 diff --git a/node_modules/@metamask/swaps-controller/dist/swapsUtil.js b/node_modules/@metamask/swaps-controller/dist/swapsUtil.js
-index 54a32d5..3c27aa9 100644
+index 54a32d5..8b02c8a 100644
 --- a/node_modules/@metamask/swaps-controller/dist/swapsUtil.js
 +++ b/node_modules/@metamask/swaps-controller/dist/swapsUtil.js
-@@ -66,25 +66,33 @@ function shouldEnableDirectWrapping(chainId, sourceToken, destinationToken) {
+@@ -66,25 +66,36 @@ function shouldEnableDirectWrapping(chainId, sourceToken, destinationToken) {
              destinationTokenLowerCase === wrappedTokenLowerCase));
  }
  exports.shouldEnableDirectWrapping = shouldEnableDirectWrapping;
 +function convertHexToDecimal (
 +    value,
 +  )  {
-+      return parseInt(value, 16).toString();
++    if (ethereumjs_util_1.isHexString(value)) {
++        return parseInt(value, 16);
++    }
++    return Number(value) ? Number(value) : 0;
 +  }
 +exports.convertHexToDecimal = convertHexToDecimal;
  const getBaseApiURL = function (type, chainId) {
