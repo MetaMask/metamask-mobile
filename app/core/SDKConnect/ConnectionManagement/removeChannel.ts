@@ -5,18 +5,28 @@ import DefaultPreference from 'react-native-default-preference';
 
 function removeChannel({
   channelId,
+  emitRefresh = true,
   sendTerminate,
   instance,
 }: {
   channelId: string;
   sendTerminate?: boolean;
+  emitRefresh?: boolean;
   instance: SDKConnect;
 }) {
+  // check if it is an android sdk connection, if it doesn't belong to regular connections
+  const isAndroidConnection =
+    instance.state.connections[channelId] === undefined;
+
   DevLogger.log(
-    `SDKConnect::removeChannel ${channelId} sendTerminate=${sendTerminate} connectedted=${
+    `SDKConnect::removeChannel ${channelId} sendTerminate=${sendTerminate} isAndroidConnection=${isAndroidConnection} connectedted=${
       instance.state.connected[channelId] !== undefined
     }`,
   );
+
+  if (isAndroidConnection) {
+    instance.state.androidService?.removeConnection(channelId);
+  }
 
   if (instance.state.connected[channelId]) {
     try {
@@ -25,7 +35,7 @@ function removeChannel({
         context: 'SDKConnect::removeChannel',
       });
     } catch (err) {
-      // Ignore error
+      console.error(`Can't remove connection ${channelId}`, err);
     }
 
     delete instance.state.connected[channelId];
@@ -53,7 +63,10 @@ function removeChannel({
     });
   }
   delete instance.state.connecting[channelId];
-  instance.emit('refresh');
+
+  if (emitRefresh) {
+    instance.emit('refresh');
+  }
 }
 
 export default removeChannel;

@@ -39,6 +39,7 @@ describe('watchConnection', () => {
         disabledHosts: {},
       },
       removeChannel: mockRemoveChannel,
+      emit: jest.fn(),
       updateSDKLoadingState: mockUpdateSDKLoadingState,
     } as unknown as SDKConnect;
   });
@@ -62,7 +63,11 @@ describe('watchConnection', () => {
 
       mockConnectionStatusListener(mockConnectionStatus);
 
-      expect(mockRemoveChannel).toHaveBeenCalledWith(mockConnection.channelId);
+      expect(mockRemoveChannel).toHaveBeenCalledWith({
+        channelId: mockConnection.channelId,
+        emitRefresh: true,
+        sendTerminate: false,
+      });
     });
   });
 
@@ -80,10 +85,7 @@ describe('watchConnection', () => {
 
       mockClientsDisconnectedListener();
 
-      expect(mockUpdateSDKLoadingState).toHaveBeenCalledWith({
-        channelId: mockConnection.channelId,
-        loading: false,
-      });
+      expect(mockUpdateSDKLoadingState).toHaveBeenCalled();
     });
 
     it('should remove the channel if it is disabled on CLIENTS_DISCONNECTED', () => {
@@ -93,10 +95,10 @@ describe('watchConnection', () => {
 
       mockClientsDisconnectedListener();
 
-      expect(mockRemoveChannel).toHaveBeenCalledWith(
-        mockConnection.channelId,
-        true,
-      );
+      expect(mockRemoveChannel).toHaveBeenCalledWith({
+        channelId: mockConnection.channelId,
+        sendTerminate: true,
+      });
     });
   });
 

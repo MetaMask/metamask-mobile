@@ -15,6 +15,10 @@ export const colors = {
   yellow: '#FFD33D',
   transparent: 'transparent',
   shadow: '#6a737d',
+  // Do not change the values of applePay tokens unless noted by
+  // https://developer.apple.com/design/human-interface-guidelines/apple-pay
+  applePayBlack: '#000000',
+  applePayWhite: '#FFFFFF',
 };
 
 /**
