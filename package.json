@@ -162,7 +162,6 @@
     "browserify-sign": "4.2.2",
     "@metamask/preferences-controller": "^4.0.0",
     "axios": "1.6.0",
-    "react-native-ble-plx": "3.1.1",
     "@metamask/assets-controllers/babel-runtime/regenerator-runtime": "^0.13.8",
     "follow-redirects": "1.15.4"
   },
