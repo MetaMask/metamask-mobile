@@ -42,10 +42,10 @@ async function main(): Promise<void> {
   const updateCIFlagOnBody = (includeSkipFlag: boolean) => {
     let bodyText = prBody || '';
     bodyText = bodyText.replace(BITRISE_SKIP_CI_FLAG, '');
-    let message = `Removing ${BITRISE_SKIP_CI_FLAG} flag`;
+    let message = `Removing ${BITRISE_SKIP_CI_FLAG} flag.`;
     if (includeSkipFlag) {
       bodyText = `${bodyText}\n${BITRISE_SKIP_CI_FLAG}`;
-      message = `Adding ${BITRISE_SKIP_CI_FLAG} flag`;
+      message = `Adding ${BITRISE_SKIP_CI_FLAG} flag.`;
     }
     console.log(message);
     return bodyText;
@@ -66,6 +66,7 @@ async function main(): Promise<void> {
    */
   const handleLabeledAction = async () => {
     try {
+      console.log(`${prLabel} label added.`);
       // Remove the other label
       let labelToRemove = getLabelToRemove(prLabel);
       // Update Bitrise CI flag on PR body
@@ -73,7 +74,7 @@ async function main(): Promise<void> {
         prLabel === E2ELabel.NO_E2E_SMOKE_NEEDED,
       );
       if (prLabels.includes(labelToRemove)) {
-        console.log(`Removing label: ${labelToRemove}`);
+        console.log(`Removing label: ${labelToRemove}.`);
         await octokit.rest.issues.removeLabel({
           owner,
           repo,
@@ -99,6 +100,7 @@ async function main(): Promise<void> {
    */
   const handleUnlabeledAction = async () => {
     try {
+      console.log(`${prLabel} label removed.`);
       // Add Bitrise CI Flag on PR body
       let bodyText = updateCIFlagOnBody(true);
       await octokit.rest.pulls.update({
