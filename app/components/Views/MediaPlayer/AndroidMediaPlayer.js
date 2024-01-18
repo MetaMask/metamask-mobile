@@ -554,7 +554,7 @@ export default function VideoPlayer({
         onClose,
         {},
       ),
-    [onClose, renderControl],
+    [onClose, renderControl, styles],
   );
 
   const renderTopControls = () => (
