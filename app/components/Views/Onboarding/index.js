@@ -23,7 +23,7 @@ import {
 } from '../../../styles/common';
 import OnboardingScreenWithBg from '../../UI/OnboardingScreenWithBg';
 import { strings } from '../../../../locales/i18n';
-import Button from 'react-native-button';
+import Button from '@metamask/react-native-button';
 import { connect } from 'react-redux';
 import FadeOutOverlay from '../../UI/FadeOutOverlay';
 import Analytics from '../../../core/Analytics/Analytics';

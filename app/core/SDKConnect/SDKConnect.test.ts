@@ -247,7 +247,7 @@ describe('SDKConnect', () => {
       it('should remove a specified channel', async () => {
         const channelId = 'testChannelId';
 
-        await sdkConnect.removeChannel(channelId);
+        await sdkConnect.removeChannel({ channelId });
 
         expect(mockRemoveChannel).toHaveBeenCalledTimes(1);
         expect(mockRemoveChannel).toHaveBeenCalledWith({

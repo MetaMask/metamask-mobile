@@ -9,7 +9,6 @@ import AndroidService from './AndroidSDK/AndroidService';
 import addAndroidConnection from './AndroidSDK/addAndroidConnection';
 import bindAndroidSDK from './AndroidSDK/bindAndroidSDK';
 import loadAndroidConnections from './AndroidSDK/loadAndroidConnections';
-import removeAndroidConnection from './AndroidSDK/removeAndroidConnection';
 import { Connection, ConnectionProps } from './Connection';
 import {
   approveHost,
@@ -70,6 +69,7 @@ export interface SDKConnectState {
   androidSDKStarted: boolean;
   androidSDKBound: boolean;
   androidService?: AndroidService;
+  androidConnections: SDKSessions;
   connecting: { [channelId: string]: boolean };
   approvedHosts: ApprovedHosts;
   sdkLoadingState: { [channelId: string]: boolean };
@@ -99,6 +99,7 @@ export class SDKConnect extends EventEmitter2 {
     appState: undefined,
     connected: {},
     connections: {},
+    androidConnections: {},
     androidSDKStarted: false,
     androidSDKBound: false,
     androidService: undefined,
@@ -216,12 +217,16 @@ export class SDKConnect extends EventEmitter2 {
     return loadAndroidConnections();
   }
 
+  getAndroidConnections() {
+    return this.state.androidService?.getConnections();
+  }
+
   async addAndroidConnection(connection: ConnectionProps) {
     return addAndroidConnection(connection, this);
   }
 
   removeAndroidConnection(id: string) {
-    return removeAndroidConnection(id, this);
+    return removeChannel({ channelId: id, instance: this, emitRefresh: true });
   }
 
   /**
@@ -235,8 +240,21 @@ export class SDKConnect extends EventEmitter2 {
     return invalidateChannel({ channelId, instance: this });
   }
 
-  public removeChannel(channelId: string, sendTerminate?: boolean) {
-    return removeChannel({ channelId, sendTerminate, instance: this });
+  public removeChannel({
+    channelId,
+    sendTerminate,
+    emitRefresh,
+  }: {
+    channelId: string;
+    sendTerminate?: boolean;
+    emitRefresh?: boolean;
+  }) {
+    return removeChannel({
+      channelId,
+      sendTerminate,
+      instance: this,
+      emitRefresh,
+    });
   }
 
   public async removeAll() {
