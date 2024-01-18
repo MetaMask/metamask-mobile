@@ -153,14 +153,6 @@ const ExperimentalSettings = ({ navigation, route }: Props) => {
       >
         {strings('experimental_settings.blockaid_desc')}
       </Text>
-
-      <Text
-        color={TextColor.Alternative}
-        variant={TextVariant.BodyMD}
-        style={styles.desc}
-      >
-        {strings('experimental_settings.available_on_eth_mainet')}
-      </Text>
     </>
   );
 

@@ -1825,7 +1825,6 @@
     "select_provider": "선호하는 공급업체 선택",
     "blockaid": "Blockaid",
     "blockaid_desc": "Privacy preserving - no data is shared with third parties.",
-    "available_on_eth_mainet": "Available on Ethereum Mainnet.",
     "switch_network": "메인넷이나 세폴리아로 전환하세요"
   },
   "walletconnect_sessions": {
