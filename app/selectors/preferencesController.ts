@@ -102,9 +102,5 @@ export const selectIsSecurityAlertsEnabled = createSelector(
 export const selectSmartTransactionsEnabled = createSelector(
   selectPreferencesControllerState,
   (preferencesControllerState: PreferencesState) =>
-    (
-      preferencesControllerState as PreferencesState & {
-        smartTransactionsEnabled: boolean;
-      }
-    ).smartTransactionsEnabled,
+    preferencesControllerState.smartTransactionsEnabled,
 );
