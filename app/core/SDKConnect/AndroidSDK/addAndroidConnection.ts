@@ -8,13 +8,13 @@ async function addAndroidConnection(
   connection: ConnectionProps,
   instance: SDKConnect,
 ) {
-  instance.state.connections[connection.id] = connection;
+  instance.state.androidConnections[connection.id] = connection;
 
   DevLogger.log(`SDKConnect::addAndroidConnection`, connection);
 
   await DefaultPreference.set(
     AppConstants.MM_SDK.ANDROID_CONNECTIONS,
-    JSON.stringify(instance.state.connections),
+    JSON.stringify(instance.state.androidConnections),
   ).catch((err) => {
     throw err;
   });

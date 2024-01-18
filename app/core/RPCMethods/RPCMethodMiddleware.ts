@@ -431,7 +431,7 @@ export const getRpcMethodMiddleware = ({
           res.result = [selectedAddress];
         } else if (isMMSDK) {
           try {
-            const approved = getApprovedHosts()[hostname];
+            const approved = getApprovedHosts(hostname)[hostname];
 
             if (!approved) {
               // Prompts user approval UI in RootRPCMethodsUI.js.
