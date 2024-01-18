@@ -3,7 +3,7 @@ import { context, getOctokit } from '@actions/github';
 import { GitHub } from '@actions/github/lib/utils';
 import { E2ELabel, e2eLabels } from './shared/label';
 
-const BITRISE_SKIP_CI_FLAG = 'Bitrise CI Flag. DO NOT EDIT\n[skip ci]';
+const BITRISE_SKIP_CI_FLAG = '\nBitrise CI Flag. DO NOT EDIT\n[skip ci]';
 const BITRISE_SKIP_CI_REGEX = new RegExp(BITRISE_SKIP_CI_FLAG, 'g');
 
 enum PullRequestTriggerType {
