@@ -27,12 +27,12 @@ class MetaMetricsOptIn {
   }
 
   async tapAgreeButton() {
-    await Gestures.swipe(this.optInMetricsContent, 'up', 'slow', 0.6);
+    await Gestures.swipe(this.optInMetricsContent, 'up', 'fast', 0.9);
     await Gestures.waitAndTap(this.iAgreeButton);
   }
 
   async tapNoThanksButton() {
-    await Gestures.swipe(this.optInMetricsContent, 'up', 'slow', 0.6);
+    await Gestures.swipe(this.optInMetricsContent, 'up', 'fast', 0.9);
     await Gestures.waitAndTap(this.noThanksButton);
   }
 }
