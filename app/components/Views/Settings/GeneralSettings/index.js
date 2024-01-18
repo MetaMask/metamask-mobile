@@ -292,7 +292,7 @@ class Settings extends PureComponent {
       selectedAddress,
       hideZeroBalanceTokens,
     } = this.props;
-    const theme = useTheme();
+    const theme = this.context.theme || mockTheme;
     const { colors } = theme;
     const styles = createStyles(colors);
 

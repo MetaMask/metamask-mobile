@@ -19,7 +19,10 @@ import { typography } from '@metamask/design-tokens';
 // External dependencies.
 import ActionModal from '../../../UI/ActionModal';
 import Engine from '../../../../core/Engine';
-import { baseStyles } from '../../../../styles/common';
+import {
+  baseStyles,
+  colors as importedColors,
+} from '../../../../styles/common';
 import { getNavigationOptionsTitle } from '../../../UI/Navbar';
 import {
   setShowCustomNonce,
@@ -52,7 +55,6 @@ import Banner, {
   BannerAlertSeverity,
   BannerVariant,
 } from '../../../../component-library/components/Banners/Banner';
-import { useTheme } from '../../../../util/theme';
 
 const createStyles = (colors) =>
   StyleSheet.create({
@@ -196,7 +198,7 @@ class AdvancedSettings extends PureComponent {
   };
 
   getStyles = () => {
-    const { colors } = useTheme();
+    const colors = this.context.colors || mockTheme.colors;
     const styles = createStyles(colors);
     return { styles, colors };
   };
@@ -304,8 +306,7 @@ class AdvancedSettings extends PureComponent {
   renderTokenDetectionSection = () => {
     const { isTokenDetectionEnabled, chainId } = this.props;
     const { styles, colors } = this.getStyles();
-    const theme = useTheme();
-
+    const theme = this.context.theme || mockTheme;
     if (!isTokenDetectionSupportedForNetwork(chainId)) {
       return null;
     }
@@ -353,7 +354,6 @@ class AdvancedSettings extends PureComponent {
     } = this.props;
     const { resetModalVisible } = this.state;
     const { styles, colors } = this.getStyles();
-    const theme = useTheme();
 
     return (
       <SafeAreaView style={baseStyles.flexGrow}>
