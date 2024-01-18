@@ -343,9 +343,9 @@ class AdvancedSettings extends PureComponent {
     );
   };
 
-  toggleSmartTransactions = (detectionStatus) => {
+  toggleSmartTransactions = (smartTransactionsEnabled) => {
     const { PreferencesController } = Engine.context;
-    PreferencesController.setSmartTransactionsEnabled(detectionStatus);
+    PreferencesController.setSmartTransactionsEnabled(smartTransactionsEnabled);
   };
 
   render = () => {
