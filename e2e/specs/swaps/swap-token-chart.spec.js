@@ -16,11 +16,11 @@ import Networks from '../../resources/networks.json';
 import TestHelpers from '../../helpers';
 import FixtureServer from '../../fixtures/fixture-server';
 import { getFixturesServerPort } from '../../fixtures/utils';
-import { SmokeSwaps } from '../../tags';
+import { Regression } from '../../tags';
 
 const fixtureServer = new FixtureServer();
 
-describe(SmokeSwaps('Swap from Token view'), () => {
+describe(Regression('Swap from Token view'), () => {
   const swapOnboarded = true; // TODO: Set it to false once we show the onboarding page again.
   beforeAll(async () => {
     await TestHelpers.reverseServerPort();
@@ -61,7 +61,6 @@ describe(SmokeSwaps('Swap from Token view'), () => {
     await SwapView.isVisible();
     await SwapView.tapIUnderstandPriceWarning();
     await SwapView.swipeToSwap();
-    await TestHelpers.delay(5000);
     await SwapView.waitForSwapToComplete('USDC', 'DAI');
   });
 });

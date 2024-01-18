@@ -33,7 +33,6 @@ function Settings() {
         navigation,
         false,
         colors,
-        false,
       ),
     );
   }, [colors, navigation]);
