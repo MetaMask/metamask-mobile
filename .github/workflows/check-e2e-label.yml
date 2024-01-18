@@ -36,4 +36,4 @@ jobs:
           git config user.name metamaskbot
           git config user.email metamaskbot@users.noreply.github.com
           git commit --allow-empty -m "Bump commit for Bitrise"
-          git push origin HEAD:"$HEAD_REF"
+          git push origin HEAD:"$HEAD_REF" --force
