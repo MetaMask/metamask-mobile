@@ -1,15 +1,28 @@
 import { ThemeColors } from '@metamask/design-tokens/dist/js/themes/types';
 import { ThemeTypography } from '@metamask/design-tokens/dist/js/typography';
 import React, { useEffect, useState } from 'react';
-import { Image, StyleSheet, Text, TextStyle, View } from 'react-native';
+import { StyleSheet, TextStyle, View } from 'react-native';
 import { EdgeInsets, useSafeAreaInsets } from 'react-native-safe-area-context';
+import { AvatarSize } from '../../../../app/component-library/components/Avatars/Avatar';
+import AvatarToken from '../../../../app/component-library/components/Avatars/Avatar/variants/AvatarToken';
+import Badge, {
+  BadgeStatusState,
+  BadgeVariant,
+} from '../../../../app/component-library/components/Badges/Badge';
+import BadgeWrapper from '../../../../app/component-library/components/Badges/BadgeWrapper';
+import { ConnectionProps } from '../../../../app/core/SDKConnect/Connection';
 import { strings } from '../../../../locales/i18n';
-import { ConnectionProps } from '../../../core/SDKConnect/SDKConnect';
 import { useTheme } from '../../../util/theme';
 import StyledButton from '../../UI/StyledButton';
+import Text from '../../../../app/component-library/components/Texts/Text';
+import AvatarFavicon from '../../../../app/component-library/components/Avatars/Avatar/variants/AvatarFavicon';
 
 interface SDKSessionViewProps {
-  connection: ConnectionProps;
+  connection: {
+    id: ConnectionProps['id'];
+    originatorInfo?: ConnectionProps['originatorInfo'];
+  };
+  connected?: boolean;
   onDisconnect: (channelId: string) => void;
 }
 
@@ -58,6 +71,7 @@ const createStyles = (
 
 export const SDKSessionItem = ({
   connection,
+  connected = false,
   onDisconnect,
 }: SDKSessionViewProps) => {
   const safeAreaInsets = useSafeAreaInsets();
@@ -94,14 +108,22 @@ export const SDKSessionItem = ({
 
   return (
     <View style={styles.container}>
-      {icon ? (
-        <Image style={styles.icon} source={{ uri: icon }} />
-      ) : (
-        <Text style={[styles.icon, styles.iconText]}>
-          {sessionName.charAt(0).toUpperCase()}
-        </Text>
-      )}
-
+      <BadgeWrapper
+        badgeElement={
+          connected ? (
+            <Badge
+              variant={BadgeVariant.Status}
+              state={BadgeStatusState.Active}
+            />
+          ) : undefined
+        }
+      >
+        {icon ? (
+          <AvatarFavicon imageSource={{ uri: icon }} />
+        ) : (
+          <AvatarToken name={sessionName} isHaloEnabled size={AvatarSize.Md} />
+        )}
+      </BadgeWrapper>
       <Text style={styles.dappName}>{sessionName}</Text>
       <StyledButton
         type="normal"
