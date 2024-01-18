@@ -196,9 +196,7 @@ index 1a98ab0..a31d967 100644
 +     * @param smartTransactionsEnabled - true to enable smart transactions
 +     */
 +    setSmartTransactionsEnabled(smartTransactionsEnabled) {
-+        this.update((state) => {
-+        state.smartTransactionsEnabled = smartTransactionsEnabled;
-+        });
++        this.update({ smartTransactionsEnabled });
 +    }
  }
 +exports.ETHERSCAN_SUPPORTED_CHAIN_IDS = ETHERSCAN_SUPPORTED_CHAIN_IDS;
