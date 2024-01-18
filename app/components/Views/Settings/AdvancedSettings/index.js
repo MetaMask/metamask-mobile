@@ -19,10 +19,7 @@ import { typography } from '@metamask/design-tokens';
 // External dependencies.
 import ActionModal from '../../../UI/ActionModal';
 import Engine from '../../../../core/Engine';
-import {
-  baseStyles,
-  colors as importedColors,
-} from '../../../../styles/common';
+import { baseStyles } from '../../../../styles/common';
 import { getNavigationOptionsTitle } from '../../../UI/Navbar';
 import {
   setShowCustomNonce,
@@ -354,6 +351,7 @@ class AdvancedSettings extends PureComponent {
     } = this.props;
     const { resetModalVisible } = this.state;
     const { styles, colors } = this.getStyles();
+    const theme = this.context.theme || mockTheme;
 
     return (
       <SafeAreaView style={baseStyles.flexGrow}>

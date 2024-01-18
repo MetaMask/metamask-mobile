@@ -15,7 +15,6 @@ import { useDispatch, useSelector } from 'react-redux';
 import { MAINNET } from '../../../../constants/network';
 import ActionModal from '../../../UI/ActionModal';
 import { clearHistory } from '../../../../actions/browser';
-import { colors as importedColors } from '../../../../styles/common';
 import Logger from '../../../../util/Logger';
 import { getNavigationOptionsTitle } from '../../../UI/Navbar';
 import { setLockTime } from '../../../../actions/settings';
@@ -617,7 +616,7 @@ const Settings: React.FC = () => {
         </Text>
       </View>
     ),
-    [colors, styles, displayNftMedia],
+    [colors, styles, displayNftMedia, theme],
   );
 
   const renderAutoDetectNft = useCallback(
@@ -654,7 +653,7 @@ const Settings: React.FC = () => {
         </Text>
       </View>
     ),
-    [colors, styles, useNftDetection],
+    [colors, styles, useNftDetection, theme],
   );
 
   const setIpfsGateway = (gateway: string) => {

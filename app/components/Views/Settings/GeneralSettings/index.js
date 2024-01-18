@@ -31,12 +31,10 @@ import Jazzicon from 'react-native-jazzicon';
 import { ThemeContext, mockTheme } from '../../../../util/theme';
 import { selectCurrentCurrency } from '../../../../selectors/currencyRateController';
 import { selectSelectedAddress } from '../../../../selectors/preferencesController';
-// import { AppThemeKey } from '../../../../util/theme/models';
 import Text, {
   TextVariant,
   TextColor,
 } from '../../../../component-library/components/Texts/Text';
-import { useTheme } from '../../../../util/theme';
 
 const diameter = 40;
 const spacing = 8;
