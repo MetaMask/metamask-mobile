@@ -109,7 +109,7 @@ function rewriteReport(report) {
 /**
  * This function excludes events from being logged in the performance portion of the app.
  * @param {*} event - to be logged
- * @returns event or null
+ * @returns {(event|null)}
  */
 function excludeEvents(event) {
   //Modfiy or drop event here
