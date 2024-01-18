@@ -104,7 +104,7 @@ index 422660e..56919ce 100644
       * Enumerate assets assigned to an owner.
       *
 diff --git a/node_modules/@metamask/assets-controllers/dist/NftController.d.ts b/node_modules/@metamask/assets-controllers/dist/NftController.d.ts
-index 360c8b7..998cba1 100644
+index 360c8b7..f10bad0 100644
 --- a/node_modules/@metamask/assets-controllers/dist/NftController.d.ts
 +++ b/node_modules/@metamask/assets-controllers/dist/NftController.d.ts
 @@ -59,6 +59,74 @@ export interface NftContract {
@@ -201,9 +201,12 @@ index 360c8b7..998cba1 100644
      useIPFSSubdomains: boolean;
  }
  /**
-@@ -140,6 +211,7 @@ export declare class NftController extends BaseController<NftConfig, NftState> {
+@@ -138,8 +209,9 @@ export interface NftState extends BaseState {
+  */
+ export declare class NftController extends BaseController<NftConfig, NftState> {
      private mutex;
-     private getNftApi;
+-    private getNftApi;
++    public getNftApi;
      private getNftContractInformationApi;
 +    private getNftCollectionInformationApi;
      /**
