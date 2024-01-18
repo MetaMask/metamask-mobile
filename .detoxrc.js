@@ -52,11 +52,11 @@ module.exports = {
       app: 'android.debug',
     },
     'android.emu.release': {
-      device: 'android.bitrise.emulator',
+      device: 'android.emulator',
       app: 'android.release',
     },
     'android.emu.release.qa': {
-      device: 'android.bitrise.emulator',
+      device: 'android.emulator',
       app: 'android.qa',
     },
   },
@@ -65,12 +65,6 @@ module.exports = {
       type: 'ios.simulator',
       device: {
         type: 'iPhone 13 Pro',
-      },
-    },
-    'android.bitrise.emulator': {
-      type: 'android.emulator',
-      device: {
-        avdName: 'emulator',
       },
     },
     'android.emulator': {
