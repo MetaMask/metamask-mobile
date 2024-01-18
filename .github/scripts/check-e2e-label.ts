@@ -10,10 +10,7 @@ enum PullRequestTriggerType {
   Unlabeled = 'unlabeled',
 }
 
-main().catch((error: Error): void => {
-  console.error(error);
-  process.exit(1);
-});
+main().catch((error: Error): void => core.setFailed(error));
 
 async function main(): Promise<void> {
   const githubToken = process.env.GITHUB_TOKEN;
@@ -94,7 +91,6 @@ async function main(): Promise<void> {
       core.setFailed(
         `Error occured on labeled action for label: ${prLabel}. ${error}`,
       );
-      process.exit(1);
     }
   };
 
@@ -115,7 +111,6 @@ async function main(): Promise<void> {
       core.setFailed(
         `Error occured on unlabeled action for label: ${prLabel}. ${error}`,
       );
-      process.exit(1);
     }
   };
 
