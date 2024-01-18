@@ -1,6 +1,6 @@
 import DevLogger from './utils/DevLogger';
 
-interface RPCMethod {
+export interface RPCMethod {
   id: string;
   method: string;
   params: unknown;

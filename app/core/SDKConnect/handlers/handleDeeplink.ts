@@ -70,7 +70,7 @@ const handleDeeplink = async ({
     if (channelExists) {
       if (origin === AppConstants.DEEPLINKS.ORIGIN_DEEPLINK) {
         // Automatically re-approve hosts.
-        await sdkConnect.revalidateChannel({
+        sdkConnect.revalidateChannel({
           channelId,
         });
       }

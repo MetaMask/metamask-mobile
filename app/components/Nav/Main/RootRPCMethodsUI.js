@@ -57,6 +57,9 @@ import TemplateConfirmationModal from '../../Approvals/TemplateConfirmationModal
 import { selectTokenList } from '../../../selectors/tokenListController';
 import { selectTokens } from '../../../selectors/tokensController';
 import { selectSelectedAddress } from '../../../selectors/preferencesController';
+///: BEGIN:ONLY_INCLUDE_IF(snaps)
+import InstallSnapApproval from '../../Approvals/InstallSnapApproval';
+///: END:ONLY_INCLUDE_IF
 
 const hstInterface = new ethers.utils.Interface(abi);
 
@@ -374,6 +377,13 @@ const RootRPCMethodsUI = (props) => {
       <PermissionApproval navigation={props.navigation} />
       <FlowLoaderModal />
       <TemplateConfirmationModal />
+      {
+        ///: BEGIN:ONLY_INCLUDE_IF(snaps)
+      }
+      <InstallSnapApproval />
+      {
+        ///: END:ONLY_INCLUDE_IF
+      }
     </React.Fragment>
   );
 };

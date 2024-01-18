@@ -1,8 +1,12 @@
 {
   "KeyringController": {
     "isUnlocked": false,
-    "keyringTypes": [],
-    "keyrings": []
+    "keyrings": [],
+    "vault": {
+      "cipher": "mock-cipher",
+      "iv": "mock-iv",
+      "lib": "original"
+    }
   },
   "LoggingController": {
     "logs": {}
@@ -135,6 +139,13 @@
     "methodData": {},
     "submitHistory": [],
     "transactions": []
+  },
+  "SnapController":  {
+    "snapStates": {},
+    "snaps":  {}
+  },
+  "SubjectMetadataController":  {
+    "subjectMetadata":  {}
   },
   "SwapsController": {
     "quotes": {},
