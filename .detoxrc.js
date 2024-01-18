@@ -12,6 +12,7 @@ const getAvailableAVDs = () => {
     return [];
   }
 };
+const avdList = getAvailableAVDs();
 
 module.exports = {
   testRunner: {
@@ -47,12 +48,6 @@ module.exports = {
       device: 'ios.simulator',
       app: 'ios.release',
     },
-    // because e2e run on debug mode in bitrise
-    'android.emu.bitrise.debug': {
-      device: 'android.emulator',
-      app: 'android.bitrise.debug',
-    },
-
     'android.emu.debug': {
       device: 'android.emulator',
       app: 'android.debug',
@@ -82,7 +77,7 @@ module.exports = {
     'android.emulator': {
       type: 'android.emulator',
       device: {
-        avdName: getAvailableAVDs()[0],
+        avdName: avdList[0],
       },
     },
   },
@@ -97,11 +92,6 @@ module.exports = {
       binaryPath:
         'ios/build/Build/Products/Release-iphonesimulator/MetaMask.app',
       build: "METAMASK_BUILD_TYPE='main' METAMASK_ENVIRONMENT='production' yarn build:ios:release:e2e",
-    },
-    'android.bitrise.debug': {
-      type: 'android.apk',
-      binaryPath: 'android/app/build/outputs/apk/prod/debug/app-prod-debug.apk',
-      build: 'yarn start:android:e2e',
     },
     'android.debug': {
       type: 'android.apk',
