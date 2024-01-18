@@ -19,7 +19,6 @@ import { protectWalletModalVisible } from '../../../actions/user';
 import ClipboardManager from '../../../core/ClipboardManager';
 import { ThemeContext, mockTheme } from '../../../util/theme';
 import { selectSelectedAddress } from '../../../selectors/preferencesController';
-import { useTheme } from '../../../util/theme';
 
 const WIDTH = Dimensions.get('window').width - 88;
 
@@ -135,7 +134,7 @@ class AddressQRCode extends PureComponent {
   };
 
   render() {
-    const theme = useTheme();
+    const theme = this.context.theme || mockTheme;
     const colors = theme.colors;
     const styles = createStyles(theme);
 

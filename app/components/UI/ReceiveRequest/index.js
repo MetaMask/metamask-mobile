@@ -45,7 +45,6 @@ import { isNetworkRampSupported } from '../Ramp/common/utils';
 import { selectSelectedAddress } from '../../../selectors/preferencesController';
 import { getRampNetworks } from '../../../reducers/fiatOrders';
 import { RequestPaymentModalSelectorsIDs } from '../../../../e2e/selectors/Modals/RequestPaymentModal.selectors';
-import { useTheme } from '../../../../util/theme';
 
 const createStyles = (theme) =>
   StyleSheet.create({
@@ -252,7 +251,7 @@ class ReceiveRequest extends PureComponent {
   };
 
   render() {
-    const theme = useTheme();
+    const theme = this.context.theme || mockTheme;
     const colors = theme.colors;
     const styles = createStyles(theme);
 

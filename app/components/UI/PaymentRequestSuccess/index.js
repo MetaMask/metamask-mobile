@@ -31,7 +31,6 @@ import ClipboardManager from '../../../core/ClipboardManager';
 import { ThemeContext, mockTheme } from '../../../util/theme';
 import generateTestId from '../../../../wdio/utils/generateTestId';
 import { SendLinkViewSelectorsIDs } from '../../../../e2e/selectors/SendLinkView.selectors';
-import { useTheme } from '../../../../util/theme';
 
 const isIos = Device.isIos();
 
@@ -263,7 +262,7 @@ class PaymentRequestSuccess extends PureComponent {
 
   render() {
     const { link, amount, symbol, qrModalVisible } = this.state;
-    const theme = useTheme();
+    const theme = this.context.theme || mockTheme;
     const colors = theme.colors;
     const styles = createStyles(theme);
 
