@@ -43,7 +43,6 @@
     "chainStatus": {
       "0x1": {
         "chainId": "0x1",
-        "dataFetched": false,
         "versionInfo": []
       }
     },
@@ -140,12 +139,12 @@
     "submitHistory": [],
     "transactions": []
   },
-  "SnapController":  {
+  "SnapController": {
     "snapStates": {},
-    "snaps":  {}
+    "snaps": {}
   },
-  "SubjectMetadataController":  {
-    "subjectMetadata":  {}
+  "SubjectMetadataController": {
+    "subjectMetadata": {}
   },
   "SwapsController": {
     "quotes": {},
