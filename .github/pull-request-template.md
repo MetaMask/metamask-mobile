@@ -49,4 +49,4 @@ Fixes:
 
 ## **CI Related Section: DO NOT EDIT**
 
-Bitrise Flag: [skip ci]
+Bitrise Flag:[skip ci]
