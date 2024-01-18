@@ -27,3 +27,12 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: yarn run check-e2e-label
+
+      - name: Bump commit
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          git config user.name metamaskbot
+          git config user.email metamaskbot@users.noreply.github.com
+          git commit --allow-empty -m "Bump commit for Bitrise"
+          git push origin HEAD
