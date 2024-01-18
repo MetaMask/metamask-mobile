@@ -265,7 +265,7 @@ function getCollectibleTransfer(args) {
   return [transactionElement, transactionDetails];
 }
 
-function decodeIncomingTransfer(args) {
+export function decodeIncomingTransfer(args) {
   const {
     tx: {
       transaction: { to, from, value },
@@ -281,7 +281,8 @@ function decodeIncomingTransfer(args) {
     selectedAddress,
   } = args;
 
-  const amount = toBN(value);
+  const decimalAmount = parseInt(value, 16).toString();
+  const amount = toBN(decimalAmount);
   const token = { symbol, decimals, address: contractAddress };
 
   const renderTokenAmount = token
@@ -299,6 +300,7 @@ function decodeIncomingTransfer(args) {
       exchangeRate,
       currentCurrency,
     );
+
     renderTokenFiatNumber = balanceToFiatNumber(
       fromTokenMinimalUnit(amount, token.decimals) || 0,
       conversionRate,
