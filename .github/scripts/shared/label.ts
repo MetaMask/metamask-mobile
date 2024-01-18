@@ -9,7 +9,7 @@ export interface Label {
 }
 
 export enum E2ELabel {
-  RUN_SMOKE_E2E_LABEL = 'Run Smoke E2E',
+  RUN_E2E_SMOKE_LABEL = 'Run E2E Smoke',
   NO_E2E_SMOKE_NEEDED = 'No E2E Smoke Needed',
 }
 
