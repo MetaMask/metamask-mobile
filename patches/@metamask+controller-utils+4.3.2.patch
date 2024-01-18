@@ -1,3 +1,19 @@
+diff --git a/node_modules/@metamask/controller-utils/dist/constants.d.ts b/node_modules/@metamask/controller-utils/dist/constants.d.ts
+index dd0be20..9908226 100644
+--- a/node_modules/@metamask/controller-utils/dist/constants.d.ts
++++ b/node_modules/@metamask/controller-utils/dist/constants.d.ts
+@@ -74,9 +74,8 @@ export declare const BUILT_IN_NETWORKS: {
+         readonly rpcPrefs: undefined;
+     };
+ };
+-export declare const OPENSEA_PROXY_URL = "https://proxy.metafi.codefi.network/opensea/v1/api/v1";
+-export declare const OPENSEA_API_URL = "https://api.opensea.io/api/v1";
+-export declare const OPENSEA_TEST_API_URL = "https://testnets-api.opensea.io/api/v1";
++export declare const OPENSEA_PROXY_URL = "https://proxy.metafi.codefi.network/opensea/v1/api/v2";
++
+ export declare const ORIGIN_METAMASK = "metamask";
+ /**
+  * Approval request types for various operations.
 diff --git a/node_modules/@metamask/controller-utils/dist/constants.js b/node_modules/@metamask/controller-utils/dist/constants.js
 index 90ede0b..648018e 100644
 --- a/node_modules/@metamask/controller-utils/dist/constants.js
