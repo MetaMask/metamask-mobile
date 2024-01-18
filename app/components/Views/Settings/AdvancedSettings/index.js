@@ -33,6 +33,7 @@ import { mockTheme, ThemeContext } from '../../../../util/theme';
 import { selectChainId } from '../../../../selectors/networkController';
 import {
   selectDisabledRpcMethodPreferences,
+  selectSmartTransactionsEnabled,
   selectUseTokenDetection,
 } from '../../../../selectors/preferencesController';
 import Routes from '../../../../constants/navigation/Routes';
@@ -185,6 +186,10 @@ class AdvancedSettings extends PureComponent {
      * Object that represents the current route info like params passed to it
      */
     route: PropTypes.object,
+    /**
+     * Boolean that checks if smart transactions is enabled
+     */
+    smartTransactionsEnabled: PropTypes.bool,
   };
 
   scrollView = React.createRef();
@@ -353,6 +358,7 @@ class AdvancedSettings extends PureComponent {
       setShowHexData,
       setShowCustomNonce,
       enableEthSign,
+      smartTransactionsEnabled,
     } = this.props;
     const { resetModalVisible } = this.state;
     const { styles, colors } = this.getStyles();
@@ -540,7 +546,7 @@ class AdvancedSettings extends PureComponent {
                 </Text>
                 <View style={styles.toggle}>
                   <Switch
-                    value={showHexData}
+                    value={smartTransactionsEnabled}
                     onValueChange={this.toggleSmartTransactions}
                     trackColor={{
                       true: colors.primary.default,
@@ -576,6 +582,7 @@ const mapStateToProps = (state) => ({
   fullState: state,
   isTokenDetectionEnabled: selectUseTokenDetection(state),
   chainId: selectChainId(state),
+  smartTransactionsEnabled: selectSmartTransactionsEnabled(state),
 });
 
 const mapDispatchToProps = (dispatch) => ({
