@@ -45,12 +45,12 @@ async function main(): Promise<void> {
   const updateCIFlagOnBody = (includeSkipFlag: boolean) => {
     let bodyText = prBody || '';
     bodyText = bodyText.replace(BITRISE_SKIP_CI_FLAG, '');
-    let logs = `Removing ${BITRISE_SKIP_CI_FLAG} flag`;
+    let message = `Removing ${BITRISE_SKIP_CI_FLAG} flag`;
     if (includeSkipFlag) {
       bodyText = `${bodyText}\n${BITRISE_SKIP_CI_FLAG}`;
-      logs = `Adding ${BITRISE_SKIP_CI_FLAG} flag`;
+      message = `Adding ${BITRISE_SKIP_CI_FLAG} flag`;
     }
-    console.log(logs);
+    console.log(message);
     return bodyText;
   };
 
