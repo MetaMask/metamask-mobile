@@ -3,7 +3,10 @@ import { context, getOctokit } from '@actions/github';
 import { GitHub } from '@actions/github/lib/utils';
 import { E2ELabel, e2eLabels } from './shared/label';
 
+// Flag used by Bitrise to skip step in GH checks.
 const BITRISE_SKIP_CI_FLAG = '[skip ci]';
+// Identifier for updating flag.
+const BITRISE_FLAG_PREFIX = 'Bitrise Flag:';
 
 enum PullRequestTriggerType {
   Labeled = 'labeled',
@@ -44,7 +47,10 @@ async function main(): Promise<void> {
     bodyText = bodyText.replace(BITRISE_SKIP_CI_FLAG, '');
     let message = `Removing ${BITRISE_SKIP_CI_FLAG} flag.`;
     if (includeSkipFlag) {
-      bodyText = `${bodyText}\n${BITRISE_SKIP_CI_FLAG}`;
+      bodyText = bodyText.replace(
+        BITRISE_FLAG_PREFIX,
+        `${BITRISE_FLAG_PREFIX}${BITRISE_SKIP_CI_FLAG}`,
+      );
       message = `Adding ${BITRISE_SKIP_CI_FLAG} flag.`;
     }
     console.log(message);
@@ -53,10 +59,10 @@ async function main(): Promise<void> {
 
   const getLabelToRemove = (activeLabel: E2ELabel) => {
     let labelToRemove: E2ELabel;
-    if (activeLabel === E2ELabel.RUN_SMOKE_E2E_LABEL) {
+    if (activeLabel === E2ELabel.RUN_E2E_SMOKE_LABEL) {
       labelToRemove = E2ELabel.NO_E2E_SMOKE_NEEDED;
     } else {
-      labelToRemove = E2ELabel.RUN_SMOKE_E2E_LABEL;
+      labelToRemove = E2ELabel.RUN_E2E_SMOKE_LABEL;
     }
     return labelToRemove;
   };
