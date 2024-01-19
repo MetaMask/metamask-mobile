@@ -7,6 +7,7 @@ export enum PROVIDER_LINKS {
   HOMEPAGE = 'Homepage',
   PRIVACY_POLICY = 'Privacy Policy',
   SUPPORT = 'Support',
+  TOS = 'Terms of Service',
 }
 
 export interface QuickAmount {

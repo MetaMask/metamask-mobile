@@ -593,6 +593,11 @@ function Quotes() {
             (link) => link.name === PROVIDER_LINKS.PRIVACY_POLICY,
           )?.url
         }
+        providerTermsOfService={
+          selectedProviderInfo?.links?.find(
+            (link) => link.name === PROVIDER_LINKS.TOS,
+          )?.url
+        }
         providerSupport={
           selectedProviderInfo?.links?.find(
             (link) => link.name === PROVIDER_LINKS.SUPPORT,
