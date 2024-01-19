@@ -77,7 +77,7 @@ describe('validateResponse', () => {
     expect(spyTransactionAction).toBeCalledTimes(0);
   });
 
-  it('should not validate user is not on a blockaid non supporting network', async () => {
+  it('should not validate user if on a non supporting blockaid network', async () => {
     const spyTransactionAction = jest.spyOn(
       TransactionActions,
       'setTransactionSecurityAlertResponse',
