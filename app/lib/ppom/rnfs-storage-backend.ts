@@ -1,9 +1,7 @@
-import RNFS from 'react-native-fs';
-import CryptoJS, { SHA256 } from 'crypto-js';
-
+import { MMKV } from 'react-native-mmkv';
 import { StorageBackend, StorageKey } from '@metamask/ppom-validator';
 
-import { arrayBufferToBase64, base64toArrayBuffer } from './array-buffer';
+import { getArrayBufferForBlob } from 'react-native-blob-jsi-helper';
 
 // eslint-disable-next-line @typescript-eslint/ban-ts-comment
 // @ts-ignore
@@ -15,113 +13,62 @@ if (window.FileReader?.prototype.readAsArrayBuffer) {
     this._setReadyState(this.LOADING);
     this._result = null;
     this._error = null;
-    // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-    // @ts-ignore
-    const fr = new window.FileReader();
-    fr.onloadend = () => {
-      const b64 = fr.result.substr(
-        'data:application/octet-stream;base64,'.length,
-      );
-      this._result = base64toArrayBuffer(b64);
-      this._setReadyState(this.DONE);
-    };
-    fr.readAsDataURL(blob);
+    this._result = getArrayBufferForBlob(blob);
+    this._setReadyState(this.DONE);
   };
 }
 
-/*
- * Validate the checksum of the file
- * The checksum is calculated from the file content using SHA-256
- */
-const validateChecksum = (
-  key: StorageKey,
-  data: ArrayBuffer,
-  checksum: string,
-) => {
-  const hash = SHA256(CryptoJS.lib.WordArray.create(data as any));
-  const hashString = hash.toString();
-
-  if (hashString !== checksum) {
-    throw new Error(`Checksum mismatch for key ${key}`);
-  }
-};
-
 class RNFSStorageBackend implements StorageBackend {
-  private basePath: string;
+  private storage: MMKV;
 
   constructor(basePath: string) {
-    this.basePath = `${RNFS.DocumentDirectoryPath}/${basePath}`;
+    this.storage = new MMKV({ id: basePath });
   }
 
-  private async ensureBaseDirectoryExists(): Promise<void> {
-    const exists = await RNFS.exists(this.basePath);
-    if (!exists) {
-      await RNFS.mkdir(this.basePath, { NSURLIsExcludedFromBackupKey: true });
-    }
+  private _getDataFilePath(key: StorageKey): string {
+    return `${key.name}-${key.chainId}`;
   }
 
-  private async _getDataFilePath(key: StorageKey): Promise<string> {
-    return `${this.basePath}/${key.name}_${key.chainId}`;
-  }
-
-  public async read(key: StorageKey, checksum: string): Promise<ArrayBuffer> {
-    let data: ArrayBuffer | undefined;
+  public async read(key: StorageKey, _checksum: string): Promise<ArrayBuffer> {
+    let data: Uint8Array | undefined;
     try {
-      await this.ensureBaseDirectoryExists();
-      const filePath = await this._getDataFilePath(key);
-      const base64 = await RNFS.readFile(filePath, 'base64');
-      data = base64toArrayBuffer(base64);
+      data = this.storage.getBuffer(this._getDataFilePath(key));
     } catch (error) {
       throw new Error(`Error reading data: ${error}`);
     }
-    validateChecksum(key, data, checksum);
+
+    if (!data) {
+      throw new Error('No data found');
+    }
+
     return data;
   }
 
   public async write(
     key: StorageKey,
     data: ArrayBuffer,
-    checksum: string,
+    _checksum: string,
   ): Promise<void> {
-    validateChecksum(key, data, checksum);
-    try {
-      await this.ensureBaseDirectoryExists();
-      const filePath = await this._getDataFilePath(key);
-      const base64 = arrayBufferToBase64(data);
-      await RNFS.writeFile(filePath, base64, 'base64');
-    } catch (error) {
-      throw new Error(`Error writing data: ${error}`);
-    }
+    const dataArray = new Uint8Array(data);
+    this.storage.set(this._getDataFilePath(key), dataArray);
   }
 
   public async delete(key: StorageKey): Promise<void> {
     try {
-      await this.ensureBaseDirectoryExists();
-      const filePath = await this._getDataFilePath(key);
-      const exists = await RNFS.exists(filePath);
-      if (exists) {
-        await RNFS.unlink(filePath);
-      }
+      this.storage.delete(this._getDataFilePath(key));
     } catch (error) {
       throw new Error(`Error deleting data: ${error}`);
     }
   }
 
   public async dir(): Promise<StorageKey[]> {
-    try {
-      await this.ensureBaseDirectoryExists();
-      const files = await RNFS.readdir(this.basePath);
-      const storageKeys: StorageKey[] = [];
-
-      for (const file of files) {
-        const [name, chainId] = file.split('_');
-        storageKeys.push({ name, chainId });
-      }
-
-      return storageKeys;
-    } catch (error) {
-      throw new Error(`Error retrieving directory: ${error}`);
+    const allKeys = this.storage.getAllKeys();
+    const storageKeys: StorageKey[] = [];
+    for (const key of allKeys) {
+      const [name, chainId] = key.split('-');
+      storageKeys.push({ name, chainId });
     }
+    return storageKeys;
   }
 }
 
