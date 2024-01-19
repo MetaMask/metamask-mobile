@@ -53,6 +53,8 @@ import Banner, {
   BannerAlertSeverity,
   BannerVariant,
 } from '../../../../component-library/components/Banners/Banner';
+import { swapsUtils } from '@metamask/swaps-controller';
+import { APIType } from '@metamask/swaps-controller/dist/swapsInterfaces';
 
 const createStyles = (colors) =>
   StyleSheet.create({
@@ -219,7 +221,7 @@ class AdvancedSettings extends PureComponent {
     );
   };
 
-  componentDidMount = () => {
+  componentDidMount = async () => {
     this.updateNavBar();
     this.mounted = true;
     // Workaround https://github.com/facebook/react-native/issues/9958
@@ -230,6 +232,20 @@ class AdvancedSettings extends PureComponent {
 
     this.props.route?.params?.scrollToBottom &&
       this.scrollView?.current?.scrollToEnd({ animated: true });
+
+    // Check smart transactions feature flag on first load
+    const swapsFeatureFlagsUrl = swapsUtils.getBaseApiURL(APIType.FEATURE_FLAG);
+    const res = await fetch(swapsFeatureFlagsUrl);
+    const data = await res.json();
+
+    const { mobileActive, mobileActiveIOS, mobileActiveAndroid } =
+      data.smartTransactions;
+
+    if (Device.isIos() && mobileActive && mobileActiveIOS) {
+      this.setState({ smartTransactionsFeatureFlagEnabled: true });
+    } else if (Device.isAndroid() && mobileActive && mobileActiveAndroid) {
+      this.setState({ smartTransactionsFeatureFlagEnabled: true });
+    }
   };
 
   componentDidUpdate = () => {
@@ -362,7 +378,8 @@ class AdvancedSettings extends PureComponent {
       enableEthSign,
       smartTransactionsOptInStatus,
     } = this.props;
-    const { resetModalVisible } = this.state;
+    const { resetModalVisible, smartTransactionsFeatureFlagEnabled } =
+      this.state;
     const { styles, colors } = this.getStyles();
     const theme = this.context || mockTheme;
 
@@ -541,36 +558,39 @@ class AdvancedSettings extends PureComponent {
                 style={styles.accessory}
               />
             </View>
-            <View style={styles.setting}>
-              <View style={styles.titleContainer}>
-                <Text variant={TextVariant.BodyLGMedium} style={styles.title}>
-                  {strings('app_settings.smart_transactions_opt_in_heading')}
-                </Text>
-                <View style={styles.toggle}>
-                  <Switch
-                    value={smartTransactionsOptInStatus}
-                    onValueChange={this.toggleSmartTransactionsOptInStatus}
-                    trackColor={{
-                      true: colors.primary.default,
-                      false: colors.border.muted,
-                    }}
-                    thumbColor={importedColors.white}
-                    style={styles.switch}
-                    ios_backgroundColor={colors.border.muted}
-                    accessibilityLabel={strings(
-                      'app_settings.smart_transactions_opt_in_heading',
-                    )}
-                  />
+
+            {smartTransactionsFeatureFlagEnabled && (
+              <View style={styles.setting}>
+                <View style={styles.titleContainer}>
+                  <Text variant={TextVariant.BodyLGMedium} style={styles.title}>
+                    {strings('app_settings.smart_transactions_opt_in_heading')}
+                  </Text>
+                  <View style={styles.toggle}>
+                    <Switch
+                      value={smartTransactionsOptInStatus}
+                      onValueChange={this.toggleSmartTransactionsOptInStatus}
+                      trackColor={{
+                        true: colors.primary.default,
+                        false: colors.border.muted,
+                      }}
+                      thumbColor={importedColors.white}
+                      style={styles.switch}
+                      ios_backgroundColor={colors.border.muted}
+                      accessibilityLabel={strings(
+                        'app_settings.smart_transactions_opt_in_heading',
+                      )}
+                    />
+                  </View>
                 </View>
+                <Text
+                  variant={TextVariant.BodyMD}
+                  color={TextColor.Alternative}
+                  style={styles.desc}
+                >
+                  {strings('app_settings.smart_transactions_opt_in_desc')}
+                </Text>
               </View>
-              <Text
-                variant={TextVariant.BodyMD}
-                color={TextColor.Alternative}
-                style={styles.desc}
-              >
-                {strings('app_settings.smart_transactions_opt_in_desc')}
-              </Text>
-            </View>
+            )}
           </View>
         </KeyboardAwareScrollView>
       </SafeAreaView>
