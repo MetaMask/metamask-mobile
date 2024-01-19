@@ -24,13 +24,6 @@ export default class SwapView {
       'fast',
       percentage,
     );
-    await TestHelpers.delay(500);
-    await TestHelpers.swipe(
-      SwapsViewSelectors.SWIPE_TO_SWAP_BUTTON,
-      'right',
-      'fast',
-      percentage,
-    );
   }
 
   static async waitForSwapToComplete(sourceTokenSymbol, destTokenSymbol) {
