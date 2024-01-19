@@ -33,7 +33,7 @@ import { mockTheme, ThemeContext } from '../../../../util/theme';
 import { selectChainId } from '../../../../selectors/networkController';
 import {
   selectDisabledRpcMethodPreferences,
-  selectSmartTransactionsEnabled,
+  selectSmartTransactionsOptInStatus,
   selectUseTokenDetection,
 } from '../../../../selectors/preferencesController';
 import Routes from '../../../../constants/navigation/Routes';
@@ -189,7 +189,7 @@ class AdvancedSettings extends PureComponent {
     /**
      * Boolean that checks if smart transactions is enabled
      */
-    smartTransactionsEnabled: PropTypes.bool,
+    smartTransactionsOptInStatus: PropTypes.bool,
   };
 
   scrollView = React.createRef();
@@ -346,9 +346,11 @@ class AdvancedSettings extends PureComponent {
     );
   };
 
-  toggleSmartTransactions = (smartTransactionsEnabled) => {
+  toggleSmartTransactionsOptInStatus = (smartTransactionsOptInStatus) => {
     const { PreferencesController } = Engine.context;
-    PreferencesController.setSmartTransactionsEnabled(smartTransactionsEnabled);
+    PreferencesController.setSmartTransactionsOptInStatus(
+      smartTransactionsOptInStatus,
+    );
   };
 
   render = () => {
@@ -358,7 +360,7 @@ class AdvancedSettings extends PureComponent {
       setShowHexData,
       setShowCustomNonce,
       enableEthSign,
-      smartTransactionsEnabled,
+      smartTransactionsOptInStatus,
     } = this.props;
     const { resetModalVisible } = this.state;
     const { styles, colors } = this.getStyles();
@@ -546,8 +548,8 @@ class AdvancedSettings extends PureComponent {
                 </Text>
                 <View style={styles.toggle}>
                   <Switch
-                    value={smartTransactionsEnabled}
-                    onValueChange={this.toggleSmartTransactions}
+                    value={smartTransactionsOptInStatus}
+                    onValueChange={this.toggleSmartTransactionsOptInStatus}
                     trackColor={{
                       true: colors.primary.default,
                       false: colors.border.muted,
@@ -582,7 +584,7 @@ const mapStateToProps = (state) => ({
   fullState: state,
   isTokenDetectionEnabled: selectUseTokenDetection(state),
   chainId: selectChainId(state),
-  smartTransactionsEnabled: selectSmartTransactionsEnabled(state),
+  smartTransactionsOptInStatus: selectSmartTransactionsOptInStatus(state),
 });
 
 const mapDispatchToProps = (dispatch) => ({
