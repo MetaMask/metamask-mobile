@@ -42,7 +42,10 @@ async function main(): Promise<void> {
   });
   const prLabels = labels.map((label) => label.name);
 
-  const updateCIFlagOnBody = (includeSkipFlag: boolean) => {
+  /**
+   * Update skip flag on PR body
+   */
+  const updateCIFlagOnBody = (includeSkipFlag: boolean): string => {
     let bodyText = prBody || '';
     const bitriseFlagText = `${BITRISE_FLAG_PREFIX}${BITRISE_SKIP_CI_FLAG}`;
     bodyText = bodyText.replace(bitriseFlagText, BITRISE_FLAG_PREFIX);
@@ -58,7 +61,10 @@ async function main(): Promise<void> {
     return bodyText;
   };
 
-  const getLabelToRemove = (activeLabel: E2ELabel) => {
+  /**
+   * Identify the other E2E label
+   */
+  const getOtherE2ELabel = (activeLabel: E2ELabel): E2ELabel => {
     let labelToRemove: E2ELabel;
     if (activeLabel === E2ELabel.RUN_E2E_SMOKE_LABEL) {
       labelToRemove = E2ELabel.NO_E2E_SMOKE_NEEDED;
@@ -75,11 +81,12 @@ async function main(): Promise<void> {
     try {
       console.log(`${prLabel} label added.`);
       // Remove the other label
-      let labelToRemove = getLabelToRemove(prLabel);
+      let labelToRemove = getOtherE2ELabel(prLabel);
       // Update Bitrise CI flag on PR body
       let bodyText = updateCIFlagOnBody(
         prLabel === E2ELabel.NO_E2E_SMOKE_NEEDED,
       );
+      // Check if other E2E label needs to be removed
       if (prLabels.includes(labelToRemove)) {
         console.log(`Removing label: ${labelToRemove}.`);
         await octokit.rest.issues.removeLabel({

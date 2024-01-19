@@ -28,7 +28,7 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: yarn run check-e2e-label
 
-      - name: Bump commit
+      - name: Bump commit to refresh Bitrise check
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           HEAD_REF: ${{ github.head_ref }}
