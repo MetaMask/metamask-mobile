@@ -12,7 +12,7 @@ import { store } from '../../store';
 /**
  * Switch to the given chain ID.
  *
- * @param switchToChainId - This chain Id have a decimal format, usually provinient from deeplinks
+ * @param switchToChainId - This chain ID has a decimal format, usually provided from deeplinks
  * @returns The network name of the network switched to (i.e. the network type
  * or nickname, for built-in or custom networks respectively), or undefined if
  * no switch occurred.
