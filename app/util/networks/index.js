@@ -14,7 +14,7 @@ import {
   LINEA_MAINNET,
 } from '../../../app/constants/network';
 import { NetworkSwitchErrorType } from '../../../app/constants/error';
-import { ChainId, NetworkType } from '@metamask/controller-utils';
+import { ChainId, NetworkType, toHex } from '@metamask/controller-utils';
 import Engine from '../../core/Engine';
 import { toLowerCaseEquals } from '../general';
 import { fastSplit } from '../number';
@@ -53,7 +53,7 @@ const NetworkList = {
     name: 'Ethereum Main Network',
     shortName: 'Ethereum',
     networkId: 1,
-    chainId: '0x1',
+    chainId: toHex('1'),
     color: '#3cc29e',
     networkType: 'mainnet',
     imageSource: ethLogo,
@@ -62,7 +62,7 @@ const NetworkList = {
     name: 'Linea Main Network',
     shortName: 'Linea',
     networkId: 59144,
-    chainId: '0xe708',
+    chainId: toHex('59144'),
     color: '#121212',
     networkType: 'linea-mainnet',
     imageSource: lineaMainnetLogo,
@@ -71,7 +71,7 @@ const NetworkList = {
     name: 'Goerli Test Network',
     shortName: 'Goerli',
     networkId: 5,
-    chainId: '0x5',
+    chainId: toHex('5'),
     color: '#3099f2',
     networkType: 'goerli',
     imageSource: goerliLogo,
@@ -80,7 +80,7 @@ const NetworkList = {
     name: 'Sepolia Test Network',
     shortName: 'Sepolia',
     networkId: 11155111,
-    chainId: '0xaa36a7',
+    chainId: toHex('11155111'),
     color: '#cfb5f0',
     networkType: 'sepolia',
     imageSource: sepoliaLogo,
@@ -89,7 +89,7 @@ const NetworkList = {
     name: 'Linea Goerli Test Network',
     shortName: 'Linea Goerli',
     networkId: 59140,
-    chainId: '0xe704',
+    chainId: toHex('59140'),
     color: '#61dfff',
     networkType: 'linea-goerli',
     imageSource: lineaGoerliLogo,
