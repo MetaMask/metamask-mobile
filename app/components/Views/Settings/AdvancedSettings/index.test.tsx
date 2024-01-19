@@ -16,6 +16,7 @@ let initialState: any;
 let store: Store<any, AnyAction>;
 const mockNavigate = jest.fn();
 let mockSetDisabledRpcMethodPreference: jest.Mock<any, any>;
+let mockSetSmartTransactionsOptInStatus: jest.Mock<any, any>;
 
 beforeEach(() => {
   initialState = {
@@ -27,6 +28,7 @@ beforeEach(() => {
   store = mockStore(initialState);
   mockNavigate.mockClear();
   mockSetDisabledRpcMethodPreference.mockClear();
+  mockSetSmartTransactionsOptInStatus.mockClear();
 });
 
 jest.mock('@react-navigation/native', () => {
@@ -43,11 +45,13 @@ const mockEngine = Engine;
 
 jest.mock('../../../../core/Engine', () => {
   mockSetDisabledRpcMethodPreference = jest.fn();
+  mockSetSmartTransactionsOptInStatus = jest.fn();
   return {
     init: () => mockEngine.init({}),
     context: {
       PreferencesController: {
         setDisabledRpcMethodPreference: mockSetDisabledRpcMethodPreference,
+        setSmartTransactionsOptInStatus: mockSetSmartTransactionsOptInStatus,
       },
     },
   };
@@ -162,7 +166,7 @@ describe('AdvancedSettings', () => {
     expect(switchElement.props.value).toBe(false);
   });
 
-  it('should toggle smart transactions opt in when pressed', () => {
+  it('should call PreferencesController.setSmartTransactionsOptInStatus when smart transactions opt in is pressed', () => {
     const { getByLabelText } = renderWithProvider(
       <AdvancedSettings
         navigation={{ navigate: mockNavigate, setOptions: jest.fn() }}
@@ -176,9 +180,8 @@ describe('AdvancedSettings', () => {
       strings('app_settings.smart_transactions_opt_in_heading'),
     );
 
-    // Expect toggle to work
-    expect(switchElement.props.value).toBe(false);
     fireEvent(switchElement, 'onValueChange', true);
-    expect(switchElement.props.value).toBe(true);
+
+    expect(mockSetSmartTransactionsOptInStatus).toBeCalledWith(true);
   });
 });
