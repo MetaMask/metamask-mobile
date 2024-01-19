@@ -157,14 +157,6 @@ class FixtureBuilder {
             },
             PreferencesController: {
               featureFlags: {},
-              frequentRpcList: [
-                {
-                  rpcUrl: `http://localhost:${getGanachePort()}`,
-                  chainId: '1337',
-                  ticker: 'ETH',
-                  nickname: 'Localhost',
-                },
-              ],
               identities: {
                 '0x76cf1CdD1fcC252442b50D6e97207228aA4aefC3': {
                   address: '0x76cf1CdD1fcC252442b50D6e97207228aA4aefC3',
@@ -627,7 +619,7 @@ class FixtureBuilder {
       providerConfig: {
         type: 'rpc',
         chainId: '0x539',
-        rpcTarget: `http://localhost:${getGanachePort()}`,
+        rpcUrl: `http://localhost:${getGanachePort()}`,
         nickname: 'Localhost',
         ticker: 'ETH',
       },
