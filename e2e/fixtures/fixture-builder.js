@@ -626,7 +626,7 @@ class FixtureBuilder {
       isCustomNetwork: true,
       providerConfig: {
         type: 'rpc',
-        chainId: '1337',
+        chainId: '0x539',
         rpcTarget: `http://localhost:${getGanachePort()}`,
         nickname: 'Localhost',
         ticker: 'ETH',
