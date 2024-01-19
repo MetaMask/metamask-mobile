@@ -379,15 +379,9 @@ class Engine {
       },
     };
     const networkController = new NetworkController(networkControllerOpts);
-    try {
-      networkController.initializeProvider();
-    } catch (e) {
-      // initializeProvider now throws an error if config type is rpc but
-      // is missing an rpc url or a chain Id.
-      // Good opportunity to do some logging into Sentry
-      // if this catch block get called the mobile app is not working
-      // probably vault corruption error or state error
-    }
+
+    networkController.initializeProvider();
+
     const assetsContractController = new AssetsContractController({
       onPreferencesStateChange: (listener) =>
         preferencesController.subscribe(listener),
