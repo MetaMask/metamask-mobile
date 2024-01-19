@@ -37,7 +37,7 @@ import {
   BLOCKAID_ATTRIBUTION_LINK,
   BLOCKAID_SUPPORT_LINK,
 } from '../../../constants/urls';
-import { SUPPORTED_CHAIN_IDS } from '../../../util/networks';
+import { BLOCKAID_SUPPORTED_CHAIN_IDS } from '../../../util/networks';
 import { selectChainId } from '../../../selectors/networkController';
 import { selectIsSecurityAlertsEnabled } from '../../../selectors/preferencesController';
 
@@ -101,7 +101,7 @@ const BlockaidBanner = (bannerProps: BlockaidBannerProps) => {
   if (
     !securityAlertResponse ||
     !isBlockaidFeatureEnabled() ||
-    !SUPPORTED_CHAIN_IDS.includes(chainId) ||
+    !BLOCKAID_SUPPORTED_CHAIN_IDS.includes(chainId) ||
     !isSecurityAlertsEnabled
   ) {
     return null;

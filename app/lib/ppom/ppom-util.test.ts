@@ -77,12 +77,12 @@ describe('validateResponse', () => {
     expect(spyTransactionAction).toBeCalledTimes(0);
   });
 
-  it('should not validate user is not on mainnet', async () => {
+  it.only('should not validate user is not on a blockaid non supporting network', async () => {
     const spyTransactionAction = jest.spyOn(
       TransactionActions,
       'setTransactionSecurityAlertResponse',
     );
-    Engine.context.NetworkController.state.providerConfig.chainId = '5';
+    Engine.context.NetworkController.state.providerConfig.chainId = '250';
     await PPOMUtil.validateRequest(mockRequest, '123');
     expect(Engine.context.PPOMController.usePPOM).toBeCalledTimes(0);
     expect(spyTransactionAction).toBeCalledTimes(0);
