@@ -71,14 +71,7 @@ const NetworkSelector = () => {
       Engine.context;
 
     CurrencyRateController.setNativeCurrency('ETH');
-    try {
-      NetworkController.setProviderType(type);
-    } catch (e) {
-      // setProviderType now throws an error if config type is rpc but
-      // is missing an rpc url or a chain Id.
-      // Good opportunity to improve the user experience
-      // and handle the error correctly
-    }
+    NetworkController.setProviderType(type);
 
     setTimeout(async () => {
       await TransactionController.updateIncomingTransactions();
@@ -104,26 +97,19 @@ const NetworkSelector = () => {
     );
 
     if (entry) {
-      try {
-        const [networkConfigurationId, networkConfiguration] = entry;
-        const { ticker, nickname } = networkConfiguration;
+      const [networkConfigurationId, networkConfiguration] = entry;
+      const { ticker, nickname } = networkConfiguration;
 
-        CurrencyRateController.setNativeCurrency(ticker);
+      CurrencyRateController.setNativeCurrency(ticker);
 
-        NetworkController.setActiveNetwork(networkConfigurationId);
+      NetworkController.setActiveNetwork(networkConfigurationId);
 
-        sheetRef.current?.hide();
-        analyticsV2.trackEvent(MetaMetricsEvents.NETWORK_SWITCHED, {
-          chain_id: getDecimalChainId(providerConfig.chainId),
-          from_network: providerConfig.type,
-          to_network: nickname,
-        });
-      } catch (e) {
-        // setActiveNetwork now throws an error if config type is rpc but
-        // is missing an rpc url or a chain Id.
-        // Good opportunity to improve the user experience
-        // and handle the error correctly
-      }
+      sheetRef.current?.hide();
+      analyticsV2.trackEvent(MetaMetricsEvents.NETWORK_SWITCHED, {
+        chain_id: getDecimalChainId(providerConfig.chainId),
+        from_network: providerConfig.type,
+        to_network: nickname,
+      });
     }
   };
 

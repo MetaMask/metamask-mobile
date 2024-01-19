@@ -183,14 +183,7 @@ class NetworksSettings extends PureComponent {
       Engine.context;
 
     CurrencyRateController.setNativeCurrency('ETH');
-    try {
-      NetworkController.setProviderType(MAINNET);
-    } catch (e) {
-      // setProviderType now throws an error if config type is rpc but
-      // is missing an rpc url or a chain Id.
-      // Good opportunity to improve the user experience
-      // and handle the error correctly
-    }
+    NetworkController.setProviderType(MAINNET);
 
     setTimeout(async () => {
       await TransactionController.updateIncomingTransactions();

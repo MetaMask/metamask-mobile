@@ -111,14 +111,7 @@ const wallet_switchEthereumChain = async ({
 
     if (networkConfiguration) {
       CurrencyRateController.setNativeCurrency(networkConfiguration.ticker);
-      try {
-        NetworkController.setActiveNetwork(networkConfigurationId);
-      } catch (e) {
-        // setActiveNetwork now throws an error if config type is rpc but
-        // is missing an rpc url or a chain Id.
-        // Good opportunity to improve the user experience
-        // and handle the error correctly
-      }
+      NetworkController.setActiveNetwork(networkConfigurationId);
     } else {
       CurrencyRateController.setNativeCurrency('ETH');
       NetworkController.setProviderType(existingNetworkDefault.networkType);
