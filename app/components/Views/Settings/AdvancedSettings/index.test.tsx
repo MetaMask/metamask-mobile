@@ -145,4 +145,40 @@ describe('AdvancedSettings', () => {
       false,
     );
   });
+
+  it('should render smart transactions opt in switch off by default', () => {
+    const { getByLabelText } = renderWithProvider(
+      <AdvancedSettings
+        navigation={{ navigate: mockNavigate, setOptions: jest.fn() }}
+      />,
+      {
+        state: initialState,
+      },
+    );
+
+    const switchElement = getByLabelText(
+      strings('app_settings.smart_transactions_opt_in_heading'),
+    );
+    expect(switchElement.props.value).toBe(false);
+  });
+
+  it('should toggle smart transactions opt in when pressed', () => {
+    const { getByLabelText } = renderWithProvider(
+      <AdvancedSettings
+        navigation={{ navigate: mockNavigate, setOptions: jest.fn() }}
+      />,
+      {
+        state: initialState,
+      },
+    );
+
+    const switchElement = getByLabelText(
+      strings('app_settings.smart_transactions_opt_in_heading'),
+    );
+
+    // Expect toggle to work
+    expect(switchElement.props.value).toBe(false);
+    fireEvent(switchElement, 'onValueChange', true);
+    expect(switchElement.props.value).toBe(true);
+  });
 });
