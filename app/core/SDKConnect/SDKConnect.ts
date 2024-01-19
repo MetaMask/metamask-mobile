@@ -225,10 +225,6 @@ export class SDKConnect extends EventEmitter2 {
     return addAndroidConnection(connection, this);
   }
 
-  removeAndroidConnection(id: string) {
-    return removeChannel({ channelId: id, instance: this, emitRefresh: true });
-  }
-
   /**
    * Invalidate a channel/session by preventing future connection to be established.
    * Instead of removing the channel, it sets the session to timeout on next

@@ -19,6 +19,7 @@ import {
   CONTRACT_METHOD_DEPLOY,
   TOKEN_METHOD_TRANSFER_FROM,
   calculateEIP1559Times,
+  parseTransactionLegacy,
 } from '.';
 import { buildUnserializedTransaction } from './optimismTransaction';
 import Engine from '../../core/Engine';
@@ -97,6 +98,178 @@ describe('Transactions utils :: decodeTransferData', () => {
     expect(fromAddress).toEqual('0x56ced0d816c668d7c0bcc3fbf0ab2c6896f589c9');
     expect(toAddress).toEqual('0x56ced0d816c668d7c0bcc3fbf0ab2c6896f589b4');
     expect(tokenId).toEqual('1265');
+  });
+});
+
+describe('Transactions utils :: parseTransactionLegacy', () => {
+  const totalHexValueMocked = '02';
+  const commonParseTransactionParams = {
+    contractExchangeRates: {
+      '0x0': 0.005,
+      '0x01': 0.005,
+      '0x02': 0.005,
+    },
+    conversionRate: 1,
+    currentCurrency: 'USD',
+    selectedGasFee: 'average',
+    multiLayerL1FeeTotal: '0x0',
+    ticker: 'tBNB',
+  };
+
+  const createTransactionState = (selectedAsset: any, transaction: any) => ({
+    selectedAsset,
+    transaction: {
+      value: '0x2',
+      data: '0xa9059cbb00000000000000000000000056ced0d816c668d7c0bcc3fbf0ab2c6896f589a00000000000000000000000000000000000000000000000000000000000000002',
+      ...transaction,
+    },
+  });
+
+  const createExpectedResult = ({
+    totalHexValue,
+    transactionTotalAmount,
+    transactionTotalAmountFiat,
+    transactionFee,
+    onlyGas = false,
+  }: {
+    totalHexValue: string;
+    transactionTotalAmount?: string;
+    transactionTotalAmountFiat?: string;
+    transactionFee?: string;
+    ticker?: string;
+    onlyGas?: boolean;
+  }) => {
+    const expectedParsedTransactionLegacy = {
+      suggestedGasLimit: undefined,
+      suggestedGasPrice: undefined,
+      suggestedGasLimitHex: '0x0',
+      suggestedGasPriceHex: '0',
+      totalHex: new BN(totalHexValue),
+      transactionFee,
+      transactionFeeFiat: '$0',
+    };
+    if (onlyGas) {
+      return expectedParsedTransactionLegacy;
+    }
+    return {
+      ...expectedParsedTransactionLegacy,
+      transactionTotalAmount,
+      transactionTotalAmountFiat,
+    };
+  };
+  it('parse ETH legacy transaction', () => {
+    const selectedAsset = {
+      isETH: true,
+      address: '0x0',
+      symbol: 'ETH',
+      decimals: 8,
+    };
+
+    const transactionState = createTransactionState(selectedAsset, {});
+
+    const parsedTransactionLegacy = parseTransactionLegacy({
+      ...commonParseTransactionParams,
+      ticker: 'ETH',
+      transactionState,
+    });
+
+    const expectedResult = createExpectedResult({
+      totalHexValue: totalHexValueMocked,
+      transactionTotalAmount: '< 0.00001 ETH',
+      transactionTotalAmountFiat: '$0',
+      transactionFee: '0 ETH',
+    });
+
+    expect(parsedTransactionLegacy).toEqual(expectedResult);
+  });
+
+  it('parse non ETH legacy transaction with tokenId', () => {
+    const selectedAsset = {
+      isETH: false,
+      address: '0x0123',
+      symbol: 'BNB',
+      decimals: 18,
+      tokenId: 'mockedTokenId',
+    };
+
+    const transactionState = createTransactionState(selectedAsset, {});
+
+    const parsedTransactionLegacy = parseTransactionLegacy({
+      ...commonParseTransactionParams,
+      ticker: selectedAsset.symbol,
+      transactionState,
+    });
+
+    const expectedResult = createExpectedResult({
+      totalHexValue: totalHexValueMocked,
+      transactionTotalAmount: '0 BNB',
+      transactionTotalAmountFiat: '$0',
+      transactionFee: '0 BNB',
+    });
+
+    expect(parsedTransactionLegacy).toEqual(expectedResult);
+  });
+
+  it('parse non ETH legacy transaction', () => {
+    const transactionState = createTransactionState('tBNB', {});
+
+    const parsedTransactionLegacy = parseTransactionLegacy({
+      ...commonParseTransactionParams,
+      transactionState,
+    });
+
+    const expectedResult = createExpectedResult({
+      totalHexValue: totalHexValueMocked,
+      transactionTotalAmount: '0.2 ERC20 + 0 tBNB',
+      transactionTotalAmountFiat: '0 USD',
+      transactionFee: '0 tBNB',
+    });
+
+    expect(parsedTransactionLegacy).toEqual(expectedResult);
+  });
+
+  it('parse non ETH legacy transaction without data property', () => {
+    const transactionState = createTransactionState('tBNB', {
+      data: undefined,
+    });
+
+    const parsedTransactionLegacy = parseTransactionLegacy({
+      ...commonParseTransactionParams,
+      transactionState,
+    });
+
+    const expectedResult = createExpectedResult({
+      totalHexValue: totalHexValueMocked,
+      transactionTotalAmount: undefined,
+      transactionTotalAmountFiat: undefined,
+      transactionFee: '0 tBNB',
+    });
+
+    expect(parsedTransactionLegacy).toEqual(expectedResult);
+  });
+
+  it('parse legacy transaction only gas', () => {
+    const selectedAsset = 'BNB';
+    const transactionState = createTransactionState(selectedAsset, {});
+
+    const parsedTransactionLegacy = parseTransactionLegacy(
+      {
+        ...commonParseTransactionParams,
+        ticker: selectedAsset,
+        transactionState,
+      },
+      { onlyGas: true },
+    );
+
+    const expectedResult = createExpectedResult({
+      totalHexValue: totalHexValueMocked,
+      transactionTotalAmount: '0 BNB',
+      transactionTotalAmountFiat: '$0',
+      transactionFee: '0 BNB',
+      onlyGas: true,
+    });
+
+    expect(parsedTransactionLegacy).toEqual(expectedResult);
   });
 });
 
@@ -329,7 +502,7 @@ describe('Transactions utils :: generateTxWithNewTokenAllowance', () => {
     expect(expectedHexValue).toBe(decodedHexValue);
   });
 
-  it('should encode the maximun amount uint256 can store correctly and return a new transaction', () => {
+  it('should encode the maximum amount uint256 can store correctly and return a new transaction', () => {
     const newTx = generateTxWithNewTokenAllowance(
       UINT256_BN_MAX_VALUE,
       0,
