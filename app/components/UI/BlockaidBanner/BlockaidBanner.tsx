@@ -40,7 +40,7 @@ import {
   UTM_SOURCE,
 } from '../../../constants/urls';
 import { isMainnetByChainId } from '../../../util/networks';
-import { SUPPORTED_CHAIN_IDS } from '../../../util/networks';
+import { BLOCKAID_SUPPORTED_CHAIN_IDS } from '../../../util/networks';
 import { selectChainId } from '../../../selectors/networkController';
 import { selectIsSecurityAlertsEnabled } from '../../../selectors/preferencesController';
 import BlockaidVersionInfo from '../../../lib/ppom/blockaid-version';
@@ -149,7 +149,7 @@ const BlockaidBanner = (bannerProps: BlockaidBannerProps) => {
   if (
     !securityAlertResponse ||
     !isBlockaidFeatureEnabled() ||
-    !SUPPORTED_CHAIN_IDS.includes(networkChainId) ||
+    !BLOCKAID_SUPPORTED_CHAIN_IDS.includes(networkChainId) ||
     !isSecurityAlertsEnabled
   ) {
     return null;

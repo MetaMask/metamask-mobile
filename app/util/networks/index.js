@@ -110,7 +110,7 @@ const NetworkList = {
 
 const NetworkListKeys = Object.keys(NetworkList);
 
-export const SUPPORTED_CHAIN_IDS = [
+export const BLOCKAID_SUPPORTED_CHAIN_IDS = [
   NETWORKS_CHAIN_ID.MAINNET,
   NETWORKS_CHAIN_ID.BSC,
   NETWORKS_CHAIN_ID.POLYGON,
