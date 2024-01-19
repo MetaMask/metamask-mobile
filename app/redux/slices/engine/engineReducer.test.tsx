@@ -22,6 +22,7 @@ const backgroundState = {
   NetworkController: {},
   NftController: {},
   NftDetectionController: {},
+  PPOMController: {},
   PermissionController: {},
   PhishingController: {},
   PreferencesController: {},

@@ -70,6 +70,10 @@ const controllerNames = [
     name: 'LoggingController',
     initialState: {},
   },
+  {
+    name: 'PPOMController',
+    initialState: {},
+  },
 ];
 
 const controllerReducer =
