@@ -133,7 +133,7 @@ const CollectibleContracts = ({
    * @returns Boolean indicating if the collectible should be updated.
    */
   const shouldUpdateCollectibleMetadata = (collectible) =>
-    typeof collectible.tokenId === 'number';
+    typeof collectible.tokenId === 'number' || typeof collectible.tokenId === "string" && !isNaN(collectible.tokenId);
 
   /**
    * Method to updated collectible and avoid backwards compatibility issues.
@@ -144,7 +144,6 @@ const CollectibleContracts = ({
     async (collectible) => {
       const { NftController } = Engine.context;
       const { address, tokenId } = collectible;
-      NftController.removeNft(address, tokenId);
       if (String(tokenId).includes('e+')) {
         removeFavoriteCollectible(selectedAddress, chainId, collectible);
       } else {
