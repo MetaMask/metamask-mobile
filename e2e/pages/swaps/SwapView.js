@@ -24,6 +24,7 @@ export default class SwapView {
       'fast',
       percentage,
     );
+    await TestHelpers.delay(2000);
   }
 
   static async waitForSwapToComplete(sourceTokenSymbol, destTokenSymbol) {
