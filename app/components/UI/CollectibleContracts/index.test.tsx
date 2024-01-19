@@ -22,6 +22,14 @@ jest.mock('@react-navigation/native', () => {
   };
 });
 
+jest.mock('../../../core/Engine', () => ({
+  context: {
+    NftController: {
+      addNft: jest.fn(),
+    },
+  },
+}));
+
 const mockStore = configureMockStore();
 const initialState = {
   collectibles: {
