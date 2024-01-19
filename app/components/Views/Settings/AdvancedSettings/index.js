@@ -558,6 +558,9 @@ class AdvancedSettings extends PureComponent {
                     thumbColor={importedColors.white}
                     style={styles.switch}
                     ios_backgroundColor={colors.border.muted}
+                    accessibilityLabel={strings(
+                      'app_settings.smart_transactions_opt_in_heading',
+                    )}
                   />
                 </View>
               </View>
