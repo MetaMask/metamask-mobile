@@ -172,7 +172,7 @@ import { SwapsState } from '@metamask/swaps-controller/dist/SwapsController';
 import { ethErrors } from 'eth-rpc-errors';
 
 import { PPOM, ppomInit } from '../lib/ppom/PPOMView';
-import RNFSStorageBackend from '../lib/ppom/rnfs-storage-backend';
+import RNFSStorageBackend from '../lib/ppom/ppom-storage-backend';
 import { isHardwareAccount } from '../util/address';
 import { ledgerSignTypedMessage } from './Ledger/Ledger';
 import ExtendedKeyringTypes from '../constants/keyringTypes';
