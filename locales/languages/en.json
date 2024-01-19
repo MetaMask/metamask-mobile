@@ -889,7 +889,9 @@
     "network_provider": "Network provider",
     "token_nft_ens_subheading": "Token, NFT, and ENS autodetection",
     "security_check_subheading": "Security checks",
-    "symbol_required": "Symbol is required."
+    "symbol_required": "Symbol is required.",
+    "smart_transactions_opt_in_heading": "Smart Transactions",
+    "smart_transactions_opt_in_desc": "something about smart txs"
   },
   "sdk": {
     "disconnect_title": "Disconnect all sites?",
