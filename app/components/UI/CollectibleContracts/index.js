@@ -133,7 +133,8 @@ const CollectibleContracts = ({
    * @returns Boolean indicating if the collectible should be updated.
    */
   const shouldUpdateCollectibleMetadata = (collectible) =>
-    typeof collectible.tokenId === 'number' || typeof collectible.tokenId === "string" && !isNaN(collectible.tokenId);
+    typeof collectible.tokenId === 'number' ||
+    (typeof collectible.tokenId === 'string' && !isNaN(collectible.tokenId));
 
   /**
    * Method to updated collectible and avoid backwards compatibility issues.
