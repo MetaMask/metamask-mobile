@@ -545,7 +545,7 @@ class AdvancedSettings extends PureComponent {
             <View style={styles.setting}>
               <View style={styles.titleContainer}>
                 <Text variant={TextVariant.BodyLGMedium} style={styles.title}>
-                  Smart Transactions
+                  {strings('app_settings.smart_transactions_opt_in_heading')}
                 </Text>
                 <View style={styles.toggle}>
                   <Switch
@@ -566,7 +566,7 @@ class AdvancedSettings extends PureComponent {
                 color={TextColor.Alternative}
                 style={styles.desc}
               >
-                Something about smart tx
+                {strings('app_settings.smart_transactions_opt_in_desc')}
               </Text>
             </View>
           </View>
