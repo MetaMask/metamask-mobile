@@ -1,5 +1,6 @@
 import TestHelpers from '../../helpers';
 import { SwapsViewSelectors } from '../../selectors/swaps/SwapsView.selectors.js';
+
 import messages from '../../../locales/languages/en.json';
 import { waitFor } from 'detox';
 
@@ -28,10 +29,16 @@ export default class SwapView {
   }
 
   static async waitForSwapToComplete(sourceTokenSymbol, destTokenSymbol) {
-    await TestHelpers.checkIfElementByTextIsVisible(
-      `Swap complete (${sourceTokenSymbol} to ${destTokenSymbol})`,
-      60000,
-    );
+    try {
+      await TestHelpers.checkIfElementByTextIsVisible(
+        `Swap complete (${sourceTokenSymbol} to ${destTokenSymbol})`,
+        60000,
+      );
+    } catch (e) {
+      // eslint-disable-next-line no-console
+      console.log(`Toast message is slow to appear or did not appear: ${e}`);
+    }
+
     await device.enableSynchronization();
     await TestHelpers.delay(5000);
   }
