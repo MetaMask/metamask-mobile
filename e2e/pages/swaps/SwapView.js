@@ -1,6 +1,5 @@
 import TestHelpers from '../../helpers';
 import { SwapsViewSelectors } from '../../selectors/swaps/SwapsView.selectors.js';
-import { CommonSelectorsIDs } from '../../selectors/Common.selectors.js';
 
 import messages from '../../../locales/languages/en.json';
 import { waitFor } from 'detox';
