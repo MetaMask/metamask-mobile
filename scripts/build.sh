@@ -168,6 +168,8 @@ prebuild_android(){
 	yes | cp -rf app/core/InpageBridgeWeb3.js android/app/src/main/assets/.
 	# Copy fonts with iconset
 	yes | cp -rf ./app/fonts/Metamask.ttf ./android/app/src/main/assets/fonts/Metamask.ttf
+# Copy snaps execution environment for local access
+	yes | cp -rf ./app/lib/snaps/html ./android/app/src/main/assets/.
 
 	if [ "$PRE_RELEASE" = false ] ; then
 		if [ -e $ANDROID_ENV_FILE ]
@@ -403,7 +405,7 @@ buildAndroidRelease(){
 buildAndroidFlaskRelease(){
 	# remap flask env variables to match what the app expects
 	remapFlaskEnvVariables
-	
+
 	if [ "$PRE_RELEASE" = false ] ; then
 		adb uninstall io.metamask.flask || true
 	fi
