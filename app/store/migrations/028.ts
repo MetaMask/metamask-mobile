@@ -5,6 +5,7 @@ import { regex } from '../../../app/util/regex';
 import { isHexString } from 'ethereumjs-util';
 import { NetworkConfiguration } from '@metamask/network-controller';
 import { Transaction } from '@metamask/transaction-controller';
+import { captureException } from '@sentry/react-native';
 
 /**
  * Converting chain id on decimal format to hexadecimal format
@@ -31,6 +32,14 @@ export default function migrate(state: any) {
 
     state.engine.backgroundState.NetworkController.providerConfig.chainId =
       toHex(networkControllerChainId);
+  } else {
+    captureException(
+      new Error(
+        `Migration 28: Invalid NetworkController providerConfig chainId: '${JSON.stringify(
+          state.engine.backgroundState.NetworkController,
+        )}'`,
+      ),
+    );
   }
   // Changing rcpTarget property for the new rpcUrl
   if (
@@ -44,6 +53,14 @@ export default function migrate(state: any) {
 
     delete state.engine.backgroundState.NetworkController.providerConfig
       .rpcTarget;
+  } else {
+    captureException(
+      new Error(
+        `Migration 28: Invalid NetworkController providerConfig rpcTarget: '${JSON.stringify(
+          state.engine.backgroundState.NetworkController,
+        )}'`,
+      ),
+    );
   }
   // Validating if the networks were already onboarded
   if (state?.networkOnboarded?.networkOnboardedState) {
@@ -57,6 +74,14 @@ export default function migrate(state: any) {
       newNetworkOnboardedState[hexChainId] = networkOnboardedState[chainId];
     }
     state.networkOnboarded.networkOnboardedState = newNetworkOnboardedState;
+  } else {
+    captureException(
+      new Error(
+        `Migration 28: Invalid networkOnboarded: '${JSON.stringify(
+          state.networkOnboarded,
+        )}'`,
+      ),
+    );
   }
 
   // Addressing networkDetails property change
@@ -81,6 +106,14 @@ export default function migrate(state: any) {
 
     delete state.engine.backgroundState.NetworkController.networkDetails
       .isEIP1559Compatible;
+  } else {
+    captureException(
+      new Error(
+        `Migration 28: Invalid NetworkController networkDetails: '${JSON.stringify(
+          state.engine.backgroundState.NetworkController,
+        )}'`,
+      ),
+    );
   }
   // Addressing networkConfigurations chainId property change to hexadecimal
   if (
@@ -92,6 +125,14 @@ export default function migrate(state: any) {
       const newHexChainId = toHex(networkConfiguration.chainId);
       networkConfiguration.chainId = newHexChainId;
     });
+  } else {
+    captureException(
+      new Error(
+        `Migration 28: Invalid NetworkController networkConfigurations: '${JSON.stringify(
+          state.engine.backgroundState.NetworkController,
+        )}'`,
+      ),
+    );
   }
 
   // Swaps on the state initial state key chain id changed for hexadecimal
@@ -107,6 +148,12 @@ export default function migrate(state: any) {
         delete state.swaps[key];
       }
     });
+  } else {
+    captureException(
+      new Error(
+        `Migration 28: Invalid swaps: '${JSON.stringify(state.swaps)}'`,
+      ),
+    );
   }
 
   // Address book controller chain id identifier changed for hexadecimal
@@ -140,6 +187,14 @@ export default function migrate(state: any) {
         ];
       }
     });
+  } else {
+    captureException(
+      new Error(
+        `Migration 28: Invalid AddressBookController addressBook: '${JSON.stringify(
+          state.engine.backgroundState.AddressBookController,
+        )}'`,
+      ),
+    );
   }
   // Swaps controller chain cache property now is on hexadecimal format
   if (state?.engine?.backgroundState?.SwapsController?.chainCache) {
@@ -153,6 +208,14 @@ export default function migrate(state: any) {
         delete state.engine.backgroundState.SwapsController.chainCache[chainId];
       }
     });
+  } else {
+    captureException(
+      new Error(
+        `Migration 28: Invalid SwapsController chainCache: '${JSON.stringify(
+          state.engine.backgroundState.SwapsController,
+        )}'`,
+      ),
+    );
   }
   // NftController allNfts, allNftsContracts chain Id now is on hexadecimal format
   if (state?.engine?.backgroundState?.NftController?.allNftContracts) {
@@ -177,6 +240,14 @@ export default function migrate(state: any) {
         }
       });
     });
+  } else {
+    captureException(
+      new Error(
+        `Migration 28: Invalid NftController allNftContracts: '${JSON.stringify(
+          state.engine.backgroundState.NftController,
+        )}'`,
+      ),
+    );
   }
   if (state?.engine?.backgroundState?.NftController?.allNfts) {
     const allNfts = state.engine.backgroundState.NftController.allNfts;
@@ -199,6 +270,14 @@ export default function migrate(state: any) {
         });
       },
     );
+  } else {
+    captureException(
+      new Error(
+        `Migration 28: Invalid NftController allNfts: '${JSON.stringify(
+          state.engine.backgroundState.NftController,
+        )}'`,
+      ),
+    );
   }
 
   // Transaction Controller transactions object chain id property to hexadecimal
@@ -211,6 +290,14 @@ export default function migrate(state: any) {
           ].chainId = toHex(transaction.chainId as string);
         }
       },
+    );
+  } else {
+    captureException(
+      new Error(
+        `Migration 28: Invalid TransactionController transactions: '${JSON.stringify(
+          state.engine.backgroundState.TransactionController,
+        )}'`,
+      ),
     );
   }
   return state;
