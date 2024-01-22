@@ -392,18 +392,6 @@ class NetworkSettings extends PureComponent {
   }
 
   /**
-   * Return the decimal chainId string as number
-   *
-   * @param {string} chainId - The chainId decimal as string to convert.
-   * @returns {number} The chainId decimal as number
-   */
-  getDecimalChainIdNumber(chainId) {
-    const decimalChainIdString = this.getDecimalChainId(chainId);
-    const decimalChainIdNumber = parseInt(decimalChainIdString, 10);
-    return decimalChainIdNumber;
-  }
-
-  /**
    * Validates the chain ID by checking it against the `eth_chainId` return
    * value from the given RPC URL.
    * Assumes that all strings are non-empty and correctly formatted.
