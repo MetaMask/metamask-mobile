@@ -79,7 +79,7 @@ import {
 } from '../../../../../selectors/networkController';
 import { regex } from '../../../../../../app/util/regex';
 import { NetworksViewSelectorsIDs } from '../../../../../../e2e/selectors/Settings/NetworksView.selectors';
-import { isSafeChainId } from '@metamask/controller-utils';
+import { isSafeChainId, toHex } from '@metamask/controller-utils';
 
 const createStyles = (colors) =>
   StyleSheet.create({
@@ -670,7 +670,7 @@ class NetworkSettings extends PureComponent {
     }
 
     // Check if it's a valid chainId number
-    if (!isSafeChainId(this.getDecimalChainIdNumber(chainId))) {
+    if (!isSafeChainId(toHex(chainId))) {
       return this.setState({
         warningChainId: strings('app_settings.invalid_number_range', {
           maxSafeChainId: AppConstants.MAX_SAFE_CHAIN_ID,
@@ -726,6 +726,15 @@ class NetworkSettings extends PureComponent {
     const { chainId, validatedChainId, warningChainId } = this.state;
     if (!chainId) return true;
     return validatedChainId && !!warningChainId;
+  };
+
+  /**
+   * Returns if action button should be disabled because of the symbol field
+   * Symbol field represents the ticker and needs to be set
+   */
+  disabledBySymbol = () => {
+    const { ticker } = this.state;
+    if (!ticker) return true;
   };
 
   onRpcUrlChange = async (url) => {
@@ -848,7 +857,10 @@ class NetworkSettings extends PureComponent {
     ];
     const isRPCEditable = isCustomMainnet || editable;
     const isActionDisabled =
-      !enableAction || this.disabledByRpcUrl() || this.disabledByChainId();
+      !enableAction ||
+      this.disabledByRpcUrl() ||
+      this.disabledByChainId() ||
+      this.disabledBySymbol();
     const rpcActionStyle = isActionDisabled
       ? { ...styles.button, ...styles.disabledButton }
       : styles.button;
@@ -945,7 +957,7 @@ class NetworkSettings extends PureComponent {
               value={ticker}
               editable={editable}
               onChangeText={this.onTickerChange}
-              placeholder={strings('app_settings.network_symbol_placeholder')}
+              placeholder={strings('app_settings.network_symbol_label')}
               placeholderTextColor={colors.text.muted}
               onSubmitEditing={this.jumpBlockExplorerURL}
               {...generateTestId(Platform, NETWORKS_SYMBOL_INPUT_FIELD)}
