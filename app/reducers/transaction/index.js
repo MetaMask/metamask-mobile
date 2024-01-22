@@ -5,7 +5,9 @@ const initialState = {
   ensRecipient: undefined,
   assetType: undefined,
   selectedAsset: {},
+  chainId: undefined,
   txParams: {
+    chainId: undefined,
     data: undefined,
     from: undefined,
     gas: undefined,

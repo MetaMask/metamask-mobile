@@ -428,6 +428,7 @@ class ApproveTransactionReview extends PureComponent {
     setTransactionObject({
       txParams: {
         ...txParams,
+        chainId,
         data: approvalData,
       },
     });
@@ -476,7 +477,7 @@ class ApproveTransactionReview extends PureComponent {
   };
 
   componentDidUpdate = (_, prevState) => {
-    const { transaction, setTransactionObject } = this.props;
+    const { transaction, setTransactionObject, chainId } = this.props;
     const {
       tokenSpendValue,
       spenderAddress,
@@ -495,6 +496,7 @@ class ApproveTransactionReview extends PureComponent {
         ...newApprovalTransaction,
         txParams: {
           ...newApprovalTransaction.txParams,
+          chainId,
           data: newApprovalTransaction.data,
         },
       });
@@ -1056,7 +1058,7 @@ class ApproveTransactionReview extends PureComponent {
       networkConfigurations,
     } = this.props;
     const {
-      txParams: { to },
+      transaction: { to },
       showBlockExplorerModal,
       spenderAddress,
       token: { tokenSymbol },

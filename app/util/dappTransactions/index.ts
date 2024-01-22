@@ -21,6 +21,7 @@ interface SelectedAsset {
 
 interface Transaction {
   assetType: string;
+  chainId: string | undefined;
   data: string;
   ensRecipient: string | undefined;
   from: string;
@@ -36,6 +37,7 @@ interface Transaction {
   symbol: string;
   to: string;
   txParams: {
+    chainId: string | undefined;
     data: string;
     from: string;
     gas: string;

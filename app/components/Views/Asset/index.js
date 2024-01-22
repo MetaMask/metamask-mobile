@@ -375,7 +375,7 @@ class Asset extends PureComponent {
         return filterResult;
       });
 
-      submittedTxs = submittedTxs.filter(({ transaction: { from, nonce } }) => {
+      submittedTxs = submittedTxs.filter(({ txParams: { from, nonce } }) => {
         if (!toLowerCaseEquals(from, selectedAddress)) {
           return false;
         }

@@ -109,8 +109,8 @@ const TransactionsView = ({
         return filter;
       });
 
-      const submittedTxsFiltered = submittedTxs.filter(({ transaction }) => {
-        const { from, nonce } = transaction;
+      const submittedTxsFiltered = submittedTxs.filter(({ txParams }) => {
+        const { from, nonce } = txParams;
         if (!toLowerCaseEquals(from, selectedAddress)) {
           return false;
         }

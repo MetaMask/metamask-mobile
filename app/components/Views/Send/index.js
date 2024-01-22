@@ -564,7 +564,7 @@ class Send extends PureComponent {
       let checksummedAddress = null;
 
       if (assetType === 'ETH') {
-        checksummedAddress = toChecksumAddress(transactionMeta.transaction.to);
+        checksummedAddress = toChecksumAddress(transactionMeta.txParams.to);
       } else if (assetType === 'ERC20') {
         try {
           const [addressTo] = decodeTransferData(

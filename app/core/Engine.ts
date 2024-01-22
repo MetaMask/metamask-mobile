@@ -595,6 +595,7 @@ class Engine {
           chainId: networkController.state.providerConfig.chainId,
         },
       ),
+      permissionController,
       new TransactionController({
         blockTracker:
           networkController.getProviderAndBlockTracker().blockTracker,
@@ -606,16 +607,16 @@ class Engine {
         getNetworkState: () => networkController.state,
         getSelectedAddress: () => preferencesController.state.selectedAddress,
         incomingTransactions: {
+          apiKey: process.env.MM_ETHERSCAN_KEY,
           isEnabled: () =>
             Boolean(store.getState()?.privacy?.thirdPartyApiMode),
-          queryEntireHistory: true,
           updateTransactions: true,
         },
         messenger: this.controllerMessenger.getRestricted({
           name: 'TransactionController',
           allowedActions: [`${approvalController.name}:addRequest`],
         }),
-        onNetworkStateChange: (listener) =>
+        onNetworkStateChange: (listener: any) =>
           this.controllerMessenger.subscribe(
             AppConstants.NETWORK_STATE_CHANGE_EVENT,
             listener,
@@ -658,7 +659,6 @@ class Engine {
       ),
       gasFeeController,
       approvalController,
-      permissionController,
       new SignatureController({
         // @ts-expect-error Error might be caused by base controller version mismatch
         messenger: this.controllerMessenger.getRestricted({
