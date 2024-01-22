@@ -239,13 +239,13 @@ const PriceChart = ({
           <SvgLine
             y1={1}
             y2={CHART_HEIGHT}
-            stroke={'#848C96'}
+            stroke={styles.tooltipLine.color}
             strokeWidth={1}
           />
           <Circle
             cy={y?.(priceList[positionX])}
             r={apx(20 / 2)}
-            stroke="#fff"
+            stroke={styles.tooltipLine.color}
             strokeWidth={apx(1)}
             fill={chartColor}
           />

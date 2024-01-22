@@ -164,7 +164,6 @@ Array [
         </Text>
         <RCTSwitch
           accessibilityRole="switch"
-          disabled={false}
           onChange={[Function]}
           onResponderTerminationRequest={[Function]}
           onStartShouldSetResponder={[Function]}
@@ -394,7 +393,6 @@ Array [
         </Text>
         <RCTSwitch
           accessibilityRole="switch"
-          disabled={false}
           onChange={[Function]}
           onResponderTerminationRequest={[Function]}
           onStartShouldSetResponder={[Function]}
