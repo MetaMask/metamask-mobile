@@ -3,7 +3,10 @@ process.env.MM_BLOCKAID_UI_ENABLED = 'true';
 
 const config = {
   preset: 'react-native',
-  setupFilesAfterEnv: ['<rootDir>/app/util/test/testSetup.js'],
+  setupFilesAfterEnv: [
+    '<rootDir>/app/util/test/testSetup.js',
+    './jestSetup.js',
+  ],
   testEnvironment: 'jest-environment-node',
   transformIgnorePatterns: [
     'node_modules/(?!((@metamask/)?(@react-native|react-native|rn-fetch|redux-persist-filesystem|@react-navigation|@react-native-community|@react-native-masked-view|react-navigation|react-navigation-redux-helpers|@sentry|d3-color)))',
