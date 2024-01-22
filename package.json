@@ -162,7 +162,6 @@
     "browserify-sign": "4.2.2",
     "@metamask/preferences-controller": "^4.0.0",
     "axios": "1.6.0",
-    "@metamask/assets-controllers/babel-runtime/regenerator-runtime": "^0.13.8",
     "follow-redirects": "1.15.4"
   },
   "dependencies": {
@@ -177,7 +176,7 @@
     "@keystonehq/ur-decoder": "^0.6.1",
     "@metamask/address-book-controller": "^2.0.0",
     "@metamask/approval-controller": "^3.4.0",
-    "@metamask/assets-controllers": "^7.0.0",
+    "@metamask/assets-controllers": "^11.0.0",
     "@metamask/base-controller": "^3.0.0",
     "@metamask/composable-controller": "^3.0.0",
     "@metamask/contract-metadata": "^2.1.0",
