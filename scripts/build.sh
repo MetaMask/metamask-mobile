@@ -132,12 +132,7 @@ remapFlaskEnvVariables() {
 	remapEnvVariable "MM_FLASK_MIXPANEL_TOKEN" "MM_MIXPANEL_TOKEN"
 }
 
-
-
-prebuild(){
-	# Import provider
-	yarn --ignore-engines build:static-logos
-
+loadJSEnv(){
 	# Load JS specific env variables
 	if [ "$PRE_RELEASE" = false ] ; then
 		if [ -e $JS_ENV_FILE ]
@@ -145,10 +140,18 @@ prebuild(){
 			source $JS_ENV_FILE
 		fi
 	fi
+}
+
+
+prebuild(){
+	# Import provider
+	yarn --ignore-engines build:static-logos
+
   WATCHER_PORT=${WATCHER_PORT:-8081}
 }
 
 prebuild_ios(){
+	prebuild
 	# Generate xcconfig files for CircleCI
 	if [ "$PRE_RELEASE" = true ] ; then
 		echo "" > ios/debug.xcconfig
@@ -162,6 +165,7 @@ prebuild_ios(){
 prebuild_android(){
 	adb kill-server
 	adb start-server
+	prebuild
 	# Copy JS files for injection
 	yes | cp -rf app/core/InpageBridgeWeb3.js android/app/src/main/assets/.
 	# Copy fonts with iconset
@@ -539,8 +543,9 @@ checkAuthToken() {
 
 checkParameters "$@"
 
+
 printTitle
-prebuild
+loadJSEnv
 if [ "$MODE" == "releaseE2E" ] || [ "$MODE" == "QA" ] || [ "$MODE" == "QAE2E" ]; then
 	echo "DEBUG SENTRY PROPS"
 	checkAuthToken 'sentry.debug.properties'
