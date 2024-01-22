@@ -199,10 +199,10 @@ export default class TestHelpers {
       .withTimeout(10000);
   }
 
-  static async checkIfElementByTextIsVisible(text) {
+  static async checkIfElementByTextIsVisible(text, timeout = 25000) {
     return await waitFor(element(by.text(text)))
       .toBeVisible()
-      .withTimeout(25000);
+      .withTimeout(timeout);
   }
 
   static async checkIfElementHasString(elementID, text) {

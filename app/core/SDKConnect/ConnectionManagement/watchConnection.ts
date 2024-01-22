@@ -11,8 +11,17 @@ function watchConnection(connection: Connection, instance: SDKConnect) {
     EventType.CONNECTION_STATUS,
     (connectionStatus: ConnectionStatus) => {
       if (connectionStatus === ConnectionStatus.TERMINATED) {
-        instance.removeChannel(connection.channelId);
+        instance.removeChannel({
+          channelId: connection.channelId,
+          emitRefresh: true,
+          sendTerminate: false,
+        });
       }
+      DevLogger.log(
+        `SDKConnect::watchConnection CONNECTION_STATUS ${connection.channelId} ${connectionStatus}`,
+      );
+      // Inform ui about connection status change
+      instance.emit('refresh');
     },
   );
 
@@ -36,7 +45,10 @@ function watchConnection(connection: Connection, instance: SDKConnect) {
           );
         });
       // Force terminate connection since it was disabled (do not remember)
-      instance.removeChannel(connection.channelId, true);
+      instance.removeChannel({
+        channelId: connection.channelId,
+        sendTerminate: true,
+      });
     }
   });
 

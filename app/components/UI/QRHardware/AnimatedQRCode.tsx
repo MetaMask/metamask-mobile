@@ -10,7 +10,8 @@ interface IAnimatedQRCodeProps {
   shouldPause: boolean;
 }
 
-const MAX_FRAGMENT_LENGTH = 400;
+// For NGRAVE ZERO support please keep to a maximum fragment size of 200
+const MAX_FRAGMENT_LENGTH = 200;
 const QR_CODE_SIZE = 250;
 
 const styles = StyleSheet.create({

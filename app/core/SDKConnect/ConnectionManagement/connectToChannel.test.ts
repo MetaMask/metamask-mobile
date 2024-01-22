@@ -181,7 +181,7 @@ describe('connectToChannel', () => {
             channelId: string;
             sendTerminate?: boolean;
           }) => {
-            mockInstance.removeChannel(channelId, sendTerminate);
+            mockInstance.removeChannel({ channelId, sendTerminate });
           },
         }),
       );

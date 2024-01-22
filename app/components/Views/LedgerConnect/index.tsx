@@ -19,7 +19,7 @@ import {
   useAssetFromTheme,
 } from '../../../util/theme';
 import Device from '../../../util/device';
-import { colors as importedColors, fontStyles } from '../../../styles/common';
+import { fontStyles } from '../../../styles/common';
 import Scan from './Scan';
 import useLedgerBluetooth, {
   LedgerCommunicationErrors,
@@ -39,12 +39,12 @@ import ledgerDeviceLightImage from '../../../images/ledger-device-light.png';
 import ledgerConnectLightImage from '../../../images/ledger-connect-light.png';
 import ledgerConnectDarkImage from '../../../images/ledger-connect-dark.png';
 
-const createStyles = (colors: any) =>
+const createStyles = (theme: any) =>
   StyleSheet.create({
     container: {
       position: 'relative',
       flex: 1,
-      backgroundColor: colors.background.default,
+      backgroundColor: theme.colors.background.default,
       alignItems: 'center',
     },
     connectLedgerWrapper: {
@@ -105,13 +105,16 @@ const createStyles = (colors: any) =>
     openEthAppMessage: {
       marginTop: Device.getDeviceHeight() * 0.025,
     },
+    loader: {
+      color: theme.brandColors.white['000'],
+    },
   });
 
 const LedgerConnect = () => {
   const { AccountTrackerController } = Engine.context as any;
-  const { colors } = useAppThemeFromContext() ?? mockTheme;
+  const theme = useAppThemeFromContext() ?? mockTheme;
   const navigation = useNavigation();
-  const styles = useMemo(() => createStyles(colors), [colors]);
+  const styles = useMemo(() => createStyles(theme), [theme]);
   const [selectedDevice, setSelectedDevice] = useState<any>(null);
   const [errorDetail, setErrorDetails] = useState<LedgerConnectionErrorProps>();
   const [loading, setLoading] = useState(false);
@@ -120,9 +123,9 @@ const LedgerConnect = () => {
 
   useEffect(() => {
     navigation.setOptions(
-      getNavigationOptionsTitle('', navigation, true, colors),
+      getNavigationOptionsTitle('', navigation, true, theme.colors),
     );
-  }, [navigation, colors]);
+  }, [navigation, theme.colors]);
 
   const {
     isSendingLedgerCommands,
@@ -322,7 +325,7 @@ const LedgerConnect = () => {
                 disabled={isSendingLedgerCommands}
               >
                 {loading || isSendingLedgerCommands ? (
-                  <ActivityIndicator color={importedColors.white} />
+                  <ActivityIndicator color={styles.loader.color} />
                 ) : ledgerError ? (
                   strings('ledger.retry')
                 ) : (

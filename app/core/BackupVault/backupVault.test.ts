@@ -17,7 +17,6 @@ describe('backupVault', () => {
       vault: undefined,
       keyrings: [],
       isUnlocked: false,
-      keyringTypes: [],
     };
     const response = await backupVault(keyringState);
     expect(response.success).toBe(false);
