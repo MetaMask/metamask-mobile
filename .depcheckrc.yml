@@ -36,7 +36,6 @@ ignores:
   - 'fbjs-scripts'
   - 'improved-yarn-audit'
   - 'jetifier'
-  - 'metro'
   - 'metro-react-native-babel-preset'
   - 'octonode'
   - 'prettier-plugin-gherkin'
