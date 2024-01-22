@@ -1,5 +1,5 @@
 /* eslint-disable dot-notation */
-import { deriveSentryEnvironment } from './utils';
+import { deriveSentryEnvironment, excludeEvents } from './utils';
 
 describe('deriveSentryEnvironment', () => {
   test('returns production-flask for non-dev production environment and flask build type', async () => {
@@ -77,5 +77,22 @@ describe('deriveSentryEnvironment', () => {
       METAMASK_BUILD_TYPE,
     );
     expect(env).toBe('development');
+  });
+
+  test('return performance event Route Change', async () => {
+    const event = { transaction: 'Route Change' };
+    const eventExcluded = excludeEvents(event);
+    expect(eventExcluded).toBe(null);
+  });
+
+  test('return performance event anything', async () => {
+    const event = { transaction: 'Login' };
+    const eventExcluded = excludeEvents(event);
+    expect(eventExcluded).toBe(event);
+  });
+
+  test('return performance event null if empty', async () => {
+    const eventExcluded = excludeEvents(null);
+    expect(eventExcluded).toBe(null);
   });
 });
