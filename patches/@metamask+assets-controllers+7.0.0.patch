@@ -78,18 +78,20 @@ index 130e3dc..137f2f7 100644
       * Sync accounts balances with some additional addresses.
       *
 diff --git a/node_modules/@metamask/assets-controllers/dist/AssetsContractController.js b/node_modules/@metamask/assets-controllers/dist/AssetsContractController.js
-index 332c87d..b634fde 100644
+index 332c87d..b97452c 100644
 --- a/node_modules/@metamask/assets-controllers/dist/AssetsContractController.js
 +++ b/node_modules/@metamask/assets-controllers/dist/AssetsContractController.js
-@@ -33,6 +33,7 @@ exports.SINGLE_CALL_BALANCES_ADDRESS_BY_CHAINID = {
+@@ -33,6 +33,9 @@ exports.SINGLE_CALL_BALANCES_ADDRESS_BY_CHAINID = {
      [assetsUtil_1.SupportedTokenDetectionNetworks.bsc]: '0x2352c63A83f9Fd126af8676146721Fa00924d7e4',
      [assetsUtil_1.SupportedTokenDetectionNetworks.polygon]: '0x2352c63A83f9Fd126af8676146721Fa00924d7e4',
      [assetsUtil_1.SupportedTokenDetectionNetworks.avax]: '0xD023D153a0DFa485130ECFdE2FAA7e612EF94818',
 +    [assetsUtil_1.SupportedTokenDetectionNetworks.aurora]: '0x1286415D333855237f89Df27D388127181448538',
++    [assetsUtil_1.SupportedTokenDetectionNetworks.linea_goerli]: '0x10dAd7Ca3921471f616db788D9300DC97Db01783',
++    [assetsUtil_1.SupportedTokenDetectionNetworks.linea_mainnet]: '0xF62e6a41561b3650a69Bb03199C735e3E3328c0D',
  };
  exports.MISSING_PROVIDER_ERROR = 'AssetsContractController failed to set the provider correctly. A provider must be set for this method to be available';
  /**
-@@ -116,6 +117,20 @@ class AssetsContractController extends base_controller_1.BaseController {
+@@ -116,6 +119,20 @@ class AssetsContractController extends base_controller_1.BaseController {
              return yield this.erc20Standard.getTokenDecimals(address);
          });
      }
@@ -1669,32 +1671,36 @@ index 0e03b88..bd7ddbd 100644
  exports.TokensController = TokensController;
  exports.default = TokensController;
 diff --git a/node_modules/@metamask/assets-controllers/dist/assetsUtil.d.ts b/node_modules/@metamask/assets-controllers/dist/assetsUtil.d.ts
-index 1b69903..d45fe80 100644
+index 1b69903..64004e4 100644
 --- a/node_modules/@metamask/assets-controllers/dist/assetsUtil.d.ts
 +++ b/node_modules/@metamask/assets-controllers/dist/assetsUtil.d.ts
-@@ -45,7 +45,8 @@ export declare enum SupportedTokenDetectionNetworks {
+@@ -45,7 +45,10 @@ export declare enum SupportedTokenDetectionNetworks {
      mainnet = "1",
      bsc = "56",
      polygon = "137",
 -    avax = "43114"
 +    avax = "43114",
-+    aurora = "1313161554"
++    aurora = "1313161554",
++    linea_goerli = "59140",
++    linea_mainnet = "59144"
  }
  /**
   * Check if token detection is enabled for certain networks.
 diff --git a/node_modules/@metamask/assets-controllers/dist/assetsUtil.js b/node_modules/@metamask/assets-controllers/dist/assetsUtil.js
-index 4b54e82..ecd2fdf 100644
+index 4b54e82..1e6fa28 100644
 --- a/node_modules/@metamask/assets-controllers/dist/assetsUtil.js
 +++ b/node_modules/@metamask/assets-controllers/dist/assetsUtil.js
-@@ -120,6 +120,7 @@ var SupportedTokenDetectionNetworks;
+@@ -120,6 +120,9 @@ var SupportedTokenDetectionNetworks;
      SupportedTokenDetectionNetworks["bsc"] = "56";
      SupportedTokenDetectionNetworks["polygon"] = "137";
      SupportedTokenDetectionNetworks["avax"] = "43114";
 +    SupportedTokenDetectionNetworks["aurora"] = "1313161554";
++    SupportedTokenDetectionNetworks["linea_goerli"] = "59140";
++    SupportedTokenDetectionNetworks["linea_mainnet"] = "59144";
  })(SupportedTokenDetectionNetworks = exports.SupportedTokenDetectionNetworks || (exports.SupportedTokenDetectionNetworks = {}));
  /**
   * Check if token detection is enabled for certain networks.
-@@ -225,4 +226,128 @@ function ethersBigNumberToBN(bigNumber) {
+@@ -225,4 +228,128 @@ function ethersBigNumberToBN(bigNumber) {
      return new ethereumjs_util_1.BN((0, ethereumjs_util_1.stripHexPrefix)(bigNumber.toHexString()), 'hex');
  }
  exports.ethersBigNumberToBN = ethersBigNumberToBN;
@@ -2048,10 +2054,10 @@ index 0000000..c8c9c66
 \ No newline at end of file
 diff --git a/node_modules/@metamask/assets-controllers/dist/token-prices-service/codefi-v2.js b/node_modules/@metamask/assets-controllers/dist/token-prices-service/codefi-v2.js
 new file mode 100644
-index 0000000..0bbe39a
+index 0000000..a751d3a
 --- /dev/null
 +++ b/node_modules/@metamask/assets-controllers/dist/token-prices-service/codefi-v2.js
-@@ -0,0 +1,325 @@
+@@ -0,0 +1,327 @@
 +"use strict";
 +var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, generator) {
 +    function adopt(value) { return value instanceof P ? value : new P(function (resolve) { resolve(value); }); }
@@ -2277,6 +2283,8 @@ index 0000000..0bbe39a
 +    '1313161554',
 +    // Harmony Mainnet Shard 0
 +    '1666600000',
++    // Linea Mainnet
++    '59144',
 +];
 +/**
 + * All requests to V2 of the Price API start with this.

@@ -651,7 +651,7 @@ class NetworkSettings extends PureComponent {
 
     // Check if it's a valid chainId format
     if (chainId.startsWith('0x')) {
-      if (!regex.validChainId_hex.test(chainId)) {
+      if (!regex.validChainIdHex.test(chainId)) {
         errorMessage = strings('app_settings.invalid_hex_number');
       } else if (!isPrefixedFormattedHexString(chainId)) {
         errorMessage = strings('app_settings.invalid_hex_number_leading_zeros');
