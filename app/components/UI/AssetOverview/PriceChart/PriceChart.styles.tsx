@@ -37,6 +37,12 @@ const styleSheet = (params: { theme: Theme }) => {
     noDataOverlayText: {
       textAlign: 'center',
     } as TextStyle,
+    tooltipLine: {
+      color: theme.colors.icon.alternative,
+    },
+    tooltipCircle: {
+      color: theme.colors.primary.inverse,
+    },
   });
 };
 

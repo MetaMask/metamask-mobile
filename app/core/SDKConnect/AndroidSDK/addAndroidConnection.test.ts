@@ -22,6 +22,7 @@ describe('addAndroidConnection', () => {
     mockInstance = {
       state: {
         connections: {},
+        androidConnections: {},
       },
       emit: mockEmit,
     } as unknown as SDKConnect;
@@ -34,7 +35,7 @@ describe('addAndroidConnection', () => {
 
     await addAndroidConnection(mockConnection, mockInstance);
 
-    expect(mockInstance.state.connections[mockConnection.id]).toBe(
+    expect(mockInstance.state.androidConnections[mockConnection.id]).toBe(
       mockConnection,
     );
   });
@@ -48,7 +49,7 @@ describe('addAndroidConnection', () => {
 
     expect(DefaultPreference.set).toHaveBeenCalledWith(
       AppConstants.MM_SDK.ANDROID_CONNECTIONS,
-      JSON.stringify(mockInstance.state.connections),
+      JSON.stringify(mockInstance.state.androidConnections),
     );
   });
 

@@ -10,7 +10,7 @@ export function handleDappUrl({
   instance: DeeplinkManager;
   handled: () => void;
   urlObj: ReturnType<typeof extractURLParams>['urlObj'];
-  browserCallBack: (url: string) => void;
+  browserCallBack?: (url: string) => void;
 }) {
   // Enforce https
   handled();
