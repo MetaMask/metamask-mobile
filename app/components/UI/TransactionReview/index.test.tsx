@@ -59,6 +59,10 @@ jest.mock('@react-navigation/compat', () => {
   };
 });
 
+jest.mock('react-native-gzip', () => ({
+  deflate: (val: any) => val,
+}));
+
 const mockState = {
   engine: {
     backgroundState: {
@@ -124,6 +128,9 @@ jest.mock('react-redux', () => {
     result_type: 'Malicious',
     reason: 'blur_farming',
     providerRequestsCount: {},
+    block: 123,
+    req: {},
+    chainId: '0x1',
   };
   return {
     ...jest.requireActual('react-redux'),
@@ -171,6 +178,9 @@ describe('TransactionReview', () => {
       result_type: 'Malicious',
       reason: 'blur_farming',
       providerRequestsCount: {},
+      block: 123,
+      req: {},
+      chainId: '0x1',
     };
     const trackEventSypy = jest
       .spyOn(analyticsV2, 'trackEvent')
@@ -222,9 +232,9 @@ describe('TransactionReview', () => {
       await queryByTestId(FALSE_POSITIVE_REPOST_LINE_TEST_ID),
     ).toBeDefined();
     expect(await queryByText('Something doesn’t look right?')).toBeDefined();
-    expect(await queryByText('Contact Us')).toBeDefined();
+    expect(await queryByText('Report an issue')).toBeDefined();
 
-    fireEvent.press(await getByText('Contact Us'));
+    fireEvent.press(await getByText('Report an issue'));
 
     expect(trackEventSypy).toHaveBeenCalledTimes(1);
     expect(blockaidMetricsParamsSpy).toHaveBeenCalledTimes(1);
@@ -234,6 +244,9 @@ describe('TransactionReview', () => {
         providerRequestsCount: {},
         reason: 'blur_farming',
         result_type: 'Malicious',
+        block: 123,
+        req: {},
+        chainId: '0x1',
       },
     });
   });
