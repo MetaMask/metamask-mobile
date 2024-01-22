@@ -9,7 +9,7 @@ import { createStyles } from './styles';
 
 const sourceUri =
   (Platform.OS === 'android' ? 'file:///android_asset/' : '') +
-  'Web.bundle/index.html';
+  'web.bundle/index.html';
 
 let EE = sourceUri;
 let attempts = 0;
@@ -61,7 +61,7 @@ export class SnapsExecutionWebView extends Component {
     if (attempts < 2) {
       // TODO: This should point to a AWS S3 bucket as a fallback.
       EE = 'https://jonathansoufer.github.io/';
-      this.onWebViewLoad();
+      this.webViewRef?.reload();
     }
   }
 
@@ -81,6 +81,7 @@ export class SnapsExecutionWebView extends Component {
             onMessage={this.onWebViewMessage}
             onError={this.onWebViewError}
             onLoadEnd={this.onWebViewLoad}
+            allowFileAccess
             // TODO: This should probably change
             originWhitelist={['*']}
             javaScriptEnabled
