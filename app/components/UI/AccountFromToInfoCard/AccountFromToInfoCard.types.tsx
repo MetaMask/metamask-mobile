@@ -17,7 +17,7 @@ interface SelectedAsset {
 }
 
 export interface Transaction {
-  transaction: { from: string; to: string; data?: string };
+  txParams: { from: string; to: string; data?: string };
   transactionTo: string;
   transactionToName: string;
   transactionFromName: string;

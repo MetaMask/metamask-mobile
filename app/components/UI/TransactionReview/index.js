@@ -185,7 +185,7 @@ class TransactionReview extends PureComponent {
     /**
      * Error blockaid transaction execution, undefined value signifies no error.
      */
-    error: PropTypes.oneOf[(PropTypes.bool, PropTypes.string)],
+    error: PropTypes.oneOfType([PropTypes.bool, PropTypes.string]),
     /**
      * Whether or not basic gas estimates have been fetched
      */
@@ -267,7 +267,7 @@ class TransactionReview extends PureComponent {
 
   fetchEstimatedL1Fee = async () => {
     const { transaction, chainId } = this.props;
-    if (!transaction?.transaction) {
+    if (!transaction?.txParams) {
       return;
     }
     try {
@@ -275,7 +275,7 @@ class TransactionReview extends PureComponent {
         Engine.context.NetworkController.getProviderAndBlockTracker().provider,
       );
       const result = await fetchEstimatedMultiLayerL1Fee(eth, {
-        txParams: transaction.transaction,
+        txParams: transaction.txParams,
         chainId,
       });
       this.setState({

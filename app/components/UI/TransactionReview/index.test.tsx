@@ -78,7 +78,7 @@ const mockState = {
     primaryCurrency: 'ETH',
   },
   transaction: {
-    transaction: { from: '0x0', to: '0x1' },
+    txParams: { from: '0x0', to: '0x1' },
     transactionTo: '0x1',
     selectedAsset: { isETH: true, address: '0x0', symbol: 'ETH', decimals: 8 },
     transactionToName: 'Account 2',

@@ -109,8 +109,8 @@ const TransactionsView = ({
         return filter;
       });
 
-      const submittedTxsFiltered = submittedTxs.filter(({ transaction }) => {
-        const { from, nonce } = transaction;
+      const submittedTxsFiltered = submittedTxs.filter(({ txParams }) => {
+        const { from, nonce } = txParams;
         if (!toLowerCaseEquals(from, selectedAddress)) {
           return false;
         }
@@ -118,9 +118,9 @@ const TransactionsView = ({
         const alreadyConfirmed = confirmedTxs.find(
           (tx) =>
             toLowerCaseEquals(
-              safeToChecksumAddress(tx.transaction.from),
+              safeToChecksumAddress(tx.txParams.from),
               selectedAddress,
-            ) && tx.transaction.nonce === nonce,
+            ) && tx.txParams.nonce === nonce,
         );
         if (alreadyConfirmed) {
           return false;

@@ -39,7 +39,7 @@ const mockInitialState = {
   },
   transaction: {
     selectedAsset: {},
-    transaction: {
+    txParams: {
       from: '0x1',
       to: '0x2',
       value: '0x2',

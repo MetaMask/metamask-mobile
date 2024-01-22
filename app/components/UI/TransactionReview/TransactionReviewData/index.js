@@ -108,7 +108,7 @@ class TransactionReviewData extends PureComponent {
   handleCopyHex = () => {
     const {
       transaction: {
-        transaction: { data },
+        txParams: { data },
       },
     } = this.props;
     ClipboardManager.setString(data);
@@ -123,7 +123,7 @@ class TransactionReviewData extends PureComponent {
   render = () => {
     const {
       transaction: {
-        transaction: { data },
+        txParams: { data },
       },
       actionKey,
       toggleDataView,

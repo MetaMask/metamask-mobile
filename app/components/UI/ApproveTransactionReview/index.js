@@ -305,7 +305,7 @@ class ApproveTransactionReview extends PureComponent {
 
   fetchEstimatedL1Fee = async () => {
     const { transaction, chainId } = this.props;
-    if (!transaction?.transaction) {
+    if (!transaction?.txParams) {
       return;
     }
     try {
@@ -313,7 +313,7 @@ class ApproveTransactionReview extends PureComponent {
         Engine.context.NetworkController.getProviderAndBlockTracker().provider,
       );
       const result = await fetchEstimatedMultiLayerL1Fee(eth, {
-        txParams: transaction.transaction,
+        txParams: transaction.txParams,
         chainId,
       });
       this.setState({
@@ -330,7 +330,7 @@ class ApproveTransactionReview extends PureComponent {
   componentDidMount = async () => {
     const { chainId } = this.props;
     const {
-      transaction: { origin, to, data, from, transaction },
+      transaction: { origin, to, data, from, txParams },
       setTransactionObject,
       tokenList,
       tokenAllowanceState,
@@ -426,8 +426,9 @@ class ApproveTransactionReview extends PureComponent {
     });
 
     setTransactionObject({
-      transaction: {
-        ...transaction,
+      txParams: {
+        ...txParams,
+        chainId,
         data: approvalData,
       },
     });
@@ -476,7 +477,7 @@ class ApproveTransactionReview extends PureComponent {
   };
 
   componentDidUpdate = (_, prevState) => {
-    const { transaction, setTransactionObject } = this.props;
+    const { transaction, setTransactionObject, chainId } = this.props;
     const {
       tokenSpendValue,
       spenderAddress,
@@ -493,8 +494,9 @@ class ApproveTransactionReview extends PureComponent {
 
       setTransactionObject({
         ...newApprovalTransaction,
-        transaction: {
-          ...newApprovalTransaction.transaction,
+        txParams: {
+          ...newApprovalTransaction.txParams,
+          chainId,
           data: newApprovalTransaction.data,
         },
       });

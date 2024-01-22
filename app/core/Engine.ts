@@ -120,6 +120,8 @@ import { ethErrors } from 'eth-rpc-errors';
 
 import { PPOM, ppomInit } from '../lib/ppom/PPOMView';
 import RNFSStorageBackend from '../lib/ppom/rnfs-storage-backend';
+import { RestrictedMethods } from './Permissions/constants';
+// import { getPermittedAccounts } from './Permissions';
 
 const NON_EMPTY = 'NON_EMPTY';
 
@@ -448,6 +450,51 @@ class Engine {
       keyringBuilders: [qrKeyringBuilder],
     });
 
+    const permissionController = new PermissionController({
+      // @ts-expect-error Error might be caused by base controller version mismatch
+      messenger: this.controllerMessenger.getRestricted({
+        name: 'PermissionController',
+        allowedActions: [
+          `${approvalController.name}:addRequest`,
+          `${approvalController.name}:hasRequest`,
+          `${approvalController.name}:acceptRequest`,
+          `${approvalController.name}:rejectRequest`,
+        ],
+      }),
+      state: initialState.PermissionController,
+      caveatSpecifications: getCaveatSpecifications({ getIdentities }),
+      // @ts-expect-error Inferred permission specification type is incorrect, fix after migrating to TypeScript
+      permissionSpecifications: {
+        ...getPermissionSpecifications({
+          getAllAccounts: () => keyringController.getAccounts(),
+        }),
+        /*
+          ...this.getSnapPermissionSpecifications(),
+          */
+      },
+      unrestrictedMethods,
+    });
+
+    const getPermittedAccounts = async (
+      hostname?: string,
+    ): Promise<string[]> => {
+      try {
+        const accountsWithLastUsed: any =
+          await permissionController.executeRestrictedMethod(
+            hostname ?? 'metamask',
+            RestrictedMethods.eth_accounts,
+          );
+        return accountsWithLastUsed.map(({ address }: { address: string }) =>
+          address.toLowerCase(),
+        );
+      } catch (error: any) {
+        if (error.code === ethErrors.provider.unauthorized) {
+          return [];
+        }
+        throw error;
+      }
+    };
+
     const controllers = [
       keyringController,
       new AccountTrackerController({
@@ -548,6 +595,7 @@ class Engine {
           chainId: networkController.state.providerConfig.chainId,
         },
       ),
+      permissionController,
       new TransactionController({
         blockTracker:
           networkController.getProviderAndBlockTracker().blockTracker,
@@ -559,16 +607,16 @@ class Engine {
         getNetworkState: () => networkController.state,
         getSelectedAddress: () => preferencesController.state.selectedAddress,
         incomingTransactions: {
+          apiKey: process.env.MM_ETHERSCAN_KEY,
           isEnabled: () =>
             Boolean(store.getState()?.privacy?.thirdPartyApiMode),
-          queryEntireHistory: true,
           updateTransactions: true,
         },
         messenger: this.controllerMessenger.getRestricted({
           name: 'TransactionController',
           allowedActions: [`${approvalController.name}:addRequest`],
         }),
-        onNetworkStateChange: (listener) =>
+        onNetworkStateChange: (listener: any) =>
           this.controllerMessenger.subscribe(
             AppConstants.NETWORK_STATE_CHANGE_EVENT,
             listener,
@@ -577,6 +625,11 @@ class Engine {
           isResubmitEnabled: false,
         },
         provider: networkController.getProviderAndBlockTracker().provider,
+        disableHistory: true,
+        disableSendFlowHistory: true,
+        disableSwaps: true,
+        getPermittedAccounts: getPermittedAccounts.bind(getPermittedAccounts),
+        hooks: {},
       }),
       new SwapsController(
         {
@@ -606,30 +659,6 @@ class Engine {
       ),
       gasFeeController,
       approvalController,
-      new PermissionController({
-        // @ts-expect-error Error might be caused by base controller version mismatch
-        messenger: this.controllerMessenger.getRestricted({
-          name: 'PermissionController',
-          allowedActions: [
-            `${approvalController.name}:addRequest`,
-            `${approvalController.name}:hasRequest`,
-            `${approvalController.name}:acceptRequest`,
-            `${approvalController.name}:rejectRequest`,
-          ],
-        }),
-        state: initialState.PermissionController,
-        caveatSpecifications: getCaveatSpecifications({ getIdentities }),
-        // @ts-expect-error Inferred permission specification type is incorrect, fix after migrating to TypeScript
-        permissionSpecifications: {
-          ...getPermissionSpecifications({
-            getAllAccounts: () => keyringController.getAccounts(),
-          }),
-          /*
-            ...this.getSnapPermissionSpecifications(),
-            */
-        },
-        unrestrictedMethods,
-      }),
       new SignatureController({
         // @ts-expect-error Error might be caused by base controller version mismatch
         messenger: this.controllerMessenger.getRestricted({

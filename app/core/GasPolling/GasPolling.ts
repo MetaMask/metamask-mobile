@@ -126,9 +126,9 @@ export const getEIP1559TransactionData = ({
         nativeCurrency,
         transactionState: {
           selectedAsset: transactionState.selectedAsset,
-          transaction: {
-            value: transactionState.transaction.value,
-            data: transactionState.transaction.data,
+          txParams: {
+            value: transactionState.txParams.value,
+            data: transactionState.txParams.data,
           },
         },
         gasFeeEstimates,
@@ -162,7 +162,7 @@ export const getLegacyTransactionData = ({
   onlyGas,
   multiLayerL1FeeTotal,
 }: LegacyProps) => {
-  const parsedTransationData = parseTransactionLegacy(
+  const parsedTransactionData = parseTransactionLegacy(
     {
       contractExchangeRates,
       conversionRate,
@@ -177,7 +177,7 @@ export const getLegacyTransactionData = ({
     { onlyGas },
   );
 
-  return parsedTransationData;
+  return parsedTransactionData;
 };
 
 /**
@@ -213,7 +213,7 @@ export const useGasTransaction = ({
   }, [gasEstimateType, gasEstimateTypeChange]);
 
   const {
-    transaction: { gas: transactionGas, gasPrice },
+    txParams: { gas: transactionGas, gasPrice },
   } = transactionState;
 
   const suggestedGasLimit =

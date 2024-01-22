@@ -74,8 +74,8 @@ const CustomGasModal = ({
   const updatedTransactionFrom = useMemo(
     () => ({
       ...transaction,
-      data: transaction?.transaction?.data,
-      from: transaction?.transaction?.from,
+      data: transaction?.txParams?.data,
+      from: transaction?.txParams?.from,
     }),
     [transaction],
   );

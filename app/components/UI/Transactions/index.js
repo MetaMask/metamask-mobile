@@ -611,7 +611,7 @@ class Transactions extends PureComponent {
             contentContainerStyle={styles.keyboardAwareWrapper}
           >
             <UpdateEIP1559Tx
-              gas={this.existingTx.transaction.gas}
+              gas={this.existingTx.txParams.gas}
               onSave={
                 isCancel ? this.cancelTransaction : this.speedUpTransaction
               }

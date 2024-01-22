@@ -10,7 +10,7 @@ const initialState = {
   engine: {
     backgroundState: initialBackgroundState,
   },
-  transaction: {
+  txParams: {
     value: 0,
     data: '0x0',
     gas: 0,

@@ -26,7 +26,7 @@ const mockInitialState = {
   settings: {},
   transaction: {
     selectedAsset: {},
-    transaction: {
+    txParams: {
       gas: '0x0',
       gasPrice: '0x0',
       data: '0x0',

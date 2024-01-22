@@ -11,7 +11,7 @@ const initialState = {
     backgroundState: initialBackgroundState,
   },
   transaction: {
-    transaction: {
+    txParams: {
       data: '',
     },
     value: '',

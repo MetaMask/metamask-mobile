@@ -5,7 +5,9 @@ const initialState = {
   ensRecipient: undefined,
   assetType: undefined,
   selectedAsset: {},
-  transaction: {
+  chainId: undefined,
+  txParams: {
+    chainId: undefined,
     data: undefined,
     from: undefined,
     gas: undefined,
@@ -74,7 +76,7 @@ const transactionReducer = (state = initialState, action) => {
     case 'SET_RECIPIENT':
       return {
         ...state,
-        transaction: { ...state.transaction, from: action.from },
+        txParams: { ...state.txParams, from: action.from },
         ensRecipient: action.ensRecipient,
         transactionTo: action.to,
         transactionToName: action.transactionToName,
@@ -92,7 +94,7 @@ const transactionReducer = (state = initialState, action) => {
     case 'PREPARE_TRANSACTION':
       return {
         ...state,
-        transaction: action.transaction,
+        txParams: action.transaction,
       };
     case 'SET_TRANSACTION_OBJECT': {
       const selectedAsset = action.transaction.selectedAsset;
@@ -103,8 +105,8 @@ const transactionReducer = (state = initialState, action) => {
       const txMeta = getTxMeta(action.transaction);
       return {
         ...state,
-        transaction: {
-          ...state.transaction,
+        txParams: {
+          ...state.txParams,
           ...getTxData(action.transaction),
         },
         ...txMeta,
@@ -128,7 +130,7 @@ const transactionReducer = (state = initialState, action) => {
         selectedAsset: { isETH: true, symbol: 'ETH' },
         type: 'ETHER_TRANSACTION',
         ...getTxMeta(action.transaction),
-        transaction: getTxData(action.transaction),
+        txParams: getTxData(action.transaction),
         securityAlertResponse: action.securityAlertResponse,
       };
     case 'SET_INDIVIDUAL_TOKEN_TRANSACTION':

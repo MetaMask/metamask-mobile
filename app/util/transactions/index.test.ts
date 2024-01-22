@@ -129,7 +129,7 @@ describe('Transactions utils :: getActionKey', () => {
   it('should be "Sent Yourself Ether"', async () => {
     spyOnQueryMethod(undefined);
     const tx = {
-      transaction: {
+      txParams: {
         from: MOCK_ADDRESS1,
         to: MOCK_ADDRESS1,
       },
@@ -146,7 +146,7 @@ describe('Transactions utils :: getActionKey', () => {
   it('should be labeled as "Sent Yourself UNI"', async () => {
     spyOnQueryMethod(undefined);
     const tx = {
-      transaction: {
+      txParams: {
         from: MOCK_ADDRESS1,
         to: MOCK_ADDRESS1,
       },
@@ -165,7 +165,7 @@ describe('Transactions utils :: getActionKey', () => {
   it('should be labeled as "Sent Ether"', async () => {
     spyOnQueryMethod(undefined);
     const tx = {
-      transaction: {
+      txParams: {
         from: MOCK_ADDRESS1,
         to: MOCK_ADDRESS2,
       },
@@ -183,7 +183,7 @@ describe('Transactions utils :: getActionKey', () => {
     spyOnQueryMethod(undefined);
 
     const tx = {
-      transaction: {
+      txParams: {
         from: MOCK_ADDRESS1,
         to: MOCK_ADDRESS2,
       },
@@ -203,7 +203,7 @@ describe('Transactions utils :: getActionKey', () => {
     spyOnQueryMethod(undefined);
 
     const tx = {
-      transaction: {
+      txParams: {
         from: MOCK_ADDRESS1,
         to: MOCK_ADDRESS2,
       },
@@ -220,7 +220,7 @@ describe('Transactions utils :: getActionKey', () => {
   it('should be labeled as "Received UNI"', async () => {
     spyOnQueryMethod(undefined);
     const tx = {
-      transaction: {
+      txParams: {
         from: MOCK_ADDRESS1,
         to: MOCK_ADDRESS2,
       },
@@ -239,7 +239,7 @@ describe('Transactions utils :: getActionKey', () => {
   it('should be labeled as "Smart Contract Interaction" if the receiver is a smart contract', async () => {
     spyOnQueryMethod(UNI_ADDRESS);
     const tx = {
-      transaction: {
+      txParams: {
         to: UNI_ADDRESS,
       },
     };
@@ -255,7 +255,7 @@ describe('Transactions utils :: getActionKey', () => {
   it('should be labeled as "Smart Contract Interaction" if the tx is to a smart contract', async () => {
     spyOnQueryMethod(UNI_ADDRESS);
     const tx = {
-      transaction: {
+      txParams: {
         to: UNI_ADDRESS,
       },
       toSmartContract: true,
@@ -272,7 +272,7 @@ describe('Transactions utils :: getActionKey', () => {
   it('should be labeled as "Contract Deployment" if the tx has no receiver', async () => {
     spyOnQueryMethod(UNI_ADDRESS);
     const tx = {
-      transaction: {},
+      txParams: {},
       toSmartContract: true,
     };
     const result = await getActionKey(
@@ -288,7 +288,7 @@ describe('Transactions utils :: getActionKey', () => {
 describe('Transactions utils :: generateTxWithNewTokenAllowance', () => {
   const mockDecimal = 18;
   const mockTx = {
-    transaction: {
+    txParams: {
       from: MOCK_ADDRESS1,
       to: MOCK_ADDRESS3,
     },
