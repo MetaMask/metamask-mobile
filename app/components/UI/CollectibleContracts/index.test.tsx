@@ -149,7 +149,7 @@ describe('CollectibleContracts', () => {
     expect(nonOwnedNft).toBeNull();
   });
 
-  it('should test refresh behavior when metadata is updated', async () => {
+  it('UI refresh changes NFT image when metadata image changes', async () => {
     const CURRENT_ACCOUNT = '0x1a';
     const collectibleData = [
       {
@@ -234,16 +234,13 @@ describe('CollectibleContracts', () => {
       },
     };
 
-    jest
+    const spyOnCollectibles = jest
       .spyOn(allSelectors, 'collectiblesSelector')
-      .mockReturnValueOnce(nftItemData);
-    jest
+      .mockReturnValueOnce(nftItemData)
+      .mockReturnValueOnce(nftItemDataUpdated);
+    const spyOnContracts = jest
       .spyOn(allSelectors, 'collectibleContractsSelector')
       .mockReturnValue(collectibleData);
-    jest
-      .spyOn(allSelectors, 'collectiblesSelector')
-      .mockReturnValueOnce(nftItemDataUpdated);
-
     const spyOnAddNft = jest
       .spyOn(Engine.context.NftController, 'addNft')
       .mockImplementation(async () => undefined);
@@ -265,5 +262,9 @@ describe('CollectibleContracts', () => {
         nftItemDataUpdated[0].image,
       );
     });
+
+    spyOnCollectibles.mockRestore();
+    spyOnContracts.mockRestore();
+    spyOnAddNft.mockRestore();
   });
 });
