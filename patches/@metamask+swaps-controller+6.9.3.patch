@@ -1,0 +1,125 @@
+diff --git a/node_modules/@metamask/swaps-controller/dist/SwapsController.js b/node_modules/@metamask/swaps-controller/dist/SwapsController.js
+index 3ad23f0..50fc0a2 100644
+--- a/node_modules/@metamask/swaps-controller/dist/SwapsController.js
++++ b/node_modules/@metamask/swaps-controller/dist/SwapsController.js
+@@ -83,7 +83,7 @@ class SwapsController extends controllers_1.BaseController {
+             fetchTokensThreshold: 1000 * 60 * 60 * 24,
+             fetchTopAssetsThreshold: 1000 * 60 * 30,
+             provider: undefined,
+-            chainId: '1',
++            chainId: '0x1',
+             supportedChainIds: [
+                 swapsUtil_1.ETH_CHAIN_ID,
+                 swapsUtil_1.BSC_CHAIN_ID,
+@@ -132,7 +132,7 @@ class SwapsController extends controllers_1.BaseController {
+             usedGasEstimate: null,
+             usedCustomGas: null,
+             chainCache: {
+-                '1': exports.INITIAL_CHAIN_DATA,
++                '0x1': exports.INITIAL_CHAIN_DATA,
+             },
+         };
+         this.fetchGasFeeEstimates = fetchGasFeeEstimates;
+diff --git a/node_modules/@metamask/swaps-controller/dist/constants.d.ts b/node_modules/@metamask/swaps-controller/dist/constants.d.ts
+index 99f1c9c..0158f72 100644
+--- a/node_modules/@metamask/swaps-controller/dist/constants.d.ts
++++ b/node_modules/@metamask/swaps-controller/dist/constants.d.ts
+@@ -1,13 +1,13 @@
+ import { SwapsToken } from './swapsInterfaces';
+-export declare const ETH_CHAIN_ID = "1";
+-export declare const BSC_CHAIN_ID = "56";
+-export declare const POLYGON_CHAIN_ID = "137";
+-export declare const AVALANCHE_CHAIN_ID = "43114";
+-export declare const ARBITRUM_CHAIN_ID = "42161";
+-export declare const OPTIMISM_CHAIN_ID = "10";
+-export declare const ZKSYNC_ERA_CHAIN_ID = "324";
+-export declare const LINEA_CHAIN_ID = "59144";
+-export declare const SWAPS_TESTNET_CHAIN_ID = "1337";
++export declare const ETH_CHAIN_ID = "0x1";
++export declare const BSC_CHAIN_ID = "0x38";
++export declare const POLYGON_CHAIN_ID = "0x89";
++export declare const AVALANCHE_CHAIN_ID = "0xa86a";
++export declare const ARBITRUM_CHAIN_ID = "0xa4ad";
++export declare const OPTIMISM_CHAIN_ID = "0xa";
++export declare const ZKSYNC_ERA_CHAIN_ID = "0x144";
++export declare const LINEA_CHAIN_ID = "0xe780";
++export declare const SWAPS_TESTNET_CHAIN_ID = "0x539";
+ export declare const CHAIN_ID_TO_NAME_MAP: {
+     [key: string]: string;
+ };
+diff --git a/node_modules/@metamask/swaps-controller/dist/constants.js b/node_modules/@metamask/swaps-controller/dist/constants.js
+index 9d8a521..3fc2a1f 100644
+--- a/node_modules/@metamask/swaps-controller/dist/constants.js
++++ b/node_modules/@metamask/swaps-controller/dist/constants.js
+@@ -2,15 +2,15 @@
+ Object.defineProperty(exports, "__esModule", { value: true });
+ exports.MAX_GAS_LIMIT = exports.DEFAULT_ERC20_APPROVE_GAS = exports.TOKEN_TRANSFER_LOG_TOPIC_HASH = exports.SWAPS_NATIVE_TOKEN_OBJECTS = exports.LINEA_SWAPS_TOKEN_OBJECT = exports.ZKSYNC_ERA_SWAPS_TOKEN_OBJECT = exports.OPTIMISM_SWAPS_TOKEN_OBJECT = exports.ARBITRUM_SWAPS_TOKEN_OBJECT = exports.AVALANCHE_SWAPS_TOKEN_OBJECT = exports.POLYGON_SWAPS_TOKEN_OBJECT = exports.BSC_SWAPS_TOKEN_OBJECT = exports.ETH_SWAPS_TOKEN_OBJECT = exports.NATIVE_SWAPS_TOKEN_ADDRESS = exports.ALLOWED_CONTRACT_ADDRESSES = exports.SWAPS_CONTRACT_ADDRESSES = exports.SWAPS_WRAPPED_TOKENS_ADDRESSES = exports.WETH_LINEA_CONTRACT_ADDRESS = exports.WETH_ZKSYNC_ERA_CONTRACT_ADDRESS = exports.WETH_OPTIMISM_CONTRACT_ADDRESS = exports.WETH_ARBITRUM_CONTRACT_ADDRESS = exports.WAVAX_CONTRACT_ADDRESS = exports.WMATIC_CONTRACT_ADDRESS = exports.WBNB_CONTRACT_ADDRESS = exports.WETH_CONTRACT_ADDRESS = exports.LINEA_SWAPS_CONTRACT_ADDRESS = exports.ZKSYNC_ERA_SWAPS_CONTRACT_ADDRESS = exports.OPTIMISM_SWAPS_CONTRACT_ADDRESS = exports.ARBITRUM_SWAPS_CONTRACT_ADDRESS = exports.AVALANCHE_SWAPS_CONTRACT_ADDRESS = exports.POLYGON_SWAPS_CONTRACT_ADDRESS = exports.BSC_SWAPS_CONTRACT_ADDRESS = exports.ETH_SWAPS_CONTRACT_ADDRESS = exports.GAS_API_BASE_URL = exports.DEV_BASE_URL = exports.API_BASE_URL = exports.CHAIN_ID_TO_NAME_MAP = exports.SWAPS_TESTNET_CHAIN_ID = exports.LINEA_CHAIN_ID = exports.ZKSYNC_ERA_CHAIN_ID = exports.OPTIMISM_CHAIN_ID = exports.ARBITRUM_CHAIN_ID = exports.AVALANCHE_CHAIN_ID = exports.POLYGON_CHAIN_ID = exports.BSC_CHAIN_ID = exports.ETH_CHAIN_ID = void 0;
+ //* Chain IDs and names
+-exports.ETH_CHAIN_ID = '1';
+-exports.BSC_CHAIN_ID = '56';
+-exports.POLYGON_CHAIN_ID = '137';
+-exports.AVALANCHE_CHAIN_ID = '43114';
+-exports.ARBITRUM_CHAIN_ID = '42161';
+-exports.OPTIMISM_CHAIN_ID = '10';
+-exports.ZKSYNC_ERA_CHAIN_ID = '324';
+-exports.LINEA_CHAIN_ID = '59144';
+-exports.SWAPS_TESTNET_CHAIN_ID = '1337';
++exports.ETH_CHAIN_ID = '0x1';
++exports.BSC_CHAIN_ID = '0x38';
++exports.POLYGON_CHAIN_ID = '0x89';
++exports.AVALANCHE_CHAIN_ID = '0xa86a';
++exports.ARBITRUM_CHAIN_ID = '0xa4b1';
++exports.OPTIMISM_CHAIN_ID = '0xa';
++exports.ZKSYNC_ERA_CHAIN_ID = '0x144';
++exports.LINEA_CHAIN_ID = '0xe708';
++exports.SWAPS_TESTNET_CHAIN_ID = '0x539';
+ exports.CHAIN_ID_TO_NAME_MAP = {
+     [exports.ETH_CHAIN_ID]: 'ethereum',
+     [exports.BSC_CHAIN_ID]: 'bsc',
+diff --git a/node_modules/@metamask/swaps-controller/dist/swapsUtil.js b/node_modules/@metamask/swaps-controller/dist/swapsUtil.js
+index 54a32d5..8b02c8a 100644
+--- a/node_modules/@metamask/swaps-controller/dist/swapsUtil.js
++++ b/node_modules/@metamask/swaps-controller/dist/swapsUtil.js
+@@ -66,25 +66,36 @@ function shouldEnableDirectWrapping(chainId, sourceToken, destinationToken) {
+             destinationTokenLowerCase === wrappedTokenLowerCase));
+ }
+ exports.shouldEnableDirectWrapping = shouldEnableDirectWrapping;
++function convertHexToDecimal (
++    value,
++  )  {
++    if (ethereumjs_util_1.isHexString(value)) {
++        return parseInt(value, 16);
++    }
++    return Number(value) ? Number(value) : 0;
++  }
++exports.convertHexToDecimal = convertHexToDecimal;
+ const getBaseApiURL = function (type, chainId) {
+     const [apiChainId, apiBaseUrl] = chainId === constants_1.SWAPS_TESTNET_CHAIN_ID
+         ? [constants_1.ETH_CHAIN_ID, constants_1.DEV_BASE_URL]
+         : [chainId, constants_1.API_BASE_URL];
++
++    const apiDecimalChainId = convertHexToDecimal(apiChainId);
+     switch (type) {
+         case swapsInterfaces_1.APIType.TRADES:
+-            return `${apiBaseUrl}/networks/${apiChainId}/trades`;
++            return `${apiBaseUrl}/networks/${apiDecimalChainId}/trades`;
+         case swapsInterfaces_1.APIType.TOKENS:
+-            return `${apiBaseUrl}/networks/${apiChainId}/tokens`;
++            return `${apiBaseUrl}/networks/${apiDecimalChainId}/tokens`;
+         case swapsInterfaces_1.APIType.TOKEN:
+-            return `${apiBaseUrl}/networks/${apiChainId}/token`;
++            return `${apiBaseUrl}/networks/${apiDecimalChainId}/token`;
+         case swapsInterfaces_1.APIType.TOP_ASSETS:
+-            return `${apiBaseUrl}/networks/${apiChainId}/topAssets`;
++            return `${apiBaseUrl}/networks/${apiDecimalChainId}/topAssets`;
+         case swapsInterfaces_1.APIType.FEATURE_FLAG:
+             return `${apiBaseUrl}/featureFlags`;
+         case swapsInterfaces_1.APIType.AGGREGATOR_METADATA:
+-            return `${apiBaseUrl}/networks/${apiChainId}/aggregatorMetadata`;
++            return `${apiBaseUrl}/networks/${apiDecimalChainId}/aggregatorMetadata`;
+         case swapsInterfaces_1.APIType.GAS_PRICES:
+-            return `${constants_1.GAS_API_BASE_URL}/networks/${apiChainId}/gasPrices`;
++            return `${constants_1.GAS_API_BASE_URL}/networks/${apiDecimalChainId}/gasPrices`;
+         default:
+             throw new Error('getBaseApiURL requires an api call type');
+     }

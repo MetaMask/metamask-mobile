@@ -24,7 +24,7 @@ jest.mock('react-native-gzip', () => ({
 const mockState = {
   engine: {
     backgroundState: {
-      NetworkController: { providerConfig: { chainId: '1' } },
+      NetworkController: { providerConfig: { chainId: '0x1' } },
       PreferencesController: { securityAlertsEnabled: true },
     },
   },
@@ -183,7 +183,7 @@ describe('BlockaidBanner', () => {
     const mockStateNetwork = {
       engine: {
         backgroundState: {
-          NetworkController: { providerConfig: { chainId: '5' } },
+          NetworkController: { providerConfig: { chainId: '0x5' } },
           PreferencesController: { securityAlertsEnabled: true },
         },
       },
@@ -201,7 +201,7 @@ describe('BlockaidBanner', () => {
     const mockStateNetwork = {
       engine: {
         backgroundState: {
-          NetworkController: { providerConfig: { chainId: '1' } },
+          NetworkController: { providerConfig: { chainId: '0x1' } },
           PreferencesController: { securityAlertsEnabled: false },
         },
       },

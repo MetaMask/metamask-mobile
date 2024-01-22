@@ -19,7 +19,6 @@ import { strings } from '../../../../../../locales/i18n';
 import Networks, {
   isprivateConnection,
   getAllNetworks,
-  isSafeChainId,
   getIsNetworkOnboarded,
 } from '../../../../../util/networks';
 import { getEtherscanBaseUrl } from '../../../../../util/etherscan';
@@ -80,6 +79,7 @@ import {
 } from '../../../../../selectors/networkController';
 import { regex } from '../../../../../../app/util/regex';
 import { NetworksViewSelectorsIDs } from '../../../../../../e2e/selectors/Settings/NetworksView.selectors';
+import { isSafeChainId, toHex } from '@metamask/controller-utils';
 
 const createStyles = (colors) =>
   StyleSheet.create({
@@ -392,18 +392,6 @@ class NetworkSettings extends PureComponent {
   }
 
   /**
-   * Return the decimal chainId string as number
-   *
-   * @param {string} chainId - The chainId decimal as string to convert.
-   * @returns {number} The chainId decimal as number
-   */
-  getDecimalChainIdNumber(chainId) {
-    const decimalChainIdString = this.getDecimalChainId(chainId);
-    const decimalChainIdNumber = parseInt(decimalChainIdString, 10);
-    return decimalChainIdNumber;
-  }
-
-  /**
    * Validates the chain ID by checking it against the `eth_chainId` return
    * value from the given RPC URL.
    * Assumes that all strings are non-empty and correctly formatted.
@@ -535,14 +523,14 @@ class NetworkSettings extends PureComponent {
 
     if (this.validateRpcUrl() && isNetworkExists.length === 0) {
       const url = new URL(rpcUrl);
-      const decimalChainId = this.getDecimalChainId(chainId);
+
       !isprivateConnection(url.hostname) && url.set('protocol', 'https:');
       CurrencyRateController.setNativeCurrency(ticker);
       // Remove trailing slashes
       NetworkController.upsertNetworkConfiguration(
         {
           rpcUrl: url.href,
-          chainId: decimalChainId,
+          chainId,
           ticker,
           nickname,
           rpcPrefs: {
@@ -574,7 +562,7 @@ class NetworkSettings extends PureComponent {
       }
 
       const analyticsParamsAdd = {
-        chain_id: decimalChainId,
+        chain_id: this.getDecimalChainId(chainId),
         source: 'Custom network form',
         symbol: ticker,
       };
@@ -670,7 +658,7 @@ class NetworkSettings extends PureComponent {
     }
 
     // Check if it's a valid chainId number
-    if (!isSafeChainId(this.getDecimalChainIdNumber(chainId))) {
+    if (!isSafeChainId(toHex(chainId))) {
       return this.setState({
         warningChainId: strings('app_settings.invalid_number_range', {
           maxSafeChainId: AppConstants.MAX_SAFE_CHAIN_ID,
@@ -726,6 +714,15 @@ class NetworkSettings extends PureComponent {
     const { chainId, validatedChainId, warningChainId } = this.state;
     if (!chainId) return true;
     return validatedChainId && !!warningChainId;
+  };
+
+  /**
+   * Returns if action button should be disabled because of the symbol field
+   * Symbol field represents the ticker and needs to be set
+   */
+  disabledBySymbol = () => {
+    const { ticker } = this.state;
+    if (!ticker) return true;
   };
 
   onRpcUrlChange = async (url) => {
@@ -791,7 +788,7 @@ class NetworkSettings extends PureComponent {
     const { navigation, networkConfigurations, providerConfig } = this.props;
     const { rpcUrl } = this.state;
     if (
-      compareSanitizedUrl(rpcUrl, providerConfig.rpcTarget) &&
+      compareSanitizedUrl(rpcUrl, providerConfig.rpcUrl) &&
       providerConfig.type === RPC
     ) {
       this.switchToMainnet();
@@ -848,7 +845,10 @@ class NetworkSettings extends PureComponent {
     ];
     const isRPCEditable = isCustomMainnet || editable;
     const isActionDisabled =
-      !enableAction || this.disabledByRpcUrl() || this.disabledByChainId();
+      !enableAction ||
+      this.disabledByRpcUrl() ||
+      this.disabledByChainId() ||
+      this.disabledBySymbol();
     const rpcActionStyle = isActionDisabled
       ? { ...styles.button, ...styles.disabledButton }
       : styles.button;
@@ -945,7 +945,7 @@ class NetworkSettings extends PureComponent {
               value={ticker}
               editable={editable}
               onChangeText={this.onTickerChange}
-              placeholder={strings('app_settings.network_symbol_placeholder')}
+              placeholder={strings('app_settings.network_symbol_label')}
               placeholderTextColor={colors.text.muted}
               onSubmitEditing={this.jumpBlockExplorerURL}
               {...generateTestId(Platform, NETWORKS_SYMBOL_INPUT_FIELD)}

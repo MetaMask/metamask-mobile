@@ -104,7 +104,6 @@ import Networks, {
   getNetworkImageSource,
 } from '../../../../util/networks';
 import images from 'images/image-icons';
-import { toHexadecimal } from '../../../../util/number';
 import { ETHERSCAN_SUPPORTED_NETWORKS } from '@metamask/transaction-controller/dist/constants';
 import { SecurityPrivacyViewSelectorsIDs } from '../../../../../e2e/selectors/Settings/SecurityAndPrivacy/SecurityPrivacyView.selectors';
 import Text, {
@@ -737,7 +736,7 @@ const Settings: React.FC = () => {
 
   const renderShowIncomingTransactions = () => {
     const renderMainnet = () => {
-      const { name: mainnetName, hexChainId } = Networks.mainnet;
+      const { name: mainnetName, chainId } = Networks.mainnet;
       return (
         <Cell
           variant={CellVariant.Display}
@@ -751,9 +750,9 @@ const Settings: React.FC = () => {
           style={styles.cellBorder}
         >
           <Switch
-            value={showIncomingTransactionsNetworks[hexChainId]}
+            value={showIncomingTransactionsNetworks[chainId]}
             onValueChange={(value) =>
-              toggleEnableIncomingTransactions(hexChainId, value)
+              toggleEnableIncomingTransactions(chainId, value)
             }
             trackColor={{
               true: colors.primary.default,
@@ -768,7 +767,7 @@ const Settings: React.FC = () => {
     };
 
     const renderLineaMainnet = () => {
-      const { name: lineaMainnetName, hexChainId } = Networks['linea-mainnet'];
+      const { name: lineaMainnetName, chainId } = Networks['linea-mainnet'];
 
       return (
         <Cell
@@ -783,9 +782,9 @@ const Settings: React.FC = () => {
           style={styles.cellBorder}
         >
           <Switch
-            value={showIncomingTransactionsNetworks[hexChainId]}
+            value={showIncomingTransactionsNetworks[chainId]}
             onValueChange={(value) =>
-              toggleEnableIncomingTransactions(hexChainId, value)
+              toggleEnableIncomingTransactions(chainId, value)
             }
             trackColor={{
               true: colors.primary.default,
@@ -804,9 +803,7 @@ const Settings: React.FC = () => {
         ({ nickname, rpcUrl, chainId }) => {
           if (!chainId) return null;
 
-          const hexChainId = `0x${toHexadecimal(chainId)}`;
-
-          if (!Object.keys(myNetworks).includes(hexChainId)) return null;
+          if (!Object.keys(myNetworks).includes(chainId)) return null;
 
           const { name } = { name: nickname || rpcUrl };
           //@ts-expect-error - The utils/network file is still JS and this function expects a networkType, and should be optional
@@ -817,7 +814,7 @@ const Settings: React.FC = () => {
               key={chainId}
               variant={CellVariant.Display}
               title={name}
-              secondaryText={myNetworks[hexChainId].domain}
+              secondaryText={myNetworks[chainId].domain}
               avatarProps={{
                 variant: AvatarVariant.Network,
                 name,
@@ -826,9 +823,9 @@ const Settings: React.FC = () => {
               style={styles.cellBorder}
             >
               <Switch
-                value={showIncomingTransactionsNetworks[hexChainId]}
+                value={showIncomingTransactionsNetworks[chainId]}
                 onValueChange={(value) =>
-                  toggleEnableIncomingTransactions(hexChainId, value)
+                  toggleEnableIncomingTransactions(chainId, value)
                 }
                 trackColor={{
                   true: colors.primary.default,
@@ -847,15 +844,14 @@ const Settings: React.FC = () => {
       const NetworksTyped = Networks as NetworksI;
       const getOtherNetworks = () => getAllNetworks().slice(2);
       return getOtherNetworks().map((networkType) => {
-        const { name, imageSource, chainId, hexChainId } =
-          NetworksTyped[networkType];
-        if (!hexChainId) return null;
+        const { name, imageSource, chainId } = NetworksTyped[networkType];
+        if (!chainId) return null;
         return (
           <Cell
             key={chainId}
             variant={CellVariant.Display}
             title={name}
-            secondaryText={myNetworks[hexChainId].domain}
+            secondaryText={myNetworks[chainId].domain}
             avatarProps={{
               variant: AvatarVariant.Network,
               name,
@@ -864,10 +860,9 @@ const Settings: React.FC = () => {
             style={styles.cellBorder}
           >
             <Switch
-              value={showIncomingTransactionsNetworks[hexChainId]}
+              value={showIncomingTransactionsNetworks[chainId]}
               onValueChange={(value) => {
-                hexChainId &&
-                  toggleEnableIncomingTransactions(hexChainId, value);
+                chainId && toggleEnableIncomingTransactions(chainId, value);
               }}
               trackColor={{
                 true: colors.primary.default,

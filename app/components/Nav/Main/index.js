@@ -69,7 +69,6 @@ import {
   selectProviderType,
 } from '../../../selectors/networkController';
 import { selectShowIncomingTransactionNetworks } from '../../../selectors/preferencesController';
-import { addHexPrefix, toHexadecimal } from '../../../util/number';
 import { NETWORKS_CHAIN_ID } from '../../../constants/network';
 import WarningAlert from '../../../components/UI/WarningAlert';
 import { GOERLI_DEPRECATED_ARTICLE } from '../../../constants/urls';
@@ -112,7 +111,7 @@ const Main = (props) => {
 
   useEffect(() => {
     const { TransactionController } = Engine.context;
-    const currentHexChainId = addHexPrefix(toHexadecimal(props.chainId));
+    const currentHexChainId = props.chainId;
 
     if (props.showIncomingTransactionsNetworks[currentHexChainId]) {
       TransactionController.startIncomingTransactionPolling();

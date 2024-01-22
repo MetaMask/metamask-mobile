@@ -143,12 +143,12 @@ const LedgerAccountInfo = () => {
 
   const toBlockExplorer = useCallback(
     (address: string) => {
-      const { type, rpcTarget } = provider;
+      const { type, rpcUrl } = provider;
       let accountLink: string;
 
       if (type === RPC) {
         const blockExplorer =
-          findBlockExplorerForRpc(rpcTarget, frequentRpcList) ||
+          findBlockExplorerForRpc(rpcUrl, frequentRpcList) ||
           NO_RPC_BLOCK_EXPLORER;
         accountLink = `${blockExplorer}/address/${address}`;
       } else {

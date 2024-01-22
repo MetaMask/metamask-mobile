@@ -55,14 +55,14 @@ const AccountActions = () => {
   const networkConfigurations = useSelector(selectNetworkConfigurations);
 
   const blockExplorer = useMemo(() => {
-    if (providerConfig?.rpcTarget && providerConfig.type === RPC) {
+    if (providerConfig?.rpcUrl && providerConfig.type === RPC) {
       return findBlockExplorerForRpc(
-        providerConfig.rpcTarget,
+        providerConfig.rpcUrl,
         networkConfigurations,
       );
     }
     return null;
-  }, [networkConfigurations, providerConfig.rpcTarget, providerConfig.type]);
+  }, [networkConfigurations, providerConfig.rpcUrl, providerConfig.type]);
 
   const blockExplorerName = getBlockExplorerName(blockExplorer);
 

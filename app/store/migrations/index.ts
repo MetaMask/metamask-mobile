@@ -28,6 +28,7 @@ import migration24 from './024';
 import migration25 from './025';
 import migration26 from './026';
 import migration27 from './027';
+import migration28 from './028';
 
 export const migrations: MigrationManifest = {
   0: migration00,
@@ -58,6 +59,7 @@ export const migrations: MigrationManifest = {
   25: migration25,
   26: migration26,
   27: migration27,
+  28: migration28,
 };
 
 // The latest (i.e. highest) version number.
