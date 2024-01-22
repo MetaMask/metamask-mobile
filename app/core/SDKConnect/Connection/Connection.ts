@@ -27,6 +27,7 @@ import {
   handleClientsReady,
   handleReceivedMessage,
 } from './EventListenersHandlers';
+import handleClientsWaiting from './EventListenersHandlers/handleClientsWaiting';
 
 export interface ConnectionProps {
   id: string;
@@ -210,6 +211,13 @@ export class Connection extends EventEmitter2 {
       handleClientsDisconnected({
         instance: this,
         disapprove,
+      }),
+    );
+
+    this.remote.on(
+      EventType.CLIENTS_WAITING,
+      handleClientsWaiting({
+        instance: this,
       }),
     );
 
