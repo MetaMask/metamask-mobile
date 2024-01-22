@@ -81,7 +81,6 @@ export class SnapsExecutionWebView extends Component {
             onMessage={this.onWebViewMessage}
             onError={this.onWebViewError}
             onLoadEnd={this.onWebViewLoad}
-            allowFileAccess
             // TODO: This should probably change
             originWhitelist={['*']}
             javaScriptEnabled
