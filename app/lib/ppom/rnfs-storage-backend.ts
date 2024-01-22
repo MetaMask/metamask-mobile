@@ -1,5 +1,5 @@
-import RNFS from 'react-native-fs';
 import CryptoJS, { SHA256 } from 'crypto-js';
+import RNFS from 'react-native-fs';
 
 import { StorageBackend, StorageKey } from '@metamask/ppom-validator';
 
