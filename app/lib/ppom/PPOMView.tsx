@@ -1,7 +1,7 @@
-import createInvoke from 'react-native-webview-invoke/native';
 import React, { Component, RefObject } from 'react';
-import { View, StyleSheet } from 'react-native';
+import { StyleSheet, View } from 'react-native';
 import { WebView } from 'react-native-webview';
+import createInvoke from 'react-native-webview-invoke/native';
 
 import Logger from '../../util/Logger';
 import asyncInvoke from './invoke-lib';
