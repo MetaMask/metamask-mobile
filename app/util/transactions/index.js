@@ -211,8 +211,8 @@ const BASE = 4 * 16;
 export function decodeTransferData(type, data) {
   switch (type) {
     case 'transfer': {
-      const encodedAddress = data.substr(10, BASE);
-      const encodedAmount = data.substr(74, BASE);
+      const encodedAddress = data.substring(10, BASE + 10);
+      const encodedAmount = data.substring(74, BASE + 74);
       const bufferEncodedAddress = rawEncode(
         ['address'],
         [addHexPrefix(encodedAddress)],
@@ -224,9 +224,9 @@ export function decodeTransferData(type, data) {
       ];
     }
     case 'transferFrom': {
-      const encodedFromAddress = data.substr(10, BASE);
-      const encodedToAddress = data.substr(74, BASE);
-      const encodedTokenId = data.substr(138, BASE);
+      const encodedFromAddress = data.substring(10, BASE + 10);
+      const encodedToAddress = data.substring(74, BASE + 74);
+      const encodedTokenId = data.substring(138, BASE + 138);
       const bufferEncodedFromAddress = rawEncode(
         ['address'],
         [addHexPrefix(encodedFromAddress)],
@@ -1270,9 +1270,8 @@ export const parseTransactionLegacy = (
       conversionRate,
       currentCurrency,
     );
-  } else {
+  } else if (data) {
     const { address, symbol = 'ERC20', decimals } = selectedAsset;
-
     const [, , rawAmount] = decodeTransferData('transfer', data);
     const rawAmountString = parseInt(rawAmount, 16).toLocaleString('fullwide', {
       useGrouping: false,

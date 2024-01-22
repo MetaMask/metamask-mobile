@@ -21,6 +21,7 @@ describe('reconnectAll', () => {
         connections: {},
       },
       reconnect: mockReconnect,
+      emit: jest.fn(),
     } as unknown as SDKConnect;
   });
 
@@ -39,6 +40,7 @@ describe('reconnectAll', () => {
 
       mockInstance.state.connections[mockChannelId] = {
         otherPublicKey: mockOtherPublicKey,
+        origin: 'qr-code',
       } as unknown as SDKConnect['state']['connections'][string];
 
       reconnectAll(mockInstance);

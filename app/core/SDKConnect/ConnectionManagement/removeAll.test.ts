@@ -28,6 +28,8 @@ describe('removeAll', () => {
         paused: true,
       },
       removeChannel: mockRemoveChannel,
+      loadAndroidConnections: jest.fn().mockResolvedValue({}),
+      emit: jest.fn(),
     } as unknown as SDKConnect;
   });
 
@@ -40,7 +42,11 @@ describe('removeAll', () => {
 
     await removeAll(mockInstance);
 
-    expect(mockRemoveChannel).toHaveBeenCalledWith(mockChannelId, true);
+    expect(mockRemoveChannel).toHaveBeenCalledWith({
+      channelId: mockChannelId,
+      emitRefresh: false,
+      sendTerminate: true,
+    });
   });
 
   it('should clear all android connections from DefaultPreference', async () => {
