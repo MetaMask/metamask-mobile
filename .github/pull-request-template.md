@@ -46,3 +46,7 @@ Fixes:
 
 - [ ] I've manually tested the PR (e.g. pull and build branch, run the app, test code being changed).
 - [ ] I confirm that this PR addresses all acceptance criteria described in the ticket it closes and includes the necessary testing evidence such as recordings and or screenshots.
+
+## **CI Related Section: DO NOT EDIT**
+
+Bitrise Flag:[skip ci]
