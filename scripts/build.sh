@@ -132,12 +132,7 @@ remapFlaskEnvVariables() {
 	remapEnvVariable "MM_FLASK_MIXPANEL_TOKEN" "MM_MIXPANEL_TOKEN"
 }
 
-
-
-prebuild(){
-	# Import provider
-	yarn --ignore-engines build:static-logos
-
+loadJSEnv(){
 	# Load JS specific env variables
 	if [ "$PRE_RELEASE" = false ] ; then
 		if [ -e $JS_ENV_FILE ]
@@ -145,6 +140,13 @@ prebuild(){
 			source $JS_ENV_FILE
 		fi
 	fi
+}
+
+
+prebuild(){
+	# Import provider
+	yarn --ignore-engines build:static-logos
+
   WATCHER_PORT=${WATCHER_PORT:-8081}
 }
 
@@ -541,7 +543,9 @@ checkAuthToken() {
 
 checkParameters "$@"
 
+
 printTitle
+loadJSEnv
 if [ "$MODE" == "releaseE2E" ] || [ "$MODE" == "QA" ] || [ "$MODE" == "QAE2E" ]; then
 	echo "DEBUG SENTRY PROPS"
 	checkAuthToken 'sentry.debug.properties'
