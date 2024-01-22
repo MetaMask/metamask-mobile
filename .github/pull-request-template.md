@@ -49,4 +49,6 @@ Fixes:
 
 ## **CI Related Section: DO NOT EDIT**
 
-Bitrise Flag:[skip ci]
+Flag used by Bitrise to either run or skip E2E smoke tests
+
+- Bitrise Flag:[skip ci]
