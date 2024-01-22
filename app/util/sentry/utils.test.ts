@@ -95,5 +95,4 @@ describe('deriveSentryEnvironment', () => {
     const eventExcluded = excludeEvents(null);
     expect(eventExcluded).toBe(null);
   });
-
 });
