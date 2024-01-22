@@ -61,6 +61,16 @@ describe('Migration #28', () => {
 
   it('changing networkOnboardedState object key value, that is repesenting chain id on decimal format to hexadecimal format', () => {
     const oldState = {
+      engine: {
+        backgroundState: {
+          NetworkController: {
+            providerConfig: {
+              chainId: '43114',
+              rpcUrl: 'https://api.avax.network/ext/bc/C/rpc',
+            },
+          },
+        },
+      },
       networkOnboarded: {
         networkOnboardedState: {
           1: true,
@@ -68,6 +78,16 @@ describe('Migration #28', () => {
       },
     };
     const expectedNewState = {
+      engine: {
+        backgroundState: {
+          NetworkController: {
+            providerConfig: {
+              chainId: '0xa86a',
+              rpcUrl: 'https://api.avax.network/ext/bc/C/rpc',
+            },
+          },
+        },
+      },
       networkOnboarded: {
         networkOnboardedState: {
           '0x1': true,
@@ -187,6 +207,16 @@ describe('Migration #28', () => {
 
   it('should handle swaps on the state initial state key chain id changed for hexadecimal', () => {
     const oldState = {
+      engine: {
+        backgroundState: {
+          NetworkController: {
+            providerConfig: {
+              chainId: '43114',
+              rpcUrl: 'https://api.avax.network/ext/bc/C/rpc',
+            },
+          },
+        },
+      },
       swaps: {
         1: {
           data: 'test',
@@ -194,6 +224,16 @@ describe('Migration #28', () => {
       },
     };
     const expectedNewState = {
+      engine: {
+        backgroundState: {
+          NetworkController: {
+            providerConfig: {
+              chainId: '0xa86a',
+              rpcUrl: 'https://api.avax.network/ext/bc/C/rpc',
+            },
+          },
+        },
+      },
       swaps: {
         '0x1': {
           data: 'test',
