@@ -8,7 +8,10 @@ exports[`TransactionBlockaidBanner should render correctly 1`] = `
 <View
   securityAlertResponse={
     Object {
+      "block": 123,
+      "chainId": "0x1",
       "reason": "approval_farming",
+      "req": Object {},
       "result_type": "Warning",
     }
   }
