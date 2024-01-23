@@ -39,8 +39,10 @@ import {
   FALSE_POSITIVE_REPORT_BASE_URL,
   UTM_SOURCE,
 } from '../../../constants/urls';
-import { isMainnetByChainId } from '../../../util/networks';
-import { BLOCKAID_SUPPORTED_CHAIN_IDS } from '../../../util/networks';
+import {
+  isMainnetByChainId,
+  BLOCKAID_SUPPORTED_CHAIN_IDS,
+} from '../../../util/networks';
 import { selectChainId } from '../../../selectors/networkController';
 import { selectIsSecurityAlertsEnabled } from '../../../selectors/preferencesController';
 import BlockaidVersionInfo from '../../../lib/ppom/blockaid-version';
