@@ -225,13 +225,17 @@ const Settings: React.FC = () => {
     setHintText(manualBackup);
   }, []);
 
+  const checkAnalyticsEnabled = useCallback(async () => {
+    const metrics = await MetaMetrics.getInstance();
+    metrics.trackEvent(MetaMetricsEvents.VIEW_SECURITY_SETTINGS.category, {});
+    setAnalyticsEnabled(metrics.isEnabled());
+  }, []);
+
   useEffect(() => {
     updateNavBar();
     handleHintText();
-    AnalyticsV2.trackEvent(MetaMetricsEvents.VIEW_SECURITY_SETTINGS, {});
-    const isAnalyticsEnabled = Analytics.checkEnabled();
-    setAnalyticsEnabled(isAnalyticsEnabled);
-  }, [handleHintText, updateNavBar]);
+    checkAnalyticsEnabled();
+  }, [handleHintText, updateNavBar, checkAnalyticsEnabled]);
 
   const scrollToDetectNFTs = useCallback(() => {
     if (detectNftComponentRef.current) {
@@ -468,7 +472,6 @@ const Settings: React.FC = () => {
       });
     } else {
       await metrics.enable(false);
-      await metrics.reset();
       Analytics.disable();
       setAnalyticsEnabled(false);
       Alert.alert(
@@ -1004,7 +1007,7 @@ const Settings: React.FC = () => {
           {strings('app_settings.analytics_subheading')}
         </Text>
         {renderMetaMetricsSection()}
-        <DeleteMetaMetricsData />
+        <DeleteMetaMetricsData metricsOptin={analyticsEnabled} />
         <DeleteWalletData />
         {renderHint()}
       </View>

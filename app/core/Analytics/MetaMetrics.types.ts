@@ -51,17 +51,27 @@ export interface IMetaMetrics {
    */
   group(groupId: string, groupTraits?: GroupTraits): void;
   /**
-   * track an anonymous event
-   * @param event
-   * @param properties
+   * track an anonymous event, providing only anonymousId
+   * @param event - Analytics event name
+   * @param properties - Object containing any event relevant traits or properties (optional)
+   * @param saveDataRecording - param to skip saving the data recording flag (optional)
    */
-  trackAnonymousEvent(event: string, properties?: JsonMap): void;
+  trackAnonymousEvent(
+    event: string,
+    properties?: JsonMap,
+    saveDataRecording?: boolean,
+  ): void;
   /**
    * track an event
-   * @param event
-   * @param properties
+   * @param event - Analytics event name
+   * @param properties - Object containing any event relevant traits or properties (optional)
+   * @param saveDataRecording - param to skip saving the data recording flag (optional)
    */
-  trackEvent(event: string, properties?: JsonMap): void;
+  trackEvent(
+    event: string,
+    properties?: JsonMap,
+    saveDataRecording?: boolean,
+  ): void;
   /**
    * clear the internal state of the library for the current user and group.
    */
@@ -75,12 +85,15 @@ export interface IMetaMetrics {
    * delete user's data from Segment and all related
    * destinations.
    */
-  createDeleteRegulation(): Promise<{
-    status: string;
-    error?: string;
-  }>;
+  createDataDeletionTask(): Promise<IDeleteRegulationResponse>;
 
-  getDeleteRegulationCreationDate(): Promise<string | undefined>;
+  checkDataDeleteStatus(): Promise<IDeleteRegulationStatus>;
+
+  getDeleteRegulationCreationDate(): DataDeleteDate;
+
+  getDeleteRegulationId(): string | undefined;
+
+  isDataRecorded(): boolean;
 }
 
 /**
@@ -96,12 +109,16 @@ export interface IMetaMetricsEvent {
 
 /**
  * deletion task possible status
+ * @see https://docs.segmentapis.com/tag/Deletion-and-Suppression#operation/getRegulation
  */
 export enum DataDeleteStatus {
-  pending = 'PENDING',
-  started = 'STARTED',
-  success = 'SUCCESS',
-  failure = 'FAILURE',
+  failed = 'FAILED',
+  finished = 'FINISHED',
+  initialized = 'INITIALIZED',
+  invalid = 'INVALID',
+  notSupported = 'NOT_SUPPORTED',
+  partialSuccess = 'PARTIAL_SUCCESS',
+  running = 'RUNNING',
   unknown = 'UNKNOWN',
 }
 
@@ -111,4 +128,23 @@ export enum DataDeleteStatus {
 export enum DataDeleteResponseStatus {
   ok = 'ok',
   error = 'error',
+}
+
+export interface IDeleteRegulationResponse {
+  status: DataDeleteResponseStatus;
+  error?: string;
+}
+
+export interface IDeleteRegulationStatusResponse {
+  status: DataDeleteResponseStatus;
+  dataDeleteStatus: DataDeleteStatus;
+}
+
+export type DataDeleteDate = string | undefined;
+export type DataDeleteRegulationId = string | undefined;
+
+export interface IDeleteRegulationStatus {
+  deletionRequestDate?: DataDeleteDate;
+  hasCollectedDataSinceDeletionRequest: boolean;
+  dataDeletionRequestStatus: DataDeleteStatus;
 }
