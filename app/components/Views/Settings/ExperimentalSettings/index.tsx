@@ -1,6 +1,7 @@
-import React, { FC, useCallback, useEffect } from 'react';
+import React, { FC, useCallback, useEffect, useState } from 'react';
 import { ScrollView, Switch, View } from 'react-native';
 
+import { MMKV } from 'react-native-mmkv';
 import { strings } from '../../../../../locales/i18n';
 import Engine from '../../../../core/Engine';
 import { colors as importedColors } from '../../../../styles/common';
@@ -27,6 +28,8 @@ import Button, {
   ButtonWidthTypes,
 } from '../../../../component-library/components/Buttons/Button';
 
+const storage = new MMKV(); // id: mmkv.default
+
 /**
  * Main view for app Experimental Settings
  */
@@ -37,6 +40,15 @@ const ExperimentalSettings = ({ navigation, route }: Props) => {
   const dispatch = useDispatch();
 
   const securityAlertsEnabled = useSelector(selectIsSecurityAlertsEnabled);
+
+  const [sesEnabled, setSesEnabled] = useState(
+    storage.getBoolean('is-ses-enabled'),
+  );
+
+  const toggleSesEnabled = () => {
+    storage.set('is-ses-enabled', !sesEnabled);
+    setSesEnabled(!sesEnabled);
+  };
 
   const isFullScreenModal = route?.params?.isFullScreenModal;
 
@@ -164,9 +176,44 @@ const ExperimentalSettings = ({ navigation, route }: Props) => {
     </>
   );
 
+  const SesSettings: FC = () => (
+    <>
+      <Text
+        color={TextColor.Default}
+        variant={TextVariant.HeadingLG}
+        style={styles.heading}
+      >
+        {strings('app_settings.security_heading')}
+      </Text>
+      <View style={styles.setting}>
+        <Text color={TextColor.Default} variant={TextVariant.BodyLGMedium}>
+          {/* {strings('experimental_settings.security_alerts')} */}
+          {'JavaScript'}
+        </Text>
+      </View>
+      <View style={styles.switchElement}>
+        <Text color={TextColor.Default} variant={TextVariant.BodyLGMedium}>
+          {'SES'}
+        </Text>
+        <Switch
+          value={sesEnabled}
+          onValueChange={toggleSesEnabled}
+          trackColor={{
+            true: colors.primary.default,
+            false: colors.border.muted,
+          }}
+          thumbColor={importedColors.white}
+          style={styles.switch}
+          ios_backgroundColor={colors.border.muted}
+        />
+      </View>
+    </>
+  );
+
   return (
     <ScrollView style={styles.wrapper}>
       <WalletConnectSettings />
+      <SesSettings />
       {isBlockaidFeatureEnabled() && <BlockaidSettings />}
     </ScrollView>
   );
