@@ -4,7 +4,7 @@ import PropTypes from 'prop-types';
 import { strings } from '../../../../../locales/i18n';
 import Alert, { AlertType } from '../../../Base/Alert';
 import Text from '../../../Base/Text';
-import { SEND_WARNING_MESSAGE } from '../../../../../wdio/screen-objects/testIDs/Screens/SendScreen.testIds';
+import { CommonSelectorsIDs } from '../../../../../e2e/selectors/Common.selectors';
 
 const styles = StyleSheet.create({
   button: {
@@ -19,13 +19,14 @@ const styles = StyleSheet.create({
 export default function ErrorMessage(props) {
   const { errorMessage, errorContinue, onContinue, isOnlyWarning } = props;
   return (
-    <Alert
-      type={isOnlyWarning ? AlertType.Info : AlertType.Error}
-      testID={SEND_WARNING_MESSAGE}
-    >
+    <Alert type={isOnlyWarning ? AlertType.Info : AlertType.Error}>
       {(textStyle) => (
         <View>
-          <Text small style={[textStyle, styles.errorMessage]}>
+          <Text
+            small
+            style={[textStyle, styles.errorMessage]}
+            testID={CommonSelectorsIDs.ERROR_MESSAGE}
+          >
             {errorMessage}
           </Text>
           {errorContinue && (

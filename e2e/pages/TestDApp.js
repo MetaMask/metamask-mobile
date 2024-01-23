@@ -1,10 +1,11 @@
 import TestHelpers from '../helpers';
 import { testDappConnectButtonCooridinates } from '../viewHelper';
 import ConnectModal from './modals/ConnectModal';
-import Browser from './Drawer/Browser';
+import Browser from './Browser';
 import root from '../../locales/languages/en.json';
 import { getLocalTestDappPort } from '../fixtures/utils';
 import { BrowserViewSelectorsIDs } from '../selectors/BrowserView.selectors';
+import Assertions from '../utils/Assertions';
 
 export const TEST_DAPP_LOCAL_URL = `http://localhost:${getLocalTestDappPort()}`;
 
@@ -17,7 +18,7 @@ export class TestDApp {
       BrowserViewSelectorsIDs.ANDROID_CONTAINER,
       testDappConnectButtonCooridinates,
     );
-    await ConnectModal.isVisible();
+    await Assertions.checkIfVisible(ConnectModal.container);
     await ConnectModal.tapConnectButton();
     await TestHelpers.delay(3000);
   }
@@ -92,8 +93,10 @@ export class TestDApp {
     );
 
     if (device.getPlatform() === 'android') {
-      await TestHelpers.waitForWebElementToBeVisibleById(buttonId, 5000);
-      await TestHelpers.tapWebviewElement(buttonId);
+      await TestHelpers.tapAtPoint(
+        BrowserViewSelectorsIDs.ANDROID_CONTAINER,
+        BUTTON_RELATIVE_PONT,
+      );
     } else {
       await TestHelpers.delay(5000);
       await TestHelpers.tapAtPoint(

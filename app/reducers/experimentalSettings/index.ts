@@ -1,21 +1,21 @@
 /* eslint-disable @typescript-eslint/default-param-last */
 
+import { PPOMInitialisationStatusType } from '@metamask/ppom-validator';
 import {
   ActionType,
   SetSecurityAlertsEnabled,
-  SetPPOMInitializedCompleted,
 } from '../../actions/experimental';
 
 const initialState = {
   securityAlertsEnabled: false,
-  ppomInitializationCompleted: false,
+  ppomInitialisationStatus: undefined,
 };
 
 const experimentalSettingsReducer = (
   state = initialState,
   action: {
     securityAlertsEnabled: SetSecurityAlertsEnabled;
-    ppomInitializationCompleted: typeof SetPPOMInitializedCompleted;
+    ppomInitialisationStatus: PPOMInitialisationStatusType;
     type: string;
   },
 ) => {
@@ -25,10 +25,10 @@ const experimentalSettingsReducer = (
         ...state,
         securityAlertsEnabled: action.securityAlertsEnabled,
       };
-    case ActionType.SET_PPOM_INITIALIZATION_COMPLETED:
+    case ActionType.SET_PPOM_INITIALIZATION_STATUS:
       return {
         ...state,
-        ppomInitializationCompleted: action.ppomInitializationCompleted,
+        ppomInitialisationStatus: action.ppomInitialisationStatus,
       };
     default:
       return state;

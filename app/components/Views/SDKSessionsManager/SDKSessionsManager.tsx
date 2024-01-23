@@ -6,16 +6,15 @@ import { strings } from '../../../../locales/i18n';
 import { useTheme } from '../../../util/theme';
 
 import { ThemeColors } from '@metamask/design-tokens/dist/js/themes/types';
-import ActionModal from '../../../components/UI/ActionModal';
-import { getNavigationOptionsTitle } from '../../../components/UI/Navbar';
-import {
-  ConnectionProps,
-  SDKConnect,
-} from '../../../core/SDKConnect/SDKConnect';
-import StyledButton from '../../UI/StyledButton';
-import SDKSessionItem from './SDKSessionItem';
 import { ThemeTypography } from '@metamask/design-tokens/dist/js/typography';
 import { SDKSelectorsIDs } from '../../../../e2e/selectors/Settings/SDK.selectors';
+import ActionModal from '../../../components/UI/ActionModal';
+import { getNavigationOptionsTitle } from '../../../components/UI/Navbar';
+import { AndroidClient } from '../../../core/SDKConnect/AndroidSDK/android-sdk-types';
+import { ConnectionProps } from '../../../core/SDKConnect/Connection';
+import { SDKConnect } from '../../../core/SDKConnect/SDKConnect';
+import StyledButton from '../../UI/StyledButton';
+import SDKSessionItem from './SDKSessionItem';
 
 interface Props {
   navigation: StackNavigationProp<{
@@ -72,9 +71,10 @@ const SDKSessionsManager = (props: Props) => {
   const { colors, typography } = useTheme();
   const styles = createStyles(colors, typography, safeAreaInsets);
   const [connections, setConnections] = useState<ConnectionProps[]>([]);
-  const [androidConnections, setAndroidConnections] = useState<
-    ConnectionProps[]
-  >([]);
+  const [connectedIds, setConnectedIds] = useState<string[]>([]);
+  const [androidConnections, setAndroidConnections] = useState<AndroidClient[]>(
+    [],
+  );
 
   const toggleClearMMSDKConnectionModal = () => {
     setShowClearMMSDKConnectionsModal((show) => !show);
@@ -83,23 +83,34 @@ const SDKSessionsManager = (props: Props) => {
   const clearMMSDKConnections = async () => {
     toggleClearMMSDKConnectionModal();
     sdk.removeAll();
-    setConnections([]);
   };
 
   useEffect(() => {
     const refreshSDKState = async () => {
       const _connections = sdk.getConnections();
+      const _connected = sdk.getConnected();
+      setConnectedIds(
+        Object.values(_connected)
+          .filter((connectionSource) => connectionSource.isReady)
+          .map((connectionSource) => connectionSource.channelId),
+      );
+
       const connectionsList = Object.values(_connections);
 
       try {
-        const _androidConnections = await sdk.loadAndroidConnections();
-        const androidConnectionsList = Object.values(_androidConnections);
-        setAndroidConnections(androidConnectionsList);
+        const _androidConnections = sdk.getAndroidConnections() ?? [];
+        setAndroidConnections(_androidConnections);
       } catch (error) {
         console.error('Failed to load Android connections:', error);
       }
       // Sort connection by validity
-      connectionsList.sort((a, b) => b.validUntil - a.validUntil);
+      connectionsList.sort((a, b) => {
+        // Provide a fallback value (e.g., 0) if 'validUntil' is undefined
+        const aValue = a.validUntil ?? 0;
+        const bValue = b.validUntil ?? 0;
+
+        return bValue - aValue;
+      });
       setConnections(connectionsList);
     };
 
@@ -110,7 +121,6 @@ const SDKSessionsManager = (props: Props) => {
         navigation,
         false,
         colors,
-        null,
       ),
     );
     sdk.on('refresh', () => {
@@ -126,8 +136,7 @@ const SDKSessionsManager = (props: Props) => {
   }, [sdk, colors, props]);
 
   const onDisconnect = (channelId: string) => {
-    setConnections([]);
-    sdk.removeChannel(channelId, true);
+    sdk.removeChannel({ channelId, sendTerminate: true, emitRefresh: true });
   };
 
   const renderMMSDKConnectionsModal = () => (
@@ -156,6 +165,7 @@ const SDKSessionsManager = (props: Props) => {
         {connections.map((sdkSession, _index) => (
           <SDKSessionItem
             key={sdkSession.id}
+            connected={connectedIds.includes(sdkSession.id)}
             connection={sdkSession}
             onDisconnect={(channelId: string) => {
               onDisconnect(channelId);
@@ -164,10 +174,14 @@ const SDKSessionsManager = (props: Props) => {
         ))}
         {androidConnections.map((androidSession, _index) => (
           <SDKSessionItem
-            key={androidSession.id}
-            connection={androidSession}
+            key={`${_index}_${androidSession.clientId}`}
+            connection={{
+              id: androidSession.clientId,
+              originatorInfo: androidSession.originatorInfo,
+            }}
+            connected={androidSession.connected}
             onDisconnect={(channelId: string) => {
-              sdk.removeAndroidConnection(channelId);
+              onDisconnect(channelId);
             }}
           />
         ))}
