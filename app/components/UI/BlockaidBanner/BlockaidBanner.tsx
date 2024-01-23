@@ -20,7 +20,6 @@ import Icon from '../../../component-library/components/Icons/Icon/Icon';
 import Text from '../../../component-library/components/Texts/Text/Text';
 import { useStyles } from '../../../component-library/hooks/useStyles';
 import { isBlockaidFeatureEnabled } from '../../../util/blockaid';
-import { NETWORKS_CHAIN_ID } from '../../../constants/network';
 import {
   ATTRIBUTION_LINE_TEST_ID,
   FALSE_POSITIVE_REPOST_LINE_TEST_ID,
