@@ -25,5 +25,5 @@ module.exports = {
       },
     },
   },
-  assets: ['./app/fonts/'],
+  assets: ['./app/fonts/', './app/lib/snaps/html/'],
 };

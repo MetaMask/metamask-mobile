@@ -106,7 +106,9 @@ import {
   buildSnapEndowmentSpecifications,
   buildSnapRestrictedMethodSpecifications,
   PersistedSnapControllerState,
+  WebviewExecutionService
 } from '@metamask/snaps-controllers';
+import { getSnapsWebViewPromise } from '../lib/snaps';
 import { EnumToUnion, Snap } from '@metamask/snaps-utils';
 import { DialogType, NotificationArgs } from '@metamask/snaps-rpc-methods';
 // eslint-disable-next-line import/no-nodejs-modules
@@ -144,7 +146,6 @@ import AnalyticsV2 from '../util/analyticsV2';
 ///: BEGIN:ONLY_INCLUDE_IF(snaps)
 import {
   SnapBridge,
-  WebviewExecutionService,
   ExcludedSnapEndowments,
   ExcludedSnapPermissions,
   detectSnapLocation,
@@ -744,6 +745,7 @@ class Engine {
         name: 'ExecutionService',
       }),
       setupSnapProvider: setupSnapProvider.bind(this),
+      getWebView: () => getSnapsWebViewPromise,
     });
 
     const snapControllerMessenger = this.controllerMessenger.getRestricted({
