@@ -1,0 +1,46 @@
+name: Check Bitrise E2E Smoke Tests
+
+on:
+  pull_request:
+    types: [ready_for_review, labeled]
+
+env:
+  E2E_LABEL: 'Run Smoke E2E'
+  E2E_PIPELINE: 'pr_smoke_e2e_pipeline'
+  WORKFLOW_NAME: 'check-bitrise-e2e-smoke'
+
+jobs:
+  check-bitrise-e2e-smoke:
+    runs-on: ubuntu-latest
+    permissions:
+      pull-requests: write
+      contents: write
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version-file: '.nvmrc'
+          cache: yarn
+
+      - name: Install Axios
+        run: yarn add axios
+
+      - name: Install dependencies
+        run: yarn --immutable
+
+      - name: Check E2E trigger
+        id: check-trigger
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: yarn run check-e2e-smoke-trigger
+
+      - name: Run Bitrise E2E
+        if: steps.check-trigger.outputs.shouldTriggerE2E == 'true'
+        env:
+          BITRISE_BUILD_TRIGGER_TOKEN: ${{ secrets.BITRISE_BUILD_TRIGGER_TOKEN }}
+          BITRISE_APP_ID: 'be69d4368ee7e86d'
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: yarn run run-bitrise-e2e-smoke
