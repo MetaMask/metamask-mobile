@@ -1294,6 +1294,14 @@
     reflect-metadata "^0.1.13"
     uuid "^9.0.0"
 
+"@craftzdog/react-native-buffer@^6.0.5":
+  version "6.0.5"
+  resolved "https://registry.yarnpkg.com/@craftzdog/react-native-buffer/-/react-native-buffer-6.0.5.tgz#0d4fbe0dd104186d2806655e3c0d25cebdae91d3"
+  integrity sha512-Av+YqfwA9e7jhgI9GFE/gTpwl/H+dRRLmZyJPOpKTy107j9Oj7oXlm3/YiMNz+C/CEGqcKAOqnXDLs4OL6AAFw==
+  dependencies:
+    ieee754 "^1.2.1"
+    react-native-quick-base64 "^2.0.5"
+
 "@cspotcode/source-map-support@^0.8.0":
   version "0.8.1"
   resolved "https://registry.yarnpkg.com/@cspotcode/source-map-support/-/source-map-support-0.8.1.tgz#00629c35a688e05a88b1cda684fb9d5e73f000a1"
@@ -3972,10 +3980,10 @@
     "@metamask/utils" "^5.0.0"
     readable-stream "3.6.2"
 
-"@metamask/ppom-validator@^0.18.0":
-  version "0.18.0"
-  resolved "https://registry.yarnpkg.com/@metamask/ppom-validator/-/ppom-validator-0.18.0.tgz#b54037df54720ebb8015de166ac3c559cbd53120"
-  integrity sha512-WNDW1Iw2Upqz37fvvp+QuBitP4PLe6KSTIioMltIFAYMhmLkFWGwmrmO8d5324bpAczarT5HFoM6dUOM4DrScw==
+"@metamask/ppom-validator@0.22.0":
+  version "0.22.0"
+  resolved "https://registry.yarnpkg.com/@metamask/ppom-validator/-/ppom-validator-0.22.0.tgz#24b3841ea0eed15f084e6e2cc32b23df99218999"
+  integrity sha512-SXaXs8O/hcCrggiqBzvkAGaXQtXwsK6GRcgaS4902s+51PwwPmr36G5+hqRoQPJe3nv6M5wSUVJaEO3tQJj74Q==
   dependencies:
     "@metamask/base-controller" "^3.0.0"
     "@metamask/controller-utils" "^8.0.1"
@@ -7138,7 +7146,7 @@
   resolved "https://registry.yarnpkg.com/@types/node/-/node-16.9.1.tgz#0611b37db4246c937feef529ddcc018cf8e35708"
   integrity sha512-QpLcX9ZSsq3YYUUnD3nFDY8H7wctAhQj/TFKL8Ya8v5fMm3CFXxo8zStsLAl780ltoYoo1WvKUVGBQK+1ifr7g==
 
-"@types/node@^17.0.21", "@types/node@^17.0.4":
+"@types/node@^17.0.21", "@types/node@^17.0.31", "@types/node@^17.0.4":
   version "17.0.45"
   resolved "https://registry.yarnpkg.com/@types/node/-/node-17.0.45.tgz#2c0fafd78705e7a18b7906b5201a522719dc5190"
   integrity sha512-w+tIMs3rq2afQdsPJlODhoUEKzFP1ayaoyl1CcnwtIlsVe7K7bA1NGm4s3PraqTLlXnbIN84zuBlxBWo1u9BLw==
@@ -10701,7 +10709,7 @@ browserify-rsa@^4.0.0, browserify-rsa@^4.1.0:
     bn.js "^5.0.0"
     randombytes "^2.0.1"
 
-browserify-sign@4.2.2, browserify-sign@^4.0.4:
+browserify-sign@4.2.2, browserify-sign@^4.0.0, browserify-sign@^4.0.4:
   version "4.2.2"
   resolved "https://registry.yarnpkg.com/browserify-sign/-/browserify-sign-4.2.2.tgz#e78d4b69816d6e3dd1c747e64e9947f9ad79bc7e"
   integrity sha512-1rudGyeYY42Dk6texmv7c4VcQ0EsvVbLwZkA+AQB7SxvXxmcD93jcHie8bzecJ+ChDlmAm2Qyu0+Ccg5uhZXCg==
@@ -12101,6 +12109,23 @@ crypt@0.0.2:
   version "0.0.2"
   resolved "https://registry.yarnpkg.com/crypt/-/crypt-0.0.2.tgz#88d7ff7ec0dfb86f713dc87bbb42d044d3e6c41b"
   integrity sha512-mCxBlsHFYh9C+HVpiEacem8FEBnMXgU9gy4zmNC+SXAZNB/1idgp/aulFJ4FgCi7GPEVbfyng092GqL2k2rmow==
+
+crypto-browserify@^3.12.0:
+  version "3.12.0"
+  resolved "https://registry.yarnpkg.com/crypto-browserify/-/crypto-browserify-3.12.0.tgz#396cf9f3137f03e4b8e532c58f698254e00f80ec"
+  integrity sha512-fz4spIh+znjO2VjL+IdhEpRJ3YN6sMzITSBijk6FK2UvTqruSQW+/cCZTSNsMiZNvUeq0CqurF+dAbyiGOY6Wg==
+  dependencies:
+    browserify-cipher "^1.0.0"
+    browserify-sign "^4.0.0"
+    create-ecdh "^4.0.0"
+    create-hash "^1.1.0"
+    create-hmac "^1.1.0"
+    diffie-hellman "^5.0.0"
+    inherits "^2.0.1"
+    pbkdf2 "^3.0.3"
+    public-encrypt "^4.0.0"
+    randombytes "^2.0.0"
+    randomfill "^1.0.3"
 
 crypto-js@4.2.0, crypto-js@^3.1.4, crypto-js@^4.2.0:
   version "4.2.0"
@@ -21826,7 +21851,7 @@ randombytes@^2.0.0, randombytes@^2.0.1, randombytes@^2.0.5, randombytes@^2.1.0:
   dependencies:
     safe-buffer "^5.1.0"
 
-randomfill@^1.0.4:
+randomfill@^1.0.3, randomfill@^1.0.4:
   version "1.0.4"
   resolved "https://registry.yarnpkg.com/randomfill/-/randomfill-1.0.4.tgz#c92196fc86ab42be983f1bf31778224931d61458"
   integrity sha512-87lcbR8+MhcWcUiQ+9e+Rwx8MyR2P7qnt15ynUlbm3TU/fjbgz4GsvfSUDTemtCCtVCqb4ZcEFlyPNTh9bBTLw==
@@ -22039,6 +22064,11 @@ react-native-background-timer@2.1.1:
   resolved "https://registry.yarnpkg.com/react-native-background-timer/-/react-native-background-timer-2.1.1.tgz#9a2489681ab2f8033c213c73272e9d4c47572cd5"
   integrity sha512-cuXIIv+dcG8a8qkTD8pMzeqOEZCO+UGKglZWIe1osve+yJslmCowYQff+bI9xa7NOt2w+Vtd4L3d9JonlSqODg==
 
+react-native-blob-jsi-helper@^0.3.1:
+  version "0.3.1"
+  resolved "https://registry.yarnpkg.com/react-native-blob-jsi-helper/-/react-native-blob-jsi-helper-0.3.1.tgz#582d982d76c1b51aa259b1c569aade4cfc148694"
+  integrity sha512-/stY23PFePcJMwQsnnySLC4aNWiJnje0i/9tQFK6JCFOE8QclgWvCvUITS5Im0SO8mR3VzDLwAhbppWBjYWpLA==
+
 react-native-branch@^5.6.2:
   version "5.6.2"
   resolved "https://registry.yarnpkg.com/react-native-branch/-/react-native-branch-5.6.2.tgz#c3ec137a5427a21fcd6559b83f02e6162ea627f6"
@@ -22140,10 +22170,10 @@ react-native-flash-message@0.1.11:
     prop-types "^15.7.2"
     react-native-iphone-x-helper "^1.2.0"
 
-react-native-fs@^2.16.6:
-  version "2.18.0"
-  resolved "https://registry.yarnpkg.com/react-native-fs/-/react-native-fs-2.18.0.tgz#987b99cc90518ef26663a8d60e62104694b41c21"
-  integrity sha512-9iQhkUNnN2JNED0in06JwZy88YEVyIGKWz4KLlQYxa5Y2U0U2AZh9FUHtA04oWj+xt2LlHh0LFPCzhmNsAsUDg==
+react-native-fs@^2.20.0:
+  version "2.20.0"
+  resolved "https://registry.yarnpkg.com/react-native-fs/-/react-native-fs-2.20.0.tgz#05a9362b473bfc0910772c0acbb73a78dbc810f6"
+  integrity sha512-VkTBzs7fIDUiy/XajOSNk0XazFE9l+QlMAce7lGuebZcag5CnjszB+u4BdqzwaQOdcYb5wsJIsqq4kxInIRpJQ==
   dependencies:
     base-64 "^0.1.0"
     utf8 "^3.0.0"
@@ -22247,6 +22277,11 @@ react-native-material-textfield@0.16.1:
   dependencies:
     prop-types "^15.5.9"
 
+react-native-mmkv@^2.11.0:
+  version "2.11.0"
+  resolved "https://registry.yarnpkg.com/react-native-mmkv/-/react-native-mmkv-2.11.0.tgz#51b9985f6a5c09fe9c16d8c1861cc2901856ace1"
+  integrity sha512-28PdUHjZJmAw3q+8zJDAAdohnZMpDC7WgRUJxACOMkcmJeqS3u5cKS/lSq2bhf1CvaeIiHYHUWiyatUjMRCDQQ==
+
 react-native-modal-datetime-picker@^14.0.0:
   version "14.0.1"
   resolved "https://registry.yarnpkg.com/react-native-modal-datetime-picker/-/react-native-modal-datetime-picker-14.0.1.tgz#d9c6df4ff85bf1cfbe108c756dc26dcca4cc5f2f"
@@ -22313,6 +22348,26 @@ react-native-qrcode-svg@5.1.2:
   dependencies:
     prop-types "^15.5.10"
     qrcode "^1.2.0"
+
+react-native-quick-base64@^2.0.5, react-native-quick-base64@^2.0.8:
+  version "2.0.8"
+  resolved "https://registry.yarnpkg.com/react-native-quick-base64/-/react-native-quick-base64-2.0.8.tgz#7a75ea8bd85ca3c5bb38a814c1d63e0688e19531"
+  integrity sha512-2kMlnLSy0qz4NA0KXMGugd3qNB5EAizxZ6ghEVNGIxAOlc9CGvC8miv35wgpFbSKeiaBRfcPfkdTM/5Erb/6SQ==
+  dependencies:
+    base64-js "^1.5.1"
+
+react-native-quick-crypto@^0.6.1:
+  version "0.6.1"
+  resolved "https://registry.yarnpkg.com/react-native-quick-crypto/-/react-native-quick-crypto-0.6.1.tgz#7b89c67c4a5d3669c4491fe7884621c1c74d01bc"
+  integrity sha512-s6uFo7tcI3syo8/y5j+t6Rf+KVSuRKDp6tH04A0vjaHptJC6Iu7DVgkNYO7aqtfrYn8ZUgQ/Kqaq+m4i9TxgIQ==
+  dependencies:
+    "@craftzdog/react-native-buffer" "^6.0.5"
+    "@types/node" "^17.0.31"
+    crypto-browserify "^3.12.0"
+    events "^3.3.0"
+    react-native-quick-base64 "^2.0.5"
+    stream-browserify "^3.0.0"
+    string_decoder "^1.3.0"
 
 react-native-randombytes@^3.5.3:
   version "3.6.1"
@@ -24341,7 +24396,7 @@ store2@^2.12.0, store2@^2.14.2, store2@^2.7.1:
   resolved "https://registry.yarnpkg.com/store2/-/store2-2.14.2.tgz#56138d200f9fe5f582ad63bc2704dbc0e4a45068"
   integrity sha512-siT1RiqlfQnGqgT/YzXVUNsom9S0H1OX+dpdGN1xkyYATo4I6sep5NmsRD/40s3IIOvlCq6akxkqG82urIZW1w==
 
-stream-browserify@3.0.0:
+stream-browserify@3.0.0, stream-browserify@^3.0.0:
   version "3.0.0"
   resolved "https://registry.yarnpkg.com/stream-browserify/-/stream-browserify-3.0.0.tgz#22b0a2850cdf6503e73085da1fc7b7d0c2122f2f"
   integrity sha512-H73RAHsVBapbim0tU2JwwOiXUj+fikfiaoYAKHF3VJfA0pe2BCzkhAHBlLG6REzE+2WNZcxOXjK7lkso+9euLA==
@@ -24517,7 +24572,7 @@ string.prototype.trimstart@^1.0.7:
     define-properties "^1.2.0"
     es-abstract "^1.22.1"
 
-string_decoder@^1.1.1:
+string_decoder@^1.1.1, string_decoder@^1.3.0:
   version "1.3.0"
   resolved "https://registry.yarnpkg.com/string_decoder/-/string_decoder-1.3.0.tgz#42f114594a46cf1a8e30b0a84f56c78c3edac21e"
   integrity sha512-hkRX8U1WjJFd8LsDJ2yQ/wWWxaopEsABU1XfkM8A+j0+85JAGppt16cr1Whg6KIbb4okU6Mql6BOj+uup/wKeA==
