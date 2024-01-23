@@ -1,4 +1,3 @@
-/* eslint-disable no-console */
 /* eslint-disable @typescript-eslint/no-var-requires */
 /* eslint-disable @typescript-eslint/no-require-imports */
 /* eslint-disable import/no-commonjs */
@@ -7,6 +6,7 @@ import React, { Component, RefObject } from 'react';
 import { View, ScrollView, Platform } from 'react-native';
 import WebView, { WebViewMessageEvent } from 'react-native-webview';
 import { createStyles } from './styles';
+import { WebViewInterface } from '@metamask/snaps-controllers/dist/types/services/webview/WebViewMessageStream';
 
 const sourceUri =
   (Platform.OS === 'android' ? 'file:///android_asset/' : '') +
@@ -24,13 +24,15 @@ interface SnapsExecutionWebViewProps {
 // This is a hack to allow us to asynchronously await the creation of the WebView.
 let resolveGetWebView: (arg0: SnapsExecutionWebViewProps) => void;
 
-export const getSnapsWebViewPromise = new Promise((resolve, reject) => {
-  try {
-    resolveGetWebView = resolve;
-  } catch (error) {
-    reject(error);
-  }
-});
+export const getSnapsWebViewPromise = new Promise<WebViewInterface>(
+  (resolve, reject) => {
+    try {
+      resolveGetWebView = resolve;
+    } catch (error) {
+      reject(error);
+    }
+  },
+);
 
 // This is a class component because storing the references we are don't work in functional components.
 export class SnapsExecutionWebView extends Component {
@@ -41,7 +43,7 @@ export class SnapsExecutionWebView extends Component {
     super(props);
   }
 
-  setWebViewRef(ref) {
+  setWebViewRef(ref: React.RefObject<WebView<{ any: any }>> | null) {
     this.webViewRef = ref;
   }
 
@@ -64,7 +66,7 @@ export class SnapsExecutionWebView extends Component {
   onWebViewError() {
     attempts++;
     if (attempts < 2) {
-      this.webViewRef?.reload();
+      this.webViewRef?.current?.reload();
     }
   }
 
@@ -79,7 +81,9 @@ export class SnapsExecutionWebView extends Component {
       <ScrollView>
         <View style={styles.webview}>
           <WebView
-            ref={this.setWebViewRef}
+            ref={
+              this.setWebViewRef as unknown as React.RefObject<WebView> | null
+            }
             source={{ uri: sourceUri }}
             onMessage={this.onWebViewMessage}
             onError={this.onWebViewError}
