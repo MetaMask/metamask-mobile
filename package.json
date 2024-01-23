@@ -93,7 +93,8 @@
     "check-template-and-add-labels": "ts-node ./.github/scripts/check-template-and-add-labels.ts",
     "patch:tx": "./scripts/patch-transaction-controller.sh",
     "storybook-generate": "sb-rn-get-stories",
-    "storybook-watch": "sb-rn-watcher"
+    "storybook-watch": "sb-rn-watcher",
+    "bump-build": "./scripts/bump-build.sh"
   },
   "husky": {
     "hooks": {
