@@ -5,7 +5,6 @@ import { useNavigation } from '@react-navigation/native';
 import { BN } from 'ethereumjs-util';
 import { SellOrder } from '@consensys/on-ramp-sdk/dist/API';
 import { Transaction, WalletDevice } from '@metamask/transaction-controller';
-import Engine from '../../../../../../core/Engine';
 
 import Row from '../../components/Row';
 import ScreenLayout from '../../components/ScreenLayout';
@@ -46,6 +45,7 @@ import {
   fromTokenMinimalUnitString,
   toTokenMinimalUnit,
 } from '../../../../../../util/number';
+import { addTransaction } from '../../../../../../util/transaction-controller';
 import { strings } from '../../../../../../../locales/i18n';
 import { useStyles } from '../../../../../../component-library/hooks';
 
@@ -110,8 +110,6 @@ function SendTransaction() {
   }, [trackEvent, transactionAnalyticsPayload]);
 
   const handleSend = useCallback(async () => {
-    const { TransactionController: TxController } = Engine.context;
-
     let transactionParams: Transaction;
     const amount = addHexPrefix(
       new BN(
@@ -145,7 +143,7 @@ function SendTransaction() {
         'OFFRAMP_SEND_TRANSACTION_INVOKED',
         transactionAnalyticsPayload,
       );
-      const response = await TxController.addTransaction(transactionParams, {
+      const response = await addTransaction(transactionParams, {
         deviceConfirmedOn: WalletDevice.MM_MOBILE,
       });
       const hash = await response.result;

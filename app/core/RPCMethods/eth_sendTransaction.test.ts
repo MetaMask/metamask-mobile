@@ -61,7 +61,7 @@ function constructPendingJsonRpcResponse(): PendingJsonRpcResponse<unknown> {
 }
 
 /**
- * Get a mock implementation of `TransactionController.addTransaction`.
+ * Get a mock implementation of `addTransaction`.
  *
  * A return value or some type of error must be provided.
  *

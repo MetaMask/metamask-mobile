@@ -104,9 +104,10 @@ import { isNetworkRampNativeTokenSupported } from '../../../UI/Ramp/common/utils
 import { getRampNetworks } from '../../../../reducers/fiatOrders';
 import CustomGasModal from '../../../UI/CustomGasModal';
 import { ConfirmViewSelectorsIDs } from '../../../../../e2e/selectors/SendFlow/ConfirmView.selectors';
-import ExtendedKeyringTypes from '../../../..//constants/keyringTypes';
+import ExtendedKeyringTypes from '../../../../constants/keyringTypes';
 import { getLedgerKeyring } from '../../../../core/Ledger/Ledger';
 import { createLedgerTransactionModalNavDetails } from '../../../UI/LedgerModals/LedgerTransactionModal';
+import { addTransaction } from '../../../../util/transaction-controller';
 
 const EDIT = 'edit';
 const EDIT_NONCE = 'edit_nonce';
@@ -709,8 +710,7 @@ class Confirm extends PureComponent {
   };
 
   onNext = async () => {
-    const { TransactionController, KeyringController, ApprovalController } =
-      Engine.context;
+    const { KeyringController, ApprovalController } = Engine.context;
     const {
       transactionState: { assetType },
       navigation,
@@ -745,11 +745,10 @@ class Confirm extends PureComponent {
         return;
       }
 
-      const { result, transactionMeta } =
-        await TransactionController.addTransaction(transaction, {
-          deviceConfirmedOn: WalletDevice.MM_MOBILE,
-          origin: TransactionTypes.MMM,
-        });
+      const { result, transactionMeta } = await addTransaction(transaction, {
+        deviceConfirmedOn: WalletDevice.MM_MOBILE,
+        origin: TransactionTypes.MMM,
+      });
 
       const isLedgerAccount = isHardwareAccount(transaction.from, [
         ExtendedKeyringTypes.ledger,
