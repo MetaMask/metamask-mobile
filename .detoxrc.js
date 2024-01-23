@@ -3,7 +3,7 @@ const { execSync } = require('child_process');
 const  getAvailableAVDs = (() => {
   try {
     // Run the command to list available AVDs
-    const outputList = execSync('emulatora -list-avds').toString();
+    const outputList = execSync('emulator -list-avds').toString();
   
     // Parse the output and return an array of AVD names
      const avdNames = outputList.trim().split('\n');
