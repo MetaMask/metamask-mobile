@@ -26,8 +26,8 @@ const useBlockExplorer = () => {
       } else {
         accountLink = getEtherscanAddressUrl(type, address);
       }
-      navigation.navigate('Webview', {
-        screen: 'SimpleWebview',
+      navigation.navigate(Routes.WEBVIEW.MAIN, {
+        screen: Routes.WEBVIEW.SIMPLE,
         params: {
           url: accountLink,
         },
