@@ -1,3 +1,4 @@
+/* eslint-disable no-console */
 /* eslint-disable @typescript-eslint/no-var-requires */
 /* eslint-disable @typescript-eslint/no-require-imports */
 /* eslint-disable import/no-commonjs */
@@ -11,7 +12,6 @@ const sourceUri =
   (Platform.OS === 'android' ? 'file:///android_asset/' : '') +
   'web.bundle/index.html';
 
-let EE = sourceUri;
 let attempts = 0;
 
 const styles = createStyles();
@@ -23,8 +23,13 @@ interface SnapsExecutionWebViewProps {
 }
 // This is a hack to allow us to asynchronously await the creation of the WebView.
 let resolveGetWebView: (arg0: SnapsExecutionWebViewProps) => void;
-export const getSnapsWebViewPromise = new Promise((resolve) => {
-  resolveGetWebView = resolve;
+
+export const getSnapsWebViewPromise = new Promise((resolve, reject) => {
+  try {
+    resolveGetWebView = resolve;
+  } catch (error) {
+    reject(error);
+  }
 });
 
 // This is a class component because storing the references we are don't work in functional components.
@@ -59,8 +64,6 @@ export class SnapsExecutionWebView extends Component {
   onWebViewError() {
     attempts++;
     if (attempts < 2) {
-      // TODO: This should point to a AWS S3 bucket as a fallback.
-      EE = 'https://jonathansoufer.github.io/';
       this.webViewRef?.reload();
     }
   }
@@ -77,7 +80,7 @@ export class SnapsExecutionWebView extends Component {
         <View style={styles.webview}>
           <WebView
             ref={this.setWebViewRef}
-            source={{ uri: EE }}
+            source={{ uri: sourceUri }}
             onMessage={this.onWebViewMessage}
             onError={this.onWebViewError}
             onLoadEnd={this.onWebViewLoad}
