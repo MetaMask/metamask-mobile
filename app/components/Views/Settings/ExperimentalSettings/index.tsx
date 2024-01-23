@@ -1,5 +1,5 @@
 import React, { FC, useCallback, useEffect, useState } from 'react';
-import { ScrollView, Switch, View } from 'react-native';
+import { Platform, ScrollView, Switch, View } from 'react-native';
 
 import { MMKV } from 'react-native-mmkv';
 import { strings } from '../../../../../locales/i18n';
@@ -213,7 +213,7 @@ const ExperimentalSettings = ({ navigation, route }: Props) => {
   return (
     <ScrollView style={styles.wrapper}>
       <WalletConnectSettings />
-      <SesSettings />
+      {Platform.OS === 'ios' && <SesSettings />}
       {isBlockaidFeatureEnabled() && <BlockaidSettings />}
     </ScrollView>
   );
