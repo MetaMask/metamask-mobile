@@ -120,6 +120,15 @@ export const BLOCKAID_SUPPORTED_CHAIN_IDS = [
   NETWORKS_CHAIN_ID.LINEA_MAINNET,
 ];
 
+export const BLOCKAID_SUPPORTED_NETWORK_NAMES = {
+  [NETWORKS_CHAIN_ID.MAINNET]: 'Ethereum Mainnet',
+  [NETWORKS_CHAIN_ID.BSC]: 'Binance Smart Chain',
+  [NETWORKS_CHAIN_ID.OPTIMISM]: 'Optimism',
+  [NETWORKS_CHAIN_ID.POLYGON]: 'Polygon',
+  [NETWORKS_CHAIN_ID.ARBITRUM]: 'Arbitrum',
+  [NETWORKS_CHAIN_ID.LINEA_MAINNET]: 'Linea',
+};
+
 export default NetworkList;
 
 export const getAllNetworks = () =>
