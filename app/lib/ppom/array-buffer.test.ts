@@ -1,4 +1,4 @@
-import { base64toArrayBuffer, arrayBufferToBase64 } from './array-buffer';
+import { arrayBufferToBase64, base64toArrayBuffer } from './array-buffer';
 
 describe('ArrayBuffer', () => {
   it('should correclly inter-convert string to arrayBuffer', () => {
