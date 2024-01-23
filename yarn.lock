@@ -1280,17 +1280,16 @@
   resolved "https://registry.yarnpkg.com/@colors/colors/-/colors-1.6.0.tgz#ec6cd237440700bc23ca23087f513c75508958b0"
   integrity sha512-Ir+AOibqzrIsL6ajt3Rz3LskB7OiMVHqltZmspbW/TJuTVuyOMirVqAkjfY6JISiLHgyNqicAC8AyHHGzNd/dA==
 
-"@consensys/on-ramp-sdk@1.25.6":
-  version "1.25.6"
-  resolved "https://registry.yarnpkg.com/@consensys/on-ramp-sdk/-/on-ramp-sdk-1.25.6.tgz#bf61b7e4a037a7fecf9c80b456d5407351f44df1"
-  integrity sha512-Od6c7+DcFAfH1M2d0076QEEUvj+Vdf6PiOsN3sTx/3QBvmSLqP4bICs4vq00K7XlR13QBMaGBRF2DKjO8D9fOw==
+"@consensys/on-ramp-sdk@1.25.7":
+  version "1.25.7"
+  resolved "https://registry.yarnpkg.com/@consensys/on-ramp-sdk/-/on-ramp-sdk-1.25.7.tgz#3e282968389683abcec6216ff2a3eb9eda749088"
+  integrity sha512-/Nv7WKJ5whrv0RLX5mnmz9TgMnyRFptbHs0Jq16oEuRUtEEJSwUuJkzB9A4E/1q18gvLwhMute4Trvm32moukg==
   dependencies:
     async "^3.2.3"
     axios "^0.27.0"
     axios-retry "^3.1.2"
     crypto-js "^4.2.0"
     jsonpath-plus "^7.2.0"
-    lodash "^4.17.21"
     reflect-metadata "^0.1.13"
     uuid "^9.0.0"
 
