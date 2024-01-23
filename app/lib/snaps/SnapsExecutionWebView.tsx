@@ -3,16 +3,15 @@
 /* eslint-disable import/no-commonjs */
 ///: BEGIN:ONLY_INCLUDE_IF(snaps)
 import React, { Component, RefObject } from 'react';
-import { View, ScrollView, Platform } from 'react-native';
+import { View, ScrollView, Platform, NativeSyntheticEvent } from 'react-native';
 import WebView, { WebViewMessageEvent } from 'react-native-webview';
 import { createStyles } from './styles';
 import { WebViewInterface } from '@metamask/snaps-controllers/dist/types/services/webview/WebViewMessageStream';
+import { WebViewError } from 'react-native-webview/lib/WebViewTypes';
 
 const sourceUri =
   (Platform.OS === 'android' ? 'file:///android_asset/' : '') +
   'web.bundle/index.html';
-
-let attempts = 0;
 
 const styles = createStyles();
 
@@ -23,14 +22,12 @@ interface SnapsExecutionWebViewProps {
 }
 // This is a hack to allow us to asynchronously await the creation of the WebView.
 let resolveGetWebView: (arg0: SnapsExecutionWebViewProps) => void;
+let rejectGetWebView: (error: NativeSyntheticEvent<WebViewError>) => void;
 
 export const getSnapsWebViewPromise = new Promise<WebViewInterface>(
   (resolve, reject) => {
-    try {
-      resolveGetWebView = resolve;
-    } catch (error) {
-      reject(error);
-    }
+    resolveGetWebView = resolve;
+    rejectGetWebView = reject;
   },
 );
 
@@ -63,11 +60,8 @@ export class SnapsExecutionWebView extends Component {
     resolveGetWebView(api);
   }
 
-  onWebViewError() {
-    attempts++;
-    if (attempts < 2) {
-      this.webViewRef?.current?.reload();
-    }
+  onWebViewError(error: NativeSyntheticEvent<WebViewError>) {
+    rejectGetWebView(error);
   }
 
   onWebViewMessage(data: WebViewMessageEvent) {
@@ -78,7 +72,7 @@ export class SnapsExecutionWebView extends Component {
 
   render() {
     return (
-      <ScrollView>
+      <ScrollView testID={'load-snap-webview'}>
         <View style={styles.webview}>
           <WebView
             ref={
