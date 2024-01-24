@@ -118,61 +118,62 @@ Array [
             }
           }
         >
-          JavaScript
+          Lockdown
         </Text>
-      </View>
-      <View
-        style={
-          Object {
-            "alignItems": "center",
-            "display": "flex",
-            "flexDirection": "row",
-            "justifyContent": "space-between",
-          }
-        }
-      >
-        <Text
-          accessibilityRole="text"
+        <View
           style={
             Object {
-              "color": "#24272A",
-              "fontFamily": "Euclid Circular B",
-              "fontSize": 16,
-              "fontWeight": "500",
-              "letterSpacing": 0,
-              "lineHeight": 24,
+              "alignItems": "center",
+              "display": "flex",
+              "flexDirection": "row",
+              "justifyContent": "space-between",
             }
           }
         >
-          SES
-        </Text>
-        <RCTSwitch
-          accessibilityRole="switch"
-          onChange={[Function]}
-          onResponderTerminationRequest={[Function]}
-          onStartShouldSetResponder={[Function]}
-          onTintColor="#0376C9"
-          style={
-            Array [
+          <Text
+            accessibilityRole="text"
+            style={
               Object {
-                "height": 31,
-                "width": 51,
-              },
+                "color": "#535A61",
+                "fontFamily": "Euclid Circular B",
+                "fontSize": 14,
+                "fontWeight": "400",
+                "letterSpacing": 0,
+                "lineHeight": 22,
+                "marginTop": 8,
+              }
+            }
+          >
+            This feature prevents dynamic modification of JavaScript running in the application.
+          </Text>
+          <RCTSwitch
+            accessibilityRole="switch"
+            onChange={[Function]}
+            onResponderTerminationRequest={[Function]}
+            onStartShouldSetResponder={[Function]}
+            onTintColor="#0376C9"
+            style={
               Array [
                 Object {
-                  "alignSelf": "flex-end",
+                  "height": 31,
+                  "width": 51,
                 },
-                Object {
-                  "backgroundColor": "#D6D9DC",
-                  "borderRadius": 16,
-                },
-              ],
-            ]
-          }
-          thumbTintColor="#FFFFFF"
-          tintColor="#D6D9DC"
-          value={false}
-        />
+                Array [
+                  Object {
+                    "alignSelf": "flex-end",
+                  },
+                  Object {
+                    "backgroundColor": "#D6D9DC",
+                    "borderRadius": 16,
+                  },
+                ],
+              ]
+            }
+            thumbTintColor="#FFFFFF"
+            tintColor="#D6D9DC"
+            value={false}
+          />
+        </View>
       </View>
       <Text
         accessibilityRole="text"
@@ -440,61 +441,62 @@ Array [
             }
           }
         >
-          JavaScript
+          Lockdown
         </Text>
-      </View>
-      <View
-        style={
-          Object {
-            "alignItems": "center",
-            "display": "flex",
-            "flexDirection": "row",
-            "justifyContent": "space-between",
-          }
-        }
-      >
-        <Text
-          accessibilityRole="text"
+        <View
           style={
             Object {
-              "color": "#24272A",
-              "fontFamily": "Euclid Circular B",
-              "fontSize": 16,
-              "fontWeight": "500",
-              "letterSpacing": 0,
-              "lineHeight": 24,
+              "alignItems": "center",
+              "display": "flex",
+              "flexDirection": "row",
+              "justifyContent": "space-between",
             }
           }
         >
-          SES
-        </Text>
-        <RCTSwitch
-          accessibilityRole="switch"
-          onChange={[Function]}
-          onResponderTerminationRequest={[Function]}
-          onStartShouldSetResponder={[Function]}
-          onTintColor="#0376C9"
-          style={
-            Array [
+          <Text
+            accessibilityRole="text"
+            style={
               Object {
-                "height": 31,
-                "width": 51,
-              },
+                "color": "#535A61",
+                "fontFamily": "Euclid Circular B",
+                "fontSize": 14,
+                "fontWeight": "400",
+                "letterSpacing": 0,
+                "lineHeight": 22,
+                "marginTop": 8,
+              }
+            }
+          >
+            This feature prevents dynamic modification of JavaScript running in the application.
+          </Text>
+          <RCTSwitch
+            accessibilityRole="switch"
+            onChange={[Function]}
+            onResponderTerminationRequest={[Function]}
+            onStartShouldSetResponder={[Function]}
+            onTintColor="#0376C9"
+            style={
               Array [
                 Object {
-                  "alignSelf": "flex-end",
+                  "height": 31,
+                  "width": 51,
                 },
-                Object {
-                  "backgroundColor": "#D6D9DC",
-                  "borderRadius": 16,
-                },
-              ],
-            ]
-          }
-          thumbTintColor="#FFFFFF"
-          tintColor="#D6D9DC"
-          value={false}
-        />
+                Array [
+                  Object {
+                    "alignSelf": "flex-end",
+                  },
+                  Object {
+                    "backgroundColor": "#D6D9DC",
+                    "borderRadius": 16,
+                  },
+                ],
+              ]
+            }
+            thumbTintColor="#FFFFFF"
+            tintColor="#D6D9DC"
+            value={false}
+          />
+        </View>
       </View>
       <Text
         accessibilityRole="text"
