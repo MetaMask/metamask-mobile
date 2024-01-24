@@ -9,7 +9,7 @@ const  getAvailableAVDs = (() => {
      const avdNames = outputList.trim().split('\n');
 
     if (avdNames.length === 0) {
-      throw new Error('No Android emulators found.');
+      console.log('No Android emulators found.');
     }
     return avdNames
  
