@@ -1,7 +1,7 @@
 import React, { FC, useCallback, useEffect, useState } from 'react';
 import { Platform, ScrollView, Switch, View } from 'react-native';
 
-import { MMKV } from 'react-native-mmkv';
+import DefaultPreference from 'react-native-default-preference';
 import { strings } from '../../../../../locales/i18n';
 import Engine from '../../../../core/Engine';
 import { colors as importedColors } from '../../../../styles/common';
@@ -28,8 +28,6 @@ import Button, {
   ButtonWidthTypes,
 } from '../../../../component-library/components/Buttons/Button';
 
-const storage = new MMKV(); // id: mmkv.default
-
 /**
  * Main view for app Experimental Settings
  */
@@ -41,14 +39,19 @@ const ExperimentalSettings = ({ navigation, route }: Props) => {
 
   const securityAlertsEnabled = useSelector(selectIsSecurityAlertsEnabled);
 
-  const [sesEnabled, setSesEnabled] = useState(
-    storage.getBoolean('is-ses-enabled'),
-  );
+  const [sesEnabled, setSesEnabled] = useState<string>();
 
   const toggleSesEnabled = () => {
-    storage.set('is-ses-enabled', !sesEnabled);
-    setSesEnabled(!sesEnabled);
+    if (sesEnabled === 'false') {
+      DefaultPreference.set('sesEnabled', 'true');
+      setSesEnabled('true');
+    } else {
+      DefaultPreference.set('sesEnabled', 'false');
+      setSesEnabled('false');
+    }
   };
+
+  console.log(sesEnabled);
 
   const isFullScreenModal = route?.params?.isFullScreenModal;
 
@@ -70,6 +73,12 @@ const ExperimentalSettings = ({ navigation, route }: Props) => {
       });
     }
   };
+
+  useEffect(() => {
+    DefaultPreference.get('sesEnabled').then((isSesEnabled) => {
+      setSesEnabled(isSesEnabled);
+    });
+  }, []);
 
   useEffect(() => {
     dispatch(UpdatePPOMInitializationStatus());
@@ -198,7 +207,7 @@ const ExperimentalSettings = ({ navigation, route }: Props) => {
             {strings('app_settings.ses_description')}
           </Text>
           <Switch
-            value={sesEnabled}
+            value={sesEnabled === 'true'}
             onValueChange={toggleSesEnabled}
             trackColor={{
               true: colors.primary.default,
