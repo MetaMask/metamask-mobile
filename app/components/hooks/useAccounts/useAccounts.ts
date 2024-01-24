@@ -127,12 +127,11 @@ const useAccounts = ({
         type,
       }: { accounts: string[]; type: KeyringTypes } = keyring;
       for (const index in accountAddresses) {
-        const address = accountAddresses[index];
-        const isSelected = selectedAddress === address;
+        const checksummedAddress = toChecksumAddress(accountAddresses[index]);
+        const isSelected = selectedAddress === checksummedAddress;
         if (isSelected) {
           selectedIndex = result.length;
         }
-        const checksummedAddress = toChecksumAddress(address);
         const identity = identities[checksummedAddress];
         if (!identity) continue;
         const { name } = identity;
