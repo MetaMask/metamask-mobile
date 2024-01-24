@@ -1,5 +1,4 @@
 import { renderHook } from '@testing-library/react-hooks';
-import { renderHookWithProvider } from '../../../../util/test/renderWithProvider';
 import Engine from '../../../../core/Engine';
 import { IAccount, useAccountsBalance } from './hooks';
 
