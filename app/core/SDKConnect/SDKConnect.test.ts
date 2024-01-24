@@ -4,7 +4,6 @@ import AppConstants from '../AppConstants';
 import addAndroidConnection from './AndroidSDK/addAndroidConnection';
 import bindAndroidSDK from './AndroidSDK/bindAndroidSDK';
 import loadAndroidConnections from './AndroidSDK/loadAndroidConnections';
-import removeAndroidConnection from './AndroidSDK/removeAndroidConnection';
 import { Connection, ConnectionProps } from './Connection';
 import {
   approveHost,
@@ -41,7 +40,6 @@ jest.mock('./AndroidSDK/AndroidService');
 jest.mock('./AndroidSDK/addAndroidConnection');
 jest.mock('./AndroidSDK/bindAndroidSDK');
 jest.mock('./AndroidSDK/loadAndroidConnections');
-jest.mock('./AndroidSDK/removeAndroidConnection');
 jest.mock('./ConnectionManagement');
 jest.mock('./InitializationManagement');
 jest.mock('./RPCQueueManager');
@@ -120,11 +118,6 @@ describe('SDKConnect', () => {
   const mockAddAndroidConnection = addAndroidConnection as jest.MockedFunction<
     typeof addAndroidConnection
   >;
-
-  const mockRemoveAndroidConnection =
-    removeAndroidConnection as jest.MockedFunction<
-      typeof removeAndroidConnection
-    >;
 
   beforeEach(() => {
     jest.clearAllMocks();
@@ -247,7 +240,7 @@ describe('SDKConnect', () => {
       it('should remove a specified channel', async () => {
         const channelId = 'testChannelId';
 
-        await sdkConnect.removeChannel(channelId);
+        await sdkConnect.removeChannel({ channelId });
 
         expect(mockRemoveChannel).toHaveBeenCalledTimes(1);
         expect(mockRemoveChannel).toHaveBeenCalledWith({
@@ -337,20 +330,6 @@ describe('SDKConnect', () => {
         expect(mockAddAndroidConnection).toHaveBeenCalledTimes(1);
         expect(mockAddAndroidConnection).toHaveBeenCalledWith(
           testConnection,
-          sdkConnect,
-        );
-      });
-    });
-
-    describe('removeAndroidConnection', () => {
-      it('should remove an Android connection', () => {
-        const id = 'testId';
-
-        sdkConnect.removeAndroidConnection(id);
-
-        expect(mockRemoveAndroidConnection).toHaveBeenCalledTimes(1);
-        expect(mockRemoveAndroidConnection).toHaveBeenCalledWith(
-          id,
           sdkConnect,
         );
       });

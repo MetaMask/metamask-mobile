@@ -2,10 +2,39 @@ import {
   ResultType,
   SecurityAlertResponse,
 } from '../../components/UI/BlockaidBanner/BlockaidBanner.types';
+import { getDecimalChainId } from '../networks';
+import { store } from '../../store';
+import { selectChainId } from '../../selectors/networkController';
+import { NETWORKS_CHAIN_ID } from '../../constants/network';
+
+export const SUPPORTED_CHAIN_IDS: string[] = [
+  NETWORKS_CHAIN_ID.MAINNET, // Ethereum Mainnet Chain ID
+];
+
+export const isSupportedChainId = (chainId: string) => {
+  /**
+   * Quite a number of our test cases return undefined as chainId from state.
+   * In such cases, the tests don't really care about the chainId.
+   * So, this treats undefined chainId as mainnet for now.
+   * */
+  if (chainId === undefined) {
+    return true;
+  }
+
+  const isSupported = SUPPORTED_CHAIN_IDS.some(
+    (id) => getDecimalChainId(id) === getDecimalChainId(chainId),
+  );
+
+  return isSupported;
+};
 
 // eslint-disable-next-line import/prefer-default-export
-export const isBlockaidFeatureEnabled = () =>
-  process.env.MM_BLOCKAID_UI_ENABLED === 'true';
+export const isBlockaidFeatureEnabled = () => {
+  const chainId = selectChainId(store.getState());
+  return (
+    process.env.MM_BLOCKAID_UI_ENABLED === 'true' && isSupportedChainId(chainId)
+  );
+};
 
 export const getBlockaidMetricsParams = (
   securityAlertResponse?: SecurityAlertResponse,

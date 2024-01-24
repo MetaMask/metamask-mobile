@@ -25,7 +25,7 @@ export default class TokenOverview {
   }
 
   static async tapSwapButton() {
-    await TestHelpers.tap(TOKEN_OVERVIEW_SWAP_BUTTON);
+    await TestHelpers.waitAndTap(TOKEN_OVERVIEW_SWAP_BUTTON);
   }
 
   static async scrollOnScreen() {
@@ -33,7 +33,7 @@ export default class TokenOverview {
   }
 
   static async tapBackButton() {
-    await TestHelpers.tap(ASSET_BACK_BUTTON);
+    await TestHelpers.waitAndTap(ASSET_BACK_BUTTON);
   }
 
   static async isVisible() {
