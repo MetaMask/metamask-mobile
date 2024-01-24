@@ -189,22 +189,26 @@ const ExperimentalSettings = ({ navigation, route }: Props) => {
         <Text color={TextColor.Default} variant={TextVariant.BodyLGMedium}>
           {'JavaScript'}
         </Text>
-      </View>
-      <View style={styles.switchElement}>
-        <Text color={TextColor.Default} variant={TextVariant.BodyLGMedium}>
-          {'SES'}
-        </Text>
-        <Switch
-          value={sesEnabled}
-          onValueChange={toggleSesEnabled}
-          trackColor={{
-            true: colors.primary.default,
-            false: colors.border.muted,
-          }}
-          thumbColor={importedColors.white}
-          style={styles.switch}
-          ios_backgroundColor={colors.border.muted}
-        />
+        <View style={styles.switchElement}>
+          <Text
+            color={TextColor.Alternative}
+            variant={TextVariant.BodyMD}
+            style={styles.desc}
+          >
+            {'SES'}
+          </Text>
+          <Switch
+            value={sesEnabled}
+            onValueChange={toggleSesEnabled}
+            trackColor={{
+              true: colors.primary.default,
+              false: colors.border.muted,
+            }}
+            thumbColor={importedColors.white}
+            style={styles.switch}
+            ios_backgroundColor={colors.border.muted}
+          />
+        </View>
       </View>
     </>
   );
