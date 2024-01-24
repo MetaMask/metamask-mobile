@@ -104,14 +104,11 @@ const OrderDetails = () => {
       const { data, state, cryptocurrency, orderType, currency, network } =
         order;
 
-      const {
-        paymentMethod: { id: paymentMethodId },
-        provider: { name: providerName },
-      } = data as Order;
+      const providerName = (data as Order).provider?.name;
 
       const payload = {
         status: state,
-        payment_method_id: paymentMethodId,
+        payment_method_id: (data as Order).paymentMethod?.id,
         order_type: orderType,
       };
       if (order.orderType === OrderOrderTypeEnum.Buy) {
