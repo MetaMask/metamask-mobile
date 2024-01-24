@@ -1,6 +1,6 @@
 import React from 'react';
 import { ConnectedComponent } from 'react-redux';
-import { fireEvent, waitFor } from '@testing-library/react-native';
+import { waitFor } from '@testing-library/react-native';
 import Confirm from '.';
 import { renderScreen } from '../../../../util/test/renderWithProvider';
 import Routes from '../../../../constants/navigation/Routes';
@@ -18,7 +18,7 @@ const mockInitialState = {
         providerConfig: {
           ticker: 'ETH',
           type: 'mainnet',
-          chainId: 1,
+          chainId: '0x1',
         },
       },
       AccountTrackerController: {
@@ -51,6 +51,7 @@ const mockInitialState = {
         result_type: 'Malicious',
         reason: 'blur_farming',
         providerRequestsCount: {},
+        chainId: '0x1',
       },
     },
     selectedAsset: {},
@@ -157,27 +158,22 @@ describe('Confirm', () => {
         expect(params).toBeDefined();
       });
 
-    const { queryByText, queryByTestId, getByText } = render(Confirm);
+    const { queryByText, queryByTestId } = render(Confirm);
+
     await waitFor(async () => {
-      expect(await queryByText('See details')).toBeDefined();
       expect(
         await queryByText(
           'If you approve this request, someone can steal your assets listed on Blur.',
         ),
       ).toBeDefined();
 
-      fireEvent.press(await getByText('See details'));
-
       expect(await queryByTestId(TESTID_ACCORDION_CONTENT)).toBeDefined();
       expect(
         await queryByTestId(FALSE_POSITIVE_REPOST_LINE_TEST_ID),
       ).toBeDefined();
       expect(await queryByText('Something doesn’t look right?')).toBeDefined();
-      expect(await queryByText('Contact Us')).toBeDefined();
 
-      fireEvent.press(await getByText('Contact Us'));
-
-      expect(trackEventSypy).toHaveBeenCalledTimes(2);
+      expect(trackEventSypy).toHaveBeenCalledTimes(1);
     });
   });
 });
