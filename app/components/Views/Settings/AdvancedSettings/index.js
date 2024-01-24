@@ -19,10 +19,7 @@ import { typography } from '@metamask/design-tokens';
 // External dependencies.
 import ActionModal from '../../../UI/ActionModal';
 import Engine from '../../../../core/Engine';
-import {
-  baseStyles,
-  colors as importedColors,
-} from '../../../../styles/common';
+import { baseStyles } from '../../../../styles/common';
 import { getNavigationOptionsTitle } from '../../../UI/Navbar';
 import {
   setShowCustomNonce,
@@ -306,6 +303,7 @@ class AdvancedSettings extends PureComponent {
   renderTokenDetectionSection = () => {
     const { isTokenDetectionEnabled, chainId } = this.props;
     const { styles, colors } = this.getStyles();
+    const theme = this.context.theme || mockTheme;
     if (!isTokenDetectionSupportedForNetwork(chainId)) {
       return null;
     }
@@ -326,7 +324,7 @@ class AdvancedSettings extends PureComponent {
                 true: colors.primary.default,
                 false: colors.border.muted,
               }}
-              thumbColor={importedColors.white}
+              thumbColor={theme.brandColors.white['000']}
               ios_backgroundColor={colors.border.muted}
               style={styles.switch}
             />
@@ -353,6 +351,7 @@ class AdvancedSettings extends PureComponent {
     } = this.props;
     const { resetModalVisible } = this.state;
     const { styles, colors } = this.getStyles();
+    const theme = this.context.theme || mockTheme;
 
     return (
       <SafeAreaView style={baseStyles.flexGrow}>
@@ -415,7 +414,7 @@ class AdvancedSettings extends PureComponent {
                       true: colors.primary.default,
                       false: colors.border.muted,
                     }}
-                    thumbColor={importedColors.white}
+                    thumbColor={theme.brandColors.white['000']}
                     style={styles.switch}
                     ios_backgroundColor={colors.border.muted}
                   />
@@ -455,7 +454,7 @@ class AdvancedSettings extends PureComponent {
                       true: colors.primary.default,
                       false: colors.border.muted,
                     }}
-                    thumbColor={importedColors.white}
+                    thumbColor={theme.brandColors.white['000']}
                     style={styles.switch}
                     ios_backgroundColor={colors.border.muted}
                     accessibilityRole={'switch'}
@@ -494,7 +493,7 @@ class AdvancedSettings extends PureComponent {
                       true: colors.primary.default,
                       false: colors.border.muted,
                     }}
-                    thumbColor={importedColors.white}
+                    thumbColor={theme.brandColors.white['000']}
                     style={styles.switch}
                     ios_backgroundColor={colors.border.muted}
                   />
