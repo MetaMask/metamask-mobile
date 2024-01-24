@@ -4,27 +4,34 @@ import {
   JsonMap,
   UserTraits,
 } from '@segment/analytics-react-native';
-// import axios from 'axios';
+import axios, { AxiosHeaderValue } from 'axios';
 import DefaultPreference from 'react-native-default-preference';
 import Logger from '../../util/Logger';
 import {
   AGREED,
   ANALYTICS_DATA_DELETION_DATE,
+  ANALYTICS_DATA_RECORDED,
   DENIED,
   METAMETRICS_ID,
-  METAMETRICS_SEGMENT_REGULATION_ID,
+  METAMETRICS_DELETION_REGULATION_ID,
   METRICS_OPT_IN,
   MIXPANEL_METAMETRICS_ID,
 } from '../../constants/storage';
 
 import {
+  DataDeleteDate,
+  DataDeleteRegulationId,
   DataDeleteResponseStatus,
+  DataDeleteStatus,
+  IDeleteRegulationResponse,
+  IDeleteRegulationStatus,
+  IDeleteRegulationStatusResponse,
   IMetaMetrics,
   ISegmentClient,
 } from './MetaMetrics.types';
 import {
   METAMETRICS_ANONYMOUS_ID,
-  // SEGMENT_REGULATIONS_ENDPOINT,
+  SEGMENT_REGULATIONS_ENDPOINT,
 } from './MetaMetrics.constants';
 import { v4 as uuidv4 } from 'uuid';
 import { Config } from '@segment/analytics-react-native/lib/typescript/src/types';
@@ -74,22 +81,81 @@ import { Config } from '@segment/analytics-react-native/lib/typescript/src/types
  * @see METAMETRICS_ANONYMOUS_ID
  */
 class MetaMetrics implements IMetaMetrics {
-  // Singleton instance
-  protected static instance: MetaMetrics | null;
-
-  private metametricsId: string | undefined;
-  private segmentClient: ISegmentClient | undefined;
-  private enabled = false; // default to disabled
-
+  /**
+   * Protected constructor to prevent direct instantiation
+   *
+   * Use {@link getInstance} instead
+   *
+   * @protected
+   * @param segmentClient - Segment client instance
+   */
   protected constructor(segmentClient: ISegmentClient) {
     this.segmentClient = segmentClient;
   }
 
   /**
-   * retrieve state of metrics from the preference.
-   * Defaults to disabled if not explicitely enabled.
+   * Singleton instance of the MetaMetrics class
    *
-   * @returns Promise containing the enabled state.
+   * The value is protected to prevent direct access
+   * but allows to access it from a child class for testing
+   * @protected
+   */
+  protected static instance: MetaMetrics | null;
+
+  /**
+   * Segment SDK client instance
+   *
+   * The MetaMetrics class is a wrapper around the Segment SDK
+   * @private
+   */
+  private segmentClient: ISegmentClient | undefined;
+
+  /**
+   * Random ID used for tracking events
+   *
+   * ID stored in the device and is used to identify the events
+   * It's generated when the user enables MetaMetrics for the first time
+   * @private
+   */
+  private metametricsId: string | undefined;
+
+  /**
+   * Indicate if MetaMetrics is enabled or disabled
+   *
+   * MetaMetrics is disabled by default, user has to explicitly opt-in
+   * @private
+   */
+  private enabled = false;
+
+  /**
+   * Indicate if data has been recorded since the last deletion request
+   * @private
+   */
+  private dataRecorded = false;
+
+  /**
+   * Segment's data deletion regulation ID
+   *
+   * The ID returned by the Segment delete API
+   * which allows to check the status of the deletion request
+   * @private
+   */
+  private deleteRegulationId: DataDeleteRegulationId;
+
+  /**
+   * Segment's data deletion regulation creation date
+   *
+   * The date when the deletion request was created
+   * @private
+   */
+  private deleteRegulationDate: DataDeleteDate;
+
+  /**
+   * Retrieve state of metrics from the preference
+   *
+   * Defaults to disabled if not explicitely enabled
+   * @private
+   * @returns Promise containing the enabled state
    */
   #isMetaMetricsEnabled = async (): Promise<boolean> => {
     try {
@@ -105,17 +171,85 @@ class MetaMetrics implements IMetaMetrics {
   };
 
   /**
-   * retrieve the analytics user ID.
-   * Generates a new one if none is found.
+   * Retrieve the analytics recording status from the preference
+   * @private
+   */
+  #getIsDataRecordedFromPrefs = async (): Promise<boolean> =>
+    (await DefaultPreference.get(ANALYTICS_DATA_RECORDED)) === 'true';
+
+  /**
+   * Retrieve the analytics deletion request date from the preference
+   * @private
+   */
+  #getDeleteRegulationDateFromPrefs = async (): Promise<string> =>
+    await DefaultPreference.get(ANALYTICS_DATA_DELETION_DATE);
+
+  /**
+   * Retrieve the analytics deletion regulation ID from the preference
+   * @private
+   */
+  #getDeleteRegulationIdFromPrefs = async (): Promise<string> =>
+    await DefaultPreference.get(METAMETRICS_DELETION_REGULATION_ID);
+
+  /**
+   * Persist the analytics recording status
+   * @private
+   * @param isDataRecorded - analytics recording status
+   */
+  #setIsDataRecorded = async (isDataRecorded = false): Promise<void> => {
+    this.dataRecorded = isDataRecorded;
+    await DefaultPreference.set(
+      ANALYTICS_DATA_RECORDED,
+      String(isDataRecorded),
+    );
+  };
+
+  /**
+   * Set and store Segment's data deletion regulation ID
+   * @private
+   * @param deleteRegulationId - data deletion regulation ID returned by Segment
+   * delete API or undefined if no regulation in progress
+   */
+  #setDeleteRegulationId = async (
+    deleteRegulationId: string,
+  ): Promise<void> => {
+    this.deleteRegulationId = deleteRegulationId;
+    await DefaultPreference.set(
+      METAMETRICS_DELETION_REGULATION_ID,
+      deleteRegulationId,
+    );
+  };
+
+  /**
+   * Set and store the delete regulation request creation date
+   */
+  #setDeleteRegulationCreationDate = async (): Promise<void> => {
+    const currentDate = new Date();
+    const day = currentDate.getUTCDate();
+    const month = currentDate.getUTCMonth() + 1;
+    const year = currentDate.getUTCFullYear();
+
+    // format the date in the format DD/MM/YYYY
+    const deletionDate = `${day}/${month}/${year}`;
+
+    this.deleteRegulationDate = deletionDate;
+
+    // similar to the one used in the legacy Analytics
+    await DefaultPreference.set(ANALYTICS_DATA_DELETION_DATE, deletionDate);
+  };
+
+  /**
+   * Retrieve the analytics user ID from references
    *
-   * @returns Promise containing the user ID.
+   * Generates a new ID if none is found
+   *
+   * @returns Promise containing the user ID
    */
   #getMetaMetricsId = async (): Promise<string> => {
     // Important: this ID is used to identify the user in Segment and should be kept in
     // preferences: no reset unless explicitelu asked for.
-    // If user later anables MetaMetrics,
+    // If user later enables MetaMetrics,
     // this same ID should be retrieved from preferences and reused.
-
     try {
       // look for a legacy ID from MixPanel integration and use it
       this.metametricsId = await DefaultPreference.get(MIXPANEL_METAMETRICS_ID);
@@ -141,7 +275,7 @@ class MetaMetrics implements IMetaMetrics {
   };
 
   /**
-   * reset the analytics user ID and Sgment SDK state.
+   * Reset the analytics user ID and Segment SDK state
    */
   #resetMetaMetricsId = async (): Promise<void> => {
     try {
@@ -153,52 +287,68 @@ class MetaMetrics implements IMetaMetrics {
   };
 
   /**
-   * associate traits or properties to an user.
-   * Check Segment documentation for more information.
-   * https://segment.com/docs/connections/sources/catalog/libraries/mobile/react-native/#identify
+   * Associate traits or properties to an user
    *
-   * Here we we only take traits as parameter as we want to keep the user ID controlled by the class.
+   * It only takes traits as parameter as we want to keep the user ID controlled by the class
    *
-   * @param userTraits - Object containing user relevant traits or properties (optional).
+   * @param userTraits - Object containing user relevant traits or properties (optional)
+   *
+   * @see https://segment.com/docs/connections/sources/catalog/libraries/mobile/react-native/#identify
    */
   #identify = async (userTraits: UserTraits): Promise<void> => {
     this.segmentClient?.identify(this.metametricsId, userTraits);
   };
 
   /**
-   * associate a user to a specific group.
-   * Check Segment documentation for more information.
-   * https://segment.com/docs/connections/sources/catalog/libraries/mobile/react-native/#group
+   * Associate a user to a specific group
    *
    * @param groupId - Group ID to associate user
-   * @param groupTraits - Object containing group relevant traits or properties (optional).
+   * @param groupTraits - Object containing group relevant traits or properties (optional)
+   *
+   * @see https://segment.com/docs/connections/sources/catalog/libraries/mobile/react-native/#group
    */
   #group = (groupId: string, groupTraits?: GroupTraits): void => {
     this.segmentClient?.group(groupId, groupTraits);
   };
 
   /**
-   * track an analytics event.
-   * Check Segment documentation for more information.
-   * https://segment.com/docs/connections/sources/catalog/libraries/mobile/react-native/#track
+   * Track an analytics event
    *
-   * @param event - Analytics event name.
-   * @param properties - Object containing any event relevant traits or properties (optional).
+   * @param event - Analytics event name
+   * @param properties - Object containing any event relevant traits or properties (optional)
+   * @param saveDataRecording - param to skip saving the data recording flag (optional)
+   * @see https://segment.com/docs/connections/sources/catalog/libraries/mobile/react-native/#track
    */
-  #trackEvent = (event: string, properties: JsonMap): void =>
+  #trackEvent = (
+    event: string,
+    properties: JsonMap,
+    saveDataRecording = true,
+  ): void => {
     this.segmentClient?.track(event, properties);
+    saveDataRecording &&
+      !this.dataRecorded &&
+      this.#setIsDataRecorded(true).catch((error) => {
+        // here we don't want to handle the error, there's nothing we can do
+        // so we just catch and log it async and do not await for return
+        // as this must not block the event tracking
+        Logger.error(error, 'Analytics Data Record Error');
+      });
+  };
 
   /**
-   * clear the internal state of the library for the current user and group.
-   * https://segment.com/docs/connections/sources/catalog/libraries/mobile/react-native/#reset
+   * Clear the internal state of the library for the current user and group
+   *
+   * @see https://segment.com/docs/connections/sources/catalog/libraries/mobile/react-native/#reset
    */
   #reset = (): void => {
     this.segmentClient?.reset(true);
   };
 
   /**
-   * update the user analytics preference and
-   * store in DefaultPreference.
+   * Update the user analytics preference and
+   * store in DefaultPreference
+   *
+   * @param enabled - Boolean indicating if opts-in ({@link AGREED}) or opts-out ({@link DENIED})
    */
   #storeMetricsOptInPreference = async (enabled: boolean) => {
     try {
@@ -209,101 +359,98 @@ class MetaMetrics implements IMetaMetrics {
   };
 
   /**
-   * store the "request to create a delete regulation" creation date
+   * Get the Segment API HTTP headers
+   * @private
    */
-  #storeDeleteRegulationCreationDate = async (): Promise<void> => {
-    const currentDate = new Date();
-    const day = currentDate.getUTCDate();
-    const month = currentDate.getUTCMonth() + 1;
-    const year = currentDate.getUTCFullYear();
-
-    // store the date in the format DD/MM/YYYY
-    // similar to the one used in the legacy Analytics
-    try {
-      await DefaultPreference.set(
-        ANALYTICS_DATA_DELETION_DATE,
-        `${day}/${month}/${year}`,
-      );
-    } catch (error: any) {
-      Logger.error(error, 'Error storing MetaMetrics deletion date');
-    }
-  };
-
-  /**
-   * store Segment's Regulation ID.
-   *
-   * @param regulationId - Segment's Regulation ID.
-   */
-  #storeDeleteRegulationId = async (regulationId: string): Promise<void> => {
-    try {
-      await DefaultPreference.set(
-        METAMETRICS_SEGMENT_REGULATION_ID,
-        regulationId,
-      );
-    } catch (error: any) {
-      Logger.error(error, 'Error storing MetaMetrics Regulation ID');
-    }
-  };
-
-  /**
-   * TODO: this is a temporary placeholder implementation.
-   * This #createSegmentDeleteRegulation method is currently not testable
-   * because Segment delete endpoint proxy is not ready to use.
-   * The implementation is mock tested.
-   * Real work on this delete feature will be done in a next PR in this batch.
-   */
-
-  /**
-   * generate a new delete regulation for the user.
-   * This is necessary to respect the GDPR and CCPA regulations.
-   * Check Segment documentation for more information.
-   * https://segment.com/docs/privacy/user-deletion-and-suppression/
-   */
-  #createDeleteRegulation = async (): Promise<{
-    status: string;
-    error?: string;
-  }> => ({
-    status: DataDeleteResponseStatus.error,
-    error: 'Analytics Deletion Task Error',
+  #getSegmentApiHeaders = (): { [key: string]: AxiosHeaderValue } => ({
+    'Content-Type': 'application/vnd.segment.v1+json',
   });
-  // => {
-  //   const segmentToken = process.env.SEGMENT_DELETION_API_KEY;
-  //   const regulationType = 'DELETE_ONLY';
-  //   try {
-  //     const response = await axios({
-  //       url: SEGMENT_REGULATIONS_ENDPOINT,
-  //       method: 'POST',
-  //       headers: {
-  //         'Content-Type': 'application/vnd.segment.v1alpha+json',
-  //         Authorization: `Bearer ${segmentToken}`,
-  //       },
-  //       data: JSON.stringify({
-  //         regulationType,
-  //         subjectType: 'USER_ID',
-  //         subjectIds: [this.metametricsId],
-  //       }),
-  //     });
-  //     const { data } = response as any;
-  //     const { regulateId } = data;
-  //     await this.#storeDeleteRegulationId(regulateId);
-  //     await this.#storeDeleteRegulationCreationDate();
-  //     return { status: DataDeleteResponseStatus.ok };
-  //   } catch (error: any) {
-  //     Logger.error(error, 'Analytics Deletion Task Error');
-  //     return {
-  //       status: DataDeleteResponseStatus.error,
-  //       error: 'Analytics Deletion Task Error',
-  //     };
-  //   }
-  // };
 
   /**
-   * get an instance of the MetaMetrics system
+   * Generate a new delete regulation for the user
+   *
+   * This is necessary to respect the GDPR and CCPA regulations
+   *
+   * @see https://segment.com/docs/privacy/user-deletion-and-suppression/
+   */
+  #createDataDeletionTask = async (): Promise<IDeleteRegulationResponse> => {
+    const segmentSourceId = process.env.SEGMENT_DELETE_API_SOURCE_ID;
+    const regulationType = 'DELETE_ONLY';
+    try {
+      const response = await axios({
+        url: `${SEGMENT_REGULATIONS_ENDPOINT}/regulations/sources/${segmentSourceId}`,
+        method: 'POST',
+        headers: this.#getSegmentApiHeaders(),
+        data: JSON.stringify({
+          regulationType,
+          subjectType: 'USER_ID',
+          subjectIds: [this.metametricsId],
+        }),
+      });
+      const { data } = response as any;
+
+      await this.#setDeleteRegulationId(data?.data?.regulateId);
+      await this.#setDeleteRegulationCreationDate(); // set to current date
+      await this.#setIsDataRecorded(false); // indicate no data recorded since request
+
+      return { status: DataDeleteResponseStatus.ok };
+    } catch (error: any) {
+      Logger.error(error, 'Analytics Deletion Task Error');
+      return {
+        status: DataDeleteResponseStatus.error,
+        error: 'Analytics Deletion Task Error',
+      };
+    }
+  };
+
+  /**
+   * Check a Deletion Task using Segment API
+   *
+   * @returns promise for Object indicating the status of the deletion request
+   * @see https://docs.segmentapis.com/tag/Deletion-and-Suppression#operation/getRegulation
+   */
+  #checkDataDeletionTaskStatus =
+    async (): Promise<IDeleteRegulationStatusResponse> => {
+      // if no delete regulation id, return unknown status
+      // regulation id is set when creating a new delete regulation
+
+      if (!this.deleteRegulationId) {
+        return {
+          status: DataDeleteResponseStatus.error,
+          dataDeleteStatus: DataDeleteStatus.unknown,
+        };
+      }
+
+      try {
+        const response = await axios({
+          url: `${SEGMENT_REGULATIONS_ENDPOINT}/regulations/${this.deleteRegulationId}`,
+          method: 'GET',
+          headers: this.#getSegmentApiHeaders(),
+        });
+
+        const { data } = response as any;
+        const status = data?.data?.regulation?.overallStatus;
+
+        return {
+          status: DataDeleteResponseStatus.ok,
+          dataDeleteStatus: status || DataDeleteStatus.unknown,
+        };
+      } catch (error: any) {
+        Logger.error(error, 'Analytics Deletion Task Check Error');
+        return {
+          status: DataDeleteResponseStatus.error,
+          dataDeleteStatus: DataDeleteStatus.unknown,
+        };
+      }
+    };
+
+  /**
+   * Get an instance of the MetaMetrics system
+   *
+   * Await this method to ensure the instance is ready
+   *
+   * @example const metrics = await MetaMetrics.getInstance();
    * @returns Promise containing the MetaMetrics instance.
-   * Await this method to ensure the instance is ready.
-   * ```
-   * const metrics = await MetaMetrics.getInstance();
-   * ```
    */
   public static async getInstance(): Promise<IMetaMetrics> {
     if (!this.instance) {
@@ -318,13 +465,20 @@ class MetaMetrics implements IMetaMetrics {
       this.instance.enabled = await this.instance.#isMetaMetricsEnabled();
       // get the user unique id when initializing
       this.instance.metametricsId = await this.instance.#getMetaMetricsId();
+      this.instance.deleteRegulationId =
+        await this.instance.#getDeleteRegulationIdFromPrefs();
+      this.instance.deleteRegulationDate =
+        await this.instance.#getDeleteRegulationDateFromPrefs();
+      this.instance.dataRecorded =
+        await this.instance.#getIsDataRecordedFromPrefs();
     }
     return this.instance;
   }
 
   /**
-   * enable or disable MetaMetrics
-   * @param enable - Boolean indicating if MetaMetrics should be enabled or disabled.
+   * Enable or disable MetaMetrics
+   *
+   * @param enable - Boolean indicating if MetaMetrics should be enabled or disabled
    */
   enable = async (enable = true): Promise<void> => {
     this.enabled = enable;
@@ -332,16 +486,22 @@ class MetaMetrics implements IMetaMetrics {
   };
 
   /**
-   * check if MetaMetrics is enabled
-   * @returns Boolean indicating if MetaMetrics is enabled or disabled.
+   * Check if MetaMetrics is enabled
+   *
+   * @returns Boolean indicating if MetaMetrics is enabled or disabled
    */
   isEnabled() {
     return this.enabled;
   }
 
   /**
-   * add traits to the user and identify them
-   * @param userTraits
+   * Add traits to the user and identify them
+   *
+   * @param userTraits list of traits to add to the user
+   *
+   * @remarks method can be called multiple times,
+   * new traits are sent with the underlying identification call to Segment
+   * and user traits are updated with the latest ones
    */
   addTraitsToUser = (userTraits: UserTraits): Promise<void> => {
     if (this.enabled) {
@@ -351,9 +511,10 @@ class MetaMetrics implements IMetaMetrics {
   };
 
   /**
-   * add an user to a specific group
-   * @param groupId
-   * @param groupTraits
+   * Add a user to a specific group
+   *
+   * @param groupId - Any unique string to associate user with
+   * @param groupTraits - group relevant traits or properties (optional)
    */
   group = (groupId: string, groupTraits?: GroupTraits): Promise<void> => {
     if (this.enabled) {
@@ -363,35 +524,55 @@ class MetaMetrics implements IMetaMetrics {
   };
 
   /**
-   * track an anonymous event
+   * Track an anonymous event
    *
-   * This will track the event twice: once with the anonymous ID and once with the user ID.
-   * The anynomous has properties set so you can know what but not who.
-   * The non-anonymous has no properties so you can know who but not what.
+   * This will track the event twice: once with the anonymous ID and once with the user ID
    *
-   * @param event
-   * @param properties
+   * - The anynomous event has properties set so you can know *what* but not *who*
+   * - The non-anonymous event has no properties so you can know *who* but not *what*
+   *
+   * @param event - Analytics event name
+   * @param properties - Object containing any event relevant traits or properties (optional)
+   * @param saveDataRecording - param to skip saving the data recording flag (optional)
    */
-  trackAnonymousEvent(event: string, properties: JsonMap = {}): void {
+  trackAnonymousEvent(
+    event: string,
+    properties: JsonMap = {},
+    saveDataRecording = true,
+  ): void {
     if (this.enabled) {
-      this.#trackEvent(event, { anonymous: true, ...properties });
-      this.#trackEvent(event, { anonymous: true });
+      this.#trackEvent(
+        event,
+        { anonymous: true, ...properties },
+        saveDataRecording,
+      );
+      this.#trackEvent(event, { anonymous: true }, saveDataRecording);
     }
   }
 
   /**
-   * track an event - the regular way
-   * @param event
-   * @param properties
+   * Track an event - the regular way
+   *
+   * @param event - Analytics event name
+   * @param properties - Object containing any event relevant traits or properties (optional)
+   * @param saveDataRecording - param to skip saving the data recording flag (optional)
    */
-  trackEvent = (event: string, properties: JsonMap = {}): void => {
+  trackEvent = (
+    event: string,
+    properties: JsonMap = {},
+    saveDataRecording = true,
+  ): void => {
     if (this.enabled) {
-      this.#trackEvent(event, { anonymous: false, ...properties });
+      this.#trackEvent(
+        event,
+        { anonymous: false, ...properties },
+        saveDataRecording,
+      );
     }
   };
 
   /**
-   * clear the internal state of the library for the current user and reset the user ID.
+   * Clear the internal state of the library for the current user and reset the user ID
    */
   reset = async (): Promise<void> => {
     this.#reset();
@@ -399,31 +580,75 @@ class MetaMetrics implements IMetaMetrics {
   };
 
   /**
-   * forces the Segment SDK to flush all events in the queue.
-   * This will send all events to Segment without waiting for the queue to be full or the timeout to be reached.
+   * Forces the Segment SDK to flush all events in the queue
+   *
+   * This will send all events to Segment without waiting for
+   * the queue to be full or the timeout to be reached
    */
   flush = async (): Promise<void> => this.segmentClient?.flush();
 
   /**
-   * create a new delete regulation for the user.
-   * This is necessary to respect the GDPR and CCPA regulations.
-   * Check Segment documentation for more information.
-   * https://segment.com/docs/privacy/user-deletion-and-suppression/
-   * @returns Promise containing the status of the request.
-   * Await this method to ensure the request is completed.
+   * Create a new delete regulation for the user
+   *
+   * @remarks This is necessary to respect the GDPR and CCPA regulations
+   *
+   * @returns Promise containing the status of the request
+   *
+   * @see https://segment.com/docs/privacy/user-deletion-and-suppression/
+   * @see https://docs.segmentapis.com/tag/Deletion-and-Suppression#operation/createSourceRegulation
    */
-  createDeleteRegulation = async (): Promise<{
-    status: string;
-    error?: string;
-  }> => this.#createDeleteRegulation();
+  createDataDeletionTask = async (): Promise<IDeleteRegulationResponse> =>
+    this.#createDataDeletionTask();
 
-  getDeleteRegulationCreationDate = async (): Promise<string | undefined> => {
-    try {
-      return await DefaultPreference.get(ANALYTICS_DATA_DELETION_DATE);
-    } catch (error: any) {
-      Logger.error(error, 'Error retrieving MetaMetrics deletion date');
+  /**
+   * Check the latest delete regulation status
+   * @returns Promise containing the date, delete status and collected data flag
+   */
+  checkDataDeleteStatus = async (): Promise<IDeleteRegulationStatus> => {
+    const status: IDeleteRegulationStatus = {
+      deletionRequestDate: undefined,
+      dataDeletionRequestStatus: DataDeleteStatus.unknown,
+      hasCollectedDataSinceDeletionRequest: false,
+    };
+
+    if (this.deleteRegulationId) {
+      try {
+        const dataDeletionTaskStatus =
+          await this.#checkDataDeletionTaskStatus();
+        status.dataDeletionRequestStatus =
+          dataDeletionTaskStatus.dataDeleteStatus;
+      } catch (error: any) {
+        Logger.log('Error checkDataDeleteStatus -', error);
+        status.dataDeletionRequestStatus = DataDeleteStatus.unknown;
+      }
+
+      status.deletionRequestDate = this.deleteRegulationDate;
+      status.hasCollectedDataSinceDeletionRequest = this.dataRecorded;
     }
+    return status;
   };
+
+  /**
+   * Get the latest delete regulation request date
+   *
+   * @returns the date as a DD/MM/YYYY string
+   */
+  getDeleteRegulationCreationDate = (): string | undefined =>
+    this.deleteRegulationDate;
+
+  /**
+   * Get the latest delete regulation request id
+   *
+   * @returns the id string
+   */
+  getDeleteRegulationId = (): string | undefined => this.deleteRegulationId;
+
+  /**
+   * Indicate if events have been recorded since the last deletion request
+   *
+   * @returns true if events have been recorded since the last deletion request
+   */
+  isDataRecorded = (): boolean => this.dataRecorded;
 }
 
 export default MetaMetrics;

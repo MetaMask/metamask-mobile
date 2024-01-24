@@ -15,6 +15,7 @@ async function loadAndroidConnections(): Promise<{
   const parsed = JSON.parse(rawConnections);
   DevLogger.log(
     `SDKConnect::loadAndroidConnections found ${Object.keys(parsed).length}`,
+    parsed,
   );
   return parsed;
 }

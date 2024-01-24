@@ -4,6 +4,27 @@ import { syncPrefs, syncAccounts } from '../util/sync';
 import { KeyringTypes } from '@metamask/keyring-controller';
 
 /**
+ * Restores the QR keyring if it exists.
+ */
+export const restoreQRKeyring = async () => {
+  const { KeyringController } = Engine.context;
+  const qrKeyring = (
+    await KeyringController.getKeyringsByType(KeyringTypes.qr)
+  )[0];
+  if (qrKeyring) {
+    try {
+      const serializedQRKeyring = await qrKeyring.serialize();
+      await KeyringController.restoreQRKeyring(serializedQRKeyring);
+    } catch (e) {
+      Logger.error(
+        e,
+        'error while trying to get qr accounts on recreate vault',
+      );
+    }
+  }
+};
+
+/**
  * Returns current vault seed phrase
  * It does it using an empty password or a password set by the user
  * depending on the state the app is currently in
@@ -20,7 +41,6 @@ export const getSeedPhrase = async (password = '') => {
  * @param newPassword - new password
  * @param selectedAddress
  */
-
 export const recreateVaultWithNewPassword = async (
   password,
   newPassword,
@@ -54,9 +74,6 @@ export const recreateVaultWithNewPassword = async (
     );
   }
 
-  const qrKeyring = await KeyringController.getOrAddQRKeyring();
-  const serializedQRKeyring = await qrKeyring.serialize();
-
   // Get props to restore vault
   const hdKeyring = KeyringController.state.keyrings[0];
   const existingAccountCount = hdKeyring.accounts.length;
@@ -64,7 +81,7 @@ export const recreateVaultWithNewPassword = async (
   // Recreate keyring with password given to this method
   await KeyringController.createNewVaultAndRestore(newPassword, seedPhrase);
 
-  await KeyringController.restoreQRKeyring(serializedQRKeyring);
+  await restoreQRKeyring();
 
   // Create previous accounts again
   for (let i = 0; i < existingAccountCount - 1; i++) {
