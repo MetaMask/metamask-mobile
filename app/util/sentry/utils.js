@@ -179,7 +179,7 @@ export function deriveSentryEnvironment(
 // Setup sentry remote error reporting
 export function setupSentry() {
   const init = async () => {
-    const dsn = process.env.MM_SENTRY_DSN;
+    const dsn = process.env.MM_SENTRY_DEV_DSN;
 
     const metricsOptIn = await DefaultPreference.get(METRICS_OPT_IN);
 
