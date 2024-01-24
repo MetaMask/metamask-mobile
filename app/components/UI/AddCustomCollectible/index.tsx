@@ -239,6 +239,7 @@ const AddCustomCollectible = ({
               placeholder={'0x...'}
               placeholderTextColor={colors.text.muted}
               value={address}
+              onFocus={() => ref.CUSTOMCOLLECTIBLE()}
               onChangeText={onAddressChange}
               onBlur={validateCustomCollectibleAddress}
               {...generateTestId(Platform, NFT_ADDRESS_INPUT_BOX_ID)}
