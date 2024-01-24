@@ -451,7 +451,6 @@ class Engine {
         name: 'TokensController',
         allowedActions: [`${approvalController.name}:addRequest`],
       }),
-      // @ts-expect-error This is added in a patch, but types weren't updated
       getERC20TokenName: assetsContractController.getERC20TokenName.bind(
         assetsContractController,
       ),
@@ -832,7 +831,6 @@ class Engine {
         onPreferencesStateChange: (listener) =>
           preferencesController.subscribe(listener),
         getIdentities: () => preferencesController.state.identities,
-        // @ts-expect-error This is added in a patch, but types weren't updated
         getSelectedAddress: () => preferencesController.state.selectedAddress,
         getMultiAccountBalancesEnabled: () =>
           preferencesController.state.isMultiAccountBalancesEnabled,
@@ -866,9 +864,7 @@ class Engine {
           });
           tokensController.addDetectedTokens(tokens);
         },
-        // @ts-expect-error This is added in a patch, but types weren't updated
         updateTokensName: (tokenList) =>
-          // @ts-expect-error This is added in a patch, but types weren't updated
           tokensController.updateTokensName(tokenList),
         getTokensState: () => tokensController.state,
         getTokenListState: () => tokenListController.state,
