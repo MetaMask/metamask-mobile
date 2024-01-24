@@ -187,7 +187,7 @@ const ExperimentalSettings = ({ navigation, route }: Props) => {
       </Text>
       <View style={styles.setting}>
         <Text color={TextColor.Default} variant={TextVariant.BodyLGMedium}>
-          {'JavaScript'}
+          {'Lockdown'}
         </Text>
         <View style={styles.switchElement}>
           <Text
