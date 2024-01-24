@@ -45,8 +45,7 @@ import {
   NETWORK_SCROLL_ID,
   NETWORK_TEST_SWITCH_ID,
 } from '../../../../wdio/screen-objects/testIDs/Components/NetworkListModal.TestIds';
-import { colors as importedColors } from '../../../styles/common';
-import { useAppTheme } from '../../../util/theme';
+import { useTheme } from '../../../util/theme';
 import Text from '../../../component-library/components/Texts/Text/Text';
 import {
   TextColor,
@@ -58,7 +57,8 @@ import styles from './NetworkSelector.styles';
 
 const NetworkSelector = () => {
   const { navigate } = useNavigation();
-  const { colors } = useAppTheme();
+  const theme = useTheme();
+  const { colors } = theme;
   const sheetRef = useRef<SheetBottomRef>(null);
   const showTestNetworks = useSelector(selectShowTestNetworks);
 
@@ -226,7 +226,7 @@ const NetworkSelector = () => {
           true: colors.primary.default,
           false: colors.border.muted,
         }}
-        thumbColor={importedColors.white}
+        thumbColor={theme.brandColors.white['000']}
         ios_backgroundColor={colors.border.muted}
         {...generateTestId(Platform, NETWORK_TEST_SWITCH_ID)}
         disabled={isTestNet(providerConfig.chainId)}

@@ -12,6 +12,7 @@ const Routes = {
     PAYMENT_METHOD: 'PaymentMethod',
     PAYMENT_METHOD_HAS_STARTED: 'PaymentMethodHasStarted',
     BUILD_QUOTE: 'BuildQuote',
+    BUILD_QUOTE_HAS_STARTED: 'BuildQuoteHasStarted',
     QUOTES: 'Quotes',
     CHECKOUT: 'Checkout',
     REGION: 'Region',
