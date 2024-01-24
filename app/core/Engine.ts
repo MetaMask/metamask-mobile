@@ -402,6 +402,10 @@ class Engine {
             AppConstants.NETWORK_STATE_CHANGE_EVENT,
             listener,
           ),
+        messenger: this.controllerMessenger.getRestricted({
+          name: 'NftController',
+          allowedActions: [`${approvalController.name}:addRequest`],
+        }),
         chainId: networkController.state.providerConfig.chainId,
 
         getERC721AssetName: assetsContractController.getERC721AssetName.bind(
