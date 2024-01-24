@@ -8,6 +8,7 @@ import {
   selectNetworkConfigurations,
   selectProviderConfig,
 } from '../../selectors/networkController';
+import Routes from '../../constants/navigation/Routes';
 
 const useBlockExplorer = () => {
   const navigation = useNavigation();
