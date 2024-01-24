@@ -531,9 +531,11 @@ checkAuthToken() {
 	fi
 
 	if [ ! -e "./${propertiesFileName}" ]; then
-		if [ -n "${MM_SENTRY_AUTH_TOKEN}" ]; then
+		if [ -n "${MM_SENTRY_DEV_AUTH_TOKEN}" ]; then
 			cp "./${propertiesFileName}.example" "./${propertiesFileName}"
-			sed -i'' -e "s/auth.token.*/auth.token=${MM_SENTRY_AUTH_TOKEN}/" "./${propertiesFileName}";
+			sed -i'' -e "s/auth.token.*/auth.token=${MM_SENTRY_DEV_AUTH_TOKEN}/" "./${propertiesFileName}";
+			sed -i'' -e "s/defaults.org.*/defaults.org=${MM_SENTRY_DEV_ORG}/" "./${propertiesFileName}";
+			sed -i'' -e "s/defaults.project.*/defaults.project=${MM_SENTRY_DEV_PROJECT}/" "./${propertiesFileName}";
 		else
 			printError "Missing '${propertiesFileName}' file (see '${propertiesFileName}.example' or set MM_SENTRY_AUTH_TOKEN to generate)"
 			exit 1
