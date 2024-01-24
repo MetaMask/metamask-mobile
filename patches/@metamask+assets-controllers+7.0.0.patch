@@ -2429,7 +2429,5 @@ diff --git a/node_modules/@metamask/assets-controllers/dist/token-prices-service
 new file mode 100644
 index 0000000..2692b27
 --- /dev/null
-+++ b/node_modules/@metamask/assets-controllers/dist/token-prices-service/index.js.map
 @@ -0,0 +1 @@
-+{"version":3,"file":"index.js","sourceRoot":"","sources":["../../src/token-prices-service/index.ts"],"names":[],"mappings":";;;AACA,yCAAyD;AAAhD,uHAAA,0BAA0B,OAAA","sourcesContent":["export type { AbstractTokenPricesService } from './abstract-token-prices-service';\nexport { CodefiTokenPricesServiceV2 } from './codefi-v2';\n"]}
 \ No newline at end of file
