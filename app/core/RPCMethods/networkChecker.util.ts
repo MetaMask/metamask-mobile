@@ -1,6 +1,6 @@
 import axios from 'axios';
-import { BannerAlertSeverity } from '../../../../app/component-library/components/Banners/Banner';
-import { strings } from '../../../../locales/i18n';
+import { BannerAlertSeverity } from '../../component-library/components/Banners/Banner';
+import { strings } from '../../../locales/i18n';
 
 const checkSafeNetwork = async (
   chainIdDecimal: string,

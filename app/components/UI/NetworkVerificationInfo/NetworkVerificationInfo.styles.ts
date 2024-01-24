@@ -1,12 +1,10 @@
-import { StyleSheet } from 'react-native';
+import { StyleSheet, TextStyle } from 'react-native';
 // External dependencies.
 import { Theme } from '../../../util/theme/models';
-import { fontStyles } from '../../../styles/common';
-import scaling from '../../../util/scaling';
 
 const styleSheet = (params: { theme: Theme }) => {
   const { theme } = params;
-  const { colors } = theme;
+  const { colors, typography } = theme;
 
   return StyleSheet.create({
     root: {
@@ -29,14 +27,11 @@ const styleSheet = (params: { theme: Theme }) => {
       marginBottom: 15,
     },
     title: {
-      ...fontStyles.bold,
-      fontSize: scaling.scale(18),
       textAlign: 'center',
-      color: colors.text.default,
-      lineHeight: 34,
       marginVertical: 10,
       paddingHorizontal: 16,
-    },
+      ...typography.lBodyMDBold,
+    } as TextStyle,
     bottomSpace: {
       marginBottom: 10,
     },
@@ -55,8 +50,8 @@ const styleSheet = (params: { theme: Theme }) => {
       textAlign: 'center',
     },
     boldText: {
-      ...fontStyles.bold,
-    },
+      ...typography.sBodyMDBold,
+    } as TextStyle,
     networkSection: { marginBottom: 16 },
     nestedScrollContent: { paddingBottom: 24 },
   });

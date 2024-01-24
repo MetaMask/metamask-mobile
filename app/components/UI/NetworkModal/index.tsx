@@ -30,7 +30,7 @@ import BottomSheetFooter, {
   ButtonsAlignment,
 } from '../../../component-library/components/BottomSheets/BottomSheetFooter';
 import { ButtonProps } from '../../../component-library/components/Buttons/Button/Button.types';
-import checkSafeNetwork from '../../../core/SDKConnect/utils/networkChecker.util';
+import checkSafeNetwork from '../../../core/RPCMethods/networkChecker.util';
 import NetworkVerificationInfo from '../NetworkVerificationInfo';
 
 const createStyles = (colors: ThemeColors) =>
@@ -161,8 +161,8 @@ const NetworkModals = (props: NetworkProps) => {
 
   const toggleUseSafeChainsListValidation = (value: boolean) => {
     const { PreferencesController } = Engine.context;
-    PreferencesController?.setUseSafeChainsListValidation(value);
-    if (!value) PreferencesController?.setUseSafeChainsListValidation(value);
+    PreferencesController.setUseSafeChainsListValidation(value);
+    if (!value) PreferencesController.setUseSafeChainsListValidation(value);
   };
 
   const cancelButtonProps: ButtonProps = {
@@ -296,7 +296,7 @@ const NetworkModals = (props: NetworkProps) => {
           <View>
             <View>
               <Text reset style={styles.title}>
-                {strings('app_settings.use_safe_chains_list_validation')}
+                {strings('wallet.network_details_check')}
               </Text>
               <Text style={styles.bottomSpace}>
                 {strings('app_settings.use_safe_chains_list_validation_desc')}

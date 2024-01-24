@@ -15,7 +15,7 @@ import {
   selectNetworkConfigurations,
 } from '../../selectors/networkController';
 import { store } from '../../store';
-import checkSafeNetwork from '../../../app/core/SDKConnect/utils/networkChecker.util';
+import checkSafeNetwork from './networkChecker.util';
 
 const EVM_NATIVE_TOKEN_DECIMALS = 18;
 

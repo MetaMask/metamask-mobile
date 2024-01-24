@@ -14,7 +14,6 @@ import Banner, {
   BannerAlertSeverity,
   BannerVariant,
 } from '../../../component-library/components/Banners/Banner';
-import { DEFAULT_BUTTONLINK_LABEL_COLOR } from '../../../component-library/components/Buttons/Button/variants/ButtonLink/ButtonLink.constants';
 import { useStyles } from '../../../component-library/hooks';
 import styleSheet from './NetworkVerificationInfo.styles';
 import { CustomNetworkInformation } from './NetworkVerificationInfo.types';
@@ -56,7 +55,7 @@ const NetworkVerificationInfo = ({
   >(null);
   const [networkDetailsExpanded, setNetworkDetailsExpanded] = useState(false);
   const { styles } = useStyles(styleSheet, {});
-  const useSafeChainsListValidation = useSelector(
+  const safeChainsListValidationEnabled = useSelector(
     selectUseSafeChainsListValidation,
   );
   const [showCheckNetwork, setShowCheckNetwork] = React.useState(false);
@@ -66,8 +65,8 @@ const NetworkVerificationInfo = ({
 
   const toggleUseSafeChainsListValidation = (value: boolean) => {
     const { PreferencesController } = Engine.context;
-    PreferencesController?.setUseSafeChainsListValidation(value);
-    if (!value) PreferencesController?.setUseSafeChainsListValidation(value);
+    PreferencesController.setUseSafeChainsListValidation(value);
+    if (!value) PreferencesController.setUseSafeChainsListValidation(value);
   };
 
   const renderNetworkInfo = () => (
@@ -127,7 +126,7 @@ const NetworkVerificationInfo = ({
   };
 
   const renderBanner = () => {
-    if (!useSafeChainsListValidation) {
+    if (!safeChainsListValidationEnabled) {
       return (
         <View style={styles.alertBar}>
           <Banner
@@ -137,7 +136,6 @@ const NetworkVerificationInfo = ({
               variant: ButtonVariants.Link,
               label: strings('wallet.turn_on_network_check_cta'),
               onPress: showCheckNetworkModal,
-              textVariant: TextVariant.BodyMD,
             }}
           />
         </View>
@@ -147,7 +145,7 @@ const NetworkVerificationInfo = ({
   };
 
   const renderAlerts = useCallback(() => {
-    if (!useSafeChainsListValidation) return null;
+    if (!safeChainsListValidationEnabled) return null;
     if (!alerts.length) return null;
     return alerts.map(
       (
@@ -173,16 +171,18 @@ const NetworkVerificationInfo = ({
         />
       ),
     );
-  }, [alerts, styles.textSection, useSafeChainsListValidation]);
+  }, [alerts, styles.textSection, safeChainsListValidationEnabled]);
 
   return showCheckNetwork ? (
     <View>
       <View style={styles.textContainer}>
         <Text style={styles.title}>
-          {strings('app_settings.use_safe_chains_list_validation')}
+          {strings('wallet.network_details_check')}
         </Text>
         <Text style={styles.bottomSpace}>
-          {strings('app_settings.use_safe_chains_list_validation_desc')}
+          {strings('app_settings.use_safe_chains_list_validation_desc_1')}{' '}
+          chainid.network{' '}
+          {strings('app_settings.use_safe_chains_list_validation_desc_2')}
         </Text>
 
         <Text>
@@ -236,10 +236,7 @@ const NetworkVerificationInfo = ({
         {renderBanner()}
         <Text style={styles.textCentred}>
           {strings('add_custom_network.warning_subtext_new.1')}{' '}
-          <Text
-            onPress={openHowToUseCustomNetworks}
-            color={DEFAULT_BUTTONLINK_LABEL_COLOR}
-          >
+          <Text onPress={openHowToUseCustomNetworks}>
             {strings('add_custom_network.warning_subtext_new.2')}
           </Text>
         </Text>

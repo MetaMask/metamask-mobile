@@ -1123,7 +1123,7 @@ exports[`NetworkSwitcher View renders and dismisses network modal when pressing 
                                                     onPress={[Function]}
                                                     style={
                                                       Object {
-                                                        "color": "#0376C9",
+                                                        "color": "#24272A",
                                                         "fontFamily": "Euclid Circular B",
                                                         "fontSize": 14,
                                                         "fontWeight": "400",

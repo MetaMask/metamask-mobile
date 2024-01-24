@@ -87,6 +87,7 @@ import {
   BATCH_BALANCE_REQUESTS_SECTION,
   BIOMETRY_CHOICE_STRING,
   CLEAR_BROWSER_HISTORY_SECTION,
+  DISPLAY_SAFE_CHAINS_LIST_VALIDATION,
   HASH_STRING,
   HASH_TO_TEST,
   IPFS_GATEWAY_SECTION,
@@ -586,7 +587,7 @@ const Settings: React.FC = () => {
   const toggleUseSafeChainsListValidation = (value: boolean) => {
     const { PreferencesController } = Engine.context;
     PreferencesController?.setUseSafeChainsListValidation(value);
-    if (!value) PreferencesController?.setUseSafeChainsListValidation(value);
+    if (!value) PreferencesController.setUseSafeChainsListValidation(value);
   };
 
   const toggleNftAutodetect = (value: boolean) => {
@@ -636,7 +637,7 @@ const Settings: React.FC = () => {
       <View style={styles.halfSetting} testID={USE_SAFE_CHAINS_LIST_VALIDATION}>
         <View style={styles.titleContainer}>
           <Text variant={TextVariant.BodyLGMedium} style={styles.title}>
-            {strings('app_settings.use_safe_chains_list_validation')}
+            {strings('wallet.network_details_check')}
           </Text>
           <View style={styles.switchElement}>
             <Switch
@@ -649,7 +650,7 @@ const Settings: React.FC = () => {
               thumbColor={importedColors.white}
               style={styles.switch}
               ios_backgroundColor={colors.border.muted}
-              testID="display-use-safe-list-validation"
+              testID={DISPLAY_SAFE_CHAINS_LIST_VALIDATION}
             />
           </View>
         </View>
@@ -658,7 +659,10 @@ const Settings: React.FC = () => {
           color={TextColor.Alternative}
           style={styles.desc}
         >
-          {strings('app_settings.use_safe_chains_list_validation_desc')}
+          {strings('app_settings.use_safe_chains_list_validation_desc_1')}
+          <Text variant={TextVariant.BodyMDBold}>chainid.network </Text>
+          {strings('app_settings.use_safe_chains_list_validation_desc_2')}{' '}
+          chainid.network
         </Text>
       </View>
     ),
