@@ -195,9 +195,7 @@ const ExperimentalSettings = ({ navigation, route }: Props) => {
             variant={TextVariant.BodyMD}
             style={styles.desc}
           >
-            {
-              'This feature prevents dynamic modification of JavaScript running in the application.'
-            }
+            {strings('app_settings.ses_description')}
           </Text>
           <Switch
             value={sesEnabled}

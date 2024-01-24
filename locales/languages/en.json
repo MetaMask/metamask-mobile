@@ -754,6 +754,7 @@
     "invalid_password_message": "The password was not correct. Please try again.",
     "security_heading": "Security",
     "ses_heading": "Lockdown",
+    "ses_description": "This feature prevents dynamic modification of JavaScript running in the application.",
     "privacy_heading": "Privacy",
     "failed_to_fetch_chain_id": "Could not fetch chain ID. Is your RPC URL correct?",
     "endpoint_returned_different_chain_id": "The endpoint returned a different chain ID: %{chainIdReturned}",
