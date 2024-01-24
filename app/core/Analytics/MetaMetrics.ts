@@ -34,6 +34,7 @@ import {
   SEGMENT_REGULATIONS_ENDPOINT,
 } from './MetaMetrics.constants';
 import { v4 as uuidv4 } from 'uuid';
+import { Config } from '@segment/analytics-react-native/lib/typescript/src/types';
 
 /**
  * MetaMetrics using Segment as the analytics provider.
@@ -157,11 +158,16 @@ class MetaMetrics implements IMetaMetrics {
    * @returns Promise containing the enabled state
    */
   #isMetaMetricsEnabled = async (): Promise<boolean> => {
-    const enabledPref = await DefaultPreference.get(METRICS_OPT_IN);
-    this.enabled = AGREED === enabledPref;
-    if (__DEV__)
-      Logger.log(`Current MetaMatrics enable state: ${this.enabled}`);
-    return this.enabled;
+    try {
+      const enabledPref = await DefaultPreference.get(METRICS_OPT_IN);
+      this.enabled = AGREED === enabledPref;
+      if (__DEV__)
+        Logger.log(`Current MetaMatrics enable state: ${this.enabled}`);
+      return this.enabled;
+    } catch (error: any) {
+      Logger.error(error, 'Error retrieving MetaMetrics enable state');
+    }
+    return false;
   };
 
   /**
@@ -244,34 +250,40 @@ class MetaMetrics implements IMetaMetrics {
     // preferences: no reset unless explicitelu asked for.
     // If user later enables MetaMetrics,
     // this same ID should be retrieved from preferences and reused.
+    try {
+      // look for a legacy ID from MixPanel integration and use it
+      this.metametricsId = await DefaultPreference.get(MIXPANEL_METAMETRICS_ID);
+      if (this.metametricsId) {
+        await DefaultPreference.set(METAMETRICS_ID, this.metametricsId);
+        return this.metametricsId;
+      }
 
-    // look for a legacy ID from MixPanel integration and use it
-    // this should be kept for backwards compatibility and preserving the user ID
-    // in the new metametrics system
-    this.metametricsId = await DefaultPreference.get(MIXPANEL_METAMETRICS_ID);
-    if (this.metametricsId) {
-      await DefaultPreference.set(METAMETRICS_ID, this.metametricsId);
+      // look for a new Metametics ID and use it or generate a new one
+      this.metametricsId = await DefaultPreference.get(METAMETRICS_ID);
+      if (!this.metametricsId) {
+        // keep the id format compatible with MixPanel but base it on a UUIDv4
+        this.metametricsId = uuidv4();
+        await DefaultPreference.set(METAMETRICS_ID, this.metametricsId);
+      }
+
+      if (__DEV__) Logger.log(`Current MetaMatrics ID: ${this.metametricsId}`);
       return this.metametricsId;
+    } catch (error: any) {
+      Logger.error(error, 'Error retrieving MetaMetrics ID');
+      return METAMETRICS_ANONYMOUS_ID;
     }
-
-    // look for a new Metametics ID and use it or generate a new one
-    this.metametricsId = await DefaultPreference.get(METAMETRICS_ID);
-    if (!this.metametricsId) {
-      // keep the id format compatible with MixPanel but base it on a UUIDv4
-      this.metametricsId = uuidv4();
-      await DefaultPreference.set(METAMETRICS_ID, this.metametricsId);
-    }
-
-    if (__DEV__) Logger.log(`Current MetaMatrics ID: ${this.metametricsId}`);
-    return this.metametricsId;
   };
 
   /**
    * Reset the analytics user ID and Segment SDK state
    */
   #resetMetaMetricsId = async (): Promise<void> => {
-    await DefaultPreference.set(METAMETRICS_ID, '');
-    this.metametricsId = await this.#getMetaMetricsId();
+    try {
+      await DefaultPreference.set(METAMETRICS_ID, '');
+      this.metametricsId = await this.#getMetaMetricsId();
+    } catch (error: any) {
+      Logger.error(error, 'Error resetting MetaMetrics ID');
+    }
   };
 
   /**
@@ -339,7 +351,11 @@ class MetaMetrics implements IMetaMetrics {
    * @param enabled - Boolean indicating if opts-in ({@link AGREED}) or opts-out ({@link DENIED})
    */
   #storeMetricsOptInPreference = async (enabled: boolean) => {
-    await DefaultPreference.set(METRICS_OPT_IN, enabled ? AGREED : DENIED);
+    try {
+      await DefaultPreference.set(METRICS_OPT_IN, enabled ? AGREED : DENIED);
+    } catch (error: any) {
+      Logger.error(error, 'Error storing MetaMetrics enable state');
+    }
   };
 
   /**
@@ -438,7 +454,7 @@ class MetaMetrics implements IMetaMetrics {
    */
   public static async getInstance(): Promise<IMetaMetrics> {
     if (!this.instance) {
-      const config = {
+      const config: Config = {
         writeKey: process.env.SEGMENT_WRITE_KEY as string,
         proxy: process.env.SEGMENT_PROXY_URL as string,
         debug: __DEV__,
