@@ -3865,15 +3865,6 @@
     "@metamask/safe-event-emitter" "^3.0.0"
     "@metamask/utils" "^8.2.0"
 
-"@metamask/eth-json-rpc-provider@^2.2.0":
-  version "2.3.1"
-  resolved "https://registry.yarnpkg.com/@metamask/eth-json-rpc-provider/-/eth-json-rpc-provider-2.3.1.tgz#06305e5927040a959eed7a9d28f5488d49553c21"
-  integrity sha512-zalPFnXnS0cy8syjc/BJArxcRWslO/Mn9Hu+SUFE7frg7dm9uo2w9KTTQwP7+xa1ygm2zdD2xIft+Njk4svsrQ==
-  dependencies:
-    "@metamask/json-rpc-engine" "^7.3.1"
-    "@metamask/safe-event-emitter" "^3.0.0"
-    "@metamask/utils" "^8.2.0"
-
 "@metamask/eth-keyring-controller@^13.0.1":
   version "13.0.1"
   resolved "https://registry.yarnpkg.com/@metamask/eth-keyring-controller/-/eth-keyring-controller-13.0.1.tgz#9756a70ed2ea4f4dc6a8c335ac55b6322990e435"
@@ -3995,15 +3986,6 @@
   version "7.3.0"
   resolved "https://registry.yarnpkg.com/@metamask/json-rpc-engine/-/json-rpc-engine-7.3.0.tgz#eec5505f0ea41bd46c785c8722c5a10a3afd9850"
   integrity sha512-93cOdqnpt0P9uU/aC65GZulaDh6qNFEm8IFXHbI4lisK7oebU2SLarJUBZPebjko7hzwmfV1M1h7FQAlyRkVLg==
-  dependencies:
-    "@metamask/rpc-errors" "^6.1.0"
-    "@metamask/safe-event-emitter" "^3.0.0"
-    "@metamask/utils" "^8.2.0"
-
-"@metamask/json-rpc-engine@^7.2.0", "@metamask/json-rpc-engine@^7.3.1":
-  version "7.3.1"
-  resolved "https://registry.yarnpkg.com/@metamask/json-rpc-engine/-/json-rpc-engine-7.3.1.tgz#f5ea9d4299382345a58a090e9fba76f6d4b0b244"
-  integrity sha512-OVxccX/IFOjPzCzSFAEceccPIAf7A7IwnvjyWjyHCkLrO+LWV4e7Tpe79JNXiORywNulHxrg+q6QrmrnGEwssQ==
   dependencies:
     "@metamask/rpc-errors" "^6.1.0"
     "@metamask/safe-event-emitter" "^3.0.0"
@@ -4341,17 +4323,17 @@
   resolved "https://registry.yarnpkg.com/@metamask/slip44/-/slip44-3.1.0.tgz#f8067796f89fbbd6eaa594660bd6a1fbd6837a51"
   integrity sha512-bFlJ8jhTYJ4iQ0zgh2WMO2615UJ4Ne5J831EjsqKYaZs3qd6UTw/cy76hAmSxhnBluNAH5S6zZzxESLrTitCmQ==
 
-"@metamask/smart-transactions-controller@^6.2.2":
-  version "6.2.2"
-  resolved "https://registry.yarnpkg.com/@metamask/smart-transactions-controller/-/smart-transactions-controller-6.2.2.tgz#6636918972c3ae97473fc47fc6e2f6fabf2bf8cb"
-  integrity sha512-qNG/4kxQdv8VGB/Rr/Vn9XHmgepbj50nlipHVZGSlo4T16Sew2B78b3SMYB9RU5q3vdpFKuNc3VxU9ds6bvkUw==
+"@metamask/smart-transactions-controller@^5.0.0":
+  version "5.0.0"
+  resolved "https://registry.yarnpkg.com/@metamask/smart-transactions-controller/-/smart-transactions-controller-5.0.0.tgz#c366ba150664c75db5404156eecaa300ba15b29f"
+  integrity sha512-hBHYPVJqq+fVf/H8UAebwyyrqVqU2xuepQ9fOh+jKrUep0n+DVEM/q4GLqUp4CXjz2lngLye59tFh0DbNRvU8g==
   dependencies:
     "@ethersproject/bignumber" "^5.7.0"
     "@ethersproject/bytes" "^5.7.0"
     "@ethersproject/providers" "^5.7.0"
     "@metamask/base-controller" "^3.2.1"
     "@metamask/controller-utils" "^5.0.0"
-    "@metamask/network-controller" "^15.0.0"
+    "@metamask/network-controller" "^13.0.0"
     bignumber.js "^9.0.1"
     fast-json-patch "^3.1.0"
     lodash "^4.17.21"
