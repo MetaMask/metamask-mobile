@@ -1,7 +1,7 @@
 const { execSync } = require('child_process');
 
 const  getAvailableAVDs = (() => {
-  try {
+  
     // Run the command to list available AVDs
     const outputList = execSync('emulator -list-avds').toString();
   
@@ -9,13 +9,10 @@ const  getAvailableAVDs = (() => {
      const avdNames = outputList.trim().split('\n');
 
     if (avdNames.length === 0) {
-      console.error('No Android emulators found.');
+      throw new Error('No Android emulators found.');
     }
     return avdNames
-  } catch (error) {
-    console.error('Revisit the command to get the error list. It seems incorrect:', error.message);
-    return [];
-  }
+ 
 })();
 
 module.exports = {
