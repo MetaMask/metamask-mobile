@@ -290,8 +290,8 @@ class Settings extends PureComponent {
       selectedAddress,
       hideZeroBalanceTokens,
     } = this.props;
-    const theme = this.context.theme || mockTheme;
-    const { colors } = theme;
+    const themeTokens = this.context.theme || mockTheme;
+    const { colors } = themeTokens;
     const styles = createStyles(colors);
 
     return (
@@ -408,7 +408,7 @@ class Settings extends PureComponent {
                     true: colors.primary.default,
                     false: colors.border.muted,
                   }}
-                  thumbColor={theme.brandColors.white['000']}
+                  thumbColor={themeTokens.brandColors.white['000']}
                   style={styles.switch}
                   ios_backgroundColor={colors.border.muted}
                 />
