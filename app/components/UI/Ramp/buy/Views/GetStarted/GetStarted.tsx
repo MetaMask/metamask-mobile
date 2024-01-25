@@ -81,7 +81,7 @@ const GetStarted: React.FC = () => {
           index: 0,
           routes: [
             {
-              name: Routes.RAMP.PAYMENT_METHOD_HAS_STARTED,
+              name: Routes.RAMP.BUILD_QUOTE_HAS_STARTED,
               params: { showBack: false },
             },
           ],

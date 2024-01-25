@@ -84,7 +84,11 @@ const BlockaidIndicator = ({ navigation }: Props) => {
   const multiFailures = failureCount >= 3;
 
   return (
-    <BottomSheet ref={sheetRef} isInteractable={sheetInteractable}>
+    <BottomSheet
+      ref={sheetRef}
+      isInteractable={sheetInteractable}
+      onClose={goBackToExperimentalScreen}
+    >
       {status === Status.Idle && (
         <View style={styles.blockaidWrapper}>
           <View style={styles.iconWrapper}>
@@ -100,7 +104,7 @@ const BlockaidIndicator = ({ navigation }: Props) => {
 
           <SheetHeader title={strings('blockaid_banner.before_you_proceed')} />
           <Text variant={TextVariant.BodyMD}>
-            {strings('blockaid_banner.enable_blockaid_alerts')}
+            {strings('blockaid_banner.enable_blockaid_alerts_description')}
           </Text>
           <View style={styles.buttonWrapper}>
             <Button
@@ -148,7 +152,7 @@ const BlockaidIndicator = ({ navigation }: Props) => {
       {ppomInitialisationStatus === PPOMInitialisationStatus.SUCCESS && (
         <View style={styles.blockaidWrapper}>
           <View style={styles.iconWrapper}>
-            <View style={styles.iconContainer}>
+            <View style={styles.successIconContainer}>
               <Icon
                 name={IconName.Confirmation}
                 size={IconSize.Xl}
