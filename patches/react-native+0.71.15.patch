@@ -44,10 +44,10 @@ index 1379ffd..f2825f5 100644
  // We could just call GlobalPerformanceLogger.markPoint at the top of the file,
 diff --git a/node_modules/react-native/Libraries/Core/setUpSes.js b/node_modules/react-native/Libraries/Core/setUpSes.js
 new file mode 100644
-index 0000000..c8e8cf5
+index 0000000..82ef0c4
 --- /dev/null
 +++ b/node_modules/react-native/Libraries/Core/setUpSes.js
-@@ -0,0 +1,48 @@
+@@ -0,0 +1,55 @@
 +/**
 + * Copyright (c) 2024 MetaMask
 + *
@@ -78,6 +78,13 @@ index 0000000..c8e8cf5
 +
 +const storage = new MMKV(); // id: mmkv.default
 +const isSesEnabled = storage.getBoolean('is-ses-enabled');
++
++/**
++ * Disabled in debug-mode until errors no longer obscured.
++ * New repairIntrinsics option needed since `errorTaming: 'unsafe'`
++ * and `stackFiltering: 'verbose'` are inadequate.
++ * https://github.com/endojs/endo/blob/master/packages/ses/docs/reference.md#options-quick-reference
++ */
 +
 +if (isSesEnabled && !__DEV__) {
 +  require('../../../../ses.cjs');
