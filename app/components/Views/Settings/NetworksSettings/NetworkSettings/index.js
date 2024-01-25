@@ -23,11 +23,9 @@ import Networks, {
   getIsNetworkOnboarded,
 } from '../../../../../util/networks';
 import { getEtherscanBaseUrl } from '../../../../../util/etherscan';
-import StyledButton from '../../../../UI/StyledButton';
 import Engine from '../../../../../core/Engine';
 import { isWebUri } from 'valid-url';
 import URL from 'url-parse';
-import CustomText from '../../../../Base/Text';
 import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view';
 import BigNumber from 'bignumber.js';
 import { jsonRpcRequest } from '../../../../../util/jsonRpcRequest';
@@ -201,12 +199,7 @@ const createStyles = (colors) =>
       backgroundColor: colors.primary.muted,
     },
     cancel: {
-      marginRight: 8,
-      backgroundColor: colors.white,
-      borderWidth: 1,
-    },
-    confirm: {
-      marginLeft: 8,
+      marginRight: 16,
     },
     blueText: {
       color: colors.primary.default,
@@ -651,7 +644,7 @@ class NetworkSettings extends PureComponent {
 
     // Check if it's a valid chainId format
     if (chainId.startsWith('0x')) {
-      if (!regex.validChainId_hex.test(chainId)) {
+      if (!regex.validChainIdHex.test(chainId)) {
         errorMessage = strings('app_settings.invalid_hex_number');
       } else if (!isPrefixedFormattedHexString(chainId)) {
         errorMessage = strings('app_settings.invalid_hex_number_leading_zeros');
@@ -987,39 +980,39 @@ class NetworkSettings extends PureComponent {
               <View style={styles.buttonsWrapper}>
                 {editable ? (
                   <View style={styles.editableButtonsContainer}>
-                    <StyledButton
-                      type="danger"
+                    <Button
+                      size={ButtonSize.Lg}
+                      variant={ButtonVariants.Secondary}
+                      isDanger
                       onPress={this.removeRpcUrl}
                       testID={REMOVE_NETWORK_BUTTON}
-                      containerStyle={[styles.button, styles.cancel]}
-                    >
-                      <CustomText centered red>
-                        {strings('app_settings.delete')}
-                      </CustomText>
-                    </StyledButton>
-                    <StyledButton
-                      type="confirm"
+                      style={{ ...styles.button, ...styles.cancel }}
+                      label={strings('app_settings.delete')}
+                    />
+                    <Button
+                      size={ButtonSize.Lg}
+                      variant={ButtonVariants.Primary}
                       onPress={this.addRpcUrl}
                       testID={NetworksViewSelectorsIDs.ADD_NETWORKS_BUTTON}
-                      containerStyle={[styles.button, styles.confirm]}
-                      disabled={isActionDisabled}
-                    >
-                      {strings('app_settings.network_save')}
-                    </StyledButton>
+                      style={styles.button}
+                      label={strings('app_settings.network_save')}
+                      isDisabled={isActionDisabled}
+                    />
                   </View>
                 ) : (
                   <View style={styles.buttonsContainer}>
-                    <StyledButton
-                      type="confirm"
+                    <Button
+                      size={ButtonSize.Lg}
+                      variant={ButtonVariants.Primary}
                       onPress={this.addRpcUrl}
                       testID={
                         NetworksViewSelectorsIDs.ADD_CUSTOM_NETWORK_BUTTON
                       }
-                      containerStyle={styles.syncConfirm}
-                      disabled={isActionDisabled}
-                    >
-                      {strings('app_settings.network_add')}
-                    </StyledButton>
+                      style={styles.button}
+                      label={strings('app_settings.network_add')}
+                      isDisabled={isActionDisabled}
+                      width={ButtonWidthTypes.Full}
+                    />
                   </View>
                 )}
               </View>
@@ -1093,7 +1086,7 @@ class NetworkSettings extends PureComponent {
               }}
             >
               <View
-                tabLabel={strings('app_settings.popular').toUpperCase()}
+                tabLabel={strings('app_settings.popular')}
                 key={AppConstants.ADD_CUSTOM_NETWORK_POPULAR_TAB_ID}
                 style={styles.networksWrapper}
                 testID={POPULAR_NETWORKS_TAB_ID}

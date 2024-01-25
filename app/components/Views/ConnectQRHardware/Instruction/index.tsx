@@ -24,8 +24,8 @@ const connectQRHardwareImg = require('images/connect-qr-hardware.png');
 
 const ConnectQRInstruction = (props: IConnectQRInstructionProps) => {
   const { onConnect, renderAlert, navigation } = props;
-  const { colors } = useTheme();
-  const styles = createStyles(colors);
+  const theme = useTheme();
+  const styles = createStyles(theme);
 
   const navigateToVideo = () => {
     navigation.navigate('Webview', {
