@@ -11,5 +11,11 @@ export interface BrandColors {
      */
     '000': string;
   };
+  yellow: {
+    /**
+     * {string} black['000']
+     */
+    '500': string;
+  };
 }
 export default BrandColors;
