@@ -542,7 +542,7 @@ loadJSEnv
 if [ "$MODE" == "releaseE2E" ] || [ "$MODE" == "QA" ] || [ "$MODE" == "QAE2E" ]; then
 	echo "DEBUG SENTRY PROPS"
 	checkAuthToken 'sentry.debug.properties'
-	export SENTRY_PROPERTIES="${REPO_ROOT_DIR}/sentry.debug.properties"
+	export SENTRY_PROPERTIES="${REPO_ROOT_DIR}/sentry.properties"
 elif [ "$MODE" == "release" ] || [ "$MODE" == "flask" ]; then
 	echo "RELEASE SENTRY PROPS"
 	checkAuthToken 'sentry.release.properties'
