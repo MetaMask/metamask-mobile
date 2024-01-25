@@ -715,7 +715,6 @@
     "network_chain_id_label": "Chain ID",
     "network_chain_id_placeholder": "Chain ID",
     "network_symbol_label": "Symbol",
-    "network_symbol_placeholder": "Symbol (optional)",
     "network_block_explorer_label": "Block Explorer URL",
     "network_block_explorer_placeholder": "Block Explorer URL (optional)",
     "network_chain_id_warning": "Invalid Chain ID",
