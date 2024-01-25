@@ -1323,14 +1323,6 @@
     "wyre_total_label": "Wyre (via MetaMask)",
     "buy_with": "Comprar com",
     "plus_fee": "Mais uma taxa de {{fee}}",
-    "notifications": {
-      "purchase_failed_title": "Falha na compra de {{currency}}! Tente novamente. Desculpe-nos pela inconveniência!",
-      "purchase_cancelled_title": "Sua compra foi cancelada",
-      "purchase_completed_title": "Tudo certo com sua compra de {{amount}} {{currency}}!",
-      "purchase_completed_description": "Seu(sua) {{currency}} já está disponível",
-      "purchase_pending_title": "Processando sua compra de {{currency}}",
-      "purchase_pending_description": "Deve demorar apenas alguns minutos..."
-    },
     "date": "Data",
     "from": "De",
     "to": "Até",
@@ -1364,6 +1356,16 @@
         "subtitle_5": "e ver quanto gas ela custa.",
         "cta": "Prossiga para comprar {{ticker}}"
       }
+    }
+  },
+  "fiat_on_ramp_aggregator": {
+    "notifications": {
+      "purchase_failed_title": "Falha na compra de {{currency}}! Tente novamente. Desculpe-nos pela inconveniência!",
+      "purchase_cancelled_title": "Sua compra foi cancelada",
+      "purchase_completed_title": "Tudo certo com sua compra de {{amount}} {{currency}}!",
+      "purchase_completed_description": "Seu(sua) {{currency}} já está disponível",
+      "purchase_pending_title": "Processando sua compra de {{currency}}",
+      "purchase_pending_description": "Deve demorar apenas alguns minutos..."
     }
   },
   "swaps": {

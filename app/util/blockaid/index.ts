@@ -1,13 +1,35 @@
 import {
-  Reason,
   ResultType,
   SecurityAlertResponse,
 } from '../../components/UI/BlockaidBanner/BlockaidBanner.types';
-import Device from '../device';
+import { BLOCKAID_SUPPORTED_CHAIN_IDS, getDecimalChainId } from '../networks';
+import { store } from '../../store';
+import { selectChainId } from '../../selectors/networkController';
+
+export const isSupportedChainId = (chainId: string) => {
+  /**
+   * Quite a number of our test cases return undefined as chainId from state.
+   * In such cases, the tests don't really care about the chainId.
+   * So, this treats undefined chainId as mainnet for now.
+   * */
+  if (chainId === undefined) {
+    return true;
+  }
+
+  const isSupported = BLOCKAID_SUPPORTED_CHAIN_IDS.some(
+    (id) => getDecimalChainId(id) === getDecimalChainId(chainId),
+  );
+
+  return isSupported;
+};
 
 // eslint-disable-next-line import/prefer-default-export
-export const isBlockaidFeatureEnabled = () =>
-  Device.isIos() && process.env.MM_BLOCKAID_UI_ENABLED === 'true';
+export const isBlockaidFeatureEnabled = () => {
+  const chainId = selectChainId(store.getState());
+  return (
+    process.env.MM_BLOCKAID_UI_ENABLED === 'true' && isSupportedChainId(chainId)
+  );
+};
 
 export const getBlockaidMetricsParams = (
   securityAlertResponse?: SecurityAlertResponse,
@@ -18,17 +40,14 @@ export const getBlockaidMetricsParams = (
     const { result_type, reason, providerRequestsCount } =
       securityAlertResponse;
 
+    additionalParams.security_alert_response = result_type;
+    additionalParams.security_alert_reason = reason;
+
     if (result_type === ResultType.Malicious) {
       additionalParams.ui_customizations = ['flagged_as_malicious'];
-    }
-
-    if (result_type !== ResultType.Benign) {
-      additionalParams.security_alert_reason = Reason.notApplicable;
-
-      if (reason) {
-        additionalParams.security_alert_response = result_type;
-        additionalParams.security_alert_reason = reason;
-      }
+    } else if (result_type === ResultType.RequestInProgress) {
+      additionalParams.ui_customizations = ['security_alert_loading'];
+      additionalParams.security_alert_response = 'loading';
     }
 
     // add counts of each RPC call

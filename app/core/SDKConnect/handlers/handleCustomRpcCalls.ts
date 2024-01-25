@@ -1,7 +1,7 @@
 import { Platform } from 'react-native';
 import Logger from '../../../util/Logger';
 import BatchRPCManager from '../BatchRPCManager';
-import { RPC_METHODS } from '../Connection';
+import { RPC_METHODS } from '../SDKConnectConstants';
 import DevLogger from '../utils/DevLogger';
 import { wait } from '../utils/wait.util';
 import overwriteRPCWith from './handleRpcOverwrite';

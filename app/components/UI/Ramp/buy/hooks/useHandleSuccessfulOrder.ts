@@ -3,7 +3,7 @@ import { OrderOrderTypeEnum } from '@consensys/on-ramp-sdk/dist/API';
 import { useNavigation } from '@react-navigation/native';
 import { useCallback } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
-import { getNotificationDetails } from '../..';
+
 import { protectWalletModalVisible } from '../../../../../actions/user';
 import { NATIVE_ADDRESS } from '../../../../../constants/on-ramp';
 import Engine from '../../../../../core/Engine';
@@ -12,7 +12,7 @@ import { addFiatOrder, FiatOrder } from '../../../../../reducers/fiatOrders';
 import { toLowerCaseEquals } from '../../../../../util/general';
 import useThunkDispatch from '../../../../hooks/useThunkDispatch';
 import { useRampSDK } from '../../common/sdk';
-import { stateHasOrder } from '../../common/utils';
+import { getNotificationDetails, stateHasOrder } from '../../common/utils';
 import useAnalytics from '../../common/hooks/useAnalytics';
 import { hexToBN } from '../../../../../util/number';
 import { selectAccounts } from '../../../../../selectors/accountTrackerController';
@@ -57,13 +57,6 @@ function useHandleSuccessfulOrder() {
     dispatch(protectWalletModalVisible());
   }, [dispatch]);
 
-  const handleAddFiatOrder = useCallback(
-    (order) => {
-      dispatch(addFiatOrder(order));
-    },
-    [dispatch],
-  );
-
   const handleSuccessfulOrder = useCallback(
     async (
       order: FiatOrder,
@@ -76,13 +69,13 @@ function useHandleSuccessfulOrder() {
       // @ts-expect-error navigation prop mismatch
       navigation.dangerouslyGetParent()?.pop();
 
-      dispatchThunk((_, getState) => {
+      dispatchThunk((_dispatch, getState) => {
         const state = getState();
         if (stateHasOrder(state, order)) {
           return;
         }
-        handleAddFiatOrder(order);
-        const notificationDetails = getNotificationDetails(order as any);
+        _dispatch(addFiatOrder(order));
+        const notificationDetails = getNotificationDetails(order);
         if (notificationDetails) {
           NotificationManager.showSimpleNotification(notificationDetails);
         }
@@ -128,7 +121,6 @@ function useHandleSuccessfulOrder() {
       accounts,
       addTokenToTokensController,
       dispatchThunk,
-      handleAddFiatOrder,
       handleDispatchUserWalletProtection,
       navigation,
       selectedAddress,

@@ -1323,14 +1323,6 @@
     "wyre_total_label": "Wyre(MetaMask 이용)",
     "buy_with": "구매 수단",
     "plus_fee": "+ {{fee}} 수수료",
-    "notifications": {
-      "purchase_failed_title": "{{currency}} 구매에 실패했습니다! 다시 시도하세요. 불편을 끼쳐 죄송합니다!",
-      "purchase_cancelled_title": "구매가 취소되었습니다.",
-      "purchase_completed_title": "{{amount}} {{currency}} 구매에 성공했습니다!",
-      "purchase_completed_description": "현재 {{currency}} 사용 가능",
-      "purchase_pending_title": "{{currency}} 구매 진행 중",
-      "purchase_pending_description": "이 작업에는 몇 분만 소요됩니다..."
-    },
     "date": "날짜",
     "from": "발신",
     "to": "수신",
@@ -1364,6 +1356,16 @@
         "subtitle_5": "가스 비용이 얼마나 드는지 확인하는 것입니다.",
         "cta": "계속 {{ticker}}를 구매하고"
       }
+    }
+  },
+  "fiat_on_ramp_aggregator": {
+    "notifications": {
+      "purchase_failed_title": "{{currency}} 구매에 실패했습니다! 다시 시도하세요. 불편을 끼쳐 죄송합니다!",
+      "purchase_cancelled_title": "구매가 취소되었습니다.",
+      "purchase_completed_title": "{{amount}} {{currency}} 구매에 성공했습니다!",
+      "purchase_completed_description": "현재 {{currency}} 사용 가능",
+      "purchase_pending_title": "{{currency}} 구매 진행 중",
+      "purchase_pending_description": "이 작업에는 몇 분만 소요됩니다..."
     }
   },
   "swaps": {

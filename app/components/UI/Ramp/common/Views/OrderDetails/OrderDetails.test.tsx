@@ -14,6 +14,7 @@ import { OrderOrderTypeEnum } from '@consensys/on-ramp-sdk/dist/API';
 import Routes from '../../../../../../constants/navigation/Routes';
 import { RampSDK } from '../../sdk';
 import { PROVIDER_LINKS } from '../../types';
+import AppConstants from '../../../../../../core/AppConstants';
 
 const mockNavigate = jest.fn();
 const mockGoBack = jest.fn();
@@ -333,6 +334,29 @@ describe('OrderDetails', () => {
     };
     await waitFor(() => render(OrderDetails, [createdOrder]));
     expect(screen.toJSON()).toMatchSnapshot();
+  });
+
+  it('polls transacted orders', async () => {
+    jest.useFakeTimers();
+    const createdOrder = {
+      ...mockOrder,
+      orderType: OrderOrderTypeEnum.Sell,
+      state: FIAT_ORDER_STATES.CREATED,
+      sellTxHash: '0x123',
+    };
+
+    const intervalCount = 3;
+
+    await waitFor(() => render(OrderDetails, [createdOrder]));
+    act(() => {
+      jest.advanceTimersByTime(
+        AppConstants.FIAT_ORDERS.POLLING_FREQUENCY * intervalCount,
+      );
+      jest.clearAllTimers();
+      jest.useRealTimers();
+    });
+    // processFiatOrder is called on load and then 3 times by the interval
+    expect(processFiatOrder).toHaveBeenCalledTimes(1 + intervalCount);
   });
 
   it('renders non-transacted orders', async () => {

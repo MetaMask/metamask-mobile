@@ -1,9 +1,9 @@
 'use strict';
 import TestHelpers from '../../helpers';
 import { Regression } from '../../tags';
-import NetworkView from '../../pages/Drawer/Settings/NetworksView';
+import NetworkView from '../../pages/Settings/NetworksView';
 import WalletView from '../../pages/WalletView';
-import SettingsView from '../../pages/Drawer/Settings/SettingsView';
+import SettingsView from '../../pages/Settings/SettingsView';
 import NetworkListModal from '../../pages/modals/NetworkListModal';
 import NetworkEducationModal from '../../pages/modals/NetworkEducationModal';
 import { loginToApp } from '../../viewHelper';

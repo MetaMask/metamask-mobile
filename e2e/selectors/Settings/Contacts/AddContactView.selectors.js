@@ -1,0 +1,16 @@
+import messages from '../../../../locales/languages/en.json';
+
+export const AddContactViewSelectorsIDs = {
+  ADD_BUTTON: 'add-contact-add-contact-button',
+  ADDRESS_INPUT: 'add-contact-address-input',
+  DELETE_BUTTON: 'add-contact-delete-contact-button',
+  MEMO_INPUT: 'add-contact-memo-input',
+  NAME_INPUT: 'add-contact-name-input',
+  CONTAINER: 'add-contacts-screen',
+  EDIT_BUTTON: 'edit-button',
+};
+
+export const AddContactViewSelectorsText = {
+  EDIT_BUTTON: messages.address_book.edit,
+  EDIT_CONTACT: messages.address_book.edit_contact,
+};

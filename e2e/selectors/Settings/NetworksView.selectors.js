@@ -9,6 +9,6 @@ export const NetworksViewSelectorsIDs = {
 export const NetworkViewSelectorsText = {
   BLOCK_EXPLORER: messages.app_settings.network_block_explorer_label,
   REMOVE_NETWORK: messages.app_settings.remove_network,
-  CUSTOM_NETWORK_TAB: messages.app_settings.custom_network_name.toUpperCase(),
-  POPULAR_NETWORK_TAB: messages.app_settings.popular.toUpperCase(),
+  CUSTOM_NETWORK_TAB: messages.app_settings.custom_network_name,
+  POPULAR_NETWORK_TAB: messages.app_settings.popular,
 };

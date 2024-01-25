@@ -206,7 +206,6 @@ exports[`Confirm should render correctly 1`] = `
                         "fontWeight": "400",
                       }
                     }
-                    testID="navbar-title-networks"
                   >
                     Ethereum Main Network
                   </Text>
@@ -972,6 +971,51 @@ exports[`Confirm should render correctly 1`] = `
                                 ]
                               }
                               testID="confirm-txn-amount"
+                            />
+                            <Text
+                              style={
+                                Array [
+                                  Object {
+                                    "color": "#24272A",
+                                    "fontFamily": "EuclidCircularB-Regular",
+                                    "fontSize": 30,
+                                    "fontWeight": "400",
+                                    "marginVertical": 2,
+                                  },
+                                  undefined,
+                                  undefined,
+                                  undefined,
+                                  undefined,
+                                  undefined,
+                                  undefined,
+                                  undefined,
+                                  undefined,
+                                  undefined,
+                                  undefined,
+                                  undefined,
+                                  undefined,
+                                  undefined,
+                                  undefined,
+                                  undefined,
+                                  undefined,
+                                  undefined,
+                                  undefined,
+                                  undefined,
+                                  undefined,
+                                  undefined,
+                                  undefined,
+                                  undefined,
+                                  Object {
+                                    "color": "#535A61",
+                                    "fontFamily": "EuclidCircularB-Regular",
+                                    "fontSize": 14,
+                                    "fontWeight": "400",
+                                    "marginVertical": 3,
+                                    "textAlign": "center",
+                                    "textTransform": "uppercase",
+                                  },
+                                ]
+                              }
                             />
                           </View>
                           <View

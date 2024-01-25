@@ -1,6 +1,7 @@
 /* eslint-disable import/prefer-default-export */
 /* eslint-disable no-console */
 // External dependencies.
+import { mockTheme } from '../../../../util/theme';
 import { IconName, IconColor } from '../../Icons/Icon';
 import { AvatarSize } from '../../Avatars/Avatar';
 
@@ -13,5 +14,5 @@ export const SAMPLE_TABBARITEM_PROPS: TabBarItemProps = {
   onPress: () => console.log('TabBarItem clicked'),
   iconSize: AvatarSize.Md,
   iconColor: IconColor.Primary,
-  iconBackgroundColor: '#FFF',
+  iconBackgroundColor: mockTheme.colors.background.default,
 };

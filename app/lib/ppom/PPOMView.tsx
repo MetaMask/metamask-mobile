@@ -1,7 +1,8 @@
-import createInvoke from 'react-native-webview-invoke/native';
 import React, { Component, RefObject } from 'react';
-import { View, StyleSheet } from 'react-native';
+import { StyleSheet, View } from 'react-native';
 import { WebView } from 'react-native-webview';
+import createInvoke from 'react-native-webview-invoke/native';
+import { fromByteArray } from 'react-native-quick-base64';
 
 import Logger from '../../util/Logger';
 import asyncInvoke from './invoke-lib';
@@ -18,12 +19,13 @@ const styles = StyleSheet.create({
 });
 
 let invoke: any;
+let invokeResolve: any = null;
 
 const convertFilesToBase64 = (files: any[][]) =>
   files.map(([key, value]) => {
     // eslint-disable-next-line @typescript-eslint/ban-ts-comment
     // @ts-ignore
-    const base64 = window.Buffer.from(value).toString('base64');
+    const base64 = fromByteArray(value).toString('base64');
     return [key, base64];
   });
 
@@ -62,6 +64,12 @@ export const PPOM = {
 };
 
 export const ppomInit = async () => {
+  if (!invoke) {
+    await new Promise((resolve) => {
+      invokeResolve = resolve;
+    });
+  }
+
   await invoke.bindAsync('ppomInit')();
 };
 
@@ -88,6 +96,11 @@ export class PPOMView extends Component {
 
   finishedLoading() {
     invoke = this.invoke;
+
+    if (invokeResolve) {
+      invokeResolve();
+      invokeResolve = null;
+    }
   }
 
   render() {

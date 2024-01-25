@@ -37,6 +37,17 @@ exports[`Root should render correctly 1`] = `
   <ContextProvider
     value={
       Object {
+        "brandColors": Object {
+          "black": Object {
+            "000": "#000000",
+          },
+          "white": Object {
+            "000": "#FFFFFF",
+          },
+          "yellow": Object {
+            "500": "#ffd33d",
+          },
+        },
         "colors": Object {
           "background": Object {
             "alternative": "#F2F4F6",
