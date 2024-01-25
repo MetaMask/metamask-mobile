@@ -7,7 +7,6 @@ import {
   InteractionManager,
   Platform,
 } from 'react-native';
-import EvilIcons from 'react-native-vector-icons/EvilIcons';
 import ElevatedView from 'react-native-elevated-view';
 import { strings } from '../../../../locales/i18n';
 import { fontStyles, baseStyles } from '../../../styles/common';
@@ -25,6 +24,11 @@ import styleSheet from './BackupAlert.styles';
 import { useStyles } from '../../../component-library/hooks';
 import { BackupAlertI } from './BackupAlert.types';
 import { PROTECT_WALLET_BUTTON } from './BackupAlert.constants';
+import Icon, {
+  IconColor,
+  IconName,
+  IconSize,
+} from '../../../component-library/components/Icons/Icon';
 
 const BROWSER_ROUTE = 'BrowserView';
 
@@ -123,8 +127,11 @@ const BackupAlert = ({ navigation, onDismiss }: BackupAlertI) => {
           {...generateTestId(Platform, SECURE_WALLET_BACKUP_ALERT_MODAL)}
         >
           <View style={styles.backupAlertIconWrapper}>
-            {/* We need a icon on our component library to use icon component*/}
-            <EvilIcons name="bell" style={styles.backupAlertIcon} />
+            <Icon
+              size={IconSize.Md}
+              name={IconName.Notification}
+              color={IconColor.Default}
+            />
           </View>
           <View style={baseStyles.flexGrow}>
             <Text style={styles.backupAlertTitle}>
