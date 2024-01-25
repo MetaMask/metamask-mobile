@@ -114,6 +114,11 @@ const CollectibleContracts = ({
   const [isAddNFTEnabled, setIsAddNFTEnabled] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
 
+  const [isRemovingNftInProgress, setIsRemovingNftInProgress] = useState(false);
+
+  const toggleRemovingProgress = () =>
+    setIsRemovingNftInProgress((value) => !value);
+
   const displayNftMedia = useSelector(selectDisplayNftMedia);
 
   const isCollectionDetectionBannerVisible =
@@ -124,6 +129,25 @@ const CollectibleContracts = ({
       navigation.navigate('CollectiblesDetails', { collectible, contractName });
     },
     [navigation],
+  );
+
+  /**
+   *  Method that checks if the collectible is inside the collectibles array. If it is not it means the
+   *  collectible has been ignored, hence we should not call the updateMetadata which executes the addNft fct
+   *
+   *  @returns Boolean indicating if the collectible is ignored or not.
+   */
+  const isCollectibleIgnored = useCallback(
+    (collectible) => {
+      const found = collectibles.find(
+        (elm) =>
+          elm.address === collectible.address &&
+          elm.tokenId === collectible.tokenId,
+      );
+      if (found) return false;
+      return true;
+    },
+    [collectibles],
   );
 
   /**
@@ -145,13 +169,26 @@ const CollectibleContracts = ({
     async (collectible) => {
       const { NftController } = Engine.context;
       const { address, tokenId } = collectible;
-      if (String(tokenId).includes('e+')) {
-        removeFavoriteCollectible(selectedAddress, chainId, collectible);
-      } else {
-        await NftController.addNft(address, String(tokenId));
+
+      const isIgnored = isCollectibleIgnored(collectible);
+
+      if (!isRemovingNftInProgress) {
+        if (!isIgnored) {
+          if (String(tokenId).includes('e+')) {
+            removeFavoriteCollectible(selectedAddress, chainId, collectible);
+          } else {
+            await NftController.addNft(address, String(tokenId));
+          }
+        }
       }
     },
-    [chainId, removeFavoriteCollectible, selectedAddress],
+    [
+      chainId,
+      removeFavoriteCollectible,
+      selectedAddress,
+      isCollectibleIgnored,
+      isRemovingNftInProgress,
+    ],
   );
 
   useEffect(() => {
@@ -277,6 +314,7 @@ const CollectibleContracts = ({
           key={item.address}
           contractCollectibles={contractCollectibles}
           collectiblesVisible={index === 0}
+          toggleRemovingProgress={toggleRemovingProgress}
         />
       );
     },
@@ -299,6 +337,7 @@ const CollectibleContracts = ({
           key={'Favorites'}
           contractCollectibles={filteredCollectibles}
           collectiblesVisible
+          toggleRemovingProgress={toggleRemovingProgress}
         />
       )
     );
@@ -420,6 +459,7 @@ CollectibleContracts.propTypes = {
    * Array of collectibles objects
    */
   collectibles: PropTypes.array,
+
   /**
    * Navigation object required to push
    * the Asset detail view
