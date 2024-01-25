@@ -3173,7 +3173,7 @@ index 0000000..544f60a
 \ No newline at end of file
 diff --git a/node_modules/@metamask/transaction-controller/dist/types.d.ts b/node_modules/@metamask/transaction-controller/dist/types.d.ts
 new file mode 100644
-index 0000000..c74a80a
+index 0000000..3f922df
 --- /dev/null
 +++ b/node_modules/@metamask/transaction-controller/dist/types.d.ts
 @@ -0,0 +1,174 @@
@@ -3326,8 +3326,8 @@ index 0000000..c74a80a
 + * Used for debugging purposes.
 + */
 +export declare type SubmitHistoryEntry = {
-+    /** The chain ID of the transaction as a decimal string. */
-+    chainId?: string;
++    /** The chain ID of the transaction as a hexadecimal string. */
++    chainId?: Hex;
 +    /** The hash of the transaction returned from the RPC provider. */
 +    hash: string;
 +    /** True if the entry was generated using the migration and existing transaction metadata. */
