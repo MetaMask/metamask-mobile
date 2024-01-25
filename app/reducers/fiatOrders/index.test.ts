@@ -3,6 +3,7 @@ import {
   AggregatorNetwork,
   OrderOrderTypeEnum,
 } from '@consensys/on-ramp-sdk/dist/API';
+import { toHex } from '@metamask/controller-utils';
 import { merge } from 'lodash';
 import fiatOrderReducer, {
   addActivationKey,
@@ -885,7 +886,7 @@ describe('selectors', () => {
           backgroundState: {
             NetworkController: {
               providerConfig: {
-                chainId: '0xaa36a7',
+                chainId: toHex('11155111'),
               },
             },
             PreferencesController: {
