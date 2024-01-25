@@ -676,6 +676,7 @@
 				15ACCA0022655C3A0063978B /* Embed Frameworks */,
 				802588CED3FC487A5D5263F0 /* [CP] Copy Pods Resources */,
 				C77EFC60F19570875F8DB3BD /* [CP] Embed Pods Frameworks */,
+				8024E97205434BE287118A9E /* Upload Debug Symbols to Sentry */,
 			);
 			buildRules = (
 			);
@@ -726,6 +727,7 @@
 				B339FF30289ABD70001B89FB /* Embed Frameworks */,
 				8EF10BB14629809332947E5D /* [CP] Copy Pods Resources */,
 				EB3465C9579A347237ADD532 /* [CP] Embed Pods Frameworks */,
+				B0BA877E2B61BFFA00EE1782 /* Upload Debug Symbols to Sentry */,
 			);
 			buildRules = (
 			);

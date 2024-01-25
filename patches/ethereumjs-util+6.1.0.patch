@@ -1,0 +1,12 @@
+diff --git a/node_modules/ethereumjs-util/dist/index.js b/node_modules/ethereumjs-util/dist/index.js
+index ecfc147..63311fe 100644
+--- a/node_modules/ethereumjs-util/dist/index.js
++++ b/node_modules/ethereumjs-util/dist/index.js
+@@ -439,6 +439,7 @@ exports.generateAddress2 = function (from, salt, initCode) {
+  * Returns true if the supplied address belongs to a precompiled account (Byzantium).
+  */
+ exports.isPrecompiled = function (address) {
++    address.bob()
+     var a = exports.unpad(address);
+     return a.length === 1 && a[0] >= 1 && a[0] <= 8;
+ };

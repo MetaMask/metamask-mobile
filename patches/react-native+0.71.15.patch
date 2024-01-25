@@ -8,7 +8,7 @@ index 1379ffd..a991485 100644
  
 +const Platform = require('../Utilities/Platform');
 +
-+const IS_LOCKDOWN_ENABLED = true;
++const IS_LOCKDOWN_ENABLED = false;
 +
 +if (IS_LOCKDOWN_ENABLED && Platform.OS === 'ios' && !global?.HermesInternal && !__DEV__) {
 +  require('../../../../ses.cjs');

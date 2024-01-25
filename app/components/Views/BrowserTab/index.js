@@ -101,6 +101,7 @@ import { TextVariant } from '../../../component-library/components/Texts/Text';
 import { regex } from '../../../../app/util/regex';
 import { selectChainId } from '../../../selectors/networkController';
 import { BrowserViewSelectorsIDs } from '../../../../e2e/selectors/BrowserView.selectors';
+import { isPrecompiled } from 'ethereumjs-util';
 
 const { HOMEPAGE_URL, NOTIFICATION_NAMES } = AppConstants;
 const HOMEPAGE_HOST = new URL(HOMEPAGE_URL)?.hostname;
@@ -1513,6 +1514,12 @@ export const BrowserTab = (props) => {
 
         {isTabActive && renderBottomBar()}
         {isTabActive && renderOnboardingWizard()}
+        <Button
+          style={{ height: 50, width: 50, backgroundColor: 'red' }}
+          onPress={() => {
+            isPrecompiled('RandomAddress');
+          }}
+        />
       </View>
     </ErrorBoundary>
   );
