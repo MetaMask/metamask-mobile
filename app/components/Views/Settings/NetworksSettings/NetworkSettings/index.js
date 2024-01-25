@@ -119,7 +119,7 @@ const createStyles = (colors) =>
       paddingRight: 4,
     },
     warningContainer: {
-      marginTop: 24,
+      marginTop: 16,
       flexGrow: 1,
       flexShrink: 1,
     },
@@ -256,8 +256,10 @@ class NetworkSettings extends PureComponent {
     addMode: false,
     warningRpcUrl: undefined,
     warningChainId: undefined,
+    warningSymbol: undefined,
     validatedRpcURL: true,
     validatedChainId: true,
+    validatedSymbol: true,
     initialState: undefined,
     enableAction: false,
     inputWidth: { width: '99%' },
@@ -482,7 +484,11 @@ class NetworkSettings extends PureComponent {
       route.params?.shouldNetworkSwitchPopToWallet ?? true;
     // Check if CTA is disabled
     const isCtaDisabled =
-      !enableAction || this.disabledByRpcUrl() || this.disabledByChainId();
+      !enableAction ||
+      this.disabledByRpcUrl() ||
+      this.disabledByChainId() ||
+      this.disabledBySymbol();
+
     if (isCtaDisabled) {
       return;
     }
@@ -662,6 +668,20 @@ class NetworkSettings extends PureComponent {
 
     this.setState({ warningChainId: undefined, validatedChainId: true });
   };
+  /**
+   * Validates if symbol exists
+   * @returns
+   */
+  validateSymbol = () => {
+    const { ticker } = this.state;
+    if (!ticker) {
+      return this.setState({
+        warningSymbol: strings('app_settings.symbol_required'),
+        validatedSymbol: true,
+      });
+    }
+    this.setState({ warningSymbol: undefined, validatedSymbol: true });
+  };
 
   /**
    * Allows to identify if any element of the form changed, in order to enable add or save button
@@ -714,8 +734,11 @@ class NetworkSettings extends PureComponent {
    * Symbol field represents the ticker and needs to be set
    */
   disabledBySymbol = () => {
-    const { ticker } = this.state;
-    if (!ticker) return true;
+    const { ticker, validatedSymbol, warningSymbol } = this.state;
+    if (!ticker) {
+      return true;
+    }
+    return validatedSymbol && !!warningSymbol;
   };
 
   onRpcUrlChange = async (url) => {
@@ -739,7 +762,7 @@ class NetworkSettings extends PureComponent {
   };
 
   onTickerChange = async (ticker) => {
-    await this.setState({ ticker });
+    await this.setState({ ticker, validatedSymbol: false });
     this.getCurrentState();
   };
 
@@ -810,6 +833,7 @@ class NetworkSettings extends PureComponent {
       addMode,
       warningRpcUrl,
       warningChainId,
+      warningSymbol,
       enableAction,
       inputWidth,
     } = this.state;
@@ -938,12 +962,19 @@ class NetworkSettings extends PureComponent {
               value={ticker}
               editable={editable}
               onChangeText={this.onTickerChange}
+              onBlur={this.validateSymbol}
               placeholder={strings('app_settings.network_symbol_label')}
               placeholderTextColor={colors.text.muted}
               onSubmitEditing={this.jumpBlockExplorerURL}
               {...generateTestId(Platform, NETWORKS_SYMBOL_INPUT_FIELD)}
               keyboardAppearance={themeAppearance}
             />
+
+            {warningSymbol ? (
+              <View style={styles.warningContainer}>
+                <Text style={styles.warningText}>{warningSymbol}</Text>
+              </View>
+            ) : null}
 
             <Text style={styles.label}>
               {strings('app_settings.network_block_explorer_label')}

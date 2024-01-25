@@ -881,7 +881,8 @@
     "transactions_subheading": "Transactions",
     "network_provider": "Network provider",
     "token_nft_ens_subheading": "Token, NFT, and ENS autodetection",
-    "security_check_subheading": "Security checks"
+    "security_check_subheading": "Security checks",
+    "symbol_required": "Symbol is required."
   },
   "sdk": {
     "disconnect_title": "Disconnect all sites?",
