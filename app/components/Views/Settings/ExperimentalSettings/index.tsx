@@ -4,6 +4,7 @@ import { ScrollView, Switch, View } from 'react-native';
 import { MMKV } from 'react-native-mmkv';
 import { strings } from '../../../../../locales/i18n';
 import Engine from '../../../../core/Engine';
+import { colors as importedColors } from '../../../../styles/common';
 import { useTheme } from '../../../../util/theme';
 import Text, {
   TextVariant,
