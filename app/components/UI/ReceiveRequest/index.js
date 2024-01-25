@@ -26,7 +26,7 @@ import { showAlert } from '../../../actions/alert';
 import { toggleReceiveModal } from '../../../actions/modals';
 import { protectWalletModalVisible } from '../../../actions/user';
 
-import { fontStyles, colors as importedColors } from '../../../styles/common';
+import { fontStyles } from '../../../styles/common';
 import Text from '../../Base/Text';
 import ModalHandler from '../../Base/ModalHandler';
 import ModalDragger from '../../Base/ModalDragger';
@@ -47,10 +47,10 @@ import { getRampNetworks } from '../../../reducers/fiatOrders';
 import { RequestPaymentModalSelectorsIDs } from '../../../../e2e/selectors/Modals/RequestPaymentModal.selectors';
 import { getDecimalChainId } from '../../../util/networks';
 
-const createStyles = (colors) =>
+const createStyles = (theme) =>
   StyleSheet.create({
     wrapper: {
-      backgroundColor: colors.background.default,
+      backgroundColor: theme.colors.background.default,
       borderTopLeftRadius: 10,
       borderTopRightRadius: 10,
     },
@@ -61,7 +61,7 @@ const createStyles = (colors) =>
     qrWrapper: {
       margin: 8,
       padding: 8,
-      backgroundColor: importedColors.white,
+      backgroundColor: theme.brandColors.white['000'],
     },
     addressWrapper: {
       flexDirection: 'row',
@@ -69,19 +69,19 @@ const createStyles = (colors) =>
       margin: 15,
       padding: 9,
       paddingHorizontal: 15,
-      backgroundColor: colors.background.alternative,
+      backgroundColor: theme.colors.background.alternative,
       borderRadius: 30,
     },
     copyButton: {
-      backgroundColor: colors.background.default,
-      color: colors.primary.default,
+      backgroundColor: theme.colors.background.default,
+      color: theme.colors.primary.default,
       borderRadius: 12,
       overflow: 'hidden',
       paddingVertical: 3,
       paddingHorizontal: 6,
       marginHorizontal: 6,
       borderWidth: 1,
-      borderColor: colors.primary.default,
+      borderColor: theme.colors.primary.default,
     },
     actionRow: {
       flexDirection: 'row',
@@ -93,7 +93,7 @@ const createStyles = (colors) =>
     },
     title: {
       ...fontStyles.normal,
-      color: colors.text.default,
+      color: theme.colors.text.default,
       fontSize: 18,
       flexDirection: 'row',
       alignSelf: 'center',
@@ -252,8 +252,9 @@ class ReceiveRequest extends PureComponent {
   };
 
   render() {
-    const colors = this.context.colors || mockTheme.colors;
-    const styles = createStyles(colors);
+    const theme = this.context.theme || mockTheme;
+    const colors = theme.colors;
+    const styles = createStyles(theme);
 
     return (
       <SafeAreaView style={styles.wrapper}>

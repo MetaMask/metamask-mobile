@@ -8,13 +8,6 @@ export interface Label {
   description: string;
 }
 
-export enum E2ELabel {
-  RUN_E2E_SMOKE_LABEL = 'Run E2E Smoke',
-  NO_E2E_SMOKE_NEEDED = 'No E2E Smoke Needed',
-}
-
-export const e2eLabels = Object.values(E2ELabel);
-
 export const externalContributorLabel: Label = {
   name: 'external-contributor',
   color: '7057FF',
