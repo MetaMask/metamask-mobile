@@ -595,11 +595,13 @@
     "purpose_connect": "hubungkan",
     "purpose_sign": "konfirmasikan transaksi",
     "select_accounts": "Pilih Akun",
+    "please_wait": "Harap tunggu"
+  },
+  "account_selector": {
     "prev": "SEBELUMNYA",
     "next": "SELANJUTNYA",
     "unlock": "Buka",
-    "forget": "Lupakan perangkat ini",
-    "please_wait": "Harap tunggu"
+    "forget": "Lupakan perangkat ini"
   },
   "app_settings": {
     "title": "Pengaturan",
@@ -1826,7 +1828,6 @@
     "select_provider": "Pilih penyedia favorit Anda",
     "blockaid": "Blockaid",
     "blockaid_desc": "Privacy preserving - no data is shared with third parties.",
-    "available_on_eth_mainet": "Available on Ethereum Mainnet.",
     "switch_network": "Harap beralih ke mainnet atau sepolia"
   },
   "walletconnect_sessions": {

@@ -595,11 +595,13 @@
     "purpose_connect": "bağlan",
     "purpose_sign": "kilit cüzdanınızı okutun",
     "select_accounts": "Hesap Seç",
+    "please_wait": "Lütfen bekleyin"
+  },
+  "account_selector": {
     "prev": "ÖNCEKİ",
     "next": "SONRAKİ",
     "unlock": "Kilidini Aç",
-    "forget": "Bu cihazı unut",
-    "please_wait": "Lütfen bekleyin"
+    "forget": "Bu cihazı unut"
   },
   "app_settings": {
     "title": "Ayarlar",
@@ -1826,7 +1828,6 @@
     "select_provider": "Tercih ettiğiniz sağlayıcıyı seçin",
     "blockaid": "Blockaid",
     "blockaid_desc": "Privacy preserving - no data is shared with third parties.",
-    "available_on_eth_mainet": "Available on Ethereum Mainnet.",
     "switch_network": "Lütfen ana ağa veya sepolia ağına geçin"
   },
   "walletconnect_sessions": {
