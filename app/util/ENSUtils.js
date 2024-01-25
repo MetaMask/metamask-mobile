@@ -49,7 +49,9 @@ export function getCachedENSName(address, chainId) {
     return undefined;
   }
 
-  const cacheEntry = ENSCache.cache[chainId + address];
+  const networkId = CHAIN_ID_TO_NETWORK_ID[chainId];
+  const cacheEntry = ENSCache.cache[networkId + address];
+
   return cacheEntry?.name;
 }
 

@@ -31,10 +31,10 @@ describe('getCachedENSName', () => {
   });
 
   it('returns a cached ENS name', () => {
+    const networkId = '1';
     const chainId = '0x1';
-
     ENSCache.cache = {
-      [`${chainId}${mockAddress}`]: {
+      [`${networkId}${mockAddress}`]: {
         name: 'cachedname.metamask.eth',
         timestamp: Date.now(),
       },
