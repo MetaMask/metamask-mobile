@@ -1,6 +1,7 @@
 # Banner
-
+[BannerAlert](https://www.notion.so/MetaMask-Design-System-Guides-Design-f86ecc914d6b4eb6873a122b83c12940?p=56177453644641ed8ef5c96db6a7681f&pm=c)
 ![BannerAlert](./variants/BannerAlert/BannerAlert.png)
+[BannerTip](https://www.notion.so/MetaMask-Design-System-Guides-Design-f86ecc914d6b4eb6873a122b83c12940?p=67fdb01ab850472f90abc6f4127395cb&pm=c)
 ![BannerTip](./variants/BannerTip/BannerTip.png)
 
 This component is a union Banner component, which consists of [BannerAlert](../BannerAlert/BannerAlert.tsx) and [BannerTip](../BannerTip/BannerTip.tsx).

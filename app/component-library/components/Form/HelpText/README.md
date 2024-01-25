@@ -1,4 +1,4 @@
-# HelpText
+# [HelpText](https://www.notion.so/MetaMask-Design-System-Guides-Design-f86ecc914d6b4eb6873a122b83c12940?p=d3c5f6284df84d598e2c2d586083eef0&pm=c)
 
 ![HelpText](./HelpText.png)
 

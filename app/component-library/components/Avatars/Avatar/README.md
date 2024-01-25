@@ -1,4 +1,4 @@
-# Avatar
+# [Avatar](https://www.notion.so/MetaMask-Design-System-Guides-Design-f86ecc914d6b4eb6873a122b83c12940?p=3c55358131914c589ed1e6d21d14a04f&pm=c)
 
 ![Avatar](./Avatar.png)
 

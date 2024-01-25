@@ -1,4 +1,4 @@
-# ButtonIcon
+# [ButtonIcon](https://www.notion.so/MetaMask-Design-System-Guides-Design-f86ecc914d6b4eb6873a122b83c12940?p=52fa285ebd8b4d56a22b6eabd08a8cf0&pm=c)
 
 ![ButtonIcon](./ButtonIcon.png)
 
