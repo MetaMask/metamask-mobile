@@ -392,7 +392,7 @@ export const getRpcMethodMiddleware = ({
           networkType && getAllNetworks().includes(networkType);
         let chainId;
 
-        if (isInitialNetwork && networkType !== RPC) {
+        if (isInitialNetwork) {
           chainId = ChainId[networkType];
         } else if (networkType === RPC) {
           chainId = providerConfig.chainId;
