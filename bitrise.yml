@@ -400,7 +400,6 @@ workflows:
       - android_e2e_test
   run_tag_smoke_core_ios:
     envs:
-      - TEST_SUITE_FOLDER: './e2e/specs/accounts/* ./e2e/specs/browser/* ./e2e/specs/assets/* ./e2e/specs/onboarding/* ./e2e/specs/permission-systems/* ./e2e/specs/settings/* ./e2e/specs/wallet/*'
       - TEST_SUITE_TAG: '.*SmokeCore.*'
     after_run:
       - ios_e2e_test
@@ -410,7 +409,6 @@ workflows:
         stack: linux-docker-android-20.04
         machine_type_id: elite-xl
     envs:
-      - TEST_SUITE_FOLDER: './e2e/specs/accounts/* ./e2e/specs/browser/* ./e2e/specs/assets/* ./e2e/specs/onboarding/* ./e2e/specs/permission-systems/* ./e2e/specs/settings/* ./e2e/specs/wallet/*'
       - TEST_SUITE_TAG: '.*SmokeCore.*'
     after_run:
       - android_e2e_test
