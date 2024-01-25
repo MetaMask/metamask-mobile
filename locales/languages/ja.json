@@ -535,6 +535,7 @@
     "import_account": "アカウントのインポート",
     "connect_hardware": "ハードウェアウォレットの接続",
     "imported": "インポートされました",
+    "qr_hardware": "QRハードウェア",
     "remove_account_title": "アカウントの削除",
     "remove_account_message": "このアカウントを削除してよろしいですか？",
     "no": "いいえ",
@@ -594,11 +595,13 @@
     "purpose_connect": "接続",
     "purpose_sign": "トランザクションを確定",
     "select_accounts": "アカウントを選択してください",
+    "please_wait": "お待ちください"
+  },
+  "account_selector": {
     "prev": "前へ",
     "next": "次へ",
     "unlock": "ロックを解除",
-    "forget": "このデバイスの登録を解除",
-    "please_wait": "お待ちください"
+    "forget": "このデバイスの登録を解除"
   },
   "app_settings": {
     "title": "設定",
@@ -1825,7 +1828,6 @@
     "select_provider": "希望のプロバイダーを選択してください",
     "blockaid": "Blockaid",
     "blockaid_desc": "Privacy preserving - no data is shared with third parties.",
-    "available_on_eth_mainet": "Available on Ethereum Mainnet.",
     "switch_network": "メインネットまたはSepoliaに切り替えてください"
   },
   "walletconnect_sessions": {

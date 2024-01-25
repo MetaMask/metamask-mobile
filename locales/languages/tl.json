@@ -535,6 +535,7 @@
     "import_account": "Mag-import ng account",
     "connect_hardware": "Ikonekta ang wallet na hardware",
     "imported": "Na-import",
+    "qr_hardware": "QR hardware",
     "remove_account_title": "Pag-alis ng account",
     "remove_account_message": "Gusto mo ba talagang alisin ang account na ito?",
     "no": "Hindi",
@@ -594,11 +595,13 @@
     "purpose_connect": "kumonekta",
     "purpose_sign": "kumpirmahin ang transaksyon",
     "select_accounts": "Pumili ng Account",
+    "please_wait": "Mangyaring maghintay"
+  },
+  "account_selector": {
     "prev": "NAKARAAN",
     "next": "SUSUNOD",
     "unlock": "I-unlock",
-    "forget": "Kalimutan ang device na ito",
-    "please_wait": "Mangyaring maghintay"
+    "forget": "Kalimutan ang device na ito"
   },
   "app_settings": {
     "title": "Mga Setting",
@@ -1825,7 +1828,6 @@
     "select_provider": "Piliin ang iyong mas gustong provider",
     "blockaid": "Blockaid",
     "blockaid_desc": "Privacy preserving - no data is shared with third parties.",
-    "available_on_eth_mainet": "Available on Ethereum Mainnet.",
     "switch_network": "Mangyaring lumipat sa mainnet o sepolia"
   },
   "walletconnect_sessions": {
