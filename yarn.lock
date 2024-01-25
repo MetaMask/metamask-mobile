@@ -3605,10 +3605,10 @@
     web3 "^0.20.7"
     web3-provider-engine "^16.0.3"
 
-"@metamask/design-tokens@^1.12.0":
-  version "1.12.0"
-  resolved "https://registry.yarnpkg.com/@metamask/design-tokens/-/design-tokens-1.12.0.tgz#05ad9ba4e91cb62dd2149ac0d026ba1fe2b9d8dd"
-  integrity sha512-hoAnXYjx/NrlcpjsQGHLe383G7K/PHxXKGwGjJq7+iwnqpxjPHvyyai0Xh6hhT88ydq1n6OJRG/pwvD1mkQPug==
+"@metamask/design-tokens@^1.13.0":
+  version "1.13.0"
+  resolved "https://registry.yarnpkg.com/@metamask/design-tokens/-/design-tokens-1.13.0.tgz#b91677f2abe014a8ee809f3fd7a865a89aa0294d"
+  integrity sha512-kkQIaoFm8aRypKpwEY+Nz45u56U5Gtc3AlpWyaP8pg3oerjOBBkCePpCpXL9wlPlvKmuGsTGeiVxd3j/TNNnpg==
 
 "@metamask/eslint-config-typescript@^9.0.0":
   version "9.0.1"
