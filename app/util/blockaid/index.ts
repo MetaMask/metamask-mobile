@@ -2,14 +2,9 @@ import {
   ResultType,
   SecurityAlertResponse,
 } from '../../components/UI/BlockaidBanner/BlockaidBanner.types';
-import { getDecimalChainId } from '../networks';
+import { BLOCKAID_SUPPORTED_CHAIN_IDS, getDecimalChainId } from '../networks';
 import { store } from '../../store';
 import { selectChainId } from '../../selectors/networkController';
-import { NETWORKS_CHAIN_ID } from '../../constants/network';
-
-export const SUPPORTED_CHAIN_IDS: string[] = [
-  NETWORKS_CHAIN_ID.MAINNET, // Ethereum Mainnet Chain ID
-];
 
 export const isSupportedChainId = (chainId: string) => {
   /**
@@ -21,7 +16,7 @@ export const isSupportedChainId = (chainId: string) => {
     return true;
   }
 
-  const isSupported = SUPPORTED_CHAIN_IDS.some(
+  const isSupported = BLOCKAID_SUPPORTED_CHAIN_IDS.some(
     (id) => getDecimalChainId(id) === getDecimalChainId(chainId),
   );
 
