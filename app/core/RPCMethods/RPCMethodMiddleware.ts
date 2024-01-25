@@ -131,7 +131,7 @@ export const checkActiveAccountAndChainId = async ({
       networkType && getAllNetworks().includes(networkType);
     let activeChainId;
 
-    if (isInitialNetwork && networkType !== RPC) {
+    if (isInitialNetwork) {
       activeChainId = ChainId[networkType];
     } else if (networkType === RPC) {
       activeChainId = providerConfig.chainId;
