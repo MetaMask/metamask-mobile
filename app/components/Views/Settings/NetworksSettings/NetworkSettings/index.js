@@ -36,7 +36,7 @@ import AnalyticsV2 from '../../../../../util/analyticsV2';
 import ScrollableTabView from 'react-native-scrollable-tab-view';
 import DefaultTabBar from 'react-native-scrollable-tab-view/DefaultTabBar';
 import PopularList from '../../../../../util/networks/customNetworks';
-import WarningMessage from '../../../../Views/SendFlow/WarningMessage';
+import WarningMessage from '../../../confirmations/SendFlow/WarningMessage';
 import InfoModal from '../../../../UI/Swaps/components/InfoModal';
 import {
   DEFAULT_MAINNET_CUSTOM_NAME,
