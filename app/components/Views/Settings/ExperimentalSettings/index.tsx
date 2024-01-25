@@ -1,5 +1,5 @@
 import React, { FC, useCallback, useEffect, useState } from 'react';
-import { Platform, ScrollView, Switch, View } from 'react-native';
+import { ScrollView, Switch, View } from 'react-native';
 
 import { MMKV } from 'react-native-mmkv';
 import { strings } from '../../../../../locales/i18n';
