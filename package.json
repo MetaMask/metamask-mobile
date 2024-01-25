@@ -1,6 +1,6 @@
 {
   "name": "metamask",
-  "version": "7.12.5",
+  "version": "7.14.0",
   "private": true,
   "scripts": {
     "audit:ci": "./scripts/yarn-audit.sh",
@@ -62,8 +62,8 @@
     "test:e2e:ios:bitrise:run": "IS_TEST='true' detox test -c ios.sim.debug",
     "test:e2e:ios:debug:single": "detox test -c ios.sim.debug",
     "test:e2e:android:debug": "IS_TEST='true' detox build -c android.emu.debug && detox test -c android.emu.debug",
-    "test:e2e:android:bitrise:build": "IS_TEST='true' detox build -c android.emu.bitrise.debug",
-    "test:e2e:android:bitrise:run": "IS_TEST='true' detox test -c android.emu.bitrise.debug --headless",
+    "test:e2e:android:bitrise:build": "IS_TEST='true' detox build -c android.emu.debug",
+    "test:e2e:android:bitrise:run": "IS_TEST='true' detox test -c android.emu.debug --headless",
     "test:e2e:android:debug:single": "detox test -c android.emu.debug",
     "test:e2e:android": "detox build -c android.emu.release && detox test -c android.emu.release --record-videos failing",
     "test:e2e:android:qa": "detox build -c android.emu.release.qa && detox test -c android.emu.release.qa --record-videos failing",
@@ -166,7 +166,7 @@
     "follow-redirects": "1.15.4"
   },
   "dependencies": {
-    "@consensys/on-ramp-sdk": "1.25.6",
+    "@consensys/on-ramp-sdk": "1.25.7",
     "@eth-optimism/contracts": "0.0.0-2021919175625",
     "@ethereumjs/common": "^2.3.1",
     "@ethereumjs/tx": "^3.2.1",
@@ -369,7 +369,8 @@
     "uuid": "^8.3.2",
     "valid-url": "1.0.9",
     "vm-browserify": "1.1.2",
-    "zxcvbn": "4.4.2"
+    "zxcvbn": "4.4.2",
+    "cockatiel": "^3.1.1"
   },
   "devDependencies": {
     "@actions/core": "^1.10.0",

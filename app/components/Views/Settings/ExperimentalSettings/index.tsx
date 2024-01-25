@@ -3,7 +3,6 @@ import { ScrollView, Switch, View } from 'react-native';
 
 import { strings } from '../../../../../locales/i18n';
 import Engine from '../../../../core/Engine';
-import { colors as importedColors } from '../../../../styles/common';
 import { useTheme } from '../../../../util/theme';
 import Text, {
   TextVariant,
@@ -40,7 +39,8 @@ const ExperimentalSettings = ({ navigation, route }: Props) => {
 
   const isFullScreenModal = route?.params?.isFullScreenModal;
 
-  const { colors } = useTheme();
+  const theme = useTheme();
+  const { colors } = theme;
   const styles = createStyles(colors);
 
   const toggleSecurityAlertsEnabled = () => {
@@ -138,7 +138,7 @@ const ExperimentalSettings = ({ navigation, route }: Props) => {
             true: colors.primary.default,
             false: colors.border.muted,
           }}
-          thumbColor={importedColors.white}
+          thumbColor={theme.brandColors.white['000']}
           style={styles.switch}
           ios_backgroundColor={colors.border.muted}
           testID={SECURITY_ALERTS_TOGGLE_TEST_ID}
