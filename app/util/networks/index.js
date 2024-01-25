@@ -213,15 +213,15 @@ export function getNetworkTypeById(id) {
   throw new Error(`${NetworkSwitchErrorType.unknownNetworkId} ${id}`);
 }
 
-export function getDefaultNetworkByChainId(hexChainId) {
-  if (!hexChainId) {
+export function getDefaultNetworkByChainId(chainId) {
+  if (!chainId) {
     throw new Error(NetworkSwitchErrorType.missingChainId);
   }
 
   let returnNetwork;
 
   getAllNetworks().forEach((type) => {
-    if (toLowerCaseEquals(String(NetworkList[type].chainId), hexChainId)) {
+    if (toLowerCaseEquals(String(NetworkList[type].chainId), chainId)) {
       returnNetwork = NetworkList[type];
     }
   });
