@@ -84,7 +84,11 @@ const BlockaidIndicator = ({ navigation }: Props) => {
   const multiFailures = failureCount >= 3;
 
   return (
-    <BottomSheet ref={sheetRef} isInteractable={sheetInteractable}>
+    <BottomSheet
+      ref={sheetRef}
+      isInteractable={sheetInteractable}
+      onClose={goBackToExperimentalScreen}
+    >
       {status === Status.Idle && (
         <View style={styles.blockaidWrapper}>
           <View style={styles.iconWrapper}>
