@@ -1828,7 +1828,6 @@
     "select_provider": "Επιλέξτε τον πάροχο που προτιμάτε",
     "blockaid": "Blockaid",
     "blockaid_desc": "Privacy preserving - no data is shared with third parties.",
-    "available_on_eth_mainet": "Available on Ethereum Mainnet.",
     "switch_network": "Παρακαλούμε μεταβείτε στο mainnet ή το sepolia"
   },
   "walletconnect_sessions": {
