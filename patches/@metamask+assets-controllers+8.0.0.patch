@@ -742,10 +742,10 @@ index 4ed4990..9af95c1 100644
                          }
                      }
 diff --git a/node_modules/@metamask/assets-controllers/dist/TokenRatesController.d.ts b/node_modules/@metamask/assets-controllers/dist/TokenRatesController.d.ts
-index 480ecaf..15aafd7 100644
+index 480ecaf..9cccbc9 100644
 --- a/node_modules/@metamask/assets-controllers/dist/TokenRatesController.d.ts
 +++ b/node_modules/@metamask/assets-controllers/dist/TokenRatesController.d.ts
-@@ -1,29 +1,9 @@
+@@ -1,29 +1,10 @@
 -import type { Hex } from '@metamask/utils';
 -import { BaseController, BaseConfig, BaseState } from '@metamask/base-controller';
 +import { BaseController } from '@metamask/base-controller';
@@ -776,10 +776,11 @@ index 480ecaf..15aafd7 100644
 -    name: string;
 -    shortname: string;
 -}
++import { Hex } from '@metamask/utils';
  /**
   * @type Token
   *
-@@ -41,6 +21,7 @@ export interface Token {
+@@ -41,6 +22,7 @@ export interface Token {
      image?: string;
      balanceError?: unknown;
      isERC721?: boolean;
@@ -787,28 +788,26 @@ index 480ecaf..15aafd7 100644
  }
  /**
   * @type TokenRatesConfig
-@@ -55,8 +36,18 @@ export interface Token {
- export interface TokenRatesConfig extends BaseConfig {
+@@ -56,7 +38,17 @@ export interface TokenRatesConfig extends BaseConfig {
      interval: number;
      nativeCurrency: string;
--    chainId: Hex;
+     chainId: Hex;
 -    tokens: Token[];
-+    chainId: string;
 +    selectedAddress: string;
 +    allTokens: {
-+        [chainId: string]: {
++        [chainId: Hex]: {
 +            [key: string]: Token[];
 +        };
 +    };
 +    allDetectedTokens: {
-+        [chainId: string]: {
++        [chainId: Hex]: {
 +            [key: string]: Token[];
 +        };
 +    };
      threshold: number;
  }
  interface ContractExchangeRates {
-@@ -66,21 +57,20 @@ interface ContractExchangeRates {
+@@ -66,21 +58,20 @@ interface ContractExchangeRates {
   * @type TokenRatesState
   *
   * Token rates controller state
@@ -834,7 +833,7 @@ index 480ecaf..15aafd7 100644
      /**
       * Name of this controller used during composition
       */
-@@ -89,83 +79,41 @@ export declare class TokenRatesController extends BaseController<TokenRatesConfi
+@@ -89,83 +80,41 @@ export declare class TokenRatesController extends BaseController<TokenRatesConfi
       * Creates a TokenRatesController instance.
       *
       * @param options - The controller options.
@@ -852,11 +851,10 @@ index 480ecaf..15aafd7 100644
       * @param state - Initial state to set on this controller.
       */
 -    constructor({ chainId: initialChainId, onTokensStateChange, onCurrencyRateStateChange, onNetworkStateChange, }: {
--        chainId: Hex;
 +    constructor({ interval, threshold, chainId: initialChainId, ticker: initialTicker, selectedAddress: initialSelectedAddress, onPreferencesStateChange, onTokensStateChange, onNetworkStateChange, tokenPricesService, }: {
 +        interval?: number;
 +        threshold?: number;
-+        chainId: string;
+         chainId: Hex;
 +        ticker: string;
 +        selectedAddress: string;
 +        onPreferencesStateChange: (listener: (preferencesState: PreferencesState) => void) => void;
