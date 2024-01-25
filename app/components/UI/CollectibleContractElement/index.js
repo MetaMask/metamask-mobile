@@ -23,7 +23,7 @@ import Icon, {
 const DEVICE_WIDTH = Device.getDeviceWidth();
 const COLLECTIBLE_WIDTH = (DEVICE_WIDTH - 30 - 16) / 3;
 
-const createStyles = (colors) =>
+const createStyles = (colors, brandColors) =>
   StyleSheet.create({
     itemWrapper: {
       paddingHorizontal: 15,
@@ -68,6 +68,7 @@ const createStyles = (colors) =>
       width: 32,
       height: 32,
       borderRadius: 16,
+      backgroundColor: brandColors.yellow['500'],
     },
   });
 
@@ -98,8 +99,8 @@ function CollectibleContractElement({
   );
   const actionSheetRef = useRef();
   const longPressedCollectible = useRef(null);
-  const { colors, themeAppearance } = useTheme();
-  const styles = createStyles(colors);
+  const { colors, themeAppearance, brandColors } = useTheme();
+  const styles = createStyles(colors, brandColors);
 
   const toggleCollectibles = useCallback(() => {
     setCollectiblesVisible(!collectiblesVisible);
@@ -229,7 +230,7 @@ function CollectibleContractElement({
             <View style={styles.favoritesLogoWrapper}>
               <Icon
                 name={IconName.Star}
-                color={IconColor.Alternative}
+                color={IconColor.Inverse}
                 size={IconSize.Lg}
               />
             </View>
