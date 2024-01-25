@@ -27,7 +27,7 @@ import Button, {
   ButtonSize,
   ButtonWidthTypes,
 } from '../../../../component-library/components/Buttons/Button';
-import Device from 'app/util/device';
+import Device from '../../../../../app/util/device';
 
 const storage = new MMKV(); // id: mmkv.default
 
