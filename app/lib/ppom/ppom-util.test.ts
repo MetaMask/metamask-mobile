@@ -1,7 +1,7 @@
-import PPOMUtil from './ppom-util';
-import Engine from '../../core/Engine';
-import * as TransactionActions from '../../actions/transaction'; // eslint-disable-line import/no-namespace
 import * as SignatureRequestActions from '../../actions/signatureRequest'; // eslint-disable-line import/no-namespace
+import * as TransactionActions from '../../actions/transaction'; // eslint-disable-line import/no-namespace
+import Engine from '../../core/Engine';
+import PPOMUtil from './ppom-util';
 
 jest.mock('../../core/Engine', () => ({
   context: {
