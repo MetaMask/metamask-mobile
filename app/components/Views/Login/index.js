@@ -9,6 +9,7 @@ import {
   Image,
   InteractionManager,
   BackHandler,
+  Keyboard,
 } from 'react-native';
 import Text, {
   TextColor,
@@ -371,6 +372,8 @@ class Login extends PureComponent {
         this.props.selectedAddress,
       );
 
+      Keyboard.dismiss();
+
       // Get onboarding wizard state
       const onboardingWizard = await DefaultPreference.get(ONBOARDING_WIZARD);
       if (onboardingWizard) {
@@ -507,6 +510,7 @@ class Login extends PureComponent {
       <ErrorBoundary navigation={this.props.navigation} view="Login">
         <SafeAreaView style={styles.mainWrapper}>
           <KeyboardAwareScrollView
+            keyboardShouldPersistTaps="handled"
             style={styles.wrapper}
             resetScrollToCoords={{ x: 0, y: 0 }}
           >
