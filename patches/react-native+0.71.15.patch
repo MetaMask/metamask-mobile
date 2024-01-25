@@ -1,33 +1,15 @@
 diff --git a/node_modules/react-native/Libraries/Core/InitializeCore.js b/node_modules/react-native/Libraries/Core/InitializeCore.js
-index 1379ffd..4763ab2 100644
+index 1379ffd..f2825f5 100644
 --- a/node_modules/react-native/Libraries/Core/InitializeCore.js
 +++ b/node_modules/react-native/Libraries/Core/InitializeCore.js
-@@ -24,26 +24,55 @@
+@@ -24,26 +24,37 @@
  
  'use strict';
  
-+import { MMKV } from 'react-native-mmkv';
-+const storage = new MMKV(); // id: mmkv.default
-+const isSesEnabled = storage.getBoolean('is-ses-enabled');
-+
 +const Platform = require('../Utilities/Platform');
 +
-+if (isSesEnabled && Platform.OS === 'ios' && !global?.HermesInternal && !__DEV__) {
-+  require('../../../../ses.cjs');
-+  /**
-+   * Without consoleTaming: 'unsafe' causes:
-+   * - Attempting to define property on object that is not extensible.
-+   * Without errorTrapping 'none' causes:
-+   * - TypeError: undefined is not a function (near '...globalThis.process.on...')
-+   * Without unhandledRejectionTrapping 'none' causes:
-+   * - TypeError: globalThis.process.on is not a function. (In 'globalThis.process.on('unhandledRejection', h.unhandledRejectionHandler)', 'globalThis.process.on' is undefined)
-+   * overrideTaming 'severe' is ideal (default override?)
-+   * Nb: global.process is only partially shimmed, which confuses SES
-+   * Nb: All are Unhandled JS Exceptions, since we call lockdown before setUpErrorHandling
-+  */
-+  repairIntrinsics({ consoleTaming: 'unsafe', errorTrapping: 'none', unhandledRejectionTrapping: 'none', overrideTaming: 'severe' });
-+  require('reflect-metadata'); // Vetted shim required to fix: https://github.com/LavaMoat/docs/issues/26
-+  hardenIntrinsics();
++if (Platform.OS === 'ios' && !global?.HermesInternal) {
++  require('./setUpSes');
 +}
 +
  const start = Date.now();
@@ -60,6 +42,41 @@ index 1379ffd..4763ab2 100644
  
  const GlobalPerformanceLogger = require('../Utilities/GlobalPerformanceLogger');
  // We could just call GlobalPerformanceLogger.markPoint at the top of the file,
+diff --git a/node_modules/react-native/Libraries/Core/setUpSes.js b/node_modules/react-native/Libraries/Core/setUpSes.js
+new file mode 100644
+index 0000000..27dd1ef
+--- /dev/null
++++ b/node_modules/react-native/Libraries/Core/setUpSes.js
+@@ -0,0 +1,29 @@
++'use strict';
++
++/**
++ * Set up Hardened JS (SES) via InitializeCore,
++ * provided the given MMKV storage key exists.
++ */
++
++import { MMKV } from 'react-native-mmkv';
++
++const storage = new MMKV(); // id: mmkv.default
++const isSesEnabled = storage.getBoolean('is-ses-enabled');
++
++if (isSesEnabled && !__DEV__) {
++  require('../../../../ses.cjs');
++  /**
++   * Without consoleTaming: 'unsafe' causes:
++   * - Attempting to define property on object that is not extensible.
++   * Without errorTrapping 'none' causes:
++   * - TypeError: undefined is not a function (near '...globalThis.process.on...')
++   * Without unhandledRejectionTrapping 'none' causes:
++   * - TypeError: globalThis.process.on is not a function. (In 'globalThis.process.on('unhandledRejection', h.unhandledRejectionHandler)', 'globalThis.process.on' is undefined)
++   * overrideTaming 'severe' is ideal (default override?)
++   * Nb: global.process is only partially shimmed, which confuses SES
++   * Nb: All are Unhandled JS Exceptions, since we call lockdown before setUpErrorHandling
++  */
++  repairIntrinsics({ consoleTaming: 'unsafe', errorTrapping: 'none', unhandledRejectionTrapping: 'none', overrideTaming: 'severe' });
++  require('reflect-metadata'); // Vetted shim required to fix: https://github.com/LavaMoat/docs/issues/26
++  hardenIntrinsics();
++}
 diff --git a/node_modules/react-native/ReactAndroid/build.gradle b/node_modules/react-native/ReactAndroid/build.gradle
 index d03f3dd..816f559 100644
 --- a/node_modules/react-native/ReactAndroid/build.gradle
