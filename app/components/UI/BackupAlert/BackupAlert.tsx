@@ -107,8 +107,7 @@ const BackupAlert = ({ navigation, onDismiss }: BackupAlertI) => {
     onboardingWizardStep !== 0 ||
     !isVisible;
 
-  if (shouldNotRenderAlert) return null;
-  return (
+  return shouldNotRenderAlert ? null : (
     <ElevatedView
       elevation={99}
       style={[
