@@ -93,6 +93,17 @@ export async function processAggregatorOrder(
     return order;
   }
 
+  if (
+    options?.forced !== true &&
+    ((order.data as Order)?.pollingSecondsMinimum ?? 0) > 0 &&
+    order.lastTimeFetched &&
+    order.lastTimeFetched +
+      ((order.data as Order)?.pollingSecondsMinimum ?? 0) * 1000 >
+      now
+  ) {
+    return order;
+  }
+
   try {
     const orders = await SDK.orders();
     const getOrderMethod = isSellFiatOrder(order) ? 'getSellOrder' : 'getOrder';

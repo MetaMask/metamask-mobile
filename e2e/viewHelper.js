@@ -24,6 +24,7 @@ import TermsOfUseModal from './pages/modals/TermsOfUseModal';
 import TabBarComponent from './pages/TabBarComponent';
 import LoginView from './pages/LoginView';
 import { getGanachePort } from './fixtures/utils';
+import Assertions from './utils/Assertions';
 
 const GOERLI = 'Goerli Test Network';
 
@@ -47,7 +48,7 @@ export const acceptTermOfUse = async () => {
 
 export const importWalletWithRecoveryPhrase = async () => {
   // tap on import seed phrase button
-  await OnboardingCarouselView.isVisible();
+  await Assertions.checkIfVisible(OnboardingCarouselView.container);
   await OnboardingCarouselView.tapOnGetStartedButton();
   await OnboardingView.tapImportWalletFromSeedPhrase();
 
@@ -90,22 +91,21 @@ export const CreateNewWallet = async () => {
   //'should create new wallet'
 
   // tap on import seed phrase button
-  await OnboardingCarouselView.isGetStartedButtonVisible();
   await OnboardingCarouselView.tapOnGetStartedButton();
   await OnboardingView.tapCreateWallet();
 
-  await MetaMetricsOptIn.isVisible();
+  await Assertions.checkIfVisible(MetaMetricsOptIn.container);
   await MetaMetricsOptIn.tapAgreeButton();
   await acceptTermOfUse();
 
-  await CreatePasswordView.isVisible();
+  await Assertions.checkIfVisible(CreatePasswordView.container);
   await CreatePasswordView.tapIUnderstandCheckBox();
   await CreatePasswordView.enterPassword(validAccount.password);
   await CreatePasswordView.reEnterPassword(validAccount.password);
   // await CreatePasswordView.tapCreatePasswordButton();
 
   // Check that we are on the Secure your wallet screen
-  await ProtectYourWalletView.isVisible();
+  await Assertions.checkIfVisible(ProtectYourWalletView.container);
   await ProtectYourWalletView.tapOnRemindMeLaterButton();
   await device.disableSynchronization();
   await SkipAccountSecurityModal.tapIUnderstandCheckBox();

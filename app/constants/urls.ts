@@ -61,7 +61,9 @@ export const MM_PLAY_STORE_LINK = `market://details?id=${AppConstants.BUNDLE_IDS
 export const MM_SDK_DEEPLINK = `https://${AppConstants.MM_UNIVERSAL_LINK_HOST}/connect?`;
 
 export const BLOCKAID_ATTRIBUTION_LINK = 'https://blockaid.io';
-export const BLOCKAID_SUPPORT_LINK = 'https://support.metamask.io/hc/en-us';
+export const FALSE_POSITIVE_REPORT_BASE_URL =
+  'https://blockaid-false-positive-portal.metamask.io';
+export const UTM_SOURCE = 'metamask-ppom';
 
 export const SEPOLIA_FAUCET = 'https://www.infura.io/faucet/sepolia';
 export const LINEA_FAUCET = 'https://www.infura.io/faucet/linea';
