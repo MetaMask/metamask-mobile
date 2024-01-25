@@ -27,6 +27,7 @@ import Button, {
   ButtonSize,
   ButtonWidthTypes,
 } from '../../../../component-library/components/Buttons/Button';
+import Device from 'app/util/device';
 
 const storage = new MMKV(); // id: mmkv.default
 
@@ -216,7 +217,7 @@ const ExperimentalSettings = ({ navigation, route }: Props) => {
   return (
     <ScrollView style={styles.wrapper}>
       <WalletConnectSettings />
-      {Platform.OS === 'ios' && <SesSettings />}
+      {Device.isIos() && <SesSettings />}
       {isBlockaidFeatureEnabled() && <BlockaidSettings />}
     </ScrollView>
   );
