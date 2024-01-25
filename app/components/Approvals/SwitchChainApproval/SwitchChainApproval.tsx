@@ -1,5 +1,5 @@
 import React, { useCallback } from 'react';
-import useApprovalRequest from '../../hooks/useApprovalRequest';
+import useApprovalRequest from '../../Views/confirmations/hooks/useApprovalRequest';
 import { ApprovalTypes } from '../../../core/RPCMethods/RPCMethodMiddleware';
 import ApprovalModal from '../ApprovalModal';
 import SwitchCustomNetwork from '../../UI/SwitchCustomNetwork';

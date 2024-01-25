@@ -20,7 +20,7 @@ import AnalyticsV2 from '../../../util/analyticsV2';
 import AppConstants from '../../../core/AppConstants';
 import Alert, { AlertType } from '../../Base/Alert';
 import FontAwesome from 'react-native-vector-icons/FontAwesome';
-import WarningMessage from '../../Views/SendFlow/WarningMessage';
+import WarningMessage from '../../Views/confirmations/SendFlow/WarningMessage';
 import NotificationManager from '../../../core/NotificationManager';
 import { ThemeContext, mockTheme } from '../../../util/theme';
 import generateTestId from '../../../../wdio/utils/generateTestId';
