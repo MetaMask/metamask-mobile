@@ -82,7 +82,7 @@ project.ext.sentryCli = [
 
 // Override default React Native
 project.ext.react = [
-    enableRAMBundle=false
+    bundleCommand: "ram-bundle",
     bundleAssetName: "index.bundle",
     entryFile: "index.js",
     hermesCommand: "../../node_modules/hermes-engine/%OS-BIN%/hermesc",
