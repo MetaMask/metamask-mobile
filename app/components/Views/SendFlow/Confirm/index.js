@@ -480,21 +480,15 @@ class Confirm extends PureComponent {
 
     const { gasEstimationReady, preparedTransaction } = this.state;
 
-    // only add transaction if gasEstimationReady
+    // only add transaction if gasEstimationReady and preparedTransaction has gas
     if (gasEstimationReady && !preparedTransaction.gas) {
-      // prepare a transaction if not already prepared.
       const { TransactionController } = Engine.context;
 
       const preparedTransaction = this.prepareTransactionToSend();
 
       // update state only if preparedTransaction has gas
       if (preparedTransaction.gas) {
-        const {
-          from,
-          to,
-          value,
-          data,
-        } = preparedTransaction;
+        const { from, to, value, data } = preparedTransaction;
 
         // eslint-disable-next-line react/no-did-update-set-state
         this.setState({ preparedTransaction }, async () => {
