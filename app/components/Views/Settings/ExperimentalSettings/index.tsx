@@ -123,6 +123,15 @@ const ExperimentalSettings = ({ navigation, route }: Props) => {
 
   const BlockaidSettings: FC = () => (
     <>
+      {Device.isAndroid() && (
+        <Text
+          color={TextColor.Default}
+          variant={TextVariant.HeadingLG}
+          style={styles.heading}
+        >
+          {strings('app_settings.security_heading')}
+        </Text>
+      )}
       <View style={styles.setting}>
         <Text color={TextColor.Default} variant={TextVariant.BodyLGMedium}>
           {strings('experimental_settings.security_alerts')}
