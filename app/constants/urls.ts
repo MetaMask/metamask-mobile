@@ -21,7 +21,7 @@ export const CONSENSYS_PRIVACY_POLICY = 'https://consensys.net/privacy-policy/';
 
 // SES
 export const SES_URL =
-  'https://github.com/endojs/endo/tree/master/packages/ses#readme';
+  'https://github.com/endojs/endo/blob/master/packages/ses/README.md';
 
 // Keystone
 export const KEYSTONE_SUPPORT = 'https://keyst.one/mmm';
