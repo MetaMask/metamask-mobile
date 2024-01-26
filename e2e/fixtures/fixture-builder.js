@@ -132,6 +132,14 @@ class FixtureBuilder {
               networkDetails: {
                 EIPS: {},
               },
+              networkConfigurations: {
+                networkId1: {
+                  rpcUrl: `http://localhost:${getGanachePort()}`,
+                  chainId: '1337',
+                  ticker: 'ETH',
+                  nickname: 'Localhost',
+                },
+              },
             },
             PhishingController: {
               listState: {

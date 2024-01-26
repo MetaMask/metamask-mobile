@@ -59,7 +59,7 @@ const mockSignatureRequest = {
 describe('validateResponse', () => {
   beforeEach(() => {
     Engine.context.PreferencesController.state.securityAlertsEnabled = true;
-    Engine.context.NetworkController.state.providerConfig.chainId = '1';
+    Engine.context.NetworkController.state.providerConfig.chainId = '0x1';
   });
 
   afterEach(() => {
@@ -77,12 +77,12 @@ describe('validateResponse', () => {
     expect(spyTransactionAction).toBeCalledTimes(0);
   });
 
-  it('should not validate user is not on mainnet', async () => {
+  it('should not validate user if on a non supporting blockaid network', async () => {
     const spyTransactionAction = jest.spyOn(
       TransactionActions,
       'setTransactionSecurityAlertResponse',
     );
-    Engine.context.NetworkController.state.providerConfig.chainId = '5';
+    Engine.context.NetworkController.state.providerConfig.chainId = '0xfa';
     await PPOMUtil.validateRequest(mockRequest, '123');
     expect(Engine.context.PPOMController.usePPOM).toBeCalledTimes(0);
     expect(spyTransactionAction).toBeCalledTimes(0);

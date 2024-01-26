@@ -535,6 +535,7 @@
     "import_account": "एक खाता इम्पोर्ट करें",
     "connect_hardware": "हार्डवेयर वॉलेट कनेक्ट करें",
     "imported": "इम्पोर्ट किया गया",
+    "qr_hardware": "QR हार्डवेयर",
     "remove_account_title": "अकाउंट हटाया जाना",
     "remove_account_message": "क्या आप वास्तव में इस अकाउंट को हटाना चाहते हैं?",
     "no": "नहीं",
@@ -594,11 +595,13 @@
     "purpose_connect": "कनेक्ट",
     "purpose_sign": "लेनदेन की पुष्टि करें",
     "select_accounts": "किसी खाते का चयन करें",
+    "please_wait": "कृपया प्रतीक्षा करें"
+  },
+  "account_selector": {
     "prev": "पिछला",
     "next": "अगला",
     "unlock": "अनलॉक करें",
-    "forget": "इस डिवाइस को भूल जाएं",
-    "please_wait": "कृपया प्रतीक्षा करें"
+    "forget": "इस डिवाइस को भूल जाएं"
   },
   "app_settings": {
     "title": "सेटिंग",
@@ -1825,7 +1828,6 @@
     "select_provider": "अपना पसंदीदा प्रदाता चुनें",
     "blockaid": "Blockaid",
     "blockaid_desc": "Privacy preserving - no data is shared with third parties.",
-    "available_on_eth_mainet": "Available on Ethereum Mainnet.",
     "switch_network": "कृपया Mainnet या sepolia पर बदलें"
   },
   "walletconnect_sessions": {

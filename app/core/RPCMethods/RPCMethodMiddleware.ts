@@ -131,8 +131,8 @@ export const checkActiveAccountAndChainId = async ({
       networkType && getAllNetworks().includes(networkType);
     let activeChainId;
 
-    if (isInitialNetwork && networkType !== RPC) {
-      activeChainId = ChainId[networkType];
+    if (isInitialNetwork) {
+      activeChainId = ChainId[networkType as keyof typeof ChainId];
     } else if (networkType === RPC) {
       activeChainId = providerConfig.chainId;
     }
@@ -392,8 +392,8 @@ export const getRpcMethodMiddleware = ({
           networkType && getAllNetworks().includes(networkType);
         let chainId;
 
-        if (isInitialNetwork && networkType !== RPC) {
-          chainId = ChainId[networkType];
+        if (isInitialNetwork) {
+          chainId = ChainId[networkType as keyof typeof ChainId];
         } else if (networkType === RPC) {
           chainId = providerConfig.chainId;
         }

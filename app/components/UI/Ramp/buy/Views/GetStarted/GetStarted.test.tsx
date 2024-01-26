@@ -188,7 +188,7 @@ describe('GetStarted', () => {
     });
   });
 
-  it('navigates to payment method when getStarted is true and selectedRegion is defined', async () => {
+  it('navigates to build quote when getStarted is true and selectedRegion is defined', async () => {
     mockUseRampSDKValues = {
       ...mockuseRampSDKInitialValues,
       getStarted: true,
@@ -202,7 +202,7 @@ describe('GetStarted', () => {
       index: 0,
       routes: [
         {
-          name: Routes.RAMP.PAYMENT_METHOD_HAS_STARTED,
+          name: Routes.RAMP.BUILD_QUOTE_HAS_STARTED,
           params: {
             showBack: false,
           },

@@ -1,11 +1,9 @@
 import { StyleSheet } from 'react-native';
-import {
-  fontStyles,
-  colors as importedColors,
-} from '../../../../styles/common';
+import { fontStyles } from '../../../../styles/common';
+import { Theme } from '../../../../util/theme/models';
 
 // eslint-disable-next-line import/prefer-default-export
-export const createStyles = (colors: any) =>
+export const createStyles = (theme: Theme) =>
   StyleSheet.create({
     wrapper: {
       flex: 1,
@@ -26,7 +24,7 @@ export const createStyles = (colors: any) =>
       fontSize: 24,
       marginBottom: 20,
       ...fontStyles.normal,
-      color: colors.text.alternative,
+      color: theme.colors.text.alternative,
     },
     textContainer: {
       width: '100%',
@@ -36,10 +34,10 @@ export const createStyles = (colors: any) =>
       fontSize: 14,
       marginBottom: 24,
       ...fontStyles.normal,
-      color: colors.text.alternative,
+      color: theme.colors.text.alternative,
     },
     link: {
-      color: colors.primary.default,
+      color: theme.colors.primary.default,
       ...fontStyles.bold,
     },
     bottom: {
@@ -52,7 +50,7 @@ export const createStyles = (colors: any) =>
       paddingHorizontal: '30%',
     },
     buttonText: {
-      color: importedColors.white,
+      color: theme.brandColors.white['000'],
       ...fontStyles.normal,
     },
     image: {
@@ -62,7 +60,7 @@ export const createStyles = (colors: any) =>
       marginBottom: 20,
     },
     keystone: {
-      color: colors.text.default,
+      color: theme.colors.text.default,
       height: 48,
       fontSize: 24,
     },
