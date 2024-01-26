@@ -1,6 +1,9 @@
 import { createSelector } from 'reselect';
 import { PreferencesState } from '@metamask/preferences-controller';
 import { RootState } from '../reducers';
+import { isHardwareAccount } from '../../app/util/address';
+import { selectChainId } from './networkController';
+import { NETWORKS_CHAIN_ID } from 'app/constants/network';
 
 const selectPreferencesControllerState = (state: RootState) =>
   state.engine.backgroundState.PreferencesController;
@@ -110,3 +113,30 @@ export const selectSmartTransactionsOptInStatus = createSelector(
   (preferencesControllerState: PreferencesState) =>
     preferencesControllerState.smartTransactionsOptInStatus,
 );
+
+// TODO put this somewhere better
+export const ALLOWED_SMART_TRANSACTIONS_CHAIN_IDS = [
+  NETWORKS_CHAIN_ID.MAINNET,
+  NETWORKS_CHAIN_ID.GOERLI,
+];
+
+// TODO optimize using createSelector
+export const getSmartTransactionsEnabled = (state: RootState) => {
+  const selectedAddress = selectSelectedAddress(state);
+  const addrIshardwareAccount = isHardwareAccount(selectedAddress);
+  const chainId = selectChainId(state);
+
+  const isAllowedNetwork =
+    ALLOWED_SMART_TRANSACTIONS_CHAIN_IDS.includes(chainId);
+
+  return Boolean(isAllowedNetwork && !addrIshardwareAccount);
+};
+
+// TODO optimize using createSelector
+export const getIsSmartTransaction = (state: RootState) => {
+  const isSmartTransactionsEnabled = getSmartTransactionsEnabled(state);
+  const smartTransactionsOptInStatus =
+    selectSmartTransactionsOptInStatus(state);
+
+  return isSmartTransactionsEnabled && smartTransactionsOptInStatus;
+};
