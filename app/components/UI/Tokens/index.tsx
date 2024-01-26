@@ -403,7 +403,9 @@ const Tokens: React.FC<TokensI> = ({ tokens }) => {
         CurrencyRateController.start(),
         TokenRatesController.updateExchangeRates(),
       ];
-      await Promise.all(actions);
+      await Promise.all(actions).catch((error) => {
+        Logger.error(error, 'Error while refreshing tokens');
+      });
       setRefreshing(false);
     });
   };
