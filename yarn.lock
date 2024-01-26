@@ -1287,10 +1287,10 @@
   resolved "https://registry.yarnpkg.com/@colors/colors/-/colors-1.6.0.tgz#ec6cd237440700bc23ca23087f513c75508958b0"
   integrity sha512-Ir+AOibqzrIsL6ajt3Rz3LskB7OiMVHqltZmspbW/TJuTVuyOMirVqAkjfY6JISiLHgyNqicAC8AyHHGzNd/dA==
 
-"@consensys/ledgerhq-metamask-keyring@^0.0.5":
-  version "0.0.5"
-  resolved "https://registry.yarnpkg.com/@consensys/ledgerhq-metamask-keyring/-/ledgerhq-metamask-keyring-0.0.5.tgz#8095b09dc016fc2ae29b58e2f06e02af242ec028"
-  integrity sha512-UjzVXPll2Hup1R0f5L+6OQFNttSNJoCRsEfjkW9x0go3PYP1FHtC+NbF7V1Ox4uPcCN/D65TC6oY8GPJAIuS/w==
+"@consensys/ledgerhq-metamask-keyring@^0.0.7":
+  version "0.0.7"
+  resolved "https://registry.yarnpkg.com/@consensys/ledgerhq-metamask-keyring/-/ledgerhq-metamask-keyring-0.0.7.tgz#7aecb1dd7795f4e22e1eb6ee7dfe7c5e32c5a392"
+  integrity sha512-UoS8EYilAjGWmtUZ0hXdZV3UE+3wgX915kdZzmTUNUoDp/Ze4YqvDYlBBHZaq86PAAE0GweqmnD0Vnah3/OIcA==
   dependencies:
     "@ethereumjs/tx" "^3.5.0"
     "@ledgerhq/hw-app-eth" "6.26.1"
@@ -5147,7 +5147,7 @@
   resolved "https://registry.yarnpkg.com/@react-native/assets/-/assets-1.0.0.tgz#c6f9bf63d274bafc8e970628de24986b30a55c8e"
   integrity sha512-KrwSpS1tKI70wuKl68DwJZYEvXktDHdZMG0k2AXD/rJVSlB23/X2CB2cutVR0HwNMJIal9HOUOBB2rVfa6UGtQ==
 
-"@react-native/normalize-color@*", "@react-native/normalize-color@2.1.0", "@react-native/normalize-color@^2.1.0", "@react-native/normalize-color@^2.0.0":
+"@react-native/normalize-color@*", "@react-native/normalize-color@2.1.0", "@react-native/normalize-color@^2.0.0", "@react-native/normalize-color@^2.1.0":
   version "2.1.0"
   resolved "https://registry.yarnpkg.com/@react-native/normalize-color/-/normalize-color-2.1.0.tgz#939b87a9849e81687d3640c5efa2a486ac266f91"
   integrity sha512-Z1jQI2NpdFJCVgpY+8Dq/Bt3d+YUi1928Q+/CZm/oh66fzM0RUl54vvuXlPJKybH4pdCZey1eDTPaLHkMPNgWA==

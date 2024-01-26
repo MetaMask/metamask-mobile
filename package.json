@@ -167,7 +167,7 @@
     "follow-redirects": "1.15.4"
   },
   "dependencies": {
-    "@consensys/ledgerhq-metamask-keyring": "^0.0.5",
+    "@consensys/ledgerhq-metamask-keyring": "^0.0.7",
     "@consensys/on-ramp-sdk": "1.25.7",
     "@eth-optimism/contracts": "0.0.0-2021919175625",
     "@ethereumjs/common": "^2.3.1",
@@ -198,6 +198,7 @@
     "@metamask/post-message-stream": "7.0.0",
     "@metamask/ppom-validator": "^0.18.0",
     "@metamask/preferences-controller": "^4.0.0",
+    "@metamask/react-native-button": "^3.0.0",
     "@metamask/scure-bip39": "^2.1.0",
     "@metamask/sdk-communication-layer": "^0.12.0",
     "@metamask/signature-controller": "4.0.1",
@@ -239,7 +240,6 @@
     "appium-adb": "^9.11.4",
     "asyncstorage-down": "4.2.0",
     "axios": "1.6.0",
-    "react-native-ble-plx": "3.1.1",
     "base-64": "1.0.0",
     "bignumber.js": "^9.0.1",
     "buffer": "5.2.1",
@@ -300,7 +300,6 @@
     "react-native-ble-plx": "3.1.1",
     "react-native-branch": "^5.6.2",
     "react-native-browser-polyfill": "0.1.2",
-    "@metamask/react-native-button": "^3.0.0",
     "react-native-camera": "^3.36.0",
     "react-native-confetti": "^0.1.0",
     "react-native-confetti-cannon": "^1.5.0",
@@ -374,8 +373,7 @@
     "uuid": "^8.3.2",
     "valid-url": "1.0.9",
     "vm-browserify": "1.1.2",
-    "zxcvbn": "4.4.2",
-    "cockatiel": "^3.1.1"
+    "zxcvbn": "4.4.2"
   },
   "devDependencies": {
     "@actions/core": "^1.10.0",
