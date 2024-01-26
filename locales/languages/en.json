@@ -21,6 +21,7 @@
     "transfer_farming_description": "If you approve this request, a third party known for scams will take all your assets.",
     "before_you_proceed": "Before you proceed",
     "enable_blockaid_alerts": "To enable this feature we need to set up some security alert. This page will need to stay open while its being set up. This will take less than a minute to complete.",
+    "enable_blockaid_alerts_description": "This page will need to stay open while security alerts are being set up. This process will take less than a minute to complete.",
     "setting_up_alerts": "Setting up security alerts",
     "setting_up_alerts_description": "We are going as fast as we can to set up security alerts. Hang in there, we are almost done.",
     "setup_complete": "Set up complete",
@@ -1839,8 +1840,7 @@
     "security_alerts_desc": "This feature alerts you to malicious activity by locally reviewing your transaction and signature requests. Always do your own due diligence before approving any requests. There's no guarantee that this feature will detect all malicious activity. By enabling this feature you agree to the provider's terms of use.",
     "select_provider": "Select your preferred provider",
     "blockaid": "Blockaid",
-    "blockaid_desc": "Privacy preserving - no data is shared with third parties.",
-    "available_on_eth_mainet": "Available on Ethereum Mainnet.",
+    "blockaid_desc": "Privacy preserving - no data is shared with third parties. Available on Arbitrum, Avalanche, BNB chain, Ethereum Mainnet, Optimism and Polygon.",
     "switch_network": "Please switch to mainnet or sepolia"
   },
   "walletconnect_sessions": {
@@ -2375,7 +2375,7 @@
     "title": "What's new",
     "blockaid": {
       "title": "Stay safe with security alerts",
-      "description_1": "Steer clear of known scams while still preserving your privacy with security alerts powered by Blockaid on Ethereum Mainnet.",
+      "description_1": "Steer clear of known scams while still preserving your privacy with security alerts powered by Blockaid. This feature is available on Arbitrum, Avalanche, BNB chain, Ethereum Mainnet, Linea, Optimism and Polygon.",
       "description_2": "Always do your own due diligence before approving requests.",
       "action_text": "Enable security alerts"
     },

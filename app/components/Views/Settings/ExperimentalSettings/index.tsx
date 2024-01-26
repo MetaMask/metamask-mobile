@@ -14,7 +14,6 @@ import { MetaMetricsEvents } from '../../../../core/Analytics';
 import { getNavigationOptionsTitle } from '../../../UI/Navbar';
 import SECURITY_ALERTS_TOGGLE_TEST_ID from './constants';
 import { isBlockaidFeatureEnabled } from '../../../../util/blockaid';
-import { isMainnetByChainId } from '../../../../util/networks';
 import Routes from '../../../../constants/navigation/Routes';
 import { useSelector, useDispatch } from 'react-redux';
 import { Props } from './ExperimentalSettings.types';
@@ -30,8 +29,7 @@ import Button, {
  * Main view for app Experimental Settings
  */
 const ExperimentalSettings = ({ navigation, route }: Props) => {
-  const { PreferencesController, NetworkController } = Engine.context;
-  const currentChainId = NetworkController.state.providerConfig.chainId;
+  const { PreferencesController } = Engine.context;
 
   const dispatch = useDispatch();
 
@@ -142,7 +140,6 @@ const ExperimentalSettings = ({ navigation, route }: Props) => {
           style={styles.switch}
           ios_backgroundColor={colors.border.muted}
           testID={SECURITY_ALERTS_TOGGLE_TEST_ID}
-          disabled={!isMainnetByChainId(currentChainId)}
         />
       </View>
 
@@ -152,14 +149,6 @@ const ExperimentalSettings = ({ navigation, route }: Props) => {
         style={styles.desc}
       >
         {strings('experimental_settings.blockaid_desc')}
-      </Text>
-
-      <Text
-        color={TextColor.Alternative}
-        variant={TextVariant.BodyMD}
-        style={styles.desc}
-      >
-        {strings('experimental_settings.available_on_eth_mainet')}
       </Text>
     </>
   );
